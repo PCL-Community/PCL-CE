@@ -45,7 +45,7 @@
     <StackPanel x:Name="PanTags" Grid.Row="2" Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center"
                 Margin="-1,0,1,0" Visibility="Collapsed">
         <!--<corelocal:BlurBorder Background="{DynamicResource ColorBrush6}" Padding="3,1" CornerRadius="3" Margin="0,0,4,0" SnapsToDevicePixels="True" UseLayoutRounding="False">
-            <TextBlock Text="科技" Foreground="{DynamicResource ColorBrush2}" FontSize="11" />
+            <TextBlock Text="{DynamicResource Download.Comp.Category.Technology}" Foreground="{DynamicResource ColorBrush2}" FontSize="11" />
         </corelocal:BlurBorder>-->
     </StackPanel>
     <TextBlock x:Name="LabInfo" Grid.Row="2" Grid.Column="4" VerticalAlignment="Center" Margin="0,0,3,0.5"
@@ -146,13 +146,13 @@
                 SnapsToDevicePixels="False" UseLayoutRounding="False">
         <local:MyIconButton x:Name="BtnInstDownload" Height="30" Width="30"
                             SvgIcon="lucide/download" LogoScale="0.85"
-                            ToolTip="下载当前版本" Margin="2,0" />
+                            ToolTip="{DynamicResource Download.Comp.Item.DownloadCurrentVersion}" Margin="2,0" />
         <local:MyIconButton x:Name="BtnInstFavorite" Height="30" Width="30"
                             SvgIcon="lucide/heart" LogoScale="0.85"
-                            ToolTip="收藏" Margin="2,0" />
+                            ToolTip="{DynamicResource Download.Comp.Detail.Favorite}" Margin="2,0" />
         <local:MyIconButton x:Name="BtnInstVersion" Height="30" Width="30"
                             SvgIcon="lucide/square-menu" LogoScale="0.85"
-                            ToolTip="选择版本" Margin="2,0" />
+                            ToolTip="{DynamicResource Download.Comp.Item.SelectVersion}" Margin="2,0" />
     </StackPanel>
 
 </Grid>

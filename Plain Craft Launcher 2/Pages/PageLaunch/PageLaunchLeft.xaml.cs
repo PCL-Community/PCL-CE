@@ -1029,8 +1029,8 @@ public partial class PageLaunchLeft
 
     public void ShowRepairing()
     {
-        LabLaunchingTitle.Text = "正在修补游戏";
-        LabLaunchingStage.Text = "正在下载缺失模组...";
+        LabLaunchingTitle.Text = Lang.Text("Instance.Launch.Patching");
+        LabLaunchingStage.Text = Lang.Text("Instance.Launch.DownloadingMissingMods");
         LabLaunchingProgress.Text = Lang.Number(0d, "P2");
         LabLaunchingProgress.Opacity = 1d;
         ProgressLaunchingFinished.Width = new GridLength(0d, GridUnitType.Star);
@@ -1040,7 +1040,7 @@ public partial class PageLaunchLeft
     public void UpdateRepairStep(int current, int total)
     {
         if (total == 0) return;
-        LabLaunchingStage.Text = $"正在下载缺失模组 ({current}/{total})...";
+        LabLaunchingStage.Text = Lang.Text("Instance.Launch.DownloadingMissingMods.Progress", current, total);
         LabLaunchingProgress.Text = Lang.Number(current / (double)total, "P2");
         var ratio = current / (double)total;
         ProgressLaunchingFinished.Width = new GridLength(ratio, GridUnitType.Star);

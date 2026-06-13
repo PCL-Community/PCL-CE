@@ -10,7 +10,7 @@
                           ScrollChanged="PanBack_ScrollChanged">
         <StackPanel Orientation="Vertical" Margin="25">
             <local:MySearchBox x:Name="PanSearchBox" Margin="0,0,0,15" SearchButtonVisibility="Visible"
-                               HintText="搜索模组..." />
+                               HintText="{DynamicResource Instance.ModBrowser.Search.Hint}" />
             <local:MyHint x:Name="HintError" HasBorder="True" Theme="Yellow" Margin="0,0,0,15" Visibility="Collapsed" />
             <local:MyCard x:Name="CardResults" UseAnimation="False" Visibility="Collapsed">
                 <StackPanel x:Name="PanResults" Margin="12" />
@@ -18,13 +18,13 @@
             <local:MyCard x:Name="PanLoadMore" UseAnimation="False" HorizontalAlignment="Center"
                           VerticalAlignment="Center" Margin="40,15" Visibility="Collapsed">
                 <local:MyLoading Margin="20,15" x:Name="LoadMore" HorizontalAlignment="Center"
-                                 VerticalAlignment="Center" Text="正在加载更多..." />
+                                 VerticalAlignment="Center" Text="{DynamicResource Instance.ModBrowser.Loading.More}" />
             </local:MyCard>
             <local:MyCard x:Name="PanLoad" UseAnimation="False" HorizontalAlignment="Center"
                           VerticalAlignment="Center" Margin="40,80">
                 <local:MyLoading Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
                                  VerticalAlignment="Center"
-                                 Text="正在获取模组列表..." />
+                                 Text="{DynamicResource Instance.ModBrowser.Loading.Projects}" />
             </local:MyCard>
         </StackPanel>
     </local:MyScrollViewer>

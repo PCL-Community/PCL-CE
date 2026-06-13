@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using fNbt;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Hash;
@@ -1821,13 +1822,13 @@ public static class ModLocalComp
         try
         {
             if (!Directory.Exists(folderPath))
-                return "空文件夹";
-            return "文件夹";
+                return Lang.Text("Instance.Resource.Item.Info.EmptyFolder");
+            return Lang.Text("Instance.Resource.Item.FolderTag");
         }
         catch (Exception ex)
         {
             ModBase.Log(ex, $"获取文件夹描述失败：{folderPath}");
-            return "文件夹";
+            return Lang.Text("Instance.Resource.Item.FolderTag");
         }
     }
 
@@ -1863,7 +1864,8 @@ public static class ModLocalComp
                 {
                     ModBase.RunInUiWait(() =>
                     {
-                        if (loader.input.frm is not null) loader.input.frm.Load.Text = "正在更新资源";
+                        if (loader.input.frm is not null)
+                            loader.input.frm.Load.Text = Lang.Text("Instance.Resource.Updating");
                     });
                     while (PageInstanceCompResource.updatingVersions.Contains(loader.input.compPath))
                     {
@@ -1876,7 +1878,8 @@ public static class ModLocalComp
                 {
                     ModBase.RunInUiWait(() =>
                     {
-                        if (loader.input.frm is not null) loader.input.frm.Load.Text = "正在加载资源列表";
+                        if (loader.input.frm is not null)
+                            loader.input.frm.Load.Text = Lang.Text("Instance.Resource.LoadingList");
                     });
                 }
 

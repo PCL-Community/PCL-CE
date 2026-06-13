@@ -1,5 +1,6 @@
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Utils;
 using System.Collections;
 using System.IO;
@@ -181,7 +182,7 @@ public static class ModLoader
         public delegate void PreviewFinishEventHandler(LoaderBase loader);
 
         // 等待结束
-        public const string waitForExitTimeoutMessage = "等待加载器执行超时。";
+        public static string waitForExitTimeoutMessage => Lang.Text("Loader.WaitTimeout");
 
         /// <summary>
         ///     用于状态改变检测的同步锁。
@@ -437,9 +438,10 @@ public static class ModLoader
         /// </summary>
         /// <param name="timeout">等待的超时时间，以毫秒为单位。</param>
         /// <param name="timeoutMessage">若执行超时，将会抛出的异常信息。</param>
-        public void WaitForExitTime(int timeout, object input = null, string timeoutMessage = waitForExitTimeoutMessage,
+        public void WaitForExitTime(int timeout, object input = null, string timeoutMessage = null,
             object loaderToSyncProgress = null, bool isForceRestart = false)
         {
+            timeoutMessage ??= waitForExitTimeoutMessage;
             Start(input, isForceRestart);
             while (State == ModBase.LoadState.Loading)
             {

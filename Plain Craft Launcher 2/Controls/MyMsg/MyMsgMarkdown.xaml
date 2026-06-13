@@ -25,7 +25,7 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <TextBlock Grid.Row="0" FontSize="23" TextTrimming="None" Foreground="{DynamicResource ColorBrush2}"
-                       HorizontalAlignment="Left" Name="LabTitle" Margin="7,-1,70,9" Text="测试标题文本"
+                       HorizontalAlignment="Left" Name="LabTitle" Margin="7,-1,70,9" Text="{DynamicResource Common.Dialog.Title}"
                        VerticalAlignment="Top" SnapsToDevicePixels="False" UseLayoutRounding="False" />
             <Rectangle x:Name="ShapeLine" Grid.Row="1" Height="2" Fill="{Binding Foreground, ElementName=LabTitle}" />
             <my:MyScrollViewer Grid.Row="3" VerticalAlignment="Top" x:Name="PanCaption" Margin="0,0,0,17"
@@ -37,13 +37,13 @@
             </my:MyScrollViewer>
             <StackPanel Grid.Row="4" Name="PanBtn" VerticalAlignment="Top" HorizontalAlignment="Right"
                         Margin="150,0,8,0" Orientation="Horizontal">
-                <my:MyButton ColorType="Normal" x:FieldModifier="public" Text="测试按钮1" x:Name="Btn1" Margin="12,0,0,0"
+                <my:MyButton ColorType="Normal" x:FieldModifier="public" Text="{DynamicResource Common.Action.Confirm}" x:Name="Btn1" Margin="12,0,0,0"
                              Click="Btn1_Click" TextPadding="7" SnapsToDevicePixels="False" Padding="5,0"
                              UseLayoutRounding="False" />
-                <my:MyButton ColorType="Normal" x:FieldModifier="public" Text="测试按钮2" x:Name="Btn2" Margin="12,0,0,0"
+                <my:MyButton ColorType="Normal" x:FieldModifier="public" Text="{DynamicResource Common.Action.Cancel}" x:Name="Btn2" Margin="12,0,0,0"
                              Click="Btn2_Click" TextPadding="7" SnapsToDevicePixels="False" Padding="5,0"
                              UseLayoutRounding="False" />
-                <my:MyButton ColorType="Normal" x:FieldModifier="public" Text="测试按钮3" x:Name="Btn3" Margin="12,0,0,0"
+                <my:MyButton ColorType="Normal" x:FieldModifier="public" Text="{DynamicResource Common.Action.Close}" x:Name="Btn3" Margin="12,0,0,0"
                              Click="Btn3_Click" TextPadding="7" SnapsToDevicePixels="False" Padding="5,0"
                              UseLayoutRounding="False" />
             </StackPanel>

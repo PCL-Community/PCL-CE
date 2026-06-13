@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 
 namespace PCL.Core.UI;
@@ -62,7 +63,8 @@ public static class SystemDialogs {
     /// <param name="allowMultiSelect">是否允许选择多个文件，默认允许</param>
     /// <returns>用户选择的文件路径数组，如果取消则返回空数组</returns>
     /// <exception cref="ArgumentNullException">当 <paramref name="fileFilter"/> 或 <paramref name="title"/> 为 <c>null</c> 时抛出</exception>
-    public static string[] SelectFiles(string fileFilter, string title = "选择文件", string? initialDirectory = null, bool allowMultiSelect = true) {
+    public static string[] SelectFiles(string fileFilter, string? title = null, string? initialDirectory = null, bool allowMultiSelect = true) {
+        title ??= Lang.Text("Common.Dialog.SelectFile");
         var fileDialog = new OpenFileDialog {
             AddExtension = true,
             CheckFileExists = true,
@@ -92,7 +94,8 @@ public static class SystemDialogs {
     /// <param name="title">对话框标题，默认为 "选择文件夹"</param>
     /// <param name="initialDirectory">初始目录，默认为桌面</param>
     /// <returns>用户选择的文件夹路径（以 \ 结尾），如果取消则返回空字符串</returns>
-    public static string SelectFolder(string title = "选择文件夹", string? initialDirectory = null) {
+    public static string SelectFolder(string? title = null, string? initialDirectory = null) {
+        title ??= Lang.Text("Common.Dialog.SelectFolder");
         var folderDialog = new OpenFolderDialog {
             Title = title,
             InitialDirectory = initialDirectory ?? Environment.GetFolderPath(Environment.SpecialFolder.Desktop),

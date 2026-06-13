@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.ResourceProject;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -94,7 +95,7 @@ public partial class PageInstanceModDetail
 
                     if (compatible.Count == 0)
                     {
-                        HintError.Text = $"没有找到兼容 {vanillaName} 的版本";
+                        HintError.Text = Lang.Text("Instance.ModDetail.Error.NoCompatibleVersion", vanillaName);
                         HintError.Visibility = Visibility.Visible;
                         return;
                     }
@@ -135,7 +136,7 @@ public partial class PageInstanceModDetail
                             SvgIcon = "lucide/download",
                             Height = 28, Width = 28,
                             LogoScale = 0.8,
-                            ToolTip = "下载并替换旧版本",
+                            ToolTip = Lang.Text("Instance.ModDetail.DownloadAndReplace"),
                             Margin = new Thickness(0, 0, 8, 0),
                             VerticalAlignment = System.Windows.VerticalAlignment.Center
                         };
@@ -154,7 +155,7 @@ public partial class PageInstanceModDetail
                 ModBase.RunInUi(() =>
                 {
                     PanLoad.Visibility = Visibility.Collapsed;
-                    HintError.Text = "加载失败：" + ex.Message;
+                    HintError.Text = Lang.Text("Instance.ModDetail.Error.LoadFailed", ex.Message);
                     HintError.Visibility = Visibility.Visible;
                 });
             }
@@ -207,8 +208,10 @@ public partial class PageInstanceModDetail
             catch (Exception depEx)
             {
                 ModBase.Log(depEx, "[ModDetail] 依赖解析失败，跳过前置安装");
-                ModMain.MyMsgBox("前置 Mod 解析失败，将仅下载本体。\n\n" + depEx.Message,
-                    "前置解析失败", button1: "继续下载", isWarn: true, forceWait: true);
+                ModMain.MyMsgBox(Lang.Text("Instance.ModDetail.DependencyFailed.Message", depEx.Message),
+                    Lang.Text("Instance.ModDetail.DependencyFailed.Title"),
+                    button1: Lang.Text("Instance.ModDetail.DependencyFailed.Continue"),
+                    isWarn: true, forceWait: true);
             }
         }
 
@@ -216,7 +219,7 @@ public partial class PageInstanceModDetail
         var loaderName = file.FileName ?? project.TranslatedName ?? project.RawName;
         var subLoaders = new List<ModLoader.LoaderBase>
         {
-            new LoaderDownload("下载文件", downloadFiles)
+            new LoaderDownload(Lang.Text("Instance.ModDetail.Task.DownloadFile"), downloadFiles)
             {
                 ProgressWeight = 6,
                 block = true

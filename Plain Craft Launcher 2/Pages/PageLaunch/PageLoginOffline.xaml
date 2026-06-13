@@ -29,10 +29,10 @@
                VerticalAlignment="Center" />
     <local:MyTextBox Grid.Row="0" Grid.Column="1" Height="28" x:Name="TextName"
                      ToolTip="{DynamicResource Launch.Account.Offline.PlayerId.ToolTip}" />
-    <TextBlock Grid.Row="2" Grid.Column="1" Text="借用正版皮肤"
+    <TextBlock Grid.Row="2" Grid.Column="1" Text="{DynamicResource Launch.Offline.BorrowOfficialSkin}"
            TextAlignment="Center" Margin="-45,0,0,0" FontWeight="Bold" />
     <local:MyComboBox x:Name="ComboSkinSource" Grid.Row="3" Grid.Column="1" Margin="-40,0,0,8" FontSize="13">
-        <local:MyComboBoxItem Content="不使用" IsSelected="True" />
+        <local:MyComboBoxItem Content="{DynamicResource Launch.Offline.BorrowOfficialSkin.None}" IsSelected="True" />
     </local:MyComboBox>
     <TextBlock Grid.Row="4" Grid.Column="1" Text="{DynamicResource Launch.Account.Offline.UuidStandard}"
                TextAlignment="Center" Margin="-45,0,0,0" FontWeight="Bold" />

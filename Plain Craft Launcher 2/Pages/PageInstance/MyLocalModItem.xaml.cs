@@ -883,7 +883,7 @@ public partial class MyLocalCompItem
         if (instance.Info.HasNeoForge) loaders.Add(ModComp.CompLoaderType.NeoForge);
         if (instance.Info.HasQuilt) loaders.Add(ModComp.CompLoaderType.Quilt);
 
-        ModMain.Hint($"正在更新 {entry.Name}...", ModMain.HintType.Finish);
+        ModMain.Hint(Lang.Text("Instance.ModUpdate.Starting", entry.Name), ModMain.HintType.Finish);
         ModBase.RunInNewThread(() =>
         {
             try
@@ -898,7 +898,9 @@ public partial class MyLocalCompItem
                         var result = resolver.Resolve(request);
                         if (result.ToInstall is { Count: > 0 })
                         {
-                            ModBase.RunInUi(() => ModMain.Hint($"正在下载 {result.ToInstall.Count} 个前置...", ModMain.HintType.Finish));
+                            ModBase.RunInUi(() => ModMain.Hint(
+                                Lang.Text("Instance.ModUpdate.DownloadingDependencies", result.ToInstall.Count),
+                                ModMain.HintType.Finish));
                             deps = ModCompDependency.BuildDependencyDownloads(result, modsFolder);
                         }
                     }
@@ -918,14 +920,21 @@ public partial class MyLocalCompItem
                 // 清理旧版（仅比新文件旧的）
                 var cleaned = CleanOldVersions(modsFolder, project.Id, file.FileName);
 
+                var dependencyText = deps.Count > 0
+                    ? Lang.Text("Instance.ModUpdate.Completed.Dependencies", deps.Count)
+                    : "";
+                var cleanedText = cleaned > 0
+                    ? Lang.Text("Instance.ModUpdate.Completed.Cleaned", cleaned)
+                    : "";
                 ModBase.RunInUi(() => ModMain.Hint(
-                    $"{entry.Name} 更新完成{(deps.Count > 0 ? $"（含 {deps.Count} 个前置）" : "")}{(cleaned > 0 ? $"，清理 {cleaned} 个旧版" : "")}",
+                    Lang.Text("Instance.ModUpdate.Completed", entry.Name, dependencyText, cleanedText),
                     ModMain.HintType.Finish));
             }
             catch (Exception ex)
             {
                 ModBase.Log(ex, $"更新 {entry.Name} 失败");
-                ModBase.RunInUi(() => ModMain.Hint("更新失败", ModMain.HintType.Critical));
+                ModBase.RunInUi(() => ModMain.Hint(Lang.Text("Instance.ModUpdate.Failed"),
+                    ModMain.HintType.Critical));
             }
         });
     }

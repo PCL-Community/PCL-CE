@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using NAudio;
 using NAudio.Wave;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 
@@ -80,21 +81,21 @@ public static class ModMusic
             {
                 var msg = ex.Message;
                 if (msg.Contains("AlreadyAllocated"))
-                    ModMain.Hint("你的音频设备正被其他程序占用。请关闭占用程序后重启 PCL 以恢复音乐功能！", ModMain.HintType.Critical);
+                    ModMain.Hint(Lang.Text("Music.Error.DeviceBusy"), ModMain.HintType.Critical);
                 else if (msg.Contains("NoDriver") || msg.Contains("BadDeviceId"))
-                    ModMain.Hint("音频设备发生变更，音乐播放功能需重启 PCL 后恢复！", ModMain.HintType.Critical);
+                    ModMain.Hint(Lang.Text("Music.Error.DeviceChanged"), ModMain.HintType.Critical);
                 else
                     ModBase.Log(ex, $"播放失败（{fileName}）", ModBase.LogLevel.Hint);
             }
             else if (ex.Message.Contains("Got a frame at sample rate") ||
                      ex.Message.Contains("does not support changes to"))
             {
-                ModMain.Hint($"播放失败（{fileName}）：PCL 不支持中途变更音频属性的音乐文件", ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Music.Error.PropertyChanged", fileName), ModMain.HintType.Critical);
             }
             else if ((!musicCurrent.EndsWithF(".wav", true) && !musicCurrent.EndsWithF(".mp3", true) &&
                       !musicCurrent.EndsWithF(".flac", true)) || ex.Message.Contains("0xC00D36C4"))
             {
-                ModMain.Hint($"播放失败（{fileName}）：PCL 可能不支持此格式，请转换为 .wav/.mp3/.flac", ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Music.Error.UnsupportedFormat", fileName), ModMain.HintType.Critical);
             }
             else
             {
@@ -228,15 +229,19 @@ public static class ModMusic
                     {
                         ModMain.frmMain.BtnExtraMusic.SvgIcon = "lucide/play";
                         ModMain.frmMain.BtnExtraMusic.LogoScale = 0.8d;
-                        tipText = $"已暂停：{fileName}";
-                        tipText += "\r\n" + (isSingle ? "左键恢复播放，右键重新从头播放。" : "左键恢复播放，右键播放下一曲。");
+                        tipText = Lang.Text("Music.Paused", fileName);
+                        tipText += "\r\n" + Lang.Text(isSingle
+                            ? "Music.ToolTip.Paused.Single"
+                            : "Music.ToolTip.Paused.Multiple");
                     }
                     else
                     {
                         ModMain.frmMain.BtnExtraMusic.SvgIcon = "lucide/music";
                         ModMain.frmMain.BtnExtraMusic.LogoScale = 1d;
-                        tipText = $"正在播放：{fileName}";
-                        tipText += "\r\n" + (isSingle ? "左键暂停，右键重新从头播放。" : "左键暂停，右键播放下一曲。");
+                        tipText = Lang.Text("Music.NowPlaying", fileName);
+                        tipText += "\r\n" + Lang.Text(isSingle
+                            ? "Music.ToolTip.Playing.Single"
+                            : "Music.ToolTip.Playing.Multiple");
                     }
 
                     ModMain.frmMain.BtnExtraMusic.ToolTip = tipText;
@@ -257,7 +262,7 @@ public static class ModMusic
     {
         if (musicNAudio is null)
         {
-            ModMain.Hint("音乐播放尚未开始！", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Music.NotStarted"), ModMain.HintType.Critical);
             return;
         }
 
@@ -288,19 +293,21 @@ public static class ModMusic
         if (musicAllList?.Count is { } arg2 && arg2 == 1)
         {
             MusicStartPlay(musicCurrent);
-            ModMain.Hint("重新播放：" + ModBase.GetFileNameFromPath(musicCurrent), ModMain.HintType.Finish);
+            ModMain.Hint(Lang.Text("Music.Replaying", ModBase.GetFileNameFromPath(musicCurrent)),
+                ModMain.HintType.Finish);
         }
         else
         {
             var addr = DequeueNextMusicAddress();
             if (addr is null)
             {
-                ModMain.Hint("没有可以播放的音乐！", ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Music.NothingToPlay"), ModMain.HintType.Critical);
             }
             else
             {
                 MusicStartPlay(addr);
-                ModMain.Hint("正在播放：" + ModBase.GetFileNameFromPath(addr), ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Music.NowPlaying", ModBase.GetFileNameFromPath(addr)),
+                    ModMain.HintType.Finish);
             }
         }
 
@@ -341,11 +348,11 @@ public static class ModMusic
                 {
                     musicNAudio = null;
                     if (showHint)
-                        ModMain.Hint("背景音乐已清除！", ModMain.HintType.Finish);
+                        ModMain.Hint(Lang.Text("Music.Cleared"), ModMain.HintType.Finish);
                 }
                 else if (showHint)
                 {
-                    ModMain.Hint("未检测到可用的背景音乐！", ModMain.HintType.Critical);
+                    ModMain.Hint(Lang.Text("Music.NotFound"), ModMain.HintType.Critical);
                 }
             }
             else
@@ -354,7 +361,7 @@ public static class ModMusic
                 if (addr is null)
                 {
                     if (showHint)
-                        ModMain.Hint("没有可以播放的音乐！", ModMain.HintType.Critical);
+                        ModMain.Hint(Lang.Text("Music.NothingToPlay"), ModMain.HintType.Critical);
                 }
                 else
                 {
@@ -362,7 +369,8 @@ public static class ModMusic
                     {
                         MusicStartPlay(addr, isFirstLoad);
                         if (showHint)
-                            ModMain.Hint("背景音乐已刷新：" + ModBase.GetFileNameFromPath(addr), ModMain.HintType.Finish,
+                            ModMain.Hint(Lang.Text("Music.Refreshed", ModBase.GetFileNameFromPath(addr)),
+                                ModMain.HintType.Finish,
                                 false);
                     }
                     catch

@@ -65,7 +65,10 @@ public static class ModJava
                             {
                                 if (!IsVersionSuitable(candidate.Installation.Version))
                                     ModMain.Hint(
-                                        $"实例指定的 Java ({candidate.Installation.Version}) 超出版本要求范围 [{minVersion?.ToString() ?? "无下限"}, {maxVersion?.ToString() ?? "无上限"}]，可能导致游戏崩溃");
+                                        Lang.Text("Minecraft.Java.InstanceOutsideRange",
+                                            candidate.Installation.Version,
+                                            minVersion?.ToString() ?? Lang.Text("Minecraft.Java.NoLowerLimit"),
+                                            maxVersion?.ToString() ?? Lang.Text("Minecraft.Java.NoUpperLimit")));
                                 ModBase.Log($"[Java] 返回实例 '{relatedInstance.Name}' 指定的 Java: {candidate}");
                                 return candidate;
                             }
@@ -88,7 +91,8 @@ public static class ModJava
                                 {
                                     if (!IsVersionSuitable(candidate.Installation.Version))
                                         ModMain.Hint(
-                                            $"实例相对路径指定的 Java (v{candidate.Installation.Version}) 超出版本要求范围，可能导致游戏崩溃",
+                                            Lang.Text("Minecraft.Java.RelativeOutsideRange",
+                                                candidate.Installation.Version),
                                             ModMain.HintType.Critical);
                                     ModBase.Log(
                                         $"[Java] 返回实例 '{relatedInstance.Name}' 相对路径指定的 Java ({relPref.RelativePath}): {candidate}");
@@ -135,7 +139,8 @@ public static class ModJava
             if (candidate is not null && candidate.IsEnabled)
             {
                 if (!IsVersionSuitable(candidate.Installation.Version))
-                    ModMain.Hint($"全局指定的 Java (v{candidate.Installation.Version}) 超出版本要求范围，可能导致游戏崩溃");
+                    ModMain.Hint(Lang.Text("Minecraft.Java.GlobalOutsideRange",
+                        candidate.Installation.Version));
                 ModBase.Log($"[Java] 返回全局指定的 Java: {candidate}");
                 return candidate;
             }
@@ -308,14 +313,15 @@ public static class ModJava
         if (forcedManualDownload)
         {
             ModMain.MyMsgBox(
-                $"PCL 未找到 {versionDescription}。" + "\r\n" +
-                $"请自行搜索并安装 {versionDescription}，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。", "未找到 Java");
+                Lang.Text("Minecraft.Java.ManualMissing.Message", versionDescription),
+                Lang.Text("Minecraft.Launch.Java.NotFound.Title"));
             return false;
         }
 
         return ModMain.MyMsgBox(
-            $"PCL 未找到 {versionDescription}，是否需要 PCL 自动下载？" + "\r\n" +
-            $"如果你已经安装了 {versionDescription}，可以在 设置 → 启动选项 → 游戏 Java 中手动导入。", "自动下载 Java？", "自动下载", Lang.Text("Common.Action.Cancel")) == 1;
+            Lang.Text("Minecraft.Java.AutoDownload.Message", versionDescription),
+            Lang.Text("Minecraft.Java.AutoDownload.Title"),
+            Lang.Text("Minecraft.Java.AutoDownload.Confirm"), Lang.Text("Common.Action.Cancel")) == 1;
     }
 
     /// <summary>
@@ -323,12 +329,12 @@ public static class ModJava
     /// </summary>
     public static ModLoader.LoaderCombo<string> GetJavaDownloadLoader()
     {
-        var javaDownloadLoader = new LoaderDownload("下载 Java 文件", new List<DownloadFile>())
+        var javaDownloadLoader = new LoaderDownload(Lang.Text("Minecraft.Java.Download.FileTask"), new List<DownloadFile>())
             { ProgressWeight = 10d };
-        var loader = new ModLoader.LoaderCombo<string>("下载 Java",
+        var loader = new ModLoader.LoaderCombo<string>(Lang.Text("Minecraft.Java.Download.Task"),
             new ModLoader.LoaderBase[]
             {
-                new ModLoader.LoaderTask<string, List<DownloadFile>>("获取 Java 下载信息", JavaFileList)
+                new ModLoader.LoaderTask<string, List<DownloadFile>>(Lang.Text("Minecraft.Java.Download.InfoTask"), JavaFileList)
                     { ProgressWeight = 2d },
                 javaDownloadLoader
             });

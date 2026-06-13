@@ -259,7 +259,7 @@ public sealed class DiagnosticsReport
 
     public DiagnosticsReport(P2pConnectionResult? result)
     {
-        Title = "P2P 联机建立失败";
+        Title = PCL.Core.App.Localization.Lang.Text("Link.Lobby.ConnectionFailed.Title");
 
         if (result?.Diagnostics is not null)
         {

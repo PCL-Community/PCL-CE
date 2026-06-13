@@ -144,10 +144,11 @@ namespace PCL
                         arg = arg.Replace('\\', '/');
                         if (!arg.Contains("://") || arg.StartsWithF("file", true))
                         {
-                            ModMain.MyMsgBox("EventData 必须为一个网址。\r\n如果想要启动程序，请将 EventType 改为 打开文件。", "事件执行失败");
+                            ModMain.MyMsgBox(Lang.Text("Event.Error.InvalidWebsite"),
+                                Lang.Text("Event.Error.Title"));
                             return;
                         }
-                        ModMain.Hint("正在开启中，请稍候：" + arg);
+                        ModMain.Hint(Lang.Text("Event.Opening", arg));
                         ModBase.RunInThread(() => ModBase.OpenWebsite(arg));
                         break;
 
@@ -177,7 +178,7 @@ namespace PCL
                         {
                             if (ModInstanceList.McMcInstanceSelected is null)
                             {
-                                ModMain.Hint("请先选择一个 Minecraft 版本！", ModMain.HintType.Critical);
+                                ModMain.Hint(Lang.Text("Event.SelectMinecraftFirst"), ModMain.HintType.Critical);
                                 return;
                             }
                             args[0] = ModInstanceList.McMcInstanceSelected.Name;
@@ -191,7 +192,7 @@ namespace PCL
                             };
                             if (ModLaunch.McLaunchStart(options))
                             {
-                                ModMain.Hint($"正在启动 {args[0]}……");
+                                ModMain.Hint(Lang.Text("Event.Launching", args[0]));
                             }
                         });
                         break;
@@ -206,11 +207,11 @@ namespace PCL
                         {
                             ModBase.RunInUiWait(() => refreshable.Refresh());
                             if (string.IsNullOrEmpty(arg))
-                                ModMain.Hint("已刷新！", ModMain.HintType.Finish);
+                                ModMain.Hint(Lang.Text("Event.Refreshed"), ModMain.HintType.Finish);
                         }
                         else
                         {
-                            ModMain.Hint("当前页面不支持刷新操作！", ModMain.HintType.Critical);
+                            ModMain.Hint(Lang.Text("Event.RefreshUnsupported"), ModMain.HintType.Critical);
                         }
                         break;
 
@@ -260,10 +261,11 @@ namespace PCL
                         args[0] = args[0].Replace('\\', '/');
                         if (!args[0].StartsWithF("http://", true) && !args[0].StartsWithF("https://", true))
                         {
-                            ModMain.MyMsgBox("EventData 必须为以 http:// 或 https:// 开头的网址。\r\nPCL 不支持其他乱七八糟的下载协议。", "事件执行失败");
+                            ModMain.MyMsgBox(Lang.Text("Event.Error.InvalidDownloadUrl"),
+                                Lang.Text("Event.Error.Title"));
                             return;
                         }
-                        if (!EventSafetyConfirm($"即将从该网址下载文件：\r\n{args[0]}"))
+                        if (!EventSafetyConfirm(Lang.Text("Event.Download.Confirm", args[0])))
                             return;
                         try
                         {
@@ -293,7 +295,8 @@ namespace PCL
                         if (ConfigService.TryGetConfigItemNoType(args[0], out var item) && item.Source != ConfigSource.SharedEncrypt)
                             item.SetValueNoType(args[1], ModInstanceList.McMcInstanceSelected?.PathInstance);
                         if (args.Length == 2)
-                            ModMain.Hint($"已写入设置：{args[0]} → {args[1]}", ModMain.HintType.Finish);
+                            ModMain.Hint(Lang.Text("Event.SettingWritten", args[0], args[1]),
+                                ModMain.HintType.Finish);
                         break;
 
                     case EventType.修改变量:
@@ -303,11 +306,13 @@ namespace PCL
                         States.CustomVariables[args[0]] = args[1];
                         States.CustomVariables = States.CustomVariables; // 触发属性变更通知
                         if (args.Length == 2)
-                            ModMain.Hint($"已写入变量：{args[0]} → {args[1]}", ModMain.HintType.Finish);
+                            ModMain.Hint(Lang.Text("Event.VariableWritten", args[0], args[1]),
+                                ModMain.HintType.Finish);
                         break;
 
                     default:
-                        ModMain.MyMsgBox($"未知的事件类型：{type}\r\n请检查事件类型填写是否正确，或者 PCL 是否为最新版本。", "事件执行失败");
+                        ModMain.MyMsgBox(Lang.Text("Event.Error.UnknownType", type),
+                            Lang.Text("Event.Error.Title"));
                         break;
                 }
             }
@@ -355,10 +360,10 @@ namespace PCL
                 return true;
 
             switch (ModMain.MyMsgBox(
-                message + "\r\n请在确认没有安全隐患后再继续。",
-                "执行确认",
-                "继续",
-                "继续且今后不再要求确认",
+                Lang.Text("Event.Safety.Message", message),
+                Lang.Text("Event.Safety.Title"),
+                Lang.Text("Event.Safety.Continue"),
+                Lang.Text("Event.Safety.AlwaysContinue"),
                 Lang.Text("Common.Action.Cancel")))
             {
                 case 1:

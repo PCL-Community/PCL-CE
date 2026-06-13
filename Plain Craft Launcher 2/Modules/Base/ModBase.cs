@@ -2828,8 +2828,8 @@ public static class ModBase
             Log(ex, "无法打开网页（" + url + "）");
             ClipboardSet(url, false);
             ModMain.MyMsgBox(
-                "可能由于浏览器未正确配置，PCL 无法为你打开网页。" + "\r\n" + "网址已经复制到剪贴板，若有需要可以手动粘贴访问。" + "\r\n" +
-                $"网址：{url}", "无法打开网页");
+                Lang.Text("Common.Website.OpenFailed.Message", url),
+                Lang.Text("Common.Website.OpenFailed.Title"));
         }
     }
 
@@ -2879,7 +2879,8 @@ public static class ModBase
                     Log(finalEx, "剪贴板被占用，文本复制失败", LogLevel.Hint);
                 }
 
-            if (success && showSuccessHint) RunInUi(() => ModMain.Hint("已成功复制！", ModMain.HintType.Finish));
+            if (success && showSuccessHint)
+                RunInUi(() => ModMain.Hint(Lang.Text("Common.Clipboard.Copied"), ModMain.HintType.Finish));
         });
     }
 
@@ -2946,7 +2947,7 @@ public static class ModBase
                     }
             }
 
-            ModMain.Hint("[System] 已粘贴 " + copiedFiles + " 个文件和 " + copiedFolders + " 个文件夹");
+            ModMain.Hint(Lang.Text("Common.Clipboard.Pasted", copiedFiles, copiedFolders));
         }
         catch (Exception ex)
         {
@@ -3311,8 +3312,9 @@ public static class ModBase
     ///     输出 Log。
     /// </summary>
     /// <param name="title">如果要求弹窗，指定弹窗的标题。</param>
-    public static void Log(string text, LogLevel level = LogLevel.Normal, string title = "出现错误")
+    public static void Log(string text, LogLevel level = LogLevel.Normal, string title = null)
     {
+        title ??= Lang.Text("Common.Error.Title");
         // On Error Resume Next
         // 放在最后会导致无法显示极端错误下的弹窗（如无法写入日志文件）
         // 处理错误会导致再次调用 Log() 导致无限循环
@@ -3347,7 +3349,7 @@ public static class ModBase
             case LogLevel.Debug:
             {
                 if (modeDebug)
-                    ModMain.Hint("[调试模式] " + text, ModMain.HintType.Info, false);
+                    ModMain.Hint(Lang.Text("Common.Debug.Prefix", text), ModMain.HintType.Info, false);
                 break;
             }
             case LogLevel.Hint:
@@ -3364,13 +3366,14 @@ public static class ModBase
             {
                 if (CanFeedback(false))
                 {
-                    if (ModMain.MyMsgBox(text + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                            title, "反馈", Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
+                    if (ModMain.MyMsgBox(text + "\r\n\r\n" + Lang.Text("Common.Feedback.Ask"),
+                            title, Lang.Text("Common.Feedback.Action"), Lang.Text("Common.Action.Cancel"),
+                            isWarn: true) == 1)
                         Feedback(false, true);
                 }
                 else
                 {
-                    ModMain.MyMsgBox(text + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……", title,
+                    ModMain.MyMsgBox(text + "\r\n\r\n" + Lang.Text("Common.Feedback.UpdateSuggested"), title,
                         isWarn: true);
                 }
 
@@ -3387,14 +3390,14 @@ public static class ModBase
                 isCriticalErrorTriggered = true;
                 if (CanFeedback(false))
                 {
-                    if (Interaction.MsgBox(text + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
+                    if (Interaction.MsgBox(text + "\r\n\r\n" + Lang.Text("Common.Feedback.Ask"),
                             (MsgBoxStyle)((int)MsgBoxStyle.Critical + (int)MsgBoxStyle.YesNo), title) ==
                         MsgBoxResult.Yes)
                         Feedback(false, true);
                 }
                 else
                 {
-                    Interaction.MsgBox(text + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……",
+                    Interaction.MsgBox(text + "\r\n\r\n" + Lang.Text("Common.Feedback.UpdateSuggested"),
                         MsgBoxStyle.Critical, title);
                 }
 
@@ -3407,8 +3410,9 @@ public static class ModBase
     ///     输出错误信息。
     /// </summary>
     /// <param name="desc">错误描述。会在处理时在末尾加入冒号。</param>
-    public static void Log(Exception ex, string desc, LogLevel level = LogLevel.Debug, string title = "出现错误")
+    public static void Log(Exception ex, string desc, LogLevel level = LogLevel.Debug, string title = null)
     {
+        title ??= Lang.Text("Common.Error.Title");
         // On Error Resume Next
         if (ex is ThreadInterruptedException)
             return;
@@ -3451,7 +3455,7 @@ public static class ModBase
             {
                 var exLine = desc + "：" + ex;
                 if (modeDebug)
-                    ModMain.Hint("[调试模式] " + exLine, ModMain.HintType.Info, false);
+                    ModMain.Hint(Lang.Text("Common.Debug.Prefix", exLine), ModMain.HintType.Info, false);
                 break;
             }
             case LogLevel.Hint:
@@ -3469,13 +3473,14 @@ public static class ModBase
             {
                 if (CanFeedback(false))
                 {
-                    if (ModMain.MyMsgBox(exFull + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                            title, "反馈", Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
+                    if (ModMain.MyMsgBox(exFull + "\r\n\r\n" + Lang.Text("Common.Feedback.Ask"),
+                            title, Lang.Text("Common.Feedback.Action"), Lang.Text("Common.Action.Cancel"),
+                            isWarn: true) == 1)
                         Feedback(false, true);
                 }
                 else
                 {
-                    ModMain.MyMsgBox(exFull + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……", title,
+                    ModMain.MyMsgBox(exFull + "\r\n\r\n" + Lang.Text("Common.Feedback.UpdateSuggested"), title,
                         isWarn: true);
                 }
 
@@ -3493,14 +3498,14 @@ public static class ModBase
                 if (CanFeedback(false))
                 {
                     if (Interaction.MsgBox(
-                            exFull + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
+                            exFull + "\r\n\r\n" + Lang.Text("Common.Feedback.Ask"),
                             (MsgBoxStyle)((int)MsgBoxStyle.Critical + (int)MsgBoxStyle.YesNo), title) ==
                         MsgBoxResult.Yes)
                         Feedback(false, true);
                 }
                 else
                 {
-                    Interaction.MsgBox(exFull + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……",
+                    Interaction.MsgBox(exFull + "\r\n\r\n" + Lang.Text("Common.Feedback.UpdateSuggested"),
                         MsgBoxStyle.Critical, title);
                 }
 
@@ -3538,8 +3543,10 @@ public static class ModBase
 
         if (forceOpenLog || (showMsgbox &&
                              ModMain.MyMsgBox(
-                                 "若你在汇报一个 Bug，请点击 打开文件夹 按钮，并上传 Launch-" + currentDate + "-[一串数字].log 中包含错误信息的文件。" +
-                                 "\r\n" + "游戏崩溃一般与启动器无关，请不要因为游戏崩溃而提交反馈。", "反馈提交提醒", Lang.Text("Common.Action.OpenFolder"), "不需要") ==
+                                 Lang.Text("Common.Feedback.SubmitReminder.Message", currentDate),
+                                 Lang.Text("Common.Feedback.SubmitReminder.Title"),
+                                 Lang.Text("Common.Action.OpenFolder"),
+                                 Lang.Text("Common.Feedback.NotNeeded")) ==
                              1)) OpenExplorer(exePath + @"PCL\Log\");
         OpenWebsite("https://github.com/MuXue1230-owo/PCL-N/issues/");
     }
@@ -3552,9 +3559,13 @@ public static class ModBase
             if (showHint)
                 if (ModMain.MyMsgBox(
                         stat == UpdateEnums.VersionStatus.NotLatest
-                            ? $"你的 PCL 不是最新版，因此无法提交反馈。{"\r\n"}请在更新后，确认该问题在最新版中依然存在，然后再提交反馈。"
-                            : $"你的 PCL 检查更新失败，因此无法提交反馈。{"\r\n"}请连接到互联网，在检查更新后，确认该问题在最新版中依然存在，然后再提交反馈。",
-                        "无法提交反馈", stat == UpdateEnums.VersionStatus.NotLatest ? "更新" : "重新检查更新", Lang.Text("Common.Action.Cancel")) == 1)
+                            ? Lang.Text("Common.Feedback.Unavailable.NotLatest")
+                            : Lang.Text("Common.Feedback.Unavailable.CheckFailed"),
+                        Lang.Text("Common.Feedback.Unavailable.Title"),
+                        Lang.Text(stat == UpdateEnums.VersionStatus.NotLatest
+                            ? "Common.Feedback.Update"
+                            : "Common.Feedback.Recheck"),
+                        Lang.Text("Common.Action.Cancel")) == 1)
                     ModMain.frmMain.PageChange(FormMain.PageType.Setup, FormMain.PageSubType.SetupUpdate);
 
             return false;

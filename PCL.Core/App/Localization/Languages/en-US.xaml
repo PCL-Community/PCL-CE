@@ -211,7 +211,7 @@
     <sys:String x:Key="Launch.Account.LoginDialog.Title">Test title text</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.ReopenWebpage">Reopen webpage</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.CopyCode">Copy code</sys:String>
-    <sys:String x:Key="Launch.Account.LoginDialog.MinecraftLogin">Log in to PCL N Edition</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.MinecraftLogin">Sign in to a Microsoft Minecraft profile</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions">The login page will open automatically. Enter the authorization code {0} (it will be copied automatically).&#x0a;&#x0a;If you have network issues and the page fails to load, please try again.&#x0a;You can also open {1} on another device and enter the code manually.</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill">The login page will open automatically, and the authorization code will be filled in automatically.&#x0a;&#x0a;If you have network issues and the page fails to load, please try again.&#x0a;If the code is not filled in automatically, paste this authorization code {0} manually (it will be copied automatically).&#x0a;You can also open {1} on another device and enter the code manually.</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.Success">Successfully logged in from the webpage!</sys:String>
@@ -2986,5 +2986,277 @@
     <sys:String x:Key="Link.Mod.Task.InitLobby">Initialize lobby</sys:String>
     <sys:String x:Key="Link.Mod.Task.InitLobbyUi">Initialize lobby UI</sys:String>
     <sys:String x:Key="Link.Mod.Task.FetchAnnouncement">Fetch lobby announcement</sys:String>
+
+    <!-- PCL N Online -->
+
+    <sys:String x:Key="Main.TopTitle.Online">Online</sys:String>
+    <sys:String x:Key="Main.Automation.ExpandMenu">Expand menu</sys:String>
+    <sys:String x:Key="Main.Title.InstanceModBrowser">Download new mods</sys:String>
+    <sys:String x:Key="Main.Title.InstanceModDetail">Mod details</sys:String>
+    <sys:String x:Key="Main.Legal.Title">PCL N Edition - Terms of Service and Privacy Policy</sys:String>
+    <sys:String x:Key="Main.Legal.Agree">Agree and continue</sys:String>
+    <sys:String x:Key="Main.Legal.Decline">Decline and exit</sys:String>
+
+    <sys:String x:Key="Online.Nav.Category.Multiplayer">Multiplayer</sys:String>
+    <sys:String x:Key="Online.Nav.Category.Friends">Friends</sys:String>
+    <sys:String x:Key="Online.Nav.Lobby">Lobby</sys:String>
+    <sys:String x:Key="Online.Nav.CreateRoom">Create room</sys:String>
+    <sys:String x:Key="Online.Nav.ServerList">Server list</sys:String>
+    <sys:String x:Key="Online.Nav.FriendList">Friend list</sys:String>
+    <sys:String x:Key="Online.Nav.AddFriend">Add friend</sys:String>
+    <sys:String x:Key="Online.Account.Category">Online</sys:String>
+    <sys:String x:Key="Online.Account.Title">Account</sys:String>
+    <sys:String x:Key="Online.Account.LoginMicrosoft">Sign in with Microsoft</sys:String>
+    <sys:String x:Key="Online.Account.Logout">Sign out</sys:String>
+    <sys:String x:Key="Online.Account.OwnsMinecraft">Minecraft owned</sys:String>
+    <sys:String x:Key="Online.Account.DoesNotOwnMinecraft">Minecraft not owned</sys:String>
+    <sys:String x:Key="Online.Account.LoggedOut">Signed out</sys:String>
+    <sys:String x:Key="Online.Login.Title">Microsoft account sign-in</sys:String>
+    <sys:String x:Key="Online.Login.ClientIdMissing">Microsoft OAuth Client ID is not configured</sys:String>
+    <sys:String x:Key="Online.Login.Cancelled">Sign-in cancelled</sys:String>
+    <sys:String x:Key="Online.Login.XboxFailed">Xbox Live authentication failed</sys:String>
+    <sys:String x:Key="Online.Login.XstsFailed">XSTS authentication failed</sys:String>
+    <sys:String x:Key="Online.Login.XstsCredentialMissing">The XSTS response did not contain user credentials</sys:String>
+    <sys:String x:Key="Online.Login.MinecraftAuthFailed">Minecraft authentication failed</sys:String>
+    <sys:String x:Key="Online.Login.MinecraftProfileFailed">Failed to get the Minecraft profile</sys:String>
+    <sys:String x:Key="Online.Login.SuccessOwned">Signed in as {0} (Minecraft owned)</sys:String>
+    <sys:String x:Key="Online.Login.SuccessNotOwned">Signed in as {0} (Minecraft not owned)</sys:String>
+
+    <sys:String x:Key="Online.CloudSync.Title">N Cloud sync</sys:String>
+    <sys:String x:Key="Online.CloudSync.Description">Choose what to sync to the cloud. When disabled, cloud data will no longer be uploaded or downloaded.</sys:String>
+    <sys:String x:Key="Online.CloudSync.DisableAll">Disable sync</sys:String>
+    <sys:String x:Key="Online.CloudSync.Enabled">Enable N Cloud sync</sys:String>
+    <sys:String x:Key="Online.CloudSync.DisabledHint">Sync is disabled. No data will be synchronized automatically.</sys:String>
+    <sys:String x:Key="Online.CloudSync.Account">Account information</sys:String>
+    <sys:String x:Key="Online.CloudSync.Favorites">Favorites</sys:String>
+    <sys:String x:Key="Online.CloudSync.UiPreferences">Appearance settings</sys:String>
+    <sys:String x:Key="Online.CloudSync.HintPreferences">Hint state</sys:String>
+    <sys:String x:Key="Online.CloudSync.DownloadPreferences">Download settings</sys:String>
+    <sys:String x:Key="Online.CloudSync.LaunchPreferences">Launch settings</sys:String>
+    <sys:String x:Key="Online.CloudSync.HomepagePreferences">Homepage settings</sys:String>
+    <sys:String x:Key="Online.CloudSync.MusicPreferences">Music settings</sys:String>
+    <sys:String x:Key="Online.CloudSync.UpdatePreferences">Update settings</sys:String>
+    <sys:String x:Key="Online.CloudSync.CustomVariables">Custom variables</sys:String>
+    <sys:String x:Key="Online.CloudSync.Disabled">N Cloud sync disabled</sys:String>
+    <sys:String x:Key="Online.CloudSync.Syncing">Syncing with N Cloud...</sys:String>
+    <sys:String x:Key="Online.CloudSync.Retrying">N Cloud sync failed. Retrying {0}/{1}...</sys:String>
+    <sys:String x:Key="Online.CloudSync.Success">Successfully synced with N Cloud!</sys:String>
+    <sys:String x:Key="Online.CloudSync.Unavailable">N Cloud data sync is unavailable</sys:String>
+    <sys:String x:Key="Online.CloudSync.Retry">Try syncing again</sys:String>
+
+    <!-- PCL N Instance Mod Browser -->
+
+    <sys:String x:Key="Instance.ModBrowser.Search.Hint">Search mods...</sys:String>
+    <sys:String x:Key="Instance.ModBrowser.Loading.More">Loading more...</sys:String>
+    <sys:String x:Key="Instance.ModBrowser.Loading.Projects">Fetching mod list...</sys:String>
+    <sys:String x:Key="Instance.ModBrowser.Error.MissingVersion">No Minecraft version was specified. Install the instance first.</sys:String>
+    <sys:String x:Key="Instance.ModBrowser.Error.NoResults">No matching mods found. Try different keywords.</sys:String>
+    <sys:String x:Key="Instance.ModBrowser.Error.SearchFailed">Search failed: {0}</sys:String>
+    <sys:String x:Key="Instance.ModBrowser.Error.CheckNetwork">Check your network connection</sys:String>
+    <sys:String x:Key="Instance.ModBrowser.Task.Search">Search mods</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Loading.Title">Loading...</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Loading.Versions">Fetching version list...</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Error.NoCompatibleVersion">No version compatible with {0} was found</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Error.LoadFailed">Failed to load: {0}</sys:String>
+    <sys:String x:Key="Instance.ModDetail.DownloadAndReplace">Download and replace the old version</sys:String>
+    <sys:String x:Key="Instance.ModDetail.DependencyFailed.Message">Failed to resolve required mods. Only the selected mod will be downloaded.&#x0a;&#x0a;{0}</sys:String>
+    <sys:String x:Key="Instance.ModDetail.DependencyFailed.Title">Dependency resolution failed</sys:String>
+    <sys:String x:Key="Instance.ModDetail.DependencyFailed.Continue">Continue download</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Task.DownloadFile">Download file</sys:String>
+
+    <!-- Remaining visible hard-coded XAML -->
+
+    <sys:String x:Key="Launch.Offline.BorrowOfficialSkin">Use an official account skin</sys:String>
+    <sys:String x:Key="Launch.Offline.BorrowOfficialSkin.None">Do not use</sys:String>
+    <sys:String x:Key="Setup.Misc.System.Proxy.Hint">For example, http://127.0.0.1:1080/</sys:String>
+    <sys:String x:Key="Download.Comp.Item.DownloadCurrentVersion">Download current version</sys:String>
+    <sys:String x:Key="Download.Comp.Item.SelectVersion">Select version</sys:String>
+
+    <!-- Remaining dynamic UI text -->
+
+    <sys:String x:Key="Common.Clipboard.Copied">Copied successfully!</sys:String>
+    <sys:String x:Key="Common.Clipboard.Pasted">Pasted {0} files and {1} folders</sys:String>
+    <sys:String x:Key="Common.Debug.Prefix">[Debug] {0}</sys:String>
+    <sys:String x:Key="Common.Loading.UnknownError">Unknown error</sys:String>
+    <sys:String x:Key="Common.Loading.PoorNetwork">The network connection is unstable. Try again later or use a VPN to improve connectivity.</sys:String>
+    <sys:String x:Key="Common.Feedback.Ask">Would you like to report this issue? Without a report, it may never be fixed.</sys:String>
+    <sys:String x:Key="Common.Feedback.UpdateSuggested">Updating PCL to the latest version may resolve this issue.</sys:String>
+    <sys:String x:Key="Common.Feedback.Action">Report</sys:String>
+    <sys:String x:Key="Common.Feedback.SubmitReminder.Title">Before submitting feedback</sys:String>
+    <sys:String x:Key="Common.Feedback.SubmitReminder.Message">If you are reporting a bug, click Open folder and upload the Launch-{0}-[numbers].log file that contains the error.&#x0a;Game crashes are generally unrelated to the launcher. Do not submit launcher feedback solely because the game crashed.</sys:String>
+    <sys:String x:Key="Common.Feedback.NotNeeded">No, thanks</sys:String>
+    <sys:String x:Key="Common.Feedback.Unavailable.Title">Unable to submit feedback</sys:String>
+    <sys:String x:Key="Common.Feedback.Unavailable.NotLatest">Your PCL is not up to date, so feedback cannot be submitted.&#x0a;Update first, verify that the issue still occurs, and then submit feedback.</sys:String>
+    <sys:String x:Key="Common.Feedback.Unavailable.CheckFailed">PCL could not check for updates, so feedback cannot be submitted.&#x0a;Connect to the internet, check for updates, verify that the issue still occurs, and then submit feedback.</sys:String>
+    <sys:String x:Key="Common.Feedback.Update">Update</sys:String>
+    <sys:String x:Key="Common.Feedback.Recheck">Check again</sys:String>
+
+    <sys:String x:Key="Music.Error.DeviceBusy">Your audio device is being used by another program. Close that program and restart PCL to restore music playback.</sys:String>
+    <sys:String x:Key="Music.Error.DeviceChanged">The audio device changed. Restart PCL to restore music playback.</sys:String>
+    <sys:String x:Key="Music.Error.PropertyChanged">Playback failed ({0}): PCL does not support audio files whose properties change during playback.</sys:String>
+    <sys:String x:Key="Music.Error.UnsupportedFormat">Playback failed ({0}): this format may not be supported. Convert it to .wav, .mp3, or .flac.</sys:String>
+    <sys:String x:Key="Music.NotStarted">Music playback has not started.</sys:String>
+    <sys:String x:Key="Music.Replaying">Replaying: {0}</sys:String>
+    <sys:String x:Key="Music.NothingToPlay">No playable music was found.</sys:String>
+    <sys:String x:Key="Music.NowPlaying">Now playing: {0}</sys:String>
+    <sys:String x:Key="Music.Cleared">Background music cleared.</sys:String>
+    <sys:String x:Key="Music.NotFound">No available background music was found.</sys:String>
+    <sys:String x:Key="Music.Refreshed">Background music refreshed: {0}</sys:String>
+    <sys:String x:Key="Music.Paused">Paused: {0}</sys:String>
+    <sys:String x:Key="Music.ToolTip.Paused.Single">Left-click to resume; right-click to restart.</sys:String>
+    <sys:String x:Key="Music.ToolTip.Paused.Multiple">Left-click to resume; right-click for the next track.</sys:String>
+    <sys:String x:Key="Music.ToolTip.Playing.Single">Left-click to pause; right-click to restart.</sys:String>
+    <sys:String x:Key="Music.ToolTip.Playing.Multiple">Left-click to pause; right-click for the next track.</sys:String>
+
+    <sys:String x:Key="Event.Error.Title">Event execution failed</sys:String>
+    <sys:String x:Key="Event.Error.InvalidWebsite">EventData must be a web address.&#x0a;To launch a program, change EventType to Open File.</sys:String>
+    <sys:String x:Key="Event.Error.InvalidDownloadUrl">EventData must be a URL beginning with http:// or https://.&#x0a;Other download protocols are not supported.</sys:String>
+    <sys:String x:Key="Event.Error.UnknownType">Unknown event type: {0}&#x0a;Check the event type or update PCL to the latest version.</sys:String>
+    <sys:String x:Key="Event.Opening">Opening, please wait: {0}</sys:String>
+    <sys:String x:Key="Event.SelectMinecraftFirst">Select a Minecraft instance first.</sys:String>
+    <sys:String x:Key="Event.Launching">Launching {0}...</sys:String>
+    <sys:String x:Key="Event.Refreshed">Refreshed!</sys:String>
+    <sys:String x:Key="Event.RefreshUnsupported">The current page cannot be refreshed.</sys:String>
+    <sys:String x:Key="Event.SettingWritten">Setting written: {0} → {1}</sys:String>
+    <sys:String x:Key="Event.VariableWritten">Variable written: {0} → {1}</sys:String>
+
+    <sys:String x:Key="Mod.Dependency.Unresolved.Message">The following required dependencies could not be resolved:&#x0a;&#x0a;{0}</sys:String>
+    <sys:String x:Key="Mod.Dependency.Unresolved.Title">Unable to install required dependencies</sys:String>
+    <sys:String x:Key="Mod.Dependency.Confirm.Message">This mod requires the following dependencies:&#x0a;&#x0a;{0}</sys:String>
+    <sys:String x:Key="Mod.Dependency.Confirm.Title">Install mod dependencies</sys:String>
+    <sys:String x:Key="Mod.Dependency.Confirm.Install">Install mod and dependencies</sys:String>
+    <sys:String x:Key="Mod.Dependency.Confirm.Cancel">Cancel installation</sys:String>
+    <sys:String x:Key="Mod.Dependency.Aborted.Title">Installation aborted</sys:String>
+    <sys:String x:Key="Mod.Dependency.ResolveFailed.Message">Failed to resolve required mods. Only the selected mod will be downloaded.&#x0a;&#x0a;{0}</sys:String>
+    <sys:String x:Key="Mod.Dependency.ResolveFailed.Title">Dependency resolution failed</sys:String>
+    <sys:String x:Key="Mod.Dependency.ResolveFailed.Continue">Continue download</sys:String>
+
+    <sys:String x:Key="Launch.Profile.OnlineManaged">This profile is managed by the online service and cannot be removed manually. Sign out of the online account first.</sys:String>
+    <sys:String x:Key="Launch.Profile.OnlineDescription">Added automatically by PCL N online services</sys:String>
+    <sys:String x:Key="Launch.Profile.OnlineAdded">Official profile added automatically: {0}</sys:String>
+    <sys:String x:Key="Launch.Skin.Changing">A skin change is already in progress. Please wait.</sys:String>
+    <sys:String x:Key="Launch.Skin.LoginFailed">Unable to change the skin because sign-in failed.</sys:String>
+    <sys:String x:Key="Launch.Skin.ChangingNow">Changing skin...</sys:String>
+    <sys:String x:Key="Launch.Skin.LoggingIn">Signing in. The skin change will continue afterward...</sys:String>
+    <sys:String x:Key="Launch.Skin.ChangeFailedWithReason">Failed to change the skin: {0}</sys:String>
+    <sys:String x:Key="Launch.Skin.Timeout">Failed to change the skin because the Mojang skin server timed out. Check your network connection.</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.NoOfficialProfile">No official profile is available. Sign in with an official account first.</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Select">Select an official account skin</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.LoaderRequired.Message">PCL will download the CustomSkinLoader mod (!skinsupport.jar) to the mods folder so the borrowed skin appears in game for the offline profile.</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.LoaderRequired.Title">CustomSkinLoader is required</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.LoaderRequired.Confirm">Use it</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Updated">Skin source updated. It will take effect on the next launch.</sys:String>
+
+    <sys:String x:Key="Instance.ModUpdate.Starting">Updating {0}...</sys:String>
+    <sys:String x:Key="Instance.ModUpdate.DownloadingDependencies">Downloading {0} dependencies...</sys:String>
+    <sys:String x:Key="Instance.ModUpdate.Completed">{0} updated{1}{2}</sys:String>
+    <sys:String x:Key="Instance.ModUpdate.Completed.Dependencies"> (including {0} dependencies)</sys:String>
+    <sys:String x:Key="Instance.ModUpdate.Completed.Cleaned">; removed {0} old versions</sys:String>
+    <sys:String x:Key="Instance.ModUpdate.Failed">Update failed</sys:String>
+    <sys:String x:Key="Instance.DatapackUpdate.SkippedUnsafe">Skipped {0} datapack updates with unsafe file names.</sys:String>
+    <sys:String x:Key="Instance.ModRepair.Searching">Searching for missing mods...</sys:String>
+    <sys:String x:Key="Instance.ModRepair.Restarting">Automatically repaired {0} mod dependencies. Restarting the game.</sys:String>
+    <sys:String x:Key="Instance.Launch.Patching">Patching game</sys:String>
+    <sys:String x:Key="Instance.Launch.DownloadingMissingMods">Downloading missing mods...</sys:String>
+    <sys:String x:Key="Instance.Resource.Updating">Updating resources</sys:String>
+    <sys:String x:Key="Instance.Resource.LoadingList">Loading resource list</sys:String>
+
+    <sys:String x:Key="Download.Comp.NoCompatibleVersion">No compatible version found for {0}</sys:String>
+    <sys:String x:Key="Download.Comp.DownloadFailed">Download failed</sys:String>
+    <sys:String x:Key="Setup.Language.Initialized">Language settings reset.</sys:String>
+    <sys:String x:Key="Minecraft.Java.GlobalOutsideRange">The globally selected Java (v{0}) is outside the required version range and may cause the game to crash.</sys:String>
+    <sys:String x:Key="Crash.Analysis.ResultTitle">Crash analysis result</sys:String>
+    <sys:String x:Key="Crash.MinecraftErrorTitle">Minecraft encountered an error</sys:String>
+    <sys:String x:Key="Crash.ReportExported">Crash report exported!</sys:String>
+    <sys:String x:Key="Crash.UnknownReason">Sorry, PCL could not determine the cause of the error.</sys:String>
+    <sys:String x:Key="Core.Log.ExceptionTitle">Exception</sys:String>
+    <sys:String x:Key="Core.Log.Details">Details:&#x0a;{0}</sys:String>
+    <sys:String x:Key="Core.Log.Help">To ask for help, keep the launcher open and export the logs immediately (Settings → View logs → Export logs), then send the exported archive. A screenshot of this dialog alone is usually not enough to diagnose the issue.</sys:String>
+    <sys:String x:Key="Core.Log.RelatedException">Related exception:&#x0a;{0}</sys:String>
+    <sys:String x:Key="Core.Log.FatalFeedback">If you believe this is a launcher issue, submit feedback or it may never be fixed.&#x0a;Export logs: Settings → View logs → Export all logs</sys:String>
+    <sys:String x:Key="Core.Log.FatalTitle">Fatal launcher error</sys:String>
+    <sys:String x:Key="Loader.WaitTimeout">Timed out while waiting for the loader.</sys:String>
+    <sys:String x:Key="Main.Title.HomePageMarket">Homepage market</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Hint.NothingShared">There are no favorites to share.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.Arm64ToolTip">Java Launch Wrapper is disabled because the system uses ARM64.</sys:String>
+    <sys:String x:Key="Setup.Ui.FeatureHide.Item.Help">Help</sys:String>
+
+    <sys:String x:Key="Launch.Account.SkinSource.None">Do not use</sys:String>
+    <sys:String x:Key="Launch.Account.Unverified.Warning.Message">No official account is signed in. This may affect the game experience and may violate the Minecraft EULA.&#x0a;&#x0a;If you do not own an official account, you can purchase one from the Minecraft website or Microsoft Store.</sys:String>
+    <sys:String x:Key="Launch.Account.Unverified.Warning.Title">Official account verification may be required</sys:String>
+    <sys:String x:Key="Launch.Account.Unverified.Warning.OpenStore">Open store</sys:String>
+    <sys:String x:Key="Launch.Account.Unverified.Warning.Continue">Continue anyway</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Borrow.Message">You are about to use the skin from an official account.&#x0a;&#x0a;To display it in game, install CustomSkinLoader for the Minecraft instance. It loads skins from CustomSkinLoader/LocalSkin/skins/ under the instance directory.&#x0a;&#x0a;Search for CustomSkinLoader on CurseForge or Modrinth to download it.</sys:String>
+
+    <sys:String x:Key="Event.Download.Confirm">A file will be downloaded from:&#x0a;{0}</sys:String>
+    <sys:String x:Key="Event.Safety.Message">{0}&#x0a;Continue only after confirming that it is safe.</sys:String>
+    <sys:String x:Key="Event.Safety.Title">Confirm action</sys:String>
+    <sys:String x:Key="Event.Safety.Continue">Continue</sys:String>
+    <sys:String x:Key="Event.Safety.AlwaysContinue">Continue and do not ask again</sys:String>
+
+    <sys:String x:Key="Common.Website.OpenFailed.Message">PCL could not open the website, possibly because the browser is not configured correctly.&#x0a;The URL has been copied to the clipboard so you can open it manually.&#x0a;URL: {0}</sys:String>
+    <sys:String x:Key="Common.Website.OpenFailed.Title">Unable to open website</sys:String>
+    <sys:String x:Key="Main.April.Surrender.1">Give up! Just click the little white flag in the bottom-right corner...</sys:String>
+    <sys:String x:Key="Main.April.Surrender.2">See that little white flag in the bottom-right corner?</sys:String>
+    <sys:String x:Key="Main.April.Surrender.3">This is where I suggest clicking the little white flag to surrender.</sys:String>
+    <sys:String x:Key="Main.April.Surrender.4">The little white flag in the bottom-right corner will always be waiting...</sys:String>
+    <sys:String x:Key="Instance.Launch.DownloadingMissingMods.Progress">Downloading missing mods ({0}/{1})...</sys:String>
+    <sys:String x:Key="Minecraft.Java.NoLowerLimit">no lower limit</sys:String>
+    <sys:String x:Key="Minecraft.Java.NoUpperLimit">no upper limit</sys:String>
+    <sys:String x:Key="Minecraft.Java.InstanceOutsideRange">The Java selected for this instance ({0}) is outside the required range [{1}, {2}] and may cause the game to crash.</sys:String>
+    <sys:String x:Key="Minecraft.Java.RelativeOutsideRange">The Java selected by the instance-relative path (v{0}) is outside the required range and may cause the game to crash.</sys:String>
+    <sys:String x:Key="Minecraft.Java.ManualMissing.Message">PCL could not find {0}.&#x0a;Install {0} manually, then search again or import it from Settings → Launch options → Game Java.</sys:String>
+    <sys:String x:Key="Minecraft.Java.AutoDownload.Message">PCL could not find {0}. Download it automatically?&#x0a;If {0} is already installed, import it from Settings → Launch options → Game Java.</sys:String>
+    <sys:String x:Key="Minecraft.Java.AutoDownload.Title">Download Java automatically?</sys:String>
+    <sys:String x:Key="Minecraft.Java.AutoDownload.Confirm">Download</sys:String>
+    <sys:String x:Key="Minecraft.Java.Download.FileTask">Download Java files</sys:String>
+    <sys:String x:Key="Minecraft.Java.Download.Task">Download Java</sys:String>
+    <sys:String x:Key="Minecraft.Java.Download.InfoTask">Get Java download information</sys:String>
+
+    <sys:String x:Key="Launch.OfflineSkin.Unavailable.Message">This version cannot download CustomSkinLoader automatically.&#x0a;&#x0a;The skin file will be downloaded before launch, but it will not appear in game without CustomSkinLoader. Search for CustomSkinLoader on CurseForge or Modrinth to install it manually.</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Unavailable.Title">Skin mod unavailable</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Unavailable.Continue">Launch anyway</sys:String>
+    <sys:String x:Key="Crash.UnknownWithReportHint">Sorry, the game encountered a problem.&#x0a;When asking for help, send the crash report file instead of a photo or screenshot of this window.</sys:String>
+    <sys:String x:Key="Crash.LoaderIncompatible.Message">The mod loader version is incompatible with one or more mods. Change the loader version under Instance settings → Modify.&#x0a;&#x0a;Details:&#x0a;</sys:String>
+    <sys:String x:Key="Crash.Action.Modify">Change settings</sys:String>
+    <sys:String x:Key="Crash.Action.ViewLog">View log</sys:String>
+    <sys:String x:Key="Crash.Action.ExportReport">Export crash report</sys:String>
+    <sys:String x:Key="Common.Dialog.SelectFile">Select files</sys:String>
+    <sys:String x:Key="Common.Dialog.SelectFolder">Select folder</sys:String>
+    <sys:String x:Key="Common.Error.Title">Error</sys:String>
+    <sys:String x:Key="Link.Lobby.ConnectionFailed.Title">Failed to establish P2P connection</sys:String>
+    <sys:String x:Key="Online.Login.Required">Sign in with a Microsoft account under Settings → Account first.</sys:String>
+    <sys:String x:Key="Online.ComingSoon.Description">Coming soon</sys:String>
+    <sys:String x:Key="Validation.Input.Required">This field is required.</sys:String>
+    <sys:String x:Key="Validation.Input.ForbiddenContent">The input cannot contain {0}.</sys:String>
+    <sys:String x:Key="Validation.Url.Invalid">Enter a valid URL.</sys:String>
+    <sys:String x:Key="Validation.Length.Exact">The length must be exactly {0} characters.</sys:String>
+    <sys:String x:Key="Validation.Length.Minimum">The length must be at least {0} characters.</sys:String>
+    <sys:String x:Key="Validation.Length.Maximum">The length cannot exceed {0} characters.</sys:String>
+    <sys:String x:Key="Validation.Integer.Reasonable">Enter a reasonably sized number.</sys:String>
+    <sys:String x:Key="Validation.Integer.Required">Enter an integer.</sys:String>
+    <sys:String x:Key="Validation.Integer.Maximum">The value cannot exceed {0}.</sys:String>
+    <sys:String x:Key="Validation.Integer.Minimum">The value cannot be lower than {0}.</sys:String>
+    <sys:String x:Key="Validation.Folder.PathInvalid">The folder path is invalid.</sys:String>
+    <sys:String x:Key="Validation.Folder.StartsWithSpace">The folder name cannot start with a space.</sys:String>
+    <sys:String x:Key="Validation.Folder.EndsWithSpace">The folder name cannot end with a space.</sys:String>
+    <sys:String x:Key="Validation.Folder.EndsWithDot">The folder name cannot end with a period.</sys:String>
+    <sys:String x:Key="Validation.Folder.InvalidCharacter">The folder name cannot contain {0}.</sys:String>
+    <sys:String x:Key="Validation.Folder.ReservedName">The folder name cannot be {0}.</sys:String>
+    <sys:String x:Key="Validation.Folder.SpecialFormat">The folder name uses an unsupported special format.</sys:String>
+    <sys:String x:Key="Validation.Folder.Duplicate">A folder with this name already exists.</sys:String>
+    <sys:String x:Key="Validation.File.StartsWithSpace">The file name cannot start with a space.</sys:String>
+    <sys:String x:Key="Validation.File.EndsWithSpace">The file name cannot end with a space.</sys:String>
+    <sys:String x:Key="Validation.File.EndsWithDot">The file name cannot end with a period.</sys:String>
+    <sys:String x:Key="Validation.File.InvalidCharacter">The file name cannot contain {0}.</sys:String>
+    <sys:String x:Key="Validation.File.ReservedName">The file name cannot be {0}.</sys:String>
+    <sys:String x:Key="Validation.File.SpecialFormat">The file name uses an unsupported special format.</sys:String>
+    <sys:String x:Key="Validation.File.ParentMissing">Parent folder not found: {0}</sys:String>
+    <sys:String x:Key="Validation.File.Duplicate">A file with this name already exists.</sys:String>
+    <sys:String x:Key="Instance.Resource.Update.DownloadFiles">Download updated resource files</sys:String>
+    <sys:String x:Key="Instance.DatapackUpdate.DownloadFiles">Download updated datapack files</sys:String>
+    <sys:String x:Key="Identity.AuthenticationFailed">Authentication failed</sys:String>
+    <sys:String x:Key="Identity.AuthenticationFailed.Detail">Authentication failed: {0}</sys:String>
+    <sys:String x:Key="Identity.AuthenticationFailed.CodeAndDetail">Authentication failed: {0} - {1}</sys:String>
 
 </ResourceDictionary>

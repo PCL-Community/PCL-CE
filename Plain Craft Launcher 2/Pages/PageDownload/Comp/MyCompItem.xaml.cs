@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using PCL.Core.App.Localization;
 using PCL.Network;
 
 namespace PCL;
@@ -312,7 +313,8 @@ public partial class MyCompItem
                 if (best is null)
                 {
                     ModBase.RunInUi(() =>
-                        ModMain.Hint($"未找到 {project.RawName} 兼容版本", ModMain.HintType.Critical));
+                        ModMain.Hint(Lang.Text("Download.Comp.NoCompatibleVersion", project.RawName),
+                            ModMain.HintType.Critical));
                     return;
                 }
 
@@ -346,8 +348,10 @@ public partial class MyCompItem
                     catch (Exception ex)
                     {
                         ModBase.Log(ex, "[QuickDownload] 前置解析失败，继续下载主文件");
-                        ModMain.MyMsgBox("前置 Mod 解析失败，将仅下载本体。\n\n" + ex.Message,
-                            "前置解析失败", button1: "继续下载", isWarn: true, forceWait: true);
+                        ModMain.MyMsgBox(Lang.Text("Mod.Dependency.ResolveFailed.Message", ex.Message),
+                            Lang.Text("Mod.Dependency.ResolveFailed.Title"),
+                            button1: Lang.Text("Mod.Dependency.ResolveFailed.Continue"),
+                            isWarn: true, forceWait: true);
                     }
                 }
 
@@ -355,7 +359,8 @@ public partial class MyCompItem
                 DownloadedProjectIds.Add(project.Id);
                 var subLoaders = new List<ModLoader.LoaderBase>
                 {
-                    new PCL.Network.Loaders.LoaderDownload("下载文件", downloadFiles)
+                    new PCL.Network.Loaders.LoaderDownload(Lang.Text("Instance.ModDetail.Task.DownloadFile"),
+                        downloadFiles)
                     {
                         ProgressWeight = 6,
                         block = true
@@ -376,7 +381,8 @@ public partial class MyCompItem
             catch (Exception ex)
             {
                 ModBase.Log(ex, $"下载 {project.RawName} 失败");
-                ModBase.RunInUi(() => ModMain.Hint($"下载失败", ModMain.HintType.Critical));
+                ModBase.RunInUi(() => ModMain.Hint(Lang.Text("Download.Comp.DownloadFailed"),
+                    ModMain.HintType.Critical));
             }
         });
     }

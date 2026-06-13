@@ -80,7 +80,7 @@ public partial class PageInstanceModBrowser
         _storage.curseForgeTotal = -1;
         _storage.modrinthTotal = -1;
 
-        Load.Text = "正在获取模组列表...";
+        Load.Text = Lang.Text("Instance.ModBrowser.Loading.Projects");
         Load.TextError = "";
         _loadSim.LoadingState = MyLoading.MyLoadingState.Run;
 
@@ -106,7 +106,7 @@ public partial class PageInstanceModBrowser
             ModBase.RunInUi(() =>
             {
                 PanLoad.Visibility = Visibility.Collapsed;
-                Load.TextError = "未指定 Minecraft 版本，请先安装实例";
+                Load.TextError = Lang.Text("Instance.ModBrowser.Error.MissingVersion");
                 _loadSim.LoadingState = MyLoading.MyLoadingState.Error;
                 _isLoading = false;
             });
@@ -114,7 +114,7 @@ public partial class PageInstanceModBrowser
         }
 
         _loader = new ModLoader.LoaderTask<ModComp.CompProjectRequest, int>(
-            "搜索模组",
+            Lang.Text("Instance.ModBrowser.Task.Search"),
             ModComp.CompProjectsGet,
             () => new ModComp.CompProjectRequest(ModComp.CompType.Mod, _storage, (page + 1) * PageSize)
             {
@@ -166,7 +166,7 @@ public partial class PageInstanceModBrowser
                         _hasMore = false;
                         PanLoad.Visibility = Visibility.Visible;
                         PanLoadMore.Visibility = Visibility.Collapsed;
-                        Load.TextError = "未找到匹配的模组，请尝试其他关键词";
+                        Load.TextError = Lang.Text("Instance.ModBrowser.Error.NoResults");
                         _loadSim.LoadingState = MyLoading.MyLoadingState.Error;
                     }
                 });
@@ -179,7 +179,8 @@ public partial class PageInstanceModBrowser
                     _hasMore = false;
                     PanLoad.Visibility = Visibility.Visible;
                     PanLoadMore.Visibility = Visibility.Collapsed;
-                    Load.TextError = $"搜索失败：{_loader.Error?.Message ?? "请检查网络连接"}";
+                    Load.TextError = Lang.Text("Instance.ModBrowser.Error.SearchFailed",
+                        _loader.Error?.Message ?? Lang.Text("Instance.ModBrowser.Error.CheckNetwork"));
                     _loadSim.LoadingState = MyLoading.MyLoadingState.Error;
                 });
             }

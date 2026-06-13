@@ -4,6 +4,7 @@ using CompFileStatus = PCL.ModComp.CompFileStatus;
 using CompLoaderType = PCL.ModComp.CompLoaderType;
 using CompProject = PCL.ModComp.CompProject;
 using LocalCompFile = PCL.ModLocalComp.LocalCompFile;
+using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.ResourceProject;
 using PCL.Network;
 
@@ -228,21 +229,23 @@ public static class ModCompDependency
         if (result.Unresolved is { Count: > 0 })
         {
             ModBase.Log($"[CompDeps] 无法解析: {result.Unresolved.Count} 个必需前置");
-            var message = "以下必需前置无法解析：\n\n" +
-                          string.Join("\n", result.Unresolved
-                              .Select(dep => $"- {dep.Source} {dep.ProjectId}: {dep.Reason}"));
-            ModMain.MyMsgBox(message, "无法安装必需前置", button1: "确定", isWarn: true, forceWait: true);
+            var details = string.Join("\n", result.Unresolved
+                .Select(dep => $"- {dep.Source} {dep.ProjectId}: {dep.Reason}"));
+            ModMain.MyMsgBox(Lang.Text("Mod.Dependency.Unresolved.Message", details),
+                Lang.Text("Mod.Dependency.Unresolved.Title"),
+                button1: Lang.Text("Common.Action.Confirm"), isWarn: true, forceWait: true);
             return false;
         }
 
         if (result.ToInstall is { Count: > 0 })
         {
-            var message = "此 Mod 需要以下必需前置：\n\n" +
-                          string.Join("\n", result.ToInstall
-                              .Select(install =>
-                                  $"- {install.ProjectName} ({install.Source}) - {install.File.DisplayName} v{install.File.Version}"));
-            var dialogResult = ModMain.MyMsgBox(message, "安装 Mod 前置确认",
-                button1: "安装 Mod 与必需前置", button2: "取消安装", forceWait: true);
+            var details = string.Join("\n", result.ToInstall
+                .Select(install =>
+                    $"- {install.ProjectName} ({install.Source}) - {install.File.DisplayName} v{install.File.Version}"));
+            var dialogResult = ModMain.MyMsgBox(Lang.Text("Mod.Dependency.Confirm.Message", details),
+                Lang.Text("Mod.Dependency.Confirm.Title"),
+                button1: Lang.Text("Mod.Dependency.Confirm.Install"),
+                button2: Lang.Text("Mod.Dependency.Confirm.Cancel"), forceWait: true);
             if (dialogResult != 1)
             {
                 ModBase.Log("[CompDeps] 用户取消，已中止安装");
@@ -258,7 +261,8 @@ public static class ModCompDependency
     /// </summary>
     public static void ShowDependencyAbortMessage(string reason)
     {
-        ModMain.MyMsgBox(reason, "安装已中止", button1: "确定", isWarn: false, forceWait: true);
+        ModMain.MyMsgBox(reason, Lang.Text("Mod.Dependency.Aborted.Title"),
+            button1: Lang.Text("Common.Action.Confirm"), isWarn: false, forceWait: true);
     }
 
     private static string GetSource(bool fromCurseForge)

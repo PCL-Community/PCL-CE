@@ -103,7 +103,7 @@ public partial class MyLoading
                     var ex = State.Error;
                     if (ex is null)
                     {
-                        LabText.Text = "未知错误";
+                        LabText.Text = Lang.Text("Common.Loading.UnknownError");
                     }
                     else
                     {
@@ -112,7 +112,8 @@ public partial class MyLoading
                         if (new[]
                             {
                             "远程主机强迫关闭了", "远程方已关闭传输流", "未能解析此远程名称", "由于目标计算机积极拒绝", "操作已超时", "操作超时", "服务器超时", "连接超时"
-                        }.Any(s => LabText.Text.Contains(s))) LabText.Text = "网络环境不佳，请稍后重试，或使用 VPN 以改善网络环境";
+                        }.Any(s => LabText.Text.Contains(s)))
+                        LabText.Text = Lang.Text("Common.Loading.PoorNetwork");
                     }
                 }
                 else

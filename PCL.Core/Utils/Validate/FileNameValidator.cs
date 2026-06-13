@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using FluentValidation;
 using FluentValidation.Results;
+using PCL.Core.App.Localization;
 using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.Utils.Validate;
@@ -28,16 +29,16 @@ public class FileNameValidator(
     private void _BuildRules()
     {
         RuleFor(x => x)
-            .Must(x => !string.IsNullOrWhiteSpace(x)).WithMessage("输入内容不能为空！")
-            .Must(x => !x.StartsWith(' ')).WithMessage("文件名不能以空格开头！")
-            .Must(x => !x.EndsWith(' ')).WithMessage("文件名不能以空格结尾！")
-            .Must(x => !x.EndsWith('.')).WithMessage("文件名不能以小数点结尾！")
+            .Must(x => !string.IsNullOrWhiteSpace(x)).WithMessage(Lang.Text("Validation.Input.Required"))
+            .Must(x => !x.StartsWith(' ')).WithMessage(Lang.Text("Validation.File.StartsWithSpace"))
+            .Must(x => !x.EndsWith(' ')).WithMessage(Lang.Text("Validation.File.EndsWithSpace"))
+            .Must(x => !x.EndsWith('.')).WithMessage(Lang.Text("Validation.File.EndsWithDot"))
             .Custom((fileName, context) => 
             {
                 var invalidChar = CheckInvalidStrings(fileName, UseMinecraftCharCheck ? ["!;"] : []);
                 if (invalidChar is not null)
                 {
-                    context.AddFailure($"文件名不可包含 {invalidChar} 字符！");
+                    context.AddFailure(Lang.Text("Validation.File.InvalidCharacter", invalidChar));
                 }
             })
             .Custom((fileName, context) => 
@@ -45,10 +46,11 @@ public class FileNameValidator(
                 var reservedWord = CheckReservedWord(fileName, []);
                 if (reservedWord is not null)
                 {
-                    context.AddFailure($"文件名不可为 {reservedWord}！");
+                    context.AddFailure(Lang.Text("Validation.File.ReservedName", reservedWord));
                 }
             })
-            .Must(x => !x.IsMatch(RegexPatterns.Ntfs83FileName)).WithMessage("文件名不能包含这一特殊格式！")
+            .Must(x => !x.IsMatch(RegexPatterns.Ntfs83FileName))
+            .WithMessage(Lang.Text("Validation.File.SpecialFormat"))
             .Must(x =>
             {
                 if (ParentFolder is null) return true;
@@ -63,7 +65,9 @@ public class FileNameValidator(
                 _isParentFolderExists = false;
                 return !RequireParentFolderExists;
 
-            }).WithMessage(_isParentFolderExists is not null ? $"父文件夹不存在：{ParentFolder}" : "不可与现有文件重名！");
+            }).WithMessage(_isParentFolderExists is not null
+                ? Lang.Text("Validation.File.ParentMissing", ParentFolder)
+                : Lang.Text("Validation.File.Duplicate"));
     }
 
     protected override bool PreValidate(ValidationContext<string> context, ValidationResult result)

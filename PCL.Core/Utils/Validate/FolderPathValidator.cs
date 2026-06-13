@@ -2,6 +2,7 @@
 using System.IO;
 using FluentValidation;
 using FluentValidation.Results;
+using PCL.Core.App.Localization;
 using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.Utils.Validate;
@@ -17,21 +18,21 @@ public class FolderPathValidator(bool useMinecraftCharCheck) : FileSystemValidat
     private void _BuildRules()
     {
         RuleFor(x => x)
-            .NotEmpty().WithMessage("输入内容不能为空！")
-            .Must(x => !x.EndsWith(' ')).WithMessage("文件夹名不能以空格结尾！")
-            .Must(x => !x.EndsWith('.')).WithMessage("文件夹名不能以小数点结尾！");
+            .NotEmpty().WithMessage(Lang.Text("Validation.Input.Required"))
+            .Must(x => !x.EndsWith(' ')).WithMessage(Lang.Text("Validation.Folder.EndsWithSpace"))
+            .Must(x => !x.EndsWith('.')).WithMessage(Lang.Text("Validation.Folder.EndsWithDot"));
 
         RuleForEach(x => _GetSubPaths(x))
-            .Must(x => !string.IsNullOrWhiteSpace(x)).WithMessage("文件夹路径存在错误！")
-            .Must(x => !x.StartsWith(' ')).WithMessage("文件夹名不能以空格开头！")
-            .Must(x => !x.EndsWith(' ')).WithMessage("文件夹名不能以空格结尾！")
-            .Must(x => !x.EndsWith('.')).WithMessage("文件夹名不能以小数点结尾！")
+            .Must(x => !string.IsNullOrWhiteSpace(x)).WithMessage(Lang.Text("Validation.Folder.PathInvalid"))
+            .Must(x => !x.StartsWith(' ')).WithMessage(Lang.Text("Validation.Folder.StartsWithSpace"))
+            .Must(x => !x.EndsWith(' ')).WithMessage(Lang.Text("Validation.Folder.EndsWithSpace"))
+            .Must(x => !x.EndsWith('.')).WithMessage(Lang.Text("Validation.Folder.EndsWithDot"))
             .Custom((fileName, context) => 
             {
                 var invalidChar = CheckInvalidStrings(fileName, UseMinecraftCharCheck ? ["!;"] : []);
                 if (invalidChar is not null)
                 {
-                    context.AddFailure($"文件夹名不可包含 {invalidChar} 字符！");
+                    context.AddFailure(Lang.Text("Validation.Folder.InvalidCharacter", invalidChar));
                 }
             })
             .Custom((fileName, context) => 
@@ -39,10 +40,11 @@ public class FolderPathValidator(bool useMinecraftCharCheck) : FileSystemValidat
                 var reservedWord = CheckReservedWord(fileName, []);
                 if (reservedWord is not null)
                 {
-                    context.AddFailure($"文件夹名不可为 {reservedWord}！");
+                    context.AddFailure(Lang.Text("Validation.Folder.ReservedName", reservedWord));
                 }
             })
-            .Must(x => !x.IsMatch(RegexPatterns.Ntfs83FileName)).WithMessage("文件夹名不能包含这一特殊格式！")
+            .Must(x => !x.IsMatch(RegexPatterns.Ntfs83FileName))
+            .WithMessage(Lang.Text("Validation.Folder.SpecialFormat"))
             .OverridePropertyName("PathSegments");
     }
     

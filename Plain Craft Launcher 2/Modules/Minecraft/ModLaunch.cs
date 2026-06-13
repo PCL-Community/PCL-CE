@@ -93,9 +93,10 @@ public static class ModLaunch
         if (ModProfile.selectedProfile.Type != McLoginType.Ms && !ModProfile.profileList.Any(x => x.Type == McLoginType.Ms))
         {
             var msWarnResult = ModMain.MyMsgBox(
-                "我们发现您并没有登录过正版账号，这可能会对您的游戏产生影响，并且也同时违反了Minecraft的EULA。\n\n如果您没有正版账号，您可以去Minecraft官网或Microsoft Store购买。",
-                "您可能需要正版验证",
-                "取消", "打开商店", "仍要继续",
+                Lang.Text("Launch.Account.Unverified.Warning.Message"),
+                Lang.Text("Launch.Account.Unverified.Warning.Title"),
+                Lang.Text("Common.Action.Cancel"), Lang.Text("Launch.Account.Unverified.Warning.OpenStore"),
+                Lang.Text("Launch.Account.Unverified.Warning.Continue"),
                 isWarn: true, forceWait: true);
             if (msWarnResult == 1 || msWarnResult == 2)
             {
@@ -284,9 +285,10 @@ public static class ModLaunch
         ModBase.RunInUiWait(() =>
         {
             if (ModMain.MyMsgBox(
-                    "当前版本暂不支持自动下载 CustomSkinLoader。\n\n皮肤文件将在启动前下载，但若无 CustomSkinLoader 模组，游戏内无法显示皮肤。\n你可手动从 CurseForge / Modrinth 搜索 \"CustomSkinLoader\" 安装。",
-                    "皮肤模组不可用",
-                    "仍然启动", "取消", isWarn: true, forceWait: true) == 2)
+                    Lang.Text("Launch.OfflineSkin.Unavailable.Message"),
+                    Lang.Text("Launch.OfflineSkin.Unavailable.Title"),
+                    Lang.Text("Launch.OfflineSkin.Unavailable.Continue"), Lang.Text("Common.Action.Cancel"),
+                    isWarn: true, forceWait: true) == 2)
                 throw new Exception("$$");
         });
     }
@@ -3725,7 +3727,7 @@ public static class ModLaunch
             {
                 currentRepairState = RepairState.Finding;
                 McLaunchLog("游戏崩溃，正在查找缺失模组...");
-                ModMain.Hint("正在查找缺失模组...", ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Instance.ModRepair.Searching"), ModMain.HintType.Finish);
                 ModBase.RunInUiWait(() => ModMain.frmLaunchLeft?.ShowRepairing());
                 // 从 watcher 内存读取游戏日志
                 var logLines = watcher.latestLog.ToArray();
@@ -3748,7 +3750,8 @@ public static class ModLaunch
                         ModBase.RunInUiWait(() =>
                         {
                             ModMain.frmLaunchLeft?.HideRepairing();
-                            ModMain.Hint($"已自动修复 {repaired} 个模组前置，正在重新启动游戏", ModMain.HintType.Finish);
+                            ModMain.Hint(Lang.Text("Instance.ModRepair.Restarting", repaired),
+                                ModMain.HintType.Finish);
                         });
                         return;
                     }

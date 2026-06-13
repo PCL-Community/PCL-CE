@@ -2045,7 +2045,7 @@ public partial class PageInstanceCompResource : IRefreshable
             // 构造加载器
             var installLoaders = new List<ModLoader.LoaderBase>();
             var finishedFileNames = new List<string>();
-            installLoaders.Add(new LoaderDownload("下载新版资源文件", fileList)
+                    installLoaders.Add(new LoaderDownload(Lang.Text("Instance.Resource.Update.DownloadFiles"), fileList)
                 { ProgressWeight = modList.Count() * 1.5d }); // 每个 Mod 需要 1.5s
             installLoaders.Add(new ModLoader.LoaderTask<int, int>("替换旧版资源文件", _ =>
             {

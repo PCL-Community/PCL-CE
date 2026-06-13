@@ -211,7 +211,7 @@
     <sys:String x:Key="Launch.Account.LoginDialog.Title">测试标题文本</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.ReopenWebpage">重新打开网页</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.CopyCode">复制代码</sys:String>
-    <sys:String x:Key="Launch.Account.LoginDialog.MinecraftLogin">登录 PCL N Edition</sys:String>
+    <sys:String x:Key="Launch.Account.LoginDialog.MinecraftLogin">Microsoft 正版档案登录</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions">登录网页将自动开启，请在网页中输入授权码 {0}（将自动复制）。&#x0a;&#x0a;如果网络环境不佳，网页可能一直加载不出来，届时请使用 VPN 并重试。&#x0a;你也可以用其他设备打开 {1} 并输入上述授权码。</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill">登录网页将自动开启，授权码将自动填充。&#x0a;&#x0a;如果网络环境不佳，网页可能一直加载不出来，届时请使用 VPN 并重试。&#x0a;如果没有自动填充，请在页面内粘贴此授权码 {0}（将自动复制）&#x0a;你也可以用其他设备打开 {1} 并输入授权码。</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.Success">网页登录成功！</sys:String>
@@ -2986,5 +2986,277 @@
     <sys:String x:Key="Link.Mod.Task.InitLobby">大厅初始化</sys:String>
     <sys:String x:Key="Link.Mod.Task.InitLobbyUi">大厅界面初始化</sys:String>
     <sys:String x:Key="Link.Mod.Task.FetchAnnouncement">大厅公告获取</sys:String>
+
+    <!-- PCL N Online -->
+
+    <sys:String x:Key="Main.TopTitle.Online">在线</sys:String>
+    <sys:String x:Key="Main.Automation.ExpandMenu">展开菜单</sys:String>
+    <sys:String x:Key="Main.Title.InstanceModBrowser">下载新模组</sys:String>
+    <sys:String x:Key="Main.Title.InstanceModDetail">模组详情</sys:String>
+    <sys:String x:Key="Main.Legal.Title">PCL N Edition - 用户协议与隐私政策</sys:String>
+    <sys:String x:Key="Main.Legal.Agree">同意并继续</sys:String>
+    <sys:String x:Key="Main.Legal.Decline">拒绝并退出</sys:String>
+
+    <sys:String x:Key="Online.Nav.Category.Multiplayer">联机</sys:String>
+    <sys:String x:Key="Online.Nav.Category.Friends">好友</sys:String>
+    <sys:String x:Key="Online.Nav.Lobby">联机大厅</sys:String>
+    <sys:String x:Key="Online.Nav.CreateRoom">创建房间</sys:String>
+    <sys:String x:Key="Online.Nav.ServerList">服务器列表</sys:String>
+    <sys:String x:Key="Online.Nav.FriendList">好友列表</sys:String>
+    <sys:String x:Key="Online.Nav.AddFriend">添加好友</sys:String>
+    <sys:String x:Key="Online.Account.Category">在线</sys:String>
+    <sys:String x:Key="Online.Account.Title">账户</sys:String>
+    <sys:String x:Key="Online.Account.LoginMicrosoft">Microsoft 账户登录</sys:String>
+    <sys:String x:Key="Online.Account.Logout">退出登录</sys:String>
+    <sys:String x:Key="Online.Account.OwnsMinecraft">已拥有 Minecraft 正版</sys:String>
+    <sys:String x:Key="Online.Account.DoesNotOwnMinecraft">未拥有 Minecraft</sys:String>
+    <sys:String x:Key="Online.Account.LoggedOut">已退出登录</sys:String>
+    <sys:String x:Key="Online.Login.Title">Microsoft 账户登录</sys:String>
+    <sys:String x:Key="Online.Login.ClientIdMissing">未配置微软 OAuth Client ID</sys:String>
+    <sys:String x:Key="Online.Login.Cancelled">登录已取消</sys:String>
+    <sys:String x:Key="Online.Login.XboxFailed">Xbox Live 认证失败</sys:String>
+    <sys:String x:Key="Online.Login.XstsFailed">XSTS 认证失败</sys:String>
+    <sys:String x:Key="Online.Login.XstsCredentialMissing">XSTS 响应缺少用户凭据</sys:String>
+    <sys:String x:Key="Online.Login.MinecraftAuthFailed">Minecraft 认证失败</sys:String>
+    <sys:String x:Key="Online.Login.MinecraftProfileFailed">获取 Minecraft 档案失败</sys:String>
+    <sys:String x:Key="Online.Login.SuccessOwned">登录成功：{0}（已拥有 Minecraft）</sys:String>
+    <sys:String x:Key="Online.Login.SuccessNotOwned">登录成功：{0}（未拥有 Minecraft）</sys:String>
+
+    <sys:String x:Key="Online.CloudSync.Title">N Cloud 同步</sys:String>
+    <sys:String x:Key="Online.CloudSync.Description">选择需要同步到云端的内容；关闭后将不再上传或拉取云数据。</sys:String>
+    <sys:String x:Key="Online.CloudSync.DisableAll">一键关闭同步</sys:String>
+    <sys:String x:Key="Online.CloudSync.Enabled">启用 N Cloud 同步</sys:String>
+    <sys:String x:Key="Online.CloudSync.DisabledHint">同步服务已关闭，后续不会自动同步任何数据。</sys:String>
+    <sys:String x:Key="Online.CloudSync.Account">账户信息</sys:String>
+    <sys:String x:Key="Online.CloudSync.Favorites">收藏夹</sys:String>
+    <sys:String x:Key="Online.CloudSync.UiPreferences">界面设置</sys:String>
+    <sys:String x:Key="Online.CloudSync.HintPreferences">提示状态</sys:String>
+    <sys:String x:Key="Online.CloudSync.DownloadPreferences">下载设置</sys:String>
+    <sys:String x:Key="Online.CloudSync.LaunchPreferences">启动设置</sys:String>
+    <sys:String x:Key="Online.CloudSync.HomepagePreferences">主页设置</sys:String>
+    <sys:String x:Key="Online.CloudSync.MusicPreferences">音乐设置</sys:String>
+    <sys:String x:Key="Online.CloudSync.UpdatePreferences">更新设置</sys:String>
+    <sys:String x:Key="Online.CloudSync.CustomVariables">自定义变量</sys:String>
+    <sys:String x:Key="Online.CloudSync.Disabled">已关闭 N Cloud 同步</sys:String>
+    <sys:String x:Key="Online.CloudSync.Syncing">正在与 N Cloud 同步……</sys:String>
+    <sys:String x:Key="Online.CloudSync.Retrying">N Cloud 同步失败，再次尝试 {0}/{1}……</sys:String>
+    <sys:String x:Key="Online.CloudSync.Success">成功与 N Cloud 同步！</sys:String>
+    <sys:String x:Key="Online.CloudSync.Unavailable">N Cloud 数据同步不可用</sys:String>
+    <sys:String x:Key="Online.CloudSync.Retry">再次尝试同步</sys:String>
+
+    <!-- PCL N Instance Mod Browser -->
+
+    <sys:String x:Key="Instance.ModBrowser.Search.Hint">搜索模组...</sys:String>
+    <sys:String x:Key="Instance.ModBrowser.Loading.More">正在加载更多...</sys:String>
+    <sys:String x:Key="Instance.ModBrowser.Loading.Projects">正在获取模组列表...</sys:String>
+    <sys:String x:Key="Instance.ModBrowser.Error.MissingVersion">未指定 Minecraft 版本，请先安装实例</sys:String>
+    <sys:String x:Key="Instance.ModBrowser.Error.NoResults">未找到匹配的模组，请尝试其他关键词</sys:String>
+    <sys:String x:Key="Instance.ModBrowser.Error.SearchFailed">搜索失败：{0}</sys:String>
+    <sys:String x:Key="Instance.ModBrowser.Error.CheckNetwork">请检查网络连接</sys:String>
+    <sys:String x:Key="Instance.ModBrowser.Task.Search">搜索模组</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Loading.Title">加载中...</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Loading.Versions">正在获取版本列表...</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Error.NoCompatibleVersion">没有找到兼容 {0} 的版本</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Error.LoadFailed">加载失败：{0}</sys:String>
+    <sys:String x:Key="Instance.ModDetail.DownloadAndReplace">下载并替换旧版本</sys:String>
+    <sys:String x:Key="Instance.ModDetail.DependencyFailed.Message">前置 Mod 解析失败，将仅下载本体。&#x0a;&#x0a;{0}</sys:String>
+    <sys:String x:Key="Instance.ModDetail.DependencyFailed.Title">前置解析失败</sys:String>
+    <sys:String x:Key="Instance.ModDetail.DependencyFailed.Continue">继续下载</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Task.DownloadFile">下载文件</sys:String>
+
+    <!-- Remaining visible hard-coded XAML -->
+
+    <sys:String x:Key="Launch.Offline.BorrowOfficialSkin">借用正版皮肤</sys:String>
+    <sys:String x:Key="Launch.Offline.BorrowOfficialSkin.None">不使用</sys:String>
+    <sys:String x:Key="Setup.Misc.System.Proxy.Hint">比如 http://127.0.0.1:1080/</sys:String>
+    <sys:String x:Key="Download.Comp.Item.DownloadCurrentVersion">下载当前版本</sys:String>
+    <sys:String x:Key="Download.Comp.Item.SelectVersion">选择版本</sys:String>
+
+    <!-- Remaining dynamic UI text -->
+
+    <sys:String x:Key="Common.Clipboard.Copied">已成功复制！</sys:String>
+    <sys:String x:Key="Common.Clipboard.Pasted">已粘贴 {0} 个文件和 {1} 个文件夹</sys:String>
+    <sys:String x:Key="Common.Debug.Prefix">[调试模式] {0}</sys:String>
+    <sys:String x:Key="Common.Loading.UnknownError">未知错误</sys:String>
+    <sys:String x:Key="Common.Loading.PoorNetwork">网络环境不佳，请稍后重试，或使用 VPN 以改善网络环境</sys:String>
+    <sys:String x:Key="Common.Feedback.Ask">是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！</sys:String>
+    <sys:String x:Key="Common.Feedback.UpdateSuggested">将 PCL 更新至最新版或许可以解决这个问题……</sys:String>
+    <sys:String x:Key="Common.Feedback.Action">反馈</sys:String>
+    <sys:String x:Key="Common.Feedback.SubmitReminder.Title">反馈提交提醒</sys:String>
+    <sys:String x:Key="Common.Feedback.SubmitReminder.Message">若你在汇报一个 Bug，请点击 打开文件夹 按钮，并上传 Launch-{0}-[一串数字].log 中包含错误信息的文件。&#x0a;游戏崩溃一般与启动器无关，请不要因为游戏崩溃而提交反馈。</sys:String>
+    <sys:String x:Key="Common.Feedback.NotNeeded">不需要</sys:String>
+    <sys:String x:Key="Common.Feedback.Unavailable.Title">无法提交反馈</sys:String>
+    <sys:String x:Key="Common.Feedback.Unavailable.NotLatest">你的 PCL 不是最新版，因此无法提交反馈。&#x0a;请在更新后，确认该问题在最新版中依然存在，然后再提交反馈。</sys:String>
+    <sys:String x:Key="Common.Feedback.Unavailable.CheckFailed">你的 PCL 检查更新失败，因此无法提交反馈。&#x0a;请连接到互联网，在检查更新后，确认该问题在最新版中依然存在，然后再提交反馈。</sys:String>
+    <sys:String x:Key="Common.Feedback.Update">更新</sys:String>
+    <sys:String x:Key="Common.Feedback.Recheck">重新检查更新</sys:String>
+
+    <sys:String x:Key="Music.Error.DeviceBusy">你的音频设备正被其他程序占用。请关闭占用程序后重启 PCL 以恢复音乐功能！</sys:String>
+    <sys:String x:Key="Music.Error.DeviceChanged">音频设备发生变更，音乐播放功能需重启 PCL 后恢复！</sys:String>
+    <sys:String x:Key="Music.Error.PropertyChanged">播放失败（{0}）：PCL 不支持中途变更音频属性的音乐文件</sys:String>
+    <sys:String x:Key="Music.Error.UnsupportedFormat">播放失败（{0}）：PCL 可能不支持此格式，请转换为 .wav/.mp3/.flac</sys:String>
+    <sys:String x:Key="Music.NotStarted">音乐播放尚未开始！</sys:String>
+    <sys:String x:Key="Music.Replaying">重新播放：{0}</sys:String>
+    <sys:String x:Key="Music.NothingToPlay">没有可以播放的音乐！</sys:String>
+    <sys:String x:Key="Music.NowPlaying">正在播放：{0}</sys:String>
+    <sys:String x:Key="Music.Cleared">背景音乐已清除！</sys:String>
+    <sys:String x:Key="Music.NotFound">未检测到可用的背景音乐！</sys:String>
+    <sys:String x:Key="Music.Refreshed">背景音乐已刷新：{0}</sys:String>
+    <sys:String x:Key="Music.Paused">已暂停：{0}</sys:String>
+    <sys:String x:Key="Music.ToolTip.Paused.Single">左键恢复播放，右键重新从头播放。</sys:String>
+    <sys:String x:Key="Music.ToolTip.Paused.Multiple">左键恢复播放，右键播放下一曲。</sys:String>
+    <sys:String x:Key="Music.ToolTip.Playing.Single">左键暂停，右键重新从头播放。</sys:String>
+    <sys:String x:Key="Music.ToolTip.Playing.Multiple">左键暂停，右键播放下一曲。</sys:String>
+
+    <sys:String x:Key="Event.Error.Title">事件执行失败</sys:String>
+    <sys:String x:Key="Event.Error.InvalidWebsite">EventData 必须为一个网址。&#x0a;如果想要启动程序，请将 EventType 改为 打开文件。</sys:String>
+    <sys:String x:Key="Event.Error.InvalidDownloadUrl">EventData 必须为以 http:// 或 https:// 开头的网址。&#x0a;PCL 不支持其他下载协议。</sys:String>
+    <sys:String x:Key="Event.Error.UnknownType">未知的事件类型：{0}&#x0a;请检查事件类型填写是否正确，或者 PCL 是否为最新版本。</sys:String>
+    <sys:String x:Key="Event.Opening">正在开启中，请稍候：{0}</sys:String>
+    <sys:String x:Key="Event.SelectMinecraftFirst">请先选择一个 Minecraft 版本！</sys:String>
+    <sys:String x:Key="Event.Launching">正在启动 {0}……</sys:String>
+    <sys:String x:Key="Event.Refreshed">已刷新！</sys:String>
+    <sys:String x:Key="Event.RefreshUnsupported">当前页面不支持刷新操作！</sys:String>
+    <sys:String x:Key="Event.SettingWritten">已写入设置：{0} → {1}</sys:String>
+    <sys:String x:Key="Event.VariableWritten">已写入变量：{0} → {1}</sys:String>
+
+    <sys:String x:Key="Mod.Dependency.Unresolved.Message">以下必需前置无法解析：&#x0a;&#x0a;{0}</sys:String>
+    <sys:String x:Key="Mod.Dependency.Unresolved.Title">无法安装必需前置</sys:String>
+    <sys:String x:Key="Mod.Dependency.Confirm.Message">此 Mod 需要以下必需前置：&#x0a;&#x0a;{0}</sys:String>
+    <sys:String x:Key="Mod.Dependency.Confirm.Title">安装 Mod 前置确认</sys:String>
+    <sys:String x:Key="Mod.Dependency.Confirm.Install">安装 Mod 与必需前置</sys:String>
+    <sys:String x:Key="Mod.Dependency.Confirm.Cancel">取消安装</sys:String>
+    <sys:String x:Key="Mod.Dependency.Aborted.Title">安装已中止</sys:String>
+    <sys:String x:Key="Mod.Dependency.ResolveFailed.Message">前置 Mod 解析失败，将仅下载本体。&#x0a;&#x0a;{0}</sys:String>
+    <sys:String x:Key="Mod.Dependency.ResolveFailed.Title">前置解析失败</sys:String>
+    <sys:String x:Key="Mod.Dependency.ResolveFailed.Continue">继续下载</sys:String>
+
+    <sys:String x:Key="Launch.Profile.OnlineManaged">此档案由在线服务自动管理，无法手动删除。请退出在线账户后重试。</sys:String>
+    <sys:String x:Key="Launch.Profile.OnlineDescription">由 PCL N 在线服务自动添加</sys:String>
+    <sys:String x:Key="Launch.Profile.OnlineAdded">已自动添加正版档案：{0}</sys:String>
+    <sys:String x:Key="Launch.Skin.Changing">正在更改皮肤中，请稍候！</sys:String>
+    <sys:String x:Key="Launch.Skin.LoginFailed">登录失败，无法更改皮肤！</sys:String>
+    <sys:String x:Key="Launch.Skin.ChangingNow">正在更改皮肤……</sys:String>
+    <sys:String x:Key="Launch.Skin.LoggingIn">正在登录，将在登录完成后继续更改皮肤……</sys:String>
+    <sys:String x:Key="Launch.Skin.ChangeFailedWithReason">更改皮肤失败：{0}</sys:String>
+    <sys:String x:Key="Launch.Skin.Timeout">更改皮肤失败：与 Mojang 皮肤服务器的连接超时，请检查你的网络是否通畅！</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.NoOfficialProfile">没有可用的正版档案，请先登录正版账号</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Select">选择正版皮肤</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.LoaderRequired.Message">PCL 将自动下载 CustomSkinLoader 模组（!skinsupport.jar）到 mods 文件夹，使离线档案的借用皮肤在游戏中显示。</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.LoaderRequired.Title">需要安装 CustomSkinLoader 模组</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.LoaderRequired.Confirm">确定使用</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Updated">皮肤源已更新，下次启动生效</sys:String>
+
+    <sys:String x:Key="Instance.ModUpdate.Starting">正在更新 {0}...</sys:String>
+    <sys:String x:Key="Instance.ModUpdate.DownloadingDependencies">正在下载 {0} 个前置...</sys:String>
+    <sys:String x:Key="Instance.ModUpdate.Completed">{0} 更新完成{1}{2}</sys:String>
+    <sys:String x:Key="Instance.ModUpdate.Completed.Dependencies">（含 {0} 个前置）</sys:String>
+    <sys:String x:Key="Instance.ModUpdate.Completed.Cleaned">，清理 {0} 个旧版</sys:String>
+    <sys:String x:Key="Instance.ModUpdate.Failed">更新失败</sys:String>
+    <sys:String x:Key="Instance.DatapackUpdate.SkippedUnsafe">已跳过 {0} 个文件名不安全的数据包更新。</sys:String>
+    <sys:String x:Key="Instance.ModRepair.Searching">正在查找缺失模组...</sys:String>
+    <sys:String x:Key="Instance.ModRepair.Restarting">已自动修复 {0} 个模组前置，正在重新启动游戏</sys:String>
+    <sys:String x:Key="Instance.Launch.Patching">正在修补游戏</sys:String>
+    <sys:String x:Key="Instance.Launch.DownloadingMissingMods">正在下载缺失模组...</sys:String>
+    <sys:String x:Key="Instance.Resource.Updating">正在更新资源</sys:String>
+    <sys:String x:Key="Instance.Resource.LoadingList">正在加载资源列表</sys:String>
+
+    <sys:String x:Key="Download.Comp.NoCompatibleVersion">未找到 {0} 兼容版本</sys:String>
+    <sys:String x:Key="Download.Comp.DownloadFailed">下载失败</sys:String>
+    <sys:String x:Key="Setup.Language.Initialized">已初始化语言页设置！</sys:String>
+    <sys:String x:Key="Minecraft.Java.GlobalOutsideRange">全局指定的 Java (v{0}) 超出版本要求范围，可能导致游戏崩溃</sys:String>
+    <sys:String x:Key="Crash.Analysis.ResultTitle">错误报告分析结果</sys:String>
+    <sys:String x:Key="Crash.MinecraftErrorTitle">Minecraft 出现错误</sys:String>
+    <sys:String x:Key="Crash.ReportExported">错误报告已导出！</sys:String>
+    <sys:String x:Key="Crash.UnknownReason">很抱歉，PCL 无法确定错误原因。</sys:String>
+    <sys:String x:Key="Core.Log.ExceptionTitle">出现异常</sys:String>
+    <sys:String x:Key="Core.Log.Details">详细信息：&#x0a;{0}</sys:String>
+    <sys:String x:Key="Core.Log.Help">若要寻求他人帮助，请勿关闭启动器并立即导出日志（设置 → 查看日志 → 导出日志），然后发送导出的日志压缩包。只发送这个窗口的截图通常无助于解决问题。</sys:String>
+    <sys:String x:Key="Core.Log.RelatedException">相关异常信息：&#x0a;{0}</sys:String>
+    <sys:String x:Key="Core.Log.FatalFeedback">如果你认为这是启动器的问题，请提交反馈，否则它可能永远都不会被解决！&#x0a;导出日志：设置 → 查看日志 → 导出全部日志</sys:String>
+    <sys:String x:Key="Core.Log.FatalTitle">启动器发生严重错误</sys:String>
+    <sys:String x:Key="Loader.WaitTimeout">等待加载器执行超时。</sys:String>
+    <sys:String x:Key="Main.Title.HomePageMarket">主页市场</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Hint.NothingShared">没有可分享的收藏内容。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.Arm64ToolTip">系统为 ARM64 架构，Java Launch Wrapper 已被强制禁用。</sys:String>
+    <sys:String x:Key="Setup.Ui.FeatureHide.Item.Help">帮助</sys:String>
+
+    <sys:String x:Key="Launch.Account.SkinSource.None">不使用</sys:String>
+    <sys:String x:Key="Launch.Account.Unverified.Warning.Message">我们发现你尚未登录正版账号，这可能影响游戏体验，并可能违反 Minecraft EULA。&#x0a;&#x0a;如果你没有正版账号，可以前往 Minecraft 官网或 Microsoft Store 购买。</sys:String>
+    <sys:String x:Key="Launch.Account.Unverified.Warning.Title">你可能需要正版验证</sys:String>
+    <sys:String x:Key="Launch.Account.Unverified.Warning.OpenStore">打开商店</sys:String>
+    <sys:String x:Key="Launch.Account.Unverified.Warning.Continue">仍要继续</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Borrow.Message">你即将借用正版皮肤。&#x0a;&#x0a;要在游戏内显示皮肤，需要为 Minecraft 实例安装 CustomSkinLoader 模组。该模组会从实例目录下的 CustomSkinLoader/LocalSkin/skins/ 文件夹自动加载皮肤。&#x0a;&#x0a;你可以在 CurseForge 或 Modrinth 搜索 CustomSkinLoader 下载。</sys:String>
+
+    <sys:String x:Key="Event.Download.Confirm">即将从该网址下载文件：&#x0a;{0}</sys:String>
+    <sys:String x:Key="Event.Safety.Message">{0}&#x0a;请在确认没有安全隐患后再继续。</sys:String>
+    <sys:String x:Key="Event.Safety.Title">执行确认</sys:String>
+    <sys:String x:Key="Event.Safety.Continue">继续</sys:String>
+    <sys:String x:Key="Event.Safety.AlwaysContinue">继续且今后不再要求确认</sys:String>
+
+    <sys:String x:Key="Common.Website.OpenFailed.Message">可能由于浏览器未正确配置，PCL 无法为你打开网页。&#x0a;网址已经复制到剪贴板，可以手动粘贴访问。&#x0a;网址：{0}</sys:String>
+    <sys:String x:Key="Common.Website.OpenFailed.Title">无法打开网页</sys:String>
+    <sys:String x:Key="Main.April.Surrender.1">放弃吧！只需要点一下右下角的小白旗……</sys:String>
+    <sys:String x:Key="Main.April.Surrender.2">看到右下角的那面小白旗了吗？</sys:String>
+    <sys:String x:Key="Main.April.Surrender.3">这里建议点一下右下角的小白旗投降呢.jpg</sys:String>
+    <sys:String x:Key="Main.April.Surrender.4">右下角的小白旗永远等着你……</sys:String>
+    <sys:String x:Key="Instance.Launch.DownloadingMissingMods.Progress">正在下载缺失模组 ({0}/{1})...</sys:String>
+    <sys:String x:Key="Minecraft.Java.NoLowerLimit">无下限</sys:String>
+    <sys:String x:Key="Minecraft.Java.NoUpperLimit">无上限</sys:String>
+    <sys:String x:Key="Minecraft.Java.InstanceOutsideRange">实例指定的 Java ({0}) 超出版本要求范围 [{1}, {2}]，可能导致游戏崩溃</sys:String>
+    <sys:String x:Key="Minecraft.Java.RelativeOutsideRange">实例相对路径指定的 Java (v{0}) 超出版本要求范围，可能导致游戏崩溃</sys:String>
+    <sys:String x:Key="Minecraft.Java.ManualMissing.Message">PCL 未找到 {0}。&#x0a;请自行搜索并安装 {0}，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。</sys:String>
+    <sys:String x:Key="Minecraft.Java.AutoDownload.Message">PCL 未找到 {0}，是否需要自动下载？&#x0a;如果你已经安装了 {0}，可以在 设置 → 启动选项 → 游戏 Java 中手动导入。</sys:String>
+    <sys:String x:Key="Minecraft.Java.AutoDownload.Title">自动下载 Java？</sys:String>
+    <sys:String x:Key="Minecraft.Java.AutoDownload.Confirm">自动下载</sys:String>
+    <sys:String x:Key="Minecraft.Java.Download.FileTask">下载 Java 文件</sys:String>
+    <sys:String x:Key="Minecraft.Java.Download.Task">下载 Java</sys:String>
+    <sys:String x:Key="Minecraft.Java.Download.InfoTask">获取 Java 下载信息</sys:String>
+
+    <sys:String x:Key="Launch.OfflineSkin.Unavailable.Message">当前版本暂不支持自动下载 CustomSkinLoader。&#x0a;&#x0a;皮肤文件将在启动前下载，但没有 CustomSkinLoader 模组时无法在游戏内显示。你可以在 CurseForge 或 Modrinth 搜索 CustomSkinLoader 手动安装。</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Unavailable.Title">皮肤模组不可用</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Unavailable.Continue">仍然启动</sys:String>
+    <sys:String x:Key="Crash.UnknownWithReportHint">很抱歉，你的游戏出现了一些问题……&#x0a;如果要寻求帮助，请把错误报告文件发给对方，而不是发送这个窗口的照片或截图。</sys:String>
+    <sys:String x:Key="Crash.LoaderIncompatible.Message">Mod 加载器版本与 Mod 不兼容，请前往 实例设置 - 修改 更换加载器版本。&#x0a;&#x0a;详细信息：&#x0a;</sys:String>
+    <sys:String x:Key="Crash.Action.Modify">前往修改</sys:String>
+    <sys:String x:Key="Crash.Action.ViewLog">查看日志</sys:String>
+    <sys:String x:Key="Crash.Action.ExportReport">导出错误报告</sys:String>
+    <sys:String x:Key="Common.Dialog.SelectFile">选择文件</sys:String>
+    <sys:String x:Key="Common.Dialog.SelectFolder">选择文件夹</sys:String>
+    <sys:String x:Key="Common.Error.Title">出现错误</sys:String>
+    <sys:String x:Key="Link.Lobby.ConnectionFailed.Title">P2P 联机建立失败</sys:String>
+    <sys:String x:Key="Online.Login.Required">请先在“设置 → 账户”中登录 Microsoft 账户。</sys:String>
+    <sys:String x:Key="Online.ComingSoon.Description">敬请期待</sys:String>
+    <sys:String x:Key="Validation.Input.Required">输入内容不能为空！</sys:String>
+    <sys:String x:Key="Validation.Input.ForbiddenContent">输入内容不能包含 {0}！</sys:String>
+    <sys:String x:Key="Validation.Url.Invalid">输入的网址无效！</sys:String>
+    <sys:String x:Key="Validation.Length.Exact">长度必须为 {0} 个字符！</sys:String>
+    <sys:String x:Key="Validation.Length.Minimum">长度至少为 {0} 个字符！</sys:String>
+    <sys:String x:Key="Validation.Length.Maximum">长度最长为 {0} 个字符！</sys:String>
+    <sys:String x:Key="Validation.Integer.Reasonable">请输入一个大小合理的数字！</sys:String>
+    <sys:String x:Key="Validation.Integer.Required">请输入一个整数！</sys:String>
+    <sys:String x:Key="Validation.Integer.Maximum">不可超过 {0}！</sys:String>
+    <sys:String x:Key="Validation.Integer.Minimum">不可低于 {0}！</sys:String>
+    <sys:String x:Key="Validation.Folder.PathInvalid">文件夹路径存在错误！</sys:String>
+    <sys:String x:Key="Validation.Folder.StartsWithSpace">文件夹名不能以空格开头！</sys:String>
+    <sys:String x:Key="Validation.Folder.EndsWithSpace">文件夹名不能以空格结尾！</sys:String>
+    <sys:String x:Key="Validation.Folder.EndsWithDot">文件夹名不能以小数点结尾！</sys:String>
+    <sys:String x:Key="Validation.Folder.InvalidCharacter">文件夹名不可包含 {0} 字符！</sys:String>
+    <sys:String x:Key="Validation.Folder.ReservedName">文件夹名不可为 {0}！</sys:String>
+    <sys:String x:Key="Validation.Folder.SpecialFormat">文件夹名不能包含这一特殊格式！</sys:String>
+    <sys:String x:Key="Validation.Folder.Duplicate">不可与现有文件夹重名！</sys:String>
+    <sys:String x:Key="Validation.File.StartsWithSpace">文件名不能以空格开头！</sys:String>
+    <sys:String x:Key="Validation.File.EndsWithSpace">文件名不能以空格结尾！</sys:String>
+    <sys:String x:Key="Validation.File.EndsWithDot">文件名不能以小数点结尾！</sys:String>
+    <sys:String x:Key="Validation.File.InvalidCharacter">文件名不可包含 {0} 字符！</sys:String>
+    <sys:String x:Key="Validation.File.ReservedName">文件名不可为 {0}！</sys:String>
+    <sys:String x:Key="Validation.File.SpecialFormat">文件名不能包含这一特殊格式！</sys:String>
+    <sys:String x:Key="Validation.File.ParentMissing">父文件夹不存在：{0}</sys:String>
+    <sys:String x:Key="Validation.File.Duplicate">不可与现有文件重名！</sys:String>
+    <sys:String x:Key="Instance.Resource.Update.DownloadFiles">下载新版资源文件</sys:String>
+    <sys:String x:Key="Instance.DatapackUpdate.DownloadFiles">下载新版数据包文件</sys:String>
+    <sys:String x:Key="Identity.AuthenticationFailed">认证失败</sys:String>
+    <sys:String x:Key="Identity.AuthenticationFailed.Detail">认证失败：{0}</sys:String>
+    <sys:String x:Key="Identity.AuthenticationFailed.CodeAndDetail">认证失败：{0} - {1}</sys:String>
 
 </ResourceDictionary>

@@ -1199,11 +1199,18 @@ public class CrashAnalyzer
         ModMain.frmMain.ShowWindowToTop();
         var resultText = GetAnalyzeResult(isHandAnalyze);
         // 确定是否是加载器版本不兼容问题
-        var isModLoaderIncompatible = _version is not null && resultText.StartsWith("Mod 加载器版本与 Mod 不兼容");
+        var isModLoaderIncompatible =
+            _version is not null && resultText.StartsWith(Lang.Text("Crash.LoaderIncompatible.Message"));
         // 弹窗选择：查看日志
-        switch (ModMain.MyMsgBox(resultText, isHandAnalyze ? "错误报告分析结果" : "Minecraft 出现错误", Lang.Text("Common.Action.Confirm"),
-                    isHandAnalyze || directFile is null ? "" : isModLoaderIncompatible ? "前往修改" : "查看日志",
-                    isHandAnalyze ? "" : "导出错误报告",
+        switch (ModMain.MyMsgBox(resultText,
+                    Lang.Text(isHandAnalyze ? "Crash.Analysis.ResultTitle" : "Crash.MinecraftErrorTitle"),
+                    Lang.Text("Common.Action.Confirm"),
+                    isHandAnalyze || directFile is null
+                        ? ""
+                        : isModLoaderIncompatible
+                            ? Lang.Text("Crash.Action.Modify")
+                            : Lang.Text("Crash.Action.ViewLog"),
+                    isHandAnalyze ? "" : Lang.Text("Crash.Action.ExportReport"),
                     button2Action: isHandAnalyze || directFile is null || isModLoaderIncompatible
                         ? null
                         : new Action(() =>
@@ -1321,7 +1328,7 @@ public class CrashAnalyzer
                     // 导出报告
                     ZipFile.CreateFromDirectory(Path.Combine(tempFolder, "Report"), fileAddress);
                     ModBase.DeleteDirectory(Path.Combine(tempFolder, "Report"));
-                    ModMain.Hint("错误报告已导出！", ModMain.HintType.Finish);
+                    ModMain.Hint(Lang.Text("Crash.ReportExported"), ModMain.HintType.Finish);
                 }
                 catch (Exception ex)
                 {
@@ -1343,14 +1350,14 @@ public class CrashAnalyzer
         // 没有结果的处理
         if (!crashReasons.Any())
         {
-            if (isHandAnalyze) return "很抱歉，PCL 无法确定错误原因。";
+            if (isHandAnalyze) return Lang.Text("Crash.UnknownReason");
 
-            return $"很抱歉，你的游戏出现了一些问题……{"\r\n"}如果要寻求帮助，请把错误报告文件发给对方，而不是发送这个窗口的照片或者截图。";
+            return Lang.Text("Crash.UnknownWithReportHint");
         }
 
         // 根据不同原因判断
         var results = new List<string>();
-        const string loaderIncompatibleResultText = @"Mod 加载器版本与 Mod 不兼容，请前往 实例设置 - 修改 更换加载器版本。\n\n详细信息：\n";
+        var loaderIncompatibleResultText = Lang.Text("Crash.LoaderIncompatible.Message");
         foreach (var Reason in crashReasons)
         {
             var additional = Reason.Value;

@@ -1066,22 +1066,22 @@ public static class ModMain
                 {
                     case 0:
                     {
-                        Hint("放弃吧！只需要点一下右下角的小白旗……");
+                        Hint(Lang.Text("Main.April.Surrender.1"));
                         break;
                     }
                     case 1:
                     {
-                        Hint("看到右下角的那面小白旗了吗？");
+                        Hint(Lang.Text("Main.April.Surrender.2"));
                         break;
                     }
                     case 2:
                     {
-                        Hint("这里建议点一下右下角的小白旗投降呢.jpg");
+                        Hint(Lang.Text("Main.April.Surrender.3"));
                         break;
                     }
                     case 3:
                     {
-                        Hint("右下角的小白旗永远等着你……");
+                        Hint(Lang.Text("Main.April.Surrender.4"));
                         break;
                     }
                 }

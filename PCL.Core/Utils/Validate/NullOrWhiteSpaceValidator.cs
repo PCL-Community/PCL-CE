@@ -1,5 +1,7 @@
 ﻿using FluentValidation;
 
+using PCL.Core.App.Localization;
+
 namespace PCL.Core.Utils.Validate;
 
 public class NullOrWhiteSpaceValidator : AbstractValidator<string>
@@ -7,6 +9,6 @@ public class NullOrWhiteSpaceValidator : AbstractValidator<string>
     public NullOrWhiteSpaceValidator()
     {
         RuleFor(x => x)
-            .Must(x => !string.IsNullOrWhiteSpace(x)).WithMessage("输入内容不能为空！");
+            .Must(x => !string.IsNullOrWhiteSpace(x)).WithMessage(Lang.Text("Validation.Input.Required"));
     }
 }

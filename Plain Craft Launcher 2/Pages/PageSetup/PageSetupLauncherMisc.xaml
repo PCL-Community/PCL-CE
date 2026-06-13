@@ -131,7 +131,7 @@
                         </Grid.ColumnDefinitions>
                         <local:MyHint Text="{DynamicResource Setup.Misc.Network.Proxy.UntrustedWarning}" Grid.Row="0" Grid.ColumnSpan="5" Theme="Yellow" />
                         <local:MyTextBox x:Name="TextSystemHttpProxy" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5"
-                                         Tag="SystemHttpProxy" HintText="比如 http://127.0.0.1:1080/"
+                                         Tag="SystemHttpProxy" HintText="{DynamicResource Setup.Misc.System.Proxy.Hint}"
                                          ToolTip="{DynamicResource Setup.Misc.Network.Proxy.InvalidWarning}" />
                         <TextBlock Grid.Column="0" Grid.Row="4" Text="{DynamicResource Setup.Misc.Network.Proxy.Username}" VerticalAlignment="Center"
                                    HorizontalAlignment="Left" Margin="0,0,5,0" />

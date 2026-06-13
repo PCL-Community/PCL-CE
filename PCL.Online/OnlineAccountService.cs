@@ -9,6 +9,7 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
+using PCL.Core.App.Localization;
 using PCL.Core.IO.Net;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Logging;
@@ -82,9 +83,10 @@ public static class OnlineAccountService
         {
             var clientId = Secrets.MSOAuthClientId;
             if (string.IsNullOrEmpty(clientId))
-                return new OnlineLoginResult { Success = false, Message = "未配置微软 OAuth Client ID" };
+                return new OnlineLoginResult
+                    { Success = false, Message = Lang.Text("Online.Login.ClientIdMissing") };
 
-            var xboxTokens = Authorize(clientId, XboxScope, "Microsoft 账户登录", showLoginDialog);
+            var xboxTokens = Authorize(clientId, XboxScope, Lang.Text("Online.Login.Title"), showLoginDialog);
             if (xboxTokens.Error is not null)
                 return new OnlineLoginResult { Success = false, Message = xboxTokens.Error };
 
@@ -98,7 +100,7 @@ public static class OnlineAccountService
         }
         catch (Exception ex) when (ex.Message == "$$")
         {
-            return new OnlineLoginResult { Success = false, Message = "登录已取消" };
+            return new OnlineLoginResult { Success = false, Message = Lang.Text("Online.Login.Cancelled") };
         }
         catch (Exception ex)
         {
@@ -126,7 +128,7 @@ public static class OnlineAccountService
         if (result is Exception ex)
             return new OAuthTokens(Error: ex.Message);
         if (result is not string[] oauthResult || oauthResult.Length < 2)
-            return new OAuthTokens(Error: "登录已取消");
+            return new OAuthTokens(Error: Lang.Text("Online.Login.Cancelled"));
 
         return new OAuthTokens(oauthResult[0], oauthResult[1]);
     }
@@ -171,21 +173,21 @@ public static class OnlineAccountService
             : FetchGraphProfile(graphTokens.AccessToken);
 
         var xblToken = AuthXbl(xboxTokens.AccessToken!);
-        if (xblToken is null) return Fail("Xbox Live 认证失败");
+        if (xblToken is null) return Fail(Lang.Text("Online.Login.XboxFailed"));
 
         var xsts = AuthXsts(xblToken);
-        if (xsts is null) return Fail("XSTS 认证失败");
+        if (xsts is null) return Fail(Lang.Text("Online.Login.XstsFailed"));
         var xstsToken = xsts["Token"]?.ToString();
         var userHash = xsts["DisplayClaims"]?["xui"]?[0]?["uhs"]?.ToString();
         if (string.IsNullOrEmpty(xstsToken) || string.IsNullOrEmpty(userHash))
-            return Fail("XSTS 响应缺少用户凭据");
+            return Fail(Lang.Text("Online.Login.XstsCredentialMissing"));
 
         var mcToken = AuthMc(xstsToken, userHash);
-        if (mcToken is null) return Fail("Minecraft 认证失败");
+        if (mcToken is null) return Fail(Lang.Text("Online.Login.MinecraftAuthFailed"));
 
         var mcProfile = GetProfile(mcToken);
-        if (mcProfile is null) return Fail("获取 Minecraft 档案失败");
-        var mcName = mcProfile["name"]?.ToString() ?? "未知";
+        if (mcProfile is null) return Fail(Lang.Text("Online.Login.MinecraftProfileFailed"));
+        var mcName = mcProfile["name"]?.ToString() ?? Lang.Text("Common.State.Unknown");
         var uuid = mcProfile["id"]?.ToString() ?? "";
 
         var displayName = graphProfile.name ?? mcName;
@@ -209,7 +211,7 @@ public static class OnlineAccountService
         return new OnlineLoginResult
         {
             Success = true,
-            Message = ownsMc ? $"登录成功：{displayName}（已拥有 Minecraft）" : $"登录成功：{displayName}（未拥有 Minecraft）",
+            Message = Lang.Text(ownsMc ? "Online.Login.SuccessOwned" : "Online.Login.SuccessNotOwned", displayName),
             MsId = graphProfile.id,
             UserName = mcName, DisplayName = displayName, MinecraftProfileName = mcName, Uuid = uuid, AccessToken = mcToken,
             RefreshToken = latestRefreshToken,

@@ -564,7 +564,7 @@ public static class ModProfile
     {
         if (!string.IsNullOrEmpty(profile.Desc) && profile.Desc.Contains("PCL N 在线服务"))
         {
-            ModMain.Hint("此档案由在线服务自动管理，无法手动删除。请退出在线账户后重试。", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Launch.Profile.OnlineManaged"), ModMain.HintType.Critical);
             return;
         }
         profileList.Remove(profile);
@@ -989,20 +989,20 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
         // 检查条件，获取新皮肤
         if (_isMsSkinChanging)
         {
-            ModMain.Hint("正在更改皮肤中，请稍候！");
+            ModMain.Hint(Lang.Text("Launch.Skin.Changing"));
             return;
         }
 
         if (ModLaunch.mcLoginLoader.State == ModBase.LoadState.Failed)
         {
-            ModMain.Hint("登录失败，无法更改皮肤！", ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Launch.Skin.LoginFailed"), ModMain.HintType.Critical);
             return;
         }
 
         var skinInfo = ModSkin.McSkinSelect();
         if (!skinInfo.IsVaild)
             return;
-        ModMain.Hint("正在更改皮肤……");
+        ModMain.Hint(Lang.Text("Launch.Skin.ChangingNow"));
         _isMsSkinChanging = true;
         // 开始实际获取
 
@@ -1020,7 +1020,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
                     ModLaunch.mcLoginMsLoader.WaitForExit(GetLoginData());
                 if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished)
                 {
-                    ModMain.Hint("登录失败，无法更改皮肤！", ModMain.HintType.Critical);
+                    ModMain.Hint(Lang.Text("Launch.Skin.LoginFailed"), ModMain.HintType.Critical);
                     return;
                 }
 
@@ -1046,7 +1046,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
                     });
                 if (res.Contains("request requires user authentication"))
                 {
-                    ModMain.Hint("正在登录，将在登录完成后继续更改皮肤……");
+                    ModMain.Hint(Lang.Text("Launch.Skin.LoggingIn"));
                     ModLaunch.mcLoginMsLoader.Start(GetLoginData(), true);
                     goto Retry;
                 }
@@ -1054,7 +1054,8 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
                 if (res.Contains("\"error\""))
                 {
                     ModMain.Hint(
-                        $"更改皮肤失败：{((JsonObject)ModBase.GetJson(res))["error"]}",
+                        Lang.Text("Launch.Skin.ChangeFailedWithReason",
+                            ((JsonObject)ModBase.GetJson(res))["error"]),
                         ModMain.HintType.Critical);
                     return;
                 }
@@ -1074,7 +1075,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
             catch (Exception ex)
             {
                 if (ex.GetType().Equals(typeof(TaskCanceledException)))
-                    ModMain.Hint("更改皮肤失败：与 Mojang 皮肤服务器的连接超时，请检查你的网络是否通畅！", ModMain.HintType.Critical);
+                    ModMain.Hint(Lang.Text("Launch.Skin.Timeout"), ModMain.HintType.Critical);
                 else
                     ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.ChangeSkin"), ModBase.LogLevel.Hint);
             }
@@ -1121,9 +1122,9 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
         profile.Username = result.UserName;
         profile.AccessToken = EncryptHelper.SecretEncrypt(result.AccessToken);
         profile.RefreshToken = EncryptHelper.SecretEncrypt(result.RefreshToken);
-        profile.Desc = "由 PCL N 在线服务自动添加";
+        profile.Desc = Lang.Text("Launch.Profile.OnlineDescription");
         profileList.Add(profile);
         SaveProfile();
-        ModMain.Hint($"已自动添加正版档案：{result.UserName}", ModMain.HintType.Finish);
+        ModMain.Hint(Lang.Text("Launch.Profile.OnlineAdded", result.UserName), ModMain.HintType.Finish);
     }
 }

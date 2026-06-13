@@ -1,5 +1,7 @@
 ﻿using System;
 
+using PCL.Core.App.Localization;
+
 namespace PCL.Core.Minecraft.IdentityModel;
 
 /// <summary>
@@ -38,10 +40,12 @@ public class IdentityModelAuthenticationException(
     private static string _BuildMessage(string? error, string? errorDescription)
     {
         if (!string.IsNullOrWhiteSpace(error) && !string.IsNullOrWhiteSpace(errorDescription))
-            return $"认证失败：{error} - {errorDescription}";
+            return Lang.Text("Identity.AuthenticationFailed.CodeAndDetail", error, errorDescription);
 
-        if (!string.IsNullOrWhiteSpace(errorDescription)) return $"认证失败：{errorDescription}";
-        if (!string.IsNullOrWhiteSpace(error)) return $"认证失败：{error}";
-        return "认证失败";
+        if (!string.IsNullOrWhiteSpace(errorDescription))
+            return Lang.Text("Identity.AuthenticationFailed.Detail", errorDescription);
+        if (!string.IsNullOrWhiteSpace(error))
+            return Lang.Text("Identity.AuthenticationFailed.Detail", error);
+        return Lang.Text("Identity.AuthenticationFailed");
     }
 }

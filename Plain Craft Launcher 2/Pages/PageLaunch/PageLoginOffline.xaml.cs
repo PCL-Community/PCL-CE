@@ -13,7 +13,7 @@ public partial class PageLoginOffline
         InitializeComponent();
         // Populate skin source combo
         ComboSkinSource.Items.Clear();
-        ComboSkinSource.Items.Add(new MyComboBoxItem { Content = "不使用" });
+        ComboSkinSource.Items.Add(new MyComboBoxItem { Content = Lang.Text("Launch.Account.SkinSource.None") });
         foreach (var p in ModProfile.profileList.Where(x => x.Type == ModLaunch.McLoginType.Ms))
             ComboSkinSource.Items.Add(new MyComboBoxItem { Content = p.Username, Tag = p.Uuid });
         BtnBack.Click += BtnBack_Click;
@@ -48,9 +48,10 @@ public partial class PageLoginOffline
         if (!ModProfile.profileList.Any(x => x.Type == ModLaunch.McLoginType.Ms))
         {
             var msWarnResult = ModMain.MyMsgBox(
-                "我们发现您并没有登录过正版账号，这可能会对您的游戏产生影响，并且也同时违反了Minecraft的EULA。\n\n如果您没有正版账号，您可以去Minecraft官网或Microsoft Store购买。",
-                "您可能需要正版验证",
-                "取消", "打开商店", "仍要继续",
+                Lang.Text("Launch.Account.Unverified.Warning.Message"),
+                Lang.Text("Launch.Account.Unverified.Warning.Title"),
+                Lang.Text("Common.Action.Cancel"), Lang.Text("Launch.Account.Unverified.Warning.OpenStore"),
+                Lang.Text("Launch.Account.Unverified.Warning.Continue"),
                 isWarn: true, forceWait: true);
             if (msWarnResult == 1 || msWarnResult == 2)
             {
@@ -98,9 +99,9 @@ public partial class PageLoginOffline
         if (!string.IsNullOrEmpty(skinSource))
         {
             if (ModMain.MyMsgBox(
-                    "你即将借用正版皮肤。\n\n要在游戏内显示皮肤，需要为你的 Minecraft 实例安装 CustomSkinLoader 模组。\n该模组会从实例目录下的 CustomSkinLoader/LocalSkin/skins/ 文件夹自动加载皮肤。\n\n你可以从以下渠道下载：\n- CurseForge 或 Modrinth 搜索 \"CustomSkinLoader\"\n- MCBBS / 我的世界中文论坛",
-                    "需要安装 CustomSkinLoader 模组",
-                    "确定使用", "取消",
+                    Lang.Text("Launch.OfflineSkin.Borrow.Message"),
+                    Lang.Text("Launch.OfflineSkin.LoaderRequired.Title"),
+                    Lang.Text("Launch.OfflineSkin.LoaderRequired.Confirm"), Lang.Text("Common.Action.Cancel"),
                     isWarn: true, forceWait: true) == 2)
                 return;
 

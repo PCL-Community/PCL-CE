@@ -95,7 +95,7 @@
         Orientation="Horizontal"
         Visibility="Collapsed">
         <!--<corelocal:BlurBorder Background="{DynamicResource ColorBrush6}" Padding="3,1" CornerRadius="3" Margin="0,0,4,0" SnapsToDevicePixels="True" UseLayoutRounding="False">
-            <TextBlock Text="科技" Foreground="{DynamicResource ColorBrush2}" FontSize="11" />
+            <TextBlock Text="{DynamicResource Download.Comp.Category.Technology}" Foreground="{DynamicResource ColorBrush2}" FontSize="11" />
         </corelocal:BlurBorder>-->
     </StackPanel>
     <TextBlock

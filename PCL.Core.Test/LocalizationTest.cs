@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.App.Localization;
@@ -12,6 +13,14 @@ namespace PCL.Core.Test;
 [TestClass]
 public class LocalizationTest
 {
+    private static readonly Regex HardCodedXamlTextPattern = new(
+        @"(?:Text|Title|Content|HintText|ToolTip|Header|AutomationProperties\.Name)\s*=\s*""(?!\{)[^""]*\p{IsCJKUnifiedIdeographs}[^""]*""",
+        RegexOptions.Compiled);
+
+    private static readonly Regex HardCodedCodeTextPattern = new(
+        @"(?:(?:ModMain\.)?Hint|MyMsgBox(?:Markdown)?|MessageBox\.Show|(?:\bText|\bTitle|\bContent|\bHintText|\bToolTip)\s*=)\s*\(\s*\$?""[^""]*\p{IsCJKUnifiedIdeographs}|(?:\bText|\bTitle|\bContent|\bHintText|\bToolTip)\s*=\s*\$?""[^""]*\p{IsCJKUnifiedIdeographs}",
+        RegexOptions.Compiled);
+
     private static readonly string[] LanguageFiles = LocalizationService.SupportedLanguages
         .Select(language => language.Code)
         .ToArray();
@@ -71,6 +80,37 @@ public class LocalizationTest
                 language.Code + ".xaml");
             Assert.IsTrue(File.Exists(filePath), $"{language.Code} 缺少语言资源文件");
         }
+    }
+
+    [TestMethod]
+    public void UserVisibleXamlShouldNotContainHardCodedChinese()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var violations = EnumerateSourceFiles(repositoryRoot, "*.xaml")
+            .Where(path => !path.Contains(
+                Path.Combine("PCL.Core", "App", "Localization", "Languages"),
+                StringComparison.OrdinalIgnoreCase))
+            .SelectMany(path => FindMatchingLines(repositoryRoot, path, HardCodedXamlTextPattern))
+            .ToArray();
+
+        Assert.IsEmpty(violations,
+            $"XAML 中存在未国际化的可见文本：{Environment.NewLine}{string.Join(Environment.NewLine, violations)}");
+    }
+
+    [TestMethod]
+    public void UserVisibleCodeShouldNotContainDirectHardCodedChinese()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var violations = EnumerateSourceFiles(repositoryRoot, "*.cs")
+            .Where(path => !path.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar,
+                StringComparison.OrdinalIgnoreCase))
+            .Where(path => !path.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar,
+                StringComparison.OrdinalIgnoreCase))
+            .SelectMany(path => FindMatchingLines(repositoryRoot, path, HardCodedCodeTextPattern))
+            .ToArray();
+
+        Assert.IsEmpty(violations,
+            $"代码中存在直接写入界面的中文文本：{Environment.NewLine}{string.Join(Environment.NewLine, violations)}");
     }
 
 
@@ -139,5 +179,29 @@ public class LocalizationTest
 
         Assert.Fail("无法定位仓库根目录");
         return string.Empty;
+    }
+
+    private static IEnumerable<string> EnumerateSourceFiles(string repositoryRoot, string pattern)
+    {
+        foreach (var directoryName in new[] { "PCL.Core", "PCL.Online", "Plain Craft Launcher 2" })
+        {
+            var directory = Path.Combine(repositoryRoot, directoryName);
+            if (!Directory.Exists(directory)) continue;
+            foreach (var path in Directory.EnumerateFiles(directory, pattern, SearchOption.AllDirectories))
+                yield return path;
+        }
+    }
+
+    private static IEnumerable<string> FindMatchingLines(string repositoryRoot, string path, Regex pattern)
+    {
+        var lineNumber = 0;
+        foreach (var line in File.ReadLines(path))
+        {
+            lineNumber++;
+            if (line.TrimStart().StartsWith("//", StringComparison.Ordinal))
+                continue;
+            if (pattern.IsMatch(line))
+                yield return $"{Path.GetRelativePath(repositoryRoot, path)}:{lineNumber}";
+        }
     }
 }

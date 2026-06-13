@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using PCL.Core.App;
 using PCL.Core.App.IoC;
+using PCL.Core.App.Localization;
 using PCL.Core.UI;
 
 namespace PCL.Core.Logging;
@@ -62,14 +63,13 @@ public class LogService : ILifecycleLogService
         // message box
         else if (actionLevel is ActionLevel.MsgBox or ActionLevel.MsgBoxErr)
         {
-            var caption = (ex is null) ? null : "出现异常";
+            var caption = (ex is null) ? null : Lang.Text("Core.Log.ExceptionTitle");
             var theme = (actionLevel == ActionLevel.MsgBoxErr) ? MsgBoxTheme.Info : MsgBoxTheme.Error;
             var message = plain;
             if (ex is not null)
-                message += $"\n\n详细信息:\n{ex}";
+                message += "\n\n" + Lang.Text("Core.Log.Details", ex);
             if (actionLevel == ActionLevel.MsgBoxErr)
-                message += "\n\n若要寻求他人帮助，请勿关闭启动器并立即导出日志 (设置 → 查看日志 → 导出日志)，" +
-                           "然后发送导出的日志压缩包，只发送这个窗口的截图通常无助于解决问题。";
+                message += "\n\n" + Lang.Text("Core.Log.Help");
             MsgBoxWrapper.Show(message, caption, theme, false);
         }
 
@@ -77,9 +77,10 @@ public class LogService : ILifecycleLogService
         else if (actionLevel == ActionLevel.MsgBoxFatal)
         {
             var message = plain;
-            if (ex is not null) message += $"\n\n相关异常信息:\n{ex}";
-            message += "\n\n如果你认为这是启动器的问题，请提交反馈，否则它可能永远都不会被解决！\n导出日志: 设置 → 查看日志 → 导出全部日志";
-            MessageBox.Show(message, "锟斤拷烫烫烫", MessageBoxButton.OK, MessageBoxImage.Error);
+            if (ex is not null) message += "\n\n" + Lang.Text("Core.Log.RelatedException", ex);
+            message += "\n\n" + Lang.Text("Core.Log.FatalFeedback");
+            MessageBox.Show(message, Lang.Text("Core.Log.FatalTitle"), MessageBoxButton.OK,
+                MessageBoxImage.Error);
         }
     }
 

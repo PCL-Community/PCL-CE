@@ -1226,14 +1226,15 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             }
 
             if (skippedUnsafeFileCount > 0)
-                ModMain.Hint($"已跳过 {skippedUnsafeFileCount} 个文件名不安全的数据包更新。", ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Instance.DatapackUpdate.SkippedUnsafe", skippedUnsafeFileCount),
+                    ModMain.HintType.Critical);
             if (!fileList.Any())
                 return;
 
             // 构造加载器
             var installLoaders = new List<ModLoader.LoaderBase>();
             var finishedFileNames = new List<string>();
-            installLoaders.Add(new LoaderDownload("下载新版数据包文件", fileList)
+                    installLoaders.Add(new LoaderDownload(Lang.Text("Instance.DatapackUpdate.DownloadFiles"), fileList)
                 { ProgressWeight = updateEntryList.Count * 1.5d });
 
             installLoaders.Add(new ModLoader.LoaderTask<int, int>("替换旧版数据包文件", _ =>

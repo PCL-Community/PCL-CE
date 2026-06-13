@@ -60,12 +60,7 @@ public sealed partial class LocalizationService
     public static IReadOnlyList<LocalizationLanguage> SupportedLanguages { get; } =
     [
         _DefaultLanguage,
-        new("zh-TW", "繁體中文（台灣）", "zh-TW", LocalizationFontProfile.TraditionalChinese),
-        new("en-US", "English (US)", "en-US", LocalizationFontProfile.English),
-        new("en-GB", "English (United Kingdom)", "en-GB", LocalizationFontProfile.English),
-        new("ja-JP", "日本語（日本）", "ja-JP", LocalizationFontProfile.Japanese),
-        new("fr-FR", "Français (France)", "fr-FR", LocalizationFontProfile.Other),
-        new("es-ES", "Español (España)", "es-ES", LocalizationFontProfile.Other)
+        new("en-US", "English (US)", "en-US", LocalizationFontProfile.English)
     ];
 
     [RegisterConfigEvent]

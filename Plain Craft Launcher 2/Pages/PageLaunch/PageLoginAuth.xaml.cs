@@ -66,9 +66,10 @@ public partial class PageLoginAuth
         if (!ModProfile.profileList.Any(x => x.Type == ModLaunch.McLoginType.Ms))
         {
             var msWarnResult = ModMain.MyMsgBox(
-                "我们发现您并没有登录过正版账号，这可能会对您的游戏产生影响，并且也同时违反了Minecraft的EULA。\n\n如果您没有正版账号，您可以去Minecraft官网或Microsoft Store购买。",
-                "您可能需要正版验证",
-                "取消", "打开商店", "仍要继续",
+                Lang.Text("Launch.Account.Unverified.Warning.Message"),
+                Lang.Text("Launch.Account.Unverified.Warning.Title"),
+                Lang.Text("Common.Action.Cancel"), Lang.Text("Launch.Account.Unverified.Warning.OpenStore"),
+                Lang.Text("Launch.Account.Unverified.Warning.Continue"),
                 isWarn: true, forceWait: true);
             if (msWarnResult == 1 || msWarnResult == 2)
             {
