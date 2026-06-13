@@ -38,6 +38,11 @@ namespace PCL
 
         public static bool TryParse(string value, out EventType result)
         {
+            result = EventType.None;
+
+            if (string.IsNullOrEmpty(value))
+                return false;
+
             if (Enum.TryParse(value, true, out result))
                 return true;
 

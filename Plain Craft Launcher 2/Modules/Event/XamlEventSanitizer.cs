@@ -23,6 +23,10 @@ namespace PCL
             @"(<local:CustomEvent\s+[^>]*?\bType\s*=\s*"")([^""]+)("")",
             RegexOptions.Compiled);
 
+        private static readonly Regex SetterEventTypeValueRegex = new(
+            @"(Property\s*=\s*""local:CustomEventService\.EventType""\s+Value\s*=\s*"")([^""]+)("")",
+            RegexOptions.Compiled);
+
         public static SanitizeResult Sanitize(string xaml)
         {
             var result = new SanitizeResult();
@@ -41,6 +45,12 @@ namespace PCL
             });
 
             sanitized = LocalCustomEventTypeAttributeRegex.Replace(sanitized, match =>
+            {
+                var chineseValue = match.Groups[2].Value;
+                return ReplaceEventType(match, chineseValue, result);
+            });
+
+            sanitized = SetterEventTypeValueRegex.Replace(sanitized, match =>
             {
                 var chineseValue = match.Groups[2].Value;
                 return ReplaceEventType(match, chineseValue, result);
