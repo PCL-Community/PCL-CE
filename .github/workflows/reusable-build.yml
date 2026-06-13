@@ -34,6 +34,29 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      - name: Validate N Cloud certificate
+        shell: bash
+        run: |
+          cert="PCL.Online/Certificates/n-cloud.cer"
+          test -s "$cert" || {
+            echo "::error file=$cert::N Cloud pinned certificate is missing or empty."
+            exit 1
+          }
+
+          openssl x509 -in "$cert" -noout -checkend 0 || {
+            echo "::error file=$cert::N Cloud pinned certificate is invalid or expired."
+            exit 1
+          }
+
+          openssl x509 -in "$cert" -noout -ext subjectAltName |
+            grep -Fq "IP Address:115.29.230.105" || {
+              echo "::error file=$cert::N Cloud certificate SAN does not contain IP 115.29.230.105."
+              exit 1
+            }
+
+          echo "N Cloud certificate SHA-256:"
+          openssl x509 -in "$cert" -outform DER | sha256sum
+
       - name: Build Project
         env:
           PCL_WRITE_SECRET: '1'
