@@ -156,17 +156,27 @@ public partial class FormMain
         Lifecycle.When(LifecycleState.WindowCreated, FormMain_Loaded);
     }
 
-    private static void OnCloudSyncNotice(PCL.Online.CloudSyncService.NoticeType noticeType)
+    private static void OnCloudSyncNotice(PCL.Online.CloudSyncService.NoticeType noticeType, int retryNumber)
     {
         ModBase.RunInUi(() =>
         {
             switch (noticeType)
             {
                 case PCL.Online.CloudSyncService.NoticeType.Starting:
-                    ModMain.Hint("正在与N Cloud同步您的数据……");
+                    ModMain.Hint(Lang.Text("Online.CloudSync.Syncing"));
+                    ModMain.frmSetupOnline?.SetCloudSyncRetrying();
+                    break;
+                case PCL.Online.CloudSyncService.NoticeType.Retry:
+                    ModMain.Hint(Lang.Text("Online.CloudSync.Retrying", retryNumber, 3));
                     break;
                 case PCL.Online.CloudSyncService.NoticeType.Success:
-                    ModMain.Hint("数据同步成功！", ModMain.HintType.Finish);
+                    ModMain.frmSetupOnline?.SetCloudSyncUnavailable(false);
+                    ModMain.Hint(Lang.Text("Online.CloudSync.Success"), ModMain.HintType.Finish);
+                    break;
+                case PCL.Online.CloudSyncService.NoticeType.Failed:
+                    ModMain.frmSetupOnline?.SetCloudSyncUnavailable(true);
+                    ModMain.MyMsgBox(Lang.Text("Online.CloudSync.Unavailable"),
+                        Lang.Text("Online.CloudSync.Title"));
                     break;
             }
         });
@@ -228,8 +238,8 @@ public partial class FormMain
             if (!PCL.Online.FirstLaunchService.IsAccepted())
             {
                 var legalText = PCL.Online.FirstLaunchService.LoadFullText();
-                if (ModMain.MyMsgBoxMarkdown(legalText, "PCL N Edition - 用户协议与隐私政策",
-                        "同意并继续", "拒绝并退出",
+                if (ModMain.MyMsgBoxMarkdown(legalText, Lang.Text("Main.Legal.Title"),
+                        Lang.Text("Main.Legal.Agree"), Lang.Text("Main.Legal.Decline"),
                         isWarn: false, forceWait: true) != 1)
                 {
                     Lifecycle.Shutdown(0, true);
@@ -1292,9 +1302,13 @@ public partial class FormMain
             if (Marshal.PtrToStringAuto(lParam) == "ImmersiveColorSet")
             {
                 ModBase.Log($"[System] 系统主题更改，深色模式：{SystemTheme.IsSystemInDarkMode()}");
-                if (Config.Preference.Theme.ColorMode == ColorMode.System &&
-                    (ThemeManager.IsDarkMode != SystemTheme.IsSystemInDarkMode())) ThemeService.RefreshColorMode();
+                ThemeService.RefreshSystemTheme();
             }
+        }
+        else if (msg is 0x031A or 0x0320) // WM_THEMECHANGED / WM_DWMCOLORIZATIONCOLORCHANGED
+        {
+            ModBase.Log("[System] 系统主题色已更改");
+            ThemeService.RefreshSystemTheme();
         }
 
         return nint.Zero;
@@ -1566,11 +1580,11 @@ public partial class FormMain
             }
             case PageType.InstanceModBrowser:
             {
-                return "下载新模组";
+                return Lang.Text("Main.Title.InstanceModBrowser");
             }
             case PageType.InstanceModDetail:
             {
-                return "模组详情";
+                return Lang.Text("Main.Title.InstanceModDetail");
             }
             default:
             {
@@ -1777,18 +1791,26 @@ public partial class FormMain
                 {
                     if (ModMain.frmSetupLeft is null)
                         ModMain.frmSetupLeft = new PageSetupLeft();
-                    if (ModMain.frmSetupLeft.PanItem.Children[(int)subType] is MyListItem)
-                        ((MyListItem)ModMain.frmSetupLeft.PanItem.Children[(int)subType]).SetChecked(true, true,
-                            stack == pageCurrent);
+                    foreach (var item in ModMain.frmSetupLeft.PanItem.Children)
+                        if (item is MyListItem listItem &&
+                            ModBase.Val(listItem.Tag) == (double)subType)
+                        {
+                            listItem.SetChecked(true, true, stack == pageCurrent);
+                            break;
+                        }
                     break;
                 }
                 case PageType.Online:
                 {
                     if (ModMain.frmOnlineLeft is null)
                         ModMain.frmOnlineLeft = new PageOnlineLeft();
-                    if (ModMain.frmOnlineLeft.PanItem.Children[(int)subType] is MyListItem)
-                        ((MyListItem)ModMain.frmOnlineLeft.PanItem.Children[(int)subType]).SetChecked(true, true,
-                            stack == pageCurrent);
+                    foreach (var item in ModMain.frmOnlineLeft.PanItem.Children)
+                        if (item is MyListItem listItem &&
+                            ModBase.Val(listItem.Tag) == (double)subType)
+                        {
+                            listItem.SetChecked(true, true, stack == pageCurrent);
+                            break;
+                        }
                     break;
                 }
                 case PageType.Resources:
@@ -1932,6 +1954,13 @@ public partial class FormMain
     /// </summary>
     private void PageChangeActual(PageStackData stack, PageSubType subType)
     {
+        if (stack.page == PageType.Online && !PCL.Online.OnlineAccountService.IsLoggedIn)
+        {
+            ModMain.Hint(Lang.Text("Online.Login.Required"), ModMain.HintType.Critical);
+            PageChange(PageType.Setup, PageSubType.SetupOnline);
+            return;
+        }
+
         if (pageCurrent == stack && (pageCurrentSub == subType || (int)subType == -1))
             return;
         ModAnimation.AniControlEnabled += 1;

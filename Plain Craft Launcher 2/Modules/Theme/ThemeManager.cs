@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Reflection;
 using PCL.Core.App;
 using PCL.Core.UI.Theme;
 
@@ -34,8 +35,71 @@ public static class ThemeManager
         {
             if (!ModMain.frmMain.IsLoaded) return;
             RefreshBackground();
+            RefreshAnimatedControlColors();
             RefreshAllContextMenuThemes();
         });
+    }
+
+    private static void RefreshAnimatedControlColors()
+    {
+        ModAnimation.AniControlEnabled += 1;
+        try
+        {
+            foreach (Window window in System.Windows.Application.Current.Windows)
+                RefreshAnimatedControlColors(window);
+        }
+        finally
+        {
+            ModAnimation.AniControlEnabled -= 1;
+        }
+    }
+
+    private static void RefreshAnimatedControlColors(DependencyObject element)
+    {
+        try
+        {
+            if (element is FrameworkElement frameworkElement &&
+                frameworkElement.GetType().Namespace == typeof(ThemeManager).Namespace &&
+                frameworkElement.GetType().Name.StartsWith("My", StringComparison.Ordinal))
+            {
+                if (frameworkElement is MyListItem)
+                    frameworkElement.GetType()
+                        .GetField("stateLast", BindingFlags.Instance | BindingFlags.NonPublic)
+                        ?.SetValue(frameworkElement, null);
+
+                InvokeColorRefresh(frameworkElement, "Checkbox_IsEnabledChanged");
+                InvokeColorRefresh(frameworkElement, "RefreshColor");
+                InvokeColorRefresh(frameworkElement, "RefreshTextColor");
+            }
+
+            for (var i = 0; i < VisualTreeHelper.GetChildrenCount(element); i++)
+                RefreshAnimatedControlColors(VisualTreeHelper.GetChild(element, i));
+        }
+        catch
+        {
+            // 个别控件刷新失败不应阻断整个主题切换。
+        }
+    }
+
+    private static void InvokeColorRefresh(FrameworkElement element, string methodName)
+    {
+        var method = element.GetType().GetMethod(methodName,
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        if (method is null)
+            return;
+
+        var parameters = method.GetParameters();
+        if (parameters.Length == 0)
+        {
+            method.Invoke(element, null);
+        }
+        else if (parameters.Length == 2)
+        {
+            object secondArgument = typeof(EventArgs).IsAssignableFrom(parameters[1].ParameterType)
+                ? EventArgs.Empty
+                : false;
+            method.Invoke(element, [element, secondArgument]);
+        }
     }
     
     // 主页面背景

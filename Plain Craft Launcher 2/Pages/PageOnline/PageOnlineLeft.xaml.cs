@@ -29,7 +29,7 @@ public partial class PageOnlineLeft
         var targetId = id ?? pageID;
         if (!pages.TryGetValue(targetId, out var page))
         {
-            page = new PageOnlineBlank();
+            page = new PageOnlineBlank(targetId);
             pages[targetId] = page;
         }
 

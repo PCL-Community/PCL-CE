@@ -355,7 +355,7 @@
 
                             <local:MyListItem x:Name="BtnTitleSelect2" Title="{DynamicResource Main.TopTitle.Community}" Tag="2" Margin="1,0,1,0" FontSize="12" Type="RadioBox" LogoScale="0.8" Click="BtnNavItem_Click" SvgIcon="lucide/download" />
 
-                            <local:MyListItem x:Name="BtnTitleSelect4" Title="在线" Tag="4" Margin="1,0,1,0" FontSize="12" Type="RadioBox" LogoScale="0.8" Click="BtnNavItem_Click" SvgIcon="lucide/globe" />
+                            <local:MyListItem x:Name="BtnTitleSelect4" Title="{DynamicResource Main.TopTitle.Online}" Tag="4" Margin="1,0,1,0" FontSize="12" Type="RadioBox" LogoScale="0.8" Click="BtnNavItem_Click" SvgIcon="lucide/globe" />
 
                             <local:MyListItem x:Name="BtnTitleSelect3" Title="{DynamicResource Main.TopTitle.Settings}" Tag="3" Margin="1,0,1,0" FontSize="12" Type="RadioBox" LogoScale="0.8" Click="BtnNavItem_Click" SvgIcon="lucide/settings" />
 
@@ -367,7 +367,7 @@
 
                                             HorizontalAlignment="Center" Click="BtnNavToggle_Click"
 
-                                            AutomationProperties.Name="展开菜单"
+                                            AutomationProperties.Name="{DynamicResource Main.Automation.ExpandMenu}"
 
                                             Logo="M0,3 h24 v3 h-24 v-3 Z M0,10.5 h24 v3 h-24 v-3 Z M0,18 h24 v3 h-24 v-3 Z" />
 

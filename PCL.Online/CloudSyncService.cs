@@ -25,40 +25,89 @@ namespace PCL.Online;
 
 public static class CloudSyncService
 {
+    public enum SyncMode
+    {
+        TimestampMerge,
+        RemoteOverwrite,
+        LocalOverwrite
+    }
+
     public enum NoticeType
     {
         Starting,
-        Success
+        Retry,
+        Success,
+        Failed
     }
 
+    private const int MaxRetryCount = 3;
     private static readonly string MetadataFilePath = Path.Combine(Paths.SharedData, "online.sync.v1.json");
     private static int _syncing;
+    private static int _isAvailable = 1;
+    private static string _lastReason = "manual-retry";
+    private static SyncMode _lastMode = SyncMode.TimestampMerge;
 
-    public static event Action<NoticeType>? Notice;
+    public static event Action<NoticeType, int>? Notice;
 
-    public static void TrySyncInBackground(string reason)
+    public static bool IsAvailable => Volatile.Read(ref _isAvailable) != 0;
+
+    public static bool TrySyncInBackground(string reason, SyncMode mode = SyncMode.TimestampMerge)
     {
-        if (Interlocked.CompareExchange(ref _syncing, 1, 0) != 0)
-            return;
+        if (!OnlineAccountService.IsLoggedIn ||
+            !States.Online.CloudSyncEnabled ||
+            !HasAnySectionEnabled())
+            return false;
 
+        if (Interlocked.CompareExchange(ref _syncing, 1, 0) != 0)
+            return false;
+
+        _lastReason = reason;
+        _lastMode = mode;
         _ = Task.Run(async () =>
         {
+            Notice?.Invoke(NoticeType.Starting, 0);
             try
             {
-                await SyncAsync(reason).ConfigureAwait(false);
+                for (var retry = 0; ; retry++)
+                {
+                    try
+                    {
+                        await SyncAsync(reason, mode).ConfigureAwait(false);
+                        Interlocked.Exchange(ref _isAvailable, 1);
+                        Notice?.Invoke(NoticeType.Success, 0);
+                        return;
+                    }
+                    catch (Exception ex) when (retry < MaxRetryCount)
+                    {
+                        var retryNumber = retry + 1;
+                        LogWrapper.Debug(ex, "CloudSync",
+                            $"云同步失败（{reason}），准备第 {retryNumber}/{MaxRetryCount} 次重试。");
+                        Notice?.Invoke(NoticeType.Retry, retryNumber);
+                        await Task.Delay(TimeSpan.FromSeconds(retryNumber)).ConfigureAwait(false);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 LogWrapper.Debug(ex, "CloudSync", $"云同步失败（{reason}）");
+                Interlocked.Exchange(ref _isAvailable, 0);
+                Notice?.Invoke(NoticeType.Failed, 0);
             }
             finally
             {
                 Interlocked.Exchange(ref _syncing, 0);
             }
         });
+        return true;
     }
 
-    private static async Task SyncAsync(string reason, CancellationToken cancellationToken = default)
+    public static bool RetryLastFailed()
+    {
+        return TrySyncInBackground(_lastReason, _lastMode);
+    }
+
+    private static async Task SyncAsync(string reason, SyncMode mode,
+        CancellationToken cancellationToken = default)
     {
         if (!OnlineAccountService.IsLoggedIn)
             return;
@@ -86,12 +135,27 @@ public static class CloudSyncService
         if (IsLocalDebugServerUrl(serverBaseUrl) &&
             !await IsServerReachableAsync(serverBaseUrl, cancellationToken).ConfigureAwait(false))
         {
-            LogWrapper.Info("CloudSync", $"跳过云同步（{reason}）：本地调试服务 {serverBaseUrl} 未启动。");
-            return;
+            throw new HttpRequestException($"本地调试服务 {serverBaseUrl} 未启动。");
         }
 
-        Notice?.Invoke(NoticeType.Starting);
         using var cloudClient = NCloudHttpClient.Create(serverBaseUrl);
+
+        if (mode == SyncMode.LocalOverwrite)
+        {
+            var localSnapshot = BuildSnapshot();
+            var localRequest = BuildRequest(localSnapshot,
+                new CloudSyncMetadataFile { MsId = msId }, forceAllSections: true);
+            if (!localRequest.HasAnySection)
+                return;
+
+            var localResult = await PostSyncAsync(serverBaseUrl, msId, localRequest.Request, cloudClient,
+                    cancellationToken)
+                .ConfigureAwait(false);
+            await ApplyDocumentAsync(localResult).ConfigureAwait(false);
+            SaveMetadata(CreateMetadataFromLocal(msId, localResult, BuildSnapshot()));
+            LogWrapper.Info("CloudSync", $"云同步完成（{reason}，本地覆盖）。");
+            return;
+        }
 
         var metadata = LoadMetadata();
         if (!string.Equals(metadata.MsId, msId, StringComparison.Ordinal))
@@ -100,6 +164,21 @@ public static class CloudSyncService
 
         var remoteDocument = await TryGetRemoteDocumentAsync(serverBaseUrl, msId, cloudClient, cancellationToken)
             .ConfigureAwait(false);
+
+        if (mode == SyncMode.RemoteOverwrite)
+        {
+            if (remoteDocument is null)
+            {
+                LogWrapper.Info("CloudSync", $"云同步完成（{reason}）：云端暂无数据。");
+                return;
+            }
+
+            await ApplyDocumentAsync(remoteDocument, overwriteAccount: true).ConfigureAwait(false);
+            SaveMetadata(CreateMetadataFromLocal(msId, remoteDocument, BuildSnapshot()));
+            LogWrapper.Info("CloudSync", $"云同步完成（{reason}，云端覆盖）。");
+            return;
+        }
+
         if (remoteDocument is not null)
             MergeMissingMetadata(metadata, remoteDocument);
 
@@ -116,13 +195,11 @@ public static class CloudSyncService
                 await ApplyDocumentAsync(merged).ConfigureAwait(false);
                 SaveMetadata(CreateMetadataFromLocal(msId, merged, BuildSnapshot()));
                 LogWrapper.Info("CloudSync", $"云同步完成（{reason}，首次拉取后回传本地账户信息）。");
-                Notice?.Invoke(NoticeType.Success);
                 return;
             }
 
             SaveMetadata(CreateMetadataFromLocal(msId, remoteDocument, localAfterPull));
             LogWrapper.Info("CloudSync", $"云同步完成（{reason}，首次拉取）。");
-            Notice?.Invoke(NoticeType.Success);
             return;
         }
 
@@ -140,7 +217,6 @@ public static class CloudSyncService
         await ApplyDocumentAsync(result).ConfigureAwait(false);
         SaveMetadata(CreateMetadataFromLocal(msId, result, BuildSnapshot()));
         LogWrapper.Info("CloudSync", $"云同步完成（{reason}）。");
-        Notice?.Invoke(NoticeType.Success);
     }
 
     private static string ResolveServerBaseUrl()
@@ -221,30 +297,18 @@ public static class CloudSyncService
     private static async Task<CloudUserDocument?> TryGetRemoteDocumentAsync(string serverBaseUrl, string msId,
         HttpClient cloudClient, CancellationToken cancellationToken)
     {
-        try
-        {
-            using var response = await HttpRequest
-                .Create($"{serverBaseUrl}/api/users/{Uri.EscapeDataString(msId)}")
-                .SendAsync(httpClient: cloudClient, retryTimes: 1, cancellationToken: cancellationToken)
-                .ConfigureAwait(false);
+        using var response = await HttpRequest
+            .Create($"{serverBaseUrl}/api/users/{Uri.EscapeDataString(msId)}")
+            .SendAsync(httpClient: cloudClient, retryTimes: 0, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
 
-            if (response.StatusCode == HttpStatusCode.NotFound)
-                return null;
-
-            if (!response.IsSuccess)
-            {
-                LogWrapper.Info("CloudSync", $"读取云端配置失败：HTTP {(int)response.StatusCode} {response.ReasonPhrase}");
-                return null;
-            }
-
-            return await response.AsJsonAsync<CloudUserDocument>(cancellationToken: cancellationToken)
-                .ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            LogWrapper.Debug(ex, "CloudSync", "读取云端配置失败。");
+        if (response.StatusCode == HttpStatusCode.NotFound)
             return null;
-        }
+
+        await response.EnsureSuccessStatusCodeWithContentAsync(cancellationToken).ConfigureAwait(false);
+        return await response.AsJsonAsync<CloudUserDocument>(cancellationToken: cancellationToken)
+                   .ConfigureAwait(false)
+               ?? throw new InvalidDataException("云端同步数据为空。");
     }
 
     private static async Task<CloudUserDocument> PostSyncAsync(string serverBaseUrl, string msId,
@@ -253,7 +317,7 @@ public static class CloudSyncService
         using var response = await HttpRequest
             .CreatePost($"{serverBaseUrl}/api/users/{Uri.EscapeDataString(msId)}/sync")
             .WithJsonContent(request)
-            .SendAsync(httpClient: cloudClient, retryTimes: 1, cancellationToken: cancellationToken)
+            .SendAsync(httpClient: cloudClient, retryTimes: 0, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
         await response.EnsureSuccessStatusCodeWithContentAsync(cancellationToken).ConfigureAwait(false);
@@ -522,9 +586,10 @@ public static class CloudSyncService
         };
     }
 
-    private static void ApplyDocument(CloudUserDocument document)
+    private static void ApplyDocument(CloudUserDocument document, bool overwriteAccount = false)
     {
-        if (States.Online.CloudSyncAccount) ApplyAccount(document.Account?.Data as JsonObject);
+        if (States.Online.CloudSyncAccount)
+            ApplyAccount(document.Account?.Data as JsonObject, overwriteAccount);
         if (States.Online.CloudSyncFavorites) ApplyFavorites(document.Favorites?.Data as JsonObject);
         if (States.Online.CloudSyncUiPreferences) ApplyUiPreferences(document.UiPreferences?.Data as JsonObject);
         if (States.Online.CloudSyncHintPreferences) ApplyHintPreferences(document.HintPreferences?.Data as JsonObject);
@@ -536,19 +601,19 @@ public static class CloudSyncService
         if (States.Online.CloudSyncCustomVariables) ApplyCustomVariables(document.CustomVariables?.Data as JsonObject);
     }
 
-    private static Task ApplyDocumentAsync(CloudUserDocument document)
+    private static Task ApplyDocumentAsync(CloudUserDocument document, bool overwriteAccount = false)
     {
         var dispatcher = Application.Current?.Dispatcher;
         if (dispatcher is null || dispatcher.CheckAccess())
         {
-            ApplyDocument(document);
+            ApplyDocument(document, overwriteAccount);
             return Task.CompletedTask;
         }
 
-        return dispatcher.InvokeAsync(() => ApplyDocument(document), DispatcherPriority.Send).Task;
+        return dispatcher.InvokeAsync(() => ApplyDocument(document, overwriteAccount), DispatcherPriority.Send).Task;
     }
 
-    private static void ApplyAccount(JsonObject? data)
+    private static void ApplyAccount(JsonObject? data, bool overwrite)
     {
         if (data is null)
             return;
@@ -557,16 +622,20 @@ public static class CloudSyncService
             !string.IsNullOrWhiteSpace(acceptedVersion))
             States.Online.LegalAcceptedVersion = acceptedVersion;
 
-        if (string.IsNullOrWhiteSpace(States.Online.MsId) && TryGetString(data, "msid", out var msId))
+        if ((overwrite || string.IsNullOrWhiteSpace(States.Online.MsId)) &&
+            TryGetString(data, "msid", out var msId))
             States.Online.MsId = msId;
-        if (string.IsNullOrWhiteSpace(States.Online.MsUserName) && TryGetString(data, "ms_user_name", out var msUserName))
+        if ((overwrite || string.IsNullOrWhiteSpace(States.Online.MsUserName)) &&
+            TryGetString(data, "ms_user_name", out var msUserName))
             States.Online.MsUserName = msUserName;
-        if (string.IsNullOrWhiteSpace(States.Online.MsMinecraftProfileName) &&
+        if ((overwrite || string.IsNullOrWhiteSpace(States.Online.MsMinecraftProfileName)) &&
             TryGetString(data, "minecraft_profile_name", out var mcName))
             States.Online.MsMinecraftProfileName = mcName;
-        if (string.IsNullOrWhiteSpace(States.Online.MsUuid) && TryGetString(data, "ms_uuid", out var uuid))
+        if ((overwrite || string.IsNullOrWhiteSpace(States.Online.MsUuid)) &&
+            TryGetString(data, "ms_uuid", out var uuid))
             States.Online.MsUuid = uuid;
-        if (!States.Online.MsOwnsMinecraft && TryGetBool(data, "ms_owns_minecraft", out var ownsMinecraft))
+        if ((overwrite || !States.Online.MsOwnsMinecraft) &&
+            TryGetBool(data, "ms_owns_minecraft", out var ownsMinecraft))
             States.Online.MsOwnsMinecraft = ownsMinecraft;
         if (string.IsNullOrWhiteSpace(States.Online.MsAvatarUrl) &&
             TryGetString(data, "ms_avatar_url", out var avatarPath) &&

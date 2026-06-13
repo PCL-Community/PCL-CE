@@ -7,6 +7,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -25,9 +26,10 @@ public partial class PageOnline
             PanNotLoggedIn.Visibility = Visibility.Collapsed;
             PanLoggedIn.Visibility = Visibility.Visible;
             CardSync.Visibility = Visibility.Visible;
-            LabUserName.Text = PCL.Online.OnlineAccountService.UserName ?? "未知";
+            LabUserName.Text = PCL.Online.OnlineAccountService.UserName ?? Lang.Text("Common.State.Unknown");
             LabAccountType.Text = PCL.Online.OnlineAccountService.OwnsMinecraft
-                ? "已拥有 Minecraft 正版" : "未拥有 Minecraft";
+                ? Lang.Text("Online.Account.OwnsMinecraft")
+                : Lang.Text("Online.Account.DoesNotOwnMinecraft");
             var url = PCL.Online.OnlineAccountService.AvatarUrl;
             ImgAvatar.Source = null;
             if (!string.IsNullOrEmpty(url))
@@ -47,6 +49,7 @@ public partial class PageOnline
                 }
 
             ReloadSyncSettings();
+            SetCloudSyncUnavailable(!PCL.Online.CloudSyncService.IsAvailable);
         }
         else
         {
@@ -55,6 +58,19 @@ public partial class PageOnline
             CardSync.Visibility = Visibility.Collapsed;
             ImgAvatar.Source = null;
         }
+    }
+
+    public void SetCloudSyncRetrying()
+    {
+        BtnRetrySync.IsEnabled = false;
+    }
+
+    public void SetCloudSyncUnavailable(bool unavailable)
+    {
+        SyncBlurEffect.Radius = unavailable ? 6d : 0d;
+        PanSyncContent.IsHitTestVisible = !unavailable;
+        PanSyncUnavailable.Visibility = unavailable ? Visibility.Visible : Visibility.Collapsed;
+        BtnRetrySync.IsEnabled = unavailable;
     }
 
     private void ReloadSyncSettings()
@@ -103,7 +119,8 @@ public partial class PageOnline
                 if (result.Success && result.OwnsMinecraft)
                     ModProfile.AddProfileFromOnline(result);
                 if (result.Success)
-                    PCL.Online.CloudSyncService.TrySyncInBackground("login");
+                    PCL.Online.CloudSyncService.TrySyncInBackground("login",
+                        PCL.Online.CloudSyncService.SyncMode.RemoteOverwrite);
                 ModMain.Hint(result.Message,
                     result.Success ? ModMain.HintType.Finish : ModMain.HintType.Critical);
                 RefreshAccountCard();
@@ -116,7 +133,7 @@ public partial class PageOnline
     {
         PCL.Online.OnlineAccountService.Logout();
         RefreshAccountCard();
-        ModMain.Hint("已退出登录", ModMain.HintType.Finish);
+        ModMain.Hint(Lang.Text("Online.Account.LoggedOut"), ModMain.HintType.Finish);
     }
 
     private void BtnSyncDisable_Click(object sender, ModBase.RouteEventArgs e)
@@ -126,7 +143,14 @@ public partial class PageOnline
 
         States.Online.CloudSyncEnabled = false;
         ReloadSyncSettings();
-        ModMain.Hint("已关闭 N Cloud 同步", ModMain.HintType.Finish);
+        ModMain.Hint(Lang.Text("Online.CloudSync.Disabled"), ModMain.HintType.Finish);
+    }
+
+    private void BtnRetrySync_Click(object sender, ModBase.RouteEventArgs e)
+    {
+        BtnRetrySync.IsEnabled = false;
+        if (!PCL.Online.CloudSyncService.RetryLastFailed())
+            BtnRetrySync.IsEnabled = true;
     }
 
     private void SyncCheckBoxChange(object senderRaw, bool user)
@@ -175,6 +199,7 @@ public partial class PageOnline
 
         UpdateSyncSettingsState();
         if (user && States.Online.CloudSyncEnabled)
-            PCL.Online.CloudSyncService.TrySyncInBackground("settings");
+            PCL.Online.CloudSyncService.TrySyncInBackground("settings",
+                PCL.Online.CloudSyncService.SyncMode.LocalOverwrite);
     }
 }

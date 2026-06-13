@@ -123,6 +123,39 @@ public sealed partial class ThemeService
     }
 
     /// <summary>
+    /// 刷新由 Windows 管理的深浅模式与系统强调色。
+    /// </summary>
+    public static void RefreshSystemTheme()
+    {
+        var isDarkMode = _IsDarkMode();
+        var modeChanged = IsDarkMode != isDarkMode;
+        if (modeChanged)
+        {
+            Context.Info("正在跟随系统更改配色模式");
+            IsDarkMode = isDarkMode;
+            _LogStatus();
+        }
+
+        if (!modeChanged && CurrentTheme != ColorTheme.SystemAccent)
+            return;
+        if (Lifecycle.CurrentState <= LifecycleState.Loading)
+            return;
+
+        Lifecycle.CurrentApplication.Dispatcher.BeginInvoke(() =>
+        {
+            if (modeChanged)
+            {
+                _RefreshAll();
+                return;
+            }
+
+            ApplyColorResources();
+            ColorThemeChanged?.Invoke(CurrentTheme);
+            _AprilFoolLogic();
+        });
+    }
+
+    /// <summary>
     /// 当前使用的色彩属性。
     /// </summary>
     public static ToneProfile CurrentTone => IsDarkMode ? ToneProfiles.Dark : ToneProfiles.Light;

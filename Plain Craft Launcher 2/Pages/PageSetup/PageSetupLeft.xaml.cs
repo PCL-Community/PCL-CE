@@ -37,30 +37,7 @@ public partial class PageSetupLeft
         // 选择第一个未被禁用的子页面（默认选中账户）
         if (isPageSwitched)
             return;
-        var hideCfg = Config.Preference.Hide;
         ItemOnlineAccount.SetChecked(true, false, false);
-        if (!hideCfg.SetupLaunch)
-            ItemLaunch.SetChecked(true, false, false);
-        else if (!hideCfg.SetupJava) 
-            ItemJava.SetChecked(true, false, false);    
-        else if (!hideCfg.SetupGameManage)
-            ItemGameManage.SetChecked(true, false, false);
-        else if (!hideCfg.SetupUi)
-            ItemUI.SetChecked(true, false, false);
-        else if (!hideCfg.SetupLauncherLanguage)
-            ItemLauncherLanguage.SetChecked(true, false, false);
-        else if (!hideCfg.SetupLauncherMisc) 
-            ItemLauncherMisc.SetChecked(true, false, false);
-        else if (!hideCfg.SetupAbout) 
-            ItemAbout.SetChecked(true, false, false);   
-        else if (!hideCfg.SetupUpdate) 
-            ItemUpdate.SetChecked(true, false, false);
-        else if (!hideCfg.SetupFeedback) 
-            ItemFeedback.SetChecked(true, false, false);
-        else if (!hideCfg.SetupLog) 
-            ItemLog.SetChecked(true, false, false);
-        else 
-            ItemLaunch.SetChecked(true, false, false);
     }
 
     private void PageOtherLeft_Unloaded(object sender, RoutedEventArgs e)
@@ -191,28 +168,7 @@ public partial class PageSetupLeft
     {
         InitializeComponent();
         // 默认选中账户
-        var hideCfg = Config.Preference.Hide;
         pageID = FormMain.PageSubType.SetupOnline;
-        if (!hideCfg.SetupJava)
-            pageID = FormMain.PageSubType.SetupJava;
-        else if (!hideCfg.SetupGameManage)
-            pageID = FormMain.PageSubType.SetupGameManage;
-        else if (!hideCfg.SetupUi)
-            pageID = FormMain.PageSubType.SetupUI;
-        else if (!hideCfg.SetupLauncherLanguage)
-            pageID = FormMain.PageSubType.SetupLauncherLanguage;
-        else if (!hideCfg.SetupLauncherMisc)
-            pageID = FormMain.PageSubType.SetupLauncherMisc;
-        else if (!hideCfg.SetupAbout)
-            pageID = FormMain.PageSubType.SetupAbout;        
-        else if (!hideCfg.SetupUpdate)
-            pageID = FormMain.PageSubType.SetupUpdate;
-        else if (!hideCfg.SetupFeedback)
-            pageID = FormMain.PageSubType.SetupFeedback;
-        else if (!hideCfg.SetupLog)
-            pageID = FormMain.PageSubType.SetupLog;
-        else
-            pageID = FormMain.PageSubType.SetupLaunch;
         AnimatedControl = PanItem;
         Loaded += PageSetupLeft_Loaded;
         Unloaded += PageOtherLeft_Unloaded;

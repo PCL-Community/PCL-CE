@@ -11,6 +11,7 @@ public class AnimatedBackgroundGrid : Grid
         new PropertyMetadata(new SolidColorBrush(Color.FromArgb(0, 0, 0, 0)), _BackgroundBrushChanged));
 
     private readonly DependencyProperty _animatableBrushProperty;
+    private int _themeAnimationVersion;
 
     public readonly int uuid = ModBase.GetUuid();
 
@@ -48,6 +49,7 @@ public class AnimatedBackgroundGrid : Grid
     {
         var grid = (AnimatedBackgroundGrid)d;
         var brush = (SolidColorBrush)e.NewValue;
+        var animationVersion = ++grid._themeAnimationVersion;
         if (!(grid.IsLoaded && grid.IsVisible))
         {
             grid.AnimatableBrush = brush;
@@ -57,6 +59,7 @@ public class AnimatedBackgroundGrid : Grid
         grid.Dispatcher.BeginInvoke(new Func<Task>(async () =>
         {
             grid.IsAnimating = true;
+            ModAnimation.AniStop("MyCard Theme " + grid.uuid);
             ModAnimation.AniStart(
                 new[]
                 {
@@ -64,6 +67,8 @@ public class AnimatedBackgroundGrid : Grid
                         new ModBase.MyColor(brush) - grid.AnimatableBrush, 300)
                 }, "MyCard Theme " + grid.uuid);
             await Task.Delay(300);
+            if (animationVersion != grid._themeAnimationVersion)
+                return;
             grid.AnimatableBrush = brush;
             grid.IsAnimating = false;
         }));

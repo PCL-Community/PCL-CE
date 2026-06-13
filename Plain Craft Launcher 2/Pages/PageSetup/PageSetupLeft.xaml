@@ -7,9 +7,9 @@
     <local:MyScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
                           Style="{StaticResource ScrollViewerFullMargin}">
         <StackPanel Margin="0,12,0,0" x:Name="PanItem">
-            <TextBlock Text="在线" Margin="13,5,5,3" Opacity="0.6" FontSize="12" />
+            <TextBlock Text="{DynamicResource Online.Account.Category}" Margin="13,5,5,3" Opacity="0.6" FontSize="12" />
             <local:MyListItem x:Name="ItemOnlineAccount" IsScaleAnimationEnabled="False" Tag="7" MinPaddingRight="35" Height="36"
-                               VerticalAlignment="Top" Title="账户" Type="RadioBox" Check="PageCheck"
+                               VerticalAlignment="Top" Title="{DynamicResource Online.Account.Title}" Type="RadioBox" Check="PageCheck"
                                LogoScale="1" SvgIcon="lucide/user" />
 
             <TextBlock Text="{DynamicResource Setup.Left.Category.Game}" Margin="13,5,5,3" Opacity="0.6" FontSize="12" x:Name="TextGameCategory" />
