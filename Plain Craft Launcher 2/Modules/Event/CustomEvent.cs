@@ -9,7 +9,7 @@ namespace PCL
     public class CustomEvent
     {
         public EventType Type { get; set; } = EventType.None;
-        public string Data { get; set; }
+        public string Data { get; set; } = string.Empty;
 
         public CustomEvent() { }
 
@@ -121,7 +121,7 @@ namespace PCL
                     try
                     {
                         var urls = GetAbsoluteUrls(args[0], type);
-                        if (!EventSafetyConfirm($"即将执行：{urls[0]}{(args.Length >= 2 ? " " + args[1] : "")}"))
+                        if (!EventSafetyConfirm($"{urls[0]}{(args.Length >= 2 ? " " + args[1] : "")}"))
                             return;
                         ProcessInterop.Start(urls[0], args.Length >= 2 ? args[1] : "");
                     }
@@ -304,7 +304,7 @@ namespace PCL
                 if (args.Length == 1)
                     throw new ArgumentException(Lang.Text("Event.Error.MissingArgs", type.ToString(), "SettingName|Value"));
                 if (ConfigService.TryGetConfigItemNoType(args[0], out var item) && item.Source != ConfigSource.SharedEncrypt)
-                    item.SetValueNoType(args[1], ModInstanceList.McMcInstanceSelected.PathInstance);
+                    item.SetValueNoType(args[1], ModInstanceList.McMcInstanceSelected?.PathInstance);
                 if (args.Length == 2)
                     ModMain.Hint(Lang.Text("Event.Setting.Written", args[0], args[1]), ModMain.HintType.Finish);
             }
@@ -344,6 +344,9 @@ namespace PCL
             if (File.Exists(Path.Combine(pclDir, relativeUrl)))
             {
                 var fullPath = Path.Combine(pclDir, relativeUrl);
+                var resolved = Path.GetFullPath(fullPath);
+                if (!resolved.StartsWith(pclDir, StringComparison.OrdinalIgnoreCase))
+                    throw new UnauthorizedAccessException(Lang.Text("Event.Error.FileNotFound", relativeUrl));
                 ModBase.Log($"[Control] 自定义事件中由相对 PCL 文件夹的路径 {type}: {fullPath}");
                 return [fullPath, pclDir];
             }

@@ -3194,6 +3194,9 @@ public static class ModBase
         uI.Child = null;
     }
 
+    /// <summary>
+    ///     将 XElement 转换为对应 UI 对象（不返回 XAML 清理结果）。
+    /// </summary>
     public static object GetObjectFromXML(XElement str)
     {
         return GetObjectFromXML(str.ToString());

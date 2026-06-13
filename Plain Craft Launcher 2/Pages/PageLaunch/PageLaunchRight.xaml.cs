@@ -486,11 +486,11 @@ public partial class PageLaunchRight : IRefreshable
     private readonly object loadContentLock = new();
     private static void _ShowSanitizeHints(XamlEventSanitizer.SanitizeResult result)
     {
-        foreach (var unsupported in result.UnsupportedTypesFound.Distinct())
-            ModMain.Hint($"[{unsupported}]" + " " + Lang.Text("Event.Sanity.UnsupportedTypeHint"), ModMain.HintType.Critical);
+        foreach (var unsupported in result.UnsupportedTypesFound)
+            ModMain.Hint($"[{unsupported}]" + " " + Lang.Text("Event.Sanitize.UnsupportedTypeHint"), ModMain.HintType.Critical);
 
-        foreach (var unknown in result.UnrecognizedTypes.Distinct())
-            ModMain.Hint($"[{unknown}]" +  " " + Lang.Text("Event.Sanity.UnknownTypeHint"), ModMain.HintType.Critical);
+        foreach (var unknown in result.UnrecognizedTypes)
+            ModMain.Hint($"[{unknown}]" +  " " + Lang.Text("Event.Sanitize.UnknownTypeHint"), ModMain.HintType.Critical);
     }
 
     private const string homepageLivePatchFileName = "CustomLive.json";

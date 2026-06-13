@@ -46,8 +46,8 @@ namespace PCL
                 return ReplaceEventType(match, chineseValue, result);
             });
 
-            RemoveElementsForTypes(sanitized, result.UnsupportedTypesFound, ref sanitized);
-            RemoveElementsForTypes(sanitized, result.UnrecognizedTypes, ref sanitized);
+            RemoveElementsForTypes(result.UnsupportedTypesFound, ref sanitized);
+            RemoveElementsForTypes(result.UnrecognizedTypes, ref sanitized);
 
             result.UnsupportedTypesFound = result.UnsupportedTypesFound.Distinct().ToList();
             result.UnrecognizedTypes = result.UnrecognizedTypes.Distinct().ToList();
@@ -56,7 +56,7 @@ namespace PCL
             return result;
         }
 
-        private static void RemoveElementsForTypes(string xaml, List<string> types, ref string sanitized)
+        private static void RemoveElementsForTypes(List<string> types, ref string sanitized)
         {
             var snapshot = types.ToList();
             foreach (var type in snapshot)
