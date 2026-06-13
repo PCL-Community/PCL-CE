@@ -1,12 +1,10 @@
 using System.IO;
 using System.Globalization;
 using System.Reflection;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.UI;
@@ -47,7 +45,7 @@ public partial class PageLaunchRight : IRefreshable
         var input = ModMain.MyMsgBoxInput(Lang.Text("Launch.Right.CommunityHint.InputTitle"));
         if (string.IsNullOrWhiteSpace(input))
             return;
-        input = new string(input.Where(x => char.IsAsciiLetter(x)).ToArray()).ToLower();
+        input = new string(input.Where(char.IsAsciiLetter).ToArray()).ToLower();
         if (input.Contains("pclcommunity"))
         {
             ModAnimation.AniDispose(PanHint, true);
@@ -296,7 +294,7 @@ public partial class PageLaunchRight : IRefreshable
             if (stream is null) return null;
             using var reader = new StreamReader(stream);
             return reader.ReadToEnd()
-                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
                 .Where(l => !string.IsNullOrWhiteSpace(l))
                 .Select(l => l.Trim())
                 .ToArray();
@@ -589,7 +587,10 @@ public partial class PageLaunchRight : IRefreshable
 
         try
         {
-            var token = JToken.Parse(_ReadHomepageLivePatchFile(file));
+            var token = JsonNode.Parse(_ReadHomepageLivePatchFile(file),
+                new JsonNodeOptions { PropertyNameCaseInsensitive = true },
+                new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip,
+                    AllowTrailingCommas = true });
             foreach (var patch in _EnumerateHomepageLivePatches(token))
                 _ApplyHomepageLivePatch(patch);
         }
@@ -629,14 +630,14 @@ public partial class PageLaunchRight : IRefreshable
     {
         try
         {
-            var marker = new JObject
+            var marker = new JsonObject(new JsonNodeOptions { PropertyNameCaseInsensitive = true })
             {
                 ["processId"] = Environment.ProcessId,
                 ["processPath"] = Environment.ProcessPath ?? "",
                 ["patchFile"] = homepageLivePatchFileName,
                 ["startedAt"] = DateTime.Now.ToString("O", CultureInfo.InvariantCulture)
             };
-            File.WriteAllText(Path.Combine(directory, homepageLiveSupportFileName), marker.ToString(Newtonsoft.Json.Formatting.None));
+            File.WriteAllText(Path.Combine(directory, homepageLiveSupportFileName), marker.ToJsonString());
         }
         catch (Exception ex)
         {
@@ -651,8 +652,11 @@ public partial class PageLaunchRight : IRefreshable
             var file = Path.Combine(_GetHomepageLiveDirectory(), homepageLiveSupportFileName);
             if (!File.Exists(file)) return;
 
-            var marker = JObject.Parse(_ReadHomepageLivePatchFile(file));
-            if (marker["processId"]?.Value<int?>() == Environment.ProcessId)
+            var marker = (JsonObject)JsonNode.Parse(_ReadHomepageLivePatchFile(file),
+                new JsonNodeOptions { PropertyNameCaseInsensitive = true },
+                new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip,
+                    AllowTrailingCommas = true })!;
+            if (marker["processId"]?.GetValue<int>() == Environment.ProcessId)
                 File.Delete(file);
         }
         catch (Exception ex)
@@ -661,13 +665,13 @@ public partial class PageLaunchRight : IRefreshable
         }
     }
 
-    private static IEnumerable<JObject> _EnumerateHomepageLivePatches(JToken token)
+    private static IEnumerable<JsonObject> _EnumerateHomepageLivePatches(JsonNode token)
     {
-        if (token is JObject obj)
+        if (token is JsonObject obj)
         {
-            if (obj["patches"] is JArray patches)
+            if (obj["patches"] is JsonArray patches)
             {
-                foreach (var patch in patches.OfType<JObject>())
+                foreach (var patch in patches.OfType<JsonObject>())
                     yield return patch;
                 yield break;
             }
@@ -678,22 +682,25 @@ public partial class PageLaunchRight : IRefreshable
                 yield break;
             }
 
-            foreach (var property in obj.Properties())
+            foreach (var property in obj)
             {
-                if (property.Value is not JObject patch) continue;
-                patch = (JObject)patch.DeepClone();
-                patch["target"] ??= property.Name;
+                if (property.Value is not JsonObject patch) continue;
+                patch = (JsonObject)JsonNode.Parse(patch.ToJsonString(),
+                    new JsonNodeOptions { PropertyNameCaseInsensitive = true },
+                    new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip,
+                        AllowTrailingCommas = true })!;
+                patch["target"] ??= property.Key;
                 yield return patch;
             }
         }
-        else if (token is JArray array)
+        else if (token is JsonArray array)
         {
-            foreach (var patch in array.OfType<JObject>())
+            foreach (var patch in array.OfType<JsonObject>())
                 yield return patch;
         }
     }
 
-    private void _ApplyHomepageLivePatch(JObject patch)
+    private void _ApplyHomepageLivePatch(JsonObject patch)
     {
         var target = _TryGetString(patch, "target", "tag", "name");
         if (string.IsNullOrWhiteSpace(target)) return;
@@ -702,7 +709,7 @@ public partial class PageLaunchRight : IRefreshable
             _ApplyHomepageLivePatchToElement(element, patch);
     }
 
-    private void _ApplyHomepageLivePatchToElement(FrameworkElement element, JObject patch)
+    private void _ApplyHomepageLivePatchToElement(FrameworkElement element, JsonObject patch)
     {
         _SetPropertyIfPresent(element, patch, "text", "Text");
         _SetPropertyIfPresent(element, patch, "title", "Title");
@@ -713,10 +720,10 @@ public partial class PageLaunchRight : IRefreshable
         _SetPropertyIfPresent(element, patch, "isEnabled", "IsEnabled");
         _SetPropertyIfPresent(element, patch, "opacity", "Opacity");
 
-        if (patch["properties"] is JObject properties)
+        if (patch["properties"] is JsonObject properties)
         {
-            foreach (var property in properties.Properties())
-                _TrySetElementProperty(element, property.Name, property.Value?.ToString() ?? "");
+            foreach (var property in properties)
+                _TrySetElementProperty(element, property.Key, property.Value?.ToString() ?? "");
         }
 
         var childrenXaml = _TryGetString(patch, "childrenXaml", "ChildrenXaml");
@@ -724,9 +731,9 @@ public partial class PageLaunchRight : IRefreshable
             _ReplacePanelChildren(panel, childrenXaml);
     }
 
-    private static void _SetPropertyIfPresent(FrameworkElement element, JObject patch, string jsonName, string propertyName)
+    private static void _SetPropertyIfPresent(FrameworkElement element, JsonObject patch, string jsonName, string propertyName)
     {
-        if (patch.TryGetValue(jsonName, StringComparison.OrdinalIgnoreCase, out var value))
+        if (patch.TryGetPropertyValue(jsonName, out var value))
             _TrySetElementProperty(element, propertyName, value?.ToString() ?? "");
     }
 
@@ -819,11 +826,11 @@ public partial class PageLaunchRight : IRefreshable
         }
     }
 
-    private static string? _TryGetString(JObject obj, params string[] names)
+    private static string? _TryGetString(JsonObject obj, params string[] names)
     {
         foreach (var name in names)
         {
-            if (obj.TryGetValue(name, StringComparison.OrdinalIgnoreCase, out var value))
+            if (obj.TryGetPropertyValue(name, out var value))
                 return value?.ToString();
         }
 
