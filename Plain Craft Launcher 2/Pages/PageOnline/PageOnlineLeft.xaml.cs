@@ -9,6 +9,7 @@ public partial class PageOnlineLeft
 {
     public FormMain.PageSubType PageID => pageID;
     private FormMain.PageSubType pageID = FormMain.PageSubType.OnlineLobby;
+    private readonly Dictionary<FormMain.PageSubType, PageOnlineBlank> pages = new();
 
     public PageOnlineLeft()
     {
@@ -25,7 +26,14 @@ public partial class PageOnlineLeft
 
     public object PageGet(FormMain.PageSubType? id = null)
     {
-        return new PageOnline();
+        var targetId = id ?? pageID;
+        if (!pages.TryGetValue(targetId, out var page))
+        {
+            page = new PageOnlineBlank();
+            pages[targetId] = page;
+        }
+
+        return page;
     }
 
     public void PageChange(FormMain.PageSubType id)

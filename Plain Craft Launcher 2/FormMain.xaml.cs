@@ -1572,11 +1572,6 @@ public partial class FormMain
             {
                 return "模组详情";
             }
-            case PageType.Online:
-            {
-                return "在线服务";
-            }
-
             default:
             {
                 return "";
@@ -1752,8 +1747,15 @@ public partial class FormMain
             // 切换到主页面
             PageChangeExit();
             isChangingPage = true;
-            if (PanTitleSelect.Children[(int)stack.page] is MyListItem navItem)
-                navItem.Checked = true;
+            foreach (var item in PanTitleSelect.Children)
+            {
+                if (item is MyListItem navItem &&
+                    ModBase.Val(navItem.Tag) == (double)stack.page)
+                {
+                    navItem.Checked = true;
+                    break;
+                }
+            }
             isChangingPage = false;
             switch (stack.page)
             {
