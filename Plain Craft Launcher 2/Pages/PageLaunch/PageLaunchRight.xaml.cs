@@ -587,7 +587,10 @@ public partial class PageLaunchRight : IRefreshable
 
         try
         {
-            var token = JsonNode.Parse(_ReadHomepageLivePatchFile(file), new JsonNodeOptions { PropertyNameCaseInsensitive = true });
+            var token = JsonNode.Parse(_ReadHomepageLivePatchFile(file),
+                new JsonNodeOptions { PropertyNameCaseInsensitive = true },
+                new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip,
+                    AllowTrailingCommas = true });
             foreach (var patch in _EnumerateHomepageLivePatches(token))
                 _ApplyHomepageLivePatch(patch);
         }
@@ -649,7 +652,10 @@ public partial class PageLaunchRight : IRefreshable
             var file = Path.Combine(_GetHomepageLiveDirectory(), homepageLiveSupportFileName);
             if (!File.Exists(file)) return;
 
-            var marker = (JsonObject)JsonNode.Parse(_ReadHomepageLivePatchFile(file), new JsonNodeOptions { PropertyNameCaseInsensitive = true })!;
+            var marker = (JsonObject)JsonNode.Parse(_ReadHomepageLivePatchFile(file),
+                new JsonNodeOptions { PropertyNameCaseInsensitive = true },
+                new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip,
+                    AllowTrailingCommas = true })!;
             if (marker["processId"]?.GetValue<int>() == Environment.ProcessId)
                 File.Delete(file);
         }
@@ -679,7 +685,10 @@ public partial class PageLaunchRight : IRefreshable
             foreach (var property in obj)
             {
                 if (property.Value is not JsonObject patch) continue;
-                patch = (JsonObject)JsonNode.Parse(patch.ToJsonString(), new JsonNodeOptions { PropertyNameCaseInsensitive = true })!;
+                patch = (JsonObject)JsonNode.Parse(patch.ToJsonString(),
+                    new JsonNodeOptions { PropertyNameCaseInsensitive = true },
+                    new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip,
+                        AllowTrailingCommas = true })!;
                 patch["target"] ??= property.Key;
                 yield return patch;
             }
