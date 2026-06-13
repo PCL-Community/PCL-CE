@@ -2703,9 +2703,9 @@
     <sys:String x:Key="Tools.Test.Clean.Title">清理游戏垃圾</sys:String>
     <sys:String x:Key="Tools.Test.Clean.ToolTip">清理 PCL 的缓存与 MC 的日志、崩溃报告等垃圾文件</sys:String>
     <sys:String x:Key="Tools.Test.Clean.ConfirmTitle">清理确认</sys:String>
-    <sys:String x:Key="Tools.Test.Clean.ConfirmMessage">即将清理游戏日志、错误报告、缓存等文件。\n虽然应该没人往这些地方放重要文件，但还是问一下，是否确认继续？\n\n在完成清理后，PCL 将自动重启。</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ConfirmMessage">即将清理游戏日志、错误报告、缓存等文件。&#x0a;虽然应该没人往这些地方放重要文件，但还是问一下，是否确认继续？&#x0a;&#x0a;在完成清理后，PCL 将自动重启。</sys:String>
     <sys:String x:Key="Tools.Test.Clean.Cleared">缓存已清理</sys:String>
-    <sys:String x:Key="Tools.Test.Clean.ClearedMessage">清理了 {0} 个文件！\nPCL 即将自动重启……</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ClearedMessage">清理了 {0} 个文件！&#x0a;PCL 即将自动重启……</sys:String>
     <sys:String x:Key="Tools.Test.Clean.NoFiles">没有找到任何可以清理的文件！</sys:String>
     <sys:String x:Key="Tools.Test.Clean.WaitForDownload">请在所有下载任务完成后再来清理吧……</sys:String>
     <sys:String x:Key="Tools.Test.Clean.CloseGameFirst">请先关闭所有运行中的游戏……</sys:String>
@@ -2715,7 +2715,7 @@
     <sys:String x:Key="Tools.Test.Shortcut.Title">创建快捷方式</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.ToolTip">创建一个指向 PCL 社区版可执行文件的快捷方式</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.SelectLocation">选择快捷方式位置</sys:String>
-    <sys:String x:Key="Tools.Test.Shortcut.ConfirmMessage">这个快捷方式不会自动移除，在删除/移动启动器前请手动移除快捷方式。\n\n{0}位置: {1}\n{2}位置: {3}</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.ConfirmMessage">这个快捷方式不会自动移除，在删除/移动启动器前请手动移除快捷方式。&#x0a;&#x0a;{0}位置: {1}&#x0a;{2}位置: {3}</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.Desktop">桌面</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.StartMenu">开始菜单</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.Created">已在{0}创建快捷方式</sys:String>
@@ -2753,7 +2753,7 @@
 
     <sys:String x:Key="Tools.Test.Dependency.Title">依赖检查</sys:String>
     <sys:String x:Key="Tools.Test.Dependency.Checking">开始环境检查……</sys:String>
-    <sys:String x:Key="Tools.Test.Dependency.MissingMessage">当前系统环境缺失软件运行所需依赖"{0}"\n\n点击确定打开微软应用商店安装</sys:String>
+    <sys:String x:Key="Tools.Test.Dependency.MissingMessage">当前系统环境缺失软件运行所需依赖"{0}"&#x0a;&#x0a;点击确定打开微软应用商店安装</sys:String>
     <sys:String x:Key="Tools.Test.Dependency.Later">稍后</sys:String>
 
     <!-- Tools.GameLink -->
