@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <IsPackable>false</IsPackable>
+        <IsTestProject>true</IsTestProject>
+        <LangVersion>14.0</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Copyright>Copyright © MUXUE1230; Modifications Copyright © 2026 PCL N contributors</Copyright>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+        <PackageReference Include="MSTest.TestAdapter" Version="4.1.0" />
+        <PackageReference Include="MSTest.TestFramework" Version="4.1.0" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\PCL.Core.Portable\PCL.Core.Portable.csproj" />
+    </ItemGroup>
+</Project>
