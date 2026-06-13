@@ -3220,6 +3220,8 @@ public static class ModBase
             Replace("EventData=\"", "local:CustomEventService.EventData=\"").
             Replace("Property=\"EventType\"", "Property=\"local:CustomEventService.EventType\"").
             Replace("Property=\"EventData\"", "Property=\"local:CustomEventService.EventData\"");
+        // 修复因上述替换导致重复前缀的情况：local:CustomEventService.local:CustomEventService.EventType
+        str = str.Replace("local:CustomEventService.local:CustomEventService.", "local:CustomEventService.");
 
         sanitizeResult = XamlEventSanitizer.Sanitize(str);
         str = sanitizeResult.SanitizedXaml;
