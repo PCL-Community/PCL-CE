@@ -444,8 +444,8 @@ public partial class PageLaunchRight : IRefreshable
                 content =
                     $"<StackPanel xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:sys=\"clr-namespace:System;assembly=System.Runtime\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\">{content}</StackPanel>";
                 ModBase.Log($"[Page] 实例化：加载主页 UI 开始，最终内容长度：{content.Count()}");
-                PanCustom.Children.Add((UIElement)ModBase.GetObjectFromXML(content));
-                _ShowSanitizeHints();
+                PanCustom.Children.Add((UIElement)ModBase.GetObjectFromXML(content, out var sanitizeResult));
+                _ShowSanitizeHints(sanitizeResult);
                 _ApplyHomepageLivePatchesFromFile();
             }
             catch (Exception ex)
@@ -484,12 +484,10 @@ public partial class PageLaunchRight : IRefreshable
 
     private int loadedContentHash = -1;
     private readonly object loadContentLock = new();
-    private static void _ShowSanitizeHints()
+    private static void _ShowSanitizeHints(XamlEventSanitizer.SanitizeResult result)
     {
-        var result = ModBase.LastSanitizeResult;
-
         foreach (var unsupported in result.UnsupportedTypesFound.Distinct())
-            ModMain.Hint($"[{unsupported}]" + " " + Lang.Text("Event.Sanity.UnSupportedTypeHint"));
+            ModMain.Hint($"[{unsupported}]" + " " + Lang.Text("Event.Sanity.UnsupportedTypeHint"));
 
         foreach (var unknown in result.UnrecognizedTypes.Distinct())
             ModMain.Hint($"[{unknown}]" +  " " + Lang.Text("Event.Sanity.UnknownTypeHint"));

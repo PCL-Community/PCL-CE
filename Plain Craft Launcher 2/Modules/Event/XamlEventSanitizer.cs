@@ -7,8 +7,8 @@ namespace PCL
         public class SanitizeResult
         {
             public string SanitizedXaml { get; set; } = "";
-            public List<string> UnsupportedTypesFound { get; } = new();
-            public List<string> UnrecognizedTypes { get; } = new();
+            public List<string> UnsupportedTypesFound { get; set; } = new();
+            public List<string> UnrecognizedTypes { get; set; } = new();
         }
 
         private static readonly Regex EventTypeAttributeRegex = new(
@@ -46,23 +46,21 @@ namespace PCL
                 return ReplaceEventType(match, chineseValue, result);
             });
 
-            var unsupportedSnapshot = result.UnsupportedTypesFound.ToList();
-            foreach (var type in unsupportedSnapshot)
-                sanitized = RemoveElementsWithEventType(sanitized, type, result.UnsupportedTypesFound);
+            RemoveElementsForTypes(sanitized, result.UnsupportedTypesFound, ref sanitized);
+            RemoveElementsForTypes(sanitized, result.UnrecognizedTypes, ref sanitized);
 
-            var unrecognizedSnapshot = result.UnrecognizedTypes.ToList();
-            foreach (var type in unrecognizedSnapshot)
-                sanitized = RemoveElementsWithEventType(sanitized, type, result.UnrecognizedTypes);
-
-            var distinctUnsupported = new List<string>(new HashSet<string>(result.UnsupportedTypesFound));
-            var distinctUnrecognized = new List<string>(new HashSet<string>(result.UnrecognizedTypes));
-            result.UnsupportedTypesFound.Clear();
-            result.UnsupportedTypesFound.AddRange(distinctUnsupported);
-            result.UnrecognizedTypes.Clear();
-            result.UnrecognizedTypes.AddRange(distinctUnrecognized);
+            result.UnsupportedTypesFound = result.UnsupportedTypesFound.Distinct().ToList();
+            result.UnrecognizedTypes = result.UnrecognizedTypes.Distinct().ToList();
 
             result.SanitizedXaml = sanitized;
             return result;
+        }
+
+        private static void RemoveElementsForTypes(string xaml, List<string> types, ref string sanitized)
+        {
+            var snapshot = types.ToList();
+            foreach (var type in snapshot)
+                sanitized = RemoveElementsWithEventType(sanitized, type, types);
         }
 
         private static string ReplaceEventType(Match match, string chineseValue, SanitizeResult result)
@@ -73,7 +71,7 @@ namespace PCL
             if (Enum.TryParse<EventType>(chineseValue, true, out _))
                 return match.Value;
 
-            if (EventTypeMapper.IsUnSupportedType(chineseValue))
+            if (EventTypeMapper.IsUnsupportedType(chineseValue))
             {
                 result.UnsupportedTypesFound.Add(chineseValue);
                 return match.Value;

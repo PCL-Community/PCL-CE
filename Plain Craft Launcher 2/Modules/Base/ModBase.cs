@@ -3194,11 +3194,6 @@ public static class ModBase
         uI.Child = null;
     }
 
-    /// <summary>
-    ///     将 XML 转换为对应 UI 对象。
-    /// </summary>
-    public static XamlEventSanitizer.SanitizeResult LastSanitizeResult { get; private set; }
-
     public static object GetObjectFromXML(XElement str)
     {
         return GetObjectFromXML(str.ToString());
@@ -3209,14 +3204,21 @@ public static class ModBase
     /// </summary>
     public static object GetObjectFromXML(string str)
     {
+        return GetObjectFromXML(str, out _);
+    }
+
+    /// <summary>
+    ///     将 XML 转换为对应 UI 对象，并输出 XAML 清理结果。
+    /// </summary>
+    public static object GetObjectFromXML(string str, out XamlEventSanitizer.SanitizeResult sanitizeResult)
+    {
         str = str. // 兼容旧版自定义事件写法
             Replace("EventType=\"", "local:CustomEventService.EventType=\"").
             Replace("EventData=\"", "local:CustomEventService.EventData=\"").
             Replace("Property=\"EventType\"", "Property=\"local:CustomEventService.EventType\"").
             Replace("Property=\"EventData\"", "Property=\"local:CustomEventService.EventData\"");
 
-        var sanitizeResult = XamlEventSanitizer.Sanitize(str);
-        LastSanitizeResult = sanitizeResult;
+        sanitizeResult = XamlEventSanitizer.Sanitize(str);
         str = sanitizeResult.SanitizedXaml;
         using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(str)))
         {

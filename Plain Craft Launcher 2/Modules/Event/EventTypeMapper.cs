@@ -28,7 +28,7 @@ namespace PCL
         private static readonly Dictionary<string, string> EnglishToChinese =
             ChineseToEnglish.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
 
-        public static readonly HashSet<string> UnSupportedTypes = new(StringComparer.Ordinal)
+        public static readonly HashSet<string> UnsupportedTypes = new(StringComparer.Ordinal)
         {
             "打开帮助", "刷新帮助", "内存优化", "加入房间", "检查更新"
         };
@@ -39,8 +39,8 @@ namespace PCL
         public static bool TryToChinese(string englishName, out string chineseName) =>
             EnglishToChinese.TryGetValue(englishName, out chineseName);
 
-        public static bool IsUnSupportedType(string name) =>
-            UnSupportedTypes.Contains(name);
+        public static bool IsUnsupportedType(string name) =>
+            UnsupportedTypes.Contains(name);
 
         public static bool IsKnownChineseType(string name) =>
             ChineseToEnglish.ContainsKey(name);

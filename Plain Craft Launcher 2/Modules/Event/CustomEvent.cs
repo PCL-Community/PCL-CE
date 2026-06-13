@@ -45,7 +45,7 @@ namespace PCL
         }
 
         public static string GetCustomVariable(string name, string defaultValue = "") =>
-            States.CustomVariables.TryGetValue(name, out var value) ? value : defaultValue;
+            States.CustomVariables.GetValueOrDefault(name, defaultValue);
 
         #region Action dispatch
 
@@ -364,9 +364,9 @@ namespace PCL
                 return true;
 
             return ModMain.MyMsgBox(
-                message + "\r\n请在确认没有安全隐患后再继续。",
+                Lang.Text("Event.Safety.ConfirmMessage", message),
                 Lang.Text("Event.Safety.Title"),
-                Lang.Text("Event.Safety.Continue"),
+                Lang.Text("Common.Action.Continue"),
                 Lang.Text("Event.Safety.ContinueAlways"),
                 Lang.Text("Common.Action.Cancel")) switch
             {
