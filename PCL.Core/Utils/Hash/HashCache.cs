@@ -1,9 +1,13 @@
-using Microsoft.Data.Sqlite;
-using PCL.Core.Utils.Exts;
 using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.Data.Sqlite;
+using PCL.Core.Utils.Exts;
+
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
 
 namespace PCL.Core.Utils.Hash;
 
@@ -45,7 +49,7 @@ public class HashCache
 
     private SqliteConnection _CreateConnection()
     {
-        var connection = new SqliteConnection($"Data Source={_dbPath};Pooling=True");
+        var connection = new SqliteConnection($"Data Source={_dbPath};Pooling=False");
         connection.Open();
         return connection;
     }
@@ -78,7 +82,6 @@ public class HashCache
             MurmurHash2Provider => "MurmurHash2",
             _ => throw new ArgumentException($"不支持的哈希算法: {provider.GetType().Name}")
         };
-        var computeKey = $"{filePath}:{algoName}";
         return await _GetHashWithPending(filePath, provider, algoName).ConfigureAwait(false);
     }
 

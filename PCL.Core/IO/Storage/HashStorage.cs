@@ -1,10 +1,15 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
+using System.Threading;
 using System.Threading.Tasks;
 using PCL.Core.Logging;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Hash;
+
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
 
 namespace PCL.Core.IO.Storage;
 
@@ -17,35 +22,106 @@ public class HashStorage(string folder, IHashProvider hashProvider, bool compres
     /// <param name="hash">欲存储的文件的哈希，请确保与哈希存储库指定的哈希计算方法所用算法一致</param>
     /// <returns>成功返回文件的哈希，失败返回 null</returns>
     /// <exception cref="ArgumentNullException">提供的参数不正确</exception>
-    public async Task<string?> PutAsync(string fromPath, string? hash = null)
+    public async Task<string?> PutAsync(
+        string fromPath,
+        string? hash = null,
+        CancellationToken cancellationToken = default)
     {
         //参数检查
         ArgumentNullException.ThrowIfNull(fromPath);
         var filePath = Path.GetFullPath(fromPath);
         if (!File.Exists(filePath)) return null;
         //必要数据准备
-        await using var originalFs = File.Open(fromPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-        return await PutAsync(originalFs, hash).ConfigureAwait(false);
+        await using var originalFs = new FileStream(
+            filePath,
+            new FileStreamOptions
+            {
+                Mode = FileMode.Open,
+                Access = FileAccess.Read,
+                Share = FileShare.Read,
+                BufferSize = 64 * 1024,
+                Options = FileOptions.Asynchronous | FileOptions.SequentialScan
+            });
+        return await PutAsync(originalFs, hash, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<string?> PutAsync(Stream input, string? hash = null)
+    public async Task<string?> PutAsync(
+        Stream input,
+        string? hash = null,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
 
         if (hash is not null && hash.Length != hashProvider.Length)
             throw new ArgumentException("Provide hash is not correct", nameof(hash));
 
-        if (input.CanSeek) input.Position = 0;
+        Stream source = input;
+        FileStream? bufferedSource = null;
+        try
+        {
+            if (!source.CanSeek)
+            {
+                Directory.CreateDirectory(folder);
+                bufferedSource = new FileStream(
+                    Path.Combine(folder, $".incoming-{Guid.NewGuid():N}.tmp"),
+                    new FileStreamOptions
+                    {
+                        Mode = FileMode.CreateNew,
+                        Access = FileAccess.ReadWrite,
+                        Share = FileShare.None,
+                        BufferSize = 64 * 1024,
+                        Options = FileOptions.Asynchronous |
+                                  FileOptions.SequentialScan |
+                                  FileOptions.DeleteOnClose
+                    });
+                await source.CopyToAsync(bufferedSource, cancellationToken).ConfigureAwait(false);
+                source = bufferedSource;
+            }
 
-        var fileHash = hash ?? (await hashProvider.ComputeHashAsync(input).ConfigureAwait(false)).ToHexString();
-        var destPath = _GetDestPath(fileHash);
-        //纠正: 由于之前错误设计导致的文件访问效率低下的文件结构
-        if (correctMisplacedFile && _CorrectMisplacedFile(fileHash)) LogWrapper.Info("HashStorage", "Move misplaced file into correct folder");
-        //检查是否已存在保存的文件
-        if (File.Exists(destPath)) return fileHash;
-        await using var destinationFs = _GetSaveStream(destPath);
-        await input.CopyToAsync(destinationFs).ConfigureAwait(false);
-        return fileHash;
+            source.Position = 0;
+            var fileHash = hash ??
+                           (await hashProvider
+                               .ComputeHashAsync(source, cancellationToken)
+                               .ConfigureAwait(false))
+                           .ToHexString();
+            source.Position = 0;
+
+            var destPath = _GetDestPath(fileHash);
+            if (correctMisplacedFile && _CorrectMisplacedFile(fileHash))
+                LogWrapper.Info("HashStorage", "Move misplaced file into correct folder");
+            if (File.Exists(destPath)) return fileHash;
+
+            var tempPath = $"{destPath}.{Guid.NewGuid():N}.tmp";
+            try
+            {
+                await using (var destinationFs = _GetSaveStream(tempPath))
+                {
+                    await source
+                        .CopyToAsync(destinationFs, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+
+                try
+                {
+                    File.Move(tempPath, destPath, overwrite: false);
+                }
+                catch (IOException) when (File.Exists(destPath))
+                {
+                    // Another writer committed the same content first.
+                }
+            }
+            finally
+            {
+                File.Delete(tempPath);
+            }
+
+            return fileHash;
+        }
+        finally
+        {
+            if (bufferedSource is not null)
+                await bufferedSource.DisposeAsync().ConfigureAwait(false);
+        }
     }
 
     public Task<bool> DeleteAsync(string hash)
@@ -99,7 +175,16 @@ public class HashStorage(string folder, IHashProvider hashProvider, bool compres
 
     private Stream _GetSaveStream(string destPath)
     {
-        var fs = File.Open(destPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
+        var fs = new FileStream(
+            destPath,
+            new FileStreamOptions
+            {
+                Mode = FileMode.CreateNew,
+                Access = FileAccess.Write,
+                Share = FileShare.None,
+                BufferSize = 64 * 1024,
+                Options = FileOptions.Asynchronous | FileOptions.SequentialScan
+            });
         if (compressObjects) return new DeflateStream(fs, CompressionMode.Compress);
         return fs;
     }
