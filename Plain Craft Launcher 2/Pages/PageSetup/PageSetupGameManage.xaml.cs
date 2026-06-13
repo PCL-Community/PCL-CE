@@ -130,6 +130,7 @@ public partial class PageSetupGameManage
             case "ToolUpdateRelease": Config.Tool.ReleaseNotification = (bool)value; break;
             case "ToolUpdateSnapshot": Config.Tool.SnapshotNotification = (bool)value; break;
             case "ToolHelpChinese": Config.Tool.AutoChangeLanguage = (bool)value; break;
+            case "ToolDownloadAutoInstallDependencies": Config.Download.Comp.AutoInstallDependencies = (bool)value; break;
         }
     }
 
