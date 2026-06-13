@@ -65,6 +65,8 @@
         <EmbeddedResource Include="Certificates\n-cloud.cer"
                           Condition="Exists('Certificates\n-cloud.cer')"
                           LogicalName="PCL.Online.Certificates.n-cloud.cer" />
+        <EmbeddedResource Include="Legal\**\*.md"
+                          LogicalName="PCL.Online.Legal.%(Filename)%(Extension)" />
         <Content Include="Legal\**\*.md">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>

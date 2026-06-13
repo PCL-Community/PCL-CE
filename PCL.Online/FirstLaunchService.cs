@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using PCL.Core.App;
 
 namespace PCL.Online;
@@ -14,6 +15,7 @@ namespace PCL.Online;
 public static class FirstLaunchService
 {
     private const string LegalDocDir = "Legal";
+    private const string LegalResourcePrefix = "PCL.Online.Legal.";
     private const string CurrentVersion = "v2.0";
 
     private static string GetLegalDirectory()
@@ -39,10 +41,7 @@ public static class FirstLaunchService
     /// </summary>
     public static string LoadTerms()
     {
-        var path = Path.Combine(GetLegalDirectory(), "TERMS_ZH.md");
-        if (File.Exists(path)) return File.ReadAllText(path);
-        path = Path.Combine(GetLegalDirectory(), "TERMS_EN.md");
-        return File.Exists(path) ? File.ReadAllText(path) : string.Empty;
+        return LoadDocument("TERMS_ZH.md", "TERMS_EN.md");
     }
 
     /// <summary>
@@ -50,10 +49,7 @@ public static class FirstLaunchService
     /// </summary>
     public static string LoadPrivacy()
     {
-        var path = Path.Combine(GetLegalDirectory(), "PRIVACY_ZH.md");
-        if (File.Exists(path)) return File.ReadAllText(path);
-        path = Path.Combine(GetLegalDirectory(), "PRIVACY_EN.md");
-        return File.Exists(path) ? File.ReadAllText(path) : string.Empty;
+        return LoadDocument("PRIVACY_ZH.md", "PRIVACY_EN.md");
     }
 
     /// <summary>
@@ -62,5 +58,28 @@ public static class FirstLaunchService
     public static string LoadFullText()
     {
         return LoadTerms() + "\n\n---\n\n" + LoadPrivacy();
+    }
+
+    private static string LoadDocument(params string[] fileNames)
+    {
+        foreach (var fileName in fileNames)
+        {
+            var path = Path.Combine(GetLegalDirectory(), fileName);
+            if (File.Exists(path))
+                return File.ReadAllText(path, Encoding.UTF8);
+        }
+
+        var assembly = typeof(FirstLaunchService).Assembly;
+        foreach (var fileName in fileNames)
+        {
+            using var stream = assembly.GetManifestResourceStream(LegalResourcePrefix + fileName);
+            if (stream is null)
+                continue;
+
+            using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+            return reader.ReadToEnd();
+        }
+
+        return string.Empty;
     }
 }

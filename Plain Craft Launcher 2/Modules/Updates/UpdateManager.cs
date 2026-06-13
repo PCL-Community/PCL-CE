@@ -15,7 +15,7 @@ public static class UpdateManager
     public static UpdatesWrapperModel remoteServer = new(new List<IUpdateSource>
     {
         new UpdatesMinioModel("http://115.29.230.105/", "官方服务器"),
-        new UpdatesMinioModel("https://github.com/MuXue1230-owo/PCL_N_Server/raw/main/", "GitHub")
+        new UpdatesMinioModel("https://github.com/MuXue1230-owo/PCL-N-Server/raw/main/wwwroot/", "GitHub")
     });
 
     public static bool IsCurrentVersionBeta

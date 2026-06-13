@@ -81,6 +81,25 @@ jobs:
             -r "$rid" --self-contained \
             -p:DeleteExistingFiles=true -o ./artifact
 
+      - name: Validate embedded legal documents
+        shell: bash
+        run: |
+          executable="./artifact/Plain Craft Launcher 2.exe"
+          test -s "$executable" || {
+            echo "::error file=$executable::Published launcher executable is missing."
+            exit 1
+          }
+
+          grep -aFq "# PCL-N 用户服务协议" "$executable" || {
+            echo "::error file=$executable::Embedded Chinese terms of service are missing."
+            exit 1
+          }
+
+          grep -aFq "# PCL-N 隐私保护政策" "$executable" || {
+            echo "::error file=$executable::Embedded Chinese privacy policy is missing."
+            exit 1
+          }
+
       - name: Upload the Build Artifact
         uses: actions/upload-artifact@v4
         with:
