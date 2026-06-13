@@ -149,7 +149,7 @@ namespace PCL
             xaml = Regex.Replace(xaml, propertyElementPattern, match =>
             {
                 var beforeMatch = xaml[..match.Index];
-                var lastOpenMatch = Regex.Match(beforeMatch, @"<([\w:]+)[^>]*>$", RegexOptions.RightToLeft);
+                var lastOpenMatch = Regex.Match(beforeMatch, @"<([\w:]+)[^>]*>\s*$", RegexOptions.RightToLeft);
                 if (!lastOpenMatch.Success) return match.Value;
                 var parentElementName = lastOpenMatch.Groups[1].Value;
 
