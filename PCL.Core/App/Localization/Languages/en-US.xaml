@@ -3042,6 +3042,7 @@
     <sys:String x:Key="Online.CloudSync.Retrying">N Cloud sync failed. Retrying {0}/{1}...</sys:String>
     <sys:String x:Key="Online.CloudSync.Success">Successfully synced with N Cloud!</sys:String>
     <sys:String x:Key="Online.CloudSync.Unavailable">N Cloud data sync is unavailable</sys:String>
+    <sys:String x:Key="Online.CloudSync.Unavailable.Detail">N Cloud could not be reached. Your network connection may be unavailable, N Cloud may be undergoing maintenance or temporarily offline, or your proxy or security certificate configuration may be incorrect. Check your network and proxy settings, then try syncing again later.</sys:String>
     <sys:String x:Key="Online.CloudSync.Retry">Try syncing again</sys:String>
 
     <!-- PCL N Instance Mod Browser -->

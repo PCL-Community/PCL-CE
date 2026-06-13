@@ -175,8 +175,8 @@ public partial class FormMain
                     break;
                 case PCL.Online.CloudSyncService.NoticeType.Failed:
                     ModMain.frmSetupOnline?.SetCloudSyncUnavailable(true);
-                    ModMain.MyMsgBox(Lang.Text("Online.CloudSync.Unavailable"),
-                        Lang.Text("Online.CloudSync.Title"));
+                    ModMain.MyMsgBox(Lang.Text("Online.CloudSync.Unavailable.Detail"),
+                        Lang.Text("Online.CloudSync.Unavailable"));
                     break;
             }
         });

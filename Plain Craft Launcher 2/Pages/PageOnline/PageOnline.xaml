@@ -97,7 +97,11 @@
                             <TextBlock Text="{DynamicResource Online.CloudSync.Unavailable}" FontSize="15"
                                        FontWeight="Bold" TextAlignment="Center"
                                        Foreground="{DynamicResource ColorBrush1}" />
-                            <local:MyIconTextButton x:Name="BtnRetrySync" Margin="0,14,0,0" Height="34"
+                            <TextBlock Margin="0,7,0,0" MaxWidth="460"
+                                       Text="{DynamicResource Online.CloudSync.Unavailable.Detail}"
+                                       FontSize="12" TextWrapping="Wrap" TextAlignment="Center"
+                                       Foreground="{DynamicResource ColorBrush2}" />
+                            <local:MyIconTextButton x:Name="BtnRetrySync" Margin="0,16,0,0" Height="34"
                                                     MinWidth="160" HorizontalAlignment="Center"
                                                     Text="{DynamicResource Online.CloudSync.Retry}"
                                                     SvgIcon="lucide/refresh-cw" LogoScale="0.85"

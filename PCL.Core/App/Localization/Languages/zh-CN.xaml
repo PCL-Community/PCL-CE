@@ -3042,6 +3042,7 @@
     <sys:String x:Key="Online.CloudSync.Retrying">N Cloud 同步失败，再次尝试 {0}/{1}……</sys:String>
     <sys:String x:Key="Online.CloudSync.Success">成功与 N Cloud 同步！</sys:String>
     <sys:String x:Key="Online.CloudSync.Unavailable">N Cloud 数据同步不可用</sys:String>
+    <sys:String x:Key="Online.CloudSync.Unavailable.Detail">暂时无法连接 N Cloud。可能是网络连接异常、N Cloud 正在维护或暂时不可达，也可能是代理或安全证书配置有误。请检查网络与代理设置，稍后再次尝试同步。</sys:String>
     <sys:String x:Key="Online.CloudSync.Retry">再次尝试同步</sys:String>
 
     <!-- PCL N Instance Mod Browser -->
