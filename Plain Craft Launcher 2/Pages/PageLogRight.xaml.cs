@@ -1,11 +1,12 @@
+using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.UI;
-using System.Globalization;
 
 namespace PCL;
 
@@ -141,16 +142,24 @@ public partial class PageLogRight
         ModMain.frmLogLeft.flowDocuments[ModMain.frmLogLeft.currentUuid].Blocks.Clear();
     }
 
-    private void BtnOperationExport_Click(object sender, ModBase.RouteEventArgs e)
+    private async void BtnOperationExport_Click(object sender, ModBase.RouteEventArgs e)
     {
         var savePath = SystemDialogs.SelectSaveFile(Lang.Text("LogPage.Export.SelectLocation"),
             Lang.Text("LogPage.Export.GameLog.FileName", ModMain.frmLogLeft.currentLog.version.Name),
             Lang.Text("LogPage.Export.GameLog.Filter"));
         if (savePath.Length < 3)
             return;
-        File.WriteAllLines(savePath, ModMain.frmLogLeft.currentLog.fullLog);
-        ModMain.Hint(Lang.Text("LogPage.Export.Success"), ModMain.HintType.Finish);
-        ModBase.OpenExplorer(savePath);
+        try
+        {
+            var lines = ModMain.frmLogLeft.currentLog.fullLog.ToArray();
+            await FileSystemService.WriteAllLinesAsync(savePath, lines);
+            ModMain.Hint(Lang.Text("LogPage.Export.Success"), ModMain.HintType.Finish);
+            ModBase.OpenExplorer(savePath);
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, Lang.Text("Setup.Misc.Log.ExportFailed"), ModBase.LogLevel.Hint);
+        }
     }
 
     private void BtnOperationKill_Click(object sender, ModBase.RouteEventArgs e)

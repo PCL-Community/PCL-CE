@@ -1,5 +1,5 @@
-using System.IO;
 using System.Globalization;
+using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Windows;
@@ -8,10 +8,10 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Network;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -251,7 +251,7 @@ public partial class PageLaunchRight : IRefreshable
         string[]? lines = null;
 
         // 外部文件
-        var externalPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\PCL\\hints.txt";
+        var externalPath = Path.Combine(AppContext.BaseDirectory, "PCL", "hints.txt");
         if (File.Exists(externalPath))
         {
             try

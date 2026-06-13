@@ -1,14 +1,14 @@
 using System.Globalization;
 using System.IO;
-using System.IO.Compression;
 using System.Windows;
 using System.Windows.Input;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -31,25 +31,32 @@ public partial class PageSetupLog
         }
     }
 
-    private void PageOtherLog_Loaded(object sender, RoutedEventArgs e)
+    private async void PageOtherLog_Loaded(object sender, RoutedEventArgs e)
     {
         // 重复加载部分
         PanBack.ScrollToHome();
-        LoadList();
+        try
+        {
+            await LoadListAsync();
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, Lang.Text("Setup.Misc.Log.ExportFailed"), ModBase.LogLevel.Hint);
+        }
         // 非重复加载部分
         if (IsLoaded)
             return;
     }
 
-    public void LoadList()
+    private async Task LoadListAsync()
     {
         PanList.Children.Clear();
         var current = CurrentLogs;
-        var logFiles = Directory.GetFiles(LogDirectory).OrderByDescending(f => File.GetLastWriteTime(f)).ToArray();
-        foreach (var item in logFiles)
+        var logFiles = await FileSystemService.GetFilesAsync(LogDirectory);
+        foreach (var snapshot in logFiles.OrderByDescending(file => file.LastWriteTimeUtc))
         {
-            var fullPath = Path.GetFullPath(item);
-            var title = Path.GetFileName(item);
+            var fullPath = snapshot.FullPath;
+            var title = snapshot.Name;
             if (title.StartsWith("Launch"))
             {
                 title = title.Substring(7, title.Length - 11);
@@ -87,43 +94,23 @@ public partial class PageSetupLog
         }
     }
 
-    private static void ExportLog(IEnumerable<string> sourceFiles)
+    private static async Task ExportLogAsync(IEnumerable<string> sourceFiles)
     {
         var filter = Lang.Text("Setup.Misc.Log.ExportFilter");
         var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
         var baseName = "PCL_CE_Logs_" + DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture);
-        var tempDirName = baseName + ".tmp";
         var fileName = baseName + ".zip";
         var selectedPath = SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.Log.ExportSaveTitle"), fileName, filter, desktopPath);
         if (string.IsNullOrEmpty(selectedPath))
             return;
         try
         {
-            Directory.CreateDirectory(tempDirName);
-            if (File.Exists(selectedPath))
-                File.Delete(selectedPath);
-            using (var zip = ZipFile.Open(selectedPath, ZipArchiveMode.Create))
-            {
-                foreach (var item in sourceFiles)
-                {
-                    var itemFileName = Path.GetFileName(item);
-                    var tempPath = Path.Combine(tempDirName, itemFileName);
-                    File.Copy(item, tempPath);
-                    zip.CreateEntryFromFile(tempPath, itemFileName, CompressionLevel.Fastest);
-                    File.Delete(tempPath);
-                }
-            }
-
+            await FileSystemService.CreateZipAsync(selectedPath, sourceFiles);
             ModMain.Hint(Lang.Text("Setup.Misc.Log.ExportSuccess"), ModMain.HintType.Finish);
         }
         catch (Exception ex)
         {
             ModBase.Log(ex, Lang.Text("Setup.Misc.Log.ExportFailed"), ModBase.LogLevel.Hint);
-        }
-        finally
-        {
-            if (Directory.Exists(tempDirName))
-                Directory.Delete(tempDirName);
         }
     }
 
@@ -132,28 +119,49 @@ public partial class PageSetupLog
         Basics.OpenPath(LogDirectory);
     }
 
-    private void ButtonClean_OnClick(object sender, MouseButtonEventArgs e)
+    private async void ButtonClean_OnClick(object sender, MouseButtonEventArgs e)
     {
         var r = ModMain.MyMsgBox(Lang.Text("Setup.Misc.Log.Clear.Confirm.Message"), Lang.Text("Setup.Misc.Log.Clear.Confirm.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true);
         if (r != 1)
             return;
-        var currentSet = new HashSet<string>(CurrentLogs);
-        foreach (var item in Directory.GetFiles(LogDirectory))
-            if (!currentSet.Contains(item))
-                File.Delete(item);
-        ModMain.Hint(Lang.Text("Setup.Misc.Log.Clear.Success"), ModMain.HintType.Finish);
-        LoadList();
+        try
+        {
+            await FileSystemService.DeleteFilesExceptAsync(LogDirectory, CurrentLogs);
+            ModMain.Hint(Lang.Text("Setup.Misc.Log.Clear.Success"), ModMain.HintType.Finish);
+            await LoadListAsync();
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, Lang.Text("Setup.Misc.Log.Clear.Confirm.Title"), ModBase.LogLevel.Hint);
+        }
     }
 
-    private void ButtonExportAll_OnClick(object sender, MouseButtonEventArgs e)
+    private async void ButtonExportAll_OnClick(object sender, MouseButtonEventArgs e)
     {
-        ExportLog(Directory.GetFiles(LogDirectory));
+        try
+        {
+            var files = await FileSystemService.GetFilesAsync(LogDirectory);
+            await ExportLogAsync(files.Select(file => file.FullPath));
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, Lang.Text("Setup.Misc.Log.ExportFailed"), ModBase.LogLevel.Hint);
+        }
     }
 
-    private void ButtonExport_OnClick(object sender, MouseButtonEventArgs e)
+    private async void ButtonExport_OnClick(object sender, MouseButtonEventArgs e)
     {
-        var pendingLogs = Array.FindAll(Directory.GetFiles(LogDirectory),
-            s => s.IsMatch(RegexPatterns.LastPendingLogPath));
-        ExportLog(CurrentLogs.Concat(pendingLogs));
+        try
+        {
+            var files = await FileSystemService.GetFilesAsync(LogDirectory);
+            var pendingLogs = files
+                .Select(file => file.FullPath)
+                .Where(path => path.IsMatch(RegexPatterns.LastPendingLogPath));
+            await ExportLogAsync(CurrentLogs.Concat(pendingLogs));
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, Lang.Text("Setup.Misc.Log.ExportFailed"), ModBase.LogLevel.Hint);
+        }
     }
 }
