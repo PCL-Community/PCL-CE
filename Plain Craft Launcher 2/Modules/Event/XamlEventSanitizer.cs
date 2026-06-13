@@ -85,13 +85,13 @@ namespace PCL
             sanitized = SetterEventTypeValueRegex.Replace(sanitized, match =>
             {
                 var chineseValue = match.Groups[2].Value;
-                return ReplaceEventType(match, chineseValue, result);
+                return ReplaceOrRemoveSetter(match, chineseValue, result);
             });
 
             sanitized = SetterValueEventTypeRegex.Replace(sanitized, match =>
             {
                 var chineseValue = match.Groups[2].Value;
-                return ReplaceEventType(match, chineseValue, result);
+                return ReplaceOrRemoveSetter(match, chineseValue, result);
             });
 
             RemoveElementsForTypes(result.UnsupportedTypesFound, ref sanitized);
@@ -149,6 +149,13 @@ namespace PCL
 
             result.UnrecognizedTypes.Add(chineseValue);
             return match.Value;
+        }
+
+        private static string ReplaceOrRemoveSetter(Match match, string chineseValue, SanitizeResult result)
+        {
+            if (_IsBadType(chineseValue, result))
+                return "";
+            return ReplaceEventType(match, chineseValue, result);
         }
 
         private static string RemoveElementsWithEventType(string xaml, string eventTypeValue, List<string> trackingList)
