@@ -7,6 +7,10 @@ using System.Xml;
 using System.Xml.Linq;
 using PCL.Core.Logging;
 
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
 namespace PCL.Core.UI.Controls.SvgIcon;
 
 internal static class SvgIconParser
@@ -80,14 +84,12 @@ internal static class SvgIconParser
         }
         catch (Exception ex)
         {
-#if DEBUG
             var descriptor = name;
             var d = _Attr(element, "d");
             if (!string.IsNullOrWhiteSpace(d))
                 descriptor += $" d=\"{(d.Length > 80 ? d[..80] + "..." : d)}\"";
 
             LogWrapper.Debug(ex, "SvgIcon", $"跳过无法解析的 SVG 元素：{descriptor}");
-#endif
             // 单个图元解析失败时跳过，避免一个不兼容节点导致整个图标不可用。
             return null;
         }

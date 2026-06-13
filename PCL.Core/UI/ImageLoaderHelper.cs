@@ -4,6 +4,10 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
 namespace PCL.Core.UI;
 
 /// <summary>
@@ -33,7 +37,7 @@ public static class ImageLoaderHelper {
         string base64String, 
         Image imageElement, 
         string? fallbackImageUri = null) {
-        ArgumentNullException.ThrowIfNull(nameof(imageElement));
+        ArgumentNullException.ThrowIfNull(imageElement);
         
         if (string.IsNullOrWhiteSpace(base64String)) {
             SetFallbackImage(imageElement, fallbackImageUri);
@@ -42,8 +46,9 @@ public static class ImageLoaderHelper {
 
         try {
             // 提取 Base64 数据部分
-            var base64Data = base64String.Contains(',') 
-                ? base64String.Split(',')[1] 
+            var commaIndex = base64String.IndexOf(',');
+            var base64Data = commaIndex >= 0
+                ? base64String[(commaIndex + 1)..]
                 : base64String;
 
             // 验证 Base64 字符串
@@ -129,7 +134,7 @@ public static class ImageLoaderHelper {
         string imagePath,
         Image imageElement,
         string fallbackImageUri) {
-        ArgumentNullException.ThrowIfNull(nameof(imageElement));
+        ArgumentNullException.ThrowIfNull(imageElement);
 
         if (string.IsNullOrWhiteSpace(imagePath) || !File.Exists(imagePath)) {
             SetFallbackImage(imageElement, fallbackImageUri);

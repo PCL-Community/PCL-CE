@@ -1,4 +1,3 @@
-using PCL.Core.App.IoC;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -6,6 +5,12 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PCL.Core.App.IoC;
+using PCL.Core.Logging;
+
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
 
 namespace PCL.Core.App.EventBus;
 
@@ -30,12 +35,13 @@ public sealed partial class EventBusService
             var channelCount = _Channels.Count;
             var handlerCount = _Channels.Values.Sum(c => c.Values.Sum(h => h.Count));
             _Channels.Clear();
-            Context.Info($"EventBus stopping: cleared {channelCount} channels and {handlerCount} handlers.");
+            LogWrapper.Info("EventBus",
+                $"EventBus stopping: cleared {channelCount} channels and {handlerCount} handlers.");
             return Task.CompletedTask;
         }
         catch (Exception exception)
         {
-            Context.Error($"Exception while stopping EventBus: {exception}");
+            LogWrapper.Error(exception, "EventBus", "Exception while stopping EventBus");
             return Task.FromException(exception);
         }
     }
@@ -66,7 +72,7 @@ public sealed partial class EventBusService
 
         if (!_Channels.TryGetValue(channel, out var dataHandler))
         {
-            Context.Trace($"Channel {channel} not found.");
+            LogWrapper.Trace("EventBus", $"Channel {channel} not found.");
             //throw new InvalidOperationException("No channel found for the given channel identification.");
 
             // create channel if not exist
@@ -105,7 +111,11 @@ public sealed partial class EventBusService
 
                 if (stillReferenced) return;
 
-                try { d.Dispose(); } catch (Exception ex) { Context.Error($"Exception disposing subscription owner: {ex}"); }
+                try { d.Dispose(); }
+                catch (Exception ex)
+                {
+                    LogWrapper.Error(ex, "EventBus", "Exception disposing subscription owner");
+                }
             }
         });
 
@@ -134,7 +144,7 @@ public sealed partial class EventBusService
 
         if (!_Channels.TryGetValue(channel, out var dataHandler))
         {
-            Context.Trace($"Channel {channel} not found.");
+            LogWrapper.Trace("EventBus", $"Channel {channel} not found.");
             //throw new InvalidOperationException("No channel found for the given channel identification.");
 
             // create channel if not exist
@@ -183,7 +193,7 @@ public sealed partial class EventBusService
     {
         if (!_Channels.TryGetValue(channel, out var eventHandlers))
         {
-            Context.Error($"Channel {channel} not found.");
+            LogWrapper.Error("EventBus", $"Channel {channel} not found.");
             throw new InvalidOperationException("No channel found for the given channel identification.");
         }
 
@@ -221,7 +231,7 @@ public sealed partial class EventBusService
 
         if (matching.Count == 0)
         {
-            Context.Trace($"No handler found for event data type {eventType.Name}");
+            LogWrapper.Trace("EventBus", $"No handler found for event data type {eventType.Name}");
             return Task.CompletedTask;
             // will not throw Exception
             //throw new InvalidOperationException("No handler found for the given event data type.");
@@ -235,7 +245,7 @@ public sealed partial class EventBusService
             }
             catch (Exception ex)
             {
-                Context.Error($"Event handler threw an exception: {ex}");
+                LogWrapper.Error(ex, "EventBus", "Event handler threw an exception");
             }
         }).ToImmutableArray();
 

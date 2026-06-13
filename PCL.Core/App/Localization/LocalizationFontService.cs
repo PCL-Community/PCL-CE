@@ -5,6 +5,10 @@ using System.Windows;
 using System.Windows.Media;
 using PCL.Core.App.IoC;
 
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
 namespace PCL.Core.App.Localization;
 
 /// <summary>
@@ -13,7 +17,6 @@ namespace PCL.Core.App.Localization;
 public static class LocalizationFontService
 {
     private const string PclEnglishFont = "./Resources/#PCL English";
-    private static readonly Uri _ApplicationPackUri = new("pack://application:,,,/");
 
     private static readonly IReadOnlyDictionary<string, LocalizationFontProfile> _ExactCultureProfiles =
         new Dictionary<string, LocalizationFontProfile>(StringComparer.OrdinalIgnoreCase)
@@ -54,7 +57,7 @@ public static class LocalizationFontService
             ? _GetDefaultFamilyNames(language.FontProfile)
             : _GetCustomFamilyNames(customFontName, language.FontProfile);
 
-        return new FontFamily(_ApplicationPackUri, string.Join(", ", familyNames));
+        return new FontFamily(_GetApplicationPackUri(), string.Join(", ", familyNames));
     }
 
     /// <summary>
@@ -70,7 +73,7 @@ public static class LocalizationFontService
     /// </summary>
     public static FontFamily BuildRepresentativeFontFamily(LocalizationFontProfile profile)
     {
-        return new FontFamily(_ApplicationPackUri, string.Join(", ", _GetDefaultFamilyNames(profile)));
+        return new FontFamily(_GetApplicationPackUri(), string.Join(", ", _GetDefaultFamilyNames(profile)));
     }
 
     /// <summary>
@@ -155,4 +158,7 @@ public static class LocalizationFontService
     {
         return name.Replace(",", ",,");
     }
+
+    private static Uri _GetApplicationPackUri() =>
+        new("pack://application:,,,/", UriKind.Absolute);
 }
