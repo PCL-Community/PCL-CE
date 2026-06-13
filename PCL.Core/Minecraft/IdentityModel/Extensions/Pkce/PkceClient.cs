@@ -1,88 +1,116 @@
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
 using System;
-using PCL.Core.Utils.Exts;
 using System.Collections.Generic;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
-using PCL.Core.Utils.Hash;
+using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.Minecraft.IdentityModel.Extensions.Pkce;
 
 /// <summary>
-/// 带 PKCE 支持的客户端 <br/>
-/// 此客户端并非线程安全，请勿在多个线程间共享示例
+/// 带 PKCE 支持的客户端。此客户端并非线程安全，请勿在多个线程间共享实例。
 /// </summary>
-/// <param name="options"></param>
-public class PkceClient(OAuthClientOptions options):IOAuthClient
+public sealed class PkceClient(OAuthClientOptions options) : IOAuthClient
 {
-    private byte[] _ChallengeCode { get; set; } = new byte[32];
-    private bool _isCallGetAuthorizeUrl;
+    private readonly byte[] _challengeCode = new byte[32];
+    private readonly SimpleOAuthClient _client = new(options);
+    private string? _codeVerifier;
+    private bool _hasAuthorizationRequest;
+
     /// <summary>
-    /// 设置验证方法，支持 PlainText 和 SHA256
+    /// 设置验证方法，支持 PlainText 和 SHA256。
     /// </summary>
     public PkceChallengeOptions ChallengeMethod { get; private set; } = PkceChallengeOptions.Sha256;
-    private readonly SimpleOAuthClient _client = new(options);
-    /// <summary>
-    /// 获取授权地址
-    /// </summary>
-    /// <param name="scopes"></param>
-    /// <param name="state"></param>
-    /// <param name="extData"></param>
-    /// <returns></returns>
-    public string GetAuthorizeUrl(string[] scopes, string state, Dictionary<string, string>? extData)
+
+    public string GetAuthorizeUrl(
+        string[] scopes,
+        string state,
+        Dictionary<string, string>? extData)
     {
-        RandomNumberGenerator.Fill(_ChallengeCode);
+        RandomNumberGenerator.Fill(_challengeCode);
+        _codeVerifier = _challengeCode.FromBytesToB64UrlSafe();
+
         extData ??= [];
         extData["code_challenge"] = ChallengeMethod == PkceChallengeOptions.Sha256
-            ? SHA256Provider.Instance.ComputeHash(_ChallengeCode).ToHexString()
-            : _ChallengeCode.FromBytesToB64UrlSafe();
-        extData["code_challenge_method"] = ChallengeMethod == PkceChallengeOptions.Sha256 ? "S256":"plain";
-        _isCallGetAuthorizeUrl = true;
+            ? CreateS256Challenge(_codeVerifier)
+            : _codeVerifier;
+        extData["code_challenge_method"] =
+            ChallengeMethod == PkceChallengeOptions.Sha256 ? "S256" : "plain";
+
+        _hasAuthorizationRequest = true;
         return _client.GetAuthorizeUrl(scopes, state, extData);
     }
-    /// <summary>
-    /// 使用授权代码兑换令牌
-    /// </summary>
-    /// <param name="code"></param>
-    /// <param name="token"></param>
-    /// <param name="extData"></param>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
-    public async Task<AuthorizeResult?> AuthorizeWithCodeAsync(string code, CancellationToken token, Dictionary<string, string>? extData = null)
+
+    public async Task<AuthorizeResult?> AuthorizeWithCodeAsync(
+        string code,
+        CancellationToken token,
+        Dictionary<string, string>? extData = null)
     {
-        if (!_isCallGetAuthorizeUrl) throw new InvalidOperationException("Challenge code is invalid");
-        var pkce = _ChallengeCode.FromBytesToB64UrlSafe();
+        if (!_hasAuthorizationRequest || _codeVerifier is null)
+            throw new InvalidOperationException("Challenge code is invalid");
+
         extData ??= [];
-        extData["code_verifier"] = pkce;
-        _isCallGetAuthorizeUrl = false;
-        return await _client.AuthorizeWithCodeAsync(code, token, extData);
-    }
-    /// <summary>
-    /// 获取代码对
-    /// </summary>
-    /// <param name="scopes"></param>
-    /// <param name="token"></param>
-    /// <param name="extData"></param>
-    /// <returns></returns>
-    public async Task<DeviceCodeData?> GetCodePairAsync(string[] scopes, CancellationToken token, Dictionary<string, string>? extData = null)
-    {
-        return await _client.GetCodePairAsync(scopes, token, extData);
-    }
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="data"></param>
-    /// <param name="token"></param>
-    /// <param name="extData"></param>
-    /// <returns></returns>
-    public async Task<AuthorizeResult?> AuthorizeWithDeviceAsync(DeviceCodeData data, CancellationToken token, Dictionary<string, string>? extData = null)
-    {
-        return await _client.AuthorizeWithDeviceAsync(data, token, extData);
+        extData["code_verifier"] = _codeVerifier;
+        _codeVerifier = null;
+        _hasAuthorizationRequest = false;
+        Array.Clear(_challengeCode);
+
+        return await _client
+            .AuthorizeWithCodeAsync(code, token, extData)
+            .ConfigureAwait(false);
     }
 
-    public async Task<AuthorizeResult?> AuthorizeWithSilentAsync(AuthorizeResult data, CancellationToken token, Dictionary<string, string>? extData = null)
+    public Task<DeviceCodeData?> GetCodePairAsync(
+        string[] scopes,
+        CancellationToken token,
+        Dictionary<string, string>? extData = null) =>
+        _client.GetCodePairAsync(scopes, token, extData);
+
+    public Task<AuthorizeResult?> AuthorizeWithDeviceAsync(
+        DeviceCodeData data,
+        CancellationToken token,
+        Dictionary<string, string>? extData = null) =>
+        _client.AuthorizeWithDeviceAsync(data, token, extData);
+
+    public Task<AuthorizeResult?> AuthorizeWithSilentAsync(
+        AuthorizeResult data,
+        CancellationToken token,
+        Dictionary<string, string>? extData = null) =>
+        _client.AuthorizeWithSilentAsync(data, token, extData);
+
+    internal static string CreateS256Challenge(string codeVerifier)
     {
-        return await _client.AuthorizeWithSilentAsync(data, token, extData);
+        ArgumentException.ThrowIfNullOrWhiteSpace(codeVerifier);
+        if (codeVerifier.Length is < 43 or > 128)
+            throw new ArgumentOutOfRangeException(
+                nameof(codeVerifier),
+                "PKCE code verifier length must be between 43 and 128 characters.");
+
+        Span<byte> verifierBytes = stackalloc byte[128];
+        var byteCount = Encoding.ASCII.GetBytes(codeVerifier, verifierBytes);
+        Span<byte> hash = stackalloc byte[SHA256.HashSizeInBytes];
+        SHA256.TryHashData(verifierBytes[..byteCount], hash, out _);
+
+        Span<char> base64 = stackalloc char[44];
+        Convert.TryToBase64Chars(hash, base64, out var charsWritten);
+        while (charsWritten > 0 && base64[charsWritten - 1] == '=')
+            charsWritten--;
+        for (var index = 0; index < charsWritten; index++)
+        {
+            base64[index] = base64[index] switch
+            {
+                '+' => '-',
+                '/' => '_',
+                var value => value
+            };
+        }
+
+        return new string(base64[..charsWritten]);
     }
 }

@@ -9,6 +9,10 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
 namespace PCL.Core.Utils.Exts;
 
 public static class StringConvertExtension
@@ -145,7 +149,8 @@ public static class StringExtension
             };
         }
 
-        public string FromB64ToB64UrlSafe() => input.Replace("+", "-").Replace("/", "_");
+        public string FromB64ToB64UrlSafe() =>
+            input.TrimEnd('=').Replace("+", "-").Replace("/", "_");
         public string FromB64UrlSafeToB64() => input.Replace("-", "+").Replace("_", "/");
 
         public byte[] FromB64ToBytes()
@@ -153,14 +158,13 @@ public static class StringExtension
             switch (input.Length % 4)
             {
                 case 3:
-                    input += "===";
+                    input += "=";
                     break;
                 case 2:
                     input += "==";
                     break;
                 case 1:
-                    input += "=";
-                    break;
+                    throw new FormatException("Invalid Base64URL length.");
             }
 
             return Convert.FromBase64String(input);
