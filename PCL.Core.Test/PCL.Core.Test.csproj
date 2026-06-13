@@ -10,7 +10,7 @@
     <Platforms>AnyCPU;x64;ARM64</Platforms>
     <AssemblyTitle>PCL.Test</AssemblyTitle>
     <Product>PCL.Test</Product>
-    <Copyright>Copyright © MUXUE1230 2025</Copyright>
+    <Copyright>Copyright © MUXUE1230 2025; Modifications Copyright © 2026 PCL N contributors</Copyright>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
@@ -47,6 +47,7 @@
     <PackageReference Include="MSTest.TestFramework" Version="4.1.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\PCL.Core.Portable\PCL.Core.Portable.csproj" />
     <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
