@@ -45,6 +45,15 @@ public partial class PageSetupLeft
         isPageSwitched = false;
     }
 
+    public void ScrollAccountIntoView()
+    {
+        Dispatcher.BeginInvoke(() =>
+        {
+            PanBack.ScrollToHome();
+            ItemOnlineAccount.BringIntoView();
+        }, System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
     public void Reset(object sender, EventArgs e)
     {
         switch (ModBase.Val(((MyIconButton)sender).Tag))

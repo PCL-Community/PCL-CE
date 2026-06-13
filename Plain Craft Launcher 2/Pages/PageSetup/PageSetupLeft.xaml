@@ -4,7 +4,7 @@
     xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="PCL.PageSetupLeft"
     d:DesignWidth="152">
-    <local:MyScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
+    <local:MyScrollViewer x:Name="PanBack" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
                           Style="{StaticResource ScrollViewerFullMargin}">
         <StackPanel Margin="0,12,0,0" x:Name="PanItem">
             <TextBlock Text="{DynamicResource Online.Account.Category}" Margin="13,5,5,3" Opacity="0.6" FontSize="12" />

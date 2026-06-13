@@ -1921,6 +1921,14 @@ public partial class FormMain
             return;
         var item = (MyListItem)sender;
         var pageType = (PageType)int.Parse(item.Tag.ToString());
+        if (pageType == PageType.Online && !PCL.Online.OnlineAccountService.IsLoggedIn)
+        {
+            e.Handled = true;
+            ModMain.Hint(Lang.Text("Online.Login.Required"), ModMain.HintType.Critical);
+            PageChange(PageType.Setup, PageSubType.SetupOnline);
+            ModMain.frmSetupLeft?.ScrollAccountIntoView();
+            return;
+        }
         PageChangeActual(pageType, PageSubType.Default);
     }
 
@@ -1958,6 +1966,7 @@ public partial class FormMain
         {
             ModMain.Hint(Lang.Text("Online.Login.Required"), ModMain.HintType.Critical);
             PageChange(PageType.Setup, PageSubType.SetupOnline);
+            ModMain.frmSetupLeft?.ScrollAccountIntoView();
             return;
         }
 
