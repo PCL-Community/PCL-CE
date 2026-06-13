@@ -6,8 +6,7 @@
         <StackPanel Name="PanMain" Margin="25,25,25,10" Grid.IsSharedSizeScope="True">
             <StackPanel x:Name="PanCustom" />
             <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Launch.Right.CommunityHint.Title}" x:Name="PanHint">
-                <local:MyIconButton LogoScale="1.1"
-                                    SvgIcon="lucide/x"
+                <local:MyIconButton SvgIcon="lucide/x"
                                     Height="20" Width="20" Margin="10" HorizontalAlignment="Right" VerticalAlignment="Top"
                                     x:Name="BtnHintClose"
                                     Click="BtnHintClose_Click" />
