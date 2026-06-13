@@ -487,10 +487,10 @@ public partial class PageLaunchRight : IRefreshable
     private static void _ShowSanitizeHints(XamlEventSanitizer.SanitizeResult result)
     {
         foreach (var unsupported in result.UnsupportedTypesFound.Distinct())
-            ModMain.Hint($"[{unsupported}]" + " " + Lang.Text("Event.Sanity.UnsupportedTypeHint"));
+            ModMain.Hint($"[{unsupported}]" + " " + Lang.Text("Event.Sanity.UnsupportedTypeHint"), ModMain.HintType.Critical);
 
         foreach (var unknown in result.UnrecognizedTypes.Distinct())
-            ModMain.Hint($"[{unknown}]" +  " " + Lang.Text("Event.Sanity.UnknownTypeHint"));
+            ModMain.Hint($"[{unknown}]" +  " " + Lang.Text("Event.Sanity.UnknownTypeHint"), ModMain.HintType.Critical);
     }
 
     private const string homepageLivePatchFileName = "CustomLive.json";
