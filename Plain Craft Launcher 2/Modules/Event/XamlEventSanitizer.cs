@@ -19,6 +19,10 @@ namespace PCL
             @"(<local:CustomEventService\.EventType\s*>\s*)([^<]+?)(\s*</local:CustomEventService\.EventType\s*>)",
             RegexOptions.Compiled);
 
+        private static readonly Regex CustomEventTypePropertyElementRegex = new(
+            @"(<local:CustomEvent\.Type\s*>\s*)([^<]+?)(\s*</local:CustomEvent\.Type\s*>)",
+            RegexOptions.Compiled);
+
         private static readonly Regex LocalCustomEventTypeAttributeRegex = new(
             @"(<local:CustomEvent\s+[^>]*?\bType\s*=\s*"")([^""]+)("")",
             RegexOptions.Compiled);
@@ -51,6 +55,12 @@ namespace PCL
             });
 
             sanitized = EventTypePropertyElementRegex.Replace(sanitized, match =>
+            {
+                var chineseValue = match.Groups[2].Value.Trim();
+                return ReplaceEventType(match, chineseValue, result);
+            });
+
+            sanitized = CustomEventTypePropertyElementRegex.Replace(sanitized, match =>
             {
                 var chineseValue = match.Groups[2].Value.Trim();
                 return ReplaceEventType(match, chineseValue, result);
