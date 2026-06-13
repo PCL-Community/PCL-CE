@@ -23,8 +23,12 @@ namespace PCL
             @"(<local:CustomEvent\s+[^>]*?\bType\s*=\s*"")([^""]+)("")",
             RegexOptions.Compiled);
 
-        private static readonly Regex LocalCustomEventElementRegex = new(
+        private static readonly Regex LocalCustomEventSelfClosingRegex = new(
             @"<local:CustomEvent\s+[^>]*\bType\s*=\s*""([^""]+)""[^>]*/\s*>",
+            RegexOptions.Compiled);
+
+        private static readonly Regex LocalCustomEventOpenTagRegex = new(
+            @"<local:CustomEvent\s+[^>]*\bType\s*=\s*""([^""]+)""[^>]*>",
             RegexOptions.Compiled);
 
         private static readonly Regex SetterEventTypeValueRegex = new(
@@ -58,18 +62,21 @@ namespace PCL
                 return ReplaceEventType(match, chineseValue, result);
             });
 
-            sanitized = LocalCustomEventElementRegex.Replace(sanitized, match =>
+            sanitized = LocalCustomEventSelfClosingRegex.Replace(sanitized, match =>
             {
                 var chineseValue = match.Groups[1].Value;
-                if (EventTypeMapper.IsUnsupportedType(chineseValue))
+                return _RemoveBadCustomEventElement(match, chineseValue, result);
+            });
+
+            sanitized = LocalCustomEventOpenTagRegex.Replace(sanitized, match =>
+            {
+                var chineseValue = match.Groups[1].Value;
+                if (_IsBadType(chineseValue, result))
                 {
-                    result.UnsupportedTypesFound.Add(chineseValue);
-                    return "";
-                }
-                if (!Enum.TryParse<EventType>(chineseValue, true, out _)
-                    && !EventTypeMapper.TryToEnglish(chineseValue, out _))
-                {
-                    result.UnrecognizedTypes.Add(chineseValue);
+                    var elementName = "local:CustomEvent";
+                    var afterTag = xaml[(match.Index + match.Length)..];
+                    var closeLen = FindMatchingCloseTag(afterTag, elementName);
+                    if (closeLen < 0) return match.Value;
                     return "";
                 }
                 return match.Value;
@@ -95,6 +102,28 @@ namespace PCL
 
             result.SanitizedXaml = sanitized;
             return result;
+        }
+
+        private static bool _IsBadType(string chineseValue, SanitizeResult result)
+        {
+            if (EventTypeMapper.IsUnsupportedType(chineseValue))
+            {
+                result.UnsupportedTypesFound.Add(chineseValue);
+                return true;
+            }
+            if (!Enum.TryParse<EventType>(chineseValue, true, out _)
+                && !EventTypeMapper.TryToEnglish(chineseValue, out _))
+            {
+                result.UnrecognizedTypes.Add(chineseValue);
+                return true;
+            }
+            return false;
+        }
+
+        private static string _RemoveBadCustomEventElement(
+            Match match, string chineseValue, SanitizeResult result)
+        {
+            return _IsBadType(chineseValue, result) ? "" : match.Value;
         }
 
         private static void RemoveElementsForTypes(List<string> types, ref string sanitized)
