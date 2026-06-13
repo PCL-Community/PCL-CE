@@ -26,6 +26,7 @@ public partial class FormMain
 {
     // 愚人节鼠标位置
     public MouseEventArgs lastMouseArg;
+    private static bool _cloudSyncNoticeHooked;
 
     private void FormMain_MouseMove(object sender, MouseEventArgs e)
     {
@@ -100,6 +101,11 @@ public partial class FormMain
         MsgBoxWrapper.OnShow += ModMain.MsgBoxWrapper_OnShow;
         // 注册 Hint 事件
         HintWrapper.OnShow += ModMain.HintWrapper_OnShow;
+        if (!_cloudSyncNoticeHooked)
+        {
+            PCL.Online.CloudSyncService.Notice += OnCloudSyncNotice;
+            _cloudSyncNoticeHooked = true;
+        }
         // 加载 UI
         InitializeComponent();
         Opacity = 0d;
@@ -148,6 +154,22 @@ public partial class FormMain
         ModBase.Log("[Start] 第二阶段加载用时：" + (TimeUtils.GetTimeTick() - ModBase.applicationStartTick) + " ms");
         // 注册生命周期状态事件
         Lifecycle.When(LifecycleState.WindowCreated, FormMain_Loaded);
+    }
+
+    private static void OnCloudSyncNotice(PCL.Online.CloudSyncService.NoticeType noticeType)
+    {
+        ModBase.RunInUi(() =>
+        {
+            switch (noticeType)
+            {
+                case PCL.Online.CloudSyncService.NoticeType.Starting:
+                    ModMain.Hint("正在与N Cloud同步您的数据……");
+                    break;
+                case PCL.Online.CloudSyncService.NoticeType.Success:
+                    ModMain.Hint("数据同步成功！", ModMain.HintType.Finish);
+                    break;
+            }
+        });
     }
 
     private void FormMain_Loaded() // (sender As Object, e As RoutedEventArgs) Handles Me.Loaded
@@ -215,6 +237,8 @@ public partial class FormMain
                 }
                 PCL.Online.FirstLaunchService.Accept();
             }
+
+            PCL.Online.CloudSyncService.TrySyncInBackground("startup");
         }), System.Windows.Threading.DispatcherPriority.Background);
         // 更改窗口
         // Top = (GetWPFSize(My.Computer.Screen.WorkingArea.Height) - Height) / 2

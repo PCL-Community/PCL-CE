@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Text.Json.Nodes;
 using System.Threading;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.IO.Net;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Logging;
@@ -19,8 +20,10 @@ public class OnlineLoginResult
 {
     public bool Success { get; init; }
     public string Message { get; init; } = "";
+    public string? MsId { get; init; }
     public string? UserName { get; init; }
     public string? DisplayName { get; init; }
+    public string? MinecraftProfileName { get; init; }
     public string? Uuid { get; init; }
     public string? AccessToken { get; init; }
     public string? RefreshToken { get; init; }
@@ -36,6 +39,42 @@ public static class OnlineAccountService
     public static string? UserName => States.Online.MsUserName;
     public static string? AvatarUrl => States.Online.MsAvatarUrl;
     public static bool OwnsMinecraft => States.Online.MsOwnsMinecraft;
+
+    public static bool EnsureAccountIdentity()
+    {
+        if (!string.IsNullOrWhiteSpace(States.Online.MsId))
+            return true;
+
+        var clientId = Secrets.MSOAuthClientId;
+        var refreshToken = States.Online.MsGraphRefreshToken;
+        if (string.IsNullOrWhiteSpace(refreshToken))
+            refreshToken = States.Online.MsOAuthRefreshToken;
+        if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(refreshToken))
+            return false;
+
+        var graphTokens = ExchangeRefreshToken(clientId, refreshToken, GraphScope);
+        if (graphTokens.AccessToken is null)
+        {
+            LogWrapper.Warn("Online", $"无法补全 Microsoft 账户 ID：{graphTokens.Error}");
+            return false;
+        }
+
+        var graphProfile = FetchGraphProfile(graphTokens.AccessToken);
+        if (string.IsNullOrWhiteSpace(graphProfile.id))
+            return false;
+
+        States.Online.MsId = graphProfile.id;
+        States.Online.MsGraphAccessToken = graphTokens.AccessToken;
+        States.Online.MsGraphRefreshToken = graphTokens.RefreshToken ?? refreshToken;
+        States.Online.MsOAuthRefreshToken = graphTokens.RefreshToken ?? refreshToken;
+        if (!string.IsNullOrWhiteSpace(graphProfile.name))
+            States.Online.MsUserName = graphProfile.name;
+        if (!string.IsNullOrWhiteSpace(graphProfile.avatarUrl))
+            States.Online.MsAvatarUrl = graphProfile.avatarUrl;
+        States.Online.MsLastTokenRefresh = DateTime.Now.ToString("O");
+        ConfigService.FlushAll();
+        return true;
+    }
 
     public static OnlineLoginResult Login(Func<JsonObject, object?> showLoginDialog)
     {
@@ -128,7 +167,7 @@ public static class OnlineAccountService
     private static OnlineLoginResult CompleteLogin(OAuthTokens graphTokens, OAuthTokens xboxTokens)
     {
         var graphProfile = graphTokens.AccessToken is null
-            ? (name: (string?)null, avatarUrl: (string?)null)
+            ? (id: (string?)null, name: (string?)null, avatarUrl: (string?)null)
             : FetchGraphProfile(graphTokens.AccessToken);
 
         var xblToken = AuthXbl(xboxTokens.AccessToken!);
@@ -158,23 +197,27 @@ public static class OnlineAccountService
         States.Online.MsOAuthRefreshToken = latestRefreshToken;
         States.Online.MsGraphAccessToken = graphTokens.AccessToken ?? "";
         States.Online.MsGraphRefreshToken = latestRefreshToken;
+        States.Online.MsId = graphProfile.id ?? "";
         States.Online.MsUserName = displayName;
+        States.Online.MsMinecraftProfileName = mcName;
         States.Online.MsUuid = uuid;
         States.Online.MsAvatarUrl = graphProfile.avatarUrl ?? "";
         States.Online.MsOwnsMinecraft = ownsMc;
         States.Online.MsLastTokenRefresh = DateTime.Now.ToString("O");
+        ConfigService.FlushAll();
 
         return new OnlineLoginResult
         {
             Success = true,
             Message = ownsMc ? $"登录成功：{displayName}（已拥有 Minecraft）" : $"登录成功：{displayName}（未拥有 Minecraft）",
-            UserName = mcName, DisplayName = displayName, Uuid = uuid, AccessToken = mcToken,
+            MsId = graphProfile.id,
+            UserName = mcName, DisplayName = displayName, MinecraftProfileName = mcName, Uuid = uuid, AccessToken = mcToken,
             RefreshToken = latestRefreshToken,
             OwnsMinecraft = ownsMc
         };
     }
 
-    private static (string? name, string? avatarUrl) FetchGraphProfile(string msToken)
+    private static (string? id, string? name, string? avatarUrl) FetchGraphProfile(string msToken)
     {
         try
         {
@@ -207,12 +250,12 @@ public static class OnlineAccountService
             }
             catch { }
 
-            return (name, avatar);
+            return (userId, name, avatar);
         }
         catch (Exception e)
         {
             LogWrapper.Debug(e, "Online", "Graph API 调用失败");
-            return (null, null);
+            return (null, null, null);
         }
     }
 
@@ -233,11 +276,14 @@ public static class OnlineAccountService
         States.Online.MsOAuthRefreshToken = "";
         States.Online.MsGraphAccessToken = "";
         States.Online.MsGraphRefreshToken = "";
+        States.Online.MsId = "";
         States.Online.MsUserName = "";
+        States.Online.MsMinecraftProfileName = "";
         States.Online.MsUuid = "";
         States.Online.MsAvatarUrl = "";
         States.Online.MsOwnsMinecraft = false;
         States.Online.MsLastTokenRefresh = "";
+        ConfigService.FlushAll();
     }
 
     #region 认证 API

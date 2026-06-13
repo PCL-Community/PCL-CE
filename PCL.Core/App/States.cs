@@ -327,6 +327,9 @@ public static partial class States
         /// </summary>
         [ConfigItem<string>("LegalAcceptedVersion", "")] public partial string LegalAcceptedVersion { get; set; }
 
+        /// <summary>Microsoft 账户 ID</summary>
+        [ConfigItem<string>("MsId", "")] public partial string MsId { get; set; }
+
         /// <summary>Minecraft 访问令牌</summary>
         [ConfigItem<string>("MsAccessToken", "", ConfigSource.SharedEncrypt)] public partial string MsAccessToken { get; set; }
 
@@ -342,6 +345,9 @@ public static partial class States
         /// <summary>登录用户名</summary>
         [ConfigItem<string>("MsUserName", "")] public partial string MsUserName { get; set; }
 
+        /// <summary>Minecraft 档案名</summary>
+        [ConfigItem<string>("MsMinecraftProfileName", "")] public partial string MsMinecraftProfileName { get; set; }
+
         /// <summary>玩家 UUID</summary>
         [ConfigItem<string>("MsUuid", "")] public partial string MsUuid { get; set; }
 
@@ -353,5 +359,38 @@ public static partial class States
 
         /// <summary>上次 token 刷新时间</summary>
         [ConfigItem<string>("MsLastTokenRefresh", "")] public partial string MsLastTokenRefresh { get; set; }
+
+        /// <summary>是否启用 N Cloud 同步</summary>
+        [ConfigItem<bool>("CloudSyncEnabled", true, ConfigSource.Local)] public partial bool CloudSyncEnabled { get; set; }
+
+        /// <summary>是否同步账户信息</summary>
+        [ConfigItem<bool>("CloudSyncAccount", true, ConfigSource.Local)] public partial bool CloudSyncAccount { get; set; }
+
+        /// <summary>是否同步收藏夹</summary>
+        [ConfigItem<bool>("CloudSyncFavorites", true, ConfigSource.Local)] public partial bool CloudSyncFavorites { get; set; }
+
+        /// <summary>是否同步界面偏好</summary>
+        [ConfigItem<bool>("CloudSyncUiPreferences", true, ConfigSource.Local)] public partial bool CloudSyncUiPreferences { get; set; }
+
+        /// <summary>是否同步提示状态</summary>
+        [ConfigItem<bool>("CloudSyncHintPreferences", true, ConfigSource.Local)] public partial bool CloudSyncHintPreferences { get; set; }
+
+        /// <summary>是否同步下载偏好</summary>
+        [ConfigItem<bool>("CloudSyncDownloadPreferences", true, ConfigSource.Local)] public partial bool CloudSyncDownloadPreferences { get; set; }
+
+        /// <summary>是否同步启动偏好</summary>
+        [ConfigItem<bool>("CloudSyncLaunchPreferences", true, ConfigSource.Local)] public partial bool CloudSyncLaunchPreferences { get; set; }
+
+        /// <summary>是否同步主页偏好</summary>
+        [ConfigItem<bool>("CloudSyncHomepagePreferences", true, ConfigSource.Local)] public partial bool CloudSyncHomepagePreferences { get; set; }
+
+        /// <summary>是否同步音乐偏好</summary>
+        [ConfigItem<bool>("CloudSyncMusicPreferences", true, ConfigSource.Local)] public partial bool CloudSyncMusicPreferences { get; set; }
+
+        /// <summary>是否同步更新偏好</summary>
+        [ConfigItem<bool>("CloudSyncUpdatePreferences", true, ConfigSource.Local)] public partial bool CloudSyncUpdatePreferences { get; set; }
+
+        /// <summary>是否同步自定义变量</summary>
+        [ConfigItem<bool>("CloudSyncCustomVariables", true, ConfigSource.Local)] public partial bool CloudSyncCustomVariables { get; set; }
     }
 }

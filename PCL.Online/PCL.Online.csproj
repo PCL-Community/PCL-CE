@@ -62,6 +62,9 @@
     <ItemGroup>
         <Compile Include="**\*.cs" Exclude="bin\**;obj\**;publish\**" />
         <Page Include="**\*.xaml" Exclude="bin\**;obj\**;publish\**" />
+        <EmbeddedResource Include="Certificates\n-cloud.cer"
+                          Condition="Exists('Certificates\n-cloud.cer')"
+                          LogicalName="PCL.Online.Certificates.n-cloud.cer" />
         <Content Include="Legal\**\*.md">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>

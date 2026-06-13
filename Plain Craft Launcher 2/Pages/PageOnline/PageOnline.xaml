@@ -40,8 +40,54 @@
                     </Grid>
                 </Grid>
             </local:MyCard>
-            <TextBlock Text="更多在线服务即将推出..." FontSize="14" Opacity="0.4"
-                       HorizontalAlignment="Center" Margin="0,30,0,0" />
+            <local:MyCard x:Name="CardSync" Margin="0,0,0,15" Visibility="Collapsed">
+                <StackPanel Margin="22,18,25,18">
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="N Cloud 同步" FontSize="15" FontWeight="Bold"
+                                       Foreground="{DynamicResource ColorBrush1}" />
+                            <TextBlock Margin="0,4,0,0" Text="选择需要同步到云端的内容；关闭后将不再上传或拉取云数据。"
+                                       FontSize="12" TextWrapping="Wrap"
+                                       Foreground="{DynamicResource ColorBrush2}" />
+                        </StackPanel>
+                        <local:MyIconTextButton Grid.Column="1" x:Name="BtnSyncDisable" Height="30" MinWidth="132"
+                                                Margin="15,0,0,0" Text="一键关闭同步" SvgIcon="lucide/cloud-off"
+                                                LogoScale="0.82" Click="BtnSyncDisable_Click" />
+                    </Grid>
+                    <local:MyCheckBox x:Name="CheckCloudSyncEnabled" Margin="0,0,0,8"
+                                      Text="启用 N Cloud 同步" Tag="CloudSyncEnabled" Change="SyncCheckBoxChange" />
+                    <TextBlock x:Name="LabSyncDisabledHint" Margin="4,0,0,10"
+                               Text="同步服务已关闭，后续不会自动同步任何数据。"
+                               FontSize="12" Foreground="{DynamicResource ColorBrush3}"
+                               Visibility="Collapsed" />
+                    <WrapPanel x:Name="PanSyncSections" Margin="0,0,0,0">
+                        <local:MyCheckBox x:Name="CheckSyncAccount" Width="180" Margin="0,0,14,8"
+                                          Text="账户信息" Tag="CloudSyncAccount" Change="SyncCheckBoxChange" />
+                        <local:MyCheckBox x:Name="CheckSyncFavorites" Width="180" Margin="0,0,14,8"
+                                          Text="收藏夹" Tag="CloudSyncFavorites" Change="SyncCheckBoxChange" />
+                        <local:MyCheckBox x:Name="CheckSyncUiPreferences" Width="180" Margin="0,0,14,8"
+                                          Text="界面设置" Tag="CloudSyncUiPreferences" Change="SyncCheckBoxChange" />
+                        <local:MyCheckBox x:Name="CheckSyncHintPreferences" Width="180" Margin="0,0,14,8"
+                                          Text="提示状态" Tag="CloudSyncHintPreferences" Change="SyncCheckBoxChange" />
+                        <local:MyCheckBox x:Name="CheckSyncDownloadPreferences" Width="180" Margin="0,0,14,8"
+                                          Text="下载设置" Tag="CloudSyncDownloadPreferences" Change="SyncCheckBoxChange" />
+                        <local:MyCheckBox x:Name="CheckSyncLaunchPreferences" Width="180" Margin="0,0,14,8"
+                                          Text="启动设置" Tag="CloudSyncLaunchPreferences" Change="SyncCheckBoxChange" />
+                        <local:MyCheckBox x:Name="CheckSyncHomepagePreferences" Width="180" Margin="0,0,14,8"
+                                          Text="主页设置" Tag="CloudSyncHomepagePreferences" Change="SyncCheckBoxChange" />
+                        <local:MyCheckBox x:Name="CheckSyncMusicPreferences" Width="180" Margin="0,0,14,8"
+                                          Text="音乐设置" Tag="CloudSyncMusicPreferences" Change="SyncCheckBoxChange" />
+                        <local:MyCheckBox x:Name="CheckSyncUpdatePreferences" Width="180" Margin="0,0,14,8"
+                                          Text="更新设置" Tag="CloudSyncUpdatePreferences" Change="SyncCheckBoxChange" />
+                        <local:MyCheckBox x:Name="CheckSyncCustomVariables" Width="180" Margin="0,0,14,0"
+                                          Text="自定义变量" Tag="CloudSyncCustomVariables" Change="SyncCheckBoxChange" />
+                    </WrapPanel>
+                </StackPanel>
+            </local:MyCard>
         </StackPanel>
     </local:MyScrollViewer>
 </local:MyPageRight>
