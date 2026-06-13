@@ -1,8 +1,12 @@
-using PCL.Core.IO.Storage.Cache.Model;
-using PCL.Core.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using PCL.Core.IO.Storage.Cache.Model;
+using PCL.Core.Logging;
+
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
 
 namespace PCL.Core.IO.Storage.Cache;
 
@@ -22,22 +26,39 @@ internal class CacheEvictionService(SqliteCacheStorage db, FileCacheStorage file
             }
 
             _cts = new CancellationTokenSource();
-            _loop = Task.Run(() => _EvictionLoopAsync(_cts.Token));
+            var cancellationToken = _cts.Token;
+            _loop = Task.Run(() => _EvictionLoopAsync(cancellationToken));
         }
     }
 
-    public void Stop()
+    public async ValueTask StopAsync()
     {
+        CancellationTokenSource? cancellation;
+        Task? loop;
         lock (_startLock)
         {
-            if (_cts is not null)
-            {
-                _cts.Cancel();
-                _cts.Dispose();
-                _cts = null;
-            }
-
+            cancellation = _cts;
+            loop = _loop;
+            _cts = null;
             _loop = null;
+        }
+
+        if (cancellation is null)
+            return;
+
+        cancellation.Cancel();
+        try
+        {
+            if (loop is not null)
+                await loop.ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected during shutdown.
+        }
+        finally
+        {
+            cancellation.Dispose();
         }
     }
 
@@ -54,7 +75,13 @@ internal class CacheEvictionService(SqliteCacheStorage db, FileCacheStorage file
             try
             {
                 await Task.Delay(options.EvictionInterval, ct).ConfigureAwait(false);
-                await db.DeleteExpiredAsync(DateTime.UtcNow, ct).ConfigureAwait(false);
+                var now = DateTime.UtcNow;
+                var expiredFileHashes = await db
+                    .GetExpiredFileHashesAsync(now, ct)
+                    .ConfigureAwait(false);
+                await db.DeleteExpiredAsync(now, ct).ConfigureAwait(false);
+                foreach (var hash in expiredFileHashes)
+                    await files.ReleaseAsync(hash).ConfigureAwait(false);
 
                 var stats = await db.GetStatsAsync(ct).ConfigureAwait(false);
                 var excess = stats.TotalSizeBytes - (options.MaxCacheSize - options.ReserveBytes);
@@ -98,7 +125,7 @@ internal class CacheEvictionService(SqliteCacheStorage db, FileCacheStorage file
 
                 if (can.EntryType is EntryType.FileRef && can.FileHash is not null)
                 {
-                    await files.ForceDeleteAsync(can.FileHash).ConfigureAwait(false);
+                    await files.ReleaseAsync(can.FileHash).ConfigureAwait(false);
                 }
 
                 freed += can.DataSize;

@@ -1,9 +1,14 @@
-using Microsoft.Data.Sqlite;
-using PCL.Core.IO.Storage.Cache.Model;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Data.Sqlite;
+using PCL.Core.IO.Storage.Cache.Model;
+
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
 
 namespace PCL.Core.IO.Storage.Cache;
 
@@ -30,12 +35,15 @@ public class SqliteCacheStorage(string dbPath) : IDisposable
         return conn;
     }
 
-    public async Task CleanupStartupAsync()
+    public async Task CleanupStartupAsync(DateTime? now = null)
     {
+        var cleanupTime = (now ?? DateTime.UtcNow).ToUniversalTime();
         await using var conn = await _CreateConnectionAsync().ConfigureAwait(false);
         await using var cmd = conn.CreateCommand();
 
-        cmd.CommandText = "DELETE FROM cache_entries WHERE expires_at IS NOT NULL AND expires_at < datetime('now')";
+        cmd.CommandText =
+            "DELETE FROM cache_entries WHERE expires_at IS NOT NULL AND julianday(expires_at) < julianday(@now)";
+        cmd.Parameters.AddWithValue("@now", cleanupTime.ToString("O", CultureInfo.InvariantCulture));
         await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
 
         await using var walCmd = conn.CreateCommand();
@@ -127,7 +135,9 @@ public class SqliteCacheStorage(string dbPath) : IDisposable
         {
             await using var conn = await _CreateConnectionAsync().ConfigureAwait(false);
             await using var cmd = conn.CreateCommand();
-            cmd.CommandText = "DELETE FROM cache_entries WHERE expires_at IS NOT NULL AND datetime(expires_at) < datetime('now')";
+            cmd.CommandText =
+                "DELETE FROM cache_entries WHERE expires_at IS NOT NULL AND julianday(expires_at) < julianday(@now)";
+            cmd.Parameters.AddWithValue("@now", now.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture));
             var affected = await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
             return affected;
         }
@@ -155,35 +165,63 @@ public class SqliteCacheStorage(string dbPath) : IDisposable
         }
     }
 
-    public async Task<List<string?>> GetFileHashesByGroupAsync(string groupName, CancellationToken ct)
+    public async Task<List<string>> GetFileHashesByGroupAsync(string groupName, CancellationToken ct)
     {
         await using var conn = await _CreateConnectionAsync().ConfigureAwait(false);
         await using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT DISTINCT file_hash FROM cache_entries WHERE group_name = @group_name AND file_hash IS NOT NULL";
+        cmd.CommandText =
+            "SELECT file_hash FROM cache_entries WHERE group_name = @group_name AND file_hash IS NOT NULL";
         cmd.Parameters.AddWithValue("@group_name", groupName);
 
         await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
-        var hashes = new List<string?>();
+        var hashes = new List<string>();
         while (await reader.ReadAsync(ct).ConfigureAwait(false))
-        {
             hashes.Add(reader.GetString(0));
-        }
         return hashes;
     }
 
-    public async Task<List<string?>> GetAllFileHashesAsync(CancellationToken ct)
+    public async Task<List<string>> GetAllFileHashesAsync(CancellationToken ct)
     {
         await using var conn = await _CreateConnectionAsync().ConfigureAwait(false);
         await using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT DISTINCT file_hash FROM cache_entries WHERE file_hash IS NOT NULL";
+        // Keep duplicates: every cache row owns one file reference.
+        cmd.CommandText = "SELECT file_hash FROM cache_entries WHERE file_hash IS NOT NULL";
 
         await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
-        var hashes = new List<string?>();
+        var hashes = new List<string>();
         while (await reader.ReadAsync(ct).ConfigureAwait(false))
-        {
             hashes.Add(reader.GetString(0));
-        }
         return hashes;
+    }
+
+    public async Task<List<string>> GetFileHashesByTagAsync(string tag, CancellationToken ct)
+    {
+        await using var conn = await _CreateConnectionAsync().ConfigureAwait(false);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = $"""
+            SELECT file_hash
+            FROM cache_entries
+            WHERE file_hash IS NOT NULL AND ({TagPredicate})
+            """;
+        _BindTagParameters(cmd, tag);
+        return await _ReadHashesAsync(cmd, ct).ConfigureAwait(false);
+    }
+
+    public async Task<List<string>> GetExpiredFileHashesAsync(DateTime now, CancellationToken ct)
+    {
+        await using var conn = await _CreateConnectionAsync().ConfigureAwait(false);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = """
+            SELECT file_hash
+            FROM cache_entries
+            WHERE file_hash IS NOT NULL
+              AND expires_at IS NOT NULL
+              AND julianday(expires_at) < julianday(@now)
+            """;
+        cmd.Parameters.AddWithValue(
+            "@now",
+            now.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture));
+        return await _ReadHashesAsync(cmd, ct).ConfigureAwait(false);
     }
 
     public async Task<int> DeleteByTagAsync(string tag, CancellationToken ct)
@@ -193,11 +231,8 @@ public class SqliteCacheStorage(string dbPath) : IDisposable
         {
             await using var conn = await _CreateConnectionAsync().ConfigureAwait(false);
             await using var cmd = conn.CreateCommand();
-            cmd.CommandText = "DELETE FROM cache_entries WHERE tags = @t OR tags LIKE @p1 OR tags LIKE @p2 OR tags LIKE @p3";
-            cmd.Parameters.AddWithValue("@t", tag);
-            cmd.Parameters.AddWithValue("@p1", $"{tag},%");
-            cmd.Parameters.AddWithValue("@p2", $"%,{tag},%");
-            cmd.Parameters.AddWithValue("@p3", $"%,{tag}");
+            cmd.CommandText = $"DELETE FROM cache_entries WHERE {TagPredicate}";
+            _BindTagParameters(cmd, tag);
             var affected = await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
             return affected;
         }
@@ -211,7 +246,17 @@ public class SqliteCacheStorage(string dbPath) : IDisposable
     {
         await using var conn = await _CreateConnectionAsync().ConfigureAwait(false);
         await using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT COUNT(*) AS total, COALESCE(SUM(data_size), 0) AS total_size, COALESCE(SUM(CASE WHEN expires_at < datetime('now') THEN 1 ELSE 0 END), 0) AS expired, COALESCE(SUM(CASE WHEN entry_type = 0 THEN 1 ELSE 0 END), 0) AS inline, COALESCE(SUM(CASE WHEN entry_type = 1 THEN 1 ELSE 0 END), 0) AS file_ref FROM cache_entries";
+        cmd.CommandText = """
+            SELECT COUNT(*) AS total,
+                   COALESCE(SUM(data_size), 0) AS total_size,
+                   COALESCE(SUM(CASE
+                       WHEN expires_at IS NOT NULL AND julianday(expires_at) < julianday(@now)
+                       THEN 1 ELSE 0 END), 0) AS expired,
+                   COALESCE(SUM(CASE WHEN entry_type = 0 THEN 1 ELSE 0 END), 0) AS inline,
+                   COALESCE(SUM(CASE WHEN entry_type = 1 THEN 1 ELSE 0 END), 0) AS file_ref
+            FROM cache_entries
+            """;
+        cmd.Parameters.AddWithValue("@now", DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
         await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
         if (await reader.ReadAsync(ct).ConfigureAwait(false))
         {
@@ -465,7 +510,11 @@ public class SqliteCacheStorage(string dbPath) : IDisposable
         cmd.Parameters.AddWithValue("@file_path", (object?)e.FilePath ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@content_hash", (object?)e.ContentHash ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@content_version", e.ContentVersion);
-        cmd.Parameters.AddWithValue("@expires_at", e.ExpiresAt is not null ? ((DateTime)e.ExpiresAt).ToString("O") : DBNull.Value);
+        cmd.Parameters.AddWithValue(
+            "@expires_at",
+            e.ExpiresAt is not null
+                ? ((DateTime)e.ExpiresAt).ToUniversalTime().ToString("O", CultureInfo.InvariantCulture)
+                : DBNull.Value);
         cmd.Parameters.AddWithValue("@tags", e.Tags);
         cmd.Parameters.AddWithValue("@group_name", e.GroupName);
         cmd.Parameters.AddWithValue("@priority", e.Priority);
@@ -483,9 +532,9 @@ public class SqliteCacheStorage(string dbPath) : IDisposable
             FilePath = r.IsDBNull(6) ? null : r.GetString(6),
             ContentHash = r.IsDBNull(7) ? null : r.GetString(7),
             ContentVersion = r.GetInt32(8),
-            CachedAt = DateTime.Parse(r.GetString(9)),
-            LastAccessAt = DateTime.Parse(r.GetString(10)),
-            ExpiresAt = r.IsDBNull(11) ? null : DateTime.Parse(r.GetString(11)),
+            CachedAt = _ParseUtc(r.GetString(9)),
+            LastAccessAt = _ParseUtc(r.GetString(10)),
+            ExpiresAt = r.IsDBNull(11) ? null : _ParseUtc(r.GetString(11)),
             HitCount = r.GetInt64(12),
             Tags = r.GetString(13),
             GroupName = r.GetString(14),
@@ -600,6 +649,42 @@ public class SqliteCacheStorage(string dbPath) : IDisposable
 
         _disposed = true;
         _writeLock.Dispose();
+        SqliteConnection.ClearAllPools();
+    }
+
+    private static DateTime _ParseUtc(string value)
+    {
+        var parsed = DateTime.Parse(
+            value,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.RoundtripKind);
+        return parsed.Kind == DateTimeKind.Unspecified
+            ? DateTime.SpecifyKind(parsed, DateTimeKind.Utc)
+            : parsed.ToUniversalTime();
+    }
+
+    private const string TagPredicate =
+        "tags = @t OR tags LIKE @p1 OR tags LIKE @p2 OR tags LIKE @p3";
+
+    private static void _BindTagParameters(SqliteCommand command, string tag)
+    {
+        command.Parameters.AddWithValue("@t", tag);
+        command.Parameters.AddWithValue("@p1", $"{tag},%");
+        command.Parameters.AddWithValue("@p2", $"%,{tag},%");
+        command.Parameters.AddWithValue("@p3", $"%,{tag}");
+    }
+
+    private static async Task<List<string>> _ReadHashesAsync(
+        SqliteCommand command,
+        CancellationToken cancellationToken)
+    {
+        await using var reader = await command
+            .ExecuteReaderAsync(cancellationToken)
+            .ConfigureAwait(false);
+        var hashes = new List<string>();
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            hashes.Add(reader.GetString(0));
+        return hashes;
     }
 }
 

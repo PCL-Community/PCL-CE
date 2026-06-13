@@ -1,10 +1,14 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.IO.Storage.Cache;
-using PCL.Core.IO.Storage.Cache.Model;
 using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using PCL.Core.IO.Storage.Cache;
+using PCL.Core.IO.Storage.Cache.Model;
+
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
 
 namespace PCL.Core.Test.IO.Storage.Cache;
 
@@ -558,16 +562,8 @@ public class SqliteCacheStorageTest
         };
         await _storage.UpsertAsync(entry, CancellationToken.None);
 
-        // Act & Assert
-        try
-        {
-            await _storage.CompactAsync(CancellationToken.None);
-            Assert.IsTrue(true, "Compact should execute without error");
-        }
-        catch (Exception ex)
-        {
-            Assert.Fail($"Compact failed with exception: {ex.Message}");
-        }
+        // Act: the test fails naturally if compaction throws.
+        await _storage.CompactAsync(CancellationToken.None);
     }
 
     #endregion

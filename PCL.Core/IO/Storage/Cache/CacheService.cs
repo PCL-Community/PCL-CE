@@ -1,6 +1,3 @@
-using Microsoft.Data.Sqlite;
-using PCL.Core.App;
-using PCL.Core.IO.Storage.Cache.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,6 +7,13 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Data.Sqlite;
+using PCL.Core.App;
+using PCL.Core.IO.Storage.Cache.Model;
+
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
 
 namespace PCL.Core.IO.Storage.Cache;
 
@@ -57,8 +61,7 @@ public class CacheService : ICacheService, IAsyncDisposable
     /// <summary>
     /// Unit Test constructor. This constructor allows injecting custom options for testing purposes.
     /// </summary>
-    [Obsolete("This constructor is for testing purposes only.")]
-    public CacheService(CacheOptions options)
+    internal CacheService(CacheOptions options)
     {
         _options = options;
         _schemaManager = new SchemaManager($"Data Source={_options.DatabasePath}");
@@ -75,7 +78,17 @@ public class CacheService : ICacheService, IAsyncDisposable
 
         await _schemaManager.EnsureCurrentSchemaAsync().ConfigureAwait(false);
 
-        await _db.CleanupStartupAsync().ConfigureAwait(false);
+        var persistedFileReferences = await _db
+            .GetAllFileHashesAsync(CancellationToken.None)
+            .ConfigureAwait(false);
+        _files.RestoreReferences(persistedFileReferences);
+
+        var startupTime = DateTime.UtcNow;
+        var expiredFileReferences = await _db
+            .GetExpiredFileHashesAsync(startupTime, CancellationToken.None)
+            .ConfigureAwait(false);
+        await _db.CleanupStartupAsync(startupTime).ConfigureAwait(false);
+        await _ReleaseFilesAsync(expiredFileReferences).ConfigureAwait(false);
 
         _eviction.Start();
 
@@ -87,8 +100,15 @@ public class CacheService : ICacheService, IAsyncDisposable
     {
         _ThrowIfNotReady();
         policy ??= CachePolicy.Default;
+        var previousEntry = await _db.LookupAsync(key, ct).ConfigureAwait(false);
 
-        var (bytes, inline) = _Serialize(value);
+        var bytes = _Serialize(value);
+        var useInlineStorage = policy.StorageMode switch
+        {
+            CacheStorageMode.Inline => true,
+            CacheStorageMode.FileMapped => false,
+            _ => bytes.Length <= _options.MaxInlineSize
+        };
 
         var entry = new CacheEntry
         {
@@ -102,7 +122,7 @@ public class CacheService : ICacheService, IAsyncDisposable
             ExpiresAt = _ComputeExpiry(policy),
         };
 
-        if (inline && bytes.Length <= _options.MaxInlineSize)
+        if (useInlineStorage)
         {
             entry = entry with
             {
@@ -114,15 +134,28 @@ public class CacheService : ICacheService, IAsyncDisposable
         else
         {
             using var ms = new MemoryStream(bytes);
+            var fileHash = await _files.StoreAsync(ms, cancellationToken: ct).ConfigureAwait(false);
             entry = entry with
             {
                 EntryType = EntryType.FileRef,
-                FileHash = await _files.StoreAsync(ms).ConfigureAwait(false),
-                ContentHash = _ComputeSha256(bytes)
+                FileHash = fileHash,
+                ContentHash = fileHash
             };
         }
 
-        await _db.UpsertAsync(entry, ct).ConfigureAwait(false);
+        try
+        {
+            await _db.UpsertAsync(entry, ct).ConfigureAwait(false);
+        }
+        catch
+        {
+            if (entry.FileHash is not null)
+                await _files.ReleaseAsync(entry.FileHash).ConfigureAwait(false);
+            throw;
+        }
+
+        if (previousEntry?.FileHash is not null)
+            await _files.ReleaseAsync(previousEntry.FileHash).ConfigureAwait(false);
 
         _eviction.CheckThreshold();
     }
@@ -199,12 +232,10 @@ public class CacheService : ICacheService, IAsyncDisposable
             return false;
         }
 
-        if (entry.FileHash is not null)
-        {
+        var deleted = await _db.DeleteAsync(key, CancellationToken.None).ConfigureAwait(false);
+        if (deleted && entry.FileHash is not null)
             await _files.ReleaseAsync(entry.FileHash).ConfigureAwait(false);
-        }
-
-        return await _db.DeleteAsync(key, CancellationToken.None).ConfigureAwait(false);
+        return deleted;
     }
 
 
@@ -228,13 +259,28 @@ public class CacheService : ICacheService, IAsyncDisposable
         _ThrowIfNotReady();
         policy ??= CachePolicy.Default;
 
-        var hash = await _files.StoreAsync(source).ConfigureAwait(false);
+        var previousEntry = await _db.LookupAsync(key, ct).ConfigureAwait(false);
+        CountingReadStream? countingSource = null;
+        var storageSource = source;
+        var dataSize = source.CanSeek ? source.Length : 0;
+        if (!source.CanSeek)
+        {
+            countingSource = new CountingReadStream(source);
+            storageSource = countingSource;
+        }
+
+        var hash = await _files
+            .StoreAsync(storageSource, cancellationToken: ct)
+            .ConfigureAwait(false);
+        if (countingSource is not null)
+            dataSize = countingSource.BytesRead;
+
         var entry = new CacheEntry
         {
             CacheKey = key,
             EntryType = EntryType.FileRef,
             ContentType = "application/octet-stream",
-            DataSize = source.Length,
+            DataSize = dataSize,
             FileHash = hash,
             ContentHash = hash,
             Tags = policy.Tags ?? "",
@@ -242,7 +288,18 @@ public class CacheService : ICacheService, IAsyncDisposable
             Priority = (int)policy.Priority,
             ExpiresAt = _ComputeExpiry(policy),
         };
-        await _db.UpsertAsync(entry, ct).ConfigureAwait(false);
+        try
+        {
+            await _db.UpsertAsync(entry, ct).ConfigureAwait(false);
+        }
+        catch
+        {
+            await _files.ReleaseAsync(hash).ConfigureAwait(false);
+            throw;
+        }
+
+        if (previousEntry?.FileHash is not null)
+            await _files.ReleaseAsync(previousEntry.FileHash).ConfigureAwait(false);
         _eviction.CheckThreshold();
         return hash;
     }
@@ -253,34 +310,32 @@ public class CacheService : ICacheService, IAsyncDisposable
     {
         _ThrowIfNotReady();
 
-        // 先收集要被删除的文件 hash（用于清理 FileCacheStore）
         var fileHashes = await _db.GetFileHashesByGroupAsync(groupName, CancellationToken.None).ConfigureAwait(false);
-
-        // 逐个释放文件
-        foreach (var hash in fileHashes)
-        {
-            if (hash is not null)
-            {
-                await _files.ReleaseAsync(hash).ConfigureAwait(false);
-            }
-        }
-
-        // 删除数据库中的记录
-        return await _db.DeleteByGroupAsync(groupName, CancellationToken.None).ConfigureAwait(false);
+        var deleted = await _db.DeleteByGroupAsync(groupName, CancellationToken.None).ConfigureAwait(false);
+        await _ReleaseFilesAsync(fileHashes).ConfigureAwait(false);
+        return deleted;
     }
 
     /// <inheritdoc/>
-    public Task<int> DeleteByTagAsync(string tag)
+    public async Task<int> DeleteByTagAsync(string tag)
     {
         _ThrowIfNotReady();
-        return _db.DeleteByTagAsync(tag, CancellationToken.None);
+        var fileHashes = await _db.GetFileHashesByTagAsync(tag, CancellationToken.None).ConfigureAwait(false);
+        var deleted = await _db.DeleteByTagAsync(tag, CancellationToken.None).ConfigureAwait(false);
+        await _ReleaseFilesAsync(fileHashes).ConfigureAwait(false);
+        return deleted;
     }
 
     /// <inheritdoc/>
     public async Task<int> DeleteExpiredAsync()
     {
         _ThrowIfNotReady();
-        var count = await _db.DeleteExpiredAsync(DateTime.UtcNow, CancellationToken.None).ConfigureAwait(false);
+        var now = DateTime.UtcNow;
+        var fileHashes = await _db
+            .GetExpiredFileHashesAsync(now, CancellationToken.None)
+            .ConfigureAwait(false);
+        var count = await _db.DeleteExpiredAsync(now, CancellationToken.None).ConfigureAwait(false);
+        await _ReleaseFilesAsync(fileHashes).ConfigureAwait(false);
         _eviction.CheckThreshold();
         return count;
     }
@@ -307,17 +362,7 @@ public class CacheService : ICacheService, IAsyncDisposable
     {
         _ThrowIfNotReady();
 
-        // 先释放所有文件引用
         var fileHashes = await _db.GetAllFileHashesAsync(CancellationToken.None).ConfigureAwait(false);
-        foreach (var hash in fileHashes)
-        {
-            if (hash is not null)
-            {
-                await _files.ReleaseAsync(hash).ConfigureAwait(false);
-            }
-        }
-
-        // 清空所有表
         await using var conn = new SqliteConnection($"Data Source={_options.DatabasePath}");
         await conn.OpenAsync().ConfigureAwait(false);
         await using var cmd = conn.CreateCommand();
@@ -328,6 +373,7 @@ public class CacheService : ICacheService, IAsyncDisposable
                           VACUUM;
                           """;
         await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+        await _ReleaseFilesAsync(fileHashes).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -364,13 +410,13 @@ public class CacheService : ICacheService, IAsyncDisposable
         return DateTime.UtcNow + policy.SlidingExpiration;
     }
 
-    private static (byte[] bytes, bool isSmall) _Serialize<T>(T value)
+    private static byte[] _Serialize<T>(T value)
     {
         return value switch
         {
-            byte[] raw => (raw, raw.Length <= 256 * 1024),
-            string s => (Encoding.UTF8.GetBytes(s), s.Length <= 256 * 1024),
-            _ => (JsonSerializer.SerializeToUtf8Bytes(value, _JsonOpts), true),
+            byte[] raw => raw,
+            string text => Encoding.UTF8.GetBytes(text),
+            _ => JsonSerializer.SerializeToUtf8Bytes(value, _JsonOpts),
         };
     }
 
@@ -385,8 +431,70 @@ public class CacheService : ICacheService, IAsyncDisposable
 
     private static string _ComputeSha256(byte[] data)
     {
-        var hash = SHA256.HashData(data);
-        return Convert.ToHexString(hash).ToLowerInvariant();
+        Span<byte> hash = stackalloc byte[SHA256.HashSizeInBytes];
+        SHA256.TryHashData(data, hash, out _);
+        return Convert.ToHexStringLower(hash);
+    }
+
+    private async Task _ReleaseFilesAsync(IEnumerable<string> hashes)
+    {
+        foreach (var hash in hashes)
+            await _files.ReleaseAsync(hash).ConfigureAwait(false);
+    }
+
+    private sealed class CountingReadStream(Stream inner) : Stream
+    {
+        public long BytesRead { get; private set; }
+        public override bool CanRead => inner.CanRead;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            var read = inner.Read(buffer, offset, count);
+            BytesRead += read;
+            return read;
+        }
+
+        public override int Read(Span<byte> buffer)
+        {
+            var read = inner.Read(buffer);
+            BytesRead += read;
+            return read;
+        }
+
+        public override async ValueTask<int> ReadAsync(
+            Memory<byte> buffer,
+            CancellationToken cancellationToken = default)
+        {
+            var read = await inner.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
+            BytesRead += read;
+            return read;
+        }
+
+        public override async Task<int> ReadAsync(
+            byte[] buffer,
+            int offset,
+            int count,
+            CancellationToken cancellationToken)
+        {
+            var read = await inner
+                .ReadAsync(buffer, offset, count, cancellationToken)
+                .ConfigureAwait(false);
+            BytesRead += read;
+            return read;
+        }
+
+        public override void Flush() => throw new NotSupportedException();
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
     }
 
     #endregion
@@ -432,7 +540,7 @@ public class CacheService : ICacheService, IAsyncDisposable
 
         _disposed = true;
 
-        _eviction.Stop();
+        await _eviction.StopAsync().ConfigureAwait(false);
 
         try
         {
@@ -447,6 +555,7 @@ public class CacheService : ICacheService, IAsyncDisposable
 
         await CastAndDispose(_db).ConfigureAwait(false);
         await CastAndDispose(_files).ConfigureAwait(false);
+        SqliteConnection.ClearAllPools();
 
         return;
 

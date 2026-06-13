@@ -1,10 +1,14 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.IO.Storage.Cache;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using PCL.Core.IO.Storage.Cache;
+
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
 
 namespace PCL.Core.Test.IO.Storage.Cache;
 
@@ -376,6 +380,28 @@ public class FileCacheStorageTest
         }
 
         await Task.WhenAll(retrieveTasks);
+    }
+
+    [TestMethod]
+    public async Task ConcurrentSameContentStore_ShouldCommitAtomically()
+    {
+        var content = new byte[512 * 1024];
+        Random.Shared.NextBytes(content);
+
+        var hashes = await Task.WhenAll(
+            Enumerable.Range(0, 16)
+                .Select(_ => _fileCache.StoreAsync(new MemoryStream(content))));
+
+        Assert.AreEqual(1, hashes.Distinct(StringComparer.Ordinal).Count());
+        Assert.IsTrue(_fileCache.Exists(hashes[0]));
+        Assert.AreEqual(
+            0,
+            Directory.EnumerateFiles(_testCachePath, "*.tmp", SearchOption.AllDirectories).Count());
+
+        foreach (var hash in hashes)
+            await _fileCache.ReleaseAsync(hash);
+
+        Assert.IsFalse(_fileCache.Exists(hashes[0]));
     }
 
     #endregion

@@ -1,9 +1,14 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.IO.Storage.Cache;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using PCL.Core.IO.Storage.Cache;
+
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
 
 namespace PCL.Core.Test.IO.Storage.Cache;
 
@@ -211,6 +216,43 @@ public class CacheServiceTest
         CollectionAssert.AreEqual(largeData, result.Value, "Large data should be retrieved correctly");
     }
 
+    [TestMethod]
+    public async Task FileMappedPolicy_ShouldStoreSmallValueAsFile()
+    {
+        const string key = "forced_file_key";
+        await _cache.SetAsync(
+            key,
+            "small value",
+            new CachePolicy { StorageMode = CacheStorageMode.FileMapped });
+
+        var path = await _cache.GetCachedFilePathAsync(key);
+
+        Assert.IsNotNull(path);
+        Assert.IsTrue(File.Exists(path));
+    }
+
+    [TestMethod]
+    public async Task OverwriteFileBackedValue_ShouldReleasePreviousFile()
+    {
+        const string key = "overwrite_file_key";
+        var first = new byte[500 * 1024];
+        var second = new byte[500 * 1024];
+        Random.Shared.NextBytes(first);
+        Random.Shared.NextBytes(second);
+
+        await _cache.SetAsync(key, first);
+        var firstPath = await _cache.GetCachedFilePathAsync(key);
+        await _cache.SetAsync(key, second);
+        var secondPath = await _cache.GetCachedFilePathAsync(key);
+
+        Assert.IsNotNull(firstPath);
+        Assert.IsNotNull(secondPath);
+        Assert.AreNotEqual(firstPath, secondPath);
+        Assert.IsFalse(File.Exists(firstPath));
+        Assert.IsTrue(File.Exists(secondPath));
+        CollectionAssert.AreEqual(second, (await _cache.GetAsync<byte[]>(key)).Value);
+    }
+
     #endregion
 
     #region Delete Tests
@@ -394,6 +436,21 @@ public class CacheServiceTest
         Assert.IsTrue((await _cache.GetAsync<string>("untagged_key")).Found);
     }
 
+    [TestMethod]
+    public async Task DeleteByTagAsync_ShouldReleaseFileReferences()
+    {
+        const string key = "tagged_file";
+        var value = new byte[500 * 1024];
+        Random.Shared.NextBytes(value);
+        await _cache.SetAsync(key, value, new CachePolicy { Tags = "file-tag" });
+        var path = await _cache.GetCachedFilePathAsync(key);
+
+        await _cache.DeleteByTagAsync("file-tag");
+
+        Assert.IsNotNull(path);
+        Assert.IsFalse(File.Exists(path));
+    }
+
     #endregion
 
     #region Expiration Management Tests
@@ -418,6 +475,43 @@ public class CacheServiceTest
         Assert.IsTrue(deletedCount >= 1, "Should delete at least 1 expired item");
         Assert.IsFalse((await _cache.GetAsync<string>("expired_key")).Found);
         Assert.IsTrue((await _cache.GetAsync<string>("active_key")).Found);
+    }
+
+    [TestMethod]
+    public async Task DeleteExpiredAsync_ShouldReleaseFileReferences()
+    {
+        const string key = "expired_file";
+        var value = new byte[500 * 1024];
+        Random.Shared.NextBytes(value);
+        await _cache.SetAsync(
+            key,
+            value,
+            new CachePolicy { AbsoluteExpiration = TimeSpan.FromMilliseconds(50) });
+        var path = await _cache.GetCachedFilePathAsync(key);
+
+        await Task.Delay(100);
+        await _cache.DeleteExpiredAsync();
+
+        Assert.IsNotNull(path);
+        Assert.IsFalse(File.Exists(path));
+    }
+
+    [TestMethod]
+    public async Task InitializeAsync_ShouldRestorePersistedFileReferences()
+    {
+        const string key = "persisted_file";
+        var value = new byte[500 * 1024];
+        Random.Shared.NextBytes(value);
+        await _cache.SetAsync(key, value);
+        var path = await _cache.GetCachedFilePathAsync(key);
+
+        await _cache.DisposeAsync();
+        _cache = new CacheService(_options);
+        await _cache.InitializeAsync();
+        await _cache.DeleteAsync(key);
+
+        Assert.IsNotNull(path);
+        Assert.IsFalse(File.Exists(path));
     }
 
     #endregion
@@ -544,6 +638,21 @@ public class CacheServiceTest
     }
 
     [TestMethod]
+    public async Task CacheFileAsync_ShouldSupportNonSeekableStream()
+    {
+        const string key = "non_seekable_file";
+        var fileContent = new byte[256 * 1024];
+        Random.Shared.NextBytes(fileContent);
+        await using var stream = new NonSeekableReadStream(fileContent);
+
+        await _cache.CacheFileAsync(key, stream);
+        var result = await _cache.GetAsync<byte[]>(key);
+
+        Assert.IsTrue(result.Found);
+        CollectionAssert.AreEqual(fileContent, result.Value);
+    }
+
+    [TestMethod]
     public async Task GetCachedFilePathAsync_ShouldReturnFilePath()
     {
         // Arrange
@@ -618,6 +727,49 @@ public class CacheServiceTest
         public override int GetHashCode()
         {
             return HashCode.Combine(Id, Name, Value);
+        }
+    }
+
+    private sealed class NonSeekableReadStream(byte[] data) : Stream
+    {
+        private readonly MemoryStream _inner = new(data, writable: false);
+
+        public override bool CanRead => true;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override int Read(byte[] buffer, int offset, int count) =>
+            _inner.Read(buffer, offset, count);
+
+        public override int Read(Span<byte> buffer) => _inner.Read(buffer);
+
+        public override ValueTask<int> ReadAsync(
+            Memory<byte> buffer,
+            CancellationToken cancellationToken = default) =>
+            _inner.ReadAsync(buffer, cancellationToken);
+
+        public override void Flush() => throw new NotSupportedException();
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                _inner.Dispose();
+            base.Dispose(disposing);
+        }
+
+        public override async ValueTask DisposeAsync()
+        {
+            await _inner.DisposeAsync();
+            GC.SuppressFinalize(this);
         }
     }
 
