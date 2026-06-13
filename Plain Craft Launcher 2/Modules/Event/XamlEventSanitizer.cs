@@ -105,17 +105,17 @@ namespace PCL
         {
             var escaped = Regex.Escape(eventTypeValue);
 
-            var selfClosingPattern = $@"<\w+[^>]*\s+local:CustomEventService\.EventType\s*=\s*""{escaped}""[^>]*/\s*>";
+            var selfClosingPattern = $@"<[\w:]+[^>]*\s+local:CustomEventService\.EventType\s*=\s*""{escaped}""[^>]*/\s*>";
             xaml = Regex.Replace(xaml, selfClosingPattern, match =>
             {
                 trackingList.Add(eventTypeValue);
                 return "";
             }, RegexOptions.Compiled);
 
-            var openTagPattern = $@"<\w+[^>]*\s+local:CustomEventService\.EventType\s*=\s*""{escaped}""[^>]*>";
+            var openTagPattern = $@"<[\w:]+[^>]*\s+local:CustomEventService\.EventType\s*=\s*""{escaped}""[^>]*>";
             xaml = Regex.Replace(xaml, openTagPattern, match =>
             {
-                var elementName = Regex.Match(match.Value, @"<(\w+)").Groups[1].Value;
+                var elementName = Regex.Match(match.Value, @"<([\w:]+)").Groups[1].Value;
                 var afterTag = xaml[(match.Index + match.Length)..];
                 var closeLen = FindMatchingCloseTag(afterTag, elementName);
                 if (closeLen < 0) return match.Value;
@@ -128,7 +128,7 @@ namespace PCL
             xaml = Regex.Replace(xaml, propertyElementPattern, match =>
             {
                 var beforeMatch = xaml[..match.Index];
-                var lastOpenMatch = Regex.Match(beforeMatch, @"<(\w+)[^>]*>$", RegexOptions.RightToLeft);
+                var lastOpenMatch = Regex.Match(beforeMatch, @"<([\w:]+)[^>]*>$", RegexOptions.RightToLeft);
                 if (!lastOpenMatch.Success) return match.Value;
                 var parentElementName = lastOpenMatch.Groups[1].Value;
 
