@@ -21,6 +21,8 @@ public partial class PageLoginMs
 
     private void BtnLogin_Click(object sender, EventArgs e)
     {
+        var previousProfile = ModProfile.selectedProfile;
+        var previousLastUsedProfile = ModProfile.lastUsedProfile;
         BtnLogin.IsEnabled = false;
         BtnBack.Visibility = Visibility.Collapsed;
         BtnLogin.Text = Lang.Number(0d, "P0");
@@ -73,6 +75,9 @@ public partial class PageLoginMs
             {
                 ModBase.RunInUi(() =>
                 {
+                    ModProfile.selectedProfile = previousProfile;
+                    ModProfile.lastUsedProfile = previousLastUsedProfile;
+                    ModProfile.SaveProfile();
                     BtnLogin.IsEnabled = true;
                     BtnBack.Visibility = Visibility.Visible;
                     BtnLogin.Text = Lang.Text("Launch.Account.Login");
