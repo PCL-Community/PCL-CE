@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -91,7 +92,7 @@ public class PclDlService
                 }
 
                 file.State = NetState.Connecting;
-                var info = await connection.StartAsync(0).ConfigureAwait(false);
+                var info = await connection.StartAsync(0, cancellationToken).ConfigureAwait(false);
 
                 writer = _factory.MakeWriter(file.LocalPath);
                 if (writer is null)
@@ -100,51 +101,61 @@ public class PclDlService
                     continue;
                 }
 
-                var writeStream = await writer.CreateStreamAsync().ConfigureAwait(false);
+                var writeStream = await writer.CreateStreamAsync(cancellationToken).ConfigureAwait(false);
 
                 file.TotalSize = Math.Max(file.TotalSize, info.Length);
                 file.IsUnknownSize = info.Length <= 0;
                 file.DownloadedBytes = 0;
                 file.State = NetState.Reading;
 
-                var readSw = Stopwatch.StartNew();
-                long totalRead = 0;
-                while (true)
+                var buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
+                try
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    var readSw = Stopwatch.StartNew();
+                    long totalRead = 0;
+                    while (true)
+                    {
+                        var read = await connection
+                            .ReadAsync(buffer.AsMemory(0, BufferSize), cancellationToken)
+                            .ConfigureAwait(false);
+                        if (read == 0)
+                            break;
 
-                    var data = await connection.ReadAsync(BufferSize).ConfigureAwait(false);
-                    if (data.Length == 0)
-                        break;
+                        await writeStream
+                            .WriteAsync(buffer.AsMemory(0, read), cancellationToken)
+                            .ConfigureAwait(false);
+                        totalRead += read;
 
-                    await writeStream.WriteAsync(data, cancellationToken).ConfigureAwait(false);
-                    totalRead += data.Length;
+                        file.State = NetState.Downloading;
+                        file.DownloadedBytes = totalRead;
+                        if (totalRead > file.TotalSize)
+                            file.TotalSize = totalRead;
 
-                    file.State = NetState.Downloading;
+                        var elapsed = readSw.Elapsed.TotalSeconds;
+                        file.Speed = elapsed > 0.1 ? (long)(totalRead / elapsed) : 0;
+                    }
+
+                    await writeStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+                    await writer.FinishAsync(cancellationToken).ConfigureAwait(false);
+
                     file.DownloadedBytes = totalRead;
-                    if (totalRead > file.TotalSize)
-                        file.TotalSize = totalRead;
+                    file.TotalSize = totalRead;
+                    file.Speed = 0;
+                    file.ActiveThreads = 0;
 
-                    var elapsed = readSw.Elapsed.TotalSeconds;
-                    file.Speed = elapsed > 0.1 ? (long)(totalRead / elapsed) : 0;
+                    sw.Stop();
+                    ModBase.Log($"[Download] 下载成功：{file.LocalPath} ({url})");
+                    return new DownloadResult
+                    {
+                        Success = true,
+                        TotalBytes = totalRead,
+                        Duration = sw.Elapsed,
+                    };
                 }
-
-                await writeStream.FlushAsync(cancellationToken).ConfigureAwait(false);
-                await writer.FinishAsync().ConfigureAwait(false);
-
-                file.DownloadedBytes = totalRead;
-                file.TotalSize = totalRead;
-                file.Speed = 0;
-                file.ActiveThreads = 0;
-
-                sw.Stop();
-                ModBase.Log($"[Download] 下载成功：{file.LocalPath} ({url})");
-                return new DownloadResult
+                finally
                 {
-                    Success = true,
-                    TotalBytes = totalRead,
-                    Duration = sw.Elapsed,
-                };
+                    ArrayPool<byte>.Shared.Return(buffer);
+                }
             }
             catch (OperationCanceledException)
             {
@@ -159,9 +170,9 @@ public class PclDlService
             finally
             {
                 if (writer is not null)
-                    await writer.StopAsync().ConfigureAwait(false);
+                    await writer.StopAsync(CancellationToken.None).ConfigureAwait(false);
                 if (connection is not null)
-                    await connection.StopAsync().ConfigureAwait(false);
+                    await connection.StopAsync(CancellationToken.None).ConfigureAwait(false);
             }
         }
 
