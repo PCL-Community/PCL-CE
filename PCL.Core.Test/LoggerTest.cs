@@ -14,9 +14,7 @@ public class LoggerTest
     public void TestSimpleWrite()
     {
         var loggerOps = new LoggerConfiguration(
-            Path.Combine(Path.GetTempPath(), "PCLTest", "Logger"),
-            LoggerSegmentMode.BySize,
-            10 * 1024 * 1024);
+            Path.Combine(Path.GetTempPath(), "PCLTest", "Logger"));
         var logger = new Logger(loggerOps);
         for (var i = 0; i < 10; i++)
             logger.Info($"Current we got {i}");
@@ -41,6 +39,6 @@ public class LoggerTest
             }));
         }
         await Task.WhenAll(tasks.ToArray());
-        logger.Dispose();
+        await logger.DisposeAsync();
     }
 }
