@@ -143,21 +143,21 @@ namespace PCL
                 sanitized = RemoveElementsWithEventType(sanitized, type, types);
         }
 
-        private static string ReplaceEventType(Match match, string chineseValue, SanitizeResult result)
+        private static string ReplaceEventType(Match match, string rawValue, SanitizeResult result)
         {
-            if (EventTypeMapper.TryToEnglish(chineseValue, out var englishName))
+            if (EventTypeMapper.TryToEnglish(rawValue, out var englishName))
                 return match.Groups[1].Value + englishName + match.Groups[3].Value;
 
-            if (Enum.TryParse<EventType>(chineseValue, true, out _))
+            if (Enum.TryParse<EventType>(rawValue, true, out _))
                 return match.Value;
 
-            if (EventTypeMapper.IsUnsupportedType(chineseValue))
+            if (EventTypeMapper.IsUnsupportedType(rawValue))
             {
-                result.UnsupportedTypesFound.Add(chineseValue);
+                result.UnsupportedTypesFound.Add(rawValue);
                 return match.Value;
             }
 
-            result.UnrecognizedTypes.Add(chineseValue);
+            result.UnrecognizedTypes.Add(rawValue);
             return match.Value;
         }
 
