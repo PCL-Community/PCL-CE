@@ -1399,8 +1399,8 @@ public partial class PageInstanceCompResource : IRefreshable
     /// </summary>
     private void BtnSchematicDownloadMod_Click(object sender, MouseButtonEventArgs e)
     {
+        PageComp.targetVersion = PageInstanceLeft.McInstance;
         ModMain.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
-        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
     }
 
     /// <summary>
