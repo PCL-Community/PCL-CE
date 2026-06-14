@@ -16,14 +16,28 @@ jobs:
         include:
           - configuration: Release
             architecture: x64
+            self_contained: true
+            artifact_suffix: ''
+          - configuration: Release
+            architecture: x64
+            self_contained: false
+            artifact_suffix: _NoRuntime
           - configuration: Release
             architecture: ARM64
+            self_contained: true
+            artifact_suffix: ''
+          - configuration: Release
+            architecture: ARM64
+            self_contained: false
+            artifact_suffix: _NoRuntime
       fail-fast: false
 
     uses: ./.github/workflows/reusable-build.yml
     with:
       configuration: ${{ matrix.configuration }}
       architecture: ${{ matrix.architecture }}
+      self_contained: ${{ matrix.self_contained }}
+      artifact_suffix: ${{ matrix.artifact_suffix }}
     secrets: inherit
 
   changelog:
@@ -63,18 +77,26 @@ jobs:
         include:
           - configuration: Release
             architecture: x64
+            artifact_suffix: ''
+          - configuration: Release
+            architecture: x64
+            artifact_suffix: _NoRuntime
           - configuration: Release
             architecture: ARM64
+            artifact_suffix: ''
+          - configuration: Release
+            architecture: ARM64
+            artifact_suffix: _NoRuntime
     steps:
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
-          name: PCL2_N_${{ matrix.configuration }}_${{ matrix.architecture }}
+          name: PCL2_N_${{ matrix.configuration }}_${{ matrix.architecture }}${{ matrix.artifact_suffix }}
           path: ./artifact
 
       - name: Rename binaries
         run: |
-          mv "./artifact/Plain Craft Launcher 2.exe" "PCL2_N_${{ matrix.configuration }}_${{ matrix.architecture }}.exe"
+          mv "./artifact/Plain Craft Launcher 2.exe" "PCL2_N_${{ matrix.configuration }}_${{ matrix.architecture }}${{ matrix.artifact_suffix }}.exe"
 
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v6
@@ -84,13 +106,13 @@ jobs:
 
       - name: Sign the binary
         run: |
-          gpg --detach-sign --armor "PCL2_N_${{ matrix.configuration }}_${{ matrix.architecture }}.exe"
+          gpg --detach-sign --armor "PCL2_N_${{ matrix.configuration }}_${{ matrix.architecture }}${{ matrix.artifact_suffix }}.exe"
 
       - name: Upload binary and signature to Release
         uses: softprops/action-gh-release@v2.5.0
         with:
           files: |
-            PCL2_N_${{ matrix.configuration }}_${{ matrix.architecture }}.exe
-            PCL2_N_${{ matrix.configuration }}_${{ matrix.architecture }}.exe.asc
+            PCL2_N_${{ matrix.configuration }}_${{ matrix.architecture }}${{ matrix.artifact_suffix }}.exe
+            PCL2_N_${{ matrix.configuration }}_${{ matrix.architecture }}${{ matrix.artifact_suffix }}.exe.asc
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

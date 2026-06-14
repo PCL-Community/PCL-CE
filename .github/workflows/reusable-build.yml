@@ -12,6 +12,14 @@ on:
       architecture:
         required: true
         type: string
+      self_contained:
+        required: false
+        type: boolean
+        default: true
+      artifact_suffix:
+        required: false
+        type: string
+        default: ''
 
 jobs:
   build:
@@ -78,7 +86,7 @@ jobs:
           esac
           dotnet publish "Plain Craft Launcher 2/Plain Craft Launcher 2.csproj" \
             -p:Configuration=${{ inputs.configuration }} -p:Platform=${{ inputs.architecture }} \
-            -r "$rid" --self-contained \
+            -r "$rid" --self-contained "${{ inputs.self_contained }}" \
             -p:DeleteExistingFiles=true -o ./artifact
 
       - name: Validate embedded legal documents
@@ -103,5 +111,5 @@ jobs:
       - name: Upload the Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PCL2_N_${{ inputs.configuration }}_${{ inputs.architecture }}
+          name: PCL2_N_${{ inputs.configuration }}_${{ inputs.architecture }}${{ inputs.artifact_suffix }}
           path: artifact/**
