@@ -37,6 +37,9 @@ public partial class PageToolsTest
         BtnSelectSkin.Click += BtnSelectSkin_Click;
         CmbHeadSize.SelectionChanged += CmbHeadSize_SelectionChanged;
         Loaded += (_, _) => MeLoaded();
+        #if DEBUG
+        BtnCrash.Visibility = Visibility.Visible;
+        #endif
     }
 
     private void MeLoaded()
