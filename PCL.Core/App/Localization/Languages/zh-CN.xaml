@@ -2737,11 +2737,7 @@
     <sys:String x:Key="Tools.Test.Luck.Rating0">（是百分制哦）</sys:String>
 
     <!-- Tools.Test.Crash -->
-
     <sys:String x:Key="Tools.Test.Crash.Title">崩溃测试</sys:String>
-    <sys:String x:Key="Tools.Test.Crash.ToolTip">点这个按钮会让启动器直接崩掉，没事别点，造成的一切问题均不受理，相关 issue 会被直接关闭</sys:String>
-    <sys:String x:Key="Tools.Test.Crash.ConfirmTitle">崩溃确认</sys:String>
-    <sys:String x:Key="Tools.Test.Crash.ConfirmMessage">你一定是点错了，如果没错请在下方确认</sys:String>
     <sys:String x:Key="Tools.Test.Crash.ManualCrash">手动崩溃</sys:String>
 
     <!-- Tools.Test.LaunchCount -->
