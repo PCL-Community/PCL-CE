@@ -3122,6 +3122,8 @@
     <sys:String x:Key="Event.Error.InvalidWebsite">EventData must be a web address.&#x0a;To launch a program, change EventType to Open File.</sys:String>
     <sys:String x:Key="Event.Error.InvalidDownloadUrl">EventData must be a URL beginning with http:// or https://.&#x0a;Other download protocols are not supported.</sys:String>
     <sys:String x:Key="Event.Error.UnknownType">Unknown event type: {0}&#x0a;Check the event type or update PCL to the latest version.</sys:String>
+    <sys:String x:Key="Event.Error.IncompatibleType.Title">Homepage event not supported</sys:String>
+    <sys:String x:Key="Event.Error.IncompatibleType">The homepage event "{0}" is not supported by this version, so no action was performed.&#x0a;&#x0a;PCL N Edition may add compatibility in a future release. Until then, ask the homepage author to remove or replace this event.</sys:String>
     <sys:String x:Key="Event.Opening">Opening, please wait: {0}</sys:String>
     <sys:String x:Key="Event.SelectMinecraftFirst">Select a Minecraft instance first.</sys:String>
     <sys:String x:Key="Event.Launching">Launching {0}...</sys:String>

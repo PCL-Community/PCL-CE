@@ -113,7 +113,8 @@ namespace PCL
             修改设置,
             写入设置,
             修改变量,
-            写入变量
+            写入变量,
+            内存优化
         }
 
         public EventType Type { get; set; } = EventType.None;
@@ -308,6 +309,12 @@ namespace PCL
                         if (args.Length == 2)
                             ModMain.Hint(Lang.Text("Event.VariableWritten", args[0], args[1]),
                                 ModMain.HintType.Finish);
+                        break;
+
+                    case EventType.内存优化:
+                        ModMain.MyMsgBox(
+                            Lang.Text("Event.Error.IncompatibleType", type),
+                            Lang.Text("Event.Error.IncompatibleType.Title"));
                         break;
 
                     default:

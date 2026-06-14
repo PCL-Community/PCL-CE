@@ -20,13 +20,13 @@ public partial class MyHint
         Yellow = 2
     }
 
-    public static readonly DependencyProperty IsWarnProperty = DependencyProperty.Register("isWarn", typeof(bool),
+    public static readonly DependencyProperty IsWarnProperty = DependencyProperty.Register("IsWarn", typeof(bool),
         typeof(MyHint),
         new PropertyMetadata(true,
             (d, e) =>
             {
                 var f = (MyHint)d;
-                f.Theme = e.NewValue is not null ? Themes.Red : Themes.Blue;
+                f.Theme = e.NewValue is true ? Themes.Red : Themes.Blue;
             }));
 
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
@@ -79,11 +79,18 @@ public partial class MyHint
         }
     } = Themes.Red;
 
+    [Obsolete("IsWarn 已过时。请换用 Theme 属性。")]
+    public bool IsWarn
+    {
+        get => (bool)GetValue(IsWarnProperty);
+        set => SetValue(IsWarnProperty, value);
+    }
+
     [Obsolete("isWarn 已过时。请换用 Theme 属性。")]
     public bool isWarn
     {
-        get => Theme == Themes.Red;
-        set => Theme = value ? Themes.Red : Themes.Blue;
+        get => IsWarn;
+        set => IsWarn = value;
     }
 
     // 文本
