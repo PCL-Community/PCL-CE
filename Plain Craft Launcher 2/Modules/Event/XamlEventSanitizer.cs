@@ -63,7 +63,7 @@ namespace PCL
             sanitized = CustomEventTypePropertyElementRegex.Replace(sanitized, match =>
             {
                 var chineseValue = match.Groups[2].Value.Trim();
-                return ReplaceEventType(match, chineseValue, result);
+                return ReplaceOrRemoveSetter(match, chineseValue, result);
             });
 
             sanitized = LocalCustomEventTypeAttributeRegex.Replace(sanitized, match =>
