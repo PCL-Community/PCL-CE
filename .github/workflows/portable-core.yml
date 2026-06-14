@@ -22,12 +22,14 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
-      - name: Build portable core with warnings as errors
-        run: dotnet build PCL.Core.Portable/PCL.Core.Portable.csproj -c Release -warnaserror
+      - name: Restore portable test graph
+        run: dotnet restore PCL.Core.Portable.Test/PCL.Core.Portable.Test.csproj
+      - name: Build portable core and tests with warnings as errors
+        run: dotnet build PCL.Core.Portable.Test/PCL.Core.Portable.Test.csproj -c Release --no-restore -warnaserror
       - name: Cross-compile Windows shell and reject platform warnings
         run: dotnet build "Plain Craft Launcher 2/Plain Craft Launcher 2.csproj" -c Release -p:Platform=x64 -p:EnableWindowsTargeting=true -warnaserror:CA1416
       - name: Run portable tests
-        run: dotnet test PCL.Core.Portable.Test/PCL.Core.Portable.Test.csproj -c Release --no-restore
+        run: dotnet test PCL.Core.Portable.Test/PCL.Core.Portable.Test.csproj -c Release --no-build --no-restore
 
   native-aot:
     runs-on: ubuntu-latest

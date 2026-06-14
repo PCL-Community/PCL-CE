@@ -350,3 +350,6 @@ MaskFiles/
 
 **/.DS_Store
 /_tmp
+
+# Claude Code
+.claude/

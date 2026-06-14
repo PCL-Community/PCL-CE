@@ -3,7 +3,10 @@
     "allow": [
       "*",
       "PowerShell(git *)",
-      "PowerShell(dotnet build *)"
+      "PowerShell(dotnet build *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(dotnet build *)"
     ]
   }
 }
