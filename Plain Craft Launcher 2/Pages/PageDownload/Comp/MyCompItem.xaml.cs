@@ -290,14 +290,11 @@ public partial class MyCompItem
     private void BtnInstDownload_Click(object sender, EventArgs e)
     {
         if (Tag is not ModComp.CompProject project) return;
-        var instance = PageInstanceLeft.McInstance;
-        if (instance is null) return;
-        var vanillaName = instance.Info.VanillaName;
-        var loaders = new List<ModComp.CompLoaderType>();
-        if (instance.Info.HasFabric) loaders.Add(ModComp.CompLoaderType.Fabric);
-        if (instance.Info.HasForge) loaders.Add(ModComp.CompLoaderType.Forge);
-        if (instance.Info.HasNeoForge) loaders.Add(ModComp.CompLoaderType.NeoForge);
-        if (instance.Info.HasQuilt) loaders.Add(ModComp.CompLoaderType.Quilt);
+        var context = PageInstanceModBrowser.GetContext() ??
+                      PageInstanceModBrowser.CreateContext(PageInstanceLeft.McInstance);
+        if (context is null) return;
+        var vanillaName = context.VanillaName;
+        var loaders = context.Loaders;
 
         ModBase.RunInNewThread(() =>
         {
@@ -318,7 +315,7 @@ public partial class MyCompItem
                     return;
                 }
 
-                var modsFolder = Path.Combine(instance.PathIndie, "mods");
+                var modsFolder = context.ModsFolder;
                 Directory.CreateDirectory(modsFolder);
 
                 // 扫描已安装 Mod，按 ModId 去重
@@ -396,8 +393,10 @@ public partial class MyCompItem
     private void BtnInstVersion_Click(object sender, EventArgs e)
     {
         if (Tag is not ModComp.CompProject project) return;
-        var instance = PageInstanceLeft.McInstance;
-        PageInstanceModDetail.SetContext(project, instance!);
+        var context = PageInstanceModBrowser.GetContext() ??
+                      PageInstanceModBrowser.CreateContext(PageInstanceLeft.McInstance);
+        if (context is null) return;
+        PageInstanceModDetail.SetContext(project, context);
         ModMain.frmMain.PageChange(FormMain.PageType.InstanceModDetail);
     }
 

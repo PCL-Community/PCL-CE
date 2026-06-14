@@ -3057,6 +3057,15 @@
     <sys:String x:Key="Instance.ModBrowser.Task.Search">Search mods</sys:String>
     <sys:String x:Key="Instance.ModDetail.Loading.Title">Loading...</sys:String>
     <sys:String x:Key="Instance.ModDetail.Loading.Versions">Fetching version list...</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Description">Project description</sys:String>
+    <sys:String x:Key="Instance.ModDetail.ProjectInfo">Project information</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Description.Empty">No description available</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Info.Source">Source: </sys:String>
+    <sys:String x:Key="Instance.ModDetail.Info.Downloads">Downloads: </sys:String>
+    <sys:String x:Key="Instance.ModDetail.Info.Updated">Last updated: </sys:String>
+    <sys:String x:Key="Instance.ModDetail.Info.Loaders">Supported loaders: </sys:String>
+    <sys:String x:Key="Instance.ModDetail.Info.Categories">Categories: </sys:String>
+    <sys:String x:Key="Instance.ModDetail.Info.Any">Any</sys:String>
     <sys:String x:Key="Instance.ModDetail.Error.NoCompatibleVersion">No version compatible with {0} was found</sys:String>
     <sys:String x:Key="Instance.ModDetail.Error.LoadFailed">Failed to load: {0}</sys:String>
     <sys:String x:Key="Instance.ModDetail.DownloadAndReplace">Download and replace the old version</sys:String>

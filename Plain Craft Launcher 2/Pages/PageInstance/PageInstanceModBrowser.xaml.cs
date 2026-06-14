@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,6 +15,7 @@ public partial class PageInstanceModBrowser
     private static McInstance? _contextInstance;
     private static string? _contextVanillaName;
     private static ModComp.CompLoaderType _contextLoader = ModComp.CompLoaderType.Any;
+    private static bool _contextUseInstanceFolder;
     private readonly ModComp.CompProjectStorage _storage = new();
     private readonly MyLoadingStateSimulator _loadSim = new();
     private ModLoader.LoaderTask<ModComp.CompProjectRequest, int>? _loader;
@@ -46,24 +48,64 @@ public partial class PageInstanceModBrowser
         _contextInstance = instance;
         _contextVanillaName = null;
         _contextLoader = ModComp.CompLoaderType.Any;
+        _contextUseInstanceFolder = false;
     }
 
     /// <summary>
     ///     直接指定版本和加载器（安装新实例时使用，无需等待实例 JSON 就绪）。
     /// </summary>
-    public static void SetContext(string vanillaName, string? instancePath, ModComp.CompLoaderType loader)
+    public static void SetContext(string vanillaName, string? instanceNameOrPath, ModComp.CompLoaderType loader)
     {
-        _contextInstance = instancePath is not null ? new McInstance(instancePath) : null;
+        _contextInstance = instanceNameOrPath is not null ? new McInstance(instanceNameOrPath) : null;
         _contextVanillaName = vanillaName;
         _contextLoader = loader;
+        _contextUseInstanceFolder = true;
+    }
+
+    public static InstanceModContext? GetContext()
+    {
+        if (_contextInstance is null)
+            return null;
+        return CreateContext(_contextInstance, _contextVanillaName, _contextLoader, _contextUseInstanceFolder);
+    }
+
+    public static InstanceModContext? CreateContext(
+        McInstance? instance,
+        string? vanillaName = null,
+        ModComp.CompLoaderType loader = ModComp.CompLoaderType.Any,
+        bool useInstanceFolder = false)
+    {
+        if (instance is null)
+            return null;
+
+        var targetVanillaName = vanillaName;
+        if (string.IsNullOrWhiteSpace(targetVanillaName))
+            try
+            {
+                targetVanillaName = instance.Info.VanillaName;
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "[ModBrowser] 无法从实例读取 Minecraft 版本");
+            }
+
+        if (string.IsNullOrWhiteSpace(targetVanillaName))
+            return null;
+
+        var loaders = loader == ModComp.CompLoaderType.Any
+            ? GetLoaderTypes(instance)
+            : [loader];
+        var modsFolder = GetModsFolder(instance, useInstanceFolder);
+        return new InstanceModContext(instance, targetVanillaName, loaders, modsFolder);
     }
 
     private void StartSearch()
     {
         if (_contextInstance is null || _isLoading) return;
 
-        if (_contextInstance is not null)
-            try { System.IO.Directory.CreateDirectory(System.IO.Path.Combine(_contextInstance.PathIndie, "mods")); } catch { }
+        var context = GetContext();
+        if (context is not null)
+            try { Directory.CreateDirectory(context.ModsFolder); } catch { }
 
         _isLoading = true;
         _hasMore = true;
@@ -98,8 +140,9 @@ public partial class PageInstanceModBrowser
 
     private void DoLoad(int page)
     {
-        var vanillaName = _contextVanillaName ?? _contextInstance?.Info.VanillaName;
-        var loaderType = _contextVanillaName is not null ? _contextLoader : GetLoaderType(_contextInstance);
+        var context = GetContext();
+        var vanillaName = context?.VanillaName;
+        var loaderType = context?.PrimaryLoader ?? ModComp.CompLoaderType.Any;
 
         if (string.IsNullOrEmpty(vanillaName))
         {
@@ -131,9 +174,8 @@ public partial class PageInstanceModBrowser
             if (_loader.State == ModBase.LoadState.Finished)
             {
                 var libKey = Lang.Text("Download.Comp.Category.Library");
-                var instanceModsFolder = _contextInstance is not null
-                    ? System.IO.Path.Combine(_contextInstance.PathIndie, "mods") : null;
-                var downloadedIds = GetDownloadedModIds(instanceModsFolder);
+                var currentContext = GetContext();
+                var downloadedIds = GetDownloadedModIds(currentContext?.ModsFolder);
                 var shownIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 foreach (var child in PanResults.Children)
                     if (child is MyCompItem mc && mc.Tag is ModComp.CompProject cp)
@@ -207,7 +249,9 @@ public partial class PageInstanceModBrowser
             compItem.ShowInstanceButtons = true;
             compItem.Click += (_, _) =>
             {
-                PageInstanceModDetail.SetContext(result, _contextInstance!);
+                var context = GetContext();
+                if (context is null) return;
+                PageInstanceModDetail.SetContext(result, context);
                 ModMain.frmMain.PageChange(FormMain.PageType.InstanceModDetail);
             };
             PanResults.Children.Add(compItem);
@@ -222,14 +266,40 @@ public partial class PageInstanceModBrowser
             LoadNextPage();
     }
 
-    private static ModComp.CompLoaderType GetLoaderType(McInstance? instance)
+    private static List<ModComp.CompLoaderType> GetLoaderTypes(McInstance? instance)
     {
-        if (instance is null) return ModComp.CompLoaderType.Any;
-        if (instance.Info.HasFabric) return ModComp.CompLoaderType.Fabric;
-        if (instance.Info.HasForge) return ModComp.CompLoaderType.Forge;
-        if (instance.Info.HasNeoForge) return ModComp.CompLoaderType.NeoForge;
-        if (instance.Info.HasQuilt) return ModComp.CompLoaderType.Quilt;
-        return ModComp.CompLoaderType.Any;
+        if (instance is null) return [];
+        try
+        {
+            var loaders = new List<ModComp.CompLoaderType>();
+            if (instance.Info.HasFabric) loaders.Add(ModComp.CompLoaderType.Fabric);
+            if (instance.Info.HasForge) loaders.Add(ModComp.CompLoaderType.Forge);
+            if (instance.Info.HasNeoForge) loaders.Add(ModComp.CompLoaderType.NeoForge);
+            if (instance.Info.HasQuilt) loaders.Add(ModComp.CompLoaderType.Quilt);
+            return loaders;
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "[ModBrowser] 无法从实例读取加载器信息");
+        }
+
+        return [];
+    }
+
+    private static string GetModsFolder(McInstance instance, bool useInstanceFolder)
+    {
+        if (useInstanceFolder)
+            return Path.Combine(instance.PathInstance, "mods");
+
+        try
+        {
+            return Path.Combine(instance.PathIndie, "mods");
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "[ModBrowser] 无法读取实例隔离目录，改用实例目录");
+            return Path.Combine(instance.PathInstance, "mods");
+        }
     }
 
     /// <summary>
@@ -249,4 +319,25 @@ public partial class PageInstanceModBrowser
         }
         return ids;
     }
+}
+
+public sealed class InstanceModContext
+{
+    public InstanceModContext(
+        McInstance instance,
+        string vanillaName,
+        List<ModComp.CompLoaderType> loaders,
+        string modsFolder)
+    {
+        Instance = instance;
+        VanillaName = vanillaName;
+        Loaders = loaders;
+        ModsFolder = modsFolder;
+    }
+
+    public McInstance Instance { get; }
+    public string VanillaName { get; }
+    public List<ModComp.CompLoaderType> Loaders { get; }
+    public string ModsFolder { get; }
+    public ModComp.CompLoaderType PrimaryLoader => Loaders.Count > 0 ? Loaders[0] : ModComp.CompLoaderType.Any;
 }

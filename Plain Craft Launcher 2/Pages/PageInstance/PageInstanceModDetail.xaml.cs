@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.ResourceProject;
 using PCL.Network;
@@ -13,140 +14,163 @@ namespace PCL;
 public partial class PageInstanceModDetail
 {
     private static ModComp.CompProject? _project;
-    private static McInstance? _instance;
-    private static string? _downloadedFileName;
+    private static InstanceModContext? _context;
+    private MyCompItem? _compItem;
 
     public PageInstanceModDetail()
     {
         InitializeComponent();
         PageEnter += DoLoad;
+        BtnIntroWeb.Click += BtnIntroWeb_Click;
+        BtnIntroWiki.Click += BtnIntroWiki_Click;
+        BtnIntroCopy.Click += BtnIntroCopy_Click;
+        BtnIntroLinkCopy.Click += BtnIntroLinkCopy_Click;
+        BtnTranslate.Click += BtnTranslate_Click;
+        BtnFavorites.Click += BtnFavorites_Click;
     }
 
-    private void DoLoad()
+    public static void SetContext(ModComp.CompProject project, InstanceModContext context)
     {
-        if (_project is null || _instance is null) return;
-        PathLogo.Source = _project.LogoUrl ?? "pack://application:,,,/images/Icons/NoIcon.png";
-        LabTitle.Text = _project.TranslatedName;
-        LabAuthor.Text = _project.RawName;
-        LoadFiles();
+        _project = project;
+        _context = context;
     }
 
     public static void SetContext(ModComp.CompProject project, McInstance instance)
     {
-        _project = project;
-        _instance = instance;
-        _downloadedFileName = null;
+        var context = PageInstanceModBrowser.CreateContext(instance);
+        if (context is null)
+            return;
+        SetContext(project, context);
     }
 
-    private static ModComp.CompLoaderType GetLoaderType(McInstance inst)
+    private void DoLoad()
     {
-        if (inst.Info.HasFabric) return ModComp.CompLoaderType.Fabric;
-        if (inst.Info.HasForge) return ModComp.CompLoaderType.Forge;
-        if (inst.Info.HasNeoForge) return ModComp.CompLoaderType.NeoForge;
-        if (inst.Info.HasQuilt) return ModComp.CompLoaderType.Quilt;
-        return ModComp.CompLoaderType.Any;
+        if (_project is null || _context is null)
+            return;
+
+        PanBack.ScrollToHome();
+        ModAnimation.AniControlEnabled += 1;
+        try
+        {
+            if (_compItem is not null)
+                PanIntro.Children.Remove(_compItem);
+            _compItem = _project.ToCompItem(true, true);
+            _compItem.CanInteraction = false;
+            _compItem.ShowFavoriteBtn = false;
+            _compItem.Margin = new Thickness(-7, -7, 0, 8);
+            PanIntro.Children.Insert(0, _compItem);
+
+            BtnIntroWeb.Text = _project.FromCurseForge ? "CurseForge" : "Modrinth";
+            BtnIntroWiki.Visibility = Lang.IsChineseMainland && _project.WikiId != 0
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            BtnTranslate.Visibility = Lang.IsChineseMainland
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            RefreshFavoriteButton();
+
+            LabDescription.Text = string.IsNullOrWhiteSpace(_project.Description)
+                ? Lang.Text("Instance.ModDetail.Description.Empty")
+                : _project.Description;
+            RefreshProjectInfo();
+
+            var loaderName = _context.PrimaryLoader == ModComp.CompLoaderType.Any
+                ? string.Empty
+                : _context.PrimaryLoader + " ";
+            CardFiles.Title = Lang.Text("Download.Comp.Detail.SelectedVersion", loaderName, _context.VanillaName);
+        }
+        finally
+        {
+            ModAnimation.AniControlEnabled -= 1;
+        }
+
+        LoadFiles();
     }
 
-    private static string GetDisplayVersion(ModComp.CompFile f, string vanilla)
+    private void RefreshProjectInfo()
     {
-        // 优先用 DisplayName
-        if (!string.IsNullOrEmpty(f.DisplayName) && f.DisplayName != f.FileName)
-            return f.DisplayName;
+        if (_project is null)
+            return;
 
-        // 从 FileName 提取版本：去掉 vanilla 版本号、去掉扩展名
-        var name = f.FileName ?? "";
-        name = name.Replace(".jar", "").Replace(vanilla, "").Trim('-', '_', ' ');
-        // 去掉常见的 loader 前缀
-        name = name.Replace("fabric-", "").Replace("Fabric-", "")
-                   .Replace("forge-", "").Replace("Forge-", "")
-                   .Replace("neoforge-", "").Replace("NeoForge-", "")
-                   .Trim('-', '_', ' ');
-        return string.IsNullOrEmpty(name) ? vanilla : name;
+        PanInfo.Children.Clear();
+        AddInfoLine(Lang.Text("Instance.ModDetail.Info.Source"),
+            _project.FromCurseForge ? "CurseForge" : "Modrinth");
+        AddInfoLine(Lang.Text("Instance.ModDetail.Info.Downloads"),
+            Lang.CompactNumber(_project.DownloadCount));
+        if (_project.LastUpdate is not null)
+            AddInfoLine(Lang.Text("Instance.ModDetail.Info.Updated"),
+                Lang.TimeSpan(_project.LastUpdate.Value - DateTime.Now, 1));
+
+        var loaders = _project.ModLoaders.Count == 0
+            ? Lang.Text("Instance.ModDetail.Info.Any")
+            : string.Join(" / ", _project.ModLoaders);
+        AddInfoLine(Lang.Text("Instance.ModDetail.Info.Loaders"), loaders);
+
+        if (_project.Tags.Count > 0)
+            AddInfoLine(Lang.Text("Instance.ModDetail.Info.Categories"), string.Join(" / ", _project.Tags));
+    }
+
+    private void AddInfoLine(string label, string value)
+    {
+        var text = new TextBlock
+        {
+            Text = $"{label}{value}",
+            Margin = new Thickness(0, 0, 0, 6),
+            TextWrapping = TextWrapping.Wrap
+        };
+        text.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrush2");
+        PanInfo.Children.Add(text);
     }
 
     private void LoadFiles()
     {
+        if (_project is null || _context is null)
+            return;
+
         PanFiles.Children.Clear();
         PanLoad.Visibility = Visibility.Visible;
-        CardFiles.Visibility = Visibility.Collapsed;
+        PanMain.Visibility = Visibility.Collapsed;
         HintError.Visibility = Visibility.Collapsed;
 
-        var project = _project!;
-        var instance = _instance!;
-        var vanillaName = instance.Info.VanillaName;
-        var targetLoader = GetLoaderType(instance);
+        var project = _project;
+        var context = _context;
 
         ModBase.RunInNewThread(() =>
         {
             try
             {
-                var files = ModComp.CompFilesGet(project.Id, project.FromCurseForge);
-                var compatible = (files ?? [])
-                    .Where(f => f.GameVersions is not null && f.GameVersions.Contains(vanillaName))
-                    .Where(f => f.ModLoaders is null || f.ModLoaders.Count == 0 ||
-                                f.ModLoaders.Contains(targetLoader))
-                    .OrderByDescending(f => f.ReleaseDate)
+                var compatible = (ModComp.CompFilesGet(project.Id, project.FromCurseForge) ?? [])
+                    .Where(file => file.Available)
+                    .Where(file => file.GameVersions is not null &&
+                                   file.GameVersions.Contains(context.VanillaName))
+                    .Where(file => file.ModLoaders is null || file.ModLoaders.Count == 0 ||
+                                   context.Loaders.Count == 0 ||
+                                   file.ModLoaders.Any(context.Loaders.Contains))
+                    .OrderByDescending(file => file.ReleaseDate)
                     .ToList();
 
                 ModBase.RunInUi(() =>
                 {
                     PanLoad.Visibility = Visibility.Collapsed;
-                    CardFiles.Visibility = Visibility.Visible;
+                    PanMain.Visibility = Visibility.Visible;
 
                     if (compatible.Count == 0)
                     {
-                        HintError.Text = Lang.Text("Instance.ModDetail.Error.NoCompatibleVersion", vanillaName);
+                        CardFiles.Visibility = Visibility.Collapsed;
+                        HintError.Text = Lang.Text("Instance.ModDetail.Error.NoCompatibleVersion",
+                            context.VanillaName);
                         HintError.Visibility = Visibility.Visible;
                         return;
                     }
 
+                    CardFiles.Visibility = Visibility.Visible;
+                    var badDisplayName = compatible.Select(file => file.DisplayName).Distinct().Count() !=
+                                         compatible.Count;
+                    ModComp.CompFilesCardPreload(PanFiles, compatible);
                     foreach (var file in compatible)
-                    {
-                        var bar = new System.Windows.Controls.Border
-                        {
-                            Height = 38,
-                            Margin = new Thickness(0, 1, 0, 1),
-                            Background = System.Windows.Media.Brushes.Transparent
-                        };
-                        var grid = new System.Windows.Controls.Grid();
-                        grid.ColumnDefinitions.Add(new System.Windows.Controls.ColumnDefinition
-                            { Width = new GridLength(1, GridUnitType.Star) });
-                        grid.ColumnDefinitions.Add(new System.Windows.Controls.ColumnDefinition
-                            { Width = GridLength.Auto });
-
-                        var info = new System.Windows.Controls.StackPanel
-                        {
-                            Orientation = System.Windows.Controls.Orientation.Horizontal,
-                            VerticalAlignment = System.Windows.VerticalAlignment.Center
-                        };
-                        System.Windows.Controls.Grid.SetColumn(info, 0);
-                        var displayVer = GetDisplayVersion(file, vanillaName);
-                        info.Children.Add(new System.Windows.Controls.TextBlock
-                        {
-                            Text = displayVer,
-                            FontSize = 13,
-                            VerticalAlignment = System.Windows.VerticalAlignment.Center,
-                            Margin = new Thickness(8, 0, 12, 0),
-                            ToolTip = file.FileName
-                        });
-                        grid.Children.Add(info);
-
-                        var btn = new MyIconButton
-                        {
-                            SvgIcon = "lucide/download",
-                            Height = 28, Width = 28,
-                            LogoScale = 0.8,
-                            ToolTip = Lang.Text("Instance.ModDetail.DownloadAndReplace"),
-                            Margin = new Thickness(0, 0, 8, 0),
-                            VerticalAlignment = System.Windows.VerticalAlignment.Center
-                        };
-                        System.Windows.Controls.Grid.SetColumn(btn, 1);
-                        btn.Click += (_, _) => DownloadAndReplace(file, instance);
-                        grid.Children.Add(btn);
-
-                        bar.Child = grid;
-                        PanFiles.Children.Add(bar);
-                    }
+                        PanFiles.Children.Add(file.ToListItem(
+                            (_, _) => DownloadAndReplace(file, context),
+                            badDisplayName: badDisplayName));
                 });
             }
             catch (Exception ex)
@@ -155,6 +179,8 @@ public partial class PageInstanceModDetail
                 ModBase.RunInUi(() =>
                 {
                     PanLoad.Visibility = Visibility.Collapsed;
+                    PanMain.Visibility = Visibility.Visible;
+                    CardFiles.Visibility = Visibility.Collapsed;
                     HintError.Text = Lang.Text("Instance.ModDetail.Error.LoadFailed", ex.Message);
                     HintError.Visibility = Visibility.Visible;
                 });
@@ -162,37 +188,29 @@ public partial class PageInstanceModDetail
         });
     }
 
-    private static void DownloadAndReplace(ModComp.CompFile file, McInstance instance)
+    private static void DownloadAndReplace(ModComp.CompFile file, InstanceModContext context)
     {
-        if (_project is null) return;
-        var modsFolder = Path.Combine(instance.PathIndie, "mods");
+        if (_project is null)
+            return;
+
+        var modsFolder = context.ModsFolder;
         Directory.CreateDirectory(modsFolder);
 
         var project = _project;
-        var mcVersion = instance.Info.VanillaName;
-        var loaders = new List<ModComp.CompLoaderType>();
-        if (instance.Info.HasFabric) loaders.Add(ModComp.CompLoaderType.Fabric);
-        if (instance.Info.HasForge) loaders.Add(ModComp.CompLoaderType.Forge);
-        if (instance.Info.HasNeoForge) loaders.Add(ModComp.CompLoaderType.NeoForge);
-        if (instance.Info.HasQuilt) loaders.Add(ModComp.CompLoaderType.Quilt);
-
-        // 构建下载列表
         var localPath = Path.Combine(modsFolder, ModComp.CompFileNameGet(project, file));
         var downloadFiles = new List<DownloadFile> { file.ToNetFile(localPath) };
-
-        // 扫描已安装 Mod，按 ModId 去重
         var installedIds = new HashSet<string>(
             ModCompDependency.ScanInstalledMods(modsFolder)
-                .Where(m => !string.IsNullOrEmpty(m.SourceProjectId))
-                .Select(m => m.SourceProjectId!),
+                .Where(mod => !string.IsNullOrEmpty(mod.SourceProjectId))
+                .Select(mod => mod.SourceProjectId!),
             StringComparer.OrdinalIgnoreCase);
 
-        // 解析必需前置
-        if (file.Dependencies is { Count: > 0 } && !string.IsNullOrEmpty(mcVersion))
-        {
+        if ((file.Dependencies.Count > 0 || file.RawDependencies.Count > 0) &&
+            !string.IsNullOrEmpty(context.VanillaName))
             try
             {
-                var request = ModCompDependency.BuildRequest(file, project, mcVersion, loaders, modsFolder);
+                var request = ModCompDependency.BuildRequest(file, project, context.VanillaName,
+                    context.Loaders, modsFolder);
                 var resolver = new ModDependencyResolver();
                 var result = resolver.Resolve(request);
 
@@ -201,67 +219,125 @@ public partial class PageInstanceModDetail
                     if (!ModCompDependency.ConfirmDependencyInstall(result))
                         return;
 
-                    var depDownloads = ModCompDependency.BuildDependencyDownloads(result, modsFolder, installedIds);
-                    downloadFiles = depDownloads.Concat(downloadFiles).ToList();
+                    var dependencies = ModCompDependency.BuildDependencyDownloads(result, modsFolder, installedIds);
+                    downloadFiles = dependencies.Concat(downloadFiles).ToList();
                 }
             }
-            catch (Exception depEx)
+            catch (Exception ex)
             {
-                ModBase.Log(depEx, "[ModDetail] 依赖解析失败，跳过前置安装");
-                ModMain.MyMsgBox(Lang.Text("Instance.ModDetail.DependencyFailed.Message", depEx.Message),
+                ModBase.Log(ex, "[ModDetail] 依赖解析失败，跳过前置安装");
+                ModMain.MyMsgBox(Lang.Text("Instance.ModDetail.DependencyFailed.Message", ex.Message),
                     Lang.Text("Instance.ModDetail.DependencyFailed.Title"),
                     button1: Lang.Text("Instance.ModDetail.DependencyFailed.Continue"),
                     isWarn: true, forceWait: true);
             }
-        }
 
-        // 通过 LoaderDownload 接入下载界面（支持进度显示、去重）
         var loaderName = file.FileName ?? project.TranslatedName ?? project.RawName;
-        var subLoaders = new List<ModLoader.LoaderBase>
-        {
+        var loader = new ModLoader.LoaderCombo<int>(loaderName,
+        [
             new LoaderDownload(Lang.Text("Instance.ModDetail.Task.DownloadFile"), downloadFiles)
             {
                 ProgressWeight = 6,
                 block = true
             }
-        };
-
-        var loader = new ModLoader.LoaderCombo<int>(loaderName, subLoaders);
-        loader.OnStateChanged = _ =>
+        ]);
+        loader.OnStateChanged = state =>
         {
-            if (_.State == ModBase.LoadState.Finished)
-            {
-                MyCompItem.DownloadedProjectIds.Add(project.Id);
-                CleanOldVersions(modsFolder, project.Id, file.FileName);
-            }
+            if (state.State != ModBase.LoadState.Finished)
+                return;
+            MyCompItem.DownloadedProjectIds.Add(project.Id);
+            CleanOldVersions(modsFolder, project.Id, file.FileName);
         };
         loader.Start(1);
         ModLoader.LoaderTaskbarAdd(loader);
+        ModMain.frmMain.BtnExtraDownload.ShowRefresh();
+        ModMain.frmMain.BtnExtraDownload.Ribble();
+    }
+
+    private void BtnIntroWeb_Click(object sender, EventArgs e)
+    {
+        if (_project is not null)
+            ModBase.OpenWebsite(_project.Website);
+    }
+
+    private void BtnIntroWiki_Click(object sender, EventArgs e)
+    {
+        if (_project is not null)
+            ModBase.OpenWebsite($"https://www.mcmod.cn/class/{_project.WikiId}.html");
+    }
+
+    private void BtnIntroCopy_Click(object sender, EventArgs e)
+    {
+        if (_compItem is not null)
+            ModBase.ClipboardSet(_compItem.LabTitle.Text + _compItem.LabTitleRaw.Text);
+    }
+
+    private void BtnIntroLinkCopy_Click(object sender, EventArgs e)
+    {
+        if (_project is null)
+            return;
+        ModComp.CompClipboard.currentText = _project.Website;
+        ModBase.ClipboardSet(_project.Website);
+    }
+
+    private async void BtnTranslate_Click(object sender, EventArgs e)
+    {
+        if (_project is null)
+            return;
+        ModMain.Hint(Lang.Text("Download.Comp.Detail.DescriptionTranslating", _project.TranslatedName));
+        var translated = await _project.ChineseDescription;
+        if (translated is null)
+            return;
+        ModMain.MyMsgBox(Lang.Text("Download.Comp.Detail.DescriptionTranslationResult",
+            _project.Description, translated));
+    }
+
+    private void BtnFavorites_Click(object sender, EventArgs e)
+    {
+        if (_project is not null)
+            ModComp.CompFavorites.ShowMenu(_project, (UIElement)sender, RefreshFavoriteButton);
+    }
+
+    private void RefreshFavoriteButton()
+    {
+        if (_project is null)
+            return;
+        BtnFavorites.SvgIcon = ModComp.CompFavorites.IsFavourite(_project.Id)
+            ? "lucide/heart-filled"
+            : "lucide/heart";
+        _compItem?.RefreshFavoriteStatus();
     }
 
     private static void CleanOldVersions(string modsFolder, string projectId, string newFileName)
     {
-        if (!Directory.Exists(modsFolder)) return;
+        if (!Directory.Exists(modsFolder))
+            return;
         try
         {
-            foreach (var f in Directory.GetFiles(modsFolder, "*.jar"))
+            foreach (var file in Directory.GetFiles(modsFolder, "*.jar"))
             {
-                var name = Path.GetFileName(f);
-                if (string.Equals(name, newFileName, StringComparison.OrdinalIgnoreCase)) continue;
+                var name = Path.GetFileName(file);
+                if (string.Equals(name, newFileName, StringComparison.OrdinalIgnoreCase))
+                    continue;
                 try
                 {
-                    var local = new ModLocalComp.LocalCompFile(f);
+                    var local = new ModLocalComp.LocalCompFile(file);
                     local.Load();
-                    if (string.Equals(local.compFile?.ProjectId ?? local.Comp?.Id, projectId, StringComparison.OrdinalIgnoreCase))
-                    {
-                        File.Delete(f);
-                        ModBase.Log($"[ModDetail] 清理旧版: {name}");
-                    }
+                    if (!string.Equals(local.compFile?.ProjectId ?? local.Comp?.Id, projectId,
+                            StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    File.Delete(file);
+                    ModBase.Log($"[ModDetail] 清理旧版: {name}");
                 }
-                catch { }
+                catch
+                {
+                    // 单个旧文件解析失败不应阻止其余下载收尾。
+                }
             }
         }
-        catch { }
+        catch
+        {
+            // 清理旧文件失败不影响新版本安装结果。
+        }
     }
-
 }

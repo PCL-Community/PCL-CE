@@ -3057,6 +3057,15 @@
     <sys:String x:Key="Instance.ModBrowser.Task.Search">搜索模组</sys:String>
     <sys:String x:Key="Instance.ModDetail.Loading.Title">加载中...</sys:String>
     <sys:String x:Key="Instance.ModDetail.Loading.Versions">正在获取版本列表...</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Description">项目简介</sys:String>
+    <sys:String x:Key="Instance.ModDetail.ProjectInfo">项目信息</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Description.Empty">暂无简介</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Info.Source">来源：</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Info.Downloads">下载量：</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Info.Updated">最后更新：</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Info.Loaders">支持加载器：</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Info.Categories">分类：</sys:String>
+    <sys:String x:Key="Instance.ModDetail.Info.Any">任意</sys:String>
     <sys:String x:Key="Instance.ModDetail.Error.NoCompatibleVersion">没有找到兼容 {0} 的版本</sys:String>
     <sys:String x:Key="Instance.ModDetail.Error.LoadFailed">加载失败：{0}</sys:String>
     <sys:String x:Key="Instance.ModDetail.DownloadAndReplace">下载并替换旧版本</sys:String>
