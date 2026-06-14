@@ -20,6 +20,10 @@ on:
         required: false
         type: string
         default: ''
+      runtime_variant:
+        required: false
+        type: string
+        default: SelfContained
 
 jobs:
   build:
@@ -87,6 +91,7 @@ jobs:
           dotnet publish "Plain Craft Launcher 2/Plain Craft Launcher 2.csproj" \
             -p:Configuration=${{ inputs.configuration }} -p:Platform=${{ inputs.architecture }} \
             -r "$rid" --self-contained "${{ inputs.self_contained }}" \
+            -p:PclRuntimeVariant=${{ inputs.runtime_variant }} \
             -p:DeleteExistingFiles=true -o ./artifact
 
       - name: Validate embedded legal documents

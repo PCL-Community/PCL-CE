@@ -1,6 +1,7 @@
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
+using System.Reflection;
 using System.Text.Json.Serialization;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
@@ -18,6 +19,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
     private readonly string _baseUrl;
     private readonly IReadOnlyList<string> _downloadBaseUrls;
     private readonly HttpClient? _httpClient;
+    private static readonly Lazy<bool> IsNoRuntimeBuild = new(DetectNoRuntimeBuild);
 
     private Dictionary<string, string> _remoteCache;
 
@@ -263,7 +265,24 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             }
         }
 
+        if (IsNoRuntimeBuild.Value)
+            channelName += "-noruntime";
+
         return channelName;
+    }
+
+    private static bool DetectNoRuntimeBuild()
+    {
+        var runtimeVariant = Assembly.GetEntryAssembly()
+            ?.GetCustomAttributes<AssemblyMetadataAttribute>()
+            .FirstOrDefault(static attribute =>
+                attribute.Key.Equals("PclRuntimeVariant", StringComparison.OrdinalIgnoreCase))
+            ?.Value;
+        if (runtimeVariant?.Equals("NoRuntime", StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+
+        var executableName = Path.GetFileNameWithoutExtension(Basics.ExecutablePath) ?? string.Empty;
+        return executableName.Contains("NoRuntime", StringComparison.OrdinalIgnoreCase);
     }
 
     private class MinioUpdateModel

@@ -18,18 +18,22 @@ jobs:
             architecture: x64
             self_contained: true
             artifact_suffix: ''
+            runtime_variant: SelfContained
           - configuration: Beta
             architecture: x64
             self_contained: false
             artifact_suffix: _NoRuntime
+            runtime_variant: NoRuntime
           - configuration: Beta
             architecture: ARM64
             self_contained: true
             artifact_suffix: ''
+            runtime_variant: SelfContained
           - configuration: Beta
             architecture: ARM64
             self_contained: false
             artifact_suffix: _NoRuntime
+            runtime_variant: NoRuntime
       fail-fast: false
 
     uses: ./.github/workflows/reusable-build.yml
@@ -38,6 +42,7 @@ jobs:
       architecture: ${{ matrix.architecture }}
       self_contained: ${{ matrix.self_contained }}
       artifact_suffix: ${{ matrix.artifact_suffix }}
+      runtime_variant: ${{ matrix.runtime_variant }}
     secrets: inherit
 
   changelog:

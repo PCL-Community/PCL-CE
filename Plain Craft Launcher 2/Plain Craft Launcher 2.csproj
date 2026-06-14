@@ -18,6 +18,7 @@
         <UseApplicationTrust>false</UseApplicationTrust>
         <BootstrapperEnabled>true</BootstrapperEnabled>
         <LangVersion>14</LangVersion>
+        <PclRuntimeVariant Condition="'$(PclRuntimeVariant)' == ''">SelfContained</PclRuntimeVariant>
         <UseWPF>true</UseWPF>
         <Configurations>Beta;Debug;Release;CI</Configurations>
         <Platforms>AnyCPU;x64;ARM64</Platforms>
@@ -36,6 +37,12 @@
         </NoWarn>
         <DefaultItemExcludes>$(DefaultItemExcludes);$(ProjectDir)**\*.vb</DefaultItemExcludes>
     </PropertyGroup>
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+            <_Parameter1>PclRuntimeVariant</_Parameter1>
+            <_Parameter2>$(PclRuntimeVariant)</_Parameter2>
+        </AssemblyAttribute>
+    </ItemGroup>
     <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
         <OutputPath>bin\Debug\</OutputPath>
         <DebugSymbols>true</DebugSymbols>
