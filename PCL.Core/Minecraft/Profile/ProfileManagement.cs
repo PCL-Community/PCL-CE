@@ -1,12 +1,7 @@
-﻿using System.IO;
-using PCL.Core.Minecraft.Profile.Models;
-
-namespace PCL.Core.Minecraft.Profile;
+﻿namespace PCL.Core.Minecraft.Profile;
 
 public class ProfileManagement<T>: IProfileManagement<T> where T:class
 {
-
-    private ProfileJson<T>? _profiles;
     public T Create()
     {
         throw new System.NotImplementedException();
@@ -24,7 +19,7 @@ public class ProfileManagement<T>: IProfileManagement<T> where T:class
 
     public void LoadFromPath(string path)
     {
-        LoadFromString(File.ReadAllText(path));
+        throw new System.NotImplementedException();
     }
 
     public void LoadFromString(string profiles)

@@ -2,16 +2,10 @@
 
 namespace PCL.Core.Minecraft.Profile.Models;
 
-public record OldProfile
+public record OldProfile: SafeProfile
 {
     [JsonPropertyName("type")]
     public required string Type { get; set; }
-    [JsonPropertyName("uuid")]
-    public required string Uuid { get; set; }
-    [JsonPropertyName("username")]
-    public required string UserName { get; set; }
-    [JsonPropertyName("accessToken")]
-    public string? AccessToken { get; set; }
     [JsonPropertyName("refreshToken")]
     public string? RefreshToken { get; set; }
     [JsonPropertyName("expires")]
