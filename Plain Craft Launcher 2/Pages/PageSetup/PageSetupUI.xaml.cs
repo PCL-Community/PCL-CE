@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.UI;
+using PCL.Core.UI.Theme;
 using PCL.Core.Utils;
 using PCL.Core.App.Localization;
 
@@ -39,6 +40,8 @@ public partial class PageSetupUI
     public PageSetupUI()
     {
         InitializeComponent();
+        ComboLightColor.DropDownClosed += ThemeColor_DropDownClosed;
+        ComboDarkColor.DropDownClosed += ThemeColor_DropDownClosed;
         Loaded += PageSetupUI_Loaded;
         Loaded += (_, _) => HiddenRefresh();
     }
@@ -64,6 +67,8 @@ public partial class PageSetupUI
     {
         try
         {
+            EnforceSystemAccentThemePolicy();
+
             // 启动器
             SliderLauncherOpacity.Value = Config.Preference.Theme.WindowOpacity;
             CheckLauncherLogo.Checked = Config.Preference.ShowStartupLogo;
@@ -690,9 +695,84 @@ public partial class PageSetupUI
     private void ThemeColor_Change(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
+        if (IsSystemAccentSelectionUnsupported(sender))
+            return;
+
         ModBase.Log($"[Theme] 选择主题色: tag={sender.Tag}, index={sender.SelectedIndex}");
         SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
         ThemeManager.ThemeRefresh();
+    }
+
+    private void ThemeColor_DropDownClosed(object? senderRaw, EventArgs e)
+    {
+        if (senderRaw is not MyComboBox sender || !IsSystemAccentSelectionUnsupported(sender))
+            return;
+
+        ShowSystemAccentThemeUnsupported();
+        SetThemeColor(sender.Tag?.ToString(), ThemeService.WindowsSystemAccentFallback);
+        sender.SelectedIndex = _ThemeIndex(ThemeService.WindowsSystemAccentFallback);
+        ThemeManager.ThemeRefresh();
+    }
+
+    private static bool IsSystemAccentSelectionUnsupported(MyComboBox sender)
+    {
+        if (ThemeService.IsSystemAccentThemeSupported)
+            return false;
+
+        var order = Basics.IsAprilFool ? _ThemeOrderApril : _ThemeOrder;
+        return sender.SelectedIndex >= 0 &&
+               sender.SelectedIndex < order.Length &&
+               order[sender.SelectedIndex] == ColorTheme.SystemAccent;
+    }
+
+    private static void EnforceSystemAccentThemePolicy()
+    {
+        if (ThemeService.IsSystemAccentThemeSupported)
+            return;
+
+        var theme = Config.Preference.Theme;
+        var hasUnsupportedTheme =
+            theme.DarkColor == ColorTheme.SystemAccent ||
+            theme.LightColor == ColorTheme.SystemAccent;
+        if (!hasUnsupportedTheme)
+            return;
+
+        ShowSystemAccentThemeUnsupported();
+        if (theme.DarkColor == ColorTheme.SystemAccent)
+            theme.DarkColor = ThemeService.WindowsSystemAccentFallback;
+        if (theme.LightColor == ColorTheme.SystemAccent)
+            theme.LightColor = ThemeService.WindowsSystemAccentFallback;
+    }
+
+    private static void SetThemeColor(string? tag, ColorTheme theme)
+    {
+        switch (tag)
+        {
+            case "UiDarkColor":
+                Config.Preference.Theme.DarkColor = theme;
+                break;
+            case "UiLightColor":
+                Config.Preference.Theme.LightColor = theme;
+                break;
+        }
+    }
+
+    private static void ShowSystemAccentThemeUnsupported()
+    {
+        var languageCode = LocalizationService.CurrentLanguage.Code;
+        var (message, title) = languageCode switch
+        {
+            "zh-CN" => (
+                "“跟随系统主题色”仅在 Linux 和 macOS 上受支持。根据 PCL 上游使用指南第 5 条，Windows 版本不能提供与赞助解锁主题类似的表现，因此配色将切回“龙猫蓝”。",
+                "此功能在 Windows 上不可用"),
+            "zh-TW" => (
+                "「跟隨系統主題色」僅在 Linux 和 macOS 上受支援。根據 PCL 上游使用指南第 5 條，Windows 版本不能提供與贊助解鎖主題類似的表現，因此配色將切回「龍貓藍」。",
+                "此功能在 Windows 上不可用"),
+            _ => (
+                "Following the system accent color is supported only on Linux and macOS. Clause 5 of the upstream PCL usage guide prohibits equivalent theme behavior on Windows, so the color will return to LTCat Blue.",
+                "Unavailable on Windows")
+        };
+        ModMain.MyMsgBox(message, title);
     }
 
     // 赞助

@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
+using System;
 using System.IO;
 using System.Security;
 using Microsoft.Win32;
@@ -6,7 +10,8 @@ using PCL.Core.Logging;
 
 namespace PCL.Core.UI.Theme;
 
-public static class SystemThemeHelper {
+public static class SystemThemeHelper
+{
     private const string ThemeRegistryPath = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
     private const string AppsUseLightThemeKey = "AppsUseLightTheme";
 
@@ -14,17 +19,25 @@ public static class SystemThemeHelper {
     /// 检查系统是否处于深色模式。
     /// </summary>
     /// <returns>如果系统使用深色模式，则返回 true；否则返回 false（包括注册表不可访问的情况）。</returns>
-    public static bool IsSystemInDarkMode() {
-        try {
+    public static bool IsSystemInDarkMode()
+    {
+        if (!OperatingSystem.IsWindows())
+            return false;
+
+        try
+        {
             using var registryKey = Registry.CurrentUser.OpenSubKey(ThemeRegistryPath);
-            if (registryKey is null) {
+            if (registryKey is null)
+            {
                 LogWrapper.Warn($"注册表键 {ThemeRegistryPath} 不存在");
                 return false;
             }
 
             var value = registryKey.GetValue(AppsUseLightThemeKey) as int?;
             return value == 0; // 0 表示深色模式（AppsUseLightTheme = false）
-        } catch (Exception ex) when (ex is SecurityException or IOException) {
+        }
+        catch (Exception ex) when (ex is SecurityException or IOException)
+        {
             LogWrapper.Warn(ex, $"无法访问注册表键 {ThemeRegistryPath}");
             return false;
         }
@@ -38,6 +51,9 @@ public static class SystemThemeHelper {
     /// </summary>
     public static (byte R, byte G, byte B) GetSystemAccentColor()
     {
+        if (!OperatingSystem.IsWindows())
+            return (0, 120, 212);
+
         try
         {
             using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\DWM");

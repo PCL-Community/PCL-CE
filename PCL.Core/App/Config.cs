@@ -1,3 +1,7 @@
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
 using PCL.Core.App.Configuration;
 
 namespace PCL.Core.App;
@@ -206,12 +210,12 @@ public static partial class Config
             /// <summary>
             /// 暗色配色主题。
             /// </summary>
-            [ConfigItem<ColorTheme>("UiDarkColor", ColorTheme.SystemAccent)] public partial ColorTheme DarkColor { get; set; }
+            [ConfigItem<ColorTheme>("UiDarkColor", ColorTheme.CatBlue)] public partial ColorTheme DarkColor { get; set; }
 
             /// <summary>
             /// 亮色配色主题。
             /// </summary>
-            [ConfigItem<ColorTheme>("UiLightColor", ColorTheme.SystemAccent)] public partial ColorTheme LightColor { get; set; }
+            [ConfigItem<ColorTheme>("UiLightColor", ColorTheme.CatBlue)] public partial ColorTheme LightColor { get; set; }
 
             /// <summary>
             /// 窗口透明度。

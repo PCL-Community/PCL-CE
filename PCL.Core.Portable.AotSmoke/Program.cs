@@ -3,6 +3,7 @@
 // Licensed under the Apache License, Version 2.0.
 
 using System.Text.Json.Serialization;
+using PCL.Core.Platform;
 using PCL.Core.Serialization;
 using PCL.Core.Utils.Hash;
 
@@ -17,8 +18,11 @@ var hashed = SHA256Provider.Instance.TryComputeHash(
     (roundTrip?.Name ?? string.Empty).AsSpan(),
     hash,
     out var written);
+var platformPolicyValid =
+    PlatformFeaturePolicy.IsSystemAccentThemeSupported ==
+    (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS());
 
-return hashed && written == hash.Length && roundTrip == payload ? 0 : 1;
+return hashed && written == hash.Length && roundTrip == payload && platformPolicyValid ? 0 : 1;
 
 internal sealed record SmokePayload(string Name, int RuntimeMajor);
 

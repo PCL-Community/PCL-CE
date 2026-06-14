@@ -1,7 +1,12 @@
-﻿using System;
+﻿// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
+using System;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.IoC;
+using PCL.Core.Platform;
 
 namespace PCL.Core.UI.Theme;
 
@@ -22,6 +27,17 @@ public delegate void ColorThemeChangedEvent(ColorTheme theme);
 [LifecycleService(LifecycleState.WindowCreating)]
 public sealed partial class ThemeService
 {
+    /// <summary>
+    /// Windows fallback used when a configuration requests the unsupported system accent theme.
+    /// </summary>
+    public const ColorTheme WindowsSystemAccentFallback = ColorTheme.CatBlue;
+
+    /// <summary>
+    /// Gets whether this runtime may follow the operating system's accent color.
+    /// </summary>
+    public static bool IsSystemAccentThemeSupported =>
+        PlatformFeaturePolicy.IsSystemAccentThemeSupported;
+
     [AnyConfigItem<ToneProfileConfig>("UiToneProfiles", ConfigSource.Local)]
     public static partial ToneProfileConfig ToneProfiles { get; set; }
 
@@ -168,15 +184,23 @@ public sealed partial class ThemeService
         get
         {
             var theme = Config.Preference.Theme;
-            return IsDarkMode ? theme.DarkColor : theme.LightColor;
+            return NormalizeTheme(IsDarkMode ? theme.DarkColor : theme.LightColor);
         }
         set
         {
             var theme = Config.Preference.Theme;
             var config = IsDarkMode ? theme.DarkColorConfig : theme.LightColorConfig;
-            config.SetValue(value);
+            config.SetValue(NormalizeTheme(value));
         }
     }
+
+    /// <summary>
+    /// Applies platform restrictions to a configured color theme.
+    /// </summary>
+    public static ColorTheme NormalizeTheme(ColorTheme theme) =>
+        theme == ColorTheme.SystemAccent && !IsSystemAccentThemeSupported
+            ? WindowsSystemAccentFallback
+            : theme;
 
     /// <summary>
     /// 获取当前色彩主题对应的各种参数。
