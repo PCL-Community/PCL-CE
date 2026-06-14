@@ -3710,10 +3710,10 @@ public static class ModLaunch
             McLaunchLog("已显示游戏实时日志");
         }
 
-    // 等待
-    ModCrashAutoRepair.SuppressCrashPopup = false;
-    while (watcher.State == ModWatcher.Watcher.MinecraftState.Loading ||
-           watcher.State == ModWatcher.Watcher.MinecraftState.Running)
+        // 只等待游戏完成启动。进入 Running 后应结束启动流程，不能阻塞到游戏退出。
+        // 启动阶段崩溃仍会进入下方的自动修复流程，并保持修复页面。
+        ModCrashAutoRepair.SuppressCrashPopup = false;
+        while (watcher.State == ModWatcher.Watcher.MinecraftState.Loading)
             Thread.Sleep(100);
         if (watcher.State == ModWatcher.Watcher.MinecraftState.Crashed)
         {
