@@ -99,9 +99,6 @@ extra block; seek forwards in oldfile by z bytes".
 			if (HeaderSize + ctrlLen + diffLen + extraLen > diffData.Length)
 				throw new Exception("Diff file size info is not correct");
 
-			Console.WriteLine(
-				$"Got diff-data-len = {diffData.Length}, ctrllen = {ctrlLen}, difflen = {diffLen}, extralen = {extraLen}, totallen = {newLen}");
-
 			var ctrlContent = new byte[ctrlLen];
 			// 获取 Control 数据
 			long curOffset = HeaderSize;
@@ -131,8 +128,6 @@ extra block; seek forwards in oldfile by z bytes".
 				var copyRange = ReadInt64(ctrlReader.ReadBytes(8));
 				var seekPos = ReadInt64(ctrlReader.ReadBytes(8));
 
-				Console.WriteLine($"Round add-range = {addRange}, copy-range = {copyRange}, seek-pos = {seekPos}");
-				
 				// 新加入的
 				if (newDataPos + addRange > newLen)
 					throw new Exception(
