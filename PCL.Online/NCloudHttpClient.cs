@@ -16,8 +16,9 @@ using PCL.Core.Utils.OS;
 
 namespace PCL.Online;
 
-internal static class NCloudHttpClient
+public static class NCloudHttpClient
 {
+    public const string DefaultServerBaseUrl = "https://115.29.230.105/";
     private const string CertificateResourceName = "PCL.Online.Certificates.n-cloud.cer";
 
     public static HttpClient Create(string serverBaseUrl)

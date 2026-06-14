@@ -3,6 +3,7 @@ using System.Net.Http;
 using PCL.Core.App;
 using PCL.Core.IO.Download;
 using PCL.Core.IO.Net;
+using PCL.Online;
 
 namespace PCL.Network.Downloader;
 
@@ -16,9 +17,12 @@ public record DownloadSourceParams(string Url, bool UseBrowserUserAgent, string 
 /// </summary>
 public class PclDlFactory : NDlFactory
 {
+    private static readonly Lazy<HttpClient> NCloudClient =
+        new(() => NCloudHttpClient.Create(NCloudHttpClient.DefaultServerBaseUrl));
+
     public IDlConnection CreateConnection(DownloadSourceParams source)
     {
-        var client = NetworkService.GetClient();
+        var client = IsNCloudUrl(source.Url) ? NCloudClient.Value : NetworkService.GetClient();
         return new HttpDlConnection(client, source.Url, request =>
         {
             request.Version = HttpVersion.Version20;
@@ -42,4 +46,11 @@ public class PclDlFactory : NDlFactory
 
     public override IDlWriter? CreateWriter(string resId)
         => null;
+
+    private static bool IsNCloudUrl(string url)
+    {
+        return Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+               uri.Host.Equals(new Uri(NCloudHttpClient.DefaultServerBaseUrl).Host,
+                   StringComparison.OrdinalIgnoreCase);
+    }
 }

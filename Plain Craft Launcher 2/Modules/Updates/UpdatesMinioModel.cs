@@ -9,18 +9,28 @@ using PCL.Core.Utils.Diff;
 using PCL.Network;
 using PCL.Network.Loaders;
 using PCL.Core.IO.Net.Http;
+using PCL.Online;
 
 namespace PCL;
 
 public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格式
 {
     private readonly string _baseUrl;
+    private readonly IReadOnlyList<string> _downloadBaseUrls;
+    private readonly HttpClient? _httpClient;
 
     private Dictionary<string, string> _remoteCache;
 
-    public UpdatesMinioModel(string baseUrl, string name = "Minio")
+    public UpdatesMinioModel(string baseUrl, string name = "Minio", IEnumerable<string>? fallbackBaseUrls = null)
     {
-        _baseUrl = baseUrl;
+        _baseUrl = NormalizeBaseUrl(baseUrl);
+        _downloadBaseUrls = new[] { _baseUrl }
+            .Concat(fallbackBaseUrls ?? [])
+            .Select(NormalizeBaseUrl)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        if (IsNCloudUrl(_baseUrl))
+            _httpClient = NCloudHttpClient.Create(_baseUrl);
         SourceName = name;
     }
 
@@ -33,9 +43,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
 
     public bool RefreshCache()
     {
-        // 先检查缓存
-        var remoteCache =
-            ModBase.GetJson(Requester.FetchString($"{_baseUrl}apiv2/cache.json", RequestParam.WithRetry));
+        var remoteCache = ModBase.GetJson(GetRemoteText($"{_baseUrl}apiv2/cache.json"));
         _remoteCache = remoteCache.ToObject<Dictionary<string, string>>();
         return true;
     }
@@ -53,7 +61,9 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
         if (_remoteCache is null)
             RefreshCache();
         var latestVersion = GetChannelInfo(channel, arch);
-        return currentVersion >= SemVer.Parse(latestVersion.VersionName);
+        var remoteVersion = SemVer.Parse(latestVersion.VersionName);
+        var comparison = currentVersion.CompareTo(remoteVersion);
+        return comparison > 0 || comparison == 0 && currentVersionCode >= latestVersion.VersionCode;
     }
 
     public VersionAnnouncementDataModel GetAnnouncementList()
@@ -85,12 +95,12 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             var selfSha256 = ModBase.GetFileSHA256(Basics.ExecutablePath);
             var remoteUpdSha256 = deJsonData.Sha256;
             var patchFileName = $"{selfSha256}_{remoteUpdSha256}.patch";
-            if (deJsonData.Patches.Contains(patchFileName))
+            if (deJsonData.Patches?.Contains(patchFileName) == true)
             {
                 patchUpdate = true;
                 tempPath += patchFileName;
                 load.output = new List<DownloadFile>
-                    { new(new[] { $"{_baseUrl}static/patch/{patchFileName}" }, tempPath) };
+                    { new(_downloadBaseUrls.Select(url => $"{url}static/patch/{patchFileName}"), tempPath) };
             }
             else
             {
@@ -166,17 +176,34 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
         }
         else
         {
-            var response = HttpRequest.Create($"{_baseUrl}apiv2/{path}{name}.json")
-                .SendAsync()
-                .GetAwaiter()
-                .GetResult();
-
-            var content = response.AsString();
+            var content = GetRemoteText($"{_baseUrl}apiv2/{path}{name}.json");
             jsonData = ModBase.GetJson(content);
             ModBase.WriteFile(localInfoFile, content);
         }
 
         return jsonData;
+    }
+
+    private string GetRemoteText(string url)
+    {
+        using var response = HttpRequest.Create(url)
+            .SendAsync(_httpClient)
+            .GetAwaiter()
+            .GetResult();
+        response.EnsureSuccessStatusCode();
+        return response.AsString();
+    }
+
+    private static string NormalizeBaseUrl(string baseUrl)
+    {
+        return baseUrl.TrimEnd('/') + "/";
+    }
+
+    private static bool IsNCloudUrl(string url)
+    {
+        return Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+               uri.Host.Equals(new Uri(NCloudHttpClient.DefaultServerBaseUrl).Host,
+                   StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

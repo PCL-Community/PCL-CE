@@ -5,6 +5,7 @@ using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
+using PCL.Online;
 
 namespace PCL;
 
@@ -14,39 +15,32 @@ public static class UpdateManager
 
     public static UpdatesWrapperModel remoteServer = new(new List<IUpdateSource>
     {
-        new UpdatesMinioModel("http://115.29.230.105/", "官方服务器"),
-        new UpdatesMinioModel("https://github.com/MuXue1230-owo/PCL-N-Server/raw/main/wwwroot/", "GitHub")
+        new UpdatesMinioModel(
+            NCloudHttpClient.DefaultServerBaseUrl,
+            "官方服务器",
+            ["https://raw.githubusercontent.com/MuXue1230-owo/PCL-N-Server/main/wwwroot/"]),
+        new UpdatesMinioModel(
+            "https://raw.githubusercontent.com/MuXue1230-owo/PCL-N-Server/main/wwwroot/",
+            "GitHub",
+            [NCloudHttpClient.DefaultServerBaseUrl])
     });
 
-    public static bool IsCurrentVersionBeta
+    public static UpdateChannel TargetChannel
     {
         get
         {
-            if (ModBase.versionBaseName.Contains("beta"))
-                return true;
-            return (int)Config.Update.UpdateChannel == 1;
+            return Config.Update.UpdateChannel == Core.App.UpdateChannel.Release
+                ? UpdateChannel.stable
+                : UpdateChannel.beta;
         }
     }
-    
+
     public static UpdateEnums.VersionStatus GetVersionStatus()
     {
         try
         {
-            if (IsCurrentVersionBeta && (int)Config.Update.UpdateChannel != 1)
-            {
-                var isNewerThanStable = remoteServer.IsLatest(UpdateChannel.stable,
-                    SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.versionBaseName),
-                    ModBase.versionCode);
-                var isBetaLatest = remoteServer.IsLatest(UpdateChannel.beta,
-                    SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.versionBaseName),
-                    ModBase.versionCode);
-                return isNewerThanStable && isBetaLatest
-                    ? UpdateEnums.VersionStatus.Latest
-                    : UpdateEnums.VersionStatus.NotLatest;
-            }
-
             return remoteServer.IsLatest(
-                IsCurrentVersionBeta ? UpdateChannel.beta : UpdateChannel.stable,
+                TargetChannel,
                 SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.versionBaseName),
                 ModBase.versionCode)
                 ? UpdateEnums.VersionStatus.Latest
@@ -69,13 +63,13 @@ public static class UpdateManager
             try
             {
                 var version = remoteServer.GetLatestVersion(
-                    IsCurrentVersionBeta ? UpdateChannel.beta : UpdateChannel.stable,
+                    TargetChannel,
                     SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64
                 );
 
                 ModBase.WriteFile($"{ModBase.pathTemp}CEUpdateLog.md", version.Changelog);
                 ModBase.Log($"[Update] 远程最新版本: {version.VersionName}, 当前版本: {ModBase.versionBaseName}");
-                if (!(SemVer.Parse(version.VersionName) > SemVer.Parse(ModBase.versionBaseName)))
+                if (!IsRemoteVersionNewer(version))
                     return;
                 if (type == UpdateEnums.UpdateType.PromptOnly)
                 {
@@ -96,7 +90,7 @@ public static class UpdateManager
                 var loaders = new List<ModLoader.LoaderBase>();
                 // 下载
                 loaders.AddRange(remoteServer.GetDownloadLoader(
-                    IsCurrentVersionBeta ? UpdateChannel.beta : UpdateChannel.stable,
+                    TargetChannel,
                     SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, dlTargetPath));
                 loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Update.Task.Check"), _ =>
                 {
@@ -152,6 +146,14 @@ public static class UpdateManager
                     ModMain.Hint(Lang.Text("Update.Error.FetchFailed"), ModMain.HintType.Critical);
             }
         });
+    }
+
+    internal static bool IsRemoteVersionNewer(VersionDataModel version)
+    {
+        var remoteVersion = SemVer.Parse(version.VersionName);
+        var currentVersion = SemVer.Parse(ModBase.versionBaseName);
+        var comparison = remoteVersion.CompareTo(currentVersion);
+        return comparison > 0 || comparison == 0 && version.VersionCode > ModBase.versionCode;
     }
 
     public static void UpdateRestart(bool triggerRestartAndByEnd, bool triggerRestart = true)

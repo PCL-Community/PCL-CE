@@ -34,10 +34,8 @@ public partial class PageSetupUpdate
     {
         try
         {
-            // 修复：使用 dynamic 绕过命名空间重名导致的编译期类型冲突，
-            // 或者你可以尝试替换为 PCL.Core.App.SemVer.Parse(ModBase.versionBaseName)
             if (await UpdateManager.remoteServer.IsLatestAsync(
-                    UpdateManager.IsCurrentVersionBeta ? UpdateChannel.beta : UpdateChannel.stable,
+                    UpdateManager.TargetChannel,
                     SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64,
                     SemVer.Parse(ModBase.versionBaseName),
                     ModBase.versionCode))
@@ -71,9 +69,8 @@ public partial class PageSetupUpdate
                 try
                 {
                     updateInfo = UpdateManager.remoteServer.GetLatestVersion(
-                        UpdateManager.IsCurrentVersionBeta
-                            ? UpdateChannel.beta
-                            : UpdateChannel.stable, SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
+                        UpdateManager.TargetChannel,
+                        SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
                     TextUpdateName.Text = "PCL N " + VersionNameFormat(updateInfo.VersionName);
                     var summary = updateInfo.Changelog.Between("<summary>", "</summary>");
                     if (!updateInfo.Changelog.Contains("<summary>") || string.IsNullOrWhiteSpace(summary.Trim()))
@@ -147,21 +144,12 @@ public partial class PageSetupUpdate
 
     private void BtnUpdate_Click(object sender, MouseButtonEventArgs e)
     {
-        // 检查 .NET 版本
-        if (!updateInfo.VersionName.StartsWithF("2.13.") && !ModBase
-                .ShellAndGetOutput("cmd", "/c dotnet --list-runtimes")
-                .ContainsF("Microsoft.WindowsDesktop.App 8.0.", true))
+        if (UpdateManager.isUpdateWaitingRestart)
         {
-            ModMain.MyMsgBox(
-                Lang.Text("Setup.Update.DotNetMissing.Message", updateInfo.VersionName,
-                    SystemInfo.IsArm64System ? "Arm64" : "x64"),
-                Lang.Text("Setup.Update.DotNetMissing.Title"),
-                Lang.Text("Setup.Update.DotNetMissing.DownloadRuntime"), Lang.Text("Common.Action.Cancel"),
-                button1Action: () => ModBase.OpenWebsite("https://get.dot.net/8"), forceWait: true);
+            UpdateManager.UpdateRestart(true);
             return;
         }
 
-        if (UpdateManager.isUpdateWaitingRestart) UpdateManager.UpdateRestart(true);
         // 开始更新流程
         UpdateManager.UpdateStart(UpdateEnums.UpdateType.UpdateNow);
     }
