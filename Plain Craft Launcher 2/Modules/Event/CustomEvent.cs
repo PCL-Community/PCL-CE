@@ -48,7 +48,7 @@ namespace PCL
             States.CustomVariables.GetValueOrDefault(name, defaultValue);
 
         /// <summary>
-        /// 将 arg 按 '|' 分割为参数数组，null/空串统一返回 [""]。
+        /// 将 arg 按 '|' 分割为参数数组，空串统一返回 [""]。
         /// </summary>
         private static string[] SplitArgs(string arg) => arg.Split('|');
 
@@ -259,7 +259,7 @@ namespace PCL
             if (args.Length == 1)
                 throw new ArgumentException(Lang.Text("Event.Error.MissingArgs", type.ToString(), "SettingName|Value"));
             if (ConfigService.TryGetConfigItemNoType(args[0], out var item) && item.Source != ConfigSource.SharedEncrypt)
-                item.SetValueNoType(args[1], ModInstanceList.McMcInstanceSelected.PathInstance);
+                item.SetValueNoType(args[1], ModInstanceList.McMcInstanceSelected?.PathInstance);
             if (args.Length == 2)
                 ModMain.Hint(Lang.Text("Event.Setting.Written", args[0], args[1]), ModMain.HintType.Finish);
         }

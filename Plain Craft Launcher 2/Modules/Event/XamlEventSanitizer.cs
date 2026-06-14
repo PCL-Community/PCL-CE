@@ -28,19 +28,19 @@ namespace PCL
             RegexOptions.Compiled);
 
         private static readonly Regex LocalCustomEventSelfClosingRegex = new(
-            @"<local:CustomEvent\s+[^>]*\bType\s*=\s*""([^""]+)""[^>]*/\s*>",
+            @"<local:CustomEvent\s+[^>]*?\bType\s*=\s*""([^""]+)""[^>]*/\s*>",
             RegexOptions.Compiled);
 
         private static readonly Regex LocalCustomEventOpenTagRegex = new(
-            @"<local:CustomEvent\s+[^>]*\bType\s*=\s*""([^""]+)""[^>]*>",
+            @"<local:CustomEvent\s+[^>]*?\bType\s*=\s*""([^""]+)""[^>]*>",
             RegexOptions.Compiled);
 
         private static readonly Regex SetterEventTypeValueRegex = new(
-            @"(Property\s*=\s*""local:CustomEventService\.EventType""\s+Value\s*=\s*"")([^""]+)("")",
+            @"(Property\s*=\s*""local:CustomEventService\.EventType""[^>]*?\bValue\s*=\s*"")([^""]+)("")",
             RegexOptions.Compiled);
 
         private static readonly Regex SetterValueEventTypeRegex = new(
-            @"(Value\s*=\s*"")([^""]+)(""\s+Property\s*=\s*""local:CustomEventService\.EventType"")",
+            @"(Value\s*=\s*"")([^""]+)(""[^>]*\bProperty\s*=\s*""local:CustomEventService\.EventType"")",
             RegexOptions.Compiled);
 
         public static SanitizeResult Sanitize(string xaml)
@@ -50,41 +50,41 @@ namespace PCL
 
             sanitized = EventTypeAttributeRegex.Replace(sanitized, match =>
             {
-                var chineseValue = match.Groups[2].Value;
-                return ReplaceEventType(match, chineseValue, result);
+                var rawValue = match.Groups[2].Value;
+                return ReplaceEventType(match, rawValue, result);
             });
 
             sanitized = EventTypePropertyElementRegex.Replace(sanitized, match =>
             {
-                var chineseValue = match.Groups[2].Value.Trim();
-                return ReplaceEventType(match, chineseValue, result);
+                var rawValue = match.Groups[2].Value.Trim();
+                return ReplaceEventType(match, rawValue, result);
             });
 
             sanitized = CustomEventTypePropertyElementRegex.Replace(sanitized, match =>
             {
-                var chineseValue = match.Groups[2].Value.Trim();
-                return ReplaceOrRemoveSetter(match, chineseValue, result);
+                var rawValue = match.Groups[2].Value.Trim();
+                return ReplaceOrRemoveSetter(match, rawValue, result);
             });
 
             sanitized = LocalCustomEventTypeAttributeRegex.Replace(sanitized, match =>
             {
-                var chineseValue = match.Groups[2].Value;
-                return ReplaceEventType(match, chineseValue, result);
+                var rawValue = match.Groups[2].Value;
+                return ReplaceEventType(match, rawValue, result);
             });
 
             sanitized = LocalCustomEventSelfClosingRegex.Replace(sanitized, match =>
             {
-                var chineseValue = match.Groups[1].Value;
-                return _RemoveBadCustomEventElement(match, chineseValue, result);
+                var rawValue = match.Groups[1].Value;
+                return _RemoveBadCustomEventElement(match, rawValue, result);
             });
 
             sanitized = LocalCustomEventOpenTagRegex.Replace(sanitized, match =>
             {
-                var chineseValue = match.Groups[1].Value;
-                if (_IsBadType(chineseValue, result))
+                var rawValue = match.Groups[1].Value;
+                if (_IsBadType(rawValue, result))
                 {
                     var elementName = "local:CustomEvent";
-                    var afterTag = xaml[(match.Index + match.Length)..];
+                    var afterTag = sanitized[(match.Index + match.Length)..];
                     var closeLen = FindMatchingCloseTag(afterTag, elementName);
                     if (closeLen < 0) return match.Value;
                     return "";
@@ -94,14 +94,14 @@ namespace PCL
 
             sanitized = SetterEventTypeValueRegex.Replace(sanitized, match =>
             {
-                var chineseValue = match.Groups[2].Value;
-                return ReplaceOrRemoveSetter(match, chineseValue, result);
+                var rawValue = match.Groups[2].Value;
+                return ReplaceOrRemoveSetter(match, rawValue, result);
             });
 
             sanitized = SetterValueEventTypeRegex.Replace(sanitized, match =>
             {
-                var chineseValue = match.Groups[2].Value;
-                return ReplaceOrRemoveSetter(match, chineseValue, result);
+                var rawValue = match.Groups[2].Value;
+                return ReplaceOrRemoveSetter(match, rawValue, result);
             });
 
             RemoveElementsForTypes(result.UnsupportedTypesFound, ref sanitized);
@@ -114,26 +114,26 @@ namespace PCL
             return result;
         }
 
-        private static bool _IsBadType(string chineseValue, SanitizeResult result)
+        private static bool _IsBadType(string rawValue, SanitizeResult result)
         {
-            if (EventTypeMapper.IsUnsupportedType(chineseValue))
+            if (EventTypeMapper.IsUnsupportedType(rawValue))
             {
-                result.UnsupportedTypesFound.Add(chineseValue);
+                result.UnsupportedTypesFound.Add(rawValue);
                 return true;
             }
-            if (!Enum.TryParse<EventType>(chineseValue, true, out _)
-                && !EventTypeMapper.TryToEnglish(chineseValue, out _))
+            if (!Enum.TryParse<EventType>(rawValue, true, out _)
+                && !EventTypeMapper.TryToEnglish(rawValue, out _))
             {
-                result.UnrecognizedTypes.Add(chineseValue);
+                result.UnrecognizedTypes.Add(rawValue);
                 return true;
             }
             return false;
         }
 
         private static string _RemoveBadCustomEventElement(
-            Match match, string chineseValue, SanitizeResult result)
+            Match match, string rawValue, SanitizeResult result)
         {
-            return _IsBadType(chineseValue, result) ? "" : match.Value;
+            return _IsBadType(rawValue, result) ? "" : match.Value;
         }
 
         private static void RemoveElementsForTypes(List<string> types, ref string sanitized)
@@ -161,11 +161,12 @@ namespace PCL
             return match.Value;
         }
 
-        private static string ReplaceOrRemoveSetter(Match match, string chineseValue, SanitizeResult result)
+        private static string ReplaceOrRemoveSetter(
+            Match match, string rawValue, SanitizeResult result)
         {
-            if (_IsBadType(chineseValue, result))
+            if (_IsBadType(rawValue, result))
                 return "";
-            return ReplaceEventType(match, chineseValue, result);
+            return ReplaceEventType(match, rawValue, result);
         }
 
         private static string RemoveElementsWithEventType(string xaml, string eventTypeValue, List<string> trackingList)
