@@ -1,10 +1,10 @@
 {
   "name": "Plain Craft Launcher N Edition",
   "version": {
-    "base": "1.0.117",
+    "base": "1.0.121",
     "upstream": "2.15.0",
     "suffix": "beta",
-    "code": 117
+    "code": 121
   },
   "licenses": [
     {
@@ -15,6 +15,12 @@
     },
     {
       "name": "PCL.Online",
+      "info": "Copyright © MUXUE1230",
+      "website": "https://github.com/MuXue1230-owo/PCL-N/tree/dev/PCL.Online",
+      "license": "https://github.com/MuXue1230-owo/PCL-N/tree/dev/LICENSE"
+    },
+    {
+      "name": "PCL.Core.Portable",
       "info": "Copyright © MUXUE1230",
       "website": "https://github.com/MuXue1230-owo/PCL-N/tree/dev/PCL.Online",
       "license": "https://github.com/MuXue1230-owo/PCL-N/tree/dev/LICENSE"
