@@ -14,9 +14,6 @@
                                     Click="BtnClear_Click" />
                     <local:MyButton MinWidth="100" Text="{DynamicResource Tools.Test.Luck.Title}" Margin="0,0,15,15"
                                     Click="BtnLuck_Click" />
-                    <local:MyButton MinWidth="100" Text="{DynamicResource Tools.Test.Crash.Title}"
-                                    ToolTip="{DynamicResource Tools.Test.Crash.ToolTip}" ColorType="Red"
-                                    Margin="0,0,15,15" Click="BtnCrash_Click" />
                     <local:MyButton MinWidth="120" Text="{DynamicResource Tools.Test.Shortcut.Title}"
                                     ToolTip="{DynamicResource Tools.Test.Shortcut.ToolTip}" Margin="0,0,15,15"
                                     Click="BtnCreateShortcut_Click" />

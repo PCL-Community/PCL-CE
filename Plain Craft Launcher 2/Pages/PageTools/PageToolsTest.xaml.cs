@@ -587,14 +587,6 @@ public partial class PageToolsTest
         return url;
     }
 
-    private void BtnCrash_Click(object sender, MouseButtonEventArgs e)
-    {
-        if (ModMain.MyMsgBoxInput(Lang.Text("Tools.Test.Crash.ConfirmTitle"),
-                Lang.Text("Tools.Test.Crash.ConfirmMessage"), Lang.Text("Common.Action.Confirm"),
-                hintText: "\"sURe\".ToUpper()", isWarn: true) ==
-            "SURE") throw new Exception(Lang.Text("Tools.Test.Crash.ManualCrash"));
-    }
-
     private int GetHeadSize() => CmbHeadSize.SelectedIndex switch
     {
         0 => 64,
