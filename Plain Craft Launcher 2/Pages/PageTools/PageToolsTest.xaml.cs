@@ -586,6 +586,12 @@ public partial class PageToolsTest
         if (!string.IsNullOrEmpty(str2)) url += $"/{str2}";
         return url;
     }
+    
+    private void BtnCrash_Click(object sender, MouseButtonEventArgs e)
+    {
+        throw new Exception(Lang.Text("Tools.Test.Crash.ManualCrash"));
+    }
+
 
     private int GetHeadSize() => CmbHeadSize.SelectedIndex switch
     {

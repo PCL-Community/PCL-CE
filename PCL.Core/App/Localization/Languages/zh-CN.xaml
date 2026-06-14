@@ -2736,6 +2736,10 @@
     <sys:String x:Key="Tools.Test.Luck.Rating10">不会吧！</sys:String>
     <sys:String x:Key="Tools.Test.Luck.Rating0">（是百分制哦）</sys:String>
 
+    <!-- Tools.Test.Crash -->
+    <sys:String x:Key="Tools.Test.Crash.Title">崩溃测试</sys:String>
+    <sys:String x:Key="Tools.Test.Crash.ManualCrash">手动崩溃</sys:String>
+
     <!-- Tools.Test.LaunchCount -->
 
     <sys:String x:Key="Tools.Test.LaunchCount.Title">查看启动计数</sys:String>

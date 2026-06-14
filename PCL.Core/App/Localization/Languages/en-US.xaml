@@ -2736,6 +2736,10 @@
     <sys:String x:Key="Tools.Test.Luck.Rating10">No way!</sys:String>
     <sys:String x:Key="Tools.Test.Luck.Rating0">(It's on a 0-100 scale)</sys:String>
 
+    <!-- Tools.Test.Crash -->
+    <sys:String x:Key="Tools.Test.Crash.Title">Crash test</sys:String>
+    <sys:String x:Key="Tools.Test.Crash.ManualCrash">Manual crash</sys:String>
+
     <!-- Tools.Test.LaunchCount -->
 
     <sys:String x:Key="Tools.Test.LaunchCount.Title">View launch count</sys:String>
