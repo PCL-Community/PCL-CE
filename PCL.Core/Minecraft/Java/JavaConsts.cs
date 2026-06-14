@@ -1,13 +1,18 @@
 ﻿namespace PCL.Core.Minecraft.Java;
 public class JavaConsts
 {
-    public static readonly string[] ExcludeFolderNames = ["javapath", "java8path", "common files", "netease"];
+    public static readonly string[] ExcludeFolderNames =
+    [
+        "javapath", "java8path", "common files", "netease",
+        "node_modules", ".git", "$recycle.bin", "system volume information"
+    ];
 
     public static readonly string[] MostPossibleKeywords =
     [
         "java", "jdk", "jre",
         "dragonwell", "azul", "zulu", "oracle", "open", "amazon", "corretto",
-        "eclipse", "temurin", "hotspot", "semeru", "kona", "bellsoft"
+        "eclipse", "adoptium", "temurin", "hotspot", "semeru", "kona", "bellsoft",
+        "liberica", "graal", "mandrel", "jetbrains", "jbr", "sapmachine", "openlogic"
     ];
 
     public static readonly string[] PossibleKeywords =

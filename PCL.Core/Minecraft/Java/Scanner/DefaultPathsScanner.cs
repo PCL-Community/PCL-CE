@@ -1,28 +1,57 @@
-﻿using PCL.Core.App;
+using PCL.Core.App;
 using PCL.Core.Logging;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace PCL.Core.Minecraft.Java.Scanner;
 
 public class DefaultPathsScanner : IJavaScanner
 {
-    private const int MaxSearchDepth = 8;
+    private const int DefaultSearchDepth = 8;
+    private const int TargetedSearchDepth = 10;
+    private readonly IReadOnlyList<SearchRoot>? _configuredRoots;
+
+    public DefaultPathsScanner()
+    {
+    }
+
+    internal DefaultPathsScanner(IEnumerable<string> roots)
+    {
+        _configuredRoots = roots
+            .Where(path => !string.IsNullOrWhiteSpace(path))
+            .Select(path => new SearchRoot(path, TargetedSearchDepth, false))
+            .ToArray();
+    }
 
     public void Scan(ICollection<string> results)
     {
         try
         {
-            var searchRoots = _GetSearchRoots();
-            LogWrapper.Info($"[Java] 对下列目录进行广度关键词搜索:{Environment.NewLine}{string.Join(Environment.NewLine, searchRoots)}");
+            var searchRoots = _configuredRoots ?? _GetSearchRoots();
+            var found = new ConcurrentDictionary<string, byte>(StringComparer.OrdinalIgnoreCase);
+            var stopwatch = Stopwatch.StartNew();
 
-            foreach (var root in searchRoots)
-            {
-                _BfsSearch(root, results);
-            }
+            LogWrapper.Info(
+                $"[Java] 开始并行扫描 {searchRoots.Count} 个候选目录:{Environment.NewLine}" +
+                string.Join(Environment.NewLine, searchRoots.Select(root => root.Path)));
+
+            Parallel.ForEach(searchRoots,
+                new ParallelOptions
+                {
+                    MaxDegreeOfParallelism = Math.Min(Math.Max(Environment.ProcessorCount, 2), 6)
+                },
+                root => _SearchRoot(root, found));
+
+            foreach (var path in found.Keys)
+                results.Add(path);
+
+            LogWrapper.Info($"[Java] 候选目录扫描完成，找到 {found.Count} 个 Java，耗时 {stopwatch.ElapsedMilliseconds} ms");
         }
         catch (Exception ex)
         {
@@ -30,94 +59,125 @@ public class DefaultPathsScanner : IJavaScanner
         }
     }
 
-    private static HashSet<string> _GetSearchRoots()
+    private static IReadOnlyList<SearchRoot> _GetSearchRoots()
     {
-        var roots = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            Path.Combine(Basics.ExecutableDirectory, "PCL")
-        };
+        var roots = new Dictionary<string, SearchRoot>(StringComparer.OrdinalIgnoreCase);
+        var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        var roaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+        var programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+
+        // 常见工具管理的 JDK 不一定包含 java/jdk 关键词，必须直接扫描。
+        AddCombinedRoot(userProfile, [".jdks"], TargetedSearchDepth, false);
+        AddCombinedRoot(userProfile, [".gradle", "jdks"], TargetedSearchDepth, false);
+        AddCombinedRoot(userProfile, [".minecraft", "runtime"], TargetedSearchDepth, false);
+        AddCombinedRoot(local, ["JetBrains", "Toolbox", "apps"], TargetedSearchDepth, false);
+        AddCombinedRoot(roaming, ["PrismLauncher", "java"], TargetedSearchDepth, false);
+        AddCombinedRoot(roaming, ["PolyMC", "java"], TargetedSearchDepth, false);
+        AddCombinedRoot(programFilesX86, ["Minecraft Launcher", "runtime"], TargetedSearchDepth, false);
+        AddRoot(Path.Combine(Basics.ExecutableDirectory, "PCL"), TargetedSearchDepth, false);
+
+        // 这些目录可能很大，仅扫描第一层名称符合 Java 关键词的分支。
+        AddRoot(userProfile, DefaultSearchDepth, true);
+        AddRoot(roaming, DefaultSearchDepth, true);
+        AddRoot(local, DefaultSearchDepth, true);
+        AddCombinedRoot(local, ["Programs"], DefaultSearchDepth, true);
+        AddRoot(programFiles, DefaultSearchDepth, true);
+        AddRoot(programFilesX86, DefaultSearchDepth, true);
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            var keyFolders = new[] { "Program Files", "Program Files (x86)" };
-            var drives = DriveInfo.GetDrives()
-                .Where(d => d.DriveType.Equals(DriveType.Fixed) && d.IsReady)
-                .Select(d => d.Name);
-
-            foreach (var drive in drives)
-            {
-                foreach (var folder in keyFolders)
-                {
-                    roots.Add(Path.Combine(drive, folder));
-                }
-
-                // 根目录关键词搜索
+            foreach (var drive in DriveInfo.GetDrives()
+                         .Where(drive => drive.DriveType == DriveType.Fixed && drive.IsReady))
                 try
                 {
-                    var rootDirs = Directory.EnumerateDirectories(drive)
-                        .Where(dir => JavaConsts.MostPossibleKeywords.Any(k =>
-                            Path.GetFileName(dir).Contains(k, StringComparison.OrdinalIgnoreCase)));
-
-                    foreach (var dir in rootDirs)
-                        roots.Add(dir);
+                    foreach (var directory in Directory.EnumerateDirectories(drive.Name, "*", _EnumerationOptions)
+                                 .Where(_ShouldScanDirectory))
+                        AddRoot(directory, DefaultSearchDepth, false);
                 }
-                catch (UnauthorizedAccessException) { /* 忽略无权限目录 */ }
-                catch (IOException) { /* 忽略IO错误 */ }
-            }
-        }
-        else
+                catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
+                {
+                    LogWrapper.Debug($"[Java] 跳过磁盘根目录 {drive.Name}: {ex.Message}");
+                }
+
+        return roots.Values.ToArray();
+
+        void AddRoot(string path, int maxDepth, bool filterFirstLevel)
         {
-            var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            var programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+            if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
+                return;
 
-            if (!string.IsNullOrEmpty(programFiles) && Directory.Exists(programFiles))
-                roots.Add(programFiles);
-            if (!string.IsNullOrEmpty(programFilesX86) && Directory.Exists(programFilesX86))
-                roots.Add(programFilesX86);
+            try
+            {
+                path = Path.GetFullPath(path);
+            }
+            catch
+            {
+                return;
+            }
+
+            var candidate = new SearchRoot(path, maxDepth, filterFirstLevel);
+            if (!roots.TryGetValue(path, out var existing) ||
+                existing.FilterFirstLevel && !filterFirstLevel ||
+                existing.MaxDepth < maxDepth)
+                roots[path] = candidate;
         }
 
-        return roots;
+        void AddCombinedRoot(string basePath, string[] parts, int maxDepth, bool filterFirstLevel)
+        {
+            if (string.IsNullOrWhiteSpace(basePath))
+                return;
+            AddRoot(Path.Combine([basePath, .. parts]), maxDepth, filterFirstLevel);
+        }
     }
 
-    private static void _BfsSearch(string rootPath, ICollection<string> results)
+    private static void _SearchRoot(SearchRoot root, ConcurrentDictionary<string, byte> results)
     {
-        if (!Directory.Exists(rootPath)) return;
+        if (!Directory.Exists(root.Path))
+            return;
 
         var queue = new Queue<(string Path, int Depth)>();
-        queue.Enqueue((rootPath, 0));
+        queue.Enqueue((root.Path, 0));
 
         while (queue.Count > 0)
         {
             var (current, depth) = queue.Dequeue();
-            if (depth > MaxSearchDepth || !Directory.Exists(current)) continue;
+            if (depth > root.MaxDepth)
+                continue;
 
             try
             {
-                // 深度0时只遍历含关键词的目录
-                var dirsToScan = depth == 0
-                    ? Directory.EnumerateDirectories(current)
-                        .Where(dir => _ShouldScanDirectory(dir))
-                    : Directory.EnumerateDirectories(current);
-
-                foreach (var dir in dirsToScan)
+                var directJava = Path.Combine(current, "java.exe");
+                if (File.Exists(directJava))
                 {
-                    var javaExe = Path.Combine(dir, "java.exe");
-                    if (File.Exists(javaExe))
-                    {
-                        results.Add(javaExe);
-                    }
-                    else
-                    {
-                        queue.Enqueue((dir, depth + 1));
-                    }
+                    results.TryAdd(directJava, 0);
+                    continue;
+                }
+
+                var binJava = Path.Combine(current, "bin", "java.exe");
+                if (File.Exists(binJava))
+                {
+                    results.TryAdd(binJava, 0);
+                    continue;
+                }
+
+                if (depth == root.MaxDepth)
+                    continue;
+
+                foreach (var directory in Directory.EnumerateDirectories(current, "*", _EnumerationOptions))
+                {
+                    var name = Path.GetFileName(directory);
+                    if (_ShouldExcludeDirectory(name))
+                        continue;
+                    if (depth == 0 && root.FilterFirstLevel && !_ShouldScanDirectory(directory))
+                        continue;
+
+                    queue.Enqueue((directory, depth + 1));
                 }
             }
             catch (Exception ex) when (ex is UnauthorizedAccessException or IOException or DirectoryNotFoundException)
             {
-                LogWrapper.Debug($"跳过目录 {current}: {ex.Message}");
+                LogWrapper.Debug($"[Java] 跳过目录 {current}: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -129,9 +189,22 @@ public class DefaultPathsScanner : IJavaScanner
     private static bool _ShouldScanDirectory(string path)
     {
         var name = Path.GetFileName(path);
-        if (JavaConsts.ExcludeFolderNames.Any(ex => name.Contains(ex, StringComparison.OrdinalIgnoreCase)))
-            return false;
-
-        return JavaConsts.AllKeyworkds.Any(k => name.Contains(k, StringComparison.OrdinalIgnoreCase));
+        return !_ShouldExcludeDirectory(name) &&
+               JavaConsts.AllKeyworkds.Any(keyword =>
+                   name.Contains(keyword, StringComparison.OrdinalIgnoreCase));
     }
+
+    private static bool _ShouldExcludeDirectory(string name) =>
+        JavaConsts.ExcludeFolderNames.Any(excluded =>
+            name.Contains(excluded, StringComparison.OrdinalIgnoreCase));
+
+    private static readonly EnumerationOptions _EnumerationOptions = new()
+    {
+        IgnoreInaccessible = true,
+        RecurseSubdirectories = false,
+        ReturnSpecialDirectories = false,
+        AttributesToSkip = FileAttributes.ReparsePoint
+    };
+
+    private sealed record SearchRoot(string Path, int MaxDepth, bool FilterFirstLevel);
 }
