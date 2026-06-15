@@ -278,6 +278,8 @@ public static class ModMain
             frmMain!.PanHint.HorizontalAlignment = Config.Preference.HintAlignRight
                 ? HorizontalAlignment.Right
                 : HorizontalAlignment.Left;
+            // 右置时抬高提示层级，避免被右下角附加按钮（音乐、下载、关闭游戏等）遮挡（#3147）
+            Panel.SetZIndex(frmMain.PanHint, Config.Preference.HintAlignRight ? 1 : 0);
 
             // Tag 存储了：{ 是否可以重用, Uuid }
             if (!HintWaiting.Any())
