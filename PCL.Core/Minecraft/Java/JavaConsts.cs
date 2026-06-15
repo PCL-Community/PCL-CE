@@ -16,5 +16,5 @@ public class JavaConsts
         "pcl", "hmcl", "baka", "minecraft"
     ];
 
-    public static readonly string[] AllKeyworkds = [.. PossibleKeywords, .. MostPossibleKeywords];
+    public static readonly string[] AllKeywords = [.. PossibleKeywords, .. MostPossibleKeywords];
 }

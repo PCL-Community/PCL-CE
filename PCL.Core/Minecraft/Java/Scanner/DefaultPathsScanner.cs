@@ -10,7 +10,7 @@ namespace PCL.Core.Minecraft.Java.Scanner;
 
 public class DefaultPathsScanner : IJavaScanner
 {
-    private const int MaxSearchDepth = 8;
+    private const int MaxSearchDepth = 6;
 
     public void Scan(ICollection<string> results)
     {
@@ -34,7 +34,7 @@ public class DefaultPathsScanner : IJavaScanner
     {
         var roots = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft", "runtime"),
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
             Path.Combine(Basics.ExecutableDirectory, "PCL")
@@ -96,23 +96,17 @@ public class DefaultPathsScanner : IJavaScanner
 
             try
             {
-                // 深度0时只遍历含关键词的目录
-                var dirsToScan = depth == 0
-                    ? Directory.EnumerateDirectories(current)
-                        .Where(dir => _ShouldScanDirectory(dir))
-                    : Directory.EnumerateDirectories(current);
-
-                foreach (var dir in dirsToScan)
+                foreach (var subDir in Directory.EnumerateDirectories(current))
                 {
-                    var javaExe = Path.Combine(dir, "java.exe");
+                    var javaExe = Path.Combine(subDir, "java.exe");
                     if (File.Exists(javaExe))
                     {
                         results.Add(javaExe);
+                        continue;
                     }
-                    else
-                    {
-                        queue.Enqueue((dir, depth + 1));
-                    }
+
+                    if (_ShouldExploreDeeper(subDir))
+                        queue.Enqueue((subDir, depth + 1));
                 }
             }
             catch (Exception ex) when (ex is UnauthorizedAccessException or IOException or DirectoryNotFoundException)
@@ -126,12 +120,38 @@ public class DefaultPathsScanner : IJavaScanner
         }
     }
 
-    private static bool _ShouldScanDirectory(string path)
+    private static bool _ShouldExploreDeeper(string path)
     {
-        var name = Path.GetFileName(path);
-        if (JavaConsts.ExcludeFolderNames.Any(ex => name.Contains(ex, StringComparison.OrdinalIgnoreCase)))
+        var name = Path.GetFileName(path).AsSpan();
+
+        foreach (var ex in JavaConsts.ExcludeFolderNames)
+            if (name.Contains(ex, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+        foreach (var kw in JavaConsts.AllKeywords)
+            if (name.Contains(kw, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+        return _IsVersionLikeDirectory(name);
+    }
+
+    private static bool _IsVersionLikeDirectory(ReadOnlySpan<char> name)
+    {
+        if (name.IsEmpty || name.Length > 20)
             return false;
 
-        return JavaConsts.AllKeyworkds.Any(k => name.Contains(k, StringComparison.OrdinalIgnoreCase));
+        var hasDigit = false;
+        foreach (var c in name)
+        {
+            if (char.IsDigit(c))
+            {
+                hasDigit = true;
+            }
+            else if (c != '.' && c != '_' && c != '-')
+            {
+                return false;
+            }
+        }
+        return hasDigit;
     }
 }
