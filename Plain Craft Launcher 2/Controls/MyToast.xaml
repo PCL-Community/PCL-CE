@@ -5,36 +5,43 @@
         xmlns:local="clr-namespace:PCL"
         x:Name="Root"
         HorizontalAlignment="Right"
-        CornerRadius="8" Padding="16" BorderThickness="1"
+        CornerRadius="8" BorderThickness="1"
         UseLayoutRounding="True" SnapsToDevicePixels="True"
         RenderOptions.BitmapScalingMode="NearestNeighbor">
     <Border.Effect>
         <DropShadowEffect BlurRadius="16" Opacity="0.2" ShadowDepth="4" Direction="270" Color="#000000" />
     </Border.Effect>
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="3" />
+        </Grid.RowDefinitions>
 
-        <svgIcon:SvgIcon x:Name="ToastIcon" Width="20" Height="20" VerticalAlignment="Top"
-                         Margin="0,1,10,0" UseOriginalColor="False" />
+        <Grid Grid.Row="0" Margin="16,16,16,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Column="1">
-            <TextBlock x:Name="TitleText" FontSize="13" FontWeight="SemiBold"
-                       TextTrimming="CharacterEllipsis" TextWrapping="Wrap" />
-            <TextBlock x:Name="DescText" FontSize="13" Opacity="0.6"
-                       Margin="0,4,0,0" TextTrimming="CharacterEllipsis" TextWrapping="Wrap"
-                       Visibility="Collapsed" />
-        </StackPanel>
+            <svgIcon:SvgIcon x:Name="ToastIcon" Width="20" Height="20" VerticalAlignment="Top"
+                             Margin="0,1,10,0" UseOriginalColor="False" />
 
-        <local:MyIconButton Grid.Column="2" x:Name="BtnClose" Width="20" Height="20"
-                            Margin="10,0,0,0" SvgIcon="lucide/x" Theme="Custom" />
+            <StackPanel Grid.Column="1">
+                <TextBlock x:Name="TitleText" FontSize="13" FontWeight="SemiBold"
+                           TextTrimming="CharacterEllipsis" TextWrapping="Wrap" />
+                <TextBlock x:Name="DescText" FontSize="13" Opacity="0.6"
+                           Margin="0,4,0,0" TextTrimming="CharacterEllipsis" TextWrapping="Wrap"
+                           Visibility="Collapsed" />
+            </StackPanel>
 
-        <Rectangle x:Name="ProgressBar" Height="3" Grid.ColumnSpan="3"
+            <local:MyIconButton Grid.Column="2" x:Name="BtnClose" Width="20" Height="20"
+                                Margin="10,0,0,0" SvgIcon="lucide/x" Theme="Custom" />
+        </Grid>
+
+        <Rectangle x:Name="ProgressBar" Height="3" Grid.Row="1"
                    HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
-                   RenderTransformOrigin="0,0.5" Margin="0,8,0,0">
+                   RenderTransformOrigin="0,0.5">
             <Rectangle.RenderTransform>
                 <ScaleTransform ScaleX="1" ScaleY="1" />
             </Rectangle.RenderTransform>

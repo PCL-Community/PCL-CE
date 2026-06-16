@@ -221,7 +221,7 @@
                                 UseLayoutRounding="False" SnapsToDevicePixels="False" />
                     </Border>
                 </Grid>
-                <StackPanel x:Name="PanHint" IsHitTestVisible="False" UseLayoutRounding="True"
+                <StackPanel x:Name="PanHint" UseLayoutRounding="True"
                             SnapsToDevicePixels="True" HorizontalAlignment="Left" VerticalAlignment="Bottom"
                             Margin="0,0,0,20"
                             Grid.Row="0" Grid.RowSpan="2" Panel.ZIndex="1" />

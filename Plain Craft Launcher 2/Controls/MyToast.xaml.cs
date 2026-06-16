@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using PCL.Core.UI.Theme;
 
 namespace PCL;
@@ -20,7 +21,7 @@ public partial class MyToast
             ModAnimation.AniStop($"Toast Show {Uuid}");
             ModAnimation.AniStop($"Toast Hide {Uuid}");
             ModAnimation.AniStop($"Toast Dismiss {Uuid}");
-            ModAnimation.AniStop($"Toast Progress {Uuid}");
+            ProgressBar.BeginAnimation(WidthProperty, null);
         };
     }
 
@@ -96,7 +97,7 @@ public partial class MyToast
     {
         ModAnimation.AniStop($"Toast Show {Uuid}");
         ModAnimation.AniStop($"Toast Hide {Uuid}");
-        ModAnimation.AniStop($"Toast Progress {Uuid}");
+        ProgressBar.BeginAnimation(WidthProperty, null);
         ModAnimation.AniStart(new List<ModAnimation.AniData>
         {
             ModAnimation.AaTranslateX(this, 60, 150, ease: new ModAnimation.AniEaseInFluent()),
@@ -115,9 +116,12 @@ public partial class MyToast
         var totalMs = (int)Math.Round(duration);
         if (totalMs <= 0)
             return;
-        ModAnimation.AniStart(
-            ModAnimation.AaScaleTransform(ProgressBar, -1, totalMs),
-            $"Toast Progress {Uuid}");
+        var w = ProgressBar.ActualWidth;
+        if (w <= 0) w = 300;
+        ProgressBar.HorizontalAlignment = HorizontalAlignment.Left;
+        ProgressBar.Width = w;
+        var anim = new DoubleAnimation(w, 0d, TimeSpan.FromMilliseconds(totalMs));
+        ProgressBar.BeginAnimation(WidthProperty, anim);
     }
 
     private void UpdateColors()
