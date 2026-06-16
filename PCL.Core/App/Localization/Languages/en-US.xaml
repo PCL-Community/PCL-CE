@@ -1655,8 +1655,8 @@
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw">Disable Java Launch Wrapper</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.ToolTip">PCL uses Java Launch Wrapper to fix issues where older Java versions cannot launch from paths containing Chinese characters.&#x0a;If it is blocked by anti-cheat or causes other issues, you can disable it.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.Arm64Notice">Do not wrap with Java Wrapper when launching the game.&#x0a;Java Wrapper has been forcibly disabled because the system is ARM64 architecture.</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.DisableRw">Disable RetroWrapper</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.DisableRw.ToolTip">PCL uses RetroWrapper when launching version 1.5.x and below to improve legacy version gameplay experience and fix compatibility issues.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableRw">Disable LegacyFix</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableRw.ToolTip">PCL uses LegacyFix when launching version 1.5.x and below to improve legacy version gameplay experience and fix compatibility issues.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.GpuPreference">Require Java to use the high-performance GPU</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.GpuPreference.ToolTip">Automatically set Java to use the high-performance GPU in Windows Settings → System → Display → Graphics.&#x0a;If the computer has both integrated and dedicated graphics, this ensures that Minecraft uses the dedicated GPU for rendering, greatly improving performance.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe">Use java.exe instead of javaw.exe</sys:String>
