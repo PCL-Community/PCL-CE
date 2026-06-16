@@ -52,6 +52,7 @@ public partial class MyHint
         Unloaded += (_, _) => Dispose();
     }
 
+    // 边框
     public bool HasBorder
     {
         get => BorderThickness.Top > 0d;
