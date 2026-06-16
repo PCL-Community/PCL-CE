@@ -60,6 +60,7 @@ public partial class PageSetupLaunch
             TextArgumentWindowHeight.Text = Config.Launch.GameWindowHeight.ToString();
             ComboMsAuthType.SelectedIndex = Config.Launch.LoginMsAuthType;
             ComboPreferredIpStack.SelectedIndex = (int)Config.Launch.PreferredIpStack;
+            WindowTypeUIRefresh();
 
             // 游戏内存
             ((MyRadioBox)FindName("RadioRamType" + Config.Launch.MemoryAllocationMode)).Checked = true;
@@ -153,6 +154,7 @@ public partial class PageSetupLaunch
             var senderTag = sender.Tag?.ToString();
             SetLaunchByTag(senderTag,
                 senderTag == "LaunchArgumentPriority" ? Convert.ToInt32(sender.SelectedValue) : sender.SelectedIndex);
+            if (senderTag == "LaunchArgumentWindowType") WindowTypeUIRefresh();
         }
     }
 
@@ -175,6 +177,8 @@ public partial class PageSetupLaunch
             case "LaunchArgumentVisible": Config.Launch.LauncherVisibility = (LauncherVisibility)(int)value; break;
             case "LaunchArgumentPriority": Config.Launch.ProcessPriority = (GameProcessPriority)(int)value; break;
             case "LaunchArgumentWindowType": Config.Launch.GameWindowMode = (GameWindowSizeMode)(int)value; break;
+            case "LaunchArgumentWindowWidth": Config.Launch.GameWindowWidth = int.Parse((string)value); break;
+            case "LaunchArgumentWindowHeight": Config.Launch.GameWindowHeight = int.Parse((string)value); break;
             case "LoginMsAuthType": Config.Launch.LoginMsAuthType = (int)value; break;
             case "LaunchPreferredIpStack": Config.Launch.PreferredIpStack = (JvmPreferredIpStack)(int)value; break;
             case "LaunchAdvanceRenderer": Config.Launch.Renderer = (int)value; break;

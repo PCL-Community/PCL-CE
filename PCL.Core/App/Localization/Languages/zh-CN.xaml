@@ -1494,17 +1494,12 @@
     <sys:String x:Key="Setup.Ui.Homepage.NetUpdate">联网更新</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.NetWarning">请谨慎使用陌生人提供的主页，恶意代码可能会造成损害！</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Refresh">刷新主页</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.GenerateDocs">生成教学文件</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Tutorial">查看教程</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.DownloadUrl">下载地址</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.PresetLabel">主页预设</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.GetMore">获取更多主页</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.GoToMarket">前往主页市场</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Refresh.Success">已刷新主页！</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Docs.OverrideConfirm.Message">当前已存在布局文件，继续生成教学文件将会覆盖现有布局文件！</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Docs.OverrideConfirm.Title">覆盖确认</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Docs.OverrideConfirm.Continue">继续</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Docs.Generated">教学文件已生成！</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Tutorial.Message">1. 点击 生成教学文件 按钮，这会在 PCL 文件夹下生成 Custom.xaml 布局文件。&#x0a;2. 使用记事本等工具打开这个文件并进行修改，修改完记得保存。&#x0a;3. 点击 刷新主页 按钮，查看主页现在长啥样了。&#x0a;&#x0a;你可以在生成教学文件后直接刷新主页，对照着进行修改，更有助于理解。&#x0a;直接将主页文件拖进 PCL 窗口也可以快捷加载。</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Tutorial.Title">主页自定义教程</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.Trivia">你知道吗？</sys:String>
@@ -2708,9 +2703,9 @@
     <sys:String x:Key="Tools.Test.Clean.Title">清理游戏垃圾</sys:String>
     <sys:String x:Key="Tools.Test.Clean.ToolTip">清理 PCL 的缓存与 MC 的日志、崩溃报告等垃圾文件</sys:String>
     <sys:String x:Key="Tools.Test.Clean.ConfirmTitle">清理确认</sys:String>
-    <sys:String x:Key="Tools.Test.Clean.ConfirmMessage">即将清理游戏日志、错误报告、缓存等文件。\n虽然应该没人往这些地方放重要文件，但还是问一下，是否确认继续？\n\n在完成清理后，PCL 将自动重启。</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ConfirmMessage">即将清理游戏日志、错误报告、缓存等文件。&#x0a;虽然应该没人往这些地方放重要文件，但还是问一下，是否确认继续？&#x0a;&#x0a;在完成清理后，PCL 将自动重启。</sys:String>
     <sys:String x:Key="Tools.Test.Clean.Cleared">缓存已清理</sys:String>
-    <sys:String x:Key="Tools.Test.Clean.ClearedMessage">清理了 {0} 个文件！\nPCL 即将自动重启……</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ClearedMessage">清理了 {0} 个文件！&#x0a;PCL 即将自动重启……</sys:String>
     <sys:String x:Key="Tools.Test.Clean.NoFiles">没有找到任何可以清理的文件！</sys:String>
     <sys:String x:Key="Tools.Test.Clean.WaitForDownload">请在所有下载任务完成后再来清理吧……</sys:String>
     <sys:String x:Key="Tools.Test.Clean.CloseGameFirst">请先关闭所有运行中的游戏……</sys:String>
@@ -2720,7 +2715,7 @@
     <sys:String x:Key="Tools.Test.Shortcut.Title">创建快捷方式</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.ToolTip">创建一个指向 PCL 社区版可执行文件的快捷方式</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.SelectLocation">选择快捷方式位置</sys:String>
-    <sys:String x:Key="Tools.Test.Shortcut.ConfirmMessage">这个快捷方式不会自动移除，在删除/移动启动器前请手动移除快捷方式。\n\n{0}位置: {1}\n{2}位置: {3}</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.ConfirmMessage">这个快捷方式不会自动移除，在删除/移动启动器前请手动移除快捷方式。&#x0a;&#x0a;{0}位置: {1}&#x0a;{2}位置: {3}</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.Desktop">桌面</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.StartMenu">开始菜单</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.Created">已在{0}创建快捷方式</sys:String>
@@ -2742,11 +2737,7 @@
     <sys:String x:Key="Tools.Test.Luck.Rating0">（是百分制哦）</sys:String>
 
     <!-- Tools.Test.Crash -->
-
     <sys:String x:Key="Tools.Test.Crash.Title">崩溃测试</sys:String>
-    <sys:String x:Key="Tools.Test.Crash.ToolTip">点这个按钮会让启动器直接崩掉，没事别点，造成的一切问题均不受理，相关 issue 会被直接关闭</sys:String>
-    <sys:String x:Key="Tools.Test.Crash.ConfirmTitle">崩溃确认</sys:String>
-    <sys:String x:Key="Tools.Test.Crash.ConfirmMessage">你一定是点错了，如果没错请在下方确认</sys:String>
     <sys:String x:Key="Tools.Test.Crash.ManualCrash">手动崩溃</sys:String>
 
     <!-- Tools.Test.LaunchCount -->
@@ -2758,7 +2749,7 @@
 
     <sys:String x:Key="Tools.Test.Dependency.Title">依赖检查</sys:String>
     <sys:String x:Key="Tools.Test.Dependency.Checking">开始环境检查……</sys:String>
-    <sys:String x:Key="Tools.Test.Dependency.MissingMessage">当前系统环境缺失软件运行所需依赖"{0}"\n\n点击确定打开微软应用商店安装</sys:String>
+    <sys:String x:Key="Tools.Test.Dependency.MissingMessage">当前系统环境缺失软件运行所需依赖"{0}"&#x0a;&#x0a;点击确定打开微软应用商店安装</sys:String>
     <sys:String x:Key="Tools.Test.Dependency.Later">稍后</sys:String>
 
     <!-- Tools.GameLink -->

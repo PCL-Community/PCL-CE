@@ -318,10 +318,7 @@
                         <local:MyButton x:Name="BtnCustomRefresh" Grid.Column="0" MinWidth="140" Text="{DynamicResource Setup.Ui.Homepage.Refresh}"
                                         Padding="13,0" Margin="0,0,20,0" HorizontalAlignment="Left"
                                         ColorType="Highlight" Click="BtnCustomRefresh_Click" />
-                        <local:MyButton x:Name="BtnCustomFile" Grid.Column="1" MinWidth="140" Text="{DynamicResource Setup.Ui.Homepage.GenerateDocs}"
-                                        Padding="13,0" Margin="0,0,20,0" HorizontalAlignment="Left"
-                                        Click="BtnCustomFile_Click" />
-                        <local:MyButton x:Name="BtnCustomTutorial" Grid.Column="2" MinWidth="140" Text="{DynamicResource Setup.Ui.Homepage.Tutorial}"
+                        <local:MyButton x:Name="BtnCustomTutorial" Grid.Column="1" MinWidth="140" Text="{DynamicResource Setup.Ui.Homepage.Tutorial}"
                                         Padding="13,0" Margin="0,0,20,0" HorizontalAlignment="Left"
                                         Click="BtnCustomTutorial_Click" />
                     </Grid>

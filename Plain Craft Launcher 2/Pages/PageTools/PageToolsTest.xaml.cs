@@ -37,6 +37,9 @@ public partial class PageToolsTest
         BtnSelectSkin.Click += BtnSelectSkin_Click;
         CmbHeadSize.SelectionChanged += CmbHeadSize_SelectionChanged;
         Loaded += (_, _) => MeLoaded();
+        #if DEBUG
+        BtnCrash.Visibility = Visibility.Visible;
+        #endif
     }
 
     private void MeLoaded()
@@ -589,10 +592,7 @@ public partial class PageToolsTest
 
     private void BtnCrash_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModMain.MyMsgBoxInput(Lang.Text("Tools.Test.Crash.ConfirmTitle"),
-                Lang.Text("Tools.Test.Crash.ConfirmMessage"), Lang.Text("Common.Action.Confirm"),
-                hintText: "\"sURe\".ToUpper()", isWarn: true) ==
-            "SURE") throw new Exception(Lang.Text("Tools.Test.Crash.ManualCrash"));
+        throw new Exception(Lang.Text("Tools.Test.Crash.ManualCrash"));
     }
 
     private int GetHeadSize() => CmbHeadSize.SelectedIndex switch

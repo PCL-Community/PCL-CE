@@ -335,41 +335,9 @@ public partial class FormMain
             ModBase.Log($"[Start] 最高版本号从 {lowerVersionCode} 升高到 {ModBase.versionCode}");
         }
 #endif
-
-        // 被移除的窗口设置选项
+        // 被移除的窗口设置选项 (Commit 3161488 2026/1/23)
         if ((int)Config.Launch.GameWindowMode == 5)
             Config.Launch.GameWindowMode = GameWindowSizeMode.Default;
-
-        // 移动自定义皮肤
-        if (lastVersionCode <= 161 && File.Exists(ModBase.exePath + @"PCL\CustomSkin.png") &&
-            !File.Exists(ModBase.pathAppdata + "CustomSkin.png"))
-        {
-            ModBase.CopyFile(ModBase.exePath + @"PCL\CustomSkin.png", ModBase.pathAppdata + "CustomSkin.png");
-            ModBase.Log("[Start] 已移动离线自定义皮肤 (162)");
-        }
-
-        if (lastVersionCode <= 263 && File.Exists(Path.Combine(ModBase.pathTemp, "CustomSkin.png")) &&
-            !File.Exists(Path.Combine(ModBase.pathAppdata, "CustomSkin.png")))
-        {
-            ModBase.CopyFile(Path.Combine(ModBase.pathTemp, "CustomSkin.png"), Path.Combine(ModBase.pathAppdata, "CustomSkin.png"));
-            ModBase.Log("[Start] 已移动离线自定义皮肤 (264)");
-        }
-
-        // 解除关于页面的隐藏
-        if (lastVersionCode <= 205)
-        {
-            Config.Preference.Hide.SetupAbout = false;
-            ModBase.Log("[Start] 已解除关于页面的隐藏");
-        }
-
-        // 迁移旧版用户档案
-        if (lastVersionCode <= 368) ModBase.RunInNewThread(() => ModProfile.MigrateOldProfile());
-        // Mod 命名设置迁移
-        if (!Config.Download.Comp.NameFormatV1Config.IsDefault() && Config.Download.Comp.NameFormatV2Config.IsDefault())
-        {
-            Config.Download.Comp.NameFormatV2 += 1;
-            ModBase.Log("[Start] 已从老版本迁移 Mod 命名设置");
-        }
 
         // 更新后展示社区版提示
         UpdateManager.ShowCEAnnounce();

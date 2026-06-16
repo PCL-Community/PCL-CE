@@ -37,7 +37,7 @@ public partial class PageSetupAbout
             .Replace("%VERSIONCODE%", ModBase.versionCode.ToString()).Replace("%BRANCH%", ModBase.versionBranchName)
             .Replace("%COMMIT_HASH%", ModBase.commitHashShort);
 
-        if (!RegionUtils.IsRestrictedFeatAllowed)
+        if (!Lang.IsChineseMainland)
         {
             ItemMcmod.Visibility = Visibility.Collapsed;
             BtnMcmod.Visibility = Visibility.Collapsed;
