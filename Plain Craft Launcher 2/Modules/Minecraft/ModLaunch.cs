@@ -2245,8 +2245,13 @@ public static class ModLaunch
     private static bool McLaunchNeedsLegacyFix(McInstance mc)
     {
         if (Config.Launch.DisableLF || Config.Instance.DisableLF[mc.PathInstance])
+        {
+            ModBase.Log("[Launch] [Debug] LegacyFix 已被禁用");
             return false;
-        return mc.releaseTime < new DateTime(2013, 6, 25);
+        }
+        var needs = mc.releaseTime < new DateTime(2013, 6, 25);
+        ModBase.Log($"[Launch] [Debug] 启用 LegacyFix");
+        return needs;
     }
 
     /// <summary>
@@ -2618,7 +2623,7 @@ public static class ModLaunch
         // 添加 LegacyFix 相关参数
         if (McLaunchNeedsLegacyFix(instance))
         {
-            var legacyFixPath = Path.Combine(ModFolder.mcFolderSelected, "libraries", "legacyfix", "legacyfix.jar");
+            var legacyFixPath = Path.Combine(ModBase.pathPure, "legacyfix.jar");
             dataList.Add("-javaagent:\"" + legacyFixPath + "\"");
 
             // Beta 1.6 以前版本需要添加的参数
@@ -2895,10 +2900,11 @@ public static class ModLaunch
         // LegacyFix 释放
         if (McLaunchNeedsLegacyFix(instance))
         {
-            var legacyFixPath = Path.Combine(ModFolder.mcFolderSelected, "libraries", "legacyfix", "legacyfix.jar");
+            var legacyFixPath = Path.Combine(ModBase.pathPure, "legacyfix.jar");
             try
             {
                 ModBase.WriteFile(legacyFixPath, ModBase.GetResourceStream("Resources/legacyfix.jar"));
+                cpStrings.Add(legacyFixPath);
             }
             catch (Exception ex)
             {
