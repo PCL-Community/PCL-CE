@@ -128,7 +128,7 @@ public partial class MyToast
     {
         var baseHue = ToastType switch
         {
-            ModMain.HintType.Finish => 120d,
+            ModMain.HintType.Finish => 145d,
             ModMain.HintType.Critical => 355d,
             _ => 210d
         };
