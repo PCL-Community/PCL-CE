@@ -57,6 +57,8 @@ public partial class MyToast
     {
         if (Parent is not Panel panel)
             return;
+        if (Application.Current.MainWindow is { } window)
+            MaxWidth = window.ActualWidth * 0.9;
         Margin = new Thickness(0, 0, 16, 4);
         Opacity = 0;
 

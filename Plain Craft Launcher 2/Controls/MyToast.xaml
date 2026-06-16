@@ -29,9 +29,9 @@
 
             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                 <TextBlock x:Name="TitleText" FontSize="13" FontWeight="SemiBold"
-                           TextTrimming="CharacterEllipsis" TextWrapping="Wrap" />
+                           TextTrimming="CharacterEllipsis" />
                 <TextBlock x:Name="DescText" FontSize="13" Opacity="0.6"
-                           Margin="0,2,0,0" TextTrimming="CharacterEllipsis" TextWrapping="Wrap"
+                           Margin="0,2,0,0" TextTrimming="CharacterEllipsis"
                            Visibility="Collapsed" />
             </StackPanel>
 
