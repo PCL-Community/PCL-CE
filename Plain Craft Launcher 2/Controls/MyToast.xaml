@@ -11,7 +11,7 @@
     <Border.Effect>
         <DropShadowEffect BlurRadius="16" Opacity="0.2" ShadowDepth="4" Direction="270" Color="#000000" />
     </Border.Effect>
-    <Grid>
+    <Grid x:Name="RootGrid" SizeChanged="RootGrid_SizeChanged">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="3" />

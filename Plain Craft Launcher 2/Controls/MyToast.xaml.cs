@@ -124,6 +124,11 @@ public partial class MyToast
         ProgressBar.BeginAnimation(WidthProperty, anim);
     }
 
+    private void RootGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        RootGrid.Clip = new RectangleGeometry(new Rect(0, 0, RootGrid.ActualWidth, RootGrid.ActualHeight), 8, 8);
+    }
+
     private void UpdateColors()
     {
         var baseHue = ToastType switch
