@@ -2615,7 +2615,7 @@ public static class ModLaunch
         // 添加 LegacyFix 相关参数
         if (McLaunchNeedsLegacyFix(instance))
         {
-            var legacyFixPath = ModFolder.mcFolderSelected + @"libraries\legacyfix\legacyfix.jar";
+            var legacyFixPath = Path.Combine(ModFolder.mcFolderSelected, "libraries", "legacyfix", "legacyfix.jar");
             dataList.Add("-javaagent:\"" + legacyFixPath + "\"");
 
             // Beta 1.6 以前版本需要添加的参数
@@ -2892,7 +2892,7 @@ public static class ModLaunch
         // LegacyFix 释放
         if (McLaunchNeedsLegacyFix(instance))
         {
-            var legacyFixPath = ModFolder.mcFolderSelected + @"libraries\legacyfix\legacyfix.jar";
+            var legacyFixPath = Path.Combine(ModFolder.mcFolderSelected, "libraries", "legacyfix", "legacyfix.jar");
             try
             {
                 ModBase.WriteFile(legacyFixPath, ModBase.GetResourceStream("Resources/legacyfix.jar"));
