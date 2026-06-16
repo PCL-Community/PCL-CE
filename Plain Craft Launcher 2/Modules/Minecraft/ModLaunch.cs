@@ -2240,6 +2240,7 @@ public static class ModLaunch
 
     /// <summary>
     ///     判断是否使用 LegacyFix。
+    ///     TODO: 在更换为 Drop 比较版本号后可能不准确，需要测试确认。
     /// </summary>
     private static bool McLaunchNeedsLegacyFix(McInstance mc)
     {
