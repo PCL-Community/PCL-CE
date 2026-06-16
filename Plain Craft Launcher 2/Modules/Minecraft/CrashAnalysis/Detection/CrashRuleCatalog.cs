@@ -236,7 +236,7 @@ internal static class CrashRuleCatalog
                     cause,
                     CrashConfidence.High,
                     source,
-                    patterns.Join(" | "),
+                    string.Join(" | ", patterns),
                     stopOnMatch);
             }
         };

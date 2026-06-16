@@ -182,7 +182,7 @@ internal sealed class CrashEvidenceExtractor
                 StringComparison.Ordinal))
             return null;
 
-        var detail = (gameLog.RegexSeek("(?<=class \")[^']+(?=\"'s signer information)") ?? "")
+        var detail = (CrashRegex.First(gameLog, "(?<=class \")[^']+(?=\"'s signer information)") ?? "")
             .TrimEnd('\r', '\n');
 
         return new CrashFinding(
@@ -200,7 +200,7 @@ internal sealed class CrashEvidenceExtractor
 
         if (string.IsNullOrEmpty(crash) ||
             !crash.Contains("has mods that were not found", StringComparison.Ordinal) ||
-            !crash.RegexCheck(@"The Mod File [^\n]+optifine\\OptiFine[^\n]+ has mods that were not found"))
+            !CrashRegex.IsMatch(crash, @"The Mod File [^\n]+optifine\\OptiFine[^\n]+ has mods that were not found"))
             return null;
 
         return new CrashFinding(
@@ -221,8 +221,7 @@ internal sealed class CrashEvidenceExtractor
         if (!string.IsNullOrEmpty(gameLog) &&
             gameLog.Contains("Caught exception from ", StringComparison.Ordinal))
         {
-            var hint = gameLog
-                .RegexSeek(@"(?<=Caught exception from )[^\n]+?")
+            var hint = CrashRegex.First(gameLog, @"(?<=Caught exception from )[^\n]+?")
                 ?.TrimEnd('\r', '\n', ' ');
 
             yield return _ModFinding(
@@ -238,11 +237,11 @@ internal sealed class CrashEvidenceExtractor
 
         if (crash.Contains("-- MOD ", StringComparison.Ordinal))
         {
-            var modSection = crash.Between("-- MOD ", "Failure message:");
+            var modSection = CrashText.Between(crash, "-- MOD ", "Failure message:");
 
-            if (modSection.ContainsF(".jar", true))
+            if (modSection.Contains(".jar", StringComparison.OrdinalIgnoreCase))
             {
-                var fileName = (modSection.RegexSeek("(?<=Mod File: ).+") ?? "")
+                var fileName = (CrashRegex.First(modSection, "(?<=Mod File: ).+") ?? "")
                     .TrimEnd('\r', '\n', ' ');
 
                 yield return _ModFinding(
@@ -253,7 +252,7 @@ internal sealed class CrashEvidenceExtractor
             }
             else
             {
-                var message = (crash.RegexSeek(@"(?<=Failure message: )[\w\W]+?(?=\tMod)") ?? "")
+                var message = (CrashRegex.First(crash, @"(?<=Failure message: )[\w\W]+?(?=\tMod)") ?? "")
                     .Replace("\t", " ")
                     .TrimEnd('\r', '\n', ' ');
 
@@ -268,7 +267,7 @@ internal sealed class CrashEvidenceExtractor
 
         if (crash.Contains("Multiple entries with same key: ", StringComparison.Ordinal))
         {
-            var hint = (crash.RegexSeek("(?<=Multiple entries with same key: )[^=]+") ?? "")
+            var hint = (CrashRegex.First(crash, "(?<=Multiple entries with same key: )[^=]+") ?? "")
                 .TrimEnd('\r', '\n', ' ');
 
             yield return _ModFinding(
@@ -280,7 +279,7 @@ internal sealed class CrashEvidenceExtractor
 
         if (crash.Contains("LoaderExceptionModCrash: Caught exception from ", StringComparison.Ordinal))
         {
-            var hint = (crash.RegexSeek(@"(?<=LoaderExceptionModCrash: Caught exception from )[^\n]+") ?? "")
+            var hint = (CrashRegex.First(crash, @"(?<=LoaderExceptionModCrash: Caught exception from )[^\n]+") ?? "")
                 .TrimEnd('\r', '\n', ' ');
 
             yield return _ModFinding(
@@ -292,10 +291,10 @@ internal sealed class CrashEvidenceExtractor
 
         if (crash.Contains("Failed loading config file ", StringComparison.Ordinal))
         {
-            var mod = (crash.RegexSeek(@"(?<=Failed loading config file .+ for modid )[^\n]+") ?? "")
+            var mod = (CrashRegex.First(crash, @"(?<=Failed loading config file .+ for modid )[^\n]+") ?? "")
                 .TrimEnd('\r', '\n');
 
-            var config = (crash.RegexSeek("(?<=Failed loading config file ).+(?= of type)") ?? "")
+            var config = (CrashRegex.First(crash, "(?<=Failed loading config file ).+(?= of type)") ?? "")
                 .TrimEnd('\r', '\n');
 
             var resolved = modIndex.ResolveToDisplayNames([mod]);
@@ -326,7 +325,8 @@ internal sealed class CrashEvidenceExtractor
         if (gameLog.Contains("DuplicateModsFoundException", StringComparison.Ordinal))
             yield return _ModFinding(
                 CrashCause.DuplicateMods,
-                gameLog.RegexSearch(
+                CrashRegex.All(
+                    gameLog,
                     @"(?<=\n\t[\w]+ : [A-Z]:[^\n]+(/|\\))[^/\\\n]+?.jar",
                     RegexOptions.IgnoreCase),
                 CrashLogKind.Game,
@@ -335,16 +335,17 @@ internal sealed class CrashEvidenceExtractor
         if (gameLog.Contains("Found a duplicate mod", StringComparison.Ordinal))
             yield return _ModFinding(
                 CrashCause.DuplicateMods,
-                (gameLog.RegexSeek(@"Found a duplicate mod[^\n]+") ?? "")
-                .RegexSearch(@"[^\\/]+.jar", RegexOptions.IgnoreCase),
+                CrashRegex.All(
+                    CrashRegex.First(gameLog, @"Found a duplicate mod[^\n]+") ?? "",
+                    @"[^\\/]+.jar",
+                    RegexOptions.IgnoreCase),
                 CrashLogKind.Game,
                 true);
 
         if (gameLog.Contains("Found duplicate mods", StringComparison.Ordinal))
             yield return _ModFinding(
                 CrashCause.DuplicateMods,
-                gameLog
-                    .RegexSearch(@"(?<=Mod ID: ')\w+?(?=' from mod files:)")
+                CrashRegex.All(gameLog, @"(?<=Mod ID: ')\w+?(?=' from mod files:)")
                     .Distinct()
                     .ToList(),
                 CrashLogKind.Game,
@@ -353,8 +354,10 @@ internal sealed class CrashEvidenceExtractor
         if (gameLog.Contains("ModResolutionException: Duplicate", StringComparison.Ordinal))
             yield return _ModFinding(
                 CrashCause.DuplicateMods,
-                (gameLog.RegexSeek(@"ModResolutionException: Duplicate[^\n]+") ?? "")
-                .RegexSearch(@"[^\\/]+.jar", RegexOptions.IgnoreCase),
+                CrashRegex.All(
+                    CrashRegex.First(gameLog, @"ModResolutionException: Duplicate[^\n]+") ?? "",
+                    @"[^\\/]+.jar",
+                    RegexOptions.IgnoreCase),
                 CrashLogKind.Game,
                 true);
     }
@@ -369,15 +372,15 @@ internal sealed class CrashEvidenceExtractor
         if (gameLog.Contains("Incompatible mods found!", StringComparison.Ordinal))
             yield return _ModFinding(
                 CrashCause.IncompatibleMods,
-                [gameLog.RegexSeek(@"(?<=Incompatible mods found![\s\S]+: )[\s\S]+?(?=\tat )") ?? ""],
+                [CrashRegex.First(gameLog, @"(?<=Incompatible mods found![\s\S]+: )[\s\S]+?(?=\tat )") ?? ""],
                 CrashLogKind.Game,
                 true,
                 "loader-message");
 
         if (gameLog.Contains("Missing or unsupported mandatory dependencies:", StringComparison.Ordinal))
         {
-            var details = gameLog
-                .RegexSearch(
+            var details = CrashRegex.All(
+                    gameLog,
                     @"(?<=Missing or unsupported mandatory dependencies:)([\n\r]+\t(.*))+",
                     RegexOptions.IgnoreCase)
                 .Select(item => item.Trim('\r', '\n', '\t', ' '))
@@ -467,8 +470,8 @@ internal sealed class CrashEvidenceExtractor
                 StringComparison.Ordinal))
             yield break;
 
-        var message = gameLog
-            .RegexSeek(
+        var message = CrashRegex.First(
+                gameLog,
                 @"(?<=the game will display an error screen and halt.[\n\r]+[^\n]+?Exception: )[\s\S]+?(?=\n\tat)")
             ?.Trim('\r', '\n') ?? "";
 
@@ -490,21 +493,29 @@ internal sealed class CrashEvidenceExtractor
         var solution = "";
 
         if (gameLog.Contains("A potential solution has been determined:", StringComparison.Ordinal))
-            solution = (gameLog.RegexSeek(@"(?<=A potential solution has been determined:\n)(\s+ - [^\n]+\n)+") ?? "")
-                .RegexSearch(@"(?<=\s+)[^\n]+")
-                .Join("\n");
+            solution = string.Join(
+                "\n",
+                CrashRegex.All(
+                    CrashRegex.First(gameLog, @"(?<=A potential solution has been determined:\n)(\s+ - [^\n]+\n)+") ??
+                    "",
+                    @"(?<=\s+)[^\n]+"));
         else if (gameLog.Contains(
                      "A potential solution has been determined, this may resolve your problem:",
                      StringComparison.Ordinal))
-            solution = (gameLog.RegexSeek(
-                            @"(?<=A potential solution has been determined, this may resolve your problem:\n)(\s+ - [^\n]+\n)+") ??
-                        "")
-                .RegexSearch(@"(?<=\s+)[^\n]+")
-                .Join("\n");
+            solution = string.Join(
+                "\n",
+                CrashRegex.All(
+                    CrashRegex.First(
+                        gameLog,
+                        @"(?<=A potential solution has been determined, this may resolve your problem:\n)(\s+ - [^\n]+\n)+") ??
+                    "",
+                    @"(?<=\s+)[^\n]+"));
         else if (gameLog.Contains("确定了一种可能的解决方法，这样做可能会解决你的问题：", StringComparison.Ordinal))
-            solution = (gameLog.RegexSeek(@"(?<=确定了一种可能的解决方法，这样做可能会解决你的问题：\n)(\s+ - [^\n]+\n)+") ?? "")
-                .RegexSearch(@"(?<=\s+)[^\n]+")
-                .Join("\n");
+            solution = string.Join(
+                "\n",
+                CrashRegex.All(
+                    CrashRegex.First(gameLog, @"(?<=确定了一种可能的解决方法，这样做可能会解决你的问题：\n)(\s+ - [^\n]+\n)+") ?? "",
+                    @"(?<=\s+)[^\n]+"));
 
         if (!string.IsNullOrWhiteSpace(solution))
             yield return _ModFinding(
@@ -526,7 +537,7 @@ internal sealed class CrashEvidenceExtractor
             _LooksLikeMixinFailure(gameLog))
             yield break;
 
-        var hint = (gameLog.RegexSeek("(?<=due to errors, provided by ')[^']+") ?? "")
+        var hint = (CrashRegex.First(gameLog, "(?<=due to errors, provided by ')[^']+") ?? "")
             .TrimEnd('\r', '\n', ' ');
 
         yield return _ModFinding(
@@ -546,12 +557,12 @@ internal sealed class CrashEvidenceExtractor
             !crash.Contains("Suspected Mod", StringComparison.Ordinal))
             yield break;
 
-        var suspectsRaw = crash.Between("Suspected Mod", "Stacktrace");
+        var suspectsRaw = CrashText.Between(crash, "Suspected Mod", "Stacktrace");
 
-        if (suspectsRaw.StartsWithF("s: None"))
+        if (suspectsRaw.StartsWith("s: None", StringComparison.Ordinal))
             yield break;
 
-        var suspects = suspectsRaw.RegexSearch(@"(?<=\n\t[^(\t]+\()[^)\n]+");
+        var suspects = CrashRegex.All(suspectsRaw, @"(?<=\n\t[^(\t]+\()[^)\n]+");
 
         if (suspects.Count != 0)
             yield return _ModFinding(
@@ -604,8 +615,8 @@ internal sealed class CrashEvidenceExtractor
             !gameLog.Contains("Failed to create mod instance.", StringComparison.Ordinal))
             return null;
 
-        var hint = (gameLog.RegexSeek("(?<=Failed to create mod instance. ModID: )[^,]+") ??
-                    gameLog.RegexSeek(@"(?<=Failed to create mod instance. ModId )[^\n]+(?= for )") ?? "")
+        var hint = (CrashRegex.First(gameLog, "(?<=Failed to create mod instance. ModID: )[^,]+") ??
+                    CrashRegex.First(gameLog, @"(?<=Failed to create mod instance. ModId )[^\n]+(?= for )") ?? "")
             .TrimEnd('\r', '\n');
 
         return _ModFinding(
@@ -625,9 +636,9 @@ internal sealed class CrashEvidenceExtractor
         if (crash.Contains("\tBlock location: World: ", StringComparison.Ordinal))
         {
             var value =
-                (crash.RegexSeek(@"(?<=\tBlock: Block\{)[^\}]+") ?? "") +
+                (CrashRegex.First(crash, @"(?<=\tBlock: Block\{)[^\}]+") ?? "") +
                 " " +
-                (crash.RegexSeek(@"(?<=\tBlock location: World: )\([^\)]+\)") ?? "");
+                (CrashRegex.First(crash, @"(?<=\tBlock location: World: )\([^\)]+\)") ?? "");
 
             yield return _ModFinding(
                 CrashCause.SpecificBlockCrash,
@@ -640,9 +651,9 @@ internal sealed class CrashEvidenceExtractor
         if (crash.Contains("\tEntity's Exact location: ", StringComparison.Ordinal))
         {
             var value =
-                (crash.RegexSeek(@"(?<=\tEntity Type: )[^\n]+(?= \()") ?? "") +
+                (CrashRegex.First(crash, @"(?<=\tEntity Type: )[^\n]+(?= \()") ?? "") +
                 " (" +
-                (crash.RegexSeek(@"(?<=\tEntity's Exact location: )[^\n]+") ?? "")
+                (CrashRegex.First(crash, @"(?<=\tEntity's Exact location: )[^\n]+") ?? "")
                 .TrimEnd('\r', '\n') +
                 ")";
 

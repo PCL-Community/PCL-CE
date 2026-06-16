@@ -1,4 +1,6 @@
 using System.IO;
+using PCL.Core.App;
+using PCL.Core.Logging;
 
 namespace PCL;
 
@@ -6,7 +8,7 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
 {
     public void Collect(string versionPathIndie, IList<string>? latestLog)
     {
-        ModBase.Log("[Crash] 步骤 1：收集日志文件");
+        LogWrapper.Info("Crash", "步骤 1：收集日志文件");
 
         var possibleLogs = _FindPossibleLogFiles(versionPathIndie)
             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -14,14 +16,14 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
 
         var recentLogs = possibleLogs.Where(IsRecentNonEmptyFile).ToList();
         if (recentLogs.Count == 0)
-            ModBase.Log("[Crash] 未发现可能可用的日志文件");
+            LogWrapper.Info("Crash", "未发现可能可用的日志文件");
 
         foreach (var filePath in recentLogs)
             TryAddLogFile(filePath, "读取可能的崩溃日志文件失败");
 
         AddCapturedOutput(latestLog);
 
-        ModBase.Log("[Crash] 步骤 1：收集日志文件完成，收集到 " + context.RawFiles.Count + " 个文件");
+        LogWrapper.Info("Crash", "步骤 1：收集日志文件完成，收集到 " + context.RawFiles.Count + " 个文件");
     }
 
     private static IEnumerable<string> _FindPossibleLogFiles(string versionPathIndie)
@@ -36,7 +38,7 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "收集 Minecraft 崩溃日志文件夹下的日志失败");
+            LogWrapper.Warn(ex, "Crash", "收集 Minecraft 崩溃日志文件夹下的日志失败");
         }
 
         try
@@ -50,7 +52,7 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "收集 Minecraft 主文件夹下的日志失败");
+            LogWrapper.Warn(ex, "Crash", "收集 Minecraft 主文件夹下的日志失败");
         }
 
         try
@@ -64,12 +66,12 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "收集 Minecraft 隔离文件夹下的日志失败");
+            LogWrapper.Warn(ex, "Crash", "收集 Minecraft 隔离文件夹下的日志失败");
         }
 
         possibleLogs.Add(Path.Combine(versionPathIndie, "logs", "latest.log"));
-        var launchScript = ModBase.ReadFile(Path.Combine(ModBase.exePath, "PCL", "LatestLaunch.bat"));
-        if (launchScript.ContainsF("-Dlog4j2.formatMsgNoLookups=false"))
+        var launchScript = CrashFileIO.ReadText(Path.Combine(Basics.ExecutableDirectory, "PCL", "LatestLaunch.bat"));
+        if (launchScript.Contains("-Dlog4j2.formatMsgNoLookups=false", StringComparison.OrdinalIgnoreCase))
             possibleLogs.Add(Path.Combine(versionPathIndie, "logs", "debug.log"));
 
         return possibleLogs;
@@ -87,12 +89,12 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
             if (ageMinutes >= 3d)
                 return false;
 
-            ModBase.Log("[Crash] 可能可用的日志文件：" + filePath + "（" + Math.Round(ageMinutes, 1) + " 分钟）");
+            LogWrapper.Info("Crash", "可能可用的日志文件：" + filePath + "（" + Math.Round(ageMinutes, 1) + " 分钟）");
             return true;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "确认崩溃日志时间失败（" + filePath + "）");
+            LogWrapper.Warn(ex, "Crash", "确认崩溃日志时间失败（" + filePath + "）");
             return false;
         }
     }
@@ -101,11 +103,12 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
     {
         try
         {
-            context.RawFiles.Add(new CrashLogEntry(filePath, ModBase.ReadFile(filePath).Split("\r\n".ToCharArray())));
+            context.RawFiles.Add(
+                new CrashLogEntry(filePath, CrashFileIO.ReadText(filePath).Split("\r\n".ToCharArray())));
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, errorMessage + "（" + filePath + "）");
+            LogWrapper.Warn(ex, "Crash", errorMessage + "（" + filePath + "）");
         }
     }
 
@@ -114,10 +117,10 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
         if (latestLog is null || !latestLog.Any())
             return;
 
-        var rawOutput = latestLog.Join("\r\n");
-        ModBase.Log("[Crash] 以下为游戏输出的最后一段内容：" + "\r\n" + rawOutput);
+        var rawOutput = string.Join("\r\n", latestLog);
+        LogWrapper.Info("Crash", "以下为游戏输出的最后一段内容：" + "\r\n" + rawOutput);
         var rawOutputPath = Path.Combine(context.TempFolder, "RawOutput.log");
-        ModBase.WriteFile(rawOutputPath, rawOutput);
+        CrashFileIO.WriteText(rawOutputPath, rawOutput);
         context.RawFiles.Add(new CrashLogEntry(rawOutputPath, latestLog.ToArray()));
         latestLog.Clear();
     }

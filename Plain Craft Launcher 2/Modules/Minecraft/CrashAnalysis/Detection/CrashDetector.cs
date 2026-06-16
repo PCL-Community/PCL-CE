@@ -1,3 +1,5 @@
+using PCL.Core.Logging;
+
 namespace PCL;
 
 internal sealed class CrashDetector
@@ -7,7 +9,7 @@ internal sealed class CrashDetector
 
     public CrashAnalysisResult Analyze(CrashLogSet logs, McInstance? instance)
     {
-        ModBase.Log("[Crash] 步骤 3：分析崩溃原因");
+        LogWrapper.Info("Crash", "步骤 3：分析崩溃原因");
         var result = new CrashAnalysisResult();
         if (!logs.HasAnalyzableLog)
         {
@@ -53,8 +55,8 @@ internal sealed class CrashDetector
         if (all.Contains("quilt", StringComparison.OrdinalIgnoreCase) &&
             all.Contains("Mod Table Version", StringComparison.Ordinal))
         {
-            ModBase.Log("[Crash] 处理 Quilt Mod Table 后再继续分析");
-            all = all.BeforeFirst("| Index") + all.AfterFirst("Mod Table Version:");
+            LogWrapper.Info("Crash", "处理 Quilt Mod Table 后再继续分析");
+            all = CrashText.BeforeFirst(all, "| Index") + CrashText.AfterFirst(all, "Mod Table Version:");
         }
 
         return new CrashLogSet
@@ -98,20 +100,21 @@ internal sealed class CrashDetector
 
     private static void _LogFinding(CrashFinding finding)
     {
-        var evidence = finding.Details.Join("；");
-        ModBase.Log("[Crash] 可能的崩溃原因：" + finding.Cause +
-                    (string.IsNullOrEmpty(evidence) ? "" : "（" + evidence + "）"));
+        var evidence = string.Join("；", finding.Details);
+        LogWrapper.Info(
+            "Crash",
+            $"可能的崩溃原因：{finding.Cause}{(string.IsNullOrEmpty(evidence) ? "" : "（" + evidence + "）")}");
     }
 
     private static void _LogSummary(CrashAnalysisResult result)
     {
         if (!result.Any)
         {
-            ModBase.Log("[Crash] 步骤 3：分析崩溃原因完成，未找到可能的原因");
+            LogWrapper.Info("Crash", "步骤 3：分析崩溃原因完成，未找到可能的原因");
             return;
         }
 
-        ModBase.Log("[Crash] 步骤 3：分析崩溃原因完成，找到 " + result.Findings.Count + " 条可能的原因");
+        LogWrapper.Info("Crash", $"步骤 3：分析崩溃原因完成，找到 {result.Findings.Count} 条可能的原因");
         foreach (var finding in result.Findings)
             _LogFinding(finding);
     }

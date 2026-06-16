@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text;
+using PCL.Core.Logging;
 
 namespace PCL;
 
@@ -30,7 +31,7 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
 
     public bool Prepare()
     {
-        ModBase.Log("[Crash] 步骤 2：准备日志文本");
+        LogWrapper.Info("Crash", "步骤 2：准备日志文本");
 
         context.DirectOpenFile = null;
         context.PreparedLogs = null;
@@ -49,7 +50,7 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
 
         if (analyzable.Count == 0 && extraFiles.Count > 0)
         {
-            ModBase.Log("[Crash] 由于仅发现了额外日志，将它们视作 Minecraft 日志进行分析");
+            LogWrapper.Info("Crash", "由于仅发现了额外日志，将它们视作 Minecraft 日志进行分析");
 
             analyzable = extraFiles
                 .Select(file => new ClassifiedCrashLog(file, CrashLogKind.Game))
@@ -66,7 +67,7 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
         foreach (var extraFile in extraFiles)
         {
             context.OutputFiles.Add(extraFile.FullPath);
-            ModBase.Log("[Crash] 输出报告：" + extraFile.FullPath + "，不用作分析");
+            LogWrapper.Info("Crash", $"输出报告：{extraFile.FullPath}，不用作分析");
         }
 
         var logs = new CrashLogSet
@@ -85,15 +86,16 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
         context.LogAll = logs.All;
 
         if (logs.HasAnalyzableLog)
-            ModBase.Log(
-                ("[Crash] 步骤 2：准备日志文本完成，找到" +
+            LogWrapper.Info(
+                "Crash",
+                ("步骤 2：准备日志文本完成，找到" +
                  (game is null ? "" : "游戏日志、") +
                  (debug is null ? "" : "游戏 Debug 日志、") +
                  (hsErr is null ? "" : "虚拟机日志、") +
                  (crashReport is null ? "" : "崩溃日志、"))
                 .TrimEnd('、') + "用作分析");
         else
-            ModBase.Log("[Crash] 步骤 2：准备日志文本完成，没有任何可供分析的日志");
+            LogWrapper.Info("Crash", "步骤 2：准备日志文本完成，没有任何可供分析的日志");
 
         return logs.HasAnalyzableLog;
     }
@@ -108,7 +110,7 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
 
             if (!file.Lines.Any())
             {
-                ModBase.Log("[Crash] " + name + " 由于内容为空跳过");
+                LogWrapper.Info("Crash", $"{name} 由于内容为空跳过");
                 continue;
             }
 
@@ -116,7 +118,7 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
 
             if (kind is null && !_IsExtraLogLike(file))
             {
-                ModBase.Log("[Crash] " + name + " 分类为 Ignore");
+                LogWrapper.Info("Crash", $"{name} 分类为 Ignore");
                 continue;
             }
 
@@ -124,7 +126,7 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
                 context.DirectOpenFile = file;
 
             result.Add(new ClassifiedCrashLog(file, kind));
-            ModBase.Log("[Crash] " + name + " 分类为 " + (kind?.ToString() ?? "Extra"));
+            LogWrapper.Info("Crash", $"{name} 分类为 {kind?.ToString() ?? "Extra"}");
         }
 
         return result;
@@ -134,10 +136,10 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
     {
         var name = file.FileName.ToLowerInvariant();
 
-        if (name.StartsWithF("hs_err"))
+        if (name.StartsWith("hs_err", StringComparison.Ordinal))
             return CrashLogKind.HsErr;
 
-        if (name.StartsWithF("crash-"))
+        if (name.StartsWith("crash-", StringComparison.Ordinal))
             return CrashLogKind.CrashReport;
 
         if (KnownDebugLogNames.Contains(name))
@@ -157,8 +159,8 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
     {
         var name = file.FileName.ToLowerInvariant();
 
-        return name.EndsWithF(".log", true) ||
-               name.EndsWithF(".txt", true);
+        return name.EndsWith(".log", StringComparison.OrdinalIgnoreCase) ||
+               name.EndsWith(".txt", StringComparison.OrdinalIgnoreCase);
     }
 
     private CrashLogText? _SelectGameLog(IReadOnlyList<ClassifiedCrashLog> files)
@@ -197,7 +199,7 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
             text += _ExtractLauncherGameOutput(currentLog);
 
             context.OutputFiles.Add(currentLog.FullPath);
-            ModBase.Log("[Crash] 导入分析：" + currentLog.FullPath + "，作为启动器日志");
+            LogWrapper.Info("Crash", $"导入分析：{currentLog.FullPath}，作为启动器日志");
 
             break;
         }
@@ -216,7 +218,7 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
             text += _GetHeadTailLines(currentLog.Lines, 1500, 500);
 
             context.OutputFiles.Add(currentLog.FullPath);
-            ModBase.Log("[Crash] 导入分析：" + currentLog.FullPath + "，作为 Minecraft 日志");
+            LogWrapper.Info("Crash", $"导入分析：{currentLog.FullPath}，作为 Minecraft 日志");
 
             break;
         }
@@ -230,13 +232,13 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
             text = _GetHeadTailLines(fallback.Lines, 1500, 500);
 
             context.OutputFiles.Add(fallback.FullPath);
-            ModBase.Log("[Crash] 导入分析：" + fallback.FullPath + "，作为兜底日志");
+            LogWrapper.Info("Crash", $"导入分析：{fallback.FullPath}，作为兜底日志");
         }
 
         foreach (var file in gameFiles.Where(file => !context.OutputFiles.Contains(file.FullPath)))
         {
             context.OutputFiles.Add(file.FullPath);
-            ModBase.Log("[Crash] 输出报告：" + file.FullPath + "，作为 Minecraft 或启动器日志");
+            LogWrapper.Info("Crash", $"输出报告：{file.FullPath}，作为 Minecraft 或启动器日志");
         }
 
         return new CrashLogText
@@ -264,7 +266,7 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
         if (!context.OutputFiles.Contains(selected.FullPath))
             context.OutputFiles.Add(selected.FullPath);
 
-        ModBase.Log("[Crash] 导入分析：" + selected.FullPath + "，作为 Minecraft Debug 日志");
+        LogWrapper.Info("Crash", $"导入分析：{selected.FullPath}，作为 Minecraft Debug 日志");
 
         return new CrashLogText
         {
@@ -294,15 +296,13 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
 
         context.OutputFiles.Add(selected.FullPath);
 
-        ModBase.Log(
-            "[Crash] 输出报告：" +
-            selected.FullPath +
-            (kind == CrashLogKind.HsErr ? "，作为虚拟机错误信息" : "，作为 Minecraft 崩溃报告"));
+        LogWrapper.Info(
+            "Crash",
+            $"输出报告：{selected.FullPath}{(kind == CrashLogKind.HsErr ? "，作为虚拟机错误信息" : "，作为 Minecraft 崩溃报告")}");
 
-        ModBase.Log(
-            "[Crash] 导入分析：" +
-            selected.FullPath +
-            (kind == CrashLogKind.HsErr ? "，作为虚拟机错误信息" : "，作为 Minecraft 崩溃报告"));
+        LogWrapper.Info(
+            "Crash",
+            $"导入分析：{selected.FullPath}{(kind == CrashLogKind.HsErr ? "，作为虚拟机错误信息" : "，作为 Minecraft 崩溃报告")}");
 
         return new CrashLogText
         {
@@ -325,7 +325,7 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
             else if (line.Contains("以下为游戏输出的最后一段内容"))
             {
                 hasLauncherMark = true;
-                ModBase.Log("[Crash] 找到 PCL 输出的游戏实时日志头");
+                LogWrapper.Info("Crash", "找到 PCL 输出的游戏实时日志头");
             }
 
         return hasLauncherMark
@@ -341,7 +341,7 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取日志文件修改时间失败");
+            LogWrapper.Warn(ex, "Crash", "获取日志文件修改时间失败");
             return new DateTime(1900, 1, 1);
         }
     }

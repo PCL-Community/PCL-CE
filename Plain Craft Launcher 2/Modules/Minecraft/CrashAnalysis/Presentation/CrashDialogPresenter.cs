@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.IO;
+using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Logging;
 using PCL.Core.UI;
 
 namespace PCL;
@@ -38,13 +40,14 @@ internal sealed class CrashDialogPresenter(CrashAnalysisContext context)
             directFile,
             isModLoaderIncompatible);
 
-        var selectedButton = ModMain.MyMsgBox(
+        var selectedButton = MsgBoxWrapper.ShowWithCustomButtons(
             resultText,
             title,
-            Lang.Text("Common.Action.Confirm"),
-            secondButtonText,
-            thirdButtonText,
-            button2Action: secondButtonAction);
+            MsgBoxTheme.Info,
+            true,
+            new MsgBoxButtonInfo(Lang.Text("Common.Action.Confirm"), 1),
+            new MsgBoxButtonInfo(secondButtonText, 2, secondButtonAction),
+            new MsgBoxButtonInfo(thirdButtonText, 3));
 
         switch (selectedButton)
         {
@@ -103,14 +106,14 @@ internal sealed class CrashDialogPresenter(CrashAnalysisContext context)
     {
         if (File.Exists(directFile.FullPath))
         {
-            ModBase.ShellOnly(directFile.FullPath);
+            Basics.OpenPath(directFile.FullPath);
             return;
         }
 
-        var filePath = Path.Combine(ModBase.pathTemp, "Crash.txt");
+        var filePath = Path.Combine(Paths.Temp, "Crash.txt");
 
-        ModBase.WriteFile(filePath, directFile.Lines.Join("\r\n"));
-        ModBase.ShellOnly(filePath);
+        CrashFileIO.WriteText(filePath, string.Join("\r\n", directFile.Lines));
+        Basics.OpenPath(filePath);
     }
 
     private void _ExportReport(List<string>? extraFiles)
@@ -124,15 +127,15 @@ internal sealed class CrashDialogPresenter(CrashAnalysisContext context)
 
             _exporter.Export(context, fileAddress, extraFiles);
 
-            ModMain.Hint(
+            HintWrapper.Show(
                 Lang.Text("Crash.Report.Export.Success"),
-                ModMain.HintType.Finish);
+                HintTheme.Success);
 
-            ModBase.OpenExplorer(fileAddress);
+            Basics.OpenPath(Path.GetDirectoryName(fileAddress) ?? fileAddress);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "导出错误报告失败", ModBase.LogLevel.Feedback);
+            LogWrapper.Error(ex, "Crash", "导出错误报告失败");
         }
     }
 

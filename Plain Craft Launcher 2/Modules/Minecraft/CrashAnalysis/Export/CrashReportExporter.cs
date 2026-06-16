@@ -1,6 +1,7 @@
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.Utils.Codecs;
@@ -23,7 +24,7 @@ internal sealed class CrashReportExporter
         string targetZipPath,
         IEnumerable<string>? extraFiles)
     {
-        var targetFolder = ModBase.GetPathFromFullPath(targetZipPath);
+        var targetFolder = Basics.GetParentPathOrEmpty(targetZipPath);
         Directory.CreateDirectory(targetFolder);
 
         if (File.Exists(targetZipPath))
@@ -34,7 +35,7 @@ internal sealed class CrashReportExporter
         var reportFolder = Path.Combine(context.TempFolder, ReportFolderName);
 
         if (Directory.Exists(reportFolder))
-            ModBase.DeleteDirectory(reportFolder);
+            CrashFileIO.DeleteDirectory(reportFolder);
 
         Directory.CreateDirectory(reportFolder);
 
@@ -49,7 +50,7 @@ internal sealed class CrashReportExporter
         }
         finally
         {
-            ModBase.DeleteDirectory(reportFolder);
+            CrashFileIO.DeleteDirectory(reportFolder);
         }
     }
 
@@ -62,17 +63,17 @@ internal sealed class CrashReportExporter
 
         var fileName = _GetExportFileName(outputFile, out var fileEncoding);
 
-        fileEncoding ??= EncodingDetector.DetectEncoding(ModBase.ReadFileBytes(outputFile));
+        fileEncoding ??= EncodingDetector.DetectEncoding(CrashFileIO.ReadBytes(outputFile));
 
-        var fileContent = ModBase.ReadFile(outputFile, fileEncoding);
+        var fileContent = CrashFileIO.ReadText(outputFile, fileEncoding);
         fileContent = _SanitizeFileContent(fileContent, fileName);
 
-        ModBase.WriteFile(
+        CrashFileIO.WriteText(
             Path.Combine(reportFolder, fileName),
             fileContent,
-            encoding: fileEncoding);
+            fileEncoding);
 
-        ModBase.Log($"[Crash] 导出文件：{fileName}，编码：{fileEncoding.HeaderName}");
+        LogWrapper.Info("Crash", $"导出文件：{fileName}，编码：{fileEncoding.HeaderName}");
     }
 
     private static string _GetExportFileName(
@@ -81,7 +82,7 @@ internal sealed class CrashReportExporter
     {
         fileEncoding = null;
 
-        var fileName = ModBase.GetFileNameFromPath(outputFile) ?? Path.GetFileName(outputFile);
+        var fileName = Path.GetFileName(outputFile);
 
         switch (fileName)
         {
@@ -94,7 +95,7 @@ internal sealed class CrashReportExporter
         }
 
         var currentLogFile = LogWrapper.CurrentLogger.CurrentLogFiles.LastOrDefault();
-        var currentLogFileName = currentLogFile?.AfterLast(@"\");
+        var currentLogFileName = currentLogFile is null ? null : CrashText.AfterLast(currentLogFile, @"\");
 
         if (currentLogFileName != fileName) return fileName;
 
@@ -124,9 +125,9 @@ internal sealed class CrashReportExporter
 
     private static void _WriteEnvironmentInfo(string reportFolder)
     {
-        var launcherLog = _ReadReportFile(reportFolder, LauncherLogFileName)
-            .AfterLast("[Launch] ~ 基础参数 ~")
-            .BeforeFirst("开始 Minecraft 日志监控");
+        var launcherLog = CrashText.BeforeFirst(
+            CrashText.AfterLast(_ReadReportFile(reportFolder, LauncherLogFileName), "[Launch] ~ 基础参数 ~"),
+            "开始 Minecraft 日志监控");
 
         var launchScript = _ReadReportFile(reportFolder, LaunchScriptFileName);
 
@@ -137,15 +138,15 @@ internal sealed class CrashReportExporter
         _AppendInstanceInfo(envInfo, launcherLog, launchScript);
         _AppendEnvironmentInfo(envInfo, launcherLog);
 
-        ModBase.WriteFile(
+        CrashFileIO.WriteText(
             Path.Combine(reportFolder, EnvironmentFileName),
             envInfo.ToString(),
-            encoding: Encoding.UTF8);
+            Encoding.UTF8);
     }
 
     private static void _AppendLauncherInfo(StringBuilder builder)
     {
-        builder.AppendLine(Lang.Text("Crash.Report.Environment.LauncherVersion", ModBase.versionBaseName));
+        builder.AppendLine(Lang.Text("Crash.Report.Environment.LauncherVersion", Basics.VersionName));
         builder.AppendLine(Lang.Text("Crash.Report.Environment.LauncherId", Identify.LauncherId));
         builder.AppendLine();
     }
@@ -178,7 +179,7 @@ internal sealed class CrashReportExporter
         builder.AppendLine(
             Lang.Text(
                 "Crash.Report.Environment.Log4j2NoLookups",
-                !launchScript.ContainsF("-Dlog4j2.formatMsgNoLookups=false")));
+                !launchScript.Contains("-Dlog4j2.formatMsgNoLookups=false", StringComparison.OrdinalIgnoreCase)));
 
         builder.AppendLine(
             Lang.Text(
@@ -231,8 +232,7 @@ internal sealed class CrashReportExporter
         string launcherLog,
         string key)
     {
-        return launcherLog
-            .Between(key, "[")
+        return CrashText.Between(launcherLog, key, "[")
             .TrimEnd('[')
             .Trim();
     }
@@ -251,7 +251,7 @@ internal sealed class CrashReportExporter
         var filePath = Path.Combine(reportFolder, fileName);
 
         return File.Exists(filePath)
-            ? ModBase.ReadFile(filePath)
+            ? CrashFileIO.ReadText(filePath)
             : "";
     }
 }

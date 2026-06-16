@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text.RegularExpressions;
+using PCL.Core.Logging;
 
 namespace PCL;
 
@@ -100,17 +101,17 @@ internal sealed class CrashModIndex
         if (isFabric)
         {
             details = details.Replace("Fabric Mods", "¨");
-            ModBase.Log("[Crash] 崩溃报告中检测到 Fabric Mod 信息格式");
+            LogWrapper.Info("Crash", "崩溃报告中检测到 Fabric Mod 信息格式");
         }
 
         var isQuilt = details.Contains("quilt-loader", StringComparison.Ordinal);
         if (isQuilt)
         {
             details = details.Replace("Mod Table Version", "¨");
-            ModBase.Log("[Crash] 崩溃报告中检测到 Quilt Mod 信息格式");
+            LogWrapper.Info("Crash", "崩溃报告中检测到 Quilt Mod 信息格式");
         }
 
-        details = details.AfterLast("¨");
+        details = CrashText.AfterLast(details, "¨");
         foreach (var rawLine in details.Split('\n'))
         {
             var line = rawLine.Trim('\r', '\n');
@@ -119,27 +120,27 @@ internal sealed class CrashModIndex
 
             if (isFabric && line.StartsWith(
                     "\t\t",
-                    StringComparison.Ordinal) && !line.RegexCheck(@"\t\tfabric[\w-]*: Fabric"))
+                    StringComparison.Ordinal) && !CrashRegex.IsMatch(line, @"\t\tfabric[\w-]*: Fabric"))
             {
                 _Add(new CrashModInfo
                 {
-                    ModId = line.RegexSeek(@"(?<=\t\t)[^:]+"),
-                    DisplayName = line.RegexSeek(@"(?<=: )[^\n]+(?= [^\n]+)"),
-                    Version = line.RegexSeek(@"(?<= )[\w\.-]+$"),
+                    ModId = CrashRegex.First(line, @"(?<=\t\t)[^:]+"),
+                    DisplayName = CrashRegex.First(line, @"(?<=: )[^\n]+(?= [^\n]+)"),
+                    Version = CrashRegex.First(line, @"(?<= )[\w\.-]+$"),
                     Source = "crash-report-fabric"
                 });
                 continue;
             }
 
-            if (line.ContainsF(".jar", true) &&
+            if (line.Contains(".jar", StringComparison.OrdinalIgnoreCase) &&
                 line.Length - line.Replace(".jar", "", StringComparison.OrdinalIgnoreCase).Length == 4)
                 _Add(new CrashModInfo
                 {
-                    FileName = line.RegexSeek(
+                    FileName = CrashRegex.First(line,
                         @"(?<=\()[^\t]+.jar(?=\))|(?<=(\t\t)|(\| ))[^\t\|]+.jar",
                         RegexOptions.IgnoreCase),
-                    DisplayName = line.RegexSeek(@"(?<=\t)[^\t\|]+(?=\s+\()"),
-                    ModId = line.RegexSeek(@"(?<=\| )[\w\.-]+(?= \|)"),
+                    DisplayName = CrashRegex.First(line, @"(?<=\t)[^\t\|]+(?=\s+\()"),
+                    ModId = CrashRegex.First(line, @"(?<=\| )[\w\.-]+(?= \|)"),
                     Source = "crash-report-forge"
                 });
         }
@@ -150,12 +151,12 @@ internal sealed class CrashModIndex
         if (string.IsNullOrEmpty(text))
             return;
 
-        foreach (var line in text.RegexSearch("(?<=valid mod file ).*", RegexOptions.Multiline))
+        foreach (var line in CrashRegex.All(text, "(?<=valid mod file ).*", RegexOptions.Multiline))
             _Add(new CrashModInfo
             {
-                FileName = line.RegexSeek(".*(?= with)"),
-                ModId = line.RegexSeek(@"(?<=with \{)[^\}]+"),
-                Version = line.RegexSeek(@"(?<=versions \{)[^\}]+"),
+                FileName = CrashRegex.First(line, ".*(?= with)"),
+                ModId = CrashRegex.First(line, @"(?<=with \{)[^\}]+"),
+                Version = CrashRegex.First(line, @"(?<=versions \{)[^\}]+"),
                 Source = "debug-log"
             });
     }
@@ -165,7 +166,7 @@ internal sealed class CrashModIndex
         if (string.IsNullOrEmpty(text))
             return;
 
-        foreach (var line in text.RegexSearch(@"(?<=ModID: )[^,\n]+|(?<=ModId )[^\n]+(?= for )",
+        foreach (var line in CrashRegex.All(text, @"(?<=ModID: )[^,\n]+|(?<=ModId )[^\n]+(?= for )",
                      RegexOptions.IgnoreCase))
             _Add(new CrashModInfo
             {
@@ -193,7 +194,7 @@ internal sealed class CrashModIndex
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "读取实例 Mod 文件列表失败（" + directory + "）");
+                LogWrapper.Warn(ex, "Crash", "读取实例 Mod 文件列表失败（" + directory + "）");
             }
     }
 
@@ -207,7 +208,7 @@ internal sealed class CrashModIndex
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "读取实例隔离路径失败");
+            LogWrapper.Warn(ex, "Crash", "读取实例隔离路径失败");
         }
 
         if (!string.IsNullOrEmpty(pathIndie))
@@ -232,7 +233,7 @@ internal sealed class CrashModIndex
 
         _mods.Clear();
         _mods.AddRange(distinct);
-        ModBase.Log("[Crash] 构建 Mod 索引，找到 " + _mods.Count + " 个候选 Mod");
+        LogWrapper.Info("Crash", "构建 Mod 索引，找到 " + _mods.Count + " 个候选 Mod");
     }
 
     private static bool _SameDisplay(CrashModInfo a, CrashModInfo b)

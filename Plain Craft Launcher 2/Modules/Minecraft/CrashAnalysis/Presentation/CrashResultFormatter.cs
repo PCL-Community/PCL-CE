@@ -1,4 +1,5 @@
 using PCL.Core.App.Localization;
+using PCL.Core.Logging;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 
@@ -85,7 +86,7 @@ internal sealed class CrashResultFormatter
             case CrashCause.StackKeywordFound:
                 return additional.Count == 1
                     ? _Spec("Crash.Result.StackKeyword.Single", _Args(additional[0]), help: true)
-                    : _Spec("Crash.Result.StackKeyword.Multiple", _Args(additional.Join(", ")), help: true);
+                    : _Spec("Crash.Result.StackKeyword.Multiple", _Args(string.Join(", ", additional)), help: true);
 
             case CrashCause.StackModNameFound:
             case CrashCause.SuspectedModCrash:
@@ -226,7 +227,7 @@ internal sealed class CrashResultFormatter
         if (additional.Count == 0)
             return _Spec("Crash.Result.MissingDependencyOrWrongMcVersion.Generic", help: true);
 
-        var info = additional.Join("\n - ");
+        var info = string.Join("\n - ", additional);
 
         return info.IsMatch(RegexPatterns.IncompatibleModLoaderErrorHint)
             ? _Spec("Crash.Result.ModLoaderIncompatible", _Args(info))
@@ -287,7 +288,7 @@ internal sealed class CrashResultFormatter
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "确认启动器更新失败", ModBase.LogLevel.Feedback);
+            LogWrapper.Error(ex, "Crash", "确认启动器更新失败");
         }
 
         return Environment.NewLine +

@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using PCL.Core.Logging;
 
 namespace PCL;
 
@@ -37,7 +38,7 @@ internal sealed partial class CrashStackAnalyzer
     {
         if (!_ShouldAnalyzeStack(logs.All))
         {
-            ModBase.Log("[Crash] 可能并未安装 Mod，不进行堆栈分析");
+            LogWrapper.Info("Crash", "可能并未安装 Mod，不进行堆栈分析");
             return null;
         }
 
@@ -48,7 +49,7 @@ internal sealed partial class CrashStackAnalyzer
         if (keywords.Count is 0 or > 10)
         {
             if (keywords.Count > 10)
-                ModBase.Log("[Crash] 关键词过多，考虑匹配出错，不纳入考虑");
+                LogWrapper.Info("Crash", "关键词过多，考虑匹配出错，不纳入考虑");
 
             return null;
         }
@@ -97,31 +98,31 @@ internal sealed partial class CrashStackAnalyzer
 
         if (logs.CrashReport?.Text is not null)
         {
-            ModBase.Log("[Crash] 开始进行崩溃日志堆栈分析");
-            result.Add(logs.CrashReport.Text.BeforeFirst("System Details"));
+            LogWrapper.Info("Crash", "开始进行崩溃日志堆栈分析");
+            result.Add(CrashText.BeforeFirst(logs.CrashReport.Text, "System Details"));
         }
 
         if (logs.Game?.Text is not null)
         {
-            var fatals = logs.Game.Text.RegexSearch(@"/FATAL] .+?(?=[\n]+\[)");
+            var fatals = CrashRegex.All(logs.Game.Text, @"/FATAL] .+?(?=[\n]+\[)");
 
             if (logs.Game.Text.Contains("Unreported exception thrown!", StringComparison.Ordinal))
                 fatals.Add(
-                    logs.Game.Text.Between(
+                    CrashText.Between(logs.Game.Text,
                         "Unreported exception thrown!",
                         "at oolloo.jlw.Wrapper"));
 
-            ModBase.Log("[Crash] 开始进行 Minecraft 日志堆栈分析，发现 " + fatals.Count + " 个报错项");
+            LogWrapper.Info("Crash", "开始进行 Minecraft 日志堆栈分析，发现 " + fatals.Count + " 个报错项");
             result.AddRange(fatals);
         }
 
         if (logs.HsErr?.Text is not null)
         {
-            ModBase.Log("[Crash] 开始进行虚拟机堆栈分析");
-            result.Add(logs.HsErr.Text.Between("T H R E A D", "Registers:"));
+            LogWrapper.Info("Crash", "开始进行虚拟机堆栈分析");
+            result.Add(CrashText.Between(logs.HsErr.Text, "T H R E A D", "Registers:"));
         }
 
-        return "\n" + result.Join("\n") + "\n";
+        return "\n" + string.Join("\n", result) + "\n";
     }
 
     private static IEnumerable<string> _ExtractPackages(string stackText)
@@ -142,13 +143,13 @@ internal sealed partial class CrashStackAnalyzer
             .Select(item => item.Trim())
             .Where(item => !string.IsNullOrWhiteSpace(item))
             .Distinct(StringComparer.Ordinal)
-            .Where(item => !IgnoredPrefixes.Any(prefix => item.StartsWithF(prefix)))
+            .Where(item => !IgnoredPrefixes.Any(prefix => item.StartsWith(prefix, StringComparison.Ordinal)))
             .ToList();
 
-        ModBase.Log("[Crash] 找到 " + possibleStacks.Count + " 条可能的堆栈信息");
+        LogWrapper.Info("Crash", "找到 " + possibleStacks.Count + " 条可能的堆栈信息");
 
         foreach (var stack in possibleStacks)
-            ModBase.Log("[Crash]  - " + stack);
+            LogWrapper.Info("Crash", " - " + stack);
 
         return possibleStacks;
     }
@@ -166,7 +167,7 @@ internal sealed partial class CrashStackAnalyzer
                 var word = split[i].Trim();
 
                 if (word.Length <= 2 ||
-                    word.StartsWithF("func_") ||
+                    word.StartsWith("func_", StringComparison.Ordinal) ||
                     IgnoredWords.Contains(word))
                     continue;
 
@@ -178,10 +179,10 @@ internal sealed partial class CrashStackAnalyzer
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        ModBase.Log("[Crash] 从堆栈信息中找到 " + result.Count + " 个可能的 Mod ID 关键词");
+        LogWrapper.Info("Crash", "从堆栈信息中找到 " + result.Count + " 个可能的 Mod ID 关键词");
 
         if (result.Count != 0)
-            ModBase.Log("[Crash]  - " + result.Join(", "));
+            LogWrapper.Info("Crash", " - " + string.Join(", ", result));
 
         return result;
     }

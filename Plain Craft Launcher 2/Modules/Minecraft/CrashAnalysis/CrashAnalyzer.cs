@@ -1,4 +1,5 @@
 using System.IO;
+using PCL.Core.Logging;
 
 namespace PCL;
 
@@ -24,7 +25,7 @@ public sealed class CrashAnalyzer
         _detector = new CrashDetector();
         _dialogPresenter = new CrashDialogPresenter(_context);
 
-        ModBase.Log("[Crash] 崩溃分析暂存文件夹：" + tempFolder);
+        LogWrapper.Info("Crash", $"崩溃分析暂存文件夹：{tempFolder}");
     }
 
     /// <summary>
