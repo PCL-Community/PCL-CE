@@ -285,7 +285,10 @@ public static class ModMain
                 currentHint.Text = currentHint.Text.Replace("\r\n", " ").Replace("\r", " ")
                     .Replace("\n", " ");
                 if (frmMain.PanHint.Children.Count >= 5)
-                    goto EndHint;
+                {
+                    var oldest = frmMain.PanHint.Children.OfType<MyToast>().FirstOrDefault();
+                    oldest?.Dismiss();
+                }
 
                 var toast = new MyToast
                 {
@@ -302,8 +305,6 @@ public static class ModMain
 
                 frmMain.PanHint.Children.Add(toast);
                 toast.Show();
-
-                EndHint: ;
 
                 if (currentHint.Log)
                     ModBase.Log("[UI] 弹出提示：" + currentHint.Text);
