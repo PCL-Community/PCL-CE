@@ -2243,12 +2243,16 @@ public static class ModLaunch
     /// </summary>
     private static bool McLaunchNeedsLegacyFix(McInstance mc)
     {
-        if ((Config.Launch.DisableLF || Config.Instance.DisableLF[mc.PathInstance]) && mc.releaseTime < new DateTime(2013, 6, 25) && mc.releaseTime.Year > 2000)
+        if (Config.Launch.DisableLF || Config.Instance.DisableLF[mc.PathInstance])
         {
             ModBase.Log("[Launch] LegacyFix 已被禁用");
             return false;
         }
-        return true;
+        if (mc.releaseTime < new DateTime(2013, 6, 25) && mc.releaseTime.Year > 2000)
+        {
+            return true;
+        }
+        return false;
     }
 
     /// <summary>
