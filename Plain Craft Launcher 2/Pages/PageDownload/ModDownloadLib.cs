@@ -4651,7 +4651,7 @@ public static class ModDownloadLib
                 var regexMatchResult = Library["name"].ToString().RegexSeek(RegexPatterns.CatchLwjglInLib);
                 if (regexMatchResult is null ||
                     !isolatedLibraries.Contains(new KeyValuePair<string, bool>(regexMatchResult, true)))
-                    outputLibraries.Add(Library);
+                    outputLibraries.Add(Library.DeepClone());
             }
 
             foreach (var Library in labyModLib["libraries"].AsArray())

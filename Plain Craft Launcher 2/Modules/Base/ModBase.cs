@@ -2821,7 +2821,7 @@ public static class ModBase
             {
                 UseShellExecute = true,
             };
-            _ = Task.Run(() => Process.Start(psi));
+            Process.Start(psi);
         }
         catch (Exception ex)
         {

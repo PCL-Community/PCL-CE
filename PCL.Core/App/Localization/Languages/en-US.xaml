@@ -2737,11 +2737,7 @@
     <sys:String x:Key="Tools.Test.Luck.Rating0">(It's on a 0-100 scale)</sys:String>
 
     <!-- Tools.Test.Crash -->
-
     <sys:String x:Key="Tools.Test.Crash.Title">Crash test</sys:String>
-    <sys:String x:Key="Tools.Test.Crash.ToolTip">Clicking this will crash the launcher directly. Don't click unless you know what you're doing. No issues or problems caused by this will be accepted, and related issues will be closed immediately.</sys:String>
-    <sys:String x:Key="Tools.Test.Crash.ConfirmTitle">Crash confirmation</sys:String>
-    <sys:String x:Key="Tools.Test.Crash.ConfirmMessage">You probably clicked the wrong button. Confirm below if you really meant to do this.</sys:String>
     <sys:String x:Key="Tools.Test.Crash.ManualCrash">Manual crash</sys:String>
 
     <!-- Tools.Test.LaunchCount -->
