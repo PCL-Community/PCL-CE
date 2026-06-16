@@ -124,19 +124,19 @@ public partial class MyToast
             ModMain.HintType.Critical => 355d,
             _ => 210d
         };
-        var s = ThemeService.CurrentTone;
-        var bgLight = ToastType == ModMain.HintType.Critical && !ThemeService.IsDarkMode ? 90d : s.L7 * 100;
-        var bg = new ModBase.MyColor().FromHSL2(baseHue, 70, bgLight);
-        var fg = new ModBase.MyColor().FromHSL2(baseHue, 70, s.L2 * 100);
-        var border = new ModBase.MyColor().FromHSL2(baseHue, 70, s.L4 * 100);
+        var res = System.Windows.Application.Current.Resources;
+        var accent = new ModBase.MyColor().FromHSL2(baseHue, 75, 60);
+        var bg = (Brush)res["ColorBrushBackground"];
+        var text = (SolidColorBrush)res["ColorBrushGray1"];
+        var accentBrush = new SolidColorBrush(accent);
 
         Root.Background = bg;
-        Root.BorderBrush = border;
-        TitleText.Foreground = fg;
-        ProgressBar.Fill = fg;
-        BtnClose.Foreground = fg;
+        Root.BorderBrush = bg;
+        TitleText.Foreground = text;
+        ProgressBar.Fill = accentBrush;
+        BtnClose.Foreground = text;
         ToastIcon.Icon = Icon;
-        ToastIcon.IconBrush = fg;
+        ToastIcon.IconBrush = accentBrush;
         ToastIcon.StrokeThickness = 0;
     }
 }
