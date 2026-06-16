@@ -2246,11 +2246,11 @@ public static class ModLaunch
     {
         if (Config.Launch.DisableLF || Config.Instance.DisableLF[mc.PathInstance])
         {
-            ModBase.Log("[Launch] [Debug] LegacyFix 已被禁用");
+            ModBase.Log("[Launch] LegacyFix 已被禁用");
             return false;
         }
         var needs = mc.releaseTime < new DateTime(2013, 6, 25);
-        ModBase.Log($"[Launch] [Debug] 启用 LegacyFix");
+        ModBase.Log($"[Launch] 启用 LegacyFix");
         return needs;
     }
 
