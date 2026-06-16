@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 
 namespace PCL
 {
-    public static class XamlEventSanitizer
+    public static partial class XamlEventSanitizer
     {
         public class SanitizeResult
         {
@@ -11,74 +11,66 @@ namespace PCL
             public List<string> UnrecognizedTypes { get; set; } = new();
         }
 
-        private static readonly Regex EventTypeAttributeRegex = new(
-            @"(local:CustomEventService\.EventType\s*=\s*"")([^""]+)("")",
-            RegexOptions.Compiled);
+        [GeneratedRegex(@"(local:CustomEventService\.EventType\s*=\s*"")([^""]+)("")")]
+        private static partial Regex EventTypeAttributeRegex();
 
-        private static readonly Regex EventTypePropertyElementRegex = new(
-            @"(<local:CustomEventService\.EventType\s*>\s*)([^<]+?)(\s*</local:CustomEventService\.EventType\s*>)",
-            RegexOptions.Compiled);
+        [GeneratedRegex(@"(<local:CustomEventService\.EventType\s*>\s*)([^<]+?)(\s*</local:CustomEventService\.EventType\s*>)")]
+        private static partial Regex EventTypePropertyElementRegex();
 
-        private static readonly Regex CustomEventTypePropertyElementRegex = new(
-            @"(<local:CustomEvent\.Type\s*>\s*)([^<]+?)(\s*</local:CustomEvent\.Type\s*>)",
-            RegexOptions.Compiled);
+        [GeneratedRegex(@"(<local:CustomEvent\.Type\s*>\s*)([^<]+?)(\s*</local:CustomEvent\.Type\s*>)")]
+        private static partial Regex CustomEventTypePropertyElementRegex();
 
-        private static readonly Regex LocalCustomEventTypeAttributeRegex = new(
-            @"(<local:CustomEvent\s+[^>]*?\bType\s*=\s*"")([^""]+)("")",
-            RegexOptions.Compiled);
+        [GeneratedRegex(@"(<local:CustomEvent\s+[^>]*?\bType\s*=\s*"")([^""]+)("")")]
+        private static partial Regex LocalCustomEventTypeAttributeRegex();
 
-        private static readonly Regex LocalCustomEventSelfClosingRegex = new(
-            @"<local:CustomEvent\s+[^>]*?\bType\s*=\s*""([^""]+)""[^>]*/\s*>",
-            RegexOptions.Compiled);
+        [GeneratedRegex(@"<local:CustomEvent\s+[^>]*?\bType\s*=\s*""([^""]+)""[^>]*/\s*>")]
+        private static partial Regex LocalCustomEventSelfClosingRegex();
 
-        private static readonly Regex LocalCustomEventOpenTagRegex = new(
-            @"<local:CustomEvent\s+[^>]*?\bType\s*=\s*""([^""]+)""[^>]*>",
-            RegexOptions.Compiled);
+        [GeneratedRegex(@"<local:CustomEvent\s+[^>]*?\bType\s*=\s*""([^""]+)""[^>]*>")]
+        private static partial Regex LocalCustomEventOpenTagRegex();
 
-        private static readonly Regex SetterEventTypeValueRegex = new(
-            @"(Property\s*=\s*""local:CustomEventService\.EventType""[^>]*?\bValue\s*=\s*"")([^""]+)("")",
-            RegexOptions.Compiled);
+        [GeneratedRegex(@"(Property\s*=\s*""local:CustomEventService\.EventType""[^>]*?\bValue\s*=\s*"")([^""]+)("")")]
+        private static partial Regex SetterEventTypeValueRegex();
 
-        private static readonly Regex SetterValueEventTypeRegex = new(
-            @"(Value\s*=\s*"")([^""]+)(""[^>]*\bProperty\s*=\s*""local:CustomEventService\.EventType"")",
-            RegexOptions.Compiled);
+        [GeneratedRegex(@"(Value\s*=\s*"")([^""]+)(""[^>]*\bProperty\s*=\s*""local:CustomEventService\.EventType"")")]
+        private static partial Regex SetterValueEventTypeRegex();
 
         public static SanitizeResult Sanitize(string xaml)
         {
             var result = new SanitizeResult();
             var sanitized = xaml;
 
-            sanitized = EventTypeAttributeRegex.Replace(sanitized, match =>
+            sanitized = EventTypeAttributeRegex().Replace(sanitized, match =>
             {
                 var rawValue = match.Groups[2].Value;
                 return ReplaceEventType(match, rawValue, result);
             });
 
-            sanitized = EventTypePropertyElementRegex.Replace(sanitized, match =>
+            sanitized = EventTypePropertyElementRegex().Replace(sanitized, match =>
             {
                 var rawValue = match.Groups[2].Value.Trim();
                 return ReplaceEventType(match, rawValue, result);
             });
 
-            sanitized = CustomEventTypePropertyElementRegex.Replace(sanitized, match =>
+            sanitized = CustomEventTypePropertyElementRegex().Replace(sanitized, match =>
             {
                 var rawValue = match.Groups[2].Value.Trim();
                 return ReplaceOrRemoveSetter(match, rawValue, result);
             });
 
-            sanitized = LocalCustomEventTypeAttributeRegex.Replace(sanitized, match =>
+            sanitized = LocalCustomEventTypeAttributeRegex().Replace(sanitized, match =>
             {
                 var rawValue = match.Groups[2].Value;
                 return ReplaceEventType(match, rawValue, result);
             });
 
-            sanitized = LocalCustomEventSelfClosingRegex.Replace(sanitized, match =>
+            sanitized = LocalCustomEventSelfClosingRegex().Replace(sanitized, match =>
             {
                 var rawValue = match.Groups[1].Value;
                 return _RemoveBadCustomEventElement(match, rawValue, result);
             });
 
-            sanitized = LocalCustomEventOpenTagRegex.Replace(sanitized, match =>
+            sanitized = LocalCustomEventOpenTagRegex().Replace(sanitized, match =>
             {
                 var rawValue = match.Groups[1].Value;
                 if (_IsBadType(rawValue, result))
@@ -92,13 +84,13 @@ namespace PCL
                 return match.Value;
             });
 
-            sanitized = SetterEventTypeValueRegex.Replace(sanitized, match =>
+            sanitized = SetterEventTypeValueRegex().Replace(sanitized, match =>
             {
                 var rawValue = match.Groups[2].Value;
                 return ReplaceOrRemoveSetter(match, rawValue, result);
             });
 
-            sanitized = SetterValueEventTypeRegex.Replace(sanitized, match =>
+            sanitized = SetterValueEventTypeRegex().Replace(sanitized, match =>
             {
                 var rawValue = match.Groups[2].Value;
                 return ReplaceOrRemoveSetter(match, rawValue, result);
