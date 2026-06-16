@@ -2,8 +2,8 @@
 
 namespace PCL.Core.Minecraft.Profile.Models;
 
-public class ProfileJson<T> where T : class
+public class ProfileJson<T>
 {
     public int LastUsed { get; set; }
-    public ImmutableArray<T> Profiles { get; private set; } = [];
+    public ImmutableArray<T> Profiles { get; internal set; } = [];
 }

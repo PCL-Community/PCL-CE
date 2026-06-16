@@ -6,7 +6,7 @@ public interface IProfileManagement<T>
     /// 创建一个档案
     /// </summary>
     /// <returns></returns>
-    public T Create();
+    public void Add(T profile);
     /// <summary>
     /// 删除一个档案
     /// </summary>

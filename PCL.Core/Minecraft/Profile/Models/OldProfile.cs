@@ -2,7 +2,7 @@
 
 namespace PCL.Core.Minecraft.Profile.Models;
 
-public record OldProfile: SafeProfile
+internal record OldProfile: SafeProfile
 {
     [JsonPropertyName("type")]
     public required string Type { get; set; }

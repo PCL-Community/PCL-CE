@@ -1,20 +1,28 @@
-﻿namespace PCL.Core.Minecraft.Profile;
+﻿using PCL.Core.Minecraft.Profile.Models;
 
-public class ProfileManagement<T>: IProfileManagement<T> where T:class
+namespace PCL.Core.Minecraft.Profile;
+
+public class ProfileManagement<TProfileModel>: IProfileManagement<TProfileModel>
+    where TProfileModel:SafeProfile
 {
-    public T Create()
+    private ProfileJson<TProfileModel> _profiles = new();
+    
+    public SafeProfile Current { get; set; }
+    
+    public void Add(TProfileModel profile)
     {
-        throw new System.NotImplementedException();
+        _profiles.Profiles = _profiles.Profiles.Add(profile);
     }
 
-    public void Delete(int index)
+    public void Delete(TProfileModel profile)
     {
-        throw new System.NotImplementedException();
+        _profiles.Profiles = _profiles.Profiles.Remove(profile);
     }
 
-    public void Update(T profile)
+    public void Update(TProfileModel origin ,TProfileModel current)
     {
-        throw new System.NotImplementedException();
+        if (origin == Current) Current = current;
+        
     }
 
     public void LoadFromPath(string path)

@@ -10,8 +10,8 @@ namespace PCL.Core.Minecraft.Profile;
 [LifecycleScope("profile", "档案服务")]
 public partial class ProfileService
 {
-    private static ProfileManagement<ProfileJson<Models.Profile>> _newProfileProvider = new();
-    private static ProfileManagement<ProfileJson<Models.OldProfile>> _oldProfileProvider = new();
+    private static ProfileManagement<McProfile> _newProfileProvider = new();
+    private static ProfileManagement<Models.OldProfile> _oldProfileProvider = new();
 
     [LifecycleStart]
     private static async Task _Start()
