@@ -269,7 +269,7 @@ public partial class PageInstanceSetup
             "VersionAdvanceAssetsV2" => Config.Instance.DisableAssetVerifyV2,
             "VersionAdvanceUseProxyV2" => Config.Instance.UseProxy,
             "VersionAdvanceDisableJLW" => Config.Instance.DisableJlw,
-            "VersionAdvanceDisableRW" => Config.Instance.DisableRw,
+            "VersionAdvanceDisableLF" => Config.Instance.DisableLF,
             "VersionUseDebugLog4j2Config" => Config.Instance.UseDebugLof4j2Config,
             "VersionAdvanceDisableLwjglUnsafeAgent" => Config.Instance.DisableLwjglUnsafeAgent,
             _ => throw new ArgumentOutOfRangeException()
