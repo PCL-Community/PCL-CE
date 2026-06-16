@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using PCL.Core.UI.Theme;
@@ -25,24 +24,10 @@ public partial class MyToast
         };
     }
 
-    public string Title
+    public string Context
     {
         get => TitleText.Text;
-        set
-        {
-            TitleText.Text = value;
-            TitleText.Visibility = string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
-        }
-    }
-
-    public string Description
-    {
-        get => DescText.Text;
-        set
-        {
-            DescText.Text = value;
-            DescText.Visibility = string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
-        }
+        set => TitleText.Text = value;
     }
 
     public string Icon { get; set; } = "lucide/info";
@@ -55,10 +40,10 @@ public partial class MyToast
 
     public void Show()
     {
-        if (Parent is not Panel panel)
+        if (Parent is not Panel)
             return;
-        if (Application.Current.MainWindow is { } window)
-            MaxWidth = window.ActualWidth * 0.9;
+        if (System.Windows.Application.Current.MainWindow is not null)
+            MaxWidth = System.Windows.Application.Current.MainWindow.ActualWidth * 0.9;
         Margin = new Thickness(0, 0, 16, 4);
         Opacity = 0;
 
@@ -148,7 +133,6 @@ public partial class MyToast
         Root.Background = bg;
         Root.BorderBrush = border;
         TitleText.Foreground = fg;
-        DescText.Foreground = fg;
         ProgressBar.Fill = fg;
         BtnClose.Foreground = fg;
         ToastIcon.Icon = Icon;

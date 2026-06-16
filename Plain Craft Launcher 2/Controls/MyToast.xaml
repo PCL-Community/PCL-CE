@@ -27,13 +27,9 @@
             <svgIcon:SvgIcon x:Name="ToastIcon" Width="20" Height="20" VerticalAlignment="Center"
                              Margin="0,0,6,0" UseOriginalColor="False" />
 
-            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                <TextBlock x:Name="TitleText" FontSize="13" FontWeight="SemiBold"
-                           TextTrimming="CharacterEllipsis" />
-                <TextBlock x:Name="DescText" FontSize="13" Opacity="0.6"
-                           Margin="0,2,0,0" TextTrimming="CharacterEllipsis"
-                           Visibility="Collapsed" />
-            </StackPanel>
+            <TextBlock x:Name="TitleText" Grid.Column="1" VerticalAlignment="Center"
+                       FontSize="13" FontWeight="SemiBold"
+                       TextTrimming="CharacterEllipsis" />
 
             <local:MyIconButton Grid.Column="2" x:Name="BtnClose" Width="20" Height="20"
                                 Margin="8,0,0,0" SvgIcon="lucide/x" Theme="Custom" />

@@ -292,7 +292,7 @@ public static class ModMain
 
                 var toast = new MyToast
                 {
-                    Title = currentHint.Text,
+                    Context = currentHint.Text,
                     ToastType = currentHint.Type,
                     Icon = currentHint.Type switch
                     {
