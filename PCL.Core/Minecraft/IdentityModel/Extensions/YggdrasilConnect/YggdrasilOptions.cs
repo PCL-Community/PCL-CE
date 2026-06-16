@@ -45,7 +45,7 @@ public record YggdrasilOptions:OpenIdOptions
     {
         if (Meta is YggdrasilConnectMetaData meta)
         {
-            var options = await base.BuildOAuthOptions();
+            var options = base.BuildOAuthOptions();
             if (!options.ClientId.IsNullOrEmpty()) return options;
             if (!meta.SharedClientId.IsNullOrEmpty())
             {
