@@ -223,6 +223,8 @@ public partial class PageSetupUI
     private static void SetByTag(string tag, object value)
     {
         ConfigService.TrySetValue(tag, value);
+        if (tag == "UiHintAlignRight")
+            ModMain.Hint(Lang.Text("Setup.Ui.Basic.HintAlignRight.Changed"));
     }
 
     private void ComboFontChange(object sender, SelectionChangedEventArgs e)
