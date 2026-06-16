@@ -2244,10 +2244,9 @@ public static class ModLaunch
     /// </summary>
     private static bool McLaunchNeedsLegacyFix(McInstance mc)
     {
-        return (mc.releaseTime < new DateTime(2013, 6, 25) && mc.Info.Drop == 99) ||
-               (mc.Info.Drop < 60 && mc.Info.Drop != 99 &&
-                !Config.Launch.DisableRw &&
-                !Config.Instance.DisableRw[mc.PathInstance]); // <1.6
+        if (Config.Launch.DisableLF || Config.Instance.DisableLF[mc.PathInstance])
+            return false;
+        return mc.releaseTime < new DateTime(2013, 6, 25);
     }
 
     /// <summary>
