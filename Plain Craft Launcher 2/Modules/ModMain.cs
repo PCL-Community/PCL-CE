@@ -339,6 +339,12 @@ public static class ModMain
                     if (!ModAnimation.AniIsRun($"Hint Show {doubleStackTag[1]}"))
                     {
                         ModAnimation.AniStop($"Hint Hide {doubleStackTag[1]}");
+                        // 对齐方向变化时更新现有提示的视觉属性
+                        doubleStack.CornerRadius = alignRight ? new CornerRadius(6d, 0d, 0d, 6d) : new CornerRadius(0d, 6d, 6d, 0d);
+                        doubleStack.HorizontalAlignment = alignRight ? HorizontalAlignment.Right : HorizontalAlignment.Left;
+                        doubleStack.Margin = alignRight ? new Thickness(20d, 0d, -70d, 0d) : new Thickness(-70d, 0d, 20d, 0d);
+                        if (doubleStack.Child is TextBlock textBlock)
+                            textBlock.Margin = alignRight ? new Thickness(8d, 5d, 33d, 5d) : new Thickness(33d, 5d, 8d, 5d);
                         var delay = (800d + ModBase.MathClamp(currentHint.Text!.Length, 5d, 23d) * 180d) *
                                     ModAnimation.aniSpeed;
                         ModAnimation.AniStart(new[]
