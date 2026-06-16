@@ -96,14 +96,14 @@ public sealed partial class ConfigService
     /// </summary>
     /// <param name="key">配置键</param>
     /// <param name="value">配置值</param>
-    /// <returns>若配置键存在，则为 <c>true</c>，否则为 <c>false</c></returns>
-    public static void TrySetValue(string key, object value)
+    /// <param name="argument">上下文参数（实例路径等）</param>
+    public static void TrySetValue(string key, object value, object? argument = null)
     {
         if (!TryGetConfigItemNoType(key, out var item)) return;
         if (item.Type.IsEnum && value is not string)
-            item.SetValueNoType(Enum.ToObject(item.Type, value));
+            item.SetValueNoType(Enum.ToObject(item.Type, value), argument);
         else
-            item.SetValueNoType(value);
+            item.SetValueNoType(value, argument);
     }
 
     /// <summary>

@@ -178,12 +178,8 @@ public partial class PageInstanceSetup
     }
 
     // 将控件改变路由到设置改变
-    private void SetByTag(string tag, object value)
-    {
-        if (!ConfigService.TryGetConfigItemNoType(tag, out var item))
-            throw new ArgumentOutOfRangeException(nameof(tag), tag, null);
-        item.SetValueNoType(value, PageInstanceLeft.McInstance.PathInstance);
-    }
+    private static void SetByTag(string tag, object value)
+        => ConfigService.TrySetValue(tag, value, PageInstanceLeft.McInstance.PathInstance);
 
     private void RadioBoxChange(object o, ModBase.RouteEventArgs routeEventArgs)
     {
