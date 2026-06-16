@@ -126,9 +126,9 @@ public partial class MyToast
         };
         var s = ThemeService.CurrentTone;
         var bgLight = ToastType == ModMain.HintType.Critical && !ThemeService.IsDarkMode ? 90d : s.L7 * 100;
-        var bg = new ModBase.MyColor().FromHSL2(baseHue, 90, bgLight);
-        var fg = new ModBase.MyColor().FromHSL2(baseHue, 90, s.L2 * 100);
-        var border = new ModBase.MyColor().FromHSL2(baseHue, 90, s.L4 * 100);
+        var bg = new ModBase.MyColor().FromHSL2(baseHue, 70, bgLight);
+        var fg = new ModBase.MyColor().FromHSL2(baseHue, 70, s.L2 * 100);
+        var border = new ModBase.MyColor().FromHSL2(baseHue, 70, s.L4 * 100);
 
         Root.Background = bg;
         Root.BorderBrush = border;

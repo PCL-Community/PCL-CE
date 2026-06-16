@@ -52,20 +52,15 @@ public partial class MyHint
         Unloaded += (_, _) => Dispose();
     }
 
-    // 边框
     public bool HasBorder
     {
         get => BorderThickness.Top > 0d;
         set
         {
             if (value)
-                BorderThickness = Config.Preference.HintAlignRight
-                    ? new Thickness(ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d), 3d, ModBase.GetWPFSize(1d))
-                    : new Thickness(3d, ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d));
+                BorderThickness = new Thickness(ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d), 3d, ModBase.GetWPFSize(1d));
             else
-                BorderThickness = Config.Preference.HintAlignRight
-                    ? new Thickness(0d, 0d, 3d, 0d)
-                    : new Thickness(3d, 0d, 0d, 0d);
+                BorderThickness = new Thickness(0d, 0d, 3d, 0d);
         }
     }
 
