@@ -55,7 +55,7 @@ public partial class PageInstanceSetup
         CheckAdvanceAssetsV2.Change += CheckBoxChange;
         CheckAdvanceUseProxyV2.Change += CheckBoxChange;
         CheckAdvanceDisableJLW.Change += CheckBoxChange;
-        CheckAdvanceDisableRW.Change += CheckBoxChange;
+        CheckAdvanceDisableLF.Change += CheckBoxChange;
         CheckUseDebugLog4j2Config.Change += CheckUseDebugLog4j2Config_CheckChanged;
         CheckAdvanceDisableLwjglUnsafeAgent.Change += CheckBoxChange;
 
@@ -147,7 +147,7 @@ public partial class PageInstanceSetup
                 CheckAdvanceDisableJLW.Checked = Config.Instance.DisableJlw[PageInstanceLeft.McInstance.PathInstance];
             }
             CheckUseDebugLog4j2Config.Checked = Config.Instance.UseDebugLof4j2Config[PageInstanceLeft.McInstance.PathInstance];
-            CheckAdvanceDisableRW.Checked = Config.Instance.DisableRw[PageInstanceLeft.McInstance.PathInstance];
+            CheckAdvanceDisableLF.Checked = Config.Instance.DisableLF[PageInstanceLeft.McInstance.PathInstance];
         }
 
         catch (Exception ex)
