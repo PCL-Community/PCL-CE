@@ -383,11 +383,11 @@
                                           ToolTipService.Placement="Right"
                                           ToolTip="{DynamicResource Setup.Launch.Advanced.DisableJlw.ToolTip}" />
                         <local:MyCheckBox Height="28"
-                                          Text="{DynamicResource Setup.Launch.Advanced.DisableRw}"
-                                          x:Name="CheckAdvanceDisableRW"
-                                          Tag="VersionAdvanceDisableRW"
+                                          Text="{DynamicResource Setup.Launch.Advanced.DisableLF}"
+                                          x:Name="CheckAdvanceDisableLF"
+                                          Tag="VersionAdvanceDisableLF"
                                           ToolTipService.Placement="Right"
-                                          ToolTip="{DynamicResource Setup.Launch.Advanced.DisableRw.ToolTip}" />
+                                          ToolTip="{DynamicResource Setup.Launch.Advanced.DisableLF.ToolTip}" />
                         <local:MyCheckBox Height="28" Text="{DynamicResource Instance.Setup.Advanced.UseDebugLog4j}"
                                           x:Name="CheckUseDebugLog4j2Config"
                                           Tag="VersionUseDebugLog4j2Config"

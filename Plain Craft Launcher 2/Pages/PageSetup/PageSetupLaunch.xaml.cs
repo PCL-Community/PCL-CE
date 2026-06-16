@@ -187,7 +187,7 @@ public partial class PageSetupLaunch
             case "LaunchAdvanceRun": Config.Launch.PreLaunchCommand = (string)value; break;
             case "LaunchAdvanceRunWait": Config.Launch.PreLaunchCommandWait = (bool)value; break;
             case "LaunchAdvanceDisableJLW": Config.Launch.DisableJlw = (bool)value; break;
-            case "LaunchAdvanceDisableRW": Config.Launch.DisableRw = (bool)value; break;
+            case "LaunchAdvanceDisableLF": Config.Launch.DisableLF = (bool)value; break;
             case "LaunchAdvanceGraphicCard": Config.Launch.SetGpuPreference = (bool)value; break;
             case "LaunchAdvanceNoJavaw": Config.Launch.NoJavaw = (bool)value; break;
             case "LaunchAdvanceDisableLwjglUnsafeAgent": Config.Launch.DisableLwjglUnsafeAgent = (bool)value; break;
