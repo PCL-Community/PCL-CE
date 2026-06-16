@@ -2239,19 +2239,16 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     判断是否使用 LegacyFix。
-    ///     TODO: 在更换为 Drop 比较版本号后可能不准确，需要测试确认。
+    /// 判断是否使用 LegacyFix。
     /// </summary>
     private static bool McLaunchNeedsLegacyFix(McInstance mc)
     {
-        if (Config.Launch.DisableLF || Config.Instance.DisableLF[mc.PathInstance])
+        if ((Config.Launch.DisableLF || Config.Instance.DisableLF[mc.PathInstance]) && mc.releaseTime < new DateTime(2013, 6, 25) && mc.releaseTime.Year > 2000)
         {
             ModBase.Log("[Launch] LegacyFix 已被禁用");
             return false;
         }
-        var needs = mc.releaseTime < new DateTime(2013, 6, 25);
-        ModBase.Log($"[Launch] 启用 LegacyFix");
-        return needs;
+        return true;
     }
 
     /// <summary>
@@ -2904,7 +2901,6 @@ public static class ModLaunch
             try
             {
                 ModBase.WriteFile(legacyFixPath, ModBase.GetResourceStream("Resources/legacyfix.jar"));
-                cpStrings.Add(legacyFixPath);
             }
             catch (Exception ex)
             {
