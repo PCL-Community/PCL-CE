@@ -17,26 +17,26 @@
             <RowDefinition Height="3" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Margin="16,16,16,10">
+        <Grid Grid.Row="0" Margin="10,8,10,6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <svgIcon:SvgIcon x:Name="ToastIcon" Width="20" Height="20" VerticalAlignment="Top"
-                             Margin="0,1,10,0" UseOriginalColor="False" />
+            <svgIcon:SvgIcon x:Name="ToastIcon" Width="20" Height="20" VerticalAlignment="Center"
+                             Margin="0,0,6,0" UseOriginalColor="False" />
 
-            <StackPanel Grid.Column="1">
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
                 <TextBlock x:Name="TitleText" FontSize="13" FontWeight="SemiBold"
                            TextTrimming="CharacterEllipsis" TextWrapping="Wrap" />
                 <TextBlock x:Name="DescText" FontSize="13" Opacity="0.6"
-                           Margin="0,4,0,0" TextTrimming="CharacterEllipsis" TextWrapping="Wrap"
+                           Margin="0,2,0,0" TextTrimming="CharacterEllipsis" TextWrapping="Wrap"
                            Visibility="Collapsed" />
             </StackPanel>
 
             <local:MyIconButton Grid.Column="2" x:Name="BtnClose" Width="20" Height="20"
-                                Margin="10,0,0,0" SvgIcon="lucide/x" Theme="Custom" />
+                                Margin="8,0,0,0" SvgIcon="lucide/x" Theme="Custom" />
         </Grid>
 
         <Rectangle x:Name="ProgressBar" Height="3" Grid.Row="1"

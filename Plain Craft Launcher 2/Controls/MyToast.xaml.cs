@@ -62,7 +62,7 @@ public partial class MyToast
 
         Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         Arrange(new Rect(0, 0, DesiredSize.Width, DesiredSize.Height));
-        var targetHeight = Math.Max(ActualHeight, 60);
+        var targetHeight = Math.Max(ActualHeight, 45d);
         Height = 0;
 
         RenderTransform = new TranslateTransform(60, 0);
