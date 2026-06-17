@@ -12,16 +12,34 @@ namespace PCL;
 public partial class MyMsgLogin
 {
     private readonly JsonObject data;
-    private string deviceCode; // 用于轮询的设备代码
-    private string oAuthUrl = ""; // OAuth 轮询验证地址
-    private string userCode; // 需要用户在网页上输入的设备代码
-    private string website; // 验证网页的网址
+    private string deviceCode;
+    private string oAuthUrl = "";
+    private string userCode;
+    private string website;
     private Task? workingThread;
+    private readonly Action<object>? _onFinished;
+    private bool _finished;
+    private readonly int uuid = ModBase.GetUuid();
 
-    public MyMsgLogin()
+    public MyMsgLogin(JsonObject data, string authUrl, Action<object> onFinished)
     {
-        InitializeComponent();
-        // Handles
+        try
+        {
+            InitializeComponent();
+            Btn1.Name += ModBase.GetUuid();
+            Btn2.Name += ModBase.GetUuid();
+            Btn3.Name += ModBase.GetUuid();
+            this.data = data;
+            oAuthUrl = authUrl;
+            _onFinished = onFinished;
+            ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
+            Init();
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, Lang.Text("Launch.Account.LoginDialog.Error.Init"), ModBase.LogLevel.Hint);
+        }
+
         Loaded += Load;
         Btn1.Click += Btn1_Click;
         Btn3.Click += Btn3_Click;
@@ -31,13 +49,12 @@ public partial class MyMsgLogin
 
     private void Finished(object result)
     {
-        if (myConverter.IsExited)
-            return;
-        myConverter.IsExited = true;
-        myConverter.Result = result;
+        if (_finished) return;
+        _finished = true;
+        _onFinished?.Invoke(result);
         ModBase.RunInUi(Close);
         Thread.Sleep(200);
-        ModMain.frmMain.ShowWindowToTop();
+        ModMain.frmMain!.ShowWindowToTop();
     }
 
     private void Init()
@@ -71,14 +88,14 @@ public partial class MyMsgLogin
     private async Task WorkThread()
     {
         await Task.Delay(2000).ConfigureAwait(false);
-        if (myConverter.IsExited)
+        if (_finished)
             return;
         ModBase.OpenWebsite(website);
         ModBase.ClipboardSet(userCode);
         var delayTime = (data["interval"].ToObject<int>() - 1) * 1000;
         // 轮询
         var unknownFailureCount = 0;
-        while (!myConverter.IsExited)
+        while (!_finished)
         {
             try
             {
@@ -135,31 +152,6 @@ public partial class MyMsgLogin
 
     #region 弹窗
 
-    private readonly ModMain.MyMsgBoxConverter myConverter;
-    private readonly int uuid = ModBase.GetUuid();
-
-    public MyMsgLogin(ModMain.MyMsgBoxConverter converter)
-    {
-        try
-        {
-            InitializeComponent();
-            Btn1.Name += ModBase.GetUuid();
-            Btn2.Name += ModBase.GetUuid();
-            Btn3.Name += ModBase.GetUuid();
-            myConverter = converter;
-            ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
-            data = (JsonObject)converter.Content;
-            oAuthUrl = converter.AuthUrl?.ToString() ?? "";
-            Init();
-        }
-        catch (Exception ex)
-        {
-            ModBase.Log(ex, Lang.Text("Launch.Account.LoginDialog.Error.Init"), ModBase.LogLevel.Hint);
-        }
-
-        Loaded += Load;
-    }
-
     private void Load(object sender, EventArgs e)
     {
         try
@@ -168,9 +160,7 @@ public partial class MyMsgLogin
             Opacity = 0d;
             ModAnimation.AniStart(
                 ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (myConverter.IsWarn
-                        ? new ModBase.MyColor(140d, 80d, 0d, 0d)
-                        : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
+                    (new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");
             ModAnimation.AniStart(
                 new[]
@@ -198,7 +188,7 @@ public partial class MyMsgLogin
         {
             ModAnimation.AaCode(() =>
             {
-                if (!ModMain.WaitingMyMsgBox.Any())
+                if ((ModMain.frmMain?.PanMsg?.Children.Count ?? 0) <= 1)
                     ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
                         new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,

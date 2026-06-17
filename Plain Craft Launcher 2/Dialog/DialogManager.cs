@@ -68,15 +68,16 @@ public class DialogManager
         DialogTheme theme = DialogTheme.Info, bool block = true,
         params string[] buttons)
     {
-        return Show(new DialogContext
+        var ctx = new DialogContext
         {
             Caption = markdown,
             Title = title ?? Lang.Text("Common.Dialog.Title"),
             Theme = theme,
             Block = block,
             Buttons = _BuildButtons(buttons),
-            // Markdown content is created in ShowOnUi via CreateDialogFromContext
-        });
+            Content = new Markdig.Wpf.MarkdownViewer { Markdown = markdown },
+        };
+        return Show(ctx);
     }
 
     public string ShowInput(string title, string text = "", string defaultInput = "",
@@ -85,31 +86,58 @@ public class DialogManager
     {
         button1 ??= Lang.Text("Common.Action.Confirm");
         button2 ??= Lang.Text("Common.Action.Cancel");
-        var converter = new ModMain.MyMsgBoxConverter
+        string? result = null;
+
+        Action showOnUi = () =>
         {
-            Text = text,
-            HintText = hintText,
-            Type = ModMain.MyMsgBoxType.Input,
-            ValidateRules = validateRules ?? [],
-            Button1 = button1,
-            Button2 = button2,
-            Content = defaultInput,
-            IsWarn = isWarn,
-            Title = title,
-        };
-        ModMain.WaitingMyMsgBox.Add(converter);
-        try
-        {
-            if (_mainForm is not null)
+            var stack = new StackPanel();
+            if (!string.IsNullOrEmpty(text))
+            {
+                stack.Children.Add(new TextBlock
+                {
+                    Text = text, TextWrapping = TextWrapping.Wrap, FontSize = 15,
+                    Margin = new Thickness(0, 0, 0, 7),
+                });
+            }
+            var textBox = new MyTextBox
+            {
+                Text = defaultInput, HintText = hintText,
+                ValidateRules = validateRules ?? [], MinWidth = 450,
+            };
+            stack.Children.Add(textBox);
+
+            var dialog = new DialogControl { Title = title, IsWarn = isWarn, DialogContent = stack };
+            dialog.AddButton(button1!, onClick: () =>
+            {
+                textBox.Validate();
+                if (!textBox.IsValidated) return;
+                result = textBox.Text;
+                dialog.Close(1);
+            }, isPrimary: true, id: 1);
+            if (!string.IsNullOrEmpty(button2))
+            {
+                dialog.AddButton(button2!, onClick: () =>
+                {
+                    result = null;
+                    dialog.Close(2);
+                }, id: 2);
+            }
+
+            _mainForm.PanMsg.Children.Add(dialog);
+            try
+            {
                 _mainForm.DragStop();
-            ComponentDispatcher.PushModal();
-            Dispatcher.PushFrame(converter.WaitFrame);
-        }
-        finally
-        {
-            ComponentDispatcher.PopModal();
-        }
-        return converter.Result?.ToString() ?? "";
+                ComponentDispatcher.PushModal();
+                Dispatcher.PushFrame(dialog.WaitFrame);
+            }
+            finally
+            {
+                ComponentDispatcher.PopModal();
+            }
+        };
+
+        _mainForm.Dispatcher.Invoke(showOnUi);
+        return result ?? "";
     }
 
     public int? ShowSelect(List<IMyRadio> selections, string? title = null,
@@ -118,28 +146,63 @@ public class DialogManager
         title ??= Lang.Text("Common.Dialog.Title");
         button1 ??= Lang.Text("Common.Action.Confirm");
         button2 ??= "";
-        var converter = new ModMain.MyMsgBoxConverter
+        int? result = null;
+
+        Action showOnUi = () =>
         {
-            Type = ModMain.MyMsgBoxType.Select,
-            Button1 = button1,
-            Button2 = button2,
-            Content = selections,
-            IsWarn = isWarn,
-            Title = title,
+            var panel = new StackPanel();
+            var dialog = new DialogControl { Title = title, IsWarn = isWarn, DialogContent = panel };
+
+            var b1 = dialog.AddButton(button1!, onClick: () => { }, isPrimary: true, id: 1);
+            b1.IsEnabled = false;
+
+            if (!string.IsNullOrEmpty(button2))
+            {
+                dialog.AddButton(button2!, onClick: () =>
+                {
+                    result = null;
+                    dialog.Close(2);
+                }, id: 2);
+            }
+
+            int selectedIndex = -1;
+            for (var i = 0; i < selections.Count; i++)
+            {
+                var raw = selections[i];
+                var item = MyVirtualizingElement.TryInit((FrameworkElement)raw);
+                if (item is IMyRadio radio)
+                {
+                    if (item is MyListItem listItem) { listItem.Type = MyListItem.CheckType.RadioBox; listItem.MinHeight = 24; }
+                    else if (item is MyRadioBox radioBox) { radioBox.MinHeight = 24; }
+
+                    var idx = i;
+                    radio.Check += (_, _) => { selectedIndex = idx; b1.IsEnabled = true; };
+                    panel.Children.Add((UIElement)radio);
+                }
+            }
+
+            b1.Click += (_, _) =>
+            {
+                if (selectedIndex < 0) return;
+                result = selectedIndex;
+                dialog.Close(1);
+            };
+
+            _mainForm.PanMsg.Children.Add(dialog);
+            try
+            {
+                if (_mainForm is not null) _mainForm.DragStop();
+                ComponentDispatcher.PushModal();
+                Dispatcher.PushFrame(dialog.WaitFrame);
+            }
+            finally
+            {
+                ComponentDispatcher.PopModal();
+            }
         };
-        ModMain.WaitingMyMsgBox.Add(converter);
-        try
-        {
-            if (_mainForm is not null)
-                _mainForm.DragStop();
-            ComponentDispatcher.PushModal();
-            Dispatcher.PushFrame(converter.WaitFrame);
-        }
-        finally
-        {
-            ComponentDispatcher.PopModal();
-        }
-        return (int?)converter.Result;
+
+        _mainForm.Dispatcher.Invoke(showOnUi);
+        return result;
     }
 
     // -- legacy bridge: called by MsgBoxWrapper via ModMain.MsgBoxWrapper_OnShow --
@@ -166,195 +229,16 @@ public class DialogManager
     {
         try
         {
-            if (_mainForm is null || _mainForm.PanMsg is null || _mainForm.WindowState == WindowState.Minimized)
-                return;
+            if (_mainForm is null || _mainForm.PanMsg is null) return;
             if (_mainForm.PanMsg.Children.Count > 0)
-            {
                 _mainForm.PanMsgBackground.Visibility = Visibility.Visible;
-            }
-            else if (ModMain.WaitingMyMsgBox.Any())
-            {
-                _mainForm.PanMsgBackground.Visibility = Visibility.Visible;
-                var converter = ModMain.WaitingMyMsgBox[0];
-                var dialog = CreateDialogFromConverter(converter);
-                if (dialog is not null)
-                    _mainForm.PanMsg.Children.Add(dialog);
-                ModMain.WaitingMyMsgBox.RemoveAt(0);
-            }
             else if (_mainForm.PanMsgBackground.Visibility != Visibility.Collapsed)
-            {
                 _mainForm.PanMsgBackground.Visibility = Visibility.Collapsed;
-            }
         }
         catch (Exception ex)
         {
             ModBase.Log(ex, "对话框 Tick 失败", ModBase.LogLevel.Feedback);
         }
-    }
-
-    // -- converter helpers (legacy queue → DialogControl) --
-
-    private static DialogControl? CreateDialogFromConverter(ModMain.MyMsgBoxConverter conv)
-    {
-        switch (conv.Type)
-        {
-            case ModMain.MyMsgBoxType.Input:
-                return CreateInputDialog(conv);
-            case ModMain.MyMsgBoxType.Select:
-                return CreateSelectDialog(conv);
-            case ModMain.MyMsgBoxType.Login:
-                Instance?._mainForm?.PanMsg.Children.Add(new MyMsgLogin(conv));
-                return null;
-            case ModMain.MyMsgBoxType.Markdown:
-            {
-                var mdViewer = new Markdig.Wpf.MarkdownViewer { Markdown = conv.Text };
-                return CreateStandardDialog(conv, mdViewer);
-            }
-            default:
-            {
-                var content = conv.Content as UIElement
-                    ?? new TextBlock { Text = conv.Text, TextWrapping = TextWrapping.Wrap, FontSize = 15 };
-                return CreateStandardDialog(conv, content);
-            }
-        }
-    }
-
-    private static DialogControl CreateStandardDialog(ModMain.MyMsgBoxConverter conv, UIElement content)
-    {
-        var dialog = new DialogControl
-        {
-            Title = conv.Title,
-            IsWarn = conv.IsWarn,
-            DialogContent = content,
-        };
-        dialog.AddButton(conv.Button1, conv.Button1Action, isPrimary: true, id: conv.ButtonIds[0]);
-        if (!string.IsNullOrEmpty(conv.Button2))
-            dialog.AddButton(conv.Button2, conv.Button2Action, id: conv.ButtonIds[1]);
-        if (!string.IsNullOrEmpty(conv.Button3))
-            dialog.AddButton(conv.Button3, conv.Button3Action, id: conv.ButtonIds[2]);
-        conv.WaitFrame = dialog.WaitFrame;
-        dialog.OnClosed += result =>
-        {
-            conv.Result = result;
-            conv.OnCloseCallback?.Invoke(result);
-        };
-        return dialog;
-    }
-
-    private static DialogControl CreateInputDialog(ModMain.MyMsgBoxConverter conv)
-    {
-        var stack = new StackPanel();
-        if (!string.IsNullOrEmpty(conv.Text))
-        {
-            stack.Children.Add(new TextBlock
-            {
-                Text = conv.Text,
-                TextWrapping = TextWrapping.Wrap,
-                FontSize = 15,
-                Margin = new Thickness(0, 0, 0, 7),
-            });
-        }
-
-        var textBox = new MyTextBox
-        {
-            Text = (string)(conv.Content ?? ""),
-            HintText = conv.HintText,
-            ValidateRules = conv.ValidateRules ?? [],
-            MinWidth = 450,
-        };
-        stack.Children.Add(textBox);
-
-        var dialog = new DialogControl
-        {
-            Title = conv.Title,
-            IsWarn = conv.IsWarn,
-            DialogContent = stack,
-        };
-
-        dialog.AddButton(conv.Button1, onClick: () =>
-        {
-            textBox.Validate();
-            if (!textBox.IsValidated) return;
-            conv.Result = textBox.Text;
-            dialog.Close(conv.ButtonIds[0]);
-        }, isPrimary: true, id: conv.ButtonIds[0]);
-
-        if (!string.IsNullOrEmpty(conv.Button2))
-        {
-            dialog.AddButton(conv.Button2, onClick: () =>
-            {
-                conv.Result = null;
-                dialog.Close(conv.ButtonIds[1]);
-            }, id: conv.ButtonIds[1]);
-        }
-
-        conv.WaitFrame = dialog.WaitFrame;
-        return dialog;
-    }
-
-    private static DialogControl CreateSelectDialog(ModMain.MyMsgBoxConverter conv)
-    {
-        var panel = new StackPanel();
-        var dialog = new DialogControl
-        {
-            Title = conv.Title,
-            IsWarn = conv.IsWarn,
-            DialogContent = panel,
-        };
-
-        var b1 = dialog.AddButton(conv.Button1, onClick: () =>
-        {
-            // handled by extra Click below
-        }, isPrimary: true, id: conv.ButtonIds[0]);
-        b1.IsEnabled = false;
-
-        if (!string.IsNullOrEmpty(conv.Button2))
-        {
-            dialog.AddButton(conv.Button2, onClick: () =>
-            {
-                conv.Result = null;
-                dialog.Close(conv.ButtonIds[1]);
-            }, id: conv.ButtonIds[1]);
-        }
-
-        var selectedIndex = -1;
-        var index = 0;
-        foreach (var raw in (IEnumerable)conv.Content!)
-        {
-            var item = MyVirtualizingElement.TryInit((FrameworkElement)raw);
-            if (item is IMyRadio radio)
-            {
-                if (item is MyListItem listItem)
-                {
-                    listItem.Type = MyListItem.CheckType.RadioBox;
-                    listItem.MinHeight = 24;
-                }
-                else if (item is MyRadioBox radioBox)
-                {
-                    radioBox.MinHeight = 24;
-                }
-
-                var currentIndex = index;
-                radio.Check += (_, _) =>
-                {
-                    selectedIndex = currentIndex;
-                    b1.IsEnabled = true;
-                };
-                panel.Children.Add((UIElement)radio);
-                index++;
-            }
-        }
-
-        // Override Btn1's dummy onClick with real logic
-        b1.Click += (_, _) =>
-        {
-            if (selectedIndex < 0) return;
-            conv.Result = selectedIndex;
-            dialog.Close(conv.ButtonIds[0]);
-        };
-
-        conv.WaitFrame = dialog.WaitFrame;
-        return dialog;
     }
 
     // -- internal show logic --

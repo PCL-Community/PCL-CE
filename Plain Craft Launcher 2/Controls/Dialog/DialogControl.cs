@@ -12,7 +12,7 @@ public partial class DialogControl
     private int _result;
     private bool _exited;
     private readonly int _uuid = ModBase.GetUuid();
-    private readonly List<MyButton> _buttons = [];
+    internal readonly List<MyButton> _buttons = [];
 
     public DispatcherFrame WaitFrame { get; } = new(true);
 
@@ -161,8 +161,7 @@ public partial class DialogControl
         {
             ModAnimation.AaCode(() =>
             {
-                var hasMore = ModMain.WaitingMyMsgBox.Any()
-                    || (ModMain.frmMain?.PanMsg?.Children.Count ?? 0) > 1;
+                var hasMore = (ModMain.frmMain?.PanMsg?.Children.Count ?? 0) > 1;
                 if (!hasMore)
                     ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,

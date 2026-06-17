@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Windows.Threading;
 using FluentValidation;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
@@ -11,41 +10,6 @@ namespace PCL;
 
 public static partial class ModMain
 {
-    /// <summary>
-    ///     等待显示的弹窗。
-    /// </summary>
-    public static List<MyMsgBoxConverter> WaitingMyMsgBox { get; } = [];
-
-    public class MyMsgBoxConverter
-    {
-        public object AuthUrl = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
-        public string Button1 = "";
-        public Action? Button1Action;
-        public string Button2 = "";
-        public Action? Button2Action;
-        public string Button3 = "";
-        public Action? Button3Action;
-        public object? Content;
-        public bool ForceWait;
-        public bool HighLight;
-        public string HintText = "";
-        public bool IsExited;
-        public bool IsWarn;
-        public object? Result;
-        public string? Text;
-        public string? Title;
-        public MyMsgBoxType Type;
-        public Collection<IValidator<string>>? ValidateRules;
-        public DispatcherFrame WaitFrame = new(true);
-        public int[] ButtonIds = [1, 2, 3];
-        public Action<int>? OnCloseCallback;
-    }
-
-    public enum MyMsgBoxType
-    {
-        Text, Select, Input, Login, Markdown
-    }
-
     #region Legacy wrappers — delegate to DialogManager
 
     public static int MyMsgBox(string caption, string? title = null, string? button1 = null, string? button2 = "",
@@ -104,16 +68,6 @@ public static partial class ModMain
         MsgBoxTheme theme, bool block, ref int result)
     {
         result = DialogManager.Instance?.ShowLegacy(message, caption, buttons, theme, block) ?? 1;
-    }
-
-    public static void Dialog_OnShow(DialogContext context)
-    {
-        // Forward to DialogManager for backward compat with PCL.Core.UI.Dialog.OnShow event
-        if (DialogManager.Instance is null) return;
-        if (context.Block)
-            DialogManager.Instance.Show(context);
-        else
-            _ = DialogManager.Instance.ShowAsync(context);
     }
 
     #endregion
