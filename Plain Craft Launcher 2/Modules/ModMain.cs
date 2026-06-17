@@ -548,6 +548,8 @@ public static class ModMain
         public Collection<IValidator<string>> ValidateRules;
 
         public DispatcherFrame WaitFrame = new(true);
+
+        public int[] ButtonIds = [1, 2, 3];
     }
 
     public enum MyMsgBoxType
@@ -858,11 +860,11 @@ public static class ModMain
                         IsWarn = converter.IsWarn,
                         DialogContent = customContent,
                     };
-                    dialog.AddButton(converter.Button1, converter.Button1Action, isPrimary: true);
+                    dialog.AddButton(converter.Button1, converter.Button1Action, isPrimary: true, id: converter.ButtonIds[0]);
                     if (!string.IsNullOrEmpty(converter.Button2))
-                        dialog.AddButton(converter.Button2, converter.Button2Action);
+                        dialog.AddButton(converter.Button2, converter.Button2Action, id: converter.ButtonIds[1]);
                     if (!string.IsNullOrEmpty(converter.Button3))
-                        dialog.AddButton(converter.Button3, converter.Button3Action);
+                        dialog.AddButton(converter.Button3, converter.Button3Action, id: converter.ButtonIds[2]);
                     converter.WaitFrame = dialog.WaitFrame;
                     dialog.OnClosed += result => converter.Result = result;
                     frmMain.PanMsg.Children.Add(dialog);
@@ -955,6 +957,12 @@ public static class ModMain
             IsWarn = isWarn,
             ForceWait = context.Block,
             Content = content,
+            ButtonIds = new[]
+            {
+                context.Buttons.Count > 0 && context.Buttons[0].Id > 0 ? context.Buttons[0].Id : 1,
+                context.Buttons.Count > 1 && context.Buttons[1].Id > 0 ? context.Buttons[1].Id : 2,
+                context.Buttons.Count > 2 && context.Buttons[2].Id > 0 ? context.Buttons[2].Id : 3,
+            },
         };
         WaitingMyMsgBox.Add(converter);
         if (ModBase.RunInUi())

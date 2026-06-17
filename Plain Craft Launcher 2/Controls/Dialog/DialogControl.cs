@@ -47,7 +47,7 @@ public partial class DialogControl
         Loaded += OnLoad;
     }
 
-    public MyButton AddButton(string text, Action? onClick = null, bool isPrimary = false)
+    public MyButton AddButton(string text, Action? onClick = null, bool isPrimary = false, int id = 0)
     {
         var btn = new MyButton
         {
@@ -63,7 +63,7 @@ public partial class DialogControl
         btn.Padding = new Thickness(5, 0, 5, 0);
         btn.Margin = new Thickness(12, 0, 0, 0);
         btn.Name += ModBase.GetUuid();
-        var index = _buttons.Count + 1;
+        var buttonId = id > 0 ? id : _buttons.Count + 1;
         btn.Click += (_, _) =>
         {
             if (_exited) return;
@@ -74,7 +74,7 @@ public partial class DialogControl
             else
             {
                 _exited = true;
-                _result = index;
+                _result = buttonId;
                 Close();
             }
         };
