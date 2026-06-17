@@ -20,6 +20,7 @@ public partial class MyToast
             ModAnimation.AniStop($"Toast Show {Uuid}");
             ModAnimation.AniStop($"Toast Hide {Uuid}");
             ModAnimation.AniStop($"Toast Dismiss {Uuid}");
+            ModAnimation.AniStop($"Toast Emphasize {Uuid}");
             ProgressBar.BeginAnimation(WidthProperty, null);
         };
     }
@@ -38,6 +39,8 @@ public partial class MyToast
 
     public bool IsDismissing { get; private set; }
 
+    private double _targetHeight;
+
     public void Show()
     {
         if (Parent is not Panel)
@@ -49,7 +52,7 @@ public partial class MyToast
 
         Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         Arrange(new Rect(0, 0, DesiredSize.Width, DesiredSize.Height));
-        var targetHeight = Math.Max(ActualHeight, 45d);
+        _targetHeight = Math.Max(ActualHeight, 45d);
         Height = 0;
 
         RenderTransform = new TranslateTransform(60, 0);
@@ -57,25 +60,45 @@ public partial class MyToast
         var enterAnimations = new List<ModAnimation.AniData>
         {
             ModAnimation.AaTranslateX(this, -60, 400, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaHeight(this, targetHeight, 150, ease: new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaHeight(this, _targetHeight, 150, ease: new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaOpacity(this, 1, 100)
         };
         ModAnimation.AniStart(enterAnimations, $"Toast Show {Uuid}");
 
+        RestartHideAnimation();
+    }
+
+    public void Emphasize()
+    {
+        ModAnimation.AniStop($"Toast Hide {Uuid}");
+        ModAnimation.AniStop($"Toast Emphasize {Uuid}");
+        ProgressBar.BeginAnimation(WidthProperty, null);
+        if (RenderTransform is TranslateTransform tt) tt.X = 0;
+        Opacity = 1;
+        Height = _targetHeight;
+        ModAnimation.AniStart(new List<ModAnimation.AniData>
+        {
+            ModAnimation.AaTranslateX(this, -8, 70, ease: new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaTranslateX(this, 16, 70, after: true),
+            ModAnimation.AaTranslateX(this, -8, 60, after: true, ease: new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaCode(RestartHideAnimation, after: true),
+        }, $"Toast Emphasize {Uuid}");
+    }
+
+    private void RestartHideAnimation()
+    {
         var delay = (int)Math.Round(DisplayDuration);
-        var hideAnimations = new List<ModAnimation.AniData>
+        ModAnimation.AniStart(new List<ModAnimation.AniData>
         {
             ModAnimation.AaTranslateX(this, 60, 200, delay, new ModAnimation.AniEaseInFluent()),
             ModAnimation.AaOpacity(this, -1, 150, delay),
-            ModAnimation.AaHeight(this, -targetHeight, 100, ease: new ModAnimation.AniEaseOutFluent(), after: true),
+            ModAnimation.AaHeight(this, -_targetHeight, 100, ease: new ModAnimation.AniEaseOutFluent(), after: true),
             ModAnimation.AaCode(() =>
             {
                 if (Parent is Panel p)
                     p.Children.Remove(this);
             }, after: true)
-        };
-        ModAnimation.AniStart(hideAnimations, $"Toast Hide {Uuid}");
-
+        }, $"Toast Hide {Uuid}");
         StartProgressAnimation(DisplayDuration);
     }
 
@@ -85,6 +108,7 @@ public partial class MyToast
         IsDismissing = true;
         ModAnimation.AniStop($"Toast Show {Uuid}");
         ModAnimation.AniStop($"Toast Hide {Uuid}");
+        ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ProgressBar.BeginAnimation(WidthProperty, null);
         ModAnimation.AniStart(new List<ModAnimation.AniData>
         {

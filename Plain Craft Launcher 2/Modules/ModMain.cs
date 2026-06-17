@@ -256,8 +256,9 @@ public static class ModMain
     /// </summary>
     public static void Hint(string? text, HintType type = HintType.Info, bool log = true)
     {
-        if (HintWaiting.Count >= 20) return; // 超过 20 条以后的直接砸掉
-        HintWaiting.Add(new HintMessage { Text = text ?? "", Type = type, Log = log });
+        var normalized = (text ?? "").Replace("\r\n", " ").Replace("\r", " ").Replace("\n", " ");
+        if (HintWaiting.Any(h => h.Text == normalized && h.Type == type)) return;
+        HintWaiting.Add(new HintMessage { Text = normalized, Type = type, Log = log });
     }
 
     public static void HintWrapper_OnShow(string message, HintTheme messageTheme)
@@ -296,8 +297,16 @@ public static class ModMain
             }
 
             var currentHint = HintWaiting[0];
-            currentHint.Text = currentHint.Text.Replace("\r\n", " ").Replace("\r", " ")
-                .Replace("\n", " ");
+
+            // If a visible toast already shows this exact message, shake it instead of stacking a new one
+            var duplicate = frmMain.PanHint.Children.OfType<MyToast>()
+                .FirstOrDefault(t => !t.IsDismissing && t.Context == currentHint.Text && t.ToastType == currentHint.Type);
+            if (duplicate != null)
+            {
+                duplicate.Emphasize();
+                HintWaiting.RemoveAt(0);
+                return;
+            }
 
             var toast = new MyToast
             {
