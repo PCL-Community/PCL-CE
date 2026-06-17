@@ -33,7 +33,7 @@ public partial class MyToast
 
     public string Icon { get; set; } = "lucide/info";
 
-    public ModMain.HintType ToastType { get; set; } = ModMain.HintType.Info;
+    public HintType ToastType { get; set; } = HintType.Info;
 
     public double DisplayDuration { get; set; } = 5000;
 
@@ -145,8 +145,8 @@ public partial class MyToast
     {
         var baseHue = ToastType switch
         {
-            ModMain.HintType.Finish => 145d,
-            ModMain.HintType.Critical => 355d,
+            HintType.Success => 145d,
+            HintType.Error => 355d,
             _ => 210d
         };
         var res = System.Windows.Application.Current.Resources;

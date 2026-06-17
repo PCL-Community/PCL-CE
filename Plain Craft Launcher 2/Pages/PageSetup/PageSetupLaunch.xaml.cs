@@ -107,7 +107,7 @@ public partial class PageSetupLaunch
         {
             Config.Launch.Reset();
             ModBase.Log("[Setup] 已初始化启动设置");
-            ModMain.Hint(Lang.Text("Setup.Launch.Initialized"), ModMain.HintType.Finish, false);
+            HintService.Hint(Lang.Text("Setup.Launch.Initialized"), HintType.Success, false);
         }
         catch (Exception ex)
         {

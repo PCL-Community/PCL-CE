@@ -51,7 +51,7 @@ public partial class PageInstanceSaves : IRefreshable
         if (ModMain.frmInstanceSaves is not null)
             ModMain.frmInstanceSaves.Reload();
         ModMain.frmInstanceLeft.ItemWorld.Checked = true;
-        ModMain.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), log: false);
+        HintService.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), log: false);
     }
 
     private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
@@ -232,7 +232,7 @@ public partial class PageInstanceSaves : IRefreshable
                             {
                                 FileSystem.DeleteDirectory(tmpCurFolder, UIOption.OnlyErrorDialogs,
                                     RecycleOption.SendToRecycleBin);
-                                ModMain.Hint(Lang.Text("Instance.Saves.DeletedToRecycleBin"));
+                                HintService.Hint(Lang.Text("Instance.Saves.DeletedToRecycleBin"));
                                 ModBase.RunInUiWait(() => RemoveItem(worldItem));
                             }
                             catch (Exception ex)
@@ -254,12 +254,12 @@ public partial class PageInstanceSaves : IRefreshable
                             if (Directory.Exists(tmpCurFolder))
                             {
                                 Clipboard.SetFileDropList(new StringCollection { tmpCurFolder });
-                                ModMain.Hint(Lang.Text("Instance.Saves.CopiedToClipboard"));
-                                ModMain.Hint(Lang.Text("Instance.Saves.CopyPasteWarning"));
+                                HintService.Hint(Lang.Text("Instance.Saves.CopiedToClipboard"));
+                                HintService.Hint(Lang.Text("Instance.Saves.CopyPasteWarning"));
                             }
                             else
                             {
-                                ModMain.Hint(Lang.Text("Instance.Saves.FolderNotFound"));
+                                HintService.Hint(Lang.Text("Instance.Saves.FolderNotFound"));
                             }
                         }
                         catch (Exception ex)
@@ -380,7 +380,7 @@ public partial class PageInstanceSaves : IRefreshable
                     {
                         if (Directory.Exists(worldPath + GetFolderNameFromPath(i)))
                         {
-                            ModMain.Hint(Lang.Text("Instance.Saves.DuplicateFolder", GetFolderNameFromPath(i)));
+                            HintService.Hint(Lang.Text("Instance.Saves.DuplicateFolder", GetFolderNameFromPath(i)));
                         }
                         else
                         {
@@ -390,7 +390,7 @@ public partial class PageInstanceSaves : IRefreshable
                     }
                     else
                     {
-                        ModMain.Hint(Lang.Text("Instance.Saves.SourceNotFolder"));
+                        HintService.Hint(Lang.Text("Instance.Saves.SourceNotFolder"));
                     }
                 }
                 catch (Exception ex)
@@ -399,7 +399,7 @@ public partial class PageInstanceSaves : IRefreshable
                 }
 
             if (copied > 0)
-                ModMain.Hint(Lang.Text("Instance.Saves.PastedCount", copied.ToString()), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Saves.PastedCount", copied.ToString()), HintType.Success);
             ModBase.RunInUi(() => Reload());
         }));
         var loader = new ModLoader.LoaderCombo<int>($"{PageInstanceLeft.McInstance.Name} - {Lang.Text("Instance.Saves.CopySave")}", loaders)

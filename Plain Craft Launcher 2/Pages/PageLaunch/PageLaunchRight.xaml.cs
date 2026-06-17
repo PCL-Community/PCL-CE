@@ -53,7 +53,7 @@ public partial class PageLaunchRight : IRefreshable
         }
         else
         {
-            ModMain.Hint(Lang.Text("Launch.Right.CommunityHint.WrongInput"));
+            HintService.Hint(Lang.Text("Launch.Right.CommunityHint.WrongInput"));
         }
     }
 
@@ -472,7 +472,7 @@ public partial class PageLaunchRight : IRefreshable
             var loadCostTime = (DateTime.Now - loadStartTime).Milliseconds;
             ModBase.Log($"[Page] 实例化：加载主页 UI 完成，耗时 {loadCostTime}ms");
             if (loadCostTime > 3000)
-                ModMain.Hint(Lang.Text("Launch.Homepage.SlowWarning", Lang.Number(Math.Round(loadCostTime / 1000d, 1), "N1")));
+                HintService.Hint(Lang.Text("Launch.Homepage.SlowWarning", Lang.Number(Math.Round(loadCostTime / 1000d, 1), "N1")));
         }
 
         return;

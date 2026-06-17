@@ -96,15 +96,6 @@ public static class ModMain
     private static int timer150Count;
 
     /// <summary>
-    ///     等待弹出的提示列表。以 {String, HintType, Log As Boolean} 形式存储为数组。
-    /// </summary>
-    private static ModBase.SafeList<HintMessage> HintWaiting
-    {
-        get => field ??= new ModBase.SafeList<HintMessage>();
-        set;
-    }
-
-    /// <summary>
     ///     等待显示的弹窗。
     /// </summary>
     public static List<MyMsgBoxConverter> WaitingMyMsgBox { get; } = [];
@@ -115,7 +106,7 @@ public static class ModMain
         {
             #region 每 50ms 执行一次的代码
 
-            HintTick();
+            HintService.Tick();
             MyMsgBoxTick();
             frmMain!.DragTick();
             ModLoader.LoaderTaskbarProgressRefresh();
@@ -216,132 +207,6 @@ public static class ModMain
             }
         }, "Timer Main Fool");
     }
-
-    #region 弹出提示
-
-    /// <summary>
-    ///     提示信息的种类。
-    /// </summary>
-    public enum HintType
-    {
-        /// <summary>
-        ///     信息，通常是蓝色的“i”。
-        /// </summary>
-        /// <remarks></remarks>
-        Info,
-
-        /// <summary>
-        ///     已完成，通常是绿色的“√”。
-        /// </summary>
-        /// <remarks></remarks>
-        Finish,
-
-        /// <summary>
-        ///     错误，通常是红色的“×”。
-        /// </summary>
-        /// <remarks></remarks>
-        Critical
-    }
-
-    private struct HintMessage
-    {
-        public string Text;
-        public HintType Type;
-        public bool Log;
-    }
-
-
-    /// <summary>
-    ///     在窗口弹出提示文本。
-    /// </summary>
-    public static void Hint(string? text, HintType type = HintType.Info, bool log = true)
-    {
-        var normalized = (text ?? "").Replace("\r\n", " ").Replace("\r", " ").Replace("\n", " ");
-        if (HintWaiting.Any(h => h.Text == normalized && h.Type == type)) return;
-        HintWaiting.Add(new HintMessage { Text = normalized, Type = type, Log = log });
-    }
-
-    public static void HintWrapper_OnShow(string message, HintTheme messageTheme)
-    {
-        var hintType = messageTheme switch
-        {
-            HintTheme.Error => HintType.Critical,
-            HintTheme.Info => HintType.Info,
-            _ => HintType.Finish
-        };
-        Hint(message, hintType);
-    }
-
-    private static void HintTick()
-    {
-        try
-        {
-            frmMain!.PanHint.HorizontalAlignment = HorizontalAlignment.Right;
-            frmMain.PanHint.VerticalAlignment = VerticalAlignment.Bottom;
-
-            // Keep toasts above any visible extra buttons in the same corner
-            var extraHeight = frmMain.PanExtraButtons.ActualHeight;
-            frmMain.PanHint.Margin = new Thickness(0, 0, 0, extraHeight > 0 ? extraHeight + 20 : 20);
-
-            if (!HintWaiting.Any())
-                return;
-
-            var currentHint = HintWaiting[0];
-
-            // If a visible toast already shows this exact message, shake it instead of stacking a new one.
-            // This must run before the cap check — a duplicate needs no new slot, so no existing toast should be evicted.
-            var duplicate = frmMain.PanHint.Children.OfType<MyToast>()
-                .FirstOrDefault(t => !t.IsDismissing && t.Context == currentHint.Text && t.ToastType == currentHint.Type);
-            if (duplicate != null)
-            {
-                duplicate.Emphasize();
-                HintWaiting.RemoveAt(0);
-                return;
-            }
-
-            // Only count toasts that are still visible (not mid-dismiss-animation)
-            var activeCount = frmMain.PanHint.Children.OfType<MyToast>().Count(t => !t.IsDismissing);
-            if (activeCount >= 5)
-            {
-                // Dismiss the oldest active toast and wait for it to leave before adding the next one
-                var oldest = frmMain.PanHint.Children.OfType<MyToast>().FirstOrDefault(t => !t.IsDismissing);
-                oldest?.Dismiss();
-                return;
-            }
-
-            var toast = new MyToast
-            {
-                Context = currentHint.Text,
-                ToastType = currentHint.Type,
-                Icon = currentHint.Type switch
-                {
-                    HintType.Finish => "lucide/circle-check",
-                    HintType.Critical => "lucide/circle-minus",
-                    _ => "lucide/info"
-                },
-                DisplayDuration = (800d + ModBase.MathClamp(currentHint.Text.Length, 5d, 23d) * 180d) * ModAnimation.aniSpeed
-            };
-
-            frmMain.PanHint.Children.Add(toast);
-            toast.Show();
-
-            if (currentHint.Log)
-                ModBase.Log("[UI] 弹出提示：" + currentHint.Text);
-            HintWaiting.RemoveAt(0);
-        }
-        catch (Exception ex)
-        {
-            ModBase.Log(ex, "显示弹出提示失败", ModBase.LogLevel.Normal);
-        }
-    }
-
-    private static void HideAllHint()
-    {
-        foreach (MyToast toast in frmMain!.PanHint.Children.OfType<MyToast>().ToList())
-            toast.Dismiss();
-    }
-
-    #endregion
 
     #region 弹窗
 
@@ -901,22 +766,22 @@ public static class ModMain
                 {
                     case 0:
                     {
-                        Hint("放弃吧！只需要点一下右下角的小白旗……");
+                        HintService.Hint("放弃吧！只需要点一下右下角的小白旗……");
                         break;
                     }
                     case 1:
                     {
-                        Hint("看到右下角的那面小白旗了吗？");
+                        HintService.Hint("看到右下角的那面小白旗了吗？");
                         break;
                     }
                     case 2:
                     {
-                        Hint("这里建议点一下右下角的小白旗投降呢.jpg");
+                        HintService.Hint("这里建议点一下右下角的小白旗投降呢.jpg");
                         break;
                     }
                     case 3:
                     {
-                        Hint("右下角的小白旗永远等着你……");
+                        HintService.Hint("右下角的小白旗永远等着你……");
                         break;
                     }
                 }

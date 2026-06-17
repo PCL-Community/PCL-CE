@@ -110,7 +110,7 @@ public partial class MyMsgLogin
                 var ctx = await result.AsStringAsync().ConfigureAwait(false);
                 var resultJson = (JsonObject)ModBase.GetJson(ctx);
                 ModProfile.ProfileLog($"令牌过期时间：{resultJson["expires_in"]} 秒");
-                ModMain.Hint(Lang.Text("Launch.Account.LoginDialog.Success"), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("Launch.Account.LoginDialog.Success"), HintType.Success);
                 Finished(new[] { resultJson["access_token"].ToString(), resultJson["refresh_token"].ToString() });
                 return;
             }

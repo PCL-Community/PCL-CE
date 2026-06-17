@@ -82,7 +82,7 @@ public partial class PageSetupJava
         {
             if (!j.Installation.IsStillAvailable)
             {
-                ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
+                HintService.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
                 return;
             }
 
@@ -90,7 +90,7 @@ public partial class PageSetupJava
                 Config.Launch.SelectedJava = j.Installation.JavaExePath;
             else
             {
-                ModMain.Hint(Lang.Text("Setup.Launch.Java.EnableBeforeSelect"));
+                HintService.Hint(Lang.Text("Setup.Launch.Java.EnableBeforeSelect"));
                 e.handled = true;
             }
         };
@@ -101,7 +101,7 @@ public partial class PageSetupJava
         {
             if (!j.Installation.IsStillAvailable)
             {
-                ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
+                HintService.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
                 return;
             }
 
@@ -114,7 +114,7 @@ public partial class PageSetupJava
         {
             if (!j.Installation.IsStillAvailable)
             {
-                ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
+                HintService.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
                 return;
             }
 
@@ -136,7 +136,7 @@ public partial class PageSetupJava
         {
             if (!j.Installation.IsStillAvailable)
             {
-                ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
+                HintService.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
                 return;
             }
 
@@ -163,13 +163,13 @@ public partial class PageSetupJava
                 var target = ModJava.Javas.AddOrGet(j.Installation.JavaExePath);
                 if (target is null)
                 {
-                    ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
+                    HintService.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
                     return;
                 }
 
                 if (target.IsEnabled && Config.Launch.SelectedJava == target.Installation.JavaExePath)
                 {
-                    ModMain.Hint(Lang.Text("Setup.Launch.Java.DeselectBeforeDisable"));
+                    HintService.Hint(Lang.Text("Setup.Launch.Java.DeselectBeforeDisable"));
                     return;
                 }
 
@@ -193,7 +193,7 @@ public partial class PageSetupJava
         if (string.IsNullOrEmpty(ret) || !File.Exists(ret))
             return;
         if (ModJava.Javas.Exist(ret))
-            ModMain.Hint(Lang.Text("Setup.Launch.Java.AlreadyExists"));
+            HintService.Hint(Lang.Text("Setup.Launch.Java.AlreadyExists"));
         else
             Dispatcher.BeginInvoke(new Action(async () =>
             {
@@ -204,12 +204,12 @@ public partial class PageSetupJava
                 });
                 if (ModJava.Javas.Exist(ret))
                 {
-                    ModMain.Hint(Lang.Text("Setup.Launch.Java.Added"), ModMain.HintType.Finish);
+                    HintService.Hint(Lang.Text("Setup.Launch.Java.Added"), HintType.Success);
                     loader.Start(true, true);
                 }
                 else
                 {
-                    ModMain.Hint(Lang.Text("Setup.Launch.Java.AddFailed"), ModMain.HintType.Critical);
+                    HintService.Hint(Lang.Text("Setup.Launch.Java.AddFailed"), HintType.Error);
                 }
             }));
     }

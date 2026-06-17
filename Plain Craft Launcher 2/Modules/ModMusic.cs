@@ -80,21 +80,21 @@ public static class ModMusic
             {
                 var msg = ex.Message;
                 if (msg.Contains("AlreadyAllocated"))
-                    ModMain.Hint("你的音频设备正被其他程序占用。请关闭占用程序后重启 PCL 以恢复音乐功能！", ModMain.HintType.Critical);
+                    HintService.Hint("你的音频设备正被其他程序占用。请关闭占用程序后重启 PCL 以恢复音乐功能！", HintType.Error);
                 else if (msg.Contains("NoDriver") || msg.Contains("BadDeviceId"))
-                    ModMain.Hint("音频设备发生变更，音乐播放功能需重启 PCL 后恢复！", ModMain.HintType.Critical);
+                    HintService.Hint("音频设备发生变更，音乐播放功能需重启 PCL 后恢复！", HintType.Error);
                 else
                     ModBase.Log(ex, $"播放失败（{fileName}）", ModBase.LogLevel.Hint);
             }
             else if (ex.Message.Contains("Got a frame at sample rate") ||
                      ex.Message.Contains("does not support changes to"))
             {
-                ModMain.Hint($"播放失败（{fileName}）：PCL 不支持中途变更音频属性的音乐文件", ModMain.HintType.Critical);
+                HintService.Hint($"播放失败（{fileName}）：PCL 不支持中途变更音频属性的音乐文件", HintType.Error);
             }
             else if ((!musicCurrent.EndsWithF(".wav", true) && !musicCurrent.EndsWithF(".mp3", true) &&
                       !musicCurrent.EndsWithF(".flac", true)) || ex.Message.Contains("0xC00D36C4"))
             {
-                ModMain.Hint($"播放失败（{fileName}）：PCL 可能不支持此格式，请转换为 .wav/.mp3/.flac", ModMain.HintType.Critical);
+                HintService.Hint($"播放失败（{fileName}）：PCL 可能不支持此格式，请转换为 .wav/.mp3/.flac", HintType.Error);
             }
             else
             {
@@ -257,7 +257,7 @@ public static class ModMusic
     {
         if (musicNAudio is null)
         {
-            ModMain.Hint("音乐播放尚未开始！", ModMain.HintType.Critical);
+            HintService.Hint("音乐播放尚未开始！", HintType.Error);
             return;
         }
 
@@ -288,19 +288,19 @@ public static class ModMusic
         if (musicAllList?.Count is { } arg2 && arg2 == 1)
         {
             MusicStartPlay(musicCurrent);
-            ModMain.Hint("重新播放：" + ModBase.GetFileNameFromPath(musicCurrent), ModMain.HintType.Finish);
+            HintService.Hint("重新播放：" + ModBase.GetFileNameFromPath(musicCurrent), HintType.Success);
         }
         else
         {
             var addr = DequeueNextMusicAddress();
             if (addr is null)
             {
-                ModMain.Hint("没有可以播放的音乐！", ModMain.HintType.Critical);
+                HintService.Hint("没有可以播放的音乐！", HintType.Error);
             }
             else
             {
                 MusicStartPlay(addr);
-                ModMain.Hint("正在播放：" + ModBase.GetFileNameFromPath(addr), ModMain.HintType.Finish);
+                HintService.Hint("正在播放：" + ModBase.GetFileNameFromPath(addr), HintType.Success);
             }
         }
 
@@ -341,11 +341,11 @@ public static class ModMusic
                 {
                     musicNAudio = null;
                     if (showHint)
-                        ModMain.Hint("背景音乐已清除！", ModMain.HintType.Finish);
+                        HintService.Hint("背景音乐已清除！", HintType.Success);
                 }
                 else if (showHint)
                 {
-                    ModMain.Hint("未检测到可用的背景音乐！", ModMain.HintType.Critical);
+                    HintService.Hint("未检测到可用的背景音乐！", HintType.Error);
                 }
             }
             else
@@ -354,7 +354,7 @@ public static class ModMusic
                 if (addr is null)
                 {
                     if (showHint)
-                        ModMain.Hint("没有可以播放的音乐！", ModMain.HintType.Critical);
+                        HintService.Hint("没有可以播放的音乐！", HintType.Error);
                 }
                 else
                 {
@@ -362,7 +362,7 @@ public static class ModMusic
                     {
                         MusicStartPlay(addr, isFirstLoad);
                         if (showHint)
-                            ModMain.Hint("背景音乐已刷新：" + ModBase.GetFileNameFromPath(addr), ModMain.HintType.Finish,
+                            HintService.Hint("背景音乐已刷新：" + ModBase.GetFileNameFromPath(addr), HintType.Success,
                                 false);
                     }
                     catch

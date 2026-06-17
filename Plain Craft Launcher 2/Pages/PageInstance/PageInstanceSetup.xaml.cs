@@ -167,7 +167,7 @@ public partial class PageInstanceSetup
             Config.Instance.Reset(PageInstanceLeft.McInstance.PathInstance);
 
             ModBase.Log("[Setup] 已初始化实例独立设置");
-            ModMain.Hint(Lang.Text("Instance.Setup.Initialize.Success"), ModMain.HintType.Finish, false);
+            HintService.Hint(Lang.Text("Instance.Setup.Initialize.Success"), HintType.Success, false);
         }
         catch (Exception ex)
         {
@@ -567,19 +567,19 @@ public partial class PageInstanceSetup
             if (TextServerAuthServer.Text.EndsWithF("/"))
             {
                 TextServerAuthServer.Text = $"{TextServerAuthServer.Text}api/yggdrasil";
-                ModMain.Hint(Lang.Text("Instance.Setup.AuthServer.AutoFormatted"));
+                HintService.Hint(Lang.Text("Instance.Setup.AuthServer.AutoFormatted"));
             }
             else
             {
                 TextServerAuthServer.Text = $"{TextServerAuthServer.Text}/api/yggdrasil";
-                ModMain.Hint(Lang.Text("Instance.Setup.AuthServer.AutoFormatted"));
+                HintService.Hint(Lang.Text("Instance.Setup.AuthServer.AutoFormatted"));
             }
         }
 
         if (TextServerAuthServer.Text.EndsWithF("/api/yggdrasil/"))
         {
             TextServerAuthServer.Text = TextServerAuthServer.Text.BeforeLast("/");
-            ModMain.Hint(Lang.Text("Instance.Setup.AuthServer.AutoFormatted"));
+            HintService.Hint(Lang.Text("Instance.Setup.AuthServer.AutoFormatted"));
         }
 
         comboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
@@ -909,7 +909,7 @@ public partial class PageInstanceSetup
             // 验证路径是否在启动器目录内
             if (!Files.IsPathWithinDirectory(relativePath, Basics.ExecutableDirectory))
             {
-                ModMain.Hint(Lang.Text("Instance.Setup.Java.PathOutOfRange"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Instance.Setup.Java.PathOutOfRange"), HintType.Error);
                 return;
             }
 

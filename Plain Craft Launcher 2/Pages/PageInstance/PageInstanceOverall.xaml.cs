@@ -390,7 +390,7 @@ public partial class PageInstanceOverall
             }
 
             // 刷新与提示
-            ModMain.Hint(Lang.Text("Instance.Overall.Name.RenameSuccess"), ModMain.HintType.Finish);
+            HintService.Hint(Lang.Text("Instance.Overall.Name.RenameSuccess"), HintType.Success);
             PageInstanceLeft.McInstance = new McInstance(newName).Load();
             if (ModInstanceList.McMcInstanceSelected is not null &&
                 ModInstanceList.McMcInstanceSelected.Equals(PageInstanceLeft.McInstance))
@@ -519,7 +519,7 @@ public partial class PageInstanceOverall
             // 检查中断（等玩家选完弹窗指不定任务就结束了呢……）
             if (ModLaunch.mcLaunchLoader.State == ModBase.LoadState.Loading)
             {
-                ModMain.Hint(Lang.Text("Instance.Overall.Script.WaitForLaunchTask"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Instance.Overall.Script.WaitForLaunchTask"), HintType.Error);
                 return;
             }
 
@@ -528,9 +528,9 @@ public partial class PageInstanceOverall
                     { SaveBatch = savePath, instance = PageInstanceLeft.McInstance }))
             {
                 if (ModProfile.selectedProfile.Type == ModLaunch.McLoginType.Legacy)
-                    ModMain.Hint(Lang.Text("Instance.Overall.Script.Exporting"));
+                    HintService.Hint(Lang.Text("Instance.Overall.Script.Exporting"));
                 else
-                    ModMain.Hint(Lang.Text("Instance.Overall.Script.ExportingWarning"));
+                    HintService.Hint(Lang.Text("Instance.Overall.Script.ExportingWarning"));
             }
         }
         catch (Exception ex)
@@ -547,7 +547,7 @@ public partial class PageInstanceOverall
             // 忽略文件检查提示
             if ((bool)ModLibrary.ShouldIgnoreFileCheck(PageInstanceLeft.McInstance))
             {
-                ModMain.Hint(Lang.Text("Instance.Overall.Repair.DisableVerificationHint"));
+                HintService.Hint(Lang.Text("Instance.Overall.Repair.DisableVerificationHint"));
                 return;
             }
 
@@ -557,7 +557,7 @@ public partial class PageInstanceOverall
             {
                 if ((OngoingLoader.name ?? "") != (taskName ?? ""))
                     continue;
-                ModMain.Hint(Lang.Text("Instance.Overall.Repair.Processing"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Instance.Overall.Repair.Processing"), HintType.Error);
                 return;
             }
 
@@ -571,17 +571,17 @@ public partial class PageInstanceOverall
                 {
                     case ModBase.LoadState.Finished:
                     {
-                        ModMain.Hint(taskName + Lang.Text("Instance.Overall.Repair.Success"), ModMain.HintType.Finish);
+                        HintService.Hint(taskName + Lang.Text("Instance.Overall.Repair.Success"), HintType.Success);
                         break;
                     }
                     case ModBase.LoadState.Failed:
                     {
-                        ModMain.Hint(taskName + Lang.Text("Instance.Overall.Repair.Failed") + loader.Error.Message, ModMain.HintType.Critical);
+                        HintService.Hint(taskName + Lang.Text("Instance.Overall.Repair.Failed") + loader.Error.Message, HintType.Error);
                         break;
                     }
                     case ModBase.LoadState.Aborted:
                     {
-                        ModMain.Hint(taskName + Lang.Text("Common.Action.Cancel") + "！");
+                        HintService.Hint(taskName + Lang.Text("Common.Action.Cancel") + "！");
                         break;
                     }
                 }
@@ -606,7 +606,7 @@ public partial class PageInstanceOverall
             if (!(currentVersion.Drop == 99) &&
                 McVersionComparer.CompareVersion(currentVersion.VanillaName, "1.5.2") == -1 && currentVersion.HasForge)
             {
-                ModMain.Hint(Lang.Text("Instance.Overall.Reset.NotSupported"));
+                HintService.Hint(Lang.Text("Instance.Overall.Reset.NotSupported"));
                 return;
             }
 
@@ -718,15 +718,15 @@ public partial class PageInstanceOverall
                     if (isShiftPressed)
                     {
                         ModBase.DeleteDirectory(instancePath);
-                        ModMain.Hint(Lang.Text("Instance.Overall.Delete.PermanentSuccess", instanceName),
-                            ModMain.HintType.Finish);
+                        HintService.Hint(Lang.Text("Instance.Overall.Delete.PermanentSuccess", instanceName),
+                            HintType.Success);
                     }
                     else
                     {
                         FileSystem.DeleteDirectory(instancePath, UIOption.OnlyErrorDialogs,
                             RecycleOption.SendToRecycleBin);
-                        ModMain.Hint(Lang.Text("Instance.Overall.Delete.RecycleBinSuccess", instanceName),
-                            ModMain.HintType.Finish);
+                        HintService.Hint(Lang.Text("Instance.Overall.Delete.RecycleBinSuccess", instanceName),
+                            HintType.Success);
                     }
 
                     break;
@@ -763,13 +763,13 @@ public partial class PageInstanceOverall
                 var userInput = SystemDialogs.SelectFile(Lang.Text("Instance.Overall.Patch.SelectFile.Filter"), Lang.Text("Instance.Overall.Patch.SelectFile.Title"));
                 if (userInput is null || string.IsNullOrWhiteSpace(userInput))
                     return;
-                ModMain.Hint(Lang.Text("Instance.Overall.Patch.Patching"));
+                HintService.Hint(Lang.Text("Instance.Overall.Patch.Patching"));
                 ModBase.RunInNewThread(() =>
                 {
                     var core = new GameCore(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name +
                                             ".jar");
                     core.AddToCore(userInput);
-                    ModMain.Hint(Lang.Text("Instance.Overall.Patch.Success"), ModMain.HintType.Finish);
+                    HintService.Hint(Lang.Text("Instance.Overall.Patch.Success"), HintType.Success);
                     Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.McInstance.PathInstance] = true;
                 });
                 break;
