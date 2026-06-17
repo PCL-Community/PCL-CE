@@ -30,7 +30,7 @@ public record CacheOptions
     /// Reserve bytes for the cache. This amount of space will always be reserved for the cache, even when eviction is triggered.<br/>
     /// <b>(Default: 256 MB)</b>
     /// </summary>
-    public long ReserveBytes { get; init; } = 256L * 1024 * 102; // 256 MB
+    public long ReserveBytes { get; init; } = 256L * 1024 * 1024; // 256 MB
     /// <summary>
     /// Whether to enable compression for cache entries. (Enabled by default)<br/>
     /// </summary>
