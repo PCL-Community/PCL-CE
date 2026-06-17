@@ -674,7 +674,7 @@ public partial class PageToolsTest
             Margin = new Thickness(0, 4, 0, 0),
         });
 
-        Dialog.Show(new DialogContext
+        DialogManager.Instance?.Show(new DialogContext
         {
             Title = "弹窗系统展示",
             Content = panel,

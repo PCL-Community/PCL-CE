@@ -105,10 +105,10 @@ public partial class FormMain
         // 注册拖拽事件（不能直接加 Handles，否则没用；#6340）
         AddHandler(DragDrop.DragEnterEvent, new DragEventHandler(HandleDrag), true);
         AddHandler(DragDrop.DragOverEvent, new DragEventHandler(HandleDrag), true);
+        // 初始化 DialogManager
+        new DialogManager(this);
         // 注册 MsgBox 事件
         MsgBoxWrapper.OnShow += ModMain.MsgBoxWrapper_OnShow;
-        // 注册 Dialog 事件
-        PCL.Core.UI.Dialog.OnShow += ModMain.Dialog_OnShow;
         // 注册 Hint 事件
         HintWrapper.OnShow += ModMain.HintWrapper_OnShow;
         // 加载 UI

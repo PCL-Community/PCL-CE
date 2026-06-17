@@ -111,7 +111,7 @@ public static partial class ModMain
             #region 每 50ms 执行一次的代码
 
             HintTick();
-            MyMsgBoxTick();
+            DialogManager.Instance?.Tick();
             frmMain!.DragTick();
             ModLoader.LoaderTaskbarProgressRefresh();
         }
