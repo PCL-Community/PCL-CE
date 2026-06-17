@@ -137,7 +137,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     });
                 }
                 finally { WriteLock.Release(); }
-                ModMain.Hint(Lang.Text("Instance.Saves.Info.Modify.CheatSuccess"), ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Instance.Saves.Info.Modify.CheatSuccess"), HintType.Finish);
             }
             catch (Exception ex) { ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Modify.CheatFailed"), ModBase.LogLevel.Hint); }
         };
@@ -190,7 +190,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     });
                 }
                 finally { WriteLock.Release(); }
-                ModMain.Hint(Lang.Text("Instance.Saves.Info.Modify.DifficultySuccess"), ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Instance.Saves.Info.Modify.DifficultySuccess"), HintType.Finish);
             }
             catch (Exception ex) { ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Modify.DifficultyFailed"), ModBase.LogLevel.Hint); }
         }

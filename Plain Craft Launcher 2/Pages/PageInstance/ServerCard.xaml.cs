@@ -158,7 +158,7 @@ public partial class ServerCard
         catch (Exception ex)
         {
             ModBase.Log(ex, Lang.Text("Instance.Server.Card.LaunchFailed"), ModBase.LogLevel.Feedback);
-            ModMain.Hint(Lang.Text("Instance.Server.Card.LaunchFailedMsg", ex.Message), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.Card.LaunchFailedMsg", ex.Message), HintType.Critical);
         }
     }
 
@@ -170,12 +170,12 @@ public partial class ServerCard
         try
         {
             Clipboard.SetText(server.Address);
-            ModMain.Hint(Lang.Text("Instance.Server.Card.AddressCopied", server.Address), ModMain.HintType.Finish);
+            ModMain.Hint(Lang.Text("Instance.Server.Card.AddressCopied", server.Address), HintType.Finish);
         }
         catch (Exception ex)
         {
             ModBase.Log(ex, Lang.Text("Instance.Server.Card.CopyAddressFailed"));
-            ModMain.Hint(Lang.Text("Instance.Server.Card.CopyAddressFailed"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.Card.CopyAddressFailed"), HintType.Critical);
         }
     }
 
@@ -207,7 +207,7 @@ public partial class ServerCard
 
         catch (Exception ex)
         {
-            ModMain.Hint(Lang.Text("Instance.Server.Card.EditFailed", ex.Message), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.Card.EditFailed", ex.Message), HintType.Critical);
         }
     }
 

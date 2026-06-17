@@ -100,7 +100,7 @@ public partial class PageDownloadCompDetail
                     {
                         case ModBase.LoadState.Failed:
                         {
-                            ModMain.Hint(myLoader.name + Lang.Text("Common.Status.Failure") + myLoader.Error.Message, ModMain.HintType.Critical);
+                            ModMain.Hint(myLoader.name + Lang.Text("Common.Status.Failure") + myLoader.Error.Message, HintType.Critical);
                             break;
                         }
                         case ModBase.LoadState.Aborted:

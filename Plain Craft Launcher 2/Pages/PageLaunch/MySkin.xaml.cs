@@ -102,7 +102,7 @@ public partial class MySkin
         var address = loader.output;
         if (loader.State != ModBase.LoadState.Finished)
         {
-            ModMain.Hint(Lang.Text("Launch.Skin.Fetching"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Launch.Skin.Fetching"), HintType.Critical);
             if (loader.State != ModBase.LoadState.Loading)
                 loader.Start();
             return;
@@ -125,7 +125,7 @@ public partial class MySkin
                 ModBase.CopyFile(address, fileAddress);
             }
 
-            ModMain.Hint(Lang.Text("Launch.Skin.SaveSuccess"), ModMain.HintType.Finish);
+            ModMain.Hint(Lang.Text("Launch.Skin.SaveSuccess"), HintType.Finish);
         }
         catch (Exception ex)
         {
@@ -295,7 +295,7 @@ public partial class MySkin
                                  ? new[] { sender }
                                  : new[] { PageLaunchLeft.skinLegacy, PageLaunchLeft.skinMs })
                         SkinLoader.WaitForExit(isForceRestart: true);
-                    ModMain.Hint(Lang.Text("Launch.Skin.RefreshSuccess"), ModMain.HintType.Finish);
+                    ModMain.Hint(Lang.Text("Launch.Skin.RefreshSuccess"), HintType.Finish);
                 }
                 catch (Exception ex)
                 {
@@ -322,7 +322,7 @@ public partial class MySkin
                 ModBase.Log($"[Skin] 已写入皮肤地址缓存 {ModProfile.selectedProfile.Uuid} -> {skinAddress}");
                 foreach (var SkinLoader in new[] { PageLaunchLeft.skinMs, PageLaunchLeft.skinLegacy })
                     SkinLoader.WaitForExit(isForceRestart: true);
-                ModMain.Hint(Lang.Text("Launch.Skin.ChangeSuccess"), ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Launch.Skin.ChangeSuccess"), HintType.Finish);
             }
             catch (Exception ex)
             {
@@ -342,7 +342,7 @@ public partial class MySkin
 
         if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Failed)
         {
-            ModMain.Hint(Lang.Text("Launch.Skin.Cape.LoginFailed"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Launch.Skin.Cape.LoginFailed"), HintType.Critical);
             return;
         }
 
@@ -358,7 +358,7 @@ public partial class MySkin
                     ModLaunch.mcLoginMsLoader.WaitForExit(ModProfile.GetLoginData());
                 if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished)
                 {
-                    ModMain.Hint(Lang.Text("Launch.Skin.Cape.LoginFailed"), ModMain.HintType.Critical);
+                    ModMain.Hint(Lang.Text("Launch.Skin.Cape.LoginFailed"), HintType.Critical);
                     return;
                 }
 
@@ -441,9 +441,9 @@ public partial class MySkin
                 if (result.Contains("\"errorMessage\""))
                     ModMain.Hint(
                         Lang.Text("Launch.Skin.Cape.ChangeFailedWithReason",
-                            ((JsonObject)ModBase.GetJson(result))["errorMessage"]), ModMain.HintType.Critical);
+                            ((JsonObject)ModBase.GetJson(result))["errorMessage"]), HintType.Critical);
                 else
-                    ModMain.Hint(Lang.Text("Launch.Skin.Cape.ChangeSuccess"), ModMain.HintType.Finish);
+                    ModMain.Hint(Lang.Text("Launch.Skin.Cape.ChangeSuccess"), HintType.Finish);
             }
             catch (Exception ex)
             {

@@ -167,7 +167,7 @@ public partial class PageInstanceSetup
             Config.Instance.Reset(PageInstanceLeft.McInstance.PathInstance);
 
             ModBase.Log("[Setup] 已初始化实例独立设置");
-            ModMain.Hint(Lang.Text("Instance.Setup.Initialize.Success"), ModMain.HintType.Finish, false);
+            ModMain.Hint(Lang.Text("Instance.Setup.Initialize.Success"), HintType.Finish, false);
         }
         catch (Exception ex)
         {
@@ -909,7 +909,7 @@ public partial class PageInstanceSetup
             // 验证路径是否在启动器目录内
             if (!Files.IsPathWithinDirectory(relativePath, Basics.ExecutableDirectory))
             {
-                ModMain.Hint(Lang.Text("Instance.Setup.Java.PathOutOfRange"), ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Instance.Setup.Java.PathOutOfRange"), HintType.Critical);
                 return;
             }
 

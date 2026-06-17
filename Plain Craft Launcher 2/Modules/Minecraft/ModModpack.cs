@@ -60,7 +60,7 @@ public static class ModModpack
             if (targetFolder.Contains("!") || targetFolder.Contains(";"))
             {
                 ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.InvalidGamePathChars", targetFolder),
-                    ModMain.HintType.Critical);
+                    HintType.Critical);
                 throw new ModBase.CancelledException();
             }
 
@@ -643,7 +643,7 @@ public static class ModModpack
         var loaderName = "CurseForge 整合包安装：" + instanceName + " ";
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
-            ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Critical);
             throw new ModBase.CancelledException();
         }
 
@@ -722,7 +722,7 @@ public static class ModModpack
                 default:
                 {
                     ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.UnknownLoader", Entry.Key, Entry.Value),
-                        ModMain.HintType.Critical);
+                        HintType.Critical);
                     break;
                 }
             }
@@ -883,7 +883,7 @@ public static class ModModpack
         var loaderName = $"Modrinth 整合包安装：{instanceName} ";
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
-            ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Critical);
             throw new ModBase.CancelledException();
         }
 
@@ -961,7 +961,7 @@ public static class ModModpack
         var loaderName = "HMCL 整合包安装：" + instanceName + " ";
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
-            ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Critical);
             throw new ModBase.CancelledException();
         }
 
@@ -1053,7 +1053,7 @@ public static class ModModpack
 
         if (!addons.ContainsKey("game"))
         {
-            ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.MissingGameVersion.Generic"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.MissingGameVersion.Generic"), HintType.Critical);
             return null;
         }
 
@@ -1091,7 +1091,7 @@ public static class ModModpack
         var loaderName = "MCBBS 整合包安装：" + instanceName + " ";
         if (loaderTaskbar.Any(l => l.name == loaderName))
         {
-            ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Critical);
             throw new ModBase.CancelledException();
         }
 
@@ -1123,7 +1123,7 @@ public static class ModModpack
             throw new ModBase.CancelledException();
         if (Directory.GetFileSystemEntries(targetFolder).Length > 0)
         {
-            ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.TargetFolderMustBeEmpty"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.TargetFolderMustBeEmpty"), HintType.Critical);
             throw new ModBase.CancelledException();
         }
 
@@ -1232,13 +1232,13 @@ public static class ModModpack
         if (targetFolder.Contains("!") || targetFolder.Contains(";"))
         {
             ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.InvalidGamePathChars", targetFolder),
-                ModMain.HintType.Critical);
+                HintType.Critical);
             throw new ModBase.CancelledException();
         }
 
         if (Directory.GetFileSystemEntries(targetFolder).Length > 0)
         {
-            ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.TargetFolderMustBeEmpty"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.TargetFolderMustBeEmpty"), HintType.Critical);
             throw new ModBase.CancelledException();
         }
 
@@ -1719,7 +1719,7 @@ public static class ModModpack
         var loaderName = "MMC 整合包安装：" + instanceName + " ";
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
-            ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Critical);
             throw new ModBase.CancelledException();
         }
 

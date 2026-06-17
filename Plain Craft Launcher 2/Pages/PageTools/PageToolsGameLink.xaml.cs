@@ -68,7 +68,7 @@ public partial class PageToolsGameLink
 
     private async void OnServerExceptionHandler(Exception ex)
     {
-        ModBase.RunInUi(() => ModMain.Hint(ex.Message, ModMain.HintType.Critical));
+        ModBase.RunInUi(() => ModMain.Hint(ex.Message, HintType.Critical));
 
         try
         {
@@ -84,7 +84,7 @@ public partial class PageToolsGameLink
         catch (Exception secEx)
         {
             ModBase.Log(secEx, "Occurred an exception when exit server.");
-            ModMain.Hint(Lang.Text("Tools.GameLink.Error.ServerExit"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Tools.GameLink.Error.ServerExit"), HintType.Critical);
         }
     }
 
@@ -164,7 +164,7 @@ public partial class PageToolsGameLink
         catch (Exception ex)
         {
             ModBase.Log(ex, "Occurred an exception when exit server.");
-            ModMain.Hint(Lang.Text("Tools.GameLink.Error.ServerExit"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Tools.GameLink.Error.ServerExit"), HintType.Critical);
         }
     }
 
@@ -573,7 +573,7 @@ public partial class PageToolsGameLink
                 if (expireTime.CompareTo(DateTime.Now) < 0)
                 {
                     States.Link.NaidRefreshToken = "";
-                    ModMain.Hint(Lang.Text("Tools.GameLink.Natayark.TokenExpired"), ModMain.HintType.Critical);
+                    ModMain.Hint(Lang.Text("Tools.GameLink.Natayark.TokenExpired"), HintType.Critical);
                     return;
                 }
 
@@ -653,7 +653,7 @@ public partial class PageToolsGameLink
                 ModWebServer.StartNaidAuthorize(() =>
                 {
                     ModBase.RunInUi(() => BtnNatayarkUserName.IsEnabled = true);
-                    ModMain.Hint(Lang.Text("Tools.GameLink.Natayark.LoginComplete"), ModMain.HintType.Finish);
+                    ModMain.Hint(Lang.Text("Tools.GameLink.Natayark.LoginComplete"), HintType.Finish);
                     ReloadNaidData();
                 });
             }
@@ -665,7 +665,7 @@ public partial class PageToolsGameLink
             States.Link.NaidRefreshToken = "";
             LabNatayarkUserName.Text = Lang.Text("Tools.GameLink.Natayark.Login");
             ModBase.Log("[Link] 已退出登录 Natayark Network");
-            ModMain.Hint(Lang.Text("Tools.GameLink.Natayark.LogoutComplete"), ModMain.HintType.Finish, false);
+            ModMain.Hint(Lang.Text("Tools.GameLink.Natayark.LogoutComplete"), HintType.Finish, false);
         }
     }
 
@@ -745,7 +745,7 @@ public partial class PageToolsGameLink
                     if (res is not null && res.Version.Protocol != 0)
                         await CreateLobby(port);
                     else
-                        ModMain.Hint(Lang.Text("Tools.GameLink.Create.NotMcPort"), ModMain.HintType.Critical);
+                        ModMain.Hint(Lang.Text("Tools.GameLink.Create.NotMcPort"), HintType.Critical);
                 }
         }
         finally

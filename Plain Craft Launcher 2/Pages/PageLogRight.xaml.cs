@@ -149,7 +149,7 @@ public partial class PageLogRight
         if (savePath.Length < 3)
             return;
         File.WriteAllLines(savePath, ModMain.frmLogLeft.currentLog.fullLog);
-        ModMain.Hint(Lang.Text("LogPage.Export.Success"), ModMain.HintType.Finish);
+        ModMain.Hint(Lang.Text("LogPage.Export.Success"), HintType.Finish);
         ModBase.OpenExplorer(savePath);
     }
 
@@ -159,7 +159,7 @@ public partial class PageLogRight
         {
             ModMain.frmLogLeft.currentLog.Kill();
             ModMain.Hint(Lang.Text("LogPage.Action.GameClosed", ModMain.frmLogLeft.currentLog.version.Name),
-                ModMain.HintType.Finish);
+                HintType.Finish);
         }
     }
 
@@ -182,7 +182,7 @@ public partial class PageLogRight
             File.WriteAllLines(savePath, dump);
             ModBase.RunInUi(() =>
             {
-                ModMain.Hint(Lang.Text("LogPage.ExportStack.Success"), ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("LogPage.ExportStack.Success"), HintType.Finish);
                 BtnOperationExportStackDump.IsEnabled = true;
             });
             ModBase.OpenExplorer(savePath);

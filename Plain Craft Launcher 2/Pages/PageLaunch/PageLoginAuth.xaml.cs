@@ -58,13 +58,13 @@ public partial class PageLoginAuth
         if (string.IsNullOrWhiteSpace(TextServer.Text) || string.IsNullOrWhiteSpace(TextName.Text) ||
             string.IsNullOrWhiteSpace(TextPass.Password))
         {
-            ModMain.Hint(Lang.Text("Launch.Account.Auth.EmptyFields"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Launch.Account.Auth.EmptyFields"), HintType.Critical);
             return;
         }
 
         if (!TextServer.Text.IsMatch(RegexPatterns.HttpUri))
         {
-            ModMain.Hint(Lang.Text("Launch.Account.Auth.InvalidServer"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Launch.Account.Auth.InvalidServer"), HintType.Critical);
             return;
         }
 
@@ -115,7 +115,7 @@ public partial class PageLoginAuth
                 }
                 else if (ex.Message.StartsWith("$"))
                 {
-                    ModMain.Hint(ex.Message.TrimStart('$'), ModMain.HintType.Critical);
+                    ModMain.Hint(ex.Message.TrimStart('$'), HintType.Critical);
                 }
                 else
                 {

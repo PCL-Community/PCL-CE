@@ -35,7 +35,7 @@ public static class ModSkin
             var image = new MyBitmap(fileName);
             if (image.pic.Width != 64 || !(image.pic.Height == 32 || image.pic.Height == 64))
             {
-                ModMain.Hint(Lang.Text("Launch.Skin.InvalidSize"), ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Launch.Skin.InvalidSize"), HintType.Critical);
                 return new McSkinInfo { IsVaild = false };
             }
 
@@ -43,7 +43,7 @@ public static class ModSkin
             if (fileInfo.Length > 24 * 1024)
             {
                 ModMain.Hint(Lang.Text("Launch.Skin.FileTooLarge", Lang.Number(fileInfo.Length / 1024d, "N2")),
-                    ModMain.HintType.Critical);
+                    HintType.Critical);
                 return new McSkinInfo { IsVaild = false };
             }
         }

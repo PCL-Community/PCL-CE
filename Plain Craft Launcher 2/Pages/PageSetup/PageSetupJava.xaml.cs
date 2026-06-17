@@ -204,12 +204,12 @@ public partial class PageSetupJava
                 });
                 if (ModJava.Javas.Exist(ret))
                 {
-                    ModMain.Hint(Lang.Text("Setup.Launch.Java.Added"), ModMain.HintType.Finish);
+                    ModMain.Hint(Lang.Text("Setup.Launch.Java.Added"), HintType.Finish);
                     loader.Start(true, true);
                 }
                 else
                 {
-                    ModMain.Hint(Lang.Text("Setup.Launch.Java.AddFailed"), ModMain.HintType.Critical);
+                    ModMain.Hint(Lang.Text("Setup.Launch.Java.AddFailed"), HintType.Critical);
                 }
             }));
     }

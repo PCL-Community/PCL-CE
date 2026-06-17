@@ -530,7 +530,7 @@ public partial class PageDownloadCompFavorites
             // 检查是否有共同支持的 ModLoader
             if (hasMod && supportedModLoader.Count == 0)
             {
-                ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.SelectLoader"), ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.SelectLoader"), HintType.Critical);
                 return;
             }
 
@@ -604,7 +604,7 @@ public partial class PageDownloadCompFavorites
                     // Log(SuitVersion.Join(","))
                     if (suitVersion.Count == 0)
                     {
-                        ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.NoResource"), ModMain.HintType.Critical);
+                        ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.NoResource"), HintType.Critical);
                         ts.Abort();
                         return;
                     }
@@ -838,7 +838,7 @@ public partial class PageDownloadCompFavorites
             {
                 ModComp.CompFavorites.FavoritesList.Remove(CurrentFavTarget);
                 ModComp.CompFavorites.Save();
-                ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.Deleted"), ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.Deleted"), HintType.Finish);
                 RefreshFavTargets();
                 ComboTargetFav.SelectedIndex = 0;
             }
@@ -869,7 +869,7 @@ public partial class PageDownloadCompFavorites
                 foreach (var Id in failIds)
                     CurrentFavTarget.Favs.Remove(Id);
                 ModComp.CompFavorites.Save();
-                ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.Removed"), ModMain.HintType.Finish);
+                ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.Removed"), HintType.Finish);
             });
     }
 

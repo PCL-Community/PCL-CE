@@ -162,7 +162,7 @@ public static class ModLaunch
                 {
                     case 2:
                     {
-                        ModMain.Hint(Lang.Text("Minecraft.Launch.DemoMode"), ModMain.HintType.Critical);
+                        ModMain.Hint(Lang.Text("Minecraft.Launch.DemoMode"), HintType.Critical);
                         currentLaunchOptions.ExtraArgs.Add("--demo");
                         break;
                     }
@@ -235,7 +235,7 @@ public static class ModLaunch
             throw new Exception("McLaunchStart 必须在 UI 线程调用！");
         if (mcLaunchLoader.State == ModBase.LoadState.Loading)
         {
-            ModMain.Hint(Lang.Text("Minecraft.Launch.Error.AlreadyLaunching"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Minecraft.Launch.Error.AlreadyLaunching"), HintType.Critical);
             isLaunching = false;
             return false;
         }
@@ -249,7 +249,7 @@ public static class ModLaunch
             currentLaunchOptions.instance.Load();
             if (currentLaunchOptions.instance.state == McInstanceState.Error)
             {
-                ModMain.Hint(Lang.Text("Minecraft.Launch.Error.CannotLaunch", currentLaunchOptions.instance.Desc), ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Minecraft.Launch.Error.CannotLaunch", currentLaunchOptions.instance.Desc), HintType.Critical);
                 isLaunching = false;
                 return false;
             }
@@ -329,7 +329,7 @@ public static class ModLaunch
         catch (Exception ex)
         {
             if (!ex.Message.StartsWithF("$$"))
-                ModMain.Hint(ex.Message, ModMain.HintType.Critical);
+                ModMain.Hint(ex.Message, HintType.Critical);
             throw;
         }
 
@@ -377,7 +377,7 @@ public static class ModLaunch
             {
                 case ModBase.LoadState.Finished:
                 {
-                    ModMain.Hint(Lang.Text("Minecraft.Launch.Success", ModInstanceList.McMcInstanceSelected.Name), ModMain.HintType.Finish);
+                    ModMain.Hint(Lang.Text("Minecraft.Launch.Success", ModInstanceList.McMcInstanceSelected.Name), HintType.Finish);
                     break;
                 }
                 case ModBase.LoadState.Aborted:
@@ -385,7 +385,7 @@ public static class ModLaunch
                     if (abortHint is null)
                         ModMain.Hint(currentLaunchOptions?.SaveBatch is null ? Lang.Text("Minecraft.Launch.Cancelled") : Lang.Text("Minecraft.Launch.ExportScript.Cancelled"));
                     else
-                        ModMain.Hint(abortHint, ModMain.HintType.Finish);
+                        ModMain.Hint(abortHint, HintType.Finish);
 
                     break;
                 }
@@ -1626,12 +1626,12 @@ public static class ModLaunch
             if (loginJson["availableProfiles"].AsArray().Count == 0)
             {
                 if (data.input.ForceReselectProfile)
-                    ModMain.Hint(Lang.Text("Minecraft.Launch.Login.Auth.NoProfileCannotSwitch"), ModMain.HintType.Critical);
+                    ModMain.Hint(Lang.Text("Minecraft.Launch.Login.Auth.NoProfileCannotSwitch"), HintType.Critical);
                 throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.NoProfile"));
             }
 
             if (data.input.ForceReselectProfile && loginJson["availableProfiles"].AsArray().Count == 1)
-                ModMain.Hint(Lang.Text("Minecraft.Launch.Login.Auth.OnlyOneProfile"), ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Minecraft.Launch.Login.Auth.OnlyOneProfile"), HintType.Critical);
             string selectedName = null;
             string selectedId = null;
             if ((loginJson["selectedProfile"] is null || data.input.ForceReselectProfile) &&
@@ -2066,7 +2066,7 @@ public static class ModLaunch
             }
             else
             {
-                ModMain.Hint(Lang.Text("Minecraft.Launch.Error.NoJava"), ModMain.HintType.Critical);
+                ModMain.Hint(Lang.Text("Minecraft.Launch.Error.NoJava"), HintType.Critical);
                 throw new Exception("$$");
             }
         }
@@ -2396,7 +2396,7 @@ public static class ModLaunch
                     // 不包含端口号
                     finalArguments += " --server " + server + " --port 25565";
                 if (ModInstanceList.McMcInstanceSelected.Info.HasOptiFine)
-                    ModMain.Hint(Lang.Text("Minecraft.Launch.Error.OptiFineAutoJoinWarning"), ModMain.HintType.Critical);
+                    ModMain.Hint(Lang.Text("Minecraft.Launch.Error.OptiFineAutoJoinWarning"), HintType.Critical);
             }
         }
 

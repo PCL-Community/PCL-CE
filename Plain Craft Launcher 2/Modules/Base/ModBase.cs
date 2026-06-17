@@ -2879,7 +2879,7 @@ public static class ModBase
                     Log(finalEx, "剪贴板被占用，文本复制失败", LogLevel.Hint);
                 }
 
-            if (success && showSuccessHint) RunInUi(() => ModMain.Hint("已成功复制！", ModMain.HintType.Finish));
+            if (success && showSuccessHint) RunInUi(() => ModMain.Hint("已成功复制！", HintType.Finish));
         });
     }
 
@@ -3347,12 +3347,12 @@ public static class ModBase
             case LogLevel.Debug:
             {
                 if (modeDebug)
-                    ModMain.Hint("[调试模式] " + text, ModMain.HintType.Info, false);
+                    ModMain.Hint("[调试模式] " + text, HintType.Info, false);
                 break;
             }
             case LogLevel.Hint:
             {
-                ModMain.Hint(text, ModMain.HintType.Critical, false);
+                ModMain.Hint(text, HintType.Critical, false);
                 break;
             }
             case LogLevel.Msgbox:
@@ -3451,13 +3451,13 @@ public static class ModBase
             {
                 var exLine = desc + "：" + ex;
                 if (modeDebug)
-                    ModMain.Hint("[调试模式] " + exLine, ModMain.HintType.Info, false);
+                    ModMain.Hint("[调试模式] " + exLine, HintType.Info, false);
                 break;
             }
             case LogLevel.Hint:
             {
                 var exLine = desc + "：" + ex;
-                ModMain.Hint(exLine, ModMain.HintType.Critical, false);
+                ModMain.Hint(exLine, HintType.Critical, false);
                 break;
             }
             case LogLevel.Msgbox:

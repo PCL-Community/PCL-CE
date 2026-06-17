@@ -177,7 +177,7 @@ namespace PCL
                         {
                             if (ModInstanceList.McMcInstanceSelected is null)
                             {
-                                ModMain.Hint("请先选择一个 Minecraft 版本！", ModMain.HintType.Critical);
+                                ModMain.Hint("请先选择一个 Minecraft 版本！", HintType.Critical);
                                 return;
                             }
                             args[0] = ModInstanceList.McMcInstanceSelected.Name;
@@ -206,11 +206,11 @@ namespace PCL
                         {
                             ModBase.RunInUiWait(() => refreshable.Refresh());
                             if (string.IsNullOrEmpty(arg))
-                                ModMain.Hint("已刷新！", ModMain.HintType.Finish);
+                                ModMain.Hint("已刷新！", HintType.Finish);
                         }
                         else
                         {
-                            ModMain.Hint("当前页面不支持刷新操作！", ModMain.HintType.Critical);
+                            ModMain.Hint("当前页面不支持刷新操作！", HintType.Critical);
                         }
                         break;
 
@@ -234,8 +234,8 @@ namespace PCL
                     case EventType.弹出提示:
                         {
                             var hintType = args.Length == 1
-                                ? ModMain.HintType.Info
-                                : (ModMain.HintType)Enum.Parse(typeof(ModMain.HintType), args[1], true);
+                                ? HintType.Info
+                                : (HintType)Enum.Parse(typeof(HintType), args[1], true);
                             ModMain.Hint(args[0].Replace("\\n", "\r\n"), hintType);
                         }
                         break;
@@ -293,7 +293,7 @@ namespace PCL
                         if (ConfigService.TryGetConfigItemNoType(args[0], out var item) && item.Source != ConfigSource.SharedEncrypt)
                             item.SetValueNoType(args[1], ModInstanceList.McMcInstanceSelected?.PathInstance);
                         if (args.Length == 2)
-                            ModMain.Hint($"已写入设置：{args[0]} → {args[1]}", ModMain.HintType.Finish);
+                            ModMain.Hint($"已写入设置：{args[0]} → {args[1]}", HintType.Finish);
                         break;
 
                     case EventType.修改变量:
@@ -303,7 +303,7 @@ namespace PCL
                         States.CustomVariables[args[0]] = args[1];
                         States.CustomVariables = States.CustomVariables; // 触发属性变更通知
                         if (args.Length == 2)
-                            ModMain.Hint($"已写入变量：{args[0]} → {args[1]}", ModMain.HintType.Finish);
+                            ModMain.Hint($"已写入变量：{args[0]} → {args[1]}", HintType.Finish);
                         break;
 
                     default:

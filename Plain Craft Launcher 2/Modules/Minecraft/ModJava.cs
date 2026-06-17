@@ -89,7 +89,7 @@ public static class ModJava
                                     if (!IsVersionSuitable(candidate.Installation.Version))
                                         ModMain.Hint(
                                             $"实例相对路径指定的 Java (v{candidate.Installation.Version}) 超出版本要求范围，可能导致游戏崩溃",
-                                            ModMain.HintType.Critical);
+                                            HintType.Critical);
                                     ModBase.Log(
                                         $"[Java] 返回实例 '{relatedInstance.Name}' 相对路径指定的 Java ({relPref.RelativePath}): {candidate}");
                                     return candidate;

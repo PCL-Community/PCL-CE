@@ -81,7 +81,7 @@ public partial class PageSetupGameManage
             Config.Download.Reset();
             Config.Tool.Reset();
             ModBase.Log("[Setup] 已初始化其他页设置");
-            ModMain.Hint(Lang.Text("Setup.GameManage.Initialized"), ModMain.HintType.Finish, false);
+            ModMain.Hint(Lang.Text("Setup.GameManage.Initialized"), HintType.Finish, false);
         }
         catch (Exception ex)
         {

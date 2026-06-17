@@ -69,7 +69,7 @@ public partial class PageInstanceServer : MyPageRight
         var index = PanServers.Children.IndexOf((UIElement)sender);
         if (index < 0)
         {
-            ModMain.Hint(Lang.Text("Instance.Server.IndexNotFound"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.IndexNotFound"), HintType.Critical);
             return;
         }
 
@@ -79,7 +79,7 @@ public partial class PageInstanceServer : MyPageRight
                 Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat"), "servers");
         if (nbtData is null)
         {
-            ModMain.Hint(Lang.Text("Instance.Server.ReadDataFailed"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.ReadDataFailed"), HintType.Critical);
             return;
         }
 
@@ -91,7 +91,7 @@ public partial class PageInstanceServer : MyPageRight
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
                 Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat")))
         {
-            ModMain.Hint(Lang.Text("Instance.Server.WriteDataFailed"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.WriteDataFailed"), HintType.Critical);
             return;
         }
 
@@ -104,7 +104,7 @@ public partial class PageInstanceServer : MyPageRight
         PanServers.Children.Remove((UIElement)sender);
 
         // Success message
-        ModMain.Hint(Lang.Text("Instance.Server.Removed"), ModMain.HintType.Finish);
+        ModMain.Hint(Lang.Text("Instance.Server.Removed"), HintType.Finish);
     }
 
     private async void EditServer(object sender, ServerCard.ResultEventArgs e)
@@ -115,7 +115,7 @@ public partial class PageInstanceServer : MyPageRight
                 "servers");
         if (nbtData is null)
         {
-            ModMain.Hint(Lang.Text("Instance.Server.ReadDataFailed"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.ReadDataFailed"), HintType.Critical);
             return;
         }
 
@@ -123,7 +123,7 @@ public partial class PageInstanceServer : MyPageRight
         var index = PanServers.Children.IndexOf((UIElement)sender);
         if (index < 0 || index >= nbtData.Count)
         {
-            ModMain.Hint(Lang.Text("Instance.Server.IndexNotFound"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.IndexNotFound"), HintType.Critical);
             return;
         }
 
@@ -139,7 +139,7 @@ public partial class PageInstanceServer : MyPageRight
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
                 Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat")))
         {
-            ModMain.Hint(Lang.Text("Instance.Server.WriteDataFailed"), ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.WriteDataFailed"), HintType.Critical);
             return;
         }
 
@@ -151,7 +151,7 @@ public partial class PageInstanceServer : MyPageRight
         await serverCard.RefreshServerStatus(true);
 
         // Success message
-        ModMain.Hint(Lang.Text("Instance.Server.Updated"), ModMain.HintType.Finish);
+        ModMain.Hint(Lang.Text("Instance.Server.Updated"), HintType.Finish);
     }
 
     /// <summary>
@@ -174,7 +174,7 @@ public partial class PageInstanceServer : MyPageRight
         catch (Exception ex)
         {
             ModBase.Log(ex, Lang.Text("Instance.Server.RefreshFailed"), ModBase.LogLevel.Feedback);
-            ModBase.RunInUi(() => ModMain.Hint(Lang.Text("Instance.Server.RefreshFailed") + ": " + ex.Message, ModMain.HintType.Critical));
+            ModBase.RunInUi(() => ModMain.Hint(Lang.Text("Instance.Server.RefreshFailed") + ": " + ex.Message, HintType.Critical));
         }
     }
 
@@ -195,7 +195,7 @@ public partial class PageInstanceServer : MyPageRight
         catch (Exception ex)
         {
             ModBase.Log(ex, Lang.Text("Instance.Server.RefreshFailed"), ModBase.LogLevel.Feedback);
-            ModMain.Hint(Lang.Text("Instance.Server.RefreshFailed") + ": " + ex.Message, ModMain.HintType.Critical);
+            ModMain.Hint(Lang.Text("Instance.Server.RefreshFailed") + ": " + ex.Message, HintType.Critical);
         }
     }
 
