@@ -20,6 +20,7 @@ using PCL.Network;
 using PCL.Network.Loaders;
 using PCL.Core.App.Localization;
 using System.Globalization;
+using WpfMedia = System.Windows.Media;
 
 namespace PCL;
 
@@ -39,6 +40,7 @@ public partial class PageToolsTest
         Loaded += (_, _) => MeLoaded();
         #if DEBUG
         BtnCrash.Visibility = Visibility.Visible;
+        BtnDialogTest.Visibility = Visibility.Visible;
         #endif
     }
 
@@ -593,6 +595,96 @@ public partial class PageToolsTest
     private void BtnCrash_Click(object sender, MouseButtonEventArgs e)
     {
         throw new Exception(Lang.Text("Tools.Test.Crash.ManualCrash"));
+    }
+
+    private void BtnDialogTest_Click(object sender, MouseButtonEventArgs e)
+    {
+        var panel = new StackPanel();
+
+        // Header
+        panel.Children.Add(new TextBlock
+        {
+            Text = "自定义弹窗示例",
+            FontSize = 18,
+            FontWeight = FontWeights.Bold,
+            Margin = new Thickness(0, 0, 0, 10),
+        });
+
+        // Info box
+        var infoBorder = new Border
+        {
+            BorderBrush = new WpfMedia.SolidColorBrush(WpfMedia.Color.FromRgb(74, 144, 217)),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(6),
+            Padding = new Thickness(12),
+            Margin = new Thickness(0, 0, 0, 12),
+        };
+        var infoStack = new StackPanel();
+        infoStack.Children.Add(new TextBlock
+        {
+            Text = "✅ 此弹窗使用 DialogControl",
+            FontSize = 14,
+            Margin = new Thickness(0, 0, 0, 4),
+        });
+        infoStack.Children.Add(new TextBlock
+        {
+            Text = "内容区可放置任意 FrameworkElement：\n文本、进度条、自定义控件等。\n按钮可绑定任意回调。",
+            TextWrapping = TextWrapping.Wrap,
+            FontSize = 13,
+            Foreground = WpfMedia.Brushes.Gray,
+        });
+        infoBorder.Child = infoStack;
+        panel.Children.Add(infoBorder);
+
+        // Progress
+        panel.Children.Add(new TextBlock
+        {
+            Text = "加载进度 70%",
+            FontSize = 13,
+            Margin = new Thickness(0, 0, 0, 4),
+        });
+        panel.Children.Add(new ProgressBar
+        {
+            Value = 70,
+            Height = 6,
+            Margin = new Thickness(0, 0, 0, 12),
+        });
+
+        // Color swatches
+        var swatchBrushes = new[] { WpfMedia.Brushes.DodgerBlue, WpfMedia.Brushes.MediumSeaGreen, WpfMedia.Brushes.Tomato, WpfMedia.Brushes.Gold, WpfMedia.Brushes.MediumOrchid };
+        var colorRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 8) };
+        foreach (var brush in swatchBrushes)
+        {
+            colorRow.Children.Add(new System.Windows.Shapes.Rectangle
+            {
+                Width = 18, Height = 18,
+                Fill = brush,
+                RadiusX = 4, RadiusY = 4,
+                Margin = new Thickness(0, 0, 5, 0),
+            });
+        }
+        panel.Children.Add(colorRow);
+
+        // Hint
+        panel.Children.Add(new TextBlock
+        {
+            Text = "更多内容可由调用方自由定制。",
+            FontSize = 12,
+            Foreground = WpfMedia.Brushes.Gray,
+            Margin = new Thickness(0, 4, 0, 0),
+        });
+
+        Dialog.Show(new DialogContext
+        {
+            Title = "弹窗系统展示",
+            Content = panel,
+            Theme = DialogTheme.Info,
+            Buttons =
+            [
+                new DialogButton("确认", isPrimary: true),
+                new DialogButton("取消"),
+            ],
+        });
     }
 
     private int GetHeadSize() => CmbHeadSize.SelectedIndex switch
