@@ -46,7 +46,7 @@ public partial class PageInstanceScreenshot : IRefreshable
         if (ModMain.frmInstanceScreenshot is not null)
             await ModMain.frmInstanceScreenshot.Reload();
         ModMain.frmInstanceLeft.ItemScreenshot.Checked = true;
-        ModMain.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), log: false);
+        HintService.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), log: false);
     }
 
     private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
@@ -286,7 +286,7 @@ public partial class PageInstanceScreenshot : IRefreshable
             FileSystem.DeleteFile(path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
             RemoveItem(path);
             RefreshTip();
-            ModMain.Hint(Lang.Text("Instance.Screenshot.Deleted"));
+            HintService.Hint(Lang.Text("Instance.Screenshot.Deleted"));
         }
         catch (Exception ex)
         {
@@ -305,7 +305,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                 {
                     ModBase.Log("[Screenshot] 尝试复制" + imagePath + "到剪贴板");
                     Clipboard.SetImage(new BitmapImage(new Uri(imagePath)));
-                    ModMain.Hint(Lang.Text("Instance.Screenshot.CopiedToClipboard"));
+                    HintService.Hint(Lang.Text("Instance.Screenshot.CopiedToClipboard"));
                     tryTime = 6;
                     return;
                 }
@@ -315,11 +315,11 @@ public partial class PageInstanceScreenshot : IRefreshable
                     ModBase.Log(ex, $"[Screenshot]第 {tryTime} 次复制尝试失败");
                 }
 
-            ModMain.Hint(Lang.Text("Instance.Screenshot.CopyFailed"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Screenshot.CopyFailed"), HintType.Error);
         }
         else
         {
-            ModMain.Hint(Lang.Text("Instance.Screenshot.FileNotFound"));
+            HintService.Hint(Lang.Text("Instance.Screenshot.FileNotFound"));
         }
     }
 

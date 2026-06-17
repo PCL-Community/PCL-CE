@@ -35,15 +35,15 @@ public static class ModSkin
             var image = new MyBitmap(fileName);
             if (image.pic.Width != 64 || !(image.pic.Height == 32 || image.pic.Height == 64))
             {
-                ModMain.Hint(Lang.Text("Launch.Skin.InvalidSize"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Launch.Skin.InvalidSize"), HintType.Error);
                 return new McSkinInfo { IsVaild = false };
             }
 
             var fileInfo = new FileInfo(fileName);
             if (fileInfo.Length > 24 * 1024)
             {
-                ModMain.Hint(Lang.Text("Launch.Skin.FileTooLarge", Lang.Number(fileInfo.Length / 1024d, "N2")),
-                    ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Launch.Skin.FileTooLarge", Lang.Number(fileInfo.Length / 1024d, "N2")),
+                    HintType.Error);
                 return new McSkinInfo { IsVaild = false };
             }
         }
@@ -58,7 +58,7 @@ public static class ModSkin
             highLight: false);
         if (isSlim == 3)
         {
-            ModMain.Hint(Lang.Text("Launch.Skin.Model.UnknownHint"));
+            HintService.Hint(Lang.Text("Launch.Skin.Model.UnknownHint"));
             return new McSkinInfo { IsVaild = false };
         }
 

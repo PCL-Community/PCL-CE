@@ -39,14 +39,13 @@ public record YggdrasilOptions:OpenIdOptions
     /// <summary>
     /// 构建 OAuth 客户端选项
     /// </summary>
-    /// <param name="token"></param>
-    /// <returns></returns>
+    /// <returns><see cerf="OAuthClientOptions"> OAuth 客户端选项</returns>
     /// <exception cref="IdentityModelConfigurationException">未调用 <see cref="InitializeAsync"/> 或缺少必要的客户端配置</exception>
-    public override async Task<OAuthClientOptions> BuildOAuthOptionsAsync(CancellationToken token)
+    public override OAuthClientOptions BuildOAuthOptions()
     {
         if (Meta is YggdrasilConnectMetaData meta)
         {
-            var options = await base.BuildOAuthOptionsAsync(token);
+            var options = base.BuildOAuthOptions();
             if (!options.ClientId.IsNullOrEmpty()) return options;
             if (!meta.SharedClientId.IsNullOrEmpty())
             {

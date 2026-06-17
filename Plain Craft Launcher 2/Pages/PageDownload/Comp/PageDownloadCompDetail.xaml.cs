@@ -100,12 +100,12 @@ public partial class PageDownloadCompDetail
                     {
                         case ModBase.LoadState.Failed:
                         {
-                            ModMain.Hint(myLoader.name + Lang.Text("Common.Status.Failure") + myLoader.Error.Message, ModMain.HintType.Critical);
+                            HintService.Hint(myLoader.name + Lang.Text("Common.Status.Failure") + myLoader.Error.Message, HintType.Error);
                             break;
                         }
                         case ModBase.LoadState.Aborted:
                         {
-                            ModMain.Hint(myLoader.name + Lang.Text("Common.Status.Cancelled"));
+                            HintService.Hint(myLoader.name + Lang.Text("Common.Status.Cancelled"));
                             break;
                         }
                         case ModBase.LoadState.Loading:
@@ -182,7 +182,7 @@ public partial class PageDownloadCompDetail
                 var needLoad = ModInstanceList.mcInstanceListLoader.State != ModBase.LoadState.Finished;
                 if (needLoad)
                 {
-                    ModMain.Hint(Lang.Text("Download.Comp.Detail.FindingApplicableInstance"));
+                    HintService.Hint(Lang.Text("Download.Comp.Detail.FindingApplicableInstance"));
                     ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                         ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\", true);
                 }
@@ -203,7 +203,7 @@ public partial class PageDownloadCompDetail
                 {
                     defaultFolder = ModFolder.mcFolderSelected;
                     if (needLoad)
-                        ModMain.Hint(Lang.Text("Download.Comp.Detail.NoApplicableInstance"));
+                        HintService.Hint(Lang.Text("Download.Comp.Detail.NoApplicableInstance"));
                     else
                         ModBase.Log("[Comp] 由于当前实例不兼容，使用当前的 MC 文件夹作为默认下载位置");
                 }
@@ -332,7 +332,7 @@ public partial class PageDownloadCompDetail
                         var needLoad = ModInstanceList.mcInstanceListLoader.State != ModBase.LoadState.Finished;
                         if (needLoad)
                         {
-                            ModMain.Hint(Lang.Text("Download.Comp.Detail.FindingApplicableInstance"));
+                            HintService.Hint(Lang.Text("Download.Comp.Detail.FindingApplicableInstance"));
                             ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                                 ModLoader.LoaderFolderRunType.ForceRun, 1, "versions\\", true);
                         }
@@ -355,7 +355,7 @@ public partial class PageDownloadCompDetail
                         {
                             defaultFolder = ModFolder.mcFolderSelected;
                             if (needLoad)
-                                ModMain.Hint(Lang.Text("Download.Comp.Detail.NoApplicableInstance"));
+                                HintService.Hint(Lang.Text("Download.Comp.Detail.NoApplicableInstance"));
                             else
                                 ModBase.Log("[Comp] 由于当前实例不兼容，使用当前的 MC 文件夹作为默认下载位置");
                         }
@@ -523,7 +523,7 @@ public partial class PageDownloadCompDetail
     // 翻译简介
     private async void BtnTranslate_Click(object sender, EventArgs e)
     {
-        ModMain.Hint(Lang.Text("Download.Comp.Detail.DescriptionTranslating", _project.TranslatedName));
+        HintService.Hint(Lang.Text("Download.Comp.Detail.DescriptionTranslating", _project.TranslatedName));
         var chineseDescription = await _project.ChineseDescription;
         if (chineseDescription is null)
             return;

@@ -1392,8 +1392,6 @@
     <sys:String x:Key="Setup.Ui.Basic.ShowLogo">Display the PCL logo while opening the launcher</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.LockWindow">Lock launcher size</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.ShowTriviaHint">Show &quot;Trivia&quot; when launching the game</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.HintAlignRight">Show popup hints on the right side</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.HintAlignRight.Changed">Changes applied!</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.AdvancedMaterial">Advanced material</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.AdvancedMaterial.ToolTip">When enabled, blur effects will be applied to some transparent areas, such as cards.&#x0a;Note that this feature consumes significant GPU resources and may cause lag!</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.BlurRadius">Blur radius</sys:String>

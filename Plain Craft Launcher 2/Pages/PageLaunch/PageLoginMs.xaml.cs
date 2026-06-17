@@ -47,7 +47,7 @@ public partial class PageLoginMs
             }
             catch (ThreadInterruptedException ex)
             {
-                ModMain.Hint(Lang.Text("Launch.Account.LoginCancelled"));
+                HintService.Hint(Lang.Text("Launch.Account.LoginCancelled"));
             }
             catch (Exception ex)
             {
@@ -56,7 +56,7 @@ public partial class PageLoginMs
                 }
                 else if (ex.Message.StartsWith("$"))
                 {
-                    ModMain.Hint(ex.Message.TrimStart('$'), ModMain.HintType.Critical);
+                    HintService.Hint(ex.Message.TrimStart('$'), HintType.Error);
                 }
                 else if (ex is AuthenticationException && ex.Message.ContainsF("SSL/TLS"))
                 {
