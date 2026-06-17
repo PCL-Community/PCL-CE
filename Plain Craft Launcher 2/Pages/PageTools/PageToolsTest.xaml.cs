@@ -679,11 +679,7 @@ public partial class PageToolsTest
             Title = "弹窗系统展示",
             Content = panel,
             Theme = DialogTheme.Info,
-            Buttons =
-            [
-                new DialogButton("确认", isPrimary: true),
-                new DialogButton("取消"),
-            ],
+            Buttons = [DialogButton.Confirm()],
         });
     }
 
