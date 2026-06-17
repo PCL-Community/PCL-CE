@@ -73,9 +73,7 @@ public partial class DialogControl
             }
             else
             {
-                _exited = true;
-                _result = buttonId;
-                Close();
+                Close(buttonId);
             }
         };
         _buttons.Add(btn);
@@ -120,12 +118,24 @@ public partial class DialogControl
         }
     }
 
+    public void Close(int result)
+    {
+        if (_exited) return;
+        _exited = true;
+        _result = result;
+        CloseInternal();
+    }
+
     public void Close()
     {
-        if (_exited && _result == 0)
-            _result = -1;
+        if (_exited) return;
         _exited = true;
+        _result = -1;
+        CloseInternal();
+    }
 
+    private void CloseInternal()
+    {
         try
         {
             WaitFrame.Continue = false;

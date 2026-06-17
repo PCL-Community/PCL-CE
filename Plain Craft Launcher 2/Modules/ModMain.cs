@@ -854,55 +854,9 @@ public static class ModMain
                 // 没有弹窗，显示一个等待的弹窗
                 frmMain.PanMsgBackground.Visibility = Visibility.Visible;
                 var converter = WaitingMyMsgBox[0];
-                if (converter.Content is FrameworkElement customContent)
-                {
-                    var dialog = new DialogControl
-                    {
-                        Title = converter.Title,
-                        IsWarn = converter.IsWarn,
-                        DialogContent = customContent,
-                    };
-                    dialog.AddButton(converter.Button1, converter.Button1Action, isPrimary: true, id: converter.ButtonIds[0]);
-                    if (!string.IsNullOrEmpty(converter.Button2))
-                        dialog.AddButton(converter.Button2, converter.Button2Action, id: converter.ButtonIds[1]);
-                    if (!string.IsNullOrEmpty(converter.Button3))
-                        dialog.AddButton(converter.Button3, converter.Button3Action, id: converter.ButtonIds[2]);
-                    converter.WaitFrame = dialog.WaitFrame;
-                    dialog.OnClosed += result =>
-                    {
-                        converter.Result = result;
-                        converter.OnCloseCallback?.Invoke(result);
-                    };
+                var dialog = CreateDialogFromConverter(converter);
+                if (dialog is not null)
                     frmMain.PanMsg.Children.Add(dialog);
-                }
-                else switch (converter.Type)
-                {
-                    case MyMsgBoxType.Input:
-                    {
-                        frmMain.PanMsg.Children.Add(new MyMsgInput(converter));
-                        break;
-                    }
-                    case MyMsgBoxType.Select:
-                    {
-                        frmMain.PanMsg.Children.Add(new MyMsgSelect(converter));
-                        break;
-                    }
-                    case MyMsgBoxType.Text:
-                    {
-                        frmMain.PanMsg.Children.Add(new MyMsgText(converter));
-                        break;
-                    }
-                    case MyMsgBoxType.Login:
-                    {
-                        frmMain.PanMsg.Children.Add(new MyMsgLogin(converter));
-                        break;
-                    }
-                    case MyMsgBoxType.Markdown:
-                    {
-                        frmMain.PanMsg.Children.Add(new MyMsgMarkdown(converter));
-                        break;
-                    }
-                }
 
                 WaitingMyMsgBox.RemoveAt(0);
             }
@@ -916,6 +870,170 @@ public static class ModMain
         {
             ModBase.Log(ex, "处理等待中的弹窗失败", ModBase.LogLevel.Feedback);
         }
+    }
+
+    private static DialogControl? CreateDialogFromConverter(MyMsgBoxConverter conv)
+    {
+        switch (conv.Type)
+        {
+            case MyMsgBoxType.Input:
+                return CreateInputDialog(conv);
+            case MyMsgBoxType.Select:
+                return CreateSelectDialog(conv);
+            case MyMsgBoxType.Login:
+                // MyMsgLogin manages its own chrome + lifecycle
+                frmMain?.PanMsg.Children.Add(new MyMsgLogin(conv));
+                return null;
+            case MyMsgBoxType.Markdown:
+            {
+                var mdViewer = new Markdig.Wpf.MarkdownViewer { Markdown = conv.Text };
+                return CreateStandardDialog(conv, mdViewer);
+            }
+            default:
+            {
+                var content = conv.Content as UIElement
+                    ?? new TextBlock { Text = conv.Text, TextWrapping = TextWrapping.Wrap, FontSize = 15 };
+                return CreateStandardDialog(conv, content);
+            }
+        }
+    }
+
+    private static DialogControl CreateStandardDialog(MyMsgBoxConverter conv, UIElement content)
+    {
+        var dialog = new DialogControl
+        {
+            Title = conv.Title,
+            IsWarn = conv.IsWarn,
+            DialogContent = content,
+        };
+        dialog.AddButton(conv.Button1, conv.Button1Action, isPrimary: true, id: conv.ButtonIds[0]);
+        if (!string.IsNullOrEmpty(conv.Button2))
+            dialog.AddButton(conv.Button2, conv.Button2Action, id: conv.ButtonIds[1]);
+        if (!string.IsNullOrEmpty(conv.Button3))
+            dialog.AddButton(conv.Button3, conv.Button3Action, id: conv.ButtonIds[2]);
+        conv.WaitFrame = dialog.WaitFrame;
+        dialog.OnClosed += result =>
+        {
+            conv.Result = result;
+            conv.OnCloseCallback?.Invoke(result);
+        };
+        return dialog;
+    }
+
+    private static DialogControl CreateInputDialog(MyMsgBoxConverter conv)
+    {
+        var stack = new StackPanel();
+        if (!string.IsNullOrEmpty(conv.Text))
+        {
+            stack.Children.Add(new TextBlock
+            {
+                Text = conv.Text,
+                TextWrapping = TextWrapping.Wrap,
+                FontSize = 15,
+                Margin = new Thickness(0, 0, 0, 7),
+            });
+        }
+
+        var textBox = new MyTextBox
+        {
+            Text = (string)(conv.Content ?? ""),
+            HintText = conv.HintText,
+            ValidateRules = conv.ValidateRules ?? [],
+            MinWidth = 450,
+        };
+        stack.Children.Add(textBox);
+
+        var dialog = new DialogControl
+        {
+            Title = conv.Title,
+            IsWarn = conv.IsWarn,
+            DialogContent = stack,
+        };
+
+        dialog.AddButton(conv.Button1, onClick: () =>
+        {
+            textBox.Validate();
+            if (!textBox.IsValidated) return;
+            conv.Result = textBox.Text;
+            dialog.Close(conv.ButtonIds[0]);
+        }, isPrimary: true, id: conv.ButtonIds[0]);
+
+        if (!string.IsNullOrEmpty(conv.Button2))
+        {
+            dialog.AddButton(conv.Button2, onClick: () =>
+            {
+                conv.Result = null;
+                dialog.Close(conv.ButtonIds[1]);
+            }, id: conv.ButtonIds[1]);
+        }
+
+        conv.WaitFrame = dialog.WaitFrame;
+        return dialog;
+    }
+
+    private static DialogControl CreateSelectDialog(MyMsgBoxConverter conv)
+    {
+        var panel = new StackPanel();
+        var dialog = new DialogControl
+        {
+            Title = conv.Title,
+            IsWarn = conv.IsWarn,
+            DialogContent = panel,
+        };
+
+        var b1 = dialog.AddButton(conv.Button1, onClick: () =>
+        {
+            // handled by extra Click below
+        }, isPrimary: true, id: conv.ButtonIds[0]);
+        b1.IsEnabled = false;
+
+        if (!string.IsNullOrEmpty(conv.Button2))
+        {
+            dialog.AddButton(conv.Button2, onClick: () =>
+            {
+                conv.Result = null;
+                dialog.Close(conv.ButtonIds[1]);
+            }, id: conv.ButtonIds[1]);
+        }
+
+        var selectedIndex = -1;
+        var index = 0;
+        foreach (var raw in (IEnumerable)conv.Content!)
+        {
+            var item = MyVirtualizingElement.TryInit((FrameworkElement)raw);
+            if (item is IMyRadio radio)
+            {
+                if (item is MyListItem listItem)
+                {
+                    listItem.Type = MyListItem.CheckType.RadioBox;
+                    listItem.MinHeight = 24;
+                }
+                else if (item is MyRadioBox radioBox)
+                {
+                    radioBox.MinHeight = 24;
+                }
+
+                var currentIndex = index;
+                radio.Check += (_, _) =>
+                {
+                    selectedIndex = currentIndex;
+                    b1.IsEnabled = true;
+                };
+                panel.Children.Add((UIElement)radio);
+                index++;
+            }
+        }
+
+        // Override Btn1's dummy onClick with real logic
+        b1.Click += (_, _) =>
+        {
+            if (selectedIndex < 0) return;
+            conv.Result = selectedIndex;
+            dialog.Close(conv.ButtonIds[0]);
+        };
+
+        conv.WaitFrame = dialog.WaitFrame;
+        return dialog;
     }
 
     public static void MsgBoxWrapper_OnShow(string message, string caption, ICollection<MsgBoxButtonInfo> buttons,
