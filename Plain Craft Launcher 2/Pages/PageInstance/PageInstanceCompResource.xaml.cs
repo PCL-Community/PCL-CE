@@ -317,7 +317,7 @@ public partial class PageInstanceCompResource : IRefreshable
             }
         }
 
-        ModMain.Hint(Lang.Text("Instance.Left.Refreshing"), log: false);
+        HintService.Hint(Lang.Text("Instance.Left.Refreshing"), log: false);
     }
 
     private void LoaderInit()
@@ -366,7 +366,7 @@ public partial class PageInstanceCompResource : IRefreshable
         {
             if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
             {
-                ModMain.Hint(Lang.Text("Instance.Saves.Folder.NotFound"), HintType.Critical);
+                HintService.Hint(Lang.Text("Instance.Saves.Folder.NotFound"), HintType.Critical);
                 return;
             }
 
@@ -1117,7 +1117,7 @@ public partial class PageInstanceCompResource : IRefreshable
         // 检查回收站：回收站中的文件有错误的文件名
         if (filePathList.First().Contains(@":\$RECYCLE.BIN\"))
         {
-            ModMain.Hint(Lang.Text("Instance.Resource.Install.RestoreFromRecycleBin"), HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Resource.Install.RestoreFromRecycleBin"), HintType.Critical);
             return;
         }
 
@@ -1181,7 +1181,7 @@ public partial class PageInstanceCompResource : IRefreshable
         // 检查文件扩展名
         if (!validExtensions.Contains(extension))
         {
-            ModMain.Hint(Lang.Text("Instance.Resource.Install.UnsupportedFormat", extension, compTypeName, string.Join(", ", validExtensions)),
+            HintService.Hint(Lang.Text("Instance.Resource.Install.UnsupportedFormat", extension, compTypeName, string.Join(", ", validExtensions)),
                 HintType.Critical);
             return;
         }
@@ -1192,7 +1192,7 @@ public partial class PageInstanceCompResource : IRefreshable
         if (compType == ModComp.CompType.Mod && (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSelect ||
                                                  targetInstance is null || !targetInstance.Modable))
         {
-            ModMain.Hint(Lang.Text("Instance.Resource.Install.SelectModableInstance"));
+            HintService.Hint(Lang.Text("Instance.Resource.Install.SelectModableInstance"));
             return;
         }
 
@@ -1252,9 +1252,9 @@ public partial class PageInstanceCompResource : IRefreshable
             }
 
             if (filePathList.Count() == 1)
-                ModMain.Hint(Lang.Text("Instance.Resource.Install.SuccessSingle", ModBase.GetFileNameFromPath(filePathList.First())), HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Resource.Install.SuccessSingle", ModBase.GetFileNameFromPath(filePathList.First())), HintType.Finish);
             else
-                ModMain.Hint(Lang.Text("Instance.Resource.Install.SuccessMultiple", filePathList.Count(), compTypeName), HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Resource.Install.SuccessMultiple", filePathList.Count(), compTypeName), HintType.Finish);
 
             // 刷新列表
             if (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
@@ -1939,7 +1939,7 @@ public partial class PageInstanceCompResource : IRefreshable
         }
         else
         {
-            ModMain.Hint(Lang.Text("Instance.Resource.Ed.ToggleFailed"), HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Resource.Ed.ToggleFailed"), HintType.Critical);
             ReloadCompFileList(true);
         }
 
@@ -2096,13 +2096,13 @@ public partial class PageInstanceCompResource : IRefreshable
                             }
                             case 1:
                             {
-                                ModMain.Hint(Lang.Text("Instance.Resource.Update.SuccessSingle", finishedFileNames.Single()), HintType.Finish);
+                                HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessSingle", finishedFileNames.Single()), HintType.Finish);
                                 break;
                             }
 
                             default:
                             {
-                                ModMain.Hint(Lang.Text("Instance.Resource.Update.SuccessMultiple", finishedFileNames.Count), HintType.Finish);
+                                HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessMultiple", finishedFileNames.Count), HintType.Finish);
                                 break;
                             }
                         }
@@ -2111,12 +2111,12 @@ public partial class PageInstanceCompResource : IRefreshable
                     }
                     case ModBase.LoadState.Failed:
                     {
-                        ModMain.Hint(Lang.Text("Instance.Resource.Update.Failed", loader.Error.Message), HintType.Critical);
+                        HintService.Hint(Lang.Text("Instance.Resource.Update.Failed", loader.Error.Message), HintType.Critical);
                         break;
                     }
                     case ModBase.LoadState.Aborted:
                     {
-                        ModMain.Hint(Lang.Text("Instance.Resource.Update.Aborted"));
+                        HintService.Hint(Lang.Text("Instance.Resource.Update.Aborted"));
                         break;
                     }
 
@@ -2239,7 +2239,7 @@ public partial class PageInstanceCompResource : IRefreshable
             RefreshBars();
             if (!isSuccessful)
             {
-                ModMain.Hint(Lang.Text("Instance.Resource.Delete.Failed"), HintType.Critical);
+                HintService.Hint(Lang.Text("Instance.Resource.Delete.Failed"), HintType.Critical);
                 ReloadCompFileList(true);
             }
             else if (PanList.Children.Count == 0)
@@ -2257,17 +2257,17 @@ public partial class PageInstanceCompResource : IRefreshable
             if (isShiftPressed)
             {
                 if (modList.Count() == 1)
-                    ModMain.Hint(Lang.Text("Instance.Resource.Delete.PermanentSingle", modList.Single().FileName), HintType.Finish);
+                    HintService.Hint(Lang.Text("Instance.Resource.Delete.PermanentSingle", modList.Single().FileName), HintType.Finish);
                 else
-                    ModMain.Hint(Lang.Text("Instance.Resource.Delete.PermanentMultiple", modList.Count()), HintType.Finish);
+                    HintService.Hint(Lang.Text("Instance.Resource.Delete.PermanentMultiple", modList.Count()), HintType.Finish);
             }
             else if (modList.Count() == 1)
             {
-                ModMain.Hint(Lang.Text("Instance.Resource.Delete.RecycleSingle", modList.Single().FileName), HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Resource.Delete.RecycleSingle", modList.Single().FileName), HintType.Finish);
             }
             else
             {
-                ModMain.Hint(Lang.Text("Instance.Resource.Delete.RecycleMultiple", modList.Count()), HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Resource.Delete.RecycleMultiple", modList.Count()), HintType.Finish);
             }
         }
         catch (OperationCanceledException ex)
@@ -2559,7 +2559,7 @@ public partial class PageInstanceCompResource : IRefreshable
     private void ShowSchematicInfoAsync(ModLocalComp.LocalCompFile modEntry)
     {
         // 显示加载提示
-        ModMain.Hint(Lang.Text("Instance.Resource.Item.Info.LoadingDetail"));
+        HintService.Hint(Lang.Text("Instance.Resource.Item.Info.LoadingDetail"));
 
         // 在后台线程中加载NBT数据
         // 确保 NBT 数据已加载

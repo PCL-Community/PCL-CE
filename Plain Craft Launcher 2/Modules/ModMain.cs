@@ -208,12 +208,6 @@ public static class ModMain
         }, "Timer Main Fool");
     }
 
-    public static void Hint(string? text, HintType type = HintType.Info, bool log = true)
-        => HintService.Hint(text, type, log);
-
-    public static void HintWrapper_OnShow(string message, HintTheme messageTheme)
-        => HintService.HintWrapper_OnShow(message, messageTheme);
-
     #region 弹窗
 
     /// <summary>
@@ -772,22 +766,22 @@ public static class ModMain
                 {
                     case 0:
                     {
-                        Hint("放弃吧！只需要点一下右下角的小白旗……");
+                        HintService.Hint("放弃吧！只需要点一下右下角的小白旗……");
                         break;
                     }
                     case 1:
                     {
-                        Hint("看到右下角的那面小白旗了吗？");
+                        HintService.Hint("看到右下角的那面小白旗了吗？");
                         break;
                     }
                     case 2:
                     {
-                        Hint("这里建议点一下右下角的小白旗投降呢.jpg");
+                        HintService.Hint("这里建议点一下右下角的小白旗投降呢.jpg");
                         break;
                     }
                     case 3:
                     {
-                        Hint("右下角的小白旗永远等着你……");
+                        HintService.Hint("右下角的小白旗永远等着你……");
                         break;
                     }
                 }

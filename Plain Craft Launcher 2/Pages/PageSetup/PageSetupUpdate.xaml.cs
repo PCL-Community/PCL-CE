@@ -228,7 +228,7 @@ public partial class PageSetupUpdate
                 }
                 else
                 {
-                    ModMain.Hint(Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.WrongInput"));
+                    HintService.Hint(Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.WrongInput"));
                     isCancelled = true;
                 }
                 break;

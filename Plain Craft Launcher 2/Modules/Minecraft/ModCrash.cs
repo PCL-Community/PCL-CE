@@ -1319,7 +1319,7 @@ public class CrashAnalyzer
                     // 导出报告
                     ZipFile.CreateFromDirectory(Path.Combine(tempFolder, "Report"), fileAddress);
                     ModBase.DeleteDirectory(Path.Combine(tempFolder, "Report"));
-                    ModMain.Hint("错误报告已导出！", HintType.Finish);
+                    HintService.Hint("错误报告已导出！", HintType.Finish);
                 }
                 catch (Exception ex)
                 {

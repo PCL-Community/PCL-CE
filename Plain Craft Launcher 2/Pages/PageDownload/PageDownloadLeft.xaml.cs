@@ -193,7 +193,7 @@ public partial class PageDownloadLeft : IRefreshable
             }
         }
 
-        ModMain.Hint(Lang.Text("Download.Left.Hint.Refreshing"), log: false);
+        HintService.Hint(Lang.Text("Download.Left.Hint.Refreshing"), log: false);
     }
 
     // 点击返回
