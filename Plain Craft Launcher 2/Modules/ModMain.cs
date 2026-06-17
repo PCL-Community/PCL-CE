@@ -286,6 +286,19 @@ public static class ModMain
             if (!HintWaiting.Any())
                 return;
 
+            var currentHint = HintWaiting[0];
+
+            // If a visible toast already shows this exact message, shake it instead of stacking a new one.
+            // This must run before the cap check — a duplicate needs no new slot, so no existing toast should be evicted.
+            var duplicate = frmMain.PanHint.Children.OfType<MyToast>()
+                .FirstOrDefault(t => !t.IsDismissing && t.Context == currentHint.Text && t.ToastType == currentHint.Type);
+            if (duplicate != null)
+            {
+                duplicate.Emphasize();
+                HintWaiting.RemoveAt(0);
+                return;
+            }
+
             // Only count toasts that are still visible (not mid-dismiss-animation)
             var activeCount = frmMain.PanHint.Children.OfType<MyToast>().Count(t => !t.IsDismissing);
             if (activeCount >= 5)
@@ -293,18 +306,6 @@ public static class ModMain
                 // Dismiss the oldest active toast and wait for it to leave before adding the next one
                 var oldest = frmMain.PanHint.Children.OfType<MyToast>().FirstOrDefault(t => !t.IsDismissing);
                 oldest?.Dismiss();
-                return;
-            }
-
-            var currentHint = HintWaiting[0];
-
-            // If a visible toast already shows this exact message, shake it instead of stacking a new one
-            var duplicate = frmMain.PanHint.Children.OfType<MyToast>()
-                .FirstOrDefault(t => !t.IsDismissing && t.Context == currentHint.Text && t.ToastType == currentHint.Type);
-            if (duplicate != null)
-            {
-                duplicate.Emphasize();
-                HintWaiting.RemoveAt(0);
                 return;
             }
 
