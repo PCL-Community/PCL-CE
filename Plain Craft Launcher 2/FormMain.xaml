@@ -256,7 +256,7 @@
                                          Visibility="Collapsed" CanRightClick="True" />
                 </StackPanel>
                 <controls:BlurBorder x:Name="PanMsgBackground" Grid.Row="0" Grid.RowSpan="2" Background="#00000000"
-                                     Visibility="Collapsed">
+                                     Panel.ZIndex="2" Visibility="Collapsed">
                     <Grid x:Name="PanMsg" Background="#00000000" MouseLeftButtonDown="FormDragMove" />
                 </controls:BlurBorder>
             </Grid>
