@@ -256,6 +256,7 @@ public static class ModMain
     /// </summary>
     public static void Hint(string? text, HintType type = HintType.Info, bool log = true)
     {
+        if (HintWaiting.Count >= 20) return; // 超过 20 条以后的直接砸掉
         HintWaiting.Add(new HintMessage { Text = text ?? "", Type = type, Log = log });
     }
 
