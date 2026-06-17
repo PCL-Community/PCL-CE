@@ -46,7 +46,10 @@ internal sealed class CrashLogImporter(CrashAnalysisContext context)
         try
         {
             var info = new FileInfo(filePath);
-            if (!info.Exists || info.Length <= 0L || filePath.EndsWith(".jar", StringComparison.OrdinalIgnoreCase))
+            if (!info.Exists || info.Length <= 0L)
+                return false;
+
+            if (!filePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
                 return false;
 
             CrashFileIO.ExtractFile(filePath, Path.Combine(context.TempFolder, "Temp"));

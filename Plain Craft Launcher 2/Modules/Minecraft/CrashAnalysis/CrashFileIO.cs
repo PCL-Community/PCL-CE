@@ -38,6 +38,9 @@ internal static class CrashFileIO
 
     public static void ExtractFile(string archivePath, string destinationDirectory)
     {
+        if (!archivePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            throw new NotSupportedException("崩溃日志导入仅支持 zip 压缩包。");
+
         _EnsureZipEntriesStayInDirectory(archivePath, destinationDirectory);
         Files.ExtractFileAsync(archivePath, destinationDirectory).GetAwaiter().GetResult();
     }
@@ -46,10 +49,6 @@ internal static class CrashFileIO
         string archivePath,
         string destinationDirectory)
     {
-        if (!archivePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) &&
-            !archivePath.EndsWith(".jar", StringComparison.OrdinalIgnoreCase))
-            return;
-
         var destinationRoot = Path.GetFullPath(destinationDirectory)
             .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
 
