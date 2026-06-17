@@ -277,39 +277,46 @@ public static class ModMain
             frmMain!.PanHint.HorizontalAlignment = HorizontalAlignment.Right;
             frmMain.PanHint.VerticalAlignment = VerticalAlignment.Bottom;
 
+            // Keep toasts above any visible extra buttons in the same corner
+            var extraHeight = frmMain.PanExtraButtons.ActualHeight;
+            frmMain.PanHint.Margin = new Thickness(0, 0, 0, extraHeight > 0 ? extraHeight + 20 : 20);
+
             if (!HintWaiting.Any())
                 return;
-            while (HintWaiting.Any())
+
+            // Only count toasts that are still visible (not mid-dismiss-animation)
+            var activeCount = frmMain.PanHint.Children.OfType<MyToast>().Count(t => !t.IsDismissing);
+            if (activeCount >= 5)
             {
-                var currentHint = HintWaiting[0];
-                currentHint.Text = currentHint.Text.Replace("\r\n", " ").Replace("\r", " ")
-                    .Replace("\n", " ");
-                if (frmMain.PanHint.Children.Count >= 5)
-                {
-                    var oldest = frmMain.PanHint.Children.OfType<MyToast>().FirstOrDefault();
-                    oldest?.Dismiss();
-                }
-
-                var toast = new MyToast
-                {
-                    Context = currentHint.Text,
-                    ToastType = currentHint.Type,
-                    Icon = currentHint.Type switch
-                    {
-                        HintType.Finish => "lucide/circle-check",
-                        HintType.Critical => "lucide/circle-minus",
-                        _ => "lucide/info"
-                    },
-                    DisplayDuration = (800d + ModBase.MathClamp(currentHint.Text.Length, 5d, 23d) * 180d) * ModAnimation.aniSpeed
-                };
-
-                frmMain.PanHint.Children.Add(toast);
-                toast.Show();
-
-                if (currentHint.Log)
-                    ModBase.Log("[UI] 弹出提示：" + currentHint.Text);
-                HintWaiting.RemoveAt(0);
+                // Dismiss the oldest active toast and wait for it to leave before adding the next one
+                var oldest = frmMain.PanHint.Children.OfType<MyToast>().FirstOrDefault(t => !t.IsDismissing);
+                oldest?.Dismiss();
+                return;
             }
+
+            var currentHint = HintWaiting[0];
+            currentHint.Text = currentHint.Text.Replace("\r\n", " ").Replace("\r", " ")
+                .Replace("\n", " ");
+
+            var toast = new MyToast
+            {
+                Context = currentHint.Text,
+                ToastType = currentHint.Type,
+                Icon = currentHint.Type switch
+                {
+                    HintType.Finish => "lucide/circle-check",
+                    HintType.Critical => "lucide/circle-minus",
+                    _ => "lucide/info"
+                },
+                DisplayDuration = (800d + ModBase.MathClamp(currentHint.Text.Length, 5d, 23d) * 180d) * ModAnimation.aniSpeed
+            };
+
+            frmMain.PanHint.Children.Add(toast);
+            toast.Show();
+
+            if (currentHint.Log)
+                ModBase.Log("[UI] 弹出提示：" + currentHint.Text);
+            HintWaiting.RemoveAt(0);
         }
         catch (Exception ex)
         {

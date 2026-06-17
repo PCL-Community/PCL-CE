@@ -36,7 +36,7 @@ public partial class MyToast
 
     public double DisplayDuration { get; set; } = 5000;
 
-    public event Action? Dismissed;
+    public bool IsDismissing { get; private set; }
 
     public void Show()
     {
@@ -72,7 +72,6 @@ public partial class MyToast
             {
                 if (Parent is Panel p)
                     p.Children.Remove(this);
-                Dismissed?.Invoke();
             }, after: true)
         };
         ModAnimation.AniStart(hideAnimations, $"Toast Hide {Uuid}");
@@ -82,6 +81,8 @@ public partial class MyToast
 
     public void Dismiss()
     {
+        if (IsDismissing) return;
+        IsDismissing = true;
         ModAnimation.AniStop($"Toast Show {Uuid}");
         ModAnimation.AniStop($"Toast Hide {Uuid}");
         ProgressBar.BeginAnimation(WidthProperty, null);
@@ -93,7 +94,6 @@ public partial class MyToast
             {
                 if (Parent is Panel p)
                     p.Children.Remove(this);
-                Dismissed?.Invoke();
             }, after: true)
         }, $"Toast Dismiss {Uuid}");
     }
