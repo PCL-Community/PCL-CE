@@ -890,13 +890,23 @@ public static class ModLaunch
 
         McLaunchLog("网页登录地址：" + prepareJson["verification_uri"]);
 
-        // 弹窗
-        var converter = new ModMain.MyMsgBoxConverter
-            { Content = prepareJson, ForceWait = true, Type = ModMain.MyMsgBoxType.Login };
-        ModMain.WaitingMyMsgBox.Add(converter);
-        while (converter.Result is null)
-            Thread.Sleep(100);
-        if (converter.Result is ModBase.RestartException)
+        // 弹窗 — 使用 DialogManager 直接显示登录
+        object? loginResult = null;
+        var loginReady = new ManualResetEventSlim(false);
+
+        ModBase.RunInUi(() =>
+        {
+            var login = new MyMsgLogin(prepareJson, "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
+                result =>
+                {
+                    loginResult = result;
+                    loginReady.Set();
+                });
+            ModMain.frmMain!.PanMsg.Children.Add(login);
+        });
+
+        loginReady.Wait();
+        if (loginResult is ModBase.RestartException)
         {
             if (ModMain.MyMsgBox(
                     Lang.Text("Minecraft.Launch.Login.PasswordRequired.Message", ModBase.vbLQ, ModBase.vbRQ),
@@ -907,9 +917,9 @@ public static class ModLaunch
             throw new Exception("$$");
         }
 
-        if (converter.Result is Exception) throw (Exception)converter.Result;
+        if (loginResult is Exception) throw (Exception)loginResult;
 
-        return (string[])converter.Result;
+        return (string[])loginResult;
     }
 
     /// <summary>

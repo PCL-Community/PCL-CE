@@ -39,7 +39,8 @@ public static class MsgBoxWrapper
         ICollection<MsgBoxButtonInfo> buttonCollection)
     {
         var result = 0;
-        if (buttonCollection.Count == 0) buttonCollection = [new MsgBoxButtonInfo(Lang.Text("Common.Action.Confirm"))];
+        if (buttonCollection.Count == 0)
+            buttonCollection = [new MsgBoxButtonInfo(Lang.Text("Common.Action.Confirm"))];
         OnShow?.Invoke(message, caption, buttonCollection, theme, block, ref result);
         return result;
     }

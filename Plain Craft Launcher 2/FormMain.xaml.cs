@@ -105,6 +105,8 @@ public partial class FormMain
         // 注册拖拽事件（不能直接加 Handles，否则没用；#6340）
         AddHandler(DragDrop.DragEnterEvent, new DragEventHandler(HandleDrag), true);
         AddHandler(DragDrop.DragOverEvent, new DragEventHandler(HandleDrag), true);
+        // 初始化 DialogManager
+        new DialogManager(this);
         // 注册 MsgBox 事件
         MsgBoxWrapper.OnShow += ModMain.MsgBoxWrapper_OnShow;
         // 注册 Hint 事件
@@ -694,10 +696,9 @@ public partial class FormMain
                 var msg = PanMsg.Children[0];
                 Action? enterAction = msg switch
                 {
-                    MyMsgInput input => () => input.Btn1_Click(sender, null),
-                    MyMsgSelect select => () => select.Btn1_Click(sender, null),
-                    MyMsgText text => () => text.Btn1_Click(sender, null),
-                    MyMsgMarkdown markdown => () => markdown.Btn1_Click(sender, null),
+                    DialogControl dlg => dlg._buttons.Count > 0
+                        ? () => dlg._buttons[0].RaiseEvent(new RoutedEventArgs(Button.ClickEvent))
+                        : null,
                     MyMsgLogin login => () => login.Btn1_Click(sender, null),
                     _ => null
                 };
@@ -710,22 +711,12 @@ public partial class FormMain
                 var msg = PanMsg.Children[0];
                 Action? escapeAction = msg switch
                 {
-                    MyMsgInput input => input.Btn2.Visibility == Visibility.Visible
-                        ? () => input.Btn2_Click(sender, null)
-                        : () => input.Btn1_Click(sender, null),
-                    MyMsgSelect select => select.Btn2.Visibility == Visibility.Visible
-                        ? () => select.Btn2_Click(sender, null)
-                        : () => select.Btn1_Click(sender, null),
-                    MyMsgText text => text.Btn3.Visibility == Visibility.Visible
-                        ? () => text.Btn3_Click(sender, null)
-                        : text.Btn2.Visibility == Visibility.Visible
-                            ? () => text.Btn2_Click(sender, null)
-                            : () => text.Btn1_Click(sender, null),
-                    MyMsgMarkdown markdown => markdown.Btn3.Visibility == Visibility.Visible
-                        ? () => markdown.Btn3_Click(sender, null)
-                        : markdown.Btn2.Visibility == Visibility.Visible
-                            ? () => markdown.Btn2_Click(sender, null)
-                            : () => markdown.Btn1_Click(sender, null),
+                    DialogControl dlg => dlg._buttons.Count switch
+                    {
+                        >= 3 => () => dlg._buttons[2].RaiseEvent(new RoutedEventArgs(Button.ClickEvent)),
+                        >= 2 => () => dlg._buttons[1].RaiseEvent(new RoutedEventArgs(Button.ClickEvent)),
+                        _ => () => dlg._buttons[0].RaiseEvent(new RoutedEventArgs(Button.ClickEvent)),
+                    },
                     MyMsgLogin login => login.Btn3.Visibility == Visibility.Visible
                         ? () => login.Btn3_Click(sender, null)
                         : () => login.Btn1_Click(sender, null),
@@ -787,7 +778,7 @@ public partial class FormMain
     private void FormMain_MouseDown(object sender, MouseButtonEventArgs e)
     {
         // 鼠标侧键返回上一级
-        if (ModMain.frmMain!.PanMsg.Children.Count > 0 || ModMain.WaitingMyMsgBox.Any())
+        if (ModMain.frmMain!.PanMsg.Children.Count > 0)
             return; // 弹窗中（#5513）
         if (e.ChangedButton == MouseButton.XButton1 || e.ChangedButton == MouseButton.XButton2)
             TriggerPageBack();
