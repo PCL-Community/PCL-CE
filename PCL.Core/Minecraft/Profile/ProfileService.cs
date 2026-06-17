@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using PCL.Core.App;
 using PCL.Core.App.IoC;
@@ -8,6 +9,7 @@ using PCL.Core.Minecraft.Profile.Models;
 namespace PCL.Core.Minecraft.Profile;
 
 [LifecycleScope("profile", "档案服务")]
+[LifecycleService(LifecycleState.Loaded)]
 public partial class ProfileService
 {
     private static ProfileManagement<McProfile> _newProfileProvider = new();
@@ -16,6 +18,7 @@ public partial class ProfileService
     [LifecycleStart]
     private static async Task _Start()
     {
+        _newProfileProvider.LoadFromString(Config.System.Profiles);
     }
 
     private static void _MigrateProfile()
@@ -31,7 +34,27 @@ public partial class ProfileService
         Context.Info("开始迁移旧版本档案信息");
         try
         {
-
+            _oldProfileProvider.LoadFromPath(profileLocation);
+            foreach (var profile in _oldProfileProvider.GetAll())
+            {
+                var newProfile = new McProfile
+                {
+                    UserName = profile.UserName,
+                    Uuid = profile.Uuid,
+                    SkinPath = "",
+                    ExpiredAt = default,
+                    AccessToken = profile.AccessToken,
+                    RefreshToken = profile.RefreshToken ?? string.Empty,
+                    TokenType = profile.TokenType,
+                    ProfileType = profile.Type switch
+                    {
+                        "microsoft" => ProfileType.Microsoft,
+                        "authlib" => ProfileType.Authlib,
+                        _ => ProfileType.Offline
+                    }
+                };
+                _newProfileProvider.Add(newProfile);
+            }
         }
         catch (UnauthorizedAccessException)
         {
@@ -44,4 +67,17 @@ public partial class ProfileService
     }
     
     private static void _Import(){}
+
+    private static bool _isCheckedLicense;
+
+    public static bool HasValidLicense
+    {
+        get
+        {
+            if (!_isCheckedLicense)
+                field = _newProfileProvider.GetAll().Any(p => p.ProfileType == ProfileType.Microsoft);
+            return field;
+        }
+        private set;
+    }
 }

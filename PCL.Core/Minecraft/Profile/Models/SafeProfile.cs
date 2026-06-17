@@ -14,7 +14,7 @@ public record SafeProfile
     [JsonPropertyName("uuid")]
     public required string Uuid { get; set; }
     [JsonPropertyName("tokenType")]
-    public required string TokenType { get; set; }
+    public string? TokenType { get; set; }
     [JsonPropertyName("profileType")]
     public ProfileType? ProfileType { get; set; }
 
