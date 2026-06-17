@@ -70,6 +70,7 @@ public partial class MyToast
 
     public void Emphasize()
     {
+        ModAnimation.AniStop($"Toast Show {Uuid}");
         ModAnimation.AniStop($"Toast Hide {Uuid}");
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ProgressBar.BeginAnimation(WidthProperty, null);
