@@ -908,38 +908,6 @@ public static class ModMain
 
     #endregion
 
-    #region 页面声明
-
-    // 在最后进行页面声明，避免颜色尚未加载完毕
-
-    // 窗体声明
-
-
-    // 页面声明（出于单元测试考虑，初始化页面已转入 FormMain 中）
-
-
-    // 工具页面声明
-
-
-    // 下载页面声明
-
-
-    // 设置页面声明
-
-
-    // 登录页面声明
-
-
-    // 实例设置页面声明
-
-
-    // 实例存档页面
-
-
-    // 资源信息分页声明
-    
-    #endregion
-
     #region 愚人节
 
     public static bool isAprilEnabled = DateTime.Now.Month == 4 && DateTime.Now.Day == 1;

@@ -178,6 +178,9 @@ public partial class PageInstanceSetup
     }
 
     // 将控件改变路由到设置改变
+    private static void SetByTag(string tag, object value)
+        => ConfigService.TrySetValue(tag, value, PageInstanceLeft.McInstance.PathInstance);
+
     private void RadioBoxChange(object o, ModBase.RouteEventArgs routeEventArgs)
     {
         if (ModAnimation.AniControlEnabled != 0)
@@ -187,13 +190,7 @@ public partial class PageInstanceSetup
         var slash = tag.IndexOf('/');
         if (slash < 0) return;
 
-        var value = int.Parse(tag[(slash + 1)..]);
-        ArgConfig<int> setting = tag[..slash] switch
-        {
-            "VersionRamType" => Config.Instance.MemorySolution,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-        setting[PageInstanceLeft.McInstance.PathInstance] = value;
+        SetByTag(tag[..slash], int.Parse(tag[(slash + 1)..]));
     }
 
     private void TextBoxChange(object o, TextChangedEventArgs textChangedEventArgs)
@@ -201,24 +198,8 @@ public partial class PageInstanceSetup
         if (ModAnimation.AniControlEnabled != 0)
             return;
         if (o is not MyTextBox textBox) return;
-        
-        var tag = textBox.Tag?.ToString();
-        var value = textBox.Text;
-        ArgConfig<string> setting = tag switch 
-        {
-            "VersionArgumentTitle" => Config.Instance.Title,
-            "VersionArgumentInfo" => Config.Instance.TypeInfo,
-            "VersionServerAuthServer" => Config.InstanceAuth.AuthServerAddress,
-            "VersionServerAuthRegister" => Config.InstanceAuth.AuthRegisterAddress,
-            "VersionServerAuthName" => Config.InstanceAuth.AuthServerDisplayName,
-            "VersionServerEnter" => Config.Instance.ServerToEnter,
-            "VersionAdvanceJvm" => Config.Instance.JvmArgs,
-            "VersionAdvanceGame" => Config.Instance.GameArgs,
-            "VersionAdvanceClasspathHead" => Config.Instance.ClasspathHead,
-            "VersionAdvanceRun" => Config.Instance.PreLaunchCommand,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-        setting[PageInstanceLeft.McInstance.PathInstance] = value;
+
+        SetByTag(textBox.Tag?.ToString(), textBox.Text);
     }
 
     private void SliderChange(object o, bool user)
@@ -227,14 +208,7 @@ public partial class PageInstanceSetup
             return;
         if (o is not MySlider slider) return;
 
-        var tag = slider.Tag?.ToString();
-        var value = slider.Value;
-        ArgConfig<int> setting = tag switch
-        {
-            "VersionRamCustom" => Config.Instance.CustomMemorySize,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-        setting[PageInstanceLeft.McInstance.PathInstance] = value;
+        SetByTag(slider.Tag?.ToString(), slider.Value);
     }
 
     private void ComboChange(MyComboBox sender, object e)
@@ -242,15 +216,7 @@ public partial class PageInstanceSetup
         if (ModAnimation.AniControlEnabled != 0)
             return;
 
-        var tag = sender.Tag?.ToString();
-        var value = sender.SelectedIndex;
-        ArgConfig<int> setting = tag switch
-        {
-            "VersionServerLoginRequire" => Config.InstanceAuth.LoginRequirementSolution,
-            "VersionAdvanceRenderer" => Config.Instance.Renderer,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-        setting[PageInstanceLeft.McInstance.PathInstance] = value;
+        SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object sender, bool user)
@@ -258,23 +224,8 @@ public partial class PageInstanceSetup
         if (ModAnimation.AniControlEnabled != 0)
             return;
         if (sender is not MyCheckBox checkBox) return;
-        
-        var tag = checkBox.Tag?.ToString();
-        var value = checkBox.Checked.GetValueOrDefault();
-        ArgConfig<bool> setting = tag switch
-        {
-            "VersionArgumentTitleEmpty" => Config.Instance.UseGlobalTitle,
-            "VersionAdvanceRunWait" => Config.Instance.PreLaunchCommandWait,
-            "VersionAdvanceJava" => Config.Instance.IgnoreJavaCompatibility,
-            "VersionAdvanceAssetsV2" => Config.Instance.DisableAssetVerifyV2,
-            "VersionAdvanceUseProxyV2" => Config.Instance.UseProxy,
-            "VersionAdvanceDisableJLW" => Config.Instance.DisableJlw,
-            "VersionAdvanceDisableRW" => Config.Instance.DisableRw,
-            "VersionUseDebugLog4j2Config" => Config.Instance.UseDebugLof4j2Config,
-            "VersionAdvanceDisableLwjglUnsafeAgent" => Config.Instance.DisableLwjglUnsafeAgent,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-        setting[PageInstanceLeft.McInstance.PathInstance] = value;
+
+        SetByTag(checkBox.Tag?.ToString(), checkBox.Checked.GetValueOrDefault());
     }
 
     // 切换到全局设置

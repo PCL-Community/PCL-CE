@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
 using PCL.Core.Link.Scaffolding.EasyTier;
 
@@ -92,43 +93,28 @@ public partial class PageSetupGameLink
     }
 
     // 将控件改变路由到设置改变
-    private void TextBoxChange(object senderRaw, TextChangedEventArgs e) // , TextLinkRelay.ValidatedTextChanged
+    private void TextBoxChange(object senderRaw, TextChangedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetGameLinkByTag(sender.Tag?.ToString(), sender.Text);
+            SetByTag(sender.Tag?.ToString(), sender.Text);
     }
 
-    private static void
-        ComboBoxChange(MyComboBox sender,
-            object e) // Handles ComboRelayType.SelectionChanged, ComboServerType.SelectionChanged
+    private static void ComboBoxChange(MyComboBox sender, object e)
     {
         if (ModAnimation.AniControlEnabled == 0)
-            SetGameLinkByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+            SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetGameLinkByTag(sender.Tag?.ToString(), sender.Checked);
+            SetByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
-    private static void SetGameLinkByTag(string tag, object value)
-    {
-        switch (tag)
-        {
-            case "LinkUsername": Config.Link.Username = (string)value; break;
-            case "LinkRelayServer": Config.Link.CustomRelayServer = (string)value; break;
-            case "LinkRelayType": Config.Link.RelayType = (LinkRelayBehavior)(int)value; break;
-            case "LinkServerType": Config.Link.ServerType = (int)value; break;
-            case "LinkProtocolPreference": Config.Link.ProtocolPreference = (LinkProtocolPreference)(int)value; break;
-            case "LinkLatencyFirstMode": Config.Link.UseLatencyFirstMode = (bool)value; break;
-            case "LinkTryPunchSym": Config.Link.TryPunchSym = (bool)value; break;
-            case "LinkEnableIPv6": Config.Link.EnableIPv6 = (bool)value; break;
-            case "LinkEnableCliOutput": Config.Link.EnableCliOutput = (bool)value; break;
-        }
-    }
+    private static void SetByTag(string tag, object value)
+        => ConfigService.TrySetValue(tag, value);
 
     private void LinkProtocolPerferenceChange(object sender, SelectionChangedEventArgs e)
     {
