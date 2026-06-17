@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using PCL.Core.App.Localization;
 
 namespace PCL.Core.UI;
@@ -69,8 +70,34 @@ public static class Dialog
     {
         if (context.Buttons.Count == 0)
             context.Buttons.Add(DialogButton.Confirm());
+        context.Block = true;
+        context.OnClosed = null;
         OnShow?.Invoke(context);
         return context.Result;
+    }
+
+    public static Task<int> ShowAsync(DialogContext context)
+    {
+        if (context.Buttons.Count == 0)
+            context.Buttons.Add(DialogButton.Confirm());
+        var tcs = new TaskCompletionSource<int>();
+        context.Block = false;
+        context.OnClosed = result => tcs.TrySetResult(result);
+        OnShow?.Invoke(context);
+        return tcs.Task;
+    }
+
+    public static Task<int> ShowAsync(string caption, string? title = null,
+        DialogTheme theme = DialogTheme.Info, params string[] buttons)
+    {
+        return ShowAsync(new DialogContext
+        {
+            Caption = caption,
+            Title = title ?? Lang.Text("Common.Dialog.Title"),
+            Theme = theme,
+            Content = null,
+            Buttons = _BuildButtons(buttons),
+        });
     }
 
     private static Collection<DialogButton> _BuildButtons(string[] buttonTexts)
@@ -100,4 +127,5 @@ public class DialogContext
     public object? Content { get; set; }
     public Collection<DialogButton> Buttons { get; set; } = [];
     public int Result { get; set; }
+    public Action<int>? OnClosed { get; set; }
 }

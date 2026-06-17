@@ -550,6 +550,8 @@ public static class ModMain
         public DispatcherFrame WaitFrame = new(true);
 
         public int[] ButtonIds = [1, 2, 3];
+
+        public Action<int>? OnCloseCallback;
     }
 
     public enum MyMsgBoxType
@@ -866,7 +868,11 @@ public static class ModMain
                     if (!string.IsNullOrEmpty(converter.Button3))
                         dialog.AddButton(converter.Button3, converter.Button3Action, id: converter.ButtonIds[2]);
                     converter.WaitFrame = dialog.WaitFrame;
-                    dialog.OnClosed += result => converter.Result = result;
+                    dialog.OnClosed += result =>
+                    {
+                        converter.Result = result;
+                        converter.OnCloseCallback?.Invoke(result);
+                    };
                     frmMain.PanMsg.Children.Add(dialog);
                 }
                 else switch (converter.Type)
@@ -974,6 +980,7 @@ public static class ModMain
                 WaitingMyMsgBox.Remove(converter);
                 Interaction.MsgBox(context.Caption, MsgBoxStyle.OkOnly, context.Title);
                 context.Result = 1;
+                context.OnClosed?.Invoke(1);
             }
             else
             {
@@ -988,7 +995,16 @@ public static class ModMain
                     ComponentDispatcher.PopModal();
                 }
                 context.Result = (int)(converter.Result ?? 0);
+                context.OnClosed?.Invoke(context.Result);
             }
+        }
+        else
+        {
+            converter.OnCloseCallback = result =>
+            {
+                context.Result = result;
+                context.OnClosed?.Invoke(result);
+            };
         }
     }
 
