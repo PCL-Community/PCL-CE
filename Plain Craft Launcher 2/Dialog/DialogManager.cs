@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,6 +12,7 @@ using System.Windows.Threading;
 using Microsoft.VisualBasic;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -84,6 +86,28 @@ public class DialogManager
             foreach (var b in buttons) dialog.AddButton(b.Text, b.OnClick, b.IsPrimary, b.Id, b.IsCancel);
         _showContentOnUi(dialog);
         return wrapper;
+    }
+
+    // -- OAuth login (specialized) --
+
+    public object? ShowOAuth(JsonObject data, string authUrl)
+    {
+        object? result = null;
+        var ready = new ManualResetEventSlim(false);
+
+        _mainForm.Dispatcher.Invoke(() =>
+        {
+            var login = new DialogMsOAuthLogin(data, authUrl, r =>
+            {
+                result = r;
+                ready.Set();
+            });
+            _mainForm.PanMsg.Children.Add(login);
+            _mainForm.PanMsgBackground.Visibility = Visibility.Visible;
+        });
+
+        ready.Wait();
+        return result;
     }
 
     // -- convenience methods --

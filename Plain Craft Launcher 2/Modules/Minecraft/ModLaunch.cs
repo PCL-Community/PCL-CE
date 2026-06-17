@@ -890,22 +890,9 @@ public static class ModLaunch
 
         McLaunchLog("网页登录地址：" + prepareJson["verification_uri"]);
 
-        // 弹窗 — 使用 DialogManager 直接显示登录
-        object? loginResult = null;
-        var loginReady = new ManualResetEventSlim(false);
-
-        ModBase.RunInUi(() =>
-        {
-            var login = new MyMsgLogin(prepareJson, "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
-                result =>
-                {
-                    loginResult = result;
-                    loginReady.Set();
-                });
-            ModMain.frmMain!.PanMsg.Children.Add(login);
-        });
-
-        loginReady.Wait();
+        // 弹窗 — 使用 DialogManager 显示 OAuth 登录
+        var loginResult = DialogManager.Instance?.ShowOAuth(prepareJson,
+            "https://login.microsoftonline.com/consumers/oauth2/v2.0/token");
         if (loginResult is ModBase.RestartException)
         {
             if (ModMain.MyMsgBox(

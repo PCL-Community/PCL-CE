@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 
 namespace PCL;
 
-public partial class MyMsgLogin
+public partial class DialogMsOAuthLogin
 {
     private readonly JsonObject data;
     private string deviceCode;
@@ -21,7 +21,7 @@ public partial class MyMsgLogin
     private bool _finished;
     private readonly int uuid = ModBase.GetUuid();
 
-    public MyMsgLogin(JsonObject data, string authUrl, Action<object> onFinished)
+    public DialogMsOAuthLogin(JsonObject data, string authUrl, Action<object> onFinished)
     {
         try
         {

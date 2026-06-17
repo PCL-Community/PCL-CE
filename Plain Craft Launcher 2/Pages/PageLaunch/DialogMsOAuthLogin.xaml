@@ -1,4 +1,4 @@
-<Grid x:Class="PCL.MyMsgLogin"
+<Grid x:Class="PCL.DialogMsOAuthLogin"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="clr-namespace:PCL"
