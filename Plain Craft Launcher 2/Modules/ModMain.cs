@@ -109,6 +109,8 @@ public static class ModMain
     /// </summary>
     public static List<MyMsgBoxConverter> WaitingMyMsgBox { get; } = [];
 
+
+
     private static void TimerMain()
     {
         try
@@ -847,31 +849,49 @@ public static class ModMain
             {
                 // 没有弹窗，显示一个等待的弹窗
                 frmMain.PanMsgBackground.Visibility = Visibility.Visible;
-                switch (WaitingMyMsgBox[0].Type)
+                var converter = WaitingMyMsgBox[0];
+                if (converter.Content is FrameworkElement customContent)
+                {
+                    var dialog = new DialogControl
+                    {
+                        Title = converter.Title,
+                        IsWarn = converter.IsWarn,
+                        DialogContent = customContent,
+                    };
+                    dialog.AddButton(converter.Button1, converter.Button1Action, isPrimary: true);
+                    if (!string.IsNullOrEmpty(converter.Button2))
+                        dialog.AddButton(converter.Button2, converter.Button2Action);
+                    if (!string.IsNullOrEmpty(converter.Button3))
+                        dialog.AddButton(converter.Button3, converter.Button3Action);
+                    converter.WaitFrame = dialog.WaitFrame;
+                    dialog.OnClosed += result => converter.Result = result;
+                    frmMain.PanMsg.Children.Add(dialog);
+                }
+                else switch (converter.Type)
                 {
                     case MyMsgBoxType.Input:
                     {
-                        frmMain.PanMsg.Children.Add(new MyMsgInput(WaitingMyMsgBox[0]));
+                        frmMain.PanMsg.Children.Add(new MyMsgInput(converter));
                         break;
                     }
                     case MyMsgBoxType.Select:
                     {
-                        frmMain.PanMsg.Children.Add(new MyMsgSelect(WaitingMyMsgBox[0]));
+                        frmMain.PanMsg.Children.Add(new MyMsgSelect(converter));
                         break;
                     }
                     case MyMsgBoxType.Text:
                     {
-                        frmMain.PanMsg.Children.Add(new MyMsgText(WaitingMyMsgBox[0]));
+                        frmMain.PanMsg.Children.Add(new MyMsgText(converter));
                         break;
                     }
                     case MyMsgBoxType.Login:
                     {
-                        frmMain.PanMsg.Children.Add(new MyMsgLogin(WaitingMyMsgBox[0]));
+                        frmMain.PanMsg.Children.Add(new MyMsgLogin(converter));
                         break;
                     }
                     case MyMsgBoxType.Markdown:
                     {
-                        frmMain.PanMsg.Children.Add(new MyMsgMarkdown(WaitingMyMsgBox[0]));
+                        frmMain.PanMsg.Children.Add(new MyMsgMarkdown(converter));
                         break;
                     }
                 }
@@ -904,6 +924,64 @@ public static class ModMain
 
         result = MyMsgBox(message, caption, btnText1, btnText2, btnText3, isWarn, forceWait: block,
             button1Action: btnAct1, button2Action: btnAct2, button3Action: btnAct3);
+    }
+
+    public static void Dialog_OnShow(DialogContext context)
+    {
+        var isWarn = context.Theme == DialogTheme.Warning || context.Theme == DialogTheme.Error;
+
+        var content = context.Content;
+        if (content is null && !string.IsNullOrEmpty(context.Caption))
+        {
+            content = new TextBlock
+            {
+                Text = context.Caption,
+                TextWrapping = TextWrapping.Wrap,
+                FontSize = 15,
+            };
+        }
+
+        var converter = new MyMsgBoxConverter
+        {
+            Type = MyMsgBoxType.Text,
+            Button1 = context.Buttons.Count > 0 ? context.Buttons[0].Text : GetDefaultConfirmText(),
+            Button2 = context.Buttons.Count > 1 ? context.Buttons[1].Text : "",
+            Button3 = context.Buttons.Count > 2 ? context.Buttons[2].Text : "",
+            Button1Action = context.Buttons.Count > 0 ? context.Buttons[0].OnClick : null,
+            Button2Action = context.Buttons.Count > 1 ? context.Buttons[1].OnClick : null,
+            Button3Action = context.Buttons.Count > 2 ? context.Buttons[2].OnClick : null,
+            Text = context.Caption,
+            Title = context.Title,
+            IsWarn = isWarn,
+            ForceWait = context.Block,
+            Content = content,
+        };
+        WaitingMyMsgBox.Add(converter);
+        if (ModBase.RunInUi())
+            MyMsgBoxTick();
+        if (context.Block)
+        {
+            if (frmMain is null || (frmMain.PanMsg is null && ModBase.RunInUi()))
+            {
+                WaitingMyMsgBox.Remove(converter);
+                Interaction.MsgBox(context.Caption, MsgBoxStyle.OkOnly, context.Title);
+                context.Result = 1;
+            }
+            else
+            {
+                try
+                {
+                    frmMain?.DragStop();
+                    ComponentDispatcher.PushModal();
+                    Dispatcher.PushFrame(converter.WaitFrame);
+                }
+                finally
+                {
+                    ComponentDispatcher.PopModal();
+                }
+                context.Result = (int)(converter.Result ?? 0);
+            }
+        }
     }
 
     #endregion

@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using PCL.Core.App.Localization;
 
 namespace PCL.Core.UI;
 
+[Obsolete("Use PCL.Core.UI.Dialog instead")]
 public record MsgBoxButtonInfo(
     string Context,
     int Value = 0,
     Action? OnClick = null
 );
 
+[Obsolete("Use PCL.Core.UI.DialogTheme instead")]
 public enum MsgBoxTheme
 {
     Info,
@@ -27,6 +30,7 @@ public delegate void MsgBoxHandler(
     ref int result
 );
 
+[Obsolete("Use PCL.Core.UI.Dialog instead")]
 public static class MsgBoxWrapper
 {
     public static event MsgBoxHandler? OnShow;
@@ -38,9 +42,20 @@ public static class MsgBoxWrapper
         bool block,
         ICollection<MsgBoxButtonInfo> buttonCollection)
     {
-        var result = 0;
-        if (buttonCollection.Count == 0) buttonCollection = [new MsgBoxButtonInfo(Lang.Text("Common.Action.Confirm"))];
-        OnShow?.Invoke(message, caption, buttonCollection, theme, block, ref result);
+        var buttons = new Collection<DialogButton>();
+        foreach (var btn in buttonCollection)
+        {
+            buttons.Add(new DialogButton(btn.Context, btn.OnClick));
+        }
+        var result = Dialog.Show(new DialogContext
+        {
+            Caption = message,
+            Title = caption,
+            Theme = (DialogTheme)(int)theme,
+            Block = block,
+            Content = null,
+            Buttons = buttons,
+        });
         return result;
     }
 

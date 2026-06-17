@@ -107,6 +107,8 @@ public partial class FormMain
         AddHandler(DragDrop.DragOverEvent, new DragEventHandler(HandleDrag), true);
         // 注册 MsgBox 事件
         MsgBoxWrapper.OnShow += ModMain.MsgBoxWrapper_OnShow;
+        // 注册 Dialog 事件
+        PCL.Core.UI.Dialog.OnShow += ModMain.Dialog_OnShow;
         // 注册 Hint 事件
         HintWrapper.OnShow += ModMain.HintWrapper_OnShow;
         // 加载 UI
