@@ -696,9 +696,12 @@ public partial class FormMain
                 var msg = PanMsg.Children[0];
                 Action? enterAction = msg switch
                 {
-                    DialogControl dlg => dlg._buttons.Count > 0
-                        ? () => dlg._buttons[0].RaiseEvent(new RoutedEventArgs(Button.ClickEvent))
-                        : null,
+                    DialogControl dlg when dlg._buttons.Count > 0 => () =>
+                    {
+                        var confirm = dlg._buttons.FirstOrDefault(b => b.Tag as string != "Cancel")
+                                   ?? dlg._buttons[0];
+                        confirm.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    },
                     MyMsgLogin login => () => login.Btn1_Click(sender, null),
                     _ => null
                 };
@@ -711,15 +714,18 @@ public partial class FormMain
                 var msg = PanMsg.Children[0];
                 Action? escapeAction = msg switch
                 {
-                    DialogControl dlg => dlg._buttons.Count switch
+                    DialogControl dlg when dlg._buttons.Count > 0 => () =>
                     {
-                        >= 3 => () => dlg._buttons[2].RaiseEvent(new RoutedEventArgs(Button.ClickEvent)),
-                        >= 2 => () => dlg._buttons[1].RaiseEvent(new RoutedEventArgs(Button.ClickEvent)),
-                        _ => () => dlg._buttons[0].RaiseEvent(new RoutedEventArgs(Button.ClickEvent)),
+                        var cancel = dlg._buttons.FirstOrDefault(b => b.Tag as string == "Cancel");
+                        cancel?.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                     },
-                    MyMsgLogin login => login.Btn3.Visibility == Visibility.Visible
-                        ? () => login.Btn3_Click(sender, null)
-                        : () => login.Btn1_Click(sender, null),
+                    MyMsgLogin login => () =>
+                    {
+                        if (login.Btn3.Visibility == Visibility.Visible)
+                            login.Btn3_Click(sender, null);
+                        else
+                            login.Btn1_Click(sender, null);
+                    },
                     _ => null
                 };
                 escapeAction?.Invoke();

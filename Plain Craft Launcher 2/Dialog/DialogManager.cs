@@ -48,6 +48,44 @@ public class DialogManager
         return tcs.Task;
     }
 
+    // -- lightweight: pure content, return handle --
+
+    public DialogControl Show(UIElement content, string? title = null,
+        DialogButton[]? buttons = null, bool isWarn = false, bool showTitle = true)
+    {
+        var ctx = new DialogContext
+        {
+            Title = title ?? "",
+            Theme = isWarn ? DialogTheme.Warning : DialogTheme.Info,
+            Block = false,
+            ShowTitle = showTitle && !string.IsNullOrEmpty(title),
+            Content = content,
+            Buttons = new Collection<DialogButton>(),
+        };
+        if (buttons is not null)
+            foreach (var b in buttons) ctx.Buttons.Add(b);
+        ShowOnUi(ctx);
+        return ctx._dialog!;
+    }
+
+    // -- Show<T>: typed content factory --
+
+    public Dialog<T> Show<T>(string? title = null, DialogButton[]? buttons = null,
+        bool isWarn = false, bool showTitle = true) where T : FrameworkElement, new()
+    {
+        var dialog = new DialogControl
+        {
+            Title = title ?? "",
+            IsWarn = isWarn,
+            ShowTitle = showTitle && !string.IsNullOrEmpty(title),
+        };
+        var wrapper = new Dialog<T>(dialog);
+        if (buttons is not null)
+            foreach (var b in buttons) dialog.AddButton(b.Text, b.OnClick, b.IsPrimary, b.Id, b.IsCancel);
+        _showContentOnUi(dialog);
+        return wrapper;
+    }
+
     // -- convenience methods --
 
     public int ShowText(string caption, string? title = null,
@@ -283,6 +321,7 @@ public class DialogManager
         {
             Title = context.Title,
             IsWarn = isWarn,
+            ShowTitle = context.ShowTitle,
             DialogContent = content as UIElement,
         };
 
@@ -291,8 +330,10 @@ public class DialogManager
             var btn = context.Buttons[i];
             var isPrimary = i == 0 || btn.IsPrimary;
             var id = btn.Id > 0 ? btn.Id : i + 1;
-            dialog.AddButton(btn.Text, btn.OnClick, isPrimary, id);
+            dialog.AddButton(btn.Text, btn.OnClick, isPrimary, id, btn.IsCancel);
         }
+
+        context._dialog = dialog;
 
         _mainForm.PanMsg.Children.Add(dialog);
 
@@ -321,11 +362,20 @@ public class DialogManager
         }
     }
 
+    private void _showContentOnUi(DialogControl dialog)
+    {
+        _mainForm.Dispatcher.Invoke(() =>
+        {
+            _mainForm.PanMsg.Children.Add(dialog);
+        });
+    }
+
     private static Collection<DialogButton> _BuildButtons(string[] buttonTexts)
     {
         var list = new Collection<DialogButton>();
         for (var i = 0; i < buttonTexts.Length; i++)
-            list.Add(new DialogButton(buttonTexts[i], isPrimary: i == 0, id: i + 1));
+            list.Add(new DialogButton(buttonTexts[i], isPrimary: i == 0, id: i + 1,
+                isCancel: buttonTexts.Length > 1 && i == buttonTexts.Length - 1));
         return list;
     }
 }

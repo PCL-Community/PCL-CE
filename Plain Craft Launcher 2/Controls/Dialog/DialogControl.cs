@@ -24,6 +24,18 @@ public partial class DialogControl
 
     public bool IsWarn { get; set; }
 
+    private bool _showTitle = true;
+    internal bool ShowTitle
+    {
+        get => _showTitle;
+        set
+        {
+            _showTitle = value;
+            LabTitle.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
+            ShapeLine.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
+        }
+    }
+
     public UIElement? DialogContent
     {
         get => (UIElement?)ContentArea.Content;
@@ -47,7 +59,7 @@ public partial class DialogControl
         Loaded += OnLoad;
     }
 
-    public MyButton AddButton(string text, Action? onClick = null, bool isPrimary = false, int id = 0)
+    public MyButton AddButton(string text, Action? onClick = null, bool isPrimary = false, int id = 0, bool isCancel = false)
     {
         var btn = new MyButton
         {
@@ -57,6 +69,7 @@ public partial class DialogControl
                 : MyButton.ColorState.Normal,
             Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible,
             IsEnabled = true,
+            Tag = isCancel ? "Cancel" : null,
         };
         btn.ApplyTemplate();
         btn.TextPadding = new Thickness(7);
@@ -91,6 +104,8 @@ public partial class DialogControl
                 _buttons[0].ColorType = MyButton.ColorState.Highlight;
             if (_buttons.Count > 0)
                 _buttons[0].Focus();
+            else
+                PanBtn.Visibility = Visibility.Collapsed;
 
             Opacity = 0d;
             ModAnimation.AniStart(

@@ -9,24 +9,26 @@ public class DialogButton
     public int Id { get; set; }
     public Action? OnClick { get; set; }
     public bool IsPrimary { get; set; }
+    public bool IsCancel { get; set; }
 
-    public DialogButton(string text, Action? onClick = null, bool isPrimary = false, int id = 0)
+    public DialogButton(string text, Action? onClick = null, bool isPrimary = false, int id = 0, bool isCancel = false)
     {
         Text = text;
         OnClick = onClick;
         IsPrimary = isPrimary;
         Id = id;
+        IsCancel = isCancel;
     }
 
     public static DialogButton Confirm(string? text = null)
         => new(text ?? Lang.Text("Common.Action.Confirm"), isPrimary: true, id: DialogResult.Ok);
 
     public static DialogButton Cancel(string? text = null)
-        => new(text ?? Lang.Text("Common.Action.Cancel"), id: DialogResult.Cancel);
+        => new(text ?? Lang.Text("Common.Action.Cancel"), id: DialogResult.Cancel, isCancel: true);
 
     public static DialogButton Yes(string? text = null)
         => new(text ?? Lang.Text("Common.Option.Yes"), isPrimary: true, id: DialogResult.Yes);
 
     public static DialogButton No(string? text = null)
-        => new(text ?? Lang.Text("Common.Option.No"), id: DialogResult.No);
+        => new(text ?? Lang.Text("Common.Option.No"), id: DialogResult.No, isCancel: true);
 }

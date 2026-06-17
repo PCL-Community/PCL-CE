@@ -2425,20 +2425,13 @@ public static class ModBase
     }
 
     private static int uuid = 1;
-    private static object uuidLock;
 
     /// <summary>
     ///     获取一个全程序内不会重复的数字（伪 Uuid）。
     /// </summary>
     public static int GetUuid()
     {
-        if (uuidLock is null)
-            uuidLock = new object();
-        lock (uuidLock)
-        {
-            uuid += 1;
-            return uuid;
-        }
+        return Interlocked.Increment(ref uuid);
     }
 
     /// <summary>
