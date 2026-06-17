@@ -81,6 +81,7 @@ namespace PCL
             [EventType.WriteSetting] = _WriteSetting,
             [EventType.ModifyVariable] = _WriteVariable,
             [EventType.WriteVariable] = _WriteVariable,
+            [EventType.OpenHelp] = (_, __) => ModBase.OpenWebsite("https://docspclccc.vercel.app"),
         };
 
         /// <summary>

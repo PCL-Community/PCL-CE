@@ -22,12 +22,14 @@ namespace PCL
             { "修改设置", "ModifySetting" },
             { "写入设置", "WriteSetting" },
             { "修改变量", "ModifyVariable" },
-            { "写入变量", "WriteVariable" }
+            { "写入变量", "WriteVariable" },
+            { "打开帮助", "OpenHelp" },
+            { "刷新帮助", "OpenHelp" },
         };
 
         public static readonly HashSet<string> UnsupportedTypes = new(StringComparer.Ordinal)
         {
-            "打开帮助", "刷新帮助", "内存优化", "加入房间", "检查更新"
+            "内存优化", "加入房间", "检查更新"
         };
 
         public static bool TryToEnglish(string chineseName, out string englishName) =>
