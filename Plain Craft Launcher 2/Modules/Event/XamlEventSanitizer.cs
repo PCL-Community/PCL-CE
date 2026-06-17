@@ -29,10 +29,10 @@ namespace PCL
         [GeneratedRegex(@"<local:CustomEvent\s+[^>]*?\bType\s*=\s*""([^""]+)""[^>]*>")]
         private static partial Regex LocalCustomEventOpenTagRegex();
 
-        [GeneratedRegex(@"<Setter\b[^>]*?\bProperty\s*=\s*""local:CustomEventService\.EventType""[^>]*?\bValue\s*=\s*""([^""]+)""[^>]*/\s*>")]
+        [GeneratedRegex(@"<Setter\b[^>]*?\bProperty\s*=\s*""local:CustomEventService\.EventType""[^>]*?\bValue\s*=\s*""([^""]+)""[^>]*(?:/\s*>|>\s*</Setter\s*>)")]
         private static partial Regex SetterEventTypePropertyFirstRegex();
 
-        [GeneratedRegex(@"<Setter\b[^>]*?\bValue\s*=\s*""([^""]+)""[^>]*?\bProperty\s*=\s*""local:CustomEventService\.EventType""[^>]*/\s*>")]
+        [GeneratedRegex(@"<Setter\b[^>]*?\bValue\s*=\s*""([^""]+)""[^>]*?\bProperty\s*=\s*""local:CustomEventService\.EventType""[^>]*(?:/\s*>|>\s*</Setter\s*>)")]
         private static partial Regex SetterEventTypeValueFirstRegex();
 
         public static SanitizeResult Sanitize(string xaml)
