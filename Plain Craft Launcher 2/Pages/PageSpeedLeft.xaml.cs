@@ -144,7 +144,7 @@ public partial class PageSpeedLeft
                             tb.MouseLeftButtonDown += (sender, _) =>
                             {
                                 ModBase.ClipboardSet(((TextBlock)sender).Text, false);
-                                HintService.Hint(Lang.Text("Speed.Error.Copied"), HintType.Finish);
+                                HintService.Hint(Lang.Text("Speed.Error.Copied"), HintType.Success);
                             };
                             card.Children.Add(tb);
                             break;

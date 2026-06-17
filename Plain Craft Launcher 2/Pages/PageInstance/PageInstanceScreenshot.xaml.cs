@@ -315,7 +315,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     ModBase.Log(ex, $"[Screenshot]第 {tryTime} 次复制尝试失败");
                 }
 
-            HintService.Hint(Lang.Text("Instance.Screenshot.CopyFailed"), HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Screenshot.CopyFailed"), HintType.Error);
         }
         else
         {

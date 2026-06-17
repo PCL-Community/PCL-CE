@@ -224,7 +224,7 @@ public partial class PageLaunchLeft
             {
                 if (File.Exists(ModInstanceList.McMcInstanceSelected.PathInstance + ".pclignore"))
                 {
-                    HintService.Hint(Lang.Text("Launch.Home.Instance.InstallingCannotLaunch"), HintType.Critical);
+                    HintService.Hint(Lang.Text("Launch.Home.Instance.InstallingCannotLaunch"), HintType.Error);
                     return;
                 }
 
@@ -361,7 +361,7 @@ public partial class PageLaunchLeft
         PageInstanceLeft.McInstance = ModInstanceList.McMcInstanceSelected;
         if (File.Exists(ModInstanceList.McMcInstanceSelected.PathInstance + ".pclignore"))
         {
-            HintService.Hint(Lang.Text("Launch.Home.Instance.InstallingCannotSetup"), HintType.Critical);
+            HintService.Hint(Lang.Text("Launch.Home.Instance.InstallingCannotSetup"), HintType.Error);
             return;
         }
 

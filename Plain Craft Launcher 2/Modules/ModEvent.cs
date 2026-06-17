@@ -177,7 +177,7 @@ namespace PCL
                         {
                             if (ModInstanceList.McMcInstanceSelected is null)
                             {
-                                HintService.Hint("请先选择一个 Minecraft 版本！", HintType.Critical);
+                                HintService.Hint("请先选择一个 Minecraft 版本！", HintType.Error);
                                 return;
                             }
                             args[0] = ModInstanceList.McMcInstanceSelected.Name;
@@ -206,11 +206,11 @@ namespace PCL
                         {
                             ModBase.RunInUiWait(() => refreshable.Refresh());
                             if (string.IsNullOrEmpty(arg))
-                                HintService.Hint("已刷新！", HintType.Finish);
+                                HintService.Hint("已刷新！", HintType.Success);
                         }
                         else
                         {
-                            HintService.Hint("当前页面不支持刷新操作！", HintType.Critical);
+                            HintService.Hint("当前页面不支持刷新操作！", HintType.Error);
                         }
                         break;
 
@@ -293,7 +293,7 @@ namespace PCL
                         if (ConfigService.TryGetConfigItemNoType(args[0], out var item) && item.Source != ConfigSource.SharedEncrypt)
                             item.SetValueNoType(args[1], ModInstanceList.McMcInstanceSelected?.PathInstance);
                         if (args.Length == 2)
-                            HintService.Hint($"已写入设置：{args[0]} → {args[1]}", HintType.Finish);
+                            HintService.Hint($"已写入设置：{args[0]} → {args[1]}", HintType.Success);
                         break;
 
                     case EventType.修改变量:
@@ -303,7 +303,7 @@ namespace PCL
                         States.CustomVariables[args[0]] = args[1];
                         States.CustomVariables = States.CustomVariables; // 触发属性变更通知
                         if (args.Length == 2)
-                            HintService.Hint($"已写入变量：{args[0]} → {args[1]}", HintType.Finish);
+                            HintService.Hint($"已写入变量：{args[0]} → {args[1]}", HintType.Success);
                         break;
 
                     default:

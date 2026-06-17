@@ -78,7 +78,7 @@ public static class ModFolder
                     continue;
                 if (!folder.Contains(">") || !folder.EndsWithF(@"\"))
                 {
-                    HintService.Hint(Lang.Text("Select.Folder.Invalid", folder), HintType.Critical);
+                    HintService.Hint(Lang.Text("Select.Folder.Invalid", folder), HintType.Error);
                     continue;
                 }
 

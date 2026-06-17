@@ -56,7 +56,7 @@ public partial class PageLoginMs
                 }
                 else if (ex.Message.StartsWith("$"))
                 {
-                    HintService.Hint(ex.Message.TrimStart('$'), HintType.Critical);
+                    HintService.Hint(ex.Message.TrimStart('$'), HintType.Error);
                 }
                 else if (ex is AuthenticationException && ex.Message.ContainsF("SSL/TLS"))
                 {

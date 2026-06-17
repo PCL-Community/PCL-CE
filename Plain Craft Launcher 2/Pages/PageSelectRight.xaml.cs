@@ -542,14 +542,14 @@ public partial class PageSelectRight
                     {
                         ModBase.DeleteDirectory(mcInstance.PathInstance);
                         HintService.Hint(Lang.Text("Select.Instance.Delete.PermanentSuccess", mcInstance.Name),
-                            HintType.Finish);
+                            HintType.Success);
                     }
                     else
                     {
                         FileSystem.DeleteDirectory(mcInstance.PathInstance, UIOption.AllDialogs,
                             RecycleOption.SendToRecycleBin);
                         HintService.Hint(Lang.Text("Select.Instance.Delete.RecycleBinSuccess", mcInstance.Name),
-                            HintType.Finish);
+                            HintType.Success);
                     }
 
                     break;

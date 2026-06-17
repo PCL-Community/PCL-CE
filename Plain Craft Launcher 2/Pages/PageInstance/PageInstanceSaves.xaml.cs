@@ -399,7 +399,7 @@ public partial class PageInstanceSaves : IRefreshable
                 }
 
             if (copied > 0)
-                HintService.Hint(Lang.Text("Instance.Saves.PastedCount", copied.ToString()), HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Saves.PastedCount", copied.ToString()), HintType.Success);
             ModBase.RunInUi(() => Reload());
         }));
         var loader = new ModLoader.LoaderCombo<int>($"{PageInstanceLeft.McInstance.Name} - {Lang.Text("Instance.Saves.CopySave")}", loaders)

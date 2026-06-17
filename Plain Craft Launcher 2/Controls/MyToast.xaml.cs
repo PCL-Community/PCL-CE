@@ -145,8 +145,8 @@ public partial class MyToast
     {
         var baseHue = ToastType switch
         {
-            HintType.Finish => 145d,
-            HintType.Critical => 355d,
+            HintType.Success => 145d,
+            HintType.Error => 355d,
             _ => 210d
         };
         var res = System.Windows.Application.Current.Resources;

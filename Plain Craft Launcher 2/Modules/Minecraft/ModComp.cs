@@ -336,12 +336,12 @@ public static class ModComp
                         if (hasFavs)
                         {
                             i.Favs.Remove(project.Id);
-                            HintService.Hint(Lang.Text("Download.Comp.Detail.Favorites.Remove", project.TranslatedName, i.Name), HintType.Finish);
+                            HintService.Hint(Lang.Text("Download.Comp.Detail.Favorites.Remove", project.TranslatedName, i.Name), HintType.Success);
                         }
                         else
                         {
                             i.Favs.Add(project.Id);
-                            HintService.Hint(Lang.Text("Download.Comp.Detail.Favorites.Add", project.TranslatedName, i.Name), HintType.Finish);
+                            HintService.Hint(Lang.Text("Download.Comp.Detail.Favorites.Add", project.TranslatedName, i.Name), HintType.Success);
                         }
 
                         Save();
@@ -387,7 +387,7 @@ public static class ModComp
                             Lang.Text(failedCount > 0
                                 ? "Download.Comp.Detail.Favorites.BulkAddWithFailures"
                                 : "Download.Comp.Detail.Favorites.BulkAdd", successCount, i.Name, failedCount),
-                            HintType.Finish);
+                            HintType.Success);
                     }
                     catch (Exception ex)
                     {
@@ -631,7 +631,7 @@ public static class ModComp
 
                             if (compProjects.Count == 0)
                             {
-                                HintService.Hint("Invalid resource content.", HintType.Critical);
+                                HintService.Hint("Invalid resource content.", HintType.Error);
                                 return;
                             }
 

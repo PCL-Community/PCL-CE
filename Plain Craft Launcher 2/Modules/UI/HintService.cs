@@ -29,9 +29,9 @@ public static class HintService
     {
         var hintType = messageTheme switch
         {
-            HintTheme.Error => HintType.Critical,
+            HintTheme.Error => HintType.Error,
             HintTheme.Info => HintType.Info,
-            _ => HintType.Finish
+            _ => HintType.Success
         };
         Hint(message, hintType);
     }
@@ -74,8 +74,8 @@ public static class HintService
                 ToastType = currentHint.Type,
                 Icon = currentHint.Type switch
                 {
-                    HintType.Finish => "lucide/circle-check",
-                    HintType.Critical => "lucide/circle-minus",
+                    HintType.Success => "lucide/circle-check",
+                    HintType.Error => "lucide/circle-minus",
                     _ => "lucide/info"
                 },
                 DisplayDuration = (800d + ModBase.MathClamp(currentHint.Text.Length, 5d, 23d) * 180d) * ModAnimation.aniSpeed

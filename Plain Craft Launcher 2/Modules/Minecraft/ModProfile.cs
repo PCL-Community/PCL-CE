@@ -461,7 +461,7 @@ public static class ModProfile
                                 { { "Authorization", "Bearer " + selectedProfile.AccessToken } }
                         });
                     var resultJson = (JsonObject)ModBase.GetJson(result);
-                    HintService.Hint(Lang.Text("Launch.Account.Profile.EditPlayerId.Success", resultJson["name"]), HintType.Finish);
+                    HintService.Hint(Lang.Text("Launch.Account.Profile.EditPlayerId.Success", resultJson["name"]), HintType.Success);
                     profileList.Remove(selectedProfile);
                     selectedProfile.Username = (string)resultJson["name"];
                     profileList.Add(selectedProfile);
@@ -545,7 +545,7 @@ public static class ModProfile
         profileList[profileIndex].Uuid = newUuid;
         selectedProfile = profileList[profileIndex];
         SaveProfile();
-        HintService.Hint(Lang.Text("Launch.Account.Profile.Saved"), HintType.Finish);
+        HintService.Hint(Lang.Text("Launch.Account.Profile.Saved"), HintType.Success);
     }
 
     /// <summary>
@@ -556,7 +556,7 @@ public static class ModProfile
         var profileIndex = profileList.IndexOf(profile);
         profileList[profileIndex].ServerName = serverName;
         SaveProfile();
-        HintService.Hint(Lang.Text("Launch.Account.Profile.Saved"), HintType.Finish);
+        HintService.Hint(Lang.Text("Launch.Account.Profile.Saved"), HintType.Success);
     }
 
     /// <summary>
@@ -568,7 +568,7 @@ public static class ModProfile
         profileList.Remove(profile);
         lastUsedProfile = default;
         SaveProfile();
-        HintService.Hint(Lang.Text("Launch.Account.Profile.Deleted"), HintType.Finish);
+        HintService.Hint(Lang.Text("Launch.Account.Profile.Deleted"), HintType.Success);
     }
 
     #endregion
@@ -626,7 +626,7 @@ public static class ModProfile
             {
                 if (!File.Exists(path))
                 {
-                    HintService.Hint(Lang.Text("Launch.Account.Profile.Migration.HmclConfigNotFound"), HintType.Critical);
+                    HintService.Hint(Lang.Text("Launch.Account.Profile.Migration.HmclConfigNotFound"), HintType.Error);
                     return;
                 }
 
@@ -654,7 +654,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
 
                     if (!hasMsProfile)
                     {
-                        HintService.Hint(Lang.Text("Launch.Account.Profile.Migration.MsRequired"), HintType.Critical);
+                        HintService.Hint(Lang.Text("Launch.Account.Profile.Migration.MsRequired"), HintType.Error);
                         return;
                     }
 
@@ -666,7 +666,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
                     }
                     else
                     {
-                        HintService.Hint(Lang.Text("Launch.Account.Profile.Migration.ImportSuccess", importCount), HintType.Finish);
+                        HintService.Hint(Lang.Text("Launch.Account.Profile.Migration.ImportSuccess", importCount), HintType.Success);
                         ModBase.RunInUi(() => ModMain.frmLoginProfile.RefreshProfileList());
                     }
                 }
@@ -674,7 +674,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
             catch (Exception ex)
             {
                 ProfileLog("导入失败: " + ex.Message);
-                HintService.Hint(Lang.Text("Launch.Account.Profile.Migration.ImportFailed"), HintType.Critical);
+                HintService.Hint(Lang.Text("Launch.Account.Profile.Migration.ImportFailed"), HintType.Error);
             }
         }, "Profile Import");
     }
@@ -712,12 +712,12 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllText(path, jsonString);
 
-            HintService.Hint(Lang.Text("Launch.Account.Profile.Migration.ExportSuccess", profileList.Count), HintType.Finish);
+            HintService.Hint(Lang.Text("Launch.Account.Profile.Migration.ExportSuccess", profileList.Count), HintType.Success);
         }
         catch (Exception ex)
         {
             ProfileLog("导出失败: " + ex.Message);
-            HintService.Hint(Lang.Text("Launch.Account.Profile.Migration.ExportFailed"), HintType.Critical);
+            HintService.Hint(Lang.Text("Launch.Account.Profile.Migration.ExportFailed"), HintType.Error);
         }
     }
 
@@ -993,7 +993,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
 
         if (ModLaunch.mcLoginLoader.State == ModBase.LoadState.Failed)
         {
-            HintService.Hint("登录失败，无法更改皮肤！", HintType.Critical);
+            HintService.Hint("登录失败，无法更改皮肤！", HintType.Error);
             return;
         }
 
@@ -1018,7 +1018,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
                     ModLaunch.mcLoginMsLoader.WaitForExit(GetLoginData());
                 if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished)
                 {
-                    HintService.Hint("登录失败，无法更改皮肤！", HintType.Critical);
+                    HintService.Hint("登录失败，无法更改皮肤！", HintType.Error);
                     return;
                 }
 
@@ -1053,7 +1053,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
                 {
                     HintService.Hint(
                         $"更改皮肤失败：{((JsonObject)ModBase.GetJson(res))["error"]}",
-                        HintType.Critical);
+                        HintType.Error);
                     return;
                 }
 
@@ -1072,7 +1072,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
             catch (Exception ex)
             {
                 if (ex.GetType().Equals(typeof(TaskCanceledException)))
-                    HintService.Hint("更改皮肤失败：与 Mojang 皮肤服务器的连接超时，请检查你的网络是否通畅！", HintType.Critical);
+                    HintService.Hint("更改皮肤失败：与 Mojang 皮肤服务器的连接超时，请检查你的网络是否通畅！", HintType.Error);
                 else
                     ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.ChangeSkin"), ModBase.LogLevel.Hint);
             }

@@ -588,14 +588,14 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         // 检查文件扩展名
         if (extension != "zip")
         {
-            HintService.Hint(Lang.Text("Instance.Resource.Install.UnsupportedFormat", extension, Lang.Text("Download.Comp.Type.DataPack"), "zip"), HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Resource.Install.UnsupportedFormat", extension, Lang.Text("Download.Comp.Type.DataPack"), "zip"), HintType.Error);
             return;
         }
 
         // 检查回收站
         if (filePathList.First().Contains(@":\$RECYCLE.BIN\"))
         {
-            HintService.Hint(Lang.Text("Instance.Resource.Install.RestoreFromRecycleBin"), HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Resource.Install.RestoreFromRecycleBin"), HintType.Error);
             return;
         }
 
@@ -628,9 +628,9 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             }
 
             if (filePathList.Count() == 1)
-                HintService.Hint(Lang.Text("Instance.Resource.Install.SuccessSingle", ModBase.GetFileNameFromPath(filePathList.First())), HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Resource.Install.SuccessSingle", ModBase.GetFileNameFromPath(filePathList.First())), HintType.Success);
             else
-                HintService.Hint(Lang.Text("Instance.Resource.Install.SuccessMultiple", filePathList.Count(), Lang.Text("Download.Comp.Type.DataPack")), HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Resource.Install.SuccessMultiple", filePathList.Count(), Lang.Text("Download.Comp.Type.DataPack")), HintType.Success);
 
             // 刷新列表
             if (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
@@ -1130,7 +1130,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
         else
         {
-            HintService.Hint(Lang.Text("Instance.Saves.Datapack.ToggleWarning"), HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Saves.Datapack.ToggleWarning"), HintType.Error);
             ReloadDatapackFileList(true);
         }
 
@@ -1226,7 +1226,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             }
 
             if (skippedUnsafeFileCount > 0)
-                HintService.Hint($"已跳过 {skippedUnsafeFileCount} 个文件名不安全的数据包更新。", HintType.Critical);
+                HintService.Hint($"已跳过 {skippedUnsafeFileCount} 个文件名不安全的数据包更新。", HintType.Error);
             if (!fileList.Any())
                 return;
 
@@ -1293,13 +1293,13 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                             }
                             case 1:
                             {
-                                HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessSingle", finishedFileNames.Single()), HintType.Finish);
+                                HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessSingle", finishedFileNames.Single()), HintType.Success);
                                 break;
                             }
 
                             default:
                             {
-                                HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessMultiple", finishedFileNames.Count), HintType.Finish);
+                                HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessMultiple", finishedFileNames.Count), HintType.Success);
                                 break;
                             }
                         }
@@ -1308,7 +1308,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                     }
                     case ModBase.LoadState.Failed:
                     {
-                        HintService.Hint(Lang.Text("Instance.Resource.Update.Failed", loader.Error.Message), HintType.Critical);
+                        HintService.Hint(Lang.Text("Instance.Resource.Update.Failed", loader.Error.Message), HintType.Error);
                         break;
                     }
                     case ModBase.LoadState.Aborted:
@@ -1418,7 +1418,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             RefreshBars();
             if (!isSuccessful)
             {
-                HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.FileOccupied"), HintType.Critical);
+                HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.FileOccupied"), HintType.Error);
                 ReloadDatapackFileList(true);
             }
             else if (PanList.Children.Count == 0)
@@ -1435,17 +1435,17 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             if (isShiftPressed)
             {
                 if (datapackList.Count() == 1)
-                    HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentSingle", datapackList.Single().FileName), HintType.Finish);
+                    HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentSingle", datapackList.Single().FileName), HintType.Success);
                 else
-                    HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentMultiple", datapackList.Count()), HintType.Finish);
+                    HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentMultiple", datapackList.Count()), HintType.Success);
             }
             else if (datapackList.Count() == 1)
             {
-                HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleSingle", datapackList.Single().FileName), HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleSingle", datapackList.Single().FileName), HintType.Success);
             }
             else
             {
-                HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleMultiple", datapackList.Count()), HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleMultiple", datapackList.Count()), HintType.Success);
             }
         }
         catch (OperationCanceledException ex)

@@ -70,7 +70,7 @@ public partial class PageSetupLauncherMisc
             Config.Debug.Reset();
             Config.System.Reset();
             ModBase.Log("[Setup] 已初始化启动器-杂项页设置");
-            HintService.Hint(Lang.Text("Setup.Misc.Initialized"), HintType.Finish, false);
+            HintService.Hint(Lang.Text("Setup.Misc.Initialized"), HintType.Success, false);
             Reload();
         }
         catch (Exception ex)
@@ -201,7 +201,7 @@ public partial class PageSetupLauncherMisc
         if (string.IsNullOrWhiteSpace(savePath))
             return;
         File.Copy(ConfigService.SharedConfigPath, savePath, true);
-        HintService.Hint(Lang.Text("Setup.Misc.Export.Success"), HintType.Finish);
+        HintService.Hint(Lang.Text("Setup.Misc.Export.Success"), HintType.Success);
         ModBase.OpenExplorer(savePath);
     }
 

@@ -81,7 +81,7 @@ public partial class PageSetupGameLink
         {
             Config.Link.Reset();
             ModBase.Log("[Setup] 已初始化联机页设置");
-            HintService.Hint(Lang.Text("Setup.GameLink.Initialized"), HintType.Finish, false);
+            HintService.Hint(Lang.Text("Setup.GameLink.Initialized"), HintType.Success, false);
             Reload();
         }
         catch (Exception ex)

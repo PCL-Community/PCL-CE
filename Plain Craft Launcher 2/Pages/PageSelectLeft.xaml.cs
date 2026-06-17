@@ -351,7 +351,7 @@ public partial class PageSelectLeft : IRefreshable
         // 检查是否有下载任务
         if (ModNet.HasDownloadingTask())
         {
-            HintService.Hint(Lang.Text("Select.Folder.CannotAddWhileDownloading"), HintType.Critical);
+            HintService.Hint(Lang.Text("Select.Folder.CannotAddWhileDownloading"), HintType.Error);
             return;
         }
 
@@ -363,7 +363,7 @@ public partial class PageSelectLeft : IRefreshable
                 return;
             if (newFolder.Contains('!') || newFolder.Contains(';'))
             {
-                HintService.Hint(Lang.Text("Select.Folder.InvalidPathChars"), HintType.Critical);
+                HintService.Hint(Lang.Text("Select.Folder.InvalidPathChars"), HintType.Error);
                 return;
             }
 
@@ -414,7 +414,7 @@ public partial class PageSelectLeft : IRefreshable
                 if (!ModBase.CheckPermission(folderPath))
                 {
                     if (!showHint) throw new Exception("PCL 没有访问文件夹的权限：" + folderPath);
-                    HintService.Hint(Lang.Text("Select.Folder.AccessDenied"), HintType.Critical);
+                    HintService.Hint(Lang.Text("Select.Folder.AccessDenied"), HintType.Error);
                     return;
                 }
 
@@ -444,7 +444,7 @@ public partial class PageSelectLeft : IRefreshable
                     folders[i] = $"{displayName}>{folderPath}";
                     isReplace = true;
                     if (showHint)
-                        HintService.Hint(Lang.Text("Select.Folder.NameUpdated", displayName), HintType.Finish);
+                        HintService.Hint(Lang.Text("Select.Folder.NameUpdated", displayName), HintType.Success);
                     break;
                 }
 
@@ -453,7 +453,7 @@ public partial class PageSelectLeft : IRefreshable
                 States.Game.SelectedFolder = folderPath.Replace(ModBase.exePath, "$");
                 ModFolder.mcFolderListLoader.Start(isForceRestart: true);
                 if (isReplace) return;
-                if (showHint) HintService.Hint(Lang.Text("Select.Folder.Added", displayName), HintType.Finish);
+                if (showHint) HintService.Hint(Lang.Text("Select.Folder.Added", displayName), HintType.Success);
                 var modFolder = new DirectoryInfo(folderPath + @"mods\");
                 if (!(modFolder.Exists && modFolder.EnumerateFiles().Count() >= 3)) return;
                 var versionFolder = new DirectoryInfo(folderPath + @"versions\");
@@ -483,7 +483,7 @@ public partial class PageSelectLeft : IRefreshable
         // 检查是否有下载任务
         if (ModNet.HasDownloadingTask())
         {
-            HintService.Hint(Lang.Text("Select.Folder.CannotCreateWhileDownloading"), HintType.Critical);
+            HintService.Hint(Lang.Text("Select.Folder.CannotCreateWhileDownloading"), HintType.Error);
             return;
         }
 
@@ -493,7 +493,7 @@ public partial class PageSelectLeft : IRefreshable
             Directory.CreateDirectory(ModBase.exePath + @".minecraft\versions\");
             States.Game.SelectedFolder = @"$.minecraft\";
             ModFolder.McFolderLauncherProfilesJsonCreate(ModBase.exePath + @".minecraft\");
-            HintService.Hint(Lang.Text("Select.Folder.CreateSuccess"), HintType.Finish);
+            HintService.Hint(Lang.Text("Select.Folder.CreateSuccess"), HintType.Success);
         }
 
         ModFolder.mcFolderListLoader.Start(isForceRestart: true);
@@ -557,7 +557,7 @@ public partial class PageSelectLeft : IRefreshable
                 folder.type == ModFolder.McFolder.Types.Custom
                     ? Lang.Text("Select.Folder.RemoveSuccess", name)
                     : Lang.Text("Select.Folder.RestoreSuccess"),
-                HintType.Finish);
+                HintType.Success);
             ModFolder.mcFolderListLoader.Start(isForceRestart: true);
         }
 
@@ -617,7 +617,7 @@ public partial class PageSelectLeft : IRefreshable
                 ModBase.DeleteDirectory(folder.Location);
                 if (isClearing)
                     Directory.CreateDirectory(folder.Location);
-                HintService.Hint(success, HintType.Finish);
+                HintService.Hint(success, HintType.Success);
             }
             catch (Exception ex)
             {
@@ -693,7 +693,7 @@ public partial class PageSelectLeft : IRefreshable
             // 如果没有添加过，则添加进去（因为修改了默认项的名称）
             if (!isAdded)
                 folders.Add($"{newName}>{folder.Location}");
-            HintService.Hint(Lang.Text("Select.Folder.NameUpdated", newName), HintType.Finish);
+            HintService.Hint(Lang.Text("Select.Folder.NameUpdated", newName), HintType.Success);
             // 保存
             States.Game.Folders = folders.ToArray().Join("|");
             ModFolder.mcFolderListLoader.Start(isForceRestart: true);
@@ -712,7 +712,7 @@ public partial class PageSelectLeft : IRefreshable
         // 检查是否有下载任务
         if (ModNet.HasDownloadingTask(true))
         {
-            HintService.Hint(Lang.Text("Select.Folder.SwitchBlockedByDownload"), HintType.Critical);
+            HintService.Hint(Lang.Text("Select.Folder.SwitchBlockedByDownload"), HintType.Error);
             e.handled = true;
             return;
         }

@@ -172,7 +172,7 @@ public partial class PageSetupUI
         {
             Config.Preference.Reset();
             ModBase.Log("[Setup] 已初始化个性化设置！");
-            HintService.Hint(Lang.Text("Setup.Ui.Initialized"), HintType.Finish, false);
+            HintService.Hint(Lang.Text("Setup.Ui.Initialized"), HintType.Success, false);
         }
         catch (Exception ex)
         {
@@ -279,7 +279,7 @@ public partial class PageSetupUI
         {
             ModBase.DeleteDirectory(ModBase.exePath + @"PCL\Pictures");
             BackgroundRefresh(false, true);
-            HintService.Hint(Lang.Text("Setup.Ui.Background.Clear.Success"), HintType.Finish);
+            HintService.Hint(Lang.Text("Setup.Ui.Background.Clear.Success"), HintType.Success);
         }
     }
 
@@ -335,13 +335,13 @@ public partial class PageSetupUI
                     if (ModMain.frmMain.ImgBack.Visibility == Visibility.Collapsed)
                     {
                         if (isHint)
-                            HintService.Hint(Lang.Text("Setup.Ui.Background.NoAvailableContent"), HintType.Critical);
+                            HintService.Hint(Lang.Text("Setup.Ui.Background.NoAvailableContent"), HintType.Error);
                     }
                     else
                     {
                         ModMain.frmMain.ImgBack.Visibility = Visibility.Collapsed;
                         if (isHint)
-                            HintService.Hint(Lang.Text("Setup.Ui.Background.Cleared"), HintType.Finish);
+                            HintService.Hint(Lang.Text("Setup.Ui.Background.Cleared"), HintType.Success);
                     }
                 }
 
@@ -362,7 +362,7 @@ public partial class PageSetupUI
                         _ = Config.Preference.Background.WallpaperSuitMode;
                         ModMain.frmMain.ImgBack.Visibility = Visibility.Visible;
                         if (isHint)
-                                HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", ModBase.GetFileNameFromPath(address)), HintType.Finish,
+                                HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", ModBase.GetFileNameFromPath(address)), HintType.Success,
                                 false);
                     }
                     catch (Exception ex)
@@ -377,7 +377,7 @@ public partial class PageSetupUI
                             ModMain.frmMain.VideoBack.Source = new Uri(address, UriKind.Absolute);
                             ModVideoBack.VideoPlay();
                             if (isHint)
-                            HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", ModBase.GetFileNameFromPath(address)), HintType.Finish,
+                            HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", ModBase.GetFileNameFromPath(address)), HintType.Success,
                                     false);
                         }
                         catch (Exception playEx)
@@ -495,7 +495,7 @@ public partial class PageSetupUI
         {
             File.Delete(ModBase.exePath + @"PCL\Logo.png");
             RadioLogoType1.SetChecked(true, true);
-            HintService.Hint(Lang.Text("Setup.Ui.Logo.Clear.Success"), HintType.Finish);
+            HintService.Hint(Lang.Text("Setup.Ui.Logo.Clear.Success"), HintType.Success);
         }
         catch (Exception ex)
         {
@@ -554,7 +554,7 @@ public partial class PageSetupUI
                 {
                     ModBase.DeleteDirectory(ModBase.exePath + @"PCL\Musics");
                     // DisableSMTCSupport()
-                    HintService.Hint(Lang.Text("Setup.Ui.Music.Delete.Success"), HintType.Finish);
+                    HintService.Hint(Lang.Text("Setup.Ui.Music.Delete.Success"), HintType.Success);
                 }
                 catch (Exception ex)
                 {
@@ -595,7 +595,7 @@ public partial class PageSetupUI
     private void BtnCustomRefresh_Click(object sender, MouseButtonEventArgs e)
     {
         ModMain.frmLaunchRight.ForceRefresh();
-        HintService.Hint(Lang.Text("Setup.Ui.Homepage.Refresh.Success"), HintType.Finish);
+        HintService.Hint(Lang.Text("Setup.Ui.Homepage.Refresh.Success"), HintType.Success);
     }
 
     private void BtnCustomTutorial_Click(object sender, MouseButtonEventArgs e)

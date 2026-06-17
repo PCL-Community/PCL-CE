@@ -55,7 +55,7 @@ public static class ModDownloadLib
     {
         var message = "远程版本名" + reason + "：" + childFolderName;
         ModBase.Log("[Download] " + message);
-        HintService.Hint(message, HintType.Critical);
+        HintService.Hint(message, HintType.Error);
         throw new ModBase.CancelledException();
     }
 
@@ -81,7 +81,7 @@ public static class ModDownloadLib
                     continue;
                 if (behaviour == NetPreDownloadBehaviour.ExitWhileExistsOrDownloading)
                     return (ModLoader.LoaderCombo<string>)ongoingLoader;
-                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return (ModLoader.LoaderCombo<string>)ongoingLoader;
             }
 
@@ -146,7 +146,7 @@ public static class ModDownloadLib
                     continue;
                 if (behaviour == NetPreDownloadBehaviour.ExitWhileExistsOrDownloading)
                     return;
-                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -437,7 +437,7 @@ public static class ModDownloadLib
                 if ((OngoingLoader.name ?? "") !=
                     (Lang.Text("Minecraft.Download.Stage.MinecraftServerDownload", id) ?? ""))
                     continue;
-                HintService.Hint(Lang.Text("Minecraft.Download.Error.ServerDownloading"), HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.ServerDownloading"), HintType.Error);
                 return;
             }
 
@@ -464,7 +464,7 @@ public static class ModDownloadLib
                         Directory.Delete(versionFolder);
                     task.output = new List<DownloadFile>();
                     HintService.Hint(Lang.Text("Minecraft.Download.Error.NoOfficialServerDownload", id),
-                        HintType.Critical);
+                        HintType.Error);
                     Thread.Sleep(2000); // 等玩家把上一个提示看完
                     task.Abort();
                     return;
@@ -540,7 +540,7 @@ public static class ModDownloadLib
             {
                 if ((OngoingLoader.name ?? "") != (Lang.Text("Minecraft.Download.Stage.MinecraftDownload", id) ?? ""))
                     continue;
-                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -612,7 +612,7 @@ public static class ModDownloadLib
                 if ((OngoingLoader.name ?? "") !=
                     (Lang.Text("Minecraft.Download.Stage.OptiFineDownload", downloadInfo.DisplayName) ?? ""))
                     continue;
-                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -666,7 +666,7 @@ public static class ModDownloadLib
                 if ((OngoingLoader.name ?? "") !=
                     (Lang.Text("Minecraft.Download.Stage.OptiFineDownload", downloadInfo.DisplayName) ?? ""))
                     continue;
-                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -1278,7 +1278,7 @@ public static class ModDownloadLib
             {
                 if ((OngoingLoader.name ?? "") != (Lang.Text("Minecraft.Download.Stage.LiteLoaderDownload", id) ?? ""))
                     continue;
-                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -1332,7 +1332,7 @@ public static class ModDownloadLib
             {
                 if ((OngoingLoader.name ?? "") != (Lang.Text("Minecraft.Download.Stage.LiteLoaderDownload", id) ?? ""))
                     continue;
-                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -1602,7 +1602,7 @@ public static class ModDownloadLib
                 if ((OngoingLoader.name ?? "") !=
                     (Lang.Text("Minecraft.Download.Stage.ForgelikeDownload", displayName) ?? ""))
                     continue;
-                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -2832,7 +2832,7 @@ public static class ModDownloadLib
                 if ((OngoingLoader.name ?? "") !=
                     (Lang.Text("Minecraft.Download.Stage.FabricInstallerDownload", version) ?? ""))
                     continue;
-                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -2954,7 +2954,7 @@ public static class ModDownloadLib
                 if ((OngoingLoader.name ?? "") !=
                     (Lang.Text("Minecraft.Download.Stage.LegacyFabricInstallerDownload", version) ?? ""))
                     continue;
-                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -3175,7 +3175,7 @@ public static class ModDownloadLib
                 if ((OngoingLoader.name ?? "") !=
                     (Lang.Text("Minecraft.Download.Stage.QuiltInstallerDownload", version) ?? ""))
                     continue;
-                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -3340,7 +3340,7 @@ public static class ModDownloadLib
                 if ((OngoingLoader.name ?? "") !=
                     (Lang.Text("Minecraft.Download.Stage.LabyModInstallerDownload") ?? ""))
                     continue;
-                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -3384,7 +3384,7 @@ public static class ModDownloadLib
                 if ((OngoingLoader.name ?? "") !=
                     (Lang.Text("Minecraft.Download.Stage.LabyModInstallerDownload") ?? ""))
                     continue;
-                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -3752,10 +3752,10 @@ public static class ModDownloadLib
         switch (loader.State)
         {
             case ModBase.LoadState.Finished:
-                HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Success")}", HintType.Finish);
+                HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Success")}", HintType.Success);
                 break;
             case ModBase.LoadState.Failed:
-                HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Failure")}{loader.Error.Message}", HintType.Critical);
+                HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Failure")}{loader.Error.Message}", HintType.Error);
                 break;
             case ModBase.LoadState.Aborted:
                 HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Cancelled")}");
@@ -3785,14 +3785,14 @@ public static class ModDownloadLib
                     ""); // 清空缓存（合并安装会先生成文件夹，这会在刷新时误判为可以使用缓存）
                 ModBase.DeleteDirectory($"{combo.input}PCLInstallBackups\\");
                 HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Success")}",
-                    HintType.Finish);
+                    HintType.Success);
                 break;
             }
             case ModBase.LoadState.Failed:
             {
                 HintService.Hint(
                     $"{loader.name}{Lang.Text("Common.Status.Failure")}{loader.Error.Message}",
-                    HintType.Critical);
+                    HintType.Error);
                 break;
             }
             case ModBase.LoadState.Aborted:
@@ -4008,7 +4008,7 @@ public static class ModDownloadLib
         if (File.Exists(Path.Combine(instanceFolder, request.targetInstanceName + ".json")) && !ignoreDump)
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceAlreadyExists", request.targetInstanceName, ""),
-                HintType.Critical);
+                HintType.Error);
             throw new ModBase.CancelledException();
         }
 

@@ -24,7 +24,7 @@ public static class ModLink
     {
         if (!LobbyInfoProvider.IsLobbyAvailable)
         {
-            HintService.Hint(Lang.Text("Link.Mod.LobbyUnavailable"), HintType.Critical);
+            HintService.Hint(Lang.Text("Link.Mod.LobbyUnavailable"), HintType.Error);
             return false;
         }
 
@@ -39,7 +39,7 @@ public static class ModLink
         {
             if (string.IsNullOrWhiteSpace(States.Link.NaidRefreshToken))
             {
-                HintService.Hint(Lang.Text("Link.Mod.LoginFirst"), HintType.Critical);
+                HintService.Hint(Lang.Text("Link.Mod.LoginFirst"), HintType.Error);
                 return false;
             }
 
@@ -51,7 +51,7 @@ public static class ModLink
             catch (Exception ex)
             {
                 ModBase.Log("[Link] 刷新 Natayark ID 信息失败，需要重新登录");
-                HintService.Hint(Lang.Text("Link.Mod.ReLoginRequired"), HintType.Critical);
+                HintService.Hint(Lang.Text("Link.Mod.ReLoginRequired"), HintType.Error);
                 return false;
             }
 
@@ -66,26 +66,26 @@ public static class ModLink
 
             if (string.IsNullOrWhiteSpace(NatayarkProfileManager.NaidProfile.Username))
             {
-                HintService.Hint(Lang.Text("Link.Mod.NaidFetchFailed"), HintType.Critical);
+                HintService.Hint(Lang.Text("Link.Mod.NaidFetchFailed"), HintType.Error);
                 return false;
             }
 
             if (LobbyInfoProvider.RequiresRealName && !NatayarkProfileManager.NaidProfile.IsRealNamed)
             {
-                HintService.Hint(Lang.Text("Link.Mod.RealNameRequired"), HintType.Critical);
+                HintService.Hint(Lang.Text("Link.Mod.RealNameRequired"), HintType.Error);
                 return false;
             }
 
             if (NatayarkProfileManager.NaidProfile.Status != 0)
             {
-                HintService.Hint(Lang.Text("Link.Mod.AccountBanned"), HintType.Critical);
+                HintService.Hint(Lang.Text("Link.Mod.AccountBanned"), HintType.Error);
                 return false;
             }
         }
 
         if (string.IsNullOrWhiteSpace(Config.Link.Username) && string.IsNullOrWhiteSpace(NatayarkProfileManager.NaidProfile.Username))
         {
-            HintService.Hint(Lang.Text("Link.Mod.UsernameOrLogin"), HintType.Critical);
+            HintService.Hint(Lang.Text("Link.Mod.UsernameOrLogin"), HintType.Error);
             return false;
         }
 

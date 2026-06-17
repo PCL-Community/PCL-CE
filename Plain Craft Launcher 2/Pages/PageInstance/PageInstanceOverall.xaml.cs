@@ -390,7 +390,7 @@ public partial class PageInstanceOverall
             }
 
             // 刷新与提示
-            HintService.Hint(Lang.Text("Instance.Overall.Name.RenameSuccess"), HintType.Finish);
+            HintService.Hint(Lang.Text("Instance.Overall.Name.RenameSuccess"), HintType.Success);
             PageInstanceLeft.McInstance = new McInstance(newName).Load();
             if (ModInstanceList.McMcInstanceSelected is not null &&
                 ModInstanceList.McMcInstanceSelected.Equals(PageInstanceLeft.McInstance))
@@ -519,7 +519,7 @@ public partial class PageInstanceOverall
             // 检查中断（等玩家选完弹窗指不定任务就结束了呢……）
             if (ModLaunch.mcLaunchLoader.State == ModBase.LoadState.Loading)
             {
-                HintService.Hint(Lang.Text("Instance.Overall.Script.WaitForLaunchTask"), HintType.Critical);
+                HintService.Hint(Lang.Text("Instance.Overall.Script.WaitForLaunchTask"), HintType.Error);
                 return;
             }
 
@@ -557,7 +557,7 @@ public partial class PageInstanceOverall
             {
                 if ((OngoingLoader.name ?? "") != (taskName ?? ""))
                     continue;
-                HintService.Hint(Lang.Text("Instance.Overall.Repair.Processing"), HintType.Critical);
+                HintService.Hint(Lang.Text("Instance.Overall.Repair.Processing"), HintType.Error);
                 return;
             }
 
@@ -571,12 +571,12 @@ public partial class PageInstanceOverall
                 {
                     case ModBase.LoadState.Finished:
                     {
-                        HintService.Hint(taskName + Lang.Text("Instance.Overall.Repair.Success"), HintType.Finish);
+                        HintService.Hint(taskName + Lang.Text("Instance.Overall.Repair.Success"), HintType.Success);
                         break;
                     }
                     case ModBase.LoadState.Failed:
                     {
-                        HintService.Hint(taskName + Lang.Text("Instance.Overall.Repair.Failed") + loader.Error.Message, HintType.Critical);
+                        HintService.Hint(taskName + Lang.Text("Instance.Overall.Repair.Failed") + loader.Error.Message, HintType.Error);
                         break;
                     }
                     case ModBase.LoadState.Aborted:
@@ -719,14 +719,14 @@ public partial class PageInstanceOverall
                     {
                         ModBase.DeleteDirectory(instancePath);
                         HintService.Hint(Lang.Text("Instance.Overall.Delete.PermanentSuccess", instanceName),
-                            HintType.Finish);
+                            HintType.Success);
                     }
                     else
                     {
                         FileSystem.DeleteDirectory(instancePath, UIOption.OnlyErrorDialogs,
                             RecycleOption.SendToRecycleBin);
                         HintService.Hint(Lang.Text("Instance.Overall.Delete.RecycleBinSuccess", instanceName),
-                            HintType.Finish);
+                            HintType.Success);
                     }
 
                     break;
@@ -769,7 +769,7 @@ public partial class PageInstanceOverall
                     var core = new GameCore(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name +
                                             ".jar");
                     core.AddToCore(userInput);
-                    HintService.Hint(Lang.Text("Instance.Overall.Patch.Success"), HintType.Finish);
+                    HintService.Hint(Lang.Text("Instance.Overall.Patch.Success"), HintType.Success);
                     Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.McInstance.PathInstance] = true;
                 });
                 break;

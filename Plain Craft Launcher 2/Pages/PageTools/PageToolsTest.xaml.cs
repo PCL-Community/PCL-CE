@@ -93,7 +93,7 @@ public partial class PageToolsTest
             {
                 case ModBase.LoadState.Finished:
                 {
-                    HintService.Hint(Lang.Text("Tools.Test.CustomDownload.Finished", loader.name), HintType.Finish);
+                    HintService.Hint(Lang.Text("Tools.Test.CustomDownload.Finished", loader.name), HintType.Success);
                     Console.Beep();
                     break;
                 }
@@ -388,7 +388,7 @@ public partial class PageToolsTest
                     {
                         var path = SystemDialogs.SelectSaveFile(Lang.Text("Tools.Test.Skin.Save"), $"{id}.png", Lang.Text("Tools.Test.Skin.FileFilter"));
                         ModBase.CopyFile(result, path);
-                        HintService.Hint(Lang.Text("Tools.Test.Skin.Saved", id), HintType.Finish);
+                        HintService.Hint(Lang.Text("Tools.Test.Skin.Saved", id), HintType.Success);
                     });
                 }
             }
@@ -396,7 +396,7 @@ public partial class PageToolsTest
             {
                 if (ex.ToString().Contains("429"))
                 {
-                    HintService.Hint(Lang.Text("Tools.Test.Skin.TooFrequent"), HintType.Critical);
+                    HintService.Hint(Lang.Text("Tools.Test.Skin.TooFrequent"), HintType.Error);
                     ModBase.Log($"获取正版皮肤失败（{id}）：获取皮肤太过频繁，请 5 分钟后再试！");
                 }
                 else
@@ -466,7 +466,7 @@ public partial class PageToolsTest
         var shortcutPath = choice == 2 ? desktop : start;
         var locationName = choice == 2 ? desktopName : startName;
         Files.CreateShortcut(shortcutPath, Basics.ExecutablePath);
-        HintService.Hint(Lang.Text("Tools.Test.Shortcut.Created", locationName), HintType.Finish);
+        HintService.Hint(Lang.Text("Tools.Test.Shortcut.Created", locationName), HintType.Success);
     }
 
     // 启动计数显示
@@ -508,7 +508,7 @@ public partial class PageToolsTest
                 Dispatcher.Invoke(() =>
                 {
                     ModBase.Log("获取成就图片失败（404）");
-                    HintService.Hint(Lang.Text("Tools.Test.Achievement.FetchFailed"), HintType.Critical);
+                    HintService.Hint(Lang.Text("Tools.Test.Achievement.FetchFailed"), HintType.Error);
                 });
 
             else
@@ -556,14 +556,14 @@ public partial class PageToolsTest
 
                 ModBase.CopyFile(savePath, path);
                 File.Delete(savePath);
-                HintService.Hint(Lang.Text("Tools.Test.Achievement.Saved"), HintType.Finish);
+                HintService.Hint(Lang.Text("Tools.Test.Achievement.Saved"), HintType.Success);
             }
             // 下载成功，返回 True
             else if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 // 捕获 404 错误
                 ModBase.Log("获取成就图片失败（404）");
-                HintService.Hint(Lang.Text("Tools.Test.Achievement.FetchFailed"), HintType.Critical);
+                HintService.Hint(Lang.Text("Tools.Test.Achievement.FetchFailed"), HintType.Error);
             }
             else
             {
@@ -623,7 +623,7 @@ public partial class PageToolsTest
 
             if (currentSkinBitmap.Width != currentSkinBitmap.Height)
             {
-                HintService.Hint(Lang.Text("Tools.Test.Avatar.InvalidSize"), HintType.Critical);
+                HintService.Hint(Lang.Text("Tools.Test.Avatar.InvalidSize"), HintType.Error);
                 SkinPreviewBorder.Visibility = Visibility.Collapsed;
                 return;
             }
@@ -634,13 +634,13 @@ public partial class PageToolsTest
             ImgHair.Source = null;
 
             SkinPreviewBorder.Visibility = Visibility.Visible;
-            HintService.Hint(Lang.Text("Tools.Test.Avatar.Generated"), HintType.Finish);
+            HintService.Hint(Lang.Text("Tools.Test.Avatar.Generated"), HintType.Success);
         }
 
         catch (Exception ex)
         {
             ModBase.Log(ex, "生成头像失败");
-            HintService.Hint(Lang.Text("Tools.Test.Avatar.GenerateFailed", ex.Message), HintType.Critical);
+            HintService.Hint(Lang.Text("Tools.Test.Avatar.GenerateFailed", ex.Message), HintType.Error);
             SkinPreviewBorder.Visibility = Visibility.Collapsed;
         }
     }
@@ -704,7 +704,7 @@ public partial class PageToolsTest
     {
         if (generatedHeadBitmap is null)
         {
-            HintService.Hint(Lang.Text("Tools.Test.Avatar.SelectFirst"), HintType.Critical);
+            HintService.Hint(Lang.Text("Tools.Test.Avatar.SelectFirst"), HintType.Error);
             return;
         }
 
@@ -714,7 +714,7 @@ public partial class PageToolsTest
             return;
 
         generatedHeadBitmap.Save(savePath, ImageFormat.Png);
-        HintService.Hint(Lang.Text("Tools.Test.Avatar.Saved"), HintType.Finish);
+        HintService.Hint(Lang.Text("Tools.Test.Avatar.Saved"), HintType.Success);
     }
 
     private void CmbHeadSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
