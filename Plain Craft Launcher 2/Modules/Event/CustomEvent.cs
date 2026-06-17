@@ -94,7 +94,7 @@ namespace PCL
                 ModMain.MyMsgBox(Lang.Text("Event.Error.UrlRequired"), Lang.Text("Event.Error.Title"));
                 return;
             }
-            ModMain.Hint(Lang.Text("Event.OpenUrl.Opening", arg));
+            HintService.Hint(Lang.Text("Event.OpenUrl.Opening", arg));
             ModBase.RunInThread(() => ModBase.OpenWebsite(arg));
         }
 
@@ -140,7 +140,7 @@ namespace PCL
                     instance = new McInstance(args[0])
                 };
                 if (ModLaunch.McLaunchStart(launchOptions))
-                    ModMain.Hint(Lang.Text("Event.LaunchGame.Starting", args[0]));
+                    HintService.Hint(Lang.Text("Event.LaunchGame.Starting", args[0]));
             });
         }
 
@@ -158,10 +158,10 @@ namespace PCL
             {
                 ModBase.RunInUiWait(() => refreshable.Refresh());
                 if (string.IsNullOrEmpty(arg))
-                    ModMain.Hint(Lang.Text("Event.Refresh.Success"), ModMain.HintType.Finish);
+                    HintService.Hint(Lang.Text("Event.Refresh.Success"), HintType.Success);
             }
             else
-                ModMain.Hint(Lang.Text("Event.Refresh.NotSupported"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Event.Refresh.NotSupported"), HintType.Error);
         }
 
         /// <summary>
@@ -190,16 +190,26 @@ namespace PCL
         }
 
         /// <summary>
-        /// 弹出提示条。参数：Message[|HintType]（HintType = Info / Finish / Critical）。
+        /// 弹出提示条。参数：Message[|HintType]（HintType = Info / Success / Error，兼容旧版 Finish / Critical）。
         /// </summary>
         private static void _ShowHint(string arg, EventType _)
         {
             var args = SplitArgs(arg);
             var hintType = args.Length == 1
-                ? ModMain.HintType.Info
-                : (ModMain.HintType)Enum.Parse(typeof(ModMain.HintType), args[1], true);
-            ModMain.Hint(FixNewlines(args[0]), hintType);
+                ? HintType.Info
+                : (HintType)Enum.Parse(typeof(HintType), NormalizeHintTypeName(args[1]), true);
+            HintService.Hint(FixNewlines(args[0]), hintType);
         }
+
+        /// <summary>
+        /// 将旧版 HintType 名称映射到当前名称，保持对旧主页的兼容。
+        /// </summary>
+        private static string NormalizeHintTypeName(string name) => name.ToLowerInvariant() switch
+        {
+            "finish" => nameof(HintType.Success),
+            "critical" => nameof(HintType.Error),
+            _ => name
+        };
 
         /// <summary>
         /// 切换页面。参数：PageType[|PageSubType]。
@@ -261,7 +271,7 @@ namespace PCL
             if (ConfigService.TryGetConfigItemNoType(args[0], out var item) && item.Source != ConfigSource.SharedEncrypt)
                 item.SetValueNoType(args[1], ModInstanceList.McMcInstanceSelected?.PathInstance);
             if (args.Length == 2)
-                ModMain.Hint(Lang.Text("Event.Setting.Written", args[0], args[1]), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("Event.Setting.Written", args[0], args[1]), HintType.Success);
         }
 
         /// <summary>
@@ -275,7 +285,7 @@ namespace PCL
             States.CustomVariables[args[0]] = args[1];
             States.CustomVariables = States.CustomVariables; // 触发 ConfigPropertyChanged
             if (args.Length == 2)
-                ModMain.Hint(Lang.Text("Event.Variable.Written", args[0], args[1]), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("Event.Variable.Written", args[0], args[1]), HintType.Success);
         }
 
         public static string[] GetAbsoluteUrls(string relativeUrl, EventType type)
