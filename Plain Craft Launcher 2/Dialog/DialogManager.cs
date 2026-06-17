@@ -136,7 +136,8 @@ public class DialogManager
             }
         };
 
-        _mainForm.Dispatcher.Invoke(showOnUi);
+        try { _mainForm.Dispatcher.Invoke(showOnUi); }
+        catch (TaskCanceledException) { }
         return result ?? "";
     }
 
@@ -201,7 +202,8 @@ public class DialogManager
             }
         };
 
-        _mainForm.Dispatcher.Invoke(showOnUi);
+        try { _mainForm.Dispatcher.Invoke(showOnUi); }
+        catch (TaskCanceledException) { }
         return result;
     }
 
@@ -245,7 +247,7 @@ public class DialogManager
 
     private void ShowOnUi(DialogContext context)
     {
-        if (_mainForm is null)
+        if (_mainForm is null || _mainForm.Dispatcher.HasShutdownStarted)
         {
             Interaction.MsgBox(context.Caption, MsgBoxStyle.OkOnly, context.Title);
             context.Result = 1;
@@ -256,7 +258,8 @@ public class DialogManager
         if (_mainForm.Dispatcher.CheckAccess())
             ShowDialogOnUiThread(context);
         else
-            _mainForm.Dispatcher.Invoke(() => ShowDialogOnUiThread(context));
+            try { _mainForm.Dispatcher.Invoke(() => ShowDialogOnUiThread(context)); }
+            catch (TaskCanceledException) { }
     }
 
     private void ShowDialogOnUiThread(DialogContext context)
