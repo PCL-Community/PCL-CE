@@ -936,6 +936,24 @@ public static class ModMain
 
     public static void Dialog_OnShow(DialogContext context)
     {
+        if (frmMain is null)
+        {
+            Interaction.MsgBox(context.Caption, MsgBoxStyle.OkOnly, context.Title);
+            context.Result = 1;
+            context.OnClosed?.Invoke(1);
+            return;
+        }
+
+        if (frmMain.Dispatcher.CheckAccess())
+            ShowDialogOnUi(context);
+        else
+            frmMain.Dispatcher.Invoke(() => ShowDialogOnUi(context));
+    }
+
+    private static void ShowDialogOnUi(DialogContext context)
+    {
+        if (frmMain?.PanMsg is null) return;
+
         var isWarn = context.Theme == DialogTheme.Warning || context.Theme == DialogTheme.Error;
 
         var content = context.Content;
@@ -949,58 +967,41 @@ public static class ModMain
             };
         }
 
-        var converter = new MyMsgBoxConverter
+        var dialog = new DialogControl
         {
-            Type = MyMsgBoxType.Text,
-            Button1 = context.Buttons.Count > 0 ? context.Buttons[0].Text : GetDefaultConfirmText(),
-            Button2 = context.Buttons.Count > 1 ? context.Buttons[1].Text : "",
-            Button3 = context.Buttons.Count > 2 ? context.Buttons[2].Text : "",
-            Button1Action = context.Buttons.Count > 0 ? context.Buttons[0].OnClick : null,
-            Button2Action = context.Buttons.Count > 1 ? context.Buttons[1].OnClick : null,
-            Button3Action = context.Buttons.Count > 2 ? context.Buttons[2].OnClick : null,
-            Text = context.Caption,
             Title = context.Title,
             IsWarn = isWarn,
-            ForceWait = context.Block,
-            Content = content,
-            ButtonIds = new[]
-            {
-                context.Buttons.Count > 0 && context.Buttons[0].Id > 0 ? context.Buttons[0].Id : 1,
-                context.Buttons.Count > 1 && context.Buttons[1].Id > 0 ? context.Buttons[1].Id : 2,
-                context.Buttons.Count > 2 && context.Buttons[2].Id > 0 ? context.Buttons[2].Id : 3,
-            },
+            DialogContent = content as UIElement,
         };
-        WaitingMyMsgBox.Add(converter);
-        if (ModBase.RunInUi())
-            MyMsgBoxTick();
+
+        for (var i = 0; i < context.Buttons.Count && i < 3; i++)
+        {
+            var btn = context.Buttons[i];
+            var isPrimary = i == 0 || btn.IsPrimary;
+            var id = btn.Id > 0 ? btn.Id : i + 1;
+            dialog.AddButton(btn.Text, btn.OnClick, isPrimary, id);
+        }
+
+        frmMain.PanMsg.Children.Add(dialog);
+
         if (context.Block)
         {
-            if (frmMain is null || (frmMain.PanMsg is null && ModBase.RunInUi()))
+            try
             {
-                WaitingMyMsgBox.Remove(converter);
-                Interaction.MsgBox(context.Caption, MsgBoxStyle.OkOnly, context.Title);
-                context.Result = 1;
-                context.OnClosed?.Invoke(1);
+                frmMain.DragStop();
+                ComponentDispatcher.PushModal();
+                Dispatcher.PushFrame(dialog.WaitFrame);
             }
-            else
+            finally
             {
-                try
-                {
-                    frmMain?.DragStop();
-                    ComponentDispatcher.PushModal();
-                    Dispatcher.PushFrame(converter.WaitFrame);
-                }
-                finally
-                {
-                    ComponentDispatcher.PopModal();
-                }
-                context.Result = (int)(converter.Result ?? 0);
-                context.OnClosed?.Invoke(context.Result);
+                ComponentDispatcher.PopModal();
             }
+            context.Result = dialog.Result;
+            context.OnClosed?.Invoke(context.Result);
         }
         else
         {
-            converter.OnCloseCallback = result =>
+            dialog.OnClosed += result =>
             {
                 context.Result = result;
                 context.OnClosed?.Invoke(result);

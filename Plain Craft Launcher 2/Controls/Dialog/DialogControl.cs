@@ -151,7 +151,9 @@ public partial class DialogControl
         {
             ModAnimation.AaCode(() =>
             {
-                if (!ModMain.WaitingMyMsgBox.Any())
+                var hasMore = ModMain.WaitingMyMsgBox.Any()
+                    || (ModMain.frmMain?.PanMsg?.Children.Count ?? 0) > 1;
+                if (!hasMore)
                     ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
                         new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
