@@ -683,36 +683,39 @@ public static class ModWatcher
         // 崩溃处理
         private void Crashed()
         {
-            if (State == MinecraftState.Crashed || State == MinecraftState.Ended)
+            if (State is MinecraftState.Crashed or MinecraftState.Ended)
                 return;
             State = MinecraftState.Crashed;
             // 崩溃分析
             WatcherLog(Lang.Text("Watcher.Crash.Detected"));
             ModMain.Hint(Lang.Text("Watcher.Crash.Hint"));
-            ModBase.FeedbackInfo();
-            ModBase.RunInNewThread(() =>
+            if (!Config.Launch.DisableCrashAnalysis)
             {
-                try
+                ModBase.FeedbackInfo();
+                ModBase.RunInNewThread(() =>
                 {
-                    Thread.Sleep(2000);
-                    WatcherLog(Lang.Text("Watcher.Crash.AnalysisStart"));
-                    ;
-                    var analyzer = new CrashAnalyzer(pid);
-                    analyzer.Collect(version.PathIndie, latestLog.ToList());
-                    analyzer.Prepare();
-                    analyzer.Analyze(version);
-                    analyzer.Output(false,
-                        new List<string>
-                        {
-                            version.PathInstance + version.Name + ".json",
-                            LogWrapper.CurrentLogger.CurrentLogFiles.Last(), ModBase.exePath + @"PCL\LatestLaunch.bat"
-                        });
-                }
-                catch (Exception ex)
-                {
-                    ModBase.Log(ex, "崩溃分析失败", ModBase.LogLevel.Feedback);
-                }
-            }, "Crash Analyzer");
+                    try
+                    {
+                        Thread.Sleep(2000);
+                        WatcherLog(Lang.Text("Watcher.Crash.AnalysisStart"));
+                        var analyzer = new CrashAnalyzer(pid);
+                        analyzer.Collect(version.PathIndie, latestLog.ToList());
+                        analyzer.Prepare();
+                        analyzer.Analyze(version);
+                        analyzer.Output(
+                            false,
+                            [
+                                version.PathInstance + version.Name + ".json",
+                                LogWrapper.CurrentLogger.CurrentLogFiles.Last(),
+                                ModBase.exePath + @"PCL\LatestLaunch.bat"
+                            ]);
+                    }
+                    catch (Exception ex)
+                    {
+                        ModBase.Log(ex, "崩溃分析失败", ModBase.LogLevel.Feedback);
+                    }
+                }, "Crash Analyzer");
+            }
         }
 
         // 强制关闭

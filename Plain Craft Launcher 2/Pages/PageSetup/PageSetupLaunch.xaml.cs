@@ -76,6 +76,7 @@ public partial class PageSetupLaunch
             CheckAdvanceGraphicCard.Checked = Config.Launch.SetGpuPreference;
             CheckAdvanceNoJavaw.Checked = Config.Launch.NoJavaw;
             CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Launch.DisableLwjglUnsafeAgent;
+            CheckAdvanceDisableCrashAnalysis.Checked = Config.Launch.DisableCrashAnalysis;
             if (SystemInfo.IsArm64System)
             {
                 CheckAdvanceDisableJLW.Checked = true;
@@ -191,6 +192,7 @@ public partial class PageSetupLaunch
             case "LaunchAdvanceGraphicCard": Config.Launch.SetGpuPreference = (bool)value; break;
             case "LaunchAdvanceNoJavaw": Config.Launch.NoJavaw = (bool)value; break;
             case "LaunchAdvanceDisableLwjglUnsafeAgent": Config.Launch.DisableLwjglUnsafeAgent = (bool)value; break;
+            case "LaunchAdvanceDisableCrashAnalysis": Config.Launch.DisableCrashAnalysis = (bool)value; break;
         }
     }
 
