@@ -15,6 +15,7 @@ using PCL.Network.Loaders;
 using FileSystem = Microsoft.VisualBasic.FileSystem;
 using SearchOption = System.IO.SearchOption;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -2338,7 +2339,7 @@ public partial class PageInstanceCompResource : IRefreshable
                         PageInstanceLeft.McInstance.Info.HasNeoForge ? ModComp.CompLoaderType.NeoForge :
                         PageInstanceLeft.McInstance.Info.HasFabric || moddedLabyMod ? ModComp.CompLoaderType.Fabric :
                         ModComp.CompLoaderType.Any,
-                        currentCompType, null, null, null)
+                        currentCompType, null)
                 });
             }
             else
@@ -2481,9 +2482,9 @@ public partial class PageInstanceCompResource : IRefreshable
 
                     modSearchName = modSearchName.Replace("++", "+").Replace("pti+Fine", "ptiFine");
                     // 显示
-                    if (currentCompType == ModComp.CompType.Schematic)
+                    if (currentCompType == ModComp.CompType.Schematic || !Lang.IsChineseMainland)
                     {
-                        // 投影原理图文件不显示百科搜索选项
+                        // 投影原理图文件或非中文区域不显示百科搜索选项
                         if (modEntry.Url is null)
                             ModMain.MyMsgBox(contentLines.Join("\r\n"), modEntry.Name, Lang.Text("Instance.Resource.Item.Info.Return"));
                         else if (ModMain.MyMsgBox(contentLines.Join("\r\n"), modEntry.Name, Lang.Text("Instance.Resource.Item.Info.OpenWebsite"), Lang.Text("Instance.Resource.Item.Info.Return")) ==

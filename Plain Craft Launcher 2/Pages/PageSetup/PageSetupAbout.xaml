@@ -134,6 +134,7 @@
                         local:CustomEventService.EventType="打开网页"
                         Text="{DynamicResource Setup.About.SpecialThanks.SponsorMirror}" />
                     <local:MyListItem
+                        x:Name="ItemMcmod"
                         Grid.Row="1"
                         Grid.Column="1"
                         Grid.ColumnSpan="2"
@@ -142,6 +143,7 @@
                         IsHitTestVisible="False"
                         Title="{DynamicResource Setup.About.SpecialThanks.Name.Mcmod}" />
                     <local:MyButton
+                        x:Name="BtnMcmod"
                         Grid.Row="1"
                         Grid.Column="2"
                         Height="35"
@@ -221,6 +223,7 @@
                         </Image.Clip>
                     </Image>
                     <Image
+                        x:Name="ImgMcmod"
                         Grid.Row="1"
                         Margin="3"
                         Source="/Plain Craft Launcher 2;component/Images/Heads/wiki.png">

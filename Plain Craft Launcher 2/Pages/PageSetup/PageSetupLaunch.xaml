@@ -92,12 +92,13 @@
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboArgumentPriority" Grid.Row="8" Grid.ColumnSpan="2"
                                           Tag="LaunchArgumentPriority" Grid.Column="1"
-                                          SelectionChanged="ComboChange">
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.RealTime}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.High}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.AboveNormal}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.Normal}" IsSelected="True" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.BelowNormal}" />
+                                          SelectionChanged="ComboChange"
+                                          SelectedValuePath="Tag">
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.RealTime}" Tag="4" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.High}" Tag="3" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.AboveNormal}" Tag="0" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.Normal}" IsSelected="True" Tag="1" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.BelowNormal}" Tag="2" />
                         </local:MyComboBox>
                         <TextBlock VerticalAlignment="Center" Grid.Row="10" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.WindowSize.Label}"
                                    Margin="0,0,25,0" />

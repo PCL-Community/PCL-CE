@@ -47,7 +47,6 @@
     <ItemGroup>
         <!-- UI -->
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.27" />
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
         <PackageReference Include="Wacton.Unicolour" Version="6.4.0" />
         <!-- 语言和系统特性 -->
@@ -62,7 +61,6 @@
         <PackageReference Include="YamlDotNet" Version="17.0.1" />
         <PackageReference Include="fNbt" Version="1.0.0" />
         <PackageReference Include="LiteDB" Version="5.0.21" />
-        <PackageReference Include="protobuf-net" Version="3.2.56" />
         <!-- 网络 -->
         <PackageReference Include="Ae.Dns.Client" Version="3.1.0" />
         <PackageReference Include="Stun.Net" Version="9.0.1" />

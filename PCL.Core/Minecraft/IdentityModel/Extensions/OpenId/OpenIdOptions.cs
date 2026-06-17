@@ -94,10 +94,9 @@ public record OpenIdOptions
     /// <summary>
     /// 构建 OAuth 客户端配置
     /// </summary>
-    /// <param name="token"></param>
-    /// <returns></returns>
+    /// <returns><see cref="OAuthClientOptions">OAuth 客户端选项</returns>
     /// <exception cref="IdentityModelConfigurationException">未调用 <see cref="InitializeAsync"/> 或缺少授权所需配置</exception>
-    public virtual async Task<OAuthClientOptions> BuildOAuthOptionsAsync(CancellationToken token)
+    public virtual OAuthClientOptions BuildOAuthOptions()
     {
         if (Meta is null) throw new IdentityModelConfigurationException("请先调用 InitializeAsync() 加载 OpenID 元数据");
         if (string.IsNullOrEmpty(Meta.TokenEndpoint))

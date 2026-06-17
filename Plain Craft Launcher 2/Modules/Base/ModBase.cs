@@ -119,7 +119,6 @@ public static class ModBase
     public static string pathAppdataConfig = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
                                              (versionBranchName == "Debug" ? @"\.pclcedebug\" : @"\.pclce\");
 
-    public static string pathHelpFolder = pathTemp + @"CE\Help\";
 
     #endregion
 
@@ -2822,7 +2821,7 @@ public static class ModBase
             {
                 UseShellExecute = true,
             };
-            _ = Task.Run(() => Process.Start(psi));
+            Process.Start(psi);
         }
         catch (Exception ex)
         {

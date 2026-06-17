@@ -107,6 +107,7 @@ public partial class PageInstanceSetup
             var ramType = Config.Instance.MemorySolution[PageInstanceLeft.McInstance.PathInstance];
             ((MyRadioBox)FindName("RadioRamType" + ramType)).Checked = true;
             SliderRamCustom.Value = Config.Instance.CustomMemorySize[PageInstanceLeft.McInstance.PathInstance];
+            RamType(ramType);
 
             // 服务器
             TextServerEnter.Text = Config.Instance.ServerToEnter[PageInstanceLeft.McInstance.PathInstance];
@@ -177,12 +178,19 @@ public partial class PageInstanceSetup
     }
 
     // 将控件改变路由到设置改变
+    private static void SetByTag(string tag, object value)
+        => ConfigService.TrySetValue(tag, value, PageInstanceLeft.McInstance.PathInstance);
+
     private void RadioBoxChange(object o, ModBase.RouteEventArgs routeEventArgs)
     {
-        var sender = (MyRadioBox)o;
-        var gotCfg = sender.Tag.ToString().Split("/");
-        if (ModAnimation.AniControlEnabled == 0)
-            SetInstanceByTag(gotCfg[0], int.Parse(gotCfg[1]));
+        if (ModAnimation.AniControlEnabled != 0)
+            return;
+        if (o is not MyRadioBox { Tag: string tag }) return;
+
+        var slash = tag.IndexOf('/');
+        if (slash < 0) return;
+
+        SetByTag(tag[..slash], int.Parse(tag[(slash + 1)..]));
     }
 
     private void TextBoxChange(object o, TextChangedEventArgs textChangedEventArgs)
@@ -190,48 +198,25 @@ public partial class PageInstanceSetup
         if (ModAnimation.AniControlEnabled != 0)
             return;
         if (o is not MyTextBox textBox) return;
-        
-        var tag = textBox.Tag?.ToString();
-        var value = textBox.Text;
-        ArgConfig<string> setting = tag switch 
-        {
-            "VersionArgumentTitle" => Config.Instance.Title,
-            "VersionArgumentInfo" => Config.Instance.TypeInfo,
-            "VersionServerAuthServer" => Config.InstanceAuth.AuthServerAddress,
-            "VersionServerAuthRegister" => Config.InstanceAuth.AuthRegisterAddress,
-            "VersionServerAuthName" => Config.InstanceAuth.AuthServerDisplayName,
-            "VersionServerEnter" => Config.Instance.ServerToEnter,
-            "VersionAdvanceJvm" => Config.Instance.JvmArgs,
-            "VersionAdvanceGame" => Config.Instance.GameArgs,
-            "VersionAdvanceClasspathHead" => Config.Instance.ClasspathHead,
-            "VersionAdvanceRun" => Config.Instance.PreLaunchCommand,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-        setting[PageInstanceLeft.McInstance.PathInstance] = value;
+
+        SetByTag(textBox.Tag?.ToString(), textBox.Text);
     }
 
     private void SliderChange(object o, bool user)
     {
-        var sender = (MySlider)o;
-        if (ModAnimation.AniControlEnabled == 0)
-            SetInstanceByTag(sender.Tag?.ToString(), sender.Value);
+        if (ModAnimation.AniControlEnabled != 0)
+            return;
+        if (o is not MySlider slider) return;
+
+        SetByTag(slider.Tag?.ToString(), slider.Value);
     }
 
-    private static void ComboChange(MyComboBox sender, object e)
+    private void ComboChange(MyComboBox sender, object e)
     {
-        if (ModAnimation.AniControlEnabled == 0)
-            SetInstanceByTag(sender.Tag?.ToString(), sender.SelectedIndex);
-    }
+        if (ModAnimation.AniControlEnabled != 0)
+            return;
 
-    private static void SetInstanceByTag(string tag, object value)
-    {
-        var path = PageInstanceLeft.McInstance.PathInstance;
-        switch (tag)
-        {
-            case "VersionRamType": Config.Instance.MemorySolution[path] = (int)value; break;
-            case "VersionRamCustom": Config.Instance.CustomMemorySize[path] = (int)value; break;
-            case "VersionServerLoginRequire": Config.InstanceAuth.LoginRequirementSolution[path] = (int)value; break;
-        }
+        SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object sender, bool user)
@@ -239,23 +224,8 @@ public partial class PageInstanceSetup
         if (ModAnimation.AniControlEnabled != 0)
             return;
         if (sender is not MyCheckBox checkBox) return;
-        
-        var tag = checkBox.Tag?.ToString();
-        var value = checkBox.Checked.GetValueOrDefault();
-        ArgConfig<bool> setting = tag switch
-        {
-            "VersionArgumentTitleEmpty" => Config.Instance.UseGlobalTitle,
-            "VersionAdvanceRunWait" => Config.Instance.PreLaunchCommandWait,
-            "VersionAdvanceJava" => Config.Instance.IgnoreJavaCompatibility,
-            "VersionAdvanceAssetsV2" => Config.Instance.DisableAssetVerifyV2,
-            "VersionAdvanceUseProxyV2" => Config.Instance.UseProxy,
-            "VersionAdvanceDisableJLW" => Config.Instance.DisableJlw,
-            "VersionAdvanceDisableRW" => Config.Instance.DisableRw,
-            "VersionUseDebugLog4j2Config" => Config.Instance.UseDebugLof4j2Config,
-            "VersionAdvanceDisableLwjglUnsafeAgent" => Config.Instance.DisableLwjglUnsafeAgent,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-        setting[PageInstanceLeft.McInstance.PathInstance] = value;
+
+        SetByTag(checkBox.Tag?.ToString(), checkBox.Checked.GetValueOrDefault());
     }
 
     // 切换到全局设置
@@ -1018,7 +988,7 @@ public partial class PageInstanceSetup
         if (ModAnimation.AniControlEnabled != 0)
             return;
 
-        var args = (SelectionChangedEventArgs)e; // 转换事件参数
+        var args = e; // 转换事件参数
 
         if (!States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0)
         {

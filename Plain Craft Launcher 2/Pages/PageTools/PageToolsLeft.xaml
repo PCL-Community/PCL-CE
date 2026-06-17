@@ -46,23 +46,5 @@
                           LogoScale="0.9"
                           SvgIcon="lucide/tool-case" />
 
-        <local:MyListItem x:Name="ItemLauncherHelp" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="2"
-                          MinPaddingRight="35" Height="36" VerticalAlignment="Top"
-                          Title="{DynamicResource Tools.Left.Help}" Check="PageCheck"
-                          LogoScale="0.97" SvgIcon="lucide/circle-help">
-            <local:MyListItem.Buttons>
-                <x:Array Type="{x:Type local:MyIconButton}">
-                    <local:MyIconButton Tag="2"
-                                        ToolTip="{DynamicResource Common.Action.Refresh}"
-                                        ToolTipService.Placement="Right"
-                                        ToolTipService.InitialShowDelay="200"
-                                        ToolTipService.VerticalOffset="-1"
-                                        Click="Refresh"
-                                        LogoScale="0.85"
-                                        SvgIcon="lucide/refresh-cw" />
-                </x:Array>
-            </local:MyListItem.Buttons>
-        </local:MyListItem>
-
     </StackPanel>
 </local:MyPageLeft>

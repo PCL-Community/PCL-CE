@@ -4,7 +4,6 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -38,6 +37,9 @@ public partial class PageToolsTest
         BtnSelectSkin.Click += BtnSelectSkin_Click;
         CmbHeadSize.SelectionChanged += CmbHeadSize_SelectionChanged;
         Loaded += (_, _) => MeLoaded();
+        #if DEBUG
+        BtnCrash.Visibility = Visibility.Visible;
+        #endif
     }
 
     private void MeLoaded()
@@ -285,30 +287,6 @@ public partial class PageToolsTest
         }, "Rubbish Clear");
     }
 
-    [DllImport("ntdll.dll", CharSet = CharSet.Ansi)]
-    private static extern uint NtSetSystemInformation(int systemInformationClass, nint systemInformation,
-        int systemInformationLength);
-    public static bool AskTrulyWantMemoryOptimize()
-    {
-        var memLoad = KernelInterop.GetMemoryLoadPercent();
-        if (memLoad > 90) return true; // 情况不太妙啊，先别问了
-
-        var s = ModMain.MyMsgBox(
-            Lang.Text("Tools.Test.Memory.Deprecated"),
-            Lang.Text("Tools.Test.Memory.DeprecatedTitle"),
-            Lang.Text("Common.Action.Confirm"),
-            Lang.Text("Tools.Test.Memory.LearnMemReduct"),
-            Lang.Text("Common.Action.Cancel"),
-            isWarn: true,
-            button2Action: () => Basics.OpenPath("https://github.com/henrypp/memreduct")
-        );
-        return s == 1;
-    }
-    public static void MemoryOptimize(bool showHint)
-    {
-        MemSwapService.MemorySwap(showHint);
-    }
-
     public static string GetRandomCave()
     {
         return Lang.Text("Tools.Test.CeNotice");
@@ -386,14 +364,6 @@ public partial class PageToolsTest
     private void BtnClear_Click(object sender, MouseButtonEventArgs e)
     {
         RubbishClear();
-    }
-
-    private void BtnMemory_Click(object sender, MouseButtonEventArgs e)
-    {
-        if (AskTrulyWantMemoryOptimize())
-        {
-            ModBase.RunInThread(() => MemoryOptimize(true));
-        }
     }
 
     // 下载正版玩家皮肤
@@ -622,10 +592,7 @@ public partial class PageToolsTest
 
     private void BtnCrash_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModMain.MyMsgBoxInput(Lang.Text("Tools.Test.Crash.ConfirmTitle"),
-                Lang.Text("Tools.Test.Crash.ConfirmMessage"), Lang.Text("Common.Action.Confirm"),
-                hintText: "\"sURe\".ToUpper()", isWarn: true) ==
-            "SURE") throw new Exception(Lang.Text("Tools.Test.Crash.ManualCrash"));
+        throw new Exception(Lang.Text("Tools.Test.Crash.ManualCrash"));
     }
 
     private int GetHeadSize() => CmbHeadSize.SelectedIndex switch

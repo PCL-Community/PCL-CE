@@ -86,7 +86,7 @@ public partial class PageSetupLauncherMisc
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetMiscByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+            SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
@@ -94,39 +94,25 @@ public partial class PageSetupLauncherMisc
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
         if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
-            SetMiscByTag(gotCfg[0], int.Parse(gotCfg[1]));
+            SetByTag(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetMiscByTag(sender.Tag?.ToString(), sender.Checked);
+            SetByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetMiscByTag(sender.Tag?.ToString(), sender.Value);
+            SetByTag(sender.Tag?.ToString(), sender.Value);
     }
 
-    private static void SetMiscByTag(string tag, object value)
-    {
-        switch (tag)
-        {
-            case "SystemMaxLog": Config.System.MaxGameLog = (int)value; break;
-            case "SystemDebugMode": Config.Debug.Enabled = (bool)value; break;
-            case "SystemDebugAnim": Config.Debug.AnimationSpeed = (int)value; break;
-            case "SystemDebugDelay": Config.Debug.AddRandomDelay = (bool)value; break;
-            case "SystemDebugSkipCopy": Config.Debug.DontCopy = (bool)value; break;
-            case "SystemDisableHardwareAcceleration": Config.System.DisableHardwareAcceleration = (bool)value; break;
-            case "SystemHttpProxyType": Config.Network.HttpProxy.Type = (int)value; break;
-            case "SystemNetEnableDoH": Config.Network.EnableDoH = (bool)value; break;
-            case "SystemTelemetry": Config.System.Telemetry = (bool)value; break;
-            case "UiAniFPS": Config.System.AnimationFpsLimit = (int)value; break;
-        }
-    }
+    private static void SetByTag(string tag, object value)
+        => ConfigService.TrySetValue(tag, value);
 
     // 网络
     private void ApplyHttpProxyBtn_OnClicked(object sender, MouseButtonEventArgs e)

@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.App.Localization;
@@ -136,7 +137,6 @@ public partial class PageSetupUI
 
             // 子页面 工具
             CheckHiddenToolsGameLink.Checked = uiHidden.ToolsGameLink;
-            CheckHiddenToolsHelp.Checked = uiHidden.ToolsHelp;
             CheckHiddenToolsTest.Checked = uiHidden.ToolsTest;
 
             // 子页面 实例设置
@@ -222,69 +222,9 @@ public partial class PageSetupUI
 
     private static void SetByTag(string tag, object value)
     {
-        switch (tag)
-        {
-            case "UiLauncherTransparent": Config.Preference.Theme.WindowOpacity = (int)value; break;
-            case "UiBackgroundOpacity": Config.Preference.Background.WallpaperOpacity = (int)value; break;
-            case "UiBackgroundBlur": Config.Preference.Background.WallpaperBlurRadius = (int)value; break;
-            case "UiBlurValue": Config.Preference.Blur.Radius = (int)value; break;
-            case "UiBlurSamplingRate": Config.Preference.Blur.SamplingRate = (int)value; break;
-            case "UiMusicVolume": Config.Preference.Music.Volume = (int)value; break;
-
-            case "UiLauncherLogo": Config.Preference.ShowStartupLogo = (bool)value; break;
-            case "UiShowLaunchingHint": Config.Preference.ShowLaunchingHint = (bool)value; break;
-            case "UiHintAlignRight": Config.Preference.HintAlignRight = (bool)value; ModMain.Hint(Lang.Text("Setup.Ui.Basic.HintAlignRight.Changed")); break;
-            case "UiLockWindowSize": Config.Preference.LockWindowSize = (bool)value; break;
-            case "UiBlur": Config.Preference.Blur.IsEnabled = (bool)value; break;
-            case "UiAutoPauseVideo": Config.Preference.Background.AutoPauseVideo = (bool)value; break;
-            case "UiBackgroundColorful": Config.Preference.Background.BackgroundColorful = (bool)value; break;
-            case "UiMusicRandom": Config.Preference.Music.ShufflePlayback = (bool)value; break;
-            case "UiMusicAuto": Config.Preference.Music.StartOnStartup = (bool)value; break;
-            case "UiMusicStart": Config.Preference.Music.StartInGame = (bool)value; break;
-            case "UiMusicStop": Config.Preference.Music.StopInGame = (bool)value; break;
-            case "UiMusicSMTC": Config.Preference.Music.EnableSMTC = (bool)value; break;
-            case "UiLogoLeft": Config.Preference.TopBarLeftAlign = (bool)value; break;
-
-            case "UiDarkMode": Config.Preference.Theme.ColorMode = (ColorMode)(int)value; break;
-            case "UiDarkColor": Config.Preference.Theme.DarkColor = (ColorTheme)(int)value; break;
-            case "UiLightColor": Config.Preference.Theme.LightColor = (ColorTheme)(int)value; break;
-            case "UiBlurType": Config.Preference.Blur.KernelType = (int)value; break;
-            case "UiBackgroundSuit": Config.Preference.Background.WallpaperSuitMode = (int)value; break;
-            case "UiCustomPreset": Config.Preference.Homepage.SelectedPreset = (int)value; break;
-            case "UiLogoType": Config.Preference.WindowTitleType = (LauncherTitleType)(int)value; break;
-            case "UiLogoText": Config.Preference.WindowTitleCustomText = (string)value; break;
-            case "UiCustomType": Config.Preference.Homepage.Type = (int)value; break;
-
-            case "UiHiddenPageDownload": Config.Preference.Hide.PageDownload = (bool)value; break;
-            case "UiHiddenPageSetup": Config.Preference.Hide.PageSetup = (bool)value; break;
-            case "UiHiddenPageTools": Config.Preference.Hide.PageTools = (bool)value; break;
-            case "UiHiddenSetupLaunch": Config.Preference.Hide.SetupLaunch = (bool)value; break;
-            case "UiHiddenSetupUi": Config.Preference.Hide.SetupUi = (bool)value; break;
-            case "UiHiddenSetupLauncherLanguage": Config.Preference.Hide.SetupLauncherLanguage = (bool)value; break;
-            case "UiHiddenSetupLauncherMisc": Config.Preference.Hide.SetupLauncherMisc = (bool)value; break;
-            case "UiHiddenSetupGameManage": Config.Preference.Hide.SetupGameManage = (bool)value; break;
-            case "UiHiddenSetupJava": Config.Preference.Hide.SetupJava = (bool)value; break;
-            case "UiHiddenSetupUpdate": Config.Preference.Hide.SetupUpdate = (bool)value; break;
-            case "UiHiddenSetupGameLink": Config.Preference.Hide.SetupGameLink = (bool)value; break;
-            case "UiHiddenSetupAbout": Config.Preference.Hide.SetupAbout = (bool)value; break;
-            case "UiHiddenSetupFeedback": Config.Preference.Hide.SetupFeedback = (bool)value; break;
-            case "UiHiddenSetupLog": Config.Preference.Hide.SetupLog = (bool)value; break;
-            case "UiHiddenToolsGameLink": Config.Preference.Hide.ToolsGameLink = (bool)value; break;
-            case "UiHiddenToolsHelp": Config.Preference.Hide.ToolsHelp = (bool)value; break;
-            case "UiHiddenToolsTest": Config.Preference.Hide.ToolsTest = (bool)value; break;
-            case "UiHiddenVersionEdit": Config.Preference.Hide.InstanceEdit = (bool)value; break;
-            case "UiHiddenVersionExport": Config.Preference.Hide.InstanceExport = (bool)value; break;
-            case "UiHiddenVersionSave": Config.Preference.Hide.InstanceSave = (bool)value; break;
-            case "UiHiddenVersionScreenshot": Config.Preference.Hide.InstanceScreenshot = (bool)value; break;
-            case "UiHiddenVersionMod": Config.Preference.Hide.InstanceMod = (bool)value; break;
-            case "UiHiddenVersionResourcePack": Config.Preference.Hide.InstanceResourcePack = (bool)value; break;
-            case "UiHiddenVersionShader": Config.Preference.Hide.InstanceShader = (bool)value; break;
-            case "UiHiddenVersionSchematic": Config.Preference.Hide.InstanceSchematic = (bool)value; break;
-            case "UiHiddenVersionServer": Config.Preference.Hide.InstanceServer = (bool)value; break;
-            case "UiHiddenFunctionSelect": Config.Preference.Hide.FunctionSelect = (bool)value; break;
-            case "UiHiddenFunctionModUpdate": Config.Preference.Hide.FunctionModUpdate = (bool)value; break;
-            case "UiHiddenFunctionHidden": Config.Preference.Hide.FunctionHidden = (bool)value; break;
-        }
+        ConfigService.TrySetValue(tag, value);
+        if (tag == "UiHintAlignRight")
+            ModMain.Hint(Lang.Text("Setup.Ui.Basic.HintAlignRight.Changed"));
     }
 
     private void ComboFontChange(object sender, SelectionChangedEventArgs e)
@@ -654,22 +594,6 @@ public partial class PageSetupUI
     }
 
     // 主页
-    private void BtnCustomFile_Click(object sender, MouseButtonEventArgs e)
-    {
-        try
-        {
-            if (File.Exists(ModBase.exePath + @"PCL\Custom.xaml"))
-                if (ModMain.MyMsgBox(Lang.Text("Setup.Ui.Homepage.Docs.OverrideConfirm.Message"), Lang.Text("Setup.Ui.Homepage.Docs.OverrideConfirm.Title"), Lang.Text("Setup.Ui.Homepage.Docs.OverrideConfirm.Continue"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
-                    return;
-            ModBase.WriteFile(ModBase.exePath + @"PCL\Custom.xaml", ModBase.GetResourceStream("Resources/Custom.xml"));
-            ModMain.Hint(Lang.Text("Setup.Ui.Homepage.Docs.Generated"), ModMain.HintType.Finish);
-            ModBase.OpenExplorer(ModBase.exePath + @"PCL\Custom.xaml");
-        }
-        catch (Exception ex)
-        {
-            ModBase.Log(ex, "生成教学文件失败", ModBase.LogLevel.Feedback);
-        }
-    }
 
     private void BtnCustomRefresh_Click(object sender, MouseButtonEventArgs e)
     {
@@ -710,11 +634,6 @@ public partial class PageSetupUI
         SliderBackgroundBlur.getHintText = new Func<object, object>(v => Lang.Text("Setup.Ui.Slider.Pixel", Lang.Number(Convert.ToDouble(v), "N0")));
         SliderBlurValue.getHintText = new Func<object, object>(v => Lang.Text("Setup.Ui.Slider.Pixel", Lang.Number(Convert.ToDouble(v), "N0")));
         SliderBlurSamplingRate.getHintText = new Func<object, object>(v => Lang.Number(Convert.ToDouble(v) / 100d, "P0"));
-    }
-
-    private void BtnHomepageMarket_Click(object sender, ModBase.RouteEventArgs e)
-    {
-        ModMain.frmMain.PageChange(new FormMain.PageStackData { page = FormMain.PageType.HomePageMarket });
     }
 
     private void CheckMusicStart_OnChange(object sender, bool user)
@@ -867,8 +786,6 @@ public partial class PageSetupUI
                 ModMain.frmToolsLeft.ItemGameLink.Visibility = !HiddenForceShow && conf.ToolsGameLink
                     ? Visibility.Collapsed
                     : Visibility.Visible;
-                ModMain.frmToolsLeft.ItemLauncherHelp.Visibility =
-                    !HiddenForceShow && conf.ToolsHelp ? Visibility.Collapsed : Visibility.Visible;
                 ModMain.frmToolsLeft.ItemTest.Visibility =
                     !HiddenForceShow && conf.ToolsTest ? Visibility.Collapsed : Visibility.Visible;
                 
@@ -877,15 +794,13 @@ public partial class PageSetupUI
                 ModMain.frmToolsLeft.TextGameLinkCategory.Visibility = isGameLinkVisible ? Visibility.Visible : Visibility.Collapsed;
                 if (isGameLinkVisible) ModMain.frmToolsLeft.TextGameLinkCategory.Opacity = 0.6;
 
-                var isToolsVisible = (!HiddenForceShow && (!conf.ToolsHelp || !conf.ToolsTest)) || HiddenForceShow;
+                var isToolsVisible = (!HiddenForceShow && !conf.ToolsTest) || HiddenForceShow;
                 ModMain.frmToolsLeft.TextToolsCategory.Visibility = isToolsVisible ? Visibility.Visible : Visibility.Collapsed;
                 if (isToolsVisible) ModMain.frmToolsLeft.TextToolsCategory.Opacity = 0.6;
                 
                 // 统计工具页可用项数量
                 var toolsCount = 0;
                 if (!conf.ToolsGameLink)
-                    toolsCount += 1;
-                if (!conf.ToolsHelp)
                     toolsCount += 1;
                 if (!conf.ToolsTest)
                     toolsCount += 1;
@@ -964,7 +879,6 @@ public partial class PageSetupUI
             return;
         var isChecked = (bool)CheckHiddenPageTools.Checked;
         CheckHiddenToolsGameLink.Checked = isChecked;
-        CheckHiddenToolsHelp.Checked = isChecked;
         CheckHiddenToolsTest.Checked = isChecked;
     }
 
@@ -973,7 +887,7 @@ public partial class PageSetupUI
         if (!user)
             return;
         var conf = Config.Preference.Hide;
-        var allChecked = conf.ToolsGameLink && conf.ToolsHelp && conf.ToolsTest;
+        var allChecked = conf.ToolsGameLink && conf.ToolsTest;
         CheckHiddenPageTools.Checked = allChecked;
     }
 
