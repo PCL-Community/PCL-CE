@@ -100,6 +100,8 @@ public partial class DialogControl
     {
         try
         {
+            if (IsWarn)
+                LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrushRedLight");
             if (_buttons.Count > 1 && _buttons[0].ColorType != MyButton.ColorState.Red)
                 _buttons[0].ColorType = MyButton.ColorState.Highlight;
             if (_buttons.Count > 0)

@@ -702,7 +702,6 @@ public partial class FormMain
                                    ?? dlg._buttons[0];
                         confirm.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                     },
-                    DialogMsOAuthLogin login => () => login.Btn1_Click(sender, null),
                     _ => null
                 };
                 enterAction?.Invoke();
@@ -718,13 +717,6 @@ public partial class FormMain
                     {
                         var cancel = dlg._buttons.FirstOrDefault(b => b.Tag as string == "Cancel");
                         cancel?.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-                    },
-                    DialogMsOAuthLogin login => () =>
-                    {
-                        if (login.Btn3.Visibility == Visibility.Visible)
-                            login.Btn3_Click(sender, null);
-                        else
-                            login.Btn1_Click(sender, null);
                     },
                     _ => null
                 };

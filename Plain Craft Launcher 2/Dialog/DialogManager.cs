@@ -97,16 +97,22 @@ public class DialogManager
 
         _mainForm.Dispatcher.Invoke(() =>
         {
-            var login = new DialogMsOAuthLogin(data, authUrl, r =>
+            var dialog = new DialogControl
+            {
+                IsWarn = false,
+                ShowTitle = true,
+            };
+            _ = new DialogMsOAuthLogin(dialog, data, authUrl, r =>
             {
                 result = r;
                 ready.Set();
             });
-            _mainForm.PanMsg.Children.Add(login);
-            _mainForm.PanMsgBackground.Visibility = Visibility.Visible;
+            _mainForm.PanMsg.Children.Add(dialog);
         });
 
         ready.Wait();
+        Thread.Sleep(200);
+        ModMain.frmMain!.ShowWindowToTop();
         return result;
     }
 
