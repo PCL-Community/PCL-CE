@@ -2964,6 +2964,7 @@
     <sys:String x:Key="Watcher.Crash.Suspected">Minecraft 尚未加载完成，可能已崩溃</sys:String>
     <sys:String x:Key="Watcher.Crash.AbnormalExit">Minecraft 返回值异常，可能已崩溃</sys:String>
     <sys:String x:Key="Watcher.Crash.Detected">Minecraft 已崩溃，将在 2 秒后开始崩溃分析</sys:String>
+    <sys:String x:Key="Watcher.Crash.DetectedDisabled">Minecraft 已崩溃。由于崩溃分析已被禁用，将不会开始分析</sys:String>
     <sys:String x:Key="Watcher.Crash.AnalysisStart">崩溃分析开始</sys:String>
     <sys:String x:Key="Watcher.Crash.Hint">检测到 Minecraft 出现错误，错误分析已开始……</sys:String>
     <sys:String x:Key="Watcher.Kill.Attempt">尝试强制结束 Minecraft 进程</sys:String>

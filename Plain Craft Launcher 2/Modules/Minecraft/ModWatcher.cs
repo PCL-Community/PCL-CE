@@ -687,10 +687,11 @@ public static class ModWatcher
                 return;
             State = MinecraftState.Crashed;
             // 崩溃分析
-            WatcherLog(Lang.Text("Watcher.Crash.Detected"));
-            ModMain.Hint(Lang.Text("Watcher.Crash.Hint"));
             if (!Config.Launch.DisableCrashAnalysis)
             {
+                WatcherLog(Lang.Text("Watcher.Crash.Detected"));
+                ModMain.Hint(Lang.Text("Watcher.Crash.Hint"));
+
                 ModBase.FeedbackInfo();
                 ModBase.RunInNewThread(() =>
                 {
@@ -715,6 +716,10 @@ public static class ModWatcher
                         ModBase.Log(ex, "崩溃分析失败", ModBase.LogLevel.Feedback);
                     }
                 }, "Crash Analyzer");
+            }
+            else
+            {
+                WatcherLog(Lang.Text("Watcher.Crash.DetectedDisabled"));
             }
         }
 

@@ -2964,6 +2964,7 @@
     <sys:String x:Key="Watcher.Crash.Suspected">Minecraft hasn't finished loading and may have crashed.</sys:String>
     <sys:String x:Key="Watcher.Crash.AbnormalExit">Minecraft exited with an abnormal code and may have crashed.</sys:String>
     <sys:String x:Key="Watcher.Crash.Detected">Minecraft has crashed. Crash analysis will start in 2 seconds.</sys:String>
+    <sys:String x:Key="Watcher.Crash.DetectedDisabled">Minecraft has crashed. Since crash analysis has been disabled, analysis will not be started.</sys:String>
     <sys:String x:Key="Watcher.Crash.AnalysisStart">Crash analysis started</sys:String>
     <sys:String x:Key="Watcher.Crash.Hint">Minecraft error detected. Starting analysis...</sys:String>
     <sys:String x:Key="Watcher.Kill.Attempt">Attempting to force-kill the Minecraft process</sys:String>
