@@ -1156,6 +1156,7 @@ public partial class PageInstanceInstall
             };
         if (currentInstance.HasCleanroom)
         {
+            selectedLoaderName = "Cleanroom";
             selectedAPIName = "Cleanroom";
             selectedCleanroomVersion = currentInstance.Cleanroom;
             selectedCleanroom = new ModDownload.DlCleanroomListEntry(selectedCleanroomVersion);
