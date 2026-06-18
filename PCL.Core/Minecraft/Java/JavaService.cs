@@ -27,6 +27,7 @@ public sealed partial class JavaService
             new DefaultPathsScanner(),
             new PathEnvironmentScanner(),
             new MicrosoftStoreJavaScanner(),
+            new MftJavaScanner(),
             new WhereCommandScanner()
         ]);
         _javaManager.ReadConfig();
