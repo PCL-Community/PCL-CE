@@ -1372,6 +1372,7 @@
     <sys:String x:Key="Setup.Left.Item.GameManage">Management</sys:String>
     <sys:String x:Key="Setup.Left.Item.Ui">Personalization</sys:String>
     <sys:String x:Key="Setup.Left.Item.Misc">Miscellaneous</sys:String>
+    <sys:String x:Key="Setup.Left.Item.Plugin">Plugins</sys:String>
     <sys:String x:Key="Setup.Left.Item.About">About</sys:String>
     <sys:String x:Key="Setup.Left.Item.Update">Updates</sys:String>
     <sys:String x:Key="Setup.Left.Item.Feedback">Feedback</sys:String>

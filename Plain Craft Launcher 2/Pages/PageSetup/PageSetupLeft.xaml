@@ -108,6 +108,11 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
+            <local:MyListItem x:Name="ItemPlugin" IsScaleAnimationEnabled="False" Tag="12" MinPaddingRight="35"
+                               Check="PageCheck"
+                               Height="36" VerticalAlignment="Top" Title="{DynamicResource Setup.Left.Item.Plugin}" Type="RadioBox"
+                              LogoScale="0.95"
+                              SvgIcon="lucide/plug" />
 
             <TextBlock Text="{DynamicResource Setup.Left.Category.About}" Margin="13,5,5,3" Opacity="0.6" FontSize="12" x:Name="TextAboutCategory" />
 

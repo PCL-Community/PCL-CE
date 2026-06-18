@@ -1372,6 +1372,7 @@
     <sys:String x:Key="Setup.Left.Item.GameManage">管理</sys:String>
     <sys:String x:Key="Setup.Left.Item.Ui">个性化</sys:String>
     <sys:String x:Key="Setup.Left.Item.Misc">杂项</sys:String>
+    <sys:String x:Key="Setup.Left.Item.Plugin">插件</sys:String>
     <sys:String x:Key="Setup.Left.Item.About">软件信息</sys:String>
     <sys:String x:Key="Setup.Left.Item.Update">软件更新</sys:String>
     <sys:String x:Key="Setup.Left.Item.Feedback">反馈</sys:String>

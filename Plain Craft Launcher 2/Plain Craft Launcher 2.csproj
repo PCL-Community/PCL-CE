@@ -88,6 +88,7 @@
     <ItemGroup>
         <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
         <ProjectReference Include="..\PCL.Online\PCL.Online.csproj" />
+        <ProjectReference Include="..\PCL.Plugin\PCL.Plugin.csproj" />
     </ItemGroup>
     <ItemGroup>
         <Using Include="System.Text.Json" />

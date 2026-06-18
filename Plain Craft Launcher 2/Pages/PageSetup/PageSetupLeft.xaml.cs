@@ -201,7 +201,7 @@ public partial class PageSetupLeft
     public object PageGet(FormMain.PageSubType? id = null)
     {
         var targetID = id ?? pageID;
-        switch (id)
+        switch (targetID)
         {
             case FormMain.PageSubType.SetupLaunch:
             {
@@ -256,6 +256,12 @@ public partial class PageSetupLeft
                 if (ModMain.frmSetupLauncherMisc is null)
                     ModMain.frmSetupLauncherMisc = new PageSetupLauncherMisc();
                 return ModMain.frmSetupLauncherMisc;
+            }
+            case FormMain.PageSubType.SetupPlugin:
+            {
+                if (ModMain.frmSetupPlugin is null)
+                    ModMain.frmSetupPlugin = new PageSetupPlugin();
+                return ModMain.frmSetupPlugin;
             }
             case FormMain.PageSubType.SetupJava:
             {
