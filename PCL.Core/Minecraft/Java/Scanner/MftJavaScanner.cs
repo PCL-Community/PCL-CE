@@ -87,7 +87,7 @@ internal class MftJavaScanner : IJavaScanner
                     var fullPath = record.FullPath;
                     if (string.IsNullOrEmpty(fullPath)) continue;
                     if (_SkipDirectoryNames.Overlaps(fullPath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))) continue;
-                    if (!fullPath.Contains(Path.Combine("bin", "java.exe"), StringComparison.OrdinalIgnoreCase)) continue;
+                    if (!fullPath.EndsWith(Path.Combine("bin", "java.exe"), StringComparison.OrdinalIgnoreCase)) continue;
                     if (!File.Exists(fullPath)) continue;
 
                     results.Add(fullPath);
