@@ -83,7 +83,7 @@ public class DialogManager
         };
         var wrapper = new Dialog<T>(dialog);
         if (buttons is not null)
-            foreach (var b in buttons) dialog.AddButton(b.Text, b.OnClick, b.IsPrimary, b.Id, b.IsCancel);
+            foreach (var b in buttons) dialog.AddButton(b);
         _showContentOnUi(dialog);
         return wrapper;
     }
@@ -148,7 +148,7 @@ public class DialogManager
         return Show(ctx);
     }
 
-    public string ShowInput(string title, string text = "", string defaultInput = "",
+    public string? ShowInput(string title, string text = "", string defaultInput = "",
         Collection<FluentValidation.IValidator<string>>? validateRules = null,
         string hintText = "", string? button1 = null, string? button2 = null, bool isWarn = false)
     {
@@ -175,20 +175,20 @@ public class DialogManager
             stack.Children.Add(textBox);
 
             var dialog = new DialogControl { Title = title, IsWarn = isWarn, DialogContent = stack };
-            dialog.AddButton(button1!, onClick: () =>
+            dialog.AddButton(new DialogButton(button1!, onClick: () =>
             {
                 textBox.Validate();
                 if (!textBox.IsValidated) return;
                 result = textBox.Text;
                 dialog.Close(1);
-            }, isPrimary: true, id: 1);
+            }, isPrimary: true, id: 1));
             if (!string.IsNullOrEmpty(button2))
             {
-                dialog.AddButton(button2!, onClick: () =>
+                dialog.AddButton(new DialogButton(button2!, isCancel: true, onClick: () =>
                 {
                     result = null;
                     dialog.Close(2);
-                }, id: 2);
+                }, id: 2));
             }
 
             _mainForm.PanMsg.Children.Add(dialog);
@@ -206,7 +206,7 @@ public class DialogManager
 
         try { _mainForm.Dispatcher.Invoke(showOnUi); }
         catch (TaskCanceledException) { }
-        return result ?? "";
+        return result;
     }
 
     public int? ShowSelect(List<IMyRadio> selections, string? title = null,
@@ -222,16 +222,16 @@ public class DialogManager
             var panel = new StackPanel();
             var dialog = new DialogControl { Title = title, IsWarn = isWarn, DialogContent = panel };
 
-            var b1 = dialog.AddButton(button1!, onClick: () => { }, isPrimary: true, id: 1);
+            var b1 = dialog.AddButton(new DialogButton(button1!, onClick: () => { }, isPrimary: true, id: 1));
             b1.IsEnabled = false;
 
             if (!string.IsNullOrEmpty(button2))
             {
-                dialog.AddButton(button2!, onClick: () =>
+                dialog.AddButton(new DialogButton(button2!, isCancel: true, onClick: () =>
                 {
                     result = null;
                     dialog.Close(2);
-                }, id: 2);
+                }, id: 2));
             }
 
             int selectedIndex = -1;
@@ -358,9 +358,9 @@ public class DialogManager
         for (var i = 0; i < context.Buttons.Count && i < 3; i++)
         {
             var btn = context.Buttons[i];
-            var isPrimary = i == 0 || btn.IsPrimary;
-            var id = btn.Id > 0 ? btn.Id : i + 1;
-            dialog.AddButton(btn.Text, btn.OnClick, isPrimary, id, btn.IsCancel);
+            if (i == 0) btn.IsPrimary = true;
+            if (btn.Id <= 0) btn.Id = i + 1;
+            dialog.AddButton(btn);
         }
 
         context._dialog = dialog;

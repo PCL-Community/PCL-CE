@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Threading;
+using PCL.Core.UI;
 using PCL.Core.UI.Controls;
 
 namespace PCL;
@@ -12,7 +13,7 @@ public partial class DialogControl
     private int _result;
     private bool _exited;
     private readonly int _uuid = ModBase.GetUuid();
-    internal readonly List<MyButton> _buttons = [];
+    internal readonly List<(DialogButton Data, MyButton Control)> _buttons = [];
 
     public DispatcherFrame WaitFrame { get; } = new(true);
 
@@ -59,38 +60,21 @@ public partial class DialogControl
         Loaded += OnLoad;
     }
 
-    public MyButton AddButton(string text, Action? onClick = null, bool isPrimary = false, int id = 0, bool isCancel = false)
+    public MyButton AddButton(DialogButton button)
     {
-        var btn = new MyButton
-        {
-            Text = text,
-            ColorType = isPrimary
-                ? (IsWarn ? MyButton.ColorState.Red : MyButton.ColorState.Highlight)
-                : MyButton.ColorState.Normal,
-            Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible,
-            IsEnabled = true,
-            Tag = isCancel ? "Cancel" : null,
-        };
-        btn.ApplyTemplate();
-        btn.TextPadding = new Thickness(7);
-        btn.Padding = new Thickness(5, 0, 5, 0);
-        btn.Margin = new Thickness(12, 0, 0, 0);
-        btn.Name += ModBase.GetUuid();
-        var buttonId = id > 0 ? id : _buttons.Count + 1;
+        var btn = DialogButtonBuilder.Build(button, IsWarn);
+        var buttonId = button.Id > 0 ? button.Id : _buttons.Count + 1;
         btn.Click += (_, _) =>
         {
             if (_exited) return;
-            if (onClick is not null)
-            {
-                onClick();
-            }
+            if (button.OnClick is not null)
+                button.OnClick();
             else
-            {
                 Close(buttonId);
-            }
         };
-        _buttons.Add(btn);
+        _buttons.Add((button, btn));
         PanBtn.Children.Add(btn);
+
         return btn;
     }
 
@@ -102,10 +86,10 @@ public partial class DialogControl
         {
             if (IsWarn)
                 LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrushRedLight");
-            if (_buttons.Count > 1 && _buttons[0].ColorType != MyButton.ColorState.Red)
-                _buttons[0].ColorType = MyButton.ColorState.Highlight;
+            if (_buttons.Count > 1 && _buttons[0].Control.ColorType != MyButton.ColorState.Red)
+                _buttons[0].Control.ColorType = MyButton.ColorState.Highlight;
             if (_buttons.Count > 0)
-                _buttons[0].Focus();
+                _buttons[0].Control.Focus();
             else
                 PanBtn.Visibility = Visibility.Collapsed;
 

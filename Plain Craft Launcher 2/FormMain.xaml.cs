@@ -698,8 +698,8 @@ public partial class FormMain
                 {
                     DialogControl dlg when dlg._buttons.Count > 0 => () =>
                     {
-                        var confirm = dlg._buttons.FirstOrDefault(b => b.Tag as string != "Cancel")
-                                   ?? dlg._buttons[0];
+                        var confirmEntry = dlg._buttons.FirstOrDefault(b => !b.Data.IsCancel);
+                        var confirm = confirmEntry.Control ?? dlg._buttons[0].Control;
                         confirm.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                     },
                     _ => null
@@ -715,8 +715,8 @@ public partial class FormMain
                 {
                     DialogControl dlg when dlg._buttons.Count > 0 => () =>
                     {
-                        var cancel = dlg._buttons.FirstOrDefault(b => b.Tag as string == "Cancel");
-                        cancel?.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                        var cancelEntry = dlg._buttons.FirstOrDefault(b => b.Data.IsCancel);
+                        cancelEntry.Control?.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                     },
                     _ => null
                 };

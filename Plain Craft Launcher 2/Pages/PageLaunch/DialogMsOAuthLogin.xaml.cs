@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.IO.Net.Http;
 
@@ -65,18 +66,18 @@ public class DialogMsOAuthLogin
         dialog.DialogContent = scrollViewer;
 
         // Buttons
-        var btnReopen = dialog.AddButton(
+        var btnReopen = dialog.AddButton(new DialogButton(
             Lang.Text("Launch.Account.LoginDialog.ReopenWebpage"),
-            onClick: () => ModBase.OpenWebsite(_website), id: 1);
+            onClick: () => ModBase.OpenWebsite(_website), id: 1));
         CustomEventService.SetEventData(btnReopen, _website);
 
-        var btnCopy = dialog.AddButton(
+        var btnCopy = dialog.AddButton(new DialogButton(
             Lang.Text("Launch.Account.LoginDialog.CopyCode"),
-            onClick: () => ModBase.ClipboardSet(_userCode), id: 2);
+            onClick: () => ModBase.ClipboardSet(_userCode), id: 2));
         CustomEventService.SetEventData(btnCopy, _userCode);
 
-        _btnCancel = dialog.AddButton(
-            Lang.Text("Common.Action.Cancel"), isCancel: true, id: 3);
+        _btnCancel = dialog.AddButton(new DialogButton(
+            Lang.Text("Common.Action.Cancel"), isCancel: true, id: 3));
 
         // Finish callback
         dialog.OnClosed += result =>
