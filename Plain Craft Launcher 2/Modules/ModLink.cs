@@ -24,14 +24,14 @@ public static class ModLink
     {
         if (!LobbyInfoProvider.IsLobbyAvailable)
         {
-            ModMain.Hint(Lang.Text("Link.Mod.LobbyUnavailable"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Link.Mod.LobbyUnavailable"), HintType.Error);
             return false;
         }
 
         if (ModProfile.selectedProfile is not null)
             if (ModProfile.selectedProfile.Username.Contains("|"))
             {
-                ModMain.Hint(Lang.Text("Link.Mod.InvalidPlayerId"));
+                HintService.Hint(Lang.Text("Link.Mod.InvalidPlayerId"));
                 return false;
             }
 
@@ -39,7 +39,7 @@ public static class ModLink
         {
             if (string.IsNullOrWhiteSpace(States.Link.NaidRefreshToken))
             {
-                ModMain.Hint(Lang.Text("Link.Mod.LoginFirst"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Link.Mod.LoginFirst"), HintType.Error);
                 return false;
             }
 
@@ -51,7 +51,7 @@ public static class ModLink
             catch (Exception ex)
             {
                 ModBase.Log("[Link] 刷新 Natayark ID 信息失败，需要重新登录");
-                ModMain.Hint(Lang.Text("Link.Mod.ReLoginRequired"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Link.Mod.ReLoginRequired"), HintType.Error);
                 return false;
             }
 
@@ -66,32 +66,32 @@ public static class ModLink
 
             if (string.IsNullOrWhiteSpace(NatayarkProfileManager.NaidProfile.Username))
             {
-                ModMain.Hint(Lang.Text("Link.Mod.NaidFetchFailed"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Link.Mod.NaidFetchFailed"), HintType.Error);
                 return false;
             }
 
             if (LobbyInfoProvider.RequiresRealName && !NatayarkProfileManager.NaidProfile.IsRealNamed)
             {
-                ModMain.Hint(Lang.Text("Link.Mod.RealNameRequired"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Link.Mod.RealNameRequired"), HintType.Error);
                 return false;
             }
 
             if (NatayarkProfileManager.NaidProfile.Status != 0)
             {
-                ModMain.Hint(Lang.Text("Link.Mod.AccountBanned"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Link.Mod.AccountBanned"), HintType.Error);
                 return false;
             }
         }
 
         if (string.IsNullOrWhiteSpace(Config.Link.Username) && string.IsNullOrWhiteSpace(NatayarkProfileManager.NaidProfile.Username))
         {
-            ModMain.Hint(Lang.Text("Link.Mod.UsernameOrLogin"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Link.Mod.UsernameOrLogin"), HintType.Error);
             return false;
         }
 
         if (ETController.Precheck() == 1)
         {
-            ModMain.Hint(Lang.Text("Link.Mod.DownloadingDeps"));
+            HintService.Hint(Lang.Text("Link.Mod.DownloadingDeps"));
             DownloadEasyTier();
             return false;
         }
@@ -100,14 +100,14 @@ public static class ModLink
         {
             if (dlEasyTierLoader.State == ModBase.LoadState.Loading)
             {
-                ModMain.Hint(Lang.Text("Link.Mod.EasyTierNotReady"));
+                HintService.Hint(Lang.Text("Link.Mod.EasyTierNotReady"));
                 return false;
             }
 
             if (dlEasyTierLoader.State == ModBase.LoadState.Failed ||
                 dlEasyTierLoader.State == ModBase.LoadState.Aborted)
             {
-                ModMain.Hint(Lang.Text("Link.Mod.DownloadingEasyTier"));
+                HintService.Hint(Lang.Text("Link.Mod.DownloadingEasyTier"));
                 DownloadEasyTier();
                 return false;
             }

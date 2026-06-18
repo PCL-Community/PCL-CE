@@ -198,11 +198,6 @@ public static partial class Config
         [ConfigItem<bool>("UiShowLaunchingHint", true, ConfigSource.Local)] public partial bool ShowLaunchingHint { get; set; }
 
         /// <summary>
-        /// 提示气泡靠右弹出。
-        /// </summary>
-        [ConfigItem<bool>("UiHintAlignRight", false, ConfigSource.Local)] public partial bool HintAlignRight { get; set; }
-
-        /// <summary>
         /// 标题内容类型。
         /// </summary>
         [ConfigItem<LauncherTitleType>("UiLogoType", LauncherTitleType.Default, ConfigSource.Local)] public partial LauncherTitleType WindowTitleType { get; set; }
@@ -515,9 +510,9 @@ public static partial class Config
         [ConfigItem<bool>("LaunchAdvanceDisableJLW", true, ConfigSource.Local)] public partial bool DisableJlw { get; set; }
 
         /// <summary>
-        /// 禁用 Retro Wrapper
+        /// 禁用 LegacyFix
         /// </summary>
-        [ConfigItem<bool>("LaunchAdvanceDisableRW", false, ConfigSource.Local)] public partial bool DisableRw { get; set; }
+        [ConfigItem<bool>("LaunchAdvanceDisableLF", false, ConfigSource.Local)] public partial bool DisableLF { get; set; }
 
         /// <summary>
         /// 强制使用高性能显卡。
@@ -619,7 +614,7 @@ public static partial class Config
         [ConfigItem<bool>("VersionAdvanceDisableJLW", false)] public partial ArgConfig<bool> DisableJlw { get; }
         [ConfigItem<bool>("VersionAdvanceDisableLwjglUnsafeAgent", false)] public partial ArgConfig<bool> DisableLwjglUnsafeAgent { get; }
         [ConfigItem<bool>("VersionAdvanceUseProxyV2", false)] public partial ArgConfig<bool> UseProxy { get; }
-        [ConfigItem<bool>("VersionAdvanceDisableRW", false)] public partial ArgConfig<bool> DisableRw { get; }
+        [ConfigItem<bool>("VersionAdvanceDisableLF", false)] public partial ArgConfig<bool> DisableLF { get; }
         [ConfigItem<bool>("VersionUseDebugLog4j2Config", false)] public partial ArgConfig<bool> UseDebugLof4j2Config { get; }
         [ConfigItem<int>("VersionRamType", 2)] public partial ArgConfig<int> MemorySolution { get; }
         [ConfigItem<int>("VersionRamCustom", 15)] public partial ArgConfig<int> CustomMemorySize { get; }

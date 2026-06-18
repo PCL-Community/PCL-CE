@@ -51,7 +51,7 @@ jobs:
           -p:DeleteExistingFiles=true -o ./artifact --no-self-contained
 
       - name: Upload the Build Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: PCL2_CE_${{ inputs.configuration }}_${{ inputs.architecture }}
           path: artifact/**

@@ -150,7 +150,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
             }
         }
 
-        ModMain.Hint(Lang.Text("Instance.Saves.Left.Refreshing"));
+        HintService.Hint(Lang.Text("Instance.Saves.Left.Refreshing"));
     }
 
     #endregion

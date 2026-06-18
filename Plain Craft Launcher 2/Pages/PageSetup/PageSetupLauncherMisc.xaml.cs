@@ -70,7 +70,7 @@ public partial class PageSetupLauncherMisc
             Config.Debug.Reset();
             Config.System.Reset();
             ModBase.Log("[Setup] 已初始化启动器-杂项页设置");
-            ModMain.Hint(Lang.Text("Setup.Misc.Initialized"), ModMain.HintType.Finish, false);
+            HintService.Hint(Lang.Text("Setup.Misc.Initialized"), HintType.Success, false);
             Reload();
         }
         catch (Exception ex)
@@ -149,14 +149,14 @@ public partial class PageSetupLauncherMisc
     // 硬件加速
     private void Check_DisableHardwareAcceleration(object _, bool __)
     {
-        ModMain.Hint(Lang.Text("Setup.Misc.HardwareAcceleration.RestartNotice"));
+        HintService.Hint(Lang.Text("Setup.Misc.HardwareAcceleration.RestartNotice"));
     }
 
     // 调试模式
     private void CheckDebugMode_Change(object _, bool __)
     {
         if (ModAnimation.AniControlEnabled == 0)
-            ModMain.Hint(Lang.Text("Setup.Misc.Debug.Mode.Hint"), log: false);
+            HintService.Hint(Lang.Text("Setup.Misc.Debug.Mode.Hint"), log: false);
     }
 
     // 自动更新
@@ -201,7 +201,7 @@ public partial class PageSetupLauncherMisc
         if (string.IsNullOrWhiteSpace(savePath))
             return;
         File.Copy(ConfigService.SharedConfigPath, savePath, true);
-        ModMain.Hint(Lang.Text("Setup.Misc.Export.Success"), ModMain.HintType.Finish);
+        HintService.Hint(Lang.Text("Setup.Misc.Export.Success"), HintType.Success);
         ModBase.OpenExplorer(savePath);
     }
 

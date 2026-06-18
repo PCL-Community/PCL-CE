@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.App.Configuration;
+namespace PCL.Core.App.Configuration;
 
 /// <summary>
 /// 配置项监听委托。

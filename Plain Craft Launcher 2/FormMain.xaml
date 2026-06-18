@@ -221,11 +221,11 @@
                                 UseLayoutRounding="False" SnapsToDevicePixels="False" />
                     </Border>
                 </Grid>
-                <StackPanel x:Name="PanHint" IsHitTestVisible="False" UseLayoutRounding="True"
+                <StackPanel x:Name="PanHint" UseLayoutRounding="True"
                             SnapsToDevicePixels="True" HorizontalAlignment="Left" VerticalAlignment="Bottom"
                             Margin="0,0,0,20"
                             Grid.Row="0" Grid.RowSpan="2" Panel.ZIndex="1" />
-                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Grid.Row="1" Margin="15">
+                <StackPanel x:Name="PanExtraButtons" HorizontalAlignment="Right" VerticalAlignment="Bottom" Grid.Row="1" Margin="15">
                     <local:MyExtraButton x:Name="BtnExtraUpdateRestart" HorizontalAlignment="Right"
                                          Click="BtnExtraUpdateRestart_Click"
                                          VerticalAlignment="Center" ToolTip="{DynamicResource Main.Extra.UpdateRestart.ToolTip}"
@@ -256,7 +256,7 @@
                                          Visibility="Collapsed" CanRightClick="True" />
                 </StackPanel>
                 <controls:BlurBorder x:Name="PanMsgBackground" Grid.Row="0" Grid.RowSpan="2" Background="#00000000"
-                                     Visibility="Collapsed">
+                                     Panel.ZIndex="2" Visibility="Collapsed">
                     <Grid x:Name="PanMsg" Background="#00000000" MouseLeftButtonDown="FormDragMove" />
                 </controls:BlurBorder>
             </Grid>

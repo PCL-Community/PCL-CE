@@ -149,7 +149,7 @@ public partial class PageLogRight
         if (savePath.Length < 3)
             return;
         File.WriteAllLines(savePath, ModMain.frmLogLeft.currentLog.fullLog);
-        ModMain.Hint(Lang.Text("LogPage.Export.Success"), ModMain.HintType.Finish);
+        HintService.Hint(Lang.Text("LogPage.Export.Success"), HintType.Success);
         ModBase.OpenExplorer(savePath);
     }
 
@@ -158,8 +158,8 @@ public partial class PageLogRight
         if (ModMain.frmLogLeft.currentLog.State <= ModWatcher.Watcher.MinecraftState.Running)
         {
             ModMain.frmLogLeft.currentLog.Kill();
-            ModMain.Hint(Lang.Text("LogPage.Action.GameClosed", ModMain.frmLogLeft.currentLog.version.Name),
-                ModMain.HintType.Finish);
+            HintService.Hint(Lang.Text("LogPage.Action.GameClosed", ModMain.frmLogLeft.currentLog.version.Name),
+                HintType.Success);
         }
     }
 
@@ -174,7 +174,7 @@ public partial class PageLogRight
             Lang.Text("LogPage.ExportStack.Filter"));
         if (savePath.Length < 3)
             return;
-        ModMain.Hint(Lang.Text("LogPage.ExportStack.Progress"));
+        HintService.Hint(Lang.Text("LogPage.ExportStack.Progress"));
         BtnOperationExportStackDump.IsEnabled = false;
         ModBase.RunInNewThread(() =>
         {
@@ -182,7 +182,7 @@ public partial class PageLogRight
             File.WriteAllLines(savePath, dump);
             ModBase.RunInUi(() =>
             {
-                ModMain.Hint(Lang.Text("LogPage.ExportStack.Success"), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("LogPage.ExportStack.Success"), HintType.Success);
                 BtnOperationExportStackDump.IsEnabled = true;
             });
             ModBase.OpenExplorer(savePath);

@@ -4,7 +4,8 @@ public enum HintTheme
 {
     Info,
     Success,
-    Error
+    Error,
+    Warning
 }
 
 public delegate void HintHandler(

@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.Utils;
+namespace PCL.Core.Utils;
 
 internal static class EaseUtils
 {

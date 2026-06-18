@@ -73,7 +73,7 @@ public partial class PageSetupLaunch
             TextAdvanceGame.Text = Config.Launch.GameArgs;
             TextAdvanceRun.Text = Config.Launch.PreLaunchCommand;
             CheckAdvanceRunWait.Checked = Config.Launch.PreLaunchCommandWait;
-            CheckAdvanceDisableRW.Checked = Config.Launch.DisableRw;
+            CheckAdvanceDisableLF.Checked = Config.Launch.DisableLF;
             CheckAdvanceGraphicCard.Checked = Config.Launch.SetGpuPreference;
             CheckAdvanceNoJavaw.Checked = Config.Launch.NoJavaw;
             CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Launch.DisableLwjglUnsafeAgent;
@@ -108,7 +108,7 @@ public partial class PageSetupLaunch
         {
             Config.Launch.Reset();
             ModBase.Log("[Setup] 已初始化启动设置");
-            ModMain.Hint(Lang.Text("Setup.Launch.Initialized"), ModMain.HintType.Finish, false);
+            HintService.Hint(Lang.Text("Setup.Launch.Initialized"), HintType.Success, false);
         }
         catch (Exception ex)
         {

@@ -1392,8 +1392,6 @@
     <sys:String x:Key="Setup.Ui.Basic.ShowLogo">打开启动器时显示 PCL 图标</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.LockWindow">锁定启动器大小</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.ShowTriviaHint">在启动游戏时显示"你知道吗"</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.HintAlignRight">弹出提示靠右显示</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.HintAlignRight.Changed">切换成功！</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.AdvancedMaterial">高级材质</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.AdvancedMaterial.ToolTip">启用此功能后会在部分透明区域（例如卡片）实现模糊效果。&#x0a;请注意，该功能会消耗大量 GPU 算力，并导致卡顿！</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.BlurRadius">模糊半径</sys:String>
@@ -1655,8 +1653,8 @@
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw">禁用 Java Launch Wrapper</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.ToolTip">PCL 会使用 Java Launch Wrapper 来修复老版本 Java 在中文路径下无法启动的问题。&#x0a;如果这被反作弊拦截，或遇到其他问题，也可以将其关闭。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.Arm64Notice">在启动游戏时不使用 Java Wrapper 进行包装。&#x0a;由于系统为 ARM64 架构，Java Wrapper 已被强制禁用。</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.DisableRw">禁用 RetroWrapper</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.DisableRw.ToolTip">PCL 会在启动 1.5.x 及以下版本时使用 RetroWrapper 来改善老版本游戏体验和修复兼容性问题。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableLF">禁用 LegacyFix</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableLF.ToolTip">PCL 会在启动 1.5.x 及以下版本时使用 LegacyFix 来改善老版本游戏体验和修复兼容性问题。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.GpuPreference">要求 Java 使用高性能显卡</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.GpuPreference.ToolTip">自动在 Windows 设置 → 系统 → 屏幕 → 显示卡 中将 Java 改为使用高性能显卡。&#x0a;如果电脑同时有集显和独显，这能确保 MC 使用独显进行渲染，以大幅提高性能。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe">使用 java.exe 而不是 javaw.exe</sys:String>

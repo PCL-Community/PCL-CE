@@ -162,7 +162,7 @@ public static class ModLaunch
                 {
                     case 2:
                     {
-                        ModMain.Hint(Lang.Text("Minecraft.Launch.DemoMode"), ModMain.HintType.Critical);
+                        HintService.Hint(Lang.Text("Minecraft.Launch.DemoMode"), HintType.Error);
                         currentLaunchOptions.ExtraArgs.Add("--demo");
                         break;
                     }
@@ -235,7 +235,7 @@ public static class ModLaunch
             throw new Exception("McLaunchStart 必须在 UI 线程调用！");
         if (mcLaunchLoader.State == ModBase.LoadState.Loading)
         {
-            ModMain.Hint(Lang.Text("Minecraft.Launch.Error.AlreadyLaunching"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Minecraft.Launch.Error.AlreadyLaunching"), HintType.Error);
             isLaunching = false;
             return false;
         }
@@ -249,7 +249,7 @@ public static class ModLaunch
             currentLaunchOptions.instance.Load();
             if (currentLaunchOptions.instance.state == McInstanceState.Error)
             {
-                ModMain.Hint(Lang.Text("Minecraft.Launch.Error.CannotLaunch", currentLaunchOptions.instance.Desc), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Launch.Error.CannotLaunch", currentLaunchOptions.instance.Desc), HintType.Error);
                 isLaunching = false;
                 return false;
             }
@@ -329,7 +329,7 @@ public static class ModLaunch
         catch (Exception ex)
         {
             if (!ex.Message.StartsWithF("$$"))
-                ModMain.Hint(ex.Message, ModMain.HintType.Critical);
+                HintService.Hint(ex.Message, HintType.Error);
             throw;
         }
 
@@ -377,15 +377,15 @@ public static class ModLaunch
             {
                 case ModBase.LoadState.Finished:
                 {
-                    ModMain.Hint(Lang.Text("Minecraft.Launch.Success", ModInstanceList.McMcInstanceSelected.Name), ModMain.HintType.Finish);
+                    HintService.Hint(Lang.Text("Minecraft.Launch.Success", ModInstanceList.McMcInstanceSelected.Name), HintType.Success);
                     break;
                 }
                 case ModBase.LoadState.Aborted:
                 {
                     if (abortHint is null)
-                        ModMain.Hint(currentLaunchOptions?.SaveBatch is null ? Lang.Text("Minecraft.Launch.Cancelled") : Lang.Text("Minecraft.Launch.ExportScript.Cancelled"));
+                        HintService.Hint(currentLaunchOptions?.SaveBatch is null ? Lang.Text("Minecraft.Launch.Cancelled") : Lang.Text("Minecraft.Launch.ExportScript.Cancelled"));
                     else
-                        ModMain.Hint(abortHint, ModMain.HintType.Finish);
+                        HintService.Hint(abortHint, HintType.Success);
 
                     break;
                 }
@@ -764,7 +764,7 @@ public static class ModLaunch
                     ModProfile.profileList[index].Username = result[1];
                     ModProfile.profileList[index].AccessToken = accessToken;
                     ModProfile.profileList[index].RefreshToken = oauthRefreshToken;
-                    ModMain.Hint(Lang.Text("Minecraft.Launch.Login.Microsoft.ProfileAlreadyAdded"));
+                    HintService.Hint(Lang.Text("Minecraft.Launch.Login.Microsoft.ProfileAlreadyAdded"));
                     goto SkipLogin;
                 }
             }
@@ -1626,12 +1626,12 @@ public static class ModLaunch
             if (loginJson["availableProfiles"].AsArray().Count == 0)
             {
                 if (data.input.ForceReselectProfile)
-                    ModMain.Hint(Lang.Text("Minecraft.Launch.Login.Auth.NoProfileCannotSwitch"), ModMain.HintType.Critical);
+                    HintService.Hint(Lang.Text("Minecraft.Launch.Login.Auth.NoProfileCannotSwitch"), HintType.Error);
                 throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.NoProfile"));
             }
 
             if (data.input.ForceReselectProfile && loginJson["availableProfiles"].AsArray().Count == 1)
-                ModMain.Hint(Lang.Text("Minecraft.Launch.Login.Auth.OnlyOneProfile"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Launch.Login.Auth.OnlyOneProfile"), HintType.Error);
             string selectedName = null;
             string selectedId = null;
             if ((loginJson["selectedProfile"] is null || data.input.ForceReselectProfile) &&
@@ -2066,7 +2066,7 @@ public static class ModLaunch
             }
             else
             {
-                ModMain.Hint(Lang.Text("Minecraft.Launch.Error.NoJava"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Launch.Error.NoJava"), HintType.Error);
                 throw new Exception("$$");
             }
         }
@@ -2239,15 +2239,20 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     判断是否使用 RetroWrapper。
-    ///     TODO: 在更换为 Drop 比较版本号后可能不准确，需要测试确认。
+    /// 判断是否使用 LegacyFix。
     /// </summary>
-    private static bool McLaunchNeedsRetroWrapper(McInstance mc)
+    private static bool McLaunchNeedsLegacyFix(McInstance mc)
     {
-        return (mc.releaseTime >= new DateTime(2013, 6, 25) && mc.Info.Drop == 99) ||
-               (mc.Info.Drop < 60 && mc.Info.Drop != 99 &&
-                !Config.Launch.DisableRw &&
-                !Config.Instance.DisableRw[mc.PathInstance]); // <1.6
+        if (Config.Launch.DisableLF || Config.Instance.DisableLF[mc.PathInstance])
+        {
+            ModBase.Log("[Launch] LegacyFix 已被禁用");
+            return false;
+        }
+        if (mc.releaseTime < new DateTime(2013, 6, 25) && mc.releaseTime.Year > 2000)
+        {
+            return true;
+        }
+        return false;
     }
 
     /// <summary>
@@ -2396,7 +2401,7 @@ public static class ModLaunch
                     // 不包含端口号
                     finalArguments += " --server " + server + " --port 25565";
                 if (ModInstanceList.McMcInstanceSelected.Info.HasOptiFine)
-                    ModMain.Hint(Lang.Text("Minecraft.Launch.Error.OptiFineAutoJoinWarning"), ModMain.HintType.Critical);
+                    HintService.Hint(Lang.Text("Minecraft.Launch.Error.OptiFineAutoJoinWarning"), HintType.Error);
             }
         }
 
@@ -2494,6 +2499,19 @@ public static class ModLaunch
             {
                 ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.Proxy"), ModBase.LogLevel.Hint);
             }
+
+        // 添加 LegacyFix 相关参数
+        if (McLaunchNeedsLegacyFix(instance))
+        {
+            var legacyFixPath = Path.Combine(ModBase.pathPure, "legacyfix.jar");
+            dataList.Add("-javaagent:\"" + legacyFixPath + "\"");
+
+            // Beta 1.6 以前版本需要添加的参数
+            if (instance.releaseTime < new DateTime(2011, 5, 25))
+            {
+                dataList.Add("-Djava.util.Arrays.useLegacyMergeSort=true");
+            }
+        }
 
         // 添加 Java Wrapper 作为主 Jar
         if (ModBase.IsUtf8CodePage() && !Config.Launch.DisableJlw &&
@@ -2616,10 +2634,6 @@ public static class ModLaunch
                 ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.Proxy"), ModBase.LogLevel.Hint);
             }
 
-        // 添加 RetroWrapper 相关参数
-        if (McLaunchNeedsRetroWrapper(instance))
-            // https://github.com/NeRdTheNed/RetroWrapper/wiki/RetroWrapper-flags
-            dataList.Add("-Dretrowrapper.doUpdateCheck=false");
         // 添加 Java Wrapper 作为主 Jar
         if (ModBase.IsUtf8CodePage() && !Config.Launch.DisableJlw &&
             !Config.Instance.DisableJlw[ModInstanceList.McMcInstanceSelected?.PathInstance])
@@ -2667,9 +2681,6 @@ public static class ModLaunch
     private static string McLaunchArgumentsGameOld(McInstance version)
     {
         var dataList = new List<string>();
-
-        // 添加 RetroWrapper 相关参数
-        if (McLaunchNeedsRetroWrapper(version)) dataList.Add("--tweakClass com.zero.retrowrapper.RetroTweaker");
 
         // 本地化 Minecraft 启动信息
         var basicString = version.JsonObject["minecraftArguments"].ToString();
@@ -2887,18 +2898,17 @@ public static class ModLaunch
         var cpStrings = new List<string>();
         string optiFineCp = null;
 
-        // RetroWrapper 释放
-        if (McLaunchNeedsRetroWrapper(instance))
+        // LegacyFix 释放
+        if (McLaunchNeedsLegacyFix(instance))
         {
-            var wrapperPath = ModFolder.mcFolderSelected + @"libraries\retrowrapper\RetroWrapper.jar";
+            var legacyFixPath = Path.Combine(ModBase.pathPure, "legacyfix.jar");
             try
             {
-                ModBase.WriteFile(wrapperPath, ModBase.GetResourceStream("Resources/retro-wrapper.jar"));
-                cpStrings.Add(wrapperPath);
+                ModBase.WriteFile(legacyFixPath, ModBase.GetResourceStream("Resources/legacyfix.jar"));
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "RetroWrapper 释放失败");
+                ModBase.Log(ex, "LegacyFix 释放失败");
             }
         }
 

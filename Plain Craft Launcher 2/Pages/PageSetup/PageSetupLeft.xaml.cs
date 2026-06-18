@@ -191,7 +191,7 @@ public partial class PageSetupLeft
             }
         }
 
-        ModMain.Hint(Lang.Text("Setup.Left.Refreshing"), log: false);
+        HintService.Hint(Lang.Text("Setup.Left.Refreshing"), log: false);
     }
 
     #region 页面切换

@@ -154,7 +154,7 @@ public static class UpdateManager
             {
                 ModBase.Log(ex, "[Update] 获取启动器更新失败");
                 if (type != UpdateEnums.UpdateType.Silent)
-                    ModMain.Hint(Lang.Text("Update.Error.FetchFailed"), ModMain.HintType.Critical);
+                    HintService.Hint(Lang.Text("Update.Error.FetchFailed"), HintType.Error);
             }
         });
     }

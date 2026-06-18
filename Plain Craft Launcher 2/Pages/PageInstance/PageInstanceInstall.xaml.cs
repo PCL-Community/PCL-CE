@@ -251,7 +251,7 @@ public partial class PageInstanceInstall
         if (!(bool)States.Hint.InstallPageBack)
         {
             States.Hint.InstallPageBack = true;
-            ModMain.Hint(Lang.Text("Download.Install.Hint.MinecraftBack"));
+            HintService.Hint(Lang.Text("Download.Install.Hint.MinecraftBack"));
         }
 
         // 如果在选择页面按了刷新键，选择页的东西可能会由于动画被隐藏，但不会由于加载结束而再次显示，因此这里需要手动恢复
@@ -2222,7 +2222,7 @@ public partial class PageInstanceInstall
     // 选择与清除
     public void LegacyFabric_Selected(MyListItem sender, EventArgs e)
     {
-        selectedLegacyFabric = ((dynamic)sender.Tag)("version").ToString();
+        selectedLegacyFabric = ((dynamic)sender.Tag)["version"].ToString();
         selectedLoaderName = "LegacyFabric";
         LegacyFabricApi_Loaded();
         CardLegacyFabric.IsSwapped = true;
