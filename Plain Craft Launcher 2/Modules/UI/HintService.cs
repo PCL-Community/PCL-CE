@@ -30,7 +30,6 @@ public static class HintService
         var hintType = messageTheme switch
         {
             HintTheme.Error => HintType.Error,
-            HintTheme.Info => HintType.Info,
             HintTheme.Warning => HintType.Warning,
             _ => HintType.Info
         };
