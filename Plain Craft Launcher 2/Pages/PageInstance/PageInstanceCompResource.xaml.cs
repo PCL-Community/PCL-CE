@@ -2801,8 +2801,8 @@ public partial class PageInstanceCompResource : IRefreshable
     {
         var curToken = new CancellationTokenSource();
         var oldToken = Interlocked.Exchange(ref _cancelToken, curToken);
-        oldToken.Cancel();
-        oldToken.Dispose();
+        oldToken?.Cancel();
+        oldToken?.Dispose();
 
         // this exception is ignored
         Dispatcher.BeginInvoke(new Func<Task>(async () =>
@@ -2811,7 +2811,7 @@ public partial class PageInstanceCompResource : IRefreshable
             {
                 var token = curToken.Token;
                 await Task.Delay(350, token);
-                if (curToken.IsCancellationRequested) return;
+                if (token.IsCancellationRequested) return;
                 if (IsSearching)
                 {
                     var searchText = SearchBox.Text;
