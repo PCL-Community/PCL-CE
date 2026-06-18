@@ -1158,6 +1158,7 @@ public partial class PageInstanceInstall
         {
             selectedAPIName = "Cleanroom";
             selectedCleanroomVersion = currentInstance.Cleanroom;
+            selectedCleanroom = new ModDownload.DlCleanroomListEntry(selectedCleanroomVersion);
         }
         else if (currentInstance.HasForge)
         {
