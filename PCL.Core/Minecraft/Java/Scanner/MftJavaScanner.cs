@@ -5,6 +5,7 @@ using PCL.Core.Utils.OS;
 using PCL.Core.App.IoC;
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -65,11 +66,16 @@ internal class MftJavaScanner : IJavaScanner
     {
         var drives = DriveInfo.GetDrives()
             .Where(d => d.DriveType == DriveType.Fixed && d.IsReady)
-            .Select(d => d.Name.TrimEnd('\\'));
+            .Select(d => d.Name.TrimEnd('\\'))
+            .Where(d => d.Length > 0)
+            .ToList();
 
-        foreach (var drive in drives)
+        if (drives.Count == 0) return;
+
+        var parallelResults = new ConcurrentBag<string>();
+
+        Parallel.ForEach(drives, drive =>
         {
-            if (drive.Length == 0) continue;
 
             var driveLetter = drive[..1];
             try
@@ -90,14 +96,18 @@ internal class MftJavaScanner : IJavaScanner
                     if (!fullPath.EndsWith(Path.Combine("bin", "java.exe"), StringComparison.OrdinalIgnoreCase)) continue;
                     if (!File.Exists(fullPath)) continue;
 
-                    results.Add(fullPath);
+                    parallelResults.Add(fullPath);
                 }
             }
             catch (Exception ex)
             {
                 LogWrapper.Warn(ex, "Java", $"MFT 扫描跳过驱动器 {driveLetter}");
-                continue;
             }
+        });
+
+        foreach (var path in parallelResults)
+        {
+            results.Add(path);
         }
     }
 }
