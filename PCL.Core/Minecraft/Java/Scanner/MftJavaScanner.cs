@@ -83,7 +83,7 @@ internal class MftJavaScanner : IJavaScanner
                 using var volume = MftVolume.Open(driveLetter);
                 var records = volume.FindByName(
                     "java.exe",
-                    MatchFlags.Contains | MatchFlags.ResolvePaths,
+                    MatchFlags.ExactMatch | MatchFlags.ResolvePaths,
                     out _);
 
                 foreach (var record in records)
