@@ -1903,6 +1903,7 @@ public partial class PageInstanceInstall
         selectedCleanroom = null;
         selectedCleanroomVersion = null;
         selectedLoaderName = null;
+        selectedAPIName = null;
         CardCleanroom.IsSwapped = true;
         e.Handled = true;
         OptiFine_Loaded();
