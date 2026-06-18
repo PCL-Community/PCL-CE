@@ -46,10 +46,35 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Validate N Cloud certificate
+      - name: Restore N Cloud certificates
+        shell: bash
+        env:
+          N_CLOUD_SERVER_CERT_BASE64: ${{ secrets.N_CLOUD_SERVER_CERT_BASE64 }}
+          N_CLOUD_CLIENT_PFX_BASE64: ${{ secrets.N_CLOUD_CLIENT_PFX_BASE64 }}
+        run: |
+          set -euo pipefail
+          cert_dir="PCL.Online/Certificates"
+          mkdir -p "$cert_dir"
+
+          if [[ -n "${N_CLOUD_SERVER_CERT_BASE64:-}" ]]; then
+            printf '%s' "$N_CLOUD_SERVER_CERT_BASE64" |
+              tr -d '\r\n ' |
+              base64 -d > "$cert_dir/n-cloud.cer"
+          fi
+
+          if [[ -n "${N_CLOUD_CLIENT_PFX_BASE64:-}" ]]; then
+            printf '%s' "$N_CLOUD_CLIENT_PFX_BASE64" |
+              tr -d '\r\n ' |
+              base64 -d > "$cert_dir/n-cloud-client.pfx"
+            chmod 600 "$cert_dir/n-cloud-client.pfx"
+          fi
+
+      - name: Validate N Cloud certificates
         shell: bash
         run: |
+          set -euo pipefail
           cert="PCL.Online/Certificates/n-cloud.cer"
+          pfx="PCL.Online/Certificates/n-cloud-client.pfx"
           test -s "$cert" || {
             echo "::error file=$cert::N Cloud pinned certificate is missing or empty."
             exit 1
@@ -68,6 +93,41 @@ jobs:
 
           echo "N Cloud certificate SHA-256:"
           openssl x509 -in "$cert" -outform DER | sha256sum
+
+          require_client_cert=false
+          if [[ "${{ github.event_name }}" != "pull_request" || "${{ inputs.configuration }}" != "CI" ]]; then
+            require_client_cert=true
+          fi
+
+          if [[ ! -s "$pfx" ]]; then
+            if [[ "$require_client_cert" == "true" ]]; then
+              echo "::error file=$pfx::N Cloud client certificate PFX is required for non-PR builds."
+              exit 1
+            fi
+
+            echo "::warning file=$pfx::N Cloud client certificate PFX is missing; PR artifact will not be able to call mTLS APIs."
+            exit 0
+          fi
+
+          client_cert="$RUNNER_TEMP/n-cloud-client.crt"
+          openssl pkcs12 -legacy -in "$pfx" -passin pass: -clcerts -nokeys -out "$client_cert" || {
+            echo "::error file=$pfx::N Cloud client PFX must be readable with an empty password."
+            exit 1
+          }
+
+          openssl x509 -in "$client_cert" -noout -checkend 0 || {
+            echo "::error file=$pfx::N Cloud client certificate is invalid or expired."
+            exit 1
+          }
+
+          openssl x509 -in "$client_cert" -noout -purpose |
+            grep -Fq "SSL client : Yes" || {
+              echo "::error file=$pfx::N Cloud client certificate is not valid for TLS client authentication."
+              exit 1
+            }
+
+          echo "N Cloud client certificate SHA-1 thumbprint:"
+          openssl x509 -in "$client_cert" -noout -fingerprint -sha1
 
       - name: Build Project
         env:

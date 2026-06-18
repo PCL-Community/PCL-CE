@@ -113,7 +113,7 @@ public static class NCloudHttpClient
         var configuredPath = EnvironmentInterop.GetSecret("ONLINE_CLIENT_CERT_PATH");
         if (!string.IsNullOrWhiteSpace(configuredPath) && File.Exists(configuredPath))
             return X509CertificateLoader.LoadPkcs12FromFile(configuredPath, password,
-                X509KeyStorageFlags.EphemeralKeySet);
+                GetClientCertificateStorageFlags());
 
         var assembly = typeof(NCloudHttpClient).Assembly;
         using var certificateStream = assembly.GetManifestResourceStream(ClientCertificateResourceName);
@@ -123,8 +123,13 @@ public static class NCloudHttpClient
         using var memoryStream = new MemoryStream();
         certificateStream.CopyTo(memoryStream);
         return X509CertificateLoader.LoadPkcs12(memoryStream.ToArray(), password,
-            X509KeyStorageFlags.EphemeralKeySet);
+            GetClientCertificateStorageFlags());
     }
+
+    private static X509KeyStorageFlags GetClientCertificateStorageFlags() =>
+        OperatingSystem.IsWindows()
+            ? X509KeyStorageFlags.UserKeySet
+            : X509KeyStorageFlags.EphemeralKeySet;
 
     private static bool ValidatePinnedCertificate(
         X509Certificate2? certificate,
