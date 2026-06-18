@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.Minecraft.Java;
+namespace PCL.Core.Minecraft.Java;
 public class JavaConsts
 {
     public static readonly string[] ExcludeFolderNames = ["javapath", "java8path", "common files", "netease"];
