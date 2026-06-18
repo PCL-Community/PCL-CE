@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -18,11 +22,12 @@ public static class Basics
 {
     #region 基本信息
 
+    private const string MetadataResourceName = "PCL.metadata.json";
+
     /// <summary>
     /// 启动器元数据。
     /// </summary>
-    public static MetadataModel Metadata { get; } = JsonSerializer.Deserialize<MetadataModel>(
-        Assembly.GetEntryAssembly()!.GetManifestResourceStream("PCL.metadata.json")!, JsonCompat.SerializerOptions)!;
+    public static MetadataModel Metadata { get; } = LoadMetadata();
 
     /// <summary>
     /// 版本名称。
@@ -45,6 +50,102 @@ public static class Basics
     public static bool IsAprilFool => DateTime.Now is { Month: 4, Day: 1 };
 
     #endregion
+
+    private static MetadataModel LoadMetadata()
+    {
+        using (var stream = TryOpenMetadataResource())
+        {
+            var metadata = TryDeserializeMetadata(stream);
+            if (metadata is not null)
+                return metadata;
+        }
+
+        var metadataPath = TryFindMetadataFile();
+        if (metadataPath is not null)
+            try
+            {
+                using var stream = File.OpenRead(metadataPath);
+                var metadata = TryDeserializeMetadata(stream);
+                if (metadata is not null)
+                    return metadata;
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                Debug.WriteLine($"[Metadata] Failed to read {metadataPath}: {ex.Message}");
+            }
+
+        Debug.WriteLine("[Metadata] Falling back to built-in metadata.");
+        return new MetadataModel(
+            "Plain Craft Launcher N Edition",
+            new LauncherVersionModel("0.0.0", string.Empty, 0, "0.0.0"),
+            []);
+    }
+
+    private static MetadataModel? TryDeserializeMetadata(Stream? stream)
+    {
+        if (stream is null)
+            return null;
+
+        try
+        {
+            return JsonSerializer.Deserialize<MetadataModel>(stream, JsonCompat.SerializerOptions);
+        }
+        catch (Exception ex) when (ex is JsonException or NotSupportedException)
+        {
+            Debug.WriteLine($"[Metadata] Failed to parse metadata: {ex.Message}");
+            return null;
+        }
+    }
+
+    private static Stream? TryOpenMetadataResource()
+    {
+        var entryAssembly = Assembly.GetEntryAssembly();
+        var stream = TryOpenMetadataResource(entryAssembly);
+        if (stream is not null)
+            return stream;
+
+        var executingAssembly = Assembly.GetExecutingAssembly();
+        return ReferenceEquals(entryAssembly, executingAssembly) ? null : TryOpenMetadataResource(executingAssembly);
+    }
+
+    private static Stream? TryOpenMetadataResource(Assembly? assembly)
+    {
+        if (assembly is null)
+            return null;
+
+        var stream = assembly.GetManifestResourceStream(MetadataResourceName);
+        if (stream is not null)
+            return stream;
+
+        foreach (var resourceName in assembly.GetManifestResourceNames())
+            if (resourceName.EndsWith(".metadata.json", StringComparison.OrdinalIgnoreCase))
+                return assembly.GetManifestResourceStream(resourceName);
+
+        return null;
+    }
+
+    private static string? TryFindMetadataFile()
+    {
+        var directory = AppContext.BaseDirectory;
+        for (var depth = 0; depth < 8 && !string.IsNullOrWhiteSpace(directory); depth++)
+        {
+            var directPath = Path.Combine(directory, "metadata.json");
+            if (File.Exists(directPath))
+                return directPath;
+
+            var launcherPath = Path.Combine(directory, "Plain Craft Launcher 2", "metadata.json");
+            if (File.Exists(launcherPath))
+                return launcherPath;
+
+            var parent = Directory.GetParent(directory)?.FullName;
+            if (string.IsNullOrWhiteSpace(parent) || string.Equals(parent, directory, StringComparison.OrdinalIgnoreCase))
+                break;
+
+            directory = parent;
+        }
+
+        return null;
+    }
 
     #region 程序路径信息
 
