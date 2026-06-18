@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Management;
 using System.Text;
 using PCL.Core.Logging;
