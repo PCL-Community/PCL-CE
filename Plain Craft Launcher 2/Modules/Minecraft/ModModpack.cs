@@ -1325,7 +1325,7 @@ public static class ModModpack
                         .ToHashSet();
                     
                     patches = patches
-                        .Where(p => componentUids.Contains(p.Key["uid"]?.ToString() ?? ""))
+                        .Where(p => componentUids.Contains(p.Key["uid"]?.ToString()))
                         .OrderBy(p => p.Value)
                         .ToList();
                     // 应用 Patches
