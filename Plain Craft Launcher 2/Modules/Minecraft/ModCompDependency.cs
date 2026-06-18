@@ -211,9 +211,9 @@ public static class ModCompDependency
 
     /// <summary>
     ///     Shows confirmation dialog for required dependency installs.
-    ///     Returns true if user confirms, false if user cancels or there are unresolved required deps.
+    ///     Returns: 1 if user chooses to install with deps, 2 if user chooses to install without deps, 3  if user cancels, 0 if there are unresolved required deps.
     /// </summary>
-    public static bool ConfirmDependencyInstall(ModDependencyResolutionResult result)
+    public static int ConfirmDependencyInstall(ModDependencyResolutionResult result)
     {
         ArgumentNullException.ThrowIfNull(result);
 
@@ -221,10 +221,10 @@ public static class ModCompDependency
         {
             ModBase.Log($"[CompDeps] 无法解析: {result.Unresolved.Count} 个必需前置");
             var message = "以下必需前置无法解析：\n\n" +
-                          string.Join("\n", result.Unresolved
-                              .Select(dep => $"- {dep.Source} {dep.ProjectId}: {dep.Reason}"));
+                        string.Join("\n", result.Unresolved
+                            .Select(dep => $"- {dep.Source} {dep.ProjectId}: {dep.Reason}"));
             var selectedButton = ModMain.MyMsgBox(message, "无法安装必需前置", button1: "继续下载", button2: "取消", isWarn: true, forceWait: true);
-            return selectedButton == 1;
+            return selectedButton == 1 ? 0 : 3; // unresolved : user cancels
         }
 
         if (result.ToInstall is { Count: > 0 })
@@ -234,15 +234,26 @@ public static class ModCompDependency
                               .Select(install =>
                                   $"- {install.ProjectName} ({install.Source}) - {install.File.DisplayName} v{install.File.Version}"));
             var dialogResult = ModMain.MyMsgBox(message, "安装 Mod 前置确认",
-                button1: "安装 Mod 与必需前置", button2: "取消安装", forceWait: true);
-            if (dialogResult != 1)
+                button1: "安装 Mod 与必需前置", button2: "仅下载 Mod 本体（不建议）", button3: "取消安装", forceWait: true);
+
+            if (dialogResult == 1)
+            {
+                ModBase.Log("[CompDeps] 用户选择安装 Mod 与必需前置");
+            }
+            else if (dialogResult == 2)
+            {
+                ModBase.Log("[CompDeps] 用户选择仅安装此 Mod，跳过前置");
+            }
+            else if (dialogResult == 3)
             {
                 ModBase.Log("[CompDeps] 用户取消，已中止安装");
             }
-            return dialogResult == 1;
+
+            return dialogResult;
         }
 
-        return true;
+
+        return 1;
     }
 
     /// <summary>

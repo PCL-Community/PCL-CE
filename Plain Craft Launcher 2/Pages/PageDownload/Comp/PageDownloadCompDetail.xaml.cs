@@ -442,14 +442,32 @@ public partial class PageDownloadCompDetail
 
                             if (result.Unresolved.Any() || result.ToInstall.Any())
                             {
-                                if (!ModCompDependency.ConfirmDependencyInstall(result))
-                                {
-                                    return;
-                                }
+                                var installChoice = ModCompDependency.ConfirmDependencyInstall(result);
 
-                                ModBase.Log($"[CompDeps] 准备下载: {result.ToInstall.Count} 个前置");
-                                var depDownloads = ModCompDependency.BuildDependencyDownloads(result, targetDir);
-                                downloadFiles = depDownloads.Concat(downloadFiles).ToList();
+                                switch (installChoice)
+                                {
+                                    // 无法解析依赖
+                                    case 0:
+                                        ModBase.Log("[CompDeps] 无法解析前置，跳过载前置下载");
+                                        break;
+
+                                    // 用户选择安装前置
+                                    case 1:
+                                        ModBase.Log($"[CompDeps] 准备下载: {result.ToInstall.Count} 个前置");
+                                        var depDownloads = ModCompDependency.BuildDependencyDownloads(result, targetDir);
+                                        downloadFiles = depDownloads.Concat(downloadFiles).ToList();
+                                        break;
+
+                                    // 用户选择只安装本体，不安装前置
+                                    case 2:
+                                        ModBase.Log("[CompDeps] 用户选择仅下载 Mod 本体，跳过前置下载");
+                                        break;
+
+                                    // 用户取消安装
+                                    case 3:
+                                        ModBase.Log("[CompDeps] 用户取消安装");
+                                        return;
+                                }
                             }
                             else
                             {
