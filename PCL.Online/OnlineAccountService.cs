@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json.Nodes;
 using System.Threading;
@@ -29,6 +31,8 @@ public class OnlineLoginResult
     public string? AccessToken { get; init; }
     public string? RefreshToken { get; init; }
     public bool OwnsMinecraft { get; init; }
+    public bool HasMinecraftProfile { get; init; }
+    public bool MinecraftProfileMissing { get; init; }
 }
 
 public static class OnlineAccountService
@@ -185,12 +189,19 @@ public static class OnlineAccountService
         var mcToken = AuthMc(xstsToken, userHash);
         if (mcToken is null) return Fail(Lang.Text("Online.Login.MinecraftAuthFailed"));
 
-        var mcProfile = GetProfile(mcToken);
-        if (mcProfile is null) return Fail(Lang.Text("Online.Login.MinecraftProfileFailed"));
-        var mcName = mcProfile["name"]?.ToString() ?? Lang.Text("Common.State.Unknown");
-        var uuid = mcProfile["id"]?.ToString() ?? "";
+        var mcProfileResult = GetProfile(mcToken);
+        if (mcProfileResult.ErrorMessage is not null)
+            return Fail(mcProfileResult.ErrorMessage);
 
-        var displayName = graphProfile.name ?? mcName;
+        var mcProfile = mcProfileResult.Profile;
+        var hasMcProfile = mcProfile is not null;
+        var mcName = hasMcProfile
+            ? mcProfile?["name"]?.ToString() ?? Lang.Text("Common.State.Unknown")
+            : "";
+        var uuid = hasMcProfile ? mcProfile?["id"]?.ToString() ?? "" : "";
+
+        var displayName = FirstNonEmpty(graphProfile.name, mcName, graphProfile.id,
+            Lang.Text("Online.Login.MicrosoftAccount"));
         var latestRefreshToken = graphTokens.RefreshToken ?? xboxTokens.RefreshToken!;
 
         var ownsMc = CheckOwnership(mcToken);
@@ -211,11 +222,20 @@ public static class OnlineAccountService
         return new OnlineLoginResult
         {
             Success = true,
-            Message = Lang.Text(ownsMc ? "Online.Login.SuccessOwned" : "Online.Login.SuccessNotOwned", displayName),
+            Message = Lang.Text(hasMcProfile
+                    ? ownsMc ? "Online.Login.SuccessOwned" : "Online.Login.SuccessNotOwned"
+                    : "Online.Login.SuccessProfileMissing",
+                displayName),
             MsId = graphProfile.id,
-            UserName = mcName, DisplayName = displayName, MinecraftProfileName = mcName, Uuid = uuid, AccessToken = mcToken,
+            UserName = hasMcProfile ? mcName : displayName,
+            DisplayName = displayName,
+            MinecraftProfileName = mcName,
+            Uuid = uuid,
+            AccessToken = mcToken,
             RefreshToken = latestRefreshToken,
-            OwnsMinecraft = ownsMc
+            OwnsMinecraft = ownsMc,
+            HasMinecraftProfile = hasMcProfile,
+            MinecraftProfileMissing = mcProfileResult.NotFound
         };
     }
 
@@ -263,8 +283,19 @@ public static class OnlineAccountService
 
     private static OnlineLoginResult Fail(string msg) => new() { Success = false, Message = msg };
 
+    private static string FirstNonEmpty(params string?[] values)
+    {
+        foreach (var value in values)
+            if (!string.IsNullOrWhiteSpace(value))
+                return value;
+
+        return "";
+    }
+
     private sealed record OAuthTokens(string? AccessToken = null, string? RefreshToken = null,
         string? Error = null);
+
+    private sealed record MinecraftProfileResult(JsonObject? Profile, bool NotFound, string? ErrorMessage);
 
     /// <summary>登出时触发的回调，用于清理主项目档案。</summary>
     public static event Action<string?>? OnLogout;
@@ -338,17 +369,28 @@ public static class OnlineAccountService
         catch (Exception e) { LogWrapper.Debug(e, "Online", "MC Auth"); return null; }
     }
 
-    private static JsonObject? GetProfile(string mcToken)
+    private static MinecraftProfileResult GetProfile(string mcToken)
     {
         try
         {
             using var req = new HttpRequestMessage(HttpMethod.Get, "https://api.minecraftservices.com/minecraft/profile");
             req.Headers.Add("Authorization", $"Bearer {mcToken}");
             using var r = NetworkService.GetClient().SendAsync(req).GetAwaiter().GetResult();
-            r.EnsureSuccessStatusCode();
-            return (JsonObject)JsonCompat.ParseNode(r.AsString())!;
+            if (r.StatusCode == HttpStatusCode.NotFound)
+                return new MinecraftProfileResult(null, true, null);
+            if (!r.IsSuccessStatusCode)
+            {
+                LogWrapper.Warn("Online", $"获取 Minecraft 档案失败：HTTP {(int)r.StatusCode}");
+                return new MinecraftProfileResult(null, false, Lang.Text("Online.Login.MinecraftProfileFailed"));
+            }
+
+            return new MinecraftProfileResult((JsonObject)JsonCompat.ParseNode(r.AsString())!, false, null);
         }
-        catch (Exception e) { LogWrapper.Debug(e, "Online", "Profile"); return null; }
+        catch (Exception e)
+        {
+            LogWrapper.Debug(e, "Online", "Profile");
+            return new MinecraftProfileResult(null, false, Lang.Text("Online.Login.MinecraftProfileFailed"));
+        }
     }
 
     private static bool CheckOwnership(string mcToken)
@@ -360,7 +402,8 @@ public static class OnlineAccountService
             using var r = NetworkService.GetClient().SendAsync(req).GetAwaiter().GetResult();
             r.EnsureSuccessStatusCode();
             var j = (JsonObject)JsonCompat.ParseNode(r.AsString())!;
-            return j["items"]?.AsArray() is { Count: > 0 };
+            return j["items"]?.AsArray().Any(x =>
+                x?["name"]?.ToString() is "product_minecraft" or "game_minecraft") == true;
         }
         catch { return false; }
     }

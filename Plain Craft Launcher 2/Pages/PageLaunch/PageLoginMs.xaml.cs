@@ -21,6 +21,9 @@ public partial class PageLoginMs
 
     private void BtnLogin_Click(object sender, EventArgs e)
     {
+        if (!MicrosoftLoginPolicyGate.EnsureAccepted())
+            return;
+
         var previousProfile = ModProfile.selectedProfile;
         var previousLastUsedProfile = ModProfile.lastUsedProfile;
         BtnLogin.IsEnabled = false;

@@ -48,11 +48,14 @@ public partial class PageSetupGameManage
 
     public void Reload()
     {
+        PCL.Online.RegionalPolicyClient.ApplyDownloadPolicy(PCL.Online.RegionalPolicyClient.Current);
+
         // 下载
         SliderDownloadThread.Value = Config.Download.ThreadLimit;
         SliderDownloadSpeed.Value = Config.Download.SpeedLimit;
         ComboDownloadSource.SelectedIndex = Config.Download.FileSource;
         ComboDownloadVersion.SelectedIndex = Config.Download.VersionListSource;
+        ApplyRegionalPolicyToDownloadSettings();
         CheckDownloadAutoSelectVersion.Checked = Config.Download.AutoSelectInstance;
         CheckFixAuthlib.Checked = Config.Download.FixAuthLib;
 
@@ -70,6 +73,18 @@ public partial class PageSetupGameManage
 
         // 辅助设置
         CheckHelpLauncherLanguage.Checked = Config.Tool.AutoChangeLanguage;
+    }
+
+    private void ApplyRegionalPolicyToDownloadSettings()
+    {
+        var policy = PCL.Online.RegionalPolicyClient.Current;
+        ComboDownloadSource.IsEnabled = policy.AllowDomesticMirrorSwitch;
+        ComboDownloadVersion.IsEnabled = policy.AllowDomesticMirrorSwitch;
+        if (!string.IsNullOrWhiteSpace(policy.RegulatoryNotice))
+        {
+            ComboDownloadSource.ToolTip = policy.RegulatoryNotice;
+            ComboDownloadVersion.ToolTip = policy.RegulatoryNotice;
+        }
     }
 
     // 初始化

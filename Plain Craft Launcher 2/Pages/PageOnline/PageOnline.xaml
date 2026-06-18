@@ -34,9 +34,16 @@
                             <TextBlock x:Name="LabAccountType" FontSize="12"
                                        Foreground="{DynamicResource ColorBrush2}" />
                         </StackPanel>
-                        <local:MyIconTextButton Grid.Column="2" x:Name="BtnLogout" Height="32"
-                                                Text="{DynamicResource Online.Account.Logout}" SvgIcon="lucide/log-out"
-                                                LogoScale="0.85" Click="BtnLogout_Click" />
+                        <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                    HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <local:MyIconTextButton x:Name="BtnDeleteCloudProfile" Height="32" Margin="0,0,8,0"
+                                                    Text="{DynamicResource Online.Account.DeleteCloudAndLogout}"
+                                                    SvgIcon="lucide/trash-2" LogoScale="0.85"
+                                                    Click="BtnDeleteCloudProfile_Click" />
+                            <local:MyIconTextButton x:Name="BtnLogout" Height="32"
+                                                    Text="{DynamicResource Online.Account.Logout}" SvgIcon="lucide/log-out"
+                                                    LogoScale="0.85" Click="BtnLogout_Click" />
+                        </StackPanel>
                     </Grid>
                 </Grid>
             </local:MyCard>

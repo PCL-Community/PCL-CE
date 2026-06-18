@@ -65,6 +65,9 @@
         <EmbeddedResource Include="Certificates\n-cloud.cer"
                           Condition="Exists('Certificates\n-cloud.cer')"
                           LogicalName="PCL.Online.Certificates.n-cloud.cer" />
+        <EmbeddedResource Include="Certificates\n-cloud-client.pfx"
+                          Condition="Exists('Certificates\n-cloud-client.pfx')"
+                          LogicalName="PCL.Online.Certificates.n-cloud-client.pfx" />
         <EmbeddedResource Include="Legal\**\*.md"
                           LogicalName="PCL.Online.Legal.%(Filename)%(Extension)" />
         <Content Include="Legal\**\*.md">

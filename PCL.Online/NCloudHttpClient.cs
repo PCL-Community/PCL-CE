@@ -20,6 +20,7 @@ public static class NCloudHttpClient
 {
     public const string DefaultServerBaseUrl = "https://115.29.230.105/";
     private const string CertificateResourceName = "PCL.Online.Certificates.n-cloud.cer";
+    private const string ClientCertificateResourceName = "PCL.Online.Certificates.n-cloud-client.pfx";
 
     public static HttpClient Create(string serverBaseUrl)
     {
@@ -62,6 +63,10 @@ public static class NCloudHttpClient
         if (validationCallback is not null)
             handler.ServerCertificateCustomValidationCallback = validationCallback;
 
+        var clientCertificate = LoadClientCertificate();
+        if (clientCertificate is not null)
+            handler.ClientCertificates.Add(clientCertificate);
+
         return new HttpClient(handler, disposeHandler: true);
     }
 
@@ -100,6 +105,25 @@ public static class NCloudHttpClient
         return text.Contains("-----BEGIN CERTIFICATE-----", StringComparison.Ordinal)
             ? X509Certificate2.CreateFromPem(text)
             : X509CertificateLoader.LoadCertificate(certificateData);
+    }
+
+    private static X509Certificate2? LoadClientCertificate()
+    {
+        var password = EnvironmentInterop.GetSecret("ONLINE_CLIENT_CERT_PASSWORD");
+        var configuredPath = EnvironmentInterop.GetSecret("ONLINE_CLIENT_CERT_PATH");
+        if (!string.IsNullOrWhiteSpace(configuredPath) && File.Exists(configuredPath))
+            return X509CertificateLoader.LoadPkcs12FromFile(configuredPath, password,
+                X509KeyStorageFlags.EphemeralKeySet);
+
+        var assembly = typeof(NCloudHttpClient).Assembly;
+        using var certificateStream = assembly.GetManifestResourceStream(ClientCertificateResourceName);
+        if (certificateStream is null)
+            return null;
+
+        using var memoryStream = new MemoryStream();
+        certificateStream.CopyTo(memoryStream);
+        return X509CertificateLoader.LoadPkcs12(memoryStream.ToArray(), password,
+            X509KeyStorageFlags.EphemeralKeySet);
     }
 
     private static bool ValidatePinnedCertificate(

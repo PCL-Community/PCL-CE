@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
@@ -104,6 +105,29 @@ public static class CloudSyncService
     public static bool RetryLastFailed()
     {
         return TrySyncInBackground(_lastReason, _lastMode);
+    }
+
+    public static async Task DeleteCloudProfileAsync(CancellationToken cancellationToken = default)
+    {
+        if (!OnlineAccountService.EnsureAccountIdentity())
+            throw new InvalidOperationException(Lang.Text("Online.Login.Required"));
+
+        var msId = States.Online.MsId;
+        if (string.IsNullOrWhiteSpace(msId))
+            throw new InvalidOperationException("当前账户缺少 msid。");
+
+        var serverBaseUrl = ResolveServerBaseUrl();
+        if (string.IsNullOrWhiteSpace(serverBaseUrl))
+            throw new InvalidOperationException("未配置在线服务地址。");
+
+        using var cloudClient = NCloudHttpClient.Create(serverBaseUrl);
+        using var request = new HttpRequestMessage(HttpMethod.Delete,
+            $"{serverBaseUrl}/api/users/{Uri.EscapeDataString(msId)}");
+        using var response = await cloudClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        if (response.StatusCode != HttpStatusCode.NotFound)
+            response.EnsureSuccessStatusCode();
+
+        TryDeleteLocalMetadata();
     }
 
     private static async Task SyncAsync(string reason, SyncMode mode,
@@ -219,7 +243,7 @@ public static class CloudSyncService
         LogWrapper.Info("CloudSync", $"云同步完成（{reason}）。");
     }
 
-    private static string ResolveServerBaseUrl()
+    internal static string ResolveServerBaseUrl()
     {
         var url = EnvironmentInterop.GetSecret("ONLINE_SERVER_URL");
         if (!string.IsNullOrWhiteSpace(url))
@@ -291,6 +315,19 @@ public static class CloudSyncService
         catch (Exception ex)
         {
             LogWrapper.Debug(ex, "CloudSync", "写入本地同步元数据失败。");
+        }
+    }
+
+    private static void TryDeleteLocalMetadata()
+    {
+        try
+        {
+            if (File.Exists(MetadataFilePath))
+                File.Delete(MetadataFilePath);
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Debug(ex, "CloudSync", "删除本地同步元数据失败。");
         }
     }
 

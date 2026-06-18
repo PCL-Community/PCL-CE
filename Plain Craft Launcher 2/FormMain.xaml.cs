@@ -232,22 +232,10 @@ public partial class FormMain
         Topmost = false;
         if (ModMain.frmStart is not null)
             ModMain.frmStart.Close(new TimeSpan(0, 0, 0, 0, (int)Math.Round(400d / ModAnimation.aniSpeed)));
-        // 首次启动协议检查（延迟到窗口渲染后）
+        // 首次启动后的在线同步检查（延迟到窗口渲染后）
         Dispatcher.BeginInvoke(new Action(() =>
         {
-            if (!PCL.Online.FirstLaunchService.IsAccepted())
-            {
-                var legalText = PCL.Online.FirstLaunchService.LoadFullText();
-                if (ModMain.MyMsgBoxMarkdown(legalText, Lang.Text("Main.Legal.Title"),
-                        Lang.Text("Main.Legal.Agree"), Lang.Text("Main.Legal.Decline"),
-                        isWarn: false, forceWait: true) != 1)
-                {
-                    Lifecycle.Shutdown(0, true);
-                    return;
-                }
-                PCL.Online.FirstLaunchService.Accept();
-            }
-
+            PCL.Online.RegionalPolicyClient.RefreshInBackground();
             PCL.Online.CloudSyncService.TrySyncInBackground("startup");
         }), System.Windows.Threading.DispatcherPriority.Background);
         // 更改窗口
@@ -1517,6 +1505,7 @@ public partial class FormMain
         SetupJava = 9,
         SetupLauncherMisc = 10,
         SetupLauncherLanguage = 11,
+        SetupPlugin = 12,
 
         ToolsLauncherHelp = 2,
         ToolsTest = 3,

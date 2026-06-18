@@ -102,6 +102,9 @@ public partial class PageOnline
 
     private void BtnLogin_Click(object sender, ModBase.RouteEventArgs e)
     {
+        if (!MicrosoftLoginPolicyGate.EnsureAccepted())
+            return;
+
         BtnLogin.IsEnabled = false;
         ModBase.RunInNewThread(() =>
         {
@@ -116,17 +119,28 @@ public partial class PageOnline
 
             ModBase.RunInUi(() =>
             {
-                if (result.Success && result.OwnsMinecraft)
+                if (result.Success && result.HasMinecraftProfile)
                     ModProfile.AddProfileFromOnline(result);
                 if (result.Success)
                     PCL.Online.CloudSyncService.TrySyncInBackground("login",
                         PCL.Online.CloudSyncService.SyncMode.RemoteOverwrite);
                 ModMain.Hint(result.Message,
                     result.Success ? ModMain.HintType.Finish : ModMain.HintType.Critical);
+                if (result.Success && result.MinecraftProfileMissing)
+                    ShowCreateMinecraftProfilePrompt();
                 RefreshAccountCard();
                 BtnLogin.IsEnabled = true;
             });
         }, "OnlineLogin");
+    }
+
+    private static void ShowCreateMinecraftProfilePrompt()
+    {
+        if (ModMain.MyMsgBox(Lang.Text("Online.Login.CreateProfile.Message"),
+                Lang.Text("Online.Login.CreateProfile.Title"),
+                Lang.Text("Online.Login.CreateProfile.Button"),
+                Lang.Text("Common.Action.Cancel")) == 1)
+            ModBase.OpenWebsite("https://www.minecraft.net/msaprofile/mygames/editprofile");
     }
 
     private void BtnLogout_Click(object sender, ModBase.RouteEventArgs e)
@@ -134,6 +148,53 @@ public partial class PageOnline
         PCL.Online.OnlineAccountService.Logout();
         RefreshAccountCard();
         ModMain.Hint(Lang.Text("Online.Account.LoggedOut"), ModMain.HintType.Finish);
+    }
+
+    private void BtnDeleteCloudProfile_Click(object sender, ModBase.RouteEventArgs e)
+    {
+        if (!PCL.Online.OnlineAccountService.IsLoggedIn)
+            return;
+
+        if (ModMain.MyMsgBox(Lang.Text("Online.Account.DeleteCloudAndLogout.Warning"),
+                Lang.Text("Online.Account.DeleteCloudAndLogout.Title"),
+                Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"),
+                isWarn: true) != 1)
+            return;
+
+        var confirmation = ModMain.MyMsgBoxInput(
+            Lang.Text("Online.Account.DeleteCloudAndLogout.Title"),
+            Lang.Text("Online.Account.DeleteCloudAndLogout.ConfirmInput"),
+            hintText: "DELETE",
+            button1: Lang.Text("Online.Account.DeleteCloudAndLogout"),
+            isWarn: true);
+        if (!string.Equals(confirmation, "DELETE", StringComparison.Ordinal))
+            return;
+
+        BtnDeleteCloudProfile.IsEnabled = false;
+        ModBase.RunInNewThread(() =>
+        {
+            try
+            {
+                PCL.Online.CloudSyncService.DeleteCloudProfileAsync().GetAwaiter().GetResult();
+                PCL.Online.OnlineAccountService.Logout();
+                ModBase.RunInUi(() =>
+                {
+                    RefreshAccountCard();
+                    ModMain.Hint(Lang.Text("Online.Account.DeleteCloudAndLogout.Success"),
+                        ModMain.HintType.Finish);
+                });
+            }
+            catch (Exception ex)
+            {
+                ModBase.RunInUi(() =>
+                    ModMain.Hint(Lang.Text("Online.Account.DeleteCloudAndLogout.Failed", ex.Message),
+                        ModMain.HintType.Critical));
+            }
+            finally
+            {
+                ModBase.RunInUi(() => BtnDeleteCloudProfile.IsEnabled = true);
+            }
+        }, "DeleteCloudProfile");
     }
 
     private void BtnSyncDisable_Click(object sender, ModBase.RouteEventArgs e)

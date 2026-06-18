@@ -1111,7 +1111,9 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
 
     public static void AddProfileFromOnline(PCL.Online.OnlineLoginResult result)
     {
-        if (result?.AccessToken is null) return;
+        if (result?.AccessToken is null || !result.HasMinecraftProfile ||
+            string.IsNullOrWhiteSpace(result.Uuid) || string.IsNullOrWhiteSpace(result.MinecraftProfileName))
+            return;
         foreach (var p in profileList)
             if (p.Type == ModLaunch.McLoginType.Ms && p.Uuid == result.Uuid)
                 return;
@@ -1119,12 +1121,12 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
         var profile = new McProfile();
         profile.Type = ModLaunch.McLoginType.Ms;
         profile.Uuid = result.Uuid;
-        profile.Username = result.UserName;
+        profile.Username = result.MinecraftProfileName;
         profile.AccessToken = EncryptHelper.SecretEncrypt(result.AccessToken);
         profile.RefreshToken = EncryptHelper.SecretEncrypt(result.RefreshToken);
         profile.Desc = Lang.Text("Launch.Profile.OnlineDescription");
         profileList.Add(profile);
         SaveProfile();
-        ModMain.Hint(Lang.Text("Launch.Profile.OnlineAdded", result.UserName), ModMain.HintType.Finish);
+        ModMain.Hint(Lang.Text("Launch.Profile.OnlineAdded", result.MinecraftProfileName), ModMain.HintType.Finish);
     }
 }

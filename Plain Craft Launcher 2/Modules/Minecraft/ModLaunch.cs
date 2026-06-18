@@ -1366,12 +1366,12 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     正版验证步骤 5：验证微软账号是否持有 MC，这也会刷新 XGP
+    ///     正版验证步骤 5：尝试刷新并记录微软账号的 MC 权益。
     /// </summary>
     /// <param name="accessToken">Minecraft accessToken</param>
     private static void MsLoginStep5(string accessToken)
     {
-        ModProfile.ProfileLog("开始正版验证 Step 5/6: 验证账户是否持有 MC");
+        ModProfile.ProfileLog("开始正版验证 Step 5/6: 刷新账户权益");
         if (string.IsNullOrEmpty(accessToken))
             throw new ArgumentException("传入的 AccessToken 为空", nameof(accessToken));
         var result = "";
@@ -3711,7 +3711,8 @@ public static class ModLaunch
             // 尝试自动修复模组前置
             var crashedVersion = ModInstanceList.McMcInstanceSelected;
             ModBase.Log($"[AutoRepair] Crashed={watcher.State}, HasFabric={crashedVersion?.Info.HasFabric}, instance={crashedVersion?.Name}");
-            if (crashedVersion is not null &&
+            if (Config.Launch.AutoRepairGame &&
+                crashedVersion is not null &&
                 (crashedVersion.Info.HasFabric || crashedVersion.Info.HasForge ||
                  crashedVersion.Info.HasNeoForge || crashedVersion.Info.HasQuilt ||
                  crashedVersion.Info.HasLegacyFabric))
