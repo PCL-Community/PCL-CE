@@ -98,7 +98,7 @@ public partial class PageSetupLog
     {
         var filter = Lang.Text("Setup.Misc.Log.ExportFilter");
         var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-        var baseName = "PCL_CE_Logs_" + DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture);
+        var baseName = "PCL_N_Logs_" + DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture);
         var fileName = baseName + ".zip";
         var selectedPath = SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.Log.ExportSaveTitle"), fileName, filter, desktopPath);
         if (string.IsNullOrEmpty(selectedPath))
