@@ -2500,6 +2500,19 @@ public static class ModLaunch
                 ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.Proxy"), ModBase.LogLevel.Hint);
             }
 
+        // 添加 LegacyFix 相关参数
+        if (McLaunchNeedsLegacyFix(instance))
+        {
+            var legacyFixPath = Path.Combine(ModBase.pathPure, "legacyfix.jar");
+            dataList.Add("-javaagent:\"" + legacyFixPath + "\"");
+
+            // Beta 1.6 以前版本需要添加的参数
+            if (instance.releaseTime < new DateTime(2011, 5, 25))
+            {
+                dataList.Add("-Djava.util.Arrays.useLegacyMergeSort=true");
+            }
+        }
+
         // 添加 Java Wrapper 作为主 Jar
         if (ModBase.IsUtf8CodePage() && !Config.Launch.DisableJlw &&
             !Config.Instance.DisableJlw[ModInstanceList.McMcInstanceSelected?.PathInstance])
@@ -2620,19 +2633,6 @@ public static class ModLaunch
             {
                 ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.Proxy"), ModBase.LogLevel.Hint);
             }
-
-        // 添加 LegacyFix 相关参数
-        if (McLaunchNeedsLegacyFix(instance))
-        {
-            var legacyFixPath = Path.Combine(ModBase.pathPure, "legacyfix.jar");
-            dataList.Add("-javaagent:\"" + legacyFixPath + "\"");
-
-            // Beta 1.6 以前版本需要添加的参数
-            if (instance.releaseTime < new DateTime(2011, 5, 25))
-            {
-                dataList.Add("-Djava.util.Arrays.useLegacyMergeSort=true");
-            }
-        }
 
         // 添加 Java Wrapper 作为主 Jar
         if (ModBase.IsUtf8CodePage() && !Config.Launch.DisableJlw &&
