@@ -1901,6 +1901,7 @@ public partial class PageInstanceInstall
     private void Cleanroom_Clear(object sender, MouseButtonEventArgs e)
     {
         selectedCleanroom = null;
+        selectedCleanroomVersion = null;
         selectedLoaderName = null;
         CardCleanroom.IsSwapped = true;
         e.Handled = true;
