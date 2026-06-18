@@ -147,6 +147,7 @@ public partial class MyToast
         {
             HintType.Success => 145d,
             HintType.Error => 355d,
+            HintType.Warning => 40d,
             _ => 210d
         };
         var res = System.Windows.Application.Current.Resources;

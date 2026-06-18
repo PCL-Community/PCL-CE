@@ -4,5 +4,6 @@ public enum HintType
 {
     Info,
     Success,
-    Error
+    Error,
+    Warning
 }
