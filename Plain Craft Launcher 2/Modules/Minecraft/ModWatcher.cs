@@ -688,7 +688,8 @@ public static class ModWatcher
 
             State = MinecraftState.Crashed;
             // 若为模组实例，提前抑制崩溃弹窗（McLaunchWait 会尝试自动修复）
-            if (version?.Info is not null &&
+            if (Config.Launch.AutoRepairGame &&
+                version?.Info is not null &&
                 (version.Info.HasFabric || version.Info.HasForge ||
                  version.Info.HasNeoForge || version.Info.HasQuilt ||
                  version.Info.HasLegacyFabric))

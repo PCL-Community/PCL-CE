@@ -1389,6 +1389,10 @@
     <sys:String x:Key="Setup.Left.Feedback.ViewList">Feedback list</sys:String>
     <sys:String x:Key="Setup.Left.Refreshing">Refreshing...</sys:String>
 
+    <sys:String x:Key="Setup.Plugin.Title">Plugins</sys:String>
+    <sys:String x:Key="Setup.Plugin.ComingSoon">Coming soon</sys:String>
+    <sys:String x:Key="Setup.Plugin.Description">PCL.Plugin is preparing the foundation for a cross-platform plugin ecosystem. This build already contains the base plugin contracts; plugin discovery, permission isolation, lifecycle management, and settings-page extensions will be opened gradually.</sys:String>
+
     <!-- Setup.Ui.Basic -->
 
     <sys:String x:Key="Setup.Ui.Basic.Title">Basics</sys:String>

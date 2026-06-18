@@ -1392,24 +1392,15 @@ public static class ModLaunch
             if (!(resultJson.ContainsKey("items") && resultJson["items"].AsArray().Any(x =>
                     x["name"]?.ToString() == "product_minecraft" || x["name"]?.ToString() == "game_minecraft")))
             {
-                switch (ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.NotPurchased"),
-                            Lang.Text("Minecraft.Launch.Login.Failed"), Lang.Text("Minecraft.Launch.Login.Microsoft.PurchaseMinecraft"), Lang.Text("Common.Action.Cancel")))
-                {
-                    case 1:
-                    {
-                        ModBase.OpenWebsite(
-                            "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
-                        break;
-                    }
-                }
-
-                throw new Exception("$$");
+                ModProfile.ProfileLog("正版验证 Step 5/6 未检测到 Minecraft 权益，继续获取玩家档案");
+                return;
             }
+
+            ModProfile.ProfileLog("正版验证 Step 5/6 已确认 Minecraft 权益");
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "正版验证 Step 5 异常：" + result);
-            throw;
+            ModBase.Log(ex, "正版验证 Step 5 异常，已跳过权益检查：" + result);
         }
     }
 

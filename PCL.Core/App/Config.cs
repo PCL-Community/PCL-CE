@@ -476,6 +476,11 @@ public static partial class Config
         /// 禁用 LWJGL Unsafe Agent。
         /// </summary>
         [ConfigItem<bool>("LaunchAdvanceDisableLwjglUnsafeAgent", false)] public partial bool DisableLwjglUnsafeAgent { get; set; }
+
+        /// <summary>
+        /// 游戏崩溃后自动尝试修复缺失的模组前置。
+        /// </summary>
+        [ConfigItem<bool>("LaunchAutoRepairGame", true, ConfigSource.Local)] public partial bool AutoRepairGame { get; set; }
         
         /// <summary>
         /// 渲染器。

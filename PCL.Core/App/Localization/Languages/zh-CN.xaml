@@ -1389,6 +1389,10 @@
     <sys:String x:Key="Setup.Left.Feedback.ViewList">查看反馈列表</sys:String>
     <sys:String x:Key="Setup.Left.Refreshing">正在刷新……</sys:String>
 
+    <sys:String x:Key="Setup.Plugin.Title">插件</sys:String>
+    <sys:String x:Key="Setup.Plugin.ComingSoon">敬请期待</sys:String>
+    <sys:String x:Key="Setup.Plugin.Description">PCL.Plugin 正在为跨平台插件生态做准备。当前版本已经包含基础插件契约，后续会逐步开放插件发现、权限隔离、生命周期管理与设置页扩展能力。</sys:String>
+
     <!-- Setup.Ui.Basic -->
 
     <sys:String x:Key="Setup.Ui.Basic.Title">基础</sys:String>
