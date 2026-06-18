@@ -31,7 +31,8 @@ public static class HintService
         {
             HintTheme.Error => HintType.Error,
             HintTheme.Info => HintType.Info,
-            _ => HintType.Success
+            HintTheme.Warning => HintType.Warning,
+            _ => HintType.Info
         };
         Hint(message, hintType);
     }
@@ -76,6 +77,7 @@ public static class HintService
                 {
                     HintType.Success => "lucide/circle-check",
                     HintType.Error => "lucide/circle-minus",
+                    HintType.Warning => "lucide/triangle-alert",
                     _ => "lucide/info"
                 },
                 DisplayDuration = (800d + ModBase.MathClamp(currentHint.Text.Length, 5d, 23d) * 180d) * ModAnimation.aniSpeed
