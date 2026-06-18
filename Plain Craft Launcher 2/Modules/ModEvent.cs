@@ -147,7 +147,7 @@ namespace PCL
                             ModMain.MyMsgBox("EventData 必须为一个网址。\r\n如果想要启动程序，请将 EventType 改为 打开文件。", "事件执行失败");
                             return;
                         }
-                        ModMain.Hint("正在开启中，请稍候：" + arg);
+                        HintService.Hint("正在开启中，请稍候：" + arg);
                         ModBase.RunInThread(() => ModBase.OpenWebsite(arg));
                         break;
 
@@ -177,7 +177,7 @@ namespace PCL
                         {
                             if (ModInstanceList.McMcInstanceSelected is null)
                             {
-                                ModMain.Hint("请先选择一个 Minecraft 版本！", ModMain.HintType.Critical);
+                                HintService.Hint("请先选择一个 Minecraft 版本！", HintType.Error);
                                 return;
                             }
                             args[0] = ModInstanceList.McMcInstanceSelected.Name;
@@ -191,7 +191,7 @@ namespace PCL
                             };
                             if (ModLaunch.McLaunchStart(options))
                             {
-                                ModMain.Hint($"正在启动 {args[0]}……");
+                                HintService.Hint($"正在启动 {args[0]}……");
                             }
                         });
                         break;
@@ -206,11 +206,11 @@ namespace PCL
                         {
                             ModBase.RunInUiWait(() => refreshable.Refresh());
                             if (string.IsNullOrEmpty(arg))
-                                ModMain.Hint("已刷新！", ModMain.HintType.Finish);
+                                HintService.Hint("已刷新！", HintType.Success);
                         }
                         else
                         {
-                            ModMain.Hint("当前页面不支持刷新操作！", ModMain.HintType.Critical);
+                            HintService.Hint("当前页面不支持刷新操作！", HintType.Error);
                         }
                         break;
 
@@ -234,9 +234,9 @@ namespace PCL
                     case EventType.弹出提示:
                         {
                             var hintType = args.Length == 1
-                                ? ModMain.HintType.Info
-                                : (ModMain.HintType)Enum.Parse(typeof(ModMain.HintType), args[1], true);
-                            ModMain.Hint(args[0].Replace("\\n", "\r\n"), hintType);
+                                ? HintType.Info
+                                : (HintType)Enum.Parse(typeof(HintType), args[1], true);
+                            HintService.Hint(args[0].Replace("\\n", "\r\n"), hintType);
                         }
                         break;
 
@@ -293,7 +293,7 @@ namespace PCL
                         if (ConfigService.TryGetConfigItemNoType(args[0], out var item) && item.Source != ConfigSource.SharedEncrypt)
                             item.SetValueNoType(args[1], ModInstanceList.McMcInstanceSelected?.PathInstance);
                         if (args.Length == 2)
-                            ModMain.Hint($"已写入设置：{args[0]} → {args[1]}", ModMain.HintType.Finish);
+                            HintService.Hint($"已写入设置：{args[0]} → {args[1]}", HintType.Success);
                         break;
 
                     case EventType.修改变量:
@@ -303,7 +303,7 @@ namespace PCL
                         States.CustomVariables[args[0]] = args[1];
                         States.CustomVariables = States.CustomVariables; // 触发属性变更通知
                         if (args.Length == 2)
-                            ModMain.Hint($"已写入变量：{args[0]} → {args[1]}", ModMain.HintType.Finish);
+                            HintService.Hint($"已写入变量：{args[0]} → {args[1]}", HintType.Success);
                         break;
 
                     default:

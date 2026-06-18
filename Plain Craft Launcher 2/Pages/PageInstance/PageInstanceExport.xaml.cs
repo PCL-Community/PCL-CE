@@ -539,7 +539,7 @@ public partial class PageInstanceExport : IRefreshable
             configLines.AddRange(GetExtraFileLines());
             // 结束
             ModBase.WriteFile(configPath, configLines.Join("\r\n"));
-            ModMain.Hint(Lang.Text("Instance.Export.SaveSuccess", configPath), ModMain.HintType.Finish);
+            HintService.Hint(Lang.Text("Instance.Export.SaveSuccess", configPath), HintType.Success);
             ModBase.OpenExplorer(configPath);
         }
         catch (Exception ex)
@@ -566,7 +566,7 @@ public partial class PageInstanceExport : IRefreshable
 
             if (segments.Length == 0)
             {
-                ModMain.Hint(Lang.Text("Instance.Export.ConfigInvalid"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Instance.Export.ConfigInvalid"), HintType.Error);
                 return;
             }
 
@@ -607,7 +607,7 @@ public partial class PageInstanceExport : IRefreshable
                 extraFiles = null;
 
             // 提示成功
-            ModMain.Hint(Lang.Text("Instance.Export.ReadSuccess", configPath), ModMain.HintType.Finish);
+            HintService.Hint(Lang.Text("Instance.Export.ReadSuccess", configPath), HintType.Success);
         }
 
         catch (Exception ex)
@@ -851,7 +851,7 @@ public partial class PageInstanceExport : IRefreshable
                     if (Directory.Exists(Line))
                         ModBase.CopyDirectory(Line, Path.Combine(baseFolder, ModBase.GetFolderNameFromPath(Line)) + @"\");
                     else
-                        ModMain.Hint(Lang.Text("Instance.Export.ConfigFolderNotFound", Line), ModMain.HintType.Critical);
+                        HintService.Hint(Lang.Text("Instance.Export.ConfigFolderNotFound", Line), HintType.Error);
                 }
                 else if (File.Exists(Line))
                 {
@@ -859,7 +859,7 @@ public partial class PageInstanceExport : IRefreshable
                 }
                 else
                 {
-                    ModMain.Hint(Lang.Text("Instance.Export.ConfigFileNotFound", Line), ModMain.HintType.Critical);
+                    HintService.Hint(Lang.Text("Instance.Export.ConfigFileNotFound", Line), HintType.Error);
                 }
 
             loader.Progress = 0.97d;

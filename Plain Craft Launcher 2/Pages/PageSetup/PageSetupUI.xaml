@@ -71,9 +71,6 @@
                         <local:MyCheckBox Text="{DynamicResource Setup.Ui.Basic.ShowTriviaHint}" Margin="-1,0,0,7" Height="22"
                                            x:Name="CheckShowLaunchingHint" Tag="UiShowLaunchingHint"
                                            Change="CheckBoxChange" />
-                        <local:MyCheckBox Text="{DynamicResource Setup.Ui.Basic.HintAlignRight}" Margin="-1,0,0,7" Height="22"
-                                           x:Name="CheckHintAlignRight" Tag="UiHintAlignRight"
-                                           Change="CheckBoxChange" />
                         <StackPanel x:Name="PanelBlur" Margin="0,0,0,10">
                             <local:MyCheckBox Text="{DynamicResource Setup.Ui.Basic.AdvancedMaterial}" Height="22" x:Name="CheckBlur" Tag="UiBlur"
                                               ToolTip="{DynamicResource Setup.Ui.Basic.AdvancedMaterial.ToolTip}"

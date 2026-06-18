@@ -98,7 +98,7 @@ public partial class PageLoginProfileSkin
         }
         else
         {
-            ModMain.Hint(Lang.Text("Launch.Account.ProfileSkin.PasswordUnsupported"));
+            HintService.Hint(Lang.Text("Launch.Account.ProfileSkin.PasswordUnsupported"));
         }
     }
 
@@ -128,7 +128,7 @@ public partial class PageLoginProfileSkin
             ModBase.OpenWebsite(ModProfile.selectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
-                ModMain.Hint(Lang.Text("Launch.Account.ProfileSkin.SkinUnsupported"));
+                HintService.Hint(Lang.Text("Launch.Account.ProfileSkin.SkinUnsupported"));
     }
 
     // 保存皮肤
@@ -152,7 +152,7 @@ public partial class PageLoginProfileSkin
             ModBase.OpenWebsite(ModProfile.selectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
-            ModMain.Hint(Lang.Text("Launch.Account.ProfileSkin.CapeUnsupported"));
+            HintService.Hint(Lang.Text("Launch.Account.ProfileSkin.CapeUnsupported"));
     }
 
     #endregion

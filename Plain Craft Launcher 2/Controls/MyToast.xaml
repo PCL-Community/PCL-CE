@@ -1,0 +1,46 @@
+<Border x:Class="PCL.MyToast"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svgIcon="clr-namespace:PCL.Core.UI.Controls.SvgIcon;assembly=PCL.Core"
+        xmlns:local="clr-namespace:PCL"
+        x:Name="Root"
+        HorizontalAlignment="Right"
+        CornerRadius="8" BorderThickness="1"
+        UseLayoutRounding="True" SnapsToDevicePixels="True"
+        RenderOptions.BitmapScalingMode="NearestNeighbor">
+    <Border.Effect>
+        <DropShadowEffect BlurRadius="16" Opacity="0.2" ShadowDepth="4" Direction="270" Color="#000000" />
+    </Border.Effect>
+    <Grid x:Name="RootGrid" SizeChanged="RootGrid_SizeChanged">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="3" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="10,8,10,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <svgIcon:SvgIcon x:Name="ToastIcon" Width="20" Height="20" VerticalAlignment="Center"
+                             Margin="0,0,6,0" UseOriginalColor="False" />
+
+            <TextBlock x:Name="TitleText" Grid.Column="1" VerticalAlignment="Center"
+                       FontSize="13" FontWeight="SemiBold"
+                       TextTrimming="CharacterEllipsis" />
+
+            <local:MyIconButton Grid.Column="2" x:Name="BtnClose" Width="20" Height="20"
+                                Margin="8,0,0,0" SvgIcon="lucide/x" Theme="Custom" />
+        </Grid>
+
+        <Rectangle x:Name="ProgressBar" Height="3" Grid.Row="1"
+                   HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
+                   RenderTransformOrigin="0,0.5">
+            <Rectangle.RenderTransform>
+                <ScaleTransform ScaleX="1" ScaleY="1" />
+            </Rectangle.RenderTransform>
+        </Rectangle>
+    </Grid>
+</Border>

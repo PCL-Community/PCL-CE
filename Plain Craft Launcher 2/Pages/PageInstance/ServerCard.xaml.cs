@@ -132,7 +132,7 @@ public partial class ServerCard
     /// </summary>
     public async Task RefreshServerStatus(bool withHint, CancellationToken token = default)
     {
-        if (withHint) ModMain.Hint(Lang.Text("Instance.Server.Card.RefreshingStatus", server.Name));
+        if (withHint) HintService.Hint(Lang.Text("Instance.Server.Card.RefreshingStatus", server.Name));
         server.Status = ServerStatus.Pinging;
         await Dispatcher.InvokeAsync(() => UpdateServerUi());
         var serverInfo = await PageInstanceServer.PingServer(server, token);
@@ -153,12 +153,12 @@ public partial class ServerCard
             };
             ModLaunch.McLaunchStart(launchOptions);
             ModMain.frmMain.PageChange(new FormMain.PageStackData { page = FormMain.PageType.Launch });
-            ModMain.Hint(Lang.Text("Instance.Server.Card.ConnectingTo", server.Name));
+            HintService.Hint(Lang.Text("Instance.Server.Card.ConnectingTo", server.Name));
         }
         catch (Exception ex)
         {
             ModBase.Log(ex, Lang.Text("Instance.Server.Card.LaunchFailed"), ModBase.LogLevel.Feedback);
-            ModMain.Hint(Lang.Text("Instance.Server.Card.LaunchFailedMsg", ex.Message), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Server.Card.LaunchFailedMsg", ex.Message), HintType.Error);
         }
     }
 
@@ -170,12 +170,12 @@ public partial class ServerCard
         try
         {
             Clipboard.SetText(server.Address);
-            ModMain.Hint(Lang.Text("Instance.Server.Card.AddressCopied", server.Address), ModMain.HintType.Finish);
+            HintService.Hint(Lang.Text("Instance.Server.Card.AddressCopied", server.Address), HintType.Success);
         }
         catch (Exception ex)
         {
             ModBase.Log(ex, Lang.Text("Instance.Server.Card.CopyAddressFailed"));
-            ModMain.Hint(Lang.Text("Instance.Server.Card.CopyAddressFailed"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Server.Card.CopyAddressFailed"), HintType.Error);
         }
     }
 
@@ -207,7 +207,7 @@ public partial class ServerCard
 
         catch (Exception ex)
         {
-            ModMain.Hint(Lang.Text("Instance.Server.Card.EditFailed", ex.Message), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Server.Card.EditFailed", ex.Message), HintType.Error);
         }
     }
 
