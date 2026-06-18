@@ -1631,6 +1631,7 @@
     <sys:String x:Key="Setup.Launch.Java.Added">Java added!</sys:String>
     <sys:String x:Key="Setup.Launch.Java.AddFailed">Failed to add Java to the list.</sys:String>
     <sys:String x:Key="Setup.Launch.Java.EnableFailed">Failed to change Java enabled state</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.Hint.MftJavaScanner">Non-administrator mode, MFT quick search disabled.</sys:String>
 
     <!-- Setup.Launch.Advanced -->
 

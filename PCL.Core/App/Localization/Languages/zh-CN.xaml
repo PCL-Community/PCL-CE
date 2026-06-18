@@ -1631,6 +1631,7 @@
     <sys:String x:Key="Setup.Launch.Java.Added">已添加 Java！</sys:String>
     <sys:String x:Key="Setup.Launch.Java.AddFailed">未能成功将 Java 加入列表中</sys:String>
     <sys:String x:Key="Setup.Launch.Java.EnableFailed">调整 Java 启用状态失败</sys:String>
+    <sys:String x:Key="Setup.Launch.Java.Hint.MftJavaScanner">非管理员模式，已禁用 MFT 快速搜索</sys:String>
 
     <!-- Setup.Launch.Advanced -->
 

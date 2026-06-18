@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using PCL.Core.App.Localization;
 
 namespace PCL.Core.Minecraft.Java.Scanner;
 
@@ -31,7 +32,7 @@ internal class MftJavaScanner : IJavaScanner
             _ = Task.Run(async () =>
             {
                 await Lifecycle.WaitForStateAsync(LifecycleState.WindowCreated);
-                HintWrapper.Show("非管理员模式，已禁用 MFT 快速搜索", HintTheme.Info);
+                HintWrapper.Show(Lang.Text("Setup.Launch.Java.Hint.MftJavaScanner"), HintTheme.Info);
             });
             return;
         }
