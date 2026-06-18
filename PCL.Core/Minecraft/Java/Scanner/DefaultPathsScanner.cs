@@ -1,3 +1,7 @@
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
 using PCL.Core.App;
 using PCL.Core.Logging;
 using System;
@@ -15,6 +19,8 @@ public class DefaultPathsScanner : IJavaScanner
 {
     private const int DefaultSearchDepth = 8;
     private const int TargetedSearchDepth = 10;
+    private static readonly string[] _JavaExecutableNames =
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ["java.exe", "java"] : ["java", "java.exe"];
     private readonly IReadOnlyList<SearchRoot>? _configuredRoots;
 
     public DefaultPathsScanner()
@@ -72,11 +78,31 @@ public class DefaultPathsScanner : IJavaScanner
         AddCombinedRoot(userProfile, [".jdks"], TargetedSearchDepth, false);
         AddCombinedRoot(userProfile, [".gradle", "jdks"], TargetedSearchDepth, false);
         AddCombinedRoot(userProfile, [".minecraft", "runtime"], TargetedSearchDepth, false);
+        AddCombinedRoot(userProfile, [".sdkman", "candidates", "java"], TargetedSearchDepth, false);
+        AddCombinedRoot(userProfile, [".asdf", "installs", "java"], TargetedSearchDepth, false);
+        AddCombinedRoot(userProfile, ["Library", "Java", "JavaVirtualMachines"], TargetedSearchDepth, false);
         AddCombinedRoot(local, ["JetBrains", "Toolbox", "apps"], TargetedSearchDepth, false);
+        AddCombinedRoot(local, ["Programs", "Eclipse Adoptium"], TargetedSearchDepth, false);
+        AddCombinedRoot(local, ["Programs", "GraalVM"], TargetedSearchDepth, false);
+        AddCombinedRoot(local, ["Programs", "Microsoft"], TargetedSearchDepth, false);
+        AddCombinedRoot(local, ["Programs", "Zulu"], TargetedSearchDepth, false);
         AddCombinedRoot(roaming, ["PrismLauncher", "java"], TargetedSearchDepth, false);
         AddCombinedRoot(roaming, ["PolyMC", "java"], TargetedSearchDepth, false);
+        AddCombinedRoot(programFiles, ["Eclipse Adoptium"], TargetedSearchDepth, false);
+        AddCombinedRoot(programFiles, ["GraalVM"], TargetedSearchDepth, false);
+        AddCombinedRoot(programFiles, ["Java"], TargetedSearchDepth, false);
+        AddCombinedRoot(programFiles, ["Zulu"], TargetedSearchDepth, false);
         AddCombinedRoot(programFilesX86, ["Minecraft Launcher", "runtime"], TargetedSearchDepth, false);
         AddRoot(Path.Combine(Basics.ExecutableDirectory, "PCL"), TargetedSearchDepth, false);
+        AddRoot("/Library/Java/JavaVirtualMachines", TargetedSearchDepth, false);
+        AddRoot("/opt/homebrew/Cellar", DefaultSearchDepth, true);
+        AddRoot("/opt/homebrew/opt", TargetedSearchDepth, true);
+        AddRoot("/usr/lib/jvm", TargetedSearchDepth, false);
+        AddRoot("/usr/java", TargetedSearchDepth, false);
+        AddRoot("/usr/local/Cellar", DefaultSearchDepth, true);
+        AddRoot("/usr/local/opt", TargetedSearchDepth, true);
+        AddRoot("/opt/java", TargetedSearchDepth, false);
+        AddRoot("/opt/jdk", TargetedSearchDepth, false);
 
         // 这些目录可能很大，仅扫描第一层名称符合 Java 关键词的分支。
         AddRoot(userProfile, DefaultSearchDepth, true);
@@ -147,19 +173,26 @@ public class DefaultPathsScanner : IJavaScanner
 
             try
             {
-                var directJava = Path.Combine(current, "java.exe");
-                if (File.Exists(directJava))
+                var foundCurrent = false;
+                foreach (var executableName in _JavaExecutableNames)
                 {
-                    results.TryAdd(directJava, 0);
-                    continue;
+                    var directJava = Path.Combine(current, executableName);
+                    if (File.Exists(directJava))
+                    {
+                        results.TryAdd(directJava, 0);
+                        foundCurrent = true;
+                    }
+
+                    var binJava = Path.Combine(current, "bin", executableName);
+                    if (File.Exists(binJava))
+                    {
+                        results.TryAdd(binJava, 0);
+                        foundCurrent = true;
+                    }
                 }
 
-                var binJava = Path.Combine(current, "bin", "java.exe");
-                if (File.Exists(binJava))
-                {
-                    results.TryAdd(binJava, 0);
+                if (foundCurrent)
                     continue;
-                }
 
                 if (depth == root.MaxDepth)
                     continue;

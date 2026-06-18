@@ -1,3 +1,7 @@
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.Minecraft.Java.Scanner;
 using System;
@@ -39,6 +43,17 @@ public class JavaScannerTest
     }
 
     [TestMethod]
+    public void Scan_ShouldFindUnixStyleJavaExecutable()
+    {
+        var zuluJava = CreateExecutable("java", ".sdkman", "candidates", "java", "zulu-21", "bin");
+        var results = new List<string>();
+
+        new DefaultPathsScanner([_tempRoot]).Scan(results);
+
+        CollectionAssert.Contains(results, zuluJava);
+    }
+
+    [TestMethod]
     public void Scan_ShouldSkipDependencyAndReparseNoise()
     {
         CreateJava("node_modules", "fake-java", "bin");
@@ -52,13 +67,16 @@ public class JavaScannerTest
     }
 
     private string CreateJava(params string[] pathParts)
+        => CreateExecutable("java.exe", pathParts);
+
+    private string CreateExecutable(string executableName, params string[] pathParts)
     {
         var folder = _tempRoot;
         foreach (var part in pathParts)
             folder = Path.Combine(folder, part);
         Directory.CreateDirectory(folder);
 
-        var javaPath = Path.Combine(folder, "java.exe");
+        var javaPath = Path.Combine(folder, executableName);
         File.WriteAllBytes(javaPath, []);
         return javaPath;
     }

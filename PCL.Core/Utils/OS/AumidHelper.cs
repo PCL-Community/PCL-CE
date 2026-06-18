@@ -4,7 +4,7 @@ namespace PCL.Core.Utils.OS;
 
 public static class AumidHelper
 {
-    public const string Aumid = "PCLCommunity.PCLCE";
+    public const string Aumid = "PCLN.PlainCraftLauncher";
     
     public static bool HasAumid()
     {
@@ -16,7 +16,7 @@ public static class AumidHelper
     {
         // .NET 8 在正常情况下不可能返回 null，如果炸了不应该包住而是让他炸下去
         using var key = Registry.CurrentUser.CreateSubKey(string.Concat(@"Software\Classes\AppUserModelId\", Aumid));
-        key.SetValue("DisplayName", "Plain Craft Launcher Community Edition");
+        key.SetValue("DisplayName", "Plain Craft Launcher N Edition");
         key.SetValue("IconUri", IconHelper.GetIconPath());
         key.SetValue("IconBackgroundColor", "FFDDDD");
     }
