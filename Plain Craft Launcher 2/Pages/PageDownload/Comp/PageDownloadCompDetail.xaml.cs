@@ -467,6 +467,11 @@ public partial class PageDownloadCompDetail
                                     case 3:
                                         ModBase.Log("[CompDeps] 用户取消安装");
                                         return;
+
+                                    // 处理不被预期的情况
+                                    default:
+                                        ModBase.Log("[CompDeps] 未知返回值: {installChoice}");
+                                        return;
                                 }
                             }
                             else
