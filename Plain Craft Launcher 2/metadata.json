@@ -14,6 +14,12 @@
       "license": "https://github.com/PCL-Community/PCL2-CE/blob/dev/LICENSE"
     },
     {
+      "name": "LegacyFix",
+      "info": "Copyright © betacraftuk\nLicensed under the GPL-3.0 license.",
+      "website": "https://github.com/betacraftuk/legacyfix",
+      "license": "https://github.com/betacraftuk/legacyfix/blob/master/LICENSE"
+    },
+    {
       "name": "Java Launch Wrapper",
       "info": "Copyright © 2022 00ll00\nLicensed under the MIT License.",
       "website": "https://github.com/00ll00/java_launch_wrapper",
