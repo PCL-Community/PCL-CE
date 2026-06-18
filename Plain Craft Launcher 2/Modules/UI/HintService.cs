@@ -29,6 +29,7 @@ public static class HintService
     {
         var hintType = messageTheme switch
         {
+            HintTheme.Success => HintType.Success,
             HintTheme.Error => HintType.Error,
             HintTheme.Warning => HintType.Warning,
             _ => HintType.Info
