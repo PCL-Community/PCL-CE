@@ -54,9 +54,9 @@ internal class MftJavaScanner : IJavaScanner
 
         foreach (var drive in drives)
         {
+            var driveLetter = drive[0].ToString();
             try
             {
-                var driveLetter = drive[0].ToString();
                 using var volume = MftVolume.Open(driveLetter);
                 var records = volume.FindByName(
                     "java.exe",
@@ -76,8 +76,9 @@ internal class MftJavaScanner : IJavaScanner
                     results.Add(fullPath);
                 }
             }
-            catch (UnauthorizedAccessException)
+            catch (Exception ex)
             {
+                LogWrapper.Warn(ex, "Java", $"MFT 扫描跳过驱动器 {driveLetter}: {ex.Message}");
                 continue;
             }
         }
