@@ -227,7 +227,7 @@ public static class ModCompDependency
                           string.Join("\n", result.Unresolved
                               .Select(dep => $"- {dep.Source} {dep.ProjectId}: {dep.Reason}"));
             var selectedButton = ModMain.MyMsgBox(message, "无法安装必需前置", button1: "继续下载", button2: "取消", isWarn: true, forceWait: true);
-           return selectedButton == 1 ? ModComp.CompDepsInstallTypes.Unresolved : ModComp.CompDepsInstallTypes.Cancel;
+            return selectedButton == 1 ? ModComp.CompDepsInstallTypes.Unresolved : ModComp.CompDepsInstallTypes.Cancel;
         }
 
         if (result.ToInstall is { Count: > 0 })
@@ -248,7 +248,7 @@ public static class ModCompDependency
                 };
         }
 
-         return ModComp.CompDepsInstallTypes.WithDeps;
+        return ModComp.CompDepsInstallTypes.WithDeps;
     }
 
     /// <summary>
