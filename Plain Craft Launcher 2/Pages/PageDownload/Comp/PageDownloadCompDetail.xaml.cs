@@ -441,6 +441,12 @@ public partial class PageDownloadCompDetail
                             var result = resolver.Resolve(request);
                             var depDownloads = new List<DownloadFile>();
 
+                            void DownloadDependencies()
+                            {
+                                depDownloads = ModCompDependency.BuildDependencyDownloads(result, targetDir);
+                                downloadFiles = depDownloads.Concat(downloadFiles).ToList();
+                            }
+
                             if (result.Unresolved.Any() || result.ToInstall.Any())
                             {
                                 var installChoice = ModCompDependency.ConfirmDependencyInstall(result);
@@ -449,14 +455,12 @@ public partial class PageDownloadCompDetail
                                 {
                                     case ModComp.CompDepsInstallTypes.Unresolved:
                                         ModBase.Log("[CompDeps] 部分前置无法解析，继续安装已解析的部分");
-                                        depDownloads = ModCompDependency.BuildDependencyDownloads(result, targetDir);
-                                        downloadFiles = depDownloads.Concat(downloadFiles).ToList();
+                                        DownloadDependencies();
                                         break;
 
                                     case ModComp.CompDepsInstallTypes.WithDeps:
                                         ModBase.Log($"[CompDeps] 准备下载: {result.ToInstall.Count} 个前置");
-                                        depDownloads = ModCompDependency.BuildDependencyDownloads(result, targetDir);
-                                        downloadFiles = depDownloads.Concat(downloadFiles).ToList();
+                                        DownloadDependencies();
                                         break;
 
                                     case ModComp.CompDepsInstallTypes.WithoutDeps:
