@@ -7,12 +7,9 @@ using PCL.Core.IO.Storage.Cache;
 using PCL.Core.Logging;
 using Polly;
 using System;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PCL.Core.IO.Net;
 
@@ -184,7 +181,7 @@ public partial class NetworkService
             .WaitAndRetryAsync(
                 retry,
                 attempt => retryPolicy.Invoke(attempt),
-                onRetry: (exception, timeSpan, retryAttempt, context) =>
+                onRetry: (exception, timeSpan, retryAttempt, _) =>
                 {
                     LogWrapper.Debug(
                         exception,
