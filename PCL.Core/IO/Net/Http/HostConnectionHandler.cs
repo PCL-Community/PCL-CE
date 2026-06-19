@@ -207,7 +207,7 @@ public class HostConnectionHandler
         }
     }
 
-    private static async Task _CleanupUnusedConnectionsAsyncAsync(
+    private static async Task _CleanupUnusedConnectionsAsync(
         List<Task<NetworkStream>> allTasks,
         Task<NetworkStream>? winnerTask)
     {

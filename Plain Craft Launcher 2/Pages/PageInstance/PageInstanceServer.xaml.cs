@@ -265,7 +265,7 @@ public partial class PageInstanceServer : MyPageRight
     /// <summary>
     ///     从servers.dat文件读取服务器信息
     /// </summary>
-    private async Task LoadServersFromFileAsyncAsync()
+    private async Task LoadServersFromFileAsync()
     {
         serverList.Clear();
 

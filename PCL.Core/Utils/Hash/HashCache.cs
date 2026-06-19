@@ -82,7 +82,7 @@ public class HashCache
         return await _GetHashWithPendingAsync(filePath, provider, algoName).ConfigureAwait(false);
     }
 
-    private Task<string> _GetHashWithPendingAsyncAsync(string filePath, IHashProvider provider, string algoName)
+    private Task<string> _GetHashWithPendingAsync(string filePath, IHashProvider provider, string algoName)
     {
         var computeKey = $"{filePath}:{algoName}";
         return _FileHashComputePending.GetOrAdd(computeKey, key =>
