@@ -1048,7 +1048,7 @@ public static class ModMain
         // 收集事件列表
         var events = CustomEventService.GetEvents(control).ToList();
         var eventType = CustomEventService.GetEventType(control);
-        if (eventType != CustomEvent.EventType.None)
+        if (eventType != EventType.None)
             events.Add(new CustomEvent(eventType, CustomEventService.GetEventData(control)));
 
         if (!events.Any()) return;

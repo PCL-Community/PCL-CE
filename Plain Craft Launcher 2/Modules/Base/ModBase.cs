@@ -3195,7 +3195,7 @@ public static class ModBase
     }
 
     /// <summary>
-    ///     将 XML 转换为对应 UI 对象。
+    ///     将 XElement 转换为对应 UI 对象（不返回 XAML 清理结果）。
     /// </summary>
     public static object GetObjectFromXML(XElement str)
     {
@@ -3207,11 +3207,24 @@ public static class ModBase
     /// </summary>
     public static object GetObjectFromXML(string str)
     {
+        return GetObjectFromXML(str, out _);
+    }
+
+    /// <summary>
+    ///     将 XML 转换为对应 UI 对象，并输出 XAML 清理结果。
+    /// </summary>
+    public static object GetObjectFromXML(string str, out XamlEventSanitizer.SanitizeResult sanitizeResult)
+    {
         str = str. // 兼容旧版自定义事件写法
             Replace("EventType=\"", "local:CustomEventService.EventType=\"").
             Replace("EventData=\"", "local:CustomEventService.EventData=\"").
             Replace("Property=\"EventType\"", "Property=\"local:CustomEventService.EventType\"").
             Replace("Property=\"EventData\"", "Property=\"local:CustomEventService.EventData\"");
+        // 修复因上述替换导致重复前缀的情况：local:CustomEventService.local:CustomEventService.EventType
+        str = str.Replace("local:CustomEventService.local:CustomEventService.", "local:CustomEventService.");
+
+        sanitizeResult = XamlEventSanitizer.Sanitize(str);
+        str = sanitizeResult.SanitizedXaml;
         using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(str)))
         {
             // 类型检查
