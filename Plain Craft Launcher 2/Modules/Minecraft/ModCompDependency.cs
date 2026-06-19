@@ -211,10 +211,10 @@ public static class ModCompDependency
 
     /// <summary>
     ///     Shows confirmation dialog for required dependency installs.
-    ///     Returns: 1 (WithDeps) if user chooses to install with deps, 
-    ///              2 (WithoutDeps) if user chooses to install without deps, 
-    ///              3 (Cancel) if user cancels, 
-    ///              0 (Unresolved) if there are unresolved required deps.
+    ///     Returns: CompDepsInstallTypes.WithDeps if user chooses to install with deps, 
+    ///              CompDepsInstallTypes.WithoutDeps if user chooses to install without deps, 
+    ///              CompDepsInstallTypes.Cancel if user cancels, 
+    ///              CompDepsInstallTypes.Unresolved if there are unresolved required deps.
     /// </summary>
     public static ModComp.CompDepsInstallTypes ConfirmDependencyInstall(ModDependencyResolutionResult result)
     {
