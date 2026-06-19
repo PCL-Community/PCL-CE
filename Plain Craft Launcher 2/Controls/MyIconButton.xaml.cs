@@ -334,7 +334,7 @@ public partial class MyIconButton
         switch (Theme)
         {
             case Themes.Color:
-                SetActiveIconResource("ColorBrush5");
+                SetActiveIconResource("ColorBrush4");
                 break;
             case Themes.White:
                 SetActiveIconBrush(new ModBase.MyColor(234d, 242d, 254d));

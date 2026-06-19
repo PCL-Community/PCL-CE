@@ -387,7 +387,6 @@ public partial class PageDownloadCompDetail
                             cachedFolder.Add(file.Type, targetDir);
                     }
 
-                    var downloadFiles = new List<DownloadFile> { file.ToNetFile(target) };
                     if (file.Type == ModComp.CompType.Mod && Config.Download.Comp.AutoInstallDependencies &&
                         file.Dependencies.Any())
                     {
@@ -513,7 +512,7 @@ public partial class PageDownloadCompDetail
                     var loaders = new List<ModLoader.LoaderBase>
                     {
                         new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadFile"),
-                            downloadFiles)
+                            new List<DownloadFile> { file.ToNetFile(target) })
                         {
                             ProgressWeight = 6,
                             block = true
