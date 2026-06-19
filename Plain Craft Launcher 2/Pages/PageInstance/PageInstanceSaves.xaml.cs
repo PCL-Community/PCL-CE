@@ -410,6 +410,11 @@ public partial class PageInstanceSaves : IRefreshable
         ModMain.frmMain.BtnExtraDownload.Ribble();
     }
 
+    private void BtnDownloadNew_Click(object sender, MouseButtonEventArgs e)
+    {
+        ModMain.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadWorld);
+    }
+
     #region 搜索和排序
 
     private SortMethod _currentSortMethod = SortMethod.FileName;
