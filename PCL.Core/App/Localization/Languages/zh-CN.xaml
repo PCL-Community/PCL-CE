@@ -1500,8 +1500,6 @@
     <sys:String x:Key="Setup.Ui.Homepage.GetMore">获取更多主页</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.GoToMarket">前往主页市场</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Refresh.Success">已刷新主页！</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Tutorial.Message">1. 点击 生成教学文件 按钮，这会在 PCL 文件夹下生成 Custom.xaml 布局文件。&#x0a;2. 使用记事本等工具打开这个文件并进行修改，修改完记得保存。&#x0a;3. 点击 刷新主页 按钮，查看主页现在长啥样了。&#x0a;&#x0a;你可以在生成教学文件后直接刷新主页，对照着进行修改，更有助于理解。&#x0a;直接将主页文件拖进 PCL 窗口也可以快捷加载。</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Tutorial.Title">主页自定义教程</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.Trivia">你知道吗？</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.EchoCave">回声洞 (已移除)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McNews">Minecraft 新闻（作者：最亮的信标）</sys:String>

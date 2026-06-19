@@ -1500,8 +1500,6 @@
     <sys:String x:Key="Setup.Ui.Homepage.GetMore">Get more homepages</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.GoToMarket">Homepage Market</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Refresh.Success">Homepage refreshed!</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Tutorial.Message">1. Click the &quot;Generate docs&quot; button, which will generate the &quot;Custom.xaml&quot; layout file in the PCL folder.&#x0a;2. Modify the file with tools like Notepad, and remember to save it after the modification.&#x0a;3. Click the &quot;Refresh&quot; button to see what the homepage looks like now.&#x0a;&#x0a;You can directly refresh the homepage after generating the documentation file and make changes accordingly, which will be more helpful for you to understand.&#x0a;You can also load the homepage file directly by dragging it into the PCL window.</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Tutorial.Title">Homepage custom tutorials</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.Trivia">Trivia</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.EchoCave">Echo Cave (removed)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McNews">Minecraft News (Author: Nattiden)</sys:String>
