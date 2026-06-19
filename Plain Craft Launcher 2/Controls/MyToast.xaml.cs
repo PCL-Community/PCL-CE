@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using PCL.Core.App;
 using PCL.Core.UI.Theme;
 
 namespace PCL;
@@ -14,9 +15,16 @@ public partial class MyToast
     {
         InitializeComponent();
         BtnClose.Click += (_, _) => Dismiss();
-        Loaded += (_, _) => UpdateColors();
+        Loaded += (_, _) =>
+        {
+            UpdateColors();
+            ThemeService.ColorModeChanged += OnThemeChanged;
+            ThemeService.ColorThemeChanged += OnColorThemeChanged;
+        };
         Unloaded += (_, _) =>
         {
+            ThemeService.ColorModeChanged -= OnThemeChanged;
+            ThemeService.ColorThemeChanged -= OnColorThemeChanged;
             ModAnimation.AniStop($"Toast Show {Uuid}");
             ModAnimation.AniStop($"Toast Hide {Uuid}");
             ModAnimation.AniStop($"Toast Dismiss {Uuid}");
@@ -24,6 +32,9 @@ public partial class MyToast
             ProgressBar.BeginAnimation(WidthProperty, null);
         };
     }
+
+    private void OnThemeChanged(bool isDarkMode, ColorTheme theme) => UpdateColors();
+    private void OnColorThemeChanged(ColorTheme theme) => UpdateColors();
 
     public string Context
     {
