@@ -1445,14 +1445,10 @@ public static class ModLaunch
                 ModBase.Log(ex, "正版验证 Step 6 汇报 404");
                 ModBase.RunInNewThread(() =>
                 {
-                    switch (ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Message"), Lang.Text("Minecraft.Launch.Login.Failed"), Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Button"), Lang.Text("Common.Action.Cancel")))
-                    {
-                        case 1:
-                        {
-                            ModBase.OpenWebsite("https://www.minecraft.net/zh-hans/msaprofile/mygames/editprofile");
-                            break;
-                        }
-                    }
+                    var accountKey = !string.IsNullOrWhiteSpace(States.Online.MsId)
+                        ? States.Online.MsId
+                        : ModProfile.selectedProfile?.Username;
+                    MicrosoftLoginPolicyGate.ShowLaunchCreateProfilePromptOnce(accountKey);
                 }, "Login Failed: Create Profile");
                 throw new Exception("$$");
             }

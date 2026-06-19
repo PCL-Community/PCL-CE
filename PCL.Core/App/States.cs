@@ -1,6 +1,10 @@
 ﻿using System.Collections.Generic;
 using PCL.Core.App.Configuration;
 
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
 namespace PCL.Core.App;
 
 /// <summary>
@@ -359,6 +363,9 @@ public static partial class States
 
         /// <summary>上次 token 刷新时间</summary>
         [ConfigItem<string>("MsLastTokenRefresh", "")] public partial string MsLastTokenRefresh { get; set; }
+
+        /// <summary>已经提示过缺少 Minecraft 档案的账户标识列表。</summary>
+        [ConfigItem<string>("MsMissingProfilePromptedKeys", "", ConfigSource.Local)] public partial string MissingMinecraftProfilePromptedKeys { get; set; }
 
         /// <summary>是否启用 N Cloud 同步</summary>
         [ConfigItem<bool>("CloudSyncEnabled", true, ConfigSource.Local)] public partial bool CloudSyncEnabled { get; set; }

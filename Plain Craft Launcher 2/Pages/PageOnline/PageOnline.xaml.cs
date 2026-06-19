@@ -174,7 +174,7 @@ public partial class PageOnline
         ModMain.Hint(result.Message,
             result.Success ? ModMain.HintType.Finish : ModMain.HintType.Critical);
         if (result.Success && result.OwnsMinecraft && result.MinecraftProfileMissing)
-            ShowCreateMinecraftProfilePrompt();
+            MicrosoftLoginPolicyGate.ShowOnlineCreateProfilePromptOnce(result.MsId ?? result.DisplayName);
         RefreshAccountCard();
     }
 
@@ -182,15 +182,6 @@ public partial class PageOnline
     {
         BtnLogin.IsEnabled = enabled;
         BtnWindowsLogin.IsEnabled = enabled;
-    }
-
-    private static void ShowCreateMinecraftProfilePrompt()
-    {
-        if (ModMain.MyMsgBox(Lang.Text("Online.Login.CreateProfile.Message"),
-                Lang.Text("Online.Login.CreateProfile.Title"),
-                Lang.Text("Online.Login.CreateProfile.Button"),
-                Lang.Text("Common.Action.Cancel")) == 1)
-            ModBase.OpenWebsite("https://www.minecraft.net/msaprofile/mygames/editprofile");
     }
 
     private void BtnLogout_Click(object sender, ModBase.RouteEventArgs e)
