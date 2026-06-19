@@ -2222,7 +2222,7 @@ public partial class PageInstanceInstall
     // 选择与清除
     public void LegacyFabric_Selected(MyListItem sender, EventArgs e)
     {
-        selectedLegacyFabric = ((dynamic)sender.Tag)("version").ToString();
+        selectedLegacyFabric = ((dynamic)sender.Tag)["version"].ToString();
         selectedLoaderName = "LegacyFabric";
         LegacyFabricApi_Loaded();
         CardLegacyFabric.IsSwapped = true;

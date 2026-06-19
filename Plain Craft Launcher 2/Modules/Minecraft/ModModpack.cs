@@ -1320,25 +1320,14 @@ public static class ModModpack
                         }
 
                     var components = (JsonArray)packJson["components"];
-                    foreach (var Patch in patches)
-                    {
-                        // 检查 Patch 是否在 mmc-pack.json 中
-                        var isContainedInPackJson = false;
-                        foreach (var Component in components)
-                            if ((Component["uid"].ToString() ?? "") == (Patch.Key["uid"].ToString() ?? ""))
-                            {
-                                isContainedInPackJson = true;
-                                break;
-                            }
-
-                        if (!isContainedInPackJson)
-                        {
-                            ModBase.Log($"[ModPack] JSON-Patch {Patch.Key["uid"]} 未包含于 mmc-pack.json, 跳过该 Patch");
-                            patches.Remove(Patch);
-                        }
-                    }
-
-                    patches.Sort((x, y) => x.Value.CompareTo(y.Value));
+                    var componentUids = components
+                        .Select(c => c["uid"]?.ToString())
+                        .ToHashSet();
+                    
+                    patches = patches
+                        .Where(p => componentUids.Contains(p.Key["uid"]?.ToString()))
+                        .OrderBy(p => p.Value)
+                        .ToList();
                     // 应用 Patches
                     packInfo = new MMCPackInfo();
 
