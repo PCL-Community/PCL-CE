@@ -2239,15 +2239,20 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     判断是否使用 RetroWrapper。
-    ///     TODO: 在更换为 Drop 比较版本号后可能不准确，需要测试确认。
+    /// 判断是否使用 LegacyFix。
     /// </summary>
-    private static bool McLaunchNeedsRetroWrapper(McInstance mc)
+    private static bool McLaunchNeedsLegacyFix(McInstance mc)
     {
-        return (mc.releaseTime >= new DateTime(2013, 6, 25) && mc.Info.Drop == 99) ||
-               (mc.Info.Drop < 60 && mc.Info.Drop != 99 &&
-                !Config.Launch.DisableRw &&
-                !Config.Instance.DisableRw[mc.PathInstance]); // <1.6
+        if (Config.Launch.DisableLF || Config.Instance.DisableLF[mc.PathInstance])
+        {
+            ModBase.Log("[Launch] LegacyFix 已被禁用");
+            return false;
+        }
+        if (mc.releaseTime < new DateTime(2013, 6, 25) && mc.releaseTime.Year > 2000)
+        {
+            return true;
+        }
+        return false;
     }
 
     /// <summary>
@@ -2495,6 +2500,19 @@ public static class ModLaunch
                 ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.Proxy"), ModBase.LogLevel.Hint);
             }
 
+        // 添加 LegacyFix 相关参数
+        if (McLaunchNeedsLegacyFix(instance))
+        {
+            var legacyFixPath = Path.Combine(ModBase.pathPure, "legacyfix.jar");
+            dataList.Add("-javaagent:\"" + legacyFixPath + "\"");
+
+            // Beta 1.6 以前版本需要添加的参数
+            if (instance.releaseTime < new DateTime(2011, 5, 25))
+            {
+                dataList.Add("-Djava.util.Arrays.useLegacyMergeSort=true");
+            }
+        }
+
         // 添加 Java Wrapper 作为主 Jar
         if (ModBase.IsUtf8CodePage() && !Config.Launch.DisableJlw &&
             !Config.Instance.DisableJlw[ModInstanceList.McMcInstanceSelected?.PathInstance])
@@ -2616,10 +2634,6 @@ public static class ModLaunch
                 ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.Proxy"), ModBase.LogLevel.Hint);
             }
 
-        // 添加 RetroWrapper 相关参数
-        if (McLaunchNeedsRetroWrapper(instance))
-            // https://github.com/NeRdTheNed/RetroWrapper/wiki/RetroWrapper-flags
-            dataList.Add("-Dretrowrapper.doUpdateCheck=false");
         // 添加 Java Wrapper 作为主 Jar
         if (ModBase.IsUtf8CodePage() && !Config.Launch.DisableJlw &&
             !Config.Instance.DisableJlw[ModInstanceList.McMcInstanceSelected?.PathInstance])
@@ -2667,9 +2681,6 @@ public static class ModLaunch
     private static string McLaunchArgumentsGameOld(McInstance version)
     {
         var dataList = new List<string>();
-
-        // 添加 RetroWrapper 相关参数
-        if (McLaunchNeedsRetroWrapper(version)) dataList.Add("--tweakClass com.zero.retrowrapper.RetroTweaker");
 
         // 本地化 Minecraft 启动信息
         var basicString = version.JsonObject["minecraftArguments"].ToString();
@@ -2887,18 +2898,17 @@ public static class ModLaunch
         var cpStrings = new List<string>();
         string optiFineCp = null;
 
-        // RetroWrapper 释放
-        if (McLaunchNeedsRetroWrapper(instance))
+        // LegacyFix 释放
+        if (McLaunchNeedsLegacyFix(instance))
         {
-            var wrapperPath = ModFolder.mcFolderSelected + @"libraries\retrowrapper\RetroWrapper.jar";
+            var legacyFixPath = Path.Combine(ModBase.pathPure, "legacyfix.jar");
             try
             {
-                ModBase.WriteFile(wrapperPath, ModBase.GetResourceStream("Resources/retro-wrapper.jar"));
-                cpStrings.Add(wrapperPath);
+                ModBase.WriteFile(legacyFixPath, ModBase.GetResourceStream("Resources/legacyfix.jar"));
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "RetroWrapper 释放失败");
+                ModBase.Log(ex, "LegacyFix 释放失败");
             }
         }
 

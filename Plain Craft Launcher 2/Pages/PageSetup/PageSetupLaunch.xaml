@@ -292,8 +292,8 @@
                     <StackPanel Margin="0,12,0,4" Grid.Row="8" Grid.ColumnSpan="2" HorizontalAlignment="Left">
                         <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.DisableJlw}" x:Name="CheckAdvanceDisableJLW" Tag="LaunchAdvanceDisableJLW"  Change="CheckBoxChange"
                                           ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.DisableJlw.ToolTip}" />
-                        <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.DisableRw}" x:Name="CheckAdvanceDisableRW" Tag="LaunchAdvanceDisableRW"  Change="CheckBoxChange"
-                                          ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.DisableRw.ToolTip}" />
+                        <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.DisableLF}" x:Name="CheckAdvanceDisableLF" Tag="LaunchAdvanceDisableLF"  Change="CheckBoxChange"
+                                          ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.DisableLF.ToolTip}" />
                         <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.GpuPreference}" x:Name="CheckAdvanceGraphicCard" Tag="LaunchAdvanceGraphicCard"  Change="CheckBoxChange"
                                           ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.GpuPreference.ToolTip}" />
                         <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.UseJavaExe}" x:Name="CheckAdvanceNoJavaw" Tag="LaunchAdvanceNoJavaw"  Change="CheckBoxChange"

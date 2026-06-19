@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using PCL.Core.App.Localization;
 using PCL.Core.Link.EasyTier;
 

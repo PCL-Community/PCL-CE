@@ -73,7 +73,7 @@ public partial class PageSetupLaunch
             TextAdvanceGame.Text = Config.Launch.GameArgs;
             TextAdvanceRun.Text = Config.Launch.PreLaunchCommand;
             CheckAdvanceRunWait.Checked = Config.Launch.PreLaunchCommandWait;
-            CheckAdvanceDisableRW.Checked = Config.Launch.DisableRw;
+            CheckAdvanceDisableLF.Checked = Config.Launch.DisableLF;
             CheckAdvanceGraphicCard.Checked = Config.Launch.SetGpuPreference;
             CheckAdvanceNoJavaw.Checked = Config.Launch.NoJavaw;
             CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Launch.DisableLwjglUnsafeAgent;
