@@ -224,8 +224,8 @@ public static class ModCompDependency
         {
             ModBase.Log($"[CompDeps] 无法解析: {result.Unresolved.Count} 个必需前置");
             var message = "以下必需前置无法解析：\n\n" +
-                        string.Join("\n", result.Unresolved
-                            .Select(dep => $"- {dep.Source} {dep.ProjectId}: {dep.Reason}"));
+                          string.Join("\n", result.Unresolved
+                              .Select(dep => $"- {dep.Source} {dep.ProjectId}: {dep.Reason}"));
             var selectedButton = ModMain.MyMsgBox(message, "无法安装必需前置", button1: "继续下载", button2: "取消", isWarn: true, forceWait: true);
            return selectedButton == 1 ? ModComp.CompDepsInstallTypes.Unresolved : ModComp.CompDepsInstallTypes.Cancel;
         }
