@@ -35,7 +35,7 @@ internal sealed class CrashReportExporter
         var reportFolder = Path.Combine(context.TempFolder, ReportFolderName);
 
         if (Directory.Exists(reportFolder))
-            CrashFileIO.DeleteDirectory(reportFolder);
+            CrashFileIo.DeleteDirectory(reportFolder);
 
         Directory.CreateDirectory(reportFolder);
 
@@ -50,7 +50,7 @@ internal sealed class CrashReportExporter
         }
         finally
         {
-            CrashFileIO.DeleteDirectory(reportFolder);
+            CrashFileIo.DeleteDirectory(reportFolder);
         }
     }
 
@@ -63,12 +63,12 @@ internal sealed class CrashReportExporter
 
         var fileName = _GetExportFileName(outputFile, out var fileEncoding);
 
-        fileEncoding ??= EncodingDetector.DetectEncoding(CrashFileIO.ReadBytes(outputFile));
+        fileEncoding ??= EncodingDetector.DetectEncoding(CrashFileIo.ReadBytes(outputFile));
 
-        var fileContent = CrashFileIO.ReadText(outputFile, fileEncoding);
+        var fileContent = CrashFileIo.ReadText(outputFile, fileEncoding);
         fileContent = _SanitizeFileContent(fileContent, fileName);
 
-        CrashFileIO.WriteText(
+        CrashFileIo.WriteText(
             Path.Combine(reportFolder, fileName),
             fileContent,
             fileEncoding);
@@ -138,7 +138,7 @@ internal sealed class CrashReportExporter
         _AppendInstanceInfo(envInfo, launcherLog, launchScript);
         _AppendEnvironmentInfo(envInfo, launcherLog);
 
-        CrashFileIO.WriteText(
+        CrashFileIo.WriteText(
             Path.Combine(reportFolder, EnvironmentFileName),
             envInfo.ToString(),
             Encoding.UTF8);
@@ -251,7 +251,7 @@ internal sealed class CrashReportExporter
         var filePath = Path.Combine(reportFolder, fileName);
 
         return File.Exists(filePath)
-            ? CrashFileIO.ReadText(filePath)
+            ? CrashFileIo.ReadText(filePath)
             : "";
     }
 }

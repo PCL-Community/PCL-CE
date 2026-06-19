@@ -70,7 +70,7 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
         }
 
         possibleLogs.Add(Path.Combine(versionPathIndie, "logs", "latest.log"));
-        var launchScript = CrashFileIO.ReadText(Path.Combine(Basics.ExecutableDirectory, "PCL", "LatestLaunch.bat"));
+        var launchScript = CrashFileIo.ReadText(Path.Combine(Basics.ExecutableDirectory, "PCL", "LatestLaunch.bat"));
         if (launchScript.Contains("-Dlog4j2.formatMsgNoLookups=false", StringComparison.OrdinalIgnoreCase))
             possibleLogs.Add(Path.Combine(versionPathIndie, "logs", "debug.log"));
 
@@ -104,7 +104,7 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
         try
         {
             context.RawFiles.Add(
-                new CrashLogEntry(filePath, CrashFileIO.ReadText(filePath).Split("\r\n".ToCharArray())));
+                new CrashLogEntry(filePath, CrashFileIo.ReadText(filePath).Split("\r\n".ToCharArray())));
         }
         catch (Exception ex)
         {
@@ -120,7 +120,7 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
         var rawOutput = string.Join("\r\n", latestLog);
         LogWrapper.Info("Crash", "以下为游戏输出的最后一段内容：" + "\r\n" + rawOutput);
         var rawOutputPath = Path.Combine(context.TempFolder, "RawOutput.log");
-        CrashFileIO.WriteText(rawOutputPath, rawOutput);
+        CrashFileIo.WriteText(rawOutputPath, rawOutput);
         context.RawFiles.Add(new CrashLogEntry(rawOutputPath, latestLog.ToArray()));
         latestLog.Clear();
     }

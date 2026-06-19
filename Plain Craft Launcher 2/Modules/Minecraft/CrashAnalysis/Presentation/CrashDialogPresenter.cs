@@ -112,7 +112,7 @@ internal sealed class CrashDialogPresenter(CrashAnalysisContext context)
 
         var filePath = Path.Combine(Paths.Temp, "Crash.txt");
 
-        CrashFileIO.WriteText(filePath, string.Join("\r\n", directFile.Lines));
+        CrashFileIo.WriteText(filePath, string.Join("\r\n", directFile.Lines));
         Basics.OpenPath(filePath);
     }
 

@@ -11,16 +11,17 @@ internal sealed class CrashLogImporter(CrashAnalysisContext context)
 
         if (!_TryExtractArchive(filePath))
         {
-            CrashFileIO.CopyFile(filePath, Path.Combine(
+            CrashFileIo.CopyFile(filePath, Path.Combine(
                 context.TempFolder,
                 "Temp",
                 Path.GetFileName(filePath)));
             LogWrapper.Info("Crash", "已复制导入的日志文件：" + filePath);
         }
 
-        foreach (var targetFile in new DirectoryInfo(Path.Combine(context.TempFolder, "Temp"))
-                     .EnumerateFiles()
-                     .ToList())
+        foreach (
+            var targetFile in new DirectoryInfo(Path.Combine(context.TempFolder, "Temp"))
+                .EnumerateFiles("*", SearchOption.AllDirectories)
+                .ToList())
             try
             {
                 if (!targetFile.Exists || targetFile.Length == 0L)
@@ -29,7 +30,7 @@ internal sealed class CrashLogImporter(CrashAnalysisContext context)
                 var ext = targetFile.Extension.ToLowerInvariant();
                 if (ext is ".log" or ".txt")
                     context.RawFiles.Add(new CrashLogEntry(targetFile.FullName,
-                        CrashFileIO.ReadText(targetFile.FullName).Split("\r\n".ToCharArray())));
+                        CrashFileIo.ReadText(targetFile.FullName).Split("\r\n".ToCharArray())));
                 else
                     File.Delete(targetFile.FullName);
             }
@@ -49,10 +50,10 @@ internal sealed class CrashLogImporter(CrashAnalysisContext context)
             if (!info.Exists || info.Length <= 0L)
                 return false;
 
-            if (!filePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            if (!CrashFileIo.CanExtractArchive(filePath))
                 return false;
 
-            CrashFileIO.ExtractFile(filePath, Path.Combine(context.TempFolder, "Temp"));
+            CrashFileIo.ExtractFile(filePath, Path.Combine(context.TempFolder, "Temp"));
             LogWrapper.Info("Crash", "已解压导入的日志文件：" + filePath);
             return true;
         }
