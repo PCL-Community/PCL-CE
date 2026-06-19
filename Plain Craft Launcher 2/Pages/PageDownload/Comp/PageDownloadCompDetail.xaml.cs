@@ -439,6 +439,7 @@ public partial class PageDownloadCompDetail
                                 targetDir);
                             var resolver = new ModDependencyResolver();
                             var result = resolver.Resolve(request);
+                            var depDownloads = new List<DownloadFile>();
 
                             if (result.Unresolved.Any() || result.ToInstall.Any())
                             {
@@ -446,31 +447,28 @@ public partial class PageDownloadCompDetail
 
                                 switch (installChoice)
                                 {
-                                    // 无法解析依赖
-                                    case 0:
+                                    case ModComp.CompDepsInstallTypes.Unresolved:
                                         ModBase.Log("[CompDeps] 无法解析前置，跳过载前置下载");
-                                        break;
-
-                                    // 用户选择安装前置
-                                    case 1:
-                                        ModBase.Log($"[CompDeps] 准备下载: {result.ToInstall.Count} 个前置");
-                                        var depDownloads = ModCompDependency.BuildDependencyDownloads(result, targetDir);
+                                        depDownloads = ModCompDependency.BuildDependencyDownloads(result, targetDir);
                                         downloadFiles = depDownloads.Concat(downloadFiles).ToList();
                                         break;
 
-                                    // 用户选择只安装本体，不安装前置
-                                    case 2:
+                                    case ModComp.CompDepsInstallTypes.WithDeps:
+                                        ModBase.Log($"[CompDeps] 准备下载: {result.ToInstall.Count} 个前置");
+                                        depDownloads = ModCompDependency.BuildDependencyDownloads(result, targetDir);
+                                        downloadFiles = depDownloads.Concat(downloadFiles).ToList();
+                                        break;
+
+                                    case ModComp.CompDepsInstallTypes.WithoutDeps:
                                         ModBase.Log("[CompDeps] 用户选择仅下载 Mod 本体，跳过前置下载");
                                         break;
 
-                                    // 用户取消安装
-                                    case 3:
+                                    case ModComp.CompDepsInstallTypes.Cancel:
                                         ModBase.Log("[CompDeps] 用户取消安装");
                                         return;
 
-                                    // 处理不被预期的情况
                                     default:
-                                        ModBase.Log("[CompDeps] 未知返回值: {installChoice}");
+                                        ModBase.Log("[CompDeps] 未知返回值: {installChoice} ，默认仅安装本体");
                                         return;
                                 }
                             }

@@ -184,6 +184,29 @@ public static class ModComp
         World = 7
     }
 
+    public enum CompDepsInstallTypes
+    {
+        /// <summary>
+        ///     无法解析依赖
+        /// </summary>
+        Unresolved = 0,
+
+        /// <summary>
+        ///     用户选择安装前置
+        /// </summary>
+        WithDeps = 1,
+
+        /// <summary>
+        ///     用户选择只安装本体，不安装前置
+        /// </summary>
+        WithoutDeps = 2,
+
+        /// <summary>
+        ///     用户取消安装
+        /// </summary>        
+        Cancel = 3,
+    }
+
     public static string GetCompTypeName(CompType type) => Lang.Text(type switch
     {
         CompType.Mod => "Download.Comp.Type.Mod",
