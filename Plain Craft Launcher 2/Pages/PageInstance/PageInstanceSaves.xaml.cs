@@ -498,7 +498,7 @@ public partial class PageInstanceSaves : IRefreshable
                     queryList.Add(new ModBase.SearchEntry<string> { item = saveFolder, searchSource = searchSource });
                 }
 
-                _searchResult = ModBase.Search(queryList, SearchBox.Text, 6, 0.35d).Select(r => r.item).ToList();
+                _searchResult = ModBase.Search(queryList, SearchBox.Text, ModBase.MAX_LOCAL_SEARCH_DEPTH, 0.35d).Select(r => r.item).ToList();
             }
             else
             {
