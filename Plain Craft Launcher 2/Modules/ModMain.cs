@@ -11,6 +11,7 @@ using System.Windows.Threading;
 using FluentValidation;
 using Microsoft.VisualBasic;
 using Microsoft.Win32;
+using PCL.Controls.MyMsg.Models;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
@@ -96,9 +97,14 @@ public static class ModMain
     private static int timer150Count;
 
     /// <summary>
-    ///     等待显示的弹窗。
+    /// 等待显示的弹窗。
     /// </summary>
     public static List<MyMsgBoxConverter> WaitingMyMsgBox { get; } = [];
+
+    /// <summary>
+    /// 等待显示的 MyMsgBox
+    /// </summary>
+    public static List<MyMsgTextData> WaitMyMsgData { get; } = [];
 
     private static void TimerMain()
     {
@@ -126,6 +132,7 @@ public static class ModMain
             try
             {
                 #region 每 250ms 执行一次的代码
+
             }
 
             #endregion
@@ -393,6 +400,11 @@ public static class ModMain
         return 1;
     }
 
+    public static int MyMsgBox(MyMsgTextData data)
+    {
+
+    }
+
     /// <summary>
     ///     显示弹窗，返回点击按钮的编号（从 1 开始）。
     /// </summary>
@@ -405,7 +417,8 @@ public static class ModMain
     /// <param name="button2Action">点击第二个按钮将执行该方法，不关闭弹窗。</param>
     /// <param name="button3Action">点击第三个按钮将执行该方法，不关闭弹窗。</param>
     /// <param name="isWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
-    public static int MyMsgBoxMarkdown(string caption, string? title = null, string? button1 = null, string? button2 = "",
+    public static int MyMsgBoxMarkdown(string caption, string? title = null, string? button1 = null,
+        string? button2 = "",
         string? button3 = "", bool isWarn = false, bool highLight = true, bool forceWait = false,
         Action button1Action = null, Action button2Action = null, Action button3Action = null)
     {
@@ -566,7 +579,36 @@ public static class ModMain
         return (int?)converter.Result;
     }
 
-
+    public static void MyMsgBoxShow()
+    {
+        try
+        {
+            if (frmMain is null || frmMain.PanMsg is null || frmMain.WindowState == WindowState.Minimized)
+                return;
+            if (frmMain.PanMsg.Children.Count > 0)
+            {
+                // 弹窗中
+                frmMain.PanMsgBackground.Visibility = Visibility.Visible;
+            }
+            else if (WaitingMyMsgBox.Count != 0)
+            {
+                // 没有弹窗，显示一个等待的弹窗
+                frmMain.PanMsgBackground.Visibility = Visibility.Visible;
+                frmMain.PanMsg.Children.Add(new MyMsgText(WaitMyMsgData[0]));
+                WaitMyMsgData.RemoveAt(0);
+            }
+            // 没有弹窗，没有等待的弹窗
+            else if (!(frmMain.PanMsgBackground.Visibility == Visibility.Collapsed))
+            {
+                frmMain.PanMsgBackground.Visibility = Visibility.Collapsed;
+            }
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "处理等待中的弹窗失败", ModBase.LogLevel.Feedback);
+        }
+    }
+    
     public static void MyMsgBoxTick()
     {
         try
@@ -578,7 +620,7 @@ public static class ModMain
                 // 弹窗中
                 frmMain.PanMsgBackground.Visibility = Visibility.Visible;
             }
-            else if (WaitingMyMsgBox.Any())
+            else if (WaitingMyMsgBox.Count != 0)
             {
                 // 没有弹窗，显示一个等待的弹窗
                 frmMain.PanMsgBackground.Visibility = Visibility.Visible;

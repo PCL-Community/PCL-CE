@@ -24,7 +24,7 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <TextBlock Grid.Row="0" FontSize="23" TextTrimming="None" Foreground="{DynamicResource ColorBrush2}"
-                       HorizontalAlignment="Left" Name="LabTitle" Margin="7,-1,70,9" Text="测试标题文本"
+                       HorizontalAlignment="Left" Name="LabTitle" Margin="7,-1,70,9" Text="{Binding Title}"
                        VerticalAlignment="Top" SnapsToDevicePixels="False" UseLayoutRounding="False" />
             <Rectangle x:Name="ShapeLine" Grid.Row="1" Height="2" Fill="{Binding Foreground, ElementName=LabTitle}" />
             <my:MyScrollViewer Grid.Row="3" VerticalAlignment="Top" x:Name="PanCaption" Margin="0,0,0,17"

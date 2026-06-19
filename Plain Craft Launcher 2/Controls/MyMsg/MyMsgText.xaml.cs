@@ -1,7 +1,10 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using PCL.Controls.MyMsg.Models;
+using PCL.Controls.MyMsg.ViewModels;
 using PCL.Core.UI.Controls;
 
 namespace PCL;
@@ -11,6 +14,16 @@ public partial class MyMsgText
     private readonly ModMain.MyMsgBoxConverter myConverter;
     private readonly int uuid = ModBase.GetUuid();
 
+    public MyMsgText(MyMsgTextData data)
+    {
+        data.Exited += Close;
+        
+        DataContext = new MyMsgTextViewModel(data);
+        InitializeComponent();
+        ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
+        Loaded += Load;
+    }
+    
     public MyMsgText(ModMain.MyMsgBoxConverter converter)
     {
         try

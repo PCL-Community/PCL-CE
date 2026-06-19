@@ -1,7 +1,9 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using PCL.Controls.MyMsg.Models;
 using PCL.Core.UI.Controls;
 
 namespace PCL;
@@ -10,7 +12,7 @@ public partial class MyMsgInput
 {
     private readonly ModMain.MyMsgBoxConverter myConverter;
     private readonly int uuid = ModBase.GetUuid();
-
+    
     public MyMsgInput(ModMain.MyMsgBoxConverter converter)
     {
         try
