@@ -387,7 +387,6 @@ public partial class PageDownloadCompDetail
                             cachedFolder.Add(file.Type, targetDir);
                     }
 
-                    var downloadFiles = new List<DownloadFile> { file.ToNetFile(target) };
                     if (file.Type == ModComp.CompType.Mod && Config.Download.Comp.AutoInstallDependencies &&
                         file.Dependencies.Any())
                     {
@@ -449,7 +448,26 @@ public partial class PageDownloadCompDetail
 
                                 ModBase.Log($"[CompDeps] 准备下载: {result.ToInstall.Count} 个前置");
                                 var depDownloads = ModCompDependency.BuildDependencyDownloads(result, targetDir);
-                                downloadFiles = depDownloads.Concat(downloadFiles).ToList();
+                                foreach (var (depFilename, downloadFile) in depDownloads)
+                                {
+                                    var depLoaderName = Lang.Text("Download.Comp.Detail.DownloadResource", desc,
+                                        ModBase.GetFileNameWithoutExtentionFromPath(depFilename));
+                                    var depLoaders = new List<ModLoader.LoaderBase>
+                                    {
+                                        new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadFile"),
+                                            new List<DownloadFile> { downloadFile })
+                                        {
+                                            ProgressWeight = 6,
+                                            block = true
+                                        }
+                                    };
+
+                                    // 启动加载器
+                                    var depLoader = new ModLoader.LoaderCombo<int>(depLoaderName, depLoaders);
+                                    depLoader.OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly;
+                                    depLoader.Start(1);
+                                    ModLoader.LoaderTaskbarAdd(depLoader);
+                                }
                             }
                             else
                             {
@@ -470,7 +488,7 @@ public partial class PageDownloadCompDetail
                     var loaders = new List<ModLoader.LoaderBase>
                     {
                         new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadFile"),
-                            downloadFiles)
+                            new List<DownloadFile> { file.ToNetFile(target) })
                         {
                             ProgressWeight = 6,
                             block = true

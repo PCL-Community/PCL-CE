@@ -175,13 +175,13 @@ public static class ModCompDependency
             ?.File;
     }
 
-    public static List<DownloadFile> BuildDependencyDownloads(
+    public static List<(string Filename, DownloadFile File)> BuildDependencyDownloads(
         ModDependencyResolutionResult result,
         string targetModsFolder)
     {
         ArgumentNullException.ThrowIfNull(result);
 
-        var downloads = new List<DownloadFile>();
+        var downloads = new List<(string, DownloadFile)>();
         foreach (var install in result.ToInstall.AsEnumerable().Reverse())
         {
             if (!ModComp.compProjectCache.TryGetValue(install.ProjectId, out var depProject))
@@ -203,7 +203,7 @@ public static class ModCompDependency
             }
 
             var targetPath = Path.Combine(targetModsFolder ?? string.Empty, ModComp.CompFileNameGet(depProject, depCompFile));
-            downloads.Add(depCompFile.ToNetFile(targetPath));
+            downloads.Add((depCompFile.FileName, depCompFile.ToNetFile(targetPath)));
         }
 
         return downloads;

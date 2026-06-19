@@ -50,18 +50,6 @@
       "license": "https://github.com/HMBSbige/NatTypeTester/blob/master/LICENSE"
     },
     {
-      "name": "IPNetwork",
-      "info": "Copyright © 2015, lduchosal",
-      "website": "https://github.com/lduchosal/ipnetwork",
-      "license": "https://github.com/lduchosal/ipnetwork/blob/master/LICENSE"
-    },
-    {
-      "name": "TagLibSharp",
-      "info": "Copyright © 2006-2007 Brian Nickel.\nCopyright © 2009-2020 Other contributors",
-      "website": "https://github.com/mono/taglib-sharp",
-      "license": "https://github.com/mono/taglib-sharp/blob/main/COPYING"
-    },
-    {
       "name": "LiteDB",
       "info": "Copyright © 2014-2022 Mauricio David",
       "website": "https://github.com/litedb-org/LiteDB",
@@ -72,12 +60,6 @@
       "info": "Copyright © 2016-2021 Nicolas Musset",
       "website": "https://github.com/Kryptos-FR/markdig.wpf",
       "license": "https://github.com/Kryptos-FR/markdig.wpf/blob/main/LICENSE.md"
-    },
-    {
-      "name": "CacheCow",
-      "info": "Copyright © 2013 Ali Kheyrollahi",
-      "website": "https://github.com/aliostad/CacheCow",
-      "license": "https://github.com/aliostad/CacheCow/blob/master/LICENSE.txt"
     },
     {
       "name": "Mesa Loader Windows",
