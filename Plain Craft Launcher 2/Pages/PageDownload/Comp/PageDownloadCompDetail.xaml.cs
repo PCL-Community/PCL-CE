@@ -438,7 +438,6 @@ public partial class PageDownloadCompDetail
                                 targetDir);
                             var resolver = new ModDependencyResolver();
                             var result = resolver.Resolve(request);
-                            var depDownloads = new List<DownloadFile>();
 
                             void DownloadDependencies()
                             {
