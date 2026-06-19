@@ -16,14 +16,44 @@
                                LogoScale="0.95" SvgIcon="lucide/circle-plus" />
             <local:MyListItem x:Name="ItemServerList" IsScaleAnimationEnabled="False" Tag="2" MinPaddingRight="35" Height="36"
                                VerticalAlignment="Top" Title="{DynamicResource Online.Nav.ServerList}" Type="RadioBox" Check="PageCheck"
-                               LogoScale="0.95" SvgIcon="lucide/server" />
+                               LogoScale="0.95" SvgIcon="lucide/server">
+                <local:MyListItem.Buttons>
+                    <x:Array Type="{x:Type local:MyIconButton}">
+                        <local:MyIconButton Tag="2" ToolTip="{DynamicResource Common.Action.Refresh}"
+                                            ToolTipService.Placement="Right"
+                                            ToolTipService.InitialShowDelay="200" ToolTipService.VerticalOffset="-1"
+                                            LogoScale="0.85" Click="RefreshButton_Click"
+                                            SvgIcon="lucide/refresh-cw" />
+                    </x:Array>
+                </local:MyListItem.Buttons>
+            </local:MyListItem>
             <TextBlock Text="{DynamicResource Online.Nav.Category.Friends}" Margin="13,5,5,3" Opacity="0.6" FontSize="12" />
             <local:MyListItem x:Name="ItemFriendList" IsScaleAnimationEnabled="False" Tag="3" MinPaddingRight="35" Height="36"
                                VerticalAlignment="Top" Title="{DynamicResource Online.Nav.FriendList}" Type="RadioBox" Check="PageCheck"
-                               LogoScale="0.95" SvgIcon="lucide/users" />
+                               LogoScale="0.95" SvgIcon="lucide/users">
+                <local:MyListItem.Buttons>
+                    <x:Array Type="{x:Type local:MyIconButton}">
+                        <local:MyIconButton Tag="3" ToolTip="{DynamicResource Common.Action.Refresh}"
+                                            ToolTipService.Placement="Right"
+                                            ToolTipService.InitialShowDelay="200" ToolTipService.VerticalOffset="-1"
+                                            LogoScale="0.85" Click="RefreshButton_Click"
+                                            SvgIcon="lucide/refresh-cw" />
+                    </x:Array>
+                </local:MyListItem.Buttons>
+            </local:MyListItem>
             <local:MyListItem x:Name="ItemAddFriend" IsScaleAnimationEnabled="False" Tag="4" MinPaddingRight="35" Height="36"
                                VerticalAlignment="Top" Title="{DynamicResource Online.Nav.AddFriend}" Type="RadioBox" Check="PageCheck"
-                               LogoScale="0.95" SvgIcon="lucide/user-plus" />
+                               LogoScale="0.95" SvgIcon="lucide/user-plus">
+                <local:MyListItem.Buttons>
+                    <x:Array Type="{x:Type local:MyIconButton}">
+                        <local:MyIconButton Tag="4" ToolTip="{DynamicResource Common.Action.Refresh}"
+                                            ToolTipService.Placement="Right"
+                                            ToolTipService.InitialShowDelay="200" ToolTipService.VerticalOffset="-1"
+                                            LogoScale="0.85" Click="RefreshButton_Click"
+                                            SvgIcon="lucide/refresh-cw" />
+                    </x:Array>
+                </local:MyListItem.Buttons>
+            </local:MyListItem>
         </StackPanel>
     </local:MyScrollViewer>
 </local:MyPageLeft>

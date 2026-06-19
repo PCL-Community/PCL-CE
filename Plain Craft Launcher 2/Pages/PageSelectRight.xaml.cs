@@ -25,6 +25,7 @@ public partial class PageSelectRight
 
     private DateTime lastInputTime = DateTime.MinValue;
     private DispatcherTimer reloadTimer;
+    public static Action<McInstance>? InstanceSelectedCallback;
 
     // 窗口属性
     /// <summary>
@@ -98,6 +99,7 @@ public partial class PageSelectRight
 
     private void PageSelectRight_Unloaded(object sender, RoutedEventArgs e)
     {
+        InstanceSelectedCallback = null;
         // 清理计时器
         if (reloadTimer is not null)
         {
@@ -503,6 +505,14 @@ public partial class PageSelectRight
             // 正常实例
             ModInstanceList.McMcInstanceSelected = instance;
             States.Game.SelectedInstance = ModInstanceList.McMcInstanceSelected.Name;
+            var callback = InstanceSelectedCallback;
+            if (callback is not null)
+            {
+                InstanceSelectedCallback = null;
+                callback(instance);
+                return;
+            }
+
             ModMain.frmMain.PageBack();
         }
         else

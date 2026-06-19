@@ -2046,7 +2046,10 @@ public partial class FormMain
                 case PageType.Online: // 在线服务
                     {
                         ModMain.frmOnlineLeft ??= new PageOnlineLeft();
-                        subType = ModMain.frmOnlineLeft.PageID;
+                        if (subType != PageSubType.Default)
+                            ModMain.frmOnlineLeft.SetPage(subType);
+                        else
+                            subType = ModMain.frmOnlineLeft.PageID;
                         PageChangeAnim(ModMain.frmOnlineLeft, (FrameworkElement)ModMain.frmOnlineLeft.PageGet(subType));
                         break;
                     }

@@ -1,20 +1,21 @@
 // Copyright (c) MUXUE1230. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.Windows.Controls;
 
 namespace PCL;
 
-public partial class PageOnlineLeft
+public partial class PageOnlineLeft : IRefreshable
 {
     public FormMain.PageSubType PageID => pageID;
     private FormMain.PageSubType pageID = FormMain.PageSubType.OnlineLobby;
-    private readonly Dictionary<FormMain.PageSubType, PageOnlineBlank> pages = new();
+    private readonly Dictionary<FormMain.PageSubType, MyPageRight> pages = new();
 
     public PageOnlineLeft()
     {
         InitializeComponent();
-        Loaded += (_, _) => ItemLobby.SetChecked(true, false, false);
+        Loaded += (_, _) => SelectCurrentItem();
     }
 
     private void PageCheck(object senderRaw, ModBase.RouteEventArgs e)
@@ -29,7 +30,13 @@ public partial class PageOnlineLeft
         var targetId = id ?? pageID;
         if (!pages.TryGetValue(targetId, out var page))
         {
-            page = new PageOnlineBlank(targetId);
+            page = targetId switch
+            {
+                FormMain.PageSubType.OnlineServerList => new PageOnlineServerList(),
+                FormMain.PageSubType.OnlineFriendList => new PageOnlineFriendList(),
+                FormMain.PageSubType.OnlineAddFriend => new PageOnlineAddFriend(),
+                _ => new PageOnlineBlank(targetId)
+            };
             pages[targetId] = page;
         }
 
@@ -43,15 +50,62 @@ public partial class PageOnlineLeft
         PageChangeRun((MyPageRight)PageGet(id));
     }
 
+    public void SetPage(FormMain.PageSubType id)
+    {
+        pageID = id;
+        SelectCurrentItem();
+    }
+
+    private void SelectCurrentItem()
+    {
+        foreach (var item in PanItem.Children)
+        {
+            if (item is MyListItem listItem &&
+                listItem.Tag is not null &&
+                ModBase.Val(listItem.Tag) == (double)pageID)
+            {
+                listItem.SetChecked(true, false, false);
+                return;
+            }
+        }
+    }
+
+    public void Refresh()
+    {
+        Refresh(pageID);
+    }
+
+    private void RefreshButton_Click(object sender, EventArgs e)
+    {
+        Refresh((FormMain.PageSubType)ModBase.Val(((MyIconButton)sender).Tag));
+    }
+
+    public void Refresh(FormMain.PageSubType id)
+    {
+        if (PageGet(id) is IRefreshable refreshable)
+            refreshable.Refresh();
+    }
+
     private static void PageChangeRun(MyPageRight target)
     {
         ModAnimation.AniStop("FrmMain PageChangeRight");
         if (target.Parent is not null)
             target.SetValue(ContentPresenter.ContentProperty, null);
         ModMain.frmMain.pageRight = target;
-        if (ModMain.frmMain.PanMainRight.Child is MyPageRight current)
-            current.PageOnExit();
-        ModMain.frmMain.PanMainRight.Child = target;
-        target.PageOnEnter();
+        ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnExit();
+        ModAnimation.AniStart(new[]
+        {
+            ModAnimation.AaCode(() =>
+            {
+                ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnForceExit();
+                ModMain.frmMain.PanMainRight.Child = ModMain.frmMain.pageRight;
+                ModMain.frmMain.pageRight.Opacity = 0d;
+            }, 130),
+            ModAnimation.AaCode(() =>
+            {
+                ModMain.frmMain.pageRight.Opacity = 1d;
+                ModMain.frmMain.pageRight.PageOnEnter();
+            }, 30, true)
+        }, "PageLeft PageChange");
     }
 }

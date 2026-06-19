@@ -49,6 +49,7 @@
   <ItemGroup>
     <ProjectReference Include="..\PCL.Core.Portable\PCL.Core.Portable.csproj" />
     <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
+    <ProjectReference Include="..\PCL.Online\PCL.Online.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Net\**" />
