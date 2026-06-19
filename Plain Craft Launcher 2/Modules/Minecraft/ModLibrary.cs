@@ -258,6 +258,9 @@ public static class ModLibrary
                                 library["name"].ToString().AfterFirst(":").Replace(":", "-") + ".jar";
                 else
                     localPath = McLibGet((string)library["name"], customMcFolder: customMcFolder);
+                var artifactPath = library["downloads"] is not null && library["downloads"]["artifact"] is not null
+                    ? library["downloads"]["artifact"]["path"]
+                    : null;
                 try
                 {
                     if (library["downloads"] is not null && library["downloads"]["artifact"] is not null)
@@ -265,10 +268,9 @@ public static class ModLibrary
                         var init = new McLibToken();
                         basicArray.Add((init.OriginalName = (string)library["name"],
                             init.Url = (string)(rootUrl ?? library["downloads"]["artifact"]["url"]),
-                            init.LocalPath = library["downloads"]["artifact"]["path"] is null
+                            init.LocalPath = artifactPath is null
                                 ? McLibGet((string)library["name"], customMcFolder: customMcFolder)
-                                : Path.Combine(customMcFolder, "libraries", library["downloads"]["artifact"]["path"].ToString()
-                                    .Replace("/", @"\")),
+                                : McLibGetByArtifactPath(artifactPath.ToString(), customMcFolder),
                             init.size = (long)Math.Round(
                                 ModBase.Val(library["downloads"]["artifact"]["size"].ToString())),
                             init.IsNatives = false, init.Sha1 = library["downloads"]["artifact"]["sha1"]?.ToString(),
@@ -283,6 +285,11 @@ public static class ModLibrary
                         });
                     }
                 }
+                catch (Exception ex) when (artifactPath is not null && (ex is ArgumentException || ex is IOException))
+                {
+                    ModBase.Log(ex, "支持库下载路径非法，已跳过（无 Natives，" + (library["name"] ?? "Nothing") + "）");
+                    continue;
+                }
                 catch (Exception ex)
                 {
                     ModBase.Log(ex, "处理实际支持库列表失败（无 Natives，" + (library["name"] ?? "Nothing") + "）");
@@ -295,6 +302,10 @@ public static class ModLibrary
             }
             else if (library["natives"]["windows"] is not null) // 有 Windows Natives
             {
+                var nativePath = library["downloads"] is not null && library["downloads"]["classifiers"] is not null &&
+                                 library["downloads"]["classifiers"]["natives-windows"] is not null
+                    ? library["downloads"]["classifiers"]["natives-windows"]["path"]
+                    : null;
                 try
                 {
                     if (library["downloads"] is not null && library["downloads"]["classifiers"] is not null &&
@@ -303,13 +314,11 @@ public static class ModLibrary
                         {
                             OriginalName = (string)library["name"],
                             Url = (string)(rootUrl ?? library["downloads"]["classifiers"]["natives-windows"]["url"]),
-                            LocalPath = library["downloads"]["classifiers"]["natives-windows"]["path"] is null
+                            LocalPath = nativePath is null
                                 ? McLibGet((string)library["name"], customMcFolder: customMcFolder)
                                     .Replace(".jar", "-" + library["natives"]["windows"] + ".jar")
                                     .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32")
-                                : Path.Combine(customMcFolder, "libraries",
-                                  library["downloads"]["classifiers"]["natives-windows"]["path"].ToString()
-                                      .Replace("/", @"\")),
+                                : McLibGetByArtifactPath(nativePath.ToString(), customMcFolder),
                             size = (long)Math.Round(
                                 ModBase.Val(library["downloads"]["classifiers"]["natives-windows"]["size"].ToString())),
                             IsNatives = true,
@@ -325,6 +334,11 @@ public static class ModLibrary
                                 .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32"),
                             size = 0L, IsNatives = true, Sha1 = null, IsLocal = isLocal
                         });
+                }
+                catch (Exception ex) when (nativePath is not null && (ex is ArgumentException || ex is IOException))
+                {
+                    ModBase.Log(ex, "支持库下载路径非法，已跳过（有 Natives，" + (library["name"] ?? "Nothing") + "）");
+                    continue;
                 }
                 catch (Exception ex)
                 {
@@ -641,6 +655,29 @@ public static class ModLibrary
         }
 
         return mcLibGetRet;
+    }
+
+    /// <summary>
+    ///     根据 JSON 中的 downloads.artifact.path 获取支持库文件地址。
+    /// </summary>
+    private static string McLibGetByArtifactPath(string artifactPath, string customMcFolder = null)
+    {
+        customMcFolder = customMcFolder ?? ModFolder.mcFolderSelected;
+        if (string.IsNullOrWhiteSpace(artifactPath))
+            throw new ArgumentException("支持库下载路径无效", nameof(artifactPath));
+
+        var librariesRoot = Path.GetFullPath(Path.Combine(customMcFolder, "libraries"));
+        var normalizedArtifactPath = artifactPath.Replace('/', Path.DirectorySeparatorChar);
+        if (Path.IsPathRooted(normalizedArtifactPath))
+            throw new IOException("支持库下载路径不能为绝对路径: " + artifactPath);
+
+        var localPath = Path.GetFullPath(Path.Combine(librariesRoot, normalizedArtifactPath));
+        var librariesRootWithSeparator = librariesRoot.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) +
+                                         Path.DirectorySeparatorChar;
+        if (!localPath.StartsWith(librariesRootWithSeparator, StringComparison.OrdinalIgnoreCase))
+            throw new IOException("支持库下载路径不能位于 libraries 文件夹外: " + artifactPath);
+
+        return localPath;
     }
 
     /// <summary>

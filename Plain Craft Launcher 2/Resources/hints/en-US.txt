@@ -979,7 +979,7 @@ It is possible for a village to generate on the border of two or more biomes but
 
 The original inhabitants of villages were pigmen, whose later design concepts were used for piglins.
 
-PCL CE is developed by PCL-Community based on the official PCL, and has no affiliation with Longteng Maoyue.
+PCL CE is developed by PCL-Community based on the official PCL, and has no affiliation with LTCat(龙腾猫跃).
 
 PCL CE supports importing HMCL archives.
 

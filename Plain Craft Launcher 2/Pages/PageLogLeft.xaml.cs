@@ -77,7 +77,7 @@ public partial class PageLogLeft
             if (!States.Hint.MaxGameLog)
             {
                 States.Hint.MaxGameLog = true;
-                ModMain.Hint(Lang.Text("LogPage.MaxLines.Hint", 500));
+                HintService.Hint(Lang.Text("LogPage.MaxLines.Hint", 500));
             }
 
             isLoading -= 1;

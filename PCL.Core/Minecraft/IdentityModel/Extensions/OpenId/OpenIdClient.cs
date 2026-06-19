@@ -20,7 +20,8 @@ public class OpenIdClient(OpenIdOptions options):IOAuthClient
     /// <exception cref="IdentityModelConfigurationException">当要求检查地址并不存在任何授权端点时，将触发此错误</exception>
     public async Task InitializeAsync(CancellationToken token,bool checkAddress = false)
     {
-        var opt = await options.BuildOAuthOptionsAsync(token);
+        await options.InitializeAsync(token);
+        var opt = options.BuildOAuthOptions();
         if (checkAddress && opt.Meta.AuthorizeEndpoint.IsNullOrEmpty() && opt.Meta.DeviceEndpoint.IsNullOrEmpty())
             throw new IdentityModelConfigurationException("OpenID 元数据缺少授权代码流端点和设备代码流端点");
 

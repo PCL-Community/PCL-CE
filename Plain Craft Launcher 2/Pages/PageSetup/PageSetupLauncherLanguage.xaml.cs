@@ -53,7 +53,7 @@ public partial class PageSetupLauncherLanguage
             Config.Preference.Localization.FormatCultureConfig.SetDefaultValue();
             LocalizationService.ApplyFromConfig();
             ModBase.Log("[Setup] 已初始化启动器-语言页设置");
-            ModMain.Hint("已初始化语言页设置！", ModMain.HintType.Finish, false);
+            HintService.Hint("已初始化语言页设置！", HintType.Success, false);
             Reload();
         }
         catch (Exception ex)
@@ -132,7 +132,7 @@ public partial class PageSetupLauncherLanguage
             return;
 
         Config.Preference.Localization.Language = value;
-        ModMain.Hint(Lang.Text("Setup.LauncherLanguage.Changed"), ModMain.HintType.Finish, false);
+        HintService.Hint(Lang.Text("Setup.LauncherLanguage.Changed"), HintType.Success, false);
         Reload();
     }
 
@@ -148,7 +148,7 @@ public partial class PageSetupLauncherLanguage
             return;
 
         Config.Preference.Localization.FormatCulture = value;
-        ModMain.Hint(Lang.Text("Setup.LauncherLanguage.Changed"), ModMain.HintType.Finish, false);
+        HintService.Hint(Lang.Text("Setup.LauncherLanguage.Changed"), HintType.Success, false);
         Reload();
     }
 

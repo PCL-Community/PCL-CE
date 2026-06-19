@@ -64,7 +64,7 @@ public static class ModJava
                             if (candidate is not null && candidate.IsEnabled)
                             {
                                 if (!IsVersionSuitable(candidate.Installation.Version))
-                                    ModMain.Hint(
+                                    HintService.Hint(
                                         $"实例指定的 Java ({candidate.Installation.Version}) 超出版本要求范围 [{minVersion?.ToString() ?? "无下限"}, {maxVersion?.ToString() ?? "无上限"}]，可能导致游戏崩溃");
                                 ModBase.Log($"[Java] 返回实例 '{relatedInstance.Name}' 指定的 Java: {candidate}");
                                 return candidate;
@@ -87,9 +87,9 @@ public static class ModJava
                                 if (candidate is not null && candidate.IsEnabled)
                                 {
                                     if (!IsVersionSuitable(candidate.Installation.Version))
-                                        ModMain.Hint(
+                                        HintService.Hint(
                                             $"实例相对路径指定的 Java (v{candidate.Installation.Version}) 超出版本要求范围，可能导致游戏崩溃",
-                                            ModMain.HintType.Critical);
+                                            HintType.Error);
                                     ModBase.Log(
                                         $"[Java] 返回实例 '{relatedInstance.Name}' 相对路径指定的 Java ({relPref.RelativePath}): {candidate}");
                                     return candidate;
@@ -135,7 +135,7 @@ public static class ModJava
             if (candidate is not null && candidate.IsEnabled)
             {
                 if (!IsVersionSuitable(candidate.Installation.Version))
-                    ModMain.Hint($"全局指定的 Java (v{candidate.Installation.Version}) 超出版本要求范围，可能导致游戏崩溃");
+                    HintService.Hint($"全局指定的 Java (v{candidate.Installation.Version}) 超出版本要求范围，可能导致游戏崩溃");
                 ModBase.Log($"[Java] 返回全局指定的 Java: {candidate}");
                 return candidate;
             }

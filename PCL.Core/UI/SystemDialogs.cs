@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using PCL.Core.Logging;
 
 namespace PCL.Core.UI;

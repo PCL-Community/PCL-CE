@@ -114,7 +114,7 @@ public partial class PageSetupLog
                 }
             }
 
-            ModMain.Hint(Lang.Text("Setup.Misc.Log.ExportSuccess"), ModMain.HintType.Finish);
+            HintService.Hint(Lang.Text("Setup.Misc.Log.ExportSuccess"), HintType.Success);
         }
         catch (Exception ex)
         {
@@ -141,7 +141,7 @@ public partial class PageSetupLog
         foreach (var item in Directory.GetFiles(LogDirectory))
             if (!currentSet.Contains(item))
                 File.Delete(item);
-        ModMain.Hint(Lang.Text("Setup.Misc.Log.Clear.Success"), ModMain.HintType.Finish);
+        HintService.Hint(Lang.Text("Setup.Misc.Log.Clear.Success"), HintType.Success);
         LoadList();
     }
 

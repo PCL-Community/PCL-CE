@@ -95,6 +95,10 @@ public static class FileDownloader
         };
 
         using var downloader = new DownloadService(configuration);
+        using var cancelReg = cancellationToken.Register(() =>
+        {
+            try { downloader.CancelAsync(); } catch {  } // 忽略
+        });
         var tcs = new TaskCompletionSource<bool>();
         void UpdateDownloadStat(DownloadProgressChangedEventArgs args)
         {
@@ -163,9 +167,17 @@ public static class FileDownloader
                 throw new IOException($"下载未产生任何文件：{localPath}");
             ModBase.Log($"[Download] 下载成功：{localPath}");
         }
+        catch (TaskCanceledException ex) when (cancellationToken.IsCancellationRequested)
+        {
+            throw new OperationCanceledException(cancellationToken);
+        }
         catch (TaskCanceledException ex)
         {
             throw new TimeoutException($"下载超时（{url}）", ex);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {

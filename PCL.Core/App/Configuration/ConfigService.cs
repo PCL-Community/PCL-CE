@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -89,6 +89,21 @@ public sealed partial class ConfigService
         var result = TryGetConfigItem<TValue>(key, out var item);
         if (!result) throw new KeyNotFoundException($"Config key not found: '{key}'");
         return item ?? throw new InvalidCastException($"Type of '{key}' is incompatible with {typeof(TValue).FullName}");
+    }
+
+    /// <summary>
+    /// 按键设置配置值，自动处理类型匹配。若键不存在则静默失败。
+    /// </summary>
+    /// <param name="key">配置键</param>
+    /// <param name="value">配置值</param>
+    /// <param name="argument">上下文参数（实例路径等）</param>
+    public static void TrySetValue(string key, object value, object? argument = null)
+    {
+        if (!TryGetConfigItemNoType(key, out var item)) return;
+        if (item.Type.IsEnum && value is not string)
+            item.SetValueNoType(Enum.ToObject(item.Type, value), argument);
+        else
+            item.SetValueNoType(value, argument);
     }
 
     /// <summary>

@@ -688,7 +688,7 @@ public static class ModWatcher
             State = MinecraftState.Crashed;
             // 崩溃分析
             WatcherLog(Lang.Text("Watcher.Crash.Detected"));
-            ModMain.Hint(Lang.Text("Watcher.Crash.Hint"));
+            HintService.Hint(Lang.Text("Watcher.Crash.Hint"));
             ModBase.FeedbackInfo();
             ModBase.RunInNewThread(() =>
             {

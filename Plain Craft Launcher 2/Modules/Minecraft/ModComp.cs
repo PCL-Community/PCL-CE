@@ -336,12 +336,12 @@ public static class ModComp
                         if (hasFavs)
                         {
                             i.Favs.Remove(project.Id);
-                            ModMain.Hint(Lang.Text("Download.Comp.Detail.Favorites.Remove", project.TranslatedName, i.Name), ModMain.HintType.Finish);
+                            HintService.Hint(Lang.Text("Download.Comp.Detail.Favorites.Remove", project.TranslatedName, i.Name), HintType.Success);
                         }
                         else
                         {
                             i.Favs.Add(project.Id);
-                            ModMain.Hint(Lang.Text("Download.Comp.Detail.Favorites.Add", project.TranslatedName, i.Name), ModMain.HintType.Finish);
+                            HintService.Hint(Lang.Text("Download.Comp.Detail.Favorites.Add", project.TranslatedName, i.Name), HintType.Success);
                         }
 
                         Save();
@@ -383,11 +383,11 @@ public static class ModComp
                         Save();
                         var successCount = i.Favs.Count - count;
                         var failedCount = project.Count - successCount;
-                        ModMain.Hint(
+                        HintService.Hint(
                             Lang.Text(failedCount > 0
                                 ? "Download.Comp.Detail.Favorites.BulkAddWithFailures"
                                 : "Download.Comp.Detail.Favorites.BulkAdd", successCount, i.Name, failedCount),
-                            ModMain.HintType.Finish);
+                            HintType.Success);
                     }
                     catch (Exception ex)
                     {
@@ -624,14 +624,14 @@ public static class ModComp
                                 "PCL detected a resource link in clipboard. Do you want to jump to the details page?",
                                 "Link Detected", "Confirm", "Cancel", forceWait: true) == 1)
                         {
-                            ModMain.Hint("Fetching resource info...");
+                            HintService.Hint("Fetching resource info...");
 
                             var ids = new List<string> { projectId };
                             var compProjects = await CompRequest.GetCompProjectsByIdsAsync(ids);
 
                             if (compProjects.Count == 0)
                             {
-                                ModMain.Hint("Invalid resource content.", ModMain.HintType.Critical);
+                                HintService.Hint("Invalid resource content.", HintType.Error);
                                 return;
                             }
 
@@ -3050,7 +3050,7 @@ public static class ModComp
         /// <param name="localAddress">目标本地文件夹，或完整的文件路径。会自动判断类型。</param>
         public DownloadFile ToNetFile(string localAddress)
         {
-            return new DownloadFile(DownloadUrls, localAddress + (localAddress.EndsWithF(@"\") ? FileName : ""),
+            return new DownloadFile(DownloadUrls, localAddress + (localAddress.EndsWithF(@"\") ? CompFileNameSanitize(FileName) : ""),
                 new ModBase.FileChecker(hash: Hash), true);
         }
 
@@ -3306,7 +3306,35 @@ public static class ModComp
 
         if (file.Type == CompType.Mod)
             fileName = fileName.Replace("~", "-"); // ~ 会导致 Mixin 加载失败
-        return fileName;
+        return CompFileNameSanitize(fileName);
+    }
+
+    public static string CompFileNameSanitize(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+            return "download";
+
+        var sanitized = new StringBuilder(fileName.Length);
+        foreach (var c in fileName)
+        {
+            sanitized.Append(c switch
+            {
+                '\\' => '＼',
+                '/' => '／',
+                ':' => '：',
+                '*' => '＊',
+                '?' => '？',
+                '"' => '＂',
+                '<' => '＜',
+                '>' => '＞',
+                '|' => '｜',
+                _ when char.IsControl(c) => '_',
+                _ => c
+            });
+        }
+
+        var result = sanitized.ToString().Trim();
+        return result is "" or "." or ".." ? "download" : result;
     }
 
     /// <summary>

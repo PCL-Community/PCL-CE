@@ -2821,7 +2821,7 @@ public static class ModBase
             {
                 UseShellExecute = true,
             };
-            _ = Task.Run(() => Process.Start(psi));
+            Process.Start(psi);
         }
         catch (Exception ex)
         {
@@ -2879,7 +2879,7 @@ public static class ModBase
                     Log(finalEx, "剪贴板被占用，文本复制失败", LogLevel.Hint);
                 }
 
-            if (success && showSuccessHint) RunInUi(() => ModMain.Hint("已成功复制！", ModMain.HintType.Finish));
+            if (success && showSuccessHint) RunInUi(() => HintService.Hint("已成功复制！", HintType.Success));
         });
     }
 
@@ -2946,7 +2946,7 @@ public static class ModBase
                     }
             }
 
-            ModMain.Hint("[System] 已粘贴 " + copiedFiles + " 个文件和 " + copiedFolders + " 个文件夹");
+            HintService.Hint("[System] 已粘贴 " + copiedFiles + " 个文件和 " + copiedFolders + " 个文件夹");
         }
         catch (Exception ex)
         {
@@ -3195,7 +3195,7 @@ public static class ModBase
     }
 
     /// <summary>
-    ///     将 XML 转换为对应 UI 对象。
+    ///     将 XElement 转换为对应 UI 对象（不返回 XAML 清理结果）。
     /// </summary>
     public static object GetObjectFromXML(XElement str)
     {
@@ -3207,11 +3207,24 @@ public static class ModBase
     /// </summary>
     public static object GetObjectFromXML(string str)
     {
+        return GetObjectFromXML(str, out _);
+    }
+
+    /// <summary>
+    ///     将 XML 转换为对应 UI 对象，并输出 XAML 清理结果。
+    /// </summary>
+    public static object GetObjectFromXML(string str, out XamlEventSanitizer.SanitizeResult sanitizeResult)
+    {
         str = str. // 兼容旧版自定义事件写法
             Replace("EventType=\"", "local:CustomEventService.EventType=\"").
             Replace("EventData=\"", "local:CustomEventService.EventData=\"").
             Replace("Property=\"EventType\"", "Property=\"local:CustomEventService.EventType\"").
             Replace("Property=\"EventData\"", "Property=\"local:CustomEventService.EventData\"");
+        // 修复因上述替换导致重复前缀的情况：local:CustomEventService.local:CustomEventService.EventType
+        str = str.Replace("local:CustomEventService.local:CustomEventService.", "local:CustomEventService.");
+
+        sanitizeResult = XamlEventSanitizer.Sanitize(str);
+        str = sanitizeResult.SanitizedXaml;
         using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(str)))
         {
             // 类型检查
@@ -3347,12 +3360,12 @@ public static class ModBase
             case LogLevel.Debug:
             {
                 if (modeDebug)
-                    ModMain.Hint("[调试模式] " + text, ModMain.HintType.Info, false);
+                    HintService.Hint("[调试模式] " + text, HintType.Info, false);
                 break;
             }
             case LogLevel.Hint:
             {
-                ModMain.Hint(text, ModMain.HintType.Critical, false);
+                HintService.Hint(text, HintType.Error, false);
                 break;
             }
             case LogLevel.Msgbox:
@@ -3451,13 +3464,13 @@ public static class ModBase
             {
                 var exLine = desc + "：" + ex;
                 if (modeDebug)
-                    ModMain.Hint("[调试模式] " + exLine, ModMain.HintType.Info, false);
+                    HintService.Hint("[调试模式] " + exLine, HintType.Info, false);
                 break;
             }
             case LogLevel.Hint:
             {
                 var exLine = desc + "：" + ex;
-                ModMain.Hint(exLine, ModMain.HintType.Critical, false);
+                HintService.Hint(exLine, HintType.Error, false);
                 break;
             }
             case LogLevel.Msgbox:

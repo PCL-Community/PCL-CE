@@ -588,14 +588,14 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         // 检查文件扩展名
         if (extension != "zip")
         {
-            ModMain.Hint(Lang.Text("Instance.Resource.Install.UnsupportedFormat", extension, Lang.Text("Download.Comp.Type.DataPack"), "zip"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Resource.Install.UnsupportedFormat", extension, Lang.Text("Download.Comp.Type.DataPack"), "zip"), HintType.Error);
             return;
         }
 
         // 检查回收站
         if (filePathList.First().Contains(@":\$RECYCLE.BIN\"))
         {
-            ModMain.Hint(Lang.Text("Instance.Resource.Install.RestoreFromRecycleBin"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Resource.Install.RestoreFromRecycleBin"), HintType.Error);
             return;
         }
 
@@ -628,9 +628,9 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             }
 
             if (filePathList.Count() == 1)
-                ModMain.Hint(Lang.Text("Instance.Resource.Install.SuccessSingle", ModBase.GetFileNameFromPath(filePathList.First())), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Resource.Install.SuccessSingle", ModBase.GetFileNameFromPath(filePathList.First())), HintType.Success);
             else
-                ModMain.Hint(Lang.Text("Instance.Resource.Install.SuccessMultiple", filePathList.Count(), Lang.Text("Download.Comp.Type.DataPack")), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Resource.Install.SuccessMultiple", filePathList.Count(), Lang.Text("Download.Comp.Type.DataPack")), HintType.Success);
 
             // 刷新列表
             if (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
@@ -1130,7 +1130,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
         else
         {
-            ModMain.Hint(Lang.Text("Instance.Saves.Datapack.ToggleWarning"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Saves.Datapack.ToggleWarning"), HintType.Error);
             ReloadDatapackFileList(true);
         }
 
@@ -1153,6 +1153,35 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     /// </summary>
     public static List<string> updatingVersions = new();
 
+    private static bool TryGetSafeDatapackUpdateFileName(ModComp.CompFile file, out string fileName)
+    {
+        fileName = file.FileName?.Trim() ?? "";
+        if (string.IsNullOrEmpty(fileName))
+            return false;
+
+        if (!fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (fileName.IndexOfAny(new[] { '\\', '/', ':' }) >= 0)
+            return false;
+
+        if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            return false;
+
+        return fileName == Path.GetFileName(fileName) && fileName != "." && fileName != "..";
+    }
+
+    private static bool TryBuildDatapackUpdatePath(string rootPath, string fileName, out string fullPath)
+    {
+        var fullRootPath = Path.GetFullPath(rootPath);
+        if (!fullRootPath.EndsWith(Path.DirectorySeparatorChar.ToString()) &&
+            !fullRootPath.EndsWith(Path.AltDirectorySeparatorChar.ToString()))
+            fullRootPath += Path.DirectorySeparatorChar;
+
+        fullPath = Path.GetFullPath(Path.Combine(fullRootPath, fileName));
+        return fullPath.StartsWith(fullRootPath, StringComparison.OrdinalIgnoreCase);
+    }
+
     public void UpdateResource(IEnumerable<ModLocalComp.LocalCompFile> datapackList)
     {
         // 更新前警告
@@ -1172,29 +1201,46 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             datapackList = datapackList.ToList(); // 防止刷新影响迭代器
             var fileList = new List<DownloadFile>();
             var fileCopyList = new Dictionary<string, string>();
+            var updateEntryList = new List<ModLocalComp.LocalCompFile>();
+            var tempRoot = Path.Combine(ModBase.pathTemp, "DownloadedComp");
+            var datapackRoot = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
+            var skippedUnsafeFileCount = 0;
             foreach (var Entry in datapackList)
             {
                 var file = Entry.UpdateFile;
                 if (!file.Available)
                     continue;
+                if (!TryGetSafeDatapackUpdateFileName(file, out var safeFileName) ||
+                    !TryBuildDatapackUpdatePath(tempRoot, safeFileName, out var tempAddress) ||
+                    !TryBuildDatapackUpdatePath(datapackRoot, safeFileName, out var realAddress))
+                {
+                    skippedUnsafeFileCount++;
+                    ModBase.Log($"[DatapackUpdate] 已跳过不安全的数据包更新文件名：{file.FileName}", ModBase.LogLevel.Debug);
+                    continue;
+                }
+
                 // 添加到下载列表
-                var tempAddress = ModBase.pathTemp + @"DownloadedComp\" + file.FileName;
-                var realAddress = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks", file.FileName);
                 fileList.Add(file.ToNetFile(tempAddress));
                 fileCopyList[tempAddress] = realAddress;
+                updateEntryList.Add(Entry);
             }
+
+            if (skippedUnsafeFileCount > 0)
+                HintService.Hint($"已跳过 {skippedUnsafeFileCount} 个文件名不安全的数据包更新。", HintType.Error);
+            if (!fileList.Any())
+                return;
 
             // 构造加载器
             var installLoaders = new List<ModLoader.LoaderBase>();
             var finishedFileNames = new List<string>();
             installLoaders.Add(new LoaderDownload("下载新版数据包文件", fileList)
-                { ProgressWeight = datapackList.Count() * 1.5d });
+                { ProgressWeight = updateEntryList.Count * 1.5d });
 
             installLoaders.Add(new ModLoader.LoaderTask<int, int>("替换旧版数据包文件", _ =>
             {
                 try
                 {
-                    foreach (var Entry in datapackList)
+                    foreach (var Entry in updateEntryList)
                         if (File.Exists(Entry.path))
                             Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.path, UIOption.AllDialogs,
                                 RecycleOption.SendToRecycleBin);
@@ -1247,13 +1293,13 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                             }
                             case 1:
                             {
-                                ModMain.Hint(Lang.Text("Instance.Resource.Update.SuccessSingle", finishedFileNames.Single()), ModMain.HintType.Finish);
+                                HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessSingle", finishedFileNames.Single()), HintType.Success);
                                 break;
                             }
 
                             default:
                             {
-                                ModMain.Hint(Lang.Text("Instance.Resource.Update.SuccessMultiple", finishedFileNames.Count), ModMain.HintType.Finish);
+                                HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessMultiple", finishedFileNames.Count), HintType.Success);
                                 break;
                             }
                         }
@@ -1262,12 +1308,12 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                     }
                     case ModBase.LoadState.Failed:
                     {
-                        ModMain.Hint(Lang.Text("Instance.Resource.Update.Failed", loader.Error.Message), ModMain.HintType.Critical);
+                        HintService.Hint(Lang.Text("Instance.Resource.Update.Failed", loader.Error.Message), HintType.Error);
                         break;
                     }
                     case ModBase.LoadState.Aborted:
                     {
-                        ModMain.Hint(Lang.Text("Instance.Resource.Update.Aborted"));
+                        HintService.Hint(Lang.Text("Instance.Resource.Update.Aborted"));
                         break;
                     }
 
@@ -1372,7 +1418,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             RefreshBars();
             if (!isSuccessful)
             {
-                ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.FileOccupied"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.FileOccupied"), HintType.Error);
                 ReloadDatapackFileList(true);
             }
             else if (PanList.Children.Count == 0)
@@ -1389,17 +1435,17 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             if (isShiftPressed)
             {
                 if (datapackList.Count() == 1)
-                    ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentSingle", datapackList.Single().FileName), ModMain.HintType.Finish);
+                    HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentSingle", datapackList.Single().FileName), HintType.Success);
                 else
-                    ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentMultiple", datapackList.Count()), ModMain.HintType.Finish);
+                    HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentMultiple", datapackList.Count()), HintType.Success);
             }
             else if (datapackList.Count() == 1)
             {
-                ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleSingle", datapackList.Single().FileName), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleSingle", datapackList.Single().FileName), HintType.Success);
             }
             else
             {
-                ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleMultiple", datapackList.Count()), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleMultiple", datapackList.Count()), HintType.Success);
             }
         }
         catch (OperationCanceledException ex)
