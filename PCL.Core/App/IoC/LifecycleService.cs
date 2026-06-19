@@ -68,7 +68,7 @@ partial class Lifecycle
 #endif
     }
 
-    private static Task _StartServiceTaskAsync(ILifecycleService service, bool manual = false)
+    private static Task _StartServiceTask(ILifecycleService service, bool manual = false)
     {
         ILifecycleLogService? logService = null;
         // 检测日志服务
@@ -167,11 +167,11 @@ partial class Lifecycle
         {
             var instance = _CreateService(service);
             if (instance.SupportAsync) asyncInstances.Add(instance);
-            else _StartServiceTaskAsync(instance).ConfigureAwait(false).GetAwaiter().GetResult();
+            else _StartServiceTask(instance).ConfigureAwait(false).GetAwaiter().GetResult();
             if (_hasRequestedStopLoading) return; // 若请求停止加载则提前结束
         }
         // 运行异步启动服务并等待所有服务启动完成
-        Task.WaitAll(asyncInstances.Select(instance => _StartServiceTaskAsync(instance)).ToArray());
+        Task.WaitAll(asyncInstances.Select(instance => _StartServiceTask(instance)).ToArray());
     }
 
     private static void _StartStateFlow(LifecycleState start, LifecycleState? end = null, bool count = true)
@@ -291,8 +291,8 @@ partial class Lifecycle
         _ManualServiceMap.TryGetValue(identifier, out var service);
         if (service is null || IsServiceRunning(identifier)) return false;
         async ??= service.SupportAsync;
-        if (async == true) Task.Run(() => _StartServiceTaskAsync(service, true));
-        else _StartServiceTaskAsync(service, true);
+        if (async == true) Task.Run(() => _StartServiceTask(service, true));
+        else _StartServiceTask(service, true);
         return true;
     }
 
@@ -318,7 +318,7 @@ partial class Lifecycle
     public static bool StartCustomService(ILifecycleService service)
     {
         if (IsServiceRunning(service.Identifier) || _ManualServiceMap.ContainsKey(service.Identifier)) return false;
-        _StartServiceTaskAsync(service);
+        _StartServiceTask(service);
         return true;
     }
 }

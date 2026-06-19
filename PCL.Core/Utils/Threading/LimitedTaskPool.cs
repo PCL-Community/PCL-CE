@@ -43,12 +43,12 @@ public class LimitedTaskPool
     /// <summary>
     /// 提交一个任务。
     /// </summary>
-    public Task SubmitAsync(Action work) => _factory.StartNew(work);
+    public Task Submit(Action work) => _factory.StartNew(work);
 
     /// <summary>
     /// 提交一个异步任务。
     /// </summary>
-    public Task SubmitAsync(Func<Task> work) => _factory.StartNew(work).Unwrap();
+    public Task Submit(Func<Task> work) => _factory.StartNew(work).Unwrap();
 
     /// <summary>
     /// 取消所有任务。

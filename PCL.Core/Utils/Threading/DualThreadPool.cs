@@ -52,22 +52,22 @@ public class DualThreadPool
     /// <summary>
     /// 提交一段 IO 密集工作
     /// </summary>
-    public Task QueueIoAsync(Action work) => _ioFactory.StartNew(work);
+    public Task QueueIo(Action work) => _ioFactory.StartNew(work);
 
     /// <summary>
     /// 提交一段异步 IO 密集工作
     /// </summary>
-    public Task QueueIoAsync(Func<Task> work) => _ioFactory.StartNew(work).Unwrap();
+    public Task QueueIo(Func<Task> work) => _ioFactory.StartNew(work).Unwrap();
 
     /// <summary>
     /// 提交一段 CPU 密集工作
     /// </summary>
-    public Task QueueCpuAsync(Action work) => _cpuFactory.StartNew(work);
+    public Task QueueCpu(Action work) => _cpuFactory.StartNew(work);
 
     /// <summary>
     /// 提交一段异步 CPU 密集工作
     /// </summary>
-    public Task QueueCpuAsync(Func<Task> work) => _cpuFactory.StartNew(work).Unwrap();
+    public Task QueueCpu(Func<Task> work) => _cpuFactory.StartNew(work).Unwrap();
 
     /// <summary>
     /// 取消所有正在执行的工作

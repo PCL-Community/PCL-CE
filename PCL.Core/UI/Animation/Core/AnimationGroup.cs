@@ -105,7 +105,7 @@ public abstract class AnimationGroup : AnimationBase
         return new WpfAnimatable(targetObject, targetProperty);
     }
     
-    protected static Task CreateChildAwaiterAsync(IAnimation animation)
+    protected static Task CreateChildAwaiter(IAnimation animation)
     {
         var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 

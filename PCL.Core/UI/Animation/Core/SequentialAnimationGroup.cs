@@ -40,7 +40,7 @@ public sealed class SequentialAnimationGroup : AnimationGroup
                     var runChild = child.RunFireAndForget(childTarget);
                     ChildrenCore.Add(runChild);
                     
-                    childWaiter = CreateChildAwaiterAsync(runChild);
+                    childWaiter = CreateChildAwaiter(runChild);
                 }
 
                 // 等待到当前子动画完成或组被取消
