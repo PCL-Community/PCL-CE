@@ -2157,7 +2157,7 @@ public static class ModBase
     /// <summary>
     ///     本地搜索返回的最大模糊结果数。
     /// </summary>
-    public const int MAX_LOCAL_SEARCH_DEPTH = 25;
+    public const int MaxLocalSearchDepth = 25;
 
     /// <summary>
     ///     进行多段文本加权搜索，获取相似度较高的数项结果。
