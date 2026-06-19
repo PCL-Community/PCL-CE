@@ -413,6 +413,7 @@ public partial class PageInstanceSaves : IRefreshable
     private void BtnDownloadNew_Click(object sender, MouseButtonEventArgs e)
     {
         ModMain.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadWorld);
+        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
     }
 
     #region 搜索和排序
