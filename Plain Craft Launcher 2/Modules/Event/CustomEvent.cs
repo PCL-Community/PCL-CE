@@ -58,6 +58,15 @@ namespace PCL
         private static string FixNewlines(string s) => s.Replace("\\n", "\r\n");
 
         /// <summary>
+        /// 禁止自定义主页写入的高危设置黑名单
+        /// </summary>
+        private static readonly HashSet<string> SecuritySensitiveSettingKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        { 
+            "LaunchAdvanceRun", 
+            "VersionAdvanceRun"
+        };
+        
+        /// <summary>
         /// EventType → 执行逻辑 的字典映射，O(1) 分发。
         /// </summary>
         private static readonly Dictionary<EventType, Action<string, EventType>> ActionMap = new()
@@ -166,7 +175,7 @@ namespace PCL
         }
 
         /// <summary>
-        /// 今日人品。直接调用 Jrrp 入口。
+        /// 今日人品。
         /// </summary>
         private static void _DailyFortune(string _, EventType __) => PageToolsTest.Jrrp();
 
@@ -270,9 +279,21 @@ namespace PCL
             if (args.Length == 1)
                 throw new ArgumentException(Lang.Text("Event.Error.MissingArgs", type.ToString(), "SettingName|Value"));
             if (ConfigService.TryGetConfigItemNoType(args[0], out var item) && item.Source != ConfigSource.SharedEncrypt)
+            {
+                if (!CanWriteSettingFromCustomEvent(args[0]))
+                    return;
                 item.SetValueNoType(args[1], ModInstanceList.McMcInstanceSelected?.PathInstance);
+            }
             if (args.Length == 2)
                 HintService.Hint(Lang.Text("Event.Setting.Written", args[0], args[1]), HintType.Success);
+        }
+        private static bool CanWriteSettingFromCustomEvent(string key)
+        {
+            if (!SecuritySensitiveSettingKeys.Contains(key))
+                return true;
+            ModBase.Log($"[Control] 已阻止自定义事件写入高危设置：{key}", ModBase.LogLevel.Developer);
+            HintService.Hint($"自定义主页不能写入高危设置：{key}", HintType.Error);
+            return false;
         }
 
         /// <summary>
