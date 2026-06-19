@@ -3,7 +3,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using PCL.Controls.MyMsg.Commands;
 using PCL.Controls.MyMsg.Models;
+using PCL.Controls.MyMsg.ViewModels;
 using PCL.Core.UI.Controls;
 
 namespace PCL;
@@ -12,6 +14,15 @@ public partial class MyMsgInput
 {
     private readonly ModMain.MyMsgBoxConverter myConverter;
     private readonly int uuid = ModBase.GetUuid();
+    
+    public MyMsgInput(MyMsgInputData data)
+    {
+        var command = new MyMsgInputButtonCommand();
+        command.Exited += Close;
+        DataContext = new MyMsgInputViewModel(data, command);
+        var buttonCommand = new MyMsgInputButtonCommand();
+        
+    }
     
     public MyMsgInput(ModMain.MyMsgBoxConverter converter)
     {
