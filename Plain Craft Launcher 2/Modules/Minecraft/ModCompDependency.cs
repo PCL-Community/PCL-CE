@@ -175,7 +175,7 @@ public static class ModCompDependency
             ?.File;
     }
 
-    public static List<(string, DownloadFile)> BuildDependencyDownloads(
+    public static List<(string Filename, DownloadFile File)> BuildDependencyDownloads(
         ModDependencyResolutionResult result,
         string targetModsFolder)
     {
