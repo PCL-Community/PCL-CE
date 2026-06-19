@@ -440,7 +440,13 @@ public partial class PageDownloadCompDetail
                             var result = resolver.Resolve(request);
 
                             void DownloadDependencies()
-                            {
+                            {    
+                                if (!result.ToInstall.Any())
+                                {
+                                    ModBase.Log("[CompDeps] 所有前置均无法解析，仅下载 Mod 本体");
+                                    return;
+                                }
+                                
                                 ModBase.Log($"[CompDeps] 准备下载: {result.ToInstall.Count} 个前置");
                                 var depDownloads = ModCompDependency.BuildDependencyDownloads(result, targetDir);
                                 foreach (var (depFilename, downloadFile) in depDownloads)
@@ -464,7 +470,7 @@ public partial class PageDownloadCompDetail
                                     ModLoader.LoaderTaskbarAdd(depLoader);
                                 }
                             }
-
+                            
                             if (result.Unresolved.Any() || result.ToInstall.Any())
                             {
                                 var installChoice = ModCompDependency.ConfirmDependencyInstall(result);
@@ -472,7 +478,7 @@ public partial class PageDownloadCompDetail
                                 switch (installChoice)
                                 {
                                     case ModComp.CompDepsInstallTypes.Unresolved:
-                                        ModBase.Log("[CompDeps] 部分前置无法解析，继续安装已解析的部分");
+                                        ModBase.Log("[CompDeps] 发现无法解析的前置");
                                         DownloadDependencies();
                                         break;
 
