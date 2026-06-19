@@ -7,7 +7,7 @@ namespace PCL
             { "打开网页", "OpenUrl" },
             { "打开文件", "OpenFile" },
             { "执行命令", "ExecuteCommand" },
-            { "启动游戏", "LaunchGame" },
+            { "启动游戏", "LaunchInstance" },
             { "复制文本", "CopyText" },
             { "刷新主页", "RefreshHomepage" },
             { "刷新页面", "RefreshPage" },

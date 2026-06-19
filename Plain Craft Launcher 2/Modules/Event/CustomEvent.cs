@@ -74,7 +74,7 @@ namespace PCL
             [EventType.OpenUrl] = _OpenUrl,
             [EventType.OpenFile] = _OpenFileOrCommand,
             [EventType.ExecuteCommand] = _OpenFileOrCommand,
-            [EventType.LaunchGame] = _LaunchGame,
+            [EventType.LaunchInstance] = _LaunchInstance,
             [EventType.CopyText] = _CopyText,
             [EventType.RefreshHomepage] = _Refresh,
             [EventType.RefreshPage] = _Refresh,
@@ -133,13 +133,13 @@ namespace PCL
         /// <summary>
         /// 启动游戏。支持 \current 指代当前选中实例，可选 ServerIp。
         /// </summary>
-        private static void _LaunchGame(string arg, EventType type)
+        private static void _LaunchInstance(string arg, EventType type)
         {
             var args = SplitArgs(arg);
             if (args[0] == "\\current")
             {
                 if (ModInstanceList.McMcInstanceSelected is null)
-                    throw new InvalidOperationException(Lang.Text("Event.LaunchGame.SelectVersion"));
+                    throw new InvalidOperationException(Lang.Text("Event.LaunchInstance.SelectVersion"));
                 args[0] = ModInstanceList.McMcInstanceSelected.Name;
             }
             ModBase.RunInUi(() =>
@@ -150,7 +150,7 @@ namespace PCL
                     instance = new McInstance(args[0])
                 };
                 if (ModLaunch.McLaunchStart(launchOptions))
-                    HintService.Hint(Lang.Text("Event.LaunchGame.Starting", args[0]));
+                    HintService.Hint(Lang.Text("Event.LaunchInstance.Starting", args[0]));
             });
         }
 

@@ -6,7 +6,7 @@ namespace PCL
         OpenUrl,
         OpenFile,
         ExecuteCommand,
-        LaunchGame,
+        LaunchInstance,
         CopyText,
         RefreshHomepage,
         RefreshPage,
