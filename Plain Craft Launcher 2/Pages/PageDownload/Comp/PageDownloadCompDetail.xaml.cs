@@ -444,8 +444,27 @@ public partial class PageDownloadCompDetail
                             void DownloadDependencies()
                             {
                                 ModBase.Log($"[CompDeps] 准备下载: {result.ToInstall.Count} 个前置");
-                                depDownloads = ModCompDependency.BuildDependencyDownloads(result, targetDir);
-                                downloadFiles = depDownloads.Concat(downloadFiles).ToList();
+                                var depDownloads = ModCompDependency.BuildDependencyDownloads(result, targetDir);
+                                foreach (var (depFilename, downloadFile) in depDownloads)
+                                {
+                                    var depLoaderName = Lang.Text("Download.Comp.Detail.DownloadResource", desc,
+                                        ModBase.GetFileNameWithoutExtentionFromPath(depFilename));
+                                    var depLoaders = new List<ModLoader.LoaderBase>
+                                    {
+                                        new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadFile"),
+                                            new List<DownloadFile> { downloadFile })
+                                        {
+                                            ProgressWeight = 6,
+                                            block = true
+                                        }
+                                    };
+
+                                    // 启动加载器
+                                    var depLoader = new ModLoader.LoaderCombo<int>(depLoaderName, depLoaders);
+                                    depLoader.OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly;
+                                    depLoader.Start(1);
+                                    ModLoader.LoaderTaskbarAdd(depLoader);
+                                }
                             }
 
                             if (result.Unresolved.Any() || result.ToInstall.Any())
