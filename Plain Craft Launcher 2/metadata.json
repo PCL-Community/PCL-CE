@@ -32,34 +32,10 @@
       "license": "https://github.com/naudio/NAudio/blob/master/license.txt"
     },
     {
-      "name": "Iconmonstr",
-      "info": "Copyright © 2019 iconmonstr (Alexander Kahlkopf)",
-      "website": "https://iconmonstr.com/",
-      "license": "https://iconmonstr.com/license/"
-    },
-    {
-      "name": "Iconfont",
-      "info": "Copyright © ALIMAMA MUX, powered by alimama THX.",
-      "website": "https://www.iconfont.cn/",
-      "license": null
-    },
-    {
       "name": "Stun.Net",
       "info": "Copyright © Bruce Wayne",
       "website": "https://github.com/HMBSbige/NatTypeTester",
       "license": "https://github.com/HMBSbige/NatTypeTester/blob/master/LICENSE"
-    },
-    {
-      "name": "IPNetwork",
-      "info": "Copyright © 2015, lduchosal",
-      "website": "https://github.com/lduchosal/ipnetwork",
-      "license": "https://github.com/lduchosal/ipnetwork/blob/master/LICENSE"
-    },
-    {
-      "name": "TagLibSharp",
-      "info": "Copyright © 2006-2007 Brian Nickel.\nCopyright © 2009-2020 Other contributors",
-      "website": "https://github.com/mono/taglib-sharp",
-      "license": "https://github.com/mono/taglib-sharp/blob/main/COPYING"
     },
     {
       "name": "LiteDB",
@@ -72,12 +48,6 @@
       "info": "Copyright © 2016-2021 Nicolas Musset",
       "website": "https://github.com/Kryptos-FR/markdig.wpf",
       "license": "https://github.com/Kryptos-FR/markdig.wpf/blob/main/LICENSE.md"
-    },
-    {
-      "name": "CacheCow",
-      "info": "Copyright © 2013 Ali Kheyrollahi",
-      "website": "https://github.com/aliostad/CacheCow",
-      "license": "https://github.com/aliostad/CacheCow/blob/master/LICENSE.txt"
     },
     {
       "name": "Mesa Loader Windows",
