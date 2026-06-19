@@ -448,7 +448,7 @@ public partial class PageDownloadCompDetail
                                 switch (installChoice)
                                 {
                                     case ModComp.CompDepsInstallTypes.Unresolved:
-                                        ModBase.Log("[CompDeps] 无法解析全部前置，继续安装已解析的部分");
+                                        ModBase.Log("[CompDeps] 部分前置无法解析，继续安装已解析的部分");
                                         depDownloads = ModCompDependency.BuildDependencyDownloads(result, targetDir);
                                         downloadFiles = depDownloads.Concat(downloadFiles).ToList();
                                         break;
