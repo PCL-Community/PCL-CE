@@ -283,20 +283,6 @@ public static class StringExtension
 
         public int LastIndexOfF(string subStr, int startIndex, bool ignoreCase = false)
             => str.LastIndexOf(subStr, startIndex, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
-        
-        public byte[] GetBytes(Encoding? encode = null)
-        {
-            encode ??= Encoding.UTF8;
-            return encode.GetBytes(str);
-        }
-    }
-    extension(ReadOnlySpan<char> str){
-    
-        public int GetBytes(Span<byte> destination, Encoding? encode = null)
-        {
-            encode ??= Encoding.UTF8;
-            return encode.GetBytes(str, destination);
-        }
     }
 
     extension(string hex)
