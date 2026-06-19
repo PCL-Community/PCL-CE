@@ -30,11 +30,11 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <local:MyTextButton Text="{DynamicResource Launch.Account.Microsoft.Purchase}"
-                                local:CustomEventService.EventType="打开网页"
+                                local:CustomEventService.EventType="OpenUrl"
                                 local:CustomEventService.EventData="https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj"
                                 Grid.Column="0" />
             <local:MyTextButton Text="{DynamicResource Launch.Account.Microsoft.Website}"
-                                local:CustomEventService.EventType="打开网页"
+                                local:CustomEventService.EventType="OpenUrl"
                                 local:CustomEventService.EventData="https://www.minecraft.net/zh-hans"
                                 Grid.Column="2" />
         </Grid>

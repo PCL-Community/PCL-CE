@@ -3027,4 +3027,27 @@
     <sys:String x:Key="Link.Mod.Task.InitLobbyUi">Initialize lobby UI</sys:String>
     <sys:String x:Key="Link.Mod.Task.FetchAnnouncement">Fetch lobby announcement</sys:String>
 
+    <!-- Event -->
+
+    <sys:String x:Key="Event.Error.Title">Event execution failed</sys:String>
+    <sys:String x:Key="Event.Error.UrlRequired">EventData must be a URL.&#x0a;If you want to launch a program, change EventType to OpenFile.</sys:String>
+    <sys:String x:Key="Event.Error.DownloadUrlRequired">EventData must be a URL starting with http:// or https://.&#x0a;PCL does not support other download protocols.</sys:String>
+    <sys:String x:Key="Event.Error.UnknownType">Unknown event type: {0}&#x0a;Please check if the EventType is correct, or if PCL is up to date.</sys:String>
+    <sys:String x:Key="Event.Error.MissingArgs">EventType {0} requires at least 2 parameters separated by |, e.g. {1}</sys:String>
+    <sys:String x:Key="Event.Error.ExecutionFailed">Event execution failed ({0}, {1})</sys:String>
+    <sys:String x:Key="Event.Error.FileNotFound">Local file not found for EventData: {0}</sys:String>
+    <sys:String x:Key="Event.OpenUrl.Opening">Opening, please wait: {0}</sys:String>
+    <sys:String x:Key="Event.LaunchGame.SelectVersion">Please select a Minecraft version first!</sys:String>
+    <sys:String x:Key="Event.LaunchGame.Starting">Starting {0}...</sys:String>
+    <sys:String x:Key="Event.Refresh.Success">Refreshed!</sys:String>
+    <sys:String x:Key="Event.Refresh.NotSupported">The current page does not support refresh!</sys:String>
+    <sys:String x:Key="Event.Download.Confirm">About to download from this URL:&#x0a;{0}</sys:String>
+    <sys:String x:Key="Event.Setting.Written">Setting written: {0} → {1}</sys:String>
+    <sys:String x:Key="Event.Variable.Written">Variable written: {0} → {1}</sys:String>
+    <sys:String x:Key="Event.Safety.Title">Confirm execution</sys:String>
+    <sys:String x:Key="Event.Safety.ConfirmMessage">About to execute: {0}&#x0a;Please confirm there are no security risks before continuing.</sys:String>
+    <sys:String x:Key="Event.Safety.ContinueAlways">Continue and do not ask again</sys:String>
+    <sys:String x:Key="Event.Sanitize.UnsupportedTypeHint">is the unsupported official PCL EventType, which has been removed from the homepage.</sys:String>
+    <sys:String x:Key="Event.Sanitize.UnknownTypeHint">is the unrecognized EventType, which has been removed from the homepage.</sys:String>
+
 </ResourceDictionary>

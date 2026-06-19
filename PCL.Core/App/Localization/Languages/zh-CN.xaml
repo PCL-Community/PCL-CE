@@ -3027,4 +3027,27 @@
     <sys:String x:Key="Link.Mod.Task.InitLobbyUi">大厅界面初始化</sys:String>
     <sys:String x:Key="Link.Mod.Task.FetchAnnouncement">大厅公告获取</sys:String>
 
+    <!-- Event -->
+
+    <sys:String x:Key="Event.Error.Title">事件执行失败</sys:String>
+    <sys:String x:Key="Event.Error.UrlRequired">EventData 必须为一个网址。&#x0a;如果想要启动程序，请将 EventType 改为 OpenFile。</sys:String>
+    <sys:String x:Key="Event.Error.DownloadUrlRequired">EventData 必须为以 http:// 或 https:// 开头的网址。&#x0a;PCL 不支持其他下载协议。</sys:String>
+    <sys:String x:Key="Event.Error.UnknownType">未知的事件类型：{0}&#x0a;请检查事件类型填写是否正确，或者 PCL 是否为最新版本。</sys:String>
+    <sys:String x:Key="Event.Error.MissingArgs">EventType {0} 需要至少 2 个以 | 分割的参数，例如 {1}</sys:String>
+    <sys:String x:Key="Event.Error.ExecutionFailed">事件执行失败（{0}, {1}）</sys:String>
+    <sys:String x:Key="Event.Error.FileNotFound">未找到 EventData 指向的本地文件：{0}</sys:String>
+    <sys:String x:Key="Event.OpenUrl.Opening">正在开启中，请稍候：{0}</sys:String>
+    <sys:String x:Key="Event.LaunchGame.SelectVersion">请先选择一个 Minecraft 版本！</sys:String>
+    <sys:String x:Key="Event.LaunchGame.Starting">正在启动 {0}……</sys:String>
+    <sys:String x:Key="Event.Refresh.Success">已刷新！</sys:String>
+    <sys:String x:Key="Event.Refresh.NotSupported">当前页面不支持刷新操作！</sys:String>
+    <sys:String x:Key="Event.Download.Confirm">即将从该网址下载文件：&#x0a;{0}</sys:String>
+    <sys:String x:Key="Event.Setting.Written">已写入设置：{0} → {1}</sys:String>
+    <sys:String x:Key="Event.Variable.Written">已写入变量：{0} → {1}</sys:String>
+    <sys:String x:Key="Event.Safety.Title">执行确认</sys:String>
+    <sys:String x:Key="Event.Safety.ConfirmMessage">即将执行：{0}&#x0a;请在确认没有安全隐患后再继续。</sys:String>
+    <sys:String x:Key="Event.Safety.ContinueAlways">继续且今后不再要求确认</sys:String>
+    <sys:String x:Key="Event.Sanitize.UnsupportedTypeHint">是不受支持的 PCL 官方版 EventType，已从主页中移除。</sys:String>
+    <sys:String x:Key="Event.Sanitize.UnknownTypeHint">是无法解析的 EventType，已从主页中移除。</sys:String>
+
 </ResourceDictionary>

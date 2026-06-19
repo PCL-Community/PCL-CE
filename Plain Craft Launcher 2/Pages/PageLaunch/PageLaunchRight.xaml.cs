@@ -444,7 +444,8 @@ public partial class PageLaunchRight : IRefreshable
                 content =
                     $"<StackPanel xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:sys=\"clr-namespace:System;assembly=System.Runtime\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\">{content}</StackPanel>";
                 ModBase.Log($"[Page] 实例化：加载主页 UI 开始，最终内容长度：{content.Count()}");
-                PanCustom.Children.Add((UIElement)ModBase.GetObjectFromXML(content));
+                PanCustom.Children.Add((UIElement)ModBase.GetObjectFromXML(content, out var sanitizeResult));
+                _ShowSanitizeHints(sanitizeResult);
                 _ApplyHomepageLivePatchesFromFile();
             }
             catch (Exception ex)
@@ -483,6 +484,15 @@ public partial class PageLaunchRight : IRefreshable
 
     private int loadedContentHash = -1;
     private readonly object loadContentLock = new();
+    private static void _ShowSanitizeHints(XamlEventSanitizer.SanitizeResult result)
+    {
+        foreach (var unsupported in result.UnsupportedTypesFound)
+            HintService.Hint($"[{unsupported}]" + " " + Lang.Text("Event.Sanitize.UnsupportedTypeHint"), HintType.Error);
+
+        foreach (var unknown in result.UnrecognizedTypes)
+            HintService.Hint($"[{unknown}]" +  " " + Lang.Text("Event.Sanitize.UnknownTypeHint"), HintType.Error);
+    }
+
     private const string homepageLivePatchFileName = "CustomLive.json";
     private const string homepageLiveSupportFileName = "CustomLive.supported.json";
     // Keep the reflection patch surface explicit because patch files are written by external tools.
