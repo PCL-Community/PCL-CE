@@ -12,7 +12,7 @@ public static class FileDownloader
         bool enableParallelChunks = true, DownloadFile? trackedFile = null)
     {
         await DownloadCoreAsync([url], localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
-            enableParallelChunks, trackedFile);
+            enableParallelChunks, trackedFile).ConfigureAwait(false);
     }
 
     public static async Task DownloadAsync(IEnumerable<string> urls, string localPath, bool useBrowserUserAgent = false,
@@ -20,7 +20,7 @@ public static class FileDownloader
         bool enableParallelChunks = true, DownloadFile? trackedFile = null)
     {
         await DownloadCoreAsync(urls, localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
-            enableParallelChunks, trackedFile);
+            enableParallelChunks, trackedFile).ConfigureAwait(false);
     }
 
     public static void DownloadByLoader(string url, string localPath, bool useBrowserUserAgent = false,
