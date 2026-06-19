@@ -7,9 +7,12 @@ using PCL.Core.IO.Storage.Cache;
 using PCL.Core.Logging;
 using Polly;
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PCL.Core.IO.Net;
 
@@ -22,17 +25,17 @@ public partial class NetworkService
 
     #region AddressDefinition
 
-    private const string MicrosoftEntraIdServer = "https://login.microsoftonline.com";
+    private const string MicrosoftEntraIdServer = "https://login.microsoftonline.com/";
 
-    private const string MojangPistonMetaServer = "https://piston-meta.mojang.com";
+    private const string MojangPistonMetaServer = "https://piston-meta.mojang.com/";
     
-    private const string MojangSessionServer = "https://sessionserver.mojang.com";
+    private const string MojangSessionServer = "https://sessionserver.mojang.com/";
 
-    private const string CurseForgeApiServer = "https://api.curseforge.com/v1";
+    private const string CurseForgeApiServer = "https://api.curseforge.com/";
 
-    private const string ModrinthApiServer = "https://api.modrinth.com/v2";
+    private const string ModrinthApiServer = "https://api.modrinth.com/";
 
-    private const string MinecraftServiceServer = "https://api.minecraftservices.com";
+    private const string MinecraftServiceServer = "https://api.minecraftservices.com/";
 
     #endregion
 
@@ -65,21 +68,11 @@ public partial class NetworkService
     {
         
         var services = new ServiceCollection();
-        services.ConfigureHttpClientDefaults(b => b.ConfigurePrimaryHttpMessageHandler(static () =>
-            new SocketsHttpHandler
-            {
-                UseProxy = true,
-                AutomaticDecompression = DecompressionMethods.All,
-                Proxy = HttpProxyManager.Instance,
-                AllowAutoRedirect = true,
-                MaxAutomaticRedirections = 20,
-                UseCookies = false,
-                ConnectCallback = Config.Network.EnableDoH
-                    ? HostConnectionHandler.Instance.GetConnectionAsync
-                    : null
-            }).ConfigureHttpClient( c=> c.DefaultRequestHeaders
-            .UserAgent.Add(new ProductInfoHeaderValue("PCL-CE", Basics.VersionName)
-            )).SetHandlerLifetime(TimeSpan.FromMinutes(LifeTime)));
+        services.ConfigureHttpClientDefaults(b => b
+            .ConfigurePrimaryHttpMessageHandler(_GetSocketsHttpHandler)
+            .ConfigureHttpClient(c => c.DefaultRequestHeaders
+                .UserAgent.Add(new ProductInfoHeaderValue("PCL-CE", Basics.VersionName)))
+            .SetHandlerLifetime(TimeSpan.FromMinutes(LifeTime)));
         
         // 默认的 HTTP Client
         
@@ -90,6 +83,7 @@ public partial class NetworkService
         services.AddHttpClient(CurseForgeApi).ConfigureHttpClient(c =>
         {
             c.DefaultRequestHeaders.Add("x-api-key", Secrets.CurseForgeAPIKey);
+            c.BaseAddress = new Uri(CurseForgeApiServer);
         });
         
         // Modrinth
@@ -130,18 +124,8 @@ public partial class NetworkService
         // Cache
         services.AddHttpClient(Cache)
             .ConfigurePrimaryHttpMessageHandler(() => new HttpCacheHandler(
-            new SocketsHttpHandler
-            {
-                UseProxy = true,
-                UseCookies = false,
-                AutomaticDecompression = DecompressionMethods.All,
-                Proxy = HttpProxyManager.Instance,
-                AllowAutoRedirect = true,
-                MaxAutomaticRedirections = 20,
-                ConnectCallback = Config.Network.EnableDoH
-                    ? HostConnectionHandler.Instance.GetConnectionAsync
-                    : null
-            }, CacheServiceManager.Current)).SetHandlerLifetime(TimeSpan.FromMinutes(LifeTime));
+            _GetSocketsHttpHandler(),CacheServiceManager.Current
+            )).SetHandlerLifetime(TimeSpan.FromMinutes(LifeTime));
 
         _provider?.Dispose();
         _provider = services.BuildServiceProvider();
@@ -153,6 +137,17 @@ public partial class NetworkService
     {
         _provider?.Dispose();
     }
+
+    private static SocketsHttpHandler _GetSocketsHttpHandler() => new SocketsHttpHandler
+    {
+        UseProxy = true,
+        AutomaticDecompression = DecompressionMethods.All,
+        Proxy = HttpProxyManager.Instance,
+        AllowAutoRedirect = true,
+        MaxAutomaticRedirections = 20,
+        UseCookies = false,
+        ConnectCallback = Config.Network.EnableDoH ? HostConnectionHandler.Instance.GetConnectionAsync : null
+    };
 
     /// <summary>
     /// 获取 HttpClient
