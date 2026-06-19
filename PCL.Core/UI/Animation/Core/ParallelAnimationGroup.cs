@@ -36,7 +36,7 @@ public sealed class ParallelAnimationGroup : AnimationGroup
                 ChildrenCore.Add(instance);
                 
                 // 收集 Task
-                childWaitTasks.Add(CreateChildAwaiter(instance));
+                childWaitTasks.Add(CreateChildAwaiterAsync(instance));
             }
         }
 
