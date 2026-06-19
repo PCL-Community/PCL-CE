@@ -2809,18 +2809,19 @@ public partial class PageInstanceCompResource : IRefreshable
         {
             try
             {
-                await Task.Delay(350, curToken.Token);
-                if (curToken.IsCancellationRequested) return;
+                var token = curToken.Token;
+                await Task.Delay(350, token);
+                if (token.IsCancellationRequested) return;
                 if (IsSearching)
                 {
                     var searchText = SearchBox.Text;
-                    searchResult = await Task.Run(() => GetSearchResult(searchText), curToken.Token);
+                    searchResult = await Task.Run(() => GetSearchResult(searchText), token);
                 }
 
-                if (curToken.IsCancellationRequested) return;
+                if (token.IsCancellationRequested) return;
                 RefreshUI();
             }
-            catch (TaskCanceledException ignore)
+            catch (TaskCanceledException)
             {
             }
             catch (Exception ex)
