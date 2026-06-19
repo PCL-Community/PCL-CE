@@ -181,7 +181,7 @@ public static class ModLink
 
     #region Minecraft 实例探测
 
-    public static async Task<List<Tuple<int, McPingResult, string>>> MCInstanceFinding()
+    public static async Task<List<Tuple<int, McPingResult, string>>> MCInstanceFindingAsync()
     {
         // Java 进程 PID 查询
         var pIDLookupResult = new List<string>();

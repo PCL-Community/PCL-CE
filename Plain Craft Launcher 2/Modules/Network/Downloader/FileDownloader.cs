@@ -9,7 +9,7 @@ namespace PCL.Network;
 
 public static class FileDownloader
 {
-    public static Task Download(string url, string localPath, bool useBrowserUserAgent = false,
+    public static Task DownloadAsync(string url, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "", CancellationToken cancellationToken = default,
         bool enableParallelChunks = true, DownloadFile? trackedFile = null)
     {
@@ -17,7 +17,7 @@ public static class FileDownloader
             enableParallelChunks, trackedFile);
     }
 
-    public static Task Download(IEnumerable<string> urls, string localPath, bool useBrowserUserAgent = false,
+    public static Task DownloadAsync(IEnumerable<string> urls, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "", CancellationToken cancellationToken = default,
         bool enableParallelChunks = true, DownloadFile? trackedFile = null)
     {
@@ -28,13 +28,13 @@ public static class FileDownloader
     public static void DownloadByLoader(string url, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "")
     {
-        Download(url, localPath, useBrowserUserAgent, customUserAgent).GetAwaiter().GetResult();
+        DownloadAsync(url, localPath, useBrowserUserAgent, customUserAgent).GetAwaiter().GetResult();
     }
 
     public static void DownloadByLoader(IEnumerable<string> urls, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "")
     {
-        Download(urls, localPath, useBrowserUserAgent, customUserAgent).GetAwaiter().GetResult();
+        DownloadAsync(urls, localPath, useBrowserUserAgent, customUserAgent).GetAwaiter().GetResult();
     }
 
     private static async Task DownloadCoreAsync(IEnumerable<string> urls, string localPath, bool useBrowserUserAgent,
