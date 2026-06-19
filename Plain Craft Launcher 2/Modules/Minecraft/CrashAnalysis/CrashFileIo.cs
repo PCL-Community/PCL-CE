@@ -40,9 +40,7 @@ internal static class CrashFileIo
         var fileName = Path.GetFileName(archivePath);
         return fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ||
                fileName.EndsWith(".gz", StringComparison.OrdinalIgnoreCase) ||
-               fileName.EndsWith(".bz2", StringComparison.OrdinalIgnoreCase) ||
-               fileName.EndsWith(".tar", StringComparison.OrdinalIgnoreCase) ||
-               fileName.EndsWith(".tgz", StringComparison.OrdinalIgnoreCase);
+               fileName.EndsWith(".bz2", StringComparison.OrdinalIgnoreCase);
     }
 
     public static void ExtractFile(string archivePath, string destinationDirectory)
