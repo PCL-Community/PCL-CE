@@ -79,7 +79,7 @@ namespace PCL
                     var afterTag = sanitized[(match.Index + match.Length)..];
                     var closeLen = FindMatchingCloseTag(afterTag, elementName);
                     if (closeLen < 0) return match.Value;
-                    return "";
+                    return afterTag[closeLen..];
                 }
                 return match.Value;
             });
@@ -184,7 +184,7 @@ namespace PCL
                 if (closeLen < 0) return match.Value;
 
                 trackingList.Add(eventTypeValue);
-                return "";
+                return afterTag[closeLen..];
             }, RegexOptions.Compiled);
 
             var propertyElementPattern = $@"<local:CustomEventService\.EventType\s*>\s*{escaped}\s*</local:CustomEventService\.EventType\s*>";
