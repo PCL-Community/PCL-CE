@@ -31,9 +31,9 @@ public partial class NetworkService
     
     private const string MojangSessionServer = "https://sessionserver.mojang.com/";
 
-    private const string CurseForgeApiServer = "https://api.curseforge.com/";
+    private const string CurseForgeApiServer = "https://api.curseforge.com/v1/";
 
-    private const string ModrinthApiServer = "https://api.modrinth.com/";
+    private const string ModrinthApiServer = "https://api.modrinth.com/v2/";
 
     private const string MinecraftServiceServer = "https://api.minecraftservices.com/";
 
