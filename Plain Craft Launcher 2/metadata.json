@@ -32,6 +32,18 @@
       "license": "https://github.com/naudio/NAudio/blob/master/license.txt"
     },
     {
+      "name": "Iconmonstr",
+      "info": "Copyright © 2019 iconmonstr (Alexander Kahlkopf)",
+      "website": "https://iconmonstr.com/",
+      "license": "https://iconmonstr.com/license/"
+    },
+    {
+      "name": "Iconfont",
+      "info": "Copyright © ALIMAMA MUX, powered by alimama THX.",
+      "website": "https://www.iconfont.cn/",
+      "license": null
+    },
+    {
       "name": "Stun.Net",
       "info": "Copyright © Bruce Wayne",
       "website": "https://github.com/HMBSbige/NatTypeTester",
