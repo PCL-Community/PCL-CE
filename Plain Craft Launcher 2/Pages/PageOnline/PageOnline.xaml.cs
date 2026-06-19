@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
@@ -16,6 +17,7 @@ public partial class PageOnline
     public PageOnline()
     {
         InitializeComponent();
+        BtnWindowsLogin.Visibility = OperatingSystem.IsWindows() ? Visibility.Visible : Visibility.Collapsed;
         PageEnter += RefreshAccountCard;
     }
 
@@ -102,13 +104,48 @@ public partial class PageOnline
 
     private void BtnLogin_Click(object sender, ModBase.RouteEventArgs e)
     {
+        StartMicrosoftLogin(useWindowsAccount: false);
+    }
+
+    private async void BtnWindowsLogin_Click(object sender, ModBase.RouteEventArgs e)
+    {
         if (!MicrosoftLoginPolicyGate.EnsureAccepted())
             return;
 
-        BtnLogin.IsEnabled = false;
+        SetLoginButtonsEnabled(false);
+        try
+        {
+            var handle = new WindowInteropHelper(ModMain.frmMain).Handle;
+            var result = await PCL.Online.OnlineAccountService.LoginWithWindowsAccountAsync(handle);
+            if (!result.Success)
+            {
+                ModMain.Hint(Lang.Text("Online.Login.WindowsFallback", result.Message));
+                SetLoginButtonsEnabled(true);
+                StartMicrosoftLogin(useWindowsAccount: false);
+                return;
+            }
+
+            HandleLoginResult(result);
+        }
+        finally
+        {
+            if (!BtnLogin.IsEnabled)
+                SetLoginButtonsEnabled(true);
+        }
+    }
+
+    private void StartMicrosoftLogin(bool useWindowsAccount)
+    {
+        if (!MicrosoftLoginPolicyGate.EnsureAccepted())
+            return;
+
+        SetLoginButtonsEnabled(false);
         ModBase.RunInNewThread(() =>
         {
-            var result = PCL.Online.OnlineAccountService.Login(prepareJson =>
+            Func<Func<JsonObject, object?>, PCL.Online.OnlineLoginResult> login = useWindowsAccount
+                ? PCL.Online.OnlineAccountService.LoginWithWindowsAccount
+                : PCL.Online.OnlineAccountService.Login;
+            var result = login(prepareJson =>
             {
                 var converter = new ModMain.MyMsgBoxConverter
                     { Content = prepareJson, ForceWait = true, Type = ModMain.MyMsgBoxType.Login };
@@ -119,19 +156,32 @@ public partial class PageOnline
 
             ModBase.RunInUi(() =>
             {
-                if (result.Success && result.HasMinecraftProfile)
-                    ModProfile.AddProfileFromOnline(result);
-                if (result.Success)
-                    PCL.Online.CloudSyncService.TrySyncInBackground("login",
-                        PCL.Online.CloudSyncService.SyncMode.RemoteOverwrite);
-                ModMain.Hint(result.Message,
-                    result.Success ? ModMain.HintType.Finish : ModMain.HintType.Critical);
-                if (result.Success && result.MinecraftProfileMissing)
-                    ShowCreateMinecraftProfilePrompt();
-                RefreshAccountCard();
-                BtnLogin.IsEnabled = true;
+                HandleLoginResult(result);
+                SetLoginButtonsEnabled(true);
             });
-        }, "OnlineLogin");
+        }, useWindowsAccount ? "OnlineWindowsLogin" : "OnlineLogin");
+    }
+
+    private void HandleLoginResult(PCL.Online.OnlineLoginResult result)
+    {
+        if (result.Success && result.OwnsMinecraft && result.HasMinecraftProfile)
+            ModProfile.AddProfileFromOnline(result);
+        else if (result.Success)
+            ModProfile.AddOfflineProfileFromOnline(result);
+        if (result.Success)
+            PCL.Online.CloudSyncService.TrySyncInBackground("login",
+                PCL.Online.CloudSyncService.SyncMode.RemoteOverwrite);
+        ModMain.Hint(result.Message,
+            result.Success ? ModMain.HintType.Finish : ModMain.HintType.Critical);
+        if (result.Success && result.OwnsMinecraft && result.MinecraftProfileMissing)
+            ShowCreateMinecraftProfilePrompt();
+        RefreshAccountCard();
+    }
+
+    private void SetLoginButtonsEnabled(bool enabled)
+    {
+        BtnLogin.IsEnabled = enabled;
+        BtnWindowsLogin.IsEnabled = enabled;
     }
 
     private static void ShowCreateMinecraftProfilePrompt()

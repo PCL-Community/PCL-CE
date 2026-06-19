@@ -9,6 +9,9 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json.Nodes;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Identity.Client;
+using Microsoft.Identity.Client.Broker;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
@@ -35,15 +38,48 @@ public class OnlineLoginResult
     public bool MinecraftProfileMissing { get; init; }
 }
 
+public sealed record XboxAuthorization(string XstsToken, string UserHash);
+
 public static class OnlineAccountService
 {
     private const string GraphScope = "https://graph.microsoft.com/User.Read openid profile offline_access";
     private const string XboxScope = "XboxLive.signin offline_access";
+    private static readonly string[] MsalXboxScopes = ["XboxLive.signin"];
+    private static readonly string[] MsalGraphScopes = ["User.Read"];
 
     public static bool IsLoggedIn => !string.IsNullOrEmpty(States.Online.MsUserName);
     public static string? UserName => States.Online.MsUserName;
     public static string? AvatarUrl => States.Online.MsAvatarUrl;
     public static bool OwnsMinecraft => States.Online.MsOwnsMinecraft;
+
+    public static XboxAuthorization? GetXboxAuthorization(string relyingParty = "http://xboxlive.com")
+    {
+        var clientId = Secrets.MSOAuthClientId;
+        if (!string.IsNullOrWhiteSpace(clientId))
+        {
+            foreach (var refreshToken in EnumerateDistinctTokens(
+                         States.Online.MsOAuthRefreshToken,
+                         States.Online.MsGraphRefreshToken))
+            {
+                var tokens = ExchangeRefreshToken(clientId, refreshToken, XboxScope);
+                if (tokens.AccessToken is null)
+                {
+                    LogWrapper.Warn("Online", $"无法刷新 Xbox 令牌：{tokens.Error}");
+                    continue;
+                }
+
+                States.Online.MsOAuthRefreshToken = tokens.RefreshToken ?? refreshToken;
+                States.Online.MsLastTokenRefresh = DateTime.Now.ToString("O");
+                ConfigService.FlushAll();
+
+                var authorization = CreateXboxAuthorization(tokens.AccessToken, relyingParty);
+                if (authorization is not null)
+                    return authorization;
+            }
+        }
+
+        return GetXboxAuthorizationWithWamSilent(relyingParty);
+    }
 
     public static bool EnsureAccountIdentity()
     {
@@ -71,7 +107,8 @@ public static class OnlineAccountService
         States.Online.MsId = graphProfile.id;
         States.Online.MsGraphAccessToken = graphTokens.AccessToken;
         States.Online.MsGraphRefreshToken = graphTokens.RefreshToken ?? refreshToken;
-        States.Online.MsOAuthRefreshToken = graphTokens.RefreshToken ?? refreshToken;
+        if (string.IsNullOrWhiteSpace(States.Online.MsOAuthRefreshToken))
+            States.Online.MsOAuthRefreshToken = refreshToken;
         if (!string.IsNullOrWhiteSpace(graphProfile.name))
             States.Online.MsUserName = graphProfile.name;
         if (!string.IsNullOrWhiteSpace(graphProfile.avatarUrl))
@@ -83,6 +120,65 @@ public static class OnlineAccountService
 
     public static OnlineLoginResult Login(Func<JsonObject, object?> showLoginDialog)
     {
+        return LoginCore(showLoginDialog, Lang.Text("Online.Login.Title"));
+    }
+
+    public static OnlineLoginResult LoginWithWindowsAccount(Func<JsonObject, object?> showLoginDialog)
+    {
+        return LoginCore(showLoginDialog, Lang.Text("Online.Login.WindowsTitle"));
+    }
+
+    public static async Task<OnlineLoginResult> LoginWithWindowsAccountAsync(IntPtr parentWindowHandle,
+        CancellationToken cancellationToken = default)
+    {
+        if (!OperatingSystem.IsWindows())
+            return new OnlineLoginResult { Success = false, Message = Lang.Text("Online.Login.WindowsUnsupported") };
+        if (string.IsNullOrWhiteSpace(Secrets.MSOAuthClientId))
+            return new OnlineLoginResult { Success = false, Message = Lang.Text("Online.Login.ClientIdMissing") };
+
+        try
+        {
+            var app = BuildWamApplication(parentWindowHandle);
+            var xboxResult = await app.AcquireTokenInteractive(MsalXboxScopes)
+                .WithAccount(PublicClientApplication.OperatingSystemAccount)
+                .WithParentActivityOrWindow(parentWindowHandle)
+                .ExecuteAsync(cancellationToken)
+                .ConfigureAwait(true);
+
+            AuthenticationResult? graphResult = null;
+            try
+            {
+                graphResult = await app.AcquireTokenSilent(MsalGraphScopes, xboxResult.Account)
+                    .ExecuteAsync(cancellationToken)
+                    .ConfigureAwait(true);
+            }
+            catch (MsalUiRequiredException)
+            {
+                graphResult = await app.AcquireTokenInteractive(MsalGraphScopes)
+                    .WithAccount(xboxResult.Account)
+                    .WithParentActivityOrWindow(parentWindowHandle)
+                    .ExecuteAsync(cancellationToken)
+                    .ConfigureAwait(true);
+            }
+
+            return await Task.Run(() => CompleteLogin(
+                    new OAuthTokens(graphResult.AccessToken),
+                    new OAuthTokens(xboxResult.AccessToken)),
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Debug(ex, "Online", "WAM 登录失败");
+            return new OnlineLoginResult
+            {
+                Success = false,
+                Message = ex.Message
+            };
+        }
+    }
+
+    private static OnlineLoginResult LoginCore(Func<JsonObject, object?> showLoginDialog, string title)
+    {
         try
         {
             var clientId = Secrets.MSOAuthClientId;
@@ -90,7 +186,7 @@ public static class OnlineAccountService
                 return new OnlineLoginResult
                     { Success = false, Message = Lang.Text("Online.Login.ClientIdMissing") };
 
-            var xboxTokens = Authorize(clientId, XboxScope, Lang.Text("Online.Login.Title"), showLoginDialog);
+            var xboxTokens = Authorize(clientId, XboxScope, title, showLoginDialog);
             if (xboxTokens.Error is not null)
                 return new OnlineLoginResult { Success = false, Message = xboxTokens.Error };
 
@@ -179,7 +275,7 @@ public static class OnlineAccountService
         var xblToken = AuthXbl(xboxTokens.AccessToken!);
         if (xblToken is null) return Fail(Lang.Text("Online.Login.XboxFailed"));
 
-        var xsts = AuthXsts(xblToken);
+        var xsts = AuthXsts(xblToken, "rp://api.minecraftservices.com/");
         if (xsts is null) return Fail(Lang.Text("Online.Login.XstsFailed"));
         var xstsToken = xsts["Token"]?.ToString();
         var userHash = xsts["DisplayClaims"]?["xui"]?[0]?["uhs"]?.ToString();
@@ -202,14 +298,21 @@ public static class OnlineAccountService
 
         var displayName = FirstNonEmpty(graphProfile.name, mcName, graphProfile.id,
             Lang.Text("Online.Login.MicrosoftAccount"));
-        var latestRefreshToken = graphTokens.RefreshToken ?? xboxTokens.RefreshToken!;
+        var xboxRefreshToken = FirstNonEmpty(
+            xboxTokens.RefreshToken,
+            States.Online.MsOAuthRefreshToken,
+            States.Online.MsGraphRefreshToken);
+        var graphRefreshToken = FirstNonEmpty(
+            graphTokens.RefreshToken,
+            States.Online.MsGraphRefreshToken,
+            States.Online.MsOAuthRefreshToken);
 
         var ownsMc = CheckOwnership(mcToken);
 
         States.Online.MsAccessToken = mcToken;
-        States.Online.MsOAuthRefreshToken = latestRefreshToken;
+        States.Online.MsOAuthRefreshToken = xboxRefreshToken;
         States.Online.MsGraphAccessToken = graphTokens.AccessToken ?? "";
-        States.Online.MsGraphRefreshToken = latestRefreshToken;
+        States.Online.MsGraphRefreshToken = graphRefreshToken;
         States.Online.MsId = graphProfile.id ?? "";
         States.Online.MsUserName = displayName;
         States.Online.MsMinecraftProfileName = mcName;
@@ -219,20 +322,24 @@ public static class OnlineAccountService
         States.Online.MsLastTokenRefresh = DateTime.Now.ToString("O");
         ConfigService.FlushAll();
 
+        var messageKey = (hasMcProfile, ownsMc) switch
+        {
+            (true, true) => "Online.Login.SuccessOwned",
+            (false, true) => "Online.Login.SuccessProfileMissing",
+            _ => "Online.Login.SuccessNotOwned"
+        };
+
         return new OnlineLoginResult
         {
             Success = true,
-            Message = Lang.Text(hasMcProfile
-                    ? ownsMc ? "Online.Login.SuccessOwned" : "Online.Login.SuccessNotOwned"
-                    : "Online.Login.SuccessProfileMissing",
-                displayName),
+            Message = Lang.Text(messageKey, displayName),
             MsId = graphProfile.id,
             UserName = hasMcProfile ? mcName : displayName,
             DisplayName = displayName,
             MinecraftProfileName = mcName,
             Uuid = uuid,
             AccessToken = mcToken,
-            RefreshToken = latestRefreshToken,
+            RefreshToken = xboxRefreshToken,
             OwnsMinecraft = ownsMc,
             HasMinecraftProfile = hasMcProfile,
             MinecraftProfileMissing = mcProfileResult.NotFound
@@ -292,6 +399,18 @@ public static class OnlineAccountService
         return "";
     }
 
+    private static IEnumerable<string> EnumerateDistinctTokens(params string?[] tokens)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var token in tokens)
+        {
+            if (string.IsNullOrWhiteSpace(token) || !seen.Add(token))
+                continue;
+
+            yield return token;
+        }
+    }
+
     private sealed record OAuthTokens(string? AccessToken = null, string? RefreshToken = null,
         string? Error = null);
 
@@ -339,14 +458,14 @@ public static class OnlineAccountService
         catch (Exception e) { LogWrapper.Debug(e, "Online", "XBL"); return null; }
     }
 
-    private static JsonObject? AuthXsts(string xblToken)
+    private static JsonObject? AuthXsts(string xblToken, string relyingParty)
     {
         try
         {
             var p = new JsonObject
             {
                 ["Properties"] = new JsonObject { ["SandboxId"] = "RETAIL", ["UserTokens"] = new JsonArray { xblToken } },
-                ["RelyingParty"] = "rp://api.minecraftservices.com/", ["TokenType"] = "JWT"
+                ["RelyingParty"] = relyingParty, ["TokenType"] = "JWT"
             };
             using var r = HttpRequest.CreatePost("https://xsts.auth.xboxlive.com/xsts/authorize")
                 .WithJsonContent(p).SendAsync().GetAwaiter().GetResult();
@@ -409,4 +528,60 @@ public static class OnlineAccountService
     }
 
     #endregion
+
+    private static IPublicClientApplication BuildWamApplication(IntPtr parentWindowHandle)
+    {
+        var brokerOptions = new BrokerOptions(BrokerOptions.OperatingSystems.Windows)
+        {
+            Title = "PCL N",
+            ListOperatingSystemAccounts = true,
+            MsaPassthrough = true
+        };
+
+        var builder = PublicClientApplicationBuilder
+            .Create(Secrets.MSOAuthClientId)
+            .WithAuthority("https://login.microsoftonline.com/consumers")
+            .WithDefaultRedirectUri()
+            .WithBroker(brokerOptions);
+
+        if (parentWindowHandle != IntPtr.Zero)
+            builder = builder.WithParentActivityOrWindow(() => parentWindowHandle);
+
+        return builder.Build();
+    }
+
+    private static XboxAuthorization? GetXboxAuthorizationWithWamSilent(string relyingParty)
+    {
+        if (!OperatingSystem.IsWindows() || string.IsNullOrWhiteSpace(Secrets.MSOAuthClientId))
+            return null;
+
+        try
+        {
+            var app = BuildWamApplication(IntPtr.Zero);
+            var result = app.AcquireTokenSilent(MsalXboxScopes, PublicClientApplication.OperatingSystemAccount)
+                .ExecuteAsync()
+                .GetAwaiter()
+                .GetResult();
+            return CreateXboxAuthorization(result.AccessToken, relyingParty);
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Debug(ex, "Online", "WAM 静默获取 Xbox 令牌失败");
+            return null;
+        }
+    }
+
+    private static XboxAuthorization? CreateXboxAuthorization(string accessToken, string relyingParty)
+    {
+        var xblToken = AuthXbl(accessToken);
+        if (xblToken is null)
+            return null;
+
+        var xsts = AuthXsts(xblToken, relyingParty);
+        var xstsToken = xsts?["Token"]?.ToString();
+        var userHash = xsts?["DisplayClaims"]?["xui"]?[0]?["uhs"]?.ToString();
+        return string.IsNullOrWhiteSpace(xstsToken) || string.IsNullOrWhiteSpace(userHash)
+            ? null
+            : new XboxAuthorization(xstsToken, userHash);
+    }
 }

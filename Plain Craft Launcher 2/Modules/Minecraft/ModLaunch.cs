@@ -1366,7 +1366,7 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     正版验证步骤 5：尝试刷新并记录微软账号的 MC 权益。
+    ///     正版验证步骤 5：确认微软账号拥有 MC 权益。
     /// </summary>
     /// <param name="accessToken">Minecraft accessToken</param>
     private static void MsLoginStep5(string accessToken)
@@ -1392,15 +1392,18 @@ public static class ModLaunch
             if (!(resultJson.ContainsKey("items") && resultJson["items"].AsArray().Any(x =>
                     x["name"]?.ToString() == "product_minecraft" || x["name"]?.ToString() == "game_minecraft")))
             {
-                ModProfile.ProfileLog("正版验证 Step 5/6 未检测到 Minecraft 权益，继续获取玩家档案");
-                return;
+                ModProfile.ProfileLog("正版验证 Step 5/6 未检测到 Minecraft 权益，已终止正版启动");
+                throw new Exception(Lang.Text("Minecraft.Launch.Login.Microsoft.NotOwned"));
             }
 
             ModProfile.ProfileLog("正版验证 Step 5/6 已确认 Minecraft 权益");
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "正版验证 Step 5 异常，已跳过权益检查：" + result);
+            ModBase.Log(ex, "正版验证 Step 5 无法确认正版权益：" + result);
+            if (ex.Message == Lang.Text("Minecraft.Launch.Login.Microsoft.NotOwned"))
+                throw;
+            throw new Exception(Lang.Text("Minecraft.Launch.Login.Microsoft.OwnershipCheckFailed"), ex);
         }
     }
 

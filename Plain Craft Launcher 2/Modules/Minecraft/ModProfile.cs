@@ -562,7 +562,7 @@ public static class ModProfile
     /// <param name="profile">目标档案</param>
     public static void RemoveProfile(McProfile profile)
     {
-        if (!string.IsNullOrEmpty(profile.Desc) && profile.Desc.Contains("PCL N 在线服务"))
+        if (IsOnlineManagedProfile(profile))
         {
             ModMain.Hint(Lang.Text("Launch.Profile.OnlineManaged"), ModMain.HintType.Critical);
             return;
@@ -1099,9 +1099,9 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
 
     private static void RemoveOnlineProfile(string? uuid)
     {
-        if (string.IsNullOrEmpty(uuid)) return;
         var toRemove = profileList
-            .Where(p => p.Type == ModLaunch.McLoginType.Ms && p.Uuid == uuid)
+            .Where(p => IsOnlineManagedProfile(p) &&
+                        (string.IsNullOrEmpty(uuid) || p.Uuid == uuid || p.Type == ModLaunch.McLoginType.Legacy))
             .ToList();
         foreach (var p in toRemove)
             profileList.Remove(p);
@@ -1111,7 +1111,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
 
     public static void AddProfileFromOnline(PCL.Online.OnlineLoginResult result)
     {
-        if (result?.AccessToken is null || !result.HasMinecraftProfile ||
+        if (result?.AccessToken is null || !result.OwnsMinecraft || !result.HasMinecraftProfile ||
             string.IsNullOrWhiteSpace(result.Uuid) || string.IsNullOrWhiteSpace(result.MinecraftProfileName))
             return;
         foreach (var p in profileList)
@@ -1122,11 +1122,71 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
         profile.Type = ModLaunch.McLoginType.Ms;
         profile.Uuid = result.Uuid;
         profile.Username = result.MinecraftProfileName;
-        profile.AccessToken = EncryptHelper.SecretEncrypt(result.AccessToken);
-        profile.RefreshToken = EncryptHelper.SecretEncrypt(result.RefreshToken);
+        profile.AccessToken = result.AccessToken;
+        profile.RefreshToken = result.RefreshToken;
         profile.Desc = Lang.Text("Launch.Profile.OnlineDescription");
         profileList.Add(profile);
         SaveProfile();
         ModMain.Hint(Lang.Text("Launch.Profile.OnlineAdded", result.MinecraftProfileName), ModMain.HintType.Finish);
+    }
+
+    public static void AddOfflineProfileFromOnline(PCL.Online.OnlineLoginResult result)
+    {
+        if (result is not { Success: true })
+            return;
+
+        var username = BuildOnlineOfflineName(result);
+        var uuid = GetOfflineUuid(username);
+        foreach (var p in profileList)
+            if (p.Type == ModLaunch.McLoginType.Legacy && (p.Uuid == uuid || IsOnlineManagedProfile(p)))
+                return;
+
+        profileList.Add(new McProfile
+        {
+            Type = ModLaunch.McLoginType.Legacy,
+            Uuid = uuid,
+            Username = username,
+            Desc = Lang.Text("Launch.Profile.OnlineOfflineDescription")
+        });
+        SaveProfile();
+        ModMain.Hint(Lang.Text("Launch.Profile.OnlineOfflineAdded", username), ModMain.HintType.Finish);
+    }
+
+    private static bool IsOnlineManagedProfile(McProfile profile) =>
+        profile?.Desc is { } desc &&
+        (desc.Contains("PCL N 在线服务", StringComparison.Ordinal) ||
+         desc.Contains("PCL N online services", StringComparison.OrdinalIgnoreCase));
+
+    private static string BuildOnlineOfflineName(PCL.Online.OnlineLoginResult result)
+    {
+        var source = result.MinecraftProfileName;
+        if (string.IsNullOrWhiteSpace(source))
+            source = result.UserName;
+        if (string.IsNullOrWhiteSpace(source))
+            source = result.DisplayName;
+        if (string.IsNullOrWhiteSpace(source))
+            source = "PCLN";
+
+        var builder = new StringBuilder(16);
+        foreach (var ch in source)
+        {
+            if (builder.Length >= 16)
+                break;
+            if (ch is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9' or '_')
+                builder.Append(ch);
+        }
+
+        if (builder.Length < 3)
+            builder.Append("PCLN");
+        if (builder.Length > 16)
+            builder.Length = 16;
+
+        var baseName = builder.ToString();
+        if (!profileList.Any(p => string.Equals(p.Username, baseName, StringComparison.OrdinalIgnoreCase)))
+            return baseName;
+
+        var suffix = (ModBase.GetHash(result.MsId ?? result.DisplayName ?? baseName) & 0xFFFFUL).ToString("X4");
+        var prefixLength = Math.Min(11, baseName.Length);
+        return $"{baseName[..prefixLength]}_{suffix}";
     }
 }

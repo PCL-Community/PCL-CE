@@ -690,6 +690,8 @@
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.PurchaseMinecraft">Purchase Minecraft</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.CreateProfile.Message">Please create a Minecraft player profile first, then log in again.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.CreateProfile.Button">Create profile</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.NotOwned">This Microsoft account does not own Minecraft and cannot be used for official launch. Purchase Minecraft or use an offline profile.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.OwnershipCheckFailed">Unable to verify Minecraft ownership for this Microsoft account. To prevent non-owned accounts from bypassing official launch, please try again later.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ProfileAlreadyAdded">You have already added this profile...</sys:String>
 
     <!-- Minecraft.Launch.Login.Auth -->
@@ -3014,6 +3016,7 @@
     <sys:String x:Key="Online.Account.Category">Online</sys:String>
     <sys:String x:Key="Online.Account.Title">Account</sys:String>
     <sys:String x:Key="Online.Account.LoginMicrosoft">Sign in with Microsoft</sys:String>
+    <sys:String x:Key="Online.Account.LoginWindows">Use my Windows sign-in</sys:String>
     <sys:String x:Key="Online.Account.Logout">Sign out</sys:String>
     <sys:String x:Key="Online.Account.OwnsMinecraft">Minecraft owned</sys:String>
     <sys:String x:Key="Online.Account.DoesNotOwnMinecraft">Minecraft not owned</sys:String>
@@ -3025,6 +3028,9 @@
     <sys:String x:Key="Online.Account.DeleteCloudAndLogout.Success">Deleted the cloud profile and signed out</sys:String>
     <sys:String x:Key="Online.Account.DeleteCloudAndLogout.Failed">Failed to delete cloud profile: {0}</sys:String>
     <sys:String x:Key="Online.Login.Title">Microsoft account sign-in</sys:String>
+    <sys:String x:Key="Online.Login.WindowsTitle">Use Windows account sign-in</sys:String>
+    <sys:String x:Key="Online.Login.WindowsUnsupported">Windows account sign-in is not supported on this system.</sys:String>
+    <sys:String x:Key="Online.Login.WindowsFallback">Windows account sign-in is unavailable. Falling back to Microsoft device code sign-in. Reason: {0}</sys:String>
     <sys:String x:Key="Online.Login.ClientIdMissing">Microsoft OAuth Client ID is not configured</sys:String>
     <sys:String x:Key="Online.Login.Cancelled">Sign-in cancelled</sys:String>
     <sys:String x:Key="Online.Login.XboxFailed">Xbox Live authentication failed</sys:String>
@@ -3062,6 +3068,46 @@
     <sys:String x:Key="Online.CloudSync.Unavailable">N Cloud data sync is unavailable</sys:String>
     <sys:String x:Key="Online.CloudSync.Unavailable.Detail">N Cloud could not be reached. Your network connection may be unavailable, N Cloud may be undergoing maintenance or temporarily offline, or your proxy or security certificate configuration may be incorrect. Check your network and proxy settings, then try syncing again later.</sys:String>
     <sys:String x:Key="Online.CloudSync.Retry">Try syncing again</sys:String>
+    <sys:String x:Key="Online.Friend.Status.Online">Online</sys:String>
+    <sys:String x:Key="Online.Friend.Status.Offline">Offline</sys:String>
+    <sys:String x:Key="Online.Friend.ServiceUnavailable">Friend services are temporarily unavailable. Please try again later.</sys:String>
+    <sys:String x:Key="Online.Friend.List.Title">Friend list</sys:String>
+    <sys:String x:Key="Online.Friend.List.Description">Show your Xbox friends and their PCL N online status.</sys:String>
+    <sys:String x:Key="Online.Friend.List.Loading">Fetching friends...</sys:String>
+    <sys:String x:Key="Online.Friend.List.Empty">No friends are shown yet. Make sure this Microsoft account has been set up for Xbox, then try again later.</sys:String>
+    <sys:String x:Key="Online.Friend.List.AuthorizationFailed">Xbox friends could not be loaded right now. Check your Microsoft sign-in state, or sign in again and retry.</sys:String>
+    <sys:String x:Key="Online.Friend.List.LoadFailed">Xbox friends could not be fetched right now. Check your network connection and try again later.</sys:String>
+    <sys:String x:Key="Online.Friend.List.Nickname">Nickname: {0}</sys:String>
+    <sys:String x:Key="Online.Friend.List.PclStatus">PCL N online status: {0}</sys:String>
+    <sys:String x:Key="Online.Friend.Add.Title">Add friend</sys:String>
+    <sys:String x:Key="Online.Friend.Add.Description">Search another player's Minecraft profile ID or player name, then send a friend request. Clear the search box to view requests and history.</sys:String>
+    <sys:String x:Key="Online.Friend.Add.SearchHint">Minecraft profile ID or player name</sys:String>
+    <sys:String x:Key="Online.Friend.Add.Apply">Send request</sys:String>
+    <sys:String x:Key="Online.Friend.Add.Loading">Loading friend information...</sys:String>
+    <sys:String x:Key="Online.Friend.Add.Requests">Requests</sys:String>
+    <sys:String x:Key="Online.Friend.Add.History">History</sys:String>
+    <sys:String x:Key="Online.Friend.Add.NoRequests">No pending requests.</sys:String>
+    <sys:String x:Key="Online.Friend.Add.NoHistory">No history yet.</sys:String>
+    <sys:String x:Key="Online.Friend.Add.NotFound">No matching Minecraft profile was found.</sys:String>
+    <sys:String x:Key="Online.Friend.Add.ProfileId">Minecraft profile ID: {0}</sys:String>
+    <sys:String x:Key="Online.Friend.Add.ApplySent">Friend request sent to {0}.</sys:String>
+    <sys:String x:Key="Online.Friend.Add.ApplyFailed">Failed to send the friend request. Try again later.</sys:String>
+    <sys:String x:Key="Online.ServerList.Title">Modrinth servers</sys:String>
+    <sys:String x:Key="Online.ServerList.Description">Browse servers on Modrinth. PCL N will join with a matching local Minecraft version.</sys:String>
+    <sys:String x:Key="Online.ServerList.SearchHint">Search servers</sys:String>
+    <sys:String x:Key="Online.ServerList.Loading">Fetching Modrinth servers...</sys:String>
+    <sys:String x:Key="Online.ServerList.Empty">No joinable Modrinth servers were found.</sys:String>
+    <sys:String x:Key="Online.ServerList.CardInfo">Minecraft {0} · {1}/{2} online · {3}</sys:String>
+    <sys:String x:Key="Online.ServerList.Enter">Join server</sys:String>
+    <sys:String x:Key="Online.ServerList.AddressMissing">This server does not provide a join address yet.</sys:String>
+    <sys:String x:Key="Online.ServerList.FolderMissing">Select or create a Minecraft folder before joining a server.</sys:String>
+    <sys:String x:Key="Online.ServerList.Connecting">Joining {0}...</sys:String>
+    <sys:String x:Key="Online.ServerList.LaunchFailed">Could not join the server. Try again later.</sys:String>
+    <sys:String x:Key="Online.ServerList.NoMatchingVersion.Title">Matching Minecraft version required</sys:String>
+    <sys:String x:Key="Online.ServerList.NoMatchingVersion.Message">No local instance can directly join {0}. The server recommends Minecraft {1}. Download that version or manually select another version to join.</sys:String>
+    <sys:String x:Key="Online.ServerList.NoMatchingVersion.Download">Download version</sys:String>
+    <sys:String x:Key="Online.ServerList.NoMatchingVersion.Manual">Choose manually</sys:String>
+    <sys:String x:Key="Online.ServerList.NoMatchingVersion.SelectManually">Choose a local instance. PCL N will launch it and join the server automatically.</sys:String>
 
     <!-- PCL N Instance Mod Browser -->
 
@@ -3164,6 +3210,8 @@
     <sys:String x:Key="Launch.Profile.OnlineManaged">This profile is managed by the online service and cannot be removed manually. Sign out of the online account first.</sys:String>
     <sys:String x:Key="Launch.Profile.OnlineDescription">Added automatically by PCL N online services</sys:String>
     <sys:String x:Key="Launch.Profile.OnlineAdded">Official profile added automatically: {0}</sys:String>
+    <sys:String x:Key="Launch.Profile.OnlineOfflineDescription">Offline profile added automatically by PCL N online services</sys:String>
+    <sys:String x:Key="Launch.Profile.OnlineOfflineAdded">Minecraft ownership was not confirmed; offline profile added automatically: {0}</sys:String>
     <sys:String x:Key="Launch.Skin.Changing">A skin change is already in progress. Please wait.</sys:String>
     <sys:String x:Key="Launch.Skin.LoginFailed">Unable to change the skin because sign-in failed.</sys:String>
     <sys:String x:Key="Launch.Skin.ChangingNow">Changing skin...</sys:String>

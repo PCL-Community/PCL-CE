@@ -690,6 +690,8 @@
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.PurchaseMinecraft">购买 Minecraft</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.CreateProfile.Message">请先创建 Minecraft 玩家档案，然后再重新登录。</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.CreateProfile.Button">创建档案</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.NotOwned">该 Microsoft 账户未拥有 Minecraft，不能用于正版启动。请购买正版后重试，或改用离线档案。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.OwnershipCheckFailed">无法确认该 Microsoft 账户的 Minecraft 正版权益。为避免无正版账户绕过正版启动，请稍后重试。</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ProfileAlreadyAdded">你已经添加了这个档案...</sys:String>
 
     <!-- Minecraft.Launch.Login.Auth -->
@@ -3014,6 +3016,7 @@
     <sys:String x:Key="Online.Account.Category">在线</sys:String>
     <sys:String x:Key="Online.Account.Title">账户</sys:String>
     <sys:String x:Key="Online.Account.LoginMicrosoft">Microsoft 账户登录</sys:String>
+    <sys:String x:Key="Online.Account.LoginWindows">使用我的 Windows 登录</sys:String>
     <sys:String x:Key="Online.Account.Logout">退出登录</sys:String>
     <sys:String x:Key="Online.Account.OwnsMinecraft">已拥有 Minecraft 正版</sys:String>
     <sys:String x:Key="Online.Account.DoesNotOwnMinecraft">未拥有 Minecraft</sys:String>
@@ -3025,6 +3028,9 @@
     <sys:String x:Key="Online.Account.DeleteCloudAndLogout.Success">已删除云端档案并退出登录</sys:String>
     <sys:String x:Key="Online.Account.DeleteCloudAndLogout.Failed">删除云端档案失败：{0}</sys:String>
     <sys:String x:Key="Online.Login.Title">Microsoft 账户登录</sys:String>
+    <sys:String x:Key="Online.Login.WindowsTitle">使用 Windows 账户登录</sys:String>
+    <sys:String x:Key="Online.Login.WindowsUnsupported">当前系统不支持 Windows 账户登录。</sys:String>
+    <sys:String x:Key="Online.Login.WindowsFallback">Windows 账户登录暂不可用，已切换到 Microsoft 设备代码登录。原因：{0}</sys:String>
     <sys:String x:Key="Online.Login.ClientIdMissing">未配置微软 OAuth Client ID</sys:String>
     <sys:String x:Key="Online.Login.Cancelled">登录已取消</sys:String>
     <sys:String x:Key="Online.Login.XboxFailed">Xbox Live 认证失败</sys:String>
@@ -3062,6 +3068,46 @@
     <sys:String x:Key="Online.CloudSync.Unavailable">N Cloud 数据同步不可用</sys:String>
     <sys:String x:Key="Online.CloudSync.Unavailable.Detail">暂时无法连接 N Cloud。可能是网络连接异常、N Cloud 正在维护或暂时不可达，也可能是代理或安全证书配置有误。请检查网络与代理设置，稍后再次尝试同步。</sys:String>
     <sys:String x:Key="Online.CloudSync.Retry">再次尝试同步</sys:String>
+    <sys:String x:Key="Online.Friend.Status.Online">在线</sys:String>
+    <sys:String x:Key="Online.Friend.Status.Offline">离线</sys:String>
+    <sys:String x:Key="Online.Friend.ServiceUnavailable">好友服务暂时不可用，请稍后再试。</sys:String>
+    <sys:String x:Key="Online.Friend.List.Title">好友列表</sys:String>
+    <sys:String x:Key="Online.Friend.List.Description">显示你的 Xbox 好友，并同步展示他们在 PCL N 中的在线状态。</sys:String>
+    <sys:String x:Key="Online.Friend.List.Loading">正在获取好友列表...</sys:String>
+    <sys:String x:Key="Online.Friend.List.Empty">暂时没有显示好友。请确认这个 Microsoft 账户已经登录过 Xbox，并稍后重试。</sys:String>
+    <sys:String x:Key="Online.Friend.List.AuthorizationFailed">暂时无法读取 Xbox 好友。请确认 Microsoft 登录状态正常，或重新登录后再试。</sys:String>
+    <sys:String x:Key="Online.Friend.List.LoadFailed">暂时无法获取 Xbox 好友。请检查网络连接，并稍后重试。</sys:String>
+    <sys:String x:Key="Online.Friend.List.Nickname">昵称：{0}</sys:String>
+    <sys:String x:Key="Online.Friend.List.PclStatus">PCL N 在线状态：{0}</sys:String>
+    <sys:String x:Key="Online.Friend.Add.Title">添加好友</sys:String>
+    <sys:String x:Key="Online.Friend.Add.Description">搜索其他玩家的 Minecraft 档案 ID 或玩家名，并向对方发送好友申请。清空搜索框后会显示申请列表和历史记录。</sys:String>
+    <sys:String x:Key="Online.Friend.Add.SearchHint">Minecraft 档案 ID 或玩家名</sys:String>
+    <sys:String x:Key="Online.Friend.Add.Apply">申请好友</sys:String>
+    <sys:String x:Key="Online.Friend.Add.Loading">正在加载好友信息...</sys:String>
+    <sys:String x:Key="Online.Friend.Add.Requests">申请列表</sys:String>
+    <sys:String x:Key="Online.Friend.Add.History">历史记录</sys:String>
+    <sys:String x:Key="Online.Friend.Add.NoRequests">暂无待处理申请。</sys:String>
+    <sys:String x:Key="Online.Friend.Add.NoHistory">暂无历史记录。</sys:String>
+    <sys:String x:Key="Online.Friend.Add.NotFound">未找到对应的 Minecraft 档案。</sys:String>
+    <sys:String x:Key="Online.Friend.Add.ProfileId">Minecraft 档案 ID：{0}</sys:String>
+    <sys:String x:Key="Online.Friend.Add.ApplySent">已向 {0} 发送好友申请。</sys:String>
+    <sys:String x:Key="Online.Friend.Add.ApplyFailed">好友申请发送失败，请稍后重试。</sys:String>
+    <sys:String x:Key="Online.ServerList.Title">服务器列表</sys:String>
+    <sys:String x:Key="Online.ServerList.Description">浏览 Modrinth 上的服务器，PCL N 会用本地匹配的 Minecraft 版本进入。</sys:String>
+    <sys:String x:Key="Online.ServerList.SearchHint">搜索服务器</sys:String>
+    <sys:String x:Key="Online.ServerList.Loading">正在获取 Modrinth 服务器列表...</sys:String>
+    <sys:String x:Key="Online.ServerList.Empty">暂未获取到可进入的服务器。</sys:String>
+    <sys:String x:Key="Online.ServerList.CardInfo">Minecraft {0} · {1}/{2} 在线 · {3}</sys:String>
+    <sys:String x:Key="Online.ServerList.Enter">进入服务器</sys:String>
+    <sys:String x:Key="Online.ServerList.AddressMissing">此服务器暂未提供可进入地址。</sys:String>
+    <sys:String x:Key="Online.ServerList.FolderMissing">请先选择或创建一个 Minecraft 文件夹，然后再进入服务器。</sys:String>
+    <sys:String x:Key="Online.ServerList.Connecting">正在进入 {0}...</sys:String>
+    <sys:String x:Key="Online.ServerList.LaunchFailed">未能进入服务器，请稍后重试。</sys:String>
+    <sys:String x:Key="Online.ServerList.NoMatchingVersion.Title">需要对应 Minecraft 版本</sys:String>
+    <sys:String x:Key="Online.ServerList.NoMatchingVersion.Message">没有找到可直接进入 {0} 的本地实例。该服务器推荐 Minecraft {1}。请选择下载版本，或手动选择其他版本进入。</sys:String>
+    <sys:String x:Key="Online.ServerList.NoMatchingVersion.Download">下载版本</sys:String>
+    <sys:String x:Key="Online.ServerList.NoMatchingVersion.Manual">手动选择版本</sys:String>
+    <sys:String x:Key="Online.ServerList.NoMatchingVersion.SelectManually">请选择一个本地版本。选择后会自动启动并进入服务器。</sys:String>
 
     <!-- PCL N Instance Mod Browser -->
 
@@ -3164,6 +3210,8 @@
     <sys:String x:Key="Launch.Profile.OnlineManaged">此档案由在线服务自动管理，无法手动删除。请退出在线账户后重试。</sys:String>
     <sys:String x:Key="Launch.Profile.OnlineDescription">由 PCL N 在线服务自动添加</sys:String>
     <sys:String x:Key="Launch.Profile.OnlineAdded">已自动添加正版档案：{0}</sys:String>
+    <sys:String x:Key="Launch.Profile.OnlineOfflineDescription">由 PCL N 在线服务自动添加的离线档案</sys:String>
+    <sys:String x:Key="Launch.Profile.OnlineOfflineAdded">当前账户未确认拥有 Minecraft，已自动添加离线档案：{0}</sys:String>
     <sys:String x:Key="Launch.Skin.Changing">正在更改皮肤中，请稍候！</sys:String>
     <sys:String x:Key="Launch.Skin.LoginFailed">登录失败，无法更改皮肤！</sys:String>
     <sys:String x:Key="Launch.Skin.ChangingNow">正在更改皮肤……</sys:String>
