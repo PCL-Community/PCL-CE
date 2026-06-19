@@ -394,6 +394,8 @@
     <sys:String x:Key="Launch.Skin.Cape.Name.Copper">铜披风</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.ZombieHorse">僵尸马披风</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Builder">建造者披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Crafter">工匠披风</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.MoonlightTrail">Moonlight Trail 披风</sys:String>
 
     <!-- Launch.Skin.Cape -->
 

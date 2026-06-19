@@ -394,6 +394,8 @@
     <sys:String x:Key="Launch.Skin.Cape.Name.Copper">Copper</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.ZombieHorse">Zombie Horse</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Builder">Builder</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Crafter">Crafter</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.MoonlightTrail">Moonlight Trail</sys:String>
 
     <!-- Launch.Skin.Cape -->
 
