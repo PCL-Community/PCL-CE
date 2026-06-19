@@ -443,6 +443,7 @@ public partial class PageDownloadCompDetail
 
                             void DownloadDependencies()
                             {
+                                ModBase.Log($"[CompDeps] 准备下载: {result.ToInstall.Count} 个前置");
                                 depDownloads = ModCompDependency.BuildDependencyDownloads(result, targetDir);
                                 downloadFiles = depDownloads.Concat(downloadFiles).ToList();
                             }
@@ -459,7 +460,6 @@ public partial class PageDownloadCompDetail
                                         break;
 
                                     case ModComp.CompDepsInstallTypes.WithDeps:
-                                        ModBase.Log($"[CompDeps] 准备下载: {result.ToInstall.Count} 个前置");
                                         DownloadDependencies();
                                         break;
 
