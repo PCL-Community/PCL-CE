@@ -468,7 +468,7 @@ public partial class PageDownloadCompDetail
                                         return;
 
                                     default:
-                                        ModBase.Log("[CompDeps] 未知返回值: {installChoice} ，默认仅安装本体");
+                                        ModBase.Log($"[CompDeps] 未知返回值: {installChoice} ，终止下载");
                                         return;
                                 }
                             }
