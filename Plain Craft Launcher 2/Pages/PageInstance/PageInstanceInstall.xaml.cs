@@ -1156,8 +1156,10 @@ public partial class PageInstanceInstall
             };
         if (currentInstance.HasCleanroom)
         {
+            selectedLoaderName = "Cleanroom";
             selectedAPIName = "Cleanroom";
             selectedCleanroomVersion = currentInstance.Cleanroom;
+            selectedCleanroom = new ModDownload.DlCleanroomListEntry(selectedCleanroomVersion);
         }
         else if (currentInstance.HasForge)
         {
@@ -1900,7 +1902,9 @@ public partial class PageInstanceInstall
     private void Cleanroom_Clear(object sender, MouseButtonEventArgs e)
     {
         selectedCleanroom = null;
+        selectedCleanroomVersion = null;
         selectedLoaderName = null;
+        selectedAPIName = null;
         CardCleanroom.IsSwapped = true;
         e.Handled = true;
         OptiFine_Loaded();
