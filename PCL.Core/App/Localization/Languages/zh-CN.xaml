@@ -291,24 +291,6 @@
     <sys:String x:Key="Launch.Account.Profile.Uuid.Hint">32 位，不含连字符</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Uuid.InvalidChars">UUID 只应该包括英文字母和数字！</sys:String>
 
-    <!-- Launch.Account.Profile.Migration -->
-
-    <sys:String x:Key="Launch.Account.Profile.Migration.Title">档案迁移</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.Message">PCL CE 支持与 HMCL 相互同步全局档案列表。&#x0a;请选择操作：</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.ImportOnlyMessage">由于当前档案列表为空，仅支持从 HMCL 导入档案。</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.Import">导入</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.Export">导出</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.Importing">正在从 HMCL 导入...</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.HmclConfigNotFound">未找到 HMCL 的配置文件。</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.MsRequired">你必须先进行一次正版验证才能导入这些档案！</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.NoNewProfiles">没有新档案可供导入。</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.ImportSuccess">成功导入 {0} 个档案！</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.Exporting">正在导出至 HMCL...</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.ExportSuccess">已成功同步 {0} 个档案。</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.ImportFailed">导入出错，请检查文件格式。</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.ExportFailed">导出失败。</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.AutoMigrate">已自动从旧版配置文件迁移档案，共迁移了 {0} 个档案</sys:String>
-
     <!-- Launch.Account.Profile.Validation -->
 
     <sys:String x:Key="Launch.Account.Profile.Validation.EmptyUsername">玩家名不能为空！</sys:String>
