@@ -10,6 +10,7 @@ using System.Text.Json.Serialization;
 using fNbt;
 using PCL.Core.Link.McPing;
 using PCL.Core.Link.Scaffolding;
+using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.Minecraft.Saves;
 using PCL.Core.Platform;
 using PCL.Core.Serialization;
@@ -51,6 +52,7 @@ var lobbyCode = LobbyCodeGenerator.Generate();
 var lobbyCodeValid =
     LobbyCodeGenerator.TryParse(lobbyCode) == lobbyCode &&
     LobbyCodeGenerator.GetRoomId(lobbyCode) is { Length: 8 };
+var oauthValid = await VerifyOAuthAsync();
 
 return hashValid &&
        roundTrip == payload &&
@@ -59,7 +61,8 @@ return hashValid &&
        encryptionValid &&
        saveValid &&
        pingValid &&
-       lobbyCodeValid
+       lobbyCodeValid &&
+       oauthValid
     ? 0
     : 1;
 
@@ -150,7 +153,40 @@ static byte[] Frame(byte[] payload)
     return packet;
 }
 
+static async Task<bool> VerifyOAuthAsync()
+{
+    using var http = new HttpClient(new SmokeOAuthHandler());
+    var client = new SimpleOAuthClient(new OAuthClientOptions
+    {
+        ClientId = "aot-client",
+        RedirectUri = "https://localhost/callback",
+        GetClient = () => http,
+        Meta = new EndpointMeta
+        {
+            AuthorizeEndpoint = "https://localhost/authorize",
+            DeviceEndpoint = "https://localhost/device",
+            TokenEndpoint = "https://localhost/token"
+        }
+    });
+    var result = await client.AuthorizeWithCodeAsync("aot-code", CancellationToken.None);
+    return result is { AccessToken: "aot-access", ExpiresIn: 60 };
+}
+
 internal sealed record SmokePayload(string Name, int RuntimeMajor);
 
 [JsonSerializable(typeof(SmokePayload))]
 internal sealed partial class SmokeJsonContext : JsonSerializerContext;
+
+internal sealed class SmokeOAuthHandler : HttpMessageHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken) =>
+        Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(
+                """{"access_token":"aot-access","expires_in":"60"}""",
+                Encoding.UTF8,
+                "application/json")
+        });
+}

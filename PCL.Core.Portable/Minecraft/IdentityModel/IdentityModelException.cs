@@ -1,6 +1,8 @@
-﻿using System;
+﻿// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
 
-using PCL.Core.App.Localization;
+using System;
 
 namespace PCL.Core.Minecraft.IdentityModel;
 
@@ -40,12 +42,12 @@ public class IdentityModelAuthenticationException(
     private static string _BuildMessage(string? error, string? errorDescription)
     {
         if (!string.IsNullOrWhiteSpace(error) && !string.IsNullOrWhiteSpace(errorDescription))
-            return Lang.Text("Identity.AuthenticationFailed.CodeAndDetail", error, errorDescription);
+            return $"Authentication failed ({error}): {errorDescription}";
 
         if (!string.IsNullOrWhiteSpace(errorDescription))
-            return Lang.Text("Identity.AuthenticationFailed.Detail", errorDescription);
+            return $"Authentication failed: {errorDescription}";
         if (!string.IsNullOrWhiteSpace(error))
-            return Lang.Text("Identity.AuthenticationFailed.Detail", error);
-        return Lang.Text("Identity.AuthenticationFailed");
+            return $"Authentication failed: {error}";
+        return "Authentication failed.";
     }
 }

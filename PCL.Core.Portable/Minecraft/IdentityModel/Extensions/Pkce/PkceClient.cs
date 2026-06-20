@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
-using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.Minecraft.IdentityModel.Extensions.Pkce;
 
@@ -26,7 +25,7 @@ public sealed class PkceClient(OAuthClientOptions options) : IOAuthClient
     /// <summary>
     /// 设置验证方法，支持 PlainText 和 SHA256。
     /// </summary>
-    public PkceChallengeOptions ChallengeMethod { get; private set; } = PkceChallengeOptions.Sha256;
+    public PkceChallengeOptions ChallengeMethod { get; set; } = PkceChallengeOptions.Sha256;
 
     public string GetAuthorizeUrl(
         string[] scopes,
@@ -34,7 +33,7 @@ public sealed class PkceClient(OAuthClientOptions options) : IOAuthClient
         Dictionary<string, string>? extData)
     {
         RandomNumberGenerator.Fill(_challengeCode);
-        _codeVerifier = _challengeCode.FromBytesToB64UrlSafe();
+        _codeVerifier = EncodeBase64Url(_challengeCode);
 
         extData ??= [];
         extData["code_challenge"] = ChallengeMethod == PkceChallengeOptions.Sha256
@@ -84,7 +83,7 @@ public sealed class PkceClient(OAuthClientOptions options) : IOAuthClient
         Dictionary<string, string>? extData = null) =>
         _client.AuthorizeWithSilentAsync(data, token, extData);
 
-    internal static string CreateS256Challenge(string codeVerifier)
+    public static string CreateS256Challenge(string codeVerifier)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(codeVerifier);
         if (codeVerifier.Length is < 43 or > 128)
@@ -111,6 +110,24 @@ public sealed class PkceClient(OAuthClientOptions options) : IOAuthClient
             };
         }
 
+        return new string(base64[..charsWritten]);
+    }
+
+    private static string EncodeBase64Url(ReadOnlySpan<byte> value)
+    {
+        Span<char> base64 = stackalloc char[44];
+        Convert.TryToBase64Chars(value, base64, out var charsWritten);
+        while (charsWritten > 0 && base64[charsWritten - 1] == '=')
+            charsWritten--;
+        for (var index = 0; index < charsWritten; index++)
+        {
+            base64[index] = base64[index] switch
+            {
+                '+' => '-',
+                '/' => '_',
+                var character => character
+            };
+        }
         return new string(base64[..charsWritten]);
     }
 }

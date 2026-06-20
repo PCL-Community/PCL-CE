@@ -11,6 +11,9 @@ using PCL.Core.Minecraft.Saves;
 using PCL.Core.Minecraft.Saves.Editing;
 using PCL.Core.Minecraft.Saves.Exceptions;
 using PCL.Core.Minecraft.Saves.Parsing;
+using PCL.Core.Minecraft.IdentityModel;
+using PCL.Core.Minecraft.IdentityModel.Extensions.Pkce;
+using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.Diff;
@@ -79,3 +82,14 @@ using PCL.Core.Utils.Threading;
 [assembly: TypeForwardedTo(typeof(McPingResult))]
 [assembly: TypeForwardedTo(typeof(McPingVersionResult))]
 [assembly: TypeForwardedTo(typeof(LobbyCodeGenerator))]
+[assembly: TypeForwardedTo(typeof(IdentityModelException))]
+[assembly: TypeForwardedTo(typeof(IdentityModelConfigurationException))]
+[assembly: TypeForwardedTo(typeof(IdentityModelAuthenticationException))]
+[assembly: TypeForwardedTo(typeof(AuthorizeResult))]
+[assembly: TypeForwardedTo(typeof(DeviceCodeData))]
+[assembly: TypeForwardedTo(typeof(EndpointMeta))]
+[assembly: TypeForwardedTo(typeof(IOAuthClient))]
+[assembly: TypeForwardedTo(typeof(OAuthClientOptions))]
+[assembly: TypeForwardedTo(typeof(SimpleOAuthClient))]
+[assembly: TypeForwardedTo(typeof(PkceChallengeOptions))]
+[assembly: TypeForwardedTo(typeof(PkceClient))]

@@ -4,7 +4,6 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.Minecraft.IdentityModel.Extensions.Pkce;
-using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.Test.Minecraft.IdentityModel;
 
@@ -20,12 +19,4 @@ public sealed class PkceClientTest
         Assert.AreEqual(expectedChallenge, PkceClient.CreateS256Challenge(verifier));
     }
 
-    [TestMethod]
-    public void Base64UrlEncoding_ShouldRemovePadding()
-    {
-        var encoded = "PCL N"u8.FromBytesToB64UrlSafe();
-
-        Assert.AreEqual("UENMIE4", encoded);
-        CollectionAssert.AreEqual("PCL N"u8.ToArray(), encoded.FromB64UrlSafeToBytes());
-    }
 }
