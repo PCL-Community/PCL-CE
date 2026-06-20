@@ -1,4 +1,5 @@
-﻿/*
+﻿// Modifications Copyright (c) 2026 PCL N contributors.
+/*
 部分内容参考了 https://github.com/LogosBible/bsdiff.net 的实现
 
 Copyright 2010-2024 Logos Bible Software
@@ -83,9 +84,9 @@ extra block; seek forwards in oldfile by z bytes".
 		return await Task.Run(() =>
 		{
 			if (diffData.Length < HeaderSize)
-				throw new Exception("Diff file size is less than the header size");
+					throw new InvalidDataException("Diff file size is less than the header size");
 			if (BitConverter.ToInt64(diffData, HeaderVersionIndex) != HeaderVersion)
-				throw new Exception("Diff file version is wrong");
+					throw new InvalidDataException("Diff file version is wrong");
 			// 读取 Header 信息
 			var ctrlLen = BitConverter.ToInt64(diffData, HeaderCtrlIndex);
 			var diffLen = BitConverter.ToInt64(diffData, HeaderDiffIndex);
@@ -93,11 +94,11 @@ extra block; seek forwards in oldfile by z bytes".
 			var extraLen = diffData.Length - HeaderSize - ctrlLen - diffLen;
 
 			if (ctrlLen < 0 || diffLen < 0 || extraLen < 0)
-				throw new Exception("Block size is negative");
+					throw new InvalidDataException("Block size is negative");
 			if (newLen < 0)
-				throw new Exception("Final file size info is negative");
+					throw new InvalidDataException("Final file size info is negative");
 			if (HeaderSize + ctrlLen + diffLen + extraLen > diffData.Length)
-				throw new Exception("Diff file size info is not correct");
+					throw new InvalidDataException("Diff file size info is not correct");
 
 			var ctrlContent = new byte[ctrlLen];
 			// 获取 Control 数据
@@ -130,8 +131,8 @@ extra block; seek forwards in oldfile by z bytes".
 
 				// 新加入的
 				if (newDataPos + addRange > newLen)
-					throw new Exception(
-						$"Add range overflows, want add {addRange.ToString()}, but only have {newLen - newDataPos} left");
+						throw new InvalidDataException(
+							$"Add range overflows, want add {addRange}, but only have {newLen - newDataPos} left");
 
 				for (long i = 0; i < addRange; i++)
 				{
@@ -147,8 +148,8 @@ extra block; seek forwards in oldfile by z bytes".
 
 				// 原有的
 				if (newDataPos + copyRange > newLen)
-					throw new Exception(
-						$"Copy range overflows, want  copy {copyRange.ToString()}, but only have {newLen - newDataPos} left");
+						throw new InvalidDataException(
+							$"Copy range overflows, want copy {copyRange}, but only have {newLen - newDataPos} left");
 
 				for (var i = 0; i < copyRange; i++)
 				{
@@ -160,7 +161,7 @@ extra block; seek forwards in oldfile by z bytes".
 				// 原有的切换到指定位置继续读取
 				oldDataPos += seekPos;
 				if (oldDataPos > originData.Length)
-					throw new Exception(
+						throw new InvalidDataException(
 						$"Old data pos overflows, current old data length = {originData.Length}, but want {oldDataPos}");
 			}
 

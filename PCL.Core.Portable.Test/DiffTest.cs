@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -28,26 +32,11 @@ public class DiffTest
                 65, 89, 38, 83, 89, 108, 69, 160, 122, 0, 0, 1, 1, 128, 2, 0, 17, 32, 32, 0, 33, 154, 104, 51, 77, 48,
                 188, 93, 201, 20, 225, 66, 65, 177, 22, 129, 232
             ]);
-        Console.WriteLine(string.Join(",",res));
         byte[] trueData =
         [
             73, 32, 97, 109, 32, 118, 101, 114, 121, 32, 115, 117, 114, 101, 32, 104, 111, 119, 32, 98, 115, 100, 105,
             102, 102, 32, 119, 111, 114, 107
         ];
-        Assert.IsTrue(res.Length == trueData.Length);
-        for (int i = 0; i < res.Length; i++)
-            Assert.IsTrue(res[i] == trueData[i]);
-    }
-
-    [TestMethod]
-    public async Task TestBsDiff2()
-    {
-        const string from = @"";
-        const string diffFile = @"";
-        const string outFile = @"";
-        if (string.IsNullOrEmpty(from) || string.IsNullOrEmpty(outFile) || string.IsNullOrEmpty(diffFile))
-            return;
-        var diff = new BsDiff();
-        File.WriteAllBytes(outFile, await diff.ApplyAsync(File.ReadAllBytes(from), File.ReadAllBytes(diffFile)));
+        CollectionAssert.AreEqual(trueData, res);
     }
 }

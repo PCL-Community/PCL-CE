@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using PCL.Core.App.Cli;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
+using PCL.Core.Utils.Diff;
 using PCL.Core.Utils.Encryption;
 using PCL.Core.Utils.Threading;
 
@@ -32,6 +33,10 @@ using PCL.Core.Utils.Threading;
 [assembly: TypeForwardedTo(typeof(EncodingDetector))]
 [assembly: TypeForwardedTo(typeof(Encodings))]
 [assembly: TypeForwardedTo(typeof(EncodingUtils))]
+[assembly: TypeForwardedTo(typeof(BsDiff))]
+[assembly: TypeForwardedTo(typeof(IBinaryDiff))]
+[assembly: TypeForwardedTo(typeof(ItemDiff))]
+[assembly: TypeForwardedTo(typeof(ItemDiffResult<>))]
 [assembly: TypeForwardedTo(typeof(AesCbcProvider))]
 [assembly: TypeForwardedTo(typeof(AesGcmProvider))]
 [assembly: TypeForwardedTo(typeof(ChaCha20Poly1305Provider))]
