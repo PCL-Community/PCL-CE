@@ -6,6 +6,7 @@ using PCL.Desktop.Composition;
 using PCL.Desktop.ViewModels;
 using PCL.Desktop.ViewModels.Tools;
 using PCL.Desktop.ViewModels.Log;
+using PCL.Desktop.ViewModels.Settings;
 using PCL.Platform.Abstractions.Paths;
 using PCL.Platform.Abstractions.System;
 
@@ -97,6 +98,23 @@ public sealed class DesktopCompositionRootTests
         Assert.IsTrue(online.IsSelected);
         Assert.AreEqual("联机", viewModel.SelectedTitle);
         Assert.AreSame(online.Items[0].Page, viewModel.CurrentPage);
+    }
+
+    [TestMethod]
+    public void SettingsNavigation_UsesPersistentSettingsViewModel()
+    {
+        using MainWindowViewModel viewModel =
+            DesktopCompositionRoot.CreateMainWindowViewModel(
+                new TestPathProvider(),
+                new TestSystemInfoProvider());
+        NavigationItemViewModel settings = viewModel.NavigationItems.Single(
+            static item => item.Page is SettingsPageViewModel);
+
+        settings.OpenCommand.Execute(null);
+
+        Assert.AreEqual("设置", viewModel.SelectedTitle);
+        Assert.IsInstanceOfType<SettingsPageViewModel>(
+            viewModel.CurrentPage);
     }
 
     private sealed class TestPathProvider : IPlatformPathProvider

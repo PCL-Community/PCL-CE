@@ -4,11 +4,13 @@
 
 using System.Collections.ObjectModel;
 using PCL.Application.Logging;
+using PCL.Application.Settings;
 using PCL.Desktop.Models;
 using PCL.Desktop.Services;
 using PCL.Desktop.ViewModels.Feedback;
 using PCL.Desktop.ViewModels.Home;
 using PCL.Desktop.ViewModels.Log;
+using PCL.Desktop.ViewModels.Settings;
 using PCL.Desktop.ViewModels.Common;
 using PCL.Desktop.ViewModels.Tools;
 using PCL.Plugin;
@@ -58,6 +60,14 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             clipboardService,
             fileDialogService,
             notificationService);
+        _settingsPage = new SettingsPageViewModel(
+            new LauncherSettingsStore(
+                Path.Combine(
+                    environment.ApplicationDataDirectory,
+                    "settings.json")),
+            themeService,
+            notificationService);
+        _ = _settingsPage.InitializeAsync();
         NavigationItemViewModel home = CreateNavigationItem(
             "首页",
             "查看启动器状态与最近活动。",
@@ -79,10 +89,11 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             "联机",
             "查看好友与可加入的服务器。",
             "lucide/users");
-        NavigationItemViewModel settings = CreatePlaceholder(
+        NavigationItemViewModel settings = CreateNavigationItem(
             "设置",
             "调整启动、下载与界面选项。",
-            "lucide/settings");
+            "lucide/settings",
+            _settingsPage);
         NavigationItemViewModel logs = CreateNavigationItem(
             "日志",
             "查看、筛选和导出启动器运行日志。",
@@ -145,6 +156,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private readonly ILauncherLogSource _logSource;
     private readonly LogPageViewModel _logPage;
+    private readonly SettingsPageViewModel _settingsPage;
 
     public IReadOnlyList<NavigationItemViewModel> NavigationItems { get; }
 
@@ -190,6 +202,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     {
         _logPage.Dispose();
         _logSource.Dispose();
+        _settingsPage.Dispose();
     }
 
     private NavigationItemViewModel CreateNavigationItem(
