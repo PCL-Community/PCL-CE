@@ -15,6 +15,7 @@ using PCL.Core.Minecraft.IdentityModel;
 using PCL.Core.Minecraft.IdentityModel.Extensions.JsonWebToken;
 using PCL.Core.Minecraft.IdentityModel.Extensions.OpenId;
 using PCL.Core.Minecraft.IdentityModel.Extensions.Pkce;
+using PCL.Core.Minecraft.IdentityModel.Extensions.YggdrasilConnect;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
@@ -100,3 +101,6 @@ using PCL.Core.Utils.Threading;
 [assembly: TypeForwardedTo(typeof(OpenIdMetadata))]
 [assembly: TypeForwardedTo(typeof(OpenIdOptions))]
 [assembly: TypeForwardedTo(typeof(OpenIdClient))]
+[assembly: TypeForwardedTo(typeof(YggdrasilConnectMetaData))]
+[assembly: TypeForwardedTo(typeof(YggdrasilOptions))]
+[assembly: TypeForwardedTo(typeof(YggdrasilClient))]

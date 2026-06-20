@@ -11,6 +11,7 @@ using fNbt;
 using PCL.Core.Link.McPing;
 using PCL.Core.Link.Scaffolding;
 using PCL.Core.Minecraft.IdentityModel.Extensions.OpenId;
+using PCL.Core.Minecraft.IdentityModel.Extensions.YggdrasilConnect;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.Minecraft.Saves;
 using PCL.Core.Platform;
@@ -55,6 +56,7 @@ var lobbyCodeValid =
     LobbyCodeGenerator.GetRoomId(lobbyCode) is { Length: 8 };
 var oauthValid = await VerifyOAuthAsync();
 var openIdValid = await VerifyOpenIdAsync();
+var yggdrasilValid = await VerifyYggdrasilAsync();
 
 return hashValid &&
        roundTrip == payload &&
@@ -65,7 +67,8 @@ return hashValid &&
        pingValid &&
        lobbyCodeValid &&
        oauthValid &&
-       openIdValid
+       openIdValid &&
+       yggdrasilValid
     ? 0
     : 1;
 
@@ -193,6 +196,22 @@ static async Task<bool> VerifyOpenIdAsync()
                .Contains("code_challenge=", StringComparison.Ordinal);
 }
 
+static async Task<bool> VerifyYggdrasilAsync()
+{
+    using var http = new HttpClient(new SmokeYggdrasilHandler());
+    var options = new YggdrasilOptions
+    {
+        OpenIdDiscoveryAddress = "https://localhost/.well-known/openid-configuration",
+        ClientId = string.Empty,
+        RedirectUri = "https://localhost/callback",
+        GetClient = () => http
+    };
+    var client = new YggdrasilClient(options);
+    await client.InitializeAsync(CancellationToken.None);
+    return client.GetAuthorizeUrl(["openid"], "aot-state")
+        .Contains("client_id=aot-shared-client", StringComparison.Ordinal);
+}
+
 internal sealed record SmokePayload(string Name, int RuntimeMajor);
 
 [JsonSerializable(typeof(SmokePayload))]
@@ -238,4 +257,35 @@ internal sealed class SmokeOpenIdHandler : HttpMessageHandler
             Content = new StringContent(json, Encoding.UTF8, "application/json")
         });
     }
+}
+
+internal sealed class SmokeYggdrasilHandler : HttpMessageHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken) =>
+        Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(
+                """
+                {
+                  "issuer":"https://localhost",
+                  "authorization_endpoint":"https://localhost/authorize",
+                  "device_authorization_endpoint":"https://localhost/device",
+                  "token_endpoint":"https://localhost/token",
+                  "userinfo_endpoint":"https://localhost/userinfo",
+                  "jwks_uri":"https://localhost/keys",
+                  "scopes_supported":[
+                    "openid",
+                    "Yggdrasil.PlayerProfiles.Select",
+                    "Yggdrasil.Server.Join"
+                  ],
+                  "subject_types_supported":["public"],
+                  "id_token_signing_alg_values_supported":["RS256"],
+                  "shared_client_id":"aot-shared-client"
+                }
+                """,
+                Encoding.UTF8,
+                "application/json")
+        });
 }
