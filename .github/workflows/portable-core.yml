@@ -50,3 +50,33 @@ jobs:
         run: dotnet publish PCL.Online.AotSmoke/PCL.Online.AotSmoke.csproj -c Release -r linux-x64 -warnaserror
       - name: Run online Native AOT smoke test
         run: ./PCL.Online.AotSmoke/bin/Release/net10.0/linux-x64/publish/PCL.Online.AotSmoke
+
+  desktop-native-aot:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - name: Select desktop runtime
+        id: runtime
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            if [[ "$(uname -m)" == "arm64" ]]; then
+              echo "rid=osx-arm64" >> "$GITHUB_OUTPUT"
+            else
+              echo "rid=osx-x64" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "rid=linux-x64" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Publish Avalonia desktop Native AOT shell
+        run: dotnet publish PCL.Desktop/PCL.Desktop.csproj -c Release -r ${{ steps.runtime.outputs.rid }} -warnaserror
+      - name: Validate Avalonia desktop Native AOT shell
+        shell: bash
+        run: ./PCL.Desktop/bin/Release/net10.0/${{ steps.runtime.outputs.rid }}/publish/PCL.Desktop --validate-environment
