@@ -86,20 +86,6 @@ public partial class FormMain
         else if (lastVersion > ModBase.versionCode)
             // 触发降级
             DowngradeSub(lastVersion);
-        // 版本隔离设置迁移
-        if (Config.Launch.IndieSolutionV2Config.IsDefault())
-        {
-            if (!Config.Launch.IndieSolutionV1Config.IsDefault())
-            {
-                ModBase.Log("[Start] 从老 PCL 迁移版本隔离");
-                Config.Launch.IndieSolutionV2 = Config.Launch.IndieSolutionV1;
-            }
-            else
-            {
-                ModBase.Log("[Start] 全新的 PCL，使用新的版本隔离默认值");
-                Config.Launch.IndieSolutionV2Config.Reset(Config.Launch.IndieSolutionV2Config.DefaultValue);
-            }
-        }
 
         _ = Config.Preference.Theme.ThemeSelected;
         // 注册拖拽事件（不能直接加 Handles，否则没用；#6340）

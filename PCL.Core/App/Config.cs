@@ -550,11 +550,6 @@ public static partial class Config
         [ConfigItem<string>("LaunchArgumentJavaSelect", "")] public partial string SelectedJava { get; set; }
 
         /// <summary>
-        /// 版本隔离 V1。
-        /// </summary>
-        [ConfigItem<int>("LaunchArgumentIndie", 0, ConfigSource.Local)] public partial int IndieSolutionV1 { get; set; }
-
-        /// <summary>
         /// 版本隔离 V2。
         /// </summary>
         [ConfigItem<int>("LaunchArgumentIndieV2", 4, ConfigSource.Local)] public partial int IndieSolutionV2 { get; set; }
