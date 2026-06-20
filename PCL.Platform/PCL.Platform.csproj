@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>PCL.Platform</AssemblyName>
+    <RootNamespace>PCL.Platform</RootNamespace>
+    <Description>PCL N default cross-platform capability implementations</Description>
+    <Company>PCL N</Company>
+    <Product>PCL.Platform</Product>
+    <Copyright>Copyright (c) MUXUE1230; Modifications Copyright (c) 2026 PCL N contributors</Copyright>
+    <LangVersion>14.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsAotCompatible>true</IsAotCompatible>
+    <IsTrimmable>true</IsTrimmable>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PCL.Platform.Abstractions\PCL.Platform.Abstractions.csproj" />
+  </ItemGroup>
+</Project>
