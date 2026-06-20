@@ -86,8 +86,13 @@
         <PackageReference Include="TagLibSharp" Version="2.3.0" />
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="..\PCL.Application\PCL.Application.csproj" Aliases="PclApplication" />
         <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
+        <ProjectReference Include="..\PCL.Domain\PCL.Domain.csproj" />
         <ProjectReference Include="..\PCL.Online\PCL.Online.csproj" />
+        <ProjectReference Include="..\PCL.Online.Windows\PCL.Online.Windows.csproj" />
+        <ProjectReference Include="..\PCL.Platform\PCL.Platform.csproj" />
+        <ProjectReference Include="..\PCL.Platform.Abstractions\PCL.Platform.Abstractions.csproj" />
         <ProjectReference Include="..\PCL.Plugin\PCL.Plugin.csproj" />
     </ItemGroup>
     <ItemGroup>

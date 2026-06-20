@@ -33,19 +33,13 @@ public static class ModDownload
             ModBase.Log(ex, "获取底层继承实例失败");
         }
 
-        // 检查 Json 是否标准
-        if (version.JsonObject["downloads"] is null || version.JsonObject["downloads"]["client"] is null ||
-            version.JsonObject["downloads"]["client"]["url"] is null)
-            throw new Exception(Lang.Text("Minecraft.Download.Error.NoJarDownloadInfo", version.Name));
+        var plan = LauncherClientDownloadApplicationAdapter.CreateClientJarPlan(version);
         // 检查文件
-        var checker = new ModBase.FileChecker(1024L, (long)(version.JsonObject["downloads"]["client"]["size"] ?? -1),
-            (string)version.JsonObject["downloads"]["client"]["sha1"]);
-        if (returnNothingOnFileUseable && checker.Check(version.PathInstance + version.Name + ".jar") is null)
+        var checker = new ModBase.FileChecker(plan.MinimumSize, plan.ActualSize, plan.Sha1);
+        if (returnNothingOnFileUseable && checker.Check(plan.LocalPath) is null)
             return null; // 通过校验
         // 返回下载信息
-        var jarUrl = (string)version.JsonObject["downloads"]["client"]["url"];
-        return new DownloadFile(DlSourceLauncherOrMetaGet(jarUrl), version.PathInstance + version.Name + ".jar",
-            checker);
+        return new DownloadFile(DlSourceLauncherOrMetaGet(plan.Url), plan.LocalPath, checker);
     }
 
     /// <summary>
@@ -58,13 +52,13 @@ public static class ModDownload
         while (!string.IsNullOrEmpty(version.InheritInstanceName))
             version = new McInstance(version.InheritInstanceName);
         // 获取信息
-        var indexInfo = ModAssets.McAssetsGetIndex(version, true, true);
-        var indexAddress = Path.Combine(ModFolder.mcFolderSelected, "assets", "indexes", indexInfo["id"] + ".json");
-        ModBase.Log("[Download] 实例 " + version.Name + " 对应的资源文件索引为 " + indexInfo["id"]);
-        var indexUrl = (string)(indexInfo["url"] ?? "");
-        if (string.IsNullOrEmpty(indexUrl)) return null;
+        var plan = LauncherClientDownloadApplicationAdapter.CreateAssetIndexPlan(version);
+        if (plan.UsedLegacyFallback)
+            ModBase.Log("[Minecraft] 无法获取资源文件索引下载地址，使用默认的 legacy 下载地址");
+        ModBase.Log("[Download] 实例 " + version.Name + " 对应的资源文件索引为 " + plan.IndexId);
+        if (string.IsNullOrEmpty(plan.Url) || string.IsNullOrEmpty(plan.LocalPath)) return null;
 
-        return new DownloadFile(DlSourceLauncherOrMetaGet(indexUrl), indexAddress,
+        return new DownloadFile(DlSourceLauncherOrMetaGet(plan.Url), plan.LocalPath,
             new ModBase.FileChecker(canUseExistsFile: false));
     }
 
@@ -2220,7 +2214,7 @@ public static class ModDownload
     /// </summary>
     public static IEnumerable<string> DlSourceOrder(IEnumerable<string> officialUrls, IEnumerable<string> mirrorUrls)
     {
-        return DlSourcePreferMojang ? officialUrls.Union(mirrorUrls) : mirrorUrls.Union(officialUrls);
+        return LauncherDownloadSourceApplicationAdapter.OrderSources(officialUrls, mirrorUrls, DlSourcePreferMojang);
     }
 
     /// <summary>
@@ -2245,15 +2239,7 @@ public static class ModDownload
     /// </summary>
     public static IEnumerable<string> DlSourceAssetsGet(string original)
     {
-        original = original.Replace("http://resources.download.minecraft.net",
-            "https://resources.download.minecraft.net");
-        return DlSourceOrder(new[] { original },
-            new[]
-            {
-                original.Replace("https://piston-data.mojang.com", "https://bmclapi2.bangbang93.com/assets")
-                    .Replace("https://piston-meta.mojang.com", "https://bmclapi2.bangbang93.com/assets")
-                    .Replace("https://resources.download.minecraft.net", "https://bmclapi2.bangbang93.com/assets")
-            });
+        return LauncherDownloadSourceApplicationAdapter.GetAssetSources(original, DlSourcePreferMojang);
     }
 
     /// <summary>
@@ -2261,36 +2247,7 @@ public static class ModDownload
     /// </summary>
     public static IEnumerable<string> DlSourceLibraryGet(string original)
     {
-        if (new[] { "minecraftforge", "fabricmc", "neoforged" }.Any(k => original.Contains(k))) // 不添加原版源
-            return new[]
-            {
-                original.Replace("https://piston-data.mojang.com", "https://bmclapi2.bangbang93.com/maven")
-                    .Replace("https://piston-meta.mojang.com", "https://bmclapi2.bangbang93.com/maven")
-                    .Replace("https://libraries.minecraft.net", "https://bmclapi2.bangbang93.com/maven")
-                    .Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft",
-                        "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto"),
-                original.Replace("https://piston-data.mojang.com", "https://bmclapi2.bangbang93.com/libraries")
-                    .Replace("https://piston-meta.mojang.com", "https://bmclapi2.bangbang93.com/libraries")
-                    .Replace("https://libraries.minecraft.net", "https://bmclapi2.bangbang93.com/libraries")
-                    .Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft",
-                        "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto")
-            };
-
-        return DlSourceOrder(new[] { original },
-            new[]
-            {
-                original.Replace("https://piston-data.mojang.com", "https://bmclapi2.bangbang93.com/maven")
-                    .Replace("https://piston-meta.mojang.com", "https://bmclapi2.bangbang93.com/maven")
-                    .Replace("https://libraries.minecraft.net", "https://bmclapi2.bangbang93.com/maven")
-                    .Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft",
-                        "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto"),
-                original.Replace("https://piston-data.mojang.com", "https://bmclapi2.bangbang93.com/libraries")
-                    .Replace("https://piston-meta.mojang.com", "https://bmclapi2.bangbang93.com/libraries")
-                    .Replace("https://libraries.minecraft.net", "https://bmclapi2.bangbang93.com/libraries")
-                    .Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft",
-                        "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto"),
-                original
-            });
+        return LauncherDownloadSourceApplicationAdapter.GetLibrarySources(original, DlSourcePreferMojang);
     }
 
     /// <summary>
@@ -2301,17 +2258,7 @@ public static class ModDownload
     {
         if (original is null)
             throw new Exception(Lang.Text("Minecraft.Download.Error.NoJsonDownloadAddress"));
-        return DlSourceOrder(new[] { original },
-            new[]
-            {
-                original.Replace("https://piston-data.mojang.com", "https://bmclapi2.bangbang93.com")
-                    .Replace("https://piston-meta.mojang.com", "https://bmclapi2.bangbang93.com")
-                    .Replace("https://launcher.mojang.com", "https://bmclapi2.bangbang93.com")
-                    .Replace("https://launchermeta.mojang.com", "https://bmclapi2.bangbang93.com")
-                    .Replace("https://zkitefly.github.io/unlisted-versions-of-minecraft",
-                        "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto"),
-                original
-            });
+        return LauncherDownloadSourceApplicationAdapter.GetLauncherOrMetaSources(original, DlSourcePreferMojang);
     }
 
     /// <summary>

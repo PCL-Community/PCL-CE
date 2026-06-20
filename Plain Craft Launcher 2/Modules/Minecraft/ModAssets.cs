@@ -20,46 +20,13 @@ namespace PCL
         public static JsonNode McAssetsGetIndex(McInstance mcInstance, bool returnLegacyOnError = false,
             bool checkURLEmpty = false)
         {
-            string assetsName;
-            try
+            var resolution = LauncherAssetsApplicationAdapter.ResolveIndex(mcInstance, returnLegacyOnError, checkURLEmpty);
+            if (resolution.IndexJson is not null)
             {
-                while (true)
-                {
-                    var index = mcInstance.JsonObject["assetIndex"];
-                    if (index is not null && index["id"] is not null)
-                        return index;
-                    if (mcInstance.JsonObject["assets"] is not null)
-                        assetsName = mcInstance.JsonObject["assets"].ToString();
-                    if (checkURLEmpty && index["url"] is not null)
-                        return index;
-                    // 下一个实例
-                    if (string.IsNullOrEmpty(mcInstance.InheritInstanceName))
-                        break;
-                    mcInstance = new McInstance(Path.Combine(ModFolder.mcFolderSelected, "versions", mcInstance.InheritInstanceName));
-                }
+                if (resolution.UsedLegacyFallback)
+                    ModBase.Log("[Minecraft] 无法获取资源文件索引下载地址，使用默认的 legacy 下载地址");
+                return resolution.IndexJson;
             }
-            catch
-            {
-            }
-
-            // 无法获取到下载地址
-            if (returnLegacyOnError)
-            {
-                // 返回 assets 文件名会由于没有下载地址导致全局失败
-                // If AssetsName IsNot Nothing AndAlso AssetsName <> "legacy" Then
-                // Log("[Minecraft] 无法获取资源文件索引下载地址，使用 assets 项提供的资源文件名：" & AssetsName)
-                // Return GetJson("{""id"": """ & AssetsName & """}")
-                // Else
-                ModBase.Log("[Minecraft] 无法获取资源文件索引下载地址，使用默认的 legacy 下载地址");
-                return (JsonNode)ModBase.GetJson(@"{
-                    ""id"": ""legacy"",
-                    ""sha1"": ""c0fd82e8ce9fbc93119e40d96d5a4e62cfa3f729"",
-                    ""size"": 134284,
-                    ""url"": ""https://launchermeta.mojang.com/mc-staging/assets/legacy/c0fd82e8ce9fbc93119e40d96d5a4e62cfa3f729/legacy.json"",
-                    ""totalSize"": 111220701
-                }");
-            }
-            // End If
 
             throw new Exception(Lang.Text("Minecraft.Error.NoAssetIndexInfo"));
         }
@@ -71,16 +38,7 @@ namespace PCL
         {
             try
             {
-                while (true)
-                {
-                    if (mcInstance.JsonObject["assetIndex"] is not null &&
-                        mcInstance.JsonObject["assetIndex"]["id"] is not null)
-                        return mcInstance.JsonObject["assetIndex"]["id"].ToString();
-                    if (mcInstance.JsonObject["assets"] is not null) return mcInstance.JsonObject["assets"].ToString();
-                    if (string.IsNullOrEmpty(mcInstance.InheritInstanceName))
-                        break;
-                    mcInstance = new McInstance(Path.Combine(ModFolder.mcFolderSelected, "versions", mcInstance.InheritInstanceName));
-                }
+                return LauncherAssetsApplicationAdapter.GetIndexName(mcInstance);
             }
             catch (Exception ex)
             {
@@ -121,12 +79,12 @@ namespace PCL
 
         internal static string McAssetsHashPrefix(string hash)
         {
-            return hash[..2];
+            return LauncherAssetsApplicationAdapter.GetAssetHashPrefix(hash);
         }
 
         internal static string McAssetsUrl(string hash)
         {
-            return $"https://resources.download.minecraft.net/{McAssetsHashPrefix(hash)}/{hash}";
+            return LauncherAssetsApplicationAdapter.GetAssetObjectUrl(hash);
         }
 
         /// <summary>
@@ -141,36 +99,9 @@ namespace PCL
                 if (!File.Exists($@"{ModFolder.mcFolderSelected}assets\indexes\{indexName}.json"))
                     throw new FileNotFoundException(Lang.Text("Minecraft.Error.AssetIndexNotFound"),
                         Path.Combine(ModFolder.mcFolderSelected, "assets", "indexes", indexName + ".json"));
-                var result = new List<McAssetsToken>();
                 var json = (JsonObject)ModBase.GetJson(
                     ModBase.ReadFile($@"{ModFolder.mcFolderSelected}assets\indexes\{indexName}.json"));
-
-                // 读取列表
-                foreach (var file in json["objects"].AsObject())
-                {
-                    string localPath;
-                    var hash = file.Value["hash"].ToString();
-                    if (json["map_to_resources"] is not null && json["map_to_resources"].ToObject<bool>())
-                        // Remap
-                        localPath = Path.Combine(mcInstance.PathIndie, "resources", file.Key.Replace("/", @"\"));
-                    else if (json["virtual"] is not null && json["virtual"].ToObject<bool>())
-                        // Virtual
-                        localPath = Path.Combine(ModFolder.mcFolderSelected, "assets", "virtual", "legacy", file.Key.Replace("/", @"\"));
-                    else
-                    {
-                        // 正常
-                        localPath = Path.Combine(ModFolder.mcFolderSelected, "assets", "objects", McAssetsHashPrefix(hash), hash);
-                    }
-                    result.Add(new McAssetsToken
-                    {
-                        localPath = localPath,
-                        sourcePath = file.Key,
-                        hash = hash,
-                        size = long.Parse(file.Value["size"].ToString())
-                    });
-                }
-
-                return result;
+                return LauncherAssetsApplicationAdapter.GetAssetList(mcInstance, json);
             }
 
             catch (Exception ex)
@@ -189,21 +120,16 @@ namespace PCL
         {
             // 如果需要检查 Hash，则留到下载时处理，以借助多线程加快检查速度
             if (checkHash)
-                return McAssetsListGet(mcInstance).Select(token =>
-                {
-                    var hash = token.hash;
-                    return new DownloadFile(
-                        ModDownload.DlSourceAssetsGet(McAssetsUrl(hash)),
-                        token.localPath,
-                        new ModBase.FileChecker(actualSize: token.size == 0L ? -1 : token.size, hash: hash));
-                }).ToList();
+                return ToDownloadFiles(LauncherAssetsApplicationAdapter.CreateAssetDownloadPlan(
+                    McAssetsListGet(mcInstance),
+                    checkHash: true,
+                    new Dictionary<string, LauncherAssetFileState>()));
             // 如果不检查 Hash，则立即处理
-            var result = new List<DownloadFile>();
-
             List<McAssetsToken> assetsList;
             try
             {
                 assetsList = McAssetsListGet(mcInstance);
+                Dictionary<string, LauncherAssetFileState> existingFiles = [];
                 McAssetsToken token;
                 if (progressFeed is not null)
                     progressFeed.Progress = 0.04d;
@@ -215,15 +141,15 @@ namespace PCL
                         progressFeed.Progress = 0.05d + 0.94d * i / assetsList.Count;
                     // 检查文件是否存在
                     var file = new FileInfo(token.localPath);
-                    if (file.Exists && (token.size == 0L || token.size == file.Length))
-                        continue;
-                    // 文件不存在，添加下载
-                    var hash = token.hash;
-                    result.Add(new DownloadFile(
-                        ModDownload.DlSourceAssetsGet(McAssetsUrl(hash)),
-                        token.localPath,
-                        new ModBase.FileChecker(actualSize: token.size == 0L ? -1 : token.size, hash: hash)));
+                    existingFiles[token.localPath] = new LauncherAssetFileState(file.Exists, file.Exists ? file.Length : 0);
                 }
+
+                if (progressFeed is not null)
+                    progressFeed.Progress = 0.99d;
+                return ToDownloadFiles(LauncherAssetsApplicationAdapter.CreateAssetDownloadPlan(
+                    assetsList,
+                    checkHash: false,
+                    existingFiles));
             }
             catch (Exception ex)
             {
@@ -232,7 +158,15 @@ namespace PCL
 
             if (progressFeed is not null)
                 progressFeed.Progress = 0.99d;
-            return result;
+            return [];
+        }
+
+        private static List<DownloadFile> ToDownloadFiles(LauncherAssetDownloadPlan plan)
+        {
+            return plan.Files.Select(static file => new DownloadFile(
+                ModDownload.DlSourceAssetsGet(file.Url),
+                file.LocalPath,
+                new ModBase.FileChecker(actualSize: file.ActualSize, hash: file.Hash))).ToList();
         }
     }
 }

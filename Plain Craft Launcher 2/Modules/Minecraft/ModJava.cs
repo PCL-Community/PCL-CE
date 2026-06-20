@@ -1,5 +1,4 @@
 using System.IO;
-using System.Text.Json;
 using PCL.Core.App;
 using PCL.Core.IO;
 using PCL.Core.Minecraft;
@@ -159,15 +158,13 @@ public static class ModJava
         var reqMin = minVersion ?? new Version(1, 0, 0);
         var reqMax = maxVersion ?? new Version(999, 999, 999);
 
-        var candidates = Javas.SelectSuitableJavaAsync(reqMin, reqMax).GetAwaiter().GetResult();
-        var ret = candidates.FirstOrDefault();
+        var ret = LauncherJavaApplicationAdapter.SelectBestJava(Javas.GetSortedJavaList(), reqMin, reqMax);
 
-        if (ret is null && candidates.Length == 0)
+        if (ret is null)
         {
             ModBase.Log("[Java] 未找到符合版本要求的 Java，触发全盘重新扫描");
             Javas.ScanJavaAsync().GetAwaiter().GetResult();
-            candidates = Javas.SelectSuitableJavaAsync(reqMin, reqMax).GetAwaiter().GetResult();
-            ret = candidates.FirstOrDefault();
+            ret = LauncherJavaApplicationAdapter.SelectBestJava(Javas.GetSortedJavaList(), reqMin, reqMax);
         }
 
         if (ret is not null)
@@ -178,63 +175,10 @@ public static class ModJava
         return ret;
     }
 
-    public static JavaPreference GetInstanceJavaPreference(McInstance instance)
-    {
-        var rawPreference = Config.Instance.SelectedJava[instance.PathInstance];
-
-        JavaPreference preference = default;
-        
-        // 尝试读取 JSON 配置
-        if (!string.IsNullOrEmpty(rawPreference))
-        {
-            try
-            {
-                preference = JsonSerializer.Deserialize<JavaPreference>(rawPreference, JsonCompat.SerializerOptions);
-            }
-            catch (JsonException)
-            {
-                // ignored
-            }
-        }
-        // 以旧方式读取配置
-        if (preference is null)
-        {
-            var trimmed = rawPreference?.Trim();
-            if (string.IsNullOrEmpty(trimmed))
-            {
-                preference = new AutoSelect();
-            }
-            else if (trimmed == "使用全局设置")
-            {
-                preference = new UseGlobalPreference();
-            }
-            else
-            {
-                preference = new ExistingJava(trimmed);
-            }
-        }
-
-        switch (true)
-        {
-            case object _ when preference is ExistingJava:
-            {
-                var m = (ExistingJava)preference;
-                if (!Path.IsPathRooted(m.JavaExePath)) preference = new UseGlobalPreference();
-
-                break;
-            }
-            case object _ when preference is UseRelativePath:
-            {
-                var m = (UseRelativePath)preference;
-                if (!Files.IsPathWithinDirectory(m.RelativePath, Basics.ExecutableDirectory))
-                    preference = new UseGlobalPreference();
-
-                break;
-            }
-        }
-
-        return preference;
-    }
+    public static JavaPreference GetInstanceJavaPreference(McInstance instance) =>
+        LauncherJavaApplicationAdapter.ParseInstanceJavaPreference(
+            Config.Instance.SelectedJava[instance.PathInstance],
+            Basics.ExecutableDirectory);
 
     /// <summary>
     ///     是否强制指定了 64 位 Java。如果没有强制指定，返回是否安装了 64 位 Java。
@@ -358,78 +302,24 @@ public static class ModJava
 
     private static string lastJavaBaseDir; // 用于在下载中断或失败时删除未完成下载的 Java 文件夹，防止残留只下了一半但 -version 能跑的 Java
 
-    private static readonly HashSet<string> ignoreHash = new[]
-    {
-        "12976a6c2b227cbac58969c1455444596c894656", "c80e4bab46e34d02826eab226a4441d0970f2aba",
-        "84d2102ad171863db04e7ee22a259d1f6c5de4a5"
-    }.ToHashSet();
-
     private static void JavaFileList(ModLoader.LoaderTask<string, List<DownloadFile>> loader)
     {
         ModBase.Log("[Java] 开始获取 Java 下载信息");
-        var indexFileStr = ModNet.NetGetCodeByLoader(
-            ModDownload.DlVersionListOrder(
-                new[]
-                {
-                    "https://piston-meta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json"
-                },
-                new[]
-                {
-                    "https://bmclapi2.bangbang93.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json"
-                }), isJson: true);
-        // 查找要下载的目标 Java
-        string? targetName = null;
-        JsonNode? targetValue = null;
-        var components =
-            (JsonObject)((JsonObject)ModBase.GetJson(indexFileStr))[$"windows-x{(SystemInfo.Is32BitSystem ? "86" : "64")}"];
-        if (components.ContainsKey(loader.input)) // 精确匹配
+        var plan = LauncherJavaApplicationAdapter.CreateJavaRuntimeDownloadPlan(
+            loader.input);
+        ModLaunch.McLaunchLog($"准备下载 Java {plan.VersionName}（{plan.ComponentName}）：{plan.ManifestUrl}");
+        lastJavaBaseDir = plan.TargetDirectory;
+        var results = new List<DownloadFile>(plan.Files.Count);
+        foreach (var file in plan.Files)
         {
-            targetName = loader.input;
-            targetValue = components[loader.input];
-        }
-        else // 模糊匹配
-        {
-            var match = components.FirstOrDefault(c =>
-                c.Value?.AsArray().FirstOrDefault()?["version"]?["name"]?.ToString().StartsWithF(loader.input) ?? false);
-            targetName = match.Key;
-            targetValue = match.Value;
-            if (targetName is null)
-                throw new Exception($"未能找到所需的 Java {loader.input}");
-        }
-
-        var targetComponent = targetValue?.AsArray().FirstOrDefault();
-        if (targetComponent is null)
-            throw new Exception($"Mojang 未提供所需的 Java {loader.input}");
-        // 获取文件列表
-        var address = (string)targetComponent["manifest"]["url"];
-        ModLaunch.McLaunchLog($"准备下载 Java {targetComponent["version"]["name"]}（{targetName}）：{address}");
-        var listFileStr = (JsonObject)Requester.FetchJson(
-            ModDownload.DlSourceOrder(new[] { address },
-                new[] { address.Replace("piston-meta.mojang.com", "bmclapi2.bangbang93.com") }).First(), RequestParam.WithRetry);
-        lastJavaBaseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            ".minecraft", "runtime", targetName);
-        var results = new List<DownloadFile>(listFileStr["files"].AsObject().Count);
-        foreach (var File in listFileStr["files"].AsObject())
-        {
-            if (File.Value?.AsObject()?["downloads"]?["raw"] is null)
-                continue;
-
-            var info = File.Value["downloads"]["raw"].AsObject();
-            var checkHash = info["sha1"];
-            if (ignoreHash.Contains((string)checkHash))
-                continue; // 跳过 3 个无意义大量重复文件（#3827）
-
-            var checker = new ModBase.FileChecker(actualSize: (long)info["size"], hash: (string)info["sha1"]);
-            var filePath = Path.GetFullPath(Path.Combine(lastJavaBaseDir, File.Key));
-            if (!Files.IsPathWithinDirectory(filePath, lastJavaBaseDir))
-                throw new Exception($"{filePath} 不在 {lastJavaBaseDir} 中");
-
-            if (checker.Check(filePath) is null)
+            var checker = new ModBase.FileChecker(actualSize: file.Size, hash: file.Sha1);
+            if (checker.Check(file.TargetPath) is null)
                 continue; // 跳过已存在的文件
-            var url = (string)info["url"];
             results.Add(new DownloadFile(
-                ModDownload.DlSourceOrder(new[] { url },
-                    new[] { url.Replace("piston-data.mojang.com", "bmclapi2.bangbang93.com") }), filePath, checker));
+                ModDownload.DlSourceOrder(new[] { file.Url },
+                    new[] { file.Url.Replace("piston-data.mojang.com", "bmclapi2.bangbang93.com") }),
+                file.TargetPath,
+                checker));
         }
 
         loader.output = results;
