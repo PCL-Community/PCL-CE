@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -1912,202 +1911,14 @@ public static class ModLaunch
 
     private static void McLaunchJava(ModLoader.LoaderTask<int, int> task)
     {
-        var minVer = new Version(0, 0, 0, 0);
-        var maxVer = new Version(999, 999, 999, 999);
+        var javaRequirement = LauncherJavaApplicationAdapter.ResolveJavaRequirement(ModInstanceList.McMcInstanceSelected);
+        if (!javaRequirement.Success)
+            throw new FormatException(javaRequirement.Detail ?? Lang.Text("Minecraft.Launch.Error.NoJava"));
 
-        // MC 大版本检测
-        if ((!ModInstanceList.McMcInstanceSelected.Info.Valid &&
-             ModInstanceList.McMcInstanceSelected.releaseTime >= new DateTime(2024, 4, 2)) ||
-            (ModInstanceList.McMcInstanceSelected.Info.Valid &&
-             ModInstanceList.McMcInstanceSelected.Info.vanilla >= new Version(20, 0, 5)))
-        {
-            // 1.20.5+ (24w14a+)：至少 Java 21
-            if (ModBase.modeDebug)
-                ModBase.Log("[Launch] [Debug] MC 1.20.5+ (24w14a+) 要求至少 Java 21");
-            minVer = new Version(21, 0, 0, 0);
-        }
-        else if ((!ModInstanceList.McMcInstanceSelected.Info.Valid &&
-                  ModInstanceList.McMcInstanceSelected.releaseTime >= new DateTime(2021, 11, 16)) ||
-                 (ModInstanceList.McMcInstanceSelected.Info.Valid &&
-                  ModInstanceList.McMcInstanceSelected.Info.vanilla.Major >= 18))
-        {
-            // 1.18 pre2+：至少 Java 17
-            if (ModBase.modeDebug)
-                ModBase.Log("[Launch] [Debug] MC 1.18 pre2+ 要求至少 Java 17");
-            minVer = new Version(17, 0, 0, 0);
-        }
-        else if ((!ModInstanceList.McMcInstanceSelected.Info.Valid &&
-                  ModInstanceList.McMcInstanceSelected.releaseTime >= new DateTime(2021, 5, 11)) ||
-                 (ModInstanceList.McMcInstanceSelected.Info.Valid &&
-                  ModInstanceList.McMcInstanceSelected.Info.vanilla.Major >= 17))
-        {
-            // 1.17+ (21w19a+)：至少 Java 16
-            if (ModBase.modeDebug)
-                ModBase.Log("[Launch] [Debug] MC 1.17+ (21w19a+) 要求至少 Java 16");
-            minVer = new Version(16, 0, 0, 0);
-        }
-        else if (ModInstanceList.McMcInstanceSelected.releaseTime.Year >= 2017) // Minecraft 1.12 与 1.11 的分界线正好是 2017 年，太棒了
-        {
-            // 1.12+：至少 Java 8
-            if (ModBase.modeDebug)
-                ModBase.Log("[Launch] [Debug] MC 1.12+ 要求至少 Java 8");
-            minVer = new Version(1, 8, 0, 0);
-        }
-        else if (ModInstanceList.McMcInstanceSelected.releaseTime <= new DateTime(2013, 5, 1) &&
-                 ModInstanceList.McMcInstanceSelected.releaseTime.Year >= 2001) // 避免某些版本写个 1960 年
-        {
-            // 1.5.2-：最高 Java 8
-            if (ModBase.modeDebug)
-                ModBase.Log("[Launch] [Debug] MC 1.5.2- 要求最高 Java 12");
-            maxVer = new Version(1, 8, 999, 999);
-        }
-
-        // 原版 26+：获取 Mojang 要求的 Java 版本
-        string recommendedComponent = null;
-        var recommendedCode =
-            ModInstanceList.McMcInstanceSelected.JsonObject?["javaVersion"]?["majorVersion"]?.ToObject<int>() ??
-            ModInstanceList.McMcInstanceSelected.JsonVersion?["java_version"]?.ToObject<int>() ?? 0;
-        if (recommendedCode >= 22)
-        {
-            McLaunchLog("Mojang 要求至少使用 Java " + recommendedCode);
-            minVer = new Version(1, recommendedCode, 0, 0);
-            recommendedComponent =
-                ModInstanceList.McMcInstanceSelected.JsonObject?["javaVersion"]?["component"]?.ToString() ??
-                ModInstanceList.McMcInstanceSelected.JsonVersion?["java_component"]?.ToString();
-            if (string.IsNullOrEmpty(recommendedComponent))
-                recommendedComponent = null;
-        }
-
-        // OptiFine 检测
-        if (ModInstanceList.McMcInstanceSelected.Info.HasOptiFine && ModInstanceList.McMcInstanceSelected.Info.Valid) // 不管非标准版本
-        {
-            if (ModInstanceList.McMcInstanceSelected.Info.vanilla.Major < 7)
-            {
-                // <1.7：至多 Java 8
-                maxVer = new Version(1, 8, 999, 999);
-            }
-            else if (ModInstanceList.McMcInstanceSelected.Info.vanilla.Major >= 8 &&
-                     ModInstanceList.McMcInstanceSelected.Info.vanilla.Major < 12)
-            {
-                // 1.8 - 1.11：必须恰好 Java 8
-                minVer = new Version(1, 8, 0, 0);
-                maxVer = new Version(1, 8, 999, 999);
-            }
-            else if (ModInstanceList.McMcInstanceSelected.Info.vanilla.Major == 12)
-            {
-                // 1.12：最高 Java 8
-                maxVer = new Version(1, 8, 999, 999);
-            }
-        }
-
-        // Forge 检测
-        if (ModInstanceList.McMcInstanceSelected.Info.HasForge)
-        {
-            if (ModInstanceList.McMcInstanceSelected.Info.vanilla >= new Version(6, 0, 1) &&
-                ModInstanceList.McMcInstanceSelected.Info.vanilla <= new Version(7, 0, 2))
-            {
-                // 1.6.1 - 1.7.2：必须 Java 7
-                minVer = new Version(1, 7, 0, 0) > minVer ? new Version(1, 7, 0, 0) : minVer;
-                maxVer = new Version(1, 7, 999, 999) < maxVer ? new Version(1, 7, 999, 999) : maxVer;
-            }
-            else if (ModInstanceList.McMcInstanceSelected.Info.vanilla.Major <= 12 ||
-                     !ModInstanceList.McMcInstanceSelected.Info.Valid) // 非标准版本
-            {
-                // <=1.12：Java 8
-                maxVer = new Version(1, 8, 999, 999);
-            }
-            else if (ModInstanceList.McMcInstanceSelected.Info.vanilla.Major <= 14)
-            {
-                // 1.13 - 1.14：Java 8 - 10
-                minVer = new Version(1, 8, 0, 0) > minVer ? new Version(1, 8, 0, 0) : minVer;
-                maxVer = new Version(1, 10, 999, 999) < maxVer ? new Version(1, 10, 999, 999) : maxVer;
-            }
-            else if (ModInstanceList.McMcInstanceSelected.Info.vanilla.Major == 15)
-            {
-                // 1.15：Java 8 - 15
-                minVer = new Version(1, 8, 0, 0) > minVer ? new Version(1, 8, 0, 0) : minVer;
-                maxVer = new Version(1, 15, 999, 999) < maxVer ? new Version(1, 15, 999, 999) : maxVer;
-            }
-            else if (McVersionComparer.CompareVersionGe(ModInstanceList.McMcInstanceSelected.Info.Forge, "34.0.0") &&
-                     McVersionComparer.CompareVersionGe("36.2.25", ModInstanceList.McMcInstanceSelected.Info.Forge))
-            {
-                // 1.16，Forge 34.X ~ 36.2.25：最高 Java 8u321
-                maxVer = new Version(1, 8, 0, 320) < maxVer ? new Version(1, 8, 0, 321) : maxVer;
-            }
-            else if (ModInstanceList.McMcInstanceSelected.Info.vanilla.Major >= 18 &&
-                     ModInstanceList.McMcInstanceSelected.Info.vanilla.Major < 19 &&
-                     ModInstanceList.McMcInstanceSelected.Info.HasOptiFine) // #305
-            {
-                // 1.18：若安装了 OptiFine，最高 Java 18
-                maxVer = new Version(1, 18, 999, 999) < maxVer ? new Version(1, 18, 999, 999) : maxVer;
-            }
-        }
-
-        // Cleanroom 检测
-        if (ModInstanceList.McMcInstanceSelected.Info.HasCleanroom)
-        {
-            if (!Version.TryParse(ModInstanceList.McMcInstanceSelected.Info.Cleanroom.Split('-')[0], out Version cleanroomVersion))
-                throw new FormatException("无法解析 Cleanroom 版本号：" + ModInstanceList.McMcInstanceSelected.Info.Cleanroom);
-            if (cleanroomVersion < new Version(0, 5, 0, 0))
-            {
-                if (ModBase.modeDebug) ModBase.Log("[Launch] [Debug] Cleanroom 版本低于 0.5，要求至少 Java 21");
-                minVer = new Version(21, 0, 0, 0) > minVer ? new Version(21, 0, 0, 0) : minVer;
-            }
-            else
-            {
-                if (ModBase.modeDebug) ModBase.Log("[Launch] [Debug] Cleanroom 版本高于 0.5，要求至少 Java 25");
-                minVer = new Version(25, 0, 0, 0) > minVer ? new Version(25, 0, 0, 0) : minVer;
-            }
-        }
-
-        // Fabric 检测
-        if (ModInstanceList.McMcInstanceSelected.Info.HasFabric && ModInstanceList.McMcInstanceSelected.Info.Valid) // 不管非标准版本
-        {
-            if (ModInstanceList.McMcInstanceSelected.Info.vanilla.Major >= 15 &&
-                ModInstanceList.McMcInstanceSelected.Info.vanilla.Major <= 16)
-                // 1.15 - 1.16：Java 8+
-                minVer = new Version(1, 8, 0, 0) > minVer ? new Version(1, 8, 0, 0) : minVer;
-            else if (ModInstanceList.McMcInstanceSelected.Info.vanilla.Major >= 18)
-                // 1.18+：Java 17+
-                minVer = new Version(1, 17, 0, 0) > minVer ? new Version(1, 17, 0, 0) : minVer;
-        }
-
-        // LiteLoader 检测
-        if (ModInstanceList.McMcInstanceSelected.Info.HasLiteLoader && ModInstanceList.McMcInstanceSelected.Info.Valid)
-        {
-            // 最高 Java 8
-            if (ModBase.modeDebug)
-                ModBase.Log("[Launch] [Debug] LiteLoader 要求最高 Java 8");
-            maxVer = new Version(8, 999, 999, 999) < maxVer ? new Version(8, 999, 999, 999) : maxVer;
-        }
-
-        // LabyMod 检测
-        if (ModInstanceList.McMcInstanceSelected.Info.HasLabyMod)
-        {
-            if (ModBase.modeDebug)
-                ModBase.Log("[Launch] [Debug] LabyMod 要求至少 Java 21");
-            minVer = new Version(21, 0, 0, 0) > minVer ? new Version(21, 0, 0, 0) : minVer;
-            maxVer = new Version(999, 999, 999, 999);
-        }
-
-        // JSON 中要求的版本
-        if (ModInstanceList.McMcInstanceSelected.JsonObject["javaVersion"] is not null)
-        {
-            var majorVersion = ModBase.Val(ModInstanceList.McMcInstanceSelected.JsonObject["javaVersion"]["majorVersion"]);
-            if (ModBase.modeDebug)
-                ModBase.Log("[Launch] [Debug] JSON 中参数要求至少 Java " + majorVersion);
-            if (majorVersion <= 8d)
-                minVer = new Version(1, (int)Math.Round(majorVersion), 0, 0) > minVer
-                    ? new Version(1, (int)Math.Round(majorVersion), 0, 0)
-                    : minVer;
-            else
-                minVer = new Version((int)Math.Round(majorVersion), 0, 0, 0) > minVer
-                    ? new Version((int)Math.Round(majorVersion), 0, 0, 0)
-                    : minVer;
-
-            if (maxVer < minVer)
-                maxVer = new Version(999, 999, 999, 999);
-        }
+        var minVer = javaRequirement.Range.Minimum;
+        var maxVer = javaRequirement.Range.Maximum;
+        if (ModBase.modeDebug)
+            ModBase.Log("[Launch] [Debug] Java 版本需求由 Application 层解析");
 
         lock (ModJava.javaLock)
         {
@@ -2126,49 +1937,24 @@ public static class ModLaunch
             if (task.IsAborted)
                 return; // 中断加载会导致 JavaSelect 异常地返回空值，误判找不到 Java
             McLaunchLog("无合适的 Java，需要确认是否自动下载");
-            string javaCode;
-            if (minVer >= new Version(1, 9))
+            var acquisitionDecision =
+                LauncherJavaApplicationAdapter.PlanJavaAcquisition(javaRequirement, ModInstanceList.McMcInstanceSelected);
+            if (!acquisitionDecision.CanAutoDownload)
             {
-                javaCode = minVer.Major.ToString();
-            }
-            else if (maxVer < new Version(1, 8))
-            {
-                if (ModInstanceList.McMcInstanceSelected.Info.HasForge)
-                    ModMain.MyMsgBox(
-                        Lang.Text("Minecraft.Launch.Java.NeedLegacyJavaFixerOrJava7"),
-                        Lang.Text("Minecraft.Launch.Java.NotFound.Title"));
-                else
-                    ModMain.MyMsgBox(
-                        Lang.Text("Minecraft.Launch.Java.NeedJava7"),
-                        Lang.Text("Minecraft.Launch.Java.NotFound.Title"));
+                ShowJavaAcquisitionBlockedMessage(acquisitionDecision.BlockReason);
                 throw new Exception("$$");
-            }
-            else if (minVer > new Version(1, 8, 0, 140) && maxVer < new Version(1, 8, 0, 321))
-            {
-                ModMain.MyMsgBox(
-                    Lang.Text("Minecraft.Launch.Java.NeedJava8U141ToU320"),
-                    Lang.Text("Minecraft.Launch.Java.NotFound.Title"));
-                throw new Exception("$$");
-            }
-            else if (minVer > new Version(1, 8, 0, 140))
-            {
-                ModMain.MyMsgBox(
-                    Lang.Text("Minecraft.Launch.Java.NeedJava8U141OrLater"),
-                    Lang.Text("Minecraft.Launch.Java.NotFound.Title"));
-                throw new Exception("$$");
-            }
-            else
-            {
-                javaCode = 8.ToString();
             }
 
-            if (!ModJava.JavaDownloadConfirm($"Java {javaCode}"))
+            if (!ModJava.JavaDownloadConfirm($"Java {acquisitionDecision.JavaVersionCode}"))
+                throw new Exception("$$");
+            var downloadComponent = acquisitionDecision.DownloadComponent ?? acquisitionDecision.JavaVersionCode;
+            if (string.IsNullOrWhiteSpace(downloadComponent))
                 throw new Exception("$$");
             // 开始自动下载
             var javaLoader = ModJava.GetJavaDownloadLoader();
             try
             {
-                javaLoader.Start(recommendedComponent ?? javaCode, true); // 在 Java 22+ 时优先使用 Mojang 提供的 Component 字段
+                javaLoader.Start(downloadComponent, true); // 在 Java 22+ 时优先使用 Mojang 提供的 Component 字段
                 while (javaLoader.State == ModBase.LoadState.Loading && !task.IsAborted)
                 {
                     task.Progress = javaLoader.Progress;
@@ -2196,41 +1982,28 @@ public static class ModLaunch
         }
     }
 
+    private static void ShowJavaAcquisitionBlockedMessage(LauncherJavaAcquisitionBlockReason reason)
+    {
+        var messageKey = reason switch
+        {
+            LauncherJavaAcquisitionBlockReason.LegacyForgeNeedsFixerOrJava7 =>
+                "Minecraft.Launch.Java.NeedLegacyJavaFixerOrJava7",
+            LauncherJavaAcquisitionBlockReason.LegacyJava7Required =>
+                "Minecraft.Launch.Java.NeedJava7",
+            LauncherJavaAcquisitionBlockReason.Java8Update141To320Required =>
+                "Minecraft.Launch.Java.NeedJava8U141ToU320",
+            LauncherJavaAcquisitionBlockReason.Java8Update141OrLaterRequired =>
+                "Minecraft.Launch.Java.NeedJava8U141OrLater",
+            _ => "Minecraft.Launch.Error.NoJava"
+        };
+        ModMain.MyMsgBox(
+            Lang.Text(messageKey),
+            Lang.Text("Minecraft.Launch.Java.NotFound.Title"));
+    }
+
     #endregion
 
     #region 启动参数
-
-    internal static void SecretLaunchJvmArgs(ref List<string> dataList)
-    {
-        var dataJvmCustom = Config.Instance.JvmArgs[ModInstanceList.McMcInstanceSelected?.PathInstance];
-        dataList.Insert(0,
-            string.IsNullOrEmpty(dataJvmCustom)
-                ? Config.Launch.JvmArgs
-                : dataJvmCustom); // 可变 JVM 参数
-        switch (Config.Launch.PreferredIpStack)
-        {
-            case JvmPreferredIpStack.PreferV4:
-            {
-                dataList.Add("-Djava.net.preferIPv4Stack=true");
-                dataList.Add("-Djava.net.preferIPv4Addresses=true");
-                break;
-            }
-            case JvmPreferredIpStack.PreferV6:
-            {
-                dataList.Add("-Djava.net.preferIPv6Stack=true");
-                dataList.Add("-Djava.net.preferIPv6Addresses=true");
-                break;
-            }
-        }
-
-        double availableGb = KernelInterop.GetAvailablePhysicalMemoryBytes() / 1073741824.0;
-        ModLaunch.McLaunchLog($"当前剩余内存：{availableGb.ToString("N1", CultureInfo.InvariantCulture)}G");
-        double totalRamMb = PageInstanceSetup.GetRam(ModInstanceList.McMcInstanceSelected) * 1024d;
-        dataList.Add("-Xmn" + Math.Floor(totalRamMb * 0.15).ToString(CultureInfo.InvariantCulture) + "m");
-        dataList.Add("-Xmx" + Math.Floor(totalRamMb).ToString(CultureInfo.InvariantCulture) + "m");
-        if (!dataList.Any(d => d.Contains("-Dlog4j2.formatMsgNoLookups=true")))
-            dataList.Add("-Dlog4j2.formatMsgNoLookups=true");
-    }
 
     public class LaunchArgument
     {
@@ -2471,93 +2244,31 @@ public static class ModLaunch
             McLaunchLog(arguments);
         }
 
-        if (!string.IsNullOrEmpty(
-                (string)ModInstanceList.McMcInstanceSelected.JsonObject["minecraftArguments"])) // 有的实例 JSON 中是空字符串
-        {
-            McLaunchLog("获取旧版 Game 参数");
-            arguments += " " + McLaunchArgumentsGameOld(ModInstanceList.McMcInstanceSelected);
-            McLaunchLog("旧版 Game 参数获取成功");
-        }
-
-        if (ModInstanceList.McMcInstanceSelected.JsonObject["arguments"] is not null &&
-            ModInstanceList.McMcInstanceSelected.JsonObject["arguments"]["game"] is not null)
-        {
-            McLaunchLog("获取新版 Game 参数");
-            arguments += " " + McLaunchArgumentsGameNew(ModInstanceList.McMcInstanceSelected);
-            McLaunchLog("新版 Game 参数获取成功");
-        }
-
-        // 编码参数（#4700、#5892、#5909）
-        if (mcLaunchJavaSelected.Installation.MajorVersion > 8)
-        {
-            if (!arguments.Contains("-Dstdout.encoding="))
-                arguments = "-Dstdout.encoding=UTF-8 " + arguments;
-            if (!arguments.Contains("-Dstderr.encoding="))
-                arguments = "-Dstderr.encoding=UTF-8 " + arguments;
-        }
-
-        if (mcLaunchJavaSelected.Installation.MajorVersion >= 18)
-            if (!arguments.Contains("-Dfile.encoding="))
-                arguments = "-Dfile.encoding=COMPAT " + arguments;
-        // MJSB
-        arguments = arguments.Replace(" -Dos.name=Windows 10", " -Dos.name=\"Windows 10\"");
-        // 全屏
-        if (Config.Launch.GameWindowMode == 0)
-            arguments += " --fullscreen";
-        // 由 Option 传入的额外参数
-        foreach (var arg in currentLaunchOptions.ExtraArgs)
-            arguments += " " + arg.Trim();
         // 自定义参数
         var argumentGame = Config.Instance.GameArgs[ModInstanceList.McMcInstanceSelected?.PathInstance];
-        arguments = arguments + " " + (string.IsNullOrEmpty(argumentGame) ? Config.Launch.GameArgs : argumentGame);
         // 替换参数
         var replaceArguments = McLaunchArgumentsReplace(ModInstanceList.McMcInstanceSelected, ref loader);
-        if (string.IsNullOrWhiteSpace(replaceArguments["${version_type}"]))
-        {
-            // 若自定义信息为空，则去掉该部分
-            arguments = arguments.Replace(" --versionType ${version_type}", "");
-            replaceArguments["${version_type}"] = "\"\"";
-        }
-
-        var finalArguments = "";
-        foreach (var argumentRaw in arguments.Split(" "))
-        {
-            var argument = argumentRaw;
-            foreach (var entry in replaceArguments)
-                argument = argument.Replace(entry.Key, entry.Value);
-            if ((argument.Contains(" ") || argument.Contains(@":\")) && !argument.EndsWithF("\""))
-                argument = $"\"{argument}\"";
-            finalArguments += argument + " ";
-        }
-
-        finalArguments = finalArguments.TrimEnd();
-        // 进存档
         var worldName = currentLaunchOptions.WorldName;
-        if (worldName is not null) finalArguments += $" --quickPlaySingleplayer \"{worldName}\"";
-        // 进服
         var server = string.IsNullOrEmpty(currentLaunchOptions.ServerIp)
             ? Config.Instance.ServerToEnter[ModInstanceList.McMcInstanceSelected?.PathInstance]
             : currentLaunchOptions.ServerIp;
-        if (string.IsNullOrWhiteSpace(worldName) && !string.IsNullOrWhiteSpace(server))
-        {
-            if (ModInstanceList.McMcInstanceSelected.releaseTime > new DateTime(2023, 4, 4))
-            {
-                // QuickPlay
-                finalArguments += $" --quickPlayMultiplayer \"{server}\"";
-            }
-            else
-            {
-                // 老版本
-                if (server.Contains(":"))
-                    // 包含端口号
-                    finalArguments += " --server " + server.Split(":")[0] + " --port " + server.Split(":")[1];
-                else
-                    // 不包含端口号
-                    finalArguments += " --server " + server + " --port 25565";
-                if (ModInstanceList.McMcInstanceSelected.Info.HasOptiFine)
-                    ModMain.Hint(Lang.Text("Minecraft.Launch.Error.OptiFineAutoJoinWarning"), ModMain.HintType.Critical);
-            }
-        }
+        var launchPlan = LauncherLaunchApplicationAdapter.BuildLaunchPlan(
+            ModInstanceList.McMcInstanceSelected,
+            arguments,
+            replaceArguments,
+            mcLaunchJavaSelected.Installation.MajorVersion,
+            Config.Launch.GameWindowMode == GameWindowSizeMode.Fullscreen,
+            currentLaunchOptions.ExtraArgs,
+            string.IsNullOrEmpty(argumentGame) ? Config.Launch.GameArgs : argumentGame,
+            worldName,
+            server,
+            McLaunchNeedsRetroWrapper(ModInstanceList.McMcInstanceSelected));
+        ApplyOptiFineTweakerAdjustment(
+            ModInstanceList.McMcInstanceSelected,
+            new LauncherGameArgumentsResult(launchPlan.GameArguments, launchPlan.OptiFineTweakerAdjustment));
+        var finalArguments = launchPlan.Arguments;
+        if (launchPlan.ShouldWarnOptiFineAutoJoin)
+            ModMain.Hint(Lang.Text("Minecraft.Launch.Error.OptiFineAutoJoinWarning"), ModMain.HintType.Critical);
 
         // 输出
         McLaunchLog("Minecraft 启动参数：");
@@ -2568,391 +2279,140 @@ public static class ModLaunch
     // Jvm 部分（第一段）
     private static string McLaunchArgumentsJvmOld(McInstance instance)
     {
-        // 存储以空格为间隔的启动参数列表
-        var dataList = new List<string>();
-
-        // 输出固定参数
-        dataList.Add("-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump");
-        var argumentJvm = Config.Instance.JvmArgs[ModInstanceList.McMcInstanceSelected?.PathInstance];
-        if (string.IsNullOrEmpty(argumentJvm))
-            argumentJvm = Config.Launch.JvmArgs;
-        if (!argumentJvm.Contains("-Dlog4j2.formatMsgNoLookups=true"))
-            argumentJvm += " -Dlog4j2.formatMsgNoLookups=true";
-        argumentJvm = argumentJvm.Replace(" -XX:MaxDirectMemorySize=256M", ""); // #3511 的清理
-        dataList.Insert(0, argumentJvm); // 可变 JVM 参数
-        dataList.Add("-Xmn" +
-                     Math.Floor(PageInstanceSetup.GetRam(ModInstanceList.McMcInstanceSelected,
-                         !mcLaunchJavaSelected.Installation.Is64Bit) * 1024d * 0.15d) + "m");
-        dataList.Add("-Xmx" +
-                     Math.Floor(PageInstanceSetup.GetRam(ModInstanceList.McMcInstanceSelected,
-                         !mcLaunchJavaSelected.Installation.Is64Bit) * 1024d) + "m");
-        dataList.Add("\"-Djava.library.path=" + GetNativesFolder() + "\"");
-        dataList.Add("-cp ${classpath}"); // 把支持库添加进启动参数表
-
-        // Authlib-Injector
-        if (mcLoginLoader.output.Type == "Auth")
-        {
-            if (mcLaunchJavaSelected.Installation.MajorVersion >= 6)
-                dataList.Add("-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT"); // 信任系统根证书（Meloong-Git/#5252）
-            var server = mcLoginAuthLoader.input.BaseUrl.Replace("/authserver", "");
-            try
-            {
-                var response = Requester.FetchString(server);
-                dataList.Insert(0,
-                    "-javaagent:\"" + Path.Combine(ModBase.pathPure, "authlib-injector.jar") + "\"=" + server +
-                    " -Dauthlibinjector.side=client" + " -Dauthlibinjector.yggdrasil.prefetched=" +
-                    Convert.ToBase64String(Encoding.UTF8.GetBytes(response)));
-            }
-            catch (WebException ex)
-            {
-                throw new Exception(
-                    Lang.Text("Minecraft.Launch.Error.CannotConnectAuthServerWithDetail", server ?? null) + ex.InnerException, ex);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(Lang.Text("Minecraft.Launch.Error.CannotConnectAuthServer", server ?? null), ex);
-            }
-        }
-
-        if (Config.Instance.UseDebugLof4j2Config[instance.PathIndie])
-        {
-            if (ModInstanceList.McMcInstanceSelected.releaseTime.Year >= 2017)
-                dataList.Insert(0, "-Dlog4j.configurationFile=\"" + LaunchEnvUtils.ExtractDebugLog4j2Config() + "\"");
-            else
-                dataList.Insert(0,
-                    "-Dlog4j.configurationFile=\"" + LaunchEnvUtils.ExtractLegacyDebugLog4j2Config() + "\"");
-        }
-
-        // 渲染器
-        var renderer = 0;
-        var instanceRenderer = Config.Instance.Renderer[ModInstanceList.McMcInstanceSelected?.PathInstance];
-        if (instanceRenderer != 0)
-            renderer = instanceRenderer - 1;
-        else
-            renderer = Config.Launch.Renderer;
-        var mesaLoaderWindowsTargetFile =
-            Path.Combine(ModBase.pathPure, "mesa-loader-windows", mesaLoaderWindowsVersion, "Loader.jar");
-
-        if (renderer != 0)
-            dataList.Insert(0,
-                "-javaagent:\"" + mesaLoaderWindowsTargetFile + "\"=" +
-                (renderer == 1 ? "llvmpipe" : renderer == 2 ? "d3d12" : "zink"));
-
-
-        // 设置代理
-        if (Config.Instance.UseProxy[instance.PathIndie] && Config.Network.HttpProxy.Type.Equals(2) &&
-            !string.IsNullOrWhiteSpace(Config.Network.HttpProxy.CustomAddress))
-            try
-            {
-                var proxyAddress = new Uri(Config.Network.HttpProxy.CustomAddress);
-                dataList.Add(
-                    $"-D{(proxyAddress.Scheme.StartsWithF("https:") ? "https" : "http")}.proxyHost={proxyAddress.AbsoluteUri}");
-                dataList.Add(
-                    $"-D{(proxyAddress.Scheme.StartsWithF("https:") ? "https" : "http")}.proxyPort={proxyAddress.Port}");
-            }
-            catch (Exception ex)
-            {
-                ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.Proxy"), ModBase.LogLevel.Hint);
-            }
-
-        // 皮肤代理
-
-        // 添加 Java Wrapper 作为主 Jar
-        if (ModBase.IsUtf8CodePage() && !Config.Launch.DisableJlw &&
-            !Config.Instance.DisableJlw[ModInstanceList.McMcInstanceSelected?.PathInstance])
-        {
-            if (mcLaunchJavaSelected.Installation.MajorVersion >= 9)
-                dataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED");
-            dataList.Add("-Doolloo.jlw.tmpdir=\"" + ModBase.pathPure.TrimEnd('\\') + "\"");
-            dataList.Add("-jar \"" + ExtractJavaWrapper() + "\"");
-        }
-
-        // 添加 MainClass
-        if (instance.JsonObject["mainClass"] is null) throw new Exception(Lang.Text("Minecraft.Launch.Error.MissingMainClass"));
-
-        dataList.Add((string)instance.JsonObject["mainClass"]);
-
-        return dataList.Join(" ");
+        return McLaunchArgumentsJvm(instance, useModernArguments: false);
     }
 
     private static string McLaunchArgumentsJvmNew(McInstance instance)
     {
-        var dataList = new List<string>();
+        return McLaunchArgumentsJvm(instance, useModernArguments: true);
+    }
 
-        // 获取 Json 中的 DataList
-        var currentInstance = instance;
-        while (true)
-        {
-            if (currentInstance.JsonObject["arguments"] is not null &&
-                currentInstance.JsonObject["arguments"]["jvm"] is not null)
-                foreach (var subJson in currentInstance.JsonObject["arguments"]["jvm"].AsArray())
-                    if (subJson.GetValueKind() == JsonValueKind.String)
-                    {
-                        // 字符串类型
-                        dataList.Add(subJson.ToString());
-                    }
-                    // 非字符串类型
-                    else if (ModLibrary.McJsonRuleCheck(subJson["rules"]))
-                    {
-                        // 满足准则
-                        if (subJson["value"].GetValueKind() == JsonValueKind.String)
-                            dataList.Add(subJson["value"].ToString());
-                        else
-                            foreach (var value in subJson["value"].AsArray())
-                                dataList.Add(value.ToString());
-                    }
+    private static string McLaunchArgumentsJvm(McInstance instance, bool useModernArguments)
+    {
+        if (instance.JsonObject["mainClass"] is null)
+            throw new Exception(Lang.Text("Minecraft.Launch.Error.MissingMainClass"));
 
-            if (string.IsNullOrEmpty(currentInstance.InheritInstanceName))
-                break;
+        List<string> prefixArguments = [];
+        List<string> suffixArguments = [];
 
-            currentInstance = new McInstance(currentInstance.InheritInstanceName);
-        }
-
-        // 内存、Log4j 防御参数等
-        SecretLaunchJvmArgs(ref dataList);
-
-        // Authlib-Injector
         if (mcLoginLoader.output.Type == "Auth")
         {
             if (mcLaunchJavaSelected.Installation.MajorVersion >= 6)
-                dataList.Add("-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT"); // 信任系统根证书（Meloong-Git/#5252）
+                suffixArguments.Add("-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT");
             var server = mcLoginAuthLoader.input.BaseUrl.Replace("/authserver", "");
             try
             {
-                var response = ModNet.NetGetCodeByRequestRetry(server, Encoding.UTF8)?.ToString();
-                dataList.Insert(0,
+                string response = useModernArguments
+                    ? ModNet.NetGetCodeByRequestRetry(server, Encoding.UTF8)?.ToString()
+                    : Requester.FetchString(server);
+                prefixArguments.Insert(0,
                     "-javaagent:\"" + Path.Combine(ModBase.pathPure, "authlib-injector.jar") + "\"=" + server +
-                    " -Dauthlibinjector.side=client" + " -Dauthlibinjector.yggdrasil.prefetched=" +
+                    " -Dauthlibinjector.side=client -Dauthlibinjector.yggdrasil.prefetched=" +
                     Convert.ToBase64String(Encoding.UTF8.GetBytes(response)));
+            }
+            catch (WebException ex) when (!useModernArguments)
+            {
+                throw new Exception(
+                    Lang.Text("Minecraft.Launch.Error.CannotConnectAuthServerWithDetail", server ?? null) +
+                    ex.InnerException,
+                    ex);
             }
             catch (Exception ex)
             {
                 throw new Exception(Lang.Text("Minecraft.Launch.Error.CannotConnectAuthServer", server ?? null), ex);
             }
         }
-        
-        // LWJGL Unsafe Agent
-        if (McLaunchUsesLwjglUnsafeAgent(ModInstanceList.McMcInstanceSelected))
+
+        if (useModernArguments && McLaunchUsesLwjglUnsafeAgent(instance))
         {
-            ModBase.Log($"获取到的 LWJGL 版本：{McLaunchGetLwjglVersion(ModInstanceList.McMcInstanceSelected)}");
-            dataList.Insert(0, $"-javaagent:\"{ModBase.pathPure}lwjgl-unsafe-agent.jar\"");
+            ModBase.Log($"获取到的 LWJGL 版本：{McLaunchGetLwjglVersion(instance)}");
+            prefixArguments.Insert(0, $"-javaagent:\"{ModBase.pathPure}lwjgl-unsafe-agent.jar\"");
         }
 
         if (Config.Instance.UseDebugLof4j2Config[instance.PathIndie])
         {
-            if (ModInstanceList.McMcInstanceSelected.releaseTime.Year >= 2017)
-                dataList.Insert(0, "-Dlog4j.configurationFile=\"" + LaunchEnvUtils.ExtractDebugLog4j2Config() + "\"");
-            else
-                dataList.Insert(0,
-                    "-Dlog4j.configurationFile=\"" + LaunchEnvUtils.ExtractLegacyDebugLog4j2Config() + "\"");
+            string configPath = instance.releaseTime.Year >= 2017
+                ? LaunchEnvUtils.ExtractDebugLog4j2Config()
+                : LaunchEnvUtils.ExtractLegacyDebugLog4j2Config();
+            prefixArguments.Insert(0, "-Dlog4j.configurationFile=\"" + configPath + "\"");
         }
 
-        // 渲染器
-        var renderer = 0;
-        var instanceRenderer = Config.Instance.Renderer[ModInstanceList.McMcInstanceSelected?.PathInstance];
-        if (instanceRenderer != 0)
-            renderer = instanceRenderer - 1;
-        else
-            renderer = Config.Launch.Renderer;
-        var mesaLoaderWindowsTargetFile =
-            Path.Combine(ModBase.pathPure, "mesa-loader-windows", mesaLoaderWindowsVersion, "Loader.jar");
-
+        var instanceRenderer = Config.Instance.Renderer[instance.PathInstance];
+        var renderer = instanceRenderer != 0 ? instanceRenderer - 1 : Config.Launch.Renderer;
         if (renderer != 0)
-            dataList.Insert(0,
+        {
+            var mesaLoaderWindowsTargetFile =
+                Path.Combine(ModBase.pathPure, "mesa-loader-windows", mesaLoaderWindowsVersion, "Loader.jar");
+            prefixArguments.Insert(0,
                 "-javaagent:\"" + mesaLoaderWindowsTargetFile + "\"=" +
                 (renderer == 1 ? "llvmpipe" : renderer == 2 ? "d3d12" : "zink"));
+        }
 
-
-        // 设置代理
-        if (Config.Instance.UseProxy[instance.PathIndie] && Config.Network.HttpProxy.Type.Equals(2) &&
+        if (Config.Instance.UseProxy[instance.PathIndie] &&
+            Config.Network.HttpProxy.Type.Equals(2) &&
             !string.IsNullOrWhiteSpace(Config.Network.HttpProxy.CustomAddress))
+        {
             try
             {
                 var proxyAddress = new Uri(Config.Network.HttpProxy.CustomAddress);
-                dataList.Add(
-                    $"-D{(proxyAddress.Scheme.StartsWithF("https:") ? "https" : "http")}.proxyHost={proxyAddress.AbsoluteUri}");
-                dataList.Add(
-                    $"-D{(proxyAddress.Scheme.StartsWithF("https:") ? "https" : "http")}.proxyPort={proxyAddress.Port}");
+                var proxyScheme = proxyAddress.Scheme.StartsWithF("https:") ? "https" : "http";
+                suffixArguments.Add($"-D{proxyScheme}.proxyHost={proxyAddress.AbsoluteUri}");
+                suffixArguments.Add($"-D{proxyScheme}.proxyPort={proxyAddress.Port}");
             }
             catch (Exception ex)
             {
                 ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.Proxy"), ModBase.LogLevel.Hint);
             }
+        }
 
-        // 皮肤代理
+        if (useModernArguments && McLaunchNeedsRetroWrapper(instance))
+            suffixArguments.Add("-Dretrowrapper.doUpdateCheck=false");
 
-        // 添加 RetroWrapper 相关参数
-        if (McLaunchNeedsRetroWrapper(instance))
-            // https://github.com/NeRdTheNed/RetroWrapper/wiki/RetroWrapper-flags
-            dataList.Add("-Dretrowrapper.doUpdateCheck=false");
-        // 添加 Java Wrapper 作为主 Jar
-        if (ModBase.IsUtf8CodePage() && !Config.Launch.DisableJlw &&
-            !Config.Instance.DisableJlw[ModInstanceList.McMcInstanceSelected?.PathInstance])
+        if (ModBase.IsUtf8CodePage() &&
+            !Config.Launch.DisableJlw &&
+            !Config.Instance.DisableJlw[instance.PathInstance])
         {
             if (mcLaunchJavaSelected.Installation.MajorVersion >= 9)
-                dataList.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED");
-            dataList.Add("-Doolloo.jlw.tmpdir=\"" + ModBase.pathPure.TrimEnd('\\') + "\"");
-            dataList.Add("-jar \"" + ExtractJavaWrapper() + "\"");
+                suffixArguments.Add("--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED");
+            suffixArguments.Add("-Doolloo.jlw.tmpdir=\"" + ModBase.pathPure.TrimEnd('\\') + "\"");
+            suffixArguments.Add("-jar \"" + ExtractJavaWrapper() + "\"");
         }
 
+        var customJvmArguments = Config.Instance.JvmArgs[instance.PathInstance];
+        if (string.IsNullOrEmpty(customJvmArguments))
+            customJvmArguments = Config.Launch.JvmArgs;
+        var memoryMegabytes = checked((int)Math.Floor(PageInstanceSetup.GetRam(
+            instance,
+            !useModernArguments && !mcLaunchJavaSelected.Installation.Is64Bit) * 1024d));
+        var preferredIpStack = useModernArguments
+            ? Config.Launch.PreferredIpStack switch
+            {
+                JvmPreferredIpStack.PreferV4 => LauncherJvmIpPreference.PreferV4,
+                JvmPreferredIpStack.PreferV6 => LauncherJvmIpPreference.PreferV6,
+                _ => LauncherJvmIpPreference.SystemDefault
+            }
+            : LauncherJvmIpPreference.SystemDefault;
 
-        // 将 "-XXX" 与后面 "XXX" 合并到一起
-        // 如果不合并，会导致 Forge 1.17 启动无效，它有两个 --add-exports，进一步导致其中一个在后面被去重
-        var deDuplicateDataList = new List<string>();
-        for (int i = 0, loopTo = dataList.Count - 1; i <= loopTo; i++)
-        {
-            var currentEntry = dataList[i];
-            if (dataList[i].StartsWithF("-"))
-                while (i < dataList.Count - 1)
-                {
-                    if (dataList[i + 1].StartsWithF("-")) break;
-
-                    i += 1;
-                    currentEntry += " " + dataList[i];
-                }
-
-            deDuplicateDataList.Add(currentEntry.Trim().Replace("McEmu= ", "McEmu="));
-        }
-
-        // #3511 的清理
-        deDuplicateDataList.Remove("-XX:MaxDirectMemorySize=256M");
-
-        // 去重
-        var result = deDuplicateDataList.Distinct().ToList().Join(" ");
-
-        // 添加 MainClass
-        if (instance.JsonObject["mainClass"] is null) throw new Exception(Lang.Text("Minecraft.Launch.Error.MissingMainClass"));
-
-        result += " " + instance.JsonObject["mainClass"];
-
-        return result;
+        return LauncherLaunchApplicationAdapter.BuildJvmArguments(
+            instance,
+            useModernArguments,
+            customJvmArguments,
+            memoryMegabytes,
+            useModernArguments ? null : GetNativesFolder(),
+            preferredIpStack,
+            prefixArguments,
+            suffixArguments);
     }
 
-    // Game 部分（第二段）
-    private static string McLaunchArgumentsGameOld(McInstance version)
+    private static void ApplyOptiFineTweakerAdjustment(McInstance instance, LauncherGameArgumentsResult result)
     {
-        var dataList = new List<string>();
-
-        // 添加 RetroWrapper 相关参数
-        if (McLaunchNeedsRetroWrapper(version)) dataList.Add("--tweakClass com.zero.retrowrapper.RetroTweaker");
-
-        // 本地化 Minecraft 启动信息
-        var basicString = version.JsonObject["minecraftArguments"].ToString();
-        if (!basicString.Contains("--height"))
-            basicString += " --height ${resolution_height} --width ${resolution_width}";
-        dataList.Add(basicString);
-
-        var result = dataList.Join(" ");
-
-        // 特别改变 OptiFineTweaker
-        if ((version.Info.HasForge || version.Info.HasLiteLoader) && version.Info.HasOptiFine)
+        switch (result.OptiFineTweakerAdjustment)
         {
-            // 把 OptiFineForgeTweaker 放在最后，不然会导致崩溃！
-            if (result.Contains("--tweakClass optifine.OptiFineForgeTweaker"))
-            {
-                ModBase.Log("[Launch] 发现正确的 OptiFineForge TweakClass，目前参数：" + result);
-                result = result.Replace(" --tweakClass optifine.OptiFineForgeTweaker", "")
-                             .Replace("--tweakClass optifine.OptiFineForgeTweaker ", "") +
-                         " --tweakClass optifine.OptiFineForgeTweaker";
-            }
-
-            if (result.Contains("--tweakClass optifine.OptiFineTweaker"))
-            {
-                ModBase.Log("[Launch] 发现错误的 OptiFineForge TweakClass，目前参数：" + result);
-                result = result.Replace(" --tweakClass optifine.OptiFineTweaker", "")
-                             .Replace("--tweakClass optifine.OptiFineTweaker ", "") +
-                         " --tweakClass optifine.OptiFineForgeTweaker";
-                try
-                {
-                    ModBase.WriteFile(Path.Combine(version.PathInstance, version.Name + ".json"),
-                        ModBase.ReadFile(Path.Combine(version.PathInstance, version.Name + ".json"))
-                            .Replace("optifine.OptiFineTweaker", "optifine.OptiFineForgeTweaker"));
-                }
-                catch (Exception ex)
-                {
-                    ModBase.Log(ex, "替换 OptiFineForge TweakClass 失败");
-                }
-            }
-        }
-
-        return result;
-    }
-
-    private static string McLaunchArgumentsGameNew(McInstance instance)
-    {
-        string mcLaunchArgumentsGameNewRet = default;
-        var dataList = new List<string>();
-
-        // 获取 Json 中的 DataList
-        var currentInstance = instance;
-        while (true)
-        {
-            if (currentInstance.JsonObject["arguments"] is not null &&
-                currentInstance.JsonObject["arguments"]["game"] is not null)
-                foreach (var subJson in currentInstance.JsonObject["arguments"]["game"].AsArray())
-                    if (subJson.GetValueKind() == JsonValueKind.String)
-                    {
-                        // 字符串类型
-                        dataList.Add(subJson.ToString());
-                    }
-                    // 非字符串类型
-                    else if (ModLibrary.McJsonRuleCheck(subJson["rules"]))
-                    {
-                        // 满足准则
-                        if (subJson["value"].GetValueKind() == JsonValueKind.String)
-                            dataList.Add(subJson["value"].ToString());
-                        else
-                            foreach (var value in subJson["value"].AsArray())
-                                dataList.Add(value.ToString());
-                    }
-
-            if (string.IsNullOrEmpty(currentInstance.InheritInstanceName))
+            case LauncherOptiFineTweakerAdjustment.MovedForgeTweaker:
+                ModBase.Log("[Launch] 已将 OptiFineForge TweakClass 移至参数末尾");
                 break;
-
-            currentInstance = new McInstance(currentInstance.InheritInstanceName);
-        }
-
-        // 将 "-XXX" 与后面 "XXX" 合并到一起
-        // 如果不进行合并 Impact 会启动无效，它有两个 --tweakclass
-        var deDuplicateDataList = new List<string>();
-        for (int i = 0, loopTo = dataList.Count - 1; i <= loopTo; i++)
-        {
-            var currentEntry = dataList[i];
-            if (dataList[i].StartsWithF("-"))
-                while (i < dataList.Count - 1)
-                {
-                    if (dataList[i + 1].StartsWithF("-")) break;
-
-                    i += 1;
-                    currentEntry += " " + dataList[i];
-                }
-
-            deDuplicateDataList.Add(currentEntry);
-        }
-
-        // 去重
-        mcLaunchArgumentsGameNewRet = deDuplicateDataList.Distinct().ToList().Join(" ");
-
-        // 特别改变 OptiFineTweaker
-        if ((instance.Info.HasForge || instance.Info.HasLiteLoader) && instance.Info.HasOptiFine)
-        {
-            // 把 OptiFineForgeTweaker 放在最后，不然会导致崩溃！
-            if (mcLaunchArgumentsGameNewRet.Contains("--tweakClass optifine.OptiFineForgeTweaker"))
-            {
-                ModBase.Log("[Launch] 发现正确的 OptiFineForge TweakClass，目前参数：" + mcLaunchArgumentsGameNewRet);
-                mcLaunchArgumentsGameNewRet =
-                    mcLaunchArgumentsGameNewRet.Replace(" --tweakClass optifine.OptiFineForgeTweaker", "")
-                        .Replace("--tweakClass optifine.OptiFineForgeTweaker ", "") +
-                    " --tweakClass optifine.OptiFineForgeTweaker";
-            }
-
-            if (mcLaunchArgumentsGameNewRet.Contains("--tweakClass optifine.OptiFineTweaker"))
-            {
-                ModBase.Log("[Launch] 发现错误的 OptiFineForge TweakClass，目前参数：" + mcLaunchArgumentsGameNewRet);
-                mcLaunchArgumentsGameNewRet =
-                    mcLaunchArgumentsGameNewRet.Replace(" --tweakClass optifine.OptiFineTweaker", "")
-                        .Replace("--tweakClass optifine.OptiFineTweaker ", "") +
-                    " --tweakClass optifine.OptiFineForgeTweaker";
+            case LauncherOptiFineTweakerAdjustment.ReplacedPlainTweaker:
+                ModBase.Log("[Launch] 已将 OptiFineTweaker 替换为 OptiFineForgeTweaker");
                 try
                 {
                     ModBase.WriteFile(Path.Combine(instance.PathInstance, instance.Name + ".json"),
@@ -2963,10 +2423,8 @@ public static class ModLaunch
                 {
                     ModBase.Log(ex, "替换 OptiFineForge TweakClass 失败");
                 }
-            }
+                break;
         }
-
-        return mcLaunchArgumentsGameNewRet;
     }
 
     // 替换 Arguments
@@ -3049,8 +2507,7 @@ public static class ModLaunch
         // 支持库参数
         var libList = ModLibrary.McLibListGet(instance, true);
         loader.output = libList;
-        var cpStrings = new List<string>();
-        string optiFineCp = null;
+        var bundledClasspathEntries = new List<string>();
 
         // RetroWrapper 释放
         if (McLaunchNeedsRetroWrapper(instance))
@@ -3059,7 +2516,7 @@ public static class ModLaunch
             try
             {
                 ModBase.WriteFile(wrapperPath, ModBase.GetResourceStream("Resources/retro-wrapper.jar"));
-                cpStrings.Add(wrapperPath);
+                bundledClasspathEntries.Add(wrapperPath);
             }
             catch (Exception ex)
             {
@@ -3074,7 +2531,7 @@ public static class ModLaunch
             try
             {
                 ModBase.WriteFile(agentPath, ModBase.GetResourceStream("Resources/lwjgl-unsafe-agent.jar"));
-                cpStrings.Add(agentPath);
+                bundledClasspathEntries.Add(agentPath);
             }
             catch (Exception ex)
             {
@@ -3082,32 +2539,12 @@ public static class ModLaunch
             }
         }
 
-        foreach (var library in libList)
-        {
-            if (library.IsNatives)
-                continue;
-            if (ModInstanceList.McMcInstanceSelected.Info.HasCleanroom 
-                && library.OriginalName is not null 
-                && (library.OriginalName.Contains("org.lwjgl.lwjgl:lwjgl:2.9.4") 
-                    || library.OriginalName.Contains("net.java.dev.jna:platform:3.4.0")
-                    || library.OriginalName.Contains("com.ibm.icu:icu4j-core-mojang:51.2")))
-                continue;
-            if (library.Name is not null && library.Name == "optifine:OptiFine")
-                optiFineCp = library.LocalPath;
-            else
-                cpStrings.Add(library.LocalPath);
-        }
-
-        foreach (var library in Config.Instance.ClasspathHead[instance.PathInstance].Split(";")) // 自定义 Classpath 头部
-        {
-            if (string.IsNullOrWhiteSpace(library))
-                continue;
-            cpStrings.Insert(0, library);
-        }
-
-        if (optiFineCp is not null)
-            cpStrings.Insert(cpStrings.Count - 2, optiFineCp); // OptiFine 的总是需要放到倒数第二位
-        gameArguments.Add("${classpath}", cpStrings.Select(c => ModBase.ShortenPath(c)).Join(";"));
+        var classpathPlan = LauncherLibraryApplicationAdapter.CreateClasspathPlan(
+            libList,
+            Config.Instance.ClasspathHead[instance.PathInstance].Split(";"), // 自定义 Classpath 头部
+            bundledClasspathEntries,
+            ModInstanceList.McMcInstanceSelected.Info.HasCleanroom);
+        gameArguments.Add("${classpath}", classpathPlan.Entries.Select(c => ModBase.ShortenPath(c)).Join(";"));
 
         return gameArguments;
     }
@@ -3119,85 +2556,38 @@ public static class ModLaunch
     private static void McLaunchNatives(ModLoader.LoaderTask<List<ModLibrary.McLibToken>, int> loader)
     {
         // 创建文件夹
-        var target = GetNativesFolder() + @"\";
+        var target = GetNativesFolder();
         Directory.CreateDirectory(target);
 
         // 解压文件
         McLaunchLog("正在解压 Natives 文件");
-        var existFiles = new List<string>();
-        foreach (var native in loader.input)
+        LauncherNativeExtractionResult result;
+        try
         {
-            if (!native.IsNatives)
-                continue;
-            ZipArchive zip;
-            try
-            {
-                zip = new ZipArchive(new FileStream(native.LocalPath, FileMode.Open));
-            }
-            catch (InvalidDataException ex)
-            {
-                ModBase.Log(ex, "打开 Natives 文件失败（" + native.LocalPath + "）");
-                File.Delete(native.LocalPath);
-                throw new Exception(Lang.Text("Minecraft.Launch.Error.NativesCorrupted", native.LocalPath));
-            }
-
-            foreach (var entry in zip.Entries)
-            {
-                var fileName = entry.FullName;
-                if (fileName.EndsWithF(".dll", true))
-                {
-                    // 实际解压文件的步骤
-                    var filePath = target + fileName;
-                    existFiles.Add(filePath);
-                    var originalFile = new FileInfo(filePath);
-                    if (originalFile.Exists)
-                    {
-                        if (originalFile.Length == entry.Length)
-                        {
-                            if (ModBase.modeDebug)
-                                McLaunchLog("无需解压：" + filePath);
-                            continue;
-                        }
-
-                        // 删除原文件
-                        try
-                        {
-                            File.Delete(filePath);
-                        }
-                        catch (UnauthorizedAccessException ex)
-                        {
-                            McLaunchLog("删除原 dll 访问被拒绝，这通常代表有一个 MC 正在运行，跳过解压：" + filePath);
-                            McLaunchLog("实际的错误信息：" + ex);
-                            break;
-                        }
-                    }
-
-                    // 解压新文件
-                    ModBase.WriteFile(filePath, entry.Open());
-                    McLaunchLog("已解压：" + filePath);
-                }
-            }
-
-            if (zip is not null)
-                zip.Dispose();
+            result = LauncherNativeApplicationAdapter.ExtractNatives(loader.input, target);
+        }
+        catch (LauncherNativeArchiveException ex)
+        {
+            ModBase.Log(ex, "打开 Natives 文件失败（" + ex.ArchivePath + "）");
+            File.Delete(ex.ArchivePath);
+            throw new Exception(Lang.Text("Minecraft.Launch.Error.NativesCorrupted", ex.ArchivePath));
         }
 
-        // 删除多余文件
-        foreach (var fileName in Directory.GetFiles(target))
+        foreach (string filePath in result.UpToDateFiles)
+            if (ModBase.modeDebug)
+                McLaunchLog("无需解压：" + filePath);
+
+        foreach (string filePath in result.ExtractedFiles)
+            McLaunchLog("已解压：" + filePath);
+
+        foreach (string filePath in result.DeletedFiles)
+            McLaunchLog("删除：" + filePath);
+
+        if (result.LockedFiles.Count > 0)
         {
-            if (existFiles.Contains(fileName))
-                continue;
-            try
-            {
-                McLaunchLog("删除：" + fileName);
-                File.Delete(fileName);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                McLaunchLog("删除多余文件访问被拒绝，跳过删除步骤");
-                McLaunchLog("实际的错误信息：" + ex);
-                return;
-            }
+            McLaunchLog("部分 Natives 文件被占用，已跳过删除或覆盖");
+            foreach (string filePath in result.LockedFiles)
+                McLaunchLog("被占用：" + filePath);
         }
     }
 

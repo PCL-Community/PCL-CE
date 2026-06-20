@@ -222,124 +222,10 @@ public static class ModLibrary
         bool keepSameNameDifferentVersionResult = false, string customMcFolder = null, McInstance targetMcInstance = null)
     {
         customMcFolder = customMcFolder ?? ModFolder.mcFolderSelected;
-        var basicArray = new List<McLibToken>();
-
-        // 添加基础 Json 项
-        var allLibs = (JsonArray)jsonObject["libraries"];
-
-        // 转换为 LibToken
-        foreach (var LibraryNode in allLibs)
-        {
-            var library = LibraryNode.AsObject();
-            // 清理 null 项（BakaXL 会把没有的项序列化为 null；这导致了 #409）
-            var keysToRemove = library.Where(p => p.Value?.GetValueKind() == JsonValueKind.Null).Select(p => p.Key).ToList();
-            foreach (var key in keysToRemove)
-                library.Remove(key);
-
-            // 检查是否需要（Rules）
-            if (!McJsonRuleCheck(library["rules"]))
-                continue;
-
-            // 获取根节点下的 url
-            var rootUrl = (string)library["url"];
-            if (rootUrl is not null)
-                rootUrl += McLibGet((string)library["name"], false, true, customMcFolder).Replace(@"\", "/");
-
-            // 是否为纯本地项
-            var hint = (string)library["hint"];
-            var isLocal = hint is not null ? hint == "local" : false;
-
-            // 根据是否本地化处理（Natives）
-            if (library["natives"] is null) // 没有 Natives
-            {
-                string localPath;
-                if (isLocal && targetMcInstance is not null) // 纯本地项
-                    localPath = targetMcInstance.PathInstance + @"libraries\" +
-                                library["name"].ToString().AfterFirst(":").Replace(":", "-") + ".jar";
-                else
-                    localPath = McLibGet((string)library["name"], customMcFolder: customMcFolder);
-                try
-                {
-                    if (library["downloads"] is not null && library["downloads"]["artifact"] is not null)
-                    {
-                        var init = new McLibToken();
-                        basicArray.Add((init.OriginalName = (string)library["name"],
-                            init.Url = (string)(rootUrl ?? library["downloads"]["artifact"]["url"]),
-                            init.LocalPath = library["downloads"]["artifact"]["path"] is null
-                                ? McLibGet((string)library["name"], customMcFolder: customMcFolder)
-                                : Path.Combine(customMcFolder, "libraries", library["downloads"]["artifact"]["path"].ToString()
-                                    .Replace("/", @"\")),
-                            init.size = (long)Math.Round(
-                                ModBase.Val(library["downloads"]["artifact"]["size"].ToString())),
-                            init.IsNatives = false, init.Sha1 = library["downloads"]["artifact"]["sha1"]?.ToString(),
-                            init.IsLocal = isLocal, init).init);
-                    }
-                    else
-                    {
-                        basicArray.Add(new McLibToken
-                        {
-                            OriginalName = (string)library["name"], Url = rootUrl, LocalPath = localPath, size = 0L,
-                            IsNatives = false, Sha1 = null, IsLocal = isLocal
-                        });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ModBase.Log(ex, "处理实际支持库列表失败（无 Natives，" + (library["name"] ?? "Nothing") + "）");
-                    basicArray.Add(new McLibToken
-                    {
-                        OriginalName = (string)library["name"], Url = rootUrl, LocalPath = localPath, size = 0L,
-                        IsNatives = false, Sha1 = null
-                    });
-                }
-            }
-            else if (library["natives"]["windows"] is not null) // 有 Windows Natives
-            {
-                try
-                {
-                    if (library["downloads"] is not null && library["downloads"]["classifiers"] is not null &&
-                        library["downloads"]["classifiers"]["natives-windows"] is not null)
-                        basicArray.Add(new McLibToken
-                        {
-                            OriginalName = (string)library["name"],
-                            Url = (string)(rootUrl ?? library["downloads"]["classifiers"]["natives-windows"]["url"]),
-                            LocalPath = library["downloads"]["classifiers"]["natives-windows"]["path"] is null
-                                ? McLibGet((string)library["name"], customMcFolder: customMcFolder)
-                                    .Replace(".jar", "-" + library["natives"]["windows"] + ".jar")
-                                    .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32")
-                                : Path.Combine(customMcFolder, "libraries",
-                                  library["downloads"]["classifiers"]["natives-windows"]["path"].ToString()
-                                      .Replace("/", @"\")),
-                            size = (long)Math.Round(
-                                ModBase.Val(library["downloads"]["classifiers"]["natives-windows"]["size"].ToString())),
-                            IsNatives = true,
-                            Sha1 = library["downloads"]["classifiers"]["natives-windows"]["sha1"].ToString(),
-                            IsLocal = isLocal
-                        });
-                    else
-                        basicArray.Add(new McLibToken
-                        {
-                            OriginalName = (string)library["name"], Url = rootUrl,
-                            LocalPath = McLibGet((string)library["name"], customMcFolder: customMcFolder)
-                                .Replace(".jar", "-" + library["natives"]["windows"] + ".jar")
-                                .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32"),
-                            size = 0L, IsNatives = true, Sha1 = null, IsLocal = isLocal
-                        });
-                }
-                catch (Exception ex)
-                {
-                    ModBase.Log(ex, "处理实际支持库列表失败（有 Natives，" + (library["name"] ?? "Nothing") + "）");
-                    basicArray.Add(new McLibToken
-                    {
-                        OriginalName = (string)library["name"], Url = rootUrl,
-                        LocalPath = McLibGet((string)library["name"], customMcFolder: customMcFolder)
-                            .Replace(".jar", "-" + library["natives"]["windows"] + ".jar")
-                            .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32"),
-                        size = 0L, IsNatives = true, Sha1 = null, IsLocal = false
-                    });
-                }
-            }
-        }
+        var basicArray = LauncherLibraryApplicationAdapter.ResolveLibraries(
+            jsonObject,
+            customMcFolder,
+            targetMcInstance?.PathInstance);
 
         // 去重
         var resultArray = new Dictionary<string, McLibToken>();
@@ -528,86 +414,42 @@ public static class ModLibrary
     public static List<DownloadFile> McLibNetFilesFromTokens(List<McLibToken> libs, string customMcFolder = null)
     {
         customMcFolder = customMcFolder ?? ModFolder.mcFolderSelected;
-        var result = new List<DownloadFile>();
-        // 获取
+        var missingLibraries = new List<McLibToken>();
         foreach (var token in libs)
         {
-            // 检查文件
             var checker = new ModBase.FileChecker(actualSize: token.size == 0L ? -1 : token.size, hash: token.Sha1);
             if (checker.Check(token.LocalPath) is null)
                 continue;
-            if (token.IsLocal)
-            {
-                ModBase.Log("[Download] 已跳过被标记为本地文件的支持库: " + token.OriginalName);
-                continue;
-            }
-
-            // URL
-            var urls = new List<string>();
-            if (token.Url is null && token.Name == "net.minecraftforge:forge:universal")
-                // 特判修复 Forge 部分 universal 文件缺失 URL（#5455）
-                token.Url = "https://maven.minecraftforge.net" +
-                            token.LocalPath.Replace(customMcFolder + "libraries", "").Replace(@"\", "/");
-            if (token.Url is not null)
-            {
-                // 获取 URL 的真实地址
-                urls.Add(token.Url);
-                if (token.Url.Contains("launcher.mojang.com/v1/objects") || token.Url.Contains("client.txt") ||
-                    token.Url.Contains(".tsrg"))
-                    urls.AddRange(ModDownload.DlSourceLauncherOrMetaGet(token.Url)); // Mappings（#4425）
-                if (token.Url.Contains("maven"))
-                {
-                    var bmclapiUrl = token.Url
-                        .Replace(token.Url.Substring(0, token.Url.IndexOfF("maven")),
-                            "https://bmclapi2.bangbang93.com/").Replace("maven.fabricmc.net", "maven")
-                        .Replace("maven.minecraftforge.net", "maven").Replace("maven.neoforged.net/releases", "maven");
-                    if (ModDownload.DlSourcePreferMojang)
-                        urls.Add(bmclapiUrl); // 官方源优先
-                    else
-                        urls.Insert(0, bmclapiUrl); // 镜像源优先
-                }
-            }
-
-            if (token.LocalPath.Contains("transformer-discovery-service"))
-            {
-                // Transformer 文件释放
-                if (!File.Exists(token.LocalPath))
-                    ModBase.WriteFile(token.LocalPath, ModBase.GetResourceStream("Resources/transformer.jar"));
-                ModBase.Log("[Download] 已自动释放 Transformer Discovery Service", ModBase.LogLevel.Developer);
-                continue;
-            }
-
-            if (token.LocalPath.Contains(@"optifine\OptiFine"))
-            {
-                // OptiFine 主 Jar
-                var optiFineBase =
-                    token.LocalPath.Replace(Path.Combine(customMcFolder, "libraries", "optifine", "OptiFine") + @"\", "").Split("_")[0] + "/" +
-                    ModBase.GetFileNameFromPath(token.LocalPath).Replace("-", "_");
-                optiFineBase = "/maven/com/optifine/" + optiFineBase;
-                if (optiFineBase.Contains("_pre"))
-                    optiFineBase = optiFineBase.Replace("com/optifine/", "com/optifine/preview_");
-                urls.Add("https://bmclapi2.bangbang93.com" + optiFineBase);
-            }
-            else if (token.Name.Contains("LabyMod"))
-            {
-                // LabyMod 只有一个下载源
-                urls.Add(token.Url);
-                ModBase.Log(
-                    $"[Download] 获取到 LabyMod 主要库文件的 Size = {token.size},SHA1 = {token.Sha1}，由于 LabyMod 乱写 Size，已忽略 Size");
-                checker = new ModBase.FileChecker(hash: token.Sha1); // 只校验 SHA1
-            }
-            else if (urls.Count <= 2)
-            {
-                // 普通文件
-                urls.AddRange(ModDownload.DlSourceLibraryGet("https://libraries.minecraft.net" +
-                                                             token.LocalPath.Replace(customMcFolder + "libraries", "")
-                                                                 .Replace(@"\", "/")));
-            }
-
-            result.Add(new DownloadFile(urls.Distinct(), token.LocalPath, checker));
+            missingLibraries.Add(token);
         }
 
-        // 去重并返回
+        var plan = LauncherLibraryApplicationAdapter.CreateDownloadPlan(
+            missingLibraries,
+            customMcFolder,
+            ModDownload.DlSourcePreferMojang);
+        foreach (var library in plan.SkippedLocalLibraries)
+            ModBase.Log("[Download] 已跳过被标记为本地文件的支持库: " + library);
+
+        foreach (var bundledFile in plan.BundledFiles)
+        {
+            if (!File.Exists(bundledFile.LocalPath))
+                ModBase.WriteFile(bundledFile.LocalPath, ModBase.GetResourceStream(bundledFile.ResourceName));
+            if (bundledFile.ResourceName == "Resources/transformer.jar")
+                ModBase.Log("[Download] 已自动释放 Transformer Discovery Service", ModBase.LogLevel.Developer);
+        }
+
+        var result = new List<DownloadFile>();
+        foreach (var file in plan.DownloadFiles)
+        {
+            if (file.Note == LauncherLibraryDownloadNote.LabyModSizeIgnored)
+                ModBase.Log(
+                    $"[Download] 获取到 LabyMod 主要库文件的 Size = {file.ReportedSize},SHA1 = {file.Sha1}，由于 LabyMod 乱写 Size，已忽略 Size");
+            var checker = file.IgnoreSize
+                ? new ModBase.FileChecker(hash: file.Sha1)
+                : new ModBase.FileChecker(actualSize: file.ActualSize, hash: file.Sha1);
+            result.Add(new DownloadFile(file.Urls, file.LocalPath, checker));
+        }
+
         return result.Distinct((a, b) => (a.LocalPath ?? "") == (b.LocalPath ?? ""));
     }
 
@@ -622,9 +464,7 @@ public static class ModLibrary
         string mcLibGetRet = default;
         customMcFolder = customMcFolder ?? ModFolder.mcFolderSelected;
         var splited = original.Split(":");
-        mcLibGetRet = withHead
-            ? Path.Combine(customMcFolder, "libraries", splited[0].Replace(".", @"\"), splited[1], splited[2], splited[1] + "-" + splited[2] + ".jar")
-            : Path.Combine(splited[0].Replace(".", @"\"), splited[1], splited[2], splited[1] + "-" + splited[2] + ".jar");
+        mcLibGetRet = LauncherLibraryApplicationAdapter.GetLibraryPath(original, customMcFolder, withHead);
         // 判断 OptiFine 是否应该使用 installer
         if (mcLibGetRet.Contains(@"optifine\OptiFine\1.") && splited[2].Split(".").Count() > 1)
         {
