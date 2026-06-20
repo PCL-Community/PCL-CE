@@ -73,6 +73,99 @@ public sealed class DownloadTests
         }
     }
 
+    [TestMethod]
+    public async Task DownloadServiceFallsBackAndCommitsSuccessfulSource()
+    {
+        var directory = Path.Combine(
+            Path.GetTempPath(),
+            $"pcl-download-{Guid.NewGuid():N}");
+        var destination = Path.Combine(directory, "artifact.bin");
+        var expected = Encoding.UTF8.GetBytes("portable failover payload");
+        using var client = new HttpClient(new RouteResponseHandler(expected));
+        var stages = new List<DownloadStage>();
+
+        try
+        {
+            var result = await new DownloadService().DownloadAsync(
+                new DownloadRequest
+                {
+                    Sources =
+                    [
+                        "https://pcl.invalid/fail",
+                        "https://pcl.invalid/success"
+                    ],
+                    DestinationPath = destination,
+                    ConnectionFactory = url =>
+                        new HttpDlConnection(client, url)
+                },
+                progress => stages.Add(progress.Stage));
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual("https://pcl.invalid/success", result.SuccessfulSource);
+            Assert.AreEqual(1, result.Errors.Count);
+            CollectionAssert.AreEqual(
+                expected,
+                await File.ReadAllBytesAsync(destination));
+            CollectionAssert.Contains(stages, DownloadStage.Retrying);
+            CollectionAssert.Contains(stages, DownloadStage.Completed);
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task SharedDownloadKeepsRunningWhenOneWaiterCancels()
+    {
+        var directory = Path.Combine(
+            Path.GetTempPath(),
+            $"pcl-shared-download-{Guid.NewGuid():N}");
+        var destination = Path.Combine(directory, "artifact.bin");
+        var expected = Encoding.UTF8.GetBytes("shared operation");
+        var gate = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var starts = 0;
+        var service = new DownloadService();
+        var request = new DownloadRequest
+        {
+            Sources = ["https://pcl.invalid/shared"],
+            DestinationPath = destination,
+            ConnectionFactory = _ =>
+            {
+                Interlocked.Increment(ref starts);
+                return new GatedConnection(expected, gate.Task);
+            }
+        };
+        using var cancellation = new CancellationTokenSource();
+
+        try
+        {
+            var canceledWaiter = service.DownloadAsync(
+                request,
+                cancellationToken: cancellation.Token);
+            var successfulWaiter = service.DownloadAsync(request);
+            cancellation.Cancel();
+            await Assert.ThrowsExactlyAsync<TaskCanceledException>(
+                () => canceledWaiter);
+
+            gate.SetResult();
+            var result = await successfulWaiter;
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(1, starts);
+            CollectionAssert.AreEqual(
+                expected,
+                await File.ReadAllBytesAsync(destination));
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
+        }
+    }
+
     private sealed class StaticResponseHandler(byte[] content) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(
@@ -87,6 +180,58 @@ public sealed class DownloadTests
             response.Content.Headers.ContentLength = content.Length;
             response.Headers.AcceptRanges.Add("bytes");
             return Task.FromResult(response);
+        }
+    }
+
+    private sealed class RouteResponseHandler(byte[] content) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            if (request.RequestUri!.AbsolutePath == "/fail")
+                return Task.FromResult(new HttpResponseMessage(
+                    HttpStatusCode.ServiceUnavailable));
+
+            var response = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                RequestMessage = request,
+                Content = new ByteArrayContent(content)
+            };
+            response.Content.Headers.ContentLength = content.Length;
+            return Task.FromResult(response);
+        }
+    }
+
+    private sealed class GatedConnection(
+        byte[] content,
+        Task gate) : IDlConnection
+    {
+        private bool _read;
+
+        public ValueTask<NDlConnectionInfo> StartAsync(
+            long beginOffset,
+            CancellationToken cancellationToken = default) =>
+            ValueTask.FromResult(new NDlConnectionInfo(
+                content.Length,
+                beginOffset,
+                content.Length - 1,
+                false));
+
+        public ValueTask StopAsync(
+            CancellationToken cancellationToken = default) =>
+            ValueTask.CompletedTask;
+
+        public async ValueTask<int> ReadAsync(
+            Memory<byte> buffer,
+            CancellationToken cancellationToken = default)
+        {
+            if (_read)
+                return 0;
+            await gate.WaitAsync(cancellationToken);
+            content.CopyTo(buffer);
+            _read = true;
+            return content.Length;
         }
     }
 }

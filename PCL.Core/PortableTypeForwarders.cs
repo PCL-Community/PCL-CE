@@ -7,6 +7,7 @@ using PCL.Core.App.Cli;
 using PCL.Core.Link.McPing;
 using PCL.Core.Link.McPing.Model;
 using PCL.Core.Link.Scaffolding;
+using PCL.Core.IO.Download;
 using PCL.Core.Minecraft.Saves;
 using PCL.Core.Minecraft.Saves.Editing;
 using PCL.Core.Minecraft.Saves.Exceptions;
@@ -85,6 +86,16 @@ using PCL.Core.Utils.Threading;
 [assembly: TypeForwardedTo(typeof(McPingResult))]
 [assembly: TypeForwardedTo(typeof(McPingVersionResult))]
 [assembly: TypeForwardedTo(typeof(LobbyCodeGenerator))]
+[assembly: TypeForwardedTo(typeof(IDlResourceMapping<>))]
+[assembly: TypeForwardedTo(typeof(NDlFactory))]
+[assembly: TypeForwardedTo(typeof(NDlFactory<,>))]
+[assembly: TypeForwardedTo(typeof(NDlSourceReport))]
+[assembly: TypeForwardedTo(typeof(DownloadStage))]
+[assembly: TypeForwardedTo(typeof(DownloadProgress))]
+[assembly: TypeForwardedTo(typeof(DownloadAttemptError))]
+[assembly: TypeForwardedTo(typeof(DownloadRequest))]
+[assembly: TypeForwardedTo(typeof(DownloadTransferResult))]
+[assembly: TypeForwardedTo(typeof(DownloadService))]
 [assembly: TypeForwardedTo(typeof(IdentityModelException))]
 [assembly: TypeForwardedTo(typeof(IdentityModelConfigurationException))]
 [assembly: TypeForwardedTo(typeof(IdentityModelAuthenticationException))]

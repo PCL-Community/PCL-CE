@@ -11,6 +11,7 @@ using System.Text.Json.Serialization;
 using fNbt;
 using PCL.Core.Link.McPing;
 using PCL.Core.Link.Scaffolding;
+using PCL.Core.IO.Download;
 using PCL.Core.Minecraft.IdentityModel.Extensions.OpenId;
 using PCL.Core.Minecraft.IdentityModel.Extensions.JsonWebToken;
 using PCL.Core.Minecraft.IdentityModel.Extensions.YggdrasilConnect;
@@ -60,6 +61,7 @@ var oauthValid = await VerifyOAuthAsync();
 var openIdValid = await VerifyOpenIdAsync();
 var yggdrasilValid = await VerifyYggdrasilAsync();
 var jwtValid = VerifyJwt();
+var downloadValid = await VerifyDownloadAsync();
 
 return hashValid &&
        roundTrip == payload &&
@@ -72,7 +74,8 @@ return hashValid &&
        oauthValid &&
        openIdValid &&
        yggdrasilValid &&
-       jwtValid
+       jwtValid &&
+       downloadValid
     ? 0
     : 1;
 
@@ -258,6 +261,44 @@ static bool VerifyJwt()
            jwt.GetClaimValue("sub") == "aot-user";
 }
 
+static async Task<bool> VerifyDownloadAsync()
+{
+    var directory = Path.Combine(
+        Path.GetTempPath(),
+        $"pcl-aot-download-{Guid.NewGuid():N}");
+    var destination = Path.Combine(directory, "artifact.bin");
+    var expected = "portable-download-aot"u8.ToArray();
+    using var http = new HttpClient(new SmokeDownloadHandler(expected));
+
+    try
+    {
+        var result = await new DownloadService().DownloadAsync(
+            new DownloadRequest
+            {
+                Sources =
+                [
+                    "https://localhost/fail",
+                    "https://localhost/success"
+                ],
+                DestinationPath = destination,
+                ConnectionFactory = url => new HttpDlConnection(http, url)
+            });
+        var actual = await File.ReadAllBytesAsync(destination);
+        return result is
+               {
+                   Success: true,
+                   SuccessfulSource: "https://localhost/success",
+                   Errors.Count: 1
+               } &&
+               expected.AsSpan().SequenceEqual(actual);
+    }
+    finally
+    {
+        if (Directory.Exists(directory))
+            Directory.Delete(directory, recursive: true);
+    }
+}
+
 static string Base64Url(byte[] value) =>
     Convert.ToBase64String(value)
         .TrimEnd('=')
@@ -340,4 +381,21 @@ internal sealed class SmokeYggdrasilHandler : HttpMessageHandler
                 Encoding.UTF8,
                 "application/json")
         });
+}
+
+internal sealed class SmokeDownloadHandler(byte[] content) : HttpMessageHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken)
+    {
+        if (request.RequestUri?.AbsolutePath == "/fail")
+            return Task.FromResult(new HttpResponseMessage(
+                HttpStatusCode.ServiceUnavailable));
+
+        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new ByteArrayContent(content)
+        });
+    }
 }

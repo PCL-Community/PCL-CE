@@ -1,9 +1,5 @@
 using System;
-using System.Buffers;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,11 +26,7 @@ public class PclDlService
     public static PclDlService Default { get; } = new();
 
     private readonly PclDlFactory _factory = new();
-    private readonly ConcurrentDictionary<string, Task<DownloadResult>> _active =
-        new(StringComparer.OrdinalIgnoreCase);
-    private readonly HashSet<string> _completed = new(StringComparer.OrdinalIgnoreCase);
-
-    private const int BufferSize = 81920; // 80KB
+    private readonly DownloadService _service = new();
 
     /// <summary>
     /// Download a file with automatic URL failover and deduplication.
@@ -42,149 +34,89 @@ public class PclDlService
     /// </summary>
     public async Task<DownloadResult> DownloadAsync(DownloadFile file, CancellationToken cancellationToken)
     {
-        if (_completed.Contains(file.LocalPath))
-            return new DownloadResult { Success = true };
-
-        var isOwner = false;
-        var task = _active.GetOrAdd(file.LocalPath, _ =>
+        var request = new DownloadRequest
         {
-            isOwner = true;
-            return DownloadCoreAsync(file, cancellationToken);
-        });
+            Sources = file.Urls,
+            DestinationPath = file.LocalPath,
+            ConnectionFactory = url => _factory.CreateConnection(
+                new DownloadSourceParams(
+                    url,
+                    file.UseBrowserUserAgent,
+                    file.CustomUserAgent)),
+            WriterFactory = _factory.MakeWriter
+        };
+        var result = await _service
+            .DownloadAsync(
+                request,
+                progress => ApplyProgress(file, progress),
+                cancellationToken)
+            .ConfigureAwait(false);
 
-        if (!isOwner)
+        foreach (var error in result.Errors)
         {
-            return await task.ConfigureAwait(false);
+            file.Errors.Add(error.Exception);
+            ModBase.Log(
+                error.Exception,
+                $"[Download] 下载失败：{error.Source}",
+                ModBase.LogLevel.Debug);
         }
 
-        try
+        if (result.Success)
         {
-            var result = await task.ConfigureAwait(false);
-            if (result.Success)
-                _completed.Add(file.LocalPath);
-            return result;
-        }
-        finally
-        {
-            _active.TryRemove(file.LocalPath, out _);
-        }
-    }
-
-    private async Task<DownloadResult> DownloadCoreAsync(DownloadFile file, CancellationToken cancellationToken)
-    {
-        var errors = new List<string>();
-        var sw = Stopwatch.StartNew();
-
-        foreach (var url in file.Urls)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            IDlConnection? connection = null;
-            IDlWriter? writer = null;
-            try
+            ModBase.Log(
+                $"[Download] 下载成功：{file.LocalPath} ({result.SuccessfulSource})");
+            return new DownloadResult
             {
-                var source = new DownloadSourceParams(url, file.UseBrowserUserAgent, file.CustomUserAgent);
-                connection = _factory.CreateConnection(source);
-                if (connection is null)
-                {
-                    errors.Add($"无法创建连接：{url}");
-                    continue;
-                }
-
-                file.State = NetState.Connecting;
-                var info = await connection.StartAsync(0, cancellationToken).ConfigureAwait(false);
-
-                writer = _factory.MakeWriter(file.LocalPath);
-                if (writer is null)
-                {
-                    errors.Add($"无法创建写入器：{file.LocalPath}");
-                    continue;
-                }
-
-                var writeStream = await writer.CreateStreamAsync(cancellationToken).ConfigureAwait(false);
-
-                file.TotalSize = Math.Max(file.TotalSize, info.Length);
-                file.IsUnknownSize = info.Length <= 0;
-                file.DownloadedBytes = 0;
-                file.State = NetState.Reading;
-
-                var buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
-                try
-                {
-                    var readSw = Stopwatch.StartNew();
-                    long totalRead = 0;
-                    while (true)
-                    {
-                        var read = await connection
-                            .ReadAsync(buffer.AsMemory(0, BufferSize), cancellationToken)
-                            .ConfigureAwait(false);
-                        if (read == 0)
-                            break;
-
-                        await writeStream
-                            .WriteAsync(buffer.AsMemory(0, read), cancellationToken)
-                            .ConfigureAwait(false);
-                        totalRead += read;
-
-                        file.State = NetState.Downloading;
-                        file.DownloadedBytes = totalRead;
-                        if (totalRead > file.TotalSize)
-                            file.TotalSize = totalRead;
-
-                        var elapsed = readSw.Elapsed.TotalSeconds;
-                        file.Speed = elapsed > 0.1 ? (long)(totalRead / elapsed) : 0;
-                    }
-
-                    await writeStream.FlushAsync(cancellationToken).ConfigureAwait(false);
-                    await writer.FinishAsync(cancellationToken).ConfigureAwait(false);
-
-                    file.DownloadedBytes = totalRead;
-                    file.TotalSize = totalRead;
-                    file.Speed = 0;
-                    file.ActiveThreads = 0;
-
-                    sw.Stop();
-                    ModBase.Log($"[Download] 下载成功：{file.LocalPath} ({url})");
-                    return new DownloadResult
-                    {
-                        Success = true,
-                        TotalBytes = totalRead,
-                        Duration = sw.Elapsed,
-                    };
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(buffer);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"{url}: {ex.Message}");
-                file.Errors.Add(ex);
-                ModBase.Log(ex, $"[Download] 下载失败：{url}", ModBase.LogLevel.Debug);
-            }
-            finally
-            {
-                if (writer is not null)
-                    await writer.StopAsync(CancellationToken.None).ConfigureAwait(false);
-                if (connection is not null)
-                    await connection.StopAsync(CancellationToken.None).ConfigureAwait(false);
-            }
+                Success = true,
+                TotalBytes = result.TotalBytes,
+                Duration = result.Duration
+            };
         }
 
-        sw.Stop();
         var errorMessage = $"下载失败：{file.LocalPath}\n" +
-                           string.Join("\n", errors.Select(e => $"- {e}"));
+                           string.Join(
+                               "\n",
+                               result.Errors.Select(
+                                   static error =>
+                                       $"- {error.Source}: {error.Message}"));
         ModBase.Log($"[Download] {errorMessage}");
         return new DownloadResult
         {
             Success = false,
             ErrorMessage = errorMessage,
-            Duration = sw.Elapsed,
+            Duration = result.Duration
+        };
+    }
+
+    private static void ApplyProgress(
+        DownloadFile file,
+        DownloadProgress progress)
+    {
+        file.ActiveThreads = progress.Stage is DownloadStage.Completed or
+            DownloadStage.Failed
+            ? 0
+            : 1;
+        file.DownloadedBytes = progress.DownloadedBytes;
+        file.Speed = progress.BytesPerSecond;
+        if (progress.TotalBytes > 0)
+        {
+            file.TotalSize = progress.TotalBytes;
+            file.IsUnknownSize = false;
+        }
+        else
+        {
+            file.IsUnknownSize = true;
+        }
+
+        file.State = progress.Stage switch
+        {
+            DownloadStage.Connecting => NetState.Connecting,
+            DownloadStage.Reading => NetState.Reading,
+            DownloadStage.Downloading => NetState.Downloading,
+            DownloadStage.Committing => NetState.Merging,
+            DownloadStage.Completed => NetState.Finished,
+            DownloadStage.Failed => NetState.Interrupted,
+            _ => file.State
         };
     }
 }
