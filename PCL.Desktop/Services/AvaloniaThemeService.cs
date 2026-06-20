@@ -51,34 +51,34 @@ public sealed class AvaloniaThemeService : IThemeService
             _application.ActualThemeVariant == ThemeVariant.Dark;
         string accent = CurrentAccent switch
         {
-            AccentColor.SkyBlue => "#58A9E8",
-            AccentColor.System => "#4A9BDA",
-            _ => "#287BC1"
+            AccentColor.SkyBlue => "#4890F5",
+            AccentColor.System => "#1370F3",
+            _ => "#0B5BCB"
         };
         string accentHover = CurrentAccent switch
         {
-            AccentColor.SkyBlue => "#73B9EE",
-            AccentColor.System => "#66AEE1",
-            _ => "#3F93D7"
+            AccentColor.SkyBlue => "#96C0F9",
+            AccentColor.System => "#4890F5",
+            _ => "#1370F3"
         };
 
-        SetBrush("ColorBrush1", isDark ? "#E6EDF5" : "#283E57");
+        SetBrush("ColorBrush1", isDark ? "#E6EDF5" : "#343D4A");
         SetBrush("ColorBrush2", accent);
         SetBrush("ColorBrush3", accentHover);
-        SetBrush("ColorBrush4", isDark ? "#AEBCCD" : "#65758B");
-        SetBrush("ColorBrush5", isDark ? "#8494A8" : "#8A99AA");
-        SetBrush("ColorBrush6", isDark ? "#3B4B60" : "#D7E0EA");
-        SetBrush("ColorBrush7", isDark ? "#23364D" : "#EEF6FD");
+        SetBrush("ColorBrush4", isDark ? "#AEBCCD" : "#4890F5");
+        SetBrush("ColorBrush5", isDark ? "#8494A8" : "#96C0F9");
+        SetBrush("ColorBrush6", isDark ? "#3B4B60" : "#D5E6FD");
+        SetBrush("ColorBrush7", isDark ? "#23364D" : "#E0EAFD");
         SetBrush(
             "ColorBrushHalfWhite",
-            isDark ? "#141FFFFF" : "#B8FFFFFF");
+            isDark ? "#14FFFFFF" : "#55FFFFFF");
         SetBrush(
             "ColorBrushTransparentBackground",
-            isDark ? "#F21B2736" : "#F7FFFFFF");
-        SetBrush("ColorBrushPageBackground", isDark ? "#111A26" : "#F4F7FB");
-        SetBrush("ColorBrushPanelBackground", isDark ? "#182536" : "#FFFFFF");
-        SetBrush("ColorBrushSidebar", isDark ? "#0B1420" : "#14263D");
-        SetBrush("ColorBrushSidebarHover", isDark ? "#1A3048" : "#203A5D");
+            isDark ? "#D21B2736" : "#D2FBFBFB");
+        SetBrush("ColorBrushPageBackground", isDark ? "#111A26" : "#FBFBFB");
+        SetBrush("ColorBrushPanelBackground", isDark ? "#182536" : "#FBFBFB");
+        SetBrush("ColorBrushSidebar", isDark ? "#D2182536" : "#D2FBFBFB");
+        SetBrush("ColorBrushSidebarHover", isDark ? "#23364D" : "#E0EAFD");
     }
 
     private void SetBrush(string key, string color) =>

@@ -14,8 +14,6 @@ namespace PCL.Desktop.Views;
 
 public sealed partial class MainWindow : Window
 {
-    private readonly bool _usesMacCustomTitleBar;
-
     public MainWindow()
         : this(DesktopCompositionRoot.CreateMainWindowViewModel())
     {
@@ -25,21 +23,15 @@ public sealed partial class MainWindow : Window
     {
         AvaloniaXamlLoader.Load(this);
         DataContext = viewModel;
-
-        _usesMacCustomTitleBar = viewModel.Environment.IsMacOS;
-        if (_usesMacCustomTitleBar)
-        {
-            WindowDecorations = WindowDecorations.None;
-            CanMaximize = false;
-        }
+        WindowDecorations = WindowDecorations.None;
+        CanMaximize = false;
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
 
-        if (_usesMacCustomTitleBar &&
-            change.Property == WindowStateProperty &&
+        if (change.Property == WindowStateProperty &&
             change.GetNewValue<WindowState>() == WindowState.FullScreen)
         {
             WindowState = WindowState.Normal;
@@ -53,7 +45,7 @@ public sealed partial class MainWindow : Window
         base.OnClosed(e);
     }
 
-    private void MacTitleBar_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    private void TitleBar_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             BeginMoveDrag(e);
@@ -63,4 +55,44 @@ public sealed partial class MainWindow : Window
 
     private void MinimizeButton_OnClick(object? sender, RoutedEventArgs e) =>
         WindowState = WindowState.Minimized;
+
+    private void ResizeTop_OnPointerPressed(
+        object? sender,
+        PointerPressedEventArgs e) =>
+        BeginResizeDrag(WindowEdge.North, e);
+
+    private void ResizeBottom_OnPointerPressed(
+        object? sender,
+        PointerPressedEventArgs e) =>
+        BeginResizeDrag(WindowEdge.South, e);
+
+    private void ResizeLeft_OnPointerPressed(
+        object? sender,
+        PointerPressedEventArgs e) =>
+        BeginResizeDrag(WindowEdge.West, e);
+
+    private void ResizeRight_OnPointerPressed(
+        object? sender,
+        PointerPressedEventArgs e) =>
+        BeginResizeDrag(WindowEdge.East, e);
+
+    private void ResizeTopLeft_OnPointerPressed(
+        object? sender,
+        PointerPressedEventArgs e) =>
+        BeginResizeDrag(WindowEdge.NorthWest, e);
+
+    private void ResizeTopRight_OnPointerPressed(
+        object? sender,
+        PointerPressedEventArgs e) =>
+        BeginResizeDrag(WindowEdge.NorthEast, e);
+
+    private void ResizeBottomLeft_OnPointerPressed(
+        object? sender,
+        PointerPressedEventArgs e) =>
+        BeginResizeDrag(WindowEdge.SouthWest, e);
+
+    private void ResizeBottomRight_OnPointerPressed(
+        object? sender,
+        PointerPressedEventArgs e) =>
+        BeginResizeDrag(WindowEdge.SouthEast, e);
 }

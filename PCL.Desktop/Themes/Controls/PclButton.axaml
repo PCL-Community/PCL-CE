@@ -10,7 +10,7 @@
     xmlns:icons="using:PCL.Desktop.Controls.Icons">
   <Style Selector="buttons|PclButton">
     <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
-    <Setter Property="Padding" Value="14,6" />
+    <Setter Property="Padding" Value="13,5" />
     <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
     <Setter Property="Foreground" Value="{DynamicResource ColorBrush1}" />
     <Setter Property="BorderBrush" Value="{DynamicResource ColorBrush1}" />
@@ -34,8 +34,10 @@
           <ContentPresenter
               Content="{TemplateBinding Content}"
               ContentTemplate="{TemplateBinding ContentTemplate}"
+              Margin="0"
               HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+              UseLayoutRounding="True" />
         </Border>
       </ControlTemplate>
     </Setter>
@@ -111,21 +113,26 @@
           <Border.RenderTransform>
             <ScaleTransform ScaleX="1" ScaleY="1" />
           </Border.RenderTransform>
-          <StackPanel
-              Orientation="Horizontal"
-              Spacing="8"
+          <Grid
+              ColumnDefinitions="Auto,Auto"
+              ColumnSpacing="7"
               HorizontalAlignment="Center"
-              VerticalAlignment="Center">
+              VerticalAlignment="Center"
+              UseLayoutRounding="True">
             <icons:LucideIcon
                 IconKey="{TemplateBinding IconKey}"
                 Stroke="{TemplateBinding Foreground}"
                 Width="17"
-                Height="17" />
+                Height="17"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center" />
             <TextBlock
+                Grid.Column="1"
                 Text="{TemplateBinding Text}"
                 Foreground="{TemplateBinding Foreground}"
+                HorizontalAlignment="Center"
                 VerticalAlignment="Center" />
-          </StackPanel>
+          </Grid>
         </Border>
       </ControlTemplate>
     </Setter>

@@ -26,6 +26,8 @@ public sealed class DesktopCompositionRootTests
         StringAssert.EndsWith(viewModel.Environment.ApplicationDataDirectory, "PCL N");
         StringAssert.EndsWith(viewModel.Environment.CacheDirectory, "PCL N");
         Assert.AreEqual("首页", viewModel.SelectedTitle);
+        Assert.AreEqual("启动", viewModel.SelectedSection?.Title);
+        Assert.HasCount(4, viewModel.NavigationSections);
     }
 
     [TestMethod]
@@ -40,6 +42,7 @@ public sealed class DesktopCompositionRootTests
         plugin.OpenCommand.Execute(null);
 
         Assert.AreEqual("插件", viewModel.SelectedTitle);
+        Assert.AreEqual("设置", viewModel.SelectedSection?.Title);
         Assert.AreSame(plugin.Page, viewModel.CurrentPage);
         Assert.IsTrue(plugin.IsSelected);
         Assert.AreEqual(1, viewModel.NavigationItems.Count(static item => item.IsSelected));
@@ -75,7 +78,25 @@ public sealed class DesktopCompositionRootTests
         log.OpenCommand.Execute(null);
 
         Assert.AreEqual("日志", viewModel.SelectedTitle);
+        Assert.AreEqual("设置", viewModel.SelectedSection?.Title);
         Assert.IsInstanceOfType<LogPageViewModel>(viewModel.CurrentPage);
+    }
+
+    [TestMethod]
+    public void SectionNavigation_OpensItsFirstPage()
+    {
+        using MainWindowViewModel viewModel =
+            DesktopCompositionRoot.CreateMainWindowViewModel(
+                new TestPathProvider(),
+                new TestSystemInfoProvider());
+        NavigationSectionViewModel online = viewModel.NavigationSections.Single(
+            static section => section.Title == "联机");
+
+        online.OpenCommand.Execute(null);
+
+        Assert.IsTrue(online.IsSelected);
+        Assert.AreEqual("联机", viewModel.SelectedTitle);
+        Assert.AreSame(online.Items[0].Page, viewModel.CurrentPage);
     }
 
     private sealed class TestPathProvider : IPlatformPathProvider

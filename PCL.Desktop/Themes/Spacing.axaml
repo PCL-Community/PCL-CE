@@ -17,6 +17,6 @@
   <CornerRadius x:Key="RadiusSmall">4</CornerRadius>
   <CornerRadius x:Key="RadiusMedium">6</CornerRadius>
   <CornerRadius x:Key="RadiusLarge">8</CornerRadius>
-  <Thickness x:Key="CardPadding">16</Thickness>
-  <Thickness x:Key="PageMargin">24</Thickness>
+  <Thickness x:Key="CardPadding">20,14,18,18</Thickness>
+  <Thickness x:Key="PageMargin">25,20,25,25</Thickness>
 </ResourceDictionary>

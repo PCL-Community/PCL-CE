@@ -11,4 +11,7 @@ public sealed record DesktopEnvironmentSnapshot(
     string Memory,
     string ApplicationDataDirectory,
     string CacheDirectory,
-    string TemporaryDirectory);
+    string TemporaryDirectory)
+{
+    public bool IsNotMacOS => !IsMacOS;
+}
