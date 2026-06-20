@@ -5,6 +5,7 @@
 using PCL.Desktop.Composition;
 using PCL.Desktop.ViewModels;
 using PCL.Desktop.ViewModels.Tools;
+using PCL.Desktop.ViewModels.Log;
 using PCL.Platform.Abstractions.Paths;
 using PCL.Platform.Abstractions.System;
 
@@ -16,7 +17,7 @@ public sealed class DesktopCompositionRootTests
     [TestMethod]
     public void CreateMainWindowViewModel_UsesPortablePlatformProviders()
     {
-        MainWindowViewModel viewModel = DesktopCompositionRoot.CreateMainWindowViewModel(
+        using MainWindowViewModel viewModel = DesktopCompositionRoot.CreateMainWindowViewModel(
             new TestPathProvider(),
             new TestSystemInfoProvider());
 
@@ -30,7 +31,7 @@ public sealed class DesktopCompositionRootTests
     [TestMethod]
     public void NavigationCommand_ChangesSelectedContent()
     {
-        MainWindowViewModel viewModel = DesktopCompositionRoot.CreateMainWindowViewModel(
+        using MainWindowViewModel viewModel = DesktopCompositionRoot.CreateMainWindowViewModel(
             new TestPathProvider(),
             new TestSystemInfoProvider());
 
@@ -47,7 +48,7 @@ public sealed class DesktopCompositionRootTests
     [TestMethod]
     public void ControlsGalleryNavigation_UsesConcretePageViewModel()
     {
-        MainWindowViewModel viewModel =
+        using MainWindowViewModel viewModel =
             DesktopCompositionRoot.CreateMainWindowViewModel(
                 new TestPathProvider(),
                 new TestSystemInfoProvider());
@@ -59,6 +60,22 @@ public sealed class DesktopCompositionRootTests
         Assert.AreEqual("界面组件", viewModel.SelectedTitle);
         Assert.IsInstanceOfType<ControlsGalleryViewModel>(
             viewModel.CurrentPage);
+    }
+
+    [TestMethod]
+    public void LogNavigation_UsesPortableLogPageViewModel()
+    {
+        using MainWindowViewModel viewModel =
+            DesktopCompositionRoot.CreateMainWindowViewModel(
+                new TestPathProvider(),
+                new TestSystemInfoProvider());
+        NavigationItemViewModel log = viewModel.NavigationItems.Single(
+            static item => item.Page is LogPageViewModel);
+
+        log.OpenCommand.Execute(null);
+
+        Assert.AreEqual("日志", viewModel.SelectedTitle);
+        Assert.IsInstanceOfType<LogPageViewModel>(viewModel.CurrentPage);
     }
 
     private sealed class TestPathProvider : IPlatformPathProvider

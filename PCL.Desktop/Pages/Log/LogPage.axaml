@@ -1,0 +1,86 @@
+<!--
+  Copyright (c) MUXUE1230. All rights reserved.
+  Modifications Copyright (c) 2026 PCL N contributors.
+  Licensed under the Apache License, Version 2.0.
+-->
+<UserControl
+    x:Class="PCL.Desktop.Pages.Log.LogPage"
+    x:DataType="vm:LogPageViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:buttons="using:PCL.Desktop.Controls.Buttons"
+    xmlns:cards="using:PCL.Desktop.Controls.Cards"
+    xmlns:inputs="using:PCL.Desktop.Controls.Inputs"
+    xmlns:logControls="using:PCL.Desktop.Controls.Log"
+    xmlns:vm="using:PCL.Desktop.ViewModels.Log"
+    x:CompileBindings="True">
+  <Grid RowDefinitions="Auto,*">
+    <cards:PclCard Header="日志筛选与操作">
+      <Grid ColumnDefinitions="2*,220,Auto,Auto,Auto" ColumnSpacing="10">
+        <TextBox
+            PlaceholderText="搜索模块、消息或异常内容"
+            Text="{CompiledBinding SearchText, Mode=TwoWay}"
+            VerticalContentAlignment="Center" />
+        <ComboBox
+            Grid.Column="1"
+            ItemsSource="{CompiledBinding LevelOptions}"
+            SelectedItem="{CompiledBinding SelectedLevel, Mode=TwoWay}">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:LogLevelOption">
+              <TextBlock Text="{CompiledBinding Name}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+        <inputs:PclCheckBox
+            Grid.Column="2"
+            Content="自动滚动"
+            IsChecked="{CompiledBinding AutoScroll, Mode=TwoWay}"
+            VerticalAlignment="Center" />
+        <buttons:PclIconTextButton
+            Grid.Column="3"
+            Text="复制"
+            IconKey="lucide/copy"
+            Command="{CompiledBinding CopyCommand}" />
+        <StackPanel
+            Grid.Column="4"
+            Orientation="Horizontal"
+            Spacing="10">
+          <buttons:PclIconTextButton
+              Text="导出"
+              IconKey="lucide/file-text"
+              ColorType="Highlight"
+              Command="{CompiledBinding ExportCommand}" />
+          <buttons:PclIconButton
+              IconKey="lucide/eraser"
+              AccessibleName="清空当前日志视图"
+              ColorType="Danger"
+              Command="{CompiledBinding ClearCommand}"
+              ToolTip.Tip="清空当前日志视图" />
+        </StackPanel>
+      </Grid>
+    </cards:PclCard>
+
+    <cards:PclCard
+        Grid.Row="1"
+        Header="{CompiledBinding ResultSummary}"
+        Margin="0,16,0,0">
+      <Grid MinHeight="320">
+        <logControls:LogViewer />
+        <StackPanel
+            IsVisible="{CompiledBinding IsEmpty}"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Spacing="8">
+          <TextBlock
+              Text="暂无符合条件的日志"
+              FontSize="{DynamicResource FontSizeSubtitle}"
+              FontWeight="SemiBold"
+              HorizontalAlignment="Center" />
+          <TextBlock
+              Text="调整筛选条件，或继续使用启动器以产生新的日志。"
+              Foreground="{DynamicResource ColorBrush4}" />
+        </StackPanel>
+      </Grid>
+    </cards:PclCard>
+  </Grid>
+</UserControl>

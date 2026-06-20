@@ -3,10 +3,12 @@
 // Licensed under the Apache License, Version 2.0.
 
 using System.Collections.ObjectModel;
+using PCL.Application.Logging;
 using PCL.Desktop.Models;
 using PCL.Desktop.Services;
 using PCL.Desktop.ViewModels.Feedback;
 using PCL.Desktop.ViewModels.Home;
+using PCL.Desktop.ViewModels.Log;
 using PCL.Desktop.ViewModels.Common;
 using PCL.Desktop.ViewModels.Tools;
 using PCL.Plugin;
@@ -14,7 +16,7 @@ using PCL.UI.Abstractions;
 
 namespace PCL.Desktop.ViewModels;
 
-public sealed class MainWindowViewModel : ObservableObject
+public sealed class MainWindowViewModel : ObservableObject, IDisposable
 {
     private static readonly PluginManifest PluginPreview = new(
         "pcl.plugin",
@@ -32,7 +34,11 @@ public sealed class MainWindowViewModel : ObservableObject
         DesktopEnvironmentSnapshot environment,
         InAppNotificationService notificationService,
         IDialogService dialogService,
-        IThemeService themeService)
+        IThemeService themeService,
+        ILauncherLogSource logSource,
+        IUiScheduler scheduler,
+        IClipboardService clipboardService,
+        IFileDialogService fileDialogService)
     {
         Environment = environment;
         Messages = notificationService.Messages;
@@ -43,6 +49,13 @@ public sealed class MainWindowViewModel : ObservableObject
             notificationService,
             notificationService,
             themeService);
+        _logSource = logSource;
+        _logPage = new LogPageViewModel(
+            logSource,
+            scheduler,
+            clipboardService,
+            fileDialogService,
+            notificationService);
         NavigationItems =
         [
             CreateNavigationItem(
@@ -66,6 +79,11 @@ public sealed class MainWindowViewModel : ObservableObject
                 "联机",
                 "查看好友与可加入的服务器。",
                 "lucide/users"),
+            CreateNavigationItem(
+                "日志",
+                "查看、筛选和导出启动器运行日志。",
+                "lucide/terminal",
+                _logPage),
             CreatePlaceholder(
                 "设置",
                 "调整启动、下载与界面选项。",
@@ -89,6 +107,9 @@ public sealed class MainWindowViewModel : ObservableObject
 
         Select(NavigationItems[0]);
     }
+
+    private readonly ILauncherLogSource _logSource;
+    private readonly LogPageViewModel _logPage;
 
     public IReadOnlyList<NavigationItemViewModel> NavigationItems { get; }
 
@@ -115,6 +136,12 @@ public sealed class MainWindowViewModel : ObservableObject
     }
 
     public string RuntimeStatus { get; }
+
+    public void Dispose()
+    {
+        _logPage.Dispose();
+        _logSource.Dispose();
+    }
 
     private NavigationItemViewModel CreateNavigationItem(
         string title,

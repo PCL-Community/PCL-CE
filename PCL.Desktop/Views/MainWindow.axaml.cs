@@ -46,6 +46,13 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    protected override void OnClosed(EventArgs e)
+    {
+        if (DataContext is IDisposable disposable)
+            disposable.Dispose();
+        base.OnClosed(e);
+    }
+
     private void MacTitleBar_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)

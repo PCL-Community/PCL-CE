@@ -3,6 +3,8 @@
 // Licensed under the Apache License, Version 2.0.
 
 using PCL.Application.Minecraft.Downloads;
+using PCL.Application.Logging;
+using PCL.Core.Logging;
 using PCL.Desktop.Models;
 using PCL.Desktop.ViewModels;
 using PCL.Platform.Abstractions.Paths;
@@ -24,14 +26,23 @@ public static class DesktopCompositionRoot
         InAppNotificationService notifications = new(scheduler);
         AvaloniaDialogService dialogs = new();
         AvaloniaFileDialogService fileDialogs = new();
+        AvaloniaClipboardService clipboard = new();
         AvaloniaThemeService theme = new(application);
         AvaloniaIconService icons = AvaloniaIconService.Shared;
+        PortableLauncherLogSource logs = new();
         MainWindowViewModel mainWindow = CreateMainWindowViewModel(
             new DefaultPlatformPathProvider(),
             new DefaultSystemInfoProvider(),
             notifications,
             dialogs,
-            theme);
+            theme,
+            logs,
+            scheduler,
+            clipboard,
+            fileDialogs);
+        PortableLog.Info(
+            "Desktop",
+            "Avalonia 桌面环境已初始化。");
 
         return new DesktopApplicationContext(
             mainWindow,
@@ -65,14 +76,22 @@ public static class DesktopCompositionRoot
             systemInfoProvider,
             services.Notifications,
             services.Dialogs,
-            services.Theme);
+            services.Theme,
+            services.Logs,
+            services.Scheduler,
+            services.Clipboard,
+            services.FileDialogs);
 
     private static MainWindowViewModel CreateMainWindowViewModel(
         IPlatformPathProvider pathProvider,
         ISystemInfoProvider systemInfoProvider,
         InAppNotificationService notifications,
         IDialogService dialogs,
-        IThemeService theme)
+        IThemeService theme,
+        ILauncherLogSource logs,
+        IUiScheduler scheduler,
+        IClipboardService clipboard,
+        IFileDialogService fileDialogs)
     {
         ArgumentNullException.ThrowIfNull(pathProvider);
         ArgumentNullException.ThrowIfNull(systemInfoProvider);
@@ -94,12 +113,16 @@ public static class DesktopCompositionRoot
             environment,
             notifications,
             dialogs,
-            theme);
+            theme,
+            logs,
+            scheduler,
+            clipboard,
+            fileDialogs);
     }
 
     public static bool ValidateEnvironment()
     {
-        MainWindowViewModel viewModel = CreateMainWindowViewModel();
+        using MainWindowViewModel viewModel = CreateMainWindowViewModel();
         string[] downloadSources = MinecraftDownloadSourcePlanner.GetLauncherOrMetaSources(
             "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json",
             preferOfficialSource: true);
@@ -125,13 +148,21 @@ public static class DesktopCompositionRoot
         return new TestPresentationServices(
             new InAppNotificationService(scheduler),
             new NullDialogService(),
-            new NullThemeService());
+            new NullThemeService(),
+            new PortableLauncherLogSource(),
+            scheduler,
+            new NullClipboardService(),
+            new NullFileDialogService());
     }
 
     private sealed record TestPresentationServices(
         InAppNotificationService Notifications,
         IDialogService Dialogs,
-        IThemeService Theme);
+        IThemeService Theme,
+        ILauncherLogSource Logs,
+        IUiScheduler Scheduler,
+        IClipboardService Clipboard,
+        IFileDialogService FileDialogs);
 
     private sealed class InlineUiScheduler : IUiScheduler
     {
@@ -186,5 +217,29 @@ public static class DesktopCompositionRoot
         public void Apply(ThemeMode mode, AccentColor accent)
         {
         }
+    }
+
+    private sealed class NullClipboardService : IClipboardService
+    {
+        public Task SetTextAsync(
+            string text,
+            CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
+    }
+
+    private sealed class NullFileDialogService : IFileDialogService
+    {
+        public Task<string?> PickSaveFileAsync(
+            string title,
+            string suggestedFileName,
+            IReadOnlyList<FileDialogFilter> filters,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult<string?>(null);
+
+        public Task<string?> PickOpenFileAsync(
+            string title,
+            IReadOnlyList<FileDialogFilter> filters,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult<string?>(null);
     }
 }

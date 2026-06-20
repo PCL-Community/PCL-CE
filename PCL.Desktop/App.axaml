@@ -9,6 +9,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:home="using:PCL.Desktop.Pages.Home"
     xmlns:homeVm="using:PCL.Desktop.ViewModels.Home"
+    xmlns:log="using:PCL.Desktop.Pages.Log"
+    xmlns:logVm="using:PCL.Desktop.ViewModels.Log"
     xmlns:common="using:PCL.Desktop.Pages.Common"
     xmlns:commonVm="using:PCL.Desktop.ViewModels.Common"
     xmlns:tools="using:PCL.Desktop.Pages.Tools"
@@ -47,6 +49,11 @@
         DataType="{x:Type toolsVm:ControlsGalleryViewModel}"
         x:DataType="toolsVm:ControlsGalleryViewModel">
       <tools:ControlsGalleryPage />
+    </DataTemplate>
+    <DataTemplate
+        DataType="{x:Type logVm:LogPageViewModel}"
+        x:DataType="logVm:LogPageViewModel">
+      <log:LogPage />
     </DataTemplate>
   </Application.DataTemplates>
 </Application>

@@ -28,6 +28,12 @@ bld/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
+!PCL.Desktop/Controls/Log/
+!PCL.Desktop/Controls/Log/**
+!PCL.Desktop/Pages/Log/
+!PCL.Desktop/Pages/Log/**
+!PCL.Desktop/ViewModels/Log/
+!PCL.Desktop/ViewModels/Log/**
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
