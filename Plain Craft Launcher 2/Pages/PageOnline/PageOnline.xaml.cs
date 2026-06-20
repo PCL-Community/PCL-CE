@@ -104,7 +104,7 @@ public partial class PageOnline
 
     private void BtnLogin_Click(object sender, ModBase.RouteEventArgs e)
     {
-        StartMicrosoftLogin(useWindowsAccount: false);
+        StartMicrosoftLogin();
     }
 
     private async void BtnWindowsLogin_Click(object sender, ModBase.RouteEventArgs e)
@@ -116,12 +116,12 @@ public partial class PageOnline
         try
         {
             var handle = new WindowInteropHelper(ModMain.frmMain).Handle;
-            var result = await PCL.Online.OnlineAccountService.LoginWithWindowsAccountAsync(handle);
+            var result = await PCL.Online.Windows.WindowsOnlineAccountService.LoginWithWindowsAccountAsync(handle);
             if (!result.Success)
             {
                 ModMain.Hint(Lang.Text("Online.Login.WindowsFallback", result.Message));
                 SetLoginButtonsEnabled(true);
-                StartMicrosoftLogin(useWindowsAccount: false);
+                StartMicrosoftLogin();
                 return;
             }
 
@@ -134,7 +134,7 @@ public partial class PageOnline
         }
     }
 
-    private void StartMicrosoftLogin(bool useWindowsAccount)
+    private void StartMicrosoftLogin()
     {
         if (!MicrosoftLoginPolicyGate.EnsureAccepted())
             return;
@@ -142,10 +142,7 @@ public partial class PageOnline
         SetLoginButtonsEnabled(false);
         ModBase.RunInNewThread(() =>
         {
-            Func<Func<JsonObject, object?>, PCL.Online.OnlineLoginResult> login = useWindowsAccount
-                ? PCL.Online.OnlineAccountService.LoginWithWindowsAccount
-                : PCL.Online.OnlineAccountService.Login;
-            var result = login(prepareJson =>
+            var result = PCL.Online.OnlineAccountService.Login(prepareJson =>
             {
                 var converter = new ModMain.MyMsgBoxConverter
                     { Content = prepareJson, ForceWait = true, Type = ModMain.MyMsgBoxType.Login };
@@ -159,7 +156,7 @@ public partial class PageOnline
                 HandleLoginResult(result);
                 SetLoginButtonsEnabled(true);
             });
-        }, useWindowsAccount ? "OnlineWindowsLogin" : "OnlineLogin");
+        }, "OnlineLogin");
     }
 
     private void HandleLoginResult(PCL.Online.OnlineLoginResult result)

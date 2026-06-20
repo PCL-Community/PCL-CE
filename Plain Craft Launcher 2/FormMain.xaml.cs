@@ -27,6 +27,7 @@ public partial class FormMain
     // 愚人节鼠标位置
     public MouseEventArgs lastMouseArg;
     private static bool _cloudSyncNoticeHooked;
+    private static bool _portableLogHooked;
 
     private void FormMain_MouseMove(object sender, MouseEventArgs e)
     {
@@ -101,6 +102,23 @@ public partial class FormMain
         MsgBoxWrapper.OnShow += ModMain.MsgBoxWrapper_OnShow;
         // 注册 Hint 事件
         HintWrapper.OnShow += ModMain.HintWrapper_OnShow;
+        PCL.Online.OnlineRuntime.Configure(new LauncherOnlineRuntimeHost());
+        PCL.Online.Windows.WindowsOnlineAccountService.Register();
+        PCL.Online.OnlineUiScheduler.Configure(action =>
+        {
+            if (Dispatcher.CheckAccess())
+            {
+                action();
+                return System.Threading.Tasks.Task.CompletedTask;
+            }
+
+            return Dispatcher.InvokeAsync(action, System.Windows.Threading.DispatcherPriority.Send).Task;
+        });
+        if (!_portableLogHooked)
+        {
+            PortableLog.Written += OnPortableLogWritten;
+            _portableLogHooked = true;
+        }
         if (!_cloudSyncNoticeHooked)
         {
             PCL.Online.CloudSyncService.Notice += OnCloudSyncNotice;
@@ -154,6 +172,37 @@ public partial class FormMain
         ModBase.Log("[Start] 第二阶段加载用时：" + (TimeUtils.GetTimeTick() - ModBase.applicationStartTick) + " ms");
         // 注册生命周期状态事件
         Lifecycle.When(LifecycleState.WindowCreated, FormMain_Loaded);
+    }
+
+    private static void OnPortableLogWritten(PortableLogEntry entry)
+    {
+        switch (entry.Level)
+        {
+            case PortableLogLevel.Trace:
+                LogWrapper.Trace(entry.Module, entry.Message);
+                break;
+            case PortableLogLevel.Debug:
+                if (entry.Exception is null)
+                    LogWrapper.Debug(entry.Module, entry.Message);
+                else
+                    LogWrapper.Debug(entry.Exception, entry.Module, entry.Message);
+                break;
+            case PortableLogLevel.Info:
+                LogWrapper.Info(entry.Module, entry.Message);
+                break;
+            case PortableLogLevel.Warn:
+                if (entry.Exception is null)
+                    LogWrapper.Warn(entry.Module, entry.Message);
+                else
+                    LogWrapper.Warn(entry.Exception, entry.Module, entry.Message);
+                break;
+            case PortableLogLevel.Error:
+                if (entry.Exception is null)
+                    LogWrapper.Error(entry.Module, entry.Message);
+                else
+                    LogWrapper.Error(entry.Exception, entry.Module, entry.Message);
+                break;
+        }
     }
 
     private static void OnCloudSyncNotice(PCL.Online.CloudSyncService.NoticeType noticeType, int retryNumber)
