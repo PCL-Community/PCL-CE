@@ -9,9 +9,8 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using PCL.Core.IO.Net;
-using PCL.Core.IO.Net.Http;
 using PCL.Core.Logging;
-using PCL.Core.Utils;
+using PCL.Core.Serialization;
 
 namespace PCL.Online;
 
@@ -82,13 +81,13 @@ public static class ModrinthServerCatalog
 
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
-            using var response = await NetworkService.GetClient()
+            using var response = await PortableHttp.Client
                 .SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
-            var json = (JsonObject)JsonCompat.ParseNode(await response.AsStringAsync(cancellationToken)
-                .ConfigureAwait(false))!;
+            var json = PortableJson.ParseObject(await PortableHttp.ReadStringAsync(response, cancellationToken)
+                .ConfigureAwait(false));
             var hits = (json["hits"] as JsonArray ?? [])
                 .OfType<JsonObject>()
                 .ToList();
@@ -105,21 +104,21 @@ public static class ModrinthServerCatalog
         }
         catch (Exception ex)
         {
-            LogWrapper.Debug(ex, "Online", "获取 Modrinth 服务器列表失败");
+            PortableLog.Debug(ex, "Online", "获取 Modrinth 服务器列表失败");
             return new ModrinthServerSearchResult([], 0, Math.Max(0, options.Offset), Math.Clamp(options.Limit, 1, MaxPageSize));
         }
     }
 
     private static string BuildFacets(string gameVersion)
     {
-        var facets = new JsonArray
-        {
-            new JsonArray { "project_type:minecraft_java_server" }
-        };
-        if (!string.IsNullOrWhiteSpace(gameVersion))
-            facets.Add(new JsonArray { $"versions:'{gameVersion.Trim()}'" });
-
-        return Uri.EscapeDataString(facets.ToJsonString());
+        string[][] facets = string.IsNullOrWhiteSpace(gameVersion)
+            ? [["project_type:minecraft_java_server"]]
+            :
+            [
+                ["project_type:minecraft_java_server"],
+                [$"versions:'{gameVersion.Trim()}'"]
+            ];
+        return Uri.EscapeDataString(OnlineJson.Serialize(facets));
     }
 
     private static string GetSortIndex(ModrinthServerSort sort) => sort switch
@@ -160,18 +159,18 @@ public static class ModrinthServerCatalog
             using var request = new HttpRequestMessage(HttpMethod.Get,
                 $"https://api.modrinth.com/v3/project/{Uri.EscapeDataString(projectId)}");
             request.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
-            using var response = await NetworkService.GetClient()
+            using var response = await PortableHttp.Client
                 .SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
-            var detail = (JsonObject)JsonCompat.ParseNode(await response.AsStringAsync(cancellationToken)
-                .ConfigureAwait(false))!;
+            var detail = PortableJson.ParseObject(await PortableHttp.ReadStringAsync(response, cancellationToken)
+                .ConfigureAwait(false));
             return ParseServerEntry(hit, detail);
         }
         catch (Exception ex)
         {
-            LogWrapper.Debug(ex, "Online", $"获取 Modrinth 服务器详情失败：{projectId}");
+            PortableLog.Debug(ex, "Online", $"获取 Modrinth 服务器详情失败：{projectId}");
             return null;
         }
     }

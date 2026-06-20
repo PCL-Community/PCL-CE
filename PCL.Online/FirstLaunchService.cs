@@ -3,9 +3,7 @@
 
 using System;
 using System.IO;
-using System.Reflection;
 using System.Text;
-using PCL.Core.App;
 
 namespace PCL.Online;
 
@@ -20,20 +18,19 @@ public static class FirstLaunchService
 
     private static string GetLegalDirectory()
     {
-        var assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
-            ?? AppDomain.CurrentDomain.BaseDirectory;
-        return Path.Combine(assemblyDir, LegalDocDir);
+        return Path.Combine(AppContext.BaseDirectory, LegalDocDir);
     }
 
     public static bool IsAccepted()
     {
-        var acceptedVersion = States.Online.LegalAcceptedVersion;
+        var acceptedVersion = OnlineRuntime.Host.GetString("Online.LegalAcceptedVersion");
         return acceptedVersion == CurrentVersion;
     }
 
     public static void Accept()
     {
-        States.Online.LegalAcceptedVersion = CurrentVersion;
+        OnlineRuntime.Host.SetString("Online.LegalAcceptedVersion", CurrentVersion);
+        OnlineRuntime.Host.Flush();
     }
 
     /// <summary>

@@ -6,16 +6,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using PCL.Core.App;
 using PCL.Core.IO.Net;
-using PCL.Core.IO.Net.Http;
 using PCL.Core.Logging;
-using PCL.Core.Utils;
+using PCL.Core.Serialization;
 
 namespace PCL.Online;
 
@@ -46,7 +44,7 @@ public static partial class OnlineFriendService
                 ? $"https://sessionserver.mojang.com/session/minecraft/profile/{NormalizeUuid(query)}"
                 : $"https://api.mojang.com/users/profiles/minecraft/{Uri.EscapeDataString(query)}";
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
-            using var response = await NetworkService.GetClient()
+            using var response = await PortableHttp.Client
                 .SendAsync(request, cancellationToken)
                 .ConfigureAwait(false);
             if (response.StatusCode == HttpStatusCode.NoContent ||
@@ -54,15 +52,15 @@ public static partial class OnlineFriendService
                 return null;
 
             response.EnsureSuccessStatusCode();
-            var json = (JsonObject)JsonCompat.ParseNode(await response.AsStringAsync(cancellationToken)
-                .ConfigureAwait(false))!;
+            var json = PortableJson.ParseObject(await PortableHttp.ReadStringAsync(response, cancellationToken)
+                .ConfigureAwait(false));
             var id = json["id"]?.ToString() ?? "";
             var name = json["name"]?.ToString() ?? query;
             return string.IsNullOrWhiteSpace(id) ? null : new OnlineFriendProfile(id, name);
         }
         catch (Exception ex)
         {
-            LogWrapper.Debug(ex, "Online", "搜索 Minecraft 档案失败");
+            PortableLog.Debug(ex, "Online", "搜索 Minecraft 档案失败");
             return null;
         }
     }
@@ -78,16 +76,15 @@ public static partial class OnlineFriendService
 
             var serverBaseUrl = CloudSyncService.ResolveServerBaseUrl();
             using var client = NCloudHttpClient.Create(serverBaseUrl);
-            using var response = await client.PostAsJsonAsync(
-                    $"{serverBaseUrl}/api/friends/{Uri.EscapeDataString(States.Online.MsId)}/requests",
-                    new FriendRequestCreate(profile.ProfileId, profile.Name),
-                    cancellationToken)
-                .ConfigureAwait(false);
+            using var request = CreateJsonPostRequest(
+                $"{serverBaseUrl}/api/friends/{Uri.EscapeDataString(OnlineAccountService.MsId)}/requests",
+                new FriendRequestCreate(profile.ProfileId, profile.Name));
+            using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
         {
-            LogWrapper.Debug(ex, "Online", "发送好友申请失败");
+            PortableLog.Debug(ex, "Online", "发送好友申请失败");
             return false;
         }
     }
@@ -116,23 +113,21 @@ public static partial class OnlineFriendService
         {
             var serverBaseUrl = CloudSyncService.ResolveServerBaseUrl();
             using var client = NCloudHttpClient.Create(serverBaseUrl);
-            using var response = await client.PostAsJsonAsync(
-                    $"{serverBaseUrl}/api/friends/presence",
-                    new PresenceRequest(ids),
-                    cancellationToken)
-                .ConfigureAwait(false);
+            using var request = CreateJsonPostRequest(
+                $"{serverBaseUrl}/api/friends/presence",
+                new PresenceRequest(ids));
+            using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
                 return new Dictionary<string, OnlineFriendPresence>(StringComparer.Ordinal);
 
-            var result = await response.Content
-                .ReadFromJsonAsync<PresenceResponse>(cancellationToken)
-                .ConfigureAwait(false);
+            var result = OnlineJson.Deserialize<PresenceResponse>(
+                await PortableHttp.ReadStringAsync(response, cancellationToken).ConfigureAwait(false));
             return (result?.Statuses ?? [])
                 .ToDictionary(s => s.ProfileId, StringComparer.Ordinal);
         }
         catch (Exception ex)
         {
-            LogWrapper.Debug(ex, "Online", "获取 PCL N 在线状态失败");
+            PortableLog.Debug(ex, "Online", "获取 PCL N 在线状态失败");
             return new Dictionary<string, OnlineFriendPresence>(StringComparer.Ordinal);
         }
     }
@@ -149,20 +144,19 @@ public static partial class OnlineFriendService
             var serverBaseUrl = CloudSyncService.ResolveServerBaseUrl();
             using var client = NCloudHttpClient.Create(serverBaseUrl);
             using var response = await client.GetAsync(
-                    $"{serverBaseUrl}/api/friends/{Uri.EscapeDataString(States.Online.MsId)}/{segment}",
+                    $"{serverBaseUrl}/api/friends/{Uri.EscapeDataString(OnlineAccountService.MsId)}/{segment}",
                     cancellationToken)
                 .ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
                 return [];
 
-            return await response.Content
-                       .ReadFromJsonAsync<List<OnlineFriendRequest>>(cancellationToken)
-                       .ConfigureAwait(false)
+            return OnlineJson.Deserialize<List<OnlineFriendRequest>>(
+                       await PortableHttp.ReadStringAsync(response, cancellationToken).ConfigureAwait(false))
                    ?? [];
         }
         catch (Exception ex)
         {
-            LogWrapper.Debug(ex, "Online", $"获取好友{segment}失败");
+            PortableLog.Debug(ex, "Online", $"获取好友{segment}失败");
             return [];
         }
     }
@@ -171,12 +165,18 @@ public static partial class OnlineFriendService
 
     private static string NormalizeUuid(string value) => value.Replace("-", "", StringComparison.Ordinal);
 
+    private static HttpRequestMessage CreateJsonPostRequest<T>(string url, T value) => new(HttpMethod.Post, url)
+    {
+        Content = new StringContent(OnlineJson.Serialize(value), Encoding.UTF8, "application/json")
+    };
+
     [GeneratedRegex("^[0-9a-fA-F]{32}$|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")]
     private static partial Regex UuidRegex();
 
-    private sealed record FriendRequestCreate(string TargetProfileId, string TargetName);
-
-    private sealed record PresenceRequest(IReadOnlyList<string> ProfileIds);
-
-    private sealed record PresenceResponse(IReadOnlyList<OnlineFriendPresence> Statuses);
 }
+
+internal sealed record FriendRequestCreate(string TargetProfileId, string TargetName);
+
+internal sealed record PresenceRequest(IReadOnlyList<string> ProfileIds);
+
+internal sealed record PresenceResponse(IReadOnlyList<OnlineFriendPresence> Statuses);

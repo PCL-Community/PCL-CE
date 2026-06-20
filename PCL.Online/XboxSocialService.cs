@@ -9,11 +9,9 @@ using System.Net.Http;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
-using PCL.Core.App.Localization;
 using PCL.Core.IO.Net;
-using PCL.Core.IO.Net.Http;
 using PCL.Core.Logging;
-using PCL.Core.Utils;
+using PCL.Core.Serialization;
 
 namespace PCL.Online;
 
@@ -44,8 +42,8 @@ public static class XboxSocialService
         var authorization = OnlineAccountService.GetXboxAuthorization();
         if (authorization is null)
         {
-            LastFailureReason = Lang.Text("Online.Friend.List.AuthorizationFailed");
-            LogWrapper.Warn("Online", "无法获取 Xbox 授权，好友列表为空。");
+            LastFailureReason = Text("Online.Friend.List.AuthorizationFailed");
+            PortableLog.Warn("Online", "无法获取 Xbox 授权，好友列表为空。");
             return [];
         }
 
@@ -54,7 +52,7 @@ public static class XboxSocialService
             var json = await FetchPeopleHubAsync(authorization, cancellationToken).ConfigureAwait(false);
             if (json is null)
             {
-                LastFailureReason = Lang.Text("Online.Friend.List.LoadFailed");
+                LastFailureReason = Text("Online.Friend.List.LoadFailed");
                 return [];
             }
 
@@ -74,15 +72,15 @@ public static class XboxSocialService
                 {
                     PclOnline = isOnline,
                     PclOnlineText = isOnline
-                        ? Lang.Text("Online.Friend.Status.Online")
-                        : Lang.Text("Online.Friend.Status.Offline")
+                        ? Text("Online.Friend.Status.Online")
+                        : Text("Online.Friend.Status.Offline")
                 };
             }).ToList();
         }
         catch (Exception ex)
         {
-            LogWrapper.Debug(ex, "Online", "获取 Xbox 好友失败");
-            LastFailureReason = Lang.Text("Online.Friend.List.LoadFailed");
+            PortableLog.Debug(ex, "Online", "获取 Xbox 好友失败");
+            LastFailureReason = Text("Online.Friend.List.LoadFailed");
             return [];
         }
     }
@@ -103,25 +101,25 @@ public static class XboxSocialService
                 request.Headers.TryAddWithoutValidation("Accept-Language", BuildAcceptLanguageHeader());
                 request.Headers.TryAddWithoutValidation("User-Agent", "PCLN/2.15.0");
 
-                using var response = await NetworkService.GetClient()
+                using var response = await PortableHttp.Client
                     .SendAsync(request, cancellationToken)
                     .ConfigureAwait(false);
-                var body = await response.AsStringAsync(cancellationToken).ConfigureAwait(false);
+                var body = await PortableHttp.ReadStringAsync(response, cancellationToken).ConfigureAwait(false);
                 if (!response.IsSuccessStatusCode)
                 {
-                    LogWrapper.Debug("Online",
+                    PortableLog.Debug("Online",
                         $"Xbox 好友接口暂不可用（HTTP {(int)response.StatusCode}, Contract {contractVersion}）：{TrimForLog(body)}");
                     continue;
                 }
 
-                var json = (JsonObject)JsonCompat.ParseNode(body)!;
+                var json = PortableJson.ParseObject(body);
                 var peopleCount = (json["people"] as JsonArray)?.Count ?? 0;
-                LogWrapper.Debug("Online", $"Xbox 好友接口返回 {peopleCount} 个联系人（Contract {contractVersion}）。");
+                PortableLog.Debug("Online", $"Xbox 好友接口返回 {peopleCount} 个联系人（Contract {contractVersion}）。");
                 return json;
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                LogWrapper.Debug(ex, "Online", $"获取 Xbox 好友接口失败（Contract {contractVersion}）");
+                PortableLog.Debug(ex, "Online", $"获取 Xbox 好友接口失败（Contract {contractVersion}）");
             }
         }
 
@@ -136,7 +134,12 @@ public static class XboxSocialService
             person["gamertag"]?.ToString(),
             person["realName"]?.ToString(),
             xuid);
-        return new XboxFriendInfo(xuid, nickname, false, Lang.Text("Online.Friend.Status.Offline"));
+        return new XboxFriendInfo(xuid, nickname, false, Text("Online.Friend.Status.Offline"));
+    }
+
+    private static string Text(string key, params object?[] args)
+    {
+        return OnlineRuntime.Host.Text(key, args);
     }
 
     private static string FirstNonEmpty(params string?[] values)

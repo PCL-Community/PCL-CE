@@ -11,8 +11,6 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using PCL.Core.IO.Net.Http;
-using PCL.Core.Utils.OS;
 
 namespace PCL.Online;
 
@@ -53,7 +51,6 @@ public static class NCloudHttpClient
         var handler = new HttpClientHandler
         {
             UseProxy = true,
-            Proxy = HttpProxyManager.Instance,
             AutomaticDecompression = DecompressionMethods.All,
             AllowAutoRedirect = true,
             MaxAutomaticRedirections = 20,
@@ -83,7 +80,7 @@ public static class NCloudHttpClient
         }
 
 #if DEBUG
-        var configuredHash = EnvironmentInterop.GetSecret("ONLINE_SERVER_CERT_SHA256");
+        var configuredHash = OnlineRuntime.Host.GetSecret("ONLINE_SERVER_CERT_SHA256");
         return ParseSha256(configuredHash);
 #else
         return null;
@@ -109,8 +106,8 @@ public static class NCloudHttpClient
 
     private static X509Certificate2? LoadClientCertificate()
     {
-        var password = EnvironmentInterop.GetSecret("ONLINE_CLIENT_CERT_PASSWORD");
-        var configuredPath = EnvironmentInterop.GetSecret("ONLINE_CLIENT_CERT_PATH");
+        var password = OnlineRuntime.Host.GetSecret("ONLINE_CLIENT_CERT_PASSWORD");
+        var configuredPath = OnlineRuntime.Host.GetSecret("ONLINE_CLIENT_CERT_PATH");
         if (!string.IsNullOrWhiteSpace(configuredPath) && File.Exists(configuredPath))
             return X509CertificateLoader.LoadPkcs12FromFile(configuredPath, password,
                 GetClientCertificateStorageFlags());

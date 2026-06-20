@@ -6,7 +6,7 @@
         <Description>PCL N 在线服务模块</Description>
         <Company>PCL N</Company>
         <Product>PCL.Online</Product>
-        <Copyright>Copyright © MUXUE1230</Copyright>
+        <Copyright>Copyright © MUXUE1230; Modifications Copyright © 2026 PCL N contributors</Copyright>
         <AssemblyVersion>1.0.0.0</AssemblyVersion>
         <FileVersion>1.0.0.0</FileVersion>
     </PropertyGroup>
@@ -17,9 +17,7 @@
         <Platforms>AnyCPU;x64;ARM64</Platforms>
         <ProjectGuid>{B1D3309E-74FC-5D22-A56B-9F97414C7F85}</ProjectGuid>
         <RootNamespace>PCL.Online</RootNamespace>
-        <TargetFramework>net10.0-windows</TargetFramework>
-        <UseWPF>true</UseWPF>
-        <EnableWindowsTargeting>true</EnableWindowsTargeting>
+        <TargetFramework>net10.0</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>14.0</LangVersion>
         <Nullable>enable</Nullable>
@@ -28,6 +26,11 @@
         <OutputPath>bin\$(Configuration)-$(Platform)\</OutputPath>
         <PlatformTarget>$(Platform)</PlatformTarget>
         <NoWarn>$(NoWarn);CS9113</NoWarn>
+        <IsAotCompatible>true</IsAotCompatible>
+        <IsTrimmable>true</IsTrimmable>
+        <EnableAotAnalyzer>true</EnableAotAnalyzer>
+        <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+        <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
     </PropertyGroup>
     <!-- 构建配置 -->
     <PropertyGroup Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'CI' Or '$(Configuration)' == 'DebugCI'">
@@ -45,7 +48,7 @@
     </PropertyGroup>
     <!-- 项目引用 -->
     <ItemGroup>
-        <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
+        <ProjectReference Include="..\PCL.Core.Portable\PCL.Core.Portable.csproj" />
     </ItemGroup>
     <!-- 手动包含文件 -->
     <PropertyGroup>
@@ -61,16 +64,11 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="**\*.cs" Exclude="bin\**;obj\**;publish\**" />
-        <Page Include="**\*.xaml" Exclude="bin\**;obj\**;publish\**" />
         <EmbeddedResource Include="Certificates\n-cloud.cer" Condition="Exists('Certificates\n-cloud.cer')" LogicalName="PCL.Online.Certificates.n-cloud.cer" />
         <EmbeddedResource Include="Certificates\n-cloud-client.pfx" Condition="Exists('Certificates\n-cloud-client.pfx')" LogicalName="PCL.Online.Certificates.n-cloud-client.pfx" />
         <EmbeddedResource Include="Legal\**\*.md" LogicalName="PCL.Online.Legal.%(Filename)%(Extension)" />
         <Content Include="Legal\**\*.md">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-    </ItemGroup>
-    <ItemGroup>
-      <PackageReference Include="Microsoft.Identity.Client" Version="4.84.2" />
-      <PackageReference Include="Microsoft.Identity.Client.Broker" Version="4.84.2" />
     </ItemGroup>
 </Project>

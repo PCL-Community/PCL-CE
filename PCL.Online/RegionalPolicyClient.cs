@@ -5,10 +5,9 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using PCL.Core.App;
-using PCL.Core.App.Configuration;
-using PCL.Core.IO.Net.Http;
 using PCL.Core.Logging;
+using PCL.Core.IO.Net;
+using PCL.Core.Serialization;
 
 namespace PCL.Online;
 
@@ -44,7 +43,7 @@ public static class RegionalPolicyClient
             }
             catch (Exception ex)
             {
-                LogWrapper.Debug(ex, "RegionalPolicy", "刷新区域策略失败");
+                PortableLog.Debug(ex, "RegionalPolicy", "刷新区域策略失败");
             }
             finally
             {
@@ -57,12 +56,12 @@ public static class RegionalPolicyClient
     {
         var serverBaseUrl = CloudSyncService.ResolveServerBaseUrl();
         using var client = NCloudHttpClient.Create(serverBaseUrl);
-        using var response = await HttpRequest.Create($"{serverBaseUrl}/api/client/policy")
-            .SendAsync(httpClient: client, retryTimes: 0, cancellationToken: cancellationToken)
+        using var response = await client.GetAsync($"{serverBaseUrl}/api/client/policy", cancellationToken)
             .ConfigureAwait(false);
-        await response.EnsureSuccessStatusCodeWithContentAsync(cancellationToken).ConfigureAwait(false);
-        var policy = await response.AsJsonAsync<ClientRegionPolicy>(cancellationToken: cancellationToken)
-            .ConfigureAwait(false) ?? DefaultPolicy;
+        response.EnsureSuccessStatusCode();
+        var body = await PortableHttp.ReadStringAsync(response, cancellationToken).ConfigureAwait(false);
+        var policy = OnlineJson.Deserialize<ClientRegionPolicy>(body)
+                     ?? DefaultPolicy;
 
         _current = policy;
         ApplyDownloadPolicy(policy);
@@ -71,37 +70,7 @@ public static class RegionalPolicyClient
 
     public static void ApplyDownloadPolicy(ClientRegionPolicy policy)
     {
-        var changed = false;
-        if (policy.UseDomesticMirror)
-        {
-            if (Config.Download.FileSource == 1)
-            {
-                Config.Download.FileSource = 0;
-                changed = true;
-            }
-
-            if (Config.Download.VersionListSource == 1)
-            {
-                Config.Download.VersionListSource = 0;
-                changed = true;
-            }
-        }
-        else if (!policy.AllowDomesticMirrorSwitch)
-        {
-            if (Config.Download.FileSource == 0)
-            {
-                Config.Download.FileSource = 2;
-                changed = true;
-            }
-
-            if (Config.Download.VersionListSource == 0)
-            {
-                Config.Download.VersionListSource = 2;
-                changed = true;
-            }
-        }
-
-        if (changed)
-            ConfigService.FlushAll();
+        if (OnlineRuntime.Host.RegionalDownloadPolicy.Apply(policy))
+            OnlineRuntime.Host.Flush();
     }
 }
