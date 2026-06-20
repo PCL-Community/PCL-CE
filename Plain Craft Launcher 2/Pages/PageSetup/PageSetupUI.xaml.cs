@@ -600,7 +600,7 @@ public partial class PageSetupUI
 
     private void BtnCustomTutorial_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenWebsite("https://docspclccc.vercel.app/ce/customization/xaml-format");
+        ModBase.OpenWebsite("https://docs.pclc.cc/ce/customization/xaml-format");
     }
 
     // 主题
