@@ -295,7 +295,7 @@ public partial class MyToast
             ReleaseMouseCapture();
 
         var currentX = (RenderTransform as TranslateTransform)?.X ?? 0d;
-        if (currentX >= GetDismissThreshold())
+        if (currentX - _dragStartTranslateX >= GetDismissThreshold())
         {
             Dismiss();
             return;
