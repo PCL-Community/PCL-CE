@@ -27,7 +27,7 @@ Everyone is welcome to try it out!
 ## 💻 Supported Platforms
 
 | Operating System | Support Status |
-|---|---|---|
+|---|---|
 | Windows 10 1809 (17763) or later | ✅ Fully supported |
 | Windows 8 to Windows 10 1809 (17763) or earlier | ⚠️ Expected to run; community support offered at discretion |
 | Windows 7 or earlier | ❌ Not supported |
