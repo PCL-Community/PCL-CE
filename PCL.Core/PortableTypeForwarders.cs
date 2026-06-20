@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using PCL.Core.App.Cli;
 using PCL.Core.Link.McPing;
 using PCL.Core.Link.McPing.Model;
+using PCL.Core.Link.Scaffolding;
 using PCL.Core.Minecraft.Saves;
 using PCL.Core.Minecraft.Saves.Editing;
 using PCL.Core.Minecraft.Saves.Exceptions;
@@ -77,3 +78,4 @@ using PCL.Core.Utils.Threading;
 [assembly: TypeForwardedTo(typeof(McPingPlayerSampleResult))]
 [assembly: TypeForwardedTo(typeof(McPingResult))]
 [assembly: TypeForwardedTo(typeof(McPingVersionResult))]
+[assembly: TypeForwardedTo(typeof(LobbyCodeGenerator))]

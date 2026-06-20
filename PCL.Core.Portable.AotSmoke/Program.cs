@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using fNbt;
 using PCL.Core.Link.McPing;
+using PCL.Core.Link.Scaffolding;
 using PCL.Core.Minecraft.Saves;
 using PCL.Core.Platform;
 using PCL.Core.Serialization;
@@ -46,6 +47,10 @@ var saveInfo = await new SaveManager().LoadSaveAsync(saveFolder);
 var saveValid = saveInfo.LevelName == "AOT World";
 Directory.Delete(saveFolder, recursive: true);
 var pingValid = await VerifyPingAsync();
+var lobbyCode = LobbyCodeGenerator.Generate();
+var lobbyCodeValid =
+    LobbyCodeGenerator.TryParse(lobbyCode) == lobbyCode &&
+    LobbyCodeGenerator.GetRoomId(lobbyCode) is { Length: 8 };
 
 return hashValid &&
        roundTrip == payload &&
@@ -53,7 +58,8 @@ return hashValid &&
        varIntValid &&
        encryptionValid &&
        saveValid &&
-       pingValid
+       pingValid &&
+       lobbyCodeValid
     ? 0
     : 1;
 
