@@ -71,7 +71,7 @@ public sealed class AvaloniaThemeService : IThemeService
         SetBrush("ColorBrush7", isDark ? "#23364D" : "#EEF6FD");
         SetBrush(
             "ColorBrushHalfWhite",
-            isDark ? "#141FFFFFFF" : "#B8FFFFFF");
+            isDark ? "#141FFFFF" : "#B8FFFFFF");
         SetBrush(
             "ColorBrushTransparentBackground",
             isDark ? "#F21B2736" : "#F7FFFFFF");
