@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -17,13 +21,12 @@ public sealed class LimitedConcurrencyLevelTaskScheduler : TaskScheduler
     private static bool _currentThreadIsProcessingItems;
 
     private readonly LinkedList<Task> _tasks = [];
-    private int _delegatesQueuedOrRunning = 0;
+    private int _delegatesQueuedOrRunning;
     private readonly int _maxDegreeOfParallelism;
 
     public LimitedConcurrencyLevelTaskScheduler(int maxDegreeOfParallelism)
     {
-        if (maxDegreeOfParallelism < 1)
-            throw new ArgumentOutOfRangeException(nameof(maxDegreeOfParallelism));
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxDegreeOfParallelism, 1);
         _maxDegreeOfParallelism = maxDegreeOfParallelism;
     }
 

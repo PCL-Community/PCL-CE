@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -28,14 +32,6 @@ public sealed class AsyncCountResetEvent : IDisposable
     /// </summary>
     private bool _disposed;
 
-    /// <summary>
-    /// 析构函数。
-    /// </summary>
-    ~AsyncCountResetEvent()
-    {
-        Dispose();
-    }
-    
     /// <summary>
     /// 等待一个信号。当信号可用时返回完成的 <see cref="Task"/>。
     /// 如果没有信号，则进入队列等待。
@@ -105,6 +101,5 @@ public sealed class AsyncCountResetEvent : IDisposable
             }
         }
 
-        GC.SuppressFinalize(this);
     }
 }

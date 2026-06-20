@@ -7,6 +7,7 @@ using PCL.Core.App.Cli;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.Encryption;
+using PCL.Core.Utils.Threading;
 
 [assembly: TypeForwardedTo(typeof(ArgumentValueKind))]
 [assembly: TypeForwardedTo(typeof(BoolArgument))]
@@ -36,3 +37,9 @@ using PCL.Core.Utils.Encryption;
 [assembly: TypeForwardedTo(typeof(ChaCha20Poly1305Provider))]
 [assembly: TypeForwardedTo(typeof(ChaCha20SoftwareProvider))]
 [assembly: TypeForwardedTo(typeof(IEncryptionProvider))]
+[assembly: TypeForwardedTo(typeof(AsyncCountResetEvent))]
+[assembly: TypeForwardedTo(typeof(AsyncDebounce))]
+[assembly: TypeForwardedTo(typeof(AsyncManualResetEvent))]
+[assembly: TypeForwardedTo(typeof(DualThreadPool))]
+[assembly: TypeForwardedTo(typeof(LimitedConcurrencyLevelTaskScheduler))]
+[assembly: TypeForwardedTo(typeof(LimitedTaskPool))]
