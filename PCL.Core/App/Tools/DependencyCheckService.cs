@@ -15,19 +15,19 @@ namespace PCL.Core.App.Tools;
 public sealed partial class DependencyCheckService
 {
     [LifecycleStart]
-    private static async Task _Start()
+    private static async Task _StartAsync()
     {
         Context.Info(Lang.Text("Tools.Test.Dependency.Checking"));
 
         if (RuntimeInformation.OSArchitecture.Equals(Architecture.Arm64))
-            await _CheckAndAsk("Microsoft.D3DMappingLayers", "OpenGL 兼容包", "9nqpsl29bfff")
+            await _CheckAndAskAsync("Microsoft.D3DMappingLayers", "OpenGL 兼容包", "9nqpsl29bfff")
                 .ConfigureAwait(false);
 
-        await _CheckAndAsk("Microsoft.WebpImageExtension", "WebP 组件包", "9pg2dk419drg")
+        await _CheckAndAskAsync("Microsoft.WebpImageExtension", "WebP 组件包", "9pg2dk419drg")
             .ConfigureAwait(false);
     }
 
-    private static async Task _CheckAndAsk(string packageId, string packageName, string storeId)
+    private static async Task _CheckAndAskAsync(string packageId, string packageName, string storeId)
     {
         if (!await _CheckPackageAsync(packageId))
         {

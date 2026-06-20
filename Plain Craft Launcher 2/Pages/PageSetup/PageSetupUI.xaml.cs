@@ -600,9 +600,7 @@ public partial class PageSetupUI
 
     private void BtnCustomTutorial_Click(object sender, MouseButtonEventArgs e)
     {
-        ModMain.MyMsgBox(
-            Lang.Text("Setup.Ui.Homepage.Tutorial.Message"),
-            Lang.Text("Setup.Ui.Homepage.Tutorial.Title"));
+        ModBase.OpenWebsite("https://docs.pclc.cc/ce/customization/xaml-format");
     }
 
     // 主题
