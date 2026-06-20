@@ -1,0 +1,40 @@
+<!--
+  Copyright (c) MUXUE1230. All rights reserved.
+  Modifications Copyright (c) 2026 PCL N contributors.
+  Licensed under the Apache License, Version 2.0.
+-->
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <SolidColorBrush x:Key="ColorBrush1" Color="#283E57" />
+  <SolidColorBrush x:Key="ColorBrush2" Color="#287BC1" />
+  <SolidColorBrush x:Key="ColorBrush3" Color="#3F93D7" />
+  <SolidColorBrush x:Key="ColorBrush4" Color="#65758B" />
+  <SolidColorBrush x:Key="ColorBrush5" Color="#8A99AA" />
+  <SolidColorBrush x:Key="ColorBrush6" Color="#D7E0EA" />
+  <SolidColorBrush x:Key="ColorBrush7" Color="#EEF6FD" />
+  <SolidColorBrush x:Key="ColorBrushHalfWhite" Color="#B8FFFFFF" />
+  <SolidColorBrush x:Key="ColorBrushSemiTransparent" Color="#01000000" />
+  <SolidColorBrush x:Key="ColorBrushTransparentBackground" Color="#F7FFFFFF" />
+  <SolidColorBrush x:Key="ColorBrushPageBackground" Color="#F4F7FB" />
+  <SolidColorBrush x:Key="ColorBrushPanelBackground" Color="#FFFFFF" />
+  <SolidColorBrush x:Key="ColorBrushSidebar" Color="#14263D" />
+  <SolidColorBrush x:Key="ColorBrushSidebarHover" Color="#203A5D" />
+  <SolidColorBrush x:Key="ColorBrushGray4" Color="#A8B2BF" />
+
+  <SolidColorBrush x:Key="ColorBrushRedDark" Color="#B33A3A" />
+  <SolidColorBrush x:Key="ColorBrushRedLight" Color="#D95656" />
+  <SolidColorBrush x:Key="ColorBrushRedBack" Color="#FFF0F0" />
+
+  <SolidColorBrush x:Key="ColorBrushDebug" Color="#7D8B9C" />
+  <SolidColorBrush x:Key="ColorBrushInfo" Color="#287BC1" />
+  <SolidColorBrush x:Key="ColorBrushInfoDark" Color="#1D5E96" />
+  <SolidColorBrush x:Key="ColorBrushWarn" Color="#C27A14" />
+  <SolidColorBrush x:Key="ColorBrushError" Color="#C44545" />
+  <SolidColorBrush x:Key="ColorBrushFatal" Color="#8F2C65" />
+
+  <SolidColorBrush x:Key="ColorBrushSuccess" Color="#278552" />
+  <SolidColorBrush x:Key="ColorBrushSuccessBack" Color="#EAF7EF" />
+  <SolidColorBrush x:Key="ColorBrushWarningBack" Color="#FFF6E5" />
+  <SolidColorBrush x:Key="ColorBrushErrorBack" Color="#FFF0F0" />
+</ResourceDictionary>

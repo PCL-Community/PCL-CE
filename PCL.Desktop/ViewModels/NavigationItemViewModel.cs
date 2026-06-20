@@ -13,11 +13,15 @@ public sealed class NavigationItemViewModel : ObservableObject
     public NavigationItemViewModel(
         string title,
         string description,
+        string iconKey,
+        object page,
         bool isComingSoon,
         Action<NavigationItemViewModel> select)
     {
         Title = title;
         Description = description;
+        IconKey = iconKey;
+        Page = page;
         IsComingSoon = isComingSoon;
         OpenCommand = new DelegateCommand(() => select(this));
     }
@@ -25,6 +29,10 @@ public sealed class NavigationItemViewModel : ObservableObject
     public string Title { get; }
 
     public string Description { get; }
+
+    public string IconKey { get; }
+
+    public object Page { get; }
 
     public bool IsComingSoon { get; }
 

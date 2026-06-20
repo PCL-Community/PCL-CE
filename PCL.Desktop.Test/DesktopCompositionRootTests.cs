@@ -4,6 +4,7 @@
 
 using PCL.Desktop.Composition;
 using PCL.Desktop.ViewModels;
+using PCL.Desktop.ViewModels.Tools;
 using PCL.Platform.Abstractions.Paths;
 using PCL.Platform.Abstractions.System;
 
@@ -38,8 +39,26 @@ public sealed class DesktopCompositionRootTests
         plugin.OpenCommand.Execute(null);
 
         Assert.AreEqual("插件", viewModel.SelectedTitle);
+        Assert.AreSame(plugin.Page, viewModel.CurrentPage);
         Assert.IsTrue(plugin.IsSelected);
         Assert.AreEqual(1, viewModel.NavigationItems.Count(static item => item.IsSelected));
+    }
+
+    [TestMethod]
+    public void ControlsGalleryNavigation_UsesConcretePageViewModel()
+    {
+        MainWindowViewModel viewModel =
+            DesktopCompositionRoot.CreateMainWindowViewModel(
+                new TestPathProvider(),
+                new TestSystemInfoProvider());
+        NavigationItemViewModel gallery = viewModel.NavigationItems.Single(
+            static item => item.Page is ControlsGalleryViewModel);
+
+        gallery.OpenCommand.Execute(null);
+
+        Assert.AreEqual("界面组件", viewModel.SelectedTitle);
+        Assert.IsInstanceOfType<ControlsGalleryViewModel>(
+            viewModel.CurrentPage);
     }
 
     private sealed class TestPathProvider : IPlatformPathProvider

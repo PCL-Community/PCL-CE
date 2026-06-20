@@ -1,0 +1,94 @@
+<!--
+  Copyright (c) MUXUE1230. All rights reserved.
+  Modifications Copyright (c) 2026 PCL N contributors.
+  Licensed under the Apache License, Version 2.0.
+-->
+<UserControl
+    x:Class="PCL.Desktop.Pages.Tools.ControlsGalleryPage"
+    x:DataType="vm:ControlsGalleryViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:buttons="using:PCL.Desktop.Controls.Buttons"
+    xmlns:cards="using:PCL.Desktop.Controls.Cards"
+    xmlns:inputs="using:PCL.Desktop.Controls.Inputs"
+    xmlns:vm="using:PCL.Desktop.ViewModels.Tools"
+    x:CompileBindings="True">
+  <inputs:PclScrollViewer>
+    <StackPanel Spacing="16">
+      <cards:PclCard Header="按钮">
+        <WrapPanel ItemWidth="150" ItemHeight="44">
+          <buttons:PclButton
+              Content="普通按钮"
+              Margin="0,0,10,10" />
+          <buttons:PclButton
+              Content="高亮按钮"
+              ColorType="Highlight"
+              Margin="0,0,10,10" />
+          <buttons:PclButton
+              Content="危险操作"
+              ColorType="Danger"
+              Margin="0,0,10,10" />
+          <buttons:PclButton
+              Content="不可用"
+              IsEnabled="False"
+              Margin="0,0,10,10" />
+          <buttons:PclIconTextButton
+              Text="保存"
+              IconKey="lucide/save"
+              ColorType="Highlight"
+              Margin="0,0,10,10" />
+          <buttons:PclIconButton
+              IconKey="lucide/trash-2"
+              AccessibleName="删除"
+              ColorType="Danger"
+              Margin="0,0,10,10" />
+        </WrapPanel>
+      </cards:PclCard>
+
+      <cards:PclCard Header="选择与范围">
+        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+          <StackPanel Spacing="10" Margin="0,0,20,0">
+            <inputs:PclCheckBox Content="自动修复游戏相关问题" IsChecked="True" />
+            <inputs:PclCheckBox Content="读取剪贴板中的整合包链接" />
+            <inputs:PclCheckBox Content="三态选项" IsThreeState="True" IsChecked="{x:Null}" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Spacing="10">
+            <inputs:PclRadioButton Content="优先使用官方源" GroupName="source" IsChecked="True" />
+            <inputs:PclRadioButton Content="优先使用镜像源" GroupName="source" />
+            <inputs:PclRadioButton Content="仅使用官方源" GroupName="source" />
+          </StackPanel>
+          <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,20,0,0">
+            <TextBlock
+                Text="{CompiledBinding SliderHint}"
+                Foreground="{DynamicResource ColorBrush4}" />
+            <inputs:PclSlider
+                Minimum="1"
+                Maximum="29"
+                Value="{CompiledBinding SliderValue, Mode=TwoWay}"
+                Margin="0,8,0,0" />
+          </StackPanel>
+        </Grid>
+      </cards:PclCard>
+
+      <cards:PclCard Header="提示与通知" IsCollapsible="True">
+        <WrapPanel ItemWidth="150" ItemHeight="44">
+          <buttons:PclButton Content="普通提示" Command="{CompiledBinding ShowInfoCommand}" Margin="0,0,10,10" />
+          <buttons:PclButton Content="成功提示" Command="{CompiledBinding ShowSuccessCommand}" Margin="0,0,10,10" />
+          <buttons:PclButton Content="警告提示" Command="{CompiledBinding ShowWarningCommand}" Margin="0,0,10,10" />
+          <buttons:PclButton Content="错误提示" ColorType="Danger" Command="{CompiledBinding ShowErrorCommand}" Margin="0,0,10,10" />
+          <buttons:PclIconTextButton Text="Toast" IconKey="lucide/bell" Command="{CompiledBinding ShowToastCommand}" Margin="0,0,10,10" />
+          <buttons:PclButton Content="消息对话框" Command="{CompiledBinding ShowDialogCommand}" Margin="0,0,10,10" />
+          <buttons:PclButton Content="确认对话框" Command="{CompiledBinding ShowConfirmCommand}" Margin="0,0,10,10" />
+        </WrapPanel>
+      </cards:PclCard>
+
+      <cards:PclCard Header="主题模式">
+        <WrapPanel ItemWidth="170" ItemHeight="44">
+          <buttons:PclIconTextButton Text="跟随系统" IconKey="lucide/monitor" Command="{CompiledBinding UseSystemThemeCommand}" Margin="0,0,10,10" />
+          <buttons:PclIconTextButton Text="亮色" IconKey="lucide/sun" Command="{CompiledBinding UseLightThemeCommand}" Margin="0,0,10,10" />
+          <buttons:PclIconTextButton Text="暗色" IconKey="lucide/moon" Command="{CompiledBinding UseDarkThemeCommand}" Margin="0,0,10,10" />
+        </WrapPanel>
+      </cards:PclCard>
+    </StackPanel>
+  </inputs:PclScrollViewer>
+</UserControl>

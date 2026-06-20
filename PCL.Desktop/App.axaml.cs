@@ -18,8 +18,12 @@ public sealed partial class App : Avalonia.Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow(
-                DesktopCompositionRoot.CreateMainWindowViewModel());
+            DesktopApplicationContext context =
+                DesktopCompositionRoot.CreateApplicationContext(this);
+            context.ThemeService.Apply(
+                PCL.UI.Abstractions.ThemeMode.System,
+                PCL.UI.Abstractions.AccentColor.CatBlue);
+            desktop.MainWindow = new MainWindow(context.MainWindow);
         }
 
         base.OnFrameworkInitializationCompleted();

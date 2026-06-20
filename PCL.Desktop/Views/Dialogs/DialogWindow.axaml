@@ -1,0 +1,59 @@
+<!--
+  Copyright (c) MUXUE1230. All rights reserved.
+  Modifications Copyright (c) 2026 PCL N contributors.
+  Licensed under the Apache License, Version 2.0.
+-->
+<Window
+    x:Class="PCL.Desktop.Views.Dialogs.DialogWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:CompileBindings="True"
+    Width="460"
+    MinHeight="190"
+    CanResize="False"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner"
+    Background="{DynamicResource ColorBrushPageBackground}">
+  <Border
+      Background="{DynamicResource ColorBrushPanelBackground}"
+      CornerRadius="{DynamicResource RadiusLarge}"
+      Padding="{DynamicResource CardPadding}"
+      Margin="12">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+      <TextBlock
+          x:Name="TitleText"
+          FontSize="{DynamicResource FontSizeTitle}"
+          FontWeight="SemiBold"
+          Foreground="{DynamicResource ColorBrush1}" />
+      <TextBlock
+          x:Name="MessageText"
+          Grid.Row="1"
+          Margin="0,12,0,0"
+          TextWrapping="Wrap"
+          Foreground="{DynamicResource ColorBrush4}" />
+      <TextBox
+          x:Name="PromptText"
+          Grid.Row="2"
+          Margin="0,16,0,0"
+          IsVisible="False" />
+      <StackPanel
+          Grid.Row="3"
+          Orientation="Horizontal"
+          HorizontalAlignment="Right"
+          Spacing="8"
+          Margin="0,20,0,0">
+        <Button
+            x:Name="CancelButton"
+            Content="取消"
+            IsVisible="False"
+            MinWidth="84"
+            Click="CancelButton_OnClick" />
+        <Button
+            x:Name="AcceptButton"
+            Content="确定"
+            MinWidth="84"
+            Click="AcceptButton_OnClick" />
+      </StackPanel>
+    </Grid>
+  </Border>
+</Window>

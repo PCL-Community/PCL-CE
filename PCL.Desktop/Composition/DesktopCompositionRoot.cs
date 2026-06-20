@@ -9,19 +9,70 @@ using PCL.Platform.Abstractions.Paths;
 using PCL.Platform.Abstractions.System;
 using PCL.Platform.Paths;
 using PCL.Platform.System;
+using PCL.Desktop.Services;
+using PCL.UI.Abstractions;
 
 namespace PCL.Desktop.Composition;
 
 public static class DesktopCompositionRoot
 {
+    internal static DesktopApplicationContext CreateApplicationContext(
+        Avalonia.Application application)
+    {
+        ArgumentNullException.ThrowIfNull(application);
+        AvaloniaUiScheduler scheduler = new();
+        InAppNotificationService notifications = new(scheduler);
+        AvaloniaDialogService dialogs = new();
+        AvaloniaFileDialogService fileDialogs = new();
+        AvaloniaThemeService theme = new(application);
+        AvaloniaIconService icons = AvaloniaIconService.Shared;
+        MainWindowViewModel mainWindow = CreateMainWindowViewModel(
+            new DefaultPlatformPathProvider(),
+            new DefaultSystemInfoProvider(),
+            notifications,
+            dialogs,
+            theme);
+
+        return new DesktopApplicationContext(
+            mainWindow,
+            theme,
+            dialogs,
+            fileDialogs,
+            icons,
+            notifications);
+    }
+
     public static MainWindowViewModel CreateMainWindowViewModel() =>
         CreateMainWindowViewModel(
             new DefaultPlatformPathProvider(),
-            new DefaultSystemInfoProvider());
+            new DefaultSystemInfoProvider(),
+            CreateTestServices());
 
     public static MainWindowViewModel CreateMainWindowViewModel(
         IPlatformPathProvider pathProvider,
-        ISystemInfoProvider systemInfoProvider)
+        ISystemInfoProvider systemInfoProvider) =>
+        CreateMainWindowViewModel(
+            pathProvider,
+            systemInfoProvider,
+            CreateTestServices());
+
+    private static MainWindowViewModel CreateMainWindowViewModel(
+        IPlatformPathProvider pathProvider,
+        ISystemInfoProvider systemInfoProvider,
+        TestPresentationServices services) =>
+        CreateMainWindowViewModel(
+            pathProvider,
+            systemInfoProvider,
+            services.Notifications,
+            services.Dialogs,
+            services.Theme);
+
+    private static MainWindowViewModel CreateMainWindowViewModel(
+        IPlatformPathProvider pathProvider,
+        ISystemInfoProvider systemInfoProvider,
+        InAppNotificationService notifications,
+        IDialogService dialogs,
+        IThemeService theme)
     {
         ArgumentNullException.ThrowIfNull(pathProvider);
         ArgumentNullException.ThrowIfNull(systemInfoProvider);
@@ -39,7 +90,11 @@ public static class DesktopCompositionRoot
             Path.Combine(pathProvider.CacheDirectory, "PCL N"),
             pathProvider.TemporaryDirectory);
 
-        return new MainWindowViewModel(environment);
+        return new MainWindowViewModel(
+            environment,
+            notifications,
+            dialogs,
+            theme);
     }
 
     public static bool ValidateEnvironment()
@@ -62,5 +117,74 @@ public static class DesktopCompositionRoot
 
         const double gibibyte = 1024d * 1024d * 1024d;
         return $"{bytes / gibibyte:F1} GiB 可用上限";
+    }
+
+    private static TestPresentationServices CreateTestServices()
+    {
+        InlineUiScheduler scheduler = new();
+        return new TestPresentationServices(
+            new InAppNotificationService(scheduler),
+            new NullDialogService(),
+            new NullThemeService());
+    }
+
+    private sealed record TestPresentationServices(
+        InAppNotificationService Notifications,
+        IDialogService Dialogs,
+        IThemeService Theme);
+
+    private sealed class InlineUiScheduler : IUiScheduler
+    {
+        public bool CheckAccess() => true;
+
+        public void Post(Action action) => action();
+
+        public Task InvokeAsync(
+            Action action,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            action();
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class NullDialogService : IDialogService
+    {
+        public Task ShowMessageAsync(
+            string title,
+            string message,
+            CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
+
+        public Task<bool> ConfirmAsync(
+            string title,
+            string message,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(false);
+
+        public Task<string?> PromptAsync(
+            string title,
+            string message,
+            string? defaultValue = null,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult<string?>(null);
+    }
+
+    private sealed class NullThemeService : IThemeService
+    {
+        public ThemeMode CurrentMode => ThemeMode.System;
+
+        public AccentColor CurrentAccent => AccentColor.CatBlue;
+
+        public event EventHandler<ThemeChangedEventArgs>? ThemeChanged
+        {
+            add { }
+            remove { }
+        }
+
+        public void Apply(ThemeMode mode, AccentColor accent)
+        {
+        }
     }
 }

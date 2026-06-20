@@ -8,276 +8,287 @@
     x:DataType="vm:MainWindowViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:animation="using:Avalonia.Animation"
+    xmlns:buttons="using:PCL.Desktop.Controls.Buttons"
+    xmlns:feedback="using:PCL.Desktop.ViewModels.Feedback"
+    xmlns:icons="using:PCL.Desktop.Controls.Icons"
     xmlns:vm="using:PCL.Desktop.ViewModels"
     x:CompileBindings="True"
     Title="PCL N"
-    Width="1080"
-    Height="700"
+    Width="1120"
+    Height="720"
     MinWidth="900"
     MinHeight="600"
-    Background="#F4F7FB">
+    FontFamily="{DynamicResource FontFamilyDefault}"
+    Background="{DynamicResource ColorBrushPageBackground}">
   <Window.Styles>
     <Style Selector="Button.nav-item">
       <Setter Property="HorizontalContentAlignment" Value="Stretch" />
       <Setter Property="HorizontalAlignment" Value="Stretch" />
-      <Setter Property="Padding" Value="14,11" />
-      <Setter Property="Margin" Value="0,3" />
+      <Setter Property="Padding" Value="12,10" />
+      <Setter Property="Margin" Value="0,2" />
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="Foreground" Value="#DDE8F7" />
       <Setter Property="BorderThickness" Value="0" />
-      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="CornerRadius" Value="{DynamicResource RadiusMedium}" />
     </Style>
     <Style Selector="Button.nav-item:pointerover">
-      <Setter Property="Background" Value="#203A5D" />
+      <Setter Property="Background" Value="{DynamicResource ColorBrushSidebarHover}" />
     </Style>
     <Style Selector="Button.nav-item.selected">
-      <Setter Property="Background" Value="#285A8E" />
+      <Setter Property="Background" Value="{DynamicResource ColorBrush2}" />
       <Setter Property="Foreground" Value="White" />
     </Style>
-    <Style Selector="Border.info-card">
-      <Setter Property="Background" Value="White" />
-      <Setter Property="CornerRadius" Value="12" />
-      <Setter Property="Padding" Value="20" />
-      <Setter Property="Margin" Value="8" />
+    <Style Selector="Border.message">
+      <Setter Property="MinWidth" Value="320" />
+      <Setter Property="MaxWidth" Value="420" />
+      <Setter Property="Background" Value="{DynamicResource ColorBrushPanelBackground}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ColorBrush6}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="{DynamicResource RadiusLarge}" />
+      <Setter Property="Padding" Value="14" />
+      <Setter Property="Margin" Value="0,0,0,8" />
+      <Setter Property="BoxShadow" Value="{DynamicResource CardShadowHover}" />
     </Style>
-    <Style Selector="TextBlock.card-label">
-      <Setter Property="Foreground" Value="#65758B" />
-      <Setter Property="FontSize" Value="13" />
+    <Style Selector="Border.message.success">
+      <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushSuccess}" />
     </Style>
-    <Style Selector="TextBlock.card-value">
-      <Setter Property="Foreground" Value="#172A43" />
-      <Setter Property="FontSize" Value="16" />
-      <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="TextWrapping" Value="Wrap" />
+    <Style Selector="Border.message.warning">
+      <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushWarn}" />
+    </Style>
+    <Style Selector="Border.message.error">
+      <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushError}" />
     </Style>
   </Window.Styles>
 
-  <Grid RowDefinitions="Auto,*">
-    <Border
-        Grid.Row="0"
-        x:Name="MacTitleBar"
-        IsVisible="{CompiledBinding Environment.IsMacOS}"
-        Height="42"
-        Background="#14263D"
-        PointerPressed="MacTitleBar_OnPointerPressed">
-      <Grid ColumnDefinitions="Auto,*" Margin="16,0">
-        <StackPanel
-            Orientation="Horizontal"
-            Spacing="8"
-            VerticalAlignment="Center">
-          <Button
-              Width="13"
-              Height="13"
-              Padding="0"
-              Background="#FF5F57"
-              BorderBrush="#E0443E"
-              BorderThickness="1"
-              CornerRadius="7"
-              Click="CloseButton_OnClick" />
-          <Button
-              Width="13"
-              Height="13"
-              Padding="0"
-              Background="#FEBC2E"
-              BorderBrush="#D89A1B"
-              BorderThickness="1"
-              CornerRadius="7"
-              Click="MinimizeButton_OnClick" />
-          <Button
-              Width="13"
-              Height="13"
-              Padding="0"
-              Background="#28C840"
-              BorderBrush="#1DA934"
-              BorderThickness="1"
-              CornerRadius="7"
-              IsEnabled="False"
-              ToolTip.Tip="暂不支持全屏" />
-        </StackPanel>
-        <StackPanel
-            Grid.Column="1"
-            Orientation="Horizontal"
-            Spacing="8"
-            Margin="14,0,0,0"
-            VerticalAlignment="Center">
-          <Border
-              Width="22"
-              Height="22"
-              Background="#285A8E"
-              CornerRadius="6">
-            <TextBlock
-                Text="P"
-                Foreground="White"
-                FontWeight="Bold"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center" />
-          </Border>
-          <TextBlock
-              Text="PCL N"
-              Foreground="White"
-              FontSize="13"
-              FontWeight="SemiBold"
-              VerticalAlignment="Center" />
-        </StackPanel>
-      </Grid>
-    </Border>
-
-    <Grid Grid.Row="1" ColumnDefinitions="244,*">
-    <Border Grid.Column="0" Background="#14263D" Padding="20,28">
-      <Grid RowDefinitions="Auto,*,Auto">
-        <StackPanel>
-          <TextBlock
-              Text="PCL N"
-              Foreground="White"
-              FontSize="28"
-              FontWeight="Bold" />
-          <TextBlock
-              Text="跨平台启动器"
-              Foreground="#9DB2CE"
-              FontSize="13"
-              Margin="0,4,0,22" />
-        </StackPanel>
-
-        <ItemsControl
-            Grid.Row="1"
-            ItemsSource="{CompiledBinding NavigationItems}">
-          <ItemsControl.ItemTemplate>
-            <DataTemplate x:DataType="vm:NavigationItemViewModel">
-              <Button
-                  Classes="nav-item"
-                  Classes.selected="{CompiledBinding IsSelected}"
-                  Command="{CompiledBinding OpenCommand}">
-                <Grid ColumnDefinitions="*,Auto">
-                  <TextBlock
-                      Text="{CompiledBinding Title}"
-                      VerticalAlignment="Center"
-                      FontSize="15" />
-                  <Border
-                      Grid.Column="1"
-                      IsVisible="{CompiledBinding IsComingSoon}"
-                      Background="#344A67"
-                      CornerRadius="9"
-                      Padding="7,2">
-                    <TextBlock
-                        Text="敬请期待"
-                        Foreground="#C8D6E9"
-                        FontSize="10" />
-                  </Border>
-                </Grid>
-              </Button>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-
-        <Border
-            Grid.Row="2"
-            Background="#1D3552"
-            CornerRadius="10"
-            Padding="14">
-          <StackPanel>
-            <TextBlock
-                Text="核心状态"
-                Foreground="#9DB2CE"
-                FontSize="12" />
-            <TextBlock
-                Text="{CompiledBinding RuntimeStatus}"
-                Foreground="#E4F4E9"
-                FontWeight="SemiBold"
-                Margin="0,4,0,0" />
+  <Grid>
+    <Grid RowDefinitions="Auto,*">
+      <Border
+          Grid.Row="0"
+          x:Name="MacTitleBar"
+          IsVisible="{CompiledBinding Environment.IsMacOS}"
+          Height="42"
+          Background="{DynamicResource ColorBrushSidebar}"
+          PointerPressed="MacTitleBar_OnPointerPressed">
+        <Grid ColumnDefinitions="Auto,*" Margin="16,0">
+          <StackPanel
+              Orientation="Horizontal"
+              Spacing="8"
+              VerticalAlignment="Center">
+            <Button
+                Width="13"
+                Height="13"
+                Padding="0"
+                Background="#FF5F57"
+                BorderBrush="#E0443E"
+                BorderThickness="1"
+                CornerRadius="7"
+                Click="CloseButton_OnClick" />
+            <Button
+                Width="13"
+                Height="13"
+                Padding="0"
+                Background="#FEBC2E"
+                BorderBrush="#D89A1B"
+                BorderThickness="1"
+                CornerRadius="7"
+                Click="MinimizeButton_OnClick" />
+            <Button
+                Width="13"
+                Height="13"
+                Padding="0"
+                Background="#28C840"
+                BorderBrush="#1DA934"
+                BorderThickness="1"
+                CornerRadius="7"
+                IsEnabled="False"
+                ToolTip.Tip="暂不支持全屏" />
           </StackPanel>
-        </Border>
-      </Grid>
-    </Border>
-
-    <ScrollViewer Grid.Column="1">
-      <StackPanel Margin="32,28">
-        <TextBlock
-            Text="{CompiledBinding SelectedTitle}"
-            Foreground="#172A43"
-            FontSize="30"
-            FontWeight="Bold" />
-        <TextBlock
-            Text="{CompiledBinding SelectedDescription}"
-            Foreground="#65758B"
-            FontSize="15"
-            Margin="0,6,0,22" />
-
-        <Border
-            Background="#E5F2FF"
-            BorderBrush="#BCD9F5"
-            BorderThickness="1"
-            CornerRadius="12"
-            Padding="18"
-            Margin="0,0,0,16">
-          <Grid ColumnDefinitions="Auto,*">
+          <StackPanel
+              Grid.Column="1"
+              Orientation="Horizontal"
+              Spacing="8"
+              Margin="14,0,0,0"
+              VerticalAlignment="Center">
             <Border
-                Width="10"
-                Height="10"
-                Background="#2E8B57"
-                CornerRadius="5"
-                VerticalAlignment="Center"
-                Margin="0,0,12,0" />
-            <StackPanel Grid.Column="1">
+                Width="22"
+                Height="22"
+                Background="{DynamicResource ColorBrush2}"
+                CornerRadius="{DynamicResource RadiusMedium}">
               <TextBlock
-                  Text="运行环境已就绪"
-                  Foreground="#173B61"
-                  FontWeight="SemiBold" />
+                  Text="P"
+                  Foreground="White"
+                  FontWeight="Bold"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center" />
+            </Border>
+            <TextBlock
+                Text="PCL N"
+                Foreground="White"
+                FontSize="{DynamicResource FontSizeBody}"
+                FontWeight="SemiBold"
+                VerticalAlignment="Center" />
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <Grid Grid.Row="1" ColumnDefinitions="244,*">
+        <Border
+            Grid.Column="0"
+            Background="{DynamicResource ColorBrushSidebar}"
+            Padding="18,24">
+          <Grid RowDefinitions="Auto,*,Auto">
+            <StackPanel>
               <TextBlock
-                  Text="跨平台核心、平台适配与插件契约已完成加载。"
-                  Foreground="#496A89"
-                  FontSize="13"
-                  Margin="0,3,0,0" />
+                  Text="PCL N"
+                  Foreground="White"
+                  FontSize="28"
+                  FontWeight="Bold" />
+              <TextBlock
+                  Text="跨平台启动器"
+                  Foreground="#9DB2CE"
+                  FontSize="{DynamicResource FontSizeBody}"
+                  Margin="0,4,0,20" />
             </StackPanel>
+
+            <ScrollViewer
+                Grid.Row="1"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto">
+              <ItemsControl ItemsSource="{CompiledBinding NavigationItems}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:NavigationItemViewModel">
+                    <Button
+                        Classes="nav-item"
+                        Classes.selected="{CompiledBinding IsSelected}"
+                        Command="{CompiledBinding OpenCommand}">
+                      <Grid ColumnDefinitions="Auto,*,Auto">
+                        <icons:LucideIcon
+                            IconKey="{CompiledBinding IconKey}"
+                            Stroke="#DDE8F7"
+                            Width="17"
+                            Height="17"
+                            Margin="0,0,10,0"
+                            VerticalAlignment="Center" />
+                        <TextBlock
+                            Grid.Column="1"
+                            Text="{CompiledBinding Title}"
+                            VerticalAlignment="Center"
+                            FontSize="{DynamicResource FontSizeBodyLarge}" />
+                        <Border
+                            Grid.Column="2"
+                            IsVisible="{CompiledBinding IsComingSoon}"
+                            Background="#344A67"
+                            CornerRadius="9"
+                            Padding="7,2">
+                          <TextBlock
+                              Text="敬请期待"
+                              Foreground="#C8D6E9"
+                              FontSize="10" />
+                        </Border>
+                      </Grid>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+
+            <Border
+                Grid.Row="2"
+                Background="#1D3552"
+                CornerRadius="{DynamicResource RadiusLarge}"
+                Padding="14">
+              <StackPanel>
+                <TextBlock
+                    Text="核心状态"
+                    Foreground="#9DB2CE"
+                    FontSize="{DynamicResource FontSizeCaption}" />
+                <TextBlock
+                    Text="{CompiledBinding RuntimeStatus}"
+                    Foreground="#E4F4E9"
+                    FontWeight="SemiBold"
+                    Margin="0,4,0,0" />
+              </StackPanel>
+            </Border>
           </Grid>
         </Border>
 
-        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
-          <Border Classes="info-card" Grid.Row="0" Grid.Column="0">
+        <Grid Grid.Column="1" RowDefinitions="Auto,*">
+          <Border
+              Background="{DynamicResource ColorBrushPanelBackground}"
+              BorderBrush="{DynamicResource ColorBrush6}"
+              BorderThickness="0,0,0,1"
+              Padding="28,20">
             <StackPanel>
-              <TextBlock Classes="card-label" Text="操作系统" />
               <TextBlock
-                  Classes="card-value"
-                  Text="{CompiledBinding Environment.OperatingSystem}"
-                  Margin="0,7,0,0" />
+                  Text="{CompiledBinding SelectedTitle}"
+                  Foreground="{DynamicResource ColorBrush1}"
+                  FontSize="{DynamicResource FontSizePageTitle}"
+                  FontWeight="Bold" />
+              <TextBlock
+                  Text="{CompiledBinding SelectedDescription}"
+                  Foreground="{DynamicResource ColorBrush4}"
+                  FontSize="{DynamicResource FontSizeBodyLarge}"
+                  Margin="0,5,0,0" />
             </StackPanel>
           </Border>
-          <Border Classes="info-card" Grid.Row="0" Grid.Column="1">
-            <StackPanel>
-              <TextBlock Classes="card-label" Text="处理器" />
-              <TextBlock
-                  Classes="card-value"
-                  Text="{CompiledBinding Environment.Processor}"
-                  Margin="0,7,0,0" />
-              <TextBlock
-                  Text="{CompiledBinding Environment.Memory}"
-                  Foreground="#65758B"
-                  FontSize="12"
-                  Margin="0,4,0,0" />
-            </StackPanel>
-          </Border>
-          <Border Classes="info-card" Grid.Row="1" Grid.Column="0">
-            <StackPanel>
-              <TextBlock Classes="card-label" Text="数据目录" />
-              <TextBlock
-                  Classes="card-value"
-                  Text="{CompiledBinding Environment.ApplicationDataDirectory}"
-                  FontSize="13"
-                  Margin="0,7,0,0" />
-            </StackPanel>
-          </Border>
-          <Border Classes="info-card" Grid.Row="1" Grid.Column="1">
-            <StackPanel>
-              <TextBlock Classes="card-label" Text="缓存目录" />
-              <TextBlock
-                  Classes="card-value"
-                  Text="{CompiledBinding Environment.CacheDirectory}"
-                  FontSize="13"
-                  Margin="0,7,0,0" />
-            </StackPanel>
-          </Border>
+
+          <TransitioningContentControl
+              Grid.Row="1"
+              Content="{CompiledBinding CurrentPage}"
+              Margin="{DynamicResource PageMargin}">
+            <TransitioningContentControl.PageTransition>
+              <animation:CrossFade Duration="0:0:0.2" />
+            </TransitioningContentControl.PageTransition>
+          </TransitioningContentControl>
         </Grid>
-      </StackPanel>
-    </ScrollViewer>
+      </Grid>
     </Grid>
+
+    <ItemsControl
+        ItemsSource="{CompiledBinding Messages}"
+        HorizontalAlignment="Right"
+        VerticalAlignment="Top"
+        Margin="0,56,20,0"
+        IsHitTestVisible="True">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="feedback:InAppMessageViewModel">
+          <Border
+              Classes="message"
+              Classes.success="{CompiledBinding IsSuccess}"
+              Classes.warning="{CompiledBinding IsWarning}"
+              Classes.error="{CompiledBinding IsError}">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <icons:LucideIcon
+                  IconKey="{CompiledBinding IconKey}"
+                  Stroke="{DynamicResource ColorBrush2}"
+                  Width="20"
+                  Height="20"
+                  Margin="0,1,12,0" />
+              <StackPanel Grid.Column="1">
+                <TextBlock
+                    Text="{CompiledBinding Title}"
+                    Foreground="{DynamicResource ColorBrush1}"
+                    FontWeight="SemiBold" />
+                <TextBlock
+                    Text="{CompiledBinding Message}"
+                    Foreground="{DynamicResource ColorBrush4}"
+                    TextWrapping="Wrap"
+                    Margin="0,3,0,0" />
+              </StackPanel>
+              <buttons:PclIconButton
+                  Grid.Column="2"
+                  IconKey="lucide/x"
+                  AccessibleName="关闭提示"
+                  Command="{CompiledBinding DismissCommand}"
+                  Width="28"
+                  MinWidth="28"
+                  MinHeight="28"
+                  Margin="10,0,0,0" />
+            </Grid>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
   </Grid>
 </Window>
