@@ -154,7 +154,7 @@ public static class UpdateManager
             {
                 ModBase.Log(ex, "[Update] 获取启动器更新失败");
                 if (type != UpdateEnums.UpdateType.Silent)
-                    ModMain.Hint(Lang.Text("Update.Error.FetchFailed"), ModMain.HintType.Critical);
+                    HintService.Hint(Lang.Text("Update.Error.FetchFailed"), HintType.Error);
             }
         });
     }
@@ -185,13 +185,13 @@ public static class UpdateManager
         catch (Win32Exception ex)
         {
             ModBase.Log(ex, "自动更新时触发 Win32 错误，疑似被拦截");
-            if (ModMain.MyMsgBox(Lang.Text("Update.Error.UpdateBlockedMessage", ModBase.exePath),
-                    Lang.Text("Update.Error.UpdateBlocked"),
-                    Lang.Text("Update.Error.ViewHelp"),
-                    Lang.Text("Common.Action.Confirm"),
-                    "", true
-                ) == 1)
-                CustomEvent.Raise(CustomEvent.EventType.打开帮助, "启动器/Microsoft Defender 添加排除项.json");
+            ModMain.MyMsgBox(
+                Lang.Text("Update.Error.UpdateBlockedMessage", ModBase.exePath),
+                Lang.Text("Update.Error.UpdateBlocked"),
+                Lang.Text("Common.Action.Confirm"),
+                "",
+                "",
+                true);
         }
     }
 

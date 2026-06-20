@@ -1,4 +1,4 @@
-﻿using PCL.Core.App.Localization;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 

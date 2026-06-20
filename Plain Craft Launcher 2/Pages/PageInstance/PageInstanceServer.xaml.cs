@@ -36,7 +36,7 @@ public partial class PageInstanceServer : MyPageRight
         serverCardList.Clear();
         PanServers.Children.Clear();
 
-        await LoadServersFromFile();
+        await LoadServersFromFileAsync();
         RefreshTip();
 
         foreach (var server in serverList)
@@ -69,7 +69,7 @@ public partial class PageInstanceServer : MyPageRight
         var index = PanServers.Children.IndexOf((UIElement)sender);
         if (index < 0)
         {
-            ModMain.Hint(Lang.Text("Instance.Server.IndexNotFound"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Server.IndexNotFound"), HintType.Error);
             return;
         }
 
@@ -79,7 +79,7 @@ public partial class PageInstanceServer : MyPageRight
                 Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat"), "servers");
         if (nbtData is null)
         {
-            ModMain.Hint(Lang.Text("Instance.Server.ReadDataFailed"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Server.ReadDataFailed"), HintType.Error);
             return;
         }
 
@@ -91,7 +91,7 @@ public partial class PageInstanceServer : MyPageRight
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
                 Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat")))
         {
-            ModMain.Hint(Lang.Text("Instance.Server.WriteDataFailed"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Server.WriteDataFailed"), HintType.Error);
             return;
         }
 
@@ -104,7 +104,7 @@ public partial class PageInstanceServer : MyPageRight
         PanServers.Children.Remove((UIElement)sender);
 
         // Success message
-        ModMain.Hint(Lang.Text("Instance.Server.Removed"), ModMain.HintType.Finish);
+        HintService.Hint(Lang.Text("Instance.Server.Removed"), HintType.Success);
     }
 
     private async void EditServer(object sender, ServerCard.ResultEventArgs e)
@@ -115,7 +115,7 @@ public partial class PageInstanceServer : MyPageRight
                 "servers");
         if (nbtData is null)
         {
-            ModMain.Hint(Lang.Text("Instance.Server.ReadDataFailed"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Server.ReadDataFailed"), HintType.Error);
             return;
         }
 
@@ -123,7 +123,7 @@ public partial class PageInstanceServer : MyPageRight
         var index = PanServers.Children.IndexOf((UIElement)sender);
         if (index < 0 || index >= nbtData.Count)
         {
-            ModMain.Hint(Lang.Text("Instance.Server.IndexNotFound"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Server.IndexNotFound"), HintType.Error);
             return;
         }
 
@@ -139,7 +139,7 @@ public partial class PageInstanceServer : MyPageRight
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
                 Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat")))
         {
-            ModMain.Hint(Lang.Text("Instance.Server.WriteDataFailed"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Server.WriteDataFailed"), HintType.Error);
             return;
         }
 
@@ -148,10 +148,10 @@ public partial class PageInstanceServer : MyPageRight
         serverCard.server.Name = e.Param1;
         serverCard.server.Address = e.Param2;
 
-        await serverCard.RefreshServerStatus(true);
+        await serverCard.RefreshServerStatusAsync(true);
 
         // Success message
-        ModMain.Hint(Lang.Text("Instance.Server.Updated"), ModMain.HintType.Finish);
+        HintService.Hint(Lang.Text("Instance.Server.Updated"), HintType.Success);
     }
 
     /// <summary>
@@ -163,7 +163,7 @@ public partial class PageInstanceServer : MyPageRight
         try
         {
             // 读取服务器信息
-            await LoadServersFromFile();
+            await LoadServersFromFileAsync();
 
             // 在UI线程中更新界面
             ModBase.RunInUi(() => UpdateServerUi());
@@ -174,7 +174,7 @@ public partial class PageInstanceServer : MyPageRight
         catch (Exception ex)
         {
             ModBase.Log(ex, Lang.Text("Instance.Server.RefreshFailed"), ModBase.LogLevel.Feedback);
-            ModBase.RunInUi(() => ModMain.Hint(Lang.Text("Instance.Server.RefreshFailed") + ": " + ex.Message, ModMain.HintType.Critical));
+            ModBase.RunInUi(() => HintService.Hint(Lang.Text("Instance.Server.RefreshFailed") + ": " + ex.Message, HintType.Error));
         }
     }
 
@@ -182,12 +182,12 @@ public partial class PageInstanceServer : MyPageRight
     {
         if ((DateTime.Now - _lastRefresh).TotalMilliseconds < debounceInterval)
         {
-            ModMain.Hint(Lang.Text("Instance.Server.NoFrequentRefresh"));
+            HintService.Hint(Lang.Text("Instance.Server.NoFrequentRefresh"));
             return;
         }
 
         _lastRefresh = DateTime.Now;
-        ModMain.Hint(Lang.Text("Instance.Server.RefreshingList"));
+        HintService.Hint(Lang.Text("Instance.Server.RefreshingList"));
         try
         {
             RefreshServers();
@@ -195,7 +195,7 @@ public partial class PageInstanceServer : MyPageRight
         catch (Exception ex)
         {
             ModBase.Log(ex, Lang.Text("Instance.Server.RefreshFailed"), ModBase.LogLevel.Feedback);
-            ModMain.Hint(Lang.Text("Instance.Server.RefreshFailed") + ": " + ex.Message, ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Server.RefreshFailed") + ": " + ex.Message, HintType.Error);
         }
     }
 
@@ -221,7 +221,7 @@ public partial class PageInstanceServer : MyPageRight
             serverCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);
 
-            await serverCard.RefreshServerStatus(false);
+            await serverCard.RefreshServerStatusAsync(false);
 
             var serversDatPath = Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat");
 
@@ -265,7 +265,7 @@ public partial class PageInstanceServer : MyPageRight
     /// <summary>
     ///     从servers.dat文件读取服务器信息
     /// </summary>
-    private async Task LoadServersFromFile()
+    private async Task LoadServersFromFileAsync()
     {
         serverList.Clear();
 
@@ -387,7 +387,7 @@ public partial class PageInstanceServer : MyPageRight
                 {
                     try
                     {
-                        await currentServer.RefreshServerStatus(false, token);
+                        await currentServer.RefreshServerStatusAsync(false, token);
                     }
                     catch (Exception ex)
                     {
@@ -415,7 +415,7 @@ public partial class PageInstanceServer : MyPageRight
     /// <summary>
     ///     ping单个服务器
     /// </summary>
-    public static async Task<MinecraftServerInfo> PingServer(MinecraftServerInfo server, CancellationToken token)
+    public static async Task<MinecraftServerInfo> PingServerAsync(MinecraftServerInfo server, CancellationToken token)
     {
         try
         {

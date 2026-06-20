@@ -3,17 +3,10 @@ using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
-using FluentValidation;
-using PCL.Core.App;
-using PCL.Core.IO.Net;
-using PCL.Core.Utils;
 using PCL.Core.Utils.Secret;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 using PCL.Core.App.Localization;
-using PCL.Core.UI;
 
 namespace PCL;
 
@@ -44,104 +37,6 @@ public static class ModProfile
         var output = "[Profile] " + content;
         ModBase.Log(output, level);
     }
-
-    #region 旧版迁移
-
-    /// <summary>
-    ///     从旧版配置文件迁移档案，不能在 UI 线程调用
-    /// </summary>
-    public static void MigrateOldProfile()
-    {
-        ProfileLog("开始从旧版配置迁移档案");
-        var profileCount = 0;
-        // 正版档案
-        if (States.Game.LegacyProfile.LoginMsJson != "{}")
-        {
-            var oldMsJson = (JsonObject)ModBase.GetJson(States.Game.LegacyProfile.LoginMsJson);
-            ProfileLog($"找到 {oldMsJson.Count} 个旧版正版档案信息");
-            foreach (var Profile in oldMsJson)
-            {
-                var newProfile = new McProfile
-                {
-                    Username = Profile.Key, Uuid = McLoginMojangUuid(Profile.Key, false)?.ToString() ?? "",
-                    Type = ModLaunch.McLoginType.Ms
-                };
-                profileList.Add(newProfile);
-                profileCount += 1;
-            }
-
-            SaveProfile();
-            ProfileLog("旧版正版档案迁移完成");
-            States.Game.LegacyProfile.LoginMsJson = "{}";
-        }
-        else
-        {
-            ProfileLog("无旧版正版档案信息");
-        }
-
-        // 离线档案
-        if (!string.IsNullOrWhiteSpace(States.Game.LegacyProfile.LoginLegacyName))
-        {
-            var oldOfflineInfo = (string[])((dynamic)States.Game.LegacyProfile.LoginLegacyName).Split("¨");
-            ProfileLog($"找到 {oldOfflineInfo.Count()} 个旧版离线档案信息");
-            foreach (var OfflineId in oldOfflineInfo)
-            {
-                var newProfile = new McProfile
-                {
-                    Username = OfflineId, Uuid = GetOfflineUuid(OfflineId, isLegacy: true),
-                    Type = ModLaunch.McLoginType.Legacy
-                }; // 迁移的档案默认使用旧版 UUID 生成方式以避免存档丢失
-                profileList.Add(newProfile);
-                profileCount += 1;
-            }
-
-            SaveProfile();
-            ProfileLog("旧版离线档案迁移完成");
-            States.Game.LegacyProfile.LoginLegacyName = "";
-        }
-        else
-        {
-            ProfileLog("无旧版离线档案信息");
-        }
-
-        // 第三方验证档案
-        if (!(string.IsNullOrWhiteSpace(States.Game.LegacyProfile.AuthUserName) ||
-              string.IsNullOrWhiteSpace(States.Game.LegacyProfile.AuthUuid) ||
-              string.IsNullOrWhiteSpace(States.Game.LegacyProfile.AuthServerAddress) ||
-              string.IsNullOrWhiteSpace(States.Game.LegacyProfile.AuthThirdPartyUserName) ||
-              string.IsNullOrWhiteSpace(States.Game.LegacyProfile.AuthPassword)))
-        {
-            ProfileLog("找到旧版第三方验证档案信息");
-            var newProfile = new McProfile
-            {
-                Username = States.Game.LegacyProfile.AuthUserName,
-                Uuid = States.Game.LegacyProfile.AuthUuid,
-                Name = States.Game.LegacyProfile.AuthThirdPartyUserName,
-                Password = States.Game.LegacyProfile.AuthPassword,
-                Server = States.Game.LegacyProfile.AuthServerAddress + "/authserver",
-                Type = ModLaunch.McLoginType.Auth
-            };
-            profileList.Add(newProfile);
-            SaveProfile();
-            ProfileLog("旧版第三方验证档案迁移完成");
-            profileCount += 1;
-            States.Game.LegacyProfile.AuthUserName = "";
-            States.Game.LegacyProfile.AuthUuid = "";
-            States.Game.LegacyProfile.AuthServerAddress = "";
-            States.Game.LegacyProfile.AuthThirdPartyUserName = "";
-            States.Game.LegacyProfile.AuthPassword = "";
-        }
-        else
-        {
-            ProfileLog("无旧版第三方验证档案信息");
-        }
-
-        if (profileCount > 0)
-            ModMain.Hint(Lang.Text("Launch.Account.Profile.Migration.AutoMigrate", profileCount));
-        ProfileLog("档案迁移结束");
-    }
-
-    #endregion
 
     #region 获取正版档案 UUID
 
@@ -443,7 +338,7 @@ public static class ModProfile
             authTypeList = _GetAvailableProfileSelection(true);
 #else
             var hasMinecraftAccount = profileList.Any(x => x.Type == ModLaunch.McLoginType.Ms);
-            var restricted = RegionUtils.IsRestrictedFeatAllowed && profileList.Count > 0;
+            var restricted = Lang.IsFeaturesUnrestricted && profileList.Count > 0;
             var hasNetwork = NetworkHelper.IsNetworkAvailable();
             if (hasMinecraftAccount || restricted || !hasNetwork)
                 authTypeList = _GetAvailableProfileSelection(true);
@@ -518,7 +413,7 @@ public static class ModProfile
                 return;
             if (string.IsNullOrWhiteSpace(newUsername))
             {
-                ModMain.Hint(Lang.Text("Launch.Account.Profile.EditPlayerId.Empty"));
+                HintService.Hint(Lang.Text("Launch.Account.Profile.EditPlayerId.Empty"));
                 return;
             }
 
@@ -559,7 +454,7 @@ public static class ModProfile
                                 { { "Authorization", "Bearer " + selectedProfile.AccessToken } }
                         });
                     var resultJson = (JsonObject)ModBase.GetJson(result);
-                    ModMain.Hint(Lang.Text("Launch.Account.Profile.EditPlayerId.Success", resultJson["name"]), ModMain.HintType.Finish);
+                    HintService.Hint(Lang.Text("Launch.Account.Profile.EditPlayerId.Success", resultJson["name"]), HintType.Success);
                     profileList.Remove(selectedProfile);
                     selectedProfile.Username = (string)resultJson["name"];
                     profileList.Add(selectedProfile);
@@ -643,7 +538,7 @@ public static class ModProfile
         profileList[profileIndex].Uuid = newUuid;
         selectedProfile = profileList[profileIndex];
         SaveProfile();
-        ModMain.Hint(Lang.Text("Launch.Account.Profile.Saved"), ModMain.HintType.Finish);
+        HintService.Hint(Lang.Text("Launch.Account.Profile.Saved"), HintType.Success);
     }
 
     /// <summary>
@@ -654,7 +549,7 @@ public static class ModProfile
         var profileIndex = profileList.IndexOf(profile);
         profileList[profileIndex].ServerName = serverName;
         SaveProfile();
-        ModMain.Hint(Lang.Text("Launch.Account.Profile.Saved"), ModMain.HintType.Finish);
+        HintService.Hint(Lang.Text("Launch.Account.Profile.Saved"), HintType.Success);
     }
 
     /// <summary>
@@ -666,242 +561,7 @@ public static class ModProfile
         profileList.Remove(profile);
         lastUsedProfile = default;
         SaveProfile();
-        ModMain.Hint(Lang.Text("Launch.Account.Profile.Deleted"), ModMain.HintType.Finish);
-    }
-
-    #endregion
-
-    #region 导入与导出
-
-    public static void MigrateProfile()
-    {
-        // 1. 初始化路径与状态检查
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var hmclAccountPath = Path.Combine(appData, ".hmcl", "accounts.json");
-        var hasProfiles = profileList.Count > 0;
-        var opType = 3; // 1: 导入, 2: 导出, 3: 取消
-
-        // 2. 用户交互
-        ModBase.RunInUiWait(() =>
-        {
-            if (hasProfiles)
-            {
-                opType = ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.Migration.Message"), Lang.Text("Launch.Account.Profile.Migration.Title"), Lang.Text("Launch.Account.Profile.Migration.Import"), Lang.Text("Launch.Account.Profile.Migration.Export"),
-                    Lang.Text("Common.Action.Cancel"), forceWait: true);
-            }
-            else
-            {
-                opType = ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.Migration.ImportOnlyMessage"), Lang.Text("Launch.Account.Profile.Migration.Title"), Lang.Text("Launch.Account.Profile.Migration.Import"), Lang.Text("Common.Action.Cancel"), forceWait: true);
-                if (opType == 2) opType = 3;
-            }
-        });
-
-        if (opType == 3)
-            return;
-
-        // 3. 分发逻辑
-        if (opType == 1)
-            PerformImport(hmclAccountPath);
-        else
-            PerformExport(hmclAccountPath);
-    }
-
-    // --- 核心业务逻辑 ---
-
-    private static void PerformImport(string path)
-    {
-        ModMain.Hint(Lang.Text("Launch.Account.Profile.Migration.Importing"));
-
-        // 使用 System.Text.Json 解析
-
-
-        // 查重逻辑
-
-
-        ModBase.RunInNewThread(() =>
-        {
-            try
-            {
-                if (!File.Exists(path))
-                {
-                    ModMain.Hint(Lang.Text("Launch.Account.Profile.Migration.HmclConfigNotFound"), ModMain.HintType.Critical);
-                    return;
-                }
-
-                var jsonBytes = File.ReadAllBytes(path);
-                using (var doc = JsonDocument.Parse(jsonBytes, JsonCompat.DocumentOptions))
-                {
-                    var importCount = 0;
-                    var importProfiles = new List<McProfile>();
-                    var hasMsProfile = profileList.Any(p => p.Type == ModLaunch.McLoginType.Ms);
-                    foreach (var element in doc.RootElement.EnumerateArray())
-                    {
-                        var profile = ConvertToPclProfile(element);
-                        if (profile is null) continue;
-if (profile.Type == ModLaunch.McLoginType.Ms)
-                        {
-                            hasMsProfile = true;
-                            if (profileList.Any(p =>
-                                    p.Type == ModLaunch.McLoginType.Ms && (p.Uuid ?? "") == (profile.Uuid ?? "")))
-                                continue;
-                        }
-
-                        importProfiles.Add(profile);
-                        importCount += 1;
-                    }
-
-                    if (!hasMsProfile)
-                    {
-                        ModMain.Hint(Lang.Text("Launch.Account.Profile.Migration.MsRequired"), ModMain.HintType.Critical);
-                        return;
-                    }
-
-                    profileList.AddRange(importProfiles);
-                    SaveProfile();
-                    if (importCount == 0)
-                    {
-                        ModMain.Hint(Lang.Text("Launch.Account.Profile.Migration.NoNewProfiles"));
-                    }
-                    else
-                    {
-                        ModMain.Hint(Lang.Text("Launch.Account.Profile.Migration.ImportSuccess", importCount), ModMain.HintType.Finish);
-                        ModBase.RunInUi(() => ModMain.frmLoginProfile.RefreshProfileList());
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ProfileLog("导入失败: " + ex.Message);
-                ModMain.Hint(Lang.Text("Launch.Account.Profile.Migration.ImportFailed"), ModMain.HintType.Critical);
-            }
-        }, "Profile Import");
-    }
-
-    private static void PerformExport(string path)
-    {
-        ModMain.Hint(Lang.Text("Launch.Account.Profile.Migration.Exporting"));
-        try
-        {
-            // 1. 读取并解析现有列表，准备合并
-            var finalDictList = new List<Dictionary<string, object>>();
-
-            if (File.Exists(path))
-            {
-                var oldJson = File.ReadAllText(path);
-                if (!string.IsNullOrWhiteSpace(oldJson))
-                    // 这里简单处理：将旧的转回原始结构，避免丢失 HMCL 自己的其他账户
-                    using (var doc = JsonDocument.Parse(oldJson, JsonCompat.DocumentOptions))
-                    {
-                        foreach (var el in doc.RootElement.EnumerateArray())
-                        {
-                            // 此处可根据需要转换回 Dictionary
-                        }
-                    }
-            }
-
-            // 2. 转换当前 PCL 列表
-            foreach (var profile in profileList)
-                finalDictList.Add(ConvertToHmclDict(profile));
-
-            // 3. 序列化并写入
-            var options = new JsonSerializerOptions(JsonCompat.SerializerOptions) { WriteIndented = true };
-            var jsonString = JsonSerializer.Serialize(finalDictList, options);
-
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
-            File.WriteAllText(path, jsonString);
-
-            ModMain.Hint(Lang.Text("Launch.Account.Profile.Migration.ExportSuccess", profileList.Count), ModMain.HintType.Finish);
-        }
-        catch (Exception ex)
-        {
-            ProfileLog("导出失败: " + ex.Message);
-            ModMain.Hint(Lang.Text("Launch.Account.Profile.Migration.ExportFailed"), ModMain.HintType.Critical);
-        }
-    }
-
-    // --- 类型转换辅助 ---
-
-    private static McProfile ConvertToPclProfile(JsonElement el)
-    {
-        try
-        {
-            var typeStr = el.GetProperty("type").GetString();
-            JsonElement argvalue = default;
-            var profile = new McProfile
-            {
-                Uuid = el.TryGetProperty("uuid", out argvalue) ? el.GetProperty("uuid").GetString() : "",
-                Expires = 1743779140286L
-            };
-
-            switch (typeStr ?? "")
-            {
-                case "microsoft":
-                {
-                    profile.Type = ModLaunch.McLoginType.Ms;
-                    profile.Username = el.GetProperty("displayName").GetString();
-                    break;
-                }
-                case "authlibInjector":
-                {
-                    profile.Type = ModLaunch.McLoginType.Auth;
-                    profile.Username = el.GetProperty("displayName").GetString();
-                    profile.Server = el.GetProperty("serverBaseURL").GetString();
-                    profile.Name = el.GetProperty("username").GetString();
-                    profile.ClientToken = el.GetProperty("clientToken").GetString();
-                    break;
-                }
-
-                default:
-                {
-                    profile.Type = ModLaunch.McLoginType.Legacy;
-                    profile.Username = el.GetProperty("username").GetString();
-                    break;
-                }
-            }
-
-            return profile;
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    private static Dictionary<string, object> ConvertToHmclDict(McProfile profile)
-    {
-        var dict = new Dictionary<string, object>();
-        dict["uuid"] = profile.Uuid;
-
-        switch (profile.Type)
-        {
-            case ModLaunch.McLoginType.Ms:
-            {
-                dict["displayName"] = profile.Username;
-                dict["type"] = "microsoft";
-                dict["tokenType"] = "Bearer";
-                dict["accessToken"] = "";
-                dict["notAfter"] = 1743779140286L;
-                break;
-            }
-            case ModLaunch.McLoginType.Auth:
-            {
-                dict["serverBaseURL"] = profile.Server;
-                dict["displayName"] = profile.Username;
-                dict["username"] = profile.Name;
-                dict["type"] = "authlibInjector";
-                dict["clientToken"] = profile.ClientToken;
-                break;
-            }
-
-            default:
-            {
-                dict["username"] = profile.Username;
-                dict["type"] = "offline";
-                break;
-            }
-        }
-
-        return dict;
+        HintService.Hint(Lang.Text("Launch.Account.Profile.Deleted"), HintType.Success);
     }
 
     #endregion
@@ -1085,20 +745,20 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
         // 检查条件，获取新皮肤
         if (_isMsSkinChanging)
         {
-            ModMain.Hint("正在更改皮肤中，请稍候！");
+            HintService.Hint("正在更改皮肤中，请稍候！");
             return;
         }
 
         if (ModLaunch.mcLoginLoader.State == ModBase.LoadState.Failed)
         {
-            ModMain.Hint("登录失败，无法更改皮肤！", ModMain.HintType.Critical);
+            HintService.Hint("登录失败，无法更改皮肤！", HintType.Error);
             return;
         }
 
         var skinInfo = ModSkin.McSkinSelect();
         if (!skinInfo.IsVaild)
             return;
-        ModMain.Hint("正在更改皮肤……");
+        HintService.Hint("正在更改皮肤……");
         _isMsSkinChanging = true;
         // 开始实际获取
 
@@ -1116,7 +776,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
                     ModLaunch.mcLoginMsLoader.WaitForExit(GetLoginData());
                 if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished)
                 {
-                    ModMain.Hint("登录失败，无法更改皮肤！", ModMain.HintType.Critical);
+                    HintService.Hint("登录失败，无法更改皮肤！", HintType.Error);
                     return;
                 }
 
@@ -1142,16 +802,16 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
                     });
                 if (res.Contains("request requires user authentication"))
                 {
-                    ModMain.Hint("正在登录，将在登录完成后继续更改皮肤……");
+                    HintService.Hint("正在登录，将在登录完成后继续更改皮肤……");
                     ModLaunch.mcLoginMsLoader.Start(GetLoginData(), true);
                     goto Retry;
                 }
 
                 if (res.Contains("\"error\""))
                 {
-                    ModMain.Hint(
+                    HintService.Hint(
                         $"更改皮肤失败：{((JsonObject)ModBase.GetJson(res))["error"]}",
-                        ModMain.HintType.Critical);
+                        HintType.Error);
                     return;
                 }
 
@@ -1170,7 +830,7 @@ if (profile.Type == ModLaunch.McLoginType.Ms)
             catch (Exception ex)
             {
                 if (ex.GetType().Equals(typeof(TaskCanceledException)))
-                    ModMain.Hint("更改皮肤失败：与 Mojang 皮肤服务器的连接超时，请检查你的网络是否通畅！", ModMain.HintType.Critical);
+                    HintService.Hint("更改皮肤失败：与 Mojang 皮肤服务器的连接超时，请检查你的网络是否通畅！", HintType.Error);
                 else
                     ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.ChangeSkin"), ModBase.LogLevel.Hint);
             }

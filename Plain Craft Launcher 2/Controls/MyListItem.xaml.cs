@@ -172,20 +172,6 @@ public partial class MyListItem : IMyRadio
         else
             SetResourceReference(ForegroundProperty, "ColorBrush1");
         ColumnPaddingRight.Width = new GridLength(MinPaddingRight);
-        if (CustomEventService.GetEventType(this) == CustomEvent.EventType.打开帮助 && !(Title != "" && Info != "")) // #3266
-        {
-            try
-            {
-                ModMain.HelpEntry entry = new ModMain.HelpEntry(CustomEvent.GetAbsoluteUrls(CustomEventService.GetEventData(this), CustomEventService.GetEventType(this))[0]);
-                entry.SetToListItem(this);
-            }
-            catch (Exception ex)
-            {
-                ModBase.Log(ex, "设置帮助 MyListItem 失败", ModBase.LogLevel.Msgbox);
-                CustomEventService.SetEventType(this, CustomEvent.EventType.None);
-                CustomEventService.SetEventData(this, "");
-            }
-        }
     }
 
     public override string ToString()
@@ -1070,7 +1056,7 @@ public partial class MyListItem : IMyRadio
             return;
         // 触发自定义事件
         var dependencyObject = (DependencyObject)sender;
-        if (CustomEventService.GetEventType(dependencyObject) != CustomEvent.EventType.None)
+        if (CustomEventService.GetEventType(dependencyObject) != EventType.None)
         {
             ModMain.RaiseCustomEvent(this);
             e.Handled = true;

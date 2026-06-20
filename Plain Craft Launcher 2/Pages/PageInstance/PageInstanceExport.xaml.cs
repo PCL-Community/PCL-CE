@@ -75,7 +75,6 @@ public partial class PageInstanceExport : IRefreshable
         ModAnimation.AniControlEnabled += 1;
         if ((currentVersion ?? "") != (PageInstanceLeft.McInstance.PathInstance ?? ""))
             RefreshAll(); // 切换到了另一个实例，重置页面
-        CustomEventService.SetEventData(BtnAdvancedHelp, "指南/整合包制作.json");
         ModAnimation.AniControlEnabled -= 1;
     }
 
@@ -540,7 +539,7 @@ public partial class PageInstanceExport : IRefreshable
             configLines.AddRange(GetExtraFileLines());
             // 结束
             ModBase.WriteFile(configPath, configLines.Join("\r\n"));
-            ModMain.Hint(Lang.Text("Instance.Export.SaveSuccess", configPath), ModMain.HintType.Finish);
+            HintService.Hint(Lang.Text("Instance.Export.SaveSuccess", configPath), HintType.Success);
             ModBase.OpenExplorer(configPath);
         }
         catch (Exception ex)
@@ -567,7 +566,7 @@ public partial class PageInstanceExport : IRefreshable
 
             if (segments.Length == 0)
             {
-                ModMain.Hint(Lang.Text("Instance.Export.ConfigInvalid"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Instance.Export.ConfigInvalid"), HintType.Error);
                 return;
             }
 
@@ -608,7 +607,7 @@ public partial class PageInstanceExport : IRefreshable
                 extraFiles = null;
 
             // 提示成功
-            ModMain.Hint(Lang.Text("Instance.Export.ReadSuccess", configPath), ModMain.HintType.Finish);
+            HintService.Hint(Lang.Text("Instance.Export.ReadSuccess", configPath), HintType.Success);
         }
 
         catch (Exception ex)
@@ -852,7 +851,7 @@ public partial class PageInstanceExport : IRefreshable
                     if (Directory.Exists(Line))
                         ModBase.CopyDirectory(Line, Path.Combine(baseFolder, ModBase.GetFolderNameFromPath(Line)) + @"\");
                     else
-                        ModMain.Hint(Lang.Text("Instance.Export.ConfigFolderNotFound", Line), ModMain.HintType.Critical);
+                        HintService.Hint(Lang.Text("Instance.Export.ConfigFolderNotFound", Line), HintType.Error);
                 }
                 else if (File.Exists(Line))
                 {
@@ -860,7 +859,7 @@ public partial class PageInstanceExport : IRefreshable
                 }
                 else
                 {
-                    ModMain.Hint(Lang.Text("Instance.Export.ConfigFileNotFound", Line), ModMain.HintType.Critical);
+                    HintService.Hint(Lang.Text("Instance.Export.ConfigFileNotFound", Line), HintType.Error);
                 }
 
             loader.Progress = 0.97d;
@@ -877,8 +876,6 @@ public partial class PageInstanceExport : IRefreshable
                     ModBase.CopyDirectory(Path.Combine(ModBase.exePath, "PCL", "Pictures"), Path.Combine(cacheFolder, "PCL", "Pictures"));
                 if (Directory.Exists(Path.Combine(ModBase.exePath, "PCL", "Musics")))
                     ModBase.CopyDirectory(Path.Combine(ModBase.exePath, "PCL", "Musics"), Path.Combine(cacheFolder, "PCL", "Musics"));
-                if (Directory.Exists(Path.Combine(ModBase.exePath, "PCL", "Help")))
-                    ModBase.CopyDirectory(Path.Combine(ModBase.exePath, "PCL", "Help"), Path.Combine(cacheFolder, "PCL", "Help"));
                 if (File.Exists(Path.Combine(ModBase.exePath, "PCL", "Custom.xaml")))
                     ModBase.CopyFile(Path.Combine(ModBase.exePath, "PCL", "Custom.xaml"), Path.Combine(cacheFolder, "PCL", "Custom.xaml"));
                 if (File.Exists(Path.Combine(ModBase.exePath, "PCL", "Setup.ini")))

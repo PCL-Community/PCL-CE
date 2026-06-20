@@ -58,13 +58,13 @@ public partial class PageLoginAuth
         if (string.IsNullOrWhiteSpace(TextServer.Text) || string.IsNullOrWhiteSpace(TextName.Text) ||
             string.IsNullOrWhiteSpace(TextPass.Password))
         {
-            ModMain.Hint(Lang.Text("Launch.Account.Auth.EmptyFields"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Launch.Account.Auth.EmptyFields"), HintType.Error);
             return;
         }
 
         if (!TextServer.Text.IsMatch(RegexPatterns.HttpUri))
         {
-            ModMain.Hint(Lang.Text("Launch.Account.Auth.InvalidServer"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Launch.Account.Auth.InvalidServer"), HintType.Error);
             return;
         }
 
@@ -94,7 +94,7 @@ public partial class PageLoginAuth
                         ModMain.frmLaunchLeft.RefreshPage(true);
                         break;
                     case ModBase.LoadState.Aborted:
-                        ModMain.Hint(Lang.Text("Launch.Account.Auth.Cancelled"));
+                        HintService.Hint(Lang.Text("Launch.Account.Auth.Cancelled"));
                         break;
                     case ModBase.LoadState.Waiting:
                     case ModBase.LoadState.Loading:
@@ -115,7 +115,7 @@ public partial class PageLoginAuth
                 }
                 else if (ex.Message.StartsWith("$"))
                 {
-                    ModMain.Hint(ex.Message.TrimStart('$'), ModMain.HintType.Critical);
+                    HintService.Hint(ex.Message.TrimStart('$'), HintType.Error);
                 }
                 else
                 {

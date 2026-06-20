@@ -1,7 +1,9 @@
 using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -28,6 +30,20 @@ public partial class PageSetupGameManage
         ModAnimation.AniControlEnabled += 1;
         Reload();
         SliderLoad();
+
+        if (!Lang.IsChineseMainland)
+        {
+            TextFilenameFormat.Visibility = Visibility.Collapsed;
+            ComboDownloadTranslateV2.Visibility = Visibility.Collapsed;
+            TextModManageStyle.Visibility = Visibility.Collapsed;
+            ComboModLocalNameStyle.Visibility = Visibility.Collapsed;
+            
+            RowFilenameFormat.Height = new GridLength(0);
+            RowFilenameFormatGap.Height = new GridLength(0);
+            RowModManageStyle.Height = new GridLength(0);
+            RowModManageStyleGap.Height = new GridLength(0);
+        }
+
         ModAnimation.AniControlEnabled -= 1;
     }
 
@@ -65,7 +81,7 @@ public partial class PageSetupGameManage
             Config.Download.Reset();
             Config.Tool.Reset();
             ModBase.Log("[Setup] 已初始化其他页设置");
-            ModMain.Hint(Lang.Text("Setup.GameManage.Initialized"), ModMain.HintType.Finish, false);
+            HintService.Hint(Lang.Text("Setup.GameManage.Initialized"), HintType.Success, false);
         }
         catch (Exception ex)
         {
@@ -80,43 +96,25 @@ public partial class PageSetupGameManage
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetGameManageByTag(sender.Tag?.ToString(), sender.Checked);
+            SetByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetGameManageByTag(sender.Tag?.ToString(), sender.Value);
+            SetByTag(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetGameManageByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+            SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
-    private static void SetGameManageByTag(string tag, object value)
-    {
-        switch (tag)
-        {
-            case "ToolDownloadThread": Config.Download.ThreadLimit = (int)value; break;
-            case "ToolDownloadSpeed": Config.Download.SpeedLimit = (int)value; break;
-            case "ToolDownloadSource": Config.Download.FileSource = (int)value; break;
-            case "ToolDownloadVersion": Config.Download.VersionListSource = (int)value; break;
-            case "ToolDownloadAutoSelectVersion": Config.Download.AutoSelectInstance = (bool)value; break;
-            case "ToolFixAuthlib": Config.Download.FixAuthLib = (bool)value; break;
-            case "ToolDownloadTranslateV2": Config.Download.Comp.NameFormatV2 = (int)value; break;
-            case "ToolDownloadMod": Config.Download.Comp.CompSourceSolution = (int)value; break;
-            case "ToolModLocalNameStyle": Config.Download.Comp.UiCompNameSolution = (int)value; break;
-            case "ToolDownloadIgnoreQuilt": Config.Download.Comp.IgnoreQuilt = (bool)value; break;
-            case "ToolDownloadClipboard": Config.Download.Comp.ReadClipboard = (bool)value; break;
-            case "ToolUpdateRelease": Config.Tool.ReleaseNotification = (bool)value; break;
-            case "ToolUpdateSnapshot": Config.Tool.SnapshotNotification = (bool)value; break;
-            case "ToolHelpChinese": Config.Tool.AutoChangeLanguage = (bool)value; break;
-        }
-    }
+    private static void SetByTag(string tag, object value)
+        => ConfigService.TrySetValue(tag, value);
 
     // 滑动条
     private void SliderLoad()

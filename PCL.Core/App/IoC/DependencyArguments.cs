@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.App.IoC;
+namespace PCL.Core.App.IoC;
 
 public abstract class DependencyArguments
 {

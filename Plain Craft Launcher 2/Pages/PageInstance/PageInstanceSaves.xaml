@@ -19,6 +19,7 @@
                         <ColumnDefinition Width="1*" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="1*" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Row="0" Grid.ColumnSpan="4" Margin="0,0,0,9" HorizontalAlignment="Center"
@@ -36,6 +37,11 @@
                                     Margin="10,10,10,0"
                                     Padding="13,0" ColorType="Highlight" />
                     <local:MyButton Grid.Row="3" Grid.Column="2" Height="35" HorizontalAlignment="Center"
+                                    Click="BtnDownloadNew_Click"
+                                    MinWidth="140" Text="{DynamicResource Instance.Resource.DownloadNew}"
+                                    Margin="10,10,10,0"
+                                    Padding="13,0" />
+                    <local:MyButton Grid.Row="3" Grid.Column="3" Height="35" HorizontalAlignment="Center"
                                     Click="BtnPaste_Click"
                                     MinWidth="140" Text="{DynamicResource Instance.Saves.PasteFile}"
                                     Margin="10,10,10,0"
@@ -53,12 +59,17 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                         </Grid.ColumnDefinitions>
                         <local:MyButton Grid.Column="0" MinWidth="140"
                                         Text="{DynamicResource Instance.Saves.OpenFolder}" Padding="13,0"
                                         Margin="0,0,20,0" Click="BtnOpenFolder_Click"
                                         HorizontalAlignment="Left" ColorType="Highlight" />
                         <local:MyButton Grid.Column="1" MinWidth="140"
+                                        Text="{DynamicResource Instance.Resource.DownloadNew}" Padding="13,0"
+                                        Margin="0,0,20,0" Click="BtnDownloadNew_Click"
+                                        HorizontalAlignment="Left" />
+                        <local:MyButton Grid.Column="2" MinWidth="140"
                                         Text="{DynamicResource Instance.Saves.PasteFile}" Padding="13,0"
                                         Margin="0,0,20,0" Click="BtnPaste_Click"
                                         HorizontalAlignment="Left" />

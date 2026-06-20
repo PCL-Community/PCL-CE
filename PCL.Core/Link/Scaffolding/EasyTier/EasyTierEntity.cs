@@ -1,4 +1,4 @@
-﻿using PCL.Core.App;
+using PCL.Core.App;
 using PCL.Core.Link.EasyTier;
 using PCL.Core.Link.Scaffolding.Client.Models;
 using PCL.Core.Logging;
@@ -104,7 +104,7 @@ public class EasyTierEntity
             _etProcess.Start();
             State = EtState.Active;
 
-            var cli = _GetCliOutputDebug();
+            var cli = _GetCliOutputDebugAsync();
             
             _etProcess.Exited += (_, _) => EasyTierProcessExisted?.Invoke();
         }
@@ -414,7 +414,7 @@ public class EasyTierEntity
         return localPort;
     }
 
-    private async Task _GetCliOutputDebug()
+    private async Task _GetCliOutputDebugAsync()
     {
         while (State != EtState.Stopped && Config.Link.EnableCliOutput)
         {

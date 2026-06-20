@@ -55,7 +55,7 @@ public partial class PageLoginOffline
             var uuidValidateResult = new RegexValidator("^[a-fA-F0-9]{32}$").Validate(uuidInput);
             if (RadioUuidCustom.Checked && !uuidValidateResult.IsValid)
             {
-                ModMain.Hint(Lang.Text("Launch.Account.Offline.InvalidUuid", uuidValidateResult), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Launch.Account.Offline.InvalidUuid", uuidValidateResult), HintType.Error);
                 return;
             }
 
@@ -82,7 +82,7 @@ public partial class PageLoginOffline
         ModProfile.SaveProfile();
         ModProfile.selectedProfile = newProfile;
         ModProfile.isCreatingProfile = false;
-        ModMain.Hint(Lang.Text("Launch.Account.Profile.Created"), ModMain.HintType.Finish);
+        HintService.Hint(Lang.Text("Launch.Account.Profile.Created"), HintType.Success);
         ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
     }
 }

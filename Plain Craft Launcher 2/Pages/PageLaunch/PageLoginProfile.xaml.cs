@@ -188,12 +188,7 @@ public partial class PageLoginProfile
         ModBase.RunInUi(() => RefreshProfileList());
     }
 
-    // 导入 / 导出档案
-    private void BtnPort_Click(object sender, EventArgs e)
-    {
-        ModProfile.MigrateProfile();
-        ModBase.RunInUi(() => RefreshProfileList());
-    }
+    
 
     #endregion
 }

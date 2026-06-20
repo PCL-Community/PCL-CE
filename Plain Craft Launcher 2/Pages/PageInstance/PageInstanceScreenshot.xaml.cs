@@ -38,15 +38,15 @@ public partial class PageInstanceScreenshot : IRefreshable
 
     private void RefreshSelf()
     {
-        var ignore = Refresh();
+        var ignore = RefreshAsync();
     }
 
-    public static async Task Refresh()
+    public static async Task RefreshAsync()
     {
         if (ModMain.frmInstanceScreenshot is not null)
-            await ModMain.frmInstanceScreenshot.Reload();
+            await ModMain.frmInstanceScreenshot.ReloadAsync();
         ModMain.frmInstanceLeft.ItemScreenshot.Checked = true;
-        ModMain.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), log: false);
+        HintService.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), log: false);
     }
 
     private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
@@ -56,7 +56,7 @@ public partial class PageInstanceScreenshot : IRefreshable
         screenshotPath = PageInstanceLeft.McInstance.PathIndie + @"screenshots\";
         if (!Directory.Exists(screenshotPath))
             Directory.CreateDirectory(screenshotPath);
-        Dispatcher.BeginInvoke(new Func<Task>(Reload));
+        Dispatcher.BeginInvoke(new Func<Task>(ReloadAsync));
 
         // 非重复加载部分
         if (isLoad)
@@ -67,11 +67,11 @@ public partial class PageInstanceScreenshot : IRefreshable
     /// <summary>
     ///     确保当前页面上的信息已正确显示。
     /// </summary>
-    public async Task Reload()
+    public async Task ReloadAsync()
     {
         ModAnimation.AniControlEnabled += 1;
         PanBack.ScrollToHome();
-        await LoadFileList();
+        await LoadFileListAsync();
         ModAnimation.AniControlEnabled -= 1;
     }
 
@@ -91,7 +91,7 @@ public partial class PageInstanceScreenshot : IRefreshable
     
     private static string[] allowedSuffix = { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp", "*.tiff" };
     
-    private async Task LoadFileList()
+    private async Task LoadFileListAsync()
     {
         ModBase.Log("[Screenshot] 刷新截图文件");
         fileList.Clear();
@@ -109,18 +109,18 @@ public partial class PageInstanceScreenshot : IRefreshable
         ModBase.Log("[Screenshot] 共发现 " + fileList.Count + " 个截图文件");
         if (fileList.Count == 0)
             return;
-        await ListAppend(20, 0);
+        await ListAppendAsync(20, 0);
     }
 
     private void RequireAppend(object sender, ScrollChangedEventArgs e)
     {
         if (fileList.Count != 0 && !_AppendLock && PanBack.VerticalOffset + PanBack.ViewportHeight >= PanBack.ExtentHeight)
         {
-            Dispatcher.BeginInvoke(new Func<Task>(async () => await ListAppend()));
+            Dispatcher.BeginInvoke(new Func<Task>(async () => await ListAppendAsync()));
         }
     }
 
-    private async Task ListAppend(int count = 20, int offset = -1)
+    private async Task ListAppendAsync(int count = 20, int offset = -1)
     {
         _AppendLock = true;
         if (offset == -1)
@@ -286,7 +286,7 @@ public partial class PageInstanceScreenshot : IRefreshable
             FileSystem.DeleteFile(path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
             RemoveItem(path);
             RefreshTip();
-            ModMain.Hint(Lang.Text("Instance.Screenshot.Deleted"));
+            HintService.Hint(Lang.Text("Instance.Screenshot.Deleted"));
         }
         catch (Exception ex)
         {
@@ -305,7 +305,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                 {
                     ModBase.Log("[Screenshot] 尝试复制" + imagePath + "到剪贴板");
                     Clipboard.SetImage(new BitmapImage(new Uri(imagePath)));
-                    ModMain.Hint(Lang.Text("Instance.Screenshot.CopiedToClipboard"));
+                    HintService.Hint(Lang.Text("Instance.Screenshot.CopiedToClipboard"));
                     tryTime = 6;
                     return;
                 }
@@ -315,11 +315,11 @@ public partial class PageInstanceScreenshot : IRefreshable
                     ModBase.Log(ex, $"[Screenshot]第 {tryTime} 次复制尝试失败");
                 }
 
-            ModMain.Hint(Lang.Text("Instance.Screenshot.CopyFailed"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Screenshot.CopyFailed"), HintType.Error);
         }
         else
         {
-            ModMain.Hint(Lang.Text("Instance.Screenshot.FileNotFound"));
+            HintService.Hint(Lang.Text("Instance.Screenshot.FileNotFound"));
         }
     }
 

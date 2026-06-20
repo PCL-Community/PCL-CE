@@ -1,4 +1,4 @@
-﻿<ResourceDictionary
+<ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
@@ -291,24 +291,6 @@
     <sys:String x:Key="Launch.Account.Profile.Uuid.Hint">32 characters, no hyphens</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Uuid.InvalidChars">UUID should only contain letters and numbers!</sys:String>
 
-    <!-- Launch.Account.Profile.Migration -->
-
-    <sys:String x:Key="Launch.Account.Profile.Migration.Title">Profile migration</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.Message">PCL CE supports two-way profile synchronization with HMCL.&#x0a;Select an operation:</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.ImportOnlyMessage">Since the current profile list is empty, only importing from HMCL is supported.</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.Import">Import</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.Export">Export</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.Importing">Importing from HMCL...</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.HmclConfigNotFound">HMCL configuration file not found.</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.MsRequired">You must complete Microsoft login at least once before importing these profiles!</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.NoNewProfiles">No new profiles to import.</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.ImportSuccess">Successfully imported {0} profile(s)!</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.Exporting">Exporting to HMCL...</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.ExportSuccess">Successfully synchronized {0} profile(s).</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.ImportFailed">Import error. Please check the file format.</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.ExportFailed">Export failed.</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.AutoMigrate">{0} profile(s) have been automatically migrated from legacy configuration files.</sys:String>
-
     <!-- Launch.Account.Profile.Validation -->
 
     <sys:String x:Key="Launch.Account.Profile.Validation.EmptyUsername">Username cannot be empty!</sys:String>
@@ -394,6 +376,8 @@
     <sys:String x:Key="Launch.Skin.Cape.Name.Copper">Copper</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.ZombieHorse">Zombie Horse</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Builder">Builder</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Crafter">Crafter</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.MoonlightTrail">Moonlight Trail</sys:String>
 
     <!-- Launch.Skin.Cape -->
 
@@ -679,14 +663,14 @@
 
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Banned">This account appears to have been banned by Microsoft and cannot log in.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.XboxNotRegistered">You have not registered an Xbox account. Please register one first and then log in.</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.RegionBlocked">The country or region of your network cannot log in to Microsoft accounts.&#x0a;Please use an accelerator or VPN.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.RegionBlocked">Microsoft account login is not available in your country or region.&#x0a;Please check your network settings or try again later.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.Message">The account is underage. You need to modify the date of birth before logging in.&#x0a;Is the age currently set on this account over 13?</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.AgeOver13">13 or older</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13">12 or younger</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message">Please modify the account's date of birth on the opened webpage (change to at least 18 years old).&#x0a;Wait one minute after the modification is successful, then return to PCL and you can log in normally!</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage">Please modify the account's date of birth on the opened webpage (change to at least 18 years old).&#x0a;Wait one minute after the modification is successful, then return to PCL and you can log in normally!</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.TooManyRequests">Too many login attempts. Please wait a few minutes and try again!</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.AbnormalIp">Abnormal login attempts from this IP.&#x0a;If you are using a VPN or proxy, please turn it off or switch nodes and try again!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.AbnormalIp">Abnormal login attempts from this IP.&#x0a;Please check your network settings or try again later.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.NotPurchased">Unable to get account information. This account may not have purchased Minecraft: Java Edition, or its Xbox Game Pass may have expired.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.PurchaseMinecraft">Purchase Minecraft</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.CreateProfile.Message">Please create a Minecraft player profile first, then log in again.</sys:String>
@@ -928,6 +912,7 @@
     <sys:String x:Key="Download.Comp.List.NoResults">No results, please try searching in English</sys:String>
     <sys:String x:Key="Download.Comp.List.NoMatchingResults">No matching results</sys:String>
     <sys:String x:Key="Download.Comp.List.NoResultsSimple">No search results</sys:String>
+    <sys:String x:Key="Download.Comp.Link.ResolveFailed">Could not recognize or fetch the resource link</sys:String>
 
     <!-- Download.Comp.Category -->
 
@@ -1391,8 +1376,6 @@
     <sys:String x:Key="Setup.Ui.Basic.ShowLogo">Display the PCL logo while opening the launcher</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.LockWindow">Lock launcher size</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.ShowTriviaHint">Show &quot;Trivia&quot; when launching the game</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.HintAlignRight">Show popup hints on the right side</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.HintAlignRight.Changed">Changes applied!</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.AdvancedMaterial">Advanced material</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.AdvancedMaterial.ToolTip">When enabled, blur effects will be applied to some transparent areas, such as cards.&#x0a;Note that this feature consumes significant GPU resources and may cause lag!</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.BlurRadius">Blur radius</sys:String>
@@ -1493,19 +1476,12 @@
     <sys:String x:Key="Setup.Ui.Homepage.NetUpdate">Online</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.NetWarning">Please exercise caution when using homepages provided by strangers. Malicious homepages may cause harm!</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Refresh">Refresh</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.GenerateDocs">Generate docs</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Tutorial">Tutorials</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.DownloadUrl">URL</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.PresetLabel">Homepage presets</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.GetMore">Get more homepages</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.GoToMarket">Homepage Market</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Refresh.Success">Homepage refreshed!</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Docs.OverrideConfirm.Message">A layout file already exists. It will be overridden if you continue to generate the documentation file!</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Docs.OverrideConfirm.Title">Override confirmation</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Docs.OverrideConfirm.Continue">Continue</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Docs.Generated">The documentation file has been generated!</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Tutorial.Message">1. Click the &quot;Generate docs&quot; button, which will generate the &quot;Custom.xaml&quot; layout file in the PCL folder.&#x0a;2. Modify the file with tools like Notepad, and remember to save it after the modification.&#x0a;3. Click the &quot;Refresh&quot; button to see what the homepage looks like now.&#x0a;&#x0a;You can directly refresh the homepage after generating the documentation file and make changes accordingly, which will be more helpful for you to understand.&#x0a;You can also load the homepage file directly by dragging it into the PCL window.</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Tutorial.Title">Homepage custom tutorials</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.Trivia">Trivia</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.EchoCave">Echo Cave (removed)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McNews">Minecraft News (Author: Nattiden)</sys:String>
@@ -1551,7 +1527,6 @@
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Log">Logs</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Lobby">Lobby</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Toolbox">Toolbox</sys:String>
-    <sys:String x:Key="Setup.Ui.FeatureHide.Item.Help">Help</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Edit">Edit</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Export">Export</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Save">Saves</sys:String>
@@ -1660,8 +1635,8 @@
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw">Disable Java Launch Wrapper</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.ToolTip">PCL uses Java Launch Wrapper to fix issues where older Java versions cannot launch from paths containing Chinese characters.&#x0a;If it is blocked by anti-cheat or causes other issues, you can disable it.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.Arm64Notice">Do not wrap with Java Wrapper when launching the game.&#x0a;Java Wrapper has been forcibly disabled because the system is ARM64 architecture.</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.DisableRw">Disable RetroWrapper</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.DisableRw.ToolTip">PCL uses RetroWrapper when launching version 1.5.x and below to improve legacy version gameplay experience and fix compatibility issues.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableLF">Disable LegacyFix</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableLF.ToolTip">PCL uses LegacyFix when launching version 1.5.x and below to improve legacy version gameplay experience and fix compatibility issues.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.GpuPreference">Require Java to use the high-performance GPU</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.GpuPreference.ToolTip">Automatically set Java to use the high-performance GPU in Windows Settings → System → Display → Graphics.&#x0a;If the computer has both integrated and dedicated graphics, this ensures that Minecraft uses the dedicated GPU for rendering, greatly improving performance.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe">Use java.exe instead of javaw.exe</sys:String>
@@ -1738,6 +1713,8 @@
     <sys:String x:Key="Setup.GameManage.Community.ModManageStyle.TitleFilename">Title shows file name, details show translated name</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.HideQuilt">Hide Quilt loader</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.HideQuilt.ToolTip">Hide Quilt from the community resource loader display.</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.AutoInstallDependencies">Auto-check and install required dependencies when downloading mods</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.AutoInstallDependencies.ToolTip">When installing a mod, if missing required dependencies are detected, a list will be shown for confirmation before auto-downloading and installing them (can be cancelled during confirmation)</sys:String>
     <sys:String x:Key="Setup.GameManage.Accessibility.Title">Accessibility</sys:String>
     <sys:String x:Key="Setup.GameManage.Accessibility.GameUpdateNotice">Game update notification</sys:String>
     <sys:String x:Key="Setup.GameManage.Accessibility.ReleaseNotice">Release notification</sys:String>
@@ -2581,7 +2558,6 @@
     <sys:String x:Key="Instance.Export.Advanced.ConfigHint">The configuration file contains more advanced options, such as precise control over exported files and modpack storage location.&#x0a;To modify these options, click "Save config" first, then import after editing the configuration file.</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.ImportConfig">Import config</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.ExportConfig">Export config</sys:String>
-    <sys:String x:Key="Instance.Export.Advanced.Guide">Creation guide</sys:String>
 
     <!-- Instance.Export.Network -->
 
@@ -2638,18 +2614,6 @@
     <sys:String x:Key="Tools.Left.Lobby">Lobby</sys:String>
     <sys:String x:Key="Tools.Left.Utilities">Utilities</sys:String>
     <sys:String x:Key="Tools.Left.Utilities.Title">Toolbox</sys:String>
-    <sys:String x:Key="Tools.Left.Help">Help center</sys:String>
-
-    <!-- Tools.Help -->
-
-    <sys:String x:Key="Tools.Help.Search.Hint">Search help</sys:String>
-    <sys:String x:Key="Tools.Help.Loading">Loading help list</sys:String>
-    <sys:String x:Key="Tools.Help.Category.Guide">Guide</sys:String>
-    <sys:String x:Key="Tools.Help.Search.NoResults">No results</sys:String>
-    <sys:String x:Key="Tools.Help.Search.Results">Search results</sys:String>
-    <sys:String x:Key="Tools.Help.Search.ExactMatch">Exact match  |  Similarity: {0}  |  {1}</sys:String>
-    <sys:String x:Key="Tools.Help.Search.Similarity">Similarity: {0}  |  {1}</sys:String>
-
     <!-- Tools.Test -->
 
     <sys:String x:Key="Tools.Test.Title">Utilities</sys:String>
@@ -2753,11 +2717,7 @@
     <sys:String x:Key="Tools.Test.Luck.Rating0">(It's on a 0-100 scale)</sys:String>
 
     <!-- Tools.Test.Crash -->
-
     <sys:String x:Key="Tools.Test.Crash.Title">Crash test</sys:String>
-    <sys:String x:Key="Tools.Test.Crash.ToolTip">Clicking this will crash the launcher directly. Don't click unless you know what you're doing. No issues or problems caused by this will be accepted, and related issues will be closed immediately.</sys:String>
-    <sys:String x:Key="Tools.Test.Crash.ConfirmTitle">Crash confirmation</sys:String>
-    <sys:String x:Key="Tools.Test.Crash.ConfirmMessage">You probably clicked the wrong button. Confirm below if you really meant to do this.</sys:String>
     <sys:String x:Key="Tools.Test.Crash.ManualCrash">Manual crash</sys:String>
 
     <!-- Tools.Test.LaunchCount -->
@@ -2783,7 +2743,7 @@
     <sys:String x:Key="Tools.GameLink.Agreement.PrivacyPolicyInfo">Learn how PCL CE handles your personal information.</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.NatayarkTerms">Natayark OpenID ToS</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.NatayarkTermsInfo">View Natayark OpenID terms of service.</sys:String>
-    <sys:String x:Key="Tools.GameLink.Agreement.Body">By using the lobby feature, you agree to the following terms:&#x0A;&#x0A;I agree to strictly comply with relevant laws and regulations of Chinese Mainland and will not use the lobby feature for illegal or prohibited purposes.&#x0A;I agree to bear all risks associated with using the lobby feature.&#x0A;I acknowledge and agree that PCL CE collects processed device identifiers, Natayark ID, and other information, and may provide them to law enforcement when necessary.&#x0A;To protect minors' personal information, I confirm that I am at least 14 years old before using the lobby.&#x0A;&#x0A;Additionally, you must also agree to the PCL CE lobby privacy policy and the Natayark OpenID terms of service.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.Body">By using the lobby feature, you agree to the following terms:&#x0A;&#x0A;I agree to comply with applicable laws and regulations and will not use the lobby feature for illegal or prohibited purposes.&#x0A;I agree to bear all risks associated with using the lobby feature.&#x0A;I acknowledge and agree that PCL CE collects processed device identifiers, Natayark ID, and other information, and may provide them to law enforcement when necessary.&#x0A;To protect minors' personal information, I confirm that I am at least 14 years old before using the lobby.&#x0A;&#x0A;Additionally, you must also agree to the PCL CE lobby privacy policy and the Natayark OpenID terms of service.</sys:String>
     <sys:String x:Key="Tools.GameLink.Agreement.Accept">I have read and agree</sys:String>
     <sys:String x:Key="Tools.GameLink.Nat.Title">NAT type</sys:String>
     <sys:String x:Key="Tools.GameLink.Nat.Test">Click to test</sys:String>
@@ -2832,7 +2792,6 @@
     <sys:String x:Key="Tools.GameLink.Link.Terms">Natayark OpenID ToS</sys:String>
     <sys:String x:Key="Tools.GameLink.Link.Privacy">Lobby Privacy Policy</sys:String>
     <sys:String x:Key="Tools.GameLink.Link.Disable">Disable lobby</sys:String>
-    <sys:String x:Key="Tools.GameLink.Link.Faq">FAQ</sys:String>
     <sys:String x:Key="Tools.GameLink.Link.Friends">Links: </sys:String>
     <sys:String x:Key="Tools.GameLink.Link.EasyTier">EasyTier official website</sys:String>
     <sys:String x:Key="Tools.GameLink.Finish.InfoTitle">Lobby information</sys:String>
@@ -2913,7 +2872,6 @@
     <sys:String x:Key="Update.Error.FileNotFound">Update file not found</sys:String>
     <sys:String x:Key="Update.Error.Sha256Mismatch">Update file SHA256 mismatch. Expected: {0}, actual: {1}</sys:String>
     <sys:String x:Key="Update.Error.UpdateBlocked">Update failed</sys:String>
-    <sys:String x:Key="Update.Error.ViewHelp">View help</sys:String>
     <sys:String x:Key="Update.Error.UpdateBlockedMessage">PCL cannot update because it was blocked by Windows Security or does not have sufficient permissions.&#x0A;Please add the PCL folder to the exclusion list, or manually replace the current file with {0}PCL\Plain Craft Launcher Community Edition.exe!</sys:String>
     <sys:String x:Key="Update.Service.PclCe">PCL CE service</sys:String>
     <sys:String x:Key="Update.Task.Check">Verify update</sys:String>
@@ -3048,5 +3006,28 @@
     <sys:String x:Key="Link.Mod.Task.InitLobby">Initialize lobby</sys:String>
     <sys:String x:Key="Link.Mod.Task.InitLobbyUi">Initialize lobby UI</sys:String>
     <sys:String x:Key="Link.Mod.Task.FetchAnnouncement">Fetch lobby announcement</sys:String>
+
+    <!-- Event -->
+
+    <sys:String x:Key="Event.Error.Title">Event execution failed</sys:String>
+    <sys:String x:Key="Event.Error.UrlRequired">EventData must be a URL.&#x0a;If you want to launch a program, change EventType to OpenFile.</sys:String>
+    <sys:String x:Key="Event.Error.DownloadUrlRequired">EventData must be a URL starting with http:// or https://.&#x0a;PCL does not support other download protocols.</sys:String>
+    <sys:String x:Key="Event.Error.UnknownType">Unknown event type: {0}&#x0a;Please check if the EventType is correct, or if PCL is up to date.</sys:String>
+    <sys:String x:Key="Event.Error.MissingArgs">EventType {0} requires at least 2 parameters separated by |, e.g. {1}</sys:String>
+    <sys:String x:Key="Event.Error.ExecutionFailed">Event execution failed ({0}, {1})</sys:String>
+    <sys:String x:Key="Event.Error.FileNotFound">Local file not found for EventData: {0}</sys:String>
+    <sys:String x:Key="Event.OpenUrl.Opening">Opening, please wait: {0}</sys:String>
+    <sys:String x:Key="Event.LaunchGame.SelectVersion">Please select a Minecraft instance first!</sys:String>
+    <sys:String x:Key="Event.LaunchGame.Starting">Starting {0}...</sys:String>
+    <sys:String x:Key="Event.Refresh.Success">Refreshed!</sys:String>
+    <sys:String x:Key="Event.Refresh.NotSupported">The current page does not support refresh!</sys:String>
+    <sys:String x:Key="Event.Download.Confirm">About to download from this URL:&#x0a;{0}</sys:String>
+    <sys:String x:Key="Event.Setting.Written">Setting written: {0} → {1}</sys:String>
+    <sys:String x:Key="Event.Variable.Written">Variable written: {0} → {1}</sys:String>
+    <sys:String x:Key="Event.Safety.Title">Confirm execution</sys:String>
+    <sys:String x:Key="Event.Safety.ConfirmMessage">About to execute: {0}&#x0a;Please confirm there are no security risks before continuing.</sys:String>
+    <sys:String x:Key="Event.Safety.ContinueAlways">Continue and do not ask again</sys:String>
+    <sys:String x:Key="Event.Sanitize.UnsupportedTypeHint">is the unsupported official PCL EventType, which has been removed from the homepage.</sys:String>
+    <sys:String x:Key="Event.Sanitize.UnknownTypeHint">is the unrecognized EventType, which has been removed from the homepage.</sys:String>
 
 </ResourceDictionary>

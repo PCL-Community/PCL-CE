@@ -7,6 +7,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
+using PCL.Core.App.Configuration.Storage;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Minecraft;
@@ -31,6 +33,32 @@ public static class ModDownloadLib
     /// </summary>
     private static readonly object vanillaSyncLock = new();
 
+    /// <summary>
+    ///     将远程元数据提供的名称作为单个目录名拼接到缓存目录下，并阻止路径穿越。
+    /// </summary>
+    private static string CombineCacheSubfolder(string parentFolder, string childFolderName)
+    {
+        if (string.IsNullOrWhiteSpace(childFolderName) || childFolderName is "." or ".." ||
+            childFolderName.IndexOfAny(new[] { '/', '\\', ':', '*', '?', '"', '<', '>', '|', '\0' }) >= 0 ||
+            Path.IsPathRooted(childFolderName))
+            CancelUnsafeCacheSubfolder(childFolderName, "包含非法路径字符");
+
+        var parentFullPath = Path.GetFullPath(parentFolder)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var combinedFullPath = Path.GetFullPath(Path.Combine(parentFullPath, childFolderName));
+        if (!combinedFullPath.StartsWith(parentFullPath, StringComparison.OrdinalIgnoreCase))
+            CancelUnsafeCacheSubfolder(childFolderName, "导致缓存路径越界");
+        return combinedFullPath;
+    }
+
+    private static void CancelUnsafeCacheSubfolder(string childFolderName, string reason)
+    {
+        var message = "远程版本名" + reason + "：" + childFolderName;
+        ModBase.Log("[Download] " + message);
+        HintService.Hint(message, HintType.Error);
+        throw new ModBase.CancelledException();
+    }
+
     #region Minecraft 下载
 
     /// <summary>
@@ -53,7 +81,7 @@ public static class ModDownloadLib
                     continue;
                 if (behaviour == NetPreDownloadBehaviour.ExitWhileExistsOrDownloading)
                     return (ModLoader.LoaderCombo<string>)ongoingLoader;
-                ModMain.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return (ModLoader.LoaderCombo<string>)ongoingLoader;
             }
 
@@ -118,7 +146,7 @@ public static class ModDownloadLib
                     continue;
                 if (behaviour == NetPreDownloadBehaviour.ExitWhileExistsOrDownloading)
                     return;
-                ModMain.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -409,7 +437,7 @@ public static class ModDownloadLib
                 if ((OngoingLoader.name ?? "") !=
                     (Lang.Text("Minecraft.Download.Stage.MinecraftServerDownload", id) ?? ""))
                     continue;
-                ModMain.Hint(Lang.Text("Minecraft.Download.Error.ServerDownloading"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.ServerDownloading"), HintType.Error);
                 return;
             }
 
@@ -435,8 +463,8 @@ public static class ModDownloadLib
                     if (!new DirectoryInfo(versionFolder).GetFileSystemInfos().Any())
                         Directory.Delete(versionFolder);
                     task.output = new List<DownloadFile>();
-                    ModMain.Hint(Lang.Text("Minecraft.Download.Error.NoOfficialServerDownload", id),
-                        ModMain.HintType.Critical);
+                    HintService.Hint(Lang.Text("Minecraft.Download.Error.NoOfficialServerDownload", id),
+                        HintType.Error);
                     Thread.Sleep(2000); // 等玩家把上一个提示看完
                     task.Abort();
                     return;
@@ -512,7 +540,7 @@ public static class ModDownloadLib
             {
                 if ((OngoingLoader.name ?? "") != (Lang.Text("Minecraft.Download.Stage.MinecraftDownload", id) ?? ""))
                     continue;
-                ModMain.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -557,7 +585,8 @@ public static class ModDownloadLib
     public static void McUpdateLogShow(JsonNode versionJson)
     {
         var wikiName = McFormatter.GetWikiUrlSuffix(versionJson["id"].ToString());
-        ModBase.OpenWebsite("https://zh.minecraft.wiki/w/Special:Search?search=" + wikiName);
+        var wikiUrl = McFormatter.GetWikiBaseUrl() + wikiName;
+        ModBase.OpenWebsite(wikiUrl);
     }
 
     #endregion
@@ -583,7 +612,7 @@ public static class ModDownloadLib
                 if ((OngoingLoader.name ?? "") !=
                     (Lang.Text("Minecraft.Download.Stage.OptiFineDownload", downloadInfo.DisplayName) ?? ""))
                     continue;
-                ModMain.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -637,7 +666,7 @@ public static class ModDownloadLib
                 if ((OngoingLoader.name ?? "") !=
                     (Lang.Text("Minecraft.Download.Stage.OptiFineDownload", downloadInfo.DisplayName) ?? ""))
                     continue;
-                ModMain.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -1249,7 +1278,7 @@ public static class ModDownloadLib
             {
                 if ((OngoingLoader.name ?? "") != (Lang.Text("Minecraft.Download.Stage.LiteLoaderDownload", id) ?? ""))
                     continue;
-                ModMain.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -1303,7 +1332,7 @@ public static class ModDownloadLib
             {
                 if ((OngoingLoader.name ?? "") != (Lang.Text("Minecraft.Download.Stage.LiteLoaderDownload", id) ?? ""))
                     continue;
-                ModMain.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -1573,7 +1602,7 @@ public static class ModDownloadLib
                 if ((OngoingLoader.name ?? "") !=
                     (Lang.Text("Minecraft.Download.Stage.ForgelikeDownload", displayName) ?? ""))
                     continue;
-                ModMain.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -2803,7 +2832,7 @@ public static class ModDownloadLib
                 if ((OngoingLoader.name ?? "") !=
                     (Lang.Text("Minecraft.Download.Stage.FabricInstallerDownload", version) ?? ""))
                     continue;
-                ModMain.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -2925,7 +2954,7 @@ public static class ModDownloadLib
                 if ((OngoingLoader.name ?? "") !=
                     (Lang.Text("Minecraft.Download.Stage.LegacyFabricInstallerDownload", version) ?? ""))
                     continue;
-                ModMain.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -3146,7 +3175,7 @@ public static class ModDownloadLib
                 if ((OngoingLoader.name ?? "") !=
                     (Lang.Text("Minecraft.Download.Stage.QuiltInstallerDownload", version) ?? ""))
                     continue;
-                ModMain.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -3311,7 +3340,7 @@ public static class ModDownloadLib
                 if ((OngoingLoader.name ?? "") !=
                     (Lang.Text("Minecraft.Download.Stage.LabyModInstallerDownload") ?? ""))
                     continue;
-                ModMain.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -3355,7 +3384,7 @@ public static class ModDownloadLib
                 if ((OngoingLoader.name ?? "") !=
                     (Lang.Text("Minecraft.Download.Stage.LabyModInstallerDownload") ?? ""))
                     continue;
-                ModMain.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceDownloading"), HintType.Error);
                 return;
             }
 
@@ -3723,13 +3752,13 @@ public static class ModDownloadLib
         switch (loader.State)
         {
             case ModBase.LoadState.Finished:
-                ModMain.Hint($"{loader.name}{Lang.Text("Common.Status.Success")}", ModMain.HintType.Finish);
+                HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Success")}", HintType.Success);
                 break;
             case ModBase.LoadState.Failed:
-                ModMain.Hint($"{loader.name}{Lang.Text("Common.Status.Failure")}{loader.Error.Message}", ModMain.HintType.Critical);
+                HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Failure")}{loader.Error.Message}", HintType.Error);
                 break;
             case ModBase.LoadState.Aborted:
-                ModMain.Hint($"{loader.name}{Lang.Text("Common.Status.Cancelled")}");
+                HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Cancelled")}");
                 break;
         }
     }
@@ -3755,20 +3784,20 @@ public static class ModDownloadLib
                 ModBase.WriteIni(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache",
                     ""); // 清空缓存（合并安装会先生成文件夹，这会在刷新时误判为可以使用缓存）
                 ModBase.DeleteDirectory($"{combo.input}PCLInstallBackups\\");
-                ModMain.Hint($"{loader.name}{Lang.Text("Common.Status.Success")}",
-                    ModMain.HintType.Finish);
+                HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Success")}",
+                    HintType.Success);
                 break;
             }
             case ModBase.LoadState.Failed:
             {
-                ModMain.Hint(
+                HintService.Hint(
                     $"{loader.name}{Lang.Text("Common.Status.Failure")}{loader.Error.Message}",
-                    ModMain.HintType.Critical);
+                    HintType.Error);
                 break;
             }
             case ModBase.LoadState.Aborted:
             {
-                ModMain.Hint($"{loader.name}{Lang.Text("Common.Status.Cancelled")}");
+                HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Cancelled")}");
                 break;
             }
             case ModBase.LoadState.Loading:
@@ -3806,23 +3835,10 @@ public static class ModDownloadLib
                 ((ModLoader.LoaderBase)loader).State == ModBase.LoadState.Aborted)
             {
                 // 删除实例文件夹
-                if (Directory.Exists(
-                        $"{((ModLoader.LoaderCombo)loader).input}saves\\") ||
-                    Directory.Exists(
-                        $"{((ModLoader.LoaderCombo)loader).input}versions\\") ||
-                    Directory.Exists(
-                        $"{((ModLoader.LoaderCombo)loader).input}mods\\") ||
-                    File.Exists($"{((ModLoader.LoaderCombo)loader).input}server.dat"))
-                {
-                    ModBase.Log(
-                        $"[Download] 由于实例已被独立启动，不清理实例文件夹：{((ModLoader.LoaderCombo)loader).input}", ModBase.LogLevel.Developer);
-                }
-                else
-                {
-                    ModBase.Log(
-                        $"[Download] 由于下载失败或取消，清理实例文件夹：{((ModLoader.LoaderCombo)loader).input}", ModBase.LogLevel.Developer);
-                    ModBase.DeleteDirectory((string)((ModLoader.LoaderCombo)loader).input);
-                }
+                ModBase.Log($"[Download] 由于下载失败或取消，清理实例文件夹：{((ModLoader.LoaderCombo)loader).input}", ModBase.LogLevel.Developer);
+                var instancePath = (string)((ModLoader.LoaderCombo)loader).input;
+                    ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(instancePath);
+                    ModBase.DeleteDirectory(instancePath);
             }
         }
         catch (Exception ex)
@@ -3861,6 +3877,24 @@ public static class ModDownloadLib
         catch (Exception ex)
         {
             ModBase.Log(ex, "开始合并安装失败", ModBase.LogLevel.Feedback);
+            try
+            {
+                if (Directory.Exists(request.targetInstanceFolder))
+                {
+                    var files = Directory.GetFiles(request.targetInstanceFolder);
+                    var dirs = Directory.GetDirectories(request.targetInstanceFolder);
+                    if (files.Length <= 1 && dirs.Length == 0)
+                    {
+                        ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance))
+                            .InvalidateCache(request.targetInstanceFolder);
+                        ModBase.DeleteDirectory(request.targetInstanceFolder);
+                    }
+                }
+            }
+            catch (Exception innerEx)
+            {
+                ModBase.Log(innerEx, "清理未完成的实例文件夹失败");
+            }
             return false;
         }
     }
@@ -3944,7 +3978,7 @@ public static class ModDownloadLib
         {
             ModBase.Log("[Download] OptiFine 将作为 Mod 进行下载");
             if (request.liteLoaderEntry is not null)
-                optiFineFolder = Path.Combine(modsTempFolder, request.minecraftName);
+                optiFineFolder = CombineCacheSubfolder(modsTempFolder, request.minecraftName);
             else
                 optiFineFolder = modsTempFolder;
         }
@@ -3973,8 +4007,8 @@ public static class ModDownloadLib
         // 重复实例检查
         if (File.Exists(Path.Combine(instanceFolder, request.targetInstanceName + ".json")) && !ignoreDump)
         {
-            ModMain.Hint(Lang.Text("Minecraft.Download.Error.InstanceAlreadyExists", request.targetInstanceName, ""),
-                ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceAlreadyExists", request.targetInstanceName, ""),
+                HintType.Error);
             throw new ModBase.CancelledException();
         }
 
@@ -4617,7 +4651,7 @@ public static class ModDownloadLib
                 var regexMatchResult = Library["name"].ToString().RegexSeek(RegexPatterns.CatchLwjglInLib);
                 if (regexMatchResult is null ||
                     !isolatedLibraries.Contains(new KeyValuePair<string, bool>(regexMatchResult, true)))
-                    outputLibraries.Add(Library);
+                    outputLibraries.Add(Library.DeepClone());
             }
 
             foreach (var Library in labyModLib["libraries"].AsArray())

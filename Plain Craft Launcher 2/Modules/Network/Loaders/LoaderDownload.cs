@@ -114,6 +114,8 @@ public class LoaderDownload : ModLoader.LoaderBase
         if (!file.Loaders.Contains(this))
             file.Loaders.Add(this);
 
+        if (State >= ModBase.LoadState.Finished)
+            return;
         Directory.CreateDirectory(Path.GetDirectoryName(file.LocalPath) ?? throw new IOException("下载路径无效"));
         if (file.Check?.canUseExistsFile == true && file.Check.Check(file.LocalPath) is null)
         {
@@ -135,7 +137,7 @@ public class LoaderDownload : ModLoader.LoaderBase
             cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                await FileDownloader.Download(file.Urls, file.LocalPath, file.UseBrowserUserAgent, file.CustomUserAgent,
+                await FileDownloader.DownloadAsync(file.Urls, file.LocalPath, file.UseBrowserUserAgent, file.CustomUserAgent,
                     cancellationToken, enableParallelChunks, file).ConfigureAwait(false);
                 break;
             }

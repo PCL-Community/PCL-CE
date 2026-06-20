@@ -1,4 +1,4 @@
-﻿using PCL.Core.Minecraft.Java;
+using PCL.Core.Minecraft.Java;
 
 namespace PCL.Core.Minecraft;
 

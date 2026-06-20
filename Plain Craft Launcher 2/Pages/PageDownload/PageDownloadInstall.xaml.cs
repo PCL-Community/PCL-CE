@@ -18,10 +18,10 @@ public partial class PageDownloadInstall
 
     public PageDownloadInstall()
     {
-        PanScroll = PanBack;
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
+        PanScroll = PanBack;
         LoadMinecraft.Text = Lang.Text("Download.Version.LoadingList");
         BtnBack.Click += (_, _) => ExitSelectPage();
         CardOptiFine.Swap += (_, _) => ReloadSelected();
@@ -211,7 +211,7 @@ public partial class PageDownloadInstall
         if (!States.Hint.InstallPageBack)
         {
             States.Hint.InstallPageBack = true;
-            ModMain.Hint(Lang.Text("Download.Install.Hint.MinecraftBack"));
+            HintService.Hint(Lang.Text("Download.Install.Hint.MinecraftBack"));
         }
 
         // 如果在选择页面按了刷新键，选择页的东西可能会由于动画被隐藏，但不会由于加载结束而再次显示，因此这里需要手动恢复
@@ -1805,7 +1805,7 @@ public partial class PageDownloadInstall
                 if (!IsFabricApiCompatible(version))
                     continue;
                 PanFabricApi.Children.Add(
-                    ModDownloadLib.FabricApiDownloadListItem(version, (a, b) => this.Fabric_Selected((dynamic)a, b)));
+                    ModDownloadLib.FabricApiDownloadListItem(version, (a, b) => this.FabricApi_Selected((dynamic)a, b)));
             }
 
             // 自动选择 Fabric API
