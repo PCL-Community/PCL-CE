@@ -36,5 +36,6 @@
     <ProjectReference Include="..\PCL.Application\PCL.Application.csproj" />
     <ProjectReference Include="..\PCL.Platform\PCL.Platform.csproj" />
     <ProjectReference Include="..\PCL.Plugin\PCL.Plugin.csproj" />
+    <ProjectReference Include="..\PCL.UI.Abstractions\PCL.UI.Abstractions.csproj" />
   </ItemGroup>
 </Project>
