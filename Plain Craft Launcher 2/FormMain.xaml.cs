@@ -1666,6 +1666,7 @@ public partial class FormMain
                             listItem.SetChecked(true, true, stack == pageCurrent);
                             break;
                         }
+                        
                     break;
                 }
             }
