@@ -1657,7 +1657,6 @@ public partial class FormMain
                 {
                     if (ModMain.frmSetupLeft is null)
                         ModMain.frmSetupLeft = new PageSetupLeft();
-
                     // 与 Download, InstanceSetup 与 VersionSaves 相同，使用 Tag 查找
                     foreach (var item in ModMain.frmSetupLeft.PanItem.Children)
                         if (item is MyListItem listItem &&
@@ -1666,7 +1665,7 @@ public partial class FormMain
                             listItem.SetChecked(true, true, stack == pageCurrent);
                             break;
                         }
-                        
+
                     break;
                 }
             }
