@@ -1,14 +1,18 @@
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.App.Cli;
-using PCL.Core.Utils;
+using PCL.Core.Serialization;
 
-namespace PCL.Core.Test.App;
+namespace PCL.Core.Portable.Test;
 
 [TestClass]
-public sealed class CommandLineTest
+public sealed class CommandLineTests
 {
     private readonly CommandLine _model;
     private readonly string _correct = """
@@ -25,7 +29,7 @@ public sealed class CommandLineTest
                  ]
         """.Trim();
 
-    public CommandLineTest()
+    public CommandLineTests()
     {
         IEnumerable<SubcommandDefinition> subcommands = [
             ("foo", [("bar", [("foo")])]),
@@ -43,7 +47,7 @@ public sealed class CommandLineTest
         Assert.AreEqual(_correct, modelStr);
     }
 
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonCompat.SerializerOptions)
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new(PortableJson.SerializerOptions)
     {
         WriteIndented = true,
     };
@@ -52,10 +56,10 @@ public sealed class CommandLineTest
     public void JsonSerialization()
     {
         Console.WriteLine("Serialized JSON string:");
-        var json = JsonSerializer.Serialize(_model, _jsonSerializerOptions);
+        var json = JsonSerializer.Serialize(_model, JsonSerializerOptions);
         Console.WriteLine(json);
         Console.WriteLine("Deserialization result:");
-        var modelStr = JsonSerializer.Deserialize<CommandLine>(json, _jsonSerializerOptions)?.ToString();
+        var modelStr = JsonSerializer.Deserialize<CommandLine>(json, JsonSerializerOptions)?.ToString();
         Console.WriteLine(modelStr);
         Assert.AreEqual(_correct, modelStr);
     }

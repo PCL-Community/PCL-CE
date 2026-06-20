@@ -1,3 +1,7 @@
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -21,7 +25,7 @@ public class CommandLine
     /// <summary>
     /// 子命令
     /// </summary>
-    public CommandLine? Subcommand { get; init; } = null;
+    public CommandLine? Subcommand { get; init; }
 
     /// <summary>
     /// 子命令文本
@@ -61,6 +65,8 @@ public class CommandLine
     /// <returns>命令行模型实例</returns>
     public static CommandLine Parse(ReadOnlySpan<string> args, IEnumerable<SubcommandDefinition>? subcommands = null)
     {
+        if (args.IsEmpty)
+            throw new ArgumentException("The argument span must contain at least 1 element.", nameof(args));
         subcommands ??= [];
         SubcommandDefinition root = (args[0], subcommands);
         return CommandLineParser.Parse(args, root);
@@ -94,12 +100,13 @@ file static class CommandLineParser
 {
     private static (CommandArgument, bool) _ParseArgument(string key, string possibleValueText)
     {
-        if (key.StartsWith("--")) key = key[2..];
-        if (possibleValueText.Length == 0 || possibleValueText.StartsWith("--"))
+        if (key.StartsWith("--", StringComparison.Ordinal)) key = key[2..];
+        if (possibleValueText.Length == 0 || possibleValueText.StartsWith("--", StringComparison.Ordinal))
             return (new BoolArgument { Key = key, ValueText = string.Empty }, false);
-        if (possibleValueText.ToLowerInvariant() is "true" or "false")
+        if (possibleValueText.Equals("true", StringComparison.OrdinalIgnoreCase) ||
+            possibleValueText.Equals("false", StringComparison.OrdinalIgnoreCase))
             return (new BoolArgument { Key = key, ValueText = possibleValueText }, true);
-        if (decimal.TryParse(possibleValueText, out var d))
+        if (decimal.TryParse(possibleValueText, NumberStyles.Number, CultureInfo.InvariantCulture, out var d))
             return (new DecimalArgument { Key = key, ValueText = possibleValueText, Value = d }, true);
         return (new TextArgument { Key = key, ValueText = possibleValueText }, true);
     }
@@ -162,7 +169,7 @@ public sealed class CommandLineJsonConverter : JsonConverter<CommandLine>
                     commandText = reader.GetString() ?? throw new JsonException("cmd cannot be null.");
                     break;
                 case "sub":
-                    subcommand = JsonSerializer.Deserialize<CommandLine>(ref reader, options);
+                    subcommand = Read(ref reader, typeof(CommandLine), options);
                     break;
                 case "args":
                     _ReadArguments(ref reader, arguments);
@@ -205,7 +212,7 @@ public sealed class CommandLineJsonConverter : JsonConverter<CommandLine>
         if (value.Subcommand is not null)
         {
             writer.WritePropertyName("sub");
-            JsonSerializer.Serialize(writer, value.Subcommand, options);
+            Write(writer, value.Subcommand, options);
         }
         writer.WriteEndObject();
     }

@@ -1,5 +1,10 @@
-﻿using System;
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
+using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 
 namespace PCL.Core.App.Cli;
@@ -8,7 +13,7 @@ public class DecimalArgument : CommandArgument<decimal>
 {
     public override ArgumentValueKind ValueKind => ArgumentValueKind.Decimal;
 
-    protected override decimal ParseValueText() => decimal.Parse(ValueText);
+    protected override decimal ParseValueText() => decimal.Parse(ValueText, CultureInfo.InvariantCulture);
 
     public new decimal Value
     {

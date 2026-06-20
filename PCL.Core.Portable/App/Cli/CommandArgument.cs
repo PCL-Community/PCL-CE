@@ -1,4 +1,8 @@
-﻿using System;
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
@@ -52,7 +56,7 @@ public abstract class CommandArgument<TValue> : CommandArgument
     /// <returns>对应类型的参数值</returns>
     protected abstract TValue ParseValueText();
 
-    private bool _isValueParsed = false;
+    private bool _isValueParsed;
 
     /// <summary>
     /// 参数值
@@ -82,7 +86,8 @@ public abstract class CommandArgument<TValue> : CommandArgument
         value = default!;
         if (typeof(T) == typeof(string))
         {
-            Unsafe.As<T, string>(ref value) = ValueText;
+            string text = ValueText;
+            value = Unsafe.As<string, T>(ref text);
 #pragma warning disable CS8762 // The analyzer sucks.
             return true;
 #pragma warning restore CS8762
