@@ -60,9 +60,12 @@ public sealed class AvaloniaIconService : IIconService
         return Icons.GetValueOrDefault(normalized);
     }
 
-    internal static bool ValidateResources() =>
-        AssetLoader.Exists(
+    internal static bool ValidateResources(IAssetLoader assetLoader)
+    {
+        ArgumentNullException.ThrowIfNull(assetLoader);
+        return assetLoader.Exists(
             new Uri("avares://PCL.Desktop/Assets/icon.png")) &&
         Icons.Values.All(
-            static icon => AssetLoader.Exists(icon.ResourceUri));
+            icon => assetLoader.Exists(icon.ResourceUri));
+    }
 }

@@ -3,6 +3,7 @@
 // Licensed under the Apache License, Version 2.0.
 
 using Avalonia;
+using Avalonia.Platform;
 using PCL.Desktop.Composition;
 
 namespace PCL.Desktop;
@@ -16,8 +17,11 @@ internal static class Program
             return DesktopCompositionRoot.ValidateEnvironment() ? 0 : 1;
         if (args is ["--validate-assets"])
         {
-            BuildAvaloniaApp().SetupWithoutStarting();
-            return Services.AvaloniaIconService.ValidateResources() ? 0 : 1;
+            IAssetLoader assetLoader =
+                new StandardAssetLoader(typeof(Program).Assembly);
+            return Services.AvaloniaIconService.ValidateResources(assetLoader)
+                ? 0
+                : 1;
         }
 
         return BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
