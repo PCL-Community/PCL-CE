@@ -3,6 +3,7 @@
 // Licensed under the Apache License, Version 2.0.
 
 using System.Runtime.CompilerServices;
+using PCL.Core.App;
 using PCL.Core.App.Cli;
 using PCL.Core.Link.McPing;
 using PCL.Core.Link.McPing.Model;
@@ -25,6 +26,15 @@ using PCL.Core.Utils.Encryption;
 using PCL.Core.Utils.Threading;
 
 [assembly: TypeForwardedTo(typeof(ArgumentValueKind))]
+[assembly: TypeForwardedTo(typeof(ColorMode))]
+[assembly: TypeForwardedTo(typeof(ColorTheme))]
+[assembly: TypeForwardedTo(typeof(UpdateChannel))]
+[assembly: TypeForwardedTo(typeof(GameWindowSizeMode))]
+[assembly: TypeForwardedTo(typeof(GameProcessPriority))]
+[assembly: TypeForwardedTo(typeof(LauncherVisibility))]
+[assembly: TypeForwardedTo(typeof(JvmPreferredIpStack))]
+[assembly: TypeForwardedTo(typeof(LauncherAutoUpdateBehavior))]
+[assembly: TypeForwardedTo(typeof(LauncherTitleType))]
 [assembly: TypeForwardedTo(typeof(BoolArgument))]
 [assembly: TypeForwardedTo(typeof(CommandArgument))]
 [assembly: TypeForwardedTo(typeof(CommandArgument<>))]

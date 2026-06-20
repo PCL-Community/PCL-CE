@@ -1,8 +1,9 @@
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
 namespace PCL.Core.App;
 
-/// <summary>
-/// 主题模式（亮/暗/系统）
-/// </summary>
 public enum ColorMode
 {
     Light = 0,
@@ -10,9 +11,6 @@ public enum ColorMode
     System = 2
 }
 
-/// <summary>
-/// 配色主题
-/// </summary>
 public enum ColorTheme
 {
     SkyBlue = 0,
@@ -22,9 +20,6 @@ public enum ColorTheme
     SystemAccent = 4
 }
 
-/// <summary>
-/// 更新通道
-/// </summary>
 public enum UpdateChannel
 {
     Release = 0,
@@ -32,9 +27,6 @@ public enum UpdateChannel
     Dev = 2
 }
 
-/// <summary>
-/// 游戏窗口大小模式
-/// </summary>
 public enum GameWindowSizeMode
 {
     Fullscreen = 0,
@@ -44,9 +36,6 @@ public enum GameWindowSizeMode
     Maximized = 4
 }
 
-/// <summary>
-/// 游戏进程优先级
-/// </summary>
 public enum GameProcessPriority
 {
     AboveNormal = 0,
@@ -56,9 +45,6 @@ public enum GameProcessPriority
     RealTime = 4
 }
 
-/// <summary>
-/// 游戏启动后启动器可见性
-/// </summary>
 public enum LauncherVisibility
 {
     ExitImmediately = 0,
@@ -69,19 +55,15 @@ public enum LauncherVisibility
     DoNothing = 5
 }
 
-/// <summary>
-/// JVM 优先 IP 栈类型
-/// </summary>
+#pragma warning disable CA1711 // Preserve the existing public API name during assembly migration.
 public enum JvmPreferredIpStack
 {
     PreferV4 = 0,
     Default = 1,
     PreferV6 = 2
 }
+#pragma warning restore CA1711
 
-/// <summary>
-/// 启动器更新行为
-/// </summary>
 public enum LauncherAutoUpdateBehavior
 {
     DownloadAndInstall = 0,
