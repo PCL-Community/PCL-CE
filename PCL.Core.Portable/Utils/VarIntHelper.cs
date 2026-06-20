@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,17 +18,9 @@ public static class VarIntHelper
     /// <returns>VarInt字节数组</returns>
     public static byte[] Encode(ulong value)
     {
-        using var stream = new MemoryStream();
-        do
-        {
-            var temp = (byte)(value & 0x7F); // 取低7位
-            value >>= 7;                      // 右移7位
-            if (value != 0)                   // 如果还有后续数据
-                temp |= 0x80;                 // 设置最高位为1
-            stream.WriteByte(temp);
-        } while (value != 0);
-        
-        return stream.ToArray();
+        Span<byte> buffer = stackalloc byte[10];
+        TryEncode(value, buffer, out var written);
+        return buffer[..written].ToArray();
     }
 
     /// <summary>
@@ -33,6 +29,30 @@ public static class VarIntHelper
     /// <param name="value">要编码的32位无符号整数</param>
     /// <returns>VarInt字节数组</returns>
     public static byte[] Encode(uint value) => Encode((ulong)value);
+
+    /// <summary>
+    /// 将无符号长整数写入调用方提供的缓冲区。
+    /// </summary>
+    public static bool TryEncode(ulong value, Span<byte> destination, out int written)
+    {
+        written = 0;
+        do
+        {
+            if ((uint)written >= (uint)destination.Length)
+            {
+                written = 0;
+                return false;
+            }
+
+            var current = (byte)(value & 0x7F);
+            value >>= 7;
+            if (value != 0)
+                current |= 0x80;
+            destination[written++] = current;
+        } while (value != 0);
+
+        return true;
+    }
 
     /// <summary>
     /// 从字节数组中解码无符号长整数
@@ -45,7 +65,11 @@ public static class VarIntHelper
     public static ulong Decode(byte[] bytes, out int readLength)
     {
         ArgumentNullException.ThrowIfNull(bytes);
+        return Decode(bytes.AsSpan(), out readLength);
+    }
 
+    public static ulong Decode(ReadOnlySpan<byte> bytes, out int readLength)
+    {
         ulong result = 0;
         var shift = 0;
         var bytesRead = 0;
@@ -104,7 +128,7 @@ public static class VarIntHelper
         var buffer = new byte[1];
         while (true)
         {
-            var readLength = await stream.ReadAsync(buffer, 0, 1, cancellationToken);
+            var readLength = await stream.ReadAsync(buffer.AsMemory(), cancellationToken).ConfigureAwait(false);
             if (readLength == 0)
                 throw new EndOfStreamException();
 
@@ -131,7 +155,7 @@ public static class VarIntHelper
     /// <returns>解码后的32位无符号整数</returns>
     public static async Task<uint> ReadUIntFromStreamAsync(Stream stream, CancellationToken cancellationToken = default)
     {
-        var result = await ReadFromStreamAsync(stream, cancellationToken);
+        var result = await ReadFromStreamAsync(stream, cancellationToken).ConfigureAwait(false);
         if (result > uint.MaxValue)
             throw new OverflowException("Decoded value exceeds UInt32 range");
         return (uint)result;

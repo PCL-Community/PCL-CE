@@ -1,3 +1,7 @@
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,8 +42,8 @@ public class ArgumentsBuilder
     /// <param name="value">参数值</param>
     public ArgumentsBuilder Add(string key, string value)
     {
-        if (key is null) throw new NullReferenceException(nameof(key));
-        if (value is null) throw new NullReferenceException(nameof(value));
+        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(value);
         _args.Add(new Argument(key, _HandleValue(value), ArgumentStyle.Equals));
         return this;
     }
@@ -51,8 +55,8 @@ public class ArgumentsBuilder
     /// <param name="value">参数值</param>
     public ArgumentsBuilder AddWithSpace(string key, string value)
     {
-        if (key is null) throw new NullReferenceException(nameof(key));
-        if (value is null) throw new NullReferenceException(nameof(value));
+        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(value);
         _args.Add(new Argument(key, _HandleValue(value), ArgumentStyle.Space));
         return this;
     }
@@ -63,7 +67,7 @@ public class ArgumentsBuilder
     /// <param name="flag">标志名（不带前缀）</param>
     public ArgumentsBuilder AddFlag(string flag)
     {
-        if (flag is null) throw new NullReferenceException(nameof(flag));
+        ArgumentNullException.ThrowIfNull(flag);
         _args.Add(new Argument(flag, null, ArgumentStyle.Flag));
         return this;
     }

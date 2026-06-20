@@ -5,6 +5,7 @@
 using System.Runtime.CompilerServices;
 using PCL.Core.App.Cli;
 using PCL.Core.Utils;
+using PCL.Core.Utils.Codecs;
 
 [assembly: TypeForwardedTo(typeof(ArgumentValueKind))]
 [assembly: TypeForwardedTo(typeof(BoolArgument))]
@@ -17,3 +18,15 @@ using PCL.Core.Utils;
 [assembly: TypeForwardedTo(typeof(TextArgument))]
 [assembly: TypeForwardedTo(typeof(SemVer))]
 [assembly: TypeForwardedTo(typeof(VersionRange))]
+[assembly: TypeForwardedTo(typeof(ArgumentsBuilder))]
+[assembly: TypeForwardedTo(typeof(AtomicVariable<>))]
+[assembly: TypeForwardedTo(typeof(ConcurrentSet<>))]
+[assembly: TypeForwardedTo(typeof(ParameterizedProperty<,>))]
+[assembly: TypeForwardedTo(typeof(Result<,>))]
+[assembly: TypeForwardedTo(typeof(SearchEntry<>))]
+[assembly: TypeForwardedTo(typeof(SimilaritySearch))]
+[assembly: TypeForwardedTo(typeof(StringStream))]
+[assembly: TypeForwardedTo(typeof(VarIntHelper))]
+[assembly: TypeForwardedTo(typeof(EncodingDetector))]
+[assembly: TypeForwardedTo(typeof(Encodings))]
+[assembly: TypeForwardedTo(typeof(EncodingUtils))]

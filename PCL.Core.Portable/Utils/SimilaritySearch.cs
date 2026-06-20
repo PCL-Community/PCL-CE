@@ -1,4 +1,8 @@
-﻿namespace PCL.Core.Utils;
+﻿// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
+namespace PCL.Core.Utils;
 
 using System;
 using System.Collections.Generic;
@@ -59,8 +63,8 @@ public static class SimilaritySearch {
         }
 
         // 预处理：转为小写并移除空格，然后转换为 ReadOnlySpan 以提高性能。
-        var sourceSpan = source.ToLower().Replace(" ", "").AsSpan();
-        var querySpan = query.ToLower().Replace(" ", "").AsSpan();
+        var sourceSpan = source.ToLowerInvariant().Replace(" ", "", StringComparison.Ordinal).AsSpan();
+        var querySpan = query.ToLowerInvariant().Replace(" ", "", StringComparison.Ordinal).AsSpan();
 
         if (sourceSpan.IsEmpty || querySpan.IsEmpty) {
             return 0.0;
@@ -146,7 +150,7 @@ public static class SimilaritySearch {
     private static bool _IsAbsoluteMatch(IEnumerable<KeyValuePair<string, double>> searchSources, string[] queryParts) {
         // 预处理搜索源：转小写并移除空格，避免在循环中重复操作
         var processedSources = searchSources
-            .Select(s => s.Key.Replace(" ", "").ToLower())
+            .Select(s => s.Key.Replace(" ", "", StringComparison.Ordinal).ToLowerInvariant())
             .ToList();
 
         // 必须所有查询词都在至少一个源中找到
@@ -176,7 +180,7 @@ public static class SimilaritySearch {
         }
 
         var queryParts = query.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(q => q.ToLower())
+            .Select(q => q.ToLowerInvariant())
             .ToArray();
 
         if (queryParts.Length == 0) {

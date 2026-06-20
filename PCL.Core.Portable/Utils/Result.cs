@@ -1,6 +1,11 @@
-﻿using System;
+﻿// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace PCL.Core.Utils;
 
@@ -11,6 +16,7 @@ namespace PCL.Core.Utils;
 /// <typeparam name="TOk">成功时返回的值类型</typeparam>
 /// <typeparam name="TErr">失败时返回的错误类型</typeparam>
 [DebuggerDisplay("{" + nameof(_DebuggerDisplay) + "}")]
+[SuppressMessage("Design", "CA1000", Justification = "Factory methods are part of the established Result API.")]
 public sealed class Result<TOk, TErr>
 {
     private readonly TOk? _value;

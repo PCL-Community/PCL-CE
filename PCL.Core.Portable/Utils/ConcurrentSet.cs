@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -15,7 +19,7 @@ public sealed class ConcurrentSet<T> : IProducerConsumerCollection<T>, ICollecti
     public int Count => _dictionary.Count;
     object ICollection.SyncRoot => ((ICollection)_dictionary).SyncRoot;
     bool ICollection.IsSynchronized => ((ICollection)_dictionary).IsSynchronized;
-    public bool IgnoreDuplicated { get; init; } = false;
+    public bool IgnoreDuplicated { get; init; }
 
     public bool TryAdd(T item)
     {
