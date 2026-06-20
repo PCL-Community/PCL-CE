@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using PCL.Core.App.Cli;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
+using PCL.Core.Utils.Encryption;
 
 [assembly: TypeForwardedTo(typeof(ArgumentValueKind))]
 [assembly: TypeForwardedTo(typeof(BoolArgument))]
@@ -30,3 +31,8 @@ using PCL.Core.Utils.Codecs;
 [assembly: TypeForwardedTo(typeof(EncodingDetector))]
 [assembly: TypeForwardedTo(typeof(Encodings))]
 [assembly: TypeForwardedTo(typeof(EncodingUtils))]
+[assembly: TypeForwardedTo(typeof(AesCbcProvider))]
+[assembly: TypeForwardedTo(typeof(AesGcmProvider))]
+[assembly: TypeForwardedTo(typeof(ChaCha20Poly1305Provider))]
+[assembly: TypeForwardedTo(typeof(ChaCha20SoftwareProvider))]
+[assembly: TypeForwardedTo(typeof(IEncryptionProvider))]

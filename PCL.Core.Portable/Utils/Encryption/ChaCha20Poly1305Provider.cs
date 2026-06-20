@@ -1,4 +1,9 @@
-﻿using System;
+﻿// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
+using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 
 namespace PCL.Core.Utils.Encryption;
@@ -14,33 +19,19 @@ public sealed class ChaCha20Poly1305Provider : IEncryptionProvider
 
     public byte[] Encrypt(ReadOnlySpan<byte> data, ReadOnlySpan<byte> key)
     {
-        // Generate random salt, nonce and the tag
-        var salt = new byte[SaltSize];
-        var nonce = new byte[NonceSize];
-        var tag = new byte[TagSize];
+        var result = new byte[SaltSize + NonceSize + TagSize + data.Length];
+        var resultSpan = result.AsSpan();
+        var salt = resultSpan[..SaltSize];
+        var nonce = resultSpan.Slice(SaltSize, NonceSize);
+        var tag = resultSpan.Slice(SaltSize + NonceSize, TagSize);
+        var ciphertext = resultSpan[(SaltSize + NonceSize + TagSize)..];
         RandomNumberGenerator.Fill(salt);
         RandomNumberGenerator.Fill(nonce);
-        RandomNumberGenerator.Fill(tag);
 
-        // Derive key using the salt
         Span<byte> outputKey = stackalloc byte[KeySize];
         _DeriveKey(key, salt, outputKey);
         using var chacha = new ChaCha20Poly1305(outputKey);
-
-        // Prepare output arrays
-        var ciphertext = new byte[data.Length];
-
-        // Perform encryption
         chacha.Encrypt(nonce, data, ciphertext, tag);
-
-        // Make the encryption data: salt + nonce + tag + ciphertext
-        var result = new byte[SaltSize + NonceSize + ciphertext.Length + TagSize];
-        var resultSpan = result.AsSpan();
-
-        salt.CopyTo(resultSpan[..SaltSize]);
-        nonce.CopyTo(resultSpan.Slice(SaltSize, NonceSize));
-        tag.CopyTo(resultSpan.Slice(SaltSize + NonceSize, TagSize));
-        ciphertext.CopyTo(resultSpan.Slice(SaltSize + NonceSize + TagSize, ciphertext.Length));
 
         return result;
     }
@@ -69,7 +60,7 @@ public sealed class ChaCha20Poly1305Provider : IEncryptionProvider
         return plaintext;
     }
 
-    private static readonly byte[] _Info = "PCL.Core.Utils.Encryption.ChaCha20"u8.ToArray();
+    private static ReadOnlySpan<byte> Info => "PCL.Core.Utils.Encryption.ChaCha20"u8;
     private static void _DeriveKey(ReadOnlySpan<byte> ikm, ReadOnlySpan<byte> salt, Span<byte> outputKey)
     {
         HKDF.DeriveKey(
@@ -77,8 +68,9 @@ public sealed class ChaCha20Poly1305Provider : IEncryptionProvider
             ikm,
             outputKey,
             salt,
-            _Info.AsSpan());
+            Info);
     }
 
-    public bool IsSupported { get => ChaCha20Poly1305.IsSupported; }
+    [SuppressMessage("Performance", "CA1822", Justification = "Instance property is retained for provider API compatibility.")]
+    public bool IsSupported => ChaCha20Poly1305.IsSupported;
 }

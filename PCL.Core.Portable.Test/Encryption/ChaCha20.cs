@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
+using System;
 using System.Security.Cryptography;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -19,8 +23,6 @@ public class ChaCha20
         var encryptedData = Core.Utils.Encryption.ChaCha20SoftwareProvider.Instance.Encrypt(randomData, randomKey);
         var decryptedData = Core.Utils.Encryption.ChaCha20SoftwareProvider.Instance.Decrypt(encryptedData, randomKey);
 
-        Assert.AreEqual(randomData.Length, decryptedData.Length);
-        for (var i = 0; i < decryptedData.Length; i++)
-            Assert.AreEqual(decryptedData[i], randomData[i]);
+        CollectionAssert.AreEqual(randomData, decryptedData);
     }
 }

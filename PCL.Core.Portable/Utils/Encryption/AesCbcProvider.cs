@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
+using System;
 using System.IO;
 using System.Security.Cryptography;
 
@@ -30,12 +34,12 @@ namespace PCL.Core.Utils.Encryption
                 throw new ArgumentException("AES-CBC: Can not decrypt data, the encrypted data is broken");
             }
 
-#pragma warning disable SYSLIB0041
+#pragma warning disable SYSLIB0041, CA5379 // Preserve the legacy SHA-1 KDF for existing encrypted data.
             using (var deriveBytes = new Rfc2898DeriveBytes(key.ToArray(), salt.ToArray(), 1000))
             {
                 aes.Key = deriveBytes.GetBytes(aes.KeySize / 8);
             }
-#pragma warning restore SYSLIB0041
+#pragma warning restore SYSLIB0041, CA5379
 
             using var ret = new MemoryStream();
             using var ms = new MemoryStream(data[(SaltSize + IvSize)..].ToArray());

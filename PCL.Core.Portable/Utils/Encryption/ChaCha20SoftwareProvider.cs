@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
+using System;
 using System.Buffers.Binary;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -12,7 +16,7 @@ public class ChaCha20SoftwareProvider : IEncryptionProvider
     public static ChaCha20SoftwareProvider Instance { get; } = new();
 
     // 常量：expand 32-byte k
-    private static ReadOnlySpan<uint> Sigma => new[] { 0x61707865u, 0x3320646eu, 0x79622d32u, 0x6b206574u };
+    private static ReadOnlySpan<uint> Sigma => [0x61707865u, 0x3320646eu, 0x79622d32u, 0x6b206574u];
 
     public static bool IsSupported => true;
 
