@@ -14,6 +14,11 @@ internal static class Program
     {
         if (args is ["--validate-environment"])
             return DesktopCompositionRoot.ValidateEnvironment() ? 0 : 1;
+        if (args is ["--validate-assets"])
+        {
+            BuildAvaloniaApp().SetupWithoutStarting();
+            return Services.AvaloniaIconService.ValidateResources() ? 0 : 1;
+        }
 
         return BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }

@@ -10,6 +10,7 @@
     <AssemblyName>PCL.Desktop</AssemblyName>
     <RootNamespace>PCL.Desktop</RootNamespace>
     <Description>PCL N cross-platform Avalonia desktop shell</Description>
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
     <Company>PCL N</Company>
     <Product>PCL.Desktop</Product>
     <Copyright>Copyright (c) MUXUE1230; Modifications Copyright (c) 2026 PCL N contributors</Copyright>
@@ -31,6 +32,10 @@
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\IconPacks\**\*.svg" />
+    <AvaloniaResource Include="Assets\icon.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PCL.Application\PCL.Application.csproj" />

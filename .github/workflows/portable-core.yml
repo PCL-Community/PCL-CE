@@ -79,4 +79,6 @@ jobs:
         run: dotnet publish PCL.Desktop/PCL.Desktop.csproj -c Release -r ${{ steps.runtime.outputs.rid }} -warnaserror
       - name: Validate Avalonia desktop Native AOT shell
         shell: bash
-        run: ./PCL.Desktop/bin/Release/net10.0/${{ steps.runtime.outputs.rid }}/publish/PCL.Desktop --validate-environment
+        run: |
+          ./PCL.Desktop/bin/Release/net10.0/${{ steps.runtime.outputs.rid }}/publish/PCL.Desktop --validate-environment
+          ./PCL.Desktop/bin/Release/net10.0/${{ steps.runtime.outputs.rid }}/publish/PCL.Desktop --validate-assets

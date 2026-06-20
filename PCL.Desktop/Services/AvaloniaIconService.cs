@@ -3,6 +3,7 @@
 // Licensed under the Apache License, Version 2.0.
 
 using System.Collections.Frozen;
+using Avalonia.Platform;
 using PCL.UI.Abstractions;
 
 namespace PCL.Desktop.Services;
@@ -27,6 +28,7 @@ public sealed class AvaloniaIconService : IIconService
                 "info",
                 "monitor",
                 "moon",
+                "minus",
                 "package",
                 "palette",
                 "play",
@@ -57,4 +59,10 @@ public sealed class AvaloniaIconService : IIconService
             : $"lucide/{key}";
         return Icons.GetValueOrDefault(normalized);
     }
+
+    internal static bool ValidateResources() =>
+        AssetLoader.Exists(
+            new Uri("avares://PCL.Desktop/Assets/icon.png")) &&
+        Icons.Values.All(
+            static icon => AssetLoader.Exists(icon.ResourceUri));
 }
