@@ -87,15 +87,15 @@
     <!-- Application -->
 
     <sys:String x:Key="Application.EnvironmentWarning.WindowsVersion">- Windows 版本不满足推荐要求，推荐至少 Windows 10 1809，建议考虑升级 Windows 系统</sys:String>
-    <sys:String x:Key="Application.EnvironmentWarning.System32Bit">- 当前系统为 32 位，不受 PCL 和新版 Minecraft 支持，非常建议重装为 64 位系统后再进行游戏</sys:String>
-    <sys:String x:Key="Application.EnvironmentWarning.TempFolder">- PCL 正在临时目录运行，请将 PCL 从压缩包中解压之后再使用，否则可能导致游戏存档或设置丢失</sys:String>
-    <sys:String x:Key="Application.EnvironmentWarning.SocialSoftwareFolder">- PCL 正在 QQ、微信、TIM 等社交软件的下载目录运行，请考虑移动到其他位置，否则可能导致游戏存档或设置丢失</sys:String>
+    <sys:String x:Key="Application.EnvironmentWarning.System32Bit">- 当前系统为 32 位，不受 PCL CE 和新版 Minecraft 支持，非常建议重装为 64 位系统后再进行游戏</sys:String>
+    <sys:String x:Key="Application.EnvironmentWarning.TempFolder">- PCL CE 正在临时目录运行，请将 PCL CE 从压缩包中解压之后再使用，否则可能导致游戏存档或设置丢失</sys:String>
+    <sys:String x:Key="Application.EnvironmentWarning.SocialSoftwareFolder">- PCL CE 正在 QQ、微信、TIM 等社交软件的下载目录运行，请考虑移动到其他位置，否则可能导致游戏存档或设置丢失</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.Message">PCL CE 在启动时检测到环境问题：&#x0a;&#x0a;{0}&#x0a;&#x0a;不解决这些问题可能会导致部分功能无法正常工作……</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.Title">环境警告</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.IKnow">我知道了</sys:String>
-    <sys:String x:Key="Application.InitializationError.Path">PCL 所在路径：{0}</sys:String>
+    <sys:String x:Key="Application.InitializationError.Path">PCL CE 所在路径：{0}</sys:String>
     <sys:String x:Key="Application.InitializationError.PathUnavailable">获取失败</sys:String>
-    <sys:String x:Key="Application.InitializationError.Title">PCL 初始化错误</sys:String>
+    <sys:String x:Key="Application.InitializationError.Title">PCL CE 初始化错误</sys:String>
 
     <!-- Main.Title / Navigation -->
 
@@ -138,21 +138,21 @@
     <sys:String x:Key="Main.FileDrag.AuthlibInvalid">输入的 Authlib 验证服务器不符合网址格式（{0}）！</sys:String>
     <sys:String x:Key="Main.FileDrag.CreateAuthlibProfile">是否要创建新的第三方验证档案？&#x0a;验证服务器地址：{0}</sys:String>
     <sys:String x:Key="Main.FileDrag.CreateAuthlibProfileTitle">创建新的第三方验证档案</sys:String>
-    <sys:String x:Key="Main.FileDrag.UnknownOperation">PCL 无法确定应当执行的文件拖拽操作……</sys:String>
+    <sys:String x:Key="Main.FileDrag.UnknownOperation">PCL CE 无法确定应当执行的文件拖拽操作……</sys:String>
 
     <!-- Main.Misc -->
 
     <sys:String x:Key="Main.UpdateLog.Empty">欢迎使用呀~</sys:String>
     <sys:String x:Key="Main.UpdateLog.Title">PCL CE 已更新至 {0} {1}</sys:String>
     <sys:String x:Key="Main.UpdateLog.FullChangelog">完整更新日志</sys:String>
-    <sys:String x:Key="Main.DebugMode.Hint">[调试模式] PCL 正以调试模式运行，这可能会导致性能下降，若无必要请不要开启！</sys:String>
-    <sys:String x:Key="Main.SpecialVersion.DebugHint">当前运行的 PCL 社区版为 Debug 版本。&#x0a;该版本仅适合开发者调试运行，可能会有严重的性能下降以及各种奇怪的网络问题。&#x0a;&#x0a;非开发者用户使用该版本造成的一切问题均不被社区支持，相关 issue 可能会被直接关闭。&#x0a;除非您是开发者，否则请立即删除该版本，并下载最新稳定版使用。</sys:String>
-    <sys:String x:Key="Main.SpecialVersion.CiHint">当前运行的 PCL 社区版为 CI 自动构建版本。&#x0a;该版本包含最新的漏洞修复、优化和新特性，但性能和稳定性较差，不适合日常使用和制作整合包。&#x0a;&#x0a;除非社区开发者要求或您自己想要这么做，否则请下载最新稳定版使用。</sys:String>
+    <sys:String x:Key="Main.DebugMode.Hint">[调试模式] PCL CE 正以调试模式运行，这可能会导致性能下降，若无必要请不要开启！</sys:String>
+    <sys:String x:Key="Main.SpecialVersion.DebugHint">当前运行的 PCL CE 为 Debug 版本。&#x0a;该版本仅适合开发者调试运行，可能会有严重的性能下降以及各种奇怪的网络问题。&#x0a;&#x0a;非开发者用户使用该版本造成的一切问题均不被社区支持，相关 issue 可能会被直接关闭。&#x0a;除非您是开发者，否则请立即删除该版本，并下载最新稳定版使用。</sys:String>
+    <sys:String x:Key="Main.SpecialVersion.CiHint">当前运行的 PCL CE 为 CI 自动构建版本。&#x0a;该版本包含最新的漏洞修复、优化和新特性，但性能和稳定性较差，不适合日常使用和制作整合包。&#x0a;&#x0a;除非社区开发者要求或您自己想要这么做，否则请下载最新稳定版使用。</sys:String>
     <sys:String x:Key="Main.SpecialVersion.HideHintNotice">可以添加 PCL_DISABLE_DEBUG_HINT 环境变量 (任意值) 来隐藏这个提示。</sys:String>
     <sys:String x:Key="Main.SpecialVersion.Title">特殊版本提示</sys:String>
     <sys:String x:Key="Main.SpecialVersion.IUnderstand">我清楚我在做什么</sys:String>
     <sys:String x:Key="Main.SpecialVersion.OpenDownloadPageAndExit">打开最新版下载页并退出</sys:String>
-    <sys:String x:Key="Main.Eula.Message">在使用 PCL 前，请同意 PCL 的用户协议与免责声明。</sys:String>
+    <sys:String x:Key="Main.Eula.Message">在使用 PCL CE 前，请同意 PCL 的用户协议与免责声明。</sys:String>
     <sys:String x:Key="Main.Eula.Title">协议授权</sys:String>
     <sys:String x:Key="Main.Eula.View">查看用户协议与免责声明</sys:String>
     <sys:String x:Key="Main.Telemetry.Title">启用遥测数据收集</sys:String>
@@ -188,7 +188,7 @@
     <sys:String x:Key="Launch.Status.Trivia">你知道吗</sys:String>
     <sys:String x:Key="Launch.Status.Trivia.Placeholder">这是一段测试用的小提示文本，它应该足够长以让它有两行。</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.Title">社区版提示</sys:String>
-    <sys:String x:Key="Launch.Right.CommunityHint.Message">你正在使用 PCL 社区版！此版本为独立开发和维护，与官方版本维护路线不同，体验有所出入。&#x0a;&#x0a;如果你是意外下载到了社区版，我们十分建议您下载 PCL 官方版长期使用，此发行版本对新手用户体验可能不友好。&#x0a;此外，社区版的问题请向社区版的仓库提交 Issue，不要向官方仓库反馈社区版的问题哦！</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.Message">你正在使用 PCL CE！此版本为独立开发和维护，与官方版本维护路线不同，体验有所出入。&#x0a;&#x0a;如果你是意外下载到了社区版，我们十分建议您下载 PCL 官方版长期使用，此发行版本对新手用户体验可能不友好。&#x0a;此外，社区版的问题请向社区版的仓库提交 Issue，不要向官方仓库反馈社区版的问题哦！</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.HidePrompt">若要永久隐藏此提示，请输入正确的 PCL CE 开发组织名称。</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.InputTitle">输入 PCL CE 开发组织名称</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.WrongInput">不太对哦……</sys:String>
@@ -442,7 +442,7 @@
     <sys:String x:Key="Select.Folder.RemoveFromList">移出列表</sys:String>
     <sys:String x:Key="Select.Folder.AddOrImport">添加或导入</sys:String>
     <sys:String x:Key="Select.Folder.CreateNew.Title">新建 .minecraft 文件夹</sys:String>
-    <sys:String x:Key="Select.Folder.CreateNew.ToolTip">在 PCL 当前所在文件夹下创建新的 .minecraft 文件夹</sys:String>
+    <sys:String x:Key="Select.Folder.CreateNew.ToolTip">在 PCL CE 当前所在文件夹下创建新的 .minecraft 文件夹</sys:String>
     <sys:String x:Key="Select.Folder.AddExisting.Title">添加已有文件夹</sys:String>
     <sys:String x:Key="Select.Folder.AddExisting.ToolTip">将一个已有的 Minecraft 文件夹添加到列表</sys:String>
     <sys:String x:Key="Select.Folder.ImportModpack.Title">导入整合包</sys:String>
@@ -451,14 +451,14 @@
     <sys:String x:Key="Select.Folder.InvalidPathChars">Minecraft 文件夹路径中不能含有感叹号或分号！</sys:String>
     <sys:String x:Key="Select.Folder.InputDisplayName.Title">输入显示名称</sys:String>
     <sys:String x:Key="Select.Folder.InputDisplayName.Message">输入该文件夹在左边栏列表中显示的名称。</sys:String>
-    <sys:String x:Key="Select.Folder.AccessDenied">添加文件夹失败：PCL 没有访问该文件夹的权限！</sys:String>
+    <sys:String x:Key="Select.Folder.AccessDenied">添加文件夹失败：PCL CE 没有访问该文件夹的权限！</sys:String>
     <sys:String x:Key="Select.Folder.AlreadyInList">此文件夹已在列表中！</sys:String>
     <sys:String x:Key="Select.Folder.NameUpdated">文件夹名称已更新为 {0}！</sys:String>
     <sys:String x:Key="Select.Folder.Added">文件夹 {0} 已添加！</sys:String>
     <sys:String x:Key="Select.Folder.CannotCreateWhileDownloading">在下载任务进行时，无法创建游戏文件夹！</sys:String>
     <sys:String x:Key="Select.Folder.CreateSuccess">新建 .minecraft 文件夹成功！</sys:String>
     <sys:String x:Key="Select.Folder.Cleanup.Title">配置文件清理</sys:String>
-    <sys:String x:Key="Select.Folder.Cleanup.Message">是否需要清理 PCL 在该文件夹中的配置文件？&#x0a;这包括各个实例的独立设置（如自定义图标、第三方登录配置）等，对游戏本身没有影响。</sys:String>
+    <sys:String x:Key="Select.Folder.Cleanup.Message">是否需要清理 PCL CE 在该文件夹中的配置文件？&#x0a;这包括各个实例的独立设置（如自定义图标、第三方登录配置）等，对游戏本身没有影响。</sys:String>
     <sys:String x:Key="Select.Folder.Cleanup.Keep">保留</sys:String>
     <sys:String x:Key="Select.Folder.RemoveSuccess">文件夹 {0} 已从列表中移除！</sys:String>
     <sys:String x:Key="Select.Folder.RestoreSuccess">文件夹名称已复原！</sys:String>
@@ -493,9 +493,9 @@
     <!-- Select.Instance.Description -->
 
     <sys:String x:Key="Select.Instance.Description.NotLoaded">该实例未被加载，请向开发者反馈此问题</sys:String>
-    <sys:String x:Key="Select.Instance.Description.UnknownMcVersion">PCL 无法识别该版本的 MC 版本号</sys:String>
+    <sys:String x:Key="Select.Instance.Description.UnknownMcVersion">PCL CE 无法识别该版本的 MC 版本号</sys:String>
     <sys:String x:Key="Select.Instance.Description.NotFound">未找到实例 {0}</sys:String>
-    <sys:String x:Key="Select.Instance.Description.NoPermission">PCL 没有对该文件夹的访问权限，请右键以管理员身份运行 PCL</sys:String>
+    <sys:String x:Key="Select.Instance.Description.NoPermission">PCL CE 没有对该文件夹的访问权限，请右键以管理员身份运行 PCL CE</sys:String>
     <sys:String x:Key="Select.Instance.Description.NeedInherit">需要安装 {0} 作为前置实例</sys:String>
     <sys:String x:Key="Select.Instance.Description.UnknownError">未知错误</sys:String>
     <sys:String x:Key="Select.Instance.Description.PreRelease">预发布版 {0}</sys:String>
@@ -667,8 +667,8 @@
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.Message">该账号年龄不足，你需要先修改出生日期，然后才能登录。&#x0a;该账号目前填写的年龄是否在 13 岁以上？</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.AgeOver13">13 岁以上</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13">12 岁以下</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message">请在打开的网页中修改账号的出生日期（至少改为 18 岁以上）。&#x0a;在修改成功后等待一分钟，然后再回到 PCL，就可以正常登录了！</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage">请在打开的网页中修改账号的出生日期（至少改为 18 岁以上）。&#x0a;在修改成功后等待一分钟，然后再回到 PCL，就可以正常登录了！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message">请在打开的网页中修改账号的出生日期（至少改为 18 岁以上）。&#x0a;在修改成功后等待一分钟，然后再回到 PCL CE，就可以正常登录了！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage">请在打开的网页中修改账号的出生日期（至少改为 18 岁以上）。&#x0a;在修改成功后等待一分钟，然后再回到 PCL CE，就可以正常登录了！</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.TooManyRequests">登录尝试太过频繁，请等待几分钟后再试！</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.AbnormalIp">当前 IP 的登录尝试异常。&#x0a;如果你使用了 VPN 或加速器，请把它们关掉或更换节点后再试！</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.NotPurchased">暂时无法获取到此账户信息，此账户可能没有购买 Minecraft Java Edition 或者账户的 Xbox Game Pass 已过期</sys:String>
@@ -1274,7 +1274,7 @@
 
     <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionEula">如果提示 "You need to agree to the EULA"，请编辑 eula.txt 同意协议!</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionJavaPath">如果服务端立即停止，请右键编辑该脚本，使用!JAVA_HOME!替换%JAVA_HOME%</sys:String>
-    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionPclSettings">你可以在 PCL 的 [设置 → 启动选项 → 启动器内 Java 路径] 中将此版本选为合适的 Java 并启用!</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionPclSettings">你可以在 PCL CE 的 [设置 → 启动选项 → 启动器内 Java 路径] 中将此版本选为合适的 Java 并启用!</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.ServerStopped">服务端已停止。</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.Title">{0} 原版服务端</sys:String>
 
@@ -1283,9 +1283,9 @@
     <sys:String x:Key="Minecraft.Download.Modpack.FileDialog.Filter">整合包文件(*.rar;*.zip;*.mrpack)|*.rar;*.zip;*.mrpack</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.FileDialog.Title">选择整合包压缩文件</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.InvalidGamePathChars">游戏路径中不能含有感叹号或分号：{0}</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.EncryptedArchiveUnsupported">PCL 无法处理加密的压缩包，请在解压后重新压缩为不加密的 zip 格式再试</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.EncryptedArchiveUnsupported">PCL CE 无法处理加密的压缩包，请在解压后重新压缩为不加密的 zip 格式再试</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.OpenFailed">打开整合包文件失败</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.RarUnsupported">PCL 无法处理 rar 格式的压缩包，请在解压后重新压缩为 zip 格式再试</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RarUnsupported">PCL CE 无法处理 rar 格式的压缩包，请在解压后重新压缩为 zip 格式再试</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.UnsupportedArchive">打开整合包文件失败，文件可能损坏或为不支持的压缩包格式</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Stage.ExtractModpack">解压整合包文件</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Stage.PrepareModsDownloadInfo">获取模组下载信息</sys:String>
@@ -1373,7 +1373,7 @@
     <sys:String x:Key="Setup.Ui.Basic.Opacity2">不透明度</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.BlueHint">蓝色，蓝色，还是蓝色！想要逃离蓝色困境？请使用官方快照版！</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.GetSnapshot">获取官方快照版</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.ShowLogo">打开启动器时显示 PCL 图标</sys:String>
+    <sys:String x:Key="Setup.Ui.Basic.ShowLogo">打开启动器时显示 PCL CE 图标</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.LockWindow">锁定启动器大小</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.ShowTriviaHint">在启动游戏时显示"你知道吗"</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.AdvancedMaterial">高级材质</sys:String>
@@ -1415,7 +1415,7 @@
     <sys:String x:Key="Setup.Ui.Background.TitleDefault">背景图片/视频</sys:String>
     <sys:String x:Key="Setup.Ui.Background.ContentAdapt">内容自适应方式</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Blur">背景模糊</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.Blur.ToolTip">较强的模糊会导致启动器严重掉帧，请谨慎使用。&#13;不建议在制作整合包时开启模糊，以确保 PCL 在低性能电脑上可以流畅运行。</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Blur.ToolTip">较强的模糊会导致启动器严重掉帧，请谨慎使用。&#13;不建议在制作整合包时开启模糊，以确保 PCL CE 在低性能电脑上可以流畅运行。</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Suit.Smart">智能</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Suit.Smart.ToolTip">当内容较小时选择平铺，较大时选择适应</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Suit.Center">居中</sys:String>
@@ -1431,7 +1431,7 @@
     <sys:String x:Key="Setup.Ui.Background.PauseVideo">游戏启动后暂停视频背景，游戏退出后重新播放</sys:String>
     <sys:String x:Key="Setup.Ui.Background.PauseVideo.ToolTip">若启用此项设置，游戏时将无法刷新背景</sys:String>
     <sys:String x:Key="Setup.Ui.Background.ColorOverlay">叠加彩色背景</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.OpenFolder.ToolTip">将背景图片和视频放到该文件夹，PCL 将会在每次打开时随机加载其中的一张图片或视频&#x0a;为提高播放时的流畅度，视频推荐使用H264格式编码</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.OpenFolder.ToolTip">将背景图片和视频放到该文件夹，PCL CE 将会在每次打开时随机加载其中的一张图片或视频&#x0a;为提高播放时的流畅度，视频推荐使用H264格式编码</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Refresh">刷新背景内容</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Refresh.ToolTip">随机加载文件夹内的一张背景图片或视频&#x0a;为提高播放时的流畅度，视频推荐使用H264格式编码</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Clear">清空背景内容</sys:String>
@@ -1449,8 +1449,8 @@
     <sys:String x:Key="Setup.Ui.Music.StartInGame">游戏启动后自动开始播放，游戏退出后自动暂停播放</sys:String>
     <sys:String x:Key="Setup.Ui.Music.StopInGame">游戏启动后自动暂停播放，游戏退出后自动开始播放</sys:String>
     <sys:String x:Key="Setup.Ui.Music.Smtc">接入系统媒体传输控制 (SMTC) 控件</sys:String>
-    <sys:String x:Key="Setup.Ui.Music.Smtc.ToolTip">启用此选项后，可以使用系统控制中心和快捷键等控制 PCL 的媒体播放。&#x0a;可以与 Lyricify Lite 或 FluentFlyout 等软件搭配使用。</sys:String>
-    <sys:String x:Key="Setup.Ui.Music.OpenFolder.ToolTip">将背景音乐放到该文件夹，PCL 将会播放其中的所有音乐</sys:String>
+    <sys:String x:Key="Setup.Ui.Music.Smtc.ToolTip">启用此选项后，可以使用系统控制中心和快捷键等控制 PCL CE 的媒体播放。&#x0a;可以与 Lyricify Lite 或 FluentFlyout 等软件搭配使用。</sys:String>
+    <sys:String x:Key="Setup.Ui.Music.OpenFolder.ToolTip">将背景音乐放到该文件夹，PCL CE 将会播放其中的所有音乐</sys:String>
     <sys:String x:Key="Setup.Ui.Music.Refresh">刷新背景音乐</sys:String>
     <sys:String x:Key="Setup.Ui.Music.Refresh.ToolTip">刷新播放列表，并播放列表中的音乐</sys:String>
     <sys:String x:Key="Setup.Ui.Music.Clear">清空背景音乐</sys:String>
@@ -1630,19 +1630,19 @@
     <sys:String x:Key="Setup.Launch.Advanced.GameTail">游戏参数尾部</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.GameTail.ToolTip">文本框中的内容将会被直接拼合在启动参数的末尾。&#x0a;例如，输入 --demo 则会以试玩模式启动游戏。&#x0a;支持 Minecraft 实例 JSON 中的字符串替换标记，例如 ${library_directory}。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.PreLaunchCommand">启动前执行命令</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.PreLaunchCommand.ToolTip">在 MC 启动前执行特定命令或程序，语法与 Windows 的命令提示符一致。&#x0a;&#x0a;可以使用以下替换标记实现相对路径（路径均以 \ 结尾）：&#x0a; · {path}：PCL 的 exe 文件所在的文件夹&#x0a; · {minecraft}：.minecraft 文件夹&#x0a; · {verpath}：实例文件夹（.minecraft\versions\实例名\）&#x0a; · {verindie}：开启实例隔离时等同实例文件夹，未开启时等同 .minecraft 文件夹&#x0a; · {java}：游戏运行时的 Java 文件夹&#x0a;&#x0a;除此之外，也支持以下替换标记：&#x0a; · {user}：玩家名字&#x0a; · {login}：玩家的登录方式&#x0a; · {uuid}：玩家的 UUID&#x0a; · {name}：游戏实例名&#x0a; · {date}、{time}：当前的系统时间&#x0a; · {version}：游戏对应的原版版本号&#x0a;&#x0a;例如：&#x0a; · "{verpath}test.exe" ：运行实例文件夹下的 test.exe 程序&#x0a; · "{java}java.exe" -jar "{verpath}test.jar" ：用 Java 运行实例文件夹下的 test.jar&#x0a; · notepad "{verindie}options.txt" ：使用记事本打开该实例的设置文件&#x0a;&#x0a;涉及路径的操作最好都打上双引号，以避免路径中的空格导致运行失败。&#x0a;执行命令时，命令行所在的目录是当前的 .minecraft 文件夹。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.PreLaunchCommand.ToolTip">在 MC 启动前执行特定命令或程序，语法与 Windows 的命令提示符一致。&#x0a;&#x0a;可以使用以下替换标记实现相对路径（路径均以 \ 结尾）：&#x0a; · {path}：PCL CE 的 exe 文件所在的文件夹&#x0a; · {minecraft}：.minecraft 文件夹&#x0a; · {verpath}：实例文件夹（.minecraft\versions\实例名\）&#x0a; · {verindie}：开启实例隔离时等同实例文件夹，未开启时等同 .minecraft 文件夹&#x0a; · {java}：游戏运行时的 Java 文件夹&#x0a;&#x0a;除此之外，也支持以下替换标记：&#x0a; · {user}：玩家名字&#x0a; · {login}：玩家的登录方式&#x0a; · {uuid}：玩家的 UUID&#x0a; · {name}：游戏实例名&#x0a; · {date}、{time}：当前的系统时间&#x0a; · {version}：游戏对应的原版版本号&#x0a;&#x0a;例如：&#x0a; · "{verpath}test.exe" ：运行实例文件夹下的 test.exe 程序&#x0a; · "{java}java.exe" -jar "{verpath}test.jar" ：用 Java 运行实例文件夹下的 test.jar&#x0a; · notepad "{verindie}options.txt" ：使用记事本打开该实例的设置文件&#x0a;&#x0a;涉及路径的操作最好都打上双引号，以避免路径中的空格导致运行失败。&#x0a;执行命令时，命令行所在的目录是当前的 .minecraft 文件夹。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.PreLaunchCommand.Wait">等待命令执行完成后再继续启动</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw">禁用 Java Launch Wrapper</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.ToolTip">PCL 会使用 Java Launch Wrapper 来修复老版本 Java 在中文路径下无法启动的问题。&#x0a;如果这被反作弊拦截，或遇到其他问题，也可以将其关闭。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.ToolTip">PCL CE 会使用 Java Launch Wrapper 来修复老版本 Java 在中文路径下无法启动的问题。&#x0a;如果这被反作弊拦截，或遇到其他问题，也可以将其关闭。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.Arm64Notice">在启动游戏时不使用 Java Wrapper 进行包装。&#x0a;由于系统为 ARM64 架构，Java Wrapper 已被强制禁用。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLF">禁用 LegacyFix</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.DisableLF.ToolTip">PCL 会在启动 1.5.x 及以下版本时使用 LegacyFix 来改善老版本游戏体验和修复兼容性问题。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableLF.ToolTip">PCL CE 会在启动 1.5.x 及以下版本时使用 LegacyFix 来改善老版本游戏体验和修复兼容性问题。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.GpuPreference">要求 Java 使用高性能显卡</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.GpuPreference.ToolTip">自动在 Windows 设置 → 系统 → 屏幕 → 显示卡 中将 Java 改为使用高性能显卡。&#x0a;如果电脑同时有集显和独显，这能确保 MC 使用独显进行渲染，以大幅提高性能。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe">使用 java.exe 而不是 javaw.exe</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe.ToolTip">如果遇到游戏窗口长时间不出现等故障可尝试启用此项，PCL 将使用 java.exe 来运行游戏，这样会让游戏进程拥有标准输入/输出流，以尽可能避免打印日志时出现问题。&#x0a;&#x0a;取决于不同 Java 发行版的行为，java.exe 可能无法使用 HDR 颜色等依赖操作系统支持的特性。因此，如果正常使用没有问题，请勿启用该选项。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe.ToolTip">如果遇到游戏窗口长时间不出现等故障可尝试启用此项，PCL CE 将使用 java.exe 来运行游戏，这样会让游戏进程拥有标准输入/输出流，以尽可能避免打印日志时出现问题。&#x0a;&#x0a;取决于不同 Java 发行版的行为，java.exe 可能无法使用 HDR 颜色等依赖操作系统支持的特性。因此，如果正常使用没有问题，请勿启用该选项。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLwjglUnsafeAgent">禁用 LWJGL Unsafe Agent</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip">Minecraft 26.1 使用了 LWJGL 3.4.1，LWJGL 3.4.1 使用了 FFM API 以在 JDK 25+ 上访问原生内存。由于 JDK 优化能力限制，某些情况下这会产生严重的性能问题。&#x0a;PCL 会使用 LWJGL Unsafe Agent 修复这个问题，以解决可能存在的性能问题。&#x0a;一般情况下没有禁用该选项的必要，但如果你遇到了额外问题，也可以尝试暂时禁用该选项以排查错误。&#x0a;&#x0a;该功能仅会在 LWJGL 版本为 3.4.1 时生效。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip">Minecraft 26.1 使用了 LWJGL 3.4.1，LWJGL 3.4.1 使用了 FFM API 以在 JDK 25+ 上访问原生内存。由于 JDK 优化能力限制，某些情况下这会产生严重的性能问题。&#x0a;PCL CE 会使用 LWJGL Unsafe Agent 修复这个问题，以解决可能存在的性能问题。&#x0a;一般情况下没有禁用该选项的必要，但如果你遇到了额外问题，也可以尝试暂时禁用该选项以排查错误。&#x0a;&#x0a;该功能仅会在 LWJGL 版本为 3.4.1 时生效。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.MoreInInstanceSetup">你还可以在实例独立设置中找到更多高级启动选项。</sys:String>
 
     <!-- Setup.Launch.Misc -->
@@ -1693,7 +1693,7 @@
     <sys:String x:Key="Setup.GameManage.Download.InstallBehavior">安装行为</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.AutoSelectInstance">安装新实例后自动选定该实例</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.FixAuthlib">升级部分版本的 Authlib</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.FixAuthlib.ToolTip">部分 MC 版本（如 1.16.5）存在 Bug，可能导致使用离线验证时多人游戏被禁用。&#x0a;PCL 可尝试升级这些版本的 Authlib 支持库以解决问题。&#x0a;此设置仅对新安装的实例有效。</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.FixAuthlib.ToolTip">部分 MC 版本（如 1.16.5）存在 Bug，可能导致使用离线验证时多人游戏被禁用。&#x0a;PCL CE 可尝试升级这些版本的 Authlib 支持库以解决问题。&#x0a;此设置仅对新安装的实例有效。</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Unlimited">无限制</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Threads.TooManyWarning.Message">如果设置过多的下载线程，可能会导致下载时出现非常严重的卡顿。&#x0a;一般设置 64 线程即可满足大多数下载需求，除非你知道你在干什么，否则不建议设置更多的线程数！</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Threads.TooManyWarning.Confirm">我知道了</sys:String>
@@ -1724,7 +1724,7 @@
     <sys:String x:Key="Setup.GameManage.Accessibility.GameLanguage">游戏语言</sys:String>
     <sys:String x:Key="Setup.GameManage.Accessibility.AutoLauncherLanguage">自动设置为启动器语言</sys:String>
     <sys:String x:Key="Setup.GameManage.Accessibility.ReadClipboard">识别跳转剪贴板中的社区资源链接</sys:String>
-    <sys:String x:Key="Setup.GameManage.Accessibility.ReadClipboard.ToolTip">开启此选项后，PCL 将会读取你的剪贴板并识别其中的资源链接，并询问你是否要跳转到详情页面。</sys:String>
+    <sys:String x:Key="Setup.GameManage.Accessibility.ReadClipboard.ToolTip">开启此选项后，PCL CE 将会读取你的剪贴板并识别其中的资源链接，并询问你是否要跳转到详情页面。</sys:String>
     <sys:String x:Key="Setup.GameManage.Initialized">已初始化其他页设置！</sys:String>
     <sys:String x:Key="Setup.GameManage.Error.InitFailed">初始化其他页设置失败</sys:String>
 
@@ -1876,15 +1876,15 @@
     <!-- Setup.Misc.Import / Export -->
 
     <sys:String x:Key="Setup.Misc.Export.SaveTitle">选择保存位置</sys:String>
-    <sys:String x:Key="Setup.Misc.Export.Filter">PCL 配置文件(*.json)|*.json</sys:String>
+    <sys:String x:Key="Setup.Misc.Export.Filter">PCL CE 配置文件(*.json)|*.json</sys:String>
     <sys:String x:Key="Setup.Misc.Export.Success">配置导出成功！</sys:String>
     <sys:String x:Key="Setup.Misc.Import.SelectTitle">选择配置文件</sys:String>
-    <sys:String x:Key="Setup.Misc.Import.Success.Message">配置导入成功！请重启 PCL 以应用配置……</sys:String>
+    <sys:String x:Key="Setup.Misc.Import.Success.Message">配置导入成功！请重启 PCL CE 以应用配置……</sys:String>
     <sys:String x:Key="Setup.Misc.Import.Success.Restart">重启</sys:String>
 
     <!-- Setup.Misc.Core / Error -->
 
-    <sys:String x:Key="Setup.Misc.HardwareAcceleration.RestartNotice">此项变更将在重启 PCL 后生效</sys:String>
+    <sys:String x:Key="Setup.Misc.HardwareAcceleration.RestartNotice">此项变更将在重启 PCL CE 后生效</sys:String>
     <sys:String x:Key="Setup.Misc.Initialized">已初始化杂项页设置！</sys:String>
     <sys:String x:Key="Setup.Misc.Error.InitFailed">初始化启动器-杂项页设置失败</sys:String>
 
@@ -1943,7 +1943,7 @@
     <sys:String x:Key="Setup.About.EasterEgg.Bored.No">并不是</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Bored.Response">那你还点啥……真是搞不懂。</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Encouragement">嗯，加油吧，嗯……</sys:String>
-    <sys:String x:Key="Setup.About.EasterEgg.HiddenTheme">隐藏主题 混乱黄 已……嗯不对，这是 PCL 社区版，应该没有这玩意……</sys:String>
+    <sys:String x:Key="Setup.About.EasterEgg.HiddenTheme">隐藏主题 混乱黄 已……嗯不对，这是 PCL CE，应该没有这玩意……</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.StillStaring">你咋还这么无聊啊？</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.NothingBehind">后面什么都没有了哦！</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Tired.Message1">你真的不累么？</sys:String>
@@ -2039,9 +2039,9 @@
     <sys:String x:Key="Instance.Overall.Favorite">加入收藏夹</sys:String>
     <sys:String x:Key="Instance.Overall.Unfavorite">从收藏夹中移除</sys:String>
     <sys:String x:Key="Instance.Overall.Hide.ConfirmTitle">隐藏实例提示</sys:String>
-    <sys:String x:Key="Instance.Overall.Hide.ConfirmMessage">确认要从实例列表中隐藏该实例吗？隐藏该实例后，它将不再出现于 PCL 显示的实例列表中。&#x0a;此后，在实例列表页面按下 F11 才可以查看被隐藏的实例。</sys:String>
+    <sys:String x:Key="Instance.Overall.Hide.ConfirmMessage">确认要从实例列表中隐藏该实例吗？隐藏该实例后，它将不再出现于 PCL CE 显示的实例列表中。&#x0a;此后，在实例列表页面按下 F11 才可以查看被隐藏的实例。</sys:String>
     <sys:String x:Key="Instance.Overall.Description.EditTitle">更改描述</sys:String>
-    <sys:String x:Key="Instance.Overall.Description.EditMessage">修改实例的描述文本，留空则使用 PCL 的默认描述。</sys:String>
+    <sys:String x:Key="Instance.Overall.Description.EditMessage">修改实例的描述文本，留空则使用 PCL CE 的默认描述。</sys:String>
     <sys:String x:Key="Instance.Overall.Description.Default">默认描述</sys:String>
     <sys:String x:Key="Instance.Overall.Name.EditTitle">重命名实例</sys:String>
     <sys:String x:Key="Instance.Overall.Name.RenameSuccess">重命名成功！</sys:String>
@@ -2122,7 +2122,7 @@
     <sys:String x:Key="Instance.Setup.Advanced.GameArgs.ToolTip">文本框中的内容将会被直接拼合在启动参数的末尾。&#x0a;例如，输入 --demo 则会以试玩模式启动游戏。&#x0a;支持 Minecraft 实例 JSON 中的字符串替换标记，例如 ${library_directory}。&#x0a;&#x0a;若留空，则跟随全局设置的值。</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.Classpath">Classpath 头部附加</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.Classpath.ToolTip">文本框中的内容将被作为 Classpath 添加到该实例的启动参数中的 Classpath 头部。&#x0a;需要使用绝对路径。若有多个，请以半角 (英文) 分号分隔。</sys:String>
-    <sys:String x:Key="Instance.Setup.Advanced.PreLaunchCommand.ToolTip">该项不会覆盖全局设置：启动时会先执行全局设置的命令，再执行实例设置的命令。&#x0a;&#x0a;在 MC 启动前执行特定命令或程序，语法与 Windows 的命令提示符一致。&#x0a;&#x0a;可以使用以下替换标记实现相对路径（路径均以 \ 结尾）：&#x0a; · {path}：PCL 的 exe 文件所在的文件夹&#x0a; · {minecraft}：.minecraft 文件夹&#x0a; · {verpath}：实例文件夹（.minecraft\versions\实例名\）&#x0a; · {verindie}：开启实例隔离时等同版本文件夹，未开启时等同 .minecraft 文件夹&#x0a; · {java}：游戏运行时的 Java 文件夹&#x0a;&#x0a;除此之外，也支持以下替换标记：&#x0a; · {user}：玩家名字&#x0a; · {login}：玩家的登录方式&#x0a; · {uuid}：玩家的 UUID&#x0a; · {name}：游戏实例名&#x0a; · {date}、{time}：当前的系统时间&#x0a; · {version}：游戏对应的原版版本号&#x0a;&#x0a;例如：&#x0a; · &quot;{verpath}test.exe&quot; ：运行实例文件夹下的 test.exe 程序&#x0a; · &quot;{java}java.exe&quot; -jar &quot;{verpath}test.jar&quot; ：用 Java 运行实例文件夹下的 test.jar&#x0a; · notepad &quot;{verindie}options.txt&quot; ：使用记事本打开该实例的设置文件&#x0a;&#x0a;涉及路径的操作最好都打上双引号，以避免路径中的空格导致运行失败。&#x0a;执行命令时，命令行所在的目录是当前的 .minecraft 文件夹。</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.PreLaunchCommand.ToolTip">该项不会覆盖全局设置：启动时会先执行全局设置的命令，再执行实例设置的命令。&#x0a;&#x0a;在 MC 启动前执行特定命令或程序，语法与 Windows 的命令提示符一致。&#x0a;&#x0a;可以使用以下替换标记实现相对路径（路径均以 \ 结尾）：&#x0a; · {path}：PCL CE 的 exe 文件所在的文件夹&#x0a; · {minecraft}：.minecraft 文件夹&#x0a; · {verpath}：实例文件夹（.minecraft\versions\实例名\）&#x0a; · {verindie}：开启实例隔离时等同版本文件夹，未开启时等同 .minecraft 文件夹&#x0a; · {java}：游戏运行时的 Java 文件夹&#x0a;&#x0a;除此之外，也支持以下替换标记：&#x0a; · {user}：玩家名字&#x0a; · {login}：玩家的登录方式&#x0a; · {uuid}：玩家的 UUID&#x0a; · {name}：游戏实例名&#x0a; · {date}、{time}：当前的系统时间&#x0a; · {version}：游戏对应的原版版本号&#x0a;&#x0a;例如：&#x0a; · &quot;{verpath}test.exe&quot; ：运行实例文件夹下的 test.exe 程序&#x0a; · &quot;{java}java.exe&quot; -jar &quot;{verpath}test.jar&quot; ：用 Java 运行实例文件夹下的 test.jar&#x0a; · notepad &quot;{verindie}options.txt&quot; ：使用记事本打开该实例的设置文件&#x0a;&#x0a;涉及路径的操作最好都打上双引号，以避免路径中的空格导致运行失败。&#x0a;执行命令时，命令行所在的目录是当前的 .minecraft 文件夹。</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.IgnoreJavaCompatibility">忽略 Java 兼容性警告</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.IgnoreJavaCompatibility.ToolTip">如果手动选择了与当前实例不兼容的 Java，则自动跳过兼容性警告弹窗，强制使用手动选择的 Java。</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.DisableFileVerification">关闭文件校验</sys:String>
@@ -2144,7 +2144,7 @@
     <sys:String x:Key="Instance.Setup.CustomInfo.ToolTip">该信息会显示在游戏主界面的左下角，与 F3 调试页面的左上角。&#x0a;若留空，则跟随全局设置的值。</sys:String>
     <sys:String x:Key="Instance.Setup.FollowGlobal">跟随全局设置</sys:String>
     <sys:String x:Key="Instance.Setup.GameJava">游戏 Java</sys:String>
-    <sys:String x:Key="Instance.Setup.GameJava.ToolTip">若将 Java 放在游戏文件夹或 PCL 文件夹，在进行自动选择时 PCL 会尽量优先选择它</sys:String>
+    <sys:String x:Key="Instance.Setup.GameJava.ToolTip">若将 Java 放在游戏文件夹或 PCL 文件夹，在进行自动选择时 PCL CE 会尽量优先选择它</sys:String>
     <sys:String x:Key="Instance.Setup.Java.Loading">加载中……</sys:String>
     <sys:String x:Key="Instance.Setup.OpenGlobalSettings">全局设置</sys:String>
     <sys:String x:Key="Instance.Setup.Initialize.Success">已初始化实例独立设置！</sys:String>
@@ -2178,7 +2178,7 @@
     <sys:String x:Key="Instance.Install.Action.ModifyLabel">修改</sys:String>
     <sys:String x:Key="Instance.Install.NoExtraInstall">无附加安装</sys:String>
     <sys:String x:Key="Instance.Install.Reset.Title">重置此实例</sys:String>
-    <sys:String x:Key="Instance.Install.Reset.Message">你正在重置当前实例。&#x0a;PCL 将会重新联网下载该实例所需的文件，并重新安装模组加载器（如有）。&#x0a;此操作不会丢失你的存档、模组、资源包等。</sys:String>
+    <sys:String x:Key="Instance.Install.Reset.Message">你正在重置当前实例。&#x0a;PCL CE 将会重新联网下载该实例所需的文件，并重新安装模组加载器（如有）。&#x0a;此操作不会丢失你的存档、模组、资源包等。</sys:String>
 
     <!-- Instance.Mod -->
 
@@ -2540,9 +2540,9 @@
     <sys:String x:Key="Instance.Export.Option.Saves">单人游戏存档</sys:String>
     <sys:String x:Key="Instance.Export.Option.Saves.Desc">世界/地图</sys:String>
     <sys:String x:Key="Instance.Export.Option.Servers">多人游戏服务器列表</sys:String>
-    <sys:String x:Key="Instance.Export.Option.Launcher">PCL 启动器程序</sys:String>
-    <sys:String x:Key="Instance.Export.Option.Launcher.Desc">打包社区版 PCL，以便没有启动器的玩家安装整合包</sys:String>
-    <sys:String x:Key="Instance.Export.Option.LauncherCustom">PCL 个性化内容</sys:String>
+    <sys:String x:Key="Instance.Export.Option.Launcher">PCL CE 启动器程序</sys:String>
+    <sys:String x:Key="Instance.Export.Option.Launcher.Desc">打包 PCL CE，以便没有启动器的玩家安装整合包</sys:String>
+    <sys:String x:Key="Instance.Export.Option.LauncherCustom">PCL CE 个性化内容</sys:String>
     <sys:String x:Key="Instance.Export.Option.LauncherCustom.Desc">功能隐藏设置、主页、背景音乐和图片等</sys:String>
     <sys:String x:Key="Instance.Export.OptionListTitle">导出内容列表</sys:String>
     <sys:String x:Key="Instance.Export.OptionList.FromConfig">从配置文件中读取</sys:String>
@@ -2554,7 +2554,7 @@
     <sys:String x:Key="Instance.Export.Advanced.BundleFiles">打包资源文件，以避免在导入时下载</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.BundleFiles.ToolTip">将模组、资源包、光影包的文件直接放入整合包中，这样在导入时就无需联网下载它们。&#xa;建议仅在无法稳定连接 CurseForge 或 Modrinth 时才考虑勾选。</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.Modrinth">Modrinth 上传模式</sys:String>
-    <sys:String x:Key="Instance.Export.Advanced.Modrinth.ToolTip">如果你想要打包上传到 Modrinth，勾选此项会生成完全符合 Modrinth 要求的整合包文件。&#xa;由于 Modrinth 要求，只能从 CurseForge 下载的资源将无法联网下载，会被直接放入整合包中。&#xa;此外，勾选后也不能在整合包中包含 PCL 启动器文件。</sys:String>
+    <sys:String x:Key="Instance.Export.Advanced.Modrinth.ToolTip">如果你想要打包上传到 Modrinth，勾选此项会生成完全符合 Modrinth 要求的整合包文件。&#xa;由于 Modrinth 要求，只能从 CurseForge 下载的资源将无法联网下载，会被直接放入整合包中。&#xa;此外，勾选后也不能在整合包中包含 PCL CE 启动器文件。</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.ConfigHint">配置文件中含有更多高级选项，例如精准控制导出的文件、设置整合包存放位置等。&#xa;要修改这些选项，请先点击 "保存配置"，在编辑配置文件后再导入。</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.ImportConfig">读取配置</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.ExportConfig">保存配置</sys:String>
@@ -2570,8 +2570,8 @@
 
     <sys:String x:Key="Instance.Export.ConfigInvalid">配置文件内容无效或为空！</sys:String>
     <sys:String x:Key="Instance.Export.ConfigFileFilter">整合包导出配置(*.txt)|*.txt</sys:String>
-    <sys:String x:Key="Instance.Export.ConfigComment.IncludeLauncher">是否打包正式版 PCL，以便没有启动器的玩家安装整合包。</sys:String>
-    <sys:String x:Key="Instance.Export.ConfigComment.IncludeLauncherCustom">是否打包 PCL 个性化内容，例如功能隐藏设置、主页、背景音乐和图片等。</sys:String>
+    <sys:String x:Key="Instance.Export.ConfigComment.IncludeLauncher">是否打包正式版 PCL CE，以便没有启动器的玩家安装整合包。</sys:String>
+    <sys:String x:Key="Instance.Export.ConfigComment.IncludeLauncherCustom">是否打包 PCL CE 个性化内容，例如功能隐藏设置、主页、背景音乐和图片等。</sys:String>
     <sys:String x:Key="Instance.Export.ConfigComment.BundleFiles">是否将 Mod、资源包、光影包的文件直接放入整合包中，这样在导入时就无需联网下载它们。</sys:String>
     <sys:String x:Key="Instance.Export.ConfigComment.BundleFiles2">建议仅在无法稳定连接 CurseForge 或 Modrinth 时才考虑启用。</sys:String>
     <sys:String x:Key="Instance.Export.ConfigComment.BundleFiles3">二次分发可能违反使用协议，请尽量不要公开发布包含资源文件的整合包！</sys:String>
@@ -2622,7 +2622,7 @@
     <!-- Tools.Test.CustomDownload -->
 
     <sys:String x:Key="Tools.Test.CustomDownload.Title">下载自定义文件</sys:String>
-    <sys:String x:Key="Tools.Test.CustomDownload.Description">使用 PCL 的高速多线程下载引擎下载任意文件。请注意，部分网站（例如百度网盘）可能会报错 (403) 已禁止，无法正常下载。</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.Description">使用 PCL CE 的高速多线程下载引擎下载任意文件。请注意，部分网站（例如百度网盘）可能会报错 (403) 已禁止，无法正常下载。</sys:String>
     <sys:String x:Key="Tools.Test.CustomDownload.Url">下载地址</sys:String>
     <sys:String x:Key="Tools.Test.CustomDownload.UserAgent">User-Agent</sys:String>
     <sys:String x:Key="Tools.Test.CustomDownload.SaveTo">保存到</sys:String>
@@ -2681,11 +2681,11 @@
     <!-- Tools.Test.Clean -->
 
     <sys:String x:Key="Tools.Test.Clean.Title">清理游戏垃圾</sys:String>
-    <sys:String x:Key="Tools.Test.Clean.ToolTip">清理 PCL 的缓存与 MC 的日志、崩溃报告等垃圾文件</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ToolTip">清理 PCL CE 的缓存与 MC 的日志、崩溃报告等垃圾文件</sys:String>
     <sys:String x:Key="Tools.Test.Clean.ConfirmTitle">清理确认</sys:String>
-    <sys:String x:Key="Tools.Test.Clean.ConfirmMessage">即将清理游戏日志、错误报告、缓存等文件。&#x0a;虽然应该没人往这些地方放重要文件，但还是问一下，是否确认继续？&#x0a;&#x0a;在完成清理后，PCL 将自动重启。</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ConfirmMessage">即将清理游戏日志、错误报告、缓存等文件。&#x0a;虽然应该没人往这些地方放重要文件，但还是问一下，是否确认继续？&#x0a;&#x0a;在完成清理后，PCL CE 将自动重启。</sys:String>
     <sys:String x:Key="Tools.Test.Clean.Cleared">缓存已清理</sys:String>
-    <sys:String x:Key="Tools.Test.Clean.ClearedMessage">清理了 {0} 个文件！&#x0a;PCL 即将自动重启……</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ClearedMessage">清理了 {0} 个文件！&#x0a;PCL CE 即将自动重启……</sys:String>
     <sys:String x:Key="Tools.Test.Clean.NoFiles">没有找到任何可以清理的文件！</sys:String>
     <sys:String x:Key="Tools.Test.Clean.WaitForDownload">请在所有下载任务完成后再来清理吧……</sys:String>
     <sys:String x:Key="Tools.Test.Clean.CloseGameFirst">请先关闭所有运行中的游戏……</sys:String>
@@ -2693,13 +2693,13 @@
     <!-- Tools.Test.Shortcut -->
 
     <sys:String x:Key="Tools.Test.Shortcut.Title">创建快捷方式</sys:String>
-    <sys:String x:Key="Tools.Test.Shortcut.ToolTip">创建一个指向 PCL 社区版可执行文件的快捷方式</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.ToolTip">创建一个指向 PCL CE 可执行文件的快捷方式</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.SelectLocation">选择快捷方式位置</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.ConfirmMessage">这个快捷方式不会自动移除，在删除/移动启动器前请手动移除快捷方式。&#x0a;&#x0a;{0}位置: {1}&#x0a;{2}位置: {3}</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.Desktop">桌面</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.StartMenu">开始菜单</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.Created">已在{0}创建快捷方式</sys:String>
-    <sys:String x:Key="Tools.Test.Shortcut.FileName">PCL 社区版{0}</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.FileName">PCL CE{0}</sys:String>
 
     <!-- Tools.Test.Luck -->
 
@@ -2723,7 +2723,7 @@
     <!-- Tools.Test.LaunchCount -->
 
     <sys:String x:Key="Tools.Test.LaunchCount.Title">查看启动计数</sys:String>
-    <sys:String x:Key="Tools.Test.LaunchCount.Message">PCL 已经为你启动了 {0} 次游戏了。</sys:String>
+    <sys:String x:Key="Tools.Test.LaunchCount.Message">PCL CE 已经为你启动了 {0} 次游戏了。</sys:String>
 
     <!-- Tools.Test.Dependency -->
 
@@ -2752,7 +2752,7 @@
     <sys:String x:Key="Tools.GameLink.Nat.Result">UDP: {0}, TCP: {1}</sys:String>
     <sys:String x:Key="Tools.GameLink.Natayark.Account">Natayark 账户</sys:String>
     <sys:String x:Key="Tools.GameLink.Natayark.Login">点击登录 Natayark 账户</sys:String>
-    <sys:String x:Key="Tools.GameLink.Natayark.LoginPrompt">PCL 将会打开一个登录页面，请在浏览器中完成登录操作，然后回到启动器继续操作。</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.LoginPrompt">PCL CE 将会打开一个登录页面，请在浏览器中完成登录操作，然后回到启动器继续操作。</sys:String>
     <sys:String x:Key="Tools.GameLink.Natayark.LoginTitle">登录至 Natayark Network</sys:String>
     <sys:String x:Key="Tools.GameLink.Natayark.Continue">继续</sys:String>
     <sys:String x:Key="Tools.GameLink.Natayark.BrowserContinue">请在浏览器中继续...</sys:String>
@@ -2872,7 +2872,7 @@
     <sys:String x:Key="Update.Error.FileNotFound">找不到更新文件</sys:String>
     <sys:String x:Key="Update.Error.Sha256Mismatch">更新文件 SHA256 不正确，应该为 {0}，实际为 {1}</sys:String>
     <sys:String x:Key="Update.Error.UpdateBlocked">更新失败</sys:String>
-    <sys:String x:Key="Update.Error.UpdateBlockedMessage">由于被 Windows 安全中心拦截，或者存在权限问题，导致 PCL 无法更新。&#x0A;请将 PCL 所在文件夹加入白名单，或者手动用 {0}PCL\Plain Craft Launcher Community Edition.exe 替换当前文件！</sys:String>
+    <sys:String x:Key="Update.Error.UpdateBlockedMessage">由于被 Windows 安全中心拦截，或者存在权限问题，导致 PCL CE 无法更新。&#x0A;请将 PCL CE 所在文件夹加入白名单，或者手动用 {0}PCL\Plain Craft Launcher Community Edition.exe 替换当前文件！</sys:String>
     <sys:String x:Key="Update.Service.PclCe">PCL CE 服务</sys:String>
     <sys:String x:Key="Update.Task.Check">校验更新</sys:String>
     <sys:String x:Key="Update.Task.Install">安装更新</sys:String>
@@ -2931,7 +2931,7 @@
     <sys:String x:Key="Watcher.WindowLoaded">Minecraft 窗口已加载：{0}（{1}）</sys:String>
     <sys:String x:Key="Watcher.FmlWindowLoaded">FML 窗口已加载：{0}（{1}）</sys:String>
     <sys:String x:Key="Watcher.WindowMaximized">已最大化 Minecraft 窗口：{0}</sys:String>
-    <sys:String x:Key="Watcher.SecurityBlocked">由于反作弊或安全软件拦截，PCL 无法操作游戏窗口</sys:String>
+    <sys:String x:Key="Watcher.SecurityBlocked">由于反作弊或安全软件拦截，PCL CE 无法操作游戏窗口</sys:String>
     <sys:String x:Key="Watcher.Progress.LogAppeared">日志 1/5：已出现日志输出</sys:String>
     <sys:String x:Key="Watcher.Progress.UserSet">日志 2/5：游戏用户已设置</sys:String>
     <sys:String x:Key="Watcher.Progress.LwjglConfirmed">日志 3/5：LWJGL 版本已确认</sys:String>
@@ -3011,8 +3011,8 @@
 
     <sys:String x:Key="Event.Error.Title">事件执行失败</sys:String>
     <sys:String x:Key="Event.Error.UrlRequired">EventData 必须为一个网址。&#x0a;如果想要启动程序，请将 EventType 改为 OpenFile。</sys:String>
-    <sys:String x:Key="Event.Error.DownloadUrlRequired">EventData 必须为以 http:// 或 https:// 开头的网址。&#x0a;PCL 不支持其他下载协议。</sys:String>
-    <sys:String x:Key="Event.Error.UnknownType">未知的事件类型：{0}&#x0a;请检查事件类型填写是否正确，或者 PCL 是否为最新版本。</sys:String>
+    <sys:String x:Key="Event.Error.DownloadUrlRequired">EventData 必须为以 http:// 或 https:// 开头的网址。&#x0a;PCL CE 不支持其他下载协议。</sys:String>
+    <sys:String x:Key="Event.Error.UnknownType">未知的事件类型：{0}&#x0a;请检查事件类型填写是否正确，或者 PCL CE 是否为最新版本。</sys:String>
     <sys:String x:Key="Event.Error.MissingArgs">EventType {0} 需要至少 2 个以 | 分割的参数，例如 {1}</sys:String>
     <sys:String x:Key="Event.Error.ExecutionFailed">事件执行失败（{0}, {1}）</sys:String>
     <sys:String x:Key="Event.Error.FileNotFound">未找到 EventData 指向的本地文件：{0}</sys:String>
