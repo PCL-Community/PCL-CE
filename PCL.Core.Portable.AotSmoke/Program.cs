@@ -5,12 +5,14 @@
 using System.Buffers.Binary;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
 using fNbt;
 using PCL.Core.Link.McPing;
 using PCL.Core.Link.Scaffolding;
 using PCL.Core.Minecraft.IdentityModel.Extensions.OpenId;
+using PCL.Core.Minecraft.IdentityModel.Extensions.JsonWebToken;
 using PCL.Core.Minecraft.IdentityModel.Extensions.YggdrasilConnect;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.Minecraft.Saves;
@@ -57,6 +59,7 @@ var lobbyCodeValid =
 var oauthValid = await VerifyOAuthAsync();
 var openIdValid = await VerifyOpenIdAsync();
 var yggdrasilValid = await VerifyYggdrasilAsync();
+var jwtValid = VerifyJwt();
 
 return hashValid &&
        roundTrip == payload &&
@@ -68,7 +71,8 @@ return hashValid &&
        lobbyCodeValid &&
        oauthValid &&
        openIdValid &&
-       yggdrasilValid
+       yggdrasilValid &&
+       jwtValid
     ? 0
     : 1;
 
@@ -211,6 +215,54 @@ static async Task<bool> VerifyYggdrasilAsync()
     return client.GetAuthorizeUrl(["openid"], "aot-state")
         .Contains("client_id=aot-shared-client", StringComparison.Ordinal);
 }
+
+static bool VerifyJwt()
+{
+    using var rsa = RSA.Create(2048);
+    var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+    var header = Base64Url(Encoding.UTF8.GetBytes(
+        """{"alg":"RS256","kid":"aot-jwt-key","typ":"JWT"}"""));
+    var payload = Base64Url(Encoding.UTF8.GetBytes(
+        $$"""{"iss":"https://localhost","aud":"aot-client","iat":{{now}},"nbf":{{now - 1}},"exp":{{now + 300}},"sub":"aot-user"}"""));
+    var signingInput = $"{header}.{payload}";
+    var signature = rsa.SignData(
+        Encoding.ASCII.GetBytes(signingInput),
+        HashAlgorithmName.SHA256,
+        RSASignaturePadding.Pkcs1);
+    var parameters = rsa.ExportParameters(includePrivateParameters: false);
+    var jwt = new JsonWebToken(
+        $"{signingInput}.{Base64Url(signature)}",
+        new OpenIdMetadata
+        {
+            Issuer = "https://localhost",
+            AuthorizationEndpoint = "https://localhost/authorize",
+            DeviceAuthorizationEndpoint = "https://localhost/device",
+            TokenEndpoint = "https://localhost/token",
+            UserInfoEndpoint = "https://localhost/userinfo",
+            JwksUri = "https://localhost/keys",
+            ScopesSupported = ["openid"],
+            SubjectTypesSupported = ["public"],
+            IdTokenSigningAlgValuesSupported = ["RS256"]
+        });
+    return jwt.VerifySignature(
+               new JsonWebKeyData
+               {
+                   KeyType = "RSA",
+                   KeyId = "aot-jwt-key",
+                   PublicKeyUse = "sig",
+                   Algorithm = "RS256",
+                   Modulus = Base64Url(parameters.Modulus!),
+                   Exponent = Base64Url(parameters.Exponent!)
+               },
+               "aot-client") &&
+           jwt.GetClaimValue("sub") == "aot-user";
+}
+
+static string Base64Url(byte[] value) =>
+    Convert.ToBase64String(value)
+        .TrimEnd('=')
+        .Replace('+', '-')
+        .Replace('/', '_');
 
 internal sealed record SmokePayload(string Name, int RuntimeMajor);
 

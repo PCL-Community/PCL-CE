@@ -98,6 +98,7 @@ using PCL.Core.Utils.Threading;
 [assembly: TypeForwardedTo(typeof(PkceClient))]
 [assembly: TypeForwardedTo(typeof(JsonWebKeyData))]
 [assembly: TypeForwardedTo(typeof(JsonWebKeys))]
+[assembly: TypeForwardedTo(typeof(JsonWebToken))]
 [assembly: TypeForwardedTo(typeof(OpenIdMetadata))]
 [assembly: TypeForwardedTo(typeof(OpenIdOptions))]
 [assembly: TypeForwardedTo(typeof(OpenIdClient))]

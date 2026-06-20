@@ -71,8 +71,6 @@
         <!-- 日志 -->
         <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.9" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
-        <!-- 身份认证 -->
-        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
         <!-- 验证 -->
         <PackageReference Include="FluentValidation" Version="12.1.1" />
     </ItemGroup>
