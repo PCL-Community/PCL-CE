@@ -12,6 +12,9 @@
   <Project Path="PCL.Platform.Test\PCL.Platform.Test.csproj" />
   <Project Path="PCL.Application\PCL.Application.csproj" />
   <Project Path="PCL.Application.Test\PCL.Application.Test.csproj" />
+  <Project Path="PCL.Plugin\PCL.Plugin.csproj" />
+  <Project Path="PCL.Desktop\PCL.Desktop.csproj" />
+  <Project Path="PCL.Desktop.Test\PCL.Desktop.Test.csproj" />
   <Project Path="PCL.Online\PCL.Online.csproj" />
   <Project Path="PCL.Online.Test\PCL.Online.Test.csproj" />
 </Solution>

@@ -28,6 +28,8 @@
   <Project Path="PCL.Application.AotSmoke\PCL.Application.AotSmoke.csproj" />
   <Project Path="PCL.Application.Test\PCL.Application.Test.csproj" />
   <Project Path="PCL.Plugin\PCL.Plugin.csproj" />
+  <Project Path="PCL.Desktop\PCL.Desktop.csproj" />
+  <Project Path="PCL.Desktop.Test\PCL.Desktop.Test.csproj" />
   <Project Path="PCL.Online\PCL.Online.csproj" />
   <Project Path="PCL.Online.AotSmoke\PCL.Online.AotSmoke.csproj" />
   <Project Path="PCL.Online.Test\PCL.Online.Test.csproj" />

@@ -1,0 +1,40 @@
+<!--
+  Copyright (c) MUXUE1230. All rights reserved.
+  Modifications Copyright (c) 2026 PCL N contributors.
+  Licensed under the Apache License, Version 2.0.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>PCL.Desktop</AssemblyName>
+    <RootNamespace>PCL.Desktop</RootNamespace>
+    <Description>PCL N cross-platform Avalonia desktop shell</Description>
+    <Company>PCL N</Company>
+    <Product>PCL.Desktop</Product>
+    <Copyright>Copyright (c) MUXUE1230; Modifications Copyright (c) 2026 PCL N contributors</Copyright>
+    <LangVersion>14.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <PublishAot>true</PublishAot>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>link</TrimMode>
+    <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
+    <IlcOptimizationPreference>Speed</IlcOptimizationPreference>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PCL.Application\PCL.Application.csproj" />
+    <ProjectReference Include="..\PCL.Platform\PCL.Platform.csproj" />
+    <ProjectReference Include="..\PCL.Plugin\PCL.Plugin.csproj" />
+  </ItemGroup>
+</Project>
