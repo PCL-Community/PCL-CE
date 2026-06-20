@@ -135,12 +135,12 @@ public static class Requester
 
     public static async Task DownloadFileAsync(string url, string filePath)
     {
-        await FileDownloader.Download(url, filePath).ConfigureAwait(false);
+        await FileDownloader.DownloadAsync(url, filePath).ConfigureAwait(false);
     }
 
     public static async Task DownloadFileOnceAsync(string url, string filePath)
     {
-        await FileDownloader.Download(url, filePath).ConfigureAwait(false);
+        await FileDownloader.DownloadAsync(url, filePath).ConfigureAwait(false);
     }
 
     public static DownloadService CreateDownloadService(string url, bool useBrowserUserAgent = false)

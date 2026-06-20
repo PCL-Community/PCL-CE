@@ -1,40 +1,38 @@
 using System.IO;
-using System.Net.Http;
-using System.Threading;
 using Downloader;
 using PCL.Core.IO.Net;
-using PCL.Core.Utils;
+
 
 namespace PCL.Network;
 
 public static class FileDownloader
 {
-    public static Task Download(string url, string localPath, bool useBrowserUserAgent = false,
+    public static async Task DownloadAsync(string url, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "", CancellationToken cancellationToken = default,
         bool enableParallelChunks = true, DownloadFile? trackedFile = null)
     {
-        return DownloadCoreAsync(new[] { url }, localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
-            enableParallelChunks, trackedFile);
+        await DownloadCoreAsync([url], localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
+            enableParallelChunks, trackedFile).ConfigureAwait(false);
     }
 
-    public static Task Download(IEnumerable<string> urls, string localPath, bool useBrowserUserAgent = false,
+    public static async Task DownloadAsync(IEnumerable<string> urls, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "", CancellationToken cancellationToken = default,
         bool enableParallelChunks = true, DownloadFile? trackedFile = null)
     {
-        return DownloadCoreAsync(urls, localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
-            enableParallelChunks, trackedFile);
+        await DownloadCoreAsync(urls, localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
+            enableParallelChunks, trackedFile).ConfigureAwait(false);
     }
 
     public static void DownloadByLoader(string url, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "")
     {
-        Download(url, localPath, useBrowserUserAgent, customUserAgent).GetAwaiter().GetResult();
+        DownloadAsync(url, localPath, useBrowserUserAgent, customUserAgent).GetAwaiter().GetResult();
     }
 
     public static void DownloadByLoader(IEnumerable<string> urls, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "")
     {
-        Download(urls, localPath, useBrowserUserAgent, customUserAgent).GetAwaiter().GetResult();
+        DownloadAsync(urls, localPath, useBrowserUserAgent, customUserAgent).GetAwaiter().GetResult();
     }
 
     private static async Task DownloadCoreAsync(IEnumerable<string> urls, string localPath, bool useBrowserUserAgent,

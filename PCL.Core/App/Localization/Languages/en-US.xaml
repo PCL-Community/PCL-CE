@@ -3037,7 +3037,7 @@
     <sys:String x:Key="Event.Error.ExecutionFailed">Event execution failed ({0}, {1})</sys:String>
     <sys:String x:Key="Event.Error.FileNotFound">Local file not found for EventData: {0}</sys:String>
     <sys:String x:Key="Event.OpenUrl.Opening">Opening, please wait: {0}</sys:String>
-    <sys:String x:Key="Event.LaunchGame.SelectVersion">Please select a Minecraft version first!</sys:String>
+    <sys:String x:Key="Event.LaunchGame.SelectVersion">Please select a Minecraft instance first!</sys:String>
     <sys:String x:Key="Event.LaunchGame.Starting">Starting {0}...</sys:String>
     <sys:String x:Key="Event.Refresh.Success">Refreshed!</sys:String>
     <sys:String x:Key="Event.Refresh.NotSupported">The current page does not support refresh!</sys:String>

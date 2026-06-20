@@ -137,7 +137,7 @@ public class LoaderDownload : ModLoader.LoaderBase
             cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                await FileDownloader.Download(file.Urls, file.LocalPath, file.UseBrowserUserAgent, file.CustomUserAgent,
+                await FileDownloader.DownloadAsync(file.Urls, file.LocalPath, file.UseBrowserUserAgent, file.CustomUserAgent,
                     cancellationToken, enableParallelChunks, file).ConfigureAwait(false);
                 break;
             }

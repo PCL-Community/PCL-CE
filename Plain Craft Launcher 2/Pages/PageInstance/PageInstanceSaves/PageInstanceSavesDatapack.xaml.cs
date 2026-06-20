@@ -1625,7 +1625,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 }
 
                 // 进行搜索
-                searchResult = ModBase.Search(queryList, SearchBox.Text, 6, 0.35d).Select(r => r.item).ToList();
+                searchResult = ModBase.Search(queryList, SearchBox.Text, ModBase.MaxLocalSearchDepth, 0.35d).Select(r => r.item).ToList();
             }
 
             RefreshUI();

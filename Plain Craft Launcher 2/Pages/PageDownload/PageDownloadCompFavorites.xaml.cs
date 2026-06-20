@@ -906,7 +906,7 @@ public partial class PageDownloadCompFavorites
             }
 
             // 进行搜索
-            searchResult = ModBase.Search(queryList, PanSearchBox.Text, 6, 0.35d).Select(r => r.item).ToList();
+            searchResult = ModBase.Search(queryList, PanSearchBox.Text, ModBase.MaxLocalSearchDepth, 0.35d).Select(r => r.item).ToList();
         }
 
         RefreshContent();

@@ -2859,7 +2859,7 @@ public partial class PageInstanceCompResource : IRefreshable
         }
 
         // 进行搜索
-        return ModBase.Search(queryList, query, 6, 0.35d).Select(r => r.item).ToList();
+        return ModBase.Search(queryList, query, ModBase.MaxLocalSearchDepth, 0.35d).Select(r => r.item).ToList();
     }
 
     #endregion
