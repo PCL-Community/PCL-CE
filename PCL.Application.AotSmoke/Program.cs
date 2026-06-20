@@ -4,6 +4,7 @@
 
 using System.Text.Json.Nodes;
 using PCL.Application.Minecraft.Launch.Arguments;
+using PCL.Application.Settings;
 
 JsonObject versionJson = JsonNode.Parse(
     """
@@ -69,5 +70,27 @@ bool valid =
     result.Arguments.Contains("net.minecraft.client.main.Main", StringComparison.Ordinal) &&
     result.Arguments.Contains("--username Steve", StringComparison.Ordinal) &&
     result.Arguments.Contains("-Dfile.encoding=COMPAT", StringComparison.Ordinal);
+
+string settingsDirectory = Path.Combine(
+    Path.GetTempPath(),
+    "pcl-application-aot-" + Guid.NewGuid().ToString("N"));
+try
+{
+    using LauncherSettingsStore settingsStore = new(
+        Path.Combine(settingsDirectory, "settings.json"));
+    LauncherSettings expectedSettings = new()
+    {
+        AutomaticallyRepairGameIssues = false,
+        DownloadSource = DownloadSourcePreference.OfficialOnly
+    };
+    await settingsStore.SaveAsync(expectedSettings);
+    LauncherSettingsLoadResult loadedSettings = await settingsStore.LoadAsync();
+    valid &= expectedSettings == loadedSettings.Settings;
+}
+finally
+{
+    if (Directory.Exists(settingsDirectory))
+        Directory.Delete(settingsDirectory, recursive: true);
+}
 
 return valid ? 0 : 1;

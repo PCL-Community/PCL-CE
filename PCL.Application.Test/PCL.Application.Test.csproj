@@ -15,5 +15,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PCL.Application\PCL.Application.csproj" />
+    <ProjectReference Include="..\PCL.Core.Portable\PCL.Core.Portable.csproj" />
   </ItemGroup>
 </Project>
