@@ -17,7 +17,8 @@ public readonly record struct PortableLogEntry(
     PortableLogLevel Level,
     string Module,
     string Message,
-    Exception? Exception = null);
+    Exception? Exception = null,
+    DateTimeOffset Timestamp = default);
 
 /// <summary>
 /// Small logging bridge for portable code that must not depend on the WPF launcher lifecycle.
@@ -63,6 +64,9 @@ public static class PortableLog
 
     public static void Write(PortableLogEntry entry)
     {
+        if (entry.Timestamp == default)
+            entry = entry with { Timestamp = DateTimeOffset.UtcNow };
+
         Written?.Invoke(entry);
     }
 }

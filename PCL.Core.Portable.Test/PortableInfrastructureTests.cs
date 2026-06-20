@@ -53,6 +53,7 @@ public sealed class PortableInfrastructureTests
         Assert.AreEqual(PortableLogLevel.Warn, entries[0].Level);
         Assert.AreEqual("PortableTest", entries[0].Module);
         Assert.AreEqual("hello", entries[0].Message);
+        Assert.AreNotEqual(default, entries[0].Timestamp);
     }
 
     [TestMethod]
