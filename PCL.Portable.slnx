@@ -1,0 +1,17 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+    <Platform Name="AnyCPU" />
+  </Configurations>
+  <Project Path="PCL.Core.Portable\PCL.Core.Portable.csproj" />
+  <Project Path="PCL.Core.Portable.Test\PCL.Core.Portable.Test.csproj" />
+  <Project Path="PCL.Domain\PCL.Domain.csproj" />
+  <Project Path="PCL.Platform.Abstractions\PCL.Platform.Abstractions.csproj" />
+  <Project Path="PCL.Platform\PCL.Platform.csproj" />
+  <Project Path="PCL.Platform.Test\PCL.Platform.Test.csproj" />
+  <Project Path="PCL.Application\PCL.Application.csproj" />
+  <Project Path="PCL.Application.Test\PCL.Application.Test.csproj" />
+  <Project Path="PCL.Online\PCL.Online.csproj" />
+  <Project Path="PCL.Online.Test\PCL.Online.Test.csproj" />
+</Solution>

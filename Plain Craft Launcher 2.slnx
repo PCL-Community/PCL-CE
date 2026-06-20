@@ -14,9 +14,23 @@
   <Project Path="PCL.Core.Portable.Test\PCL.Core.Portable.Test.csproj" />
   <Project Path="PCL.Core.SourceGenerators\PCL.Core.SourceGenerators.csproj" />
   <Project Path="PCL.Core.Test\PCL.Core.Test.csproj">
-    <Build Project="false" />
+    <Build Solution="*|AnyCPU" Project="false" />
+    <Build Solution="*|ARM64" Project="false" />
+    <Build Solution="Beta|x64" Project="false" />
+    <Build Solution="CI|x64" Project="false" />
+    <Build Solution="Release|x64" Project="false" />
   </Project>
-    <Project Path="PCL.Plugin\PCL.Plugin.csproj" />
-    <Project Path="PCL.Online\PCL.Online.csproj" />
-    <Project Path="Plain Craft Launcher 2\Plain Craft Launcher 2.csproj" />
+  <Project Path="PCL.Domain\PCL.Domain.csproj" />
+  <Project Path="PCL.Platform.Abstractions\PCL.Platform.Abstractions.csproj" />
+  <Project Path="PCL.Platform\PCL.Platform.csproj" />
+  <Project Path="PCL.Platform.Test\PCL.Platform.Test.csproj" />
+  <Project Path="PCL.Application\PCL.Application.csproj" />
+  <Project Path="PCL.Application.AotSmoke\PCL.Application.AotSmoke.csproj" />
+  <Project Path="PCL.Application.Test\PCL.Application.Test.csproj" />
+  <Project Path="PCL.Plugin\PCL.Plugin.csproj" />
+  <Project Path="PCL.Online\PCL.Online.csproj" />
+  <Project Path="PCL.Online.AotSmoke\PCL.Online.AotSmoke.csproj" />
+  <Project Path="PCL.Online.Test\PCL.Online.Test.csproj" />
+  <Project Path="PCL.Online.Windows\PCL.Online.Windows.csproj" />
+  <Project Path="Plain Craft Launcher 2\Plain Craft Launcher 2.csproj" />
 </Solution>
