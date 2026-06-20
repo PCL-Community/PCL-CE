@@ -2,8 +2,13 @@
 // Modifications Copyright (c) 2026 PCL N contributors.
 // Licensed under the Apache License, Version 2.0.
 
+using System.Buffers.Binary;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using System.Text.Json.Serialization;
 using fNbt;
+using PCL.Core.Link.McPing;
 using PCL.Core.Minecraft.Saves;
 using PCL.Core.Platform;
 using PCL.Core.Serialization;
@@ -40,13 +45,15 @@ await using (var output = File.Create(Path.Combine(saveFolder, "level.dat")))
 var saveInfo = await new SaveManager().LoadSaveAsync(saveFolder);
 var saveValid = saveInfo.LevelName == "AOT World";
 Directory.Delete(saveFolder, recursive: true);
+var pingValid = await VerifyPingAsync();
 
 return hashValid &&
        roundTrip == payload &&
        platformPolicyValid &&
        varIntValid &&
        encryptionValid &&
-       saveValid
+       saveValid &&
+       pingValid
     ? 0
     : 1;
 
@@ -72,6 +79,69 @@ static bool VerifyEncryption()
     ReadOnlySpan<byte> plaintext = "portable-aot"u8;
     var encrypted = ChaCha20SoftwareProvider.Instance.Encrypt(plaintext, key);
     return plaintext.SequenceEqual(ChaCha20SoftwareProvider.Instance.Decrypt(encrypted, key));
+}
+
+static async Task<bool> VerifyPingAsync()
+{
+    using var listener = new TcpListener(IPAddress.Loopback, 0);
+    listener.Start();
+    var endpoint = (IPEndPoint)listener.LocalEndpoint;
+    var server = ServeStatusAsync(listener);
+    using var service = McPingServiceFactory.CreateService(endpoint, timeout: 2_000);
+    var result = await service.PingAsync();
+    await server;
+    return result is { Description: "AOT Server", Players.Online: 1 };
+}
+
+static async Task ServeStatusAsync(TcpListener listener)
+{
+    using var client = await listener.AcceptTcpClientAsync();
+    await using var stream = client.GetStream();
+    _ = await ReadPacketAsync(stream);
+    _ = await ReadPacketAsync(stream);
+
+    const string json =
+        """{"version":{"name":"AOT","protocol":772},"players":{"max":2,"online":1},"description":"AOT Server"}""";
+    await stream.WriteAsync(BuildStatusPacket(json));
+    var ping = await ReadPacketAsync(stream);
+    _ = VarIntHelper.Decode(ping, out var offset);
+    var timestamp = BinaryPrimitives.ReadInt64BigEndian(ping.AsSpan(offset));
+    await stream.WriteAsync(BuildPongPacket(timestamp));
+}
+
+static async Task<byte[]> ReadPacketAsync(Stream stream)
+{
+    var length = checked((int)await VarIntHelper.ReadFromStreamAsync(stream));
+    var packet = new byte[length];
+    await stream.ReadExactlyAsync(packet);
+    return packet;
+}
+
+static byte[] BuildStatusPacket(string json)
+{
+    var jsonBytes = Encoding.UTF8.GetBytes(json);
+    var jsonLength = VarIntHelper.Encode((uint)jsonBytes.Length);
+    var payload = new byte[1 + jsonLength.Length + jsonBytes.Length];
+    jsonLength.CopyTo(payload, 1);
+    jsonBytes.CopyTo(payload, 1 + jsonLength.Length);
+    return Frame(payload);
+}
+
+static byte[] BuildPongPacket(long timestamp)
+{
+    var payload = new byte[9];
+    payload[0] = 1;
+    BinaryPrimitives.WriteInt64BigEndian(payload.AsSpan(1), timestamp);
+    return Frame(payload);
+}
+
+static byte[] Frame(byte[] payload)
+{
+    var length = VarIntHelper.Encode((uint)payload.Length);
+    var packet = new byte[length.Length + payload.Length];
+    length.CopyTo(packet, 0);
+    payload.CopyTo(packet, length.Length);
+    return packet;
 }
 
 internal sealed record SmokePayload(string Name, int RuntimeMajor);

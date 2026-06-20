@@ -4,6 +4,8 @@
 
 using System.Runtime.CompilerServices;
 using PCL.Core.App.Cli;
+using PCL.Core.Link.McPing;
+using PCL.Core.Link.McPing.Model;
 using PCL.Core.Minecraft.Saves;
 using PCL.Core.Minecraft.Saves.Editing;
 using PCL.Core.Minecraft.Saves.Exceptions;
@@ -65,3 +67,13 @@ using PCL.Core.Utils.Threading;
 [assembly: TypeForwardedTo(typeof(SaveNotFoundException))]
 [assembly: TypeForwardedTo(typeof(ISaveParser))]
 [assembly: TypeForwardedTo(typeof(SaveParserFactory))]
+[assembly: TypeForwardedTo(typeof(IMcPingService))]
+[assembly: TypeForwardedTo(typeof(LegacyMcPingService))]
+[assembly: TypeForwardedTo(typeof(McPingService))]
+[assembly: TypeForwardedTo(typeof(McPingServiceFactory))]
+[assembly: TypeForwardedTo(typeof(McPingModInfoModResult))]
+[assembly: TypeForwardedTo(typeof(McPingModInfoResult))]
+[assembly: TypeForwardedTo(typeof(McPingPlayerResult))]
+[assembly: TypeForwardedTo(typeof(McPingPlayerSampleResult))]
+[assembly: TypeForwardedTo(typeof(McPingResult))]
+[assembly: TypeForwardedTo(typeof(McPingVersionResult))]
