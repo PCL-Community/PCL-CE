@@ -12,6 +12,8 @@ using PCL.Core.Minecraft.Saves.Editing;
 using PCL.Core.Minecraft.Saves.Exceptions;
 using PCL.Core.Minecraft.Saves.Parsing;
 using PCL.Core.Minecraft.IdentityModel;
+using PCL.Core.Minecraft.IdentityModel.Extensions.JsonWebToken;
+using PCL.Core.Minecraft.IdentityModel.Extensions.OpenId;
 using PCL.Core.Minecraft.IdentityModel.Extensions.Pkce;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.Utils;
@@ -93,3 +95,8 @@ using PCL.Core.Utils.Threading;
 [assembly: TypeForwardedTo(typeof(SimpleOAuthClient))]
 [assembly: TypeForwardedTo(typeof(PkceChallengeOptions))]
 [assembly: TypeForwardedTo(typeof(PkceClient))]
+[assembly: TypeForwardedTo(typeof(JsonWebKeyData))]
+[assembly: TypeForwardedTo(typeof(JsonWebKeys))]
+[assembly: TypeForwardedTo(typeof(OpenIdMetadata))]
+[assembly: TypeForwardedTo(typeof(OpenIdOptions))]
+[assembly: TypeForwardedTo(typeof(OpenIdClient))]

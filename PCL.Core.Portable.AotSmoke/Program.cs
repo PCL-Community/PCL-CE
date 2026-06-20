@@ -10,6 +10,7 @@ using System.Text.Json.Serialization;
 using fNbt;
 using PCL.Core.Link.McPing;
 using PCL.Core.Link.Scaffolding;
+using PCL.Core.Minecraft.IdentityModel.Extensions.OpenId;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.Minecraft.Saves;
 using PCL.Core.Platform;
@@ -53,6 +54,7 @@ var lobbyCodeValid =
     LobbyCodeGenerator.TryParse(lobbyCode) == lobbyCode &&
     LobbyCodeGenerator.GetRoomId(lobbyCode) is { Length: 8 };
 var oauthValid = await VerifyOAuthAsync();
+var openIdValid = await VerifyOpenIdAsync();
 
 return hashValid &&
        roundTrip == payload &&
@@ -62,7 +64,8 @@ return hashValid &&
        saveValid &&
        pingValid &&
        lobbyCodeValid &&
-       oauthValid
+       oauthValid &&
+       openIdValid
     ? 0
     : 1;
 
@@ -172,6 +175,24 @@ static async Task<bool> VerifyOAuthAsync()
     return result is { AccessToken: "aot-access", ExpiresIn: 60 };
 }
 
+static async Task<bool> VerifyOpenIdAsync()
+{
+    using var http = new HttpClient(new SmokeOpenIdHandler());
+    var options = new OpenIdOptions
+    {
+        OpenIdDiscoveryAddress = "https://localhost/.well-known/openid-configuration",
+        ClientId = "aot-client",
+        RedirectUri = "https://localhost/callback",
+        GetClient = () => http
+    };
+    var client = new OpenIdClient(options);
+    await client.InitializeAsync(CancellationToken.None, checkAddress: true);
+    var key = await options.GetSignatureKeyAsync("aot-key", CancellationToken.None);
+    return key is { KeyType: "RSA", Algorithm: "RS256" } &&
+           client.GetAuthorizeUrl(["openid"], "aot-state")
+               .Contains("code_challenge=", StringComparison.Ordinal);
+}
+
 internal sealed record SmokePayload(string Name, int RuntimeMajor);
 
 [JsonSerializable(typeof(SmokePayload))]
@@ -189,4 +210,32 @@ internal sealed class SmokeOAuthHandler : HttpMessageHandler
                 Encoding.UTF8,
                 "application/json")
         });
+}
+
+internal sealed class SmokeOpenIdHandler : HttpMessageHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken)
+    {
+        var json = request.RequestUri?.AbsolutePath == "/keys"
+            ? """{"keys":[{"kty":"RSA","kid":"aot-key","alg":"RS256","n":"AQ","e":"AQAB"}]}"""
+            : """
+              {
+                "issuer":"https://localhost",
+                "authorization_endpoint":"https://localhost/authorize",
+                "device_authorization_endpoint":"https://localhost/device",
+                "token_endpoint":"https://localhost/token",
+                "userinfo_endpoint":"https://localhost/userinfo",
+                "jwks_uri":"https://localhost/keys",
+                "scopes_supported":["openid"],
+                "subject_types_supported":["public"],
+                "id_token_signing_alg_values_supported":["RS256"]
+              }
+              """;
+        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(json, Encoding.UTF8, "application/json")
+        });
+    }
 }
