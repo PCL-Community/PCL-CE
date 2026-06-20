@@ -4,6 +4,10 @@
 
 using System.Runtime.CompilerServices;
 using PCL.Core.App.Cli;
+using PCL.Core.Minecraft.Saves;
+using PCL.Core.Minecraft.Saves.Editing;
+using PCL.Core.Minecraft.Saves.Exceptions;
+using PCL.Core.Minecraft.Saves.Parsing;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.Diff;
@@ -48,3 +52,16 @@ using PCL.Core.Utils.Threading;
 [assembly: TypeForwardedTo(typeof(DualThreadPool))]
 [assembly: TypeForwardedTo(typeof(LimitedConcurrencyLevelTaskScheduler))]
 [assembly: TypeForwardedTo(typeof(LimitedTaskPool))]
+[assembly: TypeForwardedTo(typeof(DataVersionBoundaries))]
+[assembly: TypeForwardedTo(typeof(Difficulty))]
+[assembly: TypeForwardedTo(typeof(GameMode))]
+[assembly: TypeForwardedTo(typeof(SaveFormatVersion))]
+[assembly: TypeForwardedTo(typeof(SaveInfo))]
+[assembly: TypeForwardedTo(typeof(SaveManager))]
+[assembly: TypeForwardedTo(typeof(Editable<>))]
+[assembly: TypeForwardedTo(typeof(ISaveEditor))]
+[assembly: TypeForwardedTo(typeof(SaveChanges))]
+[assembly: TypeForwardedTo(typeof(SaveCorruptedException))]
+[assembly: TypeForwardedTo(typeof(SaveNotFoundException))]
+[assembly: TypeForwardedTo(typeof(ISaveParser))]
+[assembly: TypeForwardedTo(typeof(SaveParserFactory))]

@@ -1,3 +1,7 @@
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -49,10 +53,9 @@ public class SaveManager
         if (!Directory.Exists(savesPath))
             return [];
 
-        var folderPaths = Directory.GetDirectories(savesPath);
-        var results = new List<SaveInfo>(folderPaths.Length);
+        var results = new List<SaveInfo>();
 
-        foreach (var folder in folderPaths)
+        foreach (var folder in Directory.EnumerateDirectories(savesPath))
         {
             ct.ThrowIfCancellationRequested();
             try
@@ -71,7 +74,7 @@ public class SaveManager
             }
             catch (Exception ex)
             {
-                LogWrapper.Warn(ex, "Saves", $"扫描存档文件夹失败：{folder}");
+                PortableLog.Warn(ex, "Saves", $"扫描存档文件夹失败：{folder}");
             }
         }
 
@@ -107,8 +110,7 @@ public class SaveManager
         if (!Directory.Exists(savesPath))
             yield break;
 
-        var folderPaths = Directory.GetDirectories(savesPath);
-        foreach (var folder in folderPaths)
+        foreach (var folder in Directory.EnumerateDirectories(savesPath))
         {
             ct.ThrowIfCancellationRequested();
 
@@ -127,7 +129,7 @@ public class SaveManager
             }
             catch (Exception ex)
             {
-                LogWrapper.Warn(ex, "Saves", $"加载存档失败：{folder}");
+                PortableLog.Warn(ex, "Saves", $"加载存档失败：{folder}");
             }
 
             if (info is not null)

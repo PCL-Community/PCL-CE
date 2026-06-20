@@ -22,6 +22,7 @@
         <NoWarn>$(NoWarn);CS1591</NoWarn>
     </PropertyGroup>
     <ItemGroup>
+        <PackageReference Include="fNbt" Version="1.0.0" />
         <PackageReference Include="SharpZipLib" Version="1.4.2" />
     </ItemGroup>
 </Project>

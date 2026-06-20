@@ -1,18 +1,22 @@
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
 using System;
 using fNbt;
 
 namespace PCL.Core.Minecraft.Saves.Parsing.Internal;
 
 /// <summary>
-/// 1.3.1 ~ 1.8.9 的存档格式。
-/// 特征：没有 DataVersion，有 allowCommands。
+/// Alpha ~ 1.2.5 的存档格式。
+/// 特征：没有 DataVersion、没有 allowCommands、没有 Difficulty。
 /// </summary>
-internal sealed class Version131To189SaveParser : ISaveParser
+internal sealed class Pre113SaveParser : ISaveParser
 {
-    public SaveFormatVersion FormatVersion => SaveFormatVersion.Version131To189;
+    public SaveFormatVersion FormatVersion => SaveFormatVersion.Pre113;
 
     public bool CanHandle(NbtCompound data, int? dataVersion)
-        => dataVersion is null && data.Contains("allowCommands");
+        => dataVersion is null && !data.Contains("allowCommands");
 
     public SaveInfo Parse(string folderPath, NbtCompound data, DateTime createdAt, DateTime modifiedAt)
     {
@@ -24,11 +28,11 @@ internal sealed class Version131To189SaveParser : ISaveParser
             Seed = NbtReadHelper.TryGetLong(data, "RandomSeed"),
             LastPlayedUtc = NbtReadHelper.ReadLastPlayed(data),
             Spawn = NbtReadHelper.TryReadSpawnFromFields(data),
-            GameMode = NbtReadHelper.ReadGameMode(data, out _),
-            Difficulty = NbtReadHelper.ReadDifficultyByte(data),
-            IsDifficultyLocked = data.TryGet<NbtByte>("DifficultyLocked", out var dl) && dl!.Value == 1,
-            IsHardcore = data.TryGet<NbtByte>("hardcore", out var hc) && hc!.Value == 1,
-            AllowCommands = data.TryGet<NbtByte>("allowCommands", out var ac) && ac!.Value == 1,
+            GameMode = NbtReadHelper.ReadGameMode(data, out var isHardcore),
+            Difficulty = null,
+            IsDifficultyLocked = false,
+            IsHardcore = isHardcore,
+            AllowCommands = false,
             PlayTime = NbtReadHelper.ReadPlayTime(data),
             FolderPath = folderPath,
             CreatedAt = createdAt,
