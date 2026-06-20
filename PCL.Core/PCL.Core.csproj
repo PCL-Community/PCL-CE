@@ -46,16 +46,17 @@
     <!-- NuGet 引用 -->
     <ItemGroup>
         <!-- UI -->
-        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.8" />
-        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.9" />
+        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
         <PackageReference Include="Wacton.Unicolour" Version="6.4.0" />
         <!-- 语言和系统特性 -->
-        <PackageReference Include="System.Management" Version="10.0.8" />
+        <PackageReference Include="System.Management" Version="10.0.9" />
         <!-- 归档文件 -->
         <PackageReference Include="SharpZipLib" Version="1.4.2" />
         <!-- 配置文件和数据库 -->
-        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.8" />
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" />
+        <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
         <PackageReference Include="YamlDotNet" Version="17.0.1" />
         <PackageReference Include="fNbt" Version="1.0.0" />
         <PackageReference Include="LiteDB" Version="5.0.21" />
@@ -63,15 +64,15 @@
         <!-- 网络 -->
         <PackageReference Include="Ae.Dns.Client" Version="3.1.0" />
         <PackageReference Include="Stun.Net" Version="9.0.1" />
-        <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.8" />
-        <PackageReference Include="Polly" Version="8.6.5" />
+        <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.9" />
+        <PackageReference Include="Polly" Version="8.7.0" />
         <!-- 本地化 -->
-        <PackageReference Include="Humanizer.Core.zh-CN" Version="3.0.1" />
+        <PackageReference Include="Humanizer.Core.zh-CN" Version="3.0.10" />
         <!-- 日志 -->
-        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.8" />
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.9" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
         <!-- 身份认证 -->
-        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
         <!-- 验证 -->
         <PackageReference Include="FluentValidation" Version="12.1.1" />
     </ItemGroup>
