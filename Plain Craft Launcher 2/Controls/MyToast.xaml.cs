@@ -231,6 +231,7 @@ public partial class MyToast
 
     private void Toast_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+        _dragPending = false;
         if (IsDismissing)
             return;
         if (IsDescendantOf(e.OriginalSource as DependencyObject, BtnClose))
