@@ -270,7 +270,7 @@ public partial class MyToast
         var current = e.GetPosition(_dragReference);
         var delta = current.X - _dragStartPoint.X;
 
-        if (Math.Abs(delta) < DragDeadzone)
+        if (delta < DragDeadzone)
             return;
 
         BeginDrag(delta);
