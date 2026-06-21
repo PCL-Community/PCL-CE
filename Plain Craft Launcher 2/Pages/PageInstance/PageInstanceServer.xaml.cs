@@ -431,7 +431,7 @@ public partial class PageInstanceServer : MyPageRight
                     server.Status = ServerStatus.Online;
                     server.PlayerCount = result.Players.Online;
                     server.MaxPlayers = result.Players.Max;
-                    server.Description = result.Description;
+                    server.Description = result.Description ?? string.Empty;
                     server.Version = result.Version.Name;
                     server.Ping = (int)result.Latency;
                     server.Icon = result.Favicon;
