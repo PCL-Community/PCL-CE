@@ -61,14 +61,14 @@ public partial class MyMsgLogin
         CustomEventService.SetEventData(Btn1, website);
         CustomEventService.SetEventData(Btn2, userCode);
         // 启动工作线程
-        workingThread = WorkThread();
+        workingThread = WorkThreadAsync();
     }
 
     private record ErrorBody(
         [property: JsonPropertyName("error")] string Error,
         [property: JsonPropertyName("error_description")] string Desc);
 
-    private async Task WorkThread()
+    private async Task WorkThreadAsync()
     {
         await Task.Delay(2000).ConfigureAwait(false);
         if (myConverter.IsExited)
