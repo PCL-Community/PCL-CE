@@ -585,7 +585,7 @@ public static class ModDownloadLib
     public static void McUpdateLogShow(JsonNode versionJson)
     {
         var wikiName = McFormatter.GetWikiUrlSuffix(versionJson["id"].ToString());
-        var wikiUrl = McFormatter.GetWikiBaseUrl() + "/" + wikiName.TrimStart('/');;
+        var wikiUrl = $"{McFormatter.GetWikiBaseUrl()}/{wikiName.TrimStart('/')}";
         ModBase.OpenWebsite(wikiUrl);
     }
 
