@@ -51,9 +51,9 @@ public static class McFormatter
         if (!langCode.StartsWith("zh", StringComparison.Ordinal))
             return $"/w/Special:Search?search={Uri.EscapeDataString($"Java Edition {formattedVersion}")}";
 
-        if (gameVersion.Contains('w')) return formattedVersion;
+        if (gameVersion.Contains('w', StringComparison.Ordinal)) return $"/w/{formattedVersion}";
 
-        return "Java版" + formattedVersion;
+        return $"/w/Java版{formattedVersion}";
     }
 
     public static string FormatVersion(string gameVersion)
