@@ -224,7 +224,7 @@ public partial class MyCompItem
     }
 
     /// <summary>
-    ///     刷新收藏状态
+    ///     刷新收藏状态（仅更新图标，不影响 hover 展示逻辑）
     /// </summary>
     public void RefreshFavoriteStatus()
     {
@@ -232,7 +232,6 @@ public partial class MyCompItem
 
         var isFavourite = ModComp.CompFavorites.IsFavourite(project.Id);
         BtnDelete.SvgIcon = isFavourite ? "lucide/heart-filled" : "lucide/heart";
-        ShowFavoriteBtn = isFavourite;
     }
 
     #endregion
