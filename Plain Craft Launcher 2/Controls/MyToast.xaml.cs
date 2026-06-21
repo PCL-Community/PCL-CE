@@ -233,6 +233,8 @@ public partial class MyToast
     {
         if (IsDismissing)
             return;
+        if (IsDescendantOf(e.OriginalSource as DependencyObject, BtnClose))
+            return;
         _dragReference = Parent as FrameworkElement;
         if (_dragReference is null)
             return;
@@ -381,6 +383,17 @@ public partial class MyToast
     private double GetDismissThreshold()
     {
         return Math.Max(DismissThresholdMin, ActualWidth * DismissThresholdRatio);
+    }
+
+    private static bool IsDescendantOf(DependencyObject? descendant, DependencyObject ancestor)
+    {
+        while (descendant is not null)
+        {
+            if (ReferenceEquals(descendant, ancestor))
+                return true;
+            descendant = VisualTreeHelper.GetParent(descendant);
+        }
+        return false;
     }
 
     #endregion
