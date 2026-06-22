@@ -3562,7 +3562,7 @@ public static class ModComp
     private static List<CompLoaderType> ResolveLoaders(CompFile file, CompProject project)
         => file.ModLoaders.Count > 0 ? file.ModLoaders : project.ModLoaders;
 
-    /// <summary>判断某实例是否兼容该文件（镜像 Save_Click 的 isVersionSuitable）。</summary>
+    /// <summary>判断某实例是否兼容该文件（基于 Save_Click 的 isVersionSuitable，补全了 Quilt 判定）。</summary>
     public static bool IsInstanceSuitableForFile(McInstance? version, CompFile file, List<CompLoaderType> allowedLoaders)
     {
         if (version is null) return false;
@@ -3580,6 +3580,7 @@ public static class ModComp
         if (allowedLoaders.Contains(CompLoaderType.Fabric) &&
             (version.Info.HasFabric || version.Info.HasLegacyFabric)) return true;
         if (allowedLoaders.Contains(CompLoaderType.NeoForge) && version.Info.HasNeoForge) return true;
+        if (allowedLoaders.Contains(CompLoaderType.Quilt) && version.Info.HasQuilt) return true;
         if (allowedLoaders.Contains(CompLoaderType.LiteLoader) && version.Info.HasLiteLoader) return true;
         return false;
     }
