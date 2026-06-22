@@ -3378,9 +3378,9 @@ public static class ModComp
             try
             {
                 HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.Loading"), HintType.Info);
-                var files = CompFilesGet(project.Id, project.FromCurseForge)
-                    .Where(f => f.Available)
-                    .ToList();
+                var files = FilterFilesByType(
+                    CompFilesGet(project.Id, project.FromCurseForge).Where(f => f.Available).ToList(),
+                    project.Type);
                 if (files.Count == 0)
                 {
                     HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.NoFile"), HintType.Info);
@@ -3575,6 +3575,17 @@ public static class ModComp
     /// <summary>取文件自身声明的加载器，缺失时回退到工程的加载器。</summary>
     private static List<CompLoaderType> _ResolveLoaders(CompFile file, CompProject project)
         => file.ModLoaders.Count > 0 ? file.ModLoaders : project.ModLoaders;
+
+    /// <summary>
+    /// 按资源类型筛选文件，与详情页 GetResults 一致：Modrinth 会返回 Mod / 服务端插件 / 数据包混合的列表，
+    /// 需过滤回当前类型，避免快速下载到另一种产物。光影与资源包不筛（原版光影以资源包格式发布）。
+    /// </summary>
+    private static List<CompFile> FilterFilesByType(List<CompFile> files, CompType type)
+    {
+        if (type == CompType.Shader || type == CompType.ResourcePack)
+            return files;
+        return files.Where(f => f.Type == type).ToList();
+    }
 
     /// <summary>判断某实例是否兼容该文件（基于 Save_Click 的 isVersionSuitable，补全了 Quilt 判定）。</summary>
     public static bool IsInstanceSuitableForFile(McInstance? version, CompFile file, List<CompLoaderType> allowedLoaders)
