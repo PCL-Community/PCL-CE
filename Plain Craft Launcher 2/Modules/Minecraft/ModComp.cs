@@ -3568,7 +3568,6 @@ public static class ModComp
         CompType.ResourcePack => "resourcepacks\\",
         CompType.Shader => "shaderpacks\\",
         CompType.World => "saves\\",
-        CompType.DataPack => "", // 导航到版本根目录
         _ => ""
     };
 

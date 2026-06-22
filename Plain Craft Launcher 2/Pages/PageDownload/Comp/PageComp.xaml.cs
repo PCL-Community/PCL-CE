@@ -27,8 +27,9 @@ public partial class PageComp
             // 列表项
             PanProjects.Children.Clear();
             var index = Math.Min(page * pageSize, storage.results.Count - 1);
-            // 整合包需要安装而非直接下载，不显示快速下载按钮
-            var showQuickDownload = PageType != ModComp.CompType.ModPack;
+            // 整合包需要安装、数据包需放入具体存档，均不显示快速下载按钮
+            var showQuickDownload = PageType != ModComp.CompType.ModPack &&
+                                    PageType != ModComp.CompType.DataPack;
             foreach (var result in storage.results.GetRange(index, Math.Min(storage.results.Count - index, pageSize)))
                 PanProjects.Children.Add(result.ToCompItem(loader.input.gameVersion is null,
                     loader.input.modLoader == ModComp.CompLoaderType.Any &&
