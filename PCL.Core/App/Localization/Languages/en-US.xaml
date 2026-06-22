@@ -1133,19 +1133,19 @@
 
     <!-- Download.Comp.QuickDownload -->
 
-    <sys:String x:Key="Download.Comp.QuickDownload.Btn.ToolTip">Quick download the latest version</sys:String>
-    <sys:String x:Key="Download.Comp.QuickDownload.Hint.Loading">Fetching resource version info, please wait…</sys:String>
-    <sys:String x:Key="Download.Comp.QuickDownload.Hint.NoFile">No downloadable file found</sys:String>
-    <sys:String x:Key="Download.Comp.QuickDownload.Hint.NoInstance">No Minecraft instance is currently selected</sys:String>
-    <sys:String x:Key="Download.Comp.QuickDownload.Hint.NoCompatibleInstance">No Minecraft instance is compatible with this resource</sys:String>
-    <sys:String x:Key="Download.Comp.QuickDownload.Hint.NoCompatibleFile">No version found for this instance</sys:String>
-    <sys:String x:Key="Download.Comp.QuickDownload.Hint.SelectFolder">Please choose where to save</sys:String>
-    <sys:String x:Key="Download.Comp.QuickDownload.Hint.DownloadStarted">Download started: {0}</sys:String>
-    <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.Title">Choose how to download</sys:String>
-    <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.CurrentInstance">Download to the currently selected instance</sys:String>
-    <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.AskInstance">Choose an instance…</sys:String>
-    <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.AskPath">Choose a folder…</sys:String>
-    <sys:String x:Key="Download.Comp.QuickDownload.ChooseInstance.Title">Choose the Minecraft instance to download to</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Btn.ToolTip">Download the latest version</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.Loading">Getting resource version info, please wait…</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.NoFile">No downloadable files found</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.NoInstance">No Minecraft instance selected!</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.NoCompatibleInstance">No compatible Minecraft instances found</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.NoCompatibleFile">No compatible version found for this instance</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.SelectFolder">Select a folder to save the file</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.DownloadStarted">Started downloading: {0}</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.Title">Select a download destination</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.CurrentInstance">Download to the current instance</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.AskInstance">Select an instance…</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.AskPath">Select a folder…</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.ChooseInstance.Title">Select a target Minecraft instance</sys:String>
 
     <!-- Download.Source / Tag -->
 
