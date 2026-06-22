@@ -1730,11 +1730,11 @@
     <sys:String x:Key="Setup.GameManage.Community.ModManageStyle.TitleTranslation">Title shows translated name, details show file name</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.ModManageStyle.TitleFilename">Title shows file name, details show translated name</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.QuickDownload">Quick download behavior</sys:String>
-    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.ToolTip">Behavior when clicking the quick download button on a resource search result card.</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.ToolTip">Choose what happens when you click the quick download button on a resource card</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.QuickDownload.AlwaysAsk">Always ask</sys:String>
-    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.CurrentInstance">Download to the currently selected instance</sys:String>
-    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.AskInstance">Ask and download to a chosen instance</sys:String>
-    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.AskPath">Ask and download to a folder</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.CurrentInstance">Download to the current instance</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.AskInstance">Ask which instance to use</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.AskPath">Ask where to save</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.HideQuilt">Hide Quilt loader</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.HideQuilt.ToolTip">Hide Quilt from the community resource loader display.</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.AutoInstallDependencies">Auto-check and install required dependencies when downloading mods</sys:String>
