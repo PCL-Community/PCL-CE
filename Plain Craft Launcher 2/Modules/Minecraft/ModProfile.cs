@@ -7,6 +7,7 @@ using PCL.Core.Utils.Secret;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.Core.App.Localization;
+using PCL.Core.IO.Net;
 
 namespace PCL;
 
