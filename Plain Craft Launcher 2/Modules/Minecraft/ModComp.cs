@@ -3537,6 +3537,20 @@ public static class ModComp
                 block = true
             }
         };
+        if (file.Type == CompType.World)
+        {
+            var extractDir = Path.GetDirectoryName(target);
+            loaders.Add(new ModLoader.LoaderTask<int, int>(
+                Lang.Text("Download.Comp.Detail.InstallWorld"),
+                _ => ModBase.ExtractFile(target, extractDir, Encoding.UTF8))
+            {
+                ProgressWeight = 0.1d,
+                block = true
+            });
+            loaders.Add(new ModLoader.LoaderTask<int, int>(
+                Lang.Text("Download.Comp.Detail.CleanCache"),
+                _ => System.IO.File.Delete(target)));
+        }
         var loader = new ModLoader.LoaderCombo<int>(loaderName, loaders)
         {
             OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly
