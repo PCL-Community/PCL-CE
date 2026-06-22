@@ -3411,17 +3411,17 @@ public static class ModComp
                 switch (behavior)
                 {
                     case 1: // 下载到当前选中实例
-                        QuickDownloadToInstance(project, files, ModInstanceList.McMcInstanceSelected);
+                        _QuickDownloadToInstance(project, files, ModInstanceList.McMcInstanceSelected);
                         break;
                     case 2: // 询问并下载到选择的实例
                     {
-                        var instance = QuickDownloadPickInstance(project, files);
+                        var instance = _QuickDownloadPickInstance(project, files);
                         if (instance is null) return;
-                        QuickDownloadToInstance(project, files, instance);
+                        _QuickDownloadToInstance(project, files, instance);
                         break;
                     }
                     case 3: // 询问并下载到一个路径
-                        QuickDownloadToFolder(project, files);
+                        _QuickDownloadToFolder(project, files);
                         break;
                 }
             }
@@ -3433,7 +3433,7 @@ public static class ModComp
     }
 
     /// <summary>下载到指定实例的最新兼容版本。</summary>
-    private static void QuickDownloadToInstance(CompProject project, List<CompFile> files, McInstance? instance)
+    private static void _QuickDownloadToInstance(CompProject project, List<CompFile> files, McInstance? instance)
     {
         if (instance is null)
         {
@@ -3442,23 +3442,23 @@ public static class ModComp
         }
         if (!instance.IsLoaded) instance.Load();
         var compatible = files
-            .Where(f => IsInstanceSuitableForFile(instance, f, ResolveLoaders(f, project)))
+            .Where(f => IsInstanceSuitableForFile(instance, f, _ResolveLoaders(f, project)))
             .ToList();
-        var file = PickLatestFile(compatible);
+        var file = _PickLatestFile(compatible);
         if (file is null)
         {
             HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.NoCompatibleFile"), HintType.Info);
             return;
         }
-        var folder = instance.PathIndie + GetSubFolder(project.Type);
+        var folder = instance.PathIndie + _GetSubFolder(project.Type);
         Directory.CreateDirectory(folder);
         var target = Path.Combine(folder, CompFileNameGet(project, file));
-        StartQuickDownload(file, target);
+        _StartQuickDownload(file, target);
         HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.DownloadStarted", project.RawName), HintType.Success);
     }
 
     /// <summary>弹实例列表让用户选择，返回选中的实例（兼容者优先、当前选中实例居首）；取消或无兼容实例返回 null。</summary>
-    private static McInstance? QuickDownloadPickInstance(CompProject project, List<CompFile> files)
+    private static McInstance? _QuickDownloadPickInstance(CompProject project, List<CompFile> files)
     {
         var needLoad = ModInstanceList.mcInstanceListLoader.State != ModBase.LoadState.Finished;
         if (needLoad)
@@ -3469,7 +3469,7 @@ public static class ModComp
         }
         var compatible = ModInstanceList.mcInstanceList.Values
             .SelectMany(l => l)
-            .Where(v => v is not null && files.Any(f => IsInstanceSuitableForFile(v, f, ResolveLoaders(f, project))))
+            .Where(v => v is not null && files.Any(f => IsInstanceSuitableForFile(v, f, _ResolveLoaders(f, project))))
             .ToList();
         if (compatible.Count == 0)
         {
@@ -3498,9 +3498,9 @@ public static class ModComp
     }
 
     /// <summary>下载最新版本到用户选择的文件夹。</summary>
-    private static void QuickDownloadToFolder(CompProject project, List<CompFile> files)
+    private static void _QuickDownloadToFolder(CompProject project, List<CompFile> files)
     {
-        var file = PickLatestFile(files);
+        var file = _PickLatestFile(files);
         if (file is null)
         {
             HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.NoFile"), HintType.Info);
@@ -3510,12 +3510,12 @@ public static class ModComp
             SystemDialogs.SelectFolder(Lang.Text("Download.Comp.QuickDownload.Hint.SelectFolder")));
         if (string.IsNullOrWhiteSpace(saveFolder)) return; // 取消
         var target = Path.Combine(saveFolder, CompFileNameGet(project, file));
-        StartQuickDownload(file, target);
+        _StartQuickDownload(file, target);
         HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.DownloadStarted", project.RawName), HintType.Success);
     }
 
     /// <summary>构造并启动单文件下载任务（与详情页 Save_Click 末段一致）。</summary>
-    private static void StartQuickDownload(CompFile file, string target)
+    private static void _StartQuickDownload(CompFile file, string target)
     {
         var desc = file.Type switch
         {
@@ -3548,7 +3548,7 @@ public static class ModComp
     }
 
     /// <summary>根据资源类型返回实例内的目标子文件夹（与 Save_Click 一致）。</summary>
-    private static string GetSubFolder(CompType type) => type switch
+    private static string _GetSubFolder(CompType type) => type switch
     {
         CompType.Mod => "mods\\",
         CompType.ResourcePack => "resourcepacks\\",
@@ -3559,7 +3559,7 @@ public static class ModComp
     };
 
     /// <summary>取文件自身声明的加载器，缺失时回退到工程的加载器。</summary>
-    private static List<CompLoaderType> ResolveLoaders(CompFile file, CompProject project)
+    private static List<CompLoaderType> _ResolveLoaders(CompFile file, CompProject project)
         => file.ModLoaders.Count > 0 ? file.ModLoaders : project.ModLoaders;
 
     /// <summary>判断某实例是否兼容该文件（基于 Save_Click 的 isVersionSuitable，补全了 Quilt 判定）。</summary>
@@ -3586,7 +3586,7 @@ public static class ModComp
     }
 
     /// <summary>挑选最新文件：优先 Release，其次按发布日期最新。compatFilter 为空时不做兼容过滤。</summary>
-    private static CompFile? PickLatestFile(List<CompFile> files, Func<CompFile, bool>? compatFilter = null)
+    private static CompFile? _PickLatestFile(List<CompFile> files, Func<CompFile, bool>? compatFilter = null)
     {
         var candidates = (compatFilter is null ? files : files.Where(compatFilter)).ToList();
         if (candidates.Count == 0) return null;

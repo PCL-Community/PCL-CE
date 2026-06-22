@@ -50,7 +50,7 @@ public partial class MyCompItem
             var ani = new List<ModAnimation.AniData>();
             if (IsMouseOver)
             {
-                if (PanButtons is not null && HasActionButtons)
+                if (PanButtons is not null && _HasActionButtons)
                     ani.Add(ModAnimation.AaOpacity(PanButtons, 1d - PanButtons.Opacity, (int)Math.Round(time * 0.35d),
                         (int)Math.Round(time * 0.15d)));
                 ani.AddRange(new[]
@@ -71,7 +71,7 @@ public partial class MyCompItem
             }
             else
             {
-                if (PanButtons is not null && HasActionButtons)
+                if (PanButtons is not null && _HasActionButtons)
                     ani.Add(ModAnimation.AaOpacity(PanButtons, -PanButtons.Opacity, (int)Math.Round(time * 0.4d)));
                 ani.AddRange(new[]
                 {
@@ -160,7 +160,7 @@ public partial class MyCompItem
         // Handles
         LabInfo.MouseEnter += LabInfo_MouseEnter;
         BtnDelete.Click += BtnDelete_Click;
-        BtnDownload.Click += BtnDownload_Click;
+        BtnDownload.Click += _BtnDownload_Click;
     }
 
     // 指向时扩展描述
@@ -224,7 +224,7 @@ public partial class MyCompItem
         set
         {
             BtnDelete.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
-            UpdatePanButtons();
+            _UpdatePanButtons();
         }
     }
 
@@ -235,17 +235,17 @@ public partial class MyCompItem
         set
         {
             BtnDownload.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
-            UpdatePanButtons();
+            _UpdatePanButtons();
         }
     }
 
     /// <summary>右侧是否存在任意可见的操作按钮（收藏 / 下载），用于决定悬停时是否淡入按钮区。</summary>
-    private bool HasActionButtons => ShowFavoriteBtn || ShowDownloadBtn;
+    private bool _HasActionButtons => ShowFavoriteBtn || ShowDownloadBtn;
 
-    private void UpdatePanButtons()
+    private void _UpdatePanButtons()
     {
         if (PanButtons is null) return;
-        PanButtons.Visibility = HasActionButtons ? Visibility.Visible : Visibility.Collapsed;
+        PanButtons.Visibility = _HasActionButtons ? Visibility.Visible : Visibility.Collapsed;
     }
 
     /// <summary>
@@ -277,7 +277,7 @@ public partial class MyCompItem
         }
     }
 
-    private void BtnDownload_Click(object sender, EventArgs e)
+    private void _BtnDownload_Click(object sender, EventArgs e)
     {
         if (PanButtons.Opacity > 0d && Tag is ModComp.CompProject project)
             ModComp.QuickDownload(project);
@@ -394,8 +394,8 @@ public partial class MyCompItem
         var isClickOnButton = false;
 
         if (PanButtons.Visibility == Visibility.Visible)
-            isClickOnButton = IsClickOnActionButton(BtnDelete, clickPosition) ||
-                              IsClickOnActionButton(BtnDownload, clickPosition);
+            isClickOnButton = _IsClickOnActionButton(BtnDelete, clickPosition) ||
+                              _IsClickOnActionButton(BtnDownload, clickPosition);
 
         // 如果点击在按钮上，不处理主项目点击事件
         if (isClickOnButton) return;
@@ -418,7 +418,7 @@ public partial class MyCompItem
     }
 
     // 判断点击是否落在某个操作按钮（收藏 / 下载）上
-    private bool IsClickOnActionButton(FrameworkElement button, Point clickPosition)
+    private bool _IsClickOnActionButton(FrameworkElement button, Point clickPosition)
     {
         if (button is null || button.Visibility != Visibility.Visible) return false;
         var bounds = new Rect(button.TranslatePoint(new Point(0d, 0d), this), button.RenderSize);
