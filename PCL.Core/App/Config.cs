@@ -91,6 +91,10 @@ public static partial class Config
             [ConfigItem<bool>("ToolDownloadClipboard", false)] public partial bool ReadClipboard { get; set; }
             [ConfigItem<int>("ToolDownloadMod", 1)] public partial int CompSourceSolution { get; set; }
             [ConfigItem<int>("ToolModLocalNameStyle", 0)] public partial int UiCompNameSolution { get; set; }
+            /// <summary>
+            /// 资源卡片快速下载行为：0=总是询问，1=下载到当前选中实例，2=询问并下载到选择的实例，3=询问并下载到一个路径。
+            /// </summary>
+            [ConfigItem<int>("ToolDownloadQuickBehavior", 0)] public partial int QuickDownloadBehavior { get; set; }
         }
     }
 

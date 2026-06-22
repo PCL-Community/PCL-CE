@@ -1131,6 +1131,22 @@
     <sys:String x:Key="Download.Comp.Favorites.LoaderName.BatchDownloadSuitable">批量下载合适资源</sys:String>
     <sys:String x:Key="Download.Comp.Favorites.LoaderName.BatchDownload">批量下载资源（{0}）</sys:String>
 
+    <!-- Download.Comp.QuickDownload -->
+
+    <sys:String x:Key="Download.Comp.QuickDownload.Btn.ToolTip">快速下载最新版本</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.Loading">正在获取资源版本信息，请稍候……</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.NoFile">未找到可下载的文件</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.NoInstance">当前未选中任何 Minecraft 实例</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.NoCompatibleInstance">没有与该资源兼容的 Minecraft 实例</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.NoCompatibleFile">未找到适用于该实例的版本</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.SelectFolder">请选择保存位置</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.DownloadStarted">已开始下载：{0}</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.Title">选择下载方式</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.CurrentInstance">下载到当前选中实例</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.AskInstance">选择一个实例…</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.AskPath">选择一个文件夹…</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.ChooseInstance.Title">选择要下载到的 Minecraft 实例</sys:String>
+
     <!-- Download.Source / Tag -->
 
     <sys:String x:Key="Download.Source.CleanroomOfficial">Cleanroom 官方源</sys:String>
@@ -1713,6 +1729,12 @@
     <sys:String x:Key="Setup.GameManage.Community.ModManageStyle.ToolTip">在模组管理页面中，模组项的显示方式</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.ModManageStyle.TitleTranslation">标题显示译名，详情显示文件名</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.ModManageStyle.TitleFilename">标题显示文件名，详情显示译名</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload">快速下载行为</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.ToolTip">点击资源搜索结果卡片上的快速下载按钮时的行为。</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.AlwaysAsk">总是询问</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.CurrentInstance">下载到当前选中实例</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.AskInstance">询问并下载到选择的实例</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.AskPath">询问并下载到一个路径</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.HideQuilt">不显示 Quilt 加载器</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.HideQuilt.ToolTip">不在社区资源的加载器展示中显示 Quilt 加载器</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.AutoInstallDependencies">下载模组时自动检查并安装必需前置</sys:String>
