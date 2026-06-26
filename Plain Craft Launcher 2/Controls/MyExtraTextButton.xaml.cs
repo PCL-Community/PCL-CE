@@ -13,23 +13,17 @@ public partial class MyExtraTextButton
 
     // 自定义事件
     // 务必放在 IsMouseDown 更新之后
-    private const int AnimationColorIn = 120;
-    private const int AnimationColorOut = 150;
+    private const int animationColorIn = 120;
+    private const int animationColorOut = 150;
 
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyExtraTextButton), new PropertyMetadata((sender, e) =>
         {
-            if (sender is not null) ((MyExtraTextButton)sender).LabText.Text = (string)e.NewValue;
+            ((MyExtraTextButton)sender)?.LabText.Text = (string)e.NewValue;
         }));
 
-    private string _Logo = "";
-    private double _LogoScale = 1d;
-
-    // 动画
-    private bool _Show;
-
     // 鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
-    private bool IsLeftMouseHeld;
+    private bool isLeftMouseHeld;
 
     // 自定义属性
     public int Uuid = ModBase.GetUuid();
@@ -37,6 +31,7 @@ public partial class MyExtraTextButton
     public MyExtraTextButton()
     {
         InitializeComponent();
+        RefreshIconHostVisibility();
 
         Loaded += (_, _) => RefreshColor();
         IsEnabledChanged += (_, _) => RefreshColor();
@@ -49,26 +44,82 @@ public partial class MyExtraTextButton
 
     public string Logo
     {
-        get => _Logo;
+        get;
         set
         {
-            if ((value ?? "") == (_Logo ?? ""))
+            if ((value ?? "") == (field ?? ""))
                 return;
-            _Logo = value;
-            Path.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
+            field = value ?? string.Empty;
+            Path.Data = string.IsNullOrWhiteSpace(value)
+                ? null
+                : (Geometry)new GeometryConverter().ConvertFromString(value);
+            SvgIconControlHelper.ApplyVisibility(Path, ShapeSvgIcon, IsUsingSvgIcon);
+            RefreshIconHostVisibility();
+        }
+    } = string.Empty;
+
+    public string SvgIcon
+    {
+        get;
+        set
+        {
+            value ??= string.Empty;
+            if (value == field)
+                return;
+            field = value;
+            if (Path is null || ShapeSvgIcon is null)
+                return;
+            SvgIconControlHelper.ApplyIcon(Path, ShapeSvgIcon, field);
+            ApplyLogoScale();
+            RefreshIconHostVisibility();
+        }
+    } = string.Empty;
+
+    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(SvgIcon);
+
+    private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
+
+    private bool HasAnyIcon => IsUsingSvgIcon || !string.IsNullOrWhiteSpace(Logo);
+
+    private void ApplyLogoScale()
+    {
+        IconHost?.RenderTransform = new ScaleTransform
+        {
+            ScaleX = EffectiveLogoScale,
+            ScaleY = EffectiveLogoScale
+        };
+    }
+
+    private void RefreshIconHostVisibility()
+    {
+        if (IconHost is null || LabText is null)
+            return;
+
+        if (HasAnyIcon)
+        {
+            IconHost.Visibility = Visibility.Visible;
+            IconHost.Width = 16;
+            IconHost.Margin = new Thickness(2, 12, 0, 12);
+            LabText.Margin = new Thickness(12, 0, 0, 0.8);
+        }
+        else
+        {
+            IconHost.Visibility = Visibility.Collapsed;
+            IconHost.Width = 0;
+            IconHost.Margin = new Thickness(0, 12, 0, 12);
+            LabText.Margin = new Thickness(0, 0, 0, 0.8);
         }
     }
 
     public double LogoScale
     {
-        get => _LogoScale;
+        get;
         set
         {
-            _LogoScale = value;
-            if (Path is not null)
-                Path.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
+            field = value;
+            ApplyLogoScale();
         }
-    }
+    } = 1d;
 
     // 显示文本
     public InlineCollection Inlines => LabText.Inlines;
@@ -85,12 +136,12 @@ public partial class MyExtraTextButton
 
     public bool Show
     {
-        get => _Show;
+        get;
         set
         {
-            if (_Show == value)
+            if (field == value)
                 return;
-            _Show = value;
+            field = value;
             ModBase.RunInUi(() =>
             {
                 if (value)
@@ -114,7 +165,7 @@ public partial class MyExtraTextButton
                         {
                             ModAnimation.AaOpacity(this, -Opacity, 50, 50),
                             ModAnimation.AaScaleTransform(this, -((ScaleTransform)RenderTransform).ScaleX, 100,
-                                Ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak))
+                                ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak))
                         }, "MyExtraTextButton MainScale " + Uuid);
                 }
 
@@ -132,9 +183,9 @@ public partial class MyExtraTextButton
             new[]
             {
                 ModAnimation.AaScaleTransform(PanScale, targetScale - ((ScaleTransform)PanScale.RenderTransform).ScaleX,
-                    800, Ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
+                    800, ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
                 ModAnimation.AaScaleTransform(PanScale, reboundScale, reboundDuration,
-                    Ease: new ModAnimation.AniEaseOutFluent())
+                    ease: new ModAnimation.AniEaseOutFluent())
             }, "MyExtraTextButton Scale " + Uuid);
     }
 
@@ -144,14 +195,14 @@ public partial class MyExtraTextButton
             new[]
             {
                 ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 300,
-                    Ease: new ModAnimation.AniEaseOutBack())
+                    ease: new ModAnimation.AniEaseOutBack())
             }, "MyExtraTextButton Scale " + Uuid);
     }
 
     // 触发点击事件
     private void Button_LeftMouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (!IsLeftMouseHeld) return;
+        if (!isLeftMouseHeld) return;
         ModBase.Log("[Control] 按下附加图标按钮：" + Text);
         Click?.Invoke(sender, e);
         e.Handled = true;
@@ -161,34 +212,34 @@ public partial class MyExtraTextButton
 
     private void Button_LeftMouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (!IsLeftMouseHeld)
+        if (!isLeftMouseHeld)
             StartScaleAnimation(0.85d, -0.05d);
-        IsLeftMouseHeld = true;
+        isLeftMouseHeld = true;
         Focus();
     }
 
     private void Button_LeftMouseUp()
     {
         RefreshScaleAfterRelease();
-        IsLeftMouseHeld = false;
+        isLeftMouseHeld = false;
         RefreshColor(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }
 
     private void Button_RightMouseUp(object sender, MouseEventArgs e)
     {
-        if (!IsLeftMouseHeld)
+        if (!isLeftMouseHeld)
             RefreshScaleAfterRelease();
         RefreshColor(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }
 
     private void Button_MouseLeave(object sender, MouseEventArgs e)
     {
-        IsLeftMouseHeld = false;
+        isLeftMouseHeld = false;
         ModAnimation.AniStart(
             new[]
             {
                 ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 500,
-                    Ease: new ModAnimation.AniEaseOutFluent())
+                    ease: new ModAnimation.AniEaseOutFluent())
             }, "MyExtraTextButton Scale " + Uuid);
         RefreshColor(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }
@@ -202,17 +253,17 @@ public partial class MyExtraTextButton
                 if (!IsEnabled)
                     // 禁用
                     ModAnimation.AniStart(
-                        ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrushGray4", AnimationColorIn),
+                        ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrushGray4", animationColorIn),
                         "MyExtraTextButton Color " + Uuid);
                 else if (IsMouseOver)
                     // 指向
                     ModAnimation.AniStart(
-                        ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrush4", AnimationColorIn),
+                        ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrush4", animationColorIn),
                         "MyExtraTextButton Color " + Uuid);
                 else
                     // 普通
                     ModAnimation.AniStart(
-                        ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrush3", AnimationColorOut),
+                        ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrush3", animationColorOut),
                         "MyExtraTextButton Color " + Uuid);
             }
 
@@ -220,7 +271,7 @@ public partial class MyExtraTextButton
             {
                 ControlVisualHelpers.AnimateColorOrSetResource(PanColor, BackgroundProperty,
                     !IsEnabled ? "ColorBrushGray4" : IsMouseOver ? "ColorBrush4" : "ColorBrush3",
-                    !IsEnabled || IsMouseOver ? AnimationColorIn : AnimationColorOut,
+                    !IsEnabled || IsMouseOver ? animationColorIn : animationColorOut,
                     "MyExtraTextButton Color " + Uuid, false);
             }
         }

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.IO.Net;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
@@ -82,7 +83,7 @@ public static class ETController
                     name = "terracotta-mc-" + name;
                     break;
                 default:
-                    throw new NotSupportedException("不支持的大厅类型: " + TargetLobby.Type);
+                    throw new NotSupportedException(Lang.Text("Link.Lobby.UnsupportedType", TargetLobby.Type));
             }
 
             arguments.AddFlag("no-tun");

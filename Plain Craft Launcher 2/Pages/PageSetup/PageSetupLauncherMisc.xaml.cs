@@ -12,9 +12,9 @@ namespace PCL;
 
 public partial class PageSetupLauncherMisc
 {
-    private bool IsFirstLoad = true;
+    private bool isFirstLoad = true;
 
-    private new bool IsLoaded;
+    private new bool isLoaded;
 
     public PageSetupLauncherMisc()
     {
@@ -29,9 +29,9 @@ public partial class PageSetupLauncherMisc
         PanBack.ScrollToHome();
 
         // 非重复加载部分
-        if (IsLoaded)
+        if (isLoaded)
             return;
-        IsLoaded = true;
+        isLoaded = true;
 
         ModAnimation.AniControlEnabled += 1;
         SliderLoad();
@@ -70,7 +70,7 @@ public partial class PageSetupLauncherMisc
             Config.Debug.Reset();
             Config.System.Reset();
             ModBase.Log("[Setup] 已初始化启动器-杂项页设置");
-            ModMain.Hint(Lang.Text("Setup.Misc.Initialized"), ModMain.HintType.Finish, false);
+            HintService.Hint(Lang.Text("Setup.Misc.Initialized"), HintType.Success, false);
             Reload();
         }
         catch (Exception ex)
@@ -86,7 +86,7 @@ public partial class PageSetupLauncherMisc
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetMiscByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+            SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
@@ -94,39 +94,25 @@ public partial class PageSetupLauncherMisc
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
         if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
-            SetMiscByTag(gotCfg[0], int.Parse(gotCfg[1]));
+            SetByTag(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetMiscByTag(sender.Tag?.ToString(), sender.Checked);
+            SetByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetMiscByTag(sender.Tag?.ToString(), sender.Value);
+            SetByTag(sender.Tag?.ToString(), sender.Value);
     }
 
-    private static void SetMiscByTag(string tag, object value)
-    {
-        switch (tag)
-        {
-            case "SystemMaxLog": Config.System.MaxGameLog = (int)value; break;
-            case "SystemDebugMode": Config.Debug.Enabled = (bool)value; break;
-            case "SystemDebugAnim": Config.Debug.AnimationSpeed = (int)value; break;
-            case "SystemDebugDelay": Config.Debug.AddRandomDelay = (bool)value; break;
-            case "SystemDebugSkipCopy": Config.Debug.DontCopy = (bool)value; break;
-            case "SystemDisableHardwareAcceleration": Config.System.DisableHardwareAcceleration = (bool)value; break;
-            case "SystemHttpProxyType": Config.Network.HttpProxy.Type = (int)value; break;
-            case "SystemNetEnableDoH": Config.Network.EnableDoH = (bool)value; break;
-            case "SystemTelemetry": Config.System.Telemetry = (bool)value; break;
-            case "UiAniFPS": Config.System.AnimationFpsLimit = (int)value; break;
-        }
-    }
+    private static void SetByTag(string tag, object value)
+        => ConfigService.TrySetValue(tag, value);
 
     // 网络
     private void ApplyHttpProxyBtn_OnClicked(object sender, MouseButtonEventArgs e)
@@ -139,15 +125,15 @@ public partial class PageSetupLauncherMisc
     // 滑动条
     private void SliderLoad()
     {
-        SliderDebugAnim.GetHintText = new Func<object, object>(v =>
+        SliderDebugAnim.getHintText = new Func<object, object>(v =>
             (int)v > 29
                 ? Lang.Text("Common.Action.Close")
                 : Lang.Number(Math.Round(Convert.ToDouble(v) / 10 + 0.1d, 1), "N1") + "x");
-        SliderAniFPS.GetHintText = new Func<object, string>(v => Lang.Number(Convert.ToInt32(v) + 1, "N0") + " FPS");
+        SliderAniFPS.getHintText = new Func<object, string>(v => Lang.Number(Convert.ToInt32(v) + 1, "N0") + " FPS");
         // y = 10x + 50 (0 <= x <= 5, 50 <= y <= 100)
         // y = 50x - 150 (5 < x <= 13, 100 < y <= 500)
         // y = 100x - 800 (13 < x <= 28, 500 < y <= 2000)
-        SliderMaxLog.GetHintText = new Func<object, object>(v =>
+        SliderMaxLog.getHintText = new Func<object, object>(v =>
         {
             var val = Convert.ToInt32(v);
             return val switch
@@ -163,14 +149,14 @@ public partial class PageSetupLauncherMisc
     // 硬件加速
     private void Check_DisableHardwareAcceleration(object _, bool __)
     {
-        ModMain.Hint(Lang.Text("Setup.Misc.HardwareAcceleration.RestartNotice"));
+        HintService.Hint(Lang.Text("Setup.Misc.HardwareAcceleration.RestartNotice"));
     }
 
     // 调试模式
     private void CheckDebugMode_Change(object _, bool __)
     {
         if (ModAnimation.AniControlEnabled == 0)
-            ModMain.Hint(Lang.Text("Setup.Misc.Debug.Mode.Hint"), Log: false);
+            HintService.Hint(Lang.Text("Setup.Misc.Debug.Mode.Hint"), log: false);
     }
 
     // 自动更新
@@ -184,7 +170,7 @@ public partial class PageSetupLauncherMisc
                 Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Message"),
                 Lang.Text("Common.Dialog.Warning"),
                 Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Confirm"),
-                Lang.Text("Common.Action.Cancel"), IsWarn: true) ==
+                Lang.Text("Common.Action.Cancel"), isWarn: true) ==
             2) ComboSystemActivity.SelectedItem = e.RemovedItems[0];
     }
 
@@ -211,11 +197,11 @@ public partial class PageSetupLauncherMisc
     private void BtnSystemSettingExp_Click(object sender, MouseButtonEventArgs e)
     {
         var savePath =
-            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.Export.SaveTitle"), "PCL 全局配置.json", Lang.Text("Setup.Misc.Export.Filter"), ModBase.ExePath);
+            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.Export.SaveTitle"), "PCL 全局配置.json", Lang.Text("Setup.Misc.Export.Filter"), ModBase.exePath);
         if (string.IsNullOrWhiteSpace(savePath))
             return;
         File.Copy(ConfigService.SharedConfigPath, savePath, true);
-        ModMain.Hint(Lang.Text("Setup.Misc.Export.Success"), ModMain.HintType.Finish);
+        HintService.Hint(Lang.Text("Setup.Misc.Export.Success"), HintType.Success);
         ModBase.OpenExplorer(savePath);
     }
 
@@ -225,7 +211,7 @@ public partial class PageSetupLauncherMisc
         if (string.IsNullOrWhiteSpace(sourcePath))
             return;
         File.Copy(sourcePath, ConfigService.SharedConfigPath, true);
-        ModMain.MyMsgBox(Lang.Text("Setup.Misc.Import.Success.Message"), Button1: Lang.Text("Setup.Misc.Import.Success.Restart"), ForceWait: true);
+        ModMain.MyMsgBox(Lang.Text("Setup.Misc.Import.Success.Message"), button1: Lang.Text("Setup.Misc.Import.Success.Restart"), forceWait: true);
         Process.Start(new ProcessStartInfo(Basics.ExecutablePath));
         FormMain.EndProgramForce();
     }

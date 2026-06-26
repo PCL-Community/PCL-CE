@@ -383,11 +383,11 @@
                                           ToolTipService.Placement="Right"
                                           ToolTip="{DynamicResource Setup.Launch.Advanced.DisableJlw.ToolTip}" />
                         <local:MyCheckBox Height="28"
-                                          Text="{DynamicResource Setup.Launch.Advanced.DisableRw}"
-                                          x:Name="CheckAdvanceDisableRW"
-                                          Tag="VersionAdvanceDisableRW"
+                                          Text="{DynamicResource Setup.Launch.Advanced.DisableLF}"
+                                          x:Name="CheckAdvanceDisableLF"
+                                          Tag="VersionAdvanceDisableLF"
                                           ToolTipService.Placement="Right"
-                                          ToolTip="{DynamicResource Setup.Launch.Advanced.DisableRw.ToolTip}" />
+                                          ToolTip="{DynamicResource Setup.Launch.Advanced.DisableLF.ToolTip}" />
                         <local:MyCheckBox Height="28" Text="{DynamicResource Instance.Setup.Advanced.UseDebugLog4j}"
                                           x:Name="CheckUseDebugLog4j2Config"
                                           Tag="VersionUseDebugLog4j2Config"
@@ -404,7 +404,7 @@
             <local:MyExtraTextButton HorizontalAlignment="Center" Margin="0,-5,0,0"
                                      x:Name="BtnSwitch" Text="{DynamicResource Instance.Setup.OpenGlobalSettings}"
                                      LogoScale="0.9"
-                                     Logo="M73 584L920 584 608 896C579 925 579 972 608 1001 637 1030 683 1030 712 1001L1149 565C1164 550 1170 531 1170 511 1170 492 1164 472 1149 457L712 21C683-7 637-7 608 21 579 50 579 97 608 126L920 438 73 438C33 438 0 471 0 511 0 551 33 584 73 584Z" />
+                                     SvgIcon="lucide/arrow-right" />
         </StackPanel>
     </local:MyScrollViewer>
 </local:MyPageRight>

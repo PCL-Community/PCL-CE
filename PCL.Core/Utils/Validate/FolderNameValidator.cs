@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using FluentValidation;
@@ -11,7 +11,7 @@ public class FolderNameValidator(
     string? parentFolder = null,
     bool useMinecraftCharCheck = true,
     bool ignoreCase = true,
-    bool ignoreSameNameInParentFolder = true)
+    bool ignoreSameNameInParentFolder = false)
     : FileSystemValidator
 {
     public bool UseMinecraftCharCheck { get; set; } = useMinecraftCharCheck;
@@ -23,7 +23,7 @@ public class FolderNameValidator(
     {
     }
 
-    private void BuildRules()
+    private void _BuildRules()
     {
         RuleFor(x => x)
             .Must(x => !string.IsNullOrWhiteSpace(x)).WithMessage("输入内容不能为空！")
@@ -55,7 +55,7 @@ public class FolderNameValidator(
                 if (!dirInfo.Exists) return true;
                 if (IgnoreSameNameInParentFolder) return true;
                     
-                return !dirInfo.EnumerateFiles().Select(f => f.Name).Contains(x,
+                return !dirInfo.EnumerateDirectories().Select(f => f.Name).Contains(x,
                     IgnoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 
             }).WithMessage("不可与现有文件夹重名！");
@@ -63,7 +63,7 @@ public class FolderNameValidator(
 
     protected override bool PreValidate(ValidationContext<string> context, ValidationResult result)
     {
-        BuildRules();
+        _BuildRules();
         return base.PreValidate(context, result);
     }
 }

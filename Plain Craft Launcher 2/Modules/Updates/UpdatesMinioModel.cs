@@ -1,7 +1,9 @@
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
+using System.Text.Json.Serialization;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Diff;
 using PCL.Network;
@@ -16,10 +18,10 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
 
     private Dictionary<string, string> _remoteCache;
 
-    public UpdatesMinioModel(string BaseUrl, string Name = "Minio")
+    public UpdatesMinioModel(string baseUrl, string name = "Minio")
     {
-        _baseUrl = BaseUrl;
-        SourceName = Name;
+        _baseUrl = baseUrl;
+        SourceName = name;
     }
 
     public string SourceName { get; set; }
@@ -33,7 +35,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
     {
         // 先检查缓存
         var remoteCache =
-            JsonNode.Parse(Requester.FetchString($"{_baseUrl}apiv2/cache.json", RequestParam.WithRetry));
+            ModBase.GetJson(Requester.FetchString($"{_baseUrl}apiv2/cache.json", RequestParam.WithRetry));
         _remoteCache = remoteCache.ToObject<Dictionary<string, string>>();
         return true;
     }
@@ -70,36 +72,36 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             RefreshCache();
         var loaders = new List<ModLoader.LoaderBase>();
         var patchUpdate = true;
-        var tempPath = $@"{ModBase.PathTemp}Cache\Update\Download\";
-        loaders.Add(new ModLoader.LoaderTask<int, List<DownloadFile>>("获取版本信息", load =>
+        var tempPath = $@"{ModBase.pathTemp}Cache\Update\Download\";
+        loaders.Add(new ModLoader.LoaderTask<int, List<DownloadFile>>(Lang.Text("Update.Task.GetVersionInfo"), load =>
         {
             var channelName = GetChannelName(channel, arch);
             var deJsonData = GetRemoteInfoByName($"updates-{channelName}", "updates/")
                 ?.ToObject<MinioUpdateModel>()
-                ?.assets
+                ?.Assets
                 ?.FirstOrDefault();
             if (deJsonData is null)
                 throw new Exception("No assets can download!");
             var selfSha256 = ModBase.GetFileSHA256(Basics.ExecutablePath);
-            var remoteUpdSha256 = deJsonData.sha256;
+            var remoteUpdSha256 = deJsonData.Sha256;
             var patchFileName = $"{selfSha256}_{remoteUpdSha256}.patch";
-            if (deJsonData.patches.Contains(patchFileName))
+            if (deJsonData.Patches.Contains(patchFileName))
             {
                 patchUpdate = true;
                 tempPath += patchFileName;
-                load.Output = new List<DownloadFile>
+                load.output = new List<DownloadFile>
                     { new(new[] { $"{_baseUrl}static/patch/{patchFileName}" }, tempPath) };
             }
             else
             {
                 patchUpdate = false;
 
-                tempPath += $"{deJsonData.sha256}.bin";
-                load.Output = new List<DownloadFile> { new(RandomUtils.Shuffle(deJsonData.downloads), tempPath) };
+                tempPath += $"{deJsonData.Sha256}.bin";
+                load.output = new List<DownloadFile> { new(RandomUtils.Shuffle(deJsonData.Downloads), tempPath) };
             }
         }));
-        loaders.Add(new LoaderDownload("下载文件", new List<DownloadFile>()));
-        loaders.Add(new ModLoader.LoaderTask<string, int>("应用文件", _ =>
+        loaders.Add(new LoaderDownload(Lang.Text("Update.Task.DownloadFile"), new List<DownloadFile>()));
+        loaders.Add(new ModLoader.LoaderTask<string, int>(Lang.Text("Update.Task.ApplyFile"), _ =>
         {
             if (patchUpdate)
             {
@@ -127,7 +129,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                         .FirstOrDefault(x => x.Name.Contains(".exe"));
 
                     if (entry is null)
-                        throw new Exception("找不到更新文件");
+                        throw new Exception(Lang.Text("Update.Error.FileNotFound"));
 
                     // 解压到指定文件（覆盖已存在文件）
                     entry.ExtractToFile(output, true);
@@ -140,27 +142,27 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
     private VersionDataModel GetChannelInfo(UpdateChannel channel, UpdateArch arch)
     {
         var channelName = GetChannelName(channel, arch);
-        var deJsonData = GetRemoteInfoByName($"updates-{channelName}", "updates/")?.ToObject<MinioUpdateModel>().assets
+        var deJsonData = GetRemoteInfoByName($"updates-{channelName}", "updates/")?.ToObject<MinioUpdateModel>().Assets
             .FirstOrDefault();
         if (deJsonData is null)
             throw new NullReferenceException("Can not get remote update info!");
         return new VersionDataModel
         {
-            VersionName = deJsonData.version.name,
-            VersionCode = deJsonData.version.code,
-            SHA256 = deJsonData.sha256,
+            VersionName = deJsonData.Version.Name,
+            VersionCode = deJsonData.Version.Code,
+            Sha256 = deJsonData.Sha256,
             Source = SourceName,
-            Changelog = deJsonData.changelog
+            Changelog = deJsonData.Changelog
         };
     }
 
     private JsonNode GetRemoteInfoByName(string name, string path = "")
     {
-        var localInfoFile = Path.Combine(ModBase.PathTemp, "Cache", "Update", $"{name}.json");
+        var localInfoFile = Path.Combine(ModBase.pathTemp, "Cache", "Update", $"{name}.json");
         JsonNode jsonData;
         if (IsCacheValid($"{name}.json", _remoteCache[name]))
         {
-            jsonData = JsonNode.Parse(ModBase.ReadFile(localInfoFile));
+            jsonData = ModBase.GetJson(ModBase.ReadFile(localInfoFile));
         }
         else
         {
@@ -170,7 +172,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                 .GetResult();
 
             var content = response.AsString();
-            jsonData = JsonNode.Parse(content);
+            jsonData = ModBase.GetJson(content);
             ModBase.WriteFile(localInfoFile, content);
         }
 
@@ -185,7 +187,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
     /// <returns></returns>
     private bool IsCacheValid(string path, string hash)
     {
-        var cacheFile = Path.Combine(ModBase.PathTemp, "Cache", "Update", path);
+        var cacheFile = Path.Combine(ModBase.pathTemp, "Cache", "Update", path);
         var fileInfo = new FileInfo(cacheFile);
         return fileInfo.Exists && (DateTime.Now - fileInfo.LastWriteTime).TotalHours < 1 &&
                (ModBase.GetFileMD5(cacheFile) ?? "") == (hash ?? "");
@@ -193,23 +195,23 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
 
     private string GetChannelName(UpdateChannel channel, UpdateArch arch)
     {
-        var ChannelName = string.Empty;
+        var channelName = string.Empty;
         switch (channel)
         {
             case UpdateChannel.stable:
             {
-                ChannelName += "sr";
+                channelName += "sr";
                 break;
             }
             case UpdateChannel.beta:
             {
-                ChannelName += "fr";
+                channelName += "fr";
                 break;
             }
 
             default:
             {
-                ChannelName += "sr";
+                channelName += "sr";
                 break;
             }
         }
@@ -218,45 +220,64 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
         {
             case UpdateArch.x64:
             {
-                ChannelName += "x64";
+                channelName += "x64";
                 break;
             }
             case UpdateArch.arm64:
             {
-                ChannelName += "arm64";
+                channelName += "arm64";
                 break;
             }
 
             default:
             {
-                ChannelName += "x64";
+                channelName += "x64";
                 break;
             }
         }
 
-        return ChannelName;
+        return channelName;
     }
 
     private class MinioUpdateModel
     {
-        public List<MinioUpdateAsset> assets { get; set; }
+        [JsonPropertyName("assets")]
+        public List<MinioUpdateAsset> Assets { get; set; }
     }
 
     private class MinioUpdateAsset
     {
-        public string file_name { get; set; }
-        public MinioUpdateAssetVersionInfo version { get; set; }
-        public string upd_time { get; set; }
-        public List<string> downloads { get; set; }
-        public List<string> patches { get; set; }
-        public string sha256 { get; set; }
-        public string changelog { get; set; }
+        [JsonPropertyName("file_name")]
+        public string FileName { get; set; }
+
+        [JsonPropertyName("version")]
+        public MinioUpdateAssetVersionInfo Version { get; set; }
+
+        [JsonPropertyName("upd_time")]
+        public string UpdTime { get; set; }
+
+        [JsonPropertyName("downloads")]
+        public List<string> Downloads { get; set; }
+
+        [JsonPropertyName("patches")]
+        public List<string> Patches { get; set; }
+
+        [JsonPropertyName("sha256")]
+        public string Sha256 { get; set; }
+
+        [JsonPropertyName("changelog")]
+        public string Changelog { get; set; }
     }
 
     private class MinioUpdateAssetVersionInfo
     {
-        public string channel { get; set; }
-        public string name { get; set; }
-        public int code { get; set; }
+        [JsonPropertyName("channel")]
+        public string Channel { get; set; }
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+
+        [JsonPropertyName("code")]
+        public int Code { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -175,7 +175,7 @@ public class ConfigItem<TValue>(
         if (e is { Cancelled: true }) return false;
         _Provider.Delete(Key, argument);
         if (EnableCache) _valueCache.Invalidate(argument);
-        _TriggerEvent(ConfigEvent.Reset, argument, null, isPreview: false);
+        _TriggerEvent(ConfigEvent.Reset, argument, DefaultValueNoType, isPreview: false);
         return true;
     }
 

@@ -39,7 +39,7 @@ public static class Requester
 
     public static async Task<JsonNode> FetchJsonAsync(string url, RequestParam param = default)
     {
-        return JsonNode.Parse(await FetchStringAsync(url, param).ConfigureAwait(false))!;
+        return ModBase.GetJson(await FetchStringAsync(url, param).ConfigureAwait(false));
     }
 
     public static async Task<T> FetchJsonAsync<T>(string url, RequestParam param = default) where T : JsonNode
@@ -108,9 +108,16 @@ public static class Requester
                     request.Headers.TryAddWithoutValidation(header.Key, header.Value);
             if (SupportBody(request.Method) && param.Content is not null)
             {
-                var content = param.Content is string text ? text : param.Content.ToString() ?? "";
-                request.Content = new StringContent(content, param.Encoding ?? Encoding.UTF8,
-                    param.ContentType ?? "application/json");
+                if (param.Content is HttpContent httpContent)
+                {
+                    request.Content = httpContent;
+                }
+                else
+                {
+                    var content = param.Content is string text ? text : param.Content.ToString() ?? "";
+                    request.Content = new StringContent(content, param.Encoding ?? Encoding.UTF8,
+                        param.ContentType ?? "application/json");
+                }
             }
 
             using var cts = new CancellationTokenSource();
@@ -128,12 +135,12 @@ public static class Requester
 
     public static async Task DownloadFileAsync(string url, string filePath)
     {
-        await FileDownloader.Download(url, filePath).ConfigureAwait(false);
+        await FileDownloader.DownloadAsync(url, filePath).ConfigureAwait(false);
     }
 
     public static async Task DownloadFileOnceAsync(string url, string filePath)
     {
-        await FileDownloader.Download(url, filePath).ConfigureAwait(false);
+        await FileDownloader.DownloadAsync(url, filePath).ConfigureAwait(false);
     }
 
     public static DownloadService CreateDownloadService(string url, bool useBrowserUserAgent = false)
@@ -144,7 +151,7 @@ public static class Requester
             ParallelCount = Math.Max(1, ModNet.NetTaskThreadLimit),
             ParallelDownload = ModNet.NetTaskThreadLimit > 1,
             MaximumBytesPerSecond = ModNet.NetTaskSpeedLimitHigh > 0 ? ModNet.NetTaskSpeedLimitHigh : 0,
-            DownloadFileExtension = ModNet.NetDownloadEnd,
+            DownloadFileExtension = ModNet.netDownloadEnd,
             EnableAutoResumeDownload = false,
             RequestConfiguration = DownloadRequestFactory.Create(url, useBrowserUserAgent)
         });

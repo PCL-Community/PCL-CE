@@ -10,6 +10,7 @@ using PCL.Core.App.Cli;
 using PCL.Core.App.IoC;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
+using PCL.Core.Utils;
 
 namespace PCL.Core.App.Essentials;
 
@@ -115,7 +116,6 @@ public sealed partial class StartupService
         IEnumerable<SubcommandDefinition> subcommands = [
             ("update", [("execute"), ("success"), ("failed")]),
             ("activate", []),
-            ("memory", []),
             ("promote", []),
         ];
         Context.Debug("正在解析命令行参数...");
@@ -139,7 +139,7 @@ public sealed partial class StartupService
         if (content is null) return RpcResponse.Err("Must provide valid JSON model");
         try
         {
-            var models = JsonSerializer.Deserialize<Dictionary<string, CommandLine>>(content);
+            var models = JsonSerializer.Deserialize<Dictionary<string, CommandLine>>(content, JsonCompat.SerializerOptions);
             if (models is null) return RpcResponse.Err("Invalid JSON: empty/null content");
             Task.Run(() =>
             {

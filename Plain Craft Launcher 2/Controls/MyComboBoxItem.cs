@@ -8,10 +8,10 @@ public class MyComboBoxItem : ComboBoxItem
 {
     // 指向动画
 
-    private const int AnimationTimeIn = 100;
-    private const int AnimationTimeOut = 300;
-    private string BackColorName;
-    private double FontOpacity;
+    private const int animationTimeIn = 100;
+    private const int animationTimeOut = 300;
+    private string backColorName;
+    private double fontOpacity;
 
     // 基础
 
@@ -31,38 +31,38 @@ public class MyComboBoxItem : ComboBoxItem
     private void RefreshColor()
     {
         // 判断当前颜色
-        string NewBackColorName;
-        double NewFontOpacity;
-        int Time;
+        string newBackColorName;
+        double newFontOpacity;
+        int time;
         if (IsSelected)
         {
-            NewBackColorName = "ColorBrush6";
-            NewFontOpacity = 1d;
-            Time = AnimationTimeIn;
+            newBackColorName = "ColorBrush6";
+            newFontOpacity = 1d;
+            time = animationTimeIn;
         }
         else if (IsMouseOver)
         {
-            NewBackColorName = "ColorBrush8";
-            NewFontOpacity = 1d;
-            Time = AnimationTimeIn;
+            newBackColorName = "ColorBrush8";
+            newFontOpacity = 1d;
+            time = animationTimeIn;
         }
         else if (IsEnabled)
         {
-            NewBackColorName = "ColorBrushTransparent";
-            NewFontOpacity = 1d;
-            Time = AnimationTimeOut;
+            newBackColorName = "ColorBrushTransparent";
+            newFontOpacity = 1d;
+            time = animationTimeOut;
         }
         else
         {
-            NewBackColorName = "ColorBrushTransparent";
-            NewFontOpacity = 0.4d;
-            Time = AnimationTimeOut;
+            newBackColorName = "ColorBrushTransparent";
+            newFontOpacity = 0.4d;
+            time = animationTimeOut;
         }
 
-        if ((BackColorName ?? "") == (NewBackColorName ?? "") && FontOpacity == NewFontOpacity)
+        if ((backColorName ?? "") == (newBackColorName ?? "") && fontOpacity == newFontOpacity)
             return;
-        BackColorName = NewBackColorName;
-        FontOpacity = NewFontOpacity;
+        backColorName = newBackColorName;
+        fontOpacity = newFontOpacity;
         // 触发颜色动画
         if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
         {
@@ -70,16 +70,16 @@ public class MyComboBoxItem : ComboBoxItem
             ModAnimation.AniStart(
                 new[]
                 {
-                    ModAnimation.AaColor(this, BackgroundProperty, BackColorName, Time),
-                    ModAnimation.AaOpacity(this, FontOpacity - Opacity, Time)
+                    ModAnimation.AaColor(this, BackgroundProperty, backColorName, time),
+                    ModAnimation.AaOpacity(this, fontOpacity - Opacity, time)
                 }, "ComboBoxItem Color " + Uuid);
         }
         else
         {
             // 无动画
             ModAnimation.AniStop("ComboBoxItem Color " + Uuid);
-            SetResourceReference(BackgroundProperty, BackColorName);
-            Opacity = FontOpacity;
+            SetResourceReference(BackgroundProperty, backColorName);
+            Opacity = fontOpacity;
         }
     }
 
@@ -88,9 +88,9 @@ public class MyComboBoxItem : ComboBoxItem
         return Content?.ToString() ?? "";
     }
 
-    public static implicit operator string(MyComboBoxItem Value)
+    public static implicit operator string(MyComboBoxItem value)
     {
-        return Value.Content?.ToString() ?? "";
+        return value.Content?.ToString() ?? "";
     }
 
     private void MyComboBoxItem_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)

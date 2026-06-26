@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Encodings.Web;
@@ -6,6 +6,7 @@ using System.Text.Json;
 using PCL.Core.App.IoC;
 using PCL.Core.Logging;
 using PCL.Core.Utils.Diagnostics;
+using PCL.Core.Utils;
 
 namespace PCL.Core.App.Configuration.Storage;
 
@@ -79,7 +80,7 @@ public abstract class ConfigStorage : IConfigProvider
         return hasOutput;
     }
 
-    private static readonly JsonSerializerOptions _SerializerOptions = new()
+    private static readonly JsonSerializerOptions _SerializerOptions = new(JsonCompat.SerializerOptions)
     {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };

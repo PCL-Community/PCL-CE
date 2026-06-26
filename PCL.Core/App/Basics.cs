@@ -1,7 +1,7 @@
-﻿using System;
+using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Threading;
@@ -22,7 +22,7 @@ public static class Basics
     /// 启动器元数据。
     /// </summary>
     public static MetadataModel Metadata { get; } = JsonSerializer.Deserialize<MetadataModel>(
-        Assembly.GetEntryAssembly()!.GetManifestResourceStream("PCL.metadata.json")!)!;
+        Assembly.GetEntryAssembly()!.GetManifestResourceStream("PCL.metadata.json")!, JsonCompat.SerializerOptions)!;
 
     /// <summary>
     /// 版本名称。
@@ -158,7 +158,19 @@ public static class Basics
             UseShellExecute = true,
             CreateNoWindow = true
         };
-        Process.Start(psi);
+        try
+        {
+            Process.Start(psi);
+        }
+        catch (Win32Exception ex) when (ex.NativeErrorCode == 1155 && File.Exists(path))
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "notepad.exe",
+                Arguments = $"\"{path}\"",
+                UseShellExecute = false
+            });
+        }
     }
     #endregion
 

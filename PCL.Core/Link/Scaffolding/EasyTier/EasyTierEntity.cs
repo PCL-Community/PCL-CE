@@ -3,14 +3,12 @@ using PCL.Core.Link.EasyTier;
 using PCL.Core.Link.Scaffolding.Client.Models;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
-using Polly;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -106,7 +104,7 @@ public class EasyTierEntity
             _etProcess.Start();
             State = EtState.Active;
 
-            var cli = _GetCliOutputDebug();
+            var cli = _GetCliOutputDebugAsync();
             
             _etProcess.Exited += (_, _) => EasyTierProcessExisted?.Invoke();
         }
@@ -416,7 +414,7 @@ public class EasyTierEntity
         return localPort;
     }
 
-    private async Task _GetCliOutputDebug()
+    private async Task _GetCliOutputDebugAsync()
     {
         while (State != EtState.Stopped && Config.Link.EnableCliOutput)
         {
@@ -502,7 +500,7 @@ public class EasyTierEntity
             var output = stdOut + stdErr;
             //LogWrapper.Debug("ET Cli", output);
 
-            if (JsonNode.Parse(output) is not JsonArray jArray)
+            if (JsonCompat.ParseNode(output) is not JsonArray jArray)
             {
                 return new EtPlayerList(null, null);
             }
@@ -514,7 +512,7 @@ public class EasyTierEntity
             {
                 LogWrapper.Debug("Et Cli", "Getting player info.");
 
-                var info = arr.Deserialize<ETPeerInfo>();
+                var info = arr.Deserialize<ETPeerInfo>(JsonCompat.SerializerOptions);
                 if (info is null)
                 {
                     LogWrapper.Debug("Et Cli", "Player info is null.");

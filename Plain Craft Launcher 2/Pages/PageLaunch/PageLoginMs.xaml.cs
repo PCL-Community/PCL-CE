@@ -16,7 +16,7 @@ public partial class PageLoginMs
 
     private void BtnBack_Click(object sender, EventArgs e)
     {
-        ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
+        ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
     }
 
     private void BtnLogin_Click(object sender, EventArgs e)
@@ -28,26 +28,26 @@ public partial class PageLoginMs
         {
             try
             {
-                ModProfile.SelectedProfile = null;
-                ModLaunch.McLoginMsLoader.Start(ModProfile.GetLoginData(ModLaunch.McLoginType.Ms), true);
-                while (ModLaunch.McLoginMsLoader.State == ModBase.LoadState.Loading)
+                ModProfile.selectedProfile = null;
+                ModLaunch.mcLoginMsLoader.Start(ModProfile.GetLoginData(ModLaunch.McLoginType.Ms), true);
+                while (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Loading)
                 {
-                    ModBase.RunInUi(() => BtnLogin.Text = Lang.Number(ModLaunch.McLoginMsLoader.Progress, "P0"));
+                    ModBase.RunInUi(() => BtnLogin.Text = Lang.Number(ModLaunch.mcLoginMsLoader.Progress, "P0"));
                     Thread.Sleep(50);
                 }
 
-                if (ModLaunch.McLoginMsLoader.State == ModBase.LoadState.Finished)
-                    ModBase.RunInUi(() => ModMain.FrmLaunchLeft.RefreshPage(true));
-                else if (ModLaunch.McLoginMsLoader.State == ModBase.LoadState.Aborted)
+                if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Finished)
+                    ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
+                else if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Aborted)
                     throw new ThreadInterruptedException();
-                else if (ModLaunch.McLoginMsLoader.Error is null)
+                else if (ModLaunch.mcLoginMsLoader.Error is null)
                     throw new Exception(Lang.Text("Launch.Account.Microsoft.Error.Unknown"));
                 else
-                    throw new Exception(ModLaunch.McLoginMsLoader.Error.Message, ModLaunch.McLoginMsLoader.Error);
+                    throw new Exception(ModLaunch.mcLoginMsLoader.Error.Message, ModLaunch.mcLoginMsLoader.Error);
             }
             catch (ThreadInterruptedException ex)
             {
-                ModMain.Hint(Lang.Text("Launch.Account.LoginCancelled"));
+                HintService.Hint(Lang.Text("Launch.Account.LoginCancelled"));
             }
             catch (Exception ex)
             {
@@ -56,7 +56,7 @@ public partial class PageLoginMs
                 }
                 else if (ex.Message.StartsWith("$"))
                 {
-                    ModMain.Hint(ex.Message.TrimStart('$'), ModMain.HintType.Critical);
+                    HintService.Hint(ex.Message.TrimStart('$'), HintType.Error);
                 }
                 else if (ex is AuthenticationException && ex.Message.ContainsF("SSL/TLS"))
                 {

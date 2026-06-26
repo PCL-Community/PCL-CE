@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Link.EasyTier;
 using PCL.Core.Link.Lobby;
 using PCL.Core.Link.McPing;
@@ -23,14 +24,14 @@ public static class ModLink
     {
         if (!LobbyInfoProvider.IsLobbyAvailable)
         {
-            ModMain.Hint("大厅功能暂不可用，请稍后再试", ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Link.Mod.LobbyUnavailable"), HintType.Error);
             return false;
         }
 
-        if (ModProfile.SelectedProfile is not null)
-            if (ModProfile.SelectedProfile.Username.Contains("|"))
+        if (ModProfile.selectedProfile is not null)
+            if (ModProfile.selectedProfile.Username.Contains("|"))
             {
-                ModMain.Hint("MC 玩家 ID 不可包含分隔符 (|) ！");
+                HintService.Hint(Lang.Text("Link.Mod.InvalidPlayerId"));
                 return false;
             }
 
@@ -38,7 +39,7 @@ public static class ModLink
         {
             if (string.IsNullOrWhiteSpace(States.Link.NaidRefreshToken))
             {
-                ModMain.Hint("请先前往联机设置并登录至 Natayark Network 再进行联机！", ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Link.Mod.LoginFirst"), HintType.Error);
                 return false;
             }
 
@@ -50,7 +51,7 @@ public static class ModLink
             catch (Exception ex)
             {
                 ModBase.Log("[Link] 刷新 Natayark ID 信息失败，需要重新登录");
-                ModMain.Hint("请重新登录 Natayark Network 账号再试！", ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Link.Mod.ReLoginRequired"), HintType.Error);
                 return false;
             }
 
@@ -65,48 +66,48 @@ public static class ModLink
 
             if (string.IsNullOrWhiteSpace(NatayarkProfileManager.NaidProfile.Username))
             {
-                ModMain.Hint("尝试获取 Natayark ID 信息失败", ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Link.Mod.NaidFetchFailed"), HintType.Error);
                 return false;
             }
 
             if (LobbyInfoProvider.RequiresRealName && !NatayarkProfileManager.NaidProfile.IsRealNamed)
             {
-                ModMain.Hint("请先前往 Natayark 账户中心进行实名验证再尝试操作！", ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Link.Mod.RealNameRequired"), HintType.Error);
                 return false;
             }
 
             if (NatayarkProfileManager.NaidProfile.Status != 0)
             {
-                ModMain.Hint("你的 Natayark Network 账号状态异常，可能已被封禁！", ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Link.Mod.AccountBanned"), HintType.Error);
                 return false;
             }
         }
 
         if (string.IsNullOrWhiteSpace(Config.Link.Username) && string.IsNullOrWhiteSpace(NatayarkProfileManager.NaidProfile.Username))
         {
-            ModMain.Hint("请先前往设置输入一个用户名，或登录至 Natayark Network 再进行联机！", ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Link.Mod.UsernameOrLogin"), HintType.Error);
             return false;
         }
 
         if (ETController.Precheck() == 1)
         {
-            ModMain.Hint("正在下载联机依赖组件，请稍后...");
+            HintService.Hint(Lang.Text("Link.Mod.DownloadingDeps"));
             DownloadEasyTier();
             return false;
         }
 
-        if (DlEasyTierLoader is not null)
+        if (dlEasyTierLoader is not null)
         {
-            if (DlEasyTierLoader.State == ModBase.LoadState.Loading)
+            if (dlEasyTierLoader.State == ModBase.LoadState.Loading)
             {
-                ModMain.Hint("EasyTier 尚未下载完成，请等待其下载完成后再试！");
+                HintService.Hint(Lang.Text("Link.Mod.EasyTierNotReady"));
                 return false;
             }
 
-            if (DlEasyTierLoader.State == ModBase.LoadState.Failed ||
-                DlEasyTierLoader.State == ModBase.LoadState.Aborted)
+            if (dlEasyTierLoader.State == ModBase.LoadState.Failed ||
+                dlEasyTierLoader.State == ModBase.LoadState.Aborted)
             {
-                ModMain.Hint("正在下载 EasyTier，请稍后...");
+                HintService.Hint(Lang.Text("Link.Mod.DownloadingEasyTier"));
                 DownloadEasyTier();
                 return false;
             }
@@ -123,7 +124,7 @@ public static class ModLink
     {
         [DllImport("iphlpapi.dll", SetLastError = true)]
         public static extern int GetExtendedTcpTable(nint pTcpTable, ref int dwOutBufLen, bool bOrder, int ulAf,
-            int TableClass, int reserved);
+            int tableClass, int reserved);
 
         public static List<int> GetProcessPort(int dwProcessId)
         {
@@ -180,28 +181,28 @@ public static class ModLink
 
     #region Minecraft 实例探测
 
-    public static async Task<List<Tuple<int, McPingResult, string>>> MCInstanceFinding()
+    public static async Task<List<Tuple<int, McPingResult, string>>> MCInstanceFindingAsync()
     {
         // Java 进程 PID 查询
-        var PIDLookupResult = new List<string>();
-        var JavaNames = new List<string>();
-        JavaNames.Add("java");
-        JavaNames.Add("javaw");
+        var pIDLookupResult = new List<string>();
+        var javaNames = new List<string>();
+        javaNames.Add("java");
+        javaNames.Add("javaw");
 
-        foreach (var TargetJava in JavaNames)
+        foreach (var TargetJava in javaNames)
         {
-            var JavaProcesses = Process.GetProcessesByName(TargetJava);
-            ModBase.Log($"[MCDetect] 找到 {TargetJava} 进程 {JavaProcesses.Length} 个");
+            var javaProcesses = Process.GetProcessesByName(TargetJava);
+            ModBase.Log($"[MCDetect] 找到 {TargetJava} 进程 {javaProcesses.Length} 个");
 
-            if (JavaProcesses is null || JavaProcesses.Length == 0)
+            if (javaProcesses is null || javaProcesses.Length == 0)
             {
             }
             else
             {
-                foreach (var p in JavaProcesses)
+                foreach (var p in javaProcesses)
                 {
                     ModBase.Log("[MCDetect] 检测到 Java 进程，PID: " + p.Id);
-                    PIDLookupResult.Add(p.Id.ToString());
+                    pIDLookupResult.Add(p.Id.ToString());
                 }
             }
         }
@@ -209,10 +210,10 @@ public static class ModLink
         var res = new List<Tuple<int, McPingResult, string>>();
         try
         {
-            if (PIDLookupResult.Count == 0)
+            if (pIDLookupResult.Count == 0)
                 return res;
             var lookupList = new List<Tuple<int, int>>();
-            foreach (var pid in PIDLookupResult)
+            foreach (var pid in pIDLookupResult)
             {
                 var infos = new List<Tuple<int, int>>();
                 var ports = PortFinder.GetProcessPort(int.Parse(pid));
@@ -309,11 +310,11 @@ public static class ModLink
 
     #region EasyTier
 
-    public static ModLoader.LoaderCombo<JsonObject> DlEasyTierLoader;
+    public static ModLoader.LoaderCombo<JsonObject> dlEasyTierLoader;
 
     public static int DownloadEasyTier()
     {
-        var dlTargetPath = $"{ModBase.PathTemp}EasyTier\\EasyTier-{ETInfoProvider.ETVersion}.zip";
+        var dlTargetPath = $"{ModBase.pathTemp}EasyTier\\EasyTier-{ETInfoProvider.ETVersion}.zip";
 
         Basics.RunInNewThread(() =>
         {
@@ -331,43 +332,43 @@ public static class ModLink
                 };
 
                 // 1. Download EasyTier
-                loaders.Add(new LoaderDownload("下载 EasyTier", new List<DownloadFile>
+                loaders.Add(new LoaderDownload(Lang.Text("Link.Mod.Task.DownloadEasyTier"), new List<DownloadFile>
                 {
                     new(addresses.ToArray(), dlTargetPath, new ModBase.FileChecker(1024 * 64))
                 }) { ProgressWeight = 15 });
 
                 // 2. Extract files
-                loaders.Add(new ModLoader.LoaderTask<int, int>("解压文件", _ =>
+                loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Link.Mod.Task.ExtractFiles"), _ =>
                     ModBase.ExtractFile(dlTargetPath,
                         Path.Combine(Paths.SharedLocalData, "EasyTier", ETInfoProvider.ETVersion))
-                ) { Block = true });
+                ) { block = true });
 
                 // 3. Cleanup
-                loaders.Add(new ModLoader.LoaderTask<int, int>("清理缓存与冗余组件", _ =>
+                loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Link.Mod.Task.CleanCache"), _ =>
                 {
                     File.Delete(dlTargetPath);
                     CleanupEasyTierCache();
                 }));
 
                 // 4. Update UI hint
-                loaders.Add(new ModLoader.LoaderTask<int, int>("刷新界面", _ =>
-                    HintWrapper.Show("联机组件下载完成！", HintTheme.Error)
-                ) { Show = false });
+            loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Link.Mod.Task.RefreshUi"), _ =>
+                HintWrapper.Show(Lang.Text("Link.Mod.DownloadComplete"), HintTheme.Error)
+                ) { show = false });
 
                 // Start loader combo
-                DlEasyTierLoader = new ModLoader.LoaderCombo<JsonObject>("大厅初始化", loaders);
-                DlEasyTierLoader.Start();
+                dlEasyTierLoader = new ModLoader.LoaderCombo<JsonObject>(Lang.Text("Link.Mod.Task.InitLobby"), loaders);
+                dlEasyTierLoader.Start();
 
                 // Taskbar and UI notification
-                ModLoader.LoaderTaskbarAdd(DlEasyTierLoader);
-                ModMain.FrmMain.BtnExtraDownload.ShowRefresh();
-                ModMain.FrmMain.BtnExtraDownload.Ribble();
+                ModLoader.LoaderTaskbarAdd(dlEasyTierLoader);
+                ModMain.frmMain.BtnExtraDownload.ShowRefresh();
+                ModMain.frmMain.BtnExtraDownload.Ribble();
             }
             catch (Exception ex)
             {
                 // Error handling with concise English logs
                 LogWrapper.Warn(ex, "Failed to download EasyTier dependency files");
-                HintWrapper.Show("下载 EasyTier 依赖文件失败，请检查网络连接", HintTheme.Error);
+                HintWrapper.Show(Lang.Text("Link.Mod.DownloadEasyTierFailed"), HintTheme.Error);
             }
         });
 

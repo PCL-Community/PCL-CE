@@ -81,10 +81,12 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="28" />
                             <RowDefinition Height="7" />
-                            <RowDefinition Height="28" />
-                            <RowDefinition Height="7" />
-                            <RowDefinition Height="28" />
-                            <RowDefinition Height="7" />
+                            <RowDefinition Height="28" x:Name="RowFilenameFormat" />
+                            <RowDefinition Height="7" x:Name="RowFilenameFormatGap" />
+                            <RowDefinition Height="28" x:Name="RowModManageStyle" />
+                            <RowDefinition Height="7" x:Name="RowModManageStyleGap" />
+                            <RowDefinition Height="28" x:Name="RowQuickDownload" />
+                            <RowDefinition Height="7" x:Name="RowQuickDownloadGap" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.Source}"
@@ -95,7 +97,7 @@
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.Source.PreferOfficialWithFallback}" IsSelected="True" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Source.UseOfficial}" />
                         </local:MyComboBox>
-                        <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.FilenameFormat}"
+                        <TextBlock Grid.Row="2" x:Name="TextFilenameFormat" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.FilenameFormat}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox Grid.Row="2" x:Name="ComboDownloadTranslateV2" Grid.ColumnSpan="2"
                                           Tag="ToolDownloadTranslateV2" Grid.Column="1" SelectionChanged="ComboChange"
@@ -106,7 +108,7 @@
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.FilenameFormat.Style3}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.FilenameFormat.Style4}" />
                         </local:MyComboBox>
-                        <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.ModManageStyle}"
+                        <TextBlock Grid.Row="4" x:Name="TextModManageStyle" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.ModManageStyle}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox Grid.Row="4" x:Name="ComboModLocalNameStyle" Grid.ColumnSpan="2"
                                           Tag="ToolModLocalNameStyle" Grid.Column="1" SelectionChanged="ComboChange"
@@ -114,14 +116,31 @@
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.ModManageStyle.TitleTranslation}" IsSelected="True" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.ModManageStyle.TitleFilename}" />
                         </local:MyComboBox>
+                        <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.QuickDownload}"
+                                   Margin="0,0,25,0" />
+                        <local:MyComboBox Grid.Row="6" x:Name="ComboDownloadQuickBehavior" Grid.ColumnSpan="2"
+                                          Tag="ToolDownloadQuickBehavior" Grid.Column="1" SelectionChanged="ComboChange"
+                                          ToolTip="{DynamicResource Setup.GameManage.Community.QuickDownload.ToolTip}">
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.QuickDownload.AlwaysAsk}" IsSelected="True" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.QuickDownload.CurrentInstance}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.QuickDownload.AskInstance}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.QuickDownload.AskPath}" />
+                        </local:MyComboBox>
                     </Grid>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
                         <local:MyCheckBox Margin="0,2,0,4" Text="{DynamicResource Setup.GameManage.Community.HideQuilt}" ToolTip="{DynamicResource Setup.GameManage.Community.HideQuilt.ToolTip}"
                                           Grid.Row="0" Height="22" Grid.Column="0" Change="CheckBoxChange"
                                           x:Name="CheckDownloadIgnoreQuilt" Tag="ToolDownloadIgnoreQuilt" />
+                        <local:MyCheckBox Margin="0,2,0,4" Text="{DynamicResource Setup.GameManage.Community.AutoInstallDependencies}" ToolTip="{DynamicResource Setup.GameManage.Community.AutoInstallDependencies.ToolTip}"
+                                          Grid.Row="1" Height="22" Grid.Column="0" Change="CheckBoxChange"
+                                          x:Name="CheckDownloadAutoInstallDependencies" Tag="ToolDownloadAutoInstallDependencies" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>

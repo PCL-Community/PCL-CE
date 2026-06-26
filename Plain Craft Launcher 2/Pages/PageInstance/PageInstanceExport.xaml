@@ -1,4 +1,4 @@
-﻿<local:MyPageRight
+<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -41,7 +41,7 @@
                                             VerticalAlignment="Center" Margin="0,0,5,0"
                                             IsHitTestVisible="False" Opacity="0.5"
                                             Text="{DynamicResource Common.Action.Reset}"
-                                            Logo="M530 0c287 0 521 229 521 511s-233 511-521 511c-233 0-436-151-500-368a63 63 0 0 1 44-79 65 65 0 0 1 80 43c48 162 200 276 375 276 215 0 390-171 390-383s-174-383-390-383c-103 0-199 39-270 106l21-5a63 63 0 0 1 33 123l-157 42a65 65 0 0 1-90-42l-49-183a65 65 0 1 1 126-33l6 26A524 524 0 0 1 530 0z"
+                                            SvgIcon="lucide/rotate-ccw"
                                             LogoScale="0.9" />
                     <StackPanel Margin="25,38,15,15" Name="PanOptions">
                         <local:MyCheckBox IsEnabled="False" x:Name="CheckOptionsBasic">
@@ -110,7 +110,7 @@
                                 <local:MyCheckBox.Tag>
                                     <local:ExportOption
                                         Title="{DynamicResource Instance.Export.Option.ModSettings}"
-                                        Rules="config/|!config/jei/world/|!config/worldedit/|config/worldedit/worldedit.properties|!config/spark/|config/spark/config.json|defaultconfigs/|journeymap/config/|journeymap/server/|TrashSlotSaveState.json|customfov.txt|gg.essential.mod/|essential/|!essential/*/|!essential/*.jar*|!essential/screenshot-checksum-caches.json|!essential/microsoft_accounts.json|paragliderSettings.nbt|local/client_config.json|local/ftbl.json|local/client/sidebar_buttons.json|local/client/ftbutilities.cfg|local/client/ftblib.cfg|local/client/xencraft.cfg|liteloader.properties|default_reference.xml|CustomSkinLoader/CustomSkinLoader.json"
+                                        Rules="config/|!config/accountsx/|!config/jei/world/|!config/worldedit/|config/worldedit/worldedit.properties|!config/spark/|config/spark/config.json|defaultconfigs/|journeymap/config/|journeymap/server/|TrashSlotSaveState.json|customfov.txt|gg.essential.mod/|essential/|!essential/*/|!essential/*.jar*|!essential/screenshot-checksum-caches.json|!essential/microsoft_accounts.json|paragliderSettings.nbt|local/client_config.json|local/ftbl.json|local/client/sidebar_buttons.json|local/client/ftbutilities.cfg|local/client/ftblib.cfg|local/client/xencraft.cfg|liteloader.properties|default_reference.xml|CustomSkinLoader/CustomSkinLoader.json"
                                         DefaultChecked="True" />
                                 </local:MyCheckBox.Tag>
                             </local:MyCheckBox>
@@ -269,10 +269,6 @@
                             <local:MyButton Grid.Column="1" x:Name="BtnAdvancedExport" MinWidth="140"
                                             Text="{DynamicResource Instance.Export.Advanced.ExportConfig}"
                                             Padding="13,0" Margin="0,0,20,0" />
-                            <local:MyButton Grid.Column="2" MinWidth="140"
-                                            Text="{DynamicResource Instance.Export.Advanced.Guide}" Padding="13,0"
-                                            Margin="0,0,20,0" x:Name="BtnAdvancedHelp"
-                                            local:CustomEventService.EventType="打开帮助" />
                         </Grid>
                     </StackPanel>
                 </local:MyCard>
@@ -281,6 +277,6 @@
         <local:MyExtraTextButton HorizontalAlignment="Center" VerticalAlignment="Bottom"
                                  x:Name="BtnExport" Text="{DynamicResource Instance.Export.StartExport}"
                                  LogoScale="1.1"
-                                 Logo="M511 995a128 128 0 0 1-57-13L70 791a126 126 0 0 1-70-113V311a126 126 0 0 1 15-60V248c1-2 3-5 5-8a127 127 0 0 1 49-42L454 13a128 128 0 0 1 112 0l383 190a126 126 0 0 1 72 113v360a126 126 0 0 1-70 115L568 984c-17 7-37 11-57 11z m42-470v370l360-178c14-7 23-21 23-38v-335L554 524zM85 330v347a42 42 0 0 0 23 38l360 178V523L85 330zM135 260l375 189 137-65L286 188 135 260z m245-118l363 197 150-71-365-180a42 42 0 0 0-37 0l-111 53z" />
+                                 SvgIcon="lucide/package" />
     </Grid>
 </local:MyPageRight>

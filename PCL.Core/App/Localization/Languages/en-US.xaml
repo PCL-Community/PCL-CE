@@ -1,4 +1,4 @@
-﻿<ResourceDictionary
+<ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
@@ -109,7 +109,6 @@
     <sys:String x:Key="Main.Title.InstanceSetup">Properties - {0}</sys:String>
     <sys:String x:Key="Main.Title.ResourceDownload">Resource download - {0}</sys:String>
     <sys:String x:Key="Main.Title.SaveManagement">Save management - {0}</sys:String>
-    <sys:String x:Key="Main.Title.HomePageMarket">Homepage Market</sys:String>
 
     <!-- Main.Extra Buttons -->
 
@@ -132,6 +131,9 @@
     <sys:String x:Key="Main.FileDrag.HomepageLoaded">Custom homepage file loaded!</sys:String>
     <sys:String x:Key="Main.FileDrag.SameFolderExists">A folder with the same name was found and cannot be pasted: {0}</sys:String>
     <sys:String x:Key="Main.FileDrag.Imported">Imported {0}</sys:String>
+    <sys:String x:Key="Main.FileDrag.SaveNotFound">The archive does not contain an importable Minecraft save!</sys:String>
+    <sys:String x:Key="Main.FileDrag.SaveInvalid">The imported save is missing level.dat!</sys:String>
+    <sys:String x:Key="Main.FileDrag.SaveImportFailed">Failed to import save</sys:String>
     <sys:String x:Key="Main.FileDrag.SameFileExists">A file with the same name already exists: {0}</sys:String>
     <sys:String x:Key="Main.FileDrag.AuthlibInvalid">The Authlib authentication server does not match the URL format ({0})!</sys:String>
     <sys:String x:Key="Main.FileDrag.CreateAuthlibProfile">Do you want to create a new third-party authentication profile?&#x0a;Authentication server address: {0}</sys:String>
@@ -289,24 +291,6 @@
     <sys:String x:Key="Launch.Account.Profile.Uuid.Hint">32 characters, no hyphens</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Uuid.InvalidChars">UUID should only contain letters and numbers!</sys:String>
 
-    <!-- Launch.Account.Profile.Migration -->
-
-    <sys:String x:Key="Launch.Account.Profile.Migration.Title">Profile migration</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.Message">PCL CE supports two-way profile synchronization with HMCL.&#x0a;Select an operation:</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.ImportOnlyMessage">Since the current profile list is empty, only importing from HMCL is supported.</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.Import">Import</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.Export">Export</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.Importing">Importing from HMCL...</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.HmclConfigNotFound">HMCL configuration file not found.</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.MsRequired">You must complete Microsoft login at least once before importing these profiles!</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.NoNewProfiles">No new profiles to import.</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.ImportSuccess">Successfully imported {0} profile(s)!</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.Exporting">Exporting to HMCL...</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.ExportSuccess">Successfully synchronized {0} profile(s).</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.ImportFailed">Import error. Please check the file format.</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.ExportFailed">Export failed.</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Migration.AutoMigrate">{0} profile(s) have been automatically migrated from legacy configuration files.</sys:String>
-
     <!-- Launch.Account.Profile.Validation -->
 
     <sys:String x:Key="Launch.Account.Profile.Validation.EmptyUsername">Username cannot be empty!</sys:String>
@@ -391,6 +375,9 @@
     <sys:String x:Key="Launch.Skin.Cape.Name.Founders">Founders</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Copper">Copper</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.ZombieHorse">Zombie Horse</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Builder">Builder</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Crafter">Crafter</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.MoonlightTrail">Moonlight Trail</sys:String>
 
     <!-- Launch.Skin.Cape -->
 
@@ -676,14 +663,14 @@
 
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Banned">This account appears to have been banned by Microsoft and cannot log in.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.XboxNotRegistered">You have not registered an Xbox account. Please register one first and then log in.</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.RegionBlocked">The country or region of your network cannot log in to Microsoft accounts.&#x0a;Please use an accelerator or VPN.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.RegionBlocked">Microsoft account login is not available in your country or region.&#x0a;Please check your network settings or try again later.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.Message">The account is underage. You need to modify the date of birth before logging in.&#x0a;Is the age currently set on this account over 13?</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.AgeOver13">13 or older</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13">12 or younger</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message">Please modify the account's date of birth on the opened webpage (change to at least 18 years old).&#x0a;Wait one minute after the modification is successful, then return to PCL and you can log in normally!</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage">Please modify the account's date of birth on the opened webpage (change to at least 18 years old).&#x0a;Wait one minute after the modification is successful, then return to PCL and you can log in normally!</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.TooManyRequests">Too many login attempts. Please wait a few minutes and try again!</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.AbnormalIp">Abnormal login attempts from this IP.&#x0a;If you are using a VPN or proxy, please turn it off or switch nodes and try again!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.AbnormalIp">Abnormal login attempts from this IP.&#x0a;Please check your network settings or try again later.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.NotPurchased">Unable to get account information. This account may not have purchased Minecraft: Java Edition, or its Xbox Game Pass may have expired.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.PurchaseMinecraft">Purchase Minecraft</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.CreateProfile.Message">Please create a Minecraft player profile first, then log in again.</sys:String>
@@ -925,6 +912,7 @@
     <sys:String x:Key="Download.Comp.List.NoResults">No results, please try searching in English</sys:String>
     <sys:String x:Key="Download.Comp.List.NoMatchingResults">No matching results</sys:String>
     <sys:String x:Key="Download.Comp.List.NoResultsSimple">No search results</sys:String>
+    <sys:String x:Key="Download.Comp.Link.ResolveFailed">Could not recognize or fetch the resource link</sys:String>
 
     <!-- Download.Comp.Category -->
 
@@ -1143,6 +1131,22 @@
     <sys:String x:Key="Download.Comp.Favorites.LoaderName.BatchDownloadSuitable">Batch download applicable resources</sys:String>
     <sys:String x:Key="Download.Comp.Favorites.LoaderName.BatchDownload">Batch download resources ({0})</sys:String>
 
+    <!-- Download.Comp.QuickDownload -->
+
+    <sys:String x:Key="Download.Comp.QuickDownload.Btn.ToolTip">Download the latest version</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.Loading">Getting resource version info, please wait…</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.NoFile">No downloadable files found</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.NoInstance">No Minecraft instance selected!</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.NoCompatibleInstance">No compatible Minecraft instances found</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.NoCompatibleFile">No compatible version found for this instance</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.SelectFolder">Select a folder to save the file</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.DownloadStarted">Started downloading: {0}</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.Title">Select a download destination</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.CurrentInstance">Download to the current instance</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.AskInstance">Select an instance…</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.AskPath">Select a folder…</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.ChooseInstance.Title">Select a target Minecraft instance</sys:String>
+
     <!-- Download.Source / Tag -->
 
     <sys:String x:Key="Download.Source.CleanroomOfficial">Cleanroom official source</sys:String>
@@ -1346,7 +1350,7 @@
     <sys:String x:Key="Setup.LauncherLanguage.FormatCulture">Regional format</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.Auto">Follow system regional format</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.FollowLanguage">Follow UI language</sys:String>
-    <sys:String x:Key="Setup.LauncherLanguage.Hint">Multi-language support is currently limited to certain new interfaces. Others will be updated in upcoming migrations.</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.Hint">Multi-language support is currently limited to certain new interfaces. Others will be updated in upcoming migrations.&#x0a;&#x0a;To ensure work efficiency and convenience, only "English (US)" and "简体中文（中国大陆）" are guaranteed to be partially available during the migration process. Other languages will be opened up to the community for translation contributions on the translation platform once the future migration work is fully completed.</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.Changed">Language settings updated</sys:String>
 
     <!-- Setup.Left -->
@@ -1488,19 +1492,12 @@
     <sys:String x:Key="Setup.Ui.Homepage.NetUpdate">Online</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.NetWarning">Please exercise caution when using homepages provided by strangers. Malicious homepages may cause harm!</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Refresh">Refresh</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.GenerateDocs">Generate docs</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Tutorial">Tutorials</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.DownloadUrl">URL</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.PresetLabel">Homepage presets</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.GetMore">Get more homepages</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.GoToMarket">Homepage Market</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Refresh.Success">Homepage refreshed!</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Docs.OverrideConfirm.Message">A layout file already exists. It will be overridden if you continue to generate the documentation file!</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Docs.OverrideConfirm.Title">Override confirmation</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Docs.OverrideConfirm.Continue">Continue</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Docs.Generated">The documentation file has been generated!</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Tutorial.Message">1. Click the &quot;Generate docs&quot; button, which will generate the &quot;Custom.xaml&quot; layout file in the PCL folder.&#x0a;2. Modify the file with tools like Notepad, and remember to save it after the modification.&#x0a;3. Click the &quot;Refresh&quot; button to see what the homepage looks like now.&#x0a;&#x0a;You can directly refresh the homepage after generating the documentation file and make changes accordingly, which will be more helpful for you to understand.&#x0a;You can also load the homepage file directly by dragging it into the PCL window.</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Tutorial.Title">Homepage custom tutorials</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.Trivia">Trivia</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.EchoCave">Echo Cave (removed)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McNews">Minecraft News (Author: Nattiden)</sys:String>
@@ -1546,7 +1543,6 @@
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Log">Logs</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Lobby">Lobby</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Toolbox">Toolbox</sys:String>
-    <sys:String x:Key="Setup.Ui.FeatureHide.Item.Help">Help</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Edit">Edit</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Export">Export</sys:String>
     <sys:String x:Key="Setup.Ui.FeatureHide.Item.Save">Saves</sys:String>
@@ -1572,8 +1568,6 @@
     <sys:String x:Key="Setup.Ui.Initialized">The personalization settings have been initialized.</sys:String>
     <sys:String x:Key="Setup.Ui.Error.InitFailed">Failed to initialize the personalization settings.</sys:String>
     <sys:String x:Key="Setup.Ui.Slider.Pixel">{0}px</sys:String>
-    <sys:String x:Key="Setup.Ui.HomepageMarket.Loading">Loading Homepage Market...</sys:String>
-    <sys:String x:Key="Setup.Ui.HomepageMarket.LoadFailed">Failed to load Homepage Market</sys:String>
 
     <!-- Setup.Launch.Options -->
 
@@ -1591,9 +1585,11 @@
     <sys:String x:Key="Setup.Launch.Visibility.CloseImmediately.Warning.Title">Reminder</sys:String>
     <sys:String x:Key="Setup.Launch.Visibility.CloseImmediately.Warning.Continue">Continue</sys:String>
     <sys:String x:Key="Setup.Launch.Priority.Label">Process priority</sys:String>
-    <sys:String x:Key="Setup.Launch.Priority.High">High (prioritizes game performance, but may cause other programs to lag)</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.RealTime">Realtime (runs the game at the highest priority; use with caution, may severely impact system performance)</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.High">Very high (use with caution, may severely impact other programs)</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.AboveNormal">High (prioritizes game performance, but may cause other programs to lag)</sys:String>
     <sys:String x:Key="Setup.Launch.Priority.Normal">Normal (balanced)</sys:String>
-    <sys:String x:Key="Setup.Launch.Priority.Low">Low (prioritizes other programs, but may cause the game to lag; suitable for running in the background)</sys:String>
+    <sys:String x:Key="Setup.Launch.Priority.BelowNormal">Low (prioritizes other programs, but may cause the game to lag; suitable for running in the background)</sys:String>
     <sys:String x:Key="Setup.Launch.WindowSize.Label">Window size</sys:String>
     <sys:String x:Key="Setup.Launch.WindowSize.ModernUiWarning">Note: If your instance has the Modern UI mod installed, this setting will not take effect</sys:String>
     <sys:String x:Key="Setup.Launch.WindowSize.Fullscreen">Fullscreen</sys:String>
@@ -1655,14 +1651,16 @@
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw">Disable Java Launch Wrapper</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.ToolTip">PCL uses Java Launch Wrapper to fix issues where older Java versions cannot launch from paths containing Chinese characters.&#x0a;If it is blocked by anti-cheat or causes other issues, you can disable it.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.Arm64Notice">Do not wrap with Java Wrapper when launching the game.&#x0a;Java Wrapper has been forcibly disabled because the system is ARM64 architecture.</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.DisableRw">Disable RetroWrapper</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.DisableRw.ToolTip">PCL uses RetroWrapper when launching version 1.5.x and below to improve legacy version gameplay experience and fix compatibility issues.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableLF">Disable LegacyFix</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableLF.ToolTip">PCL uses LegacyFix when launching version 1.5.x and below to improve legacy version gameplay experience and fix compatibility issues.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.GpuPreference">Require Java to use the high-performance GPU</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.GpuPreference.ToolTip">Automatically set Java to use the high-performance GPU in Windows Settings → System → Display → Graphics.&#x0a;If the computer has both integrated and dedicated graphics, this ensures that Minecraft uses the dedicated GPU for rendering, greatly improving performance.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe">Use java.exe instead of javaw.exe</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe.ToolTip">If the game window does not appear for a long time, try enabling this option. PCL will use java.exe to run the game, giving the game process standard input/output streams to avoid possible issues when logs are printed.&#x0a;&#x0a;Depending on the behavior of different Java distributions, java.exe may not support features that depend on operating system support, such as HDR colors. Therefore, do not enable this option if everything works normally.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLwjglUnsafeAgent">Disable LWJGL Unsafe Agent</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip">Minecraft 26.1 uses LWJGL 3.4.1, which uses the FFM API to access native memory on JDK 25+. Due to JDK optimization limitations, this may cause severe performance issues in some cases.&#x0a;PCL uses LWJGL Unsafe Agent to fix this issue and avoid possible performance problems.&#x0a;There is generally no need to disable this option, but if you encounter additional issues, you can try temporarily disabling it for troubleshooting.&#x0a;&#x0a;This feature only takes effect when the LWJGL version is 3.4.1.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableCrashAnalysis">Disable automatic crash analysis</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableCrashAnalysis.ToolTip">When enabled, the crash analysis page will no longer automatically appear when the game crashes.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.MoreInInstanceSetup">You can find more advanced launch options in instance settings.</sys:String>
 
     <!-- Setup.Launch.Misc -->
@@ -1731,8 +1729,16 @@
     <sys:String x:Key="Setup.GameManage.Community.ModManageStyle.ToolTip">Display style of mod items on the Mod management page</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.ModManageStyle.TitleTranslation">Title shows translated name, details show file name</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.ModManageStyle.TitleFilename">Title shows file name, details show translated name</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload">Quick download behavior</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.ToolTip">Choose what happens when you click the quick download button on a resource card</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.AlwaysAsk">Always ask</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.CurrentInstance">Download to the current instance</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.AskInstance">Ask which instance to use</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.AskPath">Ask where to save</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.HideQuilt">Hide Quilt loader</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.HideQuilt.ToolTip">Hide Quilt from the community resource loader display.</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.AutoInstallDependencies">Auto-check and install required dependencies when downloading mods</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.AutoInstallDependencies.ToolTip">When installing a mod, if missing required dependencies are detected, a list will be shown for confirmation before auto-downloading and installing them (can be cancelled during confirmation)</sys:String>
     <sys:String x:Key="Setup.GameManage.Accessibility.Title">Accessibility</sys:String>
     <sys:String x:Key="Setup.GameManage.Accessibility.GameUpdateNotice">Game update notification</sys:String>
     <sys:String x:Key="Setup.GameManage.Accessibility.ReleaseNotice">Release notification</sys:String>
@@ -1750,7 +1756,7 @@
 
     <sys:String x:Key="Setup.GameLink.RestartRequired">A lobby restart is required for changes on this page to take effect.</sys:String>
     <sys:String x:Key="Setup.GameLink.Username">Username</sys:String>
-    <sys:String x:Key="Setup.GameLink.Username.ToolTip">PCL CE will try to use this username for lobby display.&#x0a;If left blank, the Natayark ID username will be used.&#x0a;&#x0a;In some cases, the Natayark ID username may still be displayed instead of the name set here.</sys:String>
+    <sys:String x:Key="Setup.GameLink.Username.ToolTip">PCL CE will try to use this username for lobby display.&#x0A;If left blank, the Natayark ID username will be used.&#x0A;&#x0A;In some cases, the Natayark ID username may still be displayed instead of the name set here.</sys:String>
     <sys:String x:Key="Setup.GameLink.Protocol.Preference">Protocol preference</sys:String>
     <sys:String x:Key="Setup.GameLink.Protocol.Tcp">TCP</sys:String>
     <sys:String x:Key="Setup.GameLink.Protocol.Udp">UDP</sys:String>
@@ -1762,20 +1768,20 @@
     <sys:String x:Key="Setup.GameLink.PortGuessNat.ToolTip">Let EasyTier attempt port guessing for symmetric NAT (birthday paradox).&#x0a;This may improve the multiplayer experience, but it may also cause issues in some cases.&#x0a;Generally, keep it enabled.</sys:String>
     <sys:String x:Key="Setup.GameLink.EnableIPv6">Allow IPv6 communication</sys:String>
     <sys:String x:Key="Setup.GameLink.EnableIPv6.ToolTip">Compared with IPv4, IPv6 makes P2P communication easier and can greatly improve the multiplayer experience. Do not disable it unless you have a specific reason.</sys:String>
-    <sys:String x:Key="Setup.GameLink.CliDebugOutput">Output CLI info to logs for debugging</sys:String>
-    <sys:String x:Key="Setup.GameLink.CliDebugOutput.ToolTip">Output EasyTier CLI info to the launcher log every 30 seconds for developer and community support investigation.&#x0a;This option is for debugging only and is not recommended to keep enabled.</sys:String>
+    <sys:String x:Key="Setup.GameLink.CliDebugOutput">Output CLI information to logs for debugging</sys:String>
+    <sys:String x:Key="Setup.GameLink.CliDebugOutput.ToolTip">Output EasyTier CLI information to the launcher log every 30 seconds for developer and community support investigation.&#x0a;This option is for debugging only and is not recommended to keep enabled.</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Title">Network test</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Start">Start test</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Testing">Testing...</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.NotTested">Not tested</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Supported">Supported</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Unsupported">Unsupported</sys:String>
-    <sys:String x:Key="Setup.GameLink.NetworkTest.UdpNatType">UDP NAT Type: {0}</sys:String>
-    <sys:String x:Key="Setup.GameLink.NetworkTest.TcpNatType">TCP NAT Type: {0}</sys:String>
-    <sys:String x:Key="Setup.GameLink.NetworkTest.Ipv6Status">IPv6: {0}</sys:String>
+    <sys:String x:Key="Setup.GameLink.NetworkTest.UdpNatType">UDP NAT type: {0}</sys:String>
+    <sys:String x:Key="Setup.GameLink.NetworkTest.TcpNatType">TCP NAT type: {0}</sys:String>
+    <sys:String x:Key="Setup.GameLink.NetworkTest.Ipv6Status">IPv6 status: {0}</sys:String>
     <sys:String x:Key="Setup.GameLink.Initialized">Multiplayer settings have been initialized!</sys:String>
     <sys:String x:Key="Setup.GameLink.Error.InitFailed">Failed to initialize multiplayer settings</sys:String>
-    <sys:String x:Key="Setup.GameLink.Error.ConfigChangeFailed">Failed to change configuration item</sys:String>
+    <sys:String x:Key="Setup.GameLink.Error.ConfigChangeFailed">Failed to change configuration item.</sys:String>
 
     <!-- Setup.Update -->
 
@@ -2078,7 +2084,7 @@
     <sys:String x:Key="Instance.Overall.Manage.Delete">Delete instance</sys:String>
     <sys:String x:Key="Instance.Overall.Manage.PatchCore">Patch core</sys:String>
     <sys:String x:Key="Instance.Overall.Script.SelectSaveTitle">Select where to save the script</sys:String>
-    <sys:String x:Key="Instance.Overall.Script.FileFilter">Batch file(*.bat)|*.bat</sys:String>
+    <sys:String x:Key="Instance.Overall.Script.FileFilter">Batch file (*.bat)|*.bat</sys:String>
     <sys:String x:Key="Instance.Overall.Script.WaitForLaunchTask">Please wait for the current launch task to finish first!</sys:String>
     <sys:String x:Key="Instance.Overall.Script.Exporting">Exporting launch script...</sys:String>
     <sys:String x:Key="Instance.Overall.Script.ExportingWarning">Exporting launch script... (Note: using the script to launch may cause your login session to expire!)</sys:String>
@@ -2242,7 +2248,7 @@
     <sys:String x:Key="Instance.Resource.Export.Mode.Txt">TXT format</sys:String>
     <sys:String x:Key="Instance.Resource.Export.Mode.Csv">CSV format</sys:String>
     <sys:String x:Key="Instance.Resource.Export.SelectSaveLocation">Select save location</sys:String>
-    <sys:String x:Key="Instance.Resource.Export.FilesFilter">Text file(*.txt)|*.txt|CSV file(*.csv)|*.csv</sys:String>
+    <sys:String x:Key="Instance.Resource.Export.FilesFilter">Text file (*.txt)|*.txt|CSV file (*.csv)|*.csv</sys:String>
 
     <!-- Instance.Resource.Datapack -->
 
@@ -2277,7 +2283,7 @@
 
     <sys:String x:Key="Instance.Resource.Item.UpdateCompare">Current version: {0} ({1})&#x0a;Latest version: {2} ({3})</sys:String>
     <sys:String x:Key="Instance.Resource.Item.UpdateToolTip">Click to update, right-click to view changelog.</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.InfoUnavailable">Error, unable to get information</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.InfoUnavailable">Unable to get information</sys:String>
     <sys:String x:Key="Instance.Resource.Item.FolderTag">Folder</sys:String>
     <sys:String x:Key="Instance.Resource.Item.ErrorSuffix"> [Error]</sys:String>
     <sys:String x:Key="Instance.Resource.Item.UpdateConfirm.Title">Confirm update</sys:String>
@@ -2286,7 +2292,7 @@
     <sys:String x:Key="Instance.Resource.Item.ViewChangelog">View changelog</sys:String>
     <sys:String x:Key="Instance.Resource.Item.OpenChangelogFailed">Failed to open changelog</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.FailedTitle">Failed to Read Resource</sys:String>
-    <sys:String x:Key="Instance.Resource.Item.Info.FailedMessage">Unable to read info for this resource.</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Info.FailedMessage">Unable to read information for this resource.</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.EmptyFolder">Empty folder</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.ContainsOne">Contains 1 file</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.ContainsMany">Contains {0} files</sys:String>
@@ -2362,7 +2368,7 @@
     <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Confirm">I understand the risks, continue updating</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.ToggleWarning">Data pack status toggle failed. Please try closing any running games and try again!</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Export.Mode.Message">TXT format: Only export the current data pack file name information&#x0a;CSV format: Export detailed data pack information, including file name, project ID, version information, and other details</sys:String>
-    <sys:String x:Key="Instance.Saves.Datapack.Info.ReadFailed">Unable to read data pack info.</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Info.ReadFailed">Unable to read data pack information.</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Info.ReadFailedTitle">Data pack read failed</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Info.Author">Author: </sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Info.File">File: </sys:String>
@@ -2408,6 +2414,11 @@
     <sys:String x:Key="Instance.Saves.Info.Modify.BeforeSave">Make sure the save is not open in-game before modifying settings</sys:String>
     <sys:String x:Key="Instance.Saves.Info.Modify.CheatSuccess">Cheat settings modified successfully</sys:String>
     <sys:String x:Key="Instance.Saves.Info.Modify.DifficultySuccess">Difficulty modified successfully</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.Modify.CheatFailed">Failed to modify cheat settings</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.Modify.DifficultyFailed">Failed to modify difficulty settings</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.Error.LoadFailed">Failed to get save info</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.Error.ClipboardFailed">Failed to copy to clipboard</sys:String>
+    <sys:String x:Key="Instance.Saves.Info.Error.ChunkbaseFailed">Failed to open Chunkbase</sys:String>
     <sys:String x:Key="Instance.Saves.Info.VersionHint.1_9">Unable to get save version for versions below 1.9</sys:String>
     <sys:String x:Key="Instance.Saves.Info.VersionHint.1_8">Unable to get save version and difficulty for versions below 1.8</sys:String>
     <sys:String x:Key="Instance.Saves.Info.VersionHint.1_3">Unable to get save version, difficulty, and cheat settings for versions below 1.3</sys:String>
@@ -2481,7 +2492,7 @@
     <sys:String x:Key="Instance.Server.Card.CopyAddressFailed">Failed to copy server address</sys:String>
     <sys:String x:Key="Instance.Server.Card.EditFailed">Failed to edit server info: {0}</sys:String>
     <sys:String x:Key="Instance.Server.Card.RemoveConfirmTitle">Confirm server removal</sys:String>
-    <sys:String x:Key="Instance.Server.Card.RemoveConfirmMessage">Are you sure you want to remove server {0}?\n'{1}' will be removed from your list, including the in-game list, and cannot be recovered.</sys:String>
+    <sys:String x:Key="Instance.Server.Card.RemoveConfirmMessage">Are you sure you want to remove server {0}?&#xa;'{1}' will be removed from your list, including the in-game list, and cannot be recovered.</sys:String>
 
     <!-- Instance.Server -->
 
@@ -2571,7 +2582,6 @@
     <sys:String x:Key="Instance.Export.Advanced.ConfigHint">The configuration file contains more advanced options, such as precise control over exported files and modpack storage location.&#x0a;To modify these options, click "Save config" first, then import after editing the configuration file.</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.ImportConfig">Import config</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.ExportConfig">Export config</sys:String>
-    <sys:String x:Key="Instance.Export.Advanced.Guide">Creation guide</sys:String>
 
     <!-- Instance.Export.Network -->
 
@@ -2621,5 +2631,521 @@
     <sys:String x:Key="Instance.Export.ZipFilter">ZIP file (*.zip)|*.zip</sys:String>
     <sys:String x:Key="Instance.Export.MrpackFilter">Modrinth modpack file (*.mrpack)|*.mrpack</sys:String>
     <sys:String x:Key="Instance.Export.PackPathInvalid.Title">Cannot use the export path specified in config</sys:String>
+
+    <!-- Tools -->
+
+    <sys:String x:Key="Tools.Left.Multiplayer">Multiplayer</sys:String>
+    <sys:String x:Key="Tools.Left.Lobby">Lobby</sys:String>
+    <sys:String x:Key="Tools.Left.Utilities">Utilities</sys:String>
+    <sys:String x:Key="Tools.Left.Utilities.Title">Toolbox</sys:String>
+    <!-- Tools.Test -->
+
+    <sys:String x:Key="Tools.Test.Title">Utilities</sys:String>
+    <sys:String x:Key="Tools.Test.CeNotice">For ease of maintenance, this feature is not included in the Community Edition...</sys:String>
+
+    <!-- Tools.Test.CustomDownload -->
+
+    <sys:String x:Key="Tools.Test.CustomDownload.Title">Custom download</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.Description">Use PCL's high-speed multi-threaded download engine to download any file. Note: some websites may return 403 Forbidden errors and cannot be downloaded.</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.Url">Download URL</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.UserAgent">User-Agent</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.SaveTo">Save to</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.Select">Select</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.SelectLocation">Select save location</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.FileName">File name</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.Start">Start download</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.LoaderName">Custom download file: {0} </sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.LoaderTitle">Custom download ({0}) </sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.Finished">{0} completed!</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.Aborted">{0} aborted!</sys:String>
+
+    <!-- Tools.Test.Skin -->
+
+    <sys:String x:Key="Tools.Test.Skin.Title">Download a player's official skin</sys:String>
+    <sys:String x:Key="Tools.Test.Skin.PlayerName">Player name</sys:String>
+    <sys:String x:Key="Tools.Test.Skin.Save">Save skin</sys:String>
+    <sys:String x:Key="Tools.Test.Skin.Fetching">Fetching skin...</sys:String>
+    <sys:String x:Key="Tools.Test.Skin.InvalidId">This is not a valid ID...</sys:String>
+    <sys:String x:Key="Tools.Test.Skin.TooFrequent">Skin fetch has been rate-limited. Please try again in 5 minutes!</sys:String>
+    <sys:String x:Key="Tools.Test.Skin.Saved">Player {0}'s skin saved!</sys:String>
+    <sys:String x:Key="Tools.Test.Skin.FileFilter">Skin image file (*.png)|*.png</sys:String>
+
+    <!-- Tools.Test.ServerQuery -->
+
+    <sys:String x:Key="Tools.Test.ServerQuery.Title">Check server</sys:String>
+
+    <!-- Tools.Test.Achievement -->
+
+    <sys:String x:Key="Tools.Test.Achievement.Title">Custom achievement image generator (English only)</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.ItemId">Item name (ID)</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Name">Achievement name</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Line1">Line 1</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Line2">Line 2 (optional)</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Preview">Preview achievement</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Save">Save image</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.InvalidId">Please enter a valid item ID!</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Saved">Custom achievement image saved!</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.FileFilter">PNG image (*.png)|*.png</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.FetchFailed">Failed to get achievement image. Please check for special characters.</sys:String>
+
+    <!-- Tools.Test.Avatar -->
+
+    <sys:String x:Key="Tools.Test.Avatar.Title">Skin avatar generator</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.Size">Avatar size:</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.SelectSkin">Select skin</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.SelectSkinFile">Select skin file</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.FileFilter">Image file (*.png)|*.png</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.Save">Save avatar</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.SelectFirst">Please select a skin first!</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.InvalidSize">Image size is incorrect! Please confirm you selected the correct file!</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.Generated">Avatar generated!</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.GenerateFailed">Failed to generate avatar: {0}</sys:String>
+    <sys:String x:Key="Tools.Test.Avatar.Saved">Avatar saved!</sys:String>
+
+    <!-- Tools.Test.Clean -->
+
+    <sys:String x:Key="Tools.Test.Clean.Title">Clean game junk</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ToolTip">Clean PCL cache, Minecraft logs, crash reports, and other junk files</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ConfirmTitle">Confirm cleanup</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ConfirmMessage">About to clean game logs, error reports, caches, and other files.&#x0A;These folders should not contain important files, but are you sure you want to continue?&#x0A;&#x0A;PCL will restart automatically after cleanup.</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.Cleared">Cache cleared</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ClearedMessage">Cleaned {0} files!&#xa;PCL will restart...</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.NoFiles">No files to clean!</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.WaitForDownload">Please wait for all downloads to complete before cleaning...</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.CloseGameFirst">Please close all running games first...</sys:String>
+
+    <!-- Tools.Test.Shortcut -->
+
+    <sys:String x:Key="Tools.Test.Shortcut.Title">Create shortcut</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.ToolTip">Create a shortcut to the PCL Community Edition executable</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.SelectLocation">Select shortcut location</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.ConfirmMessage">This shortcut will not be automatically removed. Please remove it manually before deleting/moving the launcher.&#xa;&#xa;{0} location: {1}&#xa;{2} location: {3}</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.Desktop">Desktop</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.StartMenu">Start menu</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.Created">Shortcut created on {0}</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.FileName">PCL Community Edition{0}</sys:String>
+
+    <!-- Tools.Test.Luck -->
+
+    <sys:String x:Key="Tools.Test.Luck.Title">Today's luck</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.MsgboxTitle">Today's luck - {0}</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.MessageGood">Your luck value is: {0}! {1}</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.MessageBad">Your luck value is: {0}... {1}</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.Rating100">100! 100!&#xa;Hidden theme... oh wait, CE probably doesn't have this...</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.Rating95">So close to 100...</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.Rating90">Overwhelmingly positive!</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.Rating60">Not bad, not bad</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.Rating40">Barely okay...</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.Rating30">Aww...</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.Rating10">No way!</sys:String>
+    <sys:String x:Key="Tools.Test.Luck.Rating0">(It's on a 0-100 scale)</sys:String>
+
+    <!-- Tools.Test.Crash -->
+    <sys:String x:Key="Tools.Test.Crash.Title">Crash test</sys:String>
+    <sys:String x:Key="Tools.Test.Crash.ManualCrash">Manual crash</sys:String>
+
+    <!-- Tools.Test.LaunchCount -->
+
+    <sys:String x:Key="Tools.Test.LaunchCount.Title">View launch count</sys:String>
+    <sys:String x:Key="Tools.Test.LaunchCount.Message">PCL has launched games for you {0} times.</sys:String>
+
+    <!-- Tools.Test.Dependency -->
+
+    <sys:String x:Key="Tools.Test.Dependency.Title">Dependency check</sys:String>
+    <sys:String x:Key="Tools.Test.Dependency.Checking">Checking environment...</sys:String>
+    <sys:String x:Key="Tools.Test.Dependency.MissingMessage">Required dependency "{0}" is missing.&#x0A;&#x0A;Click OK to open Microsoft Store.</sys:String>
+    <sys:String x:Key="Tools.Test.Dependency.Later">Later</sys:String>
+
+    <!-- Tools.GameLink -->
+
+    <sys:String x:Key="Tools.GameLink.Loading.Creating">Creating lobby</sys:String>
+    <sys:String x:Key="Tools.GameLink.Loading.DownloadingModule">Downloading lobby module</sys:String>
+    <sys:String x:Key="Tools.GameLink.Loading.ConnectingServer">Connecting to lobby server...</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.Title">PCL CE Lobby Terms &amp; Conditions</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.Description">Service documents and introductions used by PCL CE Lobby are listed below.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.PrivacyPolicy">PCL CE Lobby Privacy Policy</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.PrivacyPolicyInfo">Learn how PCL CE handles your personal information.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.NatayarkTerms">Natayark OpenID ToS</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.NatayarkTermsInfo">View Natayark OpenID terms of service.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.Body">By using the lobby feature, you agree to the following terms:&#x0A;&#x0A;I agree to comply with applicable laws and regulations and will not use the lobby feature for illegal or prohibited purposes.&#x0A;I agree to bear all risks associated with using the lobby feature.&#x0A;I acknowledge and agree that PCL CE collects processed device identifiers, Natayark ID, and other information, and may provide them to law enforcement when necessary.&#x0A;To protect minors' personal information, I confirm that I am at least 14 years old before using the lobby.&#x0A;&#x0A;Additionally, you must also agree to the PCL CE lobby privacy policy and the Natayark OpenID terms of service.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Agreement.Accept">I have read and agree</sys:String>
+    <sys:String x:Key="Tools.GameLink.Nat.Title">NAT type</sys:String>
+    <sys:String x:Key="Tools.GameLink.Nat.Test">Click to test</sys:String>
+    <sys:String x:Key="Tools.GameLink.Nat.Testing">Testing</sys:String>
+    <sys:String x:Key="Tools.GameLink.Nat.Failed">Test failed</sys:String>
+    <sys:String x:Key="Tools.GameLink.Nat.Result">UDP: {0}, TCP: {1}</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.Account">Natayark account</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.Login">Log in to Natayark</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.LoginPrompt">PCL will open a login page. Please complete the login in your browser, then return to the launcher to continue.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.LoginTitle">Log in to Natayark Network</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.Continue">Continue</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.BrowserContinue">Please continue in your browser...</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.LoginComplete">Login completed</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.LogoutConfirm">Are you sure you want to log out?</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.LogoutTitle">Log out</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.LogoutComplete">Logged out!</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.Loading">Loading...</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.Abnormal">(Abnormal)</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.TokenExpired">Natayark ID token has expired. Please log in again.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.ProfileLoadFailed">Failed to load Natayark user data. Please log in again in Settings.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.TokenInvalid">NAID access token is invalid. Try refreshing your login.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.InvalidAuthCode">NAID authorization code is invalid.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.AccountExpired">Natayark account information has expired. Please log in again in Settings!</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.LoginFailed">NAID login failed. Please log in again in Settings.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.FetchFailed">Failed to fetch information</sys:String>
+    <sys:String x:Key="Tools.GameLink.Announcement.Important">Important</sys:String>
+    <sys:String x:Key="Tools.GameLink.Announcement.Warning">Warning</sys:String>
+    <sys:String x:Key="Tools.GameLink.Announcement.Notice">Notice</sys:String>
+    <sys:String x:Key="Tools.GameLink.Announcement.Format">[{0}] {1}</sys:String>
+    <sys:String x:Key="Tools.GameLink.EasyTierVersion">Both sides are using different launcher versions, which may cause connection issues.&#x0A;We strongly recommend that both sides upgrade to the latest version before continuing.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Join.Title">Join lobby</sys:String>
+    <sys:String x:Key="Tools.GameLink.Join.Description">1. Enter the lobby ID sent by your friend below and click "Join"&#x0A;2. Launch the game, select "Multiplayer", and join the lobby in LAN games</sys:String>
+    <sys:String x:Key="Tools.GameLink.Join.Action">Join</sys:String>
+    <sys:String x:Key="Tools.GameLink.Join.Paste">Paste</sys:String>
+    <sys:String x:Key="Tools.GameLink.Join.Clear">Clear</sys:String>
+    <sys:String x:Key="Tools.GameLink.Join.IdHint">ID should look like: U/NNNN-AAAA-SSSS-EEEE</sys:String>
+    <sys:String x:Key="Tools.GameLink.Join.InvalidText">Invalid lobby ID. Please check and enter it again.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Create.Title">Create lobby</sys:String>
+    <sys:String x:Key="Tools.GameLink.Create.Description">1. After entering a world, select "Open to LAN" in the game menu&#x0A;2. Select this game instance below and click "Create"&#x0A;3. After the lobby is created, copy the lobby ID and send it to your friend</sys:String>
+    <sys:String x:Key="Tools.GameLink.Create.Action">Create</sys:String>
+    <sys:String x:Key="Tools.GameLink.Create.ManualInput">Manual input</sys:String>
+    <sys:String x:Key="Tools.GameLink.Create.EnterPort">Enter port</sys:String>
+    <sys:String x:Key="Tools.GameLink.Create.NoWorld">Please select a world to play together!</sys:String>
+    <sys:String x:Key="Tools.GameLink.Create.NotMcPort">This doesn't seem to be a Minecraft service port...</sys:String>
+    <sys:String x:Key="Tools.GameLink.Link.Report">Report violation</sys:String>
+    <sys:String x:Key="Tools.GameLink.Link.Terms">Natayark OpenID ToS</sys:String>
+    <sys:String x:Key="Tools.GameLink.Link.Privacy">Lobby Privacy Policy</sys:String>
+    <sys:String x:Key="Tools.GameLink.Link.Disable">Disable lobby</sys:String>
+    <sys:String x:Key="Tools.GameLink.Link.Friends">Links: </sys:String>
+    <sys:String x:Key="Tools.GameLink.Link.EasyTier">EasyTier official website</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.InfoTitle">Lobby information</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.ConnectionStatus">Connection status</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.Checking">Checking</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.PingToHost">Ping to lobby host</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.PingMs">{0}ms</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.LobbyId">Lobby ID</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.ConnectionType">Connection type</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.Connecting">Connecting</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.UserName">Username</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.UserType">User type</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.Actions">Lobby actions</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.CopyVirtualIp">Copy virtual IP</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.CopyLobbyId">Copy lobby ID</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.Exit">Exit lobby</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.Connected">Connected</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.Unavailable">Unavailable</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.Host">Host</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.Guest">Guest</sys:String>
+    <sys:String x:Key="Tools.GameLink.Finish.CloseLobby">Close lobby</sys:String>
+    <sys:String x:Key="Tools.GameLink.Player.InfoTitle">Player {0} details</sys:String>
+    <sys:String x:Key="Tools.GameLink.Player.InfoMessage">Username: {0}&#x0A;Client identifier: {1}&#x0A;&#x0A;This data is for reference only. Actual gameplay may vary.&#x0A;&#x0A;To learn about NAT types and how they affect your lobby experience, see the FAQ section on the left.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Player.Host">[Host]</sys:String>
+    <sys:String x:Key="Tools.GameLink.Player.Details">{0} {1}</sys:String>
+    <sys:String x:Key="Tools.GameLink.Member.ListLoading">Lobby members (retrieving information)</sys:String>
+    <sys:String x:Key="Tools.GameLink.Member.ListCount">Lobby members ({0} total)</sys:String>
+    <sys:String x:Key="Tools.GameLink.Eula.RevokeConfirm">Are you sure you want to revoke the lobby agreement authorization?</sys:String>
+    <sys:String x:Key="Tools.GameLink.Eula.RevokeTitle">Revoke authorization</sys:String>
+    <sys:String x:Key="Tools.GameLink.Eula.Disabled">Lobby feature disabled!</sys:String>
+    <sys:String x:Key="Tools.GameLink.Exit.ConfirmMessage">Are you sure you want to exit the lobby?</sys:String>
+    <sys:String x:Key="Tools.GameLink.Exit.ConfirmTitle">Confirm exit</sys:String>
+    <sys:String x:Key="Tools.GameLink.Exit.HostWarning">Since you are the lobby host, exiting will automatically disband this lobby.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Exit.ConfirmMessageWithHost">Are you sure you want to exit the lobby?&#x0A;Since you are the lobby host, exiting will automatically disband this lobby.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Exit.Disbanded">The lobby has been automatically disbanded because you closed the Minecraft instance in the lobby.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Exit.DisbandedTitle">Lobby disbanded</sys:String>
+    <sys:String x:Key="Tools.GameLink.CopyIp.Message">Lobby host's game address: {0}&#x0A;Note: IP connection is only recommended when the lobby broadcast does not appear in the Minecraft multiplayer list. IP connection may require a licensed account.</sys:String>
+    <sys:String x:Key="Tools.GameLink.CopyIp.Title">Copy IP</sys:String>
+    <sys:String x:Key="Tools.GameLink.CopyIp.Back">Back</sys:String>
+    <sys:String x:Key="Tools.GameLink.Error.ServerExit">An error occurred while exiting the server!</sys:String>
+    <sys:String x:Key="Tools.GameLink.Error.UpdateRequired">Please update to the latest PCL CE to use lobby features.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Error.ConnectFailed">Failed to connect to the lobby server</sys:String>
+
+    <!-- Speed -->
+
+    <sys:String x:Key="Speed.Progress.Total">Total progress</sys:String>
+    <sys:String x:Key="Speed.Progress.Speed">Download speed</sys:String>
+    <sys:String x:Key="Speed.Progress.RemainingFiles">Remaining files</sys:String>
+    <sys:String x:Key="Speed.Progress.RemainingThreads">Remaining threads</sys:String>
+    <sys:String x:Key="Speed.Error.ClickToCopy">Click to copy error details</sys:String>
+    <sys:String x:Key="Speed.Error.Copied">Error details copied!</sys:String>
+
+    <!-- Tools.ServerQuery -->
+
+    <sys:String x:Key="Tools.ServerQuery.Address.Hint">Enter server address</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Action.Query">Query</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.State.Querying">Querying...</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.State.NoInfo">No server information</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Title.MinecraftServer">Minecraft server</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.UnableToConnect">Unable to connect: {0}</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.Timeout.Connect">Connection timeout</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.Timeout.ReadWrite">Read/Write timeout</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.InvalidResponse">Server returned invalid information</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.AddressTooLong">Server address too long</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.EmptyPacket">Server returned empty data packet</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.StaleConnection">Server disconnected before returning the pong packet, so latency could not be calculated.</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.IncompleteConnection">Server disconnected before returning the complete status packet.</sys:String>
+    <sys:String x:Key="Tools.ServerQuery.Error.PongDataLength">Pong data must be exactly 8 bytes</sys:String>
+
+    <!-- Update -->
+
+    <sys:String x:Key="Update.Action">Update</sys:String>
+    <sys:String x:Key="Update.Check.Failed">Unable to get latest version information. Please check your network connection.</sys:String>
+    <sys:String x:Key="Update.Available">A new launcher version is available ({0} -&gt; {1})&#x0A;Update now?</sys:String>
+    <sys:String x:Key="Update.Title">Launcher update</sys:String>
+    <sys:String x:Key="Update.Error.FetchFailed">Failed to get launcher update. Please check your network connection.</sys:String>
+    <sys:String x:Key="Update.Error.UnableToGetUpdate">Unable to get update information</sys:String>
+    <sys:String x:Key="Update.Error.FileNotFound">Update file not found</sys:String>
+    <sys:String x:Key="Update.Error.Sha256Mismatch">Update file SHA256 mismatch. Expected: {0}, actual: {1}</sys:String>
+    <sys:String x:Key="Update.Error.UpdateBlocked">Update failed</sys:String>
+    <sys:String x:Key="Update.Error.UpdateBlockedMessage">PCL cannot update because it was blocked by Windows Security or does not have sufficient permissions.&#x0A;Please add the PCL folder to the exclusion list, or manually replace the current file with {0}PCL\Plain Craft Launcher Community Edition.exe!</sys:String>
+    <sys:String x:Key="Update.Service.PclCe">PCL CE service</sys:String>
+    <sys:String x:Key="Update.Task.Check">Verify update</sys:String>
+    <sys:String x:Key="Update.Task.Install">Install update</sys:String>
+    <sys:String x:Key="Update.Task.Prepare">Prepare update</sys:String>
+    <sys:String x:Key="Update.Task.ShowButton">Show button</sys:String>
+    <sys:String x:Key="Update.Task.RestartInstall">Restart install</sys:String>
+    <sys:String x:Key="Update.Task.DownloadLatestStable">Download latest stable</sys:String>
+    <sys:String x:Key="Update.Task.DownloadFile">Download file</sys:String>
+    <sys:String x:Key="Update.Task.ApplyFile">Apply file</sys:String>
+    <sys:String x:Key="Update.Task.GetDownloadInfo">Get download information</sys:String>
+    <sys:String x:Key="Update.Task.DownloadUpdateFile">Download update file</sys:String>
+    <sys:String x:Key="Update.Task.GetVersionInfo">Get version information</sys:String>
+    <sys:String x:Key="Update.Task.GetVersionInfoFailed">Failed to get version information</sys:String>
+    <sys:String x:Key="Update.Task.GetAnnouncementFailed">Failed to get announcement information</sys:String>
+    <sys:String x:Key="Update.Task.RefreshSettings">Refresh settings UI</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Title">Community Edition notice</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Body">You are using PCL Community Edition from PCL-Community. Please DO NOT report issues to the official repository!&#x0A;PCL-Community and its members are not affiliated with LTCat (龙腾猫跃), and do not guarantee your usage.&#x0A;&#x0A;If you downloaded Community Edition by mistake, we recommend using the official PCL instead.&#x0A;If you downloaded Community Edition by mistake, we recommend using the official PCL instead.&#x0A;If you downloaded Community Edition by mistake, we recommend using the official PCL instead.&#x0A;&#x0A;Differences from the official version:&#x0A;- Themes: only some fixed blue themes; no plans to add new themes.&#x0A;- Toolbox: some content from the official version is missing (Echo Cave, Don't Click).&#x0A;&#x0A;This message will be shown once after a launcher update.</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Confirm">I understand</sys:String>
+
+    <!-- LogPage -->
+
+    <sys:String x:Key="LogPage.Title">Live logs</sys:String>
+    <sys:String x:Key="LogPage.Empty.Title">No live logs</sys:String>
+    <sys:String x:Key="LogPage.Empty.Description">Go to Instance settings → Overview → Test game to display live game logs.</sys:String>
+    <sys:String x:Key="LogPage.Left.InstancesTitle">Test instances</sys:String>
+    <sys:String x:Key="LogPage.Action.Scroll">Scroll</sys:String>
+    <sys:String x:Key="LogPage.Action.Export">Export</sys:String>
+    <sys:String x:Key="LogPage.Action.Clear">Clear</sys:String>
+    <sys:String x:Key="LogPage.Action.KillProcess">Kill</sys:String>
+    <sys:String x:Key="LogPage.Action.ExportStack">Dump</sys:String>
+    <sys:String x:Key="LogPage.Action.GameClosed">Game {0} closed.</sys:String>
+    <sys:String x:Key="LogPage.Level.Debug">Debug</sys:String>
+    <sys:String x:Key="LogPage.Level.Info">Info</sys:String>
+    <sys:String x:Key="LogPage.Level.Warn">Warn</sys:String>
+    <sys:String x:Key="LogPage.Level.Error">Error</sys:String>
+    <sys:String x:Key="LogPage.Level.Fatal">Fatal</sys:String>
+    <sys:String x:Key="LogPage.MaxLines.Title">Max lines</sys:String>
+    <sys:String x:Key="LogPage.MaxLines.ToolTip">Maximum number of lines displayed. Older logs are automatically removed when this limit is exceeded.</sys:String>
+    <sys:String x:Key="LogPage.MaxLines.Unlimited">Unlimited</sys:String>
+    <sys:String x:Key="LogPage.MaxLines.Hint">Logs are limited to {0} lines by default. Adjust this in the max log lines settings.</sys:String>
+    <sys:String x:Key="LogPage.Export.SelectLocation">Select export location</sys:String>
+    <sys:String x:Key="LogPage.Export.Success">Log exported!</sys:String>
+    <sys:String x:Key="LogPage.Export.GameLog.FileName">Game log - {0}.log</sys:String>
+    <sys:String x:Key="LogPage.Export.GameLog.Filter">Game log (*.log)|*.log</sys:String>
+    <sys:String x:Key="LogPage.ExportStack.FileName">Game stack dump - {0}.log</sys:String>
+    <sys:String x:Key="LogPage.ExportStack.Filter">Game stack dump (*.log)|*.log</sys:String>
+    <sys:String x:Key="LogPage.ExportStack.Progress">Exporting stack dump. Please wait (may take 15 seconds to 1 minute).</sys:String>
+    <sys:String x:Key="LogPage.ExportStack.Success">Stack dump exported!</sys:String>
+
+    <!-- Watcher -->
+
+    <sys:String x:Key="Watcher.Start">Started Minecraft log monitoring</sys:String>
+    <sys:String x:Key="Watcher.Exited">Minecraft log monitoring exited</sys:String>
+    <sys:String x:Key="Watcher.ProcessExited">Minecraft exited with code: {0}</sys:String>
+    <sys:String x:Key="Watcher.LoadComplete">Minecraft loading completed</sys:String>
+    <sys:String x:Key="Watcher.WindowLoaded">Minecraft window loaded: {0} ({1})</sys:String>
+    <sys:String x:Key="Watcher.FmlWindowLoaded">FML window loaded: {0} ({1})</sys:String>
+    <sys:String x:Key="Watcher.WindowMaximized">Minecraft window maximized: {0}</sys:String>
+    <sys:String x:Key="Watcher.SecurityBlocked">PCL cannot access the game window due to anti-cheat or security software</sys:String>
+    <sys:String x:Key="Watcher.Progress.LogAppeared">Log 1/5: Log output appeared</sys:String>
+    <sys:String x:Key="Watcher.Progress.UserSet">Log 2/5: Game user set</sys:String>
+    <sys:String x:Key="Watcher.Progress.LwjglConfirmed">Log 3/5: LWJGL version confirmed</sys:String>
+    <sys:String x:Key="Watcher.Progress.OpenAlLoaded">Log 4/5: OpenAL loaded</sys:String>
+    <sys:String x:Key="Watcher.Progress.TexturesLoaded">Log 5/5: Textures loaded</sys:String>
+    <sys:String x:Key="Watcher.Log.CloseDetected">Detected close log: {0}</sys:String>
+    <sys:String x:Key="Watcher.Log.CrashDetected">Detected crash log: {0}</sys:String>
+    <sys:String x:Key="Watcher.Crash.Suspected">Minecraft hasn't finished loading and may have crashed.</sys:String>
+    <sys:String x:Key="Watcher.Crash.AbnormalExit">Minecraft exited with an abnormal code and may have crashed.</sys:String>
+    <sys:String x:Key="Watcher.Crash.Detected">Minecraft has crashed. Crash analysis will start in 2 seconds.</sys:String>
+    <sys:String x:Key="Watcher.Crash.DetectedDisabled">Minecraft has crashed. Since crash analysis has been disabled, analysis will not be started.</sys:String>
+    <sys:String x:Key="Watcher.Crash.AnalysisStart">Crash analysis started</sys:String>
+    <sys:String x:Key="Watcher.Crash.Hint">Minecraft error detected. Starting analysis...</sys:String>
+    <sys:String x:Key="Watcher.Kill.Attempt">Attempting to force-kill the Minecraft process</sys:String>
+    <sys:String x:Key="Watcher.Kill.TaskkillAttempt">Process is still alive. Trying taskkill.exe</sys:String>
+    <sys:String x:Key="Watcher.Kill.TaskkillResult">taskkill.exe result: {0}</sys:String>
+    <sys:String x:Key="Watcher.Kill.Timeout">Force-kill failed: process exit timed out</sys:String>
+    <sys:String x:Key="Watcher.Kill.Success">Minecraft process force-killed</sys:String>
+    <sys:String x:Key="Watcher.Kill.Failed">Failed to force-kill the Minecraft process</sys:String>
+
+    <!-- Link -->
+
+    <sys:String x:Key="Link.Nat.Type.Open">Open</sys:String>
+    <sys:String x:Key="Link.Nat.Type.FullCone">Moderate (full cone)</sys:String>
+    <sys:String x:Key="Link.Nat.Type.Restricted">Moderate (restricted)</sys:String>
+    <sys:String x:Key="Link.Nat.Type.PortRestricted">Moderate (port restricted)</sys:String>
+    <sys:String x:Key="Link.Nat.Type.SymmetricEasy">Strict (loose symmetric)</sys:String>
+    <sys:String x:Key="Link.Nat.Type.Symmetric">Strict (symmetric)</sys:String>
+    <sys:String x:Key="Link.Nat.Type.SymmetricFirewall">Strict (symmetric firewall)</sys:String>
+    <sys:String x:Key="Link.Nat.Type.UdpBlocked">Strict (UDP blocked)</sys:String>
+    <sys:String x:Key="Link.Nat.Type.Unknown">Unknown</sys:String>
+    <sys:String x:Key="Link.Connection.Local">Local</sys:String>
+    <sys:String x:Key="Link.Connection.P2P">P2P</sys:String>
+    <sys:String x:Key="Link.Connection.Relay">Relay</sys:String>
+    <sys:String x:Key="Link.Connection.Unknown">Unknown</sys:String>
+    <sys:String x:Key="Link.Quality.Good">Good</sys:String>
+    <sys:String x:Key="Link.Quality.Normal">Normal</sys:String>
+    <sys:String x:Key="Link.Quality.Poor">Poor</sys:String>
+    <sys:String x:Key="Link.Quality.GoodDescription">The current network environment should not affect connection experience.&#x0A;This environment is suitable as the lobby host.</sys:String>
+    <sys:String x:Key="Link.Quality.NormalDescription">The current network environment may affect your connection experience.</sys:String>
+    <sys:String x:Key="Link.Quality.PoorDescription">Some router and firewall settings may affect your connection experience.</sys:String>
+    <sys:String x:Key="Link.Natayark.TokenFetchEmpty">Failed to get AccessToken and RefreshToken: response is empty</sys:String>
+    <sys:String x:Key="Link.Natayark.TokenParseFailed">Failed to get AccessToken and RefreshToken: unable to parse response</sys:String>
+    <sys:String x:Key="Link.Natayark.UserInfoFetchEmpty">Failed to get Natayark user information: response is empty</sys:String>
+    <sys:String x:Key="Link.Natayark.UserInfoParseFailed">Failed to get Natayark user information: unable to parse response</sys:String>
+    <sys:String x:Key="Link.Lobby.InitFailed">Lobby service initialization failed. Please check your network.</sys:String>
+    <sys:String x:Key="Link.Lobby.LoginRequired">Please log in to Natayark ID first!</sys:String>
+    <sys:String x:Key="Link.Lobby.CreateRoomFailed">An error occurred while creating the room. Please check the logs and report this to the developer!</sys:String>
+    <sys:String x:Key="Link.Lobby.CreateLobbyFailed">Failed to create lobby. Please check logs or report to the developer.</sys:String>
+    <sys:String x:Key="Link.Lobby.JoinFailed">Failed to join lobby. It may not exist or may have been disbanded.</sys:String>
+    <sys:String x:Key="Link.Lobby.InvalidCodeFormat">Invalid lobby code format. Please check and try again!</sys:String>
+    <sys:String x:Key="Link.Lobby.MotdFormat">PCL CE Lobby{0}</sys:String>
+    <sys:String x:Key="Link.Lobby.MotdDesc"> - {0}</sys:String>
+    <sys:String x:Key="Link.Lobby.UnsupportedType">Unsupported lobby type: {0}</sys:String>
+    <sys:String x:Key="Link.Lobby.WorldNameFormat">{0} / {1} ({2})</sys:String>
+    <sys:String x:Key="Link.Mod.LobbyUnavailable">Lobby is currently unavailable. Please try again later.</sys:String>
+    <sys:String x:Key="Link.Mod.InvalidPlayerId">Minecraft player ID cannot contain separators (|)!</sys:String>
+    <sys:String x:Key="Link.Mod.LoginFirst">Please go to multiplayer settings and log in to Natayark Network first!</sys:String>
+    <sys:String x:Key="Link.Mod.ReLoginRequired">Please log in to your Natayark Network account again and try again!</sys:String>
+    <sys:String x:Key="Link.Mod.NaidFetchFailed">Failed to fetch Natayark ID information</sys:String>
+    <sys:String x:Key="Link.Mod.RealNameRequired">Please complete real-name verification at the Natayark Account Center first!</sys:String>
+    <sys:String x:Key="Link.Mod.AccountBanned">Your Natayark Network account status is abnormal and may be banned!</sys:String>
+    <sys:String x:Key="Link.Mod.UsernameOrLogin">Please set a username in Settings, or log in to Natayark Network first!</sys:String>
+    <sys:String x:Key="Link.Mod.DownloadingDeps">Downloading multiplayer dependencies. Please wait...</sys:String>
+    <sys:String x:Key="Link.Mod.EasyTierNotReady">EasyTier has not finished downloading. Please wait and try again!</sys:String>
+    <sys:String x:Key="Link.Mod.DownloadingEasyTier">Downloading EasyTier. Please wait...</sys:String>
+    <sys:String x:Key="Link.Mod.DownloadComplete">Multiplayer components downloaded!</sys:String>
+    <sys:String x:Key="Link.Mod.DownloadEasyTierFailed">Failed to download EasyTier dependencies. Please check your network.</sys:String>
+    <sys:String x:Key="Link.Mod.Task.DownloadEasyTier">Download EasyTier</sys:String>
+    <sys:String x:Key="Link.Mod.Task.ExtractFiles">Extract files</sys:String>
+    <sys:String x:Key="Link.Mod.Task.CleanCache">Clean caches and redundant components</sys:String>
+    <sys:String x:Key="Link.Mod.Task.RefreshUi">Refresh UI</sys:String>
+    <sys:String x:Key="Link.Mod.Task.InitLobby">Initialize lobby</sys:String>
+    <sys:String x:Key="Link.Mod.Task.InitLobbyUi">Initialize lobby UI</sys:String>
+    <sys:String x:Key="Link.Mod.Task.FetchAnnouncement">Fetch lobby announcement</sys:String>
+
+    <!-- Crash -->
+
+    <sys:String x:Key="Crash.Dialog.Title.Auto">Minecraft crashed</sys:String>
+    <sys:String x:Key="Crash.Dialog.Title.Manual">Crash report analysis result</sys:String>
+    <sys:String x:Key="Crash.Dialog.Button.OpenLog">View log</sys:String>
+    <sys:String x:Key="Crash.Dialog.Button.GoToModify">Modify settings</sys:String>
+    <sys:String x:Key="Crash.Dialog.Button.ExportReport">Export crash report</sys:String>
+    <sys:String x:Key="Crash.Report.SaveDialog.Title">Select save location</sys:String>
+    <sys:String x:Key="Crash.Report.SaveDialog.DefaultFileName">Crash Report-{0}.zip</sys:String>
+    <sys:String x:Key="Crash.Report.SaveDialog.Filter">Minecraft crash report (*.zip)|*.zip</sys:String>
+    <sys:String x:Key="Crash.Report.Export.Success">Crash report exported!</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.LauncherVersion">PCL CE version: {0}</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.LauncherId">Identification code: {0}</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.ProfileSection">- Profile information -</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.ProfileName">Profile name: {0} (login method: {1})</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.InstanceSection">- Instance information -</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.SelectedJava">Selected Java VM: {0}</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.Log4j2NoLookups">Log4j2 NoLookups：{0}</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.MinecraftFolder">Minecraft folder: {0}</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.EnvironmentSection">- Environment information -</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.OperatingSystem">Operating system: {0} (64-bit: {1}, ARM64: {2})</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.Cpu">CPU：{0}</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.MemoryAllocation">Memory allocation (allocated memory / installed physical memory): {0} / {1} GB ({2} MB)</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.Gpu">GPU {0}: {1} ({2} MB, {3})</sys:String>
+    <sys:String x:Key="Crash.Result.NoReason.Manual">Sorry, PCL could not determine the cause of the crash.</sys:String>
+    <sys:String x:Key="Crash.Result.NoReason.Auto">Sorry, your game ran into some issues...&#x0D;&#x0A;If you need help, please send the crash report file instead of a photo or screenshot of this window.</sys:String>
+    <sys:String x:Key="Crash.Result.Joiner">Additionally, </sys:String>
+    <sys:String x:Key="Crash.Result.ReportHint">You can view the crash report to learn more about how the crash happened.</sys:String>
+    <sys:String x:Key="Crash.Result.HelpHint">If you need help, please send the crash report file instead of a photo or screenshot of this window.</sys:String>
+    <sys:String x:Key="Crash.Result.LauncherOutdatedHint">Additionally, you are using an old version of PCL. Updating PCL might also resolve this issue.&#x0D;&#x0A;You can click Settings → Launcher → Check for updates to update PCL.</sys:String>
+    <sys:String x:Key="Crash.Result.List.BulletItem"> - {0}</sys:String>
+    <sys:String x:Key="Crash.Result.ModLoaderIncompatible.Prefix">The mod loader version is incompatible with the mod</sys:String>
+    <sys:String x:Key="Crash.Result.ExtractedModFile">A mod file has been extracted, so the game cannot continue running.&#x0D;&#x0A;Put the entire mod file directly into the mods folder. Extracting it will cause the game to crash.&#x0D;&#x0A;&#x0D;&#x0A;Please delete the extracted mod from the mods folder, and then launch the game again.</sys:String>
+    <sys:String x:Key="Crash.Result.OutOfMemory">Minecraft ran out of memory and cannot continue running.&#x0D;&#x0A;This is likely caused by insufficient system memory, too little memory allocated to the game, or overly demanding settings.&#x0D;&#x0A;&#x0D;&#x0A;Please increase the memory allocated to the game in launch settings, and remove resource packs, mods, or shaders with high system requirements.&#x0D;&#x0A;If this still does not help, close other programs before launching the game, or... get a better computer?</sys:String>
+    <sys:String x:Key="Crash.Result.UsingOpenJ9">The game crashed because OpenJ9 is being used.&#x0D;&#x0A;Please switch to a non-OpenJ9 Java in the Java selection under launch settings, and then launch the game again.</sys:String>
+    <sys:String x:Key="Crash.Result.UsingJdk">The game seems to have crashed because you are using a JDK, or because your Java version is too new.&#x0D;&#x0A;Please switch to JRE 8 (Java 8) in the Java selection under launch settings, and then launch the game again.&#x0D;&#x0A;If JRE 8 is not installed, you can download and install it from the internet.</sys:String>
+    <sys:String x:Key="Crash.Result.JavaTooNew">The game seems to have crashed because the Java version you are using is too new.&#x0D;&#x0A;Please switch to an older Java version in the Java selection under launch settings, and then launch the game again.&#x0D;&#x0A;If none is installed, you can download and install one from the internet.</sys:String>
+    <sys:String x:Key="Crash.Result.IncompatibleJavaVersion">The game is incompatible with the Java version you are currently using.&#x0D;&#x0A;If a suitable Java version is not installed, you can download and install one from the internet.</sys:String>
+    <sys:String x:Key="Crash.Result.InvalidModFileName">The game crashed because a mod file name contains special characters.&#x0D;&#x0A;Please try renaming the mod file so that it only contains letters, numbers, hyphens (-), underscores (_), and periods, and then launch the game again.</sys:String>
+    <sys:String x:Key="Crash.Result.MissingMixinBootstrap">The game crashed because MixinBootstrap is missing.&#x0D;&#x0A;Please try installing MixinBootstrap. If the game still crashes after installation, try adding an exclamation mark to the beginning of its file name.</sys:String>
+    <sys:String x:Key="Crash.Result.X86JavaMemoryLimit.OnX64Os">It looks like you are using 32-bit Java. This prevents Minecraft from using the memory it needs and may cause crashes.&#x0D;&#x0A;&#x0D;&#x0A;Please switch to 64-bit Java in the Java selection under launch settings, and then launch the game again.&#x0D;&#x0A;If 64-bit Java is not installed, you can download and install it from the internet.</sys:String>
+    <sys:String x:Key="Crash.Result.X86JavaMemoryLimit.OnX86Os">You are using a 32-bit operating system. This prevents Minecraft from using the memory it needs and may cause crashes.&#x0D;&#x0A;&#x0D;&#x0A;You may need to reinstall a 64-bit operating system to resolve this issue.&#x0D;&#x0A;If your computer has 2 GB of memory or less, you may need a better computer...</sys:String>
+    <sys:String x:Key="Crash.Result.ModLoaderIncompatible">The mod loader version is incompatible with the mod. Please go to Instance settings → Modify to change the loader version.&#x0D;&#x0A;&#x0D;&#x0A;Details:&#x0D;&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Result.MissingDependencyOrWrongMcVersion.WithInfo">The game exited because a required dependency mod is not installed correctly.&#x0D;&#x0A;Missing dependency:&#x0D;&#x0A; - {0}&#x0D;&#x0A;&#x0D;&#x0A;Please handle it according to the information above.</sys:String>
+    <sys:String x:Key="Crash.Result.MissingDependencyOrWrongMcVersion.Generic">The game exited because a required dependency mod is not installed correctly.&#x0D;&#x0A;Please handle it according to the log information in the crash report.</sys:String>
+    <sys:String x:Key="Crash.Result.StackKeyword.Single">Your game ran into some issues, and PCL found a suspicious keyword: {0}.&#x0D;&#x0A;&#x0D;&#x0A;If you know which mod this keyword belongs to, that mod may be causing the crash. You can also view the crash report for details.</sys:String>
+    <sys:String x:Key="Crash.Result.StackKeyword.Multiple">Your game ran into some issues, and PCL found the following suspicious keywords:&#x0D;&#x0A; - {0}&#x0D;&#x0A;&#x0D;&#x0A;If you know which mod these keywords belong to, that mod may be causing the crash. You can also view the crash report for details.</sys:String>
+    <sys:String x:Key="Crash.Result.SuspectedMod.Single">PCL suspects that the mod named {0} caused the game to crash, but it cannot be completely certain.&#x0D;&#x0A;You can try disabling this mod, and then check whether the game still crashes.</sys:String>
+    <sys:String x:Key="Crash.Result.SuspectedMod.Multiple">PCL suspects that the following mods caused the game to crash, but it cannot be completely certain:&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;You can try disabling these mods one by one, and then check whether the game still crashes.</sys:String>
+    <sys:String x:Key="Crash.Result.ConfirmedMod.Single">The mod named {0} caused the game to crash.&#x0D;&#x0A;You can try disabling this mod, and then check whether the game still crashes.</sys:String>
+    <sys:String x:Key="Crash.Result.ConfirmedMod.Multiple">The following mods caused the game to crash:&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;You can try disabling these mods one by one, and then check whether the game still crashes.</sys:String>
+    <sys:String x:Key="Crash.Result.ModMixinFailed.None">Some mods failed to inject, causing the game to crash.&#x0D;&#x0A;This usually means that some mods are incompatible with other mods or the current environment, or that they contain bugs.&#x0D;&#x0A;You can try disabling mods step by step, and then check whether the game still crashes to locate the mod that caused the crash.</sys:String>
+    <sys:String x:Key="Crash.Result.ModMixinFailed.Single">The mod named {0} failed to inject, causing the game to crash.&#x0D;&#x0A;This usually means that it is incompatible with other mods or the current environment, or that it contains a bug.&#x0D;&#x0A;You can try disabling this mod, and then check whether the game still crashes.</sys:String>
+    <sys:String x:Key="Crash.Result.ModMixinFailed.Multiple">The following mods caused the game to crash:&#x0D;&#x0A;{0}&#x0D;&#x0A;This usually means that they are incompatible with other mods or the current environment, or that they contain bugs.&#x0D;&#x0A;You can try disabling these mods one by one, and then check whether the game still crashes.</sys:String>
+    <sys:String x:Key="Crash.Result.ModConfigCrash.Simple">The mod named {0} caused the game to crash.</sys:String>
+    <sys:String x:Key="Crash.Result.ModConfigCrash.WithConfig">The mod named {0} caused the game to crash:&#x0D;&#x0A;Its configuration file {1} has an error and cannot be read.</sys:String>
+    <sys:String x:Key="Crash.Result.ModInitializationFailed.Single">The mod named {0} failed to initialize, preventing the game from continuing to load.&#x0D;&#x0A;You can try disabling this mod, and then check whether the game still crashes.</sys:String>
+    <sys:String x:Key="Crash.Result.ModInitializationFailed.Multiple">The following mods failed to initialize, causing the game to crash:&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;You can try disabling these mods one by one, and then check whether the game still crashes.</sys:String>
+    <sys:String x:Key="Crash.Result.SpecificBlock.Single">The game seems to have run into a problem because of block {0}.&#x0D;&#x0A;&#x0D;&#x0A;You can create a new world and observe how the game runs:&#x0D;&#x0A; - If it runs normally, this block caused the crash, and you may need to remove it somehow.&#x0D;&#x0A; - If it still crashes, the problem may come from something else...</sys:String>
+    <sys:String x:Key="Crash.Result.SpecificBlock.Multiple">The game seems to have run into a problem because of some blocks in the world.&#x0D;&#x0A;&#x0D;&#x0A;You can create a new world and observe how the game runs:&#x0D;&#x0A; - If it runs normally, some blocks caused the crash, and you may need to delete this world.&#x0D;&#x0A; - If it still crashes, the problem may come from something else...</sys:String>
+    <sys:String x:Key="Crash.Result.DuplicateMods.Known">You have installed multiple copies of the same mod:&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;Each mod should only appear once. Please delete the duplicate mods, and then launch the game again.</sys:String>
+    <sys:String x:Key="Crash.Result.DuplicateMods.Unknown">You may have installed multiple copies of the same mod, causing the game to crash.&#x0D;&#x0A;&#x0D;&#x0A;Each mod should only appear once. Please delete the duplicate mods, and then launch the game again.</sys:String>
+    <sys:String x:Key="Crash.Result.SpecificEntity.Single">The game seems to have run into a problem because of entity {0}.&#x0D;&#x0A;&#x0D;&#x0A;You can create a new world, spawn this entity, and observe how the game runs:&#x0D;&#x0A; - If it runs normally, this entity caused the crash, and you may need to remove it somehow.&#x0D;&#x0A; - If it still crashes, the problem may come from something else...</sys:String>
+    <sys:String x:Key="Crash.Result.SpecificEntity.Multiple">The game seems to have run into a problem because of some entities in the world.&#x0D;&#x0A;&#x0D;&#x0A;You can create a new world, spawn various entities, and observe how the game runs:&#x0D;&#x0A; - If it runs normally, some entities caused the crash, and you may need to delete this world.&#x0D;&#x0A; - If it still crashes, the problem may come from something else...</sys:String>
+    <sys:String x:Key="Crash.Result.OptiFineForgeIncompatible">The game crashed because OptiFine is incompatible with the current Forge version.&#x0D;&#x0A;&#x0D;&#x0A;Please visit the official OptiFine website (https://optifine.net/downloads) to check which Forge versions are compatible with OptiFine, and reinstall the game strictly according to the matching version.</sys:String>
+    <sys:String x:Key="Crash.Result.ShadersModWithOptiFine">You do not need to install both OptiFine and Shaders Mod, because OptiFine already includes Shaders Mod features.&#x0D;&#x0A;After deleting Shaders Mod, the game should be able to run normally.</sys:String>
+    <sys:String x:Key="Crash.Result.OldForgeNewJavaIncompatible">The game crashed because an old Forge version is incompatible with the current Java version.&#x0D;&#x0A;&#x0D;&#x0A;Please try the following solutions:&#x0D;&#x0A; - Update Forge to 36.2.26 or later&#x0D;&#x0A; - Switch to a Java version earlier than 1.8.0.320</sys:String>
+    <sys:String x:Key="Crash.Result.MultipleForgeInInstanceJson">Possibly because another launcher modified the Forge version, the current instance files are abnormal, causing the game to crash.&#x0D;&#x0A;Please try reinstalling Forge from scratch instead of using another launcher to modify the Forge version.</sys:String>
+    <sys:String x:Key="Crash.Result.ManualDebugCrash">* Actually, there is nothing wrong with your game. You triggered this crash yourself.&#x0D;&#x0A;* Don't you have anything more important to do?</sys:String>
+    <sys:String x:Key="Crash.Result.ModRequiresJava11">Some installed mods seem to require Java 11 to launch.&#x0D;&#x0A;Please switch to Java 11 in the Java selection under launch settings, and then launch the game again.&#x0D;&#x0A;If Java 11 is not installed, you can download and install it from the internet.</sys:String>
+    <sys:String x:Key="Crash.Result.VeryShortOutput">The program returned the following message:&#x0D;&#x0A;{0}&#x0D;&#x0A;</sys:String>
+    <sys:String x:Key="Crash.Result.OptiFineWorldLoadCrash">The OptiFine version you are using may have caused problems in your game.&#x0D;&#x0A;&#x0D;&#x0A;This issue only appears in certain OptiFine versions. You can try switching to another OptiFine version.</sys:String>
+    <sys:String x:Key="Crash.Result.GraphicsDriver.IntelOrIntegrated">There is a problem with your graphics driver, or the dedicated GPU is not being used, causing the game to fail to run normally.&#x0D;&#x0A;&#x0D;&#x0A;If your computer has a dedicated GPU, please launch PCL and Minecraft with the dedicated GPU instead of the Intel integrated graphics.&#x0D;&#x0A;If the problem persists, try updating your graphics driver to the latest version, or rolling it back to the factory version.&#x0D;&#x0A;If it still does not work, you can also try using Java 8.0.51 or earlier.</sys:String>
+    <sys:String x:Key="Crash.Result.GraphicsDriver.Generic">There is a problem with your graphics driver, causing the game to fail to run normally.&#x0D;&#x0A;&#x0D;&#x0A;Please try updating your graphics driver to the latest version, or rolling it back to the factory version, and then launch the game again.&#x0D;&#x0A;If it still does not work, you can try using Java 8.0.51 or earlier.&#x0D;&#x0A;If the problem persists, you may need a better graphics card...</sys:String>
+    <sys:String x:Key="Crash.Result.ResourcePackTooLargeOrGpuInsufficient">The resource pack resolution you are using is too high, or your graphics card is not powerful enough, causing the game to stop running.&#x0D;&#x0A;&#x0D;&#x0A;If you are using a high-resolution resource pack, please remove it.&#x0D;&#x0A;If you are not using any resource pack, you may need to update your graphics driver, or get a better graphics card...</sys:String>
+    <sys:String x:Key="Crash.Result.NightConfigBug">The game crashed because Night Config has a problem.&#x0D;&#x0A;You can try installing the Night Config Fixes mod, which may resolve this issue.</sys:String>
+    <sys:String x:Key="Crash.Result.OpenGl1282FromShaderOrResourcePack">The shader or resource pack you are using caused some problems in the game...&#x0D;&#x0A;&#x0D;&#x0A;Please try deleting the extra resources you added.</sys:String>
+    <sys:String x:Key="Crash.Result.TooManyModsIdLimit">The game crashed because you have installed too many mods and exceeded the game's ID limit.&#x0D;&#x0A;Please try installing a fix mod such as JEID, or delete some large mods.</sys:String>
+    <sys:String x:Key="Crash.Result.FileOrContentValidationFailed">Some files or content failed validation, causing problems in the game.&#x0D;&#x0A;&#x0D;&#x0A;Please try deleting the game files (including mods) and downloading them again.</sys:String>
+    <sys:String x:Key="Crash.Result.IncompleteForgeInstallation">The game cannot run normally because some installed Forge files are missing.&#x0D;&#x0A;Please reset this instance in instance settings, and then launch the game again.&#x0D;&#x0A;Deleting the libraries folder while packaging the game may cause this error.</sys:String>
+    <sys:String x:Key="Crash.Result.FabricError.WithInfo">Fabric provided the following error message:&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;Please handle it according to the information above.</sys:String>
+    <sys:String x:Key="Crash.Result.FabricError.Generic">Fabric may have provided an error message. Please handle it according to the log information in the crash report.</sys:String>
+    <sys:String x:Key="Crash.Result.IncompatibleMods.WithInfo">The mods you installed are incompatible:&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;Please handle it according to the information above.</sys:String>
+    <sys:String x:Key="Crash.Result.IncompatibleMods.Generic">The mods you installed are incompatible, and the mod loader may have provided an error message. Please handle it according to the log information in the crash report.</sys:String>
+    <sys:String x:Key="Crash.Result.ModLoaderError.WithInfo">The mod loader provided the following error message:&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;Please handle it according to the information above.</sys:String>
+    <sys:String x:Key="Crash.Result.ModLoaderError.Generic">The mod loader may have provided an error message. Please handle it according to the log information in the crash report.</sys:String>
+    <sys:String x:Key="Crash.Result.FabricSolutionProvided.WithInfo">Fabric provided the following solution:&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;Please handle it according to the information above.</sys:String>
+    <sys:String x:Key="Crash.Result.FabricSolutionProvided.Generic">Fabric may have provided a solution. Please handle it according to the log information in the crash report.</sys:String>
+    <sys:String x:Key="Crash.Result.ForgeError.WithInfo">Forge provided the following error message:&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;Please handle it according to the information above.</sys:String>
+    <sys:String x:Key="Crash.Result.ForgeError.Generic">Forge may have provided an error message. Please handle it according to the log information in the crash report.</sys:String>
+    <sys:String x:Key="Crash.Result.NoAnalyzableFile">Your game ran into some issues, but PCL could not find any relevant log files, so it cannot analyze the crash.</sys:String>
+    <sys:String x:Key="Crash.Result.UnknownReason">PCL found an error reason without detailed information ({0}). Please submit feedback to the PCL developers for details.</sys:String>
+
+    <!-- Event -->
+
+    <sys:String x:Key="Event.Error.Title">Event execution failed</sys:String>
+    <sys:String x:Key="Event.Error.UrlRequired">EventData must be a URL.&#x0a;If you want to launch a program, change EventType to OpenFile.</sys:String>
+    <sys:String x:Key="Event.Error.DownloadUrlRequired">EventData must be a URL starting with http:// or https://.&#x0a;PCL does not support other download protocols.</sys:String>
+    <sys:String x:Key="Event.Error.UnknownType">Unknown event type: {0}&#x0a;Please check if the EventType is correct, or if PCL is up to date.</sys:String>
+    <sys:String x:Key="Event.Error.MissingArgs">EventType {0} requires at least 2 parameters separated by |, e.g. {1}</sys:String>
+    <sys:String x:Key="Event.Error.ExecutionFailed">Event execution failed ({0}, {1})</sys:String>
+    <sys:String x:Key="Event.Error.FileNotFound">Local file not found for EventData: {0}</sys:String>
+    <sys:String x:Key="Event.OpenUrl.Opening">Opening, please wait: {0}</sys:String>
+    <sys:String x:Key="Event.LaunchGame.SelectVersion">Please select a Minecraft instance first!</sys:String>
+    <sys:String x:Key="Event.LaunchGame.Starting">Starting {0}...</sys:String>
+    <sys:String x:Key="Event.Refresh.Success">Refreshed!</sys:String>
+    <sys:String x:Key="Event.Refresh.NotSupported">The current page does not support refresh!</sys:String>
+    <sys:String x:Key="Event.Download.Confirm">About to download from this URL:&#x0a;{0}</sys:String>
+    <sys:String x:Key="Event.Setting.Written">Setting written: {0} → {1}</sys:String>
+    <sys:String x:Key="Event.Variable.Written">Variable written: {0} → {1}</sys:String>
+    <sys:String x:Key="Event.Safety.Title">Confirm execution</sys:String>
+    <sys:String x:Key="Event.Safety.ConfirmMessage">About to execute: {0}&#x0a;Please confirm there are no security risks before continuing.</sys:String>
+    <sys:String x:Key="Event.Safety.ContinueAlways">Continue and do not ask again</sys:String>
+    <sys:String x:Key="Event.Sanitize.UnsupportedTypeHint">is the unsupported official PCL EventType, which has been removed from the homepage.</sys:String>
+    <sys:String x:Key="Event.Sanitize.UnknownTypeHint">is the unrecognized EventType, which has been removed from the homepage.</sys:String>
 
 </ResourceDictionary>

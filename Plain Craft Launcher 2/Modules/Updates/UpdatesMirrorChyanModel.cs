@@ -1,5 +1,6 @@
 using System.Net.Http;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -9,10 +10,10 @@ namespace PCL;
 
 public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格式
 {
-    private const string MirrorChyanBaseUrl =
+    private const string mirrorChyanBaseUrl =
         "https://mirrorchyan.com/api/resources/{cid}/latest?cdk={cdk}&os=win&arch={arch}&channel={channel}";
 
-    private const string MyCid = "PCL2-CE";
+    private const string myCid = "PCL2-CE";
     public string SourceName { get; set; } = "MirrorChyan";
 
     public bool IsAvailable()
@@ -39,7 +40,7 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
                 Source = SourceName,
                 VersionCode = (int)data["version_number"],
                 VersionName = (string)data["version_name"],
-                SHA256 = (string)data["sha256"],
+                Sha256 = (string)data["sha256"],
                 Changelog = (string)data["release_note"]
             };
         }
@@ -64,25 +65,25 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
     public List<ModLoader.LoaderBase> GetDownloadLoader(UpdateChannel channel, UpdateArch arch, string output)
     {
         var loaders = new List<ModLoader.LoaderBase>();
-        loaders.Add(new ModLoader.LoaderTask<int, List<DownloadFile>>("获取下载信息", load =>
+        loaders.Add(new ModLoader.LoaderTask<int, List<DownloadFile>>(Lang.Text("Update.Task.GetDownloadInfo"), load =>
         {
             var ret = (JsonObject)Requester.FetchJson(GetUrl(channel, arch), RequestParam.WithRetry);
             var dlUrl = ret["data"]["url"]?.ToString();
             if (dlUrl is null)
                 throw new Exception("Mirror 酱下载源不可用");
-            load.Output = new List<DownloadFile> { new(new[] { dlUrl }, output) };
+            load.output = new List<DownloadFile> { new(new[] { dlUrl }, output) };
         }));
-        loaders.Add(new LoaderDownload("下载更新文件", new List<DownloadFile>()));
+        loaders.Add(new LoaderDownload(Lang.Text("Update.Task.DownloadUpdateFile"), new List<DownloadFile>()));
         return loaders;
     }
 
     private string GetUrl(UpdateChannel channel, UpdateArch arch)
     {
-        var ReqUrl = MirrorChyanBaseUrl;
-        ReqUrl = ReqUrl.Replace("{cid}", MyCid);
-        ReqUrl = ReqUrl.Replace("{cdk}", Config.Update.MirrorChyanKey);
-        ReqUrl = ReqUrl.Replace("{arch}", arch.ToString());
-        ReqUrl = ReqUrl.Replace("{channel}", channel.ToString());
-        return ReqUrl;
+        var reqUrl = mirrorChyanBaseUrl;
+        reqUrl = reqUrl.Replace("{cid}", myCid);
+        reqUrl = reqUrl.Replace("{cdk}", Config.Update.MirrorChyanKey);
+        reqUrl = reqUrl.Replace("{arch}", arch.ToString());
+        reqUrl = reqUrl.Replace("{channel}", channel.ToString());
+        return reqUrl;
     }
 }

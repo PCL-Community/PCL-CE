@@ -1,3 +1,4 @@
+using PCL.Core.App.Localization;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -71,7 +72,7 @@ public class UpdatesWrapperModel : IUpdateSource
             }
 
         ModBase.Log("[Update] 错误！所有的版本源都无法使用！");
-        throw new Exception("获取版本信息失败");
+        throw new Exception(Lang.Text("Update.Task.GetVersionInfoFailed"));
     }
 
     public bool IsLatest(UpdateChannel channel, UpdateArch arch, SemVer currentVersion, int currentVersionCode)
@@ -99,7 +100,7 @@ public class UpdatesWrapperModel : IUpdateSource
             }
 
         ModBase.Log("[Update] 错误！所有的版本源都无法使用！");
-        throw new Exception("获取版本信息失败");
+        throw new Exception(Lang.Text("Update.Task.GetVersionInfoFailed"));
     }
 
     public VersionAnnouncementDataModel GetAnnouncementList()
@@ -127,7 +128,7 @@ public class UpdatesWrapperModel : IUpdateSource
             }
 
         ModBase.Log("[Update] 错误！所有的公告源都无法使用！");
-        throw new Exception("获取公告信息失败");
+        throw new Exception(Lang.Text("Update.Task.GetAnnouncementFailed"));
     }
 
     public List<ModLoader.LoaderBase> GetDownloadLoader(UpdateChannel channel, UpdateArch arch, string output)
@@ -155,7 +156,7 @@ public class UpdatesWrapperModel : IUpdateSource
             }
 
         ModBase.Log("[Update] 错误！所有的版本源都无法使用！");
-        throw new Exception("获取版本信息失败");
+        throw new Exception(Lang.Text("Update.Task.GetVersionInfoFailed"));
     }
 
     public async Task<bool> IsLatestAsync(UpdateChannel channel, UpdateArch arch, SemVer currentVersion,

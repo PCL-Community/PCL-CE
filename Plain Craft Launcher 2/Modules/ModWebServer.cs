@@ -239,14 +239,14 @@ public static class ModWebServer
         }
     }
 
-    private static readonly object ChangeLock = new();
-    private static string PicAddress;
+    private static readonly object changeLock = new();
+    private static string picAddress;
 
-    public static object BackgroundPicChangeCallback(string Pic)
+    public static object BackgroundPicChangeCallback(string pic)
     {
-        lock (ChangeLock)
+        lock (changeLock)
         {
-            PicAddress = Pic;
+            picAddress = pic;
             return true;
         }
     }
@@ -285,9 +285,9 @@ public static class ModWebServer
                     NaidCallbackServer? server;
 
                     string currentPicAddress;
-                    lock (ChangeLock)
+                    lock (changeLock)
                     {
-                        currentPicAddress = PicAddress;
+                        currentPicAddress = picAddress;
                     }
 
                     server = new NaidCallbackServer(serviceName, completeCallback, currentPicAddress);
@@ -316,7 +316,7 @@ public static class ModWebServer
                 OAuthCompleteStatus? status;
                 if (!success)
                 {
-                    ModMain.MyMsgBox(content, IsWarn: true);
+                    ModMain.MyMsgBox(content, isWarn: true);
                     completeCallback?.Invoke();
                     return null;
                 }

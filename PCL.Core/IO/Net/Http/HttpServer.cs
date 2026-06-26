@@ -74,10 +74,10 @@ public abstract class HttpServer : IDisposable
 
         _cancellationTokenSource = new CancellationTokenSource();
         _server.Start();
-        _handleLoop = _HandleRequest();
+        _handleLoop = _HandleRequestAsync();
     }
 
-    private async Task _HandleRequest()
+    private async Task _HandleRequestAsync()
     {
         var cancellationToken = _cancellationTokenSource?.Token ?? CancellationToken.None;
 
@@ -86,7 +86,7 @@ public abstract class HttpServer : IDisposable
             try
             {
                 var context = await _server.GetContextAsync();
-                _ = Task.Run(async () => await _ProcessRequest(context), cancellationToken);
+                _ = Task.Run(async () => await _ProcessRequestAsync(context), cancellationToken);
             }
             catch (OperationCanceledException) { break; } // Cancellation
             catch (ObjectDisposedException) { break; } // Disposed
@@ -94,7 +94,7 @@ public abstract class HttpServer : IDisposable
         }
     }
 
-    private async Task _ProcessRequest(HttpListenerContext context)
+    private async Task _ProcessRequestAsync(HttpListenerContext context)
     {
         try
         {
@@ -106,14 +106,14 @@ public abstract class HttpServer : IDisposable
             // 首先尝试精确匹配
             if (_handlers.TryGetValue((method, path), out var handler))
             {
-                await _ExecuteHandler(handler, request, response);
+                await _ExecuteHandlerAsync(handler, request, response);
                 return;
             }
 
             // 如果没有精确匹配，尝试通配符匹配
             if (_handlers.TryGetValue((method, "*"), out var wildcardHandler))
             {
-                await _ExecuteHandler(wildcardHandler, request, response);
+                await _ExecuteHandlerAsync(wildcardHandler, request, response);
                 return;
             }
 
@@ -133,7 +133,7 @@ public abstract class HttpServer : IDisposable
         }
     }
 
-    private static async Task _ExecuteHandler(Func<HttpListenerRequest, Task<HttpRouteResponse>> handler, HttpListenerRequest request, HttpListenerResponse response)
+    private static async Task _ExecuteHandlerAsync(Func<HttpListenerRequest, Task<HttpRouteResponse>> handler, HttpListenerRequest request, HttpListenerResponse response)
     {
         try
         {

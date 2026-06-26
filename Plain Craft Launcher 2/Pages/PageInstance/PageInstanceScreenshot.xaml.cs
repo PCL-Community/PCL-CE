@@ -17,10 +17,10 @@ public partial class PageInstanceScreenshot : IRefreshable
     private bool _AppendLock;
     private int _Offset;
 
-    private List<string> FileList = new();
+    private List<string> fileList = new();
 
-    private bool IsLoad;
-    private string ScreenshotPath;
+    private bool isLoad;
+    private string screenshotPath;
 
     public PageInstanceScreenshot()
     {
@@ -38,46 +38,46 @@ public partial class PageInstanceScreenshot : IRefreshable
 
     private void RefreshSelf()
     {
-        var ignore = Refresh();
+        var ignore = RefreshAsync();
     }
 
-    public static async Task Refresh()
+    public static async Task RefreshAsync()
     {
-        if (ModMain.FrmInstanceScreenshot is not null)
-            await ModMain.FrmInstanceScreenshot.Reload();
-        ModMain.FrmInstanceLeft.ItemScreenshot.Checked = true;
-        ModMain.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), Log: false);
+        if (ModMain.frmInstanceScreenshot is not null)
+            await ModMain.frmInstanceScreenshot.ReloadAsync();
+        ModMain.frmInstanceLeft.ItemScreenshot.Checked = true;
+        HintService.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), log: false);
     }
 
     private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
     {
         // 重复加载部分
         PanBack.ScrollToHome();
-        ScreenshotPath = PageInstanceLeft.Instance.PathIndie + @"screenshots\";
-        if (!Directory.Exists(ScreenshotPath))
-            Directory.CreateDirectory(ScreenshotPath);
-        Dispatcher.BeginInvoke(new Func<Task>(Reload));
+        screenshotPath = PageInstanceLeft.McInstance.PathIndie + @"screenshots\";
+        if (!Directory.Exists(screenshotPath))
+            Directory.CreateDirectory(screenshotPath);
+        Dispatcher.BeginInvoke(new Func<Task>(ReloadAsync));
 
         // 非重复加载部分
-        if (IsLoad)
+        if (isLoad)
             return;
-        IsLoad = true;
+        isLoad = true;
     }
 
     /// <summary>
     ///     确保当前页面上的信息已正确显示。
     /// </summary>
-    public async Task Reload()
+    public async Task ReloadAsync()
     {
         ModAnimation.AniControlEnabled += 1;
         PanBack.ScrollToHome();
-        await LoadFileList();
+        await LoadFileListAsync();
         ModAnimation.AniControlEnabled -= 1;
     }
 
     private void RefreshTip()
     {
-        if (FileList.Count.Equals(0))
+        if (fileList.Count.Equals(0))
         {
             PanNoPic.Visibility = Visibility.Visible;
             PanContent.Visibility = Visibility.Collapsed;
@@ -89,16 +89,16 @@ public partial class PageInstanceScreenshot : IRefreshable
         }
     }
     
-    private static string[] AllowedSuffix = { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp", "*.tiff" };
+    private static string[] allowedSuffix = { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp", "*.tiff" };
     
-    private async Task LoadFileList()
+    private async Task LoadFileListAsync()
     {
         ModBase.Log("[Screenshot] 刷新截图文件");
-        FileList.Clear();
-        if (Directory.Exists(ScreenshotPath))
+        fileList.Clear();
+        if (Directory.Exists(screenshotPath))
         {
-            FileList = AllowedSuffix
-                .SelectMany(suffix => Directory.EnumerateFiles(ScreenshotPath, suffix, SearchOption.TopDirectoryOnly))
+            fileList = allowedSuffix
+                .SelectMany(suffix => Directory.EnumerateFiles(screenshotPath, suffix, SearchOption.TopDirectoryOnly))
                 .OrderByDescending(f => File.GetCreationTime(f))
                 .ToList();
         }
@@ -106,42 +106,42 @@ public partial class PageInstanceScreenshot : IRefreshable
         RefreshTip();
         //FileList = FileList.Where(e => !e.ContainsF(@"\debug\")).ToList(); // 排除资源包调试输出
         //FileList.Sort((a, b) => new FileInfo(a).CreationTime > new FileInfo(b).CreationTime);
-        ModBase.Log("[Screenshot] 共发现 " + FileList.Count + " 个截图文件");
-        if (FileList.Count == 0)
+        ModBase.Log("[Screenshot] 共发现 " + fileList.Count + " 个截图文件");
+        if (fileList.Count == 0)
             return;
-        await ListAppend(20, 0);
+        await ListAppendAsync(20, 0);
     }
 
     private void RequireAppend(object sender, ScrollChangedEventArgs e)
     {
-        if (FileList.Count != 0 && !_AppendLock && PanBack.VerticalOffset + PanBack.ViewportHeight >= PanBack.ExtentHeight)
+        if (fileList.Count != 0 && !_AppendLock && PanBack.VerticalOffset + PanBack.ViewportHeight >= PanBack.ExtentHeight)
         {
-            Dispatcher.BeginInvoke(new Func<Task>(async () => await ListAppend()));
+            Dispatcher.BeginInvoke(new Func<Task>(async () => await ListAppendAsync()));
         }
     }
 
-    private async Task ListAppend(int Count = 20, int Offset = -1)
+    private async Task ListAppendAsync(int count = 20, int offset = -1)
     {
         _AppendLock = true;
-        if (Offset == -1)
+        if (offset == -1)
         {
-            if (_Offset * Count > FileList.Count)
+            if (_Offset * count > fileList.Count)
                 return;
-            Offset = _Offset + 1;
+            offset = _Offset + 1;
             _Offset += 1;
         }
         else
         {
-            _Offset = Offset;
+            _Offset = offset;
         }
 
-        if (Count * Offset > FileList.Count)
+        if (count * offset > fileList.Count)
             return;
-        for (int j = Count * Offset, loopTo = Count * (Offset + 1) - 1; j <= loopTo; j++)
+        for (int j = count * offset, loopTo = count * (offset + 1) - 1; j <= loopTo; j++)
         {
-            if (j >= FileList.Count)
+            if (j >= fileList.Count)
                 break;
-            var i = FileList.ElementAt(j);
+            var i = fileList.ElementAt(j);
             try
             {
                 if (!File.Exists(i))
@@ -154,7 +154,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                 {
                     Margin = new Thickness(7),
                     Tag = i,
-                    ToolTip = i.Replace(ScreenshotPath, "") // 适配高清截图模组
+                    ToolTip = i.Replace(screenshotPath, "") // 适配高清截图模组
                 };
                 var grid = new Grid();
                 myCard.Children.Add(grid);
@@ -211,7 +211,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     Name = "BtnOpen",
                     Text = Lang.Text("Common.Action.Open"),
                     LogoScale = 0.8d,
-                    Logo = Icon.IconButtonOpen,
+                    SvgIcon = "lucide/folder-open",
                     Tag = i
                 };
                 btnOpen.Click += (s, ev) => BtnOpen_Click((MyIconTextButton)s, ev);
@@ -221,7 +221,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     Name = "BtnDelete",
                     Text = Lang.Text("Common.Action.Delete"),
                     LogoScale = 0.8d,
-                    Logo = Icon.IconButtonDelete,
+                    SvgIcon = "lucide/trash-2",
                     Tag = i
                 };
                 btnDelete.Click += (s, ev) => BtnDelete_Click((MyIconTextButton)s, ev);
@@ -231,7 +231,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     Name = "BtnCopy",
                     Text = Lang.Text("Common.Action.Copy"),
                     LogoScale = 0.8d,
-                    Logo = Icon.IconButtonCopy,
+                    SvgIcon = "lucide/copy",
                     Tag = i
                 };
                 btnCopy.Click += (s, ev) => BtnCopy_Click((MyIconTextButton)s, ev);
@@ -249,18 +249,18 @@ public partial class PageInstanceScreenshot : IRefreshable
         _AppendLock = false;
     }
 
-    private void RemoveItem(string Path)
+    private void RemoveItem(string path)
     {
         try
         {
             foreach (var i in PanList.Children)
-                if (((MyCard)i).Tag.Equals(Path))
+                if (((MyCard)i).Tag.Equals(path))
                 {
                     PanList.Children.Remove((UIElement)i);
                     break;
                 }
 
-            FileList.Remove(Path);
+            fileList.Remove(path);
         }
         catch (Exception ex)
         {
@@ -286,7 +286,7 @@ public partial class PageInstanceScreenshot : IRefreshable
             FileSystem.DeleteFile(path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
             RemoveItem(path);
             RefreshTip();
-            ModMain.Hint(Lang.Text("Instance.Screenshot.Deleted"));
+            HintService.Hint(Lang.Text("Instance.Screenshot.Deleted"));
         }
         catch (Exception ex)
         {
@@ -299,34 +299,34 @@ public partial class PageInstanceScreenshot : IRefreshable
         var imagePath = GetPathFromSender(sender);
         if (File.Exists(imagePath))
         {
-            var TryTime = 0;
-            while (TryTime <= 5)
+            var tryTime = 0;
+            while (tryTime <= 5)
                 try
                 {
                     ModBase.Log("[Screenshot] 尝试复制" + imagePath + "到剪贴板");
                     Clipboard.SetImage(new BitmapImage(new Uri(imagePath)));
-                    ModMain.Hint(Lang.Text("Instance.Screenshot.CopiedToClipboard"));
-                    TryTime = 6;
+                    HintService.Hint(Lang.Text("Instance.Screenshot.CopiedToClipboard"));
+                    tryTime = 6;
                     return;
                 }
                 catch (Exception ex)
                 {
-                    TryTime += 1;
-                    ModBase.Log(ex, $"[Screenshot]第 {TryTime} 次复制尝试失败");
+                    tryTime += 1;
+                    ModBase.Log(ex, $"[Screenshot]第 {tryTime} 次复制尝试失败");
                 }
 
-            ModMain.Hint(Lang.Text("Instance.Screenshot.CopyFailed"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Screenshot.CopyFailed"), HintType.Error);
         }
         else
         {
-            ModMain.Hint(Lang.Text("Instance.Screenshot.FileNotFound"));
+            HintService.Hint(Lang.Text("Instance.Screenshot.FileNotFound"));
         }
     }
 
     private void BtnOpenFolder_Click(object sender, MouseButtonEventArgs e)
     {
-        if (!Directory.Exists(ScreenshotPath))
-            Directory.CreateDirectory(ScreenshotPath);
-        ModBase.OpenExplorer(ScreenshotPath);
+        if (!Directory.Exists(screenshotPath))
+            Directory.CreateDirectory(screenshotPath);
+        ModBase.OpenExplorer(screenshotPath);
     }
 }

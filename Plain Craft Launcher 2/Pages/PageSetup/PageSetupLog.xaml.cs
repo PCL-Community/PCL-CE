@@ -114,7 +114,7 @@ public partial class PageSetupLog
                 }
             }
 
-            ModMain.Hint(Lang.Text("Setup.Misc.Log.ExportSuccess"), ModMain.HintType.Finish);
+            HintService.Hint(Lang.Text("Setup.Misc.Log.ExportSuccess"), HintType.Success);
         }
         catch (Exception ex)
         {
@@ -134,14 +134,14 @@ public partial class PageSetupLog
 
     private void ButtonClean_OnClick(object sender, MouseButtonEventArgs e)
     {
-        var r = ModMain.MyMsgBox(Lang.Text("Setup.Misc.Log.Clear.Confirm.Message"), Lang.Text("Setup.Misc.Log.Clear.Confirm.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), IsWarn: true);
+        var r = ModMain.MyMsgBox(Lang.Text("Setup.Misc.Log.Clear.Confirm.Message"), Lang.Text("Setup.Misc.Log.Clear.Confirm.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true);
         if (r != 1)
             return;
         var currentSet = new HashSet<string>(CurrentLogs);
         foreach (var item in Directory.GetFiles(LogDirectory))
             if (!currentSet.Contains(item))
                 File.Delete(item);
-        ModMain.Hint(Lang.Text("Setup.Misc.Log.Clear.Success"), ModMain.HintType.Finish);
+        HintService.Hint(Lang.Text("Setup.Misc.Log.Clear.Success"), HintType.Success);
         LoadList();
     }
 

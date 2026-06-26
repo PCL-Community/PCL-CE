@@ -4,15 +4,16 @@ using System.Windows;
 using System.Windows.Input;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
+using PCL.Core.Utils;
 
 namespace PCL;
 
 public partial class PageSetupAbout
 {
     // 彩蛋
-    private int ClickCount;
+    private int clickCount;
 
-    private new bool IsLoaded;
+    private new bool isLoaded;
 
     public PageSetupAbout()
     {
@@ -28,13 +29,21 @@ public partial class PageSetupAbout
         PanBack.ScrollToHome();
 
         // 非重复加载部分
-        if (IsLoaded)
+        if (isLoaded)
             return;
-        IsLoaded = true;
+        isLoaded = true;
 
-        ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", ModBase.VersionBaseName)
-            .Replace("%VERSIONCODE%", ModBase.VersionCode.ToString()).Replace("%BRANCH%", ModBase.VersionBranchName)
-            .Replace("%COMMIT_HASH%", ModBase.CommitHashShort);
+        ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", ModBase.versionBaseName)
+            .Replace("%VERSIONCODE%", ModBase.versionCode.ToString()).Replace("%BRANCH%", ModBase.versionBranchName)
+            .Replace("%COMMIT_HASH%", ModBase.commitHashShort);
+
+        if (!Lang.IsChineseMainland)
+        {
+            ItemMcmod.Visibility = Visibility.Collapsed;
+            BtnMcmod.Visibility = Visibility.Collapsed;
+            ImgMcmod.Visibility = Visibility.Collapsed;
+        }
+
         LoadContributersAsync();
     }
 
@@ -46,7 +55,7 @@ public partial class PageSetupAbout
                        .Create("https://api.github.com/repos/PCL-Community/PCL2-CE/contributors").SendAsync())
             {
                 response.EnsureSuccessStatusCode();
-                var cos = await response.AsJsonAsync<List<GitHubContributor>>();
+                var cos = await response.AsJsonAsync<List<GitHubContributor>>(JsonCompat.SerializerOptions);
                 Contributors.Clear();
                 foreach (var item in cos)
                     Contributors.Add((GitHubContributor)item);
@@ -65,19 +74,19 @@ public partial class PageSetupAbout
 
     private void ImgPCLLogo_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ClickCount < 200)
+        if (clickCount < 200)
         {
-            ClickCount += 1;
-            switch (ClickCount)
+            clickCount += 1;
+            switch (clickCount)
             {
                 case 5:
                 {
-                    ModMain.Hint(Lang.Text("Setup.About.EasterEgg.NiceClick"));
+                    HintService.Hint(Lang.Text("Setup.About.EasterEgg.NiceClick"));
                     break;
                 }
                 case 15:
                 {
-                    ModMain.Hint(Lang.Text("Setup.About.EasterEgg.StillClicking"));
+                    HintService.Hint(Lang.Text("Setup.About.EasterEgg.StillClicking"));
                     break;
                 }
                 case 25:
@@ -86,7 +95,7 @@ public partial class PageSetupAbout
                     {
                         case 2:
                         {
-                            ModMain.Hint(Lang.Text("Setup.About.EasterEgg.Bored.Response"));
+                            HintService.Hint(Lang.Text("Setup.About.EasterEgg.Bored.Response"));
                             break;
                         }
                     }
@@ -95,22 +104,22 @@ public partial class PageSetupAbout
                 }
                 case 50:
                 {
-                    ModMain.Hint(Lang.Text("Setup.About.EasterEgg.Encouragement"));
+                    HintService.Hint(Lang.Text("Setup.About.EasterEgg.Encouragement"));
                     break;
                 }
                 case 75:
                 {
-                    ModMain.Hint(Lang.Text("Setup.About.EasterEgg.HiddenTheme"));
+                    HintService.Hint(Lang.Text("Setup.About.EasterEgg.HiddenTheme"));
                     break;
                 }
                 case 100:
                 {
-                    ModMain.Hint(Lang.Text("Setup.About.EasterEgg.StillStaring"));
+                    HintService.Hint(Lang.Text("Setup.About.EasterEgg.StillStaring"));
                     break;
                 }
                 case 130:
                 {
-                    ModMain.Hint(Lang.Text("Setup.About.EasterEgg.NothingBehind"));
+                    HintService.Hint(Lang.Text("Setup.About.EasterEgg.NothingBehind"));
                     break;
                 }
                 case 150:
@@ -119,7 +128,7 @@ public partial class PageSetupAbout
                     {
                         case 1:
                         {
-                            ModMain.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
+                            HintService.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
                             break;
                         }
                         case 2:
@@ -128,7 +137,7 @@ public partial class PageSetupAbout
                             {
                                 case 1:
                                 {
-                                    ModMain.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
+                                    HintService.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
                                     break;
                                 }
                                 case 2:
@@ -137,12 +146,12 @@ public partial class PageSetupAbout
                                     {
                                         case 1:
                                         {
-                                            ModMain.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
+                                            HintService.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
                                             break;
                                         }
                                         case 2:
                                         {
-                                            ModMain.Hint(Lang.Text("Setup.About.EasterEgg.Tired.FinallyGiveUp"));
+                                            HintService.Hint(Lang.Text("Setup.About.EasterEgg.Tired.FinallyGiveUp"));
                                             break;
                                         }
                                     }
@@ -159,7 +168,7 @@ public partial class PageSetupAbout
                 }
                 case 200:
                 {
-                    ModMain.Hint(Lang.Text("Setup.About.EasterEgg.ClickDisabled"));
+                    HintService.Hint(Lang.Text("Setup.About.EasterEgg.ClickDisabled"));
                     ImgPCLLogo.IsHitTestVisible = false;
                     return;
                 }

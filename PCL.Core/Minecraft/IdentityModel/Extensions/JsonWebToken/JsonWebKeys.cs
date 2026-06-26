@@ -5,5 +5,5 @@ namespace PCL.Core.Minecraft.IdentityModel.Extensions.JsonWebToken;
 
 public record JsonWebKeys
 {
-    [JsonPropertyName("keys")] public required JsonWebKey[] Keys;
+    [JsonPropertyName("keys")] public required JsonWebKey[] Keys { get; init; }
 }

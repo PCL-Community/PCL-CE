@@ -87,9 +87,11 @@ public static partial class Config
             [ConfigItem<int>("ToolDownloadTranslate", 0)] public partial int NameFormatV1 { get; set; }
             [ConfigItem<int>("ToolDownloadTranslateV2", 1)] public partial int NameFormatV2 { get; set; }
             [ConfigItem<bool>("ToolDownloadIgnoreQuilt", false)] public partial bool IgnoreQuilt { get; set; }
+            [ConfigItem<bool>("ToolDownloadAutoInstallDependencies", true)] public partial bool AutoInstallDependencies { get; set; }
             [ConfigItem<bool>("ToolDownloadClipboard", false)] public partial bool ReadClipboard { get; set; }
             [ConfigItem<int>("ToolDownloadMod", 1)] public partial int CompSourceSolution { get; set; }
             [ConfigItem<int>("ToolModLocalNameStyle", 0)] public partial int UiCompNameSolution { get; set; }
+            [ConfigItem<int>("ToolDownloadQuickBehavior", 0)] public partial int QuickDownloadBehavior { get; set; }
         }
     }
 
@@ -443,7 +445,6 @@ public static partial class Config
 
             // 子页面 工具
             [ConfigItem<bool>("UiHiddenToolsGameLink", false, ConfigSource.Local)] public partial bool ToolsGameLink { get; set; } // 新增
-            [ConfigItem<bool>("UiHiddenToolsHelp", false, ConfigSource.Local)] public partial bool ToolsHelp { get; set; } // 新增
             [ConfigItem<bool>("UiHiddenToolsTest", false, ConfigSource.Local)] public partial bool ToolsTest { get; set; } // 新增
 
             // 子页面 实例设置
@@ -485,11 +486,6 @@ public static partial class Config
         [ConfigItem<JvmPreferredIpStack>("LaunchPreferredIpStack", JvmPreferredIpStack.Default)] public partial JvmPreferredIpStack PreferredIpStack { get; set; }
 
         /// <summary>
-        /// 启动前优化内存。
-        /// </summary>
-        [ConfigItem<bool>("LaunchArgumentRam", false)] public partial bool OptimizeMemory { get; set; }
-
-        /// <summary>
         /// 附加 JVM 参数。
         /// </summary>
         [ConfigItem<string>("LaunchAdvanceJvm", "-XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow -Djdk.lang.Process.allowAmbiguousCommands=true -Dfml.ignoreInvalidMinecraftCertificates=True -Dfml.ignorePatchDiscrepancies=True -Dlog4j2.formatMsgNoLookups=true", ConfigSource.Local)] public partial string JvmArgs { get; set; }
@@ -515,9 +511,9 @@ public static partial class Config
         [ConfigItem<bool>("LaunchAdvanceDisableJLW", true, ConfigSource.Local)] public partial bool DisableJlw { get; set; }
 
         /// <summary>
-        /// 禁用 Retro Wrapper
+        /// 禁用 LegacyFix
         /// </summary>
-        [ConfigItem<bool>("LaunchAdvanceDisableRW", false, ConfigSource.Local)] public partial bool DisableRw { get; set; }
+        [ConfigItem<bool>("LaunchAdvanceDisableLF", false, ConfigSource.Local)] public partial bool DisableLF { get; set; }
 
         /// <summary>
         /// 强制使用高性能显卡。
@@ -533,7 +529,12 @@ public static partial class Config
         /// 禁用 LWJGL Unsafe Agent。
         /// </summary>
         [ConfigItem<bool>("LaunchAdvanceDisableLwjglUnsafeAgent", false)] public partial bool DisableLwjglUnsafeAgent { get; set; }
-        
+
+        /// <summary>
+        /// 禁用自动崩溃分析。
+        /// </summary>
+        [ConfigItem<bool>("LaunchAdvanceDisableCrashAnalysis", false, ConfigSource.Local)] public partial bool DisableCrashAnalysis { get; set; }
+
         /// <summary>
         /// 渲染器。
         /// </summary>
@@ -553,11 +554,6 @@ public static partial class Config
         /// 选择的默认 Java 实例。
         /// </summary>
         [ConfigItem<string>("LaunchArgumentJavaSelect", "")] public partial string SelectedJava { get; set; }
-
-        /// <summary>
-        /// 版本隔离 V1。
-        /// </summary>
-        [ConfigItem<int>("LaunchArgumentIndie", 0, ConfigSource.Local)] public partial int IndieSolutionV1 { get; set; }
 
         /// <summary>
         /// 版本隔离 V2。
@@ -614,7 +610,7 @@ public static partial class Config
         [ConfigItem<bool>("VersionAdvanceDisableJLW", false)] public partial ArgConfig<bool> DisableJlw { get; }
         [ConfigItem<bool>("VersionAdvanceDisableLwjglUnsafeAgent", false)] public partial ArgConfig<bool> DisableLwjglUnsafeAgent { get; }
         [ConfigItem<bool>("VersionAdvanceUseProxyV2", false)] public partial ArgConfig<bool> UseProxy { get; }
-        [ConfigItem<bool>("VersionAdvanceDisableRW", false)] public partial ArgConfig<bool> DisableRw { get; }
+        [ConfigItem<bool>("VersionAdvanceDisableLF", false)] public partial ArgConfig<bool> DisableLF { get; }
         [ConfigItem<bool>("VersionUseDebugLog4j2Config", false)] public partial ArgConfig<bool> UseDebugLof4j2Config { get; }
         [ConfigItem<int>("VersionRamType", 2)] public partial ArgConfig<int> MemorySolution { get; }
         [ConfigItem<int>("VersionRamCustom", 15)] public partial ArgConfig<int> CustomMemorySize { get; }
