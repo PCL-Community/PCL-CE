@@ -1,0 +1,22 @@
+<Border x:Class="PCL.Desktop.Controls.Legacy.MyButton"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="PanBack"
+        Focusable="True"
+        Background="{StaticResource ColorBrushSemiTransparent}">
+    <Border CornerRadius="4" x:Name="PanFore" BorderThickness="1" BorderBrush="{DynamicResource ColorBrush1}"
+            MinHeight="32"
+            RenderTransformOrigin="0.5,0.5" Background="{DynamicResource ColorBrushHalfWhite}">
+        <Border.RenderTransform>
+            <ScaleTransform />
+        </Border.RenderTransform>
+        <TextBlock TextTrimming="None"
+                   HorizontalAlignment="Center" x:Name="LabText" VerticalAlignment="Center"
+                   RenderTransformOrigin="0.5,0.5"
+                   Foreground="{DynamicResource ColorBrush3}" FontSize="13"
+                   IsHitTestVisible="False">
+            <TextBlock.RenderTransform>
+                <ScaleTransform />
+            </TextBlock.RenderTransform>
+        </TextBlock>
+    </Border>
+</Border>

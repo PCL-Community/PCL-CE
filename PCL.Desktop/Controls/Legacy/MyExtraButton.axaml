@@ -1,0 +1,41 @@
+<Grid
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    
+    
+    xmlns:svgIcon="using:PCL.Desktop.Controls.Legacy"
+    x:Name="PanBack" 
+    x:Class="PCL.Desktop.Controls.Legacy.MyExtraButton"
+    Width="40" RenderTransformOrigin="0.5,0.5"  
+     Height="0">
+    <Grid.RenderTransform>
+        <ScaleTransform ScaleX="0" ScaleY="0" />
+    </Grid.RenderTransform>
+    <Border x:Name="PanClick" CornerRadius="1000" BorderThickness="0.001"
+            Background="{StaticResource ColorBrushSemiTransparent}" />
+    <Grid x:Name="PanScale" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5" Margin="0,10,0,0">
+        <Grid.RenderTransform>
+            <ScaleTransform />
+        </Grid.RenderTransform>
+        <Border x:Name="PanColor" CornerRadius="1000" BorderThickness="0.001"
+                Background="{DynamicResource ColorBrush3}" />
+        <Border x:Name="PanProgress" CornerRadius="1000" BorderThickness="0.001" Background="#2FFFFFFF"
+                ClipToBounds="True" IsVisible="False">
+            <Border.Clip>
+                <RectangleGeometry Rect="0,5,40,35" />
+            </Border.Clip>
+        </Border>
+        <Grid x:Name="IconHost" Margin="12" RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <ScaleTransform />
+            </Grid.RenderTransform>
+            <Path x:Name="Path"
+                  Stretch="Uniform"
+                  Fill="{DynamicResource ColorBrush8}" />
+            <svgIcon:SvgIcon x:Name="ShapeSvgIcon"
+                         Stretch="Uniform"
+                         IsVisible="False"
+                         IconBrush="{DynamicResource ColorBrush8}" />
+        </Grid>
+    </Grid>
+</Grid>

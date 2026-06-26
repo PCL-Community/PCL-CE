@@ -7,60 +7,9 @@
     x:Class="PCL.Desktop.App"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:home="using:PCL.Desktop.Pages.Home"
-    xmlns:homeVm="using:PCL.Desktop.ViewModels.Home"
-    xmlns:log="using:PCL.Desktop.Pages.Log"
-    xmlns:logVm="using:PCL.Desktop.ViewModels.Log"
-    xmlns:settings="using:PCL.Desktop.Pages.Settings"
-    xmlns:settingsVm="using:PCL.Desktop.ViewModels.Settings"
-    xmlns:common="using:PCL.Desktop.Pages.Common"
-    xmlns:commonVm="using:PCL.Desktop.ViewModels.Common"
-    xmlns:tools="using:PCL.Desktop.Pages.Tools"
-    xmlns:toolsVm="using:PCL.Desktop.ViewModels.Tools"
-    x:CompileBindings="True"
     RequestedThemeVariant="Default">
-  <Application.Resources>
-    <ResourceDictionary>
-      <ResourceDictionary.MergedDictionaries>
-        <ResourceInclude Source="avares://PCL.Desktop/Themes/Colors.axaml" />
-        <ResourceInclude Source="avares://PCL.Desktop/Themes/Typography.axaml" />
-        <ResourceInclude Source="avares://PCL.Desktop/Themes/Spacing.axaml" />
-        <ResourceInclude Source="avares://PCL.Desktop/Themes/Shadows.axaml" />
-        <ResourceInclude Source="avares://PCL.Desktop/Themes/Motion.axaml" />
-      </ResourceDictionary.MergedDictionaries>
-    </ResourceDictionary>
-  </Application.Resources>
   <Application.Styles>
     <FluentTheme />
-    <StyleInclude Source="avares://PCL.Desktop/Themes/Controls/PclButton.axaml" />
-    <StyleInclude Source="avares://PCL.Desktop/Themes/Controls/PclCard.axaml" />
-    <StyleInclude Source="avares://PCL.Desktop/Themes/Controls/PclInputs.axaml" />
+    <StyleInclude Source="avares://PCL.Desktop/Themes/PclTheme.axaml" />
   </Application.Styles>
-  <Application.DataTemplates>
-    <DataTemplate
-        DataType="{x:Type homeVm:HomePageViewModel}"
-        x:DataType="homeVm:HomePageViewModel">
-      <home:HomePage />
-    </DataTemplate>
-    <DataTemplate
-        DataType="{x:Type commonVm:PlaceholderPageViewModel}"
-        x:DataType="commonVm:PlaceholderPageViewModel">
-      <common:PlaceholderPage />
-    </DataTemplate>
-    <DataTemplate
-        DataType="{x:Type toolsVm:ControlsGalleryViewModel}"
-        x:DataType="toolsVm:ControlsGalleryViewModel">
-      <tools:ControlsGalleryPage />
-    </DataTemplate>
-    <DataTemplate
-        DataType="{x:Type logVm:LogPageViewModel}"
-        x:DataType="logVm:LogPageViewModel">
-      <log:LogPage />
-    </DataTemplate>
-    <DataTemplate
-        DataType="{x:Type settingsVm:SettingsPageViewModel}"
-        x:DataType="settingsVm:SettingsPageViewModel">
-      <settings:SettingsPage />
-    </DataTemplate>
-  </Application.DataTemplates>
 </Application>

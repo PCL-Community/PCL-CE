@@ -1,0 +1,81 @@
+<!--
+  Copyright (c) MUXUE1230. All rights reserved.
+  Modifications Copyright (c) 2026 PCL N contributors.
+  Licensed under the Apache License, Version 2.0.
+-->
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Styles.Resources>
+    <x:Double x:Key="BlurRadius">0</x:Double>
+    <x:Double x:Key="BlurSamplingRate">0.7</x:Double>
+
+    <FontFamily x:Key="LaunchFontFamily">Microsoft YaHei UI, Segoe UI, Arial</FontFamily>
+
+    <SolidColorBrush x:Key="ColorBrush1" Color="#343d4a" />
+    <SolidColorBrush x:Key="ColorBrush2" Color="#0b5bcb" />
+    <SolidColorBrush x:Key="ColorBrush3" Color="#1370f3" />
+    <SolidColorBrush x:Key="ColorBrush4" Color="#4890f5" />
+    <SolidColorBrush x:Key="ColorBrush5" Color="#96c0f9" />
+    <SolidColorBrush x:Key="ColorBrush6" Color="#d5e6fd" />
+    <SolidColorBrush x:Key="ColorBrush7" Color="#e0eafd" />
+    <SolidColorBrush x:Key="ColorBrush8" Color="#eaf2fe" />
+    <SolidColorBrush x:Key="ColorBrushBg0" Color="#96c0f9" />
+    <SolidColorBrush x:Key="ColorBrushBg1" Color="#bee0eafd" />
+    <Color x:Key="ColorObject1">#343d4a</Color>
+    <Color x:Key="ColorObject2">#0b5bcb</Color>
+    <Color x:Key="ColorObject3">#1370f3</Color>
+    <Color x:Key="ColorObject4">#4890f5</Color>
+    <Color x:Key="ColorObject5">#96c0f9</Color>
+    <Color x:Key="ColorObject6">#d5e6fd</Color>
+    <Color x:Key="ColorObject7">#e0eafd</Color>
+    <Color x:Key="ColorObject8">#eaf2fe</Color>
+
+    <SolidColorBrush x:Key="ColorBrushGray1" Color="#404040" />
+    <SolidColorBrush x:Key="ColorBrushGray2" Color="#737373" />
+    <SolidColorBrush x:Key="ColorBrushGray3" Color="#8c8c8c" />
+    <SolidColorBrush x:Key="ColorBrushGray4" Color="#a6a6a6" />
+    <SolidColorBrush x:Key="ColorBrushGray5" Color="#cccccc" />
+    <SolidColorBrush x:Key="ColorBrushGray6" Color="#ebebeb" />
+    <SolidColorBrush x:Key="ColorBrushGray7" Color="#f0f0f0" />
+    <SolidColorBrush x:Key="ColorBrushGray8" Color="#f5f5f5" />
+
+    <SolidColorBrush x:Key="ColorBrushRedBack" Color="#80fbdddd" />
+    <SolidColorBrush x:Key="ColorBrushRedLight" Color="#ff4c4c" />
+    <SolidColorBrush x:Key="ColorBrushRedDark" Color="#ce2111" />
+    <SolidColorBrush x:Key="ColorBrushHalfWhite" Color="#55ffffff" />
+    <SolidColorBrush x:Key="ColorBrushSemiWhite" Color="#bbffffff" />
+    <SolidColorBrush x:Key="ColorBrushWhite" Color="#ffffff" />
+    <SolidColorBrush x:Key="ColorBrushTransparent" Color="#00ffffff" />
+    <SolidColorBrush x:Key="ColorBrushSemiTransparent" Color="#01eaf2fe" />
+    <SolidColorBrush x:Key="ColorBrushTransparentBackground" Color="#d2fbfbfb" />
+    <SolidColorBrush x:Key="ColorBrushBackground" Color="#fbfbfb" />
+    <SolidColorBrush x:Key="ColorBrushToolTip" Color="#e5ffffff" />
+
+    <x:String x:Key="Main.TopTitle.Launch">启动</x:String>
+    <x:String x:Key="Main.TopTitle.Download">下载</x:String>
+    <x:String x:Key="Main.TopTitle.Community">社区</x:String>
+    <x:String x:Key="Main.TopTitle.Online">在线</x:String>
+    <x:String x:Key="Main.TopTitle.Settings">设置</x:String>
+    <x:String x:Key="Main.Extra.UpdateRestart.ToolTip">重启以完成更新</x:String>
+    <x:String x:Key="Main.Extra.BackToTop.ToolTip">返回顶部</x:String>
+    <x:String x:Key="Main.Extra.TaskManager.ToolTip">任务管理</x:String>
+    <x:String x:Key="Main.Extra.GiveUp.ToolTip">隐藏当前提示</x:String>
+    <x:String x:Key="Main.Extra.ShutdownMinecraft.ToolTip">结束游戏进程</x:String>
+    <x:String x:Key="Main.Extra.GameLog.ToolTip">查看游戏日志</x:String>
+    <x:String x:Key="Common.Action.Search">搜索</x:String>
+    <x:String x:Key="Common.Hint.DoNotShowAgain">不再显示</x:String>
+  </Styles.Resources>
+
+  <Style Selector="TextBlock">
+    <Setter Property="FontFamily" Value="{DynamicResource LaunchFontFamily}" />
+    <Setter Property="Foreground" Value="{DynamicResource ColorBrush1}" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+
+  <Style Selector="ToolTip">
+    <Setter Property="Background" Value="{DynamicResource ColorBrushToolTip}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ColorBrush1}" />
+    <Setter Property="BorderThickness" Value="1.5" />
+  </Style>
+</Styles>

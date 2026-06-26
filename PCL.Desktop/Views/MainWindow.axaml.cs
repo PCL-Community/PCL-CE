@@ -7,92 +7,138 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
-using PCL.Desktop.Composition;
-using PCL.Desktop.ViewModels;
 
 namespace PCL.Desktop.Views;
 
-public sealed partial class MainWindow : Window
+public partial class MainWindow : Window
 {
     public MainWindow()
-        : this(DesktopCompositionRoot.CreateMainWindowViewModel())
-    {
-    }
-
-    public MainWindow(MainWindowViewModel viewModel)
     {
         AvaloniaXamlLoader.Load(this);
-        DataContext = viewModel;
-        WindowDecorations = WindowDecorations.None;
-        CanMaximize = false;
+        CanResize = true;
+        WindowDecorations = Avalonia.Controls.WindowDecorations.None;
+        SyncTitleOverlayWidth();
     }
 
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    private void FormMain_KeyDown(object? sender, KeyEventArgs e)
     {
-        base.OnPropertyChanged(change);
+    }
 
-        if (change.Property == WindowStateProperty &&
-            change.GetNewValue<WindowState>() == WindowState.FullScreen)
+    private void FormMain_MouseDown(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed &&
+            e.GetPosition(this).Y <= 48)
         {
-            WindowState = WindowState.Normal;
+            BeginMoveDrag(e);
         }
     }
 
-    protected override void OnClosed(EventArgs e)
+    private void FormMain_SizeChanged(object? sender, SizeChangedEventArgs e)
     {
-        if (DataContext is IDisposable disposable)
-            disposable.Dispose();
-        base.OnClosed(e);
     }
 
-    private void TitleBar_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    private void FormMain_Closing(object? sender, WindowClosingEventArgs e)
+    {
+    }
+
+    private void FormMain_Activated(object? sender, EventArgs e)
+    {
+    }
+
+    private void FrmMain_Drop(object? sender, DragEventArgs e)
+    {
+    }
+
+    private void FormMain_MouseMove(object? sender, PointerEventArgs e)
+    {
+    }
+
+    private void VideoEnded(object? sender, EventArgs e)
+    {
+    }
+
+    private void PanTitle_SizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        SyncTitleOverlayWidth();
+    }
+
+    private void BtnTitleClose_Click(object? sender, EventArgs e) => Close();
+
+    private void BtnTitleMin_Click(object? sender, EventArgs e) =>
+        WindowState = WindowState.Minimized;
+
+    private void BtnTitleHelp_Click(object? sender, EventArgs e)
+    {
+    }
+
+    private void BtnTitleInner_Click(object? sender, EventArgs e)
+    {
+    }
+
+    private void BtnNavItem_Click(object? sender, PointerReleasedEventArgs e)
+    {
+    }
+
+    private void BtnNavToggle_Click(object? sender, EventArgs e)
+    {
+    }
+
+    private void PanMainLeft_SizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+    }
+
+    private void BtnExtraUpdateRestart_Click(object? sender, EventArgs e)
+    {
+    }
+
+    private void BtnExtraBack_Click(object? sender, EventArgs e)
+    {
+    }
+
+    private void BtnExtraDownload_Click(object? sender, EventArgs e)
+    {
+    }
+
+    private void BtnExtraApril_Click(object? sender, EventArgs e)
+    {
+    }
+
+    private void BtnExtraShutdown_Click(object? sender, EventArgs e)
+    {
+    }
+
+    private void BtnExtraLog_Click(object? sender, EventArgs e)
+    {
+    }
+
+    private void BtnExtraMusic_Click(object? sender, EventArgs e)
+    {
+    }
+
+    private void BtnExtraMusic_RightClick(object? sender, PointerReleasedEventArgs e)
+    {
+    }
+
+    private void FormDragMove(object? sender, PointerPressedEventArgs e)
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             BeginMoveDrag(e);
     }
 
-    private void CloseButton_OnClick(object? sender, RoutedEventArgs e) => Close();
+    private void SyncTitleOverlayWidth()
+    {
+        Control? panTitle = this.FindControl<Control>("PanTitle");
+        Control? panTitleMain = this.FindControl<Control>("PanTitleMain");
+        Control? panTitleInner = this.FindControl<Control>("PanTitleInner");
+        if (panTitle is null)
+            return;
 
-    private void MinimizeButton_OnClick(object? sender, RoutedEventArgs e) =>
-        WindowState = WindowState.Minimized;
-
-    private void ResizeTop_OnPointerPressed(
-        object? sender,
-        PointerPressedEventArgs e) =>
-        BeginResizeDrag(WindowEdge.North, e);
-
-    private void ResizeBottom_OnPointerPressed(
-        object? sender,
-        PointerPressedEventArgs e) =>
-        BeginResizeDrag(WindowEdge.South, e);
-
-    private void ResizeLeft_OnPointerPressed(
-        object? sender,
-        PointerPressedEventArgs e) =>
-        BeginResizeDrag(WindowEdge.West, e);
-
-    private void ResizeRight_OnPointerPressed(
-        object? sender,
-        PointerPressedEventArgs e) =>
-        BeginResizeDrag(WindowEdge.East, e);
-
-    private void ResizeTopLeft_OnPointerPressed(
-        object? sender,
-        PointerPressedEventArgs e) =>
-        BeginResizeDrag(WindowEdge.NorthWest, e);
-
-    private void ResizeTopRight_OnPointerPressed(
-        object? sender,
-        PointerPressedEventArgs e) =>
-        BeginResizeDrag(WindowEdge.NorthEast, e);
-
-    private void ResizeBottomLeft_OnPointerPressed(
-        object? sender,
-        PointerPressedEventArgs e) =>
-        BeginResizeDrag(WindowEdge.SouthWest, e);
-
-    private void ResizeBottomRight_OnPointerPressed(
-        object? sender,
-        PointerPressedEventArgs e) =>
-        BeginResizeDrag(WindowEdge.SouthEast, e);
+        double width = panTitle.Bounds.Width;
+        if (width <= 0)
+            width = Width;
+        if (panTitleMain is not null)
+            panTitleMain.Width = width;
+        if (panTitleInner is not null)
+            panTitleInner.Width = width;
+    }
 }

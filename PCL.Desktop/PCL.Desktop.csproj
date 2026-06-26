@@ -7,17 +7,15 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifiers>win-x64;linux-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
     <AssemblyName>PCL.Desktop</AssemblyName>
     <RootNamespace>PCL.Desktop</RootNamespace>
     <Description>PCL N cross-platform Avalonia desktop shell</Description>
     <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
-    <Company>PCL N</Company>
-    <Product>PCL.Desktop</Product>
-    <Copyright>Copyright (c) MUXUE1230; Modifications Copyright (c) 2026 PCL N contributors</Copyright>
     <LangVersion>14.0</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
     <PublishAot>true</PublishAot>
     <PublishTrimmed>true</PublishTrimmed>
     <TrimMode>link</TrimMode>
@@ -34,8 +32,13 @@
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.4" />
   </ItemGroup>
   <ItemGroup>
-    <AvaloniaResource Include="Assets\IconPacks\**\*.svg" />
-    <AvaloniaResource Include="Assets\icon.png" />
+    <AvaloniaResource Include="Assets\**" />
+    <AvaloniaResource Include="WpfOriginal\Images\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="WpfOriginal\**\*.cs" />
+    <None Include="WpfOriginal\**\*.cs" />
+    <None Include="WpfOriginal\**\*.xaml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PCL.Application\PCL.Application.csproj" />

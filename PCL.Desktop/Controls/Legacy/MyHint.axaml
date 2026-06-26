@@ -1,0 +1,21 @@
+<Border x:Class="PCL.Desktop.Controls.Legacy.MyHint" x:Name="PanBack"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:PCL.Desktop.Controls.Legacy"
+        
+          HorizontalAlignment="Stretch" BorderThickness="3,0,0,0"
+        BorderBrush="#99FF4444" CornerRadius="4">
+    <Grid  >
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <TextBlock IsHitTestVisible="False" x:Name="LabText" LineHeight="16" Margin="0,0,0,-1" Padding="12,9"
+                   VerticalAlignment="Center" TextWrapping="Wrap" />
+        <local:MyIconButton x:Name="BtnClose" IsVisible="False" Theme="Custom" Margin="0,0,8,0" Grid.Column="1" Click="BtnClose_Click"
+                            Height="20" Width="20" VerticalAlignment="Center"
+                            SvgIcon="lucide/x"
+                            ToolTip="{DynamicResource Common.Hint.DoNotShowAgain}"  
+                             />
+    </Grid>
+</Border>
