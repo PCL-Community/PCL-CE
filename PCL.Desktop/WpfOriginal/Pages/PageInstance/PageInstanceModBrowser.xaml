@@ -1,0 +1,31 @@
+<local:MyPageRight x:Class="PCL.PageInstanceModBrowser"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:PCL"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    PanScroll="{Binding ElementName=PanBack}">
+    <local:MyScrollViewer x:Name="PanBack" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                          ScrollChanged="PanBack_ScrollChanged">
+        <StackPanel Orientation="Vertical" Margin="25">
+            <local:MySearchBox x:Name="PanSearchBox" Margin="0,0,0,15" SearchButtonVisibility="Visible"
+                               HintText="{DynamicResource Instance.ModBrowser.Search.Hint}" />
+            <local:MyHint x:Name="HintError" HasBorder="True" Theme="Yellow" Margin="0,0,0,15" Visibility="Collapsed" />
+            <local:MyCard x:Name="CardResults" UseAnimation="False" Visibility="Collapsed">
+                <StackPanel x:Name="PanResults" Margin="12" />
+            </local:MyCard>
+            <local:MyCard x:Name="PanLoadMore" UseAnimation="False" HorizontalAlignment="Center"
+                          VerticalAlignment="Center" Margin="40,15" Visibility="Collapsed">
+                <local:MyLoading Margin="20,15" x:Name="LoadMore" HorizontalAlignment="Center"
+                                 VerticalAlignment="Center" Text="{DynamicResource Instance.ModBrowser.Loading.More}" />
+            </local:MyCard>
+            <local:MyCard x:Name="PanLoad" UseAnimation="False" HorizontalAlignment="Center"
+                          VerticalAlignment="Center" Margin="40,80">
+                <local:MyLoading Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"
+                                 Text="{DynamicResource Instance.ModBrowser.Loading.Projects}" />
+            </local:MyCard>
+        </StackPanel>
+    </local:MyScrollViewer>
+</local:MyPageRight>

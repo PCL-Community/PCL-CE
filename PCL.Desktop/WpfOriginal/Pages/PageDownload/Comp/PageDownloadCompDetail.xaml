@@ -1,0 +1,67 @@
+<local:MyPageRight
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" x:Class="PCL.PageDownloadCompDetail"
+    PanScroll="{Binding ElementName=PanBack}">
+    <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
+        <Grid Margin="25,25,25,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="1*" />
+            </Grid.RowDefinitions>
+            <local:MyCard Margin="0,0,0,25" x:Name="CardIntro">
+                <StackPanel Margin="22,20,2,20" x:Name="PanIntro">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                        <local:MyIconTextButton x:Name="BtnIntroWeb" Text="CurseForge"
+                                                BorderBrush="{DynamicResource ColorBrush6}" BorderThickness="1"
+                                                SvgIcon="lucide/globe"
+                                                Margin="0,0,3,0" HorizontalAlignment="Left" />
+                        <local:MyIconTextButton x:Name="BtnIntroWiki"
+                                                Text="{DynamicResource Download.Comp.Detail.McMod}"
+                                                BorderBrush="{DynamicResource ColorBrush6}" BorderThickness="1"
+                                                SvgIcon="lucide/globe"
+                                                Margin="0,0,3,0" HorizontalAlignment="Left" />
+                        <local:MyIconTextButton x:Name="BtnIntroCopy"
+                                                Text="{DynamicResource Download.Comp.Detail.CopyName}"
+                                                BorderBrush="{DynamicResource ColorBrush6}" BorderThickness="1"
+                                                SvgIcon="lucide/copy"
+                                                Margin="0,0,3,0" HorizontalAlignment="Left" />
+                        <local:MyIconTextButton x:Name="BtnIntroLinkCopy"
+                                                Text="{DynamicResource Download.Comp.Detail.CopyLink}"
+                                                BorderBrush="{DynamicResource ColorBrush6}" BorderThickness="1"
+                                                SvgIcon="lucide/copy"
+                                                Margin="0,0,3,0" HorizontalAlignment="Left" />
+                        <local:MyIconTextButton x:Name="BtnTranslate"
+                                                Text="{DynamicResource Download.Comp.Detail.TranslateDescription}"
+                                                BorderBrush="{DynamicResource ColorBrush6}" BorderThickness="1"
+                                                SvgIcon="lucide/earth"
+                                                Margin="0,0,3,0" HorizontalAlignment="Left" />
+                        <local:MyIconTextButton x:Name="BtnFavorites"
+                                                Text="{DynamicResource Download.Comp.Detail.Favorite}"
+                                                BorderBrush="{DynamicResource ColorBrush6}" BorderThickness="1"
+                                                SvgIcon="lucide/heart"
+                                                Margin="0,0,2,0" HorizontalAlignment="Left" />
+                    </StackPanel>
+                </StackPanel>
+            </local:MyCard>
+            <StackPanel Grid.Row="1" Grid.RowSpan="2" Name="PanMain" Grid.IsSharedSizeScope="True">
+                <local:MyCard Margin="0,0,0,15" x:Name="CardFilter">
+                    <StackPanel>
+                        <StackPanel x:Name="PanInstanceFilter" Margin="10,10,0,5" Orientation="Horizontal"
+                                    VerticalAlignment="Top" HorizontalAlignment="Left" />
+                        <StackPanel x:Name="PanModLoaderFilter" Margin="10,5,0,10" Orientation="Horizontal"
+                                    VerticalAlignment="Top" HorizontalAlignment="Left" />
+                    </StackPanel>
+                </local:MyCard>
+                <StackPanel Name="PanResults" />
+            </StackPanel>
+            <local:MyCard Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"
+                          SnapsToDevicePixels="True" x:Name="PanLoad" UseAnimation="False" Margin="0,0,0,8">
+            <local:MyLoading Text="{DynamicResource Download.Version.LoadingList}" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
+                             VerticalAlignment="Center" />
+            </local:MyCard>
+        </Grid>
+    </local:MyScrollViewer>
+</local:MyPageRight>

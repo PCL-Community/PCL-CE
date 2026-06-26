@@ -1,0 +1,26 @@
+<local:MyPageRight
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" x:Class="PCL.PageSetupJava"
+    PanScroll="{Binding ElementName=PanBack}">
+    <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
+        <Grid>
+            <StackPanel x:Name="PanMain" Margin="25,25,25,10">
+                <local:MyCard Margin="0,0,0,15">
+                    <StackPanel Margin="8" Orientation="Horizontal">
+                        <local:MyIconTextButton x:Name="BtnAdd" Text="{DynamicResource Setup.Launch.Java.Add}" LogoScale="0.9" Click="BtnAdd_Click"
+                                                SvgIcon="lucide/circle-plus" />
+                    </StackPanel>
+                </local:MyCard>
+                <local:MyCard Margin="0,0,0,15">
+                    <StackPanel Margin="15" Orientation="Vertical" x:Name="PanContent" />
+                </local:MyCard>
+            </StackPanel>
+            <local:MyCard x:Name="CardLoad" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <local:MyLoading Text="{DynamicResource Setup.Launch.Java.Loading}" x:Name="PanLoad" Margin="12" />
+            </local:MyCard>
+        </Grid>
+    </local:MyScrollViewer>
+</local:MyPageRight>

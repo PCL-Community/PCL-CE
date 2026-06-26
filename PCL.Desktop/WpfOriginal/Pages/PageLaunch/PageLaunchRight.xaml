@@ -1,0 +1,23 @@
+<local:MyPageRight x:Class="PCL.PageLaunchRight"
+                   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                   xmlns:local="clr-namespace:PCL"> <!-- 不知道为啥只有这个文件不能在 XAML 设置 PanScroll -->
+    <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
+        <StackPanel Name="PanMain" Margin="25,25,25,10" Grid.IsSharedSizeScope="True">
+            <StackPanel x:Name="PanCustom" />
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Launch.Right.CommunityHint.Title}" x:Name="PanHint">
+                <local:MyIconButton SvgIcon="lucide/x"
+                                    Height="20" Width="20" Margin="10" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                    x:Name="BtnHintClose"
+                                    Click="BtnHintClose_Click" />
+                <StackPanel Margin="25,38,23,15">
+                    <TextBlock x:Name="LabHint1" TextWrapping="Wrap" Margin="0,0,0,2" FontSize="13.5" />
+                    <TextBlock x:Name="LabHint2" TextWrapping="Wrap" Margin="0,0,0,2" FontSize="13.5" />
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Launch.Right.Log.Title}" x:Name="PanLog">
+                <TextBlock x:Name="LabLog" Margin="20,38,20,18" TextTrimming="None" TextWrapping="Wrap" />
+            </local:MyCard>
+        </StackPanel>
+    </local:MyScrollViewer>
+</local:MyPageRight>

@@ -1,0 +1,46 @@
+﻿<local:MyPageRight
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" x:Class="PCL.PageDownloadResourcePack"
+    PanScroll="{Binding ElementName=Content}">
+    <local:PageComp x:Name="Content" PageType="ResourcePack">
+        <local:MyComboBoxItem Tag="" Content="{DynamicResource Common.Option.All}" IsSelected="True" />
+
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Style}" IsEnabled="False" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.VanillaLike}" Tag="403/vanilla-like" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Realistic}" Tag="400/realistic" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Modern}" Tag="401/" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Medieval}" Tag="402/" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Steampunk}" Tag="399/" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Themed}" Tag="/themed" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Simplistic}" Tag="/simplistic" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Decoration}" Tag="/decoration" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Combat}" Tag="/combat" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Utility}" Tag="/utility" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Tweaks}" Tag="/tweaks" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Cursed}" Tag="/cursed" />
+
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Feature}" IsEnabled="False" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Entities}" Tag="/entities" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Audio}" Tag="/audio" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Fonts}" Tag="5244/fonts" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Models}" Tag="/models" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Locale}" Tag="/locale" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Gui}" Tag="/gui" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.CoreShaders}" Tag="/core-shaders" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.Animated}" Tag="404/" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.ModSupport}" Tag="4465/modded" />
+
+        <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Category.Resolution}" IsEnabled="False" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.ResourcePack.Resolution8xOrLower}" Tag="/8x-" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.ResourcePack.Resolution16x}" Tag="393/16x" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.ResourcePack.Resolution32x}" Tag="394/32x" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.ResourcePack.Resolution48x}" Tag="/48x" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.ResourcePack.Resolution64x}" Tag="395/64x" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.ResourcePack.Resolution128x}" Tag="396/128x" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.ResourcePack.Resolution256x}" Tag="397/256x" />
+        <local:MyComboBoxItem Margin="15,0,0,0" Content="{DynamicResource Download.Comp.Category.ResourcePack.Resolution512xOrHigher}" Tag="398/512x+" />
+    </local:PageComp>
+</local:MyPageRight>

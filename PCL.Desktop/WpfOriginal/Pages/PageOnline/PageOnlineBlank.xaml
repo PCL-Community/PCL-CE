@@ -1,0 +1,22 @@
+<local:MyPageRight x:Class="PCL.PageOnlineBlank"
+                   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                   xmlns:local="clr-namespace:PCL">
+    <Grid Margin="25">
+        <local:MyCard Width="420" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel Margin="34,30" HorizontalAlignment="Center">
+                <Border Width="54" Height="54" CornerRadius="27"
+                        Background="{DynamicResource ColorBrushBg1}">
+                    <TextBlock Text="…" FontSize="30" FontWeight="Bold"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Foreground="{DynamicResource ColorBrush3}" />
+                </Border>
+                <TextBlock x:Name="LabPageTitle" Margin="0,16,0,0" FontSize="18" FontWeight="Bold"
+                           HorizontalAlignment="Center" Foreground="{DynamicResource ColorBrush1}" />
+                <TextBlock Margin="0,7,0,0" Text="{DynamicResource Online.ComingSoon.Description}"
+                           FontSize="13" TextWrapping="Wrap" TextAlignment="Center"
+                           HorizontalAlignment="Center" Foreground="{DynamicResource ColorBrush2}" />
+            </StackPanel>
+        </local:MyCard>
+    </Grid>
+</local:MyPageRight>

@@ -1,0 +1,496 @@
+<Window
+
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+
+    xmlns:local="clr-namespace:PCL"
+
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+
+    xmlns:controls="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core"
+
+    mc:Ignorable="d"
+
+    KeyDown="FormMain_KeyDown" MouseDown="FormMain_MouseDown" SizeChanged="FormMain_SizeChanged"
+
+    Closing="FormMain_Closing" Activated="FormMain_Activated" Drop="FrmMain_Drop" StateChanged="WindowStateChanged"
+
+    MouseMove="FormMain_MouseMove"
+
+    x:Name="WindMain" x:Class="PCL.FormMain" Style="{StaticResource MyWindow}"
+
+    AllowDrop="True" Topmost="True" Title="Plain Craft Launcher N Edition " MinHeight="470" MinWidth="810"
+
+    ScrollViewer.VerticalScrollBarVisibility="Disabled" Icon="/Plain Craft Launcher 2;component/Images/icon.ico"
+
+    ResizeMode="CanResize" Background="{x:Null}" d:DesignWidth="870" d:DesignHeight="520" Width="850" Height="500"
+
+    WindowStartupLocation="CenterScreen" WindowStyle="SingleBorderWindow" AllowsTransparency="False">
+
+    <Window.TaskbarItemInfo>
+
+        <TaskbarItemInfo ThumbnailClipMargin="{Binding Margin, ElementName=PanForm}" />
+
+    </Window.TaskbarItemInfo>
+
+    <WindowChrome.WindowChrome>
+
+        <WindowChrome
+
+            CaptionHeight="0"
+
+            UseAeroCaptionButtons="False"
+
+            ResizeBorderThickness="0"
+
+            CornerRadius="8"
+
+            GlassFrameThickness="0" />
+
+    </WindowChrome.WindowChrome>
+
+    <Grid SnapsToDevicePixels="True" UseLayoutRounding="True">
+
+        <Grid.RenderTransform>
+
+            <TransformGroup>
+
+                <RotateTransform x:Name="TransformRotate" Angle="-4" />
+
+                <TranslateTransform x:Name="TransformPos" X="0" Y="60" />
+
+            </TransformGroup>
+
+        </Grid.RenderTransform>
+
+        <Rectangle Stroke="{x:Null}" StrokeThickness="0.0001" IsHitTestVisible="False" Height="10" VerticalAlignment="Top" Margin="16,0">
+
+            <Rectangle.Fill>
+
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+
+                    <GradientStop Color="#21000000" Offset="1" />
+
+                    <GradientStop Color="#11000000" Offset="0.7" />
+
+                    <GradientStop Color="#00000000" Offset="0" />
+
+                </LinearGradientBrush>
+
+            </Rectangle.Fill>
+
+        </Rectangle>
+
+        <Rectangle Stroke="{x:Null}" StrokeThickness="0.0001" IsHitTestVisible="False" Height="10" VerticalAlignment="Bottom" Margin="16,0">
+
+            <Rectangle.Fill>
+
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+
+                    <GradientStop Color="#21000000" Offset="0" />
+
+                    <GradientStop Color="#11000000" Offset="0.3" />
+
+                    <GradientStop Color="#00000000" Offset="1" />
+
+                </LinearGradientBrush>
+
+            </Rectangle.Fill>
+
+        </Rectangle>
+
+        <Rectangle HorizontalAlignment="Right" Margin="0,16" IsHitTestVisible="False" Stroke="{x:Null}" StrokeThickness="0.0001" Width="10">
+
+            <Rectangle.Fill>
+
+                <LinearGradientBrush EndPoint="1,0.5" StartPoint="0,0.5">
+
+                    <GradientStop Color="#21000000" Offset="0" />
+
+                    <GradientStop Color="#11000000" Offset="0.3" />
+
+                    <GradientStop Color="#00000000" Offset="1" />
+
+                </LinearGradientBrush>
+
+            </Rectangle.Fill>
+
+        </Rectangle>
+
+        <Rectangle HorizontalAlignment="Left" Stroke="{x:Null}" IsHitTestVisible="False" Width="10" Margin="0,16" StrokeThickness="0.0001">
+
+            <Rectangle.Fill>
+
+                <LinearGradientBrush EndPoint="1,0.5" StartPoint="0,0.5">
+
+                    <GradientStop Color="#21000000" Offset="1" />
+
+                    <GradientStop Color="#11000000" Offset="0.7" />
+
+                    <GradientStop Color="#00000000" Offset="0" />
+
+                </LinearGradientBrush>
+
+            </Rectangle.Fill>
+
+        </Rectangle>
+
+        <Rectangle HorizontalAlignment="Left" Stroke="{x:Null}" IsHitTestVisible="False" Width="16" StrokeThickness="0.0001" VerticalAlignment="Top" Height="16">
+
+            <Rectangle.Fill>
+
+                <RadialGradientBrush Center="1,1" GradientOrigin="1,1" RadiusX="1" RadiusY="1">
+
+                    <GradientStop Color="#21000000" Offset="0.2" />
+
+                    <GradientStop Color="#00000000" Offset="1" />
+
+                </RadialGradientBrush>
+
+            </Rectangle.Fill>
+
+        </Rectangle>
+
+        <Rectangle HorizontalAlignment="Left" Stroke="{x:Null}" IsHitTestVisible="False" Width="16" StrokeThickness="0.0001" VerticalAlignment="Bottom" Height="16">
+
+            <Rectangle.Fill>
+
+                <RadialGradientBrush Center="1,0" GradientOrigin="1,0" RadiusX="1" RadiusY="1">
+
+                    <GradientStop Color="#21000000" Offset="0.2" />
+
+                    <GradientStop Color="#00000000" Offset="1" />
+
+                </RadialGradientBrush>
+
+            </Rectangle.Fill>
+
+        </Rectangle>
+
+        <Rectangle HorizontalAlignment="Right" Stroke="{x:Null}" IsHitTestVisible="False" Width="16" StrokeThickness="0.0001" VerticalAlignment="Bottom" Height="16">
+
+            <Rectangle.Fill>
+
+                <RadialGradientBrush Center="0,0" GradientOrigin="0,0" RadiusX="1" RadiusY="1">
+
+                    <GradientStop Color="#21000000" Offset="0.2" />
+
+                    <GradientStop Color="#00000000" Offset="1" />
+
+                </RadialGradientBrush>
+
+            </Rectangle.Fill>
+
+        </Rectangle>
+
+        <Rectangle HorizontalAlignment="Right" Stroke="{x:Null}" IsHitTestVisible="False" Width="16" StrokeThickness="0.0001" VerticalAlignment="Top" Height="16">
+
+            <Rectangle.Fill>
+
+                <RadialGradientBrush Center="0,1" GradientOrigin="0,1" RadiusX="1" RadiusY="1">
+
+                    <GradientStop Color="#21000000" Offset="0.2" />
+
+                    <GradientStop Color="#00000000" Offset="1" />
+
+                </RadialGradientBrush>
+
+            </Rectangle.Fill>
+
+        </Rectangle>
+
+        <Border x:Name="PanBack" Margin="10">
+
+            <Border.Clip>
+
+                <RectangleGeometry x:Name="RectForm" RadiusX="8" RadiusY="8" />
+
+            </Border.Clip>
+
+            <Grid x:Name="PanForm" SnapsToDevicePixels="False" UseLayoutRounding="False">
+
+                <Grid.RowDefinitions>
+
+                    <RowDefinition Height="Auto" />
+
+                    <RowDefinition />
+
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+
+                    <ColumnDefinition Width="Auto" />
+
+                    <ColumnDefinition Width="1*" />
+
+                </Grid.ColumnDefinitions>
+
+                <Canvas x:Name="ImgBack" IsHitTestVisible="False" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+
+                        RenderOptions.BitmapScalingMode="LowQuality">
+
+                    <MediaElement x:Name="VideoBack" LoadedBehavior="Manual" UnloadedBehavior="Stop"
+
+                                  Stretch="UniformToFill" IsHitTestVisible="False" Visibility="Visible"
+
+                                  MediaEnded="VideoEnded" Volume="0" />
+
+                </Canvas>
+
+                <local:AnimatedBackgroundGrid Grid.Row="0" Grid.ColumnSpan="2" x:Name="PanTitle" Height="48"
+
+                                              MouseLeftButtonDown="FormDragMove"
+
+                                              WindowChrome.IsHitTestVisibleInChrome="True"
+
+                                              BackgroundBrush="{DynamicResource ColorBrush3}">
+
+                    <!-- <Grid.Background> -->
+
+                    <!--     <LinearGradientBrush EndPoint="1,0" StartPoint="0,0"> -->
+
+                    <!--         <GradientStop Color="{StaticResource ColorObject4}" Offset="0"/> -->
+
+                    <!--     </LinearGradientBrush> -->
+
+                    <!-- </Grid.Background> -->
+
+                    <local:MyImage x:Name="ImgTitle" IsHitTestVisible="False" Stretch="UniformToFill" IsEnabled="False" RenderOptions.BitmapScalingMode="LowQuality" />
+
+                    <local:MyIconButton x:Name="BtnTitleClose" HorizontalAlignment="Right" Height="28" VerticalAlignment="Center" Width="28" Margin="0,0,12,0" Theme="White" Click="BtnTitleClose_Click"
+                                        SvgIcon="lucide/x" />
+                    <local:MyIconButton x:Name="BtnTitleMin" HorizontalAlignment="Right" Height="28" VerticalAlignment="Center" Width="28" Margin="0,0,44,0" Theme="White" Click="BtnTitleMin_Click"
+                                       SvgIcon="lucide/minus" />
+                    <local:MyIconButton x:Name="BtnTitleHelp" HorizontalAlignment="Right" Height="28" VerticalAlignment="Center" Width="28" Margin="0,0,76,0" Theme="White" Visibility="Collapsed" Click="BtnTitleHelp_Click"
+                                        SvgIcon="lucide/circle-help" />
+                    <Grid x:Name="PanTitleMain" HorizontalAlignment="Left" Width="{Binding ActualWidth, ElementName=PanTitle, Mode=OneWay}">
+
+                        <Grid.ColumnDefinitions>
+
+                            <ColumnDefinition Width="1*" />
+
+                            <ColumnDefinition Width="Auto" />
+
+                            <ColumnDefinition Width="1*" />
+
+                        </Grid.ColumnDefinitions>
+
+                        <Grid x:Name="PanTitleLeft" SizeChanged="PanTitle_SizeChanged">
+
+                            <Grid.ColumnDefinitions>
+
+                                <ColumnDefinition Width="Auto" />
+
+                                <ColumnDefinition />
+
+                            </Grid.ColumnDefinitions>
+
+
+
+                            <Path Grid.Column="0" x:Name="ShapeTitleLogo" Data="M26,29 v-25 h6 a7,7 180 0 1 0,14 h-6 M62.5,6.5 a10,11.5 180 1 0 0,18 M71,2.5 v24.5 h13.5 M96,27 v-24.5 l15,24.5 v-24.5" SnapsToDevicePixels="False" UseLayoutRounding="False" IsHitTestVisible="False" HorizontalAlignment="Left" Margin="19,15.5,0,15.5" Stretch="fill" Stroke="White" StrokeThickness="2.2" Width="60" />
+
+                            <local:MyImage Grid.Column="0" x:Name="ImageHMCLTitleLogo" SnapsToDevicePixels="False" UseLayoutRounding="False" IsHitTestVisible="False" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center" Width="24.5" Height="24.5" Visibility="Collapsed" 
+
+                                           Source="pack://application:,,,/Plain Craft Launcher 2;component/Images/Icons/HMCL.png" />
+
+                            <Path Grid.Column="0" x:Name="ShapeHMCLTitleLogo" Data="M 60.375 53.406 L 53.625 53.406 L 53.625 0.906 L 63.6 0.906 L 78.15 34.131 L 92.475 0.906 L 102.675 0.906 L 102.675 53.406 L 95.55 53.406 L 95.55 9.981 L 81.525 41.556 L 74.475 41.556 L 60.375 9.981 L 60.375 53.406 Z M 7.125 53.406 L 0 53.406 L 0 0.906 L 7.125 0.906 L 7.125 23.331 L 33 23.331 L 33 0.906 L 40.125 0.906 L 40.125 53.406 L 33 53.406 L 33 29.481 L 7.125 29.481 L 7.125 53.406 Z M 149.85 2.706 L 147.675 8.706 Q 145.35 7.581 142.913 6.906 Q 140.475 6.231 137.175 6.231 Q 132.375 6.231 128.588 8.706 Q 124.8 11.181 122.625 15.831 A 25.755 25.755 0 0 0 120.458 26.263 A 38.963 38.963 0 0 0 120.45 27.081 Q 120.45 33.381 122.588 38.106 Q 124.725 42.831 128.512 45.456 Q 132.3 48.081 137.175 48.081 Q 140.85 48.081 143.55 47.181 Q 146.25 46.281 148.8 44.856 L 150.975 50.781 Q 148.2 52.281 144.638 53.293 Q 141.075 54.306 136.35 54.306 Q 129.525 54.306 124.275 51.043 Q 119.025 47.781 116.1 41.743 A 31.603 31.603 0 0 1 113.201 28.922 A 45.601 45.601 0 0 1 113.175 27.381 Q 113.175 19.356 116.138 13.168 Q 119.1 6.981 124.538 3.493 Q 129.975 0.006 137.25 0.006 Q 141 0.006 144.075 0.718 Q 147.15 1.431 149.85 2.706 Z M 191.925 53.406 L 160.725 53.406 L 160.725 0.906 L 167.85 0.906 L 167.85 47.031 L 191.925 47.031 L 191.925 53.406 Z"
+
+                                StrokeThickness="0.2" SnapsToDevicePixels="False" UseLayoutRounding="False" IsHitTestVisible="False" HorizontalAlignment="Left" Height="15" Margin="45,15.5,0,15.5" Stretch="Fill" Stroke="White" Fill="White" Width="52" />
+
+                            <local:MyImage Grid.Column="0" x:Name="ImageTitleLogo" SnapsToDevicePixels="False" UseLayoutRounding="False" IsHitTestVisible="False" HorizontalAlignment="Left" Margin="7" VerticalAlignment="Center" Visibility="Collapsed" />
+
+                            <TextBlock Grid.Column="0" x:Name="LabTitleLogo" Visibility="Collapsed" SnapsToDevicePixels="False" UseLayoutRounding="False" IsHitTestVisible="False" HorizontalAlignment="Left" Margin="18,0,0,0" Foreground="White" FontSize="17" VerticalAlignment="Center" />
+                        </Grid>
+
+                    </Grid>
+
+                    <Grid x:Name="PanTitleInner" Visibility="Collapsed" Margin="-16,0,0,0" Opacity="0"
+
+                          HorizontalAlignment="Left" Width="{Binding ActualWidth, ElementName=PanTitle, Mode=OneWay}">
+
+                        <local:MyIconButton HorizontalAlignment="Left" Theme="White" x:Name="BtnTitleInner"
+
+                                            Margin="12,0,0,0" Height="28" Width="28" Click="BtnTitleInner_Click"
+
+                                            LogoScale="0.87"
+                                            SvgIcon="lucide/arrow-left" />
+                        <TextBlock SnapsToDevicePixels="False" IsHitTestVisible="False" Name="LabTitleInner"
+
+                                   VerticalAlignment="Center" Margin="47,1,60,0" HorizontalAlignment="Left"
+
+                                   Foreground="White" FontSize="15" />
+
+                    </Grid>
+
+                </local:AnimatedBackgroundGrid>
+
+                <!-- Fluent 基层：左侧导航 -->
+
+                <Border x:Name="PanNavLayer" Grid.Row="1" Grid.Column="0" Width="48" MinWidth="48"
+
+                        VerticalAlignment="Stretch"
+
+                        Background="{DynamicResource ColorBrushTransparentBackground}"
+
+                        SnapsToDevicePixels="True" Panel.ZIndex="1">
+
+                    <Grid>
+
+                        <Grid.RowDefinitions>
+
+                            <RowDefinition Height="*" />
+
+                            <RowDefinition Height="Auto" />
+
+                        </Grid.RowDefinitions>
+
+                        <StackPanel x:Name="PanTitleSelect" Grid.Row="0" Orientation="Vertical" VerticalAlignment="Top">
+
+                            <local:MyListItem x:Name="BtnTitleSelect0" Title="{DynamicResource Main.TopTitle.Launch}" Tag="0" Margin="1,10,1,0" FontSize="12" Type="RadioBox" LogoScale="0.8" Click="BtnNavItem_Click" SvgIcon="lucide/play" />
+
+                            <local:MyListItem x:Name="BtnTitleSelect1" Title="{DynamicResource Main.TopTitle.Download}" Tag="1" Margin="1,0,1,0" FontSize="12" Type="RadioBox" LogoScale="0.8" Click="BtnNavItem_Click" SvgIcon="lucide/pickaxe" />
+
+                            <local:MyListItem x:Name="BtnTitleSelect2" Title="{DynamicResource Main.TopTitle.Community}" Tag="2" Margin="1,0,1,0" FontSize="12" Type="RadioBox" LogoScale="0.8" Click="BtnNavItem_Click" SvgIcon="lucide/download" />
+
+                            <local:MyListItem x:Name="BtnTitleSelect4" Title="{DynamicResource Main.TopTitle.Online}" Tag="4" Margin="1,0,1,0" FontSize="12" Type="RadioBox" LogoScale="0.8" Click="BtnNavItem_Click" SvgIcon="lucide/globe" />
+
+                            <local:MyListItem x:Name="BtnTitleSelect3" Title="{DynamicResource Main.TopTitle.Settings}" Tag="3" Margin="1,0,1,0" FontSize="12" Type="RadioBox" LogoScale="0.8" Click="BtnNavItem_Click" SvgIcon="lucide/settings" />
+
+                        </StackPanel>
+
+                        <local:MyIconButton x:Name="BtnNavToggle" Grid.Row="1" Height="24" Width="24"
+
+                                            Margin="0,0,0,12"
+
+                                            HorizontalAlignment="Center" Click="BtnNavToggle_Click"
+
+                                            AutomationProperties.Name="{DynamicResource Main.Automation.ExpandMenu}"
+
+                                            Logo="M0,3 h24 v3 h-24 v-3 Z M0,10.5 h24 v3 h-24 v-3 Z M0,18 h24 v3 h-24 v-3 Z" />
+
+                    </Grid>
+
+                </Border>
+
+                <!-- Fluent 内容层 -->
+
+                <Grid x:Name="PanMain" Grid.Row="1" Grid.Column="1" VerticalAlignment="Stretch">
+
+                    <Grid.ColumnDefinitions>
+
+                        <ColumnDefinition Width="Auto" />
+
+                        <ColumnDefinition Width="1*" />
+
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Grid.IsSharedSizeScope="True" UseLayoutRounding="True"
+                            ClipToBounds="True"
+
+                            SnapsToDevicePixels="True">
+
+                        <Border x:Name="PanMainLeft" RenderOptions.BitmapScalingMode="NearestNeighbor"
+
+                                ClipToBounds="True"
+
+                                SizeChanged="PanMainLeft_SizeChanged"
+
+                                UseLayoutRounding="False" SnapsToDevicePixels="False" />
+
+                    </Border>
+
+                    <Border Grid.Column="1" Grid.IsSharedSizeScope="True" UseLayoutRounding="True"
+                            ClipToBounds="True"
+
+                            SnapsToDevicePixels="True">
+
+                        <Border x:Name="PanMainRight" RenderOptions.BitmapScalingMode="NearestNeighbor"
+
+                                ClipToBounds="True"
+
+                                UseLayoutRounding="False" SnapsToDevicePixels="False" />
+
+                    </Border>
+
+                </Grid>
+
+                <StackPanel x:Name="PanHint" IsHitTestVisible="False" UseLayoutRounding="True"
+
+                            SnapsToDevicePixels="True" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+
+                            Margin="0,0,70,20"
+
+                            Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" />
+
+                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Grid.Row="1" Grid.Column="1" Margin="15">
+
+                    <local:MyExtraButton x:Name="BtnExtraUpdateRestart" HorizontalAlignment="Right"
+
+                                         Click="BtnExtraUpdateRestart_Click"
+
+                                         VerticalAlignment="Center" ToolTip="{DynamicResource Main.Extra.UpdateRestart.ToolTip}"
+
+                                         Visibility="Collapsed"
+                                         SvgIcon="lucide/refresh-cw" />
+                    <local:MyExtraButton x:Name="BtnExtraBack" HorizontalAlignment="Right" VerticalAlignment="Center"
+
+                                         Click="BtnExtraBack_Click"
+
+                                         ToolTip="{DynamicResource Main.Extra.BackToTop.ToolTip}" Visibility="Collapsed"
+                                         SvgIcon="lucide/arrow-up-to-line" />
+                    <local:MyExtraButton x:Name="BtnExtraDownload" HorizontalAlignment="Right"
+
+                                         Click="BtnExtraDownload_Click"
+
+                                         VerticalAlignment="Center" ToolTip="{DynamicResource Main.Extra.TaskManager.ToolTip}" Visibility="Collapsed"
+                                         SvgIcon="lucide/download" />
+                    <local:MyExtraButton x:Name="BtnExtraApril" HorizontalAlignment="Right" VerticalAlignment="Center"
+
+                                         Click="BtnExtraApril_Click"
+
+                                         ToolTip="{DynamicResource Main.Extra.GiveUp.ToolTip}" Visibility="Collapsed"
+                                         SvgIcon="lucide/flag" />
+                    <local:MyExtraButton x:Name="BtnExtraShutdown" HorizontalAlignment="Right"
+
+                                         Click="BtnExtraShutdown_Click"
+
+                                         VerticalAlignment="Center" ToolTip="{DynamicResource Main.Extra.ShutdownMinecraft.ToolTip}" Visibility="Collapsed"
+                                         SvgIcon="lucide/power" />
+                    <local:MyExtraButton x:Name="BtnExtraLog" HorizontalAlignment="Right" VerticalAlignment="Center"
+
+                                         Click="BtnExtraLog_Click"
+
+                                         ToolTip="{DynamicResource Main.Extra.GameLog.ToolTip}" Visibility="Collapsed"
+                                         SvgIcon="lucide/scroll-text" />
+                    <local:MyExtraButton x:Name="BtnExtraMusic" HorizontalAlignment="Right" VerticalAlignment="Center"
+
+                                         Click="BtnExtraMusic_Click" RightClick="BtnExtraMusic_RightClick"
+
+                                         Visibility="Collapsed" CanRightClick="True" />
+
+                </StackPanel>
+
+                <controls:BlurBorder x:Name="PanMsgBackground" Grid.Row="0" Grid.RowSpan="2" Grid.ColumnSpan="2" Background="#00000000"
+                                     Panel.ZIndex="99"
+                                     Visibility="Collapsed">
+
+                    <Grid x:Name="PanMsg" Background="#00000000" MouseLeftButtonDown="FormDragMove" />
+
+                </controls:BlurBorder>
+
+                <!-- 隐藏占位：保持代码兼容 -->
+
+                <local:AnimatedBackgroundGrid x:Name="RectLeftBackground" Grid.Row="1" Grid.Column="0" Width="0" Visibility="Collapsed" />
+
+                <Rectangle x:Name="RectLeftShadow" Grid.Row="1" Grid.Column="0" Width="0" Visibility="Collapsed" />
+
+            </Grid>
+
+        </Border>
+
+    </Grid>
+
+</Window>

@@ -1,0 +1,126 @@
+<local:MyPageRight x:Class="PCL.PageOnline"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    PanScroll="{Binding ElementName=PanBack}">
+    <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                          x:Name="PanBack">
+        <StackPanel Margin="25,15,25,25">
+            <local:MyCard x:Name="CardAccount" Margin="0,0,0,15">
+                <Grid Margin="22,20,25,20" x:Name="PanAccount">
+                    <StackPanel x:Name="PanNotLoggedIn" HorizontalAlignment="Center">
+                        <local:MyIconTextButton x:Name="BtnLogin" Height="36" MinWidth="160"
+                                                Text="{DynamicResource Online.Account.LoginMicrosoft}" SvgIcon="lucide/log-in"
+                                                LogoScale="0.9" Click="BtnLogin_Click" />
+                        <local:MyIconTextButton x:Name="BtnWindowsLogin" Height="36" MinWidth="160" Margin="0,10,0,0"
+                                                Text="{DynamicResource Online.Account.LoginWindows}" SvgIcon="lucide/user-round-check"
+                                                LogoScale="0.9" Click="BtnWindowsLogin_Click" />
+                    </StackPanel>
+                    <Grid x:Name="PanLoggedIn" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="20"
+                                Background="{DynamicResource ColorBrush1}">
+                            <Image x:Name="ImgAvatar" Width="40" Height="40" Stretch="UniformToFill">
+                                <Image.Clip>
+                                    <EllipseGeometry RadiusX="20" RadiusY="20" Center="20,20" />
+                                </Image.Clip>
+                            </Image>
+                        </Border>
+                        <StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Center" Margin="15,0,0,0">
+                            <TextBlock x:Name="LabUserName" FontSize="15" FontWeight="Bold"
+                                       Foreground="{DynamicResource ColorBrush1}" />
+                            <TextBlock x:Name="LabAccountType" FontSize="12"
+                                       Foreground="{DynamicResource ColorBrush2}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                    HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <local:MyIconTextButton x:Name="BtnDeleteCloudProfile" Height="32" Margin="0,0,8,0"
+                                                    Text="{DynamicResource Online.Account.DeleteCloudAndLogout}"
+                                                    SvgIcon="lucide/trash-2" LogoScale="0.85"
+                                                    Click="BtnDeleteCloudProfile_Click" />
+                            <local:MyIconTextButton x:Name="BtnLogout" Height="32"
+                                                    Text="{DynamicResource Online.Account.Logout}" SvgIcon="lucide/log-out"
+                                                    LogoScale="0.85" Click="BtnLogout_Click" />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </local:MyCard>
+            <local:MyCard x:Name="CardSync" Margin="0,0,0,15" Visibility="Collapsed">
+                <Grid>
+                    <StackPanel x:Name="PanSyncContent" Margin="22,18,25,18">
+                        <StackPanel.Effect>
+                            <BlurEffect x:Name="SyncBlurEffect" Radius="0" RenderingBias="Performance" />
+                        </StackPanel.Effect>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="{DynamicResource Online.CloudSync.Title}" FontSize="15" FontWeight="Bold"
+                                           Foreground="{DynamicResource ColorBrush1}" />
+                                <TextBlock Margin="0,4,0,0" Text="{DynamicResource Online.CloudSync.Description}"
+                                           FontSize="12" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource ColorBrush2}" />
+                            </StackPanel>
+                            <local:MyIconTextButton Grid.Column="1" x:Name="BtnSyncDisable" Height="30" MinWidth="132"
+                                                    Margin="15,0,0,0" Text="{DynamicResource Online.CloudSync.DisableAll}" SvgIcon="lucide/cloud-off"
+                                                    LogoScale="0.82" Click="BtnSyncDisable_Click" />
+                        </Grid>
+                        <local:MyCheckBox x:Name="CheckCloudSyncEnabled" Margin="0,0,0,8"
+                                          Text="{DynamicResource Online.CloudSync.Enabled}" Tag="CloudSyncEnabled" Change="SyncCheckBoxChange" />
+                        <TextBlock x:Name="LabSyncDisabledHint" Margin="4,0,0,10"
+                                   Text="{DynamicResource Online.CloudSync.DisabledHint}"
+                                   FontSize="12" Foreground="{DynamicResource ColorBrush3}"
+                                   Visibility="Collapsed" />
+                        <WrapPanel x:Name="PanSyncSections" Margin="0,0,0,0">
+                            <local:MyCheckBox x:Name="CheckSyncAccount" Width="180" Margin="0,0,14,8"
+                                              Text="{DynamicResource Online.CloudSync.Account}" Tag="CloudSyncAccount" Change="SyncCheckBoxChange" />
+                            <local:MyCheckBox x:Name="CheckSyncFavorites" Width="180" Margin="0,0,14,8"
+                                              Text="{DynamicResource Online.CloudSync.Favorites}" Tag="CloudSyncFavorites" Change="SyncCheckBoxChange" />
+                            <local:MyCheckBox x:Name="CheckSyncUiPreferences" Width="180" Margin="0,0,14,8"
+                                              Text="{DynamicResource Online.CloudSync.UiPreferences}" Tag="CloudSyncUiPreferences" Change="SyncCheckBoxChange" />
+                            <local:MyCheckBox x:Name="CheckSyncHintPreferences" Width="180" Margin="0,0,14,8"
+                                              Text="{DynamicResource Online.CloudSync.HintPreferences}" Tag="CloudSyncHintPreferences" Change="SyncCheckBoxChange" />
+                            <local:MyCheckBox x:Name="CheckSyncDownloadPreferences" Width="180" Margin="0,0,14,8"
+                                              Text="{DynamicResource Online.CloudSync.DownloadPreferences}" Tag="CloudSyncDownloadPreferences" Change="SyncCheckBoxChange" />
+                            <local:MyCheckBox x:Name="CheckSyncLaunchPreferences" Width="180" Margin="0,0,14,8"
+                                              Text="{DynamicResource Online.CloudSync.LaunchPreferences}" Tag="CloudSyncLaunchPreferences" Change="SyncCheckBoxChange" />
+                            <local:MyCheckBox x:Name="CheckSyncHomepagePreferences" Width="180" Margin="0,0,14,8"
+                                              Text="{DynamicResource Online.CloudSync.HomepagePreferences}" Tag="CloudSyncHomepagePreferences" Change="SyncCheckBoxChange" />
+                            <local:MyCheckBox x:Name="CheckSyncMusicPreferences" Width="180" Margin="0,0,14,8"
+                                              Text="{DynamicResource Online.CloudSync.MusicPreferences}" Tag="CloudSyncMusicPreferences" Change="SyncCheckBoxChange" />
+                            <local:MyCheckBox x:Name="CheckSyncUpdatePreferences" Width="180" Margin="0,0,14,8"
+                                              Text="{DynamicResource Online.CloudSync.UpdatePreferences}" Tag="CloudSyncUpdatePreferences" Change="SyncCheckBoxChange" />
+                            <local:MyCheckBox x:Name="CheckSyncCustomVariables" Width="180" Margin="0,0,14,0"
+                                              Text="{DynamicResource Online.CloudSync.CustomVariables}" Tag="CloudSyncCustomVariables" Change="SyncCheckBoxChange" />
+                        </WrapPanel>
+                    </StackPanel>
+                    <Grid x:Name="PanSyncUnavailable" Visibility="Collapsed">
+                        <Border Background="{DynamicResource ColorBrushBg0}" Opacity="0.9" />
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="25">
+                            <TextBlock Text="{DynamicResource Online.CloudSync.Unavailable}" FontSize="15"
+                                       FontWeight="Bold" TextAlignment="Center"
+                                       Foreground="{DynamicResource ColorBrush1}" />
+                            <TextBlock Margin="0,7,0,0" MaxWidth="460"
+                                       Text="{DynamicResource Online.CloudSync.Unavailable.Detail}"
+                                       FontSize="12" TextWrapping="Wrap" TextAlignment="Center"
+                                       Foreground="{DynamicResource ColorBrush2}" />
+                            <local:MyIconTextButton x:Name="BtnRetrySync" Margin="0,16,0,0" Height="34"
+                                                    MinWidth="160" HorizontalAlignment="Center"
+                                                    Text="{DynamicResource Online.CloudSync.Retry}"
+                                                    SvgIcon="lucide/refresh-cw" LogoScale="0.85"
+                                                    Click="BtnRetrySync_Click" />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </local:MyCard>
+        </StackPanel>
+    </local:MyScrollViewer>
+</local:MyPageRight>

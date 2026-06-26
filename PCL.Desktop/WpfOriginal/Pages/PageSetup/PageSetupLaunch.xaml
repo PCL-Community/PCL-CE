@@ -1,0 +1,317 @@
+<local:MyPageRight
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:PCL"
+    xmlns:val="https://ce.pclc.cc/core/utils/validate"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:System="clr-namespace:System;assembly=mscorlib"
+    mc:Ignorable="d" x:Class="PCL.PageSetupLaunch"
+    PanScroll="{Binding ElementName=PanBack, Mode=OneWay}">
+    <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
+        <StackPanel x:Name="PanMain" Margin="25,25,25,10">
+            <local:MyCard x:Name="CardArgument" Margin="0,0,0,15" Title="{DynamicResource Setup.Launch.Options.Title}">
+                <StackPanel Margin="25,40,25,15">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="60" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="9" />
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="9" />
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="9" />
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="9" />
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="9" />
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="9" />
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="9" />
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.InstanceIsolation.Label}"
+                                   Margin="0,0,25,0" />
+                        <local:MyComboBox x:Name="ComboArgumentIndieV2" Grid.Row="0" Grid.ColumnSpan="2"
+                                          Tag="LaunchArgumentIndieV2" Grid.Column="1"
+                                          SelectionChanged="ComboArgumentIndie_OnSelectionChanged"
+                                          ToolTip="{DynamicResource Setup.Launch.InstanceIsolation.ToolTip}">
+                            <local:MyComboBoxItem Content="{DynamicResource Common.Action.Close}"
+                                                  ToolTip="{DynamicResource Setup.Launch.InstanceIsolation.None.ToolTip}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.InstanceIsolation.ModdedOnly}" IsSelected="True"
+                                                  ToolTip="{DynamicResource Setup.Launch.InstanceIsolation.ModdedOnly.ToolTip}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.InstanceIsolation.NonRelease}" ToolTip="{DynamicResource Setup.Launch.InstanceIsolation.NonRelease.ToolTip}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.InstanceIsolation.ModdedAndNonRelease}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.InstanceIsolation.All}"
+                                                  ToolTip="{DynamicResource Setup.Launch.InstanceIsolation.All.ToolTip}" />
+                        </local:MyComboBox>
+                        <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.WindowTitle.Label}"
+                                   Margin="0,0,25,0" />
+                        <local:MyComboBox x:Name="TextArgumentTitle" Grid.Row="2" Grid.ColumnSpan="2"
+                                          Tag="LaunchArgumentTitle" Grid.Column="1" IsEditable="True"
+                                          IsTextSearchEnabled="False" TextChanged="TextArgumentTitle_OnTextChanged"
+                                          ToolTip="{DynamicResource Setup.Launch.WindowTitle.ToolTip}"
+                                          HintText="{DynamicResource Common.Option.Default}">
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.WindowTitle.SampleFormat}" />
+                        </local:MyComboBox>
+                        <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.CustomInfo.Label}"
+                                   Margin="0,0,25,0" />
+                        <local:MyTextBox x:Name="TextArgumentInfo" Grid.Row="4" Grid.ColumnSpan="2"
+                                         Tag="LaunchArgumentInfo" Text="PCL" Grid.Column="1"
+                                         ValidatedTextChanged="TextBoxChange"
+                                         ToolTip="{DynamicResource Setup.Launch.CustomInfo.ToolTip}">
+                            <local:MyTextBox.ValidateRules>
+                                <val:BlacklistValidator>
+                                    <val:BlacklistValidator.Blacklist>
+                                        <System:String>"</System:String>
+                                        <System:String>“</System:String>
+                                        <System:String>”</System:String>
+                                    </val:BlacklistValidator.Blacklist>
+                                </val:BlacklistValidator>
+                            </local:MyTextBox.ValidateRules>
+                        </local:MyTextBox>
+                        <TextBlock VerticalAlignment="Center" Grid.Row="6" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Visibility.Label}"
+                                   Margin="0,0,25,0" />
+                        <local:MyComboBox x:Name="ComboArgumentVisibie" Grid.Row="6" Grid.ColumnSpan="2"
+                                          Tag="LaunchArgumentVisible" Grid.Column="1"
+                                          SelectionChanged="ComboArgumentVisibie_SelectionChanged">
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Visibility.CloseImmediately}" />
+                            <local:MyComboBoxItem Content="" IsEnabled="False" Visibility="Collapsed" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Visibility.HideAndCloseOnExit}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Visibility.HideAndReopenOnExit}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Visibility.Minimize}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Visibility.KeepUnchanged}" IsSelected="True" />
+                        </local:MyComboBox>
+                        <TextBlock VerticalAlignment="Center" Grid.Row="8" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Priority.Label}"
+                                   Margin="0,0,25,0" />
+                        <local:MyComboBox x:Name="ComboArgumentPriority" Grid.Row="8" Grid.ColumnSpan="2"
+                                          Tag="LaunchArgumentPriority" Grid.Column="1"
+                                          SelectionChanged="ComboChange"
+                                          SelectedValuePath="Tag">
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.RealTime}" Tag="4" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.High}" Tag="3" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.AboveNormal}" Tag="0" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.Normal}" IsSelected="True" Tag="1" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.BelowNormal}" Tag="2" />
+                        </local:MyComboBox>
+                        <TextBlock VerticalAlignment="Center" Grid.Row="10" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.WindowSize.Label}"
+                                   Margin="0,0,25,0" />
+                        <Grid x:Name="PanArgumentWindow" Grid.Row="10" Grid.ColumnSpan="2" Grid.Column="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <local:MyComboBox x:Name="ComboArgumentWindowType" Tag="LaunchArgumentWindowType"
+                                              SelectionChanged="ComboChange"
+                                              ToolTip="{DynamicResource Setup.Launch.WindowSize.ModernUiWarning}">
+                                <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.WindowSize.Fullscreen}" />
+                                <local:MyComboBoxItem Content="{DynamicResource Common.Option.Default}" IsSelected="True" />
+                                <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.WindowSize.SameAsLauncher}" />
+                                <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.WindowSize.Custom}" ToolTip="{DynamicResource Setup.Launch.WindowSize.CustomHeightBug.ToolTip}" />
+                                <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.WindowSize.Maximized}" />
+                            </local:MyComboBox>
+                            <local:MyTextBox Padding="0,0,5,0" Visibility="Collapsed" Grid.Column="1" Margin="50,0,0,0"
+                                             x:Name="TextArgumentWindowWidth" Tag="LaunchArgumentWindowWidth"
+                                             Width="60" HorizontalContentAlignment="Center" Text="854"
+                                             ValidatedTextChanged="TextBoxChange">
+                                <local:MyTextBox.ValidateRules>
+                                    <val:IntValidator Min="1" Max="9999" />
+                                </local:MyTextBox.ValidateRules>
+                            </local:MyTextBox>
+                            <TextBlock x:Name="LabArgumentWindowMiddle" Visibility="Collapsed" Grid.Column="2"
+                                       Text=" × " VerticalAlignment="Center" FontSize="18" />
+                            <local:MyTextBox Padding="0,0,5,0" Visibility="Collapsed" Grid.Column="3" Width="60"
+                                             HorizontalContentAlignment="Center" x:Name="TextArgumentWindowHeight"
+                                             Tag="LaunchArgumentWindowHeight" Text="480"
+                                             ValidatedTextChanged="TextBoxChange"
+                                             ToolTip="{DynamicResource Setup.Launch.WindowSize.CustomHeightBug.ToolTip}"
+                                            ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="5">
+                                <local:MyTextBox.ValidateRules>
+                                    <val:IntValidator Min="1" Max="9999" />
+                                </local:MyTextBox.ValidateRules>
+                            </local:MyTextBox>
+                        </Grid>
+                        <TextBlock VerticalAlignment="Center" Grid.Row="12" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.MsAuth.Label}"
+                                   Margin="0,0,25,0"
+                                   ToolTip="{DynamicResource Setup.Launch.MsAuth.ToolTip}" />
+                        <local:MyComboBox x:Name="ComboMsAuthType" Grid.Row="12" Grid.ColumnSpan="2"
+                                          Tag="LoginMsAuthType" Grid.Column="1"
+                                          SelectionChanged="ComboChange"
+                                          ToolTip="{DynamicResource Setup.Launch.MsAuth.ToolTip}"
+                                          IsEnabled="False">
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.MsAuth.WebManager}" IsSelected="True" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.MsAuth.DeviceCode}" />
+                        </local:MyComboBox>
+                        <TextBlock VerticalAlignment="Center" Grid.Row="14" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.IpStack.Label}"
+                                   Margin="0,0,25,0" />
+                        <local:MyComboBox x:Name="ComboPreferredIpStack" Grid.Row="14" Grid.ColumnSpan="2"
+                                          Tag="LaunchPreferredIpStack" Grid.Column="1"
+                                          SelectionChanged="ComboChange"
+                                          ToolTip="{DynamicResource Setup.Launch.IpStack.ToolTip}">
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.IpStack.Ipv4}" IsSelected="True" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.IpStack.JavaDefault}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.IpStack.Ipv6}" />
+                        </local:MyComboBox>
+                    </Grid>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Setup.Launch.Memory.Title}">
+                <StackPanel Margin="25,40,25,15">
+                    <local:MyHint x:Name="LabRamWarn" Visibility="Visible"
+                                  Text="{DynamicResource Setup.Launch.Memory.Warning.Java32Bit}" Theme="Yellow" Margin="0,0,0,12" />
+                    <local:MyHint x:Name="HintRamTooHigh" Visibility="Collapsed" Height="30" Theme="Yellow"
+                                  Text="{DynamicResource Setup.Launch.Memory.Warning.TooMuch}" Margin="0,0,0,12"
+                                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+                    <Grid Margin="0,0,0,3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="9" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="9" />
+                        </Grid.RowDefinitions>
+                        <local:MyRadioBox Text="{DynamicResource Setup.Launch.Memory.Auto}" Width="110" Checked="True" x:Name="RadioRamType0"
+                                          Tag="LaunchRamType/0" Margin="0,0,20,0" Check="RadioBoxChange"
+                                          ToolTip="{DynamicResource Setup.Launch.Memory.Auto.ToolTip}" ToolTipService.Placement="Right"
+                                          ToolTipService.HorizontalOffset="-10" ToolTipService.VerticalOffset="-3" />
+                        <local:MyRadioBox Grid.Row="2" Text="{DynamicResource Common.Option.Customize}" x:Name="RadioRamType1" Tag="LaunchRamType/1"
+                                          Margin="0,0,20,0" Check="RadioBoxChange" />
+                        <local:MySlider Grid.Row="2" Grid.Column="1" IsEnabled="False" x:Name="SliderRamCustom"
+                                        Tag="LaunchRamCustom" MaxValue="49" Value="13" Change="SliderChange" />
+                    </Grid>
+                    <Grid x:Name="PanRamDisplay" Margin="0,11,2,0" SnapsToDevicePixels="True">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition x:Name="ColumnRamUsed" Width="4.7*" />
+                            <ColumnDefinition x:Name="ColumnRamGame" Width="2.5*" />
+                            <ColumnDefinition x:Name="ColumnRamEmpty" Width="0.7*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition Height="4" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <Rectangle x:Name="RectRamUsed" Grid.Row="1" StrokeThickness="0">
+                            <Rectangle.Fill>
+                                <LinearGradientBrush EndPoint="1,0.5" StartPoint="0,0.5">
+                                    <GradientStop Color="{DynamicResource ColorObject3}" Offset="0" />
+                                    <GradientStop Color="{DynamicResource ColorObject2}" Offset="0.5" />
+                                </LinearGradientBrush>
+                            </Rectangle.Fill>
+                        </Rectangle>
+                        <Rectangle Grid.Row="1" StrokeThickness="0" Grid.Column="1"
+                                   Fill="{DynamicResource ColorBrush3}" Opacity="0.5" x:Name="RectRamGame" />
+                        <Rectangle x:Name="RectRamEmpty" Grid.Row="1" StrokeThickness="0" Grid.Column="2"
+                                   Fill="{DynamicResource ColorBrush6}" Opacity="0.7" />
+                        <TextBlock x:Name="LabRamUsedTitle" Text="{DynamicResource Setup.Launch.Memory.UsedTotal}" Grid.ColumnSpan="3" Opacity="0.7"
+                                   TextTrimming="None" Margin="2,0,0,5" FontSize="11" HorizontalAlignment="Left" />
+                        <TextBlock x:Name="LabRamGameTitle" Text="{DynamicResource Setup.Launch.Memory.GameAllocation}" Opacity="0.7" Grid.ColumnSpan="3"
+                                   TextTrimming="None" Margin="2,0,0,5" FontSize="11" HorizontalAlignment="Left" />
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" Grid.ColumnSpan="3" Margin="2,3,0,0"
+                                    HorizontalAlignment="Left">
+                            <TextBlock x:Name="LabRamUsed" Text="4.7 GB" FontSize="16"
+                                       Foreground="{DynamicResource ColorBrushMemory}" TextTrimming="None" />
+                            <TextBlock x:Name="LabRamTotal" Text=" / 7.9 GB" FontSize="16"
+                                       Foreground="{DynamicResource ColorBrushMemory}" TextTrimming="None" />
+                        </StackPanel>
+                        <TextBlock Grid.Row="2" x:Name="LabRamGame" Text="2.5 GB" Grid.ColumnSpan="3"
+                                   TextTrimming="None" Margin="2,3,0,0" FontSize="16"
+                                   Foreground="{DynamicResource ColorBrushMemory}" HorizontalAlignment="Left" />
+                    </Grid>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Setup.Launch.Advanced.Title}" IsSwapped="True" CanSwap="True">
+                <Grid Margin="25,40,25,15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="1*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="28" />
+                        <RowDefinition Height="9" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="9" />
+                        <RowDefinition Height="28" />
+                        <RowDefinition Height="9" />
+                        <RowDefinition Height="28" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Advanced.Renderer.Label}"
+                               Margin="0,0,25,0" />
+                    <local:MyComboBox x:Name="ComboAdvanceRenderer" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
+                                      Tag="LaunchAdvanceRenderer"
+                                      SelectionChanged="ComboAdvanceRenderer_OnSelectionChanged">
+                        <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Advanced.Renderer.GameDefault}" IsSelected="True" />
+                        <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Advanced.Renderer.Software}" />
+                        <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Advanced.Renderer.DirectX12}" />
+                        <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Advanced.Renderer.Vulkan}" />
+                    </local:MyComboBox>
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center" Orientation="Horizontal"
+                                HorizontalAlignment="Left" Margin="0,0,25,0">
+                        <TextBlock Text="{DynamicResource Setup.Launch.Advanced.JvmHead}" VerticalAlignment="Center" />
+                        <local:MyIconButton Height="23" Margin="0,1,0,0" x:Name="BtnAdvanceJvmReset"
+                                            VerticalAlignment="Center" Click="BtnAdvanceJvmReset_Click"
+                                            ToolTip="{DynamicResource Setup.Launch.Advanced.JvmHead.Restore}" ToolTipService.Placement="Right"
+                                            ToolTipService.InitialShowDelay="200" ToolTipService.VerticalOffset="-1"
+                                            SvgIcon="lucide/rotate-ccw"
+                                            LogoScale="0.9" />
+                    </StackPanel>
+                    <local:MyTextBox Grid.Row="2" x:Name="TextAdvanceJvm" Grid.ColumnSpan="2" Tag="LaunchAdvanceJvm"
+                                     TextChanged="TextAdvanceJvm_TextChanged"
+                                     Grid.Column="1" ValidatedTextChanged="TextBoxChange"
+                                     ToolTip="{DynamicResource Setup.Launch.Advanced.JvmHead.ToolTip}"
+                                     MaxLength="4000" Height="100" AcceptsReturn="True" TextWrapping="Wrap"
+                                     VerticalContentAlignment="Top" Padding="0,5" VerticalScrollBarVisibility="Auto" />
+                    <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Advanced.GameTail}"
+                               Margin="0,0,25,0" />
+                    <local:MyTextBox x:Name="TextAdvanceGame" Grid.Row="4" Grid.ColumnSpan="2" Tag="LaunchAdvanceGame"
+                                     Grid.Column="1" ValidatedTextChanged="TextBoxChange"
+                                     ToolTip="{DynamicResource Setup.Launch.Advanced.GameTail.ToolTip}" />
+                    <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Advanced.PreLaunchCommand}"
+                               Margin="0,0,25,0" />
+                    <local:MyTextBox x:Name="TextAdvanceRun" Grid.Row="6" Grid.ColumnSpan="2" Tag="LaunchAdvanceRun"
+                                     Grid.Column="1" HintText="" ValidatedTextChanged="TextBoxChange"
+                                     TextChanged="TextAdvanceRun_TextChanged"
+                                     ToolTip="{DynamicResource Setup.Launch.Advanced.PreLaunchCommand.ToolTip}" />
+                    <local:MyCheckBox Grid.Row="7" Grid.Column="1" x:Name="CheckAdvanceRunWait"
+                                      Tag="LaunchAdvanceRunWait" Visibility="Collapsed"
+                                      Change="CheckBoxChange"
+                                      Text="{DynamicResource Setup.Launch.Advanced.PreLaunchCommand.Wait}" Margin="0,8,0,7" />
+                    <StackPanel Margin="0,12,0,4" Grid.Row="8" Grid.ColumnSpan="2" HorizontalAlignment="Left">
+                        <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.DisableJlw}" x:Name="CheckAdvanceDisableJLW" Tag="LaunchAdvanceDisableJLW"  Change="CheckBoxChange"
+                                          ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.DisableJlw.ToolTip}" />
+                        <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.DisableRw}" x:Name="CheckAdvanceDisableRW" Tag="LaunchAdvanceDisableRW"  Change="CheckBoxChange"
+                                          ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.DisableRw.ToolTip}" />
+                        <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.GpuPreference}" x:Name="CheckAdvanceGraphicCard" Tag="LaunchAdvanceGraphicCard"  Change="CheckBoxChange"
+                                          ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.GpuPreference.ToolTip}" />
+                        <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.UseJavaExe}" x:Name="CheckAdvanceNoJavaw" Tag="LaunchAdvanceNoJavaw"  Change="CheckBoxChange"
+                            ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.UseJavaExe.ToolTip}" />
+                        <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.DisableLwjglUnsafeAgent}" x:Name="CheckAdvanceDisableLwjglUnsafeAgent" Tag="LaunchAdvanceDisableLwjglUnsafeAgent"  Change="CheckBoxChange"
+                                          ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip}" />
+                        <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.AutoRepairGame}" x:Name="CheckAutoRepairGame" Tag="LaunchAutoRepairGame" Change="CheckBoxChange"
+                                          ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.AutoRepairGame.ToolTip}" />
+                    </StackPanel>
+                    <local:MyHint Text="{DynamicResource Setup.Launch.Advanced.MoreInInstanceSetup}" Margin="0,5,0,10" Theme="Blue" Grid.Row="9"
+                                  Grid.ColumnSpan="2"
+                                  CanClose="True" RelativeSetup="HintMoreAdvancedSetup" />
+                </Grid>
+            </local:MyCard>
+            <local:MyExtraTextButton HorizontalAlignment="Center" Margin="0,-5,0,15"
+                                     x:Name="BtnSwitch" Text="{DynamicResource Setup.Launch.SwitchToInstanceSetup}" Click="BtnSwitch_Click"
+                                     LogoScale="0.9"
+                                     SvgIcon="lucide/arrow-right" />
+        </StackPanel>
+    </local:MyScrollViewer>
+</local:MyPageRight>

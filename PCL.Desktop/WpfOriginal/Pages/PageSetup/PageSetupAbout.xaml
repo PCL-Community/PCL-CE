@@ -1,0 +1,350 @@
+<local:MyPageRight
+    x:Class="PCL.PageSetupAbout"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:app="clr-namespace:PCL.Core.App;assembly=PCL.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:PCL"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    DataContext="{Binding Source={x:Static app:Basics.Metadata}}"
+    PanScroll="{Binding ElementName=PanBack}"
+    RenderOptions.BitmapScalingMode="LowQuality">
+    <local:MyScrollViewer
+        x:Name="PanBack"
+        HorizontalScrollBarVisibility="Disabled"
+        VerticalScrollBarVisibility="Auto">
+        <StackPanel
+            x:Name="PanMain"
+            Margin="25,10"
+            Grid.IsSharedSizeScope="True">
+            <local:MyCard Margin="0,15" Title="{DynamicResource Setup.About.Title}">
+                <Grid Margin="21,40,21,16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="45" />
+                        <RowDefinition Height="45" />
+                        <RowDefinition Height="45" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="40" />
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="150" />
+                    </Grid.ColumnDefinitions>
+                    <local:MyListItem
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Margin="-5,0,15,0"
+                        Info="{DynamicResource Setup.About.OriginalAuthor.Info}"
+                        IsHitTestVisible="False"
+                        Title="{DynamicResource Setup.About.OriginalAuthor.Name}" />
+                    <local:MyListItem
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        Margin="-5,0,15,0"
+                        Info="{DynamicResource Setup.About.Community.Info}"
+                        IsHitTestVisible="False"
+                        Title="{DynamicResource Setup.About.Community.Name}" />
+                    <local:MyListItem
+                        x:Name="ItemAboutPcl"
+                        Grid.Row="2"
+                        Grid.Column="1"
+                        Margin="-5,0,15,0"
+                        Info="{DynamicResource Setup.About.Version.Info}"
+                        IsHitTestVisible="False"
+                        Title="{Binding Name}" />
+                    <Image
+                        x:Name="ImgPCLLogo"
+                        Grid.Row="2"
+                        Margin="3" MouseLeftButtonDown="ImgPCLLogo_Click"
+                        Source="/Plain Craft Launcher 2;component/Images/Heads/Logo-N.png">
+                        <Image.Clip>
+                            <EllipseGeometry
+                                Center="17 17"
+                                RadiusX="17"
+                                RadiusY="17" />
+                        </Image.Clip>
+                    </Image>
+                    <Image
+                        Grid.Row="0"
+                        Margin="3"
+                        Source="/Plain Craft Launcher 2;component/Images/Heads/LTCat.jpg">
+                        <Image.Clip>
+                            <EllipseGeometry
+                                Center="17 17"
+                                RadiusX="17"
+                                RadiusY="17" />
+                        </Image.Clip>
+                    </Image>
+                    <Image
+                        x:Name="ImgPCLCommunity"
+                        Grid.Row="1"  MouseLeftButtonDown="ImgPCLCommunity_Click"
+                        Margin="3"
+                        Source="/Plain Craft Launcher 2;component/Images/Heads/PCL-N.jpg">
+                        <Image.Clip>
+                            <EllipseGeometry
+                                Center="17 17"
+                                RadiusX="17"
+                                RadiusY="17" />
+                        </Image.Clip>
+                    </Image>
+                    <local:MyButton
+                        Grid.Row="0"
+                        Grid.Column="2"
+                        Height="35"
+                        local:CustomEventService.EventData="https://ifdian.net/a/LTCat"
+                        local:CustomEventService.EventType="打开网页"
+                        Text="{DynamicResource Setup.About.SponsorOriginalAuthor}" />
+                    <local:MyButton
+                        Grid.Row="1"
+                        Grid.Column="2"
+                        Height="35"
+                        local:CustomEventService.EventData="https://github.com/MuXue1230"
+                        local:CustomEventService.EventType="打开网页"
+                        Text="{DynamicResource Setup.About.GitHubHome}" />
+                    <local:MyButton
+                        Grid.Row="2"
+                        Grid.Column="2"
+                        Height="35"
+                        local:CustomEventService.EventData="https://github.com/MuXue1230-owo/PCL-N"
+                        local:CustomEventService.EventType="打开网页"
+                        Text="{DynamicResource Setup.About.SourceCode}" />
+                </Grid>
+            </local:MyCard>
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Setup.About.SpecialThanks.Title}">
+                <Grid Margin="21,40,21,16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="45" />
+                        <RowDefinition Height="45" />
+                        <RowDefinition Height="45" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="40" />
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="150" />
+                    </Grid.ColumnDefinitions>
+                    <local:MyListItem
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Margin="-5,0,15,0"
+                        Info="{DynamicResource Setup.About.SpecialThanks.Info.Bmclapi}"
+                        IsHitTestVisible="False"
+                        Title="{DynamicResource Setup.About.SpecialThanks.Name.Bangbang93}" />
+                    <local:MyButton
+                        Grid.Row="0"
+                        Grid.Column="2"
+                        Height="35"
+                        local:CustomEventService.EventData="https://afdian.com/a/bangbang93"
+                        local:CustomEventService.EventType="打开网页"
+                        Text="{DynamicResource Setup.About.SpecialThanks.SponsorMirror}" />
+                    <local:MyListItem
+                        x:Name="ItemMcmod"
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        Grid.ColumnSpan="2"
+                        Margin="-5,0,0,0"
+                        Info="{DynamicResource Setup.About.SpecialThanks.Info.Mcmod}"
+                        IsHitTestVisible="False"
+                        Title="{DynamicResource Setup.About.SpecialThanks.Name.Mcmod}" />
+                    <local:MyButton
+                        x:Name="BtnMcmod"
+                        Grid.Row="1"
+                        Grid.Column="2"
+                        Height="35"
+                        local:CustomEventService.EventData="https://www.mcmod.cn"
+                        local:CustomEventService.EventType="打开网页"
+                        Text="{DynamicResource Setup.About.SpecialThanks.OpenMcmod}" />
+                    <local:MyListItem
+                        Grid.Row="2"
+                        Grid.Column="1"
+                        Grid.ColumnSpan="2"
+                        Margin="-5,0,0,0"
+                        Info="{DynamicResource Setup.About.SpecialThanks.Info.Mcim}"
+                        IsHitTestVisible="False"
+                        Title="{DynamicResource Setup.About.SpecialThanks.Name.Z0z0r4}" />
+                    <Image
+                        Grid.Row="0"
+                        Margin="3"
+                        Source="/Plain Craft Launcher 2;component/Images/Heads/bangbang93.png">
+                        <Image.Clip>
+                            <EllipseGeometry
+                                Center="17 17"
+                                RadiusX="17"
+                                RadiusY="17" />
+                        </Image.Clip>
+                    </Image>
+                    <Image
+                        x:Name="ImgMcmod"
+                        Grid.Row="1"
+                        Margin="3"
+                        Source="/Plain Craft Launcher 2;component/Images/Heads/wiki.png">
+                        <Image.Clip>
+                            <EllipseGeometry
+                                Center="17 17"
+                                RadiusX="17"
+                                RadiusY="17" />
+                        </Image.Clip>
+                    </Image>
+                    <Image
+                        Grid.Row="2"
+                        Margin="3"
+                        Source="/Plain Craft Launcher 2;component/Images/Heads/z0z0r4.png">
+                        <Image.Clip>
+                            <EllipseGeometry
+                                Center="17 17"
+                                RadiusX="17"
+                                RadiusY="17" />
+                        </Image.Clip>
+                    </Image>
+                </Grid>
+            </local:MyCard>
+
+<local:MyCard
+                Margin="0,0,0,15"
+                CanSwap="True"
+                Title="{DynamicResource Setup.About.Legal.Title}">
+                <StackPanel Margin="25,39,23,20">
+                    <TextBlock
+                        Margin="0,6,0,4"
+                        FontWeight="Bold"
+                        Text="{DynamicResource Setup.About.Legal.PrivacyNotice}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="0,0,0,2"
+                        LineHeight="17"
+                        Text="{DynamicResource Setup.About.Legal.PrivacyText}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="0,12,0,4"
+                        FontWeight="Bold"
+                        Text="{DynamicResource Setup.About.Legal.OtherInfo}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="0,0,0,2"
+                        LineHeight="17"
+                        Text="{DynamicResource Setup.About.Legal.CopyrightText}"
+                        TextWrapping="Wrap" />
+                    <StackPanel
+                        Height="35"
+                        Margin="0,12,0,0"
+                        HorizontalAlignment="Left"
+                        Orientation="Horizontal">
+                        <local:MyButton
+                            Margin="0,0,20,0"
+                            ColorType="Highlight"
+                            local:CustomEventService.EventData="https://github.com/MuXue1230-owo/PCL-N"
+                            local:CustomEventService.EventType="打开网页"
+                            Padding="13,0"
+                            Text="{DynamicResource Setup.About.Legal.CommunitySource}" />
+                    </StackPanel>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard
+                Margin="0,0,0,15"
+                CanSwap="True"
+                IsSwapped="True"
+                Title="{DynamicResource Setup.About.UpstreamLegal.Title}">
+                <StackPanel Margin="25,39,23,20">
+                    <TextBlock
+                        Margin="0,6,0,4"
+                        FontWeight="Bold"
+                        Text="{DynamicResource Setup.About.Legal.PrivacyNotice}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="0,0,0,2"
+                        LineHeight="17"
+                        Text="{DynamicResource Setup.About.UpstreamLegal.PrivacyText}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="0,12,0,4"
+                        FontWeight="Bold"
+                        Text="{DynamicResource Setup.About.Legal.OtherInfo}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="0,0,0,2"
+                        LineHeight="17"
+                        Text="{DynamicResource Setup.About.UpstreamLegal.CopyrightText}"
+                        TextWrapping="Wrap" />
+                    <StackPanel
+                        Height="35"
+                        Margin="0,12,0,0"
+                        HorizontalAlignment="Left"
+                        Orientation="Horizontal">
+                        <local:MyButton
+                            Width="160"
+                            Margin="0,0,20,0"
+                            ColorType="Highlight"
+                            local:CustomEventService.EventData="https://shimo.im/docs/rGrd8pY8xWkt6ryW"
+                            local:CustomEventService.EventType="打开网页"
+                            Padding="13,0"
+                            Text="{DynamicResource Setup.About.UpstreamLegal.TermsAndDisclaimer}" />
+                        <local:MyButton
+                            Width="120"
+                            Margin="0,0,20,0"
+                            local:CustomEventService.EventData="https://github.com/Meloong-Git/PCL"
+                            local:CustomEventService.EventType="打开网页"
+                            Padding="13,0"
+                            Text="{DynamicResource Setup.About.UpstreamLegal.OpenSource}" />
+                    </StackPanel>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard
+                Margin="0,0,0,15"
+                CanSwap="True"
+                IsSwapped="True"
+                Title="{DynamicResource Setup.About.Licenses.Title}">
+                <ItemsControl Margin="25,42,23,4" ItemsSource="{Binding Licenses}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="LicenseName" />
+                                    <ColumnDefinition Width="20" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="60" />
+                                </Grid.RowDefinitions>
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="0"
+                                    FontWeight="Bold"
+                                    Text="{Binding Name}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="2"
+                                    Grid.ColumnSpan="2"
+                                    Text="{Binding Information}"
+                                    TextWrapping="Wrap" />
+                                <local:MyButton
+                                    Grid.Row="1"
+                                    Grid.Column="2"
+                                    MinWidth="140"
+                                    Margin="0,7,20,18"
+                                    HorizontalAlignment="Left"
+                                    local:CustomEventService.EventData="{Binding WebsiteUri}"
+                                    local:CustomEventService.EventType="打开网页"
+                                    Padding="13,0"
+                                    Text="{DynamicResource Setup.About.Licenses.ViewWebsite}"
+                                    Visibility="{Binding WebsiteUri, Converter={StaticResource NullToVisibilityConverter}}" />
+                                <local:MyButton
+                                    Grid.Row="1"
+                                    Grid.Column="3"
+                                    MinWidth="140"
+                                    Margin="0,7,20,18"
+                                    HorizontalAlignment="Left"
+                                    local:CustomEventService.EventData="{Binding LicenseUri}"
+                                    local:CustomEventService.EventType="打开网页"
+                                    Padding="13,0"
+                                    Text="{DynamicResource Setup.About.Licenses.ViewLicense}"
+                                    Visibility="{Binding LicenseUri, Converter={StaticResource NullToVisibilityConverter}}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </local:MyCard>
+        </StackPanel>
+    </local:MyScrollViewer>
+</local:MyPageRight>

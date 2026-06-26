@@ -1,0 +1,57 @@
+<Grid x:Class="PCL.PageLoginProfile" Tag="False"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:local="clr-namespace:PCL"
+      DataContext="{Binding RelativeSource={RelativeSource Self}}"
+      mc:Ignorable="d"
+      d:DesignHeight="450" d:DesignWidth="800">
+
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="10" />
+        <RowDefinition Height="*" />
+        <RowDefinition Height="10" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="20" />
+    </Grid.RowDefinitions>
+
+    <local:MyHint x:Name="HintSelect" Margin="0,10,0,0" Theme="Blue" Text="{DynamicResource Launch.Account.Profile.SelectHint}" Grid.Row="0" CanClose="True"
+                   RelativeSetup="HintProfileSelect" />
+    <local:MyHint x:Name="HintCreate" Margin="0,10,0,0" Theme="Blue" Text="{DynamicResource Launch.Account.Profile.CreateAndSelectHint}" Grid.Row="0"
+                  Visibility="Collapsed" />
+
+    <local:MyScrollViewer Grid.Row="2" MaxHeight="300" Margin="10,0,10,0">
+        <!-- 世界需要 MVVM -->
+        <ItemsControl ItemsSource="{Binding ProfileCollection}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <local:MyListItem Margin="8,2,10,2"
+                                      Title="{Binding Username}" Info="{Binding Info}"
+                                      Type="Clickable" Logo="{Binding Logo}" SvgIcon="{Binding SvgIcon}" Tag="{Binding Profile}"
+                                      Click="SelectProfile" ContentHandler="ProfileContMenuBuild" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </local:MyScrollViewer>
+
+    <local:MyCard Grid.Row="4" HorizontalAlignment="Center" x:Name="PanButtons" Opacity="10"
+                  CornerRadius="5" Margin="0,0,4,0">
+        <StackPanel Orientation="Horizontal" Margin="10,3,0,3">
+            <local:MyIconButton Height="24" Margin="0,0.5,9,0" x:Name="BtnNew"
+                                 Click="BtnNew_Click"
+                                 ToolTip="{DynamicResource Launch.Account.Profile.Create}" ToolTipService.Placement="Center" ToolTipService.VerticalOffset="35"
+                                ToolTipService.HorizontalOffset="1" ToolTipService.InitialShowDelay="50"
+                                LogoScale="1.08"
+                                SvgIcon="lucide/user-plus" />
+            <local:MyIconButton Height="24" Margin="0,0,9,0" x:Name="BtnPort"
+                                 Click="BtnPort_Click"
+                                 ToolTip="{DynamicResource Launch.Account.Profile.ImportExport}" ToolTipService.Placement="Center" ToolTipService.VerticalOffset="35"
+                                ToolTipService.HorizontalOffset="1" ToolTipService.InitialShowDelay="50"
+                                LogoScale="1.1"
+                                SvgIcon="lucide/share-2" />
+        </StackPanel>
+    </local:MyCard>
+
+</Grid>

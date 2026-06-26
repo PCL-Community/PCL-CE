@@ -1,0 +1,16 @@
+<local:MyPageLeft x:Class="PCL.PageToolsLeft"
+                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                  xmlns:local="clr-namespace:PCL"
+                  mc:Ignorable="d">
+    <StackPanel Orientation="Vertical" x:Name="PanItem" Margin="0,12,0,0">
+        
+
+        <TextBlock Text="{DynamicResource Tools.Left.Utilities}" Margin="13,5,5,3" Opacity="0.6" FontSize="12" x:Name="TextToolsCategory"/>
+        <local:MyListItem x:Name="ItemTest" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="3" MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="{DynamicResource Tools.Left.Utilities.Title}" Check="PageCheck"
+                          LogoScale="0.9" Logo="M511 995a128 128 0 0 1-57-13L70 791a126 126 0 0 1-70-113V311a126 126 0 0 1 15-60V248c1-2 3-5 5-8a127 127 0 0 1 49-42L454 13a128 128 0 0 1 112 0l383 190a126 126 0 0 1 72 113v360a126 126 0 0 1-70 115L568 984c-17 7-37 11-57 11z m42-470v370l360-178c14-7 23-21 23-38v-335L554 524zM85 330v347a42 42 0 0 0 23 38l360 178V523L85 330zM135 260l375 189 137-65L286 188 135 260z m245-118l363 197 150-71-365-180a42 42 0 0 0-37 0l-111 53z" />
+
+    </StackPanel>
+</local:MyPageLeft>

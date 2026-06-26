@@ -1,0 +1,158 @@
+<Grid x:Class="PCL.MyCompItem"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="clr-namespace:PCL"
+      xmlns:svgIcon="clr-namespace:PCL.Core.UI.Controls.SvgIcon;assembly=PCL.Core"
+      x:Name="PanBack" Height="64"
+      RenderTransformOrigin="0.5,0.5" Background="{StaticResource ColorBrushSemiTransparent}"
+      SnapsToDevicePixels="True">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="7" />
+        <ColumnDefinition Width="50" />
+        <ColumnDefinition Width="8" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="1*" />
+        <ColumnDefinition Width="30" />
+        <ColumnDefinition Width="Auto" />
+    </Grid.ColumnDefinitions>
+    <Grid.RowDefinitions>
+        <RowDefinition Height="1*" />
+        <RowDefinition Height="20" />
+        <RowDefinition Height="18" />
+        <RowDefinition Height="16" />
+        <RowDefinition Height="1.1*" />
+    </Grid.RowDefinitions>
+    <!-- Logo -->
+    <Border Grid.Column="1" Grid.Row="1" Grid.RowSpan="3" IsHitTestVisible="False" SnapsToDevicePixels="True"
+            UseLayoutRounding="True"
+            HorizontalAlignment="Right" VerticalAlignment="Center" Width="50" Height="50">
+        <Border.Clip>
+            <RectangleGeometry Rect="0,0,50,50" RadiusX="6" RadiusY="6" />
+        </Border.Clip>
+        <local:MyImage x:Name="PathLogo" RenderOptions.BitmapScalingMode="HighQuality"
+                       FallbackSource="pack://application:,,,/images/Icons/NoIcon.png" />
+    </Border>
+    <!-- 标题 -->
+    <StackPanel Grid.Column="3" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center" Orientation="Horizontal"
+                IsHitTestVisible="False" SnapsToDevicePixels="False" UseLayoutRounding="False">
+        <TextBlock x:Name="LabTitle" TextTrimming="WordEllipsis" FontSize="14"
+                   Foreground="{DynamicResource ColorBrush1}" />
+        <TextBlock x:Name="LabTitleRaw" TextTrimming="WordEllipsis" FontSize="12"
+                   Foreground="{StaticResource ColorBrushGray1}" Opacity="0.4" VerticalAlignment="Center"
+                   Visibility="Collapsed" />
+    </StackPanel>
+    <!-- Tag 与 详情 -->
+    <StackPanel x:Name="PanTags" Grid.Row="2" Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center"
+                Margin="-1,0,1,0" Visibility="Collapsed">
+        <!--<corelocal:BlurBorder Background="{DynamicResource ColorBrush6}" Padding="3,1" CornerRadius="3" Margin="0,0,4,0" SnapsToDevicePixels="True" UseLayoutRounding="False">
+            <TextBlock Text="{DynamicResource Download.Comp.Category.Technology}" Foreground="{DynamicResource ColorBrush2}" FontSize="11" />
+        </corelocal:BlurBorder>-->
+    </StackPanel>
+    <TextBlock x:Name="LabInfo" Grid.Row="2" Grid.Column="4" VerticalAlignment="Center" Margin="0,0,3,0.5"
+               TextTrimming="CharacterEllipsis" FontSize="12" Foreground="{StaticResource ColorBrushGray3}"
+               IsHitTestVisible="True" SnapsToDevicePixels="False" UseLayoutRounding="False"
+               ToolTipService.InitialShowDelay="100" ToolTipService.BetweenShowDelay="100"
+               ToolTipService.Placement="Relative" ToolTipService.PlacementRectangle="-16,-10,500,10000">
+        <TextBlock.ToolTip>
+            <ToolTip x:Name="ToolTipInfo" Style="{StaticResource ExtendTextToolTip}" />
+        </TextBlock.ToolTip>
+    </TextBlock>
+    <!-- 下边栏 -->
+    <Grid Grid.Row="3" Grid.Column="3" Grid.ColumnSpan="2" VerticalAlignment="Center"
+          IsHitTestVisible="False" SnapsToDevicePixels="False" UseLayoutRounding="False">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="ColumnVersion1" Width="Auto" />
+            <ColumnDefinition x:Name="ColumnVersion2" Width="Auto" SharedSizeGroup="CompItemVersion" />
+            <ColumnDefinition x:Name="ColumnVersion3" Width="0.25*" />
+
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="LabDownload" />
+            <ColumnDefinition Width="0.25*" />
+
+            <ColumnDefinition x:Name="ColumnTime1" Width="Auto" />
+            <ColumnDefinition x:Name="ColumnTime2" Width="Auto" MinWidth="57" SharedSizeGroup="CompItemTime" />
+            <ColumnDefinition x:Name="ColumnTime3" Width="0.25*" />
+
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="CompItemSource" />
+            <ColumnDefinition Width="0.25*" />
+        </Grid.ColumnDefinitions>
+        <svgIcon:SvgIcon x:Name="SvgIconVersion"
+                     Grid.Column="0"
+                     IconBrush="{StaticResource ColorBrushGray3}"
+                     Stretch="Uniform"
+                     Height="12"
+                     Icon="lucide/layout-list" />
+        <TextBlock x:Name="LabVersion"
+                   Grid.Column="1"
+                   Margin="4,0,2,0"
+                   VerticalAlignment="Center"
+                   Foreground="{StaticResource ColorBrushGray3}"
+                   FontSize="12"
+                   TextTrimming="WordEllipsis" />
+        <svgIcon:SvgIcon x:Name="SvgIconDownload"
+                     Grid.Column="3"
+                     IconBrush="{StaticResource ColorBrushGray4}"
+                     Stretch="Uniform"
+                     Height="12"
+                     Icon="lucide/download" />
+        <TextBlock x:Name="LabDownload"
+                   Grid.Column="4"
+                   Margin="5,0,2,0"
+                   VerticalAlignment="Center"
+                   Foreground="{StaticResource ColorBrushGray4}"
+                   FontSize="12" />
+        <svgIcon:SvgIcon x:Name="SvgIconTime"
+                     Grid.Column="6"
+                     IconBrush="{StaticResource ColorBrushGray4}"
+                     Stretch="Uniform"
+                     Height="12"
+                     Margin="0,0,1,0"
+                     Icon="lucide/arrow-up-from-line" />
+        <TextBlock x:Name="LabTime"
+                   Grid.Column="7"
+                   Margin="5,0,2,0"
+                   VerticalAlignment="Center"
+                   Foreground="{StaticResource ColorBrushGray4}"
+                   FontSize="12" />
+        <svgIcon:SvgIcon x:Name="SvgIconSource"
+                     Grid.Column="9"
+                     IconBrush="{StaticResource ColorBrushGray4}"
+                     Stretch="Uniform"
+                     Height="12"
+                     Icon="lucide/globe" />
+        <TextBlock x:Name="LabSource"
+                   Grid.Column="10"
+                   Margin="5,0,2,0"
+                   VerticalAlignment="Center"
+                   Foreground="{StaticResource ColorBrushGray4}"
+                   FontSize="12" />
+    </Grid>
+
+    <!-- 右侧按钮组 (通用) -->
+    <StackPanel x:Name="PanButtons" Grid.Column="5" Grid.Row="0" Grid.RowSpan="5"
+                Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"
+                Margin="0,0,5,0" SnapsToDevicePixels="False" UseLayoutRounding="False" Opacity="0">
+
+        <!-- 删除/收藏按钮 -->
+        <local:MyIconButton x:Name="BtnDelete" Height="25" Width="25" SvgIcon="lucide/heart" />
+
+    </StackPanel>
+
+    <!-- 实例模组浏览：下载/收藏/版本选择 -->
+    <StackPanel x:Name="PanInstanceButtons" Grid.Column="6" Grid.Row="1" Grid.RowSpan="3"
+                Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"
+                Margin="0,0,8,0" Visibility="Collapsed"
+                SnapsToDevicePixels="False" UseLayoutRounding="False">
+        <local:MyIconButton x:Name="BtnInstDownload" Height="30" Width="30"
+                            SvgIcon="lucide/download" LogoScale="0.85"
+                            ToolTip="{DynamicResource Download.Comp.Item.DownloadCurrentVersion}" Margin="2,0" />
+        <local:MyIconButton x:Name="BtnInstFavorite" Height="30" Width="30"
+                            SvgIcon="lucide/heart" LogoScale="0.85"
+                            ToolTip="{DynamicResource Download.Comp.Detail.Favorite}" Margin="2,0" />
+        <local:MyIconButton x:Name="BtnInstVersion" Height="30" Width="30"
+                            SvgIcon="lucide/square-menu" LogoScale="0.85"
+                            ToolTip="{DynamicResource Download.Comp.Item.SelectVersion}" Margin="2,0" />
+    </StackPanel>
+
+</Grid>

@@ -1,0 +1,29 @@
+﻿<local:MyPageRight
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" x:Class="PCL.PageDownloadPack"
+    PanScroll="{Binding ElementName=Content}">
+    <local:PageComp x:Name="Content" PageType="ModPack">
+        <local:MyComboBoxItem Tag="" Content="{DynamicResource Common.Option.All}" IsSelected="True" />
+        <local:MyComboBoxItem Tag="4484/" Content="{DynamicResource Download.Comp.Category.Multiplayer}" />
+        <local:MyComboBoxItem Tag="/optimization" Content="{DynamicResource Download.Comp.Category.Optimization}" />
+        <local:MyComboBoxItem Tag="4479/challenging" Content="{DynamicResource Download.Comp.Category.Modpack.Hardcore}" />
+        <local:MyComboBoxItem Tag="4483/combat" Content="{DynamicResource Download.Comp.Category.Combat}" />
+        <local:MyComboBoxItem Tag="4478/quests" Content="{DynamicResource Download.Comp.Category.Modpack.Quests}" />
+        <local:MyComboBoxItem Tag="4472/technology" Content="{DynamicResource Download.Comp.Category.Technology}" />
+        <local:MyComboBoxItem Tag="4473/magic" Content="{DynamicResource Download.Comp.Category.Magic}" />
+        <local:MyComboBoxItem Tag="4475/adventure" Content="{DynamicResource Download.Comp.Category.Adventure}" />
+        <local:MyComboBoxItem Tag="/kitchen-sink" Content="{DynamicResource Download.Comp.Category.Modpack.KitchenSink}" />
+        <local:MyComboBoxItem Tag="4476/" Content="{DynamicResource Download.Comp.Category.Modpack.Exploration}" />
+        <local:MyComboBoxItem Tag="4477/" Content="{DynamicResource Download.Comp.Category.Modpack.MiniGame}" />
+        <local:MyComboBoxItem Tag="4471/" Content="{DynamicResource Download.Comp.Category.Modpack.SciFi}" />
+        <local:MyComboBoxItem Tag="4736/" Content="{DynamicResource Download.Comp.Category.Modpack.Skyblock}" />
+        <local:MyComboBoxItem Tag="5128/" Content="{DynamicResource Download.Comp.Category.Modpack.VanillaPlus}" />
+        <local:MyComboBoxItem Tag="4487/" Content="{DynamicResource Download.Comp.Category.Modpack.Ftb}" ToolTip="{DynamicResource Download.Comp.Category.Modpack.Ftb.ToolTip}" ToolTipService.HorizontalOffset="70" />
+        <local:MyComboBoxItem Tag="4480/" Content="{DynamicResource Download.Comp.Category.Modpack.MapBased}" />
+        <local:MyComboBoxItem Tag="4481/lightweight" Content="{DynamicResource Download.Comp.Category.Modpack.SmallLight}" />
+        <local:MyComboBoxItem Tag="4482/" Content="{DynamicResource Download.Comp.Category.Modpack.ExtraLarge}" />
+    </local:PageComp>
+</local:MyPageRight>

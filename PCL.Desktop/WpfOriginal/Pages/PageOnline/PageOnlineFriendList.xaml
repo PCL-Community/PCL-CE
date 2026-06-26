@@ -1,0 +1,28 @@
+<local:MyPageRight x:Class="PCL.PageOnlineFriendList"
+                   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                   xmlns:local="clr-namespace:PCL"
+                   PanScroll="{Binding ElementName=PanBack}">
+    <local:MyScrollViewer x:Name="PanBack" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="25,15,25,25">
+            <local:MyCard Margin="0,0,0,15">
+                <StackPanel Margin="22,18,25,18">
+                    <TextBlock Text="{DynamicResource Online.Friend.List.Title}" FontSize="15" FontWeight="Bold"
+                               Foreground="{DynamicResource ColorBrush1}" />
+                    <TextBlock Margin="0,4,0,0" Text="{DynamicResource Online.Friend.List.Description}"
+                               FontSize="12" TextWrapping="Wrap" Foreground="{DynamicResource ColorBrush2}" />
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard>
+                <StackPanel Margin="22,18,25,18">
+                    <local:MyLoading x:Name="Load" Text="{DynamicResource Online.Friend.List.Loading}"
+                                     Margin="0,4,0,4" Visibility="Collapsed" />
+                    <TextBlock x:Name="LabEmpty" Text="{DynamicResource Online.Friend.List.Empty}"
+                               FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource ColorBrush2}"
+                               Visibility="Collapsed" />
+                    <StackPanel x:Name="PanFriends" />
+                </StackPanel>
+            </local:MyCard>
+        </StackPanel>
+    </local:MyScrollViewer>
+</local:MyPageRight>

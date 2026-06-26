@@ -1,0 +1,169 @@
+<local:MyPageRight
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" x:Class="PCL.PageSetupGameManage"
+    PanScroll="{Binding ElementName=PanBack}">
+    <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
+        <StackPanel x:Name="PanMain" Margin="25,10">
+            <local:MyCard Margin="0,15" Title="{DynamicResource Setup.GameManage.Source.Title}">
+                <StackPanel Margin="25,37,25,15">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="7" />
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="7" />
+                            <RowDefinition Height="27" />
+                            <RowDefinition Height="27" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="27" />
+                        </Grid.RowDefinitions>
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Source.File}" Margin="0,0,25,0" />
+                        <local:MyComboBox x:Name="ComboDownloadSource" Grid.ColumnSpan="2" Tag="ToolDownloadSource"
+                                          Grid.Column="1" SelectionChanged="ComboChange">
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Source.UseMirror}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Source.PreferOfficialThenMirror}" IsSelected="True" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Source.UseOfficial}" />
+                        </local:MyComboBox>
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Source.Version}" Margin="0,0,25,0"
+                                   Grid.Row="2" />
+                        <local:MyComboBox x:Name="ComboDownloadVersion" Grid.ColumnSpan="2" Tag="ToolDownloadVersion"
+                                          Grid.Column="1" Grid.Row="2" SelectionChanged="ComboChange">
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Source.Version.Mirror}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Source.PreferOfficialThenMirror}" IsSelected="True" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Source.UseOfficial}" />
+                        </local:MyComboBox>
+                        <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Download.Threads}"
+                                   Margin="0,0,25,0" />
+                        <local:MySlider x:Name="SliderDownloadThread" Grid.Row="4" Tag="ToolDownloadThread"
+                                        PreviewChange="SliderDownloadThread_PreviewChange"
+                                        MaxValue="255" Value="63" Grid.Column="1" Change="SliderChange"
+                                         ToolTip="{DynamicResource Setup.GameManage.Download.Threads.ToolTip}" />
+                        <TextBlock VerticalAlignment="Center" Grid.Row="5" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Download.SpeedLimit}"
+                                   Margin="0,0,25,0" />
+                        <local:MySlider x:Name="SliderDownloadSpeed" Grid.Row="5" Tag="ToolDownloadSpeed" MaxValue="42"
+                                        Value="42" Grid.Column="1" Change="SliderChange"
+                                         ToolTip="{DynamicResource Setup.GameManage.Download.SpeedLimit.ToolTip}" />
+                        <TextBlock VerticalAlignment="Top" Grid.Row="6" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Download.TargetFolder}"
+                                   Margin="0,5,25,5" />
+                        <TextBlock Margin="0,5" HorizontalAlignment="Left"
+                                   Text="{DynamicResource Setup.GameManage.Download.TargetFolder.Hint}" Grid.Row="6"
+                                   Grid.Column="1" VerticalAlignment="Center" Opacity="0.5" />
+                        <TextBlock Margin="0,5" Grid.Row="7" Text="{DynamicResource Setup.GameManage.Download.InstallBehavior}" />
+                        <Grid Grid.Row="7" Grid.Column="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <local:MyCheckBox Grid.Row="0" Grid.Column="0" Text="{DynamicResource Setup.GameManage.Download.AutoSelectInstance}"
+                                              x:Name="CheckDownloadAutoSelectVersion"
+                                              Tag="ToolDownloadAutoSelectVersion" Change="CheckBoxChange" />
+                            <local:MyCheckBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,0" Text="{DynamicResource Setup.GameManage.Download.FixAuthlib}"
+                                              x:Name="CheckFixAuthlib" Tag="ToolFixAuthlib" Change="CheckBoxChange"
+                                              ToolTip="{DynamicResource Setup.GameManage.Download.FixAuthlib.ToolTip}" />
+                        </Grid>
+                    </Grid>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Setup.GameManage.Community.Title}">
+                <StackPanel Margin="25,37,25,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="7" />
+                            <RowDefinition Height="28" x:Name="RowFilenameFormat" />
+                            <RowDefinition Height="7" x:Name="RowFilenameFormatGap" />
+                            <RowDefinition Height="28" x:Name="RowModManageStyle" />
+                            <RowDefinition Height="7" x:Name="RowModManageStyleGap" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.Source}"
+                                   Margin="0,0,25,0" />
+                        <local:MyComboBox x:Name="ComboDownloadMod" Grid.Row="0" Grid.ColumnSpan="2"
+                                          Tag="ToolDownloadMod" Grid.Column="1" SelectionChanged="ComboChange">
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Source.UseMirror}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.Source.PreferOfficialWithFallback}" IsSelected="True" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Source.UseOfficial}" />
+                        </local:MyComboBox>
+                        <TextBlock Grid.Row="2" x:Name="TextFilenameFormat" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.FilenameFormat}"
+                                   Margin="0,0,25,0" />
+                        <local:MyComboBox Grid.Row="2" x:Name="ComboDownloadTranslateV2" Grid.ColumnSpan="2"
+                                          Tag="ToolDownloadTranslateV2" Grid.Column="1" SelectionChanged="ComboChange"
+                                          ToolTip="{DynamicResource Setup.GameManage.Community.FilenameFormat.ToolTip}">
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.FilenameFormat.Style0}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.FilenameFormat.Style1}" IsSelected="True" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.FilenameFormat.Style2}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.FilenameFormat.Style3}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.FilenameFormat.Style4}" />
+                        </local:MyComboBox>
+                        <TextBlock Grid.Row="4" x:Name="TextModManageStyle" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.ModManageStyle}"
+                                   Margin="0,0,25,0" />
+                        <local:MyComboBox Grid.Row="4" x:Name="ComboModLocalNameStyle" Grid.ColumnSpan="2"
+                                          Tag="ToolModLocalNameStyle" Grid.Column="1" SelectionChanged="ComboChange"
+                                          ToolTip="{DynamicResource Setup.GameManage.Community.ModManageStyle.ToolTip}">
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.ModManageStyle.TitleTranslation}" IsSelected="True" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.ModManageStyle.TitleFilename}" />
+                        </local:MyComboBox>
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <local:MyCheckBox Margin="0,2,0,4" Text="{DynamicResource Setup.GameManage.Community.HideQuilt}" ToolTip="{DynamicResource Setup.GameManage.Community.HideQuilt.ToolTip}"
+                                          Grid.Row="0" Height="22" Grid.Column="0" Change="CheckBoxChange"
+                                          x:Name="CheckDownloadIgnoreQuilt" Tag="ToolDownloadIgnoreQuilt" />
+                        <local:MyCheckBox Margin="0,2,0,4" Text="{DynamicResource Setup.GameManage.Community.AutoInstallDependencies}" ToolTip="{DynamicResource Setup.GameManage.Community.AutoInstallDependencies.ToolTip}"
+                                          Grid.Row="1" Height="22" Grid.Column="0" Change="CheckBoxChange"
+                                          x:Name="CheckDownloadAutoInstallDependencies" Tag="ToolDownloadAutoInstallDependencies" />
+                    </Grid>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Setup.GameManage.Accessibility.Title}">
+                <Grid Margin="25,40,25,17">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="160" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="22" />
+                        <RowDefinition Height="8" />
+                        <RowDefinition Height="22" />
+                        <RowDefinition Height="8" />
+                        <RowDefinition Height="22" />
+                        <RowDefinition Height="8" />
+                    </Grid.RowDefinitions>
+                    <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Accessibility.GameUpdateNotice}" Margin="0,0,25,0" />
+                    <local:MyCheckBox Text="{DynamicResource Setup.GameManage.Accessibility.ReleaseNotice}" Grid.Column="1" x:Name="CheckUpdateRelease"
+                                      Change="CheckBoxChange"
+                                      Tag="ToolUpdateRelease" ToolTip="{DynamicResource Setup.GameManage.Accessibility.ReleaseNotice.ToolTip}" />
+                    <local:MyCheckBox Text="{DynamicResource Setup.GameManage.Accessibility.SnapshotNotice}" Grid.Column="2" Height="22" x:Name="CheckUpdateSnapshot"
+                                      Change="CheckBoxChange"
+                                      Tag="ToolUpdateSnapshot" ToolTip="{DynamicResource Setup.GameManage.Accessibility.SnapshotNotice.ToolTip}" />
+                    <TextBlock VerticalAlignment="Center" Grid.Row="2" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Accessibility.GameLanguage}"
+                               Margin="0,0,25,0" />
+                    <local:MyCheckBox Text="{DynamicResource Setup.GameManage.Accessibility.AutoLauncherLanguage}" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="5"
+                                      x:Name="CheckHelpLauncherLanguage" Tag="ToolHelpChinese" Change="CheckBoxChange" />
+                    <local:MyCheckBox Text="{DynamicResource Setup.GameManage.Accessibility.ReadClipboard}" Height="22" Grid.Row="4" Grid.Column="0"
+                                      Grid.ColumnSpan="3" Change="CheckBoxChange"
+                                      x:Name="CheckDownloadClipboard" Tag="ToolDownloadClipboard"
+                                      ToolTip="{DynamicResource Setup.GameManage.Accessibility.ReadClipboard.ToolTip}" />
+                </Grid>
+            </local:MyCard>
+        </StackPanel>
+    </local:MyScrollViewer>
+</local:MyPageRight>

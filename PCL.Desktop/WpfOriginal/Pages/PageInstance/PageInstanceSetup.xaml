@@ -1,0 +1,410 @@
+<local:MyPageRight
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:PCL"
+    xmlns:val="https://ce.pclc.cc/core/utils/validate"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:System="clr-namespace:System;assembly=mscorlib"
+    mc:Ignorable="d" x:Class="PCL.PageInstanceSetup"
+    PanScroll="{Binding ElementName=PanBack}">
+    <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
+        <StackPanel x:Name="PanMain" Margin="25,25,25,25">
+            <local:MyHint Text="{DynamicResource Instance.Setup.Hint}" Theme="Blue" Margin="0,0,0,15"
+                          CanClose="True" RelativeSetup="HintIndieSetup" />
+            <local:MyCard x:Name="CardArgument" Margin="0,0,0,15"
+                          Title="{DynamicResource Setup.Launch.Options.Title}">
+                <StackPanel Margin="25,40,25,21">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="60" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="9" />
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="9" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="9" />
+                            <RowDefinition Height="28" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left"
+                                   Text="{DynamicResource Instance.Setup.InstanceIsolation}"
+                                   Margin="0,0,25,0" />
+                        <local:MyComboBox x:Name="ComboArgumentIndieV2" Grid.Row="0" Grid.ColumnSpan="2"
+                                          Tag="VersionArgumentIndieV2" Grid.Column="1">
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Setup.InstanceIsolation.Enabled}"
+                                                  ToolTipService.InitialShowDelay="0"
+                                                  ToolTipService.BetweenShowDelay="0"
+                                                  ToolTip="{DynamicResource Instance.Setup.InstanceIsolation.Enabled.ToolTip}"
+                                                  ToolTipService.HorizontalOffset="100" />
+                            <local:MyComboBoxItem Content="{DynamicResource Common.Action.Close}"
+                                                  ToolTipService.InitialShowDelay="0"
+                                                  ToolTipService.BetweenShowDelay="0"
+                                                  ToolTip="{DynamicResource Instance.Setup.InstanceIsolation.Disabled.ToolTip}"
+                                                  ToolTipService.HorizontalOffset="100" />
+                        </local:MyComboBox>
+                        <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left"
+                                   Text="{DynamicResource Setup.Launch.WindowTitle.Label}"
+                                   Margin="0,0,25,0" />
+                        <local:MyComboBox x:Name="TextArgumentTitle" Grid.Row="2" Grid.ColumnSpan="2"
+                                          Tag="VersionArgumentTitle" Grid.Column="1" IsEditable="True"
+                                          IsTextSearchEnabled="False"
+                                          ToolTip="{DynamicResource Instance.Setup.WindowTitle.ToolTip}">
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.WindowTitle.SampleFormat}" />
+                        </local:MyComboBox>
+                        <local:MyCheckBox x:Name="CheckArgumentTitleEmpty" Margin="0,0,0,9" Grid.Row="4"
+                                          Grid.ColumnSpan="3"
+                                          Text="{DynamicResource Instance.Setup.WindowTitle.Default}"
+                                          Tag="VersionArgumentTitleEmpty"
+                                          Grid.Column="0"
+                                          ToolTip="{DynamicResource Instance.Setup.WindowTitle.Default.ToolTip}" />
+                        <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left"
+                                   Text="{DynamicResource Setup.Launch.CustomInfo.Label}"
+                                   Margin="0,0,25,0" />
+                        <local:MyTextBox x:Name="TextArgumentInfo" Grid.Row="6" Grid.ColumnSpan="2"
+                                         Tag="VersionArgumentInfo" Grid.Column="1"
+                                         HintText="{DynamicResource Instance.Setup.FollowGlobal}"
+                                         ToolTip="{DynamicResource Instance.Setup.CustomInfo.ToolTip}">
+                            <local:MyTextBox.ValidateRules>
+                                <val:BlacklistValidator>
+                                    <val:BlacklistValidator.Blacklist>
+                                        <System:String>"</System:String>
+                                        <System:String>“</System:String>
+                                        <System:String>”</System:String>
+                                    </val:BlacklistValidator.Blacklist>
+                                </val:BlacklistValidator>
+                            </local:MyTextBox.ValidateRules>
+                        </local:MyTextBox>
+                        <TextBlock VerticalAlignment="Center" Grid.Row="8" HorizontalAlignment="Left"
+                                   Text="{DynamicResource Instance.Setup.GameJava}"
+                                   Margin="0,0,25,0" />
+                        <local:MyComboBox x:Name="ComboArgumentJava" Grid.ColumnSpan="2" Grid.Row="8" Grid.Column="1"
+                                          MaxDropDownHeight="240"
+                                          ToolTip="{DynamicResource Instance.Setup.GameJava.ToolTip}">
+                            <ComboBoxItem Content="{DynamicResource Instance.Setup.Java.Loading}" IsSelected="True" />
+                        </local:MyComboBox>
+                    </Grid>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Setup.Launch.Memory.Title}">
+                <StackPanel Margin="25,40,25,15">
+                    <local:MyHint x:Name="LabRamWarn" Text="{DynamicResource Setup.Launch.Memory.Warning.Java32Bit}"
+                                  Theme="Yellow" Margin="0,0,0,12" />
+                    <local:MyHint x:Name="HintRamTooHigh" Visibility="Collapsed" Height="30" Theme="Yellow"
+                                  Text="{DynamicResource Setup.Launch.Memory.Warning.TooMuch}" Margin="0,0,0,12"
+                                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+                    <Grid Margin="0,0,0,3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="9" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <local:MyRadioBox
+                            Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                            Text="{DynamicResource Instance.Setup.Memory.FollowGlobal}"
+                            Checked="True"
+                            x:Name="RadioRamType2"
+                            Tag="VersionRamType/2"
+                            Margin="0,0,20,9" />
+
+                        <local:MyRadioBox
+                            Grid.Row="1" Grid.Column="0"
+                            Text="{DynamicResource Setup.Launch.Memory.Auto}"
+                            Width="110"
+                            x:Name="RadioRamType0"
+                            Tag="VersionRamType/0"
+                            Margin="0,0,20,0"
+                            ToolTip="{DynamicResource Setup.Launch.Memory.Auto.ToolTip}"
+                            ToolTipService.Placement="Right"
+                            ToolTipService.HorizontalOffset="-10"
+                            ToolTipService.VerticalOffset="-3" />
+
+                        <local:MyRadioBox
+                            Grid.Row="3" Grid.Column="0"
+                            Text="{DynamicResource Common.Option.Customize}"
+                            Width="110"
+                            x:Name="RadioRamType1"
+                            Tag="VersionRamType/1"
+                            Margin="0,0,20,0" />
+
+                        <local:MySlider
+                            Grid.Row="3" Grid.Column="1"
+                            IsEnabled="False"
+                            x:Name="SliderRamCustom"
+                            Tag="VersionRamCustom"
+                            MaxValue="49"
+                            Value="13"
+                            Margin="0,0,12,0" />
+                    </Grid>
+                    <Grid x:Name="PanRamDisplay" Margin="0,11,2,0" SnapsToDevicePixels="True">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition x:Name="ColumnRamUsed" Width="4.7*" />
+                            <ColumnDefinition x:Name="ColumnRamGame" Width="2.5*" />
+                            <ColumnDefinition x:Name="ColumnRamEmpty" Width="0.7*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition Height="4" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <Rectangle x:Name="RectRamUsed" Grid.Row="1" StrokeThickness="0">
+                            <Rectangle.Fill>
+                                <LinearGradientBrush EndPoint="1,0.5" StartPoint="0,0.5">
+                                    <GradientStop Color="{DynamicResource ColorObject3}" Offset="0" />
+                                    <GradientStop Color="{DynamicResource ColorObject2}" Offset="0.5" />
+                                </LinearGradientBrush>
+                            </Rectangle.Fill>
+                        </Rectangle>
+                        <Rectangle Grid.Row="1" StrokeThickness="0" Grid.Column="1"
+                                   Fill="{DynamicResource ColorBrush3}" Opacity="0.5" x:Name="RectRamGame" />
+                        <Rectangle x:Name="RectRamEmpty" Grid.Row="1" StrokeThickness="0" Grid.Column="2"
+                                   Fill="{DynamicResource ColorBrush6}" Opacity="0.7" />
+                        <TextBlock x:Name="LabRamUsedTitle" Text="{DynamicResource Instance.Setup.Memory.Used}"
+                                   Grid.ColumnSpan="3" Opacity="0.7"
+                                   TextTrimming="None" Margin="2,0,0,5" FontSize="11" HorizontalAlignment="Left" />
+                        <TextBlock x:Name="LabRamGameTitle" Text="{DynamicResource Setup.Launch.Memory.GameAllocation}"
+                                   Opacity="0.7" Grid.ColumnSpan="3"
+                                   TextTrimming="None" Margin="2,0,0,5" FontSize="11" HorizontalAlignment="Left" />
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" Grid.ColumnSpan="3" Margin="2,3,0,0"
+                                    HorizontalAlignment="Left">
+                            <TextBlock x:Name="LabRamUsed" Text="4.7 GB" FontSize="16"
+                                       Foreground="{DynamicResource ColorBrushMemory}" TextTrimming="None" />
+                            <TextBlock x:Name="LabRamTotal" Text=" / 7.9 GB" FontSize="16"
+                                       Foreground="{DynamicResource ColorBrushMemory}" TextTrimming="None" />
+                        </StackPanel>
+                        <TextBlock Grid.Row="2" x:Name="LabRamGame" Text="2.5 GB" Grid.ColumnSpan="3"
+                                   TextTrimming="None" Margin="2,3,0,0" FontSize="16"
+                                   Foreground="{DynamicResource ColorBrushMemory}" HorizontalAlignment="Left" />
+                    </Grid>
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard x:Name="CardServer" Margin="0,0,0,15" Title="{DynamicResource Instance.Setup.Server.Title}">
+                <StackPanel Margin="25,42,25,18">
+                    <local:MyHint x:Name="HintServerLoginLock"
+                                  Text="{DynamicResource Instance.Setup.Server.LoginLockHint}" isWarn="True"
+                                  Margin="0,0,0,13" Visibility="Collapsed" />
+                    <local:MyHint x:Name="LabServerAuthServerSecurityVerify"
+                                  Text="{DynamicResource Instance.Setup.Server.SslWarning}"
+                                  isWarn="False" Visibility="Collapsed" />
+                    <local:MyHint x:Name="LabServerAuthServerSecurity"
+                                  Text="{DynamicResource Instance.Setup.Server.HttpWarning}"
+                                  Visibility="Collapsed" />
+                    <TextBlock Name="LabServerAuthServerSecurityCL" Text="&#xA;" Visibility="Collapsed" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="9" />
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="3" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left"
+                                   Text="{DynamicResource Instance.Setup.Server.RestrictLogin}"
+                                   Margin="0,0,25,0" />
+                        <local:MyComboBox x:Name="ComboServerLoginRequire" Grid.Row="0" Grid.ColumnSpan="2"
+                                          Tag="VersionServerLoginRequire" Grid.Column="1">
+                            <local:MyComboBoxItem
+                                Content="{DynamicResource Instance.Setup.Server.LoginMethod.Unlimited}"
+                                IsSelected="True" />
+                            <local:MyComboBoxItem
+                                Content="{DynamicResource Instance.Setup.Server.LoginMethod.MicrosoftOnly}" />
+                            <local:MyComboBoxItem
+                                Content="{DynamicResource Instance.Setup.Server.LoginMethod.AuthOnly}" />
+                            <local:MyComboBoxItem
+                                Content="{DynamicResource Instance.Setup.Server.LoginMethod.MicrosoftOrAuth}" />
+                        </local:MyComboBox>
+                        <TextBlock Name="LabServerAuthServer" Grid.Row="1" VerticalAlignment="Center"
+                                   HorizontalAlignment="Left" Text="{DynamicResource Instance.Setup.Server.AuthServer}"
+                                   Margin="0,8,25,0" Visibility="Collapsed" />
+                        <local:MyTextBox x:Name="TextServerAuthServer" Grid.Row="1" Grid.ColumnSpan="2"
+                                         ShowValidateResult="False" Tag="VersionServerAuthServer" Grid.Column="1"
+                                         Margin="0,8,0,0" Visibility="Collapsed"
+                                         HintText="{DynamicResource Instance.Setup.Server.AuthServer.Hint}">
+                            <local:MyTextBox.ValidateRules>
+                                <val:HttpValidator />
+                            </local:MyTextBox.ValidateRules>
+                        </local:MyTextBox>
+                        <TextBlock Name="LabServerAuthRegister" Grid.Row="2" VerticalAlignment="Center"
+                                   HorizontalAlignment="Left" Text="{DynamicResource Instance.Setup.Server.Register}"
+                                   Margin="0,8,25,0" Visibility="Collapsed" />
+                        <local:MyTextBox x:Name="TextServerAuthRegister" Grid.Row="2" Grid.ColumnSpan="2"
+                                         ShowValidateResult="False" Tag="VersionServerAuthRegister" Grid.Column="1"
+                                         Margin="0,8,0,0" Visibility="Collapsed"
+                                         HintText="{DynamicResource Instance.Setup.Server.Register.Hint}">
+                            <local:MyTextBox.ValidateRules>
+                                <val:HttpValidator AllowsNullOrEmpty="True" />
+                            </local:MyTextBox.ValidateRules>
+                        </local:MyTextBox>
+                        <TextBlock Name="LabServerAuthName" Grid.Row="3" VerticalAlignment="Center"
+                                   HorizontalAlignment="Left" Text="{DynamicResource Instance.Setup.Server.Name}"
+                                   Margin="0,8,25,0" Visibility="Collapsed" />
+                        <local:MyTextBox x:Name="TextServerAuthName" Grid.Row="3" Grid.ColumnSpan="2"
+                                         ShowValidateResult="False" Tag="VersionServerAuthName" Grid.Column="1"
+                                         Margin="0,8,0,0" Visibility="Collapsed"
+                                         HintText="{DynamicResource Instance.Setup.Server.Name.Hint}" />
+                        <TextBlock VerticalAlignment="Center" Grid.Row="5" HorizontalAlignment="Left"
+                                   Text="{DynamicResource Instance.Setup.Server.AutoJoin}"
+                                   Margin="0,0,25,0" />
+                        <local:MyTextBox x:Name="TextServerEnter" Grid.ColumnSpan="2" Grid.Row="5"
+                                         Tag="VersionServerEnter" Grid.Column="1"
+                                         ToolTip="{DynamicResource Instance.Setup.Server.AutoJoin.ToolTip}">
+                            <local:MyTextBox.ValidateRules>
+                                <val:BlacklistValidator>
+                                    <val:BlacklistValidator.Blacklist>
+                                        <System:String>"</System:String>
+                                        <System:String>“</System:String>
+                                        <System:String>”</System:String>
+                                        <System:String>http://</System:String>
+                                        <System:String>https://</System:String>
+                                    </val:BlacklistValidator.Blacklist>
+                                </val:BlacklistValidator>
+                            </local:MyTextBox.ValidateRules>
+                        </local:MyTextBox>
+                    </Grid>
+                    <local:MyButton x:Name="BtnServerAuthLittle" Height="35" MinWidth="150" Margin="0,12,0,0"
+                                    Text="{DynamicResource Instance.Setup.Server.SetLittleSkin}"
+                                    HorizontalAlignment="Left" ColorType="Highlight" />
+                    <local:MyButton x:Name="BtnServerAuthLock" Height="35" MinWidth="150" Margin="180,-35,0,0"
+                                    Text="{DynamicResource Instance.Setup.Server.LockLoginMethod}"
+                                    HorizontalAlignment="Left" IsEnabled="False" />
+                    <local:MyButton x:Name="BtnServerNewProfile" Height="35" MinWidth="150" Margin="360,-35,0,0"
+                                    Text="{DynamicResource Instance.Setup.Server.CreateProfile}"
+                                    HorizontalAlignment="Left" />
+                </StackPanel>
+            </local:MyCard>
+            <local:MyCard x:Name="CardAdvance" Margin="0,0,0,15"
+                          Title="{DynamicResource Setup.Launch.Advanced.Title}" IsSwapped="True" CanSwap="True">
+                <Grid Margin="25,40,25,15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                        <ColumnDefinition Width="1*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="28" />
+                        <RowDefinition Height="9" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="9" />
+                        <RowDefinition Height="28" />
+                        <RowDefinition Height="9" />
+                        <RowDefinition Height="28" />
+                        <RowDefinition Height="9" />
+                        <RowDefinition Height="31" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left"
+                               Text="{DynamicResource Setup.Launch.Advanced.Renderer.Label}"
+                               Margin="0,0,25,0" />
+                    <local:MyComboBox x:Name="ComboAdvanceRenderer" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
+                                      Tag="VersionAdvanceRenderer">
+                        <local:MyComboBoxItem Content="{DynamicResource Instance.Setup.Advanced.Renderer.FollowGlobal}"
+                                              IsSelected="True" />
+                        <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Advanced.Renderer.GameDefault}" />
+                        <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Advanced.Renderer.Software}" />
+                        <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Advanced.Renderer.DirectX12}" />
+                        <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Advanced.Renderer.Vulkan}" />
+                    </local:MyComboBox>
+
+                    <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left"
+                               Text="{DynamicResource Setup.Launch.Advanced.JvmHead}"
+                               Margin="0,0,25,0" />
+                    <local:MyTextBox x:Name="TextAdvanceJvm" Grid.Row="2" Grid.ColumnSpan="2" Tag="VersionAdvanceJvm"
+                                     Grid.Column="1" MaxLength="4000"
+                                     ToolTip="{DynamicResource Instance.Setup.Advanced.JvmArgs.ToolTip}"
+                                     HintText="{DynamicResource Instance.Setup.FollowGlobal}"
+                                     Height="100" AcceptsReturn="True" TextWrapping="Wrap"
+                                     VerticalContentAlignment="Top" Padding="0,5" VerticalScrollBarVisibility="Auto" />
+
+                    <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left"
+                               Text="{DynamicResource Setup.Launch.Advanced.GameTail}"
+                               Margin="0,0,25,0" />
+                    <local:MyTextBox x:Name="TextAdvanceGame" Grid.Row="4" Grid.ColumnSpan="2" Tag="VersionAdvanceGame"
+                                     Grid.Column="1"
+                                     ToolTip="{DynamicResource Instance.Setup.Advanced.GameArgs.ToolTip}"
+                                     HintText="{DynamicResource Instance.Setup.FollowGlobal}" />
+
+                    <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left"
+                               Text="{DynamicResource Instance.Setup.Advanced.Classpath}"
+                               Margin="0,0,25,0" />
+                    <local:MyTextBox x:Name="TextAdvanceClasspathHead" Grid.Row="6" Grid.ColumnSpan="2"
+                                     Tag="VersionAdvanceClasspathHead" Grid.Column="1"
+                                     ToolTip="{DynamicResource Instance.Setup.Advanced.Classpath.ToolTip}" />
+
+                    <TextBlock Grid.Row="8" VerticalAlignment="Center" HorizontalAlignment="Left"
+                               Text="{DynamicResource Setup.Launch.Advanced.PreLaunchCommand}"
+                               Margin="0,0,25,3" />
+                    <local:MyTextBox x:Name="TextAdvanceRun" Grid.Row="8" Grid.ColumnSpan="2" Tag="VersionAdvanceRun"
+                                     Grid.Column="1" HintText="" Margin="0,0,0,3"
+                                     ToolTip="{DynamicResource Instance.Setup.Advanced.PreLaunchCommand.ToolTip}" />
+
+                    <StackPanel Margin="0,8,0,4" Grid.Row="9" Grid.ColumnSpan="2" HorizontalAlignment="Left">
+                        <local:MyCheckBox Height="28" x:Name="CheckAdvanceRunWait" Tag="VersionAdvanceRunWait"
+                                          Visibility="Collapsed"
+                                          Text="{DynamicResource Setup.Launch.Advanced.PreLaunchCommand.Wait}" />
+                        <local:MyCheckBox Height="28"
+                                          Text="{DynamicResource Instance.Setup.Advanced.IgnoreJavaCompatibility}"
+                                          x:Name="CheckAdvanceJava"
+                                          Tag="VersionAdvanceJava"
+                                          ToolTipService.Placement="Right"
+                                          ToolTip="{DynamicResource Instance.Setup.Advanced.IgnoreJavaCompatibility.ToolTip}" />
+                        <local:MyCheckBox Height="28"
+                                          Text="{DynamicResource Instance.Setup.Advanced.DisableFileVerification}"
+                                          x:Name="CheckAdvanceAssetsV2"
+                                          Tag="VersionAdvanceAssetsV2" Margin="0,0,60,0"
+                                          ToolTipService.Placement="Right"
+                                          ToolTip="{DynamicResource Instance.Setup.Advanced.DisableFileVerification.ToolTip}" />
+                        <local:MyCheckBox Height="28" Text="{DynamicResource Instance.Setup.Advanced.UseGlobalProxy}"
+                                          x:Name="CheckAdvanceUseProxyV2"
+                                          Tag="VersionAdvanceUseProxyV2"
+                                          ToolTipService.Placement="Right"
+                                          ToolTip="{DynamicResource Instance.Setup.Advanced.UseGlobalProxy.ToolTip}" />
+                        <local:MyCheckBox Height="28"
+                                          Text="{DynamicResource Setup.Launch.Advanced.DisableJlw}"
+                                          x:Name="CheckAdvanceDisableJLW"
+                                          Tag="VersionAdvanceDisableJLW"
+                                          ToolTipService.Placement="Right"
+                                          ToolTip="{DynamicResource Setup.Launch.Advanced.DisableJlw.ToolTip}" />
+                        <local:MyCheckBox Height="28"
+                                          Text="{DynamicResource Setup.Launch.Advanced.DisableRw}"
+                                          x:Name="CheckAdvanceDisableRW"
+                                          Tag="VersionAdvanceDisableRW"
+                                          ToolTipService.Placement="Right"
+                                          ToolTip="{DynamicResource Setup.Launch.Advanced.DisableRw.ToolTip}" />
+                        <local:MyCheckBox Height="28" Text="{DynamicResource Instance.Setup.Advanced.UseDebugLog4j}"
+                                          x:Name="CheckUseDebugLog4j2Config"
+                                          Tag="VersionUseDebugLog4j2Config"
+                                          ToolTipService.Placement="Right" />
+                        <local:MyCheckBox Height="28"
+                                          Text="{DynamicResource Setup.Launch.Advanced.DisableLwjglUnsafeAgent}"
+                                          x:Name="CheckAdvanceDisableLwjglUnsafeAgent"
+                                          Tag="VersionAdvanceDisableLwjglUnsafeAgent"
+                                          ToolTipService.Placement="Right"
+                                          ToolTip="{DynamicResource Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip}" />
+                    </StackPanel>
+                </Grid>
+            </local:MyCard>
+            <local:MyExtraTextButton HorizontalAlignment="Center" Margin="0,-5,0,0"
+                                     x:Name="BtnSwitch" Text="{DynamicResource Instance.Setup.OpenGlobalSettings}"
+                                     LogoScale="0.9"
+                                     SvgIcon="lucide/arrow-right" />
+        </StackPanel>
+    </local:MyScrollViewer>
+</local:MyPageRight>
