@@ -16,21 +16,15 @@ body:
           required: true
         - label: "我已知悉本项目的开发者均为不带薪志愿者，社区不对这类 Issue 的完成时间作出任何保证，并有足够的耐心等待社区开发者的处理，同时已知悉如果我作出催促、质问或类似的举动，这个 Issue 可能会被直接关闭 / I understand that all developers of this project are unpaid volunteers. The community does not guarantee any completion time for this type of issue, and I am willing to wait patiently for the developers' review and handling. I also understand that excessive urging, demanding, or similar behavior may result in this issue being closed."
           required: true
-  - type: input
-    id: "yml-2"
-    attributes:
-      label: "官方版原 Issue 编号 / Original Official Issue Number"
-      description: "如果这个 Issue 是从官方版转交过来的，请将原 Issue 标题旁的**编号**输入到下方预设文本的 `#` 后，不要输入任何其他非数字字符。**若不是，请清空下方输入框。** / If this issue was transferred from the official version, enter only the **number** shown next to the original Issue title after `#` below. Do not enter any non-numeric characters. **If not applicable, leave this field blank.**"
-      value: "- Meloong-Git/PCL#"
   - type: textarea
-    id: "yml-3"
+    id: "yml-2"
     attributes:
       label: "描述 / Description"
       description: "详细描述你想添加的功能具体是怎样的 / Describe in detail the feature you would like to add."
     validations:
       required: true
   - type: textarea
-    id: "yml-4"
+    id: "yml-3"
     attributes:
       label: "原因 / Reason"
       description: "详细描述你为什么需要这项功能，这有助于开发者评估它的优先度 / Explain why this feature is needed to help developers evaluate its priority."
