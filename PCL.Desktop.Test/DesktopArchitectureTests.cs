@@ -2,7 +2,7 @@
 // Modifications Copyright (c) 2026 PCL N contributors.
 // Licensed under the Apache License, Version 2.0.
 
-using PCL.Desktop.ViewModels;
+using PCL.Desktop;
 
 namespace PCL.Desktop.Test;
 
@@ -22,7 +22,7 @@ public sealed class DesktopArchitectureTests
     [TestMethod]
     public void DesktopAssembly_DoesNotReferenceWindowsOrLegacyUiAssemblies()
     {
-        string[] references = typeof(MainWindowViewModel)
+        string[] references = typeof(App)
             .Assembly
             .GetReferencedAssemblies()
             .Select(static assembly => assembly.Name ?? string.Empty)

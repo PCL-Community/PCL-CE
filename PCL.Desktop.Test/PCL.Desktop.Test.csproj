@@ -14,6 +14,7 @@
     <Copyright>Copyright (c) MUXUE1230; Modifications Copyright (c) 2026 PCL N contributors</Copyright>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Avalonia.Headless" Version="12.0.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageReference Include="MSTest.TestAdapter" Version="4.1.0" />
     <PackageReference Include="MSTest.TestFramework" Version="4.1.0" />
