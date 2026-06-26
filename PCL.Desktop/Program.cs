@@ -3,6 +3,7 @@
 // Licensed under the Apache License, Version 2.0.
 
 using Avalonia;
+using Avalonia.Platform;
 
 namespace PCL.Desktop;
 
@@ -36,10 +37,20 @@ internal static class Program
 
     private static int ValidateAssets()
     {
-        string baseDirectory = AppContext.BaseDirectory;
-        return File.Exists(Path.Combine(baseDirectory, "PCL.Desktop.dll")) &&
-               File.Exists(Path.Combine(baseDirectory, "PCL.Desktop.deps.json"))
+        if (string.IsNullOrWhiteSpace(Environment.ProcessPath) ||
+            !File.Exists(Environment.ProcessPath))
+            return 1;
+
+        var assetLoader = new StandardAssetLoader(typeof(Program).Assembly);
+        return ValidateResource(assetLoader, "avares://PCL.Desktop/Assets/icon.png") &&
+               ValidateResource(assetLoader, "avares://PCL.Desktop/WpfOriginal/Images/icon.png") &&
+               ValidateResource(assetLoader, "avares://PCL.Desktop/Themes/PclTheme.axaml")
             ? 0
             : 1;
+    }
+
+    private static bool ValidateResource(StandardAssetLoader assetLoader, string resourceUri)
+    {
+        return assetLoader.Exists(new Uri(resourceUri, UriKind.Absolute));
     }
 }
