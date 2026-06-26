@@ -125,7 +125,7 @@ public partial class PageLaunchRight : IRefreshable
 
                 case 2:
                     LogWrapper.Info("[Page] 主页预设：Minecraft 新闻");
-                    url = "https://pcl.mcnews.thestack.top";
+                    url = "https://news.bugjump.net";
                     content = LoadFromNetwork(url);
                     break;
 
