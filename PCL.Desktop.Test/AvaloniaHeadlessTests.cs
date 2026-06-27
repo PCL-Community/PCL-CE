@@ -514,6 +514,108 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void MyComboBox_UsesWpfTextHintAndContainerBehavior()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MyComboBox comboBox = new()
+            {
+                Width = 180,
+                ItemsSource = new[] { "全部", "热门" },
+                SelectedIndex = 1
+            };
+            Window window = new()
+            {
+                Width = 320,
+                Height = 180,
+                Content = new Border
+                {
+                    Padding = new Thickness(20),
+                    Child = comboBox
+                }
+            };
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.AreEqual("热门", comboBox.Text);
+
+                comboBox.IsDropDownOpen = true;
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.IsTrue(comboBox.GetRealizedContainers().All(container => container is MyComboBoxItem));
+                Assert.AreEqual("全部", comboBox.GetRealizedContainers().First().ToString());
+                Assert.AreEqual(180d, comboBox.Width, 0.01d);
+
+                comboBox.IsDropDownOpen = false;
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Assert.AreEqual(180d, comboBox.Width, 0.01d);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void MyComboBox_EditableTextClearsStaleSelectionLikeWpf()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MyComboBox comboBox = new()
+            {
+                Width = 180,
+                IsEditable = true,
+                HintText = "搜索字体",
+                ItemsSource = new[] { "默认", "自定义" },
+                SelectedIndex = 0
+            };
+            Window window = new()
+            {
+                Width = 320,
+                Height = 180,
+                Content = new Border
+                {
+                    Padding = new Thickness(20),
+                    Child = comboBox
+                }
+            };
+
+            int textChangedCount = 0;
+            comboBox.TextChanged += (_, _) => textChangedCount++;
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.AreEqual("搜索字体", comboBox.PlaceholderText);
+                comboBox.Text = "手动输入";
+
+                Assert.AreEqual("手动输入", comboBox.Text);
+                Assert.IsNull(comboBox.SelectedItem);
+                Assert.AreEqual(1, textChangedCount);
+
+                MyComboBoxItem item = new() { Content = "选项" };
+                string implicitText = item;
+                Assert.AreEqual("选项", item.ToString());
+                Assert.AreEqual("选项", implicitText);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void MainWindow_NavigationToggleUsesMeasuredAnimatedWidth()
     {
         using HeadlessUnitTestSession session = CreateSession();

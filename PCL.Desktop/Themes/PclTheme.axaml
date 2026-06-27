@@ -5,7 +5,8 @@
 -->
 <Styles
     xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:legacy="clr-namespace:PCL.Desktop.Controls.Legacy">
   <Styles.Resources>
     <x:Double x:Key="BlurRadius">0</x:Double>
     <x:Double x:Key="BlurSamplingRate">0.7</x:Double>
@@ -77,5 +78,21 @@
     <Setter Property="Background" Value="{DynamicResource ColorBrushToolTip}" />
     <Setter Property="BorderBrush" Value="{DynamicResource ColorBrush1}" />
     <Setter Property="BorderThickness" Value="1.5" />
+  </Style>
+
+  <Style Selector="legacy|MyComboBox">
+    <Setter Property="Foreground" Value="{DynamicResource ColorBrushBg0}" />
+    <Setter Property="Background" Value="{DynamicResource ColorBrushHalfWhite}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushBg0}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="MinHeight" Value="28" />
+    <Setter Property="MaxDropDownHeight" Value="160" />
+  </Style>
+
+  <Style Selector="legacy|MyComboBoxItem">
+    <Setter Property="Background" Value="{DynamicResource ColorBrushTransparent}" />
+    <Setter Property="Padding" Value="6,4" />
+    <Setter Property="MinHeight" Value="26" />
   </Style>
 </Styles>
