@@ -9,9 +9,11 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Headless;
 using Avalonia.Input;
 using Avalonia.Layout;
+using Avalonia.VisualTree;
 using PCL.Desktop;
 using PCL.Desktop.Controls.Legacy;
 using PCL.Desktop.Views;
+using PCL.Desktop.Views.Launch;
 
 namespace PCL.Desktop.Test;
 
@@ -45,7 +47,14 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsTrue(window.FindControl<Avalonia.Controls.Shapes.Path>("ShapeTitleLogo")!.IsVisible);
                 Assert.IsFalse(window.FindControl<Avalonia.Controls.Shapes.Path>("ShapeHMCLTitleLogo")!.IsVisible);
                 Assert.IsFalse(window.FindControl<MyImage>("ImageHMCLTitleLogo")!.IsVisible);
-                Assert.AreEqual("正在加载启动页面", window.FindControl<MyLoading>("LoadMain")!.Text);
+                Assert.IsNotNull(FindVisual<PageLaunchLeft>(window));
+                Assert.IsNotNull(FindVisual<PageLaunchRight>(window));
+                Assert.IsNotNull(FindVisual<MyButton>(window, "BtnLaunch"));
+                Assert.IsNotNull(FindVisual<MyButton>(window, "BtnInstance"));
+                Assert.IsNotNull(FindVisual<Grid>(window, "PanLogin"));
+                Assert.IsNotNull(FindVisual<Grid>(window, "PanLaunching"));
+                Assert.IsNotNull(FindVisual<StackPanel>(window, "PanCustom"));
+                Assert.IsNotNull(FindVisual<MyCard>(window, "PanLog"));
                 Assert.IsNotNull(window.CaptureRenderedFrame());
             }
             finally
@@ -135,7 +144,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual(0d, GetCheckIndicator(launch).Height);
                 Assert.AreEqual(20d, GetCheckIndicator(download).Height);
                 AdvancePageChangeAnimation(window);
-                Assert.AreEqual("正在加载下载页面", window.FindControl<MyLoading>("LoadMain")!.Text);
+                Assert.AreEqual("正在加载下载页面", FindVisual<MyLoading>(window, "LoadMain")!.Text);
             }
             finally
             {
@@ -165,7 +174,7 @@ public sealed class AvaloniaHeadlessTests
 
                 AdvancePageChangeAnimation(window);
                 Assert.AreEqual(1d, right.Opacity, 0.01d);
-                Assert.AreEqual("正在加载社区页面", window.FindControl<MyLoading>("LoadMain")!.Text);
+                Assert.AreEqual("正在加载社区页面", FindVisual<MyLoading>(window, "LoadMain")!.Text);
             }
             finally
             {
@@ -193,6 +202,70 @@ public sealed class AvaloniaHeadlessTests
             {
                 splash.Close();
             }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void LaunchInstanceDiscovery_FindsVersionJsons()
+    {
+        string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-launch-discovery-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            string versionDirectory = System.IO.Path.Combine(root, "versions", "1.20.1");
+            Directory.CreateDirectory(versionDirectory);
+            File.WriteAllText(System.IO.Path.Combine(versionDirectory, "1.20.1.json"), "{}");
+
+            IReadOnlyList<LaunchInstanceInfo> instances = LaunchInstanceDiscovery.Discover([root]);
+
+            Assert.AreEqual(1, instances.Count);
+            Assert.AreEqual("1.20.1", instances[0].Name);
+            Assert.AreEqual(versionDirectory, instances[0].InstanceDirectory);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void PageLaunchLeft_PreservesLoginAndLaunchExtensionSurfaces()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageLaunchLeft page = new();
+            TextBlock loginPage = new() { Text = "登录分页" };
+            page.SetLoginPage(loginPage, animate: false);
+            page.SetInstances([new LaunchInstanceInfo("1.20.1", @"D:\Minecraft\versions\1.20.1\1.20.1.json", @"D:\Minecraft\versions\1.20.1")]);
+
+            Assert.AreSame(loginPage, page.CurrentLoginPage);
+            Assert.AreEqual("1.20.1", page.SelectedInstance!.Name);
+            Assert.AreEqual("启动游戏", page.FindControl<MyButton>("BtnLaunch")!.Text);
+            Assert.IsTrue(page.FindControl<Control>("BtnMore")!.IsVisible);
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void PageLaunchRight_PreservesCustomHomepageSurface()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageLaunchRight page = new();
+            TextBlock customBlock = new()
+            {
+                Tag = "homepage-title",
+                Text = "自定义主页"
+            };
+
+            page.AddCustomContent(customBlock);
+            page.AppendLog("测试日志");
+
+            Assert.AreSame(customBlock, page.CustomPanel!.Children.Single());
+            Assert.IsTrue(page.FindControl<TextBlock>("LabLog")!.Text!.Contains("测试日志", StringComparison.Ordinal));
         }, CancellationToken.None);
     }
 
@@ -854,6 +927,12 @@ public sealed class AvaloniaHeadlessTests
         item.Children
             .OfType<Border>()
             .Single(border => Math.Abs(border.Width - 5d) < 0.01d);
+
+    private static T? FindVisual<T>(Control root, string? name = null)
+        where T : Control =>
+        root.GetVisualDescendants()
+            .OfType<T>()
+            .FirstOrDefault(control => name is null || string.Equals(control.Name, name, StringComparison.Ordinal));
 
     private static void AdvanceNavigationAnimation(MainWindow window)
     {
