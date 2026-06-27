@@ -92,14 +92,12 @@ public class LogService : ILifecycleLogService
 
                 var caption = ex is null
                     ? null
-                    : Lang.Text("Error.Title.UnexpectedError");
+                    : Lang.Text("SystemDialog.Error.Unexpected.Title");
 
                 var message = _ComposeUserError(plain, ex);
 
                 if (actionLevel == ActionLevel.MsgBoxErr)
-                    message += Environment.NewLine
-                               + Environment.NewLine
-                               + Lang.Text("Error.Guidance.ExportLog");
+                    message = Lang.Text("SystemDialog.Error.Message.WithLogExportGuidance", message);
 
                 MsgBoxWrapper.Show(message, caption, theme, false);
                 break;
@@ -108,10 +106,9 @@ public class LogService : ILifecycleLogService
             // fatal message box
             case ActionLevel.MsgBoxFatal:
             {
-                var message = _ComposeUserError(plain, ex)
-                              + Environment.NewLine
-                              + Environment.NewLine
-                              + Lang.Text("Error.Guidance.FatalFeedback");
+                var message = Lang.Text(
+                    "SystemDialog.Fatal.Message.WithFeedbackGuidance",
+                    _ComposeUserError(plain, ex));
 
                 MessageBox.Show(
                     message,
@@ -128,7 +125,7 @@ public class LogService : ILifecycleLogService
     private static string _ComposeUserError(string plain, Exception? exception)
     {
         var summary = string.IsNullOrWhiteSpace(plain)
-            ? Lang.Text("Error.Message.Unexpected")
+            ? Lang.Text("SystemDialog.Error.Unexpected.Message")
             : plain;
 
         return exception is null

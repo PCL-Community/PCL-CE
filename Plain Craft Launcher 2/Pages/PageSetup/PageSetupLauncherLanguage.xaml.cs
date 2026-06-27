@@ -53,7 +53,7 @@ public partial class PageSetupLauncherLanguage
             Config.Preference.Localization.FormatCultureConfig.SetDefaultValue();
             LocalizationService.ApplyFromConfig();
             ModBase.Log("[Setup] 已初始化启动器-语言页设置");
-            HintService.Hint("已初始化语言页设置！", HintType.Success, false);
+            HintService.Hint(Lang.Text("Setup.LauncherLanguage.Reset.Success"), HintType.Success, false);
             Reload();
         }
         catch (Exception ex)

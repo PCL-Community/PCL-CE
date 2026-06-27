@@ -1226,7 +1226,9 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             }
 
             if (skippedUnsafeFileCount > 0)
-                HintService.Hint($"已跳过 {skippedUnsafeFileCount} 个文件名不安全的数据包更新。", HintType.Error);
+                HintService.Hint(
+                    Lang.Text("Instance.Saves.Datapack.Update.UnsafeFilesSkipped", skippedUnsafeFileCount),
+                    HintType.Error);
             if (!fileList.Any())
                 return;
 

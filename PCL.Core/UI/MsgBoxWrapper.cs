@@ -73,8 +73,8 @@ public static class MsgBoxWrapper
 
         return theme switch
         {
-            MsgBoxTheme.Warning => Lang.Text("Error.Title.Warning"),
-            MsgBoxTheme.Error => Lang.Text("Error.Title.Error"),
+            MsgBoxTheme.Warning => Lang.Text("Common.Dialog.Warning"),
+            MsgBoxTheme.Error => Lang.Text("SystemDialog.Error.Title"),
             _ => Lang.Text("Common.Dialog.Title")
         };
     }

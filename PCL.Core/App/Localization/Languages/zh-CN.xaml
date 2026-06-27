@@ -81,8 +81,11 @@
 
     <!-- Common.Hint / Error -->
 
+    <sys:String x:Key="Common.Hint.Copied">已成功复制！</sys:String>
+    <sys:String x:Key="Common.Hint.FilesPasted">已粘贴 {0} 个文件和 {1} 个文件夹。</sys:String>
     <sys:String x:Key="Common.Hint.DoNotShowAgain">不再提示</sys:String>
-    <sys:String x:Key="Common.Error.InvalidJson">不是有效的 Json 文件</sys:String>
+    <sys:String x:Key="Common.Hint.CopyFailed">无法复制文本，剪贴板可能正被其他程序占用。</sys:String>
+    <sys:String x:Key="Common.Error.InvalidJson">不是有效的 JSON 文件</sys:String>
 
     <!-- Application -->
 
@@ -409,6 +412,12 @@
     <sys:String x:Key="Launch.Skin.SaveAs">另存为</sys:String>
     <sys:String x:Key="Launch.Skin.ChangeCape">更换披风</sys:String>
     <sys:String x:Key="Launch.Skin.Change.ToolTip">点击更换皮肤（右键查看更多选项）</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.Busy">正在更改皮肤中，请稍候！</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.LoginFailed">登录失败，无法更改皮肤！</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.Starting">正在更改皮肤……</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.Reauthenticating">正在登录，将在登录完成后继续更改皮肤……</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.FailedWithDetail">更改皮肤失败。&#x0A;&#x0A;详细信息：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.Timeout.WithDetail">更改皮肤失败：与 Mojang 皮肤服务器的连接超时，请检查网络连接。&#x0A;&#x0A;详细信息：&#x0A;{0}</sys:String>
     <sys:String x:Key="Launch.Skin.Fetching">皮肤正在获取中，请稍候！</sys:String>
     <sys:String x:Key="Launch.Skin.SaveDialog.Title">选取保存皮肤的位置</sys:String>
     <sys:String x:Key="Launch.Skin.SaveDialog.Filter">皮肤图片文件(*.png)|*.png</sys:String>
@@ -692,6 +701,11 @@
     <sys:String x:Key="Minecraft.Launch.Login.Auth.SelectProfile">选择使用的角色</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Auth.LoginFailed">登录失败：{0}</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Auth.DetailPrefix">详细信息：</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.RefreshFailed.WithDetail">刷新登录失败。&#x0A;&#x0A;详细信息：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.ValidationFailed.WithDetail">验证登录失败。&#x0A;&#x0A;详细信息：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.LoginFailed.WithDetail">第三方验证登录失败。&#x0A;&#x0A;详细信息：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.WithDetail">登录失败：连接登录服务器超时。&#x0A;请检查网络连接，或尝试使用 VPN。&#x0A;&#x0A;详细信息：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.NetworkFailed.WithDetail">第三方验证登录失败，请检查网络连接。&#x0A;&#x0A;详细信息：&#x0A;{0}</sys:String>
 
     <!-- Minecraft.Launch.Login.Common -->
 
@@ -717,6 +731,18 @@
     <sys:String x:Key="Minecraft.Launch.Java.NeedJava7">你需要安装 Java 7 才能启动该版本。&#x0a;请自行搜索并安装 Java 7，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.NeedJava8U141ToU320">你需要安装 Java 8u141 ~ 8u320 才能启动该版本。&#x0a;请自行搜索并安装，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.NeedJava8U141OrLater">你需要安装 Java 8u141 或更高版本的 Java 8 才能启动该版本。&#x0a;请自行搜索并安装，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.NotFound.Manual.Message">PCL 未找到 {0}。&#x0A;请自行搜索并安装 {0}，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.AutoDownload.Title">自动下载 Java？</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.AutoDownload.Message">PCL 未找到 {0}，是否需要自动下载？&#x0A;如果已经安装了 {0}，可以在 设置 → 启动选项 → 游戏 Java 中手动导入。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.AutoDownload.Action">自动下载</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.Task.Download">下载 Java</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.Task.DownloadFiles">下载 Java 文件</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.Task.GetDownloadInfo">获取 Java 下载信息</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.Compatibility.NoMinimum">无下限</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.Compatibility.NoMaximum">无上限</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.Compatibility.InstanceSelectedOutOfRange">实例指定的 Java（{0}）超出版本要求范围 [{1}, {2}]，可能导致游戏崩溃。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.Compatibility.RelativePathSelectedOutOfRange">实例相对路径指定的 Java（{0}）超出版本要求范围 [{1}, {2}]，可能导致游戏崩溃。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.Compatibility.GlobalSelectedOutOfRange">全局指定的 Java（{0}）超出版本要求范围 [{1}, {2}]，可能导致游戏崩溃。</sys:String>
 
     <!-- Minecraft.Launch.Core -->
 
@@ -1011,6 +1037,25 @@
     <sys:String x:Key="Download.Comp.Category.World.ModWorld">模组世界</sys:String>
     <sys:String x:Key="Download.Comp.Category.World.Adventure">冒险</sys:String>
     <sys:String x:Key="Download.Comp.Category.DataPack.Fantasy">幻想</sys:String>
+
+    <!-- Download.Comp.Dependency -->
+
+    <sys:String x:Key="Download.Comp.Dependency.ListSeparator">&#x0A;</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Unresolved.Title">无法安装必需前置</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Unresolved.ListItem">- {0} {1}: {2}</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Unresolved.Message">以下必需前置无法解析：&#x0A;&#x0A;{0}</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Unresolved.ContinueWithoutDependencies">继续下载</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Install.Title">安装模组前置确认</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Install.ListItem">- {0}（{1}）- {2} v{3}</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Install.Message">此模组需要以下必需前置：&#x0A;&#x0A;{0}</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Install.WithDependencies">安装模组与必需前置</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Install.WithoutDependencies">仅下载模组本体（不建议）</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Install.Cancel">取消安装</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Abort.Title">安装已中止</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Abort.Message">安装已中止。&#x0A;&#x0A;原因：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Title">前置解析失败</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Message">无法解析模组前置，将仅下载模组本体。</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Continue">继续下载</sys:String>
 
     <!-- Download.Comp.Detail -->
 
@@ -1352,6 +1397,7 @@
     <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.FollowLanguage">同步界面语言</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.Hint">目前仅部分新增界面支持多语言功能，其余界面将在后续迁移中逐步完成生效。&#x0a;&#x0a;为确保工作效率与便捷性，迁移过程中仅确保“English (US)”与“简体中文（中国大陆）”部分可用。其余语言将在未来迁移工作完成后，交由社区于翻译平台进行翻译贡献。</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.Changed">语言设置已更新</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.Reset.Success">已初始化语言页设置！</sys:String>
 
     <!-- Setup.Left -->
 
@@ -1912,6 +1958,25 @@
     <sys:String x:Key="Setup.Misc.Initialized">已初始化杂项页设置！</sys:String>
     <sys:String x:Key="Setup.Misc.Error.InitFailed">初始化启动器-杂项页设置失败</sys:String>
 
+    <!-- Setup.Misc.Music -->
+
+    <sys:String x:Key="Setup.Misc.Music.ToolTip.Paused.Single">已暂停：{0}&#x0A;左键恢复播放，右键重新从头播放。</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.ToolTip.Paused.Multiple">已暂停：{0}&#x0A;左键恢复播放，右键播放下一曲。</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.ToolTip.Playing.Single">正在播放：{0}&#x0A;左键暂停，右键重新从头播放。</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.ToolTip.Playing.Multiple">正在播放：{0}&#x0A;左键暂停，右键播放下一曲。</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Error.NotStarted">音乐播放尚未开始！</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Hint.Replaying">重新播放：{0}</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Error.NoAvailable">没有可以播放的音乐！</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Hint.Playing">正在播放：{0}</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Hint.Cleared">背景音乐已清除！</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Error.NotDetected">未检测到可用的背景音乐！</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Hint.Refreshed">背景音乐已刷新：{0}</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Error.DeviceBusy">音频设备正被其他程序占用。请关闭占用程序后重启 PCL CE，以恢复音乐功能。</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Error.DeviceChanged">音频设备已发生变化。请重启 PCL CE，以恢复音乐功能。</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Error.PropertyChangeUnsupported">无法播放 {0}：PCL CE 不支持播放过程中变更音频属性的文件。</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Error.UnsupportedFormat">无法播放 {0}：PCL CE 可能不支持此格式，请转换为 .wav、.mp3 或 .flac。</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Error.PlaybackFailed">无法播放 {0}。</sys:String>
+
     <!-- Setup.About -->
 
     <sys:String x:Key="Setup.About.Title">关于</sys:String>
@@ -2004,6 +2069,17 @@
     <sys:String x:Key="Setup.Feedback.Item.Submitter">提交者：{0}（{1}）</sys:String>
     <sys:String x:Key="Setup.Feedback.Item.Type">类型：{0}</sys:String>
     <sys:String x:Key="Setup.Feedback.Item.ViewDetail">查看详情</sys:String>
+    <sys:String x:Key="Setup.Feedback.ErrorPrompt.Submit.Message">{0}&#x0A;&#x0A;是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！</sys:String>
+    <sys:String x:Key="Setup.Feedback.ErrorPrompt.Update.Message">{0}&#x0A;&#x0A;将 PCL CE 更新至最新版或许可以解决这个问题。</sys:String>
+    <sys:String x:Key="Setup.Feedback.ErrorPrompt.Submit.Action">反馈</sys:String>
+    <sys:String x:Key="Setup.Feedback.Reminder.Title">反馈提交提醒</sys:String>
+    <sys:String x:Key="Setup.Feedback.Reminder.Message">若要汇报 Bug，请点击“打开文件夹”并上传 Launch-{0}-[一串数字].log 中包含错误信息的文件。&#x0A;&#x0A;游戏崩溃一般与启动器无关，请不要因为游戏崩溃而提交启动器反馈。</sys:String>
+    <sys:String x:Key="Setup.Feedback.Reminder.NotNeeded">不需要</sys:String>
+    <sys:String x:Key="Setup.Feedback.Unavailable.Title">无法提交反馈</sys:String>
+    <sys:String x:Key="Setup.Feedback.Unavailable.NotLatest.Message">当前 PCL CE 不是最新版，因此无法提交反馈。&#x0A;请更新后确认该问题在最新版中依然存在，再提交反馈。</sys:String>
+    <sys:String x:Key="Setup.Feedback.Unavailable.NotLatest.Action">更新</sys:String>
+    <sys:String x:Key="Setup.Feedback.Unavailable.CheckFailed.Message">检查更新失败，因此无法提交反馈。&#x0A;请连接互联网，检查更新后确认该问题在最新版中依然存在，再提交反馈。</sys:String>
+    <sys:String x:Key="Setup.Feedback.Unavailable.CheckFailed.Action">重新检查更新</sys:String>
 
     <!-- Instance.Left -->
 
@@ -2366,6 +2442,7 @@
     <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Title">数据包更新警告</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Message">新版本数据包可能不兼容旧存档或者其他数据包，这可能导致游戏崩溃或存档损坏！&#x0a;&#x0a;在更新前，请先备份存档。&#x0a;如果更新后出现问题，你也可以在回收站找回更新前的数据包。</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Confirm">我已了解风险，继续更新</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Update.UnsafeFilesSkipped">已跳过 {0} 个文件名不安全的数据包更新。</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.ToggleWarning">由于文件被占用，数据包的状态切换失败，请尝试关闭正在运行的游戏后再试！</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Export.Mode.Message">TXT 格式：仅导出当前的数据包文件名称信息&#x0a;CSV 格式：导出详细的数据包信息，包括文件名、工程 ID、版本信息等详细信息</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Info.ReadFailed">无法读取此数据包的信息。</sys:String>
@@ -3033,6 +3110,7 @@
     <sys:String x:Key="Link.Mod.Task.FetchAnnouncement">大厅公告获取</sys:String>
 
     <!-- Crash -->
+
     <sys:String x:Key="Crash.Dialog.Title.Auto">Minecraft 出现错误</sys:String>
     <sys:String x:Key="Crash.Dialog.Title.Manual">错误报告分析结果</sys:String>
     <sys:String x:Key="Crash.Dialog.Button.OpenLog">查看日志</sys:String>
@@ -3045,6 +3123,7 @@
     <sys:String x:Key="Crash.Export.Failed.Title">导出错误报告失败</sys:String>
     <sys:String x:Key="Crash.Export.Failed.Message">无法导出错误报告。&#x0a;&#x0a;目标路径：{0}</sys:String>
     <sys:String x:Key="Crash.Export.Failed.MessageWithoutPath">无法导出错误报告，且未能获取目标路径。</sys:String>
+    <sys:String x:Key="Crash.Export.Failed.CopyDetails">复制详细信息</sys:String>
     <sys:String x:Key="Crash.Report.Environment.LauncherVersion">PCL CE 版本：{0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.LauncherId">识别码：{0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.ProfileSection">- 档案信息 -</sys:String>
@@ -3058,97 +3137,113 @@
     <sys:String x:Key="Crash.Report.Environment.Cpu">CPU：{0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.MemoryAllocation">内存分配 (分配的内存 / 已安装物理内存)：{0} / {1} GB ({2} MB)</sys:String>
     <sys:String x:Key="Crash.Report.Environment.Gpu">显卡 {0}：{1} ({2} MB, {3})</sys:String>
-    <sys:String x:Key="Crash.Result.NoReason.Manual">很抱歉，PCL CE 无法确定错误原因。</sys:String>
-    <sys:String x:Key="Crash.Result.NoReason.Auto">很抱歉，你的游戏出现了一些问题……&#x0D;&#x0A;如果要寻求帮助，请把错误报告文件发给对方，而不是发送这个窗口的照片或者截图。</sys:String>
-    <sys:String x:Key="Crash.Result.Joiner">此外，</sys:String>
-    <sys:String x:Key="Crash.Result.ReportHint">你可以查看错误报告了解错误具体是如何发生的。</sys:String>
-    <sys:String x:Key="Crash.Result.HelpHint">如果要寻求帮助，请把错误报告文件发给对方，而不是发送这个窗口的照片或者截图。</sys:String>
-    <sys:String x:Key="Crash.Result.LauncherOutdatedHint">此外，你正在使用老版本 PCL CE，更新 PCL CE 或许也能解决这个问题。&#x0D;&#x0A;你可以点击 设置 → 启动器 → 检查更新 来更新 PCL CE。</sys:String>
-    <sys:String x:Key="Crash.Result.List.BulletItem"> - {0}</sys:String>
-    <sys:String x:Key="Crash.Result.ModLoaderIncompatible.Prefix">模组加载器版本与模组不兼容</sys:String>
-    <sys:String x:Key="Crash.Result.ExtractedModFile">由于模组文件被解压了，导致游戏无法继续运行。&#x0D;&#x0A;直接把整个模组文件放进模组文件夹中即可，若解压就会导致游戏出错。&#x0D;&#x0A;&#x0D;&#x0A;请删除模组文件夹中已被解压的模组，然后再启动游戏。</sys:String>
-    <sys:String x:Key="Crash.Result.OutOfMemory">Minecraft 内存不足，导致其无法继续运行。&#x0D;&#x0A;这很可能是因为电脑内存不足、游戏分配的内存不足，或是配置要求过高。&#x0D;&#x0A;&#x0D;&#x0A;请在启动设置中增加为游戏分配的内存，并删除配置要求较高的材质、模组、光影。&#x0D;&#x0A;如果依然不奏效，请在开始游戏前尽量关闭其他软件，或者……换台电脑？</sys:String>
-    <sys:String x:Key="Crash.Result.UsingOpenJ9">游戏因为使用 OpenJ9 而崩溃了。&#x0D;&#x0A;请在启动设置的 Java 选择一项中改用非 OpenJ9 的 Java，然后再启动游戏。</sys:String>
-    <sys:String x:Key="Crash.Result.UsingJdk">游戏似乎因为使用 JDK，或 Java 版本过高而崩溃了。&#x0D;&#x0A;请在启动设置的 Java 选择一项中改用 JRE 8（Java 8），然后再启动游戏。&#x0D;&#x0A;如果你没有安装 JRE 8，你可以从网络中下载、安装一个。</sys:String>
-    <sys:String x:Key="Crash.Result.JavaTooNew">游戏似乎因为你所使用的 Java 版本过高而崩溃了。&#x0D;&#x0A;请在启动设置的 Java 选择一项中改用较低版本的 Java，然后再启动游戏。&#x0D;&#x0A;如果没有，可以从网络中下载、安装一个。</sys:String>
-    <sys:String x:Key="Crash.Result.IncompatibleJavaVersion">游戏不兼容你当前使用的 Java。&#x0D;&#x0A;如果没有合适的 Java，可以从网络中下载、安装一个。</sys:String>
-    <sys:String x:Key="Crash.Result.InvalidModFileName">由于有模组的名称包含特殊字符，导致游戏崩溃。&#x0D;&#x0A;请尝试修改模组文件名，让它只包含英文字母、数字、减号（-）、下划线（_）和小数点，然后再启动游戏。</sys:String>
-    <sys:String x:Key="Crash.Result.MissingMixinBootstrap">由于缺失 MixinBootstrap，导致游戏崩溃。&#x0D;&#x0A;请尝试安装 MixinBootstrap。若安装后依然崩溃，可以尝试在文件名前添加英文感叹号。</sys:String>
-    <sys:String x:Key="Crash.Result.X86JavaMemoryLimit.OnX64Os">你似乎正在使用 32 位 Java，这会导致 Minecraft 无法使用所需的内存，进而造成崩溃。&#x0D;&#x0A;&#x0D;&#x0A;请在启动设置的 Java 选择一项中改用 64 位的 Java 再启动游戏，然后再启动游戏。&#x0D;&#x0A;如果你没有安装 64 位的 Java，你可以从网络中下载、安装一个。</sys:String>
-    <sys:String x:Key="Crash.Result.X86JavaMemoryLimit.OnX86Os">你正在使用 32 位的操作系统，这会导致 Minecraft 无法使用所需的内存，进而造成崩溃。&#x0D;&#x0A;&#x0D;&#x0A;你或许只能重装 64 位的操作系统来解决此问题。&#x0D;&#x0A;如果你的电脑内存在 2GB 以内，那或许只能换台电脑了……</sys:String>
-    <sys:String x:Key="Crash.Result.ModLoaderIncompatible">模组加载器版本与模组不兼容，请前往 实例设置 - 修改 更换加载器版本。&#x0D;&#x0A;&#x0D;&#x0A;详细信息：&#x0D;&#x0A;{0}</sys:String>
-    <sys:String x:Key="Crash.Result.MissingDependencyOrWrongMcVersion.WithInfo">由于未安装正确的前置模组，导致游戏退出。&#x0D;&#x0A;缺失的依赖项：&#x0D;&#x0A; - {0}&#x0D;&#x0A;&#x0D;&#x0A;请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。</sys:String>
-    <sys:String x:Key="Crash.Result.MissingDependencyOrWrongMcVersion.Generic">由于未安装正确的前置模组，导致游戏退出。&#x0D;&#x0A;请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。</sys:String>
-    <sys:String x:Key="Crash.Result.StackKeyword.Single">你的游戏遇到了一些问题，PCL CE 为此找到了一个可疑的关键词：{0}。&#x0D;&#x0A;&#x0D;&#x0A;如果你知道某个关键词对应的模组，那么有可能就是它引起的错误，你也可以查看错误报告获取详情。</sys:String>
-    <sys:String x:Key="Crash.Result.StackKeyword.Multiple">你的游戏遇到了一些问题，PCL CE 为此找到了以下可疑的关键词：&#x0D;&#x0A; - {0}&#x0D;&#x0A;&#x0D;&#x0A;如果你知道某个关键词对应的模组，那么有可能就是它引起的错误，你也可以查看错误报告获取详情。</sys:String>
-    <sys:String x:Key="Crash.Result.SuspectedMod.Single">PCL CE 怀疑名为 {0} 的模组导致了游戏出错，但不能完全确定。&#x0D;&#x0A;你可以尝试禁用此模组，然后观察游戏是否还会崩溃。</sys:String>
-    <sys:String x:Key="Crash.Result.SuspectedMod.Multiple">PCL CE 怀疑以下模组导致了游戏出错，但不能完全确定：&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;你可以尝试依次禁用上述模组，然后观察游戏是否还会崩溃。</sys:String>
-    <sys:String x:Key="Crash.Result.ConfirmedMod.Single">名为 {0} 的模组导致了游戏出错。&#x0D;&#x0A;你可以尝试禁用此模组，然后观察游戏是否还会崩溃。</sys:String>
-    <sys:String x:Key="Crash.Result.ConfirmedMod.Multiple">以下模组导致了游戏出错：&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;你可以尝试依次禁用上述模组，然后观察游戏是否还会崩溃。</sys:String>
-    <sys:String x:Key="Crash.Result.ModMixinFailed.None">部分模组注入失败，导致游戏出错。&#x0D;&#x0A;这一般代表着部分模组与其他模组或当前环境不兼容，或是它存在 Bug。&#x0D;&#x0A;你可以尝试逐步禁用模组，然后观察游戏是否还会崩溃，以此定位导致崩溃的模组。</sys:String>
-    <sys:String x:Key="Crash.Result.ModMixinFailed.Single">名为 {0} 的模组注入失败，导致游戏出错。&#x0D;&#x0A;这一般代表着它与其他模组或当前环境不兼容，或是它存在 Bug。&#x0D;&#x0A;你可以尝试禁用此模组，然后观察游戏是否还会崩溃。</sys:String>
-    <sys:String x:Key="Crash.Result.ModMixinFailed.Multiple">以下模组导致了游戏出错：&#x0D;&#x0A;{0}&#x0D;&#x0A;这一般代表着它们与其他模组或当前环境不兼容，或是它存在 Bug。&#x0D;&#x0A;你可以尝试依次禁用上述模组，然后观察游戏是否还会崩溃。</sys:String>
-    <sys:String x:Key="Crash.Result.ModConfigCrash.Simple">名为 {0} 的模组导致了游戏出错。</sys:String>
-    <sys:String x:Key="Crash.Result.ModConfigCrash.WithConfig">名为 {0} 的模组导致了游戏出错：&#x0D;&#x0A;其配置文件 {1} 存在异常，无法读取。</sys:String>
-    <sys:String x:Key="Crash.Result.ModInitializationFailed.Single">名为 {0} 的模组初始化失败，导致游戏无法继续加载。&#x0D;&#x0A;你可以尝试禁用此模组，然后观察游戏是否还会崩溃。</sys:String>
-    <sys:String x:Key="Crash.Result.ModInitializationFailed.Multiple">以下模组初始化失败，导致游戏出错：&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;你可以尝试依次禁用上述模组，然后观察游戏是否还会崩溃。</sys:String>
-    <sys:String x:Key="Crash.Result.SpecificBlock.Single">游戏似乎因为方块 {0} 出现了问题。&#x0D;&#x0A;&#x0D;&#x0A;你可以创建一个新世界，并观察游戏的运行情况：&#x0D;&#x0A; - 若正常运行，则是该方块导致出错，你或许需要使用一些方式删除此方块。&#x0D;&#x0A; - 若仍然出错，问题就可能来自其他原因……</sys:String>
-    <sys:String x:Key="Crash.Result.SpecificBlock.Multiple">游戏似乎因为世界中的某些方块出现了问题。&#x0D;&#x0A;&#x0D;&#x0A;你可以创建一个新世界，并观察游戏的运行情况：&#x0D;&#x0A; - 若正常运行，则是某些方块导致出错，你或许需要删除该世界。&#x0D;&#x0A; - 若仍然出错，问题就可能来自其他原因……</sys:String>
-    <sys:String x:Key="Crash.Result.DuplicateMods.Known">你重复安装了多个相同的模组：&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;每个模组只能出现一次，请删除重复的模组，然后再启动游戏。</sys:String>
-    <sys:String x:Key="Crash.Result.DuplicateMods.Unknown">你可能重复安装了多个相同的模组，导致游戏出错。&#x0D;&#x0A;&#x0D;&#x0A;每个模组只能出现一次，请删除重复的模组，然后再启动游戏。</sys:String>
-    <sys:String x:Key="Crash.Result.SpecificEntity.Single">游戏似乎因为实体 {0} 出现了问题。&#x0D;&#x0A;&#x0D;&#x0A;你可以创建一个新世界，并生成一个该实体，然后观察游戏的运行情况：&#x0D;&#x0A; - 若正常运行，则是该实体导致出错，你或许需要使用一些方式删除此实体。&#x0D;&#x0A; - 若仍然出错，问题就可能来自其他原因……</sys:String>
-    <sys:String x:Key="Crash.Result.SpecificEntity.Multiple">游戏似乎因为世界中的某些实体出现了问题。&#x0D;&#x0A;&#x0D;&#x0A;你可以创建一个新世界，并生成各种实体，观察游戏的运行情况：&#x0D;&#x0A; - 若正常运行，则是某些实体导致出错，你或许需要删除该世界。&#x0D;&#x0A; - 若仍然出错，问题就可能来自其他原因……</sys:String>
-    <sys:String x:Key="Crash.Result.OptiFineForgeIncompatible">由于 OptiFine 与当前版本的 Forge 不兼容，导致了游戏崩溃。&#x0D;&#x0A;&#x0D;&#x0A;请前往 OptiFine 官网（https://optifine.net/downloads）查看 OptiFine 所兼容的 Forge 版本，并严格按照对应版本重新安装游戏。</sys:String>
-    <sys:String x:Key="Crash.Result.ShadersModWithOptiFine">无需同时安装 OptiFine 和其他光影模组（如 Iris），OptiFine 已经集成了光影模组的功能。&#x0D;&#x0A;在删除光影模组后，游戏即可正常运行。</sys:String>
-    <sys:String x:Key="Crash.Result.OldForgeNewJavaIncompatible">由于低版本 Forge 与当前 Java 不兼容，导致了游戏崩溃。&#x0D;&#x0A;&#x0D;&#x0A;请尝试以下解决方案：&#x0D;&#x0A; - 更新 Forge 到 36.2.26 或更高版本&#x0D;&#x0A; - 换用版本低于 1.8.0.320 的 Java</sys:String>
-    <sys:String x:Key="Crash.Result.MultipleForgeInInstanceJson">可能由于其他启动器修改了 Forge 版本，当前实例的文件存在异常，导致了游戏崩溃。&#x0D;&#x0A;请尝试重新全新安装 Forge，而非使用其他启动器修改 Forge 版本。</sys:String>
-    <sys:String x:Key="Crash.Result.ManualDebugCrash">* 事实上，你的游戏没有任何问题，这是你自己触发的崩溃。&#x0D;&#x0A;* 你难道没有更重要的事要做吗？</sys:String>
-    <sys:String x:Key="Crash.Result.ModRequiresJava11">你所安装的部分模组似乎需要使用 Java 11 启动。&#x0D;&#x0A;请在启动设置的 Java 选择一项中改用 Java 11，然后再启动游戏。&#x0D;&#x0A;如果你没有安装 Java 11，你可以从网络中下载、安装一个。</sys:String>
-    <sys:String x:Key="Crash.Result.VeryShortOutput">程序返回了以下信息：&#x0D;&#x0A;{0}&#x0D;&#x0A;</sys:String>
-    <sys:String x:Key="Crash.Result.OptiFineWorldLoadCrash">你所使用的 OptiFine 可能导致了你的游戏出现问题。&#x0D;&#x0A;&#x0D;&#x0A;该问题只在特定 OptiFine 版本中出现，你可以尝试更换 OptiFine 的版本。</sys:String>
-    <sys:String x:Key="Crash.Result.GraphicsDriver.IntelOrIntegrated">你的显卡驱动存在问题，或未使用独立显卡，导致游戏无法正常运行。&#x0D;&#x0A;&#x0D;&#x0A;如果你的电脑存在独立显卡，请使用独立显卡而非 Intel 核显启动 PCL CE 与 Minecraft。&#x0D;&#x0A;如果问题依然存在，请尝试升级你的显卡驱动到最新版本，或回退到出厂版本。&#x0D;&#x0A;如果还是不行，还可以尝试使用 8.0.51 或更低版本的 Java。</sys:String>
-    <sys:String x:Key="Crash.Result.GraphicsDriver.Generic">你的显卡驱动存在问题，导致游戏无法正常运行。&#x0D;&#x0A;&#x0D;&#x0A;请尝试升级你的显卡驱动到最新版本，或回退到出厂版本，然后再启动游戏。&#x0D;&#x0A;如果还是不行，可以尝试使用 8.0.51 或更低版本的 Java。&#x0D;&#x0A;如果问题依然存在，那么你可能需要换个更好的显卡……</sys:String>
-    <sys:String x:Key="Crash.Result.ResourcePackTooLargeOrGpuInsufficient">你所使用的材质分辨率过高，或显卡配置不足，导致游戏无法继续运行。&#x0D;&#x0A;&#x0D;&#x0A;如果你正在使用高清材质，请将它移除。&#x0D;&#x0A;如果你没有使用材质，那么你可能需要更新显卡驱动，或者换个更好的显卡……</sys:String>
-    <sys:String x:Key="Crash.Result.NightConfigBug">由于 Night Config 存在问题，导致了游戏崩溃。&#x0D;&#x0A;你可以尝试安装 Night Config Fixes 模组，这或许能解决此问题。</sys:String>
-    <sys:String x:Key="Crash.Result.OpenGl1282FromShaderOrResourcePack">你所使用的光影或材质导致游戏出现了一些问题……&#x0D;&#x0A;&#x0D;&#x0A;请尝试删除你所添加的这些额外资源。</sys:String>
-    <sys:String x:Key="Crash.Result.TooManyModsIdLimit">你所安装的模组过多，超出了游戏的 ID 限制，导致了游戏崩溃。&#x0D;&#x0A;请尝试安装 JEID 等修复模组，或删除部分大型模组。</sys:String>
-    <sys:String x:Key="Crash.Result.FileOrContentValidationFailed">部分文件或内容校验失败，导致游戏出现了问题。&#x0D;&#x0A;&#x0D;&#x0A;请尝试删除游戏（包括模组）并重新下载，或尝试在重新下载时使用 VPN。</sys:String>
-    <sys:String x:Key="Crash.Result.IncompleteForgeInstallation">由于安装的 Forge 文件丢失，导致游戏无法正常运行。&#x0D;&#x0A;请前往实例设置重置该实例，然后再启动游戏。&#x0D;&#x0A;在打包游戏时删除 libraries 文件夹可能导致此错误。</sys:String>
-    <sys:String x:Key="Crash.Result.FabricError.WithInfo">Fabric 提供了以下错误信息：&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。</sys:String>
-    <sys:String x:Key="Crash.Result.FabricError.Generic">Fabric 可能已经提供了错误信息，请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。</sys:String>
-    <sys:String x:Key="Crash.Result.IncompatibleMods.WithInfo">你所安装的模组不兼容：&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。</sys:String>
-    <sys:String x:Key="Crash.Result.IncompatibleMods.Generic">你所安装的模组不兼容，模组加载器可能已经提供了错误信息，请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。</sys:String>
-    <sys:String x:Key="Crash.Result.ModLoaderError.WithInfo">模组加载器提供了以下错误信息：&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。</sys:String>
-    <sys:String x:Key="Crash.Result.ModLoaderError.Generic">模组加载器可能已经提供了错误信息，请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。</sys:String>
-    <sys:String x:Key="Crash.Result.FabricSolutionProvided.WithInfo">Fabric 提供了以下解决方案：&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。</sys:String>
-    <sys:String x:Key="Crash.Result.FabricSolutionProvided.Generic">Fabric 可能已经提供了解决方案，请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。</sys:String>
-    <sys:String x:Key="Crash.Result.ForgeError.WithInfo">Forge 提供了以下错误信息：&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;请根据上述信息进行对应处理，如果看不懂英文可以使用翻译软件。</sys:String>
-    <sys:String x:Key="Crash.Result.ForgeError.Generic">Forge 可能已经提供了错误信息，请根据错误报告中的日志信息进行对应处理，如果看不懂英文可以使用翻译软件。</sys:String>
-    <sys:String x:Key="Crash.Result.NoAnalyzableFile">你的游戏出现了一些问题，但 PCL CE 未能找到相关记录文件，因此无法进行分析。</sys:String>
-    <sys:String x:Key="Crash.Result.UnknownReason">PCL CE 获取到了没有详细信息的错误原因（{0}），请向 PCL CE 开发团队提交反馈以获取详情。</sys:String>
-
-    <!-- Error -->
-
-    <sys:String x:Key="Error.Title.Error">错误</sys:String>
-    <sys:String x:Key="Error.Title.Warning">警告</sys:String>
-    <sys:String x:Key="Error.Title.UnexpectedError">发生意外错误</sys:String>
-    <sys:String x:Key="Error.Detail.Header">详细信息</sys:String>
-    <sys:String x:Key="Error.Detail.WithException">{0}&#x0a;&#x0a;详细信息：&#x0a;{1}</sys:String>
-    <sys:String x:Key="Error.Detail.RawResponse">原始响应：&#x0a;{0}</sys:String>
-    <sys:String x:Key="Error.Detail.Path">路径：{0}</sys:String>
-    <sys:String x:Key="Error.Detail.InnerException">内部异常：&#x0a;{0}</sys:String>
-    <sys:String x:Key="Error.Action.CopyDetails">复制详细信息</sys:String>
-    <sys:String x:Key="Error.Action.ViewLog">查看日志</sys:String>
-    <sys:String x:Key="Error.Action.ExportReport">导出错误报告</sys:String>
-    <sys:String x:Key="Error.Action.OpenFolder">打开文件夹</sys:String>
-    <sys:String x:Key="Error.Message.Unexpected">发生意外错误。</sys:String>
-    <sys:String x:Key="Error.Message.DotNetRuntimeOutdated">你的 .NET 桌面运行时已过期或损坏。请重新安装 .NET 8。</sys:String>
-    <sys:String x:Key="Error.Guidance.ExportLog">若要寻求帮助，请不要关闭启动器。请立即导出日志（设置 → 查看日志 → 导出日志），并发送导出的日志压缩包；仅发送此窗口的截图通常无法帮助定位问题。</sys:String>
-    <sys:String x:Key="Error.Guidance.FatalFeedback">如果你认为这是启动器的问题，请提交反馈，以便开发者调查。&#x0a;导出日志：设置 → 查看日志 → 导出全部日志</sys:String>
-
-    <!-- Warning -->
-
-    <!-- Dialog -->
+    <sys:String x:Key="Crash.Presentation.ReasonOnly">原因&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Presentation.WithSuggestion">原因&#x0A;{0}&#x0A;&#x0A;你可以尝试&#x0A;{1}</sys:String>
+    <sys:String x:Key="Crash.Presentation.WithFollowUps">{0}&#x0A;&#x0A;{1}</sys:String>
+    <sys:String x:Key="Crash.Presentation.ParagraphSeparator">&#x0A;&#x0A;</sys:String>
+    <sys:String x:Key="Crash.Presentation.LineSeparator">&#x0A;</sys:String>
+    <sys:String x:Key="Crash.Presentation.ListItem"> - {0}</sys:String>
+    <sys:String x:Key="Crash.Reason.Unknown.Manual">PCL CE 无法确定错误原因。</sys:String>
+    <sys:String x:Key="Crash.Reason.Unknown.Auto">PCL CE 无法确定游戏出错的具体原因。</sys:String>
+    <sys:String x:Key="Crash.Reason.ExtractedModFile">检测到已被解压的模组文件。</sys:String>
+    <sys:String x:Key="Crash.Reason.OutOfMemory">Minecraft 内存不足，无法继续运行。</sys:String>
+    <sys:String x:Key="Crash.Reason.UsingOpenJ9">当前使用的 OpenJ9 Java 可能与游戏、模组或加载器不兼容。</sys:String>
+    <sys:String x:Key="Crash.Reason.UsingJdk">游戏可能正在使用 JDK，或当前 Java 版本过高。</sys:String>
+    <sys:String x:Key="Crash.Reason.JavaTooNew">当前 Java 版本对该游戏或加载器来说过高。</sys:String>
+    <sys:String x:Key="Crash.Reason.JavaIncompatible">当前 Java 版本与游戏或模组不兼容。</sys:String>
+    <sys:String x:Key="Crash.Reason.InvalidModFileName">某个模组文件名包含 Java 不支持的特殊字符。</sys:String>
+    <sys:String x:Key="Crash.Reason.MissingMixinBootstrap">缺少 MixinBootstrap，游戏无法继续加载。</sys:String>
+    <sys:String x:Key="Crash.Reason.X86JavaMemoryLimit.OnX64Os">当前使用的是 32 位 Java，无法分配游戏所需的内存。</sys:String>
+    <sys:String x:Key="Crash.Reason.X86JavaMemoryLimit.OnX86Os">当前使用的是 32 位操作系统，无法为游戏提供所需的内存。</sys:String>
+    <sys:String x:Key="Crash.Reason.MissingDependency.WithDetail">部分模组缺少前置，或与当前 Minecraft 版本不匹配：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.MissingDependency.Generic">部分模组缺少前置，或与当前 Minecraft 版本不匹配。</sys:String>
+    <sys:String x:Key="Crash.Reason.StackKeyword.Single">PCL CE 在错误堆栈中找到了可能相关的关键词：{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.StackKeyword.Multiple">PCL CE 在错误堆栈中找到了可能相关的关键词：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.SuspectedMod.Single">崩溃报告怀疑模组 {0} 导致了游戏出错。</sys:String>
+    <sys:String x:Key="Crash.Reason.SuspectedMod.Multiple">崩溃报告怀疑以下模组导致了游戏出错：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.ConfirmedMod.Single">模组 {0} 导致了游戏出错。</sys:String>
+    <sys:String x:Key="Crash.Reason.ConfirmedMod.Multiple">以下模组导致了游戏出错：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.ModMixinFailed.None">部分模组的 Mixin 注入失败。</sys:String>
+    <sys:String x:Key="Crash.Reason.ModMixinFailed.Single">模组 {0} 的 Mixin 注入失败。</sys:String>
+    <sys:String x:Key="Crash.Reason.ModMixinFailed.Multiple">以下模组的 Mixin 注入失败：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.ModConfigCrash.Simple">模组 {0} 的配置读取失败。</sys:String>
+    <sys:String x:Key="Crash.Reason.ModConfigCrash.WithConfig">模组 {0} 的配置文件 {1} 无法读取。</sys:String>
+    <sys:String x:Key="Crash.Reason.ModInitializationFailed.Single">模组 {0} 初始化失败。</sys:String>
+    <sys:String x:Key="Crash.Reason.ModInitializationFailed.Multiple">以下模组初始化失败：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.SpecificBlock.Single">方块 {0} 可能导致了游戏出错。</sys:String>
+    <sys:String x:Key="Crash.Reason.SpecificBlock.Multiple">世界中的某些方块可能导致了游戏出错。</sys:String>
+    <sys:String x:Key="Crash.Reason.DuplicateMods.Known">检测到重复安装的模组：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.DuplicateMods.Unknown">可能安装了重复的模组。</sys:String>
+    <sys:String x:Key="Crash.Reason.SpecificEntity.Single">实体 {0} 可能导致了游戏出错。</sys:String>
+    <sys:String x:Key="Crash.Reason.SpecificEntity.Multiple">世界中的某些实体可能导致了游戏出错。</sys:String>
+    <sys:String x:Key="Crash.Reason.OptiFineForgeIncompatible">OptiFine 与当前 Forge 或 Minecraft 版本可能不兼容。</sys:String>
+    <sys:String x:Key="Crash.Reason.ShadersModWithOptiFine">同时安装了 Shaders Mod 与 OptiFine。</sys:String>
+    <sys:String x:Key="Crash.Reason.OldForgeNewJavaIncompatible">旧版 Forge 与当前 Java 版本不兼容。</sys:String>
+    <sys:String x:Key="Crash.Reason.MultipleForgeInInstanceJson">实例 JSON 中包含多个 Forge 版本参数。</sys:String>
+    <sys:String x:Key="Crash.Reason.ManualDebugCrash">这是手动触发的调试崩溃，游戏本身通常没有问题。</sys:String>
+    <sys:String x:Key="Crash.Reason.ModRequiresJava11">部分已安装模组需要 Java 11 或更高版本。</sys:String>
+    <sys:String x:Key="Crash.Reason.VeryShortOutput">游戏输出过短，PCL CE 无法获得足够的分析信息。原始输出：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.OptiFineWorldLoadCrash">当前 OptiFine 版本可能导致世界加载失败。</sys:String>
+    <sys:String x:Key="Crash.Reason.GraphicsDriver.IntelOrIntegrated">显卡驱动存在问题，或游戏未使用独立显卡。</sys:String>
+    <sys:String x:Key="Crash.Reason.GraphicsDriver.Generic">显卡驱动可能导致游戏无法正常运行。</sys:String>
+    <sys:String x:Key="Crash.Reason.ResourcePackTooLarge">资源包分辨率可能过高，或显卡性能不足。</sys:String>
+    <sys:String x:Key="Crash.Reason.NightConfigBug">Night Config 读取配置时发生错误。</sys:String>
+    <sys:String x:Key="Crash.Reason.OpenGl1282">光影或资源包可能触发了 OpenGL 1282 错误。</sys:String>
+    <sys:String x:Key="Crash.Reason.TooManyModsIdLimit">模组数量过多，超出了旧版 Minecraft 的 ID 限制。</sys:String>
+    <sys:String x:Key="Crash.Reason.FileOrContentValidationFailed">部分文件或内容未能通过校验。</sys:String>
+    <sys:String x:Key="Crash.Reason.IncompleteForgeInstallation">Forge 安装不完整，缺少必要文件。</sys:String>
+    <sys:String x:Key="Crash.Reason.FabricError.WithDetail">Fabric 提供了以下错误信息：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.FabricError.Generic">Fabric 可能已经提供了错误信息。</sys:String>
+    <sys:String x:Key="Crash.Reason.IncompatibleMods.WithDetail">已安装的模组不兼容：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.IncompatibleMods.Generic">已安装的模组可能不兼容。</sys:String>
+    <sys:String x:Key="Crash.Reason.ModLoaderIncompatible">模组加载器版本与模组不兼容：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.ModLoaderError.WithDetail">模组加载器提供了以下错误信息：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.ModLoaderError.Generic">模组加载器可能已经提供了错误信息。</sys:String>
+    <sys:String x:Key="Crash.Reason.FabricSolution.WithDetail">Fabric 提供了以下解决方案：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.FabricSolution.Generic">Fabric 可能已经提供了解决方案。</sys:String>
+    <sys:String x:Key="Crash.Reason.ForgeError.WithDetail">Forge 提供了以下错误信息：&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.ForgeError.Generic">Forge 可能已经提供了错误信息。</sys:String>
+    <sys:String x:Key="Crash.Reason.NoAnalyzableFile">游戏出现了问题，但未找到可分析的相关日志文件。</sys:String>
+    <sys:String x:Key="Crash.Reason.UnknownFinding">PCL CE 检测到一个没有详细说明的错误原因：{0}</sys:String>
+    <sys:String x:Key="Crash.Suggestion.ExportReport">需要帮助时，请发送错误报告文件，而不是此窗口的照片或截图。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.ViewReport">你可以查看错误报告，以了解错误发生的详细过程。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.LauncherOutdated">当前使用的 PCL CE 版本较旧。更新 PCL CE 可能会解决此问题：设置 → 启动器 → 检查更新。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.ExtractedModFile">删除 mods 文件夹中已被解压的模组文件夹，并放入完整的 .jar 模组文件后再试。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.OutOfMemory">在启动设置中增加游戏分配内存，并移除配置要求较高的资源包、模组或光影。也可以在启动前关闭其他软件。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.UsingOpenJ9">在启动设置中改用 HotSpot Java 后再试。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.UsingJdk">在启动设置中改用常规 JRE 或其他适合该实例的 Java 后再试。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.JavaTooNew">在启动设置中改用较低版本的 Java 后再试。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.JavaIncompatible">根据 Minecraft 版本和模组要求，在启动设置中选择合适的 Java。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.InvalidModFileName">移除或重命名异常的模组文件，使文件名仅包含英文字母、数字、短横线、下划线和小数点。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.MissingMixinBootstrap">检查 MixinBootstrap、模组加载器和相关前置是否已完整安装。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.X86JavaMemoryLimit.OnX64Os">安装并在启动设置中选择 64 位 Java 后再试。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.X86JavaMemoryLimit.OnX86Os">改用 64 位操作系统和 64 位 Java 后再试。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.FollowLoaderInstructions">请根据上述原始错误信息或错误报告中的加载器提示进行处理。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.StackKeyword">检查这些关键词对应的模组或库；也可以导出错误报告以获取更多信息。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.DisableThisMod">尝试禁用该模组，再观察游戏是否仍会崩溃。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.DisableTheseMods">尝试逐个禁用这些模组，再观察游戏是否仍会崩溃。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.ModMixinFailed">逐步禁用模组，以定位与当前环境不兼容或存在问题的模组。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.ModConfigCrash">尝试删除该模组的配置文件后重新启动；必要时更新或禁用该模组。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.SpecificBlock.Single">创建一个新世界测试游戏是否正常。若正常运行，可使用地图编辑器移除该方块，或禁用提供该方块的模组。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.SpecificBlock.Multiple">创建一个新世界测试游戏是否正常。若正常运行，问题可能来自原世界中的方块。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.DuplicateMods">每个模组只能安装一次。删除重复的模组后再启动游戏。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.SpecificEntity.Single">创建一个新世界并生成该实体测试游戏是否正常。若正常运行，可使用地图编辑器移除该实体，或禁用提供它的模组。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.SpecificEntity.Multiple">创建一个新世界并生成实体测试游戏是否正常。若正常运行，问题可能来自原世界中的实体。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.OptiFineForgeIncompatible">检查 OptiFine 与 Forge 的兼容版本，并重新安装匹配的版本。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.ShadersModWithOptiFine">删除 Shaders Mod。OptiFine 已提供光影支持。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.OldForgeNewJavaIncompatible">尝试升级 Forge，或改用较低版本的 Java。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.MultipleForgeInInstanceJson">在实例设置中重置或重新安装 Forge，不要使用其他启动器修改 Forge 版本。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.ModRequiresJava11">在启动设置中改用 Java 11 或更高版本后再试。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.OptiFineWorldLoadCrash">尝试更换 OptiFine 版本，或暂时移除 OptiFine 后再进入世界。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.GraphicsDriver.IntelOrIntegrated">若设备有独立显卡，请使用独立显卡启动 PCL CE 与 Minecraft；也可以更新或回退显卡驱动。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.GraphicsDriver.Generic">尝试更新或回退显卡驱动；必要时改用更低版本的 Java。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.ResourcePackTooLarge">移除高清资源包，或降低资源包分辨率；也可以更新显卡驱动。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.NightConfigBug">尝试删除相关模组配置文件，或安装 Night Config Fixes。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.OpenGl1282">关闭光影，并移除最近添加的资源包后再试。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.TooManyModsIdLimit">减少模组数量，或为旧版 Minecraft 安装能够扩展 ID 限制的修复模组。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.FileOrContentValidationFailed">删除游戏及相关模组后重新下载。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.IncompleteForgeInstallation">在实例设置中重置或重新安装 Forge；不要在打包实例时删除 libraries 文件夹。</sys:String>
+    <sys:String x:Key="Crash.Suggestion.ModLoaderIncompatible">打开实例设置并调整或重新安装模组加载器版本。</sys:String>
 
     <!-- Config.Error -->
 
@@ -3163,9 +3258,23 @@
 
     <sys:String x:Key="SystemDialog.File.SelectTitle">选择文件</sys:String>
     <sys:String x:Key="SystemDialog.File.AllFilesFilter">所有文件|*.*</sys:String>
+    <sys:String x:Key="SystemDialog.File.OpenFailed.Message">无法打开文件或程序。&#x0A;&#x0A;路径：{0}</sys:String>
     <sys:String x:Key="SystemDialog.Folder.SelectTitle">选择文件夹</sys:String>
+    <sys:String x:Key="SystemDialog.Folder.OpenFailed.Message">无法打开文件资源管理器。请尝试关闭安全软件（例如 360 安全卫士）。&#x0A;&#x0A;路径：{0}</sys:String>
+    <sys:String x:Key="SystemDialog.Browser.OpenFailed.Title">无法打开网页</sys:String>
+    <sys:String x:Key="SystemDialog.Browser.OpenFailed.Message">PCL CE 无法打开此网页。网址已复制到剪贴板，可手动粘贴访问。&#x0A;&#x0A;网址：{0}</sys:String>
+    <sys:String x:Key="SystemDialog.Error.Title">错误</sys:String>
+    <sys:String x:Key="SystemDialog.Error.Unexpected.Title">发生意外错误</sys:String>
+    <sys:String x:Key="SystemDialog.Error.Unexpected.Message">发生意外错误。</sys:String>
+    <sys:String x:Key="SystemDialog.Error.Detail.WithException">{0}&#x0a;&#x0a;详细信息：&#x0a;{1}</sys:String>
+    <sys:String x:Key="SystemDialog.Error.UserVisible.Message">发生错误。&#x0A;&#x0A;详细信息：&#x0A;{0}</sys:String>
+    <sys:String x:Key="SystemDialog.Error.OperationFailed.Message">执行操作时发生错误。&#x0A;&#x0A;操作信息：&#x0A;{0}&#x0A;&#x0A;详细信息：&#x0A;{1}</sys:String>
+    <sys:String x:Key="SystemDialog.Error.OperationFailed.RuntimeMessage">执行操作时发生错误。&#x0A;&#x0A;操作信息：&#x0A;{0}&#x0A;&#x0A;详细信息：&#x0A;{1}&#x0A;&#x0A;与系统底层交互失败。请尝试重新安装 .NET 8。</sys:String>
+    <sys:String x:Key="SystemDialog.Error.Message.WithLogExportGuidance">{0}&#x0A;&#x0A;若要寻求帮助，请不要关闭启动器。请立即导出日志（设置 → 查看日志 → 导出日志），并发送导出的日志压缩包；仅发送此窗口的截图通常无法帮助定位问题。</sys:String>
     <sys:String x:Key="SystemDialog.Fatal.Title">致命错误</sys:String>
+    <sys:String x:Key="SystemDialog.Fatal.Message.WithFeedbackGuidance">{0}&#x0A;&#x0A;如果你认为这是启动器的问题，请提交反馈，以便开发者调查。&#x0a;导出日志：设置 → 查看日志 → 导出全部日志</sys:String>
     <sys:String x:Key="SystemDialog.Startup.InitializationTitle">PCL 初始化失败</sys:String>
+    <sys:String x:Key="SystemDialog.Startup.DotNetRuntimeOutdated.Message">你的 .NET 桌面运行时已过期或损坏。请重新安装 .NET 8。</sys:String>
 
     <!-- Event -->
 
@@ -3187,6 +3296,7 @@
     <sys:String x:Key="Event.Safety.Title">执行确认</sys:String>
     <sys:String x:Key="Event.Safety.ConfirmMessage">即将执行：{0}&#x0a;请在确认没有安全隐患后再继续。</sys:String>
     <sys:String x:Key="Event.Safety.ContinueAlways">继续且今后不再要求确认</sys:String>
+    <sys:String x:Key="Event.Safety.DangerousSettingBlocked">自定义主页不能写入高危设置：{0}</sys:String>
     <sys:String x:Key="Event.Sanitize.UnsupportedTypeHint">是不受支持的 PCL 官方版 EventType，已从主页中移除。</sys:String>
     <sys:String x:Key="Event.Sanitize.UnknownTypeHint">是无法解析的 EventType，已从主页中移除。</sys:String>
 

@@ -746,20 +746,20 @@ public static class ModProfile
         // 检查条件，获取新皮肤
         if (_isMsSkinChanging)
         {
-            HintService.Hint("正在更改皮肤中，请稍候！");
+            HintService.Hint(Lang.Text("Launch.Skin.Change.Busy"));
             return;
         }
 
         if (ModLaunch.mcLoginLoader.State == ModBase.LoadState.Failed)
         {
-            HintService.Hint("登录失败，无法更改皮肤！", HintType.Error);
+            HintService.Hint(Lang.Text("Launch.Skin.Change.LoginFailed"), HintType.Error);
             return;
         }
 
         var skinInfo = ModSkin.McSkinSelect();
         if (!skinInfo.IsVaild)
             return;
-        HintService.Hint("正在更改皮肤……");
+        HintService.Hint(Lang.Text("Launch.Skin.Change.Starting"));
         _isMsSkinChanging = true;
         // 开始实际获取
 
@@ -777,7 +777,7 @@ public static class ModProfile
                     ModLaunch.mcLoginMsLoader.WaitForExit(GetLoginData());
                 if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished)
                 {
-                    HintService.Hint("登录失败，无法更改皮肤！", HintType.Error);
+                    HintService.Hint(Lang.Text("Launch.Skin.Change.LoginFailed"), HintType.Error);
                     return;
                 }
 
@@ -803,7 +803,7 @@ public static class ModProfile
                     });
                 if (res.Contains("request requires user authentication"))
                 {
-                    HintService.Hint("正在登录，将在登录完成后继续更改皮肤……");
+                    HintService.Hint(Lang.Text("Launch.Skin.Change.Reauthenticating"));
                     ModLaunch.mcLoginMsLoader.Start(GetLoginData(), true);
                     goto Retry;
                 }
@@ -811,7 +811,9 @@ public static class ModProfile
                 if (res.Contains("\"error\""))
                 {
                     HintService.Hint(
-                        $"更改皮肤失败：{((JsonObject)ModBase.GetJson(res))["error"]}",
+                        Lang.Text(
+                            "Launch.Skin.Change.FailedWithDetail",
+                            ((JsonObject)ModBase.GetJson(res))["error"]?.ToString() ?? res),
                         HintType.Error);
                     return;
                 }
@@ -831,7 +833,9 @@ public static class ModProfile
             catch (Exception ex)
             {
                 if (ex.GetType().Equals(typeof(TaskCanceledException)))
-                    HintService.Hint("更改皮肤失败：与 Mojang 皮肤服务器的连接超时，请检查你的网络是否通畅！", HintType.Error);
+                    HintService.Hint(
+                        Lang.Text("Launch.Skin.Change.Timeout.WithDetail", ex.ToString()),
+                        HintType.Error);
                 else
                     ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.ChangeSkin"), ModBase.LogLevel.Hint);
             }

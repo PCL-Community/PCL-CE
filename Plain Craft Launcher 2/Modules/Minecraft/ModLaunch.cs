@@ -1380,11 +1380,11 @@ public static class ModLaunch
             }
             catch (WebException ex)
             {
-                HandleHttpWebException(ex, "验证登录失败");
+                _HandleHttpWebException(ex, "验证登录失败");
             }
             catch (Exception ex)
             {
-                HandleException(ex, "验证登录失败");
+                _HandleException(ex, "验证登录失败", "Minecraft.Launch.Login.Auth.ValidationFailed.WithDetail");
             }
 
             data.Progress = 0.25d;
@@ -1401,7 +1401,10 @@ public static class ModLaunch
             catch (Exception ex)
             {
                 ModProfile.ProfileLog(Lang.Text("Minecraft.Launch.Login.Auth.RefreshFailed") + ": " + ex);
-                ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Auth.RefreshFailed") + ": " + ex, Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"), isWarn: true);
+                ModMain.MyMsgBox(
+                    Lang.Text("Minecraft.Launch.Login.Auth.RefreshFailed.WithDetail", ex.ToString()),
+                    Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"),
+                    isWarn: true);
                 if (wasRefreshed)
                     throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.SecondRefreshFailed"), ex);
             }
@@ -1415,11 +1418,11 @@ public static class ModLaunch
         }
         catch (WebException ex)
         {
-            HandleLoginHttpException(ex);
+            _HandleLoginHttpException(ex);
         }
         catch (Exception ex)
         {
-            HandleException(ex, "第三方登录失败");
+            _HandleException(ex, "第三方登录失败", "Minecraft.Launch.Login.Auth.LoginFailed.WithDetail");
         }
 
         // 如果需要刷新，循环刷新一次
@@ -1439,7 +1442,10 @@ public static class ModLaunch
             catch (Exception ex)
             {
                 ModProfile.ProfileLog(Lang.Text("Minecraft.Launch.Login.Auth.RefreshFailed") + ": " + ex);
-                ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Auth.RefreshFailed") + ": " + ex, Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"), isWarn: true);
+                ModMain.MyMsgBox(
+                    Lang.Text("Minecraft.Launch.Login.Auth.RefreshFailed.WithDetail", ex.ToString()),
+                    Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"),
+                    isWarn: true);
                 throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.SecondRefreshFailed"), ex);
             }
         }
@@ -1460,57 +1466,52 @@ public static class ModLaunch
     /// <summary>
     ///     统一处理 HttpWebException
     /// </summary>
-    private static void HandleHttpWebException(WebException ex, string logPrefix)
+    private static void _HandleHttpWebException(WebException ex, string logPrefix)
     {
         var allMessage = ex.ToString();
         ModProfile.ProfileLog(logPrefix + "：" + allMessage);
 
-        if ((allMessage.Contains("超时") || allMessage.Contains("imeout")) && !allMessage.Contains("403"))
-        {
-            ModProfile.ProfileLog("已触发超时登录失败");
-            ModMain.MyMsgBox(
-                Lang.Text("Minecraft.Launch.Login.Auth.Timeout.DetailMessage") + "\r\n" + "\r\n" +
-                ex.Message,
-                Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"), isWarn: true);
+        if ((!allMessage.Contains("超时") && !allMessage.Contains("imeout"))
+            || allMessage.Contains("403"))
+            return;
+        ModProfile.ProfileLog("已触发超时登录失败");
+        var message = Lang.Text("Minecraft.Launch.Login.Auth.Timeout.WithDetail", ex.ToString());
+        ModMain.MyMsgBox(
+            message,
+            Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"),
+            isWarn: true);
 
-            throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.Timeout.Message") + "\r\n" +
-                                "\r\n" + "详细信息：" + ex.InnerException);
-        }
+        throw new Exception("$" + message);
     }
 
     /// <summary>
     ///     统一处理普通异常
     /// </summary>
-    private static void HandleException(Exception ex, string logPrefix)
+    private static void _HandleException(
+        Exception ex,
+        string logPrefix,
+        string userMessageKey)
     {
         ModProfile.ProfileLog(logPrefix + "：" + ex);
-        ModMain.MyMsgBox(logPrefix + ": " + ex, Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"), isWarn: true);
-        throw new Exception("$" + logPrefix + "\r\n" + "\r\n" + "详细信息：" + ex);
+        var message = Lang.Text(userMessageKey, ex.ToString());
+        ModMain.MyMsgBox(
+            message,
+            Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"),
+            isWarn: true);
+        throw new Exception("$" + message);
     }
 
     /// <summary>
     ///     处理普通登录 HttpWebException
     /// </summary>
-    private static void HandleLoginHttpException(WebException ex)
+    private static void _HandleLoginHttpException(WebException ex)
     {
         ModProfile.ProfileLog("验证失败：" + ex);
-        string message = null;
-        var responseText = ex.InnerException;
-
-        try
-        {
-            message = Lang.Text("Minecraft.Launch.Login.Auth.DetailPrefix");
-        }
-        catch
-        {
-            // 忽略解析错误
-        }
-
-        if (message is null)
-            message = Lang.Text("Minecraft.Launch.Login.Auth.NetworkFailed.Message") + "\r\n" + "\r\n" +
-                       "详细信息：" + responseText;
-
-        ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Auth.RefreshFailed") + ": " + ex, Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"), isWarn: true);
+        var message = Lang.Text("Minecraft.Launch.Login.Auth.NetworkFailed.WithDetail", ex.ToString());
+        ModMain.MyMsgBox(
+            message,
+            Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"),
+            isWarn: true);
         throw new Exception("$" + message);
     }
 

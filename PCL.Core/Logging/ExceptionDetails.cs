@@ -97,6 +97,6 @@ public static partial class ExceptionDetails
 
         return string.IsNullOrWhiteSpace(details)
             ? summary
-            : Lang.Text("Error.Detail.WithException", summary.TrimEnd(), details);
+            : Lang.Text("SystemDialog.Error.Detail.WithException", summary.TrimEnd(), details);
     }
 }

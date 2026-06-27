@@ -1,9 +1,9 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows.Controls;
 using NAudio;
 using NAudio.Wave;
 using PCL.Core.App;
-using PCL.Core.UI;
+using PCL.Core.App.Localization;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -80,25 +80,37 @@ public static class ModMusic
             {
                 var msg = ex.Message;
                 if (msg.Contains("AlreadyAllocated"))
-                    HintService.Hint("你的音频设备正被其他程序占用。请关闭占用程序后重启 PCL 以恢复音乐功能！", HintType.Error);
+                    HintService.Hint(Lang.Text("Setup.Misc.Music.Error.DeviceBusy"), HintType.Error);
                 else if (msg.Contains("NoDriver") || msg.Contains("BadDeviceId"))
-                    HintService.Hint("音频设备发生变更，音乐播放功能需重启 PCL 后恢复！", HintType.Error);
+                    HintService.Hint(Lang.Text("Setup.Misc.Music.Error.DeviceChanged"), HintType.Error);
                 else
-                    ModBase.Log(ex, $"播放失败（{fileName}）", ModBase.LogLevel.Hint);
+                    ModBase.Log(
+                        ex,
+                        $"播放失败（{fileName}）",
+                        ModBase.LogLevel.Hint,
+                        userSummary: Lang.Text("Setup.Misc.Music.Error.PlaybackFailed", fileName));
             }
             else if (ex.Message.Contains("Got a frame at sample rate") ||
                      ex.Message.Contains("does not support changes to"))
             {
-                HintService.Hint($"播放失败（{fileName}）：PCL 不支持中途变更音频属性的音乐文件", HintType.Error);
+                HintService.Hint(
+                    Lang.Text("Setup.Misc.Music.Error.PropertyChangeUnsupported", fileName),
+                    HintType.Error);
             }
             else if ((!musicCurrent.EndsWithF(".wav", true) && !musicCurrent.EndsWithF(".mp3", true) &&
                       !musicCurrent.EndsWithF(".flac", true)) || ex.Message.Contains("0xC00D36C4"))
             {
-                HintService.Hint($"播放失败（{fileName}）：PCL 可能不支持此格式，请转换为 .wav/.mp3/.flac", HintType.Error);
+                HintService.Hint(
+                    Lang.Text("Setup.Misc.Music.Error.UnsupportedFormat", fileName),
+                    HintType.Error);
             }
             else
             {
-                ModBase.Log(ex, $"播放失败（{fileName}）", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    $"播放失败（{fileName}）",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Setup.Misc.Music.Error.PlaybackFailed", fileName));
             }
 
             // 移除无效文件
@@ -228,15 +240,21 @@ public static class ModMusic
                     {
                         ModMain.frmMain.BtnExtraMusic.SvgIcon = "lucide/play";
                         ModMain.frmMain.BtnExtraMusic.LogoScale = 0.8d;
-                        tipText = $"已暂停：{fileName}";
-                        tipText += "\r\n" + (isSingle ? "左键恢复播放，右键重新从头播放。" : "左键恢复播放，右键播放下一曲。");
+                        tipText = Lang.Text(
+                            isSingle
+                                ? "Setup.Misc.Music.ToolTip.Paused.Single"
+                                : "Setup.Misc.Music.ToolTip.Paused.Multiple",
+                            fileName);
                     }
                     else
                     {
                         ModMain.frmMain.BtnExtraMusic.SvgIcon = "lucide/music";
                         ModMain.frmMain.BtnExtraMusic.LogoScale = 1d;
-                        tipText = $"正在播放：{fileName}";
-                        tipText += "\r\n" + (isSingle ? "左键暂停，右键重新从头播放。" : "左键暂停，右键播放下一曲。");
+                        tipText = Lang.Text(
+                            isSingle
+                                ? "Setup.Misc.Music.ToolTip.Playing.Single"
+                                : "Setup.Misc.Music.ToolTip.Playing.Multiple",
+                            fileName);
                     }
 
                     ModMain.frmMain.BtnExtraMusic.ToolTip = tipText;
@@ -257,7 +275,7 @@ public static class ModMusic
     {
         if (musicNAudio is null)
         {
-            HintService.Hint("音乐播放尚未开始！", HintType.Error);
+            HintService.Hint(Lang.Text("Setup.Misc.Music.Error.NotStarted"), HintType.Error);
             return;
         }
 
@@ -288,19 +306,21 @@ public static class ModMusic
         if (musicAllList?.Count is { } arg2 && arg2 == 1)
         {
             MusicStartPlay(musicCurrent);
-            HintService.Hint("重新播放：" + ModBase.GetFileNameFromPath(musicCurrent), HintType.Success);
+            HintService.Hint(Lang.Text("Setup.Misc.Music.Hint.Replaying", ModBase.GetFileNameFromPath(musicCurrent)),
+                HintType.Success);
         }
         else
         {
             var addr = DequeueNextMusicAddress();
             if (addr is null)
             {
-                HintService.Hint("没有可以播放的音乐！", HintType.Error);
+                HintService.Hint(Lang.Text("Setup.Misc.Music.Error.NoAvailable"), HintType.Error);
             }
             else
             {
                 MusicStartPlay(addr);
-                HintService.Hint("正在播放：" + ModBase.GetFileNameFromPath(addr), HintType.Success);
+                HintService.Hint(Lang.Text("Setup.Misc.Music.Hint.Playing", ModBase.GetFileNameFromPath(addr)),
+                    HintType.Success);
             }
         }
 
@@ -341,11 +361,11 @@ public static class ModMusic
                 {
                     musicNAudio = null;
                     if (showHint)
-                        HintService.Hint("背景音乐已清除！", HintType.Success);
+                        HintService.Hint(Lang.Text("Setup.Misc.Music.Hint.Cleared"), HintType.Success);
                 }
                 else if (showHint)
                 {
-                    HintService.Hint("未检测到可用的背景音乐！", HintType.Error);
+                    HintService.Hint(Lang.Text("Setup.Misc.Music.Error.NotDetected"), HintType.Error);
                 }
             }
             else
@@ -354,7 +374,7 @@ public static class ModMusic
                 if (addr is null)
                 {
                     if (showHint)
-                        HintService.Hint("没有可以播放的音乐！", HintType.Error);
+                        HintService.Hint(Lang.Text("Setup.Misc.Music.Error.NoAvailable"), HintType.Error);
                 }
                 else
                 {
@@ -362,7 +382,9 @@ public static class ModMusic
                     {
                         MusicStartPlay(addr, isFirstLoad);
                         if (showHint)
-                            HintService.Hint("背景音乐已刷新：" + ModBase.GetFileNameFromPath(addr), HintType.Success,
+                            HintService.Hint(
+                                Lang.Text("Setup.Misc.Music.Hint.Refreshed", ModBase.GetFileNameFromPath(addr)),
+                                HintType.Success,
                                 false);
                     }
                     catch

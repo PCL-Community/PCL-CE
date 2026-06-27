@@ -81,7 +81,10 @@
 
     <!-- Common.Hint / Error -->
 
+    <sys:String x:Key="Common.Hint.Copied">Copied!</sys:String>
+    <sys:String x:Key="Common.Hint.FilesPasted">Pasted {0} files and {1} folders.</sys:String>
     <sys:String x:Key="Common.Hint.DoNotShowAgain">Do not show again</sys:String>
+    <sys:String x:Key="Common.Hint.CopyFailed">Failed to copy the text. The clipboard may be in use by another program.</sys:String>
     <sys:String x:Key="Common.Error.InvalidJson">Not a valid JSON file</sys:String>
 
     <!-- Application -->
@@ -409,6 +412,12 @@
     <sys:String x:Key="Launch.Skin.SaveAs">Save as</sys:String>
     <sys:String x:Key="Launch.Skin.ChangeCape">Change cape</sys:String>
     <sys:String x:Key="Launch.Skin.Change.ToolTip">Click to change (right-click for more options)</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.Busy">Changing skin, please wait!</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.LoginFailed">Failed to log in, so the skin cannot be changed.</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.Starting">Changing skin...</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.Reauthenticating">Signing in. The skin change will continue after sign-in completes...</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.FailedWithDetail">Failed to change skin.&#x0A;&#x0A;Details:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Launch.Skin.Change.Timeout.WithDetail">Failed to change skin because the connection to Mojang's skin server timed out. Please check your network connection.&#x0A;&#x0A;Details:&#x0A;{0}</sys:String>
     <sys:String x:Key="Launch.Skin.Fetching">Obtaining the skin, please wait!</sys:String>
     <sys:String x:Key="Launch.Skin.SaveDialog.Title">Select a location to save the skin file.</sys:String>
     <sys:String x:Key="Launch.Skin.SaveDialog.Filter">Skin image file (*.png)|*.png</sys:String>
@@ -692,6 +701,11 @@
     <sys:String x:Key="Minecraft.Launch.Login.Auth.SelectProfile">Select profile</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Auth.LoginFailed">Login failed: {0}</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Auth.DetailPrefix">Details:</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.RefreshFailed.WithDetail">Login refresh failed.&#x0A;&#x0A;Details:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.ValidationFailed.WithDetail">Login validation failed.&#x0A;&#x0A;Details:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.LoginFailed.WithDetail">Third-party login failed.&#x0A;&#x0A;Details:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.WithDetail">Login failed because the connection to the login server timed out.&#x0A;Please check your network connection or try using a VPN.&#x0A;&#x0A;Details:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.NetworkFailed.WithDetail">Third-party login failed. Please check your network connection.&#x0A;&#x0A;Details:&#x0A;{0}</sys:String>
 
     <!-- Minecraft.Launch.Login.Common -->
 
@@ -717,6 +731,18 @@
     <sys:String x:Key="Minecraft.Launch.Java.NeedJava7">You need to install Java 7 to launch this version.&#x0a;Please search and install Java 7 manually, then re-search or import it under &quot;Settings → Launch options → Game Java&quot;.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.NeedJava8U141ToU320">You need to install Java 8u141 ~ 8u320 to launch this version.&#x0a;Please search and install it manually, then re-search or import it under &quot;Settings → Launch options → Game Java&quot;.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.NeedJava8U141OrLater">You need to install Java 8u141 or later to launch this version.&#x0a;Please search and install it manually, then re-search or import it under &quot;Settings → Launch options → Game Java&quot;.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.NotFound.Manual.Message">PCL could not find {0}.&#x0A;Please install {0} manually, then re-search or import it under Settings → Launch options → Game Java.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.AutoDownload.Title">Download Java automatically?</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.AutoDownload.Message">PCL could not find {0}. Would you like PCL to download it automatically?&#x0A;If you have already installed {0}, you can import it manually under Settings → Launch options → Game Java.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.AutoDownload.Action">Download automatically</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.Task.Download">Download Java</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.Task.DownloadFiles">Download Java files</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.Task.GetDownloadInfo">Get Java download information</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.Compatibility.NoMinimum">No minimum</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.Compatibility.NoMaximum">No maximum</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.Compatibility.InstanceSelectedOutOfRange">The Java selected for this instance ({0}) is outside the required range [{1}, {2}] and may cause the game to crash.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.Compatibility.RelativePathSelectedOutOfRange">The Java selected through this instance's relative path ({0}) is outside the required range [{1}, {2}] and may cause the game to crash.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.Compatibility.GlobalSelectedOutOfRange">The globally selected Java ({0}) is outside the required range [{1}, {2}] and may cause the game to crash.</sys:String>
 
     <!-- Minecraft.Launch.Core -->
 
@@ -1011,6 +1037,25 @@
     <sys:String x:Key="Download.Comp.Category.World.ModWorld">Mod World</sys:String>
     <sys:String x:Key="Download.Comp.Category.World.Adventure">Adventure</sys:String>
     <sys:String x:Key="Download.Comp.Category.DataPack.Fantasy">Fantasy</sys:String>
+    
+    <!-- Download.Comp.Dependency -->
+
+    <sys:String x:Key="Download.Comp.Dependency.ListSeparator">&#x0A;</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Unresolved.Title">Required dependencies could not be installed</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Unresolved.ListItem">- {0} {1}: {2}</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Unresolved.Message">The following required dependencies could not be resolved:&#x0A;&#x0A;{0}</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Unresolved.ContinueWithoutDependencies">Continue download</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Install.Title">Install mod dependencies</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Install.ListItem">- {0} ({1}) - {2} v{3}</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Install.Message">This mod requires the following dependencies:&#x0A;&#x0A;{0}</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Install.WithDependencies">Install mod and dependencies</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Install.WithoutDependencies">Download mod only (not recommended)</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Install.Cancel">Cancel installation</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Abort.Title">Installation canceled</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Abort.Message">Installation was canceled.&#x0A;&#x0A;Reason:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Title">Failed to resolve dependencies</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Message">Failed to resolve the mod dependencies. Only the main mod will be downloaded.</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Continue">Continue download</sys:String>
 
     <!-- Download.Comp.Detail -->
 
@@ -1352,6 +1397,7 @@
     <sys:String x:Key="Setup.LauncherLanguage.FormatCulture.FollowLanguage">Follow UI language</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.Hint">Multi-language support is currently limited to certain new interfaces. Others will be updated in upcoming migrations.&#x0a;&#x0a;To ensure work efficiency and convenience, only "English (US)" and "简体中文（中国大陆）" are guaranteed to be partially available during the migration process. Other languages will be opened up to the community for translation contributions on the translation platform once the future migration work is fully completed.</sys:String>
     <sys:String x:Key="Setup.LauncherLanguage.Changed">Language settings updated</sys:String>
+    <sys:String x:Key="Setup.LauncherLanguage.Reset.Success">Language page settings initialized!</sys:String>
 
     <!-- Setup.Left -->
 
@@ -1911,6 +1957,25 @@
     <sys:String x:Key="Setup.Misc.HardwareAcceleration.RestartNotice">This change will take effect after restarting PCL.</sys:String>
     <sys:String x:Key="Setup.Misc.Initialized">Miscellaneous settings have been initialized!</sys:String>
     <sys:String x:Key="Setup.Misc.Error.InitFailed">Failed to initialize miscellaneous settings</sys:String>
+    
+    <!-- Setup.Misc.Music -->
+
+    <sys:String x:Key="Setup.Misc.Music.ToolTip.Paused.Single">Paused: {0}&#x0A;Left-click to resume. Right-click to replay from the beginning.</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.ToolTip.Paused.Multiple">Paused: {0}&#x0A;Left-click to resume. Right-click to play the next track.</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.ToolTip.Playing.Single">Playing: {0}&#x0A;Left-click to pause. Right-click to replay from the beginning.</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.ToolTip.Playing.Multiple">Playing: {0}&#x0A;Left-click to pause. Right-click to play the next track.</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Error.NotStarted">Music playback has not started.</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Hint.Replaying">Replaying: {0}</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Error.NoAvailable">No music is available to play.</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Hint.Playing">Playing: {0}</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Hint.Cleared">Background music cleared!</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Error.NotDetected">No usable background music was found.</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Hint.Refreshed">Background music refreshed: {0}</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Error.DeviceBusy">The audio device is being used by another program. Close the program using it, then restart PCL CE to restore music playback.</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Error.DeviceChanged">The audio device has changed. Restart PCL CE to restore music playback.</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Error.PropertyChangeUnsupported">Failed to play {0}: PCL CE does not support files that change audio properties during playback.</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Error.UnsupportedFormat">Failed to play {0}: PCL CE may not support this format. Convert it to .wav, .mp3, or .flac.</sys:String>
+    <sys:String x:Key="Setup.Misc.Music.Error.PlaybackFailed">Failed to play {0}.</sys:String>
 
     <!-- Setup.About -->
 
@@ -2004,6 +2069,17 @@
     <sys:String x:Key="Setup.Feedback.Item.Submitter">Submitter: {0} ({1})</sys:String>
     <sys:String x:Key="Setup.Feedback.Item.Type">Type: {0}</sys:String>
     <sys:String x:Key="Setup.Feedback.Item.ViewDetail">Details</sys:String>
+    <sys:String x:Key="Setup.Feedback.ErrorPrompt.Submit.Message">{0}&#x0A;&#x0A;Would you like to send feedback? Without a report, this problem may not be resolved.</sys:String>
+    <sys:String x:Key="Setup.Feedback.ErrorPrompt.Update.Message">{0}&#x0A;&#x0A;Updating PCL CE to the latest version may resolve this problem.</sys:String>
+    <sys:String x:Key="Setup.Feedback.ErrorPrompt.Submit.Action">Send feedback</sys:String>
+    <sys:String x:Key="Setup.Feedback.Reminder.Title">Feedback reminder</sys:String>
+    <sys:String x:Key="Setup.Feedback.Reminder.Message">To report a bug, click Open folder and upload the log file containing the error from Launch-{0}-[number].log.&#x0A;&#x0A;Game crashes are usually unrelated to the launcher. Please do not submit launcher feedback only because the game crashed.</sys:String>
+    <sys:String x:Key="Setup.Feedback.Reminder.NotNeeded">Not needed</sys:String>
+    <sys:String x:Key="Setup.Feedback.Unavailable.Title">Cannot send feedback</sys:String>
+    <sys:String x:Key="Setup.Feedback.Unavailable.NotLatest.Message">You are not using the latest version of PCL CE, so feedback cannot be sent.&#x0A;Update PCL CE, confirm that the problem still occurs on the latest version, then send feedback.</sys:String>
+    <sys:String x:Key="Setup.Feedback.Unavailable.NotLatest.Action">Update</sys:String>
+    <sys:String x:Key="Setup.Feedback.Unavailable.CheckFailed.Message">Update checking failed, so feedback cannot be sent.&#x0A;Connect to the internet, check for updates, confirm that the problem still occurs on the latest version, then send feedback.</sys:String>
+    <sys:String x:Key="Setup.Feedback.Unavailable.CheckFailed.Action">Check again</sys:String>
 
     <!-- Instance.Left -->
 
@@ -2366,6 +2442,7 @@
     <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Title">Data pack update warning</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Message">Newer versions of data packs may be incompatible with old saves or other data packs, which could cause game crashes or save corruption!&#x0a;&#x0a;Before updating, please back up your save.&#x0a;If problems arise after updating, you can retrieve the previous data pack version from the recycle bin.</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Confirm">I understand the risks, continue updating</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Update.UnsafeFilesSkipped">Skipped {0} data pack updates with unsafe file names.</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.ToggleWarning">Data pack status toggle failed. Please try closing any running games and try again!</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Export.Mode.Message">TXT format: Only export the current data pack file name information&#x0a;CSV format: Export detailed data pack information, including file name, project ID, version information, and other details</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Info.ReadFailed">Unable to read data pack information.</sys:String>
@@ -3046,6 +3123,7 @@
     <sys:String x:Key="Crash.Export.Failed.Title">Failed to export crash report</sys:String>
     <sys:String x:Key="Crash.Export.Failed.Message">The crash report could not be exported.&#x0a;&#x0a;Target path: {0}</sys:String>
     <sys:String x:Key="Crash.Export.Failed.MessageWithoutPath">The crash report could not be exported, and the target path is unavailable.</sys:String>
+    <sys:String x:Key="Crash.Export.Failed.CopyDetails">Copy details</sys:String>
     <sys:String x:Key="Crash.Report.Environment.LauncherVersion">PCL CE version: {0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.LauncherId">Identification code: {0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.ProfileSection">- Profile information -</sys:String>
@@ -3059,97 +3137,113 @@
     <sys:String x:Key="Crash.Report.Environment.Cpu">CPU：{0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.MemoryAllocation">Memory allocation (allocated memory / installed physical memory): {0} / {1} GB ({2} MB)</sys:String>
     <sys:String x:Key="Crash.Report.Environment.Gpu">GPU {0}: {1} ({2} MB, {3})</sys:String>
-    <sys:String x:Key="Crash.Result.NoReason.Manual">Sorry, PCL could not determine the cause of the crash.</sys:String>
-    <sys:String x:Key="Crash.Result.NoReason.Auto">Sorry, your game ran into some issues...&#x0D;&#x0A;If you need help, please send the crash report file instead of a photo or screenshot of this window.</sys:String>
-    <sys:String x:Key="Crash.Result.Joiner">Additionally, </sys:String>
-    <sys:String x:Key="Crash.Result.ReportHint">You can view the crash report to learn more about how the crash happened.</sys:String>
-    <sys:String x:Key="Crash.Result.HelpHint">If you need help, please send the crash report file instead of a photo or screenshot of this window.</sys:String>
-    <sys:String x:Key="Crash.Result.LauncherOutdatedHint">Additionally, you are using an old version of PCL. Updating PCL might also resolve this issue.&#x0D;&#x0A;You can click Settings → Launcher → Check for updates to update PCL.</sys:String>
-    <sys:String x:Key="Crash.Result.List.BulletItem"> - {0}</sys:String>
-    <sys:String x:Key="Crash.Result.ModLoaderIncompatible.Prefix">The mod loader version is incompatible with the mod</sys:String>
-    <sys:String x:Key="Crash.Result.ExtractedModFile">A mod file has been extracted, so the game cannot continue running.&#x0D;&#x0A;Put the entire mod file directly into the mods folder. Extracting it will cause the game to crash.&#x0D;&#x0A;&#x0D;&#x0A;Please delete the extracted mod from the mods folder, and then launch the game again.</sys:String>
-    <sys:String x:Key="Crash.Result.OutOfMemory">Minecraft ran out of memory and cannot continue running.&#x0D;&#x0A;This is likely caused by insufficient system memory, too little memory allocated to the game, or overly demanding settings.&#x0D;&#x0A;&#x0D;&#x0A;Please increase the memory allocated to the game in launch settings, and remove resource packs, mods, or shaders with high system requirements.&#x0D;&#x0A;If this still does not help, close other programs before launching the game, or... get a better computer?</sys:String>
-    <sys:String x:Key="Crash.Result.UsingOpenJ9">The game crashed because OpenJ9 is being used.&#x0D;&#x0A;Please switch to a non-OpenJ9 Java in the Java selection under launch settings, and then launch the game again.</sys:String>
-    <sys:String x:Key="Crash.Result.UsingJdk">The game seems to have crashed because you are using a JDK, or because your Java version is too new.&#x0D;&#x0A;Please switch to JRE 8 (Java 8) in the Java selection under launch settings, and then launch the game again.&#x0D;&#x0A;If JRE 8 is not installed, you can download and install it from the internet.</sys:String>
-    <sys:String x:Key="Crash.Result.JavaTooNew">The game seems to have crashed because the Java version you are using is too new.&#x0D;&#x0A;Please switch to an older Java version in the Java selection under launch settings, and then launch the game again.&#x0D;&#x0A;If none is installed, you can download and install one from the internet.</sys:String>
-    <sys:String x:Key="Crash.Result.IncompatibleJavaVersion">The game is incompatible with the Java version you are currently using.&#x0D;&#x0A;If a suitable Java version is not installed, you can download and install one from the internet.</sys:String>
-    <sys:String x:Key="Crash.Result.InvalidModFileName">The game crashed because a mod file name contains special characters.&#x0D;&#x0A;Please try renaming the mod file so that it only contains letters, numbers, hyphens (-), underscores (_), and periods, and then launch the game again.</sys:String>
-    <sys:String x:Key="Crash.Result.MissingMixinBootstrap">The game crashed because MixinBootstrap is missing.&#x0D;&#x0A;Please try installing MixinBootstrap. If the game still crashes after installation, try adding an exclamation mark to the beginning of its file name.</sys:String>
-    <sys:String x:Key="Crash.Result.X86JavaMemoryLimit.OnX64Os">It looks like you are using 32-bit Java. This prevents Minecraft from using the memory it needs and may cause crashes.&#x0D;&#x0A;&#x0D;&#x0A;Please switch to 64-bit Java in the Java selection under launch settings, and then launch the game again.&#x0D;&#x0A;If 64-bit Java is not installed, you can download and install it from the internet.</sys:String>
-    <sys:String x:Key="Crash.Result.X86JavaMemoryLimit.OnX86Os">You are using a 32-bit operating system. This prevents Minecraft from using the memory it needs and may cause crashes.&#x0D;&#x0A;&#x0D;&#x0A;You may need to reinstall a 64-bit operating system to resolve this issue.&#x0D;&#x0A;If your computer has 2 GB of memory or less, you may need a better computer...</sys:String>
-    <sys:String x:Key="Crash.Result.ModLoaderIncompatible">The mod loader version is incompatible with the mod. Please go to Instance settings → Modify to change the loader version.&#x0D;&#x0A;&#x0D;&#x0A;Details:&#x0D;&#x0A;{0}</sys:String>
-    <sys:String x:Key="Crash.Result.MissingDependencyOrWrongMcVersion.WithInfo">The game exited because a required dependency mod is not installed correctly.&#x0D;&#x0A;Missing dependency:&#x0D;&#x0A; - {0}&#x0D;&#x0A;&#x0D;&#x0A;Please handle it according to the information above.</sys:String>
-    <sys:String x:Key="Crash.Result.MissingDependencyOrWrongMcVersion.Generic">The game exited because a required dependency mod is not installed correctly.&#x0D;&#x0A;Please handle it according to the log information in the crash report.</sys:String>
-    <sys:String x:Key="Crash.Result.StackKeyword.Single">Your game ran into some issues, and PCL found a suspicious keyword: {0}.&#x0D;&#x0A;&#x0D;&#x0A;If you know which mod this keyword belongs to, that mod may be causing the crash. You can also view the crash report for details.</sys:String>
-    <sys:String x:Key="Crash.Result.StackKeyword.Multiple">Your game ran into some issues, and PCL found the following suspicious keywords:&#x0D;&#x0A; - {0}&#x0D;&#x0A;&#x0D;&#x0A;If you know which mod these keywords belong to, that mod may be causing the crash. You can also view the crash report for details.</sys:String>
-    <sys:String x:Key="Crash.Result.SuspectedMod.Single">PCL suspects that the mod named {0} caused the game to crash, but it cannot be completely certain.&#x0D;&#x0A;You can try disabling this mod, and then check whether the game still crashes.</sys:String>
-    <sys:String x:Key="Crash.Result.SuspectedMod.Multiple">PCL suspects that the following mods caused the game to crash, but it cannot be completely certain:&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;You can try disabling these mods one by one, and then check whether the game still crashes.</sys:String>
-    <sys:String x:Key="Crash.Result.ConfirmedMod.Single">The mod named {0} caused the game to crash.&#x0D;&#x0A;You can try disabling this mod, and then check whether the game still crashes.</sys:String>
-    <sys:String x:Key="Crash.Result.ConfirmedMod.Multiple">The following mods caused the game to crash:&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;You can try disabling these mods one by one, and then check whether the game still crashes.</sys:String>
-    <sys:String x:Key="Crash.Result.ModMixinFailed.None">Some mods failed to inject, causing the game to crash.&#x0D;&#x0A;This usually means that some mods are incompatible with other mods or the current environment, or that they contain bugs.&#x0D;&#x0A;You can try disabling mods step by step, and then check whether the game still crashes to locate the mod that caused the crash.</sys:String>
-    <sys:String x:Key="Crash.Result.ModMixinFailed.Single">The mod named {0} failed to inject, causing the game to crash.&#x0D;&#x0A;This usually means that it is incompatible with other mods or the current environment, or that it contains a bug.&#x0D;&#x0A;You can try disabling this mod, and then check whether the game still crashes.</sys:String>
-    <sys:String x:Key="Crash.Result.ModMixinFailed.Multiple">The following mods caused the game to crash:&#x0D;&#x0A;{0}&#x0D;&#x0A;This usually means that they are incompatible with other mods or the current environment, or that they contain bugs.&#x0D;&#x0A;You can try disabling these mods one by one, and then check whether the game still crashes.</sys:String>
-    <sys:String x:Key="Crash.Result.ModConfigCrash.Simple">The mod named {0} caused the game to crash.</sys:String>
-    <sys:String x:Key="Crash.Result.ModConfigCrash.WithConfig">The mod named {0} caused the game to crash:&#x0D;&#x0A;Its configuration file {1} has an error and cannot be read.</sys:String>
-    <sys:String x:Key="Crash.Result.ModInitializationFailed.Single">The mod named {0} failed to initialize, preventing the game from continuing to load.&#x0D;&#x0A;You can try disabling this mod, and then check whether the game still crashes.</sys:String>
-    <sys:String x:Key="Crash.Result.ModInitializationFailed.Multiple">The following mods failed to initialize, causing the game to crash:&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;You can try disabling these mods one by one, and then check whether the game still crashes.</sys:String>
-    <sys:String x:Key="Crash.Result.SpecificBlock.Single">The game seems to have run into a problem because of block {0}.&#x0D;&#x0A;&#x0D;&#x0A;You can create a new world and observe how the game runs:&#x0D;&#x0A; - If it runs normally, this block caused the crash, and you may need to remove it somehow.&#x0D;&#x0A; - If it still crashes, the problem may come from something else...</sys:String>
-    <sys:String x:Key="Crash.Result.SpecificBlock.Multiple">The game seems to have run into a problem because of some blocks in the world.&#x0D;&#x0A;&#x0D;&#x0A;You can create a new world and observe how the game runs:&#x0D;&#x0A; - If it runs normally, some blocks caused the crash, and you may need to delete this world.&#x0D;&#x0A; - If it still crashes, the problem may come from something else...</sys:String>
-    <sys:String x:Key="Crash.Result.DuplicateMods.Known">You have installed multiple copies of the same mod:&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;Each mod should only appear once. Please delete the duplicate mods, and then launch the game again.</sys:String>
-    <sys:String x:Key="Crash.Result.DuplicateMods.Unknown">You may have installed multiple copies of the same mod, causing the game to crash.&#x0D;&#x0A;&#x0D;&#x0A;Each mod should only appear once. Please delete the duplicate mods, and then launch the game again.</sys:String>
-    <sys:String x:Key="Crash.Result.SpecificEntity.Single">The game seems to have run into a problem because of entity {0}.&#x0D;&#x0A;&#x0D;&#x0A;You can create a new world, spawn this entity, and observe how the game runs:&#x0D;&#x0A; - If it runs normally, this entity caused the crash, and you may need to remove it somehow.&#x0D;&#x0A; - If it still crashes, the problem may come from something else...</sys:String>
-    <sys:String x:Key="Crash.Result.SpecificEntity.Multiple">The game seems to have run into a problem because of some entities in the world.&#x0D;&#x0A;&#x0D;&#x0A;You can create a new world, spawn various entities, and observe how the game runs:&#x0D;&#x0A; - If it runs normally, some entities caused the crash, and you may need to delete this world.&#x0D;&#x0A; - If it still crashes, the problem may come from something else...</sys:String>
-    <sys:String x:Key="Crash.Result.OptiFineForgeIncompatible">The game crashed because OptiFine is incompatible with the current Forge version.&#x0D;&#x0A;&#x0D;&#x0A;Please visit the official OptiFine website (https://optifine.net/downloads) to check which Forge versions are compatible with OptiFine, and reinstall the game strictly according to the matching version.</sys:String>
-    <sys:String x:Key="Crash.Result.ShadersModWithOptiFine">You do not need to install both OptiFine and Shaders Mod, because OptiFine already includes Shaders Mod features.&#x0D;&#x0A;After deleting Shaders Mod, the game should be able to run normally.</sys:String>
-    <sys:String x:Key="Crash.Result.OldForgeNewJavaIncompatible">The game crashed because an old Forge version is incompatible with the current Java version.&#x0D;&#x0A;&#x0D;&#x0A;Please try the following solutions:&#x0D;&#x0A; - Update Forge to 36.2.26 or later&#x0D;&#x0A; - Switch to a Java version earlier than 1.8.0.320</sys:String>
-    <sys:String x:Key="Crash.Result.MultipleForgeInInstanceJson">Possibly because another launcher modified the Forge version, the current instance files are abnormal, causing the game to crash.&#x0D;&#x0A;Please try reinstalling Forge from scratch instead of using another launcher to modify the Forge version.</sys:String>
-    <sys:String x:Key="Crash.Result.ManualDebugCrash">* Actually, there is nothing wrong with your game. You triggered this crash yourself.&#x0D;&#x0A;* Don't you have anything more important to do?</sys:String>
-    <sys:String x:Key="Crash.Result.ModRequiresJava11">Some installed mods seem to require Java 11 to launch.&#x0D;&#x0A;Please switch to Java 11 in the Java selection under launch settings, and then launch the game again.&#x0D;&#x0A;If Java 11 is not installed, you can download and install it from the internet.</sys:String>
-    <sys:String x:Key="Crash.Result.VeryShortOutput">The program returned the following message:&#x0D;&#x0A;{0}&#x0D;&#x0A;</sys:String>
-    <sys:String x:Key="Crash.Result.OptiFineWorldLoadCrash">The OptiFine version you are using may have caused problems in your game.&#x0D;&#x0A;&#x0D;&#x0A;This issue only appears in certain OptiFine versions. You can try switching to another OptiFine version.</sys:String>
-    <sys:String x:Key="Crash.Result.GraphicsDriver.IntelOrIntegrated">There is a problem with your graphics driver, or the dedicated GPU is not being used, causing the game to fail to run normally.&#x0D;&#x0A;&#x0D;&#x0A;If your computer has a dedicated GPU, please launch PCL and Minecraft with the dedicated GPU instead of the Intel integrated graphics.&#x0D;&#x0A;If the problem persists, try updating your graphics driver to the latest version, or rolling it back to the factory version.&#x0D;&#x0A;If it still does not work, you can also try using Java 8.0.51 or earlier.</sys:String>
-    <sys:String x:Key="Crash.Result.GraphicsDriver.Generic">There is a problem with your graphics driver, causing the game to fail to run normally.&#x0D;&#x0A;&#x0D;&#x0A;Please try updating your graphics driver to the latest version, or rolling it back to the factory version, and then launch the game again.&#x0D;&#x0A;If it still does not work, you can try using Java 8.0.51 or earlier.&#x0D;&#x0A;If the problem persists, you may need a better graphics card...</sys:String>
-    <sys:String x:Key="Crash.Result.ResourcePackTooLargeOrGpuInsufficient">The resource pack resolution you are using is too high, or your graphics card is not powerful enough, causing the game to stop running.&#x0D;&#x0A;&#x0D;&#x0A;If you are using a high-resolution resource pack, please remove it.&#x0D;&#x0A;If you are not using any resource pack, you may need to update your graphics driver, or get a better graphics card...</sys:String>
-    <sys:String x:Key="Crash.Result.NightConfigBug">The game crashed because Night Config has a problem.&#x0D;&#x0A;You can try installing the Night Config Fixes mod, which may resolve this issue.</sys:String>
-    <sys:String x:Key="Crash.Result.OpenGl1282FromShaderOrResourcePack">The shader or resource pack you are using caused some problems in the game...&#x0D;&#x0A;&#x0D;&#x0A;Please try deleting the extra resources you added.</sys:String>
-    <sys:String x:Key="Crash.Result.TooManyModsIdLimit">The game crashed because you have installed too many mods and exceeded the game's ID limit.&#x0D;&#x0A;Please try installing a fix mod such as JEID, or delete some large mods.</sys:String>
-    <sys:String x:Key="Crash.Result.FileOrContentValidationFailed">Some files or content failed validation, causing problems in the game.&#x0D;&#x0A;&#x0D;&#x0A;Please try deleting the game files (including mods) and downloading them again.</sys:String>
-    <sys:String x:Key="Crash.Result.IncompleteForgeInstallation">The game cannot run normally because some installed Forge files are missing.&#x0D;&#x0A;Please reset this instance in instance settings, and then launch the game again.&#x0D;&#x0A;Deleting the libraries folder while packaging the game may cause this error.</sys:String>
-    <sys:String x:Key="Crash.Result.FabricError.WithInfo">Fabric provided the following error message:&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;Please handle it according to the information above.</sys:String>
-    <sys:String x:Key="Crash.Result.FabricError.Generic">Fabric may have provided an error message. Please handle it according to the log information in the crash report.</sys:String>
-    <sys:String x:Key="Crash.Result.IncompatibleMods.WithInfo">The mods you installed are incompatible:&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;Please handle it according to the information above.</sys:String>
-    <sys:String x:Key="Crash.Result.IncompatibleMods.Generic">The mods you installed are incompatible, and the mod loader may have provided an error message. Please handle it according to the log information in the crash report.</sys:String>
-    <sys:String x:Key="Crash.Result.ModLoaderError.WithInfo">The mod loader provided the following error message:&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;Please handle it according to the information above.</sys:String>
-    <sys:String x:Key="Crash.Result.ModLoaderError.Generic">The mod loader may have provided an error message. Please handle it according to the log information in the crash report.</sys:String>
-    <sys:String x:Key="Crash.Result.FabricSolutionProvided.WithInfo">Fabric provided the following solution:&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;Please handle it according to the information above.</sys:String>
-    <sys:String x:Key="Crash.Result.FabricSolutionProvided.Generic">Fabric may have provided a solution. Please handle it according to the log information in the crash report.</sys:String>
-    <sys:String x:Key="Crash.Result.ForgeError.WithInfo">Forge provided the following error message:&#x0D;&#x0A;{0}&#x0D;&#x0A;&#x0D;&#x0A;Please handle it according to the information above.</sys:String>
-    <sys:String x:Key="Crash.Result.ForgeError.Generic">Forge may have provided an error message. Please handle it according to the log information in the crash report.</sys:String>
-    <sys:String x:Key="Crash.Result.NoAnalyzableFile">Your game ran into some issues, but PCL could not find any relevant log files, so it cannot analyze the crash.</sys:String>
-    <sys:String x:Key="Crash.Result.UnknownReason">PCL found an error reason without detailed information ({0}). Please submit feedback to the PCL developers for details.</sys:String>
-
-    <!-- Error -->
-
-    <sys:String x:Key="Error.Title.Error">Error</sys:String>
-    <sys:String x:Key="Error.Title.Warning">Warning</sys:String>
-    <sys:String x:Key="Error.Title.UnexpectedError">Unexpected error</sys:String>
-    <sys:String x:Key="Error.Detail.Header">Details</sys:String>
-    <sys:String x:Key="Error.Detail.WithException">{0}&#x0a;&#x0a;Details:&#x0a;{1}</sys:String>
-    <sys:String x:Key="Error.Detail.RawResponse">Raw response:&#x0a;{0}</sys:String>
-    <sys:String x:Key="Error.Detail.Path">Path: {0}</sys:String>
-    <sys:String x:Key="Error.Detail.InnerException">Inner exception:&#x0a;{0}</sys:String>
-    <sys:String x:Key="Error.Action.CopyDetails">Copy details</sys:String>
-    <sys:String x:Key="Error.Action.ViewLog">View log</sys:String>
-    <sys:String x:Key="Error.Action.ExportReport">Export error report</sys:String>
-    <sys:String x:Key="Error.Action.OpenFolder">Open folder</sys:String>
-    <sys:String x:Key="Error.Message.Unexpected">An unexpected error occurred.</sys:String>
-    <sys:String x:Key="Error.Message.DotNetRuntimeOutdated">Your .NET Desktop Runtime is outdated or corrupted. Please reinstall .NET 8.</sys:String>
-    <sys:String x:Key="Error.Guidance.ExportLog">When asking for help, do not close PCL. Export the logs now (Settings → View logs → Export logs), then send the exported log archive. A screenshot of this window alone is usually not enough to diagnose the problem.</sys:String>
-    <sys:String x:Key="Error.Guidance.FatalFeedback">If you think this is a launcher issue, please submit feedback so it can be investigated.&#x0a;Export logs: Settings → View logs → Export all logs</sys:String>
-
-    <!-- Warning -->
-
-    <!-- Dialog -->
+    <sys:String x:Key="Crash.Presentation.ReasonOnly">Cause&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Presentation.WithSuggestion">Cause&#x0A;{0}&#x0A;&#x0A;What you can try&#x0A;{1}</sys:String>
+    <sys:String x:Key="Crash.Presentation.WithFollowUps">{0}&#x0A;&#x0A;{1}</sys:String>
+    <sys:String x:Key="Crash.Presentation.ParagraphSeparator">&#x0A;&#x0A;</sys:String>
+    <sys:String x:Key="Crash.Presentation.LineSeparator">&#x0A;</sys:String>
+    <sys:String x:Key="Crash.Presentation.ListItem"> - {0}</sys:String>
+    <sys:String x:Key="Crash.Reason.Unknown.Manual">PCL could not determine the cause of this error.</sys:String>
+    <sys:String x:Key="Crash.Reason.Unknown.Auto">PCL could not determine the exact cause of the crash.</sys:String>
+    <sys:String x:Key="Crash.Reason.ExtractedModFile">An extracted mod file was detected.</sys:String>
+    <sys:String x:Key="Crash.Reason.OutOfMemory">Minecraft ran out of memory.</sys:String>
+    <sys:String x:Key="Crash.Reason.UsingOpenJ9">The OpenJ9 Java runtime may be incompatible with the game, mods, or loader.</sys:String>
+    <sys:String x:Key="Crash.Reason.UsingJdk">The game may be using a JDK, or the selected Java version may be too new.</sys:String>
+    <sys:String x:Key="Crash.Reason.JavaTooNew">The selected Java version is too new for this game or loader.</sys:String>
+    <sys:String x:Key="Crash.Reason.JavaIncompatible">The selected Java version is incompatible with the game or mods.</sys:String>
+    <sys:String x:Key="Crash.Reason.InvalidModFileName">A mod file name contains special characters that Java cannot use.</sys:String>
+    <sys:String x:Key="Crash.Reason.MissingMixinBootstrap">MixinBootstrap is missing, so the game cannot continue loading.</sys:String>
+    <sys:String x:Key="Crash.Reason.X86JavaMemoryLimit.OnX64Os">The selected 32-bit Java runtime cannot allocate enough memory for the game.</sys:String>
+    <sys:String x:Key="Crash.Reason.X86JavaMemoryLimit.OnX86Os">The 32-bit operating system cannot provide enough memory for the game.</sys:String>
+    <sys:String x:Key="Crash.Reason.MissingDependency.WithDetail">Some mods are missing dependencies or do not match the current Minecraft version:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.MissingDependency.Generic">Some mods are missing dependencies or do not match the current Minecraft version.</sys:String>
+    <sys:String x:Key="Crash.Reason.StackKeyword.Single">PCL found a possibly related keyword in the error stack trace: {0}</sys:String>
+    <sys:String x:Key="Crash.Reason.StackKeyword.Multiple">PCL found possibly related keywords in the error stack trace:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.SuspectedMod.Single">The crash report suspects that the mod {0} caused the error.</sys:String>
+    <sys:String x:Key="Crash.Reason.SuspectedMod.Multiple">The crash report suspects that the following mods caused the error:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.ConfirmedMod.Single">The mod {0} caused the error.</sys:String>
+    <sys:String x:Key="Crash.Reason.ConfirmedMod.Multiple">The following mods caused the error:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.ModMixinFailed.None">Mixin injection failed for one or more mods.</sys:String>
+    <sys:String x:Key="Crash.Reason.ModMixinFailed.Single">Mixin injection failed for the mod {0}.</sys:String>
+    <sys:String x:Key="Crash.Reason.ModMixinFailed.Multiple">Mixin injection failed for the following mods:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.ModConfigCrash.Simple">The configuration for the mod {0} could not be read.</sys:String>
+    <sys:String x:Key="Crash.Reason.ModConfigCrash.WithConfig">The configuration file {1} for the mod {0} could not be read.</sys:String>
+    <sys:String x:Key="Crash.Reason.ModInitializationFailed.Single">The mod {0} failed to initialize.</sys:String>
+    <sys:String x:Key="Crash.Reason.ModInitializationFailed.Multiple">The following mods failed to initialize:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.SpecificBlock.Single">The block {0} may have caused the error.</sys:String>
+    <sys:String x:Key="Crash.Reason.SpecificBlock.Multiple">Some blocks in the world may have caused the error.</sys:String>
+    <sys:String x:Key="Crash.Reason.DuplicateMods.Known">Duplicate mods were detected:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.DuplicateMods.Unknown">Duplicate mods may be installed.</sys:String>
+    <sys:String x:Key="Crash.Reason.SpecificEntity.Single">The entity {0} may have caused the error.</sys:String>
+    <sys:String x:Key="Crash.Reason.SpecificEntity.Multiple">Some entities in the world may have caused the error.</sys:String>
+    <sys:String x:Key="Crash.Reason.OptiFineForgeIncompatible">OptiFine may be incompatible with the current Forge or Minecraft version.</sys:String>
+    <sys:String x:Key="Crash.Reason.ShadersModWithOptiFine">Both Shaders Mod and OptiFine are installed.</sys:String>
+    <sys:String x:Key="Crash.Reason.OldForgeNewJavaIncompatible">An old Forge version is incompatible with the selected Java version.</sys:String>
+    <sys:String x:Key="Crash.Reason.MultipleForgeInInstanceJson">The instance JSON contains multiple Forge version arguments.</sys:String>
+    <sys:String x:Key="Crash.Reason.ManualDebugCrash">This was a manually triggered debug crash. The game itself is usually fine.</sys:String>
+    <sys:String x:Key="Crash.Reason.ModRequiresJava11">Some installed mods require Java 11 or later.</sys:String>
+    <sys:String x:Key="Crash.Reason.VeryShortOutput">The game output is too short for PCL to analyze. Raw output:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.OptiFineWorldLoadCrash">The selected OptiFine version may have caused the world to fail to load.</sys:String>
+    <sys:String x:Key="Crash.Reason.GraphicsDriver.IntelOrIntegrated">There may be a graphics driver problem, or the game may not be using the dedicated GPU.</sys:String>
+    <sys:String x:Key="Crash.Reason.GraphicsDriver.Generic">The graphics driver may be preventing the game from running correctly.</sys:String>
+    <sys:String x:Key="Crash.Reason.ResourcePackTooLarge">The resource pack resolution may be too high, or the graphics card may not be powerful enough.</sys:String>
+    <sys:String x:Key="Crash.Reason.NightConfigBug">Night Config encountered an error while reading configuration files.</sys:String>
+    <sys:String x:Key="Crash.Reason.OpenGl1282">A shader pack or resource pack may have triggered OpenGL error 1282.</sys:String>
+    <sys:String x:Key="Crash.Reason.TooManyModsIdLimit">Too many mods are installed, exceeding the ID limit of an older Minecraft version.</sys:String>
+    <sys:String x:Key="Crash.Reason.FileOrContentValidationFailed">Some files or content did not pass validation.</sys:String>
+    <sys:String x:Key="Crash.Reason.IncompleteForgeInstallation">The Forge installation is incomplete and required files are missing.</sys:String>
+    <sys:String x:Key="Crash.Reason.FabricError.WithDetail">Fabric provided the following error message:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.FabricError.Generic">Fabric may have provided an error message.</sys:String>
+    <sys:String x:Key="Crash.Reason.IncompatibleMods.WithDetail">The installed mods are incompatible:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.IncompatibleMods.Generic">The installed mods may be incompatible.</sys:String>
+    <sys:String x:Key="Crash.Reason.ModLoaderIncompatible">The mod loader version is incompatible with the mods:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.ModLoaderError.WithDetail">The mod loader provided the following error message:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.ModLoaderError.Generic">The mod loader may have provided an error message.</sys:String>
+    <sys:String x:Key="Crash.Reason.FabricSolution.WithDetail">Fabric provided the following solution:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.FabricSolution.Generic">Fabric may have provided a solution.</sys:String>
+    <sys:String x:Key="Crash.Reason.ForgeError.WithDetail">Forge provided the following error message:&#x0A;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.ForgeError.Generic">Forge may have provided an error message.</sys:String>
+    <sys:String x:Key="Crash.Reason.NoAnalyzableFile">The game ran into a problem, but PCL could not find related log files to analyze.</sys:String>
+    <sys:String x:Key="Crash.Reason.UnknownFinding">PCL detected an error cause without details: {0}</sys:String>
+    <sys:String x:Key="Crash.Suggestion.ExportReport">When asking for help, send the crash report file instead of a photo or screenshot of this window.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.ViewReport">View the crash report for more details about how the error happened.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.LauncherOutdated">You are using an outdated version of PCL CE. Updating PCL CE may resolve this problem: Settings → Launcher → Check updates.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.ExtractedModFile">Remove extracted mod folders from the mods folder, then put the original .jar mod files there and try again.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.OutOfMemory">Increase the memory allocated in launch settings, and remove demanding resource packs, mods, or shader packs. You can also close other applications before launching the game.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.UsingOpenJ9">Switch to HotSpot Java in launch settings and try again.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.UsingJdk">Switch to a regular JRE or another Java version that is suitable for this instance in launch settings.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.JavaTooNew">Switch to an older Java version in launch settings and try again.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.JavaIncompatible">Choose a suitable Java version in launch settings based on the Minecraft version and mod requirements.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.InvalidModFileName">Remove or rename the affected mod file so that its name contains only English letters, numbers, hyphens, underscores, and periods.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.MissingMixinBootstrap">Check that MixinBootstrap, the mod loader, and related dependencies are installed correctly.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.X86JavaMemoryLimit.OnX64Os">Install and select 64-bit Java in launch settings, then try again.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.X86JavaMemoryLimit.OnX86Os">Use a 64-bit operating system and 64-bit Java, then try again.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.FollowLoaderInstructions">Follow the loader messages above or in the crash report to resolve the problem.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.StackKeyword">Check the mods or libraries related to these keywords. You can also export the crash report for more details.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.DisableThisMod">Try disabling this mod, then check whether the game still crashes.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.DisableTheseMods">Try disabling these mods one by one, then check whether the game still crashes.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.ModMixinFailed">Disable mods step by step to find the one that is incompatible with the current environment or has a problem.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.ModConfigCrash">Try deleting this mod's configuration file and launch again. If needed, update or disable the mod.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.SpecificBlock.Single">Create a new world to test whether the game runs normally. If it does, remove this block with a map editor or disable the mod that provides it.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.SpecificBlock.Multiple">Create a new world to test whether the game runs normally. If it does, blocks in the original world may be responsible.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.DuplicateMods">Each mod should be installed only once. Remove the duplicate mods and launch the game again.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.SpecificEntity.Single">Create a new world and spawn this entity to test whether the game runs normally. If it does, remove the entity with a map editor or disable the mod that provides it.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.SpecificEntity.Multiple">Create a new world and spawn entities to test whether the game runs normally. If it does, entities in the original world may be responsible.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.OptiFineForgeIncompatible">Check the compatible OptiFine and Forge versions, then reinstall matching versions.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.ShadersModWithOptiFine">Remove Shaders Mod. OptiFine already provides shader support.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.OldForgeNewJavaIncompatible">Try updating Forge or switching to an older Java version.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.MultipleForgeInInstanceJson">Reset or reinstall Forge in instance settings. Do not use another launcher to modify the Forge version.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.ModRequiresJava11">Switch to Java 11 or later in launch settings and try again.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.OptiFineWorldLoadCrash">Try another OptiFine version, or remove OptiFine before entering the world again.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.GraphicsDriver.IntelOrIntegrated">If the device has a dedicated GPU, use it to launch PCL CE and Minecraft. You can also update or roll back the graphics driver.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.GraphicsDriver.Generic">Try updating or rolling back the graphics driver. If needed, switch to an older Java version.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.ResourcePackTooLarge">Remove high-resolution resource packs or lower their resolution. You can also update the graphics driver.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.NightConfigBug">Try deleting the related mod configuration files, or install Night Config Fixes.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.OpenGl1282">Disable shader packs and remove recently added resource packs, then try again.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.TooManyModsIdLimit">Reduce the number of installed mods, or install a fix mod that extends the ID limit for older Minecraft versions.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.FileOrContentValidationFailed">Delete the game and related mods, then download them again.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.IncompleteForgeInstallation">Reset or reinstall Forge in instance settings. Do not delete the libraries folder when packaging an instance.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.ModLoaderIncompatible">Open instance settings and adjust or reinstall the mod loader version.</sys:String>
 
     <!-- Config.Error -->
 
@@ -3164,9 +3258,23 @@
 
     <sys:String x:Key="SystemDialog.File.SelectTitle">Select file</sys:String>
     <sys:String x:Key="SystemDialog.File.AllFilesFilter">All files|*.*</sys:String>
+    <sys:String x:Key="SystemDialog.File.OpenFailed.Message">Failed to open the file or program.&#x0A;&#x0A;Path: {0}</sys:String>
     <sys:String x:Key="SystemDialog.Folder.SelectTitle">Select folder</sys:String>
+    <sys:String x:Key="SystemDialog.Folder.OpenFailed.Message">Failed to open File Explorer. Try closing security software, such as 360 Total Security.&#x0A;&#x0A;Path: {0}</sys:String>
+    <sys:String x:Key="SystemDialog.Browser.OpenFailed.Title">Failed to open link</sys:String>
+    <sys:String x:Key="SystemDialog.Browser.OpenFailed.Message">PCL CE could not open this link. The link was copied to the clipboard and can be opened manually.&#x0A;&#x0A;Link: {0}</sys:String>
+    <sys:String x:Key="SystemDialog.Error.Title">Error</sys:String>
+    <sys:String x:Key="SystemDialog.Error.Unexpected.Title">Unexpected error</sys:String>
+    <sys:String x:Key="SystemDialog.Error.Unexpected.Message">An unexpected error occurred.</sys:String>
+    <sys:String x:Key="SystemDialog.Error.Detail.WithException">{0}&#x0a;&#x0a;Details:&#x0a;{1}</sys:String>
+    <sys:String x:Key="SystemDialog.Error.UserVisible.Message">An error occurred.&#x0A;&#x0A;Details:&#x0A;{0}</sys:String>
+    <sys:String x:Key="SystemDialog.Error.OperationFailed.Message">An error occurred while performing this operation.&#x0A;&#x0A;Operation:&#x0A;{0}&#x0A;&#x0A;Details:&#x0A;{1}</sys:String>
+    <sys:String x:Key="SystemDialog.Error.OperationFailed.RuntimeMessage">An error occurred while performing this operation.&#x0A;&#x0A;Operation:&#x0A;{0}&#x0A;&#x0A;Details:&#x0A;{1}&#x0A;&#x0A;A low-level system operation failed. Please try reinstalling .NET 8.</sys:String>
+    <sys:String x:Key="SystemDialog.Error.Message.WithLogExportGuidance">{0}&#x0A;&#x0A;When asking for help, do not close PCL. Export the logs now (Settings → View logs → Export logs), then send the exported log archive. A screenshot of this window alone is usually not enough to diagnose the problem.</sys:String>
     <sys:String x:Key="SystemDialog.Fatal.Title">Fatal error</sys:String>
+    <sys:String x:Key="SystemDialog.Fatal.Message.WithFeedbackGuidance">{0}&#x0A;&#x0A;If you think this is a launcher issue, please submit feedback so it can be investigated.&#x0a;Export logs: Settings → View logs → Export all logs</sys:String>
     <sys:String x:Key="SystemDialog.Startup.InitializationTitle">PCL failed to initialize</sys:String>
+    <sys:String x:Key="SystemDialog.Startup.DotNetRuntimeOutdated.Message">Your .NET Desktop Runtime is outdated or corrupted. Please reinstall .NET 8.</sys:String>
 
     <!-- Event -->
 
@@ -3188,6 +3296,7 @@
     <sys:String x:Key="Event.Safety.Title">Confirm execution</sys:String>
     <sys:String x:Key="Event.Safety.ConfirmMessage">About to execute: {0}&#x0a;Please confirm there are no security risks before continuing.</sys:String>
     <sys:String x:Key="Event.Safety.ContinueAlways">Continue and do not ask again</sys:String>
+    <sys:String x:Key="Event.Safety.DangerousSettingBlocked">A custom homepage cannot write the security-sensitive setting: {0}</sys:String>
     <sys:String x:Key="Event.Sanitize.UnsupportedTypeHint">is the unsupported official PCL EventType, which has been removed from the homepage.</sys:String>
     <sys:String x:Key="Event.Sanitize.UnknownTypeHint">is the unrecognized EventType, which has been removed from the homepage.</sys:String>
 

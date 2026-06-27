@@ -179,11 +179,11 @@ public partial class Application
                 ModBase.OpenWebsite("https://get.dot.net/8");
                 LogWrapper.Error(
                     e.Exception,
-                    Lang.Text("Error.Message.DotNetRuntimeOutdated"));
+                    Lang.Text("SystemDialog.Startup.DotNetRuntimeOutdated.Message"));
             }
             else
             {
-                LogWrapper.Error(e.Exception, Lang.Text("Error.Message.Unexpected"));
+                LogWrapper.Error(e.Exception, Lang.Text("SystemDialog.Error.Unexpected.Message"));
             }
         }
         catch

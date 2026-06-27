@@ -292,7 +292,7 @@ namespace PCL
             if (!SecuritySensitiveSettingKeys.Contains(key))
                 return true;
             ModBase.Log($"[Control] 已阻止自定义事件写入高危设置：{key}", ModBase.LogLevel.Developer);
-            HintService.Hint($"自定义主页不能写入高危设置：{key}", HintType.Error);
+            HintService.Hint(Lang.Text("Event.Safety.DangerousSettingBlocked", key), HintType.Error);
             return false;
         }
 
