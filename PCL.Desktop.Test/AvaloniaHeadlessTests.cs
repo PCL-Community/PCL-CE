@@ -224,8 +224,8 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual(new Thickness(10d, 6d, 0d, 0d), pickaxe.Margin);
                 Assert.AreEqual(HorizontalAlignment.Left, pickaxe.HorizontalAlignment);
                 Assert.AreEqual(VerticalAlignment.Top, pickaxe.VerticalAlignment);
-                Assert.AreEqual(40d, rotate.CenterX, 0.01d);
-                Assert.AreEqual(36d, rotate.CenterY, 0.01d);
+                Assert.AreEqual(30d, rotate.CenterX, 0.01d);
+                Assert.AreEqual(30d, rotate.CenterY, 0.01d);
                 Assert.IsTrue(rotate.Angle < 35d, $"Expected the WPF strike posture, got {rotate.Angle:0.00} degrees.");
             }
             finally

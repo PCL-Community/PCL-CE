@@ -190,7 +190,8 @@ public partial class MyLoading : Grid
 
         if (_pickaxe.RenderTransform is not RotateTransform rotate)
         {
-            rotate = new RotateTransform { CenterX = 40d, CenterY = 36d };
+            // Match WPF's off-center pickaxe pivot; the visual baseline depends on this quirk.
+            rotate = new RotateTransform { CenterX = 30d, CenterY = 30d };
             _pickaxe.RenderTransform = rotate;
         }
 
