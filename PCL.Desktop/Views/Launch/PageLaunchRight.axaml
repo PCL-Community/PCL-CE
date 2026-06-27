@@ -1,0 +1,66 @@
+<legacy:MyPageRight x:Class="PCL.Desktop.Views.Launch.PageLaunchRight"
+                    xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:legacy="using:PCL.Desktop.Controls.Legacy">
+    <legacy:MyScrollViewer VerticalScrollBarVisibility="Auto"
+                           HorizontalScrollBarVisibility="Disabled"
+                           x:Name="PanBack">
+        <StackPanel x:Name="PanMain"
+                    Margin="25,25,25,10"
+                    Grid.IsSharedSizeScope="True">
+            <StackPanel x:Name="PanCustom" />
+            <legacy:MyCard Margin="0,0,0,15"
+                           Title="PCL N 提示"
+                           x:Name="PanHint">
+                <legacy:MyIconButton SvgIcon="lucide/x"
+                                     Height="20"
+                                     Width="20"
+                                     Margin="10"
+                                     HorizontalAlignment="Right"
+                                     VerticalAlignment="Top"
+                                     x:Name="BtnHintClose"
+                                     Click="BtnHintClose_Click" />
+                <StackPanel Margin="25,38,23,15">
+                    <TextBlock x:Name="LabHint1"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,2"
+                               FontSize="13.5"
+                               Text="欢迎使用 PCL N Edition。Avalonia 启动页正在按 WPF 结构迁移。" />
+                    <TextBlock x:Name="LabHint2"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,2"
+                               FontSize="13.5"
+                               Text="主页扩展区、日志卡片和 live patch 接口已保留，后续可继续接入原有主页内容。" />
+                </StackPanel>
+            </legacy:MyCard>
+            <legacy:MyCard Margin="0,0,0,15"
+                           Title="你知道吗"
+                           x:Name="PanTrivia">
+                <Grid>
+                    <legacy:MyIconButton Height="22"
+                                         Width="22"
+                                         Margin="9"
+                                         VerticalAlignment="Top"
+                                         HorizontalAlignment="Right"
+                                         x:Name="BtnRefreshTrivia"
+                                         Click="BtnRefreshTrivia_Click"
+                                         SvgIcon="lucide/refresh-cw" />
+                    <TextBlock x:Name="LabTrivia"
+                               Margin="25,38,50,15"
+                               FontSize="13.5"
+                               IsHitTestVisible="False"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource ColorBrush1}" />
+                </Grid>
+            </legacy:MyCard>
+            <legacy:MyCard Margin="0,0,0,15"
+                           Title="启动日志"
+                           x:Name="PanLog">
+                <TextBlock x:Name="LabLog"
+                           Margin="20,38,20,18"
+                           TextTrimming="None"
+                           TextWrapping="Wrap" />
+            </legacy:MyCard>
+        </StackPanel>
+    </legacy:MyScrollViewer>
+</legacy:MyPageRight>

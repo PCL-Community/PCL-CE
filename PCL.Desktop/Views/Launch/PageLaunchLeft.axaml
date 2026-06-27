@@ -1,0 +1,210 @@
+<legacy:MyPageLeft x:Class="PCL.Desktop.Views.Launch.PageLaunchLeft"
+                   xmlns="https://github.com/avaloniaui"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                   xmlns:legacy="using:PCL.Desktop.Controls.Legacy"
+                   x:Name="PanBack"
+                   Width="300">
+    <Grid x:Name="PanInput" RenderTransformOrigin="0.5,0.5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="20" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="10" />
+        </Grid.ColumnDefinitions>
+        <Grid.RenderTransform>
+            <ScaleTransform />
+        </Grid.RenderTransform>
+
+        <legacy:MyButton Grid.Row="3"
+                         Grid.Column="2"
+                         x:Name="BtnInstance"
+                         Height="35"
+                         Margin="0,10,10,0"
+                         Text="选择版本"
+                         IsEnabled="False"
+                         Click="BtnInstance_Click" />
+        <legacy:MyButton Grid.Row="3"
+                         Grid.Column="3"
+                         x:Name="BtnMore"
+                         IsVisible="False"
+                         Height="35"
+                         Click="BtnMore_Click"
+                         Margin="0,10,10,0"
+                         Text="版本设置" />
+
+        <Grid Grid.ColumnSpan="5"
+              Grid.Row="1"
+              Margin="20,0"
+              VerticalAlignment="Center"
+              x:Name="PanLogin">
+            <legacy:MyCard Title="账户">
+                <StackPanel Margin="25,38,23,16" Spacing="8">
+                    <TextBlock x:Name="LabLoginTitle"
+                               Text="正在读取账户档案"
+                               FontSize="13.5"
+                               Foreground="{DynamicResource ColorBrush1}" />
+                    <TextBlock x:Name="LabLoginSubtitle"
+                               Text="Microsoft、第三方与离线档案页面会继续沿用这里的分页入口。"
+                               FontSize="12"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource ColorBrushGray3}" />
+                </StackPanel>
+            </legacy:MyCard>
+        </Grid>
+
+        <Grid Grid.ColumnSpan="5" Grid.Row="2" RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform />
+                    <TranslateTransform />
+                </TransformGroup>
+            </Grid.RenderTransform>
+            <legacy:MyButton x:Name="BtnLaunch"
+                             Height="54"
+                             Margin="20,0"
+                             Text="正在加载"
+                             ColorType="Highlight"
+                             Click="BtnLaunch_Click"
+                             Padding="30,0,30,15"
+                             IsEnabled="False" />
+            <TextBlock x:Name="LabVersion"
+                       Text="正在检查游戏版本"
+                       Margin="35,0,35,10"
+                       IsHitTestVisible="False"
+                       VerticalAlignment="Bottom"
+                       HorizontalAlignment="Center"
+                       TextTrimming="CharacterEllipsis"
+                       FontSize="11"
+                       Foreground="{DynamicResource ColorBrushGray3}"
+                       RenderTransformOrigin="0.5,-0.2" />
+        </Grid>
+    </Grid>
+
+    <Grid x:Name="PanLaunching"
+          RenderTransformOrigin="0.5,0.5"
+          IsVisible="False"
+          Opacity="0">
+        <Grid.RenderTransform>
+            <ScaleTransform ScaleX="0.8" ScaleY="0.8" />
+        </Grid.RenderTransform>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="1"
+                    RenderTransformOrigin="0.5,0.5"
+                    Margin="0,-7,0,0">
+            <legacy:MyLoading x:Name="LoadLaunching"
+                              Height="50"
+                              Margin="0,10,0,5"
+                              Text="" />
+            <TextBlock x:Name="LabLaunchingTitle"
+                       Margin="15,10,15,0"
+                       Text="正在启动"
+                       HorizontalAlignment="Center"
+                       FontSize="20"
+                       Foreground="{DynamicResource ColorBrush3}">
+                <TextBlock.RenderTransform>
+                    <SkewTransform AngleX="-3" />
+                </TextBlock.RenderTransform>
+            </TextBlock>
+            <TextBlock x:Name="LabLaunchingName"
+                       Margin="40,5,40,0"
+                       FontSize="13.5"
+                       Text="等待选择版本"
+                       HorizontalAlignment="Center"
+                       Foreground="{DynamicResource ColorBrush3}"
+                       RenderTransformOrigin="0.5,0.5">
+                <TextBlock.RenderTransform>
+                    <SkewTransform AngleX="-3" />
+                </TextBlock.RenderTransform>
+            </TextBlock>
+            <Grid x:Name="PanLaunchingProgressBar" Height="4" Margin="30,12,30,27">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="0*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+                <Rectangle Grid.Column="0">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush EndPoint="1,0" StartPoint="0,0">
+                            <GradientStop Color="{DynamicResource ColorObject4}" Offset="0" />
+                            <GradientStop Color="{DynamicResource ColorObject3}" Offset="0.6" />
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+                <Rectangle Grid.Column="1" Fill="{DynamicResource ColorBrush6}" Opacity="0.6" />
+            </Grid>
+            <Grid HorizontalAlignment="Center"
+                  x:Name="PanLaunchingInfo"
+                  SizeChanged="PanLaunchingInfo_SizeChanged">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="15" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="当前步骤" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" Opacity="0.5" />
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="初始化" Grid.Row="0" Grid.Column="3" HorizontalAlignment="Left" x:Name="LabLaunchingStage" />
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="登录方式" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" Opacity="0.5" />
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="等待账户档案" Grid.Row="1" Grid.Column="3" HorizontalAlignment="Left" MaxWidth="160" TextWrapping="Wrap" x:Name="LabLaunchingMethod" />
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="启动进度" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Right" Opacity="0.5" x:Name="LabLaunchingProgressLeft" />
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="0 %" Grid.Row="2" Grid.Column="3" HorizontalAlignment="Left" x:Name="LabLaunchingProgress" />
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="下载速度" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Right" Opacity="0" x:Name="LabLaunchingDownloadLeft" IsVisible="False" />
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="0 B/s" Grid.Row="3" Grid.Column="3" HorizontalAlignment="Left" Opacity="0" x:Name="LabLaunchingDownload" IsVisible="False" />
+                <Grid x:Name="PanLaunchingHint"
+                      HorizontalAlignment="Center"
+                      Grid.Row="2"
+                      Grid.ColumnSpan="5"
+                      Grid.RowSpan="2"
+                      Width="260"
+                      IsVisible="False"
+                      Margin="0,16,0,2"
+                      Opacity="0">
+                    <Border Margin="0,8,0,0"
+                            BorderThickness="1"
+                            CornerRadius="3"
+                            BorderBrush="{DynamicResource ColorBrushGray1}"
+                            Opacity="0.5" />
+                    <TextBlock FontSize="12.5"
+                               Text="你知道吗"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Top"
+                               Opacity="0.5" />
+                    <TextBlock x:Name="LabLaunchingHint"
+                               FontSize="12.5"
+                               Text=""
+                               Margin="11,21,11,10"
+                               TextWrapping="Wrap"
+                               HorizontalAlignment="Center"
+                               MaxHeight="54"
+                               TextTrimming="CharacterEllipsis" />
+                </Grid>
+            </Grid>
+        </StackPanel>
+        <legacy:MyButton Grid.Row="4"
+                         x:Name="BtnCancel"
+                         Height="35"
+                         Margin="20,0,20,20"
+                         VerticalAlignment="Bottom"
+                         Click="BtnCancel_Click"
+                         Text="取消" />
+    </Grid>
+</legacy:MyPageLeft>

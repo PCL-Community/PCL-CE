@@ -14,6 +14,7 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Views.Launch;
 
 namespace PCL.Desktop.Views;
 
@@ -37,6 +38,8 @@ public partial class MainWindow : Window
     private int _pendingNavPage;
     private bool _isPageContentSwapped;
     private bool _isMainWindowOpened;
+    private PageLaunchLeft? _launchLeft;
+    private PageLaunchRight? _launchRight;
 
     private const double NavCollapsedWidth = 50d;
     private const int NavAnimDuration = 200;
@@ -387,11 +390,82 @@ public partial class MainWindow : Window
     private void ApplyPagePlaceholder(int page)
     {
         _currentNavPage = page;
-        if (this.FindControl<MyLoading>("LoadMain") is { } loading)
-            loading.Text = $"正在加载{NavPageTitles[page]}页面";
+        if (page == 0)
+            ApplyLaunchPage();
+        else
+            ApplyPlaceholderPage(page);
+
         if (this.FindControl<Control>("PanMainRight") is { } right)
             right.Opacity = 1d;
     }
+
+    private void ApplyLaunchPage()
+    {
+        if (this.FindControl<Border>("PanMainLeft") is not { } leftHost ||
+            this.FindControl<Border>("PanMainRight") is not { } rightHost)
+        {
+            return;
+        }
+
+        _launchLeft ??= CreateLaunchLeftPage();
+        _launchRight ??= new PageLaunchRight();
+
+        leftHost.Child = _launchLeft;
+        rightHost.Child = _launchRight;
+        _launchLeft.TriggerShowAnimation();
+        _launchRight.PageOnEnter();
+    }
+
+    private PageLaunchLeft CreateLaunchLeftPage()
+    {
+        PageLaunchLeft page = new();
+        page.DownloadRequested += (_, _) => SelectNavPage(1, animate: true);
+        page.InstanceSelectRequested += (_, _) => _launchRight?.AppendLog("正在重新检查本地游戏版本。");
+        page.InstanceSettingsRequested += (_, _) => _launchRight?.AppendLog("版本设置页面正在迁移中。");
+        page.CancelLaunchRequested += (_, _) => _launchRight?.AppendLog("已取消启动。");
+        page.StatusMessage += (_, message) => _launchRight?.AppendLog(message);
+        page.LaunchRequested += (_, instance) =>
+        {
+            _launchRight?.AppendLog($"已请求启动 {instance.Name}。");
+            page.UpdateLaunchingStatus("正在准备启动参数", 0.18d, "等待账户档案");
+        };
+        return page;
+    }
+
+    private void ApplyPlaceholderPage(int page)
+    {
+        if (this.FindControl<Border>("PanMainLeft") is { } leftHost)
+        {
+            if (leftHost.Child is MyPageLeft oldLeft)
+                oldLeft.TriggerHideAnimation();
+            leftHost.Child = null;
+        }
+
+        if (this.FindControl<Border>("PanMainRight") is { } rightHost)
+        {
+            if (rightHost.Child is MyPageRight oldRight)
+                oldRight.PageOnExit();
+
+            rightHost.Child = CreateLoadingPlaceholder(NavPageTitles[page]);
+        }
+    }
+
+    private static Grid CreateLoadingPlaceholder(string pageTitle) =>
+        new()
+        {
+            Children =
+            {
+                new MyLoading
+                {
+                    Name = "LoadMain",
+                    Width = 220d,
+                    Height = 120d,
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                    Text = $"正在加载{pageTitle}页面"
+                }
+            }
+        };
 
     private void BeginPageChangeAnimation(int page)
     {
