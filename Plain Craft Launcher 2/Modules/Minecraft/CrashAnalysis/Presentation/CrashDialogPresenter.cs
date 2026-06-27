@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
@@ -118,9 +118,11 @@ internal sealed class CrashDialogPresenter(CrashAnalysisContext context)
 
     private void _ExportReport(List<string>? extraFiles)
     {
+        string? fileAddress = null;
+
         try
         {
-            var fileAddress = _SelectReportSavePath();
+            fileAddress = _SelectReportSavePath();
 
             if (string.IsNullOrEmpty(fileAddress))
                 return;
@@ -136,7 +138,30 @@ internal sealed class CrashDialogPresenter(CrashAnalysisContext context)
         catch (Exception ex)
         {
             LogWrapper.Error(ex, "Crash", "导出错误报告失败");
+
+            var message = _CreateExportFailureMessage(fileAddress, ex);
+            MsgBoxWrapper.ShowWithCustomButtons(
+                message,
+                Lang.Text("Crash.Export.Failed.Title"),
+                MsgBoxTheme.Error,
+                false,
+                new MsgBoxButtonInfo(Lang.Text("Common.Action.Confirm"), 1),
+                new MsgBoxButtonInfo(
+                    Lang.Text("Error.Action.CopyDetails"),
+                    2,
+                    () => ModBase.ClipboardSet(message, false)));
         }
+    }
+
+    private static string _CreateExportFailureMessage(
+        string? targetZipPath,
+        Exception exception)
+    {
+        var summary = string.IsNullOrWhiteSpace(targetZipPath)
+            ? Lang.Text("Crash.Export.Failed.MessageWithoutPath")
+            : Lang.Text("Crash.Export.Failed.Message", targetZipPath);
+
+        return ExceptionDetails.Compose(summary, exception);
     }
 
     private static string? _SelectReportSavePath()

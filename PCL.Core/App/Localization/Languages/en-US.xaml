@@ -1,4 +1,4 @@
-<ResourceDictionary
+﻿<ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
@@ -3043,6 +3043,9 @@
     <sys:String x:Key="Crash.Report.SaveDialog.DefaultFileName">Crash Report-{0}.zip</sys:String>
     <sys:String x:Key="Crash.Report.SaveDialog.Filter">Minecraft crash report (*.zip)|*.zip</sys:String>
     <sys:String x:Key="Crash.Report.Export.Success">Crash report exported!</sys:String>
+    <sys:String x:Key="Crash.Export.Failed.Title">Failed to export crash report</sys:String>
+    <sys:String x:Key="Crash.Export.Failed.Message">The crash report could not be exported.&#x0a;&#x0a;Target path: {0}</sys:String>
+    <sys:String x:Key="Crash.Export.Failed.MessageWithoutPath">The crash report could not be exported, and the target path is unavailable.</sys:String>
     <sys:String x:Key="Crash.Report.Environment.LauncherVersion">PCL CE version: {0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.LauncherId">Identification code: {0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.ProfileSection">- Profile information -</sys:String>
@@ -3149,6 +3152,13 @@
     <!-- Dialog -->
 
     <!-- Config.Error -->
+
+    <sys:String x:Key="Config.Error.LoadFailed.Title">Configuration initialization failed</sys:String>
+    <sys:String x:Key="Config.Error.LoadFailed.Message">The configuration system failed during the {0} stage.</sys:String>
+    <sys:String x:Key="Config.Error.SaveFailed.Title">Failed to save configuration file</sys:String>
+    <sys:String x:Key="Config.Error.SaveFailed.Message">Could not save the configuration file.&#x0a;&#x0a;Path: {0}</sys:String>
+    <sys:String x:Key="Config.Error.InvalidFormat.RecoveryMessage">Configuration initialization failed during the {0} stage.&#x0a;&#x0a;The configuration file at {1} contains invalid data and was backed up to {2}.&#x0a;To help prevent the problem from happening again, PCL tried to restore a previous version when one was available. If you changed the configuration file manually, fix the problem and replace the current file.&#x0a;&#x0a;If you are not sure what happened, you can ignore this message for now. After restarting PCL, the affected settings may return to their defaults, but normal use should not be affected.</sys:String>
+    <sys:String x:Key="Config.Error.LoadFailed.DebugMessage">Configuration initialization failed during the {0} stage.&#x0a;&#x0a;The configuration system could not be initialized. Fix the problem and restart PCL.</sys:String>
 
     <!-- SystemDialog -->
 
