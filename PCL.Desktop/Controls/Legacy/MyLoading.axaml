@@ -13,6 +13,7 @@
     <Grid Width="60" Height="47" HorizontalAlignment="Center"
           VerticalAlignment="Top" Grid.Row="1">
         <Path x:Name="PathPickaxe" Stretch="Uniform" Height="35" Margin="10,6,0,0" StrokeThickness="2"
+              RenderTransformOrigin="0,0"
               Data="M 963.6 858.2 410.816 305.504 C 508.116 213.304 609.204 196.8 711.104 128.6 837.11367 49.573762 879.34045 50.334062 751.5 49.5 611.3 52 471.8 96.2 353.3 182.4 309.8 155.7 252.1 161.2 214.5 198.9 176.9 236.6 171.3 294.2 198 337.7 111.8 456.3 67.6 595.8 65.1 735.9 63.315254 883.82034 65.077966 837.29308 144.2 695.488 212.4 593.588 228.888 492.4 321.088 395.2 L 873.9 948 c 0.60001 0.59999 1.6 0.6 2.2 0 l 87.5 -87.5 c 0.6 -0.7 0.6 -1.6 0 -2.3 z"
               Stroke="{Binding Foreground, ElementName=PanBack}" HorizontalAlignment="Left" VerticalAlignment="Top">
             <Path.RenderTransform>
