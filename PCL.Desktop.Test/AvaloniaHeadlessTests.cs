@@ -365,6 +365,191 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void MainWindow_WiresLaunchLoginPagesInsteadOfPlaceholders()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MainWindow window = new();
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                PageLaunchLeft launchPage = FindVisual<PageLaunchLeft>(window)!;
+
+                launchPage.RefreshPage(anim: true, PageLaunchLeft.LaunchLoginPageType.Ms);
+                Assert.IsInstanceOfType<PageLoginMs>(launchPage.CurrentLoginPage);
+
+                launchPage.RefreshPage(anim: true, PageLaunchLeft.LaunchLoginPageType.Auth);
+                Assert.IsInstanceOfType<PageLoginAuth>(launchPage.CurrentLoginPage);
+
+                launchPage.RefreshPage(anim: true, PageLaunchLeft.LaunchLoginPageType.Offline);
+                Assert.IsInstanceOfType<PageLoginOffline>(launchPage.CurrentLoginPage);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void PageLoginMs_UsesWpfStartAndFinishState()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageLoginMs page = new();
+            Window window = new()
+            {
+                Width = 260,
+                Height = 260,
+                Content = page
+            };
+            int loginCount = 0;
+            page.LoginRequested += (_, _) => loginCount++;
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Click(window, page.FindControl<MyButton>("BtnLogin")!);
+
+                Assert.AreEqual(1, loginCount);
+                Assert.IsTrue(page.IsLoggingIn);
+                Assert.IsFalse(page.FindControl<MyButton>("BtnLogin")!.IsEnabled);
+                Assert.IsFalse(page.FindControl<MyTextButton>("BtnBack")!.IsVisible);
+
+                page.UpdateProgress(0.42d);
+                Assert.AreEqual("42 %", page.FindControl<MyButton>("BtnLogin")!.Text);
+
+                page.FinishLogin();
+                Assert.IsFalse(page.IsLoggingIn);
+                Assert.IsTrue(page.FindControl<MyButton>("BtnLogin")!.IsEnabled);
+                Assert.IsTrue(page.FindControl<MyTextButton>("BtnBack")!.IsVisible);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void PageLoginAuth_ValidatesAndRaisesLoginRequest()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageLoginAuth page = new();
+            Window window = new()
+            {
+                Width = 320,
+                Height = 260,
+                Content = page
+            };
+            string? validation = null;
+            AuthLoginRequest? request = null;
+            page.ValidationFailed += (_, message) => validation = message;
+            page.LoginRequested += (_, value) => request = value;
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Click(window, page.FindControl<MyButton>("BtnLogin")!);
+                Assert.AreEqual("请填写认证服务器、邮箱和密码。", validation);
+
+                page.FindControl<MyComboBox>("TextServer")!.Text = "LittleSkin";
+                Assert.AreEqual("https://littleskin.cn/api/yggdrasil", page.FindControl<MyComboBox>("TextServer")!.Text);
+                page.FindControl<MyTextBox>("TextName")!.Text = "steve@example.com";
+                page.FindControl<MyTextBox>("TextPass")!.Text = "secret";
+
+                Click(window, page.FindControl<MyButton>("BtnLogin")!);
+
+                Assert.IsNotNull(request);
+                Assert.AreEqual("https://littleskin.cn/api/yggdrasil", request!.Server);
+                Assert.AreEqual("steve@example.com", request.Username);
+                Assert.AreEqual("secret", request.Password);
+                Assert.IsFalse(page.FindControl<MyButton>("BtnLogin")!.IsEnabled);
+
+                page.FinishLogin();
+                Assert.IsTrue(page.FindControl<MyButton>("BtnLogin")!.IsEnabled);
+                Assert.AreEqual("登录", page.FindControl<MyButton>("BtnLogin")!.Text);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void PageLoginOffline_ValidatesUuidAndCreatesProfileRequest()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageLoginOffline page = new();
+            Window window = new()
+            {
+                Width = 360,
+                Height = 360,
+                Content = page
+            };
+            string? validation = null;
+            OfflineProfileCreateRequest? request = null;
+            page.ValidationFailed += (_, message) => validation = message;
+            page.ProfileCreateRequested += (_, value) => request = value;
+
+            try
+            {
+                page.SetSkinSources(
+                [
+                    new LoginProfileInfo(
+                        "Alex",
+                        "正版登录",
+                        LaunchLoginProfileKind.Microsoft,
+                        Uuid: "alex-uuid")
+                ]);
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.AreEqual(2, page.FindControl<MyComboBox>("ComboSkinSource")!.Items.Count);
+
+                page.FindControl<MyTextBox>("TextName")!.Text = "St";
+                Click(window, page.FindControl<MyButton>("BtnLogin")!);
+                Assert.AreEqual("玩家 ID 应为 3-16 位字母、数字或下划线。", validation);
+
+                page.FindControl<MyTextBox>("TextName")!.Text = "Steve";
+                page.FindControl<MyRadioBox>("RadioUuidCustom")!.SetChecked(true, user: true);
+                Assert.IsTrue(page.FindControl<MyTextBox>("TextUuid")!.IsVisible);
+                page.FindControl<MyTextBox>("TextUuid")!.Text = "not-a-uuid";
+                Click(window, page.FindControl<MyButton>("BtnLogin")!);
+                Assert.AreEqual("自定义 UUID 应为 32 位十六进制字符。", validation);
+
+                page.FindControl<MyTextBox>("TextUuid")!.Text = "00112233445566778899aabbccddeeff";
+                Click(window, page.FindControl<MyButton>("BtnLogin")!);
+
+                Assert.IsNotNull(request);
+                Assert.AreEqual("Steve", request!.Username);
+                Assert.AreEqual("00112233445566778899aabbccddeeff", request.Uuid);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void PageLaunchRight_PreservesCustomHomepageSurface()
     {
         using HeadlessUnitTestSession session = CreateSession();
