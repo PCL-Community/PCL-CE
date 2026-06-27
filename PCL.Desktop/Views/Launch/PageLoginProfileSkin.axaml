@@ -1,0 +1,96 @@
+<Grid x:Class="PCL.Desktop.Views.Launch.PageLoginProfileSkin"
+      xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:legacy="using:PCL.Desktop.Controls.Legacy"
+      Tag="False">
+    <Grid Margin="0,0,0,0"
+          Background="{StaticResource ColorBrushTransparent}"
+          x:Name="PanData"
+          PointerEntered="ShowPanel"
+          PointerExited="HidePanel">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="34" />
+            <ColumnDefinition />
+            <ColumnDefinition Width="34" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="80" />
+            <RowDefinition Height="Auto" MinHeight="30" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Column="1" Grid.Row="1" VerticalAlignment="Top">
+            <legacy:MySkin HorizontalAlignment="Center"
+                           VerticalAlignment="Top"
+                           x:Name="Skin"
+                           HasCape="False"
+                           Margin="0,0,0,10"
+                           IsHitTestVisible="False" />
+            <TextBlock x:Name="TextName"
+                       Text="Username"
+                       Margin="8,0"
+                       FontSize="16"
+                       HorizontalAlignment="Center"
+                       TextTrimming="CharacterEllipsis" />
+            <TextBlock x:Name="TextType"
+                       Text="AuthType"
+                       Margin="8,4,8,5"
+                       FontSize="12"
+                       HorizontalAlignment="Center"
+                       TextTrimming="CharacterEllipsis"
+                       Foreground="{DynamicResource ColorBrushGray4}" />
+        </StackPanel>
+        <legacy:MyCard Grid.Column="1"
+                       Grid.Row="2"
+                       HorizontalAlignment="Center"
+                       x:Name="PanButtons"
+                       Opacity="0"
+                       CornerRadius="5"
+                       Margin="0,8,0,0">
+            <StackPanel Orientation="Horizontal" Margin="10,3,9,3">
+                <legacy:MyIconButton Height="24"
+                                     Margin="0,0.5,9,0"
+                                     x:Name="BtnSkin"
+                                     ToolTip="皮肤与披风"
+                                     LogoScale="1.08"
+                                     SvgIcon="lucide/shirt"
+                                     Click="BtnSkinClick">
+                    <legacy:MyIconButton.ContextMenu>
+                        <ContextMenu>
+                            <legacy:MyMenuItem Click="SkinClick"
+                                               Header="更换皮肤" />
+                            <legacy:MyMenuItem Click="BtnSkinSaveClick"
+                                               Header="保存皮肤" />
+                            <legacy:MyMenuItem Click="BtnSkinRefreshClick"
+                                               Header="刷新皮肤" />
+                            <legacy:MyMenuItem Click="BtnSkinCapeClick"
+                                               Header="更换披风" />
+                        </ContextMenu>
+                    </legacy:MyIconButton.ContextMenu>
+                </legacy:MyIconButton>
+                <legacy:MyIconButton Height="24"
+                                     Margin="0,0,9,0"
+                                     x:Name="BtnEdit"
+                                     ToolTip="编辑档案"
+                                     LogoScale="1.1"
+                                     SvgIcon="lucide/pencil"
+                                     Click="BtnEditClick">
+                    <legacy:MyIconButton.ContextMenu>
+                        <ContextMenu>
+                            <legacy:MyMenuItem Click="BtnEditPasswordClick"
+                                               Header="修改密码" />
+                            <legacy:MyMenuItem Click="BtnEditNameClick"
+                                               Header="修改用户名" />
+                        </ContextMenu>
+                    </legacy:MyIconButton.ContextMenu>
+                </legacy:MyIconButton>
+                <legacy:MyIconButton Height="24"
+                                     x:Name="BtnSelect"
+                                     Margin="0,0,0,0"
+                                     Click="ChangeProfile"
+                                     ToolTip="切换档案"
+                                     LogoScale="1.15"
+                                     SvgIcon="lucide/arrow-right-left" />
+            </StackPanel>
+        </legacy:MyCard>
+    </Grid>
+</Grid>

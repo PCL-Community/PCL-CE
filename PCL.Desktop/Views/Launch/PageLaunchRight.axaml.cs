@@ -23,6 +23,7 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
     ];
     private FileSystemWatcher? _homepageLiveWatcher;
     private bool _disposed;
+    private int _loadedContentHash = -1;
 
     public PageLaunchRight()
     {
@@ -38,14 +39,26 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
 
     public StackPanel? CustomPanel => this.FindControl<StackPanel>("PanCustom");
 
+    public bool IsDebugLogVisible
+    {
+        get => this.FindControl<MyCard>("PanLog")?.IsVisible == true;
+        set
+        {
+            if (this.FindControl<MyCard>("PanLog") is { } log)
+                log.IsVisible = value;
+        }
+    }
+
     public void Refresh()
     {
+        IsDebugLogVisible = false;
         RefreshTrivia();
         AppendLog("启动页已就绪。");
     }
 
     public void ForceRefresh()
     {
+        ClearCache();
         if (PanScroll is not null)
             PanScroll.Offset = Vector.Zero;
         Refresh();
@@ -73,6 +86,14 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
         if (CustomPanel is not { } panel)
             return;
 
+        int hash = content.GetHashCode(StringComparison.Ordinal);
+        if (hash == _loadedContentHash)
+        {
+            ApplyHomepageLivePatchesFromFile();
+            return;
+        }
+
+        _loadedContentHash = hash;
         panel.Children.Clear();
         if (string.IsNullOrWhiteSpace(content))
             return;
@@ -93,6 +114,11 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
             }
         });
         ApplyHomepageLivePatchesFromFile();
+    }
+
+    public void ClearCache()
+    {
+        _loadedContentHash = -1;
     }
 
     public void AppendLog(string message)

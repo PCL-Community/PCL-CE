@@ -40,6 +40,9 @@ public partial class MainWindow : Window
     private bool _isMainWindowOpened;
     private PageLaunchLeft? _launchLeft;
     private PageLaunchRight? _launchRight;
+    private PageLoginProfile? _loginProfilePage;
+    private PageLoginProfileSkin? _loginProfileSkinPage;
+    private readonly List<LoginProfileInfo> _loginProfiles = [];
 
     private const double NavCollapsedWidth = 50d;
     private const int NavAnimDuration = 200;
@@ -424,6 +427,7 @@ public partial class MainWindow : Window
         page.InstanceSettingsRequested += (_, _) => _launchRight?.AppendLog("版本设置页面正在迁移中。");
         page.CancelLaunchRequested += (_, _) => _launchRight?.AppendLog("已取消启动。");
         page.StatusMessage += (_, message) => _launchRight?.AppendLog(message);
+        page.LoginPageRequested += (_, type) => ApplyLaunchLoginPage(page, type);
         page.LaunchRequested += (_, instance) =>
         {
             _launchRight?.AppendLog($"已请求启动 {instance.Name}。");
@@ -431,6 +435,109 @@ public partial class MainWindow : Window
         };
         return page;
     }
+
+    private void ApplyLaunchLoginPage(PageLaunchLeft launchPage, PageLaunchLeft.LaunchLoginPageType type)
+    {
+        switch (type)
+        {
+            case PageLaunchLeft.LaunchLoginPageType.ProfileSkin:
+                if (_loginProfiles.Count == 0)
+                {
+                    launchPage.SetSelectedProfilePresent(false);
+                    ApplyLaunchLoginPage(launchPage, PageLaunchLeft.LaunchLoginPageType.Profile);
+                    return;
+                }
+
+                LoginProfileInfo selectedProfile = _loginProfiles[0];
+                _loginProfileSkinPage ??= CreateProfileSkinPage(launchPage);
+                _loginProfileSkinPage.SetProfile(selectedProfile);
+                launchPage.SetLoginPage(_loginProfileSkinPage, animate: true, PageLaunchLeft.LaunchLoginPageType.ProfileSkin);
+                break;
+            case PageLaunchLeft.LaunchLoginPageType.Profile:
+                _loginProfilePage ??= CreateProfilePage(launchPage);
+                _loginProfilePage.SetProfiles(_loginProfiles);
+                launchPage.SetLoginPage(_loginProfilePage, animate: true, PageLaunchLeft.LaunchLoginPageType.Profile);
+                break;
+            default:
+                launchPage.SetLoginPage(
+                    CreateLoginPlaceholder(type),
+                    animate: true,
+                    type);
+                break;
+        }
+    }
+
+    private PageLoginProfile CreateProfilePage(PageLaunchLeft launchPage)
+    {
+        PageLoginProfile page = new();
+        page.ProfileSelected += (_, profile) =>
+        {
+            _loginProfiles.Remove(profile);
+            _loginProfiles.Insert(0, profile);
+            launchPage.SetSelectedProfilePresent(true);
+            launchPage.RefreshPage(anim: true);
+            _launchRight?.AppendLog($"已选择账户档案 {profile.Username}。");
+        };
+        page.CreateProfileRequested += (_, _) =>
+        {
+            LoginProfileInfo profile = new(
+                "离线玩家",
+                "离线登录",
+                LaunchLoginProfileKind.Offline,
+                Uuid: Guid.NewGuid().ToString("N"),
+                SvgIcon: "lucide/user");
+            _loginProfiles.Add(profile);
+            page.SetProfiles(_loginProfiles, profile);
+            _launchRight?.AppendLog("已创建一个临时离线档案。");
+        };
+        page.ImportExportRequested += (_, _) => _launchRight?.AppendLog("档案导入与导出入口正在迁移中。");
+        return page;
+    }
+
+    private PageLoginProfileSkin CreateProfileSkinPage(PageLaunchLeft launchPage)
+    {
+        PageLoginProfileSkin page = new();
+        page.ChangeProfileRequested += (_, _) =>
+        {
+            launchPage.SetSelectedProfilePresent(false);
+            launchPage.RefreshPage(anim: true);
+        };
+        page.ChangeSkinRequested += (_, _) => _launchRight?.AppendLog("皮肤更换入口正在迁移中。");
+        page.SaveSkinRequested += (_, _) => _launchRight?.AppendLog("皮肤保存入口正在迁移中。");
+        page.RefreshSkinRequested += (_, _) => _launchRight?.AppendLog("皮肤刷新入口正在迁移中。");
+        page.ChangeCapeRequested += (_, _) => _launchRight?.AppendLog("披风更换入口正在迁移中。");
+        page.EditPasswordRequested += (_, _) => _launchRight?.AppendLog("密码修改入口正在迁移中。");
+        page.EditNameRequested += (_, _) => _launchRight?.AppendLog("用户名修改入口正在迁移中。");
+        return page;
+    }
+
+    private static Grid CreateLoginPlaceholder(PageLaunchLeft.LaunchLoginPageType type) =>
+        new()
+        {
+            Children =
+            {
+                new MyCard
+                {
+                    Title = type switch
+                    {
+                        PageLaunchLeft.LaunchLoginPageType.Ms => "Microsoft 登录",
+                        PageLaunchLeft.LaunchLoginPageType.Auth => "第三方登录",
+                        PageLaunchLeft.LaunchLoginPageType.Offline => "离线档案",
+                        _ => "账户"
+                    },
+                    Children =
+                    {
+                        new TextBlock
+                        {
+                            Margin = new Thickness(25d, 38d, 23d, 16d),
+                            FontSize = 13.5d,
+                            TextWrapping = TextWrapping.Wrap,
+                            Text = "该登录分页正在迁移中，入口与状态切换已按 WPF 启动页保留。"
+                        }
+                    }
+                }
+            }
+        };
 
     private void ApplyPlaceholderPage(int page)
     {
