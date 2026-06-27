@@ -11,7 +11,8 @@ public sealed record LoginProfileInfo(
     string Uuid = "",
     string Logo = "",
     string SvgIcon = "lucide/user",
-    string? SkinAddress = null);
+    string? SkinAddress = null,
+    string AuthServer = "");
 
 public enum LaunchLoginProfileKind
 {

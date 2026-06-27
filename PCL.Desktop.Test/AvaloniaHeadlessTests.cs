@@ -1227,10 +1227,17 @@ public sealed class AvaloniaHeadlessTests
         }, CancellationToken.None);
     }
 
-    private static HeadlessUnitTestSession CreateSession() =>
-        HeadlessUnitTestSession.StartNew(
+    private static HeadlessUnitTestSession CreateSession()
+    {
+        Environment.SetEnvironmentVariable(
+            "PCLN_LAUNCH_PROFILES_PATH",
+            System.IO.Path.Combine(
+                System.IO.Path.GetTempPath(),
+                "pcl-desktop-test-profiles-" + Guid.NewGuid().ToString("N") + ".json"));
+        return HeadlessUnitTestSession.StartNew(
             typeof(App),
             AvaloniaTestIsolationLevel.PerTest);
+    }
 
     private static void Click(Window window, Control control)
     {

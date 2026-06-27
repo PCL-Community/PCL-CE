@@ -13,8 +13,10 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using PCL.Application.Accounts;
 using PCL.Desktop.Controls.Legacy;
 using PCL.Desktop.Views.Launch;
+using PCL.Platform.Paths;
 
 namespace PCL.Desktop.Views;
 
@@ -75,6 +77,7 @@ public partial class MainWindow : Window
             StartShowAnimation();
         };
         SyncTitleOverlayWidth();
+        _ = LoadProfilesAsync();
         SelectNavPage(0, animate: false);
     }
 
@@ -492,6 +495,7 @@ public partial class MainWindow : Window
             _loginProfiles.Insert(0, profile);
             launchPage.SetSelectedProfilePresent(true);
             launchPage.RefreshPage(anim: true);
+            SaveProfilesInBackground("保存账户档案选择");
             _launchRight?.AppendLog($"已选择账户档案 {profile.Username}。");
         };
         page.CreateProfileRequested += (_, _) =>
@@ -649,10 +653,105 @@ public partial class MainWindow : Window
             _loginProfilePage?.SetProfiles(_loginProfiles, profile);
             launchPage.SetSelectedProfilePresent(true);
             launchPage.RefreshPage(anim: true);
+            SaveProfilesInBackground("保存离线账户档案");
             _launchRight?.AppendLog($"已创建并选中离线档案 {profile.Username}。");
         };
         return page;
     }
+
+    private async Task LoadProfilesAsync()
+    {
+        try
+        {
+            using LaunchProfileStore store = CreateLaunchProfileStore();
+            LaunchProfileLoadResult result = await store.LoadAsync().ConfigureAwait(false);
+            List<LoginProfileInfo> profiles = result.Profiles.Profiles
+                .Select(ToLoginProfileInfo)
+                .ToList();
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                _loginProfiles.Clear();
+                _loginProfiles.AddRange(profiles);
+                _loginProfilePage?.SetProfiles(_loginProfiles);
+                _launchLeft?.SetSelectedProfilePresent(_loginProfiles.Count > 0);
+                if (result.WasRecovered)
+                    _launchRight?.AppendLog($"账户档案配置已重置，损坏文件已备份到：{result.BackupPath}");
+            });
+        }
+        catch (Exception ex)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+                _launchRight?.AppendLog("读取账户档案失败：" + ex.Message));
+        }
+    }
+
+    private void SaveProfilesInBackground(string action)
+    {
+        LaunchProfileSet snapshot = new()
+        {
+            Profiles = _loginProfiles.Select(ToLaunchProfile).ToArray()
+        };
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                using LaunchProfileStore store = CreateLaunchProfileStore();
+                await store.SaveAsync(snapshot).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                    _launchRight?.AppendLog(action + "失败：" + ex.Message));
+            }
+        });
+    }
+
+    private static LaunchProfileStore CreateLaunchProfileStore() =>
+        new(CreateLaunchProfilePath());
+
+    private static string CreateLaunchProfilePath()
+    {
+        string? overridePath = Environment.GetEnvironmentVariable("PCLN_LAUNCH_PROFILES_PATH");
+        if (!string.IsNullOrWhiteSpace(overridePath))
+            return overridePath;
+
+        DefaultPlatformPathProvider paths = new();
+        return Path.Combine(paths.ApplicationDataDirectory, "PCL-N", "launch-profiles.json");
+    }
+
+    private static LoginProfileInfo ToLoginProfileInfo(LaunchProfile profile) =>
+        new(
+            profile.Username,
+            profile.Info,
+            profile.Kind switch
+            {
+                LaunchProfileKind.Microsoft => LaunchLoginProfileKind.Microsoft,
+                LaunchProfileKind.ThirdParty => LaunchLoginProfileKind.ThirdParty,
+                _ => LaunchLoginProfileKind.Offline
+            },
+            profile.Uuid,
+            profile.Logo,
+            profile.SvgIcon,
+            profile.SkinAddress,
+            profile.AuthServer);
+
+    private static LaunchProfile ToLaunchProfile(LoginProfileInfo profile) =>
+        new()
+        {
+            Username = profile.Username,
+            Info = profile.Info,
+            Kind = profile.Kind switch
+            {
+                LaunchLoginProfileKind.Microsoft => LaunchProfileKind.Microsoft,
+                LaunchLoginProfileKind.ThirdParty => LaunchProfileKind.ThirdParty,
+                _ => LaunchProfileKind.Offline
+            },
+            Uuid = profile.Uuid,
+            Logo = profile.Logo,
+            SvgIcon = profile.SvgIcon,
+            SkinAddress = profile.SkinAddress,
+            AuthServer = profile.AuthServer
+        };
 
     private void OpenExternalUrl(string url)
     {
