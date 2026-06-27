@@ -6,6 +6,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Input;
+using Avalonia.Layout;
 using PCL.Desktop;
 using PCL.Desktop.Controls.Legacy;
 using PCL.Desktop.Views;
@@ -34,6 +35,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsNotNull(window.FindControl<MyListItem>("BtnTitleSelect0"));
                 Assert.IsNotNull(window.FindControl<MyListItem>("BtnTitleSelect4"));
                 Assert.IsNotNull(window.FindControl<AnimatedBackgroundGrid>("PanTitle"));
+                Assert.IsNotNull(window.Icon);
                 Assert.IsTrue(window.FindControl<MyListItem>("BtnTitleSelect0")!.Checked);
                 Assert.IsFalse(window.FindControl<MyListItem>("BtnTitleSelect1")!.Checked);
                 Assert.AreEqual(20d, GetCheckIndicator(window.FindControl<MyListItem>("BtnTitleSelect0")!).Height);
@@ -130,7 +132,256 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsTrue(download.Checked);
                 Assert.AreEqual(0d, GetCheckIndicator(launch).Height);
                 Assert.AreEqual(20d, GetCheckIndicator(download).Height);
+                AdvancePageChangeAnimation(window);
                 Assert.AreEqual("正在加载下载页面", window.FindControl<MyLoading>("LoadMain")!.Text);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void MainWindow_NavigationSwitchFadesPageContent()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MainWindow window = new();
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Control right = window.FindControl<Control>("PanMainRight")!;
+                Click(window, window.FindControl<MyListItem>("BtnTitleSelect2")!);
+
+                InvokePrivateTick(window, "PageChangeTimer_Tick", 3);
+                Assert.IsTrue(right.Opacity < 1d);
+
+                AdvancePageChangeAnimation(window);
+                Assert.AreEqual(1d, right.Opacity, 0.01d);
+                Assert.AreEqual("正在加载社区页面", window.FindControl<MyLoading>("LoadMain")!.Text);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void SplashWindow_RendersStartupIcon()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            SplashWindow splash = new();
+            try
+            {
+                splash.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.IsNotNull(splash.CaptureRenderedFrame());
+            }
+            finally
+            {
+                splash.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void MyLoading_AnimatesPickaxeLoop()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MyLoading loading = new()
+            {
+                Text = "正在加载"
+            };
+            Window window = new()
+            {
+                Width = 220,
+                Height = 140,
+                Content = loading
+            };
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Thread.Sleep(650);
+                InvokePrivateTick(loading, "LoopTimer_Tick", 1);
+
+                var pickaxe = loading.FindControl<Avalonia.Controls.Shapes.Path>("PathPickaxe")!;
+                var rotate = (Avalonia.Media.RotateTransform)pickaxe.RenderTransform!;
+                Assert.AreEqual(new Thickness(10d, 6d, 0d, 0d), pickaxe.Margin);
+                Assert.AreEqual(HorizontalAlignment.Left, pickaxe.HorizontalAlignment);
+                Assert.AreEqual(VerticalAlignment.Top, pickaxe.VerticalAlignment);
+                Assert.AreEqual(40d, rotate.CenterX, 0.01d);
+                Assert.AreEqual(36d, rotate.CenterY, 0.01d);
+                Assert.IsTrue(rotate.Angle < 35d, $"Expected the WPF strike posture, got {rotate.Angle:0.00} degrees.");
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void MyRadioBox_KeepsWpfSingleSelectionBehavior()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MyRadioBox first = new() { Text = "默认", Width = 120, Height = 24, Checked = true };
+            MyRadioBox second = new() { Text = "自定义", Width = 120, Height = 24 };
+            StackPanel panel = new()
+            {
+                Margin = new Thickness(20),
+                Spacing = 8,
+                Children =
+                {
+                    first,
+                    second
+                }
+            };
+            Window window = new()
+            {
+                Width = 220,
+                Height = 130,
+                Content = panel
+            };
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.AreEqual("默认", first.FindControl<TextBlock>("LabText")!.Text);
+                Assert.AreEqual("自定义", second.FindControl<TextBlock>("LabText")!.Text);
+                Assert.IsTrue(first.Checked);
+                Assert.IsFalse(second.Checked);
+
+                Click(window, second);
+
+                Assert.IsFalse(first.Checked);
+                Assert.IsTrue(second.Checked);
+
+                first.PreviewCheck += (_, e) => e.Handled = true;
+                Click(window, first);
+                Assert.IsFalse(first.Checked);
+                Assert.IsTrue(second.Checked);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void MySearchBar_SyncsTextAndClearButton()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MySearchBar searchBar = new()
+            {
+                Width = 260,
+                HintText = "搜索版本",
+                Text = "1.20"
+            };
+            Window window = new()
+            {
+                Width = 320,
+                Height = 120,
+                Content = new Border
+                {
+                    Padding = new Thickness(20),
+                    Child = searchBar
+                }
+            };
+
+            bool changed = false;
+            searchBar.TextChanged += (_, _) => changed = true;
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                MyTextBox textBox = searchBar.FindControl<MyTextBox>("TextBox")!;
+                MyIconButton clear = searchBar.FindControl<MyIconButton>("BtnClear")!;
+                Assert.AreEqual("搜索版本", textBox.HintText);
+                Assert.AreEqual("1.20", textBox.Text);
+                Assert.AreEqual(1d, clear.Opacity, 0.01d);
+                Assert.IsTrue(clear.IsHitTestVisible);
+
+                Click(window, clear);
+
+                Assert.AreEqual(string.Empty, searchBar.Text);
+                Assert.AreEqual(string.Empty, textBox.Text);
+                Assert.IsFalse(clear.IsHitTestVisible);
+                Assert.IsTrue(changed);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void MyExtraTextButton_UsesWpfStructureAndRaisesClick()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MyExtraTextButton button = new()
+            {
+                Text = "开始下载",
+                Show = true,
+                Width = 180
+            };
+            Window window = new()
+            {
+                Width = 260,
+                Height = 150,
+                Content = new Border
+                {
+                    Padding = new Thickness(20),
+                    Child = button
+                }
+            };
+
+            bool clicked = false;
+            button.Click += (_, _) => clicked = true;
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.AreEqual("开始下载", button.FindControl<TextBlock>("LabText")!.Text);
+                Assert.IsFalse(button.FindControl<Grid>("IconHost")!.IsVisible);
+                Assert.AreEqual(1d, ((Avalonia.Media.ScaleTransform)button.RenderTransform!).ScaleX, 0.01d);
+
+                button.Logo = "M0,0 L10,5 L0,10 Z";
+                Assert.IsTrue(button.FindControl<Grid>("IconHost")!.IsVisible);
+
+                Click(window, button);
+                Assert.IsTrue(clicked);
             }
             finally
             {
@@ -236,12 +487,27 @@ public sealed class AvaloniaHeadlessTests
 
     private static void AdvanceNavigationAnimation(MainWindow window)
     {
-        var method = typeof(MainWindow).GetMethod(
-            "NavAnimTimer_Tick",
+        InvokePrivateTick(window, "NavAnimTimer_Tick", 14);
+    }
+
+    private static void AdvancePageChangeAnimation(MainWindow window)
+    {
+        InvokePrivateTick(window, "PageChangeTimer_Tick", 22);
+    }
+
+    private static void InvokePrivateTick(MainWindow window, string methodName, int count)
+    {
+        InvokePrivateTick((object)window, methodName, count);
+    }
+
+    private static void InvokePrivateTick(object target, string methodName, int count)
+    {
+        var method = target.GetType().GetMethod(
+            methodName,
             System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
-            ?? throw new InvalidOperationException("Navigation animation tick method was not found.");
-        for (int i = 0; i < 14; i++)
-            method.Invoke(window, [null, EventArgs.Empty]);
+            ?? throw new InvalidOperationException($"Method '{methodName}' was not found.");
+        for (int i = 0; i < count; i++)
+            method.Invoke(target, [null, EventArgs.Empty]);
     }
 
     private static double GetPrivateDouble(object instance, string fieldName)

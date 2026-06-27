@@ -1,0 +1,36 @@
+<Grid xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:svgIcon="using:PCL.Desktop.Controls.Legacy"
+      x:Name="PanBack"
+      x:Class="PCL.Desktop.Controls.Legacy.MyExtraTextButton"
+      RenderTransformOrigin="0.5,0.5" Height="52" Margin="20">
+    <Grid.RenderTransform>
+        <ScaleTransform ScaleX="0" ScaleY="0" />
+    </Grid.RenderTransform>
+    <Border x:Name="PanClick" BorderThickness="0.001" Background="{StaticResource ColorBrushSemiTransparent}"
+            CornerRadius="21" />
+    <Grid x:Name="PanScale" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5" Margin="0,10,0,0">
+        <Grid.RenderTransform>
+            <ScaleTransform />
+        </Grid.RenderTransform>
+        <Border x:Name="PanColor" BorderThickness="0.001" Background="{DynamicResource ColorBrush3}"
+                CornerRadius="21" />
+        <StackPanel Orientation="Horizontal" Margin="20,0">
+            <Grid x:Name="IconHost" Width="16" Margin="2,12,0,12" RenderTransformOrigin="0.5,0.5">
+                <Grid.RenderTransform>
+                    <ScaleTransform />
+                </Grid.RenderTransform>
+                <Path x:Name="Path"
+                      Stretch="Uniform"
+                      Fill="{DynamicResource ColorBrush8}" />
+                <svgIcon:SvgIcon x:Name="ShapeSvgIcon"
+                             Stretch="Uniform"
+                             IsVisible="False"
+                             IconBrush="{Binding Fill, ElementName=Path}" />
+            </Grid>
+            <TextBlock x:Name="LabText" VerticalAlignment="Center" Foreground="{DynamicResource ColorBrush8}"
+                       FontSize="16"
+                       Margin="12,0,0,0.8" />
+        </StackPanel>
+    </Grid>
+</Grid>
