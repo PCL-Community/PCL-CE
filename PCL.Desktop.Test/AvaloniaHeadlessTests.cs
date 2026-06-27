@@ -34,6 +34,14 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsNotNull(window.FindControl<MyListItem>("BtnTitleSelect0"));
                 Assert.IsNotNull(window.FindControl<MyListItem>("BtnTitleSelect4"));
                 Assert.IsNotNull(window.FindControl<AnimatedBackgroundGrid>("PanTitle"));
+                Assert.IsTrue(window.FindControl<MyListItem>("BtnTitleSelect0")!.Checked);
+                Assert.IsFalse(window.FindControl<MyListItem>("BtnTitleSelect1")!.Checked);
+                Assert.AreEqual(20d, GetCheckIndicator(window.FindControl<MyListItem>("BtnTitleSelect0")!).Height);
+                Assert.AreEqual(0d, GetCheckIndicator(window.FindControl<MyListItem>("BtnTitleSelect1")!).Height);
+                Assert.IsTrue(window.FindControl<Avalonia.Controls.Shapes.Path>("ShapeTitleLogo")!.IsVisible);
+                Assert.IsFalse(window.FindControl<Avalonia.Controls.Shapes.Path>("ShapeHMCLTitleLogo")!.IsVisible);
+                Assert.IsFalse(window.FindControl<MyImage>("ImageHMCLTitleLogo")!.IsVisible);
+                Assert.AreEqual("正在加载启动页面", window.FindControl<MyLoading>("LoadMain")!.Text);
                 Assert.IsNotNull(window.CaptureRenderedFrame());
             }
             finally
@@ -100,6 +108,72 @@ public sealed class AvaloniaHeadlessTests
         }, CancellationToken.None);
     }
 
+    [TestMethod]
+    public void MainWindow_NavigationListKeepsSingleSelection()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MainWindow window = new();
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                MyListItem launch = window.FindControl<MyListItem>("BtnTitleSelect0")!;
+                MyListItem download = window.FindControl<MyListItem>("BtnTitleSelect1")!;
+
+                Click(window, download);
+
+                Assert.IsFalse(launch.Checked);
+                Assert.IsTrue(download.Checked);
+                Assert.AreEqual(0d, GetCheckIndicator(launch).Height);
+                Assert.AreEqual(20d, GetCheckIndicator(download).Height);
+                Assert.AreEqual("正在加载下载页面", window.FindControl<MyLoading>("LoadMain")!.Text);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void SvgIcon_LoadsLucideAssetsThroughDesktopResources()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            SvgIcon icon = new()
+            {
+                Icon = "lucide/settings",
+                IconBrush = Avalonia.Media.Brushes.Black,
+                Width = 24,
+                Height = 24
+            };
+            Window window = new()
+            {
+                Width = 80,
+                Height = 80,
+                Content = icon
+            };
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.IsNotNull(window.CaptureRenderedFrame());
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
     private static HeadlessUnitTestSession CreateSession() =>
         HeadlessUnitTestSession.StartNew(
             typeof(App),
@@ -116,4 +190,9 @@ public sealed class AvaloniaHeadlessTests
         window.MouseDown(center, MouseButton.Left);
         window.MouseUp(center, MouseButton.Left);
     }
+
+    private static Border GetCheckIndicator(MyListItem item) =>
+        item.Children
+            .OfType<Border>()
+            .Single(border => Math.Abs(border.Width - 5d) < 0.01d);
 }

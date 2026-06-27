@@ -5,10 +5,10 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
-using PathShape = Avalonia.Controls.Shapes.Path;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using PathShape = Avalonia.Controls.Shapes.Path;
 
 namespace PCL.Desktop.Controls.Legacy;
 
@@ -55,8 +55,11 @@ public partial class MyListItem : Grid
         AvaloniaProperty.Register<MyListItem, IBrush?>(nameof(Foreground), new SolidColorBrush(Color.Parse("#343d4a")));
 
     private readonly TextBlock? _title;
+    private Border? _checkIndicator;
+    private Grid? _logoHost;
     private PathShape? _logoPath;
     private SvgIcon? _svgIcon;
+    private bool _isSyncingRadioGroup;
     private bool _isPressed;
 
     public MyListItem()
@@ -72,17 +75,36 @@ public partial class MyListItem : Grid
         };
         PointerPressed += OnPointerPressed;
         PointerReleased += OnPointerReleased;
+        SizeChanged += (_, _) => RefreshLayoutMetrics();
 
         this.GetObservable(TitleProperty).Subscribe(text =>
         {
             if (_title is not null)
                 _title.Text = text;
         });
+        this.GetObservable(FontSizeProperty).Subscribe(size =>
+        {
+            if (_title is not null)
+                _title.FontSize = size;
+        });
         this.GetObservable(SvgIconProperty).Subscribe(_ => EnsureLogo());
         this.GetObservable(LogoProperty).Subscribe(_ => EnsureLogo());
-        this.GetObservable(CheckedProperty).Subscribe(_ => RefreshVisual());
+        this.GetObservable(LogoScaleProperty).Subscribe(_ => RefreshLayoutMetrics());
+        this.GetObservable(MinPaddingRightProperty).Subscribe(_ => RefreshLayoutMetrics());
+        this.GetObservable(TypeProperty).Subscribe(_ =>
+        {
+            RefreshCheckIndicator();
+            RefreshLayoutMetrics();
+        });
+        this.GetObservable(CheckedProperty).Subscribe(_ =>
+        {
+            EnsureRadioGroupSelection();
+            RefreshVisual();
+        });
         this.GetObservable(ForegroundProperty).Subscribe(_ => RefreshVisual());
 
+        RefreshLayoutMetrics();
+        RefreshCheckIndicator();
         RefreshVisual();
     }
 
@@ -171,8 +193,15 @@ public partial class MyListItem : Grid
             return;
 
         _isPressed = false;
-        if (Type is MyListItemType.RadioBox or MyListItemType.CheckBox)
-            Checked = true;
+        switch (Type)
+        {
+            case MyListItemType.RadioBox:
+                Checked = true;
+                break;
+            case MyListItemType.CheckBox:
+                Checked = !Checked;
+                break;
+        }
         RefreshVisual();
         Click?.Invoke(this, e);
         e.Handled = true;
@@ -180,27 +209,24 @@ public partial class MyListItem : Grid
 
     private void EnsureLogo()
     {
-        if (ColumnDefinitions.Count < 3)
+        if (ColumnDefinitions.Count < 6)
             return;
 
         if (_logoPath is null && _svgIcon is null)
         {
-            var host = new Grid
+            _logoHost = new Grid
             {
-                Width = 18,
-                Height = 18,
-                Margin = new Thickness(6, 0, 2, 0),
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch,
                 RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative)
             };
-            host.RenderTransform = new ScaleTransform(LogoScale, LogoScale);
-            Grid.SetColumn(host, 2);
-            Grid.SetRow(host, 1);
-            Grid.SetRowSpan(host, 2);
+            Grid.SetColumn(_logoHost, 2);
+            Grid.SetRowSpan(_logoHost, 4);
             _logoPath = new PathShape { Stretch = Stretch.Uniform };
             _svgIcon = new SvgIcon { Stretch = Stretch.Uniform, IsVisible = false };
-            host.Children.Add(_logoPath);
-            host.Children.Add(_svgIcon);
-            Children.Add(host);
+            _logoHost.Children.Add(_logoPath);
+            _logoHost.Children.Add(_svgIcon);
+            Children.Add(_logoHost);
         }
 
         var usesSvg = !string.IsNullOrWhiteSpace(SvgIcon);
@@ -224,21 +250,129 @@ public partial class MyListItem : Grid
             _svgIcon.IsVisible = usesSvg;
             _svgIcon.Icon = SvgIcon;
         }
+        RefreshLayoutMetrics();
         RefreshVisual();
+    }
+
+    private void RefreshLayoutMetrics()
+    {
+        if (ColumnDefinitions.Count < 6)
+            return;
+
+        bool isSmall = Height < 40d;
+        bool hasLogo = !string.IsNullOrWhiteSpace(SvgIcon) || !string.IsNullOrWhiteSpace(Logo);
+
+        ColumnDefinitions[0].Width = new GridLength(Type is MyListItemType.RadioBox or MyListItemType.CheckBox
+            ? 6d
+            : isSmall ? 4d : 2d);
+        ColumnDefinitions[2].Width = new GridLength((hasLogo ? 34d : 0d) + (isSmall ? 0d : 4d));
+        ColumnDefinitions[5].Width = new GridLength(MinPaddingRight);
+
+        if (_logoHost is not null)
+        {
+            _logoHost.Margin = new Thickness(isSmall ? 6d : 8d, 8d, isSmall ? 4d : 6d, 8d);
+            _logoHost.RenderTransform = new ScaleTransform(LogoScale, LogoScale);
+        }
+
+        if (_title is not null)
+            _title.Margin = new Thickness(4d, 0d, 0d, isSmall ? 0d : 2d);
+    }
+
+    private void RefreshCheckIndicator()
+    {
+        if (Type is MyListItemType.Clickable)
+        {
+            if (_checkIndicator is not null)
+            {
+                Children.Remove(_checkIndicator);
+                _checkIndicator = null;
+            }
+            return;
+        }
+
+        if (_checkIndicator is not null)
+            return;
+
+        _checkIndicator = new Border
+        {
+            Width = 5d,
+            Height = 0d,
+            CornerRadius = new CornerRadius(2d),
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,
+            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+            Margin = new Thickness(-1d, 0d, 0d, 0d),
+            Background = new SolidColorBrush(Color.Parse("#1370f3")),
+            IsHitTestVisible = false,
+            Opacity = 0d
+        };
+        Grid.SetRowSpan(_checkIndicator, 4);
+        Children.Add(_checkIndicator);
+    }
+
+    private void EnsureRadioGroupSelection()
+    {
+        if (_isSyncingRadioGroup || Type != MyListItemType.RadioBox || Parent is not Panel parent)
+            return;
+
+        _isSyncingRadioGroup = true;
+        try
+        {
+            MyListItem? firstRadio = null;
+            MyListItem? checkedRadio = null;
+            foreach (Control child in parent.Children)
+            {
+                if (child is not MyListItem item || item.Type != MyListItemType.RadioBox)
+                    continue;
+
+                firstRadio ??= item;
+                if (!item.Checked)
+                    continue;
+
+                if (checkedRadio is null || ReferenceEquals(item, this))
+                {
+                    if (checkedRadio is not null && !ReferenceEquals(checkedRadio, item))
+                        checkedRadio.Checked = false;
+                    checkedRadio = item;
+                    continue;
+                }
+
+                item.Checked = false;
+            }
+
+            if (checkedRadio is null && firstRadio is not null)
+                firstRadio.Checked = true;
+        }
+        finally
+        {
+            _isSyncingRadioGroup = false;
+        }
     }
 
     private void RefreshVisual()
     {
-        var accent = Checked ? Color.Parse("#1370f3") : Color.Parse("#343d4a");
-        Foreground = new SolidColorBrush(accent);
-        var backgroundAlpha = Checked ? 0x20 : _isPressed ? 0x18 : IsPointerOver ? 0x10 : 0x00;
+        RefreshCheckIndicator();
+
+        IBrush foregroundBrush = Checked
+            ? new SolidColorBrush(Color.Parse("#1370f3"))
+            : Foreground ?? new SolidColorBrush(Color.Parse("#343d4a"));
+        var backgroundAlpha = _isPressed ? 0x18 : IsPointerOver ? 0x10 : 0x00;
         Background = new SolidColorBrush(Color.FromArgb((byte)backgroundAlpha, 19, 112, 243));
+        if (_checkIndicator is not null)
+        {
+            _checkIndicator.Height = Checked ? 20d : 0d;
+            _checkIndicator.Opacity = Checked ? 1d : 0d;
+            _checkIndicator.Margin = new Thickness(-1d, 0d, 0d, 0d);
+            _checkIndicator.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
+            _checkIndicator.RenderTransform = null;
+        }
+        if (_title is not null)
+            _title.Foreground = foregroundBrush;
         if (_logoPath is not null)
         {
-            _logoPath.Fill = Foreground;
-            _logoPath.Stroke = Foreground;
+            _logoPath.Fill = foregroundBrush;
+            _logoPath.Stroke = foregroundBrush;
         }
         if (_svgIcon is not null)
-            _svgIcon.IconBrush = Foreground;
+            _svgIcon.IconBrush = foregroundBrush;
     }
 }
