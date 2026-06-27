@@ -3124,6 +3124,39 @@
     <sys:String x:Key="Crash.Result.NoAnalyzableFile">你的游戏出现了一些问题，但 PCL CE 未能找到相关记录文件，因此无法进行分析。</sys:String>
     <sys:String x:Key="Crash.Result.UnknownReason">PCL CE 获取到了没有详细信息的错误原因（{0}），请向 PCL CE 开发团队提交反馈以获取详情。</sys:String>
 
+    <!-- Error -->
+
+    <sys:String x:Key="Error.Title.Error">错误</sys:String>
+    <sys:String x:Key="Error.Title.Warning">警告</sys:String>
+    <sys:String x:Key="Error.Title.UnexpectedError">发生意外错误</sys:String>
+    <sys:String x:Key="Error.Detail.Header">详细信息</sys:String>
+    <sys:String x:Key="Error.Detail.WithException">{0}&#x0a;&#x0a;详细信息：&#x0a;{1}</sys:String>
+    <sys:String x:Key="Error.Detail.RawResponse">原始响应：&#x0a;{0}</sys:String>
+    <sys:String x:Key="Error.Detail.Path">路径：{0}</sys:String>
+    <sys:String x:Key="Error.Detail.InnerException">内部异常：&#x0a;{0}</sys:String>
+    <sys:String x:Key="Error.Action.CopyDetails">复制详细信息</sys:String>
+    <sys:String x:Key="Error.Action.ViewLog">查看日志</sys:String>
+    <sys:String x:Key="Error.Action.ExportReport">导出错误报告</sys:String>
+    <sys:String x:Key="Error.Action.OpenFolder">打开文件夹</sys:String>
+    <sys:String x:Key="Error.Message.Unexpected">发生意外错误。</sys:String>
+    <sys:String x:Key="Error.Message.DotNetRuntimeOutdated">你的 .NET 桌面运行时已过期或损坏。请重新安装 .NET 8。</sys:String>
+    <sys:String x:Key="Error.Guidance.ExportLog">若要寻求帮助，请不要关闭启动器。请立即导出日志（设置 → 查看日志 → 导出日志），并发送导出的日志压缩包；仅发送此窗口的截图通常无法帮助定位问题。</sys:String>
+    <sys:String x:Key="Error.Guidance.FatalFeedback">如果你认为这是启动器的问题，请提交反馈，以便开发者调查。&#x0a;导出日志：设置 → 查看日志 → 导出全部日志</sys:String>
+
+    <!-- Warning -->
+
+    <!-- Dialog -->
+
+    <!-- Config.Error -->
+
+    <!-- SystemDialog -->
+
+    <sys:String x:Key="SystemDialog.File.SelectTitle">选择文件</sys:String>
+    <sys:String x:Key="SystemDialog.File.AllFilesFilter">所有文件|*.*</sys:String>
+    <sys:String x:Key="SystemDialog.Folder.SelectTitle">选择文件夹</sys:String>
+    <sys:String x:Key="SystemDialog.Fatal.Title">致命错误</sys:String>
+    <sys:String x:Key="SystemDialog.Startup.InitializationTitle">PCL 初始化失败</sys:String>
+
     <!-- Event -->
 
     <sys:String x:Key="Event.Error.Title">事件执行失败</sys:String>

@@ -3125,6 +3125,39 @@
     <sys:String x:Key="Crash.Result.NoAnalyzableFile">Your game ran into some issues, but PCL could not find any relevant log files, so it cannot analyze the crash.</sys:String>
     <sys:String x:Key="Crash.Result.UnknownReason">PCL found an error reason without detailed information ({0}). Please submit feedback to the PCL developers for details.</sys:String>
 
+    <!-- Error -->
+
+    <sys:String x:Key="Error.Title.Error">Error</sys:String>
+    <sys:String x:Key="Error.Title.Warning">Warning</sys:String>
+    <sys:String x:Key="Error.Title.UnexpectedError">Unexpected error</sys:String>
+    <sys:String x:Key="Error.Detail.Header">Details</sys:String>
+    <sys:String x:Key="Error.Detail.WithException">{0}&#x0a;&#x0a;Details:&#x0a;{1}</sys:String>
+    <sys:String x:Key="Error.Detail.RawResponse">Raw response:&#x0a;{0}</sys:String>
+    <sys:String x:Key="Error.Detail.Path">Path: {0}</sys:String>
+    <sys:String x:Key="Error.Detail.InnerException">Inner exception:&#x0a;{0}</sys:String>
+    <sys:String x:Key="Error.Action.CopyDetails">Copy details</sys:String>
+    <sys:String x:Key="Error.Action.ViewLog">View log</sys:String>
+    <sys:String x:Key="Error.Action.ExportReport">Export error report</sys:String>
+    <sys:String x:Key="Error.Action.OpenFolder">Open folder</sys:String>
+    <sys:String x:Key="Error.Message.Unexpected">An unexpected error occurred.</sys:String>
+    <sys:String x:Key="Error.Message.DotNetRuntimeOutdated">Your .NET Desktop Runtime is outdated or corrupted. Please reinstall .NET 8.</sys:String>
+    <sys:String x:Key="Error.Guidance.ExportLog">When asking for help, do not close PCL. Export the logs now (Settings → View logs → Export logs), then send the exported log archive. A screenshot of this window alone is usually not enough to diagnose the problem.</sys:String>
+    <sys:String x:Key="Error.Guidance.FatalFeedback">If you think this is a launcher issue, please submit feedback so it can be investigated.&#x0a;Export logs: Settings → View logs → Export all logs</sys:String>
+
+    <!-- Warning -->
+
+    <!-- Dialog -->
+
+    <!-- Config.Error -->
+
+    <!-- SystemDialog -->
+
+    <sys:String x:Key="SystemDialog.File.SelectTitle">Select file</sys:String>
+    <sys:String x:Key="SystemDialog.File.AllFilesFilter">All files|*.*</sys:String>
+    <sys:String x:Key="SystemDialog.Folder.SelectTitle">Select folder</sys:String>
+    <sys:String x:Key="SystemDialog.Fatal.Title">Fatal error</sys:String>
+    <sys:String x:Key="SystemDialog.Startup.InitializationTitle">PCL failed to initialize</sys:String>
+
     <!-- Event -->
 
     <sys:String x:Key="Event.Error.Title">Event execution failed</sys:String>
