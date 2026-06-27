@@ -193,6 +193,7 @@ public sealed partial class MyRadioBox : Grid
 
         IBrush stroke = ResolveBrush(Checked, IsEnabled);
         _border.Stroke = stroke;
+        _dot.Fill = stroke;
 
         double targetDotSize = Checked ? DotCheckedSize : 0d;
         if (!animate)

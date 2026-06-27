@@ -25,6 +25,8 @@ public partial class MyLoading : Grid
     private readonly PathShape? _pickaxe;
     private readonly PathShape? _leftShard;
     private readonly PathShape? _rightShard;
+    private readonly PathShape? _errorIcon;
+    private readonly Rectangle? _bottomLine;
     private readonly Stopwatch _loopClock = new();
     private readonly List<LoadingAnimationStep> _animationGroup = [];
     private DispatcherTimer? _loopTimer;
@@ -39,11 +41,14 @@ public partial class MyLoading : Grid
         _pickaxe = this.FindControl<PathShape>("PathPickaxe");
         _leftShard = this.FindControl<PathShape>("PathLeft");
         _rightShard = this.FindControl<PathShape>("PathRight");
+        _errorIcon = this.FindControl<PathShape>("PathError");
+        _bottomLine = this.FindControl<Rectangle>("LineBottom");
         this.GetObservable(TextProperty).Subscribe(text =>
         {
             if (_label is not null)
                 _label.Text = text;
         });
+        this.GetObservable(ForegroundProperty).Subscribe(SyncForeground);
         AttachedToVisualTree += (_, _) => StartLoopAnimation();
         DetachedFromVisualTree += (_, _) => StopLoopAnimation();
     }
@@ -203,6 +208,23 @@ public partial class MyLoading : Grid
     {
         ResetShard(_leftShard, left: 7d);
         ResetShard(_rightShard, left: 14d);
+    }
+
+    private void SyncForeground(IBrush? brush)
+    {
+        brush ??= new SolidColorBrush(Color.Parse("#1370f3"));
+        if (_label is not null)
+            _label.Foreground = brush;
+        if (_pickaxe is not null)
+            _pickaxe.Stroke = brush;
+        if (_leftShard is not null)
+            _leftShard.Fill = brush;
+        if (_rightShard is not null)
+            _rightShard.Fill = brush;
+        if (_errorIcon is not null)
+            _errorIcon.Fill = brush;
+        if (_bottomLine is not null)
+            _bottomLine.Fill = brush;
     }
 
     private static void ResetShard(PathShape? shard, double left)

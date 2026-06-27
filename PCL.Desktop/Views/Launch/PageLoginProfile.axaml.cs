@@ -47,7 +47,12 @@ public partial class PageLoginProfile : Grid, PageLaunchLeft.ILoginPage
 
     private void SelectProfile(object? sender, PointerReleasedEventArgs e)
     {
-        if (sender is not MyListItem { Tag: LoginProfileInfo profile })
+        if (sender is not MyListItem item)
+            return;
+
+        LoginProfileInfo? profile = item.Tag as LoginProfileInfo ??
+                                    item.DataContext as LoginProfileInfo;
+        if (profile is null)
             return;
 
         SelectedProfile = profile;

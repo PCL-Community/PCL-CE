@@ -54,6 +54,8 @@ public partial class MySlider : Border
         _shapeDot = this.FindControl<Ellipse>("ShapeDot");
         _popup = this.FindControl<Popup>("Popup");
         _textHint = this.FindControl<TextBlock>("TextHint");
+        if (_popup is not null)
+            _popup.PlacementTarget = _shapeDot;
         _keyPopupTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(700) };
         _keyPopupTimer.Tick += (_, _) =>
         {
@@ -247,6 +249,9 @@ public partial class MySlider : Border
             : FindBrush("ColorBrushGray5", "#cccccc");
 
         BorderBrush = brush;
+        if (_lineFore is not null)
+            _lineFore.Stroke = brush;
+        _shapeDot.Stroke = brush;
         _shapeDot.Fill = brush;
     }
 

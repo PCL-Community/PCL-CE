@@ -1,7 +1,9 @@
 <Grid x:Class="PCL.Desktop.Views.Launch.PageLoginProfile"
       xmlns="https://github.com/avaloniaui"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:launch="using:PCL.Desktop.Views.Launch"
       xmlns:legacy="using:PCL.Desktop.Controls.Legacy"
+      x:DataType="launch:PageLoginProfile"
       Tag="False">
     <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
@@ -28,16 +30,15 @@
     <legacy:MyScrollViewer Grid.Row="2"
                            MaxHeight="300"
                            Margin="10,0,10,0">
-        <ItemsControl ItemsSource="{Binding ProfileCollection}">
+        <ItemsControl ItemsSource="{CompiledBinding ProfileCollection}">
             <ItemsControl.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="launch:LoginProfileInfo">
                     <legacy:MyListItem Margin="8,2,10,2"
-                                       Title="{Binding Username}"
-                                       Info="{Binding Info}"
+                                       Title="{CompiledBinding Username}"
+                                       Info="{CompiledBinding Info}"
                                        Type="Clickable"
-                                       Logo="{Binding Logo}"
-                                       SvgIcon="{Binding SvgIcon}"
-                                       Tag="{Binding}"
+                                       Logo="{CompiledBinding Logo}"
+                                       SvgIcon="{CompiledBinding SvgIcon}"
                                        Click="SelectProfile" />
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
