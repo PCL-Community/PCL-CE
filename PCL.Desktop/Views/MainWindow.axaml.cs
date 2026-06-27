@@ -4,12 +4,14 @@
 
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using PCL.Desktop.Controls.Legacy;
 
@@ -25,13 +27,21 @@ public partial class MainWindow : Window
     private bool _showAnimationStarted;
     private bool _isNavExpanded;
     private DispatcherTimer? _navAnimTimer;
+    private readonly Stopwatch _pageChangeClock = new();
+    private DispatcherTimer? _pageChangeTimer;
     private double _navExpandedWidth = 200d;
     private double _navAnimStart;
     private double _navAnimTarget;
     private int _navAnimElapsed;
+    private int _currentNavPage;
+    private int _pendingNavPage;
+    private bool _isPageContentSwapped;
+    private bool _isMainWindowOpened;
 
     private const double NavCollapsedWidth = 50d;
     private const int NavAnimDuration = 200;
+    private const double PageFadeOutDuration = 110d;
+    private const double PageFadeInDuration = 170d;
 
     private static readonly Dictionary<int, string> NavPageTitles = new()
     {
@@ -48,10 +58,15 @@ public partial class MainWindow : Window
         Opacity = 0d;
         CanResize = true;
         WindowDecorations = Avalonia.Controls.WindowDecorations.None;
+        SetWindowIcon();
         CaptureShowAnimationTransforms();
-        Opened += (_, _) => StartShowAnimation();
+        Opened += (_, _) =>
+        {
+            _isMainWindowOpened = true;
+            StartShowAnimation();
+        };
         SyncTitleOverlayWidth();
-        SelectNavPage(0);
+        SelectNavPage(0, animate: false);
     }
 
     private void FormMain_KeyDown(object? sender, KeyEventArgs e)
@@ -116,7 +131,7 @@ public partial class MainWindow : Window
         if (sender is not MyListItem item || !TryGetNavPage(item, out int page))
             return;
 
-        SelectNavPage(page);
+        SelectNavPage(page, animate: _isMainWindowOpened);
         e.Handled = true;
     }
 
@@ -198,6 +213,45 @@ public partial class MainWindow : Window
             panTitleMain.Width = width;
         if (panTitleInner is not null)
             panTitleInner.Width = width;
+    }
+
+    public void ActivateExistingInstance()
+    {
+        if (WindowState == WindowState.Minimized)
+            WindowState = WindowState.Normal;
+
+        Show();
+        Activate();
+        Topmost = true;
+        Topmost = false;
+        Focus();
+        ForceWindowsForeground();
+    }
+
+    private void SetWindowIcon()
+    {
+        try
+        {
+            using Stream iconStream = Avalonia.Platform.AssetLoader.Open(
+                new Uri("avares://PCL.Desktop/Assets/icon.ico", UriKind.Absolute));
+            Icon = new WindowIcon(iconStream);
+        }
+        catch (IOException)
+        {
+        }
+    }
+
+    private void ForceWindowsForeground()
+    {
+        if (!OperatingSystem.IsWindows())
+            return;
+
+        nint handle = TryGetPlatformHandle()?.Handle ?? 0;
+        if (handle == 0)
+            return;
+
+        WindowsForegroundApi.ShowWindow(handle, 9);
+        WindowsForegroundApi.SetForegroundWindow(handle);
     }
 
     private void SyncMainSize(double? navWidth = null)
@@ -296,7 +350,7 @@ public partial class MainWindow : Window
         SetNavWidth(navLayer, _navAnimTarget);
     }
 
-    private void SelectNavPage(int page)
+    private void SelectNavPage(int page, bool animate)
     {
         if (!NavPageTitles.ContainsKey(page))
             page = 0;
@@ -321,8 +375,71 @@ public partial class MainWindow : Window
                 item.Checked = false;
         }
 
+        if (!animate || page == _currentNavPage)
+        {
+            ApplyPagePlaceholder(page);
+            return;
+        }
+
+        BeginPageChangeAnimation(page);
+    }
+
+    private void ApplyPagePlaceholder(int page)
+    {
+        _currentNavPage = page;
         if (this.FindControl<MyLoading>("LoadMain") is { } loading)
             loading.Text = $"正在加载{NavPageTitles[page]}页面";
+        if (this.FindControl<Control>("PanMainRight") is { } right)
+            right.Opacity = 1d;
+    }
+
+    private void BeginPageChangeAnimation(int page)
+    {
+        _pendingNavPage = page;
+        _isPageContentSwapped = false;
+        _pageChangeClock.Restart();
+        _pageChangeTimer?.Stop();
+        _pageChangeTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(16)
+        };
+        _pageChangeTimer.Tick += PageChangeTimer_Tick;
+        _pageChangeTimer.Start();
+        PageChangeTimer_Tick(this, EventArgs.Empty);
+    }
+
+    private void PageChangeTimer_Tick(object? sender, EventArgs e)
+    {
+        if (this.FindControl<Control>("PanMainRight") is not { } right)
+        {
+            _pageChangeTimer?.Stop();
+            _pageChangeTimer = null;
+            ApplyPagePlaceholder(_pendingNavPage);
+            return;
+        }
+
+        double elapsed = _pageChangeClock.Elapsed.TotalMilliseconds;
+        if (elapsed <= PageFadeOutDuration)
+        {
+            right.Opacity = 1d - EaseOutCubic(Normalize(elapsed, PageFadeOutDuration));
+            return;
+        }
+
+        if (!_isPageContentSwapped)
+        {
+            _isPageContentSwapped = true;
+            ApplyPagePlaceholder(_pendingNavPage);
+            right.Opacity = 0d;
+        }
+
+        double fadeInElapsed = elapsed - PageFadeOutDuration;
+        right.Opacity = EaseOutCubic(Normalize(fadeInElapsed, PageFadeInDuration));
+        if (fadeInElapsed < PageFadeInDuration)
+            return;
+
+        _pageChangeTimer?.Stop();
+        _pageChangeTimer = null;
+        right.Opacity = 1d;
     }
 
     private IEnumerable<MyListItem> GetNavItems()
@@ -428,5 +545,59 @@ public partial class MainWindow : Window
         const double overshoot = 1.15d;
         double shifted = progress - 1d;
         return 1d + shifted * shifted * ((overshoot + 1d) * shifted + overshoot);
+    }
+
+    private static class WindowsForegroundApi
+    {
+        private static readonly Lazy<Api?> ApiInstance = new(LoadApi);
+
+        public static void ShowWindow(nint hWnd, int nCmdShow)
+        {
+            _ = ApiInstance.Value?.ShowWindow(hWnd, nCmdShow);
+        }
+
+        public static void SetForegroundWindow(nint hWnd)
+        {
+            _ = ApiInstance.Value?.SetForegroundWindow(hWnd);
+        }
+
+        private static Api? LoadApi()
+        {
+            if (!NativeLibrary.TryLoad("user32.dll", out nint library))
+                return null;
+
+            if (!NativeLibrary.TryGetExport(library, "ShowWindow", out nint showWindow) ||
+                !NativeLibrary.TryGetExport(library, "SetForegroundWindow", out nint setForegroundWindow))
+            {
+                NativeLibrary.Free(library);
+                return null;
+            }
+
+            return new Api(
+                library,
+                Marshal.GetDelegateForFunctionPointer<ShowWindowDelegate>(showWindow),
+                Marshal.GetDelegateForFunctionPointer<SetForegroundWindowDelegate>(setForegroundWindow));
+        }
+
+        [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+        private delegate bool ShowWindowDelegate(nint hWnd, int nCmdShow);
+
+        [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+        private delegate bool SetForegroundWindowDelegate(nint hWnd);
+
+        private sealed class Api(nint library, ShowWindowDelegate showWindow, SetForegroundWindowDelegate setForegroundWindow)
+        {
+            private readonly nint _library = library;
+
+            public bool ShowWindow(nint hWnd, int nCmdShow) => showWindow(hWnd, nCmdShow);
+
+            public bool SetForegroundWindow(nint hWnd) => setForegroundWindow(hWnd);
+
+            ~Api()
+            {
+                if (_library != 0)
+                    NativeLibrary.Free(_library);
+            }
+        }
     }
 }

@@ -1,0 +1,26 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PCL.Desktop.Views.SplashWindow"
+        Width="136"
+        Height="136"
+        CanResize="False"
+        ShowInTaskbar="False"
+        Topmost="True"
+        WindowDecorations="None"
+        WindowStartupLocation="CenterScreen"
+        Background="Transparent">
+    <Border Width="112"
+            Height="112"
+            CornerRadius="28"
+            Background="#F7FFFFFF"
+            BoxShadow="0 8 28 #33000000"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center">
+        <Image Source="avares://PCL.Desktop/Assets/icon.png"
+               Width="82"
+               Height="82"
+               Stretch="Uniform"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center" />
+    </Border>
+</Window>
