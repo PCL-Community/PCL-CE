@@ -396,6 +396,46 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void MainWindow_ProfileCreateUsesAccountTypeDialog()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MainWindow window = new();
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                PageLaunchLeft launchPage = FindVisual<PageLaunchLeft>(window)!;
+                launchPage.RefreshPage(anim: true, PageLaunchLeft.LaunchLoginPageType.Profile);
+                PageLoginProfile profilePage = (PageLoginProfile)launchPage.CurrentLoginPage!;
+
+                Click(window, profilePage.FindControl<MyIconButton>("BtnNew")!);
+                MyMsgSelect dialog = FindVisual<MyMsgSelect>(window)!;
+
+                Assert.IsNotNull(dialog);
+                Assert.IsTrue(window.FindControl<BlurBorder>("PanMsgBackground")!.IsVisible);
+                Assert.AreEqual(3, dialog.Items.Count);
+                Assert.IsFalse(dialog.FindControl<MyButton>("Btn1")!.IsEnabled);
+
+                Click(window, dialog.Items[1]);
+                Assert.IsTrue(dialog.FindControl<MyButton>("Btn1")!.IsEnabled);
+
+                Click(window, dialog.FindControl<MyButton>("Btn1")!);
+
+                Assert.IsInstanceOfType<PageLoginAuth>(launchPage.CurrentLoginPage);
+                Assert.IsFalse(window.FindControl<BlurBorder>("PanMsgBackground")!.IsVisible);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void PageLoginMs_UsesWpfStartAndFinishState()
     {
         using HeadlessUnitTestSession session = CreateSession();

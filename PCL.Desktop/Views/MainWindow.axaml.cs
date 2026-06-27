@@ -496,8 +496,7 @@ public partial class MainWindow : Window
         };
         page.CreateProfileRequested += (_, _) =>
         {
-            launchPage.RefreshPage(anim: true, PageLaunchLeft.LaunchLoginPageType.Offline);
-            _launchRight?.AppendLog("请选择离线档案信息，完成后会自动选中新档案。");
+            ShowProfileTypeSelector(launchPage);
         };
         page.ImportExportRequested += (_, _) => _launchRight?.AppendLog("档案导入与导出入口正在迁移中。");
         return page;
@@ -518,6 +517,81 @@ public partial class MainWindow : Window
         page.EditPasswordRequested += (_, _) => _launchRight?.AppendLog("密码修改入口正在迁移中。");
         page.EditNameRequested += (_, _) => _launchRight?.AppendLog("用户名修改入口正在迁移中。");
         return page;
+    }
+
+    private void ShowProfileTypeSelector(PageLaunchLeft launchPage)
+    {
+        MyMsgSelect dialog = new();
+        dialog.Configure(
+            "选择账户类型",
+            [
+                CreateProfileTypeItem(
+                    "Microsoft 登录",
+                    "使用正版 Microsoft 账户登录，适合已购买 Minecraft 的玩家。",
+                    "lucide/shield-check"),
+                CreateProfileTypeItem(
+                    "第三方登录",
+                    "使用 Authlib-Injector 兼容认证服务器登录。",
+                    "lucide/network"),
+                CreateProfileTypeItem(
+                    "离线登录",
+                    "创建本地离线档案。联机服务器可能不会接受此档案。",
+                    "lucide/link-2-off")
+            ]);
+        ShowSelectionDialog(dialog, selectedIndex =>
+        {
+            if (selectedIndex is not int index)
+                return;
+
+            PageLaunchLeft.LaunchLoginPageType? target = index switch
+            {
+                0 => PageLaunchLeft.LaunchLoginPageType.Ms,
+                1 => PageLaunchLeft.LaunchLoginPageType.Auth,
+                2 => PageLaunchLeft.LaunchLoginPageType.Offline,
+                _ => null
+            };
+            if (target is null)
+                return;
+
+            launchPage.RefreshPage(anim: true, target.Value);
+            _launchRight?.AppendLog($"正在创建{dialog.Items[index].Title}档案。");
+        });
+    }
+
+    private static MyListItem CreateProfileTypeItem(string title, string info, string icon) =>
+        new()
+        {
+            Title = title,
+            Info = info,
+            SvgIcon = icon,
+            LogoScale = 0.82d,
+            MinHeight = 42d,
+            Margin = new Thickness(0d, 2d)
+        };
+
+    private void ShowSelectionDialog(MyMsgSelect dialog, Action<int?> closed)
+    {
+        if (this.FindControl<BlurBorder>("PanMsgBackground") is not { } background ||
+            this.FindControl<Grid>("PanMsg") is not { } host)
+        {
+            closed(null);
+            return;
+        }
+
+        host.Children.Clear();
+        background.IsVisible = true;
+        background.Background = new SolidColorBrush(Color.FromArgb(90, 0, 0, 0));
+        dialog.Closed += (_, args) =>
+        {
+            host.Children.Remove(dialog);
+            if (host.Children.Count == 0)
+            {
+                background.Background = Brushes.Transparent;
+                background.IsVisible = false;
+            }
+            closed(args.SelectedIndex);
+        };
+        host.Children.Add(dialog);
     }
 
     private PageLoginMs CreateMicrosoftLoginPage(PageLaunchLeft launchPage)
