@@ -239,6 +239,129 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void MyCard_UsesWpfChromeAndTitleLayer()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            Grid content = new()
+            {
+                Margin = new Thickness(20d, 40d, 20d, 16d)
+            };
+            MyCard card = new()
+            {
+                Title = "高级设置",
+                Width = 240,
+                Height = 90,
+                Children =
+                {
+                    content
+                }
+            };
+            Window window = new()
+            {
+                Width = 320,
+                Height = 160,
+                Content = new Border
+                {
+                    Padding = new Thickness(20),
+                    Child = card
+                }
+            };
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.IsInstanceOfType<MyDropShadow>(card.Children[0]);
+                Assert.IsInstanceOfType<BlurBorder>(card.Children[1]);
+                Assert.IsInstanceOfType<Grid>(card.Children[2]);
+                Assert.AreSame(content, card.Children[3]);
+                Assert.AreEqual("高级设置", card.MainTextBlock.Text);
+                Assert.AreEqual(new Thickness(15d, 12d, 0d, 0d), card.MainTextBlock.Margin);
+                Assert.AreEqual(0.07d, card.MainChrome.Opacity, 0.01d);
+                Assert.AreEqual(new CornerRadius(8d), card.CornerRadius);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void MyCard_SwapClickTogglesContentAndCanBeCancelled()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            StackPanel lazyContent = new()
+            {
+                Tag = "lazy"
+            };
+            MyCard card = new()
+            {
+                Title = "高级",
+                Width = 240,
+                CanSwap = true,
+                IsSwapped = true,
+                InstallMethod = panel => panel.Children.Add(new TextBlock { Text = "已加载" }),
+                Children =
+                {
+                    lazyContent
+                }
+            };
+            Window window = new()
+            {
+                Width = 320,
+                Height = 180,
+                Content = new Border
+                {
+                    Padding = new Thickness(20),
+                    Child = card
+                }
+            };
+
+            int swapCount = 0;
+            card.Swap += (_, _) => swapCount++;
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.AreEqual(MyCard.SwapedHeight, card.Height);
+                Assert.IsFalse(lazyContent.IsVisible);
+                Assert.AreEqual(0d, ((Avalonia.Media.RotateTransform)card.MainSwap.RenderTransform!).Angle, 0.01d);
+
+                ClickAt(window, card, new Point(20d, 20d));
+
+                Assert.IsFalse(card.IsSwapped);
+                Assert.IsTrue(lazyContent.IsVisible);
+                Assert.IsTrue(double.IsNaN(card.Height));
+                Assert.IsNull(lazyContent.Tag);
+                Assert.AreEqual(2, lazyContent.Children.Count);
+                Assert.AreEqual(180d, ((Avalonia.Media.RotateTransform)card.MainSwap.RenderTransform!).Angle, 0.01d);
+                Assert.AreEqual(1, swapCount);
+
+                card.PreviewSwap += (_, e) => e.handled = true;
+                ClickAt(window, card, new Point(20d, 20d));
+
+                Assert.IsFalse(card.IsSwapped);
+                Assert.IsTrue(lazyContent.IsVisible);
+                Assert.AreEqual(1, swapCount);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void MyRadioBox_KeepsWpfSingleSelectionBehavior()
     {
         using HeadlessUnitTestSession session = CreateSession();
@@ -704,6 +827,15 @@ public sealed class AvaloniaHeadlessTests
 
         window.MouseDown(center, MouseButton.Left);
         window.MouseUp(center, MouseButton.Left);
+    }
+
+    private static void ClickAt(Window window, Control control, Point position)
+    {
+        Point point = control.TranslatePoint(position, window)
+            ?? throw new InvalidOperationException("Control is not attached.");
+
+        window.MouseDown(point, MouseButton.Left);
+        window.MouseUp(point, MouseButton.Left);
     }
 
     private static void Drag(Window window, Control control, Point from, Point to)
