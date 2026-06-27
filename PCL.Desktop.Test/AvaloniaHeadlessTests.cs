@@ -4,6 +4,8 @@
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Shapes;
 using Avalonia.Headless;
 using Avalonia.Input;
 using Avalonia.Layout;
@@ -391,6 +393,127 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void MySlider_TracksValueKeyboardDragAndPopupLikeWpf()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MySlider slider = new()
+            {
+                Width = 200,
+                MaxValue = 100,
+                Value = 50,
+                ValueByKey = 5,
+                getHintText = new Func<object, object>(value => $"值 {value}")
+            };
+            Window window = new()
+            {
+                Width = 300,
+                Height = 120,
+                Content = new Border
+                {
+                    Padding = new Thickness(20),
+                    Child = slider
+                }
+            };
+
+            int changeCount = 0;
+            bool lastChangeUserFlag = true;
+            slider.Change += (_, user) =>
+            {
+                changeCount++;
+                lastChangeUserFlag = user;
+            };
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Line lineFore = slider.FindControl<Line>("LineFore")!;
+                Line lineBack = slider.FindControl<Line>("LineBack")!;
+                Ellipse dot = slider.FindControl<Ellipse>("ShapeDot")!;
+                Popup popup = slider.FindControl<Popup>("Popup")!;
+                TextBlock textHint = slider.FindControl<TextBlock>("TextHint")!;
+
+                Assert.AreEqual(95.5d, lineFore.Width, 0.01d);
+                Assert.AreEqual(95.5d, lineBack.Width, 0.01d);
+                Assert.AreEqual(new Thickness(95d, 0d, 0d, 0d), dot.Margin);
+
+                slider.Focus();
+                window.KeyPress(Key.Right, RawInputModifiers.None, PhysicalKey.ArrowRight, string.Empty);
+
+                Assert.AreEqual(55, slider.Value);
+                Assert.IsFalse(lastChangeUserFlag);
+                Assert.AreEqual("值 55", textHint.Text);
+                Assert.IsTrue(popup.IsOpen);
+
+                Drag(window, slider, new Point(10d, 8d), new Point(157d, 8d));
+
+                Assert.AreEqual(80, slider.Value);
+                Assert.IsFalse(lastChangeUserFlag);
+                Assert.IsFalse(popup.IsOpen);
+                Assert.IsTrue(changeCount >= 2);
+                Assert.AreEqual(152.5d, lineFore.Width, 0.01d);
+                Assert.AreEqual(new Thickness(152d, 0d, 0d, 0d), dot.Margin);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void MySlider_PreviewChangeCanCancelValueMutation()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MySlider slider = new()
+            {
+                Width = 200,
+                MaxValue = 100,
+                Value = 25,
+                ValueByKey = 10
+            };
+            Window window = new()
+            {
+                Width = 300,
+                Height = 120,
+                Content = new Border
+                {
+                    Padding = new Thickness(20),
+                    Child = slider
+                }
+            };
+
+            int changeCount = 0;
+            slider.Change += (_, _) => changeCount++;
+            slider.PreviewChange += (_, e) => e.handled = true;
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                slider.Focus();
+                window.KeyPress(Key.Right, RawInputModifiers.None, PhysicalKey.ArrowRight, string.Empty);
+
+                Assert.AreEqual(25, slider.Value);
+                Assert.AreEqual(0, changeCount);
+                Assert.AreEqual(new Thickness(47.5d, 0d, 0d, 0d), slider.FindControl<Ellipse>("ShapeDot")!.Margin);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void MainWindow_NavigationToggleUsesMeasuredAnimatedWidth()
     {
         using HeadlessUnitTestSession session = CreateSession();
@@ -478,6 +601,18 @@ public sealed class AvaloniaHeadlessTests
 
         window.MouseDown(center, MouseButton.Left);
         window.MouseUp(center, MouseButton.Left);
+    }
+
+    private static void Drag(Window window, Control control, Point from, Point to)
+    {
+        Point start = control.TranslatePoint(from, window)
+            ?? throw new InvalidOperationException("Control is not attached.");
+        Point end = control.TranslatePoint(to, window)
+            ?? throw new InvalidOperationException("Control is not attached.");
+
+        window.MouseDown(start, MouseButton.Left);
+        window.MouseMove(end, RawInputModifiers.LeftMouseButton);
+        window.MouseUp(end, MouseButton.Left);
     }
 
     private static Border GetCheckIndicator(MyListItem item) =>

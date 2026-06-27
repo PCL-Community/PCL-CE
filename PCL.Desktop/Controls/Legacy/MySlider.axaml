@@ -1,0 +1,42 @@
+<!--
+  Copyright (c) MUXUE1230. All rights reserved.
+  Modifications Copyright (c) 2026 PCL N contributors.
+  Licensed under the Apache License, Version 2.0.
+-->
+<Border
+    x:Class="PCL.Desktop.Controls.Legacy.MySlider"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:primitives="clr-namespace:Avalonia.Controls.Primitives;assembly=Avalonia.Controls"
+    x:Name="PanBack"
+    MinHeight="16"
+    BorderBrush="{DynamicResource ColorBrushBg0}"
+    Background="{StaticResource ColorBrushSemiTransparent}"
+    Focusable="True">
+    <Grid x:Name="PanMain" MinHeight="16" MaxHeight="16" IsHitTestVisible="False">
+        <Line x:Name="LineBack" Height="4" Stroke="{DynamicResource ColorBrushBg0}" Opacity="0.3"
+              StrokeThickness="1" StartPoint="0,2" EndPoint="10000,2" HorizontalAlignment="Right"
+              Width="0" Margin="0,0,1,0" />
+        <Line x:Name="LineFore" Height="4" Stroke="{Binding BorderBrush, ElementName=PanBack}"
+              StrokeThickness="2" StartPoint="0,2" EndPoint="10000,2" Width="0"
+              HorizontalAlignment="Left" Margin="1,0,0,0" />
+        <Ellipse x:Name="ShapeDot" HorizontalAlignment="Left" Width="10" Height="10"
+                 Stroke="{Binding BorderBrush, ElementName=PanBack}" StrokeThickness="1.2"
+                 Fill="{DynamicResource ColorBrushBg0}" VerticalAlignment="Center"
+                 RenderTransformOrigin="0.5,0.5">
+            <Ellipse.RenderTransform>
+                <ScaleTransform />
+            </Ellipse.RenderTransform>
+        </Ellipse>
+        <primitives:Popup x:Name="Popup" IsHitTestVisible="False" Placement="Center"
+                          PlacementTarget="{Binding ElementName=ShapeDot}"
+                          VerticalOffset="38">
+            <Border BorderBrush="{DynamicResource ColorBrush1}" BorderThickness="1.5" CornerRadius="4"
+                    MaxWidth="500" Background="{DynamicResource ColorBrushWhite}" Margin="0,0,4,4"
+                    BoxShadow="0 2 4 0 #66000000">
+                <TextBlock x:Name="TextHint" TextWrapping="Wrap" Foreground="{DynamicResource ColorBrush1}"
+                           Margin="7,5" FontSize="12" />
+            </Border>
+        </primitives:Popup>
+    </Grid>
+</Border>
