@@ -42,6 +42,9 @@ public partial class MainWindow : Window
     private PageLaunchRight? _launchRight;
     private PageLoginProfile? _loginProfilePage;
     private PageLoginProfileSkin? _loginProfileSkinPage;
+    private PageLoginMs? _loginMsPage;
+    private PageLoginAuth? _loginAuthPage;
+    private PageLoginOffline? _loginOfflinePage;
     private readonly List<LoginProfileInfo> _loginProfiles = [];
 
     private const double NavCollapsedWidth = 50d;
@@ -458,6 +461,19 @@ public partial class MainWindow : Window
                 _loginProfilePage.SetProfiles(_loginProfiles);
                 launchPage.SetLoginPage(_loginProfilePage, animate: true, PageLaunchLeft.LaunchLoginPageType.Profile);
                 break;
+            case PageLaunchLeft.LaunchLoginPageType.Ms:
+                _loginMsPage ??= CreateMicrosoftLoginPage(launchPage);
+                launchPage.SetLoginPage(_loginMsPage, animate: true, PageLaunchLeft.LaunchLoginPageType.Ms);
+                break;
+            case PageLaunchLeft.LaunchLoginPageType.Auth:
+                _loginAuthPage ??= CreateAuthLoginPage(launchPage);
+                launchPage.SetLoginPage(_loginAuthPage, animate: true, PageLaunchLeft.LaunchLoginPageType.Auth);
+                break;
+            case PageLaunchLeft.LaunchLoginPageType.Offline:
+                _loginOfflinePage ??= CreateOfflineLoginPage(launchPage);
+                _loginOfflinePage.SetSkinSources(_loginProfiles);
+                launchPage.SetLoginPage(_loginOfflinePage, animate: true, PageLaunchLeft.LaunchLoginPageType.Offline);
+                break;
             default:
                 launchPage.SetLoginPage(
                     CreateLoginPlaceholder(type),
@@ -480,15 +496,8 @@ public partial class MainWindow : Window
         };
         page.CreateProfileRequested += (_, _) =>
         {
-            LoginProfileInfo profile = new(
-                "离线玩家",
-                "离线登录",
-                LaunchLoginProfileKind.Offline,
-                Uuid: Guid.NewGuid().ToString("N"),
-                SvgIcon: "lucide/user");
-            _loginProfiles.Add(profile);
-            page.SetProfiles(_loginProfiles, profile);
-            _launchRight?.AppendLog("已创建一个临时离线档案。");
+            launchPage.RefreshPage(anim: true, PageLaunchLeft.LaunchLoginPageType.Offline);
+            _launchRight?.AppendLog("请选择离线档案信息，完成后会自动选中新档案。");
         };
         page.ImportExportRequested += (_, _) => _launchRight?.AppendLog("档案导入与导出入口正在迁移中。");
         return page;
@@ -509,6 +518,78 @@ public partial class MainWindow : Window
         page.EditPasswordRequested += (_, _) => _launchRight?.AppendLog("密码修改入口正在迁移中。");
         page.EditNameRequested += (_, _) => _launchRight?.AppendLog("用户名修改入口正在迁移中。");
         return page;
+    }
+
+    private PageLoginMs CreateMicrosoftLoginPage(PageLaunchLeft launchPage)
+    {
+        PageLoginMs page = new();
+        page.BackRequested += (_, _) => launchPage.RefreshPage(anim: true);
+        page.PurchaseRequested += (_, _) => OpenExternalUrl(
+            "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
+        page.WebsiteRequested += (_, _) => OpenExternalUrl("https://www.minecraft.net/zh-hans");
+        page.LoginRequested += (_, _) =>
+        {
+            _launchRight?.AppendLog("Microsoft 登录正在接入跨平台账户服务。");
+            page.UpdateProgress(0.05d);
+            page.FinishLogin();
+        };
+        return page;
+    }
+
+    private PageLoginAuth CreateAuthLoginPage(PageLaunchLeft launchPage)
+    {
+        PageLoginAuth page = new();
+        page.BackRequested += (_, _) => launchPage.RefreshPage(anim: true);
+        page.ValidationFailed += (_, message) => _launchRight?.AppendLog(message);
+        page.RegisterLinkRequested += (_, isRegisterMode) =>
+            _launchRight?.AppendLog(isRegisterMode ? "请先填写认证服务器后再注册账户。" : "请在认证服务网站中找回密码。");
+        page.LoginRequested += (_, request) =>
+        {
+            _launchRight?.AppendLog($"正在准备连接第三方认证服务器：{request.Server}");
+            page.FinishLogin();
+        };
+        return page;
+    }
+
+    private PageLoginOffline CreateOfflineLoginPage(PageLaunchLeft launchPage)
+    {
+        PageLoginOffline page = new();
+        page.BackRequested += (_, _) => launchPage.RefreshPage(anim: true);
+        page.ValidationFailed += (_, message) => _launchRight?.AppendLog(message);
+        page.ProfileCreateRequested += (_, request) =>
+        {
+            string info = string.IsNullOrWhiteSpace(request.SkinSourceUuid)
+                ? "离线登录"
+                : $"离线登录 · 借用 {request.SkinSourceName}";
+            LoginProfileInfo profile = new(
+                request.Username,
+                info,
+                LaunchLoginProfileKind.Offline,
+                Uuid: request.Uuid,
+                SvgIcon: "lucide/user");
+
+            _loginProfiles.RemoveAll(existing =>
+                existing.Kind == LaunchLoginProfileKind.Offline &&
+                string.Equals(existing.Uuid, profile.Uuid, StringComparison.OrdinalIgnoreCase));
+            _loginProfiles.Insert(0, profile);
+            _loginProfilePage?.SetProfiles(_loginProfiles, profile);
+            launchPage.SetSelectedProfilePresent(true);
+            launchPage.RefreshPage(anim: true);
+            _launchRight?.AppendLog($"已创建并选中离线档案 {profile.Username}。");
+        };
+        return page;
+    }
+
+    private void OpenExternalUrl(string url)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            _launchRight?.AppendLog("无法打开浏览器：" + ex.Message);
+        }
     }
 
     private static Grid CreateLoginPlaceholder(PageLaunchLeft.LaunchLoginPageType type) =>

@@ -1,0 +1,48 @@
+<Grid x:Class="PCL.Desktop.Views.Launch.PageLoginOffline"
+      xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:legacy="using:PCL.Desktop.Controls.Legacy"
+      Tag="False"
+      Margin="0,0,0,-2">
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="10" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="38" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="28" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="10" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="50" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="30" />
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="50" />
+        <ColumnDefinition />
+    </Grid.ColumnDefinitions>
+    <TextBlock Text="玩家 ID" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" />
+    <legacy:MyTextBox Grid.Row="0" Grid.Column="1" Height="28" x:Name="TextName" />
+    <TextBlock Grid.Row="2" Grid.Column="1" Text="借用正版皮肤" TextAlignment="Center" Margin="-45,0,0,0" FontWeight="Bold" />
+    <legacy:MyComboBox x:Name="ComboSkinSource" Grid.Row="3" Grid.Column="1" Margin="-40,0,0,8" FontSize="13">
+        <legacy:MyComboBoxItem Content="不借用" IsSelected="True" />
+    </legacy:MyComboBox>
+    <TextBlock Grid.Row="4" Grid.Column="1" Text="UUID 生成方式" TextAlignment="Center" Margin="-45,0,0,0" FontWeight="Bold" />
+    <Grid Margin="-40,0,0,0" Grid.Row="5" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="85" />
+            <ColumnDefinition Width="85" />
+            <ColumnDefinition Width="85" />
+        </Grid.ColumnDefinitions>
+        <legacy:MyRadioBox Grid.Column="0" Text="标准" x:Name="RadioUuidStandard" Checked="True" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Check="RadioUuidChecked" />
+        <legacy:MyRadioBox Grid.Column="1" Text="旧版" x:Name="RadioUuidLegacy" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Check="RadioUuidChecked" />
+        <legacy:MyRadioBox Grid.Column="2" Text="自定义" x:Name="RadioUuidCustom" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Check="RadioUuidChecked" />
+    </Grid>
+    <TextBlock Text="UUID" Grid.Row="10" x:Name="TextUuidTitle" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="False" />
+    <legacy:MyTextBox Grid.Row="10" Grid.Column="1" Height="28" IsVisible="False" x:Name="TextUuid" />
+    <legacy:MyButton x:Name="BtnBack" Grid.Row="13" Grid.Column="1" Width="50" Margin="-100,-40,0,40" ColorType="Normal" Text="返回" HorizontalAlignment="Center" Click="BtnBackClick" />
+    <legacy:MyButton x:Name="BtnLogin" Grid.Row="13" Grid.Column="1" Width="50" Margin="20,-40,0,40" ColorType="Highlight" Text="创建" HorizontalAlignment="Center" Click="BtnLoginClick" />
+</Grid>
