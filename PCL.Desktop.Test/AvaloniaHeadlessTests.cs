@@ -243,7 +243,124 @@ public sealed class AvaloniaHeadlessTests
             Assert.AreSame(loginPage, page.CurrentLoginPage);
             Assert.AreEqual("1.20.1", page.SelectedInstance!.Name);
             Assert.AreEqual("启动游戏", page.FindControl<MyButton>("BtnLaunch")!.Text);
+            Assert.IsFalse(page.FindControl<MyButton>("BtnLaunch")!.IsEnabled);
             Assert.IsTrue(page.FindControl<Control>("BtnMore")!.IsVisible);
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void PageLaunchLeft_FollowsWpfLaunchButtonStateRules()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageLaunchLeft page = new();
+            LaunchInstanceInfo instance = new("1.20.1", @"D:\Minecraft\versions\1.20.1\1.20.1.json", @"D:\Minecraft\versions\1.20.1");
+
+            page.SetInstanceLoading(isLoading: true);
+            Assert.AreEqual("正在加载", page.FindControl<MyButton>("BtnLaunch")!.Text);
+            Assert.IsFalse(page.FindControl<MyButton>("BtnLaunch")!.IsEnabled);
+            Assert.IsFalse(page.FindControl<Control>("BtnInstance")!.IsEnabled);
+
+            page.SetInstances([instance]);
+            Assert.AreEqual("启动游戏", page.FindControl<MyButton>("BtnLaunch")!.Text);
+            Assert.IsFalse(page.FindControl<MyButton>("BtnLaunch")!.IsEnabled);
+
+            page.SetSelectedProfilePresent(true);
+            Assert.IsTrue(page.FindControl<MyButton>("BtnLaunch")!.IsEnabled);
+
+            page.SetInstances([]);
+            page.SetPreferenceState(isDownloadPageHidden: false, isFunctionSelectHidden: false);
+            Assert.AreEqual("下载游戏", page.FindControl<MyButton>("BtnLaunch")!.Text);
+            Assert.IsTrue(page.FindControl<MyButton>("BtnLaunch")!.IsEnabled);
+
+            page.SetPreferenceState(isDownloadPageHidden: true, isFunctionSelectHidden: false);
+            Assert.AreEqual("启动游戏", page.FindControl<MyButton>("BtnLaunch")!.Text);
+            Assert.IsFalse(page.FindControl<MyButton>("BtnLaunch")!.IsEnabled);
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void PageLaunchLeft_GuardsLaunchLikeWpf()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+        string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-launch-guard-" + Guid.NewGuid().ToString("N"));
+
+        try
+        {
+            session.Dispatch(() =>
+            {
+                string instanceDirectory = System.IO.Path.Combine(root, "versions", "1.20.1");
+                Directory.CreateDirectory(instanceDirectory);
+                LaunchInstanceInfo instance = new(
+                    "1.20.1",
+                    System.IO.Path.Combine(instanceDirectory, "1.20.1.json"),
+                    instanceDirectory);
+                PageLaunchLeft page = new();
+                int launchCount = 0;
+                int statusCount = 0;
+                page.LaunchRequested += (_, _) => launchCount++;
+                page.StatusMessage += (_, _) => statusCount++;
+                page.SetInstances([instance]);
+                page.SetSelectedProfilePresent(true);
+                page.CanLaunchByPageState = () => false;
+
+                page.LaunchButtonClick();
+                Assert.AreEqual(0, launchCount);
+
+                page.CanLaunchByPageState = () => true;
+                File.WriteAllText(instanceDirectory + ".pclignore", "");
+                page.LaunchButtonClick();
+
+                Assert.AreEqual(0, launchCount);
+                Assert.AreEqual(1, statusCount);
+            }, CancellationToken.None);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void PageLoginProfile_SelectsProfileAndSkinPageDisplaysIt()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            LoginProfileInfo profile = new("Steve", "离线登录", LaunchLoginProfileKind.Offline);
+            PageLoginProfile profilePage = new();
+            Window window = new()
+            {
+                Width = 320,
+                Height = 260,
+                Content = profilePage
+            };
+            LoginProfileInfo? selected = null;
+            profilePage.ProfileSelected += (_, value) => selected = value;
+
+            try
+            {
+                profilePage.SetProfiles([profile]);
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Click(window, FindVisual<MyListItem>(profilePage)!);
+
+                Assert.AreEqual(profile, selected);
+
+                PageLoginProfileSkin skinPage = new();
+                skinPage.SetProfile(profile);
+                Assert.AreEqual("Steve", skinPage.FindControl<TextBlock>("TextName")!.Text);
+                Assert.IsFalse(skinPage.FindControl<MyIconButton>("BtnEdit")!.IsVisible);
+            }
+            finally
+            {
+                window.Close();
+            }
         }, CancellationToken.None);
     }
 
