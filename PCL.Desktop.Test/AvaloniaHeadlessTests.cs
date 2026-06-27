@@ -140,6 +140,44 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void MainWindow_NavigationToggleUsesMeasuredAnimatedWidth()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MainWindow window = new();
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Control navLayer = window.FindControl<Control>("PanNavLayer")!;
+                Control toggle = window.FindControl<Control>("BtnNavToggle")!;
+                window.FindControl<MyListItem>("BtnTitleSelect1")!.Title = "下载资源与游戏版本管理";
+
+                Click(window, toggle);
+                double expandedTarget = GetPrivateDouble(window, "_navAnimTarget");
+                Assert.IsTrue(expandedTarget > 138d);
+
+                AdvanceNavigationAnimation(window);
+                Assert.AreEqual(expandedTarget, navLayer.Width, 0.5d);
+
+                Click(window, toggle);
+                double collapsedTarget = GetPrivateDouble(window, "_navAnimTarget");
+                Assert.AreEqual(50d, collapsedTarget, 0.01d);
+
+                AdvanceNavigationAnimation(window);
+                Assert.AreEqual(50d, navLayer.Width, 0.5d);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void SvgIcon_LoadsLucideAssetsThroughDesktopResources()
     {
         using HeadlessUnitTestSession session = CreateSession();
@@ -195,4 +233,23 @@ public sealed class AvaloniaHeadlessTests
         item.Children
             .OfType<Border>()
             .Single(border => Math.Abs(border.Width - 5d) < 0.01d);
+
+    private static void AdvanceNavigationAnimation(MainWindow window)
+    {
+        var method = typeof(MainWindow).GetMethod(
+            "NavAnimTimer_Tick",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("Navigation animation tick method was not found.");
+        for (int i = 0; i < 14; i++)
+            method.Invoke(window, [null, EventArgs.Empty]);
+    }
+
+    private static double GetPrivateDouble(object instance, string fieldName)
+    {
+        var field = instance.GetType().GetField(
+            fieldName,
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException($"Field '{fieldName}' was not found.");
+        return (double)field.GetValue(instance)!;
+    }
 }

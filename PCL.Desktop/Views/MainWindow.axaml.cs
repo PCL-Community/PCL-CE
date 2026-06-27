@@ -24,6 +24,14 @@ public partial class MainWindow : Window
     private DispatcherTimer? _showAnimationTimer;
     private bool _showAnimationStarted;
     private bool _isNavExpanded;
+    private DispatcherTimer? _navAnimTimer;
+    private double _navExpandedWidth = 200d;
+    private double _navAnimStart;
+    private double _navAnimTarget;
+    private int _navAnimElapsed;
+
+    private const double NavCollapsedWidth = 50d;
+    private const int NavAnimDuration = 200;
 
     private static readonly Dictionary<int, string> NavPageTitles = new()
     {
@@ -61,6 +69,8 @@ public partial class MainWindow : Window
 
     private void FormMain_SizeChanged(object? sender, SizeChangedEventArgs e)
     {
+        SyncMainSize();
+        SyncTitleOverlayWidth();
     }
 
     private void FormMain_Closing(object? sender, WindowClosingEventArgs e)
@@ -112,9 +122,23 @@ public partial class MainWindow : Window
 
     private void BtnNavToggle_Click(object? sender, EventArgs e)
     {
+        if (this.FindControl<Control>("PanNavLayer") is not { } navLayer)
+            return;
+
         _isNavExpanded = !_isNavExpanded;
-        if (this.FindControl<Control>("PanNavLayer") is { } navLayer)
-            navLayer.Width = _isNavExpanded ? 138d : 48d;
+        if (_isNavExpanded)
+            _navExpandedWidth = MeasureNavExpandedWidth(navLayer);
+
+        _navAnimStart = GetCurrentNavWidth(navLayer);
+        _navAnimTarget = _isNavExpanded ? _navExpandedWidth : NavCollapsedWidth;
+        _navAnimElapsed = 0;
+        _navAnimTimer?.Stop();
+        _navAnimTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(16)
+        };
+        _navAnimTimer.Tick += NavAnimTimer_Tick;
+        _navAnimTimer.Start();
     }
 
     private void PanMainLeft_SizeChanged(object? sender, SizeChangedEventArgs e)
@@ -174,6 +198,102 @@ public partial class MainWindow : Window
             panTitleMain.Width = width;
         if (panTitleInner is not null)
             panTitleInner.Width = width;
+    }
+
+    private void SyncMainSize(double? navWidth = null)
+    {
+        Control? panBack = this.FindControl<Control>("PanBack");
+        Control? panForm = this.FindControl<Control>("PanForm");
+        Control? panTitle = this.FindControl<Control>("PanTitle");
+        Control? panMain = this.FindControl<Control>("PanMain");
+        Control? navLayer = this.FindControl<Control>("PanNavLayer");
+        Control? videoBack = this.FindControl<Control>("VideoBack");
+        if (panBack is null)
+            return;
+
+        double formWidth = panBack.Bounds.Width;
+        double formHeight = panBack.Bounds.Height;
+        if (formWidth <= 0d)
+            formWidth = Math.Max(0d, Width - 20d);
+        if (formHeight <= 0d)
+            formHeight = Math.Max(0d, Height - 20d);
+
+        if (panForm is not null)
+        {
+            panForm.Width = formWidth;
+            panForm.Height = formHeight;
+        }
+
+        if (panMain is not null)
+        {
+            double currentNavWidth = navWidth ?? GetCurrentNavWidth(navLayer);
+            panMain.Width = Math.Max(0d, formWidth - currentNavWidth);
+            panMain.Height = Math.Max(0d, formHeight - (panTitle?.Bounds.Height ?? 0d));
+        }
+
+        if (videoBack is not null)
+        {
+            videoBack.Width = formWidth;
+            videoBack.Height = formHeight;
+        }
+    }
+
+    private void SetNavWidth(Control navLayer, double width)
+    {
+        navLayer.Width = width;
+        SyncMainSize(width);
+    }
+
+    private double MeasureNavExpandedWidth(Control navLayer)
+    {
+        double originalWidth = navLayer.Width;
+        navLayer.Width = double.NaN;
+        navLayer.InvalidateMeasure();
+        navLayer.Measure(new Size(double.PositiveInfinity, Math.Max(0d, Bounds.Height)));
+
+        double measuredWidth = navLayer.DesiredSize.Width;
+        foreach (MyListItem item in GetNavItems())
+        {
+            item.Measure(new Size(double.PositiveInfinity, item.Bounds.Height > 0d ? item.Bounds.Height : 42d));
+            measuredWidth = Math.Max(measuredWidth, item.DesiredSize.Width + 2d);
+        }
+
+        navLayer.Width = originalWidth;
+        navLayer.InvalidateMeasure();
+
+        if (double.IsNaN(measuredWidth) || double.IsInfinity(measuredWidth) || measuredWidth <= 0d)
+            measuredWidth = _navExpandedWidth;
+        return Math.Max(measuredWidth, NavCollapsedWidth + 1d) + 10d;
+    }
+
+    private static double GetCurrentNavWidth(Control? navLayer)
+    {
+        if (navLayer is null)
+            return NavCollapsedWidth;
+        if (!double.IsNaN(navLayer.Width) && navLayer.Width > 0d)
+            return navLayer.Width;
+        return navLayer.Bounds.Width > 0d ? navLayer.Bounds.Width : NavCollapsedWidth;
+    }
+
+    private void NavAnimTimer_Tick(object? sender, EventArgs e)
+    {
+        if (this.FindControl<Control>("PanNavLayer") is not { } navLayer)
+        {
+            _navAnimTimer?.Stop();
+            _navAnimTimer = null;
+            return;
+        }
+
+        _navAnimElapsed += 16;
+        double progress = Math.Min(1d, (double)_navAnimElapsed / NavAnimDuration);
+        double current = _navAnimStart + (_navAnimTarget - _navAnimStart) * EaseOutCubic(progress);
+        SetNavWidth(navLayer, current);
+        if (progress < 1d)
+            return;
+
+        _navAnimTimer?.Stop();
+        _navAnimTimer = null;
+        SetNavWidth(navLayer, _navAnimTarget);
     }
 
     private void SelectNavPage(int page)
