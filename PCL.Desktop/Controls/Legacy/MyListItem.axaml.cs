@@ -55,6 +55,7 @@ public partial class MyListItem : Grid
         AvaloniaProperty.Register<MyListItem, IBrush?>(nameof(Foreground), new SolidColorBrush(Color.Parse("#343d4a")));
 
     private readonly TextBlock? _title;
+    private readonly TextBlock? _info;
     private Border? _checkIndicator;
     private Grid? _logoHost;
     private PathShape? _logoPath;
@@ -66,6 +67,7 @@ public partial class MyListItem : Grid
     {
         AvaloniaXamlLoader.Load(this);
         _title = this.FindControl<TextBlock>("LabTitle");
+        _info = this.FindControl<TextBlock>("LabInfo");
 
         PointerEntered += (_, _) => RefreshVisual();
         PointerExited += (_, _) =>
@@ -81,6 +83,15 @@ public partial class MyListItem : Grid
         {
             if (_title is not null)
                 _title.Text = text;
+        });
+        this.GetObservable(InfoProperty).Subscribe(text =>
+        {
+            if (_info is not null)
+            {
+                _info.Text = text;
+                _info.IsVisible = !string.IsNullOrWhiteSpace(text);
+            }
+            RefreshLayoutMetrics();
         });
         this.GetObservable(FontSizeProperty).Subscribe(size =>
         {
@@ -276,6 +287,8 @@ public partial class MyListItem : Grid
 
         if (_title is not null)
             _title.Margin = new Thickness(4d, 0d, 0d, isSmall ? 0d : 2d);
+        if (_info is not null)
+            _info.Margin = new Thickness(4d, 1d, 0d, isSmall ? 0d : 1d);
     }
 
     private void RefreshCheckIndicator()
@@ -367,6 +380,8 @@ public partial class MyListItem : Grid
         }
         if (_title is not null)
             _title.Foreground = foregroundBrush;
+        if (_info is not null)
+            _info.Foreground = new SolidColorBrush(Color.Parse("#8c8c8c"));
         if (_logoPath is not null)
         {
             _logoPath.Fill = foregroundBrush;
