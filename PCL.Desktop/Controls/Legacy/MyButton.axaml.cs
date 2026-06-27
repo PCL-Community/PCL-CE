@@ -14,6 +14,7 @@ namespace PCL.Desktop.Controls.Legacy;
 
 public enum MyButtonColorType
 {
+    Normal,
     Highlight,
     Red,
     Gray
@@ -118,6 +119,7 @@ public partial class MyButton : Border
 
         var accent = ColorType switch
         {
+            MyButtonColorType.Normal => Color.Parse("#343d4a"),
             MyButtonColorType.Red => Color.Parse("#ce2111"),
             MyButtonColorType.Gray => Color.Parse("#737373"),
             _ => Color.Parse("#1370f3")
