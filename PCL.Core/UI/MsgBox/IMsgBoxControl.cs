@@ -13,5 +13,5 @@ public interface IMsgBoxControl
     MsgBoxRequest Request { get; }
     event EventHandler<MsgBoxResponse>? Completed;
     void InvokeShowAnimation();
-    Task InvokeCloseAnimationAsync();
+    Task InvokeCloseAnimationAsync(MsgBoxResponse response);
 }

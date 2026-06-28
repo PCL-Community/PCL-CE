@@ -1,22 +1,11 @@
-using System;
+using PCL.Core.App.Localization;
+using PCL.Core.UI.MsgBox;
 using System.Collections.Generic;
 using System.Linq;
-using PCL.Core.App.Localization;
 
 namespace PCL.Core.UI;
 
-public record MsgBoxButtonInfo(
-    string Context,
-    int Value = 0,
-    Action? OnClick = null
-);
 
-public enum MsgBoxTheme
-{
-    Info,
-    Warning,
-    Error
-}
 
 public delegate void MsgBoxHandler(
     string message,

@@ -1,23 +1,19 @@
-using System.Collections;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Interop;
-using System.Windows.Media;
-using System.Windows.Threading;
 using FluentValidation;
 using Microsoft.VisualBasic;
 using Microsoft.Win32;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
-using PCL.Core.UI;
+using PCL.Core.UI.MsgBox;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Windows;
+using System.Windows.Interop;
+using System.Windows.Threading;
 
 namespace PCL;
 
@@ -99,6 +95,8 @@ public static class ModMain
     ///     等待显示的弹窗。
     /// </summary>
     public static List<MyMsgBoxConverter> WaitingMyMsgBox { get; } = [];
+
+    public static MsgBoxActor? MsgBoxActor { get; internal set; }
 
     private static void TimerMain()
     {
@@ -310,9 +308,17 @@ public static class ModMain
     /// <param name="button2Action">点击第二个按钮将执行该方法，不关闭弹窗。</param>
     /// <param name="button3Action">点击第三个按钮将执行该方法，不关闭弹窗。</param>
     /// <param name="isWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
-    public static int MyMsgBox(string caption, string? title = null, string? button1 = null, string? button2 = "",
-        string? button3 = "", bool isWarn = false, bool highLight = true, bool forceWait = false,
-        Action button1Action = null, Action button2Action = null, Action button3Action = null)
+    public static int MyMsgBox(string caption,
+        string? title = null,
+        string? button1 = null,
+        string? button2 = null,
+        string? button3 = null,
+        bool isWarn = false,
+        bool highLight = true,
+        bool forceWait = false,
+        Action? button1Action = null,
+        Action? button2Action = null,
+        Action? button3Action = null)
     {
         title ??= GetDefaultDialogTitle();
         button1 ??= GetDefaultConfirmText();
@@ -321,9 +327,18 @@ public static class ModMain
         // 将弹窗列入队列
         var converter = new MyMsgBoxConverter
         {
-            Type = MyMsgBoxType.Text, Button1 = button1, Button2 = button2, Button3 = button3, Text = caption,
-            IsWarn = isWarn, Title = title, HighLight = highLight, ForceWait = true, Button1Action = button1Action,
-            Button2Action = button2Action, Button3Action = button3Action
+            Type = MyMsgBoxType.Text,
+            Button1 = button1,
+            Button2 = button2,
+            Button3 = button3,
+            Text = caption,
+            IsWarn = isWarn,
+            Title = title,
+            HighLight = highLight,
+            ForceWait = true,
+            Button1Action = button1Action,
+            Button2Action = button2Action,
+            Button3Action = button3Action
         };
         WaitingMyMsgBox.Add(converter);
         if (ModBase.RunInUi())
@@ -344,20 +359,20 @@ public static class ModMain
                     switch (rawResult)
                     {
                         case MsgBoxResult.Yes:
-                        {
-                            converter.Result = 1;
-                            break;
-                        }
+                            {
+                                converter.Result = 1;
+                                break;
+                            }
                         case MsgBoxResult.No:
-                        {
-                            converter.Result = 2;
-                            break;
-                        }
+                            {
+                                converter.Result = 2;
+                                break;
+                            }
                         case MsgBoxResult.Cancel:
-                        {
-                            converter.Result = 3;
-                            break;
-                        }
+                            {
+                                converter.Result = 3;
+                                break;
+                            }
                     }
                 }
                 else
@@ -416,9 +431,18 @@ public static class ModMain
         // 将弹窗列入队列
         var converter = new MyMsgBoxConverter
         {
-            Type = MyMsgBoxType.Markdown, Button1 = button1, Button2 = button2, Button3 = button3, Text = caption,
-            IsWarn = isWarn, Title = title, HighLight = highLight, ForceWait = true, Button1Action = button1Action,
-            Button2Action = button2Action, Button3Action = button3Action
+            Type = MyMsgBoxType.Markdown,
+            Button1 = button1,
+            Button2 = button2,
+            Button3 = button3,
+            Text = caption,
+            IsWarn = isWarn,
+            Title = title,
+            HighLight = highLight,
+            ForceWait = true,
+            Button1Action = button1Action,
+            Button2Action = button2Action,
+            Button3Action = button3Action
         };
         WaitingMyMsgBox.Add(converter);
         if (ModBase.RunInUi())
@@ -439,20 +463,20 @@ public static class ModMain
                     switch (rawResult)
                     {
                         case MsgBoxResult.Yes:
-                        {
-                            converter.Result = 1;
-                            break;
-                        }
+                            {
+                                converter.Result = 1;
+                                break;
+                            }
                         case MsgBoxResult.No:
-                        {
-                            converter.Result = 2;
-                            break;
-                        }
+                            {
+                                converter.Result = 2;
+                                break;
+                            }
                         case MsgBoxResult.Cancel:
-                        {
-                            converter.Result = 3;
-                            break;
-                        }
+                            {
+                                converter.Result = 3;
+                                break;
+                            }
                     }
                 }
                 else
@@ -508,12 +532,19 @@ public static class ModMain
         // 将弹窗列入队列
         var converter = new MyMsgBoxConverter
         {
-            Text = text, HintText = hintText, Type = MyMsgBoxType.Input,
-            ValidateRules = validateRules ?? [], Button1 = button1, Button2 = button2,
-            Content = defaultInput, IsWarn = isWarn, Title = title
+            Text = text,
+            HintText = hintText,
+            Type = MyMsgBoxType.Input,
+            ValidateRules = validateRules ?? [],
+            Button1 = button1,
+            Button2 = button2,
+            Content = defaultInput,
+            IsWarn = isWarn,
+            Title = title
         };
         WaitingMyMsgBox.Add(converter);
         // 虽然我也不知道这是啥但是能用就成了 :)
+        // whitecat346: 这是模态窗口
         try
         {
             frmMain?.DragStop();
@@ -545,15 +576,19 @@ public static class ModMain
         // 将弹窗列入队列
         var converter = new MyMsgBoxConverter
         {
-            Type = MyMsgBoxType.Select, Button1 = button1, Button2 = button2, Content = selections, IsWarn = isWarn,
+            Type = MyMsgBoxType.Select,
+            Button1 = button1,
+            Button2 = button2,
+            Content = selections,
+            IsWarn = isWarn,
             Title = title
         };
         WaitingMyMsgBox.Add(converter);
         // 虽然我也不知道这是啥但是能用就成了 :)
+        // whitecat346: 这是模态窗口
         try
         {
-            if (frmMain is not null)
-                frmMain.DragStop();
+            frmMain?.DragStop();
             ComponentDispatcher.PushModal();
             Dispatcher.PushFrame(converter.WaitFrame);
         }
@@ -585,36 +620,36 @@ public static class ModMain
                 switch (WaitingMyMsgBox[0].Type)
                 {
                     case MyMsgBoxType.Input:
-                    {
-                        frmMain.PanMsg.Children.Add(new MyMsgInput(WaitingMyMsgBox[0]));
-                        break;
-                    }
+                        {
+                            frmMain.PanMsg.Children.Add(new MyMsgInput(WaitingMyMsgBox[0]));
+                            break;
+                        }
                     case MyMsgBoxType.Select:
-                    {
-                        frmMain.PanMsg.Children.Add(new MyMsgSelect(WaitingMyMsgBox[0]));
-                        break;
-                    }
+                        {
+                            frmMain.PanMsg.Children.Add(new MyMsgSelect(WaitingMyMsgBox[0]));
+                            break;
+                        }
                     case MyMsgBoxType.Text:
-                    {
-                        frmMain.PanMsg.Children.Add(new MyMsgText(WaitingMyMsgBox[0]));
-                        break;
-                    }
+                        {
+                            frmMain.PanMsg.Children.Add(new MyMsgText(WaitingMyMsgBox[0]));
+                            break;
+                        }
                     case MyMsgBoxType.Login:
-                    {
-                        frmMain.PanMsg.Children.Add(new MyMsgLogin(WaitingMyMsgBox[0]));
-                        break;
-                    }
+                        {
+                            frmMain.PanMsg.Children.Add(new MyMsgLogin(WaitingMyMsgBox[0]));
+                            break;
+                        }
                     case MyMsgBoxType.Markdown:
-                    {
-                        frmMain.PanMsg.Children.Add(new MyMsgMarkdown(WaitingMyMsgBox[0]));
-                        break;
-                    }
+                        {
+                            frmMain.PanMsg.Children.Add(new MyMsgMarkdown(WaitingMyMsgBox[0]));
+                            break;
+                        }
                 }
 
                 WaitingMyMsgBox.RemoveAt(0);
             }
             // 没有弹窗，没有等待的弹窗
-            else if (!(frmMain.PanMsgBackground.Visibility == Visibility.Collapsed))
+            else if (frmMain.PanMsgBackground.Visibility != Visibility.Collapsed)
             {
                 frmMain.PanMsgBackground.Visibility = Visibility.Collapsed;
             }
@@ -628,11 +663,11 @@ public static class ModMain
     public static void MsgBoxWrapper_OnShow(string message, string caption, ICollection<MsgBoxButtonInfo> buttons,
         MsgBoxTheme theme, bool block, ref int result)
     {
-        var btnText1 = buttons.Count < 1 ? GetDefaultConfirmText() : buttons.ElementAt(0).Context;
+        var btnText1 = buttons.Count < 1 ? GetDefaultConfirmText() : buttons.ElementAt(0).Text;
         var btnAct1 = (Action)(buttons.Count < 1 ? (object)null : buttons.ElementAt(0).OnClick);
-        var btnText2 = buttons.Count < 2 ? GetDefaultCancelText() : buttons.ElementAt(1).Context;
+        var btnText2 = buttons.Count < 2 ? GetDefaultCancelText() : buttons.ElementAt(1).Text;
         var btnAct2 = (Action)(buttons.Count < 2 ? (object)null : buttons.ElementAt(1).OnClick);
-        var btnText3 = buttons.Count < 3 ? "" : buttons.ElementAt(2).Context;
+        var btnText3 = buttons.Count < 3 ? "" : buttons.ElementAt(2).Text;
         var btnAct3 = (Action)(buttons.Count < 3 ? (object)null : buttons.ElementAt(2).OnClick);
 
         var isWarn = theme == MsgBoxTheme.Warning || theme == MsgBoxTheme.Error;
@@ -765,25 +800,25 @@ public static class ModMain
                 switch (RandomUtils.NextInt(0, 3))
                 {
                     case 0:
-                    {
-                        HintService.Hint("放弃吧！只需要点一下右下角的小白旗……");
-                        break;
-                    }
+                        {
+                            HintService.Hint("放弃吧！只需要点一下右下角的小白旗……");
+                            break;
+                        }
                     case 1:
-                    {
-                        HintService.Hint("看到右下角的那面小白旗了吗？");
-                        break;
-                    }
+                        {
+                            HintService.Hint("看到右下角的那面小白旗了吗？");
+                            break;
+                        }
                     case 2:
-                    {
-                        HintService.Hint("这里建议点一下右下角的小白旗投降呢.jpg");
-                        break;
-                    }
+                        {
+                            HintService.Hint("这里建议点一下右下角的小白旗投降呢.jpg");
+                            break;
+                        }
                     case 3:
-                    {
-                        HintService.Hint("右下角的小白旗永远等着你……");
-                        break;
-                    }
+                        {
+                            HintService.Hint("右下角的小白旗永远等着你……");
+                            break;
+                        }
                 }
             }
         }
@@ -866,107 +901,107 @@ public static class ModMain
     /// <summary>
     /// 对替换标记进行处理。会对替换内容使用 EscapeHandler 进行转义。
     /// /// </summary>
-    public static string ArgumentReplace(string text, Func<string, string> escapeHandler = null, bool replaceTime = true) 
+    public static string ArgumentReplace(string text, Func<string, string> escapeHandler = null, bool replaceTime = true)
     {
-    // 预处理
-    if (text is null) return null;
-    
-    Func<string, string> replacer = (s) =>
-    {
-        if (s is null) return "";
-        if (escapeHandler is null) return s;
-        if (s.Contains(":\\")) s = ModBase.ShortenPath(s);
-        return escapeHandler(s);
-    };
-    
-    // 基础
-    text = text.Replace("{pcl_version}", replacer(ModBase.versionBaseName));
-    text = text.Replace("{pcl_version_code}", replacer(ModBase.versionCode.ToString()));
-    text = text.Replace("{pcl_version_branch}", replacer(ModBase.versionBranchName));
-    text = text.Replace("{pcl_branch}", replacer(ModBase.versionBranchName));
-    text = text.Replace("{identify}", replacer(Identify.LauncherId));
-    text = text.Replace("{path}", replacer(Basics.ExecutableDirectory));
-    text = text.Replace("{path_with_name}", replacer(Basics.ExecutableName));
-    text = text.Replace("{path_temp}", replacer(ModBase.pathTemp));
-    
-    // 时间
-    if (replaceTime) // 在窗口标题中，时间会被后续动态替换，所以此时不应该替换
-    {
-        text = text.Replace("{date}", replacer(Lang.Date(DateTime.Now, "d")));
-        text = text.Replace("{time}", replacer(Lang.Date(DateTime.Now, "T")));
-    }
-    
-    // Minecraft
-    text = text.Replace("{java}", replacer(ModLaunch.mcLaunchJavaSelected?.Installation.JavaFolder));
-    text = text.Replace("{minecraft}", replacer(ModFolder.mcFolderSelected));
-    
-    if (ModInstanceList.McMcInstanceSelected is not null)
-    {
-        text = text.Replace("{version_path}", replacer(ModInstanceList.McMcInstanceSelected.PathInstance));
-        text = text.Replace("{verpath}", replacer(ModInstanceList.McMcInstanceSelected.PathInstance));
-        text = text.Replace("{version_indie}", replacer(ModInstanceList.McMcInstanceSelected.PathIndie));
-        text = text.Replace("{verindie}", replacer(ModInstanceList.McMcInstanceSelected.PathIndie));
-        text = text.Replace("{name}", replacer(ModInstanceList.McMcInstanceSelected.Name));
-        
-        if (new[] { "unknown", "old", "pending" }.Contains(ModInstanceList.McMcInstanceSelected.Info.VanillaName))
+        // 预处理
+        if (text is null) return null;
+
+        Func<string, string> replacer = (s) =>
         {
-            text = text.Replace("{version}", replacer(ModInstanceList.McMcInstanceSelected.Name));
+            if (s is null) return "";
+            if (escapeHandler is null) return s;
+            if (s.Contains(":\\")) s = ModBase.ShortenPath(s);
+            return escapeHandler(s);
+        };
+
+        // 基础
+        text = text.Replace("{pcl_version}", replacer(ModBase.versionBaseName));
+        text = text.Replace("{pcl_version_code}", replacer(ModBase.versionCode.ToString()));
+        text = text.Replace("{pcl_version_branch}", replacer(ModBase.versionBranchName));
+        text = text.Replace("{pcl_branch}", replacer(ModBase.versionBranchName));
+        text = text.Replace("{identify}", replacer(Identify.LauncherId));
+        text = text.Replace("{path}", replacer(Basics.ExecutableDirectory));
+        text = text.Replace("{path_with_name}", replacer(Basics.ExecutableName));
+        text = text.Replace("{path_temp}", replacer(ModBase.pathTemp));
+
+        // 时间
+        if (replaceTime) // 在窗口标题中，时间会被后续动态替换，所以此时不应该替换
+        {
+            text = text.Replace("{date}", replacer(Lang.Date(DateTime.Now, "d")));
+            text = text.Replace("{time}", replacer(Lang.Date(DateTime.Now, "T")));
+        }
+
+        // Minecraft
+        text = text.Replace("{java}", replacer(ModLaunch.mcLaunchJavaSelected?.Installation.JavaFolder));
+        text = text.Replace("{minecraft}", replacer(ModFolder.mcFolderSelected));
+
+        if (ModInstanceList.McMcInstanceSelected is not null)
+        {
+            text = text.Replace("{version_path}", replacer(ModInstanceList.McMcInstanceSelected.PathInstance));
+            text = text.Replace("{verpath}", replacer(ModInstanceList.McMcInstanceSelected.PathInstance));
+            text = text.Replace("{version_indie}", replacer(ModInstanceList.McMcInstanceSelected.PathIndie));
+            text = text.Replace("{verindie}", replacer(ModInstanceList.McMcInstanceSelected.PathIndie));
+            text = text.Replace("{name}", replacer(ModInstanceList.McMcInstanceSelected.Name));
+
+            if (new[] { "unknown", "old", "pending" }.Contains(ModInstanceList.McMcInstanceSelected.Info.VanillaName))
+            {
+                text = text.Replace("{version}", replacer(ModInstanceList.McMcInstanceSelected.Name));
+            }
+            else
+            {
+                text = text.Replace("{version}", replacer(ModInstanceList.McMcInstanceSelected.Info.VanillaName));
+            }
         }
         else
         {
-            text = text.Replace("{version}", replacer(ModInstanceList.McMcInstanceSelected.Info.VanillaName));
+            text = text.Replace("{version_path}", replacer(null));
+            text = text.Replace("{verpath}", replacer(null));
+            text = text.Replace("{version_indie}", replacer(null));
+            text = text.Replace("{verindie}", replacer(null));
+            text = text.Replace("{name}", replacer(null));
+            text = text.Replace("{version}", replacer(null));
         }
-    }
-    else
-    {
-        text = text.Replace("{version_path}", replacer(null));
-        text = text.Replace("{verpath}", replacer(null));
-        text = text.Replace("{version_indie}", replacer(null));
-        text = text.Replace("{verindie}", replacer(null));
-        text = text.Replace("{name}", replacer(null));
-        text = text.Replace("{version}", replacer(null));
-    }
-    
-    // 验证信息
-    if (ModLaunch.mcLoginLoader.State == ModBase.LoadState.Finished)
-    {
-        text = text.Replace("{user}", replacer(ModLaunch.mcLoginLoader.output.Name));
-        text = text.Replace("{uuid}", replacer(ModLaunch.mcLoginLoader.output.Uuid.ToLower()));
-        
-        switch (ModLaunch.mcLoginLoader.input.LoginType)
+
+        // 验证信息
+        if (ModLaunch.mcLoginLoader.State == ModBase.LoadState.Finished)
         {
-            case ModLaunch.McLoginType.Legacy:
-                text = text.Replace("{login}", replacer("离线"));
-                break;
-            case ModLaunch.McLoginType.Ms:
-                text = text.Replace("{login}", replacer("正版"));
-                break;
-            case ModLaunch.McLoginType.Auth:
-                text = text.Replace("{login}", replacer("Authlib-Injector"));
-                break;
+            text = text.Replace("{user}", replacer(ModLaunch.mcLoginLoader.output.Name));
+            text = text.Replace("{uuid}", replacer(ModLaunch.mcLoginLoader.output.Uuid.ToLower()));
+
+            switch (ModLaunch.mcLoginLoader.input.LoginType)
+            {
+                case ModLaunch.McLoginType.Legacy:
+                    text = text.Replace("{login}", replacer("离线"));
+                    break;
+                case ModLaunch.McLoginType.Ms:
+                    text = text.Replace("{login}", replacer("正版"));
+                    break;
+                case ModLaunch.McLoginType.Auth:
+                    text = text.Replace("{login}", replacer("Authlib-Injector"));
+                    break;
+            }
         }
+        else
+        {
+            text = text.Replace("{user}", replacer(null));
+            text = text.Replace("{uuid}", replacer(null));
+            text = text.Replace("{login}", replacer(null));
+        }
+
+        // 高级
+        text = ModBase.RegexReplaceEach(text, @"\{hint\}", m => replacer(PageToolsTest.GetRandomHint()));
+        text = ModBase.RegexReplaceEach(text, @"\{cave\}", m => replacer(PageToolsTest.GetRandomCave()));
+        text = ModBase.RegexReplaceEach(text, @"\{setup:([a-zA-Z0-9]+)\}", m =>
+        {
+            if (ConfigService.TryGetConfigItemNoType(m.Groups[1].Value, out var item) && item.Source != ConfigSource.SharedEncrypt)
+                return replacer(item.GetValueNoType(ModInstanceList.McMcInstanceSelected?.PathInstance)?.ToString() ?? "");
+            return replacer("");
+        });
+        text = ModBase.RegexReplaceEach(text, @"\{varible:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));
+        text = ModBase.RegexReplaceEach(text, @"\{variable:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));
+
+        return text;
     }
-    else
-    {
-        text = text.Replace("{user}", replacer(null));
-        text = text.Replace("{uuid}", replacer(null));
-        text = text.Replace("{login}", replacer(null));
-    }
-    
-    // 高级
-    text = ModBase.RegexReplaceEach(text, @"\{hint\}", m => replacer(PageToolsTest.GetRandomHint()));
-    text = ModBase.RegexReplaceEach(text, @"\{cave\}", m => replacer(PageToolsTest.GetRandomCave()));
-    text = ModBase.RegexReplaceEach(text, @"\{setup:([a-zA-Z0-9]+)\}", m =>
-    {
-        if (ConfigService.TryGetConfigItemNoType(m.Groups[1].Value, out var item) && item.Source != ConfigSource.SharedEncrypt)
-            return replacer(item.GetValueNoType(ModInstanceList.McMcInstanceSelected?.PathInstance)?.ToString() ?? "");
-        return replacer("");
-    });
-    text = ModBase.RegexReplaceEach(text, @"\{varible:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));
-    text = ModBase.RegexReplaceEach(text, @"\{variable:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));
-    
-    return text;
-}
     #endregion
 
     #region 任务缓存
@@ -1042,7 +1077,7 @@ public static class ModMain
     }
 
     #endregion
-    
+
     public static void RaiseCustomEvent(DependencyObject control)
     {
         // 收集事件列表

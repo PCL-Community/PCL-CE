@@ -1,67 +1,151 @@
-using System.Windows.Controls;
-using System.Windows.Input;
+using PCL.Controls.MyMsg;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.UI.Controls;
-using PCL.Core.Utils;
 using PCL.Core.IO.Net.Http;
+using PCL.Core.UI.MsgBox;
+using PCL.Core.Utils;
 using System.Text.Json.Serialization;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace PCL;
 
-public partial class MyMsgLogin
+public partial class MyMsgLogin : IMsgBoxControl
 {
-    private readonly JsonObject data;
-    private string deviceCode; // 用于轮询的设备代码
-    private string oAuthUrl = ""; // OAuth 轮询验证地址
-    private string userCode; // 需要用户在网页上输入的设备代码
-    private string website; // 验证网页的网址
-    private Task? workingThread;
+    private readonly JsonObject? _data;
+    private string _deviceCode = "";
+    private string _oAuthUrl = "";
+    private string _userCode = "";
+    private string _website = "";
+    private Task? _workingThread;
+
+    public MsgBoxRequest Request { get; }
+    public event EventHandler<MsgBoxResponse>? Completed;
+
+    private readonly MsgBoxAnimationProfile _anim;
+    private bool _isExited;
+    private readonly string _animGroup;
 
     public MyMsgLogin()
     {
         InitializeComponent();
-        // Handles
         Loaded += Load;
         Btn1.Click += Btn1_Click;
         Btn3.Click += Btn3_Click;
         PanBorder.MouseLeftButtonDown += Drag;
         LabTitle.MouseLeftButtonDown += Drag;
+        Request = new MsgBoxRequest();
+        _anim = MsgBoxAnimationProfile.ForTheme(MsgBoxTheme.Info);
+        _animGroup = "MyMsgLogin designer";
+        _data = null;
     }
 
-    private void Finished(object result)
+    public MyMsgLogin(MsgBoxRequest request, JsonObject data)
     {
-        if (myConverter.IsExited)
-            return;
-        myConverter.IsExited = true;
-        myConverter.Result = result;
-        ModBase.RunInUi(Close);
-        Thread.Sleep(200);
-        ModMain.frmMain.ShowWindowToTop();
+        Request = request;
+        _anim = MsgBoxAnimationProfile.ForTheme(request.Theme);
+        _animGroup = $"MyMsgLogin {Request.RequestId}";
+        _data = data;
+        InitCommon();
+        Init();
+    }
+
+    public MyMsgLogin(ModMain.MyMsgBoxConverter converter)
+    {
+        var isWarn = converter.IsWarn;
+        var data = (JsonObject)converter.Content;
+
+        var request = new MsgBoxRequest
+        {
+            Caption = "",
+            Theme = isWarn ? MsgBoxTheme.Warning : MsgBoxTheme.Info,
+            Buttons = [new("", 1), new("", 2), new("", 3)],
+            IsBlocking = true,
+            Content = converter.Content
+        };
+        Request = request;
+        _anim = MsgBoxAnimationProfile.ForTheme(request.Theme);
+        _animGroup = $"MyMsgBox {ModBase.GetUuid()}";
+        _data = data;
+        _oAuthUrl = converter.AuthUrl.ToString() ?? "";
+        _legacyConverter = converter;
+
+        InitCommon();
+        Init();
+    }
+
+    private readonly ModMain.MyMsgBoxConverter? _legacyConverter;
+
+    private void LegacyComplete(object result)
+    {
+        if (_legacyConverter is null || _isExited) return;
+        _isExited = true;
+        _legacyConverter.IsExited = true;
+        _legacyConverter.Result = result;
+        _legacyConverter.WaitFrame.Continue = false;
+    }
+
+    private void InitCommon()
+    {
+        InitializeComponent();
+        Btn1.Name += ModBase.GetUuid();
+        Btn2.Name += ModBase.GetUuid();
+        Btn3.Name += ModBase.GetUuid();
+        ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
+        Loaded += Load;
     }
 
     private void Init()
     {
-        userCode = (string)data["user_code"];
-        deviceCode = (string)data["device_code"];
-        ModBase.ClipboardSet(deviceCode);
-        if (data["verification_uri_complete"] is not null)
+        if (_data is null) return;
+        _userCode = (string)_data["user_code"]!;
+        _deviceCode = (string)_data["device_code"]!;
+        ModBase.ClipboardSet(_deviceCode);
+        if (_data["verification_uri_complete"] is not null)
         {
-            website = (string)data["verification_uri_complete"];
-            LabCaption.Text = Lang.Text("Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill", userCode, website);
+            _website = (string)_data["verification_uri_complete"]!;
+            LabCaption.Text = Lang.Text("Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill", _userCode, _website);
         }
         else
         {
-            website = (string)data["verification_uri"];
-            LabCaption.Text = Lang.Text("Launch.Account.LoginDialog.MicrosoftInstructions", userCode, website);
+            _website = (string)_data["verification_uri"]!;
+            LabCaption.Text = Lang.Text("Launch.Account.LoginDialog.MicrosoftInstructions", _userCode, _website);
         }
 
-        // 设置 UI
         LabTitle.Text = Lang.Text("Launch.Account.LoginDialog.MinecraftLogin");
-        CustomEventService.SetEventData(Btn1, website);
-        CustomEventService.SetEventData(Btn2, userCode);
-        // 启动工作线程
-        workingThread = WorkThreadAsync();
+        CustomEventService.SetEventData(Btn1, _website);
+        CustomEventService.SetEventData(Btn2, _userCode);
+        _workingThread = WorkThreadAsync();
+    }
+
+    private void Finished(object result)
+    {
+        if (_isExited) return;
+        _isExited = true;
+
+        if (_legacyConverter is not null)
+        {
+            // 旧路径：直接写 Converter
+            LegacyComplete(result);
+            ModBase.RunInUi(() => _ = InvokeCloseAnimationAsync(MsgBoxResponse.Cancelled(Request.RequestId)));
+        }
+        else
+        {
+            // 新路径：触发 Completed 事件
+            var response = result switch
+            {
+                string[] tokens => new MsgBoxResponse
+                {
+                    RequestId = Request.RequestId,
+                    ButtonValue = 1,
+                    Button = new MsgBoxButtonInfo("", 1)
+                },
+                _ => MsgBoxResponse.Cancelled(Request.RequestId)
+            };
+            ModBase.RunInUi(() => Completed?.Invoke(this, response));
+        }
+        Thread.Sleep(200);
+        ModMain.frmMain.ShowWindowToTop();
     }
 
     private record ErrorBody(
@@ -71,18 +155,17 @@ public partial class MyMsgLogin
     private async Task WorkThreadAsync()
     {
         await Task.Delay(2000).ConfigureAwait(false);
-        if (myConverter.IsExited)
-            return;
-        ModBase.OpenWebsite(website);
-        ModBase.ClipboardSet(userCode);
-        var delayTime = (data["interval"].ToObject<int>() - 1) * 1000;
-        // 轮询
+        if (_isExited) return;
+        ModBase.OpenWebsite(_website);
+        ModBase.ClipboardSet(_userCode);
+        var delayTime = (_data!["interval"]!.ToObject<int>() - 1) * 1000;
+
         var unknownFailureCount = 0;
-        while (!myConverter.IsExited)
+        while (!_isExited)
         {
             try
             {
-                var bodyData = $"grant_type=urn:ietf:params:oauth:grant-type:device_code&client_id={Secrets.MSOAuthClientId}&device_code={deviceCode}&scope=XboxLive.signin%20offline_access";
+                var bodyData = $"grant_type=urn:ietf:params:oauth:grant-type:device_code&client_id={Secrets.MSOAuthClientId}&device_code={_deviceCode}&scope=XboxLive.signin%20offline_access";
                 using var result = await HttpRequest
                     .Create("https://login.microsoftonline.com/consumers/oauth2/v2.0/token")
                     .WithFormContent(bodyData)
@@ -90,28 +173,22 @@ public partial class MyMsgLogin
                     .ConfigureAwait(false);
                 if (!result.IsSuccess)
                 {
-                    var error = await result.AsJsonAsync<ErrorBody>()
-                        .ConfigureAwait(false);
-                    switch(error?.Error)
+                    var error = await result.AsJsonAsync<ErrorBody>().ConfigureAwait(false);
+                    switch (error?.Error)
                     {
                         case "authorization_pending":
-                            {
-                                await Task.Delay(delayTime)
-                                    .ConfigureAwait(false);
-                                continue;
-                            }
+                            await Task.Delay(delayTime).ConfigureAwait(false);
+                            continue;
                         default:
-                            {
-                                throw new Exception(error?.Error ?? "Unable to get body");
-                            }
+                            throw new Exception(error?.Error ?? "Unable to get body");
                     }
                 }
-                // 获取结果
+
                 var ctx = await result.AsStringAsync().ConfigureAwait(false);
                 var resultJson = (JsonObject)ModBase.GetJson(ctx);
                 ModProfile.ProfileLog($"令牌过期时间：{resultJson["expires_in"]} 秒");
                 HintService.Hint(Lang.Text("Launch.Account.LoginDialog.Success"), HintType.Success);
-                Finished(new[] { resultJson["access_token"].ToString(), resultJson["refresh_token"].ToString() });
+                Finished(new[] { resultJson["access_token"]!.ToString(), resultJson["refresh_token"]!.ToString() });
                 return;
             }
             catch (Exception ex)
@@ -132,57 +209,15 @@ public partial class MyMsgLogin
         }
     }
 
-
-    #region 弹窗
-
-    private readonly ModMain.MyMsgBoxConverter myConverter;
-    private readonly int uuid = ModBase.GetUuid();
-
-    public MyMsgLogin(ModMain.MyMsgBoxConverter converter)
-    {
-        try
-        {
-            InitializeComponent();
-            Btn1.Name += ModBase.GetUuid();
-            Btn2.Name += ModBase.GetUuid();
-            Btn3.Name += ModBase.GetUuid();
-            myConverter = converter;
-            ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
-            data = (JsonObject)converter.Content;
-            oAuthUrl = converter.AuthUrl?.ToString() ?? "";
-            Init();
-        }
-        catch (Exception ex)
-        {
-            ModBase.Log(ex, Lang.Text("Launch.Account.LoginDialog.Error.Init"), ModBase.LogLevel.Hint);
-        }
-
-        Loaded += Load;
-    }
-
     private void Load(object sender, EventArgs e)
     {
         try
         {
-            // 动画
-            Opacity = 0d;
+            Btn3.IsEnabled = false;
             ModAnimation.AniStart(
-                ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (myConverter.IsWarn
-                        ? new ModBase.MyColor(140d, 80d, 0d, 0d)
-                        : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
-                "PanMsgBackground Background");
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaOpacity(this, 1d, 120, 60),
-                    ModAnimation.AaDouble(i => TransformPos.Y += (double)i,
-                        -TransformPos.Y, 300, 60, new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
-                    ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
-                        -TransformRotate.Angle, 300, 60,
-                        new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
-                }, "MyMsgBox " + uuid);
-            // 记录日志
+                ModAnimation.AaCode(() => Btn3.IsEnabled = true, 120000),
+                "MyMsgBox " + (Request.RequestId));
+            InvokeShowAnimation();
             ModBase.Log($"[Control] 正版验证弹窗：{LabTitle.Text}\r\n{LabCaption.Text}");
         }
         catch (Exception ex)
@@ -191,44 +226,32 @@ public partial class MyMsgLogin
         }
     }
 
-    private void Close()
+    public void InvokeShowAnimation()
     {
-        // 动画
-        ModAnimation.AniStart(new[]
-        {
-            ModAnimation.AaCode(() =>
-            {
-                if (!ModMain.WaitingMyMsgBox.Any())
-                    ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
-                        BlurBorder.BackgroundProperty,
-                        new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
-                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
-            }, 30),
-            ModAnimation.AaOpacity(this, -Opacity, 80, 20),
-            ModAnimation.AaDouble(i => TransformPos.Y += (double)i, 20d - TransformPos.Y,
-                150, 0, new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
-                6d - TransformRotate.Angle, 150, 0, new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaCode(() => ((Grid)Parent).Children.Remove(this), after: true)
-        }, "MyMsgBox " + uuid);
+        Opacity = 0d;
+        MsgBoxAnimations.AnimateShow(this, TransformPos, TransformRotate, _anim, _animGroup);
     }
 
-    // 实现回车和 Esc 的接口（#4857）
+    public async Task InvokeCloseAnimationAsync(MsgBoxResponse response)
+    {
+        await MsgBoxAnimations.AnimateCloseAsync(this, TransformPos, TransformRotate, _anim, _animGroup).ConfigureAwait(true);
+        if (Parent is Grid g) g.Children.Remove(this);
+    }
+
     public void Btn1_Click(object sender, MouseButtonEventArgs e)
     {
+        // Btn1 负责打开浏览器（由 CustomEventService.SetEventData 处理）
     }
 
     public void Btn3_Click(object sender, MouseButtonEventArgs e)
     {
-        Finished(new ThreadInterruptedException());
+        if (!_isExited)
+            Finished(new ThreadInterruptedException());
     }
 
     private void Drag(object sender, MouseButtonEventArgs e)
     {
-        // On Error Resume Next
         if (e.GetPosition(ShapeLine).Y <= 2d)
             ModMain.frmMain.DragMove();
     }
-
-    #endregion
 }
