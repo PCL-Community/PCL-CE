@@ -423,7 +423,9 @@ public partial class PageSetupUI
     // 顶部栏
     private void BtnLogoChange_Click(object sender, MouseButtonEventArgs e)
     {
-        var fileName = SystemDialogs.SelectFile("常用图片文件(*.png;*.jpg;*.gif;*.webp)|*.png;*.jpg;*.gif;*.webp", "选择图片");
+        var fileName = SystemDialogs.SelectFile(
+            Lang.Text("Setup.Ui.ImageFile.Filter"),
+            Lang.Text("Setup.Ui.ImageFile.SelectTitle"));
         if (string.IsNullOrEmpty(fileName))
             return;
         try

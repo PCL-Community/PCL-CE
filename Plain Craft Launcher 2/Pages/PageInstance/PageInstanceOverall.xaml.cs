@@ -603,17 +603,21 @@ public partial class PageInstanceOverall
                 {
                     case ModBase.LoadState.Finished:
                     {
-                        HintService.Hint(taskName + Lang.Text("Instance.Overall.Repair.Success"), HintType.Success);
+                        HintService.Hint(
+                            Lang.Text("Instance.Overall.Repair.Success.WithTaskName", taskName), HintType.Success);
                         break;
                     }
                     case ModBase.LoadState.Failed:
                     {
-                        HintService.Hint(taskName + Lang.Text("Instance.Overall.Repair.Failed") + loader.Error.Message, HintType.Error);
+                        HintService.Hint(
+                            Lang.Text("Instance.Overall.Repair.Failed.WithDetail", taskName, loader.Error.ToString()),
+                            HintType.Error);
                         break;
                     }
                     case ModBase.LoadState.Aborted:
                     {
-                        HintService.Hint(taskName + Lang.Text("Common.Action.Cancel") + "！");
+                        HintService.Hint(
+                            Lang.Text("Instance.Overall.Repair.Cancelled.WithTaskName", taskName));
                         break;
                     }
                 }

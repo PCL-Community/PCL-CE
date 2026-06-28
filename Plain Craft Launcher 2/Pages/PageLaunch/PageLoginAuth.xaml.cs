@@ -115,7 +115,9 @@ public partial class PageLoginAuth
                 }
                 else if (ex.Message.StartsWith("$"))
                 {
-                    HintService.Hint(ex.Message.TrimStart('$'), HintType.Error);
+                    HintService.Hint(
+                        Lang.Text("Launch.Account.Auth.LoginFailed.WithDetail",ex.Message.TrimStart('$')),
+                        HintType.Error);
                 }
                 else
                 {

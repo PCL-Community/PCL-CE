@@ -163,7 +163,7 @@ public partial class PageDownloadCompFavorites
             }
             case (int)ModComp.CompType.Mod:
             {
-                newItem.Title = "Mod ({0})";
+                newItem.Title = Lang.Text("Download.Comp.Favorites.Category.Mod");
                 break;
             }
             case (int)ModComp.CompType.ModPack:

@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using fNbt;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Hash;
@@ -1861,7 +1862,8 @@ public static class ModLocalComp
                 {
                     ModBase.RunInUiWait(() =>
                     {
-                        if (loader.input.frm is not null) loader.input.frm.Load.Text = "正在更新资源";
+                        if (loader.input.frm is not null)
+                            loader.input.frm.Load.Text = Lang.Text("Instance.Resource.Update.WaitingForUpdate");
                     });
                     while (PageInstanceCompResource.updatingVersions.Contains(loader.input.compPath))
                     {
@@ -1874,7 +1876,8 @@ public static class ModLocalComp
                 {
                     ModBase.RunInUiWait(() =>
                     {
-                        if (loader.input.frm is not null) loader.input.frm.Load.Text = "正在加载资源列表";
+                        if (loader.input.frm is not null)
+                            loader.input.frm.Load.Text = Lang.Text("Instance.Resource.List.Loading");
                     });
                 }
 

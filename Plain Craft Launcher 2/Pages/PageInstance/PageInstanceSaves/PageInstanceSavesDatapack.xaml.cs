@@ -576,8 +576,10 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     /// </summary>
     private void BtnManageInstall_Click(object sender, MouseButtonEventArgs e)
     {
-        var fileList = SystemDialogs.SelectFiles("数据包文件(*.zip)|*.zip", "选择要安装的数据包");
-        if (fileList is null || !fileList.Any())
+        var fileList = SystemDialogs.SelectFiles(
+            Lang.Text("Instance.Saves.Datapack.Install.FileDialog.Filter"),
+            Lang.Text("Instance.Saves.Datapack.Install.FileDialog.Title"));
+        if (fileList is null || fileList.Length == 0)
             return;
         InstallDatapackFiles(fileList);
         Refresh();
@@ -1263,49 +1265,53 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             // 构造加载器
             var installLoaders = new List<ModLoader.LoaderBase>();
             var finishedFileNames = new List<string>();
-            installLoaders.Add(new LoaderDownload("下载新版数据包文件", fileList)
-                { ProgressWeight = updateEntryList.Count * 1.5d });
+            installLoaders.Add(
+                new LoaderDownload(Lang.Text("Instance.Saves.Datapack.Update.Task.DownloadFiles"), fileList)
+                    { ProgressWeight = updateEntryList.Count * 1.5d });
 
-            installLoaders.Add(new ModLoader.LoaderTask<int, int>("替换旧版数据包文件", _ =>
-            {
-                try
+            installLoaders.Add(new ModLoader.LoaderTask<int, int>(
+                Lang.Text("Instance.Saves.Datapack.Update.Task.ReplaceFiles"), _ =>
                 {
-                    foreach (var Entry in updateEntryList)
-                        if (File.Exists(Entry.path))
-                            Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.path, UIOption.AllDialogs,
-                                RecycleOption.SendToRecycleBin);
-                        else
-                            ModBase.Log($"[DatapackUpdate] 未找到更新前的数据包文件，跳过对它的删除：{Entry.path}", ModBase.LogLevel.Debug);
-
-                    foreach (var Entry in fileCopyList)
+                    try
                     {
-                        if (File.Exists(Entry.Value))
-                        {
-                            Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.Value, UIOption.AllDialogs,
-                                RecycleOption.SendToRecycleBin);
-                            ModBase.Log($"[Datapack] 更新后的数据包文件已存在，将会把它放入回收站：{Entry.Value}", ModBase.LogLevel.Debug);
-                        }
+                        foreach (var Entry in updateEntryList)
+                            if (File.Exists(Entry.path))
+                                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.path, UIOption.AllDialogs,
+                                    RecycleOption.SendToRecycleBin);
+                            else
+                                ModBase.Log($"[DatapackUpdate] 未找到更新前的数据包文件，跳过对它的删除：{Entry.path}",
+                                    ModBase.LogLevel.Debug);
 
-                        if (Directory.Exists(ModBase.GetPathFromFullPath(Entry.Value)))
+                        foreach (var Entry in fileCopyList)
                         {
-                            File.Move(Entry.Key, Entry.Value);
-                            finishedFileNames.Add(ModBase.GetFileNameFromPath(Entry.Value));
-                        }
-                        else
-                        {
-                            ModBase.Log($"[Datapack] 更新后的目标文件夹已被删除：{Entry.Value}", ModBase.LogLevel.Debug);
+                            if (File.Exists(Entry.Value))
+                            {
+                                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.Value, UIOption.AllDialogs,
+                                    RecycleOption.SendToRecycleBin);
+                                ModBase.Log($"[Datapack] 更新后的数据包文件已存在，将会把它放入回收站：{Entry.Value}", ModBase.LogLevel.Debug);
+                            }
+
+                            if (Directory.Exists(ModBase.GetPathFromFullPath(Entry.Value)))
+                            {
+                                File.Move(Entry.Key, Entry.Value);
+                                finishedFileNames.Add(ModBase.GetFileNameFromPath(Entry.Value));
+                            }
+                            else
+                            {
+                                ModBase.Log($"[Datapack] 更新后的目标文件夹已被删除：{Entry.Value}", ModBase.LogLevel.Debug);
+                            }
                         }
                     }
-                }
-                catch (OperationCanceledException ex)
-                {
-                    ModBase.Log(ex, "替换旧版数据包文件时被主动取消");
-                }
-            }));
+                    catch (OperationCanceledException ex)
+                    {
+                        ModBase.Log(ex, "替换旧版数据包文件时被主动取消");
+                    }
+                }));
 
             // 结束处理
             var loader = new ModLoader.LoaderCombo<IEnumerable<ModLocalComp.LocalCompFile>>(
-                $"数据包更新：{ModBase.GetFolderNameFromPath(PageInstanceSavesLeft.currentSave)}", installLoaders);
+                Lang.Text("Instance.Saves.Datapack.Update.Task.Title",
+                    ModBase.GetFolderNameFromPath(PageInstanceSavesLeft.currentSave)), installLoaders);
             var pathDatapacks = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
 
             loader.OnStateChanged = _ =>

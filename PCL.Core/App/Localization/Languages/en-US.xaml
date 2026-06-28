@@ -1,4 +1,4 @@
-<!-- Formatted by xaml-lang-formatter at 2026-06-28T11:31:04. -->
+<!-- Formatted by xaml-lang-formatter at 2026-06-28T17:16:52. -->
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -14,6 +14,10 @@
 
     <sys:String x:Key="Application.Animation.Error.OperationFailed">An animation operation failed. See the details below.</sys:String>
     <sys:String x:Key="Application.Control.Error.OperationFailed">A user interface control operation failed. See the details below.</sys:String>
+    <sys:String x:Key="Application.Control.Loading.Default">Loading...</sys:String>
+    <sys:String x:Key="Application.Control.Loading.Failed">Loading failed</sys:String>
+    <sys:String x:Key="Application.Control.Loading.NetworkUnstable">Network conditions are poor. Please try again later.</sys:String>
+    <sys:String x:Key="Application.Control.Loading.UnknownError">Unknown error</sys:String>
     <sys:String x:Key="Application.Control.MessageBox.Error.OperationFailed">A message dialog operation failed. See the details below.</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.IKnow">I see</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.Message">PCL CE detected environment issues on startup:&#xA;&#xA;{0}&#xA;&#xA;Some features may not work properly if these issues are not resolved...</sys:String>
@@ -396,6 +400,10 @@
     <!-- Download.Comp.Detail -->
 
     <sys:String x:Key="Download.Comp.Detail.CleanCache">Clean cache</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Clipboard.Detected.Message">A resource link was detected in the clipboard. Open the details page?</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Clipboard.Detected.Title">Resource link detected</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Clipboard.Fetching">Getting resource information...</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Clipboard.InvalidContent">Invalid resource content.</sys:String>
     <sys:String x:Key="Download.Comp.Detail.CopyLink">Copy link</sys:String>
     <sys:String x:Key="Download.Comp.Detail.CopyName">Copy name</sys:String>
     <sys:String x:Key="Download.Comp.Detail.DescriptionNoTranslation">No description translation is available for this resource</sys:String>
@@ -429,6 +437,8 @@
     <sys:String x:Key="Download.Comp.Detail.SelectSaveLocation">Select save location</sys:String>
     <sys:String x:Key="Download.Comp.Detail.SelectWorldInstallLocation">Select world install location (saves folder)</sys:String>
     <sys:String x:Key="Download.Comp.Detail.SelectedVersion">Selected version: {0}{1}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Task.Cancelled">Modpack installation canceled: {0}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Task.Failed">Modpack installation failed.&#xA;&#xA;Task: {0}&#xA;&#xA;Details:&#xA;{1}</sys:String>
     <sys:String x:Key="Download.Comp.Detail.TranslateDescription">Translate description</sys:String>
     <sys:String x:Key="Download.Comp.Detail.Unfavorite">Unfavorite</sys:String>
     <sys:String x:Key="Download.Comp.Detail.VersionGroup.Old">Older</sys:String>
@@ -467,6 +477,7 @@
     <sys:String x:Key="Download.Comp.Favorites.Action.Unfavorite">Unfavorite</sys:String>
     <sys:String x:Key="Download.Comp.Favorites.Cancel">Unfavorite</sys:String>
     <sys:String x:Key="Download.Comp.Favorites.CardTitle">{0} ({1})</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Category.Mod">Mod ({0})</sys:String>
     <sys:String x:Key="Download.Comp.Favorites.Deselect">Deselect</sys:String>
     <sys:String x:Key="Download.Comp.Favorites.Download">Download selected</sys:String>
     <sys:String x:Key="Download.Comp.Favorites.EditNote">Edit note</sys:String>
@@ -777,8 +788,8 @@
     <sys:String x:Key="Event.Safety.ContinueAlways">Continue and do not ask again</sys:String>
     <sys:String x:Key="Event.Safety.DangerousSettingBlocked">A custom homepage cannot write the security-sensitive setting: {0}</sys:String>
     <sys:String x:Key="Event.Safety.Title">Confirm execution</sys:String>
-    <sys:String x:Key="Event.Sanitize.UnknownTypeHint">is the unrecognized EventType, which has been removed from the homepage.</sys:String>
-    <sys:String x:Key="Event.Sanitize.UnsupportedTypeHint">is the unsupported official PCL EventType, which has been removed from the homepage.</sys:String>
+    <sys:String x:Key="Event.Sanitize.UnknownTypeHint">[{0}] is an unrecognized EventType and has been removed from the homepage.</sys:String>
+    <sys:String x:Key="Event.Sanitize.UnsupportedTypeHint">[{0}] is an unsupported official PCL EventType and has been removed from the homepage.</sys:String>
     <sys:String x:Key="Event.Setting.Written">Setting written: {0} → {1}</sys:String>
     <sys:String x:Key="Event.Variable.Written">Variable written: {0} → {1}</sys:String>
 
@@ -807,6 +818,7 @@
     <sys:String x:Key="Instance.Export.OptionListTitle">Export content list</sys:String>
     <sys:String x:Key="Instance.Export.PackName">Modpack name</sys:String>
     <sys:String x:Key="Instance.Export.PackPathInvalid.Title">Cannot use the export path specified in config</sys:String>
+    <sys:String x:Key="Instance.Export.PackPathInvalid.WithDetail">The export path specified in the configuration file cannot be used.&#xA;&#xA;Specified path: {0}&#xA;&#xA;Details:&#xA;{1}</sys:String>
     <sys:String x:Key="Instance.Export.PackVersion">Modpack version</sys:String>
     <sys:String x:Key="Instance.Export.PathError">Specified path: {0}</sys:String>
     <sys:String x:Key="Instance.Export.ReadFailed">Failed to read config file: {0}</sys:String>
@@ -816,6 +828,10 @@
     <sys:String x:Key="Instance.Export.SelectFileLocation">Select file location</sys:String>
     <sys:String x:Key="Instance.Export.SelectSaveLocation">Select export location</sys:String>
     <sys:String x:Key="Instance.Export.StartExport">Export</sys:String>
+    <sys:String x:Key="Instance.Export.Task.CopyContent">Copy export contents</sys:String>
+    <sys:String x:Key="Instance.Export.Task.CreateArchive">Create archive</sys:String>
+    <sys:String x:Key="Instance.Export.Task.DownloadPclRelease">Download PCL release</sys:String>
+    <sys:String x:Key="Instance.Export.Task.FetchFileInfo">Get file information</sys:String>
     <sys:String x:Key="Instance.Export.ZipFilter">ZIP file (*.zip)|*.zip</sys:String>
 
     <!-- Instance.Export.Advanced -->
@@ -948,11 +964,6 @@
     <sys:String x:Key="Instance.Overall.Patch.Success">Game core patched successfully</sys:String>
     <sys:String x:Key="Instance.Overall.Personalization.Title">Personalization</sys:String>
     <sys:String x:Key="Instance.Overall.Rename">Rename instance</sys:String>
-    <sys:String x:Key="Instance.Overall.Repair.DisableVerificationHint">Please first disable [Instance settings → Settings → Advanced startup options → Disable file verification], then try repairing the files!</sys:String>
-    <sys:String x:Key="Instance.Overall.Repair.Failed">Failed: </sys:String>
-    <sys:String x:Key="Instance.Overall.Repair.Processing">Processing, please wait...</sys:String>
-    <sys:String x:Key="Instance.Overall.Repair.Success">Success!</sys:String>
-    <sys:String x:Key="Instance.Overall.Repair.TaskName">File repair</sys:String>
     <sys:String x:Key="Instance.Overall.Reset.ConfirmMessage">Are you sure you want to reset instance {0}?&#xA;PCL will try to re-download this instance's resource file information from the internet and perform automatic installation.</sys:String>
     <sys:String x:Key="Instance.Overall.Reset.ConfirmTitle">Reset instance confirmation</sys:String>
     <sys:String x:Key="Instance.Overall.Reset.NotSupported">This instance does not support reset yet!</sys:String>
@@ -1011,6 +1022,17 @@
     <sys:String x:Key="Instance.Overall.Manage.TestGame">Test game</sys:String>
     <sys:String x:Key="Instance.Overall.Manage.Title">Advanced options</sys:String>
 
+    <!-- Instance.Overall.Repair -->
+
+    <sys:String x:Key="Instance.Overall.Repair.Cancelled.WithTaskName">{0} canceled!</sys:String>
+    <sys:String x:Key="Instance.Overall.Repair.DisableVerificationHint">Please first disable [Instance settings → Settings → Advanced startup options → Disable file verification], then try repairing the files!</sys:String>
+    <sys:String x:Key="Instance.Overall.Repair.Failed">Failed: </sys:String>
+    <sys:String x:Key="Instance.Overall.Repair.Failed.WithDetail">{0} failed.&#xA;&#xA;Details:&#xA;{1}</sys:String>
+    <sys:String x:Key="Instance.Overall.Repair.Processing">Processing, please wait...</sys:String>
+    <sys:String x:Key="Instance.Overall.Repair.Success">Success!</sys:String>
+    <sys:String x:Key="Instance.Overall.Repair.Success.WithTaskName">{0} completed successfully!</sys:String>
+    <sys:String x:Key="Instance.Overall.Repair.TaskName">File repair</sys:String>
+
     <!-- Instance.Resource -->
 
     <sys:String x:Key="Instance.Resource.BackToParent">Back to parent</sys:String>
@@ -1049,6 +1071,7 @@
     <sys:String x:Key="Instance.Resource.ExportInfo.ToolTip">Export detailed version info for resources</sys:String>
     <sys:String x:Key="Instance.Resource.Favorite">Favorite</sys:String>
     <sys:String x:Key="Instance.Resource.InstallFromFiles">Install from files</sys:String>
+    <sys:String x:Key="Instance.Resource.List.Loading">Loading resource list</sys:String>
     <sys:String x:Key="Instance.Resource.Loading">Loading resource list</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.Disabled.GoDownload">Go to the download page</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.Disabled.Message">You need to install a mod loader such as Forge, Fabric, etc. to use mods. Please go to the download page to install one.&#xA;If you have already installed a mod loader, you may have selected the wrong instance. Please switch to the correct instance.</sys:String>
@@ -1098,6 +1121,17 @@
     <sys:String x:Key="Instance.Resource.Install.SuccessSingle">Successfully installed {0}!</sys:String>
     <sys:String x:Key="Instance.Resource.Install.UnsupportedFormat">Unsupported file format: {0}. {1} supported formats: {2}</sys:String>
 
+    <!-- Instance.Resource.Install.FileDialog -->
+
+    <sys:String x:Key="Instance.Resource.Install.FileDialog.Mod.Filter">Mod files (*.jar;*.litemod;*.disabled;*.old)|*.jar;*.litemod;*.disabled;*.old</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.FileDialog.Mod.Title">Select mods to install</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.FileDialog.ResourcePack.Filter">Resource pack files (*.zip)|*.zip</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.FileDialog.ResourcePack.Title">Select resource packs to install</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.FileDialog.Schematic.Filter">Schematic files (*.litematic;*.nbt;*.schematic;*.schem)|*.litematic;*.nbt;*.schematic;*.schem</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.FileDialog.Schematic.Title">Select schematics to install</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.FileDialog.Shader.Filter">Shader pack files (*.zip)|*.zip</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.FileDialog.Shader.Title">Select shader packs to install</sys:String>
+
     <!-- Instance.Resource.Item -->
 
     <sys:String x:Key="Instance.Resource.Item.ErrorSuffix"> [Error]</sys:String>
@@ -1121,6 +1155,7 @@
     <sys:String x:Key="Instance.Resource.Item.Info.DetailedError">Detailed error: </sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.EmptyFolder">Empty folder</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.FailedMessage">Unable to read information for this resource.</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Info.FailedMessage.WithDetail">Unable to read information for this resource.&#xA;&#xA;Details:&#xA;{0}</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.FailedTitle">Failed to Read Resource</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.File">File: {0} ({1})</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.FolderNotFound">Folder not found</sys:String>
@@ -1160,6 +1195,10 @@
     <sys:String x:Key="Instance.Resource.Update.Failed">Resource update failed: {0}</sys:String>
     <sys:String x:Key="Instance.Resource.Update.SuccessMultiple">Successfully updated {0} resources!</sys:String>
     <sys:String x:Key="Instance.Resource.Update.SuccessSingle">Successfully updated {0}!</sys:String>
+    <sys:String x:Key="Instance.Resource.Update.Task.DownloadFiles">Download updated resource files</sys:String>
+    <sys:String x:Key="Instance.Resource.Update.Task.ReplaceFiles">Replace old resource files</sys:String>
+    <sys:String x:Key="Instance.Resource.Update.Task.Title">Update resources: {0}</sys:String>
+    <sys:String x:Key="Instance.Resource.Update.WaitingForUpdate">Updating resources</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Warning.Confirm">I understand the risks, continue updating</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Warning.Message">Newer versions of mods may be incompatible with old saves or other mods, which could cause game crashes or even permanently corrupt your saves!&#xA;If you are playing a modpack, do NOT update mods on your own!&#xA;&#xA;Before updating, please back up your saves and check the mod's changelog.&#xA;If problems arise after updating, you can retrieve the previous mod version from the recycle bin.</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Warning.Title">Mod update warning</sys:String>
@@ -1226,10 +1265,15 @@
     <sys:String x:Key="Instance.Saves.Datapack.Info.ReadFailed.WithDetail">Unable to read data pack information.&#xA;&#xA;Details:&#xA;{0}</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Info.ReadFailedTitle">Data pack read failed</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Info.Version">Version: </sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Install.FileDialog.Filter">Data pack files (*.zip)|*.zip</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Install.FileDialog.Title">Select data packs to install</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Install.Message">Do you want to install these files as data packs to the current save?</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Install.Title">Confirm data pack installation</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Replace.FileNameConflict">A file with the same name already exists: {0}. Please handle that file first and try again.</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.ToggleWarning">Data pack status toggle failed. Please try closing any running games and try again!</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Update.Task.DownloadFiles">Download updated data pack files</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Update.Task.ReplaceFiles">Replace old data pack files</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Update.Task.Title">Update data packs: {0}</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Update.UnsafeFilesSkipped">Skipped {0} data pack updates with unsafe file names.</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Confirm">I understand the risks, continue updating</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Message">Newer versions of data packs may be incompatible with old saves or other data packs, which could cause game crashes or save corruption!&#xA;&#xA;Before updating, please back up your save.&#xA;If problems arise after updating, you can retrieve the previous data pack version from the recycle bin.</sys:String>
@@ -1439,13 +1483,6 @@
     <sys:String x:Key="Launch.Account.Error.SwitchPage">Failed to switch login page. ({0})</sys:String>
     <sys:String x:Key="Launch.Account.Login">Log in</sys:String>
     <sys:String x:Key="Launch.Account.LoginCancelled">Login canceled!</sys:String>
-    <sys:String x:Key="Launch.Account.Microsoft.Error.OperationFailed">A Microsoft sign-in operation failed. See the details below.</sys:String>
-    <sys:String x:Key="Launch.Account.Microsoft.Error.Unknown">Unknown error!</sys:String>
-    <sys:String x:Key="Launch.Account.Microsoft.LoginFailed.Message">Microsoft login authentication failed.&#xA;Please consider disabling the "Verify SSL certificates for Microsoft login" option in "Settings → Miscellaneous" and try again.&#xA;&#xA;Original error message:</sys:String>
-    <sys:String x:Key="Launch.Account.Microsoft.LoginFailed.Title">Microsoft login authentication failed</sys:String>
-    <sys:String x:Key="Launch.Account.Microsoft.Purchase">»  Purchase</sys:String>
-    <sys:String x:Key="Launch.Account.Microsoft.Start">Log in</sys:String>
-    <sys:String x:Key="Launch.Account.Microsoft.Website">»  Website</sys:String>
     <sys:String x:Key="Launch.Account.Type.Microsoft">Microsoft</sys:String>
     <sys:String x:Key="Launch.Account.Type.Offline">Offline</sys:String>
     <sys:String x:Key="Launch.Account.Type.ThirdParty">Third-party</sys:String>
@@ -1461,6 +1498,7 @@
     <sys:String x:Key="Launch.Account.Auth.InvalidServer">The authentication server address is invalid.</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Login">Log in</sys:String>
     <sys:String x:Key="Launch.Account.Auth.LoginFailed">Third-party login failed.</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.LoginFailed.WithDetail">Third-party login failed.&#xA;&#xA;Original error:&#xA;{0}</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Logout">Log out</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Password">Password</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Preset.LittleSkin">Preset - LittleSkin</sys:String>
@@ -1480,6 +1518,17 @@
     <sys:String x:Key="Launch.Account.LoginDialog.ReopenWebpage">Reopen webpage</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.Success">Successfully logged in from the webpage!</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.Title">Test title text</sys:String>
+
+    <!-- Launch.Account.Microsoft -->
+
+    <sys:String x:Key="Launch.Account.Microsoft.Error.OperationFailed">A Microsoft sign-in operation failed. See the details below.</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.Error.Unknown">Unknown error!</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.LoginFailed.Message">Microsoft login authentication failed.&#xA;Please consider disabling the "Verify SSL certificates for Microsoft login" option in "Settings → Miscellaneous" and try again.&#xA;&#xA;Original error message:</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.LoginFailed.Title">Microsoft login authentication failed</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.LoginFailed.WithDetail">Microsoft login failed.&#xA;&#xA;Original error:&#xA;{0}</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.Purchase">»  Purchase</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.Start">Log in</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.Website">»  Website</sys:String>
 
     <!-- Launch.Account.Offline -->
 
@@ -1586,6 +1635,7 @@
     <sys:String x:Key="Launch.Homepage.News.ViewDetail">View details</sys:String>
     <sys:String x:Key="Launch.Homepage.Preset.EchoCave.Removed">The Echo Cave preset has been removed as it only had a shell. Please go to Settings and select another homepage preset.</sys:String>
     <sys:String x:Key="Launch.Homepage.SlowWarning">The homepage is loading too slowly ({0} seconds). Please report this issue to the homepage author, or temporarily stop using this homepage.</sys:String>
+    <sys:String x:Key="Launch.Homepage.Task.Download">Download homepage</sys:String>
 
     <!-- Launch.Skin -->
 
@@ -1945,6 +1995,11 @@
     <sys:String x:Key="Minecraft.Download.Modpack.SelectTargetFolder.Title">Select installation target (must be an empty folder)</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SomeModsDeleted">Some mod versions in the modpack have been deleted by the mod authors, so installation cannot continue. Please report this issue to the modpack author.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.TargetFolderMustBeEmpty">Please select an empty folder as the installation target!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Task.CurseForgeInstall">Install CurseForge modpack: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Task.HmclInstall">Install HMCL modpack: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Task.McbbsInstall">Install MCBBS modpack: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Task.MmcInstall">Install MultiMC modpack: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Task.ModrinthInstall">Install Modrinth modpack: {0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.TooOldUnsupported">This modpack version is too old and no longer supported!</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.UnknownArchiveStructure">No suitable file structure was found. This may not be a Minecraft archive.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.UnknownLoader">Cannot install modpack, unknown mod loader {0} (version {1})!</sys:String>
@@ -2125,6 +2180,7 @@
     <sys:String x:Key="Minecraft.Launch.Error.PrioritySet">Failed to set process priority</sys:String>
     <sys:String x:Key="Minecraft.Launch.Error.Proxy">Failed to add proxy info, giving up</sys:String>
     <sys:String x:Key="Minecraft.Launch.Error.RefreshInfo">Failed to refresh launch info</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.SpecialMessage.WithDetail">Launch failed.&#xA;&#xA;Error message:&#xA;{0}</sys:String>
     <sys:String x:Key="Minecraft.Launch.Error.UpdateOptionsFailed">Failed to update options.txt. See the details below.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Error.UpdateProfilesFailed">Failed to update launcher_profiles.json. See the details below.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Error.WatcherOperationFailed">Minecraft runtime monitoring failed. See the details below.</sys:String>
@@ -2184,7 +2240,7 @@
     <sys:String x:Key="Minecraft.Launch.Login.Auth.SelectProfile">Select profile</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.DetailMessage">$Login failed: Connection to login server timed out.&#xA;Please check your network connection!&#xA;Details:</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.Message">Login failed: Connection to login server timed out.&#xA;Please check your network connection!</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.WithDetail">Login failed because the connection to the login server timed out.&#xA;Please check your network connection or try using a VPN.&#xA;&#xA;Details:&#xA;{0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Auth.Timeout.WithDetail">Login failed because the connection to the login server timed out.&#xA;Please check your network connection.&#xA;&#xA;Details:&#xA;{0}</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Auth.ValidationFailed.WithDetail">Login validation failed.&#xA;&#xA;Details:&#xA;{0}</sys:String>
 
     <!-- Minecraft.Launch.Login.Microsoft -->
@@ -2208,6 +2264,7 @@
     <!-- Minecraft.Launch.Precheck -->
 
     <sys:String x:Key="Minecraft.Launch.Precheck.AuthServerMismatch">The third-party login server used by the current profile does not match the one required by this instance. Please use a matching profile!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.Failed.WithDetail">Launch precheck failed: {0}</sys:String>
     <sys:String x:Key="Minecraft.Launch.Precheck.InstanceError">Minecraft has a problem: {0}</sys:String>
     <sys:String x:Key="Minecraft.Launch.Precheck.InvalidPathChars">Game path cannot contain ! or ; ({0})</sys:String>
     <sys:String x:Key="Minecraft.Launch.Precheck.NoInstance">No Minecraft instance selected!</sys:String>
@@ -2295,6 +2352,7 @@
     <sys:String x:Key="Select.Folder.InputDisplayName.Message">Enter the name of the folder that shows on the list on the left column.</sys:String>
     <sys:String x:Key="Select.Folder.InputDisplayName.Title">Enter a display name</sys:String>
     <sys:String x:Key="Select.Folder.Invalid">Invalid Minecraft folder: {0}</sys:String>
+    <sys:String x:Key="Select.Folder.Invalid.WithDetail">Invalid Minecraft folder: {0}&#xA;&#xA;Details:&#xA;{1}</sys:String>
     <sys:String x:Key="Select.Folder.InvalidMessage">Invalid Minecraft folder</sys:String>
     <sys:String x:Key="Select.Folder.InvalidPathChars">Minecraft folder paths cannot contain exclamation marks (!) or semicolons (;)!</sys:String>
     <sys:String x:Key="Select.Folder.InvalidTitle">Minecraft folder unavailable</sys:String>
@@ -2541,13 +2599,16 @@
     <!-- Setup.GameLink.NetworkTest -->
 
     <sys:String x:Key="Setup.GameLink.NetworkTest.Ipv6Status">IPv6 status: {0}</sys:String>
+    <sys:String x:Key="Setup.GameLink.NetworkTest.Ipv6Status.NotTested">IPv6: Not tested</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.NotTested">Not tested</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Start">Start test</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Supported">Supported</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.TcpNatType">TCP NAT type: {0}</sys:String>
+    <sys:String x:Key="Setup.GameLink.NetworkTest.TcpNatType.NotTested">TCP NAT type: Not tested</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Testing">Testing...</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Title">Network test</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.UdpNatType">UDP NAT type: {0}</sys:String>
+    <sys:String x:Key="Setup.GameLink.NetworkTest.UdpNatType.NotTested">UDP NAT type: Not tested</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Unsupported">Unsupported</sys:String>
 
     <!-- Setup.GameManage -->
@@ -3010,7 +3071,9 @@
     <sys:String x:Key="Setup.Ui.Homepage.GoToMarket">Homepage Market</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.HintReferToModSetup">See ModSetup</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.LocalFile">Local</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.LocalFile.Hint">Read the homepage from Custom.xaml in the PCL folder.&#xA;You can edit this file to add text, images, frequently used websites, quick launch actions, and more to the homepage.</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.NetUpdate">Online</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.NetUpdate.Hint">Get homepage content from the specified URL. Server owners can also use it to update server announcements dynamically.&#xA;If you have created a stable online homepage, click this hint to share it. Approved submissions may be added to the presets!</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.NetWarning">Please exercise caution when using homepages provided by strangers. Malicious homepages may cause harm!</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.PresetLabel">Homepage presets</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Refresh">Refresh</sys:String>
@@ -3204,6 +3267,7 @@
     <sys:String x:Key="Tools.GameLink.Error.ConnectFailed">Failed to connect to the lobby server</sys:String>
     <sys:String x:Key="Tools.GameLink.Error.NetworkTestFailed">Failed to get network test results. See the details below.</sys:String>
     <sys:String x:Key="Tools.GameLink.Error.ServerExit">An error occurred while exiting the server!</sys:String>
+    <sys:String x:Key="Tools.GameLink.Error.ServerMessage">A lobby server error occurred.&#xA;&#xA;Original error:&#xA;{0}</sys:String>
     <sys:String x:Key="Tools.GameLink.Error.UpdateRequired">Please update to the latest PCL CE to use lobby features.</sys:String>
     <sys:String x:Key="Tools.GameLink.Eula.Disabled">Lobby feature disabled!</sys:String>
     <sys:String x:Key="Tools.GameLink.Eula.RevokeConfirm">Are you sure you want to revoke the lobby agreement authorization?</sys:String>

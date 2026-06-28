@@ -56,7 +56,9 @@ public partial class PageLoginMs
                 }
                 else if (ex.Message.StartsWith("$"))
                 {
-                    HintService.Hint(ex.Message.TrimStart('$'), HintType.Error);
+                    HintService.Hint(
+                        Lang.Text("Launch.Account.Microsoft.LoginFailed.WithDetail", ex.Message.TrimStart('$')),
+                        HintType.Error);
                 }
                 else if (ex is AuthenticationException && ex.Message.ContainsF("SSL/TLS"))
                 {

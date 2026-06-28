@@ -68,7 +68,9 @@ public partial class PageToolsGameLink
 
     private async void OnServerExceptionHandler(Exception ex)
     {
-        ModBase.RunInUi(() => HintService.Hint(ex.Message, HintType.Error));
+        ModBase.RunInUi(() => HintService.Hint(
+            Lang.Text("Tools.GameLink.Error.ServerMessage", ex.Message),
+            HintType.Error));
 
         try
         {

@@ -1,4 +1,4 @@
-<!-- Formatted by xaml-lang-formatter at 2026-06-28T11:31:04. -->
+<!-- Formatted by xaml-lang-formatter at 2026-06-28T17:16:52. -->
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -14,6 +14,10 @@
 
     <sys:String x:Key="Application.Animation.Error.OperationFailed">动画操作失败。请查看错误详情。</sys:String>
     <sys:String x:Key="Application.Control.Error.OperationFailed">界面控件操作失败。请查看错误详情。</sys:String>
+    <sys:String x:Key="Application.Control.Loading.Default">加载中...</sys:String>
+    <sys:String x:Key="Application.Control.Loading.Failed">加载失败</sys:String>
+    <sys:String x:Key="Application.Control.Loading.NetworkUnstable">网络环境不佳，请稍后重试，或使用 VPN 以改善网络环境。</sys:String>
+    <sys:String x:Key="Application.Control.Loading.UnknownError">未知错误</sys:String>
     <sys:String x:Key="Application.Control.MessageBox.Error.OperationFailed">消息弹窗操作失败。请查看错误详情。</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.IKnow">我知道了</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.Message">PCL CE 在启动时检测到环境问题：&#xA;&#xA;{0}&#xA;&#xA;不解决这些问题可能会导致部分功能无法正常工作……</sys:String>
@@ -396,6 +400,10 @@
     <!-- Download.Comp.Detail -->
 
     <sys:String x:Key="Download.Comp.Detail.CleanCache">清理缓存</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Clipboard.Detected.Message">检测到剪贴板中包含资源链接，是否前往详情页？</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Clipboard.Detected.Title">检测到资源链接</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Clipboard.Fetching">正在获取资源信息……</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Clipboard.InvalidContent">资源内容无效。</sys:String>
     <sys:String x:Key="Download.Comp.Detail.CopyLink">复制链接</sys:String>
     <sys:String x:Key="Download.Comp.Detail.CopyName">复制名称</sys:String>
     <sys:String x:Key="Download.Comp.Detail.DescriptionNoTranslation">当前资源的简介暂无译文</sys:String>
@@ -429,6 +437,8 @@
     <sys:String x:Key="Download.Comp.Detail.SelectSaveLocation">选择保存位置</sys:String>
     <sys:String x:Key="Download.Comp.Detail.SelectWorldInstallLocation">选择世界安装位置 (saves 文件夹)</sys:String>
     <sys:String x:Key="Download.Comp.Detail.SelectedVersion">所选版本：{0}{1}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Task.Cancelled">已取消整合包安装：{0}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Task.Failed">整合包安装失败。&#xA;&#xA;任务：{0}&#xA;&#xA;详细信息：&#xA;{1}</sys:String>
     <sys:String x:Key="Download.Comp.Detail.TranslateDescription">翻译简介</sys:String>
     <sys:String x:Key="Download.Comp.Detail.Unfavorite">取消收藏</sys:String>
     <sys:String x:Key="Download.Comp.Detail.VersionGroup.Old">远古版</sys:String>
@@ -467,6 +477,7 @@
     <sys:String x:Key="Download.Comp.Favorites.Action.Unfavorite">取消收藏</sys:String>
     <sys:String x:Key="Download.Comp.Favorites.Cancel">取消收藏</sys:String>
     <sys:String x:Key="Download.Comp.Favorites.CardTitle">{0} ({1})</sys:String>
+    <sys:String x:Key="Download.Comp.Favorites.Category.Mod">模组 ({0})</sys:String>
     <sys:String x:Key="Download.Comp.Favorites.Deselect">取消选择</sys:String>
     <sys:String x:Key="Download.Comp.Favorites.Download">下载所选</sys:String>
     <sys:String x:Key="Download.Comp.Favorites.EditNote">修改备注</sys:String>
@@ -777,8 +788,8 @@
     <sys:String x:Key="Event.Safety.ContinueAlways">继续且今后不再要求确认</sys:String>
     <sys:String x:Key="Event.Safety.DangerousSettingBlocked">自定义主页不能写入高危设置：{0}</sys:String>
     <sys:String x:Key="Event.Safety.Title">执行确认</sys:String>
-    <sys:String x:Key="Event.Sanitize.UnknownTypeHint">是无法解析的 EventType，已从主页中移除。</sys:String>
-    <sys:String x:Key="Event.Sanitize.UnsupportedTypeHint">是不受支持的 PCL 官方版 EventType，已从主页中移除。</sys:String>
+    <sys:String x:Key="Event.Sanitize.UnknownTypeHint">[{0}] 是无法解析的 EventType，已从主页中移除。</sys:String>
+    <sys:String x:Key="Event.Sanitize.UnsupportedTypeHint">[{0}] 是不受支持的 PCL 官方版 EventType，已从主页中移除。</sys:String>
     <sys:String x:Key="Event.Setting.Written">已写入设置：{0} → {1}</sys:String>
     <sys:String x:Key="Event.Variable.Written">已写入变量：{0} → {1}</sys:String>
 
@@ -807,6 +818,7 @@
     <sys:String x:Key="Instance.Export.OptionListTitle">导出内容列表</sys:String>
     <sys:String x:Key="Instance.Export.PackName">整合包名称</sys:String>
     <sys:String x:Key="Instance.Export.PackPathInvalid.Title">无法使用配置文件中指定的导出路径</sys:String>
+    <sys:String x:Key="Instance.Export.PackPathInvalid.WithDetail">无法使用配置文件中指定的导出路径。&#xA;&#xA;指定的路径：{0}&#xA;&#xA;详细信息：&#xA;{1}</sys:String>
     <sys:String x:Key="Instance.Export.PackVersion">整合包版本</sys:String>
     <sys:String x:Key="Instance.Export.PathError">指定的路径：{0}</sys:String>
     <sys:String x:Key="Instance.Export.ReadFailed">读取配置文件失败：{0}</sys:String>
@@ -816,6 +828,10 @@
     <sys:String x:Key="Instance.Export.SelectFileLocation">选择文件位置</sys:String>
     <sys:String x:Key="Instance.Export.SelectSaveLocation">选择导出位置</sys:String>
     <sys:String x:Key="Instance.Export.StartExport">开始导出</sys:String>
+    <sys:String x:Key="Instance.Export.Task.CopyContent">复制导出内容</sys:String>
+    <sys:String x:Key="Instance.Export.Task.CreateArchive">生成压缩包</sys:String>
+    <sys:String x:Key="Instance.Export.Task.DownloadPclRelease">下载 PCL 正式版</sys:String>
+    <sys:String x:Key="Instance.Export.Task.FetchFileInfo">联网获取文件信息</sys:String>
     <sys:String x:Key="Instance.Export.ZipFilter">压缩文件(*.zip)|*.zip</sys:String>
 
     <!-- Instance.Export.Advanced -->
@@ -948,11 +964,6 @@
     <sys:String x:Key="Instance.Overall.Patch.Success">修补游戏核心成功</sys:String>
     <sys:String x:Key="Instance.Overall.Personalization.Title">个性化</sys:String>
     <sys:String x:Key="Instance.Overall.Rename">修改实例名</sys:String>
-    <sys:String x:Key="Instance.Overall.Repair.DisableVerificationHint">请先关闭 [实例设置 → 设置 → 高级启动选项 → 关闭文件校验]，然后再尝试补全文件！</sys:String>
-    <sys:String x:Key="Instance.Overall.Repair.Failed">失败：</sys:String>
-    <sys:String x:Key="Instance.Overall.Repair.Processing">正在处理中，请稍候！</sys:String>
-    <sys:String x:Key="Instance.Overall.Repair.Success">成功！</sys:String>
-    <sys:String x:Key="Instance.Overall.Repair.TaskName">文件补全</sys:String>
     <sys:String x:Key="Instance.Overall.Reset.ConfirmMessage">你确定要重置实例 {0} 吗？&#xA;PCL 将会尝试重新从互联网获取此实例的资源文件信息，并重新执行自动安装。</sys:String>
     <sys:String x:Key="Instance.Overall.Reset.ConfirmTitle">实例重置确认</sys:String>
     <sys:String x:Key="Instance.Overall.Reset.NotSupported">该实例暂不支持重置！</sys:String>
@@ -1011,6 +1022,17 @@
     <sys:String x:Key="Instance.Overall.Manage.TestGame">测试游戏</sys:String>
     <sys:String x:Key="Instance.Overall.Manage.Title">高级管理</sys:String>
 
+    <!-- Instance.Overall.Repair -->
+
+    <sys:String x:Key="Instance.Overall.Repair.Cancelled.WithTaskName">{0}已取消！</sys:String>
+    <sys:String x:Key="Instance.Overall.Repair.DisableVerificationHint">请先关闭 [实例设置 → 设置 → 高级启动选项 → 关闭文件校验]，然后再尝试补全文件！</sys:String>
+    <sys:String x:Key="Instance.Overall.Repair.Failed">失败：</sys:String>
+    <sys:String x:Key="Instance.Overall.Repair.Failed.WithDetail">{0}失败。&#xA;&#xA;详细信息：&#xA;{1}</sys:String>
+    <sys:String x:Key="Instance.Overall.Repair.Processing">正在处理中，请稍候！</sys:String>
+    <sys:String x:Key="Instance.Overall.Repair.Success">成功！</sys:String>
+    <sys:String x:Key="Instance.Overall.Repair.Success.WithTaskName">{0}成功！</sys:String>
+    <sys:String x:Key="Instance.Overall.Repair.TaskName">文件补全</sys:String>
+
     <!-- Instance.Resource -->
 
     <sys:String x:Key="Instance.Resource.BackToParent">返回上级</sys:String>
@@ -1049,6 +1071,7 @@
     <sys:String x:Key="Instance.Resource.ExportInfo.ToolTip">导出详细的资源的版本信息</sys:String>
     <sys:String x:Key="Instance.Resource.Favorite">收藏</sys:String>
     <sys:String x:Key="Instance.Resource.InstallFromFiles">从文件安装</sys:String>
+    <sys:String x:Key="Instance.Resource.List.Loading">正在加载资源列表</sys:String>
     <sys:String x:Key="Instance.Resource.Loading">正在加载资源列表</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.Disabled.GoDownload">转到下载页面</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.Disabled.Message">你需要先安装 Forge、Fabric 等模组加载器才能使用模组，请在下载页面安装这些实例。&#xA;如果你已经安装过了模组加载器，那么你很可能选择了错误的实例，请点击实例选择按钮切换实例。</sys:String>
@@ -1098,6 +1121,17 @@
     <sys:String x:Key="Instance.Resource.Install.SuccessSingle">已安装 {0}！</sys:String>
     <sys:String x:Key="Instance.Resource.Install.UnsupportedFormat">不支持的文件格式：{0}，{1}支持的格式：{2}</sys:String>
 
+    <!-- Instance.Resource.Install.FileDialog -->
+
+    <sys:String x:Key="Instance.Resource.Install.FileDialog.Mod.Filter">Mod 文件(*.jar;*.litemod;*.disabled;*.old)|*.jar;*.litemod;*.disabled;*.old</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.FileDialog.Mod.Title">选择要安装的 Mod</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.FileDialog.ResourcePack.Filter">资源包文件(*.zip)|*.zip</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.FileDialog.ResourcePack.Title">选择要安装的资源包</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.FileDialog.Schematic.Filter">投影原理图文件(*.litematic;*.nbt;*.schematic;*.schem)|*.litematic;*.nbt;*.schematic;*.schem</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.FileDialog.Schematic.Title">选择要安装的投影原理图</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.FileDialog.Shader.Filter">光影包文件(*.zip)|*.zip</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.FileDialog.Shader.Title">选择要安装的光影包</sys:String>
+
     <!-- Instance.Resource.Item -->
 
     <sys:String x:Key="Instance.Resource.Item.ErrorSuffix"> [错误]</sys:String>
@@ -1121,6 +1155,7 @@
     <sys:String x:Key="Instance.Resource.Item.Info.DetailedError">详细的错误信息：</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.EmptyFolder">空文件夹</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.FailedMessage">无法读取此资源的信息。</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.Info.FailedMessage.WithDetail">无法读取此资源的信息。&#xA;&#xA;详细的错误信息：&#xA;{0}</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.FailedTitle">资源读取失败</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.File">文件：{0}（{1}）</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Info.FolderNotFound">文件夹不存在</sys:String>
@@ -1160,6 +1195,10 @@
     <sys:String x:Key="Instance.Resource.Update.Failed">资源更新失败：{0}</sys:String>
     <sys:String x:Key="Instance.Resource.Update.SuccessMultiple">已成功更新 {0} 个资源！</sys:String>
     <sys:String x:Key="Instance.Resource.Update.SuccessSingle">已成功更新 {0}！</sys:String>
+    <sys:String x:Key="Instance.Resource.Update.Task.DownloadFiles">下载新版资源文件</sys:String>
+    <sys:String x:Key="Instance.Resource.Update.Task.ReplaceFiles">替换旧版资源文件</sys:String>
+    <sys:String x:Key="Instance.Resource.Update.Task.Title">资源更新：{0}</sys:String>
+    <sys:String x:Key="Instance.Resource.Update.WaitingForUpdate">正在更新资源</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Warning.Confirm">我已了解风险，继续更新</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Warning.Message">新版本模组可能不兼容旧存档或者其他模组，这可能导致游戏崩溃，甚至永久损坏存档！&#xA;如果你在游玩整合包，请千万不要自行更新模组！&#xA;&#xA;在更新前，请先备份存档，并检查模组的更新日志。&#xA;如果更新后出现问题，你也可以在回收站找回更新前的模组。</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Warning.Title">模组更新警告</sys:String>
@@ -1226,10 +1265,15 @@
     <sys:String x:Key="Instance.Saves.Datapack.Info.ReadFailed.WithDetail">无法读取此数据包的信息。&#xA;&#xA;详细错误：&#xA;{0}</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Info.ReadFailedTitle">数据包读取失败</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Info.Version">版本：</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Install.FileDialog.Filter">数据包文件(*.zip)|*.zip</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Install.FileDialog.Title">选择要安装的数据包</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Install.Message">是否要将这些文件作为数据包安装到当前存档？</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Install.Title">数据包安装确认</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Replace.FileNameConflict">已存在同名文件：{0}，请先处理该文件再重试。</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.ToggleWarning">由于文件被占用，数据包的状态切换失败，请尝试关闭正在运行的游戏后再试！</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Update.Task.DownloadFiles">下载新版数据包文件</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Update.Task.ReplaceFiles">替换旧版数据包文件</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Update.Task.Title">数据包更新：{0}</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Update.UnsafeFilesSkipped">已跳过 {0} 个文件名不安全的数据包更新。</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Confirm">我已了解风险，继续更新</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Message">新版本数据包可能不兼容旧存档或者其他数据包，这可能导致游戏崩溃或存档损坏！&#xA;&#xA;在更新前，请先备份存档。&#xA;如果更新后出现问题，你也可以在回收站找回更新前的数据包。</sys:String>
@@ -1439,13 +1483,6 @@
     <sys:String x:Key="Launch.Account.Error.SwitchPage">切换登录分页失败（{0}）</sys:String>
     <sys:String x:Key="Launch.Account.Login">登录</sys:String>
     <sys:String x:Key="Launch.Account.LoginCancelled">已取消登录！</sys:String>
-    <sys:String x:Key="Launch.Account.Microsoft.Error.OperationFailed">Microsoft 登录操作失败。请查看错误详情。</sys:String>
-    <sys:String x:Key="Launch.Account.Microsoft.Error.Unknown">未知错误！</sys:String>
-    <sys:String x:Key="Launch.Account.Microsoft.LoginFailed.Message">正版登录验证失败，请考虑在 [设置 → 其他] 中关闭 [在正版登录时验证 SSL 证书]，然后再试。&#xA;&#xA;原始错误信息：</sys:String>
-    <sys:String x:Key="Launch.Account.Microsoft.LoginFailed.Title">正版登录尝试失败</sys:String>
-    <sys:String x:Key="Launch.Account.Microsoft.Purchase">»  购买正版</sys:String>
-    <sys:String x:Key="Launch.Account.Microsoft.Start">开始正版验证</sys:String>
-    <sys:String x:Key="Launch.Account.Microsoft.Website">»  前往官网</sys:String>
     <sys:String x:Key="Launch.Account.Type.Microsoft">正版验证</sys:String>
     <sys:String x:Key="Launch.Account.Type.Offline">离线验证</sys:String>
     <sys:String x:Key="Launch.Account.Type.ThirdParty">第三方验证</sys:String>
@@ -1461,6 +1498,7 @@
     <sys:String x:Key="Launch.Account.Auth.InvalidServer">输入的验证服务器地址无效</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Login">登录</sys:String>
     <sys:String x:Key="Launch.Account.Auth.LoginFailed">第三方登录尝试失败</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.LoginFailed.WithDetail">第三方登录尝试失败。&#xA;&#xA;原始错误信息：&#xA;{0}</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Logout">退出登录</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Password">密码</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Preset.LittleSkin">预设 - LittleSkin</sys:String>
@@ -1480,6 +1518,17 @@
     <sys:String x:Key="Launch.Account.LoginDialog.ReopenWebpage">重新打开网页</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.Success">网页登录成功！</sys:String>
     <sys:String x:Key="Launch.Account.LoginDialog.Title">测试标题文本</sys:String>
+
+    <!-- Launch.Account.Microsoft -->
+
+    <sys:String x:Key="Launch.Account.Microsoft.Error.OperationFailed">Microsoft 登录操作失败。请查看错误详情。</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.Error.Unknown">未知错误！</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.LoginFailed.Message">正版登录验证失败，请考虑在 [设置 → 其他] 中关闭 [在正版登录时验证 SSL 证书]，然后再试。&#xA;&#xA;原始错误信息：</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.LoginFailed.Title">正版登录尝试失败</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.LoginFailed.WithDetail">正版登录验证失败。&#xA;&#xA;原始错误信息：&#xA;{0}</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.Purchase">»  购买正版</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.Start">开始正版验证</sys:String>
+    <sys:String x:Key="Launch.Account.Microsoft.Website">»  前往官网</sys:String>
 
     <!-- Launch.Account.Offline -->
 
@@ -1586,6 +1635,7 @@
     <sys:String x:Key="Launch.Homepage.News.ViewDetail">查看详情</sys:String>
     <sys:String x:Key="Launch.Homepage.Preset.EchoCave.Removed">回声洞 因为只有空壳因此已被移除，请前往设置选择其他预设主页</sys:String>
     <sys:String x:Key="Launch.Homepage.SlowWarning">主页加载过于缓慢（花费了 {0} 秒），请向主页作者反馈此问题，或暂时停止使用该主页</sys:String>
+    <sys:String x:Key="Launch.Homepage.Task.Download">下载主页</sys:String>
 
     <!-- Launch.Skin -->
 
@@ -1945,6 +1995,11 @@
     <sys:String x:Key="Minecraft.Download.Modpack.SelectTargetFolder.Title">选择安装目标（必须是一个空文件夹）</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SomeModsDeleted">整合包中的部分模组版本已被模组作者删除，所以没法继续安装了，请向整合包作者反馈该问题</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.TargetFolderMustBeEmpty">请选择一个空文件夹作为安装目标！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Task.CurseForgeInstall">CurseForge 整合包安装：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Task.HmclInstall">HMCL 整合包安装：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Task.McbbsInstall">MCBBS 整合包安装：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Task.MmcInstall">MMC 整合包安装：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Task.ModrinthInstall">Modrinth 整合包安装：{0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.TooOldUnsupported">该整合包版本过老，已不支持进行安装！</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.UnknownArchiveStructure">未能找到适合的文件结构，这可能不是一个 MC 压缩包</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.UnknownLoader">无法安装整合包，其中出现了未知的模组加载器 {0}（版本为 {1}）！</sys:String>
@@ -2125,6 +2180,7 @@
     <sys:String x:Key="Minecraft.Launch.Error.PrioritySet">设置进程优先级失败</sys:String>
     <sys:String x:Key="Minecraft.Launch.Error.Proxy">添加代理信息到游戏失败，放弃加入</sys:String>
     <sys:String x:Key="Minecraft.Launch.Error.RefreshInfo">刷新启动信息失败</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Error.SpecialMessage.WithDetail">启动失败。&#xA;&#xA;错误信息：&#xA;{0}</sys:String>
     <sys:String x:Key="Minecraft.Launch.Error.UpdateOptionsFailed">更新 options.txt 失败。请查看错误详情。</sys:String>
     <sys:String x:Key="Minecraft.Launch.Error.UpdateProfilesFailed">更新 launcher_profiles.json 失败。请查看错误详情。</sys:String>
     <sys:String x:Key="Minecraft.Launch.Error.WatcherOperationFailed">Minecraft 运行监控失败。请查看错误详情。</sys:String>
@@ -2208,6 +2264,7 @@
     <!-- Minecraft.Launch.Precheck -->
 
     <sys:String x:Key="Minecraft.Launch.Precheck.AuthServerMismatch">当前档案使用的第三方验证服务器与实例要求使用的不一致，请使用符合要求的档案启动游戏！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Precheck.Failed.WithDetail">启动前检查失败：{0}</sys:String>
     <sys:String x:Key="Minecraft.Launch.Precheck.InstanceError">Minecraft 存在问题：{0}</sys:String>
     <sys:String x:Key="Minecraft.Launch.Precheck.InvalidPathChars">游戏路径中不可包含 ! 或 ;（{0}）</sys:String>
     <sys:String x:Key="Minecraft.Launch.Precheck.NoInstance">未选择 Minecraft 实例！</sys:String>
@@ -2295,6 +2352,7 @@
     <sys:String x:Key="Select.Folder.InputDisplayName.Message">输入该文件夹在左边栏列表中显示的名称。</sys:String>
     <sys:String x:Key="Select.Folder.InputDisplayName.Title">输入显示名称</sys:String>
     <sys:String x:Key="Select.Folder.Invalid">无效的 Minecraft 文件夹：{0}</sys:String>
+    <sys:String x:Key="Select.Folder.Invalid.WithDetail">无效的 Minecraft 文件夹：{0}&#xA;&#xA;详细信息：&#xA;{1}</sys:String>
     <sys:String x:Key="Select.Folder.InvalidMessage">Minecraft 文件夹失效</sys:String>
     <sys:String x:Key="Select.Folder.InvalidPathChars">Minecraft 文件夹路径中不能含有感叹号或分号！</sys:String>
     <sys:String x:Key="Select.Folder.InvalidTitle">Minecraft 文件夹失效</sys:String>
@@ -2541,13 +2599,16 @@
     <!-- Setup.GameLink.NetworkTest -->
 
     <sys:String x:Key="Setup.GameLink.NetworkTest.Ipv6Status">IPv6: {0}</sys:String>
+    <sys:String x:Key="Setup.GameLink.NetworkTest.Ipv6Status.NotTested">IPv6: 尚未检测</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.NotTested">尚未检测</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Start">开始测试</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Supported">支持</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.TcpNatType">TCP NAT 类型: {0}</sys:String>
+    <sys:String x:Key="Setup.GameLink.NetworkTest.TcpNatType.NotTested">TCP NAT 类型: 尚未检测</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Testing">正在测试</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Title">网络测试</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.UdpNatType">UDP NAT 类型: {0}</sys:String>
+    <sys:String x:Key="Setup.GameLink.NetworkTest.UdpNatType.NotTested">UDP NAT 类型: 尚未检测</sys:String>
     <sys:String x:Key="Setup.GameLink.NetworkTest.Unsupported">不支持</sys:String>
 
     <!-- Setup.GameManage -->
@@ -3010,7 +3071,9 @@
     <sys:String x:Key="Setup.Ui.Homepage.GoToMarket">前往主页市场</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.HintReferToModSetup">内容见 ModSetup</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.LocalFile">读取本地文件</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.LocalFile.Hint">从 PCL 文件夹下的 Custom.xaml 读取主页内容。&#xA;你可以手动编辑该文件，向主页添加文本、图片、常用网站、快捷启动等功能。</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.NetUpdate">联网更新</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.NetUpdate.Hint">从指定网址联网获取主页内容。服主也可以用于动态更新服务器公告。&#xA;如果你制作了稳定运行的联网主页，可以点击这条提示投稿，若合格即可加入预设！</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.NetWarning">请谨慎使用陌生人提供的主页，恶意代码可能会造成损害！</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.PresetLabel">主页预设</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Refresh">刷新主页</sys:String>
@@ -3204,6 +3267,7 @@
     <sys:String x:Key="Tools.GameLink.Error.ConnectFailed">无法连接到大厅服务器</sys:String>
     <sys:String x:Key="Tools.GameLink.Error.NetworkTestFailed">获取网络测试结果失败。请查看错误详情。</sys:String>
     <sys:String x:Key="Tools.GameLink.Error.ServerExit">在服务器退出时发生了错误！</sys:String>
+    <sys:String x:Key="Tools.GameLink.Error.ServerMessage">与大厅服务器的连接出现错误。&#xA;&#xA;原始错误信息：&#xA;{0}</sys:String>
     <sys:String x:Key="Tools.GameLink.Error.UpdateRequired">请更新到最新版 PCL CE 以使用大厅</sys:String>
     <sys:String x:Key="Tools.GameLink.Eula.Disabled">联机功能已停用！</sys:String>
     <sys:String x:Key="Tools.GameLink.Eula.RevokeConfirm">你确定要撤销联机协议授权吗？</sys:String>

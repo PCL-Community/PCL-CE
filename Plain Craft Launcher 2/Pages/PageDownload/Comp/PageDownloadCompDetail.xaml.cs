@@ -101,12 +101,14 @@ public partial class PageDownloadCompDetail
                     {
                         case ModBase.LoadState.Failed:
                         {
-                            HintService.Hint(myLoader.name + Lang.Text("Common.Status.Failure") + myLoader.Error.Message, HintType.Error);
+                            HintService.Hint(
+                                Lang.Text("Download.Comp.Detail.Task.Failed", myLoader.name,
+                                    myLoader.Error.ToString()), HintType.Error);
                             break;
                         }
                         case ModBase.LoadState.Aborted:
                         {
-                            HintService.Hint(myLoader.name + Lang.Text("Common.Status.Cancelled"));
+                            HintService.Hint(Lang.Text("Download.Comp.Detail.Task.Cancelled", myLoader.name));
                             break;
                         }
                         case ModBase.LoadState.Loading:

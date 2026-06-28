@@ -37,6 +37,8 @@ public partial class MyLoading
     public MyLoading()
     {
         InitializeComponent();
+        SetCurrentValue(TextProperty, Lang.Text("Application.Control.Loading.Default"));
+        SetCurrentValue(TextErrorProperty, Lang.Text("Application.Control.Loading.Failed"));
         SetResourceReference(ForegroundProperty, "ColorBrush3");
         IsErrorChanged += (_, _) => RefreshText();
         Loaded += (_, _) => RefreshText();
@@ -85,7 +87,7 @@ public partial class MyLoading
 
     public static readonly DependencyProperty TextErrorProperty =
         DependencyProperty.Register("TextError", typeof(string), typeof(MyLoading),
-            new PropertyMetadata("加载失败", (d, e) => ((MyLoading)d).RefreshText()));
+            new PropertyMetadata("", (d, e) => ((MyLoading)d).RefreshText()));
 
     /// <summary>
     ///     是否在使用 Loader 时使用 Loader 的错误输出来替换默认的错误文本显示。
@@ -103,7 +105,7 @@ public partial class MyLoading
                     var ex = State.Error;
                     if (ex is null)
                     {
-                        LabText.Text = "未知错误";
+                        LabText.Text = Lang.Text("Application.Control.Loading.UnknownError");
                     }
                     else
                     {
@@ -111,8 +113,9 @@ public partial class MyLoading
                         LabText.Text = ModBase.StrTrim(ex.Message).ToString();
                         if (new[]
                             {
-                            "远程主机强迫关闭了", "远程方已关闭传输流", "未能解析此远程名称", "由于目标计算机积极拒绝", "操作已超时", "操作超时", "服务器超时", "连接超时"
-                        }.Any(s => LabText.Text.Contains(s))) LabText.Text = "网络环境不佳，请稍后重试，或使用 VPN 以改善网络环境";
+                                "远程主机强迫关闭了", "远程方已关闭传输流", "未能解析此远程名称", "由于目标计算机积极拒绝", "操作已超时", "操作超时", "服务器超时", "连接超时"
+                            }.Any(s => LabText.Text.Contains(s)))
+                            LabText.Text = Lang.Text("Application.Control.Loading.NetworkUnstable");
                     }
                 }
                 else

@@ -18,8 +18,12 @@ public partial class PageLaunchRight : IRefreshable
     public PageLaunchRight()
     {
         InitializeComponent();
-        onlineLoader = new ModLoader.LoaderTask<string, int>("下载主页", OnlineLoaderSub)
-            { reloadTimeout = 10 * 60 * 1000 };
+        onlineLoader = new ModLoader.LoaderTask<string, int>(
+            Lang.Text("Launch.Homepage.Task.Download"),
+            OnlineLoaderSub)
+        {
+            reloadTimeout = 10 * 60 * 1000
+        };
         Loaded += (_, _) => Init();
         Loaded += (_, _) => Refresh();
         Unloaded += (_, _) => _DisposeHomepageLiveWatcher();
@@ -505,10 +509,10 @@ public partial class PageLaunchRight : IRefreshable
     private static void _ShowSanitizeHints(XamlEventSanitizer.SanitizeResult result)
     {
         foreach (var unsupported in result.UnsupportedTypesFound)
-            HintService.Hint($"[{unsupported}]" + " " + Lang.Text("Event.Sanitize.UnsupportedTypeHint"), HintType.Error);
+            HintService.Hint(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported), HintType.Error);
 
         foreach (var unknown in result.UnrecognizedTypes)
-            HintService.Hint($"[{unknown}]" +  " " + Lang.Text("Event.Sanitize.UnknownTypeHint"), HintType.Error);
+            HintService.Hint(Lang.Text("Event.Sanitize.UnknownTypeHint", unknown), HintType.Error);
     }
 
     private const string homepageLivePatchFileName = "CustomLive.json";

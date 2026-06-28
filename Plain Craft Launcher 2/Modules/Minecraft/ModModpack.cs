@@ -644,7 +644,7 @@ public static class ModModpack
         });
 
         // 重复任务检查
-        var loaderName = "CurseForge 整合包安装：" + instanceName + " ";
+        var loaderName = Lang.Text("Minecraft.Download.Modpack.Task.CurseForgeInstall", instanceName);
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);
@@ -884,7 +884,7 @@ public static class ModModpack
         });
 
         // 重复任务检查
-        var loaderName = $"Modrinth 整合包安装：{instanceName} ";
+        var loaderName = Lang.Text("Minecraft.Download.Modpack.Task.ModrinthInstall", instanceName);
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);
@@ -962,7 +962,7 @@ public static class ModModpack
                 { show = false, ProgressWeight = mergeLoaders.Sum(l => l.ProgressWeight) }
         };
         // 重复任务检查
-        var loaderName = "HMCL 整合包安装：" + instanceName + " ";
+        var loaderName = Lang.Text("Minecraft.Download.Modpack.Task.HmclInstall", instanceName);
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);
@@ -1092,7 +1092,7 @@ public static class ModModpack
         });
 
         // 重复任务检查
-        var loaderName = "MCBBS 整合包安装：" + instanceName + " ";
+        var loaderName = Lang.Text("Minecraft.Download.Modpack.Task.McbbsInstall", instanceName);
         if (loaderTaskbar.Any(l => l.name == loaderName))
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);
@@ -1709,7 +1709,7 @@ public static class ModModpack
             { show = false, ProgressWeight = mergeLoaders.Sum(l => l.ProgressWeight) });
 
         // 重复任务检查
-        var loaderName = "MMC 整合包安装：" + instanceName + " ";
+        var loaderName = Lang.Text("Minecraft.Download.Modpack.Task.MmcInstall", instanceName);
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);

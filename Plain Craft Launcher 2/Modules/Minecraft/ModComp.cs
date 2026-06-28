@@ -645,17 +645,20 @@ public static class ModComp
                     System.Windows.Application.Current.Dispatcher.BeginInvoke(new Func<Task>(async () =>
                     {
                         if (ModMain.MyMsgBox(
-                                "PCL detected a resource link in clipboard. Do you want to jump to the details page?",
-                                "Link Detected", "Confirm", "Cancel", forceWait: true) == 1)
+                                Lang.Text("Download.Comp.Detail.Clipboard.Detected.Message"),
+                                Lang.Text("Download.Comp.Detail.Clipboard.Detected.Title"),
+                                Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"),
+                                forceWait: true) == 1)
                         {
-                            HintService.Hint("Fetching resource info...");
+                            HintService.Hint(Lang.Text("Download.Comp.Detail.Clipboard.Fetching"));
 
                             var ids = new List<string> { projectId };
                             var compProjects = await CompRequest.GetCompProjectsByIdsAsync(ids);
 
                             if (compProjects.Count == 0)
                             {
-                                HintService.Hint("Invalid resource content.", HintType.Error);
+                                HintService.Hint(Lang.Text("Download.Comp.Detail.Clipboard.InvalidContent"),
+                                    HintType.Error);
                                 return;
                             }
 

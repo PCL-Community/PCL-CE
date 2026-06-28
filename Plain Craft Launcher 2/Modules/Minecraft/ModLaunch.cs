@@ -329,7 +329,7 @@ public static class ModLaunch
         catch (Exception ex)
         {
             if (!ex.Message.StartsWithF("$$"))
-                HintService.Hint(ex.Message, HintType.Error);
+                HintService.Hint(Lang.Text("Minecraft.Launch.Precheck.Failed.WithDetail", ex.Message), HintType.Error);
             throw;
         }
 
@@ -412,8 +412,12 @@ public static class ModLaunch
                     // 若有以 $ 开头的错误信息，则以此为准显示提示
                     // 若错误信息为 $$，则不提示
                     if (currentEx.Message != "$$")
-                        ModMain.MyMsgBox(currentEx.Message.TrimStart('$'),
-                            currentLaunchOptions?.SaveBatch is null ? Lang.Text("Launch.Error.Title") : Lang.Text("Launch.Error.ExportScriptTitle"));
+                        ModMain.MyMsgBox(
+                            Lang.Text("Minecraft.Launch.Error.SpecialMessage.WithDetail",
+                                currentEx.Message.TrimStart('$')),
+                            currentLaunchOptions?.SaveBatch is null
+                                ? Lang.Text("Launch.Error.Title")
+                                : Lang.Text("Launch.Error.ExportScriptTitle"));
                     throw;
                 }
 

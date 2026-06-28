@@ -208,7 +208,7 @@ public partial class PageInstanceExport : IRefreshable
                                 Tag = new ExportOption
                                 {
                                     Title = $"{shaderConfig.Name}", DefaultChecked = true,
-                                    Description = "光影配置文件",
+                                    Description = Lang.Text("Instance.Export.Config.ShaderConfigSuffix"),
                                     Rules = ModBase.EscapeLikePattern($"{Folder}/{shaderConfig.Name}")
                                 }
                             });
@@ -742,8 +742,10 @@ public partial class PageInstanceExport : IRefreshable
             catch (Exception ex)
             {
                 ModBase.Log(ex, $"无法使用配置文件中指定的导出路径（{configPackPath}）");
-                if (ModMain.MyMsgBox(Lang.Text("Instance.Export.PathError", configPackPath) + "\r\n\r\n" + ex,
-                        Lang.Text("Instance.Export.PackPathInvalid.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 2)
+                if (ModMain.MyMsgBox(
+                        Lang.Text("Instance.Export.PackPathInvalid.WithDetail", configPackPath, ex.ToString()),
+                        Lang.Text("Instance.Export.PackPathInvalid.Title"), Lang.Text("Common.Action.Confirm"),
+                        Lang.Text("Common.Action.Cancel")) == 2)
                     return;
             }
 
@@ -783,11 +785,13 @@ public partial class PageInstanceExport : IRefreshable
         
         #if !RELEASE
         if (includePCL)
-            loaders.Add(new ModLoader.LoaderTask<int, int>("下载 PCL 正式版", loader =>
-            {
-                UpdateManager.DownloadLatestPCL(loader);
-                ModBase.CopyFile(Path.Combine(ModBase.pathTemp, "CE-Latest.exe"), Path.Combine(cacheFolder, "Plain Craft Launcher.exe"));
-            })
+            loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Instance.Export.Task.DownloadPclRelease"),
+                loader =>
+                {
+                    UpdateManager.DownloadLatestPCL(loader);
+                    ModBase.CopyFile(Path.Combine(ModBase.pathTemp, "CE-Latest.exe"),
+                        Path.Combine(cacheFolder, "Plain Craft Launcher.exe"));
+                })
             {
                 ProgressWeight = 0.5d,
                 block = false
@@ -798,11 +802,12 @@ public partial class PageInstanceExport : IRefreshable
 
         #region 复制文件
 
-        loaders.Add(new ModLoader.LoaderTask<int, List<ModLocalComp.LocalCompFile>>("复制导出内容", loader =>
-        {
-            loader.output = new List<ModLocalComp.LocalCompFile>();
-            // 复制实例文件
-            var progress = 0;
+        loaders.Add(new ModLoader.LoaderTask<int, List<ModLocalComp.LocalCompFile>>(
+            Lang.Text("Instance.Export.Task.CopyContent"), loader =>
+            {
+                loader.output = [];
+                // 复制实例文件
+                var progress = 0;
             Action<DirectoryInfo> searchFolder = null;
             searchFolder = folder =>
             {
@@ -912,123 +917,127 @@ public partial class PageInstanceExport : IRefreshable
 
         loaders.Add(
             new ModLoader.LoaderTask<List<ModLocalComp.LocalCompFile>,
-                Dictionary<ModLocalComp.LocalCompFile, List<string>>>("联网获取文件信息", loader =>
-            {
-                loader.output = new Dictionary<ModLocalComp.LocalCompFile, List<string>>();
-                if (!checkHostedAssets)
+                Dictionary<ModLocalComp.LocalCompFile, List<string>>>(Lang.Text("Instance.Export.Task.FetchFileInfo"),
+                loader =>
                 {
-                    ModBase.Log("[Export] 要求跳过联网获取步骤");
-                    return;
-                }
-
-                if (!loader.input.Any())
-                {
-                    ModBase.Log("[Export] 没有需要联网检查的文件，跳过联网获取步骤");
-                    return;
-                }
-
-                // 分平台获取下载地址
-                var endedThreadCount = 0;
-                var failedExceptions = new List<Exception>();
-
-                // 从 Modrinth 获取信息
-                // 查找对应的文件
-                // 写入下载地址
-                ModBase.RunInNewThread(() =>
-                {
-                    try
+                    loader.output = new Dictionary<ModLocalComp.LocalCompFile, List<string>>();
+                    if (!checkHostedAssets)
                     {
-                        var modrinthHashes = loader.input.Select(m => m.ModrinthHash);
-                        var modrinthRaw = (JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
-                            "https://api.modrinth.com/v2/version_files", "POST",
-                            $"{{\"hashes\": [\"{modrinthHashes.Join("\",\"")}\"], \"algorithm\": \"sha1\"}}",
-                            "application/json"));
-                        foreach (var ModFile in loader.input)
-                        {
-                            if (!modrinthRaw.ContainsKey(ModFile.ModrinthHash)) continue;
-                            if ((string)modrinthRaw[ModFile.ModrinthHash]?["files"]?[0]["hashes"]?["sha1"] !=
-                                ModFile.ModrinthHash) continue;
-                            loader.output.AddToList(ModFile,
-                                (string)modrinthRaw[ModFile.ModrinthHash]["files"][0]["url"]);
-                        }
-
-                        ModBase.Log($"[Export] 从 Modrinth 获取到 {modrinthRaw.Count} 个本地资源项的对应信息");
-                    }
-                    catch (Exception ex)
-                    {
-                        ModBase.Log(ex, "从 Modrinth 获取本地 Mod 信息失败");
-                        failedExceptions.Add(ex);
-                    }
-                    finally
-                    {
-                        endedThreadCount += 1;
-                        loader.Progress += 0.45d;
-                    }
-                }, "Modrinth - " + loaderName);
-
-                // 从 CurseForge 获取信息
-                // 查找对应的文件
-                // 写入下载地址
-                ModBase.RunInNewThread(() =>
-                {
-                    try
-                    {
-                        if (modrinthUploadMode) return;
-                        var curseForgeHashes = loader.input.Select(m => m.CurseForgeHash);
-                        var curseForgeRaw = (JsonNode)((JsonObject)ModBase.GetJson(
-                            ModDownload.DlModRequest("https://api.curseforge.com/v1/fingerprints/432/", "POST",
-                                $"{{\"fingerprints\": [{curseForgeHashes.Join(",")}]}}", "application/json")))["data"][
-                            "exactMatches"];
-                        foreach (JsonObject ResultJson in curseForgeRaw.AsArray())
-                        {
-                            if (!ResultJson.ContainsKey("file")) continue;
-                            var file = (JsonObject)ResultJson["file"];
-                            if (string.IsNullOrEmpty((string)file["downloadUrl"])) continue;
-                            var modFile = loader.input.FirstOrDefault(m =>
-                                m.CurseForgeHash == file["fileFingerprint"].ToObject<uint>());
-                            if (modFile is null) continue;
-                            loader.output.AddToList(modFile,
-                                ModComp.CompFile.HandleCurseForgeDownloadUrls(file["downloadUrl"].ToString()));
-                        }
-
-                        ModBase.Log($"[Export] 从 CurseForge 获取到 {curseForgeRaw.AsArray().Count} 个本地资源项的对应信息");
-                    }
-                    catch (Exception ex)
-                    {
-                        ModBase.Log(ex, "从 CurseForge 获取本地 Mod 信息失败");
-                        failedExceptions.Add(ex);
-                    }
-                    finally
-                    {
-                        endedThreadCount += 1;
-                        loader.Progress += 0.45d;
-                    }
-                }, "CurseForge - " + loaderName); // Modrinth 上传模式下，不能从 CurseForge 获取信息
-
-                // 等待线程结束
-                while (endedThreadCount != 2)
-                {
-                    if (loader.IsAborted)
+                        ModBase.Log("[Export] 要求跳过联网获取步骤");
                         return;
-                    Thread.Sleep(10);
-                }
+                    }
 
-                // 若失败，确认是否继续
-                if (failedExceptions.Count == 1)
-                {
-                    if (ModMain.MyMsgBox(
-                            Lang.Text("Instance.Export.NetCheckPartialFailed.Message"),
-                            Lang.Text("Instance.Export.NetCheckPartialFailed.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel")) == 2)
-                        throw failedExceptions.First();
-                }
-                else if (failedExceptions.Count > 1)
-                {
-                    if (ModMain.MyMsgBox(
-                            Lang.Text("Instance.Export.NetCheckAllFailed.Message"),
-                            Lang.Text("Instance.Export.NetCheckAllFailed.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel")) == 2)
-                        throw failedExceptions.First();
-                }
-            })
+                    if (!loader.input.Any())
+                    {
+                        ModBase.Log("[Export] 没有需要联网检查的文件，跳过联网获取步骤");
+                        return;
+                    }
+
+                    // 分平台获取下载地址
+                    var endedThreadCount = 0;
+                    var failedExceptions = new List<Exception>();
+
+                    // 从 Modrinth 获取信息
+                    // 查找对应的文件
+                    // 写入下载地址
+                    ModBase.RunInNewThread(() =>
+                    {
+                        try
+                        {
+                            var modrinthHashes = loader.input.Select(m => m.ModrinthHash);
+                            var modrinthRaw = (JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
+                                "https://api.modrinth.com/v2/version_files", "POST",
+                                $"{{\"hashes\": [\"{modrinthHashes.Join("\",\"")}\"], \"algorithm\": \"sha1\"}}",
+                                "application/json"));
+                            foreach (var ModFile in loader.input)
+                            {
+                                if (!modrinthRaw.ContainsKey(ModFile.ModrinthHash)) continue;
+                                if ((string)modrinthRaw[ModFile.ModrinthHash]?["files"]?[0]["hashes"]?["sha1"] !=
+                                    ModFile.ModrinthHash) continue;
+                                loader.output.AddToList(ModFile,
+                                    (string)modrinthRaw[ModFile.ModrinthHash]["files"][0]["url"]);
+                            }
+
+                            ModBase.Log($"[Export] 从 Modrinth 获取到 {modrinthRaw.Count} 个本地资源项的对应信息");
+                        }
+                        catch (Exception ex)
+                        {
+                            ModBase.Log(ex, "从 Modrinth 获取本地 Mod 信息失败");
+                            failedExceptions.Add(ex);
+                        }
+                        finally
+                        {
+                            endedThreadCount += 1;
+                            loader.Progress += 0.45d;
+                        }
+                    }, "Modrinth - " + loaderName);
+
+                    // 从 CurseForge 获取信息
+                    // 查找对应的文件
+                    // 写入下载地址
+                    ModBase.RunInNewThread(() =>
+                    {
+                        try
+                        {
+                            if (modrinthUploadMode) return;
+                            var curseForgeHashes = loader.input.Select(m => m.CurseForgeHash);
+                            var curseForgeRaw = (JsonNode)((JsonObject)ModBase.GetJson(
+                                ModDownload.DlModRequest("https://api.curseforge.com/v1/fingerprints/432/", "POST",
+                                    $"{{\"fingerprints\": [{curseForgeHashes.Join(",")}]}}",
+                                    "application/json")))["data"][
+                                "exactMatches"];
+                            foreach (JsonObject ResultJson in curseForgeRaw.AsArray())
+                            {
+                                if (!ResultJson.ContainsKey("file")) continue;
+                                var file = (JsonObject)ResultJson["file"];
+                                if (string.IsNullOrEmpty((string)file["downloadUrl"])) continue;
+                                var modFile = loader.input.FirstOrDefault(m =>
+                                    m.CurseForgeHash == file["fileFingerprint"].ToObject<uint>());
+                                if (modFile is null) continue;
+                                loader.output.AddToList(modFile,
+                                    ModComp.CompFile.HandleCurseForgeDownloadUrls(file["downloadUrl"].ToString()));
+                            }
+
+                            ModBase.Log($"[Export] 从 CurseForge 获取到 {curseForgeRaw.AsArray().Count} 个本地资源项的对应信息");
+                        }
+                        catch (Exception ex)
+                        {
+                            ModBase.Log(ex, "从 CurseForge 获取本地 Mod 信息失败");
+                            failedExceptions.Add(ex);
+                        }
+                        finally
+                        {
+                            endedThreadCount += 1;
+                            loader.Progress += 0.45d;
+                        }
+                    }, "CurseForge - " + loaderName); // Modrinth 上传模式下，不能从 CurseForge 获取信息
+
+                    // 等待线程结束
+                    while (endedThreadCount != 2)
+                    {
+                        if (loader.IsAborted)
+                            return;
+                        Thread.Sleep(10);
+                    }
+
+                    // 若失败，确认是否继续
+                    if (failedExceptions.Count == 1)
+                    {
+                        if (ModMain.MyMsgBox(
+                                Lang.Text("Instance.Export.NetCheckPartialFailed.Message"),
+                                Lang.Text("Instance.Export.NetCheckPartialFailed.Title"),
+                                Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel")) == 2)
+                            throw failedExceptions.First();
+                    }
+                    else if (failedExceptions.Count > 1)
+                    {
+                        if (ModMain.MyMsgBox(
+                                Lang.Text("Instance.Export.NetCheckAllFailed.Message"),
+                                Lang.Text("Instance.Export.NetCheckAllFailed.Title"),
+                                Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel")) == 2)
+                            throw failedExceptions.First();
+                    }
+                })
             {
                 show = checkHostedAssets,
                 ProgressWeight = checkHostedAssets ? 2d : 0.01d
@@ -1038,7 +1047,8 @@ public partial class PageInstanceExport : IRefreshable
 
         #region 生成压缩包
 
-        loaders.Add(new ModLoader.LoaderTask<Dictionary<ModLocalComp.LocalCompFile, List<string>>, int>("生成压缩包",
+        loaders.Add(new ModLoader.LoaderTask<Dictionary<ModLocalComp.LocalCompFile, List<string>>, int>(
+            Lang.Text("Instance.Export.Task.CreateArchive"),
             loader =>
             {
                 // 整理文件列表

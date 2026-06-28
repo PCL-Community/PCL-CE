@@ -92,8 +92,8 @@ public static class ModFolder
                 catch (Exception ex)
                 {
                     ModMain.MyMsgBox(
-                        Lang.Text("Select.Folder.Invalid", path) + "\r\n" + "\r\n" +
-                        ex.Message, Lang.Text("Select.Folder.InvalidTitle"), isWarn: true);
+                        Lang.Text("Select.Folder.Invalid.WithDetail", path, ex.ToString()),
+                        Lang.Text("Select.Folder.InvalidTitle"), isWarn: true);
                     ModBase.Log(ex, $"无法访问 Minecraft 文件夹 {path}");
                 }
             }
