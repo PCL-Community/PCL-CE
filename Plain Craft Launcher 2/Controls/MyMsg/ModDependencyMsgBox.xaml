@@ -45,6 +45,8 @@
                              TextPadding="7" SnapsToDevicePixels="False" Padding="5,0" UseLayoutRounding="False" />
                 <my:MyButton ColorType="Normal" x:FieldModifier="public" Text="选择下载位置" x:Name="Btn2" Margin="12,0,0,0"
                              TextPadding="7" SnapsToDevicePixels="False" Padding="5,0" UseLayoutRounding="False" />
+                <my:MyButton ColorType="Normal" x:FieldModifier="public" Text="取消" x:Name="Btn3" Margin="12,0,0,0"
+                             TextPadding="7" SnapsToDevicePixels="False" Padding="5,0" UseLayoutRounding="False" />
             </StackPanel>
         </Grid>
     </Border>

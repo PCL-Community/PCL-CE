@@ -24,10 +24,12 @@ public partial class ModDependencyMsgBox
             InitializeComponent();
             AppendUniqueNameSuffix(Btn1);
             AppendUniqueNameSuffix(Btn2);
+            AppendUniqueNameSuffix(Btn3);
             myConverter = converter;
             LabTitle.Text = Lang.Text("Download.Comp.Detail.VersionPopup.Title");
             Btn1.Text = Lang.Text("Download.Comp.Detail.VersionPopup.ButtonInstall");
             Btn2.Text = Lang.Text("Download.Comp.Detail.VersionPopup.ButtonSaveAs");
+            Btn3.Text = Lang.Text("Common.Action.Cancel");
             ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
             if (converter.Content is ModComp.CompFile file)
                 Populate(file);
@@ -40,6 +42,7 @@ public partial class ModDependencyMsgBox
         Loaded += Load;
         Btn1.Click += Btn1_Click;
         Btn2.Click += Btn2_Click;
+        Btn3.Click += Btn3_Click;
         LabTitle.MouseLeftButtonDown += Drag;
         PanBorder.MouseLeftButtonDown += Drag;
     }
@@ -186,6 +189,8 @@ public partial class ModDependencyMsgBox
     public void Btn1_Click(object sender, MouseButtonEventArgs e) => ReturnResult(1);
 
     public void Btn2_Click(object sender, MouseButtonEventArgs e) => ReturnResult(2);
+
+    public void Btn3_Click(object sender, MouseButtonEventArgs e) => ReturnResult(null);
 
     private void Drag(object sender, MouseButtonEventArgs e)
     {
