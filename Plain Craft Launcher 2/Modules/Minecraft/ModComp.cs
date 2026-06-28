@@ -2438,18 +2438,18 @@ public static class ModComp
 
             if (!wordWeights.Any()) throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
 
-            var sortedWords = wordWeights.OrderByDescending(w => w.Value).ToList();
-            if (sortedWords.First().Value >= 100000)
-            {
-                request.searchText = string.Join(" ", sortedWords.Where(w => w.Value >= 100000).Select(w => w.Key));
-            }
-            else
-            {
-                request.searchText = string.Join(" ", sortedWords.Take(5).Select(w => w.Key));
-                request.curseForgeAltSearchText = string.Join(" ", ExtractWords(searchResults.First()));
-                LogWrapper.Debug("[Comp] 中文搜索基础关键词（CurseForge）：" + request.curseForgeAltSearchText);
-            }
-
+            // 仅使用相似度最高的最佳词条的英文关键词作为搜索词。
+            // 此前的实现会把所有高权重关键词（可能来自多个互不相关的模组）拼接成同一个查询，
+            // 当输入为「钠」「玉」等单字或宽泛关键词、命中大量词条时，会生成形如
+            // “sodium embeddium extras dynamiclights reforged dynamic lights magnesium” 的多模组关键词串。
+            // CurseForge / Modrinth 会将整串视为对同一模组的描述进行匹配，没有任何模组能同时命中
+            // 全部关键词，导致两个数据源都返回空、搜索整体失败（详见 issue #3272）。
+            // 改为只取最佳词条的关键词后，查询保持内聚，由数据源返回该模组及其同系列模组，
+            // 再交由后续按中文名重排序。若最佳词条无可用英文关键词，则回退到取权重最高的若干关键词。
+            var bestEntryWords = ExtractWords(searchResults.First());
+            request.searchText = bestEntryWords.Any()
+                ? string.Join(" ", bestEntryWords)
+                : string.Join(" ", wordWeights.OrderByDescending(w => w.Value).Take(5).Select(w => w.Key));
             LogWrapper.Debug("[Comp] 中文搜索基础关键词：" + request.searchText);
         }
 
