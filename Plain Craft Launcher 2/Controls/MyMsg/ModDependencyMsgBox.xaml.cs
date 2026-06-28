@@ -40,6 +40,7 @@ public partial class ModDependencyMsgBox
         }
 
         Loaded += Load;
+        PreviewKeyDown += ModDependencyMsgBox_PreviewKeyDown;
         Btn1.Click += Btn1_Click;
         Btn2.Click += Btn2_Click;
         Btn3.Click += Btn3_Click;
@@ -191,6 +192,16 @@ public partial class ModDependencyMsgBox
     public void Btn2_Click(object sender, MouseButtonEventArgs e) => ReturnResult(2);
 
     public void Btn3_Click(object sender, MouseButtonEventArgs e) => ReturnResult(null);
+
+    /// <summary>按 Esc 关闭弹窗（等同点击「取消」，返回 null）。</summary>
+    private void ModDependencyMsgBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+        {
+            e.Handled = true;
+            ReturnResult(null);
+        }
+    }
 
     private void Drag(object sender, MouseButtonEventArgs e)
     {
