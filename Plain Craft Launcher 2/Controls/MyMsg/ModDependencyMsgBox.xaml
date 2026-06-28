@@ -32,7 +32,16 @@
                                VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                                DeltaMult="0.7">
                 <StackPanel Orientation="Vertical">
-                    <TextBlock Name="LabVersionInfo" FontSize="13" TextWrapping="Wrap" Margin="2,0,2,12" Opacity="0.8" />
+                    <StackPanel Margin="2,0,2,12">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Name="LabVersionInfo"
+                                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                                       VerticalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal"
+                                        Name="PanVersionTags" VerticalAlignment="Center" Margin="4,0,0,0" />
+                        </StackPanel>
+                        <TextBlock Name="LabDateInfo" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                    </StackPanel>
                     <TextBlock Name="LabReqTitle" FontSize="14" FontWeight="Bold" Margin="2,8,0,4" />
                     <StackPanel Name="PanReqDeps" Orientation="Vertical" />
                     <TextBlock Name="LabOptTitle" FontSize="14" FontWeight="Bold" Margin="2,8,0,4" />

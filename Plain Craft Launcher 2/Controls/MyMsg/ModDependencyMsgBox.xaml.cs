@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Controls;
 
@@ -59,23 +60,37 @@ public partial class ModDependencyMsgBox
     private void Populate(ModComp.CompFile file)
     {
         // 1. 版本信息
-        var info = new List<string>();
-        if (!string.IsNullOrEmpty(file.FileName))
-            info.Add(file.FileName);
-        if (file.GameVersions.Any())
-            info.Add(Lang.Text("Download.Comp.Detail.FileList.GameVersion", string.Join("、", file.GameVersions)));
-        if (file.ModLoaders.Any())
-            info.Add(string.Join(" / ", file.ModLoaders));
-        info.Add(Lang.Text("Download.Comp.Detail.FileList.Updated", Lang.TimeSpan(file.ReleaseDate - DateTime.Now)));
-        if (file.Status != ModComp.CompFileStatus.Release)
-            info.Add(file.StatusDescription);
-        LabVersionInfo.Text = string.Join("  |  ", info);
+        LabVersionInfo.Text = file.DisplayName;
+        _AddTag(file.StatusDescription);
+        foreach (var loader in file.ModLoaders)
+            _AddTag(loader.ToString());
+        LabDateInfo.Text = Lang.Text("Download.Comp.Detail.FileList.Updated", file.ReleaseDate.ToString("G"));
 
         // 2. 必要前置 / 可选前置
         FillDependencySection(LabReqTitle, PanReqDeps, file.Dependencies,
             Lang.Text("Download.Comp.Detail.FileList.RequiredDependencies"));
         FillDependencySection(LabOptTitle, PanOptDeps, file.OptionalDependencies,
             Lang.Text("Download.Comp.Detail.FileList.OptionalDependencies"));
+    }
+
+    private void _AddTag(string text)
+    {
+        var tag = new Border
+        {
+            Background = new SolidColorBrush(Color.FromArgb(17, 0, 0, 0)),
+            Padding = new Thickness(3d, 1d, 3d, 1d),
+            CornerRadius = new CornerRadius(3d),
+            Margin = new Thickness(0d, 0d, 3d, 0d),
+            SnapsToDevicePixels = true,
+            UseLayoutRounding = false
+        };
+        tag.Child = new TextBlock
+        {
+            Text = text,
+            Foreground = new SolidColorBrush(Color.FromRgb(134, 134, 134)),
+            FontSize = 11d
+        };
+        PanVersionTags.Children.Add(tag);
     }
 
     /// <summary>
@@ -92,13 +107,8 @@ public partial class ModDependencyMsgBox
 
         if (!projects.Any())
         {
-            panel.Children.Add(new TextBlock
-            {
-                Text = Lang.Text("Download.Comp.Detail.VersionPopup.NoDeps"),
-                FontSize = 13d,
-                Margin = new Thickness(14d, 0d, 0d, 4d),
-                Opacity = 0.6d
-            });
+            header.Visibility = Visibility.Collapsed;
+            panel.Visibility = Visibility.Collapsed;
             return;
         }
 
