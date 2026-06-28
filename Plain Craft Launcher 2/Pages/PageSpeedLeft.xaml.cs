@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using PCL.Network;
@@ -87,7 +87,11 @@ public partial class PageSpeedLeft
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "任务管理左栏监视出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "任务管理左栏监视出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Speed.Error.OperationFailed"));
         }
 
         if (ModMain.frmSpeedRight is null || ModMain.frmSpeedRight.PanMain is null)
@@ -99,7 +103,11 @@ public partial class PageSpeedLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "任务管理右栏监视出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "任务管理右栏监视出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Speed.Error.OperationFailed"));
         }
     }
 
@@ -234,7 +242,11 @@ public partial class PageSpeedLeft
                                 }
                                 catch (Exception ex)
                                 {
-                                    ModBase.Log(ex, $"刷新任务管理卡片 {loader.name} 失败", ModBase.LogLevel.Feedback);
+                                    ModBase.Log(
+                                        ex,
+                                        $"刷新任务管理卡片 {loader.name} 失败",
+                                        ModBase.LogLevel.Feedback,
+                                        userSummary: Lang.Text("Speed.Error.OperationFailed"));
                                 }
                             } while (false);
 
@@ -246,7 +258,11 @@ public partial class PageSpeedLeft
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, $"更新任务管理显示失败（{loader.State}）", ModBase.LogLevel.Feedback);
+                    ModBase.Log(
+                        ex,
+                        $"更新任务管理显示失败（{loader.State}）",
+                        ModBase.LogLevel.Feedback,
+                        userSummary: Lang.Text("Speed.Error.OperationFailed"));
                 }
             }
             else if (!(loader.State == ModBase.LoadState.Aborted || loader.State == ModBase.LoadState.Finished))
@@ -354,13 +370,21 @@ public partial class PageSpeedLeft
 
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "添加任务管理卡片失败", ModBase.LogLevel.Feedback);
+                    ModBase.Log(
+                        ex,
+                        "添加任务管理卡片失败",
+                        ModBase.LogLevel.Feedback,
+                        userSummary: Lang.Text("Speed.Error.OperationFailed"));
                 }
             }
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新任务管理显示失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "刷新任务管理显示失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Speed.Error.OperationFailed"));
         }
     }
 

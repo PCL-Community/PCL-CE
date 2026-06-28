@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
@@ -9,6 +9,7 @@ using PCL.Core.UI.Theme;
 using PCL.Core.Utils.Exts;
 using PCL.Network;
 
+using PCL.Core.App.Localization;
 namespace PCL;
 
 public class ModSetup
@@ -373,7 +374,11 @@ public class ModSetup
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "字体加载失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "字体加载失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
     }
 
@@ -540,7 +545,11 @@ public class ModSetup
                 catch (Exception ex)
                 {
                     ModMain.frmMain.ImageTitleLogo.Source = null;
-                    ModBase.Log(ex, "显示标题栏图片失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        "显示标题栏图片失败",
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Setup.Error.OperationFailed"));
                 }
 
                 break;

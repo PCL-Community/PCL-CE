@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Markup;
@@ -69,7 +69,11 @@ public partial class PageComp
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"可视化{TypeNameSpaced}列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                $"可视化{TypeNameSpaced}列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Comp.Error.OperationFailed"));
         }
     }
 

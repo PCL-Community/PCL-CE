@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -233,7 +233,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "加载数据包列表 UI 失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "加载数据包列表 UI 失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
         }
     }
 
@@ -551,7 +555,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "打开 datapacks 文件夹失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                "打开 datapacks 文件夹失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
         }
     }
 
@@ -641,7 +649,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "复制数据包文件失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                "复制数据包文件失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
         }
     }
 
@@ -676,7 +688,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "导出数据包信息失败", ModBase.LogLevel.Msgbox);
+                ModBase.Log(
+                    ex,
+                    "导出数据包信息失败",
+                    ModBase.LogLevel.Msgbox,
+                    userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
             }
         }
 
@@ -967,7 +983,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
             catch (Exception ex)
             {
-                ModBase.Log(ex, "执行排序时出错", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "执行排序时出错",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
             }
         }
     }
@@ -1077,7 +1097,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             }
             catch (FileNotFoundException ex)
             {
-                ModBase.Log(ex, $"未找到需要重命名的数据包（{datapackEntity.path ?? "null"}）", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    $"未找到需要重命名的数据包（{datapackEntity.path ?? "null"}）",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
                 ReloadDatapackFileList(true);
                 return;
             }
@@ -1118,7 +1142,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"更新 UI 列表项失败：{datapackEntity.FileName}", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    $"更新 UI 列表项失败：{datapackEntity.FileName}",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
             }
         }
 
@@ -1401,7 +1429,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, $"删除数据包失败（{DatapackEntity.path}）", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        $"删除数据包失败（{DatapackEntity.path}）",
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
                     isSuccessful = false;
                 }
 
@@ -1457,7 +1489,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "删除数据包出现未知错误", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "删除数据包出现未知错误",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
             ReloadDatapackFileList(true);
         }
 
@@ -1502,8 +1538,10 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             if (datapackEntry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable)
             {
                 ModMain.MyMsgBox(
-                    Lang.Text("Instance.Saves.Datapack.Info.ReadFailed") + "\r\n" + "\r\n" + Lang.Text("Instance.Resource.Item.Info.DetailedError") +
-                    datapackEntry.FileUnavailableReason.Message, Lang.Text("Instance.Saves.Datapack.Info.ReadFailedTitle"));
+                    Lang.Text(
+                        "Instance.Saves.Datapack.Info.ReadFailed.WithDetail",
+                        datapackEntry.FileUnavailableReason.ToString()),
+                    Lang.Text("Instance.Saves.Datapack.Info.ReadFailedTitle"));
                 return;
             }
 
@@ -1548,7 +1586,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取数据包详情失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "获取数据包详情失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
         }
     }
 
@@ -1562,7 +1604,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "打开数据包文件位置失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "打开数据包文件位置失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
         }
     }
 

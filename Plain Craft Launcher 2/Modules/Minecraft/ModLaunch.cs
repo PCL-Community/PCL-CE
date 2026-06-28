@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
@@ -426,8 +426,18 @@ public static class ModLaunch
 
             // 没有特殊处理过的错误信息
             McLaunchLog("错误：" + ex);
-            ModBase.Log(ex, currentLaunchOptions?.SaveBatch is null ? "Minecraft launch failed" : "Export script failed",
-                ModBase.LogLevel.Msgbox, currentLaunchOptions?.SaveBatch is null ? Lang.Text("Launch.Error.Title") : Lang.Text("Launch.Error.ExportScriptTitle"));
+            ModBase.Log(
+                ex,
+                currentLaunchOptions?.SaveBatch is null
+                    ? "Minecraft launch failed"
+                    : "Export script failed",
+                ModBase.LogLevel.Msgbox,
+                currentLaunchOptions?.SaveBatch is null
+                    ? Lang.Text("Launch.Error.Title")
+                    : Lang.Text("Launch.Error.ExportScriptTitle"),
+                userSummary: currentLaunchOptions?.SaveBatch is null
+                    ? Lang.Text("Minecraft.Launch.Error.LaunchFailed")
+                    : Lang.Text("Minecraft.Launch.Error.ExportScriptFailed"));
             throw;
         }
     }
@@ -604,7 +614,11 @@ public static class ModLaunch
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Minecraft.Launch.Login.Error.Input"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Minecraft.Launch.Login.Error.Input"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Launch.Login.Error.Input"));
         }
 
         return loginData;
@@ -2498,7 +2512,11 @@ public static class ModLaunch
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.Proxy"), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Minecraft.Launch.Error.Proxy"),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Minecraft.Launch.Error.Proxy"));
             }
 
         // 添加 LegacyFix 相关参数
@@ -2632,7 +2650,11 @@ public static class ModLaunch
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.Proxy"), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Minecraft.Launch.Error.Proxy"),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Minecraft.Launch.Error.Proxy"));
             }
 
         // 添加 Java Wrapper 作为主 Jar
@@ -3093,7 +3115,11 @@ public static class ModLaunch
                 }
                 catch (Exception exx)
                 {
-                    ModBase.Log(exx, Lang.Text("Minecraft.Launch.Error.GpuSet"), ModBase.LogLevel.Hint);
+                    ModBase.Log(
+                        exx,
+                        Lang.Text("Minecraft.Launch.Error.GpuSet"),
+                        ModBase.LogLevel.Hint,
+                        userSummary: Lang.Text("Minecraft.Launch.Error.GpuSet"));
                 }
             }
         }
@@ -3174,7 +3200,11 @@ public static class ModLaunch
                 }
                 catch (Exception exx)
                 {
-                    ModBase.Log(exx, "更新 launcher_profiles.json 失败", ModBase.LogLevel.Feedback);
+                    ModBase.Log(
+                        exx,
+                        "更新 launcher_profiles.json 失败",
+                        ModBase.LogLevel.Feedback,
+                        userSummary: Lang.Text("Minecraft.Launch.Error.UpdateProfilesFailed"));
                 }
             }
         } while (false);
@@ -3232,7 +3262,11 @@ public static class ModLaunch
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "更新 options.txt 失败", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "更新 options.txt 失败",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Minecraft.Launch.Error.UpdateOptionsFailed"));
             }
         }
 
@@ -3366,7 +3400,11 @@ public static class ModLaunch
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.CustomCommand"), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Minecraft.Launch.Error.CustomCommand"),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Minecraft.Launch.Error.CustomCommand"));
             }
             finally
             {
@@ -3396,7 +3434,11 @@ public static class ModLaunch
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.CustomCommand"), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Minecraft.Launch.Error.CustomCommand"),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Minecraft.Launch.Error.CustomCommand"));
             }
             finally
             {
@@ -3477,7 +3519,11 @@ public static class ModLaunch
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.PrioritySet"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Minecraft.Launch.Error.PrioritySet"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Launch.Error.PrioritySet"));
         }
     }
 

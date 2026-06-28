@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -3344,7 +3344,8 @@ public static class ModBase
     public static void Log(
         string text,
         LogLevel level = LogLevel.Normal,
-        string? title = null)
+        string? title = null,
+        string? userSummary = null)
     {
         // On Error Resume Next
         // 放在最后会导致无法显示极端错误下的弹窗（如无法写入日志文件）
@@ -3368,7 +3369,9 @@ public static class ModBase
             return;
 
         var userDetails = text.RegexReplace(@"\[[^\]]+?\] ", "");
-        var userMessage = Lang.Text("SystemDialog.Error.UserVisible.Message", userDetails);
+        var userMessage = string.IsNullOrWhiteSpace(userSummary)
+            ? Lang.Text("SystemDialog.Error.UserVisible.Message", userDetails)
+            : userSummary;
         var dialogTitle = _GetUserDialogTitle(title);
 
         switch (level)

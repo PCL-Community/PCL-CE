@@ -80,28 +80,28 @@ public static class ModMusic
             {
                 var msg = ex.Message;
                 if (msg.Contains("AlreadyAllocated"))
-                    HintService.Hint(Lang.Text("Setup.Misc.Music.Error.DeviceBusy"), HintType.Error);
+                    HintService.Hint(Lang.Text("Music.Error.DeviceBusy"), HintType.Error);
                 else if (msg.Contains("NoDriver") || msg.Contains("BadDeviceId"))
-                    HintService.Hint(Lang.Text("Setup.Misc.Music.Error.DeviceChanged"), HintType.Error);
+                    HintService.Hint(Lang.Text("Music.Error.DeviceChanged"), HintType.Error);
                 else
                     ModBase.Log(
                         ex,
                         $"播放失败（{fileName}）",
                         ModBase.LogLevel.Hint,
-                        userSummary: Lang.Text("Setup.Misc.Music.Error.PlaybackFailed", fileName));
+                        userSummary: Lang.Text("Music.Error.PlaybackFailed", fileName));
             }
             else if (ex.Message.Contains("Got a frame at sample rate") ||
                      ex.Message.Contains("does not support changes to"))
             {
                 HintService.Hint(
-                    Lang.Text("Setup.Misc.Music.Error.PropertyChangeUnsupported", fileName),
+                    Lang.Text("Music.Error.PropertyChangeUnsupported", fileName),
                     HintType.Error);
             }
             else if ((!musicCurrent.EndsWithF(".wav", true) && !musicCurrent.EndsWithF(".mp3", true) &&
                       !musicCurrent.EndsWithF(".flac", true)) || ex.Message.Contains("0xC00D36C4"))
             {
                 HintService.Hint(
-                    Lang.Text("Setup.Misc.Music.Error.UnsupportedFormat", fileName),
+                    Lang.Text("Music.Error.UnsupportedFormat", fileName),
                     HintType.Error);
             }
             else
@@ -110,7 +110,7 @@ public static class ModMusic
                     ex,
                     $"播放失败（{fileName}）",
                     ModBase.LogLevel.Hint,
-                    userSummary: Lang.Text("Setup.Misc.Music.Error.PlaybackFailed", fileName));
+                    userSummary: Lang.Text("Music.Error.PlaybackFailed", fileName));
             }
 
             // 移除无效文件
@@ -190,7 +190,11 @@ public static class ModMusic
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化音乐列表失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "初始化音乐列表失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Music.Error.OperationFailed"));
         }
     }
 
@@ -242,8 +246,8 @@ public static class ModMusic
                         ModMain.frmMain.BtnExtraMusic.LogoScale = 0.8d;
                         tipText = Lang.Text(
                             isSingle
-                                ? "Setup.Misc.Music.ToolTip.Paused.Single"
-                                : "Setup.Misc.Music.ToolTip.Paused.Multiple",
+                                ? "Music.ToolTip.Paused.Single"
+                                : "Music.ToolTip.Paused.Multiple",
                             fileName);
                     }
                     else
@@ -252,8 +256,8 @@ public static class ModMusic
                         ModMain.frmMain.BtnExtraMusic.LogoScale = 1d;
                         tipText = Lang.Text(
                             isSingle
-                                ? "Setup.Misc.Music.ToolTip.Playing.Single"
-                                : "Setup.Misc.Music.ToolTip.Playing.Multiple",
+                                ? "Music.ToolTip.Playing.Single"
+                                : "Music.ToolTip.Playing.Multiple",
                             fileName);
                     }
 
@@ -266,7 +270,11 @@ public static class ModMusic
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "刷新背景音乐 UI 失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    "刷新背景音乐 UI 失败",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Music.Error.OperationFailed"));
             }
         });
     }
@@ -275,7 +283,7 @@ public static class ModMusic
     {
         if (musicNAudio is null)
         {
-            HintService.Hint(Lang.Text("Setup.Misc.Music.Error.NotStarted"), HintType.Error);
+            HintService.Hint(Lang.Text("Music.Error.NotStarted"), HintType.Error);
             return;
         }
 
@@ -306,7 +314,7 @@ public static class ModMusic
         if (musicAllList?.Count is { } arg2 && arg2 == 1)
         {
             MusicStartPlay(musicCurrent);
-            HintService.Hint(Lang.Text("Setup.Misc.Music.Hint.Replaying", ModBase.GetFileNameFromPath(musicCurrent)),
+            HintService.Hint(Lang.Text("Music.Hint.Replaying", ModBase.GetFileNameFromPath(musicCurrent)),
                 HintType.Success);
         }
         else
@@ -314,12 +322,12 @@ public static class ModMusic
             var addr = DequeueNextMusicAddress();
             if (addr is null)
             {
-                HintService.Hint(Lang.Text("Setup.Misc.Music.Error.NoAvailable"), HintType.Error);
+                HintService.Hint(Lang.Text("Music.Error.NoAvailable"), HintType.Error);
             }
             else
             {
                 MusicStartPlay(addr);
-                HintService.Hint(Lang.Text("Setup.Misc.Music.Hint.Playing", ModBase.GetFileNameFromPath(addr)),
+                HintService.Hint(Lang.Text("Music.Hint.Playing", ModBase.GetFileNameFromPath(addr)),
                     HintType.Success);
             }
         }
@@ -361,11 +369,11 @@ public static class ModMusic
                 {
                     musicNAudio = null;
                     if (showHint)
-                        HintService.Hint(Lang.Text("Setup.Misc.Music.Hint.Cleared"), HintType.Success);
+                        HintService.Hint(Lang.Text("Music.Hint.Cleared"), HintType.Success);
                 }
                 else if (showHint)
                 {
-                    HintService.Hint(Lang.Text("Setup.Misc.Music.Error.NotDetected"), HintType.Error);
+                    HintService.Hint(Lang.Text("Music.Error.NotDetected"), HintType.Error);
                 }
             }
             else
@@ -374,7 +382,7 @@ public static class ModMusic
                 if (addr is null)
                 {
                     if (showHint)
-                        HintService.Hint(Lang.Text("Setup.Misc.Music.Error.NoAvailable"), HintType.Error);
+                        HintService.Hint(Lang.Text("Music.Error.NoAvailable"), HintType.Error);
                 }
                 else
                 {
@@ -383,7 +391,7 @@ public static class ModMusic
                         MusicStartPlay(addr, isFirstLoad);
                         if (showHint)
                             HintService.Hint(
-                                Lang.Text("Setup.Misc.Music.Hint.Refreshed", ModBase.GetFileNameFromPath(addr)),
+                                Lang.Text("Music.Hint.Refreshed", ModBase.GetFileNameFromPath(addr)),
                                 HintType.Success,
                                 false);
                     }
@@ -399,7 +407,11 @@ public static class ModMusic
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新背景音乐播放失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "刷新背景音乐播放失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Music.Error.OperationFailed"));
         }
     }
 

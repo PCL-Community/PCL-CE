@@ -1,4 +1,4 @@
-using System.Security.Authentication;
+﻿using System.Security.Authentication;
 using System.Windows;
 using PCL.Core.App.Localization;
 
@@ -60,13 +60,19 @@ public partial class PageLoginMs
                 }
                 else if (ex is AuthenticationException && ex.Message.ContainsF("SSL/TLS"))
                 {
-                    ModBase.Log(ex,
-                        Lang.Text("Launch.Account.Microsoft.LoginFailed.Message") + "\r\n" + ex.Message,
-                        ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        $"{Lang.Text("Launch.Account.Microsoft.LoginFailed.Message")}\r\n{ex.Message}",
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Launch.Account.Microsoft.Error.OperationFailed"));
                 }
                 else
                 {
-                    ModBase.Log(ex, Lang.Text("Launch.Account.Microsoft.LoginFailed.Title"), ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        Lang.Text("Launch.Account.Microsoft.LoginFailed.Title"),
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Launch.Account.Microsoft.LoginFailed.Title"));
                 }
             }
             finally

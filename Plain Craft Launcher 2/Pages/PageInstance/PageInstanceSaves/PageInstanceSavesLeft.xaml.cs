@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App.Localization;
@@ -91,7 +91,11 @@ public partial class PageInstanceSavesLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Saves.Left.SwitchFailed", (int)id), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Instance.Saves.Left.SwitchFailed", (int)id),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Saves.Left.SwitchFailed", (int)id));
         }
         finally
         {

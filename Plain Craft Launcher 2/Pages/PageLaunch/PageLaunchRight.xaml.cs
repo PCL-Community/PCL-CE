@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Globalization;
 using System.Reflection;
 using System.Windows;
@@ -75,8 +75,13 @@ public partial class PageLaunchRight : IRefreshable
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "加载 PCL 主页自定义信息失败",
-                        ModBase.modeDebug ? ModBase.LogLevel.Msgbox : ModBase.LogLevel.Hint);
+                    ModBase.Log(
+                        ex,
+                        "加载 PCL 主页自定义信息失败",
+                        ModBase.modeDebug
+                            ? ModBase.LogLevel.Msgbox
+                            : ModBase.LogLevel.Hint,
+                        userSummary: Lang.Text("Launch.Error.OperationFailed"));
                 }
             }, $"刷新主页 #{ModBase.GetUuid()}");
     }
@@ -261,7 +266,10 @@ public partial class PageLaunchRight : IRefreshable
             }
             catch
             {
-                ModBase.Log(Lang.Text("Launch.Homepage.Error.ExternalFile", externalPath), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    Lang.Text("Launch.Homepage.Error.ExternalFile", externalPath),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Launch.Homepage.Error.ExternalFile", externalPath));
             }
         }
 
@@ -370,7 +378,13 @@ public partial class PageLaunchRight : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Launch.Homepage.Error.Download", address), ModBase.modeDebug ? ModBase.LogLevel.Msgbox : ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Launch.Homepage.Error.Download", address),
+                ModBase.modeDebug
+                    ? ModBase.LogLevel.Msgbox
+                    : ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Launch.Homepage.Error.Download", address));
         }
     }
 
@@ -464,7 +478,11 @@ public partial class PageLaunchRight : IRefreshable
                 }
                 else
                 {
-                    ModBase.Log(ex, Lang.Text("Launch.Homepage.LoadFailed.Title"), ModBase.LogLevel.Hint);
+                    ModBase.Log(
+                        ex,
+                        Lang.Text("Launch.Homepage.LoadFailed.Title"),
+                        ModBase.LogLevel.Hint,
+                        userSummary: Lang.Text("Launch.Homepage.LoadFailed.Title"));
                 }
 
                 return;

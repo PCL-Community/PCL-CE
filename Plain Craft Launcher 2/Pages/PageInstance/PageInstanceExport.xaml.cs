@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.IO.Compression;
 using System.Windows;
 using System.Windows.Controls;
@@ -171,7 +171,7 @@ public partial class PageInstanceExport : IRefreshable
                                 Tag = new ExportOption
                                 {
                                     Title = $"{shaderConfig.Name}", DefaultChecked = true,
-                                    Description = Lang.Text("Instance.Export.ShaderConfigSuffix"),
+                                    Description = Lang.Text("Instance.Export.Config.ShaderConfigSuffix"),
                                     Rules = ModBase.EscapeLikePattern($"{Folder}/{shaderConfig.Name}")
                                 }
                             });
@@ -280,7 +280,11 @@ public partial class PageInstanceExport : IRefreshable
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, $"错误的规则：{rule}", ModBase.LogLevel.Hint);
+                    ModBase.Log(
+                        ex,
+                        $"错误的规则：{rule}",
+                        ModBase.LogLevel.Hint,
+                        userSummary: Lang.Text("Instance.Export.Error.OperationFailed"));
                     return false;
                 }
 
@@ -422,8 +426,8 @@ public partial class PageInstanceExport : IRefreshable
         {
             // 从当前勾选的所有选项中获取所有规则行
             yield return "";
-            yield return "# " + Lang.Text("Instance.Export.ConfigComment.ModifyRules");
-            yield return "# " + Lang.Text("Instance.Export.ConfigComment.ReverseMatch");
+            yield return "# " + Lang.Text("Instance.Export.Config.Comment.ModifyRules");
+            yield return "# " + Lang.Text("Instance.Export.Config.Comment.ReverseMatch");
             yield return "";
             foreach (var CheckBox in GetAllOptions(false))
             {
@@ -438,7 +442,7 @@ public partial class PageInstanceExport : IRefreshable
                 yield return "";
             }
 
-            yield return "# " + Lang.Text("Instance.Export.ConfigComment.ExcludedFiles");
+            yield return "# " + Lang.Text("Instance.Export.Config.Comment.ExcludedFiles");
             yield return "!*.log";
             yield return "!*.dat_old";
             yield return "!*.BakaCoreInfo";
@@ -467,8 +471,8 @@ public partial class PageInstanceExport : IRefreshable
         {
             // 从当前勾选的所有选项中获取所有规则行
             yield return "";
-            yield return "# " + Lang.Text("Instance.Export.ConfigComment.ExtraFiles");
-            yield return "# " + Lang.Text("Instance.Export.ConfigComment.ExtraFiles2");
+            yield return "# " + Lang.Text("Instance.Export.Config.Comment.ExtraFiles");
+            yield return "# " + Lang.Text("Instance.Export.Config.Comment.ExtraFiles2");
             yield return "";
         }
     }
@@ -500,7 +504,7 @@ public partial class PageInstanceExport : IRefreshable
     {
         try
         {
-            var configPath = SystemDialogs.SelectSaveFile(Lang.Text("Instance.Export.SelectFileLocation"), "export_config.txt", Lang.Text("Instance.Export.ConfigFileFilter"),
+            var configPath = SystemDialogs.SelectSaveFile(Lang.Text("Instance.Export.SelectFileLocation"), "export_config.txt", Lang.Text("Instance.Export.Config.FileFilter"),
                 (string?)States.System.ExportConfigPath);
             if (string.IsNullOrEmpty(configPath))
                 return;
@@ -510,25 +514,25 @@ public partial class PageInstanceExport : IRefreshable
             configLines.Add("Name:" + TextExportName.Text);
             configLines.Add("Version:" + TextExportVersion.Text);
             configLines.Add("");
-            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.IncludeLauncher"));
+            configLines.Add("# " + Lang.Text("Instance.Export.Config.Comment.IncludeLauncher"));
             configLines.Add("IncludeLauncher:" + CheckOptionsPcl.Checked);
             configLines.Add("");
-            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.IncludeLauncherCustom"));
+            configLines.Add("# " + Lang.Text("Instance.Export.Config.Comment.IncludeLauncherCustom"));
             configLines.Add("IncludeLauncherCustom:" + CheckOptionsPclCustom.Checked);
             configLines.Add("");
-            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.BundleFiles"));
-            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.BundleFiles2"));
-            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.BundleFiles3"));
+            configLines.Add("# " + Lang.Text("Instance.Export.Config.Comment.BundleFiles"));
+            configLines.Add("# " + Lang.Text("Instance.Export.Config.Comment.BundleFiles2"));
+            configLines.Add("# " + Lang.Text("Instance.Export.Config.Comment.BundleFiles3"));
             configLines.Add("DontCheckHostedAssets:" + CheckAdvancedInclude.Checked);
             configLines.Add("");
-            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.Modrinth"));
-            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.Modrinth2"));
-            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.Modrinth3"));
+            configLines.Add("# " + Lang.Text("Instance.Export.Config.Comment.Modrinth"));
+            configLines.Add("# " + Lang.Text("Instance.Export.Config.Comment.Modrinth2"));
+            configLines.Add("# " + Lang.Text("Instance.Export.Config.Comment.Modrinth3"));
             configLines.Add("ModrinthUploadMode:" + CheckAdvancedModrinth.Checked);
             configLines.Add("");
-            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.PackPath"));
-            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.PackPath2"));
-            configLines.Add("# " + Lang.Text("Instance.Export.ConfigComment.PackPath3"));
+            configLines.Add("# " + Lang.Text("Instance.Export.Config.Comment.PackPath"));
+            configLines.Add("# " + Lang.Text("Instance.Export.Config.Comment.PackPath2"));
+            configLines.Add("# " + Lang.Text("Instance.Export.Config.Comment.PackPath3"));
             configLines.Add("PackPath:" + (configPackPath ?? ""));
             configLines.Add("");
             // 导出内容段
@@ -544,7 +548,11 @@ public partial class PageInstanceExport : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "保存配置失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                "保存配置失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Export.Error.OperationFailed"));
         }
     }
 
@@ -566,7 +574,7 @@ public partial class PageInstanceExport : IRefreshable
 
             if (segments.Length == 0)
             {
-                HintService.Hint(Lang.Text("Instance.Export.ConfigInvalid"), HintType.Error);
+                HintService.Hint(Lang.Text("Instance.Export.Config.Invalid"), HintType.Error);
                 return;
             }
 
@@ -612,7 +620,11 @@ public partial class PageInstanceExport : IRefreshable
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"读取配置文件失败：{configPath}", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                $"读取配置文件失败：{configPath}",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Export.Error.OperationFailed"));
         }
     }
 
@@ -623,7 +635,7 @@ public partial class PageInstanceExport : IRefreshable
     {
         try
         {
-            var configPath = SystemDialogs.SelectFile(Lang.Text("Instance.Export.ConfigFileFilter"), Lang.Text("Instance.Export.SelectConfigFile"),
+            var configPath = SystemDialogs.SelectFile(Lang.Text("Instance.Export.Config.FileFilter"), Lang.Text("Instance.Export.SelectConfigFile"),
                 (string?)States.System.ExportConfigPath);
             if (string.IsNullOrEmpty(configPath))
                 return;
@@ -634,7 +646,11 @@ public partial class PageInstanceExport : IRefreshable
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "选择配置文件失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                "选择配置文件失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Export.Error.OperationFailed"));
         }
     }
 
@@ -851,7 +867,7 @@ public partial class PageInstanceExport : IRefreshable
                     if (Directory.Exists(Line))
                         ModBase.CopyDirectory(Line, Path.Combine(baseFolder, ModBase.GetFolderNameFromPath(Line)) + @"\");
                     else
-                        HintService.Hint(Lang.Text("Instance.Export.ConfigFolderNotFound", Line), HintType.Error);
+                        HintService.Hint(Lang.Text("Instance.Export.Config.FolderNotFound", Line), HintType.Error);
                 }
                 else if (File.Exists(Line))
                 {
@@ -859,7 +875,7 @@ public partial class PageInstanceExport : IRefreshable
                 }
                 else
                 {
-                    HintService.Hint(Lang.Text("Instance.Export.ConfigFileNotFound", Line), HintType.Error);
+                    HintService.Hint(Lang.Text("Instance.Export.Config.FileNotFound", Line), HintType.Error);
                 }
 
             loader.Progress = 0.97d;

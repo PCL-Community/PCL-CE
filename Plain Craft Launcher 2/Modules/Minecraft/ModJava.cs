@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 using PCL.Core.App;
 using PCL.Core.IO;
@@ -312,7 +312,11 @@ public static class ModJava
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "检查 Java 类别时出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "检查 Java 类别时出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Launch.Java.Compatibility.CheckFailed"));
             if (relatedVersion is not null)
                 Config.Instance.SelectedJava[relatedVersion.PathInstance] = "使用全局设置";
             Config.Launch.SelectedJava = "";

@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Eventing.Reader;
 using System.IO;
@@ -126,7 +126,11 @@ public partial class PageDownloadCompDetail
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "下载资源整合包失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "下载资源整合包失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Comp.Error.OperationFailed"));
         }
     }
 
@@ -237,7 +241,11 @@ public partial class PageDownloadCompDetail
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "下载世界资源失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "下载世界资源失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Comp.Error.OperationFailed"));
         }
     }
 
@@ -545,7 +553,11 @@ public partial class PageDownloadCompDetail
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "保存资源文件失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    "保存资源文件失败",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Download.Comp.Error.OperationFailed"));
             }
         }, "Download CompDetail Save");
     }
@@ -1110,7 +1122,11 @@ public partial class PageDownloadCompDetail
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化工程下载列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化工程下载列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Comp.Error.OperationFailed"));
         }
     }
 

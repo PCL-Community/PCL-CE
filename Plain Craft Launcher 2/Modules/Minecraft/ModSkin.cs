@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -49,7 +49,11 @@ public static class ModSkin
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Launch.Skin.File.Error"), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Launch.Skin.File.Error"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Launch.Skin.File.Error"));
             return new McSkinInfo { IsVaild = false };
         }
 

@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -152,7 +152,11 @@ public partial class PageInstanceSetup
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重载实例独立设置时出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "重载实例独立设置时出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Setup.Error.OperationFailed"));
         }
     }
 
@@ -171,7 +175,11 @@ public partial class PageInstanceSetup
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化实例独立设置失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                "初始化实例独立设置失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Setup.Error.OperationFailed"));
         }
 
         Reload();
@@ -567,19 +575,19 @@ public partial class PageInstanceSetup
             if (TextServerAuthServer.Text.EndsWithF("/"))
             {
                 TextServerAuthServer.Text = $"{TextServerAuthServer.Text}api/yggdrasil";
-                HintService.Hint(Lang.Text("Instance.Setup.AuthServer.AutoFormatted"));
+                HintService.Hint(Lang.Text("Instance.Setup.Server.AuthServer.AutoFormatted"));
             }
             else
             {
                 TextServerAuthServer.Text = $"{TextServerAuthServer.Text}/api/yggdrasil";
-                HintService.Hint(Lang.Text("Instance.Setup.AuthServer.AutoFormatted"));
+                HintService.Hint(Lang.Text("Instance.Setup.Server.AuthServer.AutoFormatted"));
             }
         }
 
         if (TextServerAuthServer.Text.EndsWithF("/api/yggdrasil/"))
         {
             TextServerAuthServer.Text = TextServerAuthServer.Text.BeforeLast("/");
-            HintService.Hint(Lang.Text("Instance.Setup.AuthServer.AutoFormatted"));
+            HintService.Hint(Lang.Text("Instance.Setup.Server.AuthServer.AutoFormatted"));
         }
 
         comboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
@@ -653,20 +661,20 @@ public partial class PageInstanceSetup
     {
         if (!string.IsNullOrEmpty(TextServerAuthServer.Text) &&
         TextServerAuthServer.Text != "https://littleskin.cn/api/yggdrasil" && ModMain.MyMsgBox(
-        Lang.Text("Instance.Setup.LittleSkin.Override.Message"),
-        Lang.Text("Instance.Setup.LittleSkin.Override.Title"), Lang.Text("Instance.Setup.LittleSkin.Override.Continue"), Lang.Text("Common.Action.Cancel")) == 2)
+        Lang.Text("Instance.Setup.Server.LittleSkin.Override.Message"),
+        Lang.Text("Instance.Setup.Server.LittleSkin.Override.Title"), Lang.Text("Instance.Setup.Server.LittleSkin.Override.Continue"), Lang.Text("Common.Action.Cancel")) == 2)
             return;
         TextServerAuthServer.Text = "https://littleskin.cn/api/yggdrasil";
         TextServerAuthRegister.Text = "https://littleskin.cn/auth/register";
-        TextServerAuthName.Text = Lang.Text("Instance.Setup.LittleSkin.Name");
+        TextServerAuthName.Text = Lang.Text("Instance.Setup.Server.LittleSkin.Name");
     }
 
     // 锁定设置
     private void BtnServerAuthLock_Click(object sender, MouseButtonEventArgs e)
     {
         if (ModMain.MyMsgBox(
-                Lang.Text("Instance.Setup.LockLoginMethod.Message"),
-                Lang.Text("Instance.Setup.LockLoginMethod.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
+                Lang.Text("Instance.Setup.Server.LockLoginMethod.Message"),
+                Lang.Text("Instance.Setup.Server.LockLoginMethod.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
         {
             Config.InstanceAuth.AuthLocked[PageInstanceLeft.McInstance.PathInstance] = true;
             Reload();
@@ -709,14 +717,14 @@ public partial class PageInstanceSetup
         // 选项 0: 跟随全局设置
         ComboArgumentJava.Items.Add(new MyComboBoxItem
         {
-            Content = Lang.Text("Instance.Setup.Java.FollowGlobal"),
+            Content = Lang.Text("Instance.Setup.FollowGlobal"),
             Tag = new UseGlobalPreference()
         });
 
         // 选项 1: 自动选择
         ComboArgumentJava.Items.Add(new MyComboBoxItem
         {
-            Content = Lang.Text("Instance.Setup.Java.AutoSelect"),
+            Content = Lang.Text("Instance.Setup.Options.Java.AutoSelect"),
             Tag = new AutoSelect() // Nothing 表示自动选择
         });
 
@@ -733,17 +741,17 @@ public partial class PageInstanceSetup
                 // 有效路径：显示具体 Java 信息
                 relativePathItem = new MyComboBoxItem
                 {
-                    Content = Lang.Text("Instance.Setup.Java.SelectRelative.WithJava", javaEntry.ToString()),
+                    Content = Lang.Text("Instance.Setup.Options.Java.SelectRelative.WithJava", javaEntry.ToString()),
                     Tag = new UseRelativePath(relPref.RelativePath),
-                    ToolTip = Lang.Text("Instance.Setup.Java.RelativePathToolTip", relPref.RelativePath, absPath)
+                    ToolTip = Lang.Text("Instance.Setup.Options.Java.RelativePathToolTip", relPref.RelativePath, absPath)
                 };
             else
                 // 无效路径：提示用户重新选择
                 relativePathItem = new MyComboBoxItem
                 {
-                    Content = Lang.Text("Instance.Setup.Java.SelectRelative.Invalid"),
+                    Content = Lang.Text("Instance.Setup.Options.Java.SelectRelative.Invalid"),
                     Tag = new UseRelativePath(relPref.RelativePath),
-                    ToolTip = Lang.Text("Instance.Setup.Java.InvalidPathToolTip", absPath)
+                    ToolTip = Lang.Text("Instance.Setup.Options.Java.InvalidPathToolTip", absPath)
                 };
         }
         else
@@ -751,9 +759,9 @@ public partial class PageInstanceSetup
             // 未配置相对路径：使用默认模板
             relativePathItem = new MyComboBoxItem
             {
-                Content = Lang.Text("Instance.Setup.Java.SelectRelative"),
+                Content = Lang.Text("Instance.Setup.Options.Java.SelectRelative"),
                 Tag = new UseRelativePath(@"jre\bin\java.exe"),
-                ToolTip = Lang.Text("Instance.Setup.Java.SelectRelativeToolTip")
+                ToolTip = Lang.Text("Instance.Setup.Options.Java.SelectRelativeToolTip")
             };
         }
 
@@ -769,7 +777,7 @@ public partial class PageInstanceSetup
                 {
                     Content = curJava.ToString(),
                     ToolTip =
-                        Lang.Text("Instance.Setup.Java.ToolTip", curJava.Installation.JavaExePath, curJava.Installation.Version, curJava.Source),
+                        Lang.Text("Instance.Setup.Options.Java.Details.ToolTip", curJava.Installation.JavaExePath, curJava.Installation.Version, curJava.Source),
                     Tag = curJava
                 };
                 ToolTipService.SetInitialShowDelay(item, 300);
@@ -780,11 +788,15 @@ public partial class PageInstanceSetup
         catch (Exception ex)
         {
             Config.Instance.SelectedJava[PageInstanceLeft.McInstance.PathInstance] = "使用全局设置";
-            ModBase.Log(ex, "更新实例设置 Java 下拉框失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "更新实例设置 Java 下拉框失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Setup.Error.OperationFailed"));
             ComboArgumentJava.Items.Clear();
             ComboArgumentJava.Items.Add(new MyComboBoxItem
             {
-                Content = Lang.Text("Instance.Setup.Java.LoadFailed"),
+                Content = Lang.Text("Instance.Setup.Options.Java.LoadFailed"),
                 IsEnabled = false
             });
             ComboArgumentJava.SelectedIndex = 0;
@@ -839,8 +851,8 @@ public partial class PageInstanceSetup
             ComboArgumentJava.Items.Clear();
             var noJavaItem = new MyComboBoxItem
             {
-                Content = Lang.Text("Instance.Setup.Java.NoRuntime"),
-                ToolTip = Lang.Text("Instance.Setup.Java.NoRuntime.ToolTip"),
+                Content = Lang.Text("Instance.Setup.Options.Java.NoRuntime"),
+                ToolTip = Lang.Text("Instance.Setup.Options.Java.NoRuntime.ToolTip"),
                 IsEnabled = false
             };
             ComboArgumentJava.Items.Add(noJavaItem);
@@ -862,8 +874,8 @@ public partial class PageInstanceSetup
 
         var firstItem = ComboArgumentJava.Items[0] as MyComboBoxItem;
         if (firstItem is not null &&
-        ((string)firstItem.Content == Lang.Text("Instance.Setup.Java.NoRuntime") ||
-        (string)firstItem.Content == Lang.Text("Instance.Setup.Java.LoadFailed")))
+        ((string)firstItem.Content == Lang.Text("Instance.Setup.Options.Java.NoRuntime") ||
+        (string)firstItem.Content == Lang.Text("Instance.Setup.Options.Java.LoadFailed")))
             ComboArgumentJava.IsDropDownOpen = false;
     }
 
@@ -877,7 +889,7 @@ public partial class PageInstanceSetup
 
         var selectedItem = ComboArgumentJava.SelectedItem as MyComboBoxItem;
         if (selectedItem is null || (selectedItem.Tag is null &&
-        (string)selectedItem.Content != Lang.Text("Instance.Setup.Java.AutoSelect")))
+        (string)selectedItem.Content != Lang.Text("Instance.Setup.Options.Java.AutoSelect")))
             return;
 
         JavaPreference preference = default;
@@ -898,7 +910,7 @@ public partial class PageInstanceSetup
         else if (selectedItem.Tag is UseRelativePath)
         {
             // 相对路径：需要用户选择实际文件
-            var ret = SystemDialogs.SelectFile(Lang.Text("Setup.Launch.Java.SelectFile.Filter"), Lang.Text("Setup.Launch.Java.SelectFile.Title"), Basics.ExecutableDirectory);
+            var ret = SystemDialogs.SelectFile(Lang.Text("Setup.Java.SelectFile.Filter"), Lang.Text("Setup.Java.SelectFile.Title"), Basics.ExecutableDirectory);
             if (string.IsNullOrWhiteSpace(ret))
                 // 用户取消，不保存配置，保持原选择
                 return;
@@ -909,7 +921,7 @@ public partial class PageInstanceSetup
             // 验证路径是否在启动器目录内
             if (!Files.IsPathWithinDirectory(relativePath, Basics.ExecutableDirectory))
             {
-                HintService.Hint(Lang.Text("Instance.Setup.Java.PathOutOfRange"), HintType.Error);
+                HintService.Hint(Lang.Text("Instance.Setup.Options.Java.PathOutOfRange"), HintType.Error);
                 return;
             }
 
@@ -946,7 +958,7 @@ public partial class PageInstanceSetup
         if (isReverting)
             return;
         if (ModMain.MyMsgBox(
-                Lang.Text("Instance.Setup.IsolationWarning.Message"),
+                Lang.Text("Instance.Setup.Options.InstanceIsolation.Message"),
                 Lang.Text("Common.Dialog.Warning"), Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
         {
             isReverting = true;
@@ -1020,7 +1032,7 @@ public partial class PageInstanceSetup
         if (checkBox.Checked.GetValueOrDefault() && !States.Hint.DebugLog4j2Config)
         {
             if (ModMain.MyMsgBox(
-                    Lang.Text("Instance.Setup.Log4jWarning.Message"),
+                    Lang.Text("Instance.Setup.Advanced.UseDebugLog4j.Message"),
                     Lang.Text("Common.Dialog.Warning"), Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
             {
                 checkBox.Checked = false;

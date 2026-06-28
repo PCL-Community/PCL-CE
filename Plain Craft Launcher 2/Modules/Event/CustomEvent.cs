@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
@@ -40,7 +40,11 @@ namespace PCL
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Event.Error.ExecutionFailed", type, arg), ModBase.LogLevel.Msgbox);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Event.Error.ExecutionFailed", type, arg),
+                    ModBase.LogLevel.Msgbox,
+                    userSummary: Lang.Text("Event.Error.ExecutionFailed", type, arg));
             }
         }
 
@@ -125,7 +129,11 @@ namespace PCL
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, Lang.Text("Event.Error.ExecutionFailed", type, arg), ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        Lang.Text("Event.Error.ExecutionFailed", type, arg),
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Event.Error.ExecutionFailed", type, arg));
                 }
             });
         }

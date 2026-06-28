@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using PCL.Core.App;
@@ -84,7 +84,11 @@ public partial class PageLogLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "构建游戏实时日志 UI 出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "构建游戏实时日志 UI 出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("LogPage.Error.OperationFailed"));
         }
     }
 

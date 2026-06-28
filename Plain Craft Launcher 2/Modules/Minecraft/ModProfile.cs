@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography;
@@ -249,7 +249,11 @@ public static class ModProfile
             {
             }
 
-            ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.Corrupted"), ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                Lang.Text("Launch.Account.Profile.Error.Corrupted"),
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Launch.Account.Profile.Error.Corrupted"));
         }
     }
 
@@ -318,7 +322,11 @@ public static class ModProfile
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.Write"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Launch.Account.Profile.Error.Write"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Launch.Account.Profile.Error.Write"));
         }
     }
 
@@ -469,7 +477,11 @@ public static class ModProfile
                     if (exSummary.Contains("403"))
                         ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.EditPlayerId.Cooldown"), Lang.Text("Launch.Account.Profile.EditPlayerId.Failed.Title"), Lang.Text("Common.Action.Confirm"));
                     else
-                        ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.ChangeId"), ModBase.LogLevel.Msgbox);
+                        ModBase.Log(
+                            ex,
+                            Lang.Text("Launch.Account.Profile.Error.ChangeId"),
+                            ModBase.LogLevel.Msgbox,
+                            userSummary: Lang.Text("Launch.Account.Profile.Error.ChangeId"));
                 }
             });
         }
@@ -837,7 +849,11 @@ public static class ModProfile
                         Lang.Text("Launch.Skin.Change.Timeout.WithDetail", ex.ToString()),
                         HintType.Error);
                 else
-                    ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.ChangeSkin"), ModBase.LogLevel.Hint);
+                    ModBase.Log(
+                        ex,
+                        Lang.Text("Launch.Account.Profile.Error.ChangeSkin"),
+                        ModBase.LogLevel.Hint,
+                        userSummary: Lang.Text("Launch.Account.Profile.Error.ChangeSkin"));
             }
             finally
             {

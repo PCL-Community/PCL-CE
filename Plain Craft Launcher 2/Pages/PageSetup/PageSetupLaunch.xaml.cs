@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -92,12 +92,20 @@ public partial class PageSetupLaunch
 
         catch (NullReferenceException ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Launch.Error.ConfigReset"), ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.Launch.Error.ConfigReset"),
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Launch.Error.ConfigReset"));
             Reset();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Launch.Error.LoadFailed"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.Launch.Error.LoadFailed"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Launch.Error.LoadFailed"));
         }
     }
 
@@ -112,7 +120,11 @@ public partial class PageSetupLaunch
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Launch.Error.InitFailed"), ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.Launch.Error.InitFailed"),
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Launch.Error.InitFailed"));
         }
 
         Reload();
@@ -502,9 +514,9 @@ public partial class PageSetupLaunch
             return;
         if (ComboArgumentVisibie.SelectedIndex == 0)
             if (ModMain.MyMsgBox(
-                    Lang.Text("Setup.Launch.Visibility.CloseImmediately.Warning.Message"),
-                    Lang.Text("Setup.Launch.Visibility.CloseImmediately.Warning.Title"),
-                    Lang.Text("Setup.Launch.Visibility.CloseImmediately.Warning.Continue"),
+                    Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Message"),
+                    Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Title"),
+                    Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Continue"),
                     Lang.Text("Common.Action.Cancel")) == 2)
                 ComboArgumentVisibie.SelectedItem = sizeChangedEventArgs.RemovedItems[0];
     }
@@ -514,7 +526,7 @@ public partial class PageSetupLaunch
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
-        ModMain.MyMsgBox(Lang.Text("Setup.Launch.InstanceIsolation.DefaultPolicyHint"));
+        ModMain.MyMsgBox(Lang.Text("Setup.Launch.Options.InstanceIsolation.DefaultPolicyHint"));
     }
 
     #endregion
