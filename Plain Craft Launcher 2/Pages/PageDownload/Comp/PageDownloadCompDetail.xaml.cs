@@ -632,12 +632,13 @@ public partial class PageDownloadCompDetail
     }
 
     /// <summary>
-    ///     版本项右侧下载按钮（占位，逻辑待实现）。
+    ///     版本项右侧下载按钮：快速下载该指定版本（行为与搜索结果快速下载一致，受 QuickDownloadBehavior 设置控制）。
     /// </summary>
     public void Download_Click(object sender, EventArgs e)
     {
-        // TODO: 版本项右侧下载按钮逻辑
-        ModBase.Log("[Comp] 版本项右侧下载按钮被点击（占位，暂未实现）", ModBase.LogLevel.Debug);
+        var file = ResolveFileFromSender(sender);
+        if (file is null) return;
+        ModComp.QuickDownload(_project, file);
     }
 
     private void BtnIntroWeb_Click(object sender, EventArgs e)

@@ -3403,26 +3403,8 @@ public static class ModComp
                     return;
                 }
 
-                var behavior = Config.Download.Comp.QuickDownloadBehavior;
-                if (behavior == 0)
-                {
-                    // 总是询问：弹「方式选择」
-                    int? choice = ModBase.RunInUiWait(() =>
-                    {
-                        var options = new List<IMyRadio>
-                        {
-                            new MyRadioBox { Text = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.CurrentInstance") },
-                            new MyRadioBox { Text = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.AskInstance") },
-                            new MyRadioBox { Text = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.AskPath") }
-                        };
-                        return ModMain.MyMsgBoxSelect(options,
-                            Lang.Text("Download.Comp.QuickDownload.ChooseMethod.Title"),
-                            button1: Lang.Text("Common.Action.Continue"),
-                            button2: Lang.Text("Common.Action.Cancel"));
-                    });
-                    if (choice is null) return; // 用户取消
-                    behavior = choice.Value + 1; // 0→1 当前实例, 1→2 选实例, 2→3 选路径
-                }
+                var behavior = _ResolveQuickDownloadBehavior();
+                if (behavior is null) return; // 用户取消
 
                 switch (behavior)
                 {
@@ -3446,6 +3428,67 @@ public static class ModComp
                 ModBase.Log(ex, "[Comp] 快速下载失败", ModBase.LogLevel.Feedback);
             }
         }, "Comp QuickDownload");
+    }
+
+    /// <summary>
+    /// 快速下载指定版本（版本项右侧下载按钮入口）：行为与 <see cref="QuickDownload(CompProject)" /> 一致，
+    /// 但下载用户指定的具体版本，而非自动挑选的最新兼容版本。
+    /// </summary>
+    public static void QuickDownload(CompProject project, CompFile file)
+    {
+        ModBase.RunInNewThread(() =>
+        {
+            try
+            {
+                var files = new List<CompFile> { file };
+                var behavior = _ResolveQuickDownloadBehavior();
+                if (behavior is null) return; // 用户取消
+                switch (behavior)
+                {
+                    case 1: // 下载到当前选中实例
+                        _QuickDownloadToInstance(project, files, ModInstanceList.McMcInstanceSelected);
+                        break;
+                    case 2: // 询问并下载到选择的实例
+                    {
+                        var instance = _QuickDownloadPickInstance(project, files);
+                        if (instance is null) return;
+                        _QuickDownloadToInstance(project, files, instance);
+                        break;
+                    }
+                    case 3: // 询问并下载到一个路径
+                        _QuickDownloadToFolder(project, files);
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "[Comp] 快速下载（指定版本）失败", ModBase.LogLevel.Feedback);
+            }
+        }, "Comp QuickDownload (version)");
+    }
+
+    /// <summary>
+    /// 解析快速下载行为：配置为「总是询问」时弹「方式选择」让用户选；用户取消返回 null，否则返回 1/2/3。
+    /// </summary>
+    private static int? _ResolveQuickDownloadBehavior()
+    {
+        var behavior = Config.Download.Comp.QuickDownloadBehavior;
+        if (behavior != 0) return behavior;
+        int? choice = ModBase.RunInUiWait(() =>
+        {
+            var options = new List<IMyRadio>
+            {
+                new MyRadioBox { Text = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.CurrentInstance") },
+                new MyRadioBox { Text = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.AskInstance") },
+                new MyRadioBox { Text = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.AskPath") }
+            };
+            return ModMain.MyMsgBoxSelect(options,
+                Lang.Text("Download.Comp.QuickDownload.ChooseMethod.Title"),
+                button1: Lang.Text("Common.Action.Continue"),
+                button2: Lang.Text("Common.Action.Cancel"));
+        });
+        if (choice is null) return null;
+        return choice.Value + 1; // 0→1 当前实例, 1→2 选实例, 2→3 选路径
     }
 
     /// <summary>下载到指定实例的最新兼容版本。</summary>
