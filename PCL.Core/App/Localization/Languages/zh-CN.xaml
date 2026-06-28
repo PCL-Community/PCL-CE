@@ -803,6 +803,7 @@
     <sys:String x:Key="Download.Version.Fresh.Stable">最新稳定版</sys:String>
     <sys:String x:Key="Download.Version.Fresh.Development">最新测试版</sys:String>
     <sys:String x:Key="Download.Version.SelectSaveLocation">选择保存位置</sys:String>
+    <sys:String x:Key="Download.Version.Download">下载</sys:String>
     <sys:String x:Key="Download.Version.Installer.Fabric.Filter">Fabric 安装器 (*.jar)|*.jar</sys:String>
     <sys:String x:Key="Download.Version.Installer.LegacyFabric.Filter">LegacyFabric 安装器 (*.jar)|*.jar</sys:String>
     <sys:String x:Key="Download.Version.Installer.Quilt.Filter">Quilt 安装器 (*.jar)|*.jar</sys:String>
@@ -1057,6 +1058,11 @@
     <sys:String x:Key="Download.Comp.Detail.FileList.Updated">更新于 {0}</sys:String>
     <sys:String x:Key="Download.Comp.Detail.FileList.RequiredDependencies">必要前置资源</sys:String>
     <sys:String x:Key="Download.Comp.Detail.FileList.OptionalDependencies">可选前置资源</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.Title">版本详情</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.ButtonInstall">安装到当前实例</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.ButtonSaveAs">选择下载位置</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.NoInstance">请先选择一个 Minecraft 实例</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.NoDeps">无</sys:String>
     <sys:String x:Key="Download.Comp.Detail.FileList.VersionList">版本列表</sys:String>
     <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Release">正式版</sys:String>
     <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Beta">测试版</sys:String>

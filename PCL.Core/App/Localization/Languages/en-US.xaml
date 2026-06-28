@@ -757,6 +757,7 @@
     <sys:String x:Key="Download.Version.LoadingList">Getting version list...</sys:String>
     <sys:String x:Key="Download.Version.Changelog">Changelog</sys:String>
     <sys:String x:Key="Download.Version.SaveAs">Save as</sys:String>
+    <sys:String x:Key="Download.Version.Download">Download</sys:String>
     <sys:String x:Key="Download.Version.DownloadServer">Download server</sys:String>
     <sys:String x:Key="Download.Version.ViewAllVersions">Show all versions</sys:String>
     <sys:String x:Key="Download.Version.SaveInstaller">Save installer</sys:String>
@@ -1057,6 +1058,11 @@
     <sys:String x:Key="Download.Comp.Detail.FileList.Updated">Updated {0}</sys:String>
     <sys:String x:Key="Download.Comp.Detail.FileList.RequiredDependencies">Required dependencies</sys:String>
     <sys:String x:Key="Download.Comp.Detail.FileList.OptionalDependencies">Optional dependencies</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.Title">Version details</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.ButtonInstall">Install to current instance</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.ButtonSaveAs">Choose download location</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.NoInstance">Please select a Minecraft instance first</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.NoDeps">None</sys:String>
     <sys:String x:Key="Download.Comp.Detail.FileList.VersionList">Version list</sys:String>
     <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Release">Release</sys:String>
     <sys:String x:Key="Download.Comp.Detail.FileList.ReleaseType.Beta">Beta</sys:String>
