@@ -1381,7 +1381,8 @@ public static class ModLaunch
             catch (WebException ex)
             {
                 HandleHttpWebException(ex, "验证登录失败");
-            }catch (HttpResponseException ex){
+            }
+            catch (HttpResponseException ex){
                 ModProfile.ProfileLog($"验证登录失败: {ex}");
             }
             catch (Exception ex)
