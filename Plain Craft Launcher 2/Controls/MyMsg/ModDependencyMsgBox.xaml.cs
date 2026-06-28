@@ -105,14 +105,10 @@ public partial class ModDependencyMsgBox
         foreach (var project in projects)
         {
             var captured = project;
-            var item = new MyListItem
-            {
-                Title = string.IsNullOrEmpty(project.TranslatedName) ? project.RawName : project.TranslatedName,
-                Info = project.FromCurseForge ? "CurseForge" : "Modrinth",
-                Logo = project.LogoUrl ?? "",
-                Height = 40,
-                Type = MyListItem.CheckType.Clickable
-            };
+            // 复用「游戏资源 → 模组」搜索结果同款 MyCompItem 卡片样式；
+            // 关闭其内置跳转（AutoNavigate=false），改由弹窗统一「先关闭再跳转」
+            var item = project.ToCompItem(true, true).Init();
+            item.AutoNavigate = false;
             item.Click += (_, _) => ReturnResult(captured);
             panel.Children.Add(item);
         }

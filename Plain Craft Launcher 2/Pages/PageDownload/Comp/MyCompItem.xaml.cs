@@ -266,6 +266,11 @@ public partial class MyCompItem
     // 触发点击事件
     public event ClickEventHandler? Click;
 
+    /// <summary>
+    ///     点击时是否自动跳转到该工程的详情页。默认 true；在弹窗等需要自行处理点击的场景设为 false。
+    /// </summary>
+    public bool AutoNavigate = true;
+
     public delegate void ClickEventHandler(object sender, MouseButtonEventArgs e);
 
     private void BtnDelete_Click(object sender, EventArgs e)
@@ -285,6 +290,7 @@ public partial class MyCompItem
 
     private void MyCompItem_Click(MyCompItem sender, EventArgs e)
     {
+        if (!AutoNavigate) return;
         // 记录当前展开的卡片标题（#2712）
         var titles = new List<string>();
         if (ModMain.frmMain.pageCurrent.page == FormMain.PageType.CompDetail)
