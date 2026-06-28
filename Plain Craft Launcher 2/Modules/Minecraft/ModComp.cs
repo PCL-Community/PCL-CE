@@ -2414,6 +2414,9 @@ public static class ModComp
                     w =>
                     {
                         if (w.Length <= 1) return false;
+                        // 丢弃不含任何字母/数字的纯符号或表情 token（如部分词条名里的 “🔍”），
+                        // 避免其被拼入搜索词后被接口当作必需关键字，反而排除掉真正的结果。
+                        if (!w.Any(char.IsLetterOrDigit)) return false;
                         if (new[] { "the", "of", "mod", "and" }.Contains(w)) return false;
                         if (ModBase.Val(w) > 0) return false;
                         if (w.Split(' ').Length > 3 && w.Contains("ftb")) return false;
@@ -2438,17 +2441,25 @@ public static class ModComp
 
             if (!wordWeights.Any()) throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
 
-            // 仅使用相似度最高的最佳词条的英文关键词作为搜索词。
-            // 此前的实现会把所有高权重关键词（可能来自多个互不相关的模组）拼接成同一个查询，
-            // 当输入为「钠」「玉」等单字或宽泛关键词、命中大量词条时，会生成形如
-            // “sodium embeddium extras dynamiclights reforged dynamic lights magnesium” 的多模组关键词串。
-            // CurseForge / Modrinth 会将整串视为对同一模组的描述进行匹配，没有任何模组能同时命中
-            // 全部关键词，导致两个数据源都返回空、搜索整体失败（详见 issue #3272）。
-            // 改为只取最佳词条的关键词后，查询保持内聚，由数据源返回该模组及其同系列模组，
-            // 再交由后续按中文名重排序。若最佳词条无可用英文关键词，则回退到取权重最高的若干关键词。
-            var bestEntryWords = ExtractWords(searchResults.First());
-            request.searchText = bestEntryWords.Any()
-                ? string.Join(" ", bestEntryWords)
+            // 选出“规范词条”并以其英文关键词作为搜索词。
+            // 旧实现把所有高权重关键词（可能来自多个互不相关的模组）拼接成同一个查询，
+            // 当输入为「钠」「玉」等单字或宽泛关键词、命中大量翻译词条时，会生成形如
+            // “sodium embeddium extras dynamiclights reforged dynamic lights magnesium” 的多模组
+            // 关键词串；CurseForge / Modrinth 会将整串视为对同一模组的描述进行匹配，没有任何模组能
+            // 同时命中全部关键词，导致两个数据源都返回空、搜索整体失败（详见 issue #3272）。
+            // 但仅取 searchResults.First() 同样不可靠：ModBase.Search 对相似度并列项的排序并不稳定，
+            // 例如「玉」会把附属模组「玉足 (Jade Feet)」排在规范模组「玉 (Jade)」之前，使查询变成
+            // “jade feet”，被接口按 feet 收窄后反而排除了规范的 Jade。
+            // 因此显式挑选规范词条：完全匹配优先、相似度次之，并列时取 slug 最短者（基础模组而非附属/
+            // 扩展），再用其关键词查询，由数据源返回该模组及其同系列，交由后续按中文名重排序。
+            var canonicalEntry = searchResults
+                .OrderByDescending(r => r.absoluteRight)
+                .ThenByDescending(r => r.similarity)
+                .ThenBy(r => (r.item.CurseForgeSlug ?? r.item.ModrinthSlug ?? r.item.ChineseName).Length)
+                .First();
+            var canonicalWords = ExtractWords(canonicalEntry);
+            request.searchText = canonicalWords.Any()
+                ? string.Join(" ", canonicalWords)
                 : string.Join(" ", wordWeights.OrderByDescending(w => w.Value).Take(5).Select(w => w.Key));
             LogWrapper.Debug("[Comp] 中文搜索基础关键词：" + request.searchText);
         }
