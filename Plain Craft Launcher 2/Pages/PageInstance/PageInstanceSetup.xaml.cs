@@ -884,7 +884,7 @@ public partial class PageInstanceSetup
         var logMessage = "";
 
         // 根据 Tag 类型生成偏好对象
-        if (selectedItem.Tag is null)
+        if (selectedItem.Tag is null or AutoSelect)
         {
             // 自动选择：存储空字符串
             preference = new AutoSelect();
