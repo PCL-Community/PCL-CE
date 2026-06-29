@@ -1,46 +1,104 @@
+using PCL.Controls.MyMsg;
+using PCL.Core.UI.MsgBox;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
-using PCL.Core.UI.Controls;
 
 namespace PCL;
 
-public partial class MyMsgInput
+public partial class MyMsgInput : IMsgBoxControl
 {
-    private readonly ModMain.MyMsgBoxConverter myConverter;
-    private readonly int uuid = ModBase.GetUuid();
+    public MsgBoxRequest Request { get; }
+    public event EventHandler<MsgBoxResponse>? Completed;
+
+    private readonly MsgBoxAnimationProfile _anim;
+    private bool _isExited;
+    private readonly string _animGroup;
+
+    public MyMsgInput(MsgBoxRequest request)
+    {
+        Request = request;
+        _anim = MsgBoxAnimationProfile.ForTheme(request.Theme);
+        _animGroup = "MyMsgInput " + Request.RequestId;
+        InitFromRequest(request.Content as string ?? "", request.Hint ?? "", request.ValidateRules);
+    }
 
     public MyMsgInput(ModMain.MyMsgBoxConverter converter)
     {
-        try
+        var isWarn = converter.IsWarn;
+        var buttons = new List<MsgBoxButtonInfo>
         {
-            InitializeComponent();
-            AppendUniqueNameSuffix(Btn1);
-            AppendUniqueNameSuffix(Btn2);
-            myConverter = converter;
-            LabTitle.Text = converter.Title;
-            LabText.Text = converter.Text;
-            PanText.Visibility = string.IsNullOrEmpty(converter.Text) ? Visibility.Collapsed : Visibility.Visible;
-            TextArea.Text = (string)converter.Content;
-            TextArea.HintText = converter.HintText;
-            TextArea.ValidateRules = converter.ValidateRules;
-            ConfigurePrimaryButton(converter.Button1, converter.IsWarn);
-            ConfigureSecondaryButton(converter.Button2);
-            ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
-        }
+            new(converter.Button1, 1),
+            new(converter.Button2, 2)
+        };
 
-        catch (Exception ex)
+        var content = (string?)converter.Content ?? "";
+        var hint = converter.HintText;
+        var rules = converter.ValidateRules;
+
+        var request = new MsgBoxRequest
         {
-            ModBase.Log(ex, "输入弹窗初始化失败", ModBase.LogLevel.Hint);
-        }
+            Caption = converter.Title,
+            Message = converter.Text,
+            Theme = isWarn ? MsgBoxTheme.Warning : MsgBoxTheme.Info,
+            Buttons = buttons,
+            IsBlocking = true,
+            Content = content,
+            Hint = hint,
+            ValidateRules = rules
+        };
+        Request = request;
+        _anim = MsgBoxAnimationProfile.ForTheme(request.Theme);
+        _animGroup = "MyMsgBox " + ModBase.GetUuid();
 
-        Loaded += Load;
+        Completed += async (_, response) =>
+        {
+            converter.IsExited = true;
+            converter.Result = response.ButtonValue == 1 ? TextArea.Text : null;
+            converter.WaitFrame.Continue = false;
+            ComponentDispatcher.PopModal();
+            await InvokeCloseAnimationAsync(response).ConfigureAwait(true);
+        };
+
+        InitFromRequest(content, hint, rules);
     }
 
-    private void AppendUniqueNameSuffix(FrameworkElement element)
+    private void InitFromRequest(string content, string hint,
+        System.Collections.ObjectModel.Collection<FluentValidation.IValidator<string>>? rules)
     {
-        element.Name += ModBase.GetUuid();
+        var isWarn = Request.Theme is MsgBoxTheme.Warning or MsgBoxTheme.Error;
+        var btn1 = Request.Buttons.ElementAtOrDefault(0);
+        var btn2 = Request.Buttons.ElementAtOrDefault(1);
+
+        InitializeComponent();
+        LabTitle.Text = Request.Caption;
+        LabText.Text = Request.Message;
+        PanText.Visibility = string.IsNullOrEmpty(Request.Message) ? Visibility.Collapsed : Visibility.Visible;
+        TextArea.Text = content;
+        TextArea.HintText = hint;
+        if (rules is not null) TextArea.ValidateRules = rules;
+        ConfigurePrimaryButton(btn1?.Text ?? "确定", isWarn);
+        ConfigureSecondaryButton(btn2?.Text ?? "");
+        ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
+
+        if (_anim.HighlightPrimaryButton && Btn2.IsVisible && Btn1.ColorType != MyButton.ColorState.Red)
+            Btn1.ColorType = MyButton.ColorState.Highlight;
+
+        Loaded += (_, _) =>
+        {
+            try
+            {
+                TextArea.Focus();
+                TextArea.SelectionStart = TextArea.Text.Length;
+                InvokeShowAnimation();
+                ModBase.Log("[Control] 输入弹窗：" + LabTitle.Text);
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "输入弹窗加载失败", ModBase.LogLevel.Hint);
+            }
+        };
     }
 
     private void ConfigurePrimaryButton(string text, bool isWarn)
@@ -59,85 +117,41 @@ public partial class MyMsgInput
         Btn2.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
     }
 
-    private void Load(object sender, EventArgs e)
+    public void InvokeShowAnimation()
     {
-        try
-        {
-            // UI 初始化
-            if (Btn2.IsVisible && !(Btn1.ColorType == MyButton.ColorState.Red))
-                Btn1.ColorType = MyButton.ColorState.Highlight;
-            TextArea.Focus();
-            TextArea.SelectionStart = TextArea.Text.Length;
-            // 动画
-            Opacity = 0d;
-            ModAnimation.AniStart(
-                ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (myConverter.IsWarn
-                        ? new ModBase.MyColor(140d, 80d, 0d, 0d)
-                        : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
-                "PanMsgBackground Background");
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaOpacity(this, 1d, 120, 60),
-                    ModAnimation.AaDouble(i => TransformPos.Y += (double)i,
-                        -TransformPos.Y, 300, 60, new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
-                    ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
-                        -TransformRotate.Angle, 300, 60,
-                        new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
-                }, "MyMsgBox " + uuid);
-            // 记录日志
-            ModBase.Log("[Control] 输入弹窗：" + LabTitle.Text);
-        }
-
-        catch (Exception ex)
-        {
-            ModBase.Log(ex, "输入弹窗加载失败", ModBase.LogLevel.Hint);
-        }
+        Opacity = 0d;
+        MsgBoxAnimations.AnimateShow(this, TransformPos, TransformRotate, _anim, _animGroup);
     }
 
-    private void Close()
+    public async Task InvokeCloseAnimationAsync(MsgBoxResponse response)
     {
-        // 结束线程阻塞
-        myConverter.WaitFrame.Continue = false;
-        ComponentDispatcher.PopModal();
-        // 动画
-        ModAnimation.AniStart(new[]
-        {
-            ModAnimation.AaCode(() =>
-            {
-                if (!ModMain.WaitingMyMsgBox.Any())
-                    ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
-                        BlurBorder.BackgroundProperty,
-                        new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
-                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
-            }, 30),
-            ModAnimation.AaOpacity(this, -Opacity, 80, 20),
-            ModAnimation.AaDouble(i => TransformPos.Y += (double)i, 20d - TransformPos.Y,
-                150, 0, new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
-                6d - TransformRotate.Angle, 150, 0, new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaCode(() => ((Grid)Parent).Children.Remove(this), after: true)
-        }, "MyMsgBox " + uuid);
+        await MsgBoxAnimations.AnimateCloseAsync(this, TransformPos, TransformRotate, _anim, _animGroup).ConfigureAwait(true);
+        if (Parent is Grid g) g.Children.Remove(this);
     }
 
     public void Btn1_Click(object sender, MouseButtonEventArgs e)
     {
-        TextArea.Validate(); // #5773
-        if (myConverter.IsExited || !TextArea.IsValidated)
-            return;
-        myConverter.IsExited = true;
-        myConverter.Result = TextArea.Text;
-        Close();
+        TextArea.Validate();
+        if (_isExited || !TextArea.IsValidated) return;
+        _isExited = true;
+        Completed?.Invoke(this, new MsgBoxResponse
+        {
+            RequestId = Request.RequestId,
+            ButtonValue = Request.Buttons.ElementAtOrDefault(0)?.Value ?? 1,
+            Button = Request.Buttons.ElementAtOrDefault(0)
+        });
     }
 
     public void Btn2_Click(object sender, MouseButtonEventArgs e)
     {
-        if (myConverter.IsExited)
-            return;
-        myConverter.IsExited = true;
-        myConverter.Result = null;
-        Close();
+        if (_isExited) return;
+        _isExited = true;
+        Completed?.Invoke(this, new MsgBoxResponse
+        {
+            RequestId = Request.RequestId,
+            ButtonValue = Request.Buttons.ElementAtOrDefault(1)?.Value ?? 2,
+            Button = Request.Buttons.ElementAtOrDefault(1)
+        });
     }
 
     private void TextCaption_ValidateChanged(object sender, EventArgs e)

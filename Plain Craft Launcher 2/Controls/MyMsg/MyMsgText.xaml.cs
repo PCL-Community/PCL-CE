@@ -1,44 +1,96 @@
+using PCL.Controls.MyMsg;
+using PCL.Core.UI.MsgBox;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
-using PCL.Core.UI.Controls;
 
 namespace PCL;
 
-public partial class MyMsgText
+public partial class MyMsgText : IMsgBoxControl
 {
-    private readonly ModMain.MyMsgBoxConverter myConverter;
-    private readonly int uuid = ModBase.GetUuid();
+    public MsgBoxRequest Request { get; }
+    public event EventHandler<MsgBoxResponse>? Completed;
+
+    private readonly MsgBoxAnimationProfile _anim;
+    private bool _isExited;
+    private readonly string _animGroup;
+
+    public MyMsgText(MsgBoxRequest request)
+    {
+        Request = request;
+        _anim = MsgBoxAnimationProfile.ForTheme(request.Theme);
+        _animGroup = $"MyMsgText {Request.RequestId}";
+        InitFromRequest();
+    }
 
     public MyMsgText(ModMain.MyMsgBoxConverter converter)
     {
-        try
-        {
-            InitializeComponent();
-            AppendUniqueNameSuffix(Btn1);
-            AppendUniqueNameSuffix(Btn2);
-            AppendUniqueNameSuffix(Btn3);
-            myConverter = converter;
-            LabTitle.Text = converter.Title;
-            LabCaption.Text = converter.Text;
-            ConfigurePrimaryButton(converter.Button1, converter.IsWarn);
-            ConfigureSecondaryButton(Btn2, converter.Button2);
-            ConfigureSecondaryButton(Btn3, converter.Button3);
-            ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
-        }
+        var isWarn = converter.IsWarn;
+        var buttons = new List<MsgBoxButtonInfo>();
+        buttons.Add(new MsgBoxButtonInfo(converter.Button1, 1, converter.Button1Action));
+        if (!string.IsNullOrEmpty(converter.Button2))
+            buttons.Add(new MsgBoxButtonInfo(converter.Button2, 2, converter.Button2Action));
+        if (!string.IsNullOrEmpty(converter.Button3))
+            buttons.Add(new MsgBoxButtonInfo(converter.Button3, 3, converter.Button3Action));
 
-        catch (Exception ex)
+        var request = new MsgBoxRequest
         {
-            ModBase.Log(ex, "普通弹窗初始化失败", ModBase.LogLevel.Hint);
-        }
+            Caption = converter.Title ?? "",
+            Message = converter.Text ?? "",
+            Theme = isWarn ? MsgBoxTheme.Warning : MsgBoxTheme.Info,
+            Buttons = buttons,
+            IsBlocking = converter.ForceWait || !string.IsNullOrEmpty(converter.Button2)
+        };
+        Request = request;
+        _anim = MsgBoxAnimationProfile.ForTheme(request.Theme);
+        _animGroup = "MyMsgBox " + ModBase.GetUuid();
 
-        Loaded += Load;
+        Completed += async (_, response) =>
+        {
+            converter.IsExited = true;
+            converter.Result = response.ButtonValue;
+            // 结束线程阻塞
+            if (converter.ForceWait || !string.IsNullOrEmpty(converter.Button2))
+                converter.WaitFrame.Continue = false;
+            ComponentDispatcher.PopModal();
+            await InvokeCloseAnimationAsync(response).ConfigureAwait(true);
+        };
+
+        InitFromRequest();
     }
 
-    private void AppendUniqueNameSuffix(FrameworkElement element)
+    private void InitFromRequest()
     {
-        element.Name += ModBase.GetUuid();
+        var isWarn = Request.Theme is MsgBoxTheme.Warning or MsgBoxTheme.Error;
+        var btn1 = Request.Buttons.ElementAtOrDefault(0);
+        var btn2 = Request.Buttons.ElementAtOrDefault(1);
+        var btn3 = Request.Buttons.ElementAtOrDefault(2);
+
+        InitializeComponent();
+        LabTitle.Text = Request.Caption;
+        LabCaption.Text = Request.Message;
+        ConfigurePrimaryButton(btn1?.Text ?? "确定", isWarn);
+        ConfigureSecondaryButton(Btn2, btn2?.Text ?? "");
+        ConfigureSecondaryButton(Btn3, btn3?.Text ?? "");
+        ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
+
+        if (_anim.HighlightPrimaryButton && Btn2.IsVisible && Btn1.ColorType != MyButton.ColorState.Red)
+            Btn1.ColorType = MyButton.ColorState.Highlight;
+
+        Loaded += (_, _) =>
+        {
+            try
+            {
+                Btn1.Focus();
+                InvokeShowAnimation();
+                ModBase.Log("[Control] 普通弹窗：" + LabTitle.Text + "\r\n" + LabCaption.Text);
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "普通弹窗加载失败", ModBase.LogLevel.Hint);
+            }
+        };
     }
 
     private void ConfigurePrimaryButton(string text, bool isWarn)
@@ -57,114 +109,67 @@ public partial class MyMsgText
         button.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
     }
 
-    private void Load(object sender, RoutedEventArgs e)
+    public void InvokeShowAnimation()
     {
-        try
-        {
-            // UI 初始化
-            if (Btn2.IsVisible && !(Btn1.ColorType == MyButton.ColorState.Red))
-                Btn1.ColorType = MyButton.ColorState.Highlight;
-            Btn1.Focus();
-            // 动画
-            Opacity = 0d;
-            ModAnimation.AniStart(
-                ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (myConverter.IsWarn
-                        ? new ModBase.MyColor(140d, 80d, 0d, 0d)
-                        : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
-                "PanMsgBackground Background");
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaOpacity(this, 1d, 120, 60),
-                    ModAnimation.AaDouble(i => TransformPos.Y += (double)i,
-                        -TransformPos.Y, 300, 60, new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
-                    ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
-                        -TransformRotate.Angle, 300, 60,
-                        new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
-                }, "MyMsgBox " + uuid);
-            // 记录日志
-            ModBase.Log("[Control] 普通弹窗：" + LabTitle.Text + "\r\n" + LabCaption.Text);
-        }
-
-        catch (Exception ex)
-        {
-            ModBase.Log(ex, "普通弹窗加载失败", ModBase.LogLevel.Hint);
-        }
+        Opacity = 0d;
+        MsgBoxAnimations.AnimateShow(this, TransformPos, TransformRotate, _anim, _animGroup);
     }
 
-    private void Close()
+    public async Task InvokeCloseAnimationAsync(MsgBoxResponse response)
     {
-        // 结束线程阻塞
-        if (myConverter.ForceWait || !string.IsNullOrEmpty(myConverter.Button2))
-            myConverter.WaitFrame.Continue = false;
-        ComponentDispatcher.PopModal();
-        // 动画
-        ModAnimation.AniStart(new[]
-        {
-            ModAnimation.AaCode(() =>
-            {
-                if (!ModMain.WaitingMyMsgBox.Any())
-                    ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
-                        BlurBorder.BackgroundProperty,
-                        new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
-                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
-            }, 30),
-            ModAnimation.AaOpacity(this, -Opacity, 80, 20),
-            ModAnimation.AaDouble(i => TransformPos.Y += (double)i, 20d - TransformPos.Y,
-                150, 0, new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
-                6d - TransformRotate.Angle, 150, 0, new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaCode(() => ((Grid)Parent).Children.Remove(this), after: true)
-        }, "MyMsgBox " + uuid);
+        await MsgBoxAnimations.AnimateCloseAsync(this, TransformPos, TransformRotate, _anim, _animGroup).ConfigureAwait(true);
+        if (Parent is Grid g) g.Children.Remove(this);
     }
 
     public void Btn1_Click(object? sender = null, MouseButtonEventArgs? e = null)
     {
-        if (myConverter.IsExited)
+        if (_isExited) return;
+        if (Request.Buttons.ElementAtOrDefault(0)?.OnClick is { } action)
+        {
+            action();
             return;
-        if (myConverter.Button1Action is not null)
-        {
-            myConverter.Button1Action();
         }
-        else
+        _isExited = true;
+        Completed?.Invoke(this, new MsgBoxResponse
         {
-            myConverter.IsExited = true;
-            myConverter.Result = 1;
-            Close();
-        }
+            RequestId = Request.RequestId,
+            ButtonValue = Request.Buttons.ElementAtOrDefault(0)?.Value ?? 1,
+            Button = Request.Buttons.ElementAtOrDefault(0)
+        });
     }
 
     public void Btn2_Click(object sender, MouseButtonEventArgs e)
     {
-        if (myConverter.IsExited)
+        if (_isExited) return;
+        if (Request.Buttons.ElementAtOrDefault(1)?.OnClick is { } action)
+        {
+            action();
             return;
-        if (myConverter.Button2Action is not null)
-        {
-            myConverter.Button2Action();
         }
-        else
+        _isExited = true;
+        Completed?.Invoke(this, new MsgBoxResponse
         {
-            myConverter.IsExited = true;
-            myConverter.Result = 2;
-            Close();
-        }
+            RequestId = Request.RequestId,
+            ButtonValue = Request.Buttons.ElementAtOrDefault(1)?.Value ?? 2,
+            Button = Request.Buttons.ElementAtOrDefault(1)
+        });
     }
 
     public void Btn3_Click(object sender, MouseButtonEventArgs e)
     {
-        if (myConverter.IsExited)
+        if (_isExited) return;
+        if (Request.Buttons.ElementAtOrDefault(2)?.OnClick is { } action)
+        {
+            action();
             return;
-        if (myConverter.Button3Action is not null)
-        {
-            myConverter.Button3Action();
         }
-        else
+        _isExited = true;
+        Completed?.Invoke(this, new MsgBoxResponse
         {
-            myConverter.IsExited = true;
-            myConverter.Result = 3;
-            Close();
-        }
+            RequestId = Request.RequestId,
+            ButtonValue = Request.Buttons.ElementAtOrDefault(2)?.Value ?? 3,
+            Button = Request.Buttons.ElementAtOrDefault(2)
+        });
     }
 
     private void Drag(object sender, MouseButtonEventArgs e)
