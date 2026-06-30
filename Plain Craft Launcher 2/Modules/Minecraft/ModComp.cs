@@ -2394,12 +2394,66 @@ public static class ModComp
             var searchEntries = new List<ModBase.SearchEntry<CompDatabaseEntry>>();
             using (var conn = CompDB)
             {
-                var sql =
-                    "SELECT * FROM ModTranslation WHERE ChineseName LIKE @p OR CurseForgeSlug LIKE @p OR ModrinthSlug LIKE @p";
-                var searchRes = conn.Query<CompDatabaseEntry>(sql, new { p = $"%{rawFilter}%" });
+                // Phase 1: 前缀匹配 — 仅匹配以查询词开头并后跟分隔符的条目，
+                // 排除查询词仅为复合词子串的情况
+                var escaped = rawFilter.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+                var prefixSql = @"SELECT * FROM ModTranslation
+                    WHERE ChineseName = @name
+                       OR ChineseName LIKE @p1 ESCAPE '\'
+                       OR ChineseName LIKE @p2 ESCAPE '\'
+                       OR ChineseName LIKE @p3 ESCAPE '\'
+                       OR ChineseName LIKE @p4 ESCAPE '\'
+                       OR ChineseName LIKE @p5 ESCAPE '\'
+                       OR ChineseName LIKE @p6 ESCAPE '\'";
+                var prefixRes = conn.Query<CompDatabaseEntry>(prefixSql, new
+                {
+                    name = escaped,
+                    p1 = $"{escaped} (%",
+                    p2 = $"{escaped}(%",
+                    p3 = $"{escaped}·%",
+                    p4 = $"{escaped} ·%",
+                    p5 = $"{escaped}（%",
+                    p6 = $"{escaped} -%"
+                }).ToList();
+
+                List<CompDatabaseEntry> searchRes;
+                if (prefixRes.Any())
+                {
+                    searchRes = prefixRes;
+                }
+                else
+                {
+                    // Phase 2: 回退 — 分词 LIKE 搜索
+                    var tokens = rawFilter.Split(new[] { ' ', '，', '、', '-', '(', ')', '/', '（', '）', '|', '·', '—', '_' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Where(t => t.Length >= 1).Distinct().ToList();
+                    if (tokens.Count == 0) tokens.Add(rawFilter);
+
+                    var conditions = new List<string>();
+                    var parameters = new DynamicParameters();
+                    for (var i = 0; i < tokens.Count; i++)
+                    {
+                        var pn = $"t{i}";
+                        conditions.Add($"ChineseName LIKE @{pn}");
+                        conditions.Add($"CurseForgeSlug LIKE @{pn}");
+                        conditions.Add($"ModrinthSlug LIKE @{pn}");
+                        parameters.Add(pn, $"%{tokens[i].Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_")}%");
+                    }
+                    searchRes = conn.Query<CompDatabaseEntry>(
+                        $"SELECT * FROM ModTranslation WHERE {string.Join(" OR ", conditions)}", parameters).ToList();
+
+                    // Phase 3: 若结果过少，回退到全文本 LIKE
+                    if (searchRes.Count < 3)
+                    {
+                        var fallback = conn.Query<CompDatabaseEntry>(
+                            "SELECT * FROM ModTranslation WHERE ChineseName LIKE @p OR CurseForgeSlug LIKE @p OR ModrinthSlug LIKE @p",
+                            new { p = $"%{escaped}%" }).ToList();
+                        var seen = new HashSet<int>(searchRes.Select(e => e.WikiId));
+                        foreach (var e in fallback) { if (seen.Add(e.WikiId)) searchRes.Add(e); }
+                    }
+                }
+
                 foreach (var searchItem in searchRes)
                 {
-                    if (searchItem.ChineseName.Contains("动态的树")) continue;
                     searchEntries.Add(new ModBase.SearchEntry<CompDatabaseEntry>
                     {
                         item = searchItem,
@@ -2437,31 +2491,41 @@ public static class ModComp
                 return words;
             }
 
+            // 共识关键词过滤：仅取 top 3 条目，保留出现在 ≥2 个条目中的词
+            var top3 = searchResults.Take(3).ToList();
+            var allKeywordSets = top3.Select(r => ExtractWords(r).ToList()).Where(k => k.Count > 0).ToList();
             var wordWeights = new Dictionary<string, double>();
-            foreach (var result in searchResults)
+            if (allKeywordSets.Any())
             {
-                foreach (var word in ExtractWords(result))
+                foreach (var word in allKeywordSets.SelectMany(k => k).Distinct())
                 {
-                    var similarity = result.searchSource.Any(s => s.aliases.Contains(request.searchText))
-                        ? 100000
-                        : result.similarity;
-                    if (!wordWeights.ContainsKey(word))
-                        wordWeights.Add(word, 0);
-                    wordWeights[word] += similarity;
+                    var entryCount = allKeywordSets.Count(set => set.Contains(word));
+                    // 共识：至少 2 个条目共有的词，或仅 1 个条目时的全部词
+                    if (entryCount >= 2 || allKeywordSets.Count == 1)
+                    {
+                        var weight = top3.Where(r => ExtractWords(r).Contains(word))
+                            .Sum(r => r.searchSource.Any(s => s.aliases.Contains(request.searchText)) ? 100000 : r.similarity);
+                        wordWeights[word] = weight;
+                    }
                 }
             }
 
-            if (!wordWeights.Any()) throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
+            if (!wordWeights.Any())
+            {
+                // 共识为空时的回退：直接使用第一个条目
+                foreach (var w in ExtractWords(searchResults.First()))
+                    wordWeights[w] = 100000;
+            }
 
             var sortedWords = wordWeights.OrderByDescending(w => w.Value).ToList();
-            if (sortedWords.First().Value >= 100000)
+            if (sortedWords.Any(w => w.Value >= 100000))
             {
-                request.searchText = string.Join(" ", sortedWords.Where(w => w.Value >= 100000).Select(w => w.Key));
+                request.searchText = string.Join(" ", sortedWords.Where(w => w.Value >= 100000).Take(7).Select(w => w.Key));
             }
             else
             {
                 request.searchText = string.Join(" ", sortedWords.Take(5).Select(w => w.Key));
-                request.curseForgeAltSearchText = string.Join(" ", ExtractWords(searchResults.First()));
+                request.curseForgeAltSearchText = string.Join(" ", ExtractWords(searchResults.First()).Take(3));
                 LogWrapper.Debug("[Comp] 中文搜索基础关键词（CurseForge）：" + request.curseForgeAltSearchText);
             }
 
