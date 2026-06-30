@@ -889,7 +889,7 @@
     <sys:String x:Key="Instance.Export.Option.Jei.Desc">物品收藏夹等</sys:String>
     <sys:String x:Key="Instance.Export.Option.Launcher">PCL CE 启动器程序</sys:String>
     <sys:String x:Key="Instance.Export.Option.Launcher.Desc">打包 PCL CE，以便没有启动器的玩家安装整合包</sys:String>
-    <sys:String x:Key="Instance.Export.Option.LauncherCustom">PCL 个性化内容</sys:String>
+    <sys:String x:Key="Instance.Export.Option.LauncherCustom">PCL CE 个性化内容</sys:String>
     <sys:String x:Key="Instance.Export.Option.LauncherCustom.Desc">功能隐藏设置、主页、背景音乐和图片等</sys:String>
     <sys:String x:Key="Instance.Export.Option.Maps">已绘制的地图</sys:String>
     <sys:String x:Key="Instance.Export.Option.Maps.Desc">地图类模组为现有的存档、服务器记录的地图、路标点等</sys:String>
