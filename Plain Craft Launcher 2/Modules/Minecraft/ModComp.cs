@@ -2394,9 +2394,65 @@ public static class ModComp
             var searchEntries = new List<ModBase.SearchEntry<CompDatabaseEntry>>();
             using (var conn = CompDB)
             {
-                var sql =
-                    "SELECT * FROM ModTranslation WHERE ChineseName LIKE @p OR CurseForgeSlug LIKE @p OR ModrinthSlug LIKE @p";
-                var searchRes = conn.Query<CompDatabaseEntry>(sql, new { p = $"%{rawFilter}%" });
+                // 多级检索本地翻译库（思路借鉴 #3289）：
+                // Phase 1 精确/前缀匹配——名称恰为查询，或以「查询 + 分隔符」开头，
+                //   从而区分「玉」与「玉米」这类“查询仅为复合词子串”的噪音。
+                // 对 LIKE 模式做 \ % _ 转义，并统一用 ESCAPE '\'。
+                var likeEscaped = rawFilter.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+                var prefixSql = @"SELECT * FROM ModTranslation
+                    WHERE ChineseName = @name
+                       OR ChineseName LIKE @p1 ESCAPE '\'
+                       OR ChineseName LIKE @p2 ESCAPE '\'
+                       OR ChineseName LIKE @p3 ESCAPE '\'
+                       OR ChineseName LIKE @p4 ESCAPE '\'
+                       OR ChineseName LIKE @p5 ESCAPE '\'
+                       OR ChineseName LIKE @p6 ESCAPE '\'";
+                var searchRes = conn.Query<CompDatabaseEntry>(prefixSql, new
+                {
+                    name = rawFilter,           // 精确相等：用原文，不能用 LIKE 转义后的值
+                    p1 = $"{likeEscaped} (%",
+                    p2 = $"{likeEscaped}(%",
+                    p3 = $"{likeEscaped}·%",
+                    p4 = $"{likeEscaped} ·%",
+                    p5 = $"{likeEscaped}（%",
+                    p6 = $"{likeEscaped} -%"
+                }).ToList();
+
+                if (!searchRes.Any())
+                {
+                    // Phase 2 回退：按分隔符分词，多字段 LIKE（每个条件都带 ESCAPE '\'）
+                    var tokens = rawFilter
+                        .Split(new[] { ' ', '，', '、', '-', '(', ')', '/', '（', '）', '|', '·', '—', '_' },
+                            StringSplitOptions.RemoveEmptyEntries)
+                        .Distinct().ToList();
+                    if (tokens.Count == 0) tokens.Add(rawFilter);
+
+                    var conditions = new List<string>();
+                    var parameters = new DynamicParameters();
+                    for (var i = 0; i < tokens.Count; i++)
+                    {
+                        var pn = $"t{i}";
+                        conditions.Add($"ChineseName LIKE @{pn} ESCAPE '\\'");
+                        conditions.Add($"CurseForgeSlug LIKE @{pn} ESCAPE '\\'");
+                        conditions.Add($"ModrinthSlug LIKE @{pn} ESCAPE '\\'");
+                        var te = tokens[i].Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+                        parameters.Add(pn, $"%{te}%");
+                    }
+
+                    searchRes = conn.Query<CompDatabaseEntry>(
+                        $"SELECT * FROM ModTranslation WHERE {string.Join(" OR ", conditions)}", parameters).ToList();
+
+                    // Phase 3 兜底：结果仍过少时退回全文 LIKE，并按 WikiId 去重合并
+                    if (searchRes.Count < 3)
+                    {
+                        var fallback = conn.Query<CompDatabaseEntry>(
+                            "SELECT * FROM ModTranslation WHERE ChineseName LIKE @p ESCAPE '\\' OR CurseForgeSlug LIKE @p ESCAPE '\\' OR ModrinthSlug LIKE @p ESCAPE '\\'",
+                            new { p = $"%{likeEscaped}%" }).ToList();
+                        var seen = new HashSet<int>(searchRes.Select(e => e.WikiId));
+                        foreach (var e in fallback)
+                            if (seen.Add(e.WikiId)) searchRes.Add(e);
+                    }
+                }
                 foreach (var searchItem in searchRes)
                 {
                     if (searchItem.ChineseName.Contains("动态的树")) continue;
@@ -2456,31 +2512,49 @@ public static class ModComp
 
             if (!wordWeights.Any()) throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
 
-            // 选出“规范词条”并以其英文关键词作为搜索词。
-            // 旧实现把所有高权重关键词（可能来自多个互不相关的模组）拼接成同一个查询，
-            // 当输入为「钠」「玉」等单字或宽泛关键词、命中大量翻译词条时，会生成形如
-            // “sodium embeddium extras dynamiclights reforged dynamic lights magnesium” 的多模组
-            // 关键词串；CurseForge / Modrinth 会将整串视为对同一模组的描述进行匹配，没有任何模组能
-            // 同时命中全部关键词，导致两个数据源都返回空、搜索整体失败（详见 issue #3272）。
-            // 仅取 searchResults.First() 或仅按相似度排序都不可靠：例如「玉」的规范模组
-            // 「玉 🔍 (Jade 🔍)」名称带装饰表情 🔍（在 C# 中长度为 2），会拉低其相似度，使附属模组
-            // 「玉足 (Jade Feet)」反而排前，查询变成 “jade feet” 并把真正的 Jade 排除。
-            // 因此优先选取“名称（剥离装饰符号与空格后）恰好等于查询本身”的词条作为规范词条，
-            // 其后再依次按完全匹配、相似度、slug 最短（基础模组而非附属/扩展）排序，用其关键词查询，
-            // 由数据源返回该模组及其同系列，交由后续按中文名重排序。
+            // 关键词转换分两类处理（见 issue #3272）。
+            // 此前的根因：把所有高权重关键词（可能来自多个互不相关模组）拼接成同一个查询，
+            // 命中大量词条时会生成形如 “sodium embeddium extras dynamiclights …” 的多模组关键词串，
+            // CurseForge / Modrinth 会将整串当作对同一模组的描述匹配，没有模组能同时命中全部词 →
+            // 两源皆空、搜索失败。但若一律收窄到单个模组，又会走向另一极端：输入「工业」「应用」
+            // 「沉浸」「航空学」这类部分/类别词时只剩某一个模组的关键词，导致必须打全名、同名系列尽失。
             string CanonName(string name) =>
                 new string(name.BeforeFirst(" (").Where(char.IsLetterOrDigit).ToArray());
             var normalizedQuery = new string(rawFilter.Where(char.IsLetterOrDigit).ToArray());
-            var canonicalEntry = searchResults
-                .OrderByDescending(r => CanonName(r.item.ChineseName) == normalizedQuery)
-                .ThenByDescending(r => r.absoluteRight)
-                .ThenByDescending(r => r.similarity)
-                .ThenBy(r => (r.item.CurseForgeSlug ?? r.item.ModrinthSlug ?? r.item.ChineseName).Length)
-                .First();
-            var canonicalWords = ExtractWords(canonicalEntry);
-            request.searchText = canonicalWords.Any()
-                ? string.Join(" ", canonicalWords)
-                : string.Join(" ", wordWeights.OrderByDescending(w => w.Value).Take(5).Select(w => w.Key));
+            // 是否输入了某模组的“完整规范名”：存在某词条名（剥离装饰符号与空格后）恰等于输入。
+            var hasExactName = searchResults.Any(r => CanonName(r.item.ChineseName) == normalizedQuery);
+            if (hasExactName)
+            {
+                // 完整名（如「钠」「玉」「聊天头像」「机械动力」）→ 用该模组自身关键词精确搜索。
+                // 规范词条优先级：名称恰等于输入 > 完全匹配 > 相似度 > slug 最短（基础模组而非附属）。
+                // “名称恰等于输入”可避免「玉」因规范模组「玉 🔍 (Jade)」名称含装饰表情 🔍
+                //（C# 中长度为 2）拉低相似度而被「玉足 (Jade Feet)」挤掉。
+                var canonicalEntry = searchResults
+                    .OrderByDescending(r => CanonName(r.item.ChineseName) == normalizedQuery)
+                    .ThenByDescending(r => r.absoluteRight)
+                    .ThenByDescending(r => r.similarity)
+                    .ThenBy(r => (r.item.CurseForgeSlug ?? r.item.ModrinthSlug ?? r.item.ChineseName).Length)
+                    .First();
+                var canonicalWords = ExtractWords(canonicalEntry);
+                request.searchText = canonicalWords.Any()
+                    ? string.Join(" ", canonicalWords)
+                    : string.Join(" ", wordWeights.OrderByDescending(w => w.Value).Take(2).Select(w => w.Key));
+            }
+            else
+            {
+                // 部分/类别词（如「工业」「应用」「沉浸」「航空学」）→ 不收窄到单个模组，
+                // 改用“权重并列最高”的英文词根（权重 = 含该词的词条相似度之和）。
+                // 共现于相同词条的词会得到相同权重而被一起取出：
+                // - 宽泛词「工业」只有 industrial 居首 → 单发，带回整个同名系列；
+                // - 内聚系列「航空学」的 create、aeronautics 并列最高 → 一起发，直接命中目标。
+                // 最终交由后续按下载量与中文名重排序，把用量广的主模组顶到前面。
+                var maxWeight = wordWeights.Values.Max();
+                request.searchText = string.Join(" ", wordWeights
+                    .OrderByDescending(w => w.Value)
+                    .Where(w => w.Value >= maxWeight * 0.999)
+                    .Take(3)
+                    .Select(w => w.Key));
+            }
             LogWrapper.Debug("[Comp] 中文搜索基础关键词：" + request.searchText);
         }
 
