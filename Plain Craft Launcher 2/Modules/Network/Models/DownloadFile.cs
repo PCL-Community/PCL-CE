@@ -1,4 +1,4 @@
-﻿using PCL.Network.Loaders;
+using PCL.Network.Loaders;
 
 namespace PCL.Network;
 
@@ -8,7 +8,7 @@ public class DownloadFile
     public string LocalPath { get; set; }
     public string LocalName { get; }
     public List<string> Urls { get; }
-    public FileChecker? Check { get; }
+    public FileCheckOptions? Check { get; }
     public bool UseBrowserUserAgent { get; }
     public string CustomUserAgent { get; }
     public NetState State { get; set; } = NetState.WaitingToCheck;
@@ -39,8 +39,12 @@ public class DownloadFile
         }
     }
 
-    public DownloadFile(IEnumerable<string> urls, string localPath, FileChecker? checker = null,
-        bool useBrowserUserAgent = false, string customUserAgent = "")
+    public DownloadFile(
+        IEnumerable<string> urls,
+        string localPath,
+        FileCheckOptions? checker = null,
+        bool useBrowserUserAgent = false,
+        string customUserAgent = "")
     {
         Urls = urls.Where(url => !string.IsNullOrWhiteSpace(url)).Distinct().ToList();
         LocalPath = localPath;

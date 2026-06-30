@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -37,7 +37,7 @@ public static class ModDownload
             version.JsonObject["downloads"]["client"]["url"] is null)
             throw new Exception(Lang.Text("Minecraft.Download.Error.NoJarDownloadInfo", version.Name));
         // 检查文件
-        var checker = new FileChecker(1024L, (long)(version.JsonObject["downloads"]["client"]["size"] ?? -1),
+        var checker = new FileCheckOptions(1024L, (long)(version.JsonObject["downloads"]["client"]["size"] ?? -1),
             (string)version.JsonObject["downloads"]["client"]["sha1"]);
         if (returnNothingOnFileUseable && checker.Check(version.PathInstance + version.Name + ".jar") is null)
             return null; // 通过校验
@@ -64,7 +64,7 @@ public static class ModDownload
         if (string.IsNullOrEmpty(indexUrl)) return null;
 
         return new DownloadFile(DlSourceLauncherOrMetaGet(indexUrl), indexAddress,
-            new FileChecker(canUseExistsFile: false));
+            new FileCheckOptions(canUseExistingFile: false));
     }
 
     /// <summary>

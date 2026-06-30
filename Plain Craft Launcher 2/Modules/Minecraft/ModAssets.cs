@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Runtime.InteropServices;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils;
@@ -190,7 +190,7 @@ namespace PCL
                     return new DownloadFile(
                         ModDownload.DlSourceAssetsGet(McAssetsUrl(hash)),
                         token.localPath,
-                        new FileChecker(actualSize: token.size == 0L ? -1 : token.size, hash: hash));
+                        new FileCheckOptions(actualSize: token.size == 0L ? -1 : token.size, hash: hash));
                 }).ToList();
             // 如果不检查 Hash，则立即处理
             var result = new List<DownloadFile>();
@@ -217,7 +217,7 @@ namespace PCL
                     result.Add(new DownloadFile(
                         ModDownload.DlSourceAssetsGet(McAssetsUrl(hash)),
                         token.localPath,
-                        new FileChecker(actualSize: token.size == 0L ? -1 : token.size, hash: hash)));
+                        new FileCheckOptions(actualSize: token.size == 0L ? -1 : token.size, hash: hash)));
                 }
             }
             catch (Exception ex)

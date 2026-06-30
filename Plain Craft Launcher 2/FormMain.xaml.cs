@@ -1191,7 +1191,7 @@ public partial class FormMain
                     ModModpack.ModpackInstall(filePath);
                     return;
                 }
-                catch (CancelledException ex)
+                catch (OperationCanceledException)
                 {
                     return; // 用户主动取消
                 }

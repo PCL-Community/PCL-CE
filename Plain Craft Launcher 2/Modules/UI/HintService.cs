@@ -1,5 +1,4 @@
 ﻿using System.Windows;
-using PCL.Core.UI;
 
 namespace PCL;
 
@@ -12,9 +11,9 @@ public static class HintService
         public bool Log;
     }
 
-    private static SafeList<HintMessage> HintWaiting
+    private static ConcurrentList<HintMessage> HintWaiting
     {
-        get => field ??= new SafeList<HintMessage>();
+        get => field ??= new ConcurrentList<HintMessage>();
         set;
     }
 

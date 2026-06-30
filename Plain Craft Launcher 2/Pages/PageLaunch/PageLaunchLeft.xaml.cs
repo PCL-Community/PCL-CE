@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -138,7 +138,7 @@ public partial class PageLaunchLeft
                             File.Delete(packInstallPath);
                     }
                 }
-                catch (CancelledException ex)
+                catch (OperationCanceledException ex)
                 {
                     LauncherLog.Log(ex, "自动安装整合包被用户取消：" + packInstallPath);
                 }
@@ -820,17 +820,17 @@ public partial class PageLaunchLeft
     #region 皮肤
 
     // 正版皮肤
-    public static ModLoader.LoaderTask<EqualableList<string>, string> skinMs = new("Loader Skin Ms", SkinMsLoad,
+    public static ModLoader.LoaderTask<LoaderInputList<string>, string> skinMs = new("Loader Skin Ms", SkinMsLoad,
         SkinMsInput, ThreadPriority.AboveNormal);
 
-    private static EqualableList<string> SkinMsInput()
+    private static LoaderInputList<string> SkinMsInput()
     {
         // 获取名称
-        return new EqualableList<string>
+        return new LoaderInputList<string>
             { ModProfile.selectedProfile.Username, ModProfile.selectedProfile.Uuid };
     }
 
-    private static void SkinMsLoad(ModLoader.LoaderTask<EqualableList<string>, string> data)
+    private static void SkinMsLoad(ModLoader.LoaderTask<LoaderInputList<string>, string> data)
     {
         // 清空已有皮肤
         // 如果在输入时清空皮肤，若输入内容一样则不会执行 Load 方法，导致皮肤不被加载
@@ -912,16 +912,16 @@ public partial class PageLaunchLeft
     }
 
     // 离线皮肤
-    public static ModLoader.LoaderTask<EqualableList<string>, string> skinLegacy = new("Loader Skin Legacy",
+    public static ModLoader.LoaderTask<LoaderInputList<string>, string> skinLegacy = new("Loader Skin Legacy",
         SkinLegacyLoad, SkinLegacyInput, ThreadPriority.AboveNormal);
 
-    private static EqualableList<string> SkinLegacyInput()
+    private static LoaderInputList<string> SkinLegacyInput()
     {
-        return new EqualableList<string>
+        return new LoaderInputList<string>
             { ModProfile.selectedProfile.Username, ModProfile.selectedProfile.Uuid };
     }
 
-    private static void SkinLegacyLoad(ModLoader.LoaderTask<EqualableList<string>, string> data)
+    private static void SkinLegacyLoad(ModLoader.LoaderTask<LoaderInputList<string>, string> data)
     {
         // 清空已有皮肤
         UiThread.Post(() =>
@@ -938,17 +938,17 @@ public partial class PageLaunchLeft
     }
 
     // Authlib-Injector 皮肤
-    public static ModLoader.LoaderTask<EqualableList<string>, string> skinAuth = new("Loader Skin Auth",
+    public static ModLoader.LoaderTask<LoaderInputList<string>, string> skinAuth = new("Loader Skin Auth",
         SkinAuthLoad, SkinAuthInput, ThreadPriority.AboveNormal);
 
-    private static EqualableList<string> SkinAuthInput()
+    private static LoaderInputList<string> SkinAuthInput()
     {
         // 获取名称
-        return new EqualableList<string>
+        return new LoaderInputList<string>
             { ModProfile.selectedProfile.Username, ModProfile.selectedProfile.Uuid };
     }
 
-    private static void SkinAuthLoad(ModLoader.LoaderTask<EqualableList<string>, string> data)
+    private static void SkinAuthLoad(ModLoader.LoaderTask<LoaderInputList<string>, string> data)
     {
         // 清空已有皮肤
         // 如果在输入时清空皮肤，若输入内容一样则不会执行 Load 方法，导致皮肤不被加载
@@ -1020,7 +1020,7 @@ public partial class PageLaunchLeft
 
     // 全部皮肤加载器
     // 需要放在其中元素的后面，否则会因为它提前被加载而莫名其妙变成 Nothing
-    public static List<ModLoader.LoaderTask<EqualableList<string>, string>> skinLoaders = new()
+    public static List<ModLoader.LoaderTask<LoaderInputList<string>, string>> skinLoaders = new()
         { skinMs, skinLegacy, skinAuth };
 
     #endregion

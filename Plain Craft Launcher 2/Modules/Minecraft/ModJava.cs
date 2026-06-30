@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO;
@@ -456,7 +456,7 @@ public static class ModJava
             if (ignoreHash.Contains((string)checkHash))
                 continue; // 跳过 3 个无意义大量重复文件（#3827）
 
-            var checker = new FileChecker(actualSize: (long)info["size"], hash: (string)info["sha1"]);
+            var checker = new FileCheckOptions(actualSize: (long)info["size"], hash: (string)info["sha1"]);
             var filePath = Path.GetFullPath(Path.Combine(lastJavaBaseDir, File.Key));
             if (!Files.IsPathWithinDirectory(filePath, lastJavaBaseDir))
                 throw new Exception($"{filePath} 不在 {lastJavaBaseDir} 中");

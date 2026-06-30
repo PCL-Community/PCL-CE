@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Compression;
@@ -3090,7 +3090,7 @@ public static class ModComp
         public DownloadFile ToNetFile(string localAddress)
         {
             return new DownloadFile(DownloadUrls, localAddress + (localAddress.EndsWithF(@"\") ? CompFileNameSanitize(FileName) : ""),
-                new FileChecker(hash: Hash), true);
+                new FileCheckOptions(hash: Hash), true);
         }
 
         /// <summary>

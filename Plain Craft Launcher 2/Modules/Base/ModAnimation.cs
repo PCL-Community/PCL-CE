@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Windows;
@@ -13,6 +13,14 @@ namespace PCL;
 
 public static partial class ModAnimation
 {
+    private sealed class ScaleDelta(double left, double top, double width, double height)
+    {
+        public double Left { get; } = left;
+        public double Top { get; } = top;
+        public double Width { get; } = width;
+        public double Height { get; } = height;
+    }
+
     private static int aniCount;
     private static int aniFPSCounter;
     private static long aniFPSTimer;
@@ -1011,11 +1019,11 @@ public static partial class ModAnimation
     public static AniData AaScale(object obj, double value, int time = 400, int delay = 0, AniEase ease = null,
         bool after = false, bool absolute = false)
     {
-        MyRect changeRect;
+        ScaleDelta changeRect;
         if (absolute)
-            changeRect = new MyRect(-0.5d * value, -0.5d * value, value, value);
+            changeRect = new ScaleDelta(-0.5d * value, -0.5d * value, value, value);
         else
-            changeRect = new MyRect(
+            changeRect = new ScaleDelta(
                 Convert.ToDouble(-0.5d * ((dynamic)obj).ActualWidth * value),
                 Convert.ToDouble(-0.5d * ((dynamic)obj).ActualHeight * value),
                 Convert.ToDouble(((dynamic)obj).ActualWidth * value),

@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Windows.Shell;
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
@@ -18,7 +18,7 @@ public static class ModLoader
     }
 
     // 任务栏进度条
-    public static SafeList<LoaderBase> loaderTaskbar = new();
+    public static ConcurrentList<LoaderBase> loaderTaskbar = new();
     public static double loaderTaskbarProgress; // 平滑后的进度
     private static TaskbarItemProgressState loaderTaskbarProgressLast = TaskbarItemProgressState.None;
 
@@ -637,7 +637,7 @@ public static class ModLoader
                     State = LoadState.Finished;
                     lastFinishedTime = TimeUtils.GetTimeTick();
                 }
-                catch (CancelledException ex)
+                catch (OperationCanceledException ex)
                 {
                     if (LauncherRuntime.ModeDebug)
                         LauncherLog.Log(ex,

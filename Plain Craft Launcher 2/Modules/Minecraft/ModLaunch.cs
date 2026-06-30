@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
@@ -915,7 +915,7 @@ public static class ModLaunch
         ModMain.WaitingMyMsgBox.Add(converter);
         while (converter.Result is null)
             Thread.Sleep(100);
-        if (converter.Result is RestartException)
+        if (converter.Result is LaunchRestartException)
         {
             if (ModMain.MyMsgBox(
                     Lang.Text("Minecraft.Launch.Login.PasswordRequired.Message", LauncherText.LeftQuote,

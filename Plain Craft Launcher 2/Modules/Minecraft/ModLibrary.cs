@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using PCL.Core.App;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
@@ -441,7 +441,7 @@ public static class ModLibrary
         // 校验文件
         if (authlibDownloadInfo is not null)
         {
-            var checker = new FileChecker(hash: authlibDownloadInfo["checksums"]["sha256"].ToString());
+            var checker = new FileCheckOptions(hash: authlibDownloadInfo["checksums"]["sha256"].ToString());
             if (checker.Check(authlibTargetFile) is not null)
             {
                 // 开始下载
@@ -455,7 +455,7 @@ public static class ModLibrary
                         downloadAddress.Replace("authlib-injector.yushi.moe",
                             "bmclapi2.bangbang93.com/mirrors/authlib-injector")
                     }, authlibTargetFile,
-                    new FileChecker(hash: authlibDownloadInfo["checksums"]["sha256"].ToString())));
+                    new FileCheckOptions(hash: authlibDownloadInfo["checksums"]["sha256"].ToString())));
             }
         }
 
@@ -505,7 +505,7 @@ public static class ModLibrary
                     var assetPath = $@"{ModFolder.mcFolderSelected}labymod-neo\assets\{assetName}.jar";
                     var assetUrl =
                         $"https://releases.r2.labymod.net/api/v1/download/assets/labymod4/{channelType}/{labyModCommitRef}/{assetName}/{assetSHA1}.jar";
-                    var checker = new FileChecker(hash: assetSHA1);
+                    var checker = new FileCheckOptions(hash: assetSHA1);
                     if (checker.Check(assetPath) is null)
                         continue;
                     result.Add(new DownloadFile(new[] { assetUrl }, assetPath, checker));
@@ -547,7 +547,7 @@ public static class ModLibrary
         foreach (var token in libs)
         {
             // 检查文件
-            var checker = new FileChecker(actualSize: token.size == 0L ? -1 : token.size, hash: token.Sha1);
+            var checker = new FileCheckOptions(actualSize: token.size == 0L ? -1 : token.size, hash: token.Sha1);
             if (checker.Check(token.LocalPath) is null)
                 continue;
             if (token.IsLocal)
@@ -608,7 +608,7 @@ public static class ModLibrary
                 urls.Add(token.Url);
                 LauncherLog.Log(
                     $"[Download] 获取到 LabyMod 主要库文件的 Size = {token.size},SHA1 = {token.Sha1}，由于 LabyMod 乱写 Size，已忽略 Size");
-                checker = new FileChecker(hash: token.Sha1); // 只校验 SHA1
+                checker = new FileCheckOptions(hash: token.Sha1); // 只校验 SHA1
             }
             else if (urls.Count <= 2)
             {

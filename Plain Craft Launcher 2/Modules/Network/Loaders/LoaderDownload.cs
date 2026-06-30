@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.IO;
 using PCL.Core.App;
 using PCL.Core.Utils;
@@ -7,7 +7,7 @@ namespace PCL.Network.Loaders;
 
 public class LoaderDownload : ModLoader.LoaderBase
 {
-    public SafeList<DownloadFile> files;
+    public ConcurrentList<DownloadFile> files;
     private int _fileRemain;
     private readonly object _fileRemainLock = new();
     private CancellationTokenSource? _cancellationTokenSource;
@@ -22,7 +22,7 @@ public class LoaderDownload : ModLoader.LoaderBase
     public LoaderDownload(string name, List<DownloadFile> fileTasks)
     {
         base.name = name;
-        files = new SafeList<DownloadFile>(fileTasks ?? new List<DownloadFile>());
+        files = new ConcurrentList<DownloadFile>(fileTasks ?? new List<DownloadFile>());
     }
 
     public void RefreshStat() { }
@@ -30,7 +30,7 @@ public class LoaderDownload : ModLoader.LoaderBase
     public override void Start(object input = null, bool isForceRestart = false)
     {
         if (input is List<DownloadFile> inputFiles)
-            files = new SafeList<DownloadFile>(inputFiles);
+            files = new ConcurrentList<DownloadFile>(inputFiles);
 
         lock (lockState)
         {
@@ -116,7 +116,7 @@ public class LoaderDownload : ModLoader.LoaderBase
         if (State >= LoadState.Finished)
             return;
         Directory.CreateDirectory(Path.GetDirectoryName(file.LocalPath) ?? throw new IOException("下载路径无效"));
-        if (file.Check?.canUseExistsFile == true && file.Check.Check(file.LocalPath) is null)
+        if (file.Check?.CanUseExistingFile == true && file.Check.Check(file.LocalPath) is null)
         {
             file.IsCopy = true;
             file.State = NetState.Finished;

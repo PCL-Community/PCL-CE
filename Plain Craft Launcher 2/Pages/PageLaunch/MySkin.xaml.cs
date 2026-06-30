@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
@@ -20,7 +20,7 @@ public partial class MySkin
 
     // 点击
     private bool isSkinMouseDown;
-    public ModLoader.LoaderTask<EqualableList<string>, string> loader;
+    public ModLoader.LoaderTask<LoaderInputList<string>, string> loader;
 
     public MySkin()
     {
@@ -97,7 +97,7 @@ public partial class MySkin
         Save(loader);
     }
 
-    public static void Save(ModLoader.LoaderTask<EqualableList<string>, string> loader)
+    public static void Save(ModLoader.LoaderTask<LoaderInputList<string>, string> loader)
     {
         var address = loader.output;
         if (loader.State != LoadState.Finished)
@@ -279,7 +279,7 @@ public partial class MySkin
     /// <summary>
     ///     刷新皮肤缓存。
     /// </summary>
-    public static void RefreshCache(ModLoader.LoaderTask<EqualableList<string>, string> sender = null)
+    public static void RefreshCache(ModLoader.LoaderTask<LoaderInputList<string>, string> sender = null)
     {
         var hasLoaderRunning =
             PageLaunchLeft.skinLoaders.Any(skinLoader => skinLoader.State == LoadState.Loading);

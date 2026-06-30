@@ -1,4 +1,4 @@
-﻿using PCL.Network.Loaders;
+using PCL.Network.Loaders;
 
 namespace PCL.Network;
 
@@ -9,7 +9,7 @@ public sealed class NetManager
 
     public Dictionary<string, DownloadFile> Files { get; } = new();
     public object LockFiles { get; } = new();
-    public SafeList<LoaderDownload> Tasks { get; } = new();
+    public ConcurrentList<LoaderDownload> Tasks { get; } = new();
     public object LockRemain { get; } = new();
     public int FileRemain
     {

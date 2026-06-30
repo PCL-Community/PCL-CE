@@ -12,12 +12,9 @@ using PCL.Core.App.Configuration.Storage;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Minecraft;
-using PCL.Core.UI;
-using PCL.Core.Utils;
+using PCL.Core.Utils.Codecs;
 using PCL.Network;
 using PCL.Network.Loaders;
-using PCL.Core.IO.Net.Http;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -56,7 +53,7 @@ public static class ModDownloadLib
         var message = "远程版本名" + reason + "：" + childFolderName;
         LauncherLog.Log("[Download] " + message);
         HintService.Hint(message, HintType.Error);
-        throw new CancelledException();
+        throw new OperationCanceledException();
     }
 
     #region Minecraft 下载
@@ -160,7 +157,7 @@ public static class ModDownloadLib
                 new List<DownloadFile>
                 {
                     new(ModDownload.DlSourceLauncherOrMetaGet(jsonUrl), Path.Combine(versionFolder, id + ".json"),
-                        new FileChecker(canUseExistsFile: false, isJson: true))
+                        new FileCheckOptions(canUseExistingFile: false, validateJson: true))
                 }) { ProgressWeight = 2d });
             // 获取支持库文件地址
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
@@ -224,7 +221,7 @@ public static class ModDownloadLib
             new List<DownloadFile>
             {
                 new(ModDownload.DlSourceLauncherOrMetaGet(jsonUrl ?? ""), Path.Combine(instanceFolder, instanceName + ".json"),
-                    new FileChecker(canUseExistsFile: false, isJson: true))
+                    new FileCheckOptions(canUseExistingFile: false, validateJson: true))
             }) { ProgressWeight = 3d });
 
         // 下载支持库文件
@@ -281,7 +278,7 @@ public static class ModDownloadLib
             // 顺手添加 Json 项目
             try
             {
-                var versionJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(LegacyFileFacade.ReadText(Path.Combine(instanceFolder, instanceName + ".json")));
+                var versionJson = (JsonObject)JsonCompat.ParseNode(LegacyFileFacade.ReadText(Path.Combine(instanceFolder, instanceName + ".json")));
                 versionJson.Add("clientVersion", id);
                 LegacyFileFacade.WriteFile(Path.Combine(instanceFolder, instanceName + ".json"), versionJson.ToString());
             }
@@ -455,7 +452,7 @@ public static class ModDownloadLib
                 new List<DownloadFile>
                 {
                     new(ModDownload.DlSourceLauncherOrMetaGet(jsonUrl), Path.Combine(versionFolder, id + ".json"),
-                        new FileChecker(canUseExistsFile: false, isJson: true))
+                        new FileCheckOptions(canUseExistingFile: false, validateJson: true))
                 }) { ProgressWeight = 2d });
             // 构建服务端
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
@@ -479,7 +476,7 @@ public static class ModDownloadLib
                 }
 
                 var jarUrl = (string)mcInstance.JsonObject["downloads"]["server"]["url"];
-                var checker = new FileChecker(1024L,
+                var checker = new FileCheckOptions(1024L,
                     (long)(mcInstance.JsonObject["downloads"]["server"]["size"] ?? -1),
                     (string)mcInstance.JsonObject["downloads"]["server"]["sha1"]);
                 task.output = new List<DownloadFile>
@@ -562,7 +559,7 @@ public static class ModDownloadLib
                 new List<DownloadFile>
                 {
                     new(ModDownload.DlSourceLauncherOrMetaGet(jsonUrl), Path.Combine(versionFolder, id + ".json"),
-                        new FileChecker(canUseExistsFile: false, isJson: true))
+                        new FileCheckOptions(canUseExistingFile: false, validateJson: true))
                 }) { ProgressWeight = 2d });
             // 获取支持库文件地址
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
@@ -942,7 +939,7 @@ public static class ModDownloadLib
 
             // 构造文件请求
             task.output = new List<DownloadFile>
-                { new(sources.ToArray(), target, new FileChecker(300 * 1024)) };
+                { new(sources.ToArray(), target, new FileCheckOptions(300 * 1024)) };
         })
         {
             ProgressWeight = 8d
@@ -1012,7 +1009,7 @@ public static class ModDownloadLib
                         Path.Combine(baseMcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".jar"));
                     task.Progress = 0.06d;
                     // 进行安装
-                    var useJavaWrapper = PCL.Core.Utils.Codecs.EncodingUtils.IsDefaultEncodingUtf8();
+                    var useJavaWrapper = EncodingUtils.IsDefaultEncodingUtf8();
                     Retry: ;
 
                     try
@@ -1181,7 +1178,7 @@ public static class ModDownloadLib
                 task.Progress = 0.9d;
                 // 构造文件请求
                 task.output = new List<DownloadFile>
-                    { new(sources.ToArray(), targetFolder, new FileChecker(64 * 1024)) };
+                    { new(sources.ToArray(), targetFolder, new FileCheckOptions(64 * 1024)) };
             })
         {
             ProgressWeight = 6d
@@ -1411,7 +1408,7 @@ public static class ModDownloadLib
                             (downloadInfo.Inherit == "1.8" ? "ant/dist/" : "build/libs/") + downloadInfo.FileName);
 
             loaders.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadMainFile"),
-                    new List<DownloadFile> { new(address.ToArray(), target, new FileChecker(1024 * 1024)) })
+                    new List<DownloadFile> { new(address.ToArray(), target, new FileCheckOptions(1024 * 1024)) })
                 { ProgressWeight = 15d });
             // 启动
             var loader =
@@ -1482,10 +1479,10 @@ public static class ModDownloadLib
                     DateTime.ParseExact(downloadInfo.ReleaseTime, "yyyy/MM/dd HH:mm", CultureInfo.InvariantCulture));
                 versionJson.Add("type", "release");
                 versionJson.Add("arguments",
-                    (JsonNode)PCL.Core.Utils.JsonCompat.ParseNode("{\"game\":[\"--tweakClass\",\"" + downloadInfo.jsonToken["tweakClass"] +
-                                            "\"]}"));
+                    (JsonNode)JsonCompat.ParseNode("{\"game\":[\"--tweakClass\",\"" + downloadInfo.jsonToken["tweakClass"] +
+                                                   "\"]}"));
                 versionJson.Add("libraries", downloadInfo.jsonToken["libraries"]?.DeepClone());
-                versionJson["libraries"].AsArray().Add(PCL.Core.Utils.JsonCompat.ParseNode("{\"name\": \"com.mumfrey:liteloader:" +
+                versionJson["libraries"].AsArray().Add(JsonCompat.ParseNode("{\"name\": \"com.mumfrey:liteloader:" +
                                                                             downloadInfo.jsonToken["version"] +
                                                                             "\",\"url\": \"https://dl.liteloader.com/versions/\"}"));
                 versionJson.Add("mainClass", "net.minecraft.launchwrapper.Launch");
@@ -1647,14 +1644,14 @@ public static class ModDownloadLib
                 var url = neo.UrlBase + "-installer.jar";
                 files.Add(new DownloadFile(
                     new[] { url.Replace("maven.neoforged.net/releases", "bmclapi2.bangbang93.com/maven"), url }, target,
-                    new FileChecker(64 * 1024)));
+                    new FileCheckOptions(64 * 1024)));
             }
             else if (info.forgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Cleanroom)
             {
                 // Cleanroom
                 var clr = (ModDownload.DlCleanroomListEntry)info;
                 var url = clr.UrlBase + "-installer.jar";
-                files.Add(new DownloadFile(new[] { url }, target, new FileChecker(64 * 1024)));
+                files.Add(new DownloadFile(new[] { url }, target, new FileCheckOptions(64 * 1024)));
             }
             else
             {
@@ -1665,7 +1662,7 @@ public static class ModDownloadLib
                     {
                         $"https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/{forge.Inherit}-{forge.FileVersion}/forge-{forge.Inherit}-{forge.FileVersion}-{forge.Category}.{forge.FileExtension}",
                         $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{forge.Inherit}-{forge.FileVersion}/forge-{forge.Inherit}-{forge.FileVersion}-{forge.Category}.{forge.FileExtension}"
-                    }, target, new FileChecker(64 * 1024, hash: forge.Hash)));
+                    }, target, new FileCheckOptions(64 * 1024, hash: forge.Hash)));
             }
 
             // 构造加载器
@@ -2033,14 +2030,14 @@ public static class ModDownloadLib
                 var url = neo.UrlBase + "-installer.jar";
                 files.Add(new DownloadFile(
                     new[] { url.Replace("maven.neoforged.net/releases", "bmclapi2.bangbang93.com/maven"), url },
-                    installerAddress, new FileChecker(64 * 1024)));
+                    installerAddress, new FileCheckOptions(64 * 1024)));
             }
             else if (info.forgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Cleanroom)
             {
                 // Cleanroom
                 var clr = (ModDownload.DlCleanroomListEntry)info;
                 var url = clr.UrlBase + "-installer.jar";
-                files.Add(new DownloadFile(new[] { url }, installerAddress, new FileChecker(64 * 1024)));
+                files.Add(new DownloadFile(new[] { url }, installerAddress, new FileCheckOptions(64 * 1024)));
             }
             else
             {
@@ -2053,7 +2050,7 @@ public static class ModDownloadLib
                     {
                         $"https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/{fileName}",
                         $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{fileName}"
-                    }, installerAddress, new FileChecker(64 * 1024, hash: forge.Hash)));
+                    }, installerAddress, new FileCheckOptions(64 * 1024, hash: forge.Hash)));
             }
 
             task.output = files;
@@ -2082,13 +2079,13 @@ public static class ModDownloadLib
                     LegacyFileFacade.WaitForFileReady(installerAddress);
                     installer = new ZipArchive(new FileStream(installerAddress, FileMode.Open));
                     task.Progress = 0.2d;
-                    var json = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(
+                    var json = (JsonObject)JsonCompat.ParseNode(
                         LegacyFileFacade.ReadText(installer.GetEntry("install_profile.json").Open()));
-                    var json2 = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(LegacyFileFacade.ReadText(installer.GetEntry("version.json").Open()));
+                    var json2 = (JsonObject)JsonCompat.ParseNode(LegacyFileFacade.ReadText(installer.GetEntry("version.json").Open()));
                     json.Merge(json2);
                     // 如果是 1.16.5 就升级一下 Authlib
                     if (inherit == "1.16.5" && (bool)Config.Download.FixAuthLib)
-                        json = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(json.ToString()
+                        json = (JsonObject)JsonCompat.ParseNode(json.ToString()
                             .Replace("2.1.28/authlib-2.1.28.jar", "2.3.31/authlib-2.3.31.jar")
                             .Replace("com.mojang:authlib:2.1.28", "com.mojang:authlib:2.3.31")
                             .Replace("ad54da276bf59983d02d5ed16fc14541354c71fd",
@@ -2100,7 +2097,7 @@ public static class ModDownloadLib
                     {
                         // 下载原版 Json 文件
                         task.Progress = 0.4d;
-                        var rawJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(ModNet.NetGetCodeByLoader(
+                        var rawJson = (JsonObject)JsonCompat.ParseNode(ModNet.NetGetCodeByLoader(
                             ModDownload.DlSourceLauncherOrMetaGet(
                                 ModDownload.DlClientListGet(inherit)?.ToString()), isJson: true));
                         // [net.minecraft:client:1.17.1-20210706.113038:mappings@txt] 或 @tsrg]
@@ -2235,21 +2232,21 @@ public static class ModDownloadLib
 
 
                         // 新建目标实例文件夹
-                        var json = PCL.Core.Utils.JsonCompat.ParseNode(LegacyFileFacade.ReadText(installer.GetEntry("install_profile.json").Open()));
+                        var json = JsonCompat.ParseNode(LegacyFileFacade.ReadText(installer.GetEntry("install_profile.json").Open()));
                         Directory.CreateDirectory(versionFolder);
                         task.Progress = 0.04d;
                         // 释放 launcher_installer.json
                         ModFolder.McFolderLauncherProfilesJsonCreate(mcFolder);
                         task.Progress = 0.05d;
                         // 运行 Forge 安装器
-                        var useJavaWrapper = PCL.Core.Utils.Codecs.EncodingUtils.IsDefaultEncodingUtf8();
+                        var useJavaWrapper = EncodingUtils.IsDefaultEncodingUtf8();
                         Retry:
 
                         try
                         {
                             // 释放 Forge 注入器
                             LegacyFileFacade.WriteFile(Path.Combine(LauncherPaths.TempWithSlash, "Cache", "forge_installer.jar"),
-                                PCL.Core.App.Basics.GetResourceStream("Resources/forge-installer.jar"));
+                                Basics.GetResourceStream("Resources/forge-installer.jar"));
                             task.Progress = 0.06d;
                             // 运行注入器
                             ForgelikeInjector(installerAddress, task, mcFolder, useJavaWrapper, forgeType);
@@ -2339,7 +2336,7 @@ public static class ModDownloadLib
                         LegacyFileFacade.WaitForFileReady(installerAddress);
                         installer = new ZipArchive(new FileStream(installerAddress, FileMode.Open));
                         task.Progress = 0.2d;
-                        var json = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(
+                        var json = (JsonObject)JsonCompat.ParseNode(
                             LegacyFileFacade.ReadText(installer.GetEntry("install_profile.json").Open()));
                         task.Progress = 0.4d;
                         // 新建实例文件夹
@@ -2350,7 +2347,7 @@ public static class ModDownloadLib
                             // 中版：Legacy 方式 1
                             LauncherLog.Log("[Download] 开始进行 Forge 安装，Legacy 方式 1：" + installerAddress);
                             // 建立 Json 文件
-                            var jsonVersion = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(
+                            var jsonVersion = (JsonObject)JsonCompat.ParseNode(
                                 LegacyFileFacade.ReadText(installer.GetEntry(json["json"].ToString().TrimStart('/')).Open()));
                             jsonVersion["id"] = targetVersion;
                             LegacyFileFacade.WriteFile(Path.Combine(versionFolder, targetVersion + ".json"), jsonVersion.ToString());
@@ -2556,14 +2553,14 @@ public static class ModDownloadLib
         // 获取所有推荐版本列表
         // 内容为："1.15.2":"31.2.0"
         // 保存
-        PCL.Core.App.Basics.RunInNewThread(() =>
+        Basics.RunInNewThread(() =>
         {
             try
             {
                 LauncherLog.Log("[Download] 刷新 Forge 推荐版本缓存开始");
                 var result = ModNet.NetGetCodeByLoader("https://bmclapi2.bangbang93.com/forge/promos");
                 if (result.Length < 1000) throw new Exception(Lang.Text("Minecraft.Download.Error.ForgePromosResultTooShort", result));
-                var resultJson = (JsonNode)PCL.Core.Utils.JsonCompat.ParseNode(result);
+                var resultJson = (JsonNode)JsonCompat.ParseNode(result);
                 var recommendedList = new List<string>();
                 foreach (JsonObject Version in resultJson.AsArray())
                 {
@@ -2605,7 +2602,7 @@ public static class ModDownloadLib
                 return null;
             }
 
-            var json = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(list);
+            var json = (JsonObject)JsonCompat.ParseNode(list);
             if (json is null || !(mcInstance ?? "null").Contains(".") || !json.ContainsKey(mcInstance))
                 return null;
             return (json[mcInstance] ?? "").ToString();
@@ -2883,7 +2880,7 @@ public static class ModDownloadLib
             var address = new List<string>();
             address.Add(url);
             loaders.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadMainFile"),
-                    new List<DownloadFile> { new(address.ToArray(), target, new FileChecker(1024 * 64)) })
+                    new List<DownloadFile> { new(address.ToArray(), target, new FileCheckOptions(1024 * 64)) })
                 { ProgressWeight = 15d });
             // 启动
             var loader =
@@ -3008,7 +3005,7 @@ public static class ModDownloadLib
             var address = new List<string>();
             address.Add(url);
             loaders.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadMainFile"),
-                    new List<DownloadFile> { new(address.ToArray(), target, new FileChecker(1024 * 64)) })
+                    new List<DownloadFile> { new(address.ToArray(), target, new FileCheckOptions(1024 * 64)) })
                 { ProgressWeight = 15d });
             // 启动
             var loader =
@@ -3060,7 +3057,7 @@ public static class ModDownloadLib
                     {
                         "https://meta.legacyfabric.net/v2/versions/loader/" + minecraftName + "/" +
                         legacyFabricVersion + "/profile/json"
-                    }, Path.Combine(versionFolder, id + ".json"), new FileChecker(isJson: true))
+                    }, Path.Combine(versionFolder, id + ".json"), new FileCheckOptions(validateJson: true))
             };
         })
         {
@@ -3234,7 +3231,7 @@ public static class ModDownloadLib
             var address = new List<string>();
             address.Add(url);
             loaders.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadMainFile"),
-                    new List<DownloadFile> { new(address.ToArray(), target, new FileChecker(1024 * 64)) })
+                    new List<DownloadFile> { new(address.ToArray(), target, new FileCheckOptions(1024 * 64)) })
                 { ProgressWeight = 15d });
             // 启动
             var loader =
@@ -3287,7 +3284,7 @@ public static class ModDownloadLib
                     {
                         "https://meta.quiltmc.org/v3/versions/loader/" + minecraftName + "/" + quiltVersion +
                         "/profile/json"
-                    }, Path.Combine(versionFolder, id + ".json"), new FileChecker(isJson: true))
+                    }, Path.Combine(versionFolder, id + ".json"), new FileCheckOptions(validateJson: true))
             };
             // 新建 mods 文件夹
             Directory.CreateDirectory($@"{mcFolder ?? ModFolder.mcFolderSelected}mods\");
@@ -3402,7 +3399,7 @@ public static class ModDownloadLib
             var address = new List<string>();
             address.Add(url);
             loaders.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadMainFile"),
-                    new List<DownloadFile> { new(address.ToArray(), target, new FileChecker(1024 * 64)) })
+                    new List<DownloadFile> { new(address.ToArray(), target, new FileCheckOptions(1024 * 64)) })
                 { ProgressWeight = 15d });
             // 启动
             var loader =
@@ -3450,7 +3447,7 @@ public static class ModDownloadLib
             var address = new List<string>();
             address.Add(url);
             loaders.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadMainFile"),
-                    new List<DownloadFile> { new(address.ToArray(), target, new FileChecker(1024 * 64)) })
+                    new List<DownloadFile> { new(address.ToArray(), target, new FileCheckOptions(1024 * 64)) })
                 { ProgressWeight = 15d });
             // 启动
             var loader =
@@ -3502,7 +3499,7 @@ public static class ModDownloadLib
                     new[]
                     {
                         $"https://releases.r2.labymod.net/api/v1/download/manifest/labymod4/{labyModChannel}/{minecraftName}/{labyModCommitRef}.json"
-                    }, Path.Combine(versionFolder, id + ".json"), new FileChecker(isJson: true))
+                    }, Path.Combine(versionFolder, id + ".json"), new FileCheckOptions(validateJson: true))
             };
             task.Progress = 1d;
         })
@@ -3577,7 +3574,7 @@ public static class ModDownloadLib
             // 顺手添加 Json 项目
             try
             {
-                var versionJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(LegacyFileFacade.ReadText(Path.Combine(versionFolder, versionName + ".json")));
+                var versionJson = (JsonObject)JsonCompat.ParseNode(LegacyFileFacade.ReadText(Path.Combine(versionFolder, versionName + ".json")));
                 versionJson.Add("clientVersion", id);
                 LegacyFileFacade.WriteFile(Path.Combine(versionFolder, versionName + ".json"), versionJson.ToString());
             }
@@ -3930,7 +3927,7 @@ public static class ModDownloadLib
             return true;
         }
 
-        catch (CancelledException ex)
+        catch (OperationCanceledException ex)
         {
             return false;
         }
@@ -3966,7 +3963,7 @@ public static class ModDownloadLib
     /// <summary>
     ///     获取合并安装加载器列表，并进行前期的缓存清理与 Java 检查工作。
     /// </summary>
-    /// <exception cref="CancelledException" />
+    /// <exception cref="OperationCanceledException" />
     public static List<ModLoader.LoaderBase> McInstallLoader(McInstallRequest request, bool dontFixLibraries = false,
         bool ignoreDump = false)
     {
@@ -4073,7 +4070,7 @@ public static class ModDownloadLib
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceAlreadyExists", request.targetInstanceName, ""),
                 HintType.Error);
-            throw new CancelledException();
+            throw new OperationCanceledException();
         }
 
         var loaderList = new List<ModLoader.LoaderBase>();
@@ -4481,7 +4478,7 @@ public static class ModDownloadLib
             if (!minecraftJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Minecraft", minecraftJsonPath,
                     minecraftJsonText.Substring(0, Math.Min(minecraftJsonText.Length, 1000))));
-            minecraftJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(minecraftJsonText);
+            minecraftJson = (JsonObject)JsonCompat.ParseNode(minecraftJsonText);
         }
 
         if (hasOptiFine)
@@ -4490,7 +4487,7 @@ public static class ModDownloadLib
             if (!optiFineJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "OptiFine", optiFineJsonPath,
                     optiFineJsonText.Substring(0, Math.Min(optiFineJsonText.Length, 1000))));
-            optiFineJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(optiFineJsonText);
+            optiFineJson = (JsonObject)JsonCompat.ParseNode(optiFineJsonText);
         }
 
         if (hasForge)
@@ -4499,7 +4496,7 @@ public static class ModDownloadLib
             if (!forgeJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Forge", forgeJsonPath,
                     forgeJsonText.Substring(0, Math.Min(forgeJsonText.Length, 1000))));
-            forgeJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(forgeJsonText);
+            forgeJson = (JsonObject)JsonCompat.ParseNode(forgeJsonText);
         }
 
         if (hasNeoForge)
@@ -4508,7 +4505,7 @@ public static class ModDownloadLib
             if (!neoForgeJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "NeoForge", neoForgeJsonPath,
                     neoForgeJsonText.Substring(0, Math.Min(neoForgeJsonText.Length, 1000))));
-            neoForgeJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(neoForgeJsonText);
+            neoForgeJson = (JsonObject)JsonCompat.ParseNode(neoForgeJsonText);
         }
 
         if (hasCleanroom)
@@ -4517,7 +4514,7 @@ public static class ModDownloadLib
             if (!cleanroomJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Cleanroom", cleanroomJsonPath,
                     cleanroomJsonText.Substring(0, Math.Min(cleanroomJsonText.Length, 1000))));
-            cleanroomJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(cleanroomJsonText);
+            cleanroomJson = (JsonObject)JsonCompat.ParseNode(cleanroomJsonText);
         }
 
         if (hasLiteLoader)
@@ -4526,7 +4523,7 @@ public static class ModDownloadLib
             if (!liteLoaderJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "LiteLoader", liteLoaderJsonPath,
                     liteLoaderJsonText.Substring(0, Math.Min(liteLoaderJsonText.Length, 1000))));
-            liteLoaderJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(liteLoaderJsonText);
+            liteLoaderJson = (JsonObject)JsonCompat.ParseNode(liteLoaderJsonText);
         }
 
         if (hasFabric)
@@ -4535,7 +4532,7 @@ public static class ModDownloadLib
             if (!fabricJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Fabric", fabricJsonPath,
                     fabricJsonText.Substring(0, Math.Min(fabricJsonText.Length, 1000))));
-            fabricJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(fabricJsonText);
+            fabricJson = (JsonObject)JsonCompat.ParseNode(fabricJsonText);
         }
 
         if (hasLegacyFabric)
@@ -4544,7 +4541,7 @@ public static class ModDownloadLib
             if (!legacyFabricJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Legacy Fabric", fabricJsonPath,
                     legacyFabricJsonText.Substring(0, Math.Min(legacyFabricJsonText.Length, 1000))));
-            legacyFabricJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(legacyFabricJsonText);
+            legacyFabricJson = (JsonObject)JsonCompat.ParseNode(legacyFabricJsonText);
         }
 
         if (hasQuilt)
@@ -4553,7 +4550,7 @@ public static class ModDownloadLib
             if (!quiltJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Quilt", quiltJsonPath,
                     quiltJsonText.Substring(0, Math.Min(quiltJsonText.Length, 1000))));
-            quiltJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(quiltJsonText);
+            quiltJson = (JsonObject)JsonCompat.ParseNode(quiltJsonText);
         }
 
         if (hasLabyMod)
@@ -4562,7 +4559,7 @@ public static class ModDownloadLib
             if (!labyModJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "LabyMod", labyModJsonPath,
                     labyModJsonText.Substring(0, Math.Min(labyModJsonText.Length, 1000))));
-            labyModJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(labyModJsonText);
+            labyModJson = (JsonObject)JsonCompat.ParseNode(labyModJsonText);
         }
 
         #endregion

@@ -5,12 +5,10 @@ using System.Text;
 using System.Text.RegularExpressions;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.UI;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.Network.Loaders;
 using static PCL.ModLoader;
-using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -32,7 +30,7 @@ public static class ModModpack
             {
                 ModpackInstall(file);
             }
-            catch (CancelledException ex)
+            catch (OperationCanceledException ex)
             {
             }
             catch (Exception ex)
@@ -50,7 +48,7 @@ public static class ModModpack
     ///     构建并启动安装给定的整合包文件的加载器，并返回该加载器。若失败则抛出异常。
     ///     必须在工作线程执行。
     /// </summary>
-    /// <exception cref="CancelledException" />
+    /// <exception cref="OperationCanceledException" />
     public static LoaderCombo<string> ModpackInstall(string file, string instanceName = null, string logo = null,
         string resourceId = null, bool isOnlineInstall = false)
     {
@@ -65,7 +63,7 @@ public static class ModModpack
             {
                 HintService.Hint(Lang.Text("Minecraft.Download.Modpack.InvalidGamePathChars", targetFolder),
                     HintType.Error);
-                throw new CancelledException();
+                throw new OperationCanceledException();
             }
 
             // 获取整合包种类与关键 Json
@@ -98,7 +96,7 @@ public static class ModModpack
 
                     if (archive.GetEntry("manifest.json") is not null)
                     {
-                        var json = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(LegacyFileFacade.ReadText(archive.GetEntry("manifest.json").Open(),
+                        var json = (JsonObject)JsonCompat.ParseNode(LegacyFileFacade.ReadText(archive.GetEntry("manifest.json").Open(),
                             Encoding.UTF8));
                         if (json["addons"] is null)
                         {
@@ -156,7 +154,7 @@ public static class ModModpack
 
                         if (fullNames[1] == "manifest.json")
                         {
-                            var json = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(LegacyFileFacade.ReadText(Entry.Open(), Encoding.UTF8));
+                            var json = (JsonObject)JsonCompat.ParseNode(LegacyFileFacade.ReadText(Entry.Open(), Encoding.UTF8));
                             if (json["addons"] is null)
                             {
                                 packType = 0;
@@ -350,7 +348,7 @@ public static class ModModpack
         JsonObject json;
         try
         {
-            json = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(
+            json = (JsonObject)JsonCompat.ParseNode(
                 LegacyFileFacade.ReadText(archive.GetEntry(archiveBaseFolder + "manifest.json").Open()));
         }
         catch (Exception ex)
@@ -372,7 +370,7 @@ public static class ModModpack
                 instanceName = ModMain.MyMsgBoxInput(Lang.Text("Minecraft.Download.Modpack.InputInstanceName"), "", "",
                     [validate]);
             if (string.IsNullOrEmpty(instanceName))
-                throw new CancelledException();
+                throw new OperationCanceledException();
         }
 
         // 获取 Mod API 版本信息
@@ -473,7 +471,7 @@ public static class ModModpack
                 do
                 {
                     tryCount += 1;
-                    ret = (JsonArray)((JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(ModDownload.DlModRequest(
+                    ret = (JsonArray)((JsonObject)JsonCompat.ParseNode(ModDownload.DlModRequest(
                         "https://api.curseforge.com/v1/mods/files",
                         "POST", "{\"fileIds\": [" + modList.Join(",") + "]}", "application/json",
                         allowMirror)))["data"];
@@ -648,7 +646,7 @@ public static class ModModpack
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);
-            throw new CancelledException();
+            throw new OperationCanceledException();
         }
 
         // 启动
@@ -673,7 +671,7 @@ public static class ModModpack
         JsonObject json;
         try
         {
-            json = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(
+            json = (JsonObject)JsonCompat.ParseNode(
                 LegacyFileFacade.ReadText(archive.GetEntry(archiveBaseFolder + "modrinth.index.json").Open()));
         }
         catch (Exception ex)
@@ -742,7 +740,7 @@ public static class ModModpack
                 instanceName = ModMain.MyMsgBoxInput(Lang.Text("Minecraft.Download.Modpack.InputInstanceName"), "", "",
                     [validate]);
             if (string.IsNullOrEmpty(instanceName))
-                throw new CancelledException();
+                throw new OperationCanceledException();
         }
 
         // 解压
@@ -800,11 +798,11 @@ public static class ModModpack
             {
                 ModMain.MyMsgBox(Lang.Text("Minecraft.Download.Modpack.PathOutsideInstance.Message", targetPath),
                     Lang.Text("Minecraft.Download.Modpack.PathOutsideInstance.Title"), isWarn: true);
-                throw new CancelledException();
+                throw new OperationCanceledException();
             }
 
             fileList.Add(new DownloadFile(urls, targetPath,
-                new FileChecker(actualSize: ((JsonNode)File["fileSize"]).ToObject<long>(),
+                new FileCheckOptions(actualSize: ((JsonNode)File["fileSize"]).ToObject<long>(),
                     hash: File["hashes"]["sha1"].ToString()), true));
         }
 
@@ -888,7 +886,7 @@ public static class ModModpack
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);
-            throw new CancelledException();
+            throw new OperationCanceledException();
         }
 
         // 启动
@@ -911,7 +909,7 @@ public static class ModModpack
         JsonObject json;
         try
         {
-            json = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(
+            json = (JsonObject)JsonCompat.ParseNode(
                 LegacyFileFacade.ReadText(archive.GetEntry(archiveBaseFolder + "modpack.json").Open(), Encoding.UTF8));
         }
         catch (Exception ex)
@@ -928,7 +926,7 @@ public static class ModModpack
             instanceName = ModMain.MyMsgBoxInput(Lang.Text("Minecraft.Download.Modpack.InputInstanceName"), "", "",
                 [validate]);
         if (string.IsNullOrEmpty(instanceName))
-            throw new CancelledException();
+            throw new OperationCanceledException();
         // 解压
         var installTemp = ModMain.RequestTaskTempFolder();
         var installLoaders = new List<LoaderBase>();
@@ -966,7 +964,7 @@ public static class ModModpack
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);
-            throw new CancelledException();
+            throw new OperationCanceledException();
         }
 
         // 启动
@@ -994,7 +992,7 @@ public static class ModModpack
                         archive.GetEntry(archiveBaseFolder + "manifest.json");
             using (var stream = entry.Open())
             {
-                json = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(LegacyFileFacade.ReadText(stream, Encoding.UTF8));
+                json = (JsonObject)JsonCompat.ParseNode(LegacyFileFacade.ReadText(stream, Encoding.UTF8));
             }
         }
         catch (Exception ex)
@@ -1014,7 +1012,7 @@ public static class ModModpack
                 instanceName = ModMain.MyMsgBoxInput(Lang.Text("Minecraft.Download.Modpack.InputInstanceName"), "", "",
                     [validate]);
 
-            if (string.IsNullOrEmpty(instanceName)) throw new CancelledException();
+            if (string.IsNullOrEmpty(instanceName)) throw new OperationCanceledException();
         }
 
         // 解压与路径准备
@@ -1096,7 +1094,7 @@ public static class ModModpack
         if (loaderTaskbar.Any(l => l.name == loaderName))
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);
-            throw new CancelledException();
+            throw new OperationCanceledException();
         }
 
         // 启动任务
@@ -1124,11 +1122,11 @@ public static class ModModpack
             Lang.Text("Common.Action.Install"), Lang.Text("Common.Action.Continue"), forceWait: true);
         var targetFolder = SystemDialogs.SelectFolder(Lang.Text("Minecraft.Download.Modpack.SelectTargetFolder.Title"));
         if (string.IsNullOrEmpty(targetFolder))
-            throw new CancelledException();
+            throw new OperationCanceledException();
         if (Directory.GetFileSystemEntries(targetFolder).Length > 0)
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Modpack.TargetFolderMustBeEmpty"), HintType.Error);
-            throw new CancelledException();
+            throw new OperationCanceledException();
         }
 
         // 解压
@@ -1232,18 +1230,18 @@ public static class ModModpack
             Lang.Text("Common.Action.Install"), Lang.Text("Common.Action.Continue"), forceWait: true);
         var targetFolder = SystemDialogs.SelectFolder(Lang.Text("Minecraft.Download.Modpack.SelectTargetFolder.Title"));
         if (string.IsNullOrEmpty(targetFolder))
-            throw new CancelledException();
+            throw new OperationCanceledException();
         if (targetFolder.Contains("!") || targetFolder.Contains(";"))
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Modpack.InvalidGamePathChars", targetFolder),
                 HintType.Error);
-            throw new CancelledException();
+            throw new OperationCanceledException();
         }
 
         if (Directory.GetFileSystemEntries(targetFolder).Length > 0)
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Modpack.TargetFolderMustBeEmpty"), HintType.Error);
-            throw new CancelledException();
+            throw new OperationCanceledException();
         }
 
         // 解压
@@ -1297,7 +1295,7 @@ public static class ModModpack
         MMCPackInfo packInfo = null;
         try
         {
-            packJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(
+            packJson = (JsonObject)JsonCompat.ParseNode(
                 LegacyFileFacade.ReadText(archive.GetEntry(archiveBaseFolder + "mmc-pack.json").Open(), Encoding.UTF8));
             packInstance = LegacyFileFacade.ReadText(archive.GetEntry(archiveBaseFolder + "instance.cfg").Open(), Encoding.UTF8);
 
@@ -1317,7 +1315,7 @@ public static class ModModpack
                     foreach (var entry in archive.Entries)
                         if (!entry.FullName.EndsWith("/") && entry.FullName.StartsWith(archiveBaseFolder + "patches/"))
                         {
-                            var patch = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(LegacyFileFacade.ReadText(
+                            var patch = (JsonObject)JsonCompat.ParseNode(LegacyFileFacade.ReadText(
                                 archive.GetEntry(entry.FullName).Open(), Encoding.UTF8));
                             patches.Add(new KeyValuePair<JsonObject, int>(patch,
                                 (int)(patch["order"] is not null ? patch["order"] : 0)));
@@ -1541,7 +1539,7 @@ public static class ModModpack
             instanceName = ModMain.MyMsgBoxInput(Lang.Text("Minecraft.Download.Modpack.InputInstanceName"), "", "",
                 [validate]);
         if (string.IsNullOrEmpty(instanceName))
-            throw new CancelledException();
+            throw new OperationCanceledException();
         // 解压
         var installTemp = ModMain.RequestTaskTempFolder();
         var versionFolder = $@"{ModFolder.mcFolderSelected}versions\{instanceName}";
@@ -1713,7 +1711,7 @@ public static class ModModpack
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);
-            throw new CancelledException();
+            throw new OperationCanceledException();
         }
 
         // 启动

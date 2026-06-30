@@ -104,14 +104,21 @@ public static class ModNet
         return FileDownloader.DownloadAsync(url, localFile, useBrowserUserAgent);
     }
 
-    public static void NetDownloadByLoader(string url, string localFile, ModLoader.LoaderBase? loaderToSyncProgress = null,
-        FileChecker? check = null, bool useBrowserUserAgent = false)
+    public static void NetDownloadByLoader(
+        string url,
+        string localFile,
+        ModLoader.LoaderBase? loaderToSyncProgress = null,
+        FileCheckOptions? check = null,
+        bool useBrowserUserAgent = false)
     {
         FileDownloader.DownloadAsync(url, localFile, useBrowserUserAgent).GetAwaiter().GetResult();
     }
 
-    public static void NetDownloadByLoader(IEnumerable<string> urls, string localFile,
-        ModLoader.LoaderBase? loaderToSyncProgress = null, FileChecker? check = null,
+    public static void NetDownloadByLoader(
+        IEnumerable<string> urls,
+        string localFile,
+        ModLoader.LoaderBase? loaderToSyncProgress = null,
+        FileCheckOptions? check = null,
         bool useBrowserUserAgent = false)
     {
         FileDownloader.DownloadAsync(urls, localFile, useBrowserUserAgent).GetAwaiter().GetResult();

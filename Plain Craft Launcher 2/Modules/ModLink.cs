@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using PCL.Core.App;
@@ -334,7 +334,7 @@ public static class ModLink
                 // 1. Download EasyTier
                 loaders.Add(new LoaderDownload(Lang.Text("Link.Mod.Task.DownloadEasyTier"), new List<DownloadFile>
                 {
-                    new(addresses.ToArray(), dlTargetPath, new FileChecker(1024 * 64))
+                    new(addresses.ToArray(), dlTargetPath, new FileCheckOptions(1024 * 64))
                 }) { ProgressWeight = 15 });
 
                 // 2. Extract files
