@@ -1,12 +1,14 @@
 ﻿using System.Collections;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Windows;
 using System.Windows.Threading;
 using Microsoft.VisualBasic;
+using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.Utils.Codecs;
+using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
 
 namespace PCL;
@@ -17,7 +19,7 @@ public static partial class ModBase
 
     public static bool IsUtf8CodePage()
     {
-        return Encoding.Default.CodePage == 65001;
+        return EncodingUtils.IsDefaultEncodingUtf8();
     }
 
     /// <summary>
@@ -382,23 +384,7 @@ public static partial class ModBase
         string name = null,
         ThreadPriority priority = ThreadPriority.Normal)
     {
-        var th = new Thread(() =>
-        {
-            try
-            {
-                action();
-            }
-            catch (ThreadInterruptedException ex)
-            {
-                Log(name + "：线程已中止");
-            }
-            catch (Exception ex)
-            {
-                Log(ex, name + "：线程执行失败", LogLevel.Feedback);
-            }
-        }) { Name = name ?? "Runtime New Invoke " + GetUuid() + "#", Priority = priority };
-        th.Start();
-        return th;
+        return Basics.RunInNewThread(action, name ?? "Runtime New Invoke " + GetUuid() + "#", priority);
     }
 
     /// <summary>
@@ -460,14 +446,7 @@ public static partial class ModBase
     /// <param name="sortRule">传入两个对象，若第一个对象应该排在前面，则返回 True。</param>
     public static List<T> Sort<T>(this IList<T> list, ComparisonBoolean<T> sortRule)
     {
-        // 创建原列表的副本以避免修改原始列表
-        var tempList = new List<T>(list);
-        if (tempList.Count <= 1)
-            return tempList;
-
-        // 使用归并排序核心算法
-        MergeSort_Sort(ref tempList, 0, tempList.Count - 1, sortRule);
-        return tempList;
+        return SortUtils.Sort(list, sortRule);
     }
 
     private static void MergeSort_Sort<T>(
@@ -756,9 +735,7 @@ public static partial class ModBase
     /// </summary>
     public static Stream GetResourceStream(string path)
     {
-        var resourceInfo =
-            System.Windows.Application.GetResourceStream(new Uri($"pack://application:,,,/{path}", UriKind.Absolute));
-        return resourceInfo?.Stream;
+        return Basics.GetResourceStream(path);
     }
 
     #endregion
