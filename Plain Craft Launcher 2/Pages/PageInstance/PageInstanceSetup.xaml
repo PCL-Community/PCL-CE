@@ -33,43 +33,43 @@
                             <RowDefinition Height="28" />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                   Text="{DynamicResource Instance.Setup.InstanceIsolation}"
+                                   Text="{DynamicResource Instance.Setup.Options.InstanceIsolation}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboArgumentIndieV2" Grid.Row="0" Grid.ColumnSpan="2"
                                           Tag="VersionArgumentIndieV2" Grid.Column="1">
-                            <local:MyComboBoxItem Content="{DynamicResource Instance.Setup.InstanceIsolation.Enabled}"
+                            <local:MyComboBoxItem Content="{DynamicResource Instance.Setup.Options.InstanceIsolation.Enabled}"
                                                   ToolTipService.InitialShowDelay="0"
                                                   ToolTipService.BetweenShowDelay="0"
-                                                  ToolTip="{DynamicResource Instance.Setup.InstanceIsolation.Enabled.ToolTip}"
+                                                  ToolTip="{DynamicResource Instance.Setup.Options.InstanceIsolation.Enabled.ToolTip}"
                                                   ToolTipService.HorizontalOffset="100" />
                             <local:MyComboBoxItem Content="{DynamicResource Common.Action.Close}"
                                                   ToolTipService.InitialShowDelay="0"
                                                   ToolTipService.BetweenShowDelay="0"
-                                                  ToolTip="{DynamicResource Instance.Setup.InstanceIsolation.Disabled.ToolTip}"
+                                                  ToolTip="{DynamicResource Instance.Setup.Options.InstanceIsolation.Disabled.ToolTip}"
                                                   ToolTipService.HorizontalOffset="100" />
                         </local:MyComboBox>
                         <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                   Text="{DynamicResource Setup.Launch.WindowTitle.Label}"
+                                   Text="{DynamicResource Setup.Launch.Options.WindowTitle.Label}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="TextArgumentTitle" Grid.Row="2" Grid.ColumnSpan="2"
                                           Tag="VersionArgumentTitle" Grid.Column="1" IsEditable="True"
                                           IsTextSearchEnabled="False"
-                                          ToolTip="{DynamicResource Instance.Setup.WindowTitle.ToolTip}">
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.WindowTitle.SampleFormat}" />
+                                          ToolTip="{DynamicResource Instance.Setup.Options.WindowTitle.ToolTip}">
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.WindowTitle.SampleFormat}" />
                         </local:MyComboBox>
                         <local:MyCheckBox x:Name="CheckArgumentTitleEmpty" Margin="0,0,0,9" Grid.Row="4"
                                           Grid.ColumnSpan="3"
-                                          Text="{DynamicResource Instance.Setup.WindowTitle.Default}"
+                                          Text="{DynamicResource Instance.Setup.Options.WindowTitle.Default}"
                                           Tag="VersionArgumentTitleEmpty"
                                           Grid.Column="0"
-                                          ToolTip="{DynamicResource Instance.Setup.WindowTitle.Default.ToolTip}" />
+                                          ToolTip="{DynamicResource Instance.Setup.Options.WindowTitle.Default.ToolTip}" />
                         <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                   Text="{DynamicResource Setup.Launch.CustomInfo.Label}"
+                                   Text="{DynamicResource Setup.Launch.Options.CustomInfo.Label}"
                                    Margin="0,0,25,0" />
                         <local:MyTextBox x:Name="TextArgumentInfo" Grid.Row="6" Grid.ColumnSpan="2"
                                          Tag="VersionArgumentInfo" Grid.Column="1"
                                          HintText="{DynamicResource Instance.Setup.FollowGlobal}"
-                                         ToolTip="{DynamicResource Instance.Setup.CustomInfo.ToolTip}">
+                                         ToolTip="{DynamicResource Instance.Setup.Options.CustomInfo.ToolTip}">
                             <local:MyTextBox.ValidateRules>
                                 <val:BlacklistValidator>
                                     <val:BlacklistValidator.Blacklist>
@@ -81,12 +81,12 @@
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
                         <TextBlock VerticalAlignment="Center" Grid.Row="8" HorizontalAlignment="Left"
-                                   Text="{DynamicResource Instance.Setup.GameJava}"
+                                   Text="{DynamicResource Instance.Setup.Options.Java}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboArgumentJava" Grid.ColumnSpan="2" Grid.Row="8" Grid.Column="1"
                                           MaxDropDownHeight="240"
-                                          ToolTip="{DynamicResource Instance.Setup.GameJava.ToolTip}">
-                            <ComboBoxItem Content="{DynamicResource Instance.Setup.Java.Loading}" IsSelected="True" />
+                                          ToolTip="{DynamicResource Instance.Setup.Options.Java.ToolTip}">
+                            <ComboBoxItem Content="{DynamicResource Instance.Setup.Options.Java.Loading}" IsSelected="True" />
                         </local:MyComboBox>
                     </Grid>
                 </StackPanel>
@@ -112,7 +112,7 @@
 
                         <local:MyRadioBox
                             Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                            Text="{DynamicResource Instance.Setup.Memory.FollowGlobal}"
+                            Text="{DynamicResource Instance.Setup.FollowGlobal}"
                             Checked="True"
                             x:Name="RadioRamType2"
                             Tag="VersionRamType/2"
@@ -315,7 +315,7 @@
                                Margin="0,0,25,0" />
                     <local:MyComboBox x:Name="ComboAdvanceRenderer" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
                                       Tag="VersionAdvanceRenderer">
-                        <local:MyComboBoxItem Content="{DynamicResource Instance.Setup.Advanced.Renderer.FollowGlobal}"
+                        <local:MyComboBoxItem Content="{DynamicResource Instance.Setup.FollowGlobal}"
                                               IsSelected="True" />
                         <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Advanced.Renderer.GameDefault}" />
                         <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Advanced.Renderer.Software}" />

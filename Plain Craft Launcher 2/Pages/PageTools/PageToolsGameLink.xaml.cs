@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Input;
@@ -68,7 +68,9 @@ public partial class PageToolsGameLink
 
     private async void OnServerExceptionHandler(Exception ex)
     {
-        ModBase.RunInUi(() => HintService.Hint(ex.Message, HintType.Error));
+        ModBase.RunInUi(() => HintService.Hint(
+            Lang.Text("Tools.GameLink.Error.ServerMessage", ex.Message),
+            HintType.Error));
 
         try
         {
@@ -685,7 +687,11 @@ public partial class PageToolsGameLink
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[Link] 获取网络测试结果失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "[Link] 获取网络测试结果失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Tools.GameLink.Error.NetworkTestFailed"));
             BtnNatTest.IsEnabled = true;
             LabNatType.Text = Lang.Text("Tools.GameLink.Nat.Failed");
         }

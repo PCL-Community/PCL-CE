@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -2596,7 +2596,11 @@ public static class ModDownload
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Minecraft.Error.UpdateNotify", versionName ?? "Nothing"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Minecraft.Error.UpdateNotify", versionName ?? "Nothing"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Error.UpdateNotify", versionName ?? "Nothing"));
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Windows;
 using PCL.Core.App;
 using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
+using PCL.Core.App.Localization;
 using PCL.Core.UI;
 
 namespace PCL.Core.Logging;
@@ -13,18 +14,22 @@ namespace PCL.Core.Logging;
 [LifecycleService(LifecycleState.Loading, Priority = int.MaxValue)]
 public class LogService : ILifecycleLogService
 {
+    private static LifecycleContext? _context;
+
+    private static Logger? _logger;
+
+    private static bool _wrapperRegistered;
+
+    private LogService()
+    {
+        _context = Lifecycle.GetContext(this);
+    }
+
+    private static LifecycleContext Context => _context!;
+    public static Logger Logger => _logger!;
     public string Identifier => "log";
     public string Name => "日志服务";
     public bool SupportAsync => false;
-
-    private static LifecycleContext? _context;
-    private static LifecycleContext Context => _context!;
-    private LogService() { _context = Lifecycle.GetContext(this); }
-
-    private static Logger? _logger;
-    public static Logger Logger => _logger!;
-
-    private static bool _wrapperRegistered = false;
 
     public Task StartAsync()
     {
@@ -39,63 +44,111 @@ public class LogService : ILifecycleLogService
 
     public async Task StopAsync()
     {
-        if (_wrapperRegistered) LogWrapper.OnLog -= _OnWrapperLog;
+        if (_wrapperRegistered)
+            LogWrapper.OnLog -= _OnWrapperLog;
         if (_logger is not null)
             await _logger.DisposeAsync().ConfigureAwait(false);
     }
 
-    private static void _LogAction(LogLevel level, ActionLevel actionLevel, string formatted, string plain, Exception? ex)
+    public void OnLog(LifecycleLogItem item)
     {
-        if (ex is not null) {
+        _LogAction(item.Level, item.ActionLevel, item.ComposeMessage(), item.Message, item.Exception);
+    }
+
+    private static void _LogAction(
+        LogLevel level,
+        ActionLevel actionLevel,
+        string formatted,
+        string plain,
+        Exception? ex)
+    {
+        if (ex is not null)
             TelemetryService.ReportException(ex, plain, level);
-        }
-        
+
         // log
 #if !TRACE
-        if (actionLevel != ActionLevel.TraceLog)
+    if (actionLevel != ActionLevel.TraceLog)
 #endif
         Logger.Log(formatted);
 
-        if (actionLevel <= ActionLevel.NormalLog) return;
-
-        // hint
-        if (actionLevel is ActionLevel.Hint or ActionLevel.HintErr)
+        switch (actionLevel)
         {
-            HintWrapper.Show(plain, (actionLevel == ActionLevel.Hint) ? HintTheme.Info : HintTheme.Error);
-        }
+            case <= ActionLevel.NormalLog:
+                return;
 
-        // message box
-        else if (actionLevel is ActionLevel.MsgBox or ActionLevel.MsgBoxErr)
-        {
-            var caption = (ex is null) ? null : "出现异常";
-            var theme = (actionLevel == ActionLevel.MsgBoxErr) ? MsgBoxTheme.Info : MsgBoxTheme.Error;
-            var message = plain;
-            if (ex is not null)
-                message += $"\n\n详细信息:\n{ex}";
-            if (actionLevel == ActionLevel.MsgBoxErr)
-                message += "\n\n若要寻求他人帮助，请勿关闭启动器并立即导出日志 (设置 → 查看日志 → 导出日志)，" +
-                           "然后发送导出的日志压缩包，只发送这个窗口的截图通常无助于解决问题。";
-            MsgBoxWrapper.Show(message, caption, theme, false);
-        }
+            // hint
+            case ActionLevel.Hint or ActionLevel.HintErr:
+                HintWrapper.Show(
+                    plain,
+                    actionLevel == ActionLevel.Hint ? HintTheme.Info : HintTheme.Error);
+                break;
 
-        // fatal message box
-        else if (actionLevel == ActionLevel.MsgBoxFatal)
-        {
-            var message = plain;
-            if (ex is not null) message += $"\n\n相关异常信息:\n{ex}";
-            message += "\n\n如果你认为这是启动器的问题，请提交反馈，否则它可能永远都不会被解决！\n导出日志: 设置 → 查看日志 → 导出全部日志";
-            MessageBox.Show(message, "锟斤拷烫烫烫", MessageBoxButton.OK, MessageBoxImage.Error);
+            // message box
+            case ActionLevel.MsgBox or ActionLevel.MsgBoxErr:
+            {
+                var theme = actionLevel == ActionLevel.MsgBoxErr
+                    ? MsgBoxTheme.Error
+                    : MsgBoxTheme.Info;
+
+                var caption = ex is null
+                    ? null
+                    : Lang.Text("SystemDialog.Error.Unexpected.Title");
+
+                var message = _ComposeUserError(plain, ex);
+
+                if (actionLevel == ActionLevel.MsgBoxErr)
+                    message = Lang.Text("SystemDialog.Error.Message.WithLogExportGuidance", message);
+
+                MsgBoxWrapper.Show(message, caption, theme, false);
+                break;
+            }
+
+            // fatal message box
+            case ActionLevel.MsgBoxFatal:
+            {
+                var message = Lang.Text(
+                    "SystemDialog.Fatal.Message.WithFeedbackGuidance",
+                    _ComposeUserError(plain, ex));
+
+                MessageBox.Show(
+                    message,
+                    Lang.Text("SystemDialog.Fatal.Title"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+
+                break;
+            }
         }
     }
 
-    private static void _OnWrapperLog(LogLevel level, string msg, string? module, Exception? ex)
+
+    private static string _ComposeUserError(string plain, Exception? exception)
+    {
+        var summary = string.IsNullOrWhiteSpace(plain)
+            ? Lang.Text("SystemDialog.Error.Unexpected.Message")
+            : plain;
+
+        return exception is null
+            ? summary
+            : ExceptionDetails.Compose(summary, exception);
+    }
+
+    private static void _OnWrapperLog(
+        LogLevel level,
+        string msg,
+        string? module,
+        Exception? ex)
     {
         var thread = Thread.CurrentThread.Name ?? $"#{Environment.CurrentManagedThreadId}";
         if (module is not null) module = $"[{module}] ";
         var result = $"[{DateTime.Now:HH:mm:ss.fff}] [{level.PrintName()}] [{thread}] {module}{msg}";
-        _LogAction(level, level.DefaultActionLevel(), (ex is null) ? result : $"{result}\n{ex}", msg, ex);
+        _LogAction(
+            level,
+            level.DefaultActionLevel(),
+            ex is null
+                ? result
+                : $"{result}\n{ex}",
+            msg,
+            ex);
     }
-
-    public void OnLog(LifecycleLogItem item) =>
-        _LogAction(item.Level, item.ActionLevel, item.ComposeMessage(), item.Message, item.Exception);
 }

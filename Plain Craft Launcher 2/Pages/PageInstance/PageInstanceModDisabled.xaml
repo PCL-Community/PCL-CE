@@ -21,19 +21,19 @@
                 <ColumnDefinition Width="1*" />
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Row="0" Grid.ColumnSpan="4" Margin="0,0,0,9" HorizontalAlignment="Center"
-                       Text="{DynamicResource Instance.Mod.Disabled.Title}" FontSize="19" UseLayoutRounding="True"
+                       Text="{DynamicResource Instance.Resource.Mod.Disabled.Title}" FontSize="19" UseLayoutRounding="True"
                        SnapsToDevicePixels="True"
                        Foreground="{DynamicResource ColorBrush3}" />
             <Rectangle Grid.Row="1" Grid.ColumnSpan="4" HorizontalAlignment="Stretch" Height="2"
                        Fill="{DynamicResource ColorBrush3}" />
             <TextBlock Grid.Row="2" Grid.ColumnSpan="4" Margin="10,15,10,5"
-                       Text="{DynamicResource Instance.Mod.Disabled.Message}"
+                       Text="{DynamicResource Instance.Resource.Mod.Disabled.Message}"
                        TextWrapping="Wrap" />
             <local:MyButton Grid.Row="3" Grid.Column="1" Height="35" HorizontalAlignment="Center" x:Name="BtnDownload"
-                            MinWidth="140" Text="{DynamicResource Instance.Mod.Disabled.GoDownload}"
+                            MinWidth="140" Text="{DynamicResource Instance.Resource.Mod.Disabled.GoDownload}"
                             Margin="10,10,10,0" Padding="13,0" ColorType="Highlight" />
             <local:MyButton Grid.Row="3" Grid.Column="2" Height="35" HorizontalAlignment="Center" x:Name="BtnVersion"
-                            MinWidth="140" Text="{DynamicResource Instance.Mod.Disabled.SelectInstance}"
+                            MinWidth="140" Text="{DynamicResource Instance.Resource.Mod.Disabled.SelectInstance}"
                             Margin="10,10,10,0" Padding="13,0" />
         </Grid>
     </local:MyCard>

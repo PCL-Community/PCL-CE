@@ -1,4 +1,4 @@
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App.Localization;
 
@@ -380,7 +380,11 @@ public partial class PageDownloadLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + (int)id + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "切换分页面失败（ID " + (int)id + "）",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
         finally
         {

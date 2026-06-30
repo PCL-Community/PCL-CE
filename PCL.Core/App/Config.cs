@@ -91,6 +91,7 @@ public static partial class Config
             [ConfigItem<bool>("ToolDownloadClipboard", false)] public partial bool ReadClipboard { get; set; }
             [ConfigItem<int>("ToolDownloadMod", 1)] public partial int CompSourceSolution { get; set; }
             [ConfigItem<int>("ToolModLocalNameStyle", 0)] public partial int UiCompNameSolution { get; set; }
+            [ConfigItem<int>("ToolDownloadQuickBehavior", 0)] public partial int QuickDownloadBehavior { get; set; }
         }
     }
 
@@ -528,7 +529,12 @@ public static partial class Config
         /// 禁用 LWJGL Unsafe Agent。
         /// </summary>
         [ConfigItem<bool>("LaunchAdvanceDisableLwjglUnsafeAgent", false)] public partial bool DisableLwjglUnsafeAgent { get; set; }
-        
+
+        /// <summary>
+        /// 禁用自动崩溃分析。
+        /// </summary>
+        [ConfigItem<bool>("LaunchAdvanceDisableCrashAnalysis", false, ConfigSource.Local)] public partial bool DisableCrashAnalysis { get; set; }
+
         /// <summary>
         /// 渲染器。
         /// </summary>
@@ -548,11 +554,6 @@ public static partial class Config
         /// 选择的默认 Java 实例。
         /// </summary>
         [ConfigItem<string>("LaunchArgumentJavaSelect", "")] public partial string SelectedJava { get; set; }
-
-        /// <summary>
-        /// 版本隔离 V1。
-        /// </summary>
-        [ConfigItem<int>("LaunchArgumentIndie", 0, ConfigSource.Local)] public partial int IndieSolutionV1 { get; set; }
 
         /// <summary>
         /// 版本隔离 V2。

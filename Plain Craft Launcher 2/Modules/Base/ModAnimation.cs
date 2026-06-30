@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Windows;
@@ -8,6 +8,7 @@ using PCL.Core.App;
 using PCL.Core.Utils;
 using PCL.Network;
 
+using PCL.Core.App.Localization;
 namespace PCL;
 
 public static partial class ModAnimation
@@ -88,7 +89,11 @@ public static partial class ModAnimation
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "动画帧执行失败", ModBase.LogLevel.Critical);
+                ModBase.Log(
+                    ex,
+                    "动画帧执行失败",
+                    ModBase.LogLevel.Critical,
+                    userSummary: Lang.Text("Application.Animation.Error.OperationFailed"));
             }
         }, "Animation", ThreadPriority.AboveNormal);
     }
@@ -184,7 +189,11 @@ public static partial class ModAnimation
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "动画刻执行失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "动画刻执行失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Application.Animation.Error.OperationFailed"));
         }
     }
 
@@ -412,7 +421,11 @@ public static partial class ModAnimation
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "执行动画失败：" + ani, ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "执行动画失败：" + ani,
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Application.Animation.Error.OperationFailed"));
         }
 
         return ani;

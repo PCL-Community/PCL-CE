@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -19,9 +19,6 @@ using System.Windows.Threading;
 using System.Xaml;
 using System.Xml.Linq;
 using Microsoft.VisualBasic;
-using Microsoft.Win32;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO;
@@ -30,7 +27,6 @@ using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.Hash;
 using PCL.Core.Utils.OS;
-using PCL.Core.Utils.Secret;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
@@ -2525,7 +2521,11 @@ public static class ModBase
         }
         catch (Exception ex)
         {
-            Log(ex, "打开文件或程序失败：" + fileName, LogLevel.Msgbox);
+            Log(
+                ex,
+                "打开文件或程序失败：" + fileName,
+                LogLevel.Msgbox,
+                userSummary: Lang.Text("SystemDialog.File.OpenFailed.Message", fileName));
         }
     }
 
@@ -2832,9 +2832,12 @@ public static class ModBase
         {
             Log(ex, "无法打开网页（" + url + "）");
             ClipboardSet(url, false);
+            var message = ExceptionDetails.Compose(
+                Lang.Text("SystemDialog.Browser.OpenFailed.Message", url),
+                ex);
             ModMain.MyMsgBox(
-                "可能由于浏览器未正确配置，PCL 无法为你打开网页。" + "\r\n" + "网址已经复制到剪贴板，若有需要可以手动粘贴访问。" + "\r\n" +
-                $"网址：{url}", "无法打开网页");
+                message,
+                Lang.Text("SystemDialog.Browser.OpenFailed.Title"));
         }
     }
 
@@ -2855,7 +2858,11 @@ public static class ModBase
         }
         catch (Exception ex)
         {
-            Log(ex, "打开资源管理器失败，请尝试关闭安全软件（如 360 安全卫士）", LogLevel.Msgbox);
+            Log(
+                ex,
+                "打开资源管理器失败，请尝试关闭安全软件（如 360 安全卫士）",
+                LogLevel.Msgbox,
+                userSummary: Lang.Text("SystemDialog.Folder.OpenFailed.Message", location));
         }
     }
 
@@ -2881,10 +2888,15 @@ public static class ModBase
                 }
                 catch (Exception finalEx)
                 {
-                    Log(finalEx, "剪贴板被占用，文本复制失败", LogLevel.Hint);
+                    Log(
+                        finalEx,
+                        "剪贴板被占用，文本复制失败",
+                        LogLevel.Hint,
+                        userSummary: Lang.Text("Common.Hint.CopyFailed"));
                 }
 
-            if (success && showSuccessHint) RunInUi(() => HintService.Hint("已成功复制！", HintType.Success));
+            if (success && showSuccessHint)
+                RunInUi(() => HintService.Hint(Lang.Text("Common.Hint.Copied"), HintType.Success));
         });
     }
 
@@ -2951,7 +2963,7 @@ public static class ModBase
                     }
             }
 
-            HintService.Hint("[System] 已粘贴 " + copiedFiles + " 个文件和 " + copiedFolders + " 个文件夹");
+            HintService.Hint(Lang.Text("Common.Hint.FilesPasted", copiedFiles, copiedFolders));
         }
         catch (Exception ex)
         {
@@ -3329,7 +3341,11 @@ public static class ModBase
     ///     输出 Log。
     /// </summary>
     /// <param name="title">如果要求弹窗，指定弹窗的标题。</param>
-    public static void Log(string text, LogLevel level = LogLevel.Normal, string title = "出现错误")
+    public static void Log(
+        string text,
+        LogLevel level = LogLevel.Normal,
+        string? title = null,
+        string? userSummary = null)
     {
         // On Error Resume Next
         // 放在最后会导致无法显示极端错误下的弹窗（如无法写入日志文件）
@@ -3352,87 +3368,55 @@ public static class ModBase
         if (isProgramEnded || level == LogLevel.Normal)
             return;
 
-        // 去除前缀
-        text = text.RegexReplace(@"\[[^\]]+?\] ", "");
+        var userDetails = text.RegexReplace(@"\[[^\]]+?\] ", "");
+        var userMessage = string.IsNullOrWhiteSpace(userSummary)
+            ? Lang.Text("SystemDialog.Error.UserVisible.Message", userDetails)
+            : userSummary;
+        var dialogTitle = _GetUserDialogTitle(title);
 
-        // 输出提示
         switch (level)
         {
             case LogLevel.Developer:
-            {
                 break;
-            }
+
             case LogLevel.Debug:
-            {
                 if (modeDebug)
                     HintService.Hint("[调试模式] " + text, HintType.Info, false);
                 break;
-            }
+
             case LogLevel.Hint:
-            {
-                HintService.Hint(text, HintType.Error, false);
+                HintService.Hint(userMessage, HintType.Error, false);
                 break;
-            }
+
             case LogLevel.Msgbox:
-            {
-                ModMain.MyMsgBox(text, title, isWarn: true);
+                ModMain.MyMsgBox(userMessage, dialogTitle, isWarn: true);
                 break;
-            }
+
             case LogLevel.Feedback:
-            {
-                if (CanFeedback(false))
-                {
-                    if (ModMain.MyMsgBox(text + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                            title, "反馈", Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
-                        Feedback(false, true);
-                }
-                else
-                {
-                    ModMain.MyMsgBox(text + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……", title,
-                        isWarn: true);
-                }
-
+                _ShowFeedbackPrompt(userMessage, dialogTitle, false);
                 break;
-            }
+
             case LogLevel.Critical:
-            {
-                if (isCriticalErrorTriggered)
-                {
-                    FormMain.EndProgramForce(ProcessReturnValues.Exception);
-                    return;
-                }
-
-                isCriticalErrorTriggered = true;
-                if (CanFeedback(false))
-                {
-                    if (Interaction.MsgBox(text + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                            (MsgBoxStyle)((int)MsgBoxStyle.Critical + (int)MsgBoxStyle.YesNo), title) ==
-                        MsgBoxResult.Yes)
-                        Feedback(false, true);
-                }
-                else
-                {
-                    Interaction.MsgBox(text + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……",
-                        MsgBoxStyle.Critical, title);
-                }
-
+                _ShowFeedbackPrompt(userMessage, dialogTitle, true);
                 break;
-            }
         }
     }
 
     /// <summary>
     ///     输出错误信息。
     /// </summary>
-    /// <param name="desc">错误描述。会在处理时在末尾加入冒号。</param>
-    public static void Log(Exception ex, string desc, LogLevel level = LogLevel.Debug, string title = "出现错误")
+    /// <param name="desc">错误描述，仅用于日志和错误详情。</param>
+    /// <param name="userSummary">可选的本地化用户摘要；不会写入日志。</param>
+    public static void Log(
+        Exception ex,
+        string desc,
+        LogLevel level = LogLevel.Debug,
+        string? title = null,
+        string? userSummary = null)
     {
         // On Error Resume Next
         if (ex is ThreadInterruptedException)
             return;
-
-        // 获取错误信息
-        var exFull = desc + "：" + ex.Message;
 
         // 输出日志
         if (new[] { LogLevel.Msgbox, LogLevel.Hint }.Contains(level))
@@ -3451,80 +3435,96 @@ public static class ModBase
         if (isProgramEnded)
             return;
 
-        if (ex.GetType() == typeof(Win32Exception))
-            exFull += "\r\n" + "与系统底层交互失败，请尝试重新安装 .NET 8 解决此问题";
+        var userMessage = _GetUserExceptionMessage(desc, ex, userSummary);
+        var dialogTitle = _GetUserDialogTitle(title);
 
-        // 输出提示
         switch (level)
         {
-            case LogLevel.Normal:
-            {
+            case LogLevel.Normal or LogLevel.Developer:
                 break;
-            }
-            case LogLevel.Developer:
-            {
-                break;
-            }
+
             case LogLevel.Debug:
-            {
-                var exLine = desc + "：" + ex;
                 if (modeDebug)
-                    HintService.Hint("[调试模式] " + exLine, HintType.Info, false);
+                    HintService.Hint("[调试模式] " + desc + "：" + ex, HintType.Info, false);
                 break;
-            }
+
             case LogLevel.Hint:
-            {
-                var exLine = desc + "：" + ex;
-                HintService.Hint(exLine, HintType.Error, false);
+                HintService.Hint(userMessage, HintType.Error, false);
                 break;
-            }
+
             case LogLevel.Msgbox:
-            {
-                ModMain.MyMsgBox(exFull, title, isWarn: true);
+                ModMain.MyMsgBox(userMessage, dialogTitle, isWarn: true);
                 break;
-            }
+
             case LogLevel.Feedback:
-            {
-                if (CanFeedback(false))
-                {
-                    if (ModMain.MyMsgBox(exFull + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                            title, "反馈", Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
-                        Feedback(false, true);
-                }
-                else
-                {
-                    ModMain.MyMsgBox(exFull + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……", title,
-                        isWarn: true);
-                }
-
+                _ShowFeedbackPrompt(userMessage, dialogTitle, false);
                 break;
-            }
+
             case LogLevel.Critical:
-            {
-                if (isCriticalErrorTriggered)
-                {
-                    FormMain.EndProgramForce(ProcessReturnValues.Exception);
-                    return;
-                }
-
-                isCriticalErrorTriggered = true;
-                if (CanFeedback(false))
-                {
-                    if (Interaction.MsgBox(
-                            exFull + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                            (MsgBoxStyle)((int)MsgBoxStyle.Critical + (int)MsgBoxStyle.YesNo), title) ==
-                        MsgBoxResult.Yes)
-                        Feedback(false, true);
-                }
-                else
-                {
-                    Interaction.MsgBox(exFull + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……",
-                        MsgBoxStyle.Critical, title);
-                }
-
+                _ShowFeedbackPrompt(userMessage, dialogTitle, true);
                 break;
-            }
         }
+    }
+
+    private static string _GetUserDialogTitle(string? title)
+    {
+        return string.IsNullOrWhiteSpace(title)
+            ? Lang.Text("SystemDialog.Error.Title")
+            : title;
+    }
+
+    private static string _GetUserExceptionMessage(
+        string desc,
+        Exception ex,
+        string? userSummary)
+    {
+        if (!string.IsNullOrWhiteSpace(userSummary))
+            return ExceptionDetails.Compose(userSummary, ex);
+
+        return ex.GetType() == typeof(Win32Exception)
+            ? Lang.Text("SystemDialog.Error.OperationFailed.RuntimeMessage", desc, ex.ToString())
+            : Lang.Text("SystemDialog.Error.OperationFailed.Message", desc, ex.ToString());
+    }
+
+    private static void _ShowFeedbackPrompt(
+        string userMessage,
+        string title,
+        bool isCritical)
+    {
+        if (isCritical && isCriticalErrorTriggered)
+        {
+            FormMain.EndProgramForce(ProcessReturnValues.Exception);
+            return;
+        }
+
+        if (isCritical)
+            isCriticalErrorTriggered = true;
+
+        if (CanFeedback(false))
+        {
+            var message = Lang.Text("Setup.Feedback.ErrorPrompt.Submit.Message", userMessage);
+            var shouldSend = isCritical
+                ? Interaction.MsgBox(
+                    message,
+                    (MsgBoxStyle)((int)MsgBoxStyle.Critical + (int)MsgBoxStyle.YesNo),
+                    title) == MsgBoxResult.Yes
+                : ModMain.MyMsgBox(
+                    message,
+                    title,
+                    Lang.Text("Setup.Feedback.ErrorPrompt.Submit.Action"),
+                    Lang.Text("Common.Action.Cancel"),
+                    isWarn: true) == 1;
+
+            if (shouldSend)
+                Feedback(false, true);
+            return;
+        }
+
+        var updateMessage = Lang.Text("Setup.Feedback.ErrorPrompt.Update.Message", userMessage);
+        if (isCritical)
+            Interaction.MsgBox(updateMessage, MsgBoxStyle.Critical, title);
+        else
+            ModMain.MyMsgBox(updateMessage, title, isWarn: true);
     }
 
     public static string Base64Decode(string text)
@@ -3551,13 +3551,14 @@ public static class ModBase
     {
         // On Error Resume Next
         FeedbackInfo();
-        string currentDate;
-        currentDate = DateTime.Now.ToString("yyyy-M-dd", CultureInfo.InvariantCulture);
+        var currentDate = DateTime.Now.ToString("yyyy-M-dd", CultureInfo.InvariantCulture);
 
         if (forceOpenLog || (showMsgbox &&
                              ModMain.MyMsgBox(
-                                 "若你在汇报一个 Bug，请点击 打开文件夹 按钮，并上传 Launch-" + currentDate + "-[一串数字].log 中包含错误信息的文件。" +
-                                 "\r\n" + "游戏崩溃一般与启动器无关，请不要因为游戏崩溃而提交反馈。", "反馈提交提醒", Lang.Text("Common.Action.OpenFolder"), "不需要") ==
+                                 Lang.Text("Setup.Feedback.Reminder.Message", currentDate),
+                                 Lang.Text("Setup.Feedback.Reminder.Title"),
+                                 Lang.Text("Common.Action.OpenFolder"),
+                                 Lang.Text("Setup.Feedback.Reminder.NotNeeded")) ==
                              1)) OpenExplorer(exePath + @"PCL\Log\");
         OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/");
     }
@@ -3565,20 +3566,22 @@ public static class ModBase
     public static bool CanFeedback(bool showHint)
     {
         var stat = UpdateManager.GetVersionStatus();
-        if (stat != UpdateEnums.VersionStatus.Latest)
-        {
-            if (showHint)
-                if (ModMain.MyMsgBox(
-                        stat == UpdateEnums.VersionStatus.NotLatest
-                            ? $"你的 PCL 不是最新版，因此无法提交反馈。{"\r\n"}请在更新后，确认该问题在最新版中依然存在，然后再提交反馈。"
-                            : $"你的 PCL 检查更新失败，因此无法提交反馈。{"\r\n"}请连接到互联网，在检查更新后，确认该问题在最新版中依然存在，然后再提交反馈。",
-                        "无法提交反馈", stat == UpdateEnums.VersionStatus.NotLatest ? "更新" : "重新检查更新", Lang.Text("Common.Action.Cancel")) == 1)
-                    ModMain.frmMain.PageChange(FormMain.PageType.Setup, FormMain.PageSubType.SetupUpdate);
+        if (stat == UpdateEnums.VersionStatus.Latest) return true;
 
-            return false;
-        }
+        if (!showHint) return false;
 
-        return true;
+        if (ModMain.MyMsgBox(
+                stat == UpdateEnums.VersionStatus.NotLatest
+                    ? Lang.Text("Setup.Feedback.Unavailable.NotLatest.Message")
+                    : Lang.Text("Setup.Feedback.Unavailable.CheckFailed.Message"),
+                Lang.Text("Setup.Feedback.Unavailable.Title"),
+                stat == UpdateEnums.VersionStatus.NotLatest
+                    ? Lang.Text("Setup.Feedback.Unavailable.NotLatest.Action")
+                    : Lang.Text("Setup.Feedback.Unavailable.CheckFailed.Action"),
+                Lang.Text("Common.Action.Cancel")) == 1)
+            ModMain.frmMain.PageChange(FormMain.PageType.Setup, FormMain.PageSubType.SetupUpdate);
+
+        return false;
     }
 
     /// <summary>

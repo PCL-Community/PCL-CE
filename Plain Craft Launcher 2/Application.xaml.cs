@@ -115,11 +115,15 @@ public partial class Application
         catch (Exception ex)
         {
             var filePath = Basics.ExecutablePath;
-            MessageBox.Show(ex + "\r\n" + Lang.Text("Application.InitializationError.Path",
-                    string.IsNullOrEmpty(filePath)
-                        ? Lang.Text("Application.InitializationError.PathUnavailable")
-                        : filePath),
-                Lang.Text("Application.InitializationError.Title"), MessageBoxButton.OK, MessageBoxImage.Error);
+            var summary = Lang.Text("Application.InitializationError.Path",
+                string.IsNullOrEmpty(filePath)
+                    ? Lang.Text("Application.InitializationError.PathUnavailable")
+                    : filePath);
+            MessageBox.Show(
+                ExceptionDetails.Compose(summary, ex),
+                Lang.Text("SystemDialog.Startup.InitializationTitle"),
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
             FormMain.EndProgramForce(ModBase.ProcessReturnValues.Exception);
         }
     }
@@ -173,12 +177,13 @@ public partial class Application
                 detail.Contains("未能加载文件或程序集"))
             {
                 ModBase.OpenWebsite("https://get.dot.net/8");
-                LogWrapper.Error(e.Exception,
-                    "Your .NET Desktop Runtime is outdated or corrupted. Please reinstall .NET 8!");
+                LogWrapper.Error(
+                    e.Exception,
+                    Lang.Text("SystemDialog.Startup.DotNetRuntimeOutdated.Message"));
             }
             else
             {
-                LogWrapper.Error(e.Exception, "An unexpected error occurred");
+                LogWrapper.Error(e.Exception, Lang.Text("SystemDialog.Error.Unexpected.Message"));
             }
         }
         catch

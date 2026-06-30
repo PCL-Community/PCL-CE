@@ -85,6 +85,8 @@
                             <RowDefinition Height="7" x:Name="RowFilenameFormatGap" />
                             <RowDefinition Height="28" x:Name="RowModManageStyle" />
                             <RowDefinition Height="7" x:Name="RowModManageStyleGap" />
+                            <RowDefinition Height="28" x:Name="RowQuickDownload" />
+                            <RowDefinition Height="7" x:Name="RowQuickDownloadGap" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.Source}"
@@ -113,6 +115,16 @@
                                           ToolTip="{DynamicResource Setup.GameManage.Community.ModManageStyle.ToolTip}">
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.ModManageStyle.TitleTranslation}" IsSelected="True" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.ModManageStyle.TitleFilename}" />
+                        </local:MyComboBox>
+                        <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.QuickDownload}"
+                                   Margin="0,0,25,0" />
+                        <local:MyComboBox Grid.Row="6" x:Name="ComboDownloadQuickBehavior" Grid.ColumnSpan="2"
+                                          Tag="ToolDownloadQuickBehavior" Grid.Column="1" SelectionChanged="ComboChange"
+                                          ToolTip="{DynamicResource Setup.GameManage.Community.QuickDownload.ToolTip}">
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.QuickDownload.AlwaysAsk}" IsSelected="True" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.QuickDownload.CurrentInstance}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.QuickDownload.AskInstance}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.QuickDownload.AskPath}" />
                         </local:MyComboBox>
                     </Grid>
                     <Grid>

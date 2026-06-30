@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using PCL.Core.UI;
@@ -157,7 +157,11 @@ public partial class ServerCard
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Server.Card.LaunchFailed"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Instance.Server.Card.LaunchFailed"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Server.Card.LaunchFailed"));
             HintService.Hint(Lang.Text("Instance.Server.Card.LaunchFailedMsg", ex.Message), HintType.Error);
         }
     }

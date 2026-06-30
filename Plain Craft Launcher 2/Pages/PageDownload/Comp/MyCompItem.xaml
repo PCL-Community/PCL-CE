@@ -12,7 +12,7 @@
         <ColumnDefinition Width="8" />
         <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="1*" />
-        <ColumnDefinition Width="30" />
+        <ColumnDefinition Width="Auto" />
     </Grid.ColumnDefinitions>
     <Grid.RowDefinitions>
         <RowDefinition Height="1*" />
@@ -132,6 +132,11 @@
     <StackPanel x:Name="PanButtons" Grid.Column="5" Grid.Row="0" Grid.RowSpan="5"
                 Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"
                 Margin="0,0,5,0" SnapsToDevicePixels="False" UseLayoutRounding="False" Opacity="0">
+
+        <!-- 快速下载按钮 -->
+        <local:MyIconButton x:Name="BtnDownload" Height="25" Width="25" SvgIcon="lucide/download"
+                            Margin="0,0,4,0" Visibility="Collapsed"
+                            ToolTip="{DynamicResource Download.Comp.QuickDownload.Btn.ToolTip}" />
 
         <!-- 删除收藏按钮 -->
         <local:MyIconButton x:Name="BtnDelete" Height="25" Width="25" SvgIcon="lucide/heart" />

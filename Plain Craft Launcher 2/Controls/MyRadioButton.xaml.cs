@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -8,6 +8,7 @@ using System.Windows.Shapes;
 using PCL.Core.App;
 using PCL.Core.UI.Theme;
 
+using PCL.Core.App.Localization;
 namespace PCL;
 
 [ContentProperty("Inlines")]
@@ -273,7 +274,11 @@ public partial class MyRadioButton
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "单选按钮勾选改变错误", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "单选按钮勾选改变错误",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Application.Control.Error.OperationFailed"));
         }
     }
 

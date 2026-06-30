@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -144,7 +144,11 @@ public partial class PageLaunchLeft
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, Lang.Text("Select.Folder.Error.InstallPack", packInstallPath), ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        Lang.Text("Select.Folder.Error.InstallPack", packInstallPath),
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Select.Folder.Error.InstallPack", packInstallPath));
                 }
 
             // 确认 Minecraft 版本实例
@@ -347,7 +351,11 @@ public partial class PageLaunchLeft
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.CancelProcess"), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Minecraft.Launch.Error.CancelProcess"),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Minecraft.Launch.Error.CancelProcess"));
             }
         }
     }
@@ -487,7 +495,11 @@ public partial class PageLaunchLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.RefreshInfo"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Minecraft.Launch.Error.RefreshInfo"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Launch.Error.RefreshInfo"));
         }
     }
 
@@ -759,7 +771,11 @@ public partial class PageLaunchLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Launch.Account.Error.SwitchPage", ModBase.GetStringFromEnum(type)), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Launch.Account.Error.SwitchPage", ModBase.GetStringFromEnum(type)),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Launch.Account.Error.SwitchPage", ModBase.GetStringFromEnum(type)));
             return pageNew;
         }
     }
@@ -863,7 +879,10 @@ public partial class PageLaunchLeft
             {
                 data.output = ModBase.pathImage + "Skins/" +
                               ModSkin.McSkinSex(ModProfile.GetOfflineUuid(userName)) + ".png";
-                ModBase.Log(Lang.Text("Launch.Skin.Error.MsRateLimited", userName), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    Lang.Text("Launch.Skin.Error.MsRateLimited", userName),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Launch.Skin.Error.MsRateLimited", userName));
             }
             else if (ex.ToString().Contains("未设置自定义皮肤"))
             {
@@ -875,7 +894,11 @@ public partial class PageLaunchLeft
             {
                 data.output = ModBase.pathImage + "Skins/" +
                               ModSkin.McSkinSex(ModProfile.GetOfflineUuid(userName)) + ".png";
-                ModBase.Log(ex, Lang.Text("Launch.Skin.Error.MsGet", userName), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Launch.Skin.Error.MsGet", userName),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Launch.Skin.Error.MsGet", userName));
             }
         }
 
@@ -965,8 +988,10 @@ public partial class PageLaunchLeft
             if (ex.ToString().Contains("429"))
             {
                 data.output = ModBase.pathImage + "Skins/Steve.png";
-                ModBase.Log("[Minecraft] 获取 Authlib-Injector 皮肤失败（" + userName + "）：获取皮肤太过频繁，请 5 分钟后再试！",
-                    ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    $"[Minecraft] 获取 Authlib-Injector 皮肤失败（{userName}）：获取皮肤太过频繁，请 5 分钟后再试！",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Launch.Skin.Error.AuthlibRateLimited"));
             }
             else if (ex.ToString().Contains("未设置自定义皮肤"))
             {
@@ -976,7 +1001,11 @@ public partial class PageLaunchLeft
             else
             {
                 data.output = ModBase.pathImage + "Skins/Steve.png";
-                ModBase.Log(ex, Lang.Text("Launch.Skin.Error.AuthGet", userName), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Launch.Skin.Error.AuthGet", userName),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Launch.Skin.Error.AuthGet", userName));
             }
         }
 

@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -75,7 +75,11 @@ public partial class PageSetupLauncherMisc
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Misc.Error.InitFailed"), ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.Misc.Error.InitFailed"),
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Misc.Error.InitFailed"));
         }
 
         Reload();
@@ -141,7 +145,7 @@ public partial class PageSetupLauncherMisc
                 <= 5 => val * 10 + 50,
                 <= 13 => val * 50 - 150,
                 <= 28 => val * 100 - 800,
-                _ => Lang.Text("Setup.Misc.Unlimited")
+                _ => Lang.Text("Setup.Misc.System.MaxLogLines.Unlimited")
             };
         });
     }
@@ -197,21 +201,21 @@ public partial class PageSetupLauncherMisc
     private void BtnSystemSettingExp_Click(object sender, MouseButtonEventArgs e)
     {
         var savePath =
-            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.Export.SaveTitle"), "PCL 全局配置.json", Lang.Text("Setup.Misc.Export.Filter"), ModBase.exePath);
+            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.System.ExportSettings.SaveTitle"), "PCL 全局配置.json", Lang.Text("Setup.Misc.System.ExportSettings.Filter"), ModBase.exePath);
         if (string.IsNullOrWhiteSpace(savePath))
             return;
         File.Copy(ConfigService.SharedConfigPath, savePath, true);
-        HintService.Hint(Lang.Text("Setup.Misc.Export.Success"), HintType.Success);
+        HintService.Hint(Lang.Text("Setup.Misc.System.ExportSettings.Success"), HintType.Success);
         ModBase.OpenExplorer(savePath);
     }
 
     private void BtnSystemSettingImp_Click(object sender, MouseButtonEventArgs e)
     {
-        var sourcePath = SystemDialogs.SelectFile(Lang.Text("Setup.Misc.Export.Filter"), Lang.Text("Setup.Misc.Import.SelectTitle"));
+        var sourcePath = SystemDialogs.SelectFile(Lang.Text("Setup.Misc.System.ExportSettings.Filter"), Lang.Text("Setup.Misc.System.ImportSettings.SelectTitle"));
         if (string.IsNullOrWhiteSpace(sourcePath))
             return;
         File.Copy(sourcePath, ConfigService.SharedConfigPath, true);
-        ModMain.MyMsgBox(Lang.Text("Setup.Misc.Import.Success.Message"), button1: Lang.Text("Setup.Misc.Import.Success.Restart"), forceWait: true);
+        ModMain.MyMsgBox(Lang.Text("Setup.Misc.System.ImportSettings.Success.Message"), button1: Lang.Text("Setup.Misc.System.ImportSettings.Success.Restart"), forceWait: true);
         Process.Start(new ProcessStartInfo(Basics.ExecutablePath));
         FormMain.EndProgramForce();
     }

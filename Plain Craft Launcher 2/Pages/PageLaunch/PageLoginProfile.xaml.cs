@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -49,7 +49,11 @@ public partial class PageLoginProfile
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.Read"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Launch.Account.Profile.Error.Read"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Launch.Account.Profile.Error.Read"));
         }
 
         if (!ModProfile.profileList.Any())

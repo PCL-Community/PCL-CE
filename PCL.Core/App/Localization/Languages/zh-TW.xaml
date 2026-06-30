@@ -1,9 +1,13 @@
+<!-- Formatted by xaml-lang-formatter at 2026-06-28T17:16:52. -->
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
     xml:space="preserve">
 
-    <sys:String x:Key="Localization.Meta.Code">zh-TW</sys:String>
-    <sys:String x:Key="Localization.Meta.Name">繁體中文（台灣）</sys:String>
+    <!-- Meta -->
+
+    <sys:String x:Key="Meta.Code">zh-TW</sys:String>
+    <sys:String x:Key="Meta.Name">繁體中文（台灣）</sys:String>
+
 </ResourceDictionary>
