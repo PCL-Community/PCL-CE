@@ -6,6 +6,7 @@ using Microsoft.VisualBasic;
 using PCL.Core.App.Localization;
 using PCL.Core.IO;
 using PCL.Core.Utils;
+using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Hash;
 
 namespace PCL;
@@ -59,9 +60,7 @@ public static partial class ModBase
     /// </summary>
     public static string Capitalize(this string word)
     {
-        if (string.IsNullOrEmpty(word))
-            return word;
-        return word[..1].ToUpperInvariant() + word[1..].ToLowerInvariant();
+        return TextUtils.CapitalizeInvariant(word);
     }
 
     /// <summary>
@@ -69,9 +68,7 @@ public static partial class ModBase
     /// </summary>
     public static string StrFill(string str, string code, byte length)
     {
-        return str.Length > length
-            ? str[..length]
-            : string.Concat(str.PadRight(length, code[0]).AsSpan(str.Length), str);
+        return TextUtils.LeftPadOrTrim(str, code, length);
     }
 
     /// <summary>
@@ -88,10 +85,7 @@ public static partial class ModBase
     /// </summary>
     public static object StrTrim(string str, bool removeQuote = true)
     {
-        if (removeQuote)
-            str = str.Split("（")[0].Split("：")[0].Split("(")[0].Split(":")[0];
-        return str.Trim('.', '。', '！', ' ', '!', '?', '？', '\r',
-            '\n');
+        return TextUtils.TrimDisplayName(str, removeQuote);
     }
 
     /// <summary>
@@ -157,12 +151,7 @@ public static partial class ModBase
     /// </summary>
     public static string BeforeFirst(this string str, string text, bool ignoreCase = false)
     {
-        var pos = string.IsNullOrEmpty(text)
-            ? -1
-            : str.IndexOfF(text, ignoreCase);
-        return pos >= 0
-            ? str[..pos]
-            : str;
+        return StringSliceExtensions.BeforeFirst(str, text, ignoreCase);
     }
 
     /// <summary>
@@ -171,8 +160,7 @@ public static partial class ModBase
     /// </summary>
     public static string BeforeLast(this string str, string text, bool ignoreCase = false)
     {
-        var pos = string.IsNullOrEmpty(text) ? -1 : str.LastIndexOfF(text, ignoreCase);
-        return pos >= 0 ? str[..pos] : str;
+        return StringSliceExtensions.BeforeLast(str, text, ignoreCase);
     }
 
     /// <summary>
@@ -181,8 +169,7 @@ public static partial class ModBase
     /// </summary>
     public static string AfterFirst(this string str, string text, bool ignoreCase = false)
     {
-        var pos = string.IsNullOrEmpty(text) ? -1 : str.IndexOfF(text, ignoreCase);
-        return pos >= 0 ? str[(pos + text.Length)..] : str;
+        return StringSliceExtensions.AfterFirst(str, text, ignoreCase);
     }
 
     /// <summary>
@@ -191,8 +178,7 @@ public static partial class ModBase
     /// </summary>
     public static string AfterLast(this string str, string text, bool ignoreCase = false)
     {
-        var pos = string.IsNullOrEmpty(text) ? -1 : str.LastIndexOfF(text, ignoreCase);
-        return pos >= 0 ? str[(pos + text.Length)..] : str;
+        return StringSliceExtensions.AfterLast(str, text, ignoreCase);
     }
 
     /// <summary>
@@ -202,15 +188,7 @@ public static partial class ModBase
     /// </summary>
     public static string Between(this string str, string after, string before, bool ignoreCase = false)
     {
-        var startPos = string.IsNullOrEmpty(after) ? -1 : str.LastIndexOfF(after, ignoreCase);
-        if (startPos >= 0)
-            startPos += after.Length;
-        else
-            startPos = 0;
-        var endPos = string.IsNullOrEmpty(before) ? -1 : str.IndexOfF(before, startPos, ignoreCase);
-        if (endPos >= 0) return str.Substring(startPos, endPos - startPos);
-
-        return startPos > 0 ? str[startPos..] : str;
+        return StringSliceExtensions.Between(str, after, before, ignoreCase);
     }
 
     /// <summary>
@@ -302,8 +280,7 @@ public static partial class ModBase
     {
         if (str.StartsWithF("{"))
             str = "{}" + str; // #4187
-        return str.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("'", "&apos;")
-            .Replace("\"", "&quot;").Replace("\r\n", "&#xa;");
+        return TextUtils.EscapeXml(str);
     }
 
     /// <summary>
@@ -311,28 +288,7 @@ public static partial class ModBase
     /// </summary>
     public static string EscapeLikePattern(string input)
     {
-        var sb = new StringBuilder();
-        foreach (var c in input)
-            switch (c)
-            {
-                case '[':
-                case ']':
-                case '*':
-                case '?':
-                case '#':
-                {
-                    sb.Append('[').Append(c).Append(']');
-                    break;
-                }
-
-                default:
-                {
-                    sb.Append(c);
-                    break;
-                }
-            }
-
-        return sb.ToString();
+        return TextUtils.EscapeLikePattern(input);
     }
 
     // 正则
@@ -341,23 +297,15 @@ public static partial class ModBase
     /// </summary>
     public static List<string> RegexSearch(this string str, string regex, RegexOptions options = RegexOptions.None)
     {
-        List<string> regexSearchRet;
         try
         {
-            regexSearchRet = [];
-            var regexSearchRes = new Regex(regex, options).Matches(str);
-            if (regexSearchRes is null)
-                return regexSearchRet;
-            foreach (Match item in regexSearchRes)
-                regexSearchRet.Add(item.Value);
+            return RegexExtensions.RegexSearch(str, regex, options);
         }
         catch (Exception ex)
         {
             Log(ex, "正则匹配全部项出错");
             return [];
         }
-
-        return regexSearchRet;
     }
 
     /// <summary>
@@ -370,9 +318,7 @@ public static partial class ModBase
     {
         try
         {
-            var result = new List<string>();
-            foreach (Match item in regex.Matches(str)) result.Add(item.Value);
-            return result;
+            return regex.Matches(str).Select(item => item.Value).ToList();
         }
         catch (Exception ex)
         {
@@ -388,8 +334,7 @@ public static partial class ModBase
     {
         try
         {
-            var result = Regex.Match(str, regex, options).Value;
-            return string.IsNullOrEmpty(result) ? null : result;
+            return RegexExtensions.RegexSeek(str, regex, options);
         }
         catch (Exception ex)
         {
@@ -405,8 +350,7 @@ public static partial class ModBase
     {
         try
         {
-            var result = regex.Match(str, (int)options).Value;
-            return string.IsNullOrEmpty(result) ? null : result;
+            return RegexExtensions.RegexSeek(str, regex);
         }
         catch (Exception ex)
         {
@@ -422,7 +366,7 @@ public static partial class ModBase
     {
         try
         {
-            return Regex.IsMatch(str, regex, options);
+            return RegexExtensions.RegexCheck(str, regex, options);
         }
         catch (Exception ex)
         {
@@ -437,7 +381,7 @@ public static partial class ModBase
     public static string RegexReplace(this string allContents, string searchRegex, string replaceTo,
         RegexOptions options = RegexOptions.None)
     {
-        return Regex.Replace(allContents, searchRegex, replaceTo, options);
+        return RegexExtensions.RegexReplace(allContents, searchRegex, replaceTo, options);
     }
 
     /// <summary>
@@ -446,7 +390,7 @@ public static partial class ModBase
     public static string RegexReplaceEach(this string allContents, string searchRegex, MatchEvaluator replaceTo,
         RegexOptions options = RegexOptions.None)
     {
-        return Regex.Replace(allContents, searchRegex, replaceTo, options);
+        return RegexExtensions.RegexReplaceEach(allContents, searchRegex, replaceTo, options);
     }
 
     #endregion

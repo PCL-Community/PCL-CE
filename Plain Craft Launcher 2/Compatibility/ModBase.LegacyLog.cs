@@ -1,4 +1,4 @@
-using System.Text;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -75,21 +75,17 @@ public static partial class ModBase
 
     public static string Base64Decode(string text)
     {
-        if (string.IsNullOrWhiteSpace(text))
-            return "";
-        var decodedBytes = Convert.FromBase64String(text);
-        return Encoding.UTF8.GetString(decodedBytes);
+        return Base64Utils.DecodeToString(text);
     }
 
     public static string Base64Encode(string text)
     {
-        var bytes = Encoding.UTF8.GetBytes(text);
-        return Convert.ToBase64String(bytes);
+        return Base64Utils.EncodeString(text);
     }
 
     public static string Base64Encode(byte[] bytes)
     {
-        return Convert.ToBase64String(bytes);
+        return Base64Utils.EncodeBytes(bytes);
     }
 
     // 反馈

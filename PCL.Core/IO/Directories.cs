@@ -284,6 +284,36 @@ public static class Directories {
         }
     }
 
+    /// <summary>
+    ///     异步移动目录中的全部文件和子目录到目标目录。目标目录不存在时会自动创建。
+    /// </summary>
+    public static async Task MoveDirectoryAsync(
+        string sourceDir,
+        string targetDir,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(sourceDir)) throw new ArgumentNullException(nameof(sourceDir));
+        if (string.IsNullOrWhiteSpace(targetDir)) throw new ArgumentNullException(nameof(targetDir));
+        if (!Directory.Exists(sourceDir)) throw new DirectoryNotFoundException($"源目录不存在：{sourceDir}");
+
+        Directory.CreateDirectory(targetDir);
+
+        foreach (var filePath in Directory.EnumerateFiles(sourceDir))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var targetPath = Path.Combine(targetDir, Path.GetFileName(filePath));
+            Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
+            await Task.Run(() => File.Move(filePath, targetPath, true), cancellationToken).ConfigureAwait(false);
+        }
+
+        foreach (var childDir in Directory.EnumerateDirectories(sourceDir))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var childTarget = Path.Combine(targetDir, Path.GetFileName(childDir));
+            await MoveDirectoryAsync(childDir, childTarget, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
     // 辅助方法：异步打开 FileStream
     private static async Task<FileStream> FileStreamOpenAsync(string path, FileMode mode, FileAccess access, FileShare share, CancellationToken cancellationToken) {
         var fs = new FileStream(path, mode, access, share, bufferSize: 4096, useAsync: true);

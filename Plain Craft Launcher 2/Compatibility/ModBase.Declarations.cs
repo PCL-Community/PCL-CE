@@ -1,4 +1,5 @@
 ﻿using System.Windows.Media;
+using PCL.Core.Utils;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
@@ -534,33 +535,7 @@ public static partial class ModBase
     /// </summary>
     public static string RadixConvert(string input, int fromRadix, int toRadix)
     {
-        const string digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/+=";
-        // 零与负数的处理
-        if (string.IsNullOrEmpty(input))
-            return "0";
-        var isNegative = input.StartsWithF("-");
-        if (isNegative)
-            input = input.TrimStart('-');
-        // 转换为十进制
-        var realNum = 0L;
-        var scale = 1L;
-        foreach (var digit in input.Reverse().Select(l => digits.IndexOfF(l.ToString())))
-        {
-            realNum += digit * scale;
-            scale *= fromRadix;
-        }
-
-        // 转换为指定进制
-        var result = "";
-        while (realNum > 0L)
-        {
-            var newNum = (int)(realNum % toRadix);
-            realNum = (long)Math.Round((realNum - newNum) / (double)toRadix);
-            result = digits[newNum] + result;
-        }
-
-        // 负数的结束处理与返回
-        return (isNegative ? "-" : "") + result;
+        return RadixUtils.Convert(input, fromRadix, toRadix);
     }
 
     /// <summary>
@@ -574,23 +549,7 @@ public static partial class ModBase
         double y2,
         double acc = 0.01d)
     {
-        switch (x)
-        {
-            case <= 0d or double.NaN:
-                return 0d;
-            case >= 1d:
-                return 1d;
-        }
-
-        double b;
-        var a = x;
-        do
-        {
-            b = 3 * a * ((0.33333333 + x1 - x2) * a * a + (x2 - 2 * x1) * a + x1);
-            a += (x - b) * 0.5;
-        } while (!(Math.Abs(b - x) < acc)); // 精度
-
-        return 3 * a * ((0.33333333 + y1 - y2) * a * a + (y2 - 2 * y1) * a + y1);
+        return InterpolationUtils.CubicBezierY(x, x1, y1, x2, y2, acc);
     }
 
     /// <summary>
@@ -598,11 +557,7 @@ public static partial class ModBase
     /// </summary>
     public static byte MathByte(double d)
     {
-        if (d < 0d)
-            d = 0d;
-        if (d > 255d)
-            d = 255d;
-        return (byte)Math.Round(Math.Round(d));
+        return NumberUtils.ClampToByte(d);
     }
 
     /// <summary>
@@ -625,7 +580,7 @@ public static partial class ModBase
     /// <returns></returns>
     public static double MathPercent(double valueA, double valueB, double percent)
     {
-        return Math.Round(valueA * (1d - percent) + valueB * percent, 6); // 解决 Double 计算错误
+        return NumberUtils.Lerp(valueA, valueB, percent);
     }
 
     /// <summary>
@@ -641,7 +596,7 @@ public static partial class ModBase
     /// </summary>
     public static double MathClamp(double value, double min, double max)
     {
-        return Math.Max(min, Math.Min(max, value));
+        return NumberUtils.Clamp(value, min, max);
     }
 
     /// <summary>
@@ -649,12 +604,7 @@ public static partial class ModBase
     /// </summary>
     public static int MathSgn(double value)
     {
-        return value switch
-        {
-            0d => 0,
-            > 0d => 1,
-            _ => -1
-        };
+        return NumberUtils.Sign(value);
     }
 
     #endregion

@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.Utils.OS;
 
 namespace PCL;
 
@@ -40,14 +41,15 @@ public static class LauncherProcess
     {
         try
         {
-            using var program = new Process();
-            program.StartInfo.Arguments = arguments;
-            program.StartInfo.FileName = fileName;
             LauncherLog.Log($"[System] 执行外部命令并等待返回码：{fileName} {arguments}");
-            program.Start();
-            if (program.WaitForExit(timeout)) return (ModBase.ProcessReturnValues)program.ExitCode;
-
-            return ModBase.ProcessReturnValues.Timeout;
+            var result = ProcessRunner
+                .CaptureAsync(fileName, arguments, timeout)
+                .GetAwaiter()
+                .GetResult();
+            if (result.TimedOut) return ModBase.ProcessReturnValues.Timeout;
+            return result.ExitCode.HasValue
+                ? (ModBase.ProcessReturnValues)result.ExitCode.Value
+                : ModBase.ProcessReturnValues.Fail;
         }
         catch (Exception ex)
         {
@@ -62,31 +64,12 @@ public static class LauncherProcess
         int timeout = 1000000,
         string? workingDirectory = null)
     {
-        var info = new ProcessStartInfo
-        {
-            FileName = fileName,
-            Arguments = arguments,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-        };
-
-        if (!string.IsNullOrEmpty(workingDirectory)) info.WorkingDirectory = workingDirectory.TrimEnd('\\');
-
         LauncherLog.Log($"[System] 执行外部命令并等待返回结果：{fileName} {arguments}");
-
-        using var program = new Process();
-        program.StartInfo = info;
-        program.Start();
-
-        var outputTask = program.StandardOutput.ReadToEndAsync();
-        var errorTask = program.StandardError.ReadToEndAsync();
-
-        if (!program.WaitForExit(timeout)) program.Kill();
-        Task.WaitAll(outputTask, errorTask);
-
-        return outputTask.Result + errorTask.Result;
+        var result = ProcessRunner
+            .CaptureAsync(fileName, arguments, timeout, workingDirectory)
+            .GetAwaiter()
+            .GetResult();
+        return result.CombinedOutput;
     }
 
     public static void OpenWebsite(string url)

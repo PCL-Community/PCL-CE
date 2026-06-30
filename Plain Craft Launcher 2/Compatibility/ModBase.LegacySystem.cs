@@ -1,6 +1,7 @@
 using System.Collections;
 using System.IO;
 using PCL.Core.App;
+using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.Exts;
 
@@ -177,17 +178,7 @@ public static partial class ModBase
     /// </summary>
     public static bool IsInstanceOfGenericType(this Type genericType, object obj)
     {
-        if (obj is null)
-            return false;
-        var t = obj.GetType();
-        while (t is not null)
-        {
-            if (t.IsGenericType && ReferenceEquals(t.GetGenericTypeDefinition(), genericType))
-                return true;
-            t = t.BaseType;
-        }
-
-        return false;
+        return ReflectionUtils.IsInstanceOfGenericType(genericType, obj);
     }
 
     /// <summary>
@@ -203,14 +194,7 @@ public static partial class ModBase
     /// </summary>
     public static List<T> GetFullList<T>(IList data)
     {
-        var result = new List<T>();
-        for (int i = 0, loopTo = data.Count - 1; i <= loopTo; i++)
-            if (data[i] is ICollection)
-                result.AddRange((IEnumerable<T>)data[i]);
-            else
-                result.Add((T)data[i]);
-
-        return result;
+        return CollectionUtils.FlattenMixedList<T>(data);
     }
 
     /// <summary>
@@ -218,17 +202,7 @@ public static partial class ModBase
     /// </summary>
     public static List<T> Distinct<T>(this ICollection<T> arr, ComparisonBoolean<T> isEqual)
     {
-        var resultArray = new List<T>();
-        for (int i = 0, loopTo = arr.Count - 1; i <= loopTo; i++)
-        {
-            for (int ii = i + 1, loopTo1 = arr.Count - 1; ii <= loopTo1; ii++)
-                if (isEqual(arr.ElementAtOrDefault(i), arr.ElementAtOrDefault(ii)))
-                    goto NextElement;
-            resultArray.Add(arr.ElementAtOrDefault(i));
-            NextElement: ;
-        }
-
-        return resultArray;
+        return CollectionUtils.DistinctByComparison(arr, (left, right) => isEqual(left, right), true);
     }
 
     /// <summary>
@@ -345,7 +319,7 @@ public static partial class ModBase
         TKey key,
         TValue defaultValue = default)
     {
-        return dict.GetValueOrDefault(key, defaultValue);
+        return DictionaryExtensions.GetOrDefault(dict, key, defaultValue);
     }
 
     /// <summary>
@@ -356,10 +330,7 @@ public static partial class ModBase
         TKey key,
         TValue value)
     {
-        if (dict.TryGetValue(key, out var value1))
-            value1.Add(value);
-        else
-            dict.Add(key, [value]);
+        DictionaryExtensions.AddToList(dict, key, value);
     }
 
     /// <summary>
