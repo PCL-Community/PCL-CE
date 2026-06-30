@@ -291,8 +291,7 @@ public class McInstance
                     }
 
                     // 从 JSON 的 ID 中获取
-                    regex = ((string)JsonObject["id"]).RegexSeek(RegexPatterns.MinecraftJsonVersion,
-                        RegexOptions.IgnoreCase);
+                    regex = ((string)JsonObject["id"]).RegexSeek(RegexPatterns.MinecraftJsonVersion);
                     if (regex is not null)
                     {
                         field.VanillaName = regex;
@@ -303,7 +302,7 @@ public class McInstance
                     LauncherLog.Log("[Minecraft] 无法完全确认 MC 版本号的版本：" + Name);
                     field.Reliable = false;
                     // 从文件夹名中获取
-                    regex = Name.RegexSeek(RegexPatterns.MinecraftJsonVersion, RegexOptions.IgnoreCase);
+                    regex = Name.RegexSeek(RegexPatterns.MinecraftJsonVersion);
                     if (regex is not null)
                     {
                         field.VanillaName = regex;
@@ -314,7 +313,7 @@ public class McInstance
                     var jsonRaw = (JsonObject)JsonObject.DeepClone();
                     jsonRaw.Remove("libraries");
                     var jsonRawText = jsonRaw.ToString();
-                    regex = jsonRawText.RegexSeek(RegexPatterns.MinecraftJsonVersion, RegexOptions.IgnoreCase);
+                    regex = jsonRawText.RegexSeek(RegexPatterns.MinecraftJsonVersion);
                     if (regex is not null)
                     {
                         field.VanillaName = regex;

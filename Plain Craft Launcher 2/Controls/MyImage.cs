@@ -129,7 +129,7 @@ public class MyImage : Image
 
     public static string GetTempPath(string url)
     {
-        return Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Images", $"{LauncherText.GetStringMD5(url)}.png");
+        return Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Images", $"{LauncherText.GetStringMd5(url)}.png");
     }
 
     private static readonly ConcurrentDictionary<string, Task<string>> _downloadTasks = new();

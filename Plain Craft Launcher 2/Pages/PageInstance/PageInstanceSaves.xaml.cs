@@ -191,7 +191,7 @@ public partial class PageInstanceSaves : IRefreshable
                     if (File.Exists(saveLogo))
                     {
                         var target =
-                            $@"{PageInstanceLeft.McInstance.PathInstance}PCL\ImgCache\{LauncherText.GetStringMD5(saveLogo)}.png";
+                            $@"{PageInstanceLeft.McInstance.PathInstance}PCL\ImgCache\{LauncherText.GetStringMd5(saveLogo)}.png";
                         LegacyFileFacade.CopyFile(saveLogo, target);
                         saveLogo = target;
                     }

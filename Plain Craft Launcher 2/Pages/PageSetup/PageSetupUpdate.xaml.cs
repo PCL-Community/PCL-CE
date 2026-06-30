@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
@@ -160,7 +160,7 @@ public partial class PageSetupUpdate
     private void BtnUpdate_Click(object sender, MouseButtonEventArgs e)
     {
         // 检查 .NET 版本
-        if (!updateInfo.VersionName.StartsWithF("2.13.") && !ModBase
+        if (!updateInfo.VersionName.StartsWithF("2.13.") && !LauncherProcess
                 .ShellAndGetOutput("cmd", "/c dotnet --list-runtimes")
                 .ContainsF("Microsoft.WindowsDesktop.App 8.0.", true))
         {

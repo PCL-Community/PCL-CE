@@ -1719,7 +1719,8 @@ public partial class PageInstanceCompResource : IRefreshable
 
                 // 批量更新UI元素
                 PanList.Children.Clear();
-                items.ForEach(i => PanList.Children.Add(i));
+                foreach (var item in items)
+                    PanList.Children.Add(item);
             }
 
             catch (Exception ex)

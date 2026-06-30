@@ -1445,7 +1445,7 @@ public static class ModComp
             var para = FromCurseForge ? "modId" : "project_id";
             string result = null;
 
-            var descHash = $"{Id}{LauncherText.GetStringMD5(Description)}";
+            var descHash = $"{Id}{LauncherText.GetStringMd5(Description)}";
             var cacheFilePath = $@"{LauncherPaths.TempWithSlash}Cache\CompTranslation.ini";
             var cacheTranslation = LegacyIniStore.Shared.Read(cacheFilePath, descHash);
             if (!string.IsNullOrWhiteSpace(cacheTranslation))
@@ -1784,9 +1784,9 @@ public static class ModComp
 
                 if (isModLoader && !ex.Contains("版") &&
                     lowerEx.Replace("forge", "").Replace("fabric", "").Replace("quilt", "").Length <= 3)
-                    ex = ex.Replace("Edition", "", StringComparison.OrdinalIgnoreCase)
+                    ex = TextUtils.CapitalizeInvariant(ex.Replace("Edition", "", StringComparison.OrdinalIgnoreCase)
                         .Replace("edition", "", StringComparison.OrdinalIgnoreCase)
-                        .Trim().Capitalize() + Lang.Text("Download.Comp.Detail.CompItem.EditionSuffix");
+                        .Trim()) + Lang.Text("Download.Comp.Detail.CompItem.EditionSuffix");
 
                 // 规范化名称大小写
                 ex = ex.Replace("forge", "Forge").Replace("neo", "Neo").Replace("fabric", "Fabric")

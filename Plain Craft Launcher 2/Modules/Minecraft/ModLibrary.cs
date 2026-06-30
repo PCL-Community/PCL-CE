@@ -622,7 +622,7 @@ public static class ModLibrary
         }
 
         // 去重并返回
-        return result.Distinct((a, b) => (a.LocalPath ?? "") == (b.LocalPath ?? ""));
+        return CollectionUtils.DistinctByComparison(result, (a, b) => (a.LocalPath ?? "") == (b.LocalPath ?? ""), true);
     }
 
     /// <summary>

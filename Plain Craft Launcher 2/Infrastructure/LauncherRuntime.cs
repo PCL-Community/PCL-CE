@@ -1,9 +1,7 @@
-using PCL.Core.Utils;
-
 namespace PCL;
 
 /// <summary>
-///     运行期状态，承接历史 ModBase 全局运行态字段。
+///     运行期状态，承接启动器全局运行态字段。
 /// </summary>
 public static class LauncherRuntime
 {

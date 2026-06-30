@@ -1,9 +1,7 @@
-using PCL.Core.Utils;
-
 namespace PCL;
 
 /// <summary>
-///     PCL2 数值与旧颜色插值工具。用于替代调用点中的 ModBase 数学 API。
+///     PCL2 数值与旧颜色插值工具。用于承载 PCL2 数学 API。
 /// </summary>
 public static class LauncherMath
 {

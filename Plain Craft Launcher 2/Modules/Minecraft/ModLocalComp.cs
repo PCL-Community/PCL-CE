@@ -1163,7 +1163,7 @@ public static class ModLocalComp
                         var logoItem = jar.GetEntry(logoFile);
                         if (logoItem is not null)
                         {
-                            var md5 = LauncherText.GetStringMD5(logoItem.Length + logoItem.CompressedLength + path);
+                            var md5 = LauncherText.GetStringMd5(logoItem.Length + logoItem.CompressedLength + path);
                             Logo = System.IO.Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Images", $"{md5}.png");
                             using (var entryStream = logoItem.Open())
                             {
@@ -1256,7 +1256,7 @@ public static class ModLocalComp
                         var logoItem = jar.GetEntry(logoFile);
                         if (logoItem is not null)
                         {
-                            var md5 = LauncherText.GetStringMD5(logoItem.Length + logoItem.CompressedLength + path);
+                            var md5 = LauncherText.GetStringMd5(logoItem.Length + logoItem.CompressedLength + path);
                             Logo = System.IO.Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Images", $"{md5}.png");
                             using (var entryStream = logoItem.Open())
                             {
@@ -1321,7 +1321,7 @@ public static class ModLocalComp
                             var logoItem = jar.GetEntry(logoFile);
                             if (logoItem is not null)
                             {
-                                var md5 = LauncherText.GetStringMD5(logoItem.Length + logoItem.CompressedLength + path);
+                                var md5 = LauncherText.GetStringMd5(logoItem.Length + logoItem.CompressedLength + path);
                                 Logo = System.IO.Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Images", $"{md5}.png");
                                 using (var entryStream = logoItem.Open())
                                 {
@@ -1614,7 +1614,7 @@ public static class ModLocalComp
                 if (packPngEntry is not null)
                     try
                     {
-                        var md5 = LauncherText.GetStringMD5(packPngEntry.Length + packPngEntry.CompressedLength + path);
+                        var md5 = LauncherText.GetStringMd5(packPngEntry.Length + packPngEntry.CompressedLength + path);
                         Logo = System.IO.Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Images", $"{md5}.png");
                         using (var entryStream = packPngEntry.Open())
                         {

@@ -90,7 +90,7 @@ public partial class PageDownloadCompFavorites
             LauncherLog.Log(ex, "[Favorites] 加载收藏夹列表时出错");
         }
 
-        return (List<string>)targetList.Clone(); // 复制而不是直接引用！
+        return targetList is null ? [] : [..targetList]; // 复制而不是直接引用！
     }
 
     private void CompFavoritesGet(ModLoader.LoaderTask<List<string>, List<ModComp.CompProject>> task)
@@ -465,7 +465,7 @@ public partial class PageDownloadCompFavorites
 
     private void Btn_FavoritesCancel_Clicked(object sender, RouteEventArgs e)
     {
-        foreach (var Items in selectedItemList.Clone())
+        foreach (var Items in new List<MyListItem>(selectedItemList))
             Items_CancelFavorites(Items);
         if (compItemList.Any())
         {

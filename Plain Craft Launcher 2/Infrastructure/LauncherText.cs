@@ -1,15 +1,13 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Text.RegularExpressions;
 using Microsoft.VisualBasic;
 using PCL.Core.App.Localization;
-using PCL.Core.IO;
-using PCL.Core.Utils;
 using PCL.Core.Utils.Hash;
 
 namespace PCL;
 
 /// <summary>
-///     PCL2 文本、兼容解析与展示格式化工具。用于替代调用点中的 ModBase 文本相关 API。
+///     PCL2 文本、兼容解析与展示格式化工具。用于承载 PCL2 文本相关 API。
 /// </summary>
 public static class LauncherText
 {
@@ -50,13 +48,13 @@ public static class LauncherText
 
     public static ulong GetHash(string str)
     {
-        var hash = 5381UL;
-        for (var i = 0; i < str.Length; i++)
-            hash = (hash << 5) ^ hash ^ str[i];
+        var hash = str.Aggregate(
+            5381UL,
+            (current, t) => (current << 5) ^ current ^ t);
         return hash ^ 0xA98F501BC684032FUL;
     }
 
-    public static string GetStringMD5(string str)
+    public static string GetStringMd5(string str)
     {
         return BinaryEncoding.ToHexLower(MD5Provider.Instance.ComputeHash(str).AsSpan());
     }
