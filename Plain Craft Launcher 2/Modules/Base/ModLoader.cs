@@ -632,7 +632,7 @@ public static class ModLoader
                 try
                 {
                     isForceRestarting = isForceRestart;
-                    if (ModBase.modeDebug)
+                    if (ModBase.ModeDebug)
                         ModBase.Log(
                             $"[Loader] 加载线程 {name} ({Task.CurrentId}) 已{(isForceRestarting ? "强制" : "")}启动");
                     loadDelegate(this);
@@ -644,7 +644,7 @@ public static class ModLoader
                         return;
                     }
 
-                    if (ModBase.modeDebug)
+                    if (ModBase.ModeDebug)
                         ModBase.Log($"[Loader] 加载线程 {name} ({Task.CurrentId}) 已完成");
                     RaisePreviewFinish();
                     State = ModBase.LoadState.Finished;
@@ -652,14 +652,14 @@ public static class ModLoader
                 }
                 catch (ModBase.CancelledException ex)
                 {
-                    if (ModBase.modeDebug)
+                    if (ModBase.ModeDebug)
                         ModBase.Log(ex,
                             $"加载线程 {name} ({Task.CurrentId}) 已触发取消中断，已完成 {Math.Round(Progress * 100d)}%");
                     if (!IsAborted) State = ModBase.LoadState.Aborted;
                 }
                 catch (ThreadInterruptedException ex)
                 {
-                    if (ModBase.modeDebug)
+                    if (ModBase.ModeDebug)
                         ModBase.Log(ex,
                             $"加载线程 {name} ({Task.CurrentId}) 已触发线程中断，已完成 {Math.Round(Progress * 100d)}%");
                     if (!IsAborted) State = ModBase.LoadState.Aborted;
@@ -692,7 +692,7 @@ public static class ModLoader
         private void TriggerThreadAbort()
         {
             if (lastRunningTask is null) return;
-            if (ModBase.modeDebug) ModBase.Log($"[Loader] 加载线程 {name} ({lastRunningTask.Id}) 已中断");
+            if (ModBase.ModeDebug) ModBase.Log($"[Loader] 加载线程 {name} ({lastRunningTask.Id}) 已中断");
             if (!lastRunningTask.IsCompleted) cancelToken?.Cancel();
             lastRunningTask = null;
             cancelToken = null;

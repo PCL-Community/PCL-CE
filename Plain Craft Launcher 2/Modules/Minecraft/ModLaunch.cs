@@ -1820,7 +1820,7 @@ public static class ModLaunch
              ModInstanceList.McMcInstanceSelected.Info.vanilla >= new Version(20, 0, 5)))
         {
             // 1.20.5+ (24w14a+)：至少 Java 21
-            if (ModBase.modeDebug)
+            if (ModBase.ModeDebug)
                 ModBase.Log("[Launch] [Debug] MC 1.20.5+ (24w14a+) 要求至少 Java 21");
             minVer = new Version(21, 0, 0, 0);
         }
@@ -1830,7 +1830,7 @@ public static class ModLaunch
                   ModInstanceList.McMcInstanceSelected.Info.vanilla.Major >= 18))
         {
             // 1.18 pre2+：至少 Java 17
-            if (ModBase.modeDebug)
+            if (ModBase.ModeDebug)
                 ModBase.Log("[Launch] [Debug] MC 1.18 pre2+ 要求至少 Java 17");
             minVer = new Version(17, 0, 0, 0);
         }
@@ -1840,14 +1840,14 @@ public static class ModLaunch
                   ModInstanceList.McMcInstanceSelected.Info.vanilla.Major >= 17))
         {
             // 1.17+ (21w19a+)：至少 Java 16
-            if (ModBase.modeDebug)
+            if (ModBase.ModeDebug)
                 ModBase.Log("[Launch] [Debug] MC 1.17+ (21w19a+) 要求至少 Java 16");
             minVer = new Version(16, 0, 0, 0);
         }
         else if (ModInstanceList.McMcInstanceSelected.releaseTime.Year >= 2017) // Minecraft 1.12 与 1.11 的分界线正好是 2017 年，太棒了
         {
             // 1.12+：至少 Java 8
-            if (ModBase.modeDebug)
+            if (ModBase.ModeDebug)
                 ModBase.Log("[Launch] [Debug] MC 1.12+ 要求至少 Java 8");
             minVer = new Version(1, 8, 0, 0);
         }
@@ -1855,7 +1855,7 @@ public static class ModLaunch
                  ModInstanceList.McMcInstanceSelected.releaseTime.Year >= 2001) // 避免某些版本写个 1960 年
         {
             // 1.5.2-：最高 Java 8
-            if (ModBase.modeDebug)
+            if (ModBase.ModeDebug)
                 ModBase.Log("[Launch] [Debug] MC 1.5.2- 要求最高 Java 12");
             maxVer = new Version(1, 8, 999, 999);
         }
@@ -1948,12 +1948,12 @@ public static class ModLaunch
                 throw new FormatException("无法解析 Cleanroom 版本号：" + ModInstanceList.McMcInstanceSelected.Info.Cleanroom);
             if (cleanroomVersion < new Version(0, 5, 0, 0))
             {
-                if (ModBase.modeDebug) ModBase.Log("[Launch] [Debug] Cleanroom 版本低于 0.5，要求至少 Java 21");
+                if (ModBase.ModeDebug) ModBase.Log("[Launch] [Debug] Cleanroom 版本低于 0.5，要求至少 Java 21");
                 minVer = new Version(21, 0, 0, 0) > minVer ? new Version(21, 0, 0, 0) : minVer;
             }
             else
             {
-                if (ModBase.modeDebug) ModBase.Log("[Launch] [Debug] Cleanroom 版本高于 0.5，要求至少 Java 25");
+                if (ModBase.ModeDebug) ModBase.Log("[Launch] [Debug] Cleanroom 版本高于 0.5，要求至少 Java 25");
                 minVer = new Version(25, 0, 0, 0) > minVer ? new Version(25, 0, 0, 0) : minVer;
             }
         }
@@ -1974,7 +1974,7 @@ public static class ModLaunch
         if (ModInstanceList.McMcInstanceSelected.Info.HasLiteLoader && ModInstanceList.McMcInstanceSelected.Info.Valid)
         {
             // 最高 Java 8
-            if (ModBase.modeDebug)
+            if (ModBase.ModeDebug)
                 ModBase.Log("[Launch] [Debug] LiteLoader 要求最高 Java 8");
             maxVer = new Version(8, 999, 999, 999) < maxVer ? new Version(8, 999, 999, 999) : maxVer;
         }
@@ -1982,7 +1982,7 @@ public static class ModLaunch
         // LabyMod 检测
         if (ModInstanceList.McMcInstanceSelected.Info.HasLabyMod)
         {
-            if (ModBase.modeDebug)
+            if (ModBase.ModeDebug)
                 ModBase.Log("[Launch] [Debug] LabyMod 要求至少 Java 21");
             minVer = new Version(21, 0, 0, 0) > minVer ? new Version(21, 0, 0, 0) : minVer;
             maxVer = new Version(999, 999, 999, 999);
@@ -1992,7 +1992,7 @@ public static class ModLaunch
         if (ModInstanceList.McMcInstanceSelected.JsonObject["javaVersion"] is not null)
         {
             var majorVersion = ModBase.Val(ModInstanceList.McMcInstanceSelected.JsonObject["javaVersion"]["majorVersion"]);
-            if (ModBase.modeDebug)
+            if (ModBase.ModeDebug)
                 ModBase.Log("[Launch] [Debug] JSON 中参数要求至少 Java " + majorVersion);
             if (majorVersion <= 8d)
                 minVer = new Version(1, (int)Math.Round(majorVersion), 0, 0) > minVer
@@ -3029,7 +3029,7 @@ public static class ModLaunch
                     {
                         if (originalFile.Length == entry.Length)
                         {
-                            if (ModBase.modeDebug)
+                            if (ModBase.ModeDebug)
                                 McLaunchLog("无需解压：" + filePath);
                             continue;
                         }

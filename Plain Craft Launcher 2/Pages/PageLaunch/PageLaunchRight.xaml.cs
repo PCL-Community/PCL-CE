@@ -33,7 +33,7 @@ public partial class PageLaunchRight : IRefreshable
     {
         PanBack.ScrollToHome();
         PanScroll = PanBack; // 不知道为啥不能在 XAML 设置
-        PanLog.Visibility = ModBase.modeDebug ? Visibility.Visible : Visibility.Collapsed;
+        PanLog.Visibility = ModBase.ModeDebug ? Visibility.Visible : Visibility.Collapsed;
         // 社区版提示
         PanHint.Visibility = States.Hint.CEMessage
             ? Visibility.Visible
@@ -82,7 +82,7 @@ public partial class PageLaunchRight : IRefreshable
                     ModBase.Log(
                         ex,
                         "加载 PCL 主页自定义信息失败",
-                        ModBase.modeDebug
+                        ModBase.ModeDebug
                             ? ModBase.LogLevel.Msgbox
                             : ModBase.LogLevel.Hint,
                         userSummary: Lang.Text("Launch.Error.OperationFailed"));
@@ -385,7 +385,7 @@ public partial class PageLaunchRight : IRefreshable
             ModBase.Log(
                 ex,
                 Lang.Text("Launch.Homepage.Error.Download", address),
-                ModBase.modeDebug
+                ModBase.ModeDebug
                     ? ModBase.LogLevel.Msgbox
                     : ModBase.LogLevel.Hint,
                 userSummary: Lang.Text("Launch.Homepage.Error.Download", address));
@@ -468,7 +468,7 @@ public partial class PageLaunchRight : IRefreshable
             }
             catch (Exception ex)
             {
-                if (ModBase.modeDebug)
+                if (ModBase.ModeDebug)
                 {
                     ModBase.Log(ex, $"加载失败的主页内容：\r\n{content}");
                     if (ModMain.MyMsgBox(

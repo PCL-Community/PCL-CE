@@ -54,7 +54,7 @@ public static partial class ModAnimation
 
                     aniLastTick = TimeUtils.GetTimeTick();
                     // 记录 FPS
-                    if (ModBase.modeDebug)
+                    if (ModBase.ModeDebug)
                     {
                         if (ModBase.MathClamp(aniLastTick - aniFPSTimer, 0d, 100000d) >= 500d)
                         {
@@ -76,7 +76,7 @@ public static partial class ModAnimation
                         // #Else
                         // If ModeDebug Then FrmMain.Title = "FPS " & AniFPS & ", 动画 " & AniCount & ", 下载中 " & NetManage.FileRemain
                         // #End If
-                        if (RandomUtils.NextInt(0, 64 * (ModBase.modeDebug ? 5 : 30)) == 0 &&
+                        if (RandomUtils.NextInt(0, 64 * (ModBase.ModeDebug ? 5 : 30)) == 0 &&
                             ((aniFPS < 62 && aniFPS > 0) || aniCount > 4 || ModNet.NetManager.FileRemain != 0))
                             ModBase.Log("[Report] FPS " + aniFPS + ", 动画 " + aniCount + ", 下载中 " +
                                         ModNet.NetManager.FileRemain + "（" +

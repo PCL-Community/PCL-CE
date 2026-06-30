@@ -389,7 +389,7 @@ public partial class PageSetupUI
                         {
                             ModMain.frmMain.VideoBack.MediaFailed += videoHandler;
                             ModBase.Log(ex, "[UI] 加载背景图片失败" + address);
-                            if (ModBase.modeDebug)
+                            if (ModBase.ModeDebug)
                                 HintService.Hint(Lang.Text("Setup.Ui.Background.ImageLoadFailed", address));
                             ModMain.frmMain.ImgBack.Visibility = Visibility.Visible;
                             ModMain.frmMain.VideoBack.Source = new Uri(address, UriKind.Absolute);

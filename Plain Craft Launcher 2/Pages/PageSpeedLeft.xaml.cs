@@ -40,7 +40,7 @@ public partial class PageSpeedLeft
         timer.Start();
 
         // 非调试模式隐藏线程数
-        if (!ModBase.modeDebug)
+        if (!ModBase.ModeDebug)
         {
             RowDefinitions[12].Height = new GridLength(0d);
             RowDefinitions[13].Height = new GridLength(0d);

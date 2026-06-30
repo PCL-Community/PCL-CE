@@ -1,7 +1,4 @@
-﻿using System.IO;
-using System.Windows.Media;
-using PCL.Core.App;
-using PCL.Core.Utils;
+﻿using System.Windows.Media;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
@@ -13,12 +10,12 @@ public static partial class ModBase
     #region 声明
 
     // 下列版本信息由更新器自动修改
-    public static readonly string VersionBaseName = Basics.VersionName;
-    public static readonly string VersionStandardCode = Basics.Metadata.Version.StandardVersion;
-    public static readonly string UpstreamVersion = Basics.Metadata.Version.UpstreamVersion;
-    public static readonly string CommitHash = Basics.Metadata.Version.Commit;
-    public static readonly string CommitHashShort = Basics.Metadata.Version.CommitDigest;
-    public static readonly int VersionCode = Basics.VersionCode;
+    public static readonly string VersionBaseName = LauncherEnvironment.VersionBaseName;
+    public static readonly string VersionStandardCode = LauncherEnvironment.VersionStandardCode;
+    public static readonly string UpstreamVersion = LauncherEnvironment.UpstreamVersion;
+    public static readonly string CommitHash = LauncherEnvironment.CommitHash;
+    public static readonly string CommitHashShort = LauncherEnvironment.CommitHashShort;
+    public static readonly int VersionCode = LauncherEnvironment.VersionCode;
 
 #if DEBUG
     public const string VersionBranchName = "Debug";
@@ -30,65 +27,97 @@ public static partial class ModBase
     public const string VersionBranchName = "Publish";
     public const string VersionBranchCode = "0";
 #endif
+
     /// <summary>
     ///     主窗口句柄。
     /// </summary>
-    public static nint frmHandle;
+    public static nint frmHandle
+    {
+        get => LauncherEnvironment.MainWindowHandle;
+        set => LauncherEnvironment.MainWindowHandle = value;
+    }
 
-    // 龙猫味石山小记: 用最不靠谱的实现写出能跑的代码 (AppDomain.CurrentDomain.SetupInformation.ApplicationBase 获取到的是当前工作目录而不是可执行文件所在目录)
     /// <summary>
     ///     程序可执行文件所在目录，以“\”结尾。
     /// </summary>
-    public static readonly string exePath = Basics.ExecutableDirectory.EndsWith(@"\")
-        ? Basics.ExecutableDirectory
-        : Basics.ExecutableDirectory + @"\";
+    public static string exePath => LauncherPaths.ExecutableDirectoryWithSlash;
 
     /// <summary>
     ///     程序内嵌图片文件夹路径，以“/”结尾。
     /// </summary>
-    public static readonly string pathImage = "pack://application:,,,/Plain Craft Launcher 2;component/Images/";
+    public static string pathImage => LauncherPaths.ImageBaseUri;
 
     /// <summary>
     ///     当前程序的语言。
     /// </summary>
-    public static string currentLang = "zh_CN";
+    public static string currentLang
+    {
+        get => LauncherEnvironment.CurrentLanguage;
+        set => LauncherEnvironment.CurrentLanguage = value;
+    }
 
     /// <summary>
     ///     设置对象。
     /// </summary>
-    public static ModSetup setup = new();
+    public static ModSetup setup
+    {
+        get => LauncherEnvironment.Setup;
+        set => LauncherEnvironment.Setup = value;
+    }
 
     /// <summary>
     ///     程序的打开计时。
     /// </summary>
-    public static long applicationStartTick = TimeUtils.GetTimeTick();
+    public static long applicationStartTick
+    {
+        get => LauncherRuntime.ApplicationStartTick;
+        set => LauncherRuntime.ApplicationStartTick = value;
+    }
 
     /// <summary>
     ///     程序打开时的时间。
     /// </summary>
-    public static DateTime applicationOpenTime = DateTime.Now;
+    public static DateTime applicationOpenTime
+    {
+        get => LauncherRuntime.ApplicationOpenTime;
+        set => LauncherRuntime.ApplicationOpenTime = value;
+    }
 
     /// <summary>
     ///     程序是否已结束。
     /// </summary>
-    public static bool isProgramEnded = false;
+    public static bool isProgramEnded
+    {
+        get => LauncherRuntime.IsProgramEnded;
+        set => LauncherRuntime.IsProgramEnded = value;
+    }
 
     /// <summary>
     ///     程序的缓存文件夹路径，以 \ 结尾。
     /// </summary>
-    public static string pathTemp = Paths.Temp + @"\";
+    public static string pathTemp
+    {
+        get => LauncherPaths.TempWithSlash;
+        set => LauncherPaths.TempWithSlash = value;
+    }
 
     /// <summary>
     ///     AppData 中的 PCL 文件夹路径，以 \ 结尾。
     /// </summary>
-    public static string pathAppdata =
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PCL") + @"\";
+    public static string pathAppdata
+    {
+        get => LauncherPaths.LegacyAppDataWithSlash;
+        set => LauncherPaths.LegacyAppDataWithSlash = value;
+    }
 
     /// <summary>
     ///     AppData 中的 PCLCE 配置文件夹路径，以 \ 结尾。
     /// </summary>
-    public static string pathAppdataConfig = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
-                                             (VersionBranchName == "Debug" ? @"\.pclcedebug\" : @"\.pclce\");
+    public static string pathAppdataConfig
+    {
+        get => LauncherPaths.SharedConfigWithSlash;
+        set => LauncherPaths.SharedConfigWithSlash = value;
+    }
 
     #endregion
 

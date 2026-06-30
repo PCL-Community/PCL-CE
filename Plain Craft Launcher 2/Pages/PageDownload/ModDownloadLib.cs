@@ -792,7 +792,7 @@ public static class ModDownloadLib
                             else
                             {
                                 lastResult = e.Data;
-                                if (ModBase.modeDebug)
+                                if (ModBase.ModeDebug)
                                     ModBase.Log("[Installer] " + lastResult);
                                 totalLength += 1;
                                 task.Progress += 0.9d / 7000d;
@@ -829,7 +829,7 @@ public static class ModDownloadLib
                             else
                             {
                                 lastResult = e.Data;
-                                if (ModBase.modeDebug)
+                                if (ModBase.ModeDebug)
                                     ModBase.Log("[Installer] " + lastResult);
                                 totalLength += 1;
                                 task.Progress += 0.9d / 7000d;
@@ -1876,7 +1876,7 @@ public static class ModDownloadLib
             }
             case "  File exists: Checksum validated.":
             {
-                if (ModBase.modeDebug)
+                if (ModBase.ModeDebug)
                     ModBase.Log("[Installer] " + content);
                 task.Progress += 0.003d;
                 break;
@@ -1944,7 +1944,7 @@ public static class ModDownloadLib
 
             default:
             {
-                if (ModBase.modeDebug)
+                if (ModBase.ModeDebug)
                     ModBase.Log("[Installer] " + content);
                 return;
             }
@@ -2173,7 +2173,7 @@ public static class ModDownloadLib
                             ModBase.CopyFile(LibFile.LocalPath, realPath);
                         }
 
-                        if (ModBase.modeDebug)
+                        if (ModBase.ModeDebug)
                             ModBase.Log($"[Download] 复制的 {loaderName} 支持库文件：" + LibFile.LocalPath);
                     }
 
@@ -2466,7 +2466,7 @@ public static class ModDownloadLib
         if (!string.IsNullOrEmpty(entry.ReleaseTime))
             infoParts.Add(Lang.Text("Download.Version.ReleaseDate", entry.ReleaseTime));
 
-        if (ModBase.modeDebug)
+        if (ModBase.ModeDebug)
             infoParts.Add(Lang.Text("Download.Version.Forge.Type", entry.Category));
 
         // 建立控件

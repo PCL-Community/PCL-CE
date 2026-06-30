@@ -16,8 +16,8 @@ public static partial class ModBase
         {
             if (source.aliases is null)
                 continue;
-            foreach (var alias in source.aliases)
-                result.Add(new KeyValuePair<string, double>(alias, source.weight));
+            result.AddRange(
+                source.aliases.Select(alias => new KeyValuePair<string, double>(alias, source.weight)));
         }
 
         return result;
@@ -81,7 +81,10 @@ public static partial class ModBase
     /// </summary>
     /// <param name="maxBlurCount">返回的最大模糊结果数。</param>
     /// <param name="minBlurSimilarity">返回结果要求的最低相似度。</param>
-    public static List<SearchEntry<T>> Search<T>(List<SearchEntry<T>> entries, string query, int maxBlurCount = 5,
+    public static List<SearchEntry<T>> Search<T>(
+        List<SearchEntry<T>> entries,
+        string query,
+        int maxBlurCount = 5,
         double minBlurSimilarity = 0.1d)
     {
         if (entries is null || entries.Count == 0)

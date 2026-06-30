@@ -348,12 +348,12 @@ public partial class PageInstanceSaves : IRefreshable
             else
                 saveFolders = new List<string>();
 
-            if (ModBase.modeDebug)
+            if (ModBase.ModeDebug)
                 ModBase.Log("[World] 共发现 " + saveFolders.Count + " 个存档文件夹", ModBase.LogLevel.Debug);
             PanList.Children.Clear();
             CheckQuickPlay();
 
-            if (ModBase.modeDebug)
+            if (ModBase.ModeDebug)
             {
                 if ((bool)quickPlayFeature)
                     ModBase.Log("[World] 该实例支持存档快捷启动", ModBase.LogLevel.Debug);

@@ -138,7 +138,7 @@ public partial class FormMain
         pageRight = ModMain.frmLaunchRight;
         ModMain.frmLaunchRight.PageState = MyPageRight.PageStates.ContentStay;
         // 调试模式提醒
-        if (ModBase.modeDebug)
+        if (ModBase.ModeDebug)
             HintService.Hint(Lang.Text("Main.DebugMode.Hint"));
         // 尽早执行的加载池
         ModFolder.mcFolderListLoader

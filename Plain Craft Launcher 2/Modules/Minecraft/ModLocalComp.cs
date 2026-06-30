@@ -2138,7 +2138,7 @@ public static class ModLocalComp
                     var updateFile = new CompFile((JsonObject)modrinthUpdate[Entry.ModrinthHash], CompType.Mod);
                     if (!updateFile.Available) continue;
 
-                    if (ModBase.modeDebug)
+                    if (ModBase.ModeDebug)
                         ModBase.Log($"[Mod] 本地文件 {Entry.compFile.FileName} 在 Modrinth 上的最新版为 {updateFile.FileName}");
                     if (Entry.compFile.ReleaseDate >= updateFile.ReleaseDate ||
                         Entry.compFile.Hash == updateFile.Hash) continue;
@@ -2223,7 +2223,7 @@ public static class ModLocalComp
         }
 
         ModBase.WriteFile(Path.Combine(ModBase.pathTemp, "Cache", "LocalComp.json"),
-            cache.ToJsonString(ModBase.modeDebug ? new JsonSerializerOptions(JsonCompat.SerializerOptions) { WriteIndented = true } : null));
+            cache.ToJsonString(ModBase.ModeDebug ? new JsonSerializerOptions(JsonCompat.SerializerOptions) { WriteIndented = true } : null));
 
         // 刷新 UI
         ModBase.RunInUi(() =>

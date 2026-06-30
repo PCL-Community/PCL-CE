@@ -594,7 +594,7 @@ public class ModSetup
     // 调试选项
     public static void SystemDebugMode(bool value)
     {
-        ModBase.modeDebug = value;
+        ModBase.ModeDebug = value;
     }
 
     public static void SystemDebugAnim(int value)

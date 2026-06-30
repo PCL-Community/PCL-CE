@@ -1,15 +1,7 @@
-﻿using System.Drawing;
-using System.IO;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Xaml;
 using System.Xml.Linq;
-using PCL.Core.App.Localization;
-using Size = System.Windows.Size;
 
 namespace PCL;
 
@@ -19,14 +11,7 @@ public static partial class ModBase
 
     public static void SetLaunchFont(string fontName = null)
     {
-        try
-        {
-            LocalizationFontService.ApplyLaunchFont(fontName, LocalizationService.CurrentLanguage);
-        }
-        catch (Exception ex)
-        {
-            Log(ex, "设置字体失败", LogLevel.Hint);
-        }
+        LauncherFontService.SetLaunchFont(fontName);
     }
 
     // 边距改变
@@ -35,38 +20,7 @@ public static partial class ModBase
     /// </summary>
     public static void DeltaLeft(FrameworkElement control, double newValue)
     {
-        // 安全性检查
-        DebugAssert(!double.IsNaN(newValue));
-        DebugAssert(!double.IsInfinity(newValue));
-
-        if (control is Window window)
-            // 窗口改变
-            window.Left += newValue;
-        else
-            // 根据 HorizontalAlignment 改变数值
-            switch (control.HorizontalAlignment)
-            {
-                case HorizontalAlignment.Left:
-                case HorizontalAlignment.Stretch:
-                {
-                    control.Margin = new Thickness(control.Margin.Left + newValue, control.Margin.Top,
-                        control.Margin.Right, control.Margin.Bottom);
-                    break;
-                }
-                case HorizontalAlignment.Right:
-                {
-                    // control.Margin = New Thickness(control.Margin.Left, control.Margin.Top, CType(control.Parent, Object).ActualWidth - control.ActualWidth - newValue, control.Margin.Bottom)
-                    control.Margin = new Thickness(control.Margin.Left, control.Margin.Top,
-                        control.Margin.Right - newValue, control.Margin.Bottom);
-                    break;
-                }
-
-                default:
-                {
-                    DebugAssert(false);
-                    break;
-                }
-            }
+        LayoutExtensions.DeltaLeft(control, newValue);
     }
 
     /// <summary>
@@ -74,8 +28,7 @@ public static partial class ModBase
     /// </summary>
     public static void SetLeft(FrameworkElement control, double newValue)
     {
-        DebugAssert(control.HorizontalAlignment == HorizontalAlignment.Left);
-        control.Margin = new Thickness(newValue, control.Margin.Top, control.Margin.Right, control.Margin.Bottom);
+        LayoutExtensions.SetLeft(control, newValue);
     }
 
     /// <summary>
@@ -83,37 +36,7 @@ public static partial class ModBase
     /// </summary>
     public static void DeltaTop(FrameworkElement control, double newValue)
     {
-        // 安全性检查
-        DebugAssert(!double.IsNaN(newValue));
-        DebugAssert(!double.IsInfinity(newValue));
-
-        if (control is Window window)
-            // 窗口改变
-            window.Top += newValue;
-        else
-            // 根据 VerticalAlignment 改变数值
-            switch (control.VerticalAlignment)
-            {
-                case VerticalAlignment.Top:
-                {
-                    control.Margin = new Thickness(control.Margin.Left, control.Margin.Top + newValue,
-                        control.Margin.Right, control.Margin.Bottom);
-                    break;
-                }
-                case VerticalAlignment.Bottom:
-                {
-                    // control.Margin = New Thickness(control.Margin.Left, control.Margin.Top, CType(control.Parent, Object).ActualWidth - control.ActualWidth - newValue, control.Margin.Bottom)
-                    control.Margin = new Thickness(control.Margin.Left, control.Margin.Top, control.Margin.Right,
-                        control.Margin.Bottom - newValue);
-                    break;
-                }
-
-                default:
-                {
-                    DebugAssert(false);
-                    break;
-                }
-            }
+        LayoutExtensions.DeltaTop(control, newValue);
     }
 
     /// <summary>
@@ -121,19 +44,18 @@ public static partial class ModBase
     /// </summary>
     public static void SetTop(FrameworkElement control, double newValue)
     {
-        DebugAssert(control.VerticalAlignment == VerticalAlignment.Top);
-        control.Margin = new Thickness(control.Margin.Left, newValue, control.Margin.Right, control.Margin.Bottom);
+        LayoutExtensions.SetTop(control, newValue);
     }
 
     // DPI 转换
-    public static readonly int dpi = (int)Math.Round(Graphics.FromHwnd(nint.Zero).DpiX);
+    public static int dpi => DpiUtils.Dpi;
 
     /// <summary>
     ///     将经过 DPI 缩放的 WPF 尺寸转化为实际的像素尺寸。
     /// </summary>
     public static double GetPixelSize(double wPFSize)
     {
-        return wPFSize / 96d * dpi;
+        return DpiUtils.GetPixelSize(wPFSize);
     }
 
     /// <summary>
@@ -141,7 +63,7 @@ public static partial class ModBase
     /// </summary>
     public static double GetWPFSize(double pixelSize)
     {
-        return pixelSize * 96d / dpi;
+        return DpiUtils.GetWpfSize(pixelSize);
     }
 
     // UI 截图
@@ -150,14 +72,7 @@ public static partial class ModBase
     /// </summary>
     public static ImageBrush ControlBrush(FrameworkElement uI)
     {
-        var width = uI.ActualWidth;
-        var height = uI.ActualHeight;
-        if (width < 1d || height < 1d)
-            return new ImageBrush();
-        var bmp = new RenderTargetBitmap((int)Math.Round(GetPixelSize(width)), (int)Math.Round(GetPixelSize(height)),
-            dpi, dpi, PixelFormats.Pbgra32);
-        bmp.Render(uI);
-        return new ImageBrush(bmp);
+        return VisualCapture.ControlBrush(uI);
     }
 
     /// <summary>
@@ -166,14 +81,7 @@ public static partial class ModBase
     public static ImageBrush ControlBrush(FrameworkElement uI, double width, double height, double left = 0d,
         double top = 0d)
     {
-        uI.Measure(new Size(width, height));
-        uI.Arrange(new Rect(0d, 0d, width, height));
-        var bmp = new RenderTargetBitmap((int)Math.Round(GetPixelSize(width)), (int)Math.Round(GetPixelSize(height)),
-            dpi, dpi, PixelFormats.Default);
-        bmp.Render(uI);
-        if (left != 0d || top != 0d)
-            uI.Arrange(new Rect(left, top, width, height));
-        return new ImageBrush(bmp);
+        return VisualCapture.ControlBrush(uI, width, height, left, top);
     }
 
     /// <summary>
@@ -181,8 +89,7 @@ public static partial class ModBase
     /// </summary>
     public static void ControlFreeze(Panel uI)
     {
-        uI.Background = ControlBrush(uI);
-        uI.Children.Clear();
+        VisualCapture.ControlFreeze(uI);
     }
 
     /// <summary>
@@ -190,8 +97,7 @@ public static partial class ModBase
     /// </summary>
     public static void ControlFreeze(Border uI)
     {
-        uI.Background = ControlBrush(uI);
-        uI.Child = null;
+        VisualCapture.ControlFreeze(uI);
     }
 
     /// <summary>
@@ -199,7 +105,7 @@ public static partial class ModBase
     /// </summary>
     public static object GetObjectFromXML(XElement str)
     {
-        return GetObjectFromXML(str.ToString());
+        return CustomXamlLoader.Load(str);
     }
 
     /// <summary>
@@ -207,7 +113,7 @@ public static partial class ModBase
     /// </summary>
     public static object GetObjectFromXML(string str)
     {
-        return GetObjectFromXML(str, out _);
+        return CustomXamlLoader.Load(str);
     }
 
     /// <summary>
@@ -215,59 +121,15 @@ public static partial class ModBase
     /// </summary>
     public static object GetObjectFromXML(string str, out XamlEventSanitizer.SanitizeResult sanitizeResult)
     {
-        str = str. // 兼容旧版自定义事件写法
-            Replace("EventType=\"", "local:CustomEventService.EventType=\"")
-            .Replace("EventData=\"", "local:CustomEventService.EventData=\"")
-            .Replace("Property=\"EventType\"", "Property=\"local:CustomEventService.EventType\"")
-            .Replace("Property=\"EventData\"", "Property=\"local:CustomEventService.EventData\"");
-        // 修复因上述替换导致重复前缀的情况：local:CustomEventService.local:CustomEventService.EventType
-        str = str.Replace("local:CustomEventService.local:CustomEventService.", "local:CustomEventService.");
-
-        sanitizeResult = XamlEventSanitizer.Sanitize(str);
-        str = sanitizeResult.SanitizedXaml;
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(str));
-        // 类型检查
-        using (var reader = new XamlXmlReader(stream))
-        {
-            while (reader.Read())
-            {
-                foreach (var blackListType in new[]
-                         {
-                             typeof(WebBrowser), typeof(Frame), typeof(MediaElement), typeof(ObjectDataProvider),
-                             typeof(XamlReader), typeof(Window), typeof(XmlDataProvider)
-                         })
-                {
-                    if (reader.Type is not null && blackListType.IsAssignableFrom(reader.Type.UnderlyingType))
-                        throw new UnauthorizedAccessException($"不允许使用 {blackListType.Name} 类型。");
-                    if (reader.Value is not null && Equals(reader.Value, blackListType.Name))
-                        throw new UnauthorizedAccessException($"不允许使用 {blackListType.Name} 值。");
-                }
-
-                foreach (var blackListMember in new[] { "Code", "FactoryMethod", "Static" })
-                    if (reader.Member is not null && (reader.Member.Name ?? "") == (blackListMember ?? ""))
-                        throw new UnauthorizedAccessException($"不允许使用 {blackListMember} 成员。");
-            }
-        }
-
-        // 实际的加载
-        stream.Position = 0L;
-        using (var writer = new StreamWriter(stream))
-        {
-            writer.Write(str);
-            writer.Flush();
-            stream.Position = 0L;
-            return System.Windows.Markup.XamlReader.Load(stream);
-        }
+        return CustomXamlLoader.Load(str, out sanitizeResult);
     }
-
-    private static readonly int uiThreadId = Environment.CurrentManagedThreadId;
 
     /// <summary>
     ///     当前线程是否为主线程。
     /// </summary>
     public static bool RunInUi()
     {
-        return Environment.CurrentManagedThreadId == uiThreadId;
+        return UiThread.CheckAccess();
     }
 
     #endregion
