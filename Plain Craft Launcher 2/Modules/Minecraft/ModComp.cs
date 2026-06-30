@@ -2462,13 +2462,18 @@ public static class ModComp
             // “sodium embeddium extras dynamiclights reforged dynamic lights magnesium” 的多模组
             // 关键词串；CurseForge / Modrinth 会将整串视为对同一模组的描述进行匹配，没有任何模组能
             // 同时命中全部关键词，导致两个数据源都返回空、搜索整体失败（详见 issue #3272）。
-            // 但仅取 searchResults.First() 同样不可靠：ModBase.Search 对相似度并列项的排序并不稳定，
-            // 例如「玉」会把附属模组「玉足 (Jade Feet)」排在规范模组「玉 (Jade)」之前，使查询变成
-            // “jade feet”，被接口按 feet 收窄后反而排除了规范的 Jade。
-            // 因此显式挑选规范词条：完全匹配优先、相似度次之，并列时取 slug 最短者（基础模组而非附属/
-            // 扩展），再用其关键词查询，由数据源返回该模组及其同系列，交由后续按中文名重排序。
+            // 仅取 searchResults.First() 或仅按相似度排序都不可靠：例如「玉」的规范模组
+            // 「玉 🔍 (Jade 🔍)」名称带装饰表情 🔍（在 C# 中长度为 2），会拉低其相似度，使附属模组
+            // 「玉足 (Jade Feet)」反而排前，查询变成 “jade feet” 并把真正的 Jade 排除。
+            // 因此优先选取“名称（剥离装饰符号与空格后）恰好等于查询本身”的词条作为规范词条，
+            // 其后再依次按完全匹配、相似度、slug 最短（基础模组而非附属/扩展）排序，用其关键词查询，
+            // 由数据源返回该模组及其同系列，交由后续按中文名重排序。
+            string CanonName(string name) =>
+                new string(name.BeforeFirst(" (").Where(char.IsLetterOrDigit).ToArray());
+            var normalizedQuery = new string(rawFilter.Where(char.IsLetterOrDigit).ToArray());
             var canonicalEntry = searchResults
-                .OrderByDescending(r => r.absoluteRight)
+                .OrderByDescending(r => CanonName(r.item.ChineseName) == normalizedQuery)
+                .ThenByDescending(r => r.absoluteRight)
                 .ThenByDescending(r => r.similarity)
                 .ThenBy(r => (r.item.CurseForgeSlug ?? r.item.ModrinthSlug ?? r.item.ChineseName).Length)
                 .First();
