@@ -92,9 +92,9 @@ internal static class ModStyle
         {
             if (Dispatcher is null)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     "[TimerRun] Dispatcher is null, unable to run",
-                    ModBase.LogLevel.Critical,
+                    LauncherLogLevel.Critical,
                     userSummary: Lang.Text("Minecraft.Launch.Error.DispatcherUnavailable"));
                 return;
             }
@@ -172,7 +172,7 @@ internal static class ModStyle
         {
             if (lab is null)
             {
-                ModBase.Log("[Style] SetColorfulTextLab: lab is null");
+                LauncherLog.Log("[Style] SetColorfulTextLab: lab is null");
                 return;
             }
 
@@ -259,7 +259,7 @@ internal static class ModStyle
                         lab.Inlines.Add(curRun);
                     }
 
-                    curRun.Foreground = new SolidColorBrush(new ModBase.MyColor(color));
+                    curRun.Foreground = new SolidColorBrush(new MyColor(color));
                     curRun.FontWeight = hasBlodProperty ? FontWeights.Bold : FontWeights.Normal;
                     curRun.FontStyle = hasItalicProperty ? FontStyles.Italic : FontStyles.Normal;
                     curRun.TextDecorations = hasStrickThroughProperty ? TextDecorations.Strikethrough : null;

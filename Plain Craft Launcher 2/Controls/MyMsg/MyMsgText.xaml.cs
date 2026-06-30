@@ -2,15 +2,15 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using PCL.Core.App.Localization;
 using PCL.Core.UI.Controls;
 
-using PCL.Core.App.Localization;
 namespace PCL;
 
 public partial class MyMsgText
 {
     private readonly ModMain.MyMsgBoxConverter myConverter;
-    private readonly int uuid = ModBase.GetUuid();
+    private readonly int uuid = LauncherRuntime.GetUuid();
 
     public MyMsgText(ModMain.MyMsgBoxConverter converter)
     {
@@ -26,15 +26,15 @@ public partial class MyMsgText
             ConfigurePrimaryButton(converter.Button1, converter.IsWarn);
             ConfigureSecondaryButton(Btn2, converter.Button2);
             ConfigureSecondaryButton(Btn3, converter.Button3);
-            ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
+            ShapeLine.StrokeThickness = DpiUtils.GetWpfSize(1d);
         }
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "普通弹窗初始化失败",
-                ModBase.LogLevel.Hint,
+                LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Application.Control.MessageBox.Error.OperationFailed"));
         }
 
@@ -43,7 +43,7 @@ public partial class MyMsgText
 
     private void AppendUniqueNameSuffix(FrameworkElement element)
     {
-        element.Name += ModBase.GetUuid();
+        element.Name += LauncherRuntime.GetUuid();
     }
 
     private void ConfigurePrimaryButton(string text, bool isWarn)
@@ -75,8 +75,8 @@ public partial class MyMsgText
             ModAnimation.AniStart(
                 ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
                     (myConverter.IsWarn
-                        ? new ModBase.MyColor(140d, 80d, 0d, 0d)
-                        : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
+                        ? new MyColor(140d, 80d, 0d, 0d)
+                        : new MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");
             ModAnimation.AniStart(
                 new[]
@@ -89,15 +89,15 @@ public partial class MyMsgText
                         new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
                 }, "MyMsgBox " + uuid);
             // 记录日志
-            ModBase.Log("[Control] 普通弹窗：" + LabTitle.Text + "\r\n" + LabCaption.Text);
+            LauncherLog.Log("[Control] 普通弹窗：" + LabTitle.Text + "\r\n" + LabCaption.Text);
         }
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "普通弹窗加载失败",
-                ModBase.LogLevel.Hint,
+                LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Application.Control.MessageBox.Error.OperationFailed"));
         }
     }
@@ -116,7 +116,7 @@ public partial class MyMsgText
                 if (!ModMain.WaitingMyMsgBox.Any())
                     ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
-                        new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
+                        new MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
                         ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
             }, 30),
             ModAnimation.AaOpacity(this, -Opacity, 80, 20),
@@ -186,10 +186,10 @@ public partial class MyMsgText
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "拖拽移动失败",
-                ModBase.LogLevel.Hint,
+                LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Application.Control.MessageBox.Error.OperationFailed"));
         }
     }

@@ -1,7 +1,6 @@
-using System.IO;
+﻿using System.IO;
 using Downloader;
 using PCL.Core.IO.Net;
-
 
 namespace PCL.Network;
 
@@ -63,7 +62,7 @@ public static class FileDownloader
             {
                 lastException = ex;
                 CleanupTempFiles(localPath);
-                ModBase.Log(ex, $"[Download] 下载失败，尝试下一个源：{url}", ModBase.LogLevel.Debug);
+                LauncherLog.Log(ex, $"[Download] 下载失败，尝试下一个源：{url}");
             }
         }
 
@@ -73,7 +72,7 @@ public static class FileDownloader
     private static async Task DownloadSingleAsync(string url, string localPath, bool useBrowserUserAgent,
         string customUserAgent, CancellationToken cancellationToken, bool enableParallelChunks, DownloadFile? trackedFile)
     {
-        ModBase.Log($"[Download] 开始下载：{url} -> {localPath}");
+        LauncherLog.Log($"[Download] 开始下载：{url} -> {localPath}");
         CleanupTempFiles(localPath);
 
         var perFileThreadLimit = enableParallelChunks ? Math.Max(1, ModNet.NetTaskThreadLimit) : 1;
@@ -103,7 +102,7 @@ public static class FileDownloader
             if (trackedFile is null)
                 return;
 
-            trackedFile.State = PCL.Network.NetState.Downloading;
+            trackedFile.State = NetState.Downloading;
             trackedFile.TotalSize = Math.Max(trackedFile.TotalSize, args.TotalBytesToReceive);
             trackedFile.IsUnknownSize = trackedFile.TotalSize <= 0;
             trackedFile.DownloadedBytes = Math.Max(trackedFile.DownloadedBytes, args.ReceivedBytesSize);
@@ -116,7 +115,7 @@ public static class FileDownloader
             if (trackedFile is null)
                 return;
 
-            trackedFile.State = PCL.Network.NetState.Reading;
+            trackedFile.State = NetState.Reading;
             trackedFile.TotalSize = Math.Max(trackedFile.TotalSize, args.TotalBytesToReceive);
             trackedFile.IsUnknownSize = args.TotalBytesToReceive <= 0;
             trackedFile.DownloadedBytes = 0;
@@ -163,7 +162,7 @@ public static class FileDownloader
             }
             if (!File.Exists(localPath))
                 throw new IOException($"下载未产生任何文件：{localPath}");
-            ModBase.Log($"[Download] 下载成功：{localPath}");
+            LauncherLog.Log($"[Download] 下载成功：{localPath}");
         }
         catch (TaskCanceledException ex) when (cancellationToken.IsCancellationRequested)
         {

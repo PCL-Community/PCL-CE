@@ -1,4 +1,4 @@
-using PCL.Core.App;
+﻿using PCL.Core.App;
 using PCL.Core.App.Localization;
 
 namespace PCL;
@@ -18,9 +18,9 @@ public static class AnnouncementService
             .Where(x => !showedAnnounced.Contains(x.Id))
             .ToList();
 
-        ModBase.Log("[System] 需要展示的公告数量：" + showAnnounce.Count);
+        LauncherLog.Log("[System] 需要展示的公告数量：" + showAnnounce.Count);
 
-        ModBase.RunInNewThread(() =>
+        PCL.Core.App.Basics.RunInNewThread(() =>
         {
             foreach (var item in showAnnounce)
             {

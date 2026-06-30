@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -196,7 +195,7 @@ public partial class MyListItem : IMyRadio
                     CornerRadius = new CornerRadius(IsScaleAnimationEnabled || Height > 40d ? 6 : 0),
                     RenderTransform = IsScaleAnimationEnabled ? new ScaleTransform(0.8d, 0.8d) : null,
                     RenderTransformOrigin = new Point(0.5d, 0.5d),
-                    BorderThickness = new Thickness(ModBase.GetWPFSize(1d)),
+                    BorderThickness = new Thickness(DpiUtils.GetWpfSize(1d)),
                     SnapsToDevicePixels = true,
                     IsHitTestVisible = false,
                     Opacity = 0d
@@ -323,7 +322,7 @@ public partial class MyListItem : IMyRadio
     #region 自定义属性
 
     // Uuid
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherRuntime.GetUuid();
 
     /// <summary>
     ///     是否启用缩放动画。
@@ -597,8 +596,8 @@ public partial class MyListItem : IMyRadio
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                     VerticalAlignment = VerticalAlignment.Stretch
                 };
-                if (logo.Contains(ModBase.pathTemp + @"Cache\Skin\Head") ||
-                    logo.Contains(ModBase.pathTemp + @"Cache\Cape"))
+                if (logo.Contains(LauncherPaths.TempWithSlash + @"Cache\Skin\Head") ||
+                    logo.Contains(LauncherPaths.TempWithSlash + @"Cache\Cape"))
                     RenderOptions.SetBitmapScalingMode(pathLogo, BitmapScalingMode.NearestNeighbor);
                 else
                     RenderOptions.SetBitmapScalingMode(pathLogo, BitmapScalingMode.Linear);
@@ -773,7 +772,7 @@ public partial class MyListItem : IMyRadio
         {
             // 自定义属性基础
 
-            var ChangedEventArgs = new ModBase.RouteEventArgs(user);
+            var ChangedEventArgs = new RouteEventArgs(user);
             var rawValue = _Checked;
             if (Type == CheckType.RadioBox)
             {
@@ -808,7 +807,7 @@ public partial class MyListItem : IMyRadio
 
             if (value)
             {
-                var checkEventArgs = new ModBase.RouteEventArgs(user);
+                var checkEventArgs = new RouteEventArgs(user);
                 Check?.Invoke(this, checkEventArgs);
                 if (checkEventArgs.handled)
                     return;
@@ -967,7 +966,7 @@ public partial class MyListItem : IMyRadio
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "设置 Checked 失败");
+            LauncherLog.Log(ex, "设置 Checked 失败");
         }
     }
 
@@ -1069,19 +1068,19 @@ public partial class MyListItem : IMyRadio
         {
             case CheckType.Clickable:
             {
-                ModBase.Log("[Control] 按下单击列表项：" + Title);
+                LauncherLog.Log($"[Control] 按下单击列表项：{Title}");
                 break;
             }
             case CheckType.RadioBox:
             {
-                ModBase.Log("[Control] 按下单选列表项：" + Title);
+                LauncherLog.Log($"[Control] 按下单选列表项：{Title}");
                 if (!Checked)
                     SetChecked(true, true, true);
                 break;
             }
             case CheckType.CheckBox:
             {
-                ModBase.Log("[Control] 按下复选列表项（" + !Checked + "）：" + Title);
+                LauncherLog.Log($"[Control] 按下复选列表项（{!Checked}）：{Title}");
                 SetChecked(!Checked, true, true);
                 break;
             }

@@ -7,7 +7,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using System.Windows.Media.Effects;
 using PCL.Core.App;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
@@ -37,17 +36,19 @@ public partial class FormMain
     // 更新日志
     private void ShowUpdateLog()
     {
-        ModBase.RunInNewThread(() =>
+        Basics.RunInNewThread(() =>
         {
-            var changelogFile = $"{ModBase.pathTemp}CEUpdateLog.md";
+            var changelogFile = $"{LauncherPaths.TempWithSlash}CEUpdateLog.md";
             string changelog;
             if (File.Exists(changelogFile))
-                changelog = ModBase.ReadFile(changelogFile);
+                changelog = LegacyFileFacade.ReadText(changelogFile);
             else
                 changelog = Lang.Text("Main.UpdateLog.Empty");
             if (ModMain.MyMsgBoxMarkdown(changelog,
-                    Lang.Text("Main.UpdateLog.Title", ModBase.VersionBranchName, ModBase.VersionBaseName), Lang.Text("Common.Action.Confirm"), Lang.Text("Main.UpdateLog.FullChangelog")) ==
-                2) ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases");
+                    Lang.Text("Main.UpdateLog.Title", LauncherEnvironment.VersionBranchName,
+                        LauncherEnvironment.VersionBaseName), Lang.Text("Common.Action.Confirm"),
+                    Lang.Text("Main.UpdateLog.FullChangelog")) ==
+                2) LauncherProcess.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases");
         }, "UpdateLog Output");
     }
 
@@ -57,7 +58,7 @@ public partial class FormMain
 
     public FormMain()
     {
-        ModBase.applicationStartTick = TimeUtils.GetTimeTick();
+        LauncherRuntime.ApplicationStartTick = TimeUtils.GetTimeTick();
         // 刷新主题
         // ThemeCheckAll(False)
         // ThemeRefreshColor()
@@ -69,7 +70,7 @@ public partial class FormMain
         ModMain.frmLaunchRight = new PageLaunchRight();
         // 版本号改变
         var lastVersion = States.System.LastVersion;
-        if (lastVersion < ModBase.VersionCode)
+        if (lastVersion < LauncherEnvironment.VersionCode)
         {
             // 重新询问是否启用遥测数据收集
             if (lastVersion <= 511)
@@ -77,13 +78,13 @@ public partial class FormMain
                 if (!Config.System.TelemetryConfig.IsDefault() && Config.System.Telemetry)
                 {
                     Config.System.TelemetryConfig.Reset();
-                    ModBase.Log("[Start] 遥测策略变更：由旧版本升级到含新版遥测的版本，已重置遥测设置");
+                    LauncherLog.Log("[Start] 遥测策略变更：由旧版本升级到含新版遥测的版本，已重置遥测设置");
                 }
             }
             // 触发升级
             UpgradeSub(lastVersion);
         }
-        else if (lastVersion > ModBase.VersionCode)
+        else if (lastVersion > LauncherEnvironment.VersionCode)
             // 触发降级
             DowngradeSub(lastVersion);
 
@@ -105,10 +106,10 @@ public partial class FormMain
         }
         catch (Exception ex) // 修复 #2019
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "读取窗口默认大小失败",
-                ModBase.LogLevel.Hint,
+                LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Main.Error.OperationFailed"));
             Height = MinHeight + 100d;
             Width = MinWidth + 100d;
@@ -117,7 +118,7 @@ public partial class FormMain
         // 管理员权限下文件拖拽
         if (ProcessInterop.IsAdmin())
         {
-            ModBase.Log("[Start] PCL 当前正以管理员权限运行");
+            LauncherLog.Log("[Start] PCL 当前正以管理员权限运行");
             SourceInitialized += (_, _) =>
             {
                 var windowInterop = new WindowInteropHelper(this);
@@ -138,13 +139,13 @@ public partial class FormMain
         pageRight = ModMain.frmLaunchRight;
         ModMain.frmLaunchRight.PageState = MyPageRight.PageStates.ContentStay;
         // 调试模式提醒
-        if (ModBase.ModeDebug)
+        if (LauncherRuntime.ModeDebug)
             HintService.Hint(Lang.Text("Main.DebugMode.Hint"));
         // 尽早执行的加载池
         ModFolder.mcFolderListLoader
             .Start(0); // 为了让下载已存在文件检测可以正常运行，必须跑一次；为了让启动按钮尽快可用，需要尽早执行；为了与 PageLaunchLeft 联动，需要为 0 而不是 GetUuid
 
-        ModBase.Log("[Start] 第二阶段加载用时：" + (TimeUtils.GetTimeTick() - ModBase.applicationStartTick) + " ms");
+        LauncherLog.Log("[Start] 第二阶段加载用时：" + (TimeUtils.GetTimeTick() - LauncherRuntime.ApplicationStartTick) + " ms");
         // 注册生命周期状态事件
         Lifecycle.When(LifecycleState.WindowCreated, FormMain_Loaded);
     }
@@ -152,8 +153,8 @@ public partial class FormMain
     private void FormMain_Loaded() // (sender As Object, e As RoutedEventArgs) Handles Me.Loaded
     {
         FormMain_SizeChanged();
-        ModBase.applicationStartTick = TimeUtils.GetTimeTick();
-        ModBase.frmHandle = new WindowInteropHelper(this).Handle;
+        LauncherRuntime.ApplicationStartTick = TimeUtils.GetTimeTick();
+        LauncherEnvironment.MainWindowHandle = new WindowInteropHelper(this).Handle;
         // 读取设置
         PageSetupUI.BackgroundRefresh(false, true);
         ModMusic.MusicRefreshPlay(false, true);
@@ -211,15 +212,15 @@ public partial class FormMain
             {
                 RenderTransform = null;
                 isWindowLoadFinished = true;
-                ModBase.Log(
-                    $"[System] DPI：{ModBase.dpi}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{Basics.ExecutablePath}");
+                LauncherLog.Log(
+                    $"[System] DPI：{DpiUtils.Dpi}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{Basics.ExecutablePath}");
             }, after: true)
         }, "Form Show");
         // Timer 启动
         ModAnimation.AniStart();
         ModMain.TimerMainStart();
         // 特殊版本提示
-        ModBase.RunInNewThread(() =>
+        Basics.RunInNewThread(() =>
         {
             // 特殊版本提示
             try
@@ -241,7 +242,7 @@ public partial class FormMain
                         $"{hint}{"\r\n"}{"\r\n"}{Lang.Text("Main.SpecialVersion.HideHintNotice")}",
                         Lang.Text("Main.SpecialVersion.Title"), Lang.Text("Main.SpecialVersion.IUnderstand"), Lang.Text("Main.SpecialVersion.OpenDownloadPageAndExit"), isWarn: true, button2Action: () =>
                         {
-                            ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest");
+                            LauncherProcess.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest");
                             EndProgram(false);
                         });
                 }
@@ -251,7 +252,8 @@ public partial class FormMain
                 // EULA 提示
                 if (!States.System.LauncherEula)
                     switch (ModMain.MyMsgBox(Lang.Text("Main.Eula.Message"), Lang.Text("Main.Eula.Title"), Lang.Text("Common.Action.Agree"), Lang.Text("Common.Action.Decline"), Lang.Text("Main.Eula.View"),
-                                button3Action: () => ModBase.OpenWebsite("https://shimo.im/docs/rGrd8pY8xWkt6ryW")))
+                                button3Action: () =>
+                                    LauncherProcess.OpenWebsite("https://shimo.im/docs/rGrd8pY8xWkt6ryW")))
                     {
                         case 1:
                             {
@@ -279,14 +281,14 @@ public partial class FormMain
                     ModDownload.dlClientListMojangLoader.Start(1); // PCL 会同时根据这里的加载结果决定是否使用官方源进行下载
                     RunCountSub();
                     UpdateManager.serverLoader.Start(1);
-                    ModBase.RunInNewThread(ModMain.TryClearTaskTemp, "TryClearTaskTemp", ThreadPriority.BelowNormal);
+                    Basics.RunInNewThread(ModMain.TryClearTaskTemp, "TryClearTaskTemp", ThreadPriority.BelowNormal);
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(
+                    LauncherLog.Log(
                         ex,
                         "初始化加载池运行失败",
-                        ModBase.LogLevel.Feedback,
+                        LauncherLogLevel.Feedback,
                         userSummary: Lang.Text("Main.Error.OperationFailed"));
                 }
 
@@ -294,15 +296,15 @@ public partial class FormMain
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     "初始弹窗提示运行失败",
-                    ModBase.LogLevel.Feedback,
+                    LauncherLogLevel.Feedback,
                     userSummary: Lang.Text("Main.Error.OperationFailed"));
             }
         }, "Start Loader", ThreadPriority.BelowNormal);
 
-        ModBase.Log($"[Start] 第三阶段加载用时：{TimeUtils.GetTimeTick() - ModBase.applicationStartTick} ms");
+        LauncherLog.Log($"[Start] 第三阶段加载用时：{TimeUtils.GetTimeTick() - LauncherRuntime.ApplicationStartTick} ms");
     }
 
     // 根据打开次数触发的事件
@@ -314,23 +316,23 @@ public partial class FormMain
     // 升级与降级事件
     private void UpgradeSub(int lastVersionCode)
     {
-        ModBase.Log("[Start] 版本号从 " + lastVersionCode + " 升高到 " + ModBase.VersionCode);
-        States.System.LastVersion = ModBase.VersionCode;
+        LauncherLog.Log("[Start] 版本号从 " + lastVersionCode + " 升高到 " + LauncherEnvironment.VersionCode);
+        States.System.LastVersion = LauncherEnvironment.VersionCode;
         // 检查有记录的最高版本号
         int lowerVersionCode;
 #if BETA
         lowerVersionCode = States.System.LastBetaVersion;
-        if (lowerVersionCode < ModBase.versionCode)
+        if (lowerVersionCode < LauncherEnvironment.VersionCode)
         {
-            States.System.LastBetaVersion = ModBase.versionCode;
-            ModBase.Log($"[Start] 最高版本号从 {lowerVersionCode} 升高到 {ModBase.versionCode}");
+            States.System.LastBetaVersion = LauncherEnvironment.VersionCode;
+            LauncherLog.Log($"[Start] 最高版本号从 {lowerVersionCode} 升高到 {LauncherEnvironment.VersionCode}");
         }
 #else
         lowerVersionCode = States.System.LastAlphaVersion;
-        if (lowerVersionCode < ModBase.VersionCode)
+        if (lowerVersionCode < LauncherEnvironment.VersionCode)
         {
-            States.System.LastAlphaVersion = ModBase.VersionCode;
-            ModBase.Log($"[Start] 最高版本号从 {lowerVersionCode} 升高到 {ModBase.VersionCode}");
+            States.System.LastAlphaVersion = LauncherEnvironment.VersionCode;
+            LauncherLog.Log($"[Start] 最高版本号从 {lowerVersionCode} 升高到 {LauncherEnvironment.VersionCode}");
         }
 #endif
         // 被移除的窗口设置选项 (Commit 3161488 2026/1/23)
@@ -342,15 +344,15 @@ public partial class FormMain
         // 输出更新日志
         if (lastVersionCode <= 0)
             return;
-        if (lowerVersionCode >= ModBase.VersionCode)
+        if (lowerVersionCode >= LauncherEnvironment.VersionCode)
             return;
         ShowUpdateLog();
     }
 
     private void DowngradeSub(int lastVersionCode)
     {
-        ModBase.Log("[Start] 版本号从 " + lastVersionCode + " 降低到 " + ModBase.VersionCode);
-        States.System.LastVersion = ModBase.VersionCode;
+        LauncherLog.Log("[Start] 版本号从 " + lastVersionCode + " 降低到 " + LauncherEnvironment.VersionCode);
+        States.System.LastVersion = LauncherEnvironment.VersionCode;
     }
 
     #endregion
@@ -499,9 +501,9 @@ public partial class FormMain
         {
             if (ModMain.MyMsgBox(Lang.Text("Main.Exit.HasDownloadingTask"), Lang.Text("Common.Dialog.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 1)
                 // 强行结束下载任务
-                ModBase.RunInNewThread(() =>
+                Basics.RunInNewThread(() =>
                 {
-                    ModBase.Log("[System] 正在强行停止任务");
+                    LauncherLog.Log("[System] 正在强行停止任务");
                     foreach (var Task in ModLoader.loaderTaskbar.ToList())
                         Task.Abort();
                 }, "强行停止下载任务");
@@ -514,7 +516,7 @@ public partial class FormMain
         // 存储上次使用的档案编号
         ModProfile.SaveProfile();
         // 关闭
-        ModBase.RunInUiWait(() =>
+        UiThread.Invoke(() =>
         {
             // 清理视频背景
             VideoBack.Stop();
@@ -559,36 +561,37 @@ public partial class FormMain
                 EndProgramForce(force: false, isUpdating: isUpdating);
             }
 
-            ModBase.Log("[System] 收到关闭指令");
+            LauncherLog.Log("[System] 收到关闭指令");
         });
     }
 
     private static bool isLogShown;
 
-    public static void EndProgramForce(ModBase.ProcessReturnValues returnCode = ModBase.ProcessReturnValues.Success,
+    public static void EndProgramForce(LauncherExitCode returnCode = LauncherExitCode.Success,
         bool force = true, bool isUpdating = false)
     {
         // On Error Resume Next
         // 关闭联机大厅
         // Await LobbyController.CloseAsync().ConfigureAwait(False)
-        ModBase.isProgramEnded = true;
+        LauncherRuntime.IsProgramEnded = true;
         ModAnimation.AniControlEnabled += 1;
         if (UpdateManager.isUpdateWaitingRestart && !isUpdating)
             UpdateManager.UpdateRestart(false, false);
-        if (returnCode == ModBase.ProcessReturnValues.Exception)
+        if (returnCode == LauncherExitCode.Exception)
         {
             if (!isLogShown)
             {
-                ModBase.FeedbackInfo();
-                ModBase.Log("请在 https://github.com/PCL-Community/PCL2-CE/issues 提交错误报告，以便于社区解决此问题！（这也有可能是原版 PCL 的问题）");
+                LauncherFeedbackService.FeedbackInfo();
+                LauncherLog.Log(
+                    "请在 https://github.com/PCL-Community/PCL2-CE/issues 提交错误报告，以便于社区解决此问题！（这也有可能是原版 PCL 的问题）");
                 isLogShown = true;
-                ModBase.ShellOnly(LogWrapper.CurrentLogger.CurrentLogFiles.Last());
+                LauncherProcess.ShellOnly(LogWrapper.CurrentLogger.CurrentLogFiles.Last());
             }
 
             Thread.Sleep(500); // 防止 PCL 在记事本打开前就被掐掉
         }
 
-        ModBase.Log("[System] 程序已退出，返回值：" + ModBase.GetStringFromEnum(returnCode));
+        LauncherLog.Log("[System] 程序已退出，返回值：" + LauncherText.GetStringFromEnum(returnCode));
         // If ReturnCode <> ProcessReturnValues.Success Then Environment.Exit(ReturnCode)
         // Process.GetCurrentProcess.Kill()
         Lifecycle.Shutdown((int)returnCode, force);
@@ -662,7 +665,7 @@ public partial class FormMain
 
     private void BtnTitleHelp_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://www.bilibili.com/video/BV1uT4y1P7CX");
+        LauncherProcess.OpenWebsite("https://www.bilibili.com/video/BV1uT4y1P7CX");
     }
 
     #endregion
@@ -848,10 +851,10 @@ public partial class FormMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "切回窗口时出错",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
@@ -891,14 +894,14 @@ public partial class FormMain
 
             _HandleDrag_PrevData = e.Data;
             _HandleDrag_PrevEffects = e.Effects;
-            ModBase.Log("[System] 设置拖放类型：" + ModBase.GetStringFromEnum(e.Effects));
+            LauncherLog.Log("[System] 设置拖放类型：" + LauncherText.GetStringFromEnum(e.Effects));
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "处理拖放时出错",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
@@ -913,7 +916,7 @@ public partial class FormMain
                 try
                 {
                     var str = (string)e.Data.GetData(DataFormats.Text);
-                    ModBase.Log("[System] 接受文本拖拽：" + str);
+                    LauncherLog.Log("[System] 接受文本拖拽：" + str);
                     if (str.StartsWithF("authlib-injector:yggdrasil-server:"))
                     {
                         // Authlib 拖拽
@@ -921,7 +924,7 @@ public partial class FormMain
                         e.Effects = DragDropEffects.Copy;
                         var authlibServer =
                             WebUtility.UrlDecode(str.Substring("authlib-injector:yggdrasil-server:".Length));
-                        ModBase.Log("[System] Authlib 拖拽：" + authlibServer);
+                        LauncherLog.Log("[System] Authlib 拖拽：" + authlibServer);
                         if (!new HttpValidator().Validate(authlibServer).IsValid)
                         {
                             HintService.Hint(Lang.Text("Main.FileDrag.AuthlibInvalid", authlibServer), HintType.Error);
@@ -932,7 +935,7 @@ public partial class FormMain
                                 Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 2)
                             return;
                         ModProfile.selectedProfile = null;
-                        ModBase.RunInUi(() =>
+                        UiThread.Post(() =>
                         {
                             PageLoginAuth.draggedAuthServer = authlibServer;
                             ModMain.frmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Auth);
@@ -952,7 +955,7 @@ public partial class FormMain
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "无法接取文本拖拽事件", ModBase.LogLevel.Developer);
+                    LauncherLog.Log(ex, "无法接取文本拖拽事件", LauncherLogLevel.Developer);
                 }
             }
             else if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -972,21 +975,22 @@ public partial class FormMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "接取拖拽事件失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
 
     private void FileDrag(IEnumerable<string> filePathList)
     {
-        ModBase.RunInNewThread(() =>
+        Basics.RunInNewThread(() =>
         {
             var filePath = filePathList.First();
-            ModBase.Log("[System] 接受文件拖拽：" + filePath + (filePathList.Any() ? $" 等 {filePathList.Count()} 个文件" : ""),
-                ModBase.LogLevel.Developer);
+            LauncherLog.Log(
+                "[System] 接受文件拖拽：" + filePath + (filePathList.Any() ? $" 等 {filePathList.Count()} 个文件" : ""),
+                LauncherLogLevel.Developer);
             // 基础检查
             if (Directory.Exists(filePathList.First()) && !File.Exists(filePathList.First()))
             {
@@ -1024,13 +1028,13 @@ public partial class FormMain
             var extension = filePath.AfterLast(".").ToLower();
             if (extension == "xaml")
             {
-                ModBase.Log("[System] 文件后缀为 XAML，作为主页加载");
-                if (File.Exists(ModBase.exePath + @"PCL\Custom.xaml"))
+                LauncherLog.Log("[System] 文件后缀为 XAML，作为主页加载");
+                if (File.Exists(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Custom.xaml"))
                     if (ModMain.MyMsgBox(Lang.Text("Main.FileDrag.HomepageExists"), Lang.Text("Main.FileDrag.OverwriteTitle"), Lang.Text("Common.Action.Overwrite"), Lang.Text("Common.Action.Cancel")) == 2)
                         return;
 
-                ModBase.CopyFile(filePath, ModBase.exePath + @"PCL\Custom.xaml");
-                ModBase.RunInUi(() =>
+                LegacyFileFacade.CopyFile(filePath, LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Custom.xaml");
+                UiThread.Post(() =>
                 {
                     Config.Preference.Homepage.Type = 1;
                     ModMain.frmLaunchRight.ForceRefresh();
@@ -1045,7 +1049,7 @@ public partial class FormMain
             // 安装投影文件
             if (new[] { "litematic", "nbt", "schematic", "schem" }.Contains(extension))
             {
-                ModBase.Log($"[System] 文件为 {extension} 格式，尝试作为原理图安装");
+                LauncherLog.Log($"[System] 文件为 {extension} 格式，尝试作为原理图安装");
                 // 获取当前文件夹路径（如果在资源管理页面）
                 string targetFolderPath = null;
                 if (pageCurrent == PageType.InstanceSetup && PageCurrentSub == PageSubType.VersionSchematic &&
@@ -1063,7 +1067,7 @@ public partial class FormMain
                     case PageSubType.VersionWorld:
                     {
                         var destFolder = PageInstanceLeft.McInstance.PathIndie + @"saves\" +
-                                         ModBase.GetFileNameWithoutExtentionFromPath(filePath);
+                                         LegacyFileFacade.GetFileNameWithoutExtensionFromPath(filePath);
                         var destLevelDat = Path.Combine(destFolder, "level.dat");
                         if (Directory.Exists(destFolder))
                         {
@@ -1071,10 +1075,11 @@ public partial class FormMain
                             return;
                         }
 
-                        var extractFolder = Path.Combine(ModBase.pathTemp, "Cache", "WorldImport", ModBase.GetUuid().ToString());
+                        var extractFolder = Path.Combine(LauncherPaths.TempWithSlash, "Cache", "WorldImport",
+                            LauncherRuntime.GetUuid().ToString());
                         try
                         {
-                            ModBase.ExtractFile(filePath, extractFolder);
+                            LegacyFileFacade.ExtractFile(filePath, extractFolder);
                             var saveRoot = SaveImportHelper.GetSaveRootDirectory(extractFolder);
                             if (saveRoot is null)
                             {
@@ -1082,11 +1087,11 @@ public partial class FormMain
                                 return;
                             }
 
-                            ModBase.CopyDirectory(saveRoot, destFolder);
+                            LegacyFileFacade.CopyDirectory(saveRoot, destFolder);
                             if (!File.Exists(destLevelDat))
                             {
                                 if (Directory.Exists(destFolder))
-                                    ModBase.DeleteDirectory(destFolder, true);
+                                    LegacyFileFacade.DeleteDirectory(destFolder, true);
                                 HintService.Hint(Lang.Text("Main.FileDrag.SaveInvalid"), HintType.Error);
                                 return;
                             }
@@ -1094,56 +1099,62 @@ public partial class FormMain
                         catch (Exception ex)
                         {
                             if (Directory.Exists(destFolder))
-                                ModBase.DeleteDirectory(destFolder, true);
-                            ModBase.Log(
+                                LegacyFileFacade.DeleteDirectory(destFolder, true);
+                            LauncherLog.Log(
                                 ex,
                                 Lang.Text("Main.FileDrag.SaveImportFailed"),
-                                ModBase.LogLevel.Hint,
+                                LauncherLogLevel.Hint,
                                 userSummary: Lang.Text("Main.FileDrag.SaveImportFailed"));
                             return;
                         }
                         finally
                         {
                             if (Directory.Exists(extractFolder))
-                                ModBase.DeleteDirectory(extractFolder, true);
+                                LegacyFileFacade.DeleteDirectory(extractFolder, true);
                         }
 
-                        HintService.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameWithoutExtentionFromPath(filePath)),
+                        HintService.Hint(
+                            Lang.Text("Main.FileDrag.Imported",
+                                LegacyFileFacade.GetFileNameWithoutExtensionFromPath(filePath)),
                             HintType.Success);
                         if (ModMain.frmInstanceSaves is not null)
-                            ModBase.RunInUi(() => ModMain.frmInstanceSaves.Reload());
+                            UiThread.Post(() => ModMain.frmInstanceSaves.Reload());
                         return;
                     }
                     case PageSubType.VersionResourcePack:
                     {
                         var destFile = PageInstanceLeft.McInstance.PathIndie + @"resourcepacks\" +
-                                       ModBase.GetFileNameFromPath(filePath);
+                                       LegacyFileFacade.GetFileNameFromPath(filePath);
                         if (File.Exists(destFile))
                         {
                             HintService.Hint(Lang.Text("Main.FileDrag.SameFileExists", destFile), HintType.Error);
                             return;
                         }
 
-                        ModBase.CopyFile(filePath, destFile);
-                        HintService.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameFromPath(filePath)), HintType.Success);
+                        LegacyFileFacade.CopyFile(filePath, destFile);
+                        HintService.Hint(
+                            Lang.Text("Main.FileDrag.Imported", LegacyFileFacade.GetFileNameFromPath(filePath)),
+                            HintType.Success);
                         if (ModMain.frmInstanceResourcePack is not null)
-                            ModBase.RunInUi(() => ModMain.frmInstanceResourcePack.ReloadCompFileList());
+                            UiThread.Post(() => ModMain.frmInstanceResourcePack.ReloadCompFileList());
                         return;
                     }
                     case PageSubType.VersionShader:
                     {
                         var destFile = PageInstanceLeft.McInstance.PathIndie + @"shaderpacks\" +
-                                       ModBase.GetFileNameFromPath(filePath);
+                                       LegacyFileFacade.GetFileNameFromPath(filePath);
                         if (File.Exists(destFile))
                         {
                             HintService.Hint(Lang.Text("Main.FileDrag.SameFileExists", destFile), HintType.Error);
                             return;
                         }
 
-                        ModBase.CopyFile(filePath, destFile);
-                        HintService.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameFromPath(filePath)), HintType.Success);
+                        LegacyFileFacade.CopyFile(filePath, destFile);
+                        HintService.Hint(
+                            Lang.Text("Main.FileDrag.Imported", LegacyFileFacade.GetFileNameFromPath(filePath)),
+                            HintType.Success);
                         if (ModMain.frmInstanceShader is not null)
-                            ModBase.RunInUi(() => ModMain.frmInstanceShader.ReloadCompFileList());
+                            UiThread.Post(() => ModMain.frmInstanceShader.ReloadCompFileList());
                         return;
                     }
                 }
@@ -1154,7 +1165,7 @@ public partial class FormMain
                 PageCurrentSub == PageSubType.VersionSchematic)
             {
                 var destFile = PageInstanceLeft.McInstance.PathIndie + @"schematics\" +
-                               ModBase.GetFileNameFromPath(filePath);
+                               LegacyFileFacade.GetFileNameFromPath(filePath);
                 if (File.Exists(destFile))
                 {
                     HintService.Hint(Lang.Text("Main.FileDrag.SameFileExists", destFile), HintType.Error);
@@ -1162,10 +1173,11 @@ public partial class FormMain
                 }
 
                 Directory.CreateDirectory(PageInstanceLeft.McInstance.PathIndie + @"schematics\");
-                ModBase.CopyFile(filePath, destFile);
-                HintService.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameFromPath(filePath)), HintType.Success);
+                LegacyFileFacade.CopyFile(filePath, destFile);
+                HintService.Hint(Lang.Text("Main.FileDrag.Imported", LegacyFileFacade.GetFileNameFromPath(filePath)),
+                    HintType.Success);
                 if (ModMain.frmInstanceSchematic is not null)
-                    ModBase.RunInUi(() => ModMain.frmInstanceSchematic.ReloadCompFileList());
+                    UiThread.Post(() => ModMain.frmInstanceSchematic.ReloadCompFileList());
                 return;
             }
 
@@ -1173,13 +1185,13 @@ public partial class FormMain
             if (new[] { "zip", "rar", "mrpack" }.Any(t =>
                     (t ?? "") == (extension ?? ""))) // 部分压缩包是 zip 格式但后缀为 rar，总之试一试
             {
-                ModBase.Log("[System] 文件为压缩包，尝试作为整合包安装");
+                LauncherLog.Log("[System] 文件为压缩包，尝试作为整合包安装");
                 try
                 {
                     ModModpack.ModpackInstall(filePath);
                     return;
                 }
-                catch (ModBase.CancelledException ex)
+                catch (CancelledException ex)
                 {
                     return; // 用户主动取消
                 }
@@ -1194,8 +1206,8 @@ public partial class FormMain
             {
                 try
                 {
-                    ModBase.Log("[System] 尝试进行错误报告分析");
-                    var analyzer = new CrashAnalyzer(ModBase.GetUuid());
+                    LauncherLog.Log("[System] 尝试进行错误报告分析");
+                    var analyzer = new CrashAnalyzer(LauncherRuntime.GetUuid());
                     analyzer.Import(filePath);
                     if (!analyzer.Prepare())
                         break;
@@ -1205,10 +1217,10 @@ public partial class FormMain
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(
+                    LauncherLog.Log(
                         ex,
                         "自主错误报告分析失败",
-                        ModBase.LogLevel.Feedback,
+                        LauncherLogLevel.Feedback,
                         userSummary: Lang.Text("Main.Error.OperationFailed"));
                 }
             } while (false);
@@ -1226,23 +1238,23 @@ public partial class FormMain
         if (msg == 30)
         {
             var nowDate = DateTime.Now;
-            if (nowDate.Date == ModBase.applicationOpenTime.Date)
+            if (nowDate.Date == LauncherRuntime.ApplicationOpenTime.Date)
             {
-                ModBase.Log("[System] 系统时间微调为：" + nowDate.ToLongDateString() + " " + nowDate.ToLongTimeString());
+                LauncherLog.Log("[System] 系统时间微调为：" + nowDate.ToLongDateString() + " " + nowDate.ToLongTimeString());
                 isSystemTimeChanged = false;
             }
             else
             {
-                ModBase.Log("[System] 系统时间修改为：" + nowDate.ToLongDateString() + " " + nowDate.ToLongTimeString());
+                LauncherLog.Log("[System] 系统时间修改为：" + nowDate.ToLongDateString() + " " + nowDate.ToLongTimeString());
                 isSystemTimeChanged = true;
             }
         }
         else if (msg == 400 * 16 + 2)
         {
-            ModBase.Log("[System] 收到置顶信息：" + hwnd.ToInt64());
+            LauncherLog.Log("[System] 收到置顶信息：" + hwnd.ToInt64());
             if (!isWindowLoadFinished)
             {
-                ModBase.Log("[System] 窗口尚未加载完成，忽略置顶请求");
+                LauncherLog.Log("[System] 窗口尚未加载完成，忽略置顶请求");
                 return nint.Zero;
             }
 
@@ -1253,7 +1265,7 @@ public partial class FormMain
         {
             if (Marshal.PtrToStringAuto(lParam) == "ImmersiveColorSet")
             {
-                ModBase.Log($"[System] 系统主题更改，深色模式：{SystemTheme.IsSystemInDarkMode()}");
+                LauncherLog.Log($"[System] 系统主题更改，深色模式：{SystemTheme.IsSystemInDarkMode()}");
                 if (Config.Preference.Theme.ColorMode == ColorMode.System &&
                     (ThemeManager.IsDarkMode != SystemTheme.IsSystemInDarkMode())) ThemeService.RefreshColorMode();
             }
@@ -1277,7 +1289,7 @@ public partial class FormMain
                 Left -= 10000d;
                 ShowInTaskbar = false;
                 Visibility = Visibility.Hidden;
-                ModBase.Log("[System] 窗口已隐藏，位置：(" + Left + "," + Top + ")");
+                LauncherLog.Log("[System] 窗口已隐藏，位置：(" + Left + "," + Top + ")");
             }
             else
             {
@@ -1302,7 +1314,7 @@ public partial class FormMain
     /// </summary>
     public void ShowWindowToTop()
     {
-        ModBase.RunInUi(() =>
+        UiThread.Post(() =>
         {
             // 这一坨乱七八糟的，别改，改了指不定就炸了，自己电脑还复现不出来
             Visibility = Visibility.Visible;
@@ -1311,9 +1323,9 @@ public partial class FormMain
             Hidden = false;
             Topmost = true; // 偶尔 SetForegroundWindow 失效
             Topmost = false;
-            ModMain.SetForegroundWindow(ModBase.frmHandle);
+            ModMain.SetForegroundWindow(LauncherEnvironment.MainWindowHandle);
             Focus();
-            ModBase.Log($"[System] 窗口已置顶，位置：({Left}, {Top}), {Width} x {Height}");
+            LauncherLog.Log($"[System] 窗口已置顶，位置：({Left}, {Top}), {Width} x {Height}");
         });
     }
 
@@ -1492,7 +1504,8 @@ public partial class FormMain
             }
             case PageType.VersionSaves:
             {
-                return Lang.Text("Main.Title.SaveManagement", ModBase.GetFolderNameFromPath(stack.additional.Value.SavePath));
+                return Lang.Text("Main.Title.SaveManagement",
+                    LegacyFileFacade.GetFolderNameFromPath(stack.additional.Value.SavePath));
             }
 
             default:
@@ -1663,7 +1676,7 @@ public partial class FormMain
                         ModMain.frmDownloadLeft = new PageDownloadLeft();
                     foreach (var item in ModMain.frmDownloadLeft.PanItem.Children)
                         if (item is MyListItem listItem &&
-                            ModBase.Val(listItem.Tag) == (double)subType)
+                            LauncherText.Val(listItem.Tag) == (double)subType)
                         {
                             listItem.SetChecked(true, true, stack == pageCurrent);
                             break;
@@ -1677,7 +1690,7 @@ public partial class FormMain
                         ModMain.frmSetupLeft = new PageSetupLeft();
                     foreach (var item in ModMain.frmSetupLeft.PanItem.Children)
                         if (item is MyListItem listItem &&
-                            ModBase.Val(listItem.Tag) == (double)subType)
+                            LauncherText.Val(listItem.Tag) == (double)subType)
                         {
                             listItem.SetChecked(true, true, stack == pageCurrent);
                             break;
@@ -1700,7 +1713,7 @@ public partial class FormMain
                         ModMain.frmInstanceLeft = new PageInstanceLeft();
                     foreach (var item in ModMain.frmInstanceLeft.PanItem.Children)
                         if (item is MyListItem listItem &&
-                            ModBase.Val(listItem.Tag) == (double)subType)
+                            LauncherText.Val(listItem.Tag) == (double)subType)
                         {
                             listItem.SetChecked(true, true, stack == pageCurrent);
                             break;
@@ -1714,7 +1727,7 @@ public partial class FormMain
                         ModMain.frmInstanceSavesLeft = new PageInstanceSavesLeft();
                     foreach (var item in ModMain.frmInstanceSavesLeft.PanItem.Children)
                         if (item is MyListItem listItem &&
-                            ModBase.Val(listItem.Tag) == (double)subType)
+                            LauncherText.Val(listItem.Tag) == (double)subType)
                         {
                             listItem.SetChecked(true, true, stack == pageCurrent);
                             break;
@@ -1913,14 +1926,14 @@ public partial class FormMain
 
             #endregion
 
-            ModBase.Log("[Control] 切换主要页面：" + ModBase.GetStringFromEnum(stack) + ", " + (int)subType);
+            LauncherLog.Log("[Control] 切换主要页面：" + LauncherText.GetStringFromEnum(stack) + ", " + (int)subType);
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "切换主要页面失败（ID " + (int)pageCurrent.page + "）",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
         finally
@@ -1956,7 +1969,7 @@ public partial class FormMain
                 pageLeft.Opacity = 0d;
                 PanMainLeft.Background = null;
                 ModAnimation.AniControlEnabled -= 1;
-                ModBase.RunInUi(() => PanMainLeft_Resize(PanMainLeft.ActualWidth), true);
+                UiThread.Post(() => PanMainLeft_Resize(PanMainLeft.ActualWidth), true);
             }, 110),
             ModAnimation.AaCode(() =>
             {
@@ -1976,7 +1989,7 @@ public partial class FormMain
                 pageRight.Opacity = 0d;
                 PanMainRight.Background = null;
                 ModAnimation.AniControlEnabled -= 1;
-                ModBase.RunInUi(() => BtnExtraBack.ShowRefresh(), true);
+                UiThread.Post(() => BtnExtraBack.ShowRefresh(), true);
             }, 110),
             ModAnimation.AaCode(() =>
             {
@@ -2091,7 +2104,7 @@ public partial class FormMain
     public void DragStop()
     {
         // 存在其他线程调用的可能性，因此需要确保在 UI 线程运行
-        ModBase.RunInUi(() =>
+        UiThread.Post(() =>
         {
             if (ModMain.dragControl is null)
                 return;
@@ -2174,10 +2187,10 @@ public partial class FormMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "强制关闭所有 Minecraft 失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
@@ -2209,9 +2222,9 @@ public partial class FormMain
         if (realScroll is not null)
             realScroll.PerformVerticalOffsetDelta(-realScroll.VerticalOffset);
         else
-            ModBase.Log(
+            LauncherLog.Log(
                 "[UI] 无法返回顶部，未找到合适的 RealScroll",
-                ModBase.LogLevel.Hint,
+                LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Main.Error.ScrollToTopFailed"));
     }
 

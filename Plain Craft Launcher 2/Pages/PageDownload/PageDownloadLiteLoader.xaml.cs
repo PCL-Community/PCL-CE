@@ -82,10 +82,10 @@ public partial class PageDownloadLiteLoader
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "可视化 LiteLoader 版本列表出错",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
     }
@@ -97,6 +97,6 @@ public partial class PageDownloadLiteLoader
 
     private void BtnWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://www.liteloader.com");
+        LauncherProcess.OpenWebsite("https://www.liteloader.com");
     }
 }

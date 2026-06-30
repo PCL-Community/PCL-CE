@@ -80,7 +80,7 @@ public partial class PageInstanceExport : IRefreshable
 
     public void RefreshAll()
     {
-        ModBase.Log("[Export] 刷新导出页面");
+        LauncherLog.Log("[Export] 刷新导出页面");
         HintOptiFine.Visibility =
             PageInstanceLeft.McInstance.Info.HasOptiFine ? Visibility.Visible : Visibility.Collapsed;
         currentVersion = PageInstanceLeft.McInstance.PathInstance;
@@ -157,7 +157,7 @@ public partial class PageInstanceExport : IRefreshable
                         Tag = new ExportOption
                         {
                             Title = File.Name, DefaultChecked = true,
-                            Rules = ModBase.EscapeLikePattern($"{Folder}/{File.Name}")
+                            Rules = LauncherText.EscapeLikePattern($"{Folder}/{File.Name}")
                         }
                     });
                     if (Folder == "shaderpacks") // 处理光影包的配置文件
@@ -172,7 +172,7 @@ public partial class PageInstanceExport : IRefreshable
                                 {
                                     Title = $"{shaderConfig.Name}", DefaultChecked = true,
                                     Description = Lang.Text("Instance.Export.Config.ShaderConfigSuffix"),
-                                    Rules = ModBase.EscapeLikePattern($"{Folder}/{shaderConfig.Name}")
+                                    Rules = LauncherText.EscapeLikePattern($"{Folder}/{shaderConfig.Name}")
                                 }
                             });
                     }
@@ -190,7 +190,7 @@ public partial class PageInstanceExport : IRefreshable
                         Tag = new ExportOption
                         {
                             Title = SubFolder.Name, DefaultChecked = true,
-                            Rules = ModBase.EscapeLikePattern($"{Folder}/{SubFolder.Name}/")
+                            Rules = LauncherText.EscapeLikePattern($"{Folder}/{SubFolder.Name}/")
                         }
                     };
                     if (ReferenceEquals(panel, PanOptionsSaves))
@@ -209,7 +209,7 @@ public partial class PageInstanceExport : IRefreshable
                                 {
                                     Title = $"{shaderConfig.Name}", DefaultChecked = true,
                                     Description = Lang.Text("Instance.Export.Config.ShaderConfigSuffix"),
-                                    Rules = ModBase.EscapeLikePattern($"{Folder}/{shaderConfig.Name}")
+                                    Rules = LauncherText.EscapeLikePattern($"{Folder}/{shaderConfig.Name}")
                                 }
                             });
                     }
@@ -254,7 +254,7 @@ public partial class PageInstanceExport : IRefreshable
                 .Select(d => $@"{SubFolder.Name}\{d.Name}\"));
         }
 
-        ModBase.Log($"[Export] 共发现 {allEntries.Count} 个可行的二级文件/文件夹");
+        LauncherLog.Log($"[Export] 共发现 {allEntries.Count} 个可行的二级文件/文件夹");
 
         // 确认选项是否应该被显示
         bool IsVisible(ExportOption targetOption)
@@ -280,10 +280,10 @@ public partial class PageInstanceExport : IRefreshable
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(
+                    LauncherLog.Log(
                         ex,
                         $"错误的规则：{rule}",
-                        ModBase.LogLevel.Hint,
+                        LauncherLogLevel.Hint,
                         userSummary: Lang.Text("Instance.Export.Error.OperationFailed"));
                     return false;
                 }
@@ -542,16 +542,16 @@ public partial class PageInstanceExport : IRefreshable
             configLines.Add(sperator);
             configLines.AddRange(GetExtraFileLines());
             // 结束
-            ModBase.WriteFile(configPath, configLines.Join("\r\n"));
+            LegacyFileFacade.WriteFile(configPath, configLines.Join("\r\n"));
             HintService.Hint(Lang.Text("Instance.Export.SaveSuccess", configPath), HintType.Success);
-            ModBase.OpenExplorer(configPath);
+            LauncherProcess.OpenExplorer(configPath);
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "保存配置失败",
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Instance.Export.Error.OperationFailed"));
         }
     }
@@ -569,7 +569,7 @@ public partial class PageInstanceExport : IRefreshable
             // 保存配置文件路径到缓存
             States.System.ExportConfigPath = configPath;
 
-            var fileContent = ModBase.ReadFile(configPath);
+            var fileContent = LegacyFileFacade.ReadText(configPath);
             var segments = fileContent.Split(sperator);
 
             if (segments.Length == 0)
@@ -620,10 +620,10 @@ public partial class PageInstanceExport : IRefreshable
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 $"读取配置文件失败：{configPath}",
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Instance.Export.Error.OperationFailed"));
         }
     }
@@ -646,10 +646,10 @@ public partial class PageInstanceExport : IRefreshable
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "选择配置文件失败",
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Instance.Export.Error.OperationFailed"));
         }
     }
@@ -735,13 +735,13 @@ public partial class PageInstanceExport : IRefreshable
             !configPackPath.EndsWithF("/"))
             try
             {
-                Directory.CreateDirectory(ModBase.GetPathFromFullPath(configPackPath));
+                Directory.CreateDirectory(LegacyFileFacade.GetPathFromFullPath(configPackPath));
                 packPath = configPackPath;
-                ModBase.Log($"[Export] 使用配置文件中指定的导出路径：{configPackPath}");
+                LauncherLog.Log($"[Export] 使用配置文件中指定的导出路径：{configPackPath}");
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"无法使用配置文件中指定的导出路径（{configPackPath}）");
+                LauncherLog.Log(ex, $"无法使用配置文件中指定的导出路径（{configPackPath}）");
                 if (ModMain.MyMsgBox(
                         Lang.Text("Instance.Export.PackPathInvalid.WithDetail", configPackPath, ex.ToString()),
                         Lang.Text("Instance.Export.PackPathInvalid.Title"), Lang.Text("Common.Action.Confirm"),
@@ -759,7 +759,7 @@ public partial class PageInstanceExport : IRefreshable
             packPath = SystemDialogs.SelectSaveFile(Lang.Text("Instance.Export.SelectSaveLocation"),
                 packName + (string.IsNullOrEmpty(TextExportVersion.Text) ? "" : " " + TextExportVersion.Text),
                 extensions.Join("|"));
-            ModBase.Log($"[Export] 手动指定的导出路径：{packPath}");
+            LauncherLog.Log($"[Export] 手动指定的导出路径：{packPath}");
         }
 
         if (string.IsNullOrEmpty(packPath))
@@ -776,7 +776,7 @@ public partial class PageInstanceExport : IRefreshable
         var includePCLCustom = (bool)(includePCL ? CheckOptionsPclCustom.Checked : (bool?)false);
         var allRules = StandardizeLines(GetAllRules(), true).ToList();
         var allExtraFiles = StandardizeLines(GetExtraFileLines(), false).ToList();
-        ModBase.Log($"[Export] 准备导出整合包，共有 {allRules.Count} 条规则，{allExtraFiles.Count} 条追加内容行");
+        LauncherLog.Log($"[Export] 准备导出整合包，共有 {allRules.Count} 条规则，{allExtraFiles.Count} 条追加内容行");
 
         // 构造步骤加载器
         var loaders = new List<ModLoader.LoaderBase>();
@@ -789,7 +789,7 @@ public partial class PageInstanceExport : IRefreshable
                 loader =>
                 {
                     UpdateManager.DownloadLatestPCL(loader);
-                    ModBase.CopyFile(Path.Combine(ModBase.pathTemp, "CE-Latest.exe"),
+                    LegacyFileFacade.CopyFile(Path.Combine(LauncherPaths.TempWithSlash, "CE-Latest.exe"),
                         Path.Combine(cacheFolder, "Plain Craft Launcher.exe"));
                 })
             {
@@ -840,7 +840,7 @@ public partial class PageInstanceExport : IRefreshable
                     if (!shouldKeep)
                         continue;
                     var targetPath = Path.Combine(overridesFolder, relativePath);
-                    ModBase.CopyFile(Entry.FullName, targetPath);
+                    LegacyFileFacade.CopyFile(Entry.FullName, targetPath);
                     // 若为压缩包，考虑联网获取路径
                     if (checkHostedAssets &&
                         new[] { ".zip", ".rar", ".jar", ".disabled", ".old" }.Contains(Entry.Extension.ToLower()) &&
@@ -862,7 +862,7 @@ public partial class PageInstanceExport : IRefreshable
                 }
             };
             searchFolder(new DirectoryInfo(pathIndie));
-            ModBase.Log($"[Export] 复制 overrides 文件完成，有 {loader.output.Count} 个文件需要联网检查");
+            LauncherLog.Log($"[Export] 复制 overrides 文件完成，有 {loader.output.Count} 个文件需要联网检查");
             loader.Progress = 0.95d;
             // 复制追加内容到根目录
             var baseFolder = includePCL ? cacheFolder : Path.Combine(cacheFolder, "modpack");
@@ -870,13 +870,13 @@ public partial class PageInstanceExport : IRefreshable
                 if (Line.EndsWithF(@"\") || Line.EndsWithF("/"))
                 {
                     if (Directory.Exists(Line))
-                        ModBase.CopyDirectory(Line, Path.Combine(baseFolder, ModBase.GetFolderNameFromPath(Line)) + @"\");
+                        LegacyFileFacade.CopyDirectory(Line, Path.Combine(baseFolder, LegacyFileFacade.GetFolderNameFromPath(Line)) + @"\");
                     else
                         HintService.Hint(Lang.Text("Instance.Export.Config.FolderNotFound", Line), HintType.Error);
                 }
                 else if (File.Exists(Line))
                 {
-                    ModBase.CopyFile(Line, Path.Combine(baseFolder, ModBase.GetFileNameFromPath(Line)));
+                    LegacyFileFacade.CopyFile(Line, Path.Combine(baseFolder, LegacyFileFacade.GetFileNameFromPath(Line)));
                 }
                 else
                 {
@@ -885,26 +885,26 @@ public partial class PageInstanceExport : IRefreshable
 
             loader.Progress = 0.97d;
             // 复制 PCL 实例设置
-            ModBase.CopyDirectory(Path.Combine(mcInstance.PathInstance, "PCL"), Path.Combine(overridesFolder, "PCL"));
+            LegacyFileFacade.CopyDirectory(Path.Combine(mcInstance.PathInstance, "PCL"), Path.Combine(overridesFolder, "PCL"));
             #if RELEASE
                         // 复制 PCL 本体
-                        if (includePCL) ModBase.CopyFile(Basics.ExecutablePath, Path.Combine(cacheFolder, Basics.ExecutableName));
+                        if (includePCL) LegacyFileFacade.CopyFile(Basics.ExecutablePath, Path.Combine(cacheFolder, Basics.ExecutableName));
             #endif
             // 复制 PCL 个性化内容
             if (includePCLCustom)
             {
-                if (Directory.Exists(Path.Combine(ModBase.exePath, "PCL", "Pictures")))
-                    ModBase.CopyDirectory(Path.Combine(ModBase.exePath, "PCL", "Pictures"), Path.Combine(cacheFolder, "PCL", "Pictures"));
-                if (Directory.Exists(Path.Combine(ModBase.exePath, "PCL", "Musics")))
-                    ModBase.CopyDirectory(Path.Combine(ModBase.exePath, "PCL", "Musics"), Path.Combine(cacheFolder, "PCL", "Musics"));
-                if (File.Exists(Path.Combine(ModBase.exePath, "PCL", "Custom.xaml")))
-                    ModBase.CopyFile(Path.Combine(ModBase.exePath, "PCL", "Custom.xaml"), Path.Combine(cacheFolder, "PCL", "Custom.xaml"));
-                if (File.Exists(Path.Combine(ModBase.exePath, "PCL", "Setup.ini")))
-                    ModBase.CopyFile(Path.Combine(ModBase.exePath, "PCL", "Setup.ini"), Path.Combine(cacheFolder, "PCL", "Setup.ini"));
-                if (File.Exists(Path.Combine(ModBase.exePath, "PCL", "hints.txt")))
-                    ModBase.CopyFile(Path.Combine(ModBase.exePath, "PCL", "hints.txt"), Path.Combine(cacheFolder, "PCL", "hints.txt"));
-                if (File.Exists(Path.Combine(ModBase.exePath, "PCL", "Logo.png")))
-                    ModBase.CopyFile(Path.Combine(ModBase.exePath, "PCL", "Logo.png"), Path.Combine(cacheFolder, "PCL", "Logo.png"));
+                if (Directory.Exists(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Pictures")))
+                    LegacyFileFacade.CopyDirectory(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Pictures"), Path.Combine(cacheFolder, "PCL", "Pictures"));
+                if (Directory.Exists(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Musics")))
+                    LegacyFileFacade.CopyDirectory(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Musics"), Path.Combine(cacheFolder, "PCL", "Musics"));
+                if (File.Exists(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Custom.xaml")))
+                    LegacyFileFacade.CopyFile(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Custom.xaml"), Path.Combine(cacheFolder, "PCL", "Custom.xaml"));
+                if (File.Exists(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Setup.ini")))
+                    LegacyFileFacade.CopyFile(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Setup.ini"), Path.Combine(cacheFolder, "PCL", "Setup.ini"));
+                if (File.Exists(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "hints.txt")))
+                    LegacyFileFacade.CopyFile(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "hints.txt"), Path.Combine(cacheFolder, "PCL", "hints.txt"));
+                if (File.Exists(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Logo.png")))
+                    LegacyFileFacade.CopyFile(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Logo.png"), Path.Combine(cacheFolder, "PCL", "Logo.png"));
             }
         })
         {
@@ -923,13 +923,13 @@ public partial class PageInstanceExport : IRefreshable
                     loader.output = new Dictionary<ModLocalComp.LocalCompFile, List<string>>();
                     if (!checkHostedAssets)
                     {
-                        ModBase.Log("[Export] 要求跳过联网获取步骤");
+                        LauncherLog.Log("[Export] 要求跳过联网获取步骤");
                         return;
                     }
 
                     if (!loader.input.Any())
                     {
-                        ModBase.Log("[Export] 没有需要联网检查的文件，跳过联网获取步骤");
+                        LauncherLog.Log("[Export] 没有需要联网检查的文件，跳过联网获取步骤");
                         return;
                     }
 
@@ -940,12 +940,12 @@ public partial class PageInstanceExport : IRefreshable
                     // 从 Modrinth 获取信息
                     // 查找对应的文件
                     // 写入下载地址
-                    ModBase.RunInNewThread(() =>
+                    PCL.Core.App.Basics.RunInNewThread(() =>
                     {
                         try
                         {
                             var modrinthHashes = loader.input.Select(m => m.ModrinthHash);
-                            var modrinthRaw = (JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
+                            var modrinthRaw = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(ModDownload.DlModRequest(
                                 "https://api.modrinth.com/v2/version_files", "POST",
                                 $"{{\"hashes\": [\"{modrinthHashes.Join("\",\"")}\"], \"algorithm\": \"sha1\"}}",
                                 "application/json"));
@@ -958,11 +958,11 @@ public partial class PageInstanceExport : IRefreshable
                                     (string)modrinthRaw[ModFile.ModrinthHash]["files"][0]["url"]);
                             }
 
-                            ModBase.Log($"[Export] 从 Modrinth 获取到 {modrinthRaw.Count} 个本地资源项的对应信息");
+                            LauncherLog.Log($"[Export] 从 Modrinth 获取到 {modrinthRaw.Count} 个本地资源项的对应信息");
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, "从 Modrinth 获取本地 Mod 信息失败");
+                            LauncherLog.Log(ex, "从 Modrinth 获取本地 Mod 信息失败");
                             failedExceptions.Add(ex);
                         }
                         finally
@@ -975,13 +975,13 @@ public partial class PageInstanceExport : IRefreshable
                     // 从 CurseForge 获取信息
                     // 查找对应的文件
                     // 写入下载地址
-                    ModBase.RunInNewThread(() =>
+                    PCL.Core.App.Basics.RunInNewThread(() =>
                     {
                         try
                         {
                             if (modrinthUploadMode) return;
                             var curseForgeHashes = loader.input.Select(m => m.CurseForgeHash);
-                            var curseForgeRaw = (JsonNode)((JsonObject)ModBase.GetJson(
+                            var curseForgeRaw = (JsonNode)((JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(
                                 ModDownload.DlModRequest("https://api.curseforge.com/v1/fingerprints/432/", "POST",
                                     $"{{\"fingerprints\": [{curseForgeHashes.Join(",")}]}}",
                                     "application/json")))["data"][
@@ -998,11 +998,11 @@ public partial class PageInstanceExport : IRefreshable
                                     ModComp.CompFile.HandleCurseForgeDownloadUrls(file["downloadUrl"].ToString()));
                             }
 
-                            ModBase.Log($"[Export] 从 CurseForge 获取到 {curseForgeRaw.AsArray().Count} 个本地资源项的对应信息");
+                            LauncherLog.Log($"[Export] 从 CurseForge 获取到 {curseForgeRaw.AsArray().Count} 个本地资源项的对应信息");
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, "从 CurseForge 获取本地 Mod 信息失败");
+                            LauncherLog.Log(ex, "从 CurseForge 获取本地 Mod 信息失败");
                             failedExceptions.Add(ex);
                         }
                         finally
@@ -1063,7 +1063,7 @@ public partial class PageInstanceExport : IRefreshable
                             "hashes",
                             new JsonObject
                             {
-                                { "sha1", modFile.ModrinthHash }, { "sha512", ModBase.GetFileSHA512(modFile.path) }
+                                { "sha1", modFile.ModrinthHash }, { "sha512", LegacyFileFacade.GetFileSha512(modFile.path) }
                             }
                         },
                         { "downloads", new JsonArray(Pair.Value.OrderByDescending(u => u.Contains("modrinth.com")).Select(s => (JsonNode)s).ToArray()) },
@@ -1089,7 +1089,7 @@ public partial class PageInstanceExport : IRefreshable
                 File.WriteAllText(Path.Combine(cacheFolder, "modpack", "modrinth.index.json"),
                     resultJson.ToJsonString(new JsonSerializerOptions(JsonCompat.SerializerOptions) { WriteIndented = true }));
                 // 打包
-                Directory.CreateDirectory(ModBase.GetPathFromFullPath(packPath));
+                Directory.CreateDirectory(LegacyFileFacade.GetPathFromFullPath(packPath));
                 if (File.Exists(packPath))
                     File.Delete(packPath);
                 if (includePCL)
@@ -1111,7 +1111,7 @@ public partial class PageInstanceExport : IRefreshable
                 }
 
                 Directory.Delete(cacheFolder, true);
-                ModBase.OpenExplorer(packPath);
+                LauncherProcess.OpenExplorer(packPath);
             })
         {
             ProgressWeight = 6d

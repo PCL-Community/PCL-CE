@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -15,7 +15,7 @@ public class MyComboBoxItem : ComboBoxItem
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherRuntime.GetUuid();
 
     public MyComboBoxItem()
     {
@@ -95,6 +95,6 @@ public class MyComboBoxItem : ComboBoxItem
 
     private void MyComboBoxItem_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        ModBase.Log("[Control] 选择下拉列表项：" + ToString());
+        LauncherLog.Log($"[Control] 选择下拉列表项：{ToString()}");
     }
 }

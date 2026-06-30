@@ -98,7 +98,7 @@ public partial class PageInstanceLeft : IRefreshable
 
     private void RefreshButton_Click(object sender, EventArgs e) // 由边栏按钮匿名调用
     {
-        Refresh((FormMain.PageSubType)ModBase.Val(((MyIconButton)sender).Tag));
+        Refresh((FormMain.PageSubType)LauncherText.Val(((MyIconButton)sender).Tag));
     }
 
     public void Refresh(FormMain.PageSubType subType)
@@ -194,10 +194,10 @@ public partial class PageInstanceLeft : IRefreshable
     /// <summary>
     ///     勾选事件改变页面。
     /// </summary>
-    private void PageCheck(object sender, ModBase.RouteEventArgs e)
+    private void PageCheck(object sender, RouteEventArgs e)
     {
         if (sender is MyListItem item && item.Tag is not null)
-            PageChange((FormMain.PageSubType)ModBase.Val(item.Tag));
+            PageChange((FormMain.PageSubType)LauncherText.Val(item.Tag));
     }
 
     public object PageGet(FormMain.PageSubType id)
@@ -301,10 +301,10 @@ public partial class PageInstanceLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "切换分页面失败（ID " + (int)id + "）",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Error.OperationFailed"));
         }
         finally

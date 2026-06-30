@@ -86,16 +86,16 @@ public partial class PageDownloadOptiFine
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "可视化 OptiFine 版本列表出错",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
     }
 
     private void BtnWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://www.optifine.net/");
+        LauncherProcess.OpenWebsite("https://www.optifine.net/");
     }
 }

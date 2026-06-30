@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using PCL.Core.App.Localization;
@@ -28,13 +28,13 @@ public static class LauncherProcess
         {
             LauncherLog.Log(
                 ex,
-                "打开文件或程序失败：" + fileName,
-                ModBase.LogLevel.Msgbox,
+                $"打开文件或程序失败：{fileName}",
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("SystemDialog.File.OpenFailed.Message", fileName));
         }
     }
 
-    public static ModBase.ProcessReturnValues ShellAndGetExitCode(
+    public static LauncherExitCode ShellAndGetExitCode(
         string fileName,
         string arguments = "",
         int timeout = 1000000)
@@ -46,15 +46,15 @@ public static class LauncherProcess
                 .CaptureAsync(fileName, arguments, timeout)
                 .GetAwaiter()
                 .GetResult();
-            if (result.TimedOut) return ModBase.ProcessReturnValues.Timeout;
+            if (result.TimedOut) return LauncherExitCode.Timeout;
             return result.ExitCode.HasValue
-                ? (ModBase.ProcessReturnValues)result.ExitCode.Value
-                : ModBase.ProcessReturnValues.Fail;
+                ? (LauncherExitCode)result.ExitCode.Value
+                : LauncherExitCode.Fail;
         }
         catch (Exception ex)
         {
-            LauncherLog.Log(ex, $"执行命令失败：{fileName}", ModBase.LogLevel.Msgbox);
-            return ModBase.ProcessReturnValues.Fail;
+            LauncherLog.Log(ex, $"执行命令失败：{fileName}", LauncherLogLevel.Msgbox);
+            return LauncherExitCode.Fail;
         }
     }
 
@@ -115,7 +115,7 @@ public static class LauncherProcess
             LauncherLog.Log(
                 ex,
                 "打开资源管理器失败，请尝试关闭安全软件（如 360 安全卫士）",
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("SystemDialog.Folder.OpenFailed.Message", location));
         }
     }
@@ -142,7 +142,7 @@ public static class LauncherProcess
                     LauncherLog.Log(
                         finalEx,
                         "剪贴板被占用，文本复制失败",
-                        ModBase.LogLevel.Hint,
+                        LauncherLogLevel.Hint,
                         userSummary: Lang.Text("Common.Hint.CopyFailed"));
                 }
 
@@ -211,7 +211,7 @@ public static class LauncherProcess
         }
         catch (Exception ex)
         {
-            LauncherLog.Log(ex, "[System] 从剪切板粘贴文件失败", ModBase.LogLevel.Hint);
+            LauncherLog.Log(ex, "[System] 从剪切板粘贴文件失败", LauncherLogLevel.Hint);
         }
 
         return 0;

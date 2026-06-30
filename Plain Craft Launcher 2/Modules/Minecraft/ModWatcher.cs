@@ -4,8 +4,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Media;
 using PCL.Core.App;
-using PCL.Core.Logging;
 using PCL.Core.App.Localization;
+using PCL.Core.Logging;
 
 namespace PCL;
 
@@ -55,14 +55,14 @@ public static class ModWatcher
         ModMain.frmMain.BtnExtraShutdown.ShowRefresh();
         // 音乐播放
         if (Config.Preference.Music.StopInGame)
-            ModBase.RunInUi(() =>
+            UiThread.Post(() =>
             {
-                if (ModMusic.MusicResume()) ModBase.Log("[Music] 已根据设置，在结束后开始音乐播放");
+                if (ModMusic.MusicResume()) LauncherLog.Log("[Music] 已根据设置，在结束后开始音乐播放");
             });
         else if (Config.Preference.Music.StartInGame)
-            ModBase.RunInUi(() =>
+            UiThread.Post(() =>
             {
-                if (ModMusic.MusicPause()) ModBase.Log("[Music] 已根据设置，在结束后暂停音乐播放");
+                if (ModMusic.MusicPause()) LauncherLog.Log("[Music] 已根据设置，在结束后暂停音乐播放");
             });
         // 开始视频背景播放
         ModVideoBack.IsGaming = false;
@@ -73,13 +73,13 @@ public static class ModWatcher
             case LauncherVisibility.HideAndExit:
                 // 直接关闭
                 if (triggerLauncherShutdown)
-                    ModBase.RunInUi(() => ModMain.frmMain.EndProgram(false));
+                    UiThread.Post(() => ModMain.frmMain.EndProgram(false));
                 else
-                    ModBase.RunInUi(() => ModMain.frmMain.Hidden = false);
+                    UiThread.Post(() => ModMain.frmMain.Hidden = false);
                 break;
             case LauncherVisibility.HideAndReopen:
                 // 恢复
-                ModBase.RunInUi(() => ModMain.frmMain.Hidden = false);
+                UiThread.Post(() => ModMain.frmMain.Hidden = false);
                 break;
         }
     }
@@ -266,12 +266,12 @@ public static class ModWatcher
             // 初始化时钟
             // 设置窗口标题
 
-            ModBase.RunInNewThread(() =>
+            Basics.RunInNewThread(() =>
             {
                 try
                 {
                     while (State != MinecraftState.Ended && State != MinecraftState.Crashed &&
-                           State != MinecraftState.Canceled && loader.State != ModBase.LoadState.Aborted)
+                           State != MinecraftState.Canceled && loader.State != LoadState.Aborted)
                     {
                         TimerWindow();
                         TimerLog();
@@ -295,10 +295,10 @@ public static class ModWatcher
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(
+                    LauncherLog.Log(
                         ex,
                         "Minecraft 日志监控主循环出错",
-                        ModBase.LogLevel.Feedback,
+                        LauncherLogLevel.Feedback,
                         userSummary: Lang.Text("Minecraft.Launch.Error.WatcherOperationFailed"));
                     State = MinecraftState.Ended;
                 }
@@ -450,10 +450,10 @@ public static class ModWatcher
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     "输出 Minecraft 日志失败",
-                    ModBase.LogLevel.Feedback,
+                    LauncherLogLevel.Feedback,
                     userSummary: Lang.Text("Minecraft.Launch.Error.WatcherOperationFailed"));
             }
         }
@@ -573,10 +573,10 @@ public static class ModWatcher
                 catch (Win32Exception ex)
                 {
                     // 拒绝访问（#1062）
-                    ModBase.Log(
+                    LauncherLog.Log(
                         ex,
                         Lang.Text("Watcher.SecurityBlocked"),
-                        ModBase.LogLevel.Hint,
+                        LauncherLogLevel.Hint,
                         userSummary: Lang.Text("Watcher.SecurityBlocked"));
                     isWindowFinished = true;
                 }
@@ -596,7 +596,7 @@ public static class ModWatcher
                     if (Config.Launch.GameWindowMode == GameWindowSizeMode.Maximized)
                         // 如果最大化导致屏幕渲染大小不对，那是 MC 的 Bug，不是我的 Bug
                         // ……虽然我很想这样说，但总有人反馈，算了
-                        ModBase.RunInNewThread(() =>
+                        Basics.RunInNewThread(() =>
                         {
                             try
                             {
@@ -606,7 +606,7 @@ public static class ModWatcher
                             }
                             catch (Exception ex)
                             {
-                                ModBase.Log(ex, "最大化 Minecraft 窗口时出现错误");
+                                LauncherLog.Log(ex, "最大化 Minecraft 窗口时出现错误");
                             }
                         }, "MinecraftWindowMaximize");
                 }
@@ -620,10 +620,10 @@ public static class ModWatcher
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     "检查 Minecraft 窗口失败",
-                    ModBase.LogLevel.Feedback,
+                    LauncherLogLevel.Feedback,
                     userSummary: Lang.Text("Minecraft.Launch.Error.WatcherOperationFailed"));
             }
         }
@@ -708,8 +708,8 @@ public static class ModWatcher
                 WatcherLog(Lang.Text("Watcher.Crash.Detected"));
                 HintService.Hint(Lang.Text("Watcher.Crash.Hint"));
 
-                ModBase.FeedbackInfo();
-                ModBase.RunInNewThread(() =>
+                LauncherFeedbackService.FeedbackInfo();
+                Basics.RunInNewThread(() =>
                 {
                     try
                     {
@@ -724,15 +724,15 @@ public static class ModWatcher
                             [
                                 version.PathInstance + version.Name + ".json",
                                 LogWrapper.CurrentLogger.CurrentLogFiles.Last(),
-                                ModBase.exePath + @"PCL\LatestLaunch.bat"
+                                LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\LatestLaunch.bat"
                             ]);
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(
+                        LauncherLog.Log(
                             ex,
                             "崩溃分析失败",
-                            ModBase.LogLevel.Feedback,
+                            LauncherLogLevel.Feedback,
                             userSummary: Lang.Text("Crash.Analysis.Error.Failed"));
                     }
                 }, "Crash Analyzer");
@@ -757,7 +757,7 @@ public static class ModWatcher
         public void Kill()
         {
             State = MinecraftState.Canceled;
-            ModBase.RunInNewThread(() =>
+            Basics.RunInNewThread(() =>
             {
                 WatcherLog(Lang.Text("Watcher.Kill.Attempt"));
                 try
@@ -797,10 +797,10 @@ public static class ModWatcher
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(
+                    LauncherLog.Log(
                         ex,
                         Lang.Text("Watcher.Kill.Failed"),
-                        ModBase.LogLevel.Hint,
+                        LauncherLogLevel.Hint,
                         userSummary: Lang.Text("Watcher.Kill.Failed"));
                 }
             });
@@ -812,7 +812,7 @@ public static class ModWatcher
             var dump = new List<string>();
             for (var i = 1; i <= 3; i++)
             {
-                dump.Add(ModBase.ShellAndGetOutput(jStackPath, "-l -e " + gameProcess.Id));
+                dump.Add(LauncherProcess.ShellAndGetOutput(jStackPath, "-l -e " + gameProcess.Id));
                 Thread.Sleep(3000);
             }
 

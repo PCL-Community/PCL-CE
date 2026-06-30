@@ -116,10 +116,10 @@ public static class ModMain
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "短程主时钟执行异常",
-                ModBase.LogLevel.Critical,
+                LauncherLogLevel.Critical,
                 userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
 
@@ -136,7 +136,7 @@ public static class ModMain
 
             catch (Exception ex)
             {
-                ModBase.Log(ex, "中程主时钟执行异常");
+                LauncherLog.Log(ex, "中程主时钟执行异常");
             }
         }
 
@@ -151,7 +151,7 @@ public static class ModMain
                 if (frmMain!.BtnExtraApril_ShowCheck() && aprilDistance != 0)
                     frmMain.BtnExtraApril.Ribble();
                 // 以未知原因窗口被丢到一边去的修复（Top、Left = -25600），还有 #745
-                ModBase.RunInUi(() =>
+                UiThread.Post(() =>
                 {
                     if (!frmMain.Hidden)
                     {
@@ -165,10 +165,10 @@ public static class ModMain
 
             catch (Exception ex)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     "长程主时钟执行异常",
-                    ModBase.LogLevel.Critical,
+                    LauncherLogLevel.Critical,
                     userSummary: Lang.Text("Main.Error.OperationFailed"));
             }
         }
@@ -176,28 +176,28 @@ public static class ModMain
 
     public static void TimerMainStart()
     {
-        ModBase.RunInNewThread(() =>
+        PCL.Core.App.Basics.RunInNewThread(() =>
         {
             try
             {
                 while (true)
                 {
-                    ModBase.RunInUiWait(TimerMain);
+                    UiThread.Invoke(TimerMain);
                     Thread.Sleep((int)Math.Round(50d * 0.98d));
                 }
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     "程序主时钟出错",
-                    ModBase.LogLevel.Feedback,
+                    LauncherLogLevel.Feedback,
                     userSummary: Lang.Text("Main.Error.OperationFailed"));
             }
         }, "Timer Main");
         if (!isAprilEnabled)
             return;
-        ModBase.RunInNewThread(() =>
+        PCL.Core.App.Basics.RunInNewThread(() =>
         {
             try
             {
@@ -207,7 +207,7 @@ public static class ModMain
                     if (lastTime != Environment.TickCount)
                     {
                         lastTime = Environment.TickCount;
-                        ModBase.RunInUiWait(TimerFool);
+                        UiThread.Invoke(TimerFool);
                     }
 
                     Thread.Sleep(1);
@@ -215,10 +215,10 @@ public static class ModMain
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     "愚人节主时钟出错",
-                    ModBase.LogLevel.Feedback,
+                    LauncherLogLevel.Feedback,
                     userSummary: Lang.Text("Main.Error.OperationFailed"));
             }
         }, "Timer Main Fool");
@@ -342,13 +342,13 @@ public static class ModMain
             Button2Action = button2Action, Button3Action = button3Action
         };
         WaitingMyMsgBox.Add(converter);
-        if (ModBase.RunInUi())
+        if (UiThread.CheckAccess())
             // 若为 UI 线程，立即执行弹窗刻， 避免快速（连点器）点击时多次弹窗
             MyMsgBoxTick();
         if (button2.Length > 0 || forceWait)
         {
             // 若有多个按钮则开始等待
-            if (frmMain is null || (frmMain.PanMsg is null && ModBase.RunInUi()))
+            if (frmMain is null || (frmMain.PanMsg is null && UiThread.CheckAccess()))
             {
                 // 主窗体尚未加载，用老土的弹窗来替代
                 WaitingMyMsgBox.Remove(converter);
@@ -384,8 +384,8 @@ public static class ModMain
                     converter.Result = 1;
                 }
 
-                ModBase.Log("[Control] 主窗体加载完成前出现意料外的等待弹窗：" + button1 + "," + button2 + "," + button3,
-                    ModBase.LogLevel.Debug);
+                LauncherLog.Log("[Control] 主窗体加载完成前出现意料外的等待弹窗：" + button1 + "," + button2 + "," + button3,
+                    LauncherLogLevel.Debug);
             }
             else
             {
@@ -401,7 +401,7 @@ public static class ModMain
                 }
             }
 
-            ModBase.Log($"[Control] 普通弹框返回：{converter.Result ?? "null"}");
+            LauncherLog.Log($"[Control] 普通弹框返回：{converter.Result ?? "null"}");
             return (int)converter.Result;
         }
 
@@ -437,13 +437,13 @@ public static class ModMain
             Button2Action = button2Action, Button3Action = button3Action
         };
         WaitingMyMsgBox.Add(converter);
-        if (ModBase.RunInUi())
+        if (UiThread.CheckAccess())
             // 若为 UI 线程，立即执行弹窗刻， 避免快速（连点器）点击时多次弹窗
             MyMsgBoxTick();
         if (button2.Length > 0 || forceWait)
         {
             // 若有多个按钮则开始等待
-            if (frmMain is null || (frmMain.PanMsg is null && ModBase.RunInUi()))
+            if (frmMain is null || (frmMain.PanMsg is null && UiThread.CheckAccess()))
             {
                 // 主窗体尚未加载，用老土的弹窗来替代
                 WaitingMyMsgBox.Remove(converter);
@@ -479,8 +479,8 @@ public static class ModMain
                     converter.Result = 1;
                 }
 
-                ModBase.Log("[Control] 主窗体加载完成前出现意料外的等待弹窗：" + button1 + "," + button2 + "," + button3,
-                    ModBase.LogLevel.Debug);
+                LauncherLog.Log("[Control] 主窗体加载完成前出现意料外的等待弹窗：" + button1 + "," + button2 + "," + button3,
+                    LauncherLogLevel.Debug);
             }
             else
             {
@@ -496,7 +496,7 @@ public static class ModMain
                 }
             }
 
-            ModBase.Log($"[Control] 普通弹框返回：{converter.Result ?? "null"}");
+            LauncherLog.Log($"[Control] 普通弹框返回：{converter.Result ?? "null"}");
             return (int)converter.Result;
         }
 
@@ -541,7 +541,7 @@ public static class ModMain
             ComponentDispatcher.PopModal();
         }
 
-        ModBase.Log($"[Control] 输入弹框返回：{converter.Result}");
+        LauncherLog.Log($"[Control] 输入弹框返回：{converter.Result}");
         return converter.Result?.ToString();
     }
 
@@ -578,7 +578,7 @@ public static class ModMain
             ComponentDispatcher.PopModal();
         }
 
-        ModBase.Log($"[Control] 选择弹框返回：{converter.Result ?? "null"}");
+        LauncherLog.Log($"[Control] 选择弹框返回：{converter.Result ?? "null"}");
         return (int?)converter.Result;
     }
 
@@ -637,10 +637,10 @@ public static class ModMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "处理等待中的弹窗失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
@@ -773,10 +773,10 @@ public static class ModMain
             frmLaunchLeft.AprilPosTrans.Y += aprilSpeed.Y;
             // 大小改变
             frmLaunchLeft.AprilScaleTrans.ScaleX =
-                ModBase.MathClamp(1d - (Math.Abs(direction.X) - Math.Abs(direction.Y)) * (speedValue / 160d), 0.2d,
+                LauncherMath.Clamp(1d - (Math.Abs(direction.X) - Math.Abs(direction.Y)) * (speedValue / 160d), 0.2d,
                     1.8d);
             frmLaunchLeft.AprilScaleTrans.ScaleY =
-                ModBase.MathClamp(1d - (Math.Abs(direction.Y) - Math.Abs(direction.X)) * (speedValue / 100d), 0.2d,
+                LauncherMath.Clamp(1d - (Math.Abs(direction.Y) - Math.Abs(direction.X)) * (speedValue / 100d), 0.2d,
                     1.8d);
             // 放弃提示
             if (aprilDistance > 4000)
@@ -810,10 +810,10 @@ public static class ModMain
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "愚人节移动出错",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
@@ -834,10 +834,10 @@ public static class ModMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "设置窗口置顶失败",
-                ModBase.LogLevel.Hint,
+                LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
@@ -875,19 +875,19 @@ public static class ModMain
             else
             {
                 // 创建父级键
-                ModBase.Log("[System] 需要创建显卡设置的父级键");
+                LauncherLog.Log("[System] 需要创建显卡设置的父级键");
                 Registry.CurrentUser.CreateSubKey(GPU_PERFERENCE_REG_KEY);
             }
         }
 
-        ModBase.Log($"[System] 当前程序 ({executeable}) 的显卡设置为高性能: {isCurrentHighPerformance}");
+        LauncherLog.Log($"[System] 当前程序 ({executeable}) 的显卡设置为高性能: {isCurrentHighPerformance}");
         if (isCurrentHighPerformance ^ wantHighPerformance)
             // 写入新设置
             using (var writeKey = Registry.CurrentUser.OpenSubKey(GPU_PERFERENCE_REG_KEY, true))
             {
                 writeKey.SetValue(executeable,
                     wantHighPerformance ? GPU_PERFERENCE_REG_VALUE_HIGH : GPU_PERFERENCE_REG_VALUE_DEFAULT);
-                ModBase.Log($"[System] 已调整程序 ({executeable}) 显卡设置: {wantHighPerformance}");
+                LauncherLog.Log($"[System] 已调整程序 ({executeable}) 显卡设置: {wantHighPerformance}");
             }
     }
 
@@ -903,19 +903,19 @@ public static class ModMain
     {
         if (s is null) return "";
         if (escapeHandler is null) return s;
-        if (s.Contains(":\\")) s = ModBase.ShortenPath(s);
+        if (s.Contains(":\\")) s = LegacyFileFacade.ShortenPath(s);
         return escapeHandler(s);
     };
     
     // 基础
-    text = text.Replace("{pcl_version}", replacer(ModBase.VersionBaseName));
-    text = text.Replace("{pcl_version_code}", replacer(ModBase.VersionCode.ToString()));
-    text = text.Replace("{pcl_version_branch}", replacer(ModBase.VersionBranchName));
-    text = text.Replace("{pcl_branch}", replacer(ModBase.VersionBranchName));
+    text = text.Replace("{pcl_version}", replacer(LauncherEnvironment.VersionBaseName));
+    text = text.Replace("{pcl_version_code}", replacer(LauncherEnvironment.VersionCode.ToString()));
+    text = text.Replace("{pcl_version_branch}", replacer(LauncherEnvironment.VersionBranchName));
+    text = text.Replace("{pcl_branch}", replacer(LauncherEnvironment.VersionBranchName));
     text = text.Replace("{identify}", replacer(Identify.LauncherId));
     text = text.Replace("{path}", replacer(Basics.ExecutableDirectory));
     text = text.Replace("{path_with_name}", replacer(Basics.ExecutableName));
-    text = text.Replace("{path_temp}", replacer(ModBase.pathTemp));
+    text = text.Replace("{path_temp}", replacer(LauncherPaths.TempWithSlash));
     
     // 时间
     if (replaceTime) // 在窗口标题中，时间会被后续动态替换，所以此时不应该替换
@@ -956,7 +956,7 @@ public static class ModMain
     }
     
     // 验证信息
-    if (ModLaunch.mcLoginLoader.State == ModBase.LoadState.Finished)
+    if (ModLaunch.mcLoginLoader.State == LoadState.Finished)
     {
         text = text.Replace("{user}", replacer(ModLaunch.mcLoginLoader.output.Name));
         text = text.Replace("{uuid}", replacer(ModLaunch.mcLoginLoader.output.Uuid.ToLower()));
@@ -982,16 +982,16 @@ public static class ModMain
     }
     
     // 高级
-    text = ModBase.RegexReplaceEach(text, @"\{hint\}", m => replacer(PageToolsTest.GetRandomHint()));
-    text = ModBase.RegexReplaceEach(text, @"\{cave\}", m => replacer(PageToolsTest.GetRandomCave()));
-    text = ModBase.RegexReplaceEach(text, @"\{setup:([a-zA-Z0-9]+)\}", m =>
+    text = LauncherText.RegexReplaceEach(text, @"\{hint\}", m => replacer(PageToolsTest.GetRandomHint()));
+    text = LauncherText.RegexReplaceEach(text, @"\{cave\}", m => replacer(PageToolsTest.GetRandomCave()));
+    text = LauncherText.RegexReplaceEach(text, @"\{setup:([a-zA-Z0-9]+)\}", m =>
     {
         if (ConfigService.TryGetConfigItemNoType(m.Groups[1].Value, out var item) && item.Source != ConfigSource.SharedEncrypt)
             return replacer(item.GetValueNoType(ModInstanceList.McMcInstanceSelected?.PathInstance)?.ToString() ?? "");
         return replacer("");
     });
-    text = ModBase.RegexReplaceEach(text, @"\{varible:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));
-    text = ModBase.RegexReplaceEach(text, @"\{variable:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));
+    text = LauncherText.RegexReplaceEach(text, @"\{varible:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));
+    text = LauncherText.RegexReplaceEach(text, @"\{variable:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));
     
     return text;
 }
@@ -1014,14 +1014,14 @@ public static class ModMain
             isTaskTempClearing = true;
             try
             {
-                ModBase.Log("[System] 开始清理任务缓存文件夹");
-                ModBase.DeleteDirectory(Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL", "TaskTemp"));
-                ModBase.DeleteDirectory($@"{ModBase.pathTemp}TaskTemp\");
-                ModBase.Log("[System] 已清理任务缓存文件夹");
+                LauncherLog.Log("[System] 开始清理任务缓存文件夹");
+                LegacyFileFacade.DeleteDirectory(Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL", "TaskTemp"));
+                LegacyFileFacade.DeleteDirectory($@"{LauncherPaths.TempWithSlash}TaskTemp\");
+                LauncherLog.Log("[System] 已清理任务缓存文件夹");
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "清理任务缓存文件夹失败");
+                LauncherLog.Log(ex, "清理任务缓存文件夹失败");
             }
             finally
             {
@@ -1049,11 +1049,11 @@ public static class ModMain
         {
             try
             {
-                resultFolder = $@"{ModBase.pathTemp}TaskTemp\{ModBase.GetUuid()}-{RandomUtils.NextInt(0, 1000000)}\";
+                resultFolder = $@"{LauncherPaths.TempWithSlash}TaskTemp\{LauncherRuntime.GetUuid()}-{RandomUtils.NextInt(0, 1000000)}\";
                 if (requireNonSpace && resultFolder.Contains(" "))
                     break; // 带空格
                 Directory.CreateDirectory(resultFolder);
-                ModBase.CheckPermissionWithException(resultFolder);
+                LegacyFileFacade.CheckPermissionWithException(resultFolder);
                 return resultFolder;
             }
             catch
@@ -1063,9 +1063,9 @@ public static class ModMain
 
         // 使用备用路径
         resultFolder =
-            Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL", "TaskTemp", $"{ModBase.GetUuid()}-{RandomUtils.NextInt(0, 1000000)}");
+            Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL", "TaskTemp", $"{LauncherRuntime.GetUuid()}-{RandomUtils.NextInt(0, 1000000)}");
         Directory.CreateDirectory(resultFolder);
-        ModBase.CheckPermission(resultFolder);
+        LegacyFileFacade.CheckPermission(resultFolder);
         return resultFolder;
     }
 
@@ -1081,10 +1081,10 @@ public static class ModMain
 
         if (!events.Any()) return;
 
-        ModBase.RunInNewThread(() =>
+        PCL.Core.App.Basics.RunInNewThread(() =>
             {
                 foreach (var e in events)
                     e.Raise();
-            }, $"执行自定义事件 {ModBase.GetUuid()}");
+            }, $"执行自定义事件 {LauncherRuntime.GetUuid()}");
     }
 }

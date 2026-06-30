@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http;
 using PCL.Core.App;
 
@@ -31,8 +31,8 @@ public static class RequestSigning
         var userAgent = !string.IsNullOrEmpty(customUserAgent)
             ? customUserAgent
             : useBrowserUserAgent
-                ? $"PCL2/{ModBase.UpstreamVersion}.{ModBase.VersionBranchCode} PCLCE/{ModBase.VersionStandardCode} Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0"
-                : $"PCL2/{ModBase.UpstreamVersion}.{ModBase.VersionBranchCode} PCLCE/{ModBase.VersionStandardCode}";
+                ? $"PCL2/{LauncherEnvironment.UpstreamVersion}.{LauncherEnvironment.VersionBranchCode} PCLCE/{LauncherEnvironment.VersionStandardCode} Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0"
+                : $"PCL2/{LauncherEnvironment.UpstreamVersion}.{LauncherEnvironment.VersionBranchCode} PCLCE/{LauncherEnvironment.VersionStandardCode}";
         client.Headers.Add("User-Agent", userAgent);
     }
 }

@@ -1,12 +1,12 @@
-using System.IO;
+﻿using System.IO;
+using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.ResourceProject;
+using PCL.Network;
 using CompFile = PCL.ModComp.CompFile;
 using CompFileStatus = PCL.ModComp.CompFileStatus;
 using CompLoaderType = PCL.ModComp.CompLoaderType;
 using CompProject = PCL.ModComp.CompProject;
 using LocalCompFile = PCL.ModLocalComp.LocalCompFile;
-using PCL.Core.Minecraft.ResourceProject;
-using PCL.Core.App.Localization;
-using PCL.Network;
 
 namespace PCL;
 
@@ -223,7 +223,7 @@ public static class ModCompDependency
 
         if (result.Unresolved is { Count: > 0 })
         {
-            ModBase.Log($"[CompDeps] 无法解析: {result.Unresolved.Count} 个必需前置");
+            LauncherLog.Log($"[CompDeps] 无法解析: {result.Unresolved.Count} 个必需前置");
             var dependencies = string.Join(
                 Lang.Text("Download.Comp.Dependency.ListSeparator"),
                 result.Unresolved.Select(dep => Lang.Text(

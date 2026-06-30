@@ -4,12 +4,12 @@ using System.Windows.Media;
 using System.Windows.Media.Effects;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
+using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.UI.Theme;
 using PCL.Core.Utils.Exts;
 using PCL.Network;
 
-using PCL.Core.App.Localization;
 namespace PCL;
 
 public class ModSetup
@@ -171,14 +171,15 @@ public class ModSetup
     // 切换选择
     public static void LaunchInstanceSelect(string value)
     {
-        ModBase.Log("[Setup] 当前选择的 Minecraft 版本：" + value);
-        ModBase.WriteIni(ModFolder.mcFolderSelected + "PCL.ini", "Version", value);
+        LauncherLog.Log($"[Setup] 当前选择的 Minecraft 版本：{value}");
+        LegacyIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "Version", value);
     }
 
     public static void LaunchFolderSelect(string value)
     {
-        ModBase.Log("[Setup] 当前选择的 Minecraft 文件夹：" + value.Replace("$", ModBase.exePath));
-        ModFolder.mcFolderSelected = value.Replace("$", ModBase.exePath);
+        LauncherLog.Log(
+            $"[Setup] 当前选择的 Minecraft 文件夹：{value.Replace("$", LauncherPaths.ExecutableDirectoryWithSlash)}");
+        ModFolder.mcFolderSelected = value.Replace("$", LauncherPaths.ExecutableDirectoryWithSlash);
     }
 
     // 游戏内存
@@ -370,14 +371,14 @@ public class ModSetup
     {
         try
         {
-            ModBase.SetLaunchFont(value);
+            LauncherFontService.SetLaunchFont(value);
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "字体加载失败",
-                ModBase.LogLevel.Hint,
+                LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
     }
@@ -540,15 +541,16 @@ public class ModSetup
 
                 try
                 {
-                    ModMain.frmMain.ImageTitleLogo.Source = ModBase.exePath + @"PCL\Logo.png";
+                    ModMain.frmMain.ImageTitleLogo.Source =
+                        LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Logo.png";
                 }
                 catch (Exception ex)
                 {
                     ModMain.frmMain.ImageTitleLogo.Source = null;
-                    ModBase.Log(
+                    LauncherLog.Log(
                         ex,
                         "显示标题栏图片失败",
-                        ModBase.LogLevel.Msgbox,
+                        LauncherLogLevel.Msgbox,
                         userSummary: Lang.Text("Setup.Error.OperationFailed"));
                 }
 
@@ -594,14 +596,14 @@ public class ModSetup
     // 调试选项
     public static void SystemDebugMode(bool value)
     {
-        ModBase.ModeDebug = value;
+        LauncherRuntime.ModeDebug = value;
     }
 
     public static void SystemDebugAnim(int value)
     {
         ModAnimation.aniSpeed = value >= 30
             ? 200d
-            : ModBase.MathClamp(value * 0.1d + 0.1d, 0.1d, 3d);
+            : LauncherMath.Clamp(value * 0.1d + 0.1d, 0.1d, 3d);
     }
 
     public static void SystemHttpProxy(string value)
@@ -613,7 +615,7 @@ public class ModSetup
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "HTTP 代理应用出错");
+            LauncherLog.Log(ex, "HTTP 代理应用出错");
         }
     }
 
@@ -664,7 +666,7 @@ public class ModSetup
         if (ModMain.frmInstanceSetup is null)
             return;
         // 为第三方登录清空缓存以更新描述
-        ModBase.WriteIni(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", "");
+        LegacyIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", "");
         if (PageInstanceLeft.McInstance is null)
             return;
         PageInstanceLeft.McInstance = new McInstance(PageInstanceLeft.McInstance.Name).Load();

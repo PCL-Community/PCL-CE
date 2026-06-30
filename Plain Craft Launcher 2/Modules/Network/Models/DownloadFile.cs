@@ -1,14 +1,14 @@
-using PCL.Core.Utils;
+﻿using PCL.Network.Loaders;
 
 namespace PCL.Network;
 
 public class DownloadFile
 {
-    public int Id { get; } = ModBase.GetUuid();
+    public int Id { get; } = LauncherRuntime.GetUuid();
     public string LocalPath { get; set; }
     public string LocalName { get; }
     public List<string> Urls { get; }
-    public ModBase.FileChecker? Check { get; }
+    public FileChecker? Check { get; }
     public bool UseBrowserUserAgent { get; }
     public string CustomUserAgent { get; }
     public NetState State { get; set; } = NetState.WaitingToCheck;
@@ -17,7 +17,7 @@ public class DownloadFile
     public long DownloadedBytes { get; set; }
     public bool IsCopy { get; set; }
     public List<Exception> Errors { get; } = new();
-    public List<PCL.Network.Loaders.LoaderDownload> Loaders { get; } = new();
+    public List<LoaderDownload> Loaders { get; } = new();
     public long Speed { get; set; }
     public int ActiveThreads { get; set; }
     public double Progress
@@ -39,12 +39,12 @@ public class DownloadFile
         }
     }
 
-    public DownloadFile(IEnumerable<string> urls, string localPath, ModBase.FileChecker? checker = null,
+    public DownloadFile(IEnumerable<string> urls, string localPath, FileChecker? checker = null,
         bool useBrowserUserAgent = false, string customUserAgent = "")
     {
         Urls = urls.Where(url => !string.IsNullOrWhiteSpace(url)).Distinct().ToList();
         LocalPath = localPath;
-        LocalName = ModBase.GetFileNameFromPath(localPath);
+        LocalName = LegacyFileFacade.GetFileNameFromPath(localPath);
         Check = checker;
         UseBrowserUserAgent = useBrowserUserAgent;
         CustomUserAgent = customUserAgent;

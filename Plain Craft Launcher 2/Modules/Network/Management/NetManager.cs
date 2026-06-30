@@ -1,3 +1,5 @@
+﻿using PCL.Network.Loaders;
+
 namespace PCL.Network;
 
 public sealed class NetManager
@@ -7,7 +9,7 @@ public sealed class NetManager
 
     public Dictionary<string, DownloadFile> Files { get; } = new();
     public object LockFiles { get; } = new();
-    public ModBase.SafeList<PCL.Network.Loaders.LoaderDownload> Tasks { get; } = new();
+    public SafeList<LoaderDownload> Tasks { get; } = new();
     public object LockRemain { get; } = new();
     public int FileRemain
     {
@@ -50,7 +52,7 @@ public sealed class NetManager
         }
     }
 
-    public void Start(PCL.Network.Loaders.LoaderDownload task)
+    public void Start(LoaderDownload task)
     {
         lock (LockFiles)
         {
@@ -61,7 +63,7 @@ public sealed class NetManager
         }
     }
 
-    public void Finish(PCL.Network.Loaders.LoaderDownload task)
+    public void Finish(LoaderDownload task)
     {
         lock (LockFiles)
         {

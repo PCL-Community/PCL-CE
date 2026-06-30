@@ -82,7 +82,7 @@ public partial class PageLoginAuth
             {
                 ModProfile.isCreatingProfile = true;
                 ModLaunch.mcLoginAuthLoader.Start(loginData, true);
-                while (ModLaunch.mcLoginAuthLoader.State == ModBase.LoadState.Loading)
+                while (ModLaunch.mcLoginAuthLoader.State == LoadState.Loading)
                 {
                     BtnLogin.Text = Lang.Number(ModLaunch.mcLoginAuthLoader.Progress, "P0");
                     await Task.Delay(50);
@@ -90,15 +90,15 @@ public partial class PageLoginAuth
 
                 switch (ModLaunch.mcLoginAuthLoader.State)
                 {
-                    case ModBase.LoadState.Finished:
+                    case LoadState.Finished:
                         ModMain.frmLaunchLeft.RefreshPage(true);
                         break;
-                    case ModBase.LoadState.Aborted:
+                    case LoadState.Aborted:
                         HintService.Hint(Lang.Text("Launch.Account.Auth.Cancelled"));
                         break;
-                    case ModBase.LoadState.Waiting:
-                    case ModBase.LoadState.Loading:
-                    case ModBase.LoadState.Failed:
+                    case LoadState.Waiting:
+                    case LoadState.Loading:
+                    case LoadState.Failed:
                     default:
                     {
                         if (ModLaunch.mcLoginAuthLoader.Error is null)
@@ -121,10 +121,10 @@ public partial class PageLoginAuth
                 }
                 else
                 {
-                    ModBase.Log(
+                    LauncherLog.Log(
                         ex,
                         Lang.Text("Launch.Account.Auth.LoginFailed"),
-                        ModBase.LogLevel.Msgbox,
+                        LauncherLogLevel.Msgbox,
                         userSummary: Lang.Text("Launch.Account.Auth.LoginFailed"));
                 }
             }
@@ -157,11 +157,11 @@ public partial class PageLoginAuth
                 serverUri = await ApiLocation.TryRequestAsync(serverUriInput);
                 using var resp = await HttpRequest.Create(serverUri).SendAsync();
                 var responseText = await resp.AsStringAsync();
-                serverName = await Task.Run(() => ModBase.GetJson(responseText)["meta"]?["serverName"]?.ToString());
+                serverName = await Task.Run(() => PCL.Core.Utils.JsonCompat.ParseNode(responseText)["meta"]?["serverName"]?.ToString());
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "从服务器获取名称失败");
+                LauncherLog.Log(ex, "从服务器获取名称失败");
             }
 
             if (serverUri is not null) TextServer.Text = serverUri;
@@ -188,7 +188,7 @@ public partial class PageLoginAuth
 
     private void Btn_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite(_isRegisterMode
+        LauncherProcess.OpenWebsite(_isRegisterMode
             ? Config.InstanceAuth.AuthRegisterAddress.ToString()
             : Config.InstanceAuth.AuthRegisterAddress.ToString().Replace("/auth/register", "/auth/forgot"));
     }

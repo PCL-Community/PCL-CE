@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
@@ -26,7 +26,7 @@ public class MyMenuItem : MenuItem
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherRuntime.GetUuid();
 
     public MyMenuItem()
     {

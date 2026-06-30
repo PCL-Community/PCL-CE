@@ -93,7 +93,7 @@ public partial class PageInstanceScreenshot : IRefreshable
     
     private async Task LoadFileListAsync()
     {
-        ModBase.Log("[Screenshot] 刷新截图文件");
+        LauncherLog.Log("[Screenshot] 刷新截图文件");
         fileList.Clear();
         if (Directory.Exists(screenshotPath))
         {
@@ -106,7 +106,7 @@ public partial class PageInstanceScreenshot : IRefreshable
         RefreshTip();
         //FileList = FileList.Where(e => !e.ContainsF(@"\debug\")).ToList(); // 排除资源包调试输出
         //FileList.Sort((a, b) => new FileInfo(a).CreationTime > new FileInfo(b).CreationTime);
-        ModBase.Log("[Screenshot] 共发现 " + fileList.Count + " 个截图文件");
+        LauncherLog.Log("[Screenshot] 共发现 " + fileList.Count + " 个截图文件");
         if (fileList.Count == 0)
             return;
         await ListAppendAsync(20, 0);
@@ -192,10 +192,10 @@ public partial class PageInstanceScreenshot : IRefreshable
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(
+                        LauncherLog.Log(
                             ex,
                             Lang.Text("Instance.Screenshot.OpenFailed"),
-                            ModBase.LogLevel.Hint,
+                            LauncherLogLevel.Hint,
                             userSummary: Lang.Text("Instance.Screenshot.OpenFailed"));
                     }
                 }; // 使用系统默认程序打开
@@ -246,7 +246,7 @@ public partial class PageInstanceScreenshot : IRefreshable
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"[Screenshot] 创建 {i} 截图预览失败，图像可能损坏");
+                LauncherLog.Log(ex, $"[Screenshot] 创建 {i} 截图预览失败，图像可能损坏");
             }
         }
 
@@ -268,7 +268,7 @@ public partial class PageInstanceScreenshot : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "未能找到对应 UI");
+            LauncherLog.Log(ex, "未能找到对应 UI");
         }
     }
 
@@ -279,7 +279,7 @@ public partial class PageInstanceScreenshot : IRefreshable
 
     private void BtnOpen_Click(MyIconTextButton sender, EventArgs e)
     {
-        ModBase.OpenExplorer(GetPathFromSender(sender));
+        LauncherProcess.OpenExplorer(GetPathFromSender(sender));
     }
 
     private void BtnDelete_Click(MyIconTextButton sender, EventArgs e)
@@ -294,10 +294,10 @@ public partial class PageInstanceScreenshot : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Instance.Screenshot.DeleteFailed"),
-                ModBase.LogLevel.Hint,
+                LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Instance.Screenshot.DeleteFailed"));
         }
     }
@@ -311,7 +311,7 @@ public partial class PageInstanceScreenshot : IRefreshable
             while (tryTime <= 5)
                 try
                 {
-                    ModBase.Log("[Screenshot] 尝试复制" + imagePath + "到剪贴板");
+                    LauncherLog.Log("[Screenshot] 尝试复制" + imagePath + "到剪贴板");
                     Clipboard.SetImage(new BitmapImage(new Uri(imagePath)));
                     HintService.Hint(Lang.Text("Instance.Screenshot.CopiedToClipboard"));
                     tryTime = 6;
@@ -320,7 +320,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                 catch (Exception ex)
                 {
                     tryTime += 1;
-                    ModBase.Log(ex, $"[Screenshot]第 {tryTime} 次复制尝试失败");
+                    LauncherLog.Log(ex, $"[Screenshot]第 {tryTime} 次复制尝试失败");
                 }
 
             HintService.Hint(Lang.Text("Instance.Screenshot.CopyFailed"), HintType.Error);
@@ -335,6 +335,6 @@ public partial class PageInstanceScreenshot : IRefreshable
     {
         if (!Directory.Exists(screenshotPath))
             Directory.CreateDirectory(screenshotPath);
-        ModBase.OpenExplorer(screenshotPath);
+        LauncherProcess.OpenExplorer(screenshotPath);
     }
 }

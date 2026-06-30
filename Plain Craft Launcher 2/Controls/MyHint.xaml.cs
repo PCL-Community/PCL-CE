@@ -1,11 +1,11 @@
-using System.Windows;
+﻿using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.UI.Theme;
-using System.Windows.Controls;
 
 namespace PCL;
 
@@ -38,7 +38,7 @@ public partial class MyHint
 
     // 触发点击事件
     private bool isMouseDown;
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherRuntime.GetUuid();
 
     public MyHint()
     {
@@ -59,7 +59,11 @@ public partial class MyHint
         set
         {
             if (value)
-                BorderThickness = new Thickness(3d, ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d));
+                BorderThickness = new Thickness(
+                    3d,
+                    DpiUtils.GetWpfSize(1d),
+                    DpiUtils.GetWpfSize(1d),
+                    DpiUtils.GetWpfSize(1d));
             else
                 BorderThickness = new Thickness(3d, 0d, 0d, 0d);
         }
@@ -123,10 +127,10 @@ public partial class MyHint
         }
 
         var s = ThemeService.CurrentTone;
-        Background = new ModBase.MyColor().FromHSL2(hue, 90, s.L7 * 100);
-        BorderBrush = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
-        LabText.Foreground = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
-        BtnClose.Foreground = new ModBase.MyColor().FromHSL2(hue, 90, s.L2 * 100);
+        Background = new MyColor().FromHSL2(hue, 90, s.L7 * 100);
+        BorderBrush = new MyColor().FromHSL2(hue, 90, s.L2 * 100);
+        LabText.Foreground = new MyColor().FromHSL2(hue, 90, s.L2 * 100);
+        BtnClose.Foreground = new MyColor().FromHSL2(hue, 90, s.L2 * 100);
 
         // 根据提示气泡对齐方向刷新边框
         // 此处依赖 HasBorder 的副作用进行范围检查
@@ -152,7 +156,7 @@ public partial class MyHint
         if (!isMouseDown)
             return;
         isMouseDown = false;
-        ModBase.Log("[Control] 按下提示条" + (string.IsNullOrEmpty(Name) ? "" : "：" + Name));
+        LauncherLog.Log("[Control] 按下提示条" + (string.IsNullOrEmpty(Name) ? "" : "：" + Name));
         e.Handled = true;
         ModMain.RaiseCustomEvent(this);
     }

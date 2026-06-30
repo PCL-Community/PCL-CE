@@ -37,10 +37,10 @@ public partial class PageDownloadFabric
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "可视化 Fabric 版本列表出错",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
     }
@@ -52,6 +52,6 @@ public partial class PageDownloadFabric
 
     private void BtnWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://www.fabricmc.net");
+        LauncherProcess.OpenWebsite("https://www.fabricmc.net");
     }
 }

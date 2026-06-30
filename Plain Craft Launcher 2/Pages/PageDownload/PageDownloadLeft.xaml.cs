@@ -14,7 +14,7 @@ public partial class PageDownloadLeft : IRefreshable
     // 强制刷新
     public void RefreshButton_Click(object sender, EventArgs e) // 由边栏按钮匿名调用
     {
-        Refresh((FormMain.PageSubType)ModBase.Val(((MyIconButton)sender).Tag));
+        Refresh((FormMain.PageSubType)LauncherText.Val(((MyIconButton)sender).Tag));
     }
 
     public void Refresh(FormMain.PageSubType subType)
@@ -237,10 +237,10 @@ public partial class PageDownloadLeft : IRefreshable
     /// <summary>
     ///     勾选事件改变页面。
     /// </summary>
-    private void PageCheck(object sender, ModBase.RouteEventArgs e)
+    private void PageCheck(object sender, RouteEventArgs e)
     {
         if (sender is MyListItem { Tag: { } tag })
-            PageChange((FormMain.PageSubType)ModBase.Val(tag));
+            PageChange((FormMain.PageSubType)LauncherText.Val(tag));
     }
 
     public object PageGet(FormMain.PageSubType id)
@@ -380,10 +380,10 @@ public partial class PageDownloadLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "切换分页面失败（ID " + (int)id + "）",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
         finally

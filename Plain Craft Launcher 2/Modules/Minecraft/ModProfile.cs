@@ -33,10 +33,10 @@ public static class ModProfile
     /// <summary>
     ///     档案操作日志
     /// </summary>
-    public static void ProfileLog(string content, ModBase.LogLevel level = ModBase.LogLevel.Normal)
+    public static void ProfileLog(string content, LauncherLogLevel level = LauncherLogLevel.Normal)
     {
         var output = "[Profile] " + content;
-        ModBase.Log(output, level);
+        LauncherLog.Log(output, level);
     }
 
     #region 获取正版档案 UUID
@@ -48,9 +48,9 @@ public static class ModProfile
     public static object McLoginMojangUuid(string name, bool throwOnNotFound)
     {
         if (name.Trim().Length == 0)
-            return ModBase.StrFill("", "0", 32);
+            return LauncherText.StrFill("", "0", 32);
         // 从缓存获取
-        var uuid = ModBase.ReadIni(ModBase.pathTemp + @"Cache\Uuid\Mojang.ini", name);
+        var uuid = LegacyIniStore.Shared.Read(LauncherPaths.TempWithSlash + @"Cache\Uuid\Mojang.ini", name);
         if ((uuid?.Length ?? 0) == 32)
             return uuid;
         // 从官网获取
@@ -58,7 +58,7 @@ public static class ModProfile
         {
             JsonObject gotJson = null;
             var finished = false;
-            ModBase.RunInNewThread(() =>
+            PCL.Core.App.Basics.RunInNewThread(() =>
                 {
                     try
                     {
@@ -81,7 +81,7 @@ public static class ModProfile
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "从官网获取正版 UUID 失败（" + name + "）");
+            LauncherLog.Log(ex, "从官网获取正版 UUID 失败（" + name + "）");
             if (!throwOnNotFound && ex is FileNotFoundException)
                 uuid = GetOfflineUuid(name, isLegacy: true); // 玩家档案不存在
             else
@@ -91,7 +91,7 @@ public static class ModProfile
         // 写入缓存
         if ((uuid?.Length ?? 0) != 32)
             throw new Exception("获取的正版 UUID 长度不足（" + uuid + "）");
-        ModBase.WriteIni(ModBase.pathTemp + @"Cache\Uuid\Mojang.ini", name, uuid);
+        LegacyIniStore.Shared.Write(LauncherPaths.TempWithSlash + @"Cache\Uuid\Mojang.ini", name, uuid);
         return uuid;
     }
 
@@ -176,18 +176,18 @@ public static class ModProfile
     {
         ProfileLog("开始获取本地档案");
         profileList.Clear();
-        var profilePath = Path.Combine(ModBase.pathAppdataConfig, "profiles.json");
+        var profilePath = Path.Combine(LauncherPaths.SharedConfigWithSlash, "profiles.json");
         try
         {
-            if (!Directory.Exists(ModBase.pathAppdataConfig))
-                Directory.CreateDirectory(ModBase.pathAppdataConfig);
+            if (!Directory.Exists(LauncherPaths.SharedConfigWithSlash))
+                Directory.CreateDirectory(LauncherPaths.SharedConfigWithSlash);
             if (!File.Exists(profilePath))
             {
                 File.Create(profilePath).Close();
-                ModBase.WriteFile(profilePath, "{\"lastUsed\":0,\"profiles\":[]}"); // 创建档案列表文件
+                LegacyFileFacade.WriteFile(profilePath, "{\"lastUsed\":0,\"profiles\":[]}"); // 创建档案列表文件
             }
 
-            var profileJobj = ModBase.GetJson(ModBase.ReadFile(profilePath));
+            var profileJobj = PCL.Core.Utils.JsonCompat.ParseNode(LegacyFileFacade.ReadText(profilePath));
             lastUsedProfile = (int)profileJobj["lastUsed"];
             var profileListJobj = (JsonArray)profileJobj["profiles"];
             foreach (var Profile in profileListJobj)
@@ -242,17 +242,17 @@ public static class ModProfile
             try
             {
                 var profilePathBak =
-                    Path.Combine(ModBase.pathAppdataConfig, $"profiles.json.bak{DateTime.Now.ToBinary()}");
+                    Path.Combine(LauncherPaths.SharedConfigWithSlash, $"profiles.json.bak{DateTime.Now.ToBinary()}");
                 File.Move(profilePath, profilePathBak);
             }
             catch (Exception ex1)
             {
             }
 
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Launch.Account.Profile.Error.Corrupted"),
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Launch.Account.Profile.Error.Corrupted"));
         }
     }
@@ -310,7 +310,7 @@ public static class ModProfile
                 json = new JsonObject { { "lastUsed", lastUsedProfile }, { "profiles", list } };
             }
 
-            var actualFile = Path.Combine(ModBase.pathAppdataConfig, "profiles.json");
+            var actualFile = Path.Combine(LauncherPaths.SharedConfigWithSlash, "profiles.json");
             var tempFile = actualFile + ".tmp";
             var bakFile = actualFile + ".bak";
             File.WriteAllBytes(tempFile, Encoding.UTF8.GetBytes(json.ToJsonString()));
@@ -322,10 +322,10 @@ public static class ModProfile
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Launch.Account.Profile.Error.Write"),
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Launch.Account.Profile.Error.Write"));
         }
     }
@@ -340,7 +340,7 @@ public static class ModProfile
     public static void CreateProfile()
     {
         int? selectedAuthTypeNum = default; // 验证类型序号
-        ModBase.RunInUiWait(() =>
+        UiThread.Invoke(() =>
         {
             List<IMyRadio> authTypeList;
 #if DEBUG || DEBUGCI
@@ -362,11 +362,11 @@ public static class ModProfile
             return;
         isCreatingProfile = true;
         if (selectedAuthTypeNum.HasValue && selectedAuthTypeNum.Value == 0) // 正版验证
-            ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Ms));
+            UiThread.Post(() => ModMain.frmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Ms));
         else if (selectedAuthTypeNum.HasValue && selectedAuthTypeNum.Value == 1) // 第三方验证
-            ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Auth));
+            UiThread.Post(() => ModMain.frmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Auth));
         else // 离线验证
-            ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Legacy));
+            UiThread.Post(() => ModMain.frmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Legacy));
     }
 
     private static List<IMyRadio> _GetAvailableProfileSelection(bool includeOfflineAndThirdParty) => includeOfflineAndThirdParty switch
@@ -414,7 +414,7 @@ public static class ModProfile
         if (selectedProfile.Type == ModLaunch.McLoginType.Ms)
         {
             string newUsername = null;
-            ModBase.RunInUiWait(() => newUsername = ModMain.MyMsgBoxInput(Lang.Text("Launch.Account.Profile.EditPlayerId.Title"), Lang.Text("Launch.Account.Profile.EditPlayerId.MicrosoftWarning"),
+            UiThread.Invoke(() => newUsername = ModMain.MyMsgBoxInput(Lang.Text("Launch.Account.Profile.EditPlayerId.Title"), Lang.Text("Launch.Account.Profile.EditPlayerId.MicrosoftWarning"),
                 selectedProfile.Username,
                 [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
                 Lang.Text("Launch.Account.Profile.EditPlayerId.Hint"), Lang.Text("Common.Action.Confirm")));
@@ -430,11 +430,11 @@ public static class ModProfile
                 return;
             // 更新档案信息
             // 刷新页面信息
-            ModBase.RunInNewThread(() =>
+            PCL.Core.App.Basics.RunInNewThread(() =>
             {
                 try
                 {
-                    var checkResult = (JsonObject)ModBase.GetJson(Requester.Fetch(
+                    var checkResult = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(Requester.Fetch(
                         $"https://api.minecraftservices.com/minecraft/profile/name/{newUsername}/available", 
                         new FetchParam
                         {
@@ -462,7 +462,7 @@ public static class ModProfile
                             Headers = new Dictionary<string, string>
                                 { { "Authorization", "Bearer " + selectedProfile.AccessToken } }
                         });
-                    var resultJson = (JsonObject)ModBase.GetJson(result);
+                    var resultJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(result);
                     HintService.Hint(Lang.Text("Launch.Account.Profile.EditPlayerId.Success", resultJson["name"]), HintType.Success);
                     profileList.Remove(selectedProfile);
                     selectedProfile.Username = (string)resultJson["name"];
@@ -477,10 +477,10 @@ public static class ModProfile
                     if (exSummary.Contains("403"))
                         ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.EditPlayerId.Cooldown"), Lang.Text("Launch.Account.Profile.EditPlayerId.Failed.Title"), Lang.Text("Common.Action.Confirm"));
                     else
-                        ModBase.Log(
+                        LauncherLog.Log(
                             ex,
                             Lang.Text("Launch.Account.Profile.Error.ChangeId"),
-                            ModBase.LogLevel.Msgbox,
+                            LauncherLogLevel.Msgbox,
                             userSummary: Lang.Text("Launch.Account.Profile.Error.ChangeId"));
                 }
             });
@@ -490,13 +490,13 @@ public static class ModProfile
         else if (selectedProfile.Type == ModLaunch.McLoginType.Auth)
         {
             var server = selectedProfile.Server;
-            ModBase.OpenWebsite(server.Replace("/api/yggdrasil/authserver" + (server.EndsWithF("/") ? "/" : ""),
+            LauncherProcess.OpenWebsite(server.Replace("/api/yggdrasil/authserver" + (server.EndsWithF("/") ? "/" : ""),
                 "/user/profile"));
         }
         else
         {
             string newUsername = null;
-            ModBase.RunInUiWait(() => newUsername = ModMain.MyMsgBoxInput(Lang.Text("Launch.Account.Profile.EditPlayerId.Title"),
+            UiThread.Invoke(() => newUsername = ModMain.MyMsgBoxInput(Lang.Text("Launch.Account.Profile.EditPlayerId.Title"),
                 defaultInput: selectedProfile.Username,
                 validateRules: [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
                 hintText: Lang.Text("Launch.Account.Profile.EditPlayerId.Hint"), button1: Lang.Text("Common.Action.Confirm"), button2: Lang.Text("Common.Action.Cancel")));
@@ -522,7 +522,7 @@ public static class ModProfile
 
         int uuidType;
         int? uuidTypeInput = default;
-        ModBase.RunInUiWait(() =>
+        UiThread.Invoke(() =>
         {
             var uuidTypeList = new List<IMyRadio>
             {
@@ -591,8 +591,8 @@ public static class ModProfile
     {
         if (isLegacy)
         {
-            var fullUuid = ModBase.StrFill(userName.Length.ToString("X"), "0", 16) +
-                           ModBase.StrFill(ModBase.GetHash(userName).ToString("X"), "0", 16);
+            var fullUuid = LauncherText.StrFill(userName.Length.ToString("X"), "0", 16) +
+                           LauncherText.StrFill(LauncherText.GetHash(userName).ToString("X"), "0", 16);
             return fullUuid.Substring(0, 12) + "3" + fullUuid.Substring(13, 3) + "9" + fullUuid.Substring(17, 15);
         }
 
@@ -699,7 +699,7 @@ public static class ModProfile
 
         if (authType == ModLaunch.McLoginType.Ms)
         {
-            if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Finished)
+            if (ModLaunch.mcLoginMsLoader.State == LoadState.Finished)
                 return new ModLaunch.McLoginMs
                 {
                     OAuthRefreshToken = selectedProfile.RefreshToken,
@@ -762,7 +762,7 @@ public static class ModProfile
             return;
         }
 
-        if (ModLaunch.mcLoginLoader.State == ModBase.LoadState.Failed)
+        if (ModLaunch.mcLoginLoader.State == LoadState.Failed)
         {
             HintService.Hint(Lang.Text("Launch.Skin.Change.LoginFailed"), HintType.Error);
             return;
@@ -778,16 +778,16 @@ public static class ModProfile
         // 获取登录信息
 
         // 获取新皮肤地址
-        ModBase.RunInNewThread(() =>
+        PCL.Core.App.Basics.RunInNewThread(() =>
         {
             try
             {
                 Retry: ;
-                if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Loading)
+                if (ModLaunch.mcLoginMsLoader.State == LoadState.Loading)
                     ModLaunch.mcLoginMsLoader.WaitForExit();
-                if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished)
+                if (ModLaunch.mcLoginMsLoader.State != LoadState.Finished)
                     ModLaunch.mcLoginMsLoader.WaitForExit(GetLoginData());
-                if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished)
+                if (ModLaunch.mcLoginMsLoader.State != LoadState.Finished)
                 {
                     HintService.Hint(Lang.Text("Launch.Skin.Change.LoginFailed"), HintType.Error);
                     return;
@@ -802,8 +802,8 @@ public static class ModProfile
                 {
                     { new StringContent(skinInfo.IsSlim ? "slim" : "classic"), "variant" },
                     {
-                        new ByteArrayContent(ModBase.ReadFileBytes(skinInfo.LocalFile)), "file",
-                        ModBase.GetFileNameFromPath(skinInfo.LocalFile)
+                        new ByteArrayContent(LegacyFileFacade.ReadBytes(skinInfo.LocalFile)), "file",
+                        LegacyFileFacade.GetFileNameFromPath(skinInfo.LocalFile)
                     }
                 };
                 var res = Requester.Fetch("https://api.minecraftservices.com/minecraft/profile/skins", 
@@ -825,13 +825,13 @@ public static class ModProfile
                     HintService.Hint(
                         Lang.Text(
                             "Launch.Skin.Change.FailedWithDetail",
-                            ((JsonObject)ModBase.GetJson(res))["error"]?.ToString() ?? res),
+                            ((JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(res))["error"]?.ToString() ?? res),
                         HintType.Error);
                     return;
                 }
 
-                ModBase.Log("[Skin] 皮肤修改返回值：" + "\r\n" + res);
-                var resultJson = (JsonObject)ModBase.GetJson(res);
+                LauncherLog.Log("[Skin] 皮肤修改返回值：" + "\r\n" + res);
+                var resultJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(res);
                 if (resultJson.ContainsKey("errorMessage")) throw new Exception(resultJson["errorMessage"].ToString());
                 foreach (var skinNode in resultJson["skins"].AsArray()) { var skin = skinNode.AsObject();
                     if (skin["state"].ToString() == "ACTIVE")
@@ -849,10 +849,10 @@ public static class ModProfile
                         Lang.Text("Launch.Skin.Change.Timeout.WithDetail", ex.ToString()),
                         HintType.Error);
                 else
-                    ModBase.Log(
+                    LauncherLog.Log(
                         ex,
                         Lang.Text("Launch.Account.Profile.Error.ChangeSkin"),
-                        ModBase.LogLevel.Hint,
+                        LauncherLogLevel.Hint,
                         userSummary: Lang.Text("Launch.Account.Profile.Error.ChangeSkin"));
             }
             finally

@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Runtime.InteropServices;
-using System.Text.Json.Nodes;
-using PCL;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils;
 using PCL.Network;
@@ -50,8 +45,8 @@ namespace PCL
                 // Log("[Minecraft] 无法获取资源文件索引下载地址，使用 assets 项提供的资源文件名：" & AssetsName)
                 // Return GetJson("{""id"": """ & AssetsName & """}")
                 // Else
-                ModBase.Log("[Minecraft] 无法获取资源文件索引下载地址，使用默认的 legacy 下载地址");
-                return (JsonNode)ModBase.GetJson(@"{
+                LauncherLog.Log("[Minecraft] 无法获取资源文件索引下载地址，使用默认的 legacy 下载地址");
+                return (JsonNode)JsonCompat.ParseNode(@"{
                     ""id"": ""legacy"",
                     ""sha1"": ""c0fd82e8ce9fbc93119e40d96d5a4e62cfa3f729"",
                     ""size"": 134284,
@@ -84,7 +79,7 @@ namespace PCL
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "获取资源文件索引名失败");
+                LauncherLog.Log(ex, "获取资源文件索引名失败");
             }
 
             return "legacy";
@@ -115,7 +110,7 @@ namespace PCL
 
             public override string ToString()
             {
-                return ModBase.GetString(size) + " | " + localPath;
+                return $"{LauncherText.GetReadableFileSize(size)} | {localPath}";
             }
         }
 
@@ -142,8 +137,8 @@ namespace PCL
                     throw new FileNotFoundException(Lang.Text("Minecraft.Error.AssetIndexNotFound"),
                         Path.Combine(ModFolder.mcFolderSelected, "assets", "indexes", indexName + ".json"));
                 var result = new List<McAssetsToken>();
-                var json = (JsonObject)ModBase.GetJson(
-                    ModBase.ReadFile($@"{ModFolder.mcFolderSelected}assets\indexes\{indexName}.json"));
+                var json = (JsonObject)JsonCompat.ParseNode(
+                    LegacyFileFacade.ReadText($@"{ModFolder.mcFolderSelected}assets\indexes\{indexName}.json"));
 
                 // 读取列表
                 foreach (var file in json["objects"].AsObject())
@@ -175,7 +170,7 @@ namespace PCL
 
             catch (Exception ex)
             {
-                ModBase.Log(ex, "获取资源文件列表失败：" + indexName);
+                LauncherLog.Log(ex, $"获取资源文件列表失败：{indexName}");
                 throw;
             }
         }
@@ -195,7 +190,7 @@ namespace PCL
                     return new DownloadFile(
                         ModDownload.DlSourceAssetsGet(McAssetsUrl(hash)),
                         token.localPath,
-                        new ModBase.FileChecker(actualSize: token.size == 0L ? -1 : token.size, hash: hash));
+                        new FileChecker(actualSize: token.size == 0L ? -1 : token.size, hash: hash));
                 }).ToList();
             // 如果不检查 Hash，则立即处理
             var result = new List<DownloadFile>();
@@ -222,12 +217,12 @@ namespace PCL
                     result.Add(new DownloadFile(
                         ModDownload.DlSourceAssetsGet(McAssetsUrl(hash)),
                         token.localPath,
-                        new ModBase.FileChecker(actualSize: token.size == 0L ? -1 : token.size, hash: hash)));
+                        new FileChecker(actualSize: token.size == 0L ? -1 : token.size, hash: hash)));
                 }
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "获取实例缺失的资源文件下载列表失败");
+                LauncherLog.Log(ex, "获取实例缺失的资源文件下载列表失败");
             }
 
             if (progressFeed is not null)

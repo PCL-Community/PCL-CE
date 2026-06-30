@@ -1,19 +1,18 @@
-﻿using System.Collections;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Windows.Shapes;
-
 using PCL.Core.App.Localization;
+
 namespace PCL;
 
 [ContentProperty("Inlines")]
 public partial class MyRadioBox : IMyRadio
 {
-    public delegate void PreviewChangeEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void PreviewChangeEventHandler(object sender, RouteEventArgs e);
 
-    public delegate void PreviewCheckEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void PreviewCheckEventHandler(object sender, RouteEventArgs e);
 
     // 指向动画
 
@@ -44,7 +43,7 @@ public partial class MyRadioBox : IMyRadio
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherRuntime.GetUuid();
 
     public MyRadioBox()
     {
@@ -89,7 +88,7 @@ public partial class MyRadioBox : IMyRadio
             // Preview 事件
             if (value && user)
             {
-                var e = new ModBase.RouteEventArgs(user);
+                var e = new RouteEventArgs(user);
                 PreviewCheck?.Invoke(this, e);
                 if (e.handled)
                 {
@@ -101,7 +100,7 @@ public partial class MyRadioBox : IMyRadio
             // 自定义属性基础
             var isChanged = false;
             if (IsLoaded && value != Checked)
-                PreviewChange?.Invoke(this, new ModBase.RouteEventArgs(user));
+                PreviewChange?.Invoke(this, new RouteEventArgs(user));
             if (value != Checked)
             {
                 SetValue(CheckedProperty, value);
@@ -161,8 +160,8 @@ public partial class MyRadioBox : IMyRadio
             if (isChanged)
             {
                 if (Checked)
-                    Check?.Invoke(this, new ModBase.RouteEventArgs(user));
-                Changed?.Invoke(this, new ModBase.RouteEventArgs(user));
+                    Check?.Invoke(this, new RouteEventArgs(user));
+                Changed?.Invoke(this, new RouteEventArgs(user));
                 ModMain.RaiseCustomEvent(this);
             }
 
@@ -171,10 +170,10 @@ public partial class MyRadioBox : IMyRadio
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "单选框勾选改变错误",
-                ModBase.LogLevel.Hint,
+                LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Application.Control.Error.OperationFailed"));
         }
     }
@@ -265,7 +264,7 @@ public partial class MyRadioBox : IMyRadio
     {
         if (!mouseDowned)
             return;
-        ModBase.Log("[Control] 按下单选框：" + Text);
+        LauncherLog.Log("[Control] 按下单选框：" + Text);
         SetChecked(true, true);
         mouseDowned = false;
         ModAnimation.AniStart(ModAnimation.AaColor(ShapeBorder, Shape.FillProperty, "ColorBrushHalfWhite", 100),

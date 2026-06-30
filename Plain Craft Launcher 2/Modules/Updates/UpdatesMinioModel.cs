@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
 using System.Text.Json.Serialization;
@@ -35,7 +35,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
     {
         // 先检查缓存
         var remoteCache =
-            ModBase.GetJson(Requester.FetchString($"{_baseUrl}apiv2/cache.json", RequestParam.WithRetry));
+            PCL.Core.Utils.JsonCompat.ParseNode(Requester.FetchString($"{_baseUrl}apiv2/cache.json", RequestParam.WithRetry));
         _remoteCache = remoteCache.ToObject<Dictionary<string, string>>();
         return true;
     }
@@ -72,7 +72,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             RefreshCache();
         var loaders = new List<ModLoader.LoaderBase>();
         var patchUpdate = true;
-        var tempPath = $@"{ModBase.pathTemp}Cache\Update\Download\";
+        var tempPath = $@"{LauncherPaths.TempWithSlash}Cache\Update\Download\";
         loaders.Add(new ModLoader.LoaderTask<int, List<DownloadFile>>(Lang.Text("Update.Task.GetVersionInfo"), load =>
         {
             var channelName = GetChannelName(channel, arch);
@@ -82,7 +82,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                 ?.FirstOrDefault();
             if (deJsonData is null)
                 throw new Exception("No assets can download!");
-            var selfSha256 = ModBase.GetFileSHA256(Basics.ExecutablePath);
+            var selfSha256 = LegacyFileFacade.GetFileSha256(Basics.ExecutablePath);
             var remoteUpdSha256 = deJsonData.Sha256;
             var patchFileName = $"{selfSha256}_{remoteUpdSha256}.patch";
             if (deJsonData.Patches.Contains(patchFileName))
@@ -107,9 +107,9 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             {
                 var diff = new BsDiff();
                 var newFile = diff
-                    .ApplyAsync(ModBase.ReadFileBytes(Basics.ExecutablePath), ModBase.ReadFileBytes(tempPath))
+                    .ApplyAsync(LegacyFileFacade.ReadBytes(Basics.ExecutablePath), LegacyFileFacade.ReadBytes(tempPath))
                     .GetAwaiter().GetResult();
-                ModBase.WriteFile(output, newFile);
+                LegacyFileFacade.WriteFile(output, newFile);
             }
             else
             {
@@ -158,11 +158,11 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
 
     private JsonNode GetRemoteInfoByName(string name, string path = "")
     {
-        var localInfoFile = Path.Combine(ModBase.pathTemp, "Cache", "Update", $"{name}.json");
+        var localInfoFile = Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Update", $"{name}.json");
         JsonNode jsonData;
         if (IsCacheValid($"{name}.json", _remoteCache[name]))
         {
-            jsonData = ModBase.GetJson(ModBase.ReadFile(localInfoFile));
+            jsonData = PCL.Core.Utils.JsonCompat.ParseNode(LegacyFileFacade.ReadText(localInfoFile));
         }
         else
         {
@@ -172,8 +172,8 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                 .GetResult();
 
             var content = response.AsString();
-            jsonData = ModBase.GetJson(content);
-            ModBase.WriteFile(localInfoFile, content);
+            jsonData = PCL.Core.Utils.JsonCompat.ParseNode(content);
+            LegacyFileFacade.WriteFile(localInfoFile, content);
         }
 
         return jsonData;
@@ -187,10 +187,10 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
     /// <returns></returns>
     private bool IsCacheValid(string path, string hash)
     {
-        var cacheFile = Path.Combine(ModBase.pathTemp, "Cache", "Update", path);
+        var cacheFile = Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Update", path);
         var fileInfo = new FileInfo(cacheFile);
         return fileInfo.Exists && (DateTime.Now - fileInfo.LastWriteTime).TotalHours < 1 &&
-               (ModBase.GetFileMD5(cacheFile) ?? "") == (hash ?? "");
+               (LegacyFileFacade.GetFileMd5(cacheFile) ?? "") == (hash ?? "");
     }
 
     private string GetChannelName(UpdateChannel channel, UpdateArch arch)

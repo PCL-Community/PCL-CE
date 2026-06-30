@@ -1,5 +1,5 @@
-using System.IO;
-using System.Text;
+﻿using System.Text;
+using PCL.Core.Utils;
 
 namespace PCL.Network;
 
@@ -26,7 +26,7 @@ public static class ModNet
             Retries = 3
         };
         var result = Requester.FetchString(url, param);
-        return isJson ? (object)ModBase.GetJson(result) : result;
+        return isJson ? (object)JsonCompat.ParseNode(result) : result;
     }
 
     public static object NetGetCodeByRequestOnce(string url, Encoding? encode = null, int timeout = 30000,
@@ -41,7 +41,7 @@ public static class ModNet
             Retries = 1
         };
         var result = Requester.FetchString(url, param);
-        return isJson ? (object)ModBase.GetJson(result) : result;
+        return isJson ? (object)JsonCompat.ParseNode(result) : result;
     }
 
     public static string NetGetCodeByLoader(string url, int timeout = 45000, bool isJson = false,
@@ -65,13 +65,13 @@ public static class ModNet
                     Timeout = timeout,
                     UseBrowserUserAgent = useBrowserUserAgent
                 });
-                
-                return isJson ? ModBase.GetJson(content).ToString() : content;
+
+                return isJson ? JsonCompat.ParseNode(content).ToString() : content;
             }
             catch (Exception ex)
             {
                 lastException = ex;
-                ModBase.Log(ex, $"[Fetch] 获取文件内容失败，尝试下一个源：{url}", ModBase.LogLevel.Debug);
+                LauncherLog.Log(ex, $"[Fetch] 获取文件内容失败，尝试下一个源：{url}");
             }
         }
 
@@ -105,13 +105,13 @@ public static class ModNet
     }
 
     public static void NetDownloadByLoader(string url, string localFile, ModLoader.LoaderBase? loaderToSyncProgress = null,
-        ModBase.FileChecker? check = null, bool useBrowserUserAgent = false)
+        FileChecker? check = null, bool useBrowserUserAgent = false)
     {
         FileDownloader.DownloadAsync(url, localFile, useBrowserUserAgent).GetAwaiter().GetResult();
     }
 
     public static void NetDownloadByLoader(IEnumerable<string> urls, string localFile,
-        ModLoader.LoaderBase? loaderToSyncProgress = null, ModBase.FileChecker? check = null,
+        ModLoader.LoaderBase? loaderToSyncProgress = null, FileChecker? check = null,
         bool useBrowserUserAgent = false)
     {
         FileDownloader.DownloadAsync(urls, localFile, useBrowserUserAgent).GetAwaiter().GetResult();
@@ -121,7 +121,7 @@ public static class ModNet
     {
         foreach (var task in ModLoader.loaderTaskbar.ToList())
         {
-            if (task.show && task.State == ModBase.LoadState.Loading &&
+            if (task.show && task.State == LoadState.Loading &&
                 (!ignoreCustomDownload || !task.name.Contains("自定义下载")))
                 return true;
         }

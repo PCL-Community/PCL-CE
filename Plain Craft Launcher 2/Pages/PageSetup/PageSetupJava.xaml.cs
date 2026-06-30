@@ -105,7 +105,7 @@ public partial class PageSetupJava
                 return;
             }
 
-            ModBase.OpenExplorer(j.Installation.JavaFolder);
+            LauncherProcess.OpenExplorer(j.Installation.JavaFolder);
         };
         var btnInfo = new MyIconButton();
         btnInfo.SvgIcon = "lucide/info";
@@ -179,10 +179,10 @@ public partial class PageSetupJava
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     Lang.Text("Setup.Java.EnableFailed"),
-                    ModBase.LogLevel.Hint,
+                    LauncherLogLevel.Hint,
                     userSummary: Lang.Text("Setup.Java.EnableFailed"));
             }
         };
@@ -191,7 +191,7 @@ public partial class PageSetupJava
         return item;
     }
 
-    private void BtnAdd_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnAdd_Click(object sender, RouteEventArgs e)
     {
         var ret = SystemDialogs.SelectFile(Lang.Text("Setup.Java.SelectFile.Filter"), Lang.Text("Setup.Java.SelectFile.Title"));
         if (string.IsNullOrEmpty(ret) || !File.Exists(ret))

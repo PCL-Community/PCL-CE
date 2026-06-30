@@ -103,7 +103,7 @@ public partial class PageInstanceOverall
     private void GetInstanceInfo()
     {
         modpackCompItem = null;
-        ModBase.RunInUi(() =>
+        UiThread.Post(() =>
         {
             PanInfo.Children.Clear();
             PanInfo.Children.Add(new MyLoading { Text = Lang.Text("Instance.Overall.Info.Loading"), Margin = new Thickness(0d, 0d, 0d, 10d) });
@@ -116,7 +116,7 @@ public partial class PageInstanceOverall
             {
                 var compProjects = ModComp.CompRequest.GetCompProjectsByIds(new List<string> { modpackId });
                 if (compProjects.Count > 0)
-                    ModBase.RunInUi(() =>
+                    UiThread.Post(() =>
                     {
                         modpackCompItem = compProjects.First().ToCompItem(false, false);
                         modpackCompItem.Tag = compProjects.First();
@@ -126,7 +126,7 @@ public partial class PageInstanceOverall
         {
             block = true
         });
-        loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Instance.Overall.Info.LoadInstanceInfoTask"), _ => ModBase.RunInUi(() =>
+        loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Instance.Overall.Info.LoadInstanceInfoTask"), _ => UiThread.Post(() =>
         {
             var instance = PageInstanceLeft.McInstance;
             var instanceInfo = instance.Info;
@@ -241,16 +241,16 @@ public partial class PageInstanceOverall
                 PageInstanceLeft.McInstance.displayType = (McInstanceCardType)States.Instance.CardType[PageInstanceLeft.McInstance.PathInstance];
                 ModMain.frmInstanceLeft.RefreshModDisabled();
 
-                ModBase.WriteIni(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
+                LegacyIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
                 ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                     ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     $"修改实例分类失败（{PageInstanceLeft.McInstance.Name}）",
-                    ModBase.LogLevel.Feedback,
+                    LauncherLogLevel.Feedback,
                     userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
             }
 
@@ -275,16 +275,16 @@ public partial class PageInstanceOverall
 
                 States.Instance.CardType[PageInstanceLeft.McInstance.PathInstance] =
                     (int)McInstanceCardType.Hidden;
-                ModBase.WriteIni(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
+                LegacyIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
                 ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                     ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     $"隐藏实例 {PageInstanceLeft.McInstance.Name} 失败",
-                    ModBase.LogLevel.Feedback,
+                    LauncherLogLevel.Feedback,
                     userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
             }
         }
@@ -307,10 +307,10 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 $"实例 {PageInstanceLeft.McInstance.Name} 描述更改失败",
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
     }
@@ -337,12 +337,12 @@ public partial class PageInstanceOverall
             JsonObject jsonObject;
             try
             {
-                jsonObject = (JsonObject)ModBase.GetJson(ModBase.ReadFile(PageInstanceLeft.McInstance.PathInstance +
+                jsonObject = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(LegacyFileFacade.ReadText(PageInstanceLeft.McInstance.PathInstance +
                                                                        PageInstanceLeft.McInstance.Name + ".json"));
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "重命名读取 Json 时失败");
+                LauncherLog.Log(ex, "重命名读取 Json 时失败");
                 jsonObject = PageInstanceLeft.McInstance.JsonObject;
             }
 
@@ -350,7 +350,7 @@ public partial class PageInstanceOverall
             FileSystem.RenameDirectory(oldPath, tempName);
             FileSystem.RenameDirectory(tempPath, newName);
             // 清理 ini 缓存
-            ModBase.IniClearCache(Path.Combine(PageInstanceLeft.McInstance.PathIndie, "options.txt"));
+            LegacyIniStore.Shared.ClearCache(Path.Combine(PageInstanceLeft.McInstance.PathIndie, "options.txt"));
             // 重命名 Jar 文件与 natives 文件夹
             // 不能进行遍历重命名，否则在实例名很短的时候容易误伤其他文件（Meloong-Git/#6443）
             if (Directory.Exists(Path.Combine(newPath, $"{oldName}-natives")))
@@ -362,7 +362,7 @@ public partial class PageInstanceOverall
                 }
                 else
                 {
-                    ModBase.DeleteDirectory(Path.Combine(newPath, $"{newName}-natives"));
+                    LegacyFileFacade.DeleteDirectory(Path.Combine(newPath, $"{newName}-natives"));
                     FileSystem.RenameDirectory(Path.Combine(newPath, $"{oldName}-natives"), $"{newName}-natives");
                 }
             }
@@ -383,22 +383,22 @@ public partial class PageInstanceOverall
 
             // 替换实例设置文件中的路径
             if (File.Exists(Path.Combine(newPath, "PCL", "Setup.ini")))
-                ModBase.WriteFile(Path.Combine(newPath, "PCL", "Setup.ini"),
-                    ModBase.ReadFile(Path.Combine(newPath, "PCL", "Setup.ini")).Replace(oldPath, newPath));
+                LegacyFileFacade.WriteFile(Path.Combine(newPath, "PCL", "Setup.ini"),
+                    LegacyFileFacade.ReadText(Path.Combine(newPath, "PCL", "Setup.ini")).Replace(oldPath, newPath));
             // 更改已选中的实例
-            if ((ModBase.ReadIni(ModFolder.mcFolderSelected + "PCL.ini", "Version") ?? "") == (oldName ?? ""))
-                ModBase.WriteIni(ModFolder.mcFolderSelected + "PCL.ini", "Version", newName);
+            if ((LegacyIniStore.Shared.Read(ModFolder.mcFolderSelected + "PCL.ini", "Version") ?? "") == (oldName ?? ""))
+                LegacyIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "Version", newName);
             // 写入实例 Json，并删除旧的 Json
             try
             {
                 jsonObject["id"] = newName;
-                ModBase.WriteFile(Path.Combine(newPath, $"{newName}.json"), jsonObject.ToString());
+                LegacyFileFacade.WriteFile(Path.Combine(newPath, $"{newName}.json"), jsonObject.ToString());
                 if (!isCaseChangedOnly)
                     File.Delete(Path.Combine(newPath, $"{oldName}.json"));
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "重命名实例 Json 失败");
+                LauncherLog.Log(ex, "重命名实例 Json 失败");
             }
 
             // 刷新与提示
@@ -406,17 +406,17 @@ public partial class PageInstanceOverall
             PageInstanceLeft.McInstance = new McInstance(newName).Load();
             if (ModInstanceList.McMcInstanceSelected is not null &&
                 ModInstanceList.McMcInstanceSelected.Equals(PageInstanceLeft.McInstance))
-                ModBase.WriteIni(ModFolder.mcFolderSelected + "PCL.ini", "Version", newName);
+                LegacyIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "Version", newName);
             Reload();
             ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "重命名实例失败",
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
     }
@@ -438,7 +438,7 @@ public partial class PageInstanceOverall
                     return;
                 }
 
-                ModBase.CopyFile(fileName, PageInstanceLeft.McInstance.PathInstance + @"PCL\Logo.png");
+                LegacyFileFacade.CopyFile(fileName, PageInstanceLeft.McInstance.PathInstance + @"PCL\Logo.png");
             }
             else
             {
@@ -447,10 +447,10 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 $"更改自定义实例图标失败（{PageInstanceLeft.McInstance.Name}）",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
 
@@ -461,7 +461,7 @@ public partial class PageInstanceOverall
             States.Instance.LogoPath[PageInstanceLeft.McInstance.PathInstance] = newLogo;
             States.Instance.IsLogoCustom[PageInstanceLeft.McInstance.PathInstance] = !string.IsNullOrEmpty(newLogo);
             // 刷新显示
-            ModBase.WriteIni(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
+            LegacyIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
             PageInstanceLeft.McInstance = new McInstance(PageInstanceLeft.McInstance.Name).Load();
             Reload();
             ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
@@ -469,10 +469,10 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 $"更改实例图标失败（{PageInstanceLeft.McInstance.Name}）",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
     }
@@ -491,10 +491,10 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 $"实例 {PageInstanceLeft.McInstance.Name} 收藏状态更改失败",
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
     }
@@ -511,7 +511,7 @@ public partial class PageInstanceOverall
 
     public static void OpenVersionFolder(McInstance version)
     {
-        ModBase.OpenExplorer(version.PathInstance);
+        LauncherProcess.OpenExplorer(version.PathInstance);
     }
 
     // 存档文件夹
@@ -519,7 +519,7 @@ public partial class PageInstanceOverall
     {
         var folderPath = PageInstanceLeft.McInstance.PathIndie + @"saves\";
         Directory.CreateDirectory(folderPath);
-        ModBase.OpenExplorer(folderPath);
+        LauncherProcess.OpenExplorer(folderPath);
     }
 
     // Mod 文件夹
@@ -527,7 +527,7 @@ public partial class PageInstanceOverall
     {
         var folderPath = PageInstanceLeft.McInstance.PathIndie + @"mods\";
         Directory.CreateDirectory(folderPath);
-        ModBase.OpenExplorer(folderPath);
+        LauncherProcess.OpenExplorer(folderPath);
     }
 
     #endregion
@@ -545,7 +545,7 @@ public partial class PageInstanceOverall
             if (string.IsNullOrEmpty(savePath))
                 return;
             // 检查中断（等玩家选完弹窗指不定任务就结束了呢……）
-            if (ModLaunch.mcLaunchLoader.State == ModBase.LoadState.Loading)
+            if (ModLaunch.mcLaunchLoader.State == LoadState.Loading)
             {
                 HintService.Hint(Lang.Text("Instance.Overall.Script.WaitForLaunchTask"), HintType.Error);
                 return;
@@ -563,10 +563,10 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 $"导出启动脚本失败（{PageInstanceLeft.McInstance.Name}）",
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
     }
@@ -601,20 +601,20 @@ public partial class PageInstanceOverall
             {
                 switch (loader.State)
                 {
-                    case ModBase.LoadState.Finished:
+                    case LoadState.Finished:
                     {
                         HintService.Hint(
                             Lang.Text("Instance.Overall.Repair.Success.WithTaskName", taskName), HintType.Success);
                         break;
                     }
-                    case ModBase.LoadState.Failed:
+                    case LoadState.Failed:
                     {
                         HintService.Hint(
                             Lang.Text("Instance.Overall.Repair.Failed.WithDetail", taskName, loader.Error.ToString()),
                             HintType.Error);
                         break;
                     }
-                    case ModBase.LoadState.Aborted:
+                    case LoadState.Aborted:
                     {
                         HintService.Hint(
                             Lang.Text("Instance.Overall.Repair.Cancelled.WithTaskName", taskName));
@@ -629,10 +629,10 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 $"尝试补全文件失败（{PageInstanceLeft.McInstance.Name}）",
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
     }
@@ -656,10 +656,10 @@ public partial class PageInstanceOverall
                 return;
 
             // 备份实例核心文件
-            ModBase.CopyFile(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name + ".json",
+            LegacyFileFacade.CopyFile(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name + ".json",
                 PageInstanceLeft.McInstance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.McInstance.Name +
                 ".json");
-            ModBase.CopyFile(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name + ".jar",
+            LegacyFileFacade.CopyFile(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name + ".jar",
                 PageInstanceLeft.McInstance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.McInstance.Name +
                 ".jar");
             // 提交安装申请
@@ -696,10 +696,10 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 $"重置实例 {PageInstanceLeft.McInstance.Name} 失败",
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
     }
@@ -715,10 +715,10 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "测试游戏失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
     }
@@ -760,12 +760,12 @@ public partial class PageInstanceOverall
                 {
                     var instancePath = PageInstanceLeft.McInstance.PathInstance;
                     var instanceName = PageInstanceLeft.McInstance.Name;
-                    ModBase.IniClearCache(Path.Combine(PageInstanceLeft.McInstance.PathIndie, "options.txt"));
+                    LegacyIniStore.Shared.ClearCache(Path.Combine(PageInstanceLeft.McInstance.PathIndie, "options.txt"));
                     ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
                         instancePath);
                     if (isShiftPressed)
                     {
-                        ModBase.DeleteDirectory(instancePath);
+                        LegacyFileFacade.DeleteDirectory(instancePath);
                         HintService.Hint(Lang.Text("Instance.Overall.Delete.PermanentSuccess", instanceName),
                             HintType.Success);
                     }
@@ -791,14 +791,14 @@ public partial class PageInstanceOverall
         }
         catch (OperationCanceledException ex)
         {
-            ModBase.Log(ex, "删除实例 " + PageInstanceLeft.McInstance.Name + " 被主动取消");
+            LauncherLog.Log(ex, "删除实例 " + PageInstanceLeft.McInstance.Name + " 被主动取消");
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 $"删除实例 {PageInstanceLeft.McInstance.Name} 失败",
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
     }
@@ -816,7 +816,7 @@ public partial class PageInstanceOverall
                 if (userInput is null || string.IsNullOrWhiteSpace(userInput))
                     return;
                 HintService.Hint(Lang.Text("Instance.Overall.Patch.Patching"));
-                ModBase.RunInNewThread(() =>
+                PCL.Core.App.Basics.RunInNewThread(() =>
                 {
                     var core = new GameCore(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name +
                                             ".jar");

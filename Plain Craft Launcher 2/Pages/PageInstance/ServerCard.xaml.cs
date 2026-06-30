@@ -50,7 +50,7 @@ public partial class ServerCard
     public void UpdateServerInfo(MinecraftServerInfo serverInfo)
     {
         server = serverInfo;
-        ModBase.RunInUi(() => UpdateServerUi());
+        UiThread.Post(() => UpdateServerUi());
     }
 
     /// <summary>
@@ -157,10 +157,10 @@ public partial class ServerCard
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Instance.Server.Card.LaunchFailed"),
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Server.Card.LaunchFailed"));
             HintService.Hint(Lang.Text("Instance.Server.Card.LaunchFailedMsg", ex.Message), HintType.Error);
         }
@@ -178,7 +178,7 @@ public partial class ServerCard
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Server.Card.CopyAddressFailed"));
+            LauncherLog.Log(ex, Lang.Text("Instance.Server.Card.CopyAddressFailed"));
             HintService.Hint(Lang.Text("Instance.Server.Card.CopyAddressFailed"), HintType.Error);
         }
     }

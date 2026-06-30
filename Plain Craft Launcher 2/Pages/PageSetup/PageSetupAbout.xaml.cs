@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Input;
@@ -33,9 +33,9 @@ public partial class PageSetupAbout
             return;
         isLoaded = true;
 
-        ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", ModBase.VersionBaseName)
-            .Replace("%VERSIONCODE%", ModBase.VersionCode.ToString()).Replace("%BRANCH%", ModBase.VersionBranchName)
-            .Replace("%COMMIT_HASH%", ModBase.CommitHashShort);
+        ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", LauncherEnvironment.VersionBaseName)
+            .Replace("%VERSIONCODE%", LauncherEnvironment.VersionCode.ToString()).Replace("%BRANCH%", LauncherEnvironment.VersionBranchName)
+            .Replace("%COMMIT_HASH%", LauncherEnvironment.CommitHashShort);
 
         if (!Lang.IsChineseMainland)
         {
@@ -63,7 +63,7 @@ public partial class PageSetupAbout
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.About.Error.LoadContributorsFailed"));
+            LauncherLog.Log(ex, Lang.Text("Setup.About.Error.LoadContributorsFailed"));
         }
     }
 

@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -18,7 +18,7 @@ public class MyCollapseBar : StackPanel
 
     private const double HeaderHeight = 30d;
 
-    private readonly int _uuid = ModBase.GetUuid();
+    private readonly int _uuid = LauncherRuntime.GetUuid();
     private readonly TextBlock _titleBlock;
     private readonly Path _triangle;
     private readonly StackPanel _contentPanel;

@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
+﻿using System.IO;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
-using PCL.Network;
 
 namespace PCL;
 
@@ -42,7 +36,7 @@ public static class ModInstanceList
     /// <summary>
     ///     当前按卡片分类的所有版本列表。
     /// </summary>
-    public static Dictionary<McInstanceCardType, List<PCL.McInstance>> mcInstanceList = new();
+    public static Dictionary<McInstanceCardType, List<McInstance>> mcInstanceList = new();
 
     #endregion
 
@@ -71,7 +65,7 @@ public static class ModInstanceList
         try
         {
             // 初始化
-            mcInstanceList = new Dictionary<McInstanceCardType, List<PCL.McInstance>>();
+            mcInstanceList = new Dictionary<McInstanceCardType, List<McInstance>>();
             var versionsPath = Path.Combine(path, "versions");
             var folderList = new List<string>();
 
@@ -90,20 +84,21 @@ public static class ModInstanceList
             // 如果没有可用实例，清空缓存并跳过后续处理
             if (!folderList.Any())
             {
-                ModBase.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", "");
+                LegacyIniStore.Shared.Write(Path.Combine(path, "PCL.ini"), "InstanceCache", "");
                 McMcInstanceSelected = null;
                 States.Game.SelectedInstance = "";
-                ModBase.Log("[Minecraft] 未找到可用 Minecraft 实例");
+                LauncherLog.Log("[Minecraft] 未找到可用 Minecraft 实例");
                 return;
             }
 
             // 根据文件夹名列表生成辨识码
-            var folderListHash = ModBase.GetHash(mcInstanceCacheVersion + "#" + string.Join("#", folderList));
+            var folderListHash = LauncherText.GetHash(mcInstanceCacheVersion + "#" + string.Join("#", folderList));
             var folderListCheck = (int)(folderListHash % (int.MaxValue - 1));
 
             // 尝试使用缓存
             var useCache = !mcInstanceListForceRefresh &&
-                           ModBase.Val(ModBase.ReadIni(Path.Combine(path, "PCL.ini"), "InstanceCache")) ==
+                           LauncherText.Val(LegacyIniStore.Shared.Read(Path.Combine(path, "PCL.ini"),
+                               "InstanceCache")) ==
                            folderListCheck;
 
             if (useCache)
@@ -119,8 +114,8 @@ public static class ModInstanceList
             if (!useCache)
             {
                 mcInstanceListForceRefresh = false;
-                ModBase.Log("[Minecraft] 文件夹列表变更或缓存无效，重载所有实例");
-                ModBase.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", folderListCheck.ToString());
+                LauncherLog.Log("[Minecraft] 文件夹列表变更或缓存无效，重载所有实例");
+                LegacyIniStore.Shared.Write(Path.Combine(path, "PCL.ini"), "InstanceCache", folderListCheck.ToString());
                 mcInstanceList = InitMcInstanceListWithoutCache(path);
             }
 
@@ -130,7 +125,7 @@ public static class ModInstanceList
                 return;
 
             // 尝试读取已储存的选择
-            var savedSelection = ModBase.ReadIni(Path.Combine(path, "PCL.ini"), "Version");
+            var savedSelection = LegacyIniStore.Shared.Read(Path.Combine(path, "PCL.ini"), "Version");
             if (!string.IsNullOrEmpty(savedSelection))
                 foreach (var card in mcInstanceList)
                 foreach (var instance in card.Value)
@@ -138,7 +133,7 @@ public static class ModInstanceList
                     {
                         McMcInstanceSelected = instance;
                         States.Game.SelectedInstance = McMcInstanceSelected.Name;
-                        ModBase.Log("[Minecraft] 选择该文件夹储存的 Minecraft 实例：" + McMcInstanceSelected.PathInstance);
+                        LauncherLog.Log($"[Minecraft] 选择该文件夹储存的 Minecraft 实例：{McMcInstanceSelected.PathInstance}");
                         return;
                     }
 
@@ -151,13 +146,13 @@ public static class ModInstanceList
             {
                 McMcInstanceSelected = firstInstance;
                 States.Game.SelectedInstance = McMcInstanceSelected.Name;
-                ModBase.Log("[Launch] 自动选择 Minecraft 实例：" + McMcInstanceSelected.PathInstance);
+                LauncherLog.Log($"[Launch] 自动选择 Minecraft 实例：{McMcInstanceSelected.PathInstance}");
             }
             else
             {
                 McMcInstanceSelected = null;
                 States.Game.SelectedInstance = "";
-                ModBase.Log("[Minecraft] 未找到可用 Minecraft 实例");
+                LauncherLog.Log("[Minecraft] 未找到可用 Minecraft 实例");
             }
 
             // 调试延迟
@@ -170,33 +165,34 @@ public static class ModInstanceList
         }
         catch (Exception ex)
         {
-            ModBase.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", ""); // 要求下次重新加载
-            ModBase.Log(
+            LegacyIniStore.Shared.Write(Path.Combine(path, "PCL.ini"), "InstanceCache", ""); // 要求下次重新加载
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Select.Instance.Error.ListLoad"),
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Select.Instance.Error.ListLoad"));
         }
     }
 
     // 获取实例列表
-    private static Dictionary<McInstanceCardType, List<PCL.McInstance>> InitMcInstanceListWithCache(string path)
+    private static Dictionary<McInstanceCardType, List<McInstance>> InitMcInstanceListWithCache(string path)
     {
-        var results = new Dictionary<McInstanceCardType, List<PCL.McInstance>>();
+        var results = new Dictionary<McInstanceCardType, List<McInstance>>();
         try
         {
-            var cardCount = int.Parse(ModBase.ReadIni(path + "PCL.ini", "CardCount", (-1).ToString()));
+            var cardCount = int.Parse(LegacyIniStore.Shared.Read(path + "PCL.ini", "CardCount", (-1).ToString()));
             if (cardCount == -1)
                 return null;
             for (int i = 0, loopTo = cardCount - 1; i <= loopTo; i++)
             {
                 var cardType =
-                    (McInstanceCardType)int.Parse(ModBase.ReadIni(path + "PCL.ini", "CardKey" + (i + 1),
+                    (McInstanceCardType)int.Parse(LegacyIniStore.Shared.Read(path + "PCL.ini", "CardKey" + (i + 1),
                         "0"));
-                var instanceList = new List<PCL.McInstance>();
+                var instanceList = new List<McInstance>();
 
                 // 循环读取实例
-                foreach (var folder in ModBase.ReadIni(path + "PCL.ini", "CardValue" + (i + 1), ":").Split(":"))
+                foreach (var folder in LegacyIniStore.Shared.Read(path + "PCL.ini", "CardValue" + (i + 1), ":")
+                             .Split(":"))
                 {
                     if (string.IsNullOrEmpty(folder))
                         continue;
@@ -205,12 +201,12 @@ public static class ModInstanceList
                     {
                         if (_isFirstMcInstanceListLoad)
                         {
-                            ModBase.Log("[Minecraft] 清理残留的忽略项目：" + versionFolder); // #2781
+                            LauncherLog.Log($"[Minecraft] 清理残留的忽略项目：{versionFolder}"); // #2781
                             File.Delete(versionFolder + ".pclignore");
                         }
                         else
                         {
-                            ModBase.Log("[Minecraft] 跳过要求忽略的项目：" + versionFolder);
+                            LauncherLog.Log($"[Minecraft] 跳过要求忽略的项目：{versionFolder}");
                             continue;
                         }
                     }
@@ -218,7 +214,7 @@ public static class ModInstanceList
                     try
                     {
                         // 读取单个实例
-                        var instance = new PCL.McInstance(versionFolder);
+                        var instance = new McInstance(versionFolder);
                         instanceList.Add(instance);
                         var instanceCfg = States.Instance;
                         instance.Desc = instanceCfg.CustomInfo[instance.PathInstance];
@@ -277,7 +273,7 @@ public static class ModInstanceList
                                                                                !((oldDesc ?? "") ==
                                                                                    (instance.Desc ?? ""))))
                             {
-                                ModBase.Log("[Minecraft] 实例 " + instance.Name + " 的错误状态已变更，新的状态为：" + instance.Desc);
+                                LauncherLog.Log($"[Minecraft] 实例 {instance.Name} 的错误状态已变更，新的状态为：{instance.Desc}");
                                 return null;
                             }
                         }
@@ -285,14 +281,14 @@ public static class ModInstanceList
                         // 校验未加载的实例
                         if (string.IsNullOrEmpty(instance.Logo))
                         {
-                            ModBase.Log("[Minecraft] 实例 " + instance.Name + " 未被加载");
+                            LauncherLog.Log($"[Minecraft] 实例 {instance.Name} 未被加载");
                             return null;
                         }
                     }
 
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "读取实例加载缓存失败（" + folder + "）");
+                        LauncherLog.Log(ex, "读取实例加载缓存失败（" + folder + "）");
                         return null;
                     }
                 }
@@ -305,14 +301,14 @@ public static class ModInstanceList
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "读取实例缓存失败");
+            LauncherLog.Log(ex, "读取实例缓存失败");
             return null;
         }
     }
 
-    private static Dictionary<McInstanceCardType, List<PCL.McInstance>> InitMcInstanceListWithoutCache(string path)
+    private static Dictionary<McInstanceCardType, List<McInstance>> InitMcInstanceListWithoutCache(string path)
     {
-        var instanceList = new List<PCL.McInstance>();
+        var instanceList = new List<McInstance>();
 
         #region 循环加载每个实例的信息
 
@@ -320,14 +316,14 @@ public static class ModInstanceList
         {
             if (!folder.Exists || !folder.EnumerateFiles().Any())
             {
-                ModBase.Log("[Minecraft] 跳过空文件夹：" + folder.FullName);
+                LauncherLog.Log($"[Minecraft] 跳过空文件夹：{folder.FullName}");
                 continue;
             }
 
             if ((folder.Name == "cache" || folder.Name == "BLClient" || folder.Name == "PCL") &&
                 !File.Exists(Path.Combine(folder.FullName, folder.Name + ".json")))
             {
-                ModBase.Log("[Minecraft] 跳过可能不是实例文件夹的项目：" + folder.FullName);
+                LauncherLog.Log($"[Minecraft] 跳过可能不是实例文件夹的项目：{folder.FullName}");
                 continue;
             }
 
@@ -336,45 +332,45 @@ public static class ModInstanceList
             {
                 if (_isFirstMcInstanceListLoad)
                 {
-                    ModBase.Log("[Minecraft] 清理残留的忽略项目：" + instanceFolder); // #2781
+                    LauncherLog.Log($"[Minecraft] 清理残留的忽略项目：{instanceFolder}"); // #2781
                     try
                     {
-                        File.Delete(instanceFolder + ".pclignore");
+                        File.Delete($"{instanceFolder}.pclignore");
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(
+                        LauncherLog.Log(
                             ex,
                             Lang.Text("Select.Folder.Error.Cleanup", instanceFolder),
-                            ModBase.LogLevel.Hint,
+                            LauncherLogLevel.Hint,
                             userSummary: Lang.Text("Select.Folder.Error.Cleanup", instanceFolder));
                     }
                 }
                 else
                 {
-                    ModBase.Log("[Minecraft] 跳过要求忽略的项目：" + instanceFolder);
+                    LauncherLog.Log($"[Minecraft] 跳过要求忽略的项目：{instanceFolder}");
                     continue;
                 }
             }
 
-            var instance = new PCL.McInstance(instanceFolder);
+            var instance = new McInstance(instanceFolder);
             instanceList.Add(instance);
             instance.Load();
         }
 
         #endregion
 
-        var results = new Dictionary<McInstanceCardType, List<PCL.McInstance>>();
+        var results = new Dictionary<McInstanceCardType, List<McInstance>>();
 
         #region 将实例分类到各个卡片
 
         try
         {
             // 未经过自定义的实例列表
-            var instanceListOriginal = new Dictionary<McInstanceCardType, List<PCL.McInstance>>();
+            var instanceListOriginal = new Dictionary<McInstanceCardType, List<McInstance>>();
 
             // 单独列出收藏的实例
-            var staredInstances = new List<PCL.McInstance>();
+            var staredInstances = new List<McInstance>();
             foreach (var instance in instanceList.ToList())
             {
                 if (!instance.IsStar)
@@ -404,8 +400,8 @@ public static class ModInstanceList
                 }, McInstanceCardType.API);
 
             // 将老实例预先分类入不常用，只剩余原版、快照、OptiFine
-            var instanceUseful = new List<PCL.McInstance>();
-            var instanceRubbish = new List<PCL.McInstance>();
+            var instanceUseful = new List<McInstance>();
+            var instanceRubbish = new List<McInstance>();
             McInstanceFilter(ref instanceList, new[] { McInstanceState.Old }, ref instanceRubbish);
 
             // 确认最新实例，若为快照则加入常用列表
@@ -422,7 +418,7 @@ public static class ModInstanceList
             McInstanceFilter(ref instanceList, new[] { McInstanceState.Snapshot }, ref instanceRubbish);
 
             // 获取每个 Drop 下最新的原版与 OptiFine
-            var newerInstance = new Dictionary<string, PCL.McInstance>();
+            var newerInstance = new Dictionary<string, McInstance>();
             var existDrops = new List<int>();
             foreach (var instance in instanceList)
             {
@@ -494,7 +490,7 @@ public static class ModInstanceList
                     ? instancePair.Key
                     : instance.displayType;
                 if (!results.ContainsKey(realType))
-                    results.Add(realType, new List<PCL.McInstance>());
+                    results.Add(realType, new List<McInstance>());
                 results[realType].Add(instance);
             }
         }
@@ -502,10 +498,10 @@ public static class ModInstanceList
         catch (Exception ex)
         {
             results.Clear();
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Select.Instance.Error.Classify"),
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Select.Instance.Error.Classify"));
         }
 
@@ -514,7 +510,7 @@ public static class ModInstanceList
         #region 对卡片与实例进行排序
 
         // 卡片排序
-        var sortedInstanceList = new Dictionary<McInstanceCardType, List<PCL.McInstance>>();
+        var sortedInstanceList = new Dictionary<McInstanceCardType, List<McInstance>>();
         foreach (var sortRule in new[]
                  {
                      McInstanceCardType.Star, McInstanceCardType.API, McInstanceCardType.OriginalLike,
@@ -536,7 +532,7 @@ public static class ModInstanceList
             if (!results.ContainsKey(cardType))
                 continue;
 
-            int getComponentCode(PCL.McInstance instance)
+            int getComponentCode(McInstance instance)
             {
                 if (instance.Info.ForgelikeCode > 0)
                     return instance.Info.ForgelikeCode;
@@ -583,15 +579,15 @@ public static class ModInstanceList
 
         #region 保存卡片缓存
 
-        ModBase.WriteIni(path + "PCL.ini", "CardCount", results.Count.ToString());
+        LegacyIniStore.Shared.Write(path + "PCL.ini", "CardCount", results.Count.ToString());
         for (int i = 0, loopTo = results.Count - 1; i <= loopTo; i++)
         {
-            ModBase.WriteIni(path + "PCL.ini", "CardKey" + (i + 1),
+            LegacyIniStore.Shared.Write(path + "PCL.ini", "CardKey" + (i + 1),
                 ((int)results.Keys.ElementAtOrDefault(i)).ToString());
             var value = "";
             foreach (var Instance in results.Values.ElementAtOrDefault(i))
                 value += Instance.Name + ":";
-            ModBase.WriteIni(path + "PCL.ini", "CardValue" + (i + 1), value);
+            LegacyIniStore.Shared.Write(path + "PCL.ini", "CardValue" + (i + 1), value);
         }
 
         #endregion
@@ -605,8 +601,8 @@ public static class ModInstanceList
     /// <param name="instanceList">用于筛选的列表。</param>
     /// <param name="formula">需要筛选出的实例类型。-2 代表隐藏的实例。</param>
     /// <param name="cardType">卡片的名称。</param>
-    private static void McInstanceFilter(ref List<PCL.McInstance> instanceList,
-        ref Dictionary<McInstanceCardType, List<PCL.McInstance>> target, McInstanceState[] formula,
+    private static void McInstanceFilter(ref List<McInstance> instanceList,
+        ref Dictionary<McInstanceCardType, List<McInstance>> target, McInstanceState[] formula,
         McInstanceCardType cardType)
     {
         var keepList = instanceList.Where(v => formula.Contains(v.state)).ToList();
@@ -624,7 +620,7 @@ public static class ModInstanceList
     /// <param name="instanceList">用于筛选的列表。</param>
     /// <param name="formula">需要筛选出的实例类型。-2 代表隐藏的实例。</param>
     /// <param name="keepList">传入需要增加入的列表。</param>
-    private static void McInstanceFilter(ref List<PCL.McInstance> instanceList, McInstanceState[] formula,
+    private static void McInstanceFilter(ref List<McInstance> instanceList, McInstanceState[] formula,
         ref List<McInstance> keepList)
     {
         keepList.AddRange(instanceList.Where(v => formula.Contains(v.state)));

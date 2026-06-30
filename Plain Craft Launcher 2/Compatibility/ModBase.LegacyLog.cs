@@ -1,4 +1,4 @@
-using PCL.Core.Utils;
+﻿using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -59,7 +59,7 @@ public static partial class ModBase
     public static void Log(string text, LogLevel level = LogLevel.Normal, string? title = null,
         string? userSummary = null)
     {
-        LauncherLog.Log(text, level, title, userSummary);
+        LauncherLog.Log(text, (LauncherLogLevel)level, title, userSummary);
     }
 
     /// <summary>
@@ -70,7 +70,7 @@ public static partial class ModBase
     public static void Log(Exception ex, string desc, LogLevel level = LogLevel.Debug, string? title = null,
         string? userSummary = null)
     {
-        LauncherLog.Log(ex, desc, level, title, userSummary);
+        LauncherLog.Log(ex, desc, (LauncherLogLevel)level, title, userSummary);
     }
 
     public static string Base64Decode(string text)

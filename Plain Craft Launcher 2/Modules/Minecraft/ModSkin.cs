@@ -1,8 +1,6 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Text;
-using System.Text.Json.Nodes;
 using Microsoft.VisualBasic;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
@@ -49,10 +47,10 @@ public static class ModSkin
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Launch.Skin.File.Error"),
-                ModBase.LogLevel.Hint,
+                LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Launch.Skin.File.Error"));
             return new McSkinInfo { IsVaild = false };
         }
@@ -81,8 +79,8 @@ public static class ModSkin
             throw new Exception(Lang.Text("Minecraft.Skin.Error.OfflineNoSkin"));
 
         // 尝试读取缓存
-        var cachePath = Path.Combine(ModBase.pathTemp, $"Cache\\Skin\\Index{type}.ini");
-        var cacheSkinAddress = ModBase.ReadIni(cachePath, uuid);
+        var cachePath = Path.Combine(LauncherPaths.TempWithSlash, $"Cache\\Skin\\Index{type}.ini");
+        var cacheSkinAddress = LegacyIniStore.Shared.Read(cachePath, uuid);
         if (!string.IsNullOrEmpty(cacheSkinAddress))
             return cacheSkinAddress;
 
@@ -104,7 +102,7 @@ public static class ModSkin
         string skinValue = null;
         try
         {
-            var json = (JsonObject)ModBase.GetJson((string)skinString);
+            var json = (JsonObject)JsonCompat.ParseNode((string)skinString);
             foreach (var property in json["properties"].AsArray())
                 if (property["name"]?.ToString() == "textures")
                 {
@@ -117,15 +115,15 @@ public static class ModSkin
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex,
+            LauncherLog.Log(ex,
                 $"无法完成解析的皮肤返回值，可能是未设置自定义皮肤的用户：{skinString}",
-                ModBase.LogLevel.Developer);
+                LauncherLogLevel.Developer);
             throw new Exception(Lang.Text("Minecraft.Skin.Error.NoSkinData"), ex);
         }
 
         // 解码 Base64 并解析 JSON
         var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(skinValue));
-        var skinJson = (JsonObject)ModBase.GetJson(decoded.ToLowerInvariant());
+        var skinJson = (JsonObject)JsonCompat.ParseNode(decoded.ToLowerInvariant());
 
         if (skinJson["textures"]?["skin"]?["url"] is null)
             throw new Exception(Lang.Text("Minecraft.Skin.Error.NoCustomSkin"));
@@ -134,8 +132,8 @@ public static class ModSkin
         skinUrl = skinUrl.Contains("minecraft.net/") ? skinUrl.Replace("http://", "https://") : skinUrl;
 
         // 保存缓存
-        ModBase.WriteIni(cachePath, uuid, skinUrl);
-        ModBase.Log($"[Skin] UUID {uuid} 对应的皮肤文件为 {skinUrl}");
+        LegacyIniStore.Shared.Write(cachePath, uuid, skinUrl);
+        LauncherLog.Log($"[Skin] UUID {uuid} 对应的皮肤文件为 {skinUrl}");
 
         return skinUrl;
     }
@@ -147,8 +145,8 @@ public static class ModSkin
     /// </summary>
     public static string McSkinDownload(string address)
     {
-        var skinName = ModBase.GetFileNameFromPath(address);
-        var fileAddress = ModBase.pathTemp + @"Cache\Skin\" + ModBase.GetHash(address) + ".png";
+        var skinName = LegacyFileFacade.GetFileNameFromPath(address);
+        var fileAddress = LauncherPaths.TempWithSlash + @"Cache\Skin\" + LauncherText.GetHash(address) + ".png";
         lock (mcSkinDownloadLock)
         {
             if (!File.Exists(fileAddress))
@@ -156,7 +154,7 @@ public static class ModSkin
                 FileDownloader.DownloadAsync(address, fileAddress + ModNet.netDownloadEnd).GetAwaiter().GetResult();
                 File.Delete(fileAddress);
                 FileSystem.Rename(fileAddress + ModNet.netDownloadEnd, fileAddress);
-                ModBase.Log("[Minecraft] 皮肤下载成功：" + fileAddress);
+                LauncherLog.Log("[Minecraft] 皮肤下载成功：" + fileAddress);
             }
 
             return fileAddress;

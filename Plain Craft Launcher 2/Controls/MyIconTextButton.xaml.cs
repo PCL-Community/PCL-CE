@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Markup;
@@ -14,7 +14,7 @@ public partial class MyIconTextButton
 
     public delegate void CheckEventHandler(object sender, bool raiseByMouse);
 
-    public delegate void ClickEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void ClickEventHandler(object sender, RouteEventArgs e);
 
     public enum ColorState
     {
@@ -41,7 +41,7 @@ public partial class MyIconTextButton
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherRuntime.GetUuid();
 
     public MyIconTextButton()
     {
@@ -199,7 +199,7 @@ public partial class MyIconTextButton
         ModAnimation.AniStart(ModAnimation.AaColor(this, BackgroundProperty, resourceKey, duration), ColorAnimationKey);
     }
 
-    private void StartBackgroundAnimation(ModBase.MyColor delta, int duration)
+    private void StartBackgroundAnimation(MyColor delta, int duration)
     {
         ModAnimation.AniStart(ModAnimation.AaColor(this, BackgroundProperty, delta, duration), ColorAnimationKey);
     }
@@ -208,9 +208,9 @@ public partial class MyIconTextButton
     {
         if (!isMouseDown)
             return;
-        ModBase.Log("[Control] 按下带图标按钮：" + Text);
+        LauncherLog.Log($"[Control] 按下带图标按钮：{Text}");
         isMouseDown = false;
-        Click?.Invoke(this, new ModBase.RouteEventArgs(true));
+        Click?.Invoke(this, new RouteEventArgs(true));
         ModMain.RaiseCustomEvent(this);
         RefreshColor();
     }
@@ -267,7 +267,7 @@ public partial class MyIconTextButton
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新带图标按钮颜色出错");
+            LauncherLog.Log(ex, "刷新带图标按钮颜色出错");
         }
     }
 }

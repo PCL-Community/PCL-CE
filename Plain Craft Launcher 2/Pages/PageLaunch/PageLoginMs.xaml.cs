@@ -16,7 +16,7 @@ public partial class PageLoginMs
 
     private void BtnBack_Click(object sender, EventArgs e)
     {
-        ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
+        UiThread.Post(() => ModMain.frmLaunchLeft.RefreshPage(true));
     }
 
     private void BtnLogin_Click(object sender, EventArgs e)
@@ -24,21 +24,21 @@ public partial class PageLoginMs
         BtnLogin.IsEnabled = false;
         BtnBack.Visibility = Visibility.Collapsed;
         BtnLogin.Text = Lang.Number(0d, "P0");
-        ModBase.RunInNewThread(() =>
+        PCL.Core.App.Basics.RunInNewThread(() =>
         {
             try
             {
                 ModProfile.selectedProfile = null;
                 ModLaunch.mcLoginMsLoader.Start(ModProfile.GetLoginData(ModLaunch.McLoginType.Ms), true);
-                while (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Loading)
+                while (ModLaunch.mcLoginMsLoader.State == LoadState.Loading)
                 {
-                    ModBase.RunInUi(() => BtnLogin.Text = Lang.Number(ModLaunch.mcLoginMsLoader.Progress, "P0"));
+                    UiThread.Post(() => BtnLogin.Text = Lang.Number(ModLaunch.mcLoginMsLoader.Progress, "P0"));
                     Thread.Sleep(50);
                 }
 
-                if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Finished)
-                    ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
-                else if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Aborted)
+                if (ModLaunch.mcLoginMsLoader.State == LoadState.Finished)
+                    UiThread.Post(() => ModMain.frmLaunchLeft.RefreshPage(true));
+                else if (ModLaunch.mcLoginMsLoader.State == LoadState.Aborted)
                     throw new ThreadInterruptedException();
                 else if (ModLaunch.mcLoginMsLoader.Error is null)
                     throw new Exception(Lang.Text("Launch.Account.Microsoft.Error.Unknown"));
@@ -62,24 +62,24 @@ public partial class PageLoginMs
                 }
                 else if (ex is AuthenticationException && ex.Message.ContainsF("SSL/TLS"))
                 {
-                    ModBase.Log(
+                    LauncherLog.Log(
                         ex,
                         $"{Lang.Text("Launch.Account.Microsoft.LoginFailed.Message")}\r\n{ex.Message}",
-                        ModBase.LogLevel.Msgbox,
+                        LauncherLogLevel.Msgbox,
                         userSummary: Lang.Text("Launch.Account.Microsoft.Error.OperationFailed"));
                 }
                 else
                 {
-                    ModBase.Log(
+                    LauncherLog.Log(
                         ex,
                         Lang.Text("Launch.Account.Microsoft.LoginFailed.Title"),
-                        ModBase.LogLevel.Msgbox,
+                        LauncherLogLevel.Msgbox,
                         userSummary: Lang.Text("Launch.Account.Microsoft.LoginFailed.Title"));
                 }
             }
             finally
             {
-                ModBase.RunInUi(() =>
+                UiThread.Post(() =>
                 {
                     BtnLogin.IsEnabled = true;
                     BtnBack.Visibility = Visibility.Visible;

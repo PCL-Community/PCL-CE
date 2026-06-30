@@ -67,10 +67,10 @@ public partial class PageDownloadForge
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "可视化 Forge 版本列表出错",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
     }
@@ -109,6 +109,6 @@ public partial class PageDownloadForge
     // 介绍栏
     private void BtnWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://files.minecraftforge.net");
+        LauncherProcess.OpenWebsite("https://files.minecraftforge.net");
     }
 }

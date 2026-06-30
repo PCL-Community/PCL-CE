@@ -64,10 +64,10 @@ public partial class PageDownloadCleanroom
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "可视化 Cleanroom 版本列表出错",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
     }
@@ -75,6 +75,6 @@ public partial class PageDownloadCleanroom
     // 介绍栏
     private void BtnWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://cleanroommc.com/zh/");
+        LauncherProcess.OpenWebsite("https://cleanroommc.com/zh/");
     }
 }

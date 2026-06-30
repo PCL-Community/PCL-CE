@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
@@ -12,7 +12,7 @@ public class AnimatedBackgroundGrid : Grid
 
     private readonly DependencyProperty _animatableBrushProperty;
 
-    public readonly int uuid = ModBase.GetUuid();
+    public readonly int uuid = LauncherRuntime.GetUuid();
 
     public AnimatedBackgroundGrid(DependencyProperty brushDp)
     {
@@ -61,7 +61,7 @@ public class AnimatedBackgroundGrid : Grid
                 new[]
                 {
                     ModAnimation.AaColor(grid.AnimatableElement, grid._animatableBrushProperty,
-                        new ModBase.MyColor(brush) - grid.AnimatableBrush, 300)
+                        new MyColor(brush) - grid.AnimatableBrush, 300)
                 }, "MyCard Theme " + grid.uuid);
             await Task.Delay(300);
             grid.AnimatableBrush = brush;

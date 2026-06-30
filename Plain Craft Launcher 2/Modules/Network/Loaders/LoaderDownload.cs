@@ -1,14 +1,13 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
+using PCL.Core.App;
 using PCL.Core.Utils;
 
 namespace PCL.Network.Loaders;
 
 public class LoaderDownload : ModLoader.LoaderBase
 {
-    public ModBase.SafeList<PCL.Network.DownloadFile> files;
+    public SafeList<DownloadFile> files;
     private int _fileRemain;
     private readonly object _fileRemainLock = new();
     private CancellationTokenSource? _cancellationTokenSource;
@@ -16,28 +15,28 @@ public class LoaderDownload : ModLoader.LoaderBase
 
     public override double Progress
     {
-        get => State >= ModBase.LoadState.Finished ? 1 : (files.Any() ? files.Average(file => file.Progress) : 0);
+        get => State >= LoadState.Finished ? 1 : files.Any() ? files.Average(file => file.Progress) : 0;
         set => throw new Exception("文件下载不允许指定进度");
     }
 
-    public LoaderDownload(string name, List<PCL.Network.DownloadFile> fileTasks)
+    public LoaderDownload(string name, List<DownloadFile> fileTasks)
     {
         base.name = name;
-        files = new ModBase.SafeList<PCL.Network.DownloadFile>(fileTasks ?? new List<PCL.Network.DownloadFile>());
+        files = new SafeList<DownloadFile>(fileTasks ?? new List<DownloadFile>());
     }
 
     public void RefreshStat() { }
 
     public override void Start(object input = null, bool isForceRestart = false)
     {
-        if (input is List<PCL.Network.DownloadFile> inputFiles)
-            files = new ModBase.SafeList<PCL.Network.DownloadFile>(inputFiles);
+        if (input is List<DownloadFile> inputFiles)
+            files = new SafeList<DownloadFile>(inputFiles);
 
         lock (lockState)
         {
-            if (State == ModBase.LoadState.Loading)
+            if (State == LoadState.Loading)
                 return;
-            State = ModBase.LoadState.Loading;
+            State = LoadState.Loading;
         }
 
         _cancellationTokenSource = new CancellationTokenSource();
@@ -48,7 +47,7 @@ public class LoaderDownload : ModLoader.LoaderBase
 
         ModNet.NetManager.Start(this);
 
-        ModBase.RunInNewThread(() => Run(_cancellationTokenSource.Token), $"DL/{Uuid}");
+        Basics.RunInNewThread(() => Run(_cancellationTokenSource.Token), $"DL/{Uuid}");
     }
 
     private void Run(CancellationToken cancellationToken)
@@ -78,7 +77,7 @@ public class LoaderDownload : ModLoader.LoaderBase
                 catch (Exception ex)
                 {
                     file.Errors.Add(ex);
-                    file.State = PCL.Network.NetState.Interrupted;
+                    file.State = NetState.Interrupted;
                     exceptions.Enqueue(ex);
                     _cancellationTokenSource?.Cancel();
                 }
@@ -108,19 +107,19 @@ public class LoaderDownload : ModLoader.LoaderBase
         return Math.Max(1, Math.Min(files.Count, Math.Clamp(ModNet.NetTaskThreadLimit, 1, 64)));
     }
 
-    private async Task ProcessFileAsync(PCL.Network.DownloadFile file, CancellationToken cancellationToken)
+    private async Task ProcessFileAsync(DownloadFile file, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (!file.Loaders.Contains(this))
             file.Loaders.Add(this);
 
-        if (State >= ModBase.LoadState.Finished)
+        if (State >= LoadState.Finished)
             return;
         Directory.CreateDirectory(Path.GetDirectoryName(file.LocalPath) ?? throw new IOException("下载路径无效"));
         if (file.Check?.canUseExistsFile == true && file.Check.Check(file.LocalPath) is null)
         {
             file.IsCopy = true;
-            file.State = PCL.Network.NetState.Finished;
+            file.State = NetState.Finished;
             try { file.TotalSize = new FileInfo(file.LocalPath).Length; }
             catch (IOException) { file.TotalSize = -1; }
             file.DownloadedBytes = file.TotalSize;
@@ -130,7 +129,7 @@ public class LoaderDownload : ModLoader.LoaderBase
             return;
         }
 
-        file.State = PCL.Network.NetState.Connecting;
+        file.State = NetState.Connecting;
         var enableParallelChunks = files.Count <= 1;
         for (var retry = 0; retry < 4; retry++)
         {
@@ -147,7 +146,7 @@ public class LoaderDownload : ModLoader.LoaderBase
             }
             catch (Exception ex) when (retry < 3)
             {
-                ModBase.Log(ex, $"[Download] 重试 {retry + 1}/3：{file.LocalPath}", ModBase.LogLevel.Debug);
+                LauncherLog.Log(ex, $"[Download] 重试 {retry + 1}/3：{file.LocalPath}");
                 Thread.Sleep(RandomUtils.NextInt(300, 500 + retry * 300));
             }
         }
@@ -157,11 +156,11 @@ public class LoaderDownload : ModLoader.LoaderBase
         file.DownloadedBytes = Math.Max(0, file.TotalSize);
         file.Speed = 0;
         file.ActiveThreads = 0;
-        file.State = PCL.Network.NetState.Finished;
+        file.State = NetState.Finished;
         OnFileFinish(file);
     }
 
-    public void OnFileFinish(PCL.Network.DownloadFile file)
+    public void OnFileFinish(DownloadFile file)
     {
         lock (_fileRemainLock)
         {
@@ -178,15 +177,15 @@ public class LoaderDownload : ModLoader.LoaderBase
         RaisePreviewFinish();
         lock (lockState)
         {
-            if (State > ModBase.LoadState.Loading)
+            if (State > LoadState.Loading)
                 return;
-            State = ModBase.LoadState.Finished;
+            State = LoadState.Finished;
         }
 
         ModNet.NetManager.Finish(this);
     }
 
-    public void OnFileFail(PCL.Network.DownloadFile file)
+    public void OnFileFail(DownloadFile file)
     {
         OnFail(file.Errors.Any() ? file.Errors : new List<Exception> { new Exception($"文件下载失败：{file.LocalPath}") });
     }
@@ -195,16 +194,16 @@ public class LoaderDownload : ModLoader.LoaderBase
     {
         lock (lockState)
         {
-            if (State > ModBase.LoadState.Loading)
+            if (State > LoadState.Loading)
                 return;
             Error = exList.FirstOrDefault() ?? new Exception("未知下载错误");
-            State = ModBase.LoadState.Failed;
+            State = LoadState.Failed;
         }
 
         FailCount += exList.Count;
-        foreach (var file in files.Where(file => file.State < PCL.Network.NetState.Finished))
+        foreach (var file in files.Where(file => file.State < NetState.Finished))
         {
-            file.State = PCL.Network.NetState.Interrupted;
+            file.State = NetState.Interrupted;
             file.Speed = 0;
             file.ActiveThreads = 0;
             file.Errors.AddRange(exList);
@@ -217,15 +216,15 @@ public class LoaderDownload : ModLoader.LoaderBase
     {
         lock (lockState)
         {
-            if (State >= ModBase.LoadState.Finished)
+            if (State >= LoadState.Finished)
                 return;
-            State = ModBase.LoadState.Aborted;
+            State = LoadState.Aborted;
         }
 
         _cancellationTokenSource?.Cancel();
-        foreach (var file in files.Where(file => file.State < PCL.Network.NetState.Finished))
+        foreach (var file in files.Where(file => file.State < NetState.Finished))
         {
-            file.State = PCL.Network.NetState.Interrupted;
+            file.State = NetState.Interrupted;
             file.Speed = 0;
             file.ActiveThreads = 0;
         }

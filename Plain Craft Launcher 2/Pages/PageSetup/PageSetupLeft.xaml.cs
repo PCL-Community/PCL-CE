@@ -72,7 +72,7 @@ public partial class PageSetupLeft
 
     public void Reset(object sender, EventArgs e)
     {
-        switch (ModBase.Val(((MyIconButton)sender).Tag))
+        switch (LauncherText.Val(((MyIconButton)sender).Tag))
         {
             case (double)FormMain.PageSubType.SetupLaunch:
             {
@@ -152,21 +152,21 @@ public partial class PageSetupLeft
 
     public static void TryFeedback() // Handles ItemFeedback.Click
     {
-        ModBase.RunInNewThread(() =>
+        PCL.Core.App.Basics.RunInNewThread(() =>
         {
-            if (!ModBase.CanFeedback(true))
+            if (!LauncherFeedbackService.CanFeedback(true))
                 return;
             switch (ModMain.MyMsgBox(Lang.Text("Setup.Left.Feedback.Message"), Lang.Text("Setup.Left.Feedback.Title"),
                         Lang.Text("Setup.Left.Feedback.SubmitNew"), Lang.Text("Setup.Left.Feedback.ViewList"), Lang.Text("Common.Action.Cancel")))
             {
                 case 1:
                 {
-                    ModBase.Feedback();
+                    LauncherFeedbackService.Feedback();
                     break;
                 }
                 case 2:
                 {
-                    ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/");
+                    LauncherProcess.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/");
                     break;
                 }
             }
@@ -175,7 +175,7 @@ public partial class PageSetupLeft
 
     public void Refresh(object sender, EventArgs e) // 由边栏按钮匿名调用
     {
-        switch (ModBase.Val(((MyIconButton)sender).Tag))
+        switch (LauncherText.Val(((MyIconButton)sender).Tag))
         {
             case (double)FormMain.PageSubType.SetupFeedback:
             {
@@ -238,13 +238,13 @@ public partial class PageSetupLeft
     /// <summary>
     ///     勾选事件改变页面。
     /// </summary>
-    private void PageCheck(object senderRaw, ModBase.RouteEventArgs e)
+    private void PageCheck(object senderRaw, RouteEventArgs e)
     {
         var sender = (MyListItem)senderRaw;
         // 尚未初始化控件属性时，sender.Tag 为 Nothing，会跳过切换，且由于 PageID 默认为 0 而切换到第一个页面
         // 若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         if (sender.Tag is not null)
-            PageChange((FormMain.PageSubType)ModBase.Val(sender.Tag));
+            PageChange((FormMain.PageSubType)LauncherText.Val(sender.Tag));
     }
 
     /// <summary>
@@ -345,10 +345,10 @@ public partial class PageSetupLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 $"切换分页面失败（ID {(int)id}）",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
         finally

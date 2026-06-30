@@ -2,8 +2,8 @@
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-
 using PCL.Core.App.Localization;
+
 namespace PCL;
 
 public class MyComboBox : ComboBox
@@ -29,7 +29,7 @@ public class MyComboBox : ComboBox
     private MyTextBox textBox;
 
     // 基础
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherRuntime.GetUuid();
 
     public MyComboBox()
     {
@@ -108,10 +108,10 @@ public class MyComboBox : ComboBox
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "初始化可编辑文本框失败（" + (Name ?? "") + "）",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Application.Control.Error.OperationFailed"));
         }
     }
@@ -196,10 +196,10 @@ public class MyComboBox : ComboBox
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "设置下拉框属性失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Application.Control.Error.OperationFailed"));
         }
     }

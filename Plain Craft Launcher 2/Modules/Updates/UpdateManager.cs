@@ -27,7 +27,7 @@ public static class UpdateManager
     {
         get
         {
-            if (ModBase.VersionBaseName.Contains("beta"))
+            if (LauncherEnvironment.VersionBaseName.Contains("beta"))
                 return true;
             return (int)Config.Update.UpdateChannel == 1;
         }
@@ -40,11 +40,11 @@ public static class UpdateManager
             if (IsCurrentVersionBeta && (int)Config.Update.UpdateChannel != 1)
             {
                 var isNewerThanStable = remoteServer.IsLatest(UpdateChannel.stable,
-                    SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.VersionBaseName),
-                    ModBase.VersionCode);
+                    SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(LauncherEnvironment.VersionBaseName),
+                    LauncherEnvironment.VersionCode);
                 var isBetaLatest = remoteServer.IsLatest(UpdateChannel.beta,
-                    SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.VersionBaseName),
-                    ModBase.VersionCode);
+                    SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(LauncherEnvironment.VersionBaseName),
+                    LauncherEnvironment.VersionCode);
                 return isNewerThanStable && isBetaLatest
                     ? UpdateEnums.VersionStatus.Latest
                     : UpdateEnums.VersionStatus.NotLatest;
@@ -52,17 +52,17 @@ public static class UpdateManager
 
             return remoteServer.IsLatest(
                 IsCurrentVersionBeta ? UpdateChannel.beta : UpdateChannel.stable,
-                SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.VersionBaseName),
-                ModBase.VersionCode)
+                SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(LauncherEnvironment.VersionBaseName),
+                LauncherEnvironment.VersionCode)
                 ? UpdateEnums.VersionStatus.Latest
                 : UpdateEnums.VersionStatus.NotLatest;
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Update.Check.Failed"),
-                ModBase.LogLevel.Hint,
+                LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Update.Check.Failed"));
             return UpdateEnums.VersionStatus.Unknown;
         }
@@ -72,8 +72,8 @@ public static class UpdateManager
 
     public static void UpdateStart(UpdateEnums.UpdateType type, string receivedKey = null, bool forceValidated = false)
     {
-        var dlTargetPath = ModBase.exePath + @"PCL\Plain Craft Launcher Community Edition.exe";
-        ModBase.RunInNewThread(() =>
+        var dlTargetPath = LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Plain Craft Launcher Community Edition.exe";
+        PCL.Core.App.Basics.RunInNewThread(() =>
         {
             try
             {
@@ -82,16 +82,16 @@ public static class UpdateManager
                     SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64
                 );
 
-                ModBase.WriteFile($"{ModBase.pathTemp}CEUpdateLog.md", version.Changelog);
-                ModBase.Log($"[Update] 远程最新版本: {version.VersionName}, 当前版本: {ModBase.VersionBaseName}");
-                if (!(SemVer.Parse(version.VersionName) > SemVer.Parse(ModBase.VersionBaseName)))
+                LegacyFileFacade.WriteFile($"{LauncherPaths.TempWithSlash}CEUpdateLog.md", version.Changelog);
+                LauncherLog.Log($"[Update] 远程最新版本: {version.VersionName}, 当前版本: {LauncherEnvironment.VersionBaseName}");
+                if (!(SemVer.Parse(version.VersionName) > SemVer.Parse(LauncherEnvironment.VersionBaseName)))
                     return;
                 if (type == UpdateEnums.UpdateType.PromptOnly)
                 {
-                    ModBase.RunInUi(() =>
+                    UiThread.Post(() =>
                     {
                         if (ModMain.MyMsgBox(
-                                Lang.Text("Update.Available", ModBase.VersionBaseName, version.VersionName),
+                                Lang.Text("Update.Available", LauncherEnvironment.VersionBaseName, version.VersionName),
                                 Lang.Text("Update.Title"),
                                 Lang.Text("Update.Action"),
                                 Lang.Text("Common.Action.Cancel")
@@ -109,7 +109,7 @@ public static class UpdateManager
                     SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, dlTargetPath));
                 loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Update.Task.Check"), _ =>
                 {
-                    var curHash = ModBase.GetFileSHA256(dlTargetPath);
+                    var curHash = LegacyFileFacade.GetFileSha256(dlTargetPath);
                     if ((curHash ?? "") != (version.Sha256 ?? ""))
                         throw new Exception(Lang.Text("Update.Error.Sha256Mismatch", version.Sha256, curHash));
                 }));
@@ -121,10 +121,10 @@ public static class UpdateManager
                     loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Update.Task.ShowButton"), _ =>
                     {
                         isUpdateWaitingRestart = true;
-                        ModBase.RunInUi(() =>
+                        UiThread.Post(() =>
                         {
                             ModMain.frmMain.BtnExtraUpdateRestart.ToolTip =
-                                Lang.Text("Main.Extra.UpdateRestart.ToolTipWithVersion", ModBase.VersionBaseName, version.VersionName);
+                                Lang.Text("Main.Extra.UpdateRestart.ToolTipWithVersion", LauncherEnvironment.VersionBaseName, version.VersionName);
                             ModMain.frmMain.BtnExtraUpdateRestart.ShowRefresh();
                             ModMain.frmMain.BtnExtraUpdateRestart.Ribble();
                         });
@@ -135,7 +135,7 @@ public static class UpdateManager
                 loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Update.Task.RefreshSettings"), _ =>
                 {
                     if (ModMain.frmSetupUpdate is not null)
-                        ModBase.RunInUi(() =>
+                        UiThread.Post(() =>
                         {
                             ModMain.frmSetupUpdate.BtnUpdate.Text = Lang.Text("Update.Task.RestartInstall");
                             ModMain.frmSetupUpdate.BtnUpdate.IsEnabled = true;
@@ -156,7 +156,7 @@ public static class UpdateManager
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "[Update] 获取启动器更新失败");
+                LauncherLog.Log(ex, "[Update] 获取启动器更新失败");
                 if (type != UpdateEnums.UpdateType.Silent)
                     HintService.Hint(Lang.Text("Update.Error.FetchFailed"), HintType.Error);
             }
@@ -167,30 +167,30 @@ public static class UpdateManager
     {
         try
         {
-            var fileName = ModBase.exePath + @"PCL\Plain Craft Launcher Community Edition.exe";
+            var fileName = LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Plain Craft Launcher Community Edition.exe";
             if (!File.Exists(fileName))
             {
-                ModBase.Log("[System] 更新失败：未找到更新文件");
+                LauncherLog.Log("[System] 更新失败：未找到更新文件");
                 return;
             }
 
             // id old new restart
             var text =
                 $"update {Process.GetCurrentProcess().Id} \"{Basics.ExecutablePath}\" \"{fileName}\" {(triggerRestart ? "true" : "false")}";
-            ModBase.Log("[System] 更新程序启动，参数：" + text);
+            LauncherLog.Log("[System] 更新程序启动，参数：" + text);
             Process.Start(new ProcessStartInfo(fileName)
                 { WindowStyle = ProcessWindowStyle.Hidden, CreateNoWindow = true, Arguments = text });
             if (triggerRestartAndByEnd)
             {
                 ModMain.frmMain.EndProgram(false, true);
-                ModBase.Log("[System] 已由于更新强制结束程序");
+                LauncherLog.Log("[System] 已由于更新强制结束程序");
             }
         }
         catch (Win32Exception ex)
         {
-            ModBase.Log(ex, "自动更新时触发 Win32 错误，疑似被拦截");
+            LauncherLog.Log(ex, "自动更新时触发 Win32 错误，疑似被拦截");
             ModMain.MyMsgBox(
-                Lang.Text("Update.Error.UpdateBlockedMessage", ModBase.exePath),
+                Lang.Text("Update.Error.UpdateBlockedMessage", LauncherPaths.ExecutableDirectoryWithSlash),
                 Lang.Text("Update.Error.UpdateBlocked"),
                 Lang.Text("Common.Action.Confirm"),
                 "",
@@ -206,20 +206,20 @@ public static class UpdateManager
     internal static void DownloadLatestPCL(ModLoader.LoaderBase loaderToSyncProgress = null)
     {
         // 注意：如果要自行实现这个功能，请换用另一个文件路径，以免与官方版本冲突
-        var latestPCLPath = Path.Combine(ModBase.pathTemp, "CE-Latest.exe");
+        var latestPCLPath = Path.Combine(LauncherPaths.TempWithSlash, "CE-Latest.exe");
         var target = remoteServer.GetLatestVersion(UpdateChannel.stable,
             SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
         if (target is null)
             throw new Exception(Lang.Text("Update.Error.UnableToGetUpdate"));
-        if (File.Exists(latestPCLPath) && (ModBase.GetFileSHA256(latestPCLPath) ?? "") == (target.Sha256 ?? ""))
+        if (File.Exists(latestPCLPath) && (LegacyFileFacade.GetFileSha256(latestPCLPath) ?? "") == (target.Sha256 ?? ""))
         {
-            ModBase.Log("[System] 最新版 PCL 已存在，跳过下载");
+            LauncherLog.Log("[System] 最新版 PCL 已存在，跳过下载");
             return;
         }
 
-        if ((ModBase.GetFileSHA256(Basics.ExecutablePath) ?? "") == (target.Sha256 ?? "")) // 正在使用的版本符合要求，直接拿来用
+        if ((LegacyFileFacade.GetFileSha256(Basics.ExecutablePath) ?? "") == (target.Sha256 ?? "")) // 正在使用的版本符合要求，直接拿来用
         {
-            ModBase.CopyFile(Basics.ExecutablePath, latestPCLPath);
+            LegacyFileFacade.CopyFile(Basics.ExecutablePath, latestPCLPath);
             return;
         }
 
@@ -246,20 +246,20 @@ public static class UpdateManager
         switch (Config.Update.UpdateMode)
         {
             case LauncherAutoUpdateBehavior.DownloadAndInstall:
-                ModBase.Log("[Update] 更新设置: 自动下载并安装更新");
+                LauncherLog.Log("[Update] 更新设置: 自动下载并安装更新");
                 if (GetVersionStatus() != UpdateEnums.VersionStatus.Latest)
                     UpdateStart(UpdateEnums.UpdateType.Silent);
                 break;
             case LauncherAutoUpdateBehavior.DownloadAndAnnounce:
-                ModBase.Log("[Update] 更新设置: 自动下载并提示更新");
+                LauncherLog.Log("[Update] 更新设置: 自动下载并提示更新");
                 UpdateStart(UpdateEnums.UpdateType.DownloadAndPrompt);
                 break;
             case LauncherAutoUpdateBehavior.AnnounceOnly:
-                ModBase.Log("[Update] 更新设置: 提示更新");
+                LauncherLog.Log("[Update] 更新设置: 提示更新");
                 UpdateStart(UpdateEnums.UpdateType.PromptOnly);
                 break;
             default:
-                ModBase.Log("[Update] 更新设置: 不自动检查更新");
+                LauncherLog.Log("[Update] 更新设置: 不自动检查更新");
                 return;
         }
     }

@@ -156,19 +156,19 @@ public partial class PageSetupUI
         }
         catch (NullReferenceException ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Setup.Ui.Error.ConfigReset"),
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.Ui.Error.ConfigReset"));
             Reset();
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Setup.Ui.Error.LoadFailed"),
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Setup.Ui.Error.LoadFailed"));
         }
     }
@@ -179,15 +179,15 @@ public partial class PageSetupUI
         try
         {
             Config.Preference.Reset();
-            ModBase.Log("[Setup] 已初始化个性化设置！");
+            LauncherLog.Log("[Setup] 已初始化个性化设置！");
             HintService.Hint(Lang.Text("Setup.Ui.Initialized"), HintType.Success, false);
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Setup.Ui.Error.InitFailed"),
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.Ui.Error.InitFailed"));
         }
 
@@ -223,7 +223,7 @@ public partial class PageSetupUI
             SetByTag(sender.Tag?.ToString(), sender.Text);
     }
 
-    private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
+    private void RadioBoxChange(object senderRaw, RouteEventArgs e)
     {
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
@@ -249,7 +249,7 @@ public partial class PageSetupUI
     // 背景图片
     private void BtnUIBgOpen_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenExplorer(ModBase.exePath + @"PCL\Pictures\");
+        LauncherProcess.OpenExplorer(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Pictures\");
     }
 
     private void BtnBackgroundRefresh_Click(object sender, MouseButtonEventArgs e)
@@ -289,7 +289,7 @@ public partial class PageSetupUI
                 Lang.Text("Common.Dialog.Warning"), button2: Lang.Text("Common.Action.Cancel"),
                 isWarn: true) == 1)
         {
-            ModBase.DeleteDirectory(ModBase.exePath + @"PCL\Pictures");
+            LegacyFileFacade.DeleteDirectory(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Pictures");
             BackgroundRefresh(false, true);
             HintService.Hint(Lang.Text("Setup.Ui.Background.Clear.Success"), HintType.Success);
         }
@@ -305,8 +305,8 @@ public partial class PageSetupUI
         try
         {
             // 获取可用的图片文件
-            Directory.CreateDirectory(ModBase.exePath + @"PCL\Pictures\");
-            var pic = ModBase.EnumerateFiles(ModBase.exePath + @"PCL\Pictures\").Where(file =>
+            Directory.CreateDirectory(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Pictures\");
+            var pic = LegacyFileFacade.EnumerateFiles(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Pictures\").Where(file =>
                     !(file.Extension.Equals(".ini", StringComparison.OrdinalIgnoreCase) ||
                       file.Extension.Equals(".db", StringComparison.OrdinalIgnoreCase))).Select(file => file.FullName)
                 .ToList();
@@ -322,19 +322,19 @@ public partial class PageSetupUI
                     ModVideoBack.VideoStop();
 
                     if (videoEx.Message.Contains("0xC00D109B"))
-                        ModBase.Log(
+                        LauncherLog.Log(
                             $"""
                              刷新背景内容失败，该视频文件可能并非 H.264（AVC）格式。
                              你可以尝试使用视频转码工具打开视频文件并设定目标格式为 H.264（AVC），然后转码该视频。
                              文件：{videoAddress}
                              """,
-                            ModBase.LogLevel.Msgbox,
+                            LauncherLogLevel.Msgbox,
                             userSummary: Lang.Text("Setup.Ui.Error.BackgroundVideoUnsupported"));
                     else
-                        ModBase.Log(
+                        LauncherLog.Log(
                             videoEx,
                             $"刷新背景内容失败（{videoAddress}）",
-                            ModBase.LogLevel.Msgbox,
+                            LauncherLogLevel.Msgbox,
                             userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 }
             };
@@ -375,12 +375,12 @@ public partial class PageSetupUI
                     {
                         ModMain.frmMain.ImgBack.Background = null;
                         ModVideoBack.VideoStop();
-                        ModBase.Log("[UI] 加载背景内容：" + address);
+                        LauncherLog.Log("[UI] 加载背景内容：" + address);
                         ModMain.frmMain.ImgBack.Background = new MyBitmap(address);
                         _ = Config.Preference.Background.WallpaperSuitMode;
                         ModMain.frmMain.ImgBack.Visibility = Visibility.Visible;
                         if (isHint)
-                                HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", ModBase.GetFileNameFromPath(address)), HintType.Success,
+                                HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", LegacyFileFacade.GetFileNameFromPath(address)), HintType.Success,
                                 false);
                     }
                     catch (Exception ex)
@@ -388,19 +388,19 @@ public partial class PageSetupUI
                         try
                         {
                             ModMain.frmMain.VideoBack.MediaFailed += videoHandler;
-                            ModBase.Log(ex, "[UI] 加载背景图片失败" + address);
-                            if (ModBase.ModeDebug)
+                            LauncherLog.Log(ex, "[UI] 加载背景图片失败" + address);
+                            if (LauncherRuntime.ModeDebug)
                                 HintService.Hint(Lang.Text("Setup.Ui.Background.ImageLoadFailed", address));
                             ModMain.frmMain.ImgBack.Visibility = Visibility.Visible;
                             ModMain.frmMain.VideoBack.Source = new Uri(address, UriKind.Absolute);
                             ModVideoBack.VideoPlay();
                             if (isHint)
-                            HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", ModBase.GetFileNameFromPath(address)), HintType.Success,
+                            HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", LegacyFileFacade.GetFileNameFromPath(address)), HintType.Success,
                                     false);
                         }
                         catch (Exception playEx)
                         {
-                            ModBase.Log(playEx, "播放背景内容时出现未知错误：");
+                            LauncherLog.Log(playEx, "播放背景内容时出现未知错误：");
                         }
                     }
                 }
@@ -412,10 +412,10 @@ public partial class PageSetupUI
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "刷新背景内容时出现未知错误",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
         }
     }
@@ -431,74 +431,74 @@ public partial class PageSetupUI
         try
         {
             // 拷贝文件
-            File.Delete(ModBase.exePath + @"PCL\Logo.png");
-            ModBase.CopyFile(fileName, ModBase.exePath + @"PCL\Logo.png");
+            File.Delete(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Logo.png");
+            LegacyFileFacade.CopyFile(fileName, LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Logo.png");
             // 设置当前显示
             ModMain.frmMain.ImageTitleLogo.Source = null; // 防止因为 Source 属性前后的值相同而不更新 (#5628)
-            ModMain.frmMain.ImageTitleLogo.Source = ModBase.exePath + @"PCL\Logo.png";
+            ModMain.frmMain.ImageTitleLogo.Source = LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Logo.png";
         }
         catch (Exception ex)
         {
             if (ex.Message.Contains("参数无效"))
-                ModBase.Log(
+                LauncherLog.Log(
                     """
                     改变标题栏图片失败，该图片文件可能并非标准格式。
                     你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。
                     """,
-                    ModBase.LogLevel.Msgbox,
+                    LauncherLogLevel.Msgbox,
                     userSummary: Lang.Text("Setup.Ui.Error.TitleImageInvalidFormat"));
             else
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     "设置标题栏图片失败",
-                    ModBase.LogLevel.Msgbox,
+                    LauncherLogLevel.Msgbox,
                     userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
             ModMain.frmMain.ImageTitleLogo.Source = null;
         }
     }
 
-    private void RadioLogoType3_Check(object sender, ModBase.RouteEventArgs e)
+    private void RadioLogoType3_Check(object sender, RouteEventArgs e)
     {
         if (!(ModAnimation.AniControlEnabled == 0 && e.raiseByMouse))
             return;
         Refresh: ;
 
         // 已有图片则不再选择
-        if (File.Exists(ModBase.exePath + @"PCL\Logo.png"))
+        if (File.Exists(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Logo.png"))
         {
             try
             {
                 ModMain.frmMain.ImageTitleLogo.Source = null; // 防止因为 Source 属性前后的值相同而不更新 (#5628)
-                ModMain.frmMain.ImageTitleLogo.Source = ModBase.exePath + @"PCL\Logo.png";
+                ModMain.frmMain.ImageTitleLogo.Source = LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Logo.png";
             }
             catch (Exception ex)
             {
                 if (ex.Message.Contains("参数无效"))
-                    ModBase.Log(
+                    LauncherLog.Log(
                         """
                         调整标题栏图片失败，该图片文件可能并非标准格式。
                         你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。
                         """,
-                        ModBase.LogLevel.Msgbox,
+                        LauncherLogLevel.Msgbox,
                         userSummary: Lang.Text("Setup.Ui.Error.TitleImageResizeInvalidFormat"));
                 else
-                    ModBase.Log(
+                    LauncherLog.Log(
                         ex,
                         "调整标题栏图片失败",
-                        ModBase.LogLevel.Msgbox,
+                        LauncherLogLevel.Msgbox,
                         userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 ModMain.frmMain.ImageTitleLogo.Source = null;
                 e.handled = true;
                 try
                 {
-                    File.Delete(ModBase.exePath + @"PCL\Logo.png");
+                    File.Delete(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Logo.png");
                 }
                 catch (Exception exx)
                 {
-                    ModBase.Log(
+                    LauncherLog.Log(
                         exx,
                         "清理错误的标题栏图片失败",
-                        ModBase.LogLevel.Msgbox,
+                        LauncherLogLevel.Msgbox,
                         userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 }
             }
@@ -518,16 +518,16 @@ public partial class PageSetupUI
             try
             {
                 // 拷贝文件
-                File.Delete(ModBase.exePath + @"PCL\Logo.png");
-                ModBase.CopyFile(fileName, ModBase.exePath + @"PCL\Logo.png");
+                File.Delete(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Logo.png");
+                LegacyFileFacade.CopyFile(fileName, LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Logo.png");
                 goto Refresh;
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     "复制标题栏图片失败",
-                    ModBase.LogLevel.Msgbox,
+                    LauncherLogLevel.Msgbox,
                     userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
             }
         }
@@ -537,16 +537,16 @@ public partial class PageSetupUI
     {
         try
         {
-            File.Delete(ModBase.exePath + @"PCL\Logo.png");
+            File.Delete(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Logo.png");
             RadioLogoType1.SetChecked(true, true);
             HintService.Hint(Lang.Text("Setup.Ui.Logo.Clear.Success"), HintType.Success);
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "清空标题栏图片失败",
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
         }
     }
@@ -554,7 +554,7 @@ public partial class PageSetupUI
     // 背景音乐
     private void BtnMusicOpen_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenExplorer(ModBase.exePath + @"PCL\Musics\");
+        LauncherProcess.OpenExplorer(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Musics\");
     }
 
     private void BtnMusicRefresh_Click(object sender, MouseButtonEventArgs e)
@@ -571,7 +571,7 @@ public partial class PageSetupUI
             PanMusicVolume.Visibility = Visibility.Visible;
             PanMusicDetail.Visibility = Visibility.Visible;
             BtnMusicClear.Visibility = Visibility.Visible;
-            CardMusic.Title = Lang.Text("Setup.Ui.Music.TitleWithCount", ModBase.EnumerateFiles(ModBase.exePath + @"PCL\Musics\").Count());
+            CardMusic.Title = Lang.Text("Setup.Ui.Music.TitleWithCount", LegacyFileFacade.EnumerateFiles(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Musics\").Count());
         }
         else
         {
@@ -589,7 +589,7 @@ public partial class PageSetupUI
         if (ModMain.MyMsgBox(Lang.Text("Setup.Ui.Music.Clear.Confirm.Message"),
                 Lang.Text("Common.Dialog.Warning"), button2: Lang.Text("Common.Action.Cancel"),
                 isWarn: true) == 1)
-            ModBase.RunInThread(() =>
+            UiThread.RunInThread(() =>
             {
                 HintService.Hint(Lang.Text("Setup.Ui.Music.Deleting"));
                 // 停止播放音乐
@@ -600,30 +600,30 @@ public partial class PageSetupUI
                 // 删除文件
                 try
                 {
-                    ModBase.DeleteDirectory(ModBase.exePath + @"PCL\Musics");
+                    LegacyFileFacade.DeleteDirectory(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Musics");
                     // DisableSMTCSupport()
                     HintService.Hint(Lang.Text("Setup.Ui.Music.Delete.Success"), HintType.Success);
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(
+                    LauncherLog.Log(
                         ex,
                         "删除背景音乐失败",
-                        ModBase.LogLevel.Msgbox,
+                        LauncherLogLevel.Msgbox,
                         userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 }
 
                 try
                 {
-                    Directory.CreateDirectory(ModBase.exePath + @"PCL\Musics");
-                    ModBase.RunInUi(() => ModMusic.MusicRefreshPlay(false));
+                    Directory.CreateDirectory(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Musics");
+                    UiThread.Post(() => ModMusic.MusicRefreshPlay(false));
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(
+                    LauncherLog.Log(
                         ex,
                         "重建背景音乐文件夹失败",
-                        ModBase.LogLevel.Msgbox,
+                        LauncherLogLevel.Msgbox,
                         userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 }
             });
@@ -656,7 +656,7 @@ public partial class PageSetupUI
 
     private void BtnCustomTutorial_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenWebsite("https://docs.pclc.cc/ce/customization/xaml-format");
+        LauncherProcess.OpenWebsite("https://docs.pclc.cc/ce/customization/xaml-format");
     }
 
     // 主题
@@ -670,7 +670,7 @@ public partial class PageSetupUI
     // 赞助
     private void BtnLauncherDonate_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenWebsite("https://afdian.com/a/LTCat");
+        LauncherProcess.OpenWebsite("https://afdian.com/a/LTCat");
     }
 
     // 滑动条
@@ -871,10 +871,10 @@ public partial class PageSetupUI
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "刷新功能隐藏项目失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
         }
     }

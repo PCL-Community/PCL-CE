@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
@@ -14,16 +14,16 @@ public static class LauncherLog
 
     public static void Log(
         string text,
-        ModBase.LogLevel level = ModBase.LogLevel.Normal,
+        LauncherLogLevel level = LauncherLogLevel.Normal,
         string? title = null,
         string? userSummary = null)
     {
         WriteTextLog(text, level);
 
-        if (LauncherRuntime.IsProgramEnded|| level is ModBase.LogLevel.Normal or ModBase.LogLevel.Developer)
+        if (LauncherRuntime.IsProgramEnded || level is LauncherLogLevel.Normal or LauncherLogLevel.Developer)
             return;
 
-        if (level == ModBase.LogLevel.Debug)
+        if (level == LauncherLogLevel.Debug)
         {
             ShowDebugHint(text);
             return;
@@ -40,7 +40,7 @@ public static class LauncherLog
     public static void Log(
         Exception ex,
         string desc,
-        ModBase.LogLevel level = ModBase.LogLevel.Debug,
+        LauncherLogLevel level = LauncherLogLevel.Debug,
         string? title = null,
         string? userSummary = null)
     {
@@ -49,10 +49,10 @@ public static class LauncherLog
 
         WriteExceptionLog(ex, desc, level);
 
-        if (LauncherRuntime.IsProgramEnded || level is ModBase.LogLevel.Normal or ModBase.LogLevel.Developer)
+        if (LauncherRuntime.IsProgramEnded || level is LauncherLogLevel.Normal or LauncherLogLevel.Developer)
             return;
 
-        if (level == ModBase.LogLevel.Debug)
+        if (level == LauncherLogLevel.Debug)
         {
             ShowDebugHint($"{desc}：{ex}");
             return;
@@ -92,62 +92,62 @@ public static class LauncherLog
             .Replace("\r\n\r\n", "\r\n");
     }
 
-    private static void WriteTextLog(string text, ModBase.LogLevel level)
+    private static void WriteTextLog(string text, LauncherLogLevel level)
     {
         switch (level)
         {
-            case ModBase.LogLevel.Msgbox or ModBase.LogLevel.Hint:
+            case LauncherLogLevel.Msgbox or LauncherLogLevel.Hint:
                 LogWrapper.Warn(text);
                 break;
 
-            case ModBase.LogLevel.Feedback:
+            case LauncherLogLevel.Feedback:
                 LogWrapper.Error(text);
                 break;
 
-            case ModBase.LogLevel.Critical:
+            case LauncherLogLevel.Critical:
                 LogWrapper.Fatal(text);
                 break;
 
-            case ModBase.LogLevel.Debug:
+            case LauncherLogLevel.Debug:
                 LogWrapper.Debug(text);
                 break;
 
-            case ModBase.LogLevel.Developer:
+            case LauncherLogLevel.Developer:
                 LogWrapper.Trace(text);
                 break;
 
-            case ModBase.LogLevel.Normal:
+            case LauncherLogLevel.Normal:
             default:
                 LogWrapper.Info(text);
                 break;
         }
     }
 
-    private static void WriteExceptionLog(Exception ex, string desc, ModBase.LogLevel level)
+    private static void WriteExceptionLog(Exception ex, string desc, LauncherLogLevel level)
     {
         switch (level)
         {
-            case ModBase.LogLevel.Msgbox or ModBase.LogLevel.Hint:
+            case LauncherLogLevel.Msgbox or LauncherLogLevel.Hint:
                 LogWrapper.Warn(ex, desc);
                 break;
 
-            case ModBase.LogLevel.Feedback:
+            case LauncherLogLevel.Feedback:
                 LogWrapper.Error(ex, desc);
                 break;
 
-            case ModBase.LogLevel.Critical:
+            case LauncherLogLevel.Critical:
                 LogWrapper.Fatal(ex, desc);
                 break;
 
-            case ModBase.LogLevel.Debug:
+            case LauncherLogLevel.Debug:
                 LogWrapper.Debug($"{desc}:{ex}");
                 break;
 
-            case ModBase.LogLevel.Developer:
+            case LauncherLogLevel.Developer:
                 LogWrapper.Trace($"{desc}:{ex}");
                 break;
 
-            case ModBase.LogLevel.Normal:
+            case LauncherLogLevel.Normal:
             default:
                 LogWrapper.Error(ex, desc);
                 break;
@@ -161,31 +161,31 @@ public static class LauncherLog
     }
 
     private static void ShowUserNotification(
-        ModBase.LogLevel level,
+        LauncherLogLevel level,
         string userMessage,
         string dialogTitle)
     {
         switch (level)
         {
-            case ModBase.LogLevel.Hint:
+            case LauncherLogLevel.Hint:
                 HintService.Hint(userMessage, HintType.Error, false);
                 break;
 
-            case ModBase.LogLevel.Msgbox:
+            case LauncherLogLevel.Msgbox:
                 ModMain.MyMsgBox(userMessage, dialogTitle, isWarn: true);
                 break;
 
-            case ModBase.LogLevel.Feedback:
+            case LauncherLogLevel.Feedback:
                 LauncherFeedbackService.ShowFeedbackPrompt(userMessage, dialogTitle, false);
                 break;
 
-            case ModBase.LogLevel.Critical:
+            case LauncherLogLevel.Critical:
                 LauncherFeedbackService.ShowFeedbackPrompt(userMessage, dialogTitle, true);
                 break;
 
-            case ModBase.LogLevel.Normal
-                or ModBase.LogLevel.Developer
-                or ModBase.LogLevel.Debug:
+            case LauncherLogLevel.Normal
+                or LauncherLogLevel.Developer
+                or LauncherLogLevel.Debug:
             default:
                 return;
         }

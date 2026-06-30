@@ -1,10 +1,6 @@
-using System;
-using System.IO;
-using System.Linq;
-using System.Text.Json.Nodes;
+﻿using System.IO;
 using PCL.Core.App;
 using PCL.Core.Utils;
-using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
 using PCL.Network;
 
@@ -74,7 +70,7 @@ public static class ModLibrary
 
         public override string ToString()
         {
-            return (IsNatives ? "[Native] " : "") + ModBase.GetString(size) + " | " + LocalPath;
+            return (IsNatives ? "[Native] " : "") + LauncherText.GetReadableFileSize(size) + " | " + LocalPath;
         }
     }
 
@@ -149,7 +145,7 @@ public static class ModLibrary
     public static List<McLibToken> McLibListGet(McInstance mcInstance, bool includeInstanceJar)
     {
         // 获取当前支持库列表
-        ModBase.Log("[Minecraft] 获取支持库列表：" + mcInstance.Name);
+        LauncherLog.Log("[Minecraft] 获取支持库列表：" + mcInstance.Name);
         var result = McLibListGetWithJson(mcInstance.JsonObject, targetMcInstance: mcInstance);
 
         // 需要添加原版 Jar
@@ -188,7 +184,8 @@ public static class ModLibrary
             if (!File.Exists(realMcInstance.PathInstance + realMcInstance.Name + ".json"))
             {
                 realMcInstance = mcInstance;
-                ModBase.Log("[Minecraft] 可能缺少前置实例 " + realMcInstance.Name + "，找不到对应的 JSON 文件", ModBase.LogLevel.Debug);
+                LauncherLog.Log("[Minecraft] 可能缺少前置实例 " + realMcInstance.Name + "，找不到对应的 JSON 文件",
+                    LauncherLogLevel.Debug);
             }
 
             // 获取详细下载信息
@@ -272,7 +269,7 @@ public static class ModLibrary
                                 ? McLibGet((string)library["name"], customMcFolder: customMcFolder)
                                 : McLibGetByArtifactPath(artifactPath.ToString(), customMcFolder),
                             init.size = (long)Math.Round(
-                                ModBase.Val(library["downloads"]["artifact"]["size"].ToString())),
+                                LauncherText.Val(library["downloads"]["artifact"]["size"].ToString())),
                             init.IsNatives = false, init.Sha1 = library["downloads"]["artifact"]["sha1"]?.ToString(),
                             init.IsLocal = isLocal, init).init);
                     }
@@ -287,12 +284,12 @@ public static class ModLibrary
                 }
                 catch (Exception ex) when (artifactPath is not null && (ex is ArgumentException || ex is IOException))
                 {
-                    ModBase.Log(ex, "支持库下载路径非法，已跳过（无 Natives，" + (library["name"] ?? "Nothing") + "）");
+                    LauncherLog.Log(ex, "支持库下载路径非法，已跳过（无 Natives，" + (library["name"] ?? "Nothing") + "）");
                     continue;
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "处理实际支持库列表失败（无 Natives，" + (library["name"] ?? "Nothing") + "）");
+                    LauncherLog.Log(ex, "处理实际支持库列表失败（无 Natives，" + (library["name"] ?? "Nothing") + "）");
                     basicArray.Add(new McLibToken
                     {
                         OriginalName = (string)library["name"], Url = rootUrl, LocalPath = localPath, size = 0L,
@@ -320,7 +317,8 @@ public static class ModLibrary
                                     .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32")
                                 : McLibGetByArtifactPath(nativePath.ToString(), customMcFolder),
                             size = (long)Math.Round(
-                                ModBase.Val(library["downloads"]["classifiers"]["natives-windows"]["size"].ToString())),
+                                LauncherText.Val(library["downloads"]["classifiers"]["natives-windows"]["size"]
+                                    .ToString())),
                             IsNatives = true,
                             Sha1 = library["downloads"]["classifiers"]["natives-windows"]["sha1"].ToString(),
                             IsLocal = isLocal
@@ -337,12 +335,12 @@ public static class ModLibrary
                 }
                 catch (Exception ex) when (nativePath is not null && (ex is ArgumentException || ex is IOException))
                 {
-                    ModBase.Log(ex, "支持库下载路径非法，已跳过（有 Natives，" + (library["name"] ?? "Nothing") + "）");
+                    LauncherLog.Log(ex, "支持库下载路径非法，已跳过（有 Natives，" + (library["name"] ?? "Nothing") + "）");
                     continue;
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "处理实际支持库列表失败（有 Natives，" + (library["name"] ?? "Nothing") + "）");
+                    LauncherLog.Log(ex, "处理实际支持库列表失败（有 Natives，" + (library["name"] ?? "Nothing") + "）");
                     basicArray.Add(new McLibToken
                     {
                         OriginalName = (string)library["name"], Url = rootUrl,
@@ -364,7 +362,7 @@ public static class ModLibrary
         // D:\Minecraft\test\libraries\com\google\guava\guava\31.1-jre\guava-31.1-jre.jar
         string GetVersion(McLibToken token)
         {
-            return ModBase.GetFolderNameFromPath(ModBase.GetPathFromFullPath(token.LocalPath));
+            return LegacyFileFacade.GetFolderNameFromPath(LegacyFileFacade.GetPathFromFullPath(token.LocalPath));
         }
 
         for (int i = 0, loopTo = basicArray.Count - 1; i <= loopTo; i++)
@@ -376,13 +374,13 @@ public static class ModLibrary
                 var resultArrayVersion = GetVersion(resultArray[key]);
                 if ((basicArrayVersion ?? "") != (resultArrayVersion ?? "") && keepSameNameDifferentVersionResult)
                 {
-                    ModBase.Log(
+                    LauncherLog.Log(
                         $"[Minecraft] 发现疑似重复的支持库：{basicArray[i]} ({basicArrayVersion}) 与 {resultArray[key]} ({resultArrayVersion})");
-                    resultArray.Add(key + ModBase.GetUuid(), basicArray[i]);
+                    resultArray.Add(key + LauncherRuntime.GetUuid(), basicArray[i]);
                 }
                 else
                 {
-                    ModBase.Log(
+                    LauncherLog.Log(
                         $"[Minecraft] 发现重复的支持库：{basicArray[i]} ({basicArrayVersion}) 与 {resultArray[key]} ({resultArrayVersion})，已忽略其中之一");
                     if (McVersionComparer.CompareVersionGe(basicArrayVersion, resultArrayVersion)) resultArray[key] = basicArray[i];
                 }
@@ -416,19 +414,19 @@ public static class ModLibrary
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "实例缺失主 Jar 文件所必须的信息", ModBase.LogLevel.Developer);
+            LauncherLog.Log(ex, "实例缺失主 Jar 文件所必须的信息", LauncherLogLevel.Developer);
         }
 
         // Library 文件
         result.AddRange(McLibNetFilesFromTokens(McLibListGet(mcInstance, false)));
 
         // Authlib-Injector 文件
-        var authlibTargetFile = Path.Combine(ModBase.pathPure, "authlib-injector.jar");
+        var authlibTargetFile = Path.Combine(LauncherPaths.PureAsciiDirectory, "authlib-injector.jar");
         JsonObject authlibDownloadInfo = null;
         try
         {
-            ModBase.Log("[Minecraft] 开始获取 Authlib-Injector 下载信息");
-            authlibDownloadInfo = (JsonObject)ModBase.GetJson(ModNet.NetGetCodeByLoader(
+            LauncherLog.Log("[Minecraft] 开始获取 Authlib-Injector 下载信息");
+            authlibDownloadInfo = (JsonObject)JsonCompat.ParseNode(ModNet.NetGetCodeByLoader(
                 new[]
                 {
                     "https://authlib-injector.yushi.moe/artifact/latest.json",
@@ -437,19 +435,19 @@ public static class ModLibrary
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取 Authlib-Injector 下载信息失败");
+            LauncherLog.Log(ex, "获取 Authlib-Injector 下载信息失败");
         }
 
         // 校验文件
         if (authlibDownloadInfo is not null)
         {
-            var checker = new ModBase.FileChecker(hash: authlibDownloadInfo["checksums"]["sha256"].ToString());
+            var checker = new FileChecker(hash: authlibDownloadInfo["checksums"]["sha256"].ToString());
             if (checker.Check(authlibTargetFile) is not null)
             {
                 // 开始下载
                 var downloadAddress = authlibDownloadInfo["download_url"].ToString()
                     .Replace("bmclapi2.bangbang93.com/mirrors/authlib-injector", "authlib-injector.yushi.moe");
-                ModBase.Log("[Minecraft] Authlib-Injector 需要更新：" + downloadAddress, ModBase.LogLevel.Developer);
+                LauncherLog.Log("[Minecraft] Authlib-Injector 需要更新：" + downloadAddress, LauncherLogLevel.Developer);
                 result.Add(new DownloadFile(
                     new[]
                     {
@@ -457,13 +455,14 @@ public static class ModLibrary
                         downloadAddress.Replace("authlib-injector.yushi.moe",
                             "bmclapi2.bangbang93.com/mirrors/authlib-injector")
                     }, authlibTargetFile,
-                    new ModBase.FileChecker(hash: authlibDownloadInfo["checksums"]["sha256"].ToString())));
+                    new FileChecker(hash: authlibDownloadInfo["checksums"]["sha256"].ToString())));
             }
         }
 
         // 修改渲染器
         var mesaLoaderWindowsTargetFile =
-            Path.Combine(ModBase.pathPure, "mesa-loader-windows", ModLaunch.mesaLoaderWindowsVersion, "Loader.jar");
+            Path.Combine(LauncherPaths.PureAsciiDirectory, "mesa-loader-windows", ModLaunch.mesaLoaderWindowsVersion,
+                "Loader.jar");
         var renderer = -1;
         if (ModInstanceList.McMcInstanceSelected is not null)
             renderer = Config.Instance.Renderer[ModInstanceList.McMcInstanceSelected?.PathInstance] - 1;
@@ -485,7 +484,8 @@ public static class ModLibrary
             {
                 if (Directory.Exists(Path.Combine(mcInstance.PathInstance, "labymod-neo")))
                     Directory.Delete(Path.Combine(mcInstance.PathInstance, "labymod-neo"), true);
-                ModBase.CreateSymbolicLink(Path.Combine(mcInstance.PathInstance, "labymod-neo"), Path.Combine(ModFolder.mcFolderSelected, "labymod-neo"),
+                LegacyFileFacade.CreateSymbolicLink(Path.Combine(mcInstance.PathInstance, "labymod-neo"),
+                    Path.Combine(ModFolder.mcFolderSelected, "labymod-neo"),
                     0x2);
             }
 
@@ -493,7 +493,7 @@ public static class ModLibrary
             {
                 var channelType = mcInstance.JsonObject["labymod_data"]["channelType"].ToString();
                 Directory.CreateDirectory($@"{ModFolder.mcFolderSelected}labymod-neo\libraries");
-                ModBase.Log("[Minecraft] 开始获取 LabyMod 信息");
+                LauncherLog.Log("[Minecraft] 开始获取 LabyMod 信息");
                 var labyManifest = (JsonObject)ModNet.NetGetCodeByRequestRetry(
                     $"https://releases.r2.labymod.net/api/v1/manifest/{channelType}/latest.json", isJson: true);
                 var labyAssets = (JsonObject)labyManifest["assets"];
@@ -505,7 +505,7 @@ public static class ModLibrary
                     var assetPath = $@"{ModFolder.mcFolderSelected}labymod-neo\assets\{assetName}.jar";
                     var assetUrl =
                         $"https://releases.r2.labymod.net/api/v1/download/assets/labymod4/{channelType}/{labyModCommitRef}/{assetName}/{assetSHA1}.jar";
-                    var checker = new ModBase.FileChecker(hash: assetSHA1);
+                    var checker = new FileChecker(hash: assetSHA1);
                     if (checker.Check(assetPath) is null)
                         continue;
                     result.Add(new DownloadFile(new[] { assetUrl }, assetPath, checker));
@@ -513,19 +513,19 @@ public static class ModLibrary
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "获取 LabyMod 信息失败，跳过检查");
+                LauncherLog.Log(ex, "获取 LabyMod 信息失败，跳过检查");
             }
         }
 
         // 跳过校验
         if (ShouldIgnoreFileCheck(mcInstance))
         {
-            ModBase.Log("[Minecraft] 用户要求尽量忽略文件检查，这可能会保留有误的文件");
+            LauncherLog.Log("[Minecraft] 用户要求尽量忽略文件检查，这可能会保留有误的文件");
             result = result.Where(f =>
             {
                 if (File.Exists(f.LocalPath))
                 {
-                    ModBase.Log("[Minecraft] 跳过下载的支持库文件：" + f.LocalPath, ModBase.LogLevel.Debug);
+                    LauncherLog.Log("[Minecraft] 跳过下载的支持库文件：" + f.LocalPath, LauncherLogLevel.Debug);
                     return false;
                 }
 
@@ -547,12 +547,12 @@ public static class ModLibrary
         foreach (var token in libs)
         {
             // 检查文件
-            var checker = new ModBase.FileChecker(actualSize: token.size == 0L ? -1 : token.size, hash: token.Sha1);
+            var checker = new FileChecker(actualSize: token.size == 0L ? -1 : token.size, hash: token.Sha1);
             if (checker.Check(token.LocalPath) is null)
                 continue;
             if (token.IsLocal)
             {
-                ModBase.Log("[Download] 已跳过被标记为本地文件的支持库: " + token.OriginalName);
+                LauncherLog.Log("[Download] 已跳过被标记为本地文件的支持库: " + token.OriginalName);
                 continue;
             }
 
@@ -586,8 +586,8 @@ public static class ModLibrary
             {
                 // Transformer 文件释放
                 if (!File.Exists(token.LocalPath))
-                    ModBase.WriteFile(token.LocalPath, ModBase.GetResourceStream("Resources/transformer.jar"));
-                ModBase.Log("[Download] 已自动释放 Transformer Discovery Service", ModBase.LogLevel.Developer);
+                    LegacyFileFacade.WriteFile(token.LocalPath, Basics.GetResourceStream("Resources/transformer.jar"));
+                LauncherLog.Log("[Download] 已自动释放 Transformer Discovery Service", LauncherLogLevel.Developer);
                 continue;
             }
 
@@ -596,7 +596,7 @@ public static class ModLibrary
                 // OptiFine 主 Jar
                 var optiFineBase =
                     token.LocalPath.Replace(Path.Combine(customMcFolder, "libraries", "optifine", "OptiFine") + @"\", "").Split("_")[0] + "/" +
-                    ModBase.GetFileNameFromPath(token.LocalPath).Replace("-", "_");
+                    LegacyFileFacade.GetFileNameFromPath(token.LocalPath).Replace("-", "_");
                 optiFineBase = "/maven/com/optifine/" + optiFineBase;
                 if (optiFineBase.Contains("_pre"))
                     optiFineBase = optiFineBase.Replace("com/optifine/", "com/optifine/preview_");
@@ -606,9 +606,9 @@ public static class ModLibrary
             {
                 // LabyMod 只有一个下载源
                 urls.Add(token.Url);
-                ModBase.Log(
+                LauncherLog.Log(
                     $"[Download] 获取到 LabyMod 主要库文件的 Size = {token.size},SHA1 = {token.Sha1}，由于 LabyMod 乱写 Size，已忽略 Size");
-                checker = new ModBase.FileChecker(hash: token.Sha1); // 只校验 SHA1
+                checker = new FileChecker(hash: token.Sha1); // 只校验 SHA1
             }
             else if (urls.Count <= 2)
             {
@@ -642,9 +642,9 @@ public static class ModLibrary
         // 判断 OptiFine 是否应该使用 installer
         if (mcLibGetRet.Contains(@"optifine\OptiFine\1.") && splited[2].Split(".").Count() > 1)
         {
-            var majorVersion = (int)Math.Round(ModBase.Val(splited[2].Split(".")[1].BeforeFirst("_")));
+            var majorVersion = (int)Math.Round(LauncherText.Val(splited[2].Split(".")[1].BeforeFirst("_")));
             var minorVersion = (int)Math.Round(splited[2].Split(".").Count() > 2
-                ? ModBase.Val(splited[2].Split(".")[2].BeforeFirst("_"))
+                ? LauncherText.Val(splited[2].Split(".")[2].BeforeFirst("_"))
                 : 0d);
             if ((majorVersion == 12 || (majorVersion == 20 && minorVersion >= 4) || majorVersion >= 21) && File.Exists(
                     $@"{customMcFolder}libraries\{splited[0].Replace(".", @"\")}\{splited[1]}\{splited[2]}\{splited[1]}-{splited[2]}-installer.jar")) // 仅在 1.12 (无法追溯) 和 1.20.4+ (#5376) 遇到此问题

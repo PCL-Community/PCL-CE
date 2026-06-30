@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Runtime.InteropServices;
 using Microsoft.VisualBasic;
 using PCL.Core.App.Localization;
@@ -95,7 +95,7 @@ public static class LauncherFeedbackService
     {
         if (isCritical && LauncherLog.MarkCriticalErrorTriggered())
         {
-            FormMain.EndProgramForce(ModBase.ProcessReturnValues.Exception);
+            FormMain.EndProgramForce(LauncherExitCode.Exception);
             return;
         }
 

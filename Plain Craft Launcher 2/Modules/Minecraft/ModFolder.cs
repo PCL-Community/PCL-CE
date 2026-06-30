@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using System.Globalization;
 using System.IO;
 using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils;
-using PCL.Core.Utils.Exts;
 
 namespace PCL;
 
@@ -86,7 +83,7 @@ public static class ModFolder
                 var path = folder.Split(">")[1];
                 try
                 {
-                    ModBase.CheckPermissionWithException(path);
+                    LegacyFileFacade.CheckPermissionWithException(path);
                     cacheMcFolderList.Add(new McFolder { Name = name, Location = path, type = McFolder.Types.Custom });
                 }
                 catch (Exception ex)
@@ -94,7 +91,7 @@ public static class ModFolder
                     ModMain.MyMsgBox(
                         Lang.Text("Select.Folder.Invalid.WithDetail", path, ex.ToString()),
                         Lang.Text("Select.Folder.InvalidTitle"), isWarn: true);
-                    ModBase.Log(ex, $"无法访问 Minecraft 文件夹 {path}");
+                    LauncherLog.Log(ex, $"无法访问 Minecraft 文件夹 {path}");
                 }
             }
 
@@ -107,10 +104,13 @@ public static class ModFolder
             // 扫描当前文件夹
             try
             {
-                if (Directory.Exists(ModBase.exePath + @"versions\"))
+                if (Directory.Exists(LauncherPaths.ExecutableDirectoryWithSlash + @"versions\"))
                     originalMcFolderList.Add(new McFolder
-                        { Name = Lang.Text("Select.Folder.CurrentFolder"), Location = ModBase.exePath, type = McFolder.Types.Original });
-                foreach (var folder in new DirectoryInfo(ModBase.exePath).GetDirectories())
+                    {
+                        Name = Lang.Text("Select.Folder.CurrentFolder"),
+                        Location = LauncherPaths.ExecutableDirectoryWithSlash, type = McFolder.Types.Original
+                    });
+                foreach (var folder in new DirectoryInfo(LauncherPaths.ExecutableDirectoryWithSlash).GetDirectories())
                     if (Directory.Exists(Path.Combine(folder.FullName, "versions")) || folder.Name == ".minecraft")
                     {
                         var newCurrentFolder = new McFolder
@@ -121,7 +121,7 @@ public static class ModFolder
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "扫描 PCL 所在文件夹中是否有 MC 文件夹失败");
+                LauncherLog.Log(ex, "扫描 PCL 所在文件夹中是否有 MC 文件夹失败");
             }
 
             // 扫描官启文件夹
@@ -132,7 +132,7 @@ public static class ModFolder
                 originalMcFolderList.Add(new McFolder
                     { Name = Lang.Text("Select.Folder.OfficialLauncherFolder"), Location = mojangPath, type = McFolder.Types.Original });
 
-            ModBase.Log(cacheMcFolderList.Count + " 个自定义文件夹，" + originalMcFolderList.Count + " 个原始文件夹");
+            LauncherLog.Log($"{cacheMcFolderList.Count} 个自定义文件夹，{originalMcFolderList.Count} 个原始文件夹");
 
             foreach (var newOriginalFolder in originalMcFolderList)
             {
@@ -168,9 +168,13 @@ public static class ModFolder
             // 若没有可用文件夹，则创建 .minecraft
             if (!cacheMcFolderList.Any())
             {
-                Directory.CreateDirectory(ModBase.exePath + @".minecraft\versions\");
+                Directory.CreateDirectory(LauncherPaths.ExecutableDirectoryWithSlash + @".minecraft\versions\");
                 cacheMcFolderList.Add(new McFolder
-                    { Name = Lang.Text("Select.Folder.CurrentFolder"), Location = ModBase.exePath + @".minecraft\", type = McFolder.Types.Original });
+                {
+                    Name = Lang.Text("Select.Folder.CurrentFolder"),
+                    Location = LauncherPaths.ExecutableDirectoryWithSlash + @".minecraft\",
+                    type = McFolder.Types.Original
+                });
             }
 
             foreach (var Folder in cacheMcFolderList) McFolderLauncherProfilesJsonCreate(Folder.Location);
@@ -183,10 +187,10 @@ public static class ModFolder
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Select.Folder.Error.Load"),
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Select.Folder.Error.Load"));
         }
     }
@@ -215,15 +219,16 @@ public static class ModFolder
     ""selectedProfile"": ""PCL"",
     ""clientToken"": ""23323323323323323323323323323333""
 }";
-            ModBase.WriteFile(Path.Combine(folder, "launcher_profiles.json"), resultJson, encoding: Encoding.GetEncoding("GB18030"));
-            ModBase.Log("[Minecraft] 已创建 launcher_profiles.json：" + folder);
+            LegacyFileFacade.WriteFile(Path.Combine(folder, "launcher_profiles.json"), resultJson,
+                encoding: Encoding.GetEncoding("GB18030"));
+            LauncherLog.Log($"[Minecraft] 已创建 launcher_profiles.json：{folder}");
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
-                "创建 launcher_profiles.json 失败（" + folder + "）",
-                ModBase.LogLevel.Feedback,
+                $"创建 launcher_profiles.json 失败（{folder}）",
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Minecraft.Folder.Error.OperationFailed"));
         }
     }

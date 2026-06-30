@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using PCL.Core.App;
@@ -14,23 +14,23 @@ public static class ThemeManager
 
     public static ResourceDictionary AppResources => System.Windows.Application.Current.Resources;
 
-    public static ModBase.MyColor colorGray1 = new(AppResources["ColorObjectGray1"]);
-    public static ModBase.MyColor colorGray4 = new(AppResources["ColorObjectGray4"]);
-    public static ModBase.MyColor colorGray5 = new(AppResources["ColorObjectGray5"]);
-    public static ModBase.MyColor colorSemiTransparent = new(AppResources["ColorBrushSemiTransparent"]);
+    public static MyColor colorGray1 = new(AppResources["ColorObjectGray1"]);
+    public static MyColor colorGray4 = new(AppResources["ColorObjectGray4"]);
+    public static MyColor colorGray5 = new(AppResources["ColorObjectGray5"]);
+    public static MyColor colorSemiTransparent = new(AppResources["ColorBrushSemiTransparent"]);
 
     public static void ThemeRefresh(int newTheme = -1)
     {
-        colorGray1 = new ModBase.MyColor(AppResources["ColorObjectGray1"]);
-        colorGray4 = new ModBase.MyColor(AppResources["ColorObjectGray4"]);
-        colorGray5 = new ModBase.MyColor(AppResources["ColorObjectGray5"]);
-        colorSemiTransparent = new ModBase.MyColor(AppResources["ColorBrushSemiTransparent"]);
+        colorGray1 = new MyColor(AppResources["ColorObjectGray1"]);
+        colorGray4 = new MyColor(AppResources["ColorObjectGray4"]);
+        colorGray5 = new MyColor(AppResources["ColorObjectGray5"]);
+        colorSemiTransparent = new MyColor(AppResources["ColorBrushSemiTransparent"]);
         ThemeRefreshMain();
     }
 
     public static void ThemeRefreshMain()
     {
-        ModBase.RunInUi(() =>
+        UiThread.Post(() =>
         {
             if (!ModMain.frmMain.IsLoaded) return;
             RefreshBackground();
@@ -87,7 +87,7 @@ public static class ThemeManager
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新ContextMenu主题时出错");
+            LauncherLog.Log(ex, "刷新ContextMenu主题时出错");
         }
     }
 

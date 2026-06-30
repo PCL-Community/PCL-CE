@@ -118,10 +118,10 @@ public partial class PageSetupLog
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Setup.Log.ExportFailed"),
-                ModBase.LogLevel.Hint,
+                LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Setup.Log.ExportFailed"));
         }
         finally

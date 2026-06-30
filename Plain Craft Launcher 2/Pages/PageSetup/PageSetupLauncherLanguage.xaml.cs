@@ -52,16 +52,16 @@ public partial class PageSetupLauncherLanguage
             Config.Preference.Localization.LanguageConfig.SetDefaultValue();
             Config.Preference.Localization.FormatCultureConfig.SetDefaultValue();
             LocalizationService.ApplyFromConfig();
-            ModBase.Log("[Setup] 已初始化启动器-语言页设置");
+            LauncherLog.Log("[Setup] 已初始化启动器-语言页设置");
             HintService.Hint(Lang.Text("Setup.Language.Reset.Success"), HintType.Success, false);
             Reload();
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "初始化启动器-语言页设置失败",
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
     }

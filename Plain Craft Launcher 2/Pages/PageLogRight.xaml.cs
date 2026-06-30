@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -111,7 +111,7 @@ public partial class PageLogRight
 
     private void OnLogOutput(ModWatcher.Watcher sender, ModWatcher.LogOutputEventArgs e)
     {
-        ModBase.RunInUi(() =>
+        UiThread.Post(() =>
         {
             if (ModMain.frmLogLeft.currentLog is not null)
             {
@@ -136,12 +136,12 @@ public partial class PageLogRight
 
     #region 卡片按钮
 
-    private void BtnOperationClear_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnOperationClear_Click(object sender, RouteEventArgs e)
     {
         ModMain.frmLogLeft.flowDocuments[ModMain.frmLogLeft.currentUuid].Blocks.Clear();
     }
 
-    private void BtnOperationExport_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnOperationExport_Click(object sender, RouteEventArgs e)
     {
         var savePath = SystemDialogs.SelectSaveFile(Lang.Text("LogPage.Export.SelectLocation"),
             Lang.Text("LogPage.Export.GameLog.FileName", ModMain.frmLogLeft.currentLog.version.Name),
@@ -150,10 +150,10 @@ public partial class PageLogRight
             return;
         File.WriteAllLines(savePath, ModMain.frmLogLeft.currentLog.fullLog);
         HintService.Hint(Lang.Text("LogPage.Export.Success"), HintType.Success);
-        ModBase.OpenExplorer(savePath);
+        LauncherProcess.OpenExplorer(savePath);
     }
 
-    private void BtnOperationKill_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnOperationKill_Click(object sender, RouteEventArgs e)
     {
         if (ModMain.frmLogLeft.currentLog.State <= ModWatcher.Watcher.MinecraftState.Running)
         {
@@ -163,7 +163,7 @@ public partial class PageLogRight
         }
     }
 
-    private void BtnOperationExportStackDump_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnOperationExportStackDump_Click(object sender, RouteEventArgs e)
     {
         var formattedDate = DateTime.Now.ToString("G", CultureInfo.InvariantCulture)
             .Replace("/", "-")
@@ -176,23 +176,23 @@ public partial class PageLogRight
             return;
         HintService.Hint(Lang.Text("LogPage.ExportStack.Progress"));
         BtnOperationExportStackDump.IsEnabled = false;
-        ModBase.RunInNewThread(() =>
+        PCL.Core.App.Basics.RunInNewThread(() =>
         {
             var dump = ModMain.frmLogLeft.currentLog.ExportStackDump(savePath);
             File.WriteAllLines(savePath, dump);
-            ModBase.RunInUi(() =>
+            UiThread.Post(() =>
             {
                 HintService.Hint(Lang.Text("LogPage.ExportStack.Success"), HintType.Success);
                 BtnOperationExportStackDump.IsEnabled = true;
             });
-            ModBase.OpenExplorer(savePath);
+            LauncherProcess.OpenExplorer(savePath);
         });
     }
 
     private void OnGameExit()
     {
-        ModBase.RunInUi(() => BtnOperationKill.IsEnabled = false);
-        ModBase.RunInUi(() => BtnOperationExportStackDump.IsEnabled = false);
+        UiThread.Post(() => BtnOperationKill.IsEnabled = false);
+        UiThread.Post(() => BtnOperationExportStackDump.IsEnabled = false);
     }
 
     #endregion

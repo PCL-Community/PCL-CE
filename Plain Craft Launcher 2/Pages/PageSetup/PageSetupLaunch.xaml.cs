@@ -92,19 +92,19 @@ public partial class PageSetupLaunch
 
         catch (NullReferenceException ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Setup.Launch.Error.ConfigReset"),
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.Launch.Error.ConfigReset"));
             Reset();
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Setup.Launch.Error.LoadFailed"),
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Setup.Launch.Error.LoadFailed"));
         }
     }
@@ -115,15 +115,15 @@ public partial class PageSetupLaunch
         try
         {
             Config.Launch.Reset();
-            ModBase.Log("[Setup] 已初始化启动设置");
+            LauncherLog.Log("[Setup] 已初始化启动设置");
             HintService.Hint(Lang.Text("Setup.Launch.Initialized"), HintType.Success, false);
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Setup.Launch.Error.InitFailed"),
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.Launch.Error.InitFailed"));
         }
 
@@ -131,7 +131,7 @@ public partial class PageSetupLaunch
     }
 
     // 将控件改变路由到设置改变
-    private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
+    private void RadioBoxChange(object senderRaw, RouteEventArgs e)
     {
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
@@ -226,7 +226,7 @@ public partial class PageSetupLaunch
         var ramAvailable = Math.Round((double)phyRam.Available / 1024 / 1024 / 1024, 1);
         var ramGameActual = Math.Round(Math.Min(ramGame, ramAvailable), 5);
         var ramUsed = Math.Round(ramTotal - ramAvailable, 5);
-        var ramEmpty = Math.Round(ModBase.MathClamp(ramTotal - ramUsed - ramGame, 0d, 1000d), 1);
+        var ramEmpty = Math.Round(LauncherMath.Clamp(ramTotal - ramUsed - ramGame, 0d, 1000d), 1);
         // 设置最大可用内存
         if (ramTotal <= 1.5d)
             SliderRamCustom.MaxValue = (int)Math.Round(Math.Max(Math.Floor((ramTotal - 0.3d) / 0.1d), 1d));

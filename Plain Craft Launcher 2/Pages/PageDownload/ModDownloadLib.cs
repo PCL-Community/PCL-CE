@@ -54,9 +54,9 @@ public static class ModDownloadLib
     private static void CancelUnsafeCacheSubfolder(string childFolderName, string reason)
     {
         var message = "远程版本名" + reason + "：" + childFolderName;
-        ModBase.Log("[Download] " + message);
+        LauncherLog.Log("[Download] " + message);
         HintService.Hint(message, HintType.Error);
-        throw new ModBase.CancelledException();
+        throw new CancelledException();
     }
 
     #region Minecraft 下载
@@ -120,10 +120,10 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "开始 Minecraft 下载失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
             return null;
         }
@@ -160,7 +160,7 @@ public static class ModDownloadLib
                 new List<DownloadFile>
                 {
                     new(ModDownload.DlSourceLauncherOrMetaGet(jsonUrl), Path.Combine(versionFolder, id + ".json"),
-                        new ModBase.FileChecker(canUseExistsFile: false, isJson: true))
+                        new FileChecker(canUseExistsFile: false, isJson: true))
                 }) { ProgressWeight = 2d });
             // 获取支持库文件地址
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
@@ -185,10 +185,10 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "开始 Minecraft 下载失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
@@ -224,7 +224,7 @@ public static class ModDownloadLib
             new List<DownloadFile>
             {
                 new(ModDownload.DlSourceLauncherOrMetaGet(jsonUrl ?? ""), Path.Combine(instanceFolder, instanceName + ".json"),
-                    new ModBase.FileChecker(canUseExistsFile: false, isJson: true))
+                    new FileChecker(canUseExistsFile: false, isJson: true))
             }) { ProgressWeight = 3d });
 
         // 下载支持库文件
@@ -233,21 +233,21 @@ public static class ModDownloadLib
             Lang.Text("Minecraft.Download.Stage.AnalyzeVanillaLibraries.Side"), task =>
         {
             var jsonPath = Path.Combine(instanceFolder, instanceName + ".json");
-            ModBase.WaitForFileReady(jsonPath);
-            ModBase.Log("[Download] 开始分析原版支持库文件：" + instanceFolder);
+            LegacyFileFacade.WaitForFileReady(jsonPath);
+            LauncherLog.Log("[Download] 开始分析原版支持库文件：" + instanceFolder);
             if (id == "1.16.5" && Config.Download.FixAuthLib) // 1.16.5 Authlib 修复
                 try
                 {
-                    var json = ModBase.ReadFile(jsonPath);
+                    var json = LegacyFileFacade.ReadText(jsonPath);
                     json = json.Replace("2.1.28/authlib-2.1.28.jar", "2.3.31/authlib-2.3.31.jar")
                         .Replace("com.mojang:authlib:2.1.28", "com.mojang:authlib:2.3.31")
                         .Replace("ad54da276bf59983d02d5ed16fc14541354c71fd", "bbd00ca33b052f73a6312254780fc580d2da3535")
                         .Replace("76328", "87662");
-                    ModBase.WriteFile(jsonPath, json);
+                    LegacyFileFacade.WriteFile(jsonPath, json);
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log("[Download] 替换 Authlib 版本失败: " + ex.Message);
+                    LauncherLog.Log("[Download] 替换 Authlib 版本失败: " + ex.Message);
                 }
 
             task.output = ModLibrary.McLibNetFilesFromInstance(new McInstance(instanceFolder));
@@ -267,7 +267,7 @@ public static class ModDownloadLib
         loadersAssets.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
             Lang.Text("Minecraft.Download.Stage.AnalyzeAssetsIndex.Side"), task =>
         {
-            ModBase.WaitForFileReady(Path.Combine(instanceFolder, instanceName + ".json"));
+            LegacyFileFacade.WaitForFileReady(Path.Combine(instanceFolder, instanceName + ".json"));
             try
             {
                 var assetIndex = new McInstance(instanceFolder);
@@ -281,9 +281,9 @@ public static class ModDownloadLib
             // 顺手添加 Json 项目
             try
             {
-                var versionJson = (JsonObject)ModBase.GetJson(ModBase.ReadFile(Path.Combine(instanceFolder, instanceName + ".json")));
+                var versionJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(LegacyFileFacade.ReadText(Path.Combine(instanceFolder, instanceName + ".json")));
                 versionJson.Add("clientVersion", id);
-                ModBase.WriteFile(Path.Combine(instanceFolder, instanceName + ".json"), versionJson.ToString());
+                LegacyFileFacade.WriteFile(Path.Combine(instanceFolder, instanceName + ".json"), versionJson.ToString());
             }
             catch (Exception ex)
             {
@@ -331,11 +331,11 @@ public static class ModDownloadLib
         // 确定图标
         string logo = entry["type"].ToString() switch
         {
-            "release" => ModBase.pathImage + "Blocks/Grass.png",
-            "snapshot" => ModBase.pathImage + "Blocks/CommandBlock.png",
-            "pending" => ModBase.pathImage + "Blocks/CommandBlock.png",
-            "special" => ModBase.pathImage + "Blocks/GoldBlock.png",
-            _ => ModBase.pathImage + "Blocks/CobbleStone.png"
+            "release" => LauncherPaths.ImageBaseUri + "Blocks/Grass.png",
+            "snapshot" => LauncherPaths.ImageBaseUri + "Blocks/CommandBlock.png",
+            "pending" => LauncherPaths.ImageBaseUri + "Blocks/CommandBlock.png",
+            "special" => LauncherPaths.ImageBaseUri + "Blocks/GoldBlock.png",
+            _ => LauncherPaths.ImageBaseUri + "Blocks/CobbleStone.png"
         };
 
         // 建立控件
@@ -455,7 +455,7 @@ public static class ModDownloadLib
                 new List<DownloadFile>
                 {
                     new(ModDownload.DlSourceLauncherOrMetaGet(jsonUrl), Path.Combine(versionFolder, id + ".json"),
-                        new ModBase.FileChecker(canUseExistsFile: false, isJson: true))
+                        new FileChecker(canUseExistsFile: false, isJson: true))
                 }) { ProgressWeight = 2d });
             // 构建服务端
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
@@ -479,7 +479,7 @@ public static class ModDownloadLib
                 }
 
                 var jarUrl = (string)mcInstance.JsonObject["downloads"]["server"]["url"];
-                var checker = new ModBase.FileChecker(1024L,
+                var checker = new FileChecker(1024L,
                     (long)(mcInstance.JsonObject["downloads"]["server"]["size"] ?? -1),
                     (string)mcInstance.JsonObject["downloads"]["server"]["sha1"]);
                 task.output = new List<DownloadFile>
@@ -498,7 +498,7 @@ public static class ModDownloadLib
                            echo {Lang.Text("Minecraft.Download.ServerBatch.ServerStopped")}
                            pause
                            """;
-                ModBase.WriteFile(Path.Combine(versionFolder, "Launch Server.bat"), bat.Replace("\n", "\r\n"),
+                LegacyFileFacade.WriteFile(Path.Combine(versionFolder, "Launch Server.bat"), bat.Replace("\n", "\r\n"),
                     encoding: Encoding.Default.Equals(Encoding.UTF8) ? Encoding.UTF8 : Encoding.GetEncoding("GB18030"));
                 // 删除实例 JSON
                 File.Delete(Path.Combine(versionFolder, id + ".json"));
@@ -523,10 +523,10 @@ public static class ModDownloadLib
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "开始 Minecraft 服务端下载失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
@@ -562,7 +562,7 @@ public static class ModDownloadLib
                 new List<DownloadFile>
                 {
                     new(ModDownload.DlSourceLauncherOrMetaGet(jsonUrl), Path.Combine(versionFolder, id + ".json"),
-                        new ModBase.FileChecker(canUseExistsFile: false, isJson: true))
+                        new FileChecker(canUseExistsFile: false, isJson: true))
                 }) { ProgressWeight = 2d });
             // 获取支持库文件地址
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
@@ -586,10 +586,10 @@ public static class ModDownloadLib
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "开始 Minecraft 下载失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
@@ -602,7 +602,7 @@ public static class ModDownloadLib
     {
         var wikiName = McFormatter.GetWikiUrlSuffix(versionJson["id"].ToString());
         var wikiUrl = $"{McFormatter.GetWikiBaseUrl()}/{wikiName.TrimStart('/')}";
-        ModBase.OpenWebsite(wikiUrl);
+        LauncherProcess.OpenWebsite(wikiUrl);
     }
 
     #endregion
@@ -615,9 +615,9 @@ public static class ModDownloadLib
         {
             var id = downloadInfo.NameVersion;
             var versionFolder = Path.Combine(ModFolder.mcFolderSelected, "versions", id);
-            var isNewVersion = ModBase.Val(downloadInfo.Inherit.Split(".")[1]) >= 14d;
+            var isNewVersion = LauncherText.Val(downloadInfo.Inherit.Split(".")[1]) >= 14d;
             var target = isNewVersion
-                ? Path.Combine(ModBase.pathTemp, "Cache", "Code", downloadInfo.NameVersion + "_" + ModBase.GetUuid())
+                ? Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Code", downloadInfo.NameVersion + "_" + LauncherRuntime.GetUuid())
                 : Path.Combine(ModFolder.mcFolderSelected, "libraries", "optifine", "OptiFine",
                     downloadInfo.NameFile.Replace("OptiFine_", "").Replace(".jar", "").Replace("preview_", ""),
                     downloadInfo.NameFile.Replace("OptiFine_", "OptiFine-").Replace("preview_", ""));
@@ -663,10 +663,10 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "开始 OptiFine 下载失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
@@ -703,10 +703,10 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "开始 OptiFine 下载失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
@@ -728,7 +728,7 @@ public static class ModDownloadLib
                 try
                 {
                     javaLoader.Start(17, true);
-                    while (javaLoader.State == ModBase.LoadState.Loading && !task.IsAborted)
+                    while (javaLoader.State == LoadState.Loading && !task.IsAborted)
                         Thread.Sleep(10);
                 }
                 finally
@@ -751,7 +751,7 @@ public static class ModDownloadLib
         if (useJavaWrapper &&
                                   !(dynamic)Config.Launch.DisableJlw) // dynamic!
             arguments =
-                $"-Doolloo.jlw.tmpdir=\"{ModBase.pathPure.TrimEnd('\\')}\" -Duser.home=\"{baseMcFolderHome.TrimEnd('\\')}\" -cp \"{target}\" -jar \"{ModLaunch.ExtractJavaWrapper()}\" optifine.Installer";
+                $"-Doolloo.jlw.tmpdir=\"{LauncherPaths.PureAsciiDirectory.TrimEnd('\\')}\" -Duser.home=\"{baseMcFolderHome.TrimEnd('\\')}\" -cp \"{target}\" -jar \"{ModLaunch.ExtractJavaWrapper()}\" optifine.Installer";
         else
             arguments = $"-Duser.home=\"{baseMcFolderHome.TrimEnd('\\')}\" -cp \"{target}\" optifine.Installer";
         if (java.Installation.MajorVersion >= 9)
@@ -767,13 +767,13 @@ public static class ModDownloadLib
                 CreateNoWindow = true,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
-                WorkingDirectory = ModBase.ShortenPath(baseMcFolderHome)
+                WorkingDirectory = LegacyFileFacade.ShortenPath(baseMcFolderHome)
             };
             if (info.EnvironmentVariables.ContainsKey("appdata"))
                 info.EnvironmentVariables["appdata"] = baseMcFolderHome;
             else
                 info.EnvironmentVariables.Add("appdata", baseMcFolderHome);
-            ModBase.Log("[Download] 开始安装 OptiFine：" + target);
+            LauncherLog.Log("[Download] 开始安装 OptiFine：" + target);
             var totalLength = 0;
             var process = new Process { StartInfo = info };
             var lastResult = "";
@@ -792,8 +792,8 @@ public static class ModDownloadLib
                             else
                             {
                                 lastResult = e.Data;
-                                if (ModBase.ModeDebug)
-                                    ModBase.Log("[Installer] " + lastResult);
+                                if (LauncherRuntime.ModeDebug)
+                                    LauncherLog.Log("[Installer] " + lastResult);
                                 totalLength += 1;
                                 task.Progress += 0.9d / 7000d;
                             }
@@ -803,14 +803,14 @@ public static class ModDownloadLib
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, "读取 OptiFine 安装器信息失败");
+                            LauncherLog.Log(ex, "读取 OptiFine 安装器信息失败");
                         }
 
                         try
                         {
-                            if (task.State == ModBase.LoadState.Aborted && !process.HasExited)
+                            if (task.State == LoadState.Aborted && !process.HasExited)
                             {
-                                ModBase.Log("[Installer] 由于任务取消，已中止 OptiFine 安装");
+                                LauncherLog.Log("[Installer] 由于任务取消，已中止 OptiFine 安装");
                                 process.Kill();
                             }
                         }
@@ -829,8 +829,8 @@ public static class ModDownloadLib
                             else
                             {
                                 lastResult = e.Data;
-                                if (ModBase.ModeDebug)
-                                    ModBase.Log("[Installer] " + lastResult);
+                                if (LauncherRuntime.ModeDebug)
+                                    LauncherLog.Log("[Installer] " + lastResult);
                                 totalLength += 1;
                                 task.Progress += 0.9d / 7000d;
                             }
@@ -840,14 +840,14 @@ public static class ModDownloadLib
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, "读取 OptiFine 安装器错误信息失败");
+                            LauncherLog.Log(ex, "读取 OptiFine 安装器错误信息失败");
                         }
 
                         try
                         {
-                            if (task.State == ModBase.LoadState.Aborted && !process.HasExited)
+                            if (task.State == LoadState.Aborted && !process.HasExited)
                             {
-                                ModBase.Log("[Installer] 由于任务取消，已中止 OptiFine 安装");
+                                LauncherLog.Log("[Installer] 由于任务取消，已中止 OptiFine 安装");
                                 process.Kill();
                             }
                         }
@@ -884,7 +884,7 @@ public static class ModDownloadLib
         var isCustomFolder = (mcFolder ?? "") != (ModFolder.mcFolderSelected ?? "");
         var id = downloadInfo.NameVersion;
         var versionFolder = Path.Combine(mcFolder, "versions", id);
-        var isNewVersion = downloadInfo.Inherit.Contains("w") || ModBase.Val(downloadInfo.Inherit.Split(".")[1]) >= 14d;
+        var isNewVersion = downloadInfo.Inherit.Contains("w") || LauncherText.Val(downloadInfo.Inherit.Split(".")[1]) >= 14d;
         var target = isNewVersion
             ? $"{ModMain.RequestTaskTempFolder()}OptiFine.jar"
             : $@"{mcFolder}libraries\optifine\OptiFine\{downloadInfo.NameFile.Replace("OptiFine_", "").Replace(".jar", "").Replace("preview_", "")}\{downloadInfo.NameFile.Replace("OptiFine_", "OptiFine-").Replace("preview_", "")}";
@@ -933,16 +933,16 @@ public static class ModDownloadLib
                 }
                 task.Progress = 0.8d;
                 sources.Add("https://optifine.net/" + pageData.RegexSearch(@"downloadx\?f=[^""']+")[0]);
-                ModBase.Log("[Download] OptiFine " + downloadInfo.DisplayName + " 官方下载地址：" + sources.Last());
+                LauncherLog.Log("[Download] OptiFine " + downloadInfo.DisplayName + " 官方下载地址：" + sources.Last());
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "获取 OptiFine " + downloadInfo.DisplayName + " 官方下载地址失败");
+                LauncherLog.Log(ex, "获取 OptiFine " + downloadInfo.DisplayName + " 官方下载地址失败");
             }
 
             // 构造文件请求
             task.output = new List<DownloadFile>
-                { new(sources.ToArray(), target, new ModBase.FileChecker(300 * 1024)) };
+                { new(sources.ToArray(), target, new FileChecker(300 * 1024)) };
         })
         {
             ProgressWeight = 8d
@@ -957,12 +957,12 @@ public static class ModDownloadLib
                 return;
             var targetLoaders = clientDownloadLoader.GetLoaderList()
                 .Where(l => (l.name ?? "") == mcDownloadClientLibName || (l.name ?? "") == mcDownloadClientJsonName)
-                .Where(l => l.State != ModBase.LoadState.Finished).ToList();
+                .Where(l => l.State != LoadState.Finished).ToList();
             if (targetLoaders.Any())
-                ModBase.Log("[Download] OptiFine 安装正在等待原版文件下载完成");
+                LauncherLog.Log("[Download] OptiFine 安装正在等待原版文件下载完成");
             while (targetLoaders.Any() && !task.IsAborted)
             {
-                targetLoaders = targetLoaders.Where(l => l.State != ModBase.LoadState.Finished).ToList();
+                targetLoaders = targetLoaders.Where(l => l.State != LoadState.Finished).ToList();
                 Thread.Sleep(50);
             }
 
@@ -973,13 +973,13 @@ public static class ModDownloadLib
                 return;
             lock (vanillaSyncLock)
             {
-                var clientName = ModBase.GetFolderNameFromPath(clientFolder);
+                var clientName = LegacyFileFacade.GetFolderNameFromPath(clientFolder);
                 Directory.CreateDirectory(Path.Combine(mcFolder, "versions", downloadInfo.Inherit));
                 if (!File.Exists(Path.Combine(mcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".json")))
-                    ModBase.CopyFile($"{clientFolder}{clientName}.json",
+                    LegacyFileFacade.CopyFile($"{clientFolder}{clientName}.json",
                         $@"{mcFolder}versions\{downloadInfo.Inherit}\{downloadInfo.Inherit}.json");
                 if (!File.Exists(Path.Combine(mcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".jar")))
-                    ModBase.CopyFile($"{clientFolder}{clientName}.jar",
+                    LegacyFileFacade.CopyFile($"{clientFolder}{clientName}.jar",
                         $@"{mcFolder}versions\{downloadInfo.Inherit}\{downloadInfo.Inherit}.jar");
             }
         })
@@ -991,7 +991,7 @@ public static class ModDownloadLib
         // 安装（新旧方式均需要原版 Jar 和 Json）
         if (isNewVersion)
         {
-            ModBase.Log("[Download] 检测为新版 OptiFine：" + downloadInfo.Inherit);
+            LauncherLog.Log("[Download] 检测为新版 OptiFine：" + downloadInfo.Inherit);
             loaders.Add(new ModLoader.LoaderTask<List<DownloadFile>, bool>(
                 Lang.Text("Minecraft.Download.Stage.InstallOptiFine.MethodA"), task =>
             {
@@ -1001,18 +1001,18 @@ public static class ModDownloadLib
                 {
                     // 准备安装环境
                     if (Directory.Exists(Path.Combine(baseMcFolder, "versions", downloadInfo.Inherit)))
-                        ModBase.DeleteDirectory(Path.Combine(baseMcFolder, "versions", downloadInfo.Inherit));
+                        LegacyFileFacade.DeleteDirectory(Path.Combine(baseMcFolder, "versions", downloadInfo.Inherit));
                     Directory.CreateDirectory(Path.Combine(baseMcFolder, "versions", downloadInfo.Inherit));
                     ModFolder.McFolderLauncherProfilesJsonCreate(baseMcFolder);
-                    ModBase.CopyFile(
+                    LegacyFileFacade.CopyFile(
                         Path.Combine(mcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".json"),
                         Path.Combine(baseMcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".json"));
-                    ModBase.CopyFile(
+                    LegacyFileFacade.CopyFile(
                         Path.Combine(mcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".jar"),
                         Path.Combine(baseMcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".jar"));
                     task.Progress = 0.06d;
                     // 进行安装
-                    var useJavaWrapper = ModBase.IsUtf8CodePage();
+                    var useJavaWrapper = PCL.Core.Utils.Codecs.EncodingUtils.IsDefaultEncodingUtf8();
                     Retry: ;
 
                     try
@@ -1023,7 +1023,7 @@ public static class ModDownloadLib
                     {
                         if (!useJavaWrapper)
                         {
-                            ModBase.Log(ex, "不使用 JavaWrapper 安装 OptiFine 失败，将使用 JavaWrapper 并重试");
+                            LauncherLog.Log(ex, "不使用 JavaWrapper 安装 OptiFine 失败，将使用 JavaWrapper 并重试");
                             useJavaWrapper = true;
                             goto Retry;
                         }
@@ -1034,11 +1034,11 @@ public static class ModDownloadLib
                     task.Progress = 0.96d;
                     // 复制文件
                     File.Delete(Path.Combine(baseMcFolder, "launcher_profiles.json"));
-                    ModBase.CopyDirectory(baseMcFolder, mcFolder);
+                    LegacyFileFacade.CopyDirectory(baseMcFolder, mcFolder);
                     task.Progress = 0.98d;
                     // 清理文件
                     File.Delete(target);
-                    ModBase.DeleteDirectory(baseMcFolderHome);
+                    LegacyFileFacade.DeleteDirectory(baseMcFolderHome);
                 }
                 catch (Exception ex)
                 {
@@ -1051,7 +1051,7 @@ public static class ModDownloadLib
         }
         else
         {
-            ModBase.Log("[Download] 检测为旧版 OptiFine：" + downloadInfo.Inherit);
+            LauncherLog.Log("[Download] 检测为旧版 OptiFine：" + downloadInfo.Inherit);
             // 新建实例文件夹
             // 复制 Jar 文件
             // 建立 Json 文件
@@ -1063,7 +1063,7 @@ public static class ModDownloadLib
                         Directory.CreateDirectory(versionFolder);
                         task.Progress = 0.1d;
                         if (File.Exists(Path.Combine(versionFolder, id + ".jar"))) File.Delete(Path.Combine(versionFolder, id + ".jar"));
-                        ModBase.CopyFile(
+                        LegacyFileFacade.CopyFile(
                             Path.Combine(mcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".jar"),
                             Path.Combine(versionFolder, id + ".jar"));
                         task.Progress = 0.7d;
@@ -1106,7 +1106,7 @@ public static class ModDownloadLib
         ]
     }
 }";
-                        ModBase.WriteFile(Path.Combine(versionFolder, id + ".json"), json);
+                        LegacyFileFacade.WriteFile(Path.Combine(versionFolder, id + ".json"), json);
                     }
                     catch (Exception ex)
                     {
@@ -1171,17 +1171,17 @@ public static class ModDownloadLib
                     }
                     task.Progress = 0.8d;
                     sources.Add("https://optifine.net/" + pageData.RegexSearch(@"downloadx\?f=[^""']+")[0]);
-                    ModBase.Log("[Download] OptiFine " + downloadInfo.DisplayName + " 官方下载地址：" + sources.Last());
+                    LauncherLog.Log("[Download] OptiFine " + downloadInfo.DisplayName + " 官方下载地址：" + sources.Last());
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "获取 OptiFine " + downloadInfo.DisplayName + " 官方下载地址失败");
+                    LauncherLog.Log(ex, "获取 OptiFine " + downloadInfo.DisplayName + " 官方下载地址失败");
                 }
 
                 task.Progress = 0.9d;
                 // 构造文件请求
                 task.output = new List<DownloadFile>
-                    { new(sources.ToArray(), targetFolder, new ModBase.FileChecker(64 * 1024)) };
+                    { new(sources.ToArray(), targetFolder, new FileChecker(64 * 1024)) };
             })
         {
             ProgressWeight = 6d
@@ -1223,7 +1223,7 @@ public static class ModDownloadLib
             Type = MyListItem.CheckType.Clickable,
             Tag = entry,
             Info = string.Join("  |  ", infoParts),
-            Logo = ModBase.pathImage + "Blocks/GrassPath.png"
+            Logo = LauncherPaths.ImageBaseUri + "Blocks/GrassPath.png"
         };
 
         newItem.Click += onClick;
@@ -1269,7 +1269,7 @@ public static class ModDownloadLib
             version = (ModDownload.DlOptiFineListEntry)((dynamic)sender).Parent.Tag;
         else
             version = (ModDownload.DlOptiFineListEntry)((dynamic)sender).Parent.Parent.Tag;
-        ModBase.OpenWebsite("https://optifine.net/changelog?f=" + version.NameFile);
+        LauncherProcess.OpenWebsite("https://optifine.net/changelog?f=" + version.NameFile);
     }
 
     public static void OptiFineSave_Click(object sender, RoutedEventArgs e)
@@ -1293,7 +1293,7 @@ public static class ModDownloadLib
         try
         {
             var id = downloadInfo.Inherit;
-            var target = Path.Combine(ModBase.pathTemp, "Download", id + "-Liteloader.jar");
+            var target = Path.Combine(LauncherPaths.TempWithSlash, "Download", id + "-Liteloader.jar");
             var versionName = downloadInfo.Inherit + "-LiteLoader";
             var versionFolder = Path.Combine(ModFolder.mcFolderSelected, "versions", versionName);
 
@@ -1337,10 +1337,10 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "开始 LiteLoader 下载失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
@@ -1411,7 +1411,7 @@ public static class ModDownloadLib
                             (downloadInfo.Inherit == "1.8" ? "ant/dist/" : "build/libs/") + downloadInfo.FileName);
 
             loaders.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadMainFile"),
-                    new List<DownloadFile> { new(address.ToArray(), target, new ModBase.FileChecker(1024 * 1024)) })
+                    new List<DownloadFile> { new(address.ToArray(), target, new FileChecker(1024 * 1024)) })
                 { ProgressWeight = 15d });
             // 启动
             var loader =
@@ -1426,10 +1426,10 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "开始 LiteLoader 安装器下载失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
@@ -1444,7 +1444,7 @@ public static class ModDownloadLib
         mcFolder = mcFolder ?? ModFolder.mcFolderSelected;
         var isCustomFolder = (mcFolder ?? "") != (ModFolder.mcFolderSelected ?? "");
         var id = downloadInfo.Inherit;
-        var target = Path.Combine(ModBase.pathTemp, "Download", id + "-Liteloader.jar");
+        var target = Path.Combine(LauncherPaths.TempWithSlash, "Download", id + "-Liteloader.jar");
         var versionName = downloadInfo.Inherit + "-LiteLoader";
         var versionFolder = Path.Combine(mcFolder, "versions", versionName);
         var loaders = new List<ModLoader.LoaderBase>();
@@ -1482,17 +1482,17 @@ public static class ModDownloadLib
                     DateTime.ParseExact(downloadInfo.ReleaseTime, "yyyy/MM/dd HH:mm", CultureInfo.InvariantCulture));
                 versionJson.Add("type", "release");
                 versionJson.Add("arguments",
-                    (JsonNode)ModBase.GetJson("{\"game\":[\"--tweakClass\",\"" + downloadInfo.jsonToken["tweakClass"] +
+                    (JsonNode)PCL.Core.Utils.JsonCompat.ParseNode("{\"game\":[\"--tweakClass\",\"" + downloadInfo.jsonToken["tweakClass"] +
                                             "\"]}"));
                 versionJson.Add("libraries", downloadInfo.jsonToken["libraries"]?.DeepClone());
-                versionJson["libraries"].AsArray().Add(ModBase.GetJson("{\"name\": \"com.mumfrey:liteloader:" +
+                versionJson["libraries"].AsArray().Add(PCL.Core.Utils.JsonCompat.ParseNode("{\"name\": \"com.mumfrey:liteloader:" +
                                                                             downloadInfo.jsonToken["version"] +
                                                                             "\",\"url\": \"https://dl.liteloader.com/versions/\"}"));
                 versionJson.Add("mainClass", "net.minecraft.launchwrapper.Launch");
                 versionJson.Add("minimumLauncherVersion", 18);
                 versionJson.Add("inheritsFrom", downloadInfo.Inherit);
                 versionJson.Add("jar", downloadInfo.Inherit);
-                ModBase.WriteFile(Path.Combine(versionFolder, versionName + ".json"), versionJson.ToString());
+                LegacyFileFacade.WriteFile(Path.Combine(versionFolder, versionName + ".json"), versionJson.ToString());
             }
             catch (Exception ex)
             {
@@ -1541,7 +1541,7 @@ public static class ModDownloadLib
             Type = MyListItem.CheckType.Clickable,
             Tag = entry,
             Info = string.Join("  |  ", infoParts),
-            Logo = ModBase.pathImage + "Blocks/Egg.png"
+            Logo = LauncherPaths.ImageBaseUri + "Blocks/Egg.png"
         };
 
         newItem.Click += onClick;
@@ -1599,7 +1599,7 @@ public static class ModDownloadLib
             version = (ModDownload.DlLiteLoaderListEntry)((dynamic)sender).Tag;
         else
             version = (ModDownload.DlLiteLoaderListEntry)((dynamic)sender).Tag.Tag;
-        ModBase.OpenWebsite("https://jenkins.liteloader.com/view/" + version.Inherit);
+        LauncherProcess.OpenWebsite("https://jenkins.liteloader.com/view/" + version.Inherit);
     }
 
     public static void LiteLoaderSave_Click(object sender, RoutedEventArgs e)
@@ -1647,14 +1647,14 @@ public static class ModDownloadLib
                 var url = neo.UrlBase + "-installer.jar";
                 files.Add(new DownloadFile(
                     new[] { url.Replace("maven.neoforged.net/releases", "bmclapi2.bangbang93.com/maven"), url }, target,
-                    new ModBase.FileChecker(64 * 1024)));
+                    new FileChecker(64 * 1024)));
             }
             else if (info.forgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Cleanroom)
             {
                 // Cleanroom
                 var clr = (ModDownload.DlCleanroomListEntry)info;
                 var url = clr.UrlBase + "-installer.jar";
-                files.Add(new DownloadFile(new[] { url }, target, new ModBase.FileChecker(64 * 1024)));
+                files.Add(new DownloadFile(new[] { url }, target, new FileChecker(64 * 1024)));
             }
             else
             {
@@ -1665,7 +1665,7 @@ public static class ModDownloadLib
                     {
                         $"https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/{forge.Inherit}-{forge.FileVersion}/forge-{forge.Inherit}-{forge.FileVersion}-{forge.Category}.{forge.FileExtension}",
                         $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{forge.Inherit}-{forge.FileVersion}/forge-{forge.Inherit}-{forge.FileVersion}-{forge.Category}.{forge.FileExtension}"
-                    }, target, new ModBase.FileChecker(64 * 1024, hash: forge.Hash)));
+                    }, target, new FileChecker(64 * 1024, hash: forge.Hash)));
             }
 
             // 构造加载器
@@ -1686,10 +1686,10 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 $"开始 {info.LoaderName} 安装器下载失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
@@ -1712,7 +1712,7 @@ public static class ModDownloadLib
                 try
                 {
                     javaLoader.Start(17, true);
-                    while (javaLoader.State == ModBase.LoadState.Loading && !task.IsAborted)
+                    while (javaLoader.State == LoadState.Loading && !task.IsAborted)
                         Thread.Sleep(10);
                 }
                 finally
@@ -1734,10 +1734,10 @@ public static class ModDownloadLib
         string arguments;
         if (useJavaWrapper && !Config.Launch.DisableJlw)
             arguments =
-                $@"-Doolloo.jlw.tmpdir=""{ModBase.pathPure.TrimEnd('\\')}"" -cp ""{ModBase.pathTemp}Cache\forge_installer.jar;{target}"" -jar ""{ModLaunch.ExtractJavaWrapper()}"" com.bangbang93.ForgeInstaller ""{mcFolder}";
+                $@"-Doolloo.jlw.tmpdir=""{LauncherPaths.PureAsciiDirectory.TrimEnd('\\')}"" -cp ""{LauncherPaths.TempWithSlash}Cache\forge_installer.jar;{target}"" -jar ""{ModLaunch.ExtractJavaWrapper()}"" com.bangbang93.ForgeInstaller ""{mcFolder}";
         else
             arguments =
-                $@"-cp ""{ModBase.pathTemp}Cache\forge_installer.jar;{target}"" com.bangbang93.ForgeInstaller ""{mcFolder}";
+                $@"-cp ""{LauncherPaths.TempWithSlash}Cache\forge_installer.jar;{target}"" com.bangbang93.ForgeInstaller ""{mcFolder}";
         if (java.Installation.MajorVersion >= 9)
             arguments = "--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED " + arguments;
         // 开始启动
@@ -1752,8 +1752,8 @@ public static class ModDownloadLib
                 RedirectStandardError = true,
                 RedirectStandardOutput = true
             };
-            string loaderName = ModBase.GetStringFromEnum(forgeType);
-            ModBase.Log($"[Download] 开始安装 {loaderName}：" + arguments);
+            string loaderName = LauncherText.GetStringFromEnum(forgeType);
+            LauncherLog.Log($"[Download] 开始安装 {loaderName}：" + arguments);
             var process = new Process { StartInfo = info };
             var lastResults = new Queue<string>();
             using (var outputWaitHandle = new AutoResetEvent(false))
@@ -1781,14 +1781,14 @@ public static class ModDownloadLib
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, $"读取 {loaderName} 安装器信息失败");
+                            LauncherLog.Log(ex, $"读取 {loaderName} 安装器信息失败");
                         }
 
                         try
                         {
-                            if (task.State == ModBase.LoadState.Aborted && !process.HasExited)
+                            if (task.State == LoadState.Aborted && !process.HasExited)
                             {
-                                ModBase.Log($"[Installer] 由于任务取消，已中止 {loaderName} 安装");
+                                LauncherLog.Log($"[Installer] 由于任务取消，已中止 {loaderName} 安装");
                                 process.Kill();
                             }
                         }
@@ -1817,14 +1817,14 @@ public static class ModDownloadLib
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, $"读取 {loaderName} 安装器错误信息失败");
+                            LauncherLog.Log(ex, $"读取 {loaderName} 安装器错误信息失败");
                         }
 
                         try
                         {
-                            if (task.State == ModBase.LoadState.Aborted && !process.HasExited)
+                            if (task.State == LoadState.Aborted && !process.HasExited)
                             {
-                                ModBase.Log($"[Installer] 由于任务取消，已中止 {loaderName} 安装");
+                                LauncherLog.Log($"[Installer] 由于任务取消，已中止 {loaderName} 安装");
                                 process.Kill();
                             }
                         }
@@ -1845,7 +1845,7 @@ public static class ModDownloadLib
                     // 检查是否安装成功：最后 5 行中是否有 true（true 可能在倒数数行，见 #832）
                     if (lastResults.Reverse().Take(5).Any(l => l == "true"))
                         return;
-                    ModBase.Log(lastResults.Join("\r\n"));
+                    LauncherLog.Log(lastResults.Join("\r\n"));
                     var lastLines = "";
                     for (int i = Math.Max(0, lastResults.Count - 5), loopTo = lastResults.Count - 1;
                          i <= loopTo;
@@ -1864,20 +1864,20 @@ public static class ModDownloadLib
         {
             case "Extracting json":
             {
-                ModBase.Log("[Installer] " + content);
+                LauncherLog.Log("[Installer] " + content);
                 task.Progress = 0.07d;
                 break;
             }
             case "Downloading libraries":
             {
-                ModBase.Log("[Installer] " + content);
+                LauncherLog.Log("[Installer] " + content);
                 task.Progress = 0.08d;
                 break;
             }
             case "  File exists: Checksum validated.":
             {
-                if (ModBase.ModeDebug)
-                    ModBase.Log("[Installer] " + content);
+                if (LauncherRuntime.ModeDebug)
+                    LauncherLog.Log("[Installer] " + content);
                 task.Progress += 0.003d;
                 break;
             }
@@ -1944,13 +1944,13 @@ public static class ModDownloadLib
 
             default:
             {
-                if (ModBase.ModeDebug)
-                    ModBase.Log("[Installer] " + content);
+                if (LauncherRuntime.ModeDebug)
+                    LauncherLog.Log("[Installer] " + content);
                 return;
             }
         }
 
-        ModBase.Log("[Installer] " + content);
+        LauncherLog.Log("[Installer] " + content);
     }
 
     /// <summary>
@@ -1978,7 +1978,7 @@ public static class ModDownloadLib
             loaderVersion = loaderVersion.AfterLast("-");
         }
 
-        string loaderName = ModBase.GetStringFromEnum(forgeType);
+        string loaderName = LauncherText.GetStringFromEnum(forgeType);
         var isCustomFolder = (mcFolder ?? "") != (ModFolder.mcFolderSelected ?? "");
         var installerAddress = ModMain.RequestTaskTempFolder() + "forge_installer.jar";
         var versionFolder = $@"{mcFolder}versions\{targetVersion}\";
@@ -2033,14 +2033,14 @@ public static class ModDownloadLib
                 var url = neo.UrlBase + "-installer.jar";
                 files.Add(new DownloadFile(
                     new[] { url.Replace("maven.neoforged.net/releases", "bmclapi2.bangbang93.com/maven"), url },
-                    installerAddress, new ModBase.FileChecker(64 * 1024)));
+                    installerAddress, new FileChecker(64 * 1024)));
             }
             else if (info.forgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Cleanroom)
             {
                 // Cleanroom
                 var clr = (ModDownload.DlCleanroomListEntry)info;
                 var url = clr.UrlBase + "-installer.jar";
-                files.Add(new DownloadFile(new[] { url }, installerAddress, new ModBase.FileChecker(64 * 1024)));
+                files.Add(new DownloadFile(new[] { url }, installerAddress, new FileChecker(64 * 1024)));
             }
             else
             {
@@ -2053,7 +2053,7 @@ public static class ModDownloadLib
                     {
                         $"https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/{fileName}",
                         $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{fileName}"
-                    }, installerAddress, new ModBase.FileChecker(64 * 1024, hash: forge.Hash)));
+                    }, installerAddress, new FileChecker(64 * 1024, hash: forge.Hash)));
             }
 
             task.output = files;
@@ -2069,7 +2069,7 @@ public static class ModDownloadLib
         // 安装（仅在新版安装时需要原版 Jar）
         if (forgeType == ModDownload.DlForgelikeEntry.ForgelikeType.NeoForge || Convert.ToDouble(loaderVersion.BeforeFirst(".")) >= 20d)
         {
-            ModBase.Log($"[Download] 检测为{(forgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Forge ? "新版 Forge" : " " + forgeType)}：" + loaderVersion);
+            LauncherLog.Log($"[Download] 检测为{(forgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Forge ? "新版 Forge" : " " + forgeType)}：" + loaderVersion);
             List<ModLibrary.McLibToken> libs = null;
             loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
                 Lang.Text("Minecraft.Download.Stage.AnalyzeLoaderLibraries", loaderName), task =>
@@ -2079,16 +2079,16 @@ public static class ModDownloadLib
                 try
                 {
                     // 解压并获取、合并两个 Json 的信息
-                    ModBase.WaitForFileReady(installerAddress);
+                    LegacyFileFacade.WaitForFileReady(installerAddress);
                     installer = new ZipArchive(new FileStream(installerAddress, FileMode.Open));
                     task.Progress = 0.2d;
-                    var json = (JsonObject)ModBase.GetJson(
-                        ModBase.ReadFile(installer.GetEntry("install_profile.json").Open()));
-                    var json2 = (JsonObject)ModBase.GetJson(ModBase.ReadFile(installer.GetEntry("version.json").Open()));
+                    var json = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(
+                        LegacyFileFacade.ReadText(installer.GetEntry("install_profile.json").Open()));
+                    var json2 = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(LegacyFileFacade.ReadText(installer.GetEntry("version.json").Open()));
                     json.Merge(json2);
                     // 如果是 1.16.5 就升级一下 Authlib
                     if (inherit == "1.16.5" && (bool)Config.Download.FixAuthLib)
-                        json = (JsonObject)ModBase.GetJson(json.ToString()
+                        json = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(json.ToString()
                             .Replace("2.1.28/authlib-2.1.28.jar", "2.3.31/authlib-2.3.31.jar")
                             .Replace("com.mojang:authlib:2.1.28", "com.mojang:authlib:2.3.31")
                             .Replace("ad54da276bf59983d02d5ed16fc14541354c71fd",
@@ -2100,7 +2100,7 @@ public static class ModDownloadLib
                     {
                         // 下载原版 Json 文件
                         task.Progress = 0.4d;
-                        var rawJson = (JsonObject)ModBase.GetJson(ModNet.NetGetCodeByLoader(
+                        var rawJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(ModNet.NetGetCodeByLoader(
                             ModDownload.DlSourceLauncherOrMetaGet(
                                 ModDownload.DlClientListGet(inherit)?.ToString()), isJson: true));
                         // [net.minecraft:client:1.17.1-20210706.113038:mappings@txt] 或 @tsrg]
@@ -2119,7 +2119,7 @@ public static class ModDownloadLib
                             size = (long)clientMappings["size"],
                             Sha1 = (string)clientMappings["sha1"]
                         });
-                        ModBase.Log(
+                        LauncherLog.Log(
                             $"[Download] 需要下载 Mappings：{clientMappings["url"]} (SHA1: {clientMappings["sha1"]})");
                     }
 
@@ -2129,8 +2129,8 @@ public static class ModDownloadLib
                         if (libs[i].LocalPath.EndsWithF($"{loaderName.ToLower()}-{inherit}-{loaderVersion}.jar") ||
                             libs[i].LocalPath.EndsWithF($"{loaderName.ToLower()}-{inherit}-{loaderVersion}-client.jar"))
                         {
-                            ModBase.Log($"[Download] 已从待下载 {loaderName} 支持库中移除：" + libs[i].LocalPath,
-                                ModBase.LogLevel.Debug);
+                            LauncherLog.Log($"[Download] 已从待下载 {loaderName} 支持库中移除：" + libs[i].LocalPath,
+                                LauncherLogLevel.Debug);
                             libs.RemoveAt(i);
                             break;
                         }
@@ -2170,11 +2170,11 @@ public static class ModDownloadLib
                         if (!File.Exists(realPath))
                         {
                             Directory.CreateDirectory(Path.GetDirectoryName(realPath));
-                            ModBase.CopyFile(LibFile.LocalPath, realPath);
+                            LegacyFileFacade.CopyFile(LibFile.LocalPath, realPath);
                         }
 
-                        if (ModBase.ModeDebug)
-                            ModBase.Log($"[Download] 复制的 {loaderName} 支持库文件：" + LibFile.LocalPath);
+                        if (LauncherRuntime.ModeDebug)
+                            LauncherLog.Log($"[Download] 复制的 {loaderName} 支持库文件：" + LibFile.LocalPath);
                     }
 
                 #endregion
@@ -2186,12 +2186,12 @@ public static class ModDownloadLib
                     return;
                 var targetLoaders = clientDownloadLoader.GetLoaderList()
                     .Where(l => (l.name ?? "") == mcDownloadClientLibName || (l.name ?? "") == mcDownloadClientJsonName)
-                    .Where(l => l.State != ModBase.LoadState.Finished).ToList();
+                    .Where(l => l.State != LoadState.Finished).ToList();
                 if (targetLoaders.Any())
-                    ModBase.Log($"[Download] {loaderName} 安装正在等待原版文件下载完成");
+                    LauncherLog.Log($"[Download] {loaderName} 安装正在等待原版文件下载完成");
                 while (targetLoaders.Any() && !task.IsAborted)
                 {
-                    targetLoaders = targetLoaders.Where(l => l.State != ModBase.LoadState.Finished).ToList();
+                    targetLoaders = targetLoaders.Where(l => l.State != LoadState.Finished).ToList();
                     Thread.Sleep(50);
                 }
 
@@ -2202,13 +2202,13 @@ public static class ModDownloadLib
                     return;
                 lock (vanillaSyncLock)
                 {
-                    var clientName = ModBase.GetFolderNameFromPath(clientFolder);
+                    var clientName = LegacyFileFacade.GetFolderNameFromPath(clientFolder);
                     Directory.CreateDirectory(Path.Combine(mcFolder, "versions", inherit));
                     if (!File.Exists(Path.Combine(mcFolder, "versions", inherit, inherit + ".json")))
-                        ModBase.CopyFile(Path.Combine(clientFolder, clientName + ".json"),
+                        LegacyFileFacade.CopyFile(Path.Combine(clientFolder, clientName + ".json"),
                             Path.Combine(mcFolder, "versions", inherit, inherit + ".json"));
                     if (!File.Exists(Path.Combine(mcFolder, "versions", inherit, inherit + ".jar")))
-                        ModBase.CopyFile(Path.Combine(clientFolder, clientName + ".jar"),
+                        LegacyFileFacade.CopyFile(Path.Combine(clientFolder, clientName + ".jar"),
                             Path.Combine(mcFolder, "versions", inherit, inherit + ".jar"));
                 }
 
@@ -2223,33 +2223,33 @@ public static class ModDownloadLib
                     ? Lang.Text("Minecraft.Download.Stage.InstallForge.MethodA")
                     : Lang.Text("Minecraft.Download.Stage.InstallForgeType", forgeType), task =>
                 {
-                    ModBase.WaitForFileReady(installerAddress);
+                    LegacyFileFacade.WaitForFileReady(installerAddress);
                     var installer = new ZipArchive(new FileStream(installerAddress, FileMode.Open));
                     try
                     {
                         // 记录当前文件夹列表（在新建目标文件夹之前）
-                        ModBase.Log("[Download] 开始进行 Forgelike 安装：" + installerAddress);
+                        LauncherLog.Log("[Download] 开始进行 Forgelike 安装：" + installerAddress);
                         // 解压并获取信息
                         var oldList = new DirectoryInfo(mcFolder + "versions/")
                             .EnumerateDirectories().Select(i => i.FullName).ToList();
 
 
                         // 新建目标实例文件夹
-                        var json = ModBase.GetJson(ModBase.ReadFile(installer.GetEntry("install_profile.json").Open()));
+                        var json = PCL.Core.Utils.JsonCompat.ParseNode(LegacyFileFacade.ReadText(installer.GetEntry("install_profile.json").Open()));
                         Directory.CreateDirectory(versionFolder);
                         task.Progress = 0.04d;
                         // 释放 launcher_installer.json
                         ModFolder.McFolderLauncherProfilesJsonCreate(mcFolder);
                         task.Progress = 0.05d;
                         // 运行 Forge 安装器
-                        var useJavaWrapper = ModBase.IsUtf8CodePage();
+                        var useJavaWrapper = PCL.Core.Utils.Codecs.EncodingUtils.IsDefaultEncodingUtf8();
                         Retry:
 
                         try
                         {
                             // 释放 Forge 注入器
-                            ModBase.WriteFile(Path.Combine(ModBase.pathTemp, "Cache", "forge_installer.jar"),
-                                ModBase.GetResourceStream("Resources/forge-installer.jar"));
+                            LegacyFileFacade.WriteFile(Path.Combine(LauncherPaths.TempWithSlash, "Cache", "forge_installer.jar"),
+                                PCL.Core.App.Basics.GetResourceStream("Resources/forge-installer.jar"));
                             task.Progress = 0.06d;
                             // 运行注入器
                             ForgelikeInjector(installerAddress, task, mcFolder, useJavaWrapper, forgeType);
@@ -2259,7 +2259,7 @@ public static class ModDownloadLib
                         {
                             if (!useJavaWrapper)
                             {
-                                ModBase.Log(ex, $"不使用 JavaWrapper 安装 {loaderName} 失败，将使用 JavaWrapper 并重试");
+                                LauncherLog.Log(ex, $"不使用 JavaWrapper 安装 {loaderName} 失败，将使用 JavaWrapper 并重试");
                                 useJavaWrapper = true;
                                 goto Retry;
                             }
@@ -2283,22 +2283,22 @@ public static class ModDownloadLib
                         if (deltaList.Count == 1)
                         {
                             var jsonFile = deltaList[0].EnumerateFiles().First();
-                            ModBase.WriteFile(Path.Combine(versionFolder, targetVersion + ".json"),
-                                ModBase.ReadFile(jsonFile.FullName));
-                            ModBase.Log(
+                            LegacyFileFacade.WriteFile(Path.Combine(versionFolder, targetVersion + ".json"),
+                                LegacyFileFacade.ReadText(jsonFile.FullName));
+                            LauncherLog.Log(
                                 $"[Download] 已拷贝新增的实例 Json 文件：{jsonFile.FullName} -> {versionFolder}{targetVersion}.json");
                         }
                         else if (deltaList.Count > 1)
                         {
                             // 新增了多个文件夹
                             //Enumerable.Select<string>((IEnumerable<DirectoryInfo>)DeltaList, d => d.Name).Join(";")
-                            ModBase.Log(
+                            LauncherLog.Log(
                                 $"[Download] 有多个疑似的新增实例，无法确定：{string.Join(";", deltaList.Select<DirectoryInfo, string>(d => d.Name))}");
                         }
                         else
                         {
                             // 没有新增文件夹
-                            ModBase.Log("[Download] 未找到新增的实例文件夹");
+                            LauncherLog.Log("[Download] 未找到新增的实例文件夹");
                         }
                     }
                     catch (Exception ex)
@@ -2317,7 +2317,7 @@ public static class ModDownloadLib
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, $"安装 {loaderName} 清理文件时出错");
+                            LauncherLog.Log(ex, $"安装 {loaderName} 清理文件时出错");
                         }
                     }
                 })
@@ -2327,7 +2327,7 @@ public static class ModDownloadLib
         }
         else
         {
-            ModBase.Log("[Download] 检测为非新版 Forge：" + loaderVersion);
+            LauncherLog.Log("[Download] 检测为非新版 Forge：" + loaderVersion);
             loaders.Add(new ModLoader.LoaderTask<List<DownloadFile>, bool>(
                 $"{(forgeType == ModDownload.DlForgelikeEntry.ForgelikeType.Forge ? Lang.Text("Minecraft.Download.Stage.InstallForge.MethodB") : Lang.Text("Minecraft.Download.Stage.InstallForgeType", forgeType))}",
                 task =>
@@ -2336,11 +2336,11 @@ public static class ModDownloadLib
                     try
                     {
                         // 解压并获取信息
-                        ModBase.WaitForFileReady(installerAddress);
+                        LegacyFileFacade.WaitForFileReady(installerAddress);
                         installer = new ZipArchive(new FileStream(installerAddress, FileMode.Open));
                         task.Progress = 0.2d;
-                        var json = (JsonObject)ModBase.GetJson(
-                            ModBase.ReadFile(installer.GetEntry("install_profile.json").Open()));
+                        var json = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(
+                            LegacyFileFacade.ReadText(installer.GetEntry("install_profile.json").Open()));
                         task.Progress = 0.4d;
                         // 新建实例文件夹
                         Directory.CreateDirectory(versionFolder);
@@ -2348,37 +2348,37 @@ public static class ModDownloadLib
                         if (json["install"] is null)
                         {
                             // 中版：Legacy 方式 1
-                            ModBase.Log("[Download] 开始进行 Forge 安装，Legacy 方式 1：" + installerAddress);
+                            LauncherLog.Log("[Download] 开始进行 Forge 安装，Legacy 方式 1：" + installerAddress);
                             // 建立 Json 文件
-                            var jsonVersion = (JsonObject)ModBase.GetJson(
-                                ModBase.ReadFile(installer.GetEntry(json["json"].ToString().TrimStart('/')).Open()));
+                            var jsonVersion = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(
+                                LegacyFileFacade.ReadText(installer.GetEntry(json["json"].ToString().TrimStart('/')).Open()));
                             jsonVersion["id"] = targetVersion;
-                            ModBase.WriteFile(Path.Combine(versionFolder, targetVersion + ".json"), jsonVersion.ToString());
+                            LegacyFileFacade.WriteFile(Path.Combine(versionFolder, targetVersion + ".json"), jsonVersion.ToString());
                             task.Progress = 0.6d;
                             // 解压支持库文件
                             installer.Dispose();
                             var unrarDir = Path.Combine(Path.GetDirectoryName(installerAddress), "_unrar");
-                            ModBase.ExtractFile(installerAddress, unrarDir);
-                            ModBase.CopyDirectory(Path.Combine(unrarDir, "maven"), Path.Combine(mcFolder, "libraries"));
-                            ModBase.DeleteDirectory(unrarDir);
+                            LegacyFileFacade.ExtractFile(installerAddress, unrarDir);
+                            LegacyFileFacade.CopyDirectory(Path.Combine(unrarDir, "maven"), Path.Combine(mcFolder, "libraries"));
+                            LegacyFileFacade.DeleteDirectory(unrarDir);
                         }
                         else
                         {
                             // 旧版：Legacy 方式 2
-                            ModBase.Log("[Download] 开始进行 Forge 安装，Legacy 方式 2：" + installerAddress);
+                            LauncherLog.Log("[Download] 开始进行 Forge 安装，Legacy 方式 2：" + installerAddress);
                             // 解压 Jar 文件
                             var jarAddress = ModLibrary.McLibGet((string)json["install"]["path"],
                                 customMcFolder: mcFolder);
                             if (File.Exists(jarAddress))
                                 File.Delete(jarAddress);
-                            ModBase.WriteFile(jarAddress,
+                            LegacyFileFacade.WriteFile(jarAddress,
                                 installer.GetEntry((string)json["install"]["filePath"]).Open());
                             task.Progress = 0.9d;
                             // 建立 Json 文件
                             json["versionInfo"]["id"] = targetVersion;
                             if (json["versionInfo"]["inheritsFrom"] is null)
                                 ((JsonObject)json["versionInfo"]).Add("inheritsFrom", inherit);
-                            ModBase.WriteFile(Path.Combine(versionFolder, targetVersion + ".json"), json["versionInfo"].ToString());
+                            LegacyFileFacade.WriteFile(Path.Combine(versionFolder, targetVersion + ".json"), json["versionInfo"].ToString());
                         }
                     }
                     catch (Exception ex)
@@ -2396,11 +2396,11 @@ public static class ModDownloadLib
                                 File.Delete(installerAddress);
                             var unrarDir = Path.Combine(Path.GetDirectoryName(installerAddress), "_unrar");
                             if (Directory.Exists(unrarDir))
-                                ModBase.DeleteDirectory(unrarDir);
+                                LegacyFileFacade.DeleteDirectory(unrarDir);
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, "非新版方式安装 Forge 清理文件时出错");
+                            LauncherLog.Log(ex, "非新版方式安装 Forge 清理文件时出错");
                         }
                     }
                 })
@@ -2427,7 +2427,7 @@ public static class ModDownloadLib
         if (entries.Any())
             freshVersion = entries[0];
         else
-            ModBase.Log("[System] 未找到可用的 Forge 版本", ModBase.LogLevel.Debug);
+            LauncherLog.Log("[System] 未找到可用的 Forge 版本", LauncherLogLevel.Debug);
         ModDownload.DlForgeVersionEntry recommendedVersion = null;
         foreach (var Entry in entries)
             if (Entry.IsRecommended)
@@ -2466,7 +2466,7 @@ public static class ModDownloadLib
         if (!string.IsNullOrEmpty(entry.ReleaseTime))
             infoParts.Add(Lang.Text("Download.Version.ReleaseDate", entry.ReleaseTime));
 
-        if (ModBase.ModeDebug)
+        if (LauncherRuntime.ModeDebug)
             infoParts.Add(Lang.Text("Download.Version.Forge.Type", entry.Category));
 
         // 建立控件
@@ -2478,7 +2478,7 @@ public static class ModDownloadLib
             Type = MyListItem.CheckType.Clickable,
             Tag = entry,
             Info = string.Join("  |  ", infoParts),
-            Logo = ModBase.pathImage + "Blocks/Anvil.png"
+            Logo = LauncherPaths.ImageBaseUri + "Blocks/Anvil.png"
         };
 
         newItem.Click += onClick;
@@ -2525,7 +2525,7 @@ public static class ModDownloadLib
             version = (ModDownload.DlForgeVersionEntry)((dynamic)sender).Parent.Tag;
         else
             version = (ModDownload.DlForgeVersionEntry)((dynamic)sender).Parent.Parent.Tag;
-        ModBase.OpenWebsite(
+        LauncherProcess.OpenWebsite(
             $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{version.Inherit}-{version.VersionName}/forge-{version.Inherit}-{version.VersionName}-changelog.txt");
     }
 
@@ -2556,14 +2556,14 @@ public static class ModDownloadLib
         // 获取所有推荐版本列表
         // 内容为："1.15.2":"31.2.0"
         // 保存
-        ModBase.RunInNewThread(() =>
+        PCL.Core.App.Basics.RunInNewThread(() =>
         {
             try
             {
-                ModBase.Log("[Download] 刷新 Forge 推荐版本缓存开始");
+                LauncherLog.Log("[Download] 刷新 Forge 推荐版本缓存开始");
                 var result = ModNet.NetGetCodeByLoader("https://bmclapi2.bangbang93.com/forge/promos");
                 if (result.Length < 1000) throw new Exception(Lang.Text("Minecraft.Download.Error.ForgePromosResultTooShort", result));
-                var resultJson = (JsonNode)ModBase.GetJson(result);
+                var resultJson = (JsonNode)PCL.Core.Utils.JsonCompat.ParseNode(result);
                 var recommendedList = new List<string>();
                 foreach (JsonObject Version in resultJson.AsArray())
                 {
@@ -2577,12 +2577,12 @@ public static class ModDownloadLib
                 if (recommendedList.Count < 5)
                     throw new Exception(Lang.Text("Minecraft.Download.Error.ForgeRecommendedTooFew", result));
                 var cacheJson = "{" + recommendedList.Join(",") + "}";
-                ModBase.WriteFile(Path.Combine(ModBase.pathTemp, "Cache", "ForgeRecommendedList.json"), cacheJson);
-                ModBase.Log("[Download] 刷新 Forge 推荐版本缓存成功");
+                LegacyFileFacade.WriteFile(Path.Combine(LauncherPaths.TempWithSlash, "Cache", "ForgeRecommendedList.json"), cacheJson);
+                LauncherLog.Log("[Download] 刷新 Forge 推荐版本缓存成功");
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "刷新 Forge 推荐版本缓存失败");
+                LauncherLog.Log(ex, "刷新 Forge 推荐版本缓存失败");
             }
         }, "ForgeRecommendedRefresh");
     }
@@ -2598,24 +2598,24 @@ public static class ModDownloadLib
         {
             if (mcInstance is null)
                 return null;
-            var list = ModBase.ReadFile(Path.Combine(ModBase.pathTemp, "Cache", "ForgeRecommendedList.json"));
+            var list = LegacyFileFacade.ReadText(Path.Combine(LauncherPaths.TempWithSlash, "Cache", "ForgeRecommendedList.json"));
             if (list is null || string.IsNullOrEmpty(list))
             {
-                ModBase.Log("[Download] 没有 Forge 推荐版本缓存文件");
+                LauncherLog.Log("[Download] 没有 Forge 推荐版本缓存文件");
                 return null;
             }
 
-            var json = (JsonObject)ModBase.GetJson(list);
+            var json = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(list);
             if (json is null || !(mcInstance ?? "null").Contains(".") || !json.ContainsKey(mcInstance))
                 return null;
             return (json[mcInstance] ?? "").ToString();
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "获取 Forge 推荐版本失败（" + (mcInstance ?? "null") + "）",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
             return null;
         }
@@ -2647,7 +2647,7 @@ public static class ModDownloadLib
                     break;
                 }
         else
-            ModBase.Log("[System] 未找到可用的 NeoForge 版本", ModBase.LogLevel.Debug);
+            LauncherLog.Log("[System] 未找到可用的 NeoForge 版本", LauncherLogLevel.Debug);
 
         // 显示各个版本
         if (freshStableVersion is not null)
@@ -2688,7 +2688,7 @@ public static class ModDownloadLib
             Type = MyListItem.CheckType.Clickable,
             Tag = info,
             Info = info.IsBeta ? Lang.Text("Download.Version.Type.Preview") : Lang.Text("Download.Version.Type.Stable"),
-            Logo = ModBase.pathImage + "Blocks/NeoForge.png"
+            Logo = LauncherPaths.ImageBaseUri + "Blocks/NeoForge.png"
         };
         newItem.Click += onClick;
         // 建立菜单
@@ -2734,7 +2734,7 @@ public static class ModDownloadLib
             info = (ModDownload.DlNeoForgeListEntry)((dynamic)sender).Parent.Tag;
         else
             info = (ModDownload.DlNeoForgeListEntry)((dynamic)sender).Parent.Parent.Tag;
-        ModBase.OpenWebsite(info.UrlBase + "-changelog.txt");
+        LauncherProcess.OpenWebsite(info.UrlBase + "-changelog.txt");
     }
 
     public static void NeoForgeSave_Click(object sender, RoutedEventArgs e)
@@ -2762,7 +2762,7 @@ public static class ModDownloadLib
         if (entries.Any())
             freshBetaVersion = entries[0];
         else
-            ModBase.Log("[System] 未找到可用的 Cleanroom 版本", ModBase.LogLevel.Debug);
+            LauncherLog.Log("[System] 未找到可用的 Cleanroom 版本", LauncherLogLevel.Debug);
         if (freshBetaVersion is not null)
         {
             var fresh = CleanroomDownloadListItem(freshBetaVersion, onClick, isSaveOnly);
@@ -2790,7 +2790,7 @@ public static class ModDownloadLib
             Type = MyListItem.CheckType.Clickable,
             Tag = info,
             Info = info.IsBeta ? Lang.Text("Download.Version.Type.Preview") : Lang.Text("Download.Version.Type.Stable"),
-            Logo = ModBase.pathImage + "Blocks/Cleanroom.png"
+            Logo = LauncherPaths.ImageBaseUri + "Blocks/Cleanroom.png"
         };
         newItem.Click += onClick;
         // 建立菜单
@@ -2836,7 +2836,7 @@ public static class ModDownloadLib
             info = (ModDownload.DlCleanroomListEntry)((dynamic)sender).Parent.Tag;
         else
             info = (ModDownload.DlCleanroomListEntry)((dynamic)sender).Parent.Parent.Tag;
-        ModBase.OpenWebsite(info.UrlBase + "-changelog.txt");
+        LauncherProcess.OpenWebsite(info.UrlBase + "-changelog.txt");
     }
 
     public static void CleanroomSave_Click(object sender, RoutedEventArgs e)
@@ -2860,8 +2860,8 @@ public static class ModDownloadLib
         try
         {
             var url = downloadInfo["url"].ToString();
-            var fileName = ModBase.GetFileNameFromPath(url);
-            var version = ModBase.GetFileNameFromPath(downloadInfo["version"].ToString());
+            var fileName = LegacyFileFacade.GetFileNameFromPath(url);
+            var version = LegacyFileFacade.GetFileNameFromPath(downloadInfo["version"].ToString());
             var target = SystemDialogs.SelectSaveFile(Lang.Text("Download.Version.SelectSaveLocation"), fileName, Lang.Text("Download.Version.Installer.Fabric.Filter"));
             if (!target.Contains(@"\"))
                 return;
@@ -2883,7 +2883,7 @@ public static class ModDownloadLib
             var address = new List<string>();
             address.Add(url);
             loaders.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadMainFile"),
-                    new List<DownloadFile> { new(address.ToArray(), target, new ModBase.FileChecker(1024 * 64)) })
+                    new List<DownloadFile> { new(address.ToArray(), target, new FileChecker(1024 * 64)) })
                 { ProgressWeight = 15d });
             // 启动
             var loader =
@@ -2898,10 +2898,10 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "开始 Fabric 安装器下载失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
@@ -2943,7 +2943,7 @@ public static class ModDownloadLib
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, $"[Download] 从 {url} 下载 Fabric meta 失败");
+                    LauncherLog.Log(ex, $"[Download] 从 {url} 下载 Fabric meta 失败");
                 }
             }
 
@@ -2986,8 +2986,8 @@ public static class ModDownloadLib
         try
         {
             var url = downloadInfo["url"].ToString();
-            var fileName = ModBase.GetFileNameFromPath(url);
-            var version = ModBase.GetFileNameFromPath(downloadInfo["version"].ToString());
+            var fileName = LegacyFileFacade.GetFileNameFromPath(url);
+            var version = LegacyFileFacade.GetFileNameFromPath(downloadInfo["version"].ToString());
             var target = SystemDialogs.SelectSaveFile(Lang.Text("Download.Version.SelectSaveLocation"), fileName, Lang.Text("Download.Version.Installer.LegacyFabric.Filter"));
             if (!target.Contains(@"\"))
                 return;
@@ -3008,7 +3008,7 @@ public static class ModDownloadLib
             var address = new List<string>();
             address.Add(url);
             loaders.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadMainFile"),
-                    new List<DownloadFile> { new(address.ToArray(), target, new ModBase.FileChecker(1024 * 64)) })
+                    new List<DownloadFile> { new(address.ToArray(), target, new FileChecker(1024 * 64)) })
                 { ProgressWeight = 15d });
             // 启动
             var loader =
@@ -3023,10 +3023,10 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "开始 Legacy Fabric 安装器下载失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
@@ -3060,7 +3060,7 @@ public static class ModDownloadLib
                     {
                         "https://meta.legacyfabric.net/v2/versions/loader/" + minecraftName + "/" +
                         legacyFabricVersion + "/profile/json"
-                    }, Path.Combine(versionFolder, id + ".json"), new ModBase.FileChecker(isJson: true))
+                    }, Path.Combine(versionFolder, id + ".json"), new FileChecker(isJson: true))
             };
         })
         {
@@ -3102,7 +3102,7 @@ public static class ModDownloadLib
             Type = MyListItem.CheckType.Clickable,
             Tag = entry,
             Info = entry["stable"].ToObject<bool>() ? Lang.Text("Download.Version.Type.Stable") : Lang.Text("Download.Version.Type.Preview"),
-            Logo = ModBase.pathImage + "Blocks/Fabric.png"
+            Logo = LauncherPaths.ImageBaseUri + "Blocks/Fabric.png"
         };
         newItem.Click += onClick;
         newItem.ContentHandler = FabricContMenuBuild;
@@ -3122,7 +3122,7 @@ public static class ModDownloadLib
 
     private static void FabricLog_Click(object sender, RoutedEventArgs e)
     {
-        ModBase.OpenWebsite("https://fabricmc.net/blog");
+        LauncherProcess.OpenWebsite("https://fabricmc.net/blog");
     }
 
     public static MyListItem FabricApiDownloadListItem(ModComp.CompFile entry, MyListItem.ClickEventHandler onClick)
@@ -3136,7 +3136,7 @@ public static class ModDownloadLib
             Type = MyListItem.CheckType.Clickable,
             Tag = entry,
             Info = entry.StatusDescription + Lang.Text("Download.Version.ReleaseDate", Lang.Date(entry.ReleaseDate, "g")),
-            Logo = ModBase.pathImage + "Blocks/Fabric.png"
+            Logo = LauncherPaths.ImageBaseUri + "Blocks/Fabric.png"
         };
         newItem.Click += onClick;
         // 结束
@@ -3154,7 +3154,7 @@ public static class ModDownloadLib
             Type = MyListItem.CheckType.Clickable,
             Tag = entry,
             Info = entry.StatusDescription + Lang.Text("Download.Version.ReleaseDate", Lang.Date(entry.ReleaseDate, "g")),
-            Logo = ModBase.pathImage + "Blocks/OptiFabric.png"
+            Logo = LauncherPaths.ImageBaseUri + "Blocks/OptiFabric.png"
         };
         newItem.Click += onClick;
         // 结束
@@ -3176,7 +3176,7 @@ public static class ModDownloadLib
             Type = MyListItem.CheckType.Clickable,
             Tag = entry,
             Info = entry["stable"].ToObject<bool>() ? Lang.Text("Download.Version.Type.Stable") : Lang.Text("Download.Version.Type.Preview"),
-            Logo = ModBase.pathImage + "Blocks/Fabric.png"
+            Logo = LauncherPaths.ImageBaseUri + "Blocks/Fabric.png"
         };
         newItem.Click += onClick;
         // 结束
@@ -3195,7 +3195,7 @@ public static class ModDownloadLib
             Type = MyListItem.CheckType.Clickable,
             Tag = entry,
             Info = entry.StatusDescription + Lang.Text("Download.Version.ReleaseDate", Lang.Date(entry.ReleaseDate, "g")),
-            Logo = ModBase.pathImage + "Blocks/Fabric.png"
+            Logo = LauncherPaths.ImageBaseUri + "Blocks/Fabric.png"
         };
         newItem.Click += onClick;
         // 结束
@@ -3211,8 +3211,8 @@ public static class ModDownloadLib
         try
         {
             var url = downloadInfo["url"].ToString();
-            var fileName = ModBase.GetFileNameFromPath(url);
-            var version = ModBase.GetFileNameFromPath(downloadInfo["version"].ToString());
+            var fileName = LegacyFileFacade.GetFileNameFromPath(url);
+            var version = LegacyFileFacade.GetFileNameFromPath(downloadInfo["version"].ToString());
             var target = SystemDialogs.SelectSaveFile(Lang.Text("Download.Version.SelectSaveLocation"), fileName, Lang.Text("Download.Version.Installer.Quilt.Filter"));
             if (!target.Contains(@"\"))
                 return;
@@ -3234,7 +3234,7 @@ public static class ModDownloadLib
             var address = new List<string>();
             address.Add(url);
             loaders.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadMainFile"),
-                    new List<DownloadFile> { new(address.ToArray(), target, new ModBase.FileChecker(1024 * 64)) })
+                    new List<DownloadFile> { new(address.ToArray(), target, new FileChecker(1024 * 64)) })
                 { ProgressWeight = 15d });
             // 启动
             var loader =
@@ -3249,10 +3249,10 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "开始 Quilt 安装器下载失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
@@ -3287,7 +3287,7 @@ public static class ModDownloadLib
                     {
                         "https://meta.quiltmc.org/v3/versions/loader/" + minecraftName + "/" + quiltVersion +
                         "/profile/json"
-                    }, Path.Combine(versionFolder, id + ".json"), new ModBase.FileChecker(isJson: true))
+                    }, Path.Combine(versionFolder, id + ".json"), new FileChecker(isJson: true))
             };
             // 新建 mods 文件夹
             Directory.CreateDirectory($@"{mcFolder ?? ModFolder.mcFolderSelected}mods\");
@@ -3331,7 +3331,7 @@ public static class ModDownloadLib
             Info = entry["maven"].ToString().Contains("installer") ? Lang.Text("Download.Version.Type.Installer") :
                 entry["version"].ToString().Contains("beta") || entry["version"].ToString().Contains("pre") ? Lang.Text("Download.Version.Type.Preview") :
                 Lang.Text("Download.Version.Type.Stable"),
-            Logo = ModBase.pathImage + "Blocks/Quilt.png"
+            Logo = LauncherPaths.ImageBaseUri + "Blocks/Quilt.png"
         };
         newItem.Click += onClick;
         newItem.ContentHandler = QuiltContMenuBuild;
@@ -3351,7 +3351,7 @@ public static class ModDownloadLib
 
     private static void QuiltLog_Click(object sender, RoutedEventArgs e)
     {
-        ModBase.OpenWebsite("https://quiltmc.org/en/blog/1/");
+        LauncherProcess.OpenWebsite("https://quiltmc.org/en/blog/1/");
     }
 
     public static MyListItem QSLDownloadListItem(ModComp.CompFile entry, MyListItem.ClickEventHandler onClick)
@@ -3365,7 +3365,7 @@ public static class ModDownloadLib
             Type = MyListItem.CheckType.Clickable,
             Tag = entry,
             Info = entry.StatusDescription + Lang.Text("Download.Version.ReleaseDate", Lang.Date(entry.ReleaseDate, "g")),
-            Logo = ModBase.pathImage + "Blocks/Quilt.png"
+            Logo = LauncherPaths.ImageBaseUri + "Blocks/Quilt.png"
         };
         newItem.Click += onClick;
         // 结束
@@ -3402,7 +3402,7 @@ public static class ModDownloadLib
             var address = new List<string>();
             address.Add(url);
             loaders.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadMainFile"),
-                    new List<DownloadFile> { new(address.ToArray(), target, new ModBase.FileChecker(1024 * 64)) })
+                    new List<DownloadFile> { new(address.ToArray(), target, new FileChecker(1024 * 64)) })
                 { ProgressWeight = 15d });
             // 启动
             var loader =
@@ -3416,10 +3416,10 @@ public static class ModDownloadLib
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "开始 LabyMod 安装器下载失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
@@ -3450,7 +3450,7 @@ public static class ModDownloadLib
             var address = new List<string>();
             address.Add(url);
             loaders.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadMainFile"),
-                    new List<DownloadFile> { new(address.ToArray(), target, new ModBase.FileChecker(1024 * 64)) })
+                    new List<DownloadFile> { new(address.ToArray(), target, new FileChecker(1024 * 64)) })
                 { ProgressWeight = 15d });
             // 启动
             var loader =
@@ -3464,10 +3464,10 @@ public static class ModDownloadLib
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "开始 LabyMod 安装器下载失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
@@ -3502,7 +3502,7 @@ public static class ModDownloadLib
                     new[]
                     {
                         $"https://releases.r2.labymod.net/api/v1/download/manifest/labymod4/{labyModChannel}/{minecraftName}/{labyModCommitRef}.json"
-                    }, Path.Combine(versionFolder, id + ".json"), new ModBase.FileChecker(isJson: true))
+                    }, Path.Combine(versionFolder, id + ".json"), new FileChecker(isJson: true))
             };
             task.Progress = 1d;
         })
@@ -3545,8 +3545,8 @@ public static class ModDownloadLib
         loadersLib.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
             Lang.Text("Minecraft.Download.Stage.AnalyzeVanillaAndLabyModLibrariesSide"), task =>
         {
-            ModBase.WaitForFileReady(Path.Combine(versionFolder, versionName + ".json"));
-            ModBase.Log("[Download] 开始分析原版与 LabyMod 支持库文件：" + versionFolder);
+            LegacyFileFacade.WaitForFileReady(Path.Combine(versionFolder, versionName + ".json"));
+            LauncherLog.Log("[Download] 开始分析原版与 LabyMod 支持库文件：" + versionFolder);
             task.output = ModLibrary.McLibNetFilesFromInstance(new McInstance(versionFolder));
         })
         {
@@ -3577,9 +3577,9 @@ public static class ModDownloadLib
             // 顺手添加 Json 项目
             try
             {
-                var versionJson = (JsonObject)ModBase.GetJson(ModBase.ReadFile(Path.Combine(versionFolder, versionName + ".json")));
+                var versionJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(LegacyFileFacade.ReadText(Path.Combine(versionFolder, versionName + ".json")));
                 versionJson.Add("clientVersion", id);
-                ModBase.WriteFile(Path.Combine(versionFolder, versionName + ".json"), versionJson.ToString());
+                LegacyFileFacade.WriteFile(Path.Combine(versionFolder, versionName + ".json"), versionJson.ToString());
             }
             catch (Exception ex)
             {
@@ -3630,7 +3630,7 @@ public static class ModDownloadLib
             Type = MyListItem.CheckType.Clickable,
             Tag = entry,
             Info = entry["channel"].ToString().Contains("snapshot") ? Lang.Text("Download.Version.Type.Snapshot") : Lang.Text("Download.Version.Type.Stable"),
-            Logo = ModBase.pathImage + "Blocks/LabyMod.png"
+            Logo = LauncherPaths.ImageBaseUri + "Blocks/LabyMod.png"
         };
         newItem.Click += onClick;
         newItem.ContentHandler = LabyModContMenuBuild;
@@ -3655,7 +3655,7 @@ public static class ModDownloadLib
 
     private static void LabyModLog_Click(object sender, RoutedEventArgs e)
     {
-        ModBase.OpenWebsite("https://www.labymod.net/zh_Hans/download");
+        LauncherProcess.OpenWebsite("https://www.labymod.net/zh_Hans/download");
     }
 
     private static void LabyModSave_Click(object sender, RoutedEventArgs e)
@@ -3811,13 +3811,13 @@ public static class ModDownloadLib
         var loader = (ModLoader.LoaderBase)loaderObj;
         switch (loader.State)
         {
-            case ModBase.LoadState.Finished:
+            case LoadState.Finished:
                 HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Success")}", HintType.Success);
                 break;
-            case ModBase.LoadState.Failed:
+            case LoadState.Failed:
                 HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Failure")}{loader.Error.Message}", HintType.Error);
                 break;
-            case ModBase.LoadState.Aborted:
+            case LoadState.Aborted:
                 HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Cancelled")}");
                 break;
         }
@@ -3832,49 +3832,49 @@ public static class ModDownloadLib
         var combo = (ModLoader.LoaderCombo)loader;
         switch (loader.State)
         {
-            case ModBase.LoadState.Finished:
+            case LoadState.Finished:
             {
                 if (Config.Download.AutoSelectInstance)
                 {
                     var versionName = loader.name;
-                    ModBase.WriteIni(ModFolder.mcFolderSelected + "PCL.ini", "Version",
+                    LegacyIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "Version",
                         versionName.Remove(versionName.Length - 3, 3));
                 }
 
-                ModBase.WriteIni(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache",
+                LegacyIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache",
                     ""); // 清空缓存（合并安装会先生成文件夹，这会在刷新时误判为可以使用缓存）
-                ModBase.DeleteDirectory($"{combo.input}PCLInstallBackups\\");
+                LegacyFileFacade.DeleteDirectory($"{combo.input}PCLInstallBackups\\");
                 HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Success")}",
                     HintType.Success);
                 break;
             }
-            case ModBase.LoadState.Failed:
+            case LoadState.Failed:
             {
                 HintService.Hint(
                     $"{loader.name}{Lang.Text("Common.Status.Failure")}{loader.Error.Message}",
                     HintType.Error);
                 break;
             }
-            case ModBase.LoadState.Aborted:
+            case LoadState.Aborted:
             {
                 HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Cancelled")}");
                 break;
             }
-            case ModBase.LoadState.Loading:
+            case LoadState.Loading:
             {
                 return; // 不重新加载实例列表
             }
         }
 
-        if (loader.State != ModBase.LoadState.Finished &&
+        if (loader.State != LoadState.Finished &&
                 Directory.Exists(
                     $"{combo.input}PCLInstallBackups\\")) // 实例修改失败回滚
         {
-            ModBase.CopyDirectory(
+            LegacyFileFacade.CopyDirectory(
                 $"{combo.input}PCLInstallBackups\\",
                 (string)combo.input);
             File.Delete($"{combo.input}.pclignore");
-            ModBase.DeleteDirectory(
+            LegacyFileFacade.DeleteDirectory(
                 $"{combo.input}PCLInstallBackups\\");
         }
         else
@@ -3891,19 +3891,19 @@ public static class ModDownloadLib
         try
         {
             Thread.Sleep(1000); // 防止存在尚未完全释放的文件，导致清理失败（例如整合包安装）
-            if (((ModLoader.LoaderBase)loader).State == ModBase.LoadState.Failed ||
-                ((ModLoader.LoaderBase)loader).State == ModBase.LoadState.Aborted)
+            if (((ModLoader.LoaderBase)loader).State == LoadState.Failed ||
+                ((ModLoader.LoaderBase)loader).State == LoadState.Aborted)
             {
                 // 删除实例文件夹
-                ModBase.Log($"[Download] 由于下载失败或取消，清理实例文件夹：{((ModLoader.LoaderCombo)loader).input}", ModBase.LogLevel.Developer);
+                LauncherLog.Log($"[Download] 由于下载失败或取消，清理实例文件夹：{((ModLoader.LoaderCombo)loader).input}", LauncherLogLevel.Developer);
                 var instancePath = (string)((ModLoader.LoaderCombo)loader).input;
                     ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(instancePath);
-                    ModBase.DeleteDirectory(instancePath);
+                    LegacyFileFacade.DeleteDirectory(instancePath);
             }
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "下载失败或取消后清理实例文件夹失败");
+            LauncherLog.Log(ex, "下载失败或取消后清理实例文件夹失败");
         }
     }
 
@@ -3930,16 +3930,16 @@ public static class ModDownloadLib
             return true;
         }
 
-        catch (ModBase.CancelledException ex)
+        catch (CancelledException ex)
         {
             return false;
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "开始合并安装失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
             try
             {
@@ -3951,13 +3951,13 @@ public static class ModDownloadLib
                     {
                         ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance))
                             .InvalidateCache(request.targetInstanceFolder);
-                        ModBase.DeleteDirectory(request.targetInstanceFolder);
+                        LegacyFileFacade.DeleteDirectory(request.targetInstanceFolder);
                     }
                 }
             }
             catch (Exception innerEx)
             {
-                ModBase.Log(innerEx, "清理未完成的实例文件夹失败");
+                LauncherLog.Log(innerEx, "清理未完成的实例文件夹失败");
             }
             return false;
         }
@@ -3966,7 +3966,7 @@ public static class ModDownloadLib
     /// <summary>
     ///     获取合并安装加载器列表，并进行前期的缓存清理与 Java 检查工作。
     /// </summary>
-    /// <exception cref="ModBase.CancelledException" />
+    /// <exception cref="CancelledException" />
     public static List<ModLoader.LoaderBase> McInstallLoader(McInstallRequest request, bool dontFixLibraries = false,
         bool ignoreDump = false)
     {
@@ -3978,7 +3978,7 @@ public static class ModDownloadLib
         // 获取参数
         var instanceFolder = Path.Combine(ModFolder.mcFolderSelected, "versions", request.targetInstanceName);
         if (Directory.Exists(tempMcFolder))
-            ModBase.DeleteDirectory(tempMcFolder);
+            LegacyFileFacade.DeleteDirectory(tempMcFolder);
         string optiFineFolder = null;
         if (request.optiFineVersion is not null)
         {
@@ -4040,7 +4040,7 @@ public static class ModDownloadLib
         var optiFineAsMod = request.optiFineEntry is not null && modable; // 选择了 OptiFine 与任意 Mod 加载器
         if (optiFineAsMod)
         {
-            ModBase.Log("[Download] OptiFine 将作为 Mod 进行下载");
+            LauncherLog.Log("[Download] OptiFine 将作为 Mod 进行下载");
             if (request.liteLoaderEntry is not null)
                 optiFineFolder = CombineCacheSubfolder(modsTempFolder, request.minecraftName);
             else
@@ -4049,37 +4049,37 @@ public static class ModDownloadLib
 
         // 记录日志
         if (optiFineFolder is not null)
-            ModBase.Log("[Download] OptiFine 缓存：" + optiFineFolder);
+            LauncherLog.Log("[Download] OptiFine 缓存：" + optiFineFolder);
         if (forgeFolder is not null)
-            ModBase.Log("[Download] Forge 缓存：" + forgeFolder);
+            LauncherLog.Log("[Download] Forge 缓存：" + forgeFolder);
         if (neoForgeFolder is not null)
-            ModBase.Log("[Download] NeoForge 缓存：" + neoForgeFolder);
+            LauncherLog.Log("[Download] NeoForge 缓存：" + neoForgeFolder);
         if (cleanroomFolder is not null)
-            ModBase.Log("[Download] Cleanroom 缓存：" + cleanroomFolder);
+            LauncherLog.Log("[Download] Cleanroom 缓存：" + cleanroomFolder);
         if (fabricFolder is not null)
-            ModBase.Log("[Download] Fabric 缓存：" + fabricFolder);
+            LauncherLog.Log("[Download] Fabric 缓存：" + fabricFolder);
         if (legacyFabricFolder is not null)
-            ModBase.Log("[Download] LegacyFabric 缓存：" + legacyFabricFolder);
+            LauncherLog.Log("[Download] LegacyFabric 缓存：" + legacyFabricFolder);
         if (quiltFolder is not null)
-            ModBase.Log("[Download] Quilt 缓存：" + quiltFolder);
+            LauncherLog.Log("[Download] Quilt 缓存：" + quiltFolder);
         if (labyModFolder is not null)
-            ModBase.Log("[Download] LabyMod 缓存：" + labyModFolder);
+            LauncherLog.Log("[Download] LabyMod 缓存：" + labyModFolder);
         if (liteLoaderFolder is not null)
-            ModBase.Log("[Download] LiteLoader 缓存：" + liteLoaderFolder);
-        ModBase.Log("[Download] 对应的原版版本：" + request.minecraftName);
+            LauncherLog.Log("[Download] LiteLoader 缓存：" + liteLoaderFolder);
+        LauncherLog.Log("[Download] 对应的原版版本：" + request.minecraftName);
 
         // 重复实例检查
         if (File.Exists(Path.Combine(instanceFolder, request.targetInstanceName + ".json")) && !ignoreDump)
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Error.InstanceAlreadyExists", request.targetInstanceName, ""),
                 HintType.Error);
-            throw new ModBase.CancelledException();
+            throw new CancelledException();
         }
 
         var loaderList = new List<ModLoader.LoaderBase>();
         // 添加忽略标识
         loaderList.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Minecraft.Download.Stage.AddIgnoreFlag"),
-                _ => ModBase.WriteFile(Path.Combine(instanceFolder, ".pclignore"), "用于临时地在 PCL 的实例列表中屏蔽此实例。"))
+                _ => LegacyFileFacade.WriteFile(Path.Combine(instanceFolder, ".pclignore"), "用于临时地在 PCL 的实例列表中屏蔽此实例。"))
             { show = false, block = false });
         // Fabric API
         if (request.fabricApi is not null)
@@ -4245,23 +4245,23 @@ public static class ModDownloadLib
             task.Progress = 0.2d;
             // 迁移文件
             if (Directory.Exists(Path.Combine(tempMcFolder, "libraries")))
-                ModBase.CopyDirectory(Path.Combine(tempMcFolder, "libraries"), Path.Combine(ModFolder.mcFolderSelected, "libraries"));
+                LegacyFileFacade.CopyDirectory(Path.Combine(tempMcFolder, "libraries"), Path.Combine(ModFolder.mcFolderSelected, "libraries"));
             task.Progress = 0.8d;
             // 创建 Mod 和资源包文件夹
             var modsFolder = Path.Combine(new McInstance(instanceFolder).PathIndie, "mods"); // 版本隔离信息在此时被决定
             if (Directory.Exists(modsTempFolder))
             {
-                ModBase.CopyDirectory(modsTempFolder, modsFolder);
+                LegacyFileFacade.CopyDirectory(modsTempFolder, modsFolder);
             }
             else if (modable)
             {
                 Directory.CreateDirectory(modsFolder);
-                ModBase.Log("[Download] 自动创建 Mod 文件夹：" + modsFolder);
+                LauncherLog.Log("[Download] 自动创建 Mod 文件夹：" + modsFolder);
             }
 
             var resourcepacksFolder = Path.Combine(new McInstance(instanceFolder).PathIndie, "resourcepacks");
             Directory.CreateDirectory(resourcepacksFolder);
-            ModBase.Log("[Download] 自动创建资源包文件夹：" + resourcepacksFolder);
+            LauncherLog.Log("[Download] 自动创建资源包文件夹：" + resourcepacksFolder);
         })
         {
             ProgressWeight = 2d,
@@ -4327,7 +4327,7 @@ public static class ModDownloadLib
         string labyModChannel = null, string liteLoaderFolder = null, ModModpack.MMCPackInfo mMCPackInfo = null,
         string legacyFabricFolder = null)
     {
-        ModBase.Log("[Download] 开始进行实例合并，输出：" + outputFolder + "，Minecraft：" + minecraftFolder +
+        LauncherLog.Log("[Download] 开始进行实例合并，输出：" + outputFolder + "，Minecraft：" + minecraftFolder +
                     (optiFineFolder is not null ? "，OptiFine：" + optiFineFolder : "") +
                     (forgeFolder is not null ? "，Forge：" + forgeFolder : "") +
                     (neoForgeFolder is not null ? "，NeoForge：" + neoForgeFolder : "") +
@@ -4377,13 +4377,13 @@ public static class ModDownloadLib
 
         if (!outputFolder.EndsWithF(@"\"))
             outputFolder += @"\";
-        outputName = ModBase.GetFolderNameFromPath(outputFolder);
+        outputName = LegacyFileFacade.GetFolderNameFromPath(outputFolder);
         outputJsonPath = Path.Combine(outputFolder, outputName + ".json");
         outputJar = Path.Combine(outputFolder, outputName + ".jar");
 
         if (!minecraftFolder.EndsWithF(@"\"))
             minecraftFolder += @"\";
-        minecraftName = ModBase.GetFolderNameFromPath(minecraftFolder);
+        minecraftName = LegacyFileFacade.GetFolderNameFromPath(minecraftFolder);
         minecraftJsonPath = Path.Combine(minecraftFolder, minecraftName + ".json");
         minecraftJar = Path.Combine(minecraftFolder, minecraftName + ".jar");
 
@@ -4391,7 +4391,7 @@ public static class ModDownloadLib
         {
             if (!optiFineFolder.EndsWithF(@"\"))
                 optiFineFolder += @"\";
-            optiFineName = ModBase.GetFolderNameFromPath(optiFineFolder);
+            optiFineName = LegacyFileFacade.GetFolderNameFromPath(optiFineFolder);
             optiFineJsonPath = Path.Combine(optiFineFolder, optiFineName + ".json");
         }
 
@@ -4399,7 +4399,7 @@ public static class ModDownloadLib
         {
             if (!forgeFolder.EndsWithF(@"\"))
                 forgeFolder += @"\";
-            forgeName = ModBase.GetFolderNameFromPath(forgeFolder);
+            forgeName = LegacyFileFacade.GetFolderNameFromPath(forgeFolder);
             forgeJsonPath = Path.Combine(forgeFolder, forgeName + ".json");
         }
 
@@ -4407,7 +4407,7 @@ public static class ModDownloadLib
         {
             if (!neoForgeFolder.EndsWithF(@"\"))
                 neoForgeFolder += @"\";
-            neoForgeName = ModBase.GetFolderNameFromPath(neoForgeFolder);
+            neoForgeName = LegacyFileFacade.GetFolderNameFromPath(neoForgeFolder);
             neoForgeJsonPath = Path.Combine(neoForgeFolder, neoForgeName + ".json");
         }
 
@@ -4415,7 +4415,7 @@ public static class ModDownloadLib
         {
             if (!cleanroomFolder.EndsWithF(@"\"))
                 cleanroomFolder += @"\";
-            cleanroomName = ModBase.GetFolderNameFromPath(cleanroomFolder);
+            cleanroomName = LegacyFileFacade.GetFolderNameFromPath(cleanroomFolder);
             cleanroomJsonPath = Path.Combine(cleanroomFolder, cleanroomName + ".json");
         }
 
@@ -4423,7 +4423,7 @@ public static class ModDownloadLib
         {
             if (!liteLoaderFolder.EndsWithF(@"\"))
                 liteLoaderFolder += @"\";
-            liteLoaderName = ModBase.GetFolderNameFromPath(liteLoaderFolder);
+            liteLoaderName = LegacyFileFacade.GetFolderNameFromPath(liteLoaderFolder);
             liteLoaderJsonPath = Path.Combine(liteLoaderFolder, liteLoaderName + ".json");
         }
 
@@ -4431,7 +4431,7 @@ public static class ModDownloadLib
         {
             if (!fabricFolder.EndsWithF(@"\"))
                 fabricFolder += @"\";
-            fabricName = ModBase.GetFolderNameFromPath(fabricFolder);
+            fabricName = LegacyFileFacade.GetFolderNameFromPath(fabricFolder);
             fabricJsonPath = Path.Combine(fabricFolder, fabricName + ".json");
         }
 
@@ -4439,7 +4439,7 @@ public static class ModDownloadLib
         {
             if (!legacyFabricFolder.EndsWithF(@"\"))
                 legacyFabricFolder += @"\";
-            legacyFabricName = ModBase.GetFolderNameFromPath(legacyFabricFolder);
+            legacyFabricName = LegacyFileFacade.GetFolderNameFromPath(legacyFabricFolder);
             legacyFabricJsonPath = Path.Combine(legacyFabricFolder, legacyFabricName + ".json");
         }
 
@@ -4447,7 +4447,7 @@ public static class ModDownloadLib
         {
             if (!quiltFolder.EndsWithF(@"\"))
                 quiltFolder += @"\";
-            quiltName = ModBase.GetFolderNameFromPath(quiltFolder);
+            quiltName = LegacyFileFacade.GetFolderNameFromPath(quiltFolder);
             quiltJsonPath = Path.Combine(quiltFolder, quiltName + ".json");
         }
 
@@ -4455,7 +4455,7 @@ public static class ModDownloadLib
         {
             if (!labyModFolder.EndsWithF(@"\"))
                 labyModFolder += @"\";
-            labyModName = ModBase.GetFolderNameFromPath(labyModFolder);
+            labyModName = LegacyFileFacade.GetFolderNameFromPath(labyModFolder);
             labyModJsonPath = Path.Combine(labyModFolder, labyModName + ".json");
         }
 
@@ -4475,94 +4475,94 @@ public static class ModDownloadLib
 
         #region 读取文件并检查文件是否合规
 
-        var minecraftJsonText = ModBase.ReadFile(minecraftJsonPath);
+        var minecraftJsonText = LegacyFileFacade.ReadText(minecraftJsonPath);
         if (!hasLabyMod)
         {
             if (!minecraftJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Minecraft", minecraftJsonPath,
                     minecraftJsonText.Substring(0, Math.Min(minecraftJsonText.Length, 1000))));
-            minecraftJson = (JsonObject)ModBase.GetJson(minecraftJsonText);
+            minecraftJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(minecraftJsonText);
         }
 
         if (hasOptiFine)
         {
-            var optiFineJsonText = ModBase.ReadFile(optiFineJsonPath);
+            var optiFineJsonText = LegacyFileFacade.ReadText(optiFineJsonPath);
             if (!optiFineJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "OptiFine", optiFineJsonPath,
                     optiFineJsonText.Substring(0, Math.Min(optiFineJsonText.Length, 1000))));
-            optiFineJson = (JsonObject)ModBase.GetJson(optiFineJsonText);
+            optiFineJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(optiFineJsonText);
         }
 
         if (hasForge)
         {
-            var forgeJsonText = ModBase.ReadFile(forgeJsonPath);
+            var forgeJsonText = LegacyFileFacade.ReadText(forgeJsonPath);
             if (!forgeJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Forge", forgeJsonPath,
                     forgeJsonText.Substring(0, Math.Min(forgeJsonText.Length, 1000))));
-            forgeJson = (JsonObject)ModBase.GetJson(forgeJsonText);
+            forgeJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(forgeJsonText);
         }
 
         if (hasNeoForge)
         {
-            var neoForgeJsonText = ModBase.ReadFile(neoForgeJsonPath);
+            var neoForgeJsonText = LegacyFileFacade.ReadText(neoForgeJsonPath);
             if (!neoForgeJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "NeoForge", neoForgeJsonPath,
                     neoForgeJsonText.Substring(0, Math.Min(neoForgeJsonText.Length, 1000))));
-            neoForgeJson = (JsonObject)ModBase.GetJson(neoForgeJsonText);
+            neoForgeJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(neoForgeJsonText);
         }
 
         if (hasCleanroom)
         {
-            var cleanroomJsonText = ModBase.ReadFile(cleanroomJsonPath);
+            var cleanroomJsonText = LegacyFileFacade.ReadText(cleanroomJsonPath);
             if (!cleanroomJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Cleanroom", cleanroomJsonPath,
                     cleanroomJsonText.Substring(0, Math.Min(cleanroomJsonText.Length, 1000))));
-            cleanroomJson = (JsonObject)ModBase.GetJson(cleanroomJsonText);
+            cleanroomJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(cleanroomJsonText);
         }
 
         if (hasLiteLoader)
         {
-            var liteLoaderJsonText = ModBase.ReadFile(liteLoaderJsonPath);
+            var liteLoaderJsonText = LegacyFileFacade.ReadText(liteLoaderJsonPath);
             if (!liteLoaderJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "LiteLoader", liteLoaderJsonPath,
                     liteLoaderJsonText.Substring(0, Math.Min(liteLoaderJsonText.Length, 1000))));
-            liteLoaderJson = (JsonObject)ModBase.GetJson(liteLoaderJsonText);
+            liteLoaderJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(liteLoaderJsonText);
         }
 
         if (hasFabric)
         {
-            var fabricJsonText = ModBase.ReadFile(fabricJsonPath);
+            var fabricJsonText = LegacyFileFacade.ReadText(fabricJsonPath);
             if (!fabricJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Fabric", fabricJsonPath,
                     fabricJsonText.Substring(0, Math.Min(fabricJsonText.Length, 1000))));
-            fabricJson = (JsonObject)ModBase.GetJson(fabricJsonText);
+            fabricJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(fabricJsonText);
         }
 
         if (hasLegacyFabric)
         {
-            var legacyFabricJsonText = ModBase.ReadFile(legacyFabricJsonPath);
+            var legacyFabricJsonText = LegacyFileFacade.ReadText(legacyFabricJsonPath);
             if (!legacyFabricJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Legacy Fabric", fabricJsonPath,
                     legacyFabricJsonText.Substring(0, Math.Min(legacyFabricJsonText.Length, 1000))));
-            legacyFabricJson = (JsonObject)ModBase.GetJson(legacyFabricJsonText);
+            legacyFabricJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(legacyFabricJsonText);
         }
 
         if (hasQuilt)
         {
-            var quiltJsonText = ModBase.ReadFile(quiltJsonPath);
+            var quiltJsonText = LegacyFileFacade.ReadText(quiltJsonPath);
             if (!quiltJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Quilt", quiltJsonPath,
                     quiltJsonText.Substring(0, Math.Min(quiltJsonText.Length, 1000))));
-            quiltJson = (JsonObject)ModBase.GetJson(quiltJsonText);
+            quiltJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(quiltJsonText);
         }
 
         if (hasLabyMod)
         {
-            var labyModJsonText = ModBase.ReadFile(labyModJsonPath);
+            var labyModJsonText = LegacyFileFacade.ReadText(labyModJsonPath);
             if (!labyModJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "LabyMod", labyModJsonPath,
                     labyModJsonText.Substring(0, Math.Min(labyModJsonText.Length, 1000))));
-            labyModJson = (JsonObject)ModBase.GetJson(labyModJsonText);
+            labyModJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(labyModJsonText);
         }
 
         #endregion
@@ -4602,12 +4602,12 @@ public static class ModDownloadLib
         {
             if (mMCPackInfo.isMinecraftOverrided)
             {
-                ModBase.Log("[Download] 当前实例的 MC 核心已被修改，使用对应的 MMC 整合包参数");
+                LauncherLog.Log("[Download] 当前实例的 MC 核心已被修改，使用对应的 MMC 整合包参数");
                 outputJson = mMCPackInfo.overridedJson;
             }
             else
             {
-                ModBase.Log("[Download] 存在无修改 MC 核心文件的 MMC 整合包信息，应用相关参数");
+                LauncherLog.Log("[Download] 存在无修改 MC 核心文件的 MMC 整合包信息，应用相关参数");
                 outputJson = minecraftJson;
                 // 合并来自 MultiMC 的 JSON
                 outputJson.Merge(mMCPackInfo.overridedJson);
@@ -4776,15 +4776,15 @@ public static class ModDownloadLib
 
         #region 保存
 
-        ModBase.WriteFile(outputJsonPath, outputJson.ToString());
+        LegacyFileFacade.WriteFile(outputJsonPath, outputJson.ToString());
         if ((minecraftJar ?? "") != (outputJar ?? "")) // 可能是同一个文件
         {
             if (File.Exists(outputJar))
                 File.Delete(outputJar);
-            ModBase.CopyFile(minecraftJar, outputJar);
+            LegacyFileFacade.CopyFile(minecraftJar, outputJar);
         }
 
-        ModBase.Log("[Download] 实例合并 " + outputName + " 完成");
+        LauncherLog.Log("[Download] 实例合并 " + outputName + " 完成");
 
         #endregion
     }

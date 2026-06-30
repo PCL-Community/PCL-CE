@@ -26,7 +26,7 @@ public partial class PageSetupUpdate
         ComboSystemUpdateChannel.SelectedIndex = (int)Config.Update.UpdateChannel;
         ComboSystemUpdateMode.SelectedIndex = (int)Config.Update.UpdateMode;
 
-        TextCurrentVersion.Text = "PCL CE " + VersionNameFormat(ModBase.VersionBaseName);
+        TextCurrentVersion.Text = "PCL CE " + VersionNameFormat(LauncherEnvironment.VersionBaseName);
         ModAnimation.AniControlEnabled -= 1;
         CheckUpdate();
     }
@@ -36,26 +36,26 @@ public partial class PageSetupUpdate
         try
         {
             // 修复：使用 dynamic 绕过命名空间重名导致的编译期类型冲突，
-            // 或者你可以尝试替换为 PCL.Core.App.SemVer.Parse(ModBase.versionBaseName)
+            // 或者你可以尝试替换为 PCL.Core.App.SemVer.Parse(LauncherEnvironment.VersionBaseName)
             if (await UpdateManager.remoteServer.IsLatestAsync(
                     UpdateManager.IsCurrentVersionBeta ? UpdateChannel.beta : UpdateChannel.stable,
                     SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64,
-                    SemVer.Parse(ModBase.VersionBaseName),
-                    ModBase.VersionCode))
+                    SemVer.Parse(LauncherEnvironment.VersionBaseName),
+                    LauncherEnvironment.VersionCode))
             {
-                ModBase.Log("[Update] 已是最新版本");
+                LauncherLog.Log("[Update] 已是最新版本");
                 return UpdateStatus.Latest;
             }
 
-            ModBase.Log("[Update] 有可用的新版本");
+            LauncherLog.Log("[Update] 有可用的新版本");
             return UpdateStatus.Available;
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Setup.Update.Error.NetworkFailed"),
-                ModBase.LogLevel.Hint,
+                LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Setup.Update.Error.NetworkFailed"));
             return UpdateStatus.Error;
         }
@@ -63,7 +63,7 @@ public partial class PageSetupUpdate
 
     public async void CheckUpdate()
     {
-        ModBase.Log("[Update] 开始检查更新");
+        LauncherLog.Log("[Update] 开始检查更新");
         CardUpdate.Visibility = Visibility.Collapsed;
         CardCheck.Visibility = Visibility.Visible;
         TextCurrentDesc.Text = Lang.Text("Setup.Update.Checking");
@@ -96,20 +96,20 @@ public partial class PageSetupUpdate
                 {
                     TextCurrentDesc.Text = Lang.Text("Setup.Update.CheckFailed");
                     if (checkUpdateEx is not null)
-                        ModBase.Log(
+                        LauncherLog.Log(
                             checkUpdateEx,
                             "[Update] 检查更新失败",
-                            ModBase.LogLevel.Msgbox,
+                            LauncherLogLevel.Msgbox,
                             userSummary: Lang.Text("Update.Check.Failed"));
                     else
-                        ModBase.Log(
+                        LauncherLog.Log(
                             "[Update] 检查更新失败",
-                            ModBase.LogLevel.Msgbox,
+                            LauncherLogLevel.Msgbox,
                             userSummary: Lang.Text("Update.Check.Failed"));
                     return;
                 }
 
-                if (UpdateManager.updateLoader is not null && UpdateManager.updateLoader.State == ModBase.LoadState.Loading)
+                if (UpdateManager.updateLoader is not null && UpdateManager.updateLoader.State == LoadState.Loading)
                 {
                     BtnUpdate_Timer();
                     BtnUpdate.IsEnabled = false;
@@ -150,9 +150,9 @@ public partial class PageSetupUpdate
 
     public void BtnUpdate_Timer()
     {
-        while (UpdateManager.updateLoader is not null && UpdateManager.updateLoader.State == ModBase.LoadState.Loading)
+        while (UpdateManager.updateLoader is not null && UpdateManager.updateLoader.State == LoadState.Loading)
         {
-            ModBase.RunInUi(() => BtnUpdate.Text = Lang.Number(UpdateManager.updateLoader.Progress, "P2"));
+            UiThread.Post(() => BtnUpdate.Text = Lang.Number(UpdateManager.updateLoader.Progress, "P2"));
             Thread.Sleep(200);
         }
     }
@@ -169,7 +169,7 @@ public partial class PageSetupUpdate
                     SystemInfo.IsArm64System ? "Arm64" : "x64"),
                 Lang.Text("Setup.Update.DotNetMissing.Title"),
                 Lang.Text("Setup.Update.DotNetMissing.DownloadRuntime"), Lang.Text("Common.Action.Cancel"),
-                button1Action: () => ModBase.OpenWebsite("https://get.dot.net/8"), forceWait: true);
+                button1Action: () => LauncherProcess.OpenWebsite("https://get.dot.net/8"), forceWait: true);
             return;
         }
 
@@ -265,12 +265,12 @@ public partial class PageSetupUpdate
 
     private void BtnGetMirrorCDK_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenWebsite("https://mirrorchyan.com/");
+        LauncherProcess.OpenWebsite("https://mirrorchyan.com/");
     }
 
     private void BtnChangelog_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/v" + ModBase.VersionBaseName);
+        LauncherProcess.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/v" + LauncherEnvironment.VersionBaseName);
     }
 
     public string VersionNameFormat(string str)

@@ -80,16 +80,16 @@ public partial class PageSetupGameLink
         try
         {
             Config.Link.Reset();
-            ModBase.Log("[Setup] 已初始化联机页设置");
+            LauncherLog.Log("[Setup] 已初始化联机页设置");
             HintService.Hint(Lang.Text("Setup.GameLink.Initialized"), HintType.Success, false);
             Reload();
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Setup.GameLink.Error.InitFailed"),
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.GameLink.Error.InitFailed"));
         }
 
@@ -130,10 +130,10 @@ public partial class PageSetupGameLink
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     Lang.Text("Setup.GameLink.Error.ConfigChangeFailed"),
-                    ModBase.LogLevel.Hint,
+                    LauncherLogLevel.Hint,
                     userSummary: Lang.Text("Setup.GameLink.Error.ConfigChangeFailed"));
             }
     }
@@ -145,10 +145,10 @@ public partial class PageSetupGameLink
         {
             BtnNetTest.IsEnabled = false;
             BtnNetTest.Text = Lang.Text("Setup.GameLink.NetworkTest.Testing");
-            ModBase.RunInNewThread(() =>
+            PCL.Core.App.Basics.RunInNewThread(() =>
             {
                 var status = CliNetTest.GetNetStatusAsync().GetAwaiter().GetResult();
-                ModBase.RunInUi(() =>
+                UiThread.Post(() =>
                 {
                     TextUdpNatType.Text =
                         Lang.Text("Setup.GameLink.NetworkTest.UdpNatType", CliNetTest.GetNatTypeString(status.UdpNatType));
@@ -165,9 +165,9 @@ public partial class PageSetupGameLink
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex,
+            LauncherLog.Log(ex,
                 "[Link] 获取网络测试结果失败",
-                ModBase.LogLevel.Hint,
+                LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Setup.GameLink.Error.NetworkTestFailed"));
             BtnNetTest.IsEnabled = true;
             BtnNetTest.Text = Lang.Text("Setup.GameLink.NetworkTest.Start");

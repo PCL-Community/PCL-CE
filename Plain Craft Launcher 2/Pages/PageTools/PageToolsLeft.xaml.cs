@@ -55,7 +55,7 @@ public partial class PageToolsLeft
         var button = (MyIconButton)sender;
         if (button.Tag is null)
             return;
-        double id = ModBase.Val(button.Tag);
+        double id = LauncherText.Val(button.Tag);
         switch (id)
         {
             case (double)FormMain.PageSubType.ToolsGameLink:
@@ -79,13 +79,13 @@ public partial class PageToolsLeft
     /// <summary>
     ///     勾选事件改变页面。
     /// </summary>
-    private void PageCheck(object senderRaw, ModBase.RouteEventArgs e)
+    private void PageCheck(object senderRaw, RouteEventArgs e)
     {
         var sender = (MyListItem)senderRaw;
         // 尚未初始化控件属性时，sender.Tag 为 Nothing，会导致切换到页面 0
         // 若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         if (sender.Tag is not null)
-            PageChange((FormMain.PageSubType)ModBase.Val(sender.Tag));
+            PageChange((FormMain.PageSubType)LauncherText.Val(sender.Tag));
     }
 
     public object PageGet(FormMain.PageSubType? id = null)
@@ -128,10 +128,10 @@ public partial class PageToolsLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 $"切换分页面失败（ID {(int)id}）",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Tools.Error.OperationFailed"));
         }
         finally

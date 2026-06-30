@@ -1,4 +1,4 @@
-using PCL.Core.App.Localization;
+﻿using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -15,7 +15,7 @@ public static class LauncherFontService
         }
         catch (Exception ex)
         {
-            LauncherLog.Log(ex, "设置字体失败", ModBase.LogLevel.Hint);
+            LauncherLog.Log(ex, "设置字体失败", LauncherLogLevel.Hint);
         }
     }
 }

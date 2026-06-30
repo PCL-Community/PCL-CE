@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Markup;
@@ -11,7 +11,7 @@ public partial class MyCheckBox
 {
     public delegate void ChangeEventHandler(object sender, bool user);
 
-    public delegate void PreviewChangeEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void PreviewChangeEventHandler(object sender, RouteEventArgs e);
 
     private const int animationTimeOfCheck = 150; // 勾选状态变更动画长度
 
@@ -50,7 +50,7 @@ public partial class MyCheckBox
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherRuntime.GetUuid();
 
     public MyCheckBox()
     {
@@ -108,7 +108,7 @@ public partial class MyCheckBox
             // Preview 事件
             if (value.HasValue && value.Value && user)
             {
-                var e = new ModBase.RouteEventArgs(user);
+                var e = new RouteEventArgs(user);
                 PreviewChange?.Invoke(this, e);
                 if (e.handled)
                 {
@@ -133,7 +133,7 @@ public partial class MyCheckBox
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "设置 Checked 失败");
+            LauncherLog.Log(ex, "设置 Checked 失败");
         }
     }
 
@@ -224,7 +224,7 @@ public partial class MyCheckBox
     {
         if (!mouseDowned)
             return;
-        ModBase.Log("[Control] 按下复选框（" + !Checked + "）：" + Text);
+        LauncherLog.Log("[Control] 按下复选框（" + !Checked + "）：" + Text);
         mouseDowned = false;
         if (IsThreeState)
         {

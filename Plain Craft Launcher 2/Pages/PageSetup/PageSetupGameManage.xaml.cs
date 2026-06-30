@@ -81,15 +81,15 @@ public partial class PageSetupGameManage
         {
             Config.Download.Reset();
             Config.Tool.Reset();
-            ModBase.Log("[Setup] 已初始化其他页设置");
+            LauncherLog.Log("[Setup] 已初始化其他页设置");
             HintService.Hint(Lang.Text("Setup.GameManage.Initialized"), HintType.Success, false);
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Setup.GameManage.Error.InitFailed"),
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.GameManage.Error.InitFailed"));
         }
 
@@ -142,7 +142,7 @@ public partial class PageSetupGameManage
         });
     }
 
-    private void SliderDownloadThread_PreviewChange(object sender, ModBase.RouteEventArgs e)
+    private void SliderDownloadThread_PreviewChange(object sender, RouteEventArgs e)
     {
         if (SliderDownloadThread.Value < 100)
             return;

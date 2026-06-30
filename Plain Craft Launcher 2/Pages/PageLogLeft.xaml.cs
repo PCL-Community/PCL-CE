@@ -84,10 +84,10 @@ public partial class PageLogLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "构建游戏实时日志 UI 出错",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("LogPage.Error.OperationFailed"));
         }
     }
@@ -103,7 +103,7 @@ public partial class PageLogLeft
                     margin = new Thickness(0d, 12d, 0d, 0d);
                 else
                     margin = new Thickness(0d);
-                ModBase.RunInUi(() =>
+                UiThread.Post(() =>
                 {
                     var paragraph = new Paragraph(new Run(e.logText)) { Foreground = e.color, Margin = margin };
                     flowDocuments[uuid].Blocks.Add(paragraph);
@@ -141,10 +141,10 @@ public partial class PageLogLeft
 
     public void Add(ModWatcher.Watcher watcher)
     {
-        var uuid = ModBase.GetUuid();
+        var uuid = LauncherRuntime.GetUuid();
         shownLogs.Add(new KeyValuePair<int, ModWatcher.Watcher>(uuid, watcher));
         watcher.LogOutput += OnLogOutput;
-        ModBase.RunInUi(() => flowDocuments.Add(uuid, new FlowDocument())); // TODO：在 UI 线程创建
+        UiThread.Post(() => flowDocuments.Add(uuid, new FlowDocument())); // TODO：在 UI 线程创建
         SelectionChange(uuid);
         ModMain.frmMain.BtnExtraLog.ShowRefresh();
     }
@@ -170,7 +170,7 @@ public partial class PageLogLeft
                 }
         }
 
-        ModBase.RunInUi(() =>
+        UiThread.Post(() =>
         {
             ModMain.frmLogRight.Reload();
             Reload();
@@ -195,7 +195,7 @@ public partial class PageLogLeft
             }
             else
             {
-                ModBase.RunInUi(() =>
+                UiThread.Post(() =>
                 {
                     ModMain.frmLogRight.Reload();
                     Reload();
@@ -214,7 +214,7 @@ public partial class PageLogLeft
     }
 
     // 点击选项
-    public void Version_Change(object sender, ModBase.RouteEventArgs e)
+    public void Version_Change(object sender, RouteEventArgs e)
     {
         SelectionChange((int)((MyListItem)sender).Tag);
     }

@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Text;
 using PCL.Core.IO;
@@ -58,6 +58,22 @@ public static class LegacyFileFacade
     public static string ReadText(Stream stream, Encoding? encoding = null)
     {
         return CoreFiles.ReadAllTextOrEmptyAsync(stream, encoding).GetAwaiter().GetResult();
+    }
+
+
+    public static void WriteFile(string filePath, string text, bool append = false, Encoding? encoding = null)
+    {
+        WriteText(filePath, text, append, encoding);
+    }
+
+    public static void WriteFile(string filePath, byte[] content, bool append = false)
+    {
+        WriteBytes(filePath, content, append);
+    }
+
+    public static bool WriteFile(string filePath, Stream stream)
+    {
+        return WriteStream(filePath, stream);
     }
 
     public static void WriteText(string filePath, string text, bool append = false, Encoding? encoding = null)

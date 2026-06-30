@@ -20,7 +20,7 @@ public partial class MySkin
 
     // 点击
     private bool isSkinMouseDown;
-    public ModLoader.LoaderTask<ModBase.EqualableList<string>, string> loader;
+    public ModLoader.LoaderTask<EqualableList<string>, string> loader;
 
     public MySkin()
     {
@@ -97,13 +97,13 @@ public partial class MySkin
         Save(loader);
     }
 
-    public static void Save(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> loader)
+    public static void Save(ModLoader.LoaderTask<EqualableList<string>, string> loader)
     {
         var address = loader.output;
-        if (loader.State != ModBase.LoadState.Finished)
+        if (loader.State != LoadState.Finished)
         {
             HintService.Hint(Lang.Text("Launch.Skin.Fetching"), HintType.Error);
-            if (loader.State != ModBase.LoadState.Loading)
+            if (loader.State != LoadState.Loading)
                 loader.Start();
             return;
         }
@@ -111,28 +111,28 @@ public partial class MySkin
         try
         {
             var fileAddress = SystemDialogs.SelectSaveFile(Lang.Text("Launch.Skin.SaveDialog.Title"),
-                ModBase.GetFileNameFromPath(address),
+                LegacyFileFacade.GetFileNameFromPath(address),
                 Lang.Text("Launch.Skin.SaveDialog.Filter"));
             if (!fileAddress.Contains(@"\")) return;
             File.Delete(fileAddress);
-            if (address.StartsWith(ModBase.pathImage))
+            if (address.StartsWith(LauncherPaths.ImageBaseUri))
             {
                 var image = new MyBitmap(address);
                 image.Save(fileAddress);
             }
             else
             {
-                ModBase.CopyFile(address, fileAddress);
+                LegacyFileFacade.CopyFile(address, fileAddress);
             }
 
             HintService.Hint(Lang.Text("Launch.Skin.SaveSuccess"), HintType.Success);
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Launch.Skin.Save.Error"),
-                ModBase.LogLevel.Hint,
+                LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Launch.Skin.Save.Error"));
         }
     }
@@ -153,7 +153,7 @@ public partial class MySkin
             Address = loader.output;
             if (string.IsNullOrEmpty(Address))
                 throw new Exception("皮肤加载器 " + loader.name + " 没有输出");
-            if (!Address.StartsWith(ModBase.pathImage) && !File.Exists(Address))
+            if (!Address.StartsWith(LauncherPaths.ImageBaseUri) && !File.Exists(Address))
                 throw new FileNotFoundException("皮肤文件未找到", Address);
             // 加载
             MyBitmap image;
@@ -163,10 +163,10 @@ public partial class MySkin
             }
             catch (Exception ex) // #2272
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     Lang.Text("Launch.Skin.Load.Error.Corrupted", Address),
-                    ModBase.LogLevel.Hint,
+                    LauncherLogLevel.Hint,
                     userSummary: Lang.Text("Launch.Skin.Load.Error.Corrupted", Address));
                 File.Delete(Address);
                 return;
@@ -214,7 +214,7 @@ public partial class MySkin
             // 用于显示档案列表头像的图片
             var skinHeadId = Address.Between(new[] { Address.Contains("Images/Skins/") ? "Skins/" : @"Skin\" }[0],
                 ".png");
-            var cachePath = ModBase.pathTemp + $@"Cache\Skin\Head\{skinHeadId}.png";
+            var cachePath = LauncherPaths.TempWithSlash + $@"Cache\Skin\Head\{skinHeadId}.png";
             ModProfile.selectedProfile.SkinHeadId = skinHeadId;
             ModProfile.SaveProfile();
             var completeHead = new Bitmap(56, 56);
@@ -234,17 +234,17 @@ public partial class MySkin
                 }
             }
 
-            if (!Directory.Exists(ModBase.pathTemp + @"Cache\Skin\Head"))
-                Directory.CreateDirectory(ModBase.pathTemp + @"Cache\Skin\Head");
+            if (!Directory.Exists(LauncherPaths.TempWithSlash + @"Cache\Skin\Head"))
+                Directory.CreateDirectory(LauncherPaths.TempWithSlash + @"Cache\Skin\Head");
             completeHead.Save(cachePath, ImageFormat.Png);
-            ModBase.Log("[Skin] 载入头像成功：" + loader.name);
+            LauncherLog.Log("[Skin] 载入头像成功：" + loader.name);
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Launch.Skin.Load.Error.Avatar", $"{(Address ?? "null")},{loader.name}"),
-                ModBase.LogLevel.Hint,
+                LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Launch.Skin.Load.Error.Avatar", $"{(Address ?? "null")},{loader.name}"));
         }
     }
@@ -279,10 +279,10 @@ public partial class MySkin
     /// <summary>
     ///     刷新皮肤缓存。
     /// </summary>
-    public static void RefreshCache(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> sender = null)
+    public static void RefreshCache(ModLoader.LoaderTask<EqualableList<string>, string> sender = null)
     {
         var hasLoaderRunning =
-            PageLaunchLeft.skinLoaders.Any(skinLoader => skinLoader.State == ModBase.LoadState.Loading);
+            PageLaunchLeft.skinLoaders.Any(skinLoader => skinLoader.State == LoadState.Loading);
 
         if (ModMain.frmLaunchLeft is not null && hasLoaderRunning)
             // 由于 Abort 不是实时的，暂时不会释放文件，会导致删除报错，故只能取消执行
@@ -290,19 +290,19 @@ public partial class MySkin
         else
             // 清空缓存
             // 刷新控件
-            ModBase.RunInThread(() =>
+            UiThread.RunInThread(() =>
             {
                 try
                 {
                     HintService.Hint(Lang.Text("Launch.Skin.Refreshing"));
-                    ModBase.Log("[Skin] 正在清空皮肤缓存");
-                    if (Directory.Exists(ModBase.pathTemp + @"Cache\Skin"))
-                        ModBase.DeleteDirectory(ModBase.pathTemp + @"Cache\Skin");
-                    if (Directory.Exists(ModBase.pathTemp + @"Cache\Uuid"))
-                        ModBase.DeleteDirectory(ModBase.pathTemp + @"Cache\Uuid");
-                    ModBase.IniClearCache(ModBase.pathTemp + @"Cache\Skin\IndexMs.ini");
-                    ModBase.IniClearCache(ModBase.pathTemp + @"Cache\Skin\IndexAuth.ini");
-                    ModBase.IniClearCache(ModBase.pathTemp + @"Cache\Uuid\Mojang.ini");
+                    LauncherLog.Log("[Skin] 正在清空皮肤缓存");
+                    if (Directory.Exists(LauncherPaths.TempWithSlash + @"Cache\Skin"))
+                        LegacyFileFacade.DeleteDirectory(LauncherPaths.TempWithSlash + @"Cache\Skin");
+                    if (Directory.Exists(LauncherPaths.TempWithSlash + @"Cache\Uuid"))
+                        LegacyFileFacade.DeleteDirectory(LauncherPaths.TempWithSlash + @"Cache\Uuid");
+                    LegacyIniStore.Shared.ClearCache(LauncherPaths.TempWithSlash + @"Cache\Skin\IndexMs.ini");
+                    LegacyIniStore.Shared.ClearCache(LauncherPaths.TempWithSlash + @"Cache\Skin\IndexAuth.ini");
+                    LegacyIniStore.Shared.ClearCache(LauncherPaths.TempWithSlash + @"Cache\Uuid\Mojang.ini");
                     foreach (var SkinLoader in sender is not null
                                  ? new[] { sender }
                                  : new[] { PageLaunchLeft.skinLegacy, PageLaunchLeft.skinMs })
@@ -311,10 +311,10 @@ public partial class MySkin
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(
+                    LauncherLog.Log(
                         ex,
                         Lang.Text("Launch.Skin.Refresh.Error"),
-                        ModBase.LogLevel.Msgbox,
+                        LauncherLogLevel.Msgbox,
                         userSummary: Lang.Text("Launch.Skin.Refresh.Error"));
                 }
             });
@@ -329,23 +329,23 @@ public partial class MySkin
         // 更新缓存
         // 刷新控件
         // 完成提示
-        ModBase.RunInThread(() =>
+        UiThread.RunInThread(() =>
         {
             try
             {
-                ModBase.WriteIni(ModBase.pathTemp + @"Cache\Skin\IndexMs.ini", ModProfile.selectedProfile.Uuid,
+                LegacyIniStore.Shared.Write(LauncherPaths.TempWithSlash + @"Cache\Skin\IndexMs.ini", ModProfile.selectedProfile.Uuid,
                     skinAddress);
-                ModBase.Log($"[Skin] 已写入皮肤地址缓存 {ModProfile.selectedProfile.Uuid} -> {skinAddress}");
+                LauncherLog.Log($"[Skin] 已写入皮肤地址缓存 {ModProfile.selectedProfile.Uuid} -> {skinAddress}");
                 foreach (var SkinLoader in new[] { PageLaunchLeft.skinMs, PageLaunchLeft.skinLegacy })
                     SkinLoader.WaitForExit(isForceRestart: true);
                 HintService.Hint(Lang.Text("Launch.Skin.ChangeSuccess"), HintType.Success);
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     Lang.Text("Launch.Skin.Change.Error.MsRefresh"),
-                    ModBase.LogLevel.Feedback,
+                    LauncherLogLevel.Feedback,
                     userSummary: Lang.Text("Launch.Skin.Change.Error.MsRefresh"));
             }
         });
@@ -360,7 +360,7 @@ public partial class MySkin
             return;
         }
 
-        if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Failed)
+        if (ModLaunch.mcLoginMsLoader.State == LoadState.Failed)
         {
             HintService.Hint(Lang.Text("Launch.Skin.Cape.LoginFailed"), HintType.Error);
             return;
@@ -369,14 +369,14 @@ public partial class MySkin
         HintService.Hint(Lang.Text("Launch.Skin.Cape.FetchingList"));
         isChanging = true;
         // 开始实际获取
-        ModBase.RunInNewThread(() =>
+        PCL.Core.App.Basics.RunInNewThread(() =>
         {
             try
             {
                 // 获取登录信息
-                if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished)
+                if (ModLaunch.mcLoginMsLoader.State != LoadState.Finished)
                     ModLaunch.mcLoginMsLoader.WaitForExit(ModProfile.GetLoginData());
-                if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished)
+                if (ModLaunch.mcLoginMsLoader.State != LoadState.Finished)
                 {
                     HintService.Hint(Lang.Text("Launch.Skin.Cape.LoginFailed"), HintType.Error);
                     return;
@@ -384,13 +384,13 @@ public partial class MySkin
 
                 var accessToken = ModLaunch.mcLoginMsLoader.output.AccessToken;
                 var uuid = ModLaunch.mcLoginMsLoader.output.Uuid;
-                var skinData = (JsonObject)ModBase.GetJson(ModLaunch.mcLoginMsLoader.output.ProfileJson);
+                var skinData = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(ModLaunch.mcLoginMsLoader.output.ProfileJson);
                 foreach (var itemSkin in skinData["capes"].AsArray())
                 {
                     if (itemSkin["url"] is null)
                         continue;
-                    var localFile = $@"{ModBase.pathTemp}Cache\Capes\{itemSkin["alias"]}.png";
-                    var capeFrontFile = $@"{ModBase.pathTemp}Cache\Capes\{itemSkin["alias"]}-front.png";
+                    var localFile = $@"{LauncherPaths.TempWithSlash}Cache\Capes\{itemSkin["alias"]}.png";
+                    var capeFrontFile = $@"{LauncherPaths.TempWithSlash}Cache\Capes\{itemSkin["alias"]}-front.png";
                     if (File.Exists(localFile) && File.Exists(capeFrontFile))
                     {
                         itemSkin["url"] = capeFrontFile;
@@ -409,7 +409,7 @@ public partial class MySkin
 
                 // 获取玩家的所有披风
                 int? selId = null;
-                ModBase.RunInUiWait(() =>
+                UiThread.Invoke(() =>
                 {
                     try
                     {
@@ -441,10 +441,10 @@ public partial class MySkin
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(
+                        LauncherLog.Log(
                             ex,
                             Lang.Text("Launch.Skin.Cape.Error.List"),
-                            ModBase.LogLevel.Feedback,
+                            LauncherLogLevel.Feedback,
                             userSummary: Lang.Text("Launch.Skin.Cape.Error.List"));
                     }
                 });
@@ -465,16 +465,16 @@ public partial class MySkin
                 if (result.Contains("\"errorMessage\""))
                     HintService.Hint(
                         Lang.Text("Launch.Skin.Cape.ChangeFailedWithReason",
-                            ((JsonObject)ModBase.GetJson(result))["errorMessage"]), HintType.Error);
+                            ((JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(result))["errorMessage"]), HintType.Error);
                 else
                     HintService.Hint(Lang.Text("Launch.Skin.Cape.ChangeSuccess"), HintType.Success);
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     Lang.Text("Launch.Skin.Cape.ChangeFailed"),
-                    ModBase.LogLevel.Hint,
+                    LauncherLogLevel.Hint,
                     userSummary: Lang.Text("Launch.Skin.Cape.ChangeFailed"));
             }
             finally

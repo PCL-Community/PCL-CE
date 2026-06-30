@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using PCL.Core.UI;
 
 namespace PCL;
@@ -12,9 +12,9 @@ public static class HintService
         public bool Log;
     }
 
-    private static ModBase.SafeList<HintMessage> HintWaiting
+    private static SafeList<HintMessage> HintWaiting
     {
-        get => field ??= new ModBase.SafeList<HintMessage>();
+        get => field ??= new SafeList<HintMessage>();
         set;
     }
 
@@ -80,19 +80,19 @@ public static class HintService
                     HintType.Warning => "lucide/triangle-alert",
                     _ => "lucide/info"
                 },
-                DisplayDuration = (800d + ModBase.MathClamp(currentHint.Text.Length, 5d, 23d) * 180d) * ModAnimation.aniSpeed
+                DisplayDuration = (800d + LauncherMath.Clamp(currentHint.Text.Length, 5d, 23d) * 180d) * ModAnimation.aniSpeed
             };
 
             ModMain.frmMain.PanHint.Children.Add(toast);
             toast.Show();
 
             if (currentHint.Log)
-                ModBase.Log("[UI] 弹出提示：" + currentHint.Text);
+                LauncherLog.Log("[UI] 弹出提示：" + currentHint.Text);
             HintWaiting.RemoveAt(0);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "显示弹出提示失败", ModBase.LogLevel.Normal);
+            LauncherLog.Log(ex, "显示弹出提示失败", LauncherLogLevel.Normal);
         }
     }
 

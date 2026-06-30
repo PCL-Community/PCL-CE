@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
@@ -68,7 +68,7 @@ public partial class MinecraftServer : Grid
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[MinecraftServer] 信息查询失败");
+            LauncherLog.Log(ex, "[MinecraftServer] 信息查询失败");
             LabServerDesc.Text = Lang.Text("Tools.ServerQuery.Error.UnableToConnect", ex.Message);
             LabServerDesc.Foreground = Brushes.Red;
             ImageLoaderHelper.SetFallbackImage(ImgServerLogo, fallbackImageUri);

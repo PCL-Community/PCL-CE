@@ -1,12 +1,10 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.IO;
-using System.Net;
-using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using PCL.Core.Utils;
 using PCL.Core.IO.Net.Http;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -40,10 +38,10 @@ public class MyImage : Image
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, $"加载图片失败（{value}）");
+                    LauncherLog.Log(ex, $"加载图片失败（{value}）");
                     try
                     {
-                        if (value.StartsWithF(ModBase.pathTemp) && File.Exists(value)) File.Delete(value);
+                        if (value.StartsWithF(LauncherPaths.TempWithSlash) && File.Exists(value)) File.Delete(value);
                     }
                     catch
                     {
@@ -103,7 +101,10 @@ public class MyImage : Image
             catch (Exception ex)
             {
                 // 更换备用地址
-                ModBase.Log(ex, $"Online image get fail（source = {url}, fallback = {FallbackSource}）", ModBase.LogLevel.Developer);
+                LauncherLog.Log(
+                    ex,
+                    $"Online image get fail（source = {url}, fallback = {FallbackSource}）",
+                    LauncherLogLevel.Developer);
                 tempPath = GetTempPath(url);
                 tempFile = new FileInfo(tempPath);
                 if (enableCache && tempFile.Exists)
@@ -128,7 +129,7 @@ public class MyImage : Image
 
     public static string GetTempPath(string url)
     {
-        return Path.Combine(ModBase.pathTemp, "Cache", "Images", $"{ModBase.GetStringMD5(url)}.png");
+        return Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Images", $"{LauncherText.GetStringMD5(url)}.png");
     }
 
     private static readonly ConcurrentDictionary<string, Task<string>> _downloadTasks = new();
@@ -140,7 +141,7 @@ public class MyImage : Image
 
         try
         {
-            Directory.CreateDirectory(ModBase.GetPathFromFullPath(tempPath)); // 重新实现下载，以避免携带 Header（#5072）
+            Directory.CreateDirectory(LegacyFileFacade.GetPathFromFullPath(tempPath)); // 重新实现下载，以避免携带 Header（#5072）
             using (var fs = new FileStream(tempDownloadingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
             {
                 using (var response = await HttpRequest.Create(url)
@@ -164,7 +165,7 @@ public class MyImage : Image
             if (File.Exists(tempPath)) File.Delete(tempPath);
             if (File.Exists(tempDownloadingPath)) File.Delete(tempDownloadingPath);
 
-            ModBase.Log(ex, $"Try to get online image fail (url = {url}, dest = {tempPath})");
+            LauncherLog.Log(ex, $"Try to get online image fail (url = {url}, dest = {tempPath})");
             return string.Empty;
         }
     }

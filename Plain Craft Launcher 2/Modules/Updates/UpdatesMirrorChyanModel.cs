@@ -1,4 +1,4 @@
-using System.Net.Http;
+﻿using System.Net.Http;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils;
@@ -28,7 +28,7 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
                    .GetAwaiter()
                    .GetResult())
         {
-            var ret = (JsonObject)ModBase.GetJson(response.AsString());
+            var ret = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(response.AsString());
             if ((int)ret["code"] != 0)
                 throw new Exception("Mirror 酱获取数据不成功");
             var data = ret["data"];

@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.IO.Compression;
 using System.Text;
 using PCL.Core.App;
@@ -30,7 +30,7 @@ internal sealed class CrashReportExporter
         if (File.Exists(targetZipPath))
             File.Delete(targetZipPath);
 
-        ModBase.FeedbackInfo();
+        LauncherFeedbackService.FeedbackInfo();
 
         var reportFolder = Path.Combine(context.TempFolder, ReportFolderName);
 

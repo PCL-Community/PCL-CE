@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Net;
 using System.Net.Http;
 using PCL.Core.App;
@@ -29,7 +29,7 @@ public static class ModWebServer
 
         Task.Run(() =>
         {
-            ModBase.Log($"[WebServer] 服务端 '{name}' 已启动");
+            LauncherLog.Log($"[WebServer] 服务端 '{name}' 已启动");
             try
             {
                 server.Start();
@@ -47,7 +47,7 @@ public static class ModWebServer
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"[WebServer] 服务端 '{name}' 运行出错");
+                LauncherLog.Log(ex, $"[WebServer] 服务端 '{name}' 运行出错");
             }
             finally
             {
@@ -60,7 +60,7 @@ public static class ModWebServer
                     // 忽略已释放的异常
                 }
 
-                ModBase.Log($"[WebServer] 服务端 '{name}' 已停止");
+                LauncherLog.Log($"[WebServer] 服务端 '{name}' 已停止");
                 lock (_webServers)
                 {
                     _webServers.Remove(name);
@@ -204,7 +204,7 @@ public static class ModWebServer
                 }
                 else if (!_status.success)
                 {
-                    ModBase.Log($"[OAuth] {_serviceName}: {_status.message}{"\r\n"}{_status.stacktrace}");
+                    LauncherLog.Log($"[OAuth] {_serviceName}: {_status.message}{"\r\n"}{_status.stacktrace}");
                     var pa = new Dictionary<string, string>();
                     pa["Port"] = Port.ToString();
                     _completeCallback(false, pa, _status.message);
@@ -229,12 +229,12 @@ public static class ModWebServer
 
         private Task<HttpRouteResponse> HandleIcon(HttpListenerRequest request)
         {
-            return HttpRouteResponse.Input(ModBase.GetResourceStream("Images/icon.ico")).AsTask();
+            return HttpRouteResponse.Input(PCL.Core.App.Basics.GetResourceStream("Images/icon.ico")).AsTask();
         }
 
         private Task<HttpRouteResponse> HandleComplete(HttpListenerRequest request)
         {
-            return HttpRouteResponse.Input(ModBase.GetResourceStream("Resources/oauth-complete.html"), "text/html")
+            return HttpRouteResponse.Input(PCL.Core.App.Basics.GetResourceStream("Resources/oauth-complete.html"), "text/html")
                 .AsTask();
         }
     }
@@ -277,7 +277,7 @@ public static class ModWebServer
     {
         if (IsWebServerRunning(serviceName))
             return false;
-        ModBase.RunInNewThread(() =>
+        PCL.Core.App.Basics.RunInNewThread(() =>
             {
                 var serverPort = 0;
                 lock (_webServers)
@@ -292,16 +292,16 @@ public static class ModWebServer
 
                     server = new NaidCallbackServer(serviceName, completeCallback, currentPicAddress);
                     serverPort = server.Port;
-                    ModBase.Log($"[OAuth] {serviceName}: 已开始监听 {server.Port} 端口，正在初始化路由");
+                    LauncherLog.Log($"[OAuth] {serviceName}: 已开始监听 {server.Port} 端口，正在初始化路由");
                     // 开始响应请求
                     var webServiceName = $"oauth/{serviceName}";
-                    if (DisposeWebServer(webServiceName)) ModBase.Log("[OAuth] 已关闭先前认证服务服务端");
+                    if (DisposeWebServer(webServiceName)) LauncherLog.Log("[OAuth] 已关闭先前认证服务服务端");
                     StartWebServer(webServiceName, server);
-                    ModBase.Log($"[OAuth] {serviceName}: 初始化完成，开始响应 HTTP 请求");
+                    LauncherLog.Log($"[OAuth] {serviceName}: 初始化完成，开始响应 HTTP 请求");
                 }
 
                 // 打开 OAuth URL
-                ModBase.OpenWebsite(url.Replace("%r", $"http://localhost:{serverPort}/callback"));
+                LauncherProcess.OpenWebsite(url.Replace("%r", $"http://localhost:{serverPort}/callback"));
             }, $"CallbackWebServerLoading/{serviceName}");
         return true;
     }

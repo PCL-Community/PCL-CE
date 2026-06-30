@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using PCL.Core.UI;
@@ -60,7 +60,7 @@ internal static class SvgIconControlHelper
 
     internal static void AnimateSvgIconBrushTo(
         SvgIcon svgIcon,
-        ModBase.MyColor color,
+        MyColor color,
         int duration,
         string? animationKey = null)
     {

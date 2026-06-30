@@ -69,16 +69,16 @@ public partial class PageSetupLauncherMisc
             Config.Network.Reset();
             Config.Debug.Reset();
             Config.System.Reset();
-            ModBase.Log("[Setup] 已初始化启动器-杂项页设置");
+            LauncherLog.Log("[Setup] 已初始化启动器-杂项页设置");
             HintService.Hint(Lang.Text("Setup.Misc.Initialized"), HintType.Success, false);
             Reload();
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Setup.Misc.Error.InitFailed"),
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.Misc.Error.InitFailed"));
         }
 
@@ -93,7 +93,7 @@ public partial class PageSetupLauncherMisc
             SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
-    private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
+    private void RadioBoxChange(object senderRaw, RouteEventArgs e)
     {
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
@@ -201,12 +201,12 @@ public partial class PageSetupLauncherMisc
     private void BtnSystemSettingExp_Click(object sender, MouseButtonEventArgs e)
     {
         var savePath =
-            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.System.ExportSettings.SaveTitle"), "PCL 全局配置.json", Lang.Text("Setup.Misc.System.ExportSettings.Filter"), ModBase.exePath);
+            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.System.ExportSettings.SaveTitle"), "PCL 全局配置.json", Lang.Text("Setup.Misc.System.ExportSettings.Filter"), LauncherPaths.ExecutableDirectoryWithSlash);
         if (string.IsNullOrWhiteSpace(savePath))
             return;
         File.Copy(ConfigService.SharedConfigPath, savePath, true);
         HintService.Hint(Lang.Text("Setup.Misc.System.ExportSettings.Success"), HintType.Success);
-        ModBase.OpenExplorer(savePath);
+        LauncherProcess.OpenExplorer(savePath);
     }
 
     private void BtnSystemSettingImp_Click(object sender, MouseButtonEventArgs e)

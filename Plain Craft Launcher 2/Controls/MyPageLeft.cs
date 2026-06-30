@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
@@ -9,7 +9,7 @@ public class MyPageLeft : Grid
     public static DependencyProperty AnimatedControlProperty =
         DependencyProperty.Register("AnimatedControl", typeof(FrameworkElement), typeof(MyPageLeft));
 
-    private readonly int uuid = ModBase.GetUuid();
+    private readonly int uuid = LauncherRuntime.GetUuid();
 
     private bool _animatedControlNullWarned;
 
@@ -22,7 +22,7 @@ public class MyPageLeft : Grid
             if (res is null && !_animatedControlNullWarned)
             {
                 _animatedControlNullWarned = true;
-                ModBase.Log($"[MyPageLeft] 获取到 AnimatedControl(来自 {Name}) 的值为 null", ModBase.LogLevel.Debug);
+                LauncherLog.Log($"[MyPageLeft] 获取到 AnimatedControl(来自 {Name}) 的值为 null", LauncherLogLevel.Debug);
             }
 
             return (FrameworkElement)res;

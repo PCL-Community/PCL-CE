@@ -4,8 +4,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using FluentValidation;
-
+using PCL.Core.App;
 using PCL.Core.App.Localization;
+
 namespace PCL;
 
 public class MyTextBox : TextBox
@@ -48,7 +49,7 @@ public class MyTextBox : TextBox
 
     // 事件
 
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherRuntime.GetUuid();
 
     public MyTextBox()
     {
@@ -165,10 +166,10 @@ public class MyTextBox : TextBox
             if (IsLoaded && labWrong is not null)
                 ChangeValidateResult(IsValidated, true);
             else
-                ModBase.RunInNewThread(() =>
+                Basics.RunInNewThread(() =>
                 {
                     Thread.Sleep(30);
-                    ModBase.RunInUi(() => ChangeValidateResult(IsValidated, false));
+                    UiThread.Post(() => ChangeValidateResult(IsValidated, false));
                 }, "DelayedValidate Change");
         }
 
@@ -178,13 +179,13 @@ public class MyTextBox : TextBox
             if (IsLoaded && labWrong is not null)
                 labWrong.Text = ValidateResult;
             else
-                ModBase.RunInNewThread(() =>
+                Basics.RunInNewThread(() =>
                 {
                     var isFinished = false;
                     while (!isFinished)
                     {
                         Thread.Sleep(20);
-                        ModBase.RunInUiWait(() =>
+                        UiThread.Invoke(() =>
                         {
                             if (labWrong is not null)
                             {
@@ -270,10 +271,10 @@ public class MyTextBox : TextBox
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "进行输入验证时出错",
-                ModBase.LogLevel.Critical,
+                LauncherLogLevel.Critical,
                 userSummary: Lang.Text("Application.Control.Error.OperationFailed"));
         }
     }
@@ -372,7 +373,7 @@ public class MyTextBox : TextBox
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "文本框颜色改变出错");
+            LauncherLog.Log(ex, "文本框颜色改变出错");
         }
     }
 

@@ -1,7 +1,7 @@
-namespace PCL;
+﻿namespace PCL;
 
 /// <summary>
-///     PCL2 进程退出码。ModBase.ProcessReturnValues 保留为旧 API 兼容层。
+///     PCL2 进程退出码。LauncherExitCode 保留为旧 API 兼容层。
 /// </summary>
 public enum LauncherExitCode
 {

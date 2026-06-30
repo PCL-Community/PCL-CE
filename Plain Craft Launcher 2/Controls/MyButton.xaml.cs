@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
@@ -41,7 +41,7 @@ public partial class MyButton
     
 
     // 自定义属性
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherRuntime.GetUuid();
 
     public MyButton()
     {
@@ -145,7 +145,7 @@ public partial class MyButton
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新按钮颜色出错");
+            LauncherLog.Log(ex, "刷新按钮颜色出错");
         }
     }
 
@@ -155,7 +155,7 @@ public partial class MyButton
     {
         if (!isMouseDown)
             return;
-        ModBase.Log("[Control] 按下按钮：" + Text);
+        LauncherLog.Log("[Control] 按下按钮：" + Text);
         Click?.Invoke(sender, e);
         ModMain.RaiseCustomEvent(this);
     }

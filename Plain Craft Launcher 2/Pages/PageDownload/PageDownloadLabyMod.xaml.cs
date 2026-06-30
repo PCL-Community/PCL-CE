@@ -45,10 +45,10 @@ public partial class PageDownloadLabyMod
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "可视化 LabyMod 版本列表出错",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
     }
@@ -65,6 +65,6 @@ public partial class PageDownloadLabyMod
 
     private void BtnWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://labymod.net");
+        LauncherProcess.OpenWebsite("https://labymod.net");
     }
 }

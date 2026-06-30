@@ -81,7 +81,7 @@ public partial class PageSelectRight
         var elapsed = (DateTime.Now - lastInputTime).TotalMilliseconds;
         var currentDelay = reloadTimer.Interval.TotalMilliseconds;
 
-        if (elapsed >= currentDelay && ModInstanceList.mcInstanceListLoader.State == ModBase.LoadState.Finished &&
+        if (elapsed >= currentDelay && ModInstanceList.mcInstanceListLoader.State == LoadState.Finished &&
             !isRefreshing)
         {
             isRefreshing = true;
@@ -116,7 +116,7 @@ public partial class PageSelectRight
 
     private void Load_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModInstanceList.mcInstanceListLoader.State == ModBase.LoadState.Failed)
+        if (ModInstanceList.mcInstanceListLoader.State == LoadState.Failed)
             ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }
@@ -366,10 +366,10 @@ public partial class PageSelectRight
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Select.Instance.Error.UiUpdate"),
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Select.Instance.Error.UiUpdate"));
         }
     }
@@ -409,10 +409,10 @@ public partial class PageSelectRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Select.Instance.Error.IconLoad"),
-                ModBase.LogLevel.Hint,
+                LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Select.Instance.Error.IconLoad"));
             newItem.Logo = "pack://application:,,,/images/Blocks/RedstoneBlock.png";
         }
@@ -543,12 +543,12 @@ public partial class PageSelectRight
             {
                 case 1:
                 {
-                    ModBase.IniClearCache(Path.Combine(mcInstance.PathIndie, "options.txt"));
+                    LegacyIniStore.Shared.ClearCache(Path.Combine(mcInstance.PathIndie, "options.txt"));
                     ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
                         mcInstance.PathInstance);
                     if (isShiftPressed)
                     {
-                        ModBase.DeleteDirectory(mcInstance.PathInstance);
+                        LegacyFileFacade.DeleteDirectory(mcInstance.PathInstance);
                         HintService.Hint(Lang.Text("Select.Instance.Delete.PermanentSuccess", mcInstance.Name),
                             HintType.Success);
                     }
@@ -603,14 +603,14 @@ public partial class PageSelectRight
         }
         catch (OperationCanceledException ex)
         {
-            ModBase.Log(ex, $"删除实例 {mcInstance.Name} 被主动取消");
+            LauncherLog.Log(ex, $"删除实例 {mcInstance.Name} 被主动取消");
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Select.Instance.Error.Delete", mcInstance.Name),
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Select.Instance.Error.Delete", mcInstance.Name));
         }
     }

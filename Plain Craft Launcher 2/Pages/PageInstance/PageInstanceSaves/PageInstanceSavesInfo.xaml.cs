@@ -97,10 +97,10 @@ public partial class PageInstanceSavesInfo : IRefreshable
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Instance.Saves.Info.Error.LoadFailed"),
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Instance.Saves.Info.Error.LoadFailed"));
             PanContent.Visibility = Visibility.Collapsed;
             PanSettings.Visibility = Visibility.Collapsed;
@@ -149,10 +149,10 @@ public partial class PageInstanceSavesInfo : IRefreshable
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     Lang.Text("Instance.Saves.Info.Modify.CheatFailed"),
-                    ModBase.LogLevel.Hint,
+                    LauncherLogLevel.Hint,
                     userSummary: Lang.Text("Instance.Saves.Info.Modify.CheatFailed"));
             }
         };
@@ -213,10 +213,10 @@ public partial class PageInstanceSavesInfo : IRefreshable
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     Lang.Text("Instance.Saves.Info.Modify.DifficultyFailed"),
-                    ModBase.LogLevel.Hint,
+                    LauncherLogLevel.Hint,
                     userSummary: Lang.Text("Instance.Saves.Info.Modify.DifficultyFailed"));
             }
         }
@@ -260,14 +260,14 @@ public partial class PageInstanceSavesInfo : IRefreshable
             {
                 try
                 {
-                    ModBase.ClipboardSet(content);
+                    LauncherProcess.ClipboardSet(content);
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(
+                    LauncherLog.Log(
                         ex,
                         Lang.Text("Instance.Saves.Info.Error.ClipboardFailed"),
-                        ModBase.LogLevel.Hint,
+                        LauncherLogLevel.Hint,
                         userSummary: Lang.Text("Instance.Saves.Info.Error.ClipboardFailed"));
                 }
             };
@@ -320,18 +320,18 @@ public partial class PageInstanceSavesInfo : IRefreshable
         {
             if (versionName is null)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     Lang.Text("Instance.Saves.Info.Chunkbase.UnknownVersion"),
-                    ModBase.LogLevel.Hint,
+                    LauncherLogLevel.Hint,
                     userSummary: Lang.Text("Instance.Saves.Info.Chunkbase.UnknownVersion"));
                 return;
             }
 
             if (versionName.Any(char.IsLetter))
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     Lang.Text("Instance.Saves.Info.Chunkbase.PreviewVersion", versionName),
-                    ModBase.LogLevel.Hint,
+                    LauncherLogLevel.Hint,
                     userSummary: Lang.Text("Instance.Saves.Info.Chunkbase.PreviewVersion", versionName));
                 return;
             }
@@ -341,15 +341,15 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 : versionName.Contains('.')
                     ? string.Join("_", versionName.Split('.').Take(2))
                     : versionName.Replace(".", "_");
-            ModBase.OpenWebsite(
+            LauncherProcess.OpenWebsite(
                 $"https://www.chunkbase.com/apps/seed-map#seed={seed}&platform=java_{usedVersion}&dimension=overworld");
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Instance.Saves.Info.Error.ChunkbaseFailed"),
-                ModBase.LogLevel.Hint,
+                LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Instance.Saves.Info.Error.ChunkbaseFailed"));
         }
     }

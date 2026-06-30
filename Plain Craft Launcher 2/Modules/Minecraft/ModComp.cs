@@ -5,24 +5,21 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Media;
 using Dapper;
 using Microsoft.Data.Sqlite;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Hash;
 using PCL.Network;
 using PCL.Network.Loaders;
 using ProtoBuf;
-using PCL.Core.App.Localization;
-using PCL.Core.UI;
 
 namespace PCL;
 
@@ -309,7 +306,7 @@ public static class ModComp
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "[CompFavorites] 生成分享出错");
+                LauncherLog.Log(ex, "[CompFavorites] 生成分享出错");
             }
 
             return "";
@@ -323,7 +320,7 @@ public static class ModComp
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "[CompFavorites] 通过分享获取 ID 出错");
+                LauncherLog.Log(ex, "[CompFavorites] 通过分享获取 ID 出错");
             }
 
             return new HashSet<string>();
@@ -372,7 +369,7 @@ public static class ModComp
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "[CompFavorites] 改变收藏项出错");
+                        LauncherLog.Log(ex, "[CompFavorites] 改变收藏项出错");
                     }
                 };
                 body.Items.Add(item);
@@ -415,7 +412,7 @@ public static class ModComp
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "[CompFavorites] 改变收藏项出错");
+                        LauncherLog.Log(ex, "[CompFavorites] 改变收藏项出错");
                     }
                 };
                 body.Items.Add(item);
@@ -530,7 +527,7 @@ public static class ModComp
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "从 Modrinth 获取数据失败");
+                LauncherLog.Log(ex, "从 Modrinth 获取数据失败");
             }
 
             return res;
@@ -576,7 +573,7 @@ public static class ModComp
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "Failed to get project data from CurseForge");
+                LauncherLog.Log(ex, "Failed to get project data from CurseForge");
             }
 
             return res;
@@ -626,20 +623,20 @@ public static class ModComp
         public static void GetClipboardResource()
         {
             string? text = null;
-            ModBase.RunInUiWait(() => text = Clipboard.GetText());
+            UiThread.Invoke(() => text = Clipboard.GetText());
 
             if (string.IsNullOrEmpty(text) || text == currentText) return;
             currentText = text;
 
             // 在新线程中处理网络请求
-            ModBase.RunInNewThread(() =>
+            Basics.RunInNewThread(() =>
             {
                 try
                 {
                     var projectId = ResolveLinkToProjectId(text);
 
                     if (string.IsNullOrEmpty(projectId)) return;
-                    ModBase.Log($"[Clipboard] Found ProjectId: {projectId}");
+                    LauncherLog.Log($"[Clipboard] Found ProjectId: {projectId}");
 
                     // 3. UI 交互：跳转到详情页
                     System.Windows.Application.Current.Dispatcher.BeginInvoke(new Func<Task>(async () =>
@@ -673,7 +670,7 @@ public static class ModComp
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "Error processing clipboard resource");
+                    LauncherLog.Log(ex, "Error processing clipboard resource");
                 }
             }, "Clipboard Resource Processing");
         }
@@ -689,8 +686,8 @@ public static class ModComp
 
     private static string InitializeModDbAndGetConnectionString()
     {
-        ModBase.Log("[DB] 解压 ModData (SQLite) 中");
-        using (var compressedDbData = ModBase.GetResourceStream("Resources/mcmod.buf"))
+        LauncherLog.Log("[DB] 解压 ModData (SQLite) 中");
+        using (var compressedDbData = Basics.GetResourceStream("Resources/mcmod.buf"))
         {
             using (var trueDbFile = new GZipStream(compressedDbData, CompressionMode.Decompress))
             {
@@ -699,8 +696,8 @@ public static class ModComp
                     // 这里提取文件资源
                     trueDbFile.CopyTo(ms);
                     ms.Seek(0L, SeekOrigin.Begin);
-                    var fileHash = ModBase.GetHexString(SHA1Provider.Instance.ComputeHash(ms));
-                    var dbDir = Path.Combine(ModBase.pathTemp, "Cache");
+                    var fileHash = LegacyFileFacade.GetHexString(SHA1Provider.Instance.ComputeHash(ms));
+                    var dbDir = Path.Combine(LauncherPaths.TempWithSlash, "Cache");
                     var dbPath = Path.Combine(dbDir, $"ModData{fileHash}.sqlite");
 
                     if (File.Exists(dbPath) && !IsDatabaseValid(dbPath))
@@ -779,7 +776,7 @@ public static class ModComp
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "检查模组翻译数据库有效性失败");
+            LauncherLog.Log(ex, "检查模组翻译数据库有效性失败");
             return false;
         }
     }
@@ -807,10 +804,10 @@ public static class ModComp
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "获取模组翻译信息失败",
-                ModBase.LogLevel.Hint,
+                LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Minecraft.Comp.Error.OperationFailed"));
             return null;
         }
@@ -1448,12 +1445,12 @@ public static class ModComp
             var para = FromCurseForge ? "modId" : "project_id";
             string result = null;
 
-            var descHash = $"{Id}{ModBase.GetStringMD5(Description)}";
-            var cacheFilePath = $@"{ModBase.pathTemp}Cache\CompTranslation.ini";
-            var cacheTranslation = ModBase.ReadIni(cacheFilePath, descHash);
+            var descHash = $"{Id}{LauncherText.GetStringMD5(Description)}";
+            var cacheFilePath = $@"{LauncherPaths.TempWithSlash}Cache\CompTranslation.ini";
+            var cacheTranslation = LegacyIniStore.Shared.Read(cacheFilePath, descHash);
             if (!string.IsNullOrWhiteSpace(cacheTranslation))
             {
-                result = ModBase.Base64Decode(cacheTranslation);
+                result = Base64Utils.DecodeToString(cacheTranslation);
                 return result;
             }
 
@@ -1464,7 +1461,7 @@ public static class ModComp
                 if (jsonObject.ContainsKey("translated"))
                 {
                     result = jsonObject["translated"].ToString();
-                    ModBase.WriteIni(cacheFilePath, descHash, ModBase.Base64Encode(result));
+                    LegacyIniStore.Shared.Write(cacheFilePath, descHash, Base64Utils.EncodeString(result));
                 }
             }
             catch (HttpRequestException ex)
@@ -1475,18 +1472,18 @@ public static class ModComp
                     return null;
                 }
 
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     "获取中文描述时出现错误",
-                    ModBase.LogLevel.Hint,
+                    LauncherLogLevel.Hint,
                     userSummary: Lang.Text("Minecraft.Comp.Error.OperationFailed"));
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     "获取中文描述时出现错误",
-                    ModBase.LogLevel.Hint,
+                    LauncherLogLevel.Hint,
                     userSummary: Lang.Text("Minecraft.Comp.Error.OperationFailed"));
             }
 
@@ -1686,7 +1683,7 @@ public static class ModComp
             {
                 Title = TranslatedName,
                 Info = Description.Replace("\r", "").Replace("\n", ""),
-                Logo = string.IsNullOrEmpty(LogoUrl) ? $"{ModBase.pathImage}Icons/NoIcon.png" : LogoUrl,
+                Logo = string.IsNullOrEmpty(LogoUrl) ? $"{LauncherPaths.ImageBaseUri}Icons/NoIcon.png" : LogoUrl,
                 Tags = Tags,
                 Tag = this,
                 LogoCornerRadius = new CornerRadius(6)
@@ -1698,7 +1695,7 @@ public static class ModComp
         {
             if (string.IsNullOrEmpty(LogoUrl))
             {
-                img.Source = ModBase.pathImage + "Icons/NoIcon.png";
+                img.Source = LauncherPaths.ImageBaseUri + "Icons/NoIcon.png";
             }
             else
             {
@@ -1850,7 +1847,7 @@ public static class ModComp
                 (RawName ?? "") == (project.RawName ?? "") || (Description ?? "") == (project.Description ?? "") ||
                 (GetRaw(Slug) ?? "") == (GetRaw(project.Slug) ?? ""))
             {
-                ModBase.Log($"[Comp] 将 {RawName} ({Slug}) 与 {project.RawName} ({project.Slug}) 认定为相似工程");
+                LauncherLog.Log($"[Comp] 将 {RawName} ({Slug}) 与 {project.RawName} ({project.Slug}) 认定为相似工程");
                 // 如果只有一个有 DatabaseEntry，设置给另外一个
                 if (DatabaseEntry is null && project.DatabaseEntry is not null)
                     DatabaseEntry = project.DatabaseEntry;
@@ -2123,11 +2120,11 @@ public static class ModComp
                 address += "&offset=" + storage.modrinthOffset;
             // facets=[["categories:'game-mechanics'"],["categories:'forge'"],["versions:1.19.3"],["project_type:mod"]]
             var facets = new List<string>();
-            facets.Add($"[\"project_type:{ModBase.GetStringFromEnum(type).ToLower()}\"]");
+            facets.Add($"[\"project_type:{LauncherText.GetStringFromEnum(type).ToLower()}\"]");
             if (!string.IsNullOrEmpty(tag))
                 facets.Add($"[\"categories:'{tag.AfterLast("/")}'\"]");
             if (modLoader != CompLoaderType.Any)
-                facets.Add($"[\"categories:'{ModBase.GetStringFromEnum(modLoader).ToLower()}'\"]");
+                facets.Add($"[\"categories:'{LauncherText.GetStringFromEnum(modLoader).ToLower()}'\"]");
             if (!string.IsNullOrEmpty(gameVersion))
                 facets.Add($"[\"versions:'{gameVersion}'\"]");
             address += "&facets=[" + string.Join(",", facets) + "]";
@@ -2335,7 +2332,7 @@ public static class ModComp
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "[Comp] 解析资源链接失败");
+                LauncherLog.Log(ex, "[Comp] 解析资源链接失败");
                 throw new Exception(Lang.Text("Download.Comp.Link.ResolveFailed"));
             }
 
@@ -2391,7 +2388,7 @@ public static class ModComp
                               !string.IsNullOrEmpty(rawFilter);
         if (isChineseSearch && request.type is CompType.Mod or CompType.DataPack)
         {
-            var searchEntries = new List<ModBase.SearchEntry<CompDatabaseEntry>>();
+            var searchEntries = new List<SearchEntry<CompDatabaseEntry>>();
             using (var conn = CompDB)
             {
                 var sql =
@@ -2400,10 +2397,10 @@ public static class ModComp
                 foreach (var searchItem in searchRes)
                 {
                     if (searchItem.ChineseName.Contains("动态的树")) continue;
-                    searchEntries.Add(new ModBase.SearchEntry<CompDatabaseEntry>
+                    searchEntries.Add(new SearchEntry<CompDatabaseEntry>
                     {
                         item = searchItem,
-                        searchSource = new List<ModBase.SearchSource>
+                        searchSource = new List<SearchSource>
                         {
                             new(searchItem.ChineseName.BeforeFirst(" (").Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries), 1),
                             new(searchItem.ChineseName.AfterFirst(" (") + (searchItem.CurseForgeSlug ?? "") + (searchItem.ModrinthSlug ?? ""), 0.5)
@@ -2412,10 +2409,10 @@ public static class ModComp
                 }
             }
 
-            var searchResults = ModBase.Search(searchEntries, request.searchText, 40, 0.2);
+            var searchResults = LauncherSearch.Search(searchEntries, request.searchText, 40, 0.2);
             if (!searchResults.Any()) throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
 
-            string[] ExtractWords(ModBase.SearchEntry<CompDatabaseEntry> result)
+            string[] ExtractWords(SearchEntry<CompDatabaseEntry> result)
             {
                 var word = "";
                 if (result.item.CurseForgeSlug is not null)
@@ -2430,7 +2427,7 @@ public static class ModComp
                     {
                         if (w.Length <= 1) return false;
                         if (new[] { "the", "of", "mod", "and" }.Contains(w)) return false;
-                        if (ModBase.Val(w) > 0) return false;
+                        if (LauncherText.Val(w) > 0) return false;
                         if (w.Split(' ').Length > 3 && w.Contains("ftb")) return false;
                         return true;
                     }).Distinct().ToArray();
@@ -2649,16 +2646,16 @@ public static class ModComp
         }
         else
         {
-            var searchEntries = new List<ModBase.SearchEntry<CompProject>>();
+            var searchEntries = new List<SearchEntry<CompProject>>();
             foreach (var res in realResults)
             {
                 scores.Add(res,
                     (Lang.IsChineseMainland && res.WikiId > 0 ? 0.2 : 0) +
                     Math.Log10(Math.Max(res.DownloadCount, 1) * getDownloadCountMult(res)) / 9);
-                searchEntries.Add(new ModBase.SearchEntry<CompProject>
+                searchEntries.Add(new SearchEntry<CompProject>
                 {
                     item = res,
-                    searchSource = new List<ModBase.SearchSource>
+                    searchSource = new List<SearchSource>
                     {
                         new((isChineseSearch ? res.TranslatedName : res.RawName).Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries), 1),
                         new(res.Description, 0.05)
@@ -2666,7 +2663,7 @@ public static class ModComp
                 });
             }
 
-            var searchRes = ModBase.Search(searchEntries, rawFilter, 101, -1);
+            var searchRes = LauncherSearch.Search(searchEntries, rawFilter, 101, -1);
             foreach (var item in searchRes)
                 scores[item.item] +=
                     (item.absoluteRight ? 10 : item.similarity) /
@@ -3093,7 +3090,7 @@ public static class ModComp
         public DownloadFile ToNetFile(string localAddress)
         {
             return new DownloadFile(DownloadUrls, localAddress + (localAddress.EndsWithF(@"\") ? CompFileNameSanitize(FileName) : ""),
-                new ModBase.FileChecker(hash: Hash), true);
+                new FileChecker(hash: Hash), true);
         }
 
         /// <summary>
@@ -3181,9 +3178,9 @@ public static class ModComp
                         // 使用 switch 表达式精简 Logo 选择喵！
                         Logo = Status switch
                         {
-                            CompFileStatus.Release => ModBase.pathImage + "Icons/R.png",
-                            CompFileStatus.Beta => ModBase.pathImage + "Icons/B.png",
-                            _ => ModBase.pathImage + "Icons/A.png"
+                            CompFileStatus.Release => LauncherPaths.ImageBaseUri + "Icons/R.png",
+                            CompFileStatus.Beta => LauncherPaths.ImageBaseUri + "Icons/B.png",
+                            _ => LauncherPaths.ImageBaseUri + "Icons/A.png"
                         }
                     };
                     newItem.Click += onClick;
@@ -3245,7 +3242,7 @@ public static class ModComp
         // 2. 获取并缓存文件列表
         if (!compFilesCache.ContainsKey(projectId))
         {
-            ModBase.Log("[Comp] 开始获取文件列表：" + projectId);
+            LauncherLog.Log("[Comp] 开始获取文件列表：" + projectId);
             JsonArray resultJsonArray;
             if (fromCurseForge)
             {
@@ -3277,7 +3274,7 @@ public static class ModComp
         // 4. 批量请求缺失的前置工程信息
         if (undoneDeps.Any())
         {
-            ModBase.Log($"[Comp] {projectId} 需要补全信息的依赖项共 {undoneDeps.Count} 个");
+            LauncherLog.Log($"[Comp] {projectId} 需要补全信息的依赖项共 {undoneDeps.Count} 个");
             JsonArray projects;
             if (fromCurseForge)
             {
@@ -3388,7 +3385,7 @@ public static class ModComp
     /// </summary>
     public static void QuickDownload(CompProject project)
     {
-        ModBase.RunInNewThread(() =>
+        Basics.RunInNewThread(() =>
         {
             try
             {
@@ -3406,7 +3403,7 @@ public static class ModComp
                 if (behavior == 0)
                 {
                     // 总是询问：弹「方式选择」
-                    int? choice = ModBase.RunInUiWait(() =>
+                    int? choice = UiThread.Invoke(() =>
                     {
                         var options = new List<IMyRadio>
                         {
@@ -3442,10 +3439,10 @@ public static class ModComp
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     "[Comp] 快速下载失败",
-                    ModBase.LogLevel.Feedback,
+                    LauncherLogLevel.Feedback,
                     userSummary: Lang.Text("Minecraft.Comp.Error.OperationFailed"));
             }
         }, "Comp QuickDownload");
@@ -3479,7 +3476,7 @@ public static class ModComp
     /// <summary>弹实例列表让用户选择，返回选中的实例（兼容者优先、当前选中实例居首）；取消或无兼容实例返回 null。</summary>
     private static McInstance? _QuickDownloadPickInstance(CompProject project, List<CompFile> files)
     {
-        var needLoad = ModInstanceList.mcInstanceListLoader.State != ModBase.LoadState.Finished;
+        var needLoad = ModInstanceList.mcInstanceListLoader.State != LoadState.Finished;
         if (needLoad)
         {
             HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.Loading"), HintType.Info);
@@ -3502,7 +3499,7 @@ public static class ModComp
                 .OrderBy(v => v == current ? 0 : 1)
                 .ThenBy(v => v.Name)
                 .ToList();
-        int? idx = ModBase.RunInUiWait(() =>
+        int? idx = UiThread.Invoke(() =>
         {
             var options = compatible
                 .Select(v => (IMyRadio)new MyRadioBox { Text = v.Name })
@@ -3525,7 +3522,8 @@ public static class ModComp
             HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.NoFile"), HintType.Info);
             return;
         }
-        var saveFolder = ModBase.RunInUiWait(() =>
+
+        var saveFolder = UiThread.Invoke(() =>
             SystemDialogs.SelectFolder(Lang.Text("Download.Comp.QuickDownload.Hint.SelectFolder")));
         if (string.IsNullOrWhiteSpace(saveFolder)) return; // 取消
         var target = Path.Combine(saveFolder, CompFileNameGet(project, file));
@@ -3546,7 +3544,7 @@ public static class ModComp
             _ => Lang.Text("Download.Comp.Type.Mod")
         };
         var loaderName = Lang.Text("Download.Comp.Detail.DownloadResource", desc,
-            ModBase.GetFileNameWithoutExtentionFromPath(target));
+            LegacyFileFacade.GetFileNameWithoutExtensionFromPath(target));
         var loaders = new List<ModLoader.LoaderBase>
         {
             new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadFile"),
@@ -3561,14 +3559,14 @@ public static class ModComp
             var extractDir = Path.GetDirectoryName(target);
             loaders.Add(new ModLoader.LoaderTask<int, int>(
                 Lang.Text("Download.Comp.Detail.InstallWorld"),
-                _ => ModBase.ExtractFile(target, extractDir, Encoding.UTF8))
+                _ => LegacyFileFacade.ExtractFile(target, extractDir, Encoding.UTF8))
             {
                 ProgressWeight = 0.1d,
                 block = true
             });
             loaders.Add(new ModLoader.LoaderTask<int, int>(
                 Lang.Text("Download.Comp.Detail.CleanCache"),
-                _ => System.IO.File.Delete(target)));
+                _ => File.Delete(target)));
         }
         var loader = new ModLoader.LoaderCombo<int>(loaderName, loaders)
         {
@@ -3686,7 +3684,7 @@ public static class ModComp
             if (compProjectCache.TryGetValue(dep, out var project))
                 projects.Add(project);
             else
-                ModBase.Log($"[Comp] 未找到 ID {dep} 的前置信息", ModBase.LogLevel.Debug);
+                LauncherLog.Log($"[Comp] 未找到 ID {dep} 的前置信息", LauncherLogLevel.Debug);
         }
         if (!projects.Any())
             return;

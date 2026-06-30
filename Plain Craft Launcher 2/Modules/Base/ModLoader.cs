@@ -1,13 +1,11 @@
-﻿using Microsoft.VisualBasic.CompilerServices;
-using PCL.Core.App;
-using PCL.Core.Utils;
-using System.Collections;
-using System.IO;
+﻿using System.IO;
 using System.Windows.Shell;
-using PCL.Network;
-using PCL.Network.Loaders;
-
+using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils;
+using PCL.Network;
+
 namespace PCL;
 
 public static class ModLoader
@@ -20,7 +18,7 @@ public static class ModLoader
     }
 
     // 任务栏进度条
-    public static ModBase.SafeList<LoaderBase> loaderTaskbar = new();
+    public static SafeList<LoaderBase> loaderTaskbar = new();
     public static double loaderTaskbarProgress; // 平滑后的进度
     private static TaskbarItemProgressState loaderTaskbarProgressLast = TaskbarItemProgressState.None;
 
@@ -32,7 +30,7 @@ public static class ModLoader
         if (ModMain.frmSpeedLeft is not null)
             ModMain.frmSpeedLeft.TaskRemove(loader);
         loaderTaskbar.Add(loader);
-        ModBase.Log($"[Taskbar] {loader.name} 已加入任务列表");
+        LauncherLog.Log($"[Taskbar] {loader.name} 已加入任务列表");
     }
 
     public static void LoaderTaskbarProgressRefresh()
@@ -43,12 +41,12 @@ public static class ModLoader
             var newProgress = LoaderTaskbarProgressGet();
             // 若单个任务已中止，或全部任务已完成，则刷新并移除
             foreach (var Task in loaderTaskbar)
-                if (loaderTaskbar.All(l => l.State != ModBase.LoadState.Loading) ||
-                    Task.State == ModBase.LoadState.Waiting || Task.State == ModBase.LoadState.Aborted)
+                if (loaderTaskbar.All(l => l.State != LoadState.Loading) ||
+                    Task.State == LoadState.Waiting || Task.State == LoadState.Aborted)
                 {
                     ModMain.frmSpeedLeft?.TaskRefresh(Task);
                     loaderTaskbar.Remove(Task);
-                    ModBase.Log($"[Taskbar] {Task.name} 已移出任务列表");
+                    LauncherLog.Log($"[Taskbar] {Task.name} 已移出任务列表");
                 }
 
             // 更新平滑后的进度
@@ -56,7 +54,7 @@ public static class ModLoader
                 loaderTaskbarProgress = newProgress;
             else
                 loaderTaskbarProgress = loaderTaskbarProgress * 0.9d + newProgress * 0.1d;
-            ModBase.RunInUi(() => ModMain.frmMain.BtnExtraDownload.Progress = loaderTaskbarProgress);
+            UiThread.Post(() => ModMain.frmMain.BtnExtraDownload.Progress = loaderTaskbarProgress);
             // 更新任务栏信息
             if (!loaderTaskbar.Any() || loaderTaskbarProgress == 1d)
             {
@@ -81,10 +79,10 @@ public static class ModLoader
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "刷新任务栏进度显示失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Application.Loader.Error.OperationFailed"));
         }
     }
@@ -96,7 +94,7 @@ public static class ModLoader
             if (!loaderTaskbar.Any())
                 return 1d;
 
-            return ModBase.MathClamp(
+            return LauncherMath.Clamp(
                 loaderTaskbar.Select(l => l.Progress).Average(),
                 0,
                 1
@@ -104,10 +102,10 @@ public static class ModLoader
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "获取任务栏进度出错",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Application.Loader.Error.OperationFailed"));
             return 0.5d;
         }
@@ -146,7 +144,7 @@ public static class ModLoader
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "文件夹加载器启动检测出错");
+            LauncherLog.Log(ex, "文件夹加载器启动检测出错");
         }
 
         // 写入检查数据
@@ -181,11 +179,11 @@ public static class ModLoader
     /// </summary>
     public abstract class LoaderBase : ILoadingTrigger
     {
-        public delegate void OnStateChangedThreadEventHandler(LoaderBase loader, ModBase.LoadState newState,
-            ModBase.LoadState oldState);
+        public delegate void OnStateChangedThreadEventHandler(LoaderBase loader, LoadState newState,
+            LoadState oldState);
 
-        public delegate void OnStateChangedUiEventHandler(LoaderBase loader, ModBase.LoadState newState,
-            ModBase.LoadState oldState);
+        public delegate void OnStateChangedUiEventHandler(LoaderBase loader, LoadState newState,
+            LoadState oldState);
 
         public delegate void PreviewFinishEventHandler(LoaderBase loader);
 
@@ -231,7 +229,7 @@ public static class ModLoader
         /// <summary>
         ///     加载器的标识编号。
         /// </summary>
-        public int Uuid = ModBase.GetUuid();
+        public int Uuid = LauncherRuntime.GetUuid();
 
         public LoaderBase()
         {
@@ -254,10 +252,10 @@ public static class ModLoader
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(
+                    LauncherLog.Log(
                         ex,
-                        "获取父加载器失败（" + name + "）",
-                        ModBase.LogLevel.Feedback,
+                        $"获取父加载器失败（{name}）",
+                        LauncherLogLevel.Feedback,
                         userSummary: Lang.Text("Application.Loader.Error.OperationFailed"));
                     return null;
                 }
@@ -278,7 +276,7 @@ public static class ModLoader
         /// <summary>
         ///     加载器的状态。
         /// </summary>
-        public ModBase.LoadState State
+        public LoadState State
         {
             get => field;
             set
@@ -286,21 +284,21 @@ public static class ModLoader
                 if (field == value)
                     return;
                 var oldState = field;
-                if (value == ModBase.LoadState.Finished && Config.Debug.AddRandomDelay)
+                if (value == LoadState.Finished && Config.Debug.AddRandomDelay)
                     Thread.Sleep(RandomUtils.NextInt(100, 2000));
                 field = value;
-                ModBase.Log("[Loader] 加载器 " + name + " 状态改变：" + ModBase.GetStringFromEnum(value));
+                LauncherLog.Log($"[Loader] 加载器 {name} 状态改变：{LauncherText.GetStringFromEnum(value)}");
                 // 实现 ILoadingTrigger 接口与 OnStateChanged 回调
-                ModBase.RunInUi(() =>
+                UiThread.Post(() =>
                 {
                     switch (value)
                     {
-                        case ModBase.LoadState.Loading:
+                        case LoadState.Loading:
                         {
                             LoadingState = MyLoading.MyLoadingState.Run;
                             break;
                         }
-                        case ModBase.LoadState.Failed:
+                        case LoadState.Failed:
                         {
                             LoadingState = MyLoading.MyLoadingState.Error;
                             break;
@@ -316,9 +314,9 @@ public static class ModLoader
                     OnStateChangedUi?.Invoke(this, value, oldState);
                 });
                 if (hasOnStateChangedThread)
-                    ModBase.RunInThread(() => OnStateChangedThread?.Invoke(this, value, oldState));
+                    UiThread.RunInThread(() => OnStateChangedThread?.Invoke(this, value, oldState));
             }
-        } = ModBase.LoadState.Waiting;
+        } = LoadState.Waiting;
 
         /// <summary>
         ///     若加载器出错，可提供给外部参考的异常。
@@ -335,11 +333,11 @@ public static class ModLoader
             {
                 switch (State)
                 {
-                    case ModBase.LoadState.Waiting:
+                    case LoadState.Waiting:
                     {
                         return 0d;
                     }
-                    case ModBase.LoadState.Loading:
+                    case LoadState.Loading:
                     {
                         return field == -1 ? 0.02d : field;
                     }
@@ -421,28 +419,22 @@ public static class ModLoader
             bool isForceRestart = false)
         {
             Start(input, isForceRestart);
-            while (State == ModBase.LoadState.Loading)
+            while (State == LoadState.Loading)
             {
                 if (loaderToSyncProgress is not null)
                     loaderToSyncProgress.Progress = Progress;
                 Thread.Sleep(10);
             }
 
-            if (State == ModBase.LoadState.Finished)
+            if (State == LoadState.Finished)
+                return;
+
+            throw State switch
             {
-            }
-            else if (State == ModBase.LoadState.Aborted)
-            {
-                throw new ThreadInterruptedException("加载器执行已中断。");
-            }
-            else if (Error is null)
-            {
-                throw new Exception("未知错误！");
-            }
-            else
-            {
-                throw new Exception(Error.Message, Error);
-            } // 保留调用堆栈，同时不影响信息输出与单元测试
+                LoadState.Aborted => new ThreadInterruptedException("加载器执行已中断。"),
+                _ when Error is null => new Exception("未知错误！"),
+                _ => new Exception(Error.Message, Error)
+            }; // 保留调用堆栈，同时不影响信息输出与单元测试
         }
 
         /// <summary>
@@ -454,7 +446,7 @@ public static class ModLoader
             object loaderToSyncProgress = null, bool isForceRestart = false)
         {
             Start(input, isForceRestart);
-            while (State == ModBase.LoadState.Loading)
+            while (State == LoadState.Loading)
             {
                 if (loaderToSyncProgress is not null)
                     ((dynamic)loaderToSyncProgress).Progress = Progress;
@@ -464,21 +456,15 @@ public static class ModLoader
                     throw new TimeoutException(timeoutMessage);
             }
 
-            if (State == ModBase.LoadState.Finished)
+            if (State == LoadState.Finished)
+                return;
+
+            throw State switch
             {
-            }
-            else if (State == ModBase.LoadState.Aborted)
-            {
-                throw new ThreadInterruptedException("加载器执行已中断。");
-            }
-            else if (Error is null)
-            {
-                throw new Exception("未知错误！");
-            }
-            else
-            {
-                throw Error;
-            }
+                LoadState.Aborted => new ThreadInterruptedException("加载器执行已中断。"),
+                _ when Error is null => new Exception("未知错误！"),
+                _ => Error
+            };
         }
 
         // 相同重载
@@ -519,7 +505,7 @@ public static class ModLoader
         public bool IsAbortedWithThread(int compareTaskId)
         {
             return lastRunningTask is null || compareTaskId != lastRunningTask.Id ||
-                   State == ModBase.LoadState.Aborted;
+                   State == LoadState.Aborted;
         }
 
         public abstract bool ShouldStart(ref object? input, bool isForceRestart = false, bool ignoreReloadTimeout = false);
@@ -562,7 +548,7 @@ public static class ModLoader
             // 按照龙猫的逻辑，此处将 input 与默认值直接进行等价比较，若相等则认为 input 未传入具体值，而调用 inputDelegate 获取
             // 这种逻辑未考虑值类型恰好传入 default 值 (如 double 传了 0.0) 的情况，这是一个陷阱，可能会产生 undefined behavior
             if (EqualityComparer<InputType>.Default.Equals(input, default) && inputDelegate is not null)
-                ModBase.RunInUiWait(() => input = inputDelegate());
+                UiThread.Invoke(() => input = inputDelegate());
             return input;
         }
 
@@ -581,31 +567,32 @@ public static class ModLoader
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
-                    "加载输入获取失败（" + name + "）",
-                    ModBase.LogLevel.Hint,
+                    $"加载输入获取失败（{name}）",
+                    LauncherLogLevel.Hint,
                     userSummary: Lang.Text("Application.Loader.Error.OperationFailed"));
                 Error = ex;
                 lock (lockState)
                 {
-                    State = ModBase.LoadState.Failed;
+                    State = LoadState.Failed;
                 }
             }
 
             // 检验输入以确定情况
             if (isForceRestart)
-                return true; // 强制要求重启
-            if (input is null != this.input is null || (input is not null && !input.Equals(this.input)))
-                return true; // 输入不同
-            if ((State == ModBase.LoadState.Loading || State == ModBase.LoadState.Finished) && (ignoreReloadTimeout ||
-                    reloadTimeout == -1 || lastFinishedTime == 0L ||
-                    TimeUtils.GetTimeTick() - lastFinishedTime < reloadTimeout)) // 正在加载或已结束
-                // 没有超时
-                return false; // 则不重试
+                return true;
 
-            return true;
-            // 需要开始
+            if (!Equals(input, this.input))
+                return true;
+
+            var isStateReloadable = State is not (LoadState.Loading or LoadState.Finished);
+            var isReloadTimedOut = !ignoreReloadTimeout
+                                   && reloadTimeout != -1
+                                   && lastFinishedTime != 0L
+                                   && TimeUtils.GetTimeTick() - lastFinishedTime >= reloadTimeout;
+
+            return isStateReloadable || isReloadTimedOut;
         }
 
         public override void Start(object input = null, bool isForceRestart = false)
@@ -614,12 +601,12 @@ public static class ModLoader
             if (ShouldStart(ref input, isForceRestart))
             {
                 // 输入不同或失败，开始加载
-                if (State == ModBase.LoadState.Loading)
+                if (State == LoadState.Loading)
                     TriggerThreadAbort();
                 this.input = Conversions.ToGenericParameter<InputType>(input);
                 lock (lockState)
                 {
-                    State = ModBase.LoadState.Loading;
+                    State = LoadState.Loading;
                     Progress = -1;
                 }
             }
@@ -632,46 +619,46 @@ public static class ModLoader
                 try
                 {
                     isForceRestarting = isForceRestart;
-                    if (ModBase.ModeDebug)
-                        ModBase.Log(
+                    if (LauncherRuntime.ModeDebug)
+                        LauncherLog.Log(
                             $"[Loader] 加载线程 {name} ({Task.CurrentId}) 已{(isForceRestarting ? "强制" : "")}启动");
                     loadDelegate(this);
                     if (IsAborted)
                     {
-                        ModBase.Log(
+                        LauncherLog.Log(
                             $"[Loader] 加载线程 {name} ({Task.CurrentId}) 已中断但线程正常运行至结束，输出被弃用（最新线程：{(lastRunningTask is null ? -1 : lastRunningTask.Id)}）",
-                            ModBase.LogLevel.Developer);
+                            LauncherLogLevel.Developer);
                         return;
                     }
 
-                    if (ModBase.ModeDebug)
-                        ModBase.Log($"[Loader] 加载线程 {name} ({Task.CurrentId}) 已完成");
+                    if (LauncherRuntime.ModeDebug)
+                        LauncherLog.Log($"[Loader] 加载线程 {name} ({Task.CurrentId}) 已完成");
                     RaisePreviewFinish();
-                    State = ModBase.LoadState.Finished;
+                    State = LoadState.Finished;
                     lastFinishedTime = TimeUtils.GetTimeTick();
                 }
-                catch (ModBase.CancelledException ex)
+                catch (CancelledException ex)
                 {
-                    if (ModBase.ModeDebug)
-                        ModBase.Log(ex,
+                    if (LauncherRuntime.ModeDebug)
+                        LauncherLog.Log(ex,
                             $"加载线程 {name} ({Task.CurrentId}) 已触发取消中断，已完成 {Math.Round(Progress * 100d)}%");
-                    if (!IsAborted) State = ModBase.LoadState.Aborted;
+                    if (!IsAborted) State = LoadState.Aborted;
                 }
                 catch (ThreadInterruptedException ex)
                 {
-                    if (ModBase.ModeDebug)
-                        ModBase.Log(ex,
+                    if (LauncherRuntime.ModeDebug)
+                        LauncherLog.Log(ex,
                             $"加载线程 {name} ({Task.CurrentId}) 已触发线程中断，已完成 {Math.Round(Progress * 100d)}%");
-                    if (!IsAborted) State = ModBase.LoadState.Aborted;
+                    if (!IsAborted) State = LoadState.Aborted;
                 }
                 catch (Exception ex)
                 {
                     if (IsAborted) return;
-                    ModBase.Log(ex,
+                    LauncherLog.Log(ex,
                         $"加载线程 {name} ({Task.CurrentId}) 出错，已完成 {Math.Round(Progress * 100d)}%",
-                        ModBase.LogLevel.Developer);
+                        LauncherLogLevel.Developer);
                     Error = ex;
-                    State = ModBase.LoadState.Failed;
+                    State = LoadState.Failed;
                 }
             }, (cancelToken ??= new CancellationTokenSource()).Token); // 未中断，本次输出有效
             // LastRunningTask.Start(); // 不能使用 RunInNewThread，否则在函数返回前线程就会运行完，导致误判 IsAborted
@@ -679,11 +666,11 @@ public static class ModLoader
 
         public override void Abort()
         {
-            if (State != ModBase.LoadState.Loading)
+            if (State != LoadState.Loading)
                 return;
             lock (lockState)
             {
-                State = ModBase.LoadState.Aborted;
+                State = LoadState.Aborted;
             }
 
             TriggerThreadAbort();
@@ -692,7 +679,7 @@ public static class ModLoader
         private void TriggerThreadAbort()
         {
             if (lastRunningTask is null) return;
-            if (ModBase.ModeDebug) ModBase.Log($"[Loader] 加载线程 {name} ({lastRunningTask.Id}) 已中断");
+            if (LauncherRuntime.ModeDebug) LauncherLog.Log($"[Loader] 加载线程 {name} ({lastRunningTask.Id}) 已中断");
             if (!lastRunningTask.IsCompleted) cancelToken?.Cancel();
             lastRunningTask = null;
             cancelToken = null;
@@ -729,11 +716,11 @@ public static class ModLoader
             {
                 switch (State)
                 {
-                    case ModBase.LoadState.Waiting:
+                    case LoadState.Waiting:
                     {
                         return 0d;
                     }
-                    case ModBase.LoadState.Loading:
+                    case LoadState.Loading:
                     {
                         var total = 0d;
                         var finished = 0d;
@@ -769,24 +756,24 @@ public static class ModLoader
             isForceRestarting = isForceRestart;
             lock (lockState)
             {
-                if (State == ModBase.LoadState.Loading) return;
+                if (State == LoadState.Loading) return;
 
-                State = ModBase.LoadState.Loading;
+                State = LoadState.Loading;
             }
 
             // 启动加载
             this.input = input;
             if (isForceRestart)
                 foreach (var Loader in loaders)
-                    Loader.State = ModBase.LoadState.Waiting;
-            ModBase.RunInThread(Update);
+                    Loader.State = LoadState.Waiting;
+            UiThread.RunInThread(Update);
         }
 
         public override void Abort()
         {
             lock (lockState)
             {
-                if (State != ModBase.LoadState.Loading && State != ModBase.LoadState.Waiting)
+                if (State != LoadState.Loading && State != LoadState.Waiting)
                     return;
             }
 
@@ -794,36 +781,36 @@ public static class ModLoader
 
             lock (lockState)
             {
-                if (State == ModBase.LoadState.Loading || State == ModBase.LoadState.Waiting)
-                    State = ModBase.LoadState.Aborted;
+                if (State == LoadState.Loading || State == LoadState.Waiting)
+                    State = LoadState.Aborted;
             }
         }
 
         /// <summary>
         ///     子任务状态变更。
         /// </summary>
-        private void SubTaskStateChanged(LoaderBase loader, ModBase.LoadState newState, ModBase.LoadState oldState)
+        private void SubTaskStateChanged(LoaderBase loader, LoadState newState, LoadState oldState)
         {
             switch (newState)
             {
-                case ModBase.LoadState.Loading:
+                case LoadState.Loading:
                 {
                     break;
                 }
                 // 开始，啥都不干
-                case ModBase.LoadState.Waiting:
+                case LoadState.Waiting:
                 {
                     break;
                 }
                 // 子加载器可能由于外部输入改变而暂时变为 Waiting，之后会立即重新启动
                 // 所以啥都不干就行
-                case ModBase.LoadState.Finished:
+                case LoadState.Finished:
                 {
                     // 正常结束，触发刷新
                     Update();
                     break;
                 }
-                case ModBase.LoadState.Aborted:
+                case LoadState.Aborted:
                 {
                     // 被中断，这个任务也中断
                     Abort();
@@ -835,7 +822,7 @@ public static class ModLoader
                     // 完蛋，出错了
                     lock (lockState)
                     {
-                        if (State >= ModBase.LoadState.Finished)
+                        if (State >= LoadState.Finished)
                             return;
                         Error = new Exception(loader.name + "失败", loader.Error);
                         State = loader.State;
@@ -858,9 +845,7 @@ public static class ModLoader
         /// </summary>
         private void Update()
         {
-            if (State == ModBase.LoadState.Finished
-                || State == ModBase.LoadState.Failed
-                || State == ModBase.LoadState.Aborted)
+            if (State is LoadState.Finished or LoadState.Failed or LoadState.Aborted)
                 return;
 
             var isFinished = true;
@@ -870,7 +855,7 @@ public static class ModLoader
             foreach (var loader in loaders)
                 switch (loader.State)
                 {
-                    case ModBase.LoadState.Finished:
+                    case LoadState.Finished:
                     {
                         if (loader is LoaderTask task)
                         {
@@ -881,7 +866,7 @@ public static class ModLoader
 
                             if (task.ShouldStart(ref shouldInput, false, true))
                             {
-                                ModBase.Log("[Loader] 由于输入条件变更，重启已完成的加载器 " + loader.name);
+                                LauncherLog.Log("[Loader] 由于输入条件变更，重启已完成的加载器 " + loader.name);
                                 goto Restart;
                             }
 
@@ -894,7 +879,7 @@ public static class ModLoader
                         break;
                     }
 
-                    case ModBase.LoadState.Loading:
+                    case LoadState.Loading:
                     {
                         if (loader is LoaderTask task)
                         {
@@ -904,8 +889,8 @@ public static class ModLoader
                                 : null;
                             if (task.ShouldStart(ref shouldInput, false, true))
                             {
-                                ModBase.Log($"[Loader] 由于输入条件变更，重启进行中的加载器 {loader.name}",
-                                    ModBase.LogLevel.Developer);
+                                LauncherLog.Log($"[Loader] 由于输入条件变更，重启进行中的加载器 {loader.name}",
+                                    LauncherLogLevel.Developer);
                                 goto Restart;
                             }
                         }
@@ -959,7 +944,7 @@ public static class ModLoader
             if (isFinished)
             {
                 RaisePreviewFinish();
-                State = ModBase.LoadState.Finished;
+                State = LoadState.Finished;
                 ModMain.frmMain.BtnExtraDownload.ShowRefresh();
             }
         }

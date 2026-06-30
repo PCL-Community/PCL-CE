@@ -37,10 +37,10 @@ public partial class PageDownloadQuilt
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "可视化 Quilt 版本列表出错",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
     }
@@ -52,6 +52,6 @@ public partial class PageDownloadQuilt
 
     private void BtnWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://quiltmc.org");
+        LauncherProcess.OpenWebsite("https://quiltmc.org");
     }
 }

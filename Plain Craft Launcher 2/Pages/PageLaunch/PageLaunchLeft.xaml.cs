@@ -82,46 +82,46 @@ public partial class PageLaunchLeft
             ModProfile.selectedProfile = ModProfile.profileList[ModProfile.lastUsedProfile];
 
         // 加载实例
-        ModBase.RunInNewThread(() =>
+        PCL.Core.App.Basics.RunInNewThread(() =>
         {
             // 自动整合包安装：准备
             string packInstallPath = null;
-            if (File.Exists(Path.Combine(ModBase.exePath, "modpack.zip")))
-                packInstallPath = Path.Combine(ModBase.exePath, "modpack.zip");
-            if (File.Exists(Path.Combine(ModBase.exePath, "modpack.mrpack")))
-                packInstallPath = Path.Combine(ModBase.exePath, "modpack.mrpack");
+            if (File.Exists(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "modpack.zip")))
+                packInstallPath = Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "modpack.zip");
+            if (File.Exists(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "modpack.mrpack")))
+                packInstallPath = Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "modpack.mrpack");
             if (packInstallPath is not null)
             {
-                ModBase.Log("[Launch] 需自动安装整合包：" + packInstallPath, ModBase.LogLevel.Debug);
+                LauncherLog.Log("[Launch] 需自动安装整合包：" + packInstallPath, LauncherLogLevel.Debug);
                 States.Game.SelectedFolder = @"$.minecraft\";
-                if (!Directory.Exists(ModBase.exePath + @".minecraft\"))
+                if (!Directory.Exists(LauncherPaths.ExecutableDirectoryWithSlash + @".minecraft\"))
                 {
-                    Directory.CreateDirectory(ModBase.exePath + @".minecraft\");
-                    Directory.CreateDirectory(ModBase.exePath + @".minecraft\versions\");
-                    ModFolder.McFolderLauncherProfilesJsonCreate(ModBase.exePath + @".minecraft\");
+                    Directory.CreateDirectory(LauncherPaths.ExecutableDirectoryWithSlash + @".minecraft\");
+                    Directory.CreateDirectory(LauncherPaths.ExecutableDirectoryWithSlash + @".minecraft\versions\");
+                    ModFolder.McFolderLauncherProfilesJsonCreate(LauncherPaths.ExecutableDirectoryWithSlash + @".minecraft\");
                 }
 
-                PageSelectLeft.AddFolder(ModBase.exePath + @".minecraft\",
-                    ModBase.GetFolderNameFromPath(ModBase.exePath), false);
+                PageSelectLeft.AddFolder(LauncherPaths.ExecutableDirectoryWithSlash + @".minecraft\",
+                    LegacyFileFacade.GetFolderNameFromPath(LauncherPaths.ExecutableDirectoryWithSlash), false);
                 ModFolder.mcFolderListLoader.WaitForExit();
             }
 
             // 确认 Minecraft 文件夹存在
             ModFolder.mcFolderSelected =
-                States.Game.SelectedFolder.ToString().Replace("$", ModBase.exePath);
+                States.Game.SelectedFolder.ToString().Replace("$", LauncherPaths.ExecutableDirectoryWithSlash);
             if (string.IsNullOrEmpty(ModFolder.mcFolderSelected) || !Directory.Exists(ModFolder.mcFolderSelected))
             {
                 // 无效的文件夹
                 if (string.IsNullOrEmpty(ModFolder.mcFolderSelected))
-                    ModBase.Log("[Launch] 没有已储存的 Minecraft 文件夹");
+                    LauncherLog.Log("[Launch] 没有已储存的 Minecraft 文件夹");
                 else
-                    ModBase.Log("[Launch] Minecraft 文件夹无效，该文件夹已不存在：" + ModFolder.mcFolderSelected,
-                        ModBase.LogLevel.Debug);
+                    LauncherLog.Log("[Launch] Minecraft 文件夹无效，该文件夹已不存在：" + ModFolder.mcFolderSelected,
+                        LauncherLogLevel.Debug);
                 ModFolder.mcFolderListLoader.WaitForExit(isForceRestart: true);
-                States.Game.SelectedFolder = ModFolder.mcFolderList[0].Location.Replace(ModBase.exePath, "$");
+                States.Game.SelectedFolder = ModFolder.mcFolderList[0].Location.Replace(LauncherPaths.ExecutableDirectoryWithSlash, "$");
             }
 
-            ModBase.Log("[Launch] Minecraft 文件夹：" + ModFolder.mcFolderSelected);
+            LauncherLog.Log("[Launch] Minecraft 文件夹：" + ModFolder.mcFolderSelected);
             if (Config.Debug.AddRandomDelay)
                 Thread.Sleep(RandomUtils.NextInt(500, 3000));
             // 自动整合包安装
@@ -129,25 +129,25 @@ public partial class PageLaunchLeft
                 try
                 {
                     var installLoader = ModModpack.ModpackInstall(packInstallPath);
-                    ModBase.Log("[Launch] 自动安装整合包已开始：" + packInstallPath);
+                    LauncherLog.Log("[Launch] 自动安装整合包已开始：" + packInstallPath);
                     installLoader.WaitForExit();
-                    if (installLoader.State == ModBase.LoadState.Finished)
+                    if (installLoader.State == LoadState.Finished)
                     {
-                        ModBase.Log("[Launch] 自动安装整合包成功，清理安装包：" + packInstallPath);
+                        LauncherLog.Log("[Launch] 自动安装整合包成功，清理安装包：" + packInstallPath);
                         if (File.Exists(packInstallPath))
                             File.Delete(packInstallPath);
                     }
                 }
-                catch (ModBase.CancelledException ex)
+                catch (CancelledException ex)
                 {
-                    ModBase.Log(ex, "自动安装整合包被用户取消：" + packInstallPath);
+                    LauncherLog.Log(ex, "自动安装整合包被用户取消：" + packInstallPath);
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(
+                    LauncherLog.Log(
                         ex,
                         Lang.Text("Select.Folder.Error.InstallPack", packInstallPath),
-                        ModBase.LogLevel.Msgbox,
+                        LauncherLogLevel.Msgbox,
                         userSummary: Lang.Text("Select.Folder.Error.InstallPack", packInstallPath));
                 }
 
@@ -158,9 +158,9 @@ public partial class PageLaunchLeft
                 !instance.Check())
             {
                 // 无效的实例
-                ModBase.Log("[Launch] 当前选择的 Minecraft 实例无效：" + (instance is null ? "null" : instance.PathInstance),
-                    instance is null ? ModBase.LogLevel.Normal : ModBase.LogLevel.Debug);
-                if (ModInstanceList.mcInstanceListLoader.State != ModBase.LoadState.Finished)
+                LauncherLog.Log("[Launch] 当前选择的 Minecraft 实例无效：" + (instance is null ? "null" : instance.PathInstance),
+                    instance is null ? LauncherLogLevel.Normal : LauncherLogLevel.Debug);
+                if (ModInstanceList.mcInstanceListLoader.State != LoadState.Finished)
                     ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                         ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\", true);
                 if (ModInstanceList.mcInstanceList.Count == 0 ||
@@ -168,17 +168,17 @@ public partial class PageLaunchLeft
                 {
                     instance = null;
                     States.Game.SelectedInstance = "";
-                    ModBase.Log("[Launch] 无可用 Minecraft 实例");
+                    LauncherLog.Log("[Launch] 无可用 Minecraft 实例");
                 }
                 else
                 {
                     instance = ModInstanceList.mcInstanceList.First().Value[0];
                     States.Game.SelectedInstance = instance.Name;
-                    ModBase.Log("[Launch] 自动选择 Minecraft 实例：" + instance.PathInstance);
+                    LauncherLog.Log("[Launch] 自动选择 Minecraft 实例：" + instance.PathInstance);
                 }
             }
 
-            ModBase.RunInUi(() =>
+            UiThread.Post(() =>
             {
                 ModInstanceList.McMcInstanceSelected = instance; // 绕这一圈是为了避免 McInstanceCheck 触发第二次实例改变
                 isLoadFinished = true;
@@ -197,7 +197,7 @@ public partial class PageLaunchLeft
     // 实例选择按钮
     private void BtnInstance_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModLaunch.mcLaunchLoader.State == ModBase.LoadState.Loading)
+        if (ModLaunch.mcLaunchLoader.State == LoadState.Loading)
             return;
         ModMain.frmMain.PageChange(FormMain.PageType.InstanceSelect);
     }
@@ -205,7 +205,7 @@ public partial class PageLaunchLeft
     // 启动按钮
     public void LaunchButtonClick()
     {
-        if (ModLaunch.mcLaunchLoader.State == ModBase.LoadState.Loading || !BtnLaunch.IsEnabled ||
+        if (ModLaunch.mcLaunchLoader.State == LoadState.Loading || !BtnLaunch.IsEnabled ||
             (ModMain.frmMain.pageRight is not null &&
              ModMain.frmMain.pageRight.PageState != MyPageRight.PageStates.ContentStay &&
              ModMain.frmMain.pageRight.PageState != MyPageRight.PageStates.ContentEnter))
@@ -249,8 +249,8 @@ public partial class PageLaunchLeft
             return;
         // 获取当前状态
         int currentState;
-        if (!isLoadFinished || ModInstanceList.mcInstanceListLoader.State == ModBase.LoadState.Loading ||
-            ModFolder.mcFolderListLoader.State == ModBase.LoadState.Loading)
+        if (!isLoadFinished || ModInstanceList.mcInstanceListLoader.State == LoadState.Loading ||
+            ModFolder.mcFolderListLoader.State == LoadState.Loading)
         {
             currentState = 0;
         }
@@ -278,7 +278,7 @@ public partial class PageLaunchLeft
             case 0:
             {
                 _launchButtonAction = LaunchButtonAction.Loading;
-                ModBase.Log("[Minecraft] 启动按钮：正在加载 Minecraft 实例");
+                LauncherLog.Log("[Minecraft] 启动按钮：正在加载 Minecraft 实例");
                 ModMain.frmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Loading");
                 ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = false;
                 ModMain.frmLaunchLeft.LabVersion.Text = Lang.Text("Launch.Home.Instance.Loading");
@@ -289,7 +289,7 @@ public partial class PageLaunchLeft
             case 1:
             {
                 _launchButtonAction = LaunchButtonAction.Disabled;
-                ModBase.Log("[Minecraft] 启动按钮：无 Minecraft 实例，下载已禁用");
+                LauncherLog.Log("[Minecraft] 启动按钮：无 Minecraft 实例，下载已禁用");
                 ModMain.frmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Launch");
                 ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = false;
                 ModMain.frmLaunchLeft.LabVersion.Text = Lang.Text("Launch.Home.Instance.NotFound");
@@ -300,7 +300,7 @@ public partial class PageLaunchLeft
             case 2:
             {
                 _launchButtonAction = LaunchButtonAction.Download;
-                ModBase.Log("[Minecraft] 启动按钮：无 Minecraft 实例，要求下载");
+                LauncherLog.Log("[Minecraft] 启动按钮：无 Minecraft 实例，要求下载");
                 ModMain.frmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Download");
                 ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = true;
                 ModMain.frmLaunchLeft.LabVersion.Text = Lang.Text("Launch.Home.Instance.NotFound");
@@ -311,7 +311,7 @@ public partial class PageLaunchLeft
             case 3:
             {
                 _launchButtonAction = LaunchButtonAction.Launch;
-                ModBase.Log("[Minecraft] 启动按钮：Minecraft 实例：" + ModInstanceList.McMcInstanceSelected.PathInstance);
+                LauncherLog.Log("[Minecraft] 启动按钮：Minecraft 实例：" + ModInstanceList.McMcInstanceSelected.PathInstance);
                 ModMain.frmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Launch");
                 ModMain.frmLaunchLeft.BtnInstance.IsEnabled = true;
                 if (ModProfile.selectedProfile is not null)
@@ -351,10 +351,10 @@ public partial class PageLaunchLeft
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     Lang.Text("Minecraft.Launch.Error.CancelProcess"),
-                    ModBase.LogLevel.Hint,
+                    LauncherLogLevel.Hint,
                     userSummary: Lang.Text("Minecraft.Launch.Error.CancelProcess"));
             }
         }
@@ -363,7 +363,7 @@ public partial class PageLaunchLeft
     // 实例设置按钮
     private void BtnMore_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModLaunch.mcLaunchLoader.State == ModBase.LoadState.Loading)
+        if (ModLaunch.mcLaunchLoader.State == LoadState.Loading)
             return;
         ModInstanceList.McMcInstanceSelected.Load();
         PageInstanceLeft.McInstance = ModInstanceList.McMcInstanceSelected;
@@ -383,7 +383,7 @@ public partial class PageLaunchLeft
     {
         try
         {
-            if (ModLaunch.mcLaunchLoaderReal.State == ModBase.LoadState.Aborted)
+            if (ModLaunch.mcLaunchLoaderReal.State == LoadState.Aborted)
                 return;
             // 阶段状态获取
             var isLaunched = false; // 是否已经启动游戏，只是在等待窗口
@@ -393,7 +393,7 @@ public partial class PageLaunchLeft
                 {
                     var exitTry = false;
                     foreach (var Loader in ModLaunch.mcLaunchLoaderReal.GetLoaderList(false))
-                        if (Loader.State == ModBase.LoadState.Loading || Loader.State == ModBase.LoadState.Waiting)
+                        if (Loader.State == LoadState.Loading || Loader.State == LoadState.Waiting)
                         {
                             LabLaunchingStage.Text = Loader.name;
                             isLaunched = Loader.name == StageWaitWindow || Loader.name == StageEnd;
@@ -406,7 +406,7 @@ public partial class PageLaunchLeft
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "获取是否启动完成失败，可能是由于启动状态改变导致集合已修改");
+                    LauncherLog.Log(ex, "获取是否启动完成失败，可能是由于启动状态改变导致集合已修改");
                     return;
                 }
             } while (false);
@@ -430,16 +430,16 @@ public partial class PageLaunchLeft
             {
                 foreach (var Loader in ModNet.NetManager.Tasks)
                     if (Loader.RealParent is not null && Loader.RealParent.name == StageRoot &&
-                        Loader.State == ModBase.LoadState.Loading)
+                        Loader.State == LoadState.Loading)
                         hasLaunchDownloader = true;
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "获取 Minecraft 启动下载器失败，可能是因为启动被取消");
+                LauncherLog.Log(ex, "获取 Minecraft 启动下载器失败，可能是因为启动被取消");
                 hasLaunchDownloader = false;
             }
 
-            LabLaunchingDownload.Text = ModBase.GetString(ModNet.NetManager.Speed) + "/s";
+            LabLaunchingDownload.Text = LauncherText.GetReadableFileSize(ModNet.NetManager.Speed) + "/s";
             var shouldShowHint = Config.Preference.ShowLaunchingHint;
             // 进度改变动画
             var animList = new List<ModAnimation.AniData>
@@ -495,10 +495,10 @@ public partial class PageLaunchLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Minecraft.Launch.Error.RefreshInfo"),
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Minecraft.Launch.Error.RefreshInfo"));
         }
     }
@@ -589,7 +589,7 @@ public partial class PageLaunchLeft
         LabLaunchingDownload.Visibility = Visibility.Visible;
         LabLaunchingProgressLeft.Opacity = 0.6d;
         LabLaunchingDownload.Visibility = Visibility.Visible;
-        LabLaunchingDownload.Text = ModBase.GetString(0) + "/s";
+        LabLaunchingDownload.Text = LauncherText.GetReadableFileSize(0) + "/s";
         LabLaunchingDownload.Opacity = 0d;
         LabLaunchingDownload.Visibility = Visibility.Collapsed;
         LabLaunchingDownloadLeft.Opacity = 0d;
@@ -771,11 +771,11 @@ public partial class PageLaunchLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
-                Lang.Text("Launch.Account.Error.SwitchPage", ModBase.GetStringFromEnum(type)),
-                ModBase.LogLevel.Feedback,
-                userSummary: Lang.Text("Launch.Account.Error.SwitchPage", ModBase.GetStringFromEnum(type)));
+                Lang.Text("Launch.Account.Error.SwitchPage", LauncherText.GetStringFromEnum(type)),
+                LauncherLogLevel.Feedback,
+                userSummary: Lang.Text("Launch.Account.Error.SwitchPage", LauncherText.GetStringFromEnum(type)));
             return pageNew;
         }
     }
@@ -820,21 +820,21 @@ public partial class PageLaunchLeft
     #region 皮肤
 
     // 正版皮肤
-    public static ModLoader.LoaderTask<ModBase.EqualableList<string>, string> skinMs = new("Loader Skin Ms", SkinMsLoad,
+    public static ModLoader.LoaderTask<EqualableList<string>, string> skinMs = new("Loader Skin Ms", SkinMsLoad,
         SkinMsInput, ThreadPriority.AboveNormal);
 
-    private static ModBase.EqualableList<string> SkinMsInput()
+    private static EqualableList<string> SkinMsInput()
     {
         // 获取名称
-        return new ModBase.EqualableList<string>
+        return new EqualableList<string>
             { ModProfile.selectedProfile.Username, ModProfile.selectedProfile.Uuid };
     }
 
-    private static void SkinMsLoad(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> data)
+    private static void SkinMsLoad(ModLoader.LoaderTask<EqualableList<string>, string> data)
     {
         // 清空已有皮肤
         // 如果在输入时清空皮肤，若输入内容一样则不会执行 Load 方法，导致皮肤不被加载
-        ModBase.RunInUi(() =>
+        UiThread.Post(() =>
         {
             if (ModMain.frmLoginProfileSkin is not null && ModMain.frmLoginProfileSkin.Skin is not null)
                 ModMain.frmLoginProfileSkin.Skin.Clear();
@@ -850,9 +850,9 @@ public partial class PageLaunchLeft
 
         if (string.IsNullOrEmpty(userName))
         {
-            data.output = ModBase.pathImage + "Skins/" + ModSkin.McSkinSex(ModProfile.GetOfflineUuid(userName)) +
+            data.output = LauncherPaths.ImageBaseUri + "Skins/" + ModSkin.McSkinSex(ModProfile.GetOfflineUuid(userName)) +
                           ".png";
-            ModBase.Log("[Minecraft] 获取微软正版皮肤失败，ID 为空");
+            LauncherLog.Log("[Minecraft] 获取微软正版皮肤失败，ID 为空");
             goto Finish;
         }
 
@@ -871,33 +871,33 @@ public partial class PageLaunchLeft
             if (ex is ThreadInterruptedException)
             {
                 data.output = "";
-                ModBase.Log("[Minecraft] 已取消皮肤获取：" + userName);
+                LauncherLog.Log("[Minecraft] 已取消皮肤获取：" + userName);
                 return;
             }
 
             if (ex.ToString().Contains("429"))
             {
-                data.output = ModBase.pathImage + "Skins/" +
+                data.output = LauncherPaths.ImageBaseUri + "Skins/" +
                               ModSkin.McSkinSex(ModProfile.GetOfflineUuid(userName)) + ".png";
-                ModBase.Log(
+                LauncherLog.Log(
                     Lang.Text("Launch.Skin.Error.MsRateLimited", userName),
-                    ModBase.LogLevel.Hint,
+                    LauncherLogLevel.Hint,
                     userSummary: Lang.Text("Launch.Skin.Error.MsRateLimited", userName));
             }
             else if (ex.ToString().Contains("未设置自定义皮肤"))
             {
-                data.output = ModBase.pathImage + "Skins/" +
+                data.output = LauncherPaths.ImageBaseUri + "Skins/" +
                               ModSkin.McSkinSex(ModProfile.GetOfflineUuid(userName)) + ".png";
-                ModBase.Log("[Minecraft] 用户未设置自定义皮肤，跳过皮肤加载");
+                LauncherLog.Log("[Minecraft] 用户未设置自定义皮肤，跳过皮肤加载");
             }
             else
             {
-                data.output = ModBase.pathImage + "Skins/" +
+                data.output = LauncherPaths.ImageBaseUri + "Skins/" +
                               ModSkin.McSkinSex(ModProfile.GetOfflineUuid(userName)) + ".png";
-                ModBase.Log(
+                LauncherLog.Log(
                     ex,
                     Lang.Text("Launch.Skin.Error.MsGet", userName),
-                    ModBase.LogLevel.Hint,
+                    LauncherLogLevel.Hint,
                     userSummary: Lang.Text("Launch.Skin.Error.MsGet", userName));
             }
         }
@@ -906,53 +906,53 @@ public partial class PageLaunchLeft
 
         // 刷新显示
         if (ModMain.frmLoginProfileSkin is not null && ReferenceEquals(ModMain.frmLoginProfileSkin.Skin.loader, data))
-            ModBase.RunInUi(ModMain.frmLoginProfileSkin.Skin.Load);
+            UiThread.Post(ModMain.frmLoginProfileSkin.Skin.Load);
         else if (!data.IsAborted) // 如果已经中断，Input 也被清空，就不会再次刷新
             data.input = null; // 清空输入，因为皮肤实际上没有被渲染，如果不清空切换到页面的 Start 会由于输入相同而不渲染
     }
 
     // 离线皮肤
-    public static ModLoader.LoaderTask<ModBase.EqualableList<string>, string> skinLegacy = new("Loader Skin Legacy",
+    public static ModLoader.LoaderTask<EqualableList<string>, string> skinLegacy = new("Loader Skin Legacy",
         SkinLegacyLoad, SkinLegacyInput, ThreadPriority.AboveNormal);
 
-    private static ModBase.EqualableList<string> SkinLegacyInput()
+    private static EqualableList<string> SkinLegacyInput()
     {
-        return new ModBase.EqualableList<string>
+        return new EqualableList<string>
             { ModProfile.selectedProfile.Username, ModProfile.selectedProfile.Uuid };
     }
 
-    private static void SkinLegacyLoad(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> data)
+    private static void SkinLegacyLoad(ModLoader.LoaderTask<EqualableList<string>, string> data)
     {
         // 清空已有皮肤
-        ModBase.RunInUi(() =>
+        UiThread.Post(() =>
         {
             if (ModMain.frmLoginProfileSkin is not null && ModMain.frmLoginProfileSkin.Skin is not null)
                 ModMain.frmLoginProfileSkin.Skin.Clear();
         });
-        data.output = ModBase.pathImage + "Skins/" + ModSkin.McSkinSex(data.input[1]) + ".png";
+        data.output = LauncherPaths.ImageBaseUri + "Skins/" + ModSkin.McSkinSex(data.input[1]) + ".png";
         // 刷新显示
         if (ModMain.frmLoginProfileSkin is not null && ReferenceEquals(ModMain.frmLoginProfileSkin.Skin.loader, data))
-            ModBase.RunInUi(() => ModMain.frmLoginProfileSkin.Skin.Load());
+            UiThread.Post(() => ModMain.frmLoginProfileSkin.Skin.Load());
         else if (!data.IsAborted) // 如果已经中断，Input 也被清空，就不会再次刷新
             data.input = null; // 清空输入，因为皮肤实际上没有被渲染，如果不清空切换到页面的 Start 会由于输入相同而不渲染
     }
 
     // Authlib-Injector 皮肤
-    public static ModLoader.LoaderTask<ModBase.EqualableList<string>, string> skinAuth = new("Loader Skin Auth",
+    public static ModLoader.LoaderTask<EqualableList<string>, string> skinAuth = new("Loader Skin Auth",
         SkinAuthLoad, SkinAuthInput, ThreadPriority.AboveNormal);
 
-    private static ModBase.EqualableList<string> SkinAuthInput()
+    private static EqualableList<string> SkinAuthInput()
     {
         // 获取名称
-        return new ModBase.EqualableList<string>
+        return new EqualableList<string>
             { ModProfile.selectedProfile.Username, ModProfile.selectedProfile.Uuid };
     }
 
-    private static void SkinAuthLoad(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> data)
+    private static void SkinAuthLoad(ModLoader.LoaderTask<EqualableList<string>, string> data)
     {
         // 清空已有皮肤
         // 如果在输入时清空皮肤，若输入内容一样则不会执行 Load 方法，导致皮肤不被加载
-        ModBase.RunInUi(() =>
+        UiThread.Post(() =>
         {
             if (ModMain.frmLoginProfileSkin is not null && ModMain.frmLoginProfileSkin.Skin is not null)
                 ModMain.frmLoginProfileSkin.Skin.Clear();
@@ -962,8 +962,8 @@ public partial class PageLaunchLeft
         var uuid = data.input[1];
         if (string.IsNullOrEmpty(userName))
         {
-            data.output = ModBase.pathImage + "Skins/Steve.png";
-            ModBase.Log("[Minecraft] 获取 Authlib-Injector 皮肤失败，ID 为空");
+            data.output = LauncherPaths.ImageBaseUri + "Skins/Steve.png";
+            LauncherLog.Log("[Minecraft] 获取 Authlib-Injector 皮肤失败，ID 为空");
             goto Finish;
         }
 
@@ -987,24 +987,24 @@ public partial class PageLaunchLeft
 
             if (ex.ToString().Contains("429"))
             {
-                data.output = ModBase.pathImage + "Skins/Steve.png";
-                ModBase.Log(
+                data.output = LauncherPaths.ImageBaseUri + "Skins/Steve.png";
+                LauncherLog.Log(
                     $"[Minecraft] 获取 Authlib-Injector 皮肤失败（{userName}）：获取皮肤太过频繁，请 5 分钟后再试！",
-                    ModBase.LogLevel.Hint,
+                    LauncherLogLevel.Hint,
                     userSummary: Lang.Text("Launch.Skin.Error.AuthlibRateLimited"));
             }
             else if (ex.ToString().Contains("未设置自定义皮肤"))
             {
-                data.output = ModBase.pathImage + "Skins/Steve.png";
-                ModBase.Log("[Minecraft] 用户未设置自定义皮肤，跳过皮肤加载");
+                data.output = LauncherPaths.ImageBaseUri + "Skins/Steve.png";
+                LauncherLog.Log("[Minecraft] 用户未设置自定义皮肤，跳过皮肤加载");
             }
             else
             {
-                data.output = ModBase.pathImage + "Skins/Steve.png";
-                ModBase.Log(
+                data.output = LauncherPaths.ImageBaseUri + "Skins/Steve.png";
+                LauncherLog.Log(
                     ex,
                     Lang.Text("Launch.Skin.Error.AuthGet", userName),
-                    ModBase.LogLevel.Hint,
+                    LauncherLogLevel.Hint,
                     userSummary: Lang.Text("Launch.Skin.Error.AuthGet", userName));
             }
         }
@@ -1013,14 +1013,14 @@ public partial class PageLaunchLeft
 
         // 刷新显示
         if (ModMain.frmLoginProfileSkin is not null && ReferenceEquals(ModMain.frmLoginProfileSkin.Skin.loader, data))
-            ModBase.RunInUi(ModMain.frmLoginProfileSkin.Skin.Load);
+            UiThread.Post(ModMain.frmLoginProfileSkin.Skin.Load);
         else if (!data.IsAborted) // 如果已经中断，Input 也被清空，就不会再次刷新
             data.input = null; // 清空输入，因为皮肤实际上没有被渲染，如果不清空切换到页面的 Start 会由于输入相同而不渲染
     }
 
     // 全部皮肤加载器
     // 需要放在其中元素的后面，否则会因为它提前被加载而莫名其妙变成 Nothing
-    public static List<ModLoader.LoaderTask<ModBase.EqualableList<string>, string>> skinLoaders = new()
+    public static List<ModLoader.LoaderTask<EqualableList<string>, string>> skinLoaders = new()
         { skinMs, skinLegacy, skinAuth };
 
     #endregion

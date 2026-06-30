@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.IO;
 using PCL.Core.App;
 using PCL.Core.Utils;
@@ -237,7 +237,7 @@ public static partial class ModBase
     /// </summary>
     public static ProcessReturnValues ShellAndGetExitCode(string fileName, string arguments = "", int timeout = 1000000)
     {
-        return LauncherProcess.ShellAndGetExitCode(fileName, arguments, timeout);
+        return (ProcessReturnValues)LauncherProcess.ShellAndGetExitCode(fileName, arguments, timeout);
     }
 
     /// <summary>

@@ -128,7 +128,7 @@ public partial class PageInstanceSetup
             CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Instance.DisableLwjglUnsafeAgent[PageInstanceLeft.McInstance.PathInstance];
             if (Config.Instance.AssetVerifySolutionV1[PageInstanceLeft.McInstance.PathInstance] == 2)
             {
-                ModBase.Log("[Setup] 已迁移老版本的关闭文件校验设置");
+                LauncherLog.Log("[Setup] 已迁移老版本的关闭文件校验设置");
                 Config.Instance.AssetVerifySolutionV1Config.Reset(PageInstanceLeft.McInstance.PathInstance);
                 Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.McInstance.PathInstance] = true;
             }
@@ -152,10 +152,10 @@ public partial class PageInstanceSetup
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "重载实例独立设置时出错",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Setup.Error.OperationFailed"));
         }
     }
@@ -170,15 +170,15 @@ public partial class PageInstanceSetup
 
             Config.Instance.Reset(PageInstanceLeft.McInstance.PathInstance);
 
-            ModBase.Log("[Setup] 已初始化实例独立设置");
+            LauncherLog.Log("[Setup] 已初始化实例独立设置");
             HintService.Hint(Lang.Text("Instance.Setup.Initialize.Success"), HintType.Success, false);
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "初始化实例独立设置失败",
-                ModBase.LogLevel.Msgbox,
+                LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Instance.Setup.Error.OperationFailed"));
         }
 
@@ -189,7 +189,7 @@ public partial class PageInstanceSetup
     private static void SetByTag(string tag, object value)
         => ConfigService.TrySetValue(tag, value, PageInstanceLeft.McInstance.PathInstance);
 
-    private void RadioBoxChange(object o, ModBase.RouteEventArgs routeEventArgs)
+    private void RadioBoxChange(object o, RouteEventArgs routeEventArgs)
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
@@ -266,7 +266,7 @@ public partial class PageInstanceSetup
         var ramAvailable = Math.Round((double)(phyRam.Available / 1024 / 1024 / 1024), 1);
         var ramGameActual = Math.Round(Math.Min(ramGame, ramAvailable), 5);
         var ramUsed = Math.Round(ramTotal - ramAvailable, 5);
-        var ramEmpty = Math.Round(ModBase.MathClamp(ramTotal - ramUsed - ramGame, 0d, 1000d), 1);
+        var ramEmpty = Math.Round(LauncherMath.Clamp(ramTotal - ramUsed - ramGame, 0d, 1000d), 1);
         // 设置最大可用内存
         if (ramTotal <= 1.5d)
             SliderRamCustom.MaxValue = (int)Math.Round(Math.Max(Math.Floor((ramTotal - 0.3d) / 0.1d), 1d));
@@ -686,10 +686,10 @@ public partial class PageInstanceSetup
     {
         ModMain.frmMain.PageChange(new FormMain.PageStackData { page = FormMain.PageType.Launch });
         PageLoginAuth.draggedAuthServer = TextServerAuthServer.Text;
-        ModBase.RunInNewThread(() =>
+        PCL.Core.App.Basics.RunInNewThread(() =>
         {
             Thread.Sleep(150);
-            ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Auth));
+            UiThread.Post(() => ModMain.frmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Auth));
         });
     }
 
@@ -788,10 +788,10 @@ public partial class PageInstanceSetup
         catch (Exception ex)
         {
             Config.Instance.SelectedJava[PageInstanceLeft.McInstance.PathInstance] = "使用全局设置";
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 "更新实例设置 Java 下拉框失败",
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Setup.Error.OperationFailed"));
             ComboArgumentJava.Items.Clear();
             ComboArgumentJava.Items.Add(new MyComboBoxItem
@@ -940,7 +940,7 @@ public partial class PageInstanceSetup
         Config.Instance.SelectedJava[PageInstanceLeft.McInstance.PathInstance] = json;
 
 
-        ModBase.Log(logMessage);
+        LauncherLog.Log(logMessage);
         RefreshRam(true);
     }
 

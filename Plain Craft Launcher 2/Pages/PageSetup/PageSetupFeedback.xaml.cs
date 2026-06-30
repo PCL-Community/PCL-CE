@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Text.Json.Serialization;
@@ -107,7 +107,7 @@ public partial class PageSetupFeedback
             Title = item.Title,
             Type = MyListItem.CheckType.Clickable,
             Info = $"{item.User} | {Lang.Date(item.Time)}",
-            Logo = ModBase.pathImage + logo,
+            Logo = LauncherPaths.ImageBaseUri + logo,
             Tags = item.Type
         };
 
@@ -127,7 +127,7 @@ public partial class PageSetupFeedback
         {
             case 2:
             {
-                ModBase.OpenWebsite(item.Url);
+                LauncherProcess.OpenWebsite(item.Url);
                 break;
             }
         }

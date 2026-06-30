@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using PCL.Core.Utils.Validate;
 using PCL.Core.App.Localization;
 
@@ -19,10 +19,10 @@ public partial class PageLoginOffline
 
     private void BtnBack_Click(object sender, EventArgs e)
     {
-        ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
+        UiThread.Post(() => ModMain.frmLaunchLeft.RefreshPage(true));
     }
 
-    private void RadioUuid_Checked(object sender, ModBase.RouteEventArgs e)
+    private void RadioUuid_Checked(object sender, RouteEventArgs e)
     {
         if (RadioUuidCustom.Checked)
         {
@@ -83,6 +83,6 @@ public partial class PageLoginOffline
         ModProfile.selectedProfile = newProfile;
         ModProfile.isCreatingProfile = false;
         HintService.Hint(Lang.Text("Launch.Account.Profile.Created"), HintType.Success);
-        ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
+        UiThread.Post(() => ModMain.frmLaunchLeft.RefreshPage(true));
     }
 }

@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -10,7 +10,7 @@ namespace PCL;
 
 public partial class MyToast
 {
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = LauncherRuntime.GetUuid();
 
     /// <summary>判定为拖动而非点击的最小水平位移（像素）。</summary>
     private const double DragDeadzone = 4d;
@@ -210,7 +210,7 @@ public partial class MyToast
             _ => 210d
         };
         var res = System.Windows.Application.Current.Resources;
-        var accent = new ModBase.MyColor().FromHSL2(baseHue, 75, 60);
+        var accent = new MyColor().FromHSL2(baseHue, 75, 60);
         var bg = ThemeService.IsDarkMode
             ? new SolidColorBrush(LabColor.FromLch(0.35))
             : (Brush)res["ColorBrushBackground"];

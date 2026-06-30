@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
 
@@ -84,7 +84,7 @@ public sealed class LegacyIniStore : ILegacyKeyValueStore
         }
         catch (Exception ex)
         {
-            LauncherLog.Log(ex, $"写入文件失败（{fileName} → {key}:{value}）", ModBase.LogLevel.Hint);
+            LauncherLog.Log(ex, $"写入文件失败（{fileName} → {key}:{value}）", LauncherLogLevel.Hint);
         }
     }
 
@@ -117,7 +117,7 @@ public sealed class LegacyIniStore : ILegacyKeyValueStore
         }
         catch (Exception ex)
         {
-            LauncherLog.Log(ex, $"生成 ini 文件缓存失败（{fileName}）", ModBase.LogLevel.Hint);
+            LauncherLog.Log(ex, $"生成 ini 文件缓存失败（{fileName}）", LauncherLogLevel.Hint);
             return null;
         }
     }

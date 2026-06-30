@@ -38,21 +38,21 @@ public partial class PageLoginProfile
     /// </summary>
     public void RefreshProfileList()
     {
-        ModBase.Log("[Profile] 刷新档案列表");
+        LauncherLog.Log("[Profile] 刷新档案列表");
         ProfileCollection.Clear();
         ModProfile.GetProfile();
         try
         {
             foreach (var Profile in ModProfile.profileList)
                 ProfileCollection.Add(new ProfileItem(Profile));
-            ModBase.Log("[Profile] 档案列表刷新完成");
+            LauncherLog.Log("[Profile] 档案列表刷新完成");
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            LauncherLog.Log(
                 ex,
                 Lang.Text("Launch.Account.Profile.Error.Read"),
-                ModBase.LogLevel.Feedback,
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Launch.Account.Profile.Error.Read"));
         }
 
@@ -73,7 +73,7 @@ public partial class PageLoginProfile
         {
             Profile = profile;
             Info = (string)ModProfile.GetProfileInfo(profile);
-            var logoPath = ModBase.pathTemp + $@"Cache\Skin\Head\{profile.SkinHeadId}.png";
+            var logoPath = LauncherPaths.TempWithSlash + $@"Cache\Skin\Head\{profile.SkinHeadId}.png";
             if (File.Exists(logoPath) && new FileInfo(logoPath).Length != 0L)
             {
                 Logo = logoPath;
@@ -100,17 +100,17 @@ public partial class PageLoginProfile
         var item = (MyListItem)sender;
         var tag = (ModProfile.McProfile)item.Tag;
         ModProfile.selectedProfile = (ModProfile.McProfile)((MyListItem)sender).Tag;
-        ModBase.Log($"[Profile] 选定档案: {tag.Username}, 以 {tag.Type} 方式验证");
+        LauncherLog.Log($"[Profile] 选定档案: {tag.Username}, 以 {tag.Type} 方式验证");
         ModProfile.lastUsedProfile =
             ModProfile.profileList.IndexOf((ModProfile.McProfile)((MyListItem)sender).Tag); // 获取当前档案的序号
         ModProfile.SaveProfile(); // 保存档案配置，确保切换后的档案被正确保存
 
         // 清除登录验证缓存，确保使用新档案的验证信息
-        ModLaunch.mcLoginMsLoader.State = ModBase.LoadState.Waiting;
-        ModLaunch.mcLoginAuthLoader.State = ModBase.LoadState.Waiting;
-        ModLaunch.mcLoginLegacyLoader.State = ModBase.LoadState.Waiting;
+        ModLaunch.mcLoginMsLoader.State = LoadState.Waiting;
+        ModLaunch.mcLoginAuthLoader.State = LoadState.Waiting;
+        ModLaunch.mcLoginLegacyLoader.State = LoadState.Waiting;
 
-        ModBase.RunInUi(() =>
+        UiThread.Post(() =>
         {
             ModMain.frmLaunchLeft.RefreshPage(true);
             ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = true;
@@ -156,10 +156,10 @@ public partial class PageLoginProfile
     // 创建档案
     private void BtnNew_Click(object sender, EventArgs e)
     {
-        ModBase.RunInNewThread(() =>
+        PCL.Core.App.Basics.RunInNewThread(() =>
         {
             ModProfile.CreateProfile();
-            ModBase.RunInUi(() => RefreshProfileList());
+            UiThread.Post(() => RefreshProfileList());
         });
     }
 
@@ -171,7 +171,7 @@ public partial class PageLoginProfile
 
     private void CopyProfileUuid(object sender, EventArgs e)
     {
-        if (sender is MyIconButton { Tag: ModProfile.McProfile profile }) ModBase.ClipboardSet(profile.Uuid);
+        if (sender is MyIconButton { Tag: ModProfile.McProfile profile }) LauncherProcess.ClipboardSet(profile.Uuid);
     }
 
     // 编辑验证服务器名称
@@ -189,7 +189,7 @@ public partial class PageLoginProfile
                 forceWait: true) == 2)
             return;
         ModProfile.RemoveProfile((ModProfile.McProfile)((MyIconButton)sender).Tag);
-        ModBase.RunInUi(() => RefreshProfileList());
+        UiThread.Post(() => RefreshProfileList());
     }
 
     

@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -49,19 +49,19 @@ public partial class Application
                     try
                     {
                         ModMain.SetGPUPreference(args[1].Trim('"'));
-                        Environment.Exit((int)ModBase.ProcessReturnValues.TaskDone);
+                        Environment.Exit((int)LauncherExitCode.TaskDone);
                     }
                     catch (Exception)
                     {
-                        Environment.Exit((int)ModBase.ProcessReturnValues.Fail);
+                        Environment.Exit((int)LauncherExitCode.Fail);
                     }
 
             // 初始化文件结构
-            Directory.CreateDirectory(ModBase.exePath + @"PCL\Pictures");
-            Directory.CreateDirectory(ModBase.exePath + @"PCL\Musics");
-            Directory.CreateDirectory(Path.Combine(ModBase.pathTemp, "Cache"));
-            Directory.CreateDirectory(Path.Combine(ModBase.pathTemp, "Download"));
-            Directory.CreateDirectory(ModBase.pathAppdata);
+            Directory.CreateDirectory(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Pictures");
+            Directory.CreateDirectory(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Musics");
+            Directory.CreateDirectory(Path.Combine(LauncherPaths.TempWithSlash, "Cache"));
+            Directory.CreateDirectory(Path.Combine(LauncherPaths.TempWithSlash, "Download"));
+            Directory.CreateDirectory(LauncherPaths.LegacyAppDataWithSlash);
 
             // 设置 ToolTipService 默认值
             ToolTipService.InitialShowDelayProperty.OverrideMetadata(typeof(DependencyObject),
@@ -95,21 +95,22 @@ public partial class Application
             _ = Config.Preference.Font;
             var updateBranchCfg = Config.Update.UpdateChannelConfig;
             if (updateBranchCfg.IsDefault())
-                updateBranchCfg.SetValue(ModBase.VersionBaseName.Contains("beta")
+                updateBranchCfg.SetValue(LauncherEnvironment.VersionBaseName.Contains("beta")
                     ? Core.App.UpdateChannel.Beta
                     : Core.App.UpdateChannel.Release);
 
             // 删除旧日志
             for (var i = 1; i <= 5; i++)
             {
-                var oldLogFile = $@"{ModBase.exePath}PCL\Log-CE{i}.log";
+                var oldLogFile = $@"{LauncherPaths.ExecutableDirectoryWithSlash}PCL\Log-CE{i}.log";
                 if (File.Exists(oldLogFile))
                     File.Delete(oldLogFile);
             }
 
             // 计时
-            ModBase.Log("[Start] 第一阶段加载用时：" + (TimeUtils.GetTimeTick() - ModBase.applicationStartTick) + " ms");
-            ModBase.applicationStartTick = TimeUtils.GetTimeTick();
+            LauncherLog.Log("[Start] 第一阶段加载用时：" + (TimeUtils.GetTimeTick() - LauncherRuntime.ApplicationStartTick) +
+                            " ms");
+            LauncherRuntime.ApplicationStartTick = TimeUtils.GetTimeTick();
             ModAnimation.AniControlEnabled += 1;
         }
         catch (Exception ex)
@@ -124,7 +125,7 @@ public partial class Application
                 Lang.Text("SystemDialog.Startup.InitializationTitle"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
-            FormMain.EndProgramForce(ModBase.ProcessReturnValues.Exception);
+            FormMain.EndProgramForce(LauncherExitCode.Exception);
         }
     }
 
@@ -137,10 +138,12 @@ public partial class Application
             problemList.Add(Lang.Text("Application.EnvironmentWarning.WindowsVersion"));
         if (SystemInfo.Is32BitSystem)
             problemList.Add(Lang.Text("Application.EnvironmentWarning.System32Bit"));
-        if (ModBase.exePath.Contains(Path.GetTempPath()) || ModBase.exePath.Contains(@"AppData\Local\Temp\"))
+        if (LauncherPaths.ExecutableDirectoryWithSlash.Contains(Path.GetTempPath()) ||
+            LauncherPaths.ExecutableDirectoryWithSlash.Contains(@"AppData\Local\Temp\"))
             problemList.Add(Lang.Text("Application.EnvironmentWarning.TempFolder"));
-        if (ModBase.exePath.ContainsF("wechat_files", true) || ModBase.exePath.ContainsF("WeChat Files", true) ||
-            ModBase.exePath.ContainsF("Tencent Files", true))
+        if (LauncherPaths.ExecutableDirectoryWithSlash.ContainsF("wechat_files", true) ||
+            LauncherPaths.ExecutableDirectoryWithSlash.ContainsF("WeChat Files", true) ||
+            LauncherPaths.ExecutableDirectoryWithSlash.ContainsF("Tencent Files", true))
             problemList.Add(Lang.Text("Application.EnvironmentWarning.SocialSoftwareFolder"));
         if (problemList.Count == 0) return;
 
@@ -165,9 +168,9 @@ public partial class Application
         try
         {
             e.Handled = true;
-            if (ModBase.isProgramEnded) return;
+            if (LauncherRuntime.IsProgramEnded) return;
 
-            ModBase.FeedbackInfo();
+            LauncherFeedbackService.FeedbackInfo();
 
             var detail = e.Exception.ToString();
 
@@ -176,7 +179,7 @@ public partial class Application
                 detail.Contains("MS.Internal.AppModel.ITaskbarList.HrInit") ||
                 detail.Contains("未能加载文件或程序集"))
             {
-                ModBase.OpenWebsite("https://get.dot.net/8");
+                LauncherProcess.OpenWebsite("https://get.dot.net/8");
                 LogWrapper.Error(
                     e.Exception,
                     Lang.Text("SystemDialog.Startup.DotNetRuntimeOutdated.Message"));
@@ -217,12 +220,12 @@ public partial class Application
     {
         public override void Write(string message)
         {
-            ModBase.Log($"警告，检测到 Binding 失败：{message}");
+            LauncherLog.Log($"警告，检测到 Binding 失败：{message}");
         }
 
         public override void WriteLine(string message)
         {
-            ModBase.Log($"警告，检测到 Binding 失败：{message}");
+            LauncherLog.Log($"警告，检测到 Binding 失败：{message}");
         }
     }
 }
