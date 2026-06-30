@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
@@ -40,7 +40,11 @@ namespace PCL
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Event.Error.ExecutionFailed", type, arg), ModBase.LogLevel.Msgbox);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Event.Error.ExecutionFailed", type, arg),
+                    ModBase.LogLevel.Msgbox,
+                    userSummary: Lang.Text("Event.Error.ExecutionFailed", type, arg));
             }
         }
 
@@ -125,7 +129,11 @@ namespace PCL
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, Lang.Text("Event.Error.ExecutionFailed", type, arg), ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        Lang.Text("Event.Error.ExecutionFailed", type, arg),
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Event.Error.ExecutionFailed", type, arg));
                 }
             });
         }
@@ -292,7 +300,7 @@ namespace PCL
             if (!SecuritySensitiveSettingKeys.Contains(key))
                 return true;
             ModBase.Log($"[Control] 已阻止自定义事件写入高危设置：{key}", ModBase.LogLevel.Developer);
-            HintService.Hint($"自定义主页不能写入高危设置：{key}", HintType.Error);
+            HintService.Hint(Lang.Text("Event.Safety.DangerousSettingBlocked", key), HintType.Error);
             return false;
         }
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -171,7 +171,11 @@ public static class ModInstanceList
         catch (Exception ex)
         {
             ModBase.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", ""); // 要求下次重新加载
-            ModBase.Log(ex, Lang.Text("Select.Instance.Error.ListLoad"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Select.Instance.Error.ListLoad"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Select.Instance.Error.ListLoad"));
         }
     }
 
@@ -339,7 +343,11 @@ public static class ModInstanceList
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, Lang.Text("Select.Folder.Error.Cleanup", instanceFolder), ModBase.LogLevel.Hint);
+                        ModBase.Log(
+                            ex,
+                            Lang.Text("Select.Folder.Error.Cleanup", instanceFolder),
+                            ModBase.LogLevel.Hint,
+                            userSummary: Lang.Text("Select.Folder.Error.Cleanup", instanceFolder));
                     }
                 }
                 else
@@ -494,7 +502,11 @@ public static class ModInstanceList
         catch (Exception ex)
         {
             results.Clear();
-            ModBase.Log(ex, Lang.Text("Select.Instance.Error.Classify"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Select.Instance.Error.Classify"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Select.Instance.Error.Classify"));
         }
 
         #endregion

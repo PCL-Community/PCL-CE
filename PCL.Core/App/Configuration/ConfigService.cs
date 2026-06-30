@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using PCL.Core.App.Configuration.Storage;
+using PCL.Core.App.Localization;
 using PCL.Core.App.IoC;
 using PCL.Core.Logging;
 using PCL.Core.Utils.Exts;
@@ -288,10 +289,11 @@ public sealed partial class ConfigService
         }
         catch (Exception ex)
         {
-            var currentSection = _isConfigItemsInitialized ? "OBSERVER" : _isProvidersInitialized ? "CONFIG_ITEM" : "PROVIDER";
-            var msg = $"配置初始化失败，当前位于 {currentSection} 阶段。";
+            var currentSection = _isConfigItemsInitialized ? "OBSERVER" :
+                _isProvidersInitialized ? "CONFIG_ITEM" : "PROVIDER";
+            string msg;
 #if DEBUG
-            msg += "\n\n嘻嘻，连配置系统都搞不明白...真是杂鱼呢~❤️ 快修好故障重新启动吧，杂鱼~❤️杂鱼~❤️";
+            msg = Lang.Text("Config.Error.LoadFailed.DebugMessage", currentSection);
 #else
             if (ex is ConfigFileInitException e)
             {
@@ -300,9 +302,15 @@ public sealed partial class ConfigService
                 var bakPath = e.Path + ".bak";
                 File.Move(filePath, backupPath, true);
                 if (File.Exists(bakPath)) File.Copy(bakPath, filePath, true);
-                msg += $"\n\n配置文件 {filePath} 的内容出了问题，不出意外的话，它应当已经备份到 {backupPath} 文件中。"
-                    + $"\n为尽可能防止重复故障，配置文件已恢复至上一版本，若曾手动更改过配置文件，请修复问题，并替换当前的配置文件。"
-                    + $"\n\n如果你不知道发生了什么，无视即可，重新打开启动器后相关配置项可能会恢复到默认值，应不影响正常使用。";
+                msg = Lang.Text(
+                    "Config.Error.InvalidFormat.RecoveryMessage",
+                    currentSection,
+                    filePath,
+                    backupPath);
+            }
+            else
+            {
+                msg = Lang.Text("Config.Error.LoadFailed.Message", currentSection);
             }
 #endif
             Context.Fatal(msg, ex);
@@ -319,9 +327,10 @@ public sealed partial class ConfigService
         // 检测是否初始化出错
         if (Lifecycle.GetServiceLastException(Service.Identifier) is { } ex)
         {
-            Context.Fatal("配置系统初始化失败", ex);
+            Context.Fatal(Lang.Text("Config.Error.LoadFailed.Title"), ex);
             return;
         }
+
         Context.Info("Saving config...");
         // 停止物流中心并释放资源
         _sharedConfigProvider?.Stop();
@@ -331,7 +340,7 @@ public sealed partial class ConfigService
 
     [RegisterConfigEvent]
     public static ConfigEventRegistry SharedVersionInit => new(
-        scope: SharedVersionConfig,
+        SharedVersionConfig,
         trigger: ConfigEvent.Init,
         handler: e => _UpdateConfigVersion(SharedVersionConfig, "全局", (int)e.NewValue!)
     );

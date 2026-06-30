@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 using PCL.Core.App;
 using PCL.Core.IO;
@@ -64,8 +64,11 @@ public static class ModJava
                             if (candidate is not null && candidate.IsEnabled)
                             {
                                 if (!IsVersionSuitable(candidate.Installation.Version))
-                                    HintService.Hint(
-                                        $"实例指定的 Java ({candidate.Installation.Version}) 超出版本要求范围 [{minVersion?.ToString() ?? "无下限"}, {maxVersion?.ToString() ?? "无上限"}]，可能导致游戏崩溃");
+                                    HintService.Hint(_GetJavaRangeWarning(
+                                        "Minecraft.Launch.Java.Compatibility.InstanceSelectedOutOfRange",
+                                        candidate.Installation.Version,
+                                        minVersion,
+                                        maxVersion));
                                 ModBase.Log($"[Java] 返回实例 '{relatedInstance.Name}' 指定的 Java: {candidate}");
                                 return candidate;
                             }
@@ -87,8 +90,11 @@ public static class ModJava
                                 if (candidate is not null && candidate.IsEnabled)
                                 {
                                     if (!IsVersionSuitable(candidate.Installation.Version))
-                                        HintService.Hint(
-                                            $"实例相对路径指定的 Java (v{candidate.Installation.Version}) 超出版本要求范围，可能导致游戏崩溃",
+                                        HintService.Hint(_GetJavaRangeWarning(
+                                                "Minecraft.Launch.Java.Compatibility.RelativePathSelectedOutOfRange",
+                                                candidate.Installation.Version,
+                                                minVersion,
+                                                maxVersion),
                                             HintType.Error);
                                     ModBase.Log(
                                         $"[Java] 返回实例 '{relatedInstance.Name}' 相对路径指定的 Java ({relPref.RelativePath}): {candidate}");
@@ -135,7 +141,11 @@ public static class ModJava
             if (candidate is not null && candidate.IsEnabled)
             {
                 if (!IsVersionSuitable(candidate.Installation.Version))
-                    HintService.Hint($"全局指定的 Java (v{candidate.Installation.Version}) 超出版本要求范围，可能导致游戏崩溃");
+                    HintService.Hint(_GetJavaRangeWarning(
+                        "Minecraft.Launch.Java.Compatibility.GlobalSelectedOutOfRange",
+                        candidate.Installation.Version,
+                        minVersion,
+                        maxVersion));
                 ModBase.Log($"[Java] 返回全局指定的 Java: {candidate}");
                 return candidate;
             }
@@ -171,6 +181,19 @@ public static class ModJava
             ModBase.Log("[Java] 最终未能确定可用的 Java 运行时");
 
         return ret;
+    }
+
+    private static string _GetJavaRangeWarning(
+        string key,
+        Version selectedVersion,
+        Version? minVersion,
+        Version? maxVersion)
+    {
+        return Lang.Text(
+            key,
+            selectedVersion,
+            minVersion?.ToString() ?? Lang.Text("Minecraft.Launch.Java.Compatibility.NoMinimum"),
+            maxVersion?.ToString() ?? Lang.Text("Minecraft.Launch.Java.Compatibility.NoMaximum"));
     }
 
     public static JavaPreference GetInstanceJavaPreference(McInstance instance)
@@ -289,7 +312,11 @@ public static class ModJava
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "检查 Java 类别时出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "检查 Java 类别时出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Launch.Java.Compatibility.CheckFailed"));
             if (relatedVersion is not null)
                 Config.Instance.SelectedJava[relatedVersion.PathInstance] = "使用全局设置";
             Config.Launch.SelectedJava = "";
@@ -305,17 +332,18 @@ public static class ModJava
     /// </summary>
     public static bool JavaDownloadConfirm(string versionDescription, bool forcedManualDownload = false)
     {
-        if (forcedManualDownload)
-        {
-            ModMain.MyMsgBox(
-                $"PCL 未找到 {versionDescription}。" + "\r\n" +
-                $"请自行搜索并安装 {versionDescription}，安装后在 设置 → 启动选项 → 游戏 Java 中重新搜索或导入。", "未找到 Java");
-            return false;
-        }
+        if (!forcedManualDownload)
+            return ModMain.MyMsgBox(
+                Lang.Text("Minecraft.Launch.Java.AutoDownload.Message", versionDescription),
+                Lang.Text("Minecraft.Launch.Java.AutoDownload.Title"),
+                Lang.Text("Minecraft.Launch.Java.AutoDownload.Action"),
+                Lang.Text("Common.Action.Cancel")) == 1;
 
-        return ModMain.MyMsgBox(
-            $"PCL 未找到 {versionDescription}，是否需要 PCL 自动下载？" + "\r\n" +
-            $"如果你已经安装了 {versionDescription}，可以在 设置 → 启动选项 → 游戏 Java 中手动导入。", "自动下载 Java？", "自动下载", Lang.Text("Common.Action.Cancel")) == 1;
+        ModMain.MyMsgBox(
+            Lang.Text("Minecraft.Launch.Java.NotFound.Manual.Message", versionDescription),
+            Lang.Text("Minecraft.Launch.Java.NotFound.Title"));
+
+        return false;
     }
 
     /// <summary>
@@ -323,29 +351,44 @@ public static class ModJava
     /// </summary>
     public static ModLoader.LoaderCombo<string> GetJavaDownloadLoader()
     {
-        var javaDownloadLoader = new LoaderDownload("下载 Java 文件", new List<DownloadFile>())
-            { ProgressWeight = 10d };
-        var loader = new ModLoader.LoaderCombo<string>("下载 Java",
-            new ModLoader.LoaderBase[]
-            {
-                new ModLoader.LoaderTask<string, List<DownloadFile>>("获取 Java 下载信息", JavaFileList)
-                    { ProgressWeight = 2d },
-                javaDownloadLoader
-            });
-        javaDownloadLoader.OnStateChangedThread += (raw, newState, oldState) =>
+        var javaDownloadLoader = new LoaderDownload(
+            Lang.Text("Minecraft.Launch.Java.Task.DownloadFiles"),
+            [])
         {
-            if ((newState == ModBase.LoadState.Failed || newState == ModBase.LoadState.Aborted) &&
-                lastJavaBaseDir is not null)
+            ProgressWeight = 10d
+        };
+
+        var loader = new ModLoader.LoaderCombo<string>(
+            Lang.Text("Minecraft.Launch.Java.Task.Download"),
+            [
+                new ModLoader.LoaderTask<string, List<DownloadFile>>(
+                    Lang.Text("Minecraft.Launch.Java.Task.GetDownloadInfo"),
+                    JavaFileList)
+                {
+                    ProgressWeight = 2d
+                },
+                javaDownloadLoader
+            ]);
+
+        javaDownloadLoader.OnStateChangedThread += (_, newState, _) =>
+        {
+            switch (newState)
             {
-                ModBase.Log($"[Java] 由于下载未完成，清理未下载完成的 Java 文件：{lastJavaBaseDir}", ModBase.LogLevel.Debug);
-                ModBase.DeleteDirectory(lastJavaBaseDir);
-            }
-            else if (newState == ModBase.LoadState.Finished)
-            {
-                Javas.ScanJavaAsync().GetAwaiter().GetResult();
-                lastJavaBaseDir = null;
+                case ModBase.LoadState.Failed or ModBase.LoadState.Aborted
+                    when lastJavaBaseDir is not null:
+                    ModBase.Log(
+                        $"[Java] 由于下载未完成，清理未下载完成的 Java 文件：{lastJavaBaseDir}",
+                        ModBase.LogLevel.Debug);
+
+                    ModBase.DeleteDirectory(lastJavaBaseDir);
+                    break;
+                case ModBase.LoadState.Finished:
+                    Javas.ScanJavaAsync().GetAwaiter().GetResult();
+                    lastJavaBaseDir = null;
+                    break;
             }
         };
+
         javaDownloadLoader.hasOnStateChangedThread = true;
         return loader;
     }

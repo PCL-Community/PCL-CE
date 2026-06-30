@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
@@ -86,7 +86,11 @@ public partial class PageSetupGameLink
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.GameLink.Error.InitFailed"), ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.GameLink.Error.InitFailed"),
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.GameLink.Error.InitFailed"));
         }
 
         Reload();
@@ -126,7 +130,11 @@ public partial class PageSetupGameLink
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Setup.GameLink.Error.ConfigChangeFailed"), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Setup.GameLink.Error.ConfigChangeFailed"),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Setup.GameLink.Error.ConfigChangeFailed"));
             }
     }
 
@@ -157,7 +165,10 @@ public partial class PageSetupGameLink
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[Link] 获取网络测试结果失败", ModBase.LogLevel.Hint);
+            ModBase.Log(ex,
+                "[Link] 获取网络测试结果失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Setup.GameLink.Error.NetworkTestFailed"));
             BtnNetTest.IsEnabled = true;
             BtnNetTest.Text = Lang.Text("Setup.GameLink.NetworkTest.Start");
         }

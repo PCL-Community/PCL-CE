@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
@@ -115,11 +115,17 @@ public partial class PageLoginAuth
                 }
                 else if (ex.Message.StartsWith("$"))
                 {
-                    HintService.Hint(ex.Message.TrimStart('$'), HintType.Error);
+                    HintService.Hint(
+                        Lang.Text("Launch.Account.Auth.LoginFailed.WithDetail",ex.Message.TrimStart('$')),
+                        HintType.Error);
                 }
                 else
                 {
-                    ModBase.Log(ex, Lang.Text("Launch.Account.Auth.LoginFailed"), ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        Lang.Text("Launch.Account.Auth.LoginFailed"),
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Launch.Account.Auth.LoginFailed"));
                 }
             }
             finally

@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Eventing.Reader;
 using System.IO;
@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using FluentValidation;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Logging;
 using PCL.Core.Minecraft.ResourceProject;
 using PCL.Core.UI;
 using PCL.Core.Utils;
@@ -100,12 +101,14 @@ public partial class PageDownloadCompDetail
                     {
                         case ModBase.LoadState.Failed:
                         {
-                            HintService.Hint(myLoader.name + Lang.Text("Common.Status.Failure") + myLoader.Error.Message, HintType.Error);
+                            HintService.Hint(
+                                Lang.Text("Download.Comp.Detail.Task.Failed", myLoader.name,
+                                    myLoader.Error.ToString()), HintType.Error);
                             break;
                         }
                         case ModBase.LoadState.Aborted:
                         {
-                            HintService.Hint(myLoader.name + Lang.Text("Common.Status.Cancelled"));
+                            HintService.Hint(Lang.Text("Download.Comp.Detail.Task.Cancelled", myLoader.name));
                             break;
                         }
                         case ModBase.LoadState.Loading:
@@ -125,7 +128,11 @@ public partial class PageDownloadCompDetail
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "下载资源整合包失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "下载资源整合包失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Comp.Error.OperationFailed"));
         }
     }
 
@@ -236,7 +243,11 @@ public partial class PageDownloadCompDetail
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "下载世界资源失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "下载世界资源失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Comp.Error.OperationFailed"));
         }
     }
 
@@ -507,8 +518,15 @@ public partial class PageDownloadCompDetail
                         catch (Exception depEx)
                         {
                             ModBase.Log(depEx, "[CompDeps] 依赖解析失败，跳过前置安装");
-                            ModMain.MyMsgBox("前置 Mod 解析失败，将仅下载本体。\n\n" + depEx.Message,
-                                "前置解析失败", button1: "继续下载", isWarn: true, forceWait: true);
+                            var message = ExceptionDetails.Compose(
+                                Lang.Text("Download.Comp.Dependency.ResolveFailed.Message"),
+                                depEx);
+                            ModMain.MyMsgBox(
+                                message,
+                                Lang.Text("Download.Comp.Dependency.ResolveFailed.Title"),
+                                Lang.Text("Download.Comp.Dependency.ResolveFailed.Continue"),
+                                isWarn: true,
+                                forceWait: true);
                         }
                     }
 
@@ -537,7 +555,11 @@ public partial class PageDownloadCompDetail
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "保存资源文件失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    "保存资源文件失败",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Download.Comp.Error.OperationFailed"));
             }
         }, "Download CompDetail Save");
     }
@@ -1102,7 +1124,11 @@ public partial class PageDownloadCompDetail
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化工程下载列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化工程下载列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Comp.Error.OperationFailed"));
         }
     }
 

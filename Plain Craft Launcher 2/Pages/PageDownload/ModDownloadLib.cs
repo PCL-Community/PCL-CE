@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -120,7 +120,11 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 Minecraft 下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "开始 Minecraft 下载失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
             return null;
         }
     }
@@ -181,7 +185,11 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 Minecraft 下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "开始 Minecraft 下载失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
 
@@ -355,7 +363,7 @@ public static class ModDownloadLib
         }
 
         if (entry["url"].ToString().Contains("unlisted-versions-of-minecraft"))
-            newItem.Tags = Lang.Text("Download.Tag.Uvmc");
+            newItem.Tags = Lang.Text("Download.Source.Tag.Uvmc");
         newItem.Click += onClick;
         // 建立菜单
         if (isSaveOnly)
@@ -515,7 +523,11 @@ public static class ModDownloadLib
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 Minecraft 服务端下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "开始 Minecraft 服务端下载失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
 
@@ -574,7 +586,11 @@ public static class ModDownloadLib
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 Minecraft 下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "开始 Minecraft 下载失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
 
@@ -647,7 +663,11 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 OptiFine 下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "开始 OptiFine 下载失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
 
@@ -683,7 +703,11 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 OptiFine 下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "开始 OptiFine 下载失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
 
@@ -1313,7 +1337,11 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 LiteLoader 下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "开始 LiteLoader 下载失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
 
@@ -1398,7 +1426,11 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 LiteLoader 安装器下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "开始 LiteLoader 安装器下载失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
 
@@ -1654,7 +1686,11 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"开始 {info.LoaderName} 安装器下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                $"开始 {info.LoaderName} 安装器下载失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
 
@@ -2576,7 +2612,11 @@ public static class ModDownloadLib
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取 Forge 推荐版本失败（" + (mcInstance ?? "null") + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "获取 Forge 推荐版本失败（" + (mcInstance ?? "null") + "）",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
             return null;
         }
     }
@@ -2858,7 +2898,11 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 Fabric 安装器下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "开始 Fabric 安装器下载失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
 
@@ -2979,7 +3023,11 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 Legacy Fabric 安装器下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "开始 Legacy Fabric 安装器下载失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
 
@@ -3201,7 +3249,11 @@ public static class ModDownloadLib
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 Quilt 安装器下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "开始 Quilt 安装器下载失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
 
@@ -3364,7 +3416,11 @@ public static class ModDownloadLib
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 LabyMod 安装器下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "开始 LabyMod 安装器下载失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
 
@@ -3408,7 +3464,11 @@ public static class ModDownloadLib
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始 LabyMod 安装器下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "开始 LabyMod 安装器下载失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
         }
     }
 
@@ -3876,7 +3936,11 @@ public static class ModDownloadLib
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始合并安装失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "开始合并安装失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Download.Error.OperationFailed"));
             try
             {
                 if (Directory.Exists(request.targetInstanceFolder))

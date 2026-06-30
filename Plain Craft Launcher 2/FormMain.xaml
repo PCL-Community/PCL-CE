@@ -154,19 +154,19 @@
                         </Grid>
                         <StackPanel Grid.Column="1" x:Name="PanTitleSelect" HorizontalAlignment="Left" Height="27"
                                     VerticalAlignment="Center" Orientation="Horizontal" Margin="13,0">
-                            <local:MyRadioButton x:Name="BtnTitleSelect0" Text="{DynamicResource Main.TopTitle.Launch}" Tag="0" Margin="5,0" Checked="True"
+                            <local:MyRadioButton x:Name="BtnTitleSelect0" Text="{DynamicResource Main.Tab.Launch}" Tag="0" Margin="5,0" Checked="True"
                                                  Padding="2,0" Check="BtnTitleSelect_Click"
                                                  LogoScale="0.9"
                                                  SvgIcon="lucide/play" />
-                            <local:MyRadioButton x:Name="BtnTitleSelect1" Text="{DynamicResource Main.TopTitle.Download}" Tag="1" Margin="5,0" Padding="2,0"
+                            <local:MyRadioButton x:Name="BtnTitleSelect1" Text="{DynamicResource Main.Tab.Download}" Tag="1" Margin="5,0" Padding="2,0"
                                                  Check="BtnTitleSelect_Click"
                                                  LogoScale="0.9"
                                                  SvgIcon="lucide/download" />
-                            <local:MyRadioButton x:Name="BtnTitleSelect2" Text="{DynamicResource Main.TopTitle.Settings}" Tag="2" Margin="5,0" Padding="2,0"
+                            <local:MyRadioButton x:Name="BtnTitleSelect2" Text="{DynamicResource Main.Tab.Settings}" Tag="2" Margin="5,0" Padding="2,0"
                                                  Check="BtnTitleSelect_Click"
                                                  LogoScale="1.1"
                                                  SvgIcon="lucide/settings" />
-                            <local:MyRadioButton x:Name="BtnTitleSelect3" Text="{DynamicResource Main.TopTitle.Tools}" Tag="3" Margin="5,0" Padding="2,0"
+                            <local:MyRadioButton x:Name="BtnTitleSelect3" Text="{DynamicResource Main.Tab.Tools}" Tag="3" Margin="5,0" Padding="2,0"
                                                  Check="BtnTitleSelect_Click"
                                                  LogoScale="1"
                                                  SvgIcon="lucide/wrench" />

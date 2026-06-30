@@ -36,36 +36,36 @@
                             <RowDefinition Height="28" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.InstanceIsolation.Label}"
+                        <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Options.InstanceIsolation.Label}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboArgumentIndieV2" Grid.Row="0" Grid.ColumnSpan="2"
                                           Tag="LaunchArgumentIndieV2" Grid.Column="1"
                                           SelectionChanged="ComboArgumentIndie_OnSelectionChanged"
-                                          ToolTip="{DynamicResource Setup.Launch.InstanceIsolation.ToolTip}">
+                                          ToolTip="{DynamicResource Setup.Launch.Options.InstanceIsolation.ToolTip}">
                             <local:MyComboBoxItem Content="{DynamicResource Common.Action.Close}"
-                                                  ToolTip="{DynamicResource Setup.Launch.InstanceIsolation.None.ToolTip}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.InstanceIsolation.ModdedOnly}" IsSelected="True"
-                                                  ToolTip="{DynamicResource Setup.Launch.InstanceIsolation.ModdedOnly.ToolTip}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.InstanceIsolation.NonRelease}" ToolTip="{DynamicResource Setup.Launch.InstanceIsolation.NonRelease.ToolTip}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.InstanceIsolation.ModdedAndNonRelease}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.InstanceIsolation.All}"
-                                                  ToolTip="{DynamicResource Setup.Launch.InstanceIsolation.All.ToolTip}" />
+                                                  ToolTip="{DynamicResource Setup.Launch.Options.InstanceIsolation.None.ToolTip}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.InstanceIsolation.ModdedOnly}" IsSelected="True"
+                                                  ToolTip="{DynamicResource Setup.Launch.Options.InstanceIsolation.ModdedOnly.ToolTip}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.InstanceIsolation.NonRelease}" ToolTip="{DynamicResource Setup.Launch.Options.InstanceIsolation.NonRelease.ToolTip}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.InstanceIsolation.ModdedAndNonRelease}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.InstanceIsolation.All}"
+                                                  ToolTip="{DynamicResource Setup.Launch.Options.InstanceIsolation.All.ToolTip}" />
                         </local:MyComboBox>
-                        <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.WindowTitle.Label}"
+                        <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Options.WindowTitle.Label}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="TextArgumentTitle" Grid.Row="2" Grid.ColumnSpan="2"
                                           Tag="LaunchArgumentTitle" Grid.Column="1" IsEditable="True"
                                           IsTextSearchEnabled="False" TextChanged="TextArgumentTitle_OnTextChanged"
-                                          ToolTip="{DynamicResource Setup.Launch.WindowTitle.ToolTip}"
+                                          ToolTip="{DynamicResource Setup.Launch.Options.WindowTitle.ToolTip}"
                                           HintText="{DynamicResource Common.Option.Default}">
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.WindowTitle.SampleFormat}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.WindowTitle.SampleFormat}" />
                         </local:MyComboBox>
-                        <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.CustomInfo.Label}"
+                        <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Options.CustomInfo.Label}"
                                    Margin="0,0,25,0" />
                         <local:MyTextBox x:Name="TextArgumentInfo" Grid.Row="4" Grid.ColumnSpan="2"
                                          Tag="LaunchArgumentInfo" Text="PCL" Grid.Column="1"
                                          ValidatedTextChanged="TextBoxChange"
-                                         ToolTip="{DynamicResource Setup.Launch.CustomInfo.ToolTip}">
+                                         ToolTip="{DynamicResource Setup.Launch.Options.CustomInfo.ToolTip}">
                             <local:MyTextBox.ValidateRules>
                                 <val:BlacklistValidator>
                                     <val:BlacklistValidator.Blacklist>
@@ -76,31 +76,31 @@
                                 </val:BlacklistValidator>
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
-                        <TextBlock VerticalAlignment="Center" Grid.Row="6" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Visibility.Label}"
+                        <TextBlock VerticalAlignment="Center" Grid.Row="6" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Options.Visibility.Label}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboArgumentVisibie" Grid.Row="6" Grid.ColumnSpan="2"
                                           Tag="LaunchArgumentVisible" Grid.Column="1"
                                           SelectionChanged="ComboArgumentVisibie_SelectionChanged">
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Visibility.CloseImmediately}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.Visibility.CloseImmediately}" />
                             <local:MyComboBoxItem Content="" IsEnabled="False" Visibility="Collapsed" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Visibility.HideAndCloseOnExit}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Visibility.HideAndReopenOnExit}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Visibility.Minimize}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Visibility.KeepUnchanged}" IsSelected="True" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.Visibility.HideAndCloseOnExit}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.Visibility.HideAndReopenOnExit}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.Visibility.Minimize}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.Visibility.KeepUnchanged}" IsSelected="True" />
                         </local:MyComboBox>
-                        <TextBlock VerticalAlignment="Center" Grid.Row="8" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Priority.Label}"
+                        <TextBlock VerticalAlignment="Center" Grid.Row="8" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Options.Priority.Label}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboArgumentPriority" Grid.Row="8" Grid.ColumnSpan="2"
                                           Tag="LaunchArgumentPriority" Grid.Column="1"
                                           SelectionChanged="ComboChange"
                                           SelectedValuePath="Tag">
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.RealTime}" Tag="4" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.High}" Tag="3" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.AboveNormal}" Tag="0" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.Normal}" IsSelected="True" Tag="1" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Priority.BelowNormal}" Tag="2" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.Priority.RealTime}" Tag="4" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.Priority.High}" Tag="3" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.Priority.AboveNormal}" Tag="0" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.Priority.Normal}" IsSelected="True" Tag="1" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.Priority.BelowNormal}" Tag="2" />
                         </local:MyComboBox>
-                        <TextBlock VerticalAlignment="Center" Grid.Row="10" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.WindowSize.Label}"
+                        <TextBlock VerticalAlignment="Center" Grid.Row="10" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Options.WindowSize.Label}"
                                    Margin="0,0,25,0" />
                         <Grid x:Name="PanArgumentWindow" Grid.Row="10" Grid.ColumnSpan="2" Grid.Column="1">
                             <Grid.ColumnDefinitions>
@@ -111,12 +111,12 @@
                             </Grid.ColumnDefinitions>
                             <local:MyComboBox x:Name="ComboArgumentWindowType" Tag="LaunchArgumentWindowType"
                                               SelectionChanged="ComboChange"
-                                              ToolTip="{DynamicResource Setup.Launch.WindowSize.ModernUiWarning}">
-                                <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.WindowSize.Fullscreen}" />
+                                              ToolTip="{DynamicResource Setup.Launch.Options.WindowSize.ModernUiWarning}">
+                                <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.WindowSize.Fullscreen}" />
                                 <local:MyComboBoxItem Content="{DynamicResource Common.Option.Default}" IsSelected="True" />
-                                <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.WindowSize.SameAsLauncher}" />
-                                <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.WindowSize.Custom}" ToolTip="{DynamicResource Setup.Launch.WindowSize.CustomHeightBug.ToolTip}" />
-                                <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.WindowSize.Maximized}" />
+                                <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.WindowSize.SameAsLauncher}" />
+                                <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.WindowSize.Custom}" ToolTip="{DynamicResource Setup.Launch.Options.WindowSize.CustomHeightBug.ToolTip}" />
+                                <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.WindowSize.Maximized}" />
                             </local:MyComboBox>
                             <local:MyTextBox Padding="0,0,5,0" Visibility="Collapsed" Grid.Column="1" Margin="50,0,0,0"
                                              x:Name="TextArgumentWindowWidth" Tag="LaunchArgumentWindowWidth"
@@ -132,33 +132,33 @@
                                              HorizontalContentAlignment="Center" x:Name="TextArgumentWindowHeight"
                                              Tag="LaunchArgumentWindowHeight" Text="480"
                                              ValidatedTextChanged="TextBoxChange"
-                                             ToolTip="{DynamicResource Setup.Launch.WindowSize.CustomHeightBug.ToolTip}"
+                                             ToolTip="{DynamicResource Setup.Launch.Options.WindowSize.CustomHeightBug.ToolTip}"
                                             ToolTipService.Placement="Right" ToolTipService.HorizontalOffset="5">
                                 <local:MyTextBox.ValidateRules>
                                     <val:IntValidator Min="1" Max="9999" />
                                 </local:MyTextBox.ValidateRules>
                             </local:MyTextBox>
                         </Grid>
-                        <TextBlock VerticalAlignment="Center" Grid.Row="12" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.MsAuth.Label}"
+                        <TextBlock VerticalAlignment="Center" Grid.Row="12" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Options.MsAuth.Label}"
                                    Margin="0,0,25,0"
-                                   ToolTip="{DynamicResource Setup.Launch.MsAuth.ToolTip}" />
+                                   ToolTip="{DynamicResource Setup.Launch.Options.MsAuth.ToolTip}" />
                         <local:MyComboBox x:Name="ComboMsAuthType" Grid.Row="12" Grid.ColumnSpan="2"
                                           Tag="LoginMsAuthType" Grid.Column="1"
                                           SelectionChanged="ComboChange"
-                                          ToolTip="{DynamicResource Setup.Launch.MsAuth.ToolTip}"
+                                          ToolTip="{DynamicResource Setup.Launch.Options.MsAuth.ToolTip}"
                                           IsEnabled="False">
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.MsAuth.WebManager}" IsSelected="True" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.MsAuth.DeviceCode}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.MsAuth.WebManager}" IsSelected="True" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.MsAuth.DeviceCode}" />
                         </local:MyComboBox>
-                        <TextBlock VerticalAlignment="Center" Grid.Row="14" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.IpStack.Label}"
+                        <TextBlock VerticalAlignment="Center" Grid.Row="14" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.Options.IpStack.Label}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboPreferredIpStack" Grid.Row="14" Grid.ColumnSpan="2"
                                           Tag="LaunchPreferredIpStack" Grid.Column="1"
                                           SelectionChanged="ComboChange"
-                                          ToolTip="{DynamicResource Setup.Launch.IpStack.ToolTip}">
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.IpStack.Ipv4}" IsSelected="True" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.IpStack.JavaDefault}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.IpStack.Ipv6}" />
+                                          ToolTip="{DynamicResource Setup.Launch.Options.IpStack.ToolTip}">
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.IpStack.Ipv4}" IsSelected="True" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.IpStack.JavaDefault}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.IpStack.Ipv6}" />
                         </local:MyComboBox>
                     </Grid>
                 </StackPanel>

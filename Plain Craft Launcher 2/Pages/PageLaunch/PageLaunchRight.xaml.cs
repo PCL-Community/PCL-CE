@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Globalization;
 using System.Reflection;
 using System.Windows;
@@ -18,8 +18,12 @@ public partial class PageLaunchRight : IRefreshable
     public PageLaunchRight()
     {
         InitializeComponent();
-        onlineLoader = new ModLoader.LoaderTask<string, int>("下载主页", OnlineLoaderSub)
-            { reloadTimeout = 10 * 60 * 1000 };
+        onlineLoader = new ModLoader.LoaderTask<string, int>(
+            Lang.Text("Launch.Homepage.Task.Download"),
+            OnlineLoaderSub)
+        {
+            reloadTimeout = 10 * 60 * 1000
+        };
         Loaded += (_, _) => Init();
         Loaded += (_, _) => Refresh();
         Unloaded += (_, _) => _DisposeHomepageLiveWatcher();
@@ -75,8 +79,13 @@ public partial class PageLaunchRight : IRefreshable
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "加载 PCL 主页自定义信息失败",
-                        ModBase.modeDebug ? ModBase.LogLevel.Msgbox : ModBase.LogLevel.Hint);
+                    ModBase.Log(
+                        ex,
+                        "加载 PCL 主页自定义信息失败",
+                        ModBase.modeDebug
+                            ? ModBase.LogLevel.Msgbox
+                            : ModBase.LogLevel.Hint,
+                        userSummary: Lang.Text("Launch.Error.OperationFailed"));
                 }
             }, $"刷新主页 #{ModBase.GetUuid()}");
     }
@@ -261,7 +270,10 @@ public partial class PageLaunchRight : IRefreshable
             }
             catch
             {
-                ModBase.Log(Lang.Text("Launch.Homepage.Error.ExternalFile", externalPath), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    Lang.Text("Launch.Homepage.Error.ExternalFile", externalPath),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Launch.Homepage.Error.ExternalFile", externalPath));
             }
         }
 
@@ -370,7 +382,13 @@ public partial class PageLaunchRight : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Launch.Homepage.Error.Download", address), ModBase.modeDebug ? ModBase.LogLevel.Msgbox : ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Launch.Homepage.Error.Download", address),
+                ModBase.modeDebug
+                    ? ModBase.LogLevel.Msgbox
+                    : ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Launch.Homepage.Error.Download", address));
         }
     }
 
@@ -464,7 +482,11 @@ public partial class PageLaunchRight : IRefreshable
                 }
                 else
                 {
-                    ModBase.Log(ex, Lang.Text("Launch.Homepage.LoadFailed.Title"), ModBase.LogLevel.Hint);
+                    ModBase.Log(
+                        ex,
+                        Lang.Text("Launch.Homepage.LoadFailed.Title"),
+                        ModBase.LogLevel.Hint,
+                        userSummary: Lang.Text("Launch.Homepage.LoadFailed.Title"));
                 }
 
                 return;
@@ -487,10 +509,10 @@ public partial class PageLaunchRight : IRefreshable
     private static void _ShowSanitizeHints(XamlEventSanitizer.SanitizeResult result)
     {
         foreach (var unsupported in result.UnsupportedTypesFound)
-            HintService.Hint($"[{unsupported}]" + " " + Lang.Text("Event.Sanitize.UnsupportedTypeHint"), HintType.Error);
+            HintService.Hint(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported), HintType.Error);
 
         foreach (var unknown in result.UnrecognizedTypes)
-            HintService.Hint($"[{unknown}]" +  " " + Lang.Text("Event.Sanitize.UnknownTypeHint"), HintType.Error);
+            HintService.Hint(Lang.Text("Event.Sanitize.UnknownTypeHint", unknown), HintType.Error);
     }
 
     private const string homepageLivePatchFileName = "CustomLive.json";

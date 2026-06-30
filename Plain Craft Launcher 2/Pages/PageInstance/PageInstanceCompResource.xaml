@@ -91,7 +91,7 @@
                     <WrapPanel Margin="10,20,10,5" HorizontalAlignment="Center" Orientation="Horizontal">
                         <local:MyButton Height="35" x:Name="BtnSchematicDownloadMod" MinWidth="130" Text="{DynamicResource Instance.Resource.Schematic.DownloadMod}"
                                         Margin="5,0" Padding="12,0" ColorType="Highlight" />
-                        <local:MyButton Height="35" x:Name="BtnSchematicVersionSelect" MinWidth="130" Text="{DynamicResource Instance.Mod.Disabled.SelectInstance}"
+                        <local:MyButton Height="35" x:Name="BtnSchematicVersionSelect" MinWidth="130" Text="{DynamicResource Instance.Resource.Mod.Disabled.SelectInstance}"
                                         Margin="5,0" Padding="12,0" />
                     </WrapPanel>
                 </StackPanel>

@@ -1,4 +1,4 @@
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
@@ -154,7 +154,11 @@ public partial class MyMsgLogin
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Launch.Account.LoginDialog.Error.Init"), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Launch.Account.LoginDialog.Error.Init"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Launch.Account.LoginDialog.Error.Init"));
         }
 
         Loaded += Load;
@@ -187,7 +191,11 @@ public partial class MyMsgLogin
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Launch.Account.LoginDialog.Error.Load"), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Launch.Account.LoginDialog.Error.Load"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Launch.Account.LoginDialog.Error.Load"));
         }
     }
 

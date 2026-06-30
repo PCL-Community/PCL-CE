@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
@@ -18,9 +18,12 @@ internal sealed class CrashDialogPresenter(CrashAnalysisContext context)
     {
         ModMain.frmMain.ShowWindowToTop();
 
-        var resultText = _formatter.Format(context, isHandAnalyze);
+        var crashContent = _formatter.Format(context, isHandAnalyze);
+        var resultText = crashContent.Text;
         var directFile = context.DirectOpenFile;
-        var isModLoaderIncompatible = _IsModLoaderIncompatible(resultText);
+        var openInstanceSettings =
+            context.Instance is not null &&
+            crashContent.SuggestedAction == CrashSuggestedAction.OpenInstanceSettings;
 
         var title = isHandAnalyze
             ? Lang.Text("Crash.Dialog.Title.Manual")
@@ -29,7 +32,7 @@ internal sealed class CrashDialogPresenter(CrashAnalysisContext context)
         var secondButtonText = _GetSecondButtonText(
             isHandAnalyze,
             directFile,
-            isModLoaderIncompatible);
+            openInstanceSettings);
 
         var thirdButtonText = isHandAnalyze
             ? ""
@@ -38,7 +41,7 @@ internal sealed class CrashDialogPresenter(CrashAnalysisContext context)
         var secondButtonAction = _GetSecondButtonAction(
             isHandAnalyze,
             directFile,
-            isModLoaderIncompatible);
+            openInstanceSettings);
 
         var selectedButton = MsgBoxWrapper.ShowWithCustomButtons(
             resultText,
@@ -52,7 +55,10 @@ internal sealed class CrashDialogPresenter(CrashAnalysisContext context)
         switch (selectedButton)
         {
             case 2:
-                _OpenModLoaderInstallPage();
+                if (openInstanceSettings)
+                    _OpenModLoaderInstallPage();
+                else if (directFile is not null)
+                    _OpenDirectFile(directFile);
                 break;
 
             case 3:
@@ -61,21 +67,15 @@ internal sealed class CrashDialogPresenter(CrashAnalysisContext context)
         }
     }
 
-    private bool _IsModLoaderIncompatible(string resultText)
-    {
-        return context.Instance is not null &&
-               resultText.StartsWith(Lang.Text("Crash.Result.ModLoaderIncompatible.Prefix"));
-    }
-
     private static string _GetSecondButtonText(
         bool isHandAnalyze,
         CrashLogEntry? directFile,
-        bool isModLoaderIncompatible)
+        bool openInstanceSettings)
     {
         if (isHandAnalyze || directFile is null)
             return "";
 
-        return isModLoaderIncompatible
+        return openInstanceSettings
             ? Lang.Text("Crash.Dialog.Button.GoToModify")
             : Lang.Text("Crash.Dialog.Button.OpenLog");
     }
@@ -83,11 +83,11 @@ internal sealed class CrashDialogPresenter(CrashAnalysisContext context)
     private static Action? _GetSecondButtonAction(
         bool isHandAnalyze,
         CrashLogEntry? directFile,
-        bool isModLoaderIncompatible)
+        bool openInstanceSettings)
     {
         if (isHandAnalyze ||
             directFile is null ||
-            isModLoaderIncompatible)
+            openInstanceSettings)
             return null;
 
         return () => _OpenDirectFile(directFile);
@@ -118,9 +118,11 @@ internal sealed class CrashDialogPresenter(CrashAnalysisContext context)
 
     private void _ExportReport(List<string>? extraFiles)
     {
+        string? fileAddress = null;
+
         try
         {
-            var fileAddress = _SelectReportSavePath();
+            fileAddress = _SelectReportSavePath();
 
             if (string.IsNullOrEmpty(fileAddress))
                 return;
@@ -136,7 +138,30 @@ internal sealed class CrashDialogPresenter(CrashAnalysisContext context)
         catch (Exception ex)
         {
             LogWrapper.Error(ex, "Crash", "导出错误报告失败");
+
+            var message = _CreateExportFailureMessage(fileAddress, ex);
+            MsgBoxWrapper.ShowWithCustomButtons(
+                message,
+                Lang.Text("Crash.Export.Failed.Title"),
+                MsgBoxTheme.Error,
+                false,
+                new MsgBoxButtonInfo(Lang.Text("Common.Action.Confirm"), 1),
+                new MsgBoxButtonInfo(
+                    Lang.Text("Crash.Export.Failed.CopyDetails"),
+                    2,
+                    () => ModBase.ClipboardSet(message, false)));
         }
+    }
+
+    private static string _CreateExportFailureMessage(
+        string? targetZipPath,
+        Exception exception)
+    {
+        var summary = string.IsNullOrWhiteSpace(targetZipPath)
+            ? Lang.Text("Crash.Export.Failed.MessageWithoutPath")
+            : Lang.Text("Crash.Export.Failed.Message", targetZipPath);
+
+        return ExceptionDetails.Compose(summary, exception);
     }
 
     private static string? _SelectReportSavePath()

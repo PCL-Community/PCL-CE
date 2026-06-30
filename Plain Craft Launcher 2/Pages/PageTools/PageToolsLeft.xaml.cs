@@ -1,7 +1,8 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
 
+using PCL.Core.App.Localization;
 namespace PCL;
 
 public partial class PageToolsLeft
@@ -127,7 +128,11 @@ public partial class PageToolsLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + (int)id + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                $"切换分页面失败（ID {(int)id}）",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Tools.Error.OperationFailed"));
         }
         finally
         {

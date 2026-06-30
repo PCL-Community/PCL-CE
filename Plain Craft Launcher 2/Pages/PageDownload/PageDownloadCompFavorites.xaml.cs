@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
@@ -163,7 +163,7 @@ public partial class PageDownloadCompFavorites
             }
             case (int)ModComp.CompType.Mod:
             {
-                newItem.Title = "Mod ({0})";
+                newItem.Title = Lang.Text("Download.Comp.Favorites.Category.Mod");
                 break;
             }
             case (int)ModComp.CompType.ModPack:
@@ -282,7 +282,11 @@ public partial class PageDownloadCompFavorites
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化收藏夹列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化收藏夹列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
         }
     }
 
@@ -492,7 +496,11 @@ public partial class PageDownloadCompFavorites
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[CompFavourites] 分享收藏时发生错误", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "[CompFavourites] 分享收藏时发生错误",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
         }
     }
 
@@ -578,7 +586,11 @@ public partial class PageDownloadCompFavorites
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, $"获取 {Item} 的下载信息失败", ModBase.LogLevel.Hint);
+                            ModBase.Log(
+                                ex,
+                                $"获取 {Item} 的下载信息失败",
+                                ModBase.LogLevel.Hint,
+                                userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
                         }
                         finally
                         {
@@ -675,7 +687,11 @@ public partial class PageDownloadCompFavorites
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "批量下载收藏时发生错误", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "批量下载收藏时发生错误",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
         }
     }
 
@@ -738,7 +754,11 @@ public partial class PageDownloadCompFavorites
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "[Favourites] 分享收藏时发生错误", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "[Favourites] 分享收藏时发生错误",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
             }
         };
         body.Items.Add(newItem);
@@ -784,7 +804,11 @@ public partial class PageDownloadCompFavorites
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "解析分享数据失败", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "解析分享数据失败",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
             }
         };
         body.Items.Add(newItem);
