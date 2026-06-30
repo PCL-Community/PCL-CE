@@ -273,7 +273,7 @@ public partial class PageSpeedLeft
 
                     var cardXAML = $@"
                         <local:MyCard xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"" xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml"" xmlns:local=""clr-namespace:PCL;assembly=Plain Craft Launcher 2""
-                            Tag=""{loader.Progress + (double)loader.State}"" Title=""{ModBase.EscapeXML(loader.name)}"" Margin=""0,0,0,15"">
+                            Tag=""{loader.Progress + (double)loader.State}"" Title=""{ModBase.EscapeXml(loader.name)}"" Margin=""0,0,0,15"">
                             <Grid Margin=""14,40,15,10"">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width=""50""/>
@@ -314,7 +314,7 @@ public partial class PageSpeedLeft
                             }
                         }
 
-                        cardXAML += $"<TextBlock Text=\"{ModBase.EscapeXML(SubTask.name)}\" HorizontalAlignment=\"Left\" Grid.Column=\"1\" Grid.Row=\"{row}\"/>";
+                        cardXAML += $"<TextBlock Text=\"{ModBase.EscapeXml(SubTask.name)}\" HorizontalAlignment=\"Left\" Grid.Column=\"1\" Grid.Row=\"{row}\"/>";
                         row += 1;
                     }
 

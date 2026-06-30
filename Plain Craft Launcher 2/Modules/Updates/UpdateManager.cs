@@ -27,7 +27,7 @@ public static class UpdateManager
     {
         get
         {
-            if (ModBase.versionBaseName.Contains("beta"))
+            if (ModBase.VersionBaseName.Contains("beta"))
                 return true;
             return (int)Config.Update.UpdateChannel == 1;
         }
@@ -40,11 +40,11 @@ public static class UpdateManager
             if (IsCurrentVersionBeta && (int)Config.Update.UpdateChannel != 1)
             {
                 var isNewerThanStable = remoteServer.IsLatest(UpdateChannel.stable,
-                    SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.versionBaseName),
-                    ModBase.versionCode);
+                    SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.VersionBaseName),
+                    ModBase.VersionCode);
                 var isBetaLatest = remoteServer.IsLatest(UpdateChannel.beta,
-                    SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.versionBaseName),
-                    ModBase.versionCode);
+                    SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.VersionBaseName),
+                    ModBase.VersionCode);
                 return isNewerThanStable && isBetaLatest
                     ? UpdateEnums.VersionStatus.Latest
                     : UpdateEnums.VersionStatus.NotLatest;
@@ -52,8 +52,8 @@ public static class UpdateManager
 
             return remoteServer.IsLatest(
                 IsCurrentVersionBeta ? UpdateChannel.beta : UpdateChannel.stable,
-                SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.versionBaseName),
-                ModBase.versionCode)
+                SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, SemVer.Parse(ModBase.VersionBaseName),
+                ModBase.VersionCode)
                 ? UpdateEnums.VersionStatus.Latest
                 : UpdateEnums.VersionStatus.NotLatest;
         }
@@ -83,15 +83,15 @@ public static class UpdateManager
                 );
 
                 ModBase.WriteFile($"{ModBase.pathTemp}CEUpdateLog.md", version.Changelog);
-                ModBase.Log($"[Update] 远程最新版本: {version.VersionName}, 当前版本: {ModBase.versionBaseName}");
-                if (!(SemVer.Parse(version.VersionName) > SemVer.Parse(ModBase.versionBaseName)))
+                ModBase.Log($"[Update] 远程最新版本: {version.VersionName}, 当前版本: {ModBase.VersionBaseName}");
+                if (!(SemVer.Parse(version.VersionName) > SemVer.Parse(ModBase.VersionBaseName)))
                     return;
                 if (type == UpdateEnums.UpdateType.PromptOnly)
                 {
                     ModBase.RunInUi(() =>
                     {
                         if (ModMain.MyMsgBox(
-                                Lang.Text("Update.Available", ModBase.versionBaseName, version.VersionName),
+                                Lang.Text("Update.Available", ModBase.VersionBaseName, version.VersionName),
                                 Lang.Text("Update.Title"),
                                 Lang.Text("Update.Action"),
                                 Lang.Text("Common.Action.Cancel")
@@ -124,7 +124,7 @@ public static class UpdateManager
                         ModBase.RunInUi(() =>
                         {
                             ModMain.frmMain.BtnExtraUpdateRestart.ToolTip =
-                                Lang.Text("Main.Extra.UpdateRestart.ToolTipWithVersion", ModBase.versionBaseName, version.VersionName);
+                                Lang.Text("Main.Extra.UpdateRestart.ToolTipWithVersion", ModBase.VersionBaseName, version.VersionName);
                             ModMain.frmMain.BtnExtraUpdateRestart.ShowRefresh();
                             ModMain.frmMain.BtnExtraUpdateRestart.Ribble();
                         });

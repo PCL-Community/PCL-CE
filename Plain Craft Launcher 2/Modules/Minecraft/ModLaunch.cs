@@ -917,7 +917,7 @@ public static class ModLaunch
         if (converter.Result is ModBase.RestartException)
         {
             if (ModMain.MyMsgBox(
-                    Lang.Text("Minecraft.Launch.Login.PasswordRequired.Message", ModBase.vbLQ, ModBase.vbRQ),
+                    Lang.Text("Minecraft.Launch.Login.PasswordRequired.Message", ModBase.vbLq, ModBase.vbRq),
                     Lang.Text("Minecraft.Launch.Login.PasswordRequired.Title"), Lang.Text("Minecraft.Launch.Login.PasswordRequired.Relogin"), Lang.Text("Minecraft.Launch.Login.PasswordRequired.SetPassword"), Lang.Text("Common.Action.Cancel"),
                     button2Action: () => ModBase.OpenWebsite("https://account.live.com/password/Change")) ==
                 1) goto Retry;
@@ -2857,7 +2857,7 @@ public static class ModLaunch
         gameArguments.Add("${library_directory}", ModBase.ShortenPath(ModFolder.mcFolderSelected + "libraries"));
         gameArguments.Add("${libraries_directory}", ModBase.ShortenPath(ModFolder.mcFolderSelected + "libraries"));
         gameArguments.Add("${launcher_name}", "PCLCE");
-        gameArguments.Add("${launcher_version}", ModBase.versionCode.ToString());
+        gameArguments.Add("${launcher_version}", ModBase.VersionCode.ToString());
         gameArguments.Add("${version_name}", instance.Name);
         var argumentInfo = Config.Instance.TypeInfo[ModInstanceList.McMcInstanceSelected?.PathInstance];
         gameArguments.Add("${version_type}",
@@ -3539,7 +3539,7 @@ public static class ModLaunch
         // 输出信息
         McLaunchLog("");
         McLaunchLog("~ 基础参数 ~");
-        McLaunchLog("PCL 版本：" + ModBase.versionBaseName + " (" + ModBase.versionCode + ")");
+        McLaunchLog("PCL 版本：" + ModBase.VersionBaseName + " (" + ModBase.VersionCode + ")");
         McLaunchLog(
             $"游戏版本：{ModInstanceList.McMcInstanceSelected.Info.VanillaName}（{ModInstanceList.McMcInstanceSelected.Info.vanilla}，Drop {ModInstanceList.McMcInstanceSelected.Info.Drop}{(ModInstanceList.McMcInstanceSelected.Info.Reliable ? "" : "，无法完全确定")}）");
         McLaunchLog("资源版本：" + ModAssets.McAssetsGetIndexName(ModInstanceList.McMcInstanceSelected));
@@ -3686,9 +3686,9 @@ public static class ModLaunch
 
         ;
         // 基础
-        text = text.Replace("{pcl_version}", replacer(ModBase.versionBaseName));
-        text = text.Replace("{pcl_version_code}", replacer(ModBase.versionCode.ToString()));
-        text = text.Replace("{pcl_version_branch}", replacer(ModBase.versionBranchName));
+        text = text.Replace("{pcl_version}", replacer(ModBase.VersionBaseName));
+        text = text.Replace("{pcl_version_code}", replacer(ModBase.VersionCode.ToString()));
+        text = text.Replace("{pcl_version_branch}", replacer(ModBase.VersionBranchName));
         text = text.Replace("{identify}", replacer(Identify.LauncherId));
         text = text.Replace("{path}", replacer(Basics.CurrentDirectory));
         text = text.Replace("{path_with_name}", replacer(Basics.ExecutablePath));

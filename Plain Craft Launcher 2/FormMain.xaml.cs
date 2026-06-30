@@ -46,7 +46,7 @@ public partial class FormMain
             else
                 changelog = Lang.Text("Main.UpdateLog.Empty");
             if (ModMain.MyMsgBoxMarkdown(changelog,
-                    Lang.Text("Main.UpdateLog.Title", ModBase.versionBranchName, ModBase.versionBaseName), Lang.Text("Common.Action.Confirm"), Lang.Text("Main.UpdateLog.FullChangelog")) ==
+                    Lang.Text("Main.UpdateLog.Title", ModBase.VersionBranchName, ModBase.VersionBaseName), Lang.Text("Common.Action.Confirm"), Lang.Text("Main.UpdateLog.FullChangelog")) ==
                 2) ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases");
         }, "UpdateLog Output");
     }
@@ -69,7 +69,7 @@ public partial class FormMain
         ModMain.frmLaunchRight = new PageLaunchRight();
         // 版本号改变
         var lastVersion = States.System.LastVersion;
-        if (lastVersion < ModBase.versionCode)
+        if (lastVersion < ModBase.VersionCode)
         {
             // 重新询问是否启用遥测数据收集
             if (lastVersion <= 511)
@@ -83,7 +83,7 @@ public partial class FormMain
             // 触发升级
             UpgradeSub(lastVersion);
         }
-        else if (lastVersion > ModBase.versionCode)
+        else if (lastVersion > ModBase.VersionCode)
             // 触发降级
             DowngradeSub(lastVersion);
 
@@ -314,8 +314,8 @@ public partial class FormMain
     // 升级与降级事件
     private void UpgradeSub(int lastVersionCode)
     {
-        ModBase.Log("[Start] 版本号从 " + lastVersionCode + " 升高到 " + ModBase.versionCode);
-        States.System.LastVersion = ModBase.versionCode;
+        ModBase.Log("[Start] 版本号从 " + lastVersionCode + " 升高到 " + ModBase.VersionCode);
+        States.System.LastVersion = ModBase.VersionCode;
         // 检查有记录的最高版本号
         int lowerVersionCode;
 #if BETA
@@ -327,10 +327,10 @@ public partial class FormMain
         }
 #else
         lowerVersionCode = States.System.LastAlphaVersion;
-        if (lowerVersionCode < ModBase.versionCode)
+        if (lowerVersionCode < ModBase.VersionCode)
         {
-            States.System.LastAlphaVersion = ModBase.versionCode;
-            ModBase.Log($"[Start] 最高版本号从 {lowerVersionCode} 升高到 {ModBase.versionCode}");
+            States.System.LastAlphaVersion = ModBase.VersionCode;
+            ModBase.Log($"[Start] 最高版本号从 {lowerVersionCode} 升高到 {ModBase.VersionCode}");
         }
 #endif
         // 被移除的窗口设置选项 (Commit 3161488 2026/1/23)
@@ -342,15 +342,15 @@ public partial class FormMain
         // 输出更新日志
         if (lastVersionCode <= 0)
             return;
-        if (lowerVersionCode >= ModBase.versionCode)
+        if (lowerVersionCode >= ModBase.VersionCode)
             return;
         ShowUpdateLog();
     }
 
     private void DowngradeSub(int lastVersionCode)
     {
-        ModBase.Log("[Start] 版本号从 " + lastVersionCode + " 降低到 " + ModBase.versionCode);
-        States.System.LastVersion = ModBase.versionCode;
+        ModBase.Log("[Start] 版本号从 " + lastVersionCode + " 降低到 " + ModBase.VersionCode);
+        States.System.LastVersion = ModBase.VersionCode;
     }
 
     #endregion

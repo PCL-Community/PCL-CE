@@ -454,7 +454,7 @@ public partial class PageToolsGameLink
                     // 版本过滤
                     var minVer = notice["minVer"].ToObject<double>();
                     var maxVer = notice["maxVer"].ToObject<double>();
-                    if (ModBase.versionCode < minVer || ModBase.versionCode > maxVer) continue;
+                    if (ModBase.VersionCode < minVer || ModBase.VersionCode > maxVer) continue;
 
                     // 类型映射
                     var type = LinkAnnounceType.Notice;

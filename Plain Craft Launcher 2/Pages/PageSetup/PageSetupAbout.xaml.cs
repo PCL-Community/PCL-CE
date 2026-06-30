@@ -33,9 +33,9 @@ public partial class PageSetupAbout
             return;
         isLoaded = true;
 
-        ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", ModBase.versionBaseName)
-            .Replace("%VERSIONCODE%", ModBase.versionCode.ToString()).Replace("%BRANCH%", ModBase.versionBranchName)
-            .Replace("%COMMIT_HASH%", ModBase.commitHashShort);
+        ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", ModBase.VersionBaseName)
+            .Replace("%VERSIONCODE%", ModBase.VersionCode.ToString()).Replace("%BRANCH%", ModBase.VersionBranchName)
+            .Replace("%COMMIT_HASH%", ModBase.CommitHashShort);
 
         if (!Lang.IsChineseMainland)
         {
