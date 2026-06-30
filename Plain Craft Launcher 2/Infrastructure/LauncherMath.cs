@@ -15,19 +15,13 @@ public static class LauncherMath
         return NumberUtils.Lerp(valueA, valueB, percent);
     }
 
-    public static MyColor Percent(MyColor valueA, MyColor valueB, double percent)
+    public static NColor Percent(NColor valueA, NColor valueB, double percent)
     {
-        return Round(valueA * (1d - percent) + valueB * percent, 6);
+        return NColor.Lerp(valueA, valueB, percent);
     }
 
-    public static MyColor Round(MyColor color, int digits = 0)
+    public static NColor Round(NColor color, int digits = 0)
     {
-        return new MyColor
-        {
-            a = Math.Round(color.a, digits),
-            r = Math.Round(color.r, digits),
-            g = Math.Round(color.g, digits),
-            b = Math.Round(color.b, digits)
-        };
+        return NColor.Round(color, digits);
     }
 }

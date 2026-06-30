@@ -6,7 +6,6 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.Utils;
 using PCL.Network;
 
 namespace PCL;
@@ -317,14 +316,16 @@ public static partial class ModAnimation
                 case AniType.Color:
                 {
                     // 利用 Last 记录了余下的小数值
-                    var delta = LauncherMath.Percent(new MyColor(0d, 0d, 0d, 0d), (MyColor)ani.value,
-                                    ani.ease.GetDelta(ani.timeFinished / (double)ani.timeTotal, ani.timePercent)) +
-                                (MyColor)ani.valueLast;
+                    var delta = LauncherMath.Percent(
+                                    NColor.FromArgb(0d, 0d, 0d, 0d),
+                                    (NColor)ani.value,
+                                    ani.ease.GetDelta(ani.timeFinished / (double)ani.timeTotal, ani.timePercent))
+                                + (NColor)ani.valueLast;
                     var obj = (FrameworkElement)((dynamic)ani.obj)[0];
                     var prop = (DependencyProperty)((dynamic)ani.obj)[1];
-                    var newColor = new MyColor(obj.GetValue(prop)) + delta;
+                    var newColor = new NColor(obj.GetValue(prop)) + delta;
                     obj.SetValue(prop, prop.PropertyType.Name == "Color" ? (Color)newColor : (SolidColorBrush)newColor);
-                    ani.valueLast = newColor - new MyColor(obj.GetValue(prop));
+                    ani.valueLast = newColor - new NColor(obj.GetValue(prop));
                     break;
                 }
 
@@ -963,7 +964,7 @@ public static partial class ModAnimation
     public static AniData AaColor(
         FrameworkElement obj,
         DependencyProperty prop,
-        MyColor value,
+        NColor value,
         int time = 400,
         int delay = 0,
         AniEase ease = null,
@@ -973,7 +974,7 @@ public static partial class ModAnimation
         {
             typeMain = AniType.Color, timeTotal = time, ease = ease ?? new AniEaseLinear(),
             obj = new object[] { obj, prop, "" }, value = value, isAfter = after, timeFinished = -delay,
-            valueLast = new MyColor(0d, 0d, 0d, 0d)
+            valueLast = NColor.FromArgb(0d, 0d, 0d, 0d)
         };
     }
 
@@ -989,16 +990,22 @@ public static partial class ModAnimation
     /// <param name="after">是否等到以前的动画完成后才继续本动画。</param>
     /// <returns></returns>
     /// <remarks></remarks>
-    public static AniData AaColor(FrameworkElement obj, DependencyProperty prop, string res, int time = 400,
-        int delay = 0, AniEase ease = null, bool after = false)
+    public static AniData AaColor(
+        FrameworkElement obj,
+        DependencyProperty prop,
+        string res,
+        int time = 400,
+        int delay = 0,
+        AniEase ease = null,
+        bool after = false)
     {
         return new AniData
         {
             typeMain = AniType.Color, timeTotal = time, ease = ease ?? new AniEaseLinear(),
             obj = new object[] { obj, prop, res },
-            value = new MyColor(System.Windows.Application.Current.FindResource(res)) -
-                    new MyColor(obj.GetValue(prop)),
-            isAfter = after, timeFinished = -delay, valueLast = new MyColor(0d, 0d, 0d, 0d)
+            value = new NColor(System.Windows.Application.Current.FindResource(res))
+                    - new NColor(obj.GetValue(prop)),
+            isAfter = after, timeFinished = -delay, valueLast = NColor.FromArgb(0d, 0d, 0d, 0d)
         };
     }
 

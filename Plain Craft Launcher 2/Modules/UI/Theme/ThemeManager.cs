@@ -14,17 +14,17 @@ public static class ThemeManager
 
     public static ResourceDictionary AppResources => System.Windows.Application.Current.Resources;
 
-    public static MyColor colorGray1 = new(AppResources["ColorObjectGray1"]);
-    public static MyColor colorGray4 = new(AppResources["ColorObjectGray4"]);
-    public static MyColor colorGray5 = new(AppResources["ColorObjectGray5"]);
-    public static MyColor colorSemiTransparent = new(AppResources["ColorBrushSemiTransparent"]);
+    public static NColor colorGray1 = new(AppResources["ColorObjectGray1"]);
+    public static NColor colorGray4 = new(AppResources["ColorObjectGray4"]);
+    public static NColor colorGray5 = new(AppResources["ColorObjectGray5"]);
+    public static NColor colorSemiTransparent = new(AppResources["ColorBrushSemiTransparent"]);
 
     public static void ThemeRefresh(int newTheme = -1)
     {
-        colorGray1 = new MyColor(AppResources["ColorObjectGray1"]);
-        colorGray4 = new MyColor(AppResources["ColorObjectGray4"]);
-        colorGray5 = new MyColor(AppResources["ColorObjectGray5"]);
-        colorSemiTransparent = new MyColor(AppResources["ColorBrushSemiTransparent"]);
+        colorGray1 = new NColor(AppResources["ColorObjectGray1"]);
+        colorGray4 = new NColor(AppResources["ColorObjectGray4"]);
+        colorGray5 = new NColor(AppResources["ColorObjectGray5"]);
+        colorSemiTransparent = new NColor(AppResources["ColorBrushSemiTransparent"]);
         ThemeRefreshMain();
     }
 

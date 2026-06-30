@@ -127,10 +127,10 @@ public partial class MyHint
         }
 
         var s = ThemeService.CurrentTone;
-        Background = new MyColor().FromHSL2(hue, 90, s.L7 * 100);
-        BorderBrush = new MyColor().FromHSL2(hue, 90, s.L2 * 100);
-        LabText.Foreground = new MyColor().FromHSL2(hue, 90, s.L2 * 100);
-        BtnClose.Foreground = new MyColor().FromHSL2(hue, 90, s.L2 * 100);
+        Background = NColor.FromPerceptualHsl(hue, 90, s.L7 * 100);
+        BorderBrush = NColor.FromPerceptualHsl(hue, 90, s.L2 * 100);
+        LabText.Foreground = NColor.FromPerceptualHsl(hue, 90, s.L2 * 100);
+        BtnClose.Foreground = NColor.FromPerceptualHsl(hue, 90, s.L2 * 100);
 
         // 根据提示气泡对齐方向刷新边框
         // 此处依赖 HasBorder 的副作用进行范围检查

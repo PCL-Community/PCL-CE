@@ -109,8 +109,8 @@ public partial class MyMsgSelect
             ModAnimation.AniStart(
                 ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
                     (myConverter.IsWarn
-                        ? new MyColor(140d, 80d, 0d, 0d)
-                        : new MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
+                        ? NColor.FromArgb(140d, 80d, 0d, 0d)
+                        : NColor.FromArgb(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");
             ModAnimation.AniStart(
                 new[]
@@ -149,7 +149,7 @@ public partial class MyMsgSelect
                 if (!ModMain.WaitingMyMsgBox.Any())
                     ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
-                        new MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
+                        NColor.FromArgb(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
                         ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
             }, 30),
             ModAnimation.AaOpacity(this, -Opacity, 80, 20),

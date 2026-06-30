@@ -1,7 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using PCL.Core.UI;
 using PCL.Core.UI.Controls.SvgIcon;
 
 namespace PCL;
@@ -60,13 +59,13 @@ internal static class SvgIconControlHelper
 
     internal static void AnimateSvgIconBrushTo(
         SvgIcon svgIcon,
-        MyColor color,
+        NColor color,
         int duration,
         string? animationKey = null)
     {
         if (svgIcon.Visibility == Visibility.Visible)
             svgIcon.AnimateIconBrushTo(
-                new NColor((Color)color),
+                color,
                 TimeSpan.FromMilliseconds(duration),
                 animationKey: animationKey);
     }

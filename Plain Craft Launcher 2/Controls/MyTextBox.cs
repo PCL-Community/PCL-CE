@@ -380,7 +380,7 @@ public class MyTextBox : TextBox
     private void RefreshTextColor()
     {
         var newColor = IsEnabled ? ThemeManager.colorGray1 : ThemeManager.colorGray4;
-        if (((SolidColorBrush)Foreground).Color.R == newColor.r)
+        if (((SolidColorBrush)Foreground).Color.R == newColor.R)
             return;
         if (IsLoaded && ModAnimation.AniControlEnabled == 0 && !string.IsNullOrEmpty(Text))
         {

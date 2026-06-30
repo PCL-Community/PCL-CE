@@ -1,11 +1,10 @@
-﻿using System.Windows.Controls;
+﻿using System.Text.Json.Serialization;
+using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.UI.Controls;
-using PCL.Core.Utils;
 using PCL.Core.IO.Net.Http;
-using System.Text.Json.Serialization;
+using PCL.Core.UI.Controls;
 
 namespace PCL;
 
@@ -108,7 +107,7 @@ public partial class MyMsgLogin
                 }
                 // 获取结果
                 var ctx = await result.AsStringAsync().ConfigureAwait(false);
-                var resultJson = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(ctx);
+                var resultJson = (JsonObject)JsonCompat.ParseNode(ctx);
                 ModProfile.ProfileLog($"令牌过期时间：{resultJson["expires_in"]} 秒");
                 HintService.Hint(Lang.Text("Launch.Account.LoginDialog.Success"), HintType.Success);
                 Finished(new[] { resultJson["access_token"].ToString(), resultJson["refresh_token"].ToString() });
@@ -173,8 +172,8 @@ public partial class MyMsgLogin
             ModAnimation.AniStart(
                 ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
                     (myConverter.IsWarn
-                        ? new MyColor(140d, 80d, 0d, 0d)
-                        : new MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
+                        ? NColor.FromArgb(140d, 80d, 0d, 0d)
+                        : NColor.FromArgb(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");
             ModAnimation.AniStart(
                 new[]
@@ -209,7 +208,7 @@ public partial class MyMsgLogin
                 if (!ModMain.WaitingMyMsgBox.Any())
                     ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
-                        new MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
+                        NColor.FromArgb(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
                         ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
             }, 30),
             ModAnimation.AaOpacity(this, -Opacity, 80, 20),

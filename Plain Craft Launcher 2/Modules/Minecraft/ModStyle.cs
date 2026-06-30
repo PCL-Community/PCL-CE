@@ -4,10 +4,9 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Threading;
-using PCL.Core.UI.Controls;
-using PCL.Core.Utils;
-
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Controls;
+
 namespace PCL;
 
 internal static class ModStyle
@@ -259,7 +258,7 @@ internal static class ModStyle
                         lab.Inlines.Add(curRun);
                     }
 
-                    curRun.Foreground = new SolidColorBrush(new MyColor(color));
+                    curRun.Foreground = new SolidColorBrush(new NColor(color));
                     curRun.FontWeight = hasBlodProperty ? FontWeights.Bold : FontWeights.Normal;
                     curRun.FontStyle = hasItalicProperty ? FontStyles.Italic : FontStyles.Normal;
                     curRun.TextDecorations = hasStrickThroughProperty ? TextDecorations.Strikethrough : null;
