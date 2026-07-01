@@ -47,6 +47,9 @@ public partial class PageLaunchLeft
     {
         InitializeComponent();
         Loaded += PageLaunchLeft_Loaded;
+        // 语言切换后让启动按钮/版本文本随之刷新，避免切回启动页时中英混排（#3246）。
+        // 本页为常驻缓存实例，订阅后无需退订。
+        LocalizationService.LanguageChanged += OnLanguageChanged;
         // Handles
         BtnInstance.Click += BtnInstance_Click;
         BtnLaunch.Click += BtnLaunch_Click;
@@ -241,6 +244,15 @@ public partial class PageLaunchLeft
                 break;
             }
         }
+    }
+
+    // 语言切换时（通常在设置页，本页不可见）使按钮/版本文本缓存失效，随后重刷。
+    // 由于 RefreshButtonsUI 会在“状态未变化”时跳过文本重设，这里把 btnLaunchState 置为无效值，
+    // 使切回本页时由 BtnLaunch.Loaded 触发的 RefreshButtonsUI 以新语言重新赋值（修复 #3246）。
+    private void OnLanguageChanged()
+    {
+        btnLaunchState = -1;
+        ModBase.RunInUi(() => RefreshButtonsUI());
     }
 
     public void RefreshButtonsUI()
