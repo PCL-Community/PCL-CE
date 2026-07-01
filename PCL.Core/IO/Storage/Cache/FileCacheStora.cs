@@ -1,6 +1,7 @@
 using PCL.Core.Utils.Hash;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -49,19 +50,32 @@ public class FileCacheStorage : IDisposable
 
     public async Task<bool> ReleaseAsync(string hash)
     {
-        if (!_refCounts.TryGetValue(hash, out var count))
+        // CAS 重试循环：TryGetValue 与随后的更新/移除之间引用计数可能被其他线程改变，
+        // 必须用“仅当值仍为 count 时才成功”的原子操作，否则会丢失递减（文件泄漏）或在仍被引用时误删。
+        while (true)
         {
-            return false;
-        }
+            if (!_refCounts.TryGetValue(hash, out var count))
+            {
+                return false;
+            }
 
-        if (count <= 1)
-        {
-            _refCounts.TryRemove(hash, out _);
-            return await _hashStorage.DeleteAsync(hash).ConfigureAwait(false);
-        }
+            if (count <= 1)
+            {
+                // 仅当计数仍为 count 时原子移除；若期间被并发 Store/Release 改变则重试。
+                if (!_refCounts.TryRemove(new KeyValuePair<string, int>(hash, count)))
+                {
+                    continue;
+                }
 
-        _refCounts.TryUpdate(hash, count - 1, count);
-        return true;
+                return await _hashStorage.DeleteAsync(hash).ConfigureAwait(false);
+            }
+
+            // 仅当计数仍为 count 时原子递减；失败说明值已被并发修改，重试。
+            if (_refCounts.TryUpdate(hash, count - 1, count))
+            {
+                return true;
+            }
+        }
     }
 
     public Task<bool> ForceDeleteAsync(string hash)
