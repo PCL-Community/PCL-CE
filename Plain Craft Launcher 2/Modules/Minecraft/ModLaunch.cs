@@ -1618,10 +1618,10 @@ public static class ModLaunch
         {
             // 刷新失败必须向上抛出：否则 McLoginServerStart 会把本次登录判为“刷新成功”，带着未设置的
             // 空令牌继续启动，并且丧失其“回退到普通登录（用户名/密码重新验证）”的自动恢复机会。
-            // 这里保留服务端返回的具体错误详情，由上层统一提示并中止/回退。
+            // 保留服务端返回的具体错误详情作为消息，并把原始 HttpResponseException（含状态码/堆栈）
+            // 作为 InnerException 以便诊断；此处不 Dispose——它被异常链引用，其 Response 由终结器回收。
             var message = _TryGetLastError(ex, out var detail) ? detail : ex.Message;
-            ex.Dispose();
-            throw new Exception(message);
+            throw new Exception(message, ex);
         }
     }
 
