@@ -2126,6 +2126,9 @@ public static class ModLaunch
         double totalRamMb = PageInstanceSetup.GetRam(ModInstanceList.McMcInstanceSelected) * 1024d;
         dataList.Add("-Xmn" + Math.Floor(totalRamMb * 0.15).ToString(CultureInfo.InvariantCulture) + "m");
         dataList.Add("-Xmx" + Math.Floor(totalRamMb).ToString(CultureInfo.InvariantCulture) + "m");
+        // #3282: 固定堆大小时追加 -Xms 使其等于 -Xmx，隐式禁用内存归还以降低延迟抖动、利于 ZGC。
+        if (Config.Launch.LockMemory)
+            dataList.Add("-Xms" + Math.Floor(totalRamMb).ToString(CultureInfo.InvariantCulture) + "m");
         if (!dataList.Any(d => d.Contains("-Dlog4j2.formatMsgNoLookups=true")))
             dataList.Add("-Dlog4j2.formatMsgNoLookups=true");
     }
@@ -2454,6 +2457,11 @@ public static class ModLaunch
         dataList.Add("-Xmx" +
                      Math.Floor(PageInstanceSetup.GetRam(ModInstanceList.McMcInstanceSelected,
                          !mcLaunchJavaSelected.Installation.Is64Bit) * 1024d) + "m");
+        // #3282: 固定堆大小时追加 -Xms 使其等于 -Xmx，隐式禁用内存归还以降低延迟抖动、利于 ZGC。
+        if (Config.Launch.LockMemory)
+            dataList.Add("-Xms" +
+                         Math.Floor(PageInstanceSetup.GetRam(ModInstanceList.McMcInstanceSelected,
+                             !mcLaunchJavaSelected.Installation.Is64Bit) * 1024d) + "m");
         dataList.Add("\"-Djava.library.path=" + GetNativesFolder() + "\"");
         dataList.Add("-cp ${classpath}"); // 把支持库添加进启动参数表
 
