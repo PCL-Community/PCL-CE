@@ -2394,65 +2394,15 @@ public static class ModComp
             var searchEntries = new List<ModBase.SearchEntry<CompDatabaseEntry>>();
             using (var conn = CompDB)
             {
-                // 多级检索本地翻译库（思路借鉴 #3289）：
-                // Phase 1 精确/前缀匹配——名称恰为查询，或以「查询 + 分隔符」开头，
-                //   从而区分「玉」与「玉米」这类“查询仅为复合词子串”的噪音。
-                // 对 LIKE 模式做 \ % _ 转义，并统一用 ESCAPE '\'。
+                // 广度检索本地翻译库：取名称/slug 命中查询的全部词条。
+                // 不在 SQL 层做前缀收窄——精度由下方“唯一规范名→单模组 / 否则→共有词根”的关键词
+                // 选择保证，且发往接口的是英文查询、天然排除「玉米」之类噪音；若在此按前缀收窄，会把
+                // 「背包」这类类别词窄化成某一个同名模组，漏掉旅行者背包等其余同类（见 issue #3272）。
+                // 仅对 LIKE 模式做 \ % _ 转义（借鉴 #3289），统一用 ESCAPE '\'。
                 var likeEscaped = rawFilter.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
-                var prefixSql = @"SELECT * FROM ModTranslation
-                    WHERE ChineseName = @name
-                       OR ChineseName LIKE @p1 ESCAPE '\'
-                       OR ChineseName LIKE @p2 ESCAPE '\'
-                       OR ChineseName LIKE @p3 ESCAPE '\'
-                       OR ChineseName LIKE @p4 ESCAPE '\'
-                       OR ChineseName LIKE @p5 ESCAPE '\'
-                       OR ChineseName LIKE @p6 ESCAPE '\'";
-                var searchRes = conn.Query<CompDatabaseEntry>(prefixSql, new
-                {
-                    name = rawFilter,           // 精确相等：用原文，不能用 LIKE 转义后的值
-                    p1 = $"{likeEscaped} (%",
-                    p2 = $"{likeEscaped}(%",
-                    p3 = $"{likeEscaped}·%",
-                    p4 = $"{likeEscaped} ·%",
-                    p5 = $"{likeEscaped}（%",
-                    p6 = $"{likeEscaped} -%"
-                }).ToList();
-
-                if (!searchRes.Any())
-                {
-                    // Phase 2 回退：按分隔符分词，多字段 LIKE（每个条件都带 ESCAPE '\'）
-                    var tokens = rawFilter
-                        .Split(new[] { ' ', '，', '、', '-', '(', ')', '/', '（', '）', '|', '·', '—', '_' },
-                            StringSplitOptions.RemoveEmptyEntries)
-                        .Distinct().ToList();
-                    if (tokens.Count == 0) tokens.Add(rawFilter);
-
-                    var conditions = new List<string>();
-                    var parameters = new DynamicParameters();
-                    for (var i = 0; i < tokens.Count; i++)
-                    {
-                        var pn = $"t{i}";
-                        conditions.Add($"ChineseName LIKE @{pn} ESCAPE '\\'");
-                        conditions.Add($"CurseForgeSlug LIKE @{pn} ESCAPE '\\'");
-                        conditions.Add($"ModrinthSlug LIKE @{pn} ESCAPE '\\'");
-                        var te = tokens[i].Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
-                        parameters.Add(pn, $"%{te}%");
-                    }
-
-                    searchRes = conn.Query<CompDatabaseEntry>(
-                        $"SELECT * FROM ModTranslation WHERE {string.Join(" OR ", conditions)}", parameters).ToList();
-
-                    // Phase 3 兜底：结果仍过少时退回全文 LIKE，并按 WikiId 去重合并
-                    if (searchRes.Count < 3)
-                    {
-                        var fallback = conn.Query<CompDatabaseEntry>(
-                            "SELECT * FROM ModTranslation WHERE ChineseName LIKE @p ESCAPE '\\' OR CurseForgeSlug LIKE @p ESCAPE '\\' OR ModrinthSlug LIKE @p ESCAPE '\\'",
-                            new { p = $"%{likeEscaped}%" }).ToList();
-                        var seen = new HashSet<int>(searchRes.Select(e => e.WikiId));
-                        foreach (var e in fallback)
-                            if (seen.Add(e.WikiId)) searchRes.Add(e);
-                    }
-                }
+                var searchRes = conn.Query<CompDatabaseEntry>(
+                    "SELECT * FROM ModTranslation WHERE ChineseName LIKE @p ESCAPE '\\' OR CurseForgeSlug LIKE @p ESCAPE '\\' OR ModrinthSlug LIKE @p ESCAPE '\\'",
+                    new { p = $"%{likeEscaped}%" }).ToList();
                 foreach (var searchItem in searchRes)
                 {
                     if (searchItem.ChineseName.Contains("动态的树")) continue;
@@ -2488,7 +2438,8 @@ public static class ModComp
                         // 丢弃不含任何字母/数字的纯符号或表情 token（如部分词条名里的 “🔍”），
                         // 避免其被拼入搜索词后被接口当作必需关键字，反而排除掉真正的结果。
                         if (!w.Any(char.IsLetterOrDigit)) return false;
-                        if (new[] { "the", "of", "mod", "and" }.Contains(w)) return false;
+                        // 过滤无意义词与加载器名（后者也会被 processKeywords 跳过），避免污染词根频率统计
+                        if (new[] { "the", "of", "mod", "and", "forge", "fabric", "quilt", "neoforge" }.Contains(w)) return false;
                         if (ModBase.Val(w) > 0) return false;
                         if (w.Split(' ').Length > 3 && w.Contains("ftb")) return false;
                         return true;
@@ -2496,62 +2447,61 @@ public static class ModComp
                 return words;
             }
 
-            var wordWeights = new Dictionary<string, double>();
+            // 统计每个英文词根出现在多少个“不同模组(WikiId)”中。
+            // 频率越高，越是这批匹配项的“共有词根”（例如搜「背包」时 backpack 系列的共有词）。
+            var wordModCount = new Dictionary<string, HashSet<int>>();
             foreach (var result in searchResults)
-            {
                 foreach (var word in ExtractWords(result))
                 {
-                    var similarity = result.searchSource.Any(s => s.aliases.Contains(request.searchText))
-                        ? 100000
-                        : result.similarity;
-                    if (!wordWeights.ContainsKey(word))
-                        wordWeights.Add(word, 0);
-                    wordWeights[word] += similarity;
+                    if (!wordModCount.TryGetValue(word, out var mods))
+                        wordModCount[word] = mods = new HashSet<int>();
+                    mods.Add(result.item.WikiId);
                 }
-            }
 
-            if (!wordWeights.Any()) throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
+            if (wordModCount.Count == 0) throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
 
             // 关键词转换分两类处理（见 issue #3272）。
-            // 此前的根因：把所有高权重关键词（可能来自多个互不相关模组）拼接成同一个查询，
-            // 命中大量词条时会生成形如 “sodium embeddium extras dynamiclights …” 的多模组关键词串，
-            // CurseForge / Modrinth 会将整串当作对同一模组的描述匹配，没有模组能同时命中全部词 →
-            // 两源皆空、搜索失败。但若一律收窄到单个模组，又会走向另一极端：输入「工业」「应用」
-            // 「沉浸」「航空学」这类部分/类别词时只剩某一个模组的关键词，导致必须打全名、同名系列尽失。
+            // 此前的根因：把所有高权重关键词（可能来自多个互不相关模组）拼接成同一个查询，命中大量
+            // 词条时会生成形如 “sodium embeddium extras dynamiclights …” 的多模组串，CurseForge /
+            // Modrinth 会将整串当作对同一模组的描述匹配，没有模组能同时命中全部词 → 两源皆空、搜索失败。
+            // 但若一律收窄到单个模组，又会走向另一极端：输入「工业」「应用」「背包」「航空学」这类
+            // 部分/类别词时只剩某一个模组的关键词，必须打全名、同名系列尽失。
             string CanonName(string name) =>
                 new string(name.BeforeFirst(" (").Where(char.IsLetterOrDigit).ToArray());
             var normalizedQuery = new string(rawFilter.Where(char.IsLetterOrDigit).ToArray());
-            // 是否输入了某模组的“完整规范名”：存在某词条名（剥离装饰符号与空格后）恰等于输入。
-            var hasExactName = searchResults.Any(r => CanonName(r.item.ChineseName) == normalizedQuery);
-            if (hasExactName)
+            // 名称（剥离装饰符号与空格后）恰等于输入的词条；按 WikiId 去重统计涉及多少个不同模组。
+            var exactNameEntries = searchResults
+                .Where(r => CanonName(r.item.ChineseName) == normalizedQuery).ToList();
+            var exactNameMods = exactNameEntries.Select(r => r.item.WikiId).Distinct().Count();
+
+            if (exactNameMods == 1)
             {
-                // 完整名（如「钠」「玉」「聊天头像」「机械动力」）→ 用该模组自身关键词精确搜索。
-                // 规范词条优先级：名称恰等于输入 > 完全匹配 > 相似度 > slug 最短（基础模组而非附属）。
-                // “名称恰等于输入”可避免「玉」因规范模组「玉 🔍 (Jade)」名称含装饰表情 🔍
-                //（C# 中长度为 2）拉低相似度而被「玉足 (Jade Feet)」挤掉。
-                var canonicalEntry = searchResults
-                    .OrderByDescending(r => CanonName(r.item.ChineseName) == normalizedQuery)
-                    .ThenByDescending(r => r.absoluteRight)
+                // 唯一完整名（如「钠」「玉」「聊天头像」「机械动力」）→ 锁定该模组、用其关键词精确搜索。
+                // 仅当“恰好一个模组”叫这个名字时才收窄；若有多个同名模组（如 4 个不同的「背包」），
+                // 视为类别词走下面的频率分支，避免漏掉旅行者背包等其余同类。
+                // 直接取“名称恰等于输入”的那一个，可避免「玉」因规范模组「玉 🔍 (Jade)」名称含装饰表情
+                // 🔍（C# 中长度为 2）拉低相似度而被「玉足 (Jade Feet)」挤掉。
+                var canonicalEntry = exactNameEntries
+                    .OrderByDescending(r => r.absoluteRight)
                     .ThenByDescending(r => r.similarity)
                     .ThenBy(r => (r.item.CurseForgeSlug ?? r.item.ModrinthSlug ?? r.item.ChineseName).Length)
                     .First();
                 var canonicalWords = ExtractWords(canonicalEntry);
                 request.searchText = canonicalWords.Any()
                     ? string.Join(" ", canonicalWords)
-                    : string.Join(" ", wordWeights.OrderByDescending(w => w.Value).Take(2).Select(w => w.Key));
+                    : string.Join(" ", wordModCount.OrderByDescending(w => w.Value.Count).Take(2).Select(w => w.Key));
             }
             else
             {
-                // 部分/类别词（如「工业」「应用」「沉浸」「航空学」）→ 不收窄到单个模组，
-                // 改用“权重并列最高”的英文词根（权重 = 含该词的词条相似度之和）。
-                // 共现于相同词条的词会得到相同权重而被一起取出：
-                // - 宽泛词「工业」只有 industrial 居首 → 单发，带回整个同名系列；
+                // 部分/类别词，或存在多个同名模组 → 不收窄到单个模组，改用“出现模组数并列最高”的
+                // 英文共有词根（频率最高者）。共现于相同模组集的词会得到相同频率而被一起取出：
+                // - 宽泛词「工业」只有 industrial 居首 → 单发，带回整个系列；
                 // - 内聚系列「航空学」的 create、aeronautics 并列最高 → 一起发，直接命中目标。
                 // 最终交由后续按下载量与中文名重排序，把用量广的主模组顶到前面。
-                var maxWeight = wordWeights.Values.Max();
-                request.searchText = string.Join(" ", wordWeights
-                    .OrderByDescending(w => w.Value)
-                    .Where(w => w.Value >= maxWeight * 0.999)
+                var maxCount = wordModCount.Values.Max(mods => mods.Count);
+                request.searchText = string.Join(" ", wordModCount
+                    .Where(w => w.Value.Count == maxCount)
+                    .OrderBy(w => w.Key.Length)
                     .Take(3)
                     .Select(w => w.Key));
             }
