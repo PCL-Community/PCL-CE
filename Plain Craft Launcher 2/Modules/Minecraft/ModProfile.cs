@@ -468,8 +468,8 @@ public static class ModProfile
                     selectedProfile.Username = (string)resultJson["name"];
                     profileList.Add(selectedProfile);
                     lastUsedProfile = profileList.Count - 1;
-                    // 本方法在后台线程执行（阻塞网络请求），RefreshPage 会操作 WPF 控件，
-                    // 必须切回 UI 线程，否则触发线程亲和性异常（与本文件 365/367/369 行一致）。
+                    // 本方法在后台线程执行（阻塞网络请求），RefreshPage 会操作 WPF 控件，必须切回
+                    // UI 线程，否则触发线程亲和性异常——与本文件其他从后台线程刷新界面处一样用 RunInUi 包裹。
                     ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
                     SaveProfile();
                 }
