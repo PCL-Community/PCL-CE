@@ -42,6 +42,8 @@ public partial class PageDownloadCompFavorites
         ComboTargetFav.SelectionChanged += ComboTargetFav_Selected;
         HintGetFail.MouseLeftButtonDown += HintGetFail_MouseLeftButtonDown;
         PanSearchBox.TextChanged += SearchRun;
+        // 语言切换后以新语言重刷收藏分类标题（弱订阅：本页被回收后自动移除）。修复 #3246。
+        WeakLanguageChanged.Add(this, static page => ModBase.RunInUi(page._RefreshCategoryTitles));
     }
 
     private ModComp.CompFavorites.FavData CurrentFavTarget
@@ -154,55 +156,7 @@ public partial class PageDownloadCompFavorites
             },
             CompType = type
         };
-        switch (type)
-        {
-            case -1:
-            {
-                newItem.Title = Lang.Text("Download.Comp.Favorites.SearchResults.Title");
-                break;
-            }
-            case (int)ModComp.CompType.Mod:
-            {
-                newItem.Title = Lang.Text("Download.Comp.Favorites.Category.Mod");
-                break;
-            }
-            case (int)ModComp.CompType.ModPack:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.Modpack")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.ResourcePack:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.ResourcePack")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.Shader:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.Shader")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.DataPack:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.DataPack")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.Plugin:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.Plugin")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.World:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.World")} ({{0}})";
-                break;
-            }
-
-            default:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Favorites.UnknownType")} ({{0}})";
-                break;
-            }
-        }
+        newItem.Title = _GetCategoryTitleFormat(type);
 
         newItem.Card.Title = string.Format(newItem.Title, 0);
         newItem.Card.Children.Add(newItem.ContentList);
@@ -225,6 +179,28 @@ public partial class PageDownloadCompFavorites
                 continue;
             PanContentList.Children.Add(item.Card);
         }
+    }
+
+    // 分类标题的格式串（含 {0} 计数占位）。抽出以便语言切换后按 CompType 重新取当前语言文本。
+    private static string _GetCategoryTitleFormat(int type) => type switch
+    {
+        -1 => Lang.Text("Download.Comp.Favorites.SearchResults.Title"),
+        (int)ModComp.CompType.Mod => Lang.Text("Download.Comp.Favorites.Category.Mod"),
+        (int)ModComp.CompType.ModPack => $"{Lang.Text("Download.Comp.Type.Modpack")} ({{0}})",
+        (int)ModComp.CompType.ResourcePack => $"{Lang.Text("Download.Comp.Type.ResourcePack")} ({{0}})",
+        (int)ModComp.CompType.Shader => $"{Lang.Text("Download.Comp.Type.Shader")} ({{0}})",
+        (int)ModComp.CompType.DataPack => $"{Lang.Text("Download.Comp.Type.DataPack")} ({{0}})",
+        (int)ModComp.CompType.Plugin => $"{Lang.Text("Download.Comp.Type.Plugin")} ({{0}})",
+        (int)ModComp.CompType.World => $"{Lang.Text("Download.Comp.Type.World")} ({{0}})",
+        _ => $"{Lang.Text("Download.Comp.Favorites.UnknownType")} ({{0}})"
+    };
+
+    // 语言切换后（切回本页时）用当前语言重设各分类标题格式串并重排，避免中英混排（#3246）。
+    private void _RefreshCategoryTitles()
+    {
+        foreach (var item in itemList)
+            item.Title = _GetCategoryTitleFormat(item.CompType);
+        RefreshCardTitle();
     }
 
     private void RefreshCardTitle()

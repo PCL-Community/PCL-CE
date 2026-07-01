@@ -23,6 +23,8 @@ public partial class PageDownloadInstall
         InitializeComponent();
         PanScroll = PanBack;
         LoadMinecraft.Text = Lang.Text("Download.Version.LoadingList");
+        // 语言切换后以新语言重刷加载提示与版本分类标题（弱订阅：本页被回收后自动移除）。修复 #3246。
+        WeakLanguageChanged.Add(this, static page => page._OnLanguageChanged());
         BtnBack.Click += (_, _) => ExitSelectPage();
         CardOptiFine.Swap += (_, _) => ReloadSelected();
         LoadOptiFine.StateChanged += (_, _, _) => ReloadSelected();
@@ -995,34 +997,7 @@ public partial class PageDownloadInstall
             if (ModDownload.dlClientListLoader.output.Value["versions"] is not JsonArray versions)
                 return;
 
-            var categoryOrder = new[]
-            {
-                McVersionCategory.Release,
-                McVersionCategory.Snapshot,
-                McVersionCategory.BeforeRelease,
-                McVersionCategory.AprilFools
-            };
-
-            var dict = categoryOrder.ToDictionary(
-                category => category,
-                _ => new List<JsonObject>()
-            );
-
-            foreach (JsonObject version in versions)
-            {
-                var category = McVersionClassifier.ClassifyVersion(version);
-                dict[category].Add(version);
-            }
-
-            foreach (var category in categoryOrder)
-                dict[category] = dict[category]
-                    .OrderByDescending(McVersionClassifier.GetReleaseTime)
-                    .ToList();
-
-            PanMinecraft.Children.Clear();
-
-            _AddLatestVersionCard(dict);
-            _AddCategoryCards(dict, categoryOrder);
+            _RebuildVersionCards(versions);
 
             if (mcVersionWaitingForSelect is null) return;
 
@@ -1047,6 +1022,48 @@ public partial class PageDownloadInstall
                 userSummary: Lang.Text("Download.Install.Error.OperationFailed"));
         }
     }
+
+    // 用当前语言重建版本分类卡片（加载完成与语言切换共用）。
+    private void _RebuildVersionCards(JsonArray versions)
+    {
+        var categoryOrder = new[]
+        {
+            McVersionCategory.Release,
+            McVersionCategory.Snapshot,
+            McVersionCategory.BeforeRelease,
+            McVersionCategory.AprilFools
+        };
+
+        var dict = categoryOrder.ToDictionary(
+            category => category,
+            _ => new List<JsonObject>()
+        );
+
+        foreach (JsonObject version in versions)
+        {
+            var category = McVersionClassifier.ClassifyVersion(version);
+            dict[category].Add(version);
+        }
+
+        foreach (var category in categoryOrder)
+            dict[category] = dict[category]
+                .OrderByDescending(McVersionClassifier.GetReleaseTime)
+                .ToList();
+
+        PanMinecraft.Children.Clear();
+
+        _AddLatestVersionCard(dict);
+        _AddCategoryCards(dict, categoryOrder);
+    }
+
+    // 语言切换后重刷随语言变化的文本：加载提示，以及已加载的版本分类标题
+    // （含动态计数，需重建卡片而非用 DynamicResource）。修复 #3246。
+    private void _OnLanguageChanged() => ModBase.RunInUi(() =>
+    {
+        LoadMinecraft.Text = Lang.Text("Download.Version.LoadingList");
+        if (ModDownload.dlClientListLoader.output.Value?["versions"] is JsonArray versions)
+            _RebuildVersionCards(versions);
+    });
 
     private void _AddLatestVersionCard(Dictionary<McVersionCategory, List<JsonObject>> dict)
     {

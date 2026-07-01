@@ -16,6 +16,8 @@ public partial class PageLaunchLeft
     private double actualUsedHeight;
     private double actualUsedWidth;
     private int btnLaunchState;
+    // 上次渲染启动按钮/版本文本时的界面语言，用于在语言切换后（切回本页时）强制重刷，避免中英混排（#3246）
+    private string _btnLaunchLanguage;
     private McInstance btnLaunchVersion;
     private bool isHeightAnimating;
     public interface ILoginPage { void Reload(); }
@@ -47,9 +49,8 @@ public partial class PageLaunchLeft
     {
         InitializeComponent();
         Loaded += PageLaunchLeft_Loaded;
-        // 语言切换后让启动按钮/版本文本随之刷新，避免切回启动页时中英混排（#3246）。
-        // 本页为常驻缓存实例，订阅后无需退订。
-        LocalizationService.LanguageChanged += OnLanguageChanged;
+        // 语言切换后立即以新语言重刷启动按钮/版本文本（弱订阅：本页被回收后自动移除，不会内存泄漏）。修复 #3246。
+        WeakLanguageChanged.Add(this, static page => ModBase.RunInUi(page.RefreshButtonsUI));
         // Handles
         BtnInstance.Click += BtnInstance_Click;
         BtnLaunch.Click += BtnLaunch_Click;
@@ -246,15 +247,6 @@ public partial class PageLaunchLeft
         }
     }
 
-    // 语言切换时（通常在设置页，本页不可见）使按钮/版本文本缓存失效，随后重刷。
-    // 由于 RefreshButtonsUI 会在“状态未变化”时跳过文本重设，这里把 btnLaunchState 置为无效值，
-    // 使切回本页时由 BtnLaunch.Loaded 触发的 RefreshButtonsUI 以新语言重新赋值（修复 #3246）。
-    private void OnLanguageChanged()
-    {
-        btnLaunchState = -1;
-        ModBase.RunInUi(() => RefreshButtonsUI());
-    }
-
     public void RefreshButtonsUI()
     {
         if (!BtnLaunch.IsLoaded)
@@ -278,11 +270,15 @@ public partial class PageLaunchLeft
             currentState = 3;
         }
 
-        // 更新状态
+        // 更新状态。除启动状态/实例外，也比较当前界面语言：切回本页时（BtnLaunch.Loaded 触发本方法）
+        // 若语言已变化，则不走下面的提前返回，以新语言重设按钮/版本文本，避免中英混排（#3246）。
+        var currentLanguage = LocalizationService.CurrentLanguage.Code;
         if (currentState == btnLaunchState &&
+            currentLanguage == _btnLaunchLanguage &&
             ((ModInstanceList.McMcInstanceSelected is null ? "" : ModInstanceList.McMcInstanceSelected.PathInstance) ?? "") ==
             ((btnLaunchVersion is null ? "" : btnLaunchVersion.PathInstance) ?? ""))
             goto ExitRefresh;
+        _btnLaunchLanguage = currentLanguage;
         btnLaunchVersion = ModInstanceList.McMcInstanceSelected;
         btnLaunchState = currentState;
         switch (currentState)
