@@ -475,8 +475,12 @@ public class SqliteCacheStorage(string dbPath) : IDisposable
     // 数据库中的时间以 ISO-8601 往返格式（"O"，UTC 带 Z）写入；读取必须用 RoundtripKind 解析，
     // 否则 DateTime.Parse 会把 UTC 转成本地时间并丢失 Kind，使其与 DateTime.UtcNow 的比较偏移一个
     // 时区（例如 UTC+8 用户的缓存过期判断会差 8 小时，导致缓存过久失效/供应陈旧数据）。
+    // 用 TryParse 以容忍损坏/遗留数据：单行时间戳解析失败时回退到 MinValue（对过期判断即视为已过期、
+    // 对时间排序即视为最旧，均为 fail-safe），避免一行坏数据抛异常中断整个读取路径。
     private static DateTime _ParseDateTime(string value) =>
-        DateTime.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+        DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var result)
+            ? result
+            : DateTime.MinValue;
 
     private static CacheEntry _ReadEntry(SqliteDataReader r) =>
         new()
