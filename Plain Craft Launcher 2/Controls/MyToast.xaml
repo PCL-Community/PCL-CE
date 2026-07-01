@@ -5,7 +5,7 @@
         xmlns:local="clr-namespace:PCL"
         x:Name="Root"
         HorizontalAlignment="Right"
-        CornerRadius="8" BorderThickness="1"
+        CornerRadius="8" BorderThickness="0"
         UseLayoutRounding="True" SnapsToDevicePixels="True">
     <Border.Effect>
         <DropShadowEffect BlurRadius="16" Opacity="0.2" ShadowDepth="4" Direction="270" Color="#000000" />
