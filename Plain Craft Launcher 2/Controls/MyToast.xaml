@@ -5,9 +5,8 @@
         xmlns:local="clr-namespace:PCL"
         x:Name="Root"
         HorizontalAlignment="Right"
-        CornerRadius="8" BorderThickness="1"
-        UseLayoutRounding="True" SnapsToDevicePixels="True"
-        RenderOptions.BitmapScalingMode="NearestNeighbor">
+        CornerRadius="8" BorderThickness="0"
+        UseLayoutRounding="True" SnapsToDevicePixels="True">
     <Border.Effect>
         <DropShadowEffect BlurRadius="16" Opacity="0.2" ShadowDepth="4" Direction="270" Color="#000000" />
     </Border.Effect>
@@ -28,7 +27,7 @@
                              Margin="0,0,6,0" UseOriginalColor="False" />
 
             <TextBlock x:Name="TitleText" Grid.Column="1" VerticalAlignment="Center"
-                       FontSize="13" FontWeight="SemiBold"
+                       FontSize="13" FontWeight="Bold"
                        TextTrimming="CharacterEllipsis" />
 
             <local:MyIconButton Grid.Column="2" x:Name="BtnClose" Width="20" Height="20"
