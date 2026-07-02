@@ -1,4 +1,4 @@
-﻿using PCL.Core.App.Localization;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -63,7 +63,7 @@ public static class McVersionComparer
                 leftValue = (-3).ToString();
             if (leftValue == "experimental")
                 leftValue = (-4).ToString();
-            var leftValValue = LauncherText.Val(leftValue);
+            var leftValValue = NumberUtils.ParseDoubleOrZero(leftValue);
             if (rightValue == "rc")
                 rightValue = (-1).ToString();
             if (rightValue == "pre")
@@ -72,7 +72,7 @@ public static class McVersionComparer
                 rightValue = (-3).ToString();
             if (rightValue == "experimental")
                 rightValue = (-4).ToString();
-            var rightValValue = LauncherText.Val(rightValue);
+            var rightValValue = NumberUtils.ParseDoubleOrZero(rightValue);
             if (leftValValue == 0d && rightValValue == 0d)
             {
                 // 如果没有数值则直接比较字符串

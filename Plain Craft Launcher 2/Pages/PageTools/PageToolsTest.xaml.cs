@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -545,7 +545,7 @@ public partial class PageToolsTest
 
     private async Task DownloadImageToLocalAsync(string imageUrl)
     {
-        var savePath = LauncherPaths.TempWithSlash + @"Download\" + LauncherText.GetHash(imageUrl) + ".png";
+        var savePath = LauncherPaths.TempWithSlash + @"Download\" + LauncherStringHash.Compute(imageUrl) + ".png";
         var client = NetworkService.GetClient();
         try
         {

@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using Microsoft.VisualBasic;
@@ -146,7 +146,7 @@ public static class ModSkin
     public static string McSkinDownload(string address)
     {
         var skinName = LegacyFileFacade.GetFileNameFromPath(address);
-        var fileAddress = LauncherPaths.TempWithSlash + @"Cache\Skin\" + LauncherText.GetHash(address) + ".png";
+        var fileAddress = LauncherPaths.TempWithSlash + @"Cache\Skin\" + LauncherStringHash.Compute(address) + ".png";
         lock (mcSkinDownloadLock)
         {
             if (!File.Exists(fileAddress))

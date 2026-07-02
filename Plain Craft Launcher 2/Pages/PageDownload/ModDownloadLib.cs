@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -612,7 +612,7 @@ public static class ModDownloadLib
         {
             var id = downloadInfo.NameVersion;
             var versionFolder = Path.Combine(ModFolder.mcFolderSelected, "versions", id);
-            var isNewVersion = LauncherText.Val(downloadInfo.Inherit.Split(".")[1]) >= 14d;
+            var isNewVersion = NumberUtils.ParseDoubleOrZero(downloadInfo.Inherit.Split(".")[1]) >= 14d;
             var target = isNewVersion
                 ? Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Code", downloadInfo.NameVersion + "_" + LauncherRuntime.GetUuid())
                 : Path.Combine(ModFolder.mcFolderSelected, "libraries", "optifine", "OptiFine",
@@ -881,7 +881,7 @@ public static class ModDownloadLib
         var isCustomFolder = (mcFolder ?? "") != (ModFolder.mcFolderSelected ?? "");
         var id = downloadInfo.NameVersion;
         var versionFolder = Path.Combine(mcFolder, "versions", id);
-        var isNewVersion = downloadInfo.Inherit.Contains("w") || LauncherText.Val(downloadInfo.Inherit.Split(".")[1]) >= 14d;
+        var isNewVersion = downloadInfo.Inherit.Contains("w") || NumberUtils.ParseDoubleOrZero(downloadInfo.Inherit.Split(".")[1]) >= 14d;
         var target = isNewVersion
             ? $"{ModMain.RequestTaskTempFolder()}OptiFine.jar"
             : $@"{mcFolder}libraries\optifine\OptiFine\{downloadInfo.NameFile.Replace("OptiFine_", "").Replace(".jar", "").Replace("preview_", "")}\{downloadInfo.NameFile.Replace("OptiFine_", "OptiFine-").Replace("preview_", "")}";
@@ -1749,7 +1749,7 @@ public static class ModDownloadLib
                 RedirectStandardError = true,
                 RedirectStandardOutput = true
             };
-            string loaderName = LauncherText.GetStringFromEnum(forgeType);
+            string loaderName = (forgeType).ToString();
             LauncherLog.Log($"[Download] 开始安装 {loaderName}：" + arguments);
             var process = new Process { StartInfo = info };
             var lastResults = new Queue<string>();
@@ -1975,7 +1975,7 @@ public static class ModDownloadLib
             loaderVersion = loaderVersion.AfterLast("-");
         }
 
-        string loaderName = LauncherText.GetStringFromEnum(forgeType);
+        string loaderName = (forgeType).ToString();
         var isCustomFolder = (mcFolder ?? "") != (ModFolder.mcFolderSelected ?? "");
         var installerAddress = ModMain.RequestTaskTempFolder() + "forge_installer.jar";
         var versionFolder = $@"{mcFolder}versions\{targetVersion}\";

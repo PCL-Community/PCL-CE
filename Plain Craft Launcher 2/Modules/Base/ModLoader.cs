@@ -94,7 +94,7 @@ public static class ModLoader
             if (!loaderTaskbar.Any())
                 return 1d;
 
-            return LauncherMath.Clamp(
+            return NumberUtils.Clamp(
                 loaderTaskbar.Select(l => l.Progress).Average(),
                 0,
                 1
@@ -287,7 +287,7 @@ public static class ModLoader
                 if (value == LoadState.Finished && Config.Debug.AddRandomDelay)
                     Thread.Sleep(RandomUtils.NextInt(100, 2000));
                 field = value;
-                LauncherLog.Log($"[Loader] 加载器 {name} 状态改变：{LauncherText.GetStringFromEnum(value)}");
+                LauncherLog.Log($"[Loader] 加载器 {name} 状态改变：{(value).ToString()}");
                 // 实现 ILoadingTrigger 接口与 OnStateChanged 回调
                 UiThread.Post(() =>
                 {

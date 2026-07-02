@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using PCL.Network;
@@ -61,7 +61,7 @@ public partial class PageSpeedLeft
             {
                 // 无任务
                 LabProgress.Text = Lang.Number(1d, "P0");
-                LabSpeed.Text = LauncherText.GetReadableFileSize(0) + "/s";
+                LabSpeed.Text = ByteStream.GetReadableLength(0, provider: Lang.Culture) + "/s";
                 LabFile.Text = Lang.Number(0, "N0");
                 LabThread.Text = Lang.Number(0, "N0") + " / " + Lang.Number(ModNet.NetTaskThreadLimit, "N0");
             }
@@ -70,13 +70,13 @@ public partial class PageSpeedLeft
                 // 有任务，输出基本信息
                 var tasks = ModLoader.loaderTaskbar.Where(l => l.show).ToList(); // 筛选掉启动 MC 的任务（#6270）
                 var rawPercent = tasks.Any()
-                    ? LauncherMath.Clamp(
+                    ? NumberUtils.Clamp(
                         tasks.Average(l => l.Progress),
                         0, 1)
                     : 1d;
                 var predictText = Lang.Number(rawPercent, "P2");
                 LabProgress.Text = rawPercent > 0.999999d ? Lang.Number(1d, "P0") : predictText;
-                LabSpeed.Text = LauncherText.GetReadableFileSize(ModNet.NetManager.Speed) + "/s";
+                LabSpeed.Text = ByteStream.GetReadableLength(ModNet.NetManager.Speed, provider: Lang.Culture) + "/s";
                 LabFile.Text = ModNet.NetManager.FileRemain < 0 ? "0*" : Lang.Number(ModNet.NetManager.FileRemain, "N0");
                 LabThread.Text = Lang.Number(ModNet.NetManager.ThreadCount, "N0") + " / " +
                                  Lang.Number(ModNet.NetTaskThreadLimit, "N0");
@@ -124,7 +124,7 @@ public partial class PageSpeedLeft
                 // 已有此卡片
                 Grid card = rightCards[loader.name];
                 var newValue = loader.Progress + (double)loader.State;
-                if (LauncherText.Val(card.Tag) == newValue)
+                if (NumberUtils.ParseDoubleOrZero(card.Tag) == newValue)
                     return;
                 card.Tag = newValue;
                 if (card.Children.Count <= 3)
@@ -273,7 +273,7 @@ public partial class PageSpeedLeft
 
                     var cardXAML = $@"
                         <local:MyCard xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"" xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml"" xmlns:local=""clr-namespace:PCL;assembly=Plain Craft Launcher 2""
-                            Tag=""{loader.Progress + (double)loader.State}"" Title=""{LauncherText.EscapeXml(loader.name)}"" Margin=""0,0,0,15"">
+                            Tag=""{loader.Progress + (double)loader.State}"" Title=""{TextUtils.EscapeXml(loader.name)}"" Margin=""0,0,0,15"">
                             <Grid Margin=""14,40,15,10"">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width=""50""/>
@@ -314,7 +314,7 @@ public partial class PageSpeedLeft
                             }
                         }
 
-                        cardXAML += $"<TextBlock Text=\"{LauncherText.EscapeXml(SubTask.name)}\" HorizontalAlignment=\"Left\" Grid.Column=\"1\" Grid.Row=\"{row}\"/>";
+                        cardXAML += $"<TextBlock Text=\"{TextUtils.EscapeXml(SubTask.name)}\" HorizontalAlignment=\"Left\" Grid.Column=\"1\" Grid.Row=\"{row}\"/>";
                         row += 1;
                     }
 

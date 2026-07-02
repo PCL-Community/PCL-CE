@@ -1,10 +1,7 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Text;
-using PCL.Core.IO;
-using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
-using PCL.Core.Utils.Hash;
 using CoreDirectories = PCL.Core.IO.Directories;
 using CoreFiles = PCL.Core.IO.Files;
 

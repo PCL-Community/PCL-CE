@@ -396,7 +396,7 @@ public static class ModLaunch
                 default:
                 {
                     throw new Exception(Lang.Text("Minecraft.Launch.Error.InvalidState",
-                        LauncherText.GetStringFromEnum(launchLoader.State)));
+                        (launchLoader.State).ToString()));
                 }
             }
 
@@ -515,7 +515,7 @@ public static class ModLaunch
 
         public override int GetHashCode()
         {
-            return (int)Math.Round(LauncherText.GetHash(UserName + Password + BaseUrl + (int)LoginType) %
+            return (int)Math.Round(LauncherStringHash.Compute(UserName + Password + BaseUrl + (int)LoginType) %
                                    (decimal)int.MaxValue);
         }
     }
@@ -545,7 +545,7 @@ public static class ModLaunch
         public override int GetHashCode()
         {
             return (int)Math.Round(
-                LauncherText.GetHash(OAuthRefreshToken + AccessToken + Uuid + UserName + ProfileJson) %
+                LauncherStringHash.Compute(OAuthRefreshToken + AccessToken + Uuid + UserName + ProfileJson) %
                                    (decimal)int.MaxValue);
         }
     }
@@ -584,7 +584,7 @@ public static class ModLaunch
         public override int GetHashCode()
         {
             return (int)Math.Round(
-                LauncherText.GetHash(UserName + SkinType + SkinName + (int)LoginType) % (decimal)int.MaxValue);
+                LauncherStringHash.Compute(UserName + SkinType + SkinName + (int)LoginType) % (decimal)int.MaxValue);
         }
     }
 
@@ -918,8 +918,8 @@ public static class ModLaunch
         if (converter.Result is LaunchRestartException)
         {
             if (ModMain.MyMsgBox(
-                    Lang.Text("Minecraft.Launch.Login.PasswordRequired.Message", LauncherText.LeftQuote,
-                        LauncherText.RightQuote),
+                    Lang.Text("Minecraft.Launch.Login.PasswordRequired.Message", '\u201C',
+                        '\u201D'),
                     Lang.Text("Minecraft.Launch.Login.PasswordRequired.Title"), Lang.Text("Minecraft.Launch.Login.PasswordRequired.Relogin"), Lang.Text("Minecraft.Launch.Login.PasswordRequired.SetPassword"), Lang.Text("Common.Action.Cancel"),
                     button2Action: () => LauncherProcess.OpenWebsite("https://account.live.com/password/Change")) ==
                 1) goto Retry;
@@ -1996,7 +1996,7 @@ public static class ModLaunch
         if (ModInstanceList.McMcInstanceSelected.JsonObject["javaVersion"] is not null)
         {
             var majorVersion =
-                LauncherText.Val(ModInstanceList.McMcInstanceSelected.JsonObject["javaVersion"]["majorVersion"]);
+                NumberUtils.ParseDoubleOrZero(ModInstanceList.McMcInstanceSelected.JsonObject["javaVersion"]["majorVersion"]);
             if (LauncherRuntime.ModeDebug)
                 LauncherLog.Log("[Launch] [Debug] JSON 中参数要求至少 Java " + majorVersion);
             if (majorVersion <= 8d)

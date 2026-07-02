@@ -110,7 +110,7 @@ namespace PCL
 
             public override string ToString()
             {
-                return $"{LauncherText.GetReadableFileSize(size)} | {localPath}";
+                return $"{ByteStream.GetReadableLength(size, provider: Lang.Culture)} | {localPath}";
             }
         }
 

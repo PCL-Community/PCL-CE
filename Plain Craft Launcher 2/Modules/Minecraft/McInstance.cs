@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
@@ -95,7 +95,7 @@ public class McInstance
                         var isRelease = state != McInstanceState.Fool && state != McInstanceState.Old &&
                                         state != McInstanceState.Snapshot;
                         LauncherLog.Log(
-                            $"[Minecraft] 版本隔离初始化（{Name}）：从全局默认设置中（{Config.Launch.IndieSolutionV2}）判断，State {LauncherText.GetStringFromEnum(state)}，IsRelease {isRelease}，Modable {Modable}");
+                            $"[Minecraft] 版本隔离初始化（{Name}）：从全局默认设置中（{Config.Launch.IndieSolutionV2}）判断，State {(state).ToString()}，IsRelease {isRelease}，Modable {Modable}");
                         
                         return Config.Launch.IndieSolutionV2 switch
                         {
@@ -346,15 +346,15 @@ public class McInstance
                 {
                     var segments = field.VanillaName.Split(" _-.".ToCharArray());
                     field.vanilla = new Version(
-                        (int)Math.Round(LauncherText.Val(segments.Count() >= 2 ? segments[1] : "0")),
-                        0, (int)Math.Round(LauncherText.Val(segments.Count() >= 3 ? segments[2] : "0")));
+                        (int)Math.Round(NumberUtils.ParseDoubleOrZero(segments.Count() >= 2 ? segments[1] : "0")),
+                        0, (int)Math.Round(NumberUtils.ParseDoubleOrZero(segments.Count() >= 3 ? segments[2] : "0")));
                 }
                 else if (field.VanillaName.RegexCheck(@"^[2-9][0-9]\."))
                 {
                     var segments = field.VanillaName.Split(" _-.".ToCharArray());
-                    field.vanilla = new Version((int)Math.Round(LauncherText.Val(segments[0])),
-                        (int)Math.Round(LauncherText.Val(segments.Count() >= 2 ? segments[1] : "0")),
-                        (int)Math.Round(LauncherText.Val(segments.Count() >= 3 ? segments[2] : "0")));
+                    field.vanilla = new Version((int)Math.Round(NumberUtils.ParseDoubleOrZero(segments[0])),
+                        (int)Math.Round(NumberUtils.ParseDoubleOrZero(segments.Count() >= 2 ? segments[1] : "0")),
+                        (int)Math.Round(NumberUtils.ParseDoubleOrZero(segments.Count() >= 3 ? segments[2] : "0")));
                 }
                 else
                 {
@@ -453,8 +453,8 @@ public class McInstance
                                 subjsonList.Add(subjson); }
                             subjsonList.Sort((left, right) =>
                             {
-                                var leftVal = LauncherText.Val((left["priority"] ?? "0").ToString());
-                                var rightVal = LauncherText.Val((right["priority"] ?? "0").ToString());
+                                var leftVal = NumberUtils.ParseDoubleOrZero((left["priority"] ?? "0").ToString());
+                                var rightVal = NumberUtils.ParseDoubleOrZero((right["priority"] ?? "0").ToString());
                                 return leftVal.CompareTo(rightVal);
                             });
                             foreach (var Subjson in subjsonList)

@@ -1,4 +1,4 @@
-﻿using System.Collections.Specialized;
+using System.Collections.Specialized;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -191,7 +191,7 @@ public partial class PageInstanceSaves : IRefreshable
                     if (File.Exists(saveLogo))
                     {
                         var target =
-                            $@"{PageInstanceLeft.McInstance.PathInstance}PCL\ImgCache\{LauncherText.GetStringMd5(saveLogo)}.png";
+                            $@"{PageInstanceLeft.McInstance.PathInstance}PCL\ImgCache\{BinaryEncoding.ToHexLower(MD5Provider.Instance.ComputeHash(saveLogo).AsSpan())}.png";
                         LegacyFileFacade.CopyFile(saveLogo, target);
                         saveLogo = target;
                     }
@@ -523,12 +523,12 @@ public partial class PageInstanceSaves : IRefreshable
                 foreach (var saveFolder in saveFolders)
                 {
                     var folderName = GetFolderNameFromPath(saveFolder);
-                    var searchSource = new List<SearchSource>();
-                    searchSource.Add(new SearchSource(folderName, 1d));
-                    queryList.Add(new SearchEntry<string> { item = saveFolder, searchSource = searchSource });
+                    var searchSource = new List<KeyValuePair<string, double>>();
+                    searchSource.Add(new KeyValuePair<string, double>(folderName, 1d));
+                    queryList.Add(new SearchEntry<string>(saveFolder, searchSource));
                 }
 
-                _searchResult = LauncherSearch.Search(queryList, SearchBox.Text, LauncherSearch.MaxLocalSearchDepth, 0.35d).Select(r => r.item).ToList();
+                _searchResult = SimilaritySearch.Search(queryList, SearchBox.Text, SimilaritySearch.MaxLocalSearchDepth, 0.35d).Select(r => r.Item).ToList();
             }
             else
             {

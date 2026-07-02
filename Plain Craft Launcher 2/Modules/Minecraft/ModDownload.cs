@@ -234,7 +234,7 @@ public static class ModDownload
                         field = new List<int>();
                     else
                         field = rawData.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                            .Select(d => (int)Math.Round(LauncherText.Val(d))).ToList();
+                            .Select(d => (int)Math.Round(NumberUtils.ParseDoubleOrZero(d))).ToList();
                 }
 
                 return field.Count != 0 ? field : null;
@@ -1412,7 +1412,7 @@ public static class ModDownload
 
     private static List<DlNeoForgeListEntry> GetNeoForgeEntries(string latestJson, string latestLegacyJson)
     {
-        var versionNames = LauncherText.RegexSearch(latestLegacyJson + latestJson, RegexPatterns.DlNeoForgeVersion);
+        var versionNames = (latestLegacyJson + latestJson).RegexSearch(RegexPatterns.DlNeoForgeVersion);
         var versions = versionNames.Where(name => name != "47.1.82").Select(name => new DlNeoForgeListEntry(name))
             .OrderByDescending(a => a).ToList(); // 这个版本虽然在版本列表中，但不能下载
         if (!versions.Any())

@@ -1,4 +1,4 @@
-﻿using System.Windows.Controls;
+using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App.Localization;
 
@@ -14,7 +14,7 @@ public partial class PageDownloadLeft : IRefreshable
     // 强制刷新
     public void RefreshButton_Click(object sender, EventArgs e) // 由边栏按钮匿名调用
     {
-        Refresh((FormMain.PageSubType)LauncherText.Val(((MyIconButton)sender).Tag));
+        Refresh((FormMain.PageSubType)NumberUtils.ParseDoubleOrZero(((MyIconButton)sender).Tag));
     }
 
     public void Refresh(FormMain.PageSubType subType)
@@ -240,7 +240,7 @@ public partial class PageDownloadLeft : IRefreshable
     private void PageCheck(object sender, RouteEventArgs e)
     {
         if (sender is MyListItem { Tag: { } tag })
-            PageChange((FormMain.PageSubType)LauncherText.Val(tag));
+            PageChange((FormMain.PageSubType)NumberUtils.ParseDoubleOrZero(tag));
     }
 
     public object PageGet(FormMain.PageSubType id)

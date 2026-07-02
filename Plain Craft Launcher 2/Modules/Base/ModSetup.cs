@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
@@ -603,7 +603,7 @@ public class ModSetup
     {
         ModAnimation.aniSpeed = value >= 30
             ? 200d
-            : LauncherMath.Clamp(value * 0.1d + 0.1d, 0.1d, 3d);
+            : NumberUtils.Clamp(value * 0.1d + 0.1d, 0.1d, 3d);
     }
 
     public static void SystemHttpProxy(string value)

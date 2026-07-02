@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.IO.Compression;
 using System.Windows;
 using System.Windows.Controls;
@@ -157,7 +157,7 @@ public partial class PageInstanceExport : IRefreshable
                         Tag = new ExportOption
                         {
                             Title = File.Name, DefaultChecked = true,
-                            Rules = LauncherText.EscapeLikePattern($"{Folder}/{File.Name}")
+                            Rules = TextUtils.EscapeLikePattern($"{Folder}/{File.Name}")
                         }
                     });
                     if (Folder == "shaderpacks") // 处理光影包的配置文件
@@ -172,7 +172,7 @@ public partial class PageInstanceExport : IRefreshable
                                 {
                                     Title = $"{shaderConfig.Name}", DefaultChecked = true,
                                     Description = Lang.Text("Instance.Export.Config.ShaderConfigSuffix"),
-                                    Rules = LauncherText.EscapeLikePattern($"{Folder}/{shaderConfig.Name}")
+                                    Rules = TextUtils.EscapeLikePattern($"{Folder}/{shaderConfig.Name}")
                                 }
                             });
                     }
@@ -190,7 +190,7 @@ public partial class PageInstanceExport : IRefreshable
                         Tag = new ExportOption
                         {
                             Title = SubFolder.Name, DefaultChecked = true,
-                            Rules = LauncherText.EscapeLikePattern($"{Folder}/{SubFolder.Name}/")
+                            Rules = TextUtils.EscapeLikePattern($"{Folder}/{SubFolder.Name}/")
                         }
                     };
                     if (ReferenceEquals(panel, PanOptionsSaves))
@@ -209,7 +209,7 @@ public partial class PageInstanceExport : IRefreshable
                                 {
                                     Title = $"{shaderConfig.Name}", DefaultChecked = true,
                                     Description = Lang.Text("Instance.Export.Config.ShaderConfigSuffix"),
-                                    Rules = LauncherText.EscapeLikePattern($"{Folder}/{shaderConfig.Name}")
+                                    Rules = TextUtils.EscapeLikePattern($"{Folder}/{shaderConfig.Name}")
                                 }
                             });
                     }

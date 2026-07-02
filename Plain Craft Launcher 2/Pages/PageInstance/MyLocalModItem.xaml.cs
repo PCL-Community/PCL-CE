@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -649,9 +649,9 @@ public partial class MyLocalCompItem
         var elements = ((StackPanel)Parent).Children;
         var index = elements.IndexOf(this);
         CurrentSwipe.Start =
-            (int)Math.Round(LauncherMath.Clamp(Math.Min(CurrentSwipe.Start, index), 0d, elements.Count - 1));
+            (int)Math.Round(NumberUtils.Clamp(Math.Min(CurrentSwipe.Start, index), 0d, elements.Count - 1));
         CurrentSwipe.End =
-            (int)Math.Round(LauncherMath.Clamp(Math.Max(CurrentSwipe.End, index), 0d, elements.Count - 1));
+            (int)Math.Round(NumberUtils.Clamp(Math.Max(CurrentSwipe.End, index), 0d, elements.Count - 1));
         // 勾选所有范围中的项
         if (CurrentSwipe.Start == CurrentSwipe.End)
             return;

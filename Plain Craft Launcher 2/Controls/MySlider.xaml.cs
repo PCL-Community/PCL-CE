@@ -2,7 +2,6 @@
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -56,7 +55,7 @@ public partial class MySlider
         {
             try
             {
-                value = (int)Math.Round(LauncherMath.Clamp(value, 0d, MaxValue));
+                value = (int)Math.Round(NumberUtils.Clamp(value, 0d, MaxValue));
                 if (_Value == value)
                     return;
 
@@ -162,7 +161,7 @@ public partial class MySlider
     public void DragDoing()
     {
         var percent =
-            LauncherMath.Clamp((Mouse.GetPosition(PanMain).X - ShapeDot.Width / 2d) / (ActualWidth - ShapeDot.Width),
+            NumberUtils.Clamp((Mouse.GetPosition(PanMain).X - ShapeDot.Width / 2d) / (ActualWidth - ShapeDot.Width),
                 0d,
                 1d);
         var newValue = (int)Math.Round(percent * MaxValue);

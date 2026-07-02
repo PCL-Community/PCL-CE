@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -773,10 +773,10 @@ public static class ModMain
             frmLaunchLeft.AprilPosTrans.Y += aprilSpeed.Y;
             // 大小改变
             frmLaunchLeft.AprilScaleTrans.ScaleX =
-                LauncherMath.Clamp(1d - (Math.Abs(direction.X) - Math.Abs(direction.Y)) * (speedValue / 160d), 0.2d,
+                NumberUtils.Clamp(1d - (Math.Abs(direction.X) - Math.Abs(direction.Y)) * (speedValue / 160d), 0.2d,
                     1.8d);
             frmLaunchLeft.AprilScaleTrans.ScaleY =
-                LauncherMath.Clamp(1d - (Math.Abs(direction.Y) - Math.Abs(direction.X)) * (speedValue / 100d), 0.2d,
+                NumberUtils.Clamp(1d - (Math.Abs(direction.Y) - Math.Abs(direction.X)) * (speedValue / 100d), 0.2d,
                     1.8d);
             // 放弃提示
             if (aprilDistance > 4000)
@@ -982,16 +982,16 @@ public static class ModMain
     }
     
     // 高级
-    text = LauncherText.RegexReplaceEach(text, @"\{hint\}", m => replacer(PageToolsTest.GetRandomHint()));
-    text = LauncherText.RegexReplaceEach(text, @"\{cave\}", m => replacer(PageToolsTest.GetRandomCave()));
-    text = LauncherText.RegexReplaceEach(text, @"\{setup:([a-zA-Z0-9]+)\}", m =>
+    text = (text).RegexReplaceEach(@"\{hint\}", m => replacer(PageToolsTest.GetRandomHint()));
+    text = (text).RegexReplaceEach(@"\{cave\}", m => replacer(PageToolsTest.GetRandomCave()));
+    text = (text).RegexReplaceEach(@"\{setup:([a-zA-Z0-9]+)\}", m =>
     {
         if (ConfigService.TryGetConfigItemNoType(m.Groups[1].Value, out var item) && item.Source != ConfigSource.SharedEncrypt)
             return replacer(item.GetValueNoType(ModInstanceList.McMcInstanceSelected?.PathInstance)?.ToString() ?? "");
         return replacer("");
     });
-    text = LauncherText.RegexReplaceEach(text, @"\{varible:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));
-    text = LauncherText.RegexReplaceEach(text, @"\{variable:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));
+    text = (text).RegexReplaceEach(@"\{varible:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));
+    text = (text).RegexReplaceEach(@"\{variable:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));
     
     return text;
 }

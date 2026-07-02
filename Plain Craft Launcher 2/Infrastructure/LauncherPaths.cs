@@ -1,6 +1,5 @@
 using System.IO;
 using PCL.Core.App;
-using PCL.Core.Utils.OS;
 
 namespace PCL;
 

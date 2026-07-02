@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography;
@@ -48,7 +48,7 @@ public static class ModProfile
     public static object McLoginMojangUuid(string name, bool throwOnNotFound)
     {
         if (name.Trim().Length == 0)
-            return LauncherText.StrFill("", "0", 32);
+            return TextUtils.LeftPadOrTrim("", "0", 32);
         // 从缓存获取
         var uuid = LegacyIniStore.Shared.Read(LauncherPaths.TempWithSlash + @"Cache\Uuid\Mojang.ini", name);
         if ((uuid?.Length ?? 0) == 32)
@@ -591,8 +591,8 @@ public static class ModProfile
     {
         if (isLegacy)
         {
-            var fullUuid = LauncherText.StrFill(userName.Length.ToString("X"), "0", 16) +
-                           LauncherText.StrFill(LauncherText.GetHash(userName).ToString("X"), "0", 16);
+            var fullUuid = TextUtils.LeftPadOrTrim(userName.Length.ToString("X"), "0", 16) +
+                           TextUtils.LeftPadOrTrim(LauncherStringHash.Compute(userName).ToString("X"), "0", 16);
             return fullUuid.Substring(0, 12) + "3" + fullUuid.Substring(13, 3) + "9" + fullUuid.Substring(17, 15);
         }
 

@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -56,7 +56,7 @@ public class MyPageRight : AdornerDecorator
                 return;
             field = value;
             if (LauncherRuntime.ModeDebug)
-                LauncherLog.Log($"[UI] 页面状态切换为 {LauncherText.GetStringFromEnum(value)}");
+                LauncherLog.Log($"[UI] 页面状态切换为 {value.ToString()}");
         }
     } = PageStates.Empty;
 
@@ -225,7 +225,7 @@ public class MyPageRight : AdornerDecorator
 
             default:
             {
-                throw new Exception($"在状态为 {LauncherText.GetStringFromEnum(PageState)} 时触发了 PageOnEnter 事件。");
+                throw new Exception($"在状态为 {PageState.ToString()} 时触发了 PageOnEnter 事件。");
             }
         }
     }
@@ -381,7 +381,7 @@ public class MyPageRight : AdornerDecorator
             default:
             {
                 throw new Exception(
-                    $"在状态为 {LauncherText.GetStringFromEnum(PageState)} 时触发了 PageOnEnterAnimationFinished 事件。");
+                    $"在状态为 {PageState.ToString()} 时触发了 PageOnEnterAnimationFinished 事件。");
             }
         }
     }
@@ -416,7 +416,7 @@ public class MyPageRight : AdornerDecorator
             default:
             {
                 throw new Exception(
-                    $"在状态为 {LauncherText.GetStringFromEnum(PageState)} 时触发了 PageOnExitAnimationFinished 事件。");
+                    $"在状态为 {PageState.ToString()} 时触发了 PageOnExitAnimationFinished 事件。");
             }
         }
     }
@@ -445,7 +445,7 @@ public class MyPageRight : AdornerDecorator
             default:
             {
                 throw new Exception(
-                    $"在状态为 {LauncherText.GetStringFromEnum(PageState)} 时触发了 PageOnLoaderWaitFinished 事件。");
+                    $"在状态为 {PageState.ToString()} 时触发了 PageOnLoaderWaitFinished 事件。");
             }
         }
     }
@@ -478,7 +478,7 @@ public class MyPageRight : AdornerDecorator
             default:
             {
                 throw new Exception(
-                    $"在状态为 {LauncherText.GetStringFromEnum(PageState)} 时触发了 PageOnLoaderWaitFinished 事件。");
+                    $"在状态为 {PageState.ToString()} 时触发了 PageOnLoaderWaitFinished 事件。");
             }
         }
     }

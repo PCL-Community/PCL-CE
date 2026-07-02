@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -460,7 +460,7 @@ public static class ModLocalComp
             set
             {
                 if (_Name is null && value is not null && !value.Contains("modname") && value.ToLower() != "name" &&
-                    value.Length > 1 && (LauncherText.Val(value).ToString() ?? "") != (value ?? "")) _Name = value;
+                    value.Length > 1 && (NumberUtils.ParseDoubleOrZero(value).ToString() ?? "") != (value ?? "")) _Name = value;
             }
         }
 
@@ -577,7 +577,7 @@ public static class ModLocalComp
                 if (value is null)
                     return;
                 value = value.RegexSeek(RegexPatterns.ModIdMatch);
-                if (value is null || value.Length <= 1 || (LauncherText.Val(value).ToString() ?? "") == (value ?? ""))
+                if (value is null || value.Length <= 1 || (NumberUtils.ParseDoubleOrZero(value).ToString() ?? "") == (value ?? ""))
                     return;
                 if (value.ContainsF("name", true) || value.ContainsF("modid", true))
                     return;
@@ -838,7 +838,7 @@ public static class ModLocalComp
             if (modID is null || modID.Length < 2)
                 return;
             modID = modID.ToLower();
-            if (modID == "name" || (LauncherText.Val(modID).ToString() ?? "") == (modID ?? ""))
+            if (modID == "name" || (NumberUtils.ParseDoubleOrZero(modID).ToString() ?? "") == (modID ?? ""))
                 return; // 跳过 name 与纯数字 id
             if (versionRequirement is null ||
                 (!versionRequirement.Contains(".") && !versionRequirement.Contains("-")) ||
@@ -1163,7 +1163,7 @@ public static class ModLocalComp
                         var logoItem = jar.GetEntry(logoFile);
                         if (logoItem is not null)
                         {
-                            var md5 = LauncherText.GetStringMd5(logoItem.Length + logoItem.CompressedLength + path);
+                            var md5 = BinaryEncoding.ToHexLower(MD5Provider.Instance.ComputeHash(logoItem.Length + logoItem.CompressedLength + path).AsSpan());
                             Logo = System.IO.Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Images", $"{md5}.png");
                             using (var entryStream = logoItem.Open())
                             {
@@ -1256,7 +1256,7 @@ public static class ModLocalComp
                         var logoItem = jar.GetEntry(logoFile);
                         if (logoItem is not null)
                         {
-                            var md5 = LauncherText.GetStringMd5(logoItem.Length + logoItem.CompressedLength + path);
+                            var md5 = BinaryEncoding.ToHexLower(MD5Provider.Instance.ComputeHash(logoItem.Length + logoItem.CompressedLength + path).AsSpan());
                             Logo = System.IO.Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Images", $"{md5}.png");
                             using (var entryStream = logoItem.Open())
                             {
@@ -1321,7 +1321,7 @@ public static class ModLocalComp
                             var logoItem = jar.GetEntry(logoFile);
                             if (logoItem is not null)
                             {
-                                var md5 = LauncherText.GetStringMd5(logoItem.Length + logoItem.CompressedLength + path);
+                                var md5 = BinaryEncoding.ToHexLower(MD5Provider.Instance.ComputeHash(logoItem.Length + logoItem.CompressedLength + path).AsSpan());
                                 Logo = System.IO.Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Images", $"{md5}.png");
                                 using (var entryStream = logoItem.Open())
                                 {
@@ -1551,7 +1551,7 @@ public static class ModLocalComp
                             break;
                         value = value.ToLower().RegexSeek(RegexPatterns.ModIdMatch);
                         if (value is not null && value.ToLower() != "name" && value.Length > 1 &&
-                            (LauncherText.Val(value).ToString() ?? "") != (value ?? ""))
+                            (NumberUtils.ParseDoubleOrZero(value).ToString() ?? "") != (value ?? ""))
                             if (!possibleModId.Contains(value))
                                 possibleModId.Add(value);
                         break;
@@ -1614,7 +1614,7 @@ public static class ModLocalComp
                 if (packPngEntry is not null)
                     try
                     {
-                        var md5 = LauncherText.GetStringMd5(packPngEntry.Length + packPngEntry.CompressedLength + path);
+                        var md5 = BinaryEncoding.ToHexLower(MD5Provider.Instance.ComputeHash(packPngEntry.Length + packPngEntry.CompressedLength + path).AsSpan());
                         Logo = System.IO.Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Images", $"{md5}.png");
                         using (var entryStream = packPngEntry.Open())
                         {

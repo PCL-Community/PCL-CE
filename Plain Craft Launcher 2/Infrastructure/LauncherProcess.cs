@@ -1,9 +1,7 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Windows;
-using PCL.Core.App.Localization;
 using PCL.Core.Logging;
-using PCL.Core.Utils.OS;
 
 namespace PCL;
 
@@ -17,10 +15,12 @@ public static class LauncherProcess
         try
         {
             fileName = LegacyFileFacade.ShortenPath(fileName);
+
             using var program = new Process();
             program.StartInfo.Arguments = arguments;
             program.StartInfo.FileName = fileName;
             program.StartInfo.UseShellExecute = true;
+
             LauncherLog.Log($"[System] 执行外部命令：{fileName} {arguments}");
             program.Start();
         }
@@ -42,11 +42,15 @@ public static class LauncherProcess
         try
         {
             LauncherLog.Log($"[System] 执行外部命令并等待返回码：{fileName} {arguments}");
+
             var result = ProcessRunner
                 .CaptureAsync(fileName, arguments, timeout)
                 .GetAwaiter()
                 .GetResult();
-            if (result.TimedOut) return LauncherExitCode.Timeout;
+
+            if (result.TimedOut)
+                return LauncherExitCode.Timeout;
+
             return result.ExitCode.HasValue
                 ? (LauncherExitCode)result.ExitCode.Value
                 : LauncherExitCode.Fail;
@@ -65,10 +69,12 @@ public static class LauncherProcess
         string? workingDirectory = null)
     {
         LauncherLog.Log($"[System] 执行外部命令并等待返回结果：{fileName} {arguments}");
+
         var result = ProcessRunner
             .CaptureAsync(fileName, arguments, timeout, workingDirectory)
             .GetAwaiter()
             .GetResult();
+
         return result.CombinedOutput;
     }
 
@@ -76,23 +82,29 @@ public static class LauncherProcess
     {
         try
         {
-            if (!url.StartsWithF("http", true)
-                && !url.StartsWithF("minecraft://", true))
+            if (!url.StartsWithF("http", true) &&
+                !url.StartsWithF("minecraft://", true))
                 throw new Exception($"{url} 不是一个有效的网址，它必须以 http 开头！");
+
             LauncherLog.Log($"[System] 正在打开网页：{url}");
+
             var psi = new ProcessStartInfo(url)
             {
                 UseShellExecute = true
             };
+
             Process.Start(psi);
         }
         catch (Exception ex)
         {
             LauncherLog.Log(ex, $"无法打开网页（{url}）");
+
             ClipboardSet(url, false);
+
             var message = ExceptionDetails.Compose(
                 Lang.Text("SystemDialog.Browser.OpenFailed.Message", url),
                 ex);
+
             ModMain.MyMsgBox(
                 message,
                 Lang.Text("SystemDialog.Browser.OpenFailed.Title"));
@@ -103,8 +115,11 @@ public static class LauncherProcess
     {
         try
         {
-            location = LegacyFileFacade.ShortenPath(location.Replace("/", @"\").Trim(' ', '"'));
+            location = LegacyFileFacade.ShortenPath(
+                location.Replace("/", @"\").Trim(' ', '"'));
+
             LauncherLog.Log($"[System] 正在打开资源管理器：{location}");
+
             if (location.EndsWithF(@"\"))
                 ShellOnly(location);
             else
@@ -147,16 +162,24 @@ public static class LauncherProcess
                 }
 
             if (success && showSuccessHint)
-                UiThread.Post(() => HintService.Hint(Lang.Text("Common.Hint.Copied"), HintType.Success));
+                UiThread.Post(() =>
+                    HintService.Hint(
+                        Lang.Text("Common.Hint.Copied"),
+                        HintType.Success));
         });
     }
 
-    public static int PasteFileFromClipboard(string dest, bool copyFile = true, bool copyDir = true)
+    public static int PasteFileFromClipboard(
+        string dest,
+        bool copyFile = true,
+        bool copyDir = true)
     {
         LauncherLog.Log($"[System] 从剪贴板粘贴文件到：{dest}");
+
         try
         {
             var files = Clipboard.GetFileDropList();
+
             if (files.Count.Equals(0))
             {
                 LauncherLog.Log("[System] 剪贴板内无文件可粘贴");
@@ -165,19 +188,21 @@ public static class LauncherProcess
 
             var copiedFiles = 0;
             var copiedFolders = 0;
-            foreach (var i in files)
+
+            foreach (var fileOrFolder in files)
             {
-                if (copyFile && File.Exists(i))
+                if (copyFile && File.Exists(fileOrFolder))
                     try
                     {
-                        var thisDest = dest + LegacyFileFacade.GetFileNameFromPath(i);
-                        if (File.Exists(thisDest))
+                        var targetPath = dest + LegacyFileFacade.GetFileNameFromPath(fileOrFolder);
+
+                        if (File.Exists(targetPath))
                         {
-                            LauncherLog.Log($"[System] 已存在同名文件：{thisDest}");
+                            LauncherLog.Log($"[System] 已存在同名文件：{targetPath}");
                         }
                         else
                         {
-                            File.Copy(i, thisDest);
+                            File.Copy(fileOrFolder, targetPath);
                             copiedFiles += 1;
                         }
                     }
@@ -187,27 +212,29 @@ public static class LauncherProcess
                         continue;
                     }
 
-                if (copyDir && Directory.Exists(i))
+                if (copyDir && Directory.Exists(fileOrFolder))
                     try
                     {
-                        var thisDest = dest + LegacyFileFacade.GetFolderNameFromPath(i);
-                        if (Directory.Exists(thisDest))
+                        var targetPath = dest + LegacyFileFacade.GetFolderNameFromPath(fileOrFolder);
+
+                        if (Directory.Exists(targetPath))
                         {
-                            LauncherLog.Log($"[System] 已存在同名文件夹：{thisDest}");
+                            LauncherLog.Log($"[System] 已存在同名文件夹：{targetPath}");
                         }
                         else
                         {
-                            LegacyFileFacade.CopyDirectory(i, thisDest);
+                            LegacyFileFacade.CopyDirectory(fileOrFolder, targetPath);
                             copiedFolders += 1;
                         }
                     }
                     catch (Exception ex)
                     {
-                        LauncherLog.Log(ex, "[System] 复制文件时出错");
+                        LauncherLog.Log(ex, "[System] 复制文件夹时出错");
                     }
             }
 
-            HintService.Hint(Lang.Text("Common.Hint.FilesPasted", copiedFiles, copiedFolders));
+            HintService.Hint(
+                Lang.Text("Common.Hint.FilesPasted", copiedFiles, copiedFolders));
         }
         catch (Exception ex)
         {

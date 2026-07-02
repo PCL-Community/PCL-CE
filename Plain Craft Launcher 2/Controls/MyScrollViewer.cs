@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -56,7 +56,7 @@ public class MyScrollViewer : ScrollViewer
     {
         ModAnimation.AniStart(ModAnimation.AaDouble(animDelta =>
         {
-            realOffset = LauncherMath.Clamp(realOffset + (double)animDelta, 0d, ExtentHeight - ActualHeight);
+            realOffset = NumberUtils.Clamp(realOffset + (double)animDelta, 0d, ExtentHeight - ActualHeight);
             ScrollToVerticalOffset(realOffset);
         }, delta * DeltaMult, 300, 0, new ModAnimation.AniEaseOutFluent((ModAnimation.AniEasePower)6), false));
     }

@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
 
@@ -55,7 +55,7 @@ public partial class PageToolsLeft
         var button = (MyIconButton)sender;
         if (button.Tag is null)
             return;
-        double id = LauncherText.Val(button.Tag);
+        double id = NumberUtils.ParseDoubleOrZero(button.Tag);
         switch (id)
         {
             case (double)FormMain.PageSubType.ToolsGameLink:
@@ -85,7 +85,7 @@ public partial class PageToolsLeft
         // 尚未初始化控件属性时，sender.Tag 为 Nothing，会导致切换到页面 0
         // 若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         if (sender.Tag is not null)
-            PageChange((FormMain.PageSubType)LauncherText.Val(sender.Tag));
+            PageChange((FormMain.PageSubType)NumberUtils.ParseDoubleOrZero(sender.Tag));
     }
 
     public object PageGet(FormMain.PageSubType? id = null)

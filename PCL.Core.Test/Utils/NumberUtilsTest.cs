@@ -22,4 +22,14 @@ public class NumberUtilsTest
     {
         Assert.AreEqual(0.333333d, NumberUtils.Lerp(0d, 1d, 1d / 3d));
     }
+
+    [TestMethod]
+    [DataRow("12.5", 12.5d)]
+    [DataRow("not-a-number", 0d)]
+    [DataRow("&", 0d)]
+    [DataRow(null, 0d)]
+    public void ParseDoubleOrZeroUsesExplicitParsing(string? value, double expected)
+    {
+        Assert.AreEqual(expected, NumberUtils.ParseDoubleOrZero(value));
+    }
 }

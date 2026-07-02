@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
-using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 
 namespace PCL;

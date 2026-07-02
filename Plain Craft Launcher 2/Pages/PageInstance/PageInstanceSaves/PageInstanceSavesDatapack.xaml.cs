@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -1572,7 +1572,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 if (datapackEntry.Authors is not null)
                     contentLines.Add(Lang.Text("Instance.Saves.Datapack.Info.Author") + datapackEntry.Authors);
                 contentLines.Add(Lang.Text("Instance.Saves.Datapack.Info.File") + datapackEntry.FileName + "（" +
-                                 LauncherText.GetReadableFileSize(GetDatapackFileInfo(datapackEntry.path).Length) + "）");
+                                 ByteStream.GetReadableLength(GetDatapackFileInfo(datapackEntry.path).Length, provider: Lang.Culture) + "）");
                 if (datapackEntry.Version is not null)
                     contentLines.Add(Lang.Text("Instance.Saves.Datapack.Info.Version") + datapackEntry.Version);
 
@@ -1657,30 +1657,29 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 var queryList = new List<SearchEntry<ModLocalComp.LocalCompFile>>();
                 foreach (var Entry in ModLocalComp.compResourceListLoader.output)
                 {
-                    var searchSource = new List<SearchSource>();
-                    searchSource.Add(new SearchSource(Entry.Name, 1d));
-                    searchSource.Add(new SearchSource(Entry.FileName, 1d));
+                    var searchSource = new List<KeyValuePair<string, double>>();
+                    searchSource.Add(new KeyValuePair<string, double>(Entry.Name, 1d));
+                    searchSource.Add(new KeyValuePair<string, double>(Entry.FileName, 1d));
                     if (Entry.Version is not null)
-                        searchSource.Add(new SearchSource(Entry.Version, 0.2d));
+                        searchSource.Add(new KeyValuePair<string, double>(Entry.Version, 0.2d));
                     if (Entry.Description is not null && !string.IsNullOrEmpty(Entry.Description))
-                        searchSource.Add(new SearchSource(Entry.Description, 0.4d));
+                        searchSource.Add(new KeyValuePair<string, double>(Entry.Description, 0.4d));
                     if (Entry.Comp is not null)
                     {
                         if ((Entry.Comp.RawName ?? "") != (Entry.Name ?? ""))
-                            searchSource.Add(new SearchSource(Entry.Comp.RawName, 1d));
+                            searchSource.Add(new KeyValuePair<string, double>(Entry.Comp.RawName, 1d));
                         if ((Entry.Comp.TranslatedName ?? "") != (Entry.Comp.RawName ?? ""))
-                            searchSource.Add(new SearchSource(Entry.Comp.TranslatedName, 1d));
+                            searchSource.Add(new KeyValuePair<string, double>(Entry.Comp.TranslatedName, 1d));
                         if ((Entry.Comp.Description ?? "") != (Entry.Description ?? ""))
-                            searchSource.Add(new SearchSource(Entry.Comp.Description, 0.4d));
-                        searchSource.Add(new SearchSource(string.Join("", Entry.Comp.Tags), 0.2d));
+                            searchSource.Add(new KeyValuePair<string, double>(Entry.Comp.Description, 0.4d));
+                        searchSource.Add(new KeyValuePair<string, double>(string.Join("", Entry.Comp.Tags), 0.2d));
                     }
 
-                    queryList.Add(new SearchEntry<ModLocalComp.LocalCompFile>
-                        { item = Entry, searchSource = searchSource });
+                    queryList.Add(new SearchEntry<ModLocalComp.LocalCompFile>(Entry, searchSource ));
                 }
 
                 // 进行搜索
-                searchResult = LauncherSearch.Search(queryList, SearchBox.Text, LauncherSearch.MaxLocalSearchDepth, 0.35d).Select(r => r.item).ToList();
+                searchResult = SimilaritySearch.Search(queryList, SearchBox.Text, SimilaritySearch.MaxLocalSearchDepth, 0.35d).Select(r => r.Item).ToList();
             }
 
             RefreshUI();

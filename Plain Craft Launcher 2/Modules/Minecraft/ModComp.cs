@@ -1445,7 +1445,7 @@ public static class ModComp
             var para = FromCurseForge ? "modId" : "project_id";
             string result = null;
 
-            var descHash = $"{Id}{LauncherText.GetStringMd5(Description)}";
+            var descHash = $"{Id}{BinaryEncoding.ToHexLower(MD5Provider.Instance.ComputeHash(Description).AsSpan())}";
             var cacheFilePath = $@"{LauncherPaths.TempWithSlash}Cache\CompTranslation.ini";
             var cacheTranslation = LegacyIniStore.Shared.Read(cacheFilePath, descHash);
             if (!string.IsNullOrWhiteSpace(cacheTranslation))
@@ -2120,11 +2120,11 @@ public static class ModComp
                 address += "&offset=" + storage.modrinthOffset;
             // facets=[["categories:'game-mechanics'"],["categories:'forge'"],["versions:1.19.3"],["project_type:mod"]]
             var facets = new List<string>();
-            facets.Add($"[\"project_type:{LauncherText.GetStringFromEnum(type).ToLower()}\"]");
+            facets.Add($"[\"project_type:{(type).ToString().ToLower()}\"]");
             if (!string.IsNullOrEmpty(tag))
                 facets.Add($"[\"categories:'{tag.AfterLast("/")}'\"]");
             if (modLoader != CompLoaderType.Any)
-                facets.Add($"[\"categories:'{LauncherText.GetStringFromEnum(modLoader).ToLower()}'\"]");
+                facets.Add($"[\"categories:'{(modLoader).ToString().ToLower()}'\"]");
             if (!string.IsNullOrEmpty(gameVersion))
                 facets.Add($"[\"versions:'{gameVersion}'\"]");
             address += "&facets=[" + string.Join(",", facets) + "]";
@@ -2397,29 +2397,28 @@ public static class ModComp
                 foreach (var searchItem in searchRes)
                 {
                     if (searchItem.ChineseName.Contains("动态的树")) continue;
-                    searchEntries.Add(new SearchEntry<CompDatabaseEntry>
-                    {
-                        item = searchItem,
-                        searchSource = new List<SearchSource>
-                        {
-                            new(searchItem.ChineseName.BeforeFirst(" (").Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries), 1),
-                            new(searchItem.ChineseName.AfterFirst(" (") + (searchItem.CurseForgeSlug ?? "") + (searchItem.ModrinthSlug ?? ""), 0.5)
-                        }
-                    });
+                    var searchSource = searchItem.ChineseName.BeforeFirst(" (")
+                        .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(alias => new KeyValuePair<string, double>(alias, 1d))
+                        .ToList();
+                    searchSource.Add(new KeyValuePair<string, double>(
+                        searchItem.ChineseName.AfterFirst(" (") + (searchItem.CurseForgeSlug ?? "") + (searchItem.ModrinthSlug ?? ""),
+                        0.5d));
+                    searchEntries.Add(new SearchEntry<CompDatabaseEntry>(searchItem, searchSource));
                 }
             }
 
-            var searchResults = LauncherSearch.Search(searchEntries, request.searchText, 40, 0.2);
+            var searchResults = SimilaritySearch.Search(searchEntries, request.searchText, 40, 0.2);
             if (!searchResults.Any()) throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
 
             string[] ExtractWords(SearchEntry<CompDatabaseEntry> result)
             {
                 var word = "";
-                if (result.item.CurseForgeSlug is not null)
-                    word += result.item.CurseForgeSlug.Replace("-", " ").Replace("/", " ") + " ";
-                if (result.item.ModrinthSlug is not null)
-                    word += result.item.ModrinthSlug.Replace("-", " ").Replace("/", " ") + " ";
-                word += result.item.ChineseName.AfterLast(" (").TrimEnd(')', ' ').BeforeFirst(" - ")
+                if (result.Item.CurseForgeSlug is not null)
+                    word += result.Item.CurseForgeSlug.Replace("-", " ").Replace("/", " ") + " ";
+                if (result.Item.ModrinthSlug is not null)
+                    word += result.Item.ModrinthSlug.Replace("-", " ").Replace("/", " ") + " ";
+                word += result.Item.ChineseName.AfterLast(" (").TrimEnd(')', ' ').BeforeFirst(" - ")
                     .Replace(":", "").Replace("(", "").Replace(")", "").ToLower().Replace("/", " ").Replace("-", " ");
                 var words = word.ToLower().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 words = words.Select(w => w.TrimStart('{', '[', '(').TrimEnd('}', ']', ')')).Where(
@@ -2427,7 +2426,7 @@ public static class ModComp
                     {
                         if (w.Length <= 1) return false;
                         if (new[] { "the", "of", "mod", "and" }.Contains(w)) return false;
-                        if (LauncherText.Val(w) > 0) return false;
+                        if (NumberUtils.ParseDoubleOrZero(w) > 0) return false;
                         if (w.Split(' ').Length > 3 && w.Contains("ftb")) return false;
                         return true;
                     }).Distinct().ToArray();
@@ -2439,9 +2438,9 @@ public static class ModComp
             {
                 foreach (var word in ExtractWords(result))
                 {
-                    var similarity = result.searchSource.Any(s => s.aliases.Contains(request.searchText))
+                    var similarity = result.SearchSource.Any(s => string.Equals(s.Key, request.searchText, StringComparison.Ordinal))
                         ? 100000
-                        : result.similarity;
+                        : result.Similarity;
                     if (!wordWeights.ContainsKey(word))
                         wordWeights.Add(word, 0);
                     wordWeights[word] += similarity;
@@ -2652,22 +2651,19 @@ public static class ModComp
                 scores.Add(res,
                     (Lang.IsChineseMainland && res.WikiId > 0 ? 0.2 : 0) +
                     Math.Log10(Math.Max(res.DownloadCount, 1) * getDownloadCountMult(res)) / 9);
-                searchEntries.Add(new SearchEntry<CompProject>
-                {
-                    item = res,
-                    searchSource = new List<SearchSource>
-                    {
-                        new((isChineseSearch ? res.TranslatedName : res.RawName).Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries), 1),
-                        new(res.Description, 0.05)
-                    }
-                });
+                var searchSource = (isChineseSearch ? res.TranslatedName : res.RawName)
+                    .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(alias => new KeyValuePair<string, double>(alias, 1d))
+                    .ToList();
+                searchSource.Add(new KeyValuePair<string, double>(res.Description, 0.05d));
+                searchEntries.Add(new SearchEntry<CompProject>(res, searchSource));
             }
 
-            var searchRes = LauncherSearch.Search(searchEntries, rawFilter, 101, -1);
+            var searchRes = SimilaritySearch.Search(searchEntries, rawFilter, 101, -1);
             foreach (var item in searchRes)
-                scores[item.item] +=
-                    (item.absoluteRight ? 10 : item.similarity) /
-                    (searchRes.First().absoluteRight ? 10 : searchRes.First().similarity);
+                scores[item.Item] +=
+                    (item.AbsoluteRight ? 10 : item.Similarity) /
+                    (searchRes.First().AbsoluteRight ? 10 : searchRes.First().Similarity);
         }
 
         if (task.IsAborted) throw new ThreadInterruptedException();

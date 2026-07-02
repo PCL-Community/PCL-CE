@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Input;
@@ -997,7 +997,7 @@ public partial class PageToolsGameLink
             if (field == value)
                 return;
             field = value;
-            LauncherLog.Log("[Link] 子页面更改为 " + LauncherText.GetStringFromEnum(value));
+            LauncherLog.Log("[Link] 子页面更改为 " + (value).ToString());
             PageOnContentExit();
         }
     } = States.Link.LinkEula ? Subpages.PanSelect : Subpages.PanEula;

@@ -1,9 +1,7 @@
 ﻿using System.Globalization;
 using System.Runtime.InteropServices;
 using Microsoft.VisualBasic;
-using PCL.Core.App.Localization;
 using PCL.Core.Logging;
-using PCL.Core.Utils.OS;
 
 namespace PCL;
 

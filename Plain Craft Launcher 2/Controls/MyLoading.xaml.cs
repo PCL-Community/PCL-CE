@@ -2,7 +2,6 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using PCL.Core.App.Localization;
 using static PCL.MyLoading;
 
 namespace PCL;
@@ -110,7 +109,7 @@ public partial class MyLoading
                     else
                     {
                         while (ex.InnerException is not null) ex = ex.InnerException;
-                        LabText.Text = LauncherText.StrTrim(ex.Message).ToString();
+                        LabText.Text = TextUtils.TrimDisplayName(ex.Message);
                         if (new[]
                             {
                                 "远程主机强迫关闭了", "远程方已关闭传输流", "未能解析此远程名称", "由于目标计算机积极拒绝", "操作已超时", "操作超时", "服务器超时", "连接超时"

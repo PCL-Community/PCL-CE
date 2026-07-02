@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -1450,25 +1450,25 @@ public static class ModModpack
                             var javaMajors = (JsonArray)patchJson["compatibleJavaMajors"];
                             foreach (var Java in javaMajors)
                             {
-                                if (javaVersion > LauncherText.Val(Java))
+                                if (javaVersion > NumberUtils.ParseDoubleOrZero(Java))
                                     continue;
                                 // 优先选择主要的版本
-                                if (LauncherText.Val(Java) == 21d)
+                                if (NumberUtils.ParseDoubleOrZero(Java) == 21d)
                                 {
                                     javaVersion = 21;
                                     javaComponent = "java-runtime-delta";
                                 }
-                                else if (LauncherText.Val(Java) == 17d)
+                                else if (NumberUtils.ParseDoubleOrZero(Java) == 17d)
                                 {
                                     javaVersion = 17;
                                     javaComponent = "java-runtime-gamma";
                                 }
-                                else if (LauncherText.Val(Java) == 11d)
+                                else if (NumberUtils.ParseDoubleOrZero(Java) == 11d)
                                 {
                                     javaVersion = 11;
                                     javaComponent = null;
                                 }
-                                else if (LauncherText.Val(Java) == 8d)
+                                else if (NumberUtils.ParseDoubleOrZero(Java) == 8d)
                                 {
                                     javaVersion = 8;
                                     javaComponent = "jre-legacy";

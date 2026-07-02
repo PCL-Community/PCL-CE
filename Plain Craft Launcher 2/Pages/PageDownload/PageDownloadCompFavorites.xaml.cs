@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
@@ -919,18 +919,18 @@ public partial class PageDownloadCompFavorites
                 if (Item.Tag is not ModComp.CompProject)
                     continue;
                 var entry = (ModComp.CompProject)Item.Tag;
-                var searchSource = new List<SearchSource>();
-                searchSource.Add(new SearchSource(entry.RawName, 1d));
+                var searchSource = new List<KeyValuePair<string, double>>();
+                searchSource.Add(new KeyValuePair<string, double>(entry.RawName, 1d));
                 if (entry.Description is not null && !string.IsNullOrEmpty(entry.Description))
-                    searchSource.Add(new SearchSource(entry.Description, 0.4d));
+                    searchSource.Add(new KeyValuePair<string, double>(entry.Description, 0.4d));
                 if ((entry.TranslatedName ?? "") != (entry.RawName ?? ""))
-                    searchSource.Add(new SearchSource(entry.TranslatedName, 1d));
-                searchSource.Add(new SearchSource(string.Join("", entry.Tags), 0.2d));
-                queryList.Add(new SearchEntry<MyListItem> { item = Item, searchSource = searchSource });
+                    searchSource.Add(new KeyValuePair<string, double>(entry.TranslatedName, 1d));
+                searchSource.Add(new KeyValuePair<string, double>(string.Join("", entry.Tags), 0.2d));
+                queryList.Add(new SearchEntry<MyListItem>(Item, searchSource));
             }
 
             // 进行搜索
-            searchResult = LauncherSearch.Search(queryList, PanSearchBox.Text, LauncherSearch.MaxLocalSearchDepth, 0.35d).Select(r => r.item).ToList();
+            searchResult = SimilaritySearch.Search(queryList, PanSearchBox.Text, SimilaritySearch.MaxLocalSearchDepth, 0.35d).Select(r => r.Item).ToList();
         }
 
         RefreshContent();

@@ -1,10 +1,9 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using PCL.Core.IO.Net.Http;
-using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -129,7 +128,8 @@ public class MyImage : Image
 
     public static string GetTempPath(string url)
     {
-        return Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Images", $"{LauncherText.GetStringMd5(url)}.png");
+        return Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Images",
+            $"{BinaryEncoding.ToHexLower(MD5Provider.Instance.ComputeHash(url).AsSpan())}.png");
     }
 
     private static readonly ConcurrentDictionary<string, Task<string>> _downloadTasks = new();

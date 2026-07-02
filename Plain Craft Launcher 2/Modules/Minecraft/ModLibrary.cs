@@ -70,7 +70,7 @@ public static class ModLibrary
 
         public override string ToString()
         {
-            return (IsNatives ? "[Native] " : "") + LauncherText.GetReadableFileSize(size) + " | " + LocalPath;
+            return (IsNatives ? "[Native] " : "") + ByteStream.GetReadableLength(size, provider: Lang.Culture) + " | " + LocalPath;
         }
     }
 
@@ -269,7 +269,7 @@ public static class ModLibrary
                                 ? McLibGet((string)library["name"], customMcFolder: customMcFolder)
                                 : McLibGetByArtifactPath(artifactPath.ToString(), customMcFolder),
                             init.size = (long)Math.Round(
-                                LauncherText.Val(library["downloads"]["artifact"]["size"].ToString())),
+                                NumberUtils.ParseDoubleOrZero(library["downloads"]["artifact"]["size"].ToString())),
                             init.IsNatives = false, init.Sha1 = library["downloads"]["artifact"]["sha1"]?.ToString(),
                             init.IsLocal = isLocal, init).init);
                     }
@@ -317,7 +317,7 @@ public static class ModLibrary
                                     .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32")
                                 : McLibGetByArtifactPath(nativePath.ToString(), customMcFolder),
                             size = (long)Math.Round(
-                                LauncherText.Val(library["downloads"]["classifiers"]["natives-windows"]["size"]
+                                NumberUtils.ParseDoubleOrZero(library["downloads"]["classifiers"]["natives-windows"]["size"]
                                     .ToString())),
                             IsNatives = true,
                             Sha1 = library["downloads"]["classifiers"]["natives-windows"]["sha1"].ToString(),
@@ -642,9 +642,9 @@ public static class ModLibrary
         // 判断 OptiFine 是否应该使用 installer
         if (mcLibGetRet.Contains(@"optifine\OptiFine\1.") && splited[2].Split(".").Count() > 1)
         {
-            var majorVersion = (int)Math.Round(LauncherText.Val(splited[2].Split(".")[1].BeforeFirst("_")));
+            var majorVersion = (int)Math.Round(NumberUtils.ParseDoubleOrZero(splited[2].Split(".")[1].BeforeFirst("_")));
             var minorVersion = (int)Math.Round(splited[2].Split(".").Count() > 2
-                ? LauncherText.Val(splited[2].Split(".")[2].BeforeFirst("_"))
+                ? NumberUtils.ParseDoubleOrZero(splited[2].Split(".")[2].BeforeFirst("_"))
                 : 0d);
             if ((majorVersion == 12 || (majorVersion == 20 && minorVersion >= 4) || majorVersion >= 21) && File.Exists(
                     $@"{customMcFolder}libraries\{splited[0].Replace(".", @"\")}\{splited[1]}\{splited[2]}\{splited[1]}-{splited[2]}-installer.jar")) // 仅在 1.12 (无法追溯) 和 1.20.4+ (#5376) 遇到此问题

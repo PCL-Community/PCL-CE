@@ -1,6 +1,4 @@
-﻿using PCL.Core.App.Localization;
-
-namespace PCL;
+﻿namespace PCL;
 
 /// <summary>
 ///     PCL2 启动器字体应用入口。

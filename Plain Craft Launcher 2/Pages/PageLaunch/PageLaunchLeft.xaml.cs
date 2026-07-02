@@ -439,7 +439,7 @@ public partial class PageLaunchLeft
                 hasLaunchDownloader = false;
             }
 
-            LabLaunchingDownload.Text = LauncherText.GetReadableFileSize(ModNet.NetManager.Speed) + "/s";
+            LabLaunchingDownload.Text = ByteStream.GetReadableLength(ModNet.NetManager.Speed, provider: Lang.Culture) + "/s";
             var shouldShowHint = Config.Preference.ShowLaunchingHint;
             // 进度改变动画
             var animList = new List<ModAnimation.AniData>
@@ -589,7 +589,7 @@ public partial class PageLaunchLeft
         LabLaunchingDownload.Visibility = Visibility.Visible;
         LabLaunchingProgressLeft.Opacity = 0.6d;
         LabLaunchingDownload.Visibility = Visibility.Visible;
-        LabLaunchingDownload.Text = LauncherText.GetReadableFileSize(0) + "/s";
+        LabLaunchingDownload.Text = ByteStream.GetReadableLength(0, provider: Lang.Culture) + "/s";
         LabLaunchingDownload.Opacity = 0d;
         LabLaunchingDownload.Visibility = Visibility.Collapsed;
         LabLaunchingDownloadLeft.Opacity = 0d;
@@ -773,9 +773,9 @@ public partial class PageLaunchLeft
         {
             LauncherLog.Log(
                 ex,
-                Lang.Text("Launch.Account.Error.SwitchPage", LauncherText.GetStringFromEnum(type)),
+                Lang.Text("Launch.Account.Error.SwitchPage", (type).ToString()),
                 LauncherLogLevel.Feedback,
-                userSummary: Lang.Text("Launch.Account.Error.SwitchPage", LauncherText.GetStringFromEnum(type)));
+                userSummary: Lang.Text("Launch.Account.Error.SwitchPage", (type).ToString()));
             return pageNew;
         }
     }

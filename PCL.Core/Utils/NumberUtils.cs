@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 
 namespace PCL.Core.Utils;
 
@@ -37,6 +38,54 @@ public static class NumberUtils
     {
         var value = start * (1d - progress) + end * progress;
         return digits >= 0 ? Math.Round(value, digits) : value;
+    }
+
+    /// <summary>
+    ///     使用明确的数值解析规则将对象转换为 double；解析失败时返回 0。
+    /// </summary>
+    public static double ParseDoubleOrZero(object? value)
+    {
+        switch (value)
+        {
+            case null:
+                return 0d;
+            case double doubleValue:
+                return doubleValue;
+            case float floatValue:
+                return floatValue;
+            case decimal decimalValue:
+                return (double)decimalValue;
+            case IConvertible convertible and not string:
+                try
+                {
+                    return convertible.ToDouble(CultureInfo.InvariantCulture);
+                }
+                catch
+                {
+                    // 继续尝试字符串解析。
+                }
+
+                break;
+        }
+
+        var text = Convert.ToString(value, CultureInfo.InvariantCulture);
+        if (string.IsNullOrWhiteSpace(text) || text == "&") return 0d;
+
+        text = text.Trim();
+        if (double.TryParse(
+                text,
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out var invariantResult))
+            return invariantResult;
+        if (double.TryParse(
+                text,
+                NumberStyles.Float,
+                CultureInfo.CurrentCulture,
+                out var currentResult))
+            return currentResult;
+
+        return 0d;
     }
 
     /// <summary>

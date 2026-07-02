@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Markup;
@@ -320,8 +320,8 @@ public partial class PageComp
         var modLoader = ModComp.CompLoaderType.Any;
         if (PageType == ModComp.CompType.Mod || PageType == ModComp.CompType.ModPack) // 只有 Mod 考虑加载器
         {
-            modLoader = (ModComp.CompLoaderType)LauncherText.Val(((MyComboBoxItem)ComboSearchLoader.SelectedItem).Tag);
-            if (gameVersion is not null && gameVersion.Contains(".") && LauncherText.Val(gameVersion.Split(".")[1]) < 14d &&
+            modLoader = (ModComp.CompLoaderType)NumberUtils.ParseDoubleOrZero(((MyComboBoxItem)ComboSearchLoader.SelectedItem).Tag);
+            if (gameVersion is not null && gameVersion.Contains(".") && NumberUtils.ParseDoubleOrZero(gameVersion.Split(".")[1]) < 14d &&
                 modLoader == ModComp.CompLoaderType.Forge) // 1.14-
                                                            // 选择了 Forge
                 modLoader = ModComp.CompLoaderType.Any; // 此时，视作没有筛选 Mod Loader（因为部分老 Mod 没有设置自己支持的加载器）
@@ -339,10 +339,10 @@ public partial class PageComp
             : selectedTag;
         request.modLoader =
             (ModComp.CompLoaderType)(PageType == ModComp.CompType.Mod || PageType == ModComp.CompType.ModPack
-                ? LauncherText.Val(((MyComboBoxItem)ComboSearchLoader.SelectedItem).Tag)
+                ? NumberUtils.ParseDoubleOrZero(((MyComboBoxItem)ComboSearchLoader.SelectedItem).Tag)
                 : (double)ModComp.CompLoaderType.Any);
-        request.source = (ModComp.CompSourceType)LauncherText.Val(((MyComboBoxItem)ComboSearchSource.SelectedItem).Tag);
-        request.sort = (ModComp.CompSortType)LauncherText.Val(((MyComboBoxItem)ComboSearchSort.SelectedItem).Tag);
+        request.source = (ModComp.CompSourceType)NumberUtils.ParseDoubleOrZero(((MyComboBoxItem)ComboSearchSource.SelectedItem).Tag);
+        request.sort = (ModComp.CompSortType)NumberUtils.ParseDoubleOrZero(((MyComboBoxItem)ComboSearchSort.SelectedItem).Tag);
         return request;
     }
 

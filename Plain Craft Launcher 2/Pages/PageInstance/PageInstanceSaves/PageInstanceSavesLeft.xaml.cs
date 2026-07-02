@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App.Localization;
@@ -47,7 +47,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
     private void PageCheck(object sender, RouteEventArgs e)
     {
         if (sender is MyListItem item && item.Tag is not null)
-            PageChange((FormMain.PageSubType)LauncherText.Val(item.Tag));
+            PageChange((FormMain.PageSubType)NumberUtils.ParseDoubleOrZero(item.Tag));
     }
 
     public object PageGet(FormMain.PageSubType id = FormMain.PageSubType.Default)
@@ -129,7 +129,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
 
     public void RefreshButton_Click(object sender, EventArgs e) // 由边栏按钮匿名调用
     {
-        Refresh((FormMain.PageSubType)LauncherText.Val(((MyIconButton)sender).Tag));
+        Refresh((FormMain.PageSubType)NumberUtils.ParseDoubleOrZero(((MyIconButton)sender).Tag));
     }
 
     public void Refresh()

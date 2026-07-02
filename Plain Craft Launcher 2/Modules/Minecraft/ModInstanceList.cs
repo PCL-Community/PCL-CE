@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils;
@@ -92,12 +92,12 @@ public static class ModInstanceList
             }
 
             // 根据文件夹名列表生成辨识码
-            var folderListHash = LauncherText.GetHash(mcInstanceCacheVersion + "#" + string.Join("#", folderList));
+            var folderListHash = LauncherStringHash.Compute(mcInstanceCacheVersion + "#" + string.Join("#", folderList));
             var folderListCheck = (int)(folderListHash % (int.MaxValue - 1));
 
             // 尝试使用缓存
             var useCache = !mcInstanceListForceRefresh &&
-                           LauncherText.Val(LegacyIniStore.Shared.Read(Path.Combine(path, "PCL.ini"),
+                           NumberUtils.ParseDoubleOrZero(LegacyIniStore.Shared.Read(Path.Combine(path, "PCL.ini"),
                                "InstanceCache")) ==
                            folderListCheck;
 

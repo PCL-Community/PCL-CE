@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -9,13 +9,9 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using PCL.Core.App;
 using PCL.Core.App.IoC;
-using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.Minecraft;
-using PCL.Core.UI;
 using PCL.Core.UI.Theme;
-using PCL.Core.Utils;
-using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 
@@ -591,7 +587,7 @@ public partial class FormMain
             Thread.Sleep(500); // 防止 PCL 在记事本打开前就被掐掉
         }
 
-        LauncherLog.Log("[System] 程序已退出，返回值：" + LauncherText.GetStringFromEnum(returnCode));
+        LauncherLog.Log("[System] 程序已退出，返回值：" + returnCode);
         // If ReturnCode <> ProcessReturnValues.Success Then Environment.Exit(ReturnCode)
         // Process.GetCurrentProcess.Kill()
         Lifecycle.Shutdown((int)returnCode, force);
@@ -894,7 +890,7 @@ public partial class FormMain
 
             _HandleDrag_PrevData = e.Data;
             _HandleDrag_PrevEffects = e.Effects;
-            LauncherLog.Log("[System] 设置拖放类型：" + LauncherText.GetStringFromEnum(e.Effects));
+            LauncherLog.Log("[System] 设置拖放类型：" + e.Effects);
         }
         catch (Exception ex)
         {
@@ -1676,7 +1672,7 @@ public partial class FormMain
                         ModMain.frmDownloadLeft = new PageDownloadLeft();
                     foreach (var item in ModMain.frmDownloadLeft.PanItem.Children)
                         if (item is MyListItem listItem &&
-                            LauncherText.Val(listItem.Tag) == (double)subType)
+                            NumberUtils.ParseDoubleOrZero(listItem.Tag) == (double)subType)
                         {
                             listItem.SetChecked(true, true, stack == pageCurrent);
                             break;
@@ -1690,7 +1686,7 @@ public partial class FormMain
                         ModMain.frmSetupLeft = new PageSetupLeft();
                     foreach (var item in ModMain.frmSetupLeft.PanItem.Children)
                         if (item is MyListItem listItem &&
-                            LauncherText.Val(listItem.Tag) == (double)subType)
+                            NumberUtils.ParseDoubleOrZero(listItem.Tag) == (double)subType)
                         {
                             listItem.SetChecked(true, true, stack == pageCurrent);
                             break;
@@ -1713,7 +1709,7 @@ public partial class FormMain
                         ModMain.frmInstanceLeft = new PageInstanceLeft();
                     foreach (var item in ModMain.frmInstanceLeft.PanItem.Children)
                         if (item is MyListItem listItem &&
-                            LauncherText.Val(listItem.Tag) == (double)subType)
+                            NumberUtils.ParseDoubleOrZero(listItem.Tag) == (double)subType)
                         {
                             listItem.SetChecked(true, true, stack == pageCurrent);
                             break;
@@ -1727,7 +1723,7 @@ public partial class FormMain
                         ModMain.frmInstanceSavesLeft = new PageInstanceSavesLeft();
                     foreach (var item in ModMain.frmInstanceSavesLeft.PanItem.Children)
                         if (item is MyListItem listItem &&
-                            LauncherText.Val(listItem.Tag) == (double)subType)
+                            NumberUtils.ParseDoubleOrZero(listItem.Tag) == (double)subType)
                         {
                             listItem.SetChecked(true, true, stack == pageCurrent);
                             break;
@@ -1926,7 +1922,7 @@ public partial class FormMain
 
             #endregion
 
-            LauncherLog.Log("[Control] 切换主要页面：" + LauncherText.GetStringFromEnum(stack) + ", " + (int)subType);
+            LauncherLog.Log("[Control] 切换主要页面：" + stack + ", " + (int)subType);
         }
         catch (Exception ex)
         {
