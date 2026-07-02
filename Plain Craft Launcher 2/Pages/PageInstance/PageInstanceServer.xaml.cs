@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
@@ -173,8 +173,14 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Server.RefreshFailed"), ModBase.LogLevel.Feedback);
-            ModBase.RunInUi(() => HintService.Hint(Lang.Text("Instance.Server.RefreshFailed") + ": " + ex.Message, HintType.Error));
+            ModBase.Log(
+                ex,
+                Lang.Text("Instance.Server.RefreshFailed"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Server.RefreshFailed"));
+            ModBase.RunInUi(() => HintService.Hint(
+                Lang.Text("Instance.Server.RefreshFailed.WithDetail", ex.ToString()),
+                HintType.Error));
         }
     }
 
@@ -194,8 +200,14 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Server.RefreshFailed"), ModBase.LogLevel.Feedback);
-            HintService.Hint(Lang.Text("Instance.Server.RefreshFailed") + ": " + ex.Message, HintType.Error);
+            ModBase.Log(
+                ex,
+                Lang.Text("Instance.Server.RefreshFailed"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Server.RefreshFailed"));
+            HintService.Hint(
+                Lang.Text("Instance.Server.RefreshFailed.WithDetail", ex.ToString()),
+                HintType.Error);
         }
     }
 

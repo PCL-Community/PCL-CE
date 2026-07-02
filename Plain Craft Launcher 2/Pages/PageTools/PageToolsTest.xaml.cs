@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -99,7 +99,11 @@ public partial class PageToolsTest
                 }
                 case ModBase.LoadState.Failed:
                 {
-                    ModBase.Log(loader.Error, $"{loader.name}失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        loader.Error,
+                        $"{loader.name}失败",
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Tools.Test.Error.OperationFailed"));
                     Console.Beep();
                     break;
                 }
@@ -134,7 +138,11 @@ public partial class PageToolsTest
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"访问文件夹失败（{folder}）", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    $"访问文件夹失败（{folder}）",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Tools.Test.Error.OperationFailed"));
                 return;
             }
 
@@ -158,7 +166,11 @@ public partial class PageToolsTest
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始自定义下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "开始自定义下载失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Tools.Test.Error.OperationFailed"));
         }
     }
 
@@ -274,7 +286,11 @@ public partial class PageToolsTest
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "清理垃圾失败", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "清理垃圾失败",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Tools.Test.Error.OperationFailed"));
             }
             finally
             {

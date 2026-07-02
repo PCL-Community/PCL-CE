@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
@@ -925,7 +925,11 @@ public class McInstance
                 Desc = Lang.Text("Select.Instance.Description.UnknownError") + ": " + ex;
                 Logo = ModBase.pathImage + "Blocks/RedstoneBlock.png";
                 state = McInstanceState.Error;
-                ModBase.Log(ex, Lang.Text("Select.Instance.Error.Load", Name), ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Select.Instance.Error.Load", Name),
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Select.Instance.Error.Load", Name));
             }
             finally
             {

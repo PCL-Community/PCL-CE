@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Compression;
@@ -645,17 +645,20 @@ public static class ModComp
                     System.Windows.Application.Current.Dispatcher.BeginInvoke(new Func<Task>(async () =>
                     {
                         if (ModMain.MyMsgBox(
-                                "PCL detected a resource link in clipboard. Do you want to jump to the details page?",
-                                "Link Detected", "Confirm", "Cancel", forceWait: true) == 1)
+                                Lang.Text("Download.Comp.Detail.Clipboard.Detected.Message"),
+                                Lang.Text("Download.Comp.Detail.Clipboard.Detected.Title"),
+                                Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"),
+                                forceWait: true) == 1)
                         {
-                            HintService.Hint("Fetching resource info...");
+                            HintService.Hint(Lang.Text("Download.Comp.Detail.Clipboard.Fetching"));
 
                             var ids = new List<string> { projectId };
                             var compProjects = await CompRequest.GetCompProjectsByIdsAsync(ids);
 
                             if (compProjects.Count == 0)
                             {
-                                HintService.Hint("Invalid resource content.", HintType.Error);
+                                HintService.Hint(Lang.Text("Download.Comp.Detail.Clipboard.InvalidContent"),
+                                    HintType.Error);
                                 return;
                             }
 
@@ -804,7 +807,11 @@ public static class ModComp
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取模组翻译信息失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "获取模组翻译信息失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Minecraft.Comp.Error.OperationFailed"));
             return null;
         }
     }
@@ -1468,11 +1475,19 @@ public static class ModComp
                     return null;
                 }
 
-                ModBase.Log(ex, "获取中文描述时出现错误", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "获取中文描述时出现错误",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Minecraft.Comp.Error.OperationFailed"));
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "获取中文描述时出现错误", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "获取中文描述时出现错误",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Minecraft.Comp.Error.OperationFailed"));
             }
 
             return result;
@@ -2817,9 +2832,9 @@ public static class ModComp
                 if (data.ContainsKey("Dependencies"))
                     Dependencies = data["Dependencies"].ToObject<List<string>>();
                 if (data.ContainsKey("RawOptionalDependencies"))
-                    RawDependencies = data["RawOptionalDependencies"].ToObject<List<string>>();
+                    RawOptionalDependencies = data["RawOptionalDependencies"].ToObject<List<string>>();
                 if (data.ContainsKey("OptionalDependencies"))
-                    Dependencies = data["OptionalDependencies"].ToObject<List<string>>();
+                    OptionalDependencies = data["OptionalDependencies"].ToObject<List<string>>();
             }
 
             #endregion
@@ -3425,7 +3440,11 @@ public static class ModComp
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "[Comp] 快速下载失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    "[Comp] 快速下载失败",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Minecraft.Comp.Error.OperationFailed"));
             }
         }, "Comp QuickDownload");
     }

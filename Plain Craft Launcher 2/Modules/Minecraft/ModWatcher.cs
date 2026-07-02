@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -295,7 +295,11 @@ public static class ModWatcher
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "Minecraft 日志监控主循环出错", ModBase.LogLevel.Feedback);
+                    ModBase.Log(
+                        ex,
+                        "Minecraft 日志监控主循环出错",
+                        ModBase.LogLevel.Feedback,
+                        userSummary: Lang.Text("Minecraft.Launch.Error.WatcherOperationFailed"));
                     State = MinecraftState.Ended;
                 }
             }, "Minecraft Watcher PID " + pid);
@@ -446,7 +450,11 @@ public static class ModWatcher
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "输出 Minecraft 日志失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    "输出 Minecraft 日志失败",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Minecraft.Launch.Error.WatcherOperationFailed"));
             }
         }
 
@@ -565,7 +573,11 @@ public static class ModWatcher
                 catch (Win32Exception ex)
                 {
                     // 拒绝访问（#1062）
-                    ModBase.Log(ex, Lang.Text("Watcher.SecurityBlocked"), ModBase.LogLevel.Hint);
+                    ModBase.Log(
+                        ex,
+                        Lang.Text("Watcher.SecurityBlocked"),
+                        ModBase.LogLevel.Hint,
+                        userSummary: Lang.Text("Watcher.SecurityBlocked"));
                     isWindowFinished = true;
                 }
 
@@ -608,7 +620,11 @@ public static class ModWatcher
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "检查 Minecraft 窗口失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    "检查 Minecraft 窗口失败",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Minecraft.Launch.Error.WatcherOperationFailed"));
             }
         }
 
@@ -713,7 +729,11 @@ public static class ModWatcher
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "崩溃分析失败", ModBase.LogLevel.Feedback);
+                        ModBase.Log(
+                            ex,
+                            "崩溃分析失败",
+                            ModBase.LogLevel.Feedback,
+                            userSummary: Lang.Text("Crash.Analysis.Error.Failed"));
                     }
                 }, "Crash Analyzer");
             }
@@ -777,7 +797,11 @@ public static class ModWatcher
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, Lang.Text("Watcher.Kill.Failed"), ModBase.LogLevel.Hint);
+                    ModBase.Log(
+                        ex,
+                        Lang.Text("Watcher.Kill.Failed"),
+                        ModBase.LogLevel.Hint,
+                        userSummary: Lang.Text("Watcher.Kill.Failed"));
                 }
             });
         }

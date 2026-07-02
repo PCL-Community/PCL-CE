@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -292,7 +292,10 @@ public partial class MyLocalCompItem
             }
         }
 
-        ModBase.Log(Lang.Text("Instance.Resource.Item.OpenChangelogFailed"), ModBase.LogLevel.Hint);
+        ModBase.Log(
+            Lang.Text("Instance.Resource.Item.OpenChangelogFailed"),
+            ModBase.LogLevel.Hint,
+            userSummary: Lang.Text("Instance.Resource.Item.OpenChangelogFailed"));
     }
 
     // 触发更新

@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
@@ -53,12 +53,16 @@ public partial class PageSetupLauncherLanguage
             Config.Preference.Localization.FormatCultureConfig.SetDefaultValue();
             LocalizationService.ApplyFromConfig();
             ModBase.Log("[Setup] 已初始化启动器-语言页设置");
-            HintService.Hint("已初始化语言页设置！", HintType.Success, false);
+            HintService.Hint(Lang.Text("Setup.Language.Reset.Success"), HintType.Success, false);
             Reload();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化启动器-语言页设置失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                "初始化启动器-语言页设置失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
     }
 
@@ -67,7 +71,7 @@ public partial class PageSetupLauncherLanguage
         ComboUiLanguage.Items.Clear();
         var autoLanguage = LocalizationService.ResolveLanguage(LocalizationService.Auto);
         ComboUiLanguage.Items.Add(CreateLanguageComboItem(
-            Lang.Text("Setup.LauncherLanguage.UiLanguage.Auto", GetLanguageDisplay(autoLanguage)),
+            Lang.Text("Setup.Language.UiLanguage.Auto", GetLanguageDisplay(autoLanguage)),
             LocalizationService.Auto,
             autoLanguage));
 
@@ -92,12 +96,12 @@ public partial class PageSetupLauncherLanguage
         ComboUiFormatCulture.Items.Clear();
         ComboUiFormatCulture.Items.Add(new MyComboBoxItem
         {
-            Content = Lang.Text("Setup.LauncherLanguage.FormatCulture.Auto"),
+            Content = Lang.Text("Setup.Language.FormatCulture.Auto"),
             Tag = LocalizationService.Auto
         });
         ComboUiFormatCulture.Items.Add(new MyComboBoxItem
         {
-            Content = Lang.Text("Setup.LauncherLanguage.FormatCulture.FollowLanguage"),
+            Content = Lang.Text("Setup.Language.FormatCulture.FollowLanguage"),
             Tag = LocalizationService.FormatCultureFollowLanguage
         });
 
@@ -132,7 +136,7 @@ public partial class PageSetupLauncherLanguage
             return;
 
         Config.Preference.Localization.Language = value;
-        HintService.Hint(Lang.Text("Setup.LauncherLanguage.Changed"), HintType.Success, false);
+        HintService.Hint(Lang.Text("Setup.Language.Changed"), HintType.Success, false);
         Reload();
     }
 
@@ -148,7 +152,7 @@ public partial class PageSetupLauncherLanguage
             return;
 
         Config.Preference.Localization.FormatCulture = value;
-        HintService.Hint(Lang.Text("Setup.LauncherLanguage.Changed"), HintType.Success, false);
+        HintService.Hint(Lang.Text("Setup.Language.Changed"), HintType.Success, false);
         Reload();
     }
 

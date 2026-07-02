@@ -1,10 +1,11 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using FluentValidation;
 
+using PCL.Core.App.Localization;
 namespace PCL;
 
 public class MyTextBox : TextBox
@@ -269,7 +270,11 @@ public class MyTextBox : TextBox
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "进行输入验证时出错", ModBase.LogLevel.Critical);
+            ModBase.Log(
+                ex,
+                "进行输入验证时出错",
+                ModBase.LogLevel.Critical,
+                userSummary: Lang.Text("Application.Control.Error.OperationFailed"));
         }
     }
 

@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -192,7 +192,11 @@ public partial class PageInstanceScreenshot : IRefreshable
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, Lang.Text("Instance.Screenshot.OpenFailed"), ModBase.LogLevel.Hint);
+                        ModBase.Log(
+                            ex,
+                            Lang.Text("Instance.Screenshot.OpenFailed"),
+                            ModBase.LogLevel.Hint,
+                            userSummary: Lang.Text("Instance.Screenshot.OpenFailed"));
                     }
                 }; // 使用系统默认程序打开
                 Grid.SetRow(image, 1);
@@ -290,7 +294,11 @@ public partial class PageInstanceScreenshot : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Screenshot.DeleteFailed"), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Instance.Screenshot.DeleteFailed"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Instance.Screenshot.DeleteFailed"));
         }
     }
 

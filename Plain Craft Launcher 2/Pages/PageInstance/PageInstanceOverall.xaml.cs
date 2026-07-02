@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -247,7 +247,11 @@ public partial class PageInstanceOverall
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "修改实例分类失败（" + PageInstanceLeft.McInstance.Name + "）", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    $"修改实例分类失败（{PageInstanceLeft.McInstance.Name}）",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
             }
 
             Reload(); // 更新 “打开 Mod 文件夹” 按钮
@@ -277,7 +281,11 @@ public partial class PageInstanceOverall
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "隐藏实例 " + PageInstanceLeft.McInstance.Name + " 失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    $"隐藏实例 {PageInstanceLeft.McInstance.Name} 失败",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
             }
         }
     }
@@ -299,7 +307,11 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "实例 " + PageInstanceLeft.McInstance.Name + " 描述更改失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                $"实例 {PageInstanceLeft.McInstance.Name} 描述更改失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
     }
 
@@ -401,7 +413,11 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重命名实例失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                "重命名实例失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
     }
 
@@ -431,7 +447,11 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "更改自定义实例图标失败（" + PageInstanceLeft.McInstance.Name + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                $"更改自定义实例图标失败（{PageInstanceLeft.McInstance.Name}）",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
 
         // 进行更改
@@ -449,7 +469,11 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "更改实例图标失败（" + PageInstanceLeft.McInstance.Name + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                $"更改实例图标失败（{PageInstanceLeft.McInstance.Name}）",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
     }
 
@@ -467,7 +491,11 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "实例 " + PageInstanceLeft.McInstance.Name + " 收藏状态更改失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                $"实例 {PageInstanceLeft.McInstance.Name} 收藏状态更改失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
     }
 
@@ -535,7 +563,11 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "导出启动脚本失败（" + PageInstanceLeft.McInstance.Name + "）", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                $"导出启动脚本失败（{PageInstanceLeft.McInstance.Name}）",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
     }
 
@@ -571,17 +603,21 @@ public partial class PageInstanceOverall
                 {
                     case ModBase.LoadState.Finished:
                     {
-                        HintService.Hint(taskName + Lang.Text("Instance.Overall.Repair.Success"), HintType.Success);
+                        HintService.Hint(
+                            Lang.Text("Instance.Overall.Repair.Success.WithTaskName", taskName), HintType.Success);
                         break;
                     }
                     case ModBase.LoadState.Failed:
                     {
-                        HintService.Hint(taskName + Lang.Text("Instance.Overall.Repair.Failed") + loader.Error.Message, HintType.Error);
+                        HintService.Hint(
+                            Lang.Text("Instance.Overall.Repair.Failed.WithDetail", taskName, loader.Error.ToString()),
+                            HintType.Error);
                         break;
                     }
                     case ModBase.LoadState.Aborted:
                     {
-                        HintService.Hint(taskName + Lang.Text("Common.Action.Cancel") + "！");
+                        HintService.Hint(
+                            Lang.Text("Instance.Overall.Repair.Cancelled.WithTaskName", taskName));
                         break;
                     }
                 }
@@ -593,7 +629,11 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "尝试补全文件失败（" + PageInstanceLeft.McInstance.Name + "）", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                $"尝试补全文件失败（{PageInstanceLeft.McInstance.Name}）",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
     }
 
@@ -656,7 +696,11 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重置实例 " + PageInstanceLeft.McInstance.Name + " 失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                $"重置实例 {PageInstanceLeft.McInstance.Name} 失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
     }
 
@@ -671,7 +715,11 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "测试游戏失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "测试游戏失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
     }
 
@@ -747,7 +795,11 @@ public partial class PageInstanceOverall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "删除实例 " + PageInstanceLeft.McInstance.Name + " 失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                $"删除实例 {PageInstanceLeft.McInstance.Name} 失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
         }
     }
 

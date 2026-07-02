@@ -1,4 +1,4 @@
-using Microsoft.VisualBasic.CompilerServices;
+﻿using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.Utils;
 using System.Collections;
@@ -7,6 +7,7 @@ using System.Windows.Shell;
 using PCL.Network;
 using PCL.Network.Loaders;
 
+using PCL.Core.App.Localization;
 namespace PCL;
 
 public static class ModLoader
@@ -80,7 +81,11 @@ public static class ModLoader
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新任务栏进度显示失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "刷新任务栏进度显示失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Application.Loader.Error.OperationFailed"));
         }
     }
 
@@ -99,7 +104,11 @@ public static class ModLoader
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取任务栏进度出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "获取任务栏进度出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Application.Loader.Error.OperationFailed"));
             return 0.5d;
         }
     }
@@ -245,7 +254,11 @@ public static class ModLoader
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "获取父加载器失败（" + name + "）", ModBase.LogLevel.Feedback);
+                    ModBase.Log(
+                        ex,
+                        "获取父加载器失败（" + name + "）",
+                        ModBase.LogLevel.Feedback,
+                        userSummary: Lang.Text("Application.Loader.Error.OperationFailed"));
                     return null;
                 }
 
@@ -568,7 +581,11 @@ public static class ModLoader
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "加载输入获取失败（" + name + "）", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "加载输入获取失败（" + name + "）",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Application.Loader.Error.OperationFailed"));
                 Error = ex;
                 lock (lockState)
                 {

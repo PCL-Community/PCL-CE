@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -13,8 +13,8 @@ namespace PCL;
 public partial class PageSetupUI
 {
     public string[] ThemeColors => Basics.IsAprilFool 
-        ? [Lang.Text("Setup.Ui.ThemeColor.SkyBlue"), Lang.Text("Setup.Ui.ThemeColor.CatBlue"), Lang.Text("Setup.Ui.ThemeColor.CrashBlue"), Lang.Text("Setup.Ui.ThemeColor.Hmcl")]
-        : [Lang.Text("Setup.Ui.ThemeColor.SkyBlue"), Lang.Text("Setup.Ui.ThemeColor.CatBlue"), Lang.Text("Setup.Ui.ThemeColor.CrashBlue")];
+        ? [Lang.Text("Setup.Ui.Theme.Color.SkyBlue"), Lang.Text("Setup.Ui.Theme.Color.CatBlue"), Lang.Text("Setup.Ui.Theme.Color.CrashBlue"), Lang.Text("Setup.Ui.Theme.Color.Hmcl")]
+        : [Lang.Text("Setup.Ui.Theme.Color.SkyBlue"), Lang.Text("Setup.Ui.Theme.Color.CatBlue"), Lang.Text("Setup.Ui.Theme.Color.CrashBlue")];
     
     public new bool isLoaded;
 
@@ -156,12 +156,20 @@ public partial class PageSetupUI
         }
         catch (NullReferenceException ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Ui.Error.ConfigReset"), ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.Ui.Error.ConfigReset"),
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Ui.Error.ConfigReset"));
             Reset();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Ui.Error.LoadFailed"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.Ui.Error.LoadFailed"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Ui.Error.LoadFailed"));
         }
     }
 
@@ -176,7 +184,11 @@ public partial class PageSetupUI
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Ui.Error.InitFailed"), ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.Ui.Error.InitFailed"),
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Ui.Error.InitFailed"));
         }
 
         Reload();
@@ -312,12 +324,18 @@ public partial class PageSetupUI
                     if (videoEx.Message.Contains("0xC00D109B"))
                         ModBase.Log(
                             $"""
-                             刷新背景内容失败，该视频文件可能并非 H.264（AVC） 格式。
-                             你可以尝试使用视频转码工具打开视频文件并设定目标格式为 H.264（AVC） ，然后转码该视频。
+                             刷新背景内容失败，该视频文件可能并非 H.264（AVC）格式。
+                             你可以尝试使用视频转码工具打开视频文件并设定目标格式为 H.264（AVC），然后转码该视频。
                              文件：{videoAddress}
-                             """, ModBase.LogLevel.Msgbox);
+                             """,
+                            ModBase.LogLevel.Msgbox,
+                            userSummary: Lang.Text("Setup.Ui.Error.BackgroundVideoUnsupported"));
                     else
-                        ModBase.Log(videoEx, $"刷新背景内容失败（{videoAddress}）", ModBase.LogLevel.Msgbox);
+                        ModBase.Log(
+                            videoEx,
+                            $"刷新背景内容失败（{videoAddress}）",
+                            ModBase.LogLevel.Msgbox,
+                            userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 }
             };
             ModMain.frmMain.VideoBack.MediaFailed -= videoHandler;
@@ -394,14 +412,20 @@ public partial class PageSetupUI
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新背景内容时出现未知错误", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "刷新背景内容时出现未知错误",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
         }
     }
 
     // 顶部栏
     private void BtnLogoChange_Click(object sender, MouseButtonEventArgs e)
     {
-        var fileName = SystemDialogs.SelectFile("常用图片文件(*.png;*.jpg;*.gif;*.webp)|*.png;*.jpg;*.gif;*.webp", "选择图片");
+        var fileName = SystemDialogs.SelectFile(
+            Lang.Text("Setup.Ui.ImageFile.Filter"),
+            Lang.Text("Setup.Ui.ImageFile.SelectTitle"));
         if (string.IsNullOrEmpty(fileName))
             return;
         try
@@ -416,13 +440,19 @@ public partial class PageSetupUI
         catch (Exception ex)
         {
             if (ex.Message.Contains("参数无效"))
-                ModBase.Log("""
-                            改变标题栏图片失败，该图片文件可能并非标准格式。
-                            你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。
-                            """,
-                    ModBase.LogLevel.Msgbox);
+                ModBase.Log(
+                    """
+                    改变标题栏图片失败，该图片文件可能并非标准格式。
+                    你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。
+                    """,
+                    ModBase.LogLevel.Msgbox,
+                    userSummary: Lang.Text("Setup.Ui.Error.TitleImageInvalidFormat"));
             else
-                ModBase.Log(ex, "设置标题栏图片失败", ModBase.LogLevel.Msgbox);
+                ModBase.Log(
+                    ex,
+                    "设置标题栏图片失败",
+                    ModBase.LogLevel.Msgbox,
+                    userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
             ModMain.frmMain.ImageTitleLogo.Source = null;
         }
     }
@@ -444,13 +474,19 @@ public partial class PageSetupUI
             catch (Exception ex)
             {
                 if (ex.Message.Contains("参数无效"))
-                    ModBase.Log("""
-                                调整标题栏图片失败，该图片文件可能并非标准格式。
-                                你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。
-                                """,
-                        ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        """
+                        调整标题栏图片失败，该图片文件可能并非标准格式。
+                        你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。
+                        """,
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Setup.Ui.Error.TitleImageResizeInvalidFormat"));
                 else
-                    ModBase.Log(ex, "调整标题栏图片失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        "调整标题栏图片失败",
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 ModMain.frmMain.ImageTitleLogo.Source = null;
                 e.handled = true;
                 try
@@ -459,7 +495,11 @@ public partial class PageSetupUI
                 }
                 catch (Exception exx)
                 {
-                    ModBase.Log(exx, "清理错误的标题栏图片失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        exx,
+                        "清理错误的标题栏图片失败",
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 }
             }
 
@@ -484,7 +524,11 @@ public partial class PageSetupUI
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "复制标题栏图片失败", ModBase.LogLevel.Msgbox);
+                ModBase.Log(
+                    ex,
+                    "复制标题栏图片失败",
+                    ModBase.LogLevel.Msgbox,
+                    userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
             }
         }
     }
@@ -499,7 +543,11 @@ public partial class PageSetupUI
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "清空标题栏图片失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                "清空标题栏图片失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
         }
     }
 
@@ -558,7 +606,11 @@ public partial class PageSetupUI
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "删除背景音乐失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        "删除背景音乐失败",
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 }
 
                 try
@@ -568,7 +620,11 @@ public partial class PageSetupUI
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "重建背景音乐文件夹失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        "重建背景音乐文件夹失败",
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 }
             });
     }
@@ -815,7 +871,11 @@ public partial class PageSetupUI
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新功能隐藏项目失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "刷新功能隐藏项目失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
         }
     }
 

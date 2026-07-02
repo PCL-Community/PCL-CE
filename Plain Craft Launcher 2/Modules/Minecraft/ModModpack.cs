@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -37,7 +37,11 @@ public static class ModModpack
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "手动安装整合包失败", ModBase.LogLevel.Msgbox);
+                ModBase.Log(
+                    ex,
+                    "手动安装整合包失败",
+                    ModBase.LogLevel.Msgbox,
+                    userSummary: Lang.Text("Minecraft.Download.Modpack.Error.OperationFailed"));
             }
         });
     }
@@ -640,7 +644,7 @@ public static class ModModpack
         });
 
         // 重复任务检查
-        var loaderName = "CurseForge 整合包安装：" + instanceName + " ";
+        var loaderName = Lang.Text("Minecraft.Download.Modpack.Task.CurseForgeInstall", instanceName);
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);
@@ -880,7 +884,7 @@ public static class ModModpack
         });
 
         // 重复任务检查
-        var loaderName = $"Modrinth 整合包安装：{instanceName} ";
+        var loaderName = Lang.Text("Minecraft.Download.Modpack.Task.ModrinthInstall", instanceName);
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);
@@ -958,7 +962,7 @@ public static class ModModpack
                 { show = false, ProgressWeight = mergeLoaders.Sum(l => l.ProgressWeight) }
         };
         // 重复任务检查
-        var loaderName = "HMCL 整合包安装：" + instanceName + " ";
+        var loaderName = Lang.Text("Minecraft.Download.Modpack.Task.HmclInstall", instanceName);
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);
@@ -1088,7 +1092,7 @@ public static class ModModpack
         });
 
         // 重复任务检查
-        var loaderName = "MCBBS 整合包安装：" + instanceName + " ";
+        var loaderName = Lang.Text("Minecraft.Download.Modpack.Task.McbbsInstall", instanceName);
         if (loaderTaskbar.Any(l => l.name == loaderName))
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);
@@ -1705,7 +1709,7 @@ public static class ModModpack
             { show = false, ProgressWeight = mergeLoaders.Sum(l => l.ProgressWeight) });
 
         // 重复任务检查
-        var loaderName = "MMC 整合包安装：" + instanceName + " ";
+        var loaderName = Lang.Text("Minecraft.Download.Modpack.Task.MmcInstall", instanceName);
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);
