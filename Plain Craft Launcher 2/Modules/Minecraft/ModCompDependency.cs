@@ -225,7 +225,7 @@ public static class ModCompDependency
         {
             ModBase.Log($"[CompDeps] 无法解析: {result.Unresolved.Count} 个必需前置");
             var dependencies = string.Join(
-                Lang.Text("Download.Comp.Dependency.ListSeparator"),
+                Environment.NewLine,
                 result.Unresolved.Select(dep => Lang.Text(
                     "Download.Comp.Dependency.Unresolved.ListItem",
                     dep.Source,
@@ -248,7 +248,7 @@ public static class ModCompDependency
         if (result.ToInstall is { Count: > 0 })
         {
             var dependencies = string.Join(
-                Lang.Text("Download.Comp.Dependency.ListSeparator"),
+                Environment.NewLine,
                 result.ToInstall.Select(install => Lang.Text(
                     "Download.Comp.Dependency.Install.ListItem",
                     install.ProjectName,
