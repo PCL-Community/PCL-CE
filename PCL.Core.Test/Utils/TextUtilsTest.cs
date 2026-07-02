@@ -21,6 +21,13 @@ public class TextUtilsTest
     }
 
     [TestMethod]
+    public void EscapesXamlAttributeTextWithMarkupExtensionPrefix()
+    {
+        Assert.AreEqual("{}{Binding Name}", TextUtils.EscapeXamlAttributeText("{Binding Name}"));
+        Assert.AreEqual("a&amp;b&quot;c", TextUtils.EscapeXamlAttributeText("a&b\"c"));
+    }
+
+    [TestMethod]
     public void StringSliceExtensionsKeepUnmatchedText()
     {
         Assert.AreEqual("2026", "2026/06/30".BeforeFirst("/"));

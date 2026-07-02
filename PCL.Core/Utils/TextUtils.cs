@@ -51,7 +51,7 @@ public static class TextUtils
     /// <summary>
     ///     对 XML 特殊字符进行转义。
     /// </summary>
-    public static string EscapeXml(string value)
+    public static string EscapeXml(string? value)
     {
         if (string.IsNullOrEmpty(value)) return string.Empty;
         return value
@@ -61,6 +61,17 @@ public static class TextUtils
             .Replace("'", "&apos;")
             .Replace("\"", "&quot;")
             .Replace("\r\n", "&#xa;");
+    }
+
+    /// <summary>
+    ///     对将被拼入 XAML 属性值的文本进行转义。
+    ///     以“{”开头的值会被 WPF 解析为 MarkupExtension，因此需要用“{}”前缀显式声明普通文本。
+    /// </summary>
+    public static string EscapeXamlAttributeText(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return string.Empty;
+        if (value.StartsWith('{')) value = "{}" + value;
+        return EscapeXml(value);
     }
 
     /// <summary>

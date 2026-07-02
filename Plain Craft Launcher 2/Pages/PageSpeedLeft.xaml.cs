@@ -273,7 +273,7 @@ public partial class PageSpeedLeft
 
                     var cardXAML = $@"
                         <local:MyCard xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"" xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml"" xmlns:local=""clr-namespace:PCL;assembly=Plain Craft Launcher 2""
-                            Tag=""{loader.Progress + (double)loader.State}"" Title=""{TextUtils.EscapeXml(loader.name)}"" Margin=""0,0,0,15"">
+                            Tag=""{loader.Progress + (double)loader.State}"" Title=""{TextUtils.EscapeXamlAttributeText(loader.name)}"" Margin=""0,0,0,15"">
                             <Grid Margin=""14,40,15,10"">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width=""50""/>
@@ -296,7 +296,8 @@ public partial class PageSpeedLeft
                             }
                             case LoadState.Loading:
                             {
-                                cardXAML += $"<TextBlock Text=\"{Lang.Number(SubTask.Progress, "P0")}\" Tag=\"Loading\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{row}\" Foreground=\"{{DynamicResource ColorBrush3}}\" />";
+                                cardXAML +=
+                                    $"<TextBlock Text=\"{Lang.Number(SubTask.Progress, "P0")}\" Tag=\"Loading\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{row}\" Foreground=\"{{DynamicResource ColorBrush3}}\" />";
                                 break;
                             }
                             case LoadState.Finished:
@@ -314,7 +315,8 @@ public partial class PageSpeedLeft
                             }
                         }
 
-                        cardXAML += $"<TextBlock Text=\"{TextUtils.EscapeXml(SubTask.name)}\" HorizontalAlignment=\"Left\" Grid.Column=\"1\" Grid.Row=\"{row}\"/>";
+                        cardXAML +=
+                            $"<TextBlock Text=\"{TextUtils.EscapeXamlAttributeText(SubTask.name)}\" HorizontalAlignment=\"Left\" Grid.Column=\"1\" Grid.Row=\"{row}\"/>";
                         row += 1;
                     }
 

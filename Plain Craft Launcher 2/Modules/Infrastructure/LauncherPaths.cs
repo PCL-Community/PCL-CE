@@ -49,14 +49,14 @@ public static class LauncherPaths
     {
         if (string.IsNullOrEmpty(filePath))
             return filePath;
-        return IsWindowsAbsolutePath(filePath)
+        return IsAbsolutePath(filePath)
             ? filePath
             : ExecutableDirectoryWithSlash + filePath;
     }
 
     public static string ResolveLauncherIniPath(string fileName)
     {
-        return IsWindowsAbsolutePath(fileName)
+        return IsAbsolutePath(fileName)
             ? fileName
             : $@"{ExecutableDirectoryWithSlash}PCL\{fileName}.ini";
     }
@@ -70,9 +70,18 @@ public static class LauncherPaths
             : path + DirectorySeparator;
     }
 
-    public static bool IsWindowsAbsolutePath(string path)
+    public static bool IsAbsolutePath(string path)
     {
-        return !string.IsNullOrEmpty(path) && path.Contains(@":\", StringComparison.Ordinal);
+        if (string.IsNullOrWhiteSpace(path)) return false;
+
+        if (path.StartsWith(@"\\", StringComparison.Ordinal)) return true;
+        if (path.StartsWith('/') || path.StartsWith('\\')) return true;
+        if (path.Length >= 3 &&
+            char.IsLetter(path[0]) &&
+            path[1] == ':' &&
+            path[2] is '\\' or '/') return true;
+
+        return Path.IsPathFullyQualified(path) || Path.IsPathRooted(path);
     }
 
     private static string ResolvePureAsciiDirectory()

@@ -41,7 +41,8 @@ public static class NumberUtils
     }
 
     /// <summary>
-    ///     使用明确的数值解析规则将对象转换为 double；解析失败时返回 0。
+    ///     将对象转换为 double；解析失败时返回 0。
+    ///     对字符串保留旧 VB Val 风格的“读取开头数值片段”语义，例如“123abc”解析为 123。
     /// </summary>
     public static double ParseDoubleOrZero(object? value)
     {
@@ -68,24 +69,65 @@ public static class NumberUtils
                 break;
         }
 
-        var text = Convert.ToString(value, CultureInfo.InvariantCulture);
-        if (string.IsNullOrWhiteSpace(text) || text == "&") return 0d;
+        return ParseLeadingDoubleOrZero(Convert.ToString(value, CultureInfo.InvariantCulture));
+    }
 
-        text = text.Trim();
-        if (double.TryParse(
-                text,
-                NumberStyles.Float,
-                CultureInfo.InvariantCulture,
-                out var invariantResult))
-            return invariantResult;
-        if (double.TryParse(
-                text,
-                NumberStyles.Float,
-                CultureInfo.CurrentCulture,
-                out var currentResult))
-            return currentResult;
+    /// <summary>
+    ///     从字符串开头读取一个使用英文句点作为小数点的浮点数字面量；无法读取时返回 0。
+    ///     该方法用于替代历史 VB Val 调用点，不会要求整个字符串都必须是数字。
+    /// </summary>
+    public static double ParseLeadingDoubleOrZero(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return 0d;
 
-        return 0d;
+        text = text.TrimStart();
+        if (text.Length == 0 || text[0] == '&') return 0d;
+
+        var index = 0;
+        if (text[index] is '+' or '-') index++;
+
+        var hasDigit = false;
+        while (index < text.Length && char.IsDigit(text[index]))
+        {
+            hasDigit = true;
+            index++;
+        }
+
+        if (index < text.Length && text[index] == '.')
+        {
+            index++;
+            while (index < text.Length && char.IsDigit(text[index]))
+            {
+                hasDigit = true;
+                index++;
+            }
+        }
+
+        if (!hasDigit) return 0d;
+
+        var exponentEnd = _TryReadExponent(text, index);
+        if (exponentEnd > index) index = exponentEnd;
+
+        return double.TryParse(
+            text[..index],
+            NumberStyles.Float,
+            CultureInfo.InvariantCulture,
+            out var result)
+            ? result
+            : 0d;
+    }
+
+    private static int _TryReadExponent(string text, int index)
+    {
+        if (index >= text.Length || text[index] is not ('e' or 'E')) return index;
+
+        var cursor = index + 1;
+        if (cursor < text.Length && text[cursor] is '+' or '-') cursor++;
+
+        var digitStart = cursor;
+        while (cursor < text.Length && char.IsDigit(text[cursor])) cursor++;
+
+        return cursor > digitStart ? cursor : index;
     }
 
     /// <summary>

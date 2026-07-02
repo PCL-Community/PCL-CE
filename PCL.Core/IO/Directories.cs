@@ -1,5 +1,3 @@
-using System.Security.AccessControl;
-
 namespace PCL.Core.IO;
 
 using System;
@@ -10,77 +8,39 @@ using System.Threading;
 using System.Threading.Tasks;
 using Logging;
 
-public static class Directories {
+public static class Directories
+{
     /// <summary>
-    /// 异步检查是否拥有对指定文件夹的读写权限。
-    /// 如果文件夹不存在或没有权限，返回 false，不修改文件系统。
+    ///     异步检查是否拥有对指定文件夹的实际写入权限。
+    ///     通过创建并删除临时探测文件确认真实 I/O 能力，避免仅靠 ACL 推断造成误判。
     /// </summary>
     /// <param name="path">要检查的文件夹路径。</param>
     /// <param name="cancellationToken">取消操作的令牌。</param>
-    /// <returns>如果拥有读写权限且文件夹存在，返回 true；否则返回 false。</returns>
-    public static async Task<bool> CheckPermissionAsync(string? path, CancellationToken cancellationToken = default) {
-        try {
-            if (string.IsNullOrWhiteSpace(path)) {
-                return false;
-            }
-
-            // 排除特殊系统文件夹
-            if (IsSystemProtectedFolder(path)) {
-                return false;
-            }
-
-            // 检查文件夹是否存在
-            if (!Directory.Exists(path)) {
-                return false;
-            }
-
-            // 检查目录访问权限
-            var directoryInfo = new DirectoryInfo(path);
-            var security = await Task.Run(() => directoryInfo.GetAccessControl(), cancellationToken);
-            var rules = security.GetAccessRules(true, true, typeof(System.Security.Principal.NTAccount));
-
-            // 检查当前用户是否有读写权限，优先考虑拒绝规则
-            var currentUser = System.Security.Principal.WindowsIdentity.GetCurrent();
-            var principal = new System.Security.Principal.WindowsPrincipal(currentUser);
-
-            var isDenied = false;
-            var isAllowed = false;
-
-            foreach (FileSystemAccessRule rule in rules) {
-                if (!rule.FileSystemRights.HasFlag(FileSystemRights.Write))
-                    continue;
-
-                // 检查规则是否适用于当前用户或其组
-                if (principal.IsInRole(rule.IdentityReference.Value)) {
-                    if (rule.AccessControlType == AccessControlType.Deny) {
-                        isDenied = true;
-                        break; // 拒绝优先，直接返回
-                    }
-                    if (rule.AccessControlType == AccessControlType.Allow) {
-                        isAllowed = true;
-                    }
-                }
-            }
-
-            if (isDenied || !isAllowed) {
-                return false;
-            }
-
-            // 尝试枚举目录内容以确认实际访问能力
-            await Task.Run(() => Directory.EnumerateFiles(path, "*", SearchOption.TopDirectoryOnly).Any(), cancellationToken);
+    /// <returns>如果文件夹存在且可实际写入，返回 true；否则返回 false。</returns>
+    public static async Task<bool> CheckPermissionAsync(
+        string? path,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await CheckPermissionWithExceptionAsync(path, cancellationToken).ConfigureAwait(false);
             return true;
-        } catch (OperationCanceledException) {
+        }
+        catch (OperationCanceledException)
+        {
             LogWrapper.Warn("权限检查被取消");
             return false;
-        } catch (Exception ex) {
+        }
+        catch (Exception ex)
+        {
             LogWrapper.Warn(ex, $"没有对文件夹 {path} 的权限，请尝试以管理员权限运行。");
             return false;
         }
     }
 
     /// <summary>
-    /// 异步检查文件夹权限，若无权限或文件夹不存在则抛出异常。
-    /// 不修改文件系统。
+    ///     异步检查文件夹权限，若无权限或文件夹不存在则抛出异常。
+    ///     通过创建并删除临时探测文件确认真实 I/O 能力。
     /// </summary>
     /// <param name="path">要检查的文件夹路径。</param>
     /// <param name="cancellationToken">取消操作的令牌。</param>
@@ -88,40 +48,59 @@ public static class Directories {
     /// <exception cref="DirectoryNotFoundException">文件夹不存在。</exception>
     /// <exception cref="UnauthorizedAccessException">无访问权限。</exception>
     /// <exception cref="OperationCanceledException">操作被取消。</exception>
-    public static async Task CheckPermissionWithExceptionAsync(string? path, CancellationToken cancellationToken = default) {
-        if (string.IsNullOrWhiteSpace(path)) {
+    public static async Task CheckPermissionWithExceptionAsync(
+        string? path,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(path))
             throw new ArgumentNullException(nameof(path), "文件夹路径不能为空！");
-        }
 
-        if (IsSystemProtectedFolder(path)) {
+        if (IsSystemProtectedFolder(path))
             throw new UnauthorizedAccessException($"无法访问受保护的系统文件夹：{path}");
-        }
 
-        if (!Directory.Exists(path)) {
+        if (!Directory.Exists(path))
             throw new DirectoryNotFoundException($"文件夹不存在：{path}");
+
+        var probePath = Path.Combine(path, $".pcl-permission-{Guid.NewGuid():N}.tmp");
+        try
+        {
+            await File.WriteAllBytesAsync(probePath, [], cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            _TryDeleteProbeFileBestEffort(probePath);
+            throw;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            _TryDeleteProbeFileBestEffort(probePath);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _TryDeleteProbeFileBestEffort(probePath);
+            throw new UnauthorizedAccessException($"无法写入文件夹 {path}：{ex.Message}", ex);
         }
 
-        try {
-            var directoryInfo = new DirectoryInfo(path);
-            var security = await Task.Run(() => directoryInfo.GetAccessControl(), cancellationToken);
-            var rules = security.GetAccessRules(true, true, typeof(System.Security.Principal.NTAccount));
+        try
+        {
+            if (File.Exists(probePath)) File.Delete(probePath);
+        }
+        catch (Exception ex)
+        {
+            throw new UnauthorizedAccessException($"无法删除文件夹 {path} 中的权限检查临时文件：{ex.Message}", ex);
+        }
+    }
 
-            var hasAccess = rules.Cast<FileSystemAccessRule>()
-                .Any(rule => rule.FileSystemRights.HasFlag(FileSystemRights.Write) &&
-                             rule.AccessControlType == AccessControlType.Allow);
-
-            if (!hasAccess) {
-                throw new UnauthorizedAccessException($"没有对文件夹 {path} 的写权限");
-            }
-
-            // 确认实际访问能力
-            await Task.Run(() => Directory.EnumerateFiles(path, "*", SearchOption.TopDirectoryOnly).Any(), cancellationToken);
-        } catch (UnauthorizedAccessException) {
-            throw;
-        } catch (OperationCanceledException) {
-            throw;
-        } catch (Exception ex) {
-            throw new UnauthorizedAccessException($"无法访问文件夹 {path}：{ex.Message}", ex);
+    private static void _TryDeleteProbeFileBestEffort(string probePath)
+    {
+        try
+        {
+            if (File.Exists(probePath)) File.Delete(probePath);
+        }
+        catch
+        {
+            // 权限检查失败后的兜底清理，不覆盖原始异常。
         }
     }
 

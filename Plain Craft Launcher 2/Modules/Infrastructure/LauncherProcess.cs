@@ -142,7 +142,7 @@ public static class LauncherProcess
             for (var attempt = 0; attempt <= 5; attempt++)
                 try
                 {
-                    UiThread.Post(() => Clipboard.SetText(text));
+                    UiThread.Invoke(() => Clipboard.SetText(text));
                     success = true;
                     break;
                 }
@@ -176,7 +176,7 @@ public static class LauncherProcess
 
         try
         {
-            var files = Clipboard.GetFileDropList();
+            var files = UiThread.Invoke(() => Clipboard.GetFileDropList());
 
             if (files.Count.Equals(0))
             {

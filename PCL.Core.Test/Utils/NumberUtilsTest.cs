@@ -25,11 +25,24 @@ public class NumberUtilsTest
 
     [TestMethod]
     [DataRow("12.5", 12.5d)]
+    [DataRow("123abc", 123d)]
+    [DataRow("1.20.4", 1.2d)]
+    [DataRow("1e3xxx", 1000d)]
     [DataRow("not-a-number", 0d)]
     [DataRow("&", 0d)]
     [DataRow(null, 0d)]
-    public void ParseDoubleOrZeroUsesExplicitParsing(string? value, double expected)
+    public void ParseDoubleOrZeroKeepsLeadingNumberParsing(string? value, double expected)
     {
         Assert.AreEqual(expected, NumberUtils.ParseDoubleOrZero(value));
+    }
+
+    [TestMethod]
+    [DataRow(".5", 0.5d)]
+    [DataRow("-.5abc", -0.5d)]
+    [DataRow("+42px", 42d)]
+    [DataRow("1e", 1d)]
+    public void ParseLeadingDoubleOrZeroHandlesPartialLiterals(string value, double expected)
+    {
+        Assert.AreEqual(expected, NumberUtils.ParseLeadingDoubleOrZero(value));
     }
 }
