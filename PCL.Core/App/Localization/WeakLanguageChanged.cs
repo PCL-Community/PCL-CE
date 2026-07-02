@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using PCL.Core.Logging;
 
 namespace PCL.Core.App.Localization;
 
@@ -22,6 +23,12 @@ public static class WeakLanguageChanged
     {
         if (target is null) throw new ArgumentNullException(nameof(target));
         if (handler is null) throw new ArgumentNullException(nameof(handler));
+        // handler 必须是不捕获实例的静态委托（Target 为 null）。否则其闭包会强引用捕获的对象，
+        // 使本类的弱订阅失效、可能造成内存泄漏，因此在此显式拒绝，避免误用。
+        if (handler.Target is not null)
+            throw new ArgumentException(
+                "handler 必须是不捕获实例的静态委托，请改用形如 static t => t.Foo() 的写法并通过 target 传入实例。",
+                nameof(handler));
 
         lock (_Lock)
         {
@@ -46,7 +53,18 @@ public static class WeakLanguageChanged
         }
 
         foreach (var (target, handler) in snapshot)
-            if (target.TryGetTarget(out var t))
+        {
+            if (!target.TryGetTarget(out var t))
+                continue;
+            try
+            {
                 handler(t);
+            }
+            catch (Exception ex)
+            {
+                // 单个订阅者抛出异常不应中断其余订阅者的语言刷新
+                LogWrapper.Warn(ex, "WeakLanguageChanged", "语言变更处理器执行出错");
+            }
+        }
     }
 }
