@@ -88,7 +88,7 @@ public static class FileDownloader
             BlockTimeout = 60000,
             DownloadFileExtension = ModNet.netDownloadEnd,
             EnableAutoResumeDownload = false,
-            CustomHttpClientFactory = () => GetHttpClient(url),
+            CustomHttpClientFactory = () => GetHttpClient(url, customUserAgent),
             MinimumSizeOfChunking = 1024 * 1024L,
         };
 
@@ -207,7 +207,7 @@ public static class FileDownloader
         }
     }
 
-    private static HttpClient GetHttpClient(string url)
+    private static HttpClient GetHttpClient(string url, string? customUserAgent)
     {
         if (Uri.TryCreate(url, UriKind.Absolute, out var parsedUri)
             && parsedUri.Host is "edge.forgecdn.net" or "mediafilez.forgecdn.net" or "forgecdn.net" or "api.curseforge.com")
@@ -215,6 +215,14 @@ public static class FileDownloader
             return NetworkService.GetClient(NetworkService.CurseForgeApi);
         }
 
+        if (!string.IsNullOrWhiteSpace(customUserAgent))
+        {
+            var client = NetworkService.GetClient();
+            client.DefaultRequestHeaders.Remove("User-Agent");
+            client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", customUserAgent);
+            return client;
+        }
+        
         return NetworkService.GetClient();
     }
 }
