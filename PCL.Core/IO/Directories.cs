@@ -285,6 +285,18 @@ public static class Directories {
     }
 
     /// <summary>
+    ///     异步遍历文件夹中的所有文件。目录不存在时返回空集合。
+    /// </summary>
+    public static async Task<IEnumerable<FileInfo>> EnumerateFilesOrEmptyAsync(
+        string? directory,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(directory) || !Directory.Exists(directory)) return [];
+
+        return await EnumerateFilesAsync(directory, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
     ///     异步移动目录中的全部文件和子目录到目标目录。目标目录不存在时会自动创建。
     /// </summary>
     public static async Task MoveDirectoryAsync(

@@ -48,7 +48,7 @@ public class DownloadFile
     {
         Urls = urls.Where(url => !string.IsNullOrWhiteSpace(url)).Distinct().ToList();
         LocalPath = localPath;
-        LocalName = LegacyFileFacade.GetFileNameFromPath(localPath);
+        LocalName = PathUtils.GetFileNameFromUrlOrPath(localPath);
         Check = checker;
         UseBrowserUserAgent = useBrowserUserAgent;
         CustomUserAgent = customUserAgent;

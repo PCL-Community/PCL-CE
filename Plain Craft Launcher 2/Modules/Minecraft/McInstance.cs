@@ -122,7 +122,7 @@ public class McInstance
             get
             {
                 if (field is null && !string.IsNullOrEmpty(PathInstance))
-                    field = LegacyFileFacade.GetFolderNameFromPath(PathInstance);
+                    field = PathUtils.GetDirectoryNameLeaf(PathInstance);
                 return field;
             }
         }
@@ -400,7 +400,7 @@ public class McInstance
                         }
                     }
 
-                    field = LegacyFileFacade.ReadText(jsonPath);
+                    field = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(jsonPath)).GetAwaiter().GetResult();
                     // 如果 ReadFile 失败会返回空字符串；这可能是由于文件被临时占用，故延时后重试
                     if (!FastJsonCheck(field))
                     {
@@ -408,14 +408,14 @@ public class McInstance
                         {
                             LauncherLog.Log($"[Minecraft] 实例 JSON 文件为空或有误，将进行短暂重试（{jsonPath}）", LauncherLogLevel.Debug);
                             Thread.Sleep(200);
-                            field = LegacyFileFacade.ReadText(jsonPath);
+                            field = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(jsonPath)).GetAwaiter().GetResult();
                         }
                         else
                         {
                             LauncherLog.Log($"[Minecraft] 实例 JSON 文件为空或有误，将在 2s 后重试读取（{jsonPath}）",
                                 LauncherLogLevel.Debug);
                             Thread.Sleep(2000);
-                            field = LegacyFileFacade.ReadText(jsonPath);
+                            field = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(jsonPath)).GetAwaiter().GetResult();
                         }
                         if (!FastJsonCheck(field))
                             JsonCompat.ParseNode(field);
@@ -625,7 +625,7 @@ public class McInstance
             try
             {
                 Directory.CreateDirectory(PathInstance + @"PCL\");
-                LegacyFileFacade.CheckPermissionWithException(PathInstance + @"PCL\");
+                Directories.CheckPermissionWithExceptionAsync(PathInstance + @"PCL\").GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
@@ -668,7 +668,7 @@ public class McInstance
             try
             {
                 if (!string.IsNullOrEmpty(InheritInstanceName))
-                    if (!File.Exists(Path.Combine(LegacyFileFacade.GetPathFromFullPath(PathInstance),
+                    if (!File.Exists(Path.Combine(PathUtils.GetDirectoryPart(PathInstance),
                             InheritInstanceName, InheritInstanceName + ".json")))
                     {
                         state = McInstanceState.Error;

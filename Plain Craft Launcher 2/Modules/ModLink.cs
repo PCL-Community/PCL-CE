@@ -339,8 +339,7 @@ public static class ModLink
 
                 // 2. Extract files
                 loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Link.Mod.Task.ExtractFiles"), _ =>
-                    LegacyFileFacade.ExtractFile(dlTargetPath,
-                        Path.Combine(Paths.SharedLocalData, "EasyTier", ETInfoProvider.ETVersion))
+                    Files.ExtractFileAsync(dlTargetPath, Path.Combine(Paths.SharedLocalData, "EasyTier", ETInfoProvider.ETVersion)).GetAwaiter().GetResult()
                 ) { block = true });
 
                 // 3. Cleanup

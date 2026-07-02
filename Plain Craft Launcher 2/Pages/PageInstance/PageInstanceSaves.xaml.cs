@@ -192,7 +192,7 @@ public partial class PageInstanceSaves : IRefreshable
                     {
                         var target =
                             $@"{PageInstanceLeft.McInstance.PathInstance}PCL\ImgCache\{BinaryEncoding.ToHexLower(MD5Provider.Instance.ComputeHash(saveLogo).AsSpan())}.png";
-                        LegacyFileFacade.CopyFile(saveLogo, target);
+                        Files.CopyFileAsync(LauncherFileSystem.ResolvePath(saveLogo), LauncherFileSystem.ResolvePath(target)).GetAwaiter().GetResult();
                         saveLogo = target;
                     }
                     else
@@ -404,7 +404,7 @@ public partial class PageInstanceSaves : IRefreshable
                         }
                         else
                         {
-                            LegacyFileFacade.CopyDirectory(i, worldPath + GetFolderNameFromPath(i));
+                            Directories.CopyDirectoryAsync(i, worldPath + GetFolderNameFromPath(i)).GetAwaiter().GetResult();
                             copied += 1;
                         }
                     }

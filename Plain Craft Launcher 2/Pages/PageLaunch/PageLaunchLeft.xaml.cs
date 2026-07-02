@@ -102,7 +102,7 @@ public partial class PageLaunchLeft
                 }
 
                 PageSelectLeft.AddFolder(LauncherPaths.ExecutableDirectoryWithSlash + @".minecraft\",
-                    LegacyFileFacade.GetFolderNameFromPath(LauncherPaths.ExecutableDirectoryWithSlash), false);
+                    PathUtils.GetDirectoryNameLeaf(LauncherPaths.ExecutableDirectoryWithSlash), false);
                 ModFolder.mcFolderListLoader.WaitForExit();
             }
 

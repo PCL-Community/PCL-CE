@@ -627,18 +627,18 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
             foreach (var FilePath in filePathList)
             {
-                var newFileName = LegacyFileFacade.GetFileNameFromPath(FilePath);
+                var newFileName = PathUtils.GetFileNameFromUrlOrPath(FilePath);
                 var destFile = datapackFolder + newFileName;
 
                 if (File.Exists(destFile))
                     if (ModMain.MyMsgBox(Lang.Text("Instance.Resource.Install.OverwriteConfirm.Message", newFileName), Lang.Text("Instance.Resource.Install.OverwriteConfirm.Title"), Lang.Text("Common.Action.Overwrite"), Lang.Text("Common.Action.Cancel")) != 1)
                         continue;
 
-                LegacyFileFacade.CopyFile(FilePath, destFile);
+                Files.CopyFileAsync(LauncherFileSystem.ResolvePath(FilePath), LauncherFileSystem.ResolvePath(destFile)).GetAwaiter().GetResult();
             }
 
             if (filePathList.Count() == 1)
-                HintService.Hint(Lang.Text("Instance.Resource.Install.SuccessSingle", LegacyFileFacade.GetFileNameFromPath(filePathList.First())), HintType.Success);
+                HintService.Hint(Lang.Text("Instance.Resource.Install.SuccessSingle", PathUtils.GetFileNameFromUrlOrPath(filePathList.First())), HintType.Success);
             else
                 HintService.Hint(Lang.Text("Instance.Resource.Install.SuccessMultiple", filePathList.Count(), Lang.Text("Download.Comp.Type.DataPack")), HintType.Success);
 
@@ -707,7 +707,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 foreach (var DatapackEntity in ModLocalComp.compResourceListLoader.output)
                     exportContent.Add(DatapackEntity.FileName);
                 ExportText(exportContent.Join("\r\n"),
-                    LegacyFileFacade.GetFolderNameFromPath(PageInstanceSavesLeft.currentSave) + "的数据包信息.txt");
+                    PathUtils.GetDirectoryNameLeaf(PageInstanceSavesLeft.currentSave) + "的数据包信息.txt");
                 break;
             }
 
@@ -719,7 +719,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                     exportContent.Add(
                         $"{DatapackEntity.FileName},{DatapackEntity.Comp?.TranslatedName},{DatapackEntity.Version},{DatapackEntity.compFile?.ReleaseDate},{DatapackEntity.Comp?.Id},{GetDatapackFileInfo(DatapackEntity.path).Length},{DatapackEntity.path}");
                 ExportText(exportContent.Join("\r\n"),
-                    LegacyFileFacade.GetFolderNameFromPath(PageInstanceSavesLeft.currentSave) + "的数据包信息.csv");
+                    PathUtils.GetDirectoryNameLeaf(PageInstanceSavesLeft.currentSave) + "的数据包信息.csv");
                 break;
             }
         }
@@ -1092,7 +1092,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             {
                 if (File.Exists(newPath))
                 {
-                    ModMain.MyMsgBox(Lang.Text("Instance.Saves.Datapack.Replace.FileNameConflict", LegacyFileFacade.GetFileNameFromPath(newPath)));
+                    ModMain.MyMsgBox(Lang.Text("Instance.Saves.Datapack.Replace.FileNameConflict", PathUtils.GetFileNameFromUrlOrPath(newPath)));
                     continue;
                 }
 
@@ -1292,10 +1292,10 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                                 LauncherLog.Log($"[Datapack] 更新后的数据包文件已存在，将会把它放入回收站：{Entry.Value}", LauncherLogLevel.Debug);
                             }
 
-                            if (Directory.Exists(LegacyFileFacade.GetPathFromFullPath(Entry.Value)))
+                            if (Directory.Exists(PathUtils.GetDirectoryPart(Entry.Value)))
                             {
                                 File.Move(Entry.Key, Entry.Value);
-                                finishedFileNames.Add(LegacyFileFacade.GetFileNameFromPath(Entry.Value));
+                                finishedFileNames.Add(PathUtils.GetFileNameFromUrlOrPath(Entry.Value));
                             }
                             else
                             {
@@ -1312,7 +1312,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             // 结束处理
             var loader = new ModLoader.LoaderCombo<IEnumerable<ModLocalComp.LocalCompFile>>(
                 Lang.Text("Instance.Saves.Datapack.Update.Task.Title",
-                    LegacyFileFacade.GetFolderNameFromPath(PageInstanceSavesLeft.currentSave)), installLoaders);
+                    PathUtils.GetDirectoryNameLeaf(PageInstanceSavesLeft.currentSave)), installLoaders);
             var pathDatapacks = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
 
             loader.OnStateChanged = _ =>

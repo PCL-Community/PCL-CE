@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using PCL.Core.App;
@@ -82,7 +82,7 @@ public static class UpdateManager
                     SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64
                 );
 
-                LegacyFileFacade.WriteFile($"{LauncherPaths.TempWithSlash}CEUpdateLog.md", version.Changelog);
+                Files.WriteFileAsync(LauncherFileSystem.ResolvePath($"{LauncherPaths.TempWithSlash}CEUpdateLog.md"), version.Changelog).GetAwaiter().GetResult();
                 LauncherLog.Log($"[Update] 远程最新版本: {version.VersionName}, 当前版本: {LauncherEnvironment.VersionBaseName}");
                 if (!(SemVer.Parse(version.VersionName) > SemVer.Parse(LauncherEnvironment.VersionBaseName)))
                     return;
@@ -109,7 +109,7 @@ public static class UpdateManager
                     SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64, dlTargetPath));
                 loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Update.Task.Check"), _ =>
                 {
-                    var curHash = LegacyFileFacade.GetFileSha256(dlTargetPath);
+                    var curHash = Files.GetFileSHA256Async(dlTargetPath).GetAwaiter().GetResult();
                     if ((curHash ?? "") != (version.Sha256 ?? ""))
                         throw new Exception(Lang.Text("Update.Error.Sha256Mismatch", version.Sha256, curHash));
                 }));
@@ -211,15 +211,15 @@ public static class UpdateManager
             SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
         if (target is null)
             throw new Exception(Lang.Text("Update.Error.UnableToGetUpdate"));
-        if (File.Exists(latestPCLPath) && (LegacyFileFacade.GetFileSha256(latestPCLPath) ?? "") == (target.Sha256 ?? ""))
+        if (File.Exists(latestPCLPath) && (Files.GetFileSHA256Async(latestPCLPath).GetAwaiter().GetResult() ?? "") == (target.Sha256 ?? ""))
         {
             LauncherLog.Log("[System] 最新版 PCL 已存在，跳过下载");
             return;
         }
 
-        if ((LegacyFileFacade.GetFileSha256(Basics.ExecutablePath) ?? "") == (target.Sha256 ?? "")) // 正在使用的版本符合要求，直接拿来用
+        if ((Files.GetFileSHA256Async(Basics.ExecutablePath).GetAwaiter().GetResult() ?? "") == (target.Sha256 ?? "")) // 正在使用的版本符合要求，直接拿来用
         {
-            LegacyFileFacade.CopyFile(Basics.ExecutablePath, latestPCLPath);
+            Files.CopyFileAsync(LauncherFileSystem.ResolvePath(Basics.ExecutablePath), LauncherFileSystem.ResolvePath(latestPCLPath)).GetAwaiter().GetResult();
             return;
         }
 

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -126,12 +126,10 @@ public partial class PageInstanceInstall
             PageInstanceLeft.McInstance.Info.HasLabyMod)
             Directory.Delete(System.IO.Path.Combine(PageInstanceLeft.McInstance.PathIndie, "labymod-neo"), true);
         // 备份实例核心文件
-        LegacyFileFacade.CopyFile(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name + ".json",
-            PageInstanceLeft.McInstance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.McInstance.Name + ".json");
+        Files.CopyFileAsync(LauncherFileSystem.ResolvePath(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name + ".json"), LauncherFileSystem.ResolvePath(PageInstanceLeft.McInstance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.McInstance.Name + ".json")).GetAwaiter().GetResult();
         if (File.Exists(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name + ".jar"))
-            LegacyFileFacade.CopyFile(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name + ".jar",
-                PageInstanceLeft.McInstance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.McInstance.Name +
-                ".jar");
+            Files.CopyFileAsync(LauncherFileSystem.ResolvePath(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name + ".jar"), LauncherFileSystem.ResolvePath(PageInstanceLeft.McInstance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.McInstance.Name +
+                ".jar")).GetAwaiter().GetResult();
         // 确认独立 API (如 Fabric API 等) 是否需要被修改
         if (selectedFabricApi?.Equals(_currentFabricApi) == true)
             selectedFabricApi = null;

@@ -696,7 +696,7 @@ public static class ModComp
                     // 这里提取文件资源
                     trueDbFile.CopyTo(ms);
                     ms.Seek(0L, SeekOrigin.Begin);
-                    var fileHash = LegacyFileFacade.GetHexString(SHA1Provider.Instance.ComputeHash(ms));
+                    var fileHash = BinaryEncoding.ToHexLower(SHA1Provider.Instance.ComputeHash(ms));
                     var dbDir = Path.Combine(LauncherPaths.TempWithSlash, "Cache");
                     var dbPath = Path.Combine(dbDir, $"ModData{fileHash}.sqlite");
 
@@ -1447,7 +1447,7 @@ public static class ModComp
 
             var descHash = $"{Id}{BinaryEncoding.ToHexLower(MD5Provider.Instance.ComputeHash(Description).AsSpan())}";
             var cacheFilePath = $@"{LauncherPaths.TempWithSlash}Cache\CompTranslation.ini";
-            var cacheTranslation = LegacyIniStore.Shared.Read(cacheFilePath, descHash);
+            var cacheTranslation = LauncherIniStore.Shared.Read(cacheFilePath, descHash);
             if (!string.IsNullOrWhiteSpace(cacheTranslation))
             {
                 result = Base64Utils.DecodeToString(cacheTranslation);
@@ -1461,7 +1461,7 @@ public static class ModComp
                 if (jsonObject.ContainsKey("translated"))
                 {
                     result = jsonObject["translated"].ToString();
-                    LegacyIniStore.Shared.Write(cacheFilePath, descHash, Base64Utils.EncodeString(result));
+                    LauncherIniStore.Shared.Write(cacheFilePath, descHash, Base64Utils.EncodeString(result));
                 }
             }
             catch (HttpRequestException ex)
@@ -3540,7 +3540,7 @@ public static class ModComp
             _ => Lang.Text("Download.Comp.Type.Mod")
         };
         var loaderName = Lang.Text("Download.Comp.Detail.DownloadResource", desc,
-            LegacyFileFacade.GetFileNameWithoutExtensionFromPath(target));
+            PathUtils.GetFileNameWithoutExtensionFromUrlOrPath(target));
         var loaders = new List<ModLoader.LoaderBase>
         {
             new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadFile"),
@@ -3555,7 +3555,7 @@ public static class ModComp
             var extractDir = Path.GetDirectoryName(target);
             loaders.Add(new ModLoader.LoaderTask<int, int>(
                 Lang.Text("Download.Comp.Detail.InstallWorld"),
-                _ => LegacyFileFacade.ExtractFile(target, extractDir, Encoding.UTF8))
+                _ => Files.ExtractFileAsync(target, extractDir).GetAwaiter().GetResult())
             {
                 ProgressWeight = 0.1d,
                 block = true

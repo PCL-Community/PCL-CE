@@ -1086,19 +1086,19 @@ public partial class PageInstanceCompResource : IRefreshable
         {
             foreach (var modFile in filePathList)
             {
-                var fileName = LegacyFileFacade.GetFileNameFromPath(modFile)
+                var fileName = PathUtils.GetFileNameFromUrlOrPath(modFile)
                     .Replace(".disabled", "")
                     .Replace(".old", "");
 
                 if (!fileName.Contains(".")) fileName += ".jar"; // Ensure extension (#4227)
 
-                LegacyFileFacade.CopyFile(modFile, Path.Combine(modFolder, fileName));
+                Files.CopyFileAsync(LauncherFileSystem.ResolvePath(modFile), LauncherFileSystem.ResolvePath(Path.Combine(modFolder, fileName))).GetAwaiter().GetResult();
             }
 
             // Success hint
             if (filePathList.Count() == 1)
             {
-                var installedName = LegacyFileFacade.GetFileNameFromPath(filePathList.First()).Replace(".disabled", "")
+                var installedName = PathUtils.GetFileNameFromUrlOrPath(filePathList.First()).Replace(".disabled", "")
                     .Replace(".old", "");
                 HintWrapper.Show(Lang.Text("Instance.Resource.Install.SuccessSingle", installedName), HintTheme.Success);
             }
@@ -1256,7 +1256,7 @@ public partial class PageInstanceCompResource : IRefreshable
             Directory.CreateDirectory(compFolder);
             foreach (var FilePath in filePathList)
             {
-                var newFileName = LegacyFileFacade.GetFileNameFromPath(FilePath);
+                var newFileName = PathUtils.GetFileNameFromUrlOrPath(FilePath);
                 if (compType == ModComp.CompType.Mod)
                 {
                     newFileName = newFileName.Replace(".disabled", "").Replace(".old", "");
@@ -1269,11 +1269,11 @@ public partial class PageInstanceCompResource : IRefreshable
                     if (ModMain.MyMsgBox(Lang.Text("Instance.Resource.Install.OverwriteConfirm.Message", newFileName), Lang.Text("Instance.Resource.Install.OverwriteConfirm.Title"), Lang.Text("Common.Action.Overwrite"), Lang.Text("Common.Action.Cancel")) != 1)
                         continue;
 
-                LegacyFileFacade.CopyFile(FilePath, destFile);
+                Files.CopyFileAsync(LauncherFileSystem.ResolvePath(FilePath), LauncherFileSystem.ResolvePath(destFile)).GetAwaiter().GetResult();
             }
 
             if (filePathList.Count() == 1)
-                HintService.Hint(Lang.Text("Instance.Resource.Install.SuccessSingle", LegacyFileFacade.GetFileNameFromPath(filePathList.First())), HintType.Success);
+                HintService.Hint(Lang.Text("Instance.Resource.Install.SuccessSingle", PathUtils.GetFileNameFromUrlOrPath(filePathList.First())), HintType.Success);
             else
                 HintService.Hint(Lang.Text("Instance.Resource.Install.SuccessMultiple", filePathList.Count(), compTypeName), HintType.Success);
 
@@ -1900,7 +1900,7 @@ public partial class PageInstanceCompResource : IRefreshable
                     if (File.Exists(modEntity.path))
                     {
                         // 同时存在两个名称的 Mod
-                        if ((LegacyFileFacade.GetFileMd5(modEntity.path) ?? "") != (LegacyFileFacade.GetFileMd5(newPath) ?? ""))
+                        if ((Files.GetFileMD5Async(modEntity.path).GetAwaiter().GetResult() ?? "") != (Files.GetFileMD5Async(newPath).GetAwaiter().GetResult() ?? ""))
                         {
                             ModMain.MyMsgBox(
                                 Lang.Text("Instance.Resource.Ed.FileConflict.Message", newPath, modEntity.path),
@@ -2067,7 +2067,7 @@ public partial class PageInstanceCompResource : IRefreshable
                 // 添加到下载列表
                 var tempAddress = LauncherPaths.TempWithSlash + @"DownloadedComp\" +
                                   Entry.FileName.Replace(currentReplaceName, newestReplaceName);
-                var realAddress = LegacyFileFacade.GetPathFromFullPath(Entry.path) +
+                var realAddress = PathUtils.GetDirectoryPart(Entry.path) +
                                   Entry.FileName.Replace(currentReplaceName, newestReplaceName);
                 fileList.Add(file.ToNetFile(tempAddress));
                 fileCopyList[tempAddress] = realAddress;
@@ -2099,10 +2099,10 @@ public partial class PageInstanceCompResource : IRefreshable
                             LauncherLog.Log($"[Mod] 更新后的资源文件已存在，将会把它放入回收站：{Entry.Value}", LauncherLogLevel.Debug);
                         }
 
-                        if (Directory.Exists(LegacyFileFacade.GetPathFromFullPath(Entry.Value)))
+                        if (Directory.Exists(PathUtils.GetDirectoryPart(Entry.Value)))
                         {
                             File.Move(Entry.Key, Entry.Value);
-                            finishedFileNames.Add(LegacyFileFacade.GetFileNameFromPath(Entry.Value));
+                            finishedFileNames.Add(PathUtils.GetFileNameFromUrlOrPath(Entry.Value));
                         }
                         else
                         {

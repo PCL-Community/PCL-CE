@@ -172,7 +172,7 @@ public class ModSetup
     public static void LaunchInstanceSelect(string value)
     {
         LauncherLog.Log($"[Setup] 当前选择的 Minecraft 版本：{value}");
-        LegacyIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "Version", value);
+        LauncherIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "Version", value);
     }
 
     public static void LaunchFolderSelect(string value)
@@ -666,7 +666,7 @@ public class ModSetup
         if (ModMain.frmInstanceSetup is null)
             return;
         // 为第三方登录清空缓存以更新描述
-        LegacyIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", "");
+        LauncherIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", "");
         if (PageInstanceLeft.McInstance is null)
             return;
         PageInstanceLeft.McInstance = new McInstance(PageInstanceLeft.McInstance.Name).Load();

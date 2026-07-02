@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using PCL.Core.Logging;
@@ -14,7 +14,7 @@ public static class LauncherProcess
     {
         try
         {
-            fileName = LegacyFileFacade.ShortenPath(fileName);
+            fileName = PathUtils.ShortenPath(fileName);
 
             using var program = new Process();
             program.StartInfo.Arguments = arguments;
@@ -115,9 +115,7 @@ public static class LauncherProcess
     {
         try
         {
-            location = LegacyFileFacade.ShortenPath(
-                location.Replace("/", @"\").Trim(' ', '"'));
-
+            location = PathUtils.ShortenPath(location.Replace("/", @"\").Trim(' ', '"'));
             LauncherLog.Log($"[System] 正在打开资源管理器：{location}");
 
             if (location.EndsWithF(@"\"))
@@ -189,20 +187,20 @@ public static class LauncherProcess
             var copiedFiles = 0;
             var copiedFolders = 0;
 
-            foreach (var fileOrFolder in files)
+            foreach (var i in files)
             {
-                if (copyFile && File.Exists(fileOrFolder))
+                if (copyFile && File.Exists(i))
                     try
                     {
-                        var targetPath = dest + LegacyFileFacade.GetFileNameFromPath(fileOrFolder);
+                        var thisDest = dest + PathUtils.GetFileNameFromUrlOrPath(i);
 
-                        if (File.Exists(targetPath))
+                        if (File.Exists(thisDest))
                         {
-                            LauncherLog.Log($"[System] 已存在同名文件：{targetPath}");
+                            LauncherLog.Log($"[System] 已存在同名文件：{thisDest}");
                         }
                         else
                         {
-                            File.Copy(fileOrFolder, targetPath);
+                            File.Copy(i, thisDest);
                             copiedFiles += 1;
                         }
                     }
@@ -212,24 +210,28 @@ public static class LauncherProcess
                         continue;
                     }
 
-                if (copyDir && Directory.Exists(fileOrFolder))
+                if (copyDir && Directory.Exists(i))
                     try
                     {
-                        var targetPath = dest + LegacyFileFacade.GetFolderNameFromPath(fileOrFolder);
+                        var thisDest = dest + PathUtils.GetDirectoryNameLeaf(i);
 
-                        if (Directory.Exists(targetPath))
+                        if (Directory.Exists(thisDest))
                         {
-                            LauncherLog.Log($"[System] 已存在同名文件夹：{targetPath}");
+                            LauncherLog.Log($"[System] 已存在同名文件夹：{thisDest}");
                         }
                         else
                         {
-                            LegacyFileFacade.CopyDirectory(fileOrFolder, targetPath);
+                            Directories
+                                .CopyDirectoryAsync(i, thisDest)
+                                .GetAwaiter()
+                                .GetResult();
+
                             copiedFolders += 1;
                         }
                     }
                     catch (Exception ex)
                     {
-                        LauncherLog.Log(ex, "[System] 复制文件夹时出错");
+                        LauncherLog.Log(ex, "[System] 复制文件时出错");
                     }
             }
 

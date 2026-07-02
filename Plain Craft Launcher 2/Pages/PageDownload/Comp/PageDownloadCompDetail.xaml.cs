@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Eventing.Reader;
 using System.IO;
@@ -228,7 +228,7 @@ public partial class PageDownloadCompDetail
             loaders.Add(new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadWorldFile"),
                 new List<DownloadFile> { file.ToNetFile(target) }) { ProgressWeight = 10d, block = true });
             loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Download.Comp.Detail.InstallWorld"),
-                _ => LegacyFileFacade.ExtractFile(target, targetPath, Encoding.UTF8)) { ProgressWeight = 0.1d, block = true });
+                _ => Files.ExtractFileAsync(target, targetPath).GetAwaiter().GetResult()) { ProgressWeight = 0.1d, block = true });
             loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Download.Comp.Detail.CleanCache"),
                 _ => System.IO.File.Delete(target)));
 
@@ -389,7 +389,7 @@ public partial class PageDownloadCompDetail
                     if (!target.Contains("\\")) return;
 
                     // 记录缓存路径
-                    var targetDir = LegacyFileFacade.GetPathFromFullPath(target);
+                    var targetDir = PathUtils.GetDirectoryPart(target);
                     if (target != defaultFolder)
                     {
                         if (cachedFolder.ContainsKey(file.Type))
@@ -463,7 +463,7 @@ public partial class PageDownloadCompDetail
                                 foreach (var (depFilename, downloadFile) in depDownloads)
                                 {
                                     var depLoaderName = Lang.Text("Download.Comp.Detail.DownloadResource", desc,
-                                        LegacyFileFacade.GetFileNameWithoutExtensionFromPath(depFilename));
+                                        PathUtils.GetFileNameWithoutExtensionFromUrlOrPath(depFilename));
                                     var depLoaders = new List<ModLoader.LoaderBase>
                                     {
                                         new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadFile"),
@@ -532,7 +532,7 @@ public partial class PageDownloadCompDetail
 
                     // 构造下载任务
                     var loaderName = Lang.Text("Download.Comp.Detail.DownloadResource", desc,
-                        LegacyFileFacade.GetFileNameWithoutExtensionFromPath(target));
+                        PathUtils.GetFileNameWithoutExtensionFromUrlOrPath(target));
                     var loaders = new List<ModLoader.LoaderBase>
                     {
                         new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadFile"),

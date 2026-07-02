@@ -134,7 +134,7 @@ public partial class PageToolsTest
             try
             {
                 Directory.CreateDirectory(folder);
-                LegacyFileFacade.CheckPermissionWithException(folder);
+                Directories.CheckPermissionWithExceptionAsync(folder).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
@@ -247,10 +247,8 @@ public partial class PageToolsTest
 
                     foreach (var dirInfo in cleanMcFolderList)
                     {
-                        num += LegacyFileFacade.DeleteDirectory(
-                            dirInfo.FullName + (dirInfo.FullName.EndsWith(@"\") ? "" : @"\") + @"crash-reports\", true);
-                        num += LegacyFileFacade.DeleteDirectory(
-                            dirInfo.FullName + (dirInfo.FullName.EndsWith(@"\") ? "" : @"\") + @"logs\", true);
+                        num += Directories.DeleteDirectoryAsync(dirInfo.FullName + (dirInfo.FullName.EndsWith(@"\") ? "" : @"\") + @"crash-reports\", true).GetAwaiter().GetResult();
+                        num += Directories.DeleteDirectoryAsync(dirInfo.FullName + (dirInfo.FullName.EndsWith(@"\") ? "" : @"\") + @"logs\", true).GetAwaiter().GetResult();
                         foreach (var fileInfo in dirInfo.EnumerateFiles("*"))
                             if (fileInfo.Name.StartsWith("hs_err_pid") || fileInfo.Name.EndsWith(".log") ||
                                 fileInfo.Name == "WailaErrorOutput.txt")
@@ -262,11 +260,11 @@ public partial class PageToolsTest
                         foreach (var dirInfo2 in dirInfo.EnumerateDirectories())
                             if ((dirInfo2.Name ?? "") == (dirInfo2.Name + "-natives" ?? "") ||
                                 dirInfo2.Name == "natives-windows-x86_64")
-                                num += LegacyFileFacade.DeleteDirectory(dirInfo2.FullName, true);
+                                num += Directories.DeleteDirectoryAsync(dirInfo2.FullName, true).GetAwaiter().GetResult();
                     }
 
-                    num += LegacyFileFacade.DeleteDirectory(LauncherPaths.TempWithSlash, true);
-                    num += LegacyFileFacade.DeleteDirectory(Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL"), true);
+                    num += Directories.DeleteDirectoryAsync(LauncherPaths.TempWithSlash, true).GetAwaiter().GetResult();
+                    num += Directories.DeleteDirectoryAsync(Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL"), true).GetAwaiter().GetResult();
                     if (num != 0)
                     {
                         ModMain.MyMsgBox(Lang.Text("Tools.Test.Clean.ClearedMessage", num),
@@ -323,7 +321,7 @@ public partial class PageToolsTest
         try
         {
             if (!string.IsNullOrEmpty(TextDownloadName.Text) || string.IsNullOrEmpty(TextDownloadUrl.Text)) return;
-            TextDownloadName.Text = LegacyFileFacade.GetFileNameFromPath(WebUtility.UrlDecode(TextDownloadUrl.Text));
+            TextDownloadName.Text = PathUtils.GetFileNameFromUrlOrPath(WebUtility.UrlDecode(TextDownloadUrl.Text));
         }
         catch
         {
@@ -403,7 +401,7 @@ public partial class PageToolsTest
                     UiThread.Post(() =>
                     {
                         var path = SystemDialogs.SelectSaveFile(Lang.Text("Tools.Test.Skin.Save"), $"{id}.png", Lang.Text("Tools.Test.Skin.FileFilter"));
-                        LegacyFileFacade.CopyFile(result, path);
+                        Files.CopyFileAsync(LauncherFileSystem.ResolvePath(result), LauncherFileSystem.ResolvePath(path)).GetAwaiter().GetResult();
                         HintService.Hint(Lang.Text("Tools.Test.Skin.Saved", id), HintType.Success);
                     });
                 }
@@ -570,7 +568,7 @@ public partial class PageToolsTest
                     return;
                 }
 
-                LegacyFileFacade.CopyFile(savePath, path);
+                Files.CopyFileAsync(LauncherFileSystem.ResolvePath(savePath), LauncherFileSystem.ResolvePath(path)).GetAwaiter().GetResult();
                 File.Delete(savePath);
                 HintService.Hint(Lang.Text("Tools.Test.Achievement.Saved"), HintType.Success);
             }

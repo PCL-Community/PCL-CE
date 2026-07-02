@@ -159,7 +159,7 @@ public static class ModDownload
                 loadersAssetsUpdate.Add(new ModLoader.LoaderTask<List<DownloadFile>, string>(
                     Lang.Text("Minecraft.Download.Stage.CopyAssetsIndex.Background"), task =>
                 {
-                    LegacyFileFacade.CopyFile(tempAddress, realAddress);
+                    Files.CopyFileAsync(LauncherFileSystem.ResolvePath(tempAddress), LauncherFileSystem.ResolvePath(realAddress)).GetAwaiter().GetResult();
                     ModLaunch.McLaunchLog("后台更新资源文件索引成功：" + tempAddress);
                 }));
                 var updater = new ModLoader.LoaderCombo<string>(
@@ -357,7 +357,7 @@ public static class ModDownload
 
             try
             {
-                var cachedJson = (JsonObject)JsonCompat.ParseNode(LegacyFileFacade.ReadText(cacheFilePath));
+                var cachedJson = (JsonObject)JsonCompat.ParseNode(Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(cacheFilePath)).GetAwaiter().GetResult());
                 versions.Merge(cachedJson["versions"]);
             }
             catch (Exception ex)
@@ -443,7 +443,7 @@ public static class ModDownload
 
             try
             {
-                var cachedJson = (JsonObject)JsonCompat.ParseNode(LegacyFileFacade.ReadText(cacheFilePath));
+                var cachedJson = (JsonObject)JsonCompat.ParseNode(Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(cacheFilePath)).GetAwaiter().GetResult());
                 versions.Merge(cachedJson["versions"]);
             }
             catch (Exception ex)

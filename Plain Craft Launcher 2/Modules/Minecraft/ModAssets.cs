@@ -138,7 +138,7 @@ namespace PCL
                         Path.Combine(ModFolder.mcFolderSelected, "assets", "indexes", indexName + ".json"));
                 var result = new List<McAssetsToken>();
                 var json = (JsonObject)JsonCompat.ParseNode(
-                    LegacyFileFacade.ReadText($@"{ModFolder.mcFolderSelected}assets\indexes\{indexName}.json"));
+                    Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath($@"{ModFolder.mcFolderSelected}assets\indexes\{indexName}.json")).GetAwaiter().GetResult());
 
                 // 读取列表
                 foreach (var file in json["objects"].AsObject())

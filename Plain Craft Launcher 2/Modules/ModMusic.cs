@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Windows.Controls;
 using NAudio;
 using NAudio.Wave;
@@ -75,7 +75,7 @@ public static class ModMusic
             LauncherLog.Log(ex, $"播放音乐出现内部错误（{musicCurrent}）", LauncherLogLevel.Developer);
 
             // 错误处理：精准提示用户
-            var fileName = LegacyFileFacade.GetFileNameFromPath(musicCurrent);
+            var fileName = PathUtils.GetFileNameFromUrlOrPath(musicCurrent);
             if (ex is MmException)
             {
                 var msg = ex.Message;
@@ -163,7 +163,7 @@ public static class ModMusic
                 musicAllList = new List<string>();
                 var musicDir = Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Musics");
                 Directory.CreateDirectory(musicDir);
-                foreach (var file in LegacyFileFacade.EnumerateFiles(musicDir))
+                foreach (var file in Directories.EnumerateFilesOrEmptyAsync(PathUtils.ShortenPath(musicDir)).GetAwaiter().GetResult())
                 {
                     var ext = file.Extension.ToLowerInvariant();
                     // 忽略非音频文件
@@ -237,7 +237,7 @@ public static class ModMusic
                 else
                 {
                     ModMain.frmMain.BtnExtraMusic.Show = true;
-                    var fileName = LegacyFileFacade.GetFileNameWithoutExtensionFromPath(musicCurrent);
+                    var fileName = PathUtils.GetFileNameWithoutExtensionFromUrlOrPath(musicCurrent);
                     var isSingle = musicAllList.Count == 1;
                     string tipText;
                     if (MusicState == MusicStates.Pause)
@@ -314,7 +314,7 @@ public static class ModMusic
         if (musicAllList?.Count is { } arg2 && arg2 == 1)
         {
             MusicStartPlay(musicCurrent);
-            HintService.Hint(Lang.Text("Music.Hint.Replaying", LegacyFileFacade.GetFileNameFromPath(musicCurrent)),
+            HintService.Hint(Lang.Text("Music.Hint.Replaying", PathUtils.GetFileNameFromUrlOrPath(musicCurrent)),
                 HintType.Success);
         }
         else
@@ -327,7 +327,7 @@ public static class ModMusic
             else
             {
                 MusicStartPlay(addr);
-                HintService.Hint(Lang.Text("Music.Hint.Playing", LegacyFileFacade.GetFileNameFromPath(addr)),
+                HintService.Hint(Lang.Text("Music.Hint.Playing", PathUtils.GetFileNameFromUrlOrPath(addr)),
                     HintType.Success);
             }
         }
@@ -391,7 +391,7 @@ public static class ModMusic
                         MusicStartPlay(addr, isFirstLoad);
                         if (showHint)
                             HintService.Hint(
-                                Lang.Text("Music.Hint.Refreshed", LegacyFileFacade.GetFileNameFromPath(addr)),
+                                Lang.Text("Music.Hint.Refreshed", PathUtils.GetFileNameFromUrlOrPath(addr)),
                                 HintType.Success,
                                 false);
                     }

@@ -4,7 +4,7 @@ using PCL.Core.App;
 namespace PCL;
 
 /// <summary>
-///     PCL2 历史路径与兼容路径解析。
+///     路径解析。
 /// </summary>
 public static class LauncherPaths
 {
@@ -45,7 +45,7 @@ public static class LauncherPaths
     /// </summary>
     public static string PureAsciiDirectory { get; set; } = ResolvePureAsciiDirectory();
 
-    public static string ResolveLegacyFilePath(string filePath)
+    public static string ResolveLauncherFilePath(string filePath)
     {
         if (string.IsNullOrEmpty(filePath))
             return filePath;
@@ -54,7 +54,7 @@ public static class LauncherPaths
             : ExecutableDirectoryWithSlash + filePath;
     }
 
-    public static string ResolveLegacyIniPath(string fileName)
+    public static string ResolveLauncherIniPath(string fileName)
     {
         return IsWindowsAbsolutePath(fileName)
             ? fileName

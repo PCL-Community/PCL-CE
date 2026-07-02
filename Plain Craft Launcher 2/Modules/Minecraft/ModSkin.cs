@@ -80,7 +80,7 @@ public static class ModSkin
 
         // 尝试读取缓存
         var cachePath = Path.Combine(LauncherPaths.TempWithSlash, $"Cache\\Skin\\Index{type}.ini");
-        var cacheSkinAddress = LegacyIniStore.Shared.Read(cachePath, uuid);
+        var cacheSkinAddress = LauncherIniStore.Shared.Read(cachePath, uuid);
         if (!string.IsNullOrEmpty(cacheSkinAddress))
             return cacheSkinAddress;
 
@@ -132,7 +132,7 @@ public static class ModSkin
         skinUrl = skinUrl.Contains("minecraft.net/") ? skinUrl.Replace("http://", "https://") : skinUrl;
 
         // 保存缓存
-        LegacyIniStore.Shared.Write(cachePath, uuid, skinUrl);
+        LauncherIniStore.Shared.Write(cachePath, uuid, skinUrl);
         LauncherLog.Log($"[Skin] UUID {uuid} 对应的皮肤文件为 {skinUrl}");
 
         return skinUrl;
@@ -145,7 +145,7 @@ public static class ModSkin
     /// </summary>
     public static string McSkinDownload(string address)
     {
-        var skinName = LegacyFileFacade.GetFileNameFromPath(address);
+        var skinName = PathUtils.GetFileNameFromUrlOrPath(address);
         var fileAddress = LauncherPaths.TempWithSlash + @"Cache\Skin\" + LauncherStringHash.Compute(address) + ".png";
         lock (mcSkinDownloadLock)
         {

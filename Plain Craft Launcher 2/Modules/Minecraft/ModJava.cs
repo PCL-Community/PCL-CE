@@ -379,7 +379,7 @@ public static class ModJava
                         $"[Java] 由于下载未完成，清理未下载完成的 Java 文件：{lastJavaBaseDir}",
                         LauncherLogLevel.Debug);
 
-                    LegacyFileFacade.DeleteDirectory(lastJavaBaseDir);
+                    Directories.DeleteDirectoryAsync(lastJavaBaseDir).GetAwaiter().GetResult();
                     break;
                 case LoadState.Finished:
                     Javas.ScanJavaAsync().GetAwaiter().GetResult();

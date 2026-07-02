@@ -1,41 +1,46 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
 
 namespace PCL;
 
-public interface ILegacyKeyValueStore
+public interface ILauncherKeyValueStore
 {
     string Read(string fileName, string key, string defaultValue = "");
+
     bool ContainsKey(string fileName, string key);
+
     void Write(string fileName, string key, string? value);
+
     void ClearCache(string fileName);
 }
 
 /// <summary>
-///     PCL2 历史 “key:value” ini 文件格式的读写与缓存。
+///     PCL2 专属 “key:value” ini 文件格式的读写与缓存。
 /// </summary>
-public sealed class LegacyIniStore : ILegacyKeyValueStore
+public sealed class LauncherIniStore : ILauncherKeyValueStore
 {
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, string>> _cache = new();
     private readonly object _writeLock = new();
 
-    private LegacyIniStore()
+    private LauncherIniStore()
     {
     }
 
-    public static LegacyIniStore Shared { get; } = new();
+    public static LauncherIniStore Shared { get; } = new();
 
     public void ClearCache(string fileName)
     {
-        _cache.Remove(LauncherPaths.ResolveLegacyIniPath(fileName), out _);
+        _cache.Remove(LauncherPaths.ResolveLauncherIniPath(fileName), out _);
     }
 
     public string Read(string fileName, string key, string defaultValue = "")
     {
         var content = GetContent(fileName);
+
         if (content is null || !content.TryGetValue(key, out var value))
             return defaultValue;
+
         return value;
     }
 
@@ -51,26 +56,32 @@ public sealed class LegacyIniStore : ILegacyKeyValueStore
         {
             if (key.Contains(':'))
                 throw new Exception($"尝试写入 ini 文件 {fileName} 的键名中包含了冒号：{key}");
+
             key = key.Replace("\r", "").Replace("\n", "");
             value = value?.Replace("\r", "").Replace("\n", "");
 
             lock (_writeLock)
             {
                 var content = GetContent(fileName) ?? new ConcurrentDictionary<string, string>();
+
                 if (value is null)
                 {
                     if (!content.ContainsKey(key))
                         return;
+
                     content.Remove(key, out _);
                 }
                 else
                 {
-                    if (content.TryGetValue(key, out var oldValue) && (oldValue ?? "") == (value ?? ""))
+                    if (content.TryGetValue(key, out var oldValue) &&
+                        (oldValue ?? "") == (value ?? ""))
                         return;
+
                     content[key] = value;
                 }
 
                 var fileContent = new StringBuilder();
+
                 foreach (var pair in content)
                 {
                     fileContent.Append(pair.Key);
@@ -79,12 +90,20 @@ public sealed class LegacyIniStore : ILegacyKeyValueStore
                     fileContent.Append("\r\n");
                 }
 
-                LegacyFileFacade.WriteText(LauncherPaths.ResolveLegacyIniPath(fileName), fileContent.ToString());
+                Files
+                    .WriteFileAsync(
+                        LauncherPaths.ResolveLauncherIniPath(fileName),
+                        fileContent.ToString())
+                    .GetAwaiter()
+                    .GetResult();
             }
         }
         catch (Exception ex)
         {
-            LauncherLog.Log(ex, $"写入文件失败（{fileName} → {key}:{value}）", LauncherLogLevel.Hint);
+            LauncherLog.Log(
+                ex,
+                $"写入文件失败（{fileName} → {key}:{value}）",
+                LauncherLogLevel.Hint);
         }
     }
 
@@ -97,17 +116,24 @@ public sealed class LegacyIniStore : ILegacyKeyValueStore
     {
         try
         {
-            var resolvedPath = LauncherPaths.ResolveLegacyIniPath(fileName);
+            var resolvedPath = LauncherPaths.ResolveLauncherIniPath(fileName);
+
             if (_cache.TryGetValue(resolvedPath, out var cached))
                 return cached;
+
             if (!File.Exists(resolvedPath))
                 return null;
 
             var ini = new ConcurrentDictionary<string, string>();
-            foreach (var line in LegacyFileFacade.ReadText(resolvedPath)
+
+            foreach (var line in Files
+                         .ReadAllTextOrEmptyAsync(resolvedPath)
+                         .GetAwaiter()
+                         .GetResult()
                          .Split("\r\n".ToArray(), StringSplitOptions.RemoveEmptyEntries))
             {
                 var index = line.IndexOfF(":");
+
                 if (index > 0)
                     ini[line[..index]] = line[(index + 1)..];
             }
@@ -117,7 +143,11 @@ public sealed class LegacyIniStore : ILegacyKeyValueStore
         }
         catch (Exception ex)
         {
-            LauncherLog.Log(ex, $"生成 ini 文件缓存失败（{fileName}）", LauncherLogLevel.Hint);
+            LauncherLog.Log(
+                ex,
+                $"生成 ini 文件缓存失败（{fileName}）",
+                LauncherLogLevel.Hint);
+
             return null;
         }
     }

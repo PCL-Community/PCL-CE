@@ -362,7 +362,7 @@ public static class ModLibrary
         // D:\Minecraft\test\libraries\com\google\guava\guava\31.1-jre\guava-31.1-jre.jar
         string GetVersion(McLibToken token)
         {
-            return LegacyFileFacade.GetFolderNameFromPath(LegacyFileFacade.GetPathFromFullPath(token.LocalPath));
+            return PathUtils.GetDirectoryNameLeaf(PathUtils.GetDirectoryPart(token.LocalPath));
         }
 
         for (int i = 0, loopTo = basicArray.Count - 1; i <= loopTo; i++)
@@ -484,9 +484,7 @@ public static class ModLibrary
             {
                 if (Directory.Exists(Path.Combine(mcInstance.PathInstance, "labymod-neo")))
                     Directory.Delete(Path.Combine(mcInstance.PathInstance, "labymod-neo"), true);
-                LegacyFileFacade.CreateSymbolicLink(Path.Combine(mcInstance.PathInstance, "labymod-neo"),
-                    Path.Combine(ModFolder.mcFolderSelected, "labymod-neo"),
-                    0x2);
+                LauncherFileSystem.CreateSymbolicLinkByBundledLinkD(Path.Combine(mcInstance.PathInstance, "labymod-neo"), Path.Combine(ModFolder.mcFolderSelected, "labymod-neo"), 0x2);
             }
 
             try
@@ -586,7 +584,7 @@ public static class ModLibrary
             {
                 // Transformer 文件释放
                 if (!File.Exists(token.LocalPath))
-                    LegacyFileFacade.WriteFile(token.LocalPath, Basics.GetResourceStream("Resources/transformer.jar"));
+                    Files.WriteFileAsync(LauncherFileSystem.ResolvePath(token.LocalPath), Basics.GetResourceStream("Resources/transformer.jar")).GetAwaiter().GetResult();
                 LauncherLog.Log("[Download] 已自动释放 Transformer Discovery Service", LauncherLogLevel.Developer);
                 continue;
             }
@@ -596,7 +594,7 @@ public static class ModLibrary
                 // OptiFine 主 Jar
                 var optiFineBase =
                     token.LocalPath.Replace(Path.Combine(customMcFolder, "libraries", "optifine", "OptiFine") + @"\", "").Split("_")[0] + "/" +
-                    LegacyFileFacade.GetFileNameFromPath(token.LocalPath).Replace("-", "_");
+                    PathUtils.GetFileNameFromUrlOrPath(token.LocalPath).Replace("-", "_");
                 optiFineBase = "/maven/com/optifine/" + optiFineBase;
                 if (optiFineBase.Contains("_pre"))
                     optiFineBase = optiFineBase.Replace("com/optifine/", "com/optifine/preview_");

@@ -903,7 +903,7 @@ public static class ModMain
     {
         if (s is null) return "";
         if (escapeHandler is null) return s;
-        if (s.Contains(":\\")) s = LegacyFileFacade.ShortenPath(s);
+        if (s.Contains(":\\")) s = PathUtils.ShortenPath(s);
         return escapeHandler(s);
     };
     
@@ -1015,8 +1015,8 @@ public static class ModMain
             try
             {
                 LauncherLog.Log("[System] 开始清理任务缓存文件夹");
-                LegacyFileFacade.DeleteDirectory(Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL", "TaskTemp"));
-                LegacyFileFacade.DeleteDirectory($@"{LauncherPaths.TempWithSlash}TaskTemp\");
+                Directories.DeleteDirectoryAsync(Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL", "TaskTemp")).GetAwaiter().GetResult();
+                Directories.DeleteDirectoryAsync($@"{LauncherPaths.TempWithSlash}TaskTemp\").GetAwaiter().GetResult();
                 LauncherLog.Log("[System] 已清理任务缓存文件夹");
             }
             catch (Exception ex)
@@ -1053,7 +1053,7 @@ public static class ModMain
                 if (requireNonSpace && resultFolder.Contains(" "))
                     break; // 带空格
                 Directory.CreateDirectory(resultFolder);
-                LegacyFileFacade.CheckPermissionWithException(resultFolder);
+                Directories.CheckPermissionWithExceptionAsync(resultFolder).GetAwaiter().GetResult();
                 return resultFolder;
             }
             catch
@@ -1065,7 +1065,7 @@ public static class ModMain
         resultFolder =
             Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL", "TaskTemp", $"{LauncherRuntime.GetUuid()}-{RandomUtils.NextInt(0, 1000000)}");
         Directory.CreateDirectory(resultFolder);
-        LegacyFileFacade.CheckPermission(resultFolder);
+        Directories.CheckPermissionAsync(resultFolder).GetAwaiter().GetResult();
         return resultFolder;
     }
 

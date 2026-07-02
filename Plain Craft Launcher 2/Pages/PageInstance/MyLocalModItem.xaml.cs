@@ -65,20 +65,20 @@ public partial class MyLocalCompItem
                 {
                     case ModLocalComp.LocalCompFile.LocalFileStatus.Fine:
                     {
-                        descFileName = LegacyFileFacade.GetFileNameWithoutExtensionFromPath(Entry.path);
+                        descFileName = PathUtils.GetFileNameWithoutExtensionFromUrlOrPath(Entry.path);
                         break;
                     }
                     case ModLocalComp.LocalCompFile.LocalFileStatus.Disabled:
                     {
                         descFileName =
-                            LegacyFileFacade.GetFileNameWithoutExtensionFromPath(Entry.path.Replace(".disabled", "")
+                            PathUtils.GetFileNameWithoutExtensionFromUrlOrPath(Entry.path.Replace(".disabled", "")
                                 .Replace(".old", "")); // McMod.McModState.Unavailable
                         break;
                     }
 
                     default:
                     {
-                        descFileName = LegacyFileFacade.GetFileNameFromPath(Entry.path);
+                        descFileName = PathUtils.GetFileNameFromUrlOrPath(Entry.path);
                         break;
                     }
                 }

@@ -37,7 +37,8 @@ public partial class FormMain
             var changelogFile = $"{LauncherPaths.TempWithSlash}CEUpdateLog.md";
             string changelog;
             if (File.Exists(changelogFile))
-                changelog = LegacyFileFacade.ReadText(changelogFile);
+                changelog = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(changelogFile)).GetAwaiter()
+                    .GetResult();
             else
                 changelog = Lang.Text("Main.UpdateLog.Empty");
             if (ModMain.MyMsgBoxMarkdown(changelog,
@@ -1029,7 +1030,9 @@ public partial class FormMain
                     if (ModMain.MyMsgBox(Lang.Text("Main.FileDrag.HomepageExists"), Lang.Text("Main.FileDrag.OverwriteTitle"), Lang.Text("Common.Action.Overwrite"), Lang.Text("Common.Action.Cancel")) == 2)
                         return;
 
-                LegacyFileFacade.CopyFile(filePath, LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Custom.xaml");
+                Files.CopyFileAsync(LauncherFileSystem.ResolvePath(filePath),
+                        LauncherFileSystem.ResolvePath(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Custom.xaml"))
+                    .GetAwaiter().GetResult();
                 UiThread.Post(() =>
                 {
                     Config.Preference.Homepage.Type = 1;
@@ -1063,7 +1066,7 @@ public partial class FormMain
                     case PageSubType.VersionWorld:
                     {
                         var destFolder = PageInstanceLeft.McInstance.PathIndie + @"saves\" +
-                                         LegacyFileFacade.GetFileNameWithoutExtensionFromPath(filePath);
+                                         PathUtils.GetFileNameWithoutExtensionFromUrlOrPath(filePath);
                         var destLevelDat = Path.Combine(destFolder, "level.dat");
                         if (Directory.Exists(destFolder))
                         {
@@ -1075,7 +1078,7 @@ public partial class FormMain
                             LauncherRuntime.GetUuid().ToString());
                         try
                         {
-                            LegacyFileFacade.ExtractFile(filePath, extractFolder);
+                            Files.ExtractFileAsync(filePath, extractFolder).GetAwaiter().GetResult();
                             var saveRoot = SaveImportHelper.GetSaveRootDirectory(extractFolder);
                             if (saveRoot is null)
                             {
@@ -1083,11 +1086,11 @@ public partial class FormMain
                                 return;
                             }
 
-                            LegacyFileFacade.CopyDirectory(saveRoot, destFolder);
+                            Directories.CopyDirectoryAsync(saveRoot, destFolder).GetAwaiter().GetResult();
                             if (!File.Exists(destLevelDat))
                             {
                                 if (Directory.Exists(destFolder))
-                                    LegacyFileFacade.DeleteDirectory(destFolder, true);
+                                    Directories.DeleteDirectoryAsync(destFolder, true).GetAwaiter().GetResult();
                                 HintService.Hint(Lang.Text("Main.FileDrag.SaveInvalid"), HintType.Error);
                                 return;
                             }
@@ -1095,7 +1098,7 @@ public partial class FormMain
                         catch (Exception ex)
                         {
                             if (Directory.Exists(destFolder))
-                                LegacyFileFacade.DeleteDirectory(destFolder, true);
+                                Directories.DeleteDirectoryAsync(destFolder, true).GetAwaiter().GetResult();
                             LauncherLog.Log(
                                 ex,
                                 Lang.Text("Main.FileDrag.SaveImportFailed"),
@@ -1106,12 +1109,12 @@ public partial class FormMain
                         finally
                         {
                             if (Directory.Exists(extractFolder))
-                                LegacyFileFacade.DeleteDirectory(extractFolder, true);
+                                Directories.DeleteDirectoryAsync(extractFolder, true).GetAwaiter().GetResult();
                         }
 
                         HintService.Hint(
                             Lang.Text("Main.FileDrag.Imported",
-                                LegacyFileFacade.GetFileNameWithoutExtensionFromPath(filePath)),
+                                PathUtils.GetFileNameWithoutExtensionFromUrlOrPath(filePath)),
                             HintType.Success);
                         if (ModMain.frmInstanceSaves is not null)
                             UiThread.Post(() => ModMain.frmInstanceSaves.Reload());
@@ -1120,16 +1123,17 @@ public partial class FormMain
                     case PageSubType.VersionResourcePack:
                     {
                         var destFile = PageInstanceLeft.McInstance.PathIndie + @"resourcepacks\" +
-                                       LegacyFileFacade.GetFileNameFromPath(filePath);
+                                       PathUtils.GetFileNameFromUrlOrPath(filePath);
                         if (File.Exists(destFile))
                         {
                             HintService.Hint(Lang.Text("Main.FileDrag.SameFileExists", destFile), HintType.Error);
                             return;
                         }
 
-                        LegacyFileFacade.CopyFile(filePath, destFile);
+                        Files.CopyFileAsync(LauncherFileSystem.ResolvePath(filePath),
+                            LauncherFileSystem.ResolvePath(destFile)).GetAwaiter().GetResult();
                         HintService.Hint(
-                            Lang.Text("Main.FileDrag.Imported", LegacyFileFacade.GetFileNameFromPath(filePath)),
+                            Lang.Text("Main.FileDrag.Imported", PathUtils.GetFileNameFromUrlOrPath(filePath)),
                             HintType.Success);
                         if (ModMain.frmInstanceResourcePack is not null)
                             UiThread.Post(() => ModMain.frmInstanceResourcePack.ReloadCompFileList());
@@ -1138,16 +1142,17 @@ public partial class FormMain
                     case PageSubType.VersionShader:
                     {
                         var destFile = PageInstanceLeft.McInstance.PathIndie + @"shaderpacks\" +
-                                       LegacyFileFacade.GetFileNameFromPath(filePath);
+                                       PathUtils.GetFileNameFromUrlOrPath(filePath);
                         if (File.Exists(destFile))
                         {
                             HintService.Hint(Lang.Text("Main.FileDrag.SameFileExists", destFile), HintType.Error);
                             return;
                         }
 
-                        LegacyFileFacade.CopyFile(filePath, destFile);
+                        Files.CopyFileAsync(LauncherFileSystem.ResolvePath(filePath),
+                            LauncherFileSystem.ResolvePath(destFile)).GetAwaiter().GetResult();
                         HintService.Hint(
-                            Lang.Text("Main.FileDrag.Imported", LegacyFileFacade.GetFileNameFromPath(filePath)),
+                            Lang.Text("Main.FileDrag.Imported", PathUtils.GetFileNameFromUrlOrPath(filePath)),
                             HintType.Success);
                         if (ModMain.frmInstanceShader is not null)
                             UiThread.Post(() => ModMain.frmInstanceShader.ReloadCompFileList());
@@ -1161,7 +1166,7 @@ public partial class FormMain
                 PageCurrentSub == PageSubType.VersionSchematic)
             {
                 var destFile = PageInstanceLeft.McInstance.PathIndie + @"schematics\" +
-                               LegacyFileFacade.GetFileNameFromPath(filePath);
+                               PathUtils.GetFileNameFromUrlOrPath(filePath);
                 if (File.Exists(destFile))
                 {
                     HintService.Hint(Lang.Text("Main.FileDrag.SameFileExists", destFile), HintType.Error);
@@ -1169,8 +1174,9 @@ public partial class FormMain
                 }
 
                 Directory.CreateDirectory(PageInstanceLeft.McInstance.PathIndie + @"schematics\");
-                LegacyFileFacade.CopyFile(filePath, destFile);
-                HintService.Hint(Lang.Text("Main.FileDrag.Imported", LegacyFileFacade.GetFileNameFromPath(filePath)),
+                Files.CopyFileAsync(LauncherFileSystem.ResolvePath(filePath), LauncherFileSystem.ResolvePath(destFile))
+                    .GetAwaiter().GetResult();
+                HintService.Hint(Lang.Text("Main.FileDrag.Imported", PathUtils.GetFileNameFromUrlOrPath(filePath)),
                     HintType.Success);
                 if (ModMain.frmInstanceSchematic is not null)
                     UiThread.Post(() => ModMain.frmInstanceSchematic.ReloadCompFileList());
@@ -1501,7 +1507,7 @@ public partial class FormMain
             case PageType.VersionSaves:
             {
                 return Lang.Text("Main.Title.SaveManagement",
-                    LegacyFileFacade.GetFolderNameFromPath(stack.additional.Value.SavePath));
+                    PathUtils.GetDirectoryNameLeaf(stack.additional.Value.SavePath));
             }
 
             default:

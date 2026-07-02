@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
@@ -273,7 +273,7 @@ namespace PCL
             try
             {
                 PageToolsTest.StartCustomDownload(args[0],
-                    args.Length >= 2 ? args[1] : LegacyFileFacade.GetFileNameFromPath(args[0]),
+                    args.Length >= 2 ? args[1] : PathUtils.GetFileNameFromUrlOrPath(args[0]),
                     args.Length >= 3 ? args[2] : null);
             }
             catch

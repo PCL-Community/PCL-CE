@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -543,12 +543,12 @@ public partial class PageSelectRight
             {
                 case 1:
                 {
-                    LegacyIniStore.Shared.ClearCache(Path.Combine(mcInstance.PathIndie, "options.txt"));
+                    LauncherIniStore.Shared.ClearCache(Path.Combine(mcInstance.PathIndie, "options.txt"));
                     ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
                         mcInstance.PathInstance);
                     if (isShiftPressed)
                     {
-                        LegacyFileFacade.DeleteDirectory(mcInstance.PathInstance);
+                        Directories.DeleteDirectoryAsync(mcInstance.PathInstance).GetAwaiter().GetResult();
                         HintService.Hint(Lang.Text("Select.Instance.Delete.PermanentSuccess", mcInstance.Name),
                             HintType.Success);
                     }

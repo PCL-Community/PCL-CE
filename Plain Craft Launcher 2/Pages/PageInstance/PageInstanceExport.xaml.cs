@@ -542,7 +542,7 @@ public partial class PageInstanceExport : IRefreshable
             configLines.Add(sperator);
             configLines.AddRange(GetExtraFileLines());
             // 结束
-            LegacyFileFacade.WriteFile(configPath, configLines.Join("\r\n"));
+            Files.WriteFileAsync(LauncherFileSystem.ResolvePath(configPath), configLines.Join("\r\n")).GetAwaiter().GetResult();
             HintService.Hint(Lang.Text("Instance.Export.SaveSuccess", configPath), HintType.Success);
             LauncherProcess.OpenExplorer(configPath);
         }
@@ -569,7 +569,7 @@ public partial class PageInstanceExport : IRefreshable
             // 保存配置文件路径到缓存
             States.System.ExportConfigPath = configPath;
 
-            var fileContent = LegacyFileFacade.ReadText(configPath);
+            var fileContent = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(configPath)).GetAwaiter().GetResult();
             var segments = fileContent.Split(sperator);
 
             if (segments.Length == 0)
@@ -735,7 +735,7 @@ public partial class PageInstanceExport : IRefreshable
             !configPackPath.EndsWithF("/"))
             try
             {
-                Directory.CreateDirectory(LegacyFileFacade.GetPathFromFullPath(configPackPath));
+                Directory.CreateDirectory(PathUtils.GetDirectoryPart(configPackPath));
                 packPath = configPackPath;
                 LauncherLog.Log($"[Export] 使用配置文件中指定的导出路径：{configPackPath}");
             }
@@ -789,8 +789,7 @@ public partial class PageInstanceExport : IRefreshable
                 loader =>
                 {
                     UpdateManager.DownloadLatestPCL(loader);
-                    LegacyFileFacade.CopyFile(Path.Combine(LauncherPaths.TempWithSlash, "CE-Latest.exe"),
-                        Path.Combine(cacheFolder, "Plain Craft Launcher.exe"));
+                    Files.CopyFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(LauncherPaths.TempWithSlash, "CE-Latest.exe")), LauncherFileSystem.ResolvePath(Path.Combine(cacheFolder, "Plain Craft Launcher.exe"))).GetAwaiter().GetResult();
                 })
             {
                 ProgressWeight = 0.5d,
@@ -840,7 +839,7 @@ public partial class PageInstanceExport : IRefreshable
                     if (!shouldKeep)
                         continue;
                     var targetPath = Path.Combine(overridesFolder, relativePath);
-                    LegacyFileFacade.CopyFile(Entry.FullName, targetPath);
+                    Files.CopyFileAsync(LauncherFileSystem.ResolvePath(Entry.FullName), LauncherFileSystem.ResolvePath(targetPath)).GetAwaiter().GetResult();
                     // 若为压缩包，考虑联网获取路径
                     if (checkHostedAssets &&
                         new[] { ".zip", ".rar", ".jar", ".disabled", ".old" }.Contains(Entry.Extension.ToLower()) &&
@@ -870,13 +869,13 @@ public partial class PageInstanceExport : IRefreshable
                 if (Line.EndsWithF(@"\") || Line.EndsWithF("/"))
                 {
                     if (Directory.Exists(Line))
-                        LegacyFileFacade.CopyDirectory(Line, Path.Combine(baseFolder, LegacyFileFacade.GetFolderNameFromPath(Line)) + @"\");
+                        Directories.CopyDirectoryAsync(Line, Path.Combine(baseFolder, PathUtils.GetDirectoryNameLeaf(Line)) + @"\").GetAwaiter().GetResult();
                     else
                         HintService.Hint(Lang.Text("Instance.Export.Config.FolderNotFound", Line), HintType.Error);
                 }
                 else if (File.Exists(Line))
                 {
-                    LegacyFileFacade.CopyFile(Line, Path.Combine(baseFolder, LegacyFileFacade.GetFileNameFromPath(Line)));
+                    Files.CopyFileAsync(LauncherFileSystem.ResolvePath(Line), LauncherFileSystem.ResolvePath(Path.Combine(baseFolder, PathUtils.GetFileNameFromUrlOrPath(Line)))).GetAwaiter().GetResult();
                 }
                 else
                 {
@@ -885,26 +884,26 @@ public partial class PageInstanceExport : IRefreshable
 
             loader.Progress = 0.97d;
             // 复制 PCL 实例设置
-            LegacyFileFacade.CopyDirectory(Path.Combine(mcInstance.PathInstance, "PCL"), Path.Combine(overridesFolder, "PCL"));
+            Directories.CopyDirectoryAsync(Path.Combine(mcInstance.PathInstance, "PCL"), Path.Combine(overridesFolder, "PCL")).GetAwaiter().GetResult();
             #if RELEASE
                         // 复制 PCL 本体
-                        if (includePCL) LegacyFileFacade.CopyFile(Basics.ExecutablePath, Path.Combine(cacheFolder, Basics.ExecutableName));
+                        if (includePCL) Files.CopyFileAsync(LauncherFileSystem.ResolvePath(Basics.ExecutablePath), LauncherFileSystem.ResolvePath(Path.Combine(cacheFolder, Basics.ExecutableName))).GetAwaiter().GetResult();
             #endif
             // 复制 PCL 个性化内容
             if (includePCLCustom)
             {
                 if (Directory.Exists(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Pictures")))
-                    LegacyFileFacade.CopyDirectory(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Pictures"), Path.Combine(cacheFolder, "PCL", "Pictures"));
+                    Directories.CopyDirectoryAsync(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Pictures"), Path.Combine(cacheFolder, "PCL", "Pictures")).GetAwaiter().GetResult();
                 if (Directory.Exists(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Musics")))
-                    LegacyFileFacade.CopyDirectory(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Musics"), Path.Combine(cacheFolder, "PCL", "Musics"));
+                    Directories.CopyDirectoryAsync(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Musics"), Path.Combine(cacheFolder, "PCL", "Musics")).GetAwaiter().GetResult();
                 if (File.Exists(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Custom.xaml")))
-                    LegacyFileFacade.CopyFile(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Custom.xaml"), Path.Combine(cacheFolder, "PCL", "Custom.xaml"));
+                    Files.CopyFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Custom.xaml")), LauncherFileSystem.ResolvePath(Path.Combine(cacheFolder, "PCL", "Custom.xaml"))).GetAwaiter().GetResult();
                 if (File.Exists(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Setup.ini")))
-                    LegacyFileFacade.CopyFile(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Setup.ini"), Path.Combine(cacheFolder, "PCL", "Setup.ini"));
+                    Files.CopyFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Setup.ini")), LauncherFileSystem.ResolvePath(Path.Combine(cacheFolder, "PCL", "Setup.ini"))).GetAwaiter().GetResult();
                 if (File.Exists(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "hints.txt")))
-                    LegacyFileFacade.CopyFile(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "hints.txt"), Path.Combine(cacheFolder, "PCL", "hints.txt"));
+                    Files.CopyFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "hints.txt")), LauncherFileSystem.ResolvePath(Path.Combine(cacheFolder, "PCL", "hints.txt"))).GetAwaiter().GetResult();
                 if (File.Exists(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Logo.png")))
-                    LegacyFileFacade.CopyFile(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Logo.png"), Path.Combine(cacheFolder, "PCL", "Logo.png"));
+                    Files.CopyFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Logo.png")), LauncherFileSystem.ResolvePath(Path.Combine(cacheFolder, "PCL", "Logo.png"))).GetAwaiter().GetResult();
             }
         })
         {
@@ -1063,7 +1062,7 @@ public partial class PageInstanceExport : IRefreshable
                             "hashes",
                             new JsonObject
                             {
-                                { "sha1", modFile.ModrinthHash }, { "sha512", LegacyFileFacade.GetFileSha512(modFile.path) }
+                                { "sha1", modFile.ModrinthHash }, { "sha512", Files.GetFileSHA512Async(modFile.path).GetAwaiter().GetResult() }
                             }
                         },
                         { "downloads", new JsonArray(Pair.Value.OrderByDescending(u => u.Contains("modrinth.com")).Select(s => (JsonNode)s).ToArray()) },
@@ -1089,7 +1088,7 @@ public partial class PageInstanceExport : IRefreshable
                 File.WriteAllText(Path.Combine(cacheFolder, "modpack", "modrinth.index.json"),
                     resultJson.ToJsonString(new JsonSerializerOptions(JsonCompat.SerializerOptions) { WriteIndented = true }));
                 // 打包
-                Directory.CreateDirectory(LegacyFileFacade.GetPathFromFullPath(packPath));
+                Directory.CreateDirectory(PathUtils.GetDirectoryPart(packPath));
                 if (File.Exists(packPath))
                     File.Delete(packPath);
                 if (includePCL)

@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Globalization;
 using System.Reflection;
 using System.Windows;
@@ -101,7 +101,7 @@ public partial class PageLaunchRight : IRefreshable
         {
             // 本地文件
             LogWrapper.Info("[Page] 主页自定义数据来源：本地文件");
-            content = LegacyFileFacade.ReadText(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Custom.xaml"));
+            content = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Custom.xaml"))).GetAwaiter().GetResult();
         }
         else if (uiCustomType == 2)
         {
@@ -240,7 +240,7 @@ public partial class PageLaunchRight : IRefreshable
             LogWrapper.Info("[Page] 主页自定义数据来源：联网缓存文件");
             // 后台更新缓存
             onlineLoader.Start(url);
-            return LegacyFileFacade.ReadText(cachePath);
+            return Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(cachePath)).GetAwaiter().GetResult();
         }
 
         LogWrapper.Info("[Page] 主页自定义数据来源：联网全新下载");
@@ -374,7 +374,7 @@ public partial class PageLaunchRight : IRefreshable
                 LauncherLog.Log($"[Page] 已联网下载主页，内容长度：{fileContent.Length}，来源：{address}");
                 States.UI.SavedHomepageUrl = address;
                 States.UI.SavedHomepageVersion = version;
-                LegacyFileFacade.WriteFile(LauncherPaths.TempWithSlash + @"Cache\Custom.xaml", fileContent);
+                Files.WriteFileAsync(LauncherFileSystem.ResolvePath(LauncherPaths.TempWithSlash + @"Cache\Custom.xaml"), fileContent).GetAwaiter().GetResult();
             }
 
             // 要求刷新

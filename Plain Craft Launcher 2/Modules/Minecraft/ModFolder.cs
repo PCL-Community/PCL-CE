@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -83,7 +83,7 @@ public static class ModFolder
                 var path = folder.Split(">")[1];
                 try
                 {
-                    LegacyFileFacade.CheckPermissionWithException(path);
+                    Directories.CheckPermissionWithExceptionAsync(path).GetAwaiter().GetResult();
                     cacheMcFolderList.Add(new McFolder { Name = name, Location = path, type = McFolder.Types.Custom });
                 }
                 catch (Exception ex)
@@ -219,8 +219,7 @@ public static class ModFolder
     ""selectedProfile"": ""PCL"",
     ""clientToken"": ""23323323323323323323323323323333""
 }";
-            LegacyFileFacade.WriteFile(Path.Combine(folder, "launcher_profiles.json"), resultJson,
-                encoding: Encoding.GetEncoding("GB18030"));
+            Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(folder, "launcher_profiles.json")), resultJson, encoding: Encoding.GetEncoding("GB18030")).GetAwaiter().GetResult();
             LauncherLog.Log($"[Minecraft] 已创建 launcher_profiles.json：{folder}");
         }
         catch (Exception ex)

@@ -50,7 +50,7 @@ public static class ModProfile
         if (name.Trim().Length == 0)
             return TextUtils.LeftPadOrTrim("", "0", 32);
         // 从缓存获取
-        var uuid = LegacyIniStore.Shared.Read(LauncherPaths.TempWithSlash + @"Cache\Uuid\Mojang.ini", name);
+        var uuid = LauncherIniStore.Shared.Read(LauncherPaths.TempWithSlash + @"Cache\Uuid\Mojang.ini", name);
         if ((uuid?.Length ?? 0) == 32)
             return uuid;
         // 从官网获取
@@ -91,7 +91,7 @@ public static class ModProfile
         // 写入缓存
         if ((uuid?.Length ?? 0) != 32)
             throw new Exception("获取的正版 UUID 长度不足（" + uuid + "）");
-        LegacyIniStore.Shared.Write(LauncherPaths.TempWithSlash + @"Cache\Uuid\Mojang.ini", name, uuid);
+        LauncherIniStore.Shared.Write(LauncherPaths.TempWithSlash + @"Cache\Uuid\Mojang.ini", name, uuid);
         return uuid;
     }
 
@@ -184,10 +184,10 @@ public static class ModProfile
             if (!File.Exists(profilePath))
             {
                 File.Create(profilePath).Close();
-                LegacyFileFacade.WriteFile(profilePath, "{\"lastUsed\":0,\"profiles\":[]}"); // 创建档案列表文件
+                Files.WriteFileAsync(LauncherFileSystem.ResolvePath(profilePath), "{\"lastUsed\":0,\"profiles\":[]}").GetAwaiter().GetResult(); // 创建档案列表文件
             }
 
-            var profileJobj = PCL.Core.Utils.JsonCompat.ParseNode(LegacyFileFacade.ReadText(profilePath));
+            var profileJobj = PCL.Core.Utils.JsonCompat.ParseNode(Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(profilePath)).GetAwaiter().GetResult());
             lastUsedProfile = (int)profileJobj["lastUsed"];
             var profileListJobj = (JsonArray)profileJobj["profiles"];
             foreach (var Profile in profileListJobj)
@@ -802,8 +802,8 @@ public static class ModProfile
                 {
                     { new StringContent(skinInfo.IsSlim ? "slim" : "classic"), "variant" },
                     {
-                        new ByteArrayContent(LegacyFileFacade.ReadBytes(skinInfo.LocalFile)), "file",
-                        LegacyFileFacade.GetFileNameFromPath(skinInfo.LocalFile)
+                        new ByteArrayContent(Files.ReadAllBytesOrEmptyAsync(LauncherFileSystem.ResolvePath(skinInfo.LocalFile)).GetAwaiter().GetResult()), "file",
+                        PathUtils.GetFileNameFromUrlOrPath(skinInfo.LocalFile)
                     }
                 };
                 var res = Requester.Fetch("https://api.minecraftservices.com/minecraft/profile/skins", 

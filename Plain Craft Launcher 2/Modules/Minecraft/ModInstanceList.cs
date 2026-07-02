@@ -84,7 +84,7 @@ public static class ModInstanceList
             // 如果没有可用实例，清空缓存并跳过后续处理
             if (!folderList.Any())
             {
-                LegacyIniStore.Shared.Write(Path.Combine(path, "PCL.ini"), "InstanceCache", "");
+                LauncherIniStore.Shared.Write(Path.Combine(path, "PCL.ini"), "InstanceCache", "");
                 McMcInstanceSelected = null;
                 States.Game.SelectedInstance = "";
                 LauncherLog.Log("[Minecraft] 未找到可用 Minecraft 实例");
@@ -97,7 +97,7 @@ public static class ModInstanceList
 
             // 尝试使用缓存
             var useCache = !mcInstanceListForceRefresh &&
-                           NumberUtils.ParseDoubleOrZero(LegacyIniStore.Shared.Read(Path.Combine(path, "PCL.ini"),
+                           NumberUtils.ParseDoubleOrZero(LauncherIniStore.Shared.Read(Path.Combine(path, "PCL.ini"),
                                "InstanceCache")) ==
                            folderListCheck;
 
@@ -115,7 +115,7 @@ public static class ModInstanceList
             {
                 mcInstanceListForceRefresh = false;
                 LauncherLog.Log("[Minecraft] 文件夹列表变更或缓存无效，重载所有实例");
-                LegacyIniStore.Shared.Write(Path.Combine(path, "PCL.ini"), "InstanceCache", folderListCheck.ToString());
+                LauncherIniStore.Shared.Write(Path.Combine(path, "PCL.ini"), "InstanceCache", folderListCheck.ToString());
                 mcInstanceList = InitMcInstanceListWithoutCache(path);
             }
 
@@ -125,7 +125,7 @@ public static class ModInstanceList
                 return;
 
             // 尝试读取已储存的选择
-            var savedSelection = LegacyIniStore.Shared.Read(Path.Combine(path, "PCL.ini"), "Version");
+            var savedSelection = LauncherIniStore.Shared.Read(Path.Combine(path, "PCL.ini"), "Version");
             if (!string.IsNullOrEmpty(savedSelection))
                 foreach (var card in mcInstanceList)
                 foreach (var instance in card.Value)
@@ -165,7 +165,7 @@ public static class ModInstanceList
         }
         catch (Exception ex)
         {
-            LegacyIniStore.Shared.Write(Path.Combine(path, "PCL.ini"), "InstanceCache", ""); // 要求下次重新加载
+            LauncherIniStore.Shared.Write(Path.Combine(path, "PCL.ini"), "InstanceCache", ""); // 要求下次重新加载
             LauncherLog.Log(
                 ex,
                 Lang.Text("Select.Instance.Error.ListLoad"),
@@ -180,18 +180,18 @@ public static class ModInstanceList
         var results = new Dictionary<McInstanceCardType, List<McInstance>>();
         try
         {
-            var cardCount = int.Parse(LegacyIniStore.Shared.Read(path + "PCL.ini", "CardCount", (-1).ToString()));
+            var cardCount = int.Parse(LauncherIniStore.Shared.Read(path + "PCL.ini", "CardCount", (-1).ToString()));
             if (cardCount == -1)
                 return null;
             for (int i = 0, loopTo = cardCount - 1; i <= loopTo; i++)
             {
                 var cardType =
-                    (McInstanceCardType)int.Parse(LegacyIniStore.Shared.Read(path + "PCL.ini", "CardKey" + (i + 1),
+                    (McInstanceCardType)int.Parse(LauncherIniStore.Shared.Read(path + "PCL.ini", "CardKey" + (i + 1),
                         "0"));
                 var instanceList = new List<McInstance>();
 
                 // 循环读取实例
-                foreach (var folder in LegacyIniStore.Shared.Read(path + "PCL.ini", "CardValue" + (i + 1), ":")
+                foreach (var folder in LauncherIniStore.Shared.Read(path + "PCL.ini", "CardValue" + (i + 1), ":")
                              .Split(":"))
                 {
                     if (string.IsNullOrEmpty(folder))
@@ -579,15 +579,15 @@ public static class ModInstanceList
 
         #region 保存卡片缓存
 
-        LegacyIniStore.Shared.Write(path + "PCL.ini", "CardCount", results.Count.ToString());
+        LauncherIniStore.Shared.Write(path + "PCL.ini", "CardCount", results.Count.ToString());
         for (int i = 0, loopTo = results.Count - 1; i <= loopTo; i++)
         {
-            LegacyIniStore.Shared.Write(path + "PCL.ini", "CardKey" + (i + 1),
+            LauncherIniStore.Shared.Write(path + "PCL.ini", "CardKey" + (i + 1),
                 ((int)results.Keys.ElementAtOrDefault(i)).ToString());
             var value = "";
             foreach (var Instance in results.Values.ElementAtOrDefault(i))
                 value += Instance.Name + ":";
-            LegacyIniStore.Shared.Write(path + "PCL.ini", "CardValue" + (i + 1), value);
+            LauncherIniStore.Shared.Write(path + "PCL.ini", "CardValue" + (i + 1), value);
         }
 
         #endregion

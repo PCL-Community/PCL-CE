@@ -230,17 +230,17 @@ public static class ModDownloadLib
             Lang.Text("Minecraft.Download.Stage.AnalyzeVanillaLibraries.Side"), task =>
         {
             var jsonPath = Path.Combine(instanceFolder, instanceName + ".json");
-            LegacyFileFacade.WaitForFileReady(jsonPath);
+            LauncherFileSystem.WaitForFileReady(jsonPath);
             LauncherLog.Log("[Download] 开始分析原版支持库文件：" + instanceFolder);
             if (id == "1.16.5" && Config.Download.FixAuthLib) // 1.16.5 Authlib 修复
                 try
                 {
-                    var json = LegacyFileFacade.ReadText(jsonPath);
+                    var json = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(jsonPath)).GetAwaiter().GetResult();
                     json = json.Replace("2.1.28/authlib-2.1.28.jar", "2.3.31/authlib-2.3.31.jar")
                         .Replace("com.mojang:authlib:2.1.28", "com.mojang:authlib:2.3.31")
                         .Replace("ad54da276bf59983d02d5ed16fc14541354c71fd", "bbd00ca33b052f73a6312254780fc580d2da3535")
                         .Replace("76328", "87662");
-                    LegacyFileFacade.WriteFile(jsonPath, json);
+                    Files.WriteFileAsync(LauncherFileSystem.ResolvePath(jsonPath), json).GetAwaiter().GetResult();
                 }
                 catch (Exception ex)
                 {
@@ -264,7 +264,7 @@ public static class ModDownloadLib
         loadersAssets.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
             Lang.Text("Minecraft.Download.Stage.AnalyzeAssetsIndex.Side"), task =>
         {
-            LegacyFileFacade.WaitForFileReady(Path.Combine(instanceFolder, instanceName + ".json"));
+            LauncherFileSystem.WaitForFileReady(Path.Combine(instanceFolder, instanceName + ".json"));
             try
             {
                 var assetIndex = new McInstance(instanceFolder);
@@ -278,9 +278,9 @@ public static class ModDownloadLib
             // 顺手添加 Json 项目
             try
             {
-                var versionJson = (JsonObject)JsonCompat.ParseNode(LegacyFileFacade.ReadText(Path.Combine(instanceFolder, instanceName + ".json")));
+                var versionJson = (JsonObject)JsonCompat.ParseNode(Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(Path.Combine(instanceFolder, instanceName + ".json"))).GetAwaiter().GetResult());
                 versionJson.Add("clientVersion", id);
-                LegacyFileFacade.WriteFile(Path.Combine(instanceFolder, instanceName + ".json"), versionJson.ToString());
+                Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(instanceFolder, instanceName + ".json")), versionJson.ToString()).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
@@ -495,8 +495,7 @@ public static class ModDownloadLib
                            echo {Lang.Text("Minecraft.Download.ServerBatch.ServerStopped")}
                            pause
                            """;
-                LegacyFileFacade.WriteFile(Path.Combine(versionFolder, "Launch Server.bat"), bat.Replace("\n", "\r\n"),
-                    encoding: Encoding.Default.Equals(Encoding.UTF8) ? Encoding.UTF8 : Encoding.GetEncoding("GB18030"));
+                Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(versionFolder, "Launch Server.bat")), bat.Replace("\n", "\r\n"), encoding: Encoding.Default.Equals(Encoding.UTF8) ? Encoding.UTF8 : Encoding.GetEncoding("GB18030")).GetAwaiter().GetResult();
                 // 删除实例 JSON
                 File.Delete(Path.Combine(versionFolder, id + ".json"));
             })
@@ -764,7 +763,7 @@ public static class ModDownloadLib
                 CreateNoWindow = true,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
-                WorkingDirectory = LegacyFileFacade.ShortenPath(baseMcFolderHome)
+                WorkingDirectory = PathUtils.ShortenPath(baseMcFolderHome)
             };
             if (info.EnvironmentVariables.ContainsKey("appdata"))
                 info.EnvironmentVariables["appdata"] = baseMcFolderHome;
@@ -970,14 +969,12 @@ public static class ModDownloadLib
                 return;
             lock (vanillaSyncLock)
             {
-                var clientName = LegacyFileFacade.GetFolderNameFromPath(clientFolder);
+                var clientName = PathUtils.GetDirectoryNameLeaf(clientFolder);
                 Directory.CreateDirectory(Path.Combine(mcFolder, "versions", downloadInfo.Inherit));
                 if (!File.Exists(Path.Combine(mcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".json")))
-                    LegacyFileFacade.CopyFile($"{clientFolder}{clientName}.json",
-                        $@"{mcFolder}versions\{downloadInfo.Inherit}\{downloadInfo.Inherit}.json");
+                    Files.CopyFileAsync(LauncherFileSystem.ResolvePath($"{clientFolder}{clientName}.json"), LauncherFileSystem.ResolvePath($@"{mcFolder}versions\{downloadInfo.Inherit}\{downloadInfo.Inherit}.json")).GetAwaiter().GetResult();
                 if (!File.Exists(Path.Combine(mcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".jar")))
-                    LegacyFileFacade.CopyFile($"{clientFolder}{clientName}.jar",
-                        $@"{mcFolder}versions\{downloadInfo.Inherit}\{downloadInfo.Inherit}.jar");
+                    Files.CopyFileAsync(LauncherFileSystem.ResolvePath($"{clientFolder}{clientName}.jar"), LauncherFileSystem.ResolvePath($@"{mcFolder}versions\{downloadInfo.Inherit}\{downloadInfo.Inherit}.jar")).GetAwaiter().GetResult();
             }
         })
         {
@@ -998,15 +995,11 @@ public static class ModDownloadLib
                 {
                     // 准备安装环境
                     if (Directory.Exists(Path.Combine(baseMcFolder, "versions", downloadInfo.Inherit)))
-                        LegacyFileFacade.DeleteDirectory(Path.Combine(baseMcFolder, "versions", downloadInfo.Inherit));
+                        Directories.DeleteDirectoryAsync(Path.Combine(baseMcFolder, "versions", downloadInfo.Inherit)).GetAwaiter().GetResult();
                     Directory.CreateDirectory(Path.Combine(baseMcFolder, "versions", downloadInfo.Inherit));
                     ModFolder.McFolderLauncherProfilesJsonCreate(baseMcFolder);
-                    LegacyFileFacade.CopyFile(
-                        Path.Combine(mcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".json"),
-                        Path.Combine(baseMcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".json"));
-                    LegacyFileFacade.CopyFile(
-                        Path.Combine(mcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".jar"),
-                        Path.Combine(baseMcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".jar"));
+                    Files.CopyFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(mcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".json")), LauncherFileSystem.ResolvePath(Path.Combine(baseMcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".json"))).GetAwaiter().GetResult();
+                    Files.CopyFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(mcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".jar")), LauncherFileSystem.ResolvePath(Path.Combine(baseMcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".jar"))).GetAwaiter().GetResult();
                     task.Progress = 0.06d;
                     // 进行安装
                     var useJavaWrapper = EncodingUtils.IsDefaultEncodingUtf8();
@@ -1031,11 +1024,11 @@ public static class ModDownloadLib
                     task.Progress = 0.96d;
                     // 复制文件
                     File.Delete(Path.Combine(baseMcFolder, "launcher_profiles.json"));
-                    LegacyFileFacade.CopyDirectory(baseMcFolder, mcFolder);
+                    Directories.CopyDirectoryAsync(baseMcFolder, mcFolder).GetAwaiter().GetResult();
                     task.Progress = 0.98d;
                     // 清理文件
                     File.Delete(target);
-                    LegacyFileFacade.DeleteDirectory(baseMcFolderHome);
+                    Directories.DeleteDirectoryAsync(baseMcFolderHome).GetAwaiter().GetResult();
                 }
                 catch (Exception ex)
                 {
@@ -1060,9 +1053,7 @@ public static class ModDownloadLib
                         Directory.CreateDirectory(versionFolder);
                         task.Progress = 0.1d;
                         if (File.Exists(Path.Combine(versionFolder, id + ".jar"))) File.Delete(Path.Combine(versionFolder, id + ".jar"));
-                        LegacyFileFacade.CopyFile(
-                            Path.Combine(mcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".jar"),
-                            Path.Combine(versionFolder, id + ".jar"));
+                        Files.CopyFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(mcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".jar")), LauncherFileSystem.ResolvePath(Path.Combine(versionFolder, id + ".jar"))).GetAwaiter().GetResult();
                         task.Progress = 0.7d;
                         var inheritInstance =
                             new McInstance(Path.Combine(mcFolder, "versions", downloadInfo.Inherit));
@@ -1103,7 +1094,7 @@ public static class ModDownloadLib
         ]
     }
 }";
-                        LegacyFileFacade.WriteFile(Path.Combine(versionFolder, id + ".json"), json);
+                        Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(versionFolder, id + ".json")), json).GetAwaiter().GetResult();
                     }
                     catch (Exception ex)
                     {
@@ -1489,7 +1480,7 @@ public static class ModDownloadLib
                 versionJson.Add("minimumLauncherVersion", 18);
                 versionJson.Add("inheritsFrom", downloadInfo.Inherit);
                 versionJson.Add("jar", downloadInfo.Inherit);
-                LegacyFileFacade.WriteFile(Path.Combine(versionFolder, versionName + ".json"), versionJson.ToString());
+                Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(versionFolder, versionName + ".json")), versionJson.ToString()).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
@@ -2076,12 +2067,12 @@ public static class ModDownloadLib
                 try
                 {
                     // 解压并获取、合并两个 Json 的信息
-                    LegacyFileFacade.WaitForFileReady(installerAddress);
+                    LauncherFileSystem.WaitForFileReady(installerAddress);
                     installer = new ZipArchive(new FileStream(installerAddress, FileMode.Open));
                     task.Progress = 0.2d;
                     var json = (JsonObject)JsonCompat.ParseNode(
-                        LegacyFileFacade.ReadText(installer.GetEntry("install_profile.json").Open()));
-                    var json2 = (JsonObject)JsonCompat.ParseNode(LegacyFileFacade.ReadText(installer.GetEntry("version.json").Open()));
+                        Files.ReadAllTextOrEmptyAsync(installer.GetEntry("install_profile.json").Open()).GetAwaiter().GetResult());
+                    var json2 = (JsonObject)JsonCompat.ParseNode(Files.ReadAllTextOrEmptyAsync(installer.GetEntry("version.json").Open()).GetAwaiter().GetResult());
                     json.Merge(json2);
                     // 如果是 1.16.5 就升级一下 Authlib
                     if (inherit == "1.16.5" && (bool)Config.Download.FixAuthLib)
@@ -2167,7 +2158,7 @@ public static class ModDownloadLib
                         if (!File.Exists(realPath))
                         {
                             Directory.CreateDirectory(Path.GetDirectoryName(realPath));
-                            LegacyFileFacade.CopyFile(LibFile.LocalPath, realPath);
+                            Files.CopyFileAsync(LauncherFileSystem.ResolvePath(LibFile.LocalPath), LauncherFileSystem.ResolvePath(realPath)).GetAwaiter().GetResult();
                         }
 
                         if (LauncherRuntime.ModeDebug)
@@ -2199,14 +2190,12 @@ public static class ModDownloadLib
                     return;
                 lock (vanillaSyncLock)
                 {
-                    var clientName = LegacyFileFacade.GetFolderNameFromPath(clientFolder);
+                    var clientName = PathUtils.GetDirectoryNameLeaf(clientFolder);
                     Directory.CreateDirectory(Path.Combine(mcFolder, "versions", inherit));
                     if (!File.Exists(Path.Combine(mcFolder, "versions", inherit, inherit + ".json")))
-                        LegacyFileFacade.CopyFile(Path.Combine(clientFolder, clientName + ".json"),
-                            Path.Combine(mcFolder, "versions", inherit, inherit + ".json"));
+                        Files.CopyFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(clientFolder, clientName + ".json")), LauncherFileSystem.ResolvePath(Path.Combine(mcFolder, "versions", inherit, inherit + ".json"))).GetAwaiter().GetResult();
                     if (!File.Exists(Path.Combine(mcFolder, "versions", inherit, inherit + ".jar")))
-                        LegacyFileFacade.CopyFile(Path.Combine(clientFolder, clientName + ".jar"),
-                            Path.Combine(mcFolder, "versions", inherit, inherit + ".jar"));
+                        Files.CopyFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(clientFolder, clientName + ".jar")), LauncherFileSystem.ResolvePath(Path.Combine(mcFolder, "versions", inherit, inherit + ".jar"))).GetAwaiter().GetResult();
                 }
 
                 #endregion
@@ -2220,7 +2209,7 @@ public static class ModDownloadLib
                     ? Lang.Text("Minecraft.Download.Stage.InstallForge.MethodA")
                     : Lang.Text("Minecraft.Download.Stage.InstallForgeType", forgeType), task =>
                 {
-                    LegacyFileFacade.WaitForFileReady(installerAddress);
+                    LauncherFileSystem.WaitForFileReady(installerAddress);
                     var installer = new ZipArchive(new FileStream(installerAddress, FileMode.Open));
                     try
                     {
@@ -2232,7 +2221,7 @@ public static class ModDownloadLib
 
 
                         // 新建目标实例文件夹
-                        var json = JsonCompat.ParseNode(LegacyFileFacade.ReadText(installer.GetEntry("install_profile.json").Open()));
+                        var json = JsonCompat.ParseNode(Files.ReadAllTextOrEmptyAsync(installer.GetEntry("install_profile.json").Open()).GetAwaiter().GetResult());
                         Directory.CreateDirectory(versionFolder);
                         task.Progress = 0.04d;
                         // 释放 launcher_installer.json
@@ -2245,8 +2234,7 @@ public static class ModDownloadLib
                         try
                         {
                             // 释放 Forge 注入器
-                            LegacyFileFacade.WriteFile(Path.Combine(LauncherPaths.TempWithSlash, "Cache", "forge_installer.jar"),
-                                Basics.GetResourceStream("Resources/forge-installer.jar"));
+                            Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(LauncherPaths.TempWithSlash, "Cache", "forge_installer.jar")), Basics.GetResourceStream("Resources/forge-installer.jar")).GetAwaiter().GetResult();
                             task.Progress = 0.06d;
                             // 运行注入器
                             ForgelikeInjector(installerAddress, task, mcFolder, useJavaWrapper, forgeType);
@@ -2280,8 +2268,7 @@ public static class ModDownloadLib
                         if (deltaList.Count == 1)
                         {
                             var jsonFile = deltaList[0].EnumerateFiles().First();
-                            LegacyFileFacade.WriteFile(Path.Combine(versionFolder, targetVersion + ".json"),
-                                LegacyFileFacade.ReadText(jsonFile.FullName));
+                            Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(versionFolder, targetVersion + ".json")), Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(jsonFile.FullName)).GetAwaiter().GetResult()).GetAwaiter().GetResult();
                             LauncherLog.Log(
                                 $"[Download] 已拷贝新增的实例 Json 文件：{jsonFile.FullName} -> {versionFolder}{targetVersion}.json");
                         }
@@ -2333,11 +2320,11 @@ public static class ModDownloadLib
                     try
                     {
                         // 解压并获取信息
-                        LegacyFileFacade.WaitForFileReady(installerAddress);
+                        LauncherFileSystem.WaitForFileReady(installerAddress);
                         installer = new ZipArchive(new FileStream(installerAddress, FileMode.Open));
                         task.Progress = 0.2d;
                         var json = (JsonObject)JsonCompat.ParseNode(
-                            LegacyFileFacade.ReadText(installer.GetEntry("install_profile.json").Open()));
+                            Files.ReadAllTextOrEmptyAsync(installer.GetEntry("install_profile.json").Open()).GetAwaiter().GetResult());
                         task.Progress = 0.4d;
                         // 新建实例文件夹
                         Directory.CreateDirectory(versionFolder);
@@ -2348,16 +2335,16 @@ public static class ModDownloadLib
                             LauncherLog.Log("[Download] 开始进行 Forge 安装，Legacy 方式 1：" + installerAddress);
                             // 建立 Json 文件
                             var jsonVersion = (JsonObject)JsonCompat.ParseNode(
-                                LegacyFileFacade.ReadText(installer.GetEntry(json["json"].ToString().TrimStart('/')).Open()));
+                                Files.ReadAllTextOrEmptyAsync(installer.GetEntry(json["json"].ToString().TrimStart('/')).Open()).GetAwaiter().GetResult());
                             jsonVersion["id"] = targetVersion;
-                            LegacyFileFacade.WriteFile(Path.Combine(versionFolder, targetVersion + ".json"), jsonVersion.ToString());
+                            Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(versionFolder, targetVersion + ".json")), jsonVersion.ToString()).GetAwaiter().GetResult();
                             task.Progress = 0.6d;
                             // 解压支持库文件
                             installer.Dispose();
                             var unrarDir = Path.Combine(Path.GetDirectoryName(installerAddress), "_unrar");
-                            LegacyFileFacade.ExtractFile(installerAddress, unrarDir);
-                            LegacyFileFacade.CopyDirectory(Path.Combine(unrarDir, "maven"), Path.Combine(mcFolder, "libraries"));
-                            LegacyFileFacade.DeleteDirectory(unrarDir);
+                            Files.ExtractFileAsync(installerAddress, unrarDir).GetAwaiter().GetResult();
+                            Directories.CopyDirectoryAsync(Path.Combine(unrarDir, "maven"), Path.Combine(mcFolder, "libraries")).GetAwaiter().GetResult();
+                            Directories.DeleteDirectoryAsync(unrarDir).GetAwaiter().GetResult();
                         }
                         else
                         {
@@ -2368,14 +2355,13 @@ public static class ModDownloadLib
                                 customMcFolder: mcFolder);
                             if (File.Exists(jarAddress))
                                 File.Delete(jarAddress);
-                            LegacyFileFacade.WriteFile(jarAddress,
-                                installer.GetEntry((string)json["install"]["filePath"]).Open());
+                            Files.WriteFileAsync(LauncherFileSystem.ResolvePath(jarAddress), installer.GetEntry((string)json["install"]["filePath"]).Open()).GetAwaiter().GetResult();
                             task.Progress = 0.9d;
                             // 建立 Json 文件
                             json["versionInfo"]["id"] = targetVersion;
                             if (json["versionInfo"]["inheritsFrom"] is null)
                                 ((JsonObject)json["versionInfo"]).Add("inheritsFrom", inherit);
-                            LegacyFileFacade.WriteFile(Path.Combine(versionFolder, targetVersion + ".json"), json["versionInfo"].ToString());
+                            Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(versionFolder, targetVersion + ".json")), json["versionInfo"].ToString()).GetAwaiter().GetResult();
                         }
                     }
                     catch (Exception ex)
@@ -2393,7 +2379,7 @@ public static class ModDownloadLib
                                 File.Delete(installerAddress);
                             var unrarDir = Path.Combine(Path.GetDirectoryName(installerAddress), "_unrar");
                             if (Directory.Exists(unrarDir))
-                                LegacyFileFacade.DeleteDirectory(unrarDir);
+                                Directories.DeleteDirectoryAsync(unrarDir).GetAwaiter().GetResult();
                         }
                         catch (Exception ex)
                         {
@@ -2574,7 +2560,7 @@ public static class ModDownloadLib
                 if (recommendedList.Count < 5)
                     throw new Exception(Lang.Text("Minecraft.Download.Error.ForgeRecommendedTooFew", result));
                 var cacheJson = "{" + recommendedList.Join(",") + "}";
-                LegacyFileFacade.WriteFile(Path.Combine(LauncherPaths.TempWithSlash, "Cache", "ForgeRecommendedList.json"), cacheJson);
+                Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(LauncherPaths.TempWithSlash, "Cache", "ForgeRecommendedList.json")), cacheJson).GetAwaiter().GetResult();
                 LauncherLog.Log("[Download] 刷新 Forge 推荐版本缓存成功");
             }
             catch (Exception ex)
@@ -2595,7 +2581,7 @@ public static class ModDownloadLib
         {
             if (mcInstance is null)
                 return null;
-            var list = LegacyFileFacade.ReadText(Path.Combine(LauncherPaths.TempWithSlash, "Cache", "ForgeRecommendedList.json"));
+            var list = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(Path.Combine(LauncherPaths.TempWithSlash, "Cache", "ForgeRecommendedList.json"))).GetAwaiter().GetResult();
             if (list is null || string.IsNullOrEmpty(list))
             {
                 LauncherLog.Log("[Download] 没有 Forge 推荐版本缓存文件");
@@ -2857,8 +2843,8 @@ public static class ModDownloadLib
         try
         {
             var url = downloadInfo["url"].ToString();
-            var fileName = LegacyFileFacade.GetFileNameFromPath(url);
-            var version = LegacyFileFacade.GetFileNameFromPath(downloadInfo["version"].ToString());
+            var fileName = PathUtils.GetFileNameFromUrlOrPath(url);
+            var version = PathUtils.GetFileNameFromUrlOrPath(downloadInfo["version"].ToString());
             var target = SystemDialogs.SelectSaveFile(Lang.Text("Download.Version.SelectSaveLocation"), fileName, Lang.Text("Download.Version.Installer.Fabric.Filter"));
             if (!target.Contains(@"\"))
                 return;
@@ -2983,8 +2969,8 @@ public static class ModDownloadLib
         try
         {
             var url = downloadInfo["url"].ToString();
-            var fileName = LegacyFileFacade.GetFileNameFromPath(url);
-            var version = LegacyFileFacade.GetFileNameFromPath(downloadInfo["version"].ToString());
+            var fileName = PathUtils.GetFileNameFromUrlOrPath(url);
+            var version = PathUtils.GetFileNameFromUrlOrPath(downloadInfo["version"].ToString());
             var target = SystemDialogs.SelectSaveFile(Lang.Text("Download.Version.SelectSaveLocation"), fileName, Lang.Text("Download.Version.Installer.LegacyFabric.Filter"));
             if (!target.Contains(@"\"))
                 return;
@@ -3208,8 +3194,8 @@ public static class ModDownloadLib
         try
         {
             var url = downloadInfo["url"].ToString();
-            var fileName = LegacyFileFacade.GetFileNameFromPath(url);
-            var version = LegacyFileFacade.GetFileNameFromPath(downloadInfo["version"].ToString());
+            var fileName = PathUtils.GetFileNameFromUrlOrPath(url);
+            var version = PathUtils.GetFileNameFromUrlOrPath(downloadInfo["version"].ToString());
             var target = SystemDialogs.SelectSaveFile(Lang.Text("Download.Version.SelectSaveLocation"), fileName, Lang.Text("Download.Version.Installer.Quilt.Filter"));
             if (!target.Contains(@"\"))
                 return;
@@ -3542,7 +3528,7 @@ public static class ModDownloadLib
         loadersLib.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
             Lang.Text("Minecraft.Download.Stage.AnalyzeVanillaAndLabyModLibrariesSide"), task =>
         {
-            LegacyFileFacade.WaitForFileReady(Path.Combine(versionFolder, versionName + ".json"));
+            LauncherFileSystem.WaitForFileReady(Path.Combine(versionFolder, versionName + ".json"));
             LauncherLog.Log("[Download] 开始分析原版与 LabyMod 支持库文件：" + versionFolder);
             task.output = ModLibrary.McLibNetFilesFromInstance(new McInstance(versionFolder));
         })
@@ -3574,9 +3560,9 @@ public static class ModDownloadLib
             // 顺手添加 Json 项目
             try
             {
-                var versionJson = (JsonObject)JsonCompat.ParseNode(LegacyFileFacade.ReadText(Path.Combine(versionFolder, versionName + ".json")));
+                var versionJson = (JsonObject)JsonCompat.ParseNode(Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(Path.Combine(versionFolder, versionName + ".json"))).GetAwaiter().GetResult());
                 versionJson.Add("clientVersion", id);
-                LegacyFileFacade.WriteFile(Path.Combine(versionFolder, versionName + ".json"), versionJson.ToString());
+                Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(versionFolder, versionName + ".json")), versionJson.ToString()).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
@@ -3834,13 +3820,13 @@ public static class ModDownloadLib
                 if (Config.Download.AutoSelectInstance)
                 {
                     var versionName = loader.name;
-                    LegacyIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "Version",
+                    LauncherIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "Version",
                         versionName.Remove(versionName.Length - 3, 3));
                 }
 
-                LegacyIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache",
+                LauncherIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache",
                     ""); // 清空缓存（合并安装会先生成文件夹，这会在刷新时误判为可以使用缓存）
-                LegacyFileFacade.DeleteDirectory($"{combo.input}PCLInstallBackups\\");
+                Directories.DeleteDirectoryAsync($"{combo.input}PCLInstallBackups\\").GetAwaiter().GetResult();
                 HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Success")}",
                     HintType.Success);
                 break;
@@ -3867,12 +3853,9 @@ public static class ModDownloadLib
                 Directory.Exists(
                     $"{combo.input}PCLInstallBackups\\")) // 实例修改失败回滚
         {
-            LegacyFileFacade.CopyDirectory(
-                $"{combo.input}PCLInstallBackups\\",
-                (string)combo.input);
+            Directories.CopyDirectoryAsync($"{combo.input}PCLInstallBackups\\", (string)combo.input).GetAwaiter().GetResult();
             File.Delete($"{combo.input}.pclignore");
-            LegacyFileFacade.DeleteDirectory(
-                $"{combo.input}PCLInstallBackups\\");
+            Directories.DeleteDirectoryAsync($"{combo.input}PCLInstallBackups\\").GetAwaiter().GetResult();
         }
         else
         {
@@ -3895,7 +3878,7 @@ public static class ModDownloadLib
                 LauncherLog.Log($"[Download] 由于下载失败或取消，清理实例文件夹：{((ModLoader.LoaderCombo)loader).input}", LauncherLogLevel.Developer);
                 var instancePath = (string)((ModLoader.LoaderCombo)loader).input;
                     ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(instancePath);
-                    LegacyFileFacade.DeleteDirectory(instancePath);
+                    Directories.DeleteDirectoryAsync(instancePath).GetAwaiter().GetResult();
             }
         }
         catch (Exception ex)
@@ -3948,7 +3931,7 @@ public static class ModDownloadLib
                     {
                         ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance))
                             .InvalidateCache(request.targetInstanceFolder);
-                        LegacyFileFacade.DeleteDirectory(request.targetInstanceFolder);
+                        Directories.DeleteDirectoryAsync(request.targetInstanceFolder).GetAwaiter().GetResult();
                     }
                 }
             }
@@ -3975,7 +3958,7 @@ public static class ModDownloadLib
         // 获取参数
         var instanceFolder = Path.Combine(ModFolder.mcFolderSelected, "versions", request.targetInstanceName);
         if (Directory.Exists(tempMcFolder))
-            LegacyFileFacade.DeleteDirectory(tempMcFolder);
+            Directories.DeleteDirectoryAsync(tempMcFolder).GetAwaiter().GetResult();
         string optiFineFolder = null;
         if (request.optiFineVersion is not null)
         {
@@ -4076,7 +4059,7 @@ public static class ModDownloadLib
         var loaderList = new List<ModLoader.LoaderBase>();
         // 添加忽略标识
         loaderList.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Minecraft.Download.Stage.AddIgnoreFlag"),
-                _ => LegacyFileFacade.WriteFile(Path.Combine(instanceFolder, ".pclignore"), "用于临时地在 PCL 的实例列表中屏蔽此实例。"))
+                _ => Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(instanceFolder, ".pclignore")), "用于临时地在 PCL 的实例列表中屏蔽此实例。").GetAwaiter().GetResult())
             { show = false, block = false });
         // Fabric API
         if (request.fabricApi is not null)
@@ -4242,13 +4225,13 @@ public static class ModDownloadLib
             task.Progress = 0.2d;
             // 迁移文件
             if (Directory.Exists(Path.Combine(tempMcFolder, "libraries")))
-                LegacyFileFacade.CopyDirectory(Path.Combine(tempMcFolder, "libraries"), Path.Combine(ModFolder.mcFolderSelected, "libraries"));
+                Directories.CopyDirectoryAsync(Path.Combine(tempMcFolder, "libraries"), Path.Combine(ModFolder.mcFolderSelected, "libraries")).GetAwaiter().GetResult();
             task.Progress = 0.8d;
             // 创建 Mod 和资源包文件夹
             var modsFolder = Path.Combine(new McInstance(instanceFolder).PathIndie, "mods"); // 版本隔离信息在此时被决定
             if (Directory.Exists(modsTempFolder))
             {
-                LegacyFileFacade.CopyDirectory(modsTempFolder, modsFolder);
+                Directories.CopyDirectoryAsync(modsTempFolder, modsFolder).GetAwaiter().GetResult();
             }
             else if (modable)
             {
@@ -4374,13 +4357,13 @@ public static class ModDownloadLib
 
         if (!outputFolder.EndsWithF(@"\"))
             outputFolder += @"\";
-        outputName = LegacyFileFacade.GetFolderNameFromPath(outputFolder);
+        outputName = PathUtils.GetDirectoryNameLeaf(outputFolder);
         outputJsonPath = Path.Combine(outputFolder, outputName + ".json");
         outputJar = Path.Combine(outputFolder, outputName + ".jar");
 
         if (!minecraftFolder.EndsWithF(@"\"))
             minecraftFolder += @"\";
-        minecraftName = LegacyFileFacade.GetFolderNameFromPath(minecraftFolder);
+        minecraftName = PathUtils.GetDirectoryNameLeaf(minecraftFolder);
         minecraftJsonPath = Path.Combine(minecraftFolder, minecraftName + ".json");
         minecraftJar = Path.Combine(minecraftFolder, minecraftName + ".jar");
 
@@ -4388,7 +4371,7 @@ public static class ModDownloadLib
         {
             if (!optiFineFolder.EndsWithF(@"\"))
                 optiFineFolder += @"\";
-            optiFineName = LegacyFileFacade.GetFolderNameFromPath(optiFineFolder);
+            optiFineName = PathUtils.GetDirectoryNameLeaf(optiFineFolder);
             optiFineJsonPath = Path.Combine(optiFineFolder, optiFineName + ".json");
         }
 
@@ -4396,7 +4379,7 @@ public static class ModDownloadLib
         {
             if (!forgeFolder.EndsWithF(@"\"))
                 forgeFolder += @"\";
-            forgeName = LegacyFileFacade.GetFolderNameFromPath(forgeFolder);
+            forgeName = PathUtils.GetDirectoryNameLeaf(forgeFolder);
             forgeJsonPath = Path.Combine(forgeFolder, forgeName + ".json");
         }
 
@@ -4404,7 +4387,7 @@ public static class ModDownloadLib
         {
             if (!neoForgeFolder.EndsWithF(@"\"))
                 neoForgeFolder += @"\";
-            neoForgeName = LegacyFileFacade.GetFolderNameFromPath(neoForgeFolder);
+            neoForgeName = PathUtils.GetDirectoryNameLeaf(neoForgeFolder);
             neoForgeJsonPath = Path.Combine(neoForgeFolder, neoForgeName + ".json");
         }
 
@@ -4412,7 +4395,7 @@ public static class ModDownloadLib
         {
             if (!cleanroomFolder.EndsWithF(@"\"))
                 cleanroomFolder += @"\";
-            cleanroomName = LegacyFileFacade.GetFolderNameFromPath(cleanroomFolder);
+            cleanroomName = PathUtils.GetDirectoryNameLeaf(cleanroomFolder);
             cleanroomJsonPath = Path.Combine(cleanroomFolder, cleanroomName + ".json");
         }
 
@@ -4420,7 +4403,7 @@ public static class ModDownloadLib
         {
             if (!liteLoaderFolder.EndsWithF(@"\"))
                 liteLoaderFolder += @"\";
-            liteLoaderName = LegacyFileFacade.GetFolderNameFromPath(liteLoaderFolder);
+            liteLoaderName = PathUtils.GetDirectoryNameLeaf(liteLoaderFolder);
             liteLoaderJsonPath = Path.Combine(liteLoaderFolder, liteLoaderName + ".json");
         }
 
@@ -4428,7 +4411,7 @@ public static class ModDownloadLib
         {
             if (!fabricFolder.EndsWithF(@"\"))
                 fabricFolder += @"\";
-            fabricName = LegacyFileFacade.GetFolderNameFromPath(fabricFolder);
+            fabricName = PathUtils.GetDirectoryNameLeaf(fabricFolder);
             fabricJsonPath = Path.Combine(fabricFolder, fabricName + ".json");
         }
 
@@ -4436,7 +4419,7 @@ public static class ModDownloadLib
         {
             if (!legacyFabricFolder.EndsWithF(@"\"))
                 legacyFabricFolder += @"\";
-            legacyFabricName = LegacyFileFacade.GetFolderNameFromPath(legacyFabricFolder);
+            legacyFabricName = PathUtils.GetDirectoryNameLeaf(legacyFabricFolder);
             legacyFabricJsonPath = Path.Combine(legacyFabricFolder, legacyFabricName + ".json");
         }
 
@@ -4444,7 +4427,7 @@ public static class ModDownloadLib
         {
             if (!quiltFolder.EndsWithF(@"\"))
                 quiltFolder += @"\";
-            quiltName = LegacyFileFacade.GetFolderNameFromPath(quiltFolder);
+            quiltName = PathUtils.GetDirectoryNameLeaf(quiltFolder);
             quiltJsonPath = Path.Combine(quiltFolder, quiltName + ".json");
         }
 
@@ -4452,7 +4435,7 @@ public static class ModDownloadLib
         {
             if (!labyModFolder.EndsWithF(@"\"))
                 labyModFolder += @"\";
-            labyModName = LegacyFileFacade.GetFolderNameFromPath(labyModFolder);
+            labyModName = PathUtils.GetDirectoryNameLeaf(labyModFolder);
             labyModJsonPath = Path.Combine(labyModFolder, labyModName + ".json");
         }
 
@@ -4472,7 +4455,7 @@ public static class ModDownloadLib
 
         #region 读取文件并检查文件是否合规
 
-        var minecraftJsonText = LegacyFileFacade.ReadText(minecraftJsonPath);
+        var minecraftJsonText = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(minecraftJsonPath)).GetAwaiter().GetResult();
         if (!hasLabyMod)
         {
             if (!minecraftJsonText.StartsWithF("{"))
@@ -4483,7 +4466,7 @@ public static class ModDownloadLib
 
         if (hasOptiFine)
         {
-            var optiFineJsonText = LegacyFileFacade.ReadText(optiFineJsonPath);
+            var optiFineJsonText = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(optiFineJsonPath)).GetAwaiter().GetResult();
             if (!optiFineJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "OptiFine", optiFineJsonPath,
                     optiFineJsonText.Substring(0, Math.Min(optiFineJsonText.Length, 1000))));
@@ -4492,7 +4475,7 @@ public static class ModDownloadLib
 
         if (hasForge)
         {
-            var forgeJsonText = LegacyFileFacade.ReadText(forgeJsonPath);
+            var forgeJsonText = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(forgeJsonPath)).GetAwaiter().GetResult();
             if (!forgeJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Forge", forgeJsonPath,
                     forgeJsonText.Substring(0, Math.Min(forgeJsonText.Length, 1000))));
@@ -4501,7 +4484,7 @@ public static class ModDownloadLib
 
         if (hasNeoForge)
         {
-            var neoForgeJsonText = LegacyFileFacade.ReadText(neoForgeJsonPath);
+            var neoForgeJsonText = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(neoForgeJsonPath)).GetAwaiter().GetResult();
             if (!neoForgeJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "NeoForge", neoForgeJsonPath,
                     neoForgeJsonText.Substring(0, Math.Min(neoForgeJsonText.Length, 1000))));
@@ -4510,7 +4493,7 @@ public static class ModDownloadLib
 
         if (hasCleanroom)
         {
-            var cleanroomJsonText = LegacyFileFacade.ReadText(cleanroomJsonPath);
+            var cleanroomJsonText = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(cleanroomJsonPath)).GetAwaiter().GetResult();
             if (!cleanroomJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Cleanroom", cleanroomJsonPath,
                     cleanroomJsonText.Substring(0, Math.Min(cleanroomJsonText.Length, 1000))));
@@ -4519,7 +4502,7 @@ public static class ModDownloadLib
 
         if (hasLiteLoader)
         {
-            var liteLoaderJsonText = LegacyFileFacade.ReadText(liteLoaderJsonPath);
+            var liteLoaderJsonText = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(liteLoaderJsonPath)).GetAwaiter().GetResult();
             if (!liteLoaderJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "LiteLoader", liteLoaderJsonPath,
                     liteLoaderJsonText.Substring(0, Math.Min(liteLoaderJsonText.Length, 1000))));
@@ -4528,7 +4511,7 @@ public static class ModDownloadLib
 
         if (hasFabric)
         {
-            var fabricJsonText = LegacyFileFacade.ReadText(fabricJsonPath);
+            var fabricJsonText = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(fabricJsonPath)).GetAwaiter().GetResult();
             if (!fabricJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Fabric", fabricJsonPath,
                     fabricJsonText.Substring(0, Math.Min(fabricJsonText.Length, 1000))));
@@ -4537,7 +4520,7 @@ public static class ModDownloadLib
 
         if (hasLegacyFabric)
         {
-            var legacyFabricJsonText = LegacyFileFacade.ReadText(legacyFabricJsonPath);
+            var legacyFabricJsonText = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(legacyFabricJsonPath)).GetAwaiter().GetResult();
             if (!legacyFabricJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Legacy Fabric", fabricJsonPath,
                     legacyFabricJsonText.Substring(0, Math.Min(legacyFabricJsonText.Length, 1000))));
@@ -4546,7 +4529,7 @@ public static class ModDownloadLib
 
         if (hasQuilt)
         {
-            var quiltJsonText = LegacyFileFacade.ReadText(quiltJsonPath);
+            var quiltJsonText = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(quiltJsonPath)).GetAwaiter().GetResult();
             if (!quiltJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "Quilt", quiltJsonPath,
                     quiltJsonText.Substring(0, Math.Min(quiltJsonText.Length, 1000))));
@@ -4555,7 +4538,7 @@ public static class ModDownloadLib
 
         if (hasLabyMod)
         {
-            var labyModJsonText = LegacyFileFacade.ReadText(labyModJsonPath);
+            var labyModJsonText = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(labyModJsonPath)).GetAwaiter().GetResult();
             if (!labyModJsonText.StartsWithF("{"))
                 throw new Exception(Lang.Text("Minecraft.Download.Error.JsonInvalid", "LabyMod", labyModJsonPath,
                     labyModJsonText.Substring(0, Math.Min(labyModJsonText.Length, 1000))));
@@ -4773,12 +4756,12 @@ public static class ModDownloadLib
 
         #region 保存
 
-        LegacyFileFacade.WriteFile(outputJsonPath, outputJson.ToString());
+        Files.WriteFileAsync(LauncherFileSystem.ResolvePath(outputJsonPath), outputJson.ToString()).GetAwaiter().GetResult();
         if ((minecraftJar ?? "") != (outputJar ?? "")) // 可能是同一个文件
         {
             if (File.Exists(outputJar))
                 File.Delete(outputJar);
-            LegacyFileFacade.CopyFile(minecraftJar, outputJar);
+            Files.CopyFileAsync(LauncherFileSystem.ResolvePath(minecraftJar), LauncherFileSystem.ResolvePath(outputJar)).GetAwaiter().GetResult();
         }
 
         LauncherLog.Log("[Download] 实例合并 " + outputName + " 完成");

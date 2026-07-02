@@ -111,7 +111,7 @@ public partial class MySkin
         try
         {
             var fileAddress = SystemDialogs.SelectSaveFile(Lang.Text("Launch.Skin.SaveDialog.Title"),
-                LegacyFileFacade.GetFileNameFromPath(address),
+                PathUtils.GetFileNameFromUrlOrPath(address),
                 Lang.Text("Launch.Skin.SaveDialog.Filter"));
             if (!fileAddress.Contains(@"\")) return;
             File.Delete(fileAddress);
@@ -122,7 +122,7 @@ public partial class MySkin
             }
             else
             {
-                LegacyFileFacade.CopyFile(address, fileAddress);
+                Files.CopyFileAsync(LauncherFileSystem.ResolvePath(address), LauncherFileSystem.ResolvePath(fileAddress)).GetAwaiter().GetResult();
             }
 
             HintService.Hint(Lang.Text("Launch.Skin.SaveSuccess"), HintType.Success);
@@ -297,12 +297,12 @@ public partial class MySkin
                     HintService.Hint(Lang.Text("Launch.Skin.Refreshing"));
                     LauncherLog.Log("[Skin] 正在清空皮肤缓存");
                     if (Directory.Exists(LauncherPaths.TempWithSlash + @"Cache\Skin"))
-                        LegacyFileFacade.DeleteDirectory(LauncherPaths.TempWithSlash + @"Cache\Skin");
+                        Directories.DeleteDirectoryAsync(LauncherPaths.TempWithSlash + @"Cache\Skin").GetAwaiter().GetResult();
                     if (Directory.Exists(LauncherPaths.TempWithSlash + @"Cache\Uuid"))
-                        LegacyFileFacade.DeleteDirectory(LauncherPaths.TempWithSlash + @"Cache\Uuid");
-                    LegacyIniStore.Shared.ClearCache(LauncherPaths.TempWithSlash + @"Cache\Skin\IndexMs.ini");
-                    LegacyIniStore.Shared.ClearCache(LauncherPaths.TempWithSlash + @"Cache\Skin\IndexAuth.ini");
-                    LegacyIniStore.Shared.ClearCache(LauncherPaths.TempWithSlash + @"Cache\Uuid\Mojang.ini");
+                        Directories.DeleteDirectoryAsync(LauncherPaths.TempWithSlash + @"Cache\Uuid").GetAwaiter().GetResult();
+                    LauncherIniStore.Shared.ClearCache(LauncherPaths.TempWithSlash + @"Cache\Skin\IndexMs.ini");
+                    LauncherIniStore.Shared.ClearCache(LauncherPaths.TempWithSlash + @"Cache\Skin\IndexAuth.ini");
+                    LauncherIniStore.Shared.ClearCache(LauncherPaths.TempWithSlash + @"Cache\Uuid\Mojang.ini");
                     foreach (var SkinLoader in sender is not null
                                  ? new[] { sender }
                                  : new[] { PageLaunchLeft.skinLegacy, PageLaunchLeft.skinMs })
@@ -333,7 +333,7 @@ public partial class MySkin
         {
             try
             {
-                LegacyIniStore.Shared.Write(LauncherPaths.TempWithSlash + @"Cache\Skin\IndexMs.ini", ModProfile.selectedProfile.Uuid,
+                LauncherIniStore.Shared.Write(LauncherPaths.TempWithSlash + @"Cache\Skin\IndexMs.ini", ModProfile.selectedProfile.Uuid,
                     skinAddress);
                 LauncherLog.Log($"[Skin] 已写入皮肤地址缓存 {ModProfile.selectedProfile.Uuid} -> {skinAddress}");
                 foreach (var SkinLoader in new[] { PageLaunchLeft.skinMs, PageLaunchLeft.skinLegacy })

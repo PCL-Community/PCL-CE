@@ -96,8 +96,7 @@ public static class ModModpack
 
                     if (archive.GetEntry("manifest.json") is not null)
                     {
-                        var json = (JsonObject)JsonCompat.ParseNode(LegacyFileFacade.ReadText(archive.GetEntry("manifest.json").Open(),
-                            Encoding.UTF8));
+                        var json = (JsonObject)JsonCompat.ParseNode(Files.ReadAllTextOrEmptyAsync(archive.GetEntry("manifest.json").Open(), Encoding.UTF8).GetAwaiter().GetResult());
                         if (json["addons"] is null)
                         {
                             packType = 0;
@@ -154,7 +153,7 @@ public static class ModModpack
 
                         if (fullNames[1] == "manifest.json")
                         {
-                            var json = (JsonObject)JsonCompat.ParseNode(LegacyFileFacade.ReadText(Entry.Open(), Encoding.UTF8));
+                            var json = (JsonObject)JsonCompat.ParseNode(Files.ReadAllTextOrEmptyAsync(Entry.Open(), Encoding.UTF8).GetAwaiter().GetResult());
                             if (json["addons"] is null)
                             {
                                 packType = 0;
@@ -261,11 +260,10 @@ public static class ModModpack
                 loader.Progress = initialProgress;
 
                 // 删除旧目录
-                LegacyFileFacade.DeleteDirectory(installTemp);
+                Directories.DeleteDirectoryAsync(installTemp).GetAwaiter().GetResult();
 
                 // 解压文件，ProgressIncrementHandler 通过 Lambda 更新进度
-                LegacyFileFacade.ExtractFile(fileAddress, installTemp, encode,
-                    delta => loader.Progress += delta * progressIncrement);
+                Files.ExtractFileAsync(fileAddress, installTemp, delta => loader.Progress += delta * progressIncrement).GetAwaiter().GetResult();
 
                 // 解压成功，更新进度并退出循环
                 loader.Progress = initialProgress + progressIncrement;
@@ -311,8 +309,7 @@ public static class ModModpack
         if (Directory.Exists(overridesFolder))
         {
             LauncherLog.Log($"[ModPack] 处理整合包覆写文件夹：{overridesFolder} → {versionFolder}");
-            LegacyFileFacade.CopyDirectory(overridesFolder, versionFolder,
-                delta => loader.Progress += delta * progressIncrement);
+            Directories.CopyDirectoryAsync(overridesFolder, versionFolder, delta => loader.Progress += delta * progressIncrement).GetAwaiter().GetResult();
         }
         else
         {
@@ -325,17 +322,17 @@ public static class ModModpack
         var versionIni = $@"{versionFolder}PCL\Setup.ini";
         if (File.Exists(overridesIni))
         {
-            LegacyIniStore.Shared.Write(overridesIni, "VersionArgumentIndie", 1.ToString()); // 开启版本隔离
-            LegacyIniStore.Shared.Write(overridesIni, "VersionArgumentIndieV2", true.ToString());
-            LegacyFileFacade.CopyFile(overridesIni, versionIni); // 覆写已有的 ini
+            LauncherIniStore.Shared.Write(overridesIni, "VersionArgumentIndie", 1.ToString()); // 开启版本隔离
+            LauncherIniStore.Shared.Write(overridesIni, "VersionArgumentIndieV2", true.ToString());
+            Files.CopyFileAsync(LauncherFileSystem.ResolvePath(overridesIni), LauncherFileSystem.ResolvePath(versionIni)).GetAwaiter().GetResult(); // 覆写已有的 ini
         }
         else
         {
-            LegacyIniStore.Shared.Write(versionIni, "VersionArgumentIndie", 1.ToString()); // 开启版本隔离
-            LegacyIniStore.Shared.Write(versionIni, "VersionArgumentIndieV2", true.ToString());
+            LauncherIniStore.Shared.Write(versionIni, "VersionArgumentIndie", 1.ToString()); // 开启版本隔离
+            LauncherIniStore.Shared.Write(versionIni, "VersionArgumentIndieV2", true.ToString());
         }
 
-        LegacyIniStore.Shared.ClearCache(versionIni); // 重置缓存，避免被安装过程中写入的 ini 覆盖
+        LauncherIniStore.Shared.ClearCache(versionIni); // 重置缓存，避免被安装过程中写入的 ini 覆盖
     }
 
     #region CurseForge
@@ -349,7 +346,7 @@ public static class ModModpack
         try
         {
             json = (JsonObject)JsonCompat.ParseNode(
-                LegacyFileFacade.ReadText(archive.GetEntry(archiveBaseFolder + "manifest.json").Open()));
+                Files.ReadAllTextOrEmptyAsync(archive.GetEntry(archiveBaseFolder + "manifest.json").Open()).GetAwaiter().GetResult());
         }
         catch (Exception ex)
         {
@@ -611,7 +608,7 @@ public static class ModModpack
                     File.Delete(Target);
                 }
 
-            if (File.Exists(fileAddress) && LegacyFileFacade.GetFileNameWithoutExtensionFromPath(fileAddress) == "modpack")
+            if (File.Exists(fileAddress) && PathUtils.GetFileNameWithoutExtensionFromUrlOrPath(fileAddress) == "modpack")
             {
                 LauncherLog.Log("[ModPack] 删除安装整合包文件：" + fileAddress);
                 File.Delete(fileAddress);
@@ -672,7 +669,7 @@ public static class ModModpack
         try
         {
             json = (JsonObject)JsonCompat.ParseNode(
-                LegacyFileFacade.ReadText(archive.GetEntry(archiveBaseFolder + "modrinth.index.json").Open()));
+                Files.ReadAllTextOrEmptyAsync(archive.GetEntry(archiveBaseFolder + "modrinth.index.json").Open()).GetAwaiter().GetResult());
         }
         catch (Exception ex)
         {
@@ -771,7 +768,7 @@ public static class ModModpack
                     {
                         if (ModMain.MyMsgBox(
                                 Lang.Text("Minecraft.Download.Modpack.OptionalFile.Message",
-                                    LegacyFileFacade.GetFileNameFromPath(File["path"].ToString())),
+                                    PathUtils.GetFileNameFromUrlOrPath(File["path"].ToString())),
                                 Lang.Text("Minecraft.Download.Modpack.OptionalFile.Title"),
                                 Lang.Text("Minecraft.Download.Modpack.OptionalFile.Download"),
                                 Lang.Text("Minecraft.Download.Modpack.OptionalFile.Skip")
@@ -850,7 +847,7 @@ public static class ModModpack
                     File.Delete(Target);
                 }
 
-            if (File.Exists(fileAddress) && LegacyFileFacade.GetFileNameWithoutExtensionFromPath(fileAddress) == "modpack")
+            if (File.Exists(fileAddress) && PathUtils.GetFileNameWithoutExtensionFromUrlOrPath(fileAddress) == "modpack")
             {
                 LauncherLog.Log("[ModPack] 删除安装整合包文件：" + fileAddress);
                 File.Delete(fileAddress);
@@ -910,7 +907,7 @@ public static class ModModpack
         try
         {
             json = (JsonObject)JsonCompat.ParseNode(
-                LegacyFileFacade.ReadText(archive.GetEntry(archiveBaseFolder + "modpack.json").Open(), Encoding.UTF8));
+                Files.ReadAllTextOrEmptyAsync(archive.GetEntry(archiveBaseFolder + "modpack.json").Open(), Encoding.UTF8).GetAwaiter().GetResult());
         }
         catch (Exception ex)
         {
@@ -992,7 +989,7 @@ public static class ModModpack
                         archive.GetEntry(archiveBaseFolder + "manifest.json");
             using (var stream = entry.Open())
             {
-                json = (JsonObject)JsonCompat.ParseNode(LegacyFileFacade.ReadText(stream, Encoding.UTF8));
+                json = (JsonObject)JsonCompat.ParseNode(Files.ReadAllTextOrEmptyAsync(stream, Encoding.UTF8).GetAwaiter().GetResult());
             }
         }
         catch (Exception ex)
@@ -1183,7 +1180,7 @@ public static class ModModpack
 
                 LauncherProcess.OpenExplorer(targetFolder);
                 // 加入文件夹列表
-                var instanceName = LegacyFileFacade.GetFolderNameFromPath(targetFolder);
+                var instanceName = PathUtils.GetDirectoryNameLeaf(targetFolder);
                 Directory.CreateDirectory(Path.Combine(targetFolder, ".minecraft"));
                 PageSelectLeft.AddFolder(
                     Path.Combine(targetFolder, ".minecraft", archiveBaseFolder.Replace("/", @"\").TrimStart('\\')), instanceName,
@@ -1251,7 +1248,7 @@ public static class ModModpack
             {
                 ExtractModpackFiles(targetFolder, fileAddress, task, 0.95d);
                 // 加入文件夹列表
-                PageSelectLeft.AddFolder(Path.Combine(targetFolder, archiveBaseFolder), LegacyFileFacade.GetFolderNameFromPath(targetFolder),
+                PageSelectLeft.AddFolder(Path.Combine(targetFolder, archiveBaseFolder), PathUtils.GetDirectoryNameLeaf(targetFolder),
                     false);
                 Thread.Sleep(400); // 避免文件争用
                 UiThread.Post(() => ModMain.frmMain.PageChange(FormMain.PageType.InstanceSelect));
@@ -1296,8 +1293,8 @@ public static class ModModpack
         try
         {
             packJson = (JsonObject)JsonCompat.ParseNode(
-                LegacyFileFacade.ReadText(archive.GetEntry(archiveBaseFolder + "mmc-pack.json").Open(), Encoding.UTF8));
-            packInstance = LegacyFileFacade.ReadText(archive.GetEntry(archiveBaseFolder + "instance.cfg").Open(), Encoding.UTF8);
+                Files.ReadAllTextOrEmptyAsync(archive.GetEntry(archiveBaseFolder + "mmc-pack.json").Open(), Encoding.UTF8).GetAwaiter().GetResult());
+            packInstance = Files.ReadAllTextOrEmptyAsync(archive.GetEntry(archiveBaseFolder + "instance.cfg").Open(), Encoding.UTF8).GetAwaiter().GetResult();
 
             #region JSON Patches
 
@@ -1315,8 +1312,7 @@ public static class ModModpack
                     foreach (var entry in archive.Entries)
                         if (!entry.FullName.EndsWith("/") && entry.FullName.StartsWith(archiveBaseFolder + "patches/"))
                         {
-                            var patch = (JsonObject)JsonCompat.ParseNode(LegacyFileFacade.ReadText(
-                                archive.GetEntry(entry.FullName).Open(), Encoding.UTF8));
+                            var patch = (JsonObject)JsonCompat.ParseNode(Files.ReadAllTextOrEmptyAsync(archive.GetEntry(entry.FullName).Open(), Encoding.UTF8).GetAwaiter().GetResult());
                             patches.Add(new KeyValuePair<JsonObject, int>(patch,
                                 (int)(patch["order"] is not null ? patch["order"] : 0)));
                         }
@@ -1563,7 +1559,7 @@ public static class ModModpack
                 if (File.Exists(mMCSetupFile))
                 {
                     List<string> lines = [];
-                    foreach (var Line in LegacyFileFacade.ReadText(mMCSetupFile).Split(new[] { "\r", "\n" },
+                    foreach (var Line in Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(mMCSetupFile)).GetAwaiter().GetResult().Split(new[] { "\r", "\n" },
                                  StringSplitOptions.RemoveEmptyEntries))
                     {
                         if (!Line.Contains("="))
@@ -1571,12 +1567,12 @@ public static class ModModpack
                         lines.Add(Line.BeforeFirst("=") + ":" + Line.AfterFirst("="));
                     }
 
-                    LegacyFileFacade.WriteFile(mMCSetupFile, lines.Join("\r\n"));
+                    Files.WriteFileAsync(LauncherFileSystem.ResolvePath(mMCSetupFile), lines.Join("\r\n")).GetAwaiter().GetResult();
                     // 读取文件
-                    if (Convert.ToBoolean(LegacyIniStore.Shared.Read(mMCSetupFile, "OverrideCommands",
+                    if (Convert.ToBoolean(LauncherIniStore.Shared.Read(mMCSetupFile, "OverrideCommands",
                             false.ToString())))
                     {
-                        var preLaunchCommand = LegacyIniStore.Shared.Read(mMCSetupFile, "PreLaunchCommand");
+                        var preLaunchCommand = LauncherIniStore.Shared.Read(mMCSetupFile, "PreLaunchCommand");
                         if (!string.IsNullOrEmpty(preLaunchCommand))
                         {
                             preLaunchCommand = preLaunchCommand.Replace(@"\""", "\"")
@@ -1589,37 +1585,36 @@ public static class ModModpack
                         }
                     }
 
-                    if (Convert.ToBoolean(LegacyIniStore.Shared.Read(mMCSetupFile, "JoinServerOnLaunch",
+                    if (Convert.ToBoolean(LauncherIniStore.Shared.Read(mMCSetupFile, "JoinServerOnLaunch",
                             false.ToString())))
                     {
-                        var serverAddress = LegacyIniStore.Shared.Read(mMCSetupFile, "JoinServerOnLaunchAddress")
+                        var serverAddress = LauncherIniStore.Shared.Read(mMCSetupFile, "JoinServerOnLaunchAddress")
                             .Replace(@"\""", "\"");
                         Config.Instance.ServerToEnter[versionFolder] = serverAddress;
                         LauncherLog.Log("[ModPack] 迁移 MultiMC 实例独立设置：自动进入服务器：" + serverAddress);
                     }
 
-                    if (Convert.ToBoolean(LegacyIniStore.Shared.Read(mMCSetupFile, "IgnoreJavaCompatibility",
+                    if (Convert.ToBoolean(LauncherIniStore.Shared.Read(mMCSetupFile, "IgnoreJavaCompatibility",
                             false.ToString())))
                     {
                         Config.Instance.IgnoreJavaCompatibility[versionFolder] = true;
                         LauncherLog.Log("[ModPack] 迁移 MultiMC 实例独立设置：忽略 Java 兼容性警告");
                     }
 
-                    var logo = Path.GetFileName(LegacyIniStore.Shared.Read(mMCSetupFile, "iconKey"));
+                    var logo = Path.GetFileName(LauncherIniStore.Shared.Read(mMCSetupFile, "iconKey"));
                     if (!string.IsNullOrEmpty(logo) && File.Exists($"{installTemp}{archiveBaseFolder}{logo}.png"))
                     {
                         States.Instance.IsLogoCustom[versionFolder] = true;
                         States.Instance.LogoPath[versionFolder] = @"PCL\Logo.png";
-                        LegacyFileFacade.CopyFile($"{installTemp}{archiveBaseFolder}{logo}.png",
-                            $@"{ModFolder.mcFolderSelected}versions\{instanceName}\PCL\Logo.png");
+                        Files.CopyFileAsync(LauncherFileSystem.ResolvePath($"{installTemp}{archiveBaseFolder}{logo}.png"), LauncherFileSystem.ResolvePath($@"{ModFolder.mcFolderSelected}versions\{instanceName}\PCL\Logo.png")).GetAwaiter().GetResult();
                         LauncherLog.Log($"[ModPack] 迁移 MultiMC 实例独立设置：实例图标（{logo}.png）");
                     }
 
                     // JVM 参数
-                    var jvmArgs = LegacyIniStore.Shared.Read(mMCSetupFile, "JvmArgs");
+                    var jvmArgs = LauncherIniStore.Shared.Read(mMCSetupFile, "JvmArgs");
                     if (!string.IsNullOrEmpty(jvmArgs))
                     {
-                        if (Convert.ToBoolean(LegacyIniStore.Shared.Read(mMCSetupFile, "OverrideJavaArgs",
+                        if (Convert.ToBoolean(LauncherIniStore.Shared.Read(mMCSetupFile, "OverrideJavaArgs",
                                 false.ToString())))
                         {
                             Config.Instance.JvmArgs[versionFolder] = jvmArgs;

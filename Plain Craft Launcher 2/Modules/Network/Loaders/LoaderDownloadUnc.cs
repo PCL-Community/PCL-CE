@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using PCL.Core.App;
 
 namespace PCL.Network.Loaders;
@@ -41,7 +41,7 @@ public class LoaderDownloadUnc : ModLoader.LoaderBase
         {
             cancellationToken.ThrowIfCancellationRequested();
             Directory.CreateDirectory(Path.GetDirectoryName(savePath) ?? throw new IOException("下载路径无效"));
-            LegacyFileFacade.CopyFile(unc, savePath);
+            Files.CopyFileAsync(LauncherFileSystem.ResolvePath(unc), LauncherFileSystem.ResolvePath(savePath)).GetAwaiter().GetResult();
             State = LoadState.Finished;
         }
         catch (OperationCanceledException)

@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -289,7 +289,7 @@ public partial class PageSetupUI
                 Lang.Text("Common.Dialog.Warning"), button2: Lang.Text("Common.Action.Cancel"),
                 isWarn: true) == 1)
         {
-            LegacyFileFacade.DeleteDirectory(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Pictures");
+            Directories.DeleteDirectoryAsync(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Pictures").GetAwaiter().GetResult();
             BackgroundRefresh(false, true);
             HintService.Hint(Lang.Text("Setup.Ui.Background.Clear.Success"), HintType.Success);
         }
@@ -306,7 +306,7 @@ public partial class PageSetupUI
         {
             // 获取可用的图片文件
             Directory.CreateDirectory(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Pictures\");
-            var pic = LegacyFileFacade.EnumerateFiles(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Pictures\").Where(file =>
+            var pic = Directories.EnumerateFilesOrEmptyAsync(PathUtils.ShortenPath(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Pictures\")).GetAwaiter().GetResult().Where(file =>
                     !(file.Extension.Equals(".ini", StringComparison.OrdinalIgnoreCase) ||
                       file.Extension.Equals(".db", StringComparison.OrdinalIgnoreCase))).Select(file => file.FullName)
                 .ToList();
@@ -380,7 +380,7 @@ public partial class PageSetupUI
                         _ = Config.Preference.Background.WallpaperSuitMode;
                         ModMain.frmMain.ImgBack.Visibility = Visibility.Visible;
                         if (isHint)
-                                HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", LegacyFileFacade.GetFileNameFromPath(address)), HintType.Success,
+                                HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", PathUtils.GetFileNameFromUrlOrPath(address)), HintType.Success,
                                 false);
                     }
                     catch (Exception ex)
@@ -395,7 +395,7 @@ public partial class PageSetupUI
                             ModMain.frmMain.VideoBack.Source = new Uri(address, UriKind.Absolute);
                             ModVideoBack.VideoPlay();
                             if (isHint)
-                            HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", LegacyFileFacade.GetFileNameFromPath(address)), HintType.Success,
+                            HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", PathUtils.GetFileNameFromUrlOrPath(address)), HintType.Success,
                                     false);
                         }
                         catch (Exception playEx)
@@ -432,7 +432,7 @@ public partial class PageSetupUI
         {
             // 拷贝文件
             File.Delete(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Logo.png");
-            LegacyFileFacade.CopyFile(fileName, LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Logo.png");
+            Files.CopyFileAsync(LauncherFileSystem.ResolvePath(fileName), LauncherFileSystem.ResolvePath(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Logo.png")).GetAwaiter().GetResult();
             // 设置当前显示
             ModMain.frmMain.ImageTitleLogo.Source = null; // 防止因为 Source 属性前后的值相同而不更新 (#5628)
             ModMain.frmMain.ImageTitleLogo.Source = LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Logo.png";
@@ -519,7 +519,7 @@ public partial class PageSetupUI
             {
                 // 拷贝文件
                 File.Delete(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Logo.png");
-                LegacyFileFacade.CopyFile(fileName, LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Logo.png");
+                Files.CopyFileAsync(LauncherFileSystem.ResolvePath(fileName), LauncherFileSystem.ResolvePath(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Logo.png")).GetAwaiter().GetResult();
                 goto Refresh;
             }
             catch (Exception ex)
@@ -571,7 +571,7 @@ public partial class PageSetupUI
             PanMusicVolume.Visibility = Visibility.Visible;
             PanMusicDetail.Visibility = Visibility.Visible;
             BtnMusicClear.Visibility = Visibility.Visible;
-            CardMusic.Title = Lang.Text("Setup.Ui.Music.TitleWithCount", LegacyFileFacade.EnumerateFiles(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Musics\").Count());
+            CardMusic.Title = Lang.Text("Setup.Ui.Music.TitleWithCount", Directories.EnumerateFilesOrEmptyAsync(PathUtils.ShortenPath(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Musics\")).GetAwaiter().GetResult().Count());
         }
         else
         {
@@ -600,7 +600,7 @@ public partial class PageSetupUI
                 // 删除文件
                 try
                 {
-                    LegacyFileFacade.DeleteDirectory(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Musics");
+                    Directories.DeleteDirectoryAsync(LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\Musics").GetAwaiter().GetResult();
                     // DisableSMTCSupport()
                     HintService.Hint(Lang.Text("Setup.Ui.Music.Delete.Success"), HintType.Success);
                 }

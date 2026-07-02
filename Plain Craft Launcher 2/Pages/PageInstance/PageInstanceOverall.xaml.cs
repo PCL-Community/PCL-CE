@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -241,7 +241,7 @@ public partial class PageInstanceOverall
                 PageInstanceLeft.McInstance.displayType = (McInstanceCardType)States.Instance.CardType[PageInstanceLeft.McInstance.PathInstance];
                 ModMain.frmInstanceLeft.RefreshModDisabled();
 
-                LegacyIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
+                LauncherIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
                 ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                     ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
             }
@@ -275,7 +275,7 @@ public partial class PageInstanceOverall
 
                 States.Instance.CardType[PageInstanceLeft.McInstance.PathInstance] =
                     (int)McInstanceCardType.Hidden;
-                LegacyIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
+                LauncherIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
                 ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                     ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
             }
@@ -337,8 +337,8 @@ public partial class PageInstanceOverall
             JsonObject jsonObject;
             try
             {
-                jsonObject = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(LegacyFileFacade.ReadText(PageInstanceLeft.McInstance.PathInstance +
-                                                                       PageInstanceLeft.McInstance.Name + ".json"));
+                jsonObject = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(PageInstanceLeft.McInstance.PathInstance +
+                                                                       PageInstanceLeft.McInstance.Name + ".json")).GetAwaiter().GetResult());
             }
             catch (Exception ex)
             {
@@ -350,7 +350,7 @@ public partial class PageInstanceOverall
             FileSystem.RenameDirectory(oldPath, tempName);
             FileSystem.RenameDirectory(tempPath, newName);
             // 清理 ini 缓存
-            LegacyIniStore.Shared.ClearCache(Path.Combine(PageInstanceLeft.McInstance.PathIndie, "options.txt"));
+            LauncherIniStore.Shared.ClearCache(Path.Combine(PageInstanceLeft.McInstance.PathIndie, "options.txt"));
             // 重命名 Jar 文件与 natives 文件夹
             // 不能进行遍历重命名，否则在实例名很短的时候容易误伤其他文件（Meloong-Git/#6443）
             if (Directory.Exists(Path.Combine(newPath, $"{oldName}-natives")))
@@ -362,7 +362,7 @@ public partial class PageInstanceOverall
                 }
                 else
                 {
-                    LegacyFileFacade.DeleteDirectory(Path.Combine(newPath, $"{newName}-natives"));
+                    Directories.DeleteDirectoryAsync(Path.Combine(newPath, $"{newName}-natives")).GetAwaiter().GetResult();
                     FileSystem.RenameDirectory(Path.Combine(newPath, $"{oldName}-natives"), $"{newName}-natives");
                 }
             }
@@ -383,16 +383,15 @@ public partial class PageInstanceOverall
 
             // 替换实例设置文件中的路径
             if (File.Exists(Path.Combine(newPath, "PCL", "Setup.ini")))
-                LegacyFileFacade.WriteFile(Path.Combine(newPath, "PCL", "Setup.ini"),
-                    LegacyFileFacade.ReadText(Path.Combine(newPath, "PCL", "Setup.ini")).Replace(oldPath, newPath));
+                Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(newPath, "PCL", "Setup.ini")), Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(Path.Combine(newPath, "PCL", "Setup.ini"))).GetAwaiter().GetResult().Replace(oldPath, newPath)).GetAwaiter().GetResult();
             // 更改已选中的实例
-            if ((LegacyIniStore.Shared.Read(ModFolder.mcFolderSelected + "PCL.ini", "Version") ?? "") == (oldName ?? ""))
-                LegacyIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "Version", newName);
+            if ((LauncherIniStore.Shared.Read(ModFolder.mcFolderSelected + "PCL.ini", "Version") ?? "") == (oldName ?? ""))
+                LauncherIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "Version", newName);
             // 写入实例 Json，并删除旧的 Json
             try
             {
                 jsonObject["id"] = newName;
-                LegacyFileFacade.WriteFile(Path.Combine(newPath, $"{newName}.json"), jsonObject.ToString());
+                Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(newPath, $"{newName}.json")), jsonObject.ToString()).GetAwaiter().GetResult();
                 if (!isCaseChangedOnly)
                     File.Delete(Path.Combine(newPath, $"{oldName}.json"));
             }
@@ -406,7 +405,7 @@ public partial class PageInstanceOverall
             PageInstanceLeft.McInstance = new McInstance(newName).Load();
             if (ModInstanceList.McMcInstanceSelected is not null &&
                 ModInstanceList.McMcInstanceSelected.Equals(PageInstanceLeft.McInstance))
-                LegacyIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "Version", newName);
+                LauncherIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "Version", newName);
             Reload();
             ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
@@ -438,7 +437,7 @@ public partial class PageInstanceOverall
                     return;
                 }
 
-                LegacyFileFacade.CopyFile(fileName, PageInstanceLeft.McInstance.PathInstance + @"PCL\Logo.png");
+                Files.CopyFileAsync(LauncherFileSystem.ResolvePath(fileName), LauncherFileSystem.ResolvePath(PageInstanceLeft.McInstance.PathInstance + @"PCL\Logo.png")).GetAwaiter().GetResult();
             }
             else
             {
@@ -461,7 +460,7 @@ public partial class PageInstanceOverall
             States.Instance.LogoPath[PageInstanceLeft.McInstance.PathInstance] = newLogo;
             States.Instance.IsLogoCustom[PageInstanceLeft.McInstance.PathInstance] = !string.IsNullOrEmpty(newLogo);
             // 刷新显示
-            LegacyIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
+            LauncherIniStore.Shared.Write(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
             PageInstanceLeft.McInstance = new McInstance(PageInstanceLeft.McInstance.Name).Load();
             Reload();
             ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
@@ -656,12 +655,10 @@ public partial class PageInstanceOverall
                 return;
 
             // 备份实例核心文件
-            LegacyFileFacade.CopyFile(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name + ".json",
-                PageInstanceLeft.McInstance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.McInstance.Name +
-                ".json");
-            LegacyFileFacade.CopyFile(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name + ".jar",
-                PageInstanceLeft.McInstance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.McInstance.Name +
-                ".jar");
+            Files.CopyFileAsync(LauncherFileSystem.ResolvePath(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name + ".json"), LauncherFileSystem.ResolvePath(PageInstanceLeft.McInstance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.McInstance.Name +
+                ".json")).GetAwaiter().GetResult();
+            Files.CopyFileAsync(LauncherFileSystem.ResolvePath(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name + ".jar"), LauncherFileSystem.ResolvePath(PageInstanceLeft.McInstance.PathInstance + @"PCLInstallBackups\" + PageInstanceLeft.McInstance.Name +
+                ".jar")).GetAwaiter().GetResult();
             // 提交安装申请
             var request = new ModDownloadLib.McInstallRequest
             {
@@ -760,12 +757,12 @@ public partial class PageInstanceOverall
                 {
                     var instancePath = PageInstanceLeft.McInstance.PathInstance;
                     var instanceName = PageInstanceLeft.McInstance.Name;
-                    LegacyIniStore.Shared.ClearCache(Path.Combine(PageInstanceLeft.McInstance.PathIndie, "options.txt"));
+                    LauncherIniStore.Shared.ClearCache(Path.Combine(PageInstanceLeft.McInstance.PathIndie, "options.txt"));
                     ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
                         instancePath);
                     if (isShiftPressed)
                     {
-                        LegacyFileFacade.DeleteDirectory(instancePath);
+                        Directories.DeleteDirectoryAsync(instancePath).GetAwaiter().GetResult();
                         HintService.Hint(Lang.Text("Instance.Overall.Delete.PermanentSuccess", instanceName),
                             HintType.Success);
                     }

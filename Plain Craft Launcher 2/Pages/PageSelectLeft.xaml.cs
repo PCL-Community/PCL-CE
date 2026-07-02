@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -415,16 +415,16 @@ public partial class PageSelectLeft : IRefreshable
             try
             {
                 if (!folderPath.EndsWith(@"\")) folderPath += @"\";
-                if (!LegacyFileFacade.CheckPermission(folderPath))
+                if (!Directories.CheckPermissionAsync(folderPath).GetAwaiter().GetResult())
                 {
                     if (!showHint) throw new Exception("PCL 没有访问文件夹的权限：" + folderPath);
                     HintService.Hint(Lang.Text("Select.Folder.AccessDenied"), HintType.Error);
                     return;
                 }
 
-                if (!LegacyFileFacade.CheckPermission(folderPath + @"versions\"))
+                if (!Directories.CheckPermissionAsync(folderPath + @"versions\").GetAwaiter().GetResult())
                     foreach (var Folder in new DirectoryInfo(folderPath).GetDirectories())
-                        if (LegacyFileFacade.CheckPermission(Path.Combine(Folder.FullName, "versions")))
+                        if (Directories.CheckPermissionAsync(Path.Combine(Folder.FullName, "versions")).GetAwaiter().GetResult())
                         {
                             folderPath = Folder.FullName + @"\";
                             break;
@@ -626,7 +626,7 @@ public partial class PageSelectLeft : IRefreshable
             try
             {
                 HintService.Hint(inProgress);
-                LegacyFileFacade.DeleteDirectory(folder.Location);
+                Directories.DeleteDirectoryAsync(folder.Location).GetAwaiter().GetResult();
                 if (isClearing)
                     Directory.CreateDirectory(folder.Location);
                 HintService.Hint(success, HintType.Success);
@@ -666,7 +666,7 @@ public partial class PageSelectLeft : IRefreshable
 
     public static void RefreshCurrent(string folder)
     {
-        LegacyIniStore.Shared.Write(Path.Combine(folder, "PCL.ini"), "InstanceCache", "");
+        LauncherIniStore.Shared.Write(Path.Combine(folder, "PCL.ini"), "InstanceCache", "");
         if (folder == ModFolder.mcFolderSelected)
             ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");

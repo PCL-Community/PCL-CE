@@ -2218,7 +2218,7 @@ public static class ModLaunch
 
     private static void WriteJavaWrapper(string path)
     {
-        LegacyFileFacade.WriteFile(path, Basics.GetResourceStream("Resources/java-wrapper.jar"));
+        Files.WriteFileAsync(LauncherFileSystem.ResolvePath(path), Basics.GetResourceStream("Resources/java-wrapper.jar")).GetAwaiter().GetResult();
     }
 
     /// <summary>
@@ -2262,7 +2262,7 @@ public static class ModLaunch
 
     private static void WriteLinkD(string path)
     {
-        LegacyFileFacade.WriteFile(path, Basics.GetResourceStream("Resources/linkd.exe"));
+        Files.WriteFileAsync(LauncherFileSystem.ResolvePath(path), Basics.GetResourceStream("Resources/linkd.exe")).GetAwaiter().GetResult();
     }
 
     /// <summary>
@@ -2749,9 +2749,8 @@ public static class ModLaunch
                          " --tweakClass optifine.OptiFineForgeTweaker";
                 try
                 {
-                    LegacyFileFacade.WriteFile(Path.Combine(version.PathInstance, version.Name + ".json"),
-                        LegacyFileFacade.ReadText(Path.Combine(version.PathInstance, version.Name + ".json"))
-                            .Replace("optifine.OptiFineTweaker", "optifine.OptiFineForgeTweaker"));
+                    Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(version.PathInstance, version.Name + ".json")), Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(Path.Combine(version.PathInstance, version.Name + ".json"))).GetAwaiter().GetResult()
+                            .Replace("optifine.OptiFineTweaker", "optifine.OptiFineForgeTweaker")).GetAwaiter().GetResult();
                 }
                 catch (Exception ex)
                 {
@@ -2840,9 +2839,8 @@ public static class ModLaunch
                     " --tweakClass optifine.OptiFineForgeTweaker";
                 try
                 {
-                    LegacyFileFacade.WriteFile(Path.Combine(instance.PathInstance, instance.Name + ".json"),
-                        LegacyFileFacade.ReadText(Path.Combine(instance.PathInstance, instance.Name + ".json"))
-                            .Replace("optifine.OptiFineTweaker", "optifine.OptiFineForgeTweaker"));
+                    Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(instance.PathInstance, instance.Name + ".json")), Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(Path.Combine(instance.PathInstance, instance.Name + ".json"))).GetAwaiter().GetResult()
+                            .Replace("optifine.OptiFineTweaker", "optifine.OptiFineForgeTweaker")).GetAwaiter().GetResult();
                 }
                 catch (Exception ex)
                 {
@@ -2862,11 +2860,11 @@ public static class ModLaunch
 
         // 基础参数
         gameArguments.Add("${classpath_separator}", ";");
-        gameArguments.Add("${natives_directory}", LegacyFileFacade.ShortenPath(GetNativesFolder()));
+        gameArguments.Add("${natives_directory}", PathUtils.ShortenPath(GetNativesFolder()));
         gameArguments.Add("${library_directory}",
-            LegacyFileFacade.ShortenPath(ModFolder.mcFolderSelected + "libraries"));
+            PathUtils.ShortenPath(ModFolder.mcFolderSelected + "libraries"));
         gameArguments.Add("${libraries_directory}",
-            LegacyFileFacade.ShortenPath(ModFolder.mcFolderSelected + "libraries"));
+            PathUtils.ShortenPath(ModFolder.mcFolderSelected + "libraries"));
         gameArguments.Add("${launcher_name}", "PCLCE");
         gameArguments.Add("${launcher_version}", LauncherEnvironment.VersionCode.ToString());
         gameArguments.Add("${version_name}", instance.Name);
@@ -2876,8 +2874,8 @@ public static class ModLaunch
                 ? Config.Launch.TypeInfo
                 : argumentInfo);
         gameArguments.Add("${game_directory}",
-            LegacyFileFacade.ShortenPath(ModInstanceList.McMcInstanceSelected.PathIndie[..^1]));
-        gameArguments.Add("${assets_root}", LegacyFileFacade.ShortenPath(ModFolder.mcFolderSelected + "assets"));
+            PathUtils.ShortenPath(ModInstanceList.McMcInstanceSelected.PathIndie[..^1]));
+        gameArguments.Add("${assets_root}", PathUtils.ShortenPath(ModFolder.mcFolderSelected + "assets"));
         gameArguments.Add("${user_properties}", "{}");
         gameArguments.Add("${auth_player_name}", mcLoginLoader.output.Name);
         gameArguments.Add("${auth_uuid}", mcLoginLoader.output.Uuid);
@@ -2929,7 +2927,7 @@ public static class ModLaunch
 
         // Assets 相关参数
         gameArguments.Add("${game_assets}",
-            LegacyFileFacade.ShortenPath(ModFolder.mcFolderSelected +
+            PathUtils.ShortenPath(ModFolder.mcFolderSelected +
                                          @"assets\virtual\legacy")); // 1.5.2 的 pre-1.6 资源索引应与 legacy 合并
         gameArguments.Add("${assets_index_name}", ModAssets.McAssetsGetIndexName(instance));
 
@@ -2945,7 +2943,7 @@ public static class ModLaunch
             var legacyFixPath = Path.Combine(LauncherPaths.PureAsciiDirectory, "legacyfix.jar");
             try
             {
-                LegacyFileFacade.WriteFile(legacyFixPath, Basics.GetResourceStream("Resources/legacyfix.jar"));
+                Files.WriteFileAsync(LauncherFileSystem.ResolvePath(legacyFixPath), Basics.GetResourceStream("Resources/legacyfix.jar")).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
@@ -2959,7 +2957,7 @@ public static class ModLaunch
             var agentPath = Path.Combine(LauncherPaths.PureAsciiDirectory, "lwjgl-unsafe-agent.jar");
             try
             {
-                LegacyFileFacade.WriteFile(agentPath, Basics.GetResourceStream("Resources/lwjgl-unsafe-agent.jar"));
+                Files.WriteFileAsync(LauncherFileSystem.ResolvePath(agentPath), Basics.GetResourceStream("Resources/lwjgl-unsafe-agent.jar")).GetAwaiter().GetResult();
                 cpStrings.Add(agentPath);
             }
             catch (Exception ex)
@@ -2993,7 +2991,7 @@ public static class ModLaunch
 
         if (optiFineCp is not null)
             cpStrings.Insert(cpStrings.Count - 2, optiFineCp); // OptiFine 的总是需要放到倒数第二位
-        gameArguments.Add("${classpath}", cpStrings.Select(c => LegacyFileFacade.ShortenPath(c)).Join(";"));
+        gameArguments.Add("${classpath}", cpStrings.Select(c => PathUtils.ShortenPath(c)).Join(";"));
 
         return gameArguments;
     }
@@ -3059,7 +3057,7 @@ public static class ModLaunch
                     }
 
                     // 解压新文件
-                    LegacyFileFacade.WriteFile(filePath, entry.Open());
+                    Files.WriteFileAsync(LauncherFileSystem.ResolvePath(filePath), entry.Open()).GetAwaiter().GetResult();
                     McLaunchLog("已解压：" + filePath);
                 }
             }
@@ -3174,10 +3172,9 @@ public static class ModLaunch
                 // 更新文件
                 var profiles =
                     (JsonObject)JsonCompat.ParseNode(
-                        LegacyFileFacade.ReadText(ModFolder.mcFolderSelected + "launcher_profiles.json"));
+                        Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(ModFolder.mcFolderSelected + "launcher_profiles.json")).GetAwaiter().GetResult());
                 profiles.Merge(replaceJson);
-                LegacyFileFacade.WriteFile(ModFolder.mcFolderSelected + "launcher_profiles.json", profiles.ToString(),
-                    encoding: Encoding.GetEncoding("GB18030"));
+                Files.WriteFileAsync(LauncherFileSystem.ResolvePath(ModFolder.mcFolderSelected + "launcher_profiles.json"), profiles.ToString(), encoding: Encoding.GetEncoding("GB18030")).GetAwaiter().GetResult();
                 McLaunchLog("已更新 launcher_profiles.json");
             }
             catch (Exception ex)
@@ -3210,11 +3207,9 @@ public static class ModLaunch
                     // 更新文件
                     var profiles =
                         (JsonObject)JsonCompat.ParseNode(
-                            LegacyFileFacade.ReadText(ModFolder.mcFolderSelected + "launcher_profiles.json"));
+                            Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(ModFolder.mcFolderSelected + "launcher_profiles.json")).GetAwaiter().GetResult());
                     profiles.Merge(replaceJson);
-                    LegacyFileFacade.WriteFile(ModFolder.mcFolderSelected + "launcher_profiles.json",
-                        profiles.ToString(),
-                        encoding: Encoding.GetEncoding("GB18030"));
+                    Files.WriteFileAsync(LauncherFileSystem.ResolvePath(ModFolder.mcFolderSelected + "launcher_profiles.json"), profiles.ToString(), encoding: Encoding.GetEncoding("GB18030")).GetAwaiter().GetResult();
                     McLaunchLog("已在删除后更新 launcher_profiles.json");
                 }
                 catch (Exception exx)
@@ -3242,7 +3237,7 @@ public static class ModLaunch
                 {
                     McLaunchLog("将修改 Yosbr Mod 中的 options.txt");
                     setupFileAddress = yosbrFileAddress;
-                    LegacyIniStore.Shared.Write(setupFileAddress, "lang", "none"); // 忽略默认语言
+                    LauncherIniStore.Shared.Write(setupFileAddress, "lang", "none"); // 忽略默认语言
                 }
             }
 
@@ -3254,7 +3249,7 @@ public static class ModLaunch
                 // 1.6 ~ 10 ：zh_CN 时正常，zh_cn 时自动切换为英文
                 // 1.11 ~ 12：zh_cn 时正常，zh_CN 时虽然显示了中文但语言设置会错误地显示选择英文
                 // 1.13+    ：zh_cn 时正常，zh_CN 时自动切换为英文
-                var currentLang = LegacyIniStore.Shared.Read(setupFileAddress, "lang", "none");
+                var currentLang = LauncherIniStore.Shared.Read(setupFileAddress, "lang", "none");
                 var isLanguageUnconfigured = string.Equals(currentLang, "none", StringComparison.OrdinalIgnoreCase);
                 var hasExistingSaves = Directory.Exists(Path.Combine(ModInstanceList.McMcInstanceSelected.PathIndie, "saves"));
                 var shouldUseDefault = isLanguageUnconfigured || !hasExistingSaves;
@@ -3267,15 +3262,15 @@ public static class ModLaunch
                 }
                 else
                 {
-                    LegacyIniStore.Shared.Write(setupFileAddress, "lang", "-"); // 触发缓存更改，避免删除后重新下载残留缓存
-                    LegacyIniStore.Shared.Write(setupFileAddress, "lang", requiredLang);
+                    LauncherIniStore.Shared.Write(setupFileAddress, "lang", "-"); // 触发缓存更改，避免删除后重新下载残留缓存
+                    LauncherIniStore.Shared.Write(setupFileAddress, "lang", requiredLang);
                     McLaunchLog($"已将语言从 {currentLang} 修改为 {requiredLang}");
                 }
 
                 // 如果是初次设置，一并按启动器语言需要修改 forceUnicodeFont，确保 CJK 字符正常显示
                 if ((isLanguageUnconfigured || !hasExistingSaves) && _ShouldEnableForceUnicodeFont())
                 {
-                    LegacyIniStore.Shared.Write(setupFileAddress, "forceUnicodeFont", "true");
+                    LauncherIniStore.Shared.Write(setupFileAddress, "forceUnicodeFont", "true");
                     McLaunchLog("已开启 forceUnicodeFont，确保当前启动器语言字体正常显示");
                 }
             }
@@ -3294,7 +3289,7 @@ public static class ModLaunch
         {
             case GameWindowSizeMode.Fullscreen: // 全屏
             {
-                LegacyIniStore.Shared.Write(setupFileAddress, "fullscreen", "true");
+                LauncherIniStore.Shared.Write(setupFileAddress, "fullscreen", "true");
                 break;
             }
             case GameWindowSizeMode.Default: // 默认
@@ -3305,7 +3300,7 @@ public static class ModLaunch
 
             default:
             {
-                LegacyIniStore.Shared.Write(setupFileAddress, "fullscreen", "false");
+                LauncherIniStore.Shared.Write(setupFileAddress, "fullscreen", "false");
                 break;
             }
         }
@@ -3377,14 +3372,11 @@ public static class ModLaunch
                 $"{(mcLaunchJavaSelected.Installation.MajorVersion > 8 ? "chcp 65001>nul" + "\r\n" : "")}" +
                 "@echo off" + "\r\n" + $"title 启动 - {ModInstanceList.McMcInstanceSelected.Name}" +
                 "\r\n" + "echo 游戏正在启动，请稍候。" + "\r\n" +
-                $"cd /D \"{LegacyFileFacade.ShortenPath(ModInstanceList.McMcInstanceSelected.PathIndie)}\"" + "\r\n" +
+                $"cd /D \"{PathUtils.ShortenPath(ModInstanceList.McMcInstanceSelected.PathIndie)}\"" + "\r\n" +
                 customCommandGlobal + "\r\n" + customCommandVersion + "\r\n" +
                 $"\"{mcLaunchJavaSelected.Installation.JavaExePath}\" {mcLaunchArgument}" + "\r\n" +
                 "echo 游戏已退出。" + "\r\n" + "pause";
-            LegacyFileFacade.WriteFile(
-                currentLaunchOptions.SaveBatch ?? LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\LatestLaunch.bat",
-                McLogFilter.FilterAccessToken(cmdString, 'F'),
-                encoding: mcLaunchJavaSelected.Installation.MajorVersion > 8 ? Encoding.UTF8 : Encoding.Default);
+            Files.WriteFileAsync(LauncherFileSystem.ResolvePath(currentLaunchOptions.SaveBatch ?? LauncherPaths.ExecutableDirectoryWithSlash + @"PCL\LatestLaunch.bat"), McLogFilter.FilterAccessToken(cmdString, 'F'), encoding: mcLaunchJavaSelected.Installation.MajorVersion > 8 ? Encoding.UTF8 : Encoding.Default).GetAwaiter().GetResult();
             if (currentLaunchOptions.SaveBatch is not null)
             {
                 McLaunchLog("导出启动脚本完成，强制结束启动过程");
@@ -3410,7 +3402,7 @@ public static class ModLaunch
             {
                 customProcess.StartInfo.FileName = "cmd.exe";
                 customProcess.StartInfo.Arguments = "/c \"" + customCommandGlobal + "\"";
-                customProcess.StartInfo.WorkingDirectory = LegacyFileFacade.ShortenPath(ModFolder.mcFolderSelected);
+                customProcess.StartInfo.WorkingDirectory = PathUtils.ShortenPath(ModFolder.mcFolderSelected);
                 customProcess.StartInfo.UseShellExecute = false;
                 customProcess.StartInfo.CreateNoWindow = true;
                 customProcess.Start();
@@ -3444,7 +3436,7 @@ public static class ModLaunch
             {
                 customProcess.StartInfo.FileName = "cmd.exe";
                 customProcess.StartInfo.Arguments = "/c \"" + customCommandVersion + "\"";
-                customProcess.StartInfo.WorkingDirectory = LegacyFileFacade.ShortenPath(ModFolder.mcFolderSelected);
+                customProcess.StartInfo.WorkingDirectory = PathUtils.ShortenPath(ModFolder.mcFolderSelected);
                 customProcess.StartInfo.UseShellExecute = false;
                 customProcess.StartInfo.CreateNoWindow = true;
                 customProcess.Start();
@@ -3484,12 +3476,12 @@ public static class ModLaunch
 
         // 设置环境变量
         var paths = new List<string>(startInfo.EnvironmentVariables["Path"].Split(";"));
-        paths.Add(LegacyFileFacade.ShortenPath(mcLaunchJavaSelected.Installation.JavaFolder));
+        paths.Add(PathUtils.ShortenPath(mcLaunchJavaSelected.Installation.JavaFolder));
         startInfo.EnvironmentVariables["Path"] = paths.Distinct().ToList().Join(";");
-        startInfo.EnvironmentVariables["appdata"] = LegacyFileFacade.ShortenPath(ModFolder.mcFolderSelected);
+        startInfo.EnvironmentVariables["appdata"] = PathUtils.ShortenPath(ModFolder.mcFolderSelected);
 
         // 设置其他参数
-        startInfo.WorkingDirectory = LegacyFileFacade.ShortenPath(ModInstanceList.McMcInstanceSelected.PathIndie);
+        startInfo.WorkingDirectory = PathUtils.ShortenPath(ModInstanceList.McMcInstanceSelected.PathIndie);
         startInfo.UseShellExecute = false;
         startInfo.RedirectStandardOutput = true;
         startInfo.RedirectStandardError = true;
@@ -3693,7 +3685,7 @@ public static class ModLaunch
             if (escapeHandler is null)
                 return s;
             if (s.Contains(@":\"))
-                s = LegacyFileFacade.ShortenPath(s);
+                s = PathUtils.ShortenPath(s);
             return escapeHandler(s);
         }
 

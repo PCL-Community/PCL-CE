@@ -141,7 +141,7 @@ public class MyImage : Image
 
         try
         {
-            Directory.CreateDirectory(LegacyFileFacade.GetPathFromFullPath(tempPath)); // 重新实现下载，以避免携带 Header（#5072）
+            Directory.CreateDirectory(PathUtils.GetDirectoryPart(tempPath)); // 重新实现下载，以避免携带 Header（#5072）
             using (var fs = new FileStream(tempDownloadingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
             {
                 using (var response = await HttpRequest.Create(url)

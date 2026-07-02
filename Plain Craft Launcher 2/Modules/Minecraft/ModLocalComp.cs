@@ -389,7 +389,7 @@ public static class ModLocalComp
         /// <summary>
         ///     Mod 资源的完整路径，去除最后的 .disabled 和 .old。
         /// </summary>
-        public string RawPath => LegacyFileFacade.GetPathFromFullPath(path) + RawFileName;
+        public string RawPath => PathUtils.GetDirectoryPart(path) + RawFileName;
 
         /// <summary>
         ///     资源的完整文件名。
@@ -400,7 +400,7 @@ public static class ModLocalComp
             {
                 if (IsFolder && !string.IsNullOrEmpty(Name)) return Name;
 
-                return LegacyFileFacade.GetFileNameFromPath(path);
+                return PathUtils.GetFileNameFromUrlOrPath(path);
             }
         }
 
@@ -450,9 +450,9 @@ public static class ModLocalComp
                 if (_Name is null)
                 {
                     if (IsFolder)
-                        _Name = LegacyFileFacade.GetFolderNameFromPath(ActualPath);
+                        _Name = PathUtils.GetDirectoryNameLeaf(ActualPath);
                     else
-                        _Name = LegacyFileFacade.GetFileNameWithoutExtensionFromPath(path);
+                        _Name = PathUtils.GetFileNameWithoutExtensionFromUrlOrPath(path);
                 }
 
                 return _Name;
@@ -965,7 +965,7 @@ public static class ModLocalComp
                 if (path.EndsWithF(".litematic", true) || path.EndsWithF(".nbt", true) ||
                     path.EndsWithF(".schem", true) || path.EndsWithF(".schematic", true))
                 {
-                    _Name = LegacyFileFacade.GetFileNameWithoutExtensionFromPath(path);
+                    _Name = PathUtils.GetFileNameWithoutExtensionFromUrlOrPath(path);
                     isLoaded = true;
                     return;
                 }
@@ -1053,7 +1053,7 @@ public static class ModLocalComp
             {
                 try
                 {
-                    _Name = LegacyFileFacade.GetFileNameWithoutExtensionFromPath(path);
+                    _Name = PathUtils.GetFileNameWithoutExtensionFromUrlOrPath(path);
                     // 根据文件类型加载数据
                     if (path.EndsWithF(".litematic", true))
                     {
@@ -1127,7 +1127,7 @@ public static class ModLocalComp
                     string infoString = null;
                     if (infoEntry is not null)
                     {
-                        infoString = LegacyFileFacade.ReadText(infoEntry.Open());
+                        infoString = Files.ReadAllTextOrEmptyAsync(infoEntry.Open()).GetAwaiter().GetResult();
                         if (infoString.Length < 15)
                             infoString = null;
                     }
@@ -1167,7 +1167,7 @@ public static class ModLocalComp
                             Logo = System.IO.Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Images", $"{md5}.png");
                             using (var entryStream = logoItem.Open())
                             {
-                                LegacyFileFacade.WriteFile(Logo, entryStream);
+                                Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Logo), entryStream).GetAwaiter().GetResult();
                             }
                         }
                     }
@@ -1228,7 +1228,7 @@ public static class ModLocalComp
                     string fabricText = null;
                     if (fabricEntry is not null)
                     {
-                        fabricText = LegacyFileFacade.ReadText(fabricEntry.Open(), Encoding.UTF8);
+                        fabricText = Files.ReadAllTextOrEmptyAsync(fabricEntry.Open(), Encoding.UTF8).GetAwaiter().GetResult();
                         if (!fabricText.Contains("schemaVersion")) fabricText = null;
                     }
 
@@ -1260,7 +1260,7 @@ public static class ModLocalComp
                             Logo = System.IO.Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Images", $"{md5}.png");
                             using (var entryStream = logoItem.Open())
                             {
-                                LegacyFileFacade.WriteFile(Logo, entryStream);
+                                Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Logo), entryStream).GetAwaiter().GetResult();
                             }
                         }
                     }
@@ -1289,7 +1289,7 @@ public static class ModLocalComp
                     string quiltText = null;
                     if (quiltEntry is not null)
                     {
-                        quiltText = LegacyFileFacade.ReadText(quiltEntry.Open(), Encoding.UTF8);
+                        quiltText = Files.ReadAllTextOrEmptyAsync(quiltEntry.Open(), Encoding.UTF8).GetAwaiter().GetResult();
                         if (!quiltText.Contains("schema_version"))
                             quiltText = null;
                     }
@@ -1325,7 +1325,7 @@ public static class ModLocalComp
                                 Logo = System.IO.Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Images", $"{md5}.png");
                                 using (var entryStream = logoItem.Open())
                                 {
-                                    LegacyFileFacade.WriteFile(Logo, entryStream);
+                                    Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Logo), entryStream).GetAwaiter().GetResult();
                                 }
                             }
                         }
@@ -1512,7 +1512,7 @@ public static class ModLocalComp
                     string fmlText = null;
                     if (fmlEntry is not null)
                     {
-                        fmlText = LegacyFileFacade.ReadText(fmlEntry.Open(), Encoding.UTF8);
+                        fmlText = Files.ReadAllTextOrEmptyAsync(fmlEntry.Open(), Encoding.UTF8).GetAwaiter().GetResult();
                         if (!fmlText.Contains("Lnet/minecraftforge/fml/common/Mod;"))
                             fmlText = null;
                     }
@@ -1618,7 +1618,7 @@ public static class ModLocalComp
                         Logo = System.IO.Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Images", $"{md5}.png");
                         using (var entryStream = packPngEntry.Open())
                         {
-                            LegacyFileFacade.WriteFile(Logo, entryStream);
+                            Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Logo), entryStream).GetAwaiter().GetResult();
                         }
 
                         LauncherLog.Log("成功提取资源包图标：" + path, LauncherLogLevel.Debug);
@@ -1645,7 +1645,7 @@ public static class ModLocalComp
                     var metaEntry = jar.GetEntry("META-INF/MANIFEST.MF");
                     if (metaEntry is not null)
                     {
-                        var metaString = LegacyFileFacade.ReadText(metaEntry.Open()).Replace(" :", ":").Replace(": ", ":");
+                        var metaString = Files.ReadAllTextOrEmptyAsync(metaEntry.Open()).GetAwaiter().GetResult().Replace(" :", ":").Replace(": ", ":");
                         if (metaString.Contains("Implementation-Version:"))
                         {
                             metaString = metaString.Substring(metaString.IndexOfF("Implementation-Version:") +
@@ -1924,7 +1924,7 @@ public static class ModLocalComp
                 {
                     try
                     {
-                        foreach (var File in LegacyFileFacade.EnumerateFiles(loader.input.compPath))
+                        foreach (var File in Directories.EnumerateFilesOrEmptyAsync(PathUtils.ShortenPath(loader.input.compPath)).GetAwaiter().GetResult())
                             try
                             {
                                 if ((File.DirectoryName.ToLower() ?? "") != (rawName.TrimEnd('\\') ?? ""))
@@ -1962,7 +1962,7 @@ public static class ModLocalComp
             var cache = new JsonObject();
             try
             {
-                var cacheContent = LegacyFileFacade.ReadText(cachePath);
+                var cacheContent = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(cachePath)).GetAwaiter().GetResult();
                 if (!string.IsNullOrWhiteSpace(cacheContent))
                 {
                     cache = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(cacheContent);
@@ -2222,8 +2222,7 @@ public static class ModLocalComp
             cache[Entry.ModrinthHash + mcInstance + string.Join("", modLoaders)] = Entry.ToJson();
         }
 
-        LegacyFileFacade.WriteFile(Path.Combine(LauncherPaths.TempWithSlash, "Cache", "LocalComp.json"),
-            cache.ToJsonString(LauncherRuntime.ModeDebug ? new JsonSerializerOptions(JsonCompat.SerializerOptions) { WriteIndented = true } : null));
+        Files.WriteFileAsync(LauncherFileSystem.ResolvePath(Path.Combine(LauncherPaths.TempWithSlash, "Cache", "LocalComp.json")), cache.ToJsonString(LauncherRuntime.ModeDebug ? new JsonSerializerOptions(JsonCompat.SerializerOptions) { WriteIndented = true } : null)).GetAwaiter().GetResult();
 
         // 刷新 UI
         UiThread.Post(() =>

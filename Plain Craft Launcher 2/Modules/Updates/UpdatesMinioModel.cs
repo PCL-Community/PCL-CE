@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
 using System.Text.Json.Serialization;
@@ -82,7 +82,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                 ?.FirstOrDefault();
             if (deJsonData is null)
                 throw new Exception("No assets can download!");
-            var selfSha256 = LegacyFileFacade.GetFileSha256(Basics.ExecutablePath);
+            var selfSha256 = Files.GetFileSHA256Async(Basics.ExecutablePath).GetAwaiter().GetResult();
             var remoteUpdSha256 = deJsonData.Sha256;
             var patchFileName = $"{selfSha256}_{remoteUpdSha256}.patch";
             if (deJsonData.Patches.Contains(patchFileName))
@@ -107,9 +107,9 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             {
                 var diff = new BsDiff();
                 var newFile = diff
-                    .ApplyAsync(LegacyFileFacade.ReadBytes(Basics.ExecutablePath), LegacyFileFacade.ReadBytes(tempPath))
+                    .ApplyAsync(Files.ReadAllBytesOrEmptyAsync(LauncherFileSystem.ResolvePath(Basics.ExecutablePath)).GetAwaiter().GetResult(), Files.ReadAllBytesOrEmptyAsync(LauncherFileSystem.ResolvePath(tempPath)).GetAwaiter().GetResult())
                     .GetAwaiter().GetResult();
-                LegacyFileFacade.WriteFile(output, newFile);
+                Files.WriteFileAsync(LauncherFileSystem.ResolvePath(output), newFile).GetAwaiter().GetResult();
             }
             else
             {
@@ -162,7 +162,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
         JsonNode jsonData;
         if (IsCacheValid($"{name}.json", _remoteCache[name]))
         {
-            jsonData = PCL.Core.Utils.JsonCompat.ParseNode(LegacyFileFacade.ReadText(localInfoFile));
+            jsonData = PCL.Core.Utils.JsonCompat.ParseNode(Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(localInfoFile)).GetAwaiter().GetResult());
         }
         else
         {
@@ -173,7 +173,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
 
             var content = response.AsString();
             jsonData = PCL.Core.Utils.JsonCompat.ParseNode(content);
-            LegacyFileFacade.WriteFile(localInfoFile, content);
+            Files.WriteFileAsync(LauncherFileSystem.ResolvePath(localInfoFile), content).GetAwaiter().GetResult();
         }
 
         return jsonData;
@@ -190,7 +190,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
         var cacheFile = Path.Combine(LauncherPaths.TempWithSlash, "Cache", "Update", path);
         var fileInfo = new FileInfo(cacheFile);
         return fileInfo.Exists && (DateTime.Now - fileInfo.LastWriteTime).TotalHours < 1 &&
-               (LegacyFileFacade.GetFileMd5(cacheFile) ?? "") == (hash ?? "");
+               (Files.GetFileMD5Async(cacheFile).GetAwaiter().GetResult() ?? "") == (hash ?? "");
     }
 
     private string GetChannelName(UpdateChannel channel, UpdateArch arch)
