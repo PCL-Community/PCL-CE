@@ -121,9 +121,7 @@
     <sys:String x:Key="Crash.Export.Failed.Message">The crash report could not be exported.&#xA;&#xA;Target path: {0}</sys:String>
     <sys:String x:Key="Crash.Export.Failed.MessageWithoutPath">The crash report could not be exported, and the target path is unavailable.</sys:String>
     <sys:String x:Key="Crash.Export.Failed.Title">Failed to export crash report</sys:String>
-    <sys:String x:Key="Crash.Presentation.LineSeparator">&#xA;</sys:String>
     <sys:String x:Key="Crash.Presentation.ListItem"> - {0}</sys:String>
-    <sys:String x:Key="Crash.Presentation.ParagraphSeparator">&#xA;&#xA;</sys:String>
     <sys:String x:Key="Crash.Presentation.ReasonOnly">Cause&#xA;{0}</sys:String>
     <sys:String x:Key="Crash.Presentation.WithFollowUps">{0}&#xA;&#xA;{1}</sys:String>
     <sys:String x:Key="Crash.Presentation.WithSuggestion">Cause&#xA;{0}&#xA;&#xA;What you can try&#xA;{1}</sys:String>
@@ -388,7 +386,6 @@
     <sys:String x:Key="Download.Comp.Dependency.Install.Title">Install mod dependencies</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.Install.WithDependencies">Install mod and dependencies</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.Install.WithoutDependencies">Download mod only (not recommended)</sys:String>
-    <sys:String x:Key="Download.Comp.Dependency.ListSeparator">&#xA;</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Continue">Continue download</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Message">Failed to resolve the mod dependencies. Only the main mod will be downloaded.</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Title">Failed to resolve dependencies</sys:String>
