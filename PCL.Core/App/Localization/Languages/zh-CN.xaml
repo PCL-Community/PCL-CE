@@ -172,7 +172,7 @@
     <sys:String x:Key="Crash.Reason.OptiFineWorldLoadCrash">当前 OptiFine 版本可能导致世界加载失败。</sys:String>
     <sys:String x:Key="Crash.Reason.OutOfMemory">Minecraft 内存不足，无法继续运行。</sys:String>
     <sys:String x:Key="Crash.Reason.ResourcePackTooLarge">资源包分辨率可能过高，或显卡性能不足。</sys:String>
-    <sys:String x:Key="Crash.Reason.ShadersModWithOptiFine">同时安装了 Shaders Mod 与 OptiFine。</sys:String>
+    <sys:String x:Key="Crash.Reason.ShadersModWithOptiFine">同时安装了 Shaders 模组与 OptiFine。</sys:String>
     <sys:String x:Key="Crash.Reason.SpecificBlock.Multiple">世界中的某些方块可能导致了游戏出错。</sys:String>
     <sys:String x:Key="Crash.Reason.SpecificBlock.Single">方块 {0} 可能导致了游戏出错。</sys:String>
     <sys:String x:Key="Crash.Reason.SpecificEntity.Multiple">世界中的某些实体可能导致了游戏出错。</sys:String>
@@ -1120,8 +1120,8 @@
 
     <!-- Instance.Resource.Install.FileDialog -->
 
-    <sys:String x:Key="Instance.Resource.Install.FileDialog.Mod.Filter">Mod 文件(*.jar;*.litemod;*.disabled;*.old)|*.jar;*.litemod;*.disabled;*.old</sys:String>
-    <sys:String x:Key="Instance.Resource.Install.FileDialog.Mod.Title">选择要安装的 Mod</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.FileDialog.Mod.Filter">模组文件(*.jar;*.litemod;*.disabled;*.old)|*.jar;*.litemod;*.disabled;*.old</sys:String>
+    <sys:String x:Key="Instance.Resource.Install.FileDialog.Mod.Title">选择要安装的模组</sys:String>
     <sys:String x:Key="Instance.Resource.Install.FileDialog.ResourcePack.Filter">资源包文件(*.zip)|*.zip</sys:String>
     <sys:String x:Key="Instance.Resource.Install.FileDialog.ResourcePack.Title">选择要安装的资源包</sys:String>
     <sys:String x:Key="Instance.Resource.Install.FileDialog.Schematic.Filter">投影原理图文件(*.litematic;*.nbt;*.schematic;*.schem)|*.litematic;*.nbt;*.schematic;*.schem</sys:String>
