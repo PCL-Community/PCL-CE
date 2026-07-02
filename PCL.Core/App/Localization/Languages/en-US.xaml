@@ -626,9 +626,6 @@
     <!-- Download.Install.Compat -->
 
     <sys:String x:Key="Download.Install.Compat.CompatForgeSpecificOnly">Compatible only with certain Forge versions</sys:String>
-    <sys:String x:Key="Download.Install.Compat.IncompatibleWithCleanroom">Incompatible with Cleanroom</sys:String>
-    <sys:String x:Key="Download.Install.Compat.IncompatibleWithFabric">Incompatible with Fabric</sys:String>
-    <sys:String x:Key="Download.Install.Compat.IncompatibleWithForge">Incompatible with Forge</sys:String>
     <sys:String x:Key="Download.Install.Compat.IncompatibleWithLiteLoader">Incompatible with LiteLoader</sys:String>
     <sys:String x:Key="Download.Install.Compat.IncompatibleWithLoader">Incompatible with {0}</sys:String>
     <sys:String x:Key="Download.Install.Compat.IncompatibleWithOptiFine">Incompatible with OptiFine</sys:String>

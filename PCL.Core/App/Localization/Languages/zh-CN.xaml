@@ -626,9 +626,6 @@
     <!-- Download.Install.Compat -->
 
     <sys:String x:Key="Download.Install.Compat.CompatForgeSpecificOnly">仅兼容特定版本的 Forge</sys:String>
-    <sys:String x:Key="Download.Install.Compat.IncompatibleWithCleanroom">与 Cleanroom 不兼容</sys:String>
-    <sys:String x:Key="Download.Install.Compat.IncompatibleWithFabric">与 Fabric 不兼容</sys:String>
-    <sys:String x:Key="Download.Install.Compat.IncompatibleWithForge">与 Forge 不兼容</sys:String>
     <sys:String x:Key="Download.Install.Compat.IncompatibleWithLiteLoader">与 LiteLoader 不兼容</sys:String>
     <sys:String x:Key="Download.Install.Compat.IncompatibleWithLoader">与 {0} 不兼容</sys:String>
     <sys:String x:Key="Download.Install.Compat.IncompatibleWithOptiFine">与 OptiFine 不兼容</sys:String>
