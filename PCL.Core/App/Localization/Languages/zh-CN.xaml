@@ -1469,8 +1469,8 @@
     <sys:String x:Key="Launch.Error.Title">启动失败</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.HidePrompt">若要永久隐藏此提示，请输入正确的 PCL CE 开发组织名称。</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.InputTitle">输入 PCL CE 开发组织名称</sys:String>
-    <sys:String x:Key="Launch.Right.CommunityHint.Message">你正在使用 PCL CE（PCL 社区版）！此版本为独立开发和维护，与原版维护路线不同，体验有所出入。&#xA;&#xA;如果你是意外下载到了社区版，我们十分建议您下载原版 PCL 长期使用，此发行版本对新手用户体验可能不友好。&#xA;此外，社区版的问题请向社区版的仓库提交 Issue，不要向官方仓库反馈社区版的问题哦！</sys:String>
-    <sys:String x:Key="Launch.Right.CommunityHint.Title">社区版提示</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.Message">你正在使用 PCL CE（PCL 社区版）！此版本为独立开发和维护，与原版维护路线不同，体验有所出入。&#xA;&#xA;如果你是意外下载到了 PCL CE ，我们十分建议您下载原版 PCL 长期使用，此发行版本对新手用户体验可能不友好。&#xA;此外， PCL CE 的问题请向 PCL CE 的仓库提交 Issue，不要向官方仓库反馈 PCL CE 的问题哦！</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.Title"> PCL CE 提示</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.WrongInput">不太对哦……</sys:String>
     <sys:String x:Key="Launch.Right.Log.Title">启动日志</sys:String>
 
@@ -2453,7 +2453,7 @@
 
     <!-- Setup.About -->
 
-    <sys:String x:Key="Setup.About.Community.Info">Plain Craft Launcher 社区版的开发团队！</sys:String>
+    <sys:String x:Key="Setup.About.Community.Info">Plain Craft Launcher Community Edition 的开发团队！</sys:String>
     <sys:String x:Key="Setup.About.Community.Name">PCL Community</sys:String>
     <sys:String x:Key="Setup.About.Contributors.Title">贡献者们</sys:String>
     <sys:String x:Key="Setup.About.Contributors.ViewMore">查看更多</sys:String>
@@ -2505,8 +2505,8 @@
 
     <!-- Setup.About.Legal -->
 
-    <sys:String x:Key="Setup.About.Legal.CommunityLobbyPrivacy">社区版联机大厅隐私政策</sys:String>
-    <sys:String x:Key="Setup.About.Legal.CommunitySource">社区版开源代码</sys:String>
+    <sys:String x:Key="Setup.About.Legal.CommunityLobbyPrivacy">PCL CE 联机大厅隐私政策</sys:String>
+    <sys:String x:Key="Setup.About.Legal.CommunitySource">PCL CE 开源代码</sys:String>
     <sys:String x:Key="Setup.About.Legal.CopyrightText">Copyright © 2026 PCL Community &amp; 龙腾猫跃.&#xD;非 MINECRAFT 官方产品。未经 MOJANG 或 MICROSOFT 批准，也不与 MOJANG 或 MICROSOFT 关联。</sys:String>
     <sys:String x:Key="Setup.About.Legal.NatayarkTerms">Natayark OpenID 服务条款</sys:String>
     <sys:String x:Key="Setup.About.Legal.OtherInfo">其他信息</sys:String>
@@ -3382,7 +3382,7 @@
 
     <!-- Tools.Test -->
 
-    <sys:String x:Key="Tools.Test.CeNotice">为便于维护，社区版中不包含百宝箱功能……</sys:String>
+    <sys:String x:Key="Tools.Test.CeNotice">为便于维护，PCL CE 中不包含百宝箱功能……</sys:String>
     <sys:String x:Key="Tools.Test.Crash.ManualCrash">手动崩溃</sys:String>
     <sys:String x:Key="Tools.Test.Crash.Title">崩溃测试</sys:String>
     <sys:String x:Key="Tools.Test.Dependency.Checking">开始环境检查……</sys:String>
@@ -3493,9 +3493,9 @@
     <sys:String x:Key="Update.Action">更新</sys:String>
     <sys:String x:Key="Update.Available">启动器有新版本可用（{0} -&gt; {1}）&#xA;是否立即更新？</sys:String>
     <sys:String x:Key="Update.Check.Failed">无法获取最新版本信息，请检查网络连接</sys:String>
-    <sys:String x:Key="Update.CommunityNotice.Body">你正在使用来自 PCL-Community 的 PCL 社区版本，遇到问题请不要向官方仓库反馈！&#xA;PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的使用做担保。&#xA;&#xA;如果你是意外下载的社区版，建议下载原版 PCL 使用。&#xA;如果你是意外下载的社区版，建议下载原版 PCL 使用。&#xA;如果你是意外下载的社区版，建议下载原版 PCL 使用。&#xA;&#xA;该版本与原版的特性区别：&#xA;- 主题切换：仅部分固定蓝色系主题，没有计划新增其它主题。&#xA;- 百宝箱：缺失部分原版中的内容（回声洞、千万别点）。&#xA;&#xA;此提示会在启动器更新后展示一次。</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Body">你正在使用来自 PCL-Community 的 PCL CE，遇到问题请不要向原版仓库反馈！&#xA;PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的使用做担保。&#xA;&#xA;如果你是意外下载的 PCL CE，建议下载原版 PCL 使用。&#xA;如果你是意外下载的 PCL CE，建议下载原版 PCL 使用。&#xA;如果你是意外下载的 PCL CE，建议下载原版 PCL 使用。&#xA;&#xA;该版本与原版的特性区别：&#xA;- 主题切换：仅部分固定蓝色系主题，没有计划新增其它主题。&#xA;- 百宝箱：缺失部分原版中的内容（回声洞、千万别点）。&#xA;&#xA;此提示会在启动器更新后展示一次。</sys:String>
     <sys:String x:Key="Update.CommunityNotice.Confirm">我知道了</sys:String>
-    <sys:String x:Key="Update.CommunityNotice.Title">社区版本说明</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Title">PCL CE 版本说明</sys:String>
     <sys:String x:Key="Update.Error.FetchFailed">获取启动器更新失败，请检查网络连接</sys:String>
     <sys:String x:Key="Update.Error.FileNotFound">找不到更新文件</sys:String>
     <sys:String x:Key="Update.Error.OperationFailed">更新操作失败。请查看错误详情。</sys:String>
