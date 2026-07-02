@@ -1,4 +1,5 @@
 using PCL.Core.Utils;
+using PCL.Network.Loaders;
 
 namespace PCL.Network;
 
@@ -20,7 +21,7 @@ public class DownloadFile
     // 故所有访问都经 _sync 加锁，避免普通 List 被并发读写而抛 InvalidOperationException。
     private readonly object _sync = new();
     private readonly List<Exception> _errors = new();
-    private readonly List<PCL.Network.Loaders.LoaderDownload> _loaders = new();
+    private readonly List<LoaderDownload> _loaders = new();
 
     /// <summary>该文件下载过程中记录的错误（返回快照，线程安全）。</summary>
     public IReadOnlyList<Exception> Errors
@@ -29,7 +30,7 @@ public class DownloadFile
     }
 
     /// <summary>已登记的下载加载器（返回快照，线程安全）。</summary>
-    public IReadOnlyList<PCL.Network.Loaders.LoaderDownload> Loaders
+    public IReadOnlyList<LoaderDownload> Loaders
     {
         get { lock (_sync) return _loaders.ToArray(); }
     }
@@ -45,7 +46,7 @@ public class DownloadFile
     }
 
     /// <summary>登记一个下载加载器；同一加载器只登记一次。返回是否为首次登记。</summary>
-    public bool RegisterLoader(PCL.Network.Loaders.LoaderDownload loader)
+    public bool RegisterLoader(LoaderDownload loader)
     {
         lock (_sync)
         {
