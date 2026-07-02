@@ -78,6 +78,10 @@ public static class FileDownloader
         CleanupTempFiles(localPath);
 
         var perFileThreadLimit = enableParallelChunks ? Math.Max(1, ModNet.NetTaskThreadLimit) : 1;
+        var isCurseForgeUrl = IsCurseForgeUrl(url);
+        var requestCustomUserAgent = !isCurseForgeUrl && !string.IsNullOrWhiteSpace(customUserAgent)
+            ? customUserAgent
+            : null;
         var configuration = new DownloadConfiguration
         {
             ChunkCount = perFileThreadLimit,
@@ -88,9 +92,14 @@ public static class FileDownloader
             BlockTimeout = 60000,
             DownloadFileExtension = ModNet.netDownloadEnd,
             EnableAutoResumeDownload = false,
-            CustomHttpClientFactory = () => GetHttpClient(url, customUserAgent),
             MinimumSizeOfChunking = 1024 * 1024L,
         };
+
+        if (requestCustomUserAgent is not null)
+            configuration.CustomHttpMessageHandlerFactory = () => new CustomUserAgentMessageHandler(requestCustomUserAgent);
+        else
+            configuration.CustomHttpClientFactory = () =>
+                NetworkService.GetClient(isCurseForgeUrl ? NetworkService.CurseForgeApi : NetworkService.Default);
 
         using var downloader = new DownloadService(configuration);
         using var cancelReg = cancellationToken.Register(() =>
@@ -207,22 +216,63 @@ public static class FileDownloader
         }
     }
 
-    private static HttpClient GetHttpClient(string url, string? customUserAgent)
+    private static bool IsCurseForgeUrl(string url)
     {
-        if (Uri.TryCreate(url, UriKind.Absolute, out var parsedUri)
-            && parsedUri.Host is "edge.forgecdn.net" or "mediafilez.forgecdn.net" or "forgecdn.net" or "api.curseforge.com")
+        return Uri.TryCreate(url, UriKind.Absolute, out var parsedUri)
+            && IsCurseForgeHost(parsedUri.Host);
+    }
+
+    private static bool IsCurseForgeHost(string host)
+    {
+        return host.Equals("edge.forgecdn.net", StringComparison.OrdinalIgnoreCase)
+            || host.Equals("mediafilez.forgecdn.net", StringComparison.OrdinalIgnoreCase)
+            || host.Equals("forgecdn.net", StringComparison.OrdinalIgnoreCase)
+            || host.Equals("api.curseforge.com", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private sealed class CustomUserAgentMessageHandler(string customUserAgent) : HttpMessageHandler
+    {
+        private readonly HttpClient _client = NetworkService.GetClient();
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            return NetworkService.GetClient(NetworkService.CurseForgeApi);
+            var forwardedRequest = CloneRequest(request);
+            forwardedRequest.Headers.Remove("User-Agent");
+            forwardedRequest.Headers.TryAddWithoutValidation("User-Agent", customUserAgent);
+
+            try
+            {
+                return await _client.SendAsync(forwardedRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch
+            {
+                forwardedRequest.Dispose();
+                throw;
+            }
         }
 
-        if (!string.IsNullOrWhiteSpace(customUserAgent))
+        protected override void Dispose(bool disposing)
         {
-            var client = NetworkService.GetClient();
-            client.DefaultRequestHeaders.Remove("User-Agent");
-            client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", customUserAgent);
-            return client;
+            if (disposing)
+                _client.Dispose();
+
+            base.Dispose(disposing);
         }
-        
-        return NetworkService.GetClient();
+
+        private static HttpRequestMessage CloneRequest(HttpRequestMessage request)
+        {
+            var clone = new HttpRequestMessage(request.Method, request.RequestUri)
+            {
+                Version = request.Version,
+                VersionPolicy = request.VersionPolicy
+            };
+
+            foreach (var header in request.Headers)
+                clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
+
+            return clone;
+        }
     }
+
 }
