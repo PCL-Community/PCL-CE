@@ -860,7 +860,7 @@
     <sys:String x:Key="Instance.Export.Config.Comment.ExtraFiles">If you want to automatically place additional files in the root of the archive, write their paths below.</sys:String>
     <sys:String x:Key="Instance.Export.Config.Comment.ExtraFiles2">Must be absolute paths. In each line, ending with \\ indicates a folder; not ending with \\ indicates a file.</sys:String>
     <sys:String x:Key="Instance.Export.Config.Comment.IncludeLauncher">Whether to bundle the stable version of PCL CE so players without a launcher can install the modpack.</sys:String>
-    <sys:String x:Key="Instance.Export.Config.Comment.IncludeLauncherCustom">Whether to bundle PCL custom content, such as feature toggle settings, homepage, background music and images, etc.</sys:String>
+    <sys:String x:Key="Instance.Export.Config.Comment.IncludeLauncherCustom">Whether to bundle PCL CE custom content, such as feature toggle settings, homepage, background music and images, etc.</sys:String>
     <sys:String x:Key="Instance.Export.Config.Comment.ModifyRules">Modify the rules below to control the content to be exported.</sys:String>
     <sys:String x:Key="Instance.Export.Config.Comment.Modrinth">If you plan to upload to Modrinth, enabling this will generate fully Modrinth-compliant modpack files.</sys:String>
     <sys:String x:Key="Instance.Export.Config.Comment.Modrinth2">Due to Modrinth requirements, resources only available from CurseForge cannot be downloaded online and will be bundled directly.</sys:String>
@@ -3230,7 +3230,7 @@
     <!-- SystemDialog.Error -->
 
     <sys:String x:Key="SystemDialog.Error.Detail.WithException">{0}&#xA;&#xA;Details:&#xA;{1}</sys:String>
-    <sys:String x:Key="SystemDialog.Error.Message.WithLogExportGuidance">{0}&#xA;&#xA;When asking for help, do not close PCL. Export the logs now (Settings → View logs → Export logs), then send the exported log archive. A screenshot of this window alone is usually not enough to diagnose the problem.</sys:String>
+    <sys:String x:Key="SystemDialog.Error.Message.WithLogExportGuidance">{0}&#xA;&#xA;When asking for help, do not close launcher. Export the logs now (Settings → View logs → Export logs), then send the exported log archive. A screenshot of this window alone is usually not enough to diagnose the problem.</sys:String>
     <sys:String x:Key="SystemDialog.Error.OperationFailed.Message">An error occurred while performing this operation.&#xA;&#xA;Operation:&#xA;{0}&#xA;&#xA;Details:&#xA;{1}</sys:String>
     <sys:String x:Key="SystemDialog.Error.OperationFailed.RuntimeMessage">An error occurred while performing this operation.&#xA;&#xA;Operation:&#xA;{0}&#xA;&#xA;Details:&#xA;{1}&#xA;&#xA;A low-level system operation failed. Please try reinstalling .NET 8.</sys:String>
     <sys:String x:Key="SystemDialog.Error.Title">Error</sys:String>

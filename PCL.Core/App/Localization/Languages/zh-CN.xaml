@@ -860,7 +860,7 @@
     <sys:String x:Key="Instance.Export.Config.Comment.ExtraFiles">如果想将额外的文件自动放到压缩包根目录中，可以将它们的路径写在下方。</sys:String>
     <sys:String x:Key="Instance.Export.Config.Comment.ExtraFiles2">必须是完整路径。每行中，若以 \ 结尾则代表是文件夹，不以 \ 结尾则代表是文件。</sys:String>
     <sys:String x:Key="Instance.Export.Config.Comment.IncludeLauncher">是否打包正式版 PCL CE，以便没有启动器的玩家安装整合包。</sys:String>
-    <sys:String x:Key="Instance.Export.Config.Comment.IncludeLauncherCustom">是否打包 PCL 个性化内容，例如功能隐藏设置、主页、背景音乐和图片等。</sys:String>
+    <sys:String x:Key="Instance.Export.Config.Comment.IncludeLauncherCustom">是否打包 PCL CE 个性化内容，例如功能隐藏设置、主页、背景音乐和图片等。</sys:String>
     <sys:String x:Key="Instance.Export.Config.Comment.ModifyRules">修改下方的规则以控制需要导出的内容。</sys:String>
     <sys:String x:Key="Instance.Export.Config.Comment.Modrinth">如果你想要打包上传到 Modrinth，启用此项会生成完全符合 Modrinth 要求的整合包文件。</sys:String>
     <sys:String x:Key="Instance.Export.Config.Comment.Modrinth2">由于 Modrinth 要求，只能从 CurseForge 下载的资源将无法联网下载，会被直接放入整合包中。</sys:String>
