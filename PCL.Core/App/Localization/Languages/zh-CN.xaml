@@ -121,9 +121,7 @@
     <sys:String x:Key="Crash.Export.Failed.Message">无法导出错误报告。&#xA;&#xA;目标路径：{0}</sys:String>
     <sys:String x:Key="Crash.Export.Failed.MessageWithoutPath">无法导出错误报告，且未能获取目标路径。</sys:String>
     <sys:String x:Key="Crash.Export.Failed.Title">导出错误报告失败</sys:String>
-    <sys:String x:Key="Crash.Presentation.LineSeparator">&#xA;</sys:String>
     <sys:String x:Key="Crash.Presentation.ListItem"> - {0}</sys:String>
-    <sys:String x:Key="Crash.Presentation.ParagraphSeparator">&#xA;&#xA;</sys:String>
     <sys:String x:Key="Crash.Presentation.ReasonOnly">原因&#xA;{0}</sys:String>
     <sys:String x:Key="Crash.Presentation.WithFollowUps">{0}&#xA;&#xA;{1}</sys:String>
     <sys:String x:Key="Crash.Presentation.WithSuggestion">原因&#xA;{0}&#xA;&#xA;你可以尝试&#xA;{1}</sys:String>
@@ -388,7 +386,6 @@
     <sys:String x:Key="Download.Comp.Dependency.Install.Title">安装模组前置确认</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.Install.WithDependencies">安装模组与必需前置</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.Install.WithoutDependencies">仅下载模组本体（不建议）</sys:String>
-    <sys:String x:Key="Download.Comp.Dependency.ListSeparator">&#xA;</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Continue">继续下载</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Message">无法解析模组前置，将仅下载模组本体。</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Title">前置解析失败</sys:String>
