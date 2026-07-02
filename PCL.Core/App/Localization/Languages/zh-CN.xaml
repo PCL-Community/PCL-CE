@@ -786,7 +786,7 @@
     <sys:String x:Key="Event.Safety.DangerousSettingBlocked">自定义主页不能写入高危设置：{0}</sys:String>
     <sys:String x:Key="Event.Safety.Title">执行确认</sys:String>
     <sys:String x:Key="Event.Sanitize.UnknownTypeHint">[{0}] 是无法解析的 EventType，已从主页中移除。</sys:String>
-    <sys:String x:Key="Event.Sanitize.UnsupportedTypeHint">[{0}] 是不受支持的 PCL 官方版 EventType，已从主页中移除。</sys:String>
+    <sys:String x:Key="Event.Sanitize.UnsupportedTypeHint">[{0}] 是不受支持的 原版 PCL EventType，已从主页中移除。</sys:String>
     <sys:String x:Key="Event.Setting.Written">已写入设置：{0} → {1}</sys:String>
     <sys:String x:Key="Event.Variable.Written">已写入变量：{0} → {1}</sys:String>
 
@@ -1469,7 +1469,7 @@
     <sys:String x:Key="Launch.Error.Title">启动失败</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.HidePrompt">若要永久隐藏此提示，请输入正确的 PCL CE 开发组织名称。</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.InputTitle">输入 PCL CE 开发组织名称</sys:String>
-    <sys:String x:Key="Launch.Right.CommunityHint.Message">你正在使用 PCL CE（PCL 社区版）！此版本为独立开发和维护，与官方版本维护路线不同，体验有所出入。&#xA;&#xA;如果你是意外下载到了社区版，我们十分建议您下载 PCL 官方版长期使用，此发行版本对新手用户体验可能不友好。&#xA;此外，社区版的问题请向社区版的仓库提交 Issue，不要向官方仓库反馈社区版的问题哦！</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.Message">你正在使用 PCL CE（PCL 社区版）！此版本为独立开发和维护，与原版维护路线不同，体验有所出入。&#xA;&#xA;如果你是意外下载到了社区版，我们十分建议您下载 原版 PCL 长期使用，此发行版本对新手用户体验可能不友好。&#xA;此外，社区版的问题请向社区版的仓库提交 Issue，不要向官方仓库反馈社区版的问题哦！</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.Title">社区版提示</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.WrongInput">不太对哦……</sys:String>
     <sys:String x:Key="Launch.Right.Log.Title">启动日志</sys:String>
@@ -1570,7 +1570,7 @@
     <sys:String x:Key="Launch.Account.Profile.Uuid.ChangeTitle">更改档案 {0} 的 UUID</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Uuid.Hint">32 位，不含连字符</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Uuid.InvalidChars">UUID 只应该包括英文字母和数字！</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Uuid.Legacy">官方版 PCL UUID（若单人存档的部分信息丢失，可尝试此项）</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Uuid.Legacy">原版 PCL UUID（若单人存档的部分信息丢失，可尝试此项）</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Uuid.SelectType.Title">新建档案 - 选择 UUID 类型</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Uuid.Standard">行业规范 UUID（推荐）</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Validation.EmptyUsername">玩家名不能为空！</sys:String>
@@ -1864,7 +1864,7 @@
     <sys:String x:Key="Main.Tab.Launch">启动</sys:String>
     <sys:String x:Key="Main.Tab.Settings">设置</sys:String>
     <sys:String x:Key="Main.Tab.Tools">工具</sys:String>
-    <sys:String x:Key="Main.Telemetry.Message">启用遥测数据收集后，启动器将会收集并上报错误与设备环境信息，这可以帮助开发者修复潜在的问题、更好的进行规划和开发。&#xA;若启用此功能，我们将会收集以下信息：&#xA;&#xA;- 启动器内出现的错误&#xA;- 启动器版本信息与识别码&#xA;- Windows 系统版本与架构&#xA;- 已安装的物理内存大小&#xA;- NAT 与 IPv6 支持情况&#xA;- 是否使用过官方版 PCL、HMCL 或 BakaXL&#xA;&#xA;这些数据均不与你关联，我们也绝不会向第三方出售数据。&#xA;如果不希望启用遥测，可以选择拒绝。这不会影响其他功能的正常使用，但可能会影响开发者修复潜在 Bug。&#xA;你可以随时在启动器设置中调整这项设置。</sys:String>
+    <sys:String x:Key="Main.Telemetry.Message">启用遥测数据收集后，启动器将会收集并上报错误与设备环境信息，这可以帮助开发者修复潜在的问题、更好的进行规划和开发。&#xA;若启用此功能，我们将会收集以下信息：&#xA;&#xA;- 启动器内出现的错误&#xA;- 启动器版本信息与识别码&#xA;- Windows 系统版本与架构&#xA;- 已安装的物理内存大小&#xA;- NAT 与 IPv6 支持情况&#xA;- 是否使用过原版 PCL、HMCL 或 BakaXL&#xA;&#xA;这些数据均不与你关联，我们也绝不会向第三方出售数据。&#xA;如果不希望启用遥测，可以选择拒绝。这不会影响其他功能的正常使用，但可能会影响开发者修复潜在 Bug。&#xA;你可以随时在启动器设置中调整这项设置。</sys:String>
     <sys:String x:Key="Main.Telemetry.Title">启用遥测数据收集</sys:String>
     <sys:String x:Key="Main.Title.GameLog">实时日志</sys:String>
     <sys:String x:Key="Main.Title.InstanceSelect">实例选择</sys:String>
@@ -2934,7 +2934,7 @@
     <sys:String x:Key="Setup.Misc.System.MaxLogLines.ToolTip">实时日志功能中最大显示行数，超过该值会自动删除旧的日志。</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxLogLines.Unlimited">无限制</sys:String>
     <sys:String x:Key="Setup.Misc.System.Telemetry">启用遥测数据收集</sys:String>
-    <sys:String x:Key="Setup.Misc.System.Telemetry.ToolTip">启用此功能后，启动器将会收集并上报错误与设备环境信息，这可以帮助开发者修复潜在的问题、更好的进行规划和开发。&#xA;若启用此功能，我们将会收集以下信息：启动器内出现的错误，启动器版本信息与识别码，使用的 Windows 系统版本与架构，已安装的物理内存大小，NAT 与 IPv6 支持情况，是否使用过官方版 PCL、HMCL 或 BakaXL。&#xA;&#xA;这些数据均不与你关联，我们也绝不会向第三方出售数据。不启用此功能不会影响你使用其他功能，但可能会影响开发者修复潜在 Bug。&#xA;&#xA;此项更改将在重新启动启动器后生效。</sys:String>
+    <sys:String x:Key="Setup.Misc.System.Telemetry.ToolTip">启用此功能后，启动器将会收集并上报错误与设备环境信息，这可以帮助开发者修复潜在的问题、更好的进行规划和开发。&#xA;若启用此功能，我们将会收集以下信息：启动器内出现的错误，启动器版本信息与识别码，使用的 Windows 系统版本与架构，已安装的物理内存大小，NAT 与 IPv6 支持情况，是否使用过原版 PCL、HMCL 或 BakaXL。&#xA;&#xA;这些数据均不与你关联，我们也绝不会向第三方出售数据。不启用此功能不会影响你使用其他功能，但可能会影响开发者修复潜在 Bug。&#xA;&#xA;此项更改将在重新启动启动器后生效。</sys:String>
     <sys:String x:Key="Setup.Misc.System.Title">系统</sys:String>
 
     <!-- Setup.Ui -->
@@ -3493,7 +3493,7 @@
     <sys:String x:Key="Update.Action">更新</sys:String>
     <sys:String x:Key="Update.Available">启动器有新版本可用（{0} -&gt; {1}）&#xA;是否立即更新？</sys:String>
     <sys:String x:Key="Update.Check.Failed">无法获取最新版本信息，请检查网络连接</sys:String>
-    <sys:String x:Key="Update.CommunityNotice.Body">你正在使用来自 PCL-Community 的 PCL 社区版本，遇到问题请不要向官方仓库反馈！&#xA;PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的使用做担保。&#xA;&#xA;如果你是意外下载的社区版，建议下载官方版 PCL 使用。&#xA;如果你是意外下载的社区版，建议下载官方版 PCL 使用。&#xA;如果你是意外下载的社区版，建议下载官方版 PCL 使用。&#xA;&#xA;该版本与官方版本的特性区别：&#xA;- 主题切换：仅部分固定蓝色系主题，没有计划新增其它主题。&#xA;- 百宝箱：缺失部分官方版中的内容（回声洞、千万别点）。&#xA;&#xA;此提示会在启动器更新后展示一次。</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Body">你正在使用来自 PCL-Community 的 PCL 社区版本，遇到问题请不要向官方仓库反馈！&#xA;PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的使用做担保。&#xA;&#xA;如果你是意外下载的社区版，建议下载原版 PCL 使用。&#xA;如果你是意外下载的社区版，建议下载原版 PCL 使用。&#xA;如果你是意外下载的社区版，建议下载原版 PCL 使用。&#xA;&#xA;该版本与原版的特性区别：&#xA;- 主题切换：仅部分固定蓝色系主题，没有计划新增其它主题。&#xA;- 百宝箱：缺失部分原版中的内容（回声洞、千万别点）。&#xA;&#xA;此提示会在启动器更新后展示一次。</sys:String>
     <sys:String x:Key="Update.CommunityNotice.Confirm">我知道了</sys:String>
     <sys:String x:Key="Update.CommunityNotice.Title">社区版本说明</sys:String>
     <sys:String x:Key="Update.Error.FetchFailed">获取启动器更新失败，请检查网络连接</sys:String>
