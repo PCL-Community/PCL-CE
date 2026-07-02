@@ -4036,7 +4036,7 @@ public static class ModDownloadLib
         var modable = request.fabricVersion is not null || request.legacyFabricVersion is not null ||
                       request.forgeEntry is not null || request.neoForgeEntry is not null ||
                       request.liteLoaderEntry is not null;
-        var modsTempFolder = Path.Combine(tempMcFolder, "mods");
+        var modsTempFolder = Path.Combine(tempMcFolder, "mods") + @"\";
         var optiFineAsMod = request.optiFineEntry is not null && modable; // 选择了 OptiFine 与任意 Mod 加载器
         if (optiFineAsMod)
         {
