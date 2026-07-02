@@ -2124,8 +2124,13 @@ public static class ModLaunch
         double availableGb = KernelInterop.GetAvailablePhysicalMemoryBytes() / 1073741824.0;
         ModLaunch.McLaunchLog($"当前剩余内存：{availableGb.ToString("N1", CultureInfo.InvariantCulture)}G");
         double totalRamMb = PageInstanceSetup.GetRam(ModInstanceList.McMcInstanceSelected) * 1024d;
+        var maxHeapArg = Math.Floor(totalRamMb).ToString(CultureInfo.InvariantCulture);
         dataList.Add("-Xmn" + Math.Floor(totalRamMb * 0.15).ToString(CultureInfo.InvariantCulture) + "m");
-        dataList.Add("-Xmx" + Math.Floor(totalRamMb).ToString(CultureInfo.InvariantCulture) + "m");
+        dataList.Add("-Xmx" + maxHeapArg + "m");
+        // #3282: 固定堆大小时追加 -Xms 使其等于 -Xmx（复用同一数值以保持一致），隐式禁用内存归还降低延迟抖动、利于 ZGC。
+        // 若 dataList 中已存在 -Xms（例如用户自定义参数已设）则跳过，避免重复/冲突。
+        if (Config.Launch.LockMemory && !dataList.Any(d => d.Contains("-Xms", StringComparison.OrdinalIgnoreCase)))
+            dataList.Add("-Xms" + maxHeapArg + "m");
         if (!dataList.Any(d => d.Contains("-Dlog4j2.formatMsgNoLookups=true")))
             dataList.Add("-Dlog4j2.formatMsgNoLookups=true");
     }
@@ -2451,9 +2456,13 @@ public static class ModLaunch
         dataList.Add("-Xmn" +
                      Math.Floor(PageInstanceSetup.GetRam(ModInstanceList.McMcInstanceSelected,
                          !mcLaunchJavaSelected.Installation.Is64Bit) * 1024d * 0.15d) + "m");
-        dataList.Add("-Xmx" +
-                     Math.Floor(PageInstanceSetup.GetRam(ModInstanceList.McMcInstanceSelected,
-                         !mcLaunchJavaSelected.Installation.Is64Bit) * 1024d) + "m");
+        var maxHeapArg = Math.Floor(PageInstanceSetup.GetRam(ModInstanceList.McMcInstanceSelected,
+            !mcLaunchJavaSelected.Installation.Is64Bit) * 1024d);
+        dataList.Add("-Xmx" + maxHeapArg + "m");
+        // #3282: 固定堆大小时追加 -Xms 使其等于 -Xmx（复用同一数值以保持一致），隐式禁用内存归还降低延迟抖动、利于 ZGC。
+        // 若 dataList 中已存在 -Xms（例如用户自定义参数已设）则跳过，避免重复/冲突。
+        if (Config.Launch.LockMemory && !dataList.Any(d => d.Contains("-Xms", StringComparison.OrdinalIgnoreCase)))
+            dataList.Add("-Xms" + maxHeapArg + "m");
         dataList.Add("\"-Djava.library.path=" + GetNativesFolder() + "\"");
         dataList.Add("-cp ${classpath}"); // 把支持库添加进启动参数表
 

@@ -2728,6 +2728,8 @@
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.ToolTip">PCL 会使用 Java Launch Wrapper 来修复老版本 Java 在中文路径下无法启动的问题。&#xA;如果这被反作弊拦截，或遇到其他问题，也可以将其关闭。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLF">禁用 LegacyFix</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLF.ToolTip">PCL 会在启动 1.5.x 及以下版本时使用 LegacyFix 来改善老版本游戏体验和修复兼容性问题。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.LockMemory">锁定内存分配（-Xms = -Xmx）</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.LockMemory.ToolTip">启用后，启动器会额外追加 -Xms 参数并令其等于最大堆 -Xmx，从而固定堆大小。这会隐式禁用堆内存归还（Uncommit），减少操作系统取消映射/重新分配内存页带来的延迟抖动，也有利于 ZGC 的回收预测。代价是游戏全程会占用接近最大分配的内存。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLwjglUnsafeAgent">禁用 LWJGL Unsafe Agent</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip">Minecraft 26.1 使用了 LWJGL 3.4.1，LWJGL 3.4.1 使用了 FFM API 以在 JDK 25+ 上访问原生内存。由于 JDK 优化能力限制，某些情况下这会产生严重的性能问题。&#xA;PCL 会使用 LWJGL Unsafe Agent 修复这个问题，以解决可能存在的性能问题。&#xA;一般情况下没有禁用该选项的必要，但如果你遇到了额外问题，也可以尝试暂时禁用该选项以排查错误。&#xA;&#xA;该功能仅会在 LWJGL 版本为 3.4.1 时生效。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.GameTail">游戏参数尾部</sys:String>
