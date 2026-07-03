@@ -54,7 +54,6 @@ public partial class PageToolsTest
 
         TextDownloadFolder.Validate();
         TextDownloadName.Validate();
-        TextUserAgent.Text = States.Tool.DownloadUserAgent;
     }
 
     private void StartButtonRefresh()
@@ -78,11 +77,6 @@ public partial class PageToolsTest
     {
         States.Tool.DownloadFolder = TextDownloadFolder.Text;
         TextDownloadName.Validate();
-    }
-
-    private void SaveCustomUserAgent(object sender, RoutedEventArgs e)
-    {
-        States.Tool.DownloadUserAgent = TextUserAgent.Text;
     }
 
     private static void DownloadState(ModLoader.LoaderCombo<int> loader)
@@ -352,7 +346,7 @@ public partial class PageToolsTest
 
     private void BtnDownloadStart_Click(object sender, MouseButtonEventArgs e)
     {
-        StartCustomDownload(TextDownloadUrl.Text, TextDownloadName.Text, TextDownloadFolder.Text, TextUserAgent.Text);
+        StartCustomDownload(TextDownloadUrl.Text, TextDownloadName.Text, TextDownloadFolder.Text);
         TextDownloadUrl.Text = "";
         TextDownloadUrl.Validate();
         TextDownloadUrl.ForceShowAsSuccess();
@@ -761,11 +755,4 @@ public partial class PageToolsTest
         SaveCacheDownloadFolder(sender, e);
         TextDownloadName_ValidateChanged(sender, e);
     }
-
-    private void TextUserAgent_OnValidatedTextChanged(object sender, RoutedEventArgs e)
-    {
-        SaveCustomUserAgent(sender, e);
-        TextDownloadFolder_ValidateChanged(sender, e);
-    }
-
 }

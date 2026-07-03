@@ -214,14 +214,6 @@ public static class FileDownloader
         {
             return NetworkService.GetClient(NetworkService.CurseForgeApi);
         }
-
-        if (!string.IsNullOrWhiteSpace(customUserAgent))
-        {
-            var client = NetworkService.GetClient();
-            client.DefaultRequestHeaders.Remove("User-Agent");
-            client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", customUserAgent);
-            return client;
-        }
         
         return NetworkService.GetClient();
     }
