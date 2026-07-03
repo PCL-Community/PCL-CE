@@ -2460,7 +2460,7 @@ public static class ModComp
 
             if (wordModCount.Count == 0) throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
 
-            // 关键词转换分两类处理（见 issue #3272）。
+            // 关键词转换分两类处理。
             // 此前的根因：把所有高权重关键词（可能来自多个互不相关模组）拼接成同一个查询，命中大量
             // 词条时会生成形如 “sodium embeddium extras dynamiclights …” 的多模组串，CurseForge /
             // Modrinth 会将整串当作对同一模组的描述匹配，没有模组能同时命中全部词 → 两源皆空、搜索失败。
@@ -2468,7 +2468,7 @@ public static class ModComp
             // 部分/类别词时只剩某一个模组的关键词，必须打全名、同名系列尽失。
             // 规范化名称/查询用于判断“名称是否恰等于输入”：仅去除空白与 emoji 等星标字符（如 Jade 名称里的
             // 🔍），但保留标点。否则「红石」会因 CanonName 剥掉「红石++ (Redstone++)」的 ++ 而被当成其唯一
-            // 精确名、误收窄到 Redstone++，漏掉其他红石模组（PR #3278 review）。
+            // 精确名、误收窄到 Redstone++，漏掉其他红石模组。
             static string NormalizeName(string s) =>
                 new string(s.Where(c => !char.IsWhiteSpace(c) && !char.IsSurrogate(c)).ToArray());
             string CanonName(string name) => NormalizeName(name.BeforeFirst(" ("));
