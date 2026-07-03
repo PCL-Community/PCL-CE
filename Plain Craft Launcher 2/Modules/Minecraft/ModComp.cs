@@ -2496,8 +2496,11 @@ public static class ModComp
                     : string.Join(" ", wordModCount.OrderByDescending(w => w.Value.Count).Take(2).Select(w => w.Key));
                 // CurseForge 的 searchFilter 为 AND 语义：把 slug 与名称词拼成一串发送时，若两者分歧
                 // （如「红石++」slug=redstoneplusplus 与名称词 redstone 互不包含）会互相排斥、返回零结果。
-                // 该模组在 CF 上由 slug 唯一定位，故对 CurseForge 单独使用其 slug 查询，绕开这一冲突。
-                if (canonicalEntry.item.CurseForgeSlug is not null)
+                // 该模组在 CF 上由 slug 唯一定位，故对 CurseForge 单独使用其 slug 查询绕开这一冲突。
+                // 但仅当该精确名只对应单一 CF 词条时才 pin：若同一 WikiId 因加载器被拆成多个 CF 项目
+                // （如「平滑色块」的 -forge/-fabric），pin 到某个 slug 会使选另一加载器时搜不到，此时
+                // 保持用名称词查询，让各加载器变体都能命中。
+                if (exactNameEntries.Count == 1 && canonicalEntry.item.CurseForgeSlug is not null)
                     request.curseForgeAltSearchText = canonicalEntry.item.CurseForgeSlug;
             }
             else
