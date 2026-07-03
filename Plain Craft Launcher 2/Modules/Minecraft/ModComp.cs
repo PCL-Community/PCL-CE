@@ -2526,10 +2526,6 @@ public static class ModComp
                 }
                 else
                 {
-                    // 取“出现模组数并列最高”的词根，按长度以最短者为锚，只并入与锚“共现于相同模组”的
-                    // 其余并列词根：「航空学」的 create/aeronautics 同属一组 → 一起取；而「农业」的 farming
-                    // 与 mystical 来自互不相交的模组集，拼成一串会得到没有模组能同时命中的 conjunctive 查询
-                    // 而两边皆空，故只保留锚所在的这一个 cluster（PR #3278 review）。
                     var tied = wordModCount
                         .Where(w => w.Value.Count == maxCount)
                         .OrderBy(w => w.Key.Length)
