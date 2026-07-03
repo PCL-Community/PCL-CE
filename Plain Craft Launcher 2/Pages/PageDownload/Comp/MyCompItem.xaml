@@ -53,7 +53,7 @@
                ToolTipService.InitialShowDelay="100" ToolTipService.BetweenShowDelay="100"
                ToolTipService.Placement="Relative" ToolTipService.PlacementRectangle="-16,-10,500,10000">
         <TextBlock.ToolTip>
-            <ToolTip x:Name="ToolTipInfo" Style="{StaticResource ExtendTextToolTip}" />
+            <ToolTip x:Name="ToolTipInfo" />
         </TextBlock.ToolTip>
     </TextBlock>
     <!-- 下边栏 -->

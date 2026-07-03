@@ -294,7 +294,7 @@ public static class Tooltip
 
     private static FrameworkElement? _SeekOwner(DependencyObject? leaf)
     {
-        for (var cur = leaf; cur is not null; cur = VisualTreeHelper.GetParent(cur))
+        for (var cur = leaf; cur is not null; cur = cur is Visual ? VisualTreeHelper.GetParent(cur) : null)
         {
             if (cur is FrameworkElement fe && _Eligible(fe) && _FetchContent(fe))
                 return fe;
