@@ -16,8 +16,6 @@ using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Network.Loaders;
-using PCL.Core.IO.Net.Http;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -1476,10 +1474,9 @@ public static class ModDownloadLib
                 Directory.CreateDirectory(versionFolder);
                 var versionJson = new JsonObject();
                 versionJson.Add("id", versionName);
-                versionJson.Add("time",
-                    DateTime.ParseExact(downloadInfo.ReleaseTime, "yyyy/MM/dd H:mm", CultureInfo.InvariantCulture));
-                versionJson.Add("releaseTime",
-                    DateTime.ParseExact(downloadInfo.ReleaseTime, "yyyy/MM/dd H:mm", CultureInfo.InvariantCulture));
+                var releaseDate = DateTime.Parse(downloadInfo.ReleaseTime, Lang.Culture);
+                versionJson.Add("time", releaseDate);
+                versionJson.Add("releaseTime", releaseDate);
                 versionJson.Add("type", "release");
                 versionJson.Add("arguments",
                     (JsonNode)ModBase.GetJson("{\"game\":[\"--tweakClass\",\"" + downloadInfo.jsonToken["tweakClass"] +
