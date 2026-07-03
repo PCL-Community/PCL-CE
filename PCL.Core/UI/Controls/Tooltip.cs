@@ -45,7 +45,7 @@ public static class Tooltip
     private const int AnimLength = 80;
     private const int AnimExit = 35;
 
-    private static readonly Thickness _InnerPad = new(12, 11, 12, 8);
+    private static readonly Thickness _InnerPad = new(12, 10, 12, 10);
     private static readonly DropShadowEffect _Shadow = new()
     {
         Opacity = ShadowAlpha,
@@ -166,6 +166,9 @@ public static class Tooltip
         fe.Dispatcher.BeginInvoke(() => _TryClaim(fe));
     }
 
+    private static bool _IsCursorPlaced(FrameworkElement el) =>
+        GetFollowCursor(el) && ToolTipService.GetPlacement(el) is PlacementMode.Mouse or PlacementMode.MousePoint;
+
     private static void OnMove(object s, MouseEventArgs e)
     {
         if (!_running || s is not FrameworkElement fe) return;
@@ -175,10 +178,10 @@ public static class Tooltip
             if (_target is not null)
             {
                 _cursor = Mouse.GetPosition(_target);
-                if (GetFollowCursor(_target) && _flyout is { IsOpen: true })
+                if (_IsCursorPlaced(_target) && _flyout is { IsOpen: true })
                     _PlaceNear(_target, _cursor);
             }
-            else if (_flyout is { IsOpen: true, PlacementTarget: FrameworkElement ft } && GetFollowCursor(ft))
+            else if (_flyout is { IsOpen: true, PlacementTarget: FrameworkElement ft } && _IsCursorPlaced(ft))
             {
                 _cursor = Mouse.GetPosition(ft);
                 _PlaceNear(ft, _cursor);
@@ -191,10 +194,10 @@ public static class Tooltip
         if (_target is not null)
         {
             _cursor = Mouse.GetPosition(_target);
-            if (GetFollowCursor(_target) && _flyout is { IsOpen: true })
+            if (_IsCursorPlaced(_target) && _flyout is { IsOpen: true })
                 _PlaceNear(_target, _cursor);
         }
-        else if (_flyout is { IsOpen: true, PlacementTarget: FrameworkElement ft } && GetFollowCursor(ft))
+        else if (_flyout is { IsOpen: true, PlacementTarget: FrameworkElement ft } && _IsCursorPlaced(ft))
         {
             _cursor = Mouse.GetPosition(ft);
             _PlaceNear(ft, _cursor);
@@ -474,6 +477,7 @@ public static class Tooltip
             return;
 
         var hasTpl = tip?.ContentTemplate is not null || tip?.ContentTemplateSelector is not null;
+        var tipW = tip is { Width: > 0 } && !double.IsNaN(tip.Width) ? tip.Width : MaxContentWidth;
 
         if (content is string text && !hasTpl)
         {
@@ -484,7 +488,7 @@ public static class Tooltip
                 Margin = _InnerPad,
                 FontSize = TipFontSize,
                 LineHeight = TipLineHeight,
-                MaxWidth = MaxContentWidth
+                MaxWidth = tipW
             };
             tb.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrush1");
             _shell.Child = tb;
@@ -498,7 +502,7 @@ public static class Tooltip
                 ContentTemplateSelector = tip?.ContentTemplateSelector,
                 ContentStringFormat = tip?.ContentStringFormat,
                 Margin = _InnerPad,
-                MaxWidth = MaxContentWidth
+                MaxWidth = tipW
             };
         }
     }
@@ -506,8 +510,20 @@ public static class Tooltip
     private static void _PlaceNear(FrameworkElement target, Point pt)
     {
         _flyout!.PlacementTarget = target;
-        _flyout.HorizontalOffset = Math.Round(pt.X + 15);
-        _flyout.VerticalOffset = Math.Round(pt.Y + 25);
+        var mode = ToolTipService.GetPlacement(target);
+
+        if (mode is PlacementMode.Mouse or PlacementMode.MousePoint)
+        {
+            _flyout.Placement = PlacementMode.Relative;
+            _flyout.HorizontalOffset = Math.Round(pt.X + 15);
+            _flyout.VerticalOffset = Math.Round(pt.Y + 25);
+        }
+        else
+        {
+            _flyout.Placement = mode;
+            _flyout.HorizontalOffset = ToolTipService.GetHorizontalOffset(target);
+            _flyout.VerticalOffset = ToolTipService.GetVerticalOffset(target);
+        }
     }
 
     private static void _WindDown()
