@@ -88,7 +88,7 @@ public static class FileDownloader
             BlockTimeout = 60000,
             DownloadFileExtension = ModNet.netDownloadEnd,
             EnableAutoResumeDownload = false,
-            CustomHttpClientFactory = () => GetHttpClient(url, customUserAgent),
+            CustomHttpClientFactory = () => GetHttpClient(url),
             MinimumSizeOfChunking = 1024 * 1024L,
         };
 
@@ -207,7 +207,7 @@ public static class FileDownloader
         }
     }
 
-    private static HttpClient GetHttpClient(string url, string? customUserAgent)
+    private static HttpClient GetHttpClient(string url)
     {
         if (Uri.TryCreate(url, UriKind.Absolute, out var parsedUri)
             && parsedUri.Host is "edge.forgecdn.net" or "mediafilez.forgecdn.net" or "forgecdn.net" or "api.curseforge.com")
