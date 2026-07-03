@@ -2394,11 +2394,6 @@ public static class ModComp
             var searchEntries = new List<ModBase.SearchEntry<CompDatabaseEntry>>();
             using (var conn = CompDB)
             {
-                // 广度检索本地翻译库：取名称/slug 命中查询的全部词条。
-                // 不在 SQL 层做前缀收窄——精度由下方“唯一规范名→单模组 / 否则→共有词根”的关键词
-                // 选择保证，且发往接口的是英文查询、天然排除「玉米」之类噪音；若在此按前缀收窄，会把
-                // 「背包」这类类别词窄化成某一个同名模组，漏掉旅行者背包等其余同类。
-                // 仅对 LIKE 模式做 \ % _ 转义，统一用 ESCAPE '\'。
                 var likeEscaped = rawFilter.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
                 var searchRes = conn.Query<CompDatabaseEntry>(
                     "SELECT * FROM ModTranslation WHERE ChineseName LIKE @p ESCAPE '\\' OR CurseForgeSlug LIKE @p ESCAPE '\\' OR ModrinthSlug LIKE @p ESCAPE '\\'",
@@ -2435,10 +2430,7 @@ public static class ModComp
                     w =>
                     {
                         if (w.Length <= 1) return false;
-                        // 丢弃不含任何字母/数字的纯符号或表情 token（如部分词条名里的 “🔍”），
-                        // 避免其被拼入搜索词后被接口当作必需关键字，反而排除掉真正的结果。
                         if (!w.Any(char.IsLetterOrDigit)) return false;
-                        // 过滤无意义词与加载器名（后者也会被 processKeywords 跳过），避免污染词根频率统计
                         if (new[] { "the", "of", "mod", "and", "forge", "fabric", "quilt", "neoforge" }.Contains(w)) return false;
                         if (ModBase.Val(w) > 0) return false;
                         if (w.Split(' ').Length > 3 && w.Contains("ftb")) return false;
@@ -2447,8 +2439,6 @@ public static class ModComp
                 return words;
             }
 
-            // 统计每个英文词根出现在多少个“不同模组(WikiId)”中。
-            // 频率越高，越是这批匹配项的“共有词根”（例如搜「背包」时 backpack 系列的共有词）。
             var wordModCount = new Dictionary<string, HashSet<int>>();
             foreach (var result in searchResults)
                 foreach (var word in ExtractWords(result))
@@ -2460,20 +2450,10 @@ public static class ModComp
 
             if (wordModCount.Count == 0) throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
 
-            // 关键词转换分两类处理。
-            // 此前的根因：把所有高权重关键词（可能来自多个互不相关模组）拼接成同一个查询，命中大量
-            // 词条时会生成形如 “sodium embeddium extras dynamiclights …” 的多模组串，CurseForge /
-            // Modrinth 会将整串当作对同一模组的描述匹配，没有模组能同时命中全部词 → 两源皆空、搜索失败。
-            // 但若一律收窄到单个模组，又会走向另一极端：输入「工业」「应用」「背包」「航空学」这类
-            // 部分/类别词时只剩某一个模组的关键词，必须打全名、同名系列尽失。
-            // 规范化名称/查询用于判断“名称是否恰等于输入”：仅去除空白与 emoji 等星标字符（如 Jade 名称里的
-            // 🔍），但保留标点。否则「红石」会因 CanonName 剥掉「红石++ (Redstone++)」的 ++ 而被当成其唯一
-            // 精确名、误收窄到 Redstone++，漏掉其他红石模组。
             static string NormalizeName(string s) =>
                 new string(s.Where(c => !char.IsWhiteSpace(c) && !char.IsSurrogate(c)).ToArray());
             string CanonName(string name) => NormalizeName(name.BeforeFirst(" ("));
             var normalizedQuery = NormalizeName(rawFilter);
-            // 名称（剥离装饰符号与空格后）恰等于输入的词条；按 WikiId 去重统计涉及多少个不同模组。
             var exactNameEntries = searchResults
                 .Where(r => CanonName(r.item.ChineseName) == normalizedQuery).ToList();
             var exactNameMods = exactNameEntries.Select(r => r.item.WikiId).Distinct().Count();
@@ -2489,22 +2469,11 @@ public static class ModComp
                 request.searchText = canonicalWords.Any()
                     ? string.Join(" ", canonicalWords)
                     : string.Join(" ", wordModCount.OrderByDescending(w => w.Value.Count).Take(2).Select(w => w.Key));
-                // CurseForge 的 searchFilter 为 AND 语义：把 slug 与名称词拼成一串发送时，若两者分歧
-                // （如「红石++」slug=redstoneplusplus 与名称词 redstone 互不包含）会互相排斥、返回零结果。
-                // 该模组在 CF 上由 slug 唯一定位，故对 CurseForge 单独使用其 slug 查询绕开这一冲突。
-                // 但仅当该精确名只对应单一 CF 词条时才 pin：若同一 WikiId 因加载器被拆成多个 CF 项目
-                // （如「平滑色块」的 -forge/-fabric），pin 到某个 slug 会使选另一加载器时搜不到，此时
-                // 保持用名称词查询，让各加载器变体都能命中。
                 if (exactNameEntries.Count == 1 && canonicalEntry.item.CurseForgeSlug is not null)
                     request.curseForgeAltSearchText = canonicalEntry.item.CurseForgeSlug;
             }
             else
             {
-                // 部分/类别词，或存在多个同名模组 → 不收窄到单个模组，改用“出现模组数并列最高”的
-                // 英文共有词根（频率最高者）。共现于相同模组集的词会得到相同频率而被一起取出：
-                // - 宽泛词「工业」只有 industrial 居首 → 单发，带回整个系列；
-                // - 内聚系列「航空学」的 create、aeronautics 并列最高 → 一起发，直接命中目标。
-                // 最终交由后续按下载量与中文名重排序，把用量广的主模组顶到前面。
                 var maxCount = wordModCount.Values.Max(mods => mods.Count);
                 if (maxCount <= 1)
                 {
