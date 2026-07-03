@@ -1621,7 +1621,7 @@ public static class ModLocalComp
                             ModBase.WriteFile(Logo, entryStream);
                         }
 
-                        ModBase.Log("成功提取资源包图标：" + path, ModBase.LogLevel.Debug);
+                        ModBase.Log("成功提取资源包图标：" + path, ModBase.LogLevel.Developer);
                     }
                     catch (Exception logoEx)
                     {
