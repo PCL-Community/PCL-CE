@@ -11,6 +11,7 @@ using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.UI.Controls;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
 
@@ -18,8 +19,6 @@ namespace PCL;
 
 public partial class Application
 {
-    public static readonly List<Border> ShowingTooltips = [];
-
     public Application()
     {
         // 注册生命周期事件
@@ -65,17 +64,8 @@ public partial class Application
 
             // 设置 ToolTipService 默认值
             ToolTipService.InitialShowDelayProperty.OverrideMetadata(typeof(DependencyObject),
-                new FrameworkPropertyMetadata(300));
-            ToolTipService.BetweenShowDelayProperty.OverrideMetadata(typeof(DependencyObject),
-                new FrameworkPropertyMetadata(400));
-            ToolTipService.ShowDurationProperty.OverrideMetadata(typeof(DependencyObject),
-                new FrameworkPropertyMetadata(9999999));
-            ToolTipService.PlacementProperty.OverrideMetadata(typeof(DependencyObject),
-                new FrameworkPropertyMetadata(PlacementMode.Bottom));
-            ToolTipService.HorizontalOffsetProperty.OverrideMetadata(typeof(DependencyObject),
-                new FrameworkPropertyMetadata(8.0d));
-            ToolTipService.VerticalOffsetProperty.OverrideMetadata(typeof(DependencyObject),
-                new FrameworkPropertyMetadata(4.0d));
+                new FrameworkPropertyMetadata(100));
+            Tooltip.Enable();
 
             // 设置初始窗口
             if (Config.Preference.ShowStartupLogo)
@@ -200,16 +190,6 @@ public partial class Application
     // 控件模板事件
     private void _MyIconButtonClick(object sender, EventArgs e)
     {
-    }
-
-    private void _TooltipLoaded(object sender, EventArgs e)
-    {
-        ShowingTooltips.Add((Border)sender);
-    }
-
-    private void _TooltipUnloaded(object sender, RoutedEventArgs e)
-    {
-        ShowingTooltips.Remove((Border)sender);
     }
 
     // 自定义监听器类

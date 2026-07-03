@@ -1,0 +1,592 @@
+using System;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
+using System.Windows.Threading;
+
+namespace PCL.Core.UI.Controls;
+
+public static class Tooltip
+{
+    #region Attached Properties
+
+    public static readonly DependencyProperty IsEnabledProperty = DependencyProperty.RegisterAttached(
+        "IsEnabled", typeof(bool), typeof(Tooltip), new PropertyMetadata(true));
+
+    public static void SetIsEnabled(DependencyObject element, bool value) =>
+        element.SetValue(IsEnabledProperty, value);
+
+    public static bool GetIsEnabled(DependencyObject element) =>
+        (bool)element.GetValue(IsEnabledProperty);
+
+    public static readonly DependencyProperty FollowCursorProperty = DependencyProperty.RegisterAttached(
+        "FollowCursor", typeof(bool), typeof(Tooltip), new PropertyMetadata(true));
+
+    public static void SetFollowCursor(DependencyObject element, bool value) =>
+        element.SetValue(FollowCursorProperty, value);
+
+    public static bool GetFollowCursor(DependencyObject element) =>
+        (bool)element.GetValue(FollowCursorProperty);
+
+    #endregion
+
+    #region Constants
+
+    private const double ScaleClosed = 0.97;
+    private const double ShadowBlur = 18;
+    private const double ShadowAlpha = 0.15;
+    private const int MaxContentWidth = 676;
+    private const double TipFontSize = 12.5;
+    private const double TipLineHeight = 17;
+    private const int AnimLength = 80;
+    private const int AnimExit = 35;
+
+    private static readonly Thickness _InnerPad = new(12, 11, 12, 8);
+    private static readonly SolidColorBrush _BrushBack = new(Colors.White);
+    private static readonly SolidColorBrush _BrushBorder = new(Color.FromRgb(0xD6, 0xD6, 0xD6));
+    private static readonly SolidColorBrush _BrushText = new(Color.FromRgb(0x52, 0x52, 0x52));
+    private static readonly DropShadowEffect _Shadow = new()
+    {
+        Opacity = ShadowAlpha,
+        BlurRadius = ShadowBlur,
+        ShadowDepth = 0,
+        Color = Colors.Black
+    };
+
+    #endregion
+
+    #region Per-Element Bookkeeping (Attached)
+
+    private static readonly DependencyProperty _KeyCombo = DependencyProperty.RegisterAttached(
+        "KeyCombo", typeof(bool), typeof(Tooltip), new PropertyMetadata(false));
+
+    #endregion
+
+    #region Global State
+
+    private static bool _running;
+    private static int _gen;
+    private static Point _cursor;
+    private static FrameworkElement? _target;
+    private static Popup? _flyout;
+    private static Border? _shell;
+    private static ScaleTransform? _scaler;
+    private static Storyboard? _openStory;
+    private static Storyboard? _closeStory;
+    private static DispatcherTimer? _latch;
+
+    #endregion
+
+    #region Entry Point
+
+    public static void Enable()
+    {
+        if (_running) return;
+        _running = true;
+
+        _BrushBack.Freeze();
+        _BrushBorder.Freeze();
+        _BrushText.Freeze();
+        _Shadow.Freeze();
+
+        _PrebuildStoryboards();
+
+        EventManager.RegisterClassHandler(typeof(FrameworkElement),
+            UIElement.MouseEnterEvent, new MouseEventHandler(OnEnter), true);
+        EventManager.RegisterClassHandler(typeof(FrameworkElement),
+            UIElement.MouseMoveEvent, new MouseEventHandler(OnMove), true);
+        EventManager.RegisterClassHandler(typeof(FrameworkElement),
+            UIElement.MouseLeaveEvent, new MouseEventHandler(OnLeave), true);
+        EventManager.RegisterClassHandler(typeof(FrameworkElement),
+            UIElement.PreviewMouseUpEvent, new MouseButtonEventHandler(OnRelease), true);
+        EventManager.RegisterClassHandler(typeof(FrameworkElement),
+            ToolTipService.ToolTipOpeningEvent, new ToolTipEventHandler(OnOpening), true);
+        EventManager.RegisterClassHandler(typeof(FrameworkElement),
+            FrameworkElement.UnloadedEvent, new RoutedEventHandler(OnUnloaded), true);
+
+        EventManager.RegisterClassHandler(typeof(ComboBox),
+            FrameworkElement.LoadedEvent, new RoutedEventHandler(OnComboInit), true);
+        EventManager.RegisterClassHandler(typeof(ComboBox),
+            UIElement.PreviewMouseDownEvent, new MouseButtonEventHandler(OnComboInit), true);
+    }
+
+    public static void Disable()
+    {
+        if (!_running) return;
+        _running = false;
+        _TearDown();
+    }
+
+    public static void Dismiss()
+    {
+        _WindDown();
+    }
+
+    #endregion
+
+    #region Storyboard Setup
+
+    private static void _PrebuildStoryboards()
+    {
+        static DoubleAnimation MakeAnim(double to, string prop, int ms)
+        {
+            var a = new DoubleAnimation(to, new Duration(TimeSpan.FromMilliseconds(ms)))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+            Storyboard.SetTargetProperty(a, new PropertyPath(prop));
+            return a;
+        }
+
+        _openStory = new Storyboard();
+        _openStory.Children.Add(MakeAnim(1, nameof(UIElement.Opacity), AnimLength));
+        _openStory.Children.Add(MakeAnim(1, "RenderTransform.ScaleX", AnimLength));
+        _openStory.Children.Add(MakeAnim(1, "RenderTransform.ScaleY", AnimLength));
+
+        _closeStory = new Storyboard();
+        _closeStory.Children.Add(MakeAnim(0, nameof(UIElement.Opacity), AnimExit));
+        _closeStory.Children.Add(MakeAnim(ScaleClosed, "RenderTransform.ScaleX", AnimExit));
+        _closeStory.Children.Add(MakeAnim(ScaleClosed, "RenderTransform.ScaleY", AnimExit));
+    }
+
+    #endregion
+
+    #region Event Trampolines
+
+    private static void OnEnter(object s, MouseEventArgs e)
+    {
+        if (s is FrameworkElement fe)
+            fe.Dispatcher.BeginInvoke(() => _TryClaim(fe));
+    }
+
+    private static void OnMove(object s, MouseEventArgs e)
+    {
+        if (s is not FrameworkElement fe) return;
+
+        if (Mouse.LeftButton == MouseButtonState.Pressed)
+        {
+            if (_target is not null)
+            {
+                _cursor = Mouse.GetPosition(_target);
+                if (GetFollowCursor(_target) && _flyout is { IsOpen: true })
+                    _PlaceNear(_target, _cursor);
+            }
+            else if (_flyout is { IsOpen: true, PlacementTarget: FrameworkElement ft } && GetFollowCursor(ft))
+            {
+                _cursor = Mouse.GetPosition(ft);
+                _PlaceNear(ft, _cursor);
+            }
+            return;
+        }
+
+        _TryClaim(fe);
+
+        if (_target is not null)
+        {
+            _cursor = Mouse.GetPosition(_target);
+            if (GetFollowCursor(_target) && _flyout is { IsOpen: true })
+                _PlaceNear(_target, _cursor);
+        }
+        else if (_flyout is { IsOpen: true, PlacementTarget: FrameworkElement ft } && GetFollowCursor(ft))
+        {
+            _cursor = Mouse.GetPosition(ft);
+            _PlaceNear(ft, _cursor);
+        }
+    }
+
+    private static void OnLeave(object s, MouseEventArgs e)
+    {
+        if (s is not FrameworkElement fe || !ReferenceEquals(fe, _target)) return;
+
+        if (!fe.IsEnabled && ToolTipService.GetShowOnDisabled(fe) && _PointInside(fe, Mouse.GetPosition(fe)))
+            return;
+
+        var next = _SeekOwner(Mouse.DirectlyOver as DependencyObject);
+        if (next is not null && !ReferenceEquals(next, _target))
+        {
+            _StartCycle(next, Mouse.GetPosition(next));
+            return;
+        }
+
+        _WindDown();
+    }
+
+    private static void OnRelease(object s, MouseButtonEventArgs e)
+    {
+        if (s is not FrameworkElement fe) return;
+        fe.Dispatcher.BeginInvoke(() =>
+        {
+            if (_target is null) return;
+            var owner = _SeekOwner(fe);
+            if (owner is null)
+                _WindDown();
+            else
+                _StartCycle(owner, Mouse.GetPosition(owner));
+        }, DispatcherPriority.Input);
+    }
+
+    private static void OnOpening(object s, ToolTipEventArgs e)
+    {
+        if (s is not FrameworkElement fe || !_Eligible(fe) || !_FetchContent(fe, out _)) return;
+        e.Handled = true;
+
+        if (_DragHush(fe))
+        {
+            _Hush();
+            return;
+        }
+
+        if (fe.IsEnabled) return;
+
+        if (!ReferenceEquals(_target, fe)) _TearDown();
+        _target = fe;
+        _latch?.Stop();
+        _cursor = Mouse.GetPosition(fe);
+        _PopUp(fe, _cursor);
+    }
+
+    private static void OnUnloaded(object s, RoutedEventArgs e)
+    {
+        if (s is FrameworkElement fe && ReferenceEquals(fe, _target))
+            _WindDown();
+    }
+
+    #endregion
+
+    #region Owner Resolution
+
+    private static void _TryClaim(FrameworkElement pivot)
+    {
+        var candidate = _SeekOwner(Mouse.DirectlyOver as DependencyObject) ?? pivot;
+
+        if (!_Eligible(candidate) || !_FetchContent(candidate, out _))
+        {
+            _WindDown();
+            return;
+        }
+
+        if (_DragHush(candidate))
+        {
+            if (_target is not null &&
+                Mouse.Captured is DependencyObject cap &&
+                _ShareAncestor(cap, _target) &&
+                _PointInside(_target, Mouse.GetPosition(_target)))
+                return;
+
+            _Hush();
+            return;
+        }
+
+        _StartCycle(candidate, Mouse.GetPosition(candidate));
+    }
+
+    private static FrameworkElement? _SeekOwner(DependencyObject? leaf)
+    {
+        for (var cur = leaf; cur is not null; cur = VisualTreeHelper.GetParent(cur))
+        {
+            if (cur is FrameworkElement fe && _Eligible(fe) && _FetchContent(fe, out _))
+                return fe;
+        }
+        return null;
+    }
+
+    private static bool _Eligible(FrameworkElement fe) =>
+        GetIsEnabled(fe) && ToolTipService.GetIsEnabled(fe) &&
+        (fe.IsEnabled || ToolTipService.GetShowOnDisabled(fe));
+
+    private static bool _FetchContent(FrameworkElement src, out object? payload)
+    {
+        payload = null;
+        var raw = src.ToolTip;
+        if (raw is null) return false;
+
+        if (raw is ToolTip tip)
+            payload = tip.Content;
+        else
+            payload = raw;
+
+        return payload is not null && (payload is not string s || s.Length > 0);
+    }
+
+    private static bool _DragHush(FrameworkElement? candidate)
+    {
+        if (Mouse.LeftButton == MouseButtonState.Pressed || Mouse.Captured is null) return false;
+        if (candidate is null) return true;
+        if (Mouse.Captured is not DependencyObject cap) return true;
+        return !_ShareAncestor(cap, candidate);
+    }
+
+    private static bool _PointInside(FrameworkElement el, Point p) =>
+        p.X >= 0 && p.Y >= 0 && p.X <= el.ActualWidth && p.Y <= el.ActualHeight;
+
+    private static bool _ShareAncestor(DependencyObject a, DependencyObject b)
+    {
+        if (ReferenceEquals(a, b)) return true;
+        for (var cur = VisualTreeHelper.GetParent(b); cur is not null; cur = VisualTreeHelper.GetParent(cur))
+            if (ReferenceEquals(cur, a)) return true;
+        for (var cur = VisualTreeHelper.GetParent(a); cur is not null; cur = VisualTreeHelper.GetParent(cur))
+            if (ReferenceEquals(cur, b)) return true;
+        return false;
+    }
+
+    #endregion
+
+    #region Cycle Management
+
+    private static void _StartCycle(FrameworkElement target, Point pt)
+    {
+        if (!_Eligible(target) || !_FetchContent(target, out _)) return;
+        if (_DragHush(target))
+        {
+            _Hush();
+            return;
+        }
+
+        _Stitch(target as ComboBox);
+
+        if (ReferenceEquals(_target, target))
+        {
+            _cursor = pt;
+            if (_flyout is not { IsOpen: true })
+                _KickTimer(target);
+            return;
+        }
+
+        // Tooltip 已打开时切换到新元素，先淡出旧内容再淡入新内容
+        if (_flyout is { IsOpen: true })
+        {
+            _target = target;
+            _cursor = pt;
+            var mark = ++_gen;
+            var sb = _closeStory!.Clone();
+            sb.Completed += (_, _) =>
+            {
+                if (mark != _gen) return;
+                _PopUp(target, pt);
+            };
+            _shell!.BeginStoryboard(sb);
+            return;
+        }
+
+        _TearDown();
+        _target = target;
+        _cursor = pt;
+        _KickTimer(target);
+    }
+
+    private static void _KickTimer(FrameworkElement target)
+    {
+        _latch?.Stop();
+
+        var ms = Math.Max(0, ToolTipService.GetInitialShowDelay(target));
+        if (ms == 0)
+        {
+            _PopUp(target, _cursor);
+            return;
+        }
+
+        var mark = ++_gen;
+        _latch = new DispatcherTimer(
+            TimeSpan.FromMilliseconds(ms),
+            DispatcherPriority.Normal,
+            (_, _) =>
+            {
+                _latch?.Stop();
+                if (mark == _gen && _target is not null)
+                    _PopUp(_target, _cursor);
+            },
+            target.Dispatcher);
+    }
+
+    private static void _PopUp(FrameworkElement target, Point pt)
+    {
+        if (!ReferenceEquals(target, _target)) return;
+
+        if (_flyout is null)
+            _BuildUi();
+
+        _flyout!.PlacementTarget = target;
+        _PlaceNear(target, pt);
+
+        _shell!.DataContext = (target.ToolTip as ToolTip)?.DataContext ?? target.DataContext;
+        _shell.FlowDirection = target.FlowDirection;
+
+        _RenderInside(target);
+
+        _gen++;
+        _shell.BeginStoryboard(_openStory!);
+        _flyout.IsOpen = true;
+    }
+
+    private static void _BuildUi()
+    {
+        _scaler = new ScaleTransform(ScaleClosed, ScaleClosed);
+        _shell = new Border
+        {
+            Background = _BrushBack,
+            BorderBrush = _BrushBorder,
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(8),
+            MaxWidth = 700,
+            SnapsToDevicePixels = true,
+            UseLayoutRounding = true,
+            RenderTransform = _scaler,
+            RenderTransformOrigin = new Point(0, 0),
+            Effect = _Shadow
+        };
+
+        var wrap = new Grid
+        {
+            Margin = new Thickness(ShadowBlur + 1),
+            SnapsToDevicePixels = true,
+            UseLayoutRounding = true
+        };
+        wrap.Children.Add(_shell);
+
+        _flyout = new Popup
+        {
+            AllowsTransparency = true,
+            IsHitTestVisible = false,
+            StaysOpen = true,
+            PopupAnimation = PopupAnimation.None,
+            Placement = PlacementMode.Relative,
+            Child = wrap
+        };
+    }
+
+    private static void _RenderInside(FrameworkElement owner)
+    {
+        _shell!.Child = null;
+
+        var raw = owner.ToolTip;
+        var tip = raw as ToolTip;
+        var content = tip?.Content ?? raw;
+
+        if (content is null || content is string { Length: 0 })
+            return;
+
+        var hasTpl = tip?.ContentTemplate is not null || tip?.ContentTemplateSelector is not null;
+
+        if (content is string text && !hasTpl)
+        {
+            _shell.Child = new TextBlock
+            {
+                Text = text,
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = _BrushText,
+                Margin = _InnerPad,
+                FontSize = TipFontSize,
+                LineHeight = TipLineHeight,
+                MaxWidth = MaxContentWidth
+            };
+        }
+        else
+        {
+            _shell.Child = new ContentPresenter
+            {
+                Content = content,
+                ContentTemplate = tip?.ContentTemplate,
+                ContentTemplateSelector = tip?.ContentTemplateSelector,
+                ContentStringFormat = tip?.ContentStringFormat,
+                Margin = _InnerPad,
+                MaxWidth = MaxContentWidth
+            };
+        }
+    }
+
+    private static void _PlaceNear(FrameworkElement target, Point pt)
+    {
+        _flyout!.PlacementTarget = target;
+        _flyout.HorizontalOffset = Math.Round(pt.X + 15);
+        _flyout.VerticalOffset = Math.Round(pt.Y + 25);
+    }
+
+    private static void _WindDown()
+    {
+        _latch?.Stop();
+        _latch = null;
+        _target = null;
+
+        if (_flyout is not { IsOpen: true } || _shell is null)
+        {
+            _Hush();
+            return;
+        }
+
+        var mark = ++_gen;
+        var sb = _closeStory!.Clone();
+        sb.Completed += (_, _) =>
+        {
+            if (mark == _gen) _Hush();
+        };
+        _shell.BeginStoryboard(sb);
+    }
+
+    private static void _Hush()
+    {
+        _latch?.Stop();
+        _latch = null;
+        _gen++;
+
+        if (_flyout is not null)
+            _flyout.IsOpen = false;
+
+        if (_shell is not null)
+        {
+            _shell.BeginAnimation(UIElement.OpacityProperty, null);
+            _shell.Child = null;
+        }
+
+        if (_scaler is not null)
+        {
+            _scaler.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            _scaler.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        }
+    }
+
+    private static void _TearDown()
+    {
+        _latch?.Stop();
+        _latch = null;
+        _target = null;
+        _gen++;
+
+        if (_flyout is not null)
+            _flyout.IsOpen = false;
+
+        if (_shell is not null)
+        {
+            _shell.BeginAnimation(UIElement.OpacityProperty, null);
+            _shell.Child = null;
+        }
+
+        if (_scaler is not null)
+        {
+            _scaler.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            _scaler.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+        }
+    }
+
+    #endregion
+
+    #region ComboBox Hook
+
+    private static void OnComboInit(object s, RoutedEventArgs e) => _Stitch(s as ComboBox);
+    private static void OnComboInit(object s, MouseButtonEventArgs e) => _Stitch(s as ComboBox);
+
+    private static void _Stitch(ComboBox? box)
+    {
+        if (box is null || (bool)box.GetValue(_KeyCombo)) return;
+        box.SetValue(_KeyCombo, true);
+        box.DropDownOpened += (_, _) =>
+        {
+            if (_target is not null) _WindDown();
+        };
+    }
+
+    #endregion
+}

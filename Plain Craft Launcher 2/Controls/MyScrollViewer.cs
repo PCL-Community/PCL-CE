@@ -1,21 +1,18 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using PCL.Core.UI.Controls;
 
 namespace PCL;
 
 public class MyScrollViewer : ScrollViewer
 {
-    private readonly string tooltipHideId;
-
-
     private double realOffset;
 
     public MyScrollBar scrollBar;
 
     public MyScrollViewer()
     {
-        tooltipHideId = $"HideTooltip_{GetHashCode()}";
         PreviewMouseWheel += MyScrollViewer_PreviewMouseWheel;
         ScrollChanged += MyScrollViewer_ScrollChanged;
         IsVisibleChanged += MyScrollViewer_IsVisibleChanged;
@@ -46,10 +43,7 @@ public class MyScrollViewer : ScrollViewer
         e.Handled = true;
         PerformVerticalOffsetDelta(-e.Delta);
 
-        if (Application.ShowingTooltips.Count > 0)
-            foreach (var TooltipBorder in Application.ShowingTooltips)
-                // 建议：如果动画已经在执行，则不再重复触发
-                ModAnimation.AniStart(ModAnimation.AaOpacity(TooltipBorder, -1, 100), tooltipHideId);
+        Tooltip.Dismiss();
     }
 
     public void PerformVerticalOffsetDelta(double delta)
