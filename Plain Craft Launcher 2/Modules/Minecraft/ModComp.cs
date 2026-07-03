@@ -2513,10 +2513,6 @@ public static class ModComp
                 var maxCount = wordModCount.Values.Max(mods => mods.Count);
                 if (maxCount <= 1)
                 {
-                    // 各匹配项之间没有共有英文词根（每个词只出现在一个模组里，如「工业时代」→ IC2/IC2C/…）。
-                    // 此时把多个来自不同模组的词拼成一个查询，会形成没有模组能同时命中的 conjunctive 查询而
-                    // 搜空（重现本 PR 想修的“无结果”）。改用相似度最高词条的关键词，至少返回该模组及同系列
-                    // （PR #3278 review）。
                     var best = searchResults
                         .OrderByDescending(r => r.absoluteRight)
                         .ThenByDescending(r => r.similarity)
