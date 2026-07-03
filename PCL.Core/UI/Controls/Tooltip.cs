@@ -523,6 +523,7 @@ public static class Tooltip
             _flyout.Placement = mode;
             _flyout.HorizontalOffset = ToolTipService.GetHorizontalOffset(target);
             _flyout.VerticalOffset = ToolTipService.GetVerticalOffset(target);
+            _flyout.PlacementRectangle = ToolTipService.GetPlacementRectangle(target);
         }
     }
 
