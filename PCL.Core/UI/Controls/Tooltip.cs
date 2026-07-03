@@ -259,7 +259,8 @@ public static class Tooltip
 
         if (!_Eligible(candidate) || !_FetchContent(candidate, out _))
         {
-            _WindDown();
+            if (_target is not null)
+                _WindDown();
             return;
         }
 
