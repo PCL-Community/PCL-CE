@@ -1470,7 +1470,7 @@
     <sys:String x:Key="Launch.Right.CommunityHint.HidePrompt">若要永久隐藏此提示，请输入正确的 PCL CE 开发组织名称。</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.InputTitle">输入 PCL CE 开发组织名称</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.Message">你正在使用 PCL CE（PCL 社区版）！此版本为独立开发和维护，与原版维护路线不同，体验有所出入。&#xA;&#xA;如果你是意外下载到了 PCL CE ，我们十分建议您下载原版 PCL 长期使用，此发行版本对新手用户体验可能不友好。&#xA;此外， PCL CE 的问题请向 PCL CE 的仓库提交 Issue，不要向官方仓库反馈 PCL CE 的问题哦！</sys:String>
-    <sys:String x:Key="Launch.Right.CommunityHint.Title"> PCL CE 提示</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.Title">PCL CE 提示</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.WrongInput">不太对哦……</sys:String>
     <sys:String x:Key="Launch.Right.Log.Title">启动日志</sys:String>
 
