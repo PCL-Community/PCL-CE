@@ -37,6 +37,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
         new(_CheckGameState, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(15));
 
     private static bool _isGameWatcherRunnable = false;
+    private static int _isLeaving;
 
     /// <summary>
     /// Current lobby state.
@@ -109,7 +110,8 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
     /// <inheritdoc />
     public override void Stop()
     {
-        _ = _LobbyController.CloseAsync();
+        _lobbyCts.Cancel();
+        _LobbyController.CloseAsync().GetAwaiter().GetResult();
         _ServerGameWatcher.Dispose();
         _lobbyCts.Dispose();
 
@@ -374,7 +376,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
             CurrentUserName = username;
             CurrentLobbyCode = lobbyCode;
 
-            var clientEntity = await _LobbyController.LaunchClientAsync(username, lobbyCode).ConfigureAwait(false);
+            var clientEntity = await _LobbyController.LaunchClientAsync(username, lobbyCode, _lobbyCts.Token).ConfigureAwait(false);
 
             if (clientEntity is null)
             {
@@ -395,6 +397,10 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
 
             return false;
         }
+        catch (OperationCanceledException)
+        {
+            return false;
+        }
         catch (Exception ex)
         {
             LogWrapper.Error(ex, "LobbyService", $"Failed to join lobby {lobbyCode}.");
@@ -410,8 +416,6 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
     private static void _ClientOnServerShutDown()
     {
         OnServerShutDown?.Invoke();
-
-        _ = LeaveLobbyAsync();
     }
 
     private static void _ClientOnHeartbeat(IReadOnlyList<PlayerProfile> players, long latency)
@@ -460,10 +464,13 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
     /// </summary>
     public static async Task LeaveLobbyAsync()
     {
-        _SetState(LobbyState.Leaving);
+        if (Interlocked.Exchange(ref _isLeaving, 1) == 1)
+            return;
 
         try
         {
+            _SetState(LobbyState.Leaving);
+
             await _lobbyCts.CancelAsync().ConfigureAwait(false);
 
             Players.Clear();
@@ -497,6 +504,10 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
         catch (Exception ex)
         {
             LogWrapper.Error(ex, "LobbyService", "Failed when leave lobby.");
+        }
+        finally
+        {
+            _isLeaving = 0;
         }
     }
 
