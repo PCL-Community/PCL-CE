@@ -43,12 +43,9 @@ public static class Tooltip
     private const double TipFontSize = 12.5;
     private const double TipLineHeight = 17;
     private const int AnimLength = 80;
-    private const int AnimExit = 35;
+    private const int AnimExit = 32;
 
     private static readonly Thickness _InnerPad = new(12, 11, 12, 8);
-    private static readonly SolidColorBrush _BrushBack = new(Colors.White);
-    private static readonly SolidColorBrush _BrushBorder = new(Color.FromRgb(0xD6, 0xD6, 0xD6));
-    private static readonly SolidColorBrush _BrushText = new(Color.FromRgb(0x52, 0x52, 0x52));
     private static readonly DropShadowEffect _Shadow = new()
     {
         Opacity = ShadowAlpha,
@@ -88,9 +85,6 @@ public static class Tooltip
         if (_running) return;
         _running = true;
 
-        _BrushBack.Freeze();
-        _BrushBorder.Freeze();
-        _BrushText.Freeze();
         _Shadow.Freeze();
 
         _PrebuildStoryboards();
@@ -427,8 +421,6 @@ public static class Tooltip
         _scaler = new ScaleTransform(ScaleClosed, ScaleClosed);
         _shell = new Border
         {
-            Background = _BrushBack,
-            BorderBrush = _BrushBorder,
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(8),
             MaxWidth = 700,
@@ -438,6 +430,8 @@ public static class Tooltip
             RenderTransformOrigin = new Point(0, 0),
             Effect = _Shadow
         };
+        _shell.SetResourceReference(Border.BackgroundProperty, "ColorBrushWhite");
+        _shell.SetResourceReference(Border.BorderBrushProperty, "ColorBrushGray5");
 
         var wrap = new Grid
         {
@@ -473,16 +467,17 @@ public static class Tooltip
 
         if (content is string text && !hasTpl)
         {
-            _shell.Child = new TextBlock
+            var tb = new TextBlock
             {
                 Text = text,
                 TextWrapping = TextWrapping.Wrap,
-                Foreground = _BrushText,
                 Margin = _InnerPad,
                 FontSize = TipFontSize,
                 LineHeight = TipLineHeight,
                 MaxWidth = MaxContentWidth
             };
+            tb.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrush1");
+            _shell.Child = tb;
         }
         else
         {
