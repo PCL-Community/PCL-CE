@@ -2480,11 +2480,6 @@ public static class ModComp
 
             if (exactNameMods == 1)
             {
-                // 唯一完整名（如「钠」「玉」「聊天头像」「机械动力」）→ 锁定该模组、用其关键词精确搜索。
-                // 仅当“恰好一个模组”叫这个名字时才收窄；若有多个同名模组（如 4 个不同的「背包」），
-                // 视为类别词走下面的频率分支，避免漏掉旅行者背包等其余同类。
-                // 直接取“名称恰等于输入”的那一个，可避免「玉」因规范模组「玉 🔍 (Jade)」名称含装饰表情
-                // 🔍（C# 中长度为 2）拉低相似度而被「玉足 (Jade Feet)」挤掉。
                 var canonicalEntry = exactNameEntries
                     .OrderByDescending(r => r.absoluteRight)
                     .ThenByDescending(r => r.similarity)
