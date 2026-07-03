@@ -169,6 +169,11 @@ public static class Tooltip
                 if (GetFollowCursor(_target) && _flyout is { IsOpen: true })
                     _PlaceNear(_target, _cursor);
             }
+            else if (_flyout is { IsOpen: true, PlacementTarget: FrameworkElement ft } && GetFollowCursor(ft))
+            {
+                _cursor = Mouse.GetPosition(ft);
+                _PlaceNear(ft, _cursor);
+            }
             return;
         }
 
@@ -180,21 +185,24 @@ public static class Tooltip
             if (GetFollowCursor(_target) && _flyout is { IsOpen: true })
                 _PlaceNear(_target, _cursor);
         }
+        else if (_flyout is { IsOpen: true, PlacementTarget: FrameworkElement ft } && GetFollowCursor(ft))
+        {
+            _cursor = Mouse.GetPosition(ft);
+            _PlaceNear(ft, _cursor);
+        }
     }
 
     private static void OnLeave(object s, MouseEventArgs e)
     {
-        if (s is not FrameworkElement fe || _target is null) return;
-        if (!_IsSelfOrDescendant(fe, _target)) return;
+        if (s is not FrameworkElement fe || !ReferenceEquals(fe, _target)) return;
 
         if (!fe.IsEnabled && ToolTipService.GetShowOnDisabled(fe) && _PointInside(fe, Mouse.GetPosition(fe)))
             return;
 
         var next = _SeekOwner(Mouse.DirectlyOver as DependencyObject);
-        if (next is not null)
+        if (next is not null && !ReferenceEquals(next, _target))
         {
-            if (!ReferenceEquals(next, _target))
-                _StartCycle(next, Mouse.GetPosition(next));
+            _StartCycle(next, Mouse.GetPosition(next));
             return;
         }
 
@@ -308,14 +316,6 @@ public static class Tooltip
 
     private static bool _PointInside(FrameworkElement el, Point p) =>
         p.X >= 0 && p.Y >= 0 && p.X <= el.ActualWidth && p.Y <= el.ActualHeight;
-
-    private static bool _IsSelfOrDescendant(DependencyObject child, DependencyObject ancestor)
-    {
-        if (ReferenceEquals(child, ancestor)) return true;
-        for (var cur = VisualTreeHelper.GetParent(child); cur is not null; cur = VisualTreeHelper.GetParent(cur))
-            if (ReferenceEquals(cur, ancestor)) return true;
-        return false;
-    }
 
     private static bool _ShareAncestor(DependencyObject a, DependencyObject b)
     {
