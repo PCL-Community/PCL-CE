@@ -42,7 +42,7 @@ public partial class PageSetupAbout
             ItemMcmod.Visibility = Visibility.Collapsed;
             BtnMcmod.Visibility = Visibility.Collapsed;
             ImgMcmod.Visibility = Visibility.Collapsed;
-            // 同时收起该行固定行高，否则元素隐藏后该行仍占 45px、留下空隙（issue #3313）
+            // 同时收起该行固定行高，否则元素隐藏后该行仍占 45px、留下空隙
             RowMcmod.Height = new GridLength(0);
         }
 
