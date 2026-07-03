@@ -43,7 +43,7 @@ public static class Tooltip
     private const double TipFontSize = 12.5;
     private const double TipLineHeight = 17;
     private const int AnimLength = 80;
-    private const int AnimExit = 35;
+    private const int AnimExit = 80;
 
     private static readonly Thickness _InnerPad = new(12, 10, 12, 10);
     private static readonly DropShadowEffect _Shadow = new()
@@ -268,7 +268,11 @@ public static class Tooltip
 
     private static void _TryClaim(FrameworkElement pivot)
     {
-        var candidate = _SeekOwner(_Over()) ?? pivot;
+        var owner = _SeekOwner(_Over());
+        var candidate = owner ?? pivot;
+
+        if (ReferenceEquals(candidate, pivot) && !_PointInside(pivot, Mouse.GetPosition(pivot)))
+            return;
 
         if (!_Eligible(candidate) || !_FetchContent(candidate))
         {
