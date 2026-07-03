@@ -76,6 +76,15 @@ public static class Tooltip
     private static Storyboard? _closeStory;
     private static DispatcherTimer? _latch;
 
+    private static readonly MouseEventHandler _OnEnterHandler = OnEnter;
+    private static readonly MouseEventHandler _OnMoveHandler = OnMove;
+    private static readonly MouseEventHandler _OnLeaveHandler = OnLeave;
+    private static readonly MouseButtonEventHandler _OnReleaseHandler = OnRelease;
+    private static readonly ToolTipEventHandler _OnOpeningHandler = OnOpening;
+    private static readonly RoutedEventHandler _OnUnloadedHandler = OnUnloaded;
+    private static readonly RoutedEventHandler _OnComboLoadedHandler = OnComboInit;
+    private static readonly MouseButtonEventHandler _OnComboMouseDownHandler = OnComboInit;
+
     #endregion
 
     #region Entry Point
@@ -90,29 +99,29 @@ public static class Tooltip
         _PrebuildStoryboards();
 
         EventManager.RegisterClassHandler(typeof(FrameworkElement),
-            UIElement.MouseEnterEvent, new MouseEventHandler(OnEnter), true);
+            UIElement.MouseEnterEvent, _OnEnterHandler, true);
         EventManager.RegisterClassHandler(typeof(FrameworkElement),
-            UIElement.MouseMoveEvent, new MouseEventHandler(OnMove), true);
+            UIElement.MouseMoveEvent, _OnMoveHandler, true);
         EventManager.RegisterClassHandler(typeof(FrameworkElement),
-            UIElement.MouseLeaveEvent, new MouseEventHandler(OnLeave), true);
+            UIElement.MouseLeaveEvent, _OnLeaveHandler, true);
         EventManager.RegisterClassHandler(typeof(FrameworkElement),
-            UIElement.PreviewMouseUpEvent, new MouseButtonEventHandler(OnRelease), true);
+            UIElement.PreviewMouseUpEvent, _OnReleaseHandler, true);
         EventManager.RegisterClassHandler(typeof(FrameworkElement),
-            ToolTipService.ToolTipOpeningEvent, new ToolTipEventHandler(OnOpening), true);
+            ToolTipService.ToolTipOpeningEvent, _OnOpeningHandler, true);
         EventManager.RegisterClassHandler(typeof(FrameworkElement),
-            FrameworkElement.UnloadedEvent, new RoutedEventHandler(OnUnloaded), true);
+            FrameworkElement.UnloadedEvent, _OnUnloadedHandler, true);
 
         EventManager.RegisterClassHandler(typeof(ComboBox),
-            FrameworkElement.LoadedEvent, new RoutedEventHandler(OnComboInit), true);
+            FrameworkElement.LoadedEvent, _OnComboLoadedHandler, true);
         EventManager.RegisterClassHandler(typeof(ComboBox),
-            UIElement.PreviewMouseDownEvent, new MouseButtonEventHandler(OnComboInit), true);
+            UIElement.PreviewMouseDownEvent, _OnComboMouseDownHandler, true);
     }
 
     public static void Disable()
     {
         if (!_running) return;
         _running = false;
-        _TearDown();
+        _Hush();
     }
 
     public static void Dismiss()
@@ -153,13 +162,13 @@ public static class Tooltip
 
     private static void OnEnter(object s, MouseEventArgs e)
     {
-        if (s is FrameworkElement fe)
-            fe.Dispatcher.BeginInvoke(() => _TryClaim(fe));
+        if (!_running || s is not FrameworkElement fe) return;
+        fe.Dispatcher.BeginInvoke(() => _TryClaim(fe));
     }
 
     private static void OnMove(object s, MouseEventArgs e)
     {
-        if (s is not FrameworkElement fe) return;
+        if (!_running || s is not FrameworkElement fe) return;
 
         if (Mouse.LeftButton == MouseButtonState.Pressed)
         {
@@ -194,12 +203,12 @@ public static class Tooltip
 
     private static void OnLeave(object s, MouseEventArgs e)
     {
-        if (s is not FrameworkElement fe || !ReferenceEquals(fe, _target)) return;
+        if (!_running || s is not FrameworkElement fe || !ReferenceEquals(fe, _target)) return;
 
         if (!fe.IsEnabled && ToolTipService.GetShowOnDisabled(fe) && _PointInside(fe, Mouse.GetPosition(fe)))
             return;
 
-        var next = _SeekOwner(Mouse.DirectlyOver as DependencyObject);
+        var next = _SeekOwner(_Over());
         if (next is not null && !ReferenceEquals(next, _target))
         {
             _StartCycle(next, Mouse.GetPosition(next));
@@ -211,7 +220,7 @@ public static class Tooltip
 
     private static void OnRelease(object s, MouseButtonEventArgs e)
     {
-        if (s is not FrameworkElement fe) return;
+        if (!_running || s is not FrameworkElement fe) return;
         fe.Dispatcher.BeginInvoke(() =>
         {
             if (_target is null) return;
@@ -225,7 +234,7 @@ public static class Tooltip
 
     private static void OnOpening(object s, ToolTipEventArgs e)
     {
-        if (s is not FrameworkElement fe || !_Eligible(fe) || !_FetchContent(fe, out _)) return;
+        if (!_running || s is not FrameworkElement fe || !_Eligible(fe) || !_FetchContent(fe)) return;
         e.Handled = true;
 
         if (_DragHush(fe))
@@ -236,7 +245,7 @@ public static class Tooltip
 
         if (fe.IsEnabled) return;
 
-        if (!ReferenceEquals(_target, fe)) _TearDown();
+        if (!ReferenceEquals(_target, fe)) _Hush();
         _target = fe;
         _latch?.Stop();
         _cursor = Mouse.GetPosition(fe);
@@ -245,6 +254,7 @@ public static class Tooltip
 
     private static void OnUnloaded(object s, RoutedEventArgs e)
     {
+        if (!_running) return;
         if (s is FrameworkElement fe && ReferenceEquals(fe, _target))
             _WindDown();
     }
@@ -255,9 +265,9 @@ public static class Tooltip
 
     private static void _TryClaim(FrameworkElement pivot)
     {
-        var candidate = _SeekOwner(Mouse.DirectlyOver as DependencyObject) ?? pivot;
+        var candidate = _SeekOwner(_Over()) ?? pivot;
 
-        if (!_Eligible(candidate) || !_FetchContent(candidate, out _))
+        if (!_Eligible(candidate) || !_FetchContent(candidate))
         {
             if (_target is not null)
                 _WindDown();
@@ -267,7 +277,7 @@ public static class Tooltip
         if (_DragHush(candidate))
         {
             if (_target is not null &&
-                Mouse.Captured is DependencyObject cap &&
+                _Captured() is { } cap &&
                 _ShareAncestor(cap, _target) &&
                 _PointInside(_target, Mouse.GetPosition(_target)))
                 return;
@@ -279,11 +289,14 @@ public static class Tooltip
         _StartCycle(candidate, Mouse.GetPosition(candidate));
     }
 
+    private static DependencyObject? _Over() => Mouse.DirectlyOver as DependencyObject;
+    private static DependencyObject? _Captured() => Mouse.Captured as DependencyObject;
+
     private static FrameworkElement? _SeekOwner(DependencyObject? leaf)
     {
         for (var cur = leaf; cur is not null; cur = VisualTreeHelper.GetParent(cur))
         {
-            if (cur is FrameworkElement fe && _Eligible(fe) && _FetchContent(fe, out _))
+            if (cur is FrameworkElement fe && _Eligible(fe) && _FetchContent(fe))
                 return fe;
         }
         return null;
@@ -293,17 +306,12 @@ public static class Tooltip
         GetIsEnabled(fe) && ToolTipService.GetIsEnabled(fe) &&
         (fe.IsEnabled || ToolTipService.GetShowOnDisabled(fe));
 
-    private static bool _FetchContent(FrameworkElement src, out object? payload)
+    private static bool _FetchContent(FrameworkElement src)
     {
-        payload = null;
         var raw = src.ToolTip;
         if (raw is null) return false;
 
-        if (raw is ToolTip tip)
-            payload = tip.Content;
-        else
-            payload = raw;
-
+        var payload = raw is ToolTip tip ? tip.Content : raw;
         return payload is not null && (payload is not string s || s.Length > 0);
     }
 
@@ -311,7 +319,8 @@ public static class Tooltip
     {
         if (Mouse.LeftButton == MouseButtonState.Pressed || Mouse.Captured is null) return false;
         if (candidate is null) return true;
-        if (Mouse.Captured is not DependencyObject cap) return true;
+        var cap = _Captured();
+        if (cap is null) return true;
         return !_ShareAncestor(cap, candidate);
     }
 
@@ -334,7 +343,7 @@ public static class Tooltip
 
     private static void _StartCycle(FrameworkElement target, Point pt)
     {
-        if (!_Eligible(target) || !_FetchContent(target, out _)) return;
+        if (!_Eligible(target) || !_FetchContent(target)) return;
         if (_DragHush(target))
         {
             _Hush();
@@ -360,14 +369,14 @@ public static class Tooltip
             var sb = _closeStory!.Clone();
             sb.Completed += (_, _) =>
             {
-                if (mark != _gen) return;
-                _PopUp(target, pt);
+                if (mark == _gen) _PopUp(target, pt);
+                sb.Remove(_shell!);
             };
             _shell!.BeginStoryboard(sb);
             return;
         }
 
-        _TearDown();
+        _Hush();
         _target = target;
         _cursor = pt;
         _KickTimer(target);
@@ -518,33 +527,12 @@ public static class Tooltip
         sb.Completed += (_, _) =>
         {
             if (mark == _gen) _Hush();
+            sb.Remove(_shell);
         };
         _shell.BeginStoryboard(sb);
     }
 
     private static void _Hush()
-    {
-        _latch?.Stop();
-        _latch = null;
-        _gen++;
-
-        if (_flyout is not null)
-            _flyout.IsOpen = false;
-
-        if (_shell is not null)
-        {
-            _shell.BeginAnimation(UIElement.OpacityProperty, null);
-            _shell.Child = null;
-        }
-
-        if (_scaler is not null)
-        {
-            _scaler.BeginAnimation(ScaleTransform.ScaleXProperty, null);
-            _scaler.BeginAnimation(ScaleTransform.ScaleYProperty, null);
-        }
-    }
-
-    private static void _TearDown()
     {
         _latch?.Stop();
         _latch = null;
