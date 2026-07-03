@@ -2466,9 +2466,13 @@ public static class ModComp
             // Modrinth 会将整串当作对同一模组的描述匹配，没有模组能同时命中全部词 → 两源皆空、搜索失败。
             // 但若一律收窄到单个模组，又会走向另一极端：输入「工业」「应用」「背包」「航空学」这类
             // 部分/类别词时只剩某一个模组的关键词，必须打全名、同名系列尽失。
-            string CanonName(string name) =>
-                new string(name.BeforeFirst(" (").Where(char.IsLetterOrDigit).ToArray());
-            var normalizedQuery = new string(rawFilter.Where(char.IsLetterOrDigit).ToArray());
+            // 规范化名称/查询用于判断“名称是否恰等于输入”：仅去除空白与 emoji 等星标字符（如 Jade 名称里的
+            // 🔍），但保留标点。否则「红石」会因 CanonName 剥掉「红石++ (Redstone++)」的 ++ 而被当成其唯一
+            // 精确名、误收窄到 Redstone++，漏掉其他红石模组（PR #3278 review）。
+            static string NormalizeName(string s) =>
+                new string(s.Where(c => !char.IsWhiteSpace(c) && !char.IsSurrogate(c)).ToArray());
+            string CanonName(string name) => NormalizeName(name.BeforeFirst(" ("));
+            var normalizedQuery = NormalizeName(rawFilter);
             // 名称（剥离装饰符号与空格后）恰等于输入的词条；按 WikiId 去重统计涉及多少个不同模组。
             var exactNameEntries = searchResults
                 .Where(r => CanonName(r.item.ChineseName) == normalizedQuery).ToList();
@@ -2490,6 +2494,11 @@ public static class ModComp
                 request.searchText = canonicalWords.Any()
                     ? string.Join(" ", canonicalWords)
                     : string.Join(" ", wordModCount.OrderByDescending(w => w.Value.Count).Take(2).Select(w => w.Key));
+                // CurseForge 的 searchFilter 为 AND 语义：把 slug 与名称词拼成一串发送时，若两者分歧
+                // （如「红石++」slug=redstoneplusplus 与名称词 redstone 互不包含）会互相排斥、返回零结果。
+                // 该模组在 CF 上由 slug 唯一定位，故对 CurseForge 单独使用其 slug 查询，绕开这一冲突。
+                if (canonicalEntry.item.CurseForgeSlug is not null)
+                    request.curseForgeAltSearchText = canonicalEntry.item.CurseForgeSlug;
             }
             else
             {
@@ -2499,11 +2508,27 @@ public static class ModComp
                 // - 内聚系列「航空学」的 create、aeronautics 并列最高 → 一起发，直接命中目标。
                 // 最终交由后续按下载量与中文名重排序，把用量广的主模组顶到前面。
                 var maxCount = wordModCount.Values.Max(mods => mods.Count);
-                request.searchText = string.Join(" ", wordModCount
-                    .Where(w => w.Value.Count == maxCount)
-                    .OrderBy(w => w.Key.Length)
-                    .Take(3)
-                    .Select(w => w.Key));
+                if (maxCount <= 1)
+                {
+                    // 各匹配项之间没有共有英文词根（每个词只出现在一个模组里，如「工业时代」→ IC2/IC2C/…）。
+                    // 此时把多个来自不同模组的词拼成一个查询，会形成没有模组能同时命中的 conjunctive 查询而
+                    // 搜空（重现本 PR 想修的“无结果”）。改用相似度最高词条的关键词，至少返回该模组及同系列
+                    // （PR #3278 review）。
+                    var best = searchResults
+                        .OrderByDescending(r => r.absoluteRight)
+                        .ThenByDescending(r => r.similarity)
+                        .ThenBy(r => (r.item.CurseForgeSlug ?? r.item.ModrinthSlug ?? r.item.ChineseName).Length)
+                        .First();
+                    request.searchText = string.Join(" ", ExtractWords(best));
+                }
+                else
+                {
+                    request.searchText = string.Join(" ", wordModCount
+                        .Where(w => w.Value.Count == maxCount)
+                        .OrderBy(w => w.Key.Length)
+                        .Take(3)
+                        .Select(w => w.Key));
+                }
             }
             LogWrapper.Debug("[Comp] 中文搜索基础关键词：" + request.searchText);
         }
