@@ -2397,8 +2397,8 @@ public static class ModComp
                 // 广度检索本地翻译库：取名称/slug 命中查询的全部词条。
                 // 不在 SQL 层做前缀收窄——精度由下方“唯一规范名→单模组 / 否则→共有词根”的关键词
                 // 选择保证，且发往接口的是英文查询、天然排除「玉米」之类噪音；若在此按前缀收窄，会把
-                // 「背包」这类类别词窄化成某一个同名模组，漏掉旅行者背包等其余同类（见 issue #3272）。
-                // 仅对 LIKE 模式做 \ % _ 转义（借鉴 #3289），统一用 ESCAPE '\'。
+                // 「背包」这类类别词窄化成某一个同名模组，漏掉旅行者背包等其余同类。
+                // 仅对 LIKE 模式做 \ % _ 转义，统一用 ESCAPE '\'。
                 var likeEscaped = rawFilter.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
                 var searchRes = conn.Query<CompDatabaseEntry>(
                     "SELECT * FROM ModTranslation WHERE ChineseName LIKE @p ESCAPE '\\' OR CurseForgeSlug LIKE @p ESCAPE '\\' OR ModrinthSlug LIKE @p ESCAPE '\\'",
