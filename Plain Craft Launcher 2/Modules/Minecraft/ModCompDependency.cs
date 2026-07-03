@@ -203,8 +203,11 @@ public static class ModCompDependency
                 continue;
             }
 
-            var targetPath = Path.Combine(targetModsFolder ?? string.Empty, ModComp.CompFileNameGet(depProject, depCompFile));
-            downloads.Add((depCompFile.FileName, depCompFile.ToNetFile(targetPath)));
+            // 前置也走“文件名格式”设置（CompFileNameGet），并让返回的展示用文件名与实际落盘文件名一致，
+            // 否则下载完成弹窗会显示未格式化的原始文件名（issue #3283）。
+            var depFileName = ModComp.CompFileNameGet(depProject, depCompFile);
+            var targetPath = Path.Combine(targetModsFolder ?? string.Empty, depFileName);
+            downloads.Add((depFileName, depCompFile.ToNetFile(targetPath)));
         }
 
         return downloads;
