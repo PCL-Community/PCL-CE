@@ -35,10 +35,18 @@ public static class McVersionClassifier
         return type switch
         {
             "release" => McVersionCategory.Release,
-            "special" => McVersionCategory.AprilFools,
+            // 已标记为愚人节（special）的版本再次分类时（如语言切换后重建版本卡片）仍需重新标记，
+            // 以在当前语言下刷新本地化 lore，否则会保留上一语言的文本（PR #3306 review）。
+            "special" => _RefreshAprilFools(version, idLower),
             "snapshot" or "pending" => _ClassifySnapshotOrPending(version, idLower),
             _ => McVersionCategory.BeforeRelease
         };
+    }
+
+    private static McVersionCategory _RefreshAprilFools(JsonObject version, string idLower)
+    {
+        _TryMarkAprilFoolsVersion(version, idLower);
+        return McVersionCategory.AprilFools;
     }
 
     public static DateTime GetReleaseTime(JsonObject version)
