@@ -183,7 +183,7 @@ public class LocalizationTest
 
     private static IEnumerable<string> EnumerateSourceFiles(string repositoryRoot, string pattern)
     {
-        foreach (var directoryName in new[] { "PCL.Core", "PCL.Online", "Plain Craft Launcher 2" })
+        foreach (var directoryName in new[] { "PCL.Core", "Plain Craft Launcher 2" })
         {
             var directory = Path.Combine(repositoryRoot, directoryName);
             if (!Directory.Exists(directory)) continue;

@@ -17,7 +17,6 @@ public enum SetupPageSubType
     About = 4,
     Log = 5,
     Feedback = 6,
-    Online = 7,
     Update = 8,
     Java = 9,
     LauncherMisc = 10,
@@ -41,14 +40,14 @@ public partial class PageSetupLeft : MyPageLeft
     {
         AvaloniaXamlLoader.Load(this);
         AnimatedControl = Required<Control>("PanItem");
-        PageId = SetupPageSubType.Online;
+        PageId = SetupPageSubType.Launch;
         AttachedToVisualTree += (_, _) =>
         {
             if (_isLoadedOnce)
                 return;
 
             _isLoadedOnce = true;
-            Required<MyListItem>("ItemOnlineAccount").SetChecked(true, user: false);
+            Required<MyListItem>("ItemLaunch").SetChecked(true, user: false);
         };
     }
 
@@ -59,12 +58,6 @@ public partial class PageSetupLeft : MyPageLeft
     public SetupPageSubType PageId { get; private set; }
 
     public MyPageRight GetOrCreateCurrentPage() => PageGet(PageId);
-
-    public void ScrollAccountIntoView()
-    {
-        Required<MyScrollViewer>("PanBack").Offset = Vector.Zero;
-        Required<MyListItem>("ItemOnlineAccount").BringIntoView();
-    }
 
     public void Reset(object? sender, EventArgs e)
     {
@@ -96,7 +89,6 @@ public partial class PageSetupLeft : MyPageLeft
 
         MyPageRight created = page switch
         {
-            SetupPageSubType.Online => new PageSetupOnline(),
             SetupPageSubType.Launch => new PageSetupLaunch(),
             SetupPageSubType.Ui => new PageSetupUI(),
             SetupPageSubType.GameManage => new PageSetupGameManage(),
@@ -132,7 +124,7 @@ public partial class PageSetupLeft : MyPageLeft
 
     private static bool TryReadPage(object? tag, out SetupPageSubType page)
     {
-        page = SetupPageSubType.Online;
+        page = SetupPageSubType.Launch;
         int value = tag switch
         {
             int intValue => intValue,
@@ -149,7 +141,6 @@ public partial class PageSetupLeft : MyPageLeft
 
     private static string GetPageTitle(SetupPageSubType page) => page switch
     {
-        SetupPageSubType.Online => "账户",
         SetupPageSubType.Launch => "启动",
         SetupPageSubType.Java => "Java",
         SetupPageSubType.GameManage => "管理",

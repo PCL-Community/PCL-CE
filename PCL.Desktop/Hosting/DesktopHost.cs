@@ -30,7 +30,6 @@ internal static partial class DesktopHost
         builder.AddModule(new BuiltInLaunchModule());
         builder.AddModule(new BuiltInDownloadModule());
         builder.AddModule(new BuiltInCommunityModule());
-        builder.AddModule(new BuiltInOnlineModule());
         builder.AddModule(new BuiltInSettingsModule());
         RegisterInjectedHostModules(builder);
         _current = builder.Build();
@@ -64,15 +63,6 @@ internal sealed class BuiltInCommunityModule : IPclHostModule
     public void Configure(IPclHostBuilder builder) =>
         DesktopNavigationModule.AddPage(builder.Navigation, "pcl.community", "社区", "lucide/download", 20,
             static context => context.CreatePlaceholderPage("社区"));
-}
-
-internal sealed class BuiltInOnlineModule : IPclHostModule
-{
-    public string Id => "pcl.builtin.online";
-
-    public void Configure(IPclHostBuilder builder) =>
-        DesktopNavigationModule.AddPage(builder.Navigation, "pcl.online", "在线", "lucide/globe", 30,
-            static context => context.CreatePlaceholderPage("在线"));
 }
 
 internal sealed class BuiltInSettingsModule : IPclHostModule

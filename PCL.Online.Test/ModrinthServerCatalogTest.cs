@@ -1,12 +1,15 @@
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
 using System.Linq;
 using System.Text.Json.Nodes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Online;
 
-namespace PCL.Core.Test.Project;
+namespace PCL.Online.Test;
 
 [TestClass]
-public class ModrinthServerCatalogTest
+public sealed class ModrinthServerCatalogTest
 {
     [TestMethod]
     public void ParseServerEntryShouldPreferDetailPayload()
@@ -41,7 +44,7 @@ public class ModrinthServerCatalogTest
             }
         };
 
-        var entry = ModrinthServerCatalog.ParseServerEntry(hit, detail);
+        ModrinthServerEntry? entry = ModrinthServerCatalog.ParseServerEntry(hit, detail);
 
         Assert.IsNotNull(entry);
         Assert.AreEqual("detail-id", entry.ProjectId);

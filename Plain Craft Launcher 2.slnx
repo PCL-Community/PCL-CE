@@ -30,9 +30,4 @@
   <Project Path="PCL.UI.Abstractions\PCL.UI.Abstractions.csproj" />
   <Project Path="PCL.Desktop\PCL.Desktop.csproj" />
   <Project Path="PCL.Desktop.Test\PCL.Desktop.Test.csproj" />
-  <Project Path="PCL.Online\PCL.Online.csproj" />
-  <Project Path="PCL.Online.AotSmoke\PCL.Online.AotSmoke.csproj" />
-  <Project Path="PCL.Online.Test\PCL.Online.Test.csproj" />
-  <Project Path="PCL.Online.Windows\PCL.Online.Windows.csproj" />
-  <Project Path="Plain Craft Launcher 2\Plain Craft Launcher 2.csproj" />
 </Solution>

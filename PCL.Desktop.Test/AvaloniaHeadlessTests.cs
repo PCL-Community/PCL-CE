@@ -38,7 +38,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MainWindow_LoadsPclChromeAndCanRenderHeadless()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -52,7 +52,8 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsNotNull(window.FindControl<MyIconButton>("BtnTitleClose"));
                 Assert.IsNotNull(window.FindControl<MyIconButton>("BtnTitleMin"));
                 Assert.IsNotNull(window.FindControl<MyListItem>("BtnTitleSelect0"));
-                Assert.IsNotNull(window.FindControl<MyListItem>("BtnTitleSelect4"));
+                Assert.IsNotNull(window.FindControl<MyListItem>("BtnTitleSelect3"));
+                Assert.IsNull(window.FindControl<MyListItem>("BtnTitleSelect4"));
                 Assert.IsNotNull(window.FindControl<AnimatedBackgroundGrid>("PanTitle"));
                 Assert.IsNotNull(window.Icon);
                 Assert.IsTrue(window.FindControl<MyListItem>("BtnTitleSelect0")!.Checked);
@@ -82,7 +83,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MainWindow_ShowAnimationSettlesToVisibleWindow()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -107,7 +108,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MainWindow_InstanceSubPageUsesWpfTitleBackButton()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -146,7 +147,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void AvaloniaThemeManager_DarkSettingsUpdatesPclThemeResources()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -189,7 +190,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void AvaloniaThemeManager_LightSettingsUpdatesPclThemeResources()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -211,7 +212,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void LegacyControls_HandleHeadlessPointerInput()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -268,7 +269,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyButton_UsesWpfBackgroundColorsDuringHoverAnimation()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -316,7 +317,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyButton_UsesWpfTextPaddingInlinesAndCenteredPressScale()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -376,7 +377,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyButton_ExposesWpfRealRenderTransformSetterAndReleaseEvent()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -438,7 +439,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyButton_UsesDarkThemePaletteDuringHoverAnimation()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -500,7 +501,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void ModAnimation_AaScaleUsesWpfSymmetricMarginDelta()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -525,7 +526,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void ModAnimation_AaTranslateRespectsWpfAlignmentMargins()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -557,7 +558,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void ModAnimation_AaScaleTransformClampsLikeWpf()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -582,7 +583,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void ModAnimation_AaColorInterpolatesFromStableStartColor()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -637,7 +638,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyListItem_ExposesWpfCheckEventAndInlineButtons()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -715,7 +716,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyListItem_TagsMatchWpfLazyTagSurface()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -767,7 +768,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyScrollViewer_ExposesWpfDeltaMultProperty()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -812,7 +813,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyMsgLogin_UsesWpfDialogAnimationAndButtons()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -872,7 +873,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyListItem_ProgrammaticSelectionDoesNotRaiseUserCheck()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -943,7 +944,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MainWindow_SettingsNavLoadsMigratedSetupLeftAndPluginPage()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -959,8 +960,8 @@ public sealed class AvaloniaHeadlessTests
                 PageSetupLeft setupLeft = FindVisual<PageSetupLeft>(window)!;
 
                 Assert.IsNotNull(setupLeft);
-                Assert.IsTrue(setupLeft.FindControl<MyListItem>("ItemOnlineAccount")!.Checked);
-                Assert.IsInstanceOfType<PageSetupOnline>(FindVisual<MyPageRight>(window));
+                Assert.IsTrue(setupLeft.FindControl<MyListItem>("ItemLaunch")!.Checked);
+                Assert.IsInstanceOfType<PageSetupLaunch>(FindVisual<MyPageRight>(window));
 
                 Click(window, setupLeft.FindControl<MyListItem>("ItemPlugin")!);
                 ModAnimation.AdvanceUntilIdleForTesting();
@@ -977,10 +978,10 @@ public sealed class AvaloniaHeadlessTests
                     "Online 后续将作为外部 Host Module 接入");
                 StringAssert.Contains(
                     pluginPage.FindControl<TextBlock>("LabPluginState")!.Text,
-                    "已启用 5 个 Host Module");
+                    "已启用 4 个 Host Module");
                 StringAssert.Contains(
                     pluginPage.FindControl<TextBlock>("LabPluginState")!.Text,
-                    "注册 5 个导航入口");
+                    "注册 4 个导航入口");
             }
             finally
             {
@@ -992,7 +993,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MainWindow_SettingsNavCanOpenPersonalizationPage()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -1026,66 +1027,12 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
-    public void PageSetupOnline_ShowsHostModulePlaceholder()
-    {
-        string? previousSettingsPath = Environment.GetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH");
-        string settingsPath = System.IO.Path.Combine(
-            System.IO.Path.GetTempPath(),
-            "pcl-desktop-test-online-placeholder-" + Guid.NewGuid().ToString("N") + ".json");
-        Environment.SetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH", settingsPath);
-
-        try
-        {
-            using HeadlessUnitTestSession session = CreateSession();
-            session.Dispatch(() =>
-            {
-                PageSetupOnline page = new();
-                SettingsMessageRequestedEventArgs? message = null;
-                page.MessageRequested += (_, args) => message = args;
-
-                Window window = new()
-                {
-                    Width = 720,
-                    Height = 520,
-                    Content = page
-                };
-
-                try
-                {
-                    window.Show();
-                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-                    page.RefreshOnlineState();
-
-                    Assert.IsTrue(page.FindControl<StackPanel>("PanNotLoggedIn")!.IsVisible);
-                    Assert.IsFalse(page.FindControl<Grid>("PanLoggedIn")!.IsVisible);
-                    Assert.IsTrue(page.FindControl<MyCard>("CardSync")!.IsVisible);
-                    Assert.IsTrue(page.FindControl<Grid>("PanSyncUnavailable")!.IsVisible);
-                    Assert.IsFalse(page.FindControl<WrapPanel>("PanSyncSections")!.IsEnabled);
-
-                    Click(window, page.FindControl<MyIconTextButton>("BtnLogin")!);
-
-                    Assert.AreEqual("在线功能暂不可用", message?.Title);
-                    StringAssert.Contains(message!.Message, "Online Host Module");
-                }
-                finally
-                {
-                    window.Close();
-                }
-            }, CancellationToken.None);
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH", previousSettingsPath);
-        }
-    }
-
-    [TestMethod]
     public void MainWindow_SavesVisualDiagnosticsWhenRequested()
     {
         if (!string.Equals(Environment.GetEnvironmentVariable("PCLN_SAVE_UI_SNAPSHOT"), "1", StringComparison.Ordinal))
             return;
 
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -1113,7 +1060,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyCheckBox_UsesWpfThreeStatePreviewAndScaleAnimations()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -1192,7 +1139,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyIconButton_AnimatesPathAndSvgIconLikeWpfControl()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -1265,7 +1212,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyIconButton_BlackThemeFollowsWpfDarkModeColors()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -1344,7 +1291,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyMenuItem_UsesWpfResourceStatesAndAnimatedIconColor()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -1411,7 +1358,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyHint_UsesWpfThemeCompatibilityAndDisposeAnimation()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -1478,7 +1425,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyIconTextButton_UsesWpfIconVisibilityMarginsAndColorAnimation()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -1543,7 +1490,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void LegacyInputsAndTextLinksExposeInteractiveVisualStates()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -1612,7 +1559,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyTextBox_UsesWpfValidationApiAndValidatedTextChanged()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -1667,7 +1614,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void NativeDerivedLegacyControlsReuseAvaloniaBaseThemes()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -1730,7 +1677,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MainWindow_NavigationListKeepsSingleSelection()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -1763,7 +1710,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyListItem_UsesWpfHoverBackAndCheckedScaleAnimation()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -1811,7 +1758,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyListItem_CheckedAnimationMovesTextIconAndIndicatorTogether()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -1857,7 +1804,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MainWindow_NavigationSwitchFadesPageContent()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -1887,7 +1834,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void SplashWindow_RendersStartupIcon()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -1956,7 +1903,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageLaunchLeft_RefreshInstancesAsyncFallsBackToDownloadWhenNoVersions()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string? previousRoots = Environment.GetEnvironmentVariable("PCLN_MINECRAFT_ROOTS");
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-launch-empty-" + Guid.NewGuid().ToString("N"));
         Window? window = null;
@@ -2008,7 +1955,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageDownloadLeft_UsesWpfVersionFilterList()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -2053,7 +2000,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageDownloadInstall_FiltersAndSelectsVanillaVersion()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -2123,7 +2070,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageDownloadInstall_SelectingVersionResetsLoaderCardsLikeWpf()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -2179,7 +2126,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageDownloadInstall_SelectPageSwitchUsesWpfAnimationStates()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -2251,7 +2198,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageDownloadInstall_RefreshVersionsAsyncRendersManifestWithoutBlockingUi()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         using HttpClient client = new(new DelegateHttpMessageHandler(_ => new HttpResponseMessage(System.Net.HttpStatusCode.OK)
         {
             Content = new StringContent(
@@ -2359,7 +2306,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageDownloadProgress_ExposesCancelableAndCompletionActions()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -2427,7 +2374,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageDownloadProgress_AllowsProgressUpdatesFromBackgroundThread()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(async () =>
         {
@@ -2574,7 +2521,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageInstanceSelectRight_UsesWpfSearchEmptyAndCardStructure()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -2620,7 +2567,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageInstanceSelectRight_InfersLoaderIconFromVersionJson()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-loader-icon-" + Guid.NewGuid().ToString("N"));
         string versionDirectory = System.IO.Path.Combine(root, "versions", "fabric-1.20.1");
         string jsonPath = System.IO.Path.Combine(versionDirectory, "fabric-1.20.1.json");
@@ -2678,7 +2625,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageInstanceSelectRight_UsesWpfBlockIconsForVersionStates()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-state-icons-" + Guid.NewGuid().ToString("N"));
 
         try
@@ -2744,7 +2691,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageInstanceManageRight_SavesPersonalizationSelections()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-personalization-" + Guid.NewGuid().ToString("N"));
         string versionDirectory = System.IO.Path.Combine(root, "versions", "1.20.1");
         string jsonPath = System.IO.Path.Combine(versionDirectory, "1.20.1.json");
@@ -2823,7 +2770,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageInstanceSelectRight_UsesInstanceMetadataCardsAndIcons()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-select-metadata-" + Guid.NewGuid().ToString("N"));
 
         try
@@ -2899,7 +2846,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void SettingsPages_LoadAndPersistTaggedWpfControls()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-settings-pages-" + Guid.NewGuid().ToString("N"));
         string settingsPath = System.IO.Path.Combine(root, "launcher-settings.json");
         string? previousOverride = Environment.GetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH");
@@ -3001,7 +2948,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageSetupLaunch_UpdatesDependentOptionsAndResetsJvmArguments()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-launch-settings-" + Guid.NewGuid().ToString("N"));
         string settingsPath = System.IO.Path.Combine(root, "launcher-settings.json");
         string? previousOverride = Environment.GetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH");
@@ -3099,7 +3046,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageSetupJava_KeepsContentHiddenWhileJavaListLoads()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -3133,7 +3080,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageSetupJava_ShowsContentCardAfterJavaListRenders()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -3188,7 +3135,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageSetupGameManage_WarnsOnceForHighUserSelectedDownloadThreads()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-game-manage-settings-" + Guid.NewGuid().ToString("N"));
         string settingsPath = System.IO.Path.Combine(root, "launcher-settings.json");
         string? previousOverride = Environment.GetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH");
@@ -3248,7 +3195,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageInstanceLeftAndToolsRight_ExposePortableManagementPages()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-tools-" + Guid.NewGuid().ToString("N"));
 
         try
@@ -3374,7 +3321,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageInstanceExportRight_UsesCopiedWpfOptionTreeAndRaisesExportRequest()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-export-ui-" + Guid.NewGuid().ToString("N"));
 
         try
@@ -3429,7 +3376,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageInstanceInstallRight_UsesCopiedWpfCardsAndCurrentInstance()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-install-ui-" + Guid.NewGuid().ToString("N"));
 
         try
@@ -3483,7 +3430,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageInstanceInstallRight_RefreshResetsWpfSelectState()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-install-state-" + Guid.NewGuid().ToString("N"));
 
         try
@@ -3555,7 +3502,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageInstanceLeft_SwitchesModEntryToDisabledPromptForVanillaInstance()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-left-modable-" + Guid.NewGuid().ToString("N"));
 
         try
@@ -3626,7 +3573,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageInstanceModDisabledRight_RendersCopiedWpfPromptAndActions()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -3670,7 +3617,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageInstanceResourceRight_ListsAndManagesLocalMods()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-resource-ui-" + Guid.NewGuid().ToString("N"));
 
         try
@@ -3753,7 +3700,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageInstanceResourceRight_ListsDatapacksFromSaveFolder()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-datapack-resource-ui-" + Guid.NewGuid().ToString("N"));
 
         try
@@ -3801,7 +3748,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageInstanceScreenshotRight_UsesCopiedWpfGalleryAndActions()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-screenshot-ui-" + Guid.NewGuid().ToString("N"));
 
         try
@@ -3879,7 +3826,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageInstanceSavesRight_UsesCopiedWpfListAndActions()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-saves-ui-" + Guid.NewGuid().ToString("N"));
 
         try
@@ -3956,7 +3903,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageInstanceSavesInfoRight_LoadsCopiedWpfDetailsAndSettings()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-save-info-ui-" + Guid.NewGuid().ToString("N"));
 
         try
@@ -4038,7 +3985,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageInstanceSavesInfoRight_ShowsDatapackEntryForModernSave()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-save-datapack-ui-" + Guid.NewGuid().ToString("N"));
 
         try
@@ -4156,7 +4103,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageLaunchLeft_PreservesLoginAndLaunchExtensionSurfaces()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -4192,7 +4139,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageLaunchLeft_FollowsWpfLaunchButtonStateRules()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -4225,7 +4172,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageInstanceManageRight_RendersWpfCopiedTextAndDefaultSelections()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-overall-ui-" + Guid.NewGuid().ToString("N"));
 
         try
@@ -4278,7 +4225,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageInstanceManageRight_RendersDetectedLoaderInfoLikeWpf()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-overall-loader-" + Guid.NewGuid().ToString("N"));
 
         try
@@ -4338,7 +4285,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageLaunchLeft_CancelRestoresInputSurface()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -4380,7 +4327,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageLaunchLeft_UsesAvaloniaRelativeTransformOriginsForWpfPivots()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -4414,7 +4361,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageLaunchLeft_GuardsLaunchLikeWpf()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-launch-guard-" + Guid.NewGuid().ToString("N"));
 
         try
@@ -4457,7 +4404,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageLoginProfile_SelectsProfileAndSkinPageDisplaysIt()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -4497,7 +4444,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MainWindow_WiresLaunchLoginPagesInsteadOfPlaceholders()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -4528,7 +4475,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MainWindow_ProfileCreateUsesAccountTypeDialog()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -4573,7 +4520,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MainWindow_MicrosoftLoginClickShowsUserVisibleFeedback()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
         string? previousClientId = Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID");
         string? previousShortClientId = Environment.GetEnvironmentVariable("MS_CLIENT_ID");
         Environment.SetEnvironmentVariable("PCL_MS_CLIENT_ID", null);
@@ -4620,7 +4567,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MessageDialogs_UseAvaloniaRelativeLeftCenterTransformOrigin()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -4643,7 +4590,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyMsgText_UsesWpfThreeButtonWarningAndActionContract()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -4717,7 +4664,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyMsgInput_UsesWpfLayoutValidationAndOpenCloseAnimations()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -4781,7 +4728,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyMsgMarkdown_UsesWpfThreeButtonContractAndAnimations()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -4837,7 +4784,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyVirtualizingElement_ReplacesPlaceholderLikeWpfControl()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -4883,7 +4830,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageLoginMs_UsesWpfStartAndFinishState()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -4927,7 +4874,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageLoginAuth_ValidatesAndRaisesLoginRequest()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -4978,7 +4925,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageLoginOffline_ValidatesUuidAndCreatesProfileRequest()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -5037,7 +4984,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageLoginOffline_TextBoxesAcceptRealKeyboardInput()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -5068,7 +5015,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MainWindow_AccountTypeDialogReleasesOverlayBeforeLoginTextInput()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -5107,7 +5054,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void RemainingWpfMigratedControls_LoadAndKeepCompatibilitySurfaces()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -5189,7 +5136,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void PageLaunchRight_PreservesCustomHomepageSurface()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -5227,7 +5174,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyLoading_AnimatesPickaxeLoop()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -5268,7 +5215,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyLoading_UsesWpfStateProgressErrorAndClickContracts()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -5339,7 +5286,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyCard_UsesWpfChromeAndTitleLayer()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -5394,7 +5341,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyCard_UsesDarkThemePaletteForChromeAndTitleLayer()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -5453,7 +5400,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyCard_SwapClickTogglesContentAndCanBeCancelled()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -5528,7 +5475,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyRadioBox_KeepsWpfSingleSelectionBehavior()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -5581,7 +5528,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyRadioButton_KeepsWpfSingleSelectionPreviewAndIconBehavior()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -5673,7 +5620,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyCollapseBar_UsesWpfHeaderToggleHeightAndCardAnimationSilence()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -5740,7 +5687,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyScrollBar_UsesWpfOpacityAndForegroundStates()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -5795,7 +5742,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MySearchBar_SyncsTextAndClearButton()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -5848,7 +5795,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MySearchBox_UsesWpfPropertiesSearchButtonAndClearAnimation()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -5919,7 +5866,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyExtraTextButton_UsesWpfStructureAndRaisesClick()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -5977,7 +5924,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyExtraButton_UsesWpfShowProgressRightClickAndRibbleAnimations()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -6053,7 +6000,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MySlider_TracksValueKeyboardDragAndPopupLikeWpf()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -6126,7 +6073,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MySlider_PreviewChangeCanCancelValueMutation()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -6174,7 +6121,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyComboBox_UsesWpfTextHintAndContainerBehavior()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -6232,7 +6179,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyPageRight_PageOnEnterKeepsContentHiddenWhileLoaderRuns()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -6301,7 +6248,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyComboBox_SelectsWpfMarkedChildItemOnAttach()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -6343,7 +6290,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyListItem_SyncsCopiedWpfTitleAndInfoIntoVisualTextBlocks()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -6385,7 +6332,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyListItem_UsesCurrentThemeForegroundForCopiedWpfTitleAndIcon()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -6449,7 +6396,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyListItem_WithInlineButtonStillMeasuresTitleAndInfo()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -6503,7 +6450,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyCard_StackInstallKeepsListItemTitleMeasured()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -6569,7 +6516,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyComboBox_EditableTextClearsStaleSelectionLikeWpf()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -6636,7 +6583,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MyComboBoxItem_AnimatesWpfBackgroundAndOpacityStates()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -6695,7 +6642,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void MainWindow_NavigationToggleUsesMeasuredAnimatedWidth()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -6733,7 +6680,7 @@ public sealed class AvaloniaHeadlessTests
     [TestMethod]
     public void SvgIcon_LoadsLucideAssetsThroughDesktopResources()
     {
-        using HeadlessUnitTestSession session = CreateSession();
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
@@ -6765,16 +6712,59 @@ public sealed class AvaloniaHeadlessTests
         }, CancellationToken.None);
     }
 
-    private static HeadlessUnitTestSession CreateSession()
+    private static SafeHeadlessUnitTestSession CreateSession()
     {
         Environment.SetEnvironmentVariable(
             "PCLN_LAUNCH_PROFILES_PATH",
             System.IO.Path.Combine(
                 System.IO.Path.GetTempPath(),
                 "pcl-desktop-test-profiles-" + Guid.NewGuid().ToString("N") + ".json"));
-        return HeadlessUnitTestSession.StartNew(
-            typeof(App),
-            AvaloniaTestIsolationLevel.PerTest);
+        return new SafeHeadlessUnitTestSession(
+            HeadlessUnitTestSession.StartNew(
+                typeof(App),
+                AvaloniaTestIsolationLevel.PerTest));
+    }
+
+    private sealed class SafeHeadlessUnitTestSession : IDisposable
+    {
+        private readonly HeadlessUnitTestSession _inner;
+
+        public SafeHeadlessUnitTestSession(HeadlessUnitTestSession inner)
+        {
+            _inner = inner;
+        }
+
+        public Task Dispatch(Action action, CancellationToken cancellationToken) =>
+            _inner.Dispatch(action, cancellationToken);
+
+        public Task<T> Dispatch<T>(Func<T> action, CancellationToken cancellationToken) =>
+            _inner.Dispatch(action, cancellationToken);
+
+        public Task Dispatch(Func<Task> action, CancellationToken cancellationToken) =>
+            _inner.Dispatch(async () =>
+            {
+                await action().ConfigureAwait(true);
+                return true;
+            }, cancellationToken);
+
+        public Task<T> Dispatch<T>(Func<Task<T>> action, CancellationToken cancellationToken) =>
+            _inner.Dispatch(action, cancellationToken);
+
+        public void Dispose()
+        {
+            try
+            {
+                _inner.Dispose();
+            }
+            catch (NullReferenceException ex) when (IsAvaloniaHeadlessTeardown(ex))
+            {
+            }
+        }
+
+        private static bool IsAvaloniaHeadlessTeardown(Exception ex) =>
+            ex.StackTrace?.Contains(
+                "Avalonia.Headless.HeadlessUnitTestSession.Dispose",
+                StringComparison.Ordinal) == true;
     }
 
     private static SolidColorBrush RequiredBrush(string key) =>

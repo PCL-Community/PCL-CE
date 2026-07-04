@@ -93,19 +93,15 @@ public partial class MainWindow : Window, IDisposable
     private const double NavCollapsedWidth = 50d;
     private const int NavAnimDuration = 200;
 
-    private static readonly Dictionary<int, string> NavPageRoutes = new()
-    {
-        [0] = "pcl.launch",
-        [1] = "pcl.download",
-        [2] = "pcl.community",
-        [3] = "pcl.settings",
-        [4] = "pcl.online"
-    };
+    private const string LaunchRoute = "pcl.launch";
+    private const string DownloadRoute = "pcl.download";
+    private const string SettingsRoute = "pcl.settings";
 
     public MainWindow()
     {
         AvaloniaXamlLoader.Load(this);
         _navigationPages = CreateNavigationPageMap(DesktopHost.Current.Navigation);
+        BuildMainNavigationItems();
         _desktopPageContext = new DesktopPageContext(
             CreateLaunchMainPage,
             CreateDownloadMainPage,
@@ -123,7 +119,7 @@ public partial class MainWindow : Window, IDisposable
         };
         SyncTitleOverlayWidth();
         _ = LoadProfilesAsync();
-        SelectNavPage(0, animate: false);
+        SelectNavRoute(LaunchRoute, animate: false);
     }
 
     private void FormMain_KeyDown(object? sender, KeyEventArgs e)
@@ -209,7 +205,7 @@ public partial class MainWindow : Window, IDisposable
             return;
         }
 
-        SelectNavPage(0, animate: true);
+        SelectNavRoute(LaunchRoute, animate: true);
     }
 
     private void BtnNavItem_Click(object? sender, PointerReleasedEventArgs e)
@@ -561,7 +557,11 @@ public partial class MainWindow : Window, IDisposable
     {
         _titleInnerBackAction = null;
         if (!_navigationPages.ContainsKey(page))
-            page = 0;
+        {
+            if (_navigationPages.Count == 0)
+                return;
+            page = _navigationPages.Keys.Min();
+        }
 
         MyListItem? selected = null;
         foreach (MyListItem item in GetNavItems())
@@ -590,6 +590,26 @@ public partial class MainWindow : Window, IDisposable
         }
 
         BeginPageChangeAnimation(page);
+    }
+
+    private void SelectNavRoute(string route, bool animate)
+    {
+        int page = FindNavigationPageIndex(route);
+        if (page < 0)
+            page = _navigationPages.Count > 0 ? _navigationPages.Keys.Min() : -1;
+        if (page >= 0)
+            SelectNavPage(page, animate);
+    }
+
+    private int FindNavigationPageIndex(string route)
+    {
+        foreach ((int index, NavigationPageDescriptor descriptor) in _navigationPages)
+        {
+            if (string.Equals(descriptor.Route, route, StringComparison.OrdinalIgnoreCase))
+                return index;
+        }
+
+        return -1;
     }
 
     private void ApplyPagePlaceholder(int page)
@@ -699,7 +719,7 @@ public partial class MainWindow : Window, IDisposable
     private PageLaunchLeft CreateLaunchLeftPage()
     {
         PageLaunchLeft page = new();
-        page.DownloadRequested += (_, _) => SelectNavPage(1, animate: true);
+        page.DownloadRequested += (_, _) => SelectNavRoute(DownloadRoute, animate: true);
         page.InstanceSelectRequested += (_, _) => ApplyInstanceSelectPage();
         page.InstanceSettingsRequested += (_, _) =>
         {
@@ -761,7 +781,7 @@ public partial class MainWindow : Window, IDisposable
         {
             ActivateDownloadInstallPage(animate: true);
         };
-        page.LaunchPageRequested += (_, _) => SelectNavPage(0, animate: true);
+        page.LaunchPageRequested += (_, _) => SelectNavRoute(LaunchRoute, animate: true);
         _downloadProgressPage = page;
         return _downloadProgressPage;
     }
@@ -808,14 +828,14 @@ public partial class MainWindow : Window, IDisposable
             await _launchLeft.RefreshInstancesAsync().ConfigureAwait(true);
             page.SetInstances(_launchLeft.Instances, _launchLeft.SelectedInstance);
         };
-        page.DownloadRequested += (_, _) => SelectNavPage(1, animate: true);
+        page.DownloadRequested += (_, _) => SelectNavRoute(DownloadRoute, animate: true);
         page.InstanceOpenFolderRequested += (_, instance) => OpenFolder(instance.InstanceDirectory);
         page.InstanceDeleteRequested += (_, instance) => PromptDeleteInstance(instance);
         page.InstanceSelected += (_, instance) =>
         {
             _launchLeft?.SetInstances(_launchLeft.Instances, instance);
             _launchRight?.AppendLog($"已选择游戏版本 {instance.Name}。");
-            SelectNavPage(0, animate: true);
+            SelectNavRoute(LaunchRoute, animate: true);
         };
         page.InstanceManageRequested += (_, instance) => ApplyInstanceManagePage(instance);
         return page;
@@ -977,7 +997,7 @@ public partial class MainWindow : Window, IDisposable
     private PageInstanceSetupRight CreateInstanceSetupPage()
     {
         PageInstanceSetupRight page = new();
-        page.OpenGlobalSettingsRequested += (_, _) => SelectNavPage(3, animate: true);
+        page.OpenGlobalSettingsRequested += (_, _) => SelectNavRoute(SettingsRoute, animate: true);
         return page;
     }
 
@@ -993,7 +1013,7 @@ public partial class MainWindow : Window, IDisposable
     private PageInstanceInstallRight CreateInstanceInstallPage()
     {
         PageInstanceInstallRight page = new();
-        page.DownloadRequested += (_, _) => SelectNavPage(1, animate: true);
+        page.DownloadRequested += (_, _) => SelectNavRoute(DownloadRoute, animate: true);
         page.ModifyRequested += (_, instance) => _ = OpenDownloadInstallForInstanceAsync(instance);
         return page;
     }
@@ -1010,7 +1030,7 @@ public partial class MainWindow : Window, IDisposable
         _downloadLeft ??= CreateDownloadLeftPage();
         PageDownloadInstall installPage = CreateDownloadInstallPage();
         _downloadLeft.PageChange(DownloadPageSubType.Install, force: true);
-        SelectNavPage(1, animate);
+        SelectNavRoute(DownloadRoute, animate);
         return installPage;
     }
 
@@ -1019,7 +1039,7 @@ public partial class MainWindow : Window, IDisposable
         _downloadLeft ??= CreateDownloadLeftPage();
         PageDownloadProgress progressPage = CreateDownloadProgressPage();
         _downloadLeft.PageChange(DownloadPageSubType.Progress, force: true);
-        SelectNavPage(1, animate);
+        SelectNavRoute(DownloadRoute, animate);
         return progressPage;
     }
 
@@ -1115,10 +1135,10 @@ public partial class MainWindow : Window, IDisposable
     private PageInstanceModDisabledRight CreateInstanceModDisabledPage()
     {
         PageInstanceModDisabledRight page = new();
-        page.DownloadRequested += (_, _) => SelectNavPage(1, animate: true);
+        page.DownloadRequested += (_, _) => SelectNavRoute(DownloadRoute, animate: true);
         page.InstanceSelectRequested += (_, _) =>
         {
-            SelectNavPage(0, animate: true);
+            SelectNavRoute(LaunchRoute, animate: true);
             ApplyInstanceSelectPage();
         };
         return page;
@@ -1128,7 +1148,7 @@ public partial class MainWindow : Window, IDisposable
     {
         PageInstanceResourceRight page = new();
         page.OpenFolderRequested += (_, path) => OpenFolder(path);
-        page.DownloadRequested += (_, _) => SelectNavPage(1, animate: true);
+        page.DownloadRequested += (_, _) => SelectNavRoute(DownloadRoute, animate: true);
         page.StatusMessage += (_, message) => _launchRight?.AppendLog(message);
         return page;
     }
@@ -1137,7 +1157,7 @@ public partial class MainWindow : Window, IDisposable
     {
         PageInstanceResourceRight page = new();
         page.OpenFolderRequested += (_, path) => OpenFolder(path);
-        page.DownloadRequested += (_, _) => SelectNavPage(1, animate: true);
+        page.DownloadRequested += (_, _) => SelectNavRoute(DownloadRoute, animate: true);
         page.StatusMessage += (_, message) => _launchRight?.AppendLog(message);
         return page;
     }
@@ -1260,7 +1280,7 @@ public partial class MainWindow : Window, IDisposable
             return;
         }
 
-        SelectNavPage(0, animate: true);
+        SelectNavRoute(LaunchRoute, animate: true);
         ApplyInstanceManagePage(selectedInstance, InstancePageSubType.Setup);
     }
 
@@ -2172,7 +2192,7 @@ public partial class MainWindow : Window, IDisposable
         LoginProfileInfo? profile = _loginProfiles.FirstOrDefault();
         if (profile is null)
         {
-            SelectNavPage(0, animate: true);
+            SelectNavRoute(LaunchRoute, animate: true);
             _launchLeft?.PageChangeToLogin();
             ShowTextDialog("请选择账户档案", "导出启动脚本前需要先选择或创建一个账户档案。");
             return;
@@ -2210,7 +2230,7 @@ public partial class MainWindow : Window, IDisposable
 
     private async Task TestLaunchFromInstancePageAsync(LaunchInstanceInfo instance)
     {
-        SelectNavPage(0, animate: true);
+        SelectNavRoute(LaunchRoute, animate: true);
         if (_launchLeft is null)
             return;
 
@@ -2358,7 +2378,7 @@ public partial class MainWindow : Window, IDisposable
             Directory.Delete(instance.InstanceDirectory, recursive: true);
             _launchRight?.AppendLog($"已删除版本 {instance.Name}。");
             _ = RefreshInstancesAfterManagementAsync(null);
-            SelectNavPage(0, animate: true);
+            SelectNavRoute(LaunchRoute, animate: true);
         }
         catch (Exception ex)
         {
@@ -3123,19 +3143,39 @@ public partial class MainWindow : Window, IDisposable
         INavigationRegistry navigation)
     {
         ArgumentNullException.ThrowIfNull(navigation);
-        Dictionary<string, NavigationPageDescriptor> pagesByRoute = navigation.Pages.ToDictionary(
-            static page => page.Route,
-            static page => page,
-            StringComparer.OrdinalIgnoreCase);
-        Dictionary<int, NavigationPageDescriptor> result = new(NavPageRoutes.Count);
+        NavigationPageDescriptor[] pages = navigation.Pages
+            .Where(static page => page.Region == PageRegion.Main)
+            .ToArray();
+        Dictionary<int, NavigationPageDescriptor> result = new(pages.Length);
 
-        foreach ((int pageIndex, string route) in NavPageRoutes)
-        {
-            if (pagesByRoute.TryGetValue(route, out NavigationPageDescriptor? descriptor))
-                result[pageIndex] = descriptor;
-        }
+        for (int i = 0; i < pages.Length; i++)
+            result[i] = pages[i];
 
         return result;
+    }
+
+    private void BuildMainNavigationItems()
+    {
+        if (this.FindControl<Panel>("PanTitleSelect") is not { } panel)
+            return;
+
+        panel.Children.Clear();
+        foreach ((int pageIndex, NavigationPageDescriptor descriptor) in _navigationPages.OrderBy(static pair => pair.Key))
+        {
+            MyListItem item = new()
+            {
+                Name = $"BtnTitleSelect{pageIndex.ToString(CultureInfo.InvariantCulture)}",
+                Title = descriptor.Title,
+                Tag = pageIndex,
+                Margin = pageIndex == 0 ? new Thickness(1d, 10d, 1d, 0d) : new Thickness(1d, 0d, 1d, 0d),
+                FontSize = 12d,
+                Type = MyListItem.CheckType.RadioBox,
+                LogoScale = 0.8d,
+                SvgIcon = string.IsNullOrWhiteSpace(descriptor.Icon) ? "lucide/circle" : descriptor.Icon
+            };
+            item.Click += BtnNavItem_Click;
+            panel.Children.Add(item);
+        }
     }
 
     private void BeginPageChangeAnimation(int page)

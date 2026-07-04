@@ -311,19 +311,7 @@
 
                         </Grid.RowDefinitions>
 
-                        <StackPanel x:Name="PanTitleSelect" Grid.Row="0" Orientation="Vertical" VerticalAlignment="Top">
-
-                            <local:MyListItem x:Name="BtnTitleSelect0" Title="{DynamicResource Main.TopTitle.Launch}" Tag="0" Margin="1,10,1,0" FontSize="12" Type="RadioBox" LogoScale="0.8" Click="BtnNavItem_Click" SvgIcon="lucide/play" />
-
-                            <local:MyListItem x:Name="BtnTitleSelect1" Title="{DynamicResource Main.TopTitle.Download}" Tag="1" Margin="1,0,1,0" FontSize="12" Type="RadioBox" LogoScale="0.8" Click="BtnNavItem_Click" SvgIcon="lucide/pickaxe" />
-
-                            <local:MyListItem x:Name="BtnTitleSelect2" Title="{DynamicResource Main.TopTitle.Community}" Tag="2" Margin="1,0,1,0" FontSize="12" Type="RadioBox" LogoScale="0.8" Click="BtnNavItem_Click" SvgIcon="lucide/download" />
-
-                            <local:MyListItem x:Name="BtnTitleSelect4" Title="{DynamicResource Main.TopTitle.Online}" Tag="4" Margin="1,0,1,0" FontSize="12" Type="RadioBox" LogoScale="0.8" Click="BtnNavItem_Click" SvgIcon="lucide/globe" />
-
-                            <local:MyListItem x:Name="BtnTitleSelect3" Title="{DynamicResource Main.TopTitle.Settings}" Tag="3" Margin="1,0,1,0" FontSize="12" Type="RadioBox" LogoScale="0.8" Click="BtnNavItem_Click" SvgIcon="lucide/settings" />
-
-                        </StackPanel>
+                        <StackPanel x:Name="PanTitleSelect" Grid.Row="0" Orientation="Vertical" VerticalAlignment="Top" />
 
                         <local:MyIconButton x:Name="BtnNavToggle" Grid.Row="1" Height="24" Width="24"
 

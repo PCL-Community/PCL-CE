@@ -4,11 +4,6 @@
     xmlns:legacy="using:PCL.Desktop.Controls.Legacy" x:Class="PCL.Desktop.Features.Settings.Views.PageSetupLeft">
     <legacy:MyScrollViewer x:Name="PanBack" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="0,12,0,0" x:Name="PanItem">
-            <TextBlock Text="{DynamicResource Online.Account.Category}" Margin="13,5,5,3" Opacity="0.6" FontSize="12" />
-            <legacy:MyListItem x:Name="ItemOnlineAccount" IsScaleAnimationEnabled="False" Tag="7" MinPaddingRight="35" Height="36"
-                               VerticalAlignment="Top" Title="{DynamicResource Online.Account.Title}" Type="RadioBox" Check="PageCheck"
-                               LogoScale="1" SvgIcon="lucide/user" />
-
             <TextBlock Text="{DynamicResource Setup.Left.Category.Game}" Margin="13,5,5,3" Opacity="0.6" FontSize="12" x:Name="TextGameCategory" />
 
             <legacy:MyListItem x:Name="ItemLaunch" IsScaleAnimationEnabled="False" Tag="0" MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="{DynamicResource Setup.Left.Item.Launch}" Type="RadioBox" Check="PageCheck"
