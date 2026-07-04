@@ -1,0 +1,123 @@
+<legacy:MyPageLeft
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:legacy="using:PCL.Desktop.Controls.Legacy" x:Class="PCL.Desktop.Features.Settings.Views.PageSetupLeft">
+    <legacy:MyScrollViewer x:Name="PanBack" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,12,0,0" x:Name="PanItem">
+            <TextBlock Text="{DynamicResource Online.Account.Category}" Margin="13,5,5,3" Opacity="0.6" FontSize="12" />
+            <legacy:MyListItem x:Name="ItemOnlineAccount" IsScaleAnimationEnabled="False" Tag="7" MinPaddingRight="35" Height="36"
+                               VerticalAlignment="Top" Title="{DynamicResource Online.Account.Title}" Type="RadioBox" Check="PageCheck"
+                               LogoScale="1" SvgIcon="lucide/user" />
+
+            <TextBlock Text="{DynamicResource Setup.Left.Category.Game}" Margin="13,5,5,3" Opacity="0.6" FontSize="12" x:Name="TextGameCategory" />
+
+            <legacy:MyListItem x:Name="ItemLaunch" IsScaleAnimationEnabled="False" Tag="0" MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="{DynamicResource Setup.Left.Item.Launch}" Type="RadioBox" Check="PageCheck"
+                          LogoScale="1" SvgIcon="lucide/rocket">
+                <legacy:MyListItem.Buttons>
+<legacy:MyIconButton Tag="0" ToolTip.Tip="{DynamicResource Common.Action.Initialize}"
+                                            Click="Reset"
+                                            SvgIcon="lucide/rotate-ccw"
+                                            LogoScale="0.9" />
+</legacy:MyListItem.Buttons>
+            </legacy:MyListItem>
+
+            <legacy:MyListItem x:Name="ItemJava" IsScaleAnimationEnabled="False" Tag="9" MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="{DynamicResource Setup.Left.Item.Java}" Type="RadioBox" Check="PageCheck"
+              LogoScale="1" SvgIcon="lucide/coffee">
+                <legacy:MyListItem.Buttons>
+<legacy:MyIconButton Tag="9" ToolTip.Tip="{DynamicResource Common.Action.Refresh}"
+                                            Click="Refresh" LogoScale="0.85"
+                                            SvgIcon="lucide/refresh-cw" />
+</legacy:MyListItem.Buttons>
+            </legacy:MyListItem>
+
+            <legacy:MyListItem x:Name="ItemGameManage" IsScaleAnimationEnabled="False" Tag="2" MinPaddingRight="35"
+                               Check="PageCheck"
+                               Height="36" VerticalAlignment="Top" Title="{DynamicResource Setup.Left.Item.GameManage}" Type="RadioBox"
+                              LogoScale="0.95"
+                              SvgIcon="lucide/book-marked">
+                <legacy:MyListItem.Buttons>
+<legacy:MyIconButton Tag="2" ToolTip.Tip="{DynamicResource Common.Action.Initialize}"
+                                            Click="Reset"
+                                            SvgIcon="lucide/rotate-ccw"
+                                            LogoScale="0.9" />
+</legacy:MyListItem.Buttons>
+            </legacy:MyListItem>
+
+            <TextBlock Text="{DynamicResource Setup.Left.Category.Launcher}" Margin="13,5,5,3" Opacity="0.6" FontSize="12" x:Name="TextLauncherCategory" />
+
+            <legacy:MyListItem x:Name="ItemUI" IsScaleAnimationEnabled="False" Tag="1" MinPaddingRight="35" Height="36"
+                               Check="PageCheck"
+                               VerticalAlignment="Top" Title="{DynamicResource Setup.Left.Item.Ui}"
+                              SvgIcon="lucide/palette"
+                              Type="RadioBox">
+                <legacy:MyListItem.Buttons>
+<legacy:MyIconButton Tag="1" ToolTip.Tip="{DynamicResource Common.Action.Initialize}"
+                                            Click="Reset"
+                                            SvgIcon="lucide/rotate-ccw"
+                                            LogoScale="0.9" />
+</legacy:MyListItem.Buttons>
+            </legacy:MyListItem>
+
+            <legacy:MyListItem x:Name="ItemLauncherLanguage"
+                              IsScaleAnimationEnabled="False"
+                              Tag="11" MinPaddingRight="35"
+                              Check="PageCheck"
+                              Height="36" VerticalAlignment="Top"
+                              Title="{DynamicResource Setup.LauncherLanguage.Title}"
+                              Type="RadioBox"
+                              LogoScale="0.95"
+                              SvgIcon="lucide/earth">
+                <legacy:MyListItem.Buttons>
+<legacy:MyIconButton Tag="11" ToolTip.Tip="{DynamicResource Common.Action.Initialize}"
+                                            Click="Reset"
+                                            SvgIcon="lucide/rotate-ccw"
+                                            LogoScale="0.9" />
+</legacy:MyListItem.Buttons>
+            </legacy:MyListItem>
+
+            <legacy:MyListItem x:Name="ItemLauncherMisc" IsScaleAnimationEnabled="False" Tag="10" MinPaddingRight="35"
+                               Check="PageCheck"
+                               Height="36" VerticalAlignment="Top" Title="{DynamicResource Setup.Left.Item.Misc}" Type="RadioBox"
+                              LogoScale="0.95"
+                              SvgIcon="lucide/monitor-cog">
+                <legacy:MyListItem.Buttons>
+<legacy:MyIconButton Tag="10" ToolTip.Tip="{DynamicResource Common.Action.Initialize}"
+                                            Click="Reset"
+                                            SvgIcon="lucide/rotate-ccw"
+                                            LogoScale="0.9" />
+</legacy:MyListItem.Buttons>
+            </legacy:MyListItem>
+            <legacy:MyListItem x:Name="ItemPlugin" IsScaleAnimationEnabled="False" Tag="12" MinPaddingRight="35"
+                               Check="PageCheck"
+                               Height="36" VerticalAlignment="Top" Title="{DynamicResource Setup.Left.Item.Plugin}" Type="RadioBox"
+                              LogoScale="0.95"
+                              SvgIcon="lucide/plug" />
+
+            <TextBlock Text="{DynamicResource Setup.Left.Category.About}" Margin="13,5,5,3" Opacity="0.6" FontSize="12" x:Name="TextAboutCategory" />
+
+            <legacy:MyListItem x:Name="ItemAbout" IsScaleAnimationEnabled="False" Tag="4" MinPaddingRight="35"
+                               Check="PageCheck"
+                               Height="36" VerticalAlignment="Top" Title="{DynamicResource Setup.Left.Item.About}" Type="RadioBox"
+                              SvgIcon="lucide/info" />
+            <legacy:MyListItem x:Name="ItemUpdate" IsScaleAnimationEnabled="False" Tag="8" MinPaddingRight="35"
+                               Check="PageCheck"
+                               Height="36" VerticalAlignment="Top" Title="{DynamicResource Setup.Left.Item.Update}" Type="RadioBox"
+                              SvgIcon="lucide/refresh-cw" />
+            <legacy:MyListItem x:Name="ItemFeedback" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="6"
+                               Check="PageCheck"
+                               MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="{DynamicResource Setup.Left.Item.Feedback}"
+                              LogoScale="0.9"
+                              SvgIcon="lucide/message-circle">
+                <legacy:MyListItem.Buttons>
+<legacy:MyIconButton Tag="6" ToolTip.Tip="{DynamicResource Common.Action.Refresh}"
+                                            Click="Refresh" LogoScale="0.85"
+                                            SvgIcon="lucide/refresh-cw" />
+</legacy:MyListItem.Buttons>
+            </legacy:MyListItem>
+            <legacy:MyListItem x:Name="ItemLog" IsScaleAnimationEnabled="False" Tag="5" MinPaddingRight="35" Height="36"
+                               Check="PageCheck"
+                               VerticalAlignment="Top" Title="{DynamicResource Setup.Left.Item.Log}" Type="RadioBox" LogoScale="0.9"
+                              SvgIcon="lucide/scroll-text" />
+        </StackPanel>
+    </legacy:MyScrollViewer>
+</legacy:MyPageLeft>

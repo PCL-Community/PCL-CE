@@ -1,0 +1,393 @@
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
+using System.Text.Json;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
+using Avalonia.VisualTree;
+using PCL.Application.Instances;
+using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Features.Launching.Views;
+
+namespace PCL.Desktop.Features.Instances.Views;
+
+public partial class PageInstanceManageRight : MyPageRight
+{
+    private LaunchInstanceInfo? _instance;
+    private InstanceMetadata _metadata = new();
+    private bool _isApplyingMetadata;
+
+    public PageInstanceManageRight()
+    {
+        AvaloniaXamlLoader.Load(this);
+        PanScroll = this.FindControl<MyScrollViewer>("PanBack");
+        WireWpfCopiedControls();
+    }
+
+    public event EventHandler<LaunchInstanceInfo>? OpenFolderRequested;
+
+    public event EventHandler<string>? OpenPathRequested;
+
+    public event EventHandler<LaunchInstanceInfo>? RenameRequested;
+
+    public event EventHandler<LaunchInstanceInfo>? DeleteRequested;
+
+    public event EventHandler<LaunchInstanceInfo>? EditDescriptionRequested;
+
+    public event EventHandler<LaunchInstanceInfo>? ToggleStarRequested;
+
+    public event EventHandler<LaunchInstanceInfo>? ExportLaunchScriptRequested;
+
+    public event EventHandler<LaunchInstanceInfo>? TestLaunchRequested;
+
+    public event EventHandler<LaunchInstanceInfo>? RepairFilesRequested;
+
+    public event EventHandler<LaunchInstanceInfo>? ResetSettingsRequested;
+
+    public event EventHandler<LaunchInstanceInfo>? PatchCoreRequested;
+
+    public void SetInstance(LaunchInstanceInfo instance)
+    {
+        _instance = instance;
+        _metadata = InstanceMetadataStore.LoadAsync(instance.InstanceDirectory).GetAwaiter().GetResult();
+        PopulateDisplayItem(instance);
+        PopulateInfo(instance);
+        ApplyMetadataToControls();
+    }
+
+    private void WireWpfCopiedControls()
+    {
+        if (this.FindControl<MyComboBoxItem>("ItemDisplayLogoCustom") is { } customLogo)
+            customLogo.Tag = InstanceDisplayHelper.CustomLogoRelativePath;
+
+        if (this.FindControl<MyComboBox>("ComboDisplayLogo") is { } logoCombo)
+            logoCombo.SelectionChanged += ComboDisplayLogo_SelectionChanged;
+
+        if (this.FindControl<MyComboBox>("ComboDisplayType") is { } typeCombo)
+            typeCombo.SelectionChanged += ComboDisplayType_SelectionChanged;
+
+        WireButton("BtnFolderVersion", () =>
+        {
+            if (_instance is not null)
+                OpenFolderRequested?.Invoke(this, _instance);
+        });
+        WireButton("BtnFolderSaves", () => OpenMinecraftSubFolder("saves"));
+        WireButton("BtnFolderMods", () => OpenMinecraftSubFolder("mods"));
+        WireButton("BtnDisplayRename", () =>
+        {
+            if (_instance is not null)
+                RenameRequested?.Invoke(this, _instance);
+        });
+        WireButton("BtnManageDelete", () =>
+        {
+            if (_instance is not null)
+                DeleteRequested?.Invoke(this, _instance);
+        });
+
+        WireButton("BtnDisplayDesc", () =>
+        {
+            if (_instance is not null)
+                EditDescriptionRequested?.Invoke(this, _instance);
+        });
+        WireButton("BtnDisplayStar", () =>
+        {
+            if (_instance is not null)
+                ToggleStarRequested?.Invoke(this, _instance);
+        });
+        WireButton("BtnManageScript", () =>
+        {
+            if (_instance is not null)
+                ExportLaunchScriptRequested?.Invoke(this, _instance);
+        });
+        WireButton("BtnManageTest", () =>
+        {
+            if (_instance is not null)
+                TestLaunchRequested?.Invoke(this, _instance);
+        });
+        WireButton("BtnManageCheck", () =>
+        {
+            if (_instance is not null)
+                RepairFilesRequested?.Invoke(this, _instance);
+        });
+        WireButton("BtnManageRestore", () =>
+        {
+            if (_instance is not null)
+                ResetSettingsRequested?.Invoke(this, _instance);
+        });
+        WireButton("BtnManagePatch", () =>
+        {
+            if (_instance is not null)
+                PatchCoreRequested?.Invoke(this, _instance);
+        });
+    }
+
+    private void WireButton(string name, Action action)
+    {
+        if (this.FindControl<MyButton>(name) is { } button)
+            button.Click += (_, _) => action();
+    }
+
+    private void PopulateDisplayItem(LaunchInstanceInfo instance)
+    {
+        if (this.FindControl<Grid>("PanDisplayItem") is not { } panel)
+            return;
+
+        panel.Children.Clear();
+        MyListItem item = new()
+        {
+            Title = instance.Name,
+            Info = string.IsNullOrWhiteSpace(_metadata.Description) ? instance.InstanceDirectory : _metadata.Description,
+            Logo = InstanceDisplayHelper.ResolveLogo(instance, _metadata),
+            Height = 42d,
+            IsHitTestVisible = false
+        };
+        panel.Children.Add(item);
+    }
+
+    private void PopulateInfo(LaunchInstanceInfo instance)
+    {
+        if (this.FindControl<StackPanel>("PanInfo") is not { } panel)
+            return;
+
+        InstanceJsonInfo jsonInfo = ReadInstanceJsonInfo(instance);
+        WrapPanel wrap = new()
+        {
+            Margin = new Thickness(0, -5, -20, 7)
+        };
+
+        AddInfoItem(wrap, "Minecraft", jsonInfo.MinecraftVersion, "Grass.png");
+        if (!string.IsNullOrWhiteSpace(jsonInfo.InheritsFrom))
+            AddInfoItem(wrap, "继承版本", jsonInfo.InheritsFrom, "CommandBlock.png");
+        AddInfoItem(wrap, "版本文件", instance.VersionJsonPath, "CommandBlock.png");
+        AddInfoItem(wrap, "版本目录", instance.InstanceDirectory, "CobbleStone.png");
+
+        panel.Children.Clear();
+        panel.Children.Add(wrap);
+    }
+
+    private void ApplyMetadataToControls()
+    {
+        _isApplyingMetadata = true;
+        try
+        {
+            if (this.FindControl<MyButton>("BtnDisplayStar") is { } star)
+                star.Text = _metadata.IsStarred ? "取消收藏" : "收藏";
+
+            SetComboIndex("ComboDisplayType", Math.Clamp(_metadata.CardType, 0, 5));
+            SelectLogoItem(_metadata.LogoPath);
+        }
+        finally
+        {
+            _isApplyingMetadata = false;
+        }
+    }
+
+    private static void AddInfoItem(WrapPanel panel, string title, string info, string imageName)
+    {
+        panel.Children.Add(new MyListItem
+        {
+            Title = title,
+            Info = info,
+            Logo = InstanceDisplayHelper.BlockAssetRoot + imageName,
+            Height = 42d,
+            Width = 245d,
+            Margin = new Thickness(0, 5, 20, 0)
+        });
+    }
+
+    private async void ComboDisplayLogo_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_isApplyingMetadata || _instance is null || sender is not MyComboBox comboBox)
+            return;
+
+        if (ReferenceEquals(comboBox.SelectedItem, this.FindControl<MyComboBoxItem>("ItemDisplayLogoCustom")))
+        {
+            await SelectCustomLogoAsync().ConfigureAwait(true);
+            return;
+        }
+
+        string logoPath = (comboBox.SelectedItem as MyComboBoxItem)?.Tag?.ToString() ?? string.Empty;
+        TryDeleteCustomLogo(_instance);
+        await UpdateMetadataAsync(metadata => metadata with { LogoPath = logoPath }).ConfigureAwait(true);
+    }
+
+    private async void ComboDisplayType_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_isApplyingMetadata || sender is not MyComboBox comboBox)
+            return;
+
+        int selectedIndex = Math.Max(0, comboBox.SelectedIndex);
+        await UpdateMetadataAsync(metadata => metadata with { CardType = selectedIndex }).ConfigureAwait(true);
+    }
+
+    private async Task SelectCustomLogoAsync()
+    {
+        if (_instance is null)
+            return;
+
+        IStorageProvider? storage = TopLevel.GetTopLevel(this)?.StorageProvider;
+        if (storage is null)
+        {
+            ApplyMetadataToControls();
+            return;
+        }
+
+        IReadOnlyList<IStorageFile> files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "选择版本图标",
+            AllowMultiple = false,
+            FileTypeFilter =
+            [
+                new FilePickerFileType("图片文件")
+                {
+                    Patterns = ["*.png", "*.jpg", "*.jpeg", "*.webp", "*.ico"],
+                    MimeTypes = ["image/png", "image/jpeg", "image/webp", "image/x-icon"]
+                }
+            ]
+        }).ConfigureAwait(true);
+
+        if (files.Count == 0)
+        {
+            ApplyMetadataToControls();
+            return;
+        }
+
+        string logoPath = InstanceDisplayHelper.GetCustomLogoPath(_instance);
+        Directory.CreateDirectory(Path.GetDirectoryName(logoPath)
+            ?? throw new InvalidOperationException("无法确定自定义图标目录。"));
+
+        await using (Stream source = await files[0].OpenReadAsync().ConfigureAwait(true))
+        await using (FileStream destination = new(
+                         logoPath,
+                         FileMode.Create,
+                         FileAccess.Write,
+                         FileShare.None,
+                         bufferSize: 8 * 1024,
+                         FileOptions.Asynchronous | FileOptions.WriteThrough))
+        {
+            await source.CopyToAsync(destination).ConfigureAwait(true);
+        }
+
+        await UpdateMetadataAsync(metadata => metadata with
+        {
+            LogoPath = InstanceDisplayHelper.CustomLogoRelativePath
+        }).ConfigureAwait(true);
+    }
+
+    private async Task UpdateMetadataAsync(Func<InstanceMetadata, InstanceMetadata> update)
+    {
+        if (_instance is null)
+            return;
+
+        _metadata = update(_metadata);
+        await InstanceMetadataStore.SaveAsync(_instance.InstanceDirectory, _metadata).ConfigureAwait(true);
+        PopulateDisplayItem(_instance);
+        ApplyMetadataToControls();
+    }
+
+    private void SelectLogoItem(string logoPath)
+    {
+        if (this.FindControl<MyComboBox>("ComboDisplayLogo") is not { } comboBox)
+            return;
+
+        if (InstanceDisplayHelper.IsCustomLogoPath(logoPath))
+        {
+            comboBox.SelectedItem = this.FindControl<MyComboBoxItem>("ItemDisplayLogoCustom");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(logoPath))
+        {
+            comboBox.SelectedIndex = 0;
+            return;
+        }
+
+        string normalizedLogo = NormalizeLogoTag(logoPath);
+        foreach (object? item in comboBox.Items)
+        {
+            if (item is not MyComboBoxItem comboBoxItem)
+                continue;
+
+            string? tag = comboBoxItem.Tag?.ToString();
+            if (string.Equals(NormalizeLogoTag(tag), normalizedLogo, StringComparison.OrdinalIgnoreCase))
+            {
+                comboBox.SelectedItem = comboBoxItem;
+                return;
+            }
+        }
+
+        comboBox.SelectedIndex = 0;
+    }
+
+    private void SetComboIndex(string name, int index)
+    {
+        if (this.FindControl<MyComboBox>(name) is { } comboBox && comboBox.ItemCount > 0)
+            comboBox.SelectedIndex = Math.Clamp(index, 0, comboBox.ItemCount - 1);
+    }
+
+    private static string NormalizeLogoTag(string? value) =>
+        InstanceDisplayHelper.NormalizeLogoTag(value);
+
+    private static void TryDeleteCustomLogo(LaunchInstanceInfo instance)
+    {
+        try
+        {
+            string customLogo = InstanceDisplayHelper.GetCustomLogoPath(instance);
+            if (File.Exists(customLogo))
+                File.Delete(customLogo);
+        }
+        catch (IOException)
+        {
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
+    }
+
+    private static InstanceJsonInfo ReadInstanceJsonInfo(LaunchInstanceInfo instance)
+    {
+        try
+        {
+            using FileStream stream = File.OpenRead(instance.VersionJsonPath);
+            using JsonDocument document = JsonDocument.Parse(stream);
+            JsonElement root = document.RootElement;
+            string? id = root.TryGetProperty("id", out JsonElement idElement) ? idElement.GetString() : null;
+            string? inheritsFrom = root.TryGetProperty("inheritsFrom", out JsonElement inheritsElement) ? inheritsElement.GetString() : null;
+            return new InstanceJsonInfo(
+                string.IsNullOrWhiteSpace(inheritsFrom)
+                    ? (string.IsNullOrWhiteSpace(id) ? instance.Name : id)
+                    : inheritsFrom,
+                inheritsFrom);
+        }
+        catch (Exception)
+        {
+            return new InstanceJsonInfo(instance.Name, null);
+        }
+    }
+
+    private void OpenMinecraftSubFolder(string name)
+    {
+        if (_instance is null)
+            return;
+
+        OpenPathRequested?.Invoke(this, Path.Combine(GetMinecraftRootFromInstance(_instance), name));
+    }
+
+    private static string GetMinecraftRootFromInstance(LaunchInstanceInfo instance)
+    {
+        DirectoryInfo versionDirectory = new(instance.InstanceDirectory);
+        DirectoryInfo? versionsDirectory = versionDirectory.Parent;
+        if (versionsDirectory?.Parent is not null &&
+            string.Equals(versionsDirectory.Name, "versions", StringComparison.OrdinalIgnoreCase))
+        {
+            return versionsDirectory.Parent.FullName;
+        }
+
+        return instance.InstanceDirectory;
+    }
+
+    private readonly record struct InstanceJsonInfo(string MinecraftVersion, string? InheritsFrom);
+}

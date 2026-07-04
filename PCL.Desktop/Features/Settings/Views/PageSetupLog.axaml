@@ -1,0 +1,24 @@
+<legacy:MyPageRight x:Class="PCL.Desktop.Features.Settings.Views.PageSetupLog"
+                   xmlns="https://github.com/avaloniaui"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                   xmlns:legacy="using:PCL.Desktop.Controls.Legacy">
+    <legacy:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
+        <DockPanel>
+            <legacy:MyCard DockPanel.Dock="Top" Title="{DynamicResource Setup.Misc.Log.Operations}" Margin="25,25,25,5">
+                <WrapPanel ItemHeight="35" Margin="25,40,20,20">
+                    <legacy:MyButton MinWidth="100" Text="{DynamicResource Setup.Misc.Log.Export}" ColorType="Highlight" Margin="0,0,15,0"
+                                    Click="ButtonExport_OnClick" />
+                    <legacy:MyButton MinWidth="120" Text="{DynamicResource Setup.Misc.Log.ExportAll}" ColorType="Normal" Margin="0,0,15,0"
+                                    Click="ButtonExportAll_OnClick" />
+                    <legacy:MyButton MinWidth="120" Text="{DynamicResource Setup.Misc.Log.OpenDirectory}" ColorType="Normal" Margin="0,0,15,0"
+                                    Click="ButtonOpenDir_OnClick" />
+                    <legacy:MyButton MinWidth="120" Text="{DynamicResource Setup.Misc.Log.ClearHistory}" ColorType="Red" Click="ButtonClean_OnClick" />
+                </WrapPanel>
+            </legacy:MyCard>
+            <legacy:MyCard Title="{DynamicResource Setup.Misc.Log.AllLogs}" Margin="25,10,25,25" x:Name="PanContent">
+                <StackPanel x:Name="PanList" Orientation="Vertical" Margin="20,36,18,18" />
+            </legacy:MyCard>
+        </DockPanel>
+
+    </legacy:MyScrollViewer>
+</legacy:MyPageRight>

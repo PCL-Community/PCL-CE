@@ -1,0 +1,129 @@
+<legacy:MyPageRight
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:legacy="using:PCL.Desktop.Controls.Legacy" x:Class="PCL.Desktop.Features.Instances.Views.PageInstanceManageRight" Grid.IsSharedSizeScope="True">
+    <legacy:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
+        <StackPanel x:Name="PanMain" Margin="25,10">
+            <legacy:MyCard Margin="0,15" Title="">
+                <Grid Margin="10,7" x:Name="PanDisplayItem" />
+            </legacy:MyCard>
+            <legacy:MyCard Margin="0,0,0,15" Title="{DynamicResource Instance.Overall.Info.Title}">
+                <StackPanel x:Name="PanInfo" Margin="15,40,25,5">
+                    <legacy:MyLoading x:Name="LabInfoLoading" Text="{DynamicResource Instance.Overall.Info.Loading}" Margin="0,0,0,10" />
+                </StackPanel>
+            </legacy:MyCard>
+            <legacy:MyCard Margin="0,0,0,15" Title="{DynamicResource Instance.Overall.Personalization.Title}" x:Name="PanDisplay">
+                <StackPanel Margin="25,40,25,15">
+                    <Grid x:Name="PanDisplayIcon" HorizontalAlignment="Stretch">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="9" />
+                            <RowDefinition Height="28" />
+                        </Grid.RowDefinitions>
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Instance.Overall.Icon.Title}" Margin="0,0,25,0" />
+                        <legacy:MyComboBox Grid.Column="1" x:Name="ComboDisplayLogo">
+                            <legacy:MyComboBoxItem Content="{DynamicResource Common.Option.Auto}" IsSelected="True" Tag="" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Common.Option.Customize}" x:Name="ItemDisplayLogoCustom" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Cobblestone}"
+                                                  Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/CobbleStone.png" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.CommandBlock}"
+                                                  Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/CommandBlock.png" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.GoldBlock}" Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/GoldBlock.png" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.GrassBlock}" Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Grass.png" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.DirtPath}" Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/GrassPath.png" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Anvil}" Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Anvil.png" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.RedstoneBlock}"
+                                                  Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/RedstoneBlock.png" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.RedstoneLampOn}"
+                                                  Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/RedstoneLampOn.png" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.RedstoneLampOff}"
+                                                  Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/RedstoneLampOff.png" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Egg}" Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Egg.png" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Fabric}"
+                                                  Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Quilt}"
+                                                  Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Quilt.png" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.NeoForgeFox}"
+                                                  Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/NeoForge.png" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Cleanroom}"
+                                                  Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Cleanroom.png" />
+                        </legacy:MyComboBox>
+                        <TextBlock VerticalAlignment="Center" Grid.Row="2" HorizontalAlignment="Left" Text="{DynamicResource Instance.Overall.Category.Title}"
+                                   Margin="0,0,25,0" />
+                        <legacy:MyComboBox Grid.Column="1" Grid.Row="2" x:Name="ComboDisplayType">
+                            <legacy:MyComboBoxItem Content="{DynamicResource Common.Option.Auto}" IsSelected="True" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Category.Hidden}"
+                                                  ToolTip="{DynamicResource Instance.Overall.Category.Hidden.ToolTip}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Category.Modable}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Category.Regular}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Category.LessUsed}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Category.AprilFools}" />
+                        </legacy:MyComboBox>
+                    </Grid>
+                    <Grid Margin="0,15,0,7" Height="35">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                        </Grid.ColumnDefinitions>
+                        <legacy:MyButton x:Name="BtnDisplayRename" Text="{DynamicResource Instance.Overall.Rename}"
+                                        MinWidth="140" Padding="13,0"
+                                        Margin="0,0,20,0" />
+                        <legacy:MyButton x:Name="BtnDisplayDesc" Text="{DynamicResource Instance.Overall.EditDescription}"
+                                        MinWidth="140" Padding="13,0"
+                                        Margin="0,0,20,0" Grid.Column="1" />
+                        <legacy:MyButton x:Name="BtnDisplayStar" Text="{DynamicResource Instance.Overall.Favorite}"
+                                        MinWidth="140" Padding="13,0"
+                                        Margin="0,0,20,0" Grid.Column="2" />
+                    </Grid>
+                </StackPanel>
+            </legacy:MyCard>
+            <legacy:MyCard Margin="0,0,0,15" Title="{DynamicResource Instance.Overall.Shortcuts.Title}" x:Name="PanFolder">
+                <StackPanel Margin="25,40,25,15">
+                    <Grid Margin="0,2,0,7" Height="35">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                        </Grid.ColumnDefinitions>
+                        <legacy:MyButton x:Name="BtnFolderVersion" Text="{DynamicResource Instance.Overall.Shortcuts.InstanceFolder}" MinWidth="140" Padding="13,0"
+                                        Margin="0,0,20,0" />
+                        <legacy:MyButton x:Name="BtnFolderSaves" Text="{DynamicResource Instance.Overall.Shortcuts.SavesFolder}" MinWidth="140" Padding="13,0"
+                                        Margin="0,0,20,0" Grid.Column="1" />
+                        <legacy:MyButton x:Name="BtnFolderMods" Text="{DynamicResource Instance.Overall.Shortcuts.ModsFolder}" MinWidth="140" Padding="13,0"
+                                        Margin="0,0,20,0" Grid.Column="2" />
+                    </Grid>
+                </StackPanel>
+            </legacy:MyCard>
+            <legacy:MyCard Margin="0,0,0,15" Title="{DynamicResource Instance.Overall.Manage.Title}" x:Name="PanManage">
+                <StackPanel Margin="25,40,25,15">
+                    <WrapPanel Margin="0,-5,-20,7">
+                        <legacy:MyButton x:Name="BtnManageScript" Text="{DynamicResource Instance.Overall.Manage.ExportLaunchScript}" MinWidth="140" Padding="13,0"
+                                        Margin="0,7,20,0" Height="35" />
+                        <legacy:MyButton x:Name="BtnManageTest" Text="{DynamicResource Instance.Overall.Manage.TestGame}" MinWidth="140" Padding="13,0"
+                                        Margin="0,7,20,0"
+                                        Height="35" />
+                        <legacy:MyButton x:Name="BtnManageCheck" Text="{DynamicResource Instance.Overall.Manage.RepairFiles}" MinWidth="140" Padding="13,0"
+                                        Margin="0,7,20,0"
+                                        ToolTip="{DynamicResource Instance.Overall.Manage.RepairFiles.ToolTip}"
+                                        Height="35" />
+                        <legacy:MyButton x:Name="BtnManageRestore" Text="{DynamicResource Common.Action.Reset}" MinWidth="140" Padding="13,0"
+                                        Margin="0,7,20,0"
+                                        ToolTip="{DynamicResource Instance.Overall.Manage.Reinstall.ToolTip}"
+                                        Height="35" />
+                        <legacy:MyButton x:Name="BtnManageDelete" Text="{DynamicResource Instance.Overall.Manage.Delete}" MinWidth="140" Padding="13,0"
+                                        Margin="0,7,20,0"
+                                        ColorType="Red" Height="35" />
+                        <legacy:MyButton x:Name="BtnManagePatch" Text="{DynamicResource Instance.Overall.Manage.PatchCore}" MinWidth="140" Padding="13,0"
+                                        Margin="0,7,20,0"
+                                        Height="35" />
+                    </WrapPanel>
+                </StackPanel>
+            </legacy:MyCard>
+        </StackPanel>
+    </legacy:MyScrollViewer>
+</legacy:MyPageRight>

@@ -178,10 +178,9 @@
 
         </Rectangle>
 
-        <Border x:Name="PanBack" Margin="10" CornerRadius="8" ClipToBounds="True"
-                Background="{DynamicResource ColorBrushBackground}">
+        <Border x:Name="PanBack" Margin="10" CornerRadius="8" ClipToBounds="True">
 
-            <Grid x:Name="PanForm">
+            <Grid x:Name="PanForm" Background="{DynamicResource ColorBrushBackground}">
 
                 <Grid.RowDefinitions>
 

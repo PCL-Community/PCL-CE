@@ -1,0 +1,331 @@
+<legacy:MyPageRight
+    x:Class="PCL.Desktop.Features.Settings.Views.PageSetupAbout"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:legacy="using:PCL.Desktop.Controls.Legacy">
+    <legacy:MyScrollViewer
+        x:Name="PanBack"
+        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+        ScrollViewer.VerticalScrollBarVisibility="Auto">
+        <StackPanel
+            x:Name="PanMain"
+            Margin="25,10">
+            <legacy:MyCard Margin="0,15" Title="{DynamicResource Setup.About.Title}">
+                <Grid Margin="21,40,21,16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="45" />
+                        <RowDefinition Height="45" />
+                        <RowDefinition Height="45" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="40" />
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="150" />
+                    </Grid.ColumnDefinitions>
+                    <legacy:MyListItem
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Margin="-5,0,15,0"
+                        Info="{DynamicResource Setup.About.OriginalAuthor.Info}"
+                        IsHitTestVisible="False"
+                        Title="{DynamicResource Setup.About.OriginalAuthor.Name}" />
+                    <legacy:MyListItem
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        Margin="-5,0,15,0"
+                        Info="{DynamicResource Setup.About.Community.Info}"
+                        IsHitTestVisible="False"
+                        Title="{DynamicResource Setup.About.Community.Name}" />
+                    <legacy:MyListItem
+                        x:Name="ItemAboutPcl"
+                        Grid.Row="2"
+                        Grid.Column="1"
+                        Margin="-5,0,15,0"
+                        Info="{DynamicResource Setup.About.Version.Info}"
+                        IsHitTestVisible="False"
+                        Title="PCL N" />
+                    <Image
+                        x:Name="ImgPCLLogo"
+                        Grid.Row="2"
+                        Margin="3" PointerPressed="ImgPCLLogo_Click"
+                        Source="avares://PCL.Desktop/WpfOriginal/Images/Heads/Logo-N.png">
+                        <Image.Clip>
+                            <EllipseGeometry
+                                Center="17 17"
+                                RadiusX="17"
+                                RadiusY="17" />
+                        </Image.Clip>
+                    </Image>
+                    <Image
+                        Grid.Row="0"
+                        Margin="3"
+                        Source="avares://PCL.Desktop/WpfOriginal/Images/Heads/LTCat.jpg">
+                        <Image.Clip>
+                            <EllipseGeometry
+                                Center="17 17"
+                                RadiusX="17"
+                                RadiusY="17" />
+                        </Image.Clip>
+                    </Image>
+                    <Image
+                        x:Name="ImgPCLCommunity"
+                        Grid.Row="1"  PointerPressed="ImgPCLCommunity_Click"
+                        Margin="3"
+                        Source="avares://PCL.Desktop/WpfOriginal/Images/Heads/PCL-N.jpg">
+                        <Image.Clip>
+                            <EllipseGeometry
+                                Center="17 17"
+                                RadiusX="17"
+                                RadiusY="17" />
+                        </Image.Clip>
+                    </Image>
+                    <legacy:MyButton
+                        x:Name="BtnSponsorOriginal"
+                        Grid.Row="0"
+                        Grid.Column="2"
+                        Height="35"
+                        Text="{DynamicResource Setup.About.SponsorOriginalAuthor}"
+                        Click="BtnSponsorOriginal_Click" />
+                    <legacy:MyButton
+                        x:Name="BtnCommunityHome"
+                        Grid.Row="1"
+                        Grid.Column="2"
+                        Height="35"
+                        Text="{DynamicResource Setup.About.GitHubHome}"
+                        Click="BtnCommunityHome_Click" />
+                    <legacy:MyButton
+                        x:Name="BtnSourceCode"
+                        Grid.Row="2"
+                        Grid.Column="2"
+                        Height="35"
+                        Text="{DynamicResource Setup.About.SourceCode}"
+                        Click="BtnSourceCode_Click" />
+                </Grid>
+            </legacy:MyCard>
+            <legacy:MyCard Margin="0,0,0,15" Title="{DynamicResource Setup.About.SpecialThanks.Title}">
+                <Grid Margin="21,40,21,16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="45" />
+                        <RowDefinition Height="45" />
+                        <RowDefinition Height="45" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="40" />
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="150" />
+                    </Grid.ColumnDefinitions>
+                    <legacy:MyListItem
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Margin="-5,0,15,0"
+                        Info="{DynamicResource Setup.About.SpecialThanks.Info.Bmclapi}"
+                        IsHitTestVisible="False"
+                        Title="{DynamicResource Setup.About.SpecialThanks.Name.Bangbang93}" />
+                    <legacy:MyButton
+                        Grid.Row="0"
+                        Grid.Column="2"
+                        Height="35"
+                        Text="{DynamicResource Setup.About.SpecialThanks.SponsorMirror}"
+                        Click="BtnSponsorMirror_Click" />
+                    <legacy:MyListItem
+                        x:Name="ItemMcmod"
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        Grid.ColumnSpan="2"
+                        Margin="-5,0,0,0"
+                        Info="{DynamicResource Setup.About.SpecialThanks.Info.Mcmod}"
+                        IsHitTestVisible="False"
+                        Title="{DynamicResource Setup.About.SpecialThanks.Name.Mcmod}" />
+                    <legacy:MyButton
+                        x:Name="BtnMcmod"
+                        Grid.Row="1"
+                        Grid.Column="2"
+                        Height="35"
+                        Text="{DynamicResource Setup.About.SpecialThanks.OpenMcmod}"
+                        Click="BtnMcmod_Click" />
+                    <legacy:MyListItem
+                        Grid.Row="2"
+                        Grid.Column="1"
+                        Grid.ColumnSpan="2"
+                        Margin="-5,0,0,0"
+                        Info="{DynamicResource Setup.About.SpecialThanks.Info.Mcim}"
+                        IsHitTestVisible="False"
+                        Title="{DynamicResource Setup.About.SpecialThanks.Name.Z0z0r4}" />
+                    <Image
+                        Grid.Row="0"
+                        Margin="3"
+                        Source="avares://PCL.Desktop/WpfOriginal/Images/Heads/bangbang93.png">
+                        <Image.Clip>
+                            <EllipseGeometry
+                                Center="17 17"
+                                RadiusX="17"
+                                RadiusY="17" />
+                        </Image.Clip>
+                    </Image>
+                    <Image
+                        x:Name="ImgMcmod"
+                        Grid.Row="1"
+                        Margin="3"
+                        Source="avares://PCL.Desktop/WpfOriginal/Images/Heads/wiki.png">
+                        <Image.Clip>
+                            <EllipseGeometry
+                                Center="17 17"
+                                RadiusX="17"
+                                RadiusY="17" />
+                        </Image.Clip>
+                    </Image>
+                    <Image
+                        Grid.Row="2"
+                        Margin="3"
+                        Source="avares://PCL.Desktop/WpfOriginal/Images/Heads/z0z0r4.png">
+                        <Image.Clip>
+                            <EllipseGeometry
+                                Center="17 17"
+                                RadiusX="17"
+                                RadiusY="17" />
+                        </Image.Clip>
+                    </Image>
+                </Grid>
+            </legacy:MyCard>
+
+<legacy:MyCard
+                Margin="0,0,0,15"
+                CanSwap="True"
+                Title="{DynamicResource Setup.About.Legal.Title}">
+                <StackPanel Margin="25,39,23,20">
+                    <TextBlock
+                        Margin="0,6,0,4"
+                        FontWeight="Bold"
+                        Text="{DynamicResource Setup.About.Legal.PrivacyNotice}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="0,0,0,2"
+                        LineHeight="17"
+                        Text="{DynamicResource Setup.About.Legal.PrivacyText}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="0,12,0,4"
+                        FontWeight="Bold"
+                        Text="{DynamicResource Setup.About.Legal.OtherInfo}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="0,0,0,2"
+                        LineHeight="17"
+                        Text="{DynamicResource Setup.About.Legal.CopyrightText}"
+                        TextWrapping="Wrap" />
+                    <StackPanel
+                        Height="35"
+                        Margin="0,12,0,0"
+                        HorizontalAlignment="Left"
+                        Orientation="Horizontal">
+                        <legacy:MyButton
+                            Margin="0,0,20,0"
+                            ColorType="Highlight"
+                            Padding="13,0"
+                            Text="{DynamicResource Setup.About.Legal.CommunitySource}"
+                            Click="BtnSourceCode_Click" />
+                    </StackPanel>
+                </StackPanel>
+            </legacy:MyCard>
+            <legacy:MyCard
+                Margin="0,0,0,15"
+                CanSwap="True"
+                IsSwapped="True"
+                Title="{DynamicResource Setup.About.UpstreamLegal.Title}">
+                <StackPanel Margin="25,39,23,20">
+                    <TextBlock
+                        Margin="0,6,0,4"
+                        FontWeight="Bold"
+                        Text="{DynamicResource Setup.About.Legal.PrivacyNotice}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="0,0,0,2"
+                        LineHeight="17"
+                        Text="{DynamicResource Setup.About.UpstreamLegal.PrivacyText}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="0,12,0,4"
+                        FontWeight="Bold"
+                        Text="{DynamicResource Setup.About.Legal.OtherInfo}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="0,0,0,2"
+                        LineHeight="17"
+                        Text="{DynamicResource Setup.About.UpstreamLegal.CopyrightText}"
+                        TextWrapping="Wrap" />
+                    <StackPanel
+                        Height="35"
+                        Margin="0,12,0,0"
+                        HorizontalAlignment="Left"
+                        Orientation="Horizontal">
+                        <legacy:MyButton
+                            Width="160"
+                            Margin="0,0,20,0"
+                            ColorType="Highlight"
+                            Padding="13,0"
+                            Text="{DynamicResource Setup.About.UpstreamLegal.TermsAndDisclaimer}"
+                            Click="BtnUpstreamLicense_Click" />
+                        <legacy:MyButton
+                            Width="120"
+                            Margin="0,0,20,0"
+                            Padding="13,0"
+                            Text="{DynamicResource Setup.About.UpstreamLegal.OpenSource}"
+                            Click="BtnUpstreamSource_Click" />
+                    </StackPanel>
+                </StackPanel>
+            </legacy:MyCard>
+            <legacy:MyCard
+                Margin="0,0,0,15"
+                CanSwap="True"
+                IsSwapped="True"
+                Title="{DynamicResource Setup.About.Licenses.Title}">
+                <ItemsControl Margin="25,42,23,4" >
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="LicenseName" />
+                                    <ColumnDefinition Width="20" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="60" />
+                                </Grid.RowDefinitions>
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="0"
+                                    FontWeight="Bold"
+                                    Text=""
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="2"
+                                    Grid.ColumnSpan="2"
+                                    Text=""
+                                    TextWrapping="Wrap" />
+                                <legacy:MyButton
+                                    Grid.Row="1"
+                                    Grid.Column="2"
+                                    MinWidth="140"
+                                    Margin="0,7,20,18"
+                                    HorizontalAlignment="Left"
+                                    Padding="13,0"
+                                    Text="{DynamicResource Setup.About.Licenses.ViewWebsite}" IsVisible="True" />
+                                <legacy:MyButton
+                                    Grid.Row="1"
+                                    Grid.Column="3"
+                                    MinWidth="140"
+                                    Margin="0,7,20,18"
+                                    HorizontalAlignment="Left"
+                                    Padding="13,0"
+                                    Text="{DynamicResource Setup.About.Licenses.ViewLicense}" IsVisible="True" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </legacy:MyCard>
+        </StackPanel>
+    </legacy:MyScrollViewer>
+</legacy:MyPageRight>

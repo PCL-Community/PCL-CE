@@ -1,0 +1,275 @@
+<legacy:MyPageRight
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:legacy="using:PCL.Desktop.Controls.Legacy" xmlns:views="using:PCL.Desktop.Features.Instances.Views" x:Class="PCL.Desktop.Features.Instances.Views.PageInstanceExportRight"
+    PanScroll="{Binding ElementName=PanBack}">
+    <Grid x:Name="PanAllBack">
+        <legacy:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                              x:Name="PanBack">
+            <StackPanel Margin="25,10,25,65">
+                <legacy:MyHint Margin="0,15,0,0" Text="{DynamicResource Instance.Export.ModrinthWarning}" Theme="Yellow"
+                              x:Name="HintOptiFine" />
+                <legacy:MyCard Margin="0,15">
+                    <Grid Margin="22,15,25,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="0.3*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="28" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left"
+                                   Text="{DynamicResource Instance.Export.PackName}" Margin="0,0,20,0" />
+                        <legacy:MyTextBox Grid.Row="0" Grid.Column="1" x:Name="TextExportName" MaxLength="100" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Left"
+                                   Text="{DynamicResource Instance.Export.PackVersion}" Margin="30,0,20,0" />
+                        <legacy:MyTextBox Grid.Row="0" Grid.Column="3" x:Name="TextExportVersion"
+                                         Tag="VersionArgumentTitle" MaxLength="100" />
+                    </Grid>
+                </legacy:MyCard>
+                <legacy:MyCard Margin="0,0,0,15" x:Name="CardOptions" MinHeight="39">
+                    <legacy:MyIconTextButton x:Name="BtnOverrideCancel" Height="24" HorizontalAlignment="Right"
+                                            VerticalAlignment="Center" Margin="0,0,5,0"
+                                            IsHitTestVisible="False" Opacity="0.5"
+                                            Text="{DynamicResource Common.Action.Reset}"
+                                            SvgIcon="lucide/rotate-ccw"
+                                            LogoScale="0.9" />
+                    <StackPanel Margin="25,38,15,15" x:Name="PanOptions">
+                        <legacy:MyCheckBox IsEnabled="False" x:Name="CheckOptionsBasic">
+                            <legacy:MyCheckBox.Tag>
+                                <views:ExportOption
+                                    Title="{DynamicResource Instance.Export.Option.Game}"
+                                    DefaultChecked="True" />
+                            </legacy:MyCheckBox.Tag>
+                        </legacy:MyCheckBox>
+                        <legacy:MyCheckBox x:Name="CheckOptionsOptions" Margin="30,0,0,0">
+                            <legacy:MyCheckBox.Tag>
+                                <views:ExportOption
+                                    Title="{DynamicResource Instance.Export.Option.GameSettings}"
+                                    Description="{DynamicResource Instance.Export.Option.GameSettings.Desc}"
+                                    Rules="options.txt|configureddefaults/"
+                                    DefaultChecked="True" />
+                            </legacy:MyCheckBox.Tag>
+                        </legacy:MyCheckBox>
+                        <legacy:MyCheckBox Margin="30,0,0,0">
+                            <legacy:MyCheckBox.Tag>
+                                <views:ExportOption
+                                    Title="{DynamicResource Instance.Export.Option.GameProfile}"
+                                    Description="{DynamicResource Instance.Export.Option.GameProfile.Desc}"
+                                    Rules="hotbar.nbt|command_history.txt"
+                                    DefaultChecked="False" />
+                            </legacy:MyCheckBox.Tag>
+                        </legacy:MyCheckBox>
+                        <legacy:MyCheckBox Margin="30,0,0,0">
+                            <legacy:MyCheckBox.Tag>
+                                <views:ExportOption
+                                    Title="{DynamicResource Instance.Export.Option.OptiFine}"
+                                    Rules="optionsof.txt|optionsshaders.txt"
+                                    DefaultChecked="True"
+                                    RequireOptiFine="True" />
+                            </legacy:MyCheckBox.Tag>
+                        </legacy:MyCheckBox>
+                        <legacy:MyCheckBox x:Name="CheckOptionsMod">
+                            <legacy:MyCheckBox.Tag>
+                                <views:ExportOption
+                                    Title="{DynamicResource Instance.Export.Option.Mod}"
+                                    Description="{DynamicResource Instance.Export.Option.Mod.Desc}"
+                                    Rules="mods/|!mods/*.disabled|!mods/*.old|!mods/.connector/|coremods/|lib/|!mods/mcef-libraries/|!mods/mcef-cache/"
+                                    DefaultChecked="True"
+                                    RequireModLoader="True" />
+                            </legacy:MyCheckBox.Tag>
+                        </legacy:MyCheckBox>
+                        <StackPanel Margin="30,0,0,0"
+                                    IsVisible="{Binding Checked, ElementName=CheckOptionsMod}">
+                            <legacy:MyCheckBox>
+                                <legacy:MyCheckBox.Tag>
+                                    <views:ExportOption
+                                        Title="{DynamicResource Instance.Export.Option.DisabledMod}"
+                                        Rules="mods/*.disabled|mods/*.old" />
+                                </legacy:MyCheckBox.Tag>
+                            </legacy:MyCheckBox>
+                            <legacy:MyCheckBox>
+                                <legacy:MyCheckBox.Tag>
+                                    <views:ExportOption
+                                        Title="{DynamicResource Instance.Export.Option.ImportantData}"
+                                        Description="{DynamicResource Instance.Export.Option.ImportantData.Desc}"
+                                        Rules="addons/|multiblocked/|modpack-update-checker/|global_packs/|global_resource_packs/|global_data_packs/|optional_data_packs/|maps/|icon.png|mods-resourcepacks/|matmos/|resource_assorts/|resource_assorts.json|patchouli_books/|datapacks/|kubejs*/|!kubejs*/probe/|!kubejs*/exported/|!kubejs*/jsconfig.json|!kubejs*/README.txt|openloader/|worldshape/|resources/|scripts/|structures/|fontfiles/|oresources/|packmenu/|craftpresence/|pointblanks/|template*/|!template*/playerdata/|!template*/stats/"
+                                        DefaultChecked="True" />
+                                </legacy:MyCheckBox.Tag>
+                            </legacy:MyCheckBox>
+                            <legacy:MyCheckBox>
+                                <legacy:MyCheckBox.Tag>
+                                    <views:ExportOption
+                                        Title="{DynamicResource Instance.Export.Option.ModSettings}"
+                                        Rules="config/|!config/accountsx/|!config/jei/world/|!config/worldedit/|config/worldedit/worldedit.properties|!config/spark/|config/spark/config.json|defaultconfigs/|journeymap/config/|journeymap/server/|TrashSlotSaveState.json|customfov.txt|gg.essential.mod/|essential/|!essential/*/|!essential/*.jar*|!essential/screenshot-checksum-caches.json|!essential/microsoft_accounts.json|paragliderSettings.nbt|local/client_config.json|local/ftbl.json|local/client/sidebar_buttons.json|local/client/ftbutilities.cfg|local/client/ftblib.cfg|local/client/xencraft.cfg|liteloader.properties|default_reference.xml|CustomSkinLoader/CustomSkinLoader.json"
+                                        DefaultChecked="True" />
+                                </legacy:MyCheckBox.Tag>
+                            </legacy:MyCheckBox>
+                            <legacy:MyCheckBox>
+                                <legacy:MyCheckBox.Tag>
+                                    <views:ExportOption
+                                        Title="{DynamicResource Instance.Export.Option.Maps}"
+                                        Description="{DynamicResource Instance.Export.Option.Maps.Desc}"
+                                        Rules="journeymap/data/|xaero/|XaeroWaypoints/|XaeroWorldMap/"
+                                        DefaultChecked="False" />
+                                </legacy:MyCheckBox.Tag>
+                            </legacy:MyCheckBox>
+                            <legacy:MyCheckBox>
+                                <legacy:MyCheckBox.Tag>
+                                    <views:ExportOption
+                                        Title="{DynamicResource Instance.Export.Option.Jei}"
+                                        Description="{DynamicResource Instance.Export.Option.Jei.Desc}"
+                                        Rules="config/jei/world/"
+                                        DefaultChecked="False" />
+                                </legacy:MyCheckBox.Tag>
+                            </legacy:MyCheckBox>
+                            <legacy:MyCheckBox>
+                                <legacy:MyCheckBox.Tag>
+                                    <views:ExportOption
+                                        Title="{DynamicResource Instance.Export.Option.Emi}"
+                                        Description="{DynamicResource Instance.Export.Option.Emi.Desc}"
+                                        Rules="emi.json"
+                                        DefaultChecked="False" />
+                                </legacy:MyCheckBox.Tag>
+                            </legacy:MyCheckBox>
+                            <legacy:MyCheckBox>
+                                <legacy:MyCheckBox.Tag>
+                                    <views:ExportOption
+                                        Title="{DynamicResource Instance.Export.Option.Patchouli}"
+                                        Description="{DynamicResource Instance.Export.Option.Patchouli.Desc}"
+                                        Rules="patchouli_data.json"
+                                        DefaultChecked="False" />
+                                </legacy:MyCheckBox.Tag>
+                            </legacy:MyCheckBox>
+                        </StackPanel>
+                        <legacy:MyCheckBox x:Name="CheckOptionsResourcePacks">
+                            <legacy:MyCheckBox.Tag>
+                                <views:ExportOption
+                                    Title="{DynamicResource Instance.Export.Option.ResourcePacks}"
+                                    Description="{DynamicResource Instance.Export.Option.ResourcePacks.Desc}"
+                                    ShowRules="resourcepacks/|texturepacks/"
+                                    DefaultChecked="True" />
+                            </legacy:MyCheckBox.Tag>
+                        </legacy:MyCheckBox>
+                        <StackPanel Margin="30,0,0,0" x:Name="PanOptionsResourcePacks"
+                                    IsVisible="{Binding Checked, ElementName=CheckOptionsResourcePacks}" />
+                        <legacy:MyCheckBox x:Name="CheckOptionsShaderPacks">
+                            <legacy:MyCheckBox.Tag>
+                                <views:ExportOption
+                                    Title="{DynamicResource Instance.Export.Option.ShaderPacks}"
+                                    ShowRules="shaderpacks/"
+                                    DefaultChecked="True"
+                                    RequireModLoaderOrOptiFine="True" />
+                            </legacy:MyCheckBox.Tag>
+                        </legacy:MyCheckBox>
+                        <StackPanel Margin="30,0,0,0" x:Name="PanOptionsShaderPacks"
+                                    IsVisible="{Binding Checked, ElementName=CheckOptionsShaderPacks}" />
+                        <legacy:MyCheckBox>
+                            <legacy:MyCheckBox.Tag>
+                                <views:ExportOption
+                                    Title="{DynamicResource Instance.Export.Option.Screenshots}"
+                                    Rules="screenshots/"
+                                    DefaultChecked="False" />
+                            </legacy:MyCheckBox.Tag>
+                        </legacy:MyCheckBox>
+                        <legacy:MyCheckBox>
+                            <legacy:MyCheckBox.Tag>
+                                <views:ExportOption
+                                    Title="{DynamicResource Instance.Export.Option.Structures}"
+                                    Description="{DynamicResource Instance.Export.Option.Structures.Desc}"
+                                    Rules="schematics/"
+                                    DefaultChecked="False" />
+                            </legacy:MyCheckBox.Tag>
+                        </legacy:MyCheckBox>
+                        <legacy:MyCheckBox>
+                            <legacy:MyCheckBox.Tag>
+                                <views:ExportOption
+                                    Title="{DynamicResource Instance.Export.Option.Replay}"
+                                    Description="{DynamicResource Instance.Export.Option.Replay.Desc}"
+                                    Rules="replay_recordings/|replay_videos/"
+                                    RequireModLoader="True"
+                                    DefaultChecked="False" />
+                            </legacy:MyCheckBox.Tag>
+                        </legacy:MyCheckBox>
+                        <legacy:MyCheckBox x:Name="CheckOptionsSaves">
+                            <legacy:MyCheckBox.Tag>
+                                <views:ExportOption
+                                    Title="{DynamicResource Instance.Export.Option.Saves}"
+                                    Description="{DynamicResource Instance.Export.Option.Saves.Desc}"
+                                    ShowRules="saves/"
+                                    DefaultChecked="False" />
+                            </legacy:MyCheckBox.Tag>
+                        </legacy:MyCheckBox>
+                        <StackPanel Margin="30,0,0,0" x:Name="PanOptionsSaves"
+                                    IsVisible="{Binding Checked, ElementName=CheckOptionsSaves}" />
+                        <legacy:MyCheckBox>
+                            <legacy:MyCheckBox.Tag>
+                                <views:ExportOption
+                                    Title="{DynamicResource Instance.Export.Option.Servers}"
+                                    Rules="servers.dat"
+                                    DefaultChecked="False" />
+                            </legacy:MyCheckBox.Tag>
+                        </legacy:MyCheckBox>
+                        <legacy:MyCheckBox x:Name="CheckOptionsPcl">
+                            <legacy:MyCheckBox.Tag>
+                                <views:ExportOption
+                                    Title="{DynamicResource Instance.Export.Option.Launcher}"
+                                    Description="{DynamicResource Instance.Export.Option.Launcher.Desc}"
+                                    DefaultChecked="True" />
+                            </legacy:MyCheckBox.Tag>
+                        </legacy:MyCheckBox>
+                        <StackPanel Margin="30,0,0,0"
+                                    IsVisible="{Binding Checked, ElementName=CheckOptionsPcl}">
+                            <legacy:MyCheckBox x:Name="CheckOptionsPclCustom">
+                                <legacy:MyCheckBox.Tag>
+                                    <views:ExportOption
+                                        Title="{DynamicResource Instance.Export.Option.LauncherCustom}"
+                                        Description="{DynamicResource Instance.Export.Option.LauncherCustom.Desc}"
+                                        DefaultChecked="True" />
+                                </legacy:MyCheckBox.Tag>
+                            </legacy:MyCheckBox>
+                        </StackPanel>
+                    </StackPanel>
+                </legacy:MyCard>
+                <legacy:MyCard Title="{DynamicResource Instance.Export.Advanced.Title}" Margin="0,0,0,15" CanSwap="True"
+                              IsSwapped="True">
+                    <StackPanel Margin="25,37,23,20">
+                        <legacy:MyHint
+                            Text="{DynamicResource Instance.Export.Advanced.BundleHint}"
+                            Theme="Yellow" Margin="0,2,0,8"
+                            IsVisible="{Binding Checked, ElementName=CheckAdvancedInclude}" />
+                        <legacy:MyCheckBox Text="{DynamicResource Instance.Export.Advanced.BundleFiles}"
+                                          x:Name="CheckAdvancedInclude"
+                                          Change="CheckAdvancedInclude_Change"
+                                          ToolTip.Tip="{DynamicResource Instance.Export.Advanced.BundleFiles.ToolTip}" />
+                        <legacy:MyCheckBox Text="{DynamicResource Instance.Export.Advanced.Modrinth}"
+                                          x:Name="CheckAdvancedModrinth"
+                                          Change="CheckAdvancedModrinth_Change"
+                                          ToolTip.Tip="{DynamicResource Instance.Export.Advanced.Modrinth.ToolTip}" />
+                        <legacy:MyHint Theme="Blue" RelativeSetup="HintExportConfig" CanClose="True" Margin="0,20,0,2"
+                                      Text="{DynamicResource Instance.Export.Advanced.ConfigHint}" />
+                        <Grid Height="35" Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                            </Grid.ColumnDefinitions>
+                            <legacy:MyButton Grid.Column="0" x:Name="BtnAdvancedImport" MinWidth="140"
+                                            Text="{DynamicResource Instance.Export.Advanced.ImportConfig}"
+                                            Padding="13,0" Margin="0,0,20,0" ColorType="Highlight" />
+                            <legacy:MyButton Grid.Column="1" x:Name="BtnAdvancedExport" MinWidth="140"
+                                            Text="{DynamicResource Instance.Export.Advanced.ExportConfig}"
+                                            Padding="13,0" Margin="0,0,20,0" />
+                        </Grid>
+                    </StackPanel>
+                </legacy:MyCard>
+            </StackPanel>
+        </legacy:MyScrollViewer>
+        <legacy:MyExtraTextButton HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                                 x:Name="BtnExport" Text="{DynamicResource Instance.Export.StartExport}"
+                                 LogoScale="1.1"
+                                 SvgIcon="lucide/package" />
+    </Grid>
+</legacy:MyPageRight>

@@ -1,0 +1,103 @@
+<legacy:MyPageRight x:Class="PCL.Desktop.Features.Instances.Views.PageInstanceServerRight"
+                    xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:legacy="using:PCL.Desktop.Controls.Legacy"
+                    Grid.IsSharedSizeScope="True">
+    <legacy:MyScrollViewer VerticalScrollBarVisibility="Auto"
+                           HorizontalScrollBarVisibility="Hidden"
+                           x:Name="PanBack">
+        <Grid>
+            <legacy:MyCard HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Margin="40"
+                           x:Name="PanNoServer">
+                <Grid Margin="20,17">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="1*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Row="0"
+                               Grid.ColumnSpan="4"
+                               Margin="0,0,0,9"
+                               HorizontalAlignment="Center"
+                               Text="{DynamicResource Instance.Server.Empty.Title}"
+                               FontSize="19"
+                               Foreground="{DynamicResource ColorBrush3}" />
+                    <Rectangle Grid.Column="0"
+                               Grid.Row="1"
+                               Grid.ColumnSpan="4"
+                               HorizontalAlignment="Stretch"
+                               Height="2"
+                               Fill="{DynamicResource ColorBrush3}" />
+                    <TextBlock Grid.Column="0"
+                               Grid.Row="2"
+                               Grid.ColumnSpan="4"
+                               Margin="10,15,10,5"
+                               Text="{DynamicResource Instance.Server.Empty.Message}"
+                               TextWrapping="Wrap" />
+                    <legacy:MyButton Grid.Row="3"
+                                     Grid.Column="1"
+                                     Height="35"
+                                     MinWidth="140"
+                                     Text="{DynamicResource Instance.Server.RefreshInfo}"
+                                     Padding="13,0"
+                                     Margin="10,10,10,0"
+                                     HorizontalAlignment="Center"
+                                     Click="BtnRefresh_Click"
+                                     ColorType="Highlight" />
+                    <legacy:MyButton Grid.Row="3"
+                                     Grid.Column="2"
+                                     Height="35"
+                                     HorizontalAlignment="Center"
+                                     Click="BtnAddServer_Click"
+                                     x:Name="BtnAddServerTop"
+                                     MinWidth="140"
+                                     Text="{DynamicResource Instance.Server.AddServer}"
+                                     Margin="10,10,10,0"
+                                     Padding="13,0" />
+                </Grid>
+            </legacy:MyCard>
+            <StackPanel Margin="10,25,10,10">
+                <legacy:MyCard Title="{DynamicResource Instance.Server.QuickActions}"
+                               Margin="15,0,15,15"
+                               x:Name="PanContent">
+                    <Grid Height="35"
+                          Margin="25,40,23,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"
+                                              SharedSizeGroup="Button" />
+                            <ColumnDefinition Width="Auto"
+                                              SharedSizeGroup="Button" />
+                        </Grid.ColumnDefinitions>
+                        <legacy:MyButton Grid.Column="0"
+                                         MinWidth="140"
+                                         Text="{DynamicResource Instance.Server.RefreshAll}"
+                                         Padding="13,0"
+                                         Margin="0,0,20,0"
+                                         HorizontalAlignment="Left"
+                                         Click="BtnRefresh_Click"
+                                         ColorType="Highlight" />
+                        <legacy:MyButton Grid.Column="1"
+                                         MinWidth="140"
+                                         Text="{DynamicResource Instance.Server.AddServer}"
+                                         Padding="13,0"
+                                         Margin="0,0,20,0"
+                                         HorizontalAlignment="Left"
+                                         Click="BtnAddServer_Click" />
+                    </Grid>
+                </legacy:MyCard>
+
+                <StackPanel x:Name="PanServers"
+                            Margin="15,0,15,15" />
+            </StackPanel>
+        </Grid>
+    </legacy:MyScrollViewer>
+</legacy:MyPageRight>

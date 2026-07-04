@@ -1,0 +1,52 @@
+<legacy:MyPageRight
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:legacy="using:PCL.Desktop.Controls.Legacy" x:Class="PCL.Desktop.Features.Instances.Views.PageInstanceSelectRight">
+    <Grid>
+        <Grid x:Name="PanAllBack">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <legacy:MySearchBox x:Name="PanVerSearchBox" Margin="25,15,25,12" VerticalAlignment="Top"
+                                Grid.Row="0" ToolTip="{DynamicResource Select.Instance.Search.ToolTip}" />
+            <legacy:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                                  x:Name="PanBack" Grid.Row="1">
+                <StackPanel x:Name="PanMain" Margin="25,2,25,10" Grid.IsSharedSizeScope="True" />
+            </legacy:MyScrollViewer>
+            <legacy:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40" x:Name="PanEmpty"
+                          UseAnimation="False" Grid.Row="1">
+                <StackPanel Margin="20,17">
+                    <TextBlock x:Name="LabEmptyTitle" Margin="0,0,0,9" HorizontalAlignment="Center"
+                               Text="{DynamicResource Select.Instance.Empty.Title}"
+                               FontSize="19"
+                               Foreground="{DynamicResource ColorBrush3}" />
+                    <Rectangle HorizontalAlignment="Stretch" Height="2" Fill="{DynamicResource ColorBrush3}" />
+                    <TextBlock x:Name="LabEmptyContent" Margin="10,15,10,5"
+                               Text="{DynamicResource Select.Instance.Empty.Message}"
+                               TextWrapping="Wrap" />
+                    <legacy:MyButton Height="35" HorizontalAlignment="Center" x:Name="BtnEmptyDownload" MinWidth="140"
+                                    Click="BtnDownload_Click"
+                                    Text="{DynamicResource Select.Instance.Empty.Download}" Margin="0,10,0,0"
+                                    Padding="13,0" ColorType="Highlight" />
+                </StackPanel>
+            </legacy:MyCard>
+            <legacy:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40" x:Name="PanEmptySearch"
+                          UseAnimation="False" Grid.Row="1">
+                <StackPanel Margin="20,17">
+                    <TextBlock x:Name="LabEmptySearchTitle" Margin="0,0,0,9" HorizontalAlignment="Center"
+                               Text="{DynamicResource Select.Instance.EmptySearch.Title}"
+                               FontSize="19"
+                               Foreground="{DynamicResource ColorBrush3}" />
+                    <Rectangle HorizontalAlignment="Stretch" Height="2" Fill="{DynamicResource ColorBrush3}" />
+                    <TextBlock x:Name="LabEmptySearchContent" Margin="10,15,10,5" TextWrapping="Wrap" />
+                </StackPanel>
+            </legacy:MyCard>
+        </Grid>
+        <legacy:MyCard HorizontalAlignment="Center" VerticalAlignment="Center"
+                      x:Name="PanLoad" Margin="40">
+        <legacy:MyLoading Text="{DynamicResource Select.Instance.Loading}" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
+                         VerticalAlignment="Center" IsHitTestVisible="False" AutoRun="False" />
+        </legacy:MyCard>
+    </Grid>
+</legacy:MyPageRight>

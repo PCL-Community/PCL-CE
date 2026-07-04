@@ -1,0 +1,12 @@
+<legacy:MyPageRight x:Class="PCL.Desktop.Features.Downloads.Views.PageDownloadProgress"
+                    xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:legacy="using:PCL.Desktop.Controls.Legacy">
+    <legacy:MyScrollViewer VerticalScrollBarVisibility="Auto"
+                           HorizontalScrollBarVisibility="Disabled"
+                           x:Name="PanBack">
+        <StackPanel x:Name="PanMain"
+                    Margin="25,25,25,10"
+                    Grid.IsSharedSizeScope="True" />
+    </legacy:MyScrollViewer>
+</legacy:MyPageRight>

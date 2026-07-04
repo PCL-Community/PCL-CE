@@ -1,0 +1,464 @@
+<legacy:MyPageRight
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:legacy="using:PCL.Desktop.Controls.Legacy"
+    xmlns:val="https://ce.pclc.cc/core/utils/validate" x:Class="PCL.Desktop.Features.Settings.Views.PageSetupUI"
+    >
+    <legacy:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
+        <StackPanel x:Name="PanMain" Margin="25,10">
+            <legacy:MyCard Margin="0,15" Title="{DynamicResource Setup.Ui.Basic.Title}" x:Name="CardLauncher">
+                <Grid Margin="25,40,25,10">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Name1" />
+                                <ColumnDefinition Width="1*" />
+                                <ColumnDefinition Width="30" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="1*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Basic.Opacity}"
+                                       Margin="0,0,20,0" />
+                            <legacy:MySlider Grid.ColumnSpan="5" x:Name="SliderLauncherOpacity"
+                                            Tag="UiLauncherTransparent" MaxValue="600" ValueByKey="10" Grid.Column="1"
+                                            Change="SliderChange" />
+                        </Grid>
+                        <Grid Height="28" Margin="0,0,0,7">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Name1" />
+                                <ColumnDefinition />
+                                <ColumnDefinition Width="92" SharedSizeGroup="SubName" />
+                                <ColumnDefinition />
+                                <ColumnDefinition SharedSizeGroup="SubName" />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Theme.Title}" />
+                            <legacy:MyComboBox Grid.Column="1" x:Name="ComboDarkMode" Tag="UiDarkMode"
+                                              SelectionChanged="ComboChange">
+                                <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Theme.Light}" />
+                                <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Theme.Dark}" />
+                                <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Theme.FollowSystem}" /> 
+                            </legacy:MyComboBox>
+                            <TextBlock Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{DynamicResource Setup.Ui.Theme.LightColor}"/>
+                            <legacy:MyComboBox Grid.Column="3" x:Name="ComboLightColor" Tag="UiLightColor" ItemsSource="{Binding ThemeColors}" SelectionChanged="ThemeColor_Change"/>
+                            <TextBlock Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{DynamicResource Setup.Ui.Theme.DarkColor}"/>
+                            <legacy:MyComboBox Grid.Column="5" x:Name="ComboDarkColor" Tag="UiDarkColor" ItemsSource="{Binding ThemeColors}" SelectionChanged="ThemeColor_Change"/>
+
+                        </Grid>
+                        <legacy:MyCheckBox Text="{DynamicResource Setup.Ui.Basic.ShowLogo}" Margin="-1,0,0,7" Height="22"
+                                          x:Name="CheckLauncherLogo" Tag="UiLauncherLogo" Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Text="{DynamicResource Setup.Ui.Basic.LockWindow}" Margin="-1,0,0,7" Height="22" x:Name="CheckLockWindowSize"
+                                          Tag="UiLockWindowSize" Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Text="{DynamicResource Setup.Ui.Basic.ShowTriviaHint}" Margin="-1,0,0,7" Height="22"
+                                           x:Name="CheckShowLaunchingHint" Tag="UiShowLaunchingHint"
+                                           Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Text="{DynamicResource Setup.Ui.Basic.HintAlignRight}" Margin="-1,0,0,7" Height="22"
+                                           x:Name="CheckHintAlignRight" Tag="UiHintAlignRight"
+                                           Change="CheckBoxChange" />
+                        <StackPanel x:Name="PanelBlur" Margin="0,0,0,10">
+                            <legacy:MyCheckBox Text="{DynamicResource Setup.Ui.Basic.AdvancedMaterial}" Height="22" x:Name="CheckBlur" Tag="UiBlur"
+                                              ToolTip.Tip="{DynamicResource Setup.Ui.Basic.AdvancedMaterial.ToolTip}"
+                                              Change="CheckBoxChange" />
+                            <Grid x:Name="PanBlurValue" Margin="0,10,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Name1" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="SubName" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition Height="10" />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"
+                                           HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Basic.BlurRadius}" />
+                                <legacy:MySlider Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3"
+                                                x:Name="SliderBlurValue" Tag="UiBlurValue" MaxValue="40"
+                                                ValueByKey="10" Change="SliderChange"
+                                                ToolTip.Tip="{DynamicResource Setup.Ui.Basic.BlurRadius.ToolTip}" />
+                                <TextBlock Grid.Row="2" Grid.Column="2" VerticalAlignment="Center"
+                                           HorizontalAlignment="Center" Text="{DynamicResource Setup.Ui.Basic.BlurSamplingRate}" />
+                                <legacy:MySlider Grid.Row="2" Grid.Column="3" x:Name="SliderBlurSamplingRate"
+                                                Tag="UiBlurSamplingRate" MaxValue="100" ValueByKey="5"
+                                                Change="SliderChange"
+                                                ToolTip.Tip="{DynamicResource Setup.Ui.Basic.BlurSamplingRate.ToolTip}" />
+                                <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center"
+                                           HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Basic.BlurMethod}" />
+                                <legacy:MyComboBox Grid.Row="2" Grid.Column="1" x:Name="ComboBlurType" Tag="UiBlurType"
+                                                  Height="28" MinWidth="100" ToolTip.Tip="{DynamicResource Setup.Ui.Basic.BlurMethod.ToolTip}"
+                                                  SelectionChanged="ComboChange">
+                                    <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Basic.BlurMethod.Gaussian}"
+                                                          ToolTip.Tip="{DynamicResource Setup.Ui.Basic.BlurMethod.Gaussian.ToolTip}" />
+                                    <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Basic.BlurMethod.Box}"
+                                                          ToolTip.Tip="{DynamicResource Setup.Ui.Basic.BlurMethod.Box.ToolTip}" />
+                                </legacy:MyComboBox>
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </legacy:MyCard>
+            <legacy:MyCard x:Name="CardFont" Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.Font.Title}">
+                <Grid Margin="25,40,25,15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="25" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition SharedSizeGroup="FontSelector" Height="30" />
+                        <RowDefinition Height="10" />
+                        <RowDefinition SharedSizeGroup="FontSelector" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{DynamicResource Setup.Ui.Font.Global}" />
+                    <legacy:FontSelector Grid.Row="0" Grid.Column="2" x:Name="ComboUiFont" ToolTip.Tip="{DynamicResource Setup.Ui.Font.Global.ToolTip}"
+                                        SelectionChanged="ComboFontChange" />
+                    <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Text="{DynamicResource Setup.Ui.Font.Motd}" />
+                    <legacy:FontSelector Grid.Row="2" Grid.Column="2" x:Name="ComboUiMotdFont"
+                                        ToolTip.Tip="{DynamicResource Setup.Ui.Font.Motd.ToolTip}" SelectionChanged="ComboMotdFontChange" />
+                </Grid>
+            </legacy:MyCard>
+            <legacy:MyCard x:Name="CardBackground" Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.Background.TitleDefault}">
+                <StackPanel Margin="25,40,25,20">
+                    <Grid x:Name="PanBackgroundSuit" Height="28" Margin="0,0,0,10" IsVisible="False">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Background.ContentAdapt}"
+                                   Margin="0,0,25,0" />
+                        <legacy:MyComboBox x:Name="ComboBackgroundSuit" Tag="UiBackgroundSuit" Grid.Column="1"
+                                          SelectionChanged="ComboChange">
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.Smart}" IsSelected="True" ToolTip.Tip="{DynamicResource Setup.Ui.Background.Suit.Smart.ToolTip}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.Center}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.Fit}" ToolTip.Tip="{DynamicResource Setup.Ui.Background.Suit.Fit.ToolTip}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.Stretch}" ToolTip.Tip="{DynamicResource Setup.Ui.Background.Suit.Stretch.ToolTip}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.Tile}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.TopLeft}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.TopRight}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.BottomLeft}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.BottomRight}" />
+                        </legacy:MyComboBox>
+                    </Grid>
+                    <Grid x:Name="PanBackgroundOpacity" Height="22" Margin="0,0,0,7" IsVisible="False">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Basic.Opacity2}" Margin="0,0,25,0" />
+                        <legacy:MySlider x:Name="SliderBackgroundOpacity" Tag="UiBackgroundOpacity" MaxValue="1000"
+                                        ValueByKey="10" Grid.Column="1" Change="SliderChange" />
+                    </Grid>
+                    <Grid x:Name="PanBackgroundBlur" Height="22" Margin="0,0,0,10" IsVisible="False">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Background.Blur}" Margin="0,0,25,0" />
+                        <legacy:MySlider x:Name="SliderBackgroundBlur" Tag="UiBackgroundBlur" MaxValue="40"
+                                        Grid.Column="1" Change="SliderChange"
+                                         ToolTip.Tip="{DynamicResource Setup.Ui.Background.Blur.ToolTip}" />
+                    </Grid>
+                    <legacy:MyCheckBox Text="{DynamicResource Setup.Ui.Background.PauseVideo}" Margin="-1,0,0,8" Height="22"
+                                      x:Name="CheckAutoPauseVideo" Tag="UiAutoPauseVideo" Change="CheckBoxChange"
+                                      ToolTip.Tip="{DynamicResource Setup.Ui.Background.PauseVideo.ToolTip}" IsEnabled="True" />
+                    <legacy:MyCheckBox Text="{DynamicResource Setup.Ui.Background.ColorOverlay}" Margin="-1,0,0,8" Height="22" x:Name="CheckBackgroundColorful"
+                                      Tag="UiBackgroundColorful" Change="CheckBoxChange" />
+                    <Grid Height="35" Margin="0,2,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                        </Grid.ColumnDefinitions>
+                        <legacy:MyButton x:Name="BtnBackgroundOpen" MinWidth="140" Text="{DynamicResource Common.Action.OpenFolder}" Padding="13,0"
+                                        Margin="0,0,20,0" Click="BtnUIBgOpen_Click"
+                                        ToolTip.Tip="{DynamicResource Setup.Ui.Background.OpenFolder.ToolTip}" />
+                        <legacy:MyButton x:Name="BtnBackgroundRefresh" MinWidth="140" Text="{DynamicResource Setup.Ui.Background.Refresh}" Padding="13,0"
+                                        Margin="0,0,20,0" Click="BtnBackgroundRefresh_Click"
+                                        ToolTip.Tip="{DynamicResource Setup.Ui.Background.Refresh.ToolTip}"
+                                        Grid.Column="1" />
+                        <legacy:MyButton x:Name="BtnBackgroundClear" MinWidth="140" Text="{DynamicResource Setup.Ui.Background.Clear}" IsVisible="False"
+                                        Padding="13,0" Margin="0,0,20,0" ColorType="Red"
+                                        Click="BtnBackgroundClear_Click" Grid.Column="2" />
+                    </Grid>
+                </StackPanel>
+            </legacy:MyCard>
+            <legacy:MyCard x:Name="CardMusic" Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.Music.Title}">
+                <StackPanel Margin="25,42,25,20">
+                    <Grid x:Name="PanMusicVolume" IsVisible="False" Height="22" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Music.Volume}" Margin="0,0,25,0" />
+                        <legacy:MySlider x:Name="SliderMusicVolume" Tag="UiMusicVolume" MaxValue="1000" ValueByKey="10"
+                                        Grid.Column="1" Change="SliderChange" />
+                    </Grid>
+                    <StackPanel x:Name="PanMusicDetail" IsVisible="False" Margin="-1,0,0,3">
+                        <legacy:MyCheckBox Text="{DynamicResource Setup.Ui.Music.Shuffle}" Margin="0,0,0,5" Height="22" x:Name="CheckMusicRandom"
+                                          Tag="UiMusicRandom" Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Text="{DynamicResource Setup.Ui.Music.AutoStart}" Margin="0,0,0,5" Height="22" x:Name="CheckMusicAuto"
+                                          Tag="UiMusicAuto" Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Text="{DynamicResource Setup.Ui.Music.StartInGame}" Margin="0,0,0,5" Height="22"
+                                          x:Name="CheckMusicStart" Tag="UiMusicStart" Change="CheckMusicStart_OnChange" />
+                        <legacy:MyCheckBox Text="{DynamicResource Setup.Ui.Music.StopInGame}" Margin="0,0,0,5" Height="22"
+                                          x:Name="CheckMusicStop" Tag="UiMusicStop" Change="CheckMusicStop_OnChange" />
+                        <legacy:MyCheckBox Text="{DynamicResource Setup.Ui.Music.Smtc}" Margin="0,0,0,5" Height="22"
+                                          x:Name="CheckMusicSMTC" Tag="UiMusicSMTC" Change="CheckBoxChange"
+                                          ToolTip.Tip="{DynamicResource Setup.Ui.Music.Smtc.ToolTip}" />
+                    </StackPanel>
+                    <Grid Height="35">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                        </Grid.ColumnDefinitions>
+                        <legacy:MyButton x:Name="BtnMusicOpen" Text="{DynamicResource Common.Action.OpenFolder}" MinWidth="140" Padding="13,0"
+                                        Margin="0,0,20,0" Click="BtnMusicOpen_Click"
+                                        ToolTip.Tip="{DynamicResource Setup.Ui.Music.OpenFolder.ToolTip}" />
+                        <legacy:MyButton x:Name="BtnMusicRefresh" Text="{DynamicResource Setup.Ui.Music.Refresh}" MinWidth="140" Padding="13,0"
+                                        Margin="0,0,20,0" Click="BtnMusicRefresh_Click"
+                                        ToolTip.Tip="{DynamicResource Setup.Ui.Music.Refresh.ToolTip}" Grid.Column="1" />
+                        <legacy:MyButton x:Name="BtnMusicClear" Text="{DynamicResource Setup.Ui.Music.Clear}" MinWidth="140" IsVisible="False"
+                                        Padding="13,0" Margin="0,0,20,0" ColorType="Red" Click="BtnMusicClear_Click"
+                                        Grid.Column="2" />
+                    </Grid>
+                </StackPanel>
+            </legacy:MyCard>
+            <legacy:MyCard x:Name="CardLogo" Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.Logo.Title}">
+                <StackPanel Margin="25,40,25,15">
+                    <Grid Margin="-1,0,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="0.2*" />
+                        </Grid.ColumnDefinitions>
+                        <legacy:MyRadioBox Text="{DynamicResource Setup.Ui.Logo.None}" x:Name="RadioLogoType0" Height="22" Tag="UiLogoType/0"
+                                          Grid.Column="0" Check="RadioBoxChange" />
+                        <legacy:MyRadioBox Text="{DynamicResource Common.Option.Default}" x:Name="RadioLogoType1" Height="22" Tag="UiLogoType/1"
+                                          Grid.Column="1" Check="RadioBoxChange" />
+                        <legacy:MyRadioBox Text="{DynamicResource Setup.Ui.Logo.Text}" x:Name="RadioLogoType2" Height="22" Tag="UiLogoType/2"
+                                          Grid.Column="2" Check="RadioBoxChange" />
+                        <legacy:MyRadioBox Text="{DynamicResource Setup.Ui.Logo.Image}" x:Name="RadioLogoType3" Height="22" Tag="UiLogoType/3"
+                                          Grid.Column="3" Check="RadioBoxChange" PreviewCheck="RadioLogoType3_Check" />
+                    </Grid>
+                    <legacy:MyCheckBox Text="{DynamicResource Setup.Ui.Logo.LeftAlign}" Margin="-1,8,0,3" Height="22" x:Name="CheckLogoLeft"
+                                      Tag="UiLogoLeft" IsVisible="False" Change="CheckBoxChange" />
+                    <Grid x:Name="PanLogoText" Margin="0,14,0,5" IsVisible="False">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Logo.TextLabel}" Margin="0,0,25,0" />
+                        <legacy:MyTextBox x:Name="TextLogoText" Tag="UiLogoText" Grid.Column="1" MaxLength="100"
+                                         ValidatedTextChanged="TextBoxChange" />
+                    </Grid>
+                    <Grid x:Name="PanLogoChange" Margin="0,14,0,5" Height="35" IsVisible="False">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                        </Grid.ColumnDefinitions>
+                        <legacy:MyButton x:Name="BtnLogoChange" Text="{DynamicResource Setup.Ui.Logo.ChangeImage}" MinWidth="140" Padding="13,0"
+                                        Margin="0,0,20,0" Click="BtnLogoChange_Click" />
+                        <legacy:MyButton x:Name="BtnLogoDelete" Text="{DynamicResource Setup.Ui.Logo.ClearImage}" MinWidth="140" Padding="13,0"
+                                        Margin="0,0,20,0" ColorType="Red" Click="BtnLogoDelete_Click" Grid.Column="1" />
+                    </Grid>
+                </StackPanel>
+            </legacy:MyCard>
+            <legacy:MyCard Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.Homepage.Title}" x:Name="CardCustom">
+                <StackPanel Margin="25,40,25,15">
+                    <Grid Margin="-1,0,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="0.2*" />
+                        </Grid.ColumnDefinitions>
+                        <legacy:MyRadioBox Text="{DynamicResource Setup.Ui.Homepage.Blank}" x:Name="RadioCustomType0" Height="22" Tag="UiCustomType/0"
+                                          Grid.Column="0" Check="RadioBoxChange" />
+                        <legacy:MyRadioBox Text="{DynamicResource Setup.Ui.Homepage.Preset}" x:Name="RadioCustomType3" Height="22" Tag="UiCustomType/3"
+                                          Grid.Column="1" Check="RadioBoxChange" />
+                        <legacy:MyRadioBox Text="{DynamicResource Setup.Ui.Homepage.LocalFile}" x:Name="RadioCustomType1" Height="22" Tag="UiCustomType/1"
+                                          Grid.Column="2" Check="RadioBoxChange" />
+                        <legacy:MyRadioBox Text="{DynamicResource Setup.Ui.Homepage.NetUpdate}" x:Name="RadioCustomType2" Height="22" Tag="UiCustomType/2"
+                                          Grid.Column="3" Check="RadioBoxChange" />
+                    </Grid>
+                    <legacy:MyHint Margin="0,15,0,-4" Text="{DynamicResource Setup.Ui.Homepage.HintReferToModSetup}" Theme="Blue" x:Name="HintCustom" />
+                    <legacy:MyHint Margin="0,15,0,6" Text="{DynamicResource Setup.Ui.Homepage.NetWarning}" Theme="Yellow"
+                                  x:Name="HintCustomWarn"
+                                  CanClose="True" RelativeSetup="HintCustomWarn" />
+                    <Grid Height="35" x:Name="PanCustomLocal" IsVisible="False" Margin="0,10,0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                        </Grid.ColumnDefinitions>
+                        <legacy:MyButton x:Name="BtnCustomRefresh" Grid.Column="0" MinWidth="140" Text="{DynamicResource Setup.Ui.Homepage.Refresh}"
+                                        Padding="13,0" Margin="0,0,20,0" HorizontalAlignment="Left"
+                                        ColorType="Highlight" Click="BtnCustomRefresh_Click" />
+                        <legacy:MyButton x:Name="BtnCustomTutorial" Grid.Column="1" MinWidth="140" Text="{DynamicResource Setup.Ui.Homepage.Tutorial}"
+                                        Padding="13,0" Margin="0,0,20,0" HorizontalAlignment="Left"
+                                        Click="BtnCustomTutorial_Click" />
+                    </Grid>
+                    <Grid x:Name="PanCustomNet" IsVisible="False" Margin="0,10,0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Homepage.DownloadUrl}" Margin="0,0,25,0" />
+                        <legacy:MyTextBox x:Name="TextCustomNet" Tag="UiCustomNet" Grid.Column="1" MaxHeight="28"
+                                         ValidatedTextChanged="TextBoxChange">
+                            <legacy:MyTextBox.ValidateRules>
+                                <val:HttpValidator AllowsNullOrEmpty="True" />
+                            </legacy:MyTextBox.ValidateRules>
+                        </legacy:MyTextBox>
+                    </Grid>
+                    <Grid x:Name="PanCustomPreset" IsVisible="False" Margin="0,12,10,5" Height="28">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Homepage.PresetLabel}" Margin="0,0,25,0" />
+                        <legacy:MyComboBox x:Name="ComboCustomPreset" Grid.ColumnSpan="2" Tag="UiCustomPreset"
+                                          Grid.Column="1" SelectionChanged="ComboChange">
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.Trivia}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.EchoCave}" IsVisible="False" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McNews}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.SimpleHomepage}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.DailyModpack}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McSkin}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.OpenBmclapi}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclMarket}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclNews}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclManual}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.OpenMcim}" IsVisible="False" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.Magazine}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.GitHub}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McUpdateSummary}" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclAnnouncement}"/>
+                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McOfficialFeed}"/>
+                        </legacy:MyComboBox>
+                    </Grid>
+                </StackPanel>
+            </legacy:MyCard>
+            <legacy:MyCard x:Name="CardSwitch" Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.FeatureHide.Title}">
+                <StackPanel Margin="25,38,15,15">
+                    <TextBlock Margin="0,1,0,1" Text="{DynamicResource Setup.Ui.FeatureHide.Description}" TextWrapping="Wrap" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="18" />
+                            <ColumnDefinition Width="0.8*" />
+                            <ColumnDefinition Width="0.9*" />
+                            <ColumnDefinition Width="0.8*" />
+                            <ColumnDefinition Width="0.8*" />
+                            <ColumnDefinition Width="1.0*" />
+                            <ColumnDefinition Width="1.0*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="4" />
+                            <RowDefinition Height="30" />
+                            <RowDefinition Height="30" />
+                            <RowDefinition Height="30" />
+                            <RowDefinition Height="30" />
+                            <RowDefinition Height="30" />
+                            <RowDefinition Height="30" />
+                            <RowDefinition Height="30" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.FeatureHide.MainPage}" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="1" Grid.Column="2" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Download}"
+                                          x:Name="CheckHiddenPageDownload" Tag="UiHiddenPageDownload"
+                                          Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="1" Grid.Column="3" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Settings}"
+                                          x:Name="CheckHiddenPageSetup" Tag="UiHiddenPageSetup" Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="1" Grid.Column="4" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Tools}"
+                                          x:Name="CheckHiddenPageTools" Tag="UiHiddenPageTools" Change="CheckBoxChange" />
+                        <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.FeatureHide.SubSetup}" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="2" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Launch}"
+                                          x:Name="CheckHiddenSetupLaunch" Tag="UiHiddenSetupLaunch"
+                                          Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="3"
+                                          Text="Java" x:Name="CheckHiddenSetupJava" Tag="UiHiddenSetupJava"
+                                          Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="4" Text="{DynamicResource Setup.Ui.FeatureHide.Item.GameManage}"
+                                          x:Name="CheckHiddenSetupGameManage" Tag="UiHiddenSetupGameManage"
+                                          Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="5"
+                                          Text="{DynamicResource Setup.Ui.FeatureHide.Item.Ui}" x:Name="CheckHiddenSetupUI" Tag="UiHiddenSetupUi"
+                                          Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="2" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Language}"
+                                          x:Name="CheckHiddenSetupLauncherLanguage" Tag="UiHiddenSetupLauncherLanguage"
+                                          Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="3" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Misc}"
+                                          x:Name="CheckHiddenLauncherMisc" Tag="UiHiddenSetupLauncherMisc"
+                                          Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="4"
+                                          Text="{DynamicResource Setup.Ui.FeatureHide.Item.Update}" x:Name="CheckHiddenSetupUpdate" Tag="UiHiddenSetupUpdate"
+                                          Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="5" Text="{DynamicResource Setup.Ui.FeatureHide.Item.About}"
+                                          x:Name="CheckHiddenSetupAbout" Tag="UiHiddenSetupAbout"
+                                          Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="6" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Feedback}"
+                                          x:Name="CheckHiddenSetupFeedback" Tag="UiHiddenSetupFeedback"
+                                          Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="7"
+                                          Text="{DynamicResource Setup.Ui.FeatureHide.Item.Log}" x:Name="CheckHiddenSetupLog" Tag="UiHiddenSetupLog"
+                                          Change="CheckBoxChange" />
+                        <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.FeatureHide.SubTools}" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="2" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Toolbox}" x:Name="CheckHiddenToolsTest" Tag="UiHiddenToolsTest" Change="CheckBoxChange"/>
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="3" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Help}" x:Name="CheckHiddenToolsHelp" Tag="UiHiddenToolsHelp" Change="CheckBoxChange"/>
+                        <TextBlock Grid.Row="5" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.FeatureHide.SubInstance}" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="2" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Edit}"
+                                          x:Name="CheckHiddenVersionEdit" Tag="UiHiddenVersionEdit"
+                                          Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="3" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Export}"
+                                          x:Name="CheckHiddenVersionExport" Tag="UiHiddenVersionExport"
+                                          Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="4" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Save}"
+                                          x:Name="CheckHiddenVersionSave" Tag="UiHiddenVersionSave"
+                                          Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="5" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Screenshot}"
+                                          x:Name="CheckHiddenVersionScreenshot" Tag="UiHiddenVersionScreenshot"
+                                          Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="6"
+                                          Text="Mod" x:Name="CheckHiddenVersionMod" Tag="UiHiddenVersionMod"
+                                          Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="6" Grid.Column="2"
+                                          Text="{DynamicResource Setup.Ui.FeatureHide.Item.ResourcePack}" x:Name="CheckHiddenVersionResourcePack"
+                                          Tag="UiHiddenVersionResourcePack" Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="6" Grid.Column="3"
+                                          Text="{DynamicResource Setup.Ui.FeatureHide.Item.Shader}" x:Name="CheckHiddenVersionShader" Tag="UiHiddenVersionShader"
+                                          Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="6" Grid.Column="4"
+                                          Grid.ColumnSpan="2" Text="{DynamicResource Setup.Ui.FeatureHide.Item.Schematic}" x:Name="CheckHiddenVersionSchematic"
+                                          Tag="UiHiddenVersionSchematic" Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="6" Grid.Column="6"
+                                          Text="{DynamicResource Setup.Ui.FeatureHide.Item.Server}" x:Name="CheckHiddenVersionServer" Tag="UiHiddenVersionServer"
+                                          Change="CheckBoxChange" />
+                        <TextBlock Grid.Row="7" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.FeatureHide.SpecificFeature}" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="7" Grid.Column="2"
+                                          Text="{DynamicResource Setup.Ui.FeatureHide.Item.InstanceSelect}" x:Name="CheckHiddenFunctionSelect" Tag="UiHiddenFunctionSelect"
+                                          ToolTip.Tip="{DynamicResource Setup.Ui.FeatureHide.Item.InstanceSelect.ToolTip}" Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="7" Grid.Column="3"
+                                          Text="{DynamicResource Setup.Ui.FeatureHide.Item.ModUpdate}" x:Name="CheckHiddenFunctionModUpdate"
+                                          Tag="UiHiddenFunctionModUpdate" ToolTip.Tip="{DynamicResource Setup.Ui.FeatureHide.Item.ModUpdate.ToolTip}"
+                                          Change="CheckBoxChange" />
+                        <legacy:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="7" Grid.Column="4"
+                                          Text="{DynamicResource Setup.Ui.FeatureHide.Item.FeatureHide}" x:Name="CheckHiddenFunctionHidden" Tag="UiHiddenFunctionHidden"
+                                          ToolTip.Tip="{DynamicResource Setup.Ui.FeatureHide.Item.FeatureHide.ToolTip}"
+                                          Change="CheckBoxChange" />
+                    </Grid>
+                </StackPanel>
+            </legacy:MyCard>
+        </StackPanel>
+    </legacy:MyScrollViewer>
+</legacy:MyPageRight>

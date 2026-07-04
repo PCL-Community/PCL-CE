@@ -1,0 +1,469 @@
+<legacy:MyPageRight
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:legacy="using:PCL.Desktop.Controls.Legacy" xmlns:views="using:PCL.Desktop.Features.Instances.Views" x:Class="PCL.Desktop.Features.Instances.Views.PageInstanceInstallRight"
+    PanScroll="{Binding ElementName=PanBack}">
+    <Grid>
+        <Grid x:Name="PanAllBack">
+            <legacy:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                                  x:Name="PanBack">
+                <Grid Margin="25,10,25,75">
+                    <StackPanel Grid.Row="1" x:Name="PanMinecraft" Grid.IsSharedSizeScope="True" Margin="0,0,0,-10"
+                                IsVisible="False">
+                        <StackPanel.RenderTransform>
+                            <TranslateTransform />
+                        </StackPanel.RenderTransform>
+                    </StackPanel>
+                    <StackPanel Grid.Row="1" x:Name="PanSelect" IsVisible="True" Opacity="0"
+                                IsHitTestVisible="False">
+                        <StackPanel.RenderTransform>
+                            <TranslateTransform />
+                        </StackPanel.RenderTransform>
+                        <legacy:MyHint Text="{DynamicResource Download.Install.Warning.LegacyOptiFabric}"
+                                      Margin="0,10,0,0" x:Name="HintLegacyOptiFabric" Theme="Yellow" />
+                        <legacy:MyHint Text="{DynamicResource Download.Install.Warning.LegacyFabricApi}"
+                                      Margin="0,10,0,0"
+                                      x:Name="HintLegacyFabricAPI" Theme="Red" />
+                        <legacy:MyHint Text="{DynamicResource Download.Install.Warning.FabricApi}"
+                                       Margin="0,1,0,7"
+                                       x:Name="HintFabricAPI" Theme="Red" />
+                        <legacy:MyHint
+                            Text="{DynamicResource Download.Install.Warning.Qsl}"
+                            Margin="0,1,0,7" x:Name="HintQSL" Theme="Red" />
+                        <legacy:MyHint Text="{DynamicResource Download.Install.Warning.QuiltFabricApi}"
+                                      Margin="0,1,0,7" x:Name="HintQuiltFabricAPI" Theme="Yellow" />
+                        <legacy:MyHint Text="{DynamicResource Download.Install.Warning.OptiFabric}"
+                                      Margin="0,1,0,7"
+                                      x:Name="HintOptiFabric" Theme="Red" />
+                        <legacy:MyHint Text="{DynamicResource Download.Install.Warning.OptiFabricOld}"
+                                      Margin="0,1,0,7" x:Name="HintOptiFabricOld" Theme="Yellow" />
+                        <legacy:MyHint Text="{DynamicResource Download.Install.Warning.ModOptiFine}" Margin="0,1,0,7"
+                                      x:Name="HintModOptiFine"
+                                      Theme="Yellow" />
+                        <legacy:MyCard Margin="0,15,0,0" UseAnimation="False">
+                            <StackPanel Margin="15,7,15,7">
+                                <legacy:MyListItem x:Name="ItemSelect" IsHitTestVisible="False" Margin="-7,0,0,0"
+                                                  Height="42" Type="None" />
+                            </StackPanel>
+                        </legacy:MyCard>
+                        <legacy:MyCard Title="{DynamicResource Common.Installation.Minecraft}" Height="40" Margin="0,15,0,0"
+                                      x:Name="CardMinecraft"
+                                      PreviewSwap="CardMinecraft_PreviewSwap">
+                            <Grid x:Name="PanMinecraftInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform />
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Image x:Name="ImgMinecraft" Margin="0,0,7,0" Height="18"
+                                        />
+                                <TextBlock x:Name="LabMinecraft" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" Grid.Column="1" />
+                                <Path
+                                    Data="M7.736 1.56a1.914 1.914 0 0 1 2.707 2.708l-.234.234l-2.707-2.707zm-.941.942L1.65 7.646a.5.5 0 0 0-.136.255l-.504 2.5a.5.5 0 0 0 .588.59l2.504-.5a.5.5 0 0 0 .255-.137l5.145-5.145z"
+                                    Height="12" Width="12" Stretch="Uniform" VerticalAlignment="Center"
+                                    Grid.Column="2" Fill="{StaticResource ColorBrushGray4}" Margin="0,1,6,0"
+                                    RenderTransformOrigin="0.5,0.5" />
+                                <TextBlock VerticalAlignment="Center"
+                                           Text="{DynamicResource Instance.Install.Action.ModifyLabel}" Grid.Column="3"
+                                           Foreground="{StaticResource ColorBrushGray4}" />
+                            </Grid>
+                        </legacy:MyCard>
+                        <legacy:MyCard Title="{DynamicResource Common.Installation.Forge}" Height="40" Margin="0,15,0,0"
+                                      x:Name="CardForge" IsSwapped="True"
+                                      CanSwap="True" SwapLogoRight="True" PreviewSwap="CardForge_PreviewSwap">
+                            <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" x:Name="PanForge" />
+                            <Grid x:Name="PanForgeInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
+                                  Tag="True">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform />
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+                                <Image x:Name="ImgForge" Margin="0,0,7,0" Height="18"
+                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Anvil.png" />
+                                <TextBlock x:Name="LabForge" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" Grid.Column="1" />
+                            </Grid>
+                            <Grid x:Name="BtnForgeClear" Height="30" Width="30" HorizontalAlignment="Right"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" PointerReleased="Forge_Clear"
+                                  Background="{StaticResource ColorBrushSemiTransparent}">
+                                <Path x:Name="BtnForgeClearInner" Height="10" Width="10" Stretch="Uniform"
+                                      Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+                            </Grid>
+                        </legacy:MyCard>
+                        <legacy:MyCard Title="{DynamicResource Common.Installation.Cleanroom}" Height="40"
+                                      Margin="0,15,0,0" x:Name="CardCleanroom"
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True"
+                                      PreviewSwap="CardCleanroom_PreviewSwap">
+                            <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" x:Name="PanCleanroom" />
+                            <Grid x:Name="PanCleanroomInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
+                                  Tag="True">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform />
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+                                <Image x:Name="ImgCleanroom" Margin="0,0,7,0" Height="18"
+                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Cleanroom.png" />
+                                <TextBlock x:Name="LabCleanroom" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" Grid.Column="1" />
+                            </Grid>
+                            <Grid x:Name="BtnCleanroomClear" Height="30" Width="30" HorizontalAlignment="Right"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" PointerReleased="Cleanroom_Clear"
+                                  Background="{StaticResource ColorBrushSemiTransparent}">
+                                <Path x:Name="BtnCleanroomClearInner" Height="10" Width="10" Stretch="Uniform"
+                                      Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+                            </Grid>
+                        </legacy:MyCard>
+                        <legacy:MyCard Title="{DynamicResource Common.Installation.NeoForge}" Height="40"
+                                      Margin="0,15,0,0" x:Name="CardNeoForge"
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True"
+                                      PreviewSwap="CardNeoForge_PreviewSwap">
+                            <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" x:Name="PanNeoForge" />
+                            <Grid x:Name="PanNeoForgeInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
+                                  Tag="True">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform />
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+                                <Image x:Name="ImgNeoForge" Margin="0,0,7,0" Height="18"
+                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/NeoForge.png" />
+                                <TextBlock x:Name="LabNeoForge" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" Grid.Column="1" />
+                            </Grid>
+                            <Grid x:Name="BtnNeoForgeClear" Height="30" Width="30" HorizontalAlignment="Right"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" PointerReleased="NeoForge_Clear"
+                                  Background="{StaticResource ColorBrushSemiTransparent}">
+                                <Path x:Name="BtnNeoForgeClearInner" Height="10" Width="10" Stretch="Uniform"
+                                      Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+                            </Grid>
+                        </legacy:MyCard>
+                        <legacy:MyCard Title="{DynamicResource Common.Installation.Fabric}" Height="40" Margin="0,15,0,0"
+                                      x:Name="CardFabric" IsSwapped="True"
+                                      CanSwap="True" SwapLogoRight="True" PreviewSwap="CardFabric_PreviewSwap">
+                            <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" x:Name="PanFabric" />
+                            <Grid x:Name="PanFabricInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
+                                  Tag="True">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform />
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+                                <Image x:Name="ImgFabric" Margin="0,0,7,0" Height="18"
+                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png" />
+                                <TextBlock x:Name="LabFabric" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" Grid.Column="1" />
+                            </Grid>
+                            <Grid x:Name="BtnFabricClear" Height="30" Width="30" HorizontalAlignment="Right"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" PointerReleased="Fabric_Clear"
+                                  Background="{StaticResource ColorBrushSemiTransparent}">
+                                <Path x:Name="BtnFabricClearInner" Height="10" Width="10" Stretch="Uniform"
+                                      Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+                            </Grid>
+                        </legacy:MyCard>
+                        <legacy:MyCard Title="{DynamicResource Common.Installation.LegacyFabric}" Height="40"
+                                      Margin="0,12,0,0" x:Name="CardLegacyFabric"
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True"
+                                      PreviewSwap="CardLegacyFabric_PreviewSwap">
+                            <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" x:Name="PanLegacyFabric" />
+                            <Grid x:Name="PanLegacyFabricInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
+                                  Tag="True">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform />
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+                                <Image x:Name="ImgLegacyFabric" Margin="0,0,7,0" Height="18"
+                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png" />
+                                <TextBlock x:Name="LabLegacyFabric" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" Grid.Column="1" />
+                            </Grid>
+                            <Grid x:Name="BtnLegacyFabricClear" Height="30" Width="30" HorizontalAlignment="Right"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" PointerReleased="LegacyFabric_Clear"
+                                  Background="{StaticResource ColorBrushSemiTransparent}">
+                                <Path x:Name="BtnLegacyFabricClearInner" Height="10" Width="10" Stretch="Uniform"
+                                      Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+                            </Grid>
+                        </legacy:MyCard>
+                        <legacy:MyCard Title="{DynamicResource Common.Installation.FabricApi}" Height="40"
+                                      Margin="0,15,0,0" x:Name="CardFabricApi"
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True"
+                                      PreviewSwap="CardFabricApi_PreviewSwap">
+                            <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" x:Name="PanFabricApi" />
+                            <Grid x:Name="PanFabricApiInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
+                                  Tag="True">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform />
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+                                <Image x:Name="ImgFabricApi" Margin="0,0,7,0" Height="18"
+                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png" />
+                                <TextBlock x:Name="LabFabricApi" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" Grid.Column="1" />
+                            </Grid>
+                            <Grid x:Name="BtnFabricApiClear" Height="30" Width="30" HorizontalAlignment="Right"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" PointerReleased="FabricApi_Clear"
+                                  Background="{StaticResource ColorBrushSemiTransparent}">
+                                <Path x:Name="BtnFabricApiClearInner" Height="10" Width="10" Stretch="Uniform"
+                                      Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+                            </Grid>
+                        </legacy:MyCard>
+                        <legacy:MyCard Title="{DynamicResource Common.Installation.LegacyFabricApi}" Height="40"
+                                      Margin="0,12,0,0"
+                                      x:Name="CardLegacyFabricApi" IsSwapped="True" CanSwap="True" SwapLogoRight="True"
+                                      PreviewSwap="CardLegacyFabricApi_PreviewSwap">
+                            <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" x:Name="PanLegacyFabricApi" />
+                            <Grid x:Name="PanLegacyFabricApiInfo" Height="18" Margin="132,11,15,0"
+                                  VerticalAlignment="Top" Tag="True">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform />
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+                                <Image x:Name="ImgLegacyFabricApi" Margin="0,0,7,0"
+                                       Height="18" Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png" />
+                                <TextBlock x:Name="LabLegacyFabricApi" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" Grid.Column="1" />
+                            </Grid>
+                            <Grid x:Name="BtnLegacyFabricApiClear" Height="30" Width="30" HorizontalAlignment="Right"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" PointerReleased="LegacyFabricApi_Clear"
+                                  Background="{StaticResource ColorBrushSemiTransparent}">
+                                <Path x:Name="BtnLegacyFabricApiClearInner" Height="10" Width="10" Stretch="Uniform"
+                                      Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+                            </Grid>
+                        </legacy:MyCard>
+                        <legacy:MyCard Title="{DynamicResource Common.Installation.Quilt}" Height="40" Margin="0,15,0,0"
+                                      x:Name="CardQuilt" IsSwapped="True"
+                                      CanSwap="True" SwapLogoRight="True" PreviewSwap="CardQuilt_PreviewSwap">
+                            <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" x:Name="PanQuilt" />
+                            <Grid x:Name="PanQuiltInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
+                                  Tag="True">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform />
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+                                <Image x:Name="ImgQuilt" Margin="0,0,7,0" Height="18"
+                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Quilt.png" />
+                                <TextBlock x:Name="LabQuilt" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" Grid.Column="1" />
+                            </Grid>
+                            <Grid x:Name="BtnQuiltClear" Height="30" Width="30" HorizontalAlignment="Right"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" PointerReleased="Quilt_Clear"
+                                  Background="{StaticResource ColorBrushSemiTransparent}">
+                                <Path x:Name="BtnQuiltClearInner" Height="10" Width="10" Stretch="Uniform"
+                                      Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+                            </Grid>
+                        </legacy:MyCard>
+                        <legacy:MyCard Title="{DynamicResource Common.Installation.QfapiQsl}" Height="40"
+                                      Margin="0,15,0,0" x:Name="CardQSL"
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True"
+                                      PreviewSwap="CardQSL_PreviewSwap">
+                            <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" x:Name="PanQSL" />
+                            <Grid x:Name="PanQSLInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
+                                  Tag="True">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform />
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+                                <Image x:Name="ImgQSL" Margin="0,0,7,0" Height="18"
+                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Quilt.png" />
+                                <TextBlock x:Name="LabQSL" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                           Grid.Column="1" />
+                            </Grid>
+                            <Grid x:Name="BtnQSLClear" Height="30" Width="30" HorizontalAlignment="Right"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" PointerReleased="QSL_Clear"
+                                  Background="{StaticResource ColorBrushSemiTransparent}">
+                                <Path x:Name="BtnQSLClearInner" Height="10" Width="10" Stretch="Uniform"
+                                      Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+                            </Grid>
+                        </legacy:MyCard>
+                        <legacy:MyCard Title="{DynamicResource Common.Installation.LabyMod}" Height="40" Margin="0,15,0,0"
+                                      x:Name="CardLabyMod"
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True"
+                                      PreviewSwap="CardLabyMod_PreviewSwap">
+                            <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" x:Name="PanLabyMod" />
+                            <Grid x:Name="PanLabyModInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
+                                  Tag="True">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform />
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+                                <Image x:Name="ImgLabyMod" Margin="0,0,7,0" Height="18"
+                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/LabyMod.png" />
+                                <TextBlock x:Name="LabLabyMod" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" Grid.Column="1" />
+                            </Grid>
+                            <Grid x:Name="BtnLabyModClear" Height="30" Width="30" HorizontalAlignment="Right"
+                                  PointerReleased="LabyMod_Clear"
+                                  VerticalAlignment="Top" Margin="0,5,32,0"
+                                  Background="{StaticResource ColorBrushSemiTransparent}">
+                                <Path x:Name="BtnLabyModClearInner" Height="10" Width="10" Stretch="Uniform"
+                                      Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+                            </Grid>
+                        </legacy:MyCard>
+                        <legacy:MyCard Title="{DynamicResource Common.Installation.OptiFine}" Height="40"
+                                      Margin="0,15,0,0" x:Name="CardOptiFine"
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True">
+                            <StackPanel Margin="20,40,18,15" VerticalAlignment="Top">
+                                <StackPanel x:Name="PanOptiFine" />
+                            </StackPanel>
+                            <Grid x:Name="PanOptiFineInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
+                                  Tag="True">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform />
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+                                <Image x:Name="ImgOptiFine" Margin="0,0,7,0" Height="18"
+                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/GrassPath.png" />
+                                <TextBlock x:Name="LabOptiFine" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" Grid.Column="1" />
+                            </Grid>
+                            <Grid x:Name="BtnOptiFineClear" Height="30" Width="30" HorizontalAlignment="Right"
+                                  PointerReleased="OptiFine_Clear"
+                                  VerticalAlignment="Top" Margin="0,5,32,0"
+                                  Background="{StaticResource ColorBrushSemiTransparent}">
+                                <Path x:Name="BtnOptiFineClearInner" Height="10" Width="10" Stretch="Uniform"
+                                      Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+                            </Grid>
+                        </legacy:MyCard>
+                        <legacy:MyCard Title="{DynamicResource Common.Installation.OptiFabric}" Height="40"
+                                      Margin="0,15,0,0" x:Name="CardOptiFabric"
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True"
+                                      PreviewSwap="CardOptiFabric_PreviewSwap">
+                            <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" x:Name="PanOptiFabric" />
+                            <Grid x:Name="PanOptiFabricInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
+                                  Tag="True">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform />
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+                                <Image x:Name="ImgOptiFabric" Margin="0,0,7,0" Height="18"
+                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/OptiFabric.png" />
+                                <TextBlock x:Name="LabOptiFabric" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" Grid.Column="1" />
+                            </Grid>
+                            <Grid x:Name="BtnOptiFabricClear" Height="30" Width="30" HorizontalAlignment="Right"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" PointerReleased="OptiFabric_Clear"
+                                  Background="{StaticResource ColorBrushSemiTransparent}">
+                                <Path x:Name="BtnOptiFabricClearInner" Height="10" Width="10" Stretch="Uniform"
+                                      Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+                            </Grid>
+                        </legacy:MyCard>
+                        <legacy:MyCard Title="{DynamicResource Common.Installation.LiteLoader}" Height="40"
+                                      Margin="0,15,0,0" x:Name="CardLiteLoader"
+                                      PreviewSwap="CardLiteLoader_PreviewSwap"
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True">
+                            <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" x:Name="PanLiteLoader" />
+                            <Grid x:Name="PanLiteLoaderInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
+                                  Tag="True">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform />
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+                                <Image x:Name="ImgLiteLoader" Margin="-1,0,6,0" Height="20"
+                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Egg.png" />
+                                <TextBlock x:Name="LabLiteLoader" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" Grid.Column="1" />
+                            </Grid>
+                            <Grid x:Name="BtnLiteLoaderClear" Height="30" Width="30" HorizontalAlignment="Right"
+                                  PointerReleased="LiteLoader_Clear"
+                                  VerticalAlignment="Top" Margin="0,5,32,0"
+                                  Background="{StaticResource ColorBrushSemiTransparent}">
+                                <Path x:Name="BtnLiteLoaderClearInner" Height="10" Width="10" Stretch="Uniform"
+                                      Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+                            </Grid>
+                        </legacy:MyCard>
+                    </StackPanel>
+                </Grid>
+            </legacy:MyScrollViewer>
+            <legacy:MyExtraTextButton x:Name="BtnSelectStart"
+                                     Text="{DynamicResource Instance.Install.Action.StartModify}"
+                                     HorizontalAlignment="Center" VerticalAlignment="Bottom" IsEnabled="False"
+                                     LogoScale="0.95"
+                                     SvgIcon="lucide/download" />
+        </Grid>
+        <legacy:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40,0"
+                      x:Name="PanLoad" UseAnimation="False">
+            <legacy:MyLoading Text="" Margin="20,20,20,17" x:Name="LoadMinecraft" HorizontalAlignment="Center"
+                             VerticalAlignment="Center" />
+            <legacy:MyLoading IsVisible="False" x:Name="LoadOptiFine" HasAnimation="False" />
+            <legacy:MyLoading IsVisible="False" x:Name="LoadForge" HasAnimation="False" />
+            <legacy:MyLoading IsVisible="False" x:Name="LoadNeoForge" HasAnimation="False" />
+            <legacy:MyLoading IsVisible="False" x:Name="LoadCleanroom" HasAnimation="False" />
+            <legacy:MyLoading IsVisible="False" x:Name="LoadLiteLoader" HasAnimation="False" />
+            <legacy:MyLoading IsVisible="False" x:Name="LoadFabric" HasAnimation="False" />
+            <legacy:MyLoading IsVisible="False" x:Name="LoadLegacyFabric" HasAnimation="False" />
+            <legacy:MyLoading IsVisible="False" x:Name="LoadFabricApi" HasAnimation="False" />
+            <legacy:MyLoading IsVisible="False" x:Name="LoadLegacyFabricApi" HasAnimation="False" />
+            <legacy:MyLoading IsVisible="False" x:Name="LoadQuilt" HasAnimation="False" />
+            <legacy:MyLoading IsVisible="False" x:Name="LoadQSL" HasAnimation="False" />
+            <legacy:MyLoading IsVisible="False" x:Name="LoadLabyMod" HasAnimation="False" />
+            <legacy:MyLoading IsVisible="False" x:Name="LoadOptiFabric" HasAnimation="False" />
+        </legacy:MyCard>
+    </Grid>
+</legacy:MyPageRight>

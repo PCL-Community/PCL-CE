@@ -1,0 +1,23 @@
+<legacy:MyPageRight
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:legacy="using:PCL.Desktop.Controls.Legacy" x:Class="PCL.Desktop.Features.Settings.Views.PageSetupJava">
+    <legacy:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
+        <Grid>
+            <StackPanel x:Name="PanMain" Margin="25,25,25,10" IsVisible="False">
+                <legacy:MyCard Margin="0,0,0,15">
+                    <StackPanel Margin="8" Orientation="Horizontal">
+                        <legacy:MyIconTextButton x:Name="BtnAdd" Text="{DynamicResource Setup.Launch.Java.Add}" LogoScale="0.9" Click="BtnAdd_Click"
+                                                SvgIcon="lucide/circle-plus" />
+                    </StackPanel>
+                </legacy:MyCard>
+                <legacy:MyCard x:Name="CardContent" Margin="0,0,0,15" IsVisible="False">
+                    <StackPanel Margin="15" Orientation="Vertical" x:Name="PanContent" />
+                </legacy:MyCard>
+            </StackPanel>
+            <legacy:MyCard x:Name="CardLoad" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="False">
+                <legacy:MyLoading Text="{DynamicResource Setup.Launch.Java.Loading}" x:Name="PanLoad" Margin="12" />
+            </legacy:MyCard>
+        </Grid>
+    </legacy:MyScrollViewer>
+</legacy:MyPageRight>
