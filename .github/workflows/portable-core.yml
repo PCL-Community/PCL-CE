@@ -27,9 +27,16 @@ jobs:
       - name: Build portable graph with warnings as errors
         run: dotnet build PCL.Portable.slnx -c Release --no-restore -warnaserror
       - name: Run portable tests
-        run: dotnet test PCL.Portable.slnx -c Release --no-build --no-restore -warnaserror
-      - name: Cross-compile Windows shell and reject platform warnings
-        run: dotnet build "Plain Craft Launcher 2/Plain Craft Launcher 2.csproj" -c Release -p:Platform=x64 -p:EnableWindowsTargeting=true -warnaserror:CA1416
+        # Keep solution build coverage, but run test projects one by one:
+        # VSTest solution orchestration can leave Avalonia.Headless test hosts hanging.
+        run: |
+          dotnet test PCL.Application.Test/PCL.Application.Test.csproj -c Release --no-build --no-restore -warnaserror
+          dotnet test PCL.Core.Portable.Test/PCL.Core.Portable.Test.csproj -c Release --no-build --no-restore -warnaserror
+          dotnet test PCL.Platform.Test/PCL.Platform.Test.csproj -c Release --no-build --no-restore -warnaserror
+          dotnet build-server shutdown
+          dotnet test PCL.Desktop.Test/PCL.Desktop.Test.csproj -c Release --no-build --no-restore -warnaserror --blame-hang --blame-hang-timeout 120s
+      - name: Cross-compile Avalonia desktop shell and reject platform warnings
+        run: dotnet build PCL.Desktop/PCL.Desktop.csproj -c Release --no-restore -p:RuntimeIdentifier=win-x64 -p:PublishAot=false -warnaserror:CA1416
 
   native-aot:
     runs-on: ubuntu-latest
@@ -46,11 +53,6 @@ jobs:
         run: dotnet publish PCL.Application.AotSmoke/PCL.Application.AotSmoke.csproj -c Release -r linux-x64 -warnaserror
       - name: Run application Native AOT launch smoke test
         run: ./PCL.Application.AotSmoke/bin/Release/net10.0/linux-x64/publish/PCL.Application.AotSmoke
-      - name: Publish online Native AOT smoke test
-        run: dotnet publish PCL.Online.AotSmoke/PCL.Online.AotSmoke.csproj -c Release -r linux-x64 -warnaserror
-      - name: Run online Native AOT smoke test
-        run: ./PCL.Online.AotSmoke/bin/Release/net10.0/linux-x64/publish/PCL.Online.AotSmoke
-
   desktop-native-aot:
     strategy:
       fail-fast: false

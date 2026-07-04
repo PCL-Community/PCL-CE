@@ -101,7 +101,7 @@ jobs:
 
       - name: Rename binaries
         run: |
-          mv "./artifact/Plain Craft Launcher 2.exe" "PCL2_N_${{ matrix.configuration }}_${{ matrix.architecture }}${{ matrix.artifact_suffix }}.exe"
+          mv "./artifact/PCL.Desktop.exe" "PCL2_N_${{ matrix.configuration }}_${{ matrix.architecture }}${{ matrix.artifact_suffix }}.exe"
 
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v6
