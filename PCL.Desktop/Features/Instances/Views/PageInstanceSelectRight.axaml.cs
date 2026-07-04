@@ -4,6 +4,7 @@
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -18,11 +19,16 @@ public partial class PageInstanceSelectRight : MyPageRight, IDisposable
     private const int SearchNormalDelayMs = 75;
     private const int SearchQuickDelayMs = 50;
     private readonly DispatcherTimer _reloadTimer;
+    private readonly object _metadataLock = new();
+    private CancellationTokenSource? _metadataLoadCancellation;
+    private Dictionary<string, InstanceMetadata> _metadataCache = new(StringComparer.OrdinalIgnoreCase);
     private IReadOnlyList<LaunchInstanceInfo> _instances = [];
     private LaunchInstanceInfo? _selectedInstance;
+    private Task _metadataLoadTask = Task.CompletedTask;
     private DateTime _lastInputTime = DateTime.MinValue;
     private bool _isRefreshing;
     private bool _isLoading;
+    private bool _showHidden;
 
     public PageInstanceSelectRight()
     {
@@ -36,6 +42,19 @@ public partial class PageInstanceSelectRight : MyPageRight, IDisposable
         if (this.FindControl<MySearchBox>("PanVerSearchBox") is { } searchBox)
             searchBox.TextChanged += PanVerSearchBox_TextChanged;
         SetLoadingState(false);
+    }
+
+    public bool ShowHidden
+    {
+        get => _showHidden;
+        set
+        {
+            if (_showHidden == value)
+                return;
+
+            _showHidden = value;
+            ReloadList();
+        }
     }
 
     public event EventHandler? RefreshRequested;
@@ -55,6 +74,7 @@ public partial class PageInstanceSelectRight : MyPageRight, IDisposable
         _isLoading = isLoading;
         SetVisible("PanLoad", isLoading);
         SetVisible("PanAllBack", !isLoading);
+        SetLoadingAnimationState(isLoading);
         if (!isLoading)
             ReloadList();
     }
@@ -63,15 +83,118 @@ public partial class PageInstanceSelectRight : MyPageRight, IDisposable
     {
         _instances = instances;
         _selectedInstance = selectedInstance;
+        StartMetadataLoad(instances);
         SetLoadingState(false);
+    }
+
+    public async Task ReloadMetadataAsync(CancellationToken cancellationToken = default)
+    {
+        await CancelMetadataLoadAsync().ConfigureAwait(false);
+
+        Dictionary<string, InstanceMetadata> loaded =
+            await ReadMetadataAsync(_instances.ToArray(), cancellationToken).ConfigureAwait(false);
+        ApplyMetadataSnapshot(loaded);
+
+        if (Dispatcher.UIThread.CheckAccess())
+            ReloadList();
+        else
+            await Dispatcher.UIThread.InvokeAsync(ReloadList, DispatcherPriority.Background, cancellationToken);
     }
 
     public override void Dispose()
     {
+        _metadataLoadCancellation?.Cancel();
+        _metadataLoadCancellation?.Dispose();
+        _metadataLoadCancellation = null;
         _reloadTimer.Stop();
         _reloadTimer.Tick -= ReloadTimer_Tick;
         base.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    private async Task CancelMetadataLoadAsync()
+    {
+        CancellationTokenSource? cancellation = _metadataLoadCancellation;
+        if (cancellation is null)
+            return;
+
+        cancellation.Cancel();
+        try
+        {
+            await _metadataLoadTask.ConfigureAwait(false);
+        }
+        finally
+        {
+            cancellation.Dispose();
+            if (ReferenceEquals(_metadataLoadCancellation, cancellation))
+                _metadataLoadCancellation = null;
+            _metadataLoadTask = Task.CompletedTask;
+        }
+    }
+
+    private void StartMetadataLoad(IReadOnlyList<LaunchInstanceInfo> instances)
+    {
+        _metadataLoadCancellation?.Cancel();
+        _metadataLoadCancellation?.Dispose();
+        _metadataLoadCancellation = new CancellationTokenSource();
+        CancellationToken cancellationToken = _metadataLoadCancellation.Token;
+        LaunchInstanceInfo[] snapshot = instances.ToArray();
+        Dictionary<string, InstanceMetadata> fallback = new(StringComparer.OrdinalIgnoreCase);
+        foreach (LaunchInstanceInfo instance in snapshot)
+            fallback[instance.InstanceDirectory] = new InstanceMetadata();
+
+        lock (_metadataLock)
+        {
+            _metadataCache = fallback;
+        }
+
+        _metadataLoadTask = LoadMetadataAsync(snapshot, cancellationToken);
+    }
+
+    private async Task LoadMetadataAsync(LaunchInstanceInfo[] instances, CancellationToken cancellationToken)
+    {
+        try
+        {
+            Dictionary<string, InstanceMetadata> loaded = await ReadMetadataAsync(instances, cancellationToken)
+                .ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            ApplyMetadataSnapshot(loaded);
+
+            Dispatcher.UIThread.Post(
+                () =>
+                {
+                    if (!cancellationToken.IsCancellationRequested)
+                        ReloadList();
+                },
+                DispatcherPriority.Background);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private static async Task<Dictionary<string, InstanceMetadata>> ReadMetadataAsync(
+        LaunchInstanceInfo[] instances,
+        CancellationToken cancellationToken)
+    {
+        Dictionary<string, InstanceMetadata> loaded = new(StringComparer.OrdinalIgnoreCase);
+        foreach (LaunchInstanceInfo instance in instances)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            loaded[instance.InstanceDirectory] =
+                await InstanceMetadataStore.LoadAsync(instance.InstanceDirectory, cancellationToken)
+                    .ConfigureAwait(false);
+        }
+
+        return loaded;
+    }
+
+    private void ApplyMetadataSnapshot(Dictionary<string, InstanceMetadata> metadata)
+    {
+        lock (_metadataLock)
+        {
+            _metadataCache = metadata;
+        }
     }
 
     private void PanVerSearchBox_TextChanged(object sender, EventArgs e)
@@ -110,12 +233,16 @@ public partial class PageInstanceSelectRight : MyPageRight, IDisposable
             return;
 
         string searchText = this.FindControl<MySearchBox>("PanVerSearchBox")?.Text?.Trim() ?? string.Empty;
-        InstanceEntry[] filteredInstances = _instances
-            .Select(static instance => new InstanceEntry(
-                instance,
-                InstanceMetadataStore.LoadAsync(instance.InstanceDirectory).GetAwaiter().GetResult()))
+        InstanceEntry[] allEntries = _instances
+            .Select(instance => new InstanceEntry(instance, GetCachedMetadata(instance)))
+            .ToArray();
+        InstanceEntry[] visibleEntries = allEntries
+            .Where(entry => _showHidden ? entry.Metadata.CardType == 1 : entry.Metadata.CardType != 1)
+            .ToArray();
+        InstanceEntry[] filteredInstances = visibleEntries
             .Where(entry => IsSearchMatch(entry, searchText))
             .ToArray();
+        bool hasHiddenInstances = allEntries.Any(static entry => entry.Metadata.CardType == 1);
 
         panel.Children.Clear();
         if (filteredInstances.Length > 0)
@@ -126,26 +253,66 @@ public partial class PageInstanceSelectRight : MyPageRight, IDisposable
             {
                 panel.Children.Add(CreateInstanceCard(group.ToArray()));
             }
+
+            if (panel.Children.Count == 1 && panel.Children[0] is MyCard { IsSwapped: true } onlyCard)
+                onlyCard.IsSwapped = false;
         }
 
         SetVisible("PanVerSearchBox", _instances.Count > 0);
+        SetVisible("BtnEmptyDownload", !_showHidden);
         if (_instances.Count == 0)
         {
             SetVisible("PanBack", false);
             SetVisible("PanEmpty", true);
             SetVisible("PanEmptySearch", false);
+            SetText(
+                "LabEmptyTitle",
+                _showHidden
+                    ? ResourceText("Select.Instance.Hidden.EmptyTitle", "没有隐藏版本")
+                    : ResourceText("Select.Instance.Empty.Title", "还没有游戏版本"));
+            SetText(
+                "LabEmptyContent",
+                _showHidden
+                    ? ResourceText("Select.Instance.Hidden.EmptyMessage", "被隐藏的版本会显示在这里。")
+                    : ResourceText("Select.Instance.Empty.Message", "你可以下载一个 Minecraft 原版版本，或把已有版本放入 .minecraft/versions。"));
             return;
         }
 
+        SetVisible("BtnEmptyDownload", true);
         if (filteredInstances.Length == 0)
         {
+            if (_showHidden && !hasHiddenInstances)
+            {
+                SetVisible("PanBack", false);
+                SetVisible("PanEmpty", true);
+                SetVisible("PanEmptySearch", false);
+                SetVisible("BtnEmptyDownload", false);
+                SetVisible("PanVerSearchBox", false);
+                SetText("LabEmptyTitle", ResourceText("Select.Instance.Hidden.EmptyTitle", "没有隐藏版本"));
+                SetText("LabEmptyContent", ResourceText("Select.Instance.Hidden.EmptyMessage", "被隐藏的版本会显示在这里。"));
+                return;
+            }
+
             SetVisible("PanBack", true);
             SetVisible("PanEmpty", false);
             SetVisible("PanEmptySearch", true);
-            SetText("LabEmptySearchContent",
+            SetText(
+                "LabEmptySearchTitle",
+                _showHidden
+                    ? ResourceText("Select.Instance.Hidden.EmptySearchTitle", "没有匹配的隐藏版本")
+                    : ResourceText("Select.Instance.EmptySearch.Title", "没有搜索结果"));
+            SetText(
+                "LabEmptySearchContent",
                 string.IsNullOrWhiteSpace(searchText)
-                    ? "请输入版本名称或路径中的关键词。"
-                    : $"没有找到包含“{searchText}”的本地版本。");
+                    ? ResourceText("Select.Instance.Search.EmptyInput", "请输入关键词后再搜索。")
+                    : ResourceText(
+                        _showHidden
+                            ? "Select.Instance.Search.NoHiddenResult"
+                            : "Select.Instance.Search.NoResult",
+                        _showHidden
+                            ? $"隐藏版本中没有找到包含“{searchText}”的结果。"
+                            : $"没有找到包含“{searchText}”的本地版本。",
+                        searchText));
             return;
         }
 
@@ -170,9 +337,11 @@ public partial class PageInstanceSelectRight : MyPageRight, IDisposable
             Tag = instances
         };
         InstanceEntry first = instances[0];
+        bool isStarredCard = first.Metadata.IsStarred;
+        int cardType = isStarredCard ? 0 : Math.Clamp(first.Metadata.CardType, 0, 5);
         MyCard card = new()
         {
-            Title = InstanceDisplayHelper.GetCardTitle(first.Metadata.CardType, first.Metadata.IsStarred, instances.Length),
+            Title = InstanceDisplayHelper.GetCardTitle(cardType, isStarredCard, instances.Length),
             Margin = new Thickness(0d, 0d, 0d, 15d),
             SwapControl = stack
         };
@@ -187,8 +356,30 @@ public partial class PageInstanceSelectRight : MyPageRight, IDisposable
                 target.Children.Add(CreateInstanceItem(entry));
         }
 
-        MyCard.StackInstall(ref stack, Install);
+        if (ShouldStartCollapsed(cardType, isStarredCard))
+        {
+            card.IsSwapped = true;
+            card.InstallMethod = Install;
+        }
+        else
+        {
+            MyCard.StackInstall(ref stack, Install);
+        }
+
         return card;
+    }
+
+    private static bool ShouldStartCollapsed(int cardType, bool isStarredCard) =>
+        !isStarredCard && cardType is 4 or 5;
+
+    private InstanceMetadata GetCachedMetadata(LaunchInstanceInfo instance)
+    {
+        lock (_metadataLock)
+        {
+            return _metadataCache.TryGetValue(instance.InstanceDirectory, out InstanceMetadata? metadata)
+                ? metadata
+                : new InstanceMetadata();
+        }
     }
 
     private MyListItem CreateInstanceItem(InstanceEntry entry)
@@ -247,6 +438,12 @@ public partial class PageInstanceSelectRight : MyPageRight, IDisposable
         RefreshRequested?.Invoke(this, EventArgs.Empty);
     }
 
+    private void Load_Click(object? sender, PointerReleasedEventArgs e)
+    {
+        SetLoadingState();
+        RefreshRequested?.Invoke(this, EventArgs.Empty);
+    }
+
     private void BtnDownload_Click(object? sender, EventArgs e) =>
         DownloadRequested?.Invoke(this, EventArgs.Empty);
 
@@ -260,6 +457,31 @@ public partial class PageInstanceSelectRight : MyPageRight, IDisposable
     {
         if (this.FindControl<TextBlock>(name) is { } block)
             block.Text = text;
+    }
+
+    private void SetLoadingAnimationState(bool isLoading)
+    {
+        if (this.FindControl<MyLoading>("Load") is not { } loading)
+            return;
+
+        if (loading.State is not MyLoadingStateSimulator simulator)
+        {
+            simulator = new MyLoadingStateSimulator();
+            loading.State = simulator;
+        }
+
+        simulator.LoadingState = isLoading ? MyLoading.MyLoadingState.Run : MyLoading.MyLoadingState.Stop;
+    }
+
+    private string ResourceText(string key, string fallback, params object[] args)
+    {
+        string text = fallback;
+        if (this.TryFindResource(key, ActualThemeVariant, out object? value) && value is string resourceText)
+            text = resourceText;
+
+        return args.Length == 0
+            ? text
+            : string.Format(System.Globalization.CultureInfo.CurrentCulture, text, args);
     }
 
     private readonly record struct InstanceEntry(LaunchInstanceInfo Instance, InstanceMetadata Metadata);

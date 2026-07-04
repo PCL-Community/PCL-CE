@@ -283,7 +283,7 @@ internal static class InstanceDisplayHelper
     public static string GetCardTitle(int cardType, bool isStarred, int count)
     {
         if (isStarred)
-            return $"收藏夹 ({count})";
+            return "收藏夹";
 
         return Math.Clamp(cardType, 0, 5) switch
         {

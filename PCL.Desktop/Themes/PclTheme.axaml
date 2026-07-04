@@ -133,10 +133,17 @@
     <x:String x:Key="Download.Install.Warning.Qsl">建议同时安装 QSL，否则部分 Quilt Mod 可能无法运行。</x:String>
     <x:String x:Key="Download.Install.Warning.QuiltFabricApi">部分 Quilt Mod 可以使用 Fabric API，但仍建议优先使用 QSL。</x:String>
     <x:String x:Key="Select.Instance.Search.ToolTip">搜索本地游戏版本</x:String>
+    <x:String x:Key="Select.Instance.Search.Hint">搜索版本名称、描述或路径</x:String>
+    <x:String x:Key="Select.Instance.Search.EmptyInput">请输入关键词后再搜索。</x:String>
+    <x:String x:Key="Select.Instance.Search.NoResult">没有找到包含“{0}”的本地版本。</x:String>
+    <x:String x:Key="Select.Instance.Search.NoHiddenResult">隐藏版本中没有找到包含“{0}”的结果。</x:String>
     <x:String x:Key="Select.Instance.Empty.Title">还没有游戏版本</x:String>
     <x:String x:Key="Select.Instance.Empty.Message">你可以下载一个 Minecraft 原版版本，或把已有版本放入 .minecraft/versions。</x:String>
     <x:String x:Key="Select.Instance.Empty.Download">下载游戏</x:String>
     <x:String x:Key="Select.Instance.EmptySearch.Title">没有搜索结果</x:String>
+    <x:String x:Key="Select.Instance.Hidden.EmptyTitle">没有隐藏版本</x:String>
+    <x:String x:Key="Select.Instance.Hidden.EmptyMessage">被隐藏的版本会显示在这里。你可以在版本设置中调整显示分类。</x:String>
+    <x:String x:Key="Select.Instance.Hidden.EmptySearchTitle">没有匹配的隐藏版本</x:String>
     <x:String x:Key="Select.Instance.Loading">正在加载版本列表</x:String>
     <x:String x:Key="Instance.Left.Game">游戏</x:String>
     <x:String x:Key="Instance.Left.Overview">总览</x:String>

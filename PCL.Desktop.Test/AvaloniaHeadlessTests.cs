@@ -2817,7 +2817,7 @@ public sealed class AvaloniaHeadlessTests
                     LogoPath = "avares://PCL.Desktop/WpfOriginal/Images/Blocks/GoldBlock.png"
                 }).GetAwaiter().GetResult();
 
-            session.Dispatch(() =>
+            session.Dispatch(async () =>
             {
                 PageInstanceSelectRight page = new();
                 Window window = new()
@@ -2827,18 +2827,19 @@ public sealed class AvaloniaHeadlessTests
                     Content = page
                 };
 
+                window.Show();
+                page.SetInstances(
+                    [
+                        new LaunchInstanceInfo("FabricPack", fabricJson, fabricDirectory),
+                        new LaunchInstanceInfo("StarPack", starJson, starDirectory)
+                    ],
+                    null);
+                await page.ReloadMetadataAsync().ConfigureAwait(true);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
                 try
                 {
-                    window.Show();
-                    page.SetInstances(
-                        [
-                            new LaunchInstanceInfo("FabricPack", fabricJson, fabricDirectory),
-                            new LaunchInstanceInfo("StarPack", starJson, starDirectory)
-                        ],
-                        null);
-                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-
-                    Assert.IsTrue(page.GetVisualDescendants().OfType<MyCard>().Any(card => card.Title == "收藏夹 (1)"));
+                    Assert.IsTrue(page.GetVisualDescendants().OfType<MyCard>().Any(card => card.Title == "收藏夹"));
                     Assert.IsTrue(page.GetVisualDescendants().OfType<MyCard>().Any(card => card.Title == "可安装 Mod (1)"));
 
                     MyListItem fabricItem = page.GetVisualDescendants().OfType<MyListItem>().Single(item => item.Title == "FabricPack");
@@ -2851,7 +2852,73 @@ public sealed class AvaloniaHeadlessTests
                 {
                     window.Close();
                 }
-            }, CancellationToken.None);
+            }, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void PageInstanceSelectRight_FollowsWpfHiddenAndCollapsedCardRules()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+        string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-select-rules-" + Guid.NewGuid().ToString("N"));
+
+        try
+        {
+            (string Name, int CardType)[] cases =
+            [
+                ("RegularPack", 0),
+                ("HiddenPack", 1),
+                ("LessUsedPack", 4),
+                ("FoolPack", 5)
+            ];
+            List<LaunchInstanceInfo> instances = [];
+            foreach ((string name, int cardType) in cases)
+            {
+                string directory = System.IO.Path.Combine(root, "versions", name);
+                Directory.CreateDirectory(directory);
+                string json = System.IO.Path.Combine(directory, name + ".json");
+                File.WriteAllText(json, "{\"id\":\"" + name + "\"}");
+                InstanceMetadataStore.SaveAsync(directory, new InstanceMetadata { CardType = cardType }).GetAwaiter().GetResult();
+                instances.Add(new LaunchInstanceInfo(name, json, directory));
+            }
+
+            session.Dispatch(async () =>
+            {
+                PageInstanceSelectRight page = new();
+                Window window = new()
+                {
+                    Width = 620,
+                    Height = 520,
+                    Content = page
+                };
+                window.Show();
+                page.SetInstances(instances, null);
+                await page.ReloadMetadataAsync().ConfigureAwait(true);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                try
+                {
+                    Assert.IsNotNull(page.GetVisualDescendants().OfType<MyListItem>().SingleOrDefault(item => item.Title == "RegularPack"));
+                    Assert.IsNull(page.GetVisualDescendants().OfType<MyListItem>().SingleOrDefault(item => item.Title == "HiddenPack"));
+                    Assert.IsTrue(page.GetVisualDescendants().OfType<MyCard>().Single(card => card.Title == "不常用版本 (1)").IsSwapped);
+                    Assert.IsTrue(page.GetVisualDescendants().OfType<MyCard>().Single(card => card.Title == "愚人节版本 (1)").IsSwapped);
+
+                    page.ShowHidden = true;
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                    Assert.IsNull(page.GetVisualDescendants().OfType<MyListItem>().SingleOrDefault(item => item.Title == "RegularPack"));
+                    Assert.IsNotNull(page.GetVisualDescendants().OfType<MyListItem>().SingleOrDefault(item => item.Title == "HiddenPack"));
+                    Assert.IsTrue(page.GetVisualDescendants().OfType<MyCard>().Any(card => card.Title == "隐藏版本 (1)"));
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }, CancellationToken.None).GetAwaiter().GetResult();
         }
         finally
         {

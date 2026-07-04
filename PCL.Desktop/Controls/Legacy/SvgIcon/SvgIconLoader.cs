@@ -3,8 +3,10 @@
 // Licensed under the Apache License, Version 2.0.
 
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Avalonia.Platform;
+using Avalonia.Threading;
 
 namespace PCL.Desktop.Controls.Legacy;
 
@@ -21,7 +23,7 @@ public static class SvgIconLoader
         if (key is null)
             return null;
 
-        string cacheKey = key.Value.ToString();
+        string cacheKey = $"{RuntimeHelpers.GetHashCode(Dispatcher.UIThread):X}:{key.Value}";
         return Cache.GetOrAdd(cacheKey, _ => new Lazy<SvgIconModel?>(() => LoadCore(key.Value))).Value;
     }
 

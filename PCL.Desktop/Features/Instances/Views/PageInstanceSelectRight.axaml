@@ -9,6 +9,7 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <legacy:MySearchBox x:Name="PanVerSearchBox" Margin="25,15,25,12" VerticalAlignment="Top"
+                                HintText="{DynamicResource Select.Instance.Search.Hint}"
                                 Grid.Row="0" ToolTip="{DynamicResource Select.Instance.Search.ToolTip}" />
             <legacy:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                                   x:Name="PanBack" Grid.Row="1">
@@ -46,6 +47,7 @@
         <legacy:MyCard HorizontalAlignment="Center" VerticalAlignment="Center"
                       x:Name="PanLoad" Margin="40">
         <legacy:MyLoading Text="{DynamicResource Select.Instance.Loading}" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
+                         Click="Load_Click"
                          VerticalAlignment="Center" IsHitTestVisible="False" AutoRun="False" />
         </legacy:MyCard>
     </Grid>
