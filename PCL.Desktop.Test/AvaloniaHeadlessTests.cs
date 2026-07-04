@@ -5415,6 +5415,75 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void MyCard_TracksThemeResourceChangesLikeWpfResourceReference()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            try
+            {
+                AvaloniaThemeManager.Apply(new LauncherSettings
+                {
+                    ColorMode = ColorMode.Light,
+                    LightColor = ColorTheme.CatBlue
+                });
+                MyCard card = new()
+                {
+                    Title = "资源跟随",
+                    Width = 240,
+                    Height = 90
+                };
+                Window window = new()
+                {
+                    Width = 320,
+                    Height = 160,
+                    Content = new Border
+                    {
+                        Padding = new Thickness(20),
+                        Child = card
+                    }
+                };
+
+                try
+                {
+                    window.Show();
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                    BlurBorder chrome = (BlurBorder)card.Children[1];
+                    IReadOnlyDictionary<string, Color> lightPalette = ThemeColorPalette.Create(isDarkMode: false, ColorTheme.CatBlue);
+                    Assert.AreEqual(lightPalette["ColorBrushTransparentBackground"], ((SolidColorBrush)chrome.Background!).Color);
+
+                    AvaloniaThemeManager.Apply(new LauncherSettings
+                    {
+                        ColorMode = ColorMode.Dark,
+                        DarkColor = ColorTheme.CatBlue
+                    });
+                    ModAnimation.AdvanceUntilIdleForTesting();
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                    IReadOnlyDictionary<string, Color> darkPalette = ThemeColorPalette.Create(isDarkMode: true, ColorTheme.CatBlue);
+                    Assert.AreEqual(darkPalette["ColorBrushTransparentBackground"], ((SolidColorBrush)chrome.Background!).Color);
+                    Assert.AreEqual(darkPalette["ColorBrush1"], ((SolidColorBrush)card.MainTextBlock.Foreground!).Color);
+                    Assert.AreEqual(darkPalette["ColorObject1"], card.MainChrome.Color);
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }
+            finally
+            {
+                AvaloniaThemeManager.Apply(new LauncherSettings
+                {
+                    ColorMode = ColorMode.Light,
+                    LightColor = ColorTheme.CatBlue
+                });
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void MyCard_SwapClickTogglesContentAndCanBeCancelled()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();

@@ -85,6 +85,8 @@ public class MyCard : AnimatedBackgroundGrid
         PointerPressed += MyCard_PointerPressed;
         PointerReleased += MyCard_PointerReleased;
         SizeChanged += MyCard_SizeChanged;
+        ResourcesChanged += (_, _) => RefreshThemeResources();
+        ActualThemeVariantChanged += (_, _) => RefreshThemeResources();
 
         this.GetObservable(TitleProperty).Subscribe(title =>
         {
@@ -276,8 +278,7 @@ public class MyCard : AnimatedBackgroundGrid
             return;
 
         _isInitialized = true;
-        SetBackgroundBrushDirect(FindBrush("ColorBrushTransparentBackground", "#d2fbfbfb"));
-        MainChrome.Color = FindColor("ColorObject1", "#343d4a");
+        RefreshThemeResources();
 
         if (_mainTextBlock is null)
         {
@@ -297,6 +298,18 @@ public class MyCard : AnimatedBackgroundGrid
 
         EnsureSwapChrome();
         ApplySwapped(IsSwapped, animate: false);
+        RefreshHoverVisual(IsPointerOver);
+    }
+
+    private void RefreshThemeResources()
+    {
+        BackgroundBrush = FindBrush("ColorBrushTransparentBackground", "#d2fbfbfb");
+        if (!_isInitialized)
+        {
+            MainChrome.Color = FindColor("ColorObject1", "#343d4a");
+            return;
+        }
+
         RefreshHoverVisual(IsPointerOver);
     }
 
