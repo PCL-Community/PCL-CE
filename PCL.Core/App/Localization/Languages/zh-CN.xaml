@@ -1552,6 +1552,7 @@
     <sys:String x:Key="Launch.Account.Profile.Create">新建档案</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Create.SelectAuthType.Title">新建档案 - 选择验证类型</sys:String>
     <sys:String x:Key="Launch.Account.Profile.CreateAndSelectHint">新建并选择一个档案以启动游戏</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.RequireMicrosoftHint">需要先进行一次正版验证才能使用其他验证方式</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Created">档案新建成功！</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Delete">删除档案</sys:String>
     <sys:String x:Key="Launch.Account.Profile.DeleteConfirm.Message">你正在选择删除此档案，该操作无法撤销。&#xA;确定继续？</sys:String>

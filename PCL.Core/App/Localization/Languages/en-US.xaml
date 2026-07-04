@@ -1552,6 +1552,7 @@
     <sys:String x:Key="Launch.Account.Profile.Create">New profile</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Create.SelectAuthType.Title">New profile - Select login type</sys:String>
     <sys:String x:Key="Launch.Account.Profile.CreateAndSelectHint">Create and select a profile before launching the game</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.RequireMicrosoftHint">A Microsoft profile is required to create profiles using other login types</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Created">Profile created!</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Delete">Delete profile</sys:String>
     <sys:String x:Key="Launch.Account.Profile.DeleteConfirm.Message">You are about to delete this profile. This action cannot be undone.&#xA;Are you sure you want to continue?</sys:String>
