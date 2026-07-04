@@ -28,7 +28,6 @@ using PCL.Desktop.Features.Instances.Views;
 using PCL.Desktop.Features.Launching.Views;
 using PCL.Desktop.Features.Settings.Views;
 using PCL.Domain.Minecraft.Java;
-using PCL.Online;
 
 namespace PCL.Desktop.Test;
 
@@ -907,6 +906,12 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsNotNull(pluginPage);
                 Assert.IsTrue(setupLeft.FindControl<MyListItem>("ItemPlugin")!.Checked);
                 Assert.AreEqual("敬请期待", pluginPage.FindControl<TextBlock>("LabComingSoon")!.Text);
+                StringAssert.Contains(
+                    pluginPage.FindControl<TextBlock>("LabDescription")!.Text,
+                    "PluginSDK");
+                StringAssert.Contains(
+                    pluginPage.FindControl<TextBlock>("LabPluginState")!.Text,
+                    "Online 将由后续 PluginSDK 内置插件提供");
             }
             finally
             {
@@ -916,12 +921,12 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
-    public void PageSetupOnline_ReflectsAccountStateAndLogout()
+    public void PageSetupOnline_ShowsPluginSdkPlaceholder()
     {
         string? previousSettingsPath = Environment.GetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH");
         string settingsPath = System.IO.Path.Combine(
             System.IO.Path.GetTempPath(),
-            "pcl-desktop-test-online-settings-" + Guid.NewGuid().ToString("N") + ".json");
+            "pcl-desktop-test-online-placeholder-" + Guid.NewGuid().ToString("N") + ".json");
         Environment.SetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH", settingsPath);
 
         try
@@ -929,14 +934,8 @@ public sealed class AvaloniaHeadlessTests
             using HeadlessUnitTestSession session = CreateSession();
             session.Dispatch(() =>
             {
-                OnlineRuntime.Host.SetString("Online.MsUserName", "Alex");
-                OnlineRuntime.Host.SetString("Online.MsMinecraftProfileName", "Alex");
-                OnlineRuntime.Host.SetString("Online.MsUuid", "00000000000000000000000000000000");
-                OnlineRuntime.Host.SetBoolean("Online.MsOwnsMinecraft", true);
-
                 PageSetupOnline page = new();
                 SettingsMessageRequestedEventArgs? message = null;
-                page.ConfirmRequested += (_, args) => args.Complete(true);
                 page.MessageRequested += (_, args) => message = args;
 
                 Window window = new()
@@ -952,19 +951,16 @@ public sealed class AvaloniaHeadlessTests
                     AvaloniaHeadlessPlatform.ForceRenderTimerTick();
                     page.RefreshOnlineState();
 
-                    Assert.IsFalse(page.FindControl<StackPanel>("PanNotLoggedIn")!.IsVisible);
-                    Assert.IsTrue(page.FindControl<Grid>("PanLoggedIn")!.IsVisible);
-                    Assert.IsTrue(page.FindControl<MyCard>("CardSync")!.IsVisible);
-                    Assert.AreEqual("Alex", page.FindControl<TextBlock>("LabUserName")!.Text);
-                    Assert.AreEqual("已连接 Microsoft 正版档案", page.FindControl<TextBlock>("LabAccountType")!.Text);
-
-                    Click(window, page.FindControl<MyIconTextButton>("BtnLogout")!);
-
-                    Assert.IsFalse(OnlineAccountService.IsLoggedIn);
                     Assert.IsTrue(page.FindControl<StackPanel>("PanNotLoggedIn")!.IsVisible);
                     Assert.IsFalse(page.FindControl<Grid>("PanLoggedIn")!.IsVisible);
-                    Assert.IsFalse(page.FindControl<MyCard>("CardSync")!.IsVisible);
-                    Assert.AreEqual("已退出账户", message?.Title);
+                    Assert.IsTrue(page.FindControl<MyCard>("CardSync")!.IsVisible);
+                    Assert.IsTrue(page.FindControl<Grid>("PanSyncUnavailable")!.IsVisible);
+                    Assert.IsFalse(page.FindControl<WrapPanel>("PanSyncSections")!.IsEnabled);
+
+                    Click(window, page.FindControl<MyIconTextButton>("BtnLogin")!);
+
+                    Assert.AreEqual("在线功能暂不可用", message?.Title);
+                    StringAssert.Contains(message!.Message, "PluginSDK");
                 }
                 finally
                 {

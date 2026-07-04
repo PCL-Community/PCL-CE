@@ -93,7 +93,6 @@
         <ProjectReference Include="..\PCL.Online.Windows\PCL.Online.Windows.csproj" />
         <ProjectReference Include="..\PCL.Platform\PCL.Platform.csproj" />
         <ProjectReference Include="..\PCL.Platform.Abstractions\PCL.Platform.Abstractions.csproj" />
-        <ProjectReference Include="..\PCL.Plugin\PCL.Plugin.csproj" />
     </ItemGroup>
     <ItemGroup>
         <Using Include="System.Text.Json" />

@@ -12,7 +12,6 @@
   <Project Path="PCL.Platform.Test\PCL.Platform.Test.csproj" />
   <Project Path="PCL.Application\PCL.Application.csproj" />
   <Project Path="PCL.Application.Test\PCL.Application.Test.csproj" />
-  <Project Path="PCL.Plugin\PCL.Plugin.csproj" />
   <Project Path="PCL.UI.Abstractions\PCL.UI.Abstractions.csproj" />
   <Project Path="PCL.Desktop\PCL.Desktop.csproj" />
   <Project Path="PCL.Desktop.Test\PCL.Desktop.Test.csproj" />

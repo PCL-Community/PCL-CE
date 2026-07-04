@@ -235,6 +235,9 @@ orleans.codegen.cs
 # PCL.Server 已拆分为独立仓库
 PCL.Server/
 
+# PCL.Plugin 将作为闭源仓库维护，公开仓库仅保留宿主入口与占位界面
+PCL.Plugin/
+
 # Including strong name files can present a security risk
 # (https://github.com/github/gitignore/pull/2483#issue-259490424)
 #*.snk

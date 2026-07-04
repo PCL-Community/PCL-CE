@@ -44,21 +44,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../PCL.Application/PCL.Application.csproj" />
-    <ProjectReference Include="../PCL.Online/PCL.Online.csproj" />
     <ProjectReference Include="../PCL.Platform/PCL.Platform.csproj" />
-    <ProjectReference Include="../PCL.Plugin/PCL.Plugin.csproj" />
     <ProjectReference Include="../PCL.UI.Abstractions/PCL.UI.Abstractions.csproj" />
   </ItemGroup>
-  <Target Name="CopyWindowsOnlineIntegration" AfterTargets="Build" Condition="'$(OS)' == 'Windows_NT'">
-    <MSBuild Projects="../PCL.Online.Windows/PCL.Online.Windows.csproj"
-             Targets="Build"
-             Properties="Configuration=$(Configuration)" />
-    <ItemGroup>
-      <WindowsOnlineIntegrationFiles Include="../PCL.Online.Windows/bin/$(Configuration)/net10.0-windows/*.*" />
-    </ItemGroup>
-    <Copy SourceFiles="@(WindowsOnlineIntegrationFiles)"
-          DestinationFolder="$(OutputPath)"
-          SkipUnchangedFiles="true"
-          Condition="'@(WindowsOnlineIntegrationFiles)' != ''" />
-  </Target>
+  <Import Project="../PCL.Plugin/PCL.Plugin.Desktop.props"
+          Condition="Exists('../PCL.Plugin/PCL.Plugin.Desktop.props')" />
 </Project>

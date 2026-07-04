@@ -16,6 +16,7 @@ public sealed class DesktopArchitectureTests
         "System.Management",
         "WindowsBase",
         "PCL.Core",
+        "PCL.Online",
         "Plain Craft Launcher 2"
     ];
 
@@ -52,6 +53,7 @@ public sealed class DesktopArchitectureTests
             "PresentationFramework",
             "PresentationCore",
             "WindowsBase",
+            "PCL.Online",
             "Plain Craft Launcher 2"
         ];
 

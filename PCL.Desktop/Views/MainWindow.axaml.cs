@@ -29,7 +29,6 @@ using PCL.Desktop.Features.Downloads.Views;
 using PCL.Desktop.Features.Instances.Views;
 using PCL.Desktop.Features.Launching.Views;
 using PCL.Desktop.Features.Settings.Views;
-using PCL.Online;
 using PCL.Platform.Paths;
 
 namespace PCL.Desktop.Views;
@@ -104,10 +103,8 @@ public partial class MainWindow : Window, IDisposable
             _isMainWindowOpened = true;
             StartShowAnimation();
         };
-        Closed += (_, _) => OnlineAccountService.OnLogout -= HandleOnlineAccountLogout;
         SyncTitleOverlayWidth();
         _ = LoadProfilesAsync();
-        OnlineAccountService.OnLogout += HandleOnlineAccountLogout;
         SelectNavPage(0, animate: false);
     }
 
@@ -1036,25 +1033,6 @@ public partial class MainWindow : Window, IDisposable
 
     private void WireSetupPage(MyPageRight page)
     {
-        if (page is PageSetupOnline onlinePage)
-        {
-            onlinePage.LoginRequested += (_, kind) =>
-            {
-                if (kind == OnlineLoginKind.Windows)
-                {
-                    _ = StartWindowsOnlineLoginAsync();
-                    return;
-                }
-
-                SelectNavPage(0, animate: false);
-                if (_launchLeft is not null)
-                {
-                    _launchLeft.PageChangeToLogin();
-                    ApplyLaunchLoginPage(_launchLeft, PageLaunchLeft.LaunchLoginPageType.Ms);
-                }
-            };
-        }
-
         if (page is PageSetupLaunch launchSettingsPage)
         {
             launchSettingsPage.SwitchToInstanceSetupRequested += (_, _) => _ = SwitchToSelectedInstanceSetupAsync();
@@ -2508,7 +2486,6 @@ public partial class MainWindow : Window, IDisposable
         _launchRight?.Dispose();
         _instanceSelectPage?.Dispose();
         _setupRight?.Dispose();
-        OnlineAccountService.OnLogout -= HandleOnlineAccountLogout;
         GC.SuppressFinalize(this);
     }
 
@@ -2538,349 +2515,18 @@ public partial class MainWindow : Window, IDisposable
         page.PurchaseRequested += (_, _) => OpenExternalUrl(
             "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
         page.WebsiteRequested += (_, _) => OpenExternalUrl("https://www.minecraft.net/zh-hans");
-        page.LoginRequested += (_, _) => _ = StartMicrosoftOnlineLoginAsync(page);
+        page.LoginRequested += (_, _) => ShowOnlinePluginUnavailable(page);
         return page;
     }
 
-    private async Task StartMicrosoftOnlineLoginAsync(PageLoginMs page)
+    private void ShowOnlinePluginUnavailable(PageLoginMs page)
     {
-        if (string.IsNullOrWhiteSpace(OnlineAccountService.MicrosoftClientId))
-        {
-            page.FinishLogin();
-            ShowTextDialog(
-                "登录配置缺失",
-                "当前版本缺少 Microsoft 登录配置，无法打开正版账户登录。请稍后更新启动器，或先创建离线档案进入游戏。",
-                "知道了");
-            return;
-        }
-
-        _launchRight?.AppendLog("正在启动 Microsoft 账户登录。");
-        Action<double> updateProgress = progress =>
-            Dispatcher.UIThread.Post(() => page.UpdateProgress(progress));
-        try
-        {
-            page.UpdateProgress(0.02d);
-            OnlineLoginResult result = await Task.Run(() =>
-                    OnlineAccountService.Login(prepareJson =>
-                        ShowMicrosoftDeviceCodeDialog(prepareJson, updateProgress)))
-                .ConfigureAwait(true);
-            HandleOnlineLoginResult(result, "Microsoft 登录");
-        }
-        finally
-        {
-            page.FinishLogin();
-        }
-    }
-
-    private object? ShowMicrosoftDeviceCodeDialog(
-        JsonObject prepareJson,
-        Action<double>? progress = null)
-    {
-        string userCode = prepareJson["user_code"]?.ToString() ?? "";
-        string deviceCode = prepareJson["device_code"]?.ToString() ?? "";
-        string website = FirstNonEmpty(
-            prepareJson["verification_uri_complete"]?.ToString(),
-            prepareJson["verification_uri"]?.ToString(),
-            "https://www.microsoft.com/link");
-        string title = FirstNonEmpty(
-            prepareJson["login_title"]?.ToString(),
-            "Microsoft 正版档案登录");
-        string caption = prepareJson["verification_uri_complete"] is not null
-            ? $"请在打开的网页中确认登录。\n\n如果网页没有自动填入代码，请输入：{userCode}"
-            : $"请打开下面的网页，并输入代码：{userCode}";
-
-        using CancellationTokenSource cancellation = new();
-        MyMsgLogin? dialog = null;
-        Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            dialog = new MyMsgLogin
-            {
-                Title = title,
-                Caption = caption,
-                UserCode = userCode,
-                Website = website
-            };
-            ShowLoginDialog(dialog, cancellation.Cancel);
-            CopyLoginCodeToClipboard(userCode);
-            _ = OpenLoginWebsiteAfterDelayAsync(website, cancellation.Token);
-        }).GetAwaiter().GetResult();
-
-        try
-        {
-            return PollMicrosoftDeviceCode(prepareJson, deviceCode, progress, cancellation.Token)
-                .GetAwaiter()
-                .GetResult();
-        }
-        catch (OperationCanceledException)
-        {
-            return new OperationCanceledException("登录已取消。");
-        }
-        catch (Exception ex)
-        {
-            return ex;
-        }
-        finally
-        {
-            if (dialog is not null)
-            {
-                Dispatcher.UIThread.Post(() =>
-                {
-                    if (dialog.Parent is not null)
-                        dialog.CloseLikeWpf();
-                });
-            }
-        }
-    }
-
-    private static async Task<string[]> PollMicrosoftDeviceCode(
-        JsonObject prepareJson,
-        string deviceCode,
-        Action<double>? progress,
-        CancellationToken cancellationToken)
-    {
-        int intervalSeconds = GetJsonInt32(prepareJson, "interval", 5);
-        int expiresInSeconds = Math.Max(GetJsonInt32(prepareJson, "expires_in", 900), intervalSeconds);
-        string scope = prepareJson["scope"]?.ToString() ?? "XboxLive.signin offline_access";
-        DateTimeOffset expiresAt = DateTimeOffset.UtcNow.AddSeconds(expiresInSeconds);
-
-        using HttpClient client = new();
-        double completed = 0d;
-        while (DateTimeOffset.UtcNow < expiresAt)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            using FormUrlEncodedContent content = new(new Dictionary<string, string>
-            {
-                ["grant_type"] = "urn:ietf:params:oauth:grant-type:device_code",
-                ["client_id"] = OnlineAccountService.MicrosoftClientId,
-                ["device_code"] = deviceCode,
-                ["scope"] = scope
-            });
-            using HttpResponseMessage response = await client
-                .PostAsync(
-                    "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
-                    content,
-                    cancellationToken)
-                .ConfigureAwait(false);
-            string responseBody = await response.Content.ReadAsStringAsync(cancellationToken)
-                .ConfigureAwait(false);
-            JsonObject? json = JsonNode.Parse(responseBody) as JsonObject;
-            if (response.IsSuccessStatusCode)
-            {
-                string? accessToken = json?["access_token"]?.ToString();
-                string? refreshToken = json?["refresh_token"]?.ToString();
-                if (string.IsNullOrWhiteSpace(accessToken) ||
-                    string.IsNullOrWhiteSpace(refreshToken))
-                {
-                    throw new InvalidOperationException("Microsoft 返回的登录令牌不完整，请重新登录。");
-                }
-
-                progress?.Invoke(0.62d);
-                return [accessToken, refreshToken];
-            }
-
-            string error = json?["error"]?.ToString() ?? $"HTTP {(int)response.StatusCode}";
-            switch (error)
-            {
-                case "authorization_pending":
-                    break;
-                case "slow_down":
-                    intervalSeconds += 5;
-                    break;
-                case "authorization_declined":
-                    throw new InvalidOperationException("你已在 Microsoft 登录页面拒绝了授权。");
-                case "expired_token":
-                    throw new InvalidOperationException("登录代码已经过期，请重新开始登录。");
-                default:
-                    string description = json?["error_description"]?.ToString() ?? error;
-                    throw new InvalidOperationException(description);
-            }
-
-            completed = Math.Min(
-                0.55d,
-                0.05d + (DateTimeOffset.UtcNow - (expiresAt - TimeSpan.FromSeconds(expiresInSeconds))).TotalSeconds /
-                expiresInSeconds * 0.45d);
-            progress?.Invoke(completed);
-            await Task.Delay(TimeSpan.FromSeconds(intervalSeconds), cancellationToken)
-                .ConfigureAwait(false);
-        }
-
-        throw new InvalidOperationException("登录代码已经过期，请重新开始登录。");
-    }
-
-    private async Task OpenLoginWebsiteAfterDelayAsync(string website, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken).ConfigureAwait(false);
-            await Dispatcher.UIThread.InvokeAsync(() => OpenExternalUrl(website));
-        }
-        catch (OperationCanceledException)
-        {
-        }
-    }
-
-    private void CopyLoginCodeToClipboard(string userCode)
-    {
-        if (string.IsNullOrWhiteSpace(userCode))
-            return;
-
-        _ = Dispatcher.UIThread.InvokeAsync(async () =>
-        {
-            try
-            {
-                if (TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
-                    await clipboard.SetTextAsync(userCode).ConfigureAwait(true);
-            }
-            catch (Exception ex)
-            {
-                _launchRight?.AppendLog("复制登录代码失败：" + ex.Message);
-            }
-        });
-    }
-
-    private async Task StartWindowsOnlineLoginAsync()
-    {
-        if (!OperatingSystem.IsWindows())
-        {
-            ShowTextDialog(
-                "此设备不支持 Windows 登录",
-                "“使用我的 Windows 登录”只能在 Windows 10 1809 或更高版本使用。你可以改用 Microsoft 登录。",
-                "知道了");
-            return;
-        }
-
-        _launchRight?.AppendLog("正在使用当前 Windows 账户登录。");
-        OnlineLoginResult? result = await WindowsOnlineAccountBridge
-            .LoginWithWindowsAccountAsync(this)
-            .ConfigureAwait(true);
-        if (result is null)
-        {
-            ShowTextDialog(
-                "Windows 登录组件未就绪",
-                "当前构建没有包含 Windows 系统账户登录组件。你可以改用 Microsoft 登录。",
-                "知道了");
-            return;
-        }
-
-        HandleOnlineLoginResult(result, "Windows 登录");
-    }
-
-    private void HandleOnlineLoginResult(OnlineLoginResult result, string action)
-    {
-        if (!result.Success)
-        {
-            _launchRight?.AppendLog($"{action}未完成：{result.Message}");
-            if (!result.Message.Contains("取消", StringComparison.Ordinal))
-                ShowTextDialog(action + "失败", result.Message, "知道了");
-            return;
-        }
-
-        LoginProfileInfo profile = CreateProfileFromOnlineResult(result);
-        AddOrUpdateLoginProfile(profile);
-        _launchLeft?.SetSelectedProfilePresent(true);
-        _launchLeft?.RefreshPage(anim: true);
-        _loginProfilePage?.SetProfiles(_loginProfiles, profile);
-        _loginProfileSkinPage?.SetProfile(profile);
-        if (_setupRight is PageSetupOnline onlinePage)
-            onlinePage.RefreshOnlineState();
-        SaveProfilesInBackground("保存 Microsoft 账户档案");
-        CloudSyncService.TrySyncInBackground("login", CloudSyncService.SyncMode.TimestampMerge);
-        _launchRight?.AppendLog($"{action}成功，已选中档案 {profile.Username}。");
-
-        if (result.MinecraftProfileMissing)
-        {
-            ShowTextDialog(
-                "需要创建 Minecraft 档案",
-                result.Message + "\n\n已经为你保留登录状态。请在 Minecraft 官网创建档案，完成后回到启动器重新登录或刷新档案。",
-                "打开档案页面");
-            OpenExternalUrl("https://www.minecraft.net/msaprofile/mygames/editprofile");
-            return;
-        }
-
-        ShowTextDialog("登录成功", result.Message, "知道了");
-    }
-
-    private static LoginProfileInfo CreateProfileFromOnlineResult(OnlineLoginResult result)
-    {
-        bool hasOnlineMinecraftProfile =
-            result.OwnsMinecraft &&
-            result.HasMinecraftProfile &&
-            !string.IsNullOrWhiteSpace(result.MinecraftProfileName);
-        if (hasOnlineMinecraftProfile)
-        {
-            string uuid = result.Uuid ?? "";
-            return new LoginProfileInfo(
-                result.MinecraftProfileName!,
-                "Microsoft 正版账户",
-                LaunchLoginProfileKind.Microsoft,
-                uuid,
-                SvgIcon: "lucide/shield-check",
-                SkinAddress: string.IsNullOrWhiteSpace(uuid)
-                    ? null
-                    : $"https://crafatar.com/skins/{uuid}",
-                AccessToken: result.AccessToken ?? "",
-                RefreshToken: result.RefreshToken ?? "");
-        }
-
-        string offlineName = FirstNonEmpty(
-            result.DisplayName,
-            result.UserName,
-            result.MinecraftProfileName,
-            "Microsoft 账户");
-        return new LoginProfileInfo(
-            offlineName,
-            result.OwnsMinecraft ? "Microsoft 账户 · 待创建 Minecraft 档案" : "Microsoft 账户 · 离线档案",
-            LaunchLoginProfileKind.Offline,
-            FirstNonEmpty(result.MsId, result.Uuid, offlineName),
-            SvgIcon: "lucide/user");
-    }
-
-    private void AddOrUpdateLoginProfile(LoginProfileInfo profile)
-    {
-        int existingIndex = _loginProfiles.FindIndex(existing => IsSameProfile(existing, profile));
-        if (existingIndex >= 0)
-            _loginProfiles.RemoveAt(existingIndex);
-        _loginProfiles.Insert(0, profile);
-    }
-
-    private void HandleOnlineAccountLogout(string? uuid)
-    {
-        Dispatcher.UIThread.Post(() =>
-        {
-            int removed = _loginProfiles.RemoveAll(profile => IsOnlineManagedProfile(profile, uuid));
-            if (removed > 0)
-            {
-                LoginProfileInfo? selected = _loginProfiles.FirstOrDefault();
-                _loginProfilePage?.SetProfiles(_loginProfiles, selected);
-                _launchLeft?.SetSelectedProfilePresent(_loginProfiles.Count > 0);
-                _launchLeft?.RefreshPage(anim: true);
-                if (selected is not null)
-                    _loginProfileSkinPage?.SetProfile(selected);
-                SaveProfilesInBackground("移除在线账户档案");
-            }
-
-            if (_setupRight is PageSetupOnline onlinePage)
-                onlinePage.RefreshOnlineState();
-        });
-    }
-
-    private static bool IsOnlineManagedProfile(LoginProfileInfo profile, string? uuid)
-    {
-        if (profile.Kind == LaunchLoginProfileKind.Microsoft)
-            return string.IsNullOrWhiteSpace(uuid) ||
-                   string.Equals(profile.Uuid, uuid, StringComparison.OrdinalIgnoreCase);
-
-        return profile.Kind == LaunchLoginProfileKind.Offline &&
-               profile.Info.StartsWith("Microsoft 账户", StringComparison.Ordinal) &&
-               (string.IsNullOrWhiteSpace(uuid) ||
-                string.Equals(profile.Uuid, uuid, StringComparison.OrdinalIgnoreCase));
-    }
-
-    private static int GetJsonInt32(JsonObject json, string key, int fallback)
-    {
-        if (json[key] is JsonValue value && value.TryGetValue(out int result))
-            return result;
-        return fallback;
+        page.FinishLogin();
+        _launchRight?.AppendLog("Microsoft 登录需要 Online 内置插件，目前尚未启用。");
+        ShowTextDialog(
+            "Microsoft 登录暂不可用",
+            "在线账户功能将由后续 PluginSDK 内置插件提供。当前版本可以先使用离线档案或第三方登录。",
+            "知道了");
     }
 
     private static string FirstNonEmpty(params string?[] values)
@@ -2994,6 +2640,14 @@ public partial class MainWindow : Window, IDisposable
             _launchRight?.AppendLog($"已创建并选中离线档案 {profile.Username}。");
         };
         return page;
+    }
+
+    private void AddOrUpdateLoginProfile(LoginProfileInfo profile)
+    {
+        int existingIndex = _loginProfiles.FindIndex(existing => IsSameProfile(existing, profile));
+        if (existingIndex >= 0)
+            _loginProfiles.RemoveAt(existingIndex);
+        _loginProfiles.Insert(0, profile);
     }
 
     private async Task ImportProfilesAsync(PageLoginProfile page, PageLaunchLeft launchPage)
