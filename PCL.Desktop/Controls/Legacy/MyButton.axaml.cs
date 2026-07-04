@@ -102,11 +102,20 @@ public partial class MyButton : Border
 
     public event EventHandler? Click;
 
+    public event EventHandler<PointerReleasedEventArgs>? ClickReleased;
+
     public InlineCollection Inlines =>
         _label?.Inlines ?? throw new InvalidOperationException("MyButton text block is not initialized.");
 
-    public ScaleTransform RealRenderTransform =>
-        _foregroundBorder?.RenderTransform as ScaleTransform ?? new ScaleTransform();
+    public ITransform? RealRenderTransform
+    {
+        get => _foregroundBorder?.RenderTransform;
+        set
+        {
+            if (_foregroundBorder is not null)
+                _foregroundBorder.RenderTransform = value;
+        }
+    }
 
     public string Text
     {
@@ -180,6 +189,7 @@ public partial class MyButton : Border
         var parameter = CommandParameter;
         if (Command?.CanExecute(parameter) == true)
             Command.Execute(parameter);
+        ClickReleased?.Invoke(this, e);
         Click?.Invoke(this, EventArgs.Empty);
         ModAnimation.AniStart(
             ModAnimation.AaScaleTransform(

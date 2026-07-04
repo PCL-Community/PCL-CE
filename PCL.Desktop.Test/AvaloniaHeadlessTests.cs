@@ -373,6 +373,68 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void MyButton_ExposesWpfRealRenderTransformSetterAndReleaseEvent()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            ScaleTransform injectedTransform = new()
+            {
+                ScaleX = 0.9d,
+                ScaleY = 0.9d
+            };
+            MyButton button = new()
+            {
+                Text = "确定",
+                Width = 120,
+                Height = 36,
+                RealRenderTransform = injectedTransform
+            };
+            Window window = new()
+            {
+                Width = 220,
+                Height = 120,
+                Content = new Border
+                {
+                    Margin = new Thickness(20),
+                    Child = button
+                }
+            };
+
+            object? clickSender = null;
+            EventArgs? clickArgs = null;
+            PointerReleasedEventArgs? releasedArgs = null;
+            button.Click += (sender, args) =>
+            {
+                clickSender = sender;
+                clickArgs = args;
+            };
+            button.ClickReleased += (_, args) => releasedArgs = args;
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Border fore = button.FindControl<Border>("PanFore")!;
+                Assert.AreSame(injectedTransform, fore.RenderTransform);
+                Assert.AreSame(injectedTransform, button.RealRenderTransform);
+
+                Click(window, button);
+
+                Assert.AreSame(button, clickSender);
+                Assert.AreSame(EventArgs.Empty, clickArgs);
+                Assert.IsNotNull(releasedArgs);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void MyButton_UsesDarkThemePaletteDuringHoverAnimation()
     {
         using HeadlessUnitTestSession session = CreateSession();
