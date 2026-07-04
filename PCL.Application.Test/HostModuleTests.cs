@@ -77,6 +77,23 @@ public sealed class HostModuleTests
         Assert.ThrowsExactly<ArgumentException>(() => builder.Use(typeof(string)));
     }
 
+    [TestMethod]
+    public void HostModuleLoader_LoadsPlainHostModuleAssembly()
+    {
+        PclHostBuilder builder = new();
+
+        HostModuleLoadResult result = HostModuleLoader.LoadFromAssemblyPaths(
+            builder,
+            [typeof(LoadableHostModule).Assembly.Location]);
+
+        Assert.IsTrue(result.IsSuccessful, string.Join(Environment.NewLine, result.Failures.Select(static failure => failure.Message)));
+        CollectionAssert.Contains(result.LoadedModuleIds.ToArray(), LoadableHostModule.ModuleId);
+
+        IPclHost host = builder.Build();
+        CollectionAssert.Contains(host.ModuleIds.ToArray(), LoadableHostModule.ModuleId);
+        Assert.IsTrue(host.Navigation.Pages.Any(static page => page.Route == "loadable.home"));
+    }
+
     private static NavigationPageDescriptor CreatePage(string route) =>
         new()
         {
@@ -132,5 +149,22 @@ public sealed class HostModuleTests
             LaunchPipelineNext nextMiddleware,
             CancellationToken cancellationToken) =>
             nextMiddleware(context, cancellationToken);
+    }
+}
+
+public sealed class LoadableHostModule : IPclHostModule
+{
+    public const string ModuleId = "sample.loadable.host";
+
+    public string Id => ModuleId;
+
+    public void Configure(IPclHostBuilder builder)
+    {
+        builder.Navigation.AddPage(new NavigationPageDescriptor
+        {
+            Route = "loadable.home",
+            Title = "可加载页面",
+            Provider = new DelegatePageProvider(static (_, _) => new ValueTask<object>(new object()))
+        });
     }
 }
