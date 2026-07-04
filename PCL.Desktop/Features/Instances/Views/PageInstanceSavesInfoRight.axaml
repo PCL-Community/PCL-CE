@@ -1,0 +1,33 @@
+<legacy:MyPageRight
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:legacy="using:PCL.Desktop.Controls.Legacy"
+    x:Class="PCL.Desktop.Features.Instances.Views.PageInstanceSavesInfoRight"
+    PanScroll="{Binding ElementName=PanBack}"
+    Grid.IsSharedSizeScope="True">
+    <legacy:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
+        <StackPanel Margin="25,10,25,10" x:Name="PanMain">
+            <legacy:MyHint x:Name="Hintversion1_9" Theme="Yellow" IsVisible="False" Margin="0,5,0,0" />
+            <legacy:MyHint x:Name="Hintversion1_8" Theme="Yellow" IsVisible="False" Margin="0,5,0,0" />
+            <legacy:MyHint x:Name="Hintversion1_3" Theme="Yellow" IsVisible="False" Margin="0,5,0,0" />
+            <legacy:MyCard Margin="0,15,0,0" Title="{DynamicResource Instance.Saves.Info.Details.Title}" x:Name="PanContent">
+                <Grid Margin="15,35,15,15" x:Name="PanList">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition SharedSizeGroup="TextBlock" Width="Auto" />
+                        <ColumnDefinition Width="24" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                </Grid>
+            </legacy:MyCard>
+            <legacy:MyCard Margin="0,15,0,0" Title="{DynamicResource Instance.Saves.Info.Settings.Title}" x:Name="PanSettings" IsVisible="False">
+                <Grid Margin="15,35,15,15" x:Name="PanSettingsList">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition SharedSizeGroup="TextBlock" Width="Auto" />
+                        <ColumnDefinition Width="24" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                </Grid>
+            </legacy:MyCard>
+        </StackPanel>
+    </legacy:MyScrollViewer>
+</legacy:MyPageRight>

@@ -3707,6 +3707,88 @@ public sealed class AvaloniaHeadlessTests
         }
     }
 
+    [TestMethod]
+    public void PageInstanceSavesInfoRight_LoadsCopiedWpfDetailsAndSettings()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+        string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-save-info-ui-" + Guid.NewGuid().ToString("N"));
+
+        try
+        {
+            string worldDirectory = System.IO.Path.Combine(root, "saves", "New World");
+            Directory.CreateDirectory(worldDirectory);
+            WriteLevelDat(worldDirectory, data =>
+            {
+                data.Add(new fNbt.NbtString("LevelName", "New World"));
+                data.Add(new fNbt.NbtLong("RandomSeed", 123456789L));
+                data.Add(new fNbt.NbtLong("LastPlayed", DateTimeOffset.Parse("2026-01-02T03:04:05Z").ToUnixTimeMilliseconds()));
+                data.Add(new fNbt.NbtLong("Time", 2400L));
+                data.Add(new fNbt.NbtInt("DataVersion", 1343));
+                data.Add(new fNbt.NbtInt("GameType", 1));
+                data.Add(new fNbt.NbtInt("SpawnX", 12));
+                data.Add(new fNbt.NbtInt("SpawnY", 65));
+                data.Add(new fNbt.NbtInt("SpawnZ", -34));
+                data.Add(new fNbt.NbtByte("allowCommands", 1));
+                data.Add(new fNbt.NbtByte("Difficulty", 2));
+                data.Add(new fNbt.NbtByte("DifficultyLocked", 0));
+                fNbt.NbtCompound version = new("Version");
+                version.Add(new fNbt.NbtString("Name", "1.12.2"));
+                version.Add(new fNbt.NbtInt("Id", 1343));
+                data.Add(version);
+            });
+
+            session.Dispatch(async () =>
+            {
+                PageInstanceSavesInfoRight page = new();
+                Window window = new()
+                {
+                    Width = 720,
+                    Height = 480,
+                    Content = page
+                };
+                try
+                {
+                    window.Show();
+                    await page.SetSaveFolderAsync(worldDirectory).ConfigureAwait(true);
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                    string[] text = page.GetVisualDescendants()
+                        .OfType<TextBlock>()
+                        .Select(block => block.Text ?? string.Empty)
+                        .ToArray();
+                    Assert.IsTrue(text.Contains("游戏版本"));
+                    Assert.IsTrue(text.Contains("1.12.2 (1343)"));
+                    Assert.IsTrue(text.Contains("存档名称"));
+                    Assert.IsTrue(text.Contains("New World"));
+                    Assert.IsTrue(text.Contains("世界种子"));
+                    Assert.IsTrue(text.Contains("123456789"));
+                    Assert.IsTrue(text.Contains("出生点"));
+                    Assert.IsTrue(text.Contains("12 / 65 / -34"));
+                    Assert.IsTrue(text.Contains("游戏模式"));
+                    Assert.IsTrue(text.Contains("创造模式"));
+                    Assert.IsTrue(text.Contains("游玩时间"));
+                    Assert.IsTrue(text.Contains("2 分钟 0 秒"));
+
+                    Assert.IsTrue(page.FindControl<MyCard>("PanContent")!.IsVisible);
+                    Assert.IsTrue(page.FindControl<MyCard>("PanSettings")!.IsVisible);
+                    Assert.AreEqual("版本信息", page.FindControl<MyCard>("PanContent")!.Title);
+                    Assert.AreEqual("存档设置", page.FindControl<MyCard>("PanSettings")!.Title);
+                    Assert.AreEqual(2, page.GetVisualDescendants().OfType<MyComboBox>().Count());
+                    Assert.IsTrue(page.GetVisualDescendants().OfType<MyCheckBox>().Any(checkBox => checkBox.Text == "锁定难度"));
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }, CancellationToken.None);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
     private static void WriteServersDat(string root)
     {
         fNbt.NbtCompound rootTag = new("");
@@ -3721,6 +3803,18 @@ public sealed class AvaloniaHeadlessTests
         rootTag.Add(servers);
         fNbt.NbtFile file = new(rootTag);
         using FileStream stream = File.Create(System.IO.Path.Combine(root, "servers.dat"));
+        file.SaveToStream(stream, fNbt.NbtCompression.GZip);
+    }
+
+    private static void WriteLevelDat(string folderPath, Action<fNbt.NbtCompound> populateData)
+    {
+        fNbt.NbtCompound root = new("");
+        fNbt.NbtCompound data = new("Data");
+        populateData(data);
+        root.Add(data);
+
+        fNbt.NbtFile file = new(root);
+        using FileStream stream = File.Create(System.IO.Path.Combine(folderPath, "level.dat"));
         file.SaveToStream(stream, fNbt.NbtCompression.GZip);
     }
 

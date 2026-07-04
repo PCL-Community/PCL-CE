@@ -67,11 +67,13 @@ public partial class MainWindow : Window, IDisposable
     private PageInstanceExportRight? _instanceExportPage;
     private PageInstanceInstallRight? _instanceInstallPage;
     private PageInstanceSavesRight? _instanceSavesPage;
+    private PageInstanceSavesInfoRight? _instanceSavesInfoPage;
     private PageInstanceScreenshotRight? _instanceScreenshotPage;
     private PageInstanceToolsRight? _instanceToolsPage;
     private PageInstanceServerRight? _instanceServerPage;
     private LaunchInstanceInfo? _managedInstance;
     private bool _isTitleSubPageVisible;
+    private Action? _titleInnerBackAction;
     private MyScrollViewer? _backButtonScrollViewer;
     private CancellationTokenSource? _installCancellation;
     private CancellationTokenSource? _launchCancellation;
@@ -197,6 +199,13 @@ public partial class MainWindow : Window, IDisposable
 
     private void BtnTitleInner_Click(object? sender, EventArgs e)
     {
+        if (_titleInnerBackAction is { } backAction)
+        {
+            _titleInnerBackAction = null;
+            backAction();
+            return;
+        }
+
         SelectNavPage(0, animate: true);
     }
 
@@ -547,6 +556,7 @@ public partial class MainWindow : Window, IDisposable
 
     private void SelectNavPage(int page, bool animate)
     {
+        _titleInnerBackAction = null;
         if (!_navigationPages.ContainsKey(page))
             page = 0;
 
@@ -637,6 +647,7 @@ public partial class MainWindow : Window, IDisposable
 
     private void ApplyRegisteredMainPage(DesktopMainPage page)
     {
+        _titleInnerBackAction = null;
         if (this.FindControl<Border>("PanMainLeft") is not { } leftHost ||
             this.FindControl<Border>("PanMainRight") is not { } rightHost)
         {
@@ -809,6 +820,7 @@ public partial class MainWindow : Window, IDisposable
 
     private void ApplyInstanceManagePage(LaunchInstanceInfo instance, InstancePageSubType subPage = InstancePageSubType.Overall)
     {
+        _titleInnerBackAction = null;
         if (this.FindControl<Border>("PanMainLeft") is not { } leftHost ||
             this.FindControl<Border>("PanMainRight") is not { } rightHost)
         {
@@ -1004,7 +1016,7 @@ public partial class MainWindow : Window, IDisposable
     {
         PageInstanceSavesRight page = new();
         page.OpenFolderRequested += (_, path) => OpenFolder(path);
-        page.SaveDetailsRequested += (_, path) => _launchRight?.AppendLog($"已选择存档：{Path.GetFileName(path)}。");
+        page.SaveDetailsRequested += (_, path) => _ = ShowInstanceSaveDetailsAsync(path);
         page.QuickPlayRequested += (_, worldName) =>
         {
             if (_managedInstance is not null && _launchLeft is not null)
@@ -1012,6 +1024,42 @@ public partial class MainWindow : Window, IDisposable
         };
         page.StatusMessage += (_, message) => _launchRight?.AppendLog(message);
         return page;
+    }
+
+    private PageInstanceSavesInfoRight CreateInstanceSavesInfoPage()
+    {
+        PageInstanceSavesInfoRight page = new();
+        page.StatusMessage += (_, message) => _launchRight?.AppendLog(message);
+        return page;
+    }
+
+    private async Task ShowInstanceSaveDetailsAsync(string saveFolder)
+    {
+        if (_managedInstance is null ||
+            this.FindControl<Border>("PanMainRight") is not { } rightHost)
+        {
+            return;
+        }
+
+        _instanceSavesInfoPage ??= CreateInstanceSavesInfoPage();
+        PageInstanceSavesInfoRight page = _instanceSavesInfoPage;
+        _titleInnerBackAction = () =>
+        {
+            if (_managedInstance is not null)
+                ApplyInstanceManagePage(_managedInstance, InstancePageSubType.Saves);
+        };
+        EnterTitleSubPage("存档详情 - " + Path.GetFileName(saveFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)));
+
+        MyPageRight? oldRight = rightHost.Child as MyPageRight;
+        if (!ReferenceEquals(oldRight, page))
+        {
+            oldRight?.PageOnExit();
+            rightHost.Child = page;
+        }
+
+        RefreshBackToTopBinding();
+        page.PageOnEnter();
+        await page.SetSaveFolderAsync(saveFolder).ConfigureAwait(true);
     }
 
     private PageInstanceToolsRight CreateInstanceToolsPage()
