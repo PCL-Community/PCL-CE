@@ -328,7 +328,7 @@ public class EasyTierEntity
         }
 
         retryCount = 0;
-        while (State is not EtState.Ready && State is not EtState.Stopped && retryCount < 10)
+        while (State is EtState.Active && retryCount < 300)
         {
             ct.ThrowIfCancellationRequested();
             var info = await _GetPlayersAsync().ConfigureAwait(false);
