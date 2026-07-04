@@ -3553,6 +3553,121 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void PageInstanceLeft_SwitchesModEntryToDisabledPromptForVanillaInstance()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+        string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-left-modable-" + Guid.NewGuid().ToString("N"));
+
+        try
+        {
+            string vanillaDirectory = System.IO.Path.Combine(root, "versions", "1.20.1");
+            string fabricDirectory = System.IO.Path.Combine(root, "versions", "fabric-1.20.1");
+            Directory.CreateDirectory(vanillaDirectory);
+            Directory.CreateDirectory(fabricDirectory);
+            string vanillaJson = System.IO.Path.Combine(vanillaDirectory, "1.20.1.json");
+            string fabricJson = System.IO.Path.Combine(fabricDirectory, "fabric-1.20.1.json");
+            File.WriteAllText(vanillaJson, """{ "id": "1.20.1", "libraries": [] }""");
+            File.WriteAllText(fabricJson, """
+                {
+                  "id": "fabric-1.20.1",
+                  "libraries": [
+                    { "name": "net.fabricmc:fabric-loader:0.16.10" }
+                  ]
+                }
+                """);
+
+            LaunchInstanceInfo vanilla = new("1.20.1", vanillaJson, vanillaDirectory);
+            LaunchInstanceInfo fabric = new("fabric-1.20.1", fabricJson, fabricDirectory);
+
+            session.Dispatch(() =>
+            {
+                PageInstanceLeft page = new();
+                Window window = new()
+                {
+                    Width = 260,
+                    Height = 520,
+                    Content = page
+                };
+
+                try
+                {
+                    window.Show();
+                    page.SetInstance(vanilla);
+                    page.SelectPage(InstancePageSubType.Mods);
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                    Assert.IsFalse(page.FindControl<MyListItem>("ItemMod")!.IsVisible);
+                    Assert.IsTrue(page.FindControl<MyListItem>("ItemModDisabled")!.IsVisible);
+                    Assert.AreEqual(InstancePageSubType.ModsDisabled, page.PageId);
+                    Assert.IsTrue(page.FindControl<MyListItem>("ItemModDisabled")!.Checked);
+
+                    page.SetInstance(fabric);
+                    page.SelectPage(InstancePageSubType.Mods);
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                    Assert.IsTrue(page.FindControl<MyListItem>("ItemMod")!.IsVisible);
+                    Assert.IsFalse(page.FindControl<MyListItem>("ItemModDisabled")!.IsVisible);
+                    Assert.AreEqual(InstancePageSubType.Mods, page.PageId);
+                    Assert.IsTrue(page.FindControl<MyListItem>("ItemMod")!.Checked);
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }, CancellationToken.None);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void PageInstanceModDisabledRight_RendersCopiedWpfPromptAndActions()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageInstanceModDisabledRight page = new();
+            Window window = new()
+            {
+                Width = 620,
+                Height = 360,
+                Content = page
+            };
+            bool downloadRequested = false;
+            bool instanceSelectRequested = false;
+            page.DownloadRequested += (_, _) => downloadRequested = true;
+            page.InstanceSelectRequested += (_, _) => instanceSelectRequested = true;
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                string[] text = page.GetVisualDescendants()
+                    .OfType<TextBlock>()
+                    .Select(block => block.Text ?? string.Empty)
+                    .ToArray();
+                Assert.IsTrue(text.Contains("这个版本不能安装 Mod"));
+                Assert.IsTrue(text.Any(value => value.Contains("当前版本没有安装 Forge、Fabric、Quilt", StringComparison.Ordinal)));
+
+                Click(window, page.FindControl<MyButton>("BtnDownload")!);
+                Click(window, page.FindControl<MyButton>("BtnVersion")!);
+
+                Assert.IsTrue(downloadRequested);
+                Assert.IsTrue(instanceSelectRequested);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void PageInstanceScreenshotRight_UsesCopiedWpfGalleryAndActions()
     {
         using HeadlessUnitTestSession session = CreateSession();

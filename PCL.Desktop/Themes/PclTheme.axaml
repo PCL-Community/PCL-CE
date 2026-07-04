@@ -152,6 +152,10 @@
     <x:String x:Key="Instance.Left.Shaders">光影</x:String>
     <x:String x:Key="Instance.Left.Schematics">投影</x:String>
     <x:String x:Key="Instance.Left.Servers">服务器</x:String>
+    <x:String x:Key="Instance.Mod.Disabled.Title">这个版本不能安装 Mod</x:String>
+    <x:String x:Key="Instance.Mod.Disabled.Message">当前版本没有安装 Forge、Fabric、Quilt 等 Mod 加载器，因此不能直接管理 Mod。你可以为这个版本补装加载器，或切换到已经安装加载器的版本。</x:String>
+    <x:String x:Key="Instance.Mod.Disabled.GoDownload">安装加载器</x:String>
+    <x:String x:Key="Instance.Mod.Disabled.SelectInstance">选择其他版本</x:String>
     <x:String x:Key="Instance.Overall.Info.Title">版本信息</x:String>
     <x:String x:Key="Instance.Overall.Info.Loading">正在读取版本信息</x:String>
     <x:String x:Key="Instance.Overall.Personalization.Title">个性化</x:String>

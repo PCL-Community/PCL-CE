@@ -70,6 +70,7 @@ public partial class MainWindow : Window, IDisposable
     private PageInstanceSavesInfoRight? _instanceSavesInfoPage;
     private PageInstanceScreenshotRight? _instanceScreenshotPage;
     private PageInstanceToolsRight? _instanceToolsPage;
+    private PageInstanceModDisabledRight? _instanceModDisabledPage;
     private PageInstanceServerRight? _instanceServerPage;
     private LaunchInstanceInfo? _managedInstance;
     private bool _isTitleSubPageVisible;
@@ -829,6 +830,8 @@ public partial class MainWindow : Window, IDisposable
 
         _managedInstance = instance;
         _instanceLeft ??= CreateInstanceLeftPage();
+        _instanceLeft.SetInstance(instance);
+        subPage = _instanceLeft.NormalizePage(subPage);
         leftHost.Child = _instanceLeft;
         _instanceLeft.TriggerShowAnimation();
         _instanceLeft.SelectPage(subPage);
@@ -930,6 +933,12 @@ public partial class MainWindow : Window, IDisposable
             _instanceSavesPage ??= CreateInstanceSavesPage();
             _instanceSavesPage.SetInstance(instance);
             return _instanceSavesPage;
+        }
+
+        if (subPage == InstancePageSubType.ModsDisabled)
+        {
+            _instanceModDisabledPage ??= CreateInstanceModDisabledPage();
+            return _instanceModDisabledPage;
         }
 
         _instanceToolsPage ??= CreateInstanceToolsPage();
@@ -1066,6 +1075,18 @@ public partial class MainWindow : Window, IDisposable
     {
         PageInstanceToolsRight page = new();
         page.OpenFolderRequested += (_, path) => OpenFolder(path);
+        return page;
+    }
+
+    private PageInstanceModDisabledRight CreateInstanceModDisabledPage()
+    {
+        PageInstanceModDisabledRight page = new();
+        page.DownloadRequested += (_, _) => SelectNavPage(1, animate: true);
+        page.InstanceSelectRequested += (_, _) =>
+        {
+            SelectNavPage(0, animate: true);
+            ApplyInstanceSelectPage();
+        };
         return page;
     }
 

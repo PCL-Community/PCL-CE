@@ -237,6 +237,39 @@ internal static class InstanceDisplayHelper
         }
     }
 
+    public static bool IsModable(LaunchInstanceInfo instance)
+    {
+        if (!File.Exists(instance.VersionJsonPath))
+            return false;
+
+        try
+        {
+            using FileStream stream = File.OpenRead(instance.VersionJsonPath);
+            using JsonDocument document = JsonDocument.Parse(stream);
+            return ReadLibraryNames(document.RootElement).Any(IsModLoaderLibrary);
+        }
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
+    private static bool IsModLoaderLibrary(string library) =>
+        library.Contains("net.minecraftforge:forge:", StringComparison.OrdinalIgnoreCase) ||
+        library.Contains("minecraftforge", StringComparison.OrdinalIgnoreCase) ||
+        library.Contains("net.neoforged:neoforge:", StringComparison.OrdinalIgnoreCase) ||
+        library.Contains("net.neoforge:forge:", StringComparison.OrdinalIgnoreCase) ||
+        library.Contains("neoforge", StringComparison.OrdinalIgnoreCase) ||
+        library.Contains("com.cleanroommc:cleanroom:", StringComparison.OrdinalIgnoreCase) ||
+        library.Contains("cleanroom", StringComparison.OrdinalIgnoreCase) ||
+        library.Contains("net.fabricmc:fabric-loader:", StringComparison.OrdinalIgnoreCase) ||
+        library.Contains("org.quiltmc:quilt-loader:", StringComparison.OrdinalIgnoreCase) ||
+        library.Contains("optifine", StringComparison.OrdinalIgnoreCase) ||
+        library.Contains("liteloader", StringComparison.OrdinalIgnoreCase) ||
+        library.Contains("net.legacyfabric:", StringComparison.OrdinalIgnoreCase) ||
+        library.Contains("legacyfabric", StringComparison.OrdinalIgnoreCase) ||
+        library.Contains("labymod", StringComparison.OrdinalIgnoreCase);
+
     public static string GetCustomLogoPath(LaunchInstanceInfo instance) =>
         Path.Combine(instance.InstanceDirectory, "PCL", "Logo.png");
 

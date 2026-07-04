@@ -5,6 +5,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Features.Launching.Views;
 
 namespace PCL.Desktop.Features.Instances.Views;
 
@@ -16,6 +17,7 @@ public enum InstancePageSubType
     Saves = 3,
     Screenshots = 4,
     Mods = 5,
+    ModsDisabled = 6,
     ResourcePacks = 7,
     Shaders = 8,
     Schematics = 9,
@@ -25,6 +27,9 @@ public enum InstancePageSubType
 
 public partial class PageInstanceLeft : MyPageLeft
 {
+    private LaunchInstanceInfo? _instance;
+    private bool _isModable;
+
     public PageInstanceLeft()
     {
         AvaloniaXamlLoader.Load(this);
@@ -39,8 +44,19 @@ public partial class PageInstanceLeft : MyPageLeft
 
     public InstancePageSubType PageId { get; private set; } = InstancePageSubType.Overall;
 
+    public void SetInstance(LaunchInstanceInfo instance)
+    {
+        _instance = instance;
+        _isModable = InstanceDisplayHelper.IsModable(instance);
+        RefreshModDisabled();
+    }
+
+    public InstancePageSubType NormalizePage(InstancePageSubType page) =>
+        page == InstancePageSubType.Mods && !_isModable ? InstancePageSubType.ModsDisabled : page;
+
     public void PageChange(InstancePageSubType page, bool force = false)
     {
+        page = NormalizePage(page);
         if (!force && PageId == page)
             return;
 
@@ -50,6 +66,7 @@ public partial class PageInstanceLeft : MyPageLeft
 
     public void SelectPage(InstancePageSubType page)
     {
+        page = NormalizePage(page);
         PageId = page;
         foreach (MyListItem item in GetItems())
         {
@@ -62,6 +79,15 @@ public partial class PageInstanceLeft : MyPageLeft
     {
         if (senderRaw is MyListItem item && TryGetPage(item, out InstancePageSubType page))
             PageChange(page);
+    }
+
+    private void RefreshModDisabled()
+    {
+        if (this.FindControl<MyListItem>("ItemMod") is { } itemMod)
+            itemMod.IsVisible = _instance is null || _isModable;
+
+        if (this.FindControl<MyListItem>("ItemModDisabled") is { } itemModDisabled)
+            itemModDisabled.IsVisible = _instance is not null && !_isModable;
     }
 
     private void RefreshButton_Click(object? sender, EventArgs e)
