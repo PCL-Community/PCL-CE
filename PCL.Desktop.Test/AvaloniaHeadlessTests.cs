@@ -974,6 +974,12 @@ public sealed class AvaloniaHeadlessTests
                 StringAssert.Contains(
                     pluginPage.FindControl<TextBlock>("LabPluginState")!.Text,
                     "Online 后续将作为外部 Host Module 接入");
+                StringAssert.Contains(
+                    pluginPage.FindControl<TextBlock>("LabPluginState")!.Text,
+                    "已启用 5 个 Host Module");
+                StringAssert.Contains(
+                    pluginPage.FindControl<TextBlock>("LabPluginState")!.Text,
+                    "注册 5 个导航入口");
             }
             finally
             {
