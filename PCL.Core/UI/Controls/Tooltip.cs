@@ -362,7 +362,7 @@ public static class Tooltip
         if (ReferenceEquals(_target, target))
         {
             _cursor = pt;
-            if (_flyout is not { IsOpen: true })
+            if (_flyout is not { IsOpen: true } && _latch is null)
                 _KickTimer(target);
             return;
         }
