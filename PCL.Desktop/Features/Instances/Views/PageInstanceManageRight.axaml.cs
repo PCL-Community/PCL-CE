@@ -7,6 +7,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using PCL.Application.Instances;
 using PCL.Desktop.Controls.Legacy;
@@ -18,6 +19,7 @@ public partial class PageInstanceManageRight : MyPageRight
 {
     private LaunchInstanceInfo? _instance;
     private InstanceMetadata _metadata = new();
+    private readonly SemaphoreSlim _metadataWriteLock = new(1, 1);
     private bool _isApplyingMetadata;
 
     public PageInstanceManageRight()
@@ -236,7 +238,7 @@ public partial class PageInstanceManageRight : MyPageRight
         IStorageProvider? storage = TopLevel.GetTopLevel(this)?.StorageProvider;
         if (storage is null)
         {
-            ApplyMetadataToControls();
+            await RunOnUiThreadAsync(ApplyMetadataToControls).ConfigureAwait(false);
             return;
         }
 
@@ -256,7 +258,7 @@ public partial class PageInstanceManageRight : MyPageRight
 
         if (files.Count == 0)
         {
-            ApplyMetadataToControls();
+            await RunOnUiThreadAsync(ApplyMetadataToControls).ConfigureAwait(false);
             return;
         }
 
@@ -264,7 +266,7 @@ public partial class PageInstanceManageRight : MyPageRight
         Directory.CreateDirectory(Path.GetDirectoryName(logoPath)
             ?? throw new InvalidOperationException("无法确定自定义图标目录。"));
 
-        await using (Stream source = await files[0].OpenReadAsync().ConfigureAwait(true))
+        await using (Stream source = await files[0].OpenReadAsync().ConfigureAwait(false))
         await using (FileStream destination = new(
                          logoPath,
                          FileMode.Create,
@@ -273,7 +275,7 @@ public partial class PageInstanceManageRight : MyPageRight
                          bufferSize: 8 * 1024,
                          FileOptions.Asynchronous | FileOptions.WriteThrough))
         {
-            await source.CopyToAsync(destination).ConfigureAwait(true);
+            await source.CopyToAsync(destination).ConfigureAwait(false);
         }
 
         await UpdateMetadataAsync(metadata => metadata with
@@ -284,13 +286,34 @@ public partial class PageInstanceManageRight : MyPageRight
 
     private async Task UpdateMetadataAsync(Func<InstanceMetadata, InstanceMetadata> update)
     {
-        if (_instance is null)
+        LaunchInstanceInfo? instance = _instance;
+        if (instance is null)
             return;
 
-        _metadata = update(_metadata);
-        await InstanceMetadataStore.SaveAsync(_instance.InstanceDirectory, _metadata).ConfigureAwait(true);
-        PopulateDisplayItem(_instance);
-        ApplyMetadataToControls();
+        await _metadataWriteLock.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            InstanceMetadata metadata = update(_metadata);
+            _metadata = metadata;
+            await InstanceMetadataStore.SaveAsync(instance.InstanceDirectory, metadata).ConfigureAwait(false);
+
+            await RunOnUiThreadAsync(() =>
+            {
+                if (_instance is null ||
+                    !string.Equals(_instance.InstanceDirectory, instance.InstanceDirectory, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                _metadata = metadata;
+                PopulateDisplayItem(instance);
+                ApplyMetadataToControls();
+            }).ConfigureAwait(false);
+        }
+        finally
+        {
+            _metadataWriteLock.Release();
+        }
     }
 
     private void SelectLogoItem(string logoPath)
@@ -459,6 +482,17 @@ public partial class PageInstanceManageRight : MyPageRight
         }
 
         return instance.InstanceDirectory;
+    }
+
+    private static Task RunOnUiThreadAsync(Action action)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            action();
+            return Task.CompletedTask;
+        }
+
+        return Dispatcher.UIThread.InvokeAsync(action).GetTask();
     }
 
     private readonly record struct InstanceInfoItem(string Title, string Info, string ImageName, bool IsModable);
