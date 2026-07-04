@@ -39,4 +39,35 @@ public class DiffTest
         ];
         CollectionAssert.AreEqual(trueData, res);
     }
+
+    [TestMethod]
+    public async Task TestBsDiffMakeRoundTrip()
+    {
+        var diff = new BsDiff();
+        byte[] originData =
+        [
+            73, 32, 97, 109, 32, 110, 111, 116, 32, 115, 117, 114, 101, 32, 104, 111, 119, 32, 99, 104, 111, 117,
+            108, 100, 32, 98, 115, 100, 105, 102, 102, 32, 119, 111, 114, 107
+        ];
+        byte[] newData =
+        [
+            73, 32, 97, 109, 32, 118, 101, 114, 121, 32, 115, 117, 114, 101, 32, 104, 111, 119, 32, 98, 115, 100,
+            105, 102, 102, 32, 119, 111, 114, 107
+        ];
+
+        byte[] patch = await diff.MakeAsync(originData, newData);
+        byte[] applied = await diff.ApplyAsync(originData, patch);
+
+        CollectionAssert.AreEqual(newData, applied);
+    }
+
+    [TestMethod]
+    public async Task TestBsDiffMakeEmptyTargetRoundTrip()
+    {
+        var diff = new BsDiff();
+        byte[] patch = await diff.MakeAsync([1, 2, 3], []);
+        byte[] applied = await diff.ApplyAsync([1, 2, 3], patch);
+
+        CollectionAssert.AreEqual(Array.Empty<byte>(), applied);
+    }
 }

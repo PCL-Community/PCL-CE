@@ -171,7 +171,61 @@ extra block; seek forwards in oldfile by z bytes".
 
 	public Task<byte[]> MakeAsync(byte[] originData, byte[] newData)
 	{
-		throw new NotImplementedException();
+		ArgumentNullException.ThrowIfNull(originData);
+		ArgumentNullException.ThrowIfNull(newData);
+
+		return Task.Run(() =>
+		{
+			// 生成一个合法但不做最小化的 BSDIFF40 补丁：diff block 为空，
+			// extra block 直接存放目标文件。后续可在不改接口的前提下替换为真正的最小差分算法。
+			byte[] ctrlBlock = Compress(BuildControlBlock(addRange: 0, copyRange: newData.Length, seek: 0));
+			byte[] diffBlock = Compress([]);
+			byte[] extraBlock = Compress(newData);
+
+			using MemoryStream patch = new(HeaderSize + ctrlBlock.Length + diffBlock.Length + extraBlock.Length);
+			WriteInt64(patch, HeaderVersion);
+			WriteInt64(patch, ctrlBlock.Length);
+			WriteInt64(patch, diffBlock.Length);
+			WriteInt64(patch, newData.Length);
+			patch.Write(ctrlBlock);
+			patch.Write(diffBlock);
+			patch.Write(extraBlock);
+			return patch.ToArray();
+		});
+	}
+
+	private static byte[] BuildControlBlock(long addRange, long copyRange, long seek)
+	{
+		using MemoryStream stream = new(24);
+		WriteControlInt64(stream, addRange);
+		WriteControlInt64(stream, copyRange);
+		WriteControlInt64(stream, seek);
+		return stream.ToArray();
+	}
+
+	private static byte[] Compress(byte[] data)
+	{
+		using MemoryStream stream = new();
+		using (BZip2OutputStream output = new(stream))
+			output.Write(data, 0, data.Length);
+		return stream.ToArray();
+	}
+
+	private static void WriteInt64(Stream stream, long value)
+	{
+		Span<byte> buffer = stackalloc byte[8];
+		BitConverter.TryWriteBytes(buffer, value);
+		stream.Write(buffer);
+	}
+
+	private static void WriteControlInt64(Stream stream, long value)
+	{
+		Span<byte> buffer = stackalloc byte[8];
+		long encoded = value < 0 ? -value : value;
+		BitConverter.TryWriteBytes(buffer, encoded);
+		if (value < 0)
+			buffer[7] |= 0x80;
+		stream.Write(buffer);
 	}
 
 	internal static long ReadInt64(byte[] buffer, int offset = 0)
