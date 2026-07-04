@@ -1867,6 +1867,7 @@ public partial class MainWindow : Window, IDisposable
                 throw new InvalidOperationException("Java 进程未能启动。");
 
             launchPage.LaunchingRefresh("游戏进程已启动", 1d, isLaunched: true, method: "PID " + process.Id.ToString(CultureInfo.InvariantCulture));
+            await IncrementInstanceLaunchCountAsync(instance).ConfigureAwait(true);
             _launchRight?.AppendLog(string.IsNullOrWhiteSpace(worldName)
                 ? $"{instance.Name} 已启动。"
                 : $"{instance.Name} 已启动，正在进入存档 {worldName}。");
@@ -1880,6 +1881,30 @@ public partial class MainWindow : Window, IDisposable
             launchPage.PageChangeToLogin();
             ShowTextDialog("启动失败", "未能启动游戏。\n\n详细信息：" + ex.Message);
             _launchRight?.AppendLog("启动失败：" + ex.Message);
+        }
+    }
+
+    private async Task IncrementInstanceLaunchCountAsync(LaunchInstanceInfo instance)
+    {
+        try
+        {
+            InstanceMetadata metadata = await InstanceMetadataStore.UpdateAsync(
+                    instance.InstanceDirectory,
+                    current => current with { LaunchCount = Math.Max(0, current.LaunchCount) + 1 })
+                .ConfigureAwait(true);
+
+            if (_instanceManagePage is not null &&
+                _managedInstance is not null &&
+                string.Equals(_managedInstance.InstanceDirectory, instance.InstanceDirectory, StringComparison.OrdinalIgnoreCase))
+            {
+                _instanceManagePage.SetInstance(instance);
+            }
+
+            _launchRight?.AppendLog($"这是 {instance.Name} 的第 {metadata.LaunchCount.ToString(CultureInfo.InvariantCulture)} 次启动。");
+        }
+        catch (Exception ex)
+        {
+            _launchRight?.AppendLog("记录启动次数失败：" + ex.Message);
         }
     }
 

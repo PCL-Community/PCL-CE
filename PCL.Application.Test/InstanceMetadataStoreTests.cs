@@ -43,6 +43,9 @@ public sealed class InstanceMetadataStoreTests
                 new InstanceMetadata
                 {
                     Description = "Survival profile",
+                    LaunchCount = 5,
+                    ModpackVersion = "1.4.2",
+                    ModpackProjectId = "modrinth-project-id",
                     IsStarred = true,
                     DisableAssetVerification = true
                 });
@@ -50,6 +53,9 @@ public sealed class InstanceMetadataStoreTests
             InstanceMetadata metadata = await InstanceMetadataStore.LoadAsync(root);
 
             Assert.AreEqual("Survival profile", metadata.Description);
+            Assert.AreEqual(5, metadata.LaunchCount);
+            Assert.AreEqual("1.4.2", metadata.ModpackVersion);
+            Assert.AreEqual("modrinth-project-id", metadata.ModpackProjectId);
             Assert.IsTrue(metadata.IsStarred);
             Assert.IsTrue(metadata.DisableAssetVerification);
         }

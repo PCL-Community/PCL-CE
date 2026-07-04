@@ -164,6 +164,11 @@
     <x:String x:Key="Instance.Mod.Disabled.SelectInstance">选择其他版本</x:String>
     <x:String x:Key="Instance.Overall.Info.Title">版本信息</x:String>
     <x:String x:Key="Instance.Overall.Info.Loading">正在读取版本信息</x:String>
+    <x:String x:Key="Instance.Overall.Info.LaunchCount.Title">启动次数</x:String>
+    <x:String x:Key="Instance.Overall.Info.LaunchCount.Never">从未启动</x:String>
+    <x:String x:Key="Instance.Overall.Info.LaunchCount.Count">已启动 {0} 次</x:String>
+    <x:String x:Key="Instance.Overall.Info.ModpackVersion">整合包版本</x:String>
+    <x:String x:Key="Instance.Overall.Info.Installed">已安装</x:String>
     <x:String x:Key="Instance.Overall.Personalization.Title">个性化</x:String>
     <x:String x:Key="Instance.Overall.Icon.Title">图标</x:String>
     <x:String x:Key="Instance.Overall.Icon.Cobblestone">圆石</x:String>

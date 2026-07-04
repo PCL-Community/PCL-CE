@@ -160,6 +160,22 @@ public partial class PageInstanceManageRight : MyPageRight
             Margin = new Thickness(0, -5, -20, 7)
         };
 
+        AddInfoItem(
+            wrap,
+            ResourceText("Instance.Overall.Info.LaunchCount.Title", "启动次数"),
+            _metadata.LaunchCount <= 0
+                ? ResourceText("Instance.Overall.Info.LaunchCount.Never", "从未启动")
+                : ResourceText("Instance.Overall.Info.LaunchCount.Count", "已启动 {0} 次", _metadata.LaunchCount),
+            _metadata.LaunchCount <= 0 ? "RedstoneLampOff.png" : "RedstoneLampOn.png");
+        if (!string.IsNullOrWhiteSpace(_metadata.ModpackVersion))
+        {
+            AddInfoItem(
+                wrap,
+                ResourceText("Instance.Overall.Info.ModpackVersion", "整合包版本"),
+                _metadata.ModpackVersion,
+                "CommandBlock.png");
+        }
+
         AddInfoItem(wrap, "Minecraft", jsonInfo.MinecraftVersion, "Grass.png");
         foreach (InstanceInfoItem item in jsonInfo.LoaderItems)
             AddInfoItem(wrap, item.Title, item.Info, item.ImageName);
@@ -375,7 +391,7 @@ public partial class PageInstanceManageRight : MyPageRight
         }
     }
 
-    private static InstanceJsonInfo ReadInstanceJsonInfo(LaunchInstanceInfo instance)
+    private InstanceJsonInfo ReadInstanceJsonInfo(LaunchInstanceInfo instance)
     {
         try
         {
@@ -385,7 +401,7 @@ public partial class PageInstanceManageRight : MyPageRight
             string? id = root.TryGetProperty("id", out JsonElement idElement) ? idElement.GetString() : null;
             string? inheritsFrom = root.TryGetProperty("inheritsFrom", out JsonElement inheritsElement) ? inheritsElement.GetString() : null;
             List<string> libraries = ReadLibraryNames(root).ToList();
-            IReadOnlyList<InstanceInfoItem> loaderItems = DetectLoaderInfo(libraries);
+            IReadOnlyList<InstanceInfoItem> loaderItems = DetectLoaderInfo(libraries, ResourceText("Instance.Overall.Info.Installed", "已安装"));
             return new InstanceJsonInfo(
                 string.IsNullOrWhiteSpace(inheritsFrom)
                     ? (string.IsNullOrWhiteSpace(id) ? instance.Name : id)
@@ -400,7 +416,7 @@ public partial class PageInstanceManageRight : MyPageRight
         }
     }
 
-    private static List<InstanceInfoItem> DetectLoaderInfo(IReadOnlyList<string> libraries)
+    private static List<InstanceInfoItem> DetectLoaderInfo(IReadOnlyList<string> libraries, string installedText)
     {
         List<InstanceInfoItem> items = [];
         AddLoader(items, libraries, "Forge", "Anvil.png", isModable: true, "net.minecraftforge:forge:", "minecraftforge");
@@ -409,7 +425,7 @@ public partial class PageInstanceManageRight : MyPageRight
         AddLoader(items, libraries, "Fabric", "Fabric.png", isModable: true, "net.fabricmc:fabric-loader:");
         AddLoader(items, libraries, "Quilt", "Quilt.png", isModable: true, "org.quiltmc:quilt-loader:");
         AddLoader(items, libraries, "OptiFine", "GrassPath.png", isModable: true, "optifine");
-        AddLoader(items, libraries, "LiteLoader", "Egg.png", isModable: true, "liteloader");
+        AddLoader(items, libraries, "LiteLoader", "Egg.png", true, installedText, "liteloader");
         AddLoader(items, libraries, "Legacy Fabric", "Fabric.png", isModable: true, "net.legacyfabric:", "legacyfabric");
         AddLoader(items, libraries, "LabyMod", "LabyMod.png", isModable: true, "labymod");
         return items;
@@ -423,12 +439,24 @@ public partial class PageInstanceManageRight : MyPageRight
         bool isModable,
         params string[] needles)
     {
+        AddLoader(items, libraries, title, imageName, isModable, explicitInfo: null, needles);
+    }
+
+    private static void AddLoader(
+        List<InstanceInfoItem> items,
+        IReadOnlyList<string> libraries,
+        string title,
+        string imageName,
+        bool isModable,
+        string? explicitInfo,
+        params string[] needles)
+    {
         string? library = libraries.FirstOrDefault(library =>
             needles.Any(needle => library.Contains(needle, StringComparison.OrdinalIgnoreCase)));
         if (string.IsNullOrWhiteSpace(library))
             return;
 
-        items.Add(new InstanceInfoItem(title, SimplifyLibraryVersion(library), imageName, isModable));
+        items.Add(new InstanceInfoItem(title, explicitInfo ?? SimplifyLibraryVersion(library), imageName, isModable));
     }
 
     private static string SimplifyLibraryVersion(string library)
@@ -493,6 +521,17 @@ public partial class PageInstanceManageRight : MyPageRight
         }
 
         return Dispatcher.UIThread.InvokeAsync(action).GetTask();
+    }
+
+    private string ResourceText(string key, string fallback, params object[] args)
+    {
+        string text = fallback;
+        if (this.TryFindResource(key, ActualThemeVariant, out object? value) && value is string resourceText)
+            text = resourceText;
+
+        return args.Length == 0
+            ? text
+            : string.Format(System.Globalization.CultureInfo.CurrentCulture, text, args);
     }
 
     private readonly record struct InstanceInfoItem(string Title, string Info, string ImageName, bool IsModable);

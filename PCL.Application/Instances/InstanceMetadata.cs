@@ -12,6 +12,12 @@ public sealed record InstanceMetadata
 
     public string Description { get; init; } = string.Empty;
 
+    public int LaunchCount { get; init; }
+
+    public string ModpackVersion { get; init; } = string.Empty;
+
+    public string ModpackProjectId { get; init; } = string.Empty;
+
     public bool IsStarred { get; init; }
 
     public string LogoPath { get; init; } = string.Empty;

@@ -4289,6 +4289,10 @@ public sealed class AvaloniaHeadlessTests
                         item.Title == "Minecraft" &&
                         item.Info == "1.20.1" &&
                         DisplayText(item.FindControl<TextBlock>("LabTitle")!) == "Minecraft"));
+                    Assert.IsTrue(page.GetVisualDescendants().OfType<MyListItem>().Any(item =>
+                        item.Title == "启动次数" &&
+                        item.Info == "从未启动" &&
+                        item.Logo.EndsWith("RedstoneLampOff.png", StringComparison.OrdinalIgnoreCase)));
                     Assert.AreEqual("自动", page.FindControl<MyComboBox>("ComboDisplayLogo")!.Text);
                     Assert.AreEqual("自动", page.FindControl<MyComboBox>("ComboDisplayType")!.Text);
                     Assert.IsFalse(page.FindControl<MyButton>("BtnFolderMods")!.IsVisible);
@@ -4326,6 +4330,13 @@ public sealed class AvaloniaHeadlessTests
                   ]
                 }
                 """);
+            InstanceMetadataStore.SaveAsync(
+                versionDirectory,
+                new InstanceMetadata
+                {
+                    LaunchCount = 7,
+                    ModpackVersion = "2.4.1"
+                }).GetAwaiter().GetResult();
             LaunchInstanceInfo instance = new("1.20.1", jsonPath, versionDirectory);
 
             session.Dispatch(() =>
@@ -4351,6 +4362,13 @@ public sealed class AvaloniaHeadlessTests
                     Assert.AreEqual("0.16.10", fabric.Info);
                     Assert.IsTrue(forge.Logo.EndsWith("Anvil.png", StringComparison.OrdinalIgnoreCase));
                     Assert.IsTrue(fabric.Logo.EndsWith("Fabric.png", StringComparison.OrdinalIgnoreCase));
+                    Assert.IsTrue(page.GetVisualDescendants().OfType<MyListItem>().Any(item =>
+                        item.Title == "启动次数" &&
+                        item.Info == "已启动 7 次" &&
+                        item.Logo.EndsWith("RedstoneLampOn.png", StringComparison.OrdinalIgnoreCase)));
+                    Assert.IsTrue(page.GetVisualDescendants().OfType<MyListItem>().Any(item =>
+                        item.Title == "整合包版本" &&
+                        item.Info == "2.4.1"));
                     Assert.IsTrue(page.FindControl<MyButton>("BtnFolderMods")!.IsVisible);
                 }
                 finally
