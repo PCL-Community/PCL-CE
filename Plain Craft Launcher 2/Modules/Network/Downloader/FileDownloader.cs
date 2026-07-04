@@ -1,4 +1,5 @@
-﻿using System.IO;
+using System.IO;
+using System.Net.Http;
 using Downloader;
 using PCL.Core.IO.Net;
 
@@ -86,8 +87,7 @@ public static class FileDownloader
             BlockTimeout = 60000,
             DownloadFileExtension = ModNet.netDownloadEnd,
             EnableAutoResumeDownload = false,
-            RequestConfiguration = DownloadRequestFactory.Create(url, useBrowserUserAgent, customUserAgent),
-            CustomHttpClientFactory = () => NetworkService.GetClient(),
+            CustomHttpClientFactory = () => GetHttpClient(url),
             MinimumSizeOfChunking = 1024 * 1024L,
         };
 
@@ -204,5 +204,16 @@ public static class FileDownloader
                 Thread.Sleep(100);
             }
         }
+    }
+
+    private static HttpClient GetHttpClient(string url)
+    {
+        if (Uri.TryCreate(url, UriKind.Absolute, out var parsedUri)
+            && parsedUri.Host is "edge.forgecdn.net" or "mediafilez.forgecdn.net" or "forgecdn.net" or "api.curseforge.com")
+        {
+            return NetworkService.GetClient(NetworkService.CurseForgeApi);
+        }
+        
+        return NetworkService.GetClient();
     }
 }

@@ -56,9 +56,10 @@ public partial class PageSetupLauncherMisc
         CheckNetDohEnable.Checked = Config.Network.EnableDoH;
 
         // 调试选项
-        CheckDebugMode.Checked = Config.Debug.Enabled;
         SliderDebugAnim.Value = Config.Debug.AnimationSpeed;
-        CheckDebugDelay.Checked = Config.Debug.DontCopy;
+        CheckDebugSkipCopy.Checked = Config.Debug.DontCopy;
+        CheckDebugMode.Checked = Config.Debug.Enabled;
+        CheckDebugDelay.Checked = Config.Debug.AddRandomDelay;
     }
 
     // 初始化

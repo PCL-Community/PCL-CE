@@ -78,6 +78,7 @@ public partial class PageSetupLaunch
             CheckAdvanceNoJavaw.Checked = Config.Launch.NoJavaw;
             CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Launch.DisableLwjglUnsafeAgent;
             CheckAdvanceDisableCrashAnalysis.Checked = Config.Launch.DisableCrashAnalysis;
+            CheckAdvanceLockMemory.Checked = Config.Launch.LockMemory;
             if (SystemInfo.IsArm64System)
             {
                 CheckAdvanceDisableJLW.Checked = true;

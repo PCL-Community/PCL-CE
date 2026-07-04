@@ -21,14 +21,14 @@
     <sys:String x:Key="Application.Control.MessageBox.Error.OperationFailed">A message dialog operation failed. See the details below.</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.IKnow">I see</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.Message">PCL CE detected environment issues on startup:&#xA;&#xA;{0}&#xA;&#xA;Some features may not work properly if these issues are not resolved...</sys:String>
-    <sys:String x:Key="Application.EnvironmentWarning.SocialSoftwareFolder">- PCL is running from a download folder of social apps such as QQ, WeChat, or TIM. Consider moving it elsewhere, otherwise game saves or settings may be lost.</sys:String>
-    <sys:String x:Key="Application.EnvironmentWarning.System32Bit">- The current system is 32-bit. PCL and newer versions of Minecraft no longer support it. It is strongly recommended to reinstall a 64-bit system before playing.</sys:String>
-    <sys:String x:Key="Application.EnvironmentWarning.TempFolder">- PCL is running from a temporary folder. Please extract PCL from the compressed file before using it, otherwise game saves or settings may be lost.</sys:String>
+    <sys:String x:Key="Application.EnvironmentWarning.SocialSoftwareFolder">- PCL CE is running from a download folder of social apps such as QQ, WeChat, or TIM. Consider moving it elsewhere, otherwise game saves or settings may be lost.</sys:String>
+    <sys:String x:Key="Application.EnvironmentWarning.System32Bit">- The current system is 32-bit. PCL CE and newer versions of Minecraft no longer support it. It is strongly recommended to reinstall a 64-bit system before playing.</sys:String>
+    <sys:String x:Key="Application.EnvironmentWarning.TempFolder">- PCL CE is running from a temporary folder. Please extract PCL CE from the compressed file before using it, otherwise game saves or settings may be lost.</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.Title">Environment warning</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.WindowsVersion">- The Windows version does not meet the recommended requirement. Windows 10 1809 or later is recommended. Consider upgrading Windows.</sys:String>
-    <sys:String x:Key="Application.InitializationError.Path">PCL path: {0}</sys:String>
+    <sys:String x:Key="Application.InitializationError.Path">PCL CE path: {0}</sys:String>
     <sys:String x:Key="Application.InitializationError.PathUnavailable">Unable to obtain</sys:String>
-    <sys:String x:Key="Application.InitializationError.Title">PCL initialization error</sys:String>
+    <sys:String x:Key="Application.InitializationError.Title">PCL CE initialization error</sys:String>
     <sys:String x:Key="Application.Loader.Error.OperationFailed">A task loading operation failed. See the details below.</sys:String>
 
     <!-- Common -->
@@ -102,8 +102,8 @@
 
     <!-- Config -->
 
-    <sys:String x:Key="Config.Error.InvalidFormat.RecoveryMessage">Configuration initialization failed during the {0} stage.&#xA;&#xA;The configuration file at {1} contains invalid data and was backed up to {2}.&#xA;To help prevent the problem from happening again, PCL tried to restore a previous version when one was available. If you changed the configuration file manually, fix the problem and replace the current file.&#xA;&#xA;If you are not sure what happened, you can ignore this message for now. After restarting PCL, the affected settings may return to their defaults, but normal use should not be affected.</sys:String>
-    <sys:String x:Key="Config.Error.LoadFailed.DebugMessage">Configuration initialization failed during the {0} stage.&#xA;&#xA;The configuration system could not be initialized. Fix the problem and restart PCL.</sys:String>
+    <sys:String x:Key="Config.Error.InvalidFormat.RecoveryMessage">Configuration initialization failed during the {0} stage.&#xA;&#xA;The configuration file at {1} contains invalid data and was backed up to {2}.&#xA;To help prevent the problem from happening again, PCL CE tried to restore a previous version when one was available. If you changed the configuration file manually, fix the problem and replace the current file.&#xA;&#xA;If you are not sure what happened, you can ignore this message for now. After restarting PCL CE, the affected settings may return to their defaults, but normal use should not be affected.</sys:String>
+    <sys:String x:Key="Config.Error.LoadFailed.DebugMessage">Configuration initialization failed during the {0} stage.&#xA;&#xA;The configuration system could not be initialized. Fix the problem and restart PCL CE.</sys:String>
     <sys:String x:Key="Config.Error.LoadFailed.Message">The configuration system failed during the {0} stage.</sys:String>
     <sys:String x:Key="Config.Error.LoadFailed.Title">Configuration initialization failed</sys:String>
     <sys:String x:Key="Config.Error.SaveFailed.Message">Could not save the configuration file.&#xA;&#xA;Path: {0}</sys:String>
@@ -121,9 +121,7 @@
     <sys:String x:Key="Crash.Export.Failed.Message">The crash report could not be exported.&#xA;&#xA;Target path: {0}</sys:String>
     <sys:String x:Key="Crash.Export.Failed.MessageWithoutPath">The crash report could not be exported, and the target path is unavailable.</sys:String>
     <sys:String x:Key="Crash.Export.Failed.Title">Failed to export crash report</sys:String>
-    <sys:String x:Key="Crash.Presentation.LineSeparator">&#xA;</sys:String>
     <sys:String x:Key="Crash.Presentation.ListItem"> - {0}</sys:String>
-    <sys:String x:Key="Crash.Presentation.ParagraphSeparator">&#xA;&#xA;</sys:String>
     <sys:String x:Key="Crash.Presentation.ReasonOnly">Cause&#xA;{0}</sys:String>
     <sys:String x:Key="Crash.Presentation.WithFollowUps">{0}&#xA;&#xA;{1}</sys:String>
     <sys:String x:Key="Crash.Presentation.WithSuggestion">Cause&#xA;{0}&#xA;&#xA;What you can try&#xA;{1}</sys:String>
@@ -167,7 +165,7 @@
     <sys:String x:Key="Crash.Reason.ModRequiresJava11">Some installed mods require Java 11 or later.</sys:String>
     <sys:String x:Key="Crash.Reason.MultipleForgeInInstanceJson">The instance JSON contains multiple Forge version arguments.</sys:String>
     <sys:String x:Key="Crash.Reason.NightConfigBug">Night Config encountered an error while reading configuration files.</sys:String>
-    <sys:String x:Key="Crash.Reason.NoAnalyzableFile">The game ran into a problem, but PCL could not find related log files to analyze.</sys:String>
+    <sys:String x:Key="Crash.Reason.NoAnalyzableFile">The game ran into a problem, but PCL CE could not find related log files to analyze.</sys:String>
     <sys:String x:Key="Crash.Reason.OldForgeNewJavaIncompatible">An old Forge version is incompatible with the selected Java version.</sys:String>
     <sys:String x:Key="Crash.Reason.OpenGl1282">A shader pack or resource pack may have triggered OpenGL error 1282.</sys:String>
     <sys:String x:Key="Crash.Reason.OptiFineForgeIncompatible">OptiFine may be incompatible with the current Forge or Minecraft version.</sys:String>
@@ -179,17 +177,17 @@
     <sys:String x:Key="Crash.Reason.SpecificBlock.Single">The block {0} may have caused the error.</sys:String>
     <sys:String x:Key="Crash.Reason.SpecificEntity.Multiple">Some entities in the world may have caused the error.</sys:String>
     <sys:String x:Key="Crash.Reason.SpecificEntity.Single">The entity {0} may have caused the error.</sys:String>
-    <sys:String x:Key="Crash.Reason.StackKeyword.Multiple">PCL found possibly related keywords in the error stack trace:&#xA;{0}</sys:String>
-    <sys:String x:Key="Crash.Reason.StackKeyword.Single">PCL found a possibly related keyword in the error stack trace: {0}</sys:String>
+    <sys:String x:Key="Crash.Reason.StackKeyword.Multiple">PCL CE found possibly related keywords in the error stack trace:&#xA;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.StackKeyword.Single">PCL CE found a possibly related keyword in the error stack trace: {0}</sys:String>
     <sys:String x:Key="Crash.Reason.SuspectedMod.Multiple">The crash report suspects that the following mods caused the error:&#xA;{0}</sys:String>
     <sys:String x:Key="Crash.Reason.SuspectedMod.Single">The crash report suspects that the mod {0} caused the error.</sys:String>
     <sys:String x:Key="Crash.Reason.TooManyModsIdLimit">Too many mods are installed, exceeding the ID limit of an older Minecraft version.</sys:String>
-    <sys:String x:Key="Crash.Reason.Unknown.Auto">PCL could not determine the exact cause of the crash.</sys:String>
-    <sys:String x:Key="Crash.Reason.Unknown.Manual">PCL could not determine the cause of this error.</sys:String>
-    <sys:String x:Key="Crash.Reason.UnknownFinding">PCL detected an error cause without details: {0}</sys:String>
+    <sys:String x:Key="Crash.Reason.Unknown.Auto">PCL CE could not determine the exact cause of the crash.</sys:String>
+    <sys:String x:Key="Crash.Reason.Unknown.Manual">PCL CE could not determine the cause of this error.</sys:String>
+    <sys:String x:Key="Crash.Reason.UnknownFinding">PCL CE detected an error cause without details: {0}</sys:String>
     <sys:String x:Key="Crash.Reason.UsingJdk">The game may be using a JDK, or the selected Java version may be too new.</sys:String>
     <sys:String x:Key="Crash.Reason.UsingOpenJ9">The OpenJ9 Java runtime may be incompatible with the game, mods, or loader.</sys:String>
-    <sys:String x:Key="Crash.Reason.VeryShortOutput">The game output is too short for PCL to analyze. Raw output:&#xA;{0}</sys:String>
+    <sys:String x:Key="Crash.Reason.VeryShortOutput">The game output is too short for PCL CE to analyze. Raw output:&#xA;{0}</sys:String>
     <sys:String x:Key="Crash.Reason.X86JavaMemoryLimit.OnX64Os">The selected 32-bit Java runtime cannot allocate enough memory for the game.</sys:String>
     <sys:String x:Key="Crash.Reason.X86JavaMemoryLimit.OnX86Os">The 32-bit operating system cannot provide enough memory for the game.</sys:String>
 
@@ -388,7 +386,6 @@
     <sys:String x:Key="Download.Comp.Dependency.Install.Title">Install mod dependencies</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.Install.WithDependencies">Install mod and dependencies</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.Install.WithoutDependencies">Download mod only (not recommended)</sys:String>
-    <sys:String x:Key="Download.Comp.Dependency.ListSeparator">&#xA;</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Continue">Continue download</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Message">Failed to resolve the mod dependencies. Only the main mod will be downloaded.</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Title">Failed to resolve dependencies</sys:String>
@@ -772,12 +769,12 @@
     <!-- Event -->
 
     <sys:String x:Key="Event.Download.Confirm">About to download from this URL:&#xA;{0}</sys:String>
-    <sys:String x:Key="Event.Error.DownloadUrlRequired">EventData must be a URL starting with http:// or https://.&#xA;PCL does not support other download protocols.</sys:String>
+    <sys:String x:Key="Event.Error.DownloadUrlRequired">EventData must be a URL starting with http:// or https://.&#xA;PCL CE does not support other download protocols.</sys:String>
     <sys:String x:Key="Event.Error.ExecutionFailed">Event execution failed ({0}, {1})</sys:String>
     <sys:String x:Key="Event.Error.FileNotFound">Local file not found for EventData: {0}</sys:String>
     <sys:String x:Key="Event.Error.MissingArgs">EventType {0} requires at least 2 parameters separated by |, e.g. {1}</sys:String>
     <sys:String x:Key="Event.Error.Title">Event execution failed</sys:String>
-    <sys:String x:Key="Event.Error.UnknownType">Unknown event type: {0}&#xA;Please check if the EventType is correct, or if PCL is up to date.</sys:String>
+    <sys:String x:Key="Event.Error.UnknownType">Unknown event type: {0}&#xA;Please check if the EventType is correct, or if PCL CE is up to date.</sys:String>
     <sys:String x:Key="Event.Error.UrlRequired">EventData must be a URL.&#xA;If you want to launch a program, change EventType to OpenFile.</sys:String>
     <sys:String x:Key="Event.LaunchGame.SelectVersion">Please select a Minecraft instance first!</sys:String>
     <sys:String x:Key="Event.LaunchGame.Starting">Starting {0}...</sys:String>
@@ -789,7 +786,7 @@
     <sys:String x:Key="Event.Safety.DangerousSettingBlocked">A custom homepage cannot write the security-sensitive setting: {0}</sys:String>
     <sys:String x:Key="Event.Safety.Title">Confirm execution</sys:String>
     <sys:String x:Key="Event.Sanitize.UnknownTypeHint">[{0}] is an unrecognized EventType and has been removed from the homepage.</sys:String>
-    <sys:String x:Key="Event.Sanitize.UnsupportedTypeHint">[{0}] is an unsupported official PCL EventType and has been removed from the homepage.</sys:String>
+    <sys:String x:Key="Event.Sanitize.UnsupportedTypeHint">[{0}] is an unsupported original PCL EventType and has been removed from the homepage.</sys:String>
     <sys:String x:Key="Event.Setting.Written">Setting written: {0} → {1}</sys:String>
     <sys:String x:Key="Event.Variable.Written">Variable written: {0} → {1}</sys:String>
 
@@ -801,7 +798,7 @@
     <sys:String x:Key="Instance.Install.Action.StartReset">Reset</sys:String>
     <sys:String x:Key="Instance.Install.Error.OperationFailed">An instance installation operation failed. See the details below.</sys:String>
     <sys:String x:Key="Instance.Install.NoExtraInstall">No extra installation</sys:String>
-    <sys:String x:Key="Instance.Install.Reset.Message">You are resetting the current instance.&#xA;PCL will re-download the files required for this instance from the internet and reinstall mod loaders (if any).&#xA;This operation will not lose your saves, mods, resource packs, etc.</sys:String>
+    <sys:String x:Key="Instance.Install.Reset.Message">You are resetting the current instance.&#xA;PCL CE will re-download the files required for this instance from the internet and reinstall mod loaders (if any).&#xA;This operation will not lose your saves, mods, resource packs, etc.</sys:String>
     <sys:String x:Key="Instance.Install.Reset.Title">Reset this instance</sys:String>
 
     <!-- Instance.Export -->
@@ -830,7 +827,7 @@
     <sys:String x:Key="Instance.Export.StartExport">Export</sys:String>
     <sys:String x:Key="Instance.Export.Task.CopyContent">Copy export contents</sys:String>
     <sys:String x:Key="Instance.Export.Task.CreateArchive">Create archive</sys:String>
-    <sys:String x:Key="Instance.Export.Task.DownloadPclRelease">Download PCL release</sys:String>
+    <sys:String x:Key="Instance.Export.Task.DownloadPclRelease">Download PCL CE release</sys:String>
     <sys:String x:Key="Instance.Export.Task.FetchFileInfo">Get file information</sys:String>
     <sys:String x:Key="Instance.Export.ZipFilter">ZIP file (*.zip)|*.zip</sys:String>
 
@@ -843,7 +840,7 @@
     <sys:String x:Key="Instance.Export.Advanced.ExportConfig">Export config</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.ImportConfig">Import config</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.Modrinth">Modrinth upload mode</sys:String>
-    <sys:String x:Key="Instance.Export.Advanced.Modrinth.ToolTip">Enable this if you plan to upload to Modrinth to generate fully Modrinth-compliant modpack files.&#xA;Due to Modrinth requirements, resources only available from CurseForge cannot be downloaded online and will be bundled directly.&#xA;Additionally, the PCL launcher files cannot be included in the modpack when this is enabled.</sys:String>
+    <sys:String x:Key="Instance.Export.Advanced.Modrinth.ToolTip">Enable this if you plan to upload to Modrinth to generate fully Modrinth-compliant modpack files.&#xA;Due to Modrinth requirements, resources only available from CurseForge cannot be downloaded online and will be bundled directly.&#xA;Additionally, the PCL CE launcher files cannot be included in the modpack when this is enabled.</sys:String>
     <sys:String x:Key="Instance.Export.Advanced.Title">Advanced options</sys:String>
 
     <!-- Instance.Export.Config -->
@@ -862,8 +859,8 @@
     <sys:String x:Key="Instance.Export.Config.Comment.ExcludedFiles">Excluded files</sys:String>
     <sys:String x:Key="Instance.Export.Config.Comment.ExtraFiles">If you want to automatically place additional files in the root of the archive, write their paths below.</sys:String>
     <sys:String x:Key="Instance.Export.Config.Comment.ExtraFiles2">Must be absolute paths. In each line, ending with \\ indicates a folder; not ending with \\ indicates a file.</sys:String>
-    <sys:String x:Key="Instance.Export.Config.Comment.IncludeLauncher">Whether to bundle the stable version of PCL so players without a launcher can install the modpack.</sys:String>
-    <sys:String x:Key="Instance.Export.Config.Comment.IncludeLauncherCustom">Whether to bundle PCL custom content, such as feature toggle settings, homepage, background music and images, etc.</sys:String>
+    <sys:String x:Key="Instance.Export.Config.Comment.IncludeLauncher">Whether to bundle the stable version of PCL CE so players without a launcher can install the modpack.</sys:String>
+    <sys:String x:Key="Instance.Export.Config.Comment.IncludeLauncherCustom">Whether to bundle PCL CE custom content, such as feature toggle settings, homepage, background music and images, etc.</sys:String>
     <sys:String x:Key="Instance.Export.Config.Comment.ModifyRules">Modify the rules below to control the content to be exported.</sys:String>
     <sys:String x:Key="Instance.Export.Config.Comment.Modrinth">If you plan to upload to Modrinth, enabling this will generate fully Modrinth-compliant modpack files.</sys:String>
     <sys:String x:Key="Instance.Export.Config.Comment.Modrinth2">Due to Modrinth requirements, resources only available from CurseForge cannot be downloaded online and will be bundled directly.</sys:String>
@@ -887,9 +884,9 @@
     <sys:String x:Key="Instance.Export.Option.ImportantData.Desc">Scripts, built-in resource packs, data packs, etc.</sys:String>
     <sys:String x:Key="Instance.Export.Option.Jei">JEI profile</sys:String>
     <sys:String x:Key="Instance.Export.Option.Jei.Desc">Item favorites, etc.</sys:String>
-    <sys:String x:Key="Instance.Export.Option.Launcher">PCL Launcher</sys:String>
-    <sys:String x:Key="Instance.Export.Option.Launcher.Desc">Bundle PCL Community Edition for players without a launcher</sys:String>
-    <sys:String x:Key="Instance.Export.Option.LauncherCustom">PCL custom content</sys:String>
+    <sys:String x:Key="Instance.Export.Option.Launcher">PCL CE Launcher</sys:String>
+    <sys:String x:Key="Instance.Export.Option.Launcher.Desc">Bundle PCL CE for players without a launcher</sys:String>
+    <sys:String x:Key="Instance.Export.Option.LauncherCustom">PCL CE custom content</sys:String>
     <sys:String x:Key="Instance.Export.Option.LauncherCustom.Desc">Feature toggle settings, homepage, background music and images, etc.</sys:String>
     <sys:String x:Key="Instance.Export.Option.Maps">Saved maps</sys:String>
     <sys:String x:Key="Instance.Export.Option.Maps.Desc">Maps, waypoints, etc. saved by map mods</sys:String>
@@ -947,7 +944,7 @@
     <sys:String x:Key="Instance.Overall.Delete.PermanentSuccess">Instance {0} has been permanently deleted!</sys:String>
     <sys:String x:Key="Instance.Overall.Delete.RecycleBinSuccess">Instance {0} has been moved to the recycle bin!</sys:String>
     <sys:String x:Key="Instance.Overall.Description.Default">Default description</sys:String>
-    <sys:String x:Key="Instance.Overall.Description.EditMessage">Edit the description text for this instance. Leave empty to use PCL's default description.</sys:String>
+    <sys:String x:Key="Instance.Overall.Description.EditMessage">Edit the description text for this instance. Leave empty to use PCL CE's default description.</sys:String>
     <sys:String x:Key="Instance.Overall.Description.EditTitle">Edit description</sys:String>
     <sys:String x:Key="Instance.Overall.EditDescription">Edit description</sys:String>
     <sys:String x:Key="Instance.Overall.Error.OperationFailed">An instance overview operation failed. See the details below.</sys:String>
@@ -964,7 +961,7 @@
     <sys:String x:Key="Instance.Overall.Patch.Success">Game core patched successfully</sys:String>
     <sys:String x:Key="Instance.Overall.Personalization.Title">Personalization</sys:String>
     <sys:String x:Key="Instance.Overall.Rename">Rename instance</sys:String>
-    <sys:String x:Key="Instance.Overall.Reset.ConfirmMessage">Are you sure you want to reset instance {0}?&#xA;PCL will try to re-download this instance's resource file information from the internet and perform automatic installation.</sys:String>
+    <sys:String x:Key="Instance.Overall.Reset.ConfirmMessage">Are you sure you want to reset instance {0}?&#xA;PCL CE will try to re-download this instance's resource file information from the internet and perform automatic installation.</sys:String>
     <sys:String x:Key="Instance.Overall.Reset.ConfirmTitle">Reset instance confirmation</sys:String>
     <sys:String x:Key="Instance.Overall.Reset.NotSupported">This instance does not support reset yet!</sys:String>
     <sys:String x:Key="Instance.Overall.Script.ExportFailed">Export launch script failed</sys:String>
@@ -1399,7 +1396,7 @@
     <sys:String x:Key="Instance.Setup.Advanced.IgnoreJavaCompatibility">Ignore Java compatibility warning</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.IgnoreJavaCompatibility.ToolTip">If a manually selected Java is incompatible with this instance, automatically skip the compatibility warning popup and force the use of the manually selected Java.</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.JvmArgs.ToolTip">Additional JVM arguments used when launching Minecraft. Do not modify unless you are certain what you are doing.&#xA;Supports substitution tokens from the Minecraft instance JSON, e.g. ${library_directory}.&#xA;&#xA;Leave empty to follow the global setting.</sys:String>
-    <sys:String x:Key="Instance.Setup.Advanced.PreLaunchCommand.ToolTip">This does not override the global setting: the global command runs first, then the instance command.&#xA;&#xA;Executes a command or program before launching Minecraft, using Windows command prompt syntax.&#xA;&#xA;The following substitution tokens can be used for relative paths (paths end with \):&#xA; · {path}: PCL executable folder&#xA; · {minecraft}: .minecraft folder&#xA; · {verpath}: Instance folder (.minecraft\versions\instance-name\)&#xA; · {verindie}: Version folder when isolation is on, .minecraft folder otherwise&#xA; · {java}: Java runtime folder&#xA;&#xA;Additionally, these tokens are also supported:&#xA; · {user}: Player name&#xA; · {login}: Player login method&#xA; · {uuid}: Player UUID&#xA; · {name}: Game instance name&#xA; · {date}, {time}: Current system time&#xA; · {version}: Game vanilla version&#xA;&#xA;Examples:&#xA; · "{verpath}test.exe" : Run test.exe in the instance folder&#xA; · "{java}java.exe" -jar "{verpath}test.jar" : Run test.jar from the instance folder with Java&#xA; · notepad "{verindie}options.txt" : Open the instance settings file with Notepad&#xA;&#xA;Always wrap paths in double quotes to avoid failures caused by spaces.&#xA;The working directory when executing the command is the current .minecraft folder.</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.PreLaunchCommand.ToolTip">This does not override the global setting: the global command runs first, then the instance command.&#xA;&#xA;Executes a command or program before launching Minecraft, using Windows command prompt syntax.&#xA;&#xA;The following substitution tokens can be used for relative paths (paths end with \):&#xA; · {path}: PCL CE executable folder&#xA; · {minecraft}: .minecraft folder&#xA; · {verpath}: Instance folder (.minecraft\versions\instance-name\)&#xA; · {verindie}: Version folder when isolation is on, .minecraft folder otherwise&#xA; · {java}: Java runtime folder&#xA;&#xA;Additionally, these tokens are also supported:&#xA; · {user}: Player name&#xA; · {login}: Player login method&#xA; · {uuid}: Player UUID&#xA; · {name}: Game instance name&#xA; · {date}, {time}: Current system time&#xA; · {version}: Game vanilla version&#xA;&#xA;Examples:&#xA; · "{verpath}test.exe" : Run test.exe in the instance folder&#xA; · "{java}java.exe" -jar "{verpath}test.jar" : Run test.jar from the instance folder with Java&#xA; · notepad "{verindie}options.txt" : Open the instance settings file with Notepad&#xA;&#xA;Always wrap paths in double quotes to avoid failures caused by spaces.&#xA;The working directory when executing the command is the current .minecraft folder.</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.UseDebugLog4j">Use debug-level log4j configuration</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.UseDebugLog4j.Message">This option changes the game log level to the minimum, which may consume substantial disk space and potentially affect game performance. It may also pose some security risks. Do not change this option if you don't know what you're doing!&#xA;Are you sure you want to continue?</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.UseGlobalProxy">Follow launcher network proxy settings</sys:String>
@@ -1433,7 +1430,7 @@
     <sys:String x:Key="Instance.Setup.Options.Java.SelectRelative.Invalid">Select Java in launcher directory (current path is invalid)</sys:String>
     <sys:String x:Key="Instance.Setup.Options.Java.SelectRelative.WithJava">Java in launcher directory | {0}</sys:String>
     <sys:String x:Key="Instance.Setup.Options.Java.SelectRelativeToolTip">Select a Java path relative to the instance directory</sys:String>
-    <sys:String x:Key="Instance.Setup.Options.Java.ToolTip">If Java is placed in the game or PCL folder, PCL will prefer selecting it during auto-detection.</sys:String>
+    <sys:String x:Key="Instance.Setup.Options.Java.ToolTip">If Java is placed in the game or PCL CE folder, PCL CE will prefer selecting it during auto-detection.</sys:String>
 
     <!-- Instance.Setup.Server -->
 
@@ -1472,8 +1469,8 @@
     <sys:String x:Key="Launch.Error.Title">Launch failed</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.HidePrompt">To permanently hide this notice, enter the correct PCL CE development organization name.</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.InputTitle">Enter the PCL CE development organization name</sys:String>
-    <sys:String x:Key="Launch.Right.CommunityHint.Message">You are using PCL Community Edition! This version is independently developed and maintained, and differs from the official version in its development path and user experience.&#xA;&#xA;If you downloaded the Community Edition by accident, we strongly recommend downloading the official PCL version for long-term use, as this distribution may not be user-friendly for newcomers.&#xA;Additionally, please submit Community Edition issues to the Community Edition repository, and do not report Community Edition issues to the official repository!</sys:String>
-    <sys:String x:Key="Launch.Right.CommunityHint.Title">Community Edition notice</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.Message">You are using PCL CE (PCL Community Edition)! This version is independently developed and maintained, and differs from the original version in its development path and user experience.&#xA;&#xA;If you downloaded the PCL CE by accident, we strongly recommend downloading the original PCL version for long-term use, as this distribution may not be user-friendly for newcomers.&#xA;Additionally, please submit PCL CE issues to the PCL CE repository, and do not report PCL CE issues to the original repository!</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.Title">PCL CE notice</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.WrongInput">Not quite right...</sys:String>
     <sys:String x:Key="Launch.Right.Log.Title">Launch log</sys:String>
 
@@ -1542,7 +1539,7 @@
     <sys:String x:Key="Launch.Account.Offline.Uuid.Custom.Input.ToolTip">Must be a 32-character hexadecimal string without hyphens</sys:String>
     <sys:String x:Key="Launch.Account.Offline.Uuid.Custom.ToolTip">For advanced users. If you do not know what this is, do not select this option.</sys:String>
     <sys:String x:Key="Launch.Account.Offline.Uuid.Legacy">Legacy</sys:String>
-    <sys:String x:Key="Launch.Account.Offline.Uuid.Legacy.ToolTip">Use legacy PCL UUID generation rules.&#xA;If some single-player save data is missing after upgrading from an older PCL version, try this option.</sys:String>
+    <sys:String x:Key="Launch.Account.Offline.Uuid.Legacy.ToolTip">Use legacy PCL CE UUID generation rules.&#xA;If some single-player save data is missing after upgrading from an older PCL CE version, try this option.</sys:String>
     <sys:String x:Key="Launch.Account.Offline.Uuid.Standard">Standard</sys:String>
     <sys:String x:Key="Launch.Account.Offline.Uuid.Standard.ToolTip">[Recommended] The generated UUID is consistent with other launchers such as HMCL, BakaXL, and Bukkit.</sys:String>
     <sys:String x:Key="Launch.Account.Offline.UuidStandard">UUID standard</sys:String>
@@ -1840,10 +1837,10 @@
     <!-- Main -->
 
     <sys:String x:Key="Main.April.Nope">Muda!</sys:String>
-    <sys:String x:Key="Main.DebugMode.Hint">[Debug mode] PCL is running in debug mode, which may cause performance degradation. Please do NOT enable it unless necessary!</sys:String>
+    <sys:String x:Key="Main.DebugMode.Hint">[Debug mode] PCL CE is running in debug mode, which may cause performance degradation. Please do NOT enable it unless necessary!</sys:String>
     <sys:String x:Key="Main.Error.OperationFailed">A launcher interface operation failed. See the details below.</sys:String>
     <sys:String x:Key="Main.Error.ScrollToTopFailed">Could not return to the top of the page.</sys:String>
-    <sys:String x:Key="Main.Eula.Message">Before using PCL, please review and agree to the Terms of Service and Disclaimer.</sys:String>
+    <sys:String x:Key="Main.Eula.Message">Before using PCL CE, please review and agree to the Terms of Service and Disclaimer.</sys:String>
     <sys:String x:Key="Main.Eula.Title">ToS &amp; Disclaimer authorization</sys:String>
     <sys:String x:Key="Main.Eula.View">ToS &amp; Disclaimer</sys:String>
     <sys:String x:Key="Main.Exit.HasDownloadingTask">There is a download task in progress. Are you sure you want to quit?</sys:String>
@@ -1857,8 +1854,8 @@
     <sys:String x:Key="Main.HiddenFeature.Disabled">The feature hiding setting has been temporarily disabled!</sys:String>
     <sys:String x:Key="Main.HiddenFeature.Enabled">The feature hiding setting has been re-enabled!</sys:String>
     <sys:String x:Key="Main.ShutdownMinecraft.Success">Minecraft instance closed!</sys:String>
-    <sys:String x:Key="Main.SpecialVersion.CiHint">The current PCL Community Edition build is an automated CI build.&#xA;This build includes the latest bug fixes, optimizations, and new features, but its performance and stability are lower. It is not suitable for daily use or creating modpacks.&#xA;&#xA;Unless a community developer asks you to use it, or you specifically want to do so, please use the latest stable version instead.</sys:String>
-    <sys:String x:Key="Main.SpecialVersion.DebugHint">The current PCL Community Edition build is a Debug build.&#xA;This build is only intended for developer debugging and may have serious performance issues or various unexpected network problems.&#xA;&#xA;Problems caused by non-developer users running this build are not supported by the community, and related issues may be closed directly.&#xA;Unless you are a developer, please delete this build immediately and use the latest stable version instead.</sys:String>
+    <sys:String x:Key="Main.SpecialVersion.CiHint">The current PCL CE build is an automated CI build.&#xA;This build includes the latest bug fixes, optimizations, and new features, but its performance and stability are lower. It is not suitable for daily use or creating modpacks.&#xA;&#xA;Unless a community developer asks you to use it, or you specifically want to do so, please use the latest stable version instead.</sys:String>
+    <sys:String x:Key="Main.SpecialVersion.DebugHint">The current PCL CE build is a Debug build.&#xA;This build is only intended for developer debugging and may have serious performance issues or various unexpected network problems.&#xA;&#xA;Problems caused by non-developer users running this build are not supported by the community, and related issues may be closed directly.&#xA;Unless you are a developer, please delete this build immediately and use the latest stable version instead.</sys:String>
     <sys:String x:Key="Main.SpecialVersion.HideHintNotice">You can add the PCL_DISABLE_DEBUG_HINT environment variable with any value to hide this prompt.</sys:String>
     <sys:String x:Key="Main.SpecialVersion.IUnderstand">I know what I am doing</sys:String>
     <sys:String x:Key="Main.SpecialVersion.OpenDownloadPageAndExit">Open latest download page and exit</sys:String>
@@ -1867,7 +1864,7 @@
     <sys:String x:Key="Main.Tab.Launch">Launch</sys:String>
     <sys:String x:Key="Main.Tab.Settings">Settings</sys:String>
     <sys:String x:Key="Main.Tab.Tools">Tools</sys:String>
-    <sys:String x:Key="Main.Telemetry.Message">After telemetry data collection is enabled, the launcher will collect and report errors and device environment information. This can help developers fix potential issues and better plan and develop the launcher.&#xA;If this feature is enabled, we will collect the following information:&#xA;&#xA;- Errors that occur in the launcher&#xA;- Launcher version information and identifier&#xA;- Windows system version and architecture&#xA;- Installed physical memory size&#xA;- NAT and IPv6 support status&#xA;- Whether you have used the official PCL, HMCL, or BakaXL&#xA;&#xA;This data is not associated with you, and we will never sell it to any third party.&#xA;If you do not want to enable telemetry, you can choose to decline. This will not affect normal use of other features, but may affect developers' ability to fix potential bugs.&#xA;You can change this setting at any time in launcher settings.</sys:String>
+    <sys:String x:Key="Main.Telemetry.Message">After telemetry data collection is enabled, the launcher will collect and report errors and device environment information. This can help developers fix potential issues and better plan and develop the launcher.&#xA;If this feature is enabled, we will collect the following information:&#xA;&#xA;- Errors that occur in the launcher&#xA;- Launcher version information and identifier&#xA;- Windows system version and architecture&#xA;- Installed physical memory size&#xA;- NAT and IPv6 support status&#xA;- Whether you have used the original PCL, HMCL, or BakaXL&#xA;&#xA;This data is not associated with you, and we will never sell it to any third party.&#xA;If you do not want to enable telemetry, you can choose to decline. This will not affect normal use of other features, but may affect developers' ability to fix potential bugs.&#xA;You can change this setting at any time in launcher settings.</sys:String>
     <sys:String x:Key="Main.Telemetry.Title">Enable telemetry data collection</sys:String>
     <sys:String x:Key="Main.Title.GameLog">Launch log</sys:String>
     <sys:String x:Key="Main.Title.InstanceSelect">Selection</sys:String>
@@ -1897,7 +1894,7 @@
     <sys:String x:Key="Main.FileDrag.SaveImportFailed">Failed to import save</sys:String>
     <sys:String x:Key="Main.FileDrag.SaveInvalid">The imported save is missing level.dat!</sys:String>
     <sys:String x:Key="Main.FileDrag.SaveNotFound">The archive does not contain an importable Minecraft save!</sys:String>
-    <sys:String x:Key="Main.FileDrag.UnknownOperation">PCL cannot determine which file drag operation to perform...</sys:String>
+    <sys:String x:Key="Main.FileDrag.UnknownOperation">PCL CE cannot determine which file drag operation to perform...</sys:String>
 
     <!-- Minecraft -->
 
@@ -1922,7 +1919,7 @@
     <sys:String x:Key="Minecraft.Download.Loader.NewForge">New Forge</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionEula">If prompted "You need to agree to the EULA", edit eula.txt to agree!</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionJavaPath">If the server stops immediately, right-click edit this script and replace %JAVA_HOME% with !JAVA_HOME!</sys:String>
-    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionPclSettings">You can select this version as a suitable Java and enable it in PCL under [Settings → Launch options → Java path inside launcher]!</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionPclSettings">You can select this version as a suitable Java and enable it in PCL CE under [Settings → Launch options → Java path inside launcher]!</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.ServerStopped">Server stopped.</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.Title">{0} vanilla server</sys:String>
 
@@ -1972,7 +1969,7 @@
     <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.Message">The modpack appears to include its own launcher. Switch to using it to continue?&#xD;&#xA;Will open: {0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.Title">Switch to modpack launcher?</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.UseBundled">Use bundled</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.EncryptedArchiveUnsupported">PCL cannot handle encrypted archives. Please extract and re-archive them in an unencrypted .zip format and try again.</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.EncryptedArchiveUnsupported">PCL CE cannot handle encrypted archives. Please extract and re-archive them in an unencrypted .zip format and try again.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Error.OperationFailed">A modpack operation failed. See the details below.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.FileDialog.Filter">Modpack files(*.rar;*.zip;*.mrpack)|*.rar;*.zip;*.mrpack</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.FileDialog.Title">Select modpack archive</sys:String>
@@ -1990,7 +1987,7 @@
     <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Title">Download optional file</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Message">A file path in the modpack exceeds the instance folder. Please report this issue to the modpack author!&#xA;Incorrect file: {0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Title">File path validation failed</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.RarUnsupported">PCL cannot handle .rar archive files. Please extract and re-archive them in .zip format and try again!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RarUnsupported">PCL CE cannot handle .rar archive files. Please extract and re-archive them in .zip format and try again!</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SelectEmptyFolder.Message">Next, select an empty folder. The modpack will be installed there.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SelectTargetFolder.Title">Select installation target (must be an empty folder)</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SomeModsDeleted">Some mod versions in the modpack have been deleted by the mod authors, so installation cannot continue. Please report this issue to the modpack author.</sys:String>
@@ -2148,7 +2145,7 @@
     <sys:String x:Key="Minecraft.Launch.Cancelled">Launch canceled!</sys:String>
     <sys:String x:Key="Minecraft.Launch.DemoMode">The game will launch in demo mode!</sys:String>
     <sys:String x:Key="Minecraft.Launch.Donate.Decline">Pardon my rejection</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Donate.Message">PCL has launched the game {0} times for you!&#xA;If PCL has been useful, maybe consider supporting the original PCL author...&#xA;Without everyone's support, it's hard for PCL to maintain updates for years while staying free and ad-free!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Donate.Message">PCL CE has launched the game {0} times for you!&#xA;If PCL CE has been useful, maybe consider supporting the original PCL author...&#xA;Without everyone's support, it's hard for PCL to maintain updates for years while staying free and ad-free!</sys:String>
     <sys:String x:Key="Minecraft.Launch.Donate.Support">Support!</sys:String>
     <sys:String x:Key="Minecraft.Launch.Donate.Title">{0} launches!</sys:String>
     <sys:String x:Key="Minecraft.Launch.ExportScript.Cancelled">Exporting launch script canceled!</sys:String>
@@ -2188,7 +2185,7 @@
     <!-- Minecraft.Launch.Java -->
 
     <sys:String x:Key="Minecraft.Launch.Java.AutoDownload.Action">Download automatically</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Java.AutoDownload.Message">PCL could not find {0}. Would you like PCL to download it automatically?&#xA;If you have already installed {0}, you can import it manually under Settings → Launch options → Game Java.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.AutoDownload.Message">PCL CE could not find {0}. Would you like PCL CE to download it automatically?&#xA;If you have already installed {0}, you can import it manually under Settings → Launch options → Game Java.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.AutoDownload.Title">Download Java automatically?</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.Compatibility.CheckFailed">Failed to check Java compatibility. See the details below.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.Compatibility.GlobalSelectedOutOfRange">The globally selected Java ({0}) is outside the required range [{1}, {2}] and may cause the game to crash.</sys:String>
@@ -2201,7 +2198,7 @@
     <sys:String x:Key="Minecraft.Launch.Java.NeedJava8U141OrLater">You need to install Java 8u141 or later to launch this version.&#xA;Please search and install it manually, then re-search or import it under "Settings → Launch options → Game Java".</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.NeedJava8U141ToU320">You need to install Java 8u141 ~ 8u320 to launch this version.&#xA;Please search and install it manually, then re-search or import it under "Settings → Launch options → Game Java".</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.NeedLegacyJavaFixerOrJava7">You need to install the LegacyJavaFixer mod, or install Java 7 to launch this version.&#xA;Please search and install Java 7 manually, then re-search or import it under "Settings → Launch options → Game Java".</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Java.NotFound.Manual.Message">PCL could not find {0}.&#xA;Please install {0} manually, then re-search or import it under Settings → Launch options → Game Java.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Java.NotFound.Manual.Message">PCL CE could not find {0}.&#xA;Please install {0} manually, then re-search or import it under Settings → Launch options → Game Java.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.NotFound.Title">Java not found</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.Task.Download">Download Java</sys:String>
     <sys:String x:Key="Minecraft.Launch.Java.Task.DownloadFiles">Download Java files</sys:String>
@@ -2247,8 +2244,8 @@
 
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.AbnormalIp">Abnormal login attempts from this IP.&#xA;Please check your network settings or try again later.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.Banned">This account appears to have been banned by Microsoft and cannot log in.</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message">Please modify the account's date of birth on the opened webpage (change to at least 18 years old).&#xA;Wait one minute after the modification is successful, then return to PCL and you can log in normally!</sys:String>
-    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage">Please modify the account's date of birth on the opened webpage (change to at least 18 years old).&#xA;Wait one minute after the modification is successful, then return to PCL and you can log in normally!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message">Please modify the account's date of birth on the opened webpage (change to at least 18 years old).&#xA;Wait one minute after the modification is successful, then return to PCL CE and you can log in normally!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage">Please modify the account's date of birth on the opened webpage (change to at least 18 years old).&#xA;Wait one minute after the modification is successful, then return to PCL CE and you can log in normally!</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.CreateProfile.Button">Create profile</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.CreateProfile.Message">Please create a Minecraft player profile first, then log in again.</sys:String>
     <sys:String x:Key="Minecraft.Launch.Login.Microsoft.NotPurchased">Unable to get account information. This account may not have purchased Minecraft: Java Edition, or its Xbox Game Pass may have expired.</sys:String>
@@ -2320,7 +2317,7 @@
 
     <!-- Select.Folder -->
 
-    <sys:String x:Key="Select.Folder.AccessDenied">Failed to add folder: PCL does not have permission to access this folder!</sys:String>
+    <sys:String x:Key="Select.Folder.AccessDenied">Failed to add folder: PCL CE does not have permission to access this folder!</sys:String>
     <sys:String x:Key="Select.Folder.AddExisting.Title">Add an existing folder</sys:String>
     <sys:String x:Key="Select.Folder.AddExisting.ToolTip">Add an existing Minecraft folder to the list.</sys:String>
     <sys:String x:Key="Select.Folder.AddOrImport">Add or import</sys:String>
@@ -2329,7 +2326,7 @@
     <sys:String x:Key="Select.Folder.CannotAddWhileDownloading">The game folder cannot be added while the download task is in progress!</sys:String>
     <sys:String x:Key="Select.Folder.CannotCreateWhileDownloading">The game folder cannot be created while the download task is in progress!</sys:String>
     <sys:String x:Key="Select.Folder.Cleanup.Keep">Keep</sys:String>
-    <sys:String x:Key="Select.Folder.Cleanup.Message">Do you want to clean up the PCL config files in this folder?&#xA;This includes settings for each instance (such as custom icons, third-party login options, etc.). It has no effect on the instance itself.</sys:String>
+    <sys:String x:Key="Select.Folder.Cleanup.Message">Do you want to clean up the PCL CE config files in this folder?&#xA;This includes settings for each instance (such as custom icons, third-party login options, etc.). It has no effect on the instance itself.</sys:String>
     <sys:String x:Key="Select.Folder.Cleanup.Title">Profile clean-up</sys:String>
     <sys:String x:Key="Select.Folder.Clear">Clear</sys:String>
     <sys:String x:Key="Select.Folder.Clear.Confirm">Clear</sys:String>
@@ -2338,7 +2335,7 @@
     <sys:String x:Key="Select.Folder.Clear.InProgress">Clearing folder {0}...</sys:String>
     <sys:String x:Key="Select.Folder.Clear.Success">The folder {0} has been cleared!</sys:String>
     <sys:String x:Key="Select.Folder.CreateNew.Title">Create a new folder</sys:String>
-    <sys:String x:Key="Select.Folder.CreateNew.ToolTip">Create a new ".minecraft" folder at the location of PCL.</sys:String>
+    <sys:String x:Key="Select.Folder.CreateNew.ToolTip">Create a new ".minecraft" folder at the location of PCL CE.</sys:String>
     <sys:String x:Key="Select.Folder.CreateSuccess">Create a new ".minecraft" folder successfully!</sys:String>
     <sys:String x:Key="Select.Folder.CurrentFolder">Current folder</sys:String>
     <sys:String x:Key="Select.Folder.Delete.Confirm">Delete</sys:String>
@@ -2436,7 +2433,7 @@
     <sys:String x:Key="Select.Instance.Description.ExperimentalSnapshot">Experimental snapshot {0}</sys:String>
     <sys:String x:Key="Select.Instance.Description.ExperimentalSnapshot.Pending">Experimental snapshot</sys:String>
     <sys:String x:Key="Select.Instance.Description.NeedInherit">{0} needs to be installed as a parent instance.</sys:String>
-    <sys:String x:Key="Select.Instance.Description.NoPermission">PCL does not have permission to access this folder. Please run PCL as administrator.</sys:String>
+    <sys:String x:Key="Select.Instance.Description.NoPermission">PCL CE does not have permission to access this folder. Please run PCL CE as administrator.</sys:String>
     <sys:String x:Key="Select.Instance.Description.NotFound">Instance {0} not found.</sys:String>
     <sys:String x:Key="Select.Instance.Description.NotLoaded">This instance has not been loaded. Please report this issue to the developers.</sys:String>
     <sys:String x:Key="Select.Instance.Description.Old">Before release</sys:String>
@@ -2448,7 +2445,7 @@
     <sys:String x:Key="Select.Instance.Description.Snapshot">Snapshot {0}</sys:String>
     <sys:String x:Key="Select.Instance.Description.Snapshot.Unknown">Snapshot</sys:String>
     <sys:String x:Key="Select.Instance.Description.UnknownError">Unknown error</sys:String>
-    <sys:String x:Key="Select.Instance.Description.UnknownMcVersion">PCL cannot recognize the Minecraft version number of this version.</sys:String>
+    <sys:String x:Key="Select.Instance.Description.UnknownMcVersion">PCL CE cannot recognize the Minecraft version number of this version.</sys:String>
 
     <!-- Setup -->
 
@@ -2486,7 +2483,7 @@
     <sys:String x:Key="Setup.About.EasterEgg.Bored.Yes">Yes</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.ClickDisabled">Still clicking? Click again and I'll disable clicking...</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.Encouragement">Uh, keep going, uh...</sys:String>
-    <sys:String x:Key="Setup.About.EasterEgg.HiddenTheme">The hidden theme "Chaos Yellow" has been unlocked... wait, this is PCL Community Edition, probably not...</sys:String>
+    <sys:String x:Key="Setup.About.EasterEgg.HiddenTheme">The hidden theme "Chaos Yellow" has been unlocked... wait, this is PCL CE, probably not...</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.NiceClick">Is this fun to click...</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.NothingBehind">There's nothing behind this!</sys:String>
     <sys:String x:Key="Setup.About.EasterEgg.StillClicking">Still clicking?</sys:String>
@@ -2509,7 +2506,7 @@
     <!-- Setup.About.Legal -->
 
     <sys:String x:Key="Setup.About.Legal.CommunityLobbyPrivacy">Community lobby privacy policy</sys:String>
-    <sys:String x:Key="Setup.About.Legal.CommunitySource">Community Edition source code</sys:String>
+    <sys:String x:Key="Setup.About.Legal.CommunitySource">PCL CE source code</sys:String>
     <sys:String x:Key="Setup.About.Legal.CopyrightText">Copyright © PCL Community &amp; LTCat (龙腾猫跃) 2026.&#xD;NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.</sys:String>
     <sys:String x:Key="Setup.About.Legal.NatayarkTerms">Natayark OpenID ToS</sys:String>
     <sys:String x:Key="Setup.About.Legal.OtherInfo">Other information</sys:String>
@@ -2629,7 +2626,7 @@
     <sys:String x:Key="Setup.GameManage.Accessibility.GameLanguage">Game language</sys:String>
     <sys:String x:Key="Setup.GameManage.Accessibility.GameUpdateNotice">Game update notification</sys:String>
     <sys:String x:Key="Setup.GameManage.Accessibility.ReadClipboard">Recognize community resource links in clipboard</sys:String>
-    <sys:String x:Key="Setup.GameManage.Accessibility.ReadClipboard.ToolTip">When enabled, PCL will read your clipboard and recognize resource links, then ask whether to navigate to the detail page.</sys:String>
+    <sys:String x:Key="Setup.GameManage.Accessibility.ReadClipboard.ToolTip">When enabled, PCL CE will read your clipboard and recognize resource links, then ask whether to navigate to the detail page.</sys:String>
     <sys:String x:Key="Setup.GameManage.Accessibility.ReleaseNotice">Release notification</sys:String>
     <sys:String x:Key="Setup.GameManage.Accessibility.ReleaseNotice.ToolTip">Show a notification when a Minecraft release is available</sys:String>
     <sys:String x:Key="Setup.GameManage.Accessibility.SnapshotNotice">Snapshot notification</sys:String>
@@ -2667,7 +2664,7 @@
 
     <sys:String x:Key="Setup.GameManage.Download.AutoSelectInstance">Auto-select the instance after installation</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.FixAuthlib">Upgrade Authlib for some versions</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.FixAuthlib.ToolTip">Some Minecraft versions, such as 1.16.5, have a bug that may cause multiplayer to be disabled when using offline login.&#xA;PCL can try to upgrade the Authlib support library for these versions to fix the issue.&#xA;This setting only applies to newly installed instances.</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.FixAuthlib.ToolTip">Some Minecraft versions, such as 1.16.5, have a bug that may cause multiplayer to be disabled when using offline login.&#xA;PCL CE can try to upgrade the Authlib support library for these versions to fix the issue.&#xA;This setting only applies to newly installed instances.</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.InstallBehavior">Install behavior</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.SpeedLimit">Speed limit</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.SpeedLimit.ToolTip">Set a download speed cap to prevent other programs that depend on the internet from freezing during downloads.</sys:String>
@@ -2728,11 +2725,13 @@
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw">Disable Java Launch Wrapper</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.Arm64Notice">Do not wrap with Java Wrapper when launching the game.&#xA;Java Wrapper has been forcibly disabled because the system is ARM64 architecture.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.Arm64ToolTip">Do not use Java Wrapper when launching the game.&#xA;Java Wrapper is disabled because this system uses ARM64 architecture.</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.ToolTip">PCL uses Java Launch Wrapper to fix issues where older Java versions cannot launch from paths containing Chinese characters.&#xA;If it is blocked by anti-cheat or causes other issues, you can disable it.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.ToolTip">PCL CE uses Java Launch Wrapper to fix issues where older Java versions cannot launch from paths containing Chinese characters.&#xA;If it is blocked by anti-cheat or causes other issues, you can disable it.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLF">Disable LegacyFix</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.DisableLF.ToolTip">PCL uses LegacyFix when launching version 1.5.x and below to improve legacy version gameplay experience and fix compatibility issues.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableLF.ToolTip">PCL CE uses LegacyFix when launching version 1.5.x and below to improve legacy version gameplay experience and fix compatibility issues.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.LockMemory">Lock memory allocation (-Xms = -Xmx)</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.LockMemory.ToolTip">When enabled, the launcher additionally appends -Xms equal to the maximum heap (-Xmx), fixing the heap size. This implicitly disables heap memory uncommit, reducing latency jitter caused by the OS unmapping and remapping memory pages, and helps ZGC's collection prediction. The trade-off is that the game holds close to the maximum allocated memory for its entire runtime.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLwjglUnsafeAgent">Disable LWJGL Unsafe Agent</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip">Minecraft 26.1 uses LWJGL 3.4.1, which uses the FFM API to access native memory on JDK 25+. Due to JDK optimization limitations, this may cause severe performance issues in some cases.&#xA;PCL uses LWJGL Unsafe Agent to fix this issue and avoid possible performance problems.&#xA;There is generally no need to disable this option, but if you encounter additional issues, you can try temporarily disabling it for troubleshooting.&#xA;&#xA;This feature only takes effect when the LWJGL version is 3.4.1.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip">Minecraft 26.1 uses LWJGL 3.4.1, which uses the FFM API to access native memory on JDK 25+. Due to JDK optimization limitations, this may cause severe performance issues in some cases.&#xA;PCL CE uses LWJGL Unsafe Agent to fix this issue and avoid possible performance problems.&#xA;There is generally no need to disable this option, but if you encounter additional issues, you can try temporarily disabling it for troubleshooting.&#xA;&#xA;This feature only takes effect when the LWJGL version is 3.4.1.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.GameTail">Game arguments tail</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.GameTail.ToolTip">The content in this text box will be directly appended to the end of the launch arguments.&#xA;For example, entering --demo will start the game in demo mode.&#xA;String replacement tokens from the Minecraft instance JSON, such as ${library_directory}, are supported.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.GpuPreference">Require Java to use the high-performance GPU</sys:String>
@@ -2742,7 +2741,7 @@
     <sys:String x:Key="Setup.Launch.Advanced.JvmHead.ToolTip">Extra JVM arguments used when launching Minecraft. Do not change unless you are absolutely sure.&#xA;Supports string replacement tokens from Minecraft instance JSON, e.g. ${library_directory}.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.MoreInInstanceSetup">You can find more advanced launch options in instance settings.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.PreLaunchCommand">Pre-launch command</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.PreLaunchCommand.ToolTip">Execute a specific command or program before Minecraft launches. The syntax is the same as Windows Command Prompt.&#xA;&#xA;The following replacement tokens can be used for relative paths (paths all end with \):&#xA; · {path}: The folder containing PCL's exe file&#xA; · {minecraft}: The .minecraft folder&#xA; · {verpath}: Instance folder (.minecraft\versions\instance_name\)&#xA; · {verindie}: Same as the instance folder when instance isolation is enabled; otherwise same as the .minecraft folder&#xA; · {java}: The Java folder used by the game&#xA;&#xA;The following replacement tokens are also supported:&#xA; · {user}: Username&#xA; · {login}: Login method&#xA; · {uuid}: Player UUID&#xA; · {name}: Instance name&#xA; · {date}, {time}: System time&#xA; · {version}: Vanilla game version&#xA;&#xA;Examples:&#xA; · "{verpath}test.exe": Run test.exe in the instance folder&#xA; · "{java}java.exe" -jar "{verpath}test.jar": Use Java to run test.jar in the instance folder&#xA; · notepad "{verindie}options.txt": Open the instance settings file with Notepad&#xA;&#xA;It is recommended to wrap paths in double quotes to avoid launch failures caused by spaces in the path.&#xA;When the command is executed, the working directory is the current .minecraft folder.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.PreLaunchCommand.ToolTip">Execute a specific command or program before Minecraft launches. The syntax is the same as Windows Command Prompt.&#xA;&#xA;The following replacement tokens can be used for relative paths (paths all end with \):&#xA; · {path}: The folder containing PCL CE's exe file&#xA; · {minecraft}: The .minecraft folder&#xA; · {verpath}: Instance folder (.minecraft\versions\instance_name\)&#xA; · {verindie}: Same as the instance folder when instance isolation is enabled; otherwise same as the .minecraft folder&#xA; · {java}: The Java folder used by the game&#xA;&#xA;The following replacement tokens are also supported:&#xA; · {user}: Username&#xA; · {login}: Login method&#xA; · {uuid}: Player UUID&#xA; · {name}: Instance name&#xA; · {date}, {time}: System time&#xA; · {version}: Vanilla game version&#xA;&#xA;Examples:&#xA; · "{verpath}test.exe": Run test.exe in the instance folder&#xA; · "{java}java.exe" -jar "{verpath}test.jar": Use Java to run test.jar in the instance folder&#xA; · notepad "{verindie}options.txt": Open the instance settings file with Notepad&#xA;&#xA;It is recommended to wrap paths in double quotes to avoid launch failures caused by spaces in the path.&#xA;When the command is executed, the working directory is the current .minecraft folder.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.PreLaunchCommand.Wait">Wait for command completion before continuing launch</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.Renderer.DirectX12">DirectX 12 (d3d12)</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.Renderer.GameDefault">Game default</sys:String>
@@ -2753,7 +2752,7 @@
     <sys:String x:Key="Setup.Launch.Advanced.Renderer.Warning.Message">Changing this setting will seriously affect game stability and performance. If you do not know what you are doing, do not change this option!&#xA;Are you sure you want to continue?</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.Title">Advanced launch options</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe">Use java.exe instead of javaw.exe</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe.ToolTip">If the game window does not appear for a long time, try enabling this option. PCL will use java.exe to run the game, giving the game process standard input/output streams to avoid possible issues when logs are printed.&#xA;&#xA;Depending on the behavior of different Java distributions, java.exe may not support features that depend on operating system support, such as HDR colors. Therefore, do not enable this option if everything works normally.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe.ToolTip">If the game window does not appear for a long time, try enabling this option. PCL CE will use java.exe to run the game, giving the game process standard input/output streams to avoid possible issues when logs are printed.&#xA;&#xA;Depending on the behavior of different Java distributions, java.exe may not support features that depend on operating system support, such as HDR colors. Therefore, do not enable this option if everything works normally.</sys:String>
 
     <!-- Setup.Launch.Memory -->
 
@@ -2877,7 +2876,7 @@
     <!-- Setup.Misc -->
 
     <sys:String x:Key="Setup.Misc.Error.InitFailed">Failed to initialize miscellaneous settings</sys:String>
-    <sys:String x:Key="Setup.Misc.HardwareAcceleration.RestartNotice">This change will take effect after restarting PCL.</sys:String>
+    <sys:String x:Key="Setup.Misc.HardwareAcceleration.RestartNotice">This change will take effect after restarting PCL CE.</sys:String>
     <sys:String x:Key="Setup.Misc.Initialized">Miscellaneous settings have been initialized!</sys:String>
 
     <!-- Setup.Misc.Debug -->
@@ -2922,12 +2921,12 @@
     <sys:String x:Key="Setup.Misc.System.Announcement.ImportantOnly">Show announcements only when important</sys:String>
     <sys:String x:Key="Setup.Misc.System.DisableHardwareAcceleration">Disable hardware acceleration</sys:String>
     <sys:String x:Key="Setup.Misc.System.ExportSettings">Export settings</sys:String>
-    <sys:String x:Key="Setup.Misc.System.ExportSettings.Filter">PCL config file (*.json)|*.json</sys:String>
+    <sys:String x:Key="Setup.Misc.System.ExportSettings.Filter">PCL CE config file (*.json)|*.json</sys:String>
     <sys:String x:Key="Setup.Misc.System.ExportSettings.SaveTitle">Select save location</sys:String>
     <sys:String x:Key="Setup.Misc.System.ExportSettings.Success">Settings exported successfully!</sys:String>
     <sys:String x:Key="Setup.Misc.System.ImportSettings">Import settings</sys:String>
     <sys:String x:Key="Setup.Misc.System.ImportSettings.SelectTitle">Select config file</sys:String>
-    <sys:String x:Key="Setup.Misc.System.ImportSettings.Success.Message">Settings imported successfully! Please restart PCL to apply them...</sys:String>
+    <sys:String x:Key="Setup.Misc.System.ImportSettings.Success.Message">Settings imported successfully! Please restart PCL CE to apply them...</sys:String>
     <sys:String x:Key="Setup.Misc.System.ImportSettings.Success.Restart">Restart</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxFps">Maximum animation FPS</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxFps.ToolTip">If you have disabled hardware acceleration, it is recommended to lower the maximum animation FPS to prevent excessive resource usage.</sys:String>
@@ -2935,7 +2934,7 @@
     <sys:String x:Key="Setup.Misc.System.MaxLogLines.ToolTip">Maximum number of lines displayed in the real-time log feature. Old logs are automatically deleted when exceeded.</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxLogLines.Unlimited">Unlimited</sys:String>
     <sys:String x:Key="Setup.Misc.System.Telemetry">Enable telemetry data collection</sys:String>
-    <sys:String x:Key="Setup.Misc.System.Telemetry.ToolTip">When enabled, the launcher will collect and report errors and device environment information. This helps developers fix potential issues and better plan and develop the launcher.&#xA;The following information will be collected: launcher errors, launcher version information and identifier, Windows system version and architecture, installed physical memory size, NAT and IPv6 support status, and whether official PCL, HMCL, or BakaXL have been used.&#xA;&#xA;This data is not associated with you, and we will never sell it to any third party. Not enabling this will not affect other features, but may affect developers' ability to fix potential bugs.&#xA;&#xA;This change will take effect after restarting the launcher.</sys:String>
+    <sys:String x:Key="Setup.Misc.System.Telemetry.ToolTip">When enabled, the launcher will collect and report errors and device environment information. This helps developers fix potential issues and better plan and develop the launcher.&#xA;The following information will be collected: launcher errors, launcher version information and identifier, Windows system version and architecture, installed physical memory size, NAT and IPv6 support status, and whether original PCL, HMCL, or BakaXL have been used.&#xA;&#xA;This data is not associated with you, and we will never sell it to any third party. Not enabling this will not affect other features, but may affect developers' ability to fix potential bugs.&#xA;&#xA;This change will take effect after restarting the launcher.</sys:String>
     <sys:String x:Key="Setup.Misc.System.Title">System</sys:String>
 
     <!-- Setup.Ui -->
@@ -2960,7 +2959,7 @@
     <!-- Setup.Ui.Background -->
 
     <sys:String x:Key="Setup.Ui.Background.Blur">Background blur</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.Blur.ToolTip">Strong blur may cause serious FPS drops in the launcher. Please use it cautiously.&#xA;It is not recommended to enable blur when making a modpack to ensure that PCL can run smoothly on low-performance devices.</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Blur.ToolTip">Strong blur may cause serious FPS drops in the launcher. Please use it cautiously.&#xA;It is not recommended to enable blur when making a modpack to ensure that PCL CE can run smoothly on low-performance devices.</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Clear">Clear all</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Clear.Confirm.Message">All files in the background folder are about to be deleted. This operation is irrevocable. Are you sure?</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Clear.Success">The background has been cleared!</sys:String>
@@ -2969,7 +2968,7 @@
     <sys:String x:Key="Setup.Ui.Background.ContentAdapt">Adaptive</sys:String>
     <sys:String x:Key="Setup.Ui.Background.ImageLoadFailed">Failed to load the image, trying to play the file as a video: {0}</sys:String>
     <sys:String x:Key="Setup.Ui.Background.NoAvailableContent">No available background detected!</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.OpenFolder.ToolTip">Put background images and videos in this folder, and PCL will randomly load one each time it is opened.&#xA;For smoother playback, videos are recommended to use H.264 encoding.</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.OpenFolder.ToolTip">Put background images and videos in this folder, and PCL CE will randomly load one each time it is opened.&#xA;For smoother playback, videos are recommended to use H.264 encoding.</sys:String>
     <sys:String x:Key="Setup.Ui.Background.PauseVideo">Pause video backgrounds while an instance is running</sys:String>
     <sys:String x:Key="Setup.Ui.Background.PauseVideo.ToolTip">If enabled, the background cannot be refreshed while the game is running</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Refresh">Refresh</sys:String>
@@ -3013,7 +3012,7 @@
     <sys:String x:Key="Setup.Ui.Basic.LockWindow">Lock launcher size</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.Opacity">Opacity</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.Opacity2">Opacity</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.ShowLogo">Display the PCL logo while opening the launcher</sys:String>
+    <sys:String x:Key="Setup.Ui.Basic.ShowLogo">Display the PCL CE logo while opening the launcher</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.ShowTriviaHint">Show "Trivia" when launching the game</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.Title">Basics</sys:String>
 
@@ -3120,12 +3119,12 @@
     <sys:String x:Key="Setup.Ui.Music.Clear.Confirm.Message">All files in the music folder are about to be deleted. This operation is irrevocable. Are you sure?</sys:String>
     <sys:String x:Key="Setup.Ui.Music.Delete.Success">The music has been deleted!</sys:String>
     <sys:String x:Key="Setup.Ui.Music.Deleting">Deleting music...</sys:String>
-    <sys:String x:Key="Setup.Ui.Music.OpenFolder.ToolTip">Put the music in this folder, and PCL will play all of them.</sys:String>
+    <sys:String x:Key="Setup.Ui.Music.OpenFolder.ToolTip">Put the music in this folder, and PCL CE will play all of them.</sys:String>
     <sys:String x:Key="Setup.Ui.Music.Refresh">Refresh</sys:String>
     <sys:String x:Key="Setup.Ui.Music.Refresh.ToolTip">Refresh the playlist and play music on the list.</sys:String>
     <sys:String x:Key="Setup.Ui.Music.Shuffle">Shuffle playing</sys:String>
     <sys:String x:Key="Setup.Ui.Music.Smtc">Integrate with System Media Transport Controls (SMTC)</sys:String>
-    <sys:String x:Key="Setup.Ui.Music.Smtc.ToolTip">When enabled, you can use the system control center and shortcuts to control PCL's media playback.&#xA;Can be used with software such as Lyricify Lite or FluentFlyout.</sys:String>
+    <sys:String x:Key="Setup.Ui.Music.Smtc.ToolTip">When enabled, you can use the system control center and shortcuts to control PCL CE's media playback.&#xA;Can be used with software such as Lyricify Lite or FluentFlyout.</sys:String>
     <sys:String x:Key="Setup.Ui.Music.StartInGame">Play while an instance is running</sys:String>
     <sys:String x:Key="Setup.Ui.Music.StopInGame">Play while no instance is running</sys:String>
     <sys:String x:Key="Setup.Ui.Music.Title">Musics</sys:String>
@@ -3226,12 +3225,12 @@
     <sys:String x:Key="SystemDialog.Folder.OpenFailed.Message">Failed to open File Explorer. Try closing security software, such as 360 Total Security.&#xA;&#xA;Path: {0}</sys:String>
     <sys:String x:Key="SystemDialog.Folder.SelectTitle">Select folder</sys:String>
     <sys:String x:Key="SystemDialog.Startup.DotNetRuntimeOutdated.Message">Your .NET Desktop Runtime is outdated or corrupted. Please reinstall .NET 8.</sys:String>
-    <sys:String x:Key="SystemDialog.Startup.InitializationTitle">PCL failed to initialize</sys:String>
+    <sys:String x:Key="SystemDialog.Startup.InitializationTitle">PCL CE failed to initialize</sys:String>
 
     <!-- SystemDialog.Error -->
 
     <sys:String x:Key="SystemDialog.Error.Detail.WithException">{0}&#xA;&#xA;Details:&#xA;{1}</sys:String>
-    <sys:String x:Key="SystemDialog.Error.Message.WithLogExportGuidance">{0}&#xA;&#xA;When asking for help, do not close PCL. Export the logs now (Settings → View logs → Export logs), then send the exported log archive. A screenshot of this window alone is usually not enough to diagnose the problem.</sys:String>
+    <sys:String x:Key="SystemDialog.Error.Message.WithLogExportGuidance">{0}&#xA;&#xA;When asking for help, do not close launcher. Export the logs now (Settings → View logs → Export logs), then send the exported log archive. A screenshot of this window alone is usually not enough to diagnose the problem.</sys:String>
     <sys:String x:Key="SystemDialog.Error.OperationFailed.Message">An error occurred while performing this operation.&#xA;&#xA;Operation:&#xA;{0}&#xA;&#xA;Details:&#xA;{1}</sys:String>
     <sys:String x:Key="SystemDialog.Error.OperationFailed.RuntimeMessage">An error occurred while performing this operation.&#xA;&#xA;Operation:&#xA;{0}&#xA;&#xA;Details:&#xA;{1}&#xA;&#xA;A low-level system operation failed. Please try reinstalling .NET 8.</sys:String>
     <sys:String x:Key="SystemDialog.Error.Title">Error</sys:String>
@@ -3352,7 +3351,7 @@
     <sys:String x:Key="Tools.GameLink.Natayark.Login">Log in to Natayark</sys:String>
     <sys:String x:Key="Tools.GameLink.Natayark.LoginComplete">Login completed</sys:String>
     <sys:String x:Key="Tools.GameLink.Natayark.LoginFailed">NAID login failed. Please log in again in Settings.</sys:String>
-    <sys:String x:Key="Tools.GameLink.Natayark.LoginPrompt">PCL will open a login page. Please complete the login in your browser, then return to the launcher to continue.</sys:String>
+    <sys:String x:Key="Tools.GameLink.Natayark.LoginPrompt">PCL CE will open a login page. Please complete the login in your browser, then return to the launcher to continue.</sys:String>
     <sys:String x:Key="Tools.GameLink.Natayark.LoginTitle">Log in to Natayark Network</sys:String>
     <sys:String x:Key="Tools.GameLink.Natayark.LogoutComplete">Logged out!</sys:String>
     <sys:String x:Key="Tools.GameLink.Natayark.LogoutConfirm">Are you sure you want to log out?</sys:String>
@@ -3391,7 +3390,7 @@
     <sys:String x:Key="Tools.Test.Dependency.MissingMessage">Required dependency "{0}" is missing.&#xA;&#xA;Click OK to open Microsoft Store.</sys:String>
     <sys:String x:Key="Tools.Test.Dependency.Title">Dependency check</sys:String>
     <sys:String x:Key="Tools.Test.Error.OperationFailed">A test utility operation failed. See the details below.</sys:String>
-    <sys:String x:Key="Tools.Test.LaunchCount.Message">PCL has launched games for you {0} times.</sys:String>
+    <sys:String x:Key="Tools.Test.LaunchCount.Message">PCL CE has launched games for you {0} times.</sys:String>
     <sys:String x:Key="Tools.Test.LaunchCount.Title">View launch count</sys:String>
     <sys:String x:Key="Tools.Test.ServerQuery.Title">Check server</sys:String>
     <sys:String x:Key="Tools.Test.Title">Utilities</sys:String>
@@ -3427,19 +3426,19 @@
     <!-- Tools.Test.Clean -->
 
     <sys:String x:Key="Tools.Test.Clean.Cleared">Cache cleared</sys:String>
-    <sys:String x:Key="Tools.Test.Clean.ClearedMessage">Cleaned {0} files!&#xA;PCL will restart...</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ClearedMessage">Cleaned {0} files!&#xA;PCL CE will restart...</sys:String>
     <sys:String x:Key="Tools.Test.Clean.CloseGameFirst">Please close all running games first...</sys:String>
-    <sys:String x:Key="Tools.Test.Clean.ConfirmMessage">About to clean game logs, error reports, caches, and other files.&#xA;These folders should not contain important files, but are you sure you want to continue?&#xA;&#xA;PCL will restart automatically after cleanup.</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ConfirmMessage">About to clean game logs, error reports, caches, and other files.&#xA;These folders should not contain important files, but are you sure you want to continue?&#xA;&#xA;PCL CE will restart automatically after cleanup.</sys:String>
     <sys:String x:Key="Tools.Test.Clean.ConfirmTitle">Confirm cleanup</sys:String>
     <sys:String x:Key="Tools.Test.Clean.NoFiles">No files to clean!</sys:String>
     <sys:String x:Key="Tools.Test.Clean.Title">Clean game junk</sys:String>
-    <sys:String x:Key="Tools.Test.Clean.ToolTip">Clean PCL cache, Minecraft logs, crash reports, and other junk files</sys:String>
+    <sys:String x:Key="Tools.Test.Clean.ToolTip">Clean PCL CE cache, Minecraft logs, crash reports, and other junk files</sys:String>
     <sys:String x:Key="Tools.Test.Clean.WaitForDownload">Please wait for all downloads to complete before cleaning...</sys:String>
 
     <!-- Tools.Test.CustomDownload -->
 
     <sys:String x:Key="Tools.Test.CustomDownload.Aborted">{0} aborted!</sys:String>
-    <sys:String x:Key="Tools.Test.CustomDownload.Description">Use PCL's high-speed multi-threaded download engine to download any file. Note: some websites may return 403 Forbidden errors and cannot be downloaded.</sys:String>
+    <sys:String x:Key="Tools.Test.CustomDownload.Description">Use PCL CE's high-speed multi-threaded download engine to download any file. Note: some websites may return 403 Forbidden errors and cannot be downloaded.</sys:String>
     <sys:String x:Key="Tools.Test.CustomDownload.FileName">File name</sys:String>
     <sys:String x:Key="Tools.Test.CustomDownload.Finished">{0} completed!</sys:String>
     <sys:String x:Key="Tools.Test.CustomDownload.LoaderName">Custom download file: {0} </sys:String>
@@ -3472,11 +3471,11 @@
     <sys:String x:Key="Tools.Test.Shortcut.ConfirmMessage">This shortcut will not be automatically removed. Please remove it manually before deleting/moving the launcher.&#xA;&#xA;{0} location: {1}&#xA;{2} location: {3}</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.Created">Shortcut created on {0}</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.Desktop">Desktop</sys:String>
-    <sys:String x:Key="Tools.Test.Shortcut.FileName">PCL Community Edition{0}</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.FileName">PCL CE{0}</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.SelectLocation">Select shortcut location</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.StartMenu">Start menu</sys:String>
     <sys:String x:Key="Tools.Test.Shortcut.Title">Create shortcut</sys:String>
-    <sys:String x:Key="Tools.Test.Shortcut.ToolTip">Create a shortcut to the PCL Community Edition executable</sys:String>
+    <sys:String x:Key="Tools.Test.Shortcut.ToolTip">Create a shortcut to the PCL CE executable</sys:String>
 
     <!-- Tools.Test.Skin -->
 
@@ -3494,16 +3493,16 @@
     <sys:String x:Key="Update.Action">Update</sys:String>
     <sys:String x:Key="Update.Available">A new launcher version is available ({0} -&gt; {1})&#xA;Update now?</sys:String>
     <sys:String x:Key="Update.Check.Failed">Unable to get latest version information. Please check your network connection.</sys:String>
-    <sys:String x:Key="Update.CommunityNotice.Body">You are using PCL Community Edition from PCL-Community. Please DO NOT report issues to the official repository!&#xA;PCL-Community and its members are not affiliated with LTCat (龙腾猫跃), and do not guarantee your usage.&#xA;&#xA;If you downloaded Community Edition by mistake, we recommend using the official PCL instead.&#xA;If you downloaded Community Edition by mistake, we recommend using the official PCL instead.&#xA;If you downloaded Community Edition by mistake, we recommend using the official PCL instead.&#xA;&#xA;Differences from the official version:&#xA;- Themes: only some fixed blue themes; no plans to add new themes.&#xA;- Toolbox: some content from the official version is missing (Echo Cave, Don't Click).&#xA;&#xA;This message will be shown once after a launcher update.</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Body">You are using PCL CE from PCL-Community. Please DO NOT report issues to the original repository!&#xA;PCL-Community and its members are not affiliated with LTCat (龙腾猫跃), and do not guarantee your usage.&#xA;&#xA;If you downloaded PCL CE by mistake, we recommend using the original PCL instead.&#xA;If you downloaded PCL CE by mistake, we recommend using the original PCL instead.&#xA;If you downloaded PCL CE by mistake, we recommend using the original PCL instead.&#xA;&#xA;Differences from the original version:&#xA;- Themes: only some fixed blue themes; no plans to add new themes.&#xA;- Toolbox: some content from the original version is missing (Echo Cave, Don't Click).&#xA;&#xA;This message will be shown once after a launcher update.</sys:String>
     <sys:String x:Key="Update.CommunityNotice.Confirm">I understand</sys:String>
-    <sys:String x:Key="Update.CommunityNotice.Title">Community Edition notice</sys:String>
+    <sys:String x:Key="Update.CommunityNotice.Title">PCL CE notice</sys:String>
     <sys:String x:Key="Update.Error.FetchFailed">Failed to get launcher update. Please check your network connection.</sys:String>
     <sys:String x:Key="Update.Error.FileNotFound">Update file not found</sys:String>
     <sys:String x:Key="Update.Error.OperationFailed">An update operation failed. See the details below.</sys:String>
     <sys:String x:Key="Update.Error.Sha256Mismatch">Update file SHA256 mismatch. Expected: {0}, actual: {1}</sys:String>
     <sys:String x:Key="Update.Error.UnableToGetUpdate">Unable to get update information</sys:String>
     <sys:String x:Key="Update.Error.UpdateBlocked">Update failed</sys:String>
-    <sys:String x:Key="Update.Error.UpdateBlockedMessage">PCL cannot update because it was blocked by Windows Security or does not have sufficient permissions.&#xA;Please add the PCL folder to the exclusion list, or manually replace the current file with {0}PCL\Plain Craft Launcher Community Edition.exe!</sys:String>
+    <sys:String x:Key="Update.Error.UpdateBlockedMessage">PCL CE cannot update because it was blocked by Windows Security or does not have sufficient permissions.&#xA;Please add the PCL CE folder to the exclusion list, or manually replace the current file with {0}PCL\Plain Craft Launcher Community Edition.exe!</sys:String>
     <sys:String x:Key="Update.Service.PclCe">PCL CE service</sys:String>
     <sys:String x:Key="Update.Title">Launcher update</sys:String>
 
@@ -3549,7 +3548,7 @@
     <sys:String x:Key="Watcher.Progress.OpenAlLoaded">Log 4/5: OpenAL loaded</sys:String>
     <sys:String x:Key="Watcher.Progress.TexturesLoaded">Log 5/5: Textures loaded</sys:String>
     <sys:String x:Key="Watcher.Progress.UserSet">Log 2/5: Game user set</sys:String>
-    <sys:String x:Key="Watcher.SecurityBlocked">PCL cannot access the game window due to anti-cheat or security software</sys:String>
+    <sys:String x:Key="Watcher.SecurityBlocked">PCL CE cannot access the game window due to anti-cheat or security software</sys:String>
     <sys:String x:Key="Watcher.Start">Started Minecraft log monitoring</sys:String>
     <sys:String x:Key="Watcher.WindowLoaded">Minecraft window loaded: {0} ({1})</sys:String>
     <sys:String x:Key="Watcher.WindowMaximized">Minecraft window maximized: {0}</sys:String>

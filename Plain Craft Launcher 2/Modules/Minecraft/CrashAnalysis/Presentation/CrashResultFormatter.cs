@@ -489,14 +489,14 @@ internal sealed class CrashResultFormatter
     private static string _BulletList(IEnumerable<string> items)
     {
         return string.Join(
-            Lang.Text("Crash.Presentation.LineSeparator"),
+            Environment.NewLine,
             items.Select(item => Lang.Text("Crash.Presentation.ListItem", item)));
     }
 
     private static string _JoinParagraphs(IEnumerable<string> items)
     {
         return string.Join(
-            Lang.Text("Crash.Presentation.ParagraphSeparator"),
+            Environment.NewLine + Environment.NewLine,
             items.Where(item => !string.IsNullOrWhiteSpace(item)));
     }
 
