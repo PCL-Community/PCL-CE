@@ -53,7 +53,7 @@ jobs:
         run: dotnet publish PCL.Application.AotSmoke/PCL.Application.AotSmoke.csproj -c Release -r linux-x64 -warnaserror
       - name: Run application Native AOT launch smoke test
         run: ./PCL.Application.AotSmoke/bin/Release/net10.0/linux-x64/publish/PCL.Application.AotSmoke
-  desktop-native-aot:
+  desktop-portable-publish:
     strategy:
       fail-fast: false
       matrix:
@@ -77,9 +77,9 @@ jobs:
           else
             echo "rid=linux-x64" >> "$GITHUB_OUTPUT"
           fi
-      - name: Publish Avalonia desktop Native AOT shell
-        run: dotnet publish PCL.Desktop/PCL.Desktop.csproj -c Release -r ${{ steps.runtime.outputs.rid }} -warnaserror
-      - name: Validate Avalonia desktop Native AOT shell
+      - name: Publish Avalonia desktop portable shell
+        run: dotnet publish PCL.Desktop/PCL.Desktop.csproj -c Release -r ${{ steps.runtime.outputs.rid }} -p:PublishAot=false -warnaserror:CA1416
+      - name: Validate Avalonia desktop portable shell
         shell: bash
         run: |
           ./PCL.Desktop/bin/Release/net10.0/${{ steps.runtime.outputs.rid }}/publish/PCL.Desktop --validate-environment

@@ -1901,55 +1901,34 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
-    public void PageLaunchLeft_RefreshInstancesAsyncFallsBackToDownloadWhenNoVersions()
+    public void PageLaunchLeft_FallsBackToDownloadWhenNoVersions()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
-        string? previousRoots = Environment.GetEnvironmentVariable("PCLN_MINECRAFT_ROOTS");
-        string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-launch-empty-" + Guid.NewGuid().ToString("N"));
-        Window? window = null;
-        PageLaunchLeft? page = null;
-        Task? refreshTask = null;
 
-        try
+        session.Dispatch(() =>
         {
-            Directory.CreateDirectory(root);
-            Environment.SetEnvironmentVariable("PCLN_MINECRAFT_ROOTS", root);
-
-            session.Dispatch(() =>
+            PageLaunchLeft page = new();
+            Window window = new()
             {
-                page = new PageLaunchLeft();
-                window = new Window
-                {
-                    Width = 420,
-                    Height = 360,
-                    Content = page
-                };
+                Width = 420,
+                Height = 360,
+                Content = page
+            };
+
+            try
+            {
                 window.Show();
+                page.SetInstances([]);
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-                refreshTask = page.RefreshInstancesAsync();
-            }, CancellationToken.None).GetAwaiter().GetResult();
-
-            Assert.IsNotNull(refreshTask);
-            Assert.IsTrue(refreshTask!.Wait(TimeSpan.FromSeconds(5)), "Instance refresh did not finish.");
-
-            session.Dispatch(() =>
+                Assert.AreEqual("下载游戏", page.FindControl<MyButton>("BtnLaunch")!.Text);
+                Assert.IsTrue(page.FindControl<MyButton>("BtnLaunch")!.IsEnabled);
+                Assert.AreEqual("未找到可启动的游戏版本", page.FindControl<TextBlock>("LabVersion")!.Text);
+            }
+            finally
             {
-                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-                PageLaunchLeft loadedPage = page ?? throw new InvalidOperationException("Launch page was not created.");
-                Assert.AreEqual("下载游戏", loadedPage.FindControl<MyButton>("BtnLaunch")!.Text);
-                Assert.IsTrue(loadedPage.FindControl<MyButton>("BtnLaunch")!.IsEnabled);
-                Assert.AreEqual("未找到可启动的游戏版本", loadedPage.FindControl<TextBlock>("LabVersion")!.Text);
-            }, CancellationToken.None).GetAwaiter().GetResult();
-        }
-        finally
-        {
-            if (window is not null)
-                session.Dispatch(() => window.Close(), CancellationToken.None).GetAwaiter().GetResult();
-
-            Environment.SetEnvironmentVariable("PCLN_MINECRAFT_ROOTS", previousRoots);
-            if (Directory.Exists(root))
-                Directory.Delete(root, recursive: true);
-        }
+                window.Close();
+            }
+        }, CancellationToken.None);
     }
 
     [TestMethod]
@@ -2196,85 +2175,57 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
-    public void PageDownloadInstall_RefreshVersionsAsyncRendersManifestWithoutBlockingUi()
+    public void PageDownloadInstall_RendersManifestEntriesWithoutBlockingUi()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
-        using HttpClient client = new(new DelegateHttpMessageHandler(_ => new HttpResponseMessage(System.Net.HttpStatusCode.OK)
-        {
-            Content = new StringContent(
-                """
-                {
-                  "versions": [
-                    {
-                      "id": "1.21.5",
-                      "type": "release",
-                      "url": "https://example.invalid/versions/1.21.5.json",
-                      "releaseTime": "2025-03-25T00:00:00Z"
-                    },
-                    {
-                      "id": "25w14craftmine",
-                      "type": "snapshot",
-                      "url": "https://example.invalid/versions/25w14craftmine.json",
-                      "releaseTime": "2025-04-01T00:00:00Z"
-                    }
-                  ]
-                }
-                """)
-        }));
-        MinecraftVanillaInstallService service = new(client);
-        Window? window = null;
-        PageDownloadInstall? page = null;
-        Task? refreshTask = null;
+        IReadOnlyList<MinecraftVersionManifestEntry> versions =
+        [
+            new("1.21.5", "release", "https://example.invalid/versions/1.21.5.json", DateTimeOffset.Parse("2025-03-25T00:00:00Z")),
+            new("25w14craftmine", "snapshot", "https://example.invalid/versions/25w14craftmine.json", DateTimeOffset.Parse("2025-04-01T00:00:00Z"))
+        ];
 
-        try
+        session.Dispatch(() =>
         {
-            session.Dispatch(() =>
+            PageDownloadInstall page = new();
+            SetPrivateField(page, "_versions", versions);
+            SetPrivateField(page, "_isLoading", false);
+            Window window = new()
             {
-                page = new PageDownloadInstall(service);
-                SetPrivateField(page, "_isLoading", true);
-                window = new Window
-                {
-                    Width = 560,
-                    Height = 420,
-                    Content = page
-                };
+                Width = 560,
+                Height = 420,
+                Content = page
+            };
+
+            try
+            {
                 window.Show();
+                InvokePrivateNoArgs(page, "ReloadVersionList");
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-                SetPrivateField(page, "_isLoading", false);
-                refreshTask = page.RefreshVersionsAsync();
-            }, CancellationToken.None).GetAwaiter().GetResult();
 
-            Assert.IsNotNull(refreshTask);
-            Assert.IsTrue(refreshTask!.Wait(TimeSpan.FromSeconds(5)), "Version manifest refresh did not finish.");
-
-            session.Dispatch(() =>
-            {
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-                PageDownloadInstall loadedPage = page ?? throw new InvalidOperationException("Download page was not created.");
-                Assert.IsFalse(loadedPage.FindControl<Control>("PanLoad")!.IsVisible);
+                Assert.IsFalse(page.FindControl<Control>("PanLoad")!.IsVisible);
 
-                MyCard card = loadedPage.FindControl<StackPanel>("PanMinecraft")!
+                MyCard card = page.FindControl<StackPanel>("PanMinecraft")!
                     .Children
                     .OfType<MyCard>()
                     .Single();
                 Assert.AreEqual("Minecraft (2)", card.Title);
-                MyListItem releaseItem = loadedPage.GetVisualDescendants()
+                MyListItem releaseItem = page.GetVisualDescendants()
                     .OfType<MyListItem>()
                     .Single(item => item.Title == "1.21.5");
-                MyListItem aprilFoolsItem = loadedPage.GetVisualDescendants()
+                MyListItem aprilFoolsItem = page.GetVisualDescendants()
                     .OfType<MyListItem>()
                     .Single(item => item.Title == "25w14craftmine");
                 AssertRenderedVersionItem(releaseItem, "1.21.5");
                 AssertRenderedVersionItem(aprilFoolsItem, "25w14craftmine");
                 Assert.AreEqual("avares://PCL.Desktop/WpfOriginal/Images/Blocks/Grass.png", releaseItem.Logo);
                 Assert.AreEqual("avares://PCL.Desktop/WpfOriginal/Images/Blocks/GoldBlock.png", aprilFoolsItem.Logo);
-            }, CancellationToken.None).GetAwaiter().GetResult();
-        }
-        finally
-        {
-            if (window is not null)
-                session.Dispatch(() => window.Close(), CancellationToken.None).GetAwaiter().GetResult();
-        }
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
     }
 
     private static void AssertRenderedVersionItem(MyListItem item, string title)

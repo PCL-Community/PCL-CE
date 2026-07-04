@@ -64,12 +64,12 @@ MinecraftLaunchPlanResult result = MinecraftLaunchPlanService.CreatePlan(
         JavaMajorVersion = 21
     });
 
-bool valid =
-    result.Arguments.Contains("-Xmx4096m", StringComparison.Ordinal) &&
-    result.Arguments.Contains("-Dlinux=true", StringComparison.Ordinal) &&
-    result.Arguments.Contains("net.minecraft.client.main.Main", StringComparison.Ordinal) &&
-    result.Arguments.Contains("--username Steve", StringComparison.Ordinal) &&
-    result.Arguments.Contains("-Dfile.encoding=COMPAT", StringComparison.Ordinal);
+List<string> failures = [];
+Require(result.Arguments.Contains("-Xmx4096m", StringComparison.Ordinal), "missing -Xmx4096m");
+Require(result.Arguments.Contains("-Dlinux=true", StringComparison.Ordinal), "missing linux rule argument");
+Require(result.Arguments.Contains("net.minecraft.client.main.Main", StringComparison.Ordinal), "missing main class");
+Require(result.Arguments.Contains("--username Steve", StringComparison.Ordinal), "missing username game argument");
+Require(result.Arguments.Contains("-Dfile.encoding=COMPAT", StringComparison.Ordinal), "missing Java 18+ encoding argument");
 
 string settingsDirectory = Path.Combine(
     Path.GetTempPath(),
@@ -85,7 +85,7 @@ try
     };
     await settingsStore.SaveAsync(expectedSettings);
     LauncherSettingsLoadResult loadedSettings = await settingsStore.LoadAsync();
-    valid &= expectedSettings == loadedSettings.Settings;
+    Require(LauncherSettingsMatch(expectedSettings, loadedSettings.Settings), "launcher settings round-trip mismatch");
 }
 finally
 {
@@ -93,4 +93,48 @@ finally
         Directory.Delete(settingsDirectory, recursive: true);
 }
 
-return valid ? 0 : 1;
+if (failures.Count == 0)
+    return 0;
+
+Console.Error.WriteLine("PCL.Application.AotSmoke failed:");
+foreach (string failure in failures)
+    Console.Error.WriteLine("- " + failure);
+Console.Error.WriteLine("Arguments: " + result.Arguments);
+return 1;
+
+void Require(bool condition, string message)
+{
+    if (!condition)
+        failures.Add(message);
+}
+
+static bool LauncherSettingsMatch(LauncherSettings expected, LauncherSettings actual) =>
+    expected.SchemaVersion == actual.SchemaVersion &&
+    expected.AutomaticallyRepairGameIssues == actual.AutomaticallyRepairGameIssues &&
+    expected.ColorMode == actual.ColorMode &&
+    expected.LightColor == actual.LightColor &&
+    expected.DarkColor == actual.DarkColor &&
+    expected.DownloadSource == actual.DownloadSource &&
+    DictionaryEquals(expected.BooleanOptions, actual.BooleanOptions) &&
+    DictionaryEquals(expected.IntegerOptions, actual.IntegerOptions) &&
+    DictionaryEquals(expected.TextOptions, actual.TextOptions);
+
+static bool DictionaryEquals<TKey, TValue>(
+    IReadOnlyDictionary<TKey, TValue> expected,
+    IReadOnlyDictionary<TKey, TValue> actual)
+    where TKey : notnull
+{
+    if (expected.Count != actual.Count)
+        return false;
+
+    foreach ((TKey key, TValue value) in expected)
+    {
+        if (!actual.TryGetValue(key, out TValue? actualValue) ||
+            !EqualityComparer<TValue>.Default.Equals(value, actualValue))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
