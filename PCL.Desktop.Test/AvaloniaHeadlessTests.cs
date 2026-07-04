@@ -32,6 +32,7 @@ using PCL.Domain.Minecraft.Java;
 namespace PCL.Desktop.Test;
 
 [TestClass]
+[DoNotParallelize]
 public sealed class AvaloniaHeadlessTests
 {
     [TestMethod]
