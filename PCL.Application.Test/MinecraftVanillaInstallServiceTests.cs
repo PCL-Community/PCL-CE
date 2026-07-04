@@ -57,6 +57,77 @@ public sealed class MinecraftVanillaInstallServiceTests
         }
     }
 
+    [TestMethod]
+    public async Task InstallAsync_DownloadsClientJarIntoInstanceDirectory()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "pcl-install-client-" + Guid.NewGuid().ToString("N"));
+        byte[] clientJar = [0x50, 0x4B, 0x03, 0x04];
+        List<MinecraftInstallProgress> progress = [];
+        using HttpClient client = new(new DelegateHandler(request =>
+        {
+            string path = request.RequestUri!.AbsolutePath;
+            if (path.Contains("/assets/", StringComparison.Ordinal))
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""{"objects":{}}""")
+                };
+            }
+
+            if (path.Contains("/client.jar", StringComparison.Ordinal))
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new ByteArrayContent(clientJar)
+                };
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    $$"""
+                    {
+                      "id": "1.20.1",
+                      "type": "release",
+                      "downloads": {
+                        "client": {
+                          "url": "https://example.invalid/client.jar",
+                          "size": {{clientJar.Length}}
+                        }
+                      },
+                      "assetIndex": {
+                        "id": "empty",
+                        "url": "https://example.invalid/assets/empty.json"
+                      }
+                    }
+                    """)
+            };
+        }));
+        MinecraftVanillaInstallService service = new(client);
+
+        try
+        {
+            MinecraftInstallResult result = await service.InstallAsync(
+                new MinecraftInstallRequest
+                {
+                    VersionId = "1.20.1",
+                    VersionJsonUrl = "https://example.invalid/versions/1.20.1.json",
+                    MinecraftRootDirectory = root
+                },
+                new Progress<MinecraftInstallProgress>(progress.Add));
+
+            string jarPath = Path.Combine(result.InstanceDirectory, "1.20.1.jar");
+            Assert.IsTrue(File.Exists(jarPath));
+            CollectionAssert.AreEqual(clientJar, await File.ReadAllBytesAsync(jarPath));
+            Assert.IsTrue(progress.Any(item => item.Stage == "下载客户端"));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
     private sealed class DelegateHandler(Func<HttpRequestMessage, HttpResponseMessage> handle) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(
