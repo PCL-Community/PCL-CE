@@ -1,0 +1,73 @@
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
+namespace PCL.Application.Downloads;
+
+public enum DownloadSourceKind
+{
+    Metadata,
+    Asset,
+    Library,
+    Launcher,
+    CommunityResource
+}
+
+public sealed record DownloadSourceDescriptor
+{
+    public required string Id { get; init; }
+
+    public required string DisplayName { get; init; }
+
+    public required Uri BaseUri { get; init; }
+
+    public DownloadSourceKind Kind { get; init; }
+
+    public int Order { get; init; }
+}
+
+public interface IDownloadSourceRegistry
+{
+    IReadOnlyList<DownloadSourceDescriptor> Sources { get; }
+
+    void AddSource(DownloadSourceDescriptor descriptor);
+
+    bool RemoveSource(string id);
+}
+
+public sealed class DownloadSourceRegistry : IDownloadSourceRegistry
+{
+    private readonly List<DownloadSourceDescriptor> _sources = [];
+
+    public IReadOnlyList<DownloadSourceDescriptor> Sources =>
+        _sources
+            .OrderBy(static source => source.Kind)
+            .ThenBy(static source => source.Order)
+            .ThenBy(static source => source.Id, StringComparer.Ordinal)
+            .ToArray();
+
+    public void AddSource(DownloadSourceDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        if (string.IsNullOrWhiteSpace(descriptor.Id))
+            throw new ArgumentException("下载源 ID 不能为空。", nameof(descriptor));
+        if (string.IsNullOrWhiteSpace(descriptor.DisplayName))
+            throw new ArgumentException("下载源名称不能为空。", nameof(descriptor));
+        if (!descriptor.BaseUri.IsAbsoluteUri)
+            throw new ArgumentException("下载源地址必须是绝对 URI。", nameof(descriptor));
+        if (_sources.Any(source => string.Equals(source.Id, descriptor.Id, StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException($"下载源已注册：{descriptor.Id}");
+
+        _sources.Add(descriptor);
+    }
+
+    public bool RemoveSource(string id)
+    {
+        int index = _sources.FindIndex(source => string.Equals(source.Id, id, StringComparison.OrdinalIgnoreCase));
+        if (index < 0)
+            return false;
+
+        _sources.RemoveAt(index);
+        return true;
+    }
+}

@@ -1393,7 +1393,7 @@
 
     <sys:String x:Key="Setup.Plugin.Title">Plugins</sys:String>
     <sys:String x:Key="Setup.Plugin.ComingSoon">Coming soon</sys:String>
-    <sys:String x:Key="Setup.Plugin.Description">The plugin system will be injected through PluginSDK while the main app keeps only stable abstractions and host entry points. Online features will later ship as a bundled plugin; this build keeps the launcher core stable while the plugin entry remains unavailable.</sys:String>
+    <sys:String x:Key="Setup.Plugin.Description">The main repository only exposes Host Module and Extension registries; it does not load the closed-source plugin system directly. Online features will later be connected as an external Host Module while this build keeps the launcher core stable.</sys:String>
 
     <!-- Setup.Ui.Basic -->
 

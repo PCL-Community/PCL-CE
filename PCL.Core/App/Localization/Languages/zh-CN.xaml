@@ -1393,7 +1393,7 @@
 
     <sys:String x:Key="Setup.Plugin.Title">插件</sys:String>
     <sys:String x:Key="Setup.Plugin.ComingSoon">敬请期待</sys:String>
-    <sys:String x:Key="Setup.Plugin.Description">插件系统将通过 PluginSDK 注入，主程序只保留稳定抽象与宿主入口。Online 功能后续会以内置插件形式提供；当前版本会继续保持启动器核心稳定，插件入口暂不开放。</sys:String>
+    <sys:String x:Key="Setup.Plugin.Description">主仓库只提供 Host Module 与 Extension 注册表，不直接加载闭源插件。Online 功能后续会作为外部 Host Module 接入；当前版本会继续保持启动器核心稳定，插件入口暂不开放。</sys:String>
 
     <!-- Setup.Ui.Basic -->
 

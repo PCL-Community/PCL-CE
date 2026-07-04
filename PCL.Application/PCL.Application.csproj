@@ -25,5 +25,6 @@
     <ProjectReference Include="..\PCL.Core.Portable\PCL.Core.Portable.csproj" />
     <ProjectReference Include="..\PCL.Domain\PCL.Domain.csproj" />
     <ProjectReference Include="..\PCL.Platform.Abstractions\PCL.Platform.Abstractions.csproj" />
+    <ProjectReference Include="..\PCL.UI.Abstractions\PCL.UI.Abstractions.csproj" />
   </ItemGroup>
 </Project>

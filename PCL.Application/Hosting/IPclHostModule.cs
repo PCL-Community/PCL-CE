@@ -1,0 +1,147 @@
+// Copyright (c) MUXUE1230. All rights reserved.
+// Modifications Copyright (c) 2026 PCL N contributors.
+// Licensed under the Apache License, Version 2.0.
+
+using PCL.Application.Extensions;
+using PCL.Application.Launching;
+using PCL.Application.Settings;
+using PCL.Application.Accounts;
+using PCL.Application.Downloads;
+using PCL.UI.Abstractions.Commands;
+using PCL.UI.Abstractions.Navigation;
+using PCL.UI.Abstractions.Themes;
+
+namespace PCL.Application.Hosting;
+
+public interface IPclHostModule
+{
+    string Id { get; }
+
+    void Configure(IPclHostBuilder builder);
+}
+
+public interface IPclHostBuilder
+{
+    IServiceRegistry Services { get; }
+
+    IExtensionRegistry Extensions { get; }
+
+    INavigationRegistry Navigation { get; }
+
+    ICommandRegistry Commands { get; }
+
+    ISettingsRegistry Settings { get; }
+
+    IThemeRegistry Themes { get; }
+
+    IAccountProviderRegistry Accounts { get; }
+
+    IDownloadSourceRegistry Downloads { get; }
+
+    ILaunchPipelineBuilder Launching { get; }
+}
+
+public interface IPclHost
+{
+    IServiceProvider Services { get; }
+
+    IExtensionRegistry Extensions { get; }
+
+    INavigationRegistry Navigation { get; }
+
+    ICommandRegistry Commands { get; }
+
+    ISettingsRegistry Settings { get; }
+
+    IThemeRegistry Themes { get; }
+
+    IAccountProviderRegistry Accounts { get; }
+
+    IDownloadSourceRegistry Downloads { get; }
+
+    ILaunchPipelineBuilder Launching { get; }
+
+    IReadOnlyList<string> ModuleIds { get; }
+}
+
+public sealed class PclHostBuilder : IPclHostBuilder
+{
+    private readonly List<string> _moduleIds = [];
+
+    public IServiceRegistry Services { get; } = new ServiceRegistry();
+
+    public IExtensionRegistry Extensions { get; } = new ExtensionRegistry();
+
+    public INavigationRegistry Navigation { get; } = new NavigationRegistry();
+
+    public ICommandRegistry Commands { get; } = new CommandRegistry();
+
+    public ISettingsRegistry Settings { get; } = new SettingsRegistry();
+
+    public IThemeRegistry Themes { get; } = new ThemeRegistry();
+
+    public IAccountProviderRegistry Accounts { get; } = new AccountProviderRegistry();
+
+    public IDownloadSourceRegistry Downloads { get; } = new DownloadSourceRegistry();
+
+    public ILaunchPipelineBuilder Launching { get; } = new LaunchPipelineBuilder();
+
+    public PclHostBuilder AddModule(IPclHostModule hostModule)
+    {
+        ArgumentNullException.ThrowIfNull(hostModule);
+        if (string.IsNullOrWhiteSpace(hostModule.Id))
+            throw new ArgumentException("Host Module ID 不能为空。", nameof(hostModule));
+        if (_moduleIds.Any(id => string.Equals(id, hostModule.Id, StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException($"Host Module 已注册：{hostModule.Id}");
+
+        hostModule.Configure(this);
+        _moduleIds.Add(hostModule.Id);
+        return this;
+    }
+
+    public IPclHost Build() =>
+        new PclHost(
+            Services,
+            Extensions,
+            Navigation,
+            Commands,
+            Settings,
+            Themes,
+            Accounts,
+            Downloads,
+            Launching,
+            _moduleIds.ToArray());
+}
+
+internal sealed class PclHost(
+    IServiceProvider services,
+    IExtensionRegistry extensions,
+    INavigationRegistry navigation,
+    ICommandRegistry commands,
+    ISettingsRegistry settings,
+    IThemeRegistry themes,
+    IAccountProviderRegistry accounts,
+    IDownloadSourceRegistry downloads,
+    ILaunchPipelineBuilder launching,
+    IReadOnlyList<string> moduleIds) : IPclHost
+{
+    public IServiceProvider Services { get; } = services;
+
+    public IExtensionRegistry Extensions { get; } = extensions;
+
+    public INavigationRegistry Navigation { get; } = navigation;
+
+    public ICommandRegistry Commands { get; } = commands;
+
+    public ISettingsRegistry Settings { get; } = settings;
+
+    public IThemeRegistry Themes { get; } = themes;
+
+    public IAccountProviderRegistry Accounts { get; } = accounts;
+
+    public IDownloadSourceRegistry Downloads { get; } = downloads;
+
+    public ILaunchPipelineBuilder Launching { get; } = launching;
+
+    public IReadOnlyList<string> ModuleIds { get; } = moduleIds;
+}

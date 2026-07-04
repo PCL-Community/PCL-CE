@@ -970,10 +970,10 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual("敬请期待", pluginPage.FindControl<TextBlock>("LabComingSoon")!.Text);
                 StringAssert.Contains(
                     pluginPage.FindControl<TextBlock>("LabDescription")!.Text,
-                    "PluginSDK");
+                    "Host Module");
                 StringAssert.Contains(
                     pluginPage.FindControl<TextBlock>("LabPluginState")!.Text,
-                    "Online 将由后续 PluginSDK 内置插件提供");
+                    "Online 后续将作为外部 Host Module 接入");
             }
             finally
             {
@@ -983,7 +983,7 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
-    public void PageSetupOnline_ShowsPluginSdkPlaceholder()
+    public void PageSetupOnline_ShowsHostModulePlaceholder()
     {
         string? previousSettingsPath = Environment.GetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH");
         string settingsPath = System.IO.Path.Combine(
@@ -1022,7 +1022,7 @@ public sealed class AvaloniaHeadlessTests
                     Click(window, page.FindControl<MyIconTextButton>("BtnLogin")!);
 
                     Assert.AreEqual("在线功能暂不可用", message?.Title);
-                    StringAssert.Contains(message!.Message, "PluginSDK");
+                    StringAssert.Contains(message!.Message, "Online Host Module");
                 }
                 finally
                 {

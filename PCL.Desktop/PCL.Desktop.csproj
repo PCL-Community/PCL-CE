@@ -47,6 +47,4 @@
     <ProjectReference Include="../PCL.Platform/PCL.Platform.csproj" />
     <ProjectReference Include="../PCL.UI.Abstractions/PCL.UI.Abstractions.csproj" />
   </ItemGroup>
-  <Import Project="../PCL.Plugin/PCL.Plugin.Desktop.props"
-          Condition="Exists('../PCL.Plugin/PCL.Plugin.Desktop.props')" />
 </Project>

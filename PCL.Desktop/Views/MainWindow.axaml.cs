@@ -24,12 +24,14 @@ using PCL.Application.Launching;
 using PCL.Application.Minecraft.Launch.Arguments;
 using PCL.Application.Settings;
 using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Hosting;
 using PCL.Desktop.Platform;
 using PCL.Desktop.Features.Downloads.Views;
 using PCL.Desktop.Features.Instances.Views;
 using PCL.Desktop.Features.Launching.Views;
 using PCL.Desktop.Features.Settings.Views;
 using PCL.Platform.Paths;
+using PCL.UI.Abstractions.Navigation;
 
 namespace PCL.Desktop.Views;
 
@@ -77,22 +79,24 @@ public partial class MainWindow : Window, IDisposable
     private PageSetupLeft? _setupLeft;
     private MyPageRight? _setupRight;
     private readonly List<LoginProfileInfo> _loginProfiles = [];
+    private readonly Dictionary<int, NavigationPageDescriptor> _navigationPages;
 
     private const double NavCollapsedWidth = 50d;
     private const int NavAnimDuration = 200;
 
-    private static readonly Dictionary<int, string> NavPageTitles = new()
+    private static readonly Dictionary<int, string> NavPageRoutes = new()
     {
-        [0] = "启动",
-        [1] = "下载",
-        [2] = "社区",
-        [3] = "设置",
-        [4] = "在线"
+        [0] = "pcl.launch",
+        [1] = "pcl.download",
+        [2] = "pcl.community",
+        [3] = "pcl.settings",
+        [4] = "pcl.online"
     };
 
     public MainWindow()
     {
         AvaloniaXamlLoader.Load(this);
+        _navigationPages = CreateNavigationPageMap(DesktopHost.Current.Navigation);
         Opacity = 0d;
         CanResize = true;
         WindowDecorations = Avalonia.Controls.WindowDecorations.None;
@@ -534,7 +538,7 @@ public partial class MainWindow : Window, IDisposable
 
     private void SelectNavPage(int page, bool animate)
     {
-        if (!NavPageTitles.ContainsKey(page))
+        if (!_navigationPages.ContainsKey(page))
             page = 0;
 
         MyListItem? selected = null;
@@ -2525,7 +2529,7 @@ public partial class MainWindow : Window, IDisposable
         _launchRight?.AppendLog("Microsoft 登录需要 Online 内置插件，目前尚未启用。");
         ShowTextDialog(
             "Microsoft 登录暂不可用",
-            "在线账户功能将由后续 PluginSDK 内置插件提供。当前版本可以先使用离线档案或第三方登录。",
+            "在线账户功能将由后续 Online Host Module 提供。当前版本可以先使用离线档案或第三方登录。",
             "知道了");
     }
 
@@ -2888,7 +2892,7 @@ public partial class MainWindow : Window, IDisposable
             if (rightHost.Child is MyPageRight oldRight)
                 oldRight.PageOnExit();
 
-            rightHost.Child = CreateLoadingPlaceholder(NavPageTitles[page]);
+            rightHost.Child = CreateLoadingPlaceholder(_navigationPages[page].Title);
             ExitTitleSubPage();
             RefreshBackToTopBinding();
         }
@@ -2910,6 +2914,25 @@ public partial class MainWindow : Window, IDisposable
                 }
             }
         };
+
+    private static Dictionary<int, NavigationPageDescriptor> CreateNavigationPageMap(
+        INavigationRegistry navigation)
+    {
+        ArgumentNullException.ThrowIfNull(navigation);
+        Dictionary<string, NavigationPageDescriptor> pagesByRoute = navigation.Pages.ToDictionary(
+            static page => page.Route,
+            static page => page,
+            StringComparer.OrdinalIgnoreCase);
+        Dictionary<int, NavigationPageDescriptor> result = new(NavPageRoutes.Count);
+
+        foreach ((int pageIndex, string route) in NavPageRoutes)
+        {
+            if (pagesByRoute.TryGetValue(route, out NavigationPageDescriptor? descriptor))
+                result[pageIndex] = descriptor;
+        }
+
+        return result;
+    }
 
     private void BeginPageChangeAnimation(int page)
     {

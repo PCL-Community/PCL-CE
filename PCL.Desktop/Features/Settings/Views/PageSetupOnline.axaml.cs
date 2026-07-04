@@ -95,6 +95,6 @@ public partial class PageSetupOnline : MyPageRight, ISettingsPageInteractionSour
             this,
             new SettingsMessageRequestedEventArgs(
                 "在线功能暂不可用",
-                "Microsoft 登录、N Cloud 同步和在线好友将由后续 Online 内置插件提供。当前版本不会加载在线服务。",
+                "Microsoft 登录、N Cloud 同步和在线好友将由后续 Online Host Module 提供。当前版本不会加载在线服务。",
                 "知道了"));
 }
