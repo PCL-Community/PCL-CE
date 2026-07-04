@@ -6842,15 +6842,33 @@ public sealed class AvaloniaHeadlessTests
             {
                 _inner.Dispose();
             }
-            catch (NullReferenceException ex) when (IsAvaloniaHeadlessTeardown(ex))
+            catch (Exception ex) when (IsAvaloniaHeadlessTeardown(ex))
             {
             }
         }
 
-        private static bool IsAvaloniaHeadlessTeardown(Exception ex) =>
-            ex.StackTrace?.Contains(
+        private static bool IsAvaloniaHeadlessTeardown(Exception ex)
+        {
+            if (ex.StackTrace?.Contains(
                 "Avalonia.Headless.HeadlessUnitTestSession.Dispose",
-                StringComparison.Ordinal) == true;
+                StringComparison.Ordinal) != true)
+            {
+                return false;
+            }
+
+            if (ex is NullReferenceException)
+                return true;
+
+            if (ex is AggregateException aggregate)
+                return aggregate.Flatten().InnerExceptions.Any(IsKnownAvaloniaHeadlessTeardownInnerException);
+
+            return IsKnownAvaloniaHeadlessTeardownInnerException(ex);
+        }
+
+        private static bool IsKnownAvaloniaHeadlessTeardownInnerException(Exception ex) =>
+            ex is NullReferenceException ||
+            ex is InvalidOperationException invalidOperation &&
+            invalidOperation.Message.Contains("different thread owns it", StringComparison.OrdinalIgnoreCase);
     }
 
     private static SolidColorBrush RequiredBrush(string key) =>
