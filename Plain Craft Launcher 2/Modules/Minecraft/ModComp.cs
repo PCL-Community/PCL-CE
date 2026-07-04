@@ -2469,8 +2469,10 @@ public static class ModComp
                 request.searchText = canonicalWords.Any()
                     ? string.Join(" ", canonicalWords)
                     : string.Join(" ", wordModCount.OrderByDescending(w => w.Value.Count).Take(2).Select(w => w.Key));
-                if (exactNameEntries.Count == 1 && canonicalEntry.item.CurseForgeSlug is not null)
-                    request.curseForgeAltSearchText = canonicalEntry.item.CurseForgeSlug;
+                var cfSlugs = exactNameEntries.Select(r => r.item.CurseForgeSlug)
+                    .Where(s => s is not null).Distinct().ToList();
+                if (cfSlugs.Count == 1)
+                    request.curseForgeAltSearchText = cfSlugs[0];
             }
             else
             {
