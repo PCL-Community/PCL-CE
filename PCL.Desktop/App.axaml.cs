@@ -6,6 +6,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+using PCL.Desktop.Plugins;
 using PCL.Desktop.Platform;
 using PCL.Desktop.Theme;
 using PCL.Desktop.Views;
@@ -23,7 +24,7 @@ public sealed partial class App : Avalonia.Application
     public override void OnFrameworkInitializationCompleted()
     {
         AvaloniaThemeManager.InitializeFromSettings();
-        DesktopOnlineRuntimeHost.Configure();
+        DesktopPluginHost.Initialize();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {

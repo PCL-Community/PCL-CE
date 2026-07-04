@@ -7,12 +7,19 @@
         <StackPanel x:Name="PanMain" Margin="25,25,25,10">
             <legacy:MyCard Margin="0,0,0,15" Title="{DynamicResource Setup.Plugin.Title}">
                 <StackPanel Margin="25,40,25,20">
-                    <TextBlock Text="{DynamicResource Setup.Plugin.ComingSoon}"
+                    <TextBlock x:Name="LabComingSoon"
+                               Text="{DynamicResource Setup.Plugin.ComingSoon}"
                                FontSize="20"
                                FontWeight="Bold"
                                Foreground="{DynamicResource ColorBrush1}"
                                Margin="0,0,0,10" />
-                    <TextBlock Text="{DynamicResource Setup.Plugin.Description}"
+                    <TextBlock x:Name="LabDescription"
+                               Text="{DynamicResource Setup.Plugin.Description}"
+                               FontSize="13"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource ColorBrush2}" />
+                    <TextBlock x:Name="LabPluginState"
+                               Margin="0,12,0,0"
                                FontSize="13"
                                TextWrapping="Wrap"
                                Foreground="{DynamicResource ColorBrush2}" />
