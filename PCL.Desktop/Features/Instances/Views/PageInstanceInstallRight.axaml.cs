@@ -5,6 +5,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using PCL.Application.Instances;
@@ -15,6 +16,23 @@ namespace PCL.Desktop.Features.Instances.Views;
 
 public partial class PageInstanceInstallRight : MyPageRight
 {
+    private static readonly string[] LoaderCardNames =
+    [
+        "Forge",
+        "Cleanroom",
+        "NeoForge",
+        "Fabric",
+        "LegacyFabric",
+        "FabricApi",
+        "LegacyFabricApi",
+        "Quilt",
+        "QSL",
+        "LabyMod",
+        "OptiFine",
+        "OptiFabric",
+        "LiteLoader"
+    ];
+
     private LaunchInstanceInfo? _instance;
 
     public PageInstanceInstallRight()
@@ -70,6 +88,7 @@ public partial class PageInstanceInstallRight : MyPageRight
             minecraft.IsVisible = false;
             minecraft.IsHitTestVisible = false;
             minecraft.Opacity = 0d;
+            ResetTranslateX(minecraft);
         }
 
         if (this.FindControl<Control>("PanSelect") is { } select)
@@ -77,6 +96,19 @@ public partial class PageInstanceInstallRight : MyPageRight
             select.IsVisible = true;
             select.IsHitTestVisible = true;
             select.Opacity = 1d;
+            ResetTranslateX(select);
+        }
+
+        if (this.FindControl<MyScrollViewer>("PanBack") is { } scroll)
+        {
+            scroll.IsHitTestVisible = true;
+            scroll.ScrollToHome();
+        }
+
+        if (this.FindControl<MyExtraTextButton>("BtnSelectStart") is { } startButton)
+        {
+            startButton.Show = true;
+            startButton.IsEnabled = true;
         }
     }
 
@@ -99,6 +131,7 @@ public partial class PageInstanceInstallRight : MyPageRight
 
     private void InitializeLoaderCards(LaunchInstanceInfo instance)
     {
+        CollapseLoaderCards();
         SetLoaderInfo("Forge", DetectLoader(instance, "forge"), "Anvil.png");
         SetLoaderInfo("Cleanroom", DetectLoader(instance, "cleanroom"), "Cleanroom.png");
         SetLoaderInfo("NeoForge", DetectLoader(instance, "neoforge"), "NeoForge.png");
@@ -118,7 +151,10 @@ public partial class PageInstanceInstallRight : MyPageRight
     {
         bool installed = !string.IsNullOrWhiteSpace(detectedVersion);
         if (this.FindControl<TextBlock>("Lab" + name) is { } label)
+        {
             label.Text = installed ? detectedVersion : "可添加";
+            label.Foreground = LegacyResourceResolver.Brush(label, "ColorBrushGray4", "#8c8c8c");
+        }
 
         if (this.FindControl<Image>("Img" + name) is { } image)
         {
@@ -128,6 +164,26 @@ public partial class PageInstanceInstallRight : MyPageRight
 
         if (this.FindControl<Control>("Btn" + name + "Clear") is { } clearButton)
             clearButton.IsVisible = installed;
+    }
+
+    private void CollapseLoaderCards()
+    {
+        foreach (string name in LoaderCardNames)
+        {
+            if (this.FindControl<MyCard>("Card" + name) is { } card)
+                card.IsSwapped = true;
+        }
+    }
+
+    private static void ResetTranslateX(Control control)
+    {
+        if (control.RenderTransform is TranslateTransform transform)
+        {
+            transform.X = 0d;
+            return;
+        }
+
+        control.RenderTransform = new TranslateTransform();
     }
 
     private static string? DetectLoader(LaunchInstanceInfo instance, params string[] needles)

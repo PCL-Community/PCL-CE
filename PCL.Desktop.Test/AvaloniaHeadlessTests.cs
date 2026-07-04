@@ -3474,6 +3474,78 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void PageInstanceInstallRight_RefreshResetsWpfSelectState()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+        string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-install-state-" + Guid.NewGuid().ToString("N"));
+
+        try
+        {
+            string versionDirectory = System.IO.Path.Combine(root, "versions", "1.20.1");
+            Directory.CreateDirectory(versionDirectory);
+            File.WriteAllText(System.IO.Path.Combine(versionDirectory, "forge-47.3.0.jar"), "loader");
+            LaunchInstanceInfo instance = new("1.20.1", System.IO.Path.Combine(versionDirectory, "1.20.1.json"), versionDirectory);
+
+            session.Dispatch(() =>
+            {
+                PageInstanceInstallRight page = new();
+                Window window = new()
+                {
+                    Width = 720,
+                    Height = 480,
+                    Content = page
+                };
+
+                try
+                {
+                    window.Show();
+                    page.SetInstance(instance);
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                    MyCard forge = page.FindControl<MyCard>("CardForge")!;
+                    StackPanel select = page.FindControl<StackPanel>("PanSelect")!;
+                    StackPanel minecraft = page.FindControl<StackPanel>("PanMinecraft")!;
+                    MyScrollViewer scroll = page.FindControl<MyScrollViewer>("PanBack")!;
+
+                    forge.IsSwapped = false;
+                    select.Opacity = 0.25d;
+                    minecraft.IsVisible = true;
+                    minecraft.Opacity = 1d;
+                    select.RenderTransform = new TranslateTransform { X = 46d };
+                    minecraft.RenderTransform = new TranslateTransform { X = -38d };
+                    scroll.IsHitTestVisible = false;
+
+                    page.RefreshAll();
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                    Assert.IsTrue(forge.IsSwapped);
+                    Assert.IsTrue(select.IsVisible);
+                    Assert.IsTrue(select.IsHitTestVisible);
+                    Assert.AreEqual(1d, select.Opacity, 0.01d);
+                    Assert.IsFalse(minecraft.IsVisible);
+                    Assert.IsFalse(minecraft.IsHitTestVisible);
+                    Assert.AreEqual(0d, minecraft.Opacity, 0.01d);
+                    Assert.AreEqual(0d, ((TranslateTransform)select.RenderTransform!).X, 0.01d);
+                    Assert.AreEqual(0d, ((TranslateTransform)minecraft.RenderTransform!).X, 0.01d);
+                    Assert.IsTrue(scroll.IsHitTestVisible);
+                    Assert.IsTrue(page.FindControl<MyExtraTextButton>("BtnSelectStart")!.Show);
+                    Assert.AreEqual("forge-47.3.0", page.FindControl<TextBlock>("LabForge")!.Text);
+                    Assert.IsTrue(page.FindControl<Control>("BtnForgeClear")!.IsVisible);
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }, CancellationToken.None);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public void PageInstanceScreenshotRight_UsesCopiedWpfGalleryAndActions()
     {
         using HeadlessUnitTestSession session = CreateSession();
