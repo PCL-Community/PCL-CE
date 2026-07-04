@@ -67,6 +67,7 @@ public static class Tooltip
 
     private static bool _running;
     private static int _gen;
+    private static bool _closing;
     private static Point _cursor;
     private static FrameworkElement? _target;
     private static Popup? _flyout;
@@ -293,6 +294,8 @@ public static class Tooltip
             return;
         }
 
+        if (_closing) return;
+
         _StartCycle(candidate, Mouse.GetPosition(candidate));
     }
 
@@ -370,6 +373,7 @@ public static class Tooltip
         // Tooltip 已打开时切换到新元素，先淡出旧内容再淡入新内容
         if (_flyout is { IsOpen: true })
         {
+            _closing = false;
             _target = target;
             _cursor = pt;
             var mark = ++_gen;
@@ -541,6 +545,9 @@ public static class Tooltip
 
     private static void _WindDown()
     {
+        if (_closing) return;
+        _closing = true;
+
         _latch?.Stop();
         _latch = null;
         _target = null;
@@ -565,6 +572,7 @@ public static class Tooltip
     {
         _latch?.Stop();
         _latch = null;
+        _closing = false;
         _target = null;
         _gen++;
 
