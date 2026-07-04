@@ -5,6 +5,7 @@
 using System.IO.Pipes;
 using System.Security.Cryptography;
 using System.Text;
+using PCL.Desktop.Platform;
 
 namespace PCL.Desktop;
 
@@ -33,9 +34,7 @@ internal sealed class SingleInstanceCoordinator : IDisposable
     public static SingleInstanceCoordinator Create()
     {
         string suffix = CreatePerUserSuffix();
-        string mutexName = OperatingSystem.IsWindows()
-            ? $@"Local\PCLN.Desktop.{suffix}"
-            : $"PCLN.Desktop.{suffix}";
+        string mutexName = DesktopPlatformApi.CreateSingleInstanceMutexName(suffix);
         string pipeName = $"PCLN.Desktop.{suffix}.activate";
 
         try

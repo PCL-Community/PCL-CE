@@ -5,6 +5,7 @@
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
@@ -22,11 +23,22 @@ public enum MyButtonColorType
 
 public partial class MyButton : Border
 {
+    public enum ColorState
+    {
+        Normal,
+        Highlight,
+        Red,
+        Gray
+    }
+
+    private const int AnimationColorIn = 100;
+    private const int AnimationColorOut = 200;
+
     public static readonly StyledProperty<string> TextProperty =
         AvaloniaProperty.Register<MyButton, string>(nameof(Text), string.Empty);
 
-    public static readonly StyledProperty<MyButtonColorType> ColorTypeProperty =
-        AvaloniaProperty.Register<MyButton, MyButtonColorType>(nameof(ColorType));
+    public static readonly StyledProperty<ColorState> ColorTypeProperty =
+        AvaloniaProperty.Register<MyButton, ColorState>(nameof(ColorType));
 
     public static readonly StyledProperty<ICommand?> CommandProperty =
         AvaloniaProperty.Register<MyButton, ICommand?>(nameof(Command));
@@ -34,8 +46,18 @@ public partial class MyButton : Border
     public static readonly StyledProperty<object?> CommandParameterProperty =
         AvaloniaProperty.Register<MyButton, object?>(nameof(CommandParameter));
 
+    public static readonly StyledProperty<object?> ToolTipProperty =
+        AvaloniaProperty.Register<MyButton, object?>(nameof(ToolTip));
+
+    public new static readonly StyledProperty<Thickness> PaddingProperty =
+        AvaloniaProperty.Register<MyButton, Thickness>(nameof(Padding), new Thickness());
+
+    public static readonly StyledProperty<Thickness> TextPaddingProperty =
+        AvaloniaProperty.Register<MyButton, Thickness>(nameof(TextPadding), new Thickness());
+
     private readonly Border? _foregroundBorder;
     private readonly TextBlock? _label;
+    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private bool _isPressed;
 
     public MyButton()
@@ -43,12 +65,17 @@ public partial class MyButton : Border
         AvaloniaXamlLoader.Load(this);
         _foregroundBorder = this.FindControl<Border>("PanFore");
         _label = this.FindControl<TextBlock>("LabText");
+        Cursor = new Cursor(StandardCursorType.Hand);
 
-        PointerEntered += (_, _) => RefreshVisual();
+        PointerEntered += (_, _) =>
+        {
+            RefreshColor();
+            ButtonMouseEnter();
+        };
         PointerExited += (_, _) =>
         {
-            _isPressed = false;
-            RefreshVisual();
+            RefreshColor();
+            ButtonMouseLeave();
         };
         PointerPressed += OnPointerPressed;
         PointerReleased += OnPointerReleased;
@@ -57,11 +84,29 @@ public partial class MyButton : Border
             if (_label is not null)
                 _label.Text = text;
         });
-        this.GetObservable(ColorTypeProperty).Subscribe(_ => RefreshVisual());
-        RefreshVisual();
+        this.GetObservable(ColorTypeProperty).Subscribe(_ => RefreshColor());
+        this.GetObservable(IsEnabledProperty).Subscribe(_ => RefreshColor());
+        this.GetObservable(ToolTipProperty).Subscribe(tip => Avalonia.Controls.ToolTip.SetTip(this, tip));
+        this.GetObservable(PaddingProperty).Subscribe(padding =>
+        {
+            if (_foregroundBorder is not null)
+                _foregroundBorder.Padding = padding;
+        });
+        this.GetObservable(TextPaddingProperty).Subscribe(padding =>
+        {
+            if (_label is not null)
+                _label.Padding = padding;
+        });
+        RefreshColor();
     }
 
     public event EventHandler? Click;
+
+    public InlineCollection Inlines =>
+        _label?.Inlines ?? throw new InvalidOperationException("MyButton text block is not initialized.");
+
+    public ScaleTransform RealRenderTransform =>
+        _foregroundBorder?.RenderTransform as ScaleTransform ?? new ScaleTransform();
 
     public string Text
     {
@@ -69,7 +114,7 @@ public partial class MyButton : Border
         set => SetValue(TextProperty, value);
     }
 
-    public MyButtonColorType ColorType
+    public ColorState ColorType
     {
         get => GetValue(ColorTypeProperty);
         set => SetValue(ColorTypeProperty, value);
@@ -87,46 +132,135 @@ public partial class MyButton : Border
         set => SetValue(CommandParameterProperty, value);
     }
 
+    public object? ToolTip
+    {
+        get => GetValue(ToolTipProperty);
+        set => SetValue(ToolTipProperty, value);
+    }
+
+    public new Thickness Padding
+    {
+        get => GetValue(PaddingProperty);
+        set => SetValue(PaddingProperty, value);
+    }
+
+    public Thickness TextPadding
+    {
+        get => GetValue(TextPaddingProperty);
+        set => SetValue(TextPaddingProperty, value);
+    }
+
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (!IsEnabled || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        if (!IsEnabled || _foregroundBorder is null || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             return;
 
         _isPressed = true;
         Focus();
-        RefreshVisual();
+        ModAnimation.AniStart(
+            new List<ModAnimation.AniData>
+            {
+                ModAnimation.AaScaleTransform(
+                    _foregroundBorder,
+                    0.955d - GetForegroundScale(),
+                    80,
+                    ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
+                ModAnimation.AaScaleTransform(_foregroundBorder, -0.01d, 700, ease: new ModAnimation.AniEaseOutFluent())
+            },
+            $"MyButton Scale {_uuid}");
         e.Handled = true;
     }
 
     private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        if (!_isPressed)
+        if (!_isPressed || _foregroundBorder is null)
             return;
 
         _isPressed = false;
-        RefreshVisual();
         var parameter = CommandParameter;
         if (Command?.CanExecute(parameter) == true)
             Command.Execute(parameter);
         Click?.Invoke(this, EventArgs.Empty);
+        ModAnimation.AniStart(
+            ModAnimation.AaScaleTransform(
+                _foregroundBorder,
+                1d - GetForegroundScale(),
+                300,
+                10,
+                new ModAnimation.AniEaseOutFluent()),
+            $"MyButton Scale {_uuid}");
         e.Handled = true;
     }
 
-    private void RefreshVisual()
+    private void RefreshColor()
     {
         if (_foregroundBorder is null || _label is null)
             return;
 
-        var accent = ColorType switch
-        {
-            MyButtonColorType.Normal => Color.Parse("#343d4a"),
-            MyButtonColorType.Red => Color.Parse("#ce2111"),
-            MyButtonColorType.Gray => Color.Parse("#737373"),
-            _ => Color.Parse("#1370f3")
-        };
-        var alpha = _isPressed ? 0x24 : IsPointerOver ? 0x18 : 0x00;
-        _foregroundBorder.BorderBrush = new SolidColorBrush(accent);
-        _foregroundBorder.Background = new SolidColorBrush(Color.FromArgb((byte)alpha, accent.R, accent.G, accent.B));
-        _label.Foreground = new SolidColorBrush(accent);
+        string resourceKey = IsEnabled ? GetBorderBrushResourceKey() : "ColorBrushGray4";
+        ControlVisualHelpers.AnimateColorOrSetResource(
+            _foregroundBorder,
+            Border.BorderBrushProperty,
+            resourceKey,
+            IsPointerOver ? AnimationColorIn : AnimationColorOut,
+            $"MyButton Color {_uuid}",
+            ControlVisualHelpers.ShouldAnimate(this));
+        Cursor = IsEnabled ? new Cursor(StandardCursorType.Hand) : Cursor.Default;
     }
+
+    private string GetBorderBrushResourceKey()
+    {
+        if (ColorType == ColorState.Gray)
+            return "ColorBrushGray2";
+
+        return ColorType switch
+        {
+            ColorState.Normal => IsPointerOver ? "ColorBrush3" : "ColorBrush1",
+            ColorState.Highlight => IsPointerOver ? "ColorBrush3" : "ColorBrush2",
+            ColorState.Red => IsPointerOver ? "ColorBrushRedLight" : "ColorBrushRedDark",
+            _ => "ColorBrush1"
+        };
+    }
+
+    private void ButtonMouseEnter()
+    {
+        if (!IsEnabled || _foregroundBorder is null)
+            return;
+
+        ControlVisualHelpers.AnimateColorOrSetResource(
+            _foregroundBorder,
+            Border.BackgroundProperty,
+            ColorType == ColorState.Red ? "ColorBrushRedBack" : "ColorBrush7",
+            AnimationColorIn,
+            $"MyButton Background {_uuid}",
+            ControlVisualHelpers.ShouldAnimate(this));
+    }
+
+    private void ButtonMouseLeave()
+    {
+        if (_foregroundBorder is null)
+            return;
+
+        ControlVisualHelpers.AnimateColorOrSetResource(
+            _foregroundBorder,
+            Border.BackgroundProperty,
+            "ColorBrushHalfWhite",
+            AnimationColorOut,
+            $"MyButton Background {_uuid}",
+            ControlVisualHelpers.ShouldAnimate(this));
+        if (!_isPressed)
+            return;
+
+        _isPressed = false;
+        ModAnimation.AniStart(
+            ModAnimation.AaScaleTransform(
+                _foregroundBorder,
+                1d - GetForegroundScale(),
+                800,
+                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
+            $"MyButton Scale {_uuid}");
+    }
+
+    private double GetForegroundScale() =>
+        _foregroundBorder?.RenderTransform is ScaleTransform scale ? scale.ScaleX : 1d;
 }

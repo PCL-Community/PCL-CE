@@ -2,16 +2,17 @@
 // Modifications Copyright (c) 2026 PCL N contributors.
 // Licensed under the Apache License, Version 2.0.
 
-using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using Avalonia.Threading;
 
 namespace PCL.Desktop.Controls.Legacy;
 
+#pragma warning disable CA1711
 public sealed partial class MySearchBar : MyCard
 {
+    public delegate void TextChangedEventHandler(object sender, EventArgs e);
+
     public static readonly StyledProperty<string> HintTextProperty =
         AvaloniaProperty.Register<MySearchBar, string>(nameof(HintText), string.Empty);
 
@@ -20,8 +21,6 @@ public sealed partial class MySearchBar : MyCard
 
     private readonly MyTextBox? _textBox;
     private readonly MyIconButton? _clearButton;
-    private readonly Stopwatch _clearAnimationClock = new();
-    private DispatcherTimer? _clearAnimationTimer;
     private bool _updatingText;
 
     public MySearchBar()
@@ -48,7 +47,7 @@ public sealed partial class MySearchBar : MyCard
         UpdateClearButtonState(animate: false);
     }
 
-    public event EventHandler? TextChanged;
+    public event TextChangedEventHandler? TextChanged;
 
     public string HintText
     {
@@ -71,12 +70,13 @@ public sealed partial class MySearchBar : MyCard
             SetCurrentValue(TextProperty, _textBox.Text ?? string.Empty);
 
         UpdateClearButtonState(animate: true);
-        TextChanged?.Invoke(this, EventArgs.Empty);
+        TextChanged?.Invoke(sender ?? this, e);
     }
 
     private void BtnClear_Click(object? sender, EventArgs e)
     {
-        Text = string.Empty;
+        if (_textBox is not null)
+            _textBox.Text = string.Empty;
         _textBox?.Focus();
     }
 
@@ -95,27 +95,16 @@ public sealed partial class MySearchBar : MyCard
         if (_clearButton is null)
             return;
 
-        _clearAnimationTimer?.Stop();
         if (!animate)
         {
+            ModAnimation.AniStop($"MySearchBar ClearBtn {GetHashCode()}");
             _clearButton.Opacity = targetOpacity;
             return;
         }
 
-        double startOpacity = _clearButton.Opacity;
-        _clearAnimationClock.Restart();
-        _clearAnimationTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
-        _clearAnimationTimer.Tick += (_, _) =>
-        {
-            double progress = Math.Clamp(_clearAnimationClock.Elapsed.TotalMilliseconds / 90d, 0d, 1d);
-            _clearButton.Opacity = startOpacity + (targetOpacity - startOpacity) * progress;
-            if (progress < 1d)
-                return;
-
-            _clearButton.Opacity = targetOpacity;
-            _clearAnimationTimer?.Stop();
-            _clearAnimationTimer = null;
-        };
-        _clearAnimationTimer.Start();
+        ModAnimation.AniStart(
+            ModAnimation.AaOpacity(_clearButton, targetOpacity - _clearButton.Opacity, 90),
+            $"MySearchBar ClearBtn {GetHashCode()}");
     }
 }
+#pragma warning restore CA1711

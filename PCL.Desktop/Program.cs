@@ -4,6 +4,7 @@
 
 using Avalonia;
 using Avalonia.Platform;
+using PCL.Desktop.Platform;
 
 namespace PCL.Desktop;
 
@@ -34,9 +35,7 @@ internal static class Program
 
     private static int ValidateEnvironment()
     {
-        return OperatingSystem.IsWindows() ||
-               OperatingSystem.IsLinux() ||
-               OperatingSystem.IsMacOS()
+        return DesktopPlatformApi.IsSupportedDesktopPlatform
             ? 0
             : 1;
     }

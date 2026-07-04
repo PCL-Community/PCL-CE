@@ -5,9 +5,12 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
+using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using PathShape = Avalonia.Controls.Shapes.Path;
 
 namespace PCL.Desktop.Controls.Legacy;
 
@@ -25,6 +28,12 @@ public class MyComboBox : ComboBox
     private bool _isTextChanging;
     private double _realWidth = double.NaN;
     private string _text = string.Empty;
+    private readonly string _uuid = Guid.NewGuid().ToString("N");
+    private PathShape? _dropDownArrow;
+    private ContentPresenter? _selectedContentPresenter;
+    private TextBox? _editableTextBox;
+    private Grid? _panPopup;
+    private Border? _dropDownBorder;
 
     public MyComboBox()
     {
@@ -40,9 +49,15 @@ public class MyComboBox : ComboBox
         DropDownClosed += MyComboBox_DropDownClosed;
         SelectionChanged += MyComboBox_SelectionChanged;
         this.GetObservable(IsEnabledProperty).Subscribe(_ => RefreshColor());
-        this.GetObservable(IsDropDownOpenProperty).Subscribe(_ => RefreshColor());
+        this.GetObservable(IsDropDownOpenProperty).Subscribe(_ =>
+        {
+            RefreshColor();
+            RefreshDropDownArrow(animate: true);
+        });
+        this.GetObservable(IsEditableProperty).Subscribe(_ => RefreshEditableVisibility());
         this.GetObservable(HintTextProperty).Subscribe(text => PlaceholderText = text);
         this.GetObservable(ComboBox.TextProperty).Subscribe(OnTextPropertyChanged);
+        AttachedToVisualTree += (_, _) => EnsureWpfMarkedSelection();
         RefreshColor();
     }
 
@@ -71,8 +86,38 @@ public class MyComboBox : ComboBox
 
     public bool DropDownWidthSync { get; set; } = true;
 
+    public string SelectedValuePath { get; set; } = string.Empty;
+
     public ContentPresenter? ContentPresenter =>
-        this.FindDescendantOfType<ContentPresenter>();
+        _selectedContentPresenter ?? this.FindDescendantOfType<ContentPresenter>();
+
+    protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+    {
+        base.OnApplyTemplate(e);
+        _dropDownArrow = e.NameScope.Find<PathShape>("PART_DropDownArrow");
+        _selectedContentPresenter = e.NameScope.Find<ContentPresenter>("PART_Content")
+            ?? e.NameScope.Find<ContentPresenter>("PART_ContentPresenter");
+        _editableTextBox = e.NameScope.Find<TextBox>("PART_EditableTextBox");
+        _panPopup = e.NameScope.Find<Grid>("PanPopup");
+        _dropDownBorder = e.NameScope.Find<Border>("dropDownBorder");
+        if (_dropDownArrow is not null)
+        {
+            _dropDownArrow.RenderTransformOrigin = new RelativePoint(0.3d, 0.5d, RelativeUnit.Relative);
+            if (_dropDownArrow.RenderTransform is not RotateTransform)
+                _dropDownArrow.RenderTransform = new RotateTransform();
+        }
+
+        if (_editableTextBox is not null)
+        {
+            _editableTextBox.Tag = Tag;
+            _editableTextBox.GetObservable(IsFocusedProperty).Subscribe(_ => RefreshColor());
+            if (_editableTextBox is MyTextBox myTextBox)
+                myTextBox.HintText = HintText;
+        }
+
+        RefreshEditableVisibility();
+        RefreshDropDownArrow(animate: false);
+    }
 
     protected override bool NeedsContainerOverride(object? item, int index, out object? recycleKey)
     {
@@ -96,36 +141,95 @@ public class MyComboBox : ComboBox
             comboBoxItem.Content = item;
     }
 
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == ItemsSourceProperty ||
+            change.Property == SelectedItemProperty ||
+            change.Property == SelectedIndexProperty)
+        {
+            _text = SelectedItem?.ToString() ?? string.Empty;
+        }
+    }
+
     public void RefreshColor()
     {
-        IBrush foreground;
-        IBrush background;
+        string foreColorName;
+        string backColorName;
+        int time;
         if (IsEnabled)
         {
-            if (_isMouseDown || IsDropDownOpen || IsFocused)
+            if (_isMouseDown || IsDropDownOpen || IsFocused || (IsEditable && _editableTextBox?.IsFocused == true))
             {
-                foreground = FindBrush("ColorBrush3", "#1370f3");
-                background = FindBrush("ColorBrush7", "#e0eafd");
+                foreColorName = "ColorBrush3";
+                backColorName = "ColorBrush7";
+                time = 10;
             }
             else if (IsPointerOver)
             {
-                foreground = FindBrush("ColorBrush4", "#4890f5");
-                background = FindBrush("ColorBrush7", "#e0eafd");
+                foreColorName = "ColorBrush4";
+                backColorName = "ColorBrush7";
+                time = 100;
             }
             else
             {
-                foreground = FindBrush("ColorBrushBg0", "#96c0f9");
-                background = FindBrush("ColorBrushHalfWhite", "#55ffffff");
+                foreColorName = "ColorBrushBg0";
+                backColorName = "ColorBrushHalfWhite";
+                time = 100;
             }
         }
         else
         {
-            foreground = FindBrush("ColorBrushGray5", "#cccccc");
-            background = FindBrush("ColorBrushGray6", "#ebebeb");
+            foreColorName = "ColorBrushGray5";
+            backColorName = "ColorBrushGray6";
+            time = 200;
         }
 
-        Foreground = foreground;
-        Background = background;
+        if (ControlVisualHelpers.ShouldAnimate(this))
+        {
+            ModAnimation.AniStart(
+                new[]
+                {
+                    ModAnimation.AaColor(this, ForegroundProperty, foreColorName, time),
+                    ModAnimation.AaColor(this, BackgroundProperty, backColorName, time)
+                },
+                $"MyComboBox Color {_uuid}");
+            return;
+        }
+
+        ModAnimation.AniStop($"MyComboBox Color {_uuid}");
+        Foreground = FindBrush(foreColorName, "#96c0f9");
+        Background = FindBrush(backColorName, "#55ffffff");
+    }
+
+    private void RefreshEditableVisibility()
+    {
+        if (_selectedContentPresenter is not null)
+            _selectedContentPresenter.IsVisible = !IsEditable;
+        if (_editableTextBox is not null)
+            _editableTextBox.IsVisible = IsEditable;
+    }
+
+    private void RefreshDropDownArrow(bool animate)
+    {
+        if (_dropDownArrow?.RenderTransform is not RotateTransform rotate)
+            return;
+
+        double targetAngle = IsDropDownOpen ? 180d : 0d;
+        if (animate && ControlVisualHelpers.ShouldAnimate(this))
+        {
+            ModAnimation.AniStart(
+                ModAnimation.AaRotateTransform(
+                    _dropDownArrow,
+                    targetAngle - rotate.Angle,
+                    200,
+                    ease: new ModAnimation.AniEaseOutFluent()),
+                $"MyComboBox Arrow {_uuid}");
+            return;
+        }
+
+        ModAnimation.AniStop($"MyComboBox Arrow {_uuid}");
+        rotate.Angle = targetAngle;
     }
 
     private void MyComboBox_PointerPressed(object? sender, PointerPressedEventArgs e)
@@ -148,6 +252,15 @@ public class MyComboBox : ComboBox
         _realWidth = Width;
         if (DropDownWidthSync && !double.IsNaN(Bounds.Width) && Bounds.Width > 0d)
             Width = Bounds.Width;
+
+        if (_panPopup is not null)
+        {
+            TopLevel? topLevel = TopLevel.GetTopLevel(this);
+            _panPopup.Opacity = topLevel?.Opacity ?? 1d;
+        }
+
+        if (!DropDownWidthSync && _dropDownBorder is not null && Bounds.Width > 0d)
+            _dropDownBorder.MinWidth = Bounds.Width;
     }
 
     private void MyComboBox_DropDownClosed(object? sender, EventArgs e)
@@ -157,10 +270,23 @@ public class MyComboBox : ComboBox
 
     private void MyComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        if (!IsEditable || SelectedItem is null)
+        _text = SelectedItem?.ToString() ?? string.Empty;
+    }
+
+    private void EnsureWpfMarkedSelection()
+    {
+        if (SelectedIndex >= 0 || SelectedItem is not null)
             return;
 
-        _text = SelectedItem.ToString() ?? string.Empty;
+        foreach (object? item in Items)
+        {
+            if (item is not MyComboBoxItem { IsSelected: true } comboBoxItem)
+                continue;
+
+            SelectedItem = comboBoxItem;
+            _text = comboBoxItem.ToString();
+            return;
+        }
     }
 
     private void OnTextPropertyChanged(string? text)
@@ -182,9 +308,6 @@ public class MyComboBox : ComboBox
 
     private IBrush FindBrush(string key, string fallback)
     {
-        if (this.TryGetResource(key, null, out object? resource) && resource is IBrush brush)
-            return brush;
-
-        return new SolidColorBrush(Color.Parse(fallback));
+        return LegacyResourceResolver.Brush(this, key, fallback);
     }
 }

@@ -139,7 +139,7 @@ public partial class MySkin : Grid
         if (_shadow is not null)
             _shadow.Opacity = 0.2d;
         _isSkinMouseDown = false;
-        RenderTransform = new ScaleTransform(1d, 1d);
+        ControlVisualHelpers.SetCenterScale(this, 1d);
     }
 
     private void PanSkin_PointerPressed(object? sender, PointerPressedEventArgs e)
@@ -148,13 +148,13 @@ public partial class MySkin : Grid
             return;
 
         _isSkinMouseDown = true;
-        RenderTransform = new ScaleTransform(0.9d, 0.9d);
+        ControlVisualHelpers.SetCenterScale(this, 0.9d);
         e.Handled = true;
     }
 
     private void PanSkin_PointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        RenderTransform = new ScaleTransform(1d, 1d);
+        ControlVisualHelpers.SetCenterScale(this, 1d);
         if (!_isSkinMouseDown)
             return;
 

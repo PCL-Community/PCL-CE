@@ -6,8 +6,7 @@
 <Application
     x:Class="PCL.Desktop.App"
     xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    RequestedThemeVariant="Default">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Application.Styles>
     <FluentTheme />
     <StyleInclude Source="avares://PCL.Desktop/Themes/PclTheme.axaml" />

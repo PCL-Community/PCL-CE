@@ -37,6 +37,7 @@ public class MyCard : AnimatedBackgroundGrid
 
     private readonly BlurBorder _mainBorder;
     private readonly Grid _mainGrid;
+    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private TextBlock? _mainTextBlock;
     private PathShape? _mainSwap;
     private Control? _swapControl;
@@ -44,10 +45,13 @@ public class MyCard : AnimatedBackgroundGrid
     private bool _isApplyingSwap;
     private bool _isSwapMouseDown;
     private bool _isCustomMouseDown;
+    private bool _isHeightAnimating;
+    private double _actualUsedHeight;
 
     public MyCard()
         : base(BlurBorder.BackgroundProperty)
     {
+        Background = Brushes.Transparent;
         MainChrome = new MyDropShadow
         {
             Margin = new Thickness(-3d, -3d, -3d, -4d),
@@ -80,6 +84,7 @@ public class MyCard : AnimatedBackgroundGrid
         };
         PointerPressed += MyCard_PointerPressed;
         PointerReleased += MyCard_PointerReleased;
+        SizeChanged += MyCard_SizeChanged;
 
         this.GetObservable(TitleProperty).Subscribe(title =>
         {
@@ -198,6 +203,14 @@ public class MyCard : AnimatedBackgroundGrid
         set => SetValue(UseAnimationProperty, value);
     }
 
+    protected override Control AnimatableElement => _mainBorder;
+
+    protected override IBrush? AnimatableBrush
+    {
+        get => _mainBorder.Background;
+        set => _mainBorder.Background = value;
+    }
+
     public Control? SwapControl
     {
         get => _swapControl;
@@ -224,8 +237,8 @@ public class MyCard : AnimatedBackgroundGrid
     public event EventHandler? Click;
 
 #pragma warning disable CA1711
-    public delegate void PreviewSwapEventHandler(object sender, CardRouteEventArgs e);
-    public delegate void SwapEventHandler(object sender, CardRouteEventArgs e);
+    public delegate void PreviewSwapEventHandler(object sender, RouteEventArgs e);
+    public delegate void SwapEventHandler(object sender, RouteEventArgs e);
 #pragma warning restore CA1711
 
     public void StackInstall()
@@ -251,6 +264,8 @@ public class MyCard : AnimatedBackgroundGrid
     public void TriggerForceResize()
     {
         Height = IsSwapped ? SwapedHeight : double.NaN;
+        ModAnimation.AniStop($"MyCard Height {_uuid}");
+        _isHeightAnimating = false;
         if (SwapControl is not null)
             SwapControl.IsVisible = !IsSwapped;
     }
@@ -261,8 +276,7 @@ public class MyCard : AnimatedBackgroundGrid
             return;
 
         _isInitialized = true;
-        BackgroundBrush = FindBrush("ColorBrushTransparentBackground", "#d2fbfbfb");
-        _mainBorder.Background = BackgroundBrush;
+        SetBackgroundBrushDirect(FindBrush("ColorBrushTransparentBackground", "#d2fbfbfb"));
         MainChrome.Color = FindColor("ColorObject1", "#343d4a");
 
         if (_mainTextBlock is null)
@@ -282,7 +296,7 @@ public class MyCard : AnimatedBackgroundGrid
         }
 
         EnsureSwapChrome();
-        ApplySwapped(IsSwapped);
+        ApplySwapped(IsSwapped, animate: false);
         RefreshHoverVisual(IsPointerOver);
     }
 
@@ -312,10 +326,13 @@ public class MyCard : AnimatedBackgroundGrid
             IsHitTestVisible = false
         };
         _mainGrid.Children.Add(_mainSwap);
-        ApplySwapArrow();
+        ApplySwapArrow(animate: false);
     }
 
-    private void ApplySwapped(bool value)
+    private void ApplySwapped(bool value) =>
+        ApplySwapped(value, ControlVisualHelpers.ShouldAnimate(this) && UseAnimation && Bounds.Height > 0d);
+
+    private void ApplySwapped(bool value, bool animate)
     {
         if (SwapControl is null)
             return;
@@ -326,15 +343,118 @@ public class MyCard : AnimatedBackgroundGrid
             _swapControl = stack;
         }
 
-        SwapControl.IsVisible = !value;
+        SwapControl.IsVisible = animate || !value;
         Height = value ? SwapedHeight : double.NaN;
-        ApplySwapArrow();
+        ModAnimation.AniStop($"MyCard Height {_uuid}");
+        _isHeightAnimating = false;
+        if (!animate)
+            SwapControl.IsVisible = !value;
+        ApplySwapArrow(animate);
     }
 
-    private void ApplySwapArrow()
+    private void ApplySwapArrow(bool animate = false)
     {
-        if (_mainSwap?.RenderTransform is RotateTransform rotate)
-            rotate.Angle = IsSwapped ? (SwapLogoRight ? 270d : 0d) : 180d;
+        if (_mainSwap?.RenderTransform is not RotateTransform rotate)
+            return;
+
+        double targetAngle = IsSwapped ? (SwapLogoRight ? 270d : 0d) : 180d;
+        if (animate && ControlVisualHelpers.ShouldAnimate(this))
+        {
+            ModAnimation.AniStart(
+                ModAnimation.AaRotateTransform(
+                    _mainSwap,
+                    targetAngle - rotate.Angle,
+                    250,
+                    ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
+                $"MyCard Swap {_uuid}",
+                true);
+            return;
+        }
+
+        ModAnimation.AniStop($"MyCard Swap {_uuid}");
+        rotate.Angle = targetAngle;
+    }
+
+    private void MyCard_SizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        if (!UseAnimation)
+            return;
+
+        double deltaHeight = (IsSwapped ? SwapedHeight : e.NewSize.Height) - e.PreviousSize.Height;
+        if (e.PreviousSize.Height == 0d ||
+            _isHeightAnimating ||
+            Math.Abs(deltaHeight) < 1d ||
+            e.NewSize.Height == 0d)
+        {
+            return;
+        }
+
+        StartHeightAnimation(deltaHeight, e.PreviousSize.Height);
+    }
+
+    private void StartHeightAnimation(double delta, double previousHeight)
+    {
+        if (_isHeightAnimating)
+            return;
+
+        List<ModAnimation.AniData> animations = [];
+        double absDelta = Math.Abs(delta);
+        if (absDelta <= 800d)
+        {
+            animations.Add(ModAnimation.AaHeight(
+                this,
+                delta,
+                150,
+                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)));
+        }
+        else
+        {
+            int easeLength;
+            int easeTime;
+            int initSpeed;
+            if (delta < 0d && absDelta > 5000d * 0.1d)
+            {
+                easeLength = 200;
+                easeTime = 150;
+                initSpeed = (int)Math.Round((absDelta - easeLength) / 0.1d);
+            }
+            else if (delta > 0d && absDelta > 5000d * 0.6d)
+            {
+                initSpeed = 5000;
+                easeLength = (int)Math.Round(absDelta - initSpeed * 0.3d);
+                easeTime = 400;
+            }
+            else
+            {
+                easeLength = 150;
+                easeTime = 200;
+                initSpeed = 4000;
+            }
+
+            animations.Add(ModAnimation.AaHeight(
+                this,
+                (absDelta - easeLength) * Math.Sign(delta),
+                (int)Math.Round((absDelta - easeLength) / initSpeed * 1000d)));
+            animations.Add(ModAnimation.AaHeight(
+                this,
+                easeLength * Math.Sign(delta),
+                easeTime,
+                ease: new ModAnimation.AniEaseOutFluentWithInitial(initSpeed, easeTime / 1000d, easeLength),
+                after: true));
+        }
+
+        animations.Add(ModAnimation.AaCode(() =>
+        {
+            Height = _actualUsedHeight;
+            if (IsSwapped && SwapControl is not null)
+                SwapControl.IsVisible = false;
+            _isHeightAnimating = false;
+        }, after: true));
+
+        _actualUsedHeight = IsSwapped ? SwapedHeight : Height;
+        Height = previousHeight;
+        _isHeightAnimating = true;
+        ModAnimation.AniStart(animations, $"MyCard Height {_uuid}");
     }
 
     private void RefreshHoverVisual(bool isHover)
@@ -342,14 +462,33 @@ public class MyCard : AnimatedBackgroundGrid
         if (!HasMouseAnimation)
             return;
 
-        var textBrush = FindBrush(isHover ? "ColorBrush2" : "ColorBrush1", isHover ? "#0b5bcb" : "#343d4a");
-        if (_mainTextBlock is not null)
-            _mainTextBlock.Foreground = textBrush;
-        if (_mainSwap is not null)
-            _mainSwap.Fill = textBrush;
+        string foregroundKey = isHover ? "ColorBrush2" : "ColorBrush1";
+        string shadowKey = isHover ? "ColorObject4" : "ColorObject1";
+        int duration = 90;
+        if (!ControlVisualHelpers.ShouldAnimate(this) || IsBackgroundAnimating)
+        {
+            IBrush textBrush = FindBrush(foregroundKey, isHover ? "#0b5bcb" : "#343d4a");
+            if (_mainTextBlock is not null)
+                _mainTextBlock.Foreground = textBrush;
+            if (_mainSwap is not null)
+                _mainSwap.Fill = textBrush;
+            MainChrome.Color = FindColor(shadowKey, isHover ? "#4890f5" : "#343d4a");
+            MainChrome.Opacity = isHover ? DropShadowHoverOpacity : DropShadowIdleOpacity;
+            return;
+        }
 
-        MainChrome.Color = FindColor(isHover ? "ColorObject4" : "ColorObject1", isHover ? "#4890f5" : "#343d4a");
-        MainChrome.Opacity = isHover ? DropShadowHoverOpacity : DropShadowIdleOpacity;
+        List<ModAnimation.AniData> animations = [];
+        if (_mainTextBlock is not null)
+            animations.Add(ModAnimation.AaColor(_mainTextBlock, TextBlock.ForegroundProperty, foregroundKey, duration));
+        if (_mainSwap is not null)
+            animations.Add(ModAnimation.AaColor(_mainSwap, Shape.FillProperty, foregroundKey, duration));
+        animations.Add(ModAnimation.AaColor(MainChrome, MyDropShadow.ColorProperty, shadowKey, duration));
+        animations.Add(ModAnimation.AaOpacity(
+            MainChrome,
+            (isHover ? DropShadowHoverOpacity : DropShadowIdleOpacity) - MainChrome.Opacity,
+            duration));
+
+        ModAnimation.AniStart(animations, $"MyCard Mouse {GetHashCode()}");
     }
 
     private void MyCard_PointerPressed(object? sender, PointerPressedEventArgs e)
@@ -388,7 +527,7 @@ public class MyCard : AnimatedBackgroundGrid
         if (!IsSwapped && (SwapControl is null || y > SwapedHeight - 6d || (Math.Abs(y) < 0.001d && !IsPointerOver)))
             return;
 
-        CardRouteEventArgs routeArgs = new(raiseByMouse: true);
+        RouteEventArgs routeArgs = new(raiseByMouse: true);
         PreviewSwap?.Invoke(this, routeArgs);
         if (routeArgs.Handled)
             return;
@@ -410,39 +549,11 @@ public class MyCard : AnimatedBackgroundGrid
 
     private IBrush FindBrush(string key, string fallback)
     {
-        if (this.TryGetResource(key, null, out object? resource) && resource is IBrush brush)
-            return brush;
-
-        return new SolidColorBrush(Color.Parse(fallback));
+        return LegacyResourceResolver.Brush(this, key, fallback);
     }
 
     private Color FindColor(string key, string fallback)
     {
-        if (this.TryGetResource(key, null, out object? resource))
-        {
-            if (resource is Color color)
-                return color;
-            if (resource is SolidColorBrush brush)
-                return brush.Color;
-        }
-
-        return Color.Parse(fallback);
+        return LegacyResourceResolver.Color(this, key, fallback);
     }
 }
-
-#pragma warning disable CA1708
-public sealed class CardRouteEventArgs(bool raiseByMouse = false) : EventArgs
-{
-    public bool Handled { get; set; }
-
-    public bool handled
-    {
-        get => Handled;
-        set => Handled = value;
-    }
-
-    public bool RaiseByMouse { get; } = raiseByMouse;
-
-    public bool raiseByMouse => RaiseByMouse;
-}
-#pragma warning restore CA1708

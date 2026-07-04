@@ -4,6 +4,7 @@
 
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
 
 namespace PCL.Desktop.Controls.Legacy;
 
@@ -15,11 +16,18 @@ public sealed class MyMsgSelectClosedEventArgs(int? selectedIndex) : EventArgs
 public partial class MyMsgSelect : Grid
 {
     private readonly List<MyListItem> _items = [];
+    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private int _selectedIndex = -1;
+    private TranslateTransform? _transformPos;
+    private RotateTransform? _transformRotate;
+    private int? _pendingSelectedIndex;
+    private AnimationMode _animationMode;
 
     public MyMsgSelect()
     {
         AvaloniaXamlLoader.Load(this);
+        CaptureTransforms();
+        Opacity = 0d;
         if (this.FindControl<MyButton>("Btn1") is { } confirm)
             confirm.IsEnabled = false;
     }
@@ -29,6 +37,8 @@ public partial class MyMsgSelect : Grid
     public IReadOnlyList<MyListItem> Items => _items;
 
     public int SelectedIndex => _selectedIndex;
+
+    public bool IsClosing => _animationMode == AnimationMode.Closing;
 
     public void Configure(
         string title,
@@ -57,7 +67,7 @@ public partial class MyMsgSelect : Grid
         panel.Children.Clear();
         foreach (MyListItem item in items)
         {
-            item.Type = MyListItemType.RadioBox;
+            item.Type = MyListItem.CheckType.RadioBox;
             item.MinHeight = 24d;
             item.Click += SelectionClick;
             _items.Add(item);
@@ -73,6 +83,8 @@ public partial class MyMsgSelect : Grid
         _selectedIndex = _items.IndexOf(item);
         if (this.FindControl<MyButton>("Btn1") is { } confirm)
             confirm.IsEnabled = _selectedIndex >= 0;
+        if (_selectedIndex >= 0)
+            CloseWithResult(_selectedIndex);
     }
 
     private void Btn1Click(object? sender, EventArgs e)
@@ -80,9 +92,103 @@ public partial class MyMsgSelect : Grid
         if (_selectedIndex < 0)
             return;
 
-        Closed?.Invoke(this, new MyMsgSelectClosedEventArgs(_selectedIndex));
+        CloseWithResult(_selectedIndex);
     }
 
     private void Btn2Click(object? sender, EventArgs e) =>
-        Closed?.Invoke(this, new MyMsgSelectClosedEventArgs(null));
+        CloseWithResult(null);
+
+    public void BeginShowAnimation()
+    {
+        CaptureTransforms();
+        _pendingSelectedIndex = null;
+        _animationMode = AnimationMode.Opening;
+        Opacity = 0d;
+        SetTransform(y: 40d, angle: -4d);
+        string name = $"MyMsgBox {_uuid}";
+        ModAnimation.AniStart(
+        new List<ModAnimation.AniData>
+        {
+            ModAnimation.AaOpacity(this, 1d, 120, 60),
+            ModAnimation.AaDouble(AddTransformY, -GetTransformY(), 300, 60, new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
+            ModAnimation.AaDouble(AddTransformAngle, -GetTransformAngle(), 300, 60, new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
+            ModAnimation.AaCode(() => _animationMode = AnimationMode.None, after: true)
+        }, name);
+    }
+
+    public void BeginCloseAnimation(Action? completed = null)
+    {
+        if (_animationMode == AnimationMode.Closing)
+            return;
+
+        CaptureTransforms();
+        _animationMode = AnimationMode.Closing;
+        string name = $"MyMsgBox {_uuid}";
+        ModAnimation.AniStart(
+        new List<ModAnimation.AniData>
+        {
+            ModAnimation.AaOpacity(this, -Opacity, 80, 20),
+            ModAnimation.AaDouble(AddTransformY, 20d - GetTransformY(), 150, 0, new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaDouble(AddTransformAngle, 6d - GetTransformAngle(), 150, 0, new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
+            ModAnimation.AaCode(() =>
+            {
+                _animationMode = AnimationMode.None;
+                completed?.Invoke();
+            }, after: true)
+        }, name);
+    }
+
+    private void CloseWithResult(int? selectedIndex)
+    {
+        if (_animationMode == AnimationMode.Closing)
+            return;
+
+        _pendingSelectedIndex = selectedIndex;
+        BeginCloseAnimation(() => Closed?.Invoke(this, new MyMsgSelectClosedEventArgs(_pendingSelectedIndex)));
+    }
+
+    private void CaptureTransforms()
+    {
+        if (RenderTransform is not TransformGroup group)
+            return;
+
+        foreach (ITransform transform in group.Children)
+        {
+            _transformRotate ??= transform as RotateTransform;
+            _transformPos ??= transform as TranslateTransform;
+        }
+    }
+
+    private void SetTransform(double y, double angle)
+    {
+        if (_transformPos is not null)
+            _transformPos.Y = y;
+        if (_transformRotate is not null)
+            _transformRotate.Angle = angle;
+    }
+
+    private double GetTransformY() =>
+        _transformPos?.Y ?? 0d;
+
+    private double GetTransformAngle() =>
+        _transformRotate?.Angle ?? 0d;
+
+    private void AddTransformY(double value)
+    {
+        if (_transformPos is not null)
+            _transformPos.Y += value;
+    }
+
+    private void AddTransformAngle(double value)
+    {
+        if (_transformRotate is not null)
+            _transformRotate.Angle += value;
+    }
+
+    private enum AnimationMode
+    {
+        None,
+        Opening,
+        Closing
+    }
 }

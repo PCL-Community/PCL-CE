@@ -19,7 +19,7 @@ public partial class MySlider : Border
     #pragma warning disable CA1711, CA1708
     public delegate void ChangeEventHandler(object sender, bool user);
 
-    public delegate void PreviewChangeEventHandler(object sender, SliderPreviewChangeEventArgs e);
+    public delegate void PreviewChangeEventHandler(object sender, RouteEventArgs e);
     #pragma warning restore CA1711, CA1708
 
     public static readonly StyledProperty<int> MaxValueProperty =
@@ -160,7 +160,7 @@ public partial class MySlider : Border
         if (syncStyledProperty)
             SyncValueProperty(newValue);
 
-        SliderPreviewChangeEventArgs preview = new();
+        RouteEventArgs preview = new(user);
         PreviewChange?.Invoke(this, preview);
         if (preview.Handled)
         {
@@ -298,38 +298,11 @@ public partial class MySlider : Border
         if (_shapeDot is null)
             return;
 
-        if (_shapeDot.RenderTransform is not ScaleTransform transform)
-        {
-            transform = new ScaleTransform();
-            _shapeDot.RenderTransform = transform;
-        }
-
-        transform.ScaleX = scale;
-        transform.ScaleY = scale;
+        ControlVisualHelpers.SetCenterScale(_shapeDot, scale);
     }
 
     private IBrush FindBrush(string key, string fallback)
     {
-        if (this.TryGetResource(key, null, out object? resource) && resource is IBrush brush)
-            return brush;
-
-        return new SolidColorBrush(Color.Parse(fallback));
+        return LegacyResourceResolver.Brush(this, key, fallback);
     }
 }
-
-#pragma warning disable CA1708
-public sealed class SliderPreviewChangeEventArgs(bool raiseByMouse = false) : EventArgs
-{
-    public bool Handled { get; set; }
-
-    public bool handled
-    {
-        get => Handled;
-        set => Handled = value;
-    }
-
-    public bool RaiseByMouse { get; } = raiseByMouse;
-
-    public bool raiseByMouse => RaiseByMouse;
-}
-#pragma warning restore CA1708

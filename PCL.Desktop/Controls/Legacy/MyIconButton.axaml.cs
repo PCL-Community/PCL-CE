@@ -11,6 +11,8 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using PCL.Desktop.Theme;
+using SvgIconControl = PCL.Desktop.Controls.Legacy.SvgIcon;
 
 namespace PCL.Desktop.Controls.Legacy;
 
@@ -25,6 +27,15 @@ public enum MyIconButtonTheme
 
 public partial class MyIconButton : Border
 {
+    public enum Themes
+    {
+        Color,
+        White,
+        Black,
+        Red,
+        Custom
+    }
+
     public static readonly StyledProperty<string> LogoProperty =
         AvaloniaProperty.Register<MyIconButton, string>(nameof(Logo), string.Empty);
 
@@ -34,8 +45,8 @@ public partial class MyIconButton : Border
     public static readonly StyledProperty<double> LogoScaleProperty =
         AvaloniaProperty.Register<MyIconButton, double>(nameof(LogoScale), 1d);
 
-    public new static readonly StyledProperty<MyIconButtonTheme> ThemeProperty =
-        AvaloniaProperty.Register<MyIconButton, MyIconButtonTheme>(nameof(Theme));
+    public new static readonly StyledProperty<Themes> ThemeProperty =
+        AvaloniaProperty.Register<MyIconButton, Themes>(nameof(Theme));
 
     public static readonly StyledProperty<IBrush?> ForegroundProperty =
         AvaloniaProperty.Register<MyIconButton, IBrush?>(nameof(Foreground));
@@ -56,6 +67,8 @@ public partial class MyIconButton : Border
     private readonly Grid? _iconHost;
     private readonly PathShape? _path;
     private readonly SvgIcon? _svgIcon;
+    private readonly string _uuid = Guid.NewGuid().ToString("N");
+    private bool _isLoaded;
     private bool _isPressed;
 
     public MyIconButton()
@@ -66,24 +79,29 @@ public partial class MyIconButton : Border
         _path = this.FindControl<PathShape>("Path");
         _svgIcon = this.FindControl<SvgIcon>("ShapeSvgIcon");
 
-        PointerEntered += (_, _) => RefreshVisual();
+        PointerEntered += (_, _) => RefreshAnim();
         PointerExited += (_, _) =>
         {
-            _isPressed = false;
-            RefreshVisual();
+            ButtonMouseLeave();
         };
         PointerPressed += OnPointerPressed;
         PointerReleased += OnPointerReleased;
+        AttachedToVisualTree += (_, _) =>
+        {
+            _isLoaded = true;
+            RefreshAnim();
+        };
 
         this.GetObservable(LogoProperty).Subscribe(_ => RefreshIcon());
         this.GetObservable(SvgIconProperty).Subscribe(_ => RefreshIcon());
         this.GetObservable(LogoScaleProperty).Subscribe(_ => RefreshScale());
-        this.GetObservable(ThemeProperty).Subscribe(_ => RefreshVisual());
-        this.GetObservable(ForegroundProperty).Subscribe(_ => RefreshVisual());
+        this.GetObservable(ThemeProperty).Subscribe(_ => RefreshAnim());
+        this.GetObservable(ForegroundProperty).Subscribe(_ => RefreshAnim());
+        this.GetObservable(ToolTipProperty).Subscribe(tip => Avalonia.Controls.ToolTip.SetTip(this, tip));
 
         RefreshIcon();
         RefreshScale();
-        RefreshVisual();
+        RefreshAnim();
     }
 
     public event EventHandler? Click;
@@ -106,7 +124,7 @@ public partial class MyIconButton : Border
         set => SetValue(LogoScaleProperty, value);
     }
 
-    public new MyIconButtonTheme Theme
+    public new Themes Theme
     {
         get => GetValue(ThemeProperty);
         set => SetValue(ThemeProperty, value);
@@ -157,7 +175,15 @@ public partial class MyIconButton : Border
 
         _isPressed = true;
         Focus();
-        RefreshVisual();
+        if (_back is not null)
+        {
+            ModAnimation.AniStart(
+                ModAnimation.AaScaleTransform(
+                    _back,
+                    0.8d - GetScaleX(_back),
+                    ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
+                $"MyIconButton Scale {_uuid}");
+        }
         e.Handled = true;
     }
 
@@ -167,12 +193,45 @@ public partial class MyIconButton : Border
             return;
 
         _isPressed = false;
-        RefreshVisual();
         var parameter = CommandParameter;
         if (Command?.CanExecute(parameter) == true)
             Command.Execute(parameter);
         Click?.Invoke(this, EventArgs.Empty);
+        if (_back is not null)
+        {
+            ModAnimation.AniStart(
+            new List<ModAnimation.AniData>
+            {
+                ModAnimation.AaScaleTransform(
+                    _back,
+                    1.05d - GetScaleX(_back),
+                    250,
+                    ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
+                ModAnimation.AaScaleTransform(
+                    _back,
+                    -0.05d,
+                    250,
+                    ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong))
+            }, $"MyIconButton Scale {_uuid}");
+        }
+        RefreshAnim();
         e.Handled = true;
+    }
+
+    private void ButtonMouseLeave()
+    {
+        _isPressed = false;
+        if (_back is not null)
+        {
+            ModAnimation.AniStart(
+                ModAnimation.AaScaleTransform(
+                    _back,
+                    1d - GetScaleX(_back),
+                    250,
+                    ease: new ModAnimation.AniEaseOutFluent()),
+                $"MyIconButton Scale {_uuid}");
+        }
+        RefreshAnim();
     }
 
     private void RefreshIcon()
@@ -199,27 +258,129 @@ public partial class MyIconButton : Border
                 _path.Data = null;
             }
         }
-        RefreshVisual();
+        RefreshAnim();
     }
 
     private void RefreshScale()
     {
         if (_iconHost is not null)
-            _iconHost.RenderTransform = new ScaleTransform(LogoScale, LogoScale);
+        {
+            double scale = string.IsNullOrWhiteSpace(SvgIcon) ? LogoScale : 1d;
+            _iconHost.RenderTransform = new ScaleTransform(scale, scale);
+        }
     }
 
-    private void RefreshVisual()
+    public void RefreshAnim()
     {
-        var color = Theme switch
+        if (!_isLoaded)
         {
-            MyIconButtonTheme.White => Colors.White,
-            MyIconButtonTheme.Black => Colors.Black,
-            MyIconButtonTheme.Red => Color.Parse("#ce2111"),
-            MyIconButtonTheme.Custom when Foreground is SolidColorBrush customBrush => customBrush.Color,
-            _ => Color.Parse("#1370f3")
-        };
+            ApplyNonAnimatedTheme();
+            return;
+        }
 
-        var brush = new SolidColorBrush(color);
+        ModAnimation.AniStart(IsPointerOver ? GetHoverAnimations() : GetNormalAnimations(), $"MyIconButton Color {_uuid}");
+    }
+
+    private List<ModAnimation.AniData> GetHoverAnimations()
+    {
+        List<ModAnimation.AniData> animations = [];
+        switch (Theme)
+        {
+            case Themes.Color:
+                AddIconColorAnimation(animations, "ColorBrush2", 120);
+                break;
+            case Themes.White:
+                AddBackColorAnimation(animations, Color.FromArgb(50, 255, 255, 255), 120);
+                break;
+            case Themes.Red:
+                AddIconColorAnimation(animations, Color.FromRgb(255, 76, 76), 120);
+                break;
+            case Themes.Black:
+                AddIconColorAnimation(animations, GetBlackThemeColor(alpha: 230), 120);
+                break;
+            case Themes.Custom:
+                AddIconColorAnimation(animations, WithAlpha(GetForegroundColor(), 255), 120);
+                break;
+        }
+
+        return animations;
+    }
+
+    private List<ModAnimation.AniData> GetNormalAnimations()
+    {
+        List<ModAnimation.AniData> animations = [];
+        switch (Theme)
+        {
+            case Themes.Color:
+                AddIconColorAnimation(animations, "ColorBrush5", 150);
+                ClearBackImmediately();
+                break;
+            case Themes.White:
+                AddIconColorAnimation(animations, Color.FromRgb(234, 242, 254), 150);
+                AddBackColorAnimation(animations, Color.FromArgb(0, 255, 255, 255), 150);
+                break;
+            case Themes.Red:
+                AddIconColorAnimation(animations, Color.FromArgb(160, 255, 76, 76), 150);
+                ClearBackImmediately();
+                break;
+            case Themes.Black:
+                AddIconColorAnimation(animations, GetBlackThemeColor(alpha: 160), 150);
+                ClearBackImmediately();
+                break;
+            case Themes.Custom:
+                AddIconColorAnimation(animations, WithAlpha(GetForegroundColor(), 160), 150);
+                ClearBackImmediately();
+                break;
+        }
+
+        return animations;
+    }
+
+    private void ApplyNonAnimatedTheme()
+    {
+        ModAnimation.AniStop($"MyIconButton Color {_uuid}");
+        Color icon = Theme switch
+        {
+            Themes.White => Color.FromRgb(234, 242, 254),
+            Themes.Black => GetBlackThemeColor(alpha: 160),
+            Themes.Red => Color.FromArgb(160, 255, 76, 76),
+            Themes.Custom => WithAlpha(GetForegroundColor(), 160),
+            _ => FindColor("ColorBrush5", Color.Parse("#96c0f9"))
+        };
+        ApplyIconBrush(new SolidColorBrush(icon));
+        ClearBackImmediately();
+    }
+
+    private void AddIconColorAnimation(List<ModAnimation.AniData> animations, string resourceKey, int duration)
+    {
+        if (_svgIcon is not null && _svgIcon.IsVisible)
+            animations.Add(ModAnimation.AaColor(_svgIcon, SvgIconControl.IconBrushProperty, resourceKey, duration));
+        if (_path is not null && _path.IsVisible)
+        {
+            animations.Add(ModAnimation.AaColor(_path, Shape.FillProperty, resourceKey, duration));
+            animations.Add(ModAnimation.AaColor(_path, Shape.StrokeProperty, resourceKey, duration));
+        }
+    }
+
+    private void AddIconColorAnimation(List<ModAnimation.AniData> animations, Color color, int duration)
+    {
+        if (_svgIcon is not null && _svgIcon.IsVisible)
+            animations.Add(ModAnimation.AaColor(_svgIcon, SvgIconControl.IconBrushProperty, color, duration));
+        if (_path is not null && _path.IsVisible)
+        {
+            animations.Add(ModAnimation.AaColor(_path, Shape.FillProperty, color, duration));
+            animations.Add(ModAnimation.AaColor(_path, Shape.StrokeProperty, color, duration));
+        }
+    }
+
+    private void AddBackColorAnimation(List<ModAnimation.AniData> animations, Color color, int duration)
+    {
+        if (_back is not null)
+            animations.Add(ModAnimation.AaColor(_back, Border.BackgroundProperty, color, duration));
+    }
+
+    private void ApplyIconBrush(IBrush brush)
+    {
         if (_path is not null)
         {
             _path.Fill = brush;
@@ -227,10 +388,35 @@ public partial class MyIconButton : Border
         }
         if (_svgIcon is not null)
             _svgIcon.IconBrush = brush;
-        if (_back is not null)
-        {
-            var alpha = _isPressed ? 0x28 : IsPointerOver ? 0x18 : 0x00;
-            _back.Background = new SolidColorBrush(Color.FromArgb((byte)alpha, color.R, color.G, color.B));
-        }
     }
+
+    private void ClearBackImmediately()
+    {
+        if (_back is not null)
+            _back.Background = new SolidColorBrush(Color.FromArgb(0, 255, 255, 255));
+    }
+
+    private Color GetForegroundColor() =>
+        Foreground is SolidColorBrush customBrush ? customBrush.Color : Color.FromRgb(128, 128, 128);
+
+    private Color FindColor(string key, Color fallback)
+    {
+        return LegacyResourceResolver.Color(this, key, fallback);
+    }
+
+    private static Color GetBlackThemeColor(byte alpha) =>
+        AvaloniaThemeManager.IsDarkMode
+            ? Color.FromArgb(alpha, 255, 255, 255)
+            : Color.FromArgb(alpha, 0, 0, 0);
+
+    private static Color WithAlpha(Color color, byte alpha) =>
+        Color.FromArgb(alpha, color.R, color.G, color.B);
+
+    private static double GetScaleX(Control control) =>
+        control.RenderTransform switch
+        {
+            ScaleTransform scale => scale.ScaleX,
+            TransformGroup group => group.Children.OfType<ScaleTransform>().FirstOrDefault()?.ScaleX ?? 1d,
+            _ => 1d
+        };
 }

@@ -2,21 +2,39 @@
 // Modifications Copyright (c) 2026 PCL N contributors.
 // Licensed under the Apache License, Version 2.0.
 
-using System.Diagnostics;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
+using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using Avalonia.Threading;
 using PathShape = Avalonia.Controls.Shapes.Path;
 
 namespace PCL.Desktop.Controls.Legacy;
 
+#pragma warning disable CA1711, CA1716
 public partial class MyLoading : Grid
 {
+    public delegate void ClickEventHandler(object sender, PointerReleasedEventArgs e);
+
+    public delegate void IsErrorChangedEventHandler(object sender, bool isError);
+
+    public delegate void StateChangedEventHandler(object sender, MyLoadingState newState, MyLoadingState oldState);
+
+    public enum MyLoadingState
+    {
+        Unloaded = -1,
+        Run = 0,
+        Stop = 1,
+        Error = 2
+    }
+
     public static readonly StyledProperty<string> TextProperty =
-        AvaloniaProperty.Register<MyLoading, string>(nameof(Text), "Loading");
+        AvaloniaProperty.Register<MyLoading, string>(nameof(Text), string.Empty);
+
+    public static readonly StyledProperty<string> TextErrorProperty =
+        AvaloniaProperty.Register<MyLoading, string>(nameof(TextError), "加载失败");
 
     public static readonly StyledProperty<IBrush?> ForegroundProperty =
         AvaloniaProperty.Register<MyLoading, IBrush?>(nameof(Foreground), new SolidColorBrush(Color.Parse("#1370f3")));
@@ -27,12 +45,15 @@ public partial class MyLoading : Grid
     private readonly PathShape? _rightShard;
     private readonly PathShape? _errorIcon;
     private readonly Rectangle? _bottomLine;
-    private readonly Stopwatch _loopClock = new();
-    private readonly List<LoadingAnimationStep> _animationGroup = [];
-    private DispatcherTimer? _loopTimer;
-    private double _lastLoopTick;
-    private double _pickaxeAngle = 55d;
-    private bool _restartRequested;
+    private readonly string _uuid = Guid.NewGuid().ToString("N");
+    private ILoadingTrigger? _state;
+    private MyLoadingState _outerState = MyLoadingState.Unloaded;
+    private MyLoadingState _innerState = MyLoadingState.Unloaded;
+    private bool _showProgress;
+    private bool _isLooping;
+    private bool _isAttached;
+    private bool _isMouseDown;
+    private bool _errorAnimationWaiting;
 
     public MyLoading()
     {
@@ -43,22 +64,66 @@ public partial class MyLoading : Grid
         _rightShard = this.FindControl<PathShape>("PathRight");
         _errorIcon = this.FindControl<PathShape>("PathError");
         _bottomLine = this.FindControl<Rectangle>("LineBottom");
-        this.GetObservable(TextProperty).Subscribe(text =>
-        {
-            if (_label is not null)
-                _label.Text = text;
-        });
+
+        this.GetObservable(TextProperty).Subscribe(_ => RefreshText());
+        this.GetObservable(TextErrorProperty).Subscribe(_ => RefreshText());
         this.GetObservable(ForegroundProperty).Subscribe(SyncForeground);
-        AttachedToVisualTree += (_, _) => StartLoopAnimation();
-        DetachedFromVisualTree += (_, _) => StopLoopAnimation();
+
+        IsErrorChanged += (_, _) => RefreshText();
+        AttachedToVisualTree += (_, _) =>
+        {
+            _isAttached = true;
+            InitState();
+            RefreshText();
+            RefreshState();
+        };
+        DetachedFromVisualTree += (_, _) =>
+        {
+            _isAttached = false;
+            InnerState = MyLoadingState.Stop;
+            StopLoopAnimation();
+        };
+        PointerPressed += Button_PointerPressed;
+        PointerReleased += Button_PointerReleased;
+        PointerExited += (_, _) => _isMouseDown = false;
+        PointerReleased += (_, _) => _isMouseDown = false;
     }
 
+    public bool AutoRun { get; set; } = true;
+
     public bool HasAnimation { get; set; } = true;
+
+    public bool TextErrorInherit { get; set; } = true;
+
+    public event IsErrorChangedEventHandler? IsErrorChanged;
+
+    public event StateChangedEventHandler? StateChanged;
+
+    public event ClickEventHandler? Click;
 
     public string Text
     {
         get => GetValue(TextProperty);
         set => SetValue(TextProperty, value);
+    }
+
+    public string TextError
+    {
+        get => GetValue(TextErrorProperty);
+        set => SetValue(TextErrorProperty, value);
+    }
+
+    public bool ShowProgress
+    {
+        get => _showProgress;
+        set
+        {
+            if (_showProgress == value)
+                return;
+
+            _showProgress = value;
+            RefreshText();
+        }
     }
 
     public IBrush? Foreground
@@ -67,10 +132,140 @@ public partial class MyLoading : Grid
         set => SetValue(ForegroundProperty, value);
     }
 
+    public ILoadingTrigger State
+    {
+        get
+        {
+            InitState();
+            return _state!;
+        }
+        set
+        {
+            SetState(value);
+            RefreshState();
+        }
+    }
+
+    private MyLoadingState OuterState
+    {
+        get => _outerState;
+        set
+        {
+            if (_outerState == value)
+                return;
+
+            MyLoadingState oldValue = _outerState;
+            _outerState = value;
+            StateChanged?.Invoke(this, value, oldValue);
+            if (oldValue == MyLoadingState.Error != (value == MyLoadingState.Error))
+                IsErrorChanged?.Invoke(this, value == MyLoadingState.Error);
+        }
+    }
+
+    private MyLoadingState InnerState
+    {
+        get => _innerState;
+        set
+        {
+            if (_innerState == value)
+                return;
+
+            MyLoadingState oldValue = _innerState;
+            _innerState = value;
+            StartLoopAnimation();
+            if (oldValue == MyLoadingState.Error != (value == MyLoadingState.Error))
+                ErrorAnimation(value == MyLoadingState.Error);
+        }
+    }
+
+    private void InitState()
+    {
+        if (_state is not null)
+            return;
+
+        MyLoadingStateSimulator simulator = new();
+        SetState(simulator);
+        if (AutoRun)
+            simulator.LoadingState = MyLoadingState.Run;
+    }
+
+    private void SetState(ILoadingTrigger value)
+    {
+        if (_state is not null)
+        {
+            _state.ProgressChanged -= State_ProgressChanged;
+            _state.LoadingStateChanged -= State_LoadingStateChanged;
+        }
+
+        _state = value;
+        _state.ProgressChanged += State_ProgressChanged;
+        _state.LoadingStateChanged += State_LoadingStateChanged;
+    }
+
+    private void State_ProgressChanged(double newProgress, double oldProgress) =>
+        RefreshText();
+
+    private void State_LoadingStateChanged(MyLoadingState newState, MyLoadingState oldState) =>
+        RefreshState();
+
+    private void RefreshState()
+    {
+        InitState();
+        MyLoadingState state = _state!.LoadingState;
+        if (state == MyLoadingState.Run && !_isAttached)
+            InnerState = MyLoadingState.Stop;
+
+        InnerState = state;
+        OuterState = state;
+        StartLoopAnimation();
+    }
+
+    private void RefreshText()
+    {
+        if (_label is null)
+            return;
+
+        if (InnerState == MyLoadingState.Error)
+        {
+            if (TextErrorInherit && State.IsLoader)
+            {
+                Exception? exception = State.Error;
+                if (exception is null)
+                {
+                    _label.Text = "未知错误";
+                }
+                else
+                {
+                    while (exception.InnerException is not null)
+                        exception = exception.InnerException;
+
+                    string message = TrimErrorMessage(exception.Message);
+                    _label.Text = IsNetworkErrorMessage(message) ? "网络环境不佳，请稍后重试" : message;
+                }
+            }
+            else
+            {
+                _label.Text = TextError;
+            }
+
+            return;
+        }
+
+        _label.Text = ShowProgress && State.IsLoader
+            ? Text + " - " + State.Progress.ToString("P0", CultureInfo.CurrentCulture)
+            : Text;
+    }
+
     private void StartLoopAnimation()
     {
-        if (!HasAnimation || _loopTimer is not null)
+        if (!HasAnimation ||
+            _isLooping ||
+            InnerState != MyLoadingState.Run ||
+            ModAnimation.aniSpeed > 10d ||
+            !_isAttached)
+        {
             return;
+        }
 
         if (IsStrikeFreezeEnabled())
         {
@@ -79,129 +274,112 @@ public partial class MyLoading : Grid
             return;
         }
 
-        _loopClock.Restart();
-        _lastLoopTick = 0d;
-        StartAnimationGroup();
-        _loopTimer = new DispatcherTimer
+        if (_pickaxe is null)
+            return;
+
+        EnsurePickaxeRotate();
+        _isLooping = true;
+        _errorAnimationWaiting = true;
+        List<ModAnimation.AniData> animations =
+        [
+            ModAnimation.AaRotateTransform(
+                _pickaxe,
+                -20d - GetPickaxeAngle(),
+                350,
+                250,
+                new ModAnimation.AniEaseInBack(ModAnimation.AniEasePower.Weak)),
+            ModAnimation.AaRotateTransform(_pickaxe, 50d, 900, ease: new ModAnimation.AniEaseOutFluent(), after: true),
+            ModAnimation.AaRotateTransform(
+                _pickaxe,
+                25d,
+                900,
+                ease: new ModAnimation.AniEaseOutElastic(ModAnimation.AniEasePower.Weak)),
+            ModAnimation.AaCode(() =>
+            {
+                ResetShards();
+                _errorAnimationWaiting = false;
+            })
+        ];
+
+        AddShardAnimation(animations, _leftShard, left: -5d, top: -6d);
+        AddShardAnimation(animations, _rightShard, left: 5d, top: -6d);
+        animations.Add(ModAnimation.AaCode(() =>
         {
-            Interval = TimeSpan.FromMilliseconds(16)
-        };
-        _loopTimer.Tick += LoopTimer_Tick;
-        _loopTimer.Start();
-        LoopTimer_Tick(this, EventArgs.Empty);
+            _isLooping = false;
+            StartLoopAnimation();
+        }, after: true));
+        ModAnimation.AniStart(animations, $"MyLoader Loop {_uuid}");
     }
 
     private void StopLoopAnimation()
     {
-        _loopTimer?.Stop();
-        _loopTimer = null;
+        _isLooping = false;
+        ModAnimation.AniStop($"MyLoader Loop {_uuid}");
     }
 
-    private void LoopTimer_Tick(object? sender, EventArgs e)
+    private void ErrorAnimation(bool isError)
     {
-        double elapsed = _loopClock.Elapsed.TotalMilliseconds;
-        double delta = elapsed - _lastLoopTick;
-        _lastLoopTick = elapsed;
-        if (delta <= 0d)
+        if (_errorIcon is null)
             return;
 
-        RunAnimationGroup(delta);
-    }
-
-    private void StartAnimationGroup()
-    {
-        _restartRequested = false;
-        _animationGroup.Clear();
-        _animationGroup.Add(Rotate(-20d - _pickaxeAngle, 350d, 250d, EaseInBackWeak));
-        _animationGroup.Add(Rotate(50d, 900d, 0d, EaseOutFluent, isAfter: true));
-        _animationGroup.Add(Rotate(25d, 900d, 0d, EaseOutElasticWeak));
-        _animationGroup.Add(Code(ResetShards));
-        _animationGroup.Add(Number(delta => AddOpacity(_leftShard, delta), -1d, 100d, 50d, EaseLinear));
-        _animationGroup.Add(Number(delta => AddMargin(_leftShard, left: delta), -5d, 180d, 0d, EaseOutFluent));
-        _animationGroup.Add(Number(delta => AddMargin(_leftShard, top: delta), -6d, 180d, 0d, EaseOutFluent));
-        _animationGroup.Add(Number(delta => AddOpacity(_rightShard, delta), -1d, 100d, 50d, EaseLinear));
-        _animationGroup.Add(Number(delta => AddMargin(_rightShard, left: delta), 5d, 180d, 0d, EaseOutFluent));
-        _animationGroup.Add(Number(delta => AddMargin(_rightShard, top: delta), -6d, 180d, 0d, EaseOutFluent));
-        _animationGroup.Add(Code(() => _restartRequested = true, isAfter: true));
-    }
-
-    private void RunAnimationGroup(double deltaMilliseconds)
-    {
-        bool canRemoveAfter = true;
-        int index = 0;
-        while (index < _animationGroup.Count)
+        if (isError)
         {
-            LoadingAnimationStep step = _animationGroup[index];
-            if (!step.IsAfter)
-            {
-                canRemoveAfter = false;
-                step.TimeFinished += deltaMilliseconds;
-                if (step.TimeFinished > 0d)
-                    step.Run();
-                if (step.TimeFinished >= step.TimeTotal)
+            int wait = _errorAnimationWaiting ? 400 : 0;
+            ModAnimation.AniStart(
+                new[]
                 {
-                    _animationGroup.RemoveAt(index);
-                    continue;
-                }
-            }
-            else if (canRemoveAfter)
-            {
-                canRemoveAfter = false;
-                step.IsAfter = false;
-                continue;
-            }
-            else
-            {
-                break;
-            }
-
-            index++;
+                    ModAnimation.AaColor(this, ForegroundProperty, "ColorBrushRedLight", 300),
+                    ModAnimation.AaOpacity(_errorIcon, 1d - _errorIcon.Opacity, 100, 300 + wait),
+                    ModAnimation.AaScaleTransform(
+                        _errorIcon,
+                        1d - GetErrorIconScale(),
+                        400,
+                        300 + wait,
+                        new ModAnimation.AniEaseOutBack())
+                },
+                $"MyLoader Error {_uuid}");
         }
-
-        if (_restartRequested || _animationGroup.Count == 0)
-            StartAnimationGroup();
+        else
+        {
+            ModAnimation.AniStart(
+                new[]
+                {
+                    ModAnimation.AaOpacity(_errorIcon, -_errorIcon.Opacity, 100),
+                    ModAnimation.AaScaleTransform(_errorIcon, 0.5d - GetErrorIconScale(), 200),
+                    ModAnimation.AaColor(this, ForegroundProperty, "ColorBrush3", 300)
+                },
+                $"MyLoader Error {_uuid}");
+        }
     }
-
-    private LoadingAnimationStep Rotate(
-        double value,
-        double time,
-        double delay,
-        Func<double, double> ease,
-        bool isAfter = false) =>
-        new(
-            percentDelta => SetPickaxeAngle(_pickaxeAngle + value * percentDelta),
-            time,
-            delay,
-            ease,
-            isAfter);
-
-    private static LoadingAnimationStep Number(
-        Action<double> applyDelta,
-        double value,
-        double time,
-        double delay,
-        Func<double, double> ease,
-        bool isAfter = false) =>
-        new(percentDelta => applyDelta(value * percentDelta), time, delay, ease, isAfter);
-
-    private static LoadingAnimationStep Code(Action action, double delay = 0d, bool isAfter = false) =>
-        new(_ => action(), timeTotal: 1d, delay, EaseLinear, isAfter);
 
     private void SetPickaxeAngle(double angle)
     {
-        _pickaxeAngle = angle;
-        if (_pickaxe is null)
+        RotateTransform? rotate = EnsurePickaxeRotate();
+        if (rotate is null)
             return;
 
-        _pickaxe.RenderTransformOrigin = new RelativePoint(0d, 0d, RelativeUnit.Relative);
-        if (_pickaxe.RenderTransform is not RotateTransform rotate)
-        {
-            // WPF leaves RenderTransformOrigin at 0,0 and rotates around this off-center pivot.
-            rotate = new RotateTransform { CenterX = 30d, CenterY = 30d };
-            _pickaxe.RenderTransform = rotate;
-        }
-
         rotate.Angle = angle;
+    }
+
+    private double GetPickaxeAngle() =>
+        EnsurePickaxeRotate()?.Angle ?? 55d;
+
+    private double GetErrorIconScale() =>
+        _errorIcon?.RenderTransform is ScaleTransform scale ? scale.ScaleX : 1d;
+
+    private RotateTransform? EnsurePickaxeRotate()
+    {
+        if (_pickaxe is null)
+            return null;
+
+        _pickaxe.RenderTransformOrigin = new RelativePoint(0d, 0d, RelativeUnit.Relative);
+        if (_pickaxe.RenderTransform is RotateTransform rotate)
+            return rotate;
+
+        // WPF leaves RenderTransformOrigin at 0,0 and rotates around this off-center pivot.
+        rotate = new RotateTransform { CenterX = 30d, CenterY = 30d };
+        _pickaxe.RenderTransform = rotate;
+        return rotate;
     }
 
     private void ResetShards()
@@ -227,6 +405,22 @@ public partial class MyLoading : Grid
             _bottomLine.Fill = brush;
     }
 
+    private void Button_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            return;
+
+        _isMouseDown = true;
+    }
+
+    private void Button_PointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (!_isMouseDown)
+            return;
+
+        Click?.Invoke(this, e);
+    }
+
     private static void ResetShard(PathShape? shard, double left)
     {
         if (shard is null)
@@ -236,21 +430,14 @@ public partial class MyLoading : Grid
         shard.Margin = new Thickness(left, 41d, 0d, 0d);
     }
 
-    private static void AddOpacity(Control? control, double delta)
+    private static void AddShardAnimation(List<ModAnimation.AniData> animations, PathShape? shard, double left, double top)
     {
-        if (control is null)
+        if (shard is null)
             return;
 
-        control.Opacity = Math.Clamp(control.Opacity + delta, 0d, 1d);
-    }
-
-    private static void AddMargin(Control? control, double left = 0d, double top = 0d)
-    {
-        if (control is null)
-            return;
-
-        Thickness margin = control.Margin;
-        control.Margin = new Thickness(margin.Left + left, margin.Top + top, margin.Right, margin.Bottom);
+        animations.Add(ModAnimation.AaOpacity(shard, -1d, 100, 50));
+        animations.Add(ModAnimation.AaX(shard, left, 180, ease: new ModAnimation.AniEaseOutFluent()));
+        animations.Add(ModAnimation.AaY(shard, top, 180, ease: new ModAnimation.AniEaseOutFluent()));
     }
 
     private static bool IsStrikeFreezeEnabled() =>
@@ -259,55 +446,85 @@ public partial class MyLoading : Grid
             "1",
             StringComparison.Ordinal);
 
-    private static double EaseLinear(double progress)
+    private static string TrimErrorMessage(string message) =>
+        string.IsNullOrWhiteSpace(message) ? "未知错误" : message.Trim();
+
+    private static bool IsNetworkErrorMessage(string message)
     {
-        return Math.Clamp(progress, 0d, 1d);
-    }
+        string[] markers =
+        [
+            "远程主机强迫关闭了",
+            "远程方已关闭传输流",
+            "未能解析此远程名称",
+            "由于目标计算机积极拒绝",
+            "操作已超时",
+            "操作超时",
+            "服务器超时",
+            "连接超时"
+        ];
 
-    private static double EaseInBackWeak(double progress)
-    {
-        progress = Math.Clamp(progress, 0d, 1d);
-        const double power = 2d;
-        return Math.Pow(progress, power) * Math.Cos(1.5d * Math.PI * (1d - progress));
-    }
-
-    private static double EaseOutFluent(double progress)
-    {
-        progress = Math.Clamp(progress, 0d, 1d);
-        const double power = 3d;
-        return 1d - Math.Pow(1d - progress, power);
-    }
-
-    private static double EaseOutElasticWeak(double progress)
-    {
-        progress = Math.Clamp(progress, 0d, 1d);
-        double inverse = 1d - progress;
-        const double power = 6d;
-        return 1d - Math.Pow(inverse, (power - 1d) * 0.25d) *
-            Math.Cos((power - 3.5d) * Math.PI * Math.Pow(1d - inverse, 1.5d));
-    }
-
-    private sealed class LoadingAnimationStep(
-        Action<double> applyPercentDelta,
-        double timeTotal,
-        double delay,
-        Func<double, double> ease,
-        bool isAfter)
-    {
-        public bool IsAfter { get; set; } = isAfter;
-
-        public double TimeTotal { get; } = timeTotal;
-
-        public double TimeFinished { get; set; } = -delay;
-
-        private double TimePercent { get; set; }
-
-        public void Run()
-        {
-            double currentPercent = TimeFinished / TimeTotal;
-            double percentDelta = ease(currentPercent) - ease(TimePercent);
-            applyPercentDelta(percentDelta);
-            TimePercent = currentPercent;
-        }
+        return markers.Any(marker => message.Contains(marker, StringComparison.Ordinal));
     }
 }
+
+public interface ILoadingTrigger
+{
+    delegate void LoadingStateChangedEventHandler(MyLoading.MyLoadingState newState, MyLoading.MyLoadingState oldState);
+
+    delegate void ProgressChangedEventHandler(double newProgress, double oldProgress);
+
+    bool IsLoader { get; }
+
+    double Progress { get; }
+
+    Exception? Error { get; }
+
+    MyLoading.MyLoadingState LoadingState { get; set; }
+
+    event LoadingStateChangedEventHandler? LoadingStateChanged;
+
+    event ProgressChangedEventHandler? ProgressChanged;
+}
+
+public class MyLoadingStateSimulator : ILoadingTrigger
+{
+    private MyLoading.MyLoadingState _loadingState = MyLoading.MyLoadingState.Unloaded;
+    private double _progress;
+
+    public bool IsLoader { get; init; }
+
+    public Exception? Error { get; set; }
+
+    public double Progress
+    {
+        get => _progress;
+        set
+        {
+            if (Math.Abs(_progress - value) < 0.0001d)
+                return;
+
+            double oldProgress = _progress;
+            _progress = value;
+            ProgressChanged?.Invoke(value, oldProgress);
+        }
+    }
+
+    public MyLoading.MyLoadingState LoadingState
+    {
+        get => _loadingState;
+        set
+        {
+            if (_loadingState == value)
+                return;
+
+            MyLoading.MyLoadingState oldState = _loadingState;
+            _loadingState = value;
+            LoadingStateChanged?.Invoke(value, oldState);
+        }
+    }
+
+    public event ILoadingTrigger.LoadingStateChangedEventHandler? LoadingStateChanged;
+
+    public event ILoadingTrigger.ProgressChangedEventHandler? ProgressChanged;
+}
+#pragma warning restore CA1711, CA1716

@@ -11,8 +11,17 @@ namespace PCL.Desktop.Controls.Legacy;
 
 public class MyComboBoxItem : ComboBoxItem
 {
+    public static readonly StyledProperty<object?> ToolTipProperty =
+        AvaloniaProperty.Register<MyComboBoxItem, object?>(nameof(ToolTip));
+
+    private const int AnimationTimeIn = 100;
+    private const int AnimationTimeOut = 300;
+
+    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private string? _backColorName;
     private double _fontOpacity = 1d;
+
+    protected override Type StyleKeyOverride => typeof(ComboBoxItem);
 
     public MyComboBoxItem()
     {
@@ -22,7 +31,14 @@ public class MyComboBoxItem : ComboBoxItem
         PointerReleased += MyComboBoxItem_PointerReleased;
         this.GetObservable(IsSelectedProperty).Subscribe(_ => RefreshColor());
         this.GetObservable(IsEnabledProperty).Subscribe(_ => RefreshColor());
+        this.GetObservable(ToolTipProperty).Subscribe(tip => Avalonia.Controls.ToolTip.SetTip(this, tip));
         RefreshColor();
+    }
+
+    public object? ToolTip
+    {
+        get => GetValue(ToolTipProperty);
+        set => SetValue(ToolTipProperty, value);
     }
 
     public override string ToString() => Content?.ToString() ?? string.Empty;
@@ -34,25 +50,30 @@ public class MyComboBoxItem : ComboBoxItem
     {
         string newBackColorName;
         double newFontOpacity;
+        int time;
         if (IsSelected)
         {
             newBackColorName = "ColorBrush6";
             newFontOpacity = 1d;
+            time = AnimationTimeIn;
         }
         else if (IsPointerOver)
         {
             newBackColorName = "ColorBrush8";
             newFontOpacity = 1d;
+            time = AnimationTimeIn;
         }
         else if (IsEnabled)
         {
             newBackColorName = "ColorBrushTransparent";
             newFontOpacity = 1d;
+            time = AnimationTimeOut;
         }
         else
         {
             newBackColorName = "ColorBrushTransparent";
             newFontOpacity = 0.4d;
+            time = AnimationTimeOut;
         }
 
         if (_backColorName == newBackColorName && Math.Abs(_fontOpacity - newFontOpacity) < 0.001d)
@@ -60,6 +81,19 @@ public class MyComboBoxItem : ComboBoxItem
 
         _backColorName = newBackColorName;
         _fontOpacity = newFontOpacity;
+        if (ControlVisualHelpers.ShouldAnimate(this))
+        {
+            ModAnimation.AniStart(
+                new[]
+                {
+                    ModAnimation.AaColor(this, BackgroundProperty, newBackColorName, time),
+                    ModAnimation.AaOpacity(this, newFontOpacity - Opacity, time)
+                },
+                $"ComboBoxItem Color {_uuid}");
+            return;
+        }
+
+        ModAnimation.AniStop($"ComboBoxItem Color {_uuid}");
         Background = FindBrush(newBackColorName, "#00ffffff");
         Opacity = newFontOpacity;
     }
@@ -72,9 +106,6 @@ public class MyComboBoxItem : ComboBoxItem
 
     private IBrush FindBrush(string key, string fallback)
     {
-        if (this.TryGetResource(key, null, out object? resource) && resource is IBrush brush)
-            return brush;
-
-        return new SolidColorBrush(Color.Parse(fallback));
+        return LegacyResourceResolver.Brush(this, key, fallback);
     }
 }

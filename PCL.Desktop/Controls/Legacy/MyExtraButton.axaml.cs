@@ -10,12 +10,17 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using SvgIconControl = PCL.Desktop.Controls.Legacy.SvgIcon;
 
 namespace PCL.Desktop.Controls.Legacy;
 
+#pragma warning disable CA1051, CA1708
 public partial class MyExtraButton : Grid
 {
     public delegate bool ShowCheckHandler();
+
+    private const int ColorAnimationInMilliseconds = 120;
+    private const int ColorAnimationOutMilliseconds = 150;
 
     public static readonly StyledProperty<string> LogoProperty =
         AvaloniaProperty.Register<MyExtraButton, string>(nameof(Logo), string.Empty);
@@ -41,13 +46,22 @@ public partial class MyExtraButton : Grid
     private readonly Border? _panClick;
     private readonly Border? _panColor;
     private readonly Border? _panProgress;
+    private readonly Grid? _panScale;
     private readonly Grid? _iconHost;
     private readonly PathShape? _path;
     private readonly SvgIcon? _svgIcon;
+    private readonly string _uuid = Guid.NewGuid().ToString("N");
+    private bool _isLoaded;
     private bool _leftPressed;
     private bool _rightPressed;
 
-    public ShowCheckHandler? ShowCheck { get; set; }
+    public ShowCheckHandler? showCheck;
+
+    public ShowCheckHandler? ShowCheck
+    {
+        get => showCheck;
+        set => showCheck = value;
+    }
 
     public MyExtraButton()
     {
@@ -55,34 +69,37 @@ public partial class MyExtraButton : Grid
         _panClick = this.FindControl<Border>("PanClick");
         _panColor = this.FindControl<Border>("PanColor");
         _panProgress = this.FindControl<Border>("PanProgress");
+        _panScale = this.FindControl<Grid>("PanScale");
         _iconHost = this.FindControl<Grid>("IconHost");
         _path = this.FindControl<PathShape>("Path");
         _svgIcon = this.FindControl<SvgIcon>("ShapeSvgIcon");
 
-        PointerEntered += (_, _) => RefreshVisual();
+        PointerEntered += (_, _) => RefreshColor();
         PointerExited += (_, _) =>
         {
-            _leftPressed = false;
-            _rightPressed = false;
-            RefreshVisual();
+            ButtonMouseLeave();
         };
         PointerPressed += OnPointerPressed;
         PointerReleased += OnPointerReleased;
+        AttachedToVisualTree += (_, _) =>
+        {
+            _isLoaded = true;
+            ApplyShowState(Show, animate: false);
+            RefreshColor();
+        };
 
         this.GetObservable(LogoProperty).Subscribe(_ => RefreshIcon());
         this.GetObservable(SvgIconProperty).Subscribe(_ => RefreshIcon());
         this.GetObservable(LogoScaleProperty).Subscribe(_ => RefreshScale());
         this.GetObservable(ProgressProperty).Subscribe(_ => RefreshProgress());
-        this.GetObservable(ShowProperty).Subscribe(value =>
-        {
-            IsVisible = value;
-            Height = value ? 50 : 0;
-        });
+        this.GetObservable(ShowProperty).Subscribe(value => ApplyShowState(value, _isLoaded));
+        this.GetObservable(IsEnabledProperty).Subscribe(_ => RefreshColor());
 
         RefreshIcon();
         RefreshScale();
         RefreshProgress();
-        RefreshVisual();
+        ApplyShowState(Show, animate: false);
+        RefreshColor();
     }
 
     public event EventHandler? Click;
@@ -132,22 +149,33 @@ public partial class MyExtraButton : Grid
 
     public void ShowRefresh()
     {
-        if (ShowCheck is not null)
-            Show = ShowCheck();
+        if (showCheck is not null)
+            Show = showCheck();
     }
 
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         var point = e.GetCurrentPoint(this);
-        if (point.Properties.IsRightButtonPressed && CanRightClick)
+        if (point.Properties.IsRightButtonPressed)
+        {
+            if (!CanRightClick)
+                return;
+            if (!_leftPressed && !_rightPressed)
+                StartScaleAnimation(0.85d, -0.05d);
             _rightPressed = true;
+        }
         else if (point.Properties.IsLeftButtonPressed)
+        {
+            if (!_leftPressed && !_rightPressed)
+                StartScaleAnimation(0.85d, -0.05d);
             _leftPressed = true;
+        }
         else
+        {
             return;
+        }
 
         Focus();
-        RefreshVisual();
         e.Handled = true;
     }
 
@@ -157,15 +185,50 @@ public partial class MyExtraButton : Grid
         {
             _rightPressed = false;
             RightClick?.Invoke(this, e);
+            ButtonRightMouseUp();
             e.Handled = true;
         }
         else if (_leftPressed)
         {
             _leftPressed = false;
             Click?.Invoke(this, EventArgs.Empty);
+            ButtonLeftMouseUp();
             e.Handled = true;
         }
-        RefreshVisual();
+        RefreshColor();
+    }
+
+    private void ButtonLeftMouseUp()
+    {
+        if (!_rightPressed)
+            RefreshScaleAfterRelease();
+        RefreshColor();
+    }
+
+    private void ButtonRightMouseUp()
+    {
+        if (!CanRightClick)
+            return;
+        if (!_leftPressed)
+            RefreshScaleAfterRelease();
+        RefreshColor();
+    }
+
+    private void ButtonMouseLeave()
+    {
+        _leftPressed = false;
+        _rightPressed = false;
+        if (_panScale is not null)
+        {
+            ModAnimation.AniStart(
+                ModAnimation.AaScaleTransform(
+                    _panScale,
+                    1d - GetScaleX(_panScale),
+                    500,
+                    ease: new ModAnimation.AniEaseOutFluent()),
+                $"MyExtraButton Scale {_uuid}");
+        }
+        RefreshColor();
     }
 
     private void RefreshIcon()
@@ -191,13 +254,21 @@ public partial class MyExtraButton : Grid
                 _path.Data = null;
             }
         }
-        RefreshVisual();
+        else
+        {
+            _path.Data = null;
+        }
+        RefreshScale();
+        RefreshColor();
     }
 
     private void RefreshScale()
     {
         if (_iconHost is not null)
-            _iconHost.RenderTransform = new ScaleTransform(LogoScale, LogoScale);
+        {
+            double scale = string.IsNullOrWhiteSpace(SvgIcon) ? LogoScale : 1d;
+            _iconHost.RenderTransform = new ScaleTransform(scale, scale);
+        }
     }
 
     private void RefreshProgress()
@@ -213,22 +284,165 @@ public partial class MyExtraButton : Grid
         };
     }
 
-    private void RefreshVisual()
+    private void ApplyShowState(bool show, bool animate)
     {
-        var accent = Color.Parse("#1370f3");
-        if (_panColor is not null)
-            _panColor.Background = new SolidColorBrush(accent);
+        IsHitTestVisible = show;
+        if (!animate)
+        {
+            IsVisible = show;
+            Height = show ? 50d : 0d;
+            SetScale(this, show ? 1d : 0d);
+            return;
+        }
+
+        if (show)
+        {
+            IsVisible = true;
+            ModAnimation.AniStart(
+            new List<ModAnimation.AniData>
+            {
+                ModAnimation.AaScaleTransform(
+                    this,
+                    0.3d - GetScaleX(this),
+                    500,
+                    60,
+                    new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
+                ModAnimation.AaScaleTransform(
+                    this,
+                    0.7d,
+                    500,
+                    60,
+                    new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
+                ModAnimation.AaHeight(
+                    this,
+                    50d - Height,
+                    200,
+                    ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
+            }, $"MyExtraButton MainScale {_uuid}");
+            return;
+        }
+
+        ModAnimation.AniStart(
+        new List<ModAnimation.AniData>
+        {
+            ModAnimation.AaScaleTransform(
+                this,
+                -GetScaleX(this),
+                100,
+                ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
+            ModAnimation.AaHeight(this, -Height, 400, 100, new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaCode(() => IsVisible = false, after: true)
+        }, $"MyExtraButton MainScale {_uuid}");
+    }
+
+    private void StartScaleAnimation(double targetScale, double reboundScale, int reboundDuration = 60)
+    {
+        if (_panScale is null)
+            return;
+
+        ModAnimation.AniStart(
+        new List<ModAnimation.AniData>
+        {
+            ModAnimation.AaScaleTransform(
+                _panScale,
+                targetScale - GetScaleX(_panScale),
+                800,
+                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
+            ModAnimation.AaScaleTransform(
+                _panScale,
+                reboundScale,
+                reboundDuration,
+                ease: new ModAnimation.AniEaseOutFluent())
+        }, $"MyExtraButton Scale {_uuid}");
+    }
+
+    private void RefreshScaleAfterRelease()
+    {
+        if (_panScale is null)
+            return;
+
+        ModAnimation.AniStart(
+            ModAnimation.AaScaleTransform(_panScale, 1d - GetScaleX(_panScale), 300, ease: new ModAnimation.AniEaseOutBack()),
+            $"MyExtraButton Scale {_uuid}");
+    }
+
+    public void RefreshColor()
+    {
+        if (_panColor is null)
+            return;
+
+        string colorKey = !IsEnabled
+            ? "ColorBrushGray4"
+            : IsPointerOver ? "ColorBrush4" : "ColorBrush3";
+        int duration = !IsEnabled || IsPointerOver ? ColorAnimationInMilliseconds : ColorAnimationOutMilliseconds;
+
+        if (_isLoaded)
+        {
+            ModAnimation.AniStart(
+                ModAnimation.AaColor(_panColor, Border.BackgroundProperty, colorKey, duration),
+                $"MyExtraButton Color {_uuid}");
+        }
+        else
+        {
+            _panColor.Background = FindBrush(colorKey, "#1370f3");
+        }
+
+        IBrush iconBrush = FindBrush("ColorBrush8", "#eaf2fe");
         if (_path is not null)
         {
-            _path.Fill = new SolidColorBrush(Color.Parse("#eaf2fe"));
-            _path.Stroke = _path.Fill;
+            _path.Fill = iconBrush;
+            _path.Stroke = iconBrush;
         }
         if (_svgIcon is not null)
-            _svgIcon.IconBrush = new SolidColorBrush(Color.Parse("#eaf2fe"));
+            _svgIcon.IconBrush = iconBrush;
         if (_panClick is not null)
+            _panClick.Background = FindBrush("ColorBrushSemiTransparent", "#01eaf2fe");
+    }
+
+    public void Ribble()
+    {
+        if (_panScale is null)
+            return;
+
+        Border shape = new()
         {
-            var alpha = _leftPressed || _rightPressed ? 0x20 : IsPointerOver ? 0x12 : 0x00;
-            _panClick.Background = new SolidColorBrush(Color.FromArgb((byte)alpha, accent.R, accent.G, accent.B));
-        }
+            CornerRadius = new CornerRadius(1000d),
+            BorderThickness = new Thickness(0.001d),
+            Opacity = 0.5d,
+            RenderTransformOrigin = new RelativePoint(0.5d, 0.5d, RelativeUnit.Relative),
+            RenderTransform = new ScaleTransform(),
+            Background = FindBrush("ColorBrush5", "#96c0f9")
+        };
+        _panScale.Children.Insert(0, shape);
+        ModAnimation.AniStart(
+        new List<ModAnimation.AniData>
+        {
+            ModAnimation.AaScaleTransform(
+                shape,
+                13d,
+                1000,
+                ease: new ModAnimation.AniEaseInoutFluent(ModAnimation.AniEasePower.Strong, 0.3d)),
+            ModAnimation.AaOpacity(shape, -shape.Opacity, 1000),
+            ModAnimation.AaCode(() => _panScale.Children.Remove(shape), after: true)
+        }, $"ExtraButton Ribble {Guid.NewGuid():N}");
+    }
+
+    private static double GetScaleX(Control control) =>
+        control.RenderTransform switch
+        {
+            ScaleTransform scale => scale.ScaleX,
+            TransformGroup group => group.Children.OfType<ScaleTransform>().FirstOrDefault()?.ScaleX ?? 1d,
+            _ => 1d
+        };
+
+    private static void SetScale(Control control, double scale)
+    {
+        ControlVisualHelpers.SetCenterScale(control, scale);
+    }
+
+    private IBrush FindBrush(string key, string fallback)
+    {
+        return LegacyResourceResolver.Brush(this, key, fallback);
     }
 }
+#pragma warning restore CA1051, CA1708

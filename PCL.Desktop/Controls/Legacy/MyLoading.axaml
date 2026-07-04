@@ -21,14 +21,14 @@
             </Path.RenderTransform>
         </Path>
         <Path Opacity="0" x:Name="PathLeft" Stretch="Uniform" Fill="{DynamicResource ColorBrush3}" Width="3"
-              Height="5" Data="M0,0L2,0L1,4" Margin="7,41,0,0" RenderTransformOrigin="0.5,0.5"
+              Height="5" Data="M0,0L2,0L1,4" Margin="7,41,0,0" RenderTransformOrigin="50%,50%"
               HorizontalAlignment="Left" VerticalAlignment="Top">
             <Path.RenderTransform>
                 <RotateTransform Angle="-45" />
             </Path.RenderTransform>
         </Path>
         <Path Opacity="0" x:Name="PathRight" Stretch="Uniform" Fill="{DynamicResource ColorBrush3}" Width="3"
-              Height="5" Data="M0,0L2,0L1,4" Margin="14,41,0,0" RenderTransformOrigin="0.5,0.5"
+              Height="5" Data="M0,0L2,0L1,4" Margin="14,41,0,0" RenderTransformOrigin="50%,50%"
               HorizontalAlignment="Left" VerticalAlignment="Top">
             <Path.RenderTransform>
                 <RotateTransform Angle="45" />
@@ -36,7 +36,7 @@
         </Path>
         <Path Opacity="0" x:Name="PathError" Stretch="Uniform" Fill="{DynamicResource ColorBrush3}"
               Width="17" Height="17" Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z"
-              Margin="4,23,0,0" RenderTransformOrigin="0.5,0.5" HorizontalAlignment="Left" VerticalAlignment="Top">
+              Margin="4,23,0,0" RenderTransformOrigin="50%,50%" HorizontalAlignment="Left" VerticalAlignment="Top">
             <Path.RenderTransform>
                 <ScaleTransform ScaleX="0.6" ScaleY="0.6" />
             </Path.RenderTransform>

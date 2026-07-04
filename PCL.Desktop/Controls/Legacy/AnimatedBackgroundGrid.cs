@@ -9,25 +9,27 @@ using Avalonia.Media;
 namespace PCL.Desktop.Controls.Legacy;
 
 /// <summary>
-/// Avalonia adapter for PCL's WPF AnimatedBackgroundGrid; animation is layered back in as the port matures.
+/// Avalonia adapter for PCL's WPF AnimatedBackgroundGrid.
 /// </summary>
 public class AnimatedBackgroundGrid : Grid
 {
     public static readonly StyledProperty<IBrush?> BackgroundBrushProperty =
-        AvaloniaProperty.Register<AnimatedBackgroundGrid, IBrush?>(nameof(BackgroundBrush));
+        AvaloniaProperty.Register<AnimatedBackgroundGrid, IBrush?>(nameof(BackgroundBrush), Brushes.Transparent);
+
+    private readonly AvaloniaProperty _animatableBrushProperty;
+    private int _themeAnimationVersion;
+    private bool _isBackgroundInitialized;
+    private bool _isApplyingBackgroundDirect;
 
     public AnimatedBackgroundGrid()
+        : this(BackgroundProperty)
     {
-        this.GetObservable(BackgroundBrushProperty).Subscribe(brush =>
-        {
-            if (brush is not null)
-                Background = brush;
-        });
     }
 
-    public AnimatedBackgroundGrid(AvaloniaProperty _)
-        : this()
+    public AnimatedBackgroundGrid(AvaloniaProperty brushProperty)
     {
+        _animatableBrushProperty = brushProperty;
+        AttachedToVisualTree += (_, _) => InitializeBackgroundBrush();
     }
 
     public IBrush? BackgroundBrush
@@ -35,4 +37,96 @@ public class AnimatedBackgroundGrid : Grid
         get => GetValue(BackgroundBrushProperty);
         set => SetValue(BackgroundBrushProperty, value);
     }
+
+    protected virtual Control AnimatableElement => this;
+
+    protected virtual IBrush? AnimatableBrush
+    {
+        get => Background;
+        set => Background = value;
+    }
+
+    protected bool IsBackgroundAnimating { get; private set; }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property != BackgroundBrushProperty)
+            return;
+
+        if (_isApplyingBackgroundDirect)
+        {
+            AnimatableBrush = change.NewValue as IBrush ?? Brushes.Transparent;
+            IsBackgroundAnimating = false;
+            return;
+        }
+
+        ApplyBackgroundBrush(change.NewValue as IBrush);
+    }
+
+    protected void SetBackgroundBrushDirect(IBrush? brush)
+    {
+        brush ??= Brushes.Transparent;
+        int animationVersion = ++_themeAnimationVersion;
+        _isApplyingBackgroundDirect = true;
+        try
+        {
+            BackgroundBrush = brush;
+        }
+        finally
+        {
+            _isApplyingBackgroundDirect = false;
+        }
+
+        ModAnimation.AniStop($"MyCard Theme {GetHashCode()}");
+        if (animationVersion == _themeAnimationVersion)
+            AnimatableBrush = brush;
+        IsBackgroundAnimating = false;
+        _isBackgroundInitialized = true;
+    }
+
+    private void InitializeBackgroundBrush()
+    {
+        if (_isBackgroundInitialized)
+            return;
+
+        AnimatableBrush = BackgroundBrush ?? Brushes.Transparent;
+        IsBackgroundAnimating = false;
+        _isBackgroundInitialized = true;
+    }
+
+    private void ApplyBackgroundBrush(IBrush? brush)
+    {
+        brush ??= Brushes.Transparent;
+        if (!_isBackgroundInitialized || !ControlVisualHelpers.ShouldAnimate(this))
+        {
+            SetBackgroundBrushDirect(brush);
+            return;
+        }
+
+        int animationVersion = ++_themeAnimationVersion;
+        IsBackgroundAnimating = true;
+        ModAnimation.AniStop($"MyCard Theme {GetHashCode()}");
+        ModAnimation.AniStart(
+            new List<ModAnimation.AniData>
+            {
+                ModAnimation.AaColor(AnimatableElement, _animatableBrushProperty, ToSolidColor(brush), 300),
+                ModAnimation.AaCode(() =>
+                {
+                    if (animationVersion != _themeAnimationVersion)
+                        return;
+
+                    AnimatableBrush = brush;
+                    IsBackgroundAnimating = false;
+                }, after: true)
+            },
+            $"MyCard Theme {GetHashCode()}");
+    }
+
+    private static Color ToSolidColor(IBrush brush) =>
+        brush switch
+        {
+            ISolidColorBrush solid => solid.Color,
+            _ => Colors.Transparent
+        };
 }

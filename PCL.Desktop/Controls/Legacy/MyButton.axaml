@@ -5,14 +5,14 @@
         Background="{StaticResource ColorBrushSemiTransparent}">
     <Border CornerRadius="4" x:Name="PanFore" BorderThickness="1" BorderBrush="{DynamicResource ColorBrush1}"
             MinHeight="32"
-            RenderTransformOrigin="0.5,0.5" Background="{DynamicResource ColorBrushHalfWhite}">
+            RenderTransformOrigin="50%,50%" Background="{DynamicResource ColorBrushHalfWhite}">
         <Border.RenderTransform>
             <ScaleTransform />
         </Border.RenderTransform>
         <TextBlock TextTrimming="None"
                    HorizontalAlignment="Center" x:Name="LabText" VerticalAlignment="Center"
-                   RenderTransformOrigin="0.5,0.5"
-                   Foreground="{DynamicResource ColorBrush3}" FontSize="13"
+                   RenderTransformOrigin="50%,50%"
+                   Foreground="{Binding #PanFore.BorderBrush}" FontSize="13"
                    IsHitTestVisible="False">
             <TextBlock.RenderTransform>
                 <ScaleTransform />

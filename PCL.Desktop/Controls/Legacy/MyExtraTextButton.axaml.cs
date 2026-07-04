@@ -4,6 +4,7 @@
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
@@ -14,6 +15,9 @@ namespace PCL.Desktop.Controls.Legacy;
 
 public sealed partial class MyExtraTextButton : Grid
 {
+    private const int ColorAnimationInMilliseconds = 120;
+    private const int ColorAnimationOutMilliseconds = 150;
+
     public static readonly StyledProperty<string> TextProperty =
         AvaloniaProperty.Register<MyExtraTextButton, string>(nameof(Text), string.Empty);
 
@@ -36,6 +40,8 @@ public sealed partial class MyExtraTextButton : Grid
     private readonly PathShape? _path;
     private readonly SvgIcon? _svgIcon;
     private readonly TextBlock? _label;
+    private readonly string _uuid = Guid.NewGuid().ToString("N");
+    private bool _isLoaded;
     private bool _isPressed;
 
     public MyExtraTextButton()
@@ -56,6 +62,12 @@ public sealed partial class MyExtraTextButton : Grid
             _clickLayer.PointerExited += OnPointerExited;
             _clickLayer.PointerEntered += (_, _) => RefreshColor();
         }
+        AttachedToVisualTree += (_, _) =>
+        {
+            _isLoaded = true;
+            ApplyShowState(Show, animate: false);
+            RefreshColor();
+        };
 
         this.GetObservable(TextProperty).Subscribe(text =>
         {
@@ -65,16 +77,19 @@ public sealed partial class MyExtraTextButton : Grid
         this.GetObservable(LogoProperty).Subscribe(_ => RefreshIcon());
         this.GetObservable(SvgIconProperty).Subscribe(_ => RefreshIcon());
         this.GetObservable(LogoScaleProperty).Subscribe(_ => ApplyLogoScale());
-        this.GetObservable(ShowProperty).Subscribe(ApplyShowState);
+        this.GetObservable(ShowProperty).Subscribe(value => ApplyShowState(value, _isLoaded));
         this.GetObservable(IsEnabledProperty).Subscribe(_ => RefreshColor());
 
         RefreshIcon();
         ApplyLogoScale();
-        ApplyShowState(Show);
+        ApplyShowState(Show, animate: false);
         RefreshColor();
     }
 
     public event EventHandler? Click;
+
+    public InlineCollection Inlines =>
+        _label?.Inlines ?? throw new InvalidOperationException("MyExtraTextButton text block is not initialized.");
 
     public string Text
     {
@@ -113,7 +128,7 @@ public sealed partial class MyExtraTextButton : Grid
 
         _isPressed = true;
         Focus();
-        ApplyScale(0.85d);
+        StartScaleAnimation(0.85d, -0.05d);
         RefreshColor();
         e.Handled = true;
     }
@@ -124,7 +139,7 @@ public sealed partial class MyExtraTextButton : Grid
             return;
 
         _isPressed = false;
-        ApplyScale(1d);
+        RefreshScaleAfterRelease();
         RefreshColor();
         Click?.Invoke(this, EventArgs.Empty);
         e.Handled = true;
@@ -133,7 +148,16 @@ public sealed partial class MyExtraTextButton : Grid
     private void OnPointerExited(object? sender, PointerEventArgs e)
     {
         _isPressed = false;
-        ApplyScale(1d);
+        if (_scaleLayer is not null)
+        {
+            ModAnimation.AniStart(
+                ModAnimation.AaScaleTransform(
+                    _scaleLayer,
+                    1d - GetScaleX(_scaleLayer),
+                    500,
+                    ease: new ModAnimation.AniEaseOutFluent()),
+                $"MyExtraTextButton Scale {_uuid}");
+        }
         RefreshColor();
     }
 
@@ -183,24 +207,86 @@ public sealed partial class MyExtraTextButton : Grid
     private void ApplyLogoScale()
     {
         if (_iconHost is not null)
-            _iconHost.RenderTransform = new ScaleTransform(LogoScale, LogoScale);
-    }
-
-    private void ApplyShowState(bool show)
-    {
-        Opacity = show ? 1d : 0d;
-        IsHitTestVisible = show;
-        if (RenderTransform is ScaleTransform scale)
         {
-            scale.ScaleX = show ? 1d : 0d;
-            scale.ScaleY = show ? 1d : 0d;
+            double scale = string.IsNullOrWhiteSpace(SvgIcon) ? LogoScale : 1d;
+            _iconHost.RenderTransform = new ScaleTransform(scale, scale);
         }
     }
 
-    private void ApplyScale(double scale)
+    private void ApplyShowState(bool show, bool animate)
     {
-        if (_scaleLayer is not null)
-            _scaleLayer.RenderTransform = new ScaleTransform(scale, scale);
+        IsHitTestVisible = show;
+        if (!animate)
+        {
+            Opacity = show ? 1d : 0d;
+            SetScale(this, show ? 1d : 0d);
+            return;
+        }
+
+        if (show)
+        {
+            Opacity = 0d;
+            ModAnimation.AniStart(
+            new List<ModAnimation.AniData>
+            {
+                ModAnimation.AaOpacity(this, 1d - Opacity, 80, 50),
+                ModAnimation.AaScaleTransform(
+                    this,
+                    0.15d - GetScaleX(this),
+                    400,
+                    50,
+                    new ModAnimation.AniEaseOutBack()),
+                ModAnimation.AaScaleTransform(
+                    this,
+                    0.85d,
+                    160,
+                    50,
+                    new ModAnimation.AniEaseOutFluent())
+            }, $"MyExtraTextButton MainScale {_uuid}");
+            return;
+        }
+
+        ModAnimation.AniStart(
+        new List<ModAnimation.AniData>
+        {
+            ModAnimation.AaOpacity(this, -Opacity, 50, 50),
+            ModAnimation.AaScaleTransform(
+                this,
+                -GetScaleX(this),
+                100,
+                ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak))
+        }, $"MyExtraTextButton MainScale {_uuid}");
+    }
+
+    private void StartScaleAnimation(double targetScale, double reboundScale, int reboundDuration = 60)
+    {
+        if (_scaleLayer is null)
+            return;
+
+        ModAnimation.AniStart(
+        new List<ModAnimation.AniData>
+        {
+            ModAnimation.AaScaleTransform(
+                _scaleLayer,
+                targetScale - GetScaleX(_scaleLayer),
+                800,
+                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
+            ModAnimation.AaScaleTransform(
+                _scaleLayer,
+                reboundScale,
+                reboundDuration,
+                ease: new ModAnimation.AniEaseOutFluent())
+        }, $"MyExtraTextButton Scale {_uuid}");
+    }
+
+    private void RefreshScaleAfterRelease()
+    {
+        if (_scaleLayer is null)
+            return;
+
+        ModAnimation.AniStart(
+            ModAnimation.AaScaleTransform(_scaleLayer, 1d - GetScaleX(_scaleLayer), 300, ease: new ModAnimation.AniEaseOutBack()),
+            $"MyExtraTextButton Scale {_uuid}");
     }
 
     private void RefreshColor()
@@ -208,13 +294,38 @@ public sealed partial class MyExtraTextButton : Grid
         if (_colorLayer is null)
             return;
 
-        Color color = !IsEnabled
-            ? Color.Parse("#8c8c8c")
-            : _isPressed
-                ? Color.Parse("#0f5fd0")
-                : IsPointerOver
-                    ? Color.Parse("#4092f7")
-                    : Color.Parse("#1370f3");
-        _colorLayer.Background = new SolidColorBrush(color);
+        string key = !IsEnabled
+            ? "ColorBrushGray4"
+            : IsPointerOver ? "ColorBrush4" : "ColorBrush3";
+        int duration = !IsEnabled || IsPointerOver ? ColorAnimationInMilliseconds : ColorAnimationOutMilliseconds;
+
+        if (_isLoaded)
+        {
+            ModAnimation.AniStart(
+                ModAnimation.AaColor(_colorLayer, Border.BackgroundProperty, key, duration),
+                $"MyExtraTextButton Color {_uuid}");
+        }
+        else
+        {
+            _colorLayer.Background = FindBrush(key, "#1370f3");
+        }
+    }
+
+    private static double GetScaleX(Control control) =>
+        control.RenderTransform switch
+        {
+            ScaleTransform scale => scale.ScaleX,
+            TransformGroup group => group.Children.OfType<ScaleTransform>().FirstOrDefault()?.ScaleX ?? 1d,
+            _ => 1d
+        };
+
+    private static void SetScale(Control control, double scale)
+    {
+        ControlVisualHelpers.SetCenterScale(control, scale);
+    }
+
+    private IBrush FindBrush(string key, string fallback)
+    {
+        return LegacyResourceResolver.Brush(this, key, fallback);
     }
 }

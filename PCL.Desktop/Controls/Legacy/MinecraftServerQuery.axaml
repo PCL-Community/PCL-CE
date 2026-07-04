@@ -1,0 +1,39 @@
+<Grid x:Class="PCL.Desktop.Controls.Legacy.MinecraftServerQuery"
+      xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:legacy="using:PCL.Desktop.Controls.Legacy"
+      Margin="0,0,0,15">
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="12" />
+        <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition />
+        <ColumnDefinition Width="9" />
+        <ColumnDefinition Width="Auto" />
+    </Grid.ColumnDefinitions>
+    <legacy:MyTextBox x:Name="LabServerIp"
+                      Height="28"
+                      HintText="输入服务器地址，例如 mc.example.com" />
+    <legacy:MyButton x:Name="BtnServerQuery"
+                     Grid.Column="2"
+                     Width="80"
+                     Height="28"
+                     Text="查询"
+                     ColorType="Highlight"
+                     Click="BtnServerQueryClick" />
+    <Border x:Name="ServerInfo"
+            Grid.Row="2"
+            Grid.ColumnSpan="3"
+            IsVisible="False"
+            CornerRadius="4"
+            ClipToBounds="True">
+        <Border.Background>
+            <ImageBrush Source="avares://PCL.Desktop/WpfOriginal/Images/Backgrounds/server_bg.png"
+                        Stretch="None"
+                        TileMode="Tile" />
+        </Border.Background>
+        <legacy:MinecraftServer x:Name="PanMcServer" />
+    </Border>
+</Grid>

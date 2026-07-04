@@ -34,6 +34,9 @@ public class MyPageRight : ContentControl, IDisposable
     private Control? _pageContentPanel;
     private Control? _pageAlwaysPanel;
     private bool _pageLoaderAutoRun;
+    private readonly string _pageUuid = Guid.NewGuid().ToString("N");
+
+    protected override Type StyleKeyOverride => typeof(ContentControl);
 
     public int PageUuid { get; } = Random.Shared.Next();
 
@@ -87,6 +90,8 @@ public class MyPageRight : ContentControl, IDisposable
         _pageLoaderCancellation = new CancellationTokenSource();
 
         PageState = PageStates.LoaderEnter;
+        if (_pageContentPanel is not null)
+            _pageContentPanel.IsVisible = false;
         TriggerEnterAnimation(_pageAlwaysPanel, _pageLoaderPanel);
         try
         {
@@ -110,12 +115,19 @@ public class MyPageRight : ContentControl, IDisposable
     public void PageOnEnter()
     {
         PageEnter?.Invoke();
+        if (PageState is PageStates.LoaderEnter or PageStates.LoaderStayForce or PageStates.LoaderStay or PageStates.LoaderWait)
+        {
+            if (_pageContentPanel is not null)
+                _pageContentPanel.IsVisible = false;
+            TriggerEnterAnimation(_pageAlwaysPanel, _pageLoaderPanel);
+            return;
+        }
+
         PageState = PageStates.ContentEnter;
         if (_pageContentPanel is not null)
             TriggerEnterAnimation(_pageAlwaysPanel, _pageContentPanel);
         else if (Content is Control content)
             TriggerEnterAnimation(content);
-        PageState = PageStates.ContentStay;
     }
 
     public void PageOnExit()
@@ -132,6 +144,7 @@ public class MyPageRight : ContentControl, IDisposable
     {
         _pageLoaderCancellation?.Cancel();
         PageState = PageStates.Empty;
+        ModAnimation.AniStop($"PageRight PageChange {_pageUuid}");
         if (_pageContentPanel is not null)
             _pageContentPanel.IsVisible = false;
         if (_pageLoaderPanel is not null)
@@ -145,7 +158,8 @@ public class MyPageRight : ContentControl, IDisposable
         PageState = PageStates.ContentExit;
         if (_pageContentPanel is not null)
             TriggerExitAnimation(_pageContentPanel);
-        PageOnEnter();
+        else if (Content is Control content)
+            TriggerExitAnimation(content);
     }
 
     public virtual void Dispose()
@@ -158,40 +172,108 @@ public class MyPageRight : ContentControl, IDisposable
 
     public void TriggerEnterAnimation(params Control?[] elements)
     {
-        foreach (Control element in elements.OfType<Control>())
+        Control[] realElements = elements.OfType<Control>().ToArray();
+        foreach (Control element in realElements)
         {
             element.IsVisible = true;
             foreach (Control control in GetAllAnimControls(element, ignoreInvisibility: true))
             {
                 control.IsHitTestVisible = true;
-                if (!DisabledPageAnimControls.Contains(control))
-                {
-                    control.Opacity = 1d;
+                if (control.RenderTransform is TranslateTransform)
                     control.RenderTransform = null;
-                }
             }
         }
+
+        List<ModAnimation.AniData> animations = [];
+        int delay = 0;
+        foreach (Control element in realElements)
+        {
+            foreach (Control control in GetAllAnimControls(element))
+            {
+                if (DisabledPageAnimControls.Contains(control))
+                    continue;
+                if (control is MyExtraTextButton extraTextButton)
+                {
+                    extraTextButton.Show = true;
+                    continue;
+                }
+
+                control.Opacity = 0d;
+                control.RenderTransform = new TranslateTransform(0d, -16d);
+                animations.Add(ModAnimation.AaOpacity(
+                    control,
+                    1d,
+                    100,
+                    delay,
+                    new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
+                animations.Add(ModAnimation.AaTranslateY(control, 5d, 250, delay, new ModAnimation.AniEaseOutFluent()));
+                animations.Add(ModAnimation.AaTranslateY(control, 11d, 350, delay, new ModAnimation.AniEaseOutBack()));
+                delay += 25;
+            }
+        }
+
+        animations.Add(ModAnimation.AaCode(PageOnEnterAnimationFinished, after: true));
+        ModAnimation.AniStart(animations, $"PageRight PageChange {_pageUuid}", true);
     }
 
     public void TriggerExitAnimation(params Control?[] elements)
     {
-        foreach (Control element in elements.OfType<Control>())
+        Control[] realElements = elements.OfType<Control>().ToArray();
+        List<ModAnimation.AniData> animations = [];
+        int delay = 0;
+        foreach (Control element in realElements)
         {
             foreach (Control control in GetAllAnimControls(element))
             {
-                control.IsHitTestVisible = false;
-                if (!DisabledPageAnimControls.Contains(control))
+                if (DisabledPageAnimControls.Contains(control))
+                    continue;
+                if (control is MyExtraTextButton extraTextButton)
                 {
-                    control.Opacity = 0d;
-                    control.RenderTransform = new TranslateTransform(0d, -6d);
+                    extraTextButton.Show = false;
+                    continue;
                 }
-            }
 
-            element.IsVisible = false;
+                control.IsHitTestVisible = false;
+                animations.Add(ModAnimation.AaOpacity(control, -1d, 70, delay));
+                animations.Add(ModAnimation.AaTranslateY(control, -6d, 70, delay));
+                delay += 15;
+            }
         }
 
-        if (PageState is PageStates.PageExit or PageStates.ContentExit)
-            PageState = PageStates.Empty;
+        animations.Add(ModAnimation.AaCode(() =>
+        {
+            foreach (Control element in realElements)
+                element.IsVisible = false;
+            PageOnExitAnimationFinished();
+        }, after: true));
+        ModAnimation.AniStart(animations, $"PageRight PageChange {_pageUuid}");
+    }
+
+    private void PageOnEnterAnimationFinished()
+    {
+        PageState = PageState switch
+        {
+            PageStates.ContentEnter => PageStates.ContentStay,
+            PageStates.LoaderEnter => PageStates.LoaderStayForce,
+            _ => PageState
+        };
+    }
+
+    private void PageOnExitAnimationFinished()
+    {
+        switch (PageState)
+        {
+            case PageStates.PageExit:
+                PageState = PageStates.Empty;
+                break;
+            case PageStates.ContentExit:
+                PageOnEnter();
+                break;
+            case PageStates.LoaderExit:
+                PageState = PageStates.ContentEnter;
+                TriggerEnterAnimation(_pageContentPanel);
+                break;
+        }
     }
 
     internal static IEnumerable<Control> GetAllAnimControls(Control element, bool ignoreInvisibility = false)

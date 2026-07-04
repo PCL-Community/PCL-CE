@@ -23,7 +23,7 @@
         <Ellipse x:Name="ShapeDot" HorizontalAlignment="Left" Width="10" Height="10"
                  Stroke="{DynamicResource ColorBrushBg0}" StrokeThickness="1.2"
                  Fill="{DynamicResource ColorBrushBg0}" VerticalAlignment="Center"
-                 RenderTransformOrigin="0.5,0.5">
+                 RenderTransformOrigin="50%,50%">
             <Ellipse.RenderTransform>
                 <ScaleTransform />
             </Ellipse.RenderTransform>

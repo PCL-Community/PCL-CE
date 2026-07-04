@@ -3,15 +3,15 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:svgIcon="using:PCL.Desktop.Controls.Legacy"
         CornerRadius="1000" Background="{StaticResource ColorBrushSemiTransparent}" BorderThickness="0.001">
-    <Border x:Name="PanBack" CornerRadius="1000" RenderTransformOrigin="0.5,0.5" BorderThickness="0.001"
+    <Border x:Name="PanBack" CornerRadius="1000" RenderTransformOrigin="50%,50%" BorderThickness="0.001"
             IsHitTestVisible="False">
-        <Grid x:Name="IconHost" Margin="5" RenderTransformOrigin="0.5,0.5">
+        <Grid x:Name="IconHost" Margin="5" RenderTransformOrigin="50%,50%">
             <Grid.RenderTransform>
                 <ScaleTransform />
             </Grid.RenderTransform>
             <Path x:Name="Path"
                   Stretch="Uniform"
-                  RenderTransformOrigin="0.5,0.5" />
+                  RenderTransformOrigin="50%,50%" />
             <svgIcon:SvgIcon x:Name="ShapeSvgIcon"
                          Stretch="Uniform"
                          IsVisible="False"

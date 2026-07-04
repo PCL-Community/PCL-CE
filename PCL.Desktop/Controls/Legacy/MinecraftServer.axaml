@@ -1,0 +1,37 @@
+<Grid x:Class="PCL.Desktop.Controls.Legacy.MinecraftServer"
+      xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      MinHeight="66"
+      ClipToBounds="True">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+    </Grid.ColumnDefinitions>
+    <Image x:Name="ImgServerLogo"
+           Width="54"
+           Height="54"
+           Margin="6"
+           Stretch="UniformToFill" />
+    <TextBlock x:Name="LabServerDesc"
+               Grid.Column="1"
+               Margin="6"
+               TextWrapping="Wrap"
+               FontSize="15"
+               Foreground="White" />
+    <TextBlock x:Name="MotdRenderer"
+               Grid.Column="1"
+               Margin="0,20,3,1"
+               IsHitTestVisible="False"
+               Width="300"
+               TextWrapping="Wrap"
+               FontSize="13"
+               Foreground="White" />
+    <TextBlock x:Name="LabServerPlayer"
+               Grid.Column="2"
+               Margin="6"
+               TextWrapping="Wrap"
+               TextAlignment="Right"
+               FontSize="12"
+               Foreground="White" />
+</Grid>
