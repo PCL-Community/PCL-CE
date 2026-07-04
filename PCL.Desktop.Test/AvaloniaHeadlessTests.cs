@@ -3844,6 +3844,67 @@ public sealed class AvaloniaHeadlessTests
                         DisplayText(item.FindControl<TextBlock>("LabTitle")!) == "Minecraft"));
                     Assert.AreEqual("自动", page.FindControl<MyComboBox>("ComboDisplayLogo")!.Text);
                     Assert.AreEqual("自动", page.FindControl<MyComboBox>("ComboDisplayType")!.Text);
+                    Assert.IsFalse(page.FindControl<MyButton>("BtnFolderMods")!.IsVisible);
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }, CancellationToken.None);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void PageInstanceManageRight_RendersDetectedLoaderInfoLikeWpf()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+        string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-overall-loader-" + Guid.NewGuid().ToString("N"));
+
+        try
+        {
+            string versionDirectory = System.IO.Path.Combine(root, "versions", "1.20.1");
+            Directory.CreateDirectory(versionDirectory);
+            string jsonPath = System.IO.Path.Combine(versionDirectory, "1.20.1.json");
+            File.WriteAllText(jsonPath, """
+                {
+                  "id": "1.20.1",
+                  "libraries": [
+                    { "name": "net.fabricmc:fabric-loader:0.16.10" },
+                    { "name": "net.minecraftforge:forge:1.20.1-47.3.0" }
+                  ]
+                }
+                """);
+            LaunchInstanceInfo instance = new("1.20.1", jsonPath, versionDirectory);
+
+            session.Dispatch(() =>
+            {
+                PageInstanceManageRight page = new();
+                Window window = new()
+                {
+                    Width = 720,
+                    Height = 520,
+                    Content = page
+                };
+
+                try
+                {
+                    window.Show();
+                    page.SetInstance(instance);
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                    MyListItem forge = page.GetVisualDescendants().OfType<MyListItem>().Single(item => item.Title == "Forge");
+                    MyListItem fabric = page.GetVisualDescendants().OfType<MyListItem>().Single(item => item.Title == "Fabric");
+
+                    Assert.AreEqual("47.3.0", forge.Info);
+                    Assert.AreEqual("0.16.10", fabric.Info);
+                    Assert.IsTrue(forge.Logo.EndsWith("Anvil.png", StringComparison.OrdinalIgnoreCase));
+                    Assert.IsTrue(fabric.Logo.EndsWith("Fabric.png", StringComparison.OrdinalIgnoreCase));
+                    Assert.IsTrue(page.FindControl<MyButton>("BtnFolderMods")!.IsVisible);
                 }
                 finally
                 {

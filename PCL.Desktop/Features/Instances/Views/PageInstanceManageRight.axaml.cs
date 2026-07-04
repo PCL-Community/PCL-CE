@@ -159,6 +159,8 @@ public partial class PageInstanceManageRight : MyPageRight
         };
 
         AddInfoItem(wrap, "Minecraft", jsonInfo.MinecraftVersion, "Grass.png");
+        foreach (InstanceInfoItem item in jsonInfo.LoaderItems)
+            AddInfoItem(wrap, item.Title, item.Info, item.ImageName);
         if (!string.IsNullOrWhiteSpace(jsonInfo.InheritsFrom))
             AddInfoItem(wrap, "继承版本", jsonInfo.InheritsFrom, "CommandBlock.png");
         AddInfoItem(wrap, "版本文件", instance.VersionJsonPath, "CommandBlock.png");
@@ -166,6 +168,9 @@ public partial class PageInstanceManageRight : MyPageRight
 
         panel.Children.Clear();
         panel.Children.Add(wrap);
+
+        if (this.FindControl<MyButton>("BtnFolderMods") is { } modsButton)
+            modsButton.IsVisible = jsonInfo.IsModable;
     }
 
     private void ApplyMetadataToControls()
@@ -356,15 +361,82 @@ public partial class PageInstanceManageRight : MyPageRight
             JsonElement root = document.RootElement;
             string? id = root.TryGetProperty("id", out JsonElement idElement) ? idElement.GetString() : null;
             string? inheritsFrom = root.TryGetProperty("inheritsFrom", out JsonElement inheritsElement) ? inheritsElement.GetString() : null;
+            List<string> libraries = ReadLibraryNames(root).ToList();
+            IReadOnlyList<InstanceInfoItem> loaderItems = DetectLoaderInfo(libraries);
             return new InstanceJsonInfo(
                 string.IsNullOrWhiteSpace(inheritsFrom)
                     ? (string.IsNullOrWhiteSpace(id) ? instance.Name : id)
                     : inheritsFrom,
-                inheritsFrom);
+                inheritsFrom,
+                loaderItems,
+                loaderItems.Any(static item => item.IsModable));
         }
         catch (Exception)
         {
-            return new InstanceJsonInfo(instance.Name, null);
+            return new InstanceJsonInfo(instance.Name, null, [], IsModable: false);
+        }
+    }
+
+    private static List<InstanceInfoItem> DetectLoaderInfo(IReadOnlyList<string> libraries)
+    {
+        List<InstanceInfoItem> items = [];
+        AddLoader(items, libraries, "Forge", "Anvil.png", isModable: true, "net.minecraftforge:forge:", "minecraftforge");
+        AddLoader(items, libraries, "NeoForge", "NeoForge.png", isModable: true, "net.neoforged:neoforge:", "net.neoforge:forge:", "neoforge");
+        AddLoader(items, libraries, "Cleanroom", "Cleanroom.png", isModable: true, "com.cleanroommc:cleanroom:", "cleanroom");
+        AddLoader(items, libraries, "Fabric", "Fabric.png", isModable: true, "net.fabricmc:fabric-loader:");
+        AddLoader(items, libraries, "Quilt", "Quilt.png", isModable: true, "org.quiltmc:quilt-loader:");
+        AddLoader(items, libraries, "OptiFine", "GrassPath.png", isModable: true, "optifine");
+        AddLoader(items, libraries, "LiteLoader", "Egg.png", isModable: true, "liteloader");
+        AddLoader(items, libraries, "Legacy Fabric", "Fabric.png", isModable: true, "net.legacyfabric:", "legacyfabric");
+        AddLoader(items, libraries, "LabyMod", "LabyMod.png", isModable: true, "labymod");
+        return items;
+    }
+
+    private static void AddLoader(
+        List<InstanceInfoItem> items,
+        IReadOnlyList<string> libraries,
+        string title,
+        string imageName,
+        bool isModable,
+        params string[] needles)
+    {
+        string? library = libraries.FirstOrDefault(library =>
+            needles.Any(needle => library.Contains(needle, StringComparison.OrdinalIgnoreCase)));
+        if (string.IsNullOrWhiteSpace(library))
+            return;
+
+        items.Add(new InstanceInfoItem(title, SimplifyLibraryVersion(library), imageName, isModable));
+    }
+
+    private static string SimplifyLibraryVersion(string library)
+    {
+        int versionIndex = library.LastIndexOf(':');
+        if (versionIndex < 0 || versionIndex == library.Length - 1)
+            return "已安装";
+
+        string version = library[(versionIndex + 1)..];
+        int minecraftPrefixIndex = version.IndexOf('-');
+        return minecraftPrefixIndex > 0 && minecraftPrefixIndex < version.Length - 1
+            ? version[(minecraftPrefixIndex + 1)..]
+            : version;
+    }
+
+    private static IEnumerable<string> ReadLibraryNames(JsonElement root)
+    {
+        if (!root.TryGetProperty("libraries", out JsonElement libraries) ||
+            libraries.ValueKind != JsonValueKind.Array)
+        {
+            yield break;
+        }
+
+        foreach (JsonElement library in libraries.EnumerateArray())
+        {
+            if (library.TryGetProperty("name", out JsonElement nameElement) &&
+                nameElement.ValueKind == JsonValueKind.String &&
+                !string.IsNullOrWhiteSpace(nameElement.GetString()))
+            {
+                yield return nameElement.GetString()!;
+            }
         }
     }
 
@@ -389,5 +461,11 @@ public partial class PageInstanceManageRight : MyPageRight
         return instance.InstanceDirectory;
     }
 
-    private readonly record struct InstanceJsonInfo(string MinecraftVersion, string? InheritsFrom);
+    private readonly record struct InstanceInfoItem(string Title, string Info, string ImageName, bool IsModable);
+
+    private readonly record struct InstanceJsonInfo(
+        string MinecraftVersion,
+        string? InheritsFrom,
+        IReadOnlyList<InstanceInfoItem> LoaderItems,
+        bool IsModable);
 }
