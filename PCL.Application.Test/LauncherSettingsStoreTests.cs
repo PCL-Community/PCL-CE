@@ -28,7 +28,7 @@ public sealed class LauncherSettingsStoreTests
         await store.SaveAsync(expected);
         LauncherSettingsLoadResult result = await store.LoadAsync();
 
-        Assert.AreEqual(expected, result.Settings);
+        AssertSettingsEqual(expected, result.Settings);
         Assert.IsFalse(result.RecoveredFromInvalidFile);
         Assert.IsNull(result.InvalidFileBackupPath);
     }
@@ -44,7 +44,7 @@ public sealed class LauncherSettingsStoreTests
         LauncherSettingsLoadResult result = await store.LoadAsync();
 
         Assert.IsTrue(result.RecoveredFromInvalidFile);
-        Assert.AreEqual(new LauncherSettings(), result.Settings);
+        AssertSettingsEqual(new LauncherSettings(), result.Settings);
         Assert.IsNotNull(result.InvalidFileBackupPath);
         Assert.IsTrue(File.Exists(result.InvalidFileBackupPath));
     }
@@ -70,6 +70,29 @@ public sealed class LauncherSettingsStoreTests
             DownloadSourcePreference.OfficialOnly,
             normalized.DownloadSource);
         Assert.AreEqual(ColorMode.System, normalized.ColorMode);
+    }
+
+    private static void AssertSettingsEqual(
+        LauncherSettings expected,
+        LauncherSettings actual)
+    {
+        Assert.AreEqual(expected.SchemaVersion, actual.SchemaVersion);
+        Assert.AreEqual(
+            expected.AutomaticallyRepairGameIssues,
+            actual.AutomaticallyRepairGameIssues);
+        Assert.AreEqual(expected.ColorMode, actual.ColorMode);
+        Assert.AreEqual(expected.LightColor, actual.LightColor);
+        Assert.AreEqual(expected.DarkColor, actual.DarkColor);
+        Assert.AreEqual(expected.DownloadSource, actual.DownloadSource);
+        CollectionAssert.AreEquivalent(
+            expected.BooleanOptions.ToArray(),
+            actual.BooleanOptions.ToArray());
+        CollectionAssert.AreEquivalent(
+            expected.IntegerOptions.ToArray(),
+            actual.IntegerOptions.ToArray());
+        CollectionAssert.AreEquivalent(
+            expected.TextOptions.ToArray(),
+            actual.TextOptions.ToArray());
     }
 
     private sealed class TestDirectory : IDisposable

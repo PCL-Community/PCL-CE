@@ -24,4 +24,8 @@ public sealed record LaunchProfile
     public string? SkinAddress { get; init; }
 
     public string AuthServer { get; init; } = string.Empty;
+
+    public string AccessToken { get; init; } = string.Empty;
+
+    public string RefreshToken { get; init; } = string.Empty;
 }

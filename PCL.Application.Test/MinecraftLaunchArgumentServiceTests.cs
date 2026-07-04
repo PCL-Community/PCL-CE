@@ -104,6 +104,21 @@ public sealed class MinecraftLaunchArgumentServiceTests
     }
 
     [TestMethod]
+    public void FinalArguments_ShouldUseQuickPlayForSingleplayerWorld()
+    {
+        MinecraftFinalArgumentResult result = MinecraftLaunchArgumentService.BuildFinalArguments(
+            new MinecraftFinalArgumentRequest
+            {
+                Arguments = "--demo",
+                JavaMajorVersion = 17,
+                Replacements = new Dictionary<string, string>(),
+                WorldName = "New World"
+            });
+
+        StringAssert.EndsWith(result.Arguments, "--demo --quickPlaySingleplayer \"New World\"");
+    }
+
+    [TestMethod]
     public void FinalArguments_ShouldUseLegacyServerArgumentsForOldVersions()
     {
         MinecraftFinalArgumentResult result = MinecraftLaunchArgumentService.BuildFinalArguments(

@@ -19,6 +19,9 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="fNbt" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\PCL.Core.Portable\PCL.Core.Portable.csproj" />
     <ProjectReference Include="..\PCL.Domain\PCL.Domain.csproj" />
     <ProjectReference Include="..\PCL.Platform.Abstractions\PCL.Platform.Abstractions.csproj" />

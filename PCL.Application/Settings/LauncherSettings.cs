@@ -27,4 +27,10 @@ public sealed record LauncherSettings
     [JsonConverter(typeof(JsonStringEnumConverter<DownloadSourcePreference>))]
     public DownloadSourcePreference DownloadSource { get; init; } =
         DownloadSourcePreference.PreferOfficialWithMirrorFallback;
+
+    public Dictionary<string, bool> BooleanOptions { get; init; } = [];
+
+    public Dictionary<string, int> IntegerOptions { get; init; } = [];
+
+    public Dictionary<string, string> TextOptions { get; init; } = [];
 }
