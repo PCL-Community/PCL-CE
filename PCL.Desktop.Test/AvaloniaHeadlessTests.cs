@@ -983,6 +983,42 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void MainWindow_SettingsNavCanOpenPersonalizationPage()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MainWindow window = new();
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Click(window, window.FindControl<MyListItem>("BtnTitleSelect3")!);
+                ModAnimation.AdvanceUntilIdleForTesting();
+
+                PageSetupLeft setupLeft = FindVisual<PageSetupLeft>(window)!;
+                Click(window, setupLeft.FindControl<MyListItem>("ItemUI")!);
+                ModAnimation.AdvanceUntilIdleForTesting();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                PageSetupUI uiPage = FindVisual<PageSetupUI>(window)!;
+                Assert.IsNotNull(uiPage);
+                Assert.IsTrue(setupLeft.FindControl<MyListItem>("ItemUI")!.Checked);
+                Assert.IsNotNull(uiPage.FindControl<MyCard>("CardLauncher"));
+                Assert.IsNotNull(uiPage.FindControl<MyComboBox>("ComboDarkMode"));
+                Assert.IsNotNull(uiPage.FindControl<MyCard>("CardCustom"));
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void PageSetupOnline_ShowsHostModulePlaceholder()
     {
         string? previousSettingsPath = Environment.GetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH");
@@ -1704,7 +1740,8 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual(0d, GetCheckIndicator(launch).Height);
                 Assert.AreEqual(20d, GetCheckIndicator(download).Height);
                 AdvancePageChangeAnimation(window);
-                Assert.AreEqual("正在加载下载页面", FindVisual<MyLoading>(window, "LoadMain")!.Text);
+                Assert.IsNotNull(FindVisual<PageDownloadLeft>(window));
+                Assert.IsNotNull(FindVisual<PageDownloadInstall>(window));
             }
             finally
             {

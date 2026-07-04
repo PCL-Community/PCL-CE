@@ -32,6 +32,7 @@ using PCL.Desktop.Features.Launching.Views;
 using PCL.Desktop.Features.Settings.Views;
 using PCL.Platform.Paths;
 using PCL.UI.Abstractions.Navigation;
+using PCL.UI.Abstractions.Pages;
 
 namespace PCL.Desktop.Views;
 
@@ -80,6 +81,9 @@ public partial class MainWindow : Window, IDisposable
     private MyPageRight? _setupRight;
     private readonly List<LoginProfileInfo> _loginProfiles = [];
     private readonly Dictionary<int, NavigationPageDescriptor> _navigationPages;
+    private readonly DesktopPageAdapter _pageAdapter = new();
+    private readonly DesktopPageContext _desktopPageContext;
+    private int _registeredPageRequestId;
 
     private const double NavCollapsedWidth = 50d;
     private const int NavAnimDuration = 200;
@@ -97,6 +101,11 @@ public partial class MainWindow : Window, IDisposable
     {
         AvaloniaXamlLoader.Load(this);
         _navigationPages = CreateNavigationPageMap(DesktopHost.Current.Navigation);
+        _desktopPageContext = new DesktopPageContext(
+            CreateLaunchMainPage,
+            CreateDownloadMainPage,
+            CreateSettingsMainPage,
+            CreatePlaceholderMainPage);
         Opacity = 0d;
         CanResize = true;
         WindowDecorations = Avalonia.Controls.WindowDecorations.None;
@@ -573,20 +582,60 @@ public partial class MainWindow : Window, IDisposable
     private void ApplyPagePlaceholder(int page)
     {
         _currentNavPage = page;
-        if (page == 0)
-            ApplyLaunchPage();
-        else if (page == 1)
-            ApplyDownloadPage();
-        else if (page == 3)
-            ApplySetupPage();
-        else
-            ApplyPlaceholderPage(page);
+        if (!_navigationPages.TryGetValue(page, out NavigationPageDescriptor? descriptor))
+            return;
 
-        if (this.FindControl<Control>("PanMainRight") is { } right)
-            right.Opacity = 1d;
+        int requestId = ++_registeredPageRequestId;
+        PageCreateContext context = new(descriptor.Route, DesktopHost.Current.Services, _desktopPageContext);
+        ValueTask<DesktopMainPage> createTask;
+        try
+        {
+            createTask = _pageAdapter.CreateMainPageAsync(descriptor.Provider, context, CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            ApplyPageCreationError(descriptor.Title, ex);
+            return;
+        }
+
+        if (createTask.IsCompletedSuccessfully)
+        {
+            ApplyRegisteredMainPage(createTask.Result);
+            return;
+        }
+
+        ApplyRegisteredMainPage(CreateLoadingMainPage(descriptor.Title));
+        _ = CompleteRegisteredPageAsync(createTask.AsTask(), requestId, descriptor.Title);
     }
 
-    private void ApplyLaunchPage()
+    private async Task CompleteRegisteredPageAsync(
+        Task<DesktopMainPage> createTask,
+        int requestId,
+        string pageTitle)
+    {
+        try
+        {
+            DesktopMainPage page = await createTask.ConfigureAwait(true);
+            if (requestId != _registeredPageRequestId)
+                return;
+
+            ApplyRegisteredMainPage(page);
+        }
+        catch (Exception ex)
+        {
+            if (requestId == _registeredPageRequestId)
+                ApplyPageCreationError(pageTitle, ex);
+        }
+    }
+
+    private void ApplyPageCreationError(string pageTitle, Exception exception)
+    {
+        ApplyRegisteredMainPage(new DesktopMainPage(
+            null,
+            CreateTextPlaceholder(pageTitle, "页面暂时无法打开。\n\n详细信息：" + exception.Message)));
+    }
+
+    private void ApplyRegisteredMainPage(DesktopMainPage page)
     {
         if (this.FindControl<Border>("PanMainLeft") is not { } leftHost ||
             this.FindControl<Border>("PanMainRight") is not { } rightHost)
@@ -594,16 +643,43 @@ public partial class MainWindow : Window, IDisposable
             return;
         }
 
+        if (!ReferenceEquals(leftHost.Child, page.Left))
+        {
+            if (leftHost.Child is MyPageLeft oldLeft)
+                oldLeft.TriggerHideAnimation();
+            leftHost.Child = page.Left;
+        }
+
+        if (!ReferenceEquals(rightHost.Child, page.Right))
+        {
+            if (rightHost.Child is MyPageRight oldRight)
+                oldRight.PageOnExit();
+            rightHost.Child = page.Right;
+        }
+
+        if (page.Title is { Length: > 0 } title)
+            EnterTitleSubPage(title);
+        else
+            ExitTitleSubPage();
+
+        RefreshBackToTopBinding();
+        page.Activated?.Invoke();
+        rightHost.Opacity = 1d;
+    }
+
+    private DesktopMainPage CreateLaunchMainPage()
+    {
         _launchLeft ??= CreateLaunchLeftPage();
         _launchRight ??= new PageLaunchRight();
-
-        leftHost.Child = _launchLeft;
-        rightHost.Child = _launchRight;
-        ExitTitleSubPage();
-        RefreshBackToTopBinding();
-        _ = _launchLeft.EnsureInstancesLoadedAsync();
-        _launchLeft.TriggerShowAnimation();
-        _launchRight.PageOnEnter();
+        return new DesktopMainPage(
+            _launchLeft,
+            _launchRight,
+            Activated: () =>
+            {
+                _ = _launchLeft.EnsureInstancesLoadedAsync();
+                _launchLeft.TriggerShowAnimation();
+                _launchRight.PageOnEnter();
+            });
     }
 
     private PageLaunchLeft CreateLaunchLeftPage()
@@ -628,23 +704,18 @@ public partial class MainWindow : Window, IDisposable
         return page;
     }
 
-    private void ApplyDownloadPage()
+    private DesktopMainPage CreateDownloadMainPage()
     {
-        if (this.FindControl<Border>("PanMainLeft") is not { } leftHost ||
-            this.FindControl<Border>("PanMainRight") is not { } rightHost)
-        {
-            return;
-        }
-
         _downloadLeft ??= CreateDownloadLeftPage();
-        leftHost.Child = _downloadLeft;
-        _downloadLeft.TriggerShowAnimation();
-
         MyPageRight rightPage = _downloadLeft.GetOrCreateCurrentPage();
-        rightHost.Child = rightPage;
-        ExitTitleSubPage();
-        RefreshBackToTopBinding();
-        rightPage.PageOnEnter();
+        return new DesktopMainPage(
+            _downloadLeft,
+            rightPage,
+            Activated: () =>
+            {
+                _downloadLeft.TriggerShowAnimation();
+                rightPage.PageOnEnter();
+            });
     }
 
     private PageDownloadLeft CreateDownloadLeftPage()
@@ -1007,24 +1078,19 @@ public partial class MainWindow : Window, IDisposable
         }
     }
 
-    private void ApplySetupPage()
+    private DesktopMainPage CreateSettingsMainPage()
     {
-        if (this.FindControl<Border>("PanMainLeft") is not { } leftHost ||
-            this.FindControl<Border>("PanMainRight") is not { } rightHost)
-        {
-            return;
-        }
-
         _setupLeft ??= CreateSetupLeftPage();
-        leftHost.Child = _setupLeft;
-        _setupLeft.TriggerShowAnimation();
-
         MyPageRight rightPage = _setupLeft.GetOrCreateCurrentPage();
         _setupRight = rightPage;
-        rightHost.Child = rightPage;
-        ExitTitleSubPage();
-        RefreshBackToTopBinding();
-        rightPage.PageOnEnter();
+        return new DesktopMainPage(
+            _setupLeft,
+            rightPage,
+            Activated: () =>
+            {
+                _setupLeft.TriggerShowAnimation();
+                rightPage.PageOnEnter();
+            });
     }
 
     private PageSetupLeft CreateSetupLeftPage()
@@ -2878,25 +2944,11 @@ public partial class MainWindow : Window, IDisposable
         }
     }
 
-    private void ApplyPlaceholderPage(int page)
-    {
-        if (this.FindControl<Border>("PanMainLeft") is { } leftHost)
-        {
-            if (leftHost.Child is MyPageLeft oldLeft)
-                oldLeft.TriggerHideAnimation();
-            leftHost.Child = null;
-        }
+    private DesktopMainPage CreatePlaceholderMainPage(string pageTitle) =>
+        new(null, CreateLoadingPlaceholder(pageTitle));
 
-        if (this.FindControl<Border>("PanMainRight") is { } rightHost)
-        {
-            if (rightHost.Child is MyPageRight oldRight)
-                oldRight.PageOnExit();
-
-            rightHost.Child = CreateLoadingPlaceholder(_navigationPages[page].Title);
-            ExitTitleSubPage();
-            RefreshBackToTopBinding();
-        }
-    }
+    private static DesktopMainPage CreateLoadingMainPage(string pageTitle) =>
+        new(null, CreateLoadingPlaceholder(pageTitle));
 
     private static Grid CreateLoadingPlaceholder(string pageTitle) =>
         new()
@@ -2911,6 +2963,37 @@ public partial class MainWindow : Window, IDisposable
                     HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
                     VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
                     Text = $"正在加载{pageTitle}页面"
+                }
+            }
+        };
+
+    private static Grid CreateTextPlaceholder(string pageTitle, string message) =>
+        new()
+        {
+            Children =
+            {
+                new StackPanel
+                {
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                    Spacing = 12d,
+                    Children =
+                    {
+                        new TextBlock
+                        {
+                            Text = pageTitle,
+                            FontSize = 19d,
+                            FontWeight = FontWeight.Bold,
+                            Foreground = new SolidColorBrush(Color.Parse("#343d4a"))
+                        },
+                        new TextBlock
+                        {
+                            Text = message,
+                            TextWrapping = TextWrapping.Wrap,
+                            MaxWidth = 420d,
+                            Foreground = new SolidColorBrush(Color.Parse("#1370f3"))
+                        }
+                    }
                 }
             }
         };

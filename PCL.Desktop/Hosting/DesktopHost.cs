@@ -41,11 +41,16 @@ internal sealed class BuiltInDesktopNavigationModule : IPclHostModule
 
     public void Configure(IPclHostBuilder builder)
     {
-        AddPage(builder.Navigation, "pcl.launch", "启动", "lucide/play", 0);
-        AddPage(builder.Navigation, "pcl.download", "下载", "lucide/pickaxe", 10);
-        AddPage(builder.Navigation, "pcl.community", "社区", "lucide/download", 20);
-        AddPage(builder.Navigation, "pcl.online", "在线", "lucide/globe", 30);
-        AddPage(builder.Navigation, "pcl.settings", "设置", "lucide/settings", 40);
+        AddPage(builder.Navigation, "pcl.launch", "启动", "lucide/play", 0,
+            static context => context.CreateLaunchPage());
+        AddPage(builder.Navigation, "pcl.download", "下载", "lucide/pickaxe", 10,
+            static context => context.CreateDownloadPage());
+        AddPage(builder.Navigation, "pcl.community", "社区", "lucide/download", 20,
+            static context => context.CreatePlaceholderPage("社区"));
+        AddPage(builder.Navigation, "pcl.online", "在线", "lucide/globe", 30,
+            static context => context.CreatePlaceholderPage("在线"));
+        AddPage(builder.Navigation, "pcl.settings", "设置", "lucide/settings", 40,
+            static context => context.CreateSettingsPage());
     }
 
     private static void AddPage(
@@ -53,15 +58,26 @@ internal sealed class BuiltInDesktopNavigationModule : IPclHostModule
         string route,
         string title,
         string icon,
-        int order)
+        int order,
+        Func<DesktopPageContext, DesktopMainPage> pageFactory)
     {
+        ArgumentNullException.ThrowIfNull(pageFactory);
         navigation.AddPage(new NavigationPageDescriptor
         {
             Route = route,
             Title = title,
             Icon = icon,
             Order = order,
-            Provider = new DelegatePageProvider((context, _) => new ValueTask<object>(context.Route))
+            Provider = new DelegatePageProvider((context, _) =>
+            {
+                if (context.Parameter is not DesktopPageContext desktopContext)
+                {
+                    throw new InvalidOperationException(
+                        $"Desktop 页面 '{context.Route}' 需要 {nameof(DesktopPageContext)} 运行时上下文。");
+                }
+
+                return new ValueTask<object>(pageFactory(desktopContext));
+            })
         });
     }
 }
