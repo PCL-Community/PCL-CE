@@ -3668,6 +3668,89 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void PageInstanceResourceRight_ListsAndManagesLocalMods()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+        string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-resource-ui-" + Guid.NewGuid().ToString("N"));
+
+        try
+        {
+            string versionDirectory = System.IO.Path.Combine(root, "versions", "1.20.1");
+            string modsDirectory = System.IO.Path.Combine(root, "mods");
+            Directory.CreateDirectory(versionDirectory);
+            Directory.CreateDirectory(modsDirectory);
+            string enabledMod = System.IO.Path.Combine(modsDirectory, "enabled.jar");
+            string disabledMod = System.IO.Path.Combine(modsDirectory, "disabled.jar.disabled");
+            File.WriteAllText(enabledMod, "enabled");
+            File.WriteAllText(disabledMod, "disabled");
+            string jsonPath = System.IO.Path.Combine(versionDirectory, "1.20.1.json");
+            File.WriteAllText(jsonPath, """{ "id": "1.20.1" }""");
+            LaunchInstanceInfo instance = new("1.20.1", jsonPath, versionDirectory);
+
+            session.Dispatch(async () =>
+            {
+                PageInstanceResourceRight page = new();
+                Window window = new()
+                {
+                    Width = 760,
+                    Height = 520,
+                    Content = page
+                };
+                string? openedFolder = null;
+                string? status = null;
+                bool downloadRequested = false;
+                page.OpenFolderRequested += (_, path) => openedFolder = path;
+                page.StatusMessage += (_, message) => status = message;
+                page.DownloadRequested += (_, subPage) => downloadRequested = subPage == InstancePageSubType.Mods;
+
+                try
+                {
+                    window.Show();
+                    page.SetContext(instance, InstancePageSubType.Mods);
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                    StackPanel list = page.FindControl<StackPanel>("PanList")!;
+                    Assert.AreEqual("Mod 列表 (2)", page.FindControl<MyCard>("PanListBack")!.Title);
+                    Assert.IsFalse(page.FindControl<MyCard>("PanEmpty")!.IsVisible);
+                    Assert.IsTrue(list.Children.OfType<MyListItem>().Any(item => item.Title == "enabled.jar"));
+                    Assert.IsTrue(list.Children.OfType<MyListItem>().Any(item => item.Title == "disabled.jar"));
+
+                    Click(window, page.FindControl<MyButton>("BtnManageOpen")!);
+                    Assert.AreEqual(modsDirectory, openedFolder);
+
+                    Click(window, page.FindControl<MyButton>("BtnManageDownload")!);
+                    Assert.IsTrue(downloadRequested);
+
+                    MyListItem disabledItem = list.Children.OfType<MyListItem>().Single(item => item.Title == "disabled.jar");
+                    MyIconButton enableButton = disabledItem.Buttons.Single(button => Equals(button.ToolTip, "启用"));
+                    Click(window, enableButton);
+                    await WaitForConditionAsync(() => File.Exists(System.IO.Path.Combine(modsDirectory, "disabled.jar"))).ConfigureAwait(true);
+                    Assert.AreEqual("已启用。", status);
+
+                    page.FindControl<MySearchBox>("SearchBox")!.Text = "disabled";
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                    Assert.AreEqual(1, list.Children.OfType<MyListItem>().Count());
+                    Assert.AreEqual("disabled.jar", list.Children.OfType<MyListItem>().Single().Title);
+
+                    MyIconButton deleteButton = list.Children.OfType<MyListItem>().Single().Buttons.Single(button => Equals(button.ToolTip, "删除"));
+                    Click(window, deleteButton);
+                    await WaitForConditionAsync(() => !File.Exists(System.IO.Path.Combine(modsDirectory, "disabled.jar"))).ConfigureAwait(true);
+                    Assert.AreEqual("项目已删除。", status);
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }, CancellationToken.None);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public void PageInstanceScreenshotRight_UsesCopiedWpfGalleryAndActions()
     {
         using HeadlessUnitTestSession session = CreateSession();
@@ -3942,6 +4025,20 @@ public sealed class AvaloniaHeadlessTests
                 return;
 
             Thread.Sleep(25);
+        }
+
+        Assert.Fail("Timed out waiting for condition.");
+    }
+
+    private static async Task WaitForConditionAsync(Func<bool> condition)
+    {
+        DateTimeOffset deadline = DateTimeOffset.UtcNow.AddSeconds(3);
+        while (DateTimeOffset.UtcNow < deadline)
+        {
+            if (condition())
+                return;
+
+            await Task.Delay(25).ConfigureAwait(true);
         }
 
         Assert.Fail("Timed out waiting for condition.");

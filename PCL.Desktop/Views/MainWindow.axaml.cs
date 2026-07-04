@@ -71,6 +71,7 @@ public partial class MainWindow : Window, IDisposable
     private PageInstanceScreenshotRight? _instanceScreenshotPage;
     private PageInstanceToolsRight? _instanceToolsPage;
     private PageInstanceModDisabledRight? _instanceModDisabledPage;
+    private PageInstanceResourceRight? _instanceResourcePage;
     private PageInstanceServerRight? _instanceServerPage;
     private LaunchInstanceInfo? _managedInstance;
     private bool _isTitleSubPageVisible;
@@ -873,6 +874,8 @@ public partial class MainWindow : Window, IDisposable
                 _instanceSavesPage?.Reload();
             else if (subPage == InstancePageSubType.Screenshots)
                 _ = _instanceScreenshotPage?.Reload();
+            else if (subPage is InstancePageSubType.Mods or InstancePageSubType.ResourcePacks or InstancePageSubType.Shaders or InstancePageSubType.Schematics)
+                _instanceResourcePage?.Reload();
             else
                 _instanceToolsPage?.Reload();
         };
@@ -939,6 +942,13 @@ public partial class MainWindow : Window, IDisposable
         {
             _instanceModDisabledPage ??= CreateInstanceModDisabledPage();
             return _instanceModDisabledPage;
+        }
+
+        if (subPage is InstancePageSubType.Mods or InstancePageSubType.ResourcePacks or InstancePageSubType.Shaders or InstancePageSubType.Schematics)
+        {
+            _instanceResourcePage ??= CreateInstanceResourcePage();
+            _instanceResourcePage.SetContext(instance, subPage);
+            return _instanceResourcePage;
         }
 
         _instanceToolsPage ??= CreateInstanceToolsPage();
@@ -1087,6 +1097,15 @@ public partial class MainWindow : Window, IDisposable
             SelectNavPage(0, animate: true);
             ApplyInstanceSelectPage();
         };
+        return page;
+    }
+
+    private PageInstanceResourceRight CreateInstanceResourcePage()
+    {
+        PageInstanceResourceRight page = new();
+        page.OpenFolderRequested += (_, path) => OpenFolder(path);
+        page.DownloadRequested += (_, _) => SelectNavPage(1, animate: true);
+        page.StatusMessage += (_, message) => _launchRight?.AppendLog(message);
         return page;
     }
 
