@@ -352,7 +352,7 @@ public static class ModLink
 
                 // 4. Update UI hint
             loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Link.Mod.Task.RefreshUi"), _ =>
-                HintWrapper.Show(Lang.Text("Link.Mod.DownloadComplete"), HintTheme.Error)
+                HintWrapper.Show(Lang.Text("Link.Mod.DownloadComplete"), HintTheme.Success)
                 ) { show = false });
 
                 // Start loader combo
