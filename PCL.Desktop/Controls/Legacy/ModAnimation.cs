@@ -139,6 +139,21 @@ public static partial class ModAnimation
     public static AniData AaOpacity(object obj, double value, int time = 400, int delay = 0, AniEase? ease = null, bool after = false) =>
         Number(AniTypeSub.Opacity, obj, value, time, delay, ease, after);
 
+    public static AniData AaValue(object obj, double value, int time = 400, int delay = 0, AniEase? ease = null, bool after = false) =>
+        Number(AniTypeSub.Value, obj, value, time, delay, ease, after);
+
+    public static AniData AaRadius(object obj, double value, int time = 400, int delay = 0, AniEase? ease = null, bool after = false) =>
+        Number(AniTypeSub.Radius, obj, value, time, delay, ease, after);
+
+    public static AniData AaBorderThickness(object obj, double value, int time = 400, int delay = 0, AniEase? ease = null, bool after = false) =>
+        Number(AniTypeSub.BorderThickness, obj, value, time, delay, ease, after);
+
+    public static AniData AaStrokeThickness(object obj, double value, int time = 400, int delay = 0, AniEase? ease = null, bool after = false) =>
+        Number(AniTypeSub.StrokeThickness, obj, value, time, delay, ease, after);
+
+    public static AniData AaGridLengthWidth(object obj, double value, int time = 400, int delay = 0, AniEase? ease = null, bool after = false) =>
+        Number(AniTypeSub.GridLengthWidth, obj, value, time, delay, ease, after);
+
     public static AniData AaScale(
         object obj,
         double value,
@@ -174,6 +189,9 @@ public static partial class ModAnimation
 
     public static AniData AaDouble(Action<double> lambda, double value, int time = 400, int delay = 0, AniEase? ease = null, bool after = false) =>
         Number(AniTypeSub.Double, lambda, value, time, delay, ease, after);
+
+    public static AniData AaDouble(AvaloniaObject obj, AvaloniaProperty prop, double value, int time = 400, int delay = 0, AniEase? ease = null, bool after = false) =>
+        Number(AniTypeSub.Double, new object[] { obj, prop }, value, time, delay, ease, after);
 
     public static AniData AaTranslateX(object obj, double value, int time = 400, int delay = 0, AniEase? ease = null, bool after = false) =>
         Number(AniTypeSub.TranslateX, obj, value, time, delay, ease, after);
@@ -239,6 +257,28 @@ public static partial class ModAnimation
         };
     }
 
+    public static AniData AaTextAppear(
+        object obj,
+        bool hide = false,
+        bool timePerText = true,
+        int time = 70,
+        int delay = 0,
+        AniEase? ease = null,
+        bool after = false)
+    {
+        string text = GetTextAppearTarget(obj);
+        return new AniData
+        {
+            typeMain = AniType.TextAppear,
+            timeTotal = Math.Max(1, timePerText ? time * text.Length : time),
+            ease = ease ?? new AniEaseLinear(),
+            obj = obj,
+            value = new object[] { text, hide },
+            isAfter = after,
+            timeFinished = -delay
+        };
+    }
+
     public static AniData AaCode(Action code, int delay = 0, bool after = false) =>
         new()
         {
@@ -273,6 +313,20 @@ public static partial class ModAnimation
                 }, after: true)
             },
             $"MyCard Dispose {control.GetHashCode()}");
+    }
+
+    public static List<AniData> AaStack(StackPanel stack, int time = 100, int delay = 25)
+    {
+        List<AniData> animations = [];
+        int aniDelay = 0;
+        foreach (Control child in stack.Children.OfType<Control>())
+        {
+            child.Opacity = 0d;
+            animations.Add(AaOpacity(child, 1d, time, aniDelay));
+            aniDelay += delay;
+        }
+
+        return animations;
     }
 
     public enum AniEasePower
@@ -432,7 +486,8 @@ public static partial class ModAnimation
         Color,
         Code,
         ScaleTransform,
-        RotateTransform
+        RotateTransform,
+        TextAppear
     }
 
     public enum AniTypeSub
@@ -442,9 +497,14 @@ public static partial class ModAnimation
         Width,
         Height,
         Opacity,
+        Value,
+        Radius,
+        BorderThickness,
+        StrokeThickness,
         TranslateX,
         TranslateY,
-        Double
+        Double,
+        GridLengthWidth
     }
 
     private static AniData Number(AniTypeSub subType, object obj, double value, int time, int delay, AniEase? ease, bool after) =>
@@ -475,6 +535,9 @@ public static partial class ModAnimation
                 break;
             case AniType.Color:
                 ApplyColor(ani, progress);
+                break;
+            case AniType.TextAppear:
+                ApplyTextAppear(ani, progress);
                 break;
             case AniType.ScaleTransform:
                 ApplyScaleTransform(ani, delta);
@@ -541,6 +604,18 @@ public static partial class ModAnimation
                 if (ani.obj is Control opacityControl)
                     opacityControl.Opacity = Math.Clamp(opacityControl.Opacity + delta, 0d, 1d);
                 break;
+            case AniTypeSub.Value:
+                AddValue(ani.obj, delta);
+                break;
+            case AniTypeSub.Radius:
+                AddRadius(ani.obj, delta);
+                break;
+            case AniTypeSub.BorderThickness:
+                AddBorderThickness(ani.obj, delta);
+                break;
+            case AniTypeSub.StrokeThickness:
+                AddStrokeThickness(ani.obj, delta);
+                break;
             case AniTypeSub.TranslateX:
                 EnsureTranslate(ani.obj).X += delta;
                 break;
@@ -550,6 +625,13 @@ public static partial class ModAnimation
             case AniTypeSub.Double:
                 if (ani.obj is Action<double> action)
                     action(delta);
+                else if (ani.obj is object[] { Length: >= 2 } args &&
+                         args[0] is AvaloniaObject avaloniaObject &&
+                         args[1] is AvaloniaProperty property)
+                    TryAddAvaloniaNumericProperty(avaloniaObject, property, delta, clampToZero: false);
+                break;
+            case AniTypeSub.GridLengthWidth:
+                AddGridLengthWidth(ani.obj, delta);
                 break;
         }
     }
@@ -568,6 +650,33 @@ public static partial class ModAnimation
         AniColor start = ani.valueLast is AniColor valueLast ? valueLast : GetColor(control, property);
         AniColor newColor = AniColor.Percent(start, total, ani.ease.GetValue(progress));
         SetBrush(control, property, newColor.ToBrush());
+    }
+
+    private static void ApplyTextAppear(AniData ani, double progress)
+    {
+        if (ani.value is not object[] { Length: >= 2 } args ||
+            args[0] is not string originalText ||
+            args[1] is not bool hide)
+        {
+            return;
+        }
+
+        int textLength = originalText.Length;
+        if (textLength == 0)
+        {
+            SetTextAppearTarget(ani.obj, string.Empty);
+            return;
+        }
+
+        int textCount = (int)Math.Round(
+            (hide ? textLength : 0) +
+            Math.Round(textLength * (hide ? -1 : 1) * ani.ease.GetDelta(progress, 0d)));
+        textCount = Math.Clamp(textCount, 0, textLength);
+        string newText = originalText[..Math.Min(textCount, originalText.Length)];
+        if (textCount < originalText.Length)
+            newText += CreateScrambleCharacter(originalText[textCount]);
+
+        SetTextAppearTarget(ani.obj, newText);
     }
 
     private static void ApplyScale(AniData ani, double progressDelta)
@@ -638,6 +747,129 @@ public static partial class ModAnimation
 
     private static double Percent(double value, double percent) =>
         Math.Round(value * percent, 6);
+
+    private static void AddValue(object obj, double delta)
+    {
+        if (obj is RangeBase range)
+        {
+            range.Value += delta;
+            return;
+        }
+
+        if (obj is MySlider slider)
+        {
+            slider.Value = (int)Math.Round(slider.Value + delta);
+        }
+    }
+
+    private static void AddRadius(object obj, double delta)
+    {
+        if (obj is MyDropShadow shadow)
+            shadow.ShadowRadius = Math.Max(0d, shadow.ShadowRadius + delta);
+    }
+
+    private static void AddBorderThickness(object obj, double delta)
+    {
+        if (obj is Border border)
+        {
+            border.BorderThickness = new Thickness(Math.Max(border.BorderThickness.Bottom + delta, 0d));
+            return;
+        }
+
+        if (obj is TemplatedControl templated)
+            templated.BorderThickness = new Thickness(Math.Max(templated.BorderThickness.Bottom + delta, 0d));
+    }
+
+    private static void AddStrokeThickness(object obj, double delta)
+    {
+        if (obj is Shape shape)
+        {
+            shape.StrokeThickness = Math.Max(shape.StrokeThickness + delta, 0d);
+            return;
+        }
+
+        if (obj is SvgIcon svgIcon)
+            svgIcon.StrokeThickness = Math.Max(svgIcon.StrokeThickness + delta, 0d);
+    }
+
+    private static void AddGridLengthWidth(object obj, double delta)
+    {
+        if (obj is ColumnDefinition column)
+        {
+            column.Width = new GridLength(Math.Max(column.Width.Value + delta, 0d), GridUnitType.Star);
+            return;
+        }
+    }
+
+    private static bool TryAddAvaloniaNumericProperty(AvaloniaObject obj, AvaloniaProperty property, double delta, bool clampToZero)
+    {
+        switch (property)
+        {
+            case StyledProperty<double> doubleProperty:
+            {
+                double value = obj.GetValue(doubleProperty) + delta;
+                obj.SetValue(doubleProperty, clampToZero ? Math.Max(value, 0d) : value);
+                return true;
+            }
+            case StyledProperty<int> intProperty:
+            {
+                double value = obj.GetValue(intProperty) + delta;
+                obj.SetValue(intProperty, (int)Math.Round(clampToZero ? Math.Max(value, 0d) : value));
+                return true;
+            }
+            case StyledProperty<uint> uintProperty:
+            {
+                double value = obj.GetValue(uintProperty) + delta;
+                obj.SetValue(uintProperty, (uint)Math.Round(Math.Max(value, 0d)));
+                return true;
+            }
+            case StyledProperty<float> floatProperty:
+            {
+                double value = obj.GetValue(floatProperty) + delta;
+                obj.SetValue(floatProperty, (float)(clampToZero ? Math.Max(value, 0d) : value));
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string GetTextAppearTarget(object obj)
+    {
+        if (obj is TextBlock textBlock)
+            return textBlock.Text ?? string.Empty;
+        if (obj is ContentControl contentControl)
+            return contentControl.Content?.ToString() ?? string.Empty;
+
+        return string.Empty;
+    }
+
+    private static void SetTextAppearTarget(object? obj, string text)
+    {
+        if (obj is TextBlock textBlock)
+        {
+            textBlock.Text = text;
+            return;
+        }
+
+        if (obj is ContentControl contentControl)
+        {
+            contentControl.Content = text;
+            return;
+        }
+
+        if (obj is null)
+            return;
+    }
+
+    private static char CreateScrambleCharacter(char nextText)
+    {
+        if (nextText >= 128)
+            return (char)Random.Shared.Next(0x4E00, 0x9FA6);
+
+        const string source = @"0123456789./*-+\[]{};':/?,!@#$%^&*()_+-=qwwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM";
+        return source[Random.Shared.Next(source.Length)];
+    }
 
     private static double GetControlWidth(Control control) =>
         !double.IsNaN(control.Width) && control.Width > 0d ? control.Width : Math.Max(0d, control.Bounds.Width);

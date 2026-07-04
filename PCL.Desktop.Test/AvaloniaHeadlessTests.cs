@@ -616,6 +616,72 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void ModAnimation_ExtendedWpfApisApplyExpectedDeltas()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            Border border = new()
+            {
+                BorderThickness = new Thickness(1d, 2d, 3d, 4d),
+                Width = 10d
+            };
+            Rectangle rectangle = new()
+            {
+                StrokeThickness = 1d
+            };
+            ColumnDefinition column = new(new GridLength(2d, GridUnitType.Star));
+            TextBlock textBlock = new()
+            {
+                Text = "PCL"
+            };
+            MySlider slider = new()
+            {
+                Value = 2
+            };
+            MyDropShadow shadow = new()
+            {
+                ShadowRadius = 4d
+            };
+            StackPanel stack = new()
+            {
+                Children =
+                {
+                    new Border(),
+                    new Border()
+                }
+            };
+
+            List<ModAnimation.AniData> animations =
+            [
+                ModAnimation.AaBorderThickness(border, 2d, 100, ease: new ModAnimation.AniEaseLinear()),
+                ModAnimation.AaStrokeThickness(rectangle, 3d, 100, ease: new ModAnimation.AniEaseLinear()),
+                ModAnimation.AaGridLengthWidth(column, 1d, 100, ease: new ModAnimation.AniEaseLinear()),
+                ModAnimation.AaDouble(border, Border.WidthProperty, 5d, 100, ease: new ModAnimation.AniEaseLinear()),
+                ModAnimation.AaValue(slider, 4d, 100, ease: new ModAnimation.AniEaseLinear()),
+                ModAnimation.AaRadius(shadow, -2d, 100, ease: new ModAnimation.AniEaseLinear()),
+                ModAnimation.AaTextAppear(textBlock, timePerText: false, time: 100, ease: new ModAnimation.AniEaseLinear())
+            ];
+            animations.AddRange(ModAnimation.AaStack(stack, time: 100, delay: 0));
+
+            Assert.IsTrue(stack.Children.OfType<Control>().All(child => child.Opacity == 0d));
+
+            ModAnimation.AniStart(animations, "ModAnimation Extended WPF APIs");
+            ModAnimation.AdvanceUntilIdleForTesting();
+
+            Assert.AreEqual(new Thickness(6d), border.BorderThickness);
+            Assert.AreEqual(4d, rectangle.StrokeThickness);
+            Assert.AreEqual(new GridLength(3d, GridUnitType.Star), column.Width);
+            Assert.AreEqual(15d, border.Width);
+            Assert.AreEqual(6, slider.Value);
+            Assert.AreEqual(2d, shadow.ShadowRadius);
+            Assert.AreEqual("PCL", textBlock.Text);
+            Assert.IsTrue(stack.Children.OfType<Control>().All(child => Math.Abs(child.Opacity - 1d) < 0.001d));
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void ModAnimation_CarAndInitialFluentEasesMatchWpfContracts()
     {
         ModAnimation.AniEase initial = new ModAnimation.AniEaseOutFluentWithInitial(
