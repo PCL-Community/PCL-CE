@@ -18,6 +18,22 @@ namespace PCL.Desktop.Features.Downloads.Views;
 public partial class PageDownloadInstall : MyPageRight
 {
     private const int MaxVisibleVersions = 120;
+    private static readonly string[] LoaderCardNames =
+    [
+        "Forge",
+        "Cleanroom",
+        "NeoForge",
+        "Fabric",
+        "LegacyFabric",
+        "FabricApi",
+        "LegacyFabricApi",
+        "Quilt",
+        "QSL",
+        "LabyMod",
+        "OptiFine",
+        "OptiFabric",
+        "LiteLoader"
+    ];
 
     private static readonly string[] AprilFoolsVersionIds =
     [
@@ -138,7 +154,7 @@ public partial class PageDownloadInstall : MyPageRight
 
         _isInSelectPage = false;
         _selectedVersion = null;
-        ApplySelectPageState(isSelectPage: false);
+        PrepareExitSelectPageAnimationState();
 
         if (TryGetTranslateX("PanSelect", out double selectX) &&
             TryGetTranslateX("PanMinecraft", out double minecraftX))
@@ -152,6 +168,7 @@ public partial class PageDownloadInstall : MyPageRight
                     {
                         ModAnimation.AaOpacity(panSelect, -panSelect.Opacity, 70, 10),
                         ModAnimation.AaTranslateX(panSelect, 50d - selectX, 90, 10),
+                        ModAnimation.AaCode(() => this.FindControl<MyScrollViewer>("PanBack")?.ScrollToHome(), after: true),
                         ModAnimation.AaOpacity(panMinecraft, 1d - panMinecraft.Opacity, 70, 100),
                         ModAnimation.AaTranslateX(
                             panMinecraft,
@@ -378,7 +395,8 @@ public partial class PageDownloadInstall : MyPageRight
                         -selectX,
                         160,
                         100,
-                        new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong))
+                        new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
+                    ModAnimation.AaCode(() => SetScrollHitTestVisible(true), after: true)
                 },
                 "FrmDownloadInstall SelectPageSwitch",
                 refreshTime: true);
@@ -391,6 +409,7 @@ public partial class PageDownloadInstall : MyPageRight
     private void InitializeLoaderCards()
     {
         const string canAdd = "可添加";
+        CollapseLoaderCards();
         SetLoaderInfo("Forge", canAdd, iconVisible: false);
         SetLoaderInfo("Cleanroom", canAdd, iconVisible: false);
         SetLoaderInfo("NeoForge", canAdd, iconVisible: false);
@@ -404,6 +423,15 @@ public partial class PageDownloadInstall : MyPageRight
         SetLoaderInfo("OptiFine", canAdd, iconVisible: false);
         SetLoaderInfo("OptiFabric", canAdd, iconVisible: false);
         SetLoaderInfo("LiteLoader", canAdd, iconVisible: false);
+    }
+
+    private void CollapseLoaderCards()
+    {
+        foreach (string name in LoaderCardNames)
+        {
+            if (this.FindControl<MyCard>("Card" + name) is { } card)
+                card.IsSwapped = true;
+        }
     }
 
     private void SetLoaderInfo(string name, string text, bool iconVisible)
@@ -453,15 +481,16 @@ public partial class PageDownloadInstall : MyPageRight
         if (this.FindControl<Grid>("PanInner") is { } inner)
             inner.Margin = isSelectPage
                 ? new Thickness(25d, 10d, 25d, 40d)
-                : new Thickness(25d, 6d, 25d, 25d);
+                : new Thickness(25d, 10d, 25d, 25d);
 
         if (isSelectPage && this.FindControl<MyScrollViewer>("PanBack") is { } scroll)
             scroll.ScrollToHome();
+        SetScrollHitTestVisible(!isSelectPage || !beforeEnterAnimation);
 
         if (this.FindControl<Control>("PanMinecraft") is { } minecraft)
         {
             minecraft.IsVisible = !isSelectPage || beforeEnterAnimation;
-            minecraft.Opacity = isSelectPage ? 0d : 1d;
+            minecraft.Opacity = isSelectPage && !beforeEnterAnimation ? 0d : 1d;
             minecraft.IsHitTestVisible = !isSelectPage;
         }
 
@@ -476,6 +505,40 @@ public partial class PageDownloadInstall : MyPageRight
 
         if (this.FindControl<MyExtraTextButton>("BtnStart") is { } button)
             button.Show = isSelectPage;
+    }
+
+    private void PrepareExitSelectPageAnimationState()
+    {
+        if (this.FindControl<Control>("TextSearchVersion") is { } search)
+            search.IsVisible = true;
+
+        if (this.FindControl<Grid>("PanAllBack") is { RowDefinitions.Count: > 0 } allBack)
+            allBack.RowDefinitions[0].Height = new GridLength(54d, GridUnitType.Pixel);
+
+        if (this.FindControl<Grid>("PanInner") is { } inner)
+            inner.Margin = new Thickness(25d, 10d, 25d, 25d);
+
+        if (this.FindControl<Control>("PanSelect") is { } select)
+            select.IsHitTestVisible = false;
+
+        if (this.FindControl<Control>("PanMinecraft") is { } minecraft)
+        {
+            minecraft.IsVisible = true;
+            minecraft.IsHitTestVisible = true;
+        }
+
+        if (this.FindControl<MyExtraTextButton>("BtnStart") is { } button)
+            button.Show = false;
+
+        SetScrollHitTestVisible(false);
+        if (this.FindControl<MyScrollViewer>("PanBack") is { } scroll)
+            scroll.ScrollToHome();
+    }
+
+    private void SetScrollHitTestVisible(bool isVisible)
+    {
+        if (this.FindControl<MyScrollViewer>("PanBack") is { } scroll)
+            scroll.IsHitTestVisible = isVisible;
     }
 
     private void SetLoadingVisible(bool visible)

@@ -2111,6 +2111,134 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void PageDownloadInstall_SelectingVersionResetsLoaderCardsLikeWpf()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageDownloadInstall page = new();
+            SetPrivateField(
+                page,
+                "_versions",
+                new[]
+                {
+                    new MinecraftVersionManifestEntry("1.20.1", "release", "https://example.invalid/1.20.1.json", DateTimeOffset.Parse("2023-06-12T00:00:00Z")),
+                    new MinecraftVersionManifestEntry("24w14a", "snapshot", "https://example.invalid/24w14a.json", DateTimeOffset.Parse("2024-04-03T00:00:00Z"))
+                });
+            Window window = new()
+            {
+                Width = 560,
+                Height = 440,
+                Content = page
+            };
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                page.ApplyVersionFilter(DownloadVersionFilter.All);
+                MyListItem first = page.GetVisualDescendants().OfType<MyListItem>().Single(listItem => listItem.Title == "1.20.1");
+                Click(window, first);
+                ModAnimation.AdvanceUntilIdleForTesting();
+
+                MyCard forge = page.FindControl<MyCard>("CardForge")!;
+                MyCard optiFine = page.FindControl<MyCard>("CardOptiFine")!;
+                forge.IsSwapped = false;
+                optiFine.IsSwapped = false;
+                Assert.IsFalse(forge.IsSwapped);
+                Assert.IsFalse(optiFine.IsSwapped);
+
+                page.FocusVersionAsync("24w14a").GetAwaiter().GetResult();
+                ModAnimation.AdvanceUntilIdleForTesting();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.AreEqual("24w14a", page.FindControl<MyTextBox>("TextSelectName")!.Text);
+                Assert.IsTrue(forge.IsSwapped);
+                Assert.IsTrue(optiFine.IsSwapped);
+                Assert.IsTrue(page.FindControl<MyScrollViewer>("PanBack")!.IsHitTestVisible);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void PageDownloadInstall_SelectPageSwitchUsesWpfAnimationStates()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageDownloadInstall page = new();
+            SetPrivateField(
+                page,
+                "_versions",
+                new[]
+                {
+                    new MinecraftVersionManifestEntry("1.20.1", "release", "https://example.invalid/1.20.1.json", DateTimeOffset.Parse("2023-06-12T00:00:00Z"))
+                });
+            Window window = new()
+            {
+                Width = 560,
+                Height = 440,
+                Content = page
+            };
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                page.ApplyVersionFilter(DownloadVersionFilter.All);
+                MyListItem item = page.GetVisualDescendants().OfType<MyListItem>().Single(listItem => listItem.Title == "1.20.1");
+                StackPanel minecraft = page.FindControl<StackPanel>("PanMinecraft")!;
+                StackPanel select = page.FindControl<StackPanel>("PanSelect")!;
+                MyScrollViewer scroll = page.FindControl<MyScrollViewer>("PanBack")!;
+
+                Click(window, item);
+
+                Assert.IsTrue(minecraft.IsVisible);
+                Assert.AreEqual(1d, minecraft.Opacity, 0.01d);
+                Assert.IsTrue(select.IsVisible);
+                Assert.AreEqual(0d, select.Opacity, 0.01d);
+                Assert.IsFalse(scroll.IsHitTestVisible);
+
+                ModAnimation.AdvanceUntilIdleForTesting();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.IsFalse(minecraft.IsVisible);
+                Assert.IsTrue(select.IsVisible);
+                Assert.AreEqual(1d, select.Opacity, 0.01d);
+                Assert.IsTrue(scroll.IsHitTestVisible);
+
+                Click(window, page.FindControl<MyIconButton>("BtnBack")!);
+
+                Assert.IsTrue(select.IsVisible);
+                Assert.IsTrue(minecraft.IsVisible);
+                Assert.IsFalse(scroll.IsHitTestVisible);
+                Assert.IsTrue(page.FindControl<Control>("TextSearchVersion")!.IsVisible);
+
+                ModAnimation.AdvanceUntilIdleForTesting();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.IsFalse(select.IsVisible);
+                Assert.IsTrue(minecraft.IsVisible);
+                Assert.AreEqual(1d, minecraft.Opacity, 0.01d);
+                Assert.IsTrue(scroll.IsHitTestVisible);
+                Assert.AreEqual(new Thickness(25d, 10d, 25d, 25d), page.FindControl<Grid>("PanInner")!.Margin);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void PageDownloadInstall_RefreshVersionsAsyncRendersManifestWithoutBlockingUi()
     {
         using HeadlessUnitTestSession session = CreateSession();
