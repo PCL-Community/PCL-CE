@@ -16,7 +16,6 @@ public partial class PageLaunchLeft
     private double actualUsedHeight;
     private double actualUsedWidth;
     private int btnLaunchState;
-    // 上次渲染启动按钮/版本文本时的界面语言，用于在语言切换后（切回本页时）强制重刷，避免中英混排（#3246）
     private string _btnLaunchLanguage;
     private McInstance btnLaunchVersion;
     private bool isHeightAnimating;
@@ -49,7 +48,6 @@ public partial class PageLaunchLeft
     {
         InitializeComponent();
         Loaded += PageLaunchLeft_Loaded;
-        // 语言切换后立即以新语言重刷启动按钮/版本文本（弱订阅：本页被回收后自动移除，不会内存泄漏）。修复 #3246。
         WeakLanguageChanged.Add(this, static page => ModBase.RunInUi(page.RefreshButtonsUI));
         // Handles
         BtnInstance.Click += BtnInstance_Click;
@@ -270,8 +268,7 @@ public partial class PageLaunchLeft
             currentState = 3;
         }
 
-        // 更新状态。除启动状态/实例外，也比较当前界面语言：切回本页时（BtnLaunch.Loaded 触发本方法）
-        // 若语言已变化，则不走下面的提前返回，以新语言重设按钮/版本文本，避免中英混排（#3246）。
+        // 更新状态。
         var currentLanguage = LocalizationService.CurrentLanguage.Code;
         if (currentState == btnLaunchState &&
             currentLanguage == _btnLaunchLanguage &&

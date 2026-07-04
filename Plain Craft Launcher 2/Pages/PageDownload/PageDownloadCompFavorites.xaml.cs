@@ -42,7 +42,6 @@ public partial class PageDownloadCompFavorites
         ComboTargetFav.SelectionChanged += ComboTargetFav_Selected;
         HintGetFail.MouseLeftButtonDown += HintGetFail_MouseLeftButtonDown;
         PanSearchBox.TextChanged += SearchRun;
-        // 语言切换后以新语言重刷收藏分类标题（弱订阅：本页被回收后自动移除）。修复 #3246。
         WeakLanguageChanged.Add(this, static page => ModBase.RunInUi(page._RefreshCategoryTitles));
     }
 
@@ -181,7 +180,6 @@ public partial class PageDownloadCompFavorites
         }
     }
 
-    // 分类标题的格式串（含 {0} 计数占位）。抽出以便语言切换后按 CompType 重新取当前语言文本。
     private static string _GetCategoryTitleFormat(int type) => type switch
     {
         -1 => Lang.Text("Download.Comp.Favorites.SearchResults.Title"),
@@ -195,7 +193,6 @@ public partial class PageDownloadCompFavorites
         _ => $"{Lang.Text("Download.Comp.Favorites.UnknownType")} ({{0}})"
     };
 
-    // 语言切换后（切回本页时）用当前语言重设各分类标题格式串并重排，避免中英混排（#3246）。
     private void _RefreshCategoryTitles()
     {
         foreach (var item in itemList)
