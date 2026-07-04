@@ -114,7 +114,7 @@ public sealed class MinecraftVanillaInstallServiceTests
                     VersionJsonUrl = "https://example.invalid/versions/1.20.1.json",
                     MinecraftRootDirectory = root
                 },
-                new Progress<MinecraftInstallProgress>(progress.Add));
+                new CaptureProgress<MinecraftInstallProgress>(progress));
 
             string jarPath = Path.Combine(result.InstanceDirectory, "1.20.1.jar");
             Assert.IsTrue(File.Exists(jarPath));
@@ -126,6 +126,11 @@ public sealed class MinecraftVanillaInstallServiceTests
             if (Directory.Exists(root))
                 Directory.Delete(root, recursive: true);
         }
+    }
+
+    private sealed class CaptureProgress<T>(List<T> items) : IProgress<T>
+    {
+        public void Report(T value) => items.Add(value);
     }
 
     private sealed class DelegateHandler(Func<HttpRequestMessage, HttpResponseMessage> handle) : HttpMessageHandler
