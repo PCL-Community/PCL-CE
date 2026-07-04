@@ -72,6 +72,7 @@ public partial class MainWindow : Window, IDisposable
     private PageInstanceToolsRight? _instanceToolsPage;
     private PageInstanceModDisabledRight? _instanceModDisabledPage;
     private PageInstanceResourceRight? _instanceResourcePage;
+    private PageInstanceResourceRight? _instanceDatapackPage;
     private PageInstanceServerRight? _instanceServerPage;
     private LaunchInstanceInfo? _managedInstance;
     private bool _isTitleSubPageVisible;
@@ -1049,6 +1050,7 @@ public partial class MainWindow : Window, IDisposable
     {
         PageInstanceSavesInfoRight page = new();
         page.StatusMessage += (_, message) => _launchRight?.AppendLog(message);
+        page.DatapackManageRequested += (_, saveFolder) => ShowInstanceDatapacks(saveFolder);
         return page;
     }
 
@@ -1081,6 +1083,28 @@ public partial class MainWindow : Window, IDisposable
         await page.SetSaveFolderAsync(saveFolder).ConfigureAwait(true);
     }
 
+    private void ShowInstanceDatapacks(string saveFolder)
+    {
+        if (this.FindControl<Border>("PanMainRight") is not { } rightHost)
+            return;
+
+        _instanceDatapackPage ??= CreateInstanceDatapackPage();
+        PageInstanceResourceRight page = _instanceDatapackPage;
+        _titleInnerBackAction = () => _ = ShowInstanceSaveDetailsAsync(saveFolder);
+        EnterTitleSubPage("数据包 - " + Path.GetFileName(saveFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)));
+
+        MyPageRight? oldRight = rightHost.Child as MyPageRight;
+        if (!ReferenceEquals(oldRight, page))
+        {
+            oldRight?.PageOnExit();
+            rightHost.Child = page;
+        }
+
+        page.SetDataPackFolder(saveFolder);
+        RefreshBackToTopBinding();
+        page.PageOnEnter();
+    }
+
     private PageInstanceToolsRight CreateInstanceToolsPage()
     {
         PageInstanceToolsRight page = new();
@@ -1101,6 +1125,15 @@ public partial class MainWindow : Window, IDisposable
     }
 
     private PageInstanceResourceRight CreateInstanceResourcePage()
+    {
+        PageInstanceResourceRight page = new();
+        page.OpenFolderRequested += (_, path) => OpenFolder(path);
+        page.DownloadRequested += (_, _) => SelectNavPage(1, animate: true);
+        page.StatusMessage += (_, message) => _launchRight?.AppendLog(message);
+        return page;
+    }
+
+    private PageInstanceResourceRight CreateInstanceDatapackPage()
     {
         PageInstanceResourceRight page = new();
         page.OpenFolderRequested += (_, path) => OpenFolder(path);

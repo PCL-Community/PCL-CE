@@ -32,6 +32,8 @@ public partial class PageInstanceSavesInfoRight : MyPageRight, IRefreshable
 
     public event EventHandler<string>? StatusMessage;
 
+    public event EventHandler<string>? DatapackManageRequested;
+
     public void Refresh() => _ = RefreshInfoAsync();
 
     public override void Dispose()
@@ -108,6 +110,9 @@ public partial class PageInstanceSavesInfoRight : MyPageRight, IRefreshable
 
             if (save.Difficulty.HasValue)
                 BuildDifficultySetting(save.IsHardcore, save.IsDifficultyLocked, (int)save.Difficulty.Value);
+
+            if (save.VersionId is >= DataVersionBoundaries._17w47a)
+                BuildDatapackSetting(save.FolderPath);
         }
         catch (OperationCanceledException)
         {
@@ -213,6 +218,21 @@ public partial class PageInstanceSavesInfoRight : MyPageRight, IRefreshable
         lockCheckBox.Change += async (_, _) => await ApplyAsync().ConfigureAwait(true);
 
         AddSettingRow(Text("Instance.Saves.Info.GameDifficultyLabel"), panel);
+    }
+
+    private void BuildDatapackSetting(string folder)
+    {
+        FindPanSettings().IsVisible = true;
+        MyButton button = new()
+        {
+            Text = Text("Instance.Saves.Info.Datapacks.Manage"),
+            MinWidth = 110d,
+            Height = 35d,
+            Padding = new Thickness(13d, 0d),
+            HorizontalAlignment = HorizontalAlignment.Left
+        };
+        button.Click += (_, _) => DatapackManageRequested?.Invoke(this, folder);
+        AddSettingRow(Text("Instance.Saves.Info.Datapacks"), button);
     }
 
     private async Task ApplyChangesAsync(SaveChanges changes, string successMessage, string failureMessage)

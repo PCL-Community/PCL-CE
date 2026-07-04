@@ -3751,6 +3751,54 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void PageInstanceResourceRight_ListsDatapacksFromSaveFolder()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+        string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-datapack-resource-ui-" + Guid.NewGuid().ToString("N"));
+
+        try
+        {
+            string worldDirectory = System.IO.Path.Combine(root, "saves", "Modern World");
+            string datapacksDirectory = System.IO.Path.Combine(worldDirectory, "datapacks");
+            Directory.CreateDirectory(datapacksDirectory);
+            File.WriteAllText(System.IO.Path.Combine(datapacksDirectory, "zip-pack.zip"), "zip");
+            Directory.CreateDirectory(System.IO.Path.Combine(datapacksDirectory, "folder-pack"));
+
+            session.Dispatch(() =>
+            {
+                PageInstanceResourceRight page = new();
+                Window window = new()
+                {
+                    Width = 760,
+                    Height = 520,
+                    Content = page
+                };
+
+                try
+                {
+                    window.Show();
+                    page.SetDataPackFolder(worldDirectory);
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                    StackPanel list = page.FindControl<StackPanel>("PanList")!;
+                    Assert.AreEqual("数据包 列表 (2)", page.FindControl<MyCard>("PanListBack")!.Title);
+                    Assert.IsTrue(list.Children.OfType<MyListItem>().Any(item => item.Title == "zip-pack.zip"));
+                    Assert.IsTrue(list.Children.OfType<MyListItem>().Any(item => item.Title == "folder-pack"));
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }, CancellationToken.None);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public void PageInstanceScreenshotRight_UsesCopiedWpfGalleryAndActions()
     {
         using HeadlessUnitTestSession session = CreateSession();
@@ -3973,6 +4021,67 @@ public sealed class AvaloniaHeadlessTests
                     Assert.AreEqual("存档设置", page.FindControl<MyCard>("PanSettings")!.Title);
                     Assert.AreEqual(2, page.GetVisualDescendants().OfType<MyComboBox>().Count());
                     Assert.IsTrue(page.GetVisualDescendants().OfType<MyCheckBox>().Any(checkBox => checkBox.Text == "锁定难度"));
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }, CancellationToken.None);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void PageInstanceSavesInfoRight_ShowsDatapackEntryForModernSave()
+    {
+        using HeadlessUnitTestSession session = CreateSession();
+        string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-save-datapack-ui-" + Guid.NewGuid().ToString("N"));
+
+        try
+        {
+            string worldDirectory = System.IO.Path.Combine(root, "saves", "Modern World");
+            Directory.CreateDirectory(worldDirectory);
+            WriteLevelDat(worldDirectory, data =>
+            {
+                data.Add(new fNbt.NbtString("LevelName", "Modern World"));
+                data.Add(new fNbt.NbtLong("LastPlayed", 0));
+                data.Add(new fNbt.NbtLong("Time", 0));
+                data.Add(new fNbt.NbtInt("DataVersion", 1443));
+                data.Add(new fNbt.NbtInt("GameType", 0));
+                data.Add(new fNbt.NbtByte("allowCommands", 0));
+                data.Add(new fNbt.NbtByte("Difficulty", 1));
+                fNbt.NbtCompound version = new("Version");
+                version.Add(new fNbt.NbtString("Name", "1.13"));
+                version.Add(new fNbt.NbtInt("Id", 1443));
+                data.Add(version);
+            });
+
+            session.Dispatch(async () =>
+            {
+                PageInstanceSavesInfoRight page = new();
+                Window window = new()
+                {
+                    Width = 720,
+                    Height = 480,
+                    Content = page
+                };
+                string? datapackFolder = null;
+                page.DatapackManageRequested += (_, folder) => datapackFolder = folder;
+
+                try
+                {
+                    window.Show();
+                    await page.SetSaveFolderAsync(worldDirectory).ConfigureAwait(true);
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                    MyButton button = page.GetVisualDescendants().OfType<MyButton>().Single(button => button.Text == "管理数据包");
+                    Click(window, button);
+
+                    Assert.AreEqual(worldDirectory, datapackFolder);
                 }
                 finally
                 {

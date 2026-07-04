@@ -250,6 +250,8 @@
     <x:String x:Key="Instance.Saves.Info.Chunkbase.ToolTip">在 Chunkbase 查看种子地图</x:String>
     <x:String x:Key="Instance.Saves.Info.Chunkbase.UnknownVersion">无法确认游戏版本，暂时不能打开 Chunkbase。</x:String>
     <x:String x:Key="Instance.Saves.Info.Details.Title">版本信息</x:String>
+    <x:String x:Key="Instance.Saves.Info.Datapacks">数据包</x:String>
+    <x:String x:Key="Instance.Saves.Info.Datapacks.Manage">管理数据包</x:String>
     <x:String x:Key="Instance.Saves.Info.Difficulty.Easy">简单</x:String>
     <x:String x:Key="Instance.Saves.Info.Difficulty.Hard">困难</x:String>
     <x:String x:Key="Instance.Saves.Info.Difficulty.Normal">普通</x:String>

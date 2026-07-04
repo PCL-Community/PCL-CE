@@ -46,6 +46,17 @@ public partial class PageInstanceResourceRight : MyPageRight
         Reload();
     }
 
+    public void SetDataPackFolder(string saveFolder)
+    {
+        _instance = null;
+        _page = InstancePageSubType.Saves;
+        _kind = ResourceKind.DataPack;
+        _folder = Path.Combine(saveFolder, "datapacks");
+        Directory.CreateDirectory(_folder);
+        ApplyKindChrome();
+        Reload();
+    }
+
     public void Reload()
     {
         if (string.IsNullOrWhiteSpace(_folder))
@@ -122,7 +133,7 @@ public partial class PageInstanceResourceRight : MyPageRight
             this.FindControl<MyRadioButton>("BtnFilterAll")?.SetChecked(true, false, false);
         }
 
-        bool canDownload = _kind != ResourceKind.Schematic;
+        bool canDownload = _kind is not ResourceKind.Schematic;
         if (this.FindControl<MyButton>("BtnManageDownload") is { } download)
             download.IsVisible = canDownload;
         if (this.FindControl<MyButton>("BtnHintDownload") is { } hintDownload)
@@ -359,7 +370,7 @@ public partial class PageInstanceResourceRight : MyPageRight
     private bool IsAcceptedPath(string path)
     {
         if (Directory.Exists(path))
-            return _kind is ResourceKind.ResourcePack or ResourceKind.ShaderPack;
+            return _kind is ResourceKind.ResourcePack or ResourceKind.ShaderPack or ResourceKind.DataPack;
 
         string fileName = Path.GetFileName(path);
         string extension = Path.GetExtension(path);
@@ -367,7 +378,7 @@ public partial class PageInstanceResourceRight : MyPageRight
         {
             ResourceKind.Mod => fileName.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) ||
                                 fileName.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase),
-            ResourceKind.ResourcePack or ResourceKind.ShaderPack => extension.Equals(".zip", StringComparison.OrdinalIgnoreCase),
+            ResourceKind.ResourcePack or ResourceKind.ShaderPack or ResourceKind.DataPack => extension.Equals(".zip", StringComparison.OrdinalIgnoreCase),
             ResourceKind.Schematic => extension.Equals(".schematic", StringComparison.OrdinalIgnoreCase) ||
                                       extension.Equals(".schem", StringComparison.OrdinalIgnoreCase) ||
                                       extension.Equals(".litematic", StringComparison.OrdinalIgnoreCase) ||
@@ -418,6 +429,7 @@ public partial class PageInstanceResourceRight : MyPageRight
             ResourceKind.ResourcePack => InstanceDisplayHelper.BlockAssetRoot + "Grass.png",
             ResourceKind.ShaderPack => InstanceDisplayHelper.BlockAssetRoot + "GoldBlock.png",
             ResourceKind.Schematic => InstanceDisplayHelper.BlockAssetRoot + "StructureBlock.png",
+            ResourceKind.DataPack => InstanceDisplayHelper.BlockAssetRoot + "CommandBlock.png",
             _ => InstanceDisplayHelper.DefaultLogo
         };
 
@@ -461,6 +473,7 @@ public partial class PageInstanceResourceRight : MyPageRight
             ResourceKind.ResourcePack => "资源包",
             ResourceKind.ShaderPack => "光影",
             ResourceKind.Schematic => "投影",
+            ResourceKind.DataPack => "数据包",
             _ => "Mod"
         };
 
@@ -499,7 +512,8 @@ public partial class PageInstanceResourceRight : MyPageRight
         Mod,
         ResourcePack,
         ShaderPack,
-        Schematic
+        Schematic,
+        DataPack
     }
 
     private enum ResourceFilter
