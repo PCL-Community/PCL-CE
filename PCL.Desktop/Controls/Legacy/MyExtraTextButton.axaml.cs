@@ -62,10 +62,12 @@ public sealed partial class MyExtraTextButton : Grid
             _clickLayer.PointerExited += OnPointerExited;
             _clickLayer.PointerEntered += (_, _) => RefreshColor();
         }
+        SizeChanged += (_, _) => RefreshCornerRadius();
         AttachedToVisualTree += (_, _) =>
         {
             _isLoaded = true;
             ApplyShowState(Show, animate: false);
+            RefreshCornerRadius();
             RefreshColor();
         };
 
@@ -83,6 +85,7 @@ public sealed partial class MyExtraTextButton : Grid
         RefreshIcon();
         ApplyLogoScale();
         ApplyShowState(Show, animate: false);
+        RefreshCornerRadius();
         RefreshColor();
     }
 
@@ -202,6 +205,19 @@ public sealed partial class MyExtraTextButton : Grid
         _iconHost.Width = hasIcon ? 16d : 0d;
         _iconHost.Margin = hasIcon ? new Thickness(2d, 12d, 0d, 12d) : new Thickness(0d, 12d, 0d, 12d);
         _label.Margin = hasIcon ? new Thickness(12d, 0d, 0d, 0.8d) : new Thickness(0d, 0d, 0d, 0.8d);
+    }
+
+    private void RefreshCornerRadius()
+    {
+        double height = Bounds.Height;
+        if (height <= 0d && !double.IsNaN(Height) && !double.IsInfinity(Height))
+            height = Height;
+
+        CornerRadius cornerRadius = new(Math.Max(0d, height * 0.4d));
+        if (_clickLayer is not null)
+            _clickLayer.CornerRadius = cornerRadius;
+        if (_colorLayer is not null)
+            _colorLayer.CornerRadius = cornerRadius;
     }
 
     private void ApplyLogoScale()

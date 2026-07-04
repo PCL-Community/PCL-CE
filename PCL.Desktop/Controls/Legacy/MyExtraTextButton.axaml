@@ -7,14 +7,12 @@
     <Grid.RenderTransform>
         <ScaleTransform ScaleX="0" ScaleY="0" />
     </Grid.RenderTransform>
-    <Border x:Name="PanClick" BorderThickness="0.001" Background="{StaticResource ColorBrushSemiTransparent}"
-            CornerRadius="21" />
+    <Border x:Name="PanClick" BorderThickness="0.001" Background="{StaticResource ColorBrushSemiTransparent}" />
     <Grid x:Name="PanScale" IsHitTestVisible="False" RenderTransformOrigin="50%,50%" Margin="0,10,0,0">
         <Grid.RenderTransform>
             <ScaleTransform />
         </Grid.RenderTransform>
         <Border x:Name="PanColor" BorderThickness="0.001" Background="{DynamicResource ColorBrush3}"
-                CornerRadius="21"
                 BoxShadow="0 0 10 0 #33000000" />
         <StackPanel Orientation="Horizontal" Margin="20,0">
             <Grid x:Name="IconHost" Width="16" Margin="2,12,0,12" RenderTransformOrigin="50%,50%">

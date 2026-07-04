@@ -312,7 +312,7 @@ public partial class MyIconButton : Border
         switch (Theme)
         {
             case Themes.Color:
-                AddIconColorAnimation(animations, "ColorBrush5", 150);
+                AddIconColorAnimation(animations, "ColorBrush4", 150);
                 ClearBackImmediately();
                 break;
             case Themes.White:

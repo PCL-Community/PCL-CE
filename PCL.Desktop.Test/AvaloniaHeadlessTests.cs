@@ -1234,6 +1234,9 @@ public sealed class AvaloniaHeadlessTests
                 MoveTo(window, svgButton);
                 ModAnimation.AdvanceForTesting(16, 16);
                 Assert.AreEqual(
+                    Color.Parse("#4890f5"),
+                    ((SolidColorBrush)path.Fill!).Color);
+                Assert.AreEqual(
                     Color.Parse("#0b5bcb"),
                     ((SolidColorBrush)svg.IconBrush!).Color);
 
@@ -5394,6 +5397,14 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsNotNull(button.Inlines);
                 Assert.IsFalse(button.FindControl<Grid>("IconHost")!.IsVisible);
                 Assert.AreEqual(1d, ((Avalonia.Media.ScaleTransform)button.RenderTransform!).ScaleX, 0.01d);
+                Assert.AreEqual(new CornerRadius(20.8d), button.FindControl<Border>("PanClick")!.CornerRadius);
+                Assert.AreEqual(new CornerRadius(20.8d), button.FindControl<Border>("PanColor")!.CornerRadius);
+
+                button.Height = 60d;
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.AreEqual(new CornerRadius(24d), button.FindControl<Border>("PanClick")!.CornerRadius);
+                Assert.AreEqual(new CornerRadius(24d), button.FindControl<Border>("PanColor")!.CornerRadius);
 
                 button.Logo = "M0,0 L10,5 L0,10 Z";
                 Assert.IsTrue(button.FindControl<Grid>("IconHost")!.IsVisible);
