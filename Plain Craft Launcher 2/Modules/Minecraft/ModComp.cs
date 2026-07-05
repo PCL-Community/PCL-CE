@@ -2431,7 +2431,7 @@ public static class ModComp
                     {
                         if (w.Length <= 1) return false;
                         if (!w.Any(char.IsLetterOrDigit)) return false;
-                        if (new[] { "the", "of", "mod", "and", "forge", "fabric", "quilt", "neoforge" }.Contains(w)) return false;
+                        if (new[] { "the", "of", "for", "mod", "and", "forge", "fabric", "quilt", "neoforge" }.Contains(w)) return false;
                         if (ModBase.Val(w) > 0) return false;
                         if (w.Split(' ').Length > 3 && w.Contains("ftb")) return false;
                         return true;
