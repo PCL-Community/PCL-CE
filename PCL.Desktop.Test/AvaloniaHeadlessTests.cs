@@ -107,6 +107,63 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void MyImage_LoadsWpfPackResourceAndAppliesCornerRadius()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MyImage image = new()
+            {
+                Width = 32d,
+                Height = 32d,
+                CornerRadius = new CornerRadius(6d),
+                Source = "pack://application:,,,/images/Blocks/Grass.png"
+            };
+            Window window = new()
+            {
+                Width = 80d,
+                Height = 80d,
+                Content = image
+            };
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                WaitForCondition(() => ((Image)image).Source is not null);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.AreEqual("pack://application:,,,/images/Blocks/Grass.png", image.Source);
+                Assert.AreEqual("pack://application:,,,/images/Blocks/Grass.png", image.ActualSource);
+                Assert.IsInstanceOfType<RectangleGeometry>(image.Clip);
+                RectangleGeometry clip = (RectangleGeometry)image.Clip!;
+                Assert.AreEqual(6d, clip.RadiusX);
+                Assert.AreEqual(6d, clip.RadiusY);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void MyImage_ReceivesStringSourceFromAxaml()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageSetupUpdate page = new();
+            MyImage image = page.FindControl<MyImage>("ImgUpdateIcon")!;
+
+            Assert.AreEqual("https://www.pclc.cc/img/pcl-ce/icon.webp", image.Source);
+            Assert.IsNull(((Image)image).Source);
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void MainWindow_InstanceSubPageUsesWpfTitleBackButton()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
