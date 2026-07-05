@@ -45,6 +45,7 @@ public partial class PageDownloadLeft : MyPageLeft
         _installFactory = installFactory;
         AvaloniaXamlLoader.Load(this);
         AnimatedControl = this.FindControl<Control>("PanItem");
+        InitializeFilterItems();
         AttachedToVisualTree += (_, _) =>
         {
             if (_isLoadedOnce)
@@ -86,16 +87,26 @@ public partial class PageDownloadLeft : MyPageLeft
         if (senderRaw is not MyListItem item)
             return;
 
-        VersionFilter = item.Tag switch
-        {
-            string text when int.TryParse(text, out int value) => ToVersionFilter(value),
-            int id => ToVersionFilter(id),
-            _ => DownloadVersionFilter.All
-        };
+        VersionFilter = ToVersionFilter(item.Tag);
         ApplyCurrentFilter();
         PageChange(DownloadPageSubType.Install);
     }
 
-    private static DownloadVersionFilter ToVersionFilter(int value) =>
-        DownloadVersionFilterRegistry.Normalize(value);
+    private void InitializeFilterItems()
+    {
+        foreach (DownloadVersionFilterDescriptor descriptor in DownloadVersionFilterRegistry.Items)
+        {
+            if (this.FindControl<MyListItem>(descriptor.ItemName) is { } item)
+                item.Tag = descriptor.Filter;
+        }
+    }
+
+    private static DownloadVersionFilter ToVersionFilter(object? tag) =>
+        tag switch
+        {
+            DownloadVersionFilter filter => DownloadVersionFilterRegistry.Normalize(filter),
+            string text when int.TryParse(text, out int value) => DownloadVersionFilterRegistry.Normalize(value),
+            int value => DownloadVersionFilterRegistry.Normalize(value),
+            _ => DownloadVersionFilter.All
+        };
 }

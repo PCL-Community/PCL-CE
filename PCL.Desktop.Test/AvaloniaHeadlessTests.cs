@@ -2320,6 +2320,8 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsNotNull(page.FindControl<MyListItem>("ItemBeforeRelease"));
                 Assert.IsNotNull(page.FindControl<MyListItem>("ItemAprilFools"));
                 Assert.AreSame(installPage, page.GetOrCreateCurrentPage());
+                Assert.AreEqual(DownloadVersionFilter.All, page.FindControl<MyListItem>("ItemAll")!.Tag);
+                Assert.AreEqual(DownloadVersionFilter.Release, page.FindControl<MyListItem>("ItemRelease")!.Tag);
 
                 Click(window, page.FindControl<MyListItem>("ItemRelease")!);
 
