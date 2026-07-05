@@ -10,7 +10,8 @@ internal sealed class InstancePageAttribute(
     string title,
     string description,
     string folderRelativePath,
-    bool usesGenericFolderPage) : Attribute
+    bool usesGenericFolderPage,
+    InstanceResourceKind resourceKind = InstanceResourceKind.None) : Attribute
 {
     public InstancePageSubType Page { get; } = page;
 
@@ -21,4 +22,6 @@ internal sealed class InstancePageAttribute(
     public string FolderRelativePath { get; } = folderRelativePath;
 
     public bool UsesGenericFolderPage { get; } = usesGenericFolderPage;
+
+    public InstanceResourceKind ResourceKind { get; } = resourceKind;
 }

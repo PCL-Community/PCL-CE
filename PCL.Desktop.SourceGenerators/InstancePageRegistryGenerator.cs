@@ -60,6 +60,9 @@ public sealed class InstancePageRegistryGenerator : IIncrementalGenerator
         string description = attribute.ConstructorArguments[2].Value as string ?? string.Empty;
         string folderRelativePath = attribute.ConstructorArguments[3].Value as string ?? string.Empty;
         bool usesGenericFolderPage = attribute.ConstructorArguments[4].Value is bool rawGeneric && rawGeneric;
+        string resourceKind = attribute.ConstructorArguments.Length >= 6
+            ? GetEnumExpression(attribute.ConstructorArguments[5])
+            : "PCL.Desktop.Features.Instances.Views.InstanceResourceKind.None";
 
         return new InstancePageModel(
             method,
@@ -68,7 +71,8 @@ public sealed class InstancePageRegistryGenerator : IIncrementalGenerator
             title,
             description,
             folderRelativePath,
-            usesGenericFolderPage);
+            usesGenericFolderPage,
+            resourceKind);
     }
 
     private static void GenerateRegistry(
@@ -113,11 +117,28 @@ public sealed class InstancePageRegistryGenerator : IIncrementalGenerator
         AppendStringSwitch(sb, "GetDescription", pages, static page => page.Description, "管理当前 Minecraft 根目录下的资源文件。");
         sb.AppendLine();
         AppendStringSwitch(sb, "GetFolderRelativePath", pages, static page => page.FolderRelativePath, string.Empty);
+        sb.AppendLine();
+        AppendResourceKindSwitch(sb, pages);
         sb.AppendLine("}");
 
         context.AddSource(
             "InstancePageRegistry.g.cs",
             SourceText.From(sb.ToString(), Encoding.UTF8));
+    }
+
+    private static void AppendResourceKindSwitch(
+        StringBuilder sb,
+        IReadOnlyList<InstancePageModel> pages)
+    {
+        sb.AppendLine("    [global::System.CodeDom.Compiler.GeneratedCode(\"PCL.Desktop.SourceGenerators.InstancePageRegistryGenerator\", \"1.0.0.0\")]");
+        sb.AppendLine("    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]");
+        sb.AppendLine("    public static partial global::PCL.Desktop.Features.Instances.Views.InstanceResourceKind GetResourceKind(global::PCL.Desktop.Features.Instances.Views.InstancePageSubType page) =>");
+        sb.AppendLine("        page switch");
+        sb.AppendLine("        {");
+        foreach (InstancePageModel page in pages)
+            sb.Append("            ").Append(page.PageExpression).Append(" => ").Append(page.ResourceKindExpression).AppendLine(",");
+        sb.AppendLine("            _ => global::PCL.Desktop.Features.Instances.Views.InstanceResourceKind.None");
+        sb.AppendLine("        };");
     }
 
     private static void AppendBooleanMatcher(
@@ -189,7 +210,8 @@ public sealed class InstancePageRegistryGenerator : IIncrementalGenerator
             string title,
             string description,
             string folderRelativePath,
-            bool usesGenericFolderPage)
+            bool usesGenericFolderPage,
+            string resourceKindExpression)
         {
             Method = method;
             PageExpression = pageExpression;
@@ -198,6 +220,7 @@ public sealed class InstancePageRegistryGenerator : IIncrementalGenerator
             Description = description;
             FolderRelativePath = folderRelativePath;
             UsesGenericFolderPage = usesGenericFolderPage;
+            ResourceKindExpression = resourceKindExpression;
         }
 
         public IMethodSymbol Method { get; }
@@ -213,5 +236,7 @@ public sealed class InstancePageRegistryGenerator : IIncrementalGenerator
         public string FolderRelativePath { get; }
 
         public bool UsesGenericFolderPage { get; }
+
+        public string ResourceKindExpression { get; }
     }
 }

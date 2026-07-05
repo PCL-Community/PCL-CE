@@ -16,6 +16,8 @@ internal static partial class InstancePageRegistry
 
     public static partial string GetFolderRelativePath(InstancePageSubType page);
 
+    public static partial InstanceResourceKind GetResourceKind(InstancePageSubType page);
+
     [InstancePage(InstancePageSubType.Overall, "概览", "", "", usesGenericFolderPage: false)]
     private static void Overall()
     {
@@ -41,27 +43,27 @@ internal static partial class InstancePageRegistry
     {
     }
 
-    [InstancePage(InstancePageSubType.Mods, "Mod", "管理当前 Minecraft 根目录下的 Mod 文件。", "mods", usesGenericFolderPage: true)]
+    [InstancePage(InstancePageSubType.Mods, "Mod", "管理当前 Minecraft 根目录下的 Mod 文件。", "mods", usesGenericFolderPage: true, resourceKind: InstanceResourceKind.Mod)]
     private static void Mods()
     {
     }
 
-    [InstancePage(InstancePageSubType.ModsDisabled, "Mod", "", "", usesGenericFolderPage: false)]
+    [InstancePage(InstancePageSubType.ModsDisabled, "Mod", "", "", usesGenericFolderPage: false, resourceKind: InstanceResourceKind.Mod)]
     private static void ModsDisabled()
     {
     }
 
-    [InstancePage(InstancePageSubType.ResourcePacks, "资源包", "管理当前 Minecraft 根目录下的资源包。", "resourcepacks", usesGenericFolderPage: true)]
+    [InstancePage(InstancePageSubType.ResourcePacks, "资源包", "管理当前 Minecraft 根目录下的资源包。", "resourcepacks", usesGenericFolderPage: true, resourceKind: InstanceResourceKind.ResourcePack)]
     private static void ResourcePacks()
     {
     }
 
-    [InstancePage(InstancePageSubType.Shaders, "光影", "管理当前 Minecraft 根目录下的光影包。", "shaderpacks", usesGenericFolderPage: true)]
+    [InstancePage(InstancePageSubType.Shaders, "光影", "管理当前 Minecraft 根目录下的光影包。", "shaderpacks", usesGenericFolderPage: true, resourceKind: InstanceResourceKind.ShaderPack)]
     private static void Shaders()
     {
     }
 
-    [InstancePage(InstancePageSubType.Schematics, "投影", "管理当前 Minecraft 根目录下的投影文件。", "schematics", usesGenericFolderPage: true)]
+    [InstancePage(InstancePageSubType.Schematics, "投影", "管理当前 Minecraft 根目录下的投影文件。", "schematics", usesGenericFolderPage: true, resourceKind: InstanceResourceKind.Schematic)]
     private static void Schematics()
     {
     }

@@ -153,6 +153,12 @@ public sealed class DesktopArchitectureTests
             "Instances",
             "Views",
             "PageInstanceToolsRight.axaml.cs"));
+        string resourceSource = File.ReadAllText(Path.Combine(
+            desktopRoot,
+            "Features",
+            "Instances",
+            "Views",
+            "PageInstanceResourceRight.axaml.cs"));
         string registrySource = File.ReadAllText(Path.Combine(
             desktopRoot,
             "Features",
@@ -168,8 +174,11 @@ public sealed class DesktopArchitectureTests
         StringAssert.Contains(leftSource, "InstancePageRegistry.IsDefined");
         StringAssert.Contains(toolsSource, "InstancePageRegistry.UsesGenericFolderPage");
         Assert.IsFalse(toolsSource.Contains("page switch", StringComparison.Ordinal));
+        StringAssert.Contains(resourceSource, "InstancePageRegistry.GetResourceKind(page)");
+        Assert.IsFalse(resourceSource.Contains("ResourceKindFromPage", StringComparison.Ordinal));
         Assert.AreEqual(12, CountOccurrences(registrySource, "[InstancePage("));
         StringAssert.Contains(generatorSource, "InstancePageRegistry.g.cs");
+        StringAssert.Contains(generatorSource, "GetResourceKind");
     }
 
     [TestMethod]

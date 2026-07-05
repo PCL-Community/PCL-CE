@@ -16,7 +16,7 @@ public partial class PageInstanceResourceRight : MyPageRight
 {
     private LaunchInstanceInfo? _instance;
     private InstancePageSubType _page;
-    private ResourceKind _kind = ResourceKind.Mod;
+    private InstanceResourceKind _kind = InstanceResourceKind.Mod;
     private ResourceFilter _filter;
     private ResourceSort _sort = ResourceSort.FileName;
     private string _folder = string.Empty;
@@ -39,8 +39,15 @@ public partial class PageInstanceResourceRight : MyPageRight
     {
         _instance = instance;
         _page = page;
-        _kind = ResourceKindFromPage(page);
-        _folder = Path.Combine(GetMinecraftRootFromInstance(instance), GetFolderRelativePath(_kind));
+        _kind = InstancePageRegistry.GetResourceKind(page);
+        if (_kind == InstanceResourceKind.None)
+            _kind = InstanceResourceKind.Mod;
+
+        string relativePath = InstancePageRegistry.GetFolderRelativePath(page);
+        if (string.IsNullOrWhiteSpace(relativePath))
+            relativePath = "mods";
+
+        _folder = Path.Combine(GetMinecraftRootFromInstance(instance), relativePath);
         Directory.CreateDirectory(_folder);
         ApplyKindChrome();
         Reload();
@@ -50,7 +57,7 @@ public partial class PageInstanceResourceRight : MyPageRight
     {
         _instance = null;
         _page = InstancePageSubType.Saves;
-        _kind = ResourceKind.DataPack;
+        _kind = InstanceResourceKind.DataPack;
         _folder = Path.Combine(saveFolder, "datapacks");
         Directory.CreateDirectory(_folder);
         ApplyKindChrome();
@@ -122,7 +129,7 @@ public partial class PageInstanceResourceRight : MyPageRight
         if (this.FindControl<TextBlock>("TxtEmptyDescription") is { } description)
             description.Text = Text("Instance.Resource.Empty.Description", KindDisplayName(_kind));
 
-        bool supportsDisable = _kind == ResourceKind.Mod;
+        bool supportsDisable = _kind == InstanceResourceKind.Mod;
         if (this.FindControl<MyRadioButton>("BtnFilterEnabled") is { } enabled)
             enabled.IsVisible = supportsDisable;
         if (this.FindControl<MyRadioButton>("BtnFilterDisabled") is { } disabled)
@@ -133,7 +140,7 @@ public partial class PageInstanceResourceRight : MyPageRight
             this.FindControl<MyRadioButton>("BtnFilterAll")?.SetChecked(true, false, false);
         }
 
-        bool canDownload = _kind is not ResourceKind.Schematic;
+        bool canDownload = _kind is not InstanceResourceKind.Schematic;
         if (this.FindControl<MyButton>("BtnManageDownload") is { } download)
             download.IsVisible = canDownload;
         if (this.FindControl<MyButton>("BtnHintDownload") is { } hintDownload)
@@ -189,7 +196,7 @@ public partial class PageInstanceResourceRight : MyPageRight
         ];
         buttons[0].Click += (_, _) => OpenEntryLocation(entry);
 
-        if (_kind == ResourceKind.Mod && !entry.IsDirectory)
+        if (_kind == InstanceResourceKind.Mod && !entry.IsDirectory)
         {
             MyIconButton toggle = new()
             {
@@ -224,7 +231,7 @@ public partial class PageInstanceResourceRight : MyPageRight
                 continue;
             }
 
-            if (_kind == ResourceKind.Mod)
+            if (_kind == InstanceResourceKind.Mod)
             {
                 if (_filter == ResourceFilter.Enabled && entry.IsDisabled)
                     continue;
@@ -369,16 +376,16 @@ public partial class PageInstanceResourceRight : MyPageRight
     private bool IsAcceptedPath(string path)
     {
         if (Directory.Exists(path))
-            return _kind is ResourceKind.ResourcePack or ResourceKind.ShaderPack or ResourceKind.DataPack;
+            return _kind is InstanceResourceKind.ResourcePack or InstanceResourceKind.ShaderPack or InstanceResourceKind.DataPack;
 
         string fileName = Path.GetFileName(path);
         string extension = Path.GetExtension(path);
         return _kind switch
         {
-            ResourceKind.Mod => fileName.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) ||
+            InstanceResourceKind.Mod => fileName.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) ||
                                 fileName.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase),
-            ResourceKind.ResourcePack or ResourceKind.ShaderPack or ResourceKind.DataPack => extension.Equals(".zip", StringComparison.OrdinalIgnoreCase),
-            ResourceKind.Schematic => extension.Equals(".schematic", StringComparison.OrdinalIgnoreCase) ||
+            InstanceResourceKind.ResourcePack or InstanceResourceKind.ShaderPack or InstanceResourceKind.DataPack => extension.Equals(".zip", StringComparison.OrdinalIgnoreCase),
+            InstanceResourceKind.Schematic => extension.Equals(".schematic", StringComparison.OrdinalIgnoreCase) ||
                                       extension.Equals(".schem", StringComparison.OrdinalIgnoreCase) ||
                                       extension.Equals(".litematic", StringComparison.OrdinalIgnoreCase) ||
                                       extension.Equals(".nbt", StringComparison.OrdinalIgnoreCase),
@@ -411,7 +418,7 @@ public partial class PageInstanceResourceRight : MyPageRight
 
     private string GetEntryInfo(ResourceEntry entry)
     {
-        string state = _kind == ResourceKind.Mod
+        string state = _kind == InstanceResourceKind.Mod
             ? entry.IsDisabled ? Text("Instance.Resource.State.Disabled") : Text("Instance.Resource.State.Enabled")
             : entry.IsDirectory ? Text("Instance.Resource.State.Folder") : Text("Instance.Resource.State.File");
         return Text(
@@ -424,11 +431,11 @@ public partial class PageInstanceResourceRight : MyPageRight
     private string GetEntryLogo(ResourceEntry entry) =>
         _kind switch
         {
-            ResourceKind.Mod => entry.IsDisabled ? InstanceDisplayHelper.BlockAssetRoot + "RedstoneBlock.png" : InstanceDisplayHelper.BlockAssetRoot + "CommandBlock.png",
-            ResourceKind.ResourcePack => InstanceDisplayHelper.BlockAssetRoot + "Grass.png",
-            ResourceKind.ShaderPack => InstanceDisplayHelper.BlockAssetRoot + "GoldBlock.png",
-            ResourceKind.Schematic => InstanceDisplayHelper.BlockAssetRoot + "StructureBlock.png",
-            ResourceKind.DataPack => InstanceDisplayHelper.BlockAssetRoot + "CommandBlock.png",
+            InstanceResourceKind.Mod => entry.IsDisabled ? InstanceDisplayHelper.BlockAssetRoot + "RedstoneBlock.png" : InstanceDisplayHelper.BlockAssetRoot + "CommandBlock.png",
+            InstanceResourceKind.ResourcePack => InstanceDisplayHelper.BlockAssetRoot + "Grass.png",
+            InstanceResourceKind.ShaderPack => InstanceDisplayHelper.BlockAssetRoot + "GoldBlock.png",
+            InstanceResourceKind.Schematic => InstanceDisplayHelper.BlockAssetRoot + "StructureBlock.png",
+            InstanceResourceKind.DataPack => InstanceDisplayHelper.BlockAssetRoot + "CommandBlock.png",
             _ => InstanceDisplayHelper.DefaultLogo
         };
 
@@ -448,31 +455,13 @@ public partial class PageInstanceResourceRight : MyPageRight
             : string.Format(CultureInfo.CurrentCulture, "{0:0.##} {1}", value, units[unit]);
     }
 
-    private static ResourceKind ResourceKindFromPage(InstancePageSubType page) =>
-        page switch
-        {
-            InstancePageSubType.ResourcePacks => ResourceKind.ResourcePack,
-            InstancePageSubType.Shaders => ResourceKind.ShaderPack,
-            InstancePageSubType.Schematics => ResourceKind.Schematic,
-            _ => ResourceKind.Mod
-        };
-
-    private static string GetFolderRelativePath(ResourceKind kind) =>
+    private static string KindDisplayName(InstanceResourceKind kind) =>
         kind switch
         {
-            ResourceKind.ResourcePack => "resourcepacks",
-            ResourceKind.ShaderPack => "shaderpacks",
-            ResourceKind.Schematic => "schematics",
-            _ => "mods"
-        };
-
-    private static string KindDisplayName(ResourceKind kind) =>
-        kind switch
-        {
-            ResourceKind.ResourcePack => "资源包",
-            ResourceKind.ShaderPack => "光影",
-            ResourceKind.Schematic => "投影",
-            ResourceKind.DataPack => "数据包",
+            InstanceResourceKind.ResourcePack => "资源包",
+            InstanceResourceKind.ShaderPack => "光影",
+            InstanceResourceKind.Schematic => "投影",
+            InstanceResourceKind.DataPack => "数据包",
             _ => "Mod"
         };
 
@@ -504,15 +493,6 @@ public partial class PageInstanceResourceRight : MyPageRight
         }
 
         return instance.InstanceDirectory;
-    }
-
-    private enum ResourceKind
-    {
-        Mod,
-        ResourcePack,
-        ShaderPack,
-        Schematic,
-        DataPack
     }
 
     private enum ResourceFilter
