@@ -833,6 +833,78 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void MyLocalModItem_PortsWpfLocalResourceChrome()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MyIconButton openButton = new()
+            {
+                SvgIcon = "lucide/folder-open",
+                ToolTip = "打开"
+            };
+            MyLocalModItem item = new()
+            {
+                Title = "disabled.jar",
+                SubTitle = "  |  1.0.0",
+                Description = "禁用 · 8 KB · 修改于今天",
+                Logo = "avares://PCL.Desktop/WpfOriginal/Images/Blocks/CommandBlock.png",
+                State = ResourceItemState.Disabled,
+                Tags = ["本地"],
+                Buttons = [openButton],
+                Width = 360
+            };
+            Window window = new()
+            {
+                Width = 440,
+                Height = 140,
+                Content = new Border
+                {
+                    Margin = new Thickness(20),
+                    Child = item
+                }
+            };
+            bool clicked = false;
+            item.Click += (_, _) => clicked = true;
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.AreEqual(44d, item.Height);
+                Assert.IsNotNull(item.FindControl<MyImage>("PathLogo")!.Source);
+                Assert.IsNotNull(item.GetVisualDescendants()
+                    .OfType<Image>()
+                    .SingleOrDefault(image => Math.Abs(image.Width - 20d) < 0.01d && Grid.GetColumn(image) == 1));
+                Assert.IsNotNull(item.FindControl<TextBlock>("LabTitle")!.TextDecorations);
+                Assert.IsTrue(item.GetVisualDescendants().OfType<TextBlock>().Any(block => block.Text == "本地"));
+
+                StackPanel buttonStack = item.Children.OfType<StackPanel>()
+                    .Single(panel => panel.Children.Contains(openButton));
+                Assert.AreEqual(0d, buttonStack.Opacity);
+                MoveTo(window, item);
+                ModAnimation.AdvanceUntilIdleForTesting();
+                Assert.IsTrue(buttonStack.Opacity > 0d);
+
+                item.SetChecked(true);
+                ModAnimation.AdvanceUntilIdleForTesting();
+                Border check = item.Children.OfType<Border>()
+                    .Single(border => Math.Abs(border.Width - 5d) < 0.01d);
+                Assert.AreEqual(32d, check.Height);
+
+                Click(window, item);
+                Assert.IsTrue(clicked);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void MyScrollViewer_ExposesWpfDeltaMultProperty()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
@@ -4021,8 +4093,8 @@ public sealed class AvaloniaHeadlessTests
                     StackPanel list = page.FindControl<StackPanel>("PanList")!;
                     Assert.AreEqual("Mod 列表 (2)", page.FindControl<MyCard>("PanListBack")!.Title);
                     Assert.IsFalse(page.FindControl<MyCard>("PanEmpty")!.IsVisible);
-                    Assert.IsTrue(list.Children.OfType<MyListItem>().Any(item => item.Title == "enabled.jar"));
-                    Assert.IsTrue(list.Children.OfType<MyListItem>().Any(item => item.Title == "disabled.jar"));
+                    Assert.IsTrue(list.Children.OfType<MyLocalModItem>().Any(item => item.Title == "enabled.jar"));
+                    Assert.IsTrue(list.Children.OfType<MyLocalModItem>().Any(item => item.Title == "disabled.jar"));
 
                     Click(window, page.FindControl<MyButton>("BtnManageOpen")!);
                     Assert.AreEqual(modsDirectory, openedFolder);
@@ -4030,7 +4102,7 @@ public sealed class AvaloniaHeadlessTests
                     Click(window, page.FindControl<MyButton>("BtnManageDownload")!);
                     Assert.IsTrue(downloadRequested);
 
-                    MyListItem disabledItem = list.Children.OfType<MyListItem>().Single(item => item.Title == "disabled.jar");
+                    MyLocalModItem disabledItem = list.Children.OfType<MyLocalModItem>().Single(item => item.Title == "disabled.jar");
                     MyIconButton enableButton = disabledItem.Buttons.Single(button => Equals(button.ToolTip, "启用"));
                     Click(window, enableButton);
                     await WaitForConditionAsync(() => File.Exists(System.IO.Path.Combine(modsDirectory, "disabled.jar"))).ConfigureAwait(true);
@@ -4038,10 +4110,10 @@ public sealed class AvaloniaHeadlessTests
 
                     page.FindControl<MySearchBox>("SearchBox")!.Text = "disabled";
                     AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-                    Assert.AreEqual(1, list.Children.OfType<MyListItem>().Count());
-                    Assert.AreEqual("disabled.jar", list.Children.OfType<MyListItem>().Single().Title);
+                    Assert.AreEqual(1, list.Children.OfType<MyLocalModItem>().Count());
+                    Assert.AreEqual("disabled.jar", list.Children.OfType<MyLocalModItem>().Single().Title);
 
-                    MyIconButton deleteButton = list.Children.OfType<MyListItem>().Single().Buttons.Single(button => Equals(button.ToolTip, "删除"));
+                    MyIconButton deleteButton = list.Children.OfType<MyLocalModItem>().Single().Buttons.Single(button => Equals(button.ToolTip, "删除"));
                     Click(window, deleteButton);
                     await WaitForConditionAsync(() => !File.Exists(System.IO.Path.Combine(modsDirectory, "disabled.jar"))).ConfigureAwait(true);
                     Assert.AreEqual("项目已删除。", status);
@@ -4091,8 +4163,8 @@ public sealed class AvaloniaHeadlessTests
 
                     StackPanel list = page.FindControl<StackPanel>("PanList")!;
                     Assert.AreEqual("数据包 列表 (2)", page.FindControl<MyCard>("PanListBack")!.Title);
-                    Assert.IsTrue(list.Children.OfType<MyListItem>().Any(item => item.Title == "zip-pack.zip"));
-                    Assert.IsTrue(list.Children.OfType<MyListItem>().Any(item => item.Title == "folder-pack"));
+                    Assert.IsTrue(list.Children.OfType<MyLocalModItem>().Any(item => item.Title == "zip-pack.zip"));
+                    Assert.IsTrue(list.Children.OfType<MyLocalModItem>().Any(item => item.Title == "folder-pack"));
                 }
                 finally
                 {

@@ -1,0 +1,105 @@
+<!--
+  Copyright (c) MUXUE1230. All rights reserved.
+  Modifications Copyright (c) 2026 PCL N contributors.
+  Licensed under the Apache License, Version 2.0.
+-->
+<Grid
+    x:Class="PCL.Desktop.Features.Instances.Views.MyLocalModItem"
+    x:Name="PanBack"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:legacy="using:PCL.Desktop.Controls.Legacy"
+    Height="44"
+    Background="{StaticResource ColorBrushSemiTransparent}"
+    RenderTransformOrigin="50%,50%">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="6" />
+        <ColumnDefinition Width="34" />
+        <ColumnDefinition Width="7" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="4" />
+    </Grid.ColumnDefinitions>
+    <Grid.RowDefinitions>
+        <RowDefinition Height="*" />
+        <RowDefinition Height="20" />
+        <RowDefinition Height="18" />
+        <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <legacy:MyImage
+        x:Name="PathLogo"
+        Grid.Row="1"
+        Grid.RowSpan="2"
+        Grid.Column="1"
+        Width="34"
+        Height="34"
+        HorizontalAlignment="Right"
+        VerticalAlignment="Center"
+        CornerRadius="6"
+        IsHitTestVisible="False"
+        Stretch="Uniform" />
+
+    <Grid
+        x:Name="PanTitle"
+        Grid.Row="1"
+        Grid.Column="3"
+        Grid.ColumnSpan="2"
+        Margin="0,1,0,0"
+        VerticalAlignment="Center">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <TextBlock
+            x:Name="LabTitle"
+            FontSize="14"
+            Foreground="{DynamicResource ColorBrush1}"
+            IsHitTestVisible="False"
+            TextTrimming="CharacterEllipsis" />
+        <TextBlock
+            x:Name="LabSubtitle"
+            Grid.Column="1"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
+            FontSize="12"
+            Foreground="{DynamicResource ColorBrushGray1}"
+            IsHitTestVisible="False"
+            Opacity="0.4"
+            TextTrimming="CharacterEllipsis"
+            IsVisible="False" />
+        <legacy:MyIconButton
+            x:Name="BtnUpdate"
+            Grid.Column="2"
+            Width="21"
+            Height="21"
+            Margin="-2,-1.6,0,0"
+            SvgIcon="lucide/upload"
+            Opacity="0.4"
+            Theme="Black"
+            IsVisible="False" />
+    </Grid>
+
+    <StackPanel
+        x:Name="PanTags"
+        Grid.Row="2"
+        Grid.Column="3"
+        Margin="-1,0,1,0"
+        VerticalAlignment="Center"
+        IsHitTestVisible="False"
+        Orientation="Horizontal"
+        IsVisible="False" />
+
+    <TextBlock
+        x:Name="LabInfo"
+        Grid.Row="2"
+        Grid.Column="4"
+        Margin="0,0,3,1"
+        VerticalAlignment="Center"
+        FontSize="12"
+        Foreground="{DynamicResource ColorBrushGray4}"
+        IsHitTestVisible="False"
+        TextTrimming="CharacterEllipsis" />
+</Grid>

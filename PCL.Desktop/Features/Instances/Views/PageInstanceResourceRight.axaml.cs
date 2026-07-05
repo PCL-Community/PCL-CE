@@ -168,15 +168,14 @@ public partial class PageInstanceResourceRight : MyPageRight
             list.Children.Add(CreateEntryItem(entry));
     }
 
-    private MyListItem CreateEntryItem(ResourceEntry entry)
+    private MyLocalModItem CreateEntryItem(ResourceEntry entry)
     {
-        MyListItem item = new()
+        MyLocalModItem item = new()
         {
             Title = GetDisplayName(entry),
-            Info = GetEntryInfo(entry),
+            Description = GetEntryInfo(entry),
             Logo = GetEntryLogo(entry),
-            Type = MyListItem.CheckType.Clickable,
-            MinPaddingRight = 120d
+            State = entry.IsDisabled ? ResourceItemState.Disabled : ResourceItemState.Fine
         };
         item.Click += (_, _) => OpenEntryLocation(entry);
 
