@@ -101,7 +101,16 @@ public class FileConfigStorage : ConfigStorage
         {
             case StorageAction.Get:
                 if (!File.Exists(strKey)) return false;
-                value = File.Get<TValue>(strKey);
+                try
+                {
+                    value = File.Get<TValue>(strKey);
+                }
+                catch (Exception ex)
+                {
+                    LogWrapper.Warn(ex, "Config", $"配置项 {strKey} 读取失败（可能已损坏），重置为默认值");
+                    _writeActionChannel.Writer.TryWrite((strKey, () => File.Remove(strKey)));
+                    return false;
+                }
                 return true;
             case StorageAction.Exists:
                 // 由于 Exists 的 value 类型一定是 bool，此处可 unsafe 直接赋值
