@@ -56,7 +56,6 @@ public partial class MyIconTextButton : Border
     private readonly Grid? _logoHost;
     private readonly PathShape? _path;
     private readonly SvgIcon? _svgIcon;
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private bool _hasLegacyLogo;
     private bool _isLoaded;
     private bool _isPressed;
@@ -105,6 +104,8 @@ public partial class MyIconTextButton : Border
 #pragma warning restore CS0067
 
     public event ClickEventHandler? Click;
+
+    public int Uuid { get; } = Random.Shared.Next();
 
     public InlineCollection Inlines =>
         _label?.Inlines ?? throw new InvalidOperationException("MyIconTextButton text block is not initialized.");
@@ -264,18 +265,18 @@ public partial class MyIconTextButton : Border
         if (_path is not null && _path.IsVisible)
             animations.Add(ModAnimation.AaColor(_path, Shape.FillProperty, resourceKey, duration));
 
-        ModAnimation.AniStart(animations, $"MyIconTextButton Checked {_uuid}");
+        ModAnimation.AniStart(animations, "MyIconTextButton Checked " + Uuid);
     }
 
     private void StartBackgroundAnimation(string resourceKey, int duration) =>
         ModAnimation.AniStart(
             ModAnimation.AaColor(this, Border.BackgroundProperty, resourceKey, duration),
-            $"MyIconTextButton Color {_uuid}");
+            "MyIconTextButton Color " + Uuid);
 
     private void ApplyNonAnimatedColor()
     {
-        ModAnimation.AniStop($"MyIconTextButton Checked {_uuid}");
-        ModAnimation.AniStop($"MyIconTextButton Color {_uuid}");
+        ModAnimation.AniStop("MyIconTextButton Checked " + Uuid);
+        ModAnimation.AniStop("MyIconTextButton Color " + Uuid);
         Background = FindBrush("ColorBrushSemiTransparent", "#01eaf2fe");
         IBrush foreground = FindBrush(IsEnabled ? GetDefaultForegroundResourceKey() : "ColorBrushGray5", IsEnabled ? "#343d4a" : "#cccccc");
         if (_label is not null)

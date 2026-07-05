@@ -1382,6 +1382,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsTrue(svg.IsVisible);
 
                 MoveTo(window, pathButton);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyIconButton Color " + pathButton.Uuid));
                 ModAnimation.AdvanceForTesting(16, 16);
                 Assert.AreEqual(
                     Color.Parse("#0b5bcb"),
@@ -1399,6 +1400,7 @@ public sealed class AvaloniaHeadlessTests
                 bool clicked = false;
                 svgButton.Click += (_, _) => clicked = true;
                 Click(window, svgButton);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyIconButton Scale " + svgButton.Uuid));
                 ModAnimation.AdvanceForTesting(16, 32);
                 Border back = svgButton.FindControl<Border>("PanBack")!;
                 Assert.IsTrue(clicked);
@@ -1713,6 +1715,8 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual(7d, label.Margin.Left);
 
                 MoveTo(window, button);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyIconTextButton Checked " + button.Uuid));
+                Assert.IsTrue(ModAnimation.AniIsRun("MyIconTextButton Color " + button.Uuid));
                 ModAnimation.AdvanceForTesting(16, 16);
                 Assert.AreEqual(
                     Color.Parse("#1370f3"),

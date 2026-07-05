@@ -67,7 +67,6 @@ public partial class MyIconButton : Border
     private readonly Grid? _iconHost;
     private readonly PathShape? _path;
     private readonly SvgIcon? _svgIcon;
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private bool _isLoaded;
     private bool _isPressed;
 
@@ -105,6 +104,8 @@ public partial class MyIconButton : Border
     }
 
     public event EventHandler? Click;
+
+    public int Uuid { get; } = Random.Shared.Next();
 
     public string Logo
     {
@@ -182,7 +183,7 @@ public partial class MyIconButton : Border
                     _back,
                     0.8d - GetScaleX(_back),
                     ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
-                $"MyIconButton Scale {_uuid}");
+                "MyIconButton Scale " + Uuid);
         }
         e.Handled = true;
     }
@@ -212,7 +213,7 @@ public partial class MyIconButton : Border
                     -0.05d,
                     250,
                     ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong))
-            }, $"MyIconButton Scale {_uuid}");
+            }, "MyIconButton Scale " + Uuid);
         }
         RefreshAnim();
         e.Handled = true;
@@ -229,7 +230,7 @@ public partial class MyIconButton : Border
                     1d - GetScaleX(_back),
                     250,
                     ease: new ModAnimation.AniEaseOutFluent()),
-                $"MyIconButton Scale {_uuid}");
+                "MyIconButton Scale " + Uuid);
         }
         RefreshAnim();
     }
@@ -278,7 +279,7 @@ public partial class MyIconButton : Border
             return;
         }
 
-        ModAnimation.AniStart(IsPointerOver ? GetHoverAnimations() : GetNormalAnimations(), $"MyIconButton Color {_uuid}");
+        ModAnimation.AniStart(IsPointerOver ? GetHoverAnimations() : GetNormalAnimations(), "MyIconButton Color " + Uuid);
     }
 
     private List<ModAnimation.AniData> GetHoverAnimations()
@@ -338,7 +339,7 @@ public partial class MyIconButton : Border
 
     private void ApplyNonAnimatedTheme()
     {
-        ModAnimation.AniStop($"MyIconButton Color {_uuid}");
+        ModAnimation.AniStop("MyIconButton Color " + Uuid);
         Color icon = Theme switch
         {
             Themes.White => Color.FromRgb(234, 242, 254),
