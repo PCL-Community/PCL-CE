@@ -755,10 +755,11 @@ public partial class PageDownloadInstall : MyPageRight
 
     private async Task EnsureLoaderVersionsRenderedAsync(string name)
     {
-        if (_selectedVersion is null || !TryGetLoaderKind(name, out MinecraftLoaderKind kind))
+        if (_selectedVersion is null || !DownloadLoaderRegistry.TryGetByCardName(name, out DownloadLoaderDescriptor loader))
             return;
 
         string gameVersion = _selectedVersion.Id;
+        MinecraftLoaderKind kind = loader.Kind;
         (MinecraftLoaderKind Kind, string GameVersion) key = (kind, gameVersion);
         if (_loaderVersionCache.TryGetValue(key, out IReadOnlyList<MinecraftLoaderVersionEntry>? cached))
         {
@@ -850,8 +851,11 @@ public partial class PageDownloadInstall : MyPageRight
 
     private void ClearSelectedLoader(string name)
     {
-        if (!TryGetLoaderKind(name, out MinecraftLoaderKind kind) || _selectedLoaderKind != kind)
+        if (!DownloadLoaderRegistry.TryGetByCardName(name, out DownloadLoaderDescriptor loader) ||
+            _selectedLoaderKind != loader.Kind)
+        {
             return;
+        }
 
         ResetSelectedLoader();
         if (_selectedVersion is not null)
@@ -1170,50 +1174,17 @@ public partial class PageDownloadInstall : MyPageRight
     private string CanAddText() =>
         ResourceText("Download.Install.State.CanAdd", "可以添加");
 
-    private static bool TryGetLoaderKind(string name, out MinecraftLoaderKind kind)
-    {
-        if (string.Equals(name, "Fabric", StringComparison.Ordinal))
-        {
-            kind = MinecraftLoaderKind.Fabric;
-            return true;
-        }
-
-        if (string.Equals(name, "Quilt", StringComparison.Ordinal))
-        {
-            kind = MinecraftLoaderKind.Quilt;
-            return true;
-        }
-
-        kind = default;
-        return false;
-    }
-
     private static string GetLoaderCardName(MinecraftLoaderKind kind) =>
-        kind switch
-        {
-            MinecraftLoaderKind.Fabric => "Fabric",
-            MinecraftLoaderKind.Quilt => "Quilt",
-            _ => kind.ToString()
-        };
+        DownloadLoaderRegistry.Get(kind).CardName;
 
     private static string GetLoaderDisplayName(MinecraftLoaderKind kind) =>
-        kind switch
-        {
-            MinecraftLoaderKind.Fabric => "Fabric",
-            MinecraftLoaderKind.Quilt => "Quilt",
-            _ => kind.ToString()
-        };
+        DownloadLoaderRegistry.Get(kind).DisplayName;
 
     private static string GetLoaderLogo(MinecraftLoaderKind kind) =>
-        kind switch
-        {
-            MinecraftLoaderKind.Fabric => "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png",
-            MinecraftLoaderKind.Quilt => "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Quilt.png",
-            _ => string.Empty
-        };
+        DownloadLoaderRegistry.Get(kind).Logo;
 
     private static string TryGetLoaderLogo(string name) =>
-        TryGetLoaderKind(name, out MinecraftLoaderKind kind) ? GetLoaderLogo(kind) : string.Empty;
+        DownloadLoaderRegistry.TryGetByCardName(name, out DownloadLoaderDescriptor loader) ? loader.Logo : string.Empty;
 
     private static bool IsFormatFit(string? version)
     {
