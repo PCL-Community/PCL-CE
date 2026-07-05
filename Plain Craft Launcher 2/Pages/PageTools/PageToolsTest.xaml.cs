@@ -54,6 +54,8 @@ public partial class PageToolsTest
 
         TextDownloadFolder.Validate();
         TextDownloadName.Validate();
+        TextDownloadUrl.Validate();
+        StartButtonRefresh();
     }
 
     private void StartButtonRefresh()
