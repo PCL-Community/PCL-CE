@@ -59,27 +59,27 @@ public class FileCacheStorage : IDisposable
                 return false;
             }
 
-            if (count <= 1)
+            switch (TryRelease(hash, count))
             {
-                if (TryRemoveRef(hash, count))
-                {
+                case ReleaseResult.Removed:
                     return await _hashStorage.DeleteAsync(hash).ConfigureAwait(false);
-                }
-            }
-            else if (TryDecrementRef(hash, count))
-            {
-                return true;
+                case ReleaseResult.Decremented:
+                    return true;
             }
 
-            spin.SpinOnce();
+            if (spin.NextSpinWillYield)
+                await Task.Yield();
+            else
+                spin.SpinOnce();
         }
     }
 
-    private bool TryDecrementRef(string hash, int expected) =>
-        _refCounts.TryUpdate(hash, expected - 1, expected);
+    private enum ReleaseResult { Retry, Decremented, Removed }
 
-    private bool TryRemoveRef(string hash, int expected) =>
-        _refCounts.TryRemove(new KeyValuePair<string, int>(hash, expected));
+    private ReleaseResult TryRelease(string hash, int expected) =>
+        expected > 1
+            ? (_refCounts.TryUpdate(hash, expected - 1, expected) ? ReleaseResult.Decremented : ReleaseResult.Retry)
+            : (_refCounts.TryRemove(new KeyValuePair<string, int>(hash, expected)) ? ReleaseResult.Removed : ReleaseResult.Retry);
 
     public Task<bool> ForceDeleteAsync(string hash)
     {
