@@ -12,19 +12,13 @@ namespace PCL.Application.Launching;
 
 public sealed class AuthlibInjectorService
 {
-    private static readonly string[] DefaultMetadataUrls =
-    [
-        "https://authlib-injector.yushi.moe/artifact/latest.json",
-        "https://bmclapi2.bangbang93.com/mirrors/authlib-injector/artifact/latest.json"
-    ];
-
     private readonly HttpClient _httpClient;
-    private readonly IReadOnlyList<string> _metadataUrls;
+    private readonly AuthlibMetadataEndpoint[] _metadataEndpoints;
 
     public AuthlibInjectorService(HttpClient? httpClient = null, IReadOnlyList<string>? metadataUrls = null)
     {
         _httpClient = httpClient ?? PortableHttp.Client;
-        _metadataUrls = metadataUrls ?? DefaultMetadataUrls;
+        _metadataEndpoints = CreateMetadataEndpoints(metadataUrls);
     }
 
     public async Task<string> EnsureAsync(string targetPath, CancellationToken cancellationToken = default)
@@ -82,11 +76,11 @@ public sealed class AuthlibInjectorService
     private async Task<AuthlibArtifact> GetLatestArtifactAsync(CancellationToken cancellationToken)
     {
         List<Exception> errors = [];
-        foreach (string metadataUrl in _metadataUrls)
+        foreach (AuthlibMetadataEndpoint metadataEndpoint in _metadataEndpoints)
         {
             try
             {
-                using HttpRequestMessage request = new(HttpMethod.Get, metadataUrl);
+                using HttpRequestMessage request = new(HttpMethod.Get, metadataEndpoint.Url);
                 ConfigureRequest(request);
                 using HttpResponseMessage response = await _httpClient.SendAsync(
                         request,
@@ -185,4 +179,16 @@ public sealed class AuthlibInjectorService
     }
 
     private sealed record AuthlibArtifact(string DownloadUrl, string Sha256);
+
+    private static AuthlibMetadataEndpoint[] CreateMetadataEndpoints(IReadOnlyList<string>? metadataUrls)
+    {
+        if (metadataUrls is null)
+            return AuthlibMetadataEndpointRegistry.Defaults.ToArray();
+
+        AuthlibMetadataEndpoint[] endpoints = new AuthlibMetadataEndpoint[metadataUrls.Count];
+        for (int i = 0; i < metadataUrls.Count; i++)
+            endpoints[i] = new AuthlibMetadataEndpoint(metadataUrls[i]);
+
+        return endpoints;
+    }
 }

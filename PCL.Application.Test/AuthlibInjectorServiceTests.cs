@@ -13,6 +13,20 @@ namespace PCL.Application.Test;
 public sealed class AuthlibInjectorServiceTests
 {
     [TestMethod]
+    public void DefaultMetadataEndpoints_ShouldPreferOfficialThenMirror()
+    {
+        AuthlibMetadataEndpoint[] endpoints = AuthlibMetadataEndpointRegistry.Defaults.ToArray();
+
+        CollectionAssert.AreEqual(
+            new[]
+            {
+                AuthlibMetadataEndpoint.Official,
+                AuthlibMetadataEndpoint.BmclApiMirror
+            },
+            endpoints);
+    }
+
+    [TestMethod]
     public async Task EnsureAsync_DownloadsAndVerifiesLatestArtifact()
     {
         byte[] jarContent = "authlib"u8.ToArray();

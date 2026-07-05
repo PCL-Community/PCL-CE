@@ -11,6 +11,17 @@ namespace PCL.Application.Test;
 public sealed class MinecraftClasspathPlannerTests
 {
     [TestMethod]
+    public void CleanroomRuleRegistry_ShouldExposeTypedLibraryFragments()
+    {
+        MinecraftLibraryNameFragment[] fragments =
+            MinecraftClasspathRuleRegistry.CleanroomExcludedLibraryFragments.ToArray();
+
+        Assert.IsTrue(fragments.Contains(new MinecraftLibraryNameFragment("org.lwjgl.lwjgl:lwjgl:2.9.4")));
+        Assert.IsTrue(fragments.Contains(new MinecraftLibraryNameFragment("net.java.dev.jna:platform:3.4.0")));
+        Assert.IsTrue(fragments.Contains(new MinecraftLibraryNameFragment("com.ibm.icu:icu4j-core-mojang:51.2")));
+    }
+
+    [TestMethod]
     public void CreatePlan_ShouldSkipNativeLibraries()
     {
         MinecraftClasspathPlan plan = MinecraftClasspathPlanner.CreatePlan(

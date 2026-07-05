@@ -9,13 +9,6 @@ namespace PCL.Core.Minecraft.IdentityModel.Extensions.YggdrasilConnect;
 
 public record YggdrasilOptions : OpenIdOptions
 {
-    private static readonly string[] RequiredScopes =
-    [
-        "openid",
-        "Yggdrasil.PlayerProfiles.Select",
-        "Yggdrasil.Server.Join"
-    ];
-
     public override async Task InitializeAsync(CancellationToken token)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(OpenIdDiscoveryAddress);
@@ -27,12 +20,12 @@ public record YggdrasilOptions : OpenIdOptions
         Meta = metadata;
 
         List<string>? missingScopes = null;
-        foreach (var requiredScope in RequiredScopes)
+        foreach (YggdrasilScope requiredScope in YggdrasilScopeRegistry.RequiredScopes)
         {
-            if (metadata.ScopesSupported.Contains(requiredScope, StringComparer.Ordinal))
+            if (metadata.ScopesSupported.Contains(requiredScope.Value, StringComparer.Ordinal))
                 continue;
             missingScopes ??= [];
-            missingScopes.Add(requiredScope);
+            missingScopes.Add(requiredScope.Value);
         }
 
         if (missingScopes is not null)

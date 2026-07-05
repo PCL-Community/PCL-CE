@@ -6,13 +6,6 @@ namespace PCL.Application.Minecraft.Launch.Libraries;
 
 public static class MinecraftClasspathPlanner
 {
-    private static readonly string[] CleanroomExcludedLibraryFragments =
-    [
-        "org.lwjgl.lwjgl:lwjgl:2.9.4",
-        "net.java.dev.jna:platform:3.4.0",
-        "com.ibm.icu:icu4j-core-mojang:51.2"
-    ];
-
     public static MinecraftClasspathPlan CreatePlan(MinecraftClasspathPlanRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -58,9 +51,9 @@ public static class MinecraftClasspathPlanner
         if (originalName is null)
             return false;
 
-        foreach (string fragment in CleanroomExcludedLibraryFragments)
+        foreach (MinecraftLibraryNameFragment fragment in MinecraftClasspathRuleRegistry.CleanroomExcludedLibraryFragments)
         {
-            if (originalName.Contains(fragment, StringComparison.Ordinal))
+            if (fragment.Matches(originalName))
                 return true;
         }
 

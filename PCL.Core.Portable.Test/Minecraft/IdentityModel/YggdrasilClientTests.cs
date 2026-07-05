@@ -13,6 +13,21 @@ namespace PCL.Core.Test.Minecraft.IdentityModel;
 public sealed class YggdrasilClientTests
 {
     [TestMethod]
+    public void RequiredScopes_ShouldUseTypedRegistry()
+    {
+        YggdrasilScope[] scopes = YggdrasilScopeRegistry.RequiredScopes.ToArray();
+
+        CollectionAssert.AreEqual(
+            new[]
+            {
+                YggdrasilScope.OpenId,
+                YggdrasilScope.PlayerProfilesSelect,
+                YggdrasilScope.ServerJoin
+            },
+            scopes);
+    }
+
+    [TestMethod]
     public async Task SharedClientIdIsUsedWhenLocalClientIdIsEmpty()
     {
         using var http = new HttpClient(new StubHandler(_ => Json(DiscoveryJson)));
