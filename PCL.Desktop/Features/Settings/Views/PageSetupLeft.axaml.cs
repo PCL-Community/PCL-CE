@@ -87,21 +87,7 @@ public partial class PageSetupLeft : MyPageLeft
         if (_pages.TryGetValue(page, out MyPageRight? cached))
             return cached;
 
-        MyPageRight created = page switch
-        {
-            SetupPageSubType.Launch => new PageSetupLaunch(),
-            SetupPageSubType.Ui => new PageSetupUI(),
-            SetupPageSubType.GameManage => new PageSetupGameManage(),
-            SetupPageSubType.About => new PageSetupAbout(),
-            SetupPageSubType.Log => new PageSetupLog(),
-            SetupPageSubType.Feedback => new PageSetupFeedback(),
-            SetupPageSubType.Update => new PageSetupUpdate(),
-            SetupPageSubType.Java => new PageSetupJava(),
-            SetupPageSubType.LauncherMisc => new PageSetupLauncherMisc(),
-            SetupPageSubType.LauncherLanguage => new PageSetupLauncherLanguage(),
-            SetupPageSubType.Plugin => new PageSetupPlugin(),
-            _ => throw new ArgumentOutOfRangeException(nameof(page), page, "未知的设置页面。")
-        };
+        MyPageRight created = SetupPageRegistry.CreatePage(page);
         _pages[page] = created;
         PageCreated?.Invoke(this, created);
         return created;
@@ -132,26 +118,12 @@ public partial class PageSetupLeft : MyPageLeft
             string text when int.TryParse(text, out int parsed) => parsed,
             _ => int.MinValue
         };
-        if (!Enum.IsDefined(typeof(SetupPageSubType), value))
+        if (!SetupPageRegistry.IsDefined((SetupPageSubType)value))
             return false;
 
         page = (SetupPageSubType)value;
         return true;
     }
 
-    private static string GetPageTitle(SetupPageSubType page) => page switch
-    {
-        SetupPageSubType.Launch => "启动",
-        SetupPageSubType.Java => "Java",
-        SetupPageSubType.GameManage => "管理",
-        SetupPageSubType.Ui => "个性化",
-        SetupPageSubType.LauncherLanguage => "语言",
-        SetupPageSubType.LauncherMisc => "杂项",
-        SetupPageSubType.Plugin => "插件",
-        SetupPageSubType.About => "软件信息",
-        SetupPageSubType.Update => "软件更新",
-        SetupPageSubType.Feedback => "反馈",
-        SetupPageSubType.Log => "查看日志",
-        _ => "设置"
-    };
+    private static string GetPageTitle(SetupPageSubType page) => SetupPageRegistry.GetTitle(page);
 }

@@ -104,6 +104,36 @@ public sealed class DesktopArchitectureTests
         StringAssert.Contains(generatorSource, "StaticHostModule");
     }
 
+    [TestMethod]
+    public void DesktopSettings_UsesGeneratedStaticRegistry()
+    {
+        string desktopRoot = FindDesktopProjectRoot();
+        string repoRoot = Directory.GetParent(desktopRoot)?.FullName
+            ?? throw new DirectoryNotFoundException("Could not locate repository root.");
+        string setupLeftSource = File.ReadAllText(Path.Combine(
+            desktopRoot,
+            "Features",
+            "Settings",
+            "Views",
+            "PageSetupLeft.axaml.cs"));
+        string registrySource = File.ReadAllText(Path.Combine(
+            desktopRoot,
+            "Features",
+            "Settings",
+            "Views",
+            "SetupPageRegistry.cs"));
+        string generatorSource = File.ReadAllText(Path.Combine(
+            repoRoot,
+            "PCL.Desktop.SourceGenerators",
+            "SetupPageRegistryGenerator.cs"));
+
+        StringAssert.Contains(setupLeftSource, "SetupPageRegistry.CreatePage(page)");
+        Assert.IsFalse(setupLeftSource.Contains("page switch", StringComparison.Ordinal));
+        Assert.AreEqual(11, CountOccurrences(registrySource, "[SetupPage("));
+        StringAssert.Contains(generatorSource, "SetupPageRegistry.g.cs");
+        StringAssert.Contains(generatorSource, "public static partial global::PCL.Desktop.Controls.Legacy.MyPageRight CreatePage");
+    }
+
     private static string FindDesktopProjectRoot()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
