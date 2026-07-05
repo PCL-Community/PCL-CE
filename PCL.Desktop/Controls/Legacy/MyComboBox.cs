@@ -7,6 +7,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
+using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
@@ -34,6 +35,30 @@ public class MyComboBox : ComboBox
     private TextBox? _editableTextBox;
     private Grid? _panPopup;
     private Border? _dropDownBorder;
+    private bool _usesWpfEditableItemTemplate;
+
+    private static readonly IDataTemplate WpfEditableItemTemplate = new FuncDataTemplate<object?>(
+        static (item, _) =>
+        {
+            MyIconButton deleteButton = new()
+            {
+                Height = 20d,
+                Width = 20d,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                Tag = item,
+                SvgIcon = "lucide/x"
+            };
+
+            return new MyListItem
+            {
+                Title = item?.ToString() ?? string.Empty,
+                FontSize = 13d,
+                MaxHeight = 26d,
+                IsScaleAnimationEnabled = false,
+                Margin = new Thickness(-3d, 0d, 0d, 0d),
+                Buttons = [deleteButton]
+            };
+        });
 
     public MyComboBox()
     {
@@ -208,6 +233,33 @@ public class MyComboBox : ComboBox
             _selectedContentPresenter.IsVisible = !IsEditable;
         if (_editableTextBox is not null)
             _editableTextBox.IsVisible = IsEditable;
+
+        RefreshEditableItemTemplate();
+    }
+
+    private void RefreshEditableItemTemplate()
+    {
+        if (IsEditable)
+        {
+            IsTabStop = false;
+            if (ItemTemplate is null)
+            {
+                ItemTemplate = WpfEditableItemTemplate;
+                _usesWpfEditableItemTemplate = true;
+            }
+            else
+            {
+                _usesWpfEditableItemTemplate = ReferenceEquals(ItemTemplate, WpfEditableItemTemplate);
+            }
+
+            return;
+        }
+
+        if (_usesWpfEditableItemTemplate && ReferenceEquals(ItemTemplate, WpfEditableItemTemplate))
+        {
+            ItemTemplate = null;
+            _usesWpfEditableItemTemplate = false;
+        }
     }
 
     private void RefreshDropDownArrow(bool animate)
@@ -300,9 +352,12 @@ public class MyComboBox : ComboBox
             return;
 
         string rawText = Text;
+        int? rawCaretIndex = _editableTextBox?.CaretIndex;
         _isTextChanging = true;
         SelectedItem = null;
         base.Text = rawText;
+        if (_editableTextBox is not null && rawCaretIndex is int caretIndex)
+            _editableTextBox.CaretIndex = Math.Clamp(caretIndex, 0, _editableTextBox.Text?.Length ?? 0);
         _isTextChanging = false;
     }
 

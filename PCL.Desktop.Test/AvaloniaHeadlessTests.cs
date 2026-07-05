@@ -7406,10 +7406,18 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual(RequiredBrush("ColorBrush7").Color, ((SolidColorBrush)comboBox.Background!).Color);
                 comboBox.IsDropDownOpen = false;
 
+                MyTextBox editableTextBox = comboBox.GetVisualDescendants()
+                    .OfType<MyTextBox>()
+                    .Single(textBox => textBox.Name == "PART_EditableTextBox");
+                Assert.IsTrue(editableTextBox.IsVisible);
+                Assert.IsNotNull(comboBox.ItemTemplate);
+
+                editableTextBox.CaretIndex = 1;
                 comboBox.Text = "手动输入";
 
                 Assert.AreEqual("手动输入", comboBox.Text);
                 Assert.IsNull(comboBox.SelectedItem);
+                Assert.AreEqual(1, editableTextBox.CaretIndex);
                 Assert.AreEqual(1, textChangedCount);
 
                 MyComboBoxItem item = new() { Content = "选项" };
