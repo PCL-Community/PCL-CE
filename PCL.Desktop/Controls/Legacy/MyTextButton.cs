@@ -17,7 +17,6 @@ public class MyTextButton : Button
     public static readonly StyledProperty<string> TextProperty =
         AvaloniaProperty.Register<MyTextButton, string>(nameof(Text), string.Empty);
 
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private string? _colorName;
     private bool _isMouseDown;
 
@@ -49,6 +48,8 @@ public class MyTextButton : Button
         set => SetValue(TextProperty, value);
     }
 
+    public int Uuid { get; } = Random.Shared.Next();
+
     private void AnimateText(string text)
     {
         if (Equals(Content, text))
@@ -61,7 +62,7 @@ public class MyTextButton : Button
                 ModAnimation.AaCode(() => Content = text, after: true),
                 ModAnimation.AaOpacity(this, 1d, 170)
             },
-            $"MyTextButton Text {_uuid}");
+            "MyTextButton Text " + Uuid);
     }
 
     private (string ForeName, int Time) GetVisualState()
@@ -107,6 +108,6 @@ public class MyTextButton : Button
         Cursor = IsEnabled ? new Cursor(StandardCursorType.Hand) : Cursor.Default;
         ModAnimation.AniStart(
             ModAnimation.AaColor(this, ForegroundProperty, foreName, time),
-            $"MyTextButton Color {_uuid}");
+            "MyTextButton Color " + Uuid);
     }
 }

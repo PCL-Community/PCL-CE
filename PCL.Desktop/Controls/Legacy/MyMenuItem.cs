@@ -26,7 +26,6 @@ public class MyMenuItem : MenuItem
     public static readonly RoutedEvent<RoutedEventArgs> CheckedEvent =
         RoutedEvent.Register<MyMenuItem, RoutedEventArgs>(nameof(Checked), RoutingStrategies.Bubble);
 
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private string? _visualStateName;
     private bool _isAttached;
 
@@ -41,7 +40,7 @@ public class MyMenuItem : MenuItem
         DetachedFromVisualTree += (_, _) =>
         {
             _isAttached = false;
-            ModAnimation.AniStop($"MyMenuItem Color {_uuid}");
+            ModAnimation.AniStop("MyMenuItem Color " + Uuid);
         };
         PointerEntered += (_, _) => RefreshColor();
         PointerExited += (_, _) => RefreshColor();
@@ -57,6 +56,8 @@ public class MyMenuItem : MenuItem
         add => AddHandler(CheckedEvent, value);
         remove => RemoveHandler(CheckedEvent, value);
     }
+
+    public int Uuid { get; } = Random.Shared.Next();
 
     public string SvgIcon
     {
@@ -144,11 +145,11 @@ public class MyMenuItem : MenuItem
                     ModAnimation.AaColor(this, BackgroundProperty, backName, time),
                     ModAnimation.AaColor(this, ForegroundProperty, foreName, time)
                 },
-                $"MyMenuItem Color {_uuid}");
+                "MyMenuItem Color " + Uuid);
             return;
         }
 
-        ModAnimation.AniStop($"MyMenuItem Color {_uuid}");
+        ModAnimation.AniStop("MyMenuItem Color " + Uuid);
         Background = LegacyResourceResolver.Brush(this, backName, "#00ffffff");
         Foreground = LegacyResourceResolver.Brush(this, foreName, "#343d4a");
     }

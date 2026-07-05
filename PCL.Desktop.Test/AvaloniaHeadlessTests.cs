@@ -1576,6 +1576,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual(RequiredBrush("ColorBrush1").Color, BrushColor(item.Foreground));
 
                 MoveTo(window, item);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyMenuItem Color " + item.Uuid));
                 ModAnimation.AdvanceUntilIdleForTesting();
 
                 Assert.AreEqual(RequiredBrush("ColorBrush6").Color, BrushColor(item.Background));
@@ -1803,6 +1804,7 @@ public sealed class AvaloniaHeadlessTests
                     ((SolidColorBrush)presenter.Foreground!).Color);
 
                 MoveTo(window, link);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyTextButton Color " + link.Uuid));
                 ModAnimation.AdvanceUntilIdleForTesting();
                 Assert.IsNotNull(link.Cursor);
                 Assert.AreEqual(
