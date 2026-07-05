@@ -13,6 +13,7 @@
   <Project Path="PCL.Application\PCL.Application.csproj" />
   <Project Path="PCL.Application.Test\PCL.Application.Test.csproj" />
   <Project Path="PCL.UI.Abstractions\PCL.UI.Abstractions.csproj" />
+  <Project Path="PCL.Desktop.SourceGenerators\PCL.Desktop.SourceGenerators.csproj" />
   <Project Path="PCL.Desktop\PCL.Desktop.csproj" />
   <Project Path="PCL.Desktop.Test\PCL.Desktop.Test.csproj" />
 </Solution>

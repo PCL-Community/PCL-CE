@@ -8,7 +8,7 @@ namespace PCL.UI.Abstractions.Navigation;
 
 public sealed record NavigationPageDescriptor
 {
-    public required string Route { get; init; }
+    public required NavigationRouteId Route { get; init; }
 
     public required string Title { get; init; }
 
@@ -39,14 +39,14 @@ public sealed class NavigationRegistry : INavigationRegistry
     public IReadOnlyList<NavigationPageDescriptor> Pages =>
         _pages
             .OrderBy(static page => page.Order)
-            .ThenBy(static page => page.Route, StringComparer.Ordinal)
+            .ThenBy(static page => page.Route.Value, StringComparer.Ordinal)
             .ToArray();
 
     public void AddPage(NavigationPageDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         ValidateDescriptor(descriptor);
-        if (_pages.Any(page => string.Equals(page.Route, descriptor.Route, StringComparison.OrdinalIgnoreCase)))
+        if (_pages.Any(page => page.Route.Equals(descriptor.Route.Value)))
             throw new InvalidOperationException($"导航路由已注册：{descriptor.Route}");
 
         _pages.Add(descriptor);
@@ -75,11 +75,11 @@ public sealed class NavigationRegistry : INavigationRegistry
     }
 
     private int FindRoute(string route) =>
-        _pages.FindIndex(page => string.Equals(page.Route, route, StringComparison.OrdinalIgnoreCase));
+        _pages.FindIndex(page => page.Route.Equals(route));
 
     private static void ValidateDescriptor(NavigationPageDescriptor descriptor)
     {
-        if (string.IsNullOrWhiteSpace(descriptor.Route))
+        if (descriptor.Route.IsEmpty)
             throw new ArgumentException("导航路由不能为空。", nameof(descriptor));
         if (string.IsNullOrWhiteSpace(descriptor.Title))
             throw new ArgumentException("导航标题不能为空。", nameof(descriptor));

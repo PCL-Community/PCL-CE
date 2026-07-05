@@ -93,14 +93,14 @@ public partial class MainWindow : Window, IDisposable
     private readonly DesktopPageContext _desktopPageContext;
     private int _registeredPageRequestId;
     private bool _isTaskManagerVisible;
-    private string? _taskManagerBackRoute;
+    private NavigationRouteId? _taskManagerBackRoute;
 
     private const double NavCollapsedWidth = 50d;
     private const int NavAnimDuration = 200;
 
-    private const string LaunchRoute = "pcl.launch";
-    private const string DownloadRoute = "pcl.download";
-    private const string SettingsRoute = "pcl.settings";
+    private static readonly NavigationRouteId LaunchRoute = DesktopNavigationRegistry.LaunchRoute;
+    private static readonly NavigationRouteId DownloadRoute = DesktopNavigationRegistry.DownloadRoute;
+    private static readonly NavigationRouteId SettingsRoute = DesktopNavigationRegistry.SettingsRoute;
 
     public MainWindow()
     {
@@ -598,7 +598,7 @@ public partial class MainWindow : Window, IDisposable
         BeginPageChangeAnimation(page);
     }
 
-    private void SelectNavRoute(string route, bool animate)
+    private void SelectNavRoute(NavigationRouteId route, bool animate)
     {
         int page = FindNavigationPageIndex(route);
         if (page < 0)
@@ -607,11 +607,11 @@ public partial class MainWindow : Window, IDisposable
             SelectNavPage(page, animate);
     }
 
-    private int FindNavigationPageIndex(string route)
+    private int FindNavigationPageIndex(NavigationRouteId route)
     {
         foreach ((int index, NavigationPageDescriptor descriptor) in _navigationPages)
         {
-            if (string.Equals(descriptor.Route, route, StringComparison.OrdinalIgnoreCase))
+            if (descriptor.Route.Equals(route.Value))
                 return index;
         }
 
@@ -625,7 +625,7 @@ public partial class MainWindow : Window, IDisposable
             return;
 
         int requestId = ++_registeredPageRequestId;
-        PageCreateContext context = new(descriptor.Route, DesktopHost.Current.Services, _desktopPageContext);
+        PageCreateContext context = new(descriptor.Route.Value, DesktopHost.Current.Services, _desktopPageContext);
         ValueTask<DesktopMainPage> createTask;
         try
         {
@@ -1111,7 +1111,7 @@ public partial class MainWindow : Window, IDisposable
         RefreshTaskManagerButton();
     }
 
-    private string GetCurrentNavigationRoute() =>
+    private NavigationRouteId GetCurrentNavigationRoute() =>
         _navigationPages.TryGetValue(_currentNavPage, out NavigationPageDescriptor? descriptor)
             ? descriptor.Route
             : LaunchRoute;

@@ -27,10 +27,7 @@ internal static partial class DesktopHost
             return;
 
         PclHostBuilder builder = new();
-        builder.AddModule(new BuiltInLaunchModule());
-        builder.AddModule(new BuiltInDownloadModule());
-        builder.AddModule(new BuiltInCommunityModule());
-        builder.AddModule(new BuiltInSettingsModule());
+        DesktopNavigationRegistry.RegisterGeneratedHostModules(builder);
         RegisterInjectedHostModules(builder);
         _current = builder.Build();
     }
@@ -38,47 +35,11 @@ internal static partial class DesktopHost
     static partial void RegisterInjectedHostModules(PclHostBuilder builder);
 }
 
-internal sealed class BuiltInLaunchModule : IPclHostModule
-{
-    public string Id => "pcl.builtin.launch";
-
-    public void Configure(IPclHostBuilder builder) =>
-        DesktopNavigationModule.AddPage(builder.Navigation, "pcl.launch", "启动", "lucide/play", 0,
-            static context => context.CreateLaunchPage());
-}
-
-internal sealed class BuiltInDownloadModule : IPclHostModule
-{
-    public string Id => "pcl.builtin.download";
-
-    public void Configure(IPclHostBuilder builder) =>
-        DesktopNavigationModule.AddPage(builder.Navigation, "pcl.download", "下载", "lucide/pickaxe", 10,
-            static context => context.CreateDownloadPage());
-}
-
-internal sealed class BuiltInCommunityModule : IPclHostModule
-{
-    public string Id => "pcl.builtin.community";
-
-    public void Configure(IPclHostBuilder builder) =>
-        DesktopNavigationModule.AddPage(builder.Navigation, "pcl.community", "社区", "lucide/download", 20,
-            static context => context.CreatePlaceholderPage("社区"));
-}
-
-internal sealed class BuiltInSettingsModule : IPclHostModule
-{
-    public string Id => "pcl.builtin.settings";
-
-    public void Configure(IPclHostBuilder builder) =>
-        DesktopNavigationModule.AddPage(builder.Navigation, "pcl.settings", "设置", "lucide/settings", 40,
-            static context => context.CreateSettingsPage());
-}
-
 internal static class DesktopNavigationModule
 {
     public static void AddPage(
         INavigationRegistry navigation,
-        string route,
+        NavigationRouteId route,
         string title,
         string icon,
         int order,

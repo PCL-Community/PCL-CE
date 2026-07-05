@@ -31,7 +31,7 @@ public sealed class HostModuleTests
         CollectionAssert.Contains(host.ModuleIds.ToArray(), SampleHostModule.ModuleId);
         Assert.AreEqual("sample-service", host.Services.GetService(typeof(string)));
         Assert.AreEqual("sample.extension", host.Extensions.Extensions.Single().Id);
-        Assert.AreEqual("sample.home", host.Navigation.Pages.Single().Route);
+        Assert.AreEqual("sample.home", host.Navigation.Pages.Single().Route.Value);
         Assert.IsTrue(host.Commands.TryGetCommand("sample.refresh", out CommandDescriptor command));
         Assert.AreEqual("刷新", command.Title);
         Assert.AreEqual("sample.setting", host.Settings.Settings.Single().Key);

@@ -82,6 +82,28 @@ public sealed class DesktopArchitectureTests
             string.Join(Environment.NewLine, violations));
     }
 
+    [TestMethod]
+    public void DesktopNavigation_UsesGeneratedStaticRegistry()
+    {
+        string desktopRoot = FindDesktopProjectRoot();
+        string repoRoot = Directory.GetParent(desktopRoot)?.FullName
+            ?? throw new DirectoryNotFoundException("Could not locate repository root.");
+        string hostSource = File.ReadAllText(Path.Combine(desktopRoot, "Hosting", "DesktopHost.cs"));
+        string registrySource = File.ReadAllText(Path.Combine(desktopRoot, "Hosting", "DesktopNavigationRegistry.cs"));
+        string generatorSource = File.ReadAllText(Path.Combine(
+            repoRoot,
+            "PCL.Desktop.SourceGenerators",
+            "DesktopNavigationRegistryGenerator.cs"));
+
+        StringAssert.Contains(hostSource, "DesktopNavigationRegistry.RegisterGeneratedHostModules(builder)");
+        Assert.IsFalse(hostSource.Contains("BuiltInLaunchModule", StringComparison.Ordinal));
+        Assert.IsFalse(hostSource.Contains("BuiltInDownloadModule", StringComparison.Ordinal));
+        Assert.AreEqual(4, CountOccurrences(registrySource, "[DesktopNavigationPage("));
+        StringAssert.Contains(registrySource, "NavigationRouteId");
+        StringAssert.Contains(generatorSource, "new global::PCL.UI.Abstractions.Navigation.NavigationRouteId");
+        StringAssert.Contains(generatorSource, "StaticHostModule");
+    }
+
     private static string FindDesktopProjectRoot()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
@@ -108,5 +130,18 @@ public sealed class DesktopArchitectureTests
         return normalized.StartsWith("WpfOriginal/", StringComparison.OrdinalIgnoreCase) ||
                normalized.StartsWith("bin/", StringComparison.OrdinalIgnoreCase) ||
                normalized.StartsWith("obj/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static int CountOccurrences(string text, string value)
+    {
+        int count = 0;
+        int index = 0;
+        while ((index = text.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            index += value.Length;
+        }
+
+        return count;
     }
 }

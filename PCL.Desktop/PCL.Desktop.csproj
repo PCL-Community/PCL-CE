@@ -43,6 +43,7 @@
     <None Include="WpfOriginal/**/*.xaml" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="../PCL.Desktop.SourceGenerators/PCL.Desktop.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="../PCL.Application/PCL.Application.csproj" />
     <ProjectReference Include="../PCL.Platform/PCL.Platform.csproj" />
     <ProjectReference Include="../PCL.UI.Abstractions/PCL.UI.Abstractions.csproj" />
