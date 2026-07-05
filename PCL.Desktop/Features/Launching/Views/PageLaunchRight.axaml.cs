@@ -351,7 +351,7 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
 
         try
         {
-            return File.ReadAllLines(file)
+            return File.ReadLines(file)
                 .Where(line => !string.IsNullOrWhiteSpace(line))
                 .Select(line => line.Trim())
                 .ToArray();
@@ -367,18 +367,22 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
     private static void WriteHomepageLiveSupportMarker(string directory)
     {
         string markerPath = Path.Combine(directory, HomepageLiveSupportFileName);
-        string processPath = EscapeJsonString(Environment.ProcessPath ?? string.Empty);
-        string startedAt = DateTime.Now.ToString("O", CultureInfo.InvariantCulture);
-        File.WriteAllText(
+        using FileStream stream = new(
             markerPath,
-            $$"""{"processId":{{Environment.ProcessId}},"processPath":"{{processPath}}","patchFile":"{{HomepageLivePatchFileName}}","startedAt":"{{startedAt}}"}""");
+            FileMode.Create,
+            FileAccess.Write,
+            FileShare.Read,
+            bufferSize: 4 * 1024,
+            useAsync: false);
+        using Utf8JsonWriter writer = new(stream);
+        writer.WriteStartObject();
+        writer.WriteNumber("processId", Environment.ProcessId);
+        writer.WriteString("processPath", Environment.ProcessPath ?? string.Empty);
+        writer.WriteString("patchFile", HomepageLivePatchFileName);
+        writer.WriteString("startedAt", DateTime.Now.ToString("O", CultureInfo.InvariantCulture));
+        writer.WriteEndObject();
+        writer.Flush();
     }
-
-    private static string EscapeJsonString(string value) =>
-        value.Replace("\\", "\\\\", StringComparison.Ordinal)
-            .Replace("\"", "\\\"", StringComparison.Ordinal)
-            .Replace("\r", "\\r", StringComparison.Ordinal)
-            .Replace("\n", "\\n", StringComparison.Ordinal);
 
     private static void DeleteHomepageLiveSupportMarker()
     {
