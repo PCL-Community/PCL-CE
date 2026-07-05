@@ -620,8 +620,8 @@ public partial class PageDownloadInstall : MyPageRight
         HideAllHints();
 
         string versionId = _selectedVersion.Id;
-        int vanillaDrop = VersionToDrop(versionId, allowSnapshot: true);
-        bool formatFit = IsFormatFit(versionId);
+        int vanillaDrop = MinecraftVersionRuleHelper.VersionToDrop(versionId, allowSnapshot: true);
+        bool formatFit = MinecraftVersionRuleHelper.IsFormatFit(versionId);
         string canAdd = CanAddText();
         string? incompatibleLoader = _selectedLoaderKind is null
             ? null
@@ -1171,47 +1171,6 @@ public partial class PageDownloadInstall : MyPageRight
 
     private static string TryGetLoaderLogo(string name) =>
         DownloadLoaderRegistry.TryGetByCardName(name, out DownloadLoaderDescriptor loader) ? loader.Logo : string.Empty;
-
-    private static bool IsFormatFit(string? version)
-    {
-        if (string.IsNullOrWhiteSpace(version))
-            return false;
-
-        if (version.Length >= 3 &&
-            version.StartsWith("1.", StringComparison.Ordinal) &&
-            char.IsDigit(version[2]))
-        {
-            return true;
-        }
-
-        string major = version.Split('.', 2)[0];
-        return int.TryParse(major, NumberStyles.Integer, CultureInfo.InvariantCulture, out int majorValue) &&
-               majorValue > 25 &&
-               version.Contains('.', StringComparison.Ordinal);
-    }
-
-    private static int VersionToDrop(string? version, bool allowSnapshot = false)
-    {
-        if (string.IsNullOrWhiteSpace(version))
-            return 0;
-        if (!allowSnapshot && version.Contains('-', StringComparison.Ordinal))
-            return 0;
-
-        string[] segments = version.Split('-', 2)[0].Split('.');
-        if (segments.Length < 2 ||
-            !int.TryParse(segments[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int major) ||
-            !int.TryParse(segments[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int minor))
-        {
-            return 0;
-        }
-
-        if (major == 1)
-            return minor * 10;
-        if (major < 25)
-            return 0;
-
-        return major * 10 + minor;
-    }
 
     private static Task RunOnUiThreadAsync(Action action)
     {

@@ -4182,6 +4182,12 @@ public sealed class AvaloniaHeadlessTests
             string versionDirectory = System.IO.Path.Combine(root, "versions", "1.20.1");
             Directory.CreateDirectory(versionDirectory);
             File.WriteAllText(System.IO.Path.Combine(versionDirectory, "fabric-loader-0.16.10.jar"), "loader");
+            InstanceMetadataStore.SaveAsync(
+                versionDirectory,
+                new InstanceMetadata
+                {
+                    LogoPath = "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png"
+                }).GetAwaiter().GetResult();
             LaunchInstanceInfo instance = new("1.20.1", System.IO.Path.Combine(versionDirectory, "1.20.1.json"), versionDirectory);
 
             session.Dispatch(() =>
@@ -4203,8 +4209,15 @@ public sealed class AvaloniaHeadlessTests
                     AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
                     Assert.AreEqual("1.20.1", page.FindControl<MyListItem>("ItemSelect")!.Title);
+                    Assert.IsTrue(page.FindControl<MyListItem>("ItemSelect")!.Logo.EndsWith("Fabric.png", StringComparison.OrdinalIgnoreCase));
                     Assert.AreEqual("1.20.1", page.FindControl<TextBlock>("LabMinecraft")!.Text);
+                    Assert.IsTrue((page.FindControl<Image>("ImgMinecraft")!.Tag as string)?.EndsWith("Fabric.png", StringComparison.OrdinalIgnoreCase) == true);
                     Assert.AreEqual("fabric-loader-0.16.10", page.FindControl<TextBlock>("LabFabric")!.Text);
+                    Assert.IsTrue(page.FindControl<MyCard>("CardFabric")!.IsVisible);
+                    Assert.IsTrue(page.FindControl<MyCard>("CardNeoForge")!.IsVisible);
+                    Assert.IsFalse(page.FindControl<MyCard>("CardLiteLoader")!.IsVisible);
+                    Assert.IsFalse(page.FindControl<MyCard>("CardLegacyFabric")!.IsVisible);
+                    Assert.IsFalse(page.FindControl<MyCard>("CardCleanroom")!.IsVisible);
                     Assert.IsFalse(page.FindControl<Control>("PanLoad")!.IsVisible);
                     Assert.IsTrue(page.FindControl<Control>("PanSelect")!.IsVisible);
 

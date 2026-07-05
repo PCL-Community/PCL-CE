@@ -8,6 +8,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using System.Text.Json;
 using PCL.Application.Instances;
 using PCL.Desktop.Controls.Legacy;
 using PCL.Desktop.Features.Launching.Views;
@@ -99,18 +100,22 @@ public partial class PageInstanceInstallRight : MyPageRight
     private void PopulateSelectedInstance(LaunchInstanceInfo instance)
     {
         InstanceMetadata metadata = InstanceMetadataStore.LoadAsync(instance.InstanceDirectory).GetAwaiter().GetResult();
+        string logo = InstanceDisplayHelper.ResolveLogo(instance, metadata);
         if (this.FindControl<MyListItem>("ItemSelect") is { } item)
         {
             item.Title = instance.Name;
             item.Info = instance.InstanceDirectory;
-            item.Logo = InstanceDisplayHelper.ResolveLogo(instance, metadata);
+            item.Logo = logo;
         }
 
         if (this.FindControl<TextBlock>("LabMinecraft") is { } label)
             label.Text = instance.Name;
 
         if (this.FindControl<Image>("ImgMinecraft") is { } image)
-            image.Source = LoadBlockImage("Grass.png");
+        {
+            image.Source = LoadImage(logo) ?? LoadBlockImage("Grass.png");
+            image.Tag = logo;
+        }
     }
 
     private void InitializeLoaderCards(LaunchInstanceInfo instance)
@@ -129,6 +134,7 @@ public partial class PageInstanceInstallRight : MyPageRight
         SetLoaderInfo("OptiFine", DetectLoader(instance, "optifine"), "GrassPath.png");
         SetLoaderInfo("OptiFabric", DetectModFile(instance, "optifabric"), "OptiFabric.png");
         SetLoaderInfo("LiteLoader", DetectLoader(instance, "liteloader"), "Egg.png");
+        ApplyLoaderCardVisibility(ResolveMinecraftVersionId(instance));
     }
 
     private void SetLoaderInfo(string name, string? detectedVersion, string imageName)
@@ -158,6 +164,29 @@ public partial class PageInstanceInstallRight : MyPageRight
             if (this.FindControl<MyCard>("Card" + name) is { } card)
                 card.IsSwapped = true;
         }
+    }
+
+    private void ApplyLoaderCardVisibility(string minecraftVersionId)
+    {
+        int vanillaDrop = MinecraftVersionRuleHelper.VersionToDrop(minecraftVersionId, allowSnapshot: true);
+        SetLoaderCardVisible("LiteLoader", vanillaDrop < 130);
+        SetLoaderCardVisible("Forge", MinecraftVersionRuleHelper.IsFormatFit(minecraftVersionId));
+        SetLoaderCardVisible("Cleanroom", string.Equals(minecraftVersionId, "1.12.2", StringComparison.OrdinalIgnoreCase));
+        SetLoaderCardVisible("NeoForge", !(vanillaDrop is > 0 and < 200));
+        SetLoaderCardVisible("Fabric", vanillaDrop > 130);
+        SetLoaderCardVisible("LegacyFabric", vanillaDrop <= 130);
+        SetLoaderCardVisible("Quilt", vanillaDrop >= 144);
+        SetLoaderCardVisible("LabyMod", vanillaDrop >= 80);
+    }
+
+    private void SetLoaderCardVisible(string name, bool visible)
+    {
+        if (this.FindControl<MyCard>("Card" + name) is not { } card)
+            return;
+
+        card.IsVisible = visible;
+        if (!visible)
+            card.IsSwapped = true;
     }
 
     private static void ResetTranslateX(Control control)
@@ -208,6 +237,34 @@ public partial class PageInstanceInstallRight : MyPageRight
         return string.IsNullOrWhiteSpace(withoutExtension) ? fileName : withoutExtension;
     }
 
+    private static string ResolveMinecraftVersionId(LaunchInstanceInfo instance)
+    {
+        if (!File.Exists(instance.VersionJsonPath))
+            return instance.Name;
+
+        try
+        {
+            using FileStream stream = File.OpenRead(instance.VersionJsonPath);
+            using JsonDocument document = JsonDocument.Parse(stream);
+            JsonElement root = document.RootElement;
+            string inherited = ReadJsonString(root, "inheritsFrom");
+            if (!string.IsNullOrWhiteSpace(inherited))
+                return inherited;
+
+            string id = ReadJsonString(root, "id");
+            return string.IsNullOrWhiteSpace(id) ? instance.Name : id;
+        }
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+        {
+            return instance.Name;
+        }
+    }
+
+    private static string ReadJsonString(JsonElement element, string propertyName) =>
+        element.TryGetProperty(propertyName, out JsonElement property) && property.ValueKind == JsonValueKind.String
+            ? property.GetString() ?? string.Empty
+            : string.Empty;
+
     private void HideAllHints()
     {
         string[] names =
@@ -244,15 +301,41 @@ public partial class PageInstanceInstallRight : MyPageRight
 
     private static Bitmap? LoadBlockImage(string imageName)
     {
+        return LoadImage(BlockAssetRoot + imageName);
+    }
+
+    private static Bitmap? LoadImage(string address)
+    {
         try
         {
-            using Stream stream = AssetLoader.Open(new Uri(BlockAssetRoot + imageName, UriKind.Absolute));
+            using Stream stream = OpenImageStream(address);
             return new Bitmap(stream);
         }
         catch (IOException)
         {
             return null;
         }
+        catch (UnauthorizedAccessException)
+        {
+            return null;
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
+    }
+
+    private static Stream OpenImageStream(string address)
+    {
+        if (Uri.TryCreate(address, UriKind.Absolute, out Uri? uri))
+        {
+            if (uri.IsFile)
+                return File.OpenRead(uri.LocalPath);
+            if (uri.Scheme.Equals("avares", StringComparison.OrdinalIgnoreCase))
+                return AssetLoader.Open(uri);
+        }
+
+        return File.OpenRead(address);
     }
 
     private const string BlockAssetRoot = InstanceDisplayHelper.BlockAssetRoot;
