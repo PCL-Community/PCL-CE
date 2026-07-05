@@ -27,6 +27,7 @@ using PCL.Desktop.Features.Downloads.Views;
 using PCL.Desktop.Features.Instances.Views;
 using PCL.Desktop.Features.Launching.Views;
 using PCL.Desktop.Features.Settings.Views;
+using PCL.Desktop.Features.Tasks.Views;
 using PCL.Domain.Minecraft.Java;
 
 namespace PCL.Desktop.Test;
@@ -1355,6 +1356,52 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void MyExtraTextButton_ShowFalseHidesControlLikeWpf()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MyExtraTextButton button = new()
+            {
+                Text = "开始下载",
+                Show = false
+            };
+            Window window = new()
+            {
+                Width = 220d,
+                Height = 120d,
+                Content = button
+            };
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.IsFalse(button.IsVisible);
+                Assert.IsFalse(button.IsHitTestVisible);
+
+                button.Show = true;
+                ModAnimation.AdvanceUntilIdleForTesting();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Assert.IsTrue(button.IsVisible);
+                Assert.IsTrue(button.IsHitTestVisible);
+
+                button.Show = false;
+                ModAnimation.AdvanceUntilIdleForTesting();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Assert.IsFalse(button.IsVisible);
+                Assert.IsFalse(button.IsHitTestVisible);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void MyMenuItem_UsesWpfResourceStatesAndAnimatedIconColor()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
@@ -2005,8 +2052,7 @@ public sealed class AvaloniaHeadlessTests
         session.Dispatch(() =>
         {
             PageDownloadInstall installPage = new();
-            PageDownloadProgress progressPage = new();
-            PageDownloadLeft page = new(() => installPage, () => progressPage);
+            PageDownloadLeft page = new(() => installPage);
             Window window = new()
             {
                 Width = 220,
@@ -2030,10 +2076,7 @@ public sealed class AvaloniaHeadlessTests
 
                 Assert.AreEqual(DownloadVersionFilter.Release, page.VersionFilter);
                 Assert.AreEqual(DownloadPageSubType.Install, page.PageId);
-
-                page.PageChange(DownloadPageSubType.Progress, force: true);
-
-                Assert.AreSame(progressPage, page.GetOrCreateCurrentPage());
+                Assert.AreSame(installPage, page.GetOrCreateCurrentPage());
             }
             finally
             {
@@ -2338,13 +2381,13 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
-    public void PageDownloadProgress_ExposesCancelableAndCompletionActions()
+    public void PageSpeedRight_UsesWpfTaskCardListAndCancelButton()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
-            PageDownloadProgress page = new();
+            PageSpeedRight page = new();
             Window window = new()
             {
                 Width = 520,
@@ -2352,51 +2395,68 @@ public sealed class AvaloniaHeadlessTests
                 Content = page
             };
             int cancelCount = 0;
-            int installCount = 0;
-            int launchCount = 0;
-            page.CancelRequested += (_, _) => cancelCount++;
-            page.InstallPageRequested += (_, _) => installCount++;
-            page.LaunchPageRequested += (_, _) => launchCount++;
+            string? canceledTask = null;
+            page.CancelRequested += (_, args) =>
+            {
+                cancelCount++;
+                canceledTask = args.TaskId;
+            };
 
             try
             {
                 window.Show();
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
-                MyButton installButton = page.GetVisualDescendants().OfType<MyButton>().Single(button => button.Text == "继续选择版本");
-                MyButton cancelButton = page.GetVisualDescendants().OfType<MyButton>().Single(button => button.Text == "取消任务");
-                MyButton launchButton = page.GetVisualDescendants().OfType<MyButton>().Single(button => button.Text == "回到启动页");
-
-                Assert.IsTrue(installButton.IsVisible);
-                Assert.IsFalse(cancelButton.IsVisible);
-                Assert.IsFalse(launchButton.IsVisible);
-
-                page.Begin("1.20.1");
+                page.UpsertTask(new TaskManagerEntrySnapshot(
+                    "install:1.20.1",
+                    "安装 1.20.1",
+                    "下载版本描述",
+                    "1.20.1.json",
+                    0.42d,
+                    3,
+                    10,
+                    2048,
+                    TaskManagerTaskState.Running));
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
-                Assert.IsFalse(installButton.IsVisible);
+                MyCard card = page.GetVisualDescendants().OfType<MyCard>().Single(card => card.Title == "安装 1.20.1");
+                string[] text = page.GetVisualDescendants()
+                    .OfType<TextBlock>()
+                    .Select(block => block.Text ?? string.Empty)
+                    .ToArray();
+                Assert.AreEqual(1, page.TaskCount);
+                Assert.IsTrue(page.HasActiveTasks);
+                Assert.IsTrue(text.Contains("下载版本描述"));
+                Assert.IsTrue(text.Any(value => value.Contains("1.20.1.json", StringComparison.Ordinal)));
+                Assert.IsTrue(text.Contains("42%"));
+
+                MyIconButton cancelButton = card.GetVisualDescendants()
+                    .OfType<MyIconButton>()
+                    .Single(button => Equals(button.ToolTip, "取消任务"));
                 Assert.IsTrue(cancelButton.IsVisible);
-                Assert.IsFalse(launchButton.IsVisible);
                 Click(window, cancelButton);
                 Assert.AreEqual(1, cancelCount);
+                Assert.AreEqual("install:1.20.1", canceledTask);
 
-                page.Complete("1.20.1");
+                page.UpsertTask(new TaskManagerEntrySnapshot(
+                    "install:1.20.1",
+                    "安装 1.20.1",
+                    "安装完成",
+                    "任务已完成",
+                    1d,
+                    10,
+                    10,
+                    0,
+                    TaskManagerTaskState.Finished));
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
-                Assert.IsTrue(installButton.IsVisible);
                 Assert.IsFalse(cancelButton.IsVisible);
-                Assert.IsTrue(launchButton.IsVisible);
-                Click(window, installButton);
-                Click(window, launchButton);
-                Assert.AreEqual(1, installCount);
-                Assert.AreEqual(1, launchCount);
+                Assert.IsFalse(page.HasActiveTasks);
+                Assert.IsTrue(page.GetVisualDescendants().OfType<TextBlock>().Any(block => block.Text == "√"));
 
-                page.Fail("网络连接失败");
+                page.RemoveTask("install:1.20.1");
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-
-                Assert.IsTrue(installButton.IsVisible);
-                Assert.IsFalse(cancelButton.IsVisible);
-                Assert.IsFalse(launchButton.IsVisible);
+                Assert.AreEqual(0, page.TaskCount);
             }
             finally
             {
@@ -2406,19 +2466,33 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
-    public void PageDownloadProgress_AllowsProgressUpdatesFromBackgroundThread()
+    public void PageSpeedPages_AllowProgressUpdatesFromBackgroundThread()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(async () =>
         {
-            PageDownloadProgress progressPage = new();
+            PageSpeedLeft left = new();
+            PageSpeedRight right = new();
             Window window = new()
             {
                 Width = 520,
                 Height = 260,
-                Content = progressPage
+                Content = new Grid
+                {
+                    ColumnDefinitions =
+                    {
+                        new ColumnDefinition(200d, GridUnitType.Pixel),
+                        new ColumnDefinition(1d, GridUnitType.Star)
+                    },
+                    Children =
+                    {
+                        left,
+                        right
+                    }
+                }
             };
+            Grid.SetColumn(right, 1);
 
             try
             {
@@ -2427,24 +2501,35 @@ public sealed class AvaloniaHeadlessTests
 
                 await Task.Run(() =>
                 {
-                    progressPage.Begin("1.21.5");
-                    progressPage.Update(new MinecraftInstallProgress
-                    {
-                        Stage = "下载版本描述",
-                        Detail = "1.21.5.json",
-                        Progress = 0.42d
-                    });
-                    progressPage.Complete("1.21.5");
+                    left.UpdateSummary(new TaskManagerSummary(0.425d, 2048, 7, 2, 4));
+                    right.UpsertTask(new TaskManagerEntrySnapshot(
+                        "install:1.21.5",
+                        "安装 1.21.5",
+                        "下载版本描述",
+                        "1.21.5.json",
+                        0.425d,
+                        3,
+                        10,
+                        2048,
+                        TaskManagerTaskState.Running));
                 });
 
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-                string[] text = progressPage.GetVisualDescendants()
+                string[] leftText = left.GetVisualDescendants()
                     .OfType<TextBlock>()
                     .Select(block => block.Text ?? string.Empty)
                     .ToArray();
-                Assert.IsTrue(text.Contains("1.21.5 安装完成"));
-                Assert.IsTrue(text.Contains("你可以回到启动页选择并启动这个版本。"));
-                Assert.IsTrue(progressPage.GetVisualDescendants().OfType<MyButton>().Single(button => button.Text == "回到启动页").IsVisible);
+                string[] rightText = right.GetVisualDescendants()
+                    .OfType<TextBlock>()
+                    .Select(block => block.Text ?? string.Empty)
+                    .ToArray();
+
+                Assert.IsTrue(leftText.Any(text => text.StartsWith("42", StringComparison.Ordinal)));
+                Assert.IsTrue(leftText.Contains("2.0 KB/s"));
+                Assert.IsTrue(leftText.Contains("7"));
+                Assert.IsTrue(leftText.Contains("2 / 4"));
+                Assert.IsTrue(rightText.Contains("下载版本描述"));
+                Assert.IsTrue(rightText.Any(text => text.Contains("1.21.5.json", StringComparison.Ordinal)));
             }
             finally
             {

@@ -30,6 +30,7 @@ using PCL.Desktop.Features.Downloads.Views;
 using PCL.Desktop.Features.Instances.Views;
 using PCL.Desktop.Features.Launching.Views;
 using PCL.Desktop.Features.Settings.Views;
+using PCL.Desktop.Features.Tasks.Views;
 using PCL.Platform.Paths;
 using PCL.UI.Abstractions.Navigation;
 using PCL.UI.Abstractions.Pages;
@@ -59,7 +60,8 @@ public partial class MainWindow : Window, IDisposable
     private PageLoginOffline? _loginOfflinePage;
     private PageDownloadLeft? _downloadLeft;
     private PageDownloadInstall? _downloadInstallPage;
-    private PageDownloadProgress? _downloadProgressPage;
+    private PageSpeedLeft? _speedLeft;
+    private PageSpeedRight? _speedRight;
     private PageInstanceLeft? _instanceLeft;
     private PageInstanceSelectRight? _instanceSelectPage;
     private PageInstanceManageRight? _instanceManagePage;
@@ -86,9 +88,12 @@ public partial class MainWindow : Window, IDisposable
     private MyPageRight? _setupRight;
     private readonly List<LoginProfileInfo> _loginProfiles = [];
     private readonly Dictionary<int, NavigationPageDescriptor> _navigationPages;
+    private readonly Dictionary<string, TaskManagerEntrySnapshot> _taskSnapshots = [];
     private readonly DesktopPageAdapter _pageAdapter = new();
     private readonly DesktopPageContext _desktopPageContext;
     private int _registeredPageRequestId;
+    private bool _isTaskManagerVisible;
+    private string? _taskManagerBackRoute;
 
     private const double NavCollapsedWidth = 50d;
     private const int NavAnimDuration = 200;
@@ -254,6 +259,7 @@ public partial class MainWindow : Window, IDisposable
 
     private void BtnExtraDownload_Click(object? sender, EventArgs e)
     {
+        ApplyTaskManagerPage(animate: true);
     }
 
     private void BtnExtraApril_Click(object? sender, EventArgs e)
@@ -671,6 +677,8 @@ public partial class MainWindow : Window, IDisposable
     private void ApplyRegisteredMainPage(DesktopMainPage page)
     {
         _titleInnerBackAction = null;
+        _isTaskManagerVisible = false;
+        RefreshTaskManagerButton();
         if (this.FindControl<Border>("PanMainLeft") is not { } leftHost ||
             this.FindControl<Border>("PanMainRight") is not { } rightHost)
         {
@@ -754,7 +762,7 @@ public partial class MainWindow : Window, IDisposable
 
     private PageDownloadLeft CreateDownloadLeftPage()
     {
-        PageDownloadLeft page = new(CreateDownloadInstallPage, CreateDownloadProgressPage);
+        PageDownloadLeft page = new(CreateDownloadInstallPage);
         page.PageChanged += (_, args) => ApplyDownloadRightPage(args.Page);
         return page;
     }
@@ -770,20 +778,15 @@ public partial class MainWindow : Window, IDisposable
         return _downloadInstallPage;
     }
 
-    private PageDownloadProgress CreateDownloadProgressPage()
+    private PageSpeedRight CreateTaskManagerRightPage()
     {
-        if (_downloadProgressPage is not null)
-            return _downloadProgressPage;
+        if (_speedRight is not null)
+            return _speedRight;
 
-        PageDownloadProgress page = new();
+        PageSpeedRight page = new();
         page.CancelRequested += (_, _) => _installCancellation?.Cancel();
-        page.InstallPageRequested += (_, _) =>
-        {
-            ActivateDownloadInstallPage(animate: true);
-        };
-        page.LaunchPageRequested += (_, _) => SelectNavRoute(LaunchRoute, animate: true);
-        _downloadProgressPage = page;
-        return _downloadProgressPage;
+        _speedRight = page;
+        return _speedRight;
     }
 
     private void ApplyDownloadRightPage(MyPageRight target)
@@ -1034,13 +1037,247 @@ public partial class MainWindow : Window, IDisposable
         return installPage;
     }
 
-    private PageDownloadProgress ActivateDownloadProgressPage(bool animate)
+    private PageSpeedRight ActivateTaskManagerPage(bool animate)
     {
-        _downloadLeft ??= CreateDownloadLeftPage();
-        PageDownloadProgress progressPage = CreateDownloadProgressPage();
-        _downloadLeft.PageChange(DownloadPageSubType.Progress, force: true);
-        SelectNavRoute(DownloadRoute, animate);
-        return progressPage;
+        PageSpeedRight rightPage = CreateTaskManagerRightPage();
+        ApplyTaskManagerPage(animate);
+        return rightPage;
+    }
+
+    private void ApplyTaskManagerPage(bool animate)
+    {
+        if (this.FindControl<Border>("PanMainLeft") is not { } leftHost ||
+            this.FindControl<Border>("PanMainRight") is not { } rightHost)
+        {
+            return;
+        }
+
+        if (!_isTaskManagerVisible)
+            _taskManagerBackRoute = GetCurrentNavigationRoute();
+
+        _registeredPageRequestId++;
+        _isTaskManagerVisible = true;
+        _titleInnerBackAction = () => SelectNavRoute(_taskManagerBackRoute ?? LaunchRoute, animate: true);
+
+        _speedLeft ??= new PageSpeedLeft();
+        PageSpeedRight rightPage = CreateTaskManagerRightPage();
+        UpdateTaskManagerViews();
+
+        if (!ReferenceEquals(leftHost.Child, _speedLeft))
+        {
+            if (leftHost.Child is MyPageLeft oldLeft)
+                oldLeft.TriggerHideAnimation();
+            leftHost.Child = _speedLeft;
+        }
+
+        MyPageRight? oldRight = rightHost.Child as MyPageRight;
+        if (!ReferenceEquals(oldRight, rightPage))
+        {
+            oldRight?.PageOnExit();
+            if (animate && _isMainWindowOpened)
+            {
+                ModAnimation.AniStart(
+                    new List<ModAnimation.AniData>
+                    {
+                        ModAnimation.AaOpacity(rightHost, -rightHost.Opacity, 110),
+                        ModAnimation.AaCode(() =>
+                        {
+                            rightHost.Child = rightPage;
+                            rightHost.Opacity = 0d;
+                            RefreshBackToTopBinding();
+                        }, after: true),
+                        ModAnimation.AaOpacity(rightHost, 1d, 170),
+                        ModAnimation.AaCode(rightPage.PageOnEnter, after: true)
+                    },
+                    "FrmMain PageChangeRight");
+            }
+            else
+            {
+                rightHost.Child = rightPage;
+                rightHost.Opacity = 1d;
+                RefreshBackToTopBinding();
+                rightPage.PageOnEnter();
+            }
+        }
+        else
+        {
+            rightHost.Opacity = 1d;
+            RefreshBackToTopBinding();
+            rightPage.PageOnEnter();
+        }
+
+        EnterTitleSubPage(GetResourceText("Main.Title.TaskManager", "任务管理"));
+        _speedLeft.TriggerShowAnimation();
+        RefreshTaskManagerButton();
+    }
+
+    private string GetCurrentNavigationRoute() =>
+        _navigationPages.TryGetValue(_currentNavPage, out NavigationPageDescriptor? descriptor)
+            ? descriptor.Route
+            : LaunchRoute;
+
+    private string GetResourceText(string key, string fallback)
+    {
+        if (TryGetResource(key, null, out object? resource) && resource is string text)
+            return text;
+
+        return Avalonia.Application.Current?.TryGetResource(key, null, out resource) == true && resource is string appText
+            ? appText
+            : fallback;
+    }
+
+    private void TrackTaskBegin(string taskId, string title, string stage)
+    {
+        _taskSnapshots[taskId] = new TaskManagerEntrySnapshot(
+            taskId,
+            title,
+            stage,
+            string.Empty,
+            0d,
+            0,
+            0,
+            0,
+            TaskManagerTaskState.Waiting);
+        UpdateTaskManagerViews();
+        NotifyTaskManagerButton(ribble: true);
+    }
+
+    private void TrackInstallProgress(string taskId, string title, MinecraftInstallProgress progress)
+    {
+        string stage = string.IsNullOrWhiteSpace(progress.Stage) ? "正在处理下载任务" : progress.Stage;
+        _taskSnapshots[taskId] = new TaskManagerEntrySnapshot(
+            taskId,
+            title,
+            stage,
+            progress.Detail,
+            progress.Progress,
+            progress.CompletedFiles,
+            progress.TotalFiles,
+            progress.SpeedBytesPerSecond,
+            TaskManagerTaskState.Running);
+        UpdateTaskManagerViews();
+        RefreshTaskManagerButton();
+    }
+
+    private void TrackTaskFinished(string taskId, string title, string stage)
+    {
+        TaskManagerEntrySnapshot previous = GetTaskSnapshotOrDefault(taskId, title);
+        _taskSnapshots[taskId] = previous with
+        {
+            Title = title,
+            Stage = stage,
+            Detail = "任务已完成",
+            Progress = 1d,
+            State = TaskManagerTaskState.Finished,
+            ErrorMessage = null
+        };
+        UpdateTaskManagerViews();
+        RefreshTaskManagerButton();
+        _ = RemoveTaskAfterDelayAsync(taskId, TimeSpan.FromMilliseconds(900));
+    }
+
+    private void TrackTaskFailed(string taskId, string title, string message, bool canceled)
+    {
+        TaskManagerEntrySnapshot previous = GetTaskSnapshotOrDefault(taskId, title);
+        _taskSnapshots[taskId] = previous with
+        {
+            Title = title,
+            Stage = canceled ? "任务已取消" : "任务失败",
+            Detail = canceled ? "已停止下载任务" : "请查看错误信息并稍后重试",
+            State = canceled ? TaskManagerTaskState.Canceled : TaskManagerTaskState.Failed,
+            ErrorMessage = message
+        };
+        UpdateTaskManagerViews();
+        RefreshTaskManagerButton();
+        if (canceled)
+            _ = RemoveTaskAfterDelayAsync(taskId, TimeSpan.FromMilliseconds(700));
+    }
+
+    private TaskManagerEntrySnapshot GetTaskSnapshotOrDefault(string taskId, string title) =>
+        _taskSnapshots.TryGetValue(taskId, out TaskManagerEntrySnapshot? snapshot)
+            ? snapshot
+            : new TaskManagerEntrySnapshot(
+                taskId,
+                title,
+                "正在准备任务",
+                string.Empty,
+                0d,
+                0,
+                0,
+                0,
+                TaskManagerTaskState.Waiting);
+
+    private async Task RemoveTaskAfterDelayAsync(string taskId, TimeSpan delay)
+    {
+        await Task.Delay(delay).ConfigureAwait(true);
+        _taskSnapshots.Remove(taskId);
+        _speedRight?.RemoveTask(taskId);
+        UpdateTaskManagerViews();
+        RefreshTaskManagerButton();
+
+        if (_isTaskManagerVisible && _taskSnapshots.Count == 0)
+            SelectNavRoute(_taskManagerBackRoute ?? LaunchRoute, animate: true);
+    }
+
+    private void UpdateTaskManagerViews()
+    {
+        if (_taskSnapshots.Count == 0)
+        {
+            _speedLeft?.SetIdle();
+            return;
+        }
+
+        foreach (TaskManagerEntrySnapshot snapshot in _taskSnapshots.Values)
+            _speedRight?.UpsertTask(snapshot);
+
+        _speedLeft?.UpdateSummary(CreateTaskManagerSummary());
+    }
+
+    private TaskManagerSummary CreateTaskManagerSummary()
+    {
+        TaskManagerEntrySnapshot[] activeTasks = _taskSnapshots.Values
+            .Where(static snapshot => snapshot.State is TaskManagerTaskState.Waiting or TaskManagerTaskState.Running)
+            .ToArray();
+        TaskManagerEntrySnapshot[] sourceTasks = activeTasks.Length == 0 ? _taskSnapshots.Values.ToArray() : activeTasks;
+
+        double progress = sourceTasks.Length == 0
+            ? 1d
+            : sourceTasks.Average(static snapshot => Math.Clamp(snapshot.Progress, 0d, 1d));
+        long speed = activeTasks.Sum(static snapshot => snapshot.SpeedBytesPerSecond);
+        int remainingFiles = activeTasks.Sum(static snapshot =>
+            snapshot.TotalFiles > 0 ? Math.Max(0, snapshot.TotalFiles - snapshot.CompletedFiles) : 0);
+        int threadLimit = Math.Max(1, Environment.ProcessorCount);
+
+        return new TaskManagerSummary(
+            progress,
+            speed,
+            remainingFiles,
+            Math.Min(threadLimit, activeTasks.Length),
+            threadLimit);
+    }
+
+    private void NotifyTaskManagerButton(bool ribble)
+    {
+        RefreshTaskManagerButton();
+        if (!ribble ||
+            this.FindControl<MyExtraButton>("BtnExtraDownload") is not { } button ||
+            !button.Show)
+        {
+            return;
+        }
+
+        button.Ribble();
+    }
+
+    private void RefreshTaskManagerButton()
+    {
+        if (this.FindControl<MyExtraButton>("BtnExtraDownload") is not { } button)
+            return;
+
+        bool hasActiveTask = _taskSnapshots.Values.Any(static snapshot =>
+            snapshot.State is TaskManagerTaskState.Waiting or TaskManagerTaskState.Running);
+        button.Progress = hasActiveTask ? CreateTaskManagerSummary().Progress : 0d;
+        button.Show = hasActiveTask && !_isTaskManagerVisible;
     }
 
     private PageInstanceScreenshotRight CreateInstanceScreenshotPage()
@@ -1782,12 +2019,14 @@ public partial class MainWindow : Window, IDisposable
         _installCancellation?.Dispose();
         _installCancellation = new CancellationTokenSource();
 
-        PageDownloadProgress progressPage = ActivateDownloadProgressPage(animate: true);
-        progressPage.Begin(version.Id);
+        string taskId = "install:" + version.Id;
+        string taskTitle = "安装 " + version.Id;
+        ActivateTaskManagerPage(animate: true);
+        TrackTaskBegin(taskId, taskTitle, "准备安装文件");
 
         string minecraftRoot = GetDefaultMinecraftRoot();
         Directory.CreateDirectory(minecraftRoot);
-        Progress<MinecraftInstallProgress> progress = new(update => progressPage.Update(update));
+        Progress<MinecraftInstallProgress> progress = new(update => TrackInstallProgress(taskId, taskTitle, update));
         try
         {
             MinecraftInstallResult result = await _minecraftInstallService.InstallAsync(
@@ -1801,7 +2040,7 @@ public partial class MainWindow : Window, IDisposable
                     progress,
                     _installCancellation.Token)
                 .ConfigureAwait(true);
-            progressPage.Complete(version.Id);
+            TrackTaskFinished(taskId, taskTitle, "安装完成");
             _launchRight?.AppendLog($"{version.Id} 安装完成。");
 
             if (_launchLeft is not null)
@@ -1815,11 +2054,11 @@ public partial class MainWindow : Window, IDisposable
         }
         catch (OperationCanceledException)
         {
-            progressPage.Fail("安装已取消。");
+            TrackTaskFailed(taskId, taskTitle, "安装已取消。", canceled: true);
         }
         catch (Exception ex)
         {
-            progressPage.Fail(ex.Message);
+            TrackTaskFailed(taskId, taskTitle, ex.Message, canceled: false);
             ShowTextDialog("安装失败", "未能完成 Minecraft 安装。\n\n详细信息：" + ex.Message);
         }
     }
@@ -2270,10 +2509,12 @@ public partial class MainWindow : Window, IDisposable
         _installCancellation?.Dispose();
         _installCancellation = new CancellationTokenSource();
 
-        PageDownloadProgress progressPage = ActivateDownloadProgressPage(animate: true);
-        progressPage.Begin(instance.Name);
+        string taskId = "repair:" + instance.InstanceDirectory;
+        string taskTitle = "修复 " + instance.Name;
+        ActivateTaskManagerPage(animate: true);
+        TrackTaskBegin(taskId, taskTitle, "准备检查版本文件");
 
-        Progress<MinecraftInstallProgress> progress = new(update => progressPage.Update(update));
+        Progress<MinecraftInstallProgress> progress = new(update => TrackInstallProgress(taskId, taskTitle, update));
         try
         {
             await _minecraftInstallService.RepairAsync(
@@ -2288,16 +2529,16 @@ public partial class MainWindow : Window, IDisposable
                     progress,
                     _installCancellation.Token)
                 .ConfigureAwait(true);
-            progressPage.Complete(instance.Name);
+            TrackTaskFinished(taskId, taskTitle, "文件检查完成");
             _launchRight?.AppendLog($"{instance.Name} 文件检查完成。");
         }
         catch (OperationCanceledException)
         {
-            progressPage.Fail("修复已取消。");
+            TrackTaskFailed(taskId, taskTitle, "修复已取消。", canceled: true);
         }
         catch (Exception ex)
         {
-            progressPage.Fail(ex.Message);
+            TrackTaskFailed(taskId, taskTitle, ex.Message, canceled: false);
             ShowTextDialog("修复失败", "未能修复版本文件。\n\n详细信息：" + ex.Message);
         }
     }

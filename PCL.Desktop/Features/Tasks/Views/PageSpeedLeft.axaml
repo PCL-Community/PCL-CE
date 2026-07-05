@@ -1,0 +1,118 @@
+<legacy:MyPageLeft x:Class="PCL.Desktop.Features.Tasks.Views.PageSpeedLeft"
+                   xmlns="https://github.com/avaloniaui"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                   xmlns:legacy="using:PCL.Desktop.Controls.Legacy"
+                   Width="200"
+                   HorizontalAlignment="Left">
+    <Grid.RowDefinitions>
+        <RowDefinition Height="1*" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="0.6*" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="0.6*" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="0.6*" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="1*" />
+    </Grid.RowDefinitions>
+
+    <TextBlock Grid.Row="1"
+               Text="{DynamicResource Speed.Progress.Total}"
+               HorizontalAlignment="Center"
+               FontSize="14"
+               Foreground="{DynamicResource ColorBrush3}" />
+    <Border Grid.Row="2"
+            Height="2"
+            Margin="25,7">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
+                <GradientStop Color="{DynamicResource ColorObjectBg1}" Offset="0" />
+                <GradientStop Color="{DynamicResource ColorObject3}" Offset="0.02" />
+                <GradientStop Color="{DynamicResource ColorObject3}" Offset="0.98" />
+                <GradientStop Color="{DynamicResource ColorObjectBg1}" Offset="1" />
+            </LinearGradientBrush>
+        </Border.Background>
+    </Border>
+    <TextBlock x:Name="LabProgress"
+               Grid.Row="3"
+               Text="100%"
+               HorizontalAlignment="Center"
+               FontSize="20" />
+
+    <TextBlock Grid.Row="5"
+               Text="{DynamicResource Speed.Progress.Speed}"
+               HorizontalAlignment="Center"
+               FontSize="14"
+               Foreground="{DynamicResource ColorBrush3}" />
+    <Border Grid.Row="6"
+            Height="2"
+            Margin="25,7">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
+                <GradientStop Color="{DynamicResource ColorObjectBg1}" Offset="0" />
+                <GradientStop Color="{DynamicResource ColorObject3}" Offset="0.02" />
+                <GradientStop Color="{DynamicResource ColorObject3}" Offset="0.98" />
+                <GradientStop Color="{DynamicResource ColorObjectBg1}" Offset="1" />
+            </LinearGradientBrush>
+        </Border.Background>
+    </Border>
+    <TextBlock x:Name="LabSpeed"
+               Grid.Row="7"
+               Text="0 B/s"
+               HorizontalAlignment="Center"
+               FontSize="20" />
+
+    <TextBlock Grid.Row="9"
+               Text="{DynamicResource Speed.Progress.RemainingFiles}"
+               HorizontalAlignment="Center"
+               FontSize="14"
+               Foreground="{DynamicResource ColorBrush3}" />
+    <Border Grid.Row="10"
+            Height="2"
+            Margin="25,7">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
+                <GradientStop Color="{DynamicResource ColorObjectBg1}" Offset="0" />
+                <GradientStop Color="{DynamicResource ColorObject3}" Offset="0.02" />
+                <GradientStop Color="{DynamicResource ColorObject3}" Offset="0.98" />
+                <GradientStop Color="{DynamicResource ColorObjectBg1}" Offset="1" />
+            </LinearGradientBrush>
+        </Border.Background>
+    </Border>
+    <TextBlock x:Name="LabFile"
+               Grid.Row="11"
+               Text="0"
+               HorizontalAlignment="Center"
+               FontSize="20" />
+
+    <TextBlock Grid.Row="13"
+               Text="{DynamicResource Speed.Progress.RemainingThreads}"
+               HorizontalAlignment="Center"
+               FontSize="14"
+               Foreground="{DynamicResource ColorBrush3}" />
+    <Border Grid.Row="14"
+            Height="2"
+            Margin="25,7">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
+                <GradientStop Color="{DynamicResource ColorObjectBg1}" Offset="0" />
+                <GradientStop Color="{DynamicResource ColorObject3}" Offset="0.02" />
+                <GradientStop Color="{DynamicResource ColorObject3}" Offset="0.98" />
+                <GradientStop Color="{DynamicResource ColorObjectBg1}" Offset="1" />
+            </LinearGradientBrush>
+        </Border.Background>
+    </Border>
+    <TextBlock x:Name="LabThread"
+               Grid.Row="15"
+               Text="0 / 1"
+               HorizontalAlignment="Center"
+               FontSize="20" />
+</legacy:MyPageLeft>

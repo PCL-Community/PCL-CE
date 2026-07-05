@@ -10,8 +10,7 @@ namespace PCL.Desktop.Features.Downloads.Views;
 
 public enum DownloadPageSubType
 {
-    Install = 0,
-    Progress = 1
+    Install = 0
 }
 
 public enum DownloadVersionFilter
@@ -33,20 +32,17 @@ public sealed class DownloadPageChangedEventArgs(DownloadPageSubType pageId, MyP
 public partial class PageDownloadLeft : MyPageLeft
 {
     private readonly Func<PageDownloadInstall> _installFactory;
-    private readonly Func<PageDownloadProgress> _progressFactory;
     private PageDownloadInstall? _installPage;
-    private PageDownloadProgress? _progressPage;
     private bool _isLoadedOnce;
 
     public PageDownloadLeft()
-        : this(() => new PageDownloadInstall(), () => new PageDownloadProgress())
+        : this(() => new PageDownloadInstall())
     {
     }
 
-    public PageDownloadLeft(Func<PageDownloadInstall> installFactory, Func<PageDownloadProgress> progressFactory)
+    public PageDownloadLeft(Func<PageDownloadInstall> installFactory)
     {
         _installFactory = installFactory;
-        _progressFactory = progressFactory;
         AvaloniaXamlLoader.Load(this);
         AnimatedControl = this.FindControl<Control>("PanItem");
         AttachedToVisualTree += (_, _) =>
@@ -68,12 +64,7 @@ public partial class PageDownloadLeft : MyPageLeft
 
     public MyPageRight GetOrCreateCurrentPage() => PageGet(PageId);
 
-    public MyPageRight PageGet(DownloadPageSubType page) =>
-        page switch
-        {
-            DownloadPageSubType.Progress => _progressPage ??= _progressFactory(),
-            _ => _installPage ??= _installFactory()
-        };
+    public MyPageRight PageGet(DownloadPageSubType page) => _installPage ??= _installFactory();
 
     public void PageChange(DownloadPageSubType page, bool force = false)
     {
