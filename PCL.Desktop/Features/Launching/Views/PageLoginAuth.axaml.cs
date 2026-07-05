@@ -2,6 +2,7 @@
 // Modifications Copyright (c) 2026 PCL N contributors.
 // Licensed under the Apache License, Version 2.0.
 
+using System.Collections.Frozen;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
@@ -13,11 +14,12 @@ public sealed record AuthLoginRequest(string Server, string Username, string Pas
 
 public partial class PageLoginAuth : Grid, PageLaunchLeft.ILoginPage
 {
-    private static readonly Dictionary<string, string> PredefinedAuthServers = new(StringComparer.Ordinal)
-    {
-        ["LittleSkin"] = "https://littleskin.cn/api/yggdrasil",
-        ["自定义"] = string.Empty
-    };
+    private static readonly FrozenDictionary<string, string> PredefinedAuthServers =
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["LittleSkin"] = "https://littleskin.cn/api/yggdrasil",
+            ["自定义"] = string.Empty
+        }.ToFrozenDictionary(StringComparer.Ordinal);
 
     private bool _isLoginRunning;
     private bool _isRegisterMode = true;
