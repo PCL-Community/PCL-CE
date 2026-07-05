@@ -1158,6 +1158,10 @@ public sealed class AvaloniaHeadlessTests
 
                 Assert.IsNotNull(setupLeft);
                 Assert.IsTrue(setupLeft.FindControl<MyListItem>("ItemLaunch")!.Checked);
+                Assert.AreEqual(SetupPageSubType.Plugin, setupLeft.FindControl<MyListItem>("ItemPlugin")!.Tag);
+                Assert.AreEqual(
+                    SetupPageSubType.Java,
+                    setupLeft.FindControl<MyListItem>("ItemJava")!.Buttons.Single().Tag);
                 Assert.IsInstanceOfType<PageSetupLaunch>(FindVisual<MyPageRight>(window));
 
                 Click(window, setupLeft.FindControl<MyListItem>("ItemPlugin")!);

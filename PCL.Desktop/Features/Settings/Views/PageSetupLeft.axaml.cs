@@ -2,6 +2,7 @@
 // Modifications Copyright (c) 2026 PCL N contributors.
 // Licensed under the Apache License, Version 2.0.
 
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -40,6 +41,7 @@ public partial class PageSetupLeft : MyPageLeft
     {
         AvaloniaXamlLoader.Load(this);
         AnimatedControl = Required<Control>("PanItem");
+        InitializeRegisteredPageTags();
         PageId = SetupPageSubType.Launch;
         AttachedToVisualTree += (_, _) =>
         {
@@ -111,11 +113,17 @@ public partial class PageSetupLeft : MyPageLeft
     private static bool TryReadPage(object? tag, out SetupPageSubType page)
     {
         page = SetupPageSubType.Launch;
+        if (tag is SetupPageSubType typedPage && SetupPageRegistry.IsDefined(typedPage))
+        {
+            page = typedPage;
+            return true;
+        }
+
         int value = tag switch
         {
             int intValue => intValue,
             double doubleValue => (int)Math.Round(doubleValue),
-            string text when int.TryParse(text, out int parsed) => parsed,
+            string text when int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed) => parsed,
             _ => int.MinValue
         };
         if (!SetupPageRegistry.IsDefined((SetupPageSubType)value))
@@ -123,6 +131,33 @@ public partial class PageSetupLeft : MyPageLeft
 
         page = (SetupPageSubType)value;
         return true;
+    }
+
+    private void InitializeRegisteredPageTags()
+    {
+        foreach (MyListItem item in GetItems())
+        {
+            if (TryReadPage(item.Tag, out SetupPageSubType page))
+                item.Tag = page;
+
+            foreach (MyIconButton button in item.Buttons)
+            {
+                if (TryReadPage(button.Tag, out SetupPageSubType buttonPage))
+                    button.Tag = buttonPage;
+            }
+        }
+    }
+
+    private IEnumerable<MyListItem> GetItems()
+    {
+        if (this.FindControl<Panel>("PanItem") is not { } panel)
+            yield break;
+
+        foreach (Control child in panel.Children)
+        {
+            if (child is MyListItem item)
+                yield return item;
+        }
     }
 
     private static string GetPageTitle(SetupPageSubType page) => SetupPageRegistry.GetTitle(page);
