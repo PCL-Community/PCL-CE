@@ -37,10 +37,3 @@ internal static partial class DesktopNavigationRegistry
     private static DesktopMainPage CreateSettingsPage(DesktopPageContext context) =>
         context.CreateSettingsPage();
 }
-
-internal sealed class StaticHostModule(string id, Action<IPclHostBuilder> configure) : IPclHostModule
-{
-    public string Id { get; } = id;
-
-    public void Configure(IPclHostBuilder builder) => configure(builder);
-}

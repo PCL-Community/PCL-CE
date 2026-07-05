@@ -15,7 +15,7 @@ namespace PCL.Application.Hosting;
 
 public interface IPclHostModule
 {
-    string Id { get; }
+    HostModuleId Id { get; }
 
     void Configure(IPclHostBuilder builder);
 }
@@ -61,12 +61,12 @@ public interface IPclHost
 
     ILaunchPipelineBuilder Launching { get; }
 
-    IReadOnlyList<string> ModuleIds { get; }
+    IReadOnlyList<HostModuleId> ModuleIds { get; }
 }
 
 public sealed class PclHostBuilder : IPclHostBuilder
 {
-    private readonly List<string> _moduleIds = [];
+    private readonly List<HostModuleId> _moduleIds = [];
 
     public IServiceRegistry Services { get; } = new ServiceRegistry();
 
@@ -86,17 +86,21 @@ public sealed class PclHostBuilder : IPclHostBuilder
 
     public ILaunchPipelineBuilder Launching { get; } = new LaunchPipelineBuilder();
 
+    public PclHostBuilder AddModule(HostModuleId id, Action<IPclHostBuilder> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+        if (_moduleIds.Any(registered => string.Equals(registered.Value, id.Value, StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException($"Host Module 已注册：{id.Value}");
+
+        configure(this);
+        _moduleIds.Add(id);
+        return this;
+    }
+
     public PclHostBuilder AddModule(IPclHostModule hostModule)
     {
         ArgumentNullException.ThrowIfNull(hostModule);
-        if (string.IsNullOrWhiteSpace(hostModule.Id))
-            throw new ArgumentException("Host Module ID 不能为空。", nameof(hostModule));
-        if (_moduleIds.Any(id => string.Equals(id, hostModule.Id, StringComparison.OrdinalIgnoreCase)))
-            throw new InvalidOperationException($"Host Module 已注册：{hostModule.Id}");
-
-        hostModule.Configure(this);
-        _moduleIds.Add(hostModule.Id);
-        return this;
+        return AddModule(hostModule.Id, hostModule.Configure);
     }
 
     public IPclHost Build() =>
@@ -123,7 +127,7 @@ internal sealed class PclHost(
     IAccountProviderRegistry accounts,
     IDownloadSourceRegistry downloads,
     ILaunchPipelineBuilder launching,
-    IReadOnlyList<string> moduleIds) : IPclHost
+    IReadOnlyList<HostModuleId> moduleIds) : IPclHost
 {
     public IServiceProvider Services { get; } = services;
 
@@ -143,5 +147,5 @@ internal sealed class PclHost(
 
     public ILaunchPipelineBuilder Launching { get; } = launching;
 
-    public IReadOnlyList<string> ModuleIds { get; } = moduleIds;
+    public IReadOnlyList<HostModuleId> ModuleIds { get; } = moduleIds;
 }

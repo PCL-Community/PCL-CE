@@ -108,15 +108,15 @@ public sealed class DesktopNavigationRegistryGenerator : IIncrementalGenerator
         sb.AppendLine("        global::System.ArgumentNullException.ThrowIfNull(builder);");
         foreach (NavigationPageModel page in pages)
         {
-            sb.AppendLine("        builder.AddModule(new global::PCL.Desktop.Hosting.StaticHostModule(");
-            sb.Append("            ").Append(ToLiteral(page.ModuleId)).AppendLine(",");
+            sb.AppendLine("        builder.AddModule(");
+            sb.Append("            new global::PCL.Application.Hosting.HostModuleId(").Append(ToLiteral(page.ModuleId)).AppendLine("),");
             sb.AppendLine("            static hostBuilder => global::PCL.Desktop.Hosting.DesktopNavigationModule.AddPage(");
             sb.AppendLine("                hostBuilder.Navigation,");
             sb.Append("                new global::PCL.UI.Abstractions.Navigation.NavigationRouteId(").Append(ToLiteral(page.Route)).AppendLine("),");
             sb.Append("                ").Append(ToLiteral(page.Title)).AppendLine(",");
             sb.Append("                ").Append(ToLiteral(page.Icon)).AppendLine(",");
             sb.Append("                ").Append(page.Order).AppendLine(",");
-            sb.Append("                static context => ").Append(page.Method.Name).AppendLine("(context))));");
+            sb.Append("                static context => ").Append(page.Method.Name).AppendLine("(context)));");
         }
         sb.AppendLine("    }");
         sb.AppendLine("}");

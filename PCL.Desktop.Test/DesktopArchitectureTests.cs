@@ -101,7 +101,8 @@ public sealed class DesktopArchitectureTests
         Assert.AreEqual(4, CountOccurrences(registrySource, "[DesktopNavigationPage("));
         StringAssert.Contains(registrySource, "NavigationRouteId");
         StringAssert.Contains(generatorSource, "new global::PCL.UI.Abstractions.Navigation.NavigationRouteId");
-        StringAssert.Contains(generatorSource, "StaticHostModule");
+        StringAssert.Contains(generatorSource, "new global::PCL.Application.Hosting.HostModuleId");
+        Assert.IsFalse(generatorSource.Contains("StaticHostModule", StringComparison.Ordinal));
     }
 
     [TestMethod]
