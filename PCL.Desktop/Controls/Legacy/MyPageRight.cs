@@ -4,7 +4,11 @@
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
 
 namespace PCL.Desktop.Controls.Legacy;
 
@@ -33,6 +37,7 @@ public class MyPageRight : ContentControl, IDisposable
     private Control? _pageLoaderPanel;
     private Control? _pageContentPanel;
     private Control? _pageAlwaysPanel;
+    private LoaderRunState _pageLoaderState = LoaderRunState.Waiting;
     private bool _pageLoaderAutoRun;
     private readonly string _pageUuid = Guid.NewGuid().ToString("N");
 
@@ -54,6 +59,14 @@ public class MyPageRight : ContentControl, IDisposable
 
     public event Action? PageExit;
 
+    private enum LoaderRunState
+    {
+        Waiting,
+        Loading,
+        Finished,
+        Failed
+    }
+
     public void PageLoaderInit(
         MyLoading loaderUi,
         Control panLoader,
@@ -69,6 +82,7 @@ public class MyPageRight : ContentControl, IDisposable
         _pageContentPanel = panContent;
         _pageAlwaysPanel = panAlways;
         _pageLoaderAutoRun = autoRun;
+        _pageLoaderState = LoaderRunState.Waiting;
 
         loaderUi.Text = "正在加载";
         panLoader.IsVisible = false;
@@ -80,7 +94,7 @@ public class MyPageRight : ContentControl, IDisposable
             PageLoaderRestart();
     }
 
-    public async void PageLoaderRestart(object? input = null, bool isForceRestart = true)
+    public void PageLoaderRestart(object? input = null, bool isForceRestart = true)
     {
         if (!_pageLoaderAutoRun || _pageLoader is null)
             return;
@@ -89,55 +103,92 @@ public class MyPageRight : ContentControl, IDisposable
         _pageLoaderCancellation?.Dispose();
         _pageLoaderCancellation = new CancellationTokenSource();
 
-        PageState = PageStates.LoaderEnter;
-        if (_pageContentPanel is not null)
-            _pageContentPanel.IsVisible = false;
-        TriggerEnterAnimation(_pageAlwaysPanel, _pageLoaderPanel);
+        _pageLoaderState = LoaderRunState.Loading;
+        HandleLoaderStarted();
+        _ = RunPageLoaderAsync(_pageLoaderCancellation);
+    }
+
+    private async Task RunPageLoaderAsync(CancellationTokenSource cancellation)
+    {
+        CancellationToken cancellationToken = cancellation.Token;
         try
         {
-            await _pageLoader(_pageLoaderCancellation.Token).ConfigureAwait(true);
-            _pageLoaderFinished?.Invoke();
-            PageState = PageStates.ContentEnter;
-            TriggerExitAnimation(_pageLoaderPanel);
-            TriggerEnterAnimation(_pageAlwaysPanel, _pageContentPanel);
+            await _pageLoader!(cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (cancellationToken.IsCancellationRequested)
+                    return;
+
+                _pageLoaderFinished?.Invoke();
+                _pageLoaderState = LoaderRunState.Finished;
+                HandleLoaderFinished();
+            });
         }
         catch (OperationCanceledException)
         {
-            PageState = PageStates.Empty;
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (ReferenceEquals(_pageLoaderCancellation, cancellation))
+                    _pageLoaderState = LoaderRunState.Waiting;
+            });
         }
         catch
         {
-            PageState = PageStates.LoaderStay;
-            TriggerEnterAnimation(_pageAlwaysPanel, _pageLoaderPanel);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (cancellationToken.IsCancellationRequested)
+                    return;
+
+                _pageLoaderState = LoaderRunState.Failed;
+                HandleLoaderFailed();
+            });
         }
     }
 
     public void PageOnEnter()
     {
         PageEnter?.Invoke();
-        if (PageState is PageStates.LoaderEnter or PageStates.LoaderStayForce or PageStates.LoaderStay or PageStates.LoaderWait)
+        switch (PageState)
         {
-            if (_pageContentPanel is not null)
-                _pageContentPanel.IsVisible = false;
-            TriggerEnterAnimation(_pageAlwaysPanel, _pageLoaderPanel);
-            return;
+            case PageStates.Empty:
+                EnterFromEmpty(includeAlways: true);
+                break;
+            case PageStates.ContentExit:
+                EnterFromEmpty(includeAlways: false);
+                break;
+            case PageStates.ContentEnter:
+                break;
         }
-
-        PageState = PageStates.ContentEnter;
-        if (_pageContentPanel is not null)
-            TriggerEnterAnimation(_pageAlwaysPanel, _pageContentPanel);
-        else if (Content is Control content)
-            TriggerEnterAnimation(content);
     }
 
     public void PageOnExit()
     {
         PageExit?.Invoke();
-        PageState = PageStates.PageExit;
-        if (_pageContentPanel is not null)
-            TriggerExitAnimation(_pageAlwaysPanel, _pageContentPanel);
-        else if (Content is Control content)
-            TriggerExitAnimation(content);
+        switch (PageState)
+        {
+            case PageStates.ContentEnter:
+            case PageStates.ContentStay:
+                PageState = PageStates.PageExit;
+                TriggerExitAnimation(_pageAlwaysPanel, GetContentTarget());
+                break;
+            case PageStates.LoaderEnter:
+            case PageStates.LoaderStayForce:
+            case PageStates.LoaderStay:
+                PageState = PageStates.PageExit;
+                TriggerExitAnimation(_pageAlwaysPanel, _pageLoaderPanel);
+                break;
+            case PageStates.LoaderWait:
+                PageState = PageStates.PageExit;
+                TriggerExitAnimation(_pageAlwaysPanel);
+                break;
+            case PageStates.LoaderExit:
+            case PageStates.ContentExit:
+                PageState = PageStates.PageExit;
+                if (_pageAlwaysPanel is not null)
+                    TriggerExitAnimation(_pageAlwaysPanel, GetContentTarget());
+                break;
+        }
     }
 
     public void PageOnForceExit()
@@ -151,15 +202,33 @@ public class MyPageRight : ContentControl, IDisposable
             _pageLoaderPanel.IsVisible = false;
         if (_pageAlwaysPanel is not null)
             _pageAlwaysPanel.IsVisible = false;
+        if (_pageContentPanel is null && Content is Control content)
+            content.IsVisible = false;
     }
 
     public void PageOnContentExit()
     {
-        PageState = PageStates.ContentExit;
-        if (_pageContentPanel is not null)
-            TriggerExitAnimation(_pageContentPanel);
-        else if (Content is Control content)
-            TriggerExitAnimation(content);
+        switch (PageState)
+        {
+            case PageStates.ContentEnter:
+            case PageStates.ContentStay:
+                PageState = PageStates.ContentExit;
+                TriggerExitAnimation(GetContentTarget());
+                break;
+            case PageStates.LoaderExit:
+                PageState = PageStates.ContentExit;
+                break;
+            case PageStates.LoaderEnter:
+            case PageStates.LoaderStayForce:
+            case PageStates.LoaderStay:
+                PageState = PageStates.ContentExit;
+                TriggerExitAnimation(_pageLoaderPanel);
+                break;
+            case PageStates.LoaderWait:
+            case PageStates.Empty:
+                PageOnEnter();
+                break;
+        }
     }
 
     public virtual void Dispose()
@@ -212,6 +281,19 @@ public class MyPageRight : ContentControl, IDisposable
             }
         }
 
+        Control? scrollBar = GetFirstScrollBar(realElements);
+        if (scrollBar is not null)
+        {
+            if (scrollBar.RenderTransform is not TranslateTransform)
+                scrollBar.RenderTransform = new TranslateTransform(10d, 0d);
+            animations.Add(ModAnimation.AaTranslateX(
+                scrollBar,
+                -((TranslateTransform)scrollBar.RenderTransform).X,
+                350,
+                0,
+                new ModAnimation.AniEaseOutFluent()));
+        }
+
         animations.Add(ModAnimation.AaCode(PageOnEnterAnimationFinished, after: true));
         ModAnimation.AniStart(animations, $"PageRight PageChange {_pageUuid}", true);
     }
@@ -240,6 +322,19 @@ public class MyPageRight : ContentControl, IDisposable
             }
         }
 
+        Control? scrollBar = GetFirstScrollBar(realElements);
+        if (scrollBar is not null)
+        {
+            if (scrollBar.RenderTransform is not TranslateTransform)
+                scrollBar.RenderTransform = new TranslateTransform();
+            animations.Add(ModAnimation.AaTranslateX(
+                scrollBar,
+                10d - ((TranslateTransform)scrollBar.RenderTransform).X,
+                90,
+                0,
+                new ModAnimation.AniEaseInFluent()));
+        }
+
         animations.Add(ModAnimation.AaCode(() =>
         {
             foreach (Control element in realElements)
@@ -257,6 +352,8 @@ public class MyPageRight : ContentControl, IDisposable
             PageStates.LoaderEnter => PageStates.LoaderStayForce,
             _ => PageState
         };
+        if (PageState == PageStates.LoaderStayForce)
+            ModAnimation.AniStart(ModAnimation.AaCode(PageOnLoaderStayFinished, 400), $"PageRight PageChange {_pageUuid}");
     }
 
     private void PageOnExitAnimationFinished()
@@ -271,10 +368,111 @@ public class MyPageRight : ContentControl, IDisposable
                 break;
             case PageStates.LoaderExit:
                 PageState = PageStates.ContentEnter;
-                TriggerEnterAnimation(_pageContentPanel);
+                TriggerEnterAnimation(GetContentTarget());
                 break;
         }
     }
+
+    private void PageOnLoaderWaitFinished()
+    {
+        if (PageState != PageStates.LoaderWait)
+            return;
+
+        switch (_pageLoaderState)
+        {
+            case LoaderRunState.Loading:
+            case LoaderRunState.Failed:
+                PageState = PageStates.LoaderEnter;
+                TriggerEnterAnimation(GetHiddenAlwaysPanel(), _pageLoaderPanel);
+                break;
+            case LoaderRunState.Finished:
+            case LoaderRunState.Waiting:
+                PageState = PageStates.ContentEnter;
+                TriggerEnterAnimation(GetHiddenAlwaysPanel(), GetContentTarget());
+                break;
+        }
+    }
+
+    private void PageOnLoaderStayFinished()
+    {
+        if (PageState != PageStates.LoaderStayForce)
+            return;
+
+        if (_pageLoaderState == LoaderRunState.Finished)
+        {
+            PageState = PageStates.LoaderExit;
+            TriggerExitAnimation(_pageLoaderPanel);
+        }
+        else
+        {
+            PageState = PageStates.LoaderStay;
+        }
+    }
+
+    private void EnterFromEmpty(bool includeAlways)
+    {
+        switch (_pageLoaderState)
+        {
+            case LoaderRunState.Loading:
+                PageState = PageStates.LoaderWait;
+                ModAnimation.AniStart(ModAnimation.AaCode(PageOnLoaderWaitFinished, 400), $"PageRight PageChange {_pageUuid}");
+                break;
+            case LoaderRunState.Failed:
+                PageState = PageStates.LoaderEnter;
+                TriggerEnterAnimation(includeAlways ? _pageAlwaysPanel : null, _pageLoaderPanel);
+                break;
+            case LoaderRunState.Finished:
+            case LoaderRunState.Waiting:
+                PageState = PageStates.ContentEnter;
+                TriggerEnterAnimation(includeAlways ? _pageAlwaysPanel : null, GetContentTarget());
+                break;
+        }
+    }
+
+    private void HandleLoaderStarted()
+    {
+        switch (PageState)
+        {
+            case PageStates.ContentEnter:
+            case PageStates.ContentStay:
+                PageState = PageStates.ContentExit;
+                TriggerExitAnimation(GetContentTarget());
+                break;
+            case PageStates.LoaderExit:
+                PageState = PageStates.ContentExit;
+                break;
+        }
+    }
+
+    private void HandleLoaderFinished()
+    {
+        switch (PageState)
+        {
+            case PageStates.LoaderWait:
+                PageState = PageStates.ContentEnter;
+                TriggerEnterAnimation(GetHiddenAlwaysPanel(), GetContentTarget());
+                break;
+            case PageStates.LoaderStay:
+                PageState = PageStates.LoaderExit;
+                TriggerExitAnimation(_pageLoaderPanel);
+                break;
+        }
+    }
+
+    private void HandleLoaderFailed()
+    {
+        if (PageState == PageStates.LoaderWait)
+        {
+            PageState = PageStates.LoaderEnter;
+            TriggerEnterAnimation(GetHiddenAlwaysPanel(), _pageLoaderPanel);
+        }
+    }
+
+    private Control? GetContentTarget() => _pageContentPanel ?? Content as Control;
+
+    private Control? GetHiddenAlwaysPanel() => IsControlVisible(_pageAlwaysPanel) ? null : _pageAlwaysPanel;
+
+    private static bool IsControlVisible(Control? control) => control?.IsVisible == true;
 
     internal static IEnumerable<Control> GetAllAnimControls(Control element, bool ignoreInvisibility = false)
     {
@@ -302,5 +500,32 @@ public class MyPageRight : ContentControl, IDisposable
                     yield return nested;
             }
         }
+    }
+
+    private static Control? GetFirstScrollBar(IEnumerable<Control> elements)
+    {
+        foreach (Control element in elements)
+        {
+            if (TryGetVisibleVerticalScrollBar(element, out Control? directScrollBar))
+                return directScrollBar;
+
+            foreach (ScrollBar scrollBar in element.GetVisualDescendants().OfType<ScrollBar>())
+            {
+                if (TryGetVisibleVerticalScrollBar(scrollBar, out Control? nestedScrollBar))
+                    return nestedScrollBar;
+            }
+        }
+
+        return null;
+    }
+
+    private static bool TryGetVisibleVerticalScrollBar(Control control, out Control? scrollBar)
+    {
+        scrollBar = null;
+        if (control is not ScrollBar { Orientation: Orientation.Vertical } bar || !bar.IsVisible)
+            return false;
+
+        scrollBar = bar;
+        return true;
     }
 }

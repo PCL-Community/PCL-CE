@@ -6871,12 +6871,150 @@ public sealed class AvaloniaHeadlessTests
                 page.PageOnEnter();
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
+                Assert.IsFalse(loaderPanel.IsVisible);
+                Assert.IsFalse(contentPanel.IsVisible);
+
+                ModAnimation.AdvanceForTesting(16, 26);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
                 Assert.IsTrue(loaderPanel.IsVisible);
                 Assert.IsFalse(contentPanel.IsVisible);
             }
             finally
             {
                 loaderHold.SetResult();
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void MyPageRight_SkipsLoaderWhenAutoRunCompletesBeforeEnter()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(async () =>
+        {
+            bool finished = false;
+            MyPageRight page = new();
+            MyLoading loading = new();
+            MyCard loaderPanel = new()
+            {
+                Width = 180,
+                Height = 90,
+                Children = { loading }
+            };
+            StackPanel contentPanel = new()
+            {
+                Children =
+                {
+                    new MyCard
+                    {
+                        Title = "内容",
+                        Height = 60
+                    }
+                }
+            };
+            page.Content = new Grid
+            {
+                Children =
+                {
+                    contentPanel,
+                    loaderPanel
+                }
+            };
+            page.PageLoaderInit(
+                loading,
+                loaderPanel,
+                contentPanel,
+                null,
+                _ => Task.CompletedTask,
+                () => finished = true);
+
+            Window window = new()
+            {
+                Width = 360,
+                Height = 220,
+                Content = page
+            };
+
+            try
+            {
+                window.Show();
+                await WaitForConditionAsync(() => finished).ConfigureAwait(true);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                page.PageOnEnter();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.IsFalse(loaderPanel.IsVisible);
+                Assert.IsTrue(contentPanel.IsVisible);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    [TestMethod]
+    public void MyPageRight_AnimatesVisibleScrollBarLikeWpf()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MyPageRight page = new();
+            StackPanel content = new();
+            for (int i = 0; i < 16; i++)
+            {
+                content.Children.Add(new MyCard
+                {
+                    Title = "项目 " + i,
+                    Height = 42d,
+                    Margin = new Thickness(0d, 0d, 0d, 4d)
+                });
+            }
+
+            MyScrollViewer viewer = new()
+            {
+                Width = 240d,
+                Height = 96d,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                Content = content
+            };
+            page.Content = viewer;
+            Window window = new()
+            {
+                Width = 320d,
+                Height = 180d,
+                Content = page
+            };
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                ScrollBar scrollBar = viewer.GetVisualDescendants()
+                    .OfType<ScrollBar>()
+                    .First(scrollBar => scrollBar.Orientation == Orientation.Vertical && scrollBar.IsVisible);
+
+                page.TriggerEnterAnimation(viewer);
+                Assert.IsInstanceOfType<TranslateTransform>(scrollBar.RenderTransform);
+                Assert.AreEqual(10d, ((TranslateTransform)scrollBar.RenderTransform!).X, 0.01d);
+
+                ModAnimation.AdvanceUntilIdleForTesting();
+                Assert.AreEqual(0d, ((TranslateTransform)scrollBar.RenderTransform!).X, 0.01d);
+
+                page.TriggerExitAnimation(viewer);
+                ModAnimation.AdvanceUntilIdleForTesting();
+
+                Assert.AreEqual(10d, ((TranslateTransform)scrollBar.RenderTransform!).X, 0.01d);
+                Assert.IsFalse(viewer.IsVisible);
+            }
+            finally
+            {
                 window.Close();
             }
         }, CancellationToken.None);
