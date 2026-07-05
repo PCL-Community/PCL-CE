@@ -6321,6 +6321,9 @@ public sealed class AvaloniaHeadlessTests
 
                 Assert.IsFalse(first.Checked);
                 Assert.IsTrue(second.Checked);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyRadioBox Border " + second.Uuid));
+                Assert.IsTrue(ModAnimation.AniIsRun("MyRadioBox Dot " + second.Uuid));
+                Assert.IsTrue(ModAnimation.AniIsRun("MyRadioBox BorderColor " + second.Uuid));
 
                 first.PreviewCheck += (_, e) => e.Handled = true;
                 Click(window, first);

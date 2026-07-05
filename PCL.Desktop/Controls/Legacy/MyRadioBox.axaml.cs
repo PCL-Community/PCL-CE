@@ -35,7 +35,6 @@ public sealed partial class MyRadioBox : Grid, IMyRadio
     private readonly TextBlock? _label;
     private readonly Ellipse? _border;
     private readonly Ellipse? _dot;
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private bool _isUpdatingGroup;
     private bool _mouseDowned;
 
@@ -87,6 +86,8 @@ public sealed partial class MyRadioBox : Grid, IMyRadio
         set => SetValue(TextProperty, value);
     }
 
+    public int Uuid { get; } = Random.Shared.Next();
+
     public InlineCollection Inlines =>
         _label?.Inlines ?? throw new InvalidOperationException("MyRadioBox text block is not initialized.");
 
@@ -135,7 +136,7 @@ public sealed partial class MyRadioBox : Grid, IMyRadio
         {
             ModAnimation.AniStart(
                 ModAnimation.AaColor(_border, Shape.FillProperty, "ColorBrushBg1", MouseInAnimationMilliseconds),
-                $"MyRadioBox Background {_uuid}");
+                "MyRadioBox Background " + Uuid);
             if (!Checked)
             {
                 ModAnimation.AniStart(
@@ -145,7 +146,7 @@ public sealed partial class MyRadioBox : Grid, IMyRadio
                         1000,
                         ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong),
                         absolute: true),
-                    $"MyRadioBox Border {_uuid}");
+                    "MyRadioBox Border " + Uuid);
             }
         }
 
@@ -166,7 +167,7 @@ public sealed partial class MyRadioBox : Grid, IMyRadio
         {
             ModAnimation.AniStart(
                 ModAnimation.AaColor(_border, Shape.FillProperty, "ColorBrushHalfWhite", MouseInAnimationMilliseconds),
-                $"MyRadioBox Background {_uuid}");
+                "MyRadioBox Background " + Uuid);
         }
         e.Handled = true;
     }
@@ -282,7 +283,7 @@ public sealed partial class MyRadioBox : Grid, IMyRadio
                         new ModAnimation.AniEaseOutBack(),
                         absolute: true)
                 },
-                $"MyRadioBox Border {_uuid}");
+                "MyRadioBox Border " + Uuid);
             ModAnimation.AniStart(
                 new List<ModAnimation.AniData>
                 {
@@ -298,7 +299,7 @@ public sealed partial class MyRadioBox : Grid, IMyRadio
                         (int)Math.Round(CheckAnimationMilliseconds * 0.5d),
                         (int)Math.Round(CheckAnimationMilliseconds * 0.6d))
                 },
-                $"MyRadioBox Dot {_uuid}");
+                "MyRadioBox Dot " + Uuid);
             AnimateSelectionBrush(
                 IsPointerOver ? "ColorBrush3" : IsEnabled ? "ColorBrush2" : "ColorBrushGray4",
                 CheckAnimationMilliseconds);
@@ -312,7 +313,7 @@ public sealed partial class MyRadioBox : Grid, IMyRadio
                     CheckAnimationMilliseconds,
                     ease: new ModAnimation.AniEaseOutFluent(),
                     absolute: true),
-                $"MyRadioBox Border {_uuid}");
+                "MyRadioBox Border " + Uuid);
             ModAnimation.AniStart(
                 new List<ModAnimation.AniData>
                 {
@@ -328,7 +329,7 @@ public sealed partial class MyRadioBox : Grid, IMyRadio
                         (int)Math.Round(CheckAnimationMilliseconds * 0.5d),
                         (int)Math.Round(CheckAnimationMilliseconds * 0.2d))
                 },
-                $"MyRadioBox Dot {_uuid}");
+                "MyRadioBox Dot " + Uuid);
             AnimateSelectionBrush(
                 IsPointerOver ? "ColorBrush3" : IsEnabled ? "ColorBrush1" : "ColorBrushGray4",
                 CheckAnimationMilliseconds);
@@ -343,7 +344,7 @@ public sealed partial class MyRadioBox : Grid, IMyRadio
         _mouseDowned = false;
         ModAnimation.AniStart(
             ModAnimation.AaColor(_border, Shape.FillProperty, "ColorBrushHalfWhite", MouseInAnimationMilliseconds),
-            $"MyRadioBox Background {_uuid}");
+            "MyRadioBox Background " + Uuid);
         if (!Checked)
         {
             ModAnimation.AniStart(
@@ -352,7 +353,7 @@ public sealed partial class MyRadioBox : Grid, IMyRadio
                     BorderUncheckedSize - GetWidth(_border),
                     ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong),
                     absolute: true),
-                $"MyRadioBox Border {_uuid}");
+                "MyRadioBox Border " + Uuid);
         }
     }
 
@@ -370,7 +371,7 @@ public sealed partial class MyRadioBox : Grid, IMyRadio
         AnimateSelectionBrush("ColorBrushGray4", MouseOutAnimationMilliseconds);
         ModAnimation.AniStart(
             ModAnimation.AaColor(_label, TextBlock.ForegroundProperty, "ColorBrushGray4", MouseOutAnimationMilliseconds),
-            $"MyRadioBox TextColor {_uuid}");
+            "MyRadioBox TextColor " + Uuid);
     }
 
     private void RadioboxMouseEnterAnimation()
@@ -381,7 +382,7 @@ public sealed partial class MyRadioBox : Grid, IMyRadio
         AnimateSelectionBrush("ColorBrush3", MouseInAnimationMilliseconds);
         ModAnimation.AniStart(
             ModAnimation.AaColor(_label, TextBlock.ForegroundProperty, "ColorBrush3", MouseInAnimationMilliseconds),
-            $"MyRadioBox TextColor {_uuid}");
+            "MyRadioBox TextColor " + Uuid);
     }
 
     private void RadioboxMouseLeaveAnimation()
@@ -392,15 +393,15 @@ public sealed partial class MyRadioBox : Grid, IMyRadio
         AnimateSelectionBrush(Checked ? "ColorBrush2" : "ColorBrush1", MouseOutAnimationMilliseconds);
         ModAnimation.AniStart(
             ModAnimation.AaColor(_label, TextBlock.ForegroundProperty, "ColorBrush1", MouseOutAnimationMilliseconds),
-            $"MyRadioBox TextColor {_uuid}");
+            "MyRadioBox TextColor " + Uuid);
     }
 
     private void StopAnimation()
     {
-        ModAnimation.AniStop($"MyRadioBox Border {_uuid}");
-        ModAnimation.AniStop($"MyRadioBox Dot {_uuid}");
-        ModAnimation.AniStop($"MyRadioBox BorderColor {_uuid}");
-        ModAnimation.AniStop($"MyRadioBox TextColor {_uuid}");
+        ModAnimation.AniStop("MyRadioBox Border " + Uuid);
+        ModAnimation.AniStop("MyRadioBox Dot " + Uuid);
+        ModAnimation.AniStop("MyRadioBox BorderColor " + Uuid);
+        ModAnimation.AniStop("MyRadioBox TextColor " + Uuid);
     }
 
     private IBrush ResolveBrush(string resourceKey, string fallback)
@@ -417,7 +418,7 @@ public sealed partial class MyRadioBox : Grid, IMyRadio
             animations.Add(ModAnimation.AaColor(_dot, Shape.FillProperty, resourceKey, duration));
 
         if (animations.Count > 0)
-            ModAnimation.AniStart(animations, $"MyRadioBox BorderColor {_uuid}");
+            ModAnimation.AniStart(animations, "MyRadioBox BorderColor " + Uuid);
     }
 
     private void SyncDotBrush()
