@@ -2365,10 +2365,10 @@ public partial class MainWindow : Window, IDisposable
     }
 
     private static int GetIntegerOption(LauncherSettings settings, string key, int fallback) =>
-        settings.IntegerOptions.TryGetValue(key, out int value) ? value : fallback;
+        settings.GetIntegerOption(key, fallback);
 
     private static string GetTextOption(LauncherSettings settings, string key) =>
-        settings.TextOptions.TryGetValue(key, out string? value) ? value : string.Empty;
+        settings.GetTextOption(key);
 
     private static int GetTextOptionAsInt(LauncherSettings settings, string key, int fallback) =>
         int.TryParse(GetTextOption(settings, key), NumberStyles.Integer, CultureInfo.InvariantCulture, out int value)
@@ -2400,7 +2400,7 @@ public partial class MainWindow : Window, IDisposable
         try
         {
             LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-            if (settings.TextOptions.TryGetValue(PageSetupJava.SelectedJavaOptionKey, out string? selectedJava) &&
+            if (settings.TryGetTextOption(PageSetupJava.SelectedJavaOptionKey, out string? selectedJava) &&
                 !string.IsNullOrWhiteSpace(selectedJava) &&
                 File.Exists(selectedJava))
             {

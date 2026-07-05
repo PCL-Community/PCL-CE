@@ -124,7 +124,7 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
         }
 
         LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-        settings.TextOptions[CustomLogoOptionKey] = targetPath;
+        settings.SetTextOption(CustomLogoOptionKey, targetPath);
         LauncherSettingsPageBinder.SaveSettings(settings);
         RefreshLogoUi();
         MessageRequested?.Invoke(this, new SettingsMessageRequestedEventArgs("图标已更新", "自定义标题栏图标会在重新创建窗口后完整生效。"));
@@ -139,7 +139,7 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
                 File.Delete(logoPath);
 
             LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-            settings.TextOptions.Remove(CustomLogoOptionKey);
+            settings.RemoveTextOption(CustomLogoOptionKey);
             LauncherSettingsPageBinder.SaveSettings(settings);
             RefreshLogoUi();
             MessageRequested?.Invoke(this, new SettingsMessageRequestedEventArgs("图标已清除", "已恢复默认标题栏图标。"));

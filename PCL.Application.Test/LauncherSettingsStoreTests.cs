@@ -72,6 +72,46 @@ public sealed class LauncherSettingsStoreTests
         Assert.AreEqual(ColorMode.System, normalized.ColorMode);
     }
 
+    [TestMethod]
+    public void OptionAccessors_UseStrongCaseInsensitiveSettingKeys()
+    {
+        LauncherSettings settings = new()
+        {
+            BooleanOptions = new Dictionary<string, bool> { ["LaunchAutoRepairGame"] = true },
+            IntegerOptions = new Dictionary<string, int> { ["LaunchRamType"] = 1 },
+            TextOptions = new Dictionary<string, string> { ["LaunchAdvanceJvm"] = "-Ddemo=true" }
+        };
+
+        Assert.IsTrue(settings.GetBooleanOption("launchautorepairgame"));
+        Assert.AreEqual(1, settings.GetIntegerOption("launchramtype"));
+        Assert.AreEqual("-Ddemo=true", settings.GetTextOption("launchadvancejvm"));
+
+        settings.SetTextOption("LAUNCHADVANCEJVM", "-Ddemo=false");
+
+        Assert.AreEqual("-Ddemo=false", settings.GetTextOption("LaunchAdvanceJvm"));
+        Assert.AreEqual(1, settings.TextOptions.Count);
+        Assert.ThrowsExactly<ArgumentException>(() => settings.SetTextOption(default, ""));
+    }
+
+    [TestMethod]
+    public void NormalizeOptionDictionaries_RemovesBlankAndDuplicateKeys()
+    {
+        LauncherSettings settings = new()
+        {
+            BooleanOptions = new Dictionary<string, bool>
+            {
+                ["HintDownloadThread"] = false,
+                ["hintdownloadthread"] = true,
+                [""] = true
+            }
+        };
+
+        LauncherSettings normalized = settings.NormalizeOptionDictionaries();
+
+        Assert.IsTrue(normalized.GetBooleanOption("HINTDOWNLOADTHREAD"));
+        Assert.AreEqual(1, normalized.BooleanOptions.Count);
+    }
+
     private static void AssertSettingsEqual(
         LauncherSettings expected,
         LauncherSettings actual)

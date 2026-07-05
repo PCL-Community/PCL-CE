@@ -133,9 +133,7 @@ public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISet
             return;
 
         LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-        string selectedJava = settings.TextOptions.TryGetValue(SelectedJavaOptionKey, out string? value)
-            ? value
-            : string.Empty;
+        string selectedJava = settings.GetTextOption(SelectedJavaOptionKey);
 
         contentPanel.Children.Clear();
         MyListItem automaticItem = new()
@@ -288,8 +286,8 @@ public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISet
         if (!customRoots.Contains(candidate.Installation.JavaHome, GetPathComparer()))
             customRoots.Add(candidate.Installation.JavaHome);
 
-        settings.TextOptions[CustomJavaRootsOptionKey] = string.Join(Path.PathSeparator, customRoots);
-        settings.BooleanOptions[GetDisabledJavaOptionKey(candidate.Installation.JavaExecutablePath)] = false;
+        settings.SetTextOption(CustomJavaRootsOptionKey, string.Join(Path.PathSeparator, customRoots));
+        settings.SetBooleanOption(GetDisabledJavaOptionKey(candidate.Installation.JavaExecutablePath), false);
         LauncherSettingsPageBinder.SaveSettings(settings);
 
         MessageRequested?.Invoke(
@@ -322,13 +320,13 @@ public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISet
 
         LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
         string key = GetDisabledJavaOptionKey(candidate.Installation.JavaExecutablePath);
-        bool disabled = settings.BooleanOptions.TryGetValue(key, out bool value) && value;
-        settings.BooleanOptions[key] = !disabled;
+        bool disabled = settings.GetBooleanOption(key);
+        settings.SetBooleanOption(key, !disabled);
         if (!disabled &&
-            settings.TextOptions.TryGetValue(SelectedJavaOptionKey, out string? selected) &&
+            settings.TryGetTextOption(SelectedJavaOptionKey, out string? selected) &&
             string.Equals(selected, candidate.Installation.JavaExecutablePath, GetPathComparison()))
         {
-            settings.TextOptions[SelectedJavaOptionKey] = string.Empty;
+            settings.SetTextOption(SelectedJavaOptionKey, string.Empty);
         }
 
         LauncherSettingsPageBinder.SaveSettings(settings);
@@ -338,14 +336,14 @@ public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISet
     private static JavaRuntimeCandidate ApplySavedState(JavaRuntimeCandidate candidate, LauncherSettings settings)
     {
         string key = GetDisabledJavaOptionKey(candidate.Installation.JavaExecutablePath);
-        bool disabled = settings.BooleanOptions.TryGetValue(key, out bool value) && value;
+        bool disabled = settings.GetBooleanOption(key);
         return candidate with { IsEnabled = !disabled };
     }
 
     private static void SaveSelectedJava(string javaExecutablePath)
     {
         LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-        settings.TextOptions[SelectedJavaOptionKey] = javaExecutablePath;
+        settings.SetTextOption(SelectedJavaOptionKey, javaExecutablePath);
         LauncherSettingsPageBinder.SaveSettings(settings);
     }
 
@@ -355,13 +353,13 @@ public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISet
         List<string> customRoots = ReadCustomJavaRoots(settings)
             .Where(root => !string.Equals(root, javaHome, GetPathComparison()))
             .ToList();
-        settings.TextOptions[CustomJavaRootsOptionKey] = string.Join(Path.PathSeparator, customRoots);
+        settings.SetTextOption(CustomJavaRootsOptionKey, string.Join(Path.PathSeparator, customRoots));
         LauncherSettingsPageBinder.SaveSettings(settings);
     }
 
     private static string[] ReadCustomJavaRoots(LauncherSettings settings)
     {
-        if (!settings.TextOptions.TryGetValue(CustomJavaRootsOptionKey, out string? raw) ||
+        if (!settings.TryGetTextOption(CustomJavaRootsOptionKey, out string? raw) ||
             string.IsNullOrWhiteSpace(raw))
         {
             return [];

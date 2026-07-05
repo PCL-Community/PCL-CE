@@ -55,10 +55,10 @@ public partial class PageSetupGameManage : MyPageRight, ISettingsPageInteraction
             return;
 
         LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-        if (settings.BooleanOptions.TryGetValue(LargeDownloadThreadHintKey, out bool hasShown) && hasShown)
+        if (settings.GetBooleanOption(LargeDownloadThreadHintKey))
             return;
 
-        settings.BooleanOptions[LargeDownloadThreadHintKey] = true;
+        settings.SetBooleanOption(LargeDownloadThreadHintKey, true);
         LauncherSettingsPageBinder.SaveSettings(settings);
         MessageRequested?.Invoke(
             this,

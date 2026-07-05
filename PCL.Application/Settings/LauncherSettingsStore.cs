@@ -50,7 +50,7 @@ public sealed class LauncherSettingsStore : IDisposable
                         $"Unsupported launcher settings schema: {settings.SchemaVersion}.");
                 }
 
-                return new(settings, false, null);
+                return new(settings.NormalizeOptionDictionaries(), false, null);
             }
             catch (Exception exception)
                 when (exception is JsonException or InvalidDataException)

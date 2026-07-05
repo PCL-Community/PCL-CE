@@ -112,7 +112,7 @@ internal static class LauncherSettingsPageBinder
 
                 settings = LoadSettings();
                 bool value = checkBox.Checked == true;
-                settings.BooleanOptions[tag] = value;
+                settings.SetBooleanOption(tag, value);
                 if (tag == "LaunchAutoRepairGame")
                     settings = settings with { AutomaticallyRepairGameIssues = value };
 
@@ -132,7 +132,7 @@ internal static class LauncherSettingsPageBinder
                     return;
 
                 settings = LoadSettings();
-                settings.IntegerOptions[tag] = comboBox.SelectedIndex;
+                settings.SetIntegerOption(tag, comboBox.SelectedIndex);
                 bool shouldApplyTheme = false;
                 settings = tag switch
                 {
@@ -157,7 +157,7 @@ internal static class LauncherSettingsPageBinder
                 shouldApplyTheme = tag is "UiDarkMode" or "UiLightColor" or "UiDarkColor";
 
                 if (comboBox.IsEditable)
-                    settings.TextOptions[tag] = comboBox.Text ?? string.Empty;
+                    settings.SetTextOption(tag, comboBox.Text ?? string.Empty);
 
                 SaveSettings(settings);
                 if (shouldApplyTheme)
@@ -179,7 +179,7 @@ internal static class LauncherSettingsPageBinder
                         return;
 
                     settings = LoadSettings();
-                    settings.TextOptions[tag] = comboBox.Text ?? string.Empty;
+                    settings.SetTextOption(tag, comboBox.Text ?? string.Empty);
                     SaveSettings(settings);
                 };
             }
@@ -197,7 +197,7 @@ internal static class LauncherSettingsPageBinder
                     return;
 
                 settings = LoadSettings();
-                settings.IntegerOptions[tag] = slider.Value;
+                settings.SetIntegerOption(tag, slider.Value);
                 SaveSettings(settings);
             };
         }
@@ -214,7 +214,7 @@ internal static class LauncherSettingsPageBinder
                     return;
 
                 settings = LoadSettings();
-                settings.TextOptions[tag] = textBox.Text ?? string.Empty;
+                settings.SetTextOption(tag, textBox.Text ?? string.Empty);
                 SaveSettings(settings);
             };
         }
@@ -230,7 +230,7 @@ internal static class LauncherSettingsPageBinder
                     return;
 
                 settings = LoadSettings();
-                settings.IntegerOptions[key] = value;
+                settings.SetIntegerOption(key, value);
                 SaveSettings(settings);
             };
         }
@@ -255,11 +255,11 @@ internal static class LauncherSettingsPageBinder
                 SetComboIndex(comboBox, GetThemeIndex(settings.DarkColor));
             else if (tag is "ToolDownloadSource" or "ToolDownloadVersion" or "ToolDownloadMod")
                 SetComboIndex(comboBox, (int)settings.DownloadSource);
-            else if (settings.IntegerOptions.TryGetValue(tag, out int index))
+            else if (settings.TryGetIntegerOption(tag, out int index))
                 SetComboIndex(comboBox, index);
 
-            if (comboBox.IsEditable && settings.TextOptions.TryGetValue(tag, out string? text))
-                comboBox.Text = text;
+            if (comboBox.IsEditable && settings.TryGetTextOption(tag, out string? text))
+                comboBox.Text = text ?? string.Empty;
         }
 
         foreach (MyCheckBox checkBox in page.GetVisualDescendants().OfType<MyCheckBox>())
@@ -270,22 +270,22 @@ internal static class LauncherSettingsPageBinder
 
             if (tag == "LaunchAutoRepairGame")
                 checkBox.Checked = settings.AutomaticallyRepairGameIssues;
-            else if (settings.BooleanOptions.TryGetValue(tag, out bool value))
+            else if (settings.TryGetBooleanOption(tag, out bool value))
                 checkBox.Checked = value;
         }
 
         foreach (MySlider slider in page.GetVisualDescendants().OfType<MySlider>())
         {
             string? tag = GetTag(slider);
-            if (!string.IsNullOrWhiteSpace(tag) && settings.IntegerOptions.TryGetValue(tag, out int value))
+            if (!string.IsNullOrWhiteSpace(tag) && settings.TryGetIntegerOption(tag, out int value))
                 slider.Value = Math.Clamp(value, 0, slider.MaxValue);
         }
 
         foreach (MyTextBox textBox in page.GetVisualDescendants().OfType<MyTextBox>())
         {
             string? tag = GetTag(textBox);
-            if (!string.IsNullOrWhiteSpace(tag) && settings.TextOptions.TryGetValue(tag, out string? value))
-                textBox.Text = value;
+            if (!string.IsNullOrWhiteSpace(tag) && settings.TryGetTextOption(tag, out string? value))
+                textBox.Text = value ?? string.Empty;
         }
 
         foreach (IGrouping<string, MyRadioBox> group in page.GetVisualDescendants()
@@ -296,7 +296,7 @@ internal static class LauncherSettingsPageBinder
                      .Where(static item => item.Parsed is not null)
                      .GroupBy(static item => item.Parsed!.Value.Key, static item => item.Radio))
         {
-            if (!settings.IntegerOptions.TryGetValue(group.Key, out int selectedValue))
+            if (!settings.TryGetIntegerOption(group.Key, out int selectedValue))
                 continue;
 
             foreach (MyRadioBox radioBox in group)
@@ -311,12 +311,7 @@ internal static class LauncherSettingsPageBinder
     {
         using LauncherSettingsStore store = new(CreateSettingsPath());
         LauncherSettings settings = store.LoadAsync().AsTask().GetAwaiter().GetResult().Settings;
-        return settings with
-        {
-            BooleanOptions = settings.BooleanOptions is null ? [] : new Dictionary<string, bool>(settings.BooleanOptions),
-            IntegerOptions = settings.IntegerOptions is null ? [] : new Dictionary<string, int>(settings.IntegerOptions),
-            TextOptions = settings.TextOptions is null ? [] : new Dictionary<string, string>(settings.TextOptions)
-        };
+        return settings.NormalizeOptionDictionaries();
     }
 
     internal static void SaveSettings(LauncherSettings settings)

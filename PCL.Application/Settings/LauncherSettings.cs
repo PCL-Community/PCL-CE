@@ -28,9 +28,9 @@ public sealed record LauncherSettings
     public DownloadSourcePreference DownloadSource { get; init; } =
         DownloadSourcePreference.PreferOfficialWithMirrorFallback;
 
-    public Dictionary<string, bool> BooleanOptions { get; init; } = [];
+    public Dictionary<string, bool> BooleanOptions { get; init; } = new(StringComparer.OrdinalIgnoreCase);
 
-    public Dictionary<string, int> IntegerOptions { get; init; } = [];
+    public Dictionary<string, int> IntegerOptions { get; init; } = new(StringComparer.OrdinalIgnoreCase);
 
-    public Dictionary<string, string> TextOptions { get; init; } = [];
+    public Dictionary<string, string> TextOptions { get; init; } = new(StringComparer.OrdinalIgnoreCase);
 }
