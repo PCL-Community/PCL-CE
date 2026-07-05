@@ -12,7 +12,7 @@ public interface ICommandContext
 }
 
 public sealed record CommandDescriptor(
-    string Id,
+    CommandId Id,
     string Title,
     Func<ICommandContext, CancellationToken, ValueTask> ExecuteAsync,
     string? Description = null);
@@ -23,9 +23,9 @@ public interface ICommandRegistry
 
     void AddCommand(CommandDescriptor descriptor);
 
-    bool RemoveCommand(string id);
+    bool RemoveCommand(CommandId id);
 
-    bool TryGetCommand(string id, out CommandDescriptor descriptor);
+    bool TryGetCommand(CommandId id, out CommandDescriptor descriptor);
 }
 
 public sealed class CommandRegistry : ICommandRegistry
@@ -37,19 +37,19 @@ public sealed class CommandRegistry : ICommandRegistry
     public void AddCommand(CommandDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        if (string.IsNullOrWhiteSpace(descriptor.Id))
+        if (string.IsNullOrWhiteSpace(descriptor.Id.Value))
             throw new ArgumentException("命令 ID 不能为空。", nameof(descriptor));
         if (string.IsNullOrWhiteSpace(descriptor.Title))
             throw new ArgumentException("命令标题不能为空。", nameof(descriptor));
-        if (_commands.Any(command => string.Equals(command.Id, descriptor.Id, StringComparison.OrdinalIgnoreCase)))
+        if (_commands.Any(command => command.Id.Equals(descriptor.Id.Value)))
             throw new InvalidOperationException($"命令已注册：{descriptor.Id}");
 
         _commands.Add(descriptor);
     }
 
-    public bool RemoveCommand(string id)
+    public bool RemoveCommand(CommandId id)
     {
-        int index = _commands.FindIndex(command => string.Equals(command.Id, id, StringComparison.OrdinalIgnoreCase));
+        int index = _commands.FindIndex(command => command.Id.Equals(id.Value));
         if (index < 0)
             return false;
 
@@ -57,10 +57,9 @@ public sealed class CommandRegistry : ICommandRegistry
         return true;
     }
 
-    public bool TryGetCommand(string id, out CommandDescriptor descriptor)
+    public bool TryGetCommand(CommandId id, out CommandDescriptor descriptor)
     {
-        CommandDescriptor? match = _commands.FirstOrDefault(command =>
-            string.Equals(command.Id, id, StringComparison.OrdinalIgnoreCase));
+        CommandDescriptor? match = _commands.FirstOrDefault(command => command.Id.Equals(id.Value));
         descriptor = match!;
         return match is not null;
     }

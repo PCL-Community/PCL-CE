@@ -30,14 +30,14 @@ public sealed class HostModuleTests
 
         CollectionAssert.Contains(host.ModuleIds.ToArray(), new HostModuleId(SampleHostModule.ModuleId));
         Assert.AreEqual("sample-service", host.Services.GetService(typeof(string)));
-        Assert.AreEqual("sample.extension", host.Extensions.Extensions.Single().Id);
+        Assert.AreEqual(new ExtensionId("sample.extension"), host.Extensions.Extensions.Single().Id);
         Assert.AreEqual("sample.home", host.Navigation.Pages.Single().Route.Value);
-        Assert.IsTrue(host.Commands.TryGetCommand("sample.refresh", out CommandDescriptor command));
+        Assert.IsTrue(host.Commands.TryGetCommand(new CommandId("sample.refresh"), out CommandDescriptor command));
         Assert.AreEqual("刷新", command.Title);
-        Assert.AreEqual("sample.setting", host.Settings.Settings.Single().Key);
-        Assert.AreEqual("sample.theme", host.Themes.Themes.Single().Id);
-        Assert.AreEqual("sample.account", host.Accounts.Providers.Single().Id);
-        Assert.AreEqual("sample.download", host.Downloads.Sources.Single().Id);
+        Assert.AreEqual(new SettingKey("sample.setting"), host.Settings.Settings.Single().Key);
+        Assert.AreEqual(new ThemeId("sample.theme"), host.Themes.Themes.Single().Id);
+        Assert.AreEqual(new AccountProviderId("sample.account"), host.Accounts.Providers.Single().Id);
+        Assert.AreEqual(new DownloadSourceId("sample.download"), host.Downloads.Sources.Single().Id);
         Assert.AreEqual(typeof(SampleLaunchMiddleware), host.Launching.MiddlewareTypes.Single());
     }
 
@@ -82,6 +82,96 @@ public sealed class HostModuleTests
         settings.AddSetting(new SettingDescriptor("sample.setting", "设置"));
 
         Assert.ThrowsExactly<InvalidOperationException>(() => settings.AddSetting(new SettingDescriptor("SAMPLE.SETTING", "设置")));
+
+        ExtensionRegistry extensions = new();
+        extensions.AddExtension(new ExtensionDescriptor("sample.extension", "扩展"));
+
+        Assert.ThrowsExactly<InvalidOperationException>(() => extensions.AddExtension(new ExtensionDescriptor("SAMPLE.EXTENSION", "扩展")));
+
+        ThemeRegistry themes = new();
+        themes.AddTheme(new ThemeDescriptor
+        {
+            Id = "sample.theme",
+            DisplayName = "主题"
+        });
+
+        Assert.ThrowsExactly<InvalidOperationException>(() => themes.AddTheme(new ThemeDescriptor
+        {
+            Id = "SAMPLE.THEME",
+            DisplayName = "主题"
+        }));
+
+        AccountProviderRegistry accounts = new();
+        accounts.AddProvider(new AccountProviderDescriptor
+        {
+            Id = "sample.account",
+            DisplayName = "账号",
+            ProviderType = typeof(SampleAccountProvider)
+        });
+
+        Assert.ThrowsExactly<InvalidOperationException>(() => accounts.AddProvider(new AccountProviderDescriptor
+        {
+            Id = "SAMPLE.ACCOUNT",
+            DisplayName = "账号",
+            ProviderType = typeof(SampleAccountProvider)
+        }));
+
+        DownloadSourceRegistry downloads = new();
+        downloads.AddSource(new DownloadSourceDescriptor
+        {
+            Id = "sample.download",
+            DisplayName = "下载源",
+            BaseUri = new Uri("https://example.invalid/")
+        });
+
+        Assert.ThrowsExactly<InvalidOperationException>(() => downloads.AddSource(new DownloadSourceDescriptor
+        {
+            Id = "SAMPLE.DOWNLOAD",
+            DisplayName = "下载源",
+            BaseUri = new Uri("https://example.invalid/")
+        }));
+    }
+
+    [TestMethod]
+    public void Registries_RejectDefaultStrongIds()
+    {
+        PclHostBuilder hostBuilder = new();
+        Assert.ThrowsExactly<ArgumentException>(() => hostBuilder.AddModule(default, static _ => { }));
+
+        CommandRegistry commands = new();
+        Assert.ThrowsExactly<ArgumentException>(() => commands.AddCommand(new CommandDescriptor(
+            default,
+            "命令",
+            static (_, _) => ValueTask.CompletedTask)));
+
+        SettingsRegistry settings = new();
+        Assert.ThrowsExactly<ArgumentException>(() => settings.AddSetting(new SettingDescriptor(default, "设置")));
+
+        ExtensionRegistry extensions = new();
+        Assert.ThrowsExactly<ArgumentException>(() => extensions.AddExtension(new ExtensionDescriptor(default, "扩展")));
+
+        ThemeRegistry themes = new();
+        Assert.ThrowsExactly<ArgumentException>(() => themes.AddTheme(new ThemeDescriptor
+        {
+            Id = default,
+            DisplayName = "主题"
+        }));
+
+        AccountProviderRegistry accounts = new();
+        Assert.ThrowsExactly<ArgumentException>(() => accounts.AddProvider(new AccountProviderDescriptor
+        {
+            Id = default,
+            DisplayName = "账号",
+            ProviderType = typeof(SampleAccountProvider)
+        }));
+
+        DownloadSourceRegistry downloads = new();
+        Assert.ThrowsExactly<ArgumentException>(() => downloads.AddSource(new DownloadSourceDescriptor
+        {
+            Id = default,
+            DisplayName = "下载源",
+            BaseUri = new Uri("https://example.invalid/")
+        }));
     }
 
     [TestMethod]

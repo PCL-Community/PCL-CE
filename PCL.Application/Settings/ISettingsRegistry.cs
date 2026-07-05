@@ -5,7 +5,7 @@
 namespace PCL.Application.Settings;
 
 public sealed record SettingDescriptor(
-    string Key,
+    SettingKey Key,
     string Title,
     string? Description = null,
     object? DefaultValue = null);
@@ -16,7 +16,7 @@ public interface ISettingsRegistry
 
     void AddSetting(SettingDescriptor descriptor);
 
-    bool RemoveSetting(string key);
+    bool RemoveSetting(SettingKey key);
 }
 
 public sealed class SettingsRegistry : ISettingsRegistry
@@ -28,19 +28,19 @@ public sealed class SettingsRegistry : ISettingsRegistry
     public void AddSetting(SettingDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        if (string.IsNullOrWhiteSpace(descriptor.Key))
+        if (string.IsNullOrWhiteSpace(descriptor.Key.Value))
             throw new ArgumentException("设置键不能为空。", nameof(descriptor));
         if (string.IsNullOrWhiteSpace(descriptor.Title))
             throw new ArgumentException("设置标题不能为空。", nameof(descriptor));
-        if (_settings.Any(setting => string.Equals(setting.Key, descriptor.Key, StringComparison.OrdinalIgnoreCase)))
+        if (_settings.Any(setting => setting.Key.Equals(descriptor.Key.Value)))
             throw new InvalidOperationException($"设置项已注册：{descriptor.Key}");
 
         _settings.Add(descriptor);
     }
 
-    public bool RemoveSetting(string key)
+    public bool RemoveSetting(SettingKey key)
     {
-        int index = _settings.FindIndex(setting => string.Equals(setting.Key, key, StringComparison.OrdinalIgnoreCase));
+        int index = _settings.FindIndex(setting => setting.Key.Equals(key.Value));
         if (index < 0)
             return false;
 

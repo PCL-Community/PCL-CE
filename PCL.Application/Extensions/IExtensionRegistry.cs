@@ -5,7 +5,7 @@
 namespace PCL.Application.Extensions;
 
 public sealed record ExtensionDescriptor(
-    string Id,
+    ExtensionId Id,
     string DisplayName,
     string? Description = null);
 
@@ -15,7 +15,7 @@ public interface IExtensionRegistry
 
     void AddExtension(ExtensionDescriptor descriptor);
 
-    bool RemoveExtension(string id);
+    bool RemoveExtension(ExtensionId id);
 }
 
 public sealed class ExtensionRegistry : IExtensionRegistry
@@ -27,19 +27,19 @@ public sealed class ExtensionRegistry : IExtensionRegistry
     public void AddExtension(ExtensionDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        if (string.IsNullOrWhiteSpace(descriptor.Id))
+        if (string.IsNullOrWhiteSpace(descriptor.Id.Value))
             throw new ArgumentException("扩展 ID 不能为空。", nameof(descriptor));
         if (string.IsNullOrWhiteSpace(descriptor.DisplayName))
             throw new ArgumentException("扩展名称不能为空。", nameof(descriptor));
-        if (_extensions.Any(extension => string.Equals(extension.Id, descriptor.Id, StringComparison.OrdinalIgnoreCase)))
+        if (_extensions.Any(extension => extension.Id.Equals(descriptor.Id.Value)))
             throw new InvalidOperationException($"扩展已注册：{descriptor.Id}");
 
         _extensions.Add(descriptor);
     }
 
-    public bool RemoveExtension(string id)
+    public bool RemoveExtension(ExtensionId id)
     {
-        int index = _extensions.FindIndex(extension => string.Equals(extension.Id, id, StringComparison.OrdinalIgnoreCase));
+        int index = _extensions.FindIndex(extension => extension.Id.Equals(id.Value));
         if (index < 0)
             return false;
 

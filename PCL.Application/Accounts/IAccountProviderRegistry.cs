@@ -6,7 +6,7 @@ namespace PCL.Application.Accounts;
 
 public sealed record AccountProviderDescriptor
 {
-    public required string Id { get; init; }
+    public required AccountProviderId Id { get; init; }
 
     public required string DisplayName { get; init; }
 
@@ -23,7 +23,7 @@ public interface IAccountProviderRegistry
 
     void AddProvider(AccountProviderDescriptor descriptor);
 
-    bool RemoveProvider(string id);
+    bool RemoveProvider(AccountProviderId id);
 }
 
 public sealed class AccountProviderRegistry : IAccountProviderRegistry
@@ -33,25 +33,25 @@ public sealed class AccountProviderRegistry : IAccountProviderRegistry
     public IReadOnlyList<AccountProviderDescriptor> Providers =>
         _providers
             .OrderBy(static provider => provider.Order)
-            .ThenBy(static provider => provider.Id, StringComparer.Ordinal)
+            .ThenBy(static provider => provider.Id.Value, StringComparer.Ordinal)
             .ToArray();
 
     public void AddProvider(AccountProviderDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        if (string.IsNullOrWhiteSpace(descriptor.Id))
+        if (string.IsNullOrWhiteSpace(descriptor.Id.Value))
             throw new ArgumentException("账号提供者 ID 不能为空。", nameof(descriptor));
         if (string.IsNullOrWhiteSpace(descriptor.DisplayName))
             throw new ArgumentException("账号提供者名称不能为空。", nameof(descriptor));
-        if (_providers.Any(provider => string.Equals(provider.Id, descriptor.Id, StringComparison.OrdinalIgnoreCase)))
+        if (_providers.Any(provider => provider.Id.Equals(descriptor.Id.Value)))
             throw new InvalidOperationException($"账号提供者已注册：{descriptor.Id}");
 
         _providers.Add(descriptor);
     }
 
-    public bool RemoveProvider(string id)
+    public bool RemoveProvider(AccountProviderId id)
     {
-        int index = _providers.FindIndex(provider => string.Equals(provider.Id, id, StringComparison.OrdinalIgnoreCase));
+        int index = _providers.FindIndex(provider => provider.Id.Equals(id.Value));
         if (index < 0)
             return false;
 

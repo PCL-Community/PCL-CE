@@ -15,7 +15,7 @@ public enum DownloadSourceKind
 
 public sealed record DownloadSourceDescriptor
 {
-    public required string Id { get; init; }
+    public required DownloadSourceId Id { get; init; }
 
     public required string DisplayName { get; init; }
 
@@ -32,7 +32,7 @@ public interface IDownloadSourceRegistry
 
     void AddSource(DownloadSourceDescriptor descriptor);
 
-    bool RemoveSource(string id);
+    bool RemoveSource(DownloadSourceId id);
 }
 
 public sealed class DownloadSourceRegistry : IDownloadSourceRegistry
@@ -43,27 +43,27 @@ public sealed class DownloadSourceRegistry : IDownloadSourceRegistry
         _sources
             .OrderBy(static source => source.Kind)
             .ThenBy(static source => source.Order)
-            .ThenBy(static source => source.Id, StringComparer.Ordinal)
+            .ThenBy(static source => source.Id.Value, StringComparer.Ordinal)
             .ToArray();
 
     public void AddSource(DownloadSourceDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        if (string.IsNullOrWhiteSpace(descriptor.Id))
+        if (string.IsNullOrWhiteSpace(descriptor.Id.Value))
             throw new ArgumentException("下载源 ID 不能为空。", nameof(descriptor));
         if (string.IsNullOrWhiteSpace(descriptor.DisplayName))
             throw new ArgumentException("下载源名称不能为空。", nameof(descriptor));
         if (!descriptor.BaseUri.IsAbsoluteUri)
             throw new ArgumentException("下载源地址必须是绝对 URI。", nameof(descriptor));
-        if (_sources.Any(source => string.Equals(source.Id, descriptor.Id, StringComparison.OrdinalIgnoreCase)))
+        if (_sources.Any(source => source.Id.Equals(descriptor.Id.Value)))
             throw new InvalidOperationException($"下载源已注册：{descriptor.Id}");
 
         _sources.Add(descriptor);
     }
 
-    public bool RemoveSource(string id)
+    public bool RemoveSource(DownloadSourceId id)
     {
-        int index = _sources.FindIndex(source => string.Equals(source.Id, id, StringComparison.OrdinalIgnoreCase));
+        int index = _sources.FindIndex(source => source.Id.Equals(id.Value));
         if (index < 0)
             return false;
 

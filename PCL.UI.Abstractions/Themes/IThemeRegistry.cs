@@ -6,7 +6,7 @@ namespace PCL.UI.Abstractions.Themes;
 
 public sealed record ThemeDescriptor
 {
-    public required string Id { get; init; }
+    public required ThemeId Id { get; init; }
 
     public required string DisplayName { get; init; }
 
@@ -21,7 +21,7 @@ public interface IThemeRegistry
 
     void AddTheme(ThemeDescriptor descriptor);
 
-    bool RemoveTheme(string id);
+    bool RemoveTheme(ThemeId id);
 }
 
 public sealed class ThemeRegistry : IThemeRegistry
@@ -31,25 +31,25 @@ public sealed class ThemeRegistry : IThemeRegistry
     public IReadOnlyList<ThemeDescriptor> Themes =>
         _themes
             .OrderBy(static theme => theme.Order)
-            .ThenBy(static theme => theme.Id, StringComparer.Ordinal)
+            .ThenBy(static theme => theme.Id.Value, StringComparer.Ordinal)
             .ToArray();
 
     public void AddTheme(ThemeDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        if (string.IsNullOrWhiteSpace(descriptor.Id))
+        if (string.IsNullOrWhiteSpace(descriptor.Id.Value))
             throw new ArgumentException("主题 ID 不能为空。", nameof(descriptor));
         if (string.IsNullOrWhiteSpace(descriptor.DisplayName))
             throw new ArgumentException("主题名称不能为空。", nameof(descriptor));
-        if (_themes.Any(theme => string.Equals(theme.Id, descriptor.Id, StringComparison.OrdinalIgnoreCase)))
+        if (_themes.Any(theme => theme.Id.Equals(descriptor.Id.Value)))
             throw new InvalidOperationException($"主题已注册：{descriptor.Id}");
 
         _themes.Add(descriptor);
     }
 
-    public bool RemoveTheme(string id)
+    public bool RemoveTheme(ThemeId id)
     {
-        int index = _themes.FindIndex(theme => string.Equals(theme.Id, id, StringComparison.OrdinalIgnoreCase));
+        int index = _themes.FindIndex(theme => theme.Id.Equals(id.Value));
         if (index < 0)
             return false;
 

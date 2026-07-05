@@ -89,6 +89,8 @@ public sealed class PclHostBuilder : IPclHostBuilder
     public PclHostBuilder AddModule(HostModuleId id, Action<IPclHostBuilder> configure)
     {
         ArgumentNullException.ThrowIfNull(configure);
+        if (string.IsNullOrWhiteSpace(id.Value))
+            throw new ArgumentException("Host Module ID 不能为空。", nameof(id));
         if (_moduleIds.Any(registered => string.Equals(registered.Value, id.Value, StringComparison.OrdinalIgnoreCase)))
             throw new InvalidOperationException($"Host Module 已注册：{id.Value}");
 
