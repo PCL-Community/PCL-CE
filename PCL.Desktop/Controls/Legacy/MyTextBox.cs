@@ -5,6 +5,8 @@
 using System.Collections.ObjectModel;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Media;
 using FluentValidation;
@@ -32,8 +34,9 @@ public class MyTextBox : TextBox
     private readonly List<EventHandler<TextChangedEventArgs>> _validatedTextChangedHandlers = [];
     private bool _isAttached;
     private bool _isTextChanged;
-
-    protected override Type StyleKeyOverride => typeof(TextBox);
+    private TextBlock? _hintTextBlock;
+    private TextPresenter? _textPresenter;
+    private TextBlock? _wrongTextBlock;
 
     public MyTextBox()
     {
@@ -58,12 +61,21 @@ public class MyTextBox : TextBox
             Validate();
         };
         DetachedFromVisualTree += (_, _) => _isAttached = false;
-        this.GetObservable(IsEnabledProperty).Subscribe(_ => RefreshVisual());
+        this.GetObservable(IsEnabledProperty).Subscribe(_ =>
+        {
+            RefreshValidationText();
+            RefreshVisual();
+        });
         this.GetObservable(HasBackgroundProperty).Subscribe(_ => RefreshVisual());
-        this.GetObservable(ShowValidateResultProperty).Subscribe(_ => RefreshVisual());
-        this.GetObservable(HintTextProperty).Subscribe(hint => PlaceholderText = hint);
+        this.GetObservable(ShowValidateResultProperty).Subscribe(_ =>
+        {
+            RefreshValidationText();
+            RefreshVisual();
+        });
+        this.GetObservable(HintTextProperty).Subscribe(_ => RefreshHintText());
         this.GetObservable(ValidateResultProperty).Subscribe(_ =>
         {
+            RefreshValidationText();
             RefreshVisual();
             ValidateChanged?.Invoke(this, EventArgs.Empty);
         });
@@ -114,6 +126,17 @@ public class MyTextBox : TextBox
         }
     } = [];
 
+    protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+    {
+        base.OnApplyTemplate(e);
+        _hintTextBlock = e.NameScope.Find<TextBlock>("labHint");
+        _textPresenter = e.NameScope.Find<TextPresenter>("PART_TextPresenter");
+        _wrongTextBlock = e.NameScope.Find<TextBlock>("labWrong");
+        RefreshHintText();
+        RefreshTextPresenterStyle();
+        RefreshValidationText();
+    }
+
     public void Validate()
     {
         string newResult = string.Empty;
@@ -148,6 +171,7 @@ public class MyTextBox : TextBox
     private void MyTextBoxTextChanged(object? sender, TextChangedEventArgs e)
     {
         _isTextChanged = _isAttached;
+        RefreshHintText();
         Validate();
         if (!IsValidated)
             return;
@@ -161,6 +185,7 @@ public class MyTextBox : TextBox
         if (TemplatedParent is MyComboBox)
             return;
 
+        RefreshValidationText();
         bool showInvalid = IsEnabled && ShowValidateResult && !IsValidated && _isTextChanged;
         string foreColorName;
         string backColorName;
@@ -204,6 +229,7 @@ public class MyTextBox : TextBox
             Foreground = FindBrush("ColorBrushGray4", "#a6a6a6");
             Cursor = Cursor.Default;
         }
+        RefreshTextPresenterStyle();
 
         if (!HasBackground)
             backColorName = "ColorBrushTransparent";
@@ -223,6 +249,38 @@ public class MyTextBox : TextBox
         ModAnimation.AniStop($"MyTextBox Color {GetHashCode()}");
         BorderBrush = FindBrush(foreColorName, "#96c0f9");
         Background = HasBackground ? FindBrush(backColorName, "#55ffffff") : Brushes.Transparent;
+    }
+
+    private void RefreshHintText()
+    {
+        PlaceholderText = HintText;
+        if (_hintTextBlock is not null)
+            _hintTextBlock.Text = string.IsNullOrEmpty(Text) ? HintText : string.Empty;
+    }
+
+    private void RefreshTextPresenterStyle()
+    {
+        if (_textPresenter is null)
+            return;
+
+        _textPresenter.FontFamily = FontFamily;
+        _textPresenter.FontSize = FontSize;
+        _textPresenter.FontStyle = FontStyle;
+        _textPresenter.FontWeight = FontWeight;
+        _textPresenter.FontStretch = FontStretch;
+        _textPresenter.Foreground = Foreground;
+    }
+
+    private void RefreshValidationText()
+    {
+        if (_wrongTextBlock is null)
+            return;
+
+        bool showInvalid = IsEnabled && ShowValidateResult && !IsValidated && _isTextChanged;
+        _wrongTextBlock.Text = showInvalid ? ValidateResult : string.Empty;
+        _wrongTextBlock.IsVisible = showInvalid;
+        _wrongTextBlock.Height = showInvalid ? 21d : 0d;
+        _wrongTextBlock.Opacity = showInvalid ? 1d : 0d;
     }
 
     private IBrush FindBrush(string key, string fallback)

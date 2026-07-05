@@ -5,6 +5,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Headless;
@@ -1775,6 +1776,14 @@ public sealed class AvaloniaHeadlessTests
                 window.Show();
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
+                TextBlock hint = textBox.GetVisualDescendants()
+                    .OfType<TextBlock>()
+                    .Single(block => block.Name == "labHint");
+                TextPresenter presenter = textBox.GetVisualDescendants()
+                    .OfType<TextPresenter>()
+                    .Single(block => block.Name == "PART_TextPresenter");
+                Assert.AreEqual("输入内容", hint.Text);
+
                 Assert.IsTrue(textBox.IsEnabled);
                 Click(window, textBox);
                 Assert.IsTrue(textBox.IsKeyboardFocusWithin);
@@ -1784,10 +1793,14 @@ public sealed class AvaloniaHeadlessTests
                 window.KeyPress(Key.V, RawInputModifiers.None, PhysicalKey.V, "v");
                 window.KeyPress(Key.E, RawInputModifiers.None, PhysicalKey.E, "e");
                 Assert.AreEqual("Steve", textBox.Text);
+                Assert.AreEqual(string.Empty, hint.Text);
                 ModAnimation.AdvanceUntilIdleForTesting();
                 Assert.AreEqual(
                     RequiredBrush("ColorBrush3").Color,
                     ((SolidColorBrush)textBox.BorderBrush!).Color);
+                Assert.AreEqual(
+                    RequiredBrush("ColorBrush1").Color,
+                    ((SolidColorBrush)presenter.Foreground!).Color);
 
                 MoveTo(window, link);
                 ModAnimation.AdvanceUntilIdleForTesting();
@@ -1890,8 +1903,12 @@ public sealed class AvaloniaHeadlessTests
                 window.Show();
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
+                TextBlock wrong = textBox.GetVisualDescendants()
+                    .OfType<TextBlock>()
+                    .Single(block => block.Name == "labWrong");
                 Assert.IsFalse(textBox.IsValidated);
                 Assert.AreEqual("至少 3 个字符", textBox.ValidateResult);
+                Assert.IsFalse(wrong.IsVisible);
                 Assert.AreEqual(
                     RequiredBrush("ColorBrushBg0").Color,
                     ((SolidColorBrush)textBox.BorderBrush!).Color);
@@ -1900,6 +1917,9 @@ public sealed class AvaloniaHeadlessTests
                 ModAnimation.AdvanceUntilIdleForTesting();
 
                 Assert.IsFalse(textBox.IsValidated);
+                Assert.IsTrue(wrong.IsVisible);
+                Assert.AreEqual("至少 3 个字符", wrong.Text);
+                Assert.AreEqual(21d, wrong.Height);
                 Assert.AreEqual(
                     RequiredBrush("ColorBrushRedLight").Color,
                     ((SolidColorBrush)textBox.BorderBrush!).Color);
