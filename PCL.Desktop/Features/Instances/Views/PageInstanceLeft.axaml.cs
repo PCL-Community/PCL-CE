@@ -4,6 +4,7 @@
 
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using System.Globalization;
 using PCL.Desktop.Controls.Legacy;
 using PCL.Desktop.Features.Launching.Views;
 
@@ -34,6 +35,7 @@ public partial class PageInstanceLeft : MyPageLeft
     {
         AvaloniaXamlLoader.Load(this);
         AnimatedControl = this.FindControl<Control>("PanItem");
+        InitializeRegisteredPageTags();
     }
 
     public event EventHandler<InstancePageSubType>? PageChanged;
@@ -92,18 +94,8 @@ public partial class PageInstanceLeft : MyPageLeft
 
     private void RefreshButton_Click(object? sender, EventArgs e)
     {
-        if (sender is not MyIconButton button)
-            return;
-
-        if (button.Tag is string text && int.TryParse(text, out int value) &&
-            InstancePageRegistry.IsDefined((InstancePageSubType)value))
-        {
-            RefreshRequested?.Invoke(this, (InstancePageSubType)value);
-            return;
-        }
-
-        if (button.Tag is int id && InstancePageRegistry.IsDefined((InstancePageSubType)id))
-            RefreshRequested?.Invoke(this, (InstancePageSubType)id);
+        if (sender is MyIconButton button && TryNormalizePageTag(button.Tag, out InstancePageSubType page))
+            RefreshRequested?.Invoke(this, page);
     }
 
     private void Reset(object? sender, EventArgs e)
@@ -125,11 +117,33 @@ public partial class PageInstanceLeft : MyPageLeft
 
     private static bool TryGetPage(MyListItem item, out InstancePageSubType page)
     {
+        return TryNormalizePageTag(item.Tag, out page);
+    }
+
+    private void InitializeRegisteredPageTags()
+    {
+        foreach (MyListItem item in GetItems())
+        {
+            if (TryNormalizePageTag(item.Tag, out InstancePageSubType page))
+                item.Tag = page;
+
+            foreach (MyIconButton button in item.Buttons)
+            {
+                if (TryNormalizePageTag(button.Tag, out InstancePageSubType buttonPage))
+                    button.Tag = buttonPage;
+            }
+        }
+    }
+
+    private static bool TryNormalizePageTag(object? tag, out InstancePageSubType page)
+    {
         page = InstancePageSubType.Overall;
-        return item.Tag switch
+        return tag switch
         {
             int value when InstancePageRegistry.IsDefined((InstancePageSubType)value) => SetPage((InstancePageSubType)value, out page),
-            string text when int.TryParse(text, out int value) && InstancePageRegistry.IsDefined((InstancePageSubType)value) =>
+            InstancePageSubType value when InstancePageRegistry.IsDefined(value) => SetPage(value, out page),
+            string text when int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value) &&
+                             InstancePageRegistry.IsDefined((InstancePageSubType)value) =>
                 SetPage((InstancePageSubType)value, out page),
             _ => false
         };

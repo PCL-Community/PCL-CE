@@ -3863,6 +3863,12 @@ public sealed class AvaloniaHeadlessTests
                 {
                     window.Show();
                     AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                    Assert.AreEqual(InstancePageSubType.Export, left.FindControl<MyListItem>("ItemExport")!.Tag);
+                    Assert.AreEqual(
+                        InstancePageSubType.Install,
+                        left.FindControl<MyListItem>("ItemInstall")!.Buttons.Single().Tag);
+
                     Click(window, left.FindControl<MyListItem>("ItemExport")!);
 
                     Assert.AreEqual(InstancePageSubType.Export, changed);
