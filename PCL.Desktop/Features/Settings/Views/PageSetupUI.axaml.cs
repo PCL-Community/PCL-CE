@@ -16,8 +16,6 @@ namespace PCL.Desktop.Features.Settings.Views;
 
 public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISettingsPageInteractionSource
 {
-    private const string CustomLogoOptionKey = "UiCustomLogoPath";
-
     public PageSetupUI()
     {
         AvaloniaXamlLoader.Load(this);
@@ -121,7 +119,7 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
         }
 
         LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-        settings.SetTextOption(CustomLogoOptionKey, targetPath);
+        settings.SetTextOption(LauncherSettingKeys.UiCustomLogoPath, targetPath);
         LauncherSettingsPageBinder.SaveSettings(settings);
         RefreshLogoUi();
         MessageRequested?.Invoke(this, new SettingsMessageRequestedEventArgs("图标已更新", "自定义标题栏图标会在重新创建窗口后完整生效。"));
@@ -136,7 +134,7 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
                 File.Delete(logoPath);
 
             LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-            settings.RemoveTextOption(CustomLogoOptionKey);
+            settings.RemoveTextOption(LauncherSettingKeys.UiCustomLogoPath);
             LauncherSettingsPageBinder.SaveSettings(settings);
             RefreshLogoUi();
             MessageRequested?.Invoke(this, new SettingsMessageRequestedEventArgs("图标已清除", "已恢复默认标题栏图标。"));

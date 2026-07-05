@@ -67,7 +67,7 @@ public partial class PageSetupLaunch : MyPageRight, ISettingsPageInteractionSour
             TextAdvanceJvm.Text = DefaultJvmArguments;
 
         LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-        settings.SetTextOption("LaunchAdvanceJvm", DefaultJvmArguments);
+        settings.SetTextOption(LauncherSettingKeys.LaunchAdvanceJvm, DefaultJvmArguments);
         LauncherSettingsPageBinder.SaveSettings(settings);
         RefreshDependentVisibility();
         MessageRequested?.Invoke(this, new SettingsMessageRequestedEventArgs("已恢复默认 JVM 参数", "JVM 参数已恢复为 PCL N 推荐的默认值。"));

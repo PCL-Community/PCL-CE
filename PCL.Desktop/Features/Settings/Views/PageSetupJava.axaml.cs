@@ -18,10 +18,6 @@ namespace PCL.Desktop.Features.Settings.Views;
 
 public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISettingsPageInteractionSource
 {
-    internal const string SelectedJavaOptionKey = "LaunchSelectedJava";
-    private const string CustomJavaRootsOptionKey = "JavaCustomRoots";
-    private const string DisabledJavaOptionPrefix = "JavaDisabled|";
-
     private List<JavaRuntimeCandidate> _javaCandidates = [];
     private bool _loaderInitialized;
 
@@ -133,7 +129,7 @@ public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISet
             return;
 
         LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-        string selectedJava = settings.GetTextOption(SelectedJavaOptionKey);
+        string selectedJava = settings.GetTextOption(LauncherSettingKeys.LaunchSelectedJava);
 
         contentPanel.Children.Clear();
         MyListItem automaticItem = new()
@@ -286,8 +282,8 @@ public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISet
         if (!customRoots.Contains(candidate.Installation.JavaHome, GetPathComparer()))
             customRoots.Add(candidate.Installation.JavaHome);
 
-        settings.SetTextOption(CustomJavaRootsOptionKey, string.Join(Path.PathSeparator, customRoots));
-        settings.SetBooleanOption(GetDisabledJavaOptionKey(candidate.Installation.JavaExecutablePath), false);
+        settings.SetTextOption(LauncherSettingKeys.JavaCustomRoots, string.Join(Path.PathSeparator, customRoots));
+        settings.SetBooleanOption(LauncherSettingKeys.JavaDisabled(candidate.Installation.JavaExecutablePath), false);
         LauncherSettingsPageBinder.SaveSettings(settings);
 
         MessageRequested?.Invoke(
@@ -319,14 +315,14 @@ public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISet
         }
 
         LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-        string key = GetDisabledJavaOptionKey(candidate.Installation.JavaExecutablePath);
+        SettingKey key = LauncherSettingKeys.JavaDisabled(candidate.Installation.JavaExecutablePath);
         bool disabled = settings.GetBooleanOption(key);
         settings.SetBooleanOption(key, !disabled);
         if (!disabled &&
-            settings.TryGetTextOption(SelectedJavaOptionKey, out string? selected) &&
+            settings.TryGetTextOption(LauncherSettingKeys.LaunchSelectedJava, out string? selected) &&
             string.Equals(selected, candidate.Installation.JavaExecutablePath, GetPathComparison()))
         {
-            settings.SetTextOption(SelectedJavaOptionKey, string.Empty);
+            settings.SetTextOption(LauncherSettingKeys.LaunchSelectedJava, string.Empty);
         }
 
         LauncherSettingsPageBinder.SaveSettings(settings);
@@ -335,15 +331,14 @@ public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISet
 
     private static JavaRuntimeCandidate ApplySavedState(JavaRuntimeCandidate candidate, LauncherSettings settings)
     {
-        string key = GetDisabledJavaOptionKey(candidate.Installation.JavaExecutablePath);
-        bool disabled = settings.GetBooleanOption(key);
+        bool disabled = settings.GetBooleanOption(LauncherSettingKeys.JavaDisabled(candidate.Installation.JavaExecutablePath));
         return candidate with { IsEnabled = !disabled };
     }
 
     private static void SaveSelectedJava(string javaExecutablePath)
     {
         LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-        settings.SetTextOption(SelectedJavaOptionKey, javaExecutablePath);
+        settings.SetTextOption(LauncherSettingKeys.LaunchSelectedJava, javaExecutablePath);
         LauncherSettingsPageBinder.SaveSettings(settings);
     }
 
@@ -353,13 +348,13 @@ public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISet
         List<string> customRoots = ReadCustomJavaRoots(settings)
             .Where(root => !string.Equals(root, javaHome, GetPathComparison()))
             .ToList();
-        settings.SetTextOption(CustomJavaRootsOptionKey, string.Join(Path.PathSeparator, customRoots));
+        settings.SetTextOption(LauncherSettingKeys.JavaCustomRoots, string.Join(Path.PathSeparator, customRoots));
         LauncherSettingsPageBinder.SaveSettings(settings);
     }
 
     private static string[] ReadCustomJavaRoots(LauncherSettings settings)
     {
-        if (!settings.TryGetTextOption(CustomJavaRootsOptionKey, out string? raw) ||
+        if (!settings.TryGetTextOption(LauncherSettingKeys.JavaCustomRoots, out string? raw) ||
             string.IsNullOrWhiteSpace(raw))
         {
             return [];
@@ -402,9 +397,6 @@ public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISet
         JavaSource.ManualAdded => "手动添加",
         _ => "自动扫描"
     };
-
-    private static string GetDisabledJavaOptionKey(string javaExecutablePath) =>
-        DisabledJavaOptionPrefix + javaExecutablePath;
 
     private static StringComparer GetPathComparer() =>
         OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;

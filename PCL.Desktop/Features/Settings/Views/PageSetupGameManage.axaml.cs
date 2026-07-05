@@ -15,8 +15,6 @@ namespace PCL.Desktop.Features.Settings.Views;
 
 public partial class PageSetupGameManage : MyPageRight, ISettingsPageInteractionSource
 {
-    private const string LargeDownloadThreadHintKey = "HintDownloadThread";
-
     public PageSetupGameManage()
     {
         AvaloniaXamlLoader.Load(this);
@@ -55,10 +53,10 @@ public partial class PageSetupGameManage : MyPageRight, ISettingsPageInteraction
             return;
 
         LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-        if (settings.GetBooleanOption(LargeDownloadThreadHintKey))
+        if (settings.GetBooleanOption(LauncherSettingKeys.HintDownloadThread))
             return;
 
-        settings.SetBooleanOption(LargeDownloadThreadHintKey, true);
+        settings.SetBooleanOption(LauncherSettingKeys.HintDownloadThread, true);
         LauncherSettingsPageBinder.SaveSettings(settings);
         MessageRequested?.Invoke(
             this,

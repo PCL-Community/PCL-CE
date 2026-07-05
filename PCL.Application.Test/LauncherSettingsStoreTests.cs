@@ -94,6 +94,26 @@ public sealed class LauncherSettingsStoreTests
     }
 
     [TestMethod]
+    public void LauncherSettingKeys_KeepPersistedNamesStable()
+    {
+        Assert.AreEqual("LaunchAdvanceJvm", LauncherSettingKeys.LaunchAdvanceJvm.Value);
+        Assert.AreEqual("LaunchAdvanceGame", LauncherSettingKeys.LaunchAdvanceGame.Value);
+        Assert.AreEqual("LaunchArgumentWindowHeight", LauncherSettingKeys.LaunchArgumentWindowHeight.Value);
+        Assert.AreEqual("LaunchArgumentWindowType", LauncherSettingKeys.LaunchArgumentWindowType.Value);
+        Assert.AreEqual("LaunchArgumentWindowWidth", LauncherSettingKeys.LaunchArgumentWindowWidth.Value);
+        Assert.AreEqual("LaunchPreferredIpStack", LauncherSettingKeys.LaunchPreferredIpStack.Value);
+        Assert.AreEqual("LaunchRamCustom", LauncherSettingKeys.LaunchRamCustom.Value);
+        Assert.AreEqual("LaunchRamType", LauncherSettingKeys.LaunchRamType.Value);
+        Assert.AreEqual("LaunchSelectedJava", LauncherSettingKeys.LaunchSelectedJava.Value);
+        Assert.AreEqual("JavaCustomRoots", LauncherSettingKeys.JavaCustomRoots.Value);
+        Assert.AreEqual("HintDownloadThread", LauncherSettingKeys.HintDownloadThread.Value);
+        Assert.AreEqual("ToolDownloadThread", LauncherSettingKeys.ToolDownloadThread.Value);
+        Assert.AreEqual("UiCustomLogoPath", LauncherSettingKeys.UiCustomLogoPath.Value);
+        Assert.AreEqual("JavaDisabled|/opt/java/bin/java", LauncherSettingKeys.JavaDisabled("/opt/java/bin/java").Value);
+        Assert.ThrowsExactly<ArgumentException>(() => LauncherSettingKeys.JavaDisabled(""));
+    }
+
+    [TestMethod]
     public void NormalizeOptionDictionaries_RemovesBlankAndDuplicateKeys()
     {
         LauncherSettings settings = new()

@@ -2077,7 +2077,7 @@ public partial class MainWindow : Window, IDisposable
         string minecraftRoot = GetDefaultMinecraftRoot();
         Directory.CreateDirectory(minecraftRoot);
         LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-        int downloadThreadLimit = Math.Clamp(GetIntegerOption(settings, "ToolDownloadThread", 63) + 1, 1, 256);
+        int downloadThreadLimit = Math.Clamp(GetIntegerOption(settings, LauncherSettingKeys.ToolDownloadThread, 63) + 1, 1, 256);
         Progress<MinecraftInstallProgress> progress = new(update => TrackInstallProgress(taskId, taskTitle, update));
         try
         {
@@ -2213,7 +2213,7 @@ public partial class MainWindow : Window, IDisposable
         InstanceMetadata metadata = metadataOverride ??
             await InstanceMetadataStore.LoadAsync(instance.InstanceDirectory, cancellationToken).ConfigureAwait(false);
         LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-        int windowType = GetIntegerOption(settings, "LaunchArgumentWindowType", 1);
+        int windowType = GetIntegerOption(settings, LauncherSettingKeys.LaunchArgumentWindowType, 1);
         (int width, int height) = GetWindowSize(settings);
         (string? authlibPath, string? authlibServer, string? authlibMetadata) =
             await ResolveAuthlibLaunchOptionsAsync(profile, cancellationToken).ConfigureAwait(false);
@@ -2234,8 +2234,8 @@ public partial class MainWindow : Window, IDisposable
                 Height = height,
                 Fullscreen = windowType == 0,
                 IsolatedGameDirectory = metadata.InstanceIsolation,
-                CustomJvmArguments = FirstNonEmpty(metadata.JvmArguments, GetTextOption(settings, "LaunchAdvanceJvm")),
-                CustomGameArguments = FirstNonEmpty(metadata.GameArguments, GetTextOption(settings, "LaunchAdvanceGame")),
+                CustomJvmArguments = FirstNonEmpty(metadata.JvmArguments, GetTextOption(settings, LauncherSettingKeys.LaunchAdvanceJvm)),
+                CustomGameArguments = FirstNonEmpty(metadata.GameArguments, GetTextOption(settings, LauncherSettingKeys.LaunchAdvanceGame)),
                 ClasspathHeadEntries = SplitClasspathHead(metadata.ClasspathHead),
                 AuthlibInjectorPath = authlibPath,
                 AuthlibServer = authlibServer,
@@ -2317,8 +2317,8 @@ public partial class MainWindow : Window, IDisposable
         int customMemorySize = metadata.CustomMemorySize;
         if (memorySolution == 2)
         {
-            memorySolution = GetIntegerOption(settings, "LaunchRamType", 0);
-            customMemorySize = GetIntegerOption(settings, "LaunchRamCustom", 15);
+            memorySolution = GetIntegerOption(settings, LauncherSettingKeys.LaunchRamType, 0);
+            customMemorySize = GetIntegerOption(settings, LauncherSettingKeys.LaunchRamCustom, 15);
         }
 
         return LaunchMemoryCalculator.ResolveMemoryMegabytes(
@@ -2359,24 +2359,24 @@ public partial class MainWindow : Window, IDisposable
 
     private static (int Width, int Height) GetWindowSize(LauncherSettings settings)
     {
-        int width = GetTextOptionAsInt(settings, "LaunchArgumentWindowWidth", 854);
-        int height = GetTextOptionAsInt(settings, "LaunchArgumentWindowHeight", 480);
+        int width = GetTextOptionAsInt(settings, LauncherSettingKeys.LaunchArgumentWindowWidth, 854);
+        int height = GetTextOptionAsInt(settings, LauncherSettingKeys.LaunchArgumentWindowHeight, 480);
         return (Math.Clamp(width, 1, 9999), Math.Clamp(height, 1, 9999));
     }
 
-    private static int GetIntegerOption(LauncherSettings settings, string key, int fallback) =>
+    private static int GetIntegerOption(LauncherSettings settings, SettingKey key, int fallback) =>
         settings.GetIntegerOption(key, fallback);
 
-    private static string GetTextOption(LauncherSettings settings, string key) =>
+    private static string GetTextOption(LauncherSettings settings, SettingKey key) =>
         settings.GetTextOption(key);
 
-    private static int GetTextOptionAsInt(LauncherSettings settings, string key, int fallback) =>
+    private static int GetTextOptionAsInt(LauncherSettings settings, SettingKey key, int fallback) =>
         int.TryParse(GetTextOption(settings, key), NumberStyles.Integer, CultureInfo.InvariantCulture, out int value)
             ? value
             : fallback;
 
     private static MinecraftJvmIpPreference GetPreferredIpStack(LauncherSettings settings) =>
-        GetIntegerOption(settings, "LaunchPreferredIpStack", 1) switch
+        GetIntegerOption(settings, LauncherSettingKeys.LaunchPreferredIpStack, 1) switch
         {
             0 => MinecraftJvmIpPreference.PreferV4,
             2 => MinecraftJvmIpPreference.PreferV6,
@@ -2400,7 +2400,7 @@ public partial class MainWindow : Window, IDisposable
         try
         {
             LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-            if (settings.TryGetTextOption(PageSetupJava.SelectedJavaOptionKey, out string? selectedJava) &&
+            if (settings.TryGetTextOption(LauncherSettingKeys.LaunchSelectedJava, out string? selectedJava) &&
                 !string.IsNullOrWhiteSpace(selectedJava) &&
                 File.Exists(selectedJava))
             {
