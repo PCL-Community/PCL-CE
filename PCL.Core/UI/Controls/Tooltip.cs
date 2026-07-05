@@ -380,7 +380,11 @@ public static class Tooltip
             var sb = _closeStory!.Clone();
             sb.Completed += (_, _) =>
             {
-                if (mark == _gen) _PopUp(target, pt);
+                if (mark == _gen)
+                {
+                    _flyout.IsOpen = false;
+                    _PopUp(target, pt);
+                }
                 sb.Remove(_shell!);
             };
             _shell!.BeginStoryboard(sb);
