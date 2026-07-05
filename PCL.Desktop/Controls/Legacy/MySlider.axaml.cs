@@ -9,7 +9,6 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using Avalonia.Threading;
 
 namespace PCL.Desktop.Controls.Legacy;
 
@@ -37,7 +36,6 @@ public partial class MySlider : Border
     private readonly Ellipse? _shapeDot;
     private readonly Popup? _popup;
     private readonly TextBlock? _textHint;
-    private readonly DispatcherTimer _keyPopupTimer;
     private IPointer? _capturedPointer;
     private bool _changeByKey;
     private bool _isDragging;
@@ -56,13 +54,6 @@ public partial class MySlider : Border
         _textHint = this.FindControl<TextBlock>("TextHint");
         if (_popup is not null)
             _popup.PlacementTarget = _shapeDot;
-        _keyPopupTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(700) };
-        _keyPopupTimer.Tick += (_, _) =>
-        {
-            _keyPopupTimer.Stop();
-            if (_popup is not null)
-                _popup.IsOpen = false;
-        };
 
         SizeChanged += RefreshWidth;
         this.GetObservable(IsEnabledProperty).Subscribe(_ => RefreshColor());
@@ -84,6 +75,8 @@ public partial class MySlider : Border
         });
         RefreshColor();
     }
+
+    public int Uuid { get; } = Random.Shared.Next();
 
     public event ChangeEventHandler? Change;
 
@@ -133,7 +126,7 @@ public partial class MySlider : Border
         _isDragging = false;
         _capturedPointer?.Capture(null);
         _capturedPointer = null;
-        SetDotScale(1d);
+        AnimateDotScale(1d, 200);
         RefreshColor();
         if (_popup is not null)
             _popup.IsOpen = false;
@@ -160,19 +153,23 @@ public partial class MySlider : Border
         if (syncStyledProperty)
             SyncValueProperty(newValue);
 
-        RouteEventArgs preview = new(user);
-        PreviewChange?.Invoke(this, preview);
-        if (preview.Handled)
+        if (ModAnimation.AniControlEnabled == 0)
         {
-            _value = oldValue;
-            SyncValueProperty(oldValue);
-            DragStop();
-            RefreshWidth(null, null);
-            return;
+            RouteEventArgs preview = new(user);
+            PreviewChange?.Invoke(this, preview);
+            if (preview.Handled)
+            {
+                _value = oldValue;
+                SyncValueProperty(oldValue);
+                DragStop();
+                RefreshProgress(animate: false);
+                return;
+            }
         }
 
-        RefreshWidth(null, null);
-        Change?.Invoke(this, false);
+        RefreshProgress(animate: true);
+        if (ModAnimation.AniControlEnabled == 0)
+            Change?.Invoke(this, false);
     }
 
     private void SyncValueProperty(int value)
@@ -193,13 +190,40 @@ public partial class MySlider : Border
         if (_mainPanel is not null && e is not null)
             _mainPanel.Width = e.NewSize.Width;
 
+        RefreshProgress(animate: false);
+    }
+
+    private void RefreshProgress(bool animate)
+    {
         if (_lineBack is null || _lineFore is null || _shapeDot is null)
             return;
 
         double trackWidth = GetTrackWidth();
         double newWidth = MaxValue <= 0 ? 0d : _value / (double)MaxValue * trackWidth;
-        _lineFore.Width = Math.Max(0d, newWidth + (newWidth < 0.5d ? 0d : 0.5d));
-        _lineBack.Width = Math.Max(0d, trackWidth - newWidth + (trackWidth - newWidth < 0.5d ? 0d : 0.5d));
+        double foreWidth = Math.Max(0d, newWidth + (newWidth < 0.5d ? 0d : 0.5d));
+        double backWidth = Math.Max(0d, trackWidth - newWidth + (trackWidth - newWidth < 0.5d ? 0d : 0.5d));
+        if (animate && ControlVisualHelpers.ShouldAnimate(this) && trackWidth > 0d)
+        {
+            double deltaProcess = Math.Abs(_lineFore.Width / trackWidth - _value / (double)MaxValue);
+            double time = (1d - Math.Pow(1d - deltaProcess, 3d)) * 300d + (_changeByKey ? 100d : 0d);
+            int duration = (int)Math.Round(time);
+            ModAnimation.AniEase ease = duration > 50
+                ? new ModAnimation.AniEaseOutFluent()
+                : new ModAnimation.AniEaseLinear();
+            ModAnimation.AniStart(
+                new[]
+                {
+                    ModAnimation.AaWidth(_lineFore, foreWidth - _lineFore.Width, duration, ease: ease),
+                    ModAnimation.AaWidth(_lineBack, backWidth - _lineBack.Width, duration, ease: ease),
+                    ModAnimation.AaX(_shapeDot, newWidth - _shapeDot.Margin.Left, duration, ease: ease)
+                },
+                "MySlider Progress " + Uuid);
+            return;
+        }
+
+        ModAnimation.AniStop("MySlider Progress " + Uuid);
+        _lineFore.Width = foreWidth;
+        _lineBack.Width = backWidth;
         _shapeDot.Margin = new Thickness(newWidth, 0d, 0d, 0d);
     }
 
@@ -212,7 +236,7 @@ public partial class MySlider : Border
         _capturedPointer = e.Pointer;
         e.Pointer.Capture(this);
         Focus();
-        SetDotScale(1.3d);
+        AnimateDotScale(1.3d, 40);
         RefreshColor();
         DragDoing(e.GetPosition(GetPointerReference()));
         e.Handled = true;
@@ -242,17 +266,53 @@ public partial class MySlider : Border
         if (_shapeDot is null)
             return;
 
-        IBrush brush = IsEnabled
-            ? (IsPointerOver || _isDragging
-                ? FindBrush("ColorBrush3", "#1370f3")
-                : FindBrush("ColorBrushBg0", "#96c0f9"))
-            : FindBrush("ColorBrushGray5", "#cccccc");
+        string foregroundName;
+        string dotFillName;
+        int animationTime;
+        if (IsEnabled)
+        {
+            if (_isDragging || IsPointerOver)
+            {
+                foregroundName = "ColorBrush3";
+                dotFillName = "ColorBrush3";
+                animationTime = 40;
+            }
+            else
+            {
+                foregroundName = "ColorBrushBg0";
+                dotFillName = "ColorBrushBg0";
+                animationTime = 100;
+            }
+        }
+        else
+        {
+            foregroundName = "ColorBrushGray5";
+            dotFillName = "ColorBrushGray5";
+            animationTime = 200;
+        }
 
-        BorderBrush = brush;
+        if (ControlVisualHelpers.ShouldAnimate(this))
+        {
+            List<ModAnimation.AniData> animations =
+            [
+                ModAnimation.AaColor(this, BorderBrushProperty, foregroundName, animationTime),
+                ModAnimation.AaColor(_shapeDot, Shape.FillProperty, dotFillName, animationTime),
+                ModAnimation.AaColor(_shapeDot, Shape.StrokeProperty, foregroundName, animationTime)
+            ];
+            if (_lineFore is not null)
+                animations.Add(ModAnimation.AaColor(_lineFore, Shape.StrokeProperty, foregroundName, animationTime));
+            ModAnimation.AniStart(animations, "MySlider Color " + Uuid);
+            return;
+        }
+
+        ModAnimation.AniStop("MySlider Color " + Uuid);
+        IBrush foreground = FindBrush(foregroundName, "#96c0f9");
+        IBrush dotFill = FindBrush(dotFillName, "#96c0f9");
+        BorderBrush = foreground;
         if (_lineFore is not null)
-            _lineFore.Stroke = brush;
-        _shapeDot.Stroke = brush;
-        _shapeDot.Fill = brush;
+            _lineFore.Stroke = foreground;
+        _shapeDot.Stroke = foreground;
+        _shapeDot.Fill = dotFill;
     }
 
     private void MySlider_KeyDown(object? sender, KeyEventArgs e)
@@ -282,9 +342,15 @@ public partial class MySlider : Border
         if (getHintText is not null)
         {
             RefreshPopup();
-            _keyPopupTimer.Stop();
-            _keyPopupTimer.Interval = TimeSpan.FromMilliseconds(_changeByKey ? 800 : 700);
-            _keyPopupTimer.Start();
+            ModAnimation.AniStop("MySlider KeyPopup " + Uuid);
+            if (_popup is not null)
+            {
+                ModAnimation.AniStart(
+                    ModAnimation.AaCode(
+                        () => _popup.IsOpen = false,
+                        (int)Math.Round(700d * ModAnimation.aniSpeed)),
+                    "MySlider KeyPopup " + Uuid);
+            }
         }
     }
 
@@ -293,13 +359,28 @@ public partial class MySlider : Border
 
     private Control GetPointerReference() => _mainPanel is not null ? _mainPanel : this;
 
-    private void SetDotScale(double scale)
+    private void AnimateDotScale(double targetScale, int duration)
     {
         if (_shapeDot is null)
             return;
 
-        ControlVisualHelpers.SetCenterScale(_shapeDot, scale);
+        if (ControlVisualHelpers.ShouldAnimate(this))
+        {
+            ModAnimation.AniStart(
+                ModAnimation.AaScaleTransform(
+                    _shapeDot,
+                    targetScale - GetScaleX(_shapeDot),
+                    duration,
+                    ease: new ModAnimation.AniEaseOutFluent()),
+                "MySlider Scale " + Uuid);
+            return;
+        }
+
+        ControlVisualHelpers.SetCenterScale(_shapeDot, targetScale);
     }
+
+    private static double GetScaleX(Control control) =>
+        control.RenderTransform is ScaleTransform scale ? scale.ScaleX : 1d;
 
     private IBrush FindBrush(string key, string fallback)
     {

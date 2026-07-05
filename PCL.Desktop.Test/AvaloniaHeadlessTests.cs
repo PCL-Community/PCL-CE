@@ -6854,6 +6854,10 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsFalse(lastChangeUserFlag);
                 Assert.AreEqual("值 55", textHint.Text);
                 Assert.IsTrue(popup.IsOpen);
+                Assert.IsTrue(ModAnimation.AniIsRun("MySlider Progress " + slider.Uuid));
+                Assert.IsTrue(ModAnimation.AniIsRun("MySlider KeyPopup " + slider.Uuid));
+                ModAnimation.AdvanceUntilIdleForTesting();
+                Assert.IsFalse(popup.IsOpen);
 
                 Drag(window, slider, new Point(10d, 8d), new Point(157d, 8d));
 
@@ -6861,8 +6865,12 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsFalse(lastChangeUserFlag);
                 Assert.IsFalse(popup.IsOpen);
                 Assert.IsTrue(changeCount >= 2);
+                Assert.IsTrue(ModAnimation.AniIsRun("MySlider Progress " + slider.Uuid));
+                Assert.IsTrue(ModAnimation.AniIsRun("MySlider Scale " + slider.Uuid));
+                ModAnimation.AdvanceUntilIdleForTesting();
                 Assert.AreEqual(152.5d, lineFore.Width, 0.01d);
                 Assert.AreEqual(new Thickness(152d, 0d, 0d, 0d), dot.Margin);
+                Assert.AreEqual(1d, ((ScaleTransform)dot.RenderTransform!).ScaleX, 0.01d);
             }
             finally
             {
