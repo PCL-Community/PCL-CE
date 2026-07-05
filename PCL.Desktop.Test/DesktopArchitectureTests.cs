@@ -172,6 +172,34 @@ public sealed class DesktopArchitectureTests
         StringAssert.Contains(generatorSource, "InstancePageRegistry.g.cs");
     }
 
+    [TestMethod]
+    public void DesktopBuildInfo_UsesGeneratedStaticMetadata()
+    {
+        string desktopRoot = FindDesktopProjectRoot();
+        string repoRoot = Directory.GetParent(desktopRoot)?.FullName
+            ?? throw new DirectoryNotFoundException("Could not locate repository root.");
+        string csprojSource = File.ReadAllText(Path.Combine(desktopRoot, "PCL.Desktop.csproj"));
+        string updatePageSource = File.ReadAllText(Path.Combine(
+            desktopRoot,
+            "Features",
+            "Settings",
+            "Views",
+            "PageSetupUpdate.axaml.cs"));
+        string generatorSource = File.ReadAllText(Path.Combine(
+            repoRoot,
+            "PCL.Desktop.SourceGenerators",
+            "BuildInfoGenerator.cs"));
+
+        StringAssert.Contains(csprojSource, "CompilerVisibleProperty Include=\"InformationalVersion\"");
+        StringAssert.Contains(csprojSource, "CompilerVisibleProperty Include=\"Version\"");
+        StringAssert.Contains(updatePageSource, "PclBuildInfo.DisplayVersion");
+        Assert.IsFalse(updatePageSource.Contains("Assembly.GetCustomAttribute", StringComparison.Ordinal));
+        Assert.IsFalse(updatePageSource.Contains("Assembly.GetName()", StringComparison.Ordinal));
+        StringAssert.Contains(generatorSource, "build_property.");
+        StringAssert.Contains(generatorSource, "\"InformationalVersion\"");
+        StringAssert.Contains(generatorSource, "PclBuildInfo.g.cs");
+    }
+
     private static string FindDesktopProjectRoot()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);

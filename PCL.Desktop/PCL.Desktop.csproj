@@ -28,6 +28,11 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
   </PropertyGroup>
   <ItemGroup>
+    <CompilerVisibleProperty Include="InformationalVersion" />
+    <CompilerVisibleProperty Include="Version" />
+    <CompilerVisibleProperty Include="SourceRevisionId" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.4" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />

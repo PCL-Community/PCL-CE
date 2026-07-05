@@ -7,7 +7,6 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using System.Net.Http.Headers;
-using System.Reflection;
 using System.Text.Json;
 using PCL.Desktop.Controls.Legacy;
 
@@ -120,15 +119,8 @@ public partial class PageSetupUpdate : MyPageRight, IRefreshableSettingsPage, IS
 
     private void SetCurrentVersionText()
     {
-        string version = typeof(PageSetupUpdate).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-                         ?? typeof(PageSetupUpdate).Assembly.GetName().Version?.ToString()
-                         ?? "dev";
-        int metadataIndex = version.IndexOf('+', StringComparison.Ordinal);
-        if (metadataIndex > 0)
-            version = version[..metadataIndex];
-
         if (TextCurrentVersion is not null)
-            TextCurrentVersion.Text = "PCL N " + version;
+            TextCurrentVersion.Text = "PCL N " + PclBuildInfo.DisplayVersion;
         if (TextCurrentDesc is not null)
             TextCurrentDesc.Text = "当前版本";
     }
