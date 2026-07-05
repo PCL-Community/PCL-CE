@@ -31,18 +31,17 @@ public sealed class DownloadPageChangedEventArgs(DownloadPageSubType pageId, MyP
 
 public partial class PageDownloadLeft : MyPageLeft
 {
-    private readonly Func<PageDownloadInstall> _installFactory;
-    private PageDownloadInstall? _installPage;
+    private readonly DownloadPageFactoryContext _pageContext;
     private bool _isLoadedOnce;
 
     public PageDownloadLeft()
-        : this(() => new PageDownloadInstall())
+        : this(null)
     {
     }
 
-    public PageDownloadLeft(Func<PageDownloadInstall> installFactory)
+    public PageDownloadLeft(Func<PageDownloadInstall>? installFactory)
     {
-        _installFactory = installFactory;
+        _pageContext = new DownloadPageFactoryContext(installFactory);
         AvaloniaXamlLoader.Load(this);
         AnimatedControl = this.FindControl<Control>("PanItem");
         InitializeFilterItems();
@@ -65,7 +64,8 @@ public partial class PageDownloadLeft : MyPageLeft
 
     public MyPageRight GetOrCreateCurrentPage() => PageGet(PageId);
 
-    public MyPageRight PageGet(DownloadPageSubType page) => _installPage ??= _installFactory();
+    public MyPageRight PageGet(DownloadPageSubType page) =>
+        DownloadPageRegistry.CreatePage(page, _pageContext);
 
     public void PageChange(DownloadPageSubType page, bool force = false)
     {

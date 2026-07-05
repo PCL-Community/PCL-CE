@@ -173,6 +173,36 @@ public sealed class DesktopArchitectureTests
     }
 
     [TestMethod]
+    public void DesktopDownloadPages_UseGeneratedStaticRegistry()
+    {
+        string desktopRoot = FindDesktopProjectRoot();
+        string repoRoot = Directory.GetParent(desktopRoot)?.FullName
+            ?? throw new DirectoryNotFoundException("Could not locate repository root.");
+        string leftSource = File.ReadAllText(Path.Combine(
+            desktopRoot,
+            "Features",
+            "Downloads",
+            "Views",
+            "PageDownloadLeft.axaml.cs"));
+        string registrySource = File.ReadAllText(Path.Combine(
+            desktopRoot,
+            "Features",
+            "Downloads",
+            "Views",
+            "DownloadPageRegistry.cs"));
+        string generatorSource = File.ReadAllText(Path.Combine(
+            repoRoot,
+            "PCL.Desktop.SourceGenerators",
+            "DownloadPageRegistryGenerator.cs"));
+
+        StringAssert.Contains(leftSource, "DownloadPageRegistry.CreatePage(page, _pageContext)");
+        Assert.IsFalse(leftSource.Contains("new PageDownloadInstall", StringComparison.Ordinal));
+        Assert.AreEqual(1, CountOccurrences(registrySource, "[DownloadPage("));
+        StringAssert.Contains(generatorSource, "DownloadPageRegistry.g.cs");
+        StringAssert.Contains(generatorSource, "DownloadPageFactoryContext context");
+    }
+
+    [TestMethod]
     public void DesktopBuildInfo_UsesGeneratedStaticMetadata()
     {
         string desktopRoot = FindDesktopProjectRoot();
