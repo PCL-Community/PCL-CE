@@ -6,22 +6,22 @@ namespace PCL.Desktop.Features.Shared;
 
 internal static class MinecraftLoaderCardRegistry
 {
-    private static readonly string[] CardNames =
+    private static readonly MinecraftLoaderCardDescriptor[] Cards =
     [
-        "Forge",
-        "Cleanroom",
-        "NeoForge",
-        "Fabric",
-        "LegacyFabric",
-        "FabricApi",
-        "LegacyFabricApi",
-        "Quilt",
-        "QSL",
-        "LabyMod",
-        "OptiFine",
-        "OptiFabric",
-        "LiteLoader"
+        new(MinecraftLoaderCardId.Forge),
+        new(MinecraftLoaderCardId.Cleanroom),
+        new(MinecraftLoaderCardId.NeoForge),
+        new(MinecraftLoaderCardId.Fabric),
+        new(MinecraftLoaderCardId.LegacyFabric),
+        new(MinecraftLoaderCardId.FabricApi),
+        new(MinecraftLoaderCardId.LegacyFabricApi),
+        new(MinecraftLoaderCardId.Quilt),
+        new(MinecraftLoaderCardId.Qsl),
+        new(MinecraftLoaderCardId.LabyMod),
+        new(MinecraftLoaderCardId.OptiFine),
+        new(MinecraftLoaderCardId.OptiFabric),
+        new(MinecraftLoaderCardId.LiteLoader)
     ];
 
-    public static ReadOnlySpan<string> AllCardNames => CardNames;
+    public static ReadOnlySpan<MinecraftLoaderCardDescriptor> AllCards => Cards;
 }

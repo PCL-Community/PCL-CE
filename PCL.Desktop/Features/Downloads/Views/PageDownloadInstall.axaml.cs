@@ -573,14 +573,15 @@ public partial class PageDownloadInstall : MyPageRight
     private void InitializeLoaderCards()
     {
         CollapseLoaderCards();
-        foreach (string name in MinecraftLoaderCardRegistry.AllCardNames)
-            SetLoaderInfo(name, LoaderSupportState.VisibleClosed(CanAddText()));
+        foreach (MinecraftLoaderCardDescriptor card in MinecraftLoaderCardRegistry.AllCards)
+            SetLoaderInfo(card.ControlSuffix, LoaderSupportState.VisibleClosed(CanAddText()));
     }
 
     private void WireLoaderCards()
     {
-        foreach (string name in MinecraftLoaderCardRegistry.AllCardNames)
+        foreach (MinecraftLoaderCardDescriptor loaderCard in MinecraftLoaderCardRegistry.AllCards)
         {
+            string name = loaderCard.ControlSuffix;
             if (this.FindControl<MyCard>("Card" + name) is not { } card)
                 continue;
 
@@ -679,8 +680,9 @@ public partial class PageDownloadInstall : MyPageRight
 
     private void CollapseLoaderCards()
     {
-        foreach (string name in MinecraftLoaderCardRegistry.AllCardNames)
+        foreach (MinecraftLoaderCardDescriptor loaderCard in MinecraftLoaderCardRegistry.AllCards)
         {
+            string name = loaderCard.ControlSuffix;
             if (this.FindControl<MyCard>("Card" + name) is { } card)
                 card.IsSwapped = true;
         }

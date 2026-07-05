@@ -152,8 +152,9 @@ public partial class PageInstanceInstallRight : MyPageRight
 
     private void CollapseLoaderCards()
     {
-        foreach (string name in MinecraftLoaderCardRegistry.AllCardNames)
+        foreach (MinecraftLoaderCardDescriptor loaderCard in MinecraftLoaderCardRegistry.AllCards)
         {
+            string name = loaderCard.ControlSuffix;
             if (this.FindControl<MyCard>("Card" + name) is { } card)
                 card.IsSwapped = true;
         }

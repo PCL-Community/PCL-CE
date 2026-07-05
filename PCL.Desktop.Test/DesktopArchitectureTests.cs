@@ -232,14 +232,20 @@ public sealed class DesktopArchitectureTests
             "Features",
             "Shared",
             "MinecraftLoaderCardRegistry.cs"));
+        string idSource = File.ReadAllText(Path.Combine(
+            desktopRoot,
+            "Features",
+            "Shared",
+            "MinecraftLoaderCardId.cs"));
 
-        StringAssert.Contains(downloadInstallSource, "MinecraftLoaderCardRegistry.AllCardNames");
-        StringAssert.Contains(instanceInstallSource, "MinecraftLoaderCardRegistry.AllCardNames");
+        StringAssert.Contains(downloadInstallSource, "MinecraftLoaderCardRegistry.AllCards");
+        StringAssert.Contains(instanceInstallSource, "MinecraftLoaderCardRegistry.AllCards");
         Assert.IsFalse(downloadInstallSource.Contains("LoaderCardNames", StringComparison.Ordinal));
         Assert.IsFalse(instanceInstallSource.Contains("LoaderCardNames", StringComparison.Ordinal));
-        StringAssert.Contains(registrySource, "\"LegacyFabricApi\"");
-        StringAssert.Contains(registrySource, "\"OptiFabric\"");
-        StringAssert.Contains(registrySource, "ReadOnlySpan<string>");
+        StringAssert.Contains(registrySource, "MinecraftLoaderCardId.LegacyFabricApi");
+        StringAssert.Contains(registrySource, "MinecraftLoaderCardId.OptiFabric");
+        StringAssert.Contains(registrySource, "ReadOnlySpan<MinecraftLoaderCardDescriptor>");
+        StringAssert.Contains(idSource, "readonly record struct MinecraftLoaderCardId");
     }
 
     [TestMethod]

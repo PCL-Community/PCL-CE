@@ -3,14 +3,18 @@
 // Licensed under the Apache License, Version 2.0.
 
 using PCL.Application.Downloads;
+using PCL.Desktop.Features.Shared;
 
 namespace PCL.Desktop.Features.Downloads.Views;
 
 internal readonly record struct DownloadLoaderDescriptor(
     MinecraftLoaderKind Kind,
-    string CardName,
+    MinecraftLoaderCardId CardId,
     string DisplayName,
-    string Logo);
+    string Logo)
+{
+    public string CardName => CardId.Value;
+}
 
 internal static class DownloadLoaderRegistry
 {
@@ -18,12 +22,12 @@ internal static class DownloadLoaderRegistry
     [
         new(
             MinecraftLoaderKind.Fabric,
-            "Fabric",
+            MinecraftLoaderCardId.Fabric,
             "Fabric",
             "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png"),
         new(
             MinecraftLoaderKind.Quilt,
-            "Quilt",
+            MinecraftLoaderCardId.Quilt,
             "Quilt",
             "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Quilt.png")
     ];
@@ -38,7 +42,7 @@ internal static class DownloadLoaderRegistry
 
         foreach (DownloadLoaderDescriptor candidate in Descriptors)
         {
-            if (string.Equals(candidate.CardName, cardName, StringComparison.Ordinal))
+            if (string.Equals(candidate.CardId.Value, cardName, StringComparison.Ordinal))
             {
                 descriptor = candidate;
                 return true;
@@ -58,7 +62,7 @@ internal static class DownloadLoaderRegistry
         }
 
         string fallback = kind.ToString();
-        return new DownloadLoaderDescriptor(kind, fallback, fallback, string.Empty);
+        return new DownloadLoaderDescriptor(kind, new MinecraftLoaderCardId(fallback), fallback, string.Empty);
     }
 
 }
