@@ -2108,7 +2108,7 @@ public sealed class AvaloniaHeadlessTests
                 Height = 420,
                 Content = page
             };
-            MinecraftVersionManifestEntry? requested = null;
+            DownloadInstallRequest? requested = null;
             page.InstallRequested += (_, version) => requested = version;
 
             try
@@ -2136,8 +2136,9 @@ public sealed class AvaloniaHeadlessTests
                 page.FindControl<MyTextBox>("TextSelectName")!.Text = "我的 1.20.1";
                 Click(window, page.FindControl<MyExtraTextButton>("BtnStart")!);
 
-                Assert.AreEqual("我的 1.20.1", requested?.Id);
-                Assert.AreEqual("https://example.invalid/1.20.1.json", requested?.Url);
+                Assert.AreEqual("我的 1.20.1", requested?.VersionId);
+                Assert.AreEqual("1.20.1", requested?.BaseVersionId);
+                Assert.AreEqual("https://example.invalid/1.20.1.json", requested?.VersionJsonUrl);
 
                 requested = null;
                 page.FindControl<MyTextBox>("TextSelectName")!.Text = "Bad/Name";
@@ -2152,7 +2153,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual("24w14a", page.FindControl<MyTextBox>("TextSelectName")!.Text);
                 Click(window, page.FindControl<MyExtraTextButton>("BtnStart")!);
 
-                Assert.AreEqual("24w14a", requested?.Id);
+                Assert.AreEqual("24w14a", requested?.VersionId);
 
                 page.FocusVersionAsync("20w14∞").GetAwaiter().GetResult();
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
@@ -2160,8 +2161,8 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual("20w14∞", page.FindControl<MyTextBox>("TextSelectName")!.Text);
                 Click(window, page.FindControl<MyExtraTextButton>("BtnStart")!);
 
-                Assert.AreEqual("20w14∞", requested?.Id);
-                Assert.AreEqual("https://example.invalid/20w14infinite.json", requested?.Url);
+                Assert.AreEqual("20w14∞", requested?.VersionId);
+                Assert.AreEqual("https://example.invalid/20w14infinite.json", requested?.VersionJsonUrl);
             }
             finally
             {
@@ -2285,6 +2286,78 @@ public sealed class AvaloniaHeadlessTests
                 AssertLoaderHidden(page, "Quilt");
                 AssertLoaderHidden(page, "FabricApi");
                 AssertLoaderHidden(page, "LegacyFabricApi");
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void PageDownloadInstall_SelectsFabricLoaderAndRaisesInstallRequest()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageDownloadInstall page = new(new MinecraftVanillaInstallService(), new FakeMinecraftLoaderMetadataService());
+            SetPrivateField(
+                page,
+                "_versions",
+                new[]
+                {
+                    new MinecraftVersionManifestEntry("1.20.1", "release", "https://example.invalid/1.20.1.json", DateTimeOffset.Parse("2023-06-12T00:00:00Z"))
+                });
+            Dictionary<(MinecraftLoaderKind Kind, string GameVersion), IReadOnlyList<MinecraftLoaderVersionEntry>> cache =
+                GetPrivateField<Dictionary<(MinecraftLoaderKind Kind, string GameVersion), IReadOnlyList<MinecraftLoaderVersionEntry>>>(
+                    page,
+                    "_loaderVersionCache");
+            cache[(MinecraftLoaderKind.Fabric, "1.20.1")] =
+            [
+                new MinecraftLoaderVersionEntry(MinecraftLoaderKind.Fabric, "0.16.14", true)
+            ];
+
+            Window window = new()
+            {
+                Width = 620,
+                Height = 520,
+                Content = page
+            };
+            DownloadInstallRequest? requested = null;
+            page.InstallRequested += (_, request) => requested = request;
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                page.FocusVersionAsync("1.20.1").GetAwaiter().GetResult();
+                ModAnimation.AdvanceUntilIdleForTesting();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                MyCard fabricCard = page.FindControl<MyCard>("CardFabric")!;
+                Click(window, fabricCard);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                MyListItem loaderItem = page.GetVisualDescendants()
+                    .OfType<MyListItem>()
+                    .First(item => item.Title == "0.16.14");
+                Click(window, loaderItem);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.AreEqual("fabric-loader-0.16.14-1.20.1", page.FindControl<MyTextBox>("TextSelectName")!.Text);
+                Assert.AreEqual("0.16.14", page.FindControl<TextBlock>("LabFabric")!.Text);
+                Assert.IsTrue(page.FindControl<Control>("BtnFabricClear")!.IsVisible);
+                Assert.IsTrue(page.FindControl<Control>("HintFabricAPI")!.IsVisible);
+
+                Click(window, page.FindControl<MyExtraTextButton>("BtnStart")!);
+
+                Assert.AreEqual("fabric-loader-0.16.14-1.20.1", requested?.VersionId);
+                Assert.AreEqual("1.20.1", requested?.BaseVersionId);
+                Assert.AreEqual("https://example.invalid/1.20.1.json", requested?.VersionJsonUrl);
+                Assert.AreEqual(MinecraftLoaderKind.Fabric, requested?.Loader?.Kind);
+                Assert.AreEqual("0.16.14", requested?.Loader?.LoaderVersion);
             }
             finally
             {
@@ -7300,6 +7373,33 @@ public sealed class AvaloniaHeadlessTests
             System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
             ?? throw new InvalidOperationException($"Field '{fieldName}' was not found.");
         field.SetValue(instance, value);
+    }
+
+    private static T GetPrivateField<T>(object instance, string fieldName)
+    {
+        var field = instance.GetType().GetField(
+            fieldName,
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException($"Field '{fieldName}' was not found.");
+        return (T)field.GetValue(instance)!;
+    }
+
+    private sealed class FakeMinecraftLoaderMetadataService : IMinecraftLoaderMetadataService
+    {
+        public Task<IReadOnlyList<MinecraftLoaderVersionEntry>> GetLoaderVersionsAsync(
+            MinecraftLoaderKind kind,
+            string gameVersion,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<MinecraftLoaderVersionEntry>>(
+            [
+                new MinecraftLoaderVersionEntry(kind, "0.16.14", true)
+            ]);
+
+        public Task<MinecraftLoaderInstallMetadata> GetLoaderInstallMetadataAsync(
+            MinecraftLoaderInstallRequest request,
+            string gameVersion,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
     }
 
     private sealed class DelegateHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> handle) : HttpMessageHandler

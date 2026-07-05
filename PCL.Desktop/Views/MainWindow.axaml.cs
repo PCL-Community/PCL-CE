@@ -773,7 +773,7 @@ public partial class MainWindow : Window, IDisposable
             return _downloadInstallPage;
 
         PageDownloadInstall page = new(_minecraftInstallService);
-        page.InstallRequested += (_, version) => _ = StartInstallAsync(version);
+        page.InstallRequested += (_, request) => _ = StartInstallAsync(request);
         _downloadInstallPage = page;
         return _downloadInstallPage;
     }
@@ -2013,14 +2013,14 @@ public partial class MainWindow : Window, IDisposable
         host.Children.Add(dialog);
     }
 
-    private async Task StartInstallAsync(MinecraftVersionManifestEntry version)
+    private async Task StartInstallAsync(DownloadInstallRequest request)
     {
         _installCancellation?.Cancel();
         _installCancellation?.Dispose();
         _installCancellation = new CancellationTokenSource();
 
-        string taskId = "install:" + version.Id;
-        string taskTitle = "安装 " + version.Id;
+        string taskId = "install:" + request.VersionId;
+        string taskTitle = "安装 " + request.VersionId;
         ActivateTaskManagerPage(animate: true);
         TrackTaskBegin(taskId, taskTitle, "准备安装文件");
 
@@ -2032,16 +2032,18 @@ public partial class MainWindow : Window, IDisposable
             MinecraftInstallResult result = await _minecraftInstallService.InstallAsync(
                     new MinecraftInstallRequest
                     {
-                        VersionId = version.Id,
-                        VersionJsonUrl = version.Url,
+                        VersionId = request.VersionId,
+                        BaseVersionId = request.BaseVersionId,
+                        VersionJsonUrl = request.VersionJsonUrl,
                         MinecraftRootDirectory = minecraftRoot,
-                        PreferOfficialSource = true
+                        PreferOfficialSource = true,
+                        Loader = request.Loader
                     },
                     progress,
                     _installCancellation.Token)
                 .ConfigureAwait(true);
             TrackTaskFinished(taskId, taskTitle, "安装完成");
-            _launchRight?.AppendLog($"{version.Id} 安装完成。");
+            _launchRight?.AppendLog($"{request.VersionId} 安装完成。");
 
             if (_launchLeft is not null)
             {

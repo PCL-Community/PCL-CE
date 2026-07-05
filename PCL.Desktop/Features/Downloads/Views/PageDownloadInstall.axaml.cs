@@ -17,6 +17,12 @@ using PCL.Desktop.Controls.Legacy;
 
 namespace PCL.Desktop.Features.Downloads.Views;
 
+public sealed record DownloadInstallRequest(
+    string VersionId,
+    string BaseVersionId,
+    string VersionJsonUrl,
+    MinecraftLoaderInstallRequest? Loader);
+
 public partial class PageDownloadInstall : MyPageRight
 {
     private static readonly MinecraftVersionCategory[] VersionCategoryOrder =
@@ -57,23 +63,35 @@ public partial class PageDownloadInstall : MyPageRight
     ];
 
     private readonly MinecraftVanillaInstallService _installService;
+    private readonly IMinecraftLoaderMetadataService _loaderMetadataService;
     private readonly Dictionary<string, LoaderSupportState> _loaderStates = [];
+    private readonly Dictionary<(MinecraftLoaderKind Kind, string GameVersion), IReadOnlyList<MinecraftLoaderVersionEntry>> _loaderVersionCache = [];
     private IReadOnlyList<MinecraftVersionManifestEntry> _versions = [];
     private DownloadVersionFilter _filter = DownloadVersionFilter.All;
     private string _searchText = string.Empty;
     private MinecraftVersionManifestEntry? _selectedVersion;
+    private MinecraftLoaderKind? _selectedLoaderKind;
+    private MinecraftLoaderVersionEntry? _selectedLoaderVersion;
     private bool _isLoading;
     private bool _isInSelectPage;
     private bool _isUpdatingSelectName;
 
     public PageDownloadInstall()
-        : this(new MinecraftVanillaInstallService())
+        : this(new MinecraftVanillaInstallService(), new MinecraftLoaderMetadataService())
     {
     }
 
     public PageDownloadInstall(MinecraftVanillaInstallService installService)
+        : this(installService, new MinecraftLoaderMetadataService())
+    {
+    }
+
+    public PageDownloadInstall(
+        MinecraftVanillaInstallService installService,
+        IMinecraftLoaderMetadataService loaderMetadataService)
     {
         _installService = installService;
+        _loaderMetadataService = loaderMetadataService;
         AvaloniaXamlLoader.Load(this);
         PanScroll = this.FindControl<MyScrollViewer>("PanBack");
 
@@ -85,7 +103,7 @@ public partial class PageDownloadInstall : MyPageRight
         };
     }
 
-    public event EventHandler<MinecraftVersionManifestEntry>? InstallRequested;
+    public event EventHandler<DownloadInstallRequest>? InstallRequested;
 
     public async Task FocusVersionAsync(string versionId)
     {
@@ -525,6 +543,7 @@ public partial class PageDownloadInstall : MyPageRight
     private void SelectVersion(MinecraftVersionManifestEntry version)
     {
         _selectedVersion = version;
+        ResetSelectedLoader();
         _isInSelectPage = true;
         SetSelectName(version.Id);
         SetSelectedLogo(version);
@@ -586,7 +605,21 @@ public partial class PageDownloadInstall : MyPageRight
                 if (!_loaderStates.TryGetValue(name, out LoaderSupportState? state) || !state.CanOpen)
                     args.Handled = true;
             };
-            card.Swap += (_, _) => RefreshLoaderInfoPanel(name);
+            card.Swap += (_, _) =>
+            {
+                RefreshLoaderInfoPanel(name);
+                if (!card.IsSwapped)
+                    _ = EnsureLoaderVersionsRenderedAsync(name);
+            };
+
+            if (this.FindControl<Control>("Btn" + name + "Clear") is { } clearButton)
+            {
+                clearButton.PointerReleased += (_, args) =>
+                {
+                    ClearSelectedLoader(name);
+                    args.Handled = true;
+                };
+            }
         }
     }
 
@@ -605,6 +638,12 @@ public partial class PageDownloadInstall : MyPageRight
         int vanillaDrop = VersionToDrop(versionId, allowSnapshot: true);
         bool formatFit = IsFormatFit(versionId);
         string canAdd = CanAddText();
+        string? incompatibleLoader = _selectedLoaderKind is null
+            ? null
+            : ResourceText(
+                "Download.Install.Compat.IncompatibleWithLoader",
+                "与 {0} 不兼容",
+                GetLoaderDisplayName(_selectedLoaderKind.Value));
 
         SetLoaderInfo("OptiFine", LoaderSupportState.VisibleClosed(canAdd));
         SetLoaderInfo("LiteLoader", vanillaDrop >= 130
@@ -620,22 +659,38 @@ public partial class PageDownloadInstall : MyPageRight
             ? LoaderSupportState.Hidden()
             : LoaderSupportState.VisibleClosed(canAdd));
         SetLoaderInfo("Fabric", vanillaDrop > 130
-            ? LoaderSupportState.VisibleClosed(canAdd)
+            ? CreateLoaderState(MinecraftLoaderKind.Fabric, canAdd, incompatibleLoader)
             : LoaderSupportState.Hidden());
         SetLoaderInfo("LegacyFabric", vanillaDrop > 130
             ? LoaderSupportState.Hidden()
             : LoaderSupportState.VisibleClosed(canAdd));
         SetLoaderInfo("Quilt", vanillaDrop >= 144
-            ? LoaderSupportState.VisibleClosed(canAdd)
+            ? CreateLoaderState(MinecraftLoaderKind.Quilt, canAdd, incompatibleLoader)
             : LoaderSupportState.Hidden());
         SetLoaderInfo("LabyMod", vanillaDrop >= 80
             ? LoaderSupportState.VisibleClosed(canAdd)
             : LoaderSupportState.Hidden());
 
-        SetLoaderInfo("FabricApi", LoaderSupportState.Hidden());
+        SetLoaderInfo("FabricApi", _selectedLoaderKind is MinecraftLoaderKind.Fabric or MinecraftLoaderKind.Quilt
+            ? LoaderSupportState.VisibleClosed(canAdd)
+            : LoaderSupportState.Hidden());
         SetLoaderInfo("LegacyFabricApi", LoaderSupportState.Hidden());
-        SetLoaderInfo("QSL", LoaderSupportState.Hidden());
+        SetLoaderInfo("QSL", _selectedLoaderKind == MinecraftLoaderKind.Quilt
+            ? LoaderSupportState.VisibleClosed(canAdd)
+            : LoaderSupportState.Hidden());
         SetLoaderInfo("OptiFabric", LoaderSupportState.Hidden());
+
+        if (_selectedLoaderKind == MinecraftLoaderKind.Fabric &&
+            this.FindControl<Control>("HintFabricAPI") is { } fabricHint)
+        {
+            fabricHint.IsVisible = true;
+        }
+
+        if (_selectedLoaderKind == MinecraftLoaderKind.Quilt &&
+            this.FindControl<Control>("HintQSL") is { } qslHint)
+        {
+            qslHint.IsVisible = true;
+        }
     }
 
     private void CollapseLoaderCards()
@@ -645,6 +700,20 @@ public partial class PageDownloadInstall : MyPageRight
             if (this.FindControl<MyCard>("Card" + name) is { } card)
                 card.IsSwapped = true;
         }
+    }
+
+    private LoaderSupportState CreateLoaderState(
+        MinecraftLoaderKind kind,
+        string canAdd,
+        string? incompatibleLoader)
+    {
+        if (_selectedLoaderKind == kind && _selectedLoaderVersion is { } selectedLoader)
+            return LoaderSupportState.Selected(selectedLoader.DisplayVersion);
+
+        if (_selectedLoaderKind is not null)
+            return LoaderSupportState.VisibleClosed(incompatibleLoader ?? canAdd);
+
+        return LoaderSupportState.VisibleOpen(canAdd);
     }
 
     private void SetLoaderInfo(string name, LoaderSupportState state)
@@ -671,7 +740,7 @@ public partial class PageDownloadInstall : MyPageRight
             image.IsVisible = state.IconVisible;
 
         if (this.FindControl<Control>("Btn" + name + "Clear") is { } clearButton)
-            clearButton.IsVisible = false;
+            clearButton.IsVisible = state.ClearVisible;
     }
 
     private void RefreshLoaderInfoPanel(string name)
@@ -682,6 +751,119 @@ public partial class PageDownloadInstall : MyPageRight
         bool isCollapsed = this.FindControl<MyCard>("Card" + name)?.IsSwapped ?? true;
         info.IsVisible = isCollapsed;
         info.Opacity = isCollapsed ? 1d : 0d;
+    }
+
+    private async Task EnsureLoaderVersionsRenderedAsync(string name)
+    {
+        if (_selectedVersion is null || !TryGetLoaderKind(name, out MinecraftLoaderKind kind))
+            return;
+
+        string gameVersion = _selectedVersion.Id;
+        (MinecraftLoaderKind Kind, string GameVersion) key = (kind, gameVersion);
+        if (_loaderVersionCache.TryGetValue(key, out IReadOnlyList<MinecraftLoaderVersionEntry>? cached))
+        {
+            PopulateLoaderVersionList(name, kind, cached);
+            return;
+        }
+
+        SetLoaderVersionPanelMessage(name, "正在获取版本列表", "请稍候。");
+        try
+        {
+            IReadOnlyList<MinecraftLoaderVersionEntry> versions = await _loaderMetadataService
+                .GetLoaderVersionsAsync(kind, gameVersion)
+                .ConfigureAwait(false);
+            _loaderVersionCache[key] = versions;
+            await RunOnUiThreadAsync(() => PopulateLoaderVersionList(name, kind, versions)).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or FormatException or InvalidOperationException)
+        {
+            await RunOnUiThreadAsync(() => SetLoaderVersionPanelMessage(name, "获取版本列表失败", ex.Message)).ConfigureAwait(false);
+        }
+    }
+
+    private void PopulateLoaderVersionList(
+        string name,
+        MinecraftLoaderKind kind,
+        IReadOnlyList<MinecraftLoaderVersionEntry> versions)
+    {
+        if (this.FindControl<StackPanel>("Pan" + name) is not { } panel)
+            return;
+
+        panel.Children.Clear();
+        if (versions.Count == 0)
+        {
+            SetLoaderVersionPanelMessage(name, "没有可用版本", "当前 Minecraft 版本暂时没有可安装的加载器版本。");
+            return;
+        }
+
+        foreach (MinecraftLoaderVersionEntry version in versions)
+            panel.Children.Add(CreateLoaderVersionItem(kind, version));
+    }
+
+    private MyListItem CreateLoaderVersionItem(MinecraftLoaderKind kind, MinecraftLoaderVersionEntry version)
+    {
+        MyListItem item = new()
+        {
+            Title = version.DisplayVersion,
+            Info = version.Stable ? "稳定版" : "测试版",
+            Type = MyListItem.CheckType.Clickable,
+            Logo = GetLoaderLogo(kind),
+            LogoScale = 0.82d,
+            Height = 42d,
+            Margin = new Thickness(0, 0, 0, 2),
+            Tag = version
+        };
+        item.Click += (_, _) => SelectLoaderVersion(kind, version);
+        return item;
+    }
+
+    private void SetLoaderVersionPanelMessage(string name, string title, string info)
+    {
+        if (this.FindControl<StackPanel>("Pan" + name) is not { } panel)
+            return;
+
+        panel.Children.Clear();
+        panel.Children.Add(new MyListItem
+        {
+            Title = title,
+            Info = info,
+            Type = MyListItem.CheckType.None,
+            Logo = TryGetLoaderLogo(name),
+            LogoScale = 0.82d,
+            Height = 42d
+        });
+    }
+
+    private void SelectLoaderVersion(MinecraftLoaderKind kind, MinecraftLoaderVersionEntry version)
+    {
+        if (_selectedVersion is null)
+            return;
+
+        _selectedLoaderKind = kind;
+        _selectedLoaderVersion = version;
+        SetSelectName(MinecraftLoaderVersionJsonBuilder.CreateDefaultVersionId(kind, _selectedVersion.Id, version.Version));
+        if (this.FindControl<MyCard>("Card" + GetLoaderCardName(kind)) is { } card)
+            card.IsSwapped = true;
+        HideAllHints();
+        ReloadSelectedLoaderCards();
+    }
+
+    private void ClearSelectedLoader(string name)
+    {
+        if (!TryGetLoaderKind(name, out MinecraftLoaderKind kind) || _selectedLoaderKind != kind)
+            return;
+
+        ResetSelectedLoader();
+        if (_selectedVersion is not null)
+            SetSelectName(_selectedVersion.Id);
+        HideAllHints();
+        ReloadSelectedLoaderCards();
+    }
+
+    private void ResetSelectedLoader()
+    {
+        _selectedLoaderKind = null;
+        _selectedLoaderVersion = null;
     }
 
     private void HideAllHints()
@@ -928,10 +1110,29 @@ public partial class PageDownloadInstall : MyPageRight
         if (_selectedVersion is null || !TryGetInstallName(out string installName))
             return;
 
-        MinecraftVersionManifestEntry request = string.Equals(installName, _selectedVersion.Id, StringComparison.Ordinal)
-            ? _selectedVersion
-            : _selectedVersion with { Id = installName };
+        MinecraftLoaderInstallRequest? loader = CreateSelectedLoaderRequest();
+        if (loader is not null && string.Equals(installName, _selectedVersion.Id, StringComparison.OrdinalIgnoreCase))
+        {
+            installName = MinecraftLoaderVersionJsonBuilder.CreateDefaultVersionId(
+                loader.Kind,
+                _selectedVersion.Id,
+                loader.LoaderVersion);
+            SetSelectName(installName);
+        }
+
+        DownloadInstallRequest request = new(
+            installName,
+            _selectedVersion.Id,
+            _selectedVersion.Url,
+            loader);
         InstallRequested?.Invoke(this, request);
+    }
+
+    private MinecraftLoaderInstallRequest? CreateSelectedLoaderRequest()
+    {
+        return _selectedLoaderKind is { } kind && _selectedLoaderVersion is { } version
+            ? new MinecraftLoaderInstallRequest(kind, version.Version)
+            : null;
     }
 
     private void RefreshSelectNameValidation()
@@ -968,6 +1169,51 @@ public partial class PageDownloadInstall : MyPageRight
 
     private string CanAddText() =>
         ResourceText("Download.Install.State.CanAdd", "可以添加");
+
+    private static bool TryGetLoaderKind(string name, out MinecraftLoaderKind kind)
+    {
+        if (string.Equals(name, "Fabric", StringComparison.Ordinal))
+        {
+            kind = MinecraftLoaderKind.Fabric;
+            return true;
+        }
+
+        if (string.Equals(name, "Quilt", StringComparison.Ordinal))
+        {
+            kind = MinecraftLoaderKind.Quilt;
+            return true;
+        }
+
+        kind = default;
+        return false;
+    }
+
+    private static string GetLoaderCardName(MinecraftLoaderKind kind) =>
+        kind switch
+        {
+            MinecraftLoaderKind.Fabric => "Fabric",
+            MinecraftLoaderKind.Quilt => "Quilt",
+            _ => kind.ToString()
+        };
+
+    private static string GetLoaderDisplayName(MinecraftLoaderKind kind) =>
+        kind switch
+        {
+            MinecraftLoaderKind.Fabric => "Fabric",
+            MinecraftLoaderKind.Quilt => "Quilt",
+            _ => kind.ToString()
+        };
+
+    private static string GetLoaderLogo(MinecraftLoaderKind kind) =>
+        kind switch
+        {
+            MinecraftLoaderKind.Fabric => "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png",
+            MinecraftLoaderKind.Quilt => "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Quilt.png",
+            _ => string.Empty
+        };
+
+    private static string TryGetLoaderLogo(string name) =>
+        TryGetLoaderKind(name, out MinecraftLoaderKind kind) ? GetLoaderLogo(kind) : string.Empty;
 
     private static bool IsFormatFit(string? version)
     {
@@ -1058,10 +1304,15 @@ public partial class PageDownloadInstall : MyPageRight
         bool IsVisible,
         bool CanOpen,
         string Text,
-        bool IconVisible)
+        bool IconVisible,
+        bool ClearVisible)
     {
-        public static LoaderSupportState Hidden() => new(false, false, string.Empty, false);
+        public static LoaderSupportState Hidden() => new(false, false, string.Empty, false, false);
 
-        public static LoaderSupportState VisibleClosed(string text) => new(true, false, text, false);
+        public static LoaderSupportState VisibleClosed(string text) => new(true, false, text, false, false);
+
+        public static LoaderSupportState VisibleOpen(string text) => new(true, true, text, false, false);
+
+        public static LoaderSupportState Selected(string text) => new(true, true, text, true, true);
     }
 }
