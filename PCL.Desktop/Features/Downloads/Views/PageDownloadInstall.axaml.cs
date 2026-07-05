@@ -22,7 +22,8 @@ public sealed record DownloadInstallRequest(
     string VersionId,
     string BaseVersionId,
     string VersionJsonUrl,
-    MinecraftLoaderInstallRequest? Loader);
+    MinecraftLoaderInstallRequest? Loader,
+    string? MinecraftRootDirectory = null);
 
 public partial class PageDownloadInstall : MyPageRight
 {
@@ -56,6 +57,9 @@ public partial class PageDownloadInstall : MyPageRight
     private MinecraftVersionManifestEntry? _selectedVersion;
     private MinecraftLoaderKind? _selectedLoaderKind;
     private MinecraftLoaderVersionEntry? _selectedLoaderVersion;
+    private string? _preferredInstallName;
+    private string? _targetMinecraftRootDirectory;
+    private bool _preserveInstallNameOnLoaderSelect;
     private bool _isLoading;
     private bool _isInSelectPage;
     private bool _isUpdatingSelectName;
@@ -89,10 +93,18 @@ public partial class PageDownloadInstall : MyPageRight
 
     public event EventHandler<DownloadInstallRequest>? InstallRequested;
 
-    public async Task FocusVersionAsync(string versionId)
+    public async Task FocusVersionAsync(
+        string versionId,
+        string? installName = null,
+        bool preserveInstallNameOnLoaderSelect = false,
+        string? minecraftRootDirectory = null)
     {
         if (string.IsNullOrWhiteSpace(versionId))
             return;
+
+        _preferredInstallName = string.IsNullOrWhiteSpace(installName) ? null : installName.Trim();
+        _preserveInstallNameOnLoaderSelect = preserveInstallNameOnLoaderSelect;
+        _targetMinecraftRootDirectory = string.IsNullOrWhiteSpace(minecraftRootDirectory) ? null : minecraftRootDirectory;
 
         ExitSelectPage();
         _filter = DownloadVersionFilter.All;
@@ -112,6 +124,13 @@ public partial class PageDownloadInstall : MyPageRight
         if (this.FindControl<MySearchBar>("TextSearchVersion") is { } fallbackSearchBar)
             fallbackSearchBar.Text = versionId;
         ReloadVersionList();
+    }
+
+    public void ClearInstallTargetOverride()
+    {
+        _preferredInstallName = null;
+        _targetMinecraftRootDirectory = null;
+        _preserveInstallNameOnLoaderSelect = false;
     }
 
     public void ApplyVersionFilter(DownloadVersionFilter filter)
@@ -530,6 +549,8 @@ public partial class PageDownloadInstall : MyPageRight
         ResetSelectedLoader();
         _isInSelectPage = true;
         SetSelectName(version.Id);
+        if (!string.IsNullOrWhiteSpace(_preferredInstallName))
+            SetSelectName(_preferredInstallName);
         SetSelectedLogo(version);
         ReloadSelectedLoaderCards();
         HideAllHints();
@@ -828,7 +849,8 @@ public partial class PageDownloadInstall : MyPageRight
 
         _selectedLoaderKind = kind;
         _selectedLoaderVersion = version;
-        SetSelectName(MinecraftLoaderVersionJsonBuilder.CreateDefaultVersionId(kind, _selectedVersion.Id, version.Version));
+        if (!_preserveInstallNameOnLoaderSelect || string.IsNullOrWhiteSpace(this.FindControl<MyTextBox>("TextSelectName")?.Text))
+            SetSelectName(MinecraftLoaderVersionJsonBuilder.CreateDefaultVersionId(kind, _selectedVersion.Id, version.Version));
         if (this.FindControl<MyCard>("Card" + GetLoaderCardName(kind)) is { } card)
             card.IsSwapped = true;
         HideAllHints();
@@ -845,7 +867,9 @@ public partial class PageDownloadInstall : MyPageRight
 
         ResetSelectedLoader();
         if (_selectedVersion is not null)
-            SetSelectName(_selectedVersion.Id);
+            SetSelectName(_preserveInstallNameOnLoaderSelect && !string.IsNullOrWhiteSpace(_preferredInstallName)
+                ? _preferredInstallName
+                : _selectedVersion.Id);
         HideAllHints();
         ReloadSelectedLoaderCards();
     }
@@ -1114,7 +1138,8 @@ public partial class PageDownloadInstall : MyPageRight
             installName,
             _selectedVersion.Id,
             _selectedVersion.Url,
-            loader);
+            loader,
+            _targetMinecraftRootDirectory);
         InstallRequested?.Invoke(this, request);
     }
 

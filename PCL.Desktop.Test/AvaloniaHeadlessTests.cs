@@ -2746,6 +2746,82 @@ public sealed class AvaloniaHeadlessTests
         }, CancellationToken.None);
     }
 
+    [TestMethod]
+    public void PageDownloadInstall_PreservesInstanceInstallTargetWhenSelectingLoader()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageDownloadInstall page = new(new MinecraftVanillaInstallService(), new FakeMinecraftLoaderMetadataService());
+            SetPrivateField(
+                page,
+                "_versions",
+                new[]
+                {
+                    new MinecraftVersionManifestEntry("1.20.1", "release", "https://example.invalid/1.20.1.json", DateTimeOffset.Parse("2023-06-12T00:00:00Z"))
+                });
+            Dictionary<(MinecraftLoaderKind Kind, string GameVersion), IReadOnlyList<MinecraftLoaderVersionEntry>> cache =
+                GetPrivateField<Dictionary<(MinecraftLoaderKind Kind, string GameVersion), IReadOnlyList<MinecraftLoaderVersionEntry>>>(
+                    page,
+                    "_loaderVersionCache");
+            cache[(MinecraftLoaderKind.Fabric, "1.20.1")] =
+            [
+                new MinecraftLoaderVersionEntry(MinecraftLoaderKind.Fabric, "0.16.14", true)
+            ];
+
+            Window window = new()
+            {
+                Width = 620,
+                Height = 520,
+                Content = page
+            };
+            DownloadInstallRequest? requested = null;
+            page.InstallRequested += (_, request) => requested = request;
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                page.FocusVersionAsync(
+                        "1.20.1",
+                        "My Fabric Pack",
+                        preserveInstallNameOnLoaderSelect: true,
+                        minecraftRootDirectory: @"D:\Games\.minecraft")
+                    .GetAwaiter()
+                    .GetResult();
+                ModAnimation.AdvanceUntilIdleForTesting();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.AreEqual("My Fabric Pack", page.FindControl<MyTextBox>("TextSelectName")!.Text);
+
+                Click(window, page.FindControl<MyCard>("CardFabric")!);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                MyListItem loaderItem = page.GetVisualDescendants()
+                    .OfType<MyListItem>()
+                    .First(item => item.Title == "0.16.14");
+                Click(window, loaderItem);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.AreEqual("My Fabric Pack", page.FindControl<MyTextBox>("TextSelectName")!.Text);
+
+                Click(window, page.FindControl<MyExtraTextButton>("BtnStart")!);
+
+                Assert.AreEqual("My Fabric Pack", requested?.VersionId);
+                Assert.AreEqual("1.20.1", requested?.BaseVersionId);
+                Assert.AreEqual(@"D:\Games\.minecraft", requested?.MinecraftRootDirectory);
+                Assert.AreEqual(MinecraftLoaderKind.Fabric, requested?.Loader?.Kind);
+                Assert.AreEqual("0.16.14", requested?.Loader?.LoaderVersion);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
     private static void AssertLoaderVisible(PageDownloadInstall page, string name, string status)
     {
         MyCard card = page.FindControl<MyCard>("Card" + name)!;

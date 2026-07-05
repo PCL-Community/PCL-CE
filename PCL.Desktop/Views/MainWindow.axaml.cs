@@ -754,6 +754,8 @@ public partial class MainWindow : Window, IDisposable
             rightPage,
             Activated: () =>
             {
+                if (rightPage is PageDownloadInstall installPage)
+                    installPage.ClearInstallTargetOverride();
                 _downloadLeft.TriggerShowAnimation();
                 rightPage.PageOnEnter();
             });
@@ -1023,8 +1025,14 @@ public partial class MainWindow : Window, IDisposable
     private async Task OpenDownloadInstallForInstanceAsync(LaunchInstanceInfo instance)
     {
         string versionId = ReadMinecraftVersionId(instance);
+        string minecraftRoot = GetMinecraftRootFromInstance(instance);
         PageDownloadInstall installPage = ActivateDownloadInstallPage(animate: true);
-        await installPage.FocusVersionAsync(versionId).ConfigureAwait(true);
+        await installPage.FocusVersionAsync(
+                versionId,
+                instance.Name,
+                preserveInstallNameOnLoaderSelect: true,
+                minecraftRootDirectory: minecraftRoot)
+            .ConfigureAwait(true);
     }
 
     private PageDownloadInstall ActivateDownloadInstallPage(bool animate)
@@ -2126,7 +2134,9 @@ public partial class MainWindow : Window, IDisposable
         ActivateTaskManagerPage(animate: true);
         TrackTaskBegin(taskId, taskTitle, "准备安装文件");
 
-        string minecraftRoot = GetDefaultMinecraftRoot();
+        string minecraftRoot = string.IsNullOrWhiteSpace(request.MinecraftRootDirectory)
+            ? GetDefaultMinecraftRoot()
+            : request.MinecraftRootDirectory;
         Directory.CreateDirectory(minecraftRoot);
         LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
         int downloadThreadLimit = Math.Clamp(GetIntegerOption(settings, LauncherSettingKeys.ToolDownloadThread, 63) + 1, 1, 256);
