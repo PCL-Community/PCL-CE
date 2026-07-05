@@ -27,7 +27,14 @@ public sealed record TaskManagerEntrySnapshot(
     TaskManagerTaskState State,
     string? ErrorMessage = null,
     int ActiveThreads = 0,
-    int ThreadLimit = 1);
+    int ThreadLimit = 1,
+    IReadOnlyList<TaskManagerSubTaskSnapshot>? Steps = null);
+
+public sealed record TaskManagerSubTaskSnapshot(
+    string Name,
+    string Detail,
+    double Progress,
+    TaskManagerTaskState State);
 
 public sealed record TaskManagerSummary(
     double Progress,

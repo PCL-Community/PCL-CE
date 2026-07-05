@@ -1156,10 +1156,51 @@ public partial class MainWindow : Window, IDisposable
             progress.SpeedBytesPerSecond,
             TaskManagerTaskState.Running,
             ActiveThreads: progress.ActiveThreads,
-            ThreadLimit: progress.ThreadLimit);
+            ThreadLimit: progress.ThreadLimit,
+            Steps: CreateInstallTaskSteps(progress));
         UpdateTaskManagerViews();
         RefreshTaskManagerButton();
     }
+
+    private static TaskManagerSubTaskSnapshot[] CreateInstallTaskSteps(
+        MinecraftInstallProgress progress)
+    {
+        if (progress.Steps.Count == 0)
+        {
+            return
+            [
+                new TaskManagerSubTaskSnapshot(
+                    string.IsNullOrWhiteSpace(progress.Stage) ? "正在处理下载任务" : progress.Stage,
+                    progress.Detail,
+                    progress.Progress,
+                    TaskManagerTaskState.Running)
+            ];
+        }
+
+        return progress.Steps
+            .Select(static step => new TaskManagerSubTaskSnapshot(
+                step.Name,
+                step.Detail,
+                step.Progress,
+                MapInstallStepState(step.State)))
+            .ToArray();
+    }
+
+    private static TaskManagerTaskState MapInstallStepState(MinecraftInstallStepState state) =>
+        state switch
+        {
+            MinecraftInstallStepState.Waiting => TaskManagerTaskState.Waiting,
+            MinecraftInstallStepState.Running => TaskManagerTaskState.Running,
+            MinecraftInstallStepState.Finished => TaskManagerTaskState.Finished,
+            MinecraftInstallStepState.Failed => TaskManagerTaskState.Failed,
+            _ => TaskManagerTaskState.Running
+        };
+
+    private static TaskManagerSubTaskSnapshot[]? UpdateTaskStepStates(
+        IReadOnlyList<TaskManagerSubTaskSnapshot>? steps,
+        TaskManagerTaskState state,
+        double progress) =>
+        steps is null ? null : steps.Select(step => step with { State = state, Progress = progress }).ToArray();
 
     private void TrackTaskFinished(string taskId, string title, string stage)
     {
@@ -1171,7 +1212,8 @@ public partial class MainWindow : Window, IDisposable
             Detail = "任务已完成",
             Progress = 1d,
             State = TaskManagerTaskState.Finished,
-            ErrorMessage = null
+            ErrorMessage = null,
+            Steps = UpdateTaskStepStates(previous.Steps, TaskManagerTaskState.Finished, 1d)
         };
         UpdateTaskManagerViews();
         RefreshTaskManagerButton();
@@ -1187,7 +1229,11 @@ public partial class MainWindow : Window, IDisposable
             Stage = canceled ? "任务已取消" : "任务失败",
             Detail = canceled ? "已停止下载任务" : "请查看错误信息并稍后重试",
             State = canceled ? TaskManagerTaskState.Canceled : TaskManagerTaskState.Failed,
-            ErrorMessage = message
+            ErrorMessage = message,
+            Steps = UpdateTaskStepStates(
+                previous.Steps,
+                canceled ? TaskManagerTaskState.Canceled : TaskManagerTaskState.Failed,
+                previous.Progress)
         };
         UpdateTaskManagerViews();
         RefreshTaskManagerButton();

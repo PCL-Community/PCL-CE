@@ -121,7 +121,16 @@ public partial class PageSpeedRight : MyPageRight
             return;
         }
 
-        AddTaskRow(card.Content, 0, CreateStatusIndicator(snapshot), BuildTaskRowText(snapshot));
+        IReadOnlyList<TaskManagerSubTaskSnapshot> rows = CreateTaskRows(snapshot);
+        for (int i = 0; i < rows.Count; i++)
+        {
+            TaskManagerSubTaskSnapshot row = rows[i];
+            AddTaskRow(
+                card.Content,
+                i,
+                CreateStatusIndicator(row.State, row.Progress),
+                BuildTaskRowText(row));
+        }
     }
 
     private static void AddTaskRow(Grid content, int row, Control status, string text)
@@ -147,7 +156,7 @@ public partial class PageSpeedRight : MyPageRight
     private void AddErrorRow(Grid content, TaskManagerEntrySnapshot snapshot)
     {
         content.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
-        Control status = CreateStatusIndicator(snapshot);
+        Control status = CreateStatusIndicator(snapshot.State, snapshot.Progress);
         Grid.SetColumn(status, 0);
         Grid.SetRow(status, 0);
         content.Children.Add(status);
@@ -171,13 +180,13 @@ public partial class PageSpeedRight : MyPageRight
         content.Children.Add(error);
     }
 
-    private Control CreateStatusIndicator(TaskManagerEntrySnapshot snapshot) =>
-        snapshot.State switch
+    private Control CreateStatusIndicator(TaskManagerTaskState state, double progress) =>
+        state switch
         {
             TaskManagerTaskState.Waiting => CreateWaitingPath(),
             TaskManagerTaskState.Running => new TextBlock
             {
-                Text = ToStatusText(snapshot),
+                Text = ToStatusText(state, progress),
                 Tag = "Loading",
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
@@ -231,11 +240,36 @@ public partial class PageSpeedRight : MyPageRight
             Fill = Brush("ColorBrush3", "#1370f3")
         };
 
-    private static string BuildTaskRowText(TaskManagerEntrySnapshot snapshot)
+    private static string BuildTaskRowText(TaskManagerSubTaskSnapshot snapshot)
     {
         List<string> parts = [];
-        if (!string.IsNullOrWhiteSpace(snapshot.Stage))
-            parts.Add(snapshot.Stage);
+        if (!string.IsNullOrWhiteSpace(snapshot.Name))
+            parts.Add(snapshot.Name);
+        if (!string.IsNullOrWhiteSpace(snapshot.Detail) &&
+            !string.Equals(snapshot.Detail, snapshot.Name, StringComparison.Ordinal))
+            parts.Add(snapshot.Detail);
+
+        return parts.Count == 0 ? "正在等待任务更新" : string.Join(" · ", parts);
+    }
+
+    private static IReadOnlyList<TaskManagerSubTaskSnapshot> CreateTaskRows(TaskManagerEntrySnapshot snapshot)
+    {
+        if (snapshot.Steps is { Count: > 0 } steps)
+            return steps;
+
+        return
+        [
+            new TaskManagerSubTaskSnapshot(
+                snapshot.Stage,
+                BuildTaskRowDetail(snapshot),
+                snapshot.Progress,
+                snapshot.State)
+        ];
+    }
+
+    private static string BuildTaskRowDetail(TaskManagerEntrySnapshot snapshot)
+    {
+        List<string> parts = [];
         if (!string.IsNullOrWhiteSpace(snapshot.Detail) &&
             !string.Equals(snapshot.Detail, snapshot.Stage, StringComparison.Ordinal))
             parts.Add(snapshot.Detail);
@@ -244,14 +278,14 @@ public partial class PageSpeedRight : MyPageRight
         if (snapshot.SpeedBytesPerSecond > 0)
             parts.Add(TaskManagerFormatting.Speed(snapshot.SpeedBytesPerSecond));
 
-        return parts.Count == 0 ? "正在等待任务更新" : string.Join(" · ", parts);
+        return string.Join(" · ", parts);
     }
 
-    private static string ToStatusText(TaskManagerEntrySnapshot snapshot) =>
-        snapshot.State switch
+    private static string ToStatusText(TaskManagerTaskState state, double progress) =>
+        state switch
         {
             TaskManagerTaskState.Waiting => "...",
-            TaskManagerTaskState.Running => TaskManagerFormatting.Percent(snapshot.Progress),
+            TaskManagerTaskState.Running => TaskManagerFormatting.Percent(progress),
             TaskManagerTaskState.Finished => "√",
             TaskManagerTaskState.Failed => "×",
             TaskManagerTaskState.Canceled => "×",

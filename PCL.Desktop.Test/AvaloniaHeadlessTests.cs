@@ -2575,7 +2575,12 @@ public sealed class AvaloniaHeadlessTests
                     3,
                     10,
                     2048,
-                    TaskManagerTaskState.Running));
+                    TaskManagerTaskState.Running,
+                    Steps:
+                    [
+                        new TaskManagerSubTaskSnapshot("下载版本描述", "1.20.1.json", 0.42d, TaskManagerTaskState.Running),
+                        new TaskManagerSubTaskSnapshot("下载运行库", "3 / 10 个文件", 0.3d, TaskManagerTaskState.Running)
+                    ]));
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
                 MyCard card = page.GetVisualDescendants().OfType<MyCard>().Single(card => card.Title == "安装 1.20.1");
@@ -2585,8 +2590,9 @@ public sealed class AvaloniaHeadlessTests
                     .ToArray();
                 Assert.AreEqual(1, page.TaskCount);
                 Assert.IsTrue(page.HasActiveTasks);
-                Assert.IsTrue(text.Contains("下载版本描述"));
+                Assert.IsTrue(text.Any(value => value.Contains("下载版本描述", StringComparison.Ordinal)));
                 Assert.IsTrue(text.Any(value => value.Contains("1.20.1.json", StringComparison.Ordinal)));
+                Assert.IsTrue(text.Any(value => value.Contains("下载运行库", StringComparison.Ordinal)));
                 Assert.IsTrue(text.Contains("42%"));
 
                 MyIconButton cancelButton = card.GetVisualDescendants()
@@ -2670,7 +2676,12 @@ public sealed class AvaloniaHeadlessTests
                         3,
                         10,
                         2048,
-                        TaskManagerTaskState.Running));
+                        TaskManagerTaskState.Running,
+                        Steps:
+                        [
+                            new TaskManagerSubTaskSnapshot("下载版本描述", "1.21.5.json", 0.425d, TaskManagerTaskState.Running),
+                            new TaskManagerSubTaskSnapshot("下载运行库", "3 / 10 个文件", 0.3d, TaskManagerTaskState.Waiting)
+                        ]));
                 });
 
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
@@ -2689,6 +2700,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsTrue(leftText.Contains("2 / 4"));
                 Assert.IsTrue(rightText.Any(text => text.Contains("下载版本描述", StringComparison.Ordinal)));
                 Assert.IsTrue(rightText.Any(text => text.Contains("1.21.5.json", StringComparison.Ordinal)));
+                Assert.IsTrue(rightText.Any(text => text.Contains("下载运行库", StringComparison.Ordinal)));
             }
             finally
             {
