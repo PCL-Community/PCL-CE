@@ -215,6 +215,13 @@ public partial class MyButton : Border
             IsPointerOver ? AnimationColorIn : AnimationColorOut,
             $"MyButton Color {_uuid}",
             ControlVisualHelpers.ShouldAnimate(this));
+        ControlVisualHelpers.AnimateColorOrSetResource(
+            _label,
+            TextBlock.ForegroundProperty,
+            resourceKey,
+            IsPointerOver ? AnimationColorIn : AnimationColorOut,
+            $"MyButton TextColor {_uuid}",
+            ControlVisualHelpers.ShouldAnimate(this));
         Cursor = IsEnabled ? new Cursor(StandardCursorType.Hand) : Cursor.Default;
     }
 

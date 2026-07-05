@@ -12,7 +12,7 @@
         <TextBlock TextTrimming="None"
                    HorizontalAlignment="Center" x:Name="LabText" VerticalAlignment="Center"
                    RenderTransformOrigin="50%,50%"
-                   Foreground="{Binding #PanFore.BorderBrush}" FontSize="13"
+                   Foreground="{DynamicResource ColorBrush1}" FontSize="13"
                    IsHitTestVisible="False">
             <TextBlock.RenderTransform>
                 <ScaleTransform />

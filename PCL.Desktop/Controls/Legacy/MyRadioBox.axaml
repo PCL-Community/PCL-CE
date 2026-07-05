@@ -10,6 +10,6 @@
              VerticalAlignment="Center" Width="18" Height="18" Stroke="{DynamicResource ColorBrush1}" Margin="1,0,0,0"
              Fill="{DynamicResource ColorBrushHalfWhite}" />
     <Ellipse IsHitTestVisible="False" x:Name="ShapeDot" HorizontalAlignment="Left" VerticalAlignment="Center"
-             Fill="{Binding #ShapeBorder.Stroke}" Width="0" Height="0" Margin="10,0,0,0"
+             Fill="{DynamicResource ColorBrush1}" Width="0" Height="0" Margin="10,0,0,0"
              StrokeThickness="0" />
 </Grid>

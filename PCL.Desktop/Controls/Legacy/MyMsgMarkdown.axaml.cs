@@ -3,6 +3,7 @@
 // Licensed under the Apache License, Version 2.0.
 
 using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 
@@ -53,8 +54,11 @@ public partial class MyMsgMarkdown : Grid
         if (this.FindControl<TextBlock>("LabTitle") is { } titleBlock)
         {
             titleBlock.Text = title;
-            if (isWarn)
-                titleBlock.Foreground = FindBrush("ColorBrushRedLight", "#ff4c4c");
+            IBrush titleBrush = isWarn
+                ? FindBrush("ColorBrushRedLight", "#ff4c4c")
+                : FindBrush("ColorBrush2", "#3a3a3a");
+            titleBlock.Foreground = titleBrush;
+            SyncTitleLine(titleBrush);
         }
         if (this.FindControl<MyMarkdownViewer>("LabCaption") is { } caption)
             caption.Markdown = markdown;
@@ -212,6 +216,12 @@ public partial class MyMsgMarkdown : Grid
     private IBrush FindBrush(string resourceKey, string fallback)
     {
         return LegacyResourceResolver.Brush(this, resourceKey, fallback);
+    }
+
+    private void SyncTitleLine(IBrush brush)
+    {
+        if (this.FindControl<Rectangle>("ShapeLine") is { } line)
+            line.Fill = brush;
     }
 
     private enum AnimationMode

@@ -39,7 +39,7 @@
             <Rectangle x:Name="ShapeLine"
                        Grid.Row="1"
                        Height="2"
-                       Fill="{Binding Foreground, ElementName=LabTitle}" />
+                       Fill="{DynamicResource ColorBrush2}" />
             <legacy:MyScrollViewer Grid.Row="3"
                                    VerticalAlignment="Top"
                                    Margin="0,0,0,17"

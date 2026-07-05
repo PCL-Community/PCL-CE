@@ -249,9 +249,7 @@ public partial class MyCheckBox : Grid
             }
             else
             {
-                ModAnimation.AniStart(
-                    ModAnimation.AaColor(_border, Border.BorderBrushProperty, "ColorBrushGray4", MouseOutAnimationMilliseconds),
-                    $"MyCheckBox BorderColor {_uuid}");
+                AnimateSelectionBrush("ColorBrushGray4", MouseOutAnimationMilliseconds);
                 ModAnimation.AniStart(
                     ModAnimation.AaColor(_label, TextBlock.ForegroundProperty, "ColorBrushGray4", MouseOutAnimationMilliseconds),
                     $"MyCheckBox TextColor {_uuid}");
@@ -265,6 +263,7 @@ public partial class MyCheckBox : Grid
         _border.BorderBrush = FindBrush(
             IsEnabled ? Checked == true ? "ColorBrush2" : "ColorBrush1" : "ColorBrushGray4",
             IsEnabled ? Checked == true ? "#0b5bcb" : "#343d4a" : "#a6a6a6");
+        SyncSelectionBrush();
     }
 
     private void CheckboxMouseEnterAnimation()
@@ -275,9 +274,7 @@ public partial class MyCheckBox : Grid
         ModAnimation.AniStart(
             ModAnimation.AaColor(_label, TextBlock.ForegroundProperty, "ColorBrush3", MouseInAnimationMilliseconds),
             $"MyCheckBox TextColor {_uuid}");
-        ModAnimation.AniStart(
-            ModAnimation.AaColor(_border, Border.BorderBrushProperty, "ColorBrush3", MouseInAnimationMilliseconds),
-            $"MyCheckBox BorderColor {_uuid}");
+        AnimateSelectionBrush("ColorBrush3", MouseInAnimationMilliseconds);
     }
 
     private void CheckboxMouseLeaveAnimation()
@@ -288,13 +285,9 @@ public partial class MyCheckBox : Grid
         ModAnimation.AniStart(
             ModAnimation.AaColor(_label, TextBlock.ForegroundProperty, IsEnabled ? "ColorBrush1" : "ColorBrushGray4", MouseOutAnimationMilliseconds),
             $"MyCheckBox TextColor {_uuid}");
-        ModAnimation.AniStart(
-            ModAnimation.AaColor(
-                _border,
-                Border.BorderBrushProperty,
-                IsEnabled ? Checked == true ? "ColorBrush2" : "ColorBrush1" : "ColorBrushGray4",
-                MouseOutAnimationMilliseconds),
-            $"MyCheckBox BorderColor {_uuid}");
+        AnimateSelectionBrush(
+            IsEnabled ? Checked == true ? "ColorBrush2" : "ColorBrush1" : "ColorBrushGray4",
+            MouseOutAnimationMilliseconds);
     }
 
     private void SyncUI(bool animate)
@@ -314,6 +307,7 @@ public partial class MyCheckBox : Grid
                     IsEnabled ? final == true ? "ColorBrush2" : "ColorBrush1" : "ColorBrushGray4",
                     IsEnabled ? final == true ? "#0b5bcb" : "#343d4a" : "#a6a6a6");
                 _border.Background = FindBrush("ColorBrushHalfWhite", "#55ffffff");
+                SyncSelectionBrush();
             }
             if (_label is not null)
                 _label.Foreground = FindBrush(IsEnabled ? "ColorBrush1" : "ColorBrushGray4", IsEnabled ? "#343d4a" : "#a6a6a6");
@@ -460,13 +454,9 @@ public partial class MyCheckBox : Grid
         if (_border is null)
             return;
 
-        ModAnimation.AniStart(
-            ModAnimation.AaColor(
-                _border,
-                Border.BorderBrushProperty,
-                IsEnabled ? IsPointerOver ? "ColorBrush3" : "ColorBrush2" : "ColorBrushGray4",
-                CheckAnimationMilliseconds),
-            $"MyCheckBox BorderColor {_uuid}");
+        AnimateSelectionBrush(
+            IsEnabled ? IsPointerOver ? "ColorBrush3" : "ColorBrush2" : "ColorBrushGray4",
+            CheckAnimationMilliseconds);
     }
 
     private void AniColorUnchecked()
@@ -474,13 +464,9 @@ public partial class MyCheckBox : Grid
         if (_border is null)
             return;
 
-        ModAnimation.AniStart(
-            ModAnimation.AaColor(
-                _border,
-                Border.BorderBrushProperty,
-                IsEnabled ? IsPointerOver ? "ColorBrush3" : "ColorBrush1" : "ColorBrushGray4",
-                CheckAnimationMilliseconds),
-            $"MyCheckBox BorderColor {_uuid}");
+        AnimateSelectionBrush(
+            IsEnabled ? IsPointerOver ? "ColorBrush3" : "ColorBrush1" : "ColorBrushGray4",
+            CheckAnimationMilliseconds);
     }
 
     private void StopStateAnimations()
@@ -506,6 +492,31 @@ public partial class MyCheckBox : Grid
             return;
 
         ControlVisualHelpers.SetCenterScale(control, scale);
+    }
+
+    private void AnimateSelectionBrush(string resourceKey, int duration)
+    {
+        List<ModAnimation.AniData> animations = [];
+        if (_border is not null)
+            animations.Add(ModAnimation.AaColor(_border, Border.BorderBrushProperty, resourceKey, duration));
+        if (_check is not null)
+            animations.Add(ModAnimation.AaColor(_check, Shape.FillProperty, resourceKey, duration));
+        if (_indeterminate is not null)
+            animations.Add(ModAnimation.AaColor(_indeterminate, Border.BackgroundProperty, resourceKey, duration));
+
+        if (animations.Count > 0)
+            ModAnimation.AniStart(animations, $"MyCheckBox BorderColor {_uuid}");
+    }
+
+    private void SyncSelectionBrush()
+    {
+        if (_border?.BorderBrush is not { } brush)
+            return;
+
+        if (_check is not null)
+            _check.Fill = brush;
+        if (_indeterminate is not null)
+            _indeterminate.Background = brush;
     }
 
     private IBrush FindBrush(string key, string fallback)
