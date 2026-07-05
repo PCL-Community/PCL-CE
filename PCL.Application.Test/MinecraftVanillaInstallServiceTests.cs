@@ -128,9 +128,110 @@ public sealed class MinecraftVanillaInstallServiceTests
         }
     }
 
+    [TestMethod]
+    public async Task InstallAsync_CreatesLoaderVersionThatInheritsVanillaBase()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "pcl-install-loader-" + Guid.NewGuid().ToString("N"));
+        using HttpClient client = new(new DelegateHandler(request =>
+        {
+            string path = request.RequestUri!.AbsolutePath;
+            if (path.Contains("/assets/", StringComparison.Ordinal))
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""{"objects":{}}""")
+                };
+            }
+
+            if (path.EndsWith(".jar", StringComparison.Ordinal))
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new ByteArrayContent([0x50, 0x4B, 0x03, 0x04])
+                };
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    """
+                    {
+                      "id": "1.20.1",
+                      "type": "release",
+                      "assetIndex": {
+                        "id": "empty",
+                        "url": "https://example.invalid/assets/empty.json"
+                      }
+                    }
+                    """)
+            };
+        }));
+        MinecraftVanillaInstallService service = new(client, new FakeMinecraftLoaderMetadataService());
+
+        try
+        {
+            MinecraftInstallResult result = await service.InstallAsync(
+                new MinecraftInstallRequest
+                {
+                    VersionId = "fabric-loader-0.16.14-1.20.1",
+                    BaseVersionId = "1.20.1",
+                    VersionJsonUrl = "https://example.invalid/versions/1.20.1.json",
+                    MinecraftRootDirectory = root,
+                    Loader = new MinecraftLoaderInstallRequest(MinecraftLoaderKind.Fabric, "0.16.14")
+                });
+
+            string baseJsonPath = Path.Combine(root, "versions", "1.20.1", "1.20.1.json");
+            Assert.IsTrue(File.Exists(baseJsonPath));
+            JsonObject baseJson = JsonNode.Parse(await File.ReadAllTextAsync(baseJsonPath))!.AsObject();
+            Assert.AreEqual("1.20.1", baseJson["id"]?.GetValue<string>());
+
+            JsonObject loaderJson = JsonNode.Parse(await File.ReadAllTextAsync(result.VersionJsonPath))!.AsObject();
+            Assert.AreEqual("fabric-loader-0.16.14-1.20.1", loaderJson["id"]?.GetValue<string>());
+            Assert.AreEqual("1.20.1", loaderJson["inheritsFrom"]?.GetValue<string>());
+            Assert.AreEqual("net.fabricmc.loader.impl.launch.knot.KnotClient", loaderJson["mainClass"]?.GetValue<string>());
+            string libraries = loaderJson["libraries"]!.ToJsonString();
+            StringAssert.Contains(libraries, "net.fabricmc:fabric-loader:0.16.14");
+            StringAssert.Contains(libraries, "net.fabricmc:intermediary:1.20.1");
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
     private sealed class CaptureProgress<T>(List<T> items) : IProgress<T>
     {
         public void Report(T value) => items.Add(value);
+    }
+
+    private sealed class FakeMinecraftLoaderMetadataService : IMinecraftLoaderMetadataService
+    {
+        public Task<IReadOnlyList<MinecraftLoaderVersionEntry>> GetLoaderVersionsAsync(
+            MinecraftLoaderKind kind,
+            string gameVersion,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<MinecraftLoaderVersionEntry>>(
+            [
+                new MinecraftLoaderVersionEntry(kind, "0.16.14", true)
+            ]);
+
+        public Task<MinecraftLoaderInstallMetadata> GetLoaderInstallMetadataAsync(
+            MinecraftLoaderInstallRequest request,
+            string gameVersion,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(new MinecraftLoaderInstallMetadata(
+                request.Kind,
+                request.LoaderVersion,
+                "net.fabricmc:fabric-loader:0.16.14",
+                "net.fabricmc:intermediary:1.20.1",
+                "https://maven.fabricmc.net/",
+                "net.fabricmc.loader.impl.launch.knot.KnotClient",
+                [
+                    new MinecraftLoaderLibrary("net.fabricmc:intermediary:1.20.1", "https://maven.fabricmc.net/"),
+                    new MinecraftLoaderLibrary("net.fabricmc:fabric-loader:0.16.14", "https://maven.fabricmc.net/")
+                ],
+                17));
     }
 
     private sealed class DelegateHandler(Func<HttpRequestMessage, HttpResponseMessage> handle) : HttpMessageHandler

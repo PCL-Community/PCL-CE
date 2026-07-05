@@ -23,9 +23,11 @@ public sealed record MinecraftVersionManifestEntry(
 public sealed record MinecraftInstallRequest
 {
     public required string VersionId { get; init; }
+    public string? BaseVersionId { get; init; }
     public required string VersionJsonUrl { get; init; }
     public required string MinecraftRootDirectory { get; init; }
     public bool PreferOfficialSource { get; init; } = true;
+    public MinecraftLoaderInstallRequest? Loader { get; init; }
 }
 
 public sealed record MinecraftInstallProgress
@@ -50,11 +52,15 @@ public sealed class MinecraftVanillaInstallService
 {
     private const string VersionManifestUrl = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
     private readonly HttpClient _httpClient;
+    private readonly IMinecraftLoaderMetadataService _loaderMetadataService;
     private readonly DownloadService _downloadService = new();
 
-    public MinecraftVanillaInstallService(HttpClient? httpClient = null)
+    public MinecraftVanillaInstallService(
+        HttpClient? httpClient = null,
+        IMinecraftLoaderMetadataService? loaderMetadataService = null)
     {
         _httpClient = httpClient ?? PortableHttp.Client;
+        _loaderMetadataService = loaderMetadataService ?? new MinecraftLoaderMetadataService(_httpClient);
     }
 
     public async Task<IReadOnlyList<MinecraftVersionManifestEntry>> GetVersionManifestAsync(
@@ -103,14 +109,24 @@ public sealed class MinecraftVanillaInstallService
         ArgumentException.ThrowIfNullOrWhiteSpace(request.MinecraftRootDirectory);
 
         string minecraftRoot = Path.GetFullPath(request.MinecraftRootDirectory);
-        string instanceDirectory = Path.Combine(minecraftRoot, "versions", request.VersionId);
-        string versionJsonPath = Path.Combine(instanceDirectory, request.VersionId + ".json");
-        Directory.CreateDirectory(instanceDirectory);
+        string baseVersionId = string.IsNullOrWhiteSpace(request.BaseVersionId)
+            ? request.VersionId
+            : request.BaseVersionId.Trim();
+        bool installsLoader = request.Loader is not null;
+        if (installsLoader && string.Equals(request.VersionId, baseVersionId, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("加载器实例名称不能与原版版本名称相同。");
+        }
+
+        string vanillaInstallId = installsLoader ? baseVersionId : request.VersionId;
+        string vanillaInstanceDirectory = Path.Combine(minecraftRoot, "versions", vanillaInstallId);
+        string vanillaVersionJsonPath = Path.Combine(vanillaInstanceDirectory, vanillaInstallId + ".json");
+        Directory.CreateDirectory(vanillaInstanceDirectory);
 
         progress?.Report(CreateProgress("准备安装", request.VersionId, 0d, 0, 1));
         await DownloadIfNeededAsync(
                 MinecraftDownloadSourcePlanner.GetLauncherOrMetaSources(request.VersionJsonUrl, request.PreferOfficialSource),
-                versionJsonPath,
+                vanillaVersionJsonPath,
                 expectedSize: -1,
                 "下载版本描述",
                 0,
@@ -119,20 +135,36 @@ public sealed class MinecraftVanillaInstallService
                 cancellationToken)
             .ConfigureAwait(false);
 
-        JsonObject versionJson = await ReadJsonObjectAsync(versionJsonPath, cancellationToken).ConfigureAwait(false);
-        await NormalizeVersionIdAsync(versionJson, request.VersionId, versionJsonPath, cancellationToken).ConfigureAwait(false);
+        JsonObject versionJson = await ReadJsonObjectAsync(vanillaVersionJsonPath, cancellationToken).ConfigureAwait(false);
+        await NormalizeVersionIdAsync(versionJson, vanillaInstallId, vanillaVersionJsonPath, cancellationToken).ConfigureAwait(false);
         await DownloadVersionFilesAsync(
-                request.VersionId,
+                vanillaInstallId,
                 versionJson,
                 minecraftRoot,
-                instanceDirectory,
+                vanillaInstanceDirectory,
                 request.PreferOfficialSource,
                 progress,
                 cancellationToken)
             .ConfigureAwait(false);
 
+        if (request.Loader is { } loaderRequest)
+        {
+            MinecraftInstallResult loaderResult = await InstallLoaderAsync(
+                    request,
+                    loaderRequest,
+                    baseVersionId,
+                    versionJson,
+                    minecraftRoot,
+                    request.PreferOfficialSource,
+                    progress,
+                    cancellationToken)
+                .ConfigureAwait(false);
+            progress?.Report(CreateProgress("安装完成", request.VersionId, 1d, 1, 1));
+            return loaderResult;
+        }
+
         progress?.Report(CreateProgress("安装完成", request.VersionId, 1d, 1, 1));
-        return new MinecraftInstallResult(request.VersionId, minecraftRoot, instanceDirectory, versionJsonPath);
+        return new MinecraftInstallResult(request.VersionId, minecraftRoot, vanillaInstanceDirectory, vanillaVersionJsonPath);
     }
 
     public async Task<MinecraftInstallResult> RepairAsync(
@@ -207,6 +239,52 @@ public sealed class MinecraftVanillaInstallService
         }
 
         progress?.Report(CreateProgress("文件检查完成", versionId, 1d, total, total));
+    }
+
+    private async Task<MinecraftInstallResult> InstallLoaderAsync(
+        MinecraftInstallRequest request,
+        MinecraftLoaderInstallRequest loaderRequest,
+        string baseVersionId,
+        JsonObject baseVersionJson,
+        string minecraftRoot,
+        bool preferOfficialSource,
+        IProgress<MinecraftInstallProgress>? progress,
+        CancellationToken cancellationToken)
+    {
+        string loaderName = loaderRequest.Kind.ToString();
+        progress?.Report(CreateProgress("准备安装加载器", $"{loaderName} {loaderRequest.LoaderVersion}", 0d, 0, 1));
+
+        MinecraftLoaderInstallMetadata metadata = await _loaderMetadataService.GetLoaderInstallMetadataAsync(
+                loaderRequest,
+                baseVersionId,
+                cancellationToken)
+            .ConfigureAwait(false);
+        JsonObject loaderVersionJson = MinecraftLoaderVersionJsonBuilder.Create(
+            new MinecraftLoaderVersionJsonRequest
+            {
+                VersionId = request.VersionId,
+                MinecraftVersionId = baseVersionId,
+                Loader = metadata,
+                Type = baseVersionJson["type"]?.ToString() ?? "release",
+                Time = TryReadDateTimeOffset(baseVersionJson["releaseTime"] ?? baseVersionJson["time"])
+            });
+
+        string instanceDirectory = Path.Combine(minecraftRoot, "versions", request.VersionId);
+        string versionJsonPath = Path.Combine(instanceDirectory, request.VersionId + ".json");
+        Directory.CreateDirectory(instanceDirectory);
+        await WriteJsonObjectAsync(loaderVersionJson, versionJsonPath, cancellationToken).ConfigureAwait(false);
+
+        await DownloadVersionFilesAsync(
+                request.VersionId,
+                loaderVersionJson,
+                minecraftRoot,
+                instanceDirectory,
+                preferOfficialSource,
+                progress,
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        return new MinecraftInstallResult(request.VersionId, minecraftRoot, instanceDirectory, versionJsonPath);
     }
 
     private async Task DownloadIfNeededAsync(
@@ -419,6 +497,14 @@ public sealed class MinecraftVanillaInstallService
             return;
 
         versionJson["id"] = versionId;
+        await WriteJsonObjectAsync(versionJson, versionJsonPath, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task WriteJsonObjectAsync(
+        JsonObject versionJson,
+        string versionJsonPath,
+        CancellationToken cancellationToken)
+    {
         string tempPath = versionJsonPath + ".tmp";
         await using (FileStream stream = new(
                          tempPath,
@@ -467,6 +553,14 @@ public sealed class MinecraftVanillaInstallService
     private static DateTimeOffset? TryReadDate(JsonElement element, string propertyName)
     {
         string? text = TryReadString(element, propertyName);
+        return DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTimeOffset value)
+            ? value
+            : null;
+    }
+
+    private static DateTimeOffset? TryReadDateTimeOffset(JsonNode? node)
+    {
+        string? text = node?.ToString();
         return DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTimeOffset value)
             ? value
             : null;

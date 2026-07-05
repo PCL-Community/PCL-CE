@@ -81,4 +81,91 @@ public sealed class MinecraftProcessLaunchServiceTests
                 Directory.Delete(root, recursive: true);
         }
     }
+
+    [TestMethod]
+    public async Task CreatePlanAsync_LoadsInheritedVersionJsonForLoaderInstances()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "pcl-launch-inherits-" + Guid.NewGuid().ToString("N"));
+        string baseDirectory = Path.Combine(root, "versions", "1.20.1");
+        string loaderDirectory = Path.Combine(root, "versions", "fabric-loader-0.16.14-1.20.1");
+        string baseJsonPath = Path.Combine(baseDirectory, "1.20.1.json");
+        string baseJarPath = Path.Combine(baseDirectory, "1.20.1.jar");
+        string loaderJsonPath = Path.Combine(loaderDirectory, "fabric-loader-0.16.14-1.20.1.json");
+
+        try
+        {
+            Directory.CreateDirectory(baseDirectory);
+            Directory.CreateDirectory(loaderDirectory);
+            await File.WriteAllTextAsync(baseJsonPath,
+                """
+                {
+                  "id": "1.20.1",
+                  "mainClass": "net.minecraft.client.main.Main",
+                  "arguments": {
+                    "jvm": [
+                      "-cp",
+                      "${classpath}"
+                    ],
+                    "game": [
+                      "--username",
+                      "${auth_player_name}",
+                      "--gameDir",
+                      "${game_directory}"
+                    ]
+                  },
+                  "assetIndex": {
+                    "id": "empty"
+                  },
+                  "libraries": [
+                    {
+                      "name": "com.mojang:brigadier:1.0.18",
+                      "url": "https://libraries.minecraft.net/"
+                    }
+                  ]
+                }
+                """);
+            await File.WriteAllTextAsync(baseJarPath, string.Empty);
+            await File.WriteAllTextAsync(loaderJsonPath,
+                """
+                {
+                  "id": "fabric-loader-0.16.14-1.20.1",
+                  "inheritsFrom": "1.20.1",
+                  "mainClass": "net.fabricmc.loader.impl.launch.knot.KnotClient",
+                  "libraries": [
+                    {
+                      "name": "net.fabricmc:fabric-loader:0.16.14",
+                      "url": "https://maven.fabricmc.net/"
+                    }
+                  ]
+                }
+                """);
+
+            MinecraftProcessLaunchPlan plan = await MinecraftProcessLaunchService.CreatePlanAsync(
+                new MinecraftProcessLaunchRequest
+                {
+                    VersionId = "fabric-loader-0.16.14-1.20.1",
+                    VersionJsonPath = loaderJsonPath,
+                    InstanceDirectory = loaderDirectory,
+                    MinecraftRootDirectory = root,
+                    PlayerName = "Steve",
+                    PlayerUuid = "00000000000000000000000000000000",
+                    JavaExecutablePath = "java"
+                });
+
+            StringAssert.Contains(plan.StartInfo.Arguments, "net.fabricmc.loader.impl.launch.knot.KnotClient");
+            StringAssert.Contains(plan.StartInfo.Arguments, "--username Steve");
+            CollectionAssert.Contains(plan.ClasspathEntries.ToArray(), baseJarPath);
+            Assert.IsTrue(plan.ClasspathEntries.Any(path => path.EndsWith(
+                Path.Combine("net", "fabricmc", "fabric-loader", "0.16.14", "fabric-loader-0.16.14.jar"),
+                StringComparison.Ordinal)));
+            Assert.IsTrue(plan.ClasspathEntries.Any(path => path.EndsWith(
+                Path.Combine("com", "mojang", "brigadier", "1.0.18", "brigadier-1.0.18.jar"),
+                StringComparison.Ordinal)));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
 }

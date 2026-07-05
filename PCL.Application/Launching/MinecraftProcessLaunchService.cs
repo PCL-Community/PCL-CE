@@ -60,25 +60,23 @@ public static class MinecraftProcessLaunchService
         ArgumentException.ThrowIfNullOrWhiteSpace(request.PlayerUuid);
 
         JsonObject versionJson = await ReadJsonObjectAsync(request.VersionJsonPath, cancellationToken).ConfigureAwait(false);
-        string mainClass = versionJson["mainClass"]?.ToString()
-                           ?? throw new FormatException("version.json 缺少 mainClass。");
         string minecraftRoot = Path.GetFullPath(request.MinecraftRootDirectory);
         string instanceDirectory = Path.GetFullPath(request.InstanceDirectory);
+        IReadOnlyList<InheritedVersionJson> inheritedVersions = await ReadInheritedVersionJsonsAsync(
+                versionJson,
+                minecraftRoot,
+                cancellationToken)
+            .ConfigureAwait(false);
+        JsonObject[] inheritedVersionJsons = inheritedVersions.Select(static version => version.Json).ToArray();
+
+        string mainClass = FindString(versionJson, inheritedVersionJsons, "mainClass")
+                           ?? throw new FormatException("version.json 缺少 mainClass。");
         string gameDirectory = request.IsolatedGameDirectory ? instanceDirectory : minecraftRoot;
         string nativesDirectory = Path.Combine(instanceDirectory, "natives");
         string versionJar = Path.Combine(instanceDirectory, request.VersionId + ".jar");
 
         MinecraftArgumentRuleContext ruleContext = CreateRuleContext();
-        IReadOnlyList<MinecraftLibraryToken> libraries = MinecraftLibraryResolver.Resolve(
-            new MinecraftLibraryResolutionRequest
-            {
-                VersionJson = versionJson,
-                MinecraftRootDirectory = minecraftRoot,
-                TargetInstanceDirectory = instanceDirectory,
-                OperatingSystem = GetLibraryOperatingSystem(),
-                Is64BitArchitecture = Environment.Is64BitOperatingSystem,
-                OperatingSystemVersion = Environment.OSVersion.VersionString
-            });
+        IReadOnlyList<MinecraftLibraryToken> libraries = ResolveLibraries(versionJson, inheritedVersionJsons, minecraftRoot, instanceDirectory);
 
         MinecraftNativeExtractionResult nativeExtraction = MinecraftNativeExtractionService.Extract(
             new MinecraftNativeExtractionRequest
@@ -96,13 +94,14 @@ public static class MinecraftProcessLaunchService
             {
                 Libraries = libraries,
                 ClasspathHeadEntries = request.ClasspathHeadEntries,
-                BundledClasspathEntries = File.Exists(versionJar) ? [versionJar] : []
+                BundledClasspathEntries = CreateBundledClasspathEntries(versionJar, inheritedVersions, minecraftRoot)
             });
         string classpathText = string.Join(Path.PathSeparator, classpath.Entries);
         string assetIndexName = MinecraftAssetIndexResolver.GetIndexName(
             new MinecraftAssetIndexNameRequest
             {
-                VersionJson = versionJson
+                VersionJson = versionJson,
+                InheritedVersionJsons = inheritedVersionJsons
             });
 
         MinecraftLaunchPlanResult launchPlan = MinecraftLaunchPlanService.CreatePlan(
@@ -111,6 +110,7 @@ public static class MinecraftProcessLaunchService
                 Jvm = new MinecraftJvmArgumentRequest
                 {
                     VersionJson = versionJson,
+                    InheritedVersionJsons = inheritedVersionJsons,
                     RuleContext = ruleContext,
                     MainClass = mainClass,
                     CustomJvmArguments = request.CustomJvmArguments,
@@ -118,19 +118,20 @@ public static class MinecraftProcessLaunchService
                     NativesDirectory = nativesDirectory,
                     PreferredIpStack = request.PreferredIpStack,
                     PrefixArguments = CreateJvmPrefixArguments(request),
-                    UseModernArguments = versionJson["arguments"]?["jvm"] is not null
+                    UseModernArguments = HasArguments(versionJson, inheritedVersionJsons, "jvm")
                 },
-                ModernGame = versionJson["arguments"]?["game"] is not null
+                ModernGame = HasArguments(versionJson, inheritedVersionJsons, "game")
                     ? new MinecraftModernGameArgumentRequest
                     {
                         VersionJson = versionJson,
+                        InheritedVersionJsons = inheritedVersionJsons,
                         RuleContext = ruleContext
                     }
                     : null,
-                LegacyGame = versionJson["minecraftArguments"] is not null
+                LegacyGame = FindString(versionJson, inheritedVersionJsons, "minecraftArguments") is { } minecraftArguments
                     ? new MinecraftLegacyGameArgumentRequest
                     {
-                        MinecraftArguments = versionJson["minecraftArguments"]!.ToString()
+                        MinecraftArguments = minecraftArguments
                     }
                     : null,
                 Replacements = CreateReplacements(request, minecraftRoot, gameDirectory, nativesDirectory, classpathText, assetIndexName),
@@ -182,6 +183,124 @@ public static class MinecraftProcessLaunchService
             ["${quickPlayPath}"] = string.Empty,
             ["${game_assets}"] = Quote(Path.Combine(minecraftRoot, "assets", "virtual", "legacy"))
         };
+
+    private static async Task<IReadOnlyList<InheritedVersionJson>> ReadInheritedVersionJsonsAsync(
+        JsonObject versionJson,
+        string minecraftRoot,
+        CancellationToken cancellationToken)
+    {
+        List<InheritedVersionJson> result = [];
+        HashSet<string> seen = new(StringComparer.OrdinalIgnoreCase);
+        JsonObject current = versionJson;
+        while (current["inheritsFrom"]?.ToString() is { Length: > 0 } inheritedId)
+        {
+            if (!seen.Add(inheritedId))
+                throw new FormatException("version.json 存在循环继承：" + inheritedId);
+
+            string inheritedJsonPath = Path.Combine(minecraftRoot, "versions", inheritedId, inheritedId + ".json");
+            if (!File.Exists(inheritedJsonPath))
+                throw new FileNotFoundException("缺少继承版本描述：" + inheritedId, inheritedJsonPath);
+
+            JsonObject inheritedJson = await ReadJsonObjectAsync(inheritedJsonPath, cancellationToken).ConfigureAwait(false);
+            result.Add(new InheritedVersionJson(inheritedId, inheritedJson));
+            current = inheritedJson;
+        }
+
+        return result;
+    }
+
+    private static List<MinecraftLibraryToken> ResolveLibraries(
+        JsonObject versionJson,
+        IReadOnlyList<JsonObject> inheritedVersionJsons,
+        string minecraftRoot,
+        string instanceDirectory)
+    {
+        List<MinecraftLibraryToken> result = [];
+        AddResolvedLibraries(result, versionJson, minecraftRoot, instanceDirectory);
+        foreach (JsonObject inheritedVersionJson in inheritedVersionJsons)
+            AddResolvedLibraries(result, inheritedVersionJson, minecraftRoot, instanceDirectory);
+
+        List<MinecraftLibraryToken> deduplicated = [];
+        HashSet<string> seen = new(GetPathComparer());
+        foreach (MinecraftLibraryToken library in result)
+        {
+            if (seen.Add(library.LocalPath))
+                deduplicated.Add(library);
+        }
+
+        return deduplicated;
+    }
+
+    private static void AddResolvedLibraries(
+        List<MinecraftLibraryToken> target,
+        JsonObject versionJson,
+        string minecraftRoot,
+        string instanceDirectory)
+    {
+        target.AddRange(MinecraftLibraryResolver.Resolve(
+            new MinecraftLibraryResolutionRequest
+            {
+                VersionJson = versionJson,
+                MinecraftRootDirectory = minecraftRoot,
+                TargetInstanceDirectory = instanceDirectory,
+                OperatingSystem = GetLibraryOperatingSystem(),
+                Is64BitArchitecture = Environment.Is64BitOperatingSystem,
+                OperatingSystemVersion = Environment.OSVersion.VersionString
+            }));
+    }
+
+    private static List<string> CreateBundledClasspathEntries(
+        string versionJar,
+        IReadOnlyList<InheritedVersionJson> inheritedVersions,
+        string minecraftRoot)
+    {
+        List<string> entries = [];
+        if (File.Exists(versionJar))
+            entries.Add(versionJar);
+
+        foreach (InheritedVersionJson inheritedVersion in inheritedVersions)
+        {
+            string inheritedJar = Path.Combine(
+                minecraftRoot,
+                "versions",
+                inheritedVersion.VersionId,
+                inheritedVersion.VersionId + ".jar");
+            if (File.Exists(inheritedJar))
+                entries.Add(inheritedJar);
+        }
+
+        return entries;
+    }
+
+    private static string? FindString(
+        JsonObject versionJson,
+        IReadOnlyList<JsonObject> inheritedVersionJsons,
+        string propertyName)
+    {
+        string? value = EmptyToNull(versionJson[propertyName]?.ToString());
+        if (value is not null)
+            return value;
+
+        foreach (JsonObject inheritedVersionJson in inheritedVersionJsons)
+        {
+            value = EmptyToNull(inheritedVersionJson[propertyName]?.ToString());
+            if (value is not null)
+                return value;
+        }
+
+        return null;
+    }
+
+    private static bool HasArguments(
+        JsonObject versionJson,
+        IReadOnlyList<JsonObject> inheritedVersionJsons,
+        string argumentName)
+    {
+        if (versionJson["arguments"]?[argumentName] is not null)
+            return true;
+
+        return inheritedVersionJsons.Any(inheritedVersionJson => inheritedVersionJson["arguments"]?[argumentName] is not null);
+    }
 
     private static async Task<JsonObject> ReadJsonObjectAsync(string path, CancellationToken cancellationToken)
     {
@@ -241,6 +360,12 @@ public static class MinecraftProcessLaunchService
     private static string Quote(string value) =>
         value.Contains(' ', StringComparison.Ordinal) ? "\"" + value + "\"" : value;
 
+    private static string? EmptyToNull(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value;
+
+    private static StringComparer GetPathComparer() =>
+        OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+
     private static IReadOnlyList<string> CreateJvmPrefixArguments(MinecraftProcessLaunchRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.AuthlibInjectorPath) ||
@@ -262,4 +387,6 @@ public static class MinecraftProcessLaunchService
 
         return [javaAgent];
     }
+
+    private sealed record InheritedVersionJson(string VersionId, JsonObject Json);
 }
