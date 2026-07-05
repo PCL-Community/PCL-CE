@@ -21,7 +21,7 @@ public readonly record struct ThemeId
     public bool Equals(string? value) =>
         string.Equals(Value, value, StringComparison.OrdinalIgnoreCase);
 
-    public static implicit operator ThemeId(string value) => new(value);
+    public static ThemeId Parse(string value) => new(value);
 
     public static explicit operator string(ThemeId id) => id.Value;
 }

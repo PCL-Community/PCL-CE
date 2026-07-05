@@ -21,7 +21,7 @@ public readonly record struct CommandId
     public bool Equals(string? value) =>
         string.Equals(Value, value, StringComparison.OrdinalIgnoreCase);
 
-    public static implicit operator CommandId(string value) => new(value);
+    public static CommandId Parse(string value) => new(value);
 
     public static explicit operator string(CommandId id) => id.Value;
 }

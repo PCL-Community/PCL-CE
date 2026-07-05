@@ -21,7 +21,7 @@ public readonly record struct DownloadSourceId
     public bool Equals(string? value) =>
         string.Equals(Value, value, StringComparison.OrdinalIgnoreCase);
 
-    public static implicit operator DownloadSourceId(string value) => new(value);
+    public static DownloadSourceId Parse(string value) => new(value);
 
     public static explicit operator string(DownloadSourceId id) => id.Value;
 }

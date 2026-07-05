@@ -21,7 +21,7 @@ public readonly record struct AccountProviderId
     public bool Equals(string? value) =>
         string.Equals(Value, value, StringComparison.OrdinalIgnoreCase);
 
-    public static implicit operator AccountProviderId(string value) => new(value);
+    public static AccountProviderId Parse(string value) => new(value);
 
     public static explicit operator string(AccountProviderId id) => id.Value;
 }

@@ -64,7 +64,7 @@ public sealed class HostModuleTests
             .Build();
 
         CollectionAssert.Contains(host.ModuleIds.ToArray(), new HostModuleId("sample.static.host"));
-        Assert.IsTrue(host.Navigation.Pages.Any(static page => page.Route == "sample.static.home"));
+        Assert.IsTrue(host.Navigation.Pages.Any(static page => page.Route.Equals("sample.static.home")));
     }
 
     [TestMethod]
@@ -86,34 +86,34 @@ public sealed class HostModuleTests
         Assert.ThrowsExactly<InvalidOperationException>(() => settings.AddSetting(new SettingDescriptor("SAMPLE.SETTING", "设置")));
 
         ExtensionRegistry extensions = new();
-        extensions.AddExtension(new ExtensionDescriptor("sample.extension", "扩展"));
+        extensions.AddExtension(new ExtensionDescriptor(new ExtensionId("sample.extension"), "扩展"));
 
-        Assert.ThrowsExactly<InvalidOperationException>(() => extensions.AddExtension(new ExtensionDescriptor("SAMPLE.EXTENSION", "扩展")));
+        Assert.ThrowsExactly<InvalidOperationException>(() => extensions.AddExtension(new ExtensionDescriptor(new ExtensionId("SAMPLE.EXTENSION"), "扩展")));
 
         ThemeRegistry themes = new();
         themes.AddTheme(new ThemeDescriptor
         {
-            Id = "sample.theme",
+            Id = new ThemeId("sample.theme"),
             DisplayName = "主题"
         });
 
         Assert.ThrowsExactly<InvalidOperationException>(() => themes.AddTheme(new ThemeDescriptor
         {
-            Id = "SAMPLE.THEME",
+            Id = new ThemeId("SAMPLE.THEME"),
             DisplayName = "主题"
         }));
 
         AccountProviderRegistry accounts = new();
         accounts.AddProvider(new AccountProviderDescriptor
         {
-            Id = "sample.account",
+            Id = new AccountProviderId("sample.account"),
             DisplayName = "账号",
             ProviderType = typeof(SampleAccountProvider)
         });
 
         Assert.ThrowsExactly<InvalidOperationException>(() => accounts.AddProvider(new AccountProviderDescriptor
         {
-            Id = "SAMPLE.ACCOUNT",
+            Id = new AccountProviderId("SAMPLE.ACCOUNT"),
             DisplayName = "账号",
             ProviderType = typeof(SampleAccountProvider)
         }));
@@ -121,14 +121,14 @@ public sealed class HostModuleTests
         DownloadSourceRegistry downloads = new();
         downloads.AddSource(new DownloadSourceDescriptor
         {
-            Id = "sample.download",
+            Id = new DownloadSourceId("sample.download"),
             DisplayName = "下载源",
             BaseUri = new Uri("https://example.invalid/")
         });
 
         Assert.ThrowsExactly<InvalidOperationException>(() => downloads.AddSource(new DownloadSourceDescriptor
         {
-            Id = "SAMPLE.DOWNLOAD",
+            Id = new DownloadSourceId("SAMPLE.DOWNLOAD"),
             DisplayName = "下载源",
             BaseUri = new Uri("https://example.invalid/")
         }));
@@ -177,6 +177,34 @@ public sealed class HostModuleTests
     }
 
     [TestMethod]
+    public void StrongIds_DoNotExposeStringImplicitConversions()
+    {
+        Type[] idTypes =
+        [
+            typeof(AccountProviderId),
+            typeof(CommandId),
+            typeof(DownloadSourceId),
+            typeof(ExtensionId),
+            typeof(HostModuleId),
+            typeof(NavigationRouteId),
+            typeof(ThemeId)
+        ];
+
+        foreach (Type idType in idTypes)
+        {
+            bool hasImplicitStringConversion = idType
+                .GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+                .Any(method =>
+                    method.Name == "op_Implicit" &&
+                    method.ReturnType == idType &&
+                    method.GetParameters() is [{ ParameterType: var parameterType }] &&
+                    parameterType == typeof(string));
+
+            Assert.IsFalse(hasImplicitStringConversion, idType.FullName + " must require explicit ID construction.");
+        }
+    }
+
+    [TestMethod]
     public void Registries_ExposeStableSnapshotsBetweenMutations()
     {
         CommandRegistry commands = new();
@@ -184,18 +212,18 @@ public sealed class HostModuleTests
         IReadOnlyList<CommandDescriptor> commandsSnapshot = commands.Commands;
 
         Assert.AreSame(commandsSnapshot, commands.Commands);
-        Assert.IsTrue(commands.TryGetCommand("SAMPLE.COMMAND", out CommandDescriptor command));
+        Assert.IsTrue(commands.TryGetCommand(new CommandId("SAMPLE.COMMAND"), out CommandDescriptor command));
         Assert.AreEqual("sample.command", command.Id.Value);
 
         commands.AddCommand(CreateCommand("sample.next"));
 
         Assert.AreNotSame(commandsSnapshot, commands.Commands);
-        Assert.IsTrue(commands.RemoveCommand("SAMPLE.NEXT"));
+        Assert.IsTrue(commands.RemoveCommand(new CommandId("SAMPLE.NEXT")));
         Assert.IsFalse(commands.TryGetCommand(default, out _));
 
         ThemeRegistry themes = new();
-        themes.AddTheme(new ThemeDescriptor { Id = "sample.z", DisplayName = "Z", Order = 2 });
-        themes.AddTheme(new ThemeDescriptor { Id = "sample.a", DisplayName = "A", Order = 1 });
+        themes.AddTheme(new ThemeDescriptor { Id = new ThemeId("sample.z"), DisplayName = "Z", Order = 2 });
+        themes.AddTheme(new ThemeDescriptor { Id = new ThemeId("sample.a"), DisplayName = "A", Order = 1 });
         IReadOnlyList<ThemeDescriptor> themesSnapshot = themes.Themes;
 
         Assert.AreSame(themesSnapshot, themes.Themes);
@@ -211,14 +239,14 @@ public sealed class HostModuleTests
         navigation.AddPage(CreatePage("sample.a", order: 2));
         navigation.AddPage(CreatePage("sample.b", order: 1));
 
-        Assert.IsTrue(navigation.ReplacePage("SAMPLE.A", CreatePage("sample.c", "替换页面", order: 0)));
+        Assert.IsTrue(navigation.ReplacePage(new NavigationRouteId("SAMPLE.A"), CreatePage("sample.c", "替换页面", order: 0)));
         Assert.ThrowsExactly<InvalidOperationException>(() =>
-            navigation.ReplacePage("sample.c", CreatePage("sample.b")));
+            navigation.ReplacePage(new NavigationRouteId("sample.c"), CreatePage("sample.b")));
 
         CollectionAssert.AreEqual(
             new[] { "sample.c", "sample.b" },
             navigation.Pages.Select(static page => page.Route.Value).ToArray());
-        Assert.IsTrue(navigation.RemovePage("SAMPLE.C"));
+        Assert.IsTrue(navigation.RemovePage(new NavigationRouteId("SAMPLE.C")));
         Assert.IsFalse(navigation.RemovePage(default));
         CollectionAssert.AreEqual(
             new[] { "sample.b" },
@@ -237,14 +265,14 @@ public sealed class HostModuleTests
     private static NavigationPageDescriptor CreatePage(string route, string title = "页面", int order = 0) =>
         new()
         {
-            Route = route,
+            Route = new NavigationRouteId(route),
             Title = title,
             Order = order,
             Provider = new DelegatePageProvider(static (_, _) => new ValueTask<object>(new object()))
         };
 
     private static CommandDescriptor CreateCommand(string id, string title = "命令") =>
-        new(id, title, static (_, _) => ValueTask.CompletedTask);
+        new(new CommandId(id), title, static (_, _) => ValueTask.CompletedTask);
 
     private sealed class SampleHostModule : IPclHostModule
     {
@@ -255,24 +283,24 @@ public sealed class HostModuleTests
         public void Configure(IPclHostBuilder builder)
         {
             builder.Services.AddSingleton("sample-service");
-            builder.Extensions.AddExtension(new ExtensionDescriptor("sample.extension", "示例扩展"));
+            builder.Extensions.AddExtension(new ExtensionDescriptor(new ExtensionId("sample.extension"), "示例扩展"));
             builder.Navigation.AddPage(CreatePage("sample.home"));
             builder.Commands.AddCommand(CreateCommand("sample.refresh", "刷新"));
             builder.Settings.AddSetting(new SettingDescriptor("sample.setting", "示例设置"));
             builder.Themes.AddTheme(new ThemeDescriptor
             {
-                Id = "sample.theme",
+                Id = new ThemeId("sample.theme"),
                 DisplayName = "示例主题"
             });
             builder.Accounts.AddProvider(new AccountProviderDescriptor
             {
-                Id = "sample.account",
+                Id = new AccountProviderId("sample.account"),
                 DisplayName = "示例账号",
                 ProviderType = typeof(SampleAccountProvider)
             });
             builder.Downloads.AddSource(new DownloadSourceDescriptor
             {
-                Id = "sample.download",
+                Id = new DownloadSourceId("sample.download"),
                 DisplayName = "示例下载源",
                 BaseUri = new Uri("https://example.invalid/"),
                 Kind = DownloadSourceKind.Metadata

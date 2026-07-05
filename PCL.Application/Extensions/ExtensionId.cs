@@ -21,7 +21,7 @@ public readonly record struct ExtensionId
     public bool Equals(string? value) =>
         string.Equals(Value, value, StringComparison.OrdinalIgnoreCase);
 
-    public static implicit operator ExtensionId(string value) => new(value);
+    public static ExtensionId Parse(string value) => new(value);
 
     public static explicit operator string(ExtensionId id) => id.Value;
 }

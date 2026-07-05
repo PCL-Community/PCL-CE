@@ -25,15 +25,5 @@ public readonly record struct NavigationRouteId
 
     public static NavigationRouteId Parse(string value) => new(value);
 
-    public static implicit operator NavigationRouteId(string value) => new(value);
-
     public static explicit operator string(NavigationRouteId route) => route.Value;
-
-    public static bool operator ==(NavigationRouteId left, string? right) => left.Equals(right);
-
-    public static bool operator !=(NavigationRouteId left, string? right) => !left.Equals(right);
-
-    public static bool operator ==(string? left, NavigationRouteId right) => right.Equals(left);
-
-    public static bool operator !=(string? left, NavigationRouteId right) => !right.Equals(left);
 }

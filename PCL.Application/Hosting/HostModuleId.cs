@@ -23,15 +23,5 @@ public readonly record struct HostModuleId
 
     public static HostModuleId Parse(string value) => new(value);
 
-    public static implicit operator HostModuleId(string value) => new(value);
-
     public static explicit operator string(HostModuleId id) => id.Value;
-
-    public static bool operator ==(HostModuleId left, string? right) => left.Equals(right);
-
-    public static bool operator !=(HostModuleId left, string? right) => !left.Equals(right);
-
-    public static bool operator ==(string? left, HostModuleId right) => right.Equals(left);
-
-    public static bool operator !=(string? left, HostModuleId right) => !right.Equals(left);
 }
