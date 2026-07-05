@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
@@ -76,6 +77,7 @@ public static class Tooltip
     private static Storyboard? _openStory;
     private static Storyboard? _closeStory;
     private static DispatcherTimer? _latch;
+    private static HwndSourceHook? _transparentHook;
 
     private static readonly MouseEventHandler _OnEnterHandler = OnEnter;
     private static readonly MouseEventHandler _OnMoveHandler = OnMove;
@@ -209,8 +211,11 @@ public static class Tooltip
     {
         if (!_running || s is not FrameworkElement fe || !ReferenceEquals(fe, _target)) return;
 
-        if (!fe.IsEnabled && ToolTipService.GetShowOnDisabled(fe) && _PointInside(fe, Mouse.GetPosition(fe)))
+        if (_PointInside(fe, Mouse.GetPosition(fe)))
+        {
+            e.Handled = true;
             return;
+        }
 
         var next = _SeekOwner(_Over());
         if (next is not null && !ReferenceEquals(next, _target))
@@ -471,6 +476,30 @@ public static class Tooltip
             Placement = PlacementMode.Relative,
             Child = wrap
         };
+
+        // 预创建 HWND 并挂载鼠标穿透钩子，Popup 不接收任何鼠标消息，全部透传到下层窗口
+        const int WM_NCHITTEST = 0x0084;
+        const int HTTRANSPARENT = -1;
+        _transparentHook = (_, msg, _, _, ref handled) =>
+        {
+            if (msg == WM_NCHITTEST)
+            {
+                handled = true;
+                return HTTRANSPARENT;
+            }
+            return IntPtr.Zero;
+        };
+        _flyout.IsOpen = true;
+        _AttachTransparentHook();
+        _flyout.IsOpen = false;
+        _flyout.Opened += (_, _) => _AttachTransparentHook();
+    }
+
+    private static void _AttachTransparentHook()
+    {
+        if (_transparentHook is null || _flyout?.Child is not UIElement child) return;
+        var src = (HwndSource?)PresentationSource.FromVisual(child);
+        src?.AddHook(_transparentHook);
     }
 
     private static void _RenderInside(FrameworkElement owner)
