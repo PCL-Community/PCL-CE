@@ -18,6 +18,8 @@ public sealed class FileDlWriter : IDlWriter, IDisposable, IAsyncDisposable
 
     public bool IsSupportParallel => false;
 
+    public long ExistingLength => File.Exists(_tempPath) ? new FileInfo(_tempPath).Length : 0L;
+
     public FileDlWriter(string finalPath, string tempExtension = ".PCLDownloading")
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(finalPath);
@@ -28,28 +30,51 @@ public sealed class FileDlWriter : IDlWriter, IDisposable, IAsyncDisposable
     }
 
     public async ValueTask<Stream> CreateStreamAsync(
+        CancellationToken cancellationToken = default) =>
+        await CreateStreamAsync(0, cancellationToken).ConfigureAwait(false);
+
+    public async ValueTask<Stream> CreateStreamAsync(
+        long startOffset,
         CancellationToken cancellationToken = default)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(startOffset);
         Directory.CreateDirectory(Path.GetDirectoryName(_finalPath)!);
 
-        await RemoveTempFileAsync(cancellationToken).ConfigureAwait(false);
+        await DisposeStreamAsync().ConfigureAwait(false);
+        if (startOffset == 0)
+            await RemoveTempFileAsync(cancellationToken).ConfigureAwait(false);
+
         _stream = new FileStream(
             _tempPath,
             new FileStreamOptions
             {
-                Mode = FileMode.Create,
+                Mode = startOffset == 0 ? FileMode.Create : FileMode.OpenOrCreate,
                 Access = FileAccess.Write,
                 Share = FileShare.None,
                 BufferSize = 64 * 1024,
                 Options = FileOptions.Asynchronous | FileOptions.SequentialScan
             });
+        if (startOffset > 0)
+        {
+            if (_stream.Length < startOffset)
+            {
+                await _stream.DisposeAsync().ConfigureAwait(false);
+                _stream = null;
+                throw new IOException($"临时文件长度小于续传偏移：{_tempPath}");
+            }
+            else
+            {
+                _stream.SetLength(startOffset);
+                _stream.Seek(startOffset, SeekOrigin.Begin);
+            }
+        }
+
         return _stream;
     }
 
     public async ValueTask StopAsync(CancellationToken cancellationToken = default)
     {
         await DisposeStreamAsync().ConfigureAwait(false);
-        await RemoveTempFileAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask FinishAsync(CancellationToken cancellationToken = default)

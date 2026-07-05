@@ -104,31 +104,36 @@ public sealed class DownloadService
                     0,
                     -1,
                     0));
+                writer = request.WriterFactory(request.DestinationPath)
+                         ?? throw new InvalidOperationException(
+                             $"No download writer was created for {request.DestinationPath}.");
+                long requestedOffset = Math.Max(0, writer.ExistingLength);
                 connection = request.ConnectionFactory(source)
                              ?? throw new InvalidOperationException(
                                  $"No download connection was created for {source}.");
                 var connectionInfo = await connection
-                    .StartAsync(0, cancellationToken)
+                    .StartAsync(requestedOffset, cancellationToken)
                     .ConfigureAwait(false);
 
-                writer = request.WriterFactory(request.DestinationPath)
-                         ?? throw new InvalidOperationException(
-                             $"No download writer was created for {request.DestinationPath}.");
+                long startOffset = connectionInfo.BeginOffset == requestedOffset
+                    ? requestedOffset
+                    : 0;
                 var writeStream = await writer
-                    .CreateStreamAsync(cancellationToken)
+                    .CreateStreamAsync(startOffset, cancellationToken)
                     .ConfigureAwait(false);
                 report(new DownloadProgress(
                     DownloadStage.Reading,
                     source,
-                    0,
-                    connectionInfo.Length,
+                    startOffset,
+                    Math.Max(connectionInfo.Length, startOffset),
                     0));
 
                 var buffer = ArrayPool<byte>.Shared.Rent(_bufferSize);
                 try
                 {
                     var readStartedAt = Stopwatch.GetTimestamp();
-                    long totalRead = 0;
+                    long sessionRead = 0;
+                    long totalRead = startOffset;
                     while (true)
                     {
                         var read = await connection
@@ -145,12 +150,13 @@ public sealed class DownloadService
                                 cancellationToken)
                             .ConfigureAwait(false);
                         totalRead += read;
+                        sessionRead += read;
                         report(new DownloadProgress(
                             DownloadStage.Downloading,
                             source,
                             totalRead,
                             Math.Max(connectionInfo.Length, totalRead),
-                            CalculateSpeed(totalRead, readStartedAt)));
+                            CalculateSpeed(sessionRead, readStartedAt)));
                     }
 
                     await writeStream

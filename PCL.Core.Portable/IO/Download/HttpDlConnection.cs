@@ -2,6 +2,7 @@
 // Modifications Copyright (c) 2026 PCL N contributors.
 // Licensed under the Apache License, Version 2.0.
 
+using System.Net;
 using System.Net.Http.Headers;
 
 namespace PCL.Core.IO.Download;
@@ -56,10 +57,15 @@ public sealed class HttpDlConnection : IDlConnection, IDisposable, IAsyncDisposa
             .ReadAsStreamAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        var length = _response.Content.Headers.ContentLength ?? -1;
-        var endOffset = length >= 0 ? beginOffset + length - 1 : -1;
-        var supportsSegments = _response.Headers.AcceptRanges.Contains("bytes");
-        return new NDlConnectionInfo(length, beginOffset, endOffset, supportsSegments);
+        bool isPartial = _response.StatusCode == HttpStatusCode.PartialContent;
+        long effectiveBeginOffset = isPartial ? beginOffset : 0;
+        long contentLength = _response.Content.Headers.ContentLength ?? -1;
+        long totalLength = isPartial
+            ? _response.Content.Headers.ContentRange?.Length ?? (contentLength >= 0 ? effectiveBeginOffset + contentLength : -1)
+            : contentLength;
+        long endOffset = contentLength >= 0 ? effectiveBeginOffset + contentLength - 1 : -1;
+        bool supportsSegments = _response.Headers.AcceptRanges.Contains("bytes") || _response.Content.Headers.ContentRange is not null;
+        return new NDlConnectionInfo(totalLength, effectiveBeginOffset, endOffset, supportsSegments);
     }
 
     public ValueTask<int> ReadAsync(

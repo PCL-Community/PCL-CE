@@ -11,7 +11,11 @@ public interface IDlWriter
 {
     bool IsSupportParallel { get; }
 
+    long ExistingLength { get; }
+
     ValueTask<Stream> CreateStreamAsync(CancellationToken cancellationToken = default);
+
+    ValueTask<Stream> CreateStreamAsync(long startOffset, CancellationToken cancellationToken = default);
 
     ValueTask StopAsync(CancellationToken cancellationToken = default);
 

@@ -38,7 +38,7 @@ public sealed class DownloadTests
     }
 
     [TestMethod]
-    public async Task FileWriterCommitsAndCleansTemporaryFile()
+    public async Task FileWriterPreservesPartialTemporaryFileUntilCommit()
     {
         var directory = Path.Combine(Path.GetTempPath(), $"pcl-writer-{Guid.NewGuid():N}");
         var destination = Path.Combine(directory, "artifact.bin");
@@ -62,9 +62,58 @@ public sealed class DownloadTests
                 var stream = await writer.CreateStreamAsync();
                 await stream.WriteAsync(expected);
                 await writer.StopAsync();
+                Assert.AreEqual(expected.Length, writer.ExistingLength);
             }
 
+            Assert.IsTrue(File.Exists(temporary));
+            CollectionAssert.AreEqual(expected, await File.ReadAllBytesAsync(temporary));
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task DownloadServiceResumesPartialTemporaryFile()
+    {
+        var directory = Path.Combine(
+            Path.GetTempPath(),
+            $"pcl-resume-download-{Guid.NewGuid():N}");
+        var destination = Path.Combine(directory, "artifact.bin");
+        var temporary = destination + ".PCLDownloading";
+        var expected = Encoding.UTF8.GetBytes("portable resumable download payload");
+        var partialLength = 9;
+        var handler = new RangeResponseHandler(expected);
+        using var client = new HttpClient(handler);
+        var progress = new List<DownloadProgress>();
+
+        try
+        {
+            Directory.CreateDirectory(directory);
+            await File.WriteAllBytesAsync(temporary, expected[..partialLength]);
+
+            var result = await new DownloadService().DownloadAsync(
+                new DownloadRequest
+                {
+                    Sources = ["https://pcl.invalid/resume"],
+                    DestinationPath = destination,
+                    ConnectionFactory = url =>
+                        new HttpDlConnection(client, url)
+                },
+                progress.Add);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(partialLength, handler.RequestedOffset);
+            Assert.AreEqual(expected.Length, result.TotalBytes);
             Assert.IsFalse(File.Exists(temporary));
+            CollectionAssert.AreEqual(
+                expected,
+                await File.ReadAllBytesAsync(destination));
+            Assert.IsTrue(progress.Any(item =>
+                item.Stage == DownloadStage.Reading &&
+                item.DownloadedBytes == partialLength));
         }
         finally
         {
@@ -199,6 +248,36 @@ public sealed class DownloadTests
                 Content = new ByteArrayContent(content)
             };
             response.Content.Headers.ContentLength = content.Length;
+            return Task.FromResult(response);
+        }
+    }
+
+    private sealed class RangeResponseHandler(byte[] content) : HttpMessageHandler
+    {
+        public long RequestedOffset { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            RequestedOffset = request.Headers.Range?.Ranges.FirstOrDefault()?.From ?? 0;
+            byte[] body = content.AsSpan((int)RequestedOffset).ToArray();
+            var response = new HttpResponseMessage(
+                RequestedOffset > 0 ? HttpStatusCode.PartialContent : HttpStatusCode.OK)
+            {
+                RequestMessage = request,
+                Content = new ByteArrayContent(body)
+            };
+            response.Content.Headers.ContentLength = body.Length;
+            response.Headers.AcceptRanges.Add("bytes");
+            if (RequestedOffset > 0)
+            {
+                response.Content.Headers.ContentRange = new ContentRangeHeaderValue(
+                    RequestedOffset,
+                    content.Length - 1,
+                    content.Length);
+            }
+
             return Task.FromResult(response);
         }
     }
