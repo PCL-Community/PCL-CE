@@ -48,7 +48,7 @@ public partial class PageLaunchLeft
     {
         InitializeComponent();
         Loaded += PageLaunchLeft_Loaded;
-        WeakLanguageChanged.Add(this, static page => ModBase.RunInUi(page.RefreshButtonsUI));
+        WeakLanguageChanged.Add(this, OnLanguageChanged);
         // Handles
         BtnInstance.Click += BtnInstance_Click;
         BtnLaunch.Click += BtnLaunch_Click;
@@ -58,6 +58,7 @@ public partial class PageLaunchLeft
         PanLaunchingInfo.SizeChanged += PanLaunchingInfo_SizeChangedW;
         PanLaunchingInfo.SizeChanged += PanLaunchingInfo_SizeChangedH;
     }
+    private static void OnLanguageChanged(PageLaunchLeft page) => ModBase.RunInUi(page.RefreshButtonsUI);
 
     public void PageLaunchLeft_Loaded(object sender, RoutedEventArgs e)
     {

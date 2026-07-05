@@ -42,8 +42,9 @@ public partial class PageDownloadCompFavorites
         ComboTargetFav.SelectionChanged += ComboTargetFav_Selected;
         HintGetFail.MouseLeftButtonDown += HintGetFail_MouseLeftButtonDown;
         PanSearchBox.TextChanged += SearchRun;
-        WeakLanguageChanged.Add(this, static page => ModBase.RunInUi(page._RefreshCategoryTitles));
+        WeakLanguageChanged.Add(this, OnLanguageChanged); 
     }
+    private static void OnLanguageChanged(PageDownloadCompFavorites page) => ModBase.RunInUi(page._RefreshCategoryTitles);
 
     private ModComp.CompFavorites.FavData CurrentFavTarget
     {
