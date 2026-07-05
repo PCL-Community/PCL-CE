@@ -27,6 +27,7 @@ public sealed record MinecraftInstallRequest
     public required string VersionJsonUrl { get; init; }
     public required string MinecraftRootDirectory { get; init; }
     public bool PreferOfficialSource { get; init; } = true;
+    public int DownloadThreadLimit { get; init; } = 64;
     public MinecraftLoaderInstallRequest? Loader { get; init; }
 }
 
@@ -40,6 +41,8 @@ public sealed record MinecraftInstallProgress
     public long BytesReceived { get; init; }
     public long TotalBytes { get; init; } = -1;
     public long SpeedBytesPerSecond { get; init; }
+    public int ActiveThreads { get; init; }
+    public int ThreadLimit { get; init; } = 1;
 }
 
 public sealed record MinecraftInstallResult(
@@ -51,6 +54,8 @@ public sealed record MinecraftInstallResult(
 public sealed class MinecraftVanillaInstallService
 {
     private const string VersionManifestUrl = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
+    private const int DefaultDownloadThreadLimit = 64;
+    private const int MaxDownloadThreadLimit = 256;
     private readonly HttpClient _httpClient;
     private readonly IMinecraftLoaderMetadataService _loaderMetadataService;
     private readonly DownloadService _downloadService = new();
@@ -122,8 +127,9 @@ public sealed class MinecraftVanillaInstallService
         string vanillaInstanceDirectory = Path.Combine(minecraftRoot, "versions", vanillaInstallId);
         string vanillaVersionJsonPath = Path.Combine(vanillaInstanceDirectory, vanillaInstallId + ".json");
         Directory.CreateDirectory(vanillaInstanceDirectory);
+        int downloadThreadLimit = NormalizeDownloadThreadLimit(request.DownloadThreadLimit);
 
-        progress?.Report(CreateProgress("准备安装", request.VersionId, 0d, 0, 1));
+        progress?.Report(CreateProgress("准备安装", request.VersionId, 0d, 0, 1, 0, downloadThreadLimit));
         await DownloadIfNeededAsync(
                 MinecraftDownloadSourcePlanner.GetLauncherOrMetaSources(request.VersionJsonUrl, request.PreferOfficialSource),
                 vanillaVersionJsonPath,
@@ -132,7 +138,9 @@ public sealed class MinecraftVanillaInstallService
                 0,
                 1,
                 progress,
-                cancellationToken)
+                activeThreads: 1,
+                threadLimit: downloadThreadLimit,
+                cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
         JsonObject versionJson = await ReadJsonObjectAsync(vanillaVersionJsonPath, cancellationToken).ConfigureAwait(false);
@@ -143,6 +151,7 @@ public sealed class MinecraftVanillaInstallService
                 minecraftRoot,
                 vanillaInstanceDirectory,
                 request.PreferOfficialSource,
+                downloadThreadLimit,
                 progress,
                 cancellationToken)
             .ConfigureAwait(false);
@@ -156,14 +165,15 @@ public sealed class MinecraftVanillaInstallService
                     versionJson,
                     minecraftRoot,
                     request.PreferOfficialSource,
+                    downloadThreadLimit,
                     progress,
                     cancellationToken)
                 .ConfigureAwait(false);
-            progress?.Report(CreateProgress("安装完成", request.VersionId, 1d, 1, 1));
+            progress?.Report(CreateProgress("安装完成", request.VersionId, 1d, 1, 1, 0, downloadThreadLimit));
             return loaderResult;
         }
 
-        progress?.Report(CreateProgress("安装完成", request.VersionId, 1d, 1, 1));
+        progress?.Report(CreateProgress("安装完成", request.VersionId, 1d, 1, 1, 0, downloadThreadLimit));
         return new MinecraftInstallResult(request.VersionId, minecraftRoot, vanillaInstanceDirectory, vanillaVersionJsonPath);
     }
 
@@ -181,18 +191,20 @@ public sealed class MinecraftVanillaInstallService
         string minecraftRoot = Path.GetFullPath(request.MinecraftRootDirectory);
         string instanceDirectory = Path.GetFullPath(request.InstanceDirectory);
         JsonObject versionJson = await ReadJsonObjectAsync(request.VersionJsonPath, cancellationToken).ConfigureAwait(false);
-        progress?.Report(CreateProgress("准备修复", request.VersionId, 0d, 0, 1));
+        int downloadThreadLimit = DefaultDownloadThreadLimit;
+        progress?.Report(CreateProgress("准备修复", request.VersionId, 0d, 0, 1, 0, downloadThreadLimit));
         await DownloadVersionFilesAsync(
                 request.VersionId,
                 versionJson,
                 minecraftRoot,
                 instanceDirectory,
                 request.PreferOfficialSource,
+                downloadThreadLimit,
                 progress,
                 cancellationToken)
             .ConfigureAwait(false);
 
-        progress?.Report(CreateProgress("修复完成", request.VersionId, 1d, 1, 1));
+        progress?.Report(CreateProgress("修复完成", request.VersionId, 1d, 1, 1, 0, downloadThreadLimit));
         return new MinecraftInstallResult(request.VersionId, minecraftRoot, instanceDirectory, request.VersionJsonPath);
     }
 
@@ -202,6 +214,7 @@ public sealed class MinecraftVanillaInstallService
         string minecraftRoot,
         string instanceDirectory,
         bool preferOfficialSource,
+        int downloadThreadLimit,
         IProgress<MinecraftInstallProgress>? progress,
         CancellationToken cancellationToken)
     {
@@ -212,33 +225,59 @@ public sealed class MinecraftVanillaInstallService
             .ConfigureAwait(false);
 
         int total = Math.Max(files.Count, 1);
-        int completed = 0;
-        progress?.Report(CreateProgress("准备下载文件", $"{files.Count} 个文件", 0.02d, 0, total));
-        foreach (PlannedDownload file in files)
+        progress?.Report(CreateProgress("准备下载文件", $"{files.Count} 个文件", 0.02d, 0, total, 0, downloadThreadLimit));
+        if (files.Count == 0)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (IsExistingFileUsable(file.LocalPath, file.ExpectedSize))
-            {
-                completed++;
-                progress?.Report(CreateProgress("跳过已存在文件", Path.GetFileName(file.LocalPath), completed / (double)total, completed, total));
-                continue;
-            }
-
-            await DownloadIfNeededAsync(
-                    file.Urls,
-                    file.LocalPath,
-                    file.ExpectedSize,
-                    file.Stage,
-                    completed,
-                    total,
-                    progress,
-                    cancellationToken)
-                .ConfigureAwait(false);
-            completed++;
-            progress?.Report(CreateProgress(file.Stage, Path.GetFileName(file.LocalPath), completed / (double)total, completed, total));
+            progress?.Report(CreateProgress("文件检查完成", versionId, 1d, total, total, 0, downloadThreadLimit));
+            return;
         }
 
-        progress?.Report(CreateProgress("文件检查完成", versionId, 1d, total, total));
+        FileDownloadProgressReporter reporter = new(progress, files.Count, downloadThreadLimit);
+        ParallelOptions parallelOptions = new()
+        {
+            CancellationToken = cancellationToken,
+            MaxDegreeOfParallelism = downloadThreadLimit
+        };
+        await Parallel.ForEachAsync(
+                files.Select(static (file, index) => new PlannedDownloadWorkItem(file, index)),
+                parallelOptions,
+                async (item, token) =>
+                {
+                    PlannedDownload file = item.File;
+                    string fileName = Path.GetFileName(file.LocalPath);
+                    reporter.WorkerStarted(file.Stage, fileName);
+                    try
+                    {
+                        token.ThrowIfCancellationRequested();
+                        if (IsExistingFileUsable(file.LocalPath, file.ExpectedSize))
+                        {
+                            reporter.MarkComplete(item.Index, "跳过已存在文件", fileName);
+                            return;
+                        }
+
+                        await DownloadIfNeededAsync(
+                                file.Urls,
+                                file.LocalPath,
+                                file.ExpectedSize,
+                                file.Stage,
+                                0,
+                                1,
+                                new DelegateProgress<MinecraftInstallProgress>(
+                                    update => reporter.ReportFileProgress(item.Index, update)),
+                                activeThreads: 1,
+                                threadLimit: 1,
+                                cancellationToken: token)
+                            .ConfigureAwait(false);
+                        reporter.MarkComplete(item.Index, file.Stage, fileName);
+                    }
+                    finally
+                    {
+                        reporter.WorkerFinished(file.Stage, fileName);
+                    }
+                })
+            .ConfigureAwait(false);
+
+        progress?.Report(CreateProgress("文件检查完成", versionId, 1d, total, total, 0, downloadThreadLimit));
     }
 
     private async Task<MinecraftInstallResult> InstallLoaderAsync(
@@ -248,11 +287,12 @@ public sealed class MinecraftVanillaInstallService
         JsonObject baseVersionJson,
         string minecraftRoot,
         bool preferOfficialSource,
+        int downloadThreadLimit,
         IProgress<MinecraftInstallProgress>? progress,
         CancellationToken cancellationToken)
     {
         string loaderName = loaderRequest.Kind.ToString();
-        progress?.Report(CreateProgress("准备安装加载器", $"{loaderName} {loaderRequest.LoaderVersion}", 0d, 0, 1));
+        progress?.Report(CreateProgress("准备安装加载器", $"{loaderName} {loaderRequest.LoaderVersion}", 0d, 0, 1, 0, downloadThreadLimit));
 
         MinecraftLoaderInstallMetadata metadata = await _loaderMetadataService.GetLoaderInstallMetadataAsync(
                 loaderRequest,
@@ -280,6 +320,7 @@ public sealed class MinecraftVanillaInstallService
                 minecraftRoot,
                 instanceDirectory,
                 preferOfficialSource,
+                downloadThreadLimit,
                 progress,
                 cancellationToken)
             .ConfigureAwait(false);
@@ -295,6 +336,8 @@ public sealed class MinecraftVanillaInstallService
         int completedFiles,
         int totalFiles,
         IProgress<MinecraftInstallProgress>? progress,
+        int activeThreads,
+        int threadLimit,
         CancellationToken cancellationToken)
     {
         if (IsExistingFileUsable(localPath, expectedSize))
@@ -324,7 +367,9 @@ public sealed class MinecraftVanillaInstallService
                         TotalFiles = totalFiles,
                         BytesReceived = downloadProgress.DownloadedBytes,
                         TotalBytes = downloadProgress.TotalBytes,
-                        SpeedBytesPerSecond = downloadProgress.BytesPerSecond
+                        SpeedBytesPerSecond = downloadProgress.BytesPerSecond,
+                        ActiveThreads = activeThreads,
+                        ThreadLimit = threadLimit
                     });
                 },
                 cancellationToken)
@@ -411,7 +456,9 @@ public sealed class MinecraftVanillaInstallService
                 0,
                 1,
                 progress: null,
-                cancellationToken)
+                activeThreads: 1,
+                threadLimit: 1,
+                cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
         JsonObject indexJson = await ReadJsonObjectAsync(indexPlan.LocalPath!, cancellationToken).ConfigureAwait(false);
@@ -535,15 +582,28 @@ public sealed class MinecraftVanillaInstallService
         string detail,
         double progress,
         int completed,
-        int total) =>
+        int total,
+        int activeThreads = 0,
+        int threadLimit = 1,
+        long speedBytesPerSecond = 0,
+        long bytesReceived = 0,
+        long totalBytes = -1) =>
         new()
         {
             Stage = stage,
             Detail = detail,
             Progress = Math.Clamp(progress, 0d, 1d),
             CompletedFiles = completed,
-            TotalFiles = total
+            TotalFiles = total,
+            BytesReceived = bytesReceived,
+            TotalBytes = totalBytes,
+            SpeedBytesPerSecond = speedBytesPerSecond,
+            ActiveThreads = activeThreads,
+            ThreadLimit = Math.Max(1, threadLimit)
         };
+
+    private static int NormalizeDownloadThreadLimit(int value) =>
+        Math.Clamp(value <= 0 ? DefaultDownloadThreadLimit : value, 1, MaxDownloadThreadLimit);
 
     private static string? TryReadString(JsonElement element, string propertyName) =>
         element.TryGetProperty(propertyName, out JsonElement property) && property.ValueKind == JsonValueKind.String
@@ -592,4 +652,94 @@ public sealed class MinecraftVanillaInstallService
         string LocalPath,
         long ExpectedSize,
         string Stage);
+
+    private sealed record PlannedDownloadWorkItem(PlannedDownload File, int Index);
+
+    private sealed class DelegateProgress<T>(Action<T> report) : IProgress<T>
+    {
+        public void Report(T value) => report(value);
+    }
+
+    private sealed class FileDownloadProgressReporter
+    {
+        private readonly object _sync = new();
+        private readonly IProgress<MinecraftInstallProgress>? _progress;
+        private readonly double[] _fileProgress;
+        private readonly long[] _fileSpeeds;
+        private readonly int _threadLimit;
+        private int _activeThreads;
+        private int _completedFiles;
+
+        public FileDownloadProgressReporter(
+            IProgress<MinecraftInstallProgress>? progress,
+            int totalFiles,
+            int threadLimit)
+        {
+            _progress = progress;
+            _fileProgress = new double[totalFiles];
+            _fileSpeeds = new long[totalFiles];
+            _threadLimit = Math.Max(1, threadLimit);
+        }
+
+        public void WorkerStarted(string stage, string detail)
+        {
+            lock (_sync)
+            {
+                _activeThreads++;
+                ReportLocked(stage, detail);
+            }
+        }
+
+        public void WorkerFinished(string stage, string detail)
+        {
+            lock (_sync)
+            {
+                _activeThreads = Math.Max(0, _activeThreads - 1);
+                ReportLocked(stage, detail);
+            }
+        }
+
+        public void ReportFileProgress(int index, MinecraftInstallProgress update)
+        {
+            lock (_sync)
+            {
+                _fileProgress[index] = Math.Clamp(update.Progress, 0d, 1d);
+                _fileSpeeds[index] = Math.Max(0, update.SpeedBytesPerSecond);
+                ReportLocked(update.Stage, update.Detail, update.BytesReceived, update.TotalBytes);
+            }
+        }
+
+        public void MarkComplete(int index, string stage, string detail)
+        {
+            lock (_sync)
+            {
+                if (_fileProgress[index] < 1d)
+                {
+                    _completedFiles++;
+                    _fileProgress[index] = 1d;
+                }
+                _fileSpeeds[index] = 0;
+                ReportLocked(stage, detail);
+            }
+        }
+
+        private void ReportLocked(
+            string stage,
+            string detail,
+            long bytesReceived = 0,
+            long totalBytes = -1)
+        {
+            _progress?.Report(CreateProgress(
+                stage,
+                detail,
+                _fileProgress.Sum() / _fileProgress.Length,
+                _completedFiles,
+                _fileProgress.Length,
+                _activeThreads,
+                _threadLimit,
+                _fileSpeeds.Sum(),
+                bytesReceived,
+                totalBytes));
+        }
+    }
 }

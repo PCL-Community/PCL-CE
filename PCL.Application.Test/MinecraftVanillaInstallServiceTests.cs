@@ -200,6 +200,123 @@ public sealed class MinecraftVanillaInstallServiceTests
         }
     }
 
+    [TestMethod]
+    public async Task InstallAsync_DownloadsVersionFilesConcurrently()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "pcl-install-parallel-" + Guid.NewGuid().ToString("N"));
+        byte[] jar = [0x50, 0x4B, 0x03, 0x04];
+        List<MinecraftInstallProgress> progress = [];
+        object sync = new();
+        int activeRequests = 0;
+        int maxActiveRequests = 0;
+        using HttpClient client = new(new AsyncDelegateHandler(async (request, cancellationToken) =>
+        {
+            string path = request.RequestUri!.AbsolutePath;
+            if (path.Contains("/assets/", StringComparison.Ordinal))
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""{"objects":{}}""")
+                };
+            }
+
+            if (path.EndsWith(".jar", StringComparison.Ordinal))
+            {
+                int active = Interlocked.Increment(ref activeRequests);
+                lock (sync)
+                    maxActiveRequests = Math.Max(maxActiveRequests, active);
+                try
+                {
+                    await Task.Delay(80, cancellationToken).ConfigureAwait(false);
+                    return new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new ByteArrayContent(jar)
+                    };
+                }
+                finally
+                {
+                    Interlocked.Decrement(ref activeRequests);
+                }
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    $$"""
+                    {
+                      "id": "1.20.1",
+                      "type": "release",
+                      "downloads": {
+                        "client": {
+                          "url": "https://example.invalid/client.jar",
+                          "size": {{jar.Length}}
+                        }
+                      },
+                      "libraries": [
+                        {
+                          "name": "org.example:lib-a:1.0.0",
+                          "downloads": {
+                            "artifact": {
+                              "path": "org/example/lib-a/1.0.0/lib-a-1.0.0.jar",
+                              "url": "https://example.invalid/libraries/lib-a.jar",
+                              "size": {{jar.Length}}
+                            }
+                          }
+                        },
+                        {
+                          "name": "org.example:lib-b:1.0.0",
+                          "downloads": {
+                            "artifact": {
+                              "path": "org/example/lib-b/1.0.0/lib-b-1.0.0.jar",
+                              "url": "https://example.invalid/libraries/lib-b.jar",
+                              "size": {{jar.Length}}
+                            }
+                          }
+                        },
+                        {
+                          "name": "org.example:lib-c:1.0.0",
+                          "downloads": {
+                            "artifact": {
+                              "path": "org/example/lib-c/1.0.0/lib-c-1.0.0.jar",
+                              "url": "https://example.invalid/libraries/lib-c.jar",
+                              "size": {{jar.Length}}
+                            }
+                          }
+                        }
+                      ],
+                      "assetIndex": {
+                        "id": "empty",
+                        "url": "https://example.invalid/assets/empty.json"
+                      }
+                    }
+                    """)
+            };
+        }));
+        MinecraftVanillaInstallService service = new(client);
+
+        try
+        {
+            await service.InstallAsync(
+                new MinecraftInstallRequest
+                {
+                    VersionId = "1.20.1",
+                    VersionJsonUrl = "https://example.invalid/versions/1.20.1.json",
+                    MinecraftRootDirectory = root,
+                    DownloadThreadLimit = 4
+                },
+                new CaptureProgress<MinecraftInstallProgress>(progress));
+
+            Assert.IsTrue(maxActiveRequests > 1, "安装文件下载应并发执行。");
+            Assert.IsTrue(progress.Any(item => item.ActiveThreads > 1), "安装进度应上报真实活动线程数。");
+            Assert.IsTrue(progress.Any(item => item.ThreadLimit == 4), "安装进度应保留请求的线程上限。");
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
     private sealed class CaptureProgress<T>(List<T> items) : IProgress<T>
     {
         public void Report(T value) => items.Add(value);
@@ -240,5 +357,13 @@ public sealed class MinecraftVanillaInstallServiceTests
             HttpRequestMessage request,
             CancellationToken cancellationToken) =>
             Task.FromResult(handle(request));
+    }
+
+    private sealed class AsyncDelegateHandler(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> handle) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken) =>
+            handle(request, cancellationToken);
     }
 }
