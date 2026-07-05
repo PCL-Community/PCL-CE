@@ -3,6 +3,7 @@
 // Licensed under the Apache License, Version 2.0.
 
 using System;
+using System.Buffers;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -125,25 +126,32 @@ public static class VarIntHelper
         var shift = 0;
         var bytesRead = 0;
         const int maxBytes = 10;
-        var buffer = new byte[1];
-        while (true)
+        byte[] buffer = ArrayPool<byte>.Shared.Rent(1);
+        try
         {
-            var readLength = await stream.ReadAsync(buffer.AsMemory(), cancellationToken).ConfigureAwait(false);
-            if (readLength == 0)
-                throw new EndOfStreamException();
+            while (true)
+            {
+                var readLength = await stream.ReadAsync(buffer.AsMemory(0, 1), cancellationToken).ConfigureAwait(false);
+                if (readLength == 0)
+                    throw new EndOfStreamException();
 
-            var b = buffer[0];
-            bytesRead++;
+                var b = buffer[0];
+                bytesRead++;
 
-            if (bytesRead > maxBytes)
-                throw new FormatException("VarInt exceeds maximum length");
+                if (bytesRead > maxBytes)
+                    throw new FormatException("VarInt exceeds maximum length");
 
-            result |= (ulong)(b & 0x7F) << shift;
+                result |= (ulong)(b & 0x7F) << shift;
 
-            if ((b & 0x80) == 0)
-                return result;
+                if ((b & 0x80) == 0)
+                    return result;
 
-            shift += 7;
+                shift += 7;
+            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
         }
     }
 
