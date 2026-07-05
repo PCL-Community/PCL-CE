@@ -7,10 +7,17 @@ namespace PCL.Application.Minecraft.Downloads;
 public static class MinecraftDownloadSourcePlanner
 {
     public static string[] OrderSources(
-        IEnumerable<string> officialUrls,
-        IEnumerable<string> mirrorUrls,
-        bool preferOfficialSource) =>
-        (preferOfficialSource ? officialUrls.Union(mirrorUrls) : mirrorUrls.Union(officialUrls)).ToArray();
+        IReadOnlyList<string> officialUrls,
+        IReadOnlyList<string> mirrorUrls,
+        bool preferOfficialSource)
+    {
+        ArgumentNullException.ThrowIfNull(officialUrls);
+        ArgumentNullException.ThrowIfNull(mirrorUrls);
+
+        return preferOfficialSource
+            ? MergeDistinct(officialUrls, mirrorUrls)
+            : MergeDistinct(mirrorUrls, officialUrls);
+    }
 
     public static string[] GetAssetSources(string original, bool preferOfficialSource)
     {
@@ -34,7 +41,7 @@ public static class MinecraftDownloadSourcePlanner
         ];
 
         if (ContainsThirdPartyMaven(original))
-            return mirrorUrls.Take(2).ToArray();
+            return [mirrorUrls[0], mirrorUrls[1]];
 
         return OrderSources([original], mirrorUrls, preferOfficialSource);
     }
@@ -81,4 +88,36 @@ public static class MinecraftDownloadSourcePlanner
         original.Contains("minecraftforge", StringComparison.Ordinal) ||
         original.Contains("fabricmc", StringComparison.Ordinal) ||
         original.Contains("neoforged", StringComparison.Ordinal);
+
+    private static string[] MergeDistinct(IReadOnlyList<string> first, IReadOnlyList<string> second)
+    {
+        string[] result = new string[first.Count + second.Count];
+        int count = 0;
+        AddDistinct(first, result, ref count);
+        AddDistinct(second, result, ref count);
+        return count == result.Length ? result : result[..count];
+    }
+
+    private static void AddDistinct(IReadOnlyList<string> source, string[] destination, ref int count)
+    {
+        for (int i = 0; i < source.Count; i++)
+        {
+            string candidate = source[i];
+            if (Contains(destination.AsSpan(0, count), candidate))
+                continue;
+
+            destination[count++] = candidate;
+        }
+    }
+
+    private static bool Contains(ReadOnlySpan<string> source, string value)
+    {
+        foreach (string item in source)
+        {
+            if (string.Equals(item, value, StringComparison.Ordinal))
+                return true;
+        }
+
+        return false;
+    }
 }
