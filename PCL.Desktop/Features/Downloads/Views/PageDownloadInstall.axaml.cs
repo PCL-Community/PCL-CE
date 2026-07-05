@@ -2,6 +2,7 @@
 // Modifications Copyright (c) 2026 PCL N contributors.
 // Licensed under the Apache License, Version 2.0.
 
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -10,6 +11,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using PCL.Application.Downloads;
 using PCL.Desktop.Controls.Legacy;
 
@@ -17,7 +19,14 @@ namespace PCL.Desktop.Features.Downloads.Views;
 
 public partial class PageDownloadInstall : MyPageRight
 {
-    private const int MaxVisibleVersions = 120;
+    private static readonly MinecraftVersionCategory[] VersionCategoryOrder =
+    [
+        MinecraftVersionCategory.Release,
+        MinecraftVersionCategory.Snapshot,
+        MinecraftVersionCategory.BeforeRelease,
+        MinecraftVersionCategory.AprilFools
+    ];
+
     private static readonly string[] LoaderCardNames =
     [
         "Forge",
@@ -50,6 +59,7 @@ public partial class PageDownloadInstall : MyPageRight
     private readonly MinecraftVanillaInstallService _installService;
     private IReadOnlyList<MinecraftVersionManifestEntry> _versions = [];
     private DownloadVersionFilter _filter = DownloadVersionFilter.All;
+    private string _searchText = string.Empty;
     private MinecraftVersionManifestEntry? _selectedVersion;
     private bool _isLoading;
     private bool _isInSelectPage;
@@ -104,11 +114,11 @@ public partial class PageDownloadInstall : MyPageRight
     public void ApplyVersionFilter(DownloadVersionFilter filter)
     {
         ExitSelectPage();
-        if (_filter == filter && this.FindControl<StackPanel>("PanMinecraft")?.Children.Count > 0)
-            return;
-
         _filter = filter;
-        ReloadVersionList();
+        if (this.FindControl<StackPanel>("PanMinecraft")?.Children.Count > 0)
+            ApplyRenderedFilters();
+        else
+            ReloadVersionList();
     }
 
     public async Task RefreshVersionsAsync()
@@ -205,7 +215,13 @@ public partial class PageDownloadInstall : MyPageRight
         }
 
         if (this.FindControl<MySearchBar>("TextSearchVersion") is { } searchBar)
-            searchBar.TextChanged += (_, _) => ReloadVersionList();
+        {
+            searchBar.TextChanged += (_, _) =>
+            {
+                _searchText = searchBar.Text?.Trim() ?? string.Empty;
+                ApplyRenderedFilters();
+            };
+        }
 
         if (this.FindControl<MyTextBox>("TextSelectName") is { } selectName)
         {
@@ -228,14 +244,9 @@ public partial class PageDownloadInstall : MyPageRight
         if (panel is null)
             return;
 
-        IEnumerable<MinecraftVersionManifestEntry> versions = _versions.Where(IsVisibleByFilter);
-        string query = this.FindControl<MySearchBar>("TextSearchVersion")?.Text?.Trim() ?? string.Empty;
-        if (!string.IsNullOrWhiteSpace(query))
-            versions = versions.Where(version => version.Id.Contains(query, StringComparison.OrdinalIgnoreCase));
-
-        MinecraftVersionManifestEntry[] visible = versions.Take(MaxVisibleVersions).ToArray();
+        IReadOnlyList<DownloadVersionView> visible = BuildVersionViews(_versions);
         panel.Children.Clear();
-        if (visible.Length == 0)
+        if (visible.Count == 0)
         {
             panel.Children.Add(CreateMessageCard(
                 "没有找到匹配的版本",
@@ -243,34 +254,37 @@ public partial class PageDownloadInstall : MyPageRight
             return;
         }
 
-        panel.Children.Add(CreateVersionCard(GetCardTitle(visible.Length), visible));
+        Dictionary<MinecraftVersionCategory, List<DownloadVersionView>> categories = CreateVersionDictionary(visible);
+        AddLatestVersionCard(panel, categories);
+        AddOtherVersionsCard(panel, categories);
+        ApplyRenderedFilters();
     }
 
     private bool TryFindVersion(string versionId, out MinecraftVersionManifestEntry version)
     {
         foreach (MinecraftVersionManifestEntry entry in _versions)
         {
-            if (!string.Equals(entry.Id, versionId, StringComparison.OrdinalIgnoreCase))
-                continue;
+            MinecraftVersionClassification classification = MinecraftVersionCatalogClassifier.Classify(entry);
+            if (string.Equals(entry.Id, versionId, StringComparison.OrdinalIgnoreCase))
+            {
+                version = entry;
+                return true;
+            }
 
-            version = entry;
-            return true;
+            if (string.Equals(classification.Id, versionId, StringComparison.OrdinalIgnoreCase))
+            {
+                version = entry with
+                {
+                    Id = classification.Id,
+                    Type = classification.Type
+                };
+                return true;
+            }
         }
 
         version = default!;
         return false;
     }
-
-    private bool IsVisibleByFilter(MinecraftVersionManifestEntry version) =>
-        _filter switch
-        {
-            DownloadVersionFilter.Release => string.Equals(version.Type, "release", StringComparison.OrdinalIgnoreCase),
-            DownloadVersionFilter.Snapshot => string.Equals(version.Type, "snapshot", StringComparison.OrdinalIgnoreCase),
-            DownloadVersionFilter.BeforeRelease => string.Equals(version.Type, "old_beta", StringComparison.OrdinalIgnoreCase) ||
-                                                   string.Equals(version.Type, "old_alpha", StringComparison.OrdinalIgnoreCase),
-            DownloadVersionFilter.AprilFools => IsAprilFoolsVersion(version.Id),
-            _ => true
-        };
 
     private static bool IsAprilFoolsVersion(string id)
     {
@@ -286,20 +300,90 @@ public partial class PageDownloadInstall : MyPageRight
                id.Contains("craftmine", StringComparison.OrdinalIgnoreCase);
     }
 
-    private string GetCardTitle(int count)
+    private static Dictionary<MinecraftVersionCategory, List<DownloadVersionView>> CreateVersionDictionary(
+        IReadOnlyList<DownloadVersionView> versions)
     {
-        string filterName = _filter switch
-        {
-            DownloadVersionFilter.Release => "正式版",
-            DownloadVersionFilter.Snapshot => "快照版",
-            DownloadVersionFilter.BeforeRelease => "远古版本",
-            DownloadVersionFilter.AprilFools => "愚人节版本",
-            _ => "Minecraft"
-        };
-        return $"{filterName} ({count})";
+        Dictionary<MinecraftVersionCategory, List<DownloadVersionView>> categories = VersionCategoryOrder.ToDictionary(
+            category => category,
+            _ => new List<DownloadVersionView>());
+        foreach (DownloadVersionView version in versions)
+            categories[version.Category].Add(version);
+
+        foreach (MinecraftVersionCategory category in VersionCategoryOrder)
+            categories[category] = categories[category]
+                .OrderByDescending(version => version.ReleaseTime ?? DateTimeOffset.MinValue)
+                .ToList();
+
+        return categories;
     }
 
-    private MyCard CreateVersionCard(string title, IReadOnlyList<MinecraftVersionManifestEntry> versions)
+    private void AddLatestVersionCard(
+        StackPanel panel,
+        IReadOnlyDictionary<MinecraftVersionCategory, List<DownloadVersionView>> categories)
+    {
+        DownloadVersionView? latestRelease = categories[MinecraftVersionCategory.Release].FirstOrDefault();
+        DownloadVersionView? latestSnapshot = categories[MinecraftVersionCategory.Snapshot].FirstOrDefault();
+        List<DownloadVersionView> latest = [];
+
+        if (latestRelease is not null)
+        {
+            latest.Add(latestRelease with
+            {
+                Info = ResourceText(
+                    "Download.Version.Latest.Release",
+                    "最新正式版，发布于 {0}",
+                    FormatReleaseTime(latestRelease.ReleaseTime))
+            });
+        }
+
+        if (latestSnapshot is not null &&
+            (latestRelease is null ||
+             (latestRelease.ReleaseTime ?? DateTimeOffset.MinValue) < (latestSnapshot.ReleaseTime ?? DateTimeOffset.MinValue)))
+        {
+            latest.Add(latestSnapshot with
+            {
+                Info = ResourceText(
+                    "Download.Version.Latest.Development",
+                    "最新预览版，发布于 {0}",
+                    FormatReleaseTime(latestSnapshot.ReleaseTime))
+            });
+        }
+
+        if (latest.Count == 0)
+            return;
+
+        panel.Children.Add(CreateVersionCard(
+            ResourceText("Download.Version.Latest.Title", "最新版本"),
+            latest,
+            filterable: false,
+            margin: new Thickness(0d, 15d, 0d, 15d)));
+    }
+
+    private void AddOtherVersionsCard(
+        StackPanel panel,
+        IReadOnlyDictionary<MinecraftVersionCategory, List<DownloadVersionView>> categories)
+    {
+        List<DownloadVersionView> allVersions = [];
+        foreach (MinecraftVersionCategory category in VersionCategoryOrder)
+            allVersions.AddRange(categories[category]);
+
+        if (allVersions.Count == 0)
+            return;
+
+        panel.Children.Add(CreateVersionCard(
+            ResourceText("Download.Version.Other.Title", "其他版本"),
+            allVersions
+                .OrderByDescending(version => version.ReleaseTime ?? DateTimeOffset.MinValue)
+                .ToArray(),
+            filterable: true,
+            margin: new Thickness(0d, 0d, 0d, 15d)));
+    }
+
+    private MyCard CreateVersionCard(
+        string title,
+        IReadOnlyList<DownloadVersionView> versions,
+        bool filterable,
+        Thickness margin)
     {
         StackPanel stack = new()
         {
@@ -311,25 +395,25 @@ public partial class PageDownloadInstall : MyPageRight
         MyCard card = new()
         {
             Title = title,
-            Margin = new Thickness(0d, 0d, 0d, 15d),
+            Margin = margin,
             SwapControl = stack
         };
         card.Children.Add(stack);
 
         void Install(StackPanel target)
         {
-            if (target.Tag is not IReadOnlyList<MinecraftVersionManifestEntry> entries)
+            if (target.Tag is not IReadOnlyList<DownloadVersionView> entries)
                 return;
 
-            foreach (MinecraftVersionManifestEntry version in entries)
-                target.Children.Add(CreateVersionItem(version));
+            foreach (DownloadVersionView version in entries)
+                target.Children.Add(CreateVersionItem(version, filterable));
         }
 
         MyCard.StackInstall(ref stack, Install);
         return card;
     }
 
-    private MyListItem CreateVersionItem(MinecraftVersionManifestEntry version)
+    private MyListItem CreateVersionItem(DownloadVersionView version, bool filterable)
     {
         MyIconButton installIcon = new()
         {
@@ -337,28 +421,103 @@ public partial class PageDownloadInstall : MyPageRight
             ToolTip = "选择并下载",
             LogoScale = 0.95d
         };
-        installIcon.Click += (_, _) => SelectVersion(version);
+        installIcon.Click += (_, _) => SelectVersion(version.Manifest);
 
         MyListItem item = new()
         {
-            Title = version.Id,
-            Info = CreateVersionInfo(version),
+            Title = version.Title,
+            Info = version.Info,
             Type = MyListItem.CheckType.Clickable,
-            Logo = GetVersionLogoUri(version),
+            Logo = version.Logo,
             LogoScale = 1d,
             Height = 42d,
             Margin = new Thickness(0, 0, 0, 2),
             Buttons = [installIcon],
-            Tag = version
+            Tag = new VersionListItemTag(version, filterable)
         };
-        item.Click += (_, _) => SelectVersion(version);
+        item.Click += (_, _) => SelectVersion(version.Manifest);
         return item;
     }
 
-    private static string CreateVersionInfo(MinecraftVersionManifestEntry version)
+    private DownloadVersionView[] BuildVersionViews(IReadOnlyList<MinecraftVersionManifestEntry> versions)
     {
-        string releaseTime = version.ReleaseTime?.ToLocalTime().ToString("yyyy-MM-dd", System.Globalization.CultureInfo.CurrentCulture) ?? "未知日期";
-        return $"{GetTypeName(version.Type)} · {releaseTime}";
+        DownloadVersionView[] views = new DownloadVersionView[versions.Count];
+        for (int i = 0; i < versions.Count; i++)
+            views[i] = CreateVersionView(versions[i]);
+        return views;
+    }
+
+    private DownloadVersionView CreateVersionView(MinecraftVersionManifestEntry version)
+    {
+        MinecraftVersionClassification classification = MinecraftVersionCatalogClassifier.Classify(version);
+        string id = classification.Id;
+        string type = classification.Type;
+        DateTimeOffset? releaseTime = version.ReleaseTime;
+        string title = MinecraftVersionCatalogClassifier.FormatVersion(id).Replace("_", " ", StringComparison.Ordinal);
+        string lore = CreateAprilFoolsLore(classification.AprilFoolsDescriptor);
+        string info = CreateVersionInfo(id, title, lore, releaseTime);
+        MinecraftVersionManifestEntry manifest = version with
+        {
+            Id = id,
+            Type = type,
+            ReleaseTime = releaseTime
+        };
+
+        return new DownloadVersionView(
+            manifest,
+            title,
+            info,
+            releaseTime,
+            classification.Category,
+            GetVersionLogoUri(type));
+    }
+
+    private static string CreateVersionInfo(string id, string formattedTitle, string lore, DateTimeOffset? releaseTime)
+    {
+        if (string.IsNullOrEmpty(lore))
+        {
+            string date = FormatReleaseTime(releaseTime);
+            return string.Equals(formattedTitle, id, StringComparison.Ordinal)
+                ? date
+                : $"{date} | {id}";
+        }
+
+        return string.Equals(formattedTitle, id, StringComparison.Ordinal)
+            ? lore
+            : $"{lore} | {id}";
+    }
+
+    private static string FormatReleaseTime(DateTimeOffset? releaseTime)
+    {
+        return releaseTime?.ToLocalTime().ToString("g", CultureInfo.CurrentCulture) ?? "未知日期";
+    }
+
+    private void ApplyRenderedFilters()
+    {
+        foreach (MyListItem item in this.GetVisualDescendants().OfType<MyListItem>())
+        {
+            if (item.Tag is not VersionListItemTag tag)
+                continue;
+
+            bool categoryVisible = !tag.IsFilterable || IsVisibleByFilter(tag.Version.Category);
+            bool searchVisible = string.IsNullOrWhiteSpace(_searchText) ||
+                                 tag.Version.Manifest.Id.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
+                                 tag.Version.Title.Contains(_searchText, StringComparison.OrdinalIgnoreCase);
+            item.IsVisible = categoryVisible && searchVisible;
+            item.Opacity = item.IsVisible ? 1d : 0d;
+        }
+    }
+
+    private bool IsVisibleByFilter(MinecraftVersionCategory category)
+    {
+        return _filter switch
+        {
+            DownloadVersionFilter.Release => category == MinecraftVersionCategory.Release,
+            DownloadVersionFilter.Snapshot => category == MinecraftVersionCategory.Snapshot,
+            DownloadVersionFilter.BeforeRelease => category == MinecraftVersionCategory.BeforeRelease,
+            DownloadVersionFilter.AprilFools => category == MinecraftVersionCategory.AprilFools,
+            _ => true
+        };
     }
 
     private void SelectVersion(MinecraftVersionManifestEntry version)
@@ -620,16 +779,6 @@ public partial class PageDownloadInstall : MyPageRight
         return card;
     }
 
-    private static string GetTypeName(string type) =>
-        type switch
-        {
-            "release" => "正式版",
-            "snapshot" => "快照版",
-            "old_beta" => "远古 Beta",
-            "old_alpha" => "远古 Alpha",
-            _ => type
-        };
-
     private void SetSelectName(string text)
     {
         if (this.FindControl<MyTextBox>("TextSelectName") is not { } box)
@@ -649,15 +798,20 @@ public partial class PageDownloadInstall : MyPageRight
         image.Source = LoadBlockImage(GetVersionLogoImageName(version));
     }
 
-    private static string GetVersionLogoUri(MinecraftVersionManifestEntry version) =>
-        $"avares://PCL.Desktop/WpfOriginal/Images/Blocks/{GetVersionLogoImageName(version)}";
+    private static string GetVersionLogoUri(string type) =>
+        $"avares://PCL.Desktop/WpfOriginal/Images/Blocks/{GetVersionLogoImageName(type)}";
 
     private static string GetVersionLogoImageName(MinecraftVersionManifestEntry version)
     {
         if (IsAprilFoolsVersion(version.Id))
             return "GoldBlock.png";
 
-        return version.Type.ToLowerInvariant() switch
+        return GetVersionLogoImageName(version.Type);
+    }
+
+    private static string GetVersionLogoImageName(string type)
+    {
+        return type.ToLowerInvariant() switch
         {
             "release" => "Grass.png",
             "snapshot" or "pending" => "CommandBlock.png",
@@ -746,4 +900,37 @@ public partial class PageDownloadInstall : MyPageRight
 
         return Dispatcher.UIThread.InvokeAsync(action).GetTask();
     }
+
+    private string ResourceText(string key, string fallback, params object[] args)
+    {
+        string text = fallback;
+        if (this.TryFindResource(key, ActualThemeVariant, out object? value) && value is string resourceText)
+            text = resourceText;
+
+        return args.Length == 0
+            ? text
+            : string.Format(CultureInfo.CurrentCulture, text, args);
+    }
+
+    private string CreateAprilFoolsLore(MinecraftAprilFoolsDescriptor? descriptor)
+    {
+        if (descriptor is not MinecraftAprilFoolsDescriptor value)
+            return string.Empty;
+
+        string description = ResourceText(value.DescriptionResourceKey, string.Empty);
+        string tag = value.TagResourceKey is null
+            ? string.Empty
+            : ResourceText(value.TagResourceKey, string.Empty);
+        return description + tag;
+    }
+
+    private sealed record DownloadVersionView(
+        MinecraftVersionManifestEntry Manifest,
+        string Title,
+        string Info,
+        DateTimeOffset? ReleaseTime,
+        MinecraftVersionCategory Category,
+        string Logo);
+
+    private sealed record VersionListItemTag(DownloadVersionView Version, bool IsFilterable);
 }

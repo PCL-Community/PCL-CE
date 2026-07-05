@@ -2056,7 +2056,8 @@ public sealed class AvaloniaHeadlessTests
                 new[]
                 {
                     new MinecraftVersionManifestEntry("1.20.1", "release", "https://example.invalid/1.20.1.json", DateTimeOffset.Parse("2023-06-12T00:00:00Z")),
-                    new MinecraftVersionManifestEntry("24w14a", "snapshot", "https://example.invalid/24w14a.json", DateTimeOffset.Parse("2024-04-03T00:00:00Z"))
+                    new MinecraftVersionManifestEntry("24w14a", "snapshot", "https://example.invalid/24w14a.json", DateTimeOffset.Parse("2024-04-03T00:00:00Z")),
+                    new MinecraftVersionManifestEntry("20w14infinite", "snapshot", "https://example.invalid/20w14infinite.json", DateTimeOffset.Parse("2020-04-01T00:00:00Z"))
                 });
             Window window = new()
             {
@@ -2075,9 +2076,14 @@ public sealed class AvaloniaHeadlessTests
                 page.ApplyVersionFilter(DownloadVersionFilter.Release);
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
-                MyCard card = page.FindControl<StackPanel>("PanMinecraft")!.Children.OfType<MyCard>().Single();
-                Assert.AreEqual("正式版 (1)", card.Title);
-                MyListItem item = page.GetVisualDescendants().OfType<MyListItem>().Single(listItem => listItem.Title == "1.20.1");
+                MyCard[] cards = page.FindControl<StackPanel>("PanMinecraft")!.Children.OfType<MyCard>().ToArray();
+                Assert.AreEqual(2, cards.Length);
+                Assert.AreEqual("最新版本", cards[0].Title);
+                Assert.AreEqual("其他版本", cards[1].Title);
+                Assert.AreEqual(2, page.GetVisualDescendants().OfType<MyListItem>().Count(listItem => listItem.Title == "1.20.1" && listItem.IsVisible));
+                Assert.AreEqual(1, page.GetVisualDescendants().OfType<MyListItem>().Count(listItem => listItem.Title == "24w14a" && listItem.IsVisible));
+
+                MyListItem item = page.GetVisualDescendants().OfType<MyListItem>().First(listItem => listItem.Title == "1.20.1" && listItem.IsVisible);
 
                 Click(window, item);
 
@@ -2104,6 +2110,15 @@ public sealed class AvaloniaHeadlessTests
                 Click(window, page.FindControl<MyExtraTextButton>("BtnStart")!);
 
                 Assert.AreEqual("24w14a", requested?.Id);
+
+                page.FocusVersionAsync("20w14∞").GetAwaiter().GetResult();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.AreEqual("20w14∞", page.FindControl<MyTextBox>("TextSelectName")!.Text);
+                Click(window, page.FindControl<MyExtraTextButton>("BtnStart")!);
+
+                Assert.AreEqual("20w14∞", requested?.Id);
+                Assert.AreEqual("https://example.invalid/20w14infinite.json", requested?.Url);
             }
             finally
             {
@@ -2141,7 +2156,7 @@ public sealed class AvaloniaHeadlessTests
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
                 page.ApplyVersionFilter(DownloadVersionFilter.All);
-                MyListItem first = page.GetVisualDescendants().OfType<MyListItem>().Single(listItem => listItem.Title == "1.20.1");
+                MyListItem first = page.GetVisualDescendants().OfType<MyListItem>().First(listItem => listItem.Title == "1.20.1");
                 Click(window, first);
                 ModAnimation.AdvanceUntilIdleForTesting();
 
@@ -2196,7 +2211,7 @@ public sealed class AvaloniaHeadlessTests
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
                 page.ApplyVersionFilter(DownloadVersionFilter.All);
-                MyListItem item = page.GetVisualDescendants().OfType<MyListItem>().Single(listItem => listItem.Title == "1.20.1");
+                MyListItem item = page.GetVisualDescendants().OfType<MyListItem>().First(listItem => listItem.Title == "1.20.1");
                 StackPanel minecraft = page.FindControl<StackPanel>("PanMinecraft")!;
                 StackPanel select = page.FindControl<StackPanel>("PanSelect")!;
                 MyScrollViewer scroll = page.FindControl<MyScrollViewer>("PanBack")!;
@@ -2271,17 +2286,19 @@ public sealed class AvaloniaHeadlessTests
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
                 Assert.IsFalse(page.FindControl<Control>("PanLoad")!.IsVisible);
 
-                MyCard card = page.FindControl<StackPanel>("PanMinecraft")!
+                MyCard[] cards = page.FindControl<StackPanel>("PanMinecraft")!
                     .Children
                     .OfType<MyCard>()
-                    .Single();
-                Assert.AreEqual("Minecraft (2)", card.Title);
+                    .ToArray();
+                Assert.AreEqual(2, cards.Length);
+                Assert.AreEqual("最新版本", cards[0].Title);
+                Assert.AreEqual("其他版本", cards[1].Title);
                 MyListItem releaseItem = page.GetVisualDescendants()
                     .OfType<MyListItem>()
-                    .Single(item => item.Title == "1.21.5");
+                    .First(item => item.Title == "1.21.5");
                 MyListItem aprilFoolsItem = page.GetVisualDescendants()
                     .OfType<MyListItem>()
-                    .Single(item => item.Title == "25w14craftmine");
+                    .First(item => item.Title == "25w14craftmine");
                 AssertRenderedVersionItem(releaseItem, "1.21.5");
                 AssertRenderedVersionItem(aprilFoolsItem, "25w14craftmine");
                 Assert.AreEqual("avares://PCL.Desktop/WpfOriginal/Images/Blocks/Grass.png", releaseItem.Logo);
