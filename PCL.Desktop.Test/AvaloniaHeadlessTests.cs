@@ -1854,6 +1854,59 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void MyTextBox_DoesNotShowValidationFailureBeforeUserInput()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            InlineValidator<string> validator = new();
+            validator.RuleFor(static text => text).MinimumLength(3).WithMessage("至少 3 个字符");
+            MyTextBox textBox = new()
+            {
+                Width = 180,
+                Height = 28,
+                Text = "ab",
+                ValidateRules = [validator]
+            };
+            Window window = new()
+            {
+                Width = 260,
+                Height = 110,
+                Content = new Border
+                {
+                    Margin = new Thickness(20),
+                    Child = textBox
+                }
+            };
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.IsFalse(textBox.IsValidated);
+                Assert.AreEqual("至少 3 个字符", textBox.ValidateResult);
+                Assert.AreEqual(
+                    RequiredBrush("ColorBrushBg0").Color,
+                    ((SolidColorBrush)textBox.BorderBrush!).Color);
+
+                textBox.Text = "a";
+                ModAnimation.AdvanceUntilIdleForTesting();
+
+                Assert.IsFalse(textBox.IsValidated);
+                Assert.AreEqual(
+                    RequiredBrush("ColorBrushRedLight").Color,
+                    ((SolidColorBrush)textBox.BorderBrush!).Color);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void NativeDerivedLegacyControlsReuseAvaloniaBaseThemes()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();

@@ -30,6 +30,7 @@ public class MyTextBox : TextBox
         AvaloniaProperty.Register<MyTextBox, bool>(nameof(ShowValidateResult), true);
 
     private readonly List<EventHandler<TextChangedEventArgs>> _validatedTextChangedHandlers = [];
+    private bool _isAttached;
     private bool _isTextChanged;
 
     protected override Type StyleKeyOverride => typeof(TextBox);
@@ -51,9 +52,15 @@ public class MyTextBox : TextBox
         GotFocus += (_, _) => RefreshVisual();
         LostFocus += (_, _) => RefreshVisual();
         TextChanged += MyTextBoxTextChanged;
-        AttachedToVisualTree += (_, _) => Validate();
+        AttachedToVisualTree += (_, _) =>
+        {
+            _isAttached = true;
+            Validate();
+        };
+        DetachedFromVisualTree += (_, _) => _isAttached = false;
         this.GetObservable(IsEnabledProperty).Subscribe(_ => RefreshVisual());
         this.GetObservable(HasBackgroundProperty).Subscribe(_ => RefreshVisual());
+        this.GetObservable(ShowValidateResultProperty).Subscribe(_ => RefreshVisual());
         this.GetObservable(HintTextProperty).Subscribe(hint => PlaceholderText = hint);
         this.GetObservable(ValidateResultProperty).Subscribe(_ =>
         {
@@ -140,7 +147,7 @@ public class MyTextBox : TextBox
 
     private void MyTextBoxTextChanged(object? sender, TextChangedEventArgs e)
     {
-        _isTextChanged = true;
+        _isTextChanged = _isAttached;
         Validate();
         if (!IsValidated)
             return;
