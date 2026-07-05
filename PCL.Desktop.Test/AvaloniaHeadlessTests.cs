@@ -2687,7 +2687,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsTrue(leftText.Contains("2.0 KB/s"));
                 Assert.IsTrue(leftText.Contains("7"));
                 Assert.IsTrue(leftText.Contains("2 / 4"));
-                Assert.IsTrue(rightText.Contains("下载版本描述"));
+                Assert.IsTrue(rightText.Any(text => text.Contains("下载版本描述", StringComparison.Ordinal)));
                 Assert.IsTrue(rightText.Any(text => text.Contains("1.21.5.json", StringComparison.Ordinal)));
             }
             finally

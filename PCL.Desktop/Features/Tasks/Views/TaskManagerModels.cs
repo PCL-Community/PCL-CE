@@ -25,7 +25,9 @@ public sealed record TaskManagerEntrySnapshot(
     int TotalFiles,
     long SpeedBytesPerSecond,
     TaskManagerTaskState State,
-    string? ErrorMessage = null);
+    string? ErrorMessage = null,
+    int ActiveThreads = 0,
+    int ThreadLimit = 1);
 
 public sealed record TaskManagerSummary(
     double Progress,

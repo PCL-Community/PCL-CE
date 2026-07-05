@@ -1154,7 +1154,9 @@ public partial class MainWindow : Window, IDisposable
             progress.CompletedFiles,
             progress.TotalFiles,
             progress.SpeedBytesPerSecond,
-            TaskManagerTaskState.Running);
+            TaskManagerTaskState.Running,
+            ActiveThreads: progress.ActiveThreads,
+            ThreadLimit: progress.ThreadLimit);
         UpdateTaskManagerViews();
         RefreshTaskManagerButton();
     }
@@ -1246,13 +1248,15 @@ public partial class MainWindow : Window, IDisposable
         long speed = activeTasks.Sum(static snapshot => snapshot.SpeedBytesPerSecond);
         int remainingFiles = activeTasks.Sum(static snapshot =>
             snapshot.TotalFiles > 0 ? Math.Max(0, snapshot.TotalFiles - snapshot.CompletedFiles) : 0);
-        int threadLimit = Math.Max(1, Environment.ProcessorCount);
+        int threadLimit = activeTasks.Sum(static snapshot => Math.Max(1, snapshot.ThreadLimit));
+        if (threadLimit <= 0)
+            threadLimit = Math.Max(1, Environment.ProcessorCount);
 
         return new TaskManagerSummary(
             progress,
             speed,
             remainingFiles,
-            Math.Min(threadLimit, activeTasks.Length),
+            activeTasks.Sum(static snapshot => Math.Max(0, snapshot.ActiveThreads)),
             threadLimit);
     }
 
@@ -2026,6 +2030,8 @@ public partial class MainWindow : Window, IDisposable
 
         string minecraftRoot = GetDefaultMinecraftRoot();
         Directory.CreateDirectory(minecraftRoot);
+        LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+        int downloadThreadLimit = Math.Clamp(GetIntegerOption(settings, "ToolDownloadThread", 63) + 1, 1, 256);
         Progress<MinecraftInstallProgress> progress = new(update => TrackInstallProgress(taskId, taskTitle, update));
         try
         {
@@ -2037,6 +2043,7 @@ public partial class MainWindow : Window, IDisposable
                         VersionJsonUrl = request.VersionJsonUrl,
                         MinecraftRootDirectory = minecraftRoot,
                         PreferOfficialSource = true,
+                        DownloadThreadLimit = downloadThreadLimit,
                         Loader = request.Loader
                     },
                     progress,
