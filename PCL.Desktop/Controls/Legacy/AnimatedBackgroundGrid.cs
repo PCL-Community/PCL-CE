@@ -21,6 +21,9 @@ public class AnimatedBackgroundGrid : Grid
     private bool _isBackgroundInitialized;
     private bool _isApplyingBackgroundDirect;
 
+    // WPF exposes this lowercase field; copied control code relies on the same animation key shape.
+    public int uuid { get; } = Random.Shared.Next();
+
     public AnimatedBackgroundGrid()
         : this(BackgroundProperty)
     {
@@ -78,7 +81,7 @@ public class AnimatedBackgroundGrid : Grid
             _isApplyingBackgroundDirect = false;
         }
 
-        ModAnimation.AniStop($"MyCard Theme {GetHashCode()}");
+        ModAnimation.AniStop($"MyCard Theme {uuid}");
         if (animationVersion == _themeAnimationVersion)
             AnimatableBrush = brush;
         IsBackgroundAnimating = false;
@@ -106,7 +109,7 @@ public class AnimatedBackgroundGrid : Grid
 
         int animationVersion = ++_themeAnimationVersion;
         IsBackgroundAnimating = true;
-        ModAnimation.AniStop($"MyCard Theme {GetHashCode()}");
+        ModAnimation.AniStop($"MyCard Theme {uuid}");
         ModAnimation.AniStart(
             new List<ModAnimation.AniData>
             {
@@ -120,7 +123,7 @@ public class AnimatedBackgroundGrid : Grid
                     IsBackgroundAnimating = false;
                 }, after: true)
             },
-            $"MyCard Theme {GetHashCode()}");
+            $"MyCard Theme {uuid}");
     }
 
     private static Color ToSolidColor(IBrush brush) =>

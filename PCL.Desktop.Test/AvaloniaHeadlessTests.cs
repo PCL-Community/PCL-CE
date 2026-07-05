@@ -6109,6 +6109,7 @@ public sealed class AvaloniaHeadlessTests
                         ColorMode = ColorMode.Dark,
                         DarkColor = ColorTheme.CatBlue
                     });
+                    Assert.IsTrue(ModAnimation.AniIsRun("MyCard Theme " + card.uuid));
                     ModAnimation.AdvanceUntilIdleForTesting();
                     AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
@@ -6185,6 +6186,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsTrue(lazyContent.IsVisible);
                 Assert.IsNull(lazyContent.Tag);
                 Assert.AreEqual(2, lazyContent.Children.Count);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyCard Swap " + card.uuid));
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
                 ModAnimation.AdvanceForTesting(16, 3);
                 Assert.IsTrue(card.Height >= MyCard.SwapedHeight);

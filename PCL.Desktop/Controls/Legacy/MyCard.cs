@@ -37,7 +37,6 @@ public class MyCard : AnimatedBackgroundGrid
 
     private readonly BlurBorder _mainBorder;
     private readonly Grid _mainGrid;
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private TextBlock? _mainTextBlock;
     private PathShape? _mainSwap;
     private Control? _swapControl;
@@ -266,7 +265,7 @@ public class MyCard : AnimatedBackgroundGrid
     public void TriggerForceResize()
     {
         Height = IsSwapped ? SwapedHeight : double.NaN;
-        ModAnimation.AniStop($"MyCard Height {_uuid}");
+        ModAnimation.AniStop($"MyCard Height {uuid}");
         _isHeightAnimating = false;
         if (SwapControl is not null)
             SwapControl.IsVisible = !IsSwapped;
@@ -358,7 +357,7 @@ public class MyCard : AnimatedBackgroundGrid
 
         SwapControl.IsVisible = animate || !value;
         Height = value ? SwapedHeight : double.NaN;
-        ModAnimation.AniStop($"MyCard Height {_uuid}");
+        ModAnimation.AniStop($"MyCard Height {uuid}");
         _isHeightAnimating = false;
         if (!animate)
             SwapControl.IsVisible = !value;
@@ -379,12 +378,12 @@ public class MyCard : AnimatedBackgroundGrid
                     targetAngle - rotate.Angle,
                     250,
                     ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
-                $"MyCard Swap {_uuid}",
+                $"MyCard Swap {uuid}",
                 true);
             return;
         }
 
-        ModAnimation.AniStop($"MyCard Swap {_uuid}");
+        ModAnimation.AniStop($"MyCard Swap {uuid}");
         rotate.Angle = targetAngle;
     }
 
@@ -467,7 +466,7 @@ public class MyCard : AnimatedBackgroundGrid
         _actualUsedHeight = IsSwapped ? SwapedHeight : Height;
         Height = previousHeight;
         _isHeightAnimating = true;
-        ModAnimation.AniStart(animations, $"MyCard Height {_uuid}");
+        ModAnimation.AniStart(animations, $"MyCard Height {uuid}");
     }
 
     private void RefreshHoverVisual(bool isHover)
@@ -501,7 +500,7 @@ public class MyCard : AnimatedBackgroundGrid
             (isHover ? DropShadowHoverOpacity : DropShadowIdleOpacity) - MainChrome.Opacity,
             duration));
 
-        ModAnimation.AniStart(animations, $"MyCard Mouse {GetHashCode()}");
+        ModAnimation.AniStart(animations, $"MyCard Mouse {uuid}");
     }
 
     private void MyCard_PointerPressed(object? sender, PointerPressedEventArgs e)
