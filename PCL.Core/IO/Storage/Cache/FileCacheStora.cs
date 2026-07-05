@@ -51,9 +51,6 @@ public class FileCacheStorage : IDisposable
 
     public async Task<bool> ReleaseAsync(string hash)
     {
-        // CAS 重试循环：TryGetValue 与随后的更新/移除之间引用计数可能被其他线程改变，
-        // 必须用“仅当值仍为 count 时才成功”的原子操作，否则会丢失递减（文件泄漏）或在仍被引用时误删。
-        // 每次 CAS 失败用 SpinWait 退避（渐进自旋→让出/微睡），避免高竞争下的 CPU 热自旋。
         var spin = new SpinWait();
         while (true)
         {
@@ -64,7 +61,6 @@ public class FileCacheStorage : IDisposable
 
             if (count <= 1)
             {
-                // 最后一个引用：仅当计数仍为 count 时原子移除，成功后才删除文件。
                 if (TryRemoveRef(hash, count))
                 {
                     return await _hashStorage.DeleteAsync(hash).ConfigureAwait(false);
@@ -75,16 +71,13 @@ public class FileCacheStorage : IDisposable
                 return true;
             }
 
-            // CAS 失败：计数已被并发的 Store/Release 修改，退避后重读重试。
             spin.SpinOnce();
         }
     }
 
-    /// <summary>仅当引用计数仍等于 <paramref name="expected"/> 时原子递减，返回是否成功。</summary>
     private bool TryDecrementRef(string hash, int expected) =>
         _refCounts.TryUpdate(hash, expected - 1, expected);
 
-    /// <summary>仅当引用计数仍等于 <paramref name="expected"/> 时原子移除该条目，返回是否成功。</summary>
     private bool TryRemoveRef(string hash, int expected) =>
         _refCounts.TryRemove(new KeyValuePair<string, int>(hash, expected));
 
