@@ -26,6 +26,14 @@ public partial class PageInstanceServerRight : MyPageRight
 
     public event EventHandler<LaunchInstanceInfo>? AddServerRequested;
 
+    public event EventHandler<MinecraftServerEntry>? ConnectServerRequested;
+
+    public event EventHandler<MinecraftServerEntry>? RefreshServerRequested;
+
+    public event EventHandler<MinecraftServerEntry>? EditServerRequested;
+
+    public event EventHandler<MinecraftServerEntry>? RemoveServerRequested;
+
     public void SetInstance(LaunchInstanceInfo instance)
     {
         _instance = instance;
@@ -73,15 +81,13 @@ public partial class PageInstanceServerRight : MyPageRight
         };
         foreach (MinecraftServerEntry server in servers)
         {
-            stack.Children.Add(new MyListItem
-            {
-                Title = server.Name,
-                Info = server.Address,
-                SvgIcon = "lucide/server",
-                Height = 42d,
-                Margin = new Thickness(0d, 0d, 0d, 2d),
-                IsHitTestVisible = false
-            });
+            ServerCard serverCard = new();
+            serverCard.UpdateServerInfo(server);
+            serverCard.RefreshRequested += (_, entry) => RefreshServerRequested?.Invoke(this, entry);
+            serverCard.ConnectRequested += (_, entry) => ConnectServerRequested?.Invoke(this, entry);
+            serverCard.EditRequested += (_, entry) => EditServerRequested?.Invoke(this, entry);
+            serverCard.RemoveRequested += (_, entry) => RemoveServerRequested?.Invoke(this, entry);
+            stack.Children.Add(serverCard);
         }
         card.Children.Add(stack);
         panel.Children.Add(card);

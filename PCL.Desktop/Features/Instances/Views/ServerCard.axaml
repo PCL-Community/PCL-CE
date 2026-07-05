@@ -1,0 +1,117 @@
+<legacy:MyCard x:Class="PCL.Desktop.Features.Instances.Views.ServerCard"
+               xmlns="https://github.com/avaloniaui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               xmlns:legacy="using:PCL.Desktop.Controls.Legacy"
+               Margin="0,8">
+    <Grid x:Name="PanBack"
+          Height="44"
+          Background="{DynamicResource ColorBrushSemiTransparent}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="6" />
+            <ColumnDefinition Width="34" />
+            <ColumnDefinition Width="7" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="350" />
+            <ColumnDefinition Width="60" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="17" />
+            <RowDefinition Height="18" />
+            <RowDefinition Height="1*" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Column="1"
+                Grid.Row="1"
+                Grid.RowSpan="2"
+                IsHitTestVisible="False"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                Width="34"
+                Height="34"
+                CornerRadius="6"
+                ClipToBounds="True">
+            <Image x:Name="ServerIcon"
+                   Stretch="UniformToFill" />
+        </Border>
+
+        <TextBlock Grid.Column="3"
+                   Grid.Row="1"
+                   x:Name="ServerName"
+                   VerticalAlignment="Bottom"
+                   TextTrimming="CharacterEllipsis"
+                   FontSize="14"
+                   HorizontalAlignment="Left"
+                   MaxWidth="180" />
+
+        <StackPanel Grid.Row="2"
+                    Grid.Column="3"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Bottom">
+            <legacy:SvgIcon x:Name="Signal"
+                            Icon="lucide/server"
+                            Width="18"
+                            Height="18"
+                            Margin="0,0,2,0"
+                            IconBrush="{DynamicResource ColorBrushGray3}" />
+            <TextBlock x:Name="ServerPlayer"
+                       HorizontalAlignment="Left"
+                       TextTrimming="CharacterEllipsis"
+                       FontSize="12"
+                       Foreground="{DynamicResource ColorBrushGray3}"
+                       Opacity="0.55"
+                       VerticalAlignment="Center" />
+        </StackPanel>
+
+        <TextBlock Grid.Row="1"
+                   Grid.RowSpan="2"
+                   Grid.Column="4"
+                   x:Name="ServerMotD"
+                   VerticalAlignment="Center"
+                   Margin="0,0,3,1"
+                   TextTrimming="CharacterEllipsis"
+                   FontSize="12"
+                   Foreground="{DynamicResource ColorBrushGray4}"
+                   IsHitTestVisible="False"
+                   HorizontalAlignment="Center" />
+
+        <StackPanel Grid.Row="1"
+                    Grid.Column="5"
+                    Grid.RowSpan="2"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Center"
+                    Margin="0,0,4,0">
+            <legacy:MyIconButton x:Name="BtnConnect"
+                                 Width="24"
+                                 SvgIcon="lucide/play"
+                                 Click="BtnConnect_Click" />
+            <legacy:MyIconButton x:Name="BtnSetting"
+                                 Width="24"
+                                 LogoScale="1.2"
+                                 SvgIcon="lucide/settings"
+                                 Click="BtnSetting_Click">
+                <legacy:MyIconButton.ContextMenu>
+                    <ContextMenu>
+                        <legacy:MyMenuItem x:Name="BtnRefresh"
+                                           Click="BtnRefresh_Click"
+                                           Header="{DynamicResource Common.Action.Refresh}"
+                                           SvgIcon="lucide/refresh-cw" />
+                        <legacy:MyMenuItem x:Name="BtnCopy"
+                                           Click="BtnCopy_Click"
+                                           Header="{DynamicResource Instance.Server.Card.CopyAddress}"
+                                           SvgIcon="lucide/copy" />
+                        <legacy:MyMenuItem x:Name="BtnEdit"
+                                           Click="BtnEdit_Click"
+                                           Header="{DynamicResource Instance.Server.Card.Edit}"
+                                           SvgIcon="lucide/pencil" />
+                        <Separator />
+                        <legacy:MyMenuItem x:Name="BtnRemove"
+                                           Click="BtnRemove_Click"
+                                           Header="{DynamicResource Instance.Server.Card.Remove}"
+                                           SvgIcon="lucide/trash-2" />
+                    </ContextMenu>
+                </legacy:MyIconButton.ContextMenu>
+            </legacy:MyIconButton>
+        </StackPanel>
+    </Grid>
+</legacy:MyCard>

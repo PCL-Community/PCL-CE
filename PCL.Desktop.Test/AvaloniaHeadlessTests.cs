@@ -3596,9 +3596,11 @@ public sealed class AvaloniaHeadlessTests
                 InstancePageSubType? changed = null;
                 string? openedPath = null;
                 bool serverAddRequested = false;
+                MinecraftServerEntry? serverConnectRequested = null;
                 left.PageChanged += (_, page) => changed = page;
                 right.OpenFolderRequested += (_, path) => openedPath = path;
                 serverRight.AddServerRequested += (_, _) => serverAddRequested = true;
+                serverRight.ConnectServerRequested += (_, entry) => serverConnectRequested = entry;
 
                 try
                 {
@@ -3659,8 +3661,11 @@ public sealed class AvaloniaHeadlessTests
                     serverRight.Reload();
                     AvaloniaHeadlessPlatform.ForceRenderTimerTick();
                     Assert.IsFalse(serverRight.FindControl<MyCard>("PanNoServer")!.IsVisible);
-                    Assert.IsTrue(serverRight.GetVisualDescendants().OfType<MyListItem>().Any(item => item.Title == "Hypixel"));
-                    Assert.IsTrue(serverRight.GetVisualDescendants().OfType<MyListItem>().Any(item => item.Info == "mc.hypixel.net"));
+                    ServerCard serverCard = serverRight.GetVisualDescendants().OfType<ServerCard>().Single();
+                    Assert.IsTrue(serverCard.GetVisualDescendants().OfType<TextBlock>().Any(text => text.Text == "Hypixel"));
+                    Assert.IsTrue(serverCard.GetVisualDescendants().OfType<TextBlock>().Any(text => text.Text == "mc.hypixel.net"));
+                    Click(window, serverCard.FindControl<MyIconButton>("BtnConnect")!);
+                    Assert.AreEqual("mc.hypixel.net", serverConnectRequested?.Address);
                 }
                 finally
                 {
