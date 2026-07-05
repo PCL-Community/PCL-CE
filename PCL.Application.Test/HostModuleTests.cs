@@ -39,6 +39,8 @@ public sealed class HostModuleTests
         Assert.AreEqual(new AccountProviderId("sample.account"), host.Accounts.Providers.Single().Id);
         Assert.AreEqual(new DownloadSourceId("sample.download"), host.Downloads.Sources.Single().Id);
         Assert.AreEqual(typeof(SampleLaunchMiddleware), host.Launching.MiddlewareTypes.Single());
+        Assert.IsInstanceOfType<SampleLaunchMiddleware>(
+            host.Launching.Middleware.Single().CreateMiddleware(host.Services));
     }
 
     [TestMethod]
@@ -224,11 +226,12 @@ public sealed class HostModuleTests
     }
 
     [TestMethod]
-    public void Launching_RejectsTypesThatAreNotMiddleware()
+    public void Launching_RejectsNullMiddlewareFactories()
     {
         LaunchPipelineBuilder builder = new();
 
-        Assert.ThrowsExactly<ArgumentException>(() => builder.Use(typeof(string)));
+        Assert.ThrowsExactly<ArgumentNullException>(() =>
+            builder.Use<SampleLaunchMiddleware>(null!));
     }
 
     private static NavigationPageDescriptor CreatePage(string route, string title = "页面", int order = 0) =>
@@ -274,7 +277,7 @@ public sealed class HostModuleTests
                 BaseUri = new Uri("https://example.invalid/"),
                 Kind = DownloadSourceKind.Metadata
             });
-            builder.Launching.Use<SampleLaunchMiddleware>();
+            builder.Launching.Use(static _ => new SampleLaunchMiddleware());
         }
     }
 

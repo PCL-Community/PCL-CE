@@ -27,32 +27,52 @@ public interface ILaunchMiddleware
         CancellationToken cancellationToken);
 }
 
+public sealed record LaunchMiddlewareDescriptor(
+    Type MiddlewareType,
+    Func<IServiceProvider, ILaunchMiddleware> CreateMiddleware);
+
 public interface ILaunchPipelineBuilder
 {
+    IReadOnlyList<LaunchMiddlewareDescriptor> Middleware { get; }
+
     IReadOnlyList<Type> MiddlewareTypes { get; }
 
-    void Use(Type middlewareType);
+    void Use<TMiddleware>(Func<IServiceProvider, TMiddleware> factory)
+        where TMiddleware : notnull, ILaunchMiddleware;
 
     void Use<TMiddleware>()
-        where TMiddleware : ILaunchMiddleware;
+        where TMiddleware : notnull, ILaunchMiddleware, new();
 }
 
 public sealed class LaunchPipelineBuilder : ILaunchPipelineBuilder
 {
-    private readonly List<Type> _middlewareTypes = [];
+    private readonly List<LaunchMiddlewareDescriptor> _middleware = [];
+    private IReadOnlyList<LaunchMiddlewareDescriptor> _middlewareSnapshot = Array.Empty<LaunchMiddlewareDescriptor>();
+    private IReadOnlyList<Type> _middlewareTypesSnapshot = Array.Empty<Type>();
 
-    public IReadOnlyList<Type> MiddlewareTypes => _middlewareTypes.ToArray();
+    public IReadOnlyList<LaunchMiddlewareDescriptor> Middleware => _middlewareSnapshot;
 
-    public void Use(Type middlewareType)
+    public IReadOnlyList<Type> MiddlewareTypes => _middlewareTypesSnapshot;
+
+    public void Use<TMiddleware>(Func<IServiceProvider, TMiddleware> factory)
+        where TMiddleware : notnull, ILaunchMiddleware
     {
-        ArgumentNullException.ThrowIfNull(middlewareType);
-        if (!typeof(ILaunchMiddleware).IsAssignableFrom(middlewareType))
-            throw new ArgumentException("启动中间件必须实现 ILaunchMiddleware。", nameof(middlewareType));
-
-        _middlewareTypes.Add(middlewareType);
+        ArgumentNullException.ThrowIfNull(factory);
+        _middleware.Add(new LaunchMiddlewareDescriptor(
+            typeof(TMiddleware),
+            services => factory(services)));
+        RefreshSnapshot();
     }
 
     public void Use<TMiddleware>()
-        where TMiddleware : ILaunchMiddleware =>
-        Use(typeof(TMiddleware));
+        where TMiddleware : notnull, ILaunchMiddleware, new() =>
+        Use(static _ => new TMiddleware());
+
+    private void RefreshSnapshot()
+    {
+        _middlewareSnapshot = _middleware.ToArray();
+        _middlewareTypesSnapshot = _middleware
+            .Select(static middleware => middleware.MiddlewareType)
+            .ToArray();
+    }
 }
