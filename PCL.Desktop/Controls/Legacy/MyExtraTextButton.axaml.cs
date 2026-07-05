@@ -234,6 +234,7 @@ public sealed partial class MyExtraTextButton : Grid
         IsHitTestVisible = show;
         if (!animate)
         {
+            IsVisible = show;
             Opacity = show ? 1d : 0d;
             SetScale(this, show ? 1d : 0d);
             return;
@@ -241,6 +242,7 @@ public sealed partial class MyExtraTextButton : Grid
 
         if (show)
         {
+            IsVisible = true;
             Opacity = 0d;
             ModAnimation.AniStart(
             new List<ModAnimation.AniData>
@@ -270,7 +272,8 @@ public sealed partial class MyExtraTextButton : Grid
                 this,
                 -GetScaleX(this),
                 100,
-                ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak))
+                ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
+            ModAnimation.AaCode(() => IsVisible = false, after: true)
         }, $"MyExtraTextButton MainScale {_uuid}");
     }
 
