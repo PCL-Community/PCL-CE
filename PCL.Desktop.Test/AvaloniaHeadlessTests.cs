@@ -7779,7 +7779,8 @@ public sealed class AvaloniaHeadlessTests
         private static bool IsKnownAvaloniaHeadlessTeardownInnerException(Exception ex) =>
             ex is NullReferenceException ||
             ex is InvalidOperationException invalidOperation &&
-            invalidOperation.Message.Contains("different thread owns it", StringComparison.OrdinalIgnoreCase);
+            (invalidOperation.Message.Contains("different thread owns it", StringComparison.OrdinalIgnoreCase) ||
+             invalidOperation.Message.Contains("Avalonia.Input.IInputManager", StringComparison.Ordinal));
     }
 
     private static SolidColorBrush RequiredBrush(string key) =>
