@@ -96,13 +96,13 @@ public partial class PageInstanceLeft : MyPageLeft
             return;
 
         if (button.Tag is string text && int.TryParse(text, out int value) &&
-            Enum.IsDefined(typeof(InstancePageSubType), value))
+            InstancePageRegistry.IsDefined((InstancePageSubType)value))
         {
             RefreshRequested?.Invoke(this, (InstancePageSubType)value);
             return;
         }
 
-        if (button.Tag is int id && Enum.IsDefined(typeof(InstancePageSubType), id))
+        if (button.Tag is int id && InstancePageRegistry.IsDefined((InstancePageSubType)id))
             RefreshRequested?.Invoke(this, (InstancePageSubType)id);
     }
 
@@ -128,8 +128,8 @@ public partial class PageInstanceLeft : MyPageLeft
         page = InstancePageSubType.Overall;
         return item.Tag switch
         {
-            int value when Enum.IsDefined(typeof(InstancePageSubType), value) => SetPage((InstancePageSubType)value, out page),
-            string text when int.TryParse(text, out int value) && Enum.IsDefined(typeof(InstancePageSubType), value) =>
+            int value when InstancePageRegistry.IsDefined((InstancePageSubType)value) => SetPage((InstancePageSubType)value, out page),
+            string text when int.TryParse(text, out int value) && InstancePageRegistry.IsDefined((InstancePageSubType)value) =>
                 SetPage((InstancePageSubType)value, out page),
             _ => false
         };

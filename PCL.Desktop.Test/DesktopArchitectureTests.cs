@@ -135,6 +135,43 @@ public sealed class DesktopArchitectureTests
         StringAssert.Contains(generatorSource, "public static partial global::PCL.Desktop.Controls.Legacy.MyPageRight CreatePage");
     }
 
+    [TestMethod]
+    public void DesktopInstancePages_UseGeneratedStaticRegistry()
+    {
+        string desktopRoot = FindDesktopProjectRoot();
+        string repoRoot = Directory.GetParent(desktopRoot)?.FullName
+            ?? throw new DirectoryNotFoundException("Could not locate repository root.");
+        string leftSource = File.ReadAllText(Path.Combine(
+            desktopRoot,
+            "Features",
+            "Instances",
+            "Views",
+            "PageInstanceLeft.axaml.cs"));
+        string toolsSource = File.ReadAllText(Path.Combine(
+            desktopRoot,
+            "Features",
+            "Instances",
+            "Views",
+            "PageInstanceToolsRight.axaml.cs"));
+        string registrySource = File.ReadAllText(Path.Combine(
+            desktopRoot,
+            "Features",
+            "Instances",
+            "Views",
+            "InstancePageRegistry.cs"));
+        string generatorSource = File.ReadAllText(Path.Combine(
+            repoRoot,
+            "PCL.Desktop.SourceGenerators",
+            "InstancePageRegistryGenerator.cs"));
+
+        Assert.IsFalse(leftSource.Contains("Enum.IsDefined(typeof(InstancePageSubType)", StringComparison.Ordinal));
+        StringAssert.Contains(leftSource, "InstancePageRegistry.IsDefined");
+        StringAssert.Contains(toolsSource, "InstancePageRegistry.UsesGenericFolderPage");
+        Assert.IsFalse(toolsSource.Contains("page switch", StringComparison.Ordinal));
+        Assert.AreEqual(12, CountOccurrences(registrySource, "[InstancePage("));
+        StringAssert.Contains(generatorSource, "InstancePageRegistry.g.cs");
+    }
+
     private static string FindDesktopProjectRoot()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);

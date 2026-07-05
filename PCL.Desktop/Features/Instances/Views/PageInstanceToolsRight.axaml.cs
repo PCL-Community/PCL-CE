@@ -37,22 +37,15 @@ public partial class PageInstanceToolsRight : MyPageRight
             return;
 
         panel.Children.Clear();
-        switch (_page)
-        {
-            case InstancePageSubType.Mods:
-            case InstancePageSubType.ResourcePacks:
-            case InstancePageSubType.Shaders:
-            case InstancePageSubType.Schematics:
-                AddFolderPage(panel, _instance, _page);
-                break;
-        }
+        if (InstancePageRegistry.UsesGenericFolderPage(_page))
+            AddFolderPage(panel, _instance, _page);
     }
 
     private void AddFolderPage(StackPanel panel, LaunchInstanceInfo instance, InstancePageSubType page)
     {
         string root = GetMinecraftRootFromInstance(instance);
-        string relativePath = GetFolderRelativePath(page);
-        string title = GetPageTitle(page);
+        string relativePath = InstancePageRegistry.GetFolderRelativePath(page);
+        string title = InstancePageRegistry.GetTitle(page);
         string folder = string.IsNullOrWhiteSpace(relativePath)
             ? root
             : Path.Combine(root, relativePath);
@@ -60,7 +53,7 @@ public partial class PageInstanceToolsRight : MyPageRight
 
         panel.Children.Add(CreateInfoCard(
             title,
-            $"{GetPageDescription(page)}\n当前路径：{folder}\n已找到 {itemCount} 个项目。",
+            $"{InstancePageRegistry.GetDescription(page)}\n当前路径：{folder}\n已找到 {itemCount} 个项目。",
             ("打开文件夹", () => OpenFolderRequested?.Invoke(this, folder)),
             ("刷新", Reload)));
     }
@@ -115,19 +108,6 @@ public partial class PageInstanceToolsRight : MyPageRight
                ?? throw new InvalidOperationException("无法确定 Minecraft 根目录。");
     }
 
-    private static string GetFolderRelativePath(InstancePageSubType page) =>
-        page switch
-        {
-            InstancePageSubType.Saves => "saves",
-            InstancePageSubType.Screenshots => "screenshots",
-            InstancePageSubType.Mods => "mods",
-            InstancePageSubType.ResourcePacks => "resourcepacks",
-            InstancePageSubType.Shaders => "shaderpacks",
-            InstancePageSubType.Schematics => "schematics",
-            InstancePageSubType.Servers => string.Empty,
-            _ => string.Empty
-        };
-
     private static int CountFileSystemEntries(string folder)
     {
         try
@@ -140,29 +120,4 @@ public partial class PageInstanceToolsRight : MyPageRight
         }
     }
 
-    private static string GetPageTitle(InstancePageSubType page) =>
-        page switch
-        {
-            InstancePageSubType.Saves => "存档",
-            InstancePageSubType.Screenshots => "截图",
-            InstancePageSubType.Mods => "Mod",
-            InstancePageSubType.ResourcePacks => "资源包",
-            InstancePageSubType.Shaders => "光影",
-            InstancePageSubType.Schematics => "投影",
-            InstancePageSubType.Servers => "服务器",
-            _ => "资源"
-        };
-
-    private static string GetPageDescription(InstancePageSubType page) =>
-        page switch
-        {
-            InstancePageSubType.Saves => "管理当前 Minecraft 根目录下的游戏存档。",
-            InstancePageSubType.Screenshots => "查看当前 Minecraft 根目录下的截图文件。",
-            InstancePageSubType.Mods => "管理当前 Minecraft 根目录下的 Mod 文件。",
-            InstancePageSubType.ResourcePacks => "管理当前 Minecraft 根目录下的资源包。",
-            InstancePageSubType.Shaders => "管理当前 Minecraft 根目录下的光影包。",
-            InstancePageSubType.Schematics => "管理当前 Minecraft 根目录下的投影文件。",
-            InstancePageSubType.Servers => "管理当前 Minecraft 根目录下的服务器列表文件。",
-            _ => "管理当前 Minecraft 根目录下的资源文件。"
-        };
 }
