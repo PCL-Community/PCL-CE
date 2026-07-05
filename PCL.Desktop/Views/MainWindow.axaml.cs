@@ -52,7 +52,7 @@ public partial class MainWindow : Window, IDisposable
     private double _navAnimStart;
     private double _navAnimTarget;
     private int _navAnimElapsed;
-    private int _currentNavPage;
+    private NavigationRouteId? _currentNavRoute;
     private bool _isMainWindowOpened;
     private PageLaunchLeft? _launchLeft;
     private PageLaunchRight? _launchRight;
@@ -90,7 +90,7 @@ public partial class MainWindow : Window, IDisposable
     private PageSetupLeft? _setupLeft;
     private MyPageRight? _setupRight;
     private readonly List<LoginProfileInfo> _loginProfiles = [];
-    private readonly Dictionary<int, NavigationPageDescriptor> _navigationPages;
+    private readonly NavigationPageDescriptor[] _navigationPages;
     private readonly Dictionary<string, TaskManagerEntrySnapshot> _taskSnapshots = [];
     private readonly DesktopPageAdapter _pageAdapter = new();
     private readonly DesktopPageContext _desktopPageContext;
@@ -218,10 +218,10 @@ public partial class MainWindow : Window, IDisposable
 
     private void BtnNavItem_Click(object? sender, PointerReleasedEventArgs e)
     {
-        if (sender is not MyListItem item || !TryGetNavPage(item, out int page))
+        if (sender is not MyListItem item || !TryGetNavRoute(item, out NavigationRouteId route))
             return;
 
-        SelectNavPage(page, animate: _isMainWindowOpened);
+        SelectNavPage(route, animate: _isMainWindowOpened);
         e.Handled = true;
     }
 
@@ -562,20 +562,20 @@ public partial class MainWindow : Window, IDisposable
         SetNavWidth(navLayer, _navAnimTarget);
     }
 
-    private void SelectNavPage(int page, bool animate)
+    private void SelectNavPage(NavigationRouteId route, bool animate)
     {
         _titleInnerBackAction = null;
-        if (!_navigationPages.ContainsKey(page))
-        {
-            if (_navigationPages.Count == 0)
-                return;
-            page = _navigationPages.Keys.Min();
-        }
+        NavigationPageDescriptor? descriptor = FindNavigationPage(route);
+        if (descriptor is null)
+            descriptor = _navigationPages.Length > 0 ? _navigationPages[0] : null;
+        if (descriptor is null)
+            return;
+        route = descriptor.Route;
 
         MyListItem? selected = null;
         foreach (MyListItem item in GetNavItems())
         {
-            if (TryGetNavPage(item, out int itemPage) && itemPage == page)
+            if (TryGetNavRoute(item, out NavigationRouteId itemRoute) && itemRoute.Equals(route.Value))
             {
                 selected = item;
                 break;
@@ -592,41 +592,36 @@ public partial class MainWindow : Window, IDisposable
                 item.Checked = false;
         }
 
-        if (!animate || page == _currentNavPage)
+        if (!animate || (_currentNavRoute is NavigationRouteId currentRoute && currentRoute.Equals(route.Value)))
         {
-            ApplyPagePlaceholder(page);
+            ApplyPagePlaceholder(route);
             return;
         }
 
-        BeginPageChangeAnimation(page);
+        BeginPageChangeAnimation(route);
     }
 
-    private void SelectNavRoute(NavigationRouteId route, bool animate)
-    {
-        int page = FindNavigationPageIndex(route);
-        if (page < 0)
-            page = _navigationPages.Count > 0 ? _navigationPages.Keys.Min() : -1;
-        if (page >= 0)
-            SelectNavPage(page, animate);
-    }
+    private void SelectNavRoute(NavigationRouteId route, bool animate) =>
+        SelectNavPage(route, animate);
 
-    private int FindNavigationPageIndex(NavigationRouteId route)
+    private NavigationPageDescriptor? FindNavigationPage(NavigationRouteId route)
     {
-        foreach ((int index, NavigationPageDescriptor descriptor) in _navigationPages)
+        foreach (NavigationPageDescriptor page in _navigationPages)
         {
-            if (descriptor.Route.Equals(route.Value))
-                return index;
+            if (page.Route.Equals(route.Value))
+                return page;
         }
 
-        return -1;
+        return null;
     }
 
-    private void ApplyPagePlaceholder(int page)
+    private void ApplyPagePlaceholder(NavigationRouteId route)
     {
-        _currentNavPage = page;
-        if (!_navigationPages.TryGetValue(page, out NavigationPageDescriptor? descriptor))
+        NavigationPageDescriptor? descriptor = FindNavigationPage(route);
+        if (descriptor is null)
             return;
 
+        _currentNavRoute = descriptor.Route;
         int requestId = ++_registeredPageRequestId;
         PageCreateContext context = new(descriptor.Route.Value, DesktopHost.Current.Services, _desktopPageContext);
         ValueTask<DesktopMainPage> createTask;
@@ -1115,9 +1110,11 @@ public partial class MainWindow : Window, IDisposable
     }
 
     private NavigationRouteId GetCurrentNavigationRoute() =>
-        _navigationPages.TryGetValue(_currentNavPage, out NavigationPageDescriptor? descriptor)
-            ? descriptor.Route
-            : LaunchRoute;
+        _currentNavRoute is NavigationRouteId route && FindNavigationPage(route) is not null
+            ? route
+            : _navigationPages.Length > 0
+                ? _navigationPages[0].Route
+                : LaunchRoute;
 
     private string GetResourceText(string key, string fallback)
     {
@@ -3546,19 +3543,13 @@ public partial class MainWindow : Window, IDisposable
             }
         };
 
-    private static Dictionary<int, NavigationPageDescriptor> CreateNavigationPageMap(
+    private static NavigationPageDescriptor[] CreateNavigationPageMap(
         INavigationRegistry navigation)
     {
         ArgumentNullException.ThrowIfNull(navigation);
-        NavigationPageDescriptor[] pages = navigation.Pages
+        return navigation.Pages
             .Where(static page => page.Region == PageRegion.Main)
             .ToArray();
-        Dictionary<int, NavigationPageDescriptor> result = new(pages.Length);
-
-        for (int i = 0; i < pages.Length; i++)
-            result[i] = pages[i];
-
-        return result;
     }
 
     private void BuildMainNavigationItems()
@@ -3567,13 +3558,14 @@ public partial class MainWindow : Window, IDisposable
             return;
 
         panel.Children.Clear();
-        foreach ((int pageIndex, NavigationPageDescriptor descriptor) in _navigationPages.OrderBy(static pair => pair.Key))
+        for (int pageIndex = 0; pageIndex < _navigationPages.Length; pageIndex++)
         {
+            NavigationPageDescriptor descriptor = _navigationPages[pageIndex];
             MyListItem item = new()
             {
                 Name = $"BtnTitleSelect{pageIndex.ToString(CultureInfo.InvariantCulture)}",
                 Title = descriptor.Title,
-                Tag = pageIndex,
+                Tag = descriptor.Route,
                 Margin = pageIndex == 0 ? new Thickness(1d, 10d, 1d, 0d) : new Thickness(1d, 0d, 1d, 0d),
                 FontSize = 12d,
                 Type = MyListItem.CheckType.RadioBox,
@@ -3585,11 +3577,11 @@ public partial class MainWindow : Window, IDisposable
         }
     }
 
-    private void BeginPageChangeAnimation(int page)
+    private void BeginPageChangeAnimation(NavigationRouteId route)
     {
         if (this.FindControl<Control>("PanMainRight") is not { } right)
         {
-            ApplyPagePlaceholder(page);
+            ApplyPagePlaceholder(route);
             return;
         }
 
@@ -3599,7 +3591,7 @@ public partial class MainWindow : Window, IDisposable
                 ModAnimation.AaOpacity(right, -right.Opacity, 110),
                 ModAnimation.AaCode(() =>
                 {
-                    ApplyPagePlaceholder(page);
+                    ApplyPagePlaceholder(route);
                     right.Opacity = 0d;
                 }, after: true),
                 ModAnimation.AaOpacity(right, 1d, 170)
@@ -3619,20 +3611,20 @@ public partial class MainWindow : Window, IDisposable
         }
     }
 
-    private static bool TryGetNavPage(MyListItem item, out int page)
+    private static bool TryGetNavRoute(MyListItem item, out NavigationRouteId route)
     {
-        page = 0;
+        route = default;
         return item.Tag switch
         {
-            int value => SetPage(value, out page),
-            string text => int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out page),
+            NavigationRouteId value => SetRoute(value, out route),
+            string text when !string.IsNullOrWhiteSpace(text) => SetRoute(NavigationRouteId.Parse(text), out route),
             _ => false
         };
     }
 
-    private static bool SetPage(int value, out int page)
+    private static bool SetRoute(NavigationRouteId value, out NavigationRouteId route)
     {
-        page = value;
+        route = value;
         return true;
     }
 

@@ -29,6 +29,7 @@ using PCL.Desktop.Features.Launching.Views;
 using PCL.Desktop.Features.Settings.Views;
 using PCL.Desktop.Features.Tasks.Views;
 using PCL.Domain.Minecraft.Java;
+using PCL.UI.Abstractions.Navigation;
 
 namespace PCL.Desktop.Test;
 
@@ -1984,6 +1985,11 @@ public sealed class AvaloniaHeadlessTests
 
                 MyListItem launch = window.FindControl<MyListItem>("BtnTitleSelect0")!;
                 MyListItem download = window.FindControl<MyListItem>("BtnTitleSelect1")!;
+
+                Assert.IsInstanceOfType<NavigationRouteId>(launch.Tag);
+                Assert.IsInstanceOfType<NavigationRouteId>(download.Tag);
+                Assert.AreEqual("pcl.launch", ((NavigationRouteId)launch.Tag!).Value);
+                Assert.AreEqual("pcl.download", ((NavigationRouteId)download.Tag!).Value);
 
                 Click(window, download);
 
