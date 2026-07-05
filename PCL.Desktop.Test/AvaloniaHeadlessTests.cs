@@ -948,10 +948,12 @@ public sealed class AvaloniaHeadlessTests
                     .Single(panel => panel.Children.Contains(openButton));
                 Assert.AreEqual(0d, buttonStack.Opacity);
                 MoveTo(window, item);
+                Assert.IsTrue(ModAnimation.AniIsRun("LocalModItem Color " + item.Uuid));
                 ModAnimation.AdvanceUntilIdleForTesting();
                 Assert.IsTrue(buttonStack.Opacity > 0d);
 
                 item.SetChecked(true);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyLocalCompItem Checked " + item.Uuid));
                 ModAnimation.AdvanceUntilIdleForTesting();
                 Border check = item.Children.OfType<Border>()
                     .Single(border => Math.Abs(border.Width - 5d) < 0.01d);
@@ -1870,6 +1872,9 @@ public sealed class AvaloniaHeadlessTests
                 window.Show();
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
+                TextPresenter presenter = textBox.GetVisualDescendants()
+                    .OfType<TextPresenter>()
+                    .Single();
                 textBox.Text = "ab";
                 Assert.IsFalse(textBox.IsValidated);
                 Assert.AreEqual("至少 3 个字符", textBox.ValidateResult);
@@ -1880,6 +1885,16 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual(string.Empty, textBox.ValidateResult);
                 Assert.AreEqual(1, validatedChangeCount);
                 Assert.IsTrue(validateChangedCount > 0);
+
+                textBox.IsEnabled = false;
+                Assert.IsTrue(ModAnimation.AniIsRun("MyTextBox TextColor " + textBox.Uuid));
+                ModAnimation.AdvanceUntilIdleForTesting();
+                Assert.AreEqual(
+                    RequiredBrush("ColorBrushGray4").Color,
+                    ((SolidColorBrush)textBox.Foreground!).Color);
+                Assert.AreEqual(
+                    RequiredBrush("ColorBrushGray4").Color,
+                    ((SolidColorBrush)presenter.Foreground!).Color);
             }
             finally
             {
@@ -1932,6 +1947,7 @@ public sealed class AvaloniaHeadlessTests
 
                 textBox.Text = "a";
                 Assert.IsTrue(ModAnimation.AniIsRun("MyTextBox Color " + textBox.Uuid));
+                Assert.IsTrue(ModAnimation.AniIsRun("MyTextBox Validate " + textBox.Uuid));
                 ModAnimation.AdvanceUntilIdleForTesting();
 
                 Assert.IsFalse(textBox.IsValidated);
@@ -1941,6 +1957,15 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual(
                     RequiredBrush("ColorBrushRedLight").Color,
                     ((SolidColorBrush)textBox.BorderBrush!).Color);
+
+                textBox.Text = "abcd";
+                Assert.IsTrue(ModAnimation.AniIsRun("MyTextBox Validate " + textBox.Uuid));
+                ModAnimation.AdvanceUntilIdleForTesting();
+
+                Assert.IsTrue(textBox.IsValidated);
+                Assert.IsFalse(wrong.IsVisible);
+                Assert.AreEqual(string.Empty, wrong.Text);
+                Assert.AreEqual(0d, wrong.Height);
             }
             finally
             {
@@ -6879,6 +6904,7 @@ public sealed class AvaloniaHeadlessTests
                 Popup popup = slider.FindControl<Popup>("Popup")!;
                 TextBlock textHint = slider.FindControl<TextBlock>("TextHint")!;
 
+                Assert.IsFalse(ScrollViewer.GetBringIntoViewOnFocusChange(slider));
                 Assert.AreEqual(95.5d, lineFore.Width, 0.01d);
                 Assert.AreEqual(95.5d, lineBack.Width, 0.01d);
                 Assert.AreEqual(new Thickness(95d, 0d, 0d, 0d), dot.Margin);

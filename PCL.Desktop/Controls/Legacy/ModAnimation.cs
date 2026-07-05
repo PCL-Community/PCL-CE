@@ -6,6 +6,7 @@ using System.Collections;
 using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
@@ -977,6 +978,8 @@ public static partial class ModAnimation
             return new AniColor(borderBrushBorder.BorderBrush);
         if (property == TextBlock.ForegroundProperty && control is TextBlock textBlock)
             return new AniColor(textBlock.Foreground);
+        if (property.Name == nameof(TextPresenter.Foreground) && control is TextPresenter textPresenter)
+            return new AniColor(textPresenter.Foreground);
         if (property == MyListItem.ForegroundProperty && control is MyListItem listItem)
             return new AniColor(listItem.Foreground);
         if (property.Name == nameof(TemplatedControl.Foreground) && control is TemplatedControl templated)
@@ -1013,6 +1016,8 @@ public static partial class ModAnimation
             borderBrushBorder.BorderBrush = brush;
         else if (property == TextBlock.ForegroundProperty && control is TextBlock textBlock)
             textBlock.Foreground = brush;
+        else if (property.Name == nameof(TextPresenter.Foreground) && control is TextPresenter textPresenter)
+            textPresenter.Foreground = brush;
         else if (property == MyListItem.ForegroundProperty && control is MyListItem listItem)
             listItem.Foreground = brush;
         else if (property.Name == nameof(TemplatedControl.Foreground) && control is TemplatedControl templated)

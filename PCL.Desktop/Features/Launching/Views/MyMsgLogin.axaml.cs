@@ -13,7 +13,7 @@ namespace PCL.Desktop.Features.Launching.Views;
 
 public sealed partial class MyMsgLogin : Grid
 {
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
+    private readonly int _uuid = Random.Shared.Next();
 
     public MyMsgLogin()
     {

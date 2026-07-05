@@ -15,7 +15,6 @@ namespace PCL.Desktop.Features.Instances.Views;
 
 public partial class MyLocalModItem : Grid
 {
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private TextBlock? _title;
     private TextBlock? _subtitle;
     private TextBlock? _info;
@@ -66,6 +65,8 @@ public partial class MyLocalModItem : Grid
     public event EventHandler<RouteEventArgs>? Check;
 
     public event EventHandler<RouteEventArgs>? Changed;
+
+    public int Uuid { get; } = Random.Shared.Next();
 
     public string Logo
     {
@@ -389,7 +390,7 @@ public partial class MyLocalModItem : Grid
     private void RefreshCheckedVisual(bool animate)
     {
         Border indicator = EnsureRectCheck();
-        ModAnimation.AniStop($"MyLocalCompItem Checked {_uuid}");
+        ModAnimation.AniStop($"MyLocalCompItem Checked {Uuid}");
         indicator.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
         indicator.Margin = new Thickness(-3d, 0d, 0d, 0d);
 
@@ -419,7 +420,7 @@ public partial class MyLocalModItem : Grid
                 animations.Add(ModAnimation.AaColor(_title, TextBlock.ForegroundProperty, NormalTitleBrushKey, 120));
         }
 
-        ModAnimation.AniStart(animations, $"MyLocalCompItem Checked {_uuid}");
+        ModAnimation.AniStart(animations, $"MyLocalCompItem Checked {Uuid}");
     }
 
     private void RefreshColor(bool animate)
@@ -491,7 +492,7 @@ public partial class MyLocalModItem : Grid
             animations.Add(ModAnimation.AaScaleTransform(_rectBack, -0.196d, 1, after: true));
         }
 
-        ModAnimation.AniStart(animations, $"LocalModItem Color {_uuid}");
+        ModAnimation.AniStart(animations, $"LocalModItem Color {Uuid}");
         ApplyTitleForeground(animate: true);
     }
 
@@ -502,7 +503,7 @@ public partial class MyLocalModItem : Grid
 
         string brushKey = Checked ? CheckedTitleBrushKey : NormalTitleBrushKey;
         if (animate)
-            ModAnimation.AniStart(ModAnimation.AaColor(_title, TextBlock.ForegroundProperty, brushKey, 120), $"LocalModItem Title {_uuid}");
+            ModAnimation.AniStart(ModAnimation.AaColor(_title, TextBlock.ForegroundProperty, brushKey, 120), $"LocalModItem Title {Uuid}");
         else
             _title.Foreground = FindBrush(brushKey, Checked ? "#1370f3" : "#343d4a");
     }

@@ -45,6 +45,8 @@ public partial class MySlider : Border
     public MySlider()
     {
         AvaloniaXamlLoader.Load(this);
+        // Matches WPF MyScrollViewer #3854: focusing a slider must not auto-scroll the page.
+        ScrollViewer.SetBringIntoViewOnFocusChange(this, false);
 
         _mainPanel = this.FindControl<Grid>("PanMain");
         _lineBack = this.FindControl<Line>("LineBack");

@@ -34,6 +34,7 @@ public class MyTextBox : TextBox
     private readonly List<EventHandler<TextChangedEventArgs>> _validatedTextChangedHandlers = [];
     private bool _isAttached;
     private bool _isTextChanged;
+    private ValidateState _shownValidateResult = ValidateState.NotInited;
     private TextBlock? _hintTextBlock;
     private TextPresenter? _textPresenter;
     private TextBlock? _wrongTextBlock;
@@ -63,23 +64,25 @@ public class MyTextBox : TextBox
         DetachedFromVisualTree += (_, _) => _isAttached = false;
         this.GetObservable(IsEnabledProperty).Subscribe(_ =>
         {
-            RefreshValidationText();
+            RefreshValidationVisual(ControlVisualHelpers.ShouldAnimate(this));
             RefreshVisual();
+            RefreshTextColor();
         });
         this.GetObservable(HasBackgroundProperty).Subscribe(_ => RefreshVisual());
         this.GetObservable(ShowValidateResultProperty).Subscribe(_ =>
         {
-            RefreshValidationText();
+            RefreshValidationVisual(ControlVisualHelpers.ShouldAnimate(this));
             RefreshVisual();
         });
         this.GetObservable(HintTextProperty).Subscribe(_ => RefreshHintText());
         this.GetObservable(ValidateResultProperty).Subscribe(_ =>
         {
-            RefreshValidationText();
+            RefreshValidationVisual(ControlVisualHelpers.ShouldAnimate(this));
             RefreshVisual();
             ValidateChanged?.Invoke(this, EventArgs.Empty);
         });
         RefreshVisual();
+        RefreshTextColor();
     }
 
     public event ValidateChangedEventHandler? ValidateChanged;
@@ -135,8 +138,9 @@ public class MyTextBox : TextBox
         _textPresenter = e.NameScope.Find<TextPresenter>("PART_TextPresenter");
         _wrongTextBlock = e.NameScope.Find<TextBlock>("labWrong");
         RefreshHintText();
+        RefreshTextColor();
         RefreshTextPresenterStyle();
-        RefreshValidationText();
+        RefreshValidationVisual(animate: false);
     }
 
     public void Validate()
@@ -153,12 +157,19 @@ public class MyTextBox : TextBox
             }
         }
 
+        string oldResult = ValidateResult;
         ValidateResult = newResult;
+        if (oldResult == newResult && RefreshValidationVisual(ControlVisualHelpers.ShouldAnimate(this)))
+        {
+            RefreshVisual();
+            ValidateChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     public void ForceShowAsSuccess()
     {
         _isTextChanged = false;
+        RefreshValidationVisual(ControlVisualHelpers.ShouldAnimate(this));
         RefreshVisual();
     }
 
@@ -187,7 +198,6 @@ public class MyTextBox : TextBox
         if (TemplatedParent is MyComboBox)
             return;
 
-        RefreshValidationText();
         bool showInvalid = IsEnabled && ShowValidateResult && !IsValidated && _isTextChanged;
         string foreColorName;
         string backColorName;
@@ -219,7 +229,6 @@ public class MyTextBox : TextBox
                 animationTime = 100;
             }
 
-            Foreground = FindBrush("ColorBrush1", "#343d4a");
             SelectionBrush = FindBrush("ColorBrush3", "#1370f3");
             Cursor = new Cursor(StandardCursorType.Ibeam);
         }
@@ -228,7 +237,6 @@ public class MyTextBox : TextBox
             foreColorName = "ColorBrushGray5";
             backColorName = "ColorBrushGray6";
             animationTime = 200;
-            Foreground = FindBrush("ColorBrushGray4", "#a6a6a6");
             Cursor = Cursor.Default;
         }
         RefreshTextPresenterStyle();
@@ -273,20 +281,109 @@ public class MyTextBox : TextBox
         _textPresenter.Foreground = Foreground;
     }
 
-    private void RefreshValidationText()
+    private void RefreshTextColor()
+    {
+        string targetBrush = IsEnabled ? "ColorBrush1" : "ColorBrushGray4";
+        if (ControlVisualHelpers.ShouldAnimate(this) && !string.IsNullOrEmpty(Text))
+        {
+            List<ModAnimation.AniData> animations =
+            [
+                ModAnimation.AaColor(this, ForegroundProperty, targetBrush, 200)
+            ];
+            if (_textPresenter is not null)
+                animations.Add(ModAnimation.AaColor(_textPresenter, TextBlock.ForegroundProperty, targetBrush, 200));
+
+            ModAnimation.AniStart(
+                animations,
+                "MyTextBox TextColor " + Uuid);
+            return;
+        }
+
+        ModAnimation.AniStop("MyTextBox TextColor " + Uuid);
+        Foreground = FindBrush(targetBrush, IsEnabled ? "#343d4a" : "#a6a6a6");
+        RefreshTextPresenterStyle();
+    }
+
+    private bool RefreshValidationVisual(bool animate)
     {
         if (_wrongTextBlock is null)
-            return;
+        {
+            _shownValidateResult = ValidateState.NotLoaded;
+            return false;
+        }
 
-        bool showInvalid = IsEnabled && ShowValidateResult && !IsValidated && _isTextChanged;
-        _wrongTextBlock.Text = showInvalid ? ValidateResult : string.Empty;
-        _wrongTextBlock.IsVisible = showInvalid;
-        _wrongTextBlock.Height = showInvalid ? 21d : 0d;
-        _wrongTextBlock.Opacity = showInvalid ? 1d : 0d;
+        bool isSuccessful = IsValidated;
+        bool showInvalid = IsEnabled && ShowValidateResult && !isSuccessful && _isTextChanged;
+        ValidateState nextState = isSuccessful
+            ? ValidateState.Success
+            : showInvalid
+                ? ValidateState.FailedAndShowDetail
+                : ShowValidateResult ? ValidateState.FailedButTextNotChanged : ValidateState.FailedAndHideDetail;
+
+        if (_shownValidateResult == nextState && _wrongTextBlock.Text == (showInvalid ? ValidateResult : string.Empty))
+            return false;
+
+        _shownValidateResult = nextState;
+        string animationKey = "MyTextBox Validate " + Uuid;
+        if (showInvalid)
+        {
+            _wrongTextBlock.Text = ValidateResult;
+            _wrongTextBlock.IsVisible = true;
+            if (animate)
+            {
+                ModAnimation.AniStart(
+                    new[]
+                    {
+                        ModAnimation.AaOpacity(_wrongTextBlock, 1d - _wrongTextBlock.Opacity, 150),
+                        ModAnimation.AaHeight(_wrongTextBlock, 21d - _wrongTextBlock.Height, 150, ease: new ModAnimation.AniEaseOutFluent())
+                    },
+                    animationKey);
+                return true;
+            }
+
+            ModAnimation.AniStop(animationKey);
+            _wrongTextBlock.Height = 21d;
+            _wrongTextBlock.Opacity = 1d;
+            return true;
+        }
+
+        if (animate)
+        {
+            ModAnimation.AniStart(
+                new[]
+                {
+                    ModAnimation.AaOpacity(_wrongTextBlock, -_wrongTextBlock.Opacity, 150),
+                    ModAnimation.AaHeight(_wrongTextBlock, -_wrongTextBlock.Height, 150, ease: new ModAnimation.AniEaseOutFluent()),
+                    ModAnimation.AaCode(() =>
+                    {
+                        _wrongTextBlock.IsVisible = false;
+                        _wrongTextBlock.Text = string.Empty;
+                    }, after: true)
+                },
+                animationKey);
+            return true;
+        }
+
+        ModAnimation.AniStop(animationKey);
+        _wrongTextBlock.Text = string.Empty;
+        _wrongTextBlock.IsVisible = false;
+        _wrongTextBlock.Height = 0d;
+        _wrongTextBlock.Opacity = 0d;
+        return true;
     }
 
     private IBrush FindBrush(string key, string fallback)
     {
         return LegacyResourceResolver.Brush(this, key, fallback);
+    }
+
+    private enum ValidateState
+    {
+        NotInited,
+        Success,
+        FailedButTextNotChanged,
+        FailedAndShowDetail,
+        FailedAndHideDetail,
+        NotLoaded
     }
 }
