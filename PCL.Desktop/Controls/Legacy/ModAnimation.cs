@@ -312,7 +312,7 @@ public static partial class ModAnimation
                     callBack?.Invoke(control);
                 }, after: true)
             },
-            $"MyCard Dispose {control.GetHashCode()}");
+            "MyCard Dispose " + control.Uuid);
     }
 
     public static void AniDispose(MyCard control, bool removeFromChildren, ParameterizedThreadStart? callBack = null)
@@ -329,7 +329,7 @@ public static partial class ModAnimation
                     AaHeight(control, -height, 150, 100, new AniEaseOutFluent()),
                     AaCode(() => DisposeControl(control, removeFromChildren, callBack), after: true)
                 },
-                $"MyCard Dispose {control.GetHashCode()}");
+                "MyCard Dispose " + control.uuid);
             return;
         }
 

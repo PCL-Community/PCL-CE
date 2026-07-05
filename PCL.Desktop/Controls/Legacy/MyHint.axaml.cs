@@ -79,11 +79,13 @@ public partial class MyHint : Border
         PointerPressed += MyHint_PointerPressed;
         PointerReleased += MyHint_PointerReleased;
         PointerExited += (_, _) => _isMouseDown = false;
-        DetachedFromVisualTree += (_, _) => ModAnimation.AniStop($"MyCard Dispose {GetHashCode()}");
+        DetachedFromVisualTree += (_, _) => ModAnimation.AniStop("MyCard Dispose " + Uuid);
         RefreshTheme();
     }
 
     public event EventHandler? Click;
+
+    public int Uuid { get; } = Random.Shared.Next();
 
     public string Text
     {

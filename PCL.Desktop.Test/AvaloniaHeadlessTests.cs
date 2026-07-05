@@ -1671,6 +1671,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual(MyHint.Themes.Red, hint.Theme);
 
                 Click(window, hint.FindControl<MyIconButton>("BtnClose")!);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyCard Dispose " + hint.Uuid));
                 ModAnimation.AdvanceUntilIdleForTesting();
 
                 Assert.IsFalse(hint.IsVisible);
@@ -6277,6 +6278,7 @@ public sealed class AvaloniaHeadlessTests
 
                 ModAnimation.AniDispose(animatedCard, removeFromChildren: true, _ => callbackCount++);
                 Assert.IsFalse(animatedCard.IsHitTestVisible);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyCard Dispose " + animatedCard.uuid));
                 ModAnimation.AdvanceUntilIdleForTesting();
 
                 Assert.IsFalse(panel.Children.Contains(animatedCard));
