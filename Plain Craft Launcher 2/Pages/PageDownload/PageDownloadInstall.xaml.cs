@@ -23,7 +23,7 @@ public partial class PageDownloadInstall
         InitializeComponent();
         PanScroll = PanBack;
         LoadMinecraft.Text = Lang.Text("Download.Version.LoadingList");
-        WeakLanguageChanged.Add(this, static page => page._OnLanguageChanged());
+        WeakLanguageChanged.Add(this, OnLanguageChanged);
         BtnBack.Click += (_, _) => ExitSelectPage();
         CardOptiFine.Swap += (_, _) => ReloadSelected();
         LoadOptiFine.StateChanged += (_, _, _) => ReloadSelected();
@@ -91,6 +91,7 @@ public partial class PageDownloadInstall
         TextSelectName.KeyDown += TextSelectName_KeyDown;
         BtnStart.Click += (_, _) => BtnStart_Click();
     }
+    private static void OnLanguageChanged(PageDownloadInstall page) => page._OnLanguageChanged();
 
     private void LoaderInit()
     {
