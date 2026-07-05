@@ -3291,6 +3291,9 @@ public sealed class AvaloniaHeadlessTests
                     null);
                 await page.ReloadMetadataAsync().ConfigureAwait(true);
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                await WaitForConditionAsync(() =>
+                    page.GetVisualDescendants().OfType<MyCard>().Any(card => card.Title == "收藏夹"))
+                    .ConfigureAwait(true);
 
                 try
                 {
@@ -3355,6 +3358,9 @@ public sealed class AvaloniaHeadlessTests
                 page.SetInstances(instances, null);
                 await page.ReloadMetadataAsync().ConfigureAwait(true);
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                await WaitForConditionAsync(() =>
+                    page.GetVisualDescendants().OfType<MyListItem>().Any(item => item.Title == "RegularPack"))
+                    .ConfigureAwait(true);
 
                 try
                 {
