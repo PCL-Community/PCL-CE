@@ -16,7 +16,7 @@ public sealed class MyMsgMarkdownClosedEventArgs(int result) : EventArgs
 
 public partial class MyMsgMarkdown : Grid
 {
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
+    private readonly int _uuid = Random.Shared.Next();
     private TranslateTransform? _transformPos;
     private RotateTransform? _transformRotate;
     private int _pendingResult;

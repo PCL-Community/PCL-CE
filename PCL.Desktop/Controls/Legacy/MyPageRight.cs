@@ -39,7 +39,6 @@ public class MyPageRight : ContentControl, IDisposable
     private Control? _pageAlwaysPanel;
     private LoaderRunState _pageLoaderState = LoaderRunState.Waiting;
     private bool _pageLoaderAutoRun;
-    private readonly string _pageUuid = Guid.NewGuid().ToString("N");
 
     protected override Type StyleKeyOverride => typeof(ContentControl);
 
@@ -195,7 +194,7 @@ public class MyPageRight : ContentControl, IDisposable
     {
         _pageLoaderCancellation?.Cancel();
         PageState = PageStates.Empty;
-        ModAnimation.AniStop($"PageRight PageChange {_pageUuid}");
+        ModAnimation.AniStop("PageRight PageChange " + PageUuid);
         if (_pageContentPanel is not null)
             _pageContentPanel.IsVisible = false;
         if (_pageLoaderPanel is not null)
@@ -295,7 +294,7 @@ public class MyPageRight : ContentControl, IDisposable
         }
 
         animations.Add(ModAnimation.AaCode(PageOnEnterAnimationFinished, after: true));
-        ModAnimation.AniStart(animations, $"PageRight PageChange {_pageUuid}", true);
+        ModAnimation.AniStart(animations, "PageRight PageChange " + PageUuid, true);
     }
 
     public void TriggerExitAnimation(params Control?[] elements)
@@ -341,7 +340,7 @@ public class MyPageRight : ContentControl, IDisposable
                 element.IsVisible = false;
             PageOnExitAnimationFinished();
         }, after: true));
-        ModAnimation.AniStart(animations, $"PageRight PageChange {_pageUuid}");
+        ModAnimation.AniStart(animations, "PageRight PageChange " + PageUuid);
     }
 
     private void PageOnEnterAnimationFinished()
@@ -353,7 +352,7 @@ public class MyPageRight : ContentControl, IDisposable
             _ => PageState
         };
         if (PageState == PageStates.LoaderStayForce)
-            ModAnimation.AniStart(ModAnimation.AaCode(PageOnLoaderStayFinished, 400), $"PageRight PageChange {_pageUuid}");
+            ModAnimation.AniStart(ModAnimation.AaCode(PageOnLoaderStayFinished, 400), "PageRight PageChange " + PageUuid);
     }
 
     private void PageOnExitAnimationFinished()
@@ -415,7 +414,7 @@ public class MyPageRight : ContentControl, IDisposable
         {
             case LoaderRunState.Loading:
                 PageState = PageStates.LoaderWait;
-                ModAnimation.AniStart(ModAnimation.AaCode(PageOnLoaderWaitFinished, 400), $"PageRight PageChange {_pageUuid}");
+                ModAnimation.AniStart(ModAnimation.AaCode(PageOnLoaderWaitFinished, 400), "PageRight PageChange " + PageUuid);
                 break;
             case LoaderRunState.Failed:
                 PageState = PageStates.LoaderEnter;

@@ -49,7 +49,6 @@ public partial class MyRadioButton : Border
     private readonly Grid? _logoHost;
     private readonly PathShape? _path;
     private readonly SvgIcon? _svgIcon;
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private bool _hasLegacyLogo;
     private bool _isLoaded;
     private bool _isMouseDown;
@@ -122,6 +121,8 @@ public partial class MyRadioButton : Border
         get => GetValue(SvgIconProperty);
         set => SetValue(SvgIconProperty, value);
     }
+
+    public int Uuid { get; } = Random.Shared.Next();
 
     public double LogoScale
     {
@@ -376,10 +377,10 @@ public partial class MyRadioButton : Border
             return;
         }
 
-        ModAnimation.AniStart(GetTextAndIconColorAnimations(), $"MyRadioButton Checked {_uuid}");
+        ModAnimation.AniStart(GetTextAndIconColorAnimations(), "MyRadioButton Checked " + Uuid);
         ModAnimation.AniStart(
             CreateColorAnimation(this, BackgroundProperty, GetBackgroundResourceOrColor(), GetBackgroundAnimationTime()),
-            $"MyRadioButton Color {_uuid}");
+            "MyRadioButton Color " + Uuid);
     }
 
     private List<ModAnimation.AniData> GetTextAndIconColorAnimations()
@@ -465,8 +466,8 @@ public partial class MyRadioButton : Border
 
     private void StopAnimations()
     {
-        ModAnimation.AniStop($"MyRadioButton Checked {_uuid}");
-        ModAnimation.AniStop($"MyRadioButton Color {_uuid}");
+        ModAnimation.AniStop("MyRadioButton Checked " + Uuid);
+        ModAnimation.AniStop("MyRadioButton Color " + Uuid);
     }
 
     private static ModAnimation.AniData CreateColorAnimation(Control control, AvaloniaProperty property, object color, int duration) =>

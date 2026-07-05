@@ -361,6 +361,9 @@ public sealed class AvaloniaHeadlessTests
                     ((SolidColorBrush)fore.Background!).Color);
 
                 MoveTo(window, button);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyButton Color " + button.Uuid));
+                Assert.IsTrue(ModAnimation.AniIsRun("MyButton TextColor " + button.Uuid));
+                Assert.IsTrue(ModAnimation.AniIsRun("MyButton Background " + button.Uuid));
                 ModAnimation.AdvanceUntilIdleForTesting();
 
                 Assert.AreEqual(
@@ -414,6 +417,7 @@ public sealed class AvaloniaHeadlessTests
                     window) ?? throw new InvalidOperationException("Button is not attached.");
 
                 window.MouseDown(center, MouseButton.Left);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyButton Scale " + button.Uuid));
                 ModAnimation.AdvanceForTesting(16, 8);
 
                 ScaleTransform scale = (ScaleTransform)fore.RenderTransform!;
@@ -1926,6 +1930,7 @@ public sealed class AvaloniaHeadlessTests
                     ((SolidColorBrush)textBox.BorderBrush!).Color);
 
                 textBox.Text = "a";
+                Assert.IsTrue(ModAnimation.AniIsRun("MyTextBox Color " + textBox.Uuid));
                 ModAnimation.AdvanceUntilIdleForTesting();
 
                 Assert.IsFalse(textBox.IsValidated);
@@ -2076,9 +2081,11 @@ public sealed class AvaloniaHeadlessTests
 
                 Assert.IsNull(item.Children.OfType<Border>().FirstOrDefault(border => border.Name == "RectBack"));
                 MoveTo(window, item);
+                Assert.IsTrue(ModAnimation.AniIsRun("ListItem Color " + item.Uuid));
                 Assert.IsNotNull(item.Children.OfType<Border>().FirstOrDefault(border => border.Name == "RectBack"));
 
                 Click(window, item);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyListItem Checked " + item.Uuid));
                 Border check = GetCheckIndicator(item);
                 Assert.AreEqual(20d, check.Height);
                 Assert.IsInstanceOfType<ScaleTransform>(check.RenderTransform);
@@ -6401,12 +6408,16 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual(1.4d, ((ScaleTransform)second.FindControl<Grid>("LogoHost")!.RenderTransform!).ScaleX, 0.01d);
 
                 MoveTo(window, second);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyRadioButton Checked " + second.Uuid));
+                Assert.IsTrue(ModAnimation.AniIsRun("MyRadioButton Color " + second.Uuid));
                 ModAnimation.AdvanceForTesting(16, 16);
                 Assert.AreEqual(
                     Color.Parse("#1370f3"),
                     ((SolidColorBrush)second.FindControl<TextBlock>("LabText")!.Foreground!).Color);
 
                 Click(window, second);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyRadioButton Checked " + second.Uuid));
+                Assert.IsTrue(ModAnimation.AniIsRun("MyRadioButton Color " + second.Uuid));
                 ModAnimation.AdvanceForTesting(16, 16);
 
                 Assert.IsFalse(first.Checked);
@@ -6538,6 +6549,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual(0.5d, scrollBar.Opacity, 0.01d);
 
                 MoveTo(window, scrollBar);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyScrollBar Color " + scrollBar.Uuid));
                 ModAnimation.AdvanceUntilIdleForTesting();
                 Assert.AreEqual(0.9d, scrollBar.Opacity, 0.01d);
                 Assert.AreEqual(
@@ -6667,6 +6679,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsTrue(textChanged);
 
                 Click(window, clear);
+                Assert.IsTrue(ModAnimation.AniIsRun("MySearchBox ClearBtn " + searchBox.Uuid));
                 ModAnimation.AdvanceUntilIdleForTesting();
 
                 Assert.AreEqual(string.Empty, searchBox.Text);
@@ -6730,6 +6743,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsTrue(button.FindControl<Grid>("IconHost")!.IsVisible);
 
                 Click(window, button);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyExtraTextButton Scale " + button.Uuid));
                 Assert.IsTrue(clicked);
             }
             finally
@@ -6776,6 +6790,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsFalse(button.IsVisible);
 
                 button.ShowRefresh();
+                Assert.IsTrue(ModAnimation.AniIsRun("MyExtraButton MainScale " + button.Uuid));
                 ModAnimation.AdvanceForTesting(16, 48);
                 Assert.IsTrue(button.IsVisible);
                 Assert.AreEqual(50d, button.Height, 0.01d);
@@ -6789,11 +6804,13 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual(10d, clip.Rect.Height, 0.01d);
 
                 MoveTo(window, button);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyExtraButton Color " + button.Uuid));
                 ModAnimation.AdvanceForTesting(16, 16);
                 Border color = button.FindControl<Border>("PanColor")!;
                 Assert.AreEqual(Color.Parse("#4890f5"), ((SolidColorBrush)color.Background!).Color);
 
                 Click(window, button);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyExtraButton Scale " + button.Uuid));
                 ModAnimation.AdvanceForTesting(16, 48);
                 Assert.IsTrue(clicked);
                 Grid scale = button.FindControl<Grid>("PanScale")!;
@@ -7136,6 +7153,7 @@ public sealed class AvaloniaHeadlessTests
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
                 page.PageOnEnter();
+                Assert.IsTrue(ModAnimation.AniIsRun("PageRight PageChange " + page.PageUuid));
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
                 Assert.IsFalse(loaderPanel.IsVisible);
@@ -7192,6 +7210,7 @@ public sealed class AvaloniaHeadlessTests
                     .First(scrollBar => scrollBar.Orientation == Orientation.Vertical && scrollBar.IsVisible);
 
                 page.TriggerEnterAnimation(viewer);
+                Assert.IsTrue(ModAnimation.AniIsRun("PageRight PageChange " + page.PageUuid));
                 Assert.IsInstanceOfType<TranslateTransform>(scrollBar.RenderTransform);
                 Assert.AreEqual(10d, ((TranslateTransform)scrollBar.RenderTransform!).X, 0.01d);
 
@@ -7199,6 +7218,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual(0d, ((TranslateTransform)scrollBar.RenderTransform!).X, 0.01d);
 
                 page.TriggerExitAnimation(viewer);
+                Assert.IsTrue(ModAnimation.AniIsRun("PageRight PageChange " + page.PageUuid));
                 ModAnimation.AdvanceUntilIdleForTesting();
 
                 Assert.AreEqual(10d, ((TranslateTransform)scrollBar.RenderTransform!).X, 0.01d);

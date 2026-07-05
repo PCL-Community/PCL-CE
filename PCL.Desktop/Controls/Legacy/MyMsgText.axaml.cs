@@ -18,7 +18,7 @@ public sealed class MyMsgTextClosedEventArgs(int result) : EventArgs
 
 public partial class MyMsgText : Grid
 {
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
+    private readonly int _uuid = Random.Shared.Next();
     private TranslateTransform? _transformPos;
     private RotateTransform? _transformRotate;
     private int _pendingResult = 1;

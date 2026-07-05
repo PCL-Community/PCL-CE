@@ -16,7 +16,7 @@ public sealed class MyMsgSelectClosedEventArgs(int? selectedIndex) : EventArgs
 public partial class MyMsgSelect : Grid
 {
     private readonly List<MyListItem> _items = [];
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
+    private readonly int _uuid = Random.Shared.Next();
     private int _selectedIndex = -1;
     private TranslateTransform? _transformPos;
     private RotateTransform? _transformRotate;

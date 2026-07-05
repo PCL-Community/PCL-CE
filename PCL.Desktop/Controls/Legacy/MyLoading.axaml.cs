@@ -45,7 +45,7 @@ public partial class MyLoading : Grid
     private readonly PathShape? _rightShard;
     private readonly PathShape? _errorIcon;
     private readonly Rectangle? _bottomLine;
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
+    private readonly int _uuid = Random.Shared.Next();
     private ILoadingTrigger? _state;
     private MyLoadingState _outerState = MyLoadingState.Unloaded;
     private MyLoadingState _innerState = MyLoadingState.Unloaded;

@@ -57,7 +57,6 @@ public partial class MyButton : Border
 
     private readonly Border? _foregroundBorder;
     private readonly TextBlock? _label;
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private bool _isPressed;
 
     public MyButton()
@@ -103,6 +102,8 @@ public partial class MyButton : Border
     public event EventHandler? Click;
 
     public event EventHandler<PointerReleasedEventArgs>? ClickReleased;
+
+    public int Uuid { get; } = Random.Shared.Next();
 
     public InlineCollection Inlines =>
         _label?.Inlines ?? throw new InvalidOperationException("MyButton text block is not initialized.");
@@ -176,7 +177,7 @@ public partial class MyButton : Border
                     ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
                 ModAnimation.AaScaleTransform(_foregroundBorder, -0.01d, 700, ease: new ModAnimation.AniEaseOutFluent())
             },
-            $"MyButton Scale {_uuid}");
+            "MyButton Scale " + Uuid);
         e.Handled = true;
     }
 
@@ -198,7 +199,7 @@ public partial class MyButton : Border
                 300,
                 10,
                 new ModAnimation.AniEaseOutFluent()),
-            $"MyButton Scale {_uuid}");
+            "MyButton Scale " + Uuid);
         e.Handled = true;
     }
 
@@ -213,14 +214,14 @@ public partial class MyButton : Border
             Border.BorderBrushProperty,
             resourceKey,
             IsPointerOver ? AnimationColorIn : AnimationColorOut,
-            $"MyButton Color {_uuid}",
+            "MyButton Color " + Uuid,
             ControlVisualHelpers.ShouldAnimate(this));
         ControlVisualHelpers.AnimateColorOrSetResource(
             _label,
             TextBlock.ForegroundProperty,
             resourceKey,
             IsPointerOver ? AnimationColorIn : AnimationColorOut,
-            $"MyButton TextColor {_uuid}",
+            "MyButton TextColor " + Uuid,
             ControlVisualHelpers.ShouldAnimate(this));
         Cursor = IsEnabled ? new Cursor(StandardCursorType.Hand) : Cursor.Default;
     }
@@ -249,7 +250,7 @@ public partial class MyButton : Border
             Border.BackgroundProperty,
             ColorType == ColorState.Red ? "ColorBrushRedBack" : "ColorBrush7",
             AnimationColorIn,
-            $"MyButton Background {_uuid}",
+            "MyButton Background " + Uuid,
             ControlVisualHelpers.ShouldAnimate(this));
     }
 
@@ -263,7 +264,7 @@ public partial class MyButton : Border
             Border.BackgroundProperty,
             "ColorBrushHalfWhite",
             AnimationColorOut,
-            $"MyButton Background {_uuid}",
+            "MyButton Background " + Uuid,
             ControlVisualHelpers.ShouldAnimate(this));
         if (!_isPressed)
             return;
@@ -275,7 +276,7 @@ public partial class MyButton : Border
                 1d - GetForegroundScale(),
                 800,
                 ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
-            $"MyButton Scale {_uuid}");
+            "MyButton Scale " + Uuid);
     }
 
     private double GetForegroundScale() =>

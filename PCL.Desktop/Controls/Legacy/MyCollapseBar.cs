@@ -24,7 +24,7 @@ public class MyCollapseBar : StackPanel
     private readonly PathShape _triangle;
     private readonly Grid _header;
     private readonly StackPanel _contentPanel;
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
+    private readonly int _uuid = Random.Shared.Next();
     private (MyCard card, bool useAnimation)? _parentCardState;
     private bool _isCollapsed;
     private bool _isLoaded;

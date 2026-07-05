@@ -50,7 +50,6 @@ public partial class MyExtraButton : Grid
     private readonly Grid? _iconHost;
     private readonly PathShape? _path;
     private readonly SvgIcon? _svgIcon;
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private bool _isLoaded;
     private bool _leftPressed;
     private bool _rightPressed;
@@ -104,6 +103,8 @@ public partial class MyExtraButton : Grid
 
     public event EventHandler? Click;
     public event EventHandler<PointerReleasedEventArgs>? RightClick;
+
+    public int Uuid { get; } = Random.Shared.Next();
 
     public string Logo
     {
@@ -226,7 +227,7 @@ public partial class MyExtraButton : Grid
                     1d - GetScaleX(_panScale),
                     500,
                     ease: new ModAnimation.AniEaseOutFluent()),
-                $"MyExtraButton Scale {_uuid}");
+                "MyExtraButton Scale " + Uuid);
         }
         RefreshColor();
     }
@@ -318,7 +319,7 @@ public partial class MyExtraButton : Grid
                     50d - Height,
                     200,
                     ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
-            }, $"MyExtraButton MainScale {_uuid}");
+            }, "MyExtraButton MainScale " + Uuid);
             return;
         }
 
@@ -332,7 +333,7 @@ public partial class MyExtraButton : Grid
                 ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
             ModAnimation.AaHeight(this, -Height, 400, 100, new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaCode(() => IsVisible = false, after: true)
-        }, $"MyExtraButton MainScale {_uuid}");
+        }, "MyExtraButton MainScale " + Uuid);
     }
 
     private void StartScaleAnimation(double targetScale, double reboundScale, int reboundDuration = 60)
@@ -353,7 +354,7 @@ public partial class MyExtraButton : Grid
                 reboundScale,
                 reboundDuration,
                 ease: new ModAnimation.AniEaseOutFluent())
-        }, $"MyExtraButton Scale {_uuid}");
+        }, "MyExtraButton Scale " + Uuid);
     }
 
     private void RefreshScaleAfterRelease()
@@ -363,7 +364,7 @@ public partial class MyExtraButton : Grid
 
         ModAnimation.AniStart(
             ModAnimation.AaScaleTransform(_panScale, 1d - GetScaleX(_panScale), 300, ease: new ModAnimation.AniEaseOutBack()),
-            $"MyExtraButton Scale {_uuid}");
+            "MyExtraButton Scale " + Uuid);
     }
 
     public void RefreshColor()
@@ -380,7 +381,7 @@ public partial class MyExtraButton : Grid
         {
             ModAnimation.AniStart(
                 ModAnimation.AaColor(_panColor, Border.BackgroundProperty, colorKey, duration),
-                $"MyExtraButton Color {_uuid}");
+                "MyExtraButton Color " + Uuid);
         }
         else
         {
@@ -424,7 +425,7 @@ public partial class MyExtraButton : Grid
                 ease: new ModAnimation.AniEaseInoutFluent(ModAnimation.AniEasePower.Strong, 0.3d)),
             ModAnimation.AaOpacity(shape, -shape.Opacity, 1000),
             ModAnimation.AaCode(() => _panScale.Children.Remove(shape), after: true)
-        }, $"ExtraButton Ribble {Guid.NewGuid():N}");
+        }, "ExtraButton Ribble " + Random.Shared.Next());
     }
 
     private static double GetScaleX(Control control) =>

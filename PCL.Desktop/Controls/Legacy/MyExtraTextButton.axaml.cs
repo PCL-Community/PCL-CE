@@ -40,7 +40,6 @@ public sealed partial class MyExtraTextButton : Grid
     private readonly PathShape? _path;
     private readonly SvgIcon? _svgIcon;
     private readonly TextBlock? _label;
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private bool _isLoaded;
     private bool _isPressed;
 
@@ -90,6 +89,8 @@ public sealed partial class MyExtraTextButton : Grid
     }
 
     public event EventHandler? Click;
+
+    public int Uuid { get; } = Random.Shared.Next();
 
     public InlineCollection Inlines =>
         _label?.Inlines ?? throw new InvalidOperationException("MyExtraTextButton text block is not initialized.");
@@ -159,7 +160,7 @@ public sealed partial class MyExtraTextButton : Grid
                     1d - GetScaleX(_scaleLayer),
                     500,
                     ease: new ModAnimation.AniEaseOutFluent()),
-                $"MyExtraTextButton Scale {_uuid}");
+                "MyExtraTextButton Scale " + Uuid);
         }
         RefreshColor();
     }
@@ -260,7 +261,7 @@ public sealed partial class MyExtraTextButton : Grid
                     160,
                     50,
                     new ModAnimation.AniEaseOutFluent())
-            }, $"MyExtraTextButton MainScale {_uuid}");
+            }, "MyExtraTextButton MainScale " + Uuid);
             return;
         }
 
@@ -274,7 +275,7 @@ public sealed partial class MyExtraTextButton : Grid
                 100,
                 ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
             ModAnimation.AaCode(() => IsVisible = false, after: true)
-        }, $"MyExtraTextButton MainScale {_uuid}");
+        }, "MyExtraTextButton MainScale " + Uuid);
     }
 
     private void StartScaleAnimation(double targetScale, double reboundScale, int reboundDuration = 60)
@@ -295,7 +296,7 @@ public sealed partial class MyExtraTextButton : Grid
                 reboundScale,
                 reboundDuration,
                 ease: new ModAnimation.AniEaseOutFluent())
-        }, $"MyExtraTextButton Scale {_uuid}");
+        }, "MyExtraTextButton Scale " + Uuid);
     }
 
     private void RefreshScaleAfterRelease()
@@ -305,7 +306,7 @@ public sealed partial class MyExtraTextButton : Grid
 
         ModAnimation.AniStart(
             ModAnimation.AaScaleTransform(_scaleLayer, 1d - GetScaleX(_scaleLayer), 300, ease: new ModAnimation.AniEaseOutBack()),
-            $"MyExtraTextButton Scale {_uuid}");
+            "MyExtraTextButton Scale " + Uuid);
     }
 
     private void RefreshColor()
@@ -322,7 +323,7 @@ public sealed partial class MyExtraTextButton : Grid
         {
             ModAnimation.AniStart(
                 ModAnimation.AaColor(_colorLayer, Border.BackgroundProperty, key, duration),
-                $"MyExtraTextButton Color {_uuid}");
+                "MyExtraTextButton Color " + Uuid);
         }
         else
         {

@@ -77,7 +77,6 @@ public partial class MyListItem : Grid, IMyRadio
 
     private readonly TextBlock? _title;
     private readonly TextBlock? _info;
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private Border? _rectBack;
     private Border? _checkIndicator;
     private Grid? _logoHost;
@@ -567,7 +566,7 @@ public partial class MyListItem : Grid, IMyRadio
             return;
         }
 
-        ModAnimation.AniStop($"MyListItem Checked {_uuid}");
+        ModAnimation.AniStop("MyListItem Checked " + Uuid);
         _checkIndicator.Margin = new Thickness(-1d, 0d, 0d, 0d);
         _checkIndicator.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
 
@@ -618,7 +617,7 @@ public partial class MyListItem : Grid, IMyRadio
             }, after: true));
         }
 
-        ModAnimation.AniStart(animations, $"MyListItem Checked {_uuid}");
+        ModAnimation.AniStart(animations, "MyListItem Checked " + Uuid);
     }
 
     public void RefreshColor(object? sender, EventArgs? e) => RefreshColor(animate: _isLoaded);
@@ -650,7 +649,7 @@ public partial class MyListItem : Grid, IMyRadio
 
         if (!animate)
         {
-            ModAnimation.AniStop($"ListItem Color {_uuid}");
+            ModAnimation.AniStop("ListItem Color " + Uuid);
             if (stateNew is "MouseDown" or "MouseOver")
             {
                 Border rect = EnsureRectBack();
@@ -745,7 +744,7 @@ public partial class MyListItem : Grid, IMyRadio
             }
         }
 
-        ModAnimation.AniStart(animations, $"ListItem Color {_uuid}");
+        ModAnimation.AniStart(animations, "ListItem Color " + Uuid);
     }
 
     private void ApplyButtons()

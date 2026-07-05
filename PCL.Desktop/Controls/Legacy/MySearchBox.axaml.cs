@@ -31,7 +31,6 @@ public partial class MySearchBox : MyCard
     private readonly MyTextBox? _textBox;
     private readonly MyIconButton? _clearButton;
     private readonly MyButton? _searchButton;
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private bool _updatingText;
 
     public MySearchBox()
@@ -71,6 +70,8 @@ public partial class MySearchBox : MyCard
     public event TextChangedEventHandler? TextChanged;
 
     public event SearchEventHandler? Search;
+
+    public int Uuid { get; } = Random.Shared.Next();
 
     public string HintText
     {
@@ -152,14 +153,14 @@ public partial class MySearchBox : MyCard
         _clearButton.IsHitTestVisible = hasText;
         if (!animate)
         {
-            ModAnimation.AniStop($"MySearchBox ClearBtn {_uuid}");
+            ModAnimation.AniStop("MySearchBox ClearBtn " + Uuid);
             _clearButton.Opacity = hasText ? 1d : 0d;
             return;
         }
 
         ModAnimation.AniStart(
             ModAnimation.AaOpacity(_clearButton, hasText ? 1d - _clearButton.Opacity : -_clearButton.Opacity, 90),
-            $"MySearchBox ClearBtn {_uuid}");
+            "MySearchBox ClearBtn " + Uuid);
     }
 }
 #pragma warning restore CA1711

@@ -90,6 +90,8 @@ public class MyTextBox : TextBox
         remove => _validatedTextChangedHandlers.Remove(value);
     }
 
+    public int Uuid { get; } = Random.Shared.Next();
+
     public bool HasBackground
     {
         get => GetValue(HasBackgroundProperty);
@@ -242,11 +244,11 @@ public class MyTextBox : TextBox
                     ModAnimation.AaColor(this, BorderBrushProperty, foreColorName, animationTime),
                     ModAnimation.AaColor(this, BackgroundProperty, backColorName, animationTime)
                 },
-                $"MyTextBox Color {GetHashCode()}");
+                "MyTextBox Color " + Uuid);
             return;
         }
 
-        ModAnimation.AniStop($"MyTextBox Color {GetHashCode()}");
+        ModAnimation.AniStop("MyTextBox Color " + Uuid);
         BorderBrush = FindBrush(foreColorName, "#96c0f9");
         Background = HasBackground ? FindBrush(backColorName, "#55ffffff") : Brushes.Transparent;
     }

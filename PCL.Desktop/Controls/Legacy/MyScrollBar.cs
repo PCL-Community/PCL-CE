@@ -11,7 +11,6 @@ namespace PCL.Desktop.Controls.Legacy;
 
 public class MyScrollBar : ScrollBar
 {
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private bool _isLoaded;
     private bool _isCaptured;
 
@@ -28,7 +27,7 @@ public class MyScrollBar : ScrollBar
         {
             _isLoaded = false;
             _isCaptured = false;
-            ModAnimation.AniStop($"MyScrollBar Color {_uuid}");
+            ModAnimation.AniStop("MyScrollBar Color " + Uuid);
         };
         PointerEntered += (_, _) => RefreshColor();
         PointerExited += (_, _) => RefreshColor();
@@ -96,14 +95,16 @@ public class MyScrollBar : ScrollBar
                     ModAnimation.AaColor(this, ForegroundProperty, newColor, time),
                     ModAnimation.AaOpacity(this, newOpacity - Opacity, time)
                 },
-                $"MyScrollBar Color {_uuid}");
+                "MyScrollBar Color " + Uuid);
             return;
         }
 
-        ModAnimation.AniStop($"MyScrollBar Color {_uuid}");
+        ModAnimation.AniStop("MyScrollBar Color " + Uuid);
         Foreground = FindBrush(newColor, "#4890f5");
         Opacity = newOpacity;
     }
+
+    public int Uuid { get; } = Random.Shared.Next();
 
     private IBrush FindBrush(string key, string fallback)
     {

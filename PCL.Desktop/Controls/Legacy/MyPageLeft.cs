@@ -13,7 +13,7 @@ public class MyPageLeft : Grid
     public static readonly StyledProperty<Control?> AnimatedControlProperty =
         AvaloniaProperty.Register<MyPageLeft, Control?>(nameof(AnimatedControl));
 
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
+    private readonly int _uuid = Random.Shared.Next();
 
     public Control? AnimatedControl
     {
