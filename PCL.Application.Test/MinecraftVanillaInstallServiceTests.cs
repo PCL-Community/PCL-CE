@@ -3,6 +3,7 @@
 // Licensed under the Apache License, Version 2.0.
 
 using System.Net;
+using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Application.Downloads;
@@ -62,6 +63,8 @@ public sealed class MinecraftVanillaInstallServiceTests
     {
         string root = Path.Combine(Path.GetTempPath(), "pcl-install-client-" + Guid.NewGuid().ToString("N"));
         byte[] clientJar = [0x50, 0x4B, 0x03, 0x04];
+        string clientJarSha1 = Convert.ToHexString(SHA1.HashData(clientJar)).ToLowerInvariant();
+        int clientJarRequests = 0;
         List<MinecraftInstallProgress> progress = [];
         using HttpClient client = new(new DelegateHandler(request =>
         {
@@ -76,6 +79,7 @@ public sealed class MinecraftVanillaInstallServiceTests
 
             if (path.Contains("/client.jar", StringComparison.Ordinal))
             {
+                clientJarRequests++;
                 return new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new ByteArrayContent(clientJar)
@@ -92,7 +96,8 @@ public sealed class MinecraftVanillaInstallServiceTests
                       "downloads": {
                         "client": {
                           "url": "https://example.invalid/client.jar",
-                          "size": {{clientJar.Length}}
+                          "size": {{clientJar.Length}},
+                          "sha1": "{{clientJarSha1}}"
                         }
                       },
                       "assetIndex": {
@@ -107,6 +112,10 @@ public sealed class MinecraftVanillaInstallServiceTests
 
         try
         {
+            string corruptJarPath = Path.Combine(root, "versions", "1.20.1", "1.20.1.jar");
+            Directory.CreateDirectory(Path.GetDirectoryName(corruptJarPath)!);
+            await File.WriteAllBytesAsync(corruptJarPath, [0x00, 0x00, 0x00, 0x00]);
+
             MinecraftInstallResult result = await service.InstallAsync(
                 new MinecraftInstallRequest
                 {
@@ -118,6 +127,7 @@ public sealed class MinecraftVanillaInstallServiceTests
 
             string jarPath = Path.Combine(result.InstanceDirectory, "1.20.1.jar");
             Assert.IsTrue(File.Exists(jarPath));
+            Assert.AreEqual(1, clientJarRequests);
             CollectionAssert.AreEqual(clientJar, await File.ReadAllBytesAsync(jarPath));
             Assert.IsTrue(progress.Any(item => item.Stage == "下载客户端"));
         }

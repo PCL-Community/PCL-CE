@@ -12,6 +12,7 @@ using PCL.Application.Minecraft.Downloads;
 using PCL.Application.Minecraft.Launch.Libraries;
 using PCL.Core.IO.Download;
 using PCL.Core.IO.Net;
+using PCL.Core.Utils.Hash;
 
 namespace PCL.Application.Downloads;
 
@@ -150,6 +151,7 @@ public sealed class MinecraftVanillaInstallService
                 MinecraftDownloadSourcePlanner.GetLauncherOrMetaSources(request.VersionJsonUrl, request.PreferOfficialSource),
                 vanillaVersionJsonPath,
                 expectedSize: -1,
+                expectedSha1: null,
                 "下载版本描述",
                 0,
                 1,
@@ -265,7 +267,11 @@ public sealed class MinecraftVanillaInstallService
                     try
                     {
                         token.ThrowIfCancellationRequested();
-                        if (IsExistingFileUsable(file.LocalPath, file.ExpectedSize))
+                        if (await IsExistingFileUsableAsync(
+                                file.LocalPath,
+                                file.ExpectedSize,
+                                file.ExpectedSha1,
+                                token).ConfigureAwait(false))
                         {
                             reporter.MarkComplete(item.Index, fileName);
                             return;
@@ -275,6 +281,7 @@ public sealed class MinecraftVanillaInstallService
                                 file.Urls,
                                 file.LocalPath,
                                 file.ExpectedSize,
+                                file.ExpectedSha1,
                                 file.Stage,
                                 0,
                                 1,
@@ -348,6 +355,7 @@ public sealed class MinecraftVanillaInstallService
         IReadOnlyList<string> urls,
         string localPath,
         long expectedSize,
+        string? expectedSha1,
         string stage,
         int completedFiles,
         int totalFiles,
@@ -356,14 +364,20 @@ public sealed class MinecraftVanillaInstallService
         int threadLimit,
         CancellationToken cancellationToken)
     {
-        if (IsExistingFileUsable(localPath, expectedSize))
+        if (await IsExistingFileUsableAsync(localPath, expectedSize, expectedSha1, cancellationToken).ConfigureAwait(false))
             return;
 
         ProgressThrottle progressThrottle = new();
-        DownloadTransferResult result = await _downloadService.DownloadAsync(
+        List<Exception> failures = [];
+        foreach (string source in urls)
+        {
+            if (string.IsNullOrWhiteSpace(source))
+                continue;
+
+            DownloadTransferResult result = await _downloadService.DownloadAsync(
                 new DownloadRequest
                 {
-                    Sources = urls,
+                    Sources = [source],
                     DestinationPath = localPath,
                     ConnectionFactory = url => new HttpDlConnection(_httpClient, url, ConfigureRequest)
                 },
@@ -405,10 +419,23 @@ public sealed class MinecraftVanillaInstallService
                     });
                 },
                 cancellationToken)
-            .ConfigureAwait(false);
+                .ConfigureAwait(false);
 
-        if (!result.Success)
-            throw new IOException("下载失败：" + localPath);
+            if (!result.Success)
+            {
+                failures.AddRange(result.Errors.Select(static error =>
+                    error.Exception ?? new IOException(error.Message)));
+                continue;
+            }
+
+            if (await IsExistingFileUsableAsync(localPath, expectedSize, expectedSha1, cancellationToken).ConfigureAwait(false))
+                return;
+
+            DeleteInvalidDownload(localPath);
+            failures.Add(new IOException("文件校验失败：" + localPath));
+        }
+
+        throw new IOException("下载失败或文件校验失败：" + localPath, new AggregateException(failures));
     }
 
     private static void AddClientJarDownload(
@@ -432,6 +459,7 @@ public sealed class MinecraftVanillaInstallService
             MinecraftDownloadSourcePlanner.GetLauncherOrMetaSources(plan.File.Url, preferOfficialSource),
             plan.File.LocalPath,
             plan.File.ActualSize,
+            plan.File.Sha1,
             "下载客户端"));
     }
 
@@ -460,7 +488,12 @@ public sealed class MinecraftVanillaInstallService
                 PreferOfficialSource = preferOfficialSource
             });
         foreach (MinecraftLibraryDownloadFile library in plan.DownloadFiles)
-            files.Add(new PlannedDownload(library.Urls, library.LocalPath, library.ActualSize, "下载运行库"));
+            files.Add(new PlannedDownload(
+                library.Urls,
+                library.LocalPath,
+                library.ActualSize,
+                library.Sha1,
+                "下载运行库"));
     }
 
     private async Task AddAssetDownloadsAsync(
@@ -484,6 +517,7 @@ public sealed class MinecraftVanillaInstallService
                 MinecraftDownloadSourcePlanner.GetLauncherOrMetaSources(indexPlan.Url!, preferOfficialSource),
                 indexPlan.LocalPath!,
                 expectedSize: -1,
+                expectedSha1: null,
                 "下载资源索引",
                 0,
                 1,
@@ -520,6 +554,7 @@ public sealed class MinecraftVanillaInstallService
                 MinecraftDownloadSourcePlanner.GetAssetSources(asset.Url, preferOfficialSource),
                 asset.LocalPath,
                 asset.ActualSize,
+                asset.Hash,
                 "下载资源文件"));
         }
     }
@@ -601,12 +636,58 @@ public sealed class MinecraftVanillaInstallService
         File.Move(tempPath, versionJsonPath, overwrite: true);
     }
 
-    private static bool IsExistingFileUsable(string path, long expectedSize)
+    private static async ValueTask<bool> IsExistingFileUsableAsync(
+        string path,
+        long expectedSize,
+        string? expectedSha1,
+        CancellationToken cancellationToken)
     {
         FileInfo file = new(path);
         if (!file.Exists)
             return false;
-        return expectedSize <= 0 || file.Length == expectedSize;
+        if (expectedSize > 0 && file.Length != expectedSize)
+            return false;
+        if (string.IsNullOrWhiteSpace(expectedSha1))
+            return true;
+
+        return await IsFileSha1MatchAsync(file.FullName, expectedSha1, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async ValueTask<bool> IsFileSha1MatchAsync(
+        string path,
+        string expectedSha1,
+        CancellationToken cancellationToken)
+    {
+        string normalized = expectedSha1.Trim();
+        if (normalized.Length != SHA1Provider.Instance.HashSizeInBytes * 2)
+            return false;
+
+        await using FileStream stream = new(
+            path,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read,
+            bufferSize: 64 * 1024,
+            useAsync: true);
+        byte[] hash = await SHA1Provider.Instance.ComputeHashAsync(stream, cancellationToken).ConfigureAwait(false);
+        return Convert.ToHexString(hash).Equals(normalized, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void DeleteInvalidDownload(string localPath)
+    {
+        try
+        {
+            File.Delete(localPath);
+            File.Delete(localPath + ".PCLDownloading");
+        }
+        catch (IOException)
+        {
+            // The next install attempt will revalidate and retry the file.
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // Keep the original validation failure as the actionable error.
+        }
     }
 
     private static MinecraftInstallProgress CreateProgress(
@@ -703,6 +784,7 @@ public sealed class MinecraftVanillaInstallService
         IReadOnlyList<string> Urls,
         string LocalPath,
         long ExpectedSize,
+        string? ExpectedSha1,
         string Stage);
 
     private sealed record PlannedDownloadWorkItem(PlannedDownload File, int Index);
