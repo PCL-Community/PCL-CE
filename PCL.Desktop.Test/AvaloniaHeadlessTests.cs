@@ -1317,17 +1317,23 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual(1, changeCount);
                 Assert.AreEqual(true, lastChecked);
                 Assert.AreEqual(true, lastUser);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyCheckBox Background Scale " + checkBox.Uuid));
+                Assert.IsTrue(ModAnimation.AniIsRun("MyCheckBox Check Scale Show" + checkBox.Uuid));
+                Assert.IsTrue(ModAnimation.AniIsRun("MyCheckBox BorderColor " + checkBox.Uuid));
                 ModAnimation.AdvanceForTesting(16, 32);
                 Assert.AreEqual(1d, ((ScaleTransform)check.RenderTransform!).ScaleX, 0.01d);
 
                 Click(window, checkBox);
                 Assert.IsNull(checkBox.Checked);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyCheckBox Check Scale Hide" + checkBox.Uuid));
+                Assert.IsTrue(ModAnimation.AniIsRun("MyCheckBox Indeterminate Scale Show" + checkBox.Uuid));
                 ModAnimation.AdvanceForTesting(16, 32);
                 Assert.AreEqual(0d, ((ScaleTransform)check.RenderTransform!).ScaleX, 0.01d);
                 Assert.AreEqual(1d, ((ScaleTransform)indeterminate.RenderTransform!).ScaleX, 0.01d);
 
                 Click(window, checkBox);
                 Assert.AreEqual(false, checkBox.Checked);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyCheckBox Indeterminate Scale Hide" + checkBox.Uuid));
                 ModAnimation.AdvanceForTesting(16, 32);
                 Assert.AreEqual(0d, ((ScaleTransform)indeterminate.RenderTransform!).ScaleX, 0.01d);
             }
