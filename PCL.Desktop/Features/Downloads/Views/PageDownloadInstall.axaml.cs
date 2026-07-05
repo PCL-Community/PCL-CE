@@ -14,6 +14,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using PCL.Application.Downloads;
 using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Features.Shared;
 
 namespace PCL.Desktop.Features.Downloads.Views;
 
@@ -31,23 +32,6 @@ public partial class PageDownloadInstall : MyPageRight
         MinecraftVersionCategory.Snapshot,
         MinecraftVersionCategory.BeforeRelease,
         MinecraftVersionCategory.AprilFools
-    ];
-
-    private static readonly string[] LoaderCardNames =
-    [
-        "Forge",
-        "Cleanroom",
-        "NeoForge",
-        "Fabric",
-        "LegacyFabric",
-        "FabricApi",
-        "LegacyFabricApi",
-        "Quilt",
-        "QSL",
-        "LabyMod",
-        "OptiFine",
-        "OptiFabric",
-        "LiteLoader"
     ];
 
     private static readonly string[] AprilFoolsVersionIds =
@@ -589,13 +573,13 @@ public partial class PageDownloadInstall : MyPageRight
     private void InitializeLoaderCards()
     {
         CollapseLoaderCards();
-        foreach (string name in LoaderCardNames)
+        foreach (string name in MinecraftLoaderCardRegistry.AllCardNames)
             SetLoaderInfo(name, LoaderSupportState.VisibleClosed(CanAddText()));
     }
 
     private void WireLoaderCards()
     {
-        foreach (string name in LoaderCardNames)
+        foreach (string name in MinecraftLoaderCardRegistry.AllCardNames)
         {
             if (this.FindControl<MyCard>("Card" + name) is not { } card)
                 continue;
@@ -695,7 +679,7 @@ public partial class PageDownloadInstall : MyPageRight
 
     private void CollapseLoaderCards()
     {
-        foreach (string name in LoaderCardNames)
+        foreach (string name in MinecraftLoaderCardRegistry.AllCardNames)
         {
             if (this.FindControl<MyCard>("Card" + name) is { } card)
                 card.IsSwapped = true;

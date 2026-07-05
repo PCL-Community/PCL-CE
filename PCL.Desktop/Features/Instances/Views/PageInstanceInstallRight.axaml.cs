@@ -11,28 +11,12 @@ using Avalonia.Platform;
 using PCL.Application.Instances;
 using PCL.Desktop.Controls.Legacy;
 using PCL.Desktop.Features.Launching.Views;
+using PCL.Desktop.Features.Shared;
 
 namespace PCL.Desktop.Features.Instances.Views;
 
 public partial class PageInstanceInstallRight : MyPageRight
 {
-    private static readonly string[] LoaderCardNames =
-    [
-        "Forge",
-        "Cleanroom",
-        "NeoForge",
-        "Fabric",
-        "LegacyFabric",
-        "FabricApi",
-        "LegacyFabricApi",
-        "Quilt",
-        "QSL",
-        "LabyMod",
-        "OptiFine",
-        "OptiFabric",
-        "LiteLoader"
-    ];
-
     private LaunchInstanceInfo? _instance;
 
     public PageInstanceInstallRight()
@@ -168,7 +152,7 @@ public partial class PageInstanceInstallRight : MyPageRight
 
     private void CollapseLoaderCards()
     {
-        foreach (string name in LoaderCardNames)
+        foreach (string name in MinecraftLoaderCardRegistry.AllCardNames)
         {
             if (this.FindControl<MyCard>("Card" + name) is { } card)
                 card.IsSwapped = true;

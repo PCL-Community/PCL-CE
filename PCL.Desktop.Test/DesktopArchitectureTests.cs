@@ -212,6 +212,37 @@ public sealed class DesktopArchitectureTests
     }
 
     [TestMethod]
+    public void DesktopLoaderCards_UseSharedStaticRegistry()
+    {
+        string desktopRoot = FindDesktopProjectRoot();
+        string downloadInstallSource = File.ReadAllText(Path.Combine(
+            desktopRoot,
+            "Features",
+            "Downloads",
+            "Views",
+            "PageDownloadInstall.axaml.cs"));
+        string instanceInstallSource = File.ReadAllText(Path.Combine(
+            desktopRoot,
+            "Features",
+            "Instances",
+            "Views",
+            "PageInstanceInstallRight.axaml.cs"));
+        string registrySource = File.ReadAllText(Path.Combine(
+            desktopRoot,
+            "Features",
+            "Shared",
+            "MinecraftLoaderCardRegistry.cs"));
+
+        StringAssert.Contains(downloadInstallSource, "MinecraftLoaderCardRegistry.AllCardNames");
+        StringAssert.Contains(instanceInstallSource, "MinecraftLoaderCardRegistry.AllCardNames");
+        Assert.IsFalse(downloadInstallSource.Contains("LoaderCardNames", StringComparison.Ordinal));
+        Assert.IsFalse(instanceInstallSource.Contains("LoaderCardNames", StringComparison.Ordinal));
+        StringAssert.Contains(registrySource, "\"LegacyFabricApi\"");
+        StringAssert.Contains(registrySource, "\"OptiFabric\"");
+        StringAssert.Contains(registrySource, "ReadOnlySpan<string>");
+    }
+
+    [TestMethod]
     public void DesktopBuildInfo_UsesGeneratedStaticMetadata()
     {
         string desktopRoot = FindDesktopProjectRoot();
