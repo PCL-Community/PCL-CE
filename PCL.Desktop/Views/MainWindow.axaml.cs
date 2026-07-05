@@ -83,7 +83,6 @@ public partial class MainWindow : Window, IDisposable
     private bool _isTitleSubPageVisible;
     private Action? _titleInnerBackAction;
     private MyScrollViewer? _backButtonScrollViewer;
-    private CancellationTokenSource? _installCancellation;
     private CancellationTokenSource? _launchCancellation;
     private readonly MinecraftVanillaInstallService _minecraftInstallService = new();
     private readonly ThirdPartyAuthService _thirdPartyAuthService = new();
@@ -92,9 +91,11 @@ public partial class MainWindow : Window, IDisposable
     private readonly List<LoginProfileInfo> _loginProfiles = [];
     private readonly NavigationPageDescriptor[] _navigationPages;
     private readonly Dictionary<string, TaskManagerEntrySnapshot> _taskSnapshots = [];
+    private readonly Dictionary<string, CancellationTokenSource> _taskCancellations = [];
     private readonly DesktopPageAdapter _pageAdapter = new();
     private readonly DesktopPageContext _desktopPageContext;
     private int _registeredPageRequestId;
+    private int _taskSequence;
     private bool _isTaskManagerVisible;
     private NavigationRouteId? _taskManagerBackRoute;
 
@@ -170,7 +171,7 @@ public partial class MainWindow : Window, IDisposable
 
     private void FormMain_Closing(object? sender, WindowClosingEventArgs e)
     {
-        _installCancellation?.Cancel();
+        CancelAllTrackedTasks();
         _launchCancellation?.Cancel();
     }
 
@@ -782,7 +783,7 @@ public partial class MainWindow : Window, IDisposable
             return _speedRight;
 
         PageSpeedRight page = new();
-        page.CancelRequested += (_, _) => _installCancellation?.Cancel();
+        page.CancelRequested += (_, args) => CancelTrackedTask(args.TaskId);
         _speedRight = page;
         return _speedRight;
     }
@@ -1328,6 +1329,60 @@ public partial class MainWindow : Window, IDisposable
             snapshot.State is TaskManagerTaskState.Waiting or TaskManagerTaskState.Running);
         button.Progress = hasActiveTask ? CreateTaskManagerSummary().Progress : 0d;
         button.Show = hasActiveTask && !_isTaskManagerVisible;
+    }
+
+    private string CreateTaskId(string kind, string identity)
+    {
+        int sequence = Interlocked.Increment(ref _taskSequence);
+        string safeIdentity = identity
+            .Replace(Path.DirectorySeparatorChar, '_')
+            .Replace(Path.AltDirectorySeparatorChar, '_');
+        return string.Concat(kind, ":", sequence.ToString(CultureInfo.InvariantCulture), ":", safeIdentity);
+    }
+
+    private CancellationTokenSource RegisterTrackedTask(string taskId)
+    {
+        CancellationTokenSource cancellation = new();
+        if (_taskCancellations.Remove(taskId, out CancellationTokenSource? previous))
+        {
+            previous.Cancel();
+            previous.Dispose();
+        }
+
+        _taskCancellations.Add(taskId, cancellation);
+        return cancellation;
+    }
+
+    private void CancelTrackedTask(string taskId)
+    {
+        if (_taskCancellations.TryGetValue(taskId, out CancellationTokenSource? cancellation))
+            cancellation.Cancel();
+    }
+
+    private void UnregisterTrackedTask(string taskId, CancellationTokenSource cancellation)
+    {
+        if (_taskCancellations.TryGetValue(taskId, out CancellationTokenSource? registered) &&
+            ReferenceEquals(registered, cancellation))
+        {
+            _taskCancellations.Remove(taskId);
+        }
+    }
+
+    private void CancelAllTrackedTasks()
+    {
+        foreach (CancellationTokenSource cancellation in _taskCancellations.Values)
+            cancellation.Cancel();
+    }
+
+    private void DisposeTrackedTasks()
+    {
+        foreach (CancellationTokenSource cancellation in _taskCancellations.Values)
+        {
+            cancellation.Cancel();
+            cancellation.Dispose();
+        }
+
+        _taskCancellations.Clear();
     }
 
     private PageInstanceScreenshotRight CreateInstanceScreenshotPage()
@@ -2065,11 +2120,8 @@ public partial class MainWindow : Window, IDisposable
 
     private async Task StartInstallAsync(DownloadInstallRequest request)
     {
-        _installCancellation?.Cancel();
-        _installCancellation?.Dispose();
-        _installCancellation = new CancellationTokenSource();
-
-        string taskId = "install:" + request.VersionId;
+        string taskId = CreateTaskId("install", request.VersionId);
+        using CancellationTokenSource cancellation = RegisterTrackedTask(taskId);
         string taskTitle = "安装 " + request.VersionId;
         ActivateTaskManagerPage(animate: true);
         TrackTaskBegin(taskId, taskTitle, "准备安装文件");
@@ -2093,7 +2145,7 @@ public partial class MainWindow : Window, IDisposable
                         Loader = request.Loader
                     },
                     progress,
-                    _installCancellation.Token)
+                    cancellation.Token)
                 .ConfigureAwait(true);
             TrackTaskFinished(taskId, taskTitle, "安装完成");
             _launchRight?.AppendLog($"{request.VersionId} 安装完成。");
@@ -2115,6 +2167,10 @@ public partial class MainWindow : Window, IDisposable
         {
             TrackTaskFailed(taskId, taskTitle, ex.Message, canceled: false);
             ShowTextDialog("安装失败", "未能完成 Minecraft 安装。\n\n详细信息：" + ex.Message);
+        }
+        finally
+        {
+            UnregisterTrackedTask(taskId, cancellation);
         }
     }
 
@@ -2560,11 +2616,8 @@ public partial class MainWindow : Window, IDisposable
 
     private async Task RepairInstanceFilesAsync(LaunchInstanceInfo instance)
     {
-        _installCancellation?.Cancel();
-        _installCancellation?.Dispose();
-        _installCancellation = new CancellationTokenSource();
-
-        string taskId = "repair:" + instance.InstanceDirectory;
+        string taskId = CreateTaskId("repair", instance.InstanceDirectory);
+        using CancellationTokenSource cancellation = RegisterTrackedTask(taskId);
         string taskTitle = "修复 " + instance.Name;
         ActivateTaskManagerPage(animate: true);
         TrackTaskBegin(taskId, taskTitle, "准备检查版本文件");
@@ -2582,7 +2635,7 @@ public partial class MainWindow : Window, IDisposable
                         PreferOfficialSource = true
                     },
                     progress,
-                    _installCancellation.Token)
+                    cancellation.Token)
                 .ConfigureAwait(true);
             TrackTaskFinished(taskId, taskTitle, "文件检查完成");
             _launchRight?.AppendLog($"{instance.Name} 文件检查完成。");
@@ -2595,6 +2648,10 @@ public partial class MainWindow : Window, IDisposable
         {
             TrackTaskFailed(taskId, taskTitle, ex.Message, canceled: false);
             ShowTextDialog("修复失败", "未能修复版本文件。\n\n详细信息：" + ex.Message);
+        }
+        finally
+        {
+            UnregisterTrackedTask(taskId, cancellation);
         }
     }
 
@@ -3093,8 +3150,7 @@ public partial class MainWindow : Window, IDisposable
 
     public void Dispose()
     {
-        _installCancellation?.Cancel();
-        _installCancellation?.Dispose();
+        DisposeTrackedTasks();
         _launchCancellation?.Cancel();
         _launchCancellation?.Dispose();
         (_launchLeft as IDisposable)?.Dispose();

@@ -111,31 +111,52 @@ public partial class PageSpeedRight : MyPageRight
         return taskCard;
     }
 
-    private void UpdateContentRows(TaskCardView card, TaskManagerEntrySnapshot snapshot)
+    private static void UpdateContentRows(TaskCardView card, TaskManagerEntrySnapshot snapshot)
     {
-        card.Content.RowDefinitions.Clear();
-        card.Content.Children.Clear();
         if (snapshot.State is TaskManagerTaskState.Failed or TaskManagerTaskState.Canceled)
         {
             AddErrorRow(card.Content, snapshot);
+            card.Rows.Clear();
+            card.ErrorMode = true;
             return;
+        }
+
+        if (card.ErrorMode)
+        {
+            card.Content.RowDefinitions.Clear();
+            card.Content.Children.Clear();
+            card.Rows.Clear();
+            card.ErrorMode = false;
         }
 
         IReadOnlyList<TaskManagerSubTaskSnapshot> rows = CreateTaskRows(snapshot);
         for (int i = 0; i < rows.Count; i++)
         {
             TaskManagerSubTaskSnapshot row = rows[i];
-            AddTaskRow(
-                card.Content,
-                i,
-                CreateStatusIndicator(row.State, row.Progress),
-                BuildTaskRowText(row));
+            if (i >= card.Rows.Count)
+            {
+                card.Rows.Add(AddTaskRow(
+                    card.Content,
+                    i,
+                    CreateStatusIndicator(card.Content, row.State, row.Progress),
+                    BuildTaskRowText(row)));
+                continue;
+            }
+
+            UpdateTaskRow(card.Content, card.Rows[i], i, row);
         }
+
+        while (card.Rows.Count > rows.Count)
+            RemoveTaskRow(card.Content, card.Rows, card.Rows.Count - 1);
+
+        SyncRowDefinitions(card.Content, rows.Count);
     }
 
-    private static void AddTaskRow(Grid content, int row, Control status, string text)
+    private static TaskRowView AddTaskRow(Grid content, int row, Control status, string text)
     {
-        content.RowDefinitions.Add(new RowDefinition(26d, GridUnitType.Pixel));
+        if (content.RowDefinitions.Count <= row)
+            content.RowDefinitions.Add(new RowDefinition(26d, GridUnitType.Pixel));
+
         Grid.SetColumn(status, 0);
         Grid.SetRow(status, row);
         content.Children.Add(status);
@@ -151,12 +172,54 @@ public partial class PageSpeedRight : MyPageRight
         Grid.SetColumn(name, 1);
         Grid.SetRow(name, row);
         content.Children.Add(name);
+        return new TaskRowView(status, name);
     }
 
-    private void AddErrorRow(Grid content, TaskManagerEntrySnapshot snapshot)
+    private static void UpdateTaskRow(Grid content, TaskRowView rowView, int row, TaskManagerSubTaskSnapshot snapshot)
     {
+        Control status = rowView.Status;
+        string expectedTag = StatusTag(snapshot.State);
+        if (!string.Equals(status.Tag as string, expectedTag, StringComparison.Ordinal))
+        {
+            content.Children.Remove(status);
+            status = CreateStatusIndicator(content, snapshot.State, snapshot.Progress);
+            Grid.SetColumn(status, 0);
+            Grid.SetRow(status, row);
+            content.Children.Add(status);
+            rowView.Status = status;
+        }
+        else if (status is TextBlock statusText)
+        {
+            statusText.Text = ToStatusText(snapshot.State, snapshot.Progress);
+        }
+
+        Grid.SetRow(status, row);
+        Grid.SetRow(rowView.Text, row);
+        rowView.Text.Text = BuildTaskRowText(snapshot);
+    }
+
+    private static void RemoveTaskRow(Grid content, List<TaskRowView> rows, int index)
+    {
+        TaskRowView row = rows[index];
+        content.Children.Remove(row.Status);
+        content.Children.Remove(row.Text);
+        rows.RemoveAt(index);
+    }
+
+    private static void SyncRowDefinitions(Grid content, int rowCount)
+    {
+        while (content.RowDefinitions.Count < rowCount)
+            content.RowDefinitions.Add(new RowDefinition(26d, GridUnitType.Pixel));
+        while (content.RowDefinitions.Count > rowCount)
+            content.RowDefinitions.RemoveAt(content.RowDefinitions.Count - 1);
+    }
+
+    private static void AddErrorRow(Grid content, TaskManagerEntrySnapshot snapshot)
+    {
+        content.RowDefinitions.Clear();
+        content.Children.Clear();
         content.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
-        Control status = CreateStatusIndicator(snapshot.State, snapshot.Progress);
+        Control status = CreateStatusIndicator(content, snapshot.State, snapshot.Progress);
         Grid.SetColumn(status, 0);
         Grid.SetRow(status, 0);
         content.Children.Add(status);
@@ -180,10 +243,10 @@ public partial class PageSpeedRight : MyPageRight
         content.Children.Add(error);
     }
 
-    private Control CreateStatusIndicator(TaskManagerTaskState state, double progress) =>
+    private static Control CreateStatusIndicator(Control resourceOwner, TaskManagerTaskState state, double progress) =>
         state switch
         {
-            TaskManagerTaskState.Waiting => CreateWaitingPath(),
+            TaskManagerTaskState.Waiting => CreateWaitingPath(resourceOwner),
             TaskManagerTaskState.Running => new TextBlock
             {
                 Text = ToStatusText(state, progress),
@@ -191,14 +254,14 @@ public partial class PageSpeedRight : MyPageRight
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
                 TextAlignment = TextAlignment.Center,
-                Foreground = Brush("ColorBrush3", "#1370f3")
+                Foreground = Brush(resourceOwner, "ColorBrush3", "#1370f3")
             },
-            TaskManagerTaskState.Finished => CreateFinishedPath(),
-            TaskManagerTaskState.Failed or TaskManagerTaskState.Canceled => CreateFailedPath(),
+            TaskManagerTaskState.Finished => CreateFinishedPath(resourceOwner),
+            TaskManagerTaskState.Failed or TaskManagerTaskState.Canceled => CreateFailedPath(resourceOwner),
             _ => new TextBlock()
         };
 
-    private PathShape CreateWaitingPath() =>
+    private static PathShape CreateWaitingPath(Control resourceOwner) =>
         new()
         {
             Tag = "Waiting",
@@ -209,10 +272,10 @@ public partial class PageSpeedRight : MyPageRight
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Top,
             Margin = new Thickness(0d, 7d, 0d, 0d),
-            Fill = Brush("ColorBrush3", "#1370f3")
+            Fill = Brush(resourceOwner, "ColorBrush3", "#1370f3")
         };
 
-    private PathShape CreateFinishedPath() =>
+    private static PathShape CreateFinishedPath(Control resourceOwner) =>
         new()
         {
             Tag = "Finished",
@@ -223,10 +286,10 @@ public partial class PageSpeedRight : MyPageRight
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Top,
             Margin = new Thickness(0d, 3d, 0d, 0d),
-            Fill = Brush("ColorBrush3", "#1370f3")
+            Fill = Brush(resourceOwner, "ColorBrush3", "#1370f3")
         };
 
-    private PathShape CreateFailedPath() =>
+    private static PathShape CreateFailedPath(Control resourceOwner) =>
         new()
         {
             Tag = "Failed",
@@ -237,7 +300,17 @@ public partial class PageSpeedRight : MyPageRight
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Top,
             Margin = new Thickness(0d, 1d, 0d, 0d),
-            Fill = Brush("ColorBrush3", "#1370f3")
+            Fill = Brush(resourceOwner, "ColorBrush3", "#1370f3")
+        };
+
+    private static string StatusTag(TaskManagerTaskState state) =>
+        state switch
+        {
+            TaskManagerTaskState.Waiting => "Waiting",
+            TaskManagerTaskState.Running => "Loading",
+            TaskManagerTaskState.Finished => "Finished",
+            TaskManagerTaskState.Failed or TaskManagerTaskState.Canceled => "Failed",
+            _ => string.Empty
         };
 
     private static string BuildTaskRowText(TaskManagerSubTaskSnapshot snapshot)
@@ -292,8 +365,8 @@ public partial class PageSpeedRight : MyPageRight
             _ => string.Empty
         };
 
-    private IBrush Brush(string key, string fallback) =>
-        LegacyResourceResolver.Brush(this, key, fallback);
+    private static IBrush Brush(Control resourceOwner, string key, string fallback) =>
+        LegacyResourceResolver.Brush(resourceOwner, key, fallback);
 
     private T Required<T>(string name)
         where T : Control
@@ -323,5 +396,13 @@ public partial class PageSpeedRight : MyPageRight
         public Grid Content { get; } = content;
         public MyIconButton CancelButton { get; } = cancelButton;
         public TaskManagerTaskState State { get; set; } = state;
+        public List<TaskRowView> Rows { get; } = [];
+        public bool ErrorMode { get; set; }
+    }
+
+    private sealed class TaskRowView(Control status, TextBlock text)
+    {
+        public Control Status { get; set; } = status;
+        public TextBlock Text { get; } = text;
     }
 }

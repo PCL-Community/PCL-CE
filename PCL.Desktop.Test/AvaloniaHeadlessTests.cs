@@ -2975,6 +2975,39 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsTrue(text.Any(value => value.Contains("下载运行库", StringComparison.Ordinal)));
                 Assert.IsTrue(text.Contains("42%"));
 
+                page.UpsertTask(new TaskManagerEntrySnapshot(
+                    "install:1.20.1",
+                    "安装 1.20.1",
+                    "下载运行库",
+                    "5 / 10 个文件",
+                    0.55d,
+                    5,
+                    10,
+                    4096,
+                    TaskManagerTaskState.Running,
+                    Steps:
+                    [
+                        new TaskManagerSubTaskSnapshot("下载版本描述", "1.20.1.json", 1d, TaskManagerTaskState.Finished),
+                        new TaskManagerSubTaskSnapshot("下载运行库", "5 / 10 个文件", 0.5d, TaskManagerTaskState.Running)
+                    ]));
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Assert.AreSame(card, page.GetVisualDescendants().OfType<MyCard>().Single(card => card.Title == "安装 1.20.1"));
+                Assert.IsTrue(page.GetVisualDescendants().OfType<TextBlock>().Any(block => block.Text == "50%"));
+                Assert.IsTrue(page.GetVisualDescendants().OfType<TextBlock>().Any(block => block.Text?.Contains("5 / 10 个文件", StringComparison.Ordinal) == true));
+
+                page.UpsertTask(new TaskManagerEntrySnapshot(
+                    "repair:demo",
+                    "修复 demo",
+                    "下载资源文件",
+                    "2 / 5 个文件",
+                    0.2d,
+                    2,
+                    5,
+                    1024,
+                    TaskManagerTaskState.Running));
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Assert.AreEqual(2, page.TaskCount);
+
                 MyIconButton cancelButton = card.GetVisualDescendants()
                     .OfType<MyIconButton>()
                     .Single(button => Equals(button.ToolTip, "取消任务"));
@@ -2982,6 +3015,17 @@ public sealed class AvaloniaHeadlessTests
                 Click(window, cancelButton);
                 Assert.AreEqual(1, cancelCount);
                 Assert.AreEqual("install:1.20.1", canceledTask);
+
+                MyCard repairCard = page.GetVisualDescendants().OfType<MyCard>().Single(card => card.Title == "修复 demo");
+                MyIconButton repairCancelButton = repairCard.GetVisualDescendants()
+                    .OfType<MyIconButton>()
+                    .Single(button => Equals(button.ToolTip, "取消任务"));
+                Click(window, repairCancelButton);
+                Assert.AreEqual(2, cancelCount);
+                Assert.AreEqual("repair:demo", canceledTask);
+                page.RemoveTask("repair:demo");
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Assert.AreEqual(1, page.TaskCount);
 
                 page.UpsertTask(new TaskManagerEntrySnapshot(
                     "install:1.20.1",
