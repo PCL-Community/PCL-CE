@@ -108,7 +108,19 @@ public class FileConfigStorage : ConfigStorage
                 catch (Exception ex)
                 {
                     LogWrapper.Warn(ex, "Config", $"配置项 {strKey} 读取失败（可能已损坏），重置为默认值");
-                    _writeActionChannel.Writer.TryWrite((strKey, () => File.Remove(strKey)));
+                    if (!_writeActionChannel.Writer.TryWrite((strKey, () => File.Remove(strKey))))
+                    {
+                        LogWrapper.Warn("Config", $"配置项 {strKey} 清理任务入队失败，改为同步删除");
+                        try
+                        {
+                            File.Remove(strKey);
+                            File.Sync();
+                        }
+                        catch (Exception cleanupEx)
+                        {
+                            LogWrapper.Error(cleanupEx, "Config", $"配置项 {strKey} 同步删除失败，可能需人工处理");
+                        }
+                    }
                     return false;
                 }
                 return true;
