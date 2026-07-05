@@ -621,6 +621,8 @@ public partial class MyListItem : Grid, IMyRadio
         ModAnimation.AniStart(animations, $"MyListItem Checked {_uuid}");
     }
 
+    public void RefreshColor(object? sender, EventArgs? e) => RefreshColor(animate: _isLoaded);
+
     private void RefreshColor(bool animate)
     {
         string stateNew;

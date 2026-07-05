@@ -2097,6 +2097,67 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void MyPageLeft_SuspendsListItemHoverDuringShowAnimation()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MyListItem visibleItem = new()
+            {
+                Title = "游戏",
+                Type = MyListItem.CheckType.Clickable,
+                Width = 180,
+                Height = 42
+            };
+            MyListItem collapsedItem = new()
+            {
+                Title = "隐藏",
+                Type = MyListItem.CheckType.Clickable,
+                Width = 180,
+                Height = 42,
+                IsVisible = false
+            };
+            StackPanel content = new();
+            content.Children.Add(visibleItem);
+            content.Children.Add(collapsedItem);
+            MyPageLeft page = new()
+            {
+                AnimatedControl = content,
+                Width = 220,
+                Height = 120
+            };
+            page.Children.Add(content);
+            Window window = new()
+            {
+                Width = 260,
+                Height = 180,
+                Content = page
+            };
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                page.TriggerShowAnimation();
+
+                Assert.IsFalse(visibleItem.isMouseOverAnimationEnabled);
+                Assert.IsTrue(collapsedItem.isMouseOverAnimationEnabled);
+
+                ModAnimation.AdvanceForTesting(16, 20);
+
+                Assert.IsTrue(visibleItem.isMouseOverAnimationEnabled);
+                visibleItem.RefreshColor(page, EventArgs.Empty);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void MainWindow_NavigationSwitchFadesPageContent()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();

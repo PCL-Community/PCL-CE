@@ -52,11 +52,15 @@ public class MyPageLeft : Grid
             {
                 control.Opacity = 1d;
                 control.RenderTransform = new TranslateTransform();
+                if (control is MyListItem collapsedItem)
+                    collapsedItem.isMouseOverAnimationEnabled = true;
                 continue;
             }
 
             control.Opacity = 0d;
             control.RenderTransform = new TranslateTransform(-25d, 0d);
+            if (control is MyListItem listItem)
+                listItem.isMouseOverAnimationEnabled = false;
             animations.Add(ModAnimation.AaOpacity(
                 control,
                 control is TextBlock ? 0.6d : 1d,
@@ -70,6 +74,17 @@ public class MyPageLeft : Grid
                 300,
                 delay,
                 new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)));
+            if (control is MyListItem)
+            {
+                MyListItem animatedListItem = (MyListItem)control;
+                animations.Add(ModAnimation.AaCode(
+                    () =>
+                    {
+                        animatedListItem.isMouseOverAnimationEnabled = true;
+                        animatedListItem.RefreshColor(this, EventArgs.Empty);
+                    },
+                    delay + 280));
+            }
             delay += Math.Max(15 - id, 7) * 2;
             id++;
         }
