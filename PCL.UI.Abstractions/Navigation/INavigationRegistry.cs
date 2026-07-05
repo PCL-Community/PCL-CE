@@ -27,55 +27,66 @@ public interface INavigationRegistry
 
     void AddPage(NavigationPageDescriptor descriptor);
 
-    bool RemovePage(string route);
+    bool RemovePage(NavigationRouteId route);
 
-    bool ReplacePage(string route, NavigationPageDescriptor descriptor);
+    bool ReplacePage(NavigationRouteId route, NavigationPageDescriptor descriptor);
 }
 
 public sealed class NavigationRegistry : INavigationRegistry
 {
     private readonly List<NavigationPageDescriptor> _pages = [];
+    private readonly Dictionary<string, NavigationPageDescriptor> _pageMap = new(StringComparer.OrdinalIgnoreCase);
+    private IReadOnlyList<NavigationPageDescriptor> _snapshot = Array.Empty<NavigationPageDescriptor>();
 
-    public IReadOnlyList<NavigationPageDescriptor> Pages =>
-        _pages
-            .OrderBy(static page => page.Order)
-            .ThenBy(static page => page.Route.Value, StringComparer.Ordinal)
-            .ToArray();
+    public IReadOnlyList<NavigationPageDescriptor> Pages => _snapshot;
 
     public void AddPage(NavigationPageDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         ValidateDescriptor(descriptor);
-        if (_pages.Any(page => page.Route.Equals(descriptor.Route.Value)))
+        if (!_pageMap.TryAdd(descriptor.Route.Value, descriptor))
             throw new InvalidOperationException($"导航路由已注册：{descriptor.Route}");
 
         _pages.Add(descriptor);
+        RefreshSnapshot();
     }
 
-    public bool RemovePage(string route)
+    public bool RemovePage(NavigationRouteId route)
     {
+        if (route.IsEmpty || !_pageMap.Remove(route.Value))
+            return false;
+
         int index = FindRoute(route);
         if (index < 0)
             return false;
 
         _pages.RemoveAt(index);
+        RefreshSnapshot();
         return true;
     }
 
-    public bool ReplacePage(string route, NavigationPageDescriptor descriptor)
+    public bool ReplacePage(NavigationRouteId route, NavigationPageDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         ValidateDescriptor(descriptor);
+        if (route.IsEmpty || !_pageMap.ContainsKey(route.Value))
+            return false;
+        if (!descriptor.Route.Equals(route.Value) && _pageMap.ContainsKey(descriptor.Route.Value))
+            throw new InvalidOperationException($"导航路由已注册：{descriptor.Route}");
+
         int index = FindRoute(route);
         if (index < 0)
             return false;
 
+        _pageMap.Remove(route.Value);
+        _pageMap[descriptor.Route.Value] = descriptor;
         _pages[index] = descriptor;
+        RefreshSnapshot();
         return true;
     }
 
-    private int FindRoute(string route) =>
-        _pages.FindIndex(page => page.Route.Equals(route));
+    private int FindRoute(NavigationRouteId route) =>
+        _pages.FindIndex(page => page.Route.Equals(route.Value));
 
     private static void ValidateDescriptor(NavigationPageDescriptor descriptor)
     {
@@ -84,4 +95,10 @@ public sealed class NavigationRegistry : INavigationRegistry
         if (string.IsNullOrWhiteSpace(descriptor.Title))
             throw new ArgumentException("导航标题不能为空。", nameof(descriptor));
     }
+
+    private void RefreshSnapshot() =>
+        _snapshot = _pages
+            .OrderBy(static page => page.Order)
+            .ThenBy(static page => page.Route.Value, StringComparer.Ordinal)
+            .ToArray();
 }

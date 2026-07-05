@@ -67,6 +67,7 @@ public interface IPclHost
 public sealed class PclHostBuilder : IPclHostBuilder
 {
     private readonly List<HostModuleId> _moduleIds = [];
+    private readonly HashSet<string> _moduleIdSet = new(StringComparer.OrdinalIgnoreCase);
 
     public IServiceRegistry Services { get; } = new ServiceRegistry();
 
@@ -91,10 +92,11 @@ public sealed class PclHostBuilder : IPclHostBuilder
         ArgumentNullException.ThrowIfNull(configure);
         if (string.IsNullOrWhiteSpace(id.Value))
             throw new ArgumentException("Host Module ID 不能为空。", nameof(id));
-        if (_moduleIds.Any(registered => string.Equals(registered.Value, id.Value, StringComparison.OrdinalIgnoreCase)))
+        if (_moduleIdSet.Contains(id.Value))
             throw new InvalidOperationException($"Host Module 已注册：{id.Value}");
 
         configure(this);
+        _moduleIdSet.Add(id.Value);
         _moduleIds.Add(id);
         return this;
     }

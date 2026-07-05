@@ -27,12 +27,10 @@ public interface IThemeRegistry
 public sealed class ThemeRegistry : IThemeRegistry
 {
     private readonly List<ThemeDescriptor> _themes = [];
+    private readonly Dictionary<string, ThemeDescriptor> _themeMap = new(StringComparer.OrdinalIgnoreCase);
+    private IReadOnlyList<ThemeDescriptor> _snapshot = Array.Empty<ThemeDescriptor>();
 
-    public IReadOnlyList<ThemeDescriptor> Themes =>
-        _themes
-            .OrderBy(static theme => theme.Order)
-            .ThenBy(static theme => theme.Id.Value, StringComparer.Ordinal)
-            .ToArray();
+    public IReadOnlyList<ThemeDescriptor> Themes => _snapshot;
 
     public void AddTheme(ThemeDescriptor descriptor)
     {
@@ -41,19 +39,30 @@ public sealed class ThemeRegistry : IThemeRegistry
             throw new ArgumentException("主题 ID 不能为空。", nameof(descriptor));
         if (string.IsNullOrWhiteSpace(descriptor.DisplayName))
             throw new ArgumentException("主题名称不能为空。", nameof(descriptor));
-        if (_themes.Any(theme => theme.Id.Equals(descriptor.Id.Value)))
+        if (!_themeMap.TryAdd(descriptor.Id.Value, descriptor))
             throw new InvalidOperationException($"主题已注册：{descriptor.Id}");
 
         _themes.Add(descriptor);
+        RefreshSnapshot();
     }
 
     public bool RemoveTheme(ThemeId id)
     {
+        if (string.IsNullOrWhiteSpace(id.Value) || !_themeMap.Remove(id.Value))
+            return false;
+
         int index = _themes.FindIndex(theme => theme.Id.Equals(id.Value));
         if (index < 0)
             return false;
 
         _themes.RemoveAt(index);
+        RefreshSnapshot();
         return true;
     }
+
+    private void RefreshSnapshot() =>
+        _snapshot = _themes
+            .OrderBy(static theme => theme.Order)
+            .ThenBy(static theme => theme.Id.Value, StringComparer.Ordinal)
+            .ToArray();
 }

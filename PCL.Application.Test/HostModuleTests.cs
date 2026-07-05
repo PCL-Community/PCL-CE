@@ -175,6 +175,55 @@ public sealed class HostModuleTests
     }
 
     [TestMethod]
+    public void Registries_ExposeStableSnapshotsBetweenMutations()
+    {
+        CommandRegistry commands = new();
+        commands.AddCommand(CreateCommand("sample.command"));
+        IReadOnlyList<CommandDescriptor> commandsSnapshot = commands.Commands;
+
+        Assert.AreSame(commandsSnapshot, commands.Commands);
+        Assert.IsTrue(commands.TryGetCommand("SAMPLE.COMMAND", out CommandDescriptor command));
+        Assert.AreEqual("sample.command", command.Id.Value);
+
+        commands.AddCommand(CreateCommand("sample.next"));
+
+        Assert.AreNotSame(commandsSnapshot, commands.Commands);
+        Assert.IsTrue(commands.RemoveCommand("SAMPLE.NEXT"));
+        Assert.IsFalse(commands.TryGetCommand(default, out _));
+
+        ThemeRegistry themes = new();
+        themes.AddTheme(new ThemeDescriptor { Id = "sample.z", DisplayName = "Z", Order = 2 });
+        themes.AddTheme(new ThemeDescriptor { Id = "sample.a", DisplayName = "A", Order = 1 });
+        IReadOnlyList<ThemeDescriptor> themesSnapshot = themes.Themes;
+
+        Assert.AreSame(themesSnapshot, themes.Themes);
+        CollectionAssert.AreEqual(
+            new[] { new ThemeId("sample.a"), new ThemeId("sample.z") },
+            themes.Themes.Select(static theme => theme.Id).ToArray());
+    }
+
+    [TestMethod]
+    public void NavigationRegistry_ReplaceAndRemoveKeepStrongIdIndexInSync()
+    {
+        NavigationRegistry navigation = new();
+        navigation.AddPage(CreatePage("sample.a", order: 2));
+        navigation.AddPage(CreatePage("sample.b", order: 1));
+
+        Assert.IsTrue(navigation.ReplacePage("SAMPLE.A", CreatePage("sample.c", "替换页面", order: 0)));
+        Assert.ThrowsExactly<InvalidOperationException>(() =>
+            navigation.ReplacePage("sample.c", CreatePage("sample.b")));
+
+        CollectionAssert.AreEqual(
+            new[] { "sample.c", "sample.b" },
+            navigation.Pages.Select(static page => page.Route.Value).ToArray());
+        Assert.IsTrue(navigation.RemovePage("SAMPLE.C"));
+        Assert.IsFalse(navigation.RemovePage(default));
+        CollectionAssert.AreEqual(
+            new[] { "sample.b" },
+            navigation.Pages.Select(static page => page.Route.Value).ToArray());
+    }
+
+    [TestMethod]
     public void Launching_RejectsTypesThatAreNotMiddleware()
     {
         LaunchPipelineBuilder builder = new();
@@ -182,11 +231,12 @@ public sealed class HostModuleTests
         Assert.ThrowsExactly<ArgumentException>(() => builder.Use(typeof(string)));
     }
 
-    private static NavigationPageDescriptor CreatePage(string route) =>
+    private static NavigationPageDescriptor CreatePage(string route, string title = "页面", int order = 0) =>
         new()
         {
             Route = route,
-            Title = "页面",
+            Title = title,
+            Order = order,
             Provider = new DelegatePageProvider(static (_, _) => new ValueTask<object>(new object()))
         };
 

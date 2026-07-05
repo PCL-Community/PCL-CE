@@ -31,8 +31,10 @@ public interface ICommandRegistry
 public sealed class CommandRegistry : ICommandRegistry
 {
     private readonly List<CommandDescriptor> _commands = [];
+    private readonly Dictionary<string, CommandDescriptor> _commandMap = new(StringComparer.OrdinalIgnoreCase);
+    private IReadOnlyList<CommandDescriptor> _snapshot = Array.Empty<CommandDescriptor>();
 
-    public IReadOnlyList<CommandDescriptor> Commands => _commands.ToArray();
+    public IReadOnlyList<CommandDescriptor> Commands => _snapshot;
 
     public void AddCommand(CommandDescriptor descriptor)
     {
@@ -41,26 +43,36 @@ public sealed class CommandRegistry : ICommandRegistry
             throw new ArgumentException("命令 ID 不能为空。", nameof(descriptor));
         if (string.IsNullOrWhiteSpace(descriptor.Title))
             throw new ArgumentException("命令标题不能为空。", nameof(descriptor));
-        if (_commands.Any(command => command.Id.Equals(descriptor.Id.Value)))
+        if (!_commandMap.TryAdd(descriptor.Id.Value, descriptor))
             throw new InvalidOperationException($"命令已注册：{descriptor.Id}");
 
         _commands.Add(descriptor);
+        RefreshSnapshot();
     }
 
     public bool RemoveCommand(CommandId id)
     {
+        if (string.IsNullOrWhiteSpace(id.Value) || !_commandMap.Remove(id.Value))
+            return false;
+
         int index = _commands.FindIndex(command => command.Id.Equals(id.Value));
         if (index < 0)
             return false;
 
         _commands.RemoveAt(index);
+        RefreshSnapshot();
         return true;
     }
 
     public bool TryGetCommand(CommandId id, out CommandDescriptor descriptor)
     {
-        CommandDescriptor? match = _commands.FirstOrDefault(command => command.Id.Equals(id.Value));
-        descriptor = match!;
-        return match is not null;
+        if (!string.IsNullOrWhiteSpace(id.Value) && _commandMap.TryGetValue(id.Value, out descriptor!))
+            return true;
+
+        descriptor = null!;
+        return false;
     }
+
+    private void RefreshSnapshot() =>
+        _snapshot = _commands.ToArray();
 }
