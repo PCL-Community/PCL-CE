@@ -17,7 +17,6 @@ public class MyComboBoxItem : ComboBoxItem
     private const int AnimationTimeIn = 100;
     private const int AnimationTimeOut = 300;
 
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private string? _backColorName;
     private double _fontOpacity = 1d;
 
@@ -40,6 +39,8 @@ public class MyComboBoxItem : ComboBoxItem
         get => GetValue(ToolTipProperty);
         set => SetValue(ToolTipProperty, value);
     }
+
+    public int Uuid { get; } = Random.Shared.Next();
 
     public override string ToString() => Content?.ToString() ?? string.Empty;
 
@@ -89,11 +90,11 @@ public class MyComboBoxItem : ComboBoxItem
                     ModAnimation.AaColor(this, BackgroundProperty, newBackColorName, time),
                     ModAnimation.AaOpacity(this, newFontOpacity - Opacity, time)
                 },
-                $"ComboBoxItem Color {_uuid}");
+                "ComboBoxItem Color " + Uuid);
             return;
         }
 
-        ModAnimation.AniStop($"ComboBoxItem Color {_uuid}");
+        ModAnimation.AniStop("ComboBoxItem Color " + Uuid);
         Background = FindBrush(newBackColorName, "#00ffffff");
         Opacity = newFontOpacity;
     }

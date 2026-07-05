@@ -6970,6 +6970,8 @@ public sealed class AvaloniaHeadlessTests
                     $"Drop-down arrow should stay on the right. arrowX={arrowCenter.X}, width={comboBox.Bounds.Width}");
 
                 comboBox.IsDropDownOpen = true;
+                Assert.IsTrue(ModAnimation.AniIsRun("MyComboBox Color " + comboBox.Uuid));
+                Assert.IsTrue(ModAnimation.AniIsRun("MyComboBox Arrow " + comboBox.Uuid));
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
                 Assert.IsTrue(comboBox.GetRealizedContainers().All(container => container is MyComboBoxItem));
@@ -7570,6 +7572,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual(1d, item.Opacity, 0.001d);
 
                 MoveTo(window, item);
+                Assert.IsTrue(ModAnimation.AniIsRun("ComboBoxItem Color " + item.Uuid));
                 ModAnimation.AdvanceUntilIdleForTesting();
 
                 Assert.AreEqual(RequiredBrush("ColorBrush8").Color, BrushColor(item.Background));

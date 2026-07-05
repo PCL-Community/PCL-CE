@@ -29,7 +29,6 @@ public class MyComboBox : ComboBox
     private bool _isTextChanging;
     private double _realWidth = double.NaN;
     private string _text = string.Empty;
-    private readonly string _uuid = Guid.NewGuid().ToString("N");
     private PathShape? _dropDownArrow;
     private ContentPresenter? _selectedContentPresenter;
     private TextBox? _editableTextBox;
@@ -87,6 +86,8 @@ public class MyComboBox : ComboBox
     }
 
     public event TextChangedEventHandler? TextChanged;
+
+    public int Uuid { get; } = Random.Shared.Next();
 
     public string HintText
     {
@@ -218,11 +219,11 @@ public class MyComboBox : ComboBox
                     ModAnimation.AaColor(this, ForegroundProperty, foreColorName, time),
                     ModAnimation.AaColor(this, BackgroundProperty, backColorName, time)
                 },
-                $"MyComboBox Color {_uuid}");
+                "MyComboBox Color " + Uuid);
             return;
         }
 
-        ModAnimation.AniStop($"MyComboBox Color {_uuid}");
+        ModAnimation.AniStop("MyComboBox Color " + Uuid);
         Foreground = FindBrush(foreColorName, "#96c0f9");
         Background = FindBrush(backColorName, "#55ffffff");
     }
@@ -276,11 +277,11 @@ public class MyComboBox : ComboBox
                     targetAngle - rotate.Angle,
                     200,
                     ease: new ModAnimation.AniEaseOutFluent()),
-                $"MyComboBox Arrow {_uuid}");
+                "MyComboBox Arrow " + Uuid);
             return;
         }
 
-        ModAnimation.AniStop($"MyComboBox Arrow {_uuid}");
+        ModAnimation.AniStop("MyComboBox Arrow " + Uuid);
         rotate.Angle = targetAngle;
     }
 
