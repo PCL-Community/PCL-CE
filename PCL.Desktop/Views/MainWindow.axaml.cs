@@ -2,9 +2,12 @@
 // Modifications Copyright (c) 2026 PCL N contributors.
 // Licensed under the Apache License, Version 2.0.
 
+using System.Buffers;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO.Compression;
+using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Avalonia;
 using Avalonia.Controls;
@@ -2735,12 +2738,33 @@ public partial class MainWindow : Window, IDisposable
         if (!File.Exists(jsonPath))
             return;
 
-        JsonNode? node = JsonNode.Parse(File.ReadAllText(jsonPath));
+        using FileStream stream = new(
+            jsonPath,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.ReadWrite,
+            bufferSize: 16 * 1024,
+            useAsync: false);
+        JsonNode? node = JsonNode.Parse(stream);
         if (node is not JsonObject json)
             return;
 
         json["id"] = newName;
-        File.WriteAllText(jsonPath, json.ToJsonString());
+        string tempPath = jsonPath + ".tmp";
+        using (FileStream output = new(
+                   tempPath,
+                   FileMode.Create,
+                   FileAccess.Write,
+                   FileShare.Read,
+                   bufferSize: 16 * 1024,
+                   useAsync: false))
+        {
+            using Utf8JsonWriter writer = new(output, new JsonWriterOptions { Indented = true });
+            json.WriteTo(writer);
+            writer.Flush();
+        }
+
+        File.Move(tempPath, jsonPath, overwrite: true);
     }
 
     private void OpenFolder(string path)
@@ -2942,12 +2966,13 @@ public partial class MainWindow : Window, IDisposable
         try
         {
             using FileStream stream = File.OpenRead(instance.VersionJsonPath);
-            JsonNode? root = JsonNode.Parse(stream);
-            string? inheritsFrom = root?["inheritsFrom"]?.GetValue<string>();
+            using JsonDocument document = JsonDocument.Parse(stream);
+            JsonElement root = document.RootElement;
+            string? inheritsFrom = TryReadJsonString(root, "inheritsFrom");
             if (!string.IsNullOrWhiteSpace(inheritsFrom))
                 return inheritsFrom;
 
-            string? id = root?["id"]?.GetValue<string>();
+            string? id = TryReadJsonString(root, "id");
             if (!string.IsNullOrWhiteSpace(id))
                 return id;
         }
@@ -2963,8 +2988,8 @@ public partial class MainWindow : Window, IDisposable
         try
         {
             using FileStream stream = File.OpenRead(instance.VersionJsonPath);
-            JsonNode? root = JsonNode.Parse(stream);
-            string? releaseTime = root?["releaseTime"]?.GetValue<string>();
+            using JsonDocument document = JsonDocument.Parse(stream);
+            string? releaseTime = TryReadJsonString(document.RootElement, "releaseTime");
             return DateTimeOffset.TryParse(
                 releaseTime,
                 CultureInfo.InvariantCulture,
@@ -2978,6 +3003,13 @@ public partial class MainWindow : Window, IDisposable
             return null;
         }
     }
+
+    private static string? TryReadJsonString(JsonElement element, string propertyName) =>
+        element.ValueKind == JsonValueKind.Object &&
+        element.TryGetProperty(propertyName, out JsonElement property) &&
+        property.ValueKind == JsonValueKind.String
+            ? property.GetString()
+            : null;
 
     private static bool HasOptiFine(LaunchInstanceInfo instance)
     {
@@ -2997,10 +3029,64 @@ public partial class MainWindow : Window, IDisposable
 
     private static bool VersionJsonContains(LaunchInstanceInfo instance, params string[] needles)
     {
+        bool hasNeedle = false;
+        int overlapLength = 0;
+        foreach (string needle in needles)
+        {
+            if (string.IsNullOrWhiteSpace(needle))
+                continue;
+
+            hasNeedle = true;
+            overlapLength = Math.Max(overlapLength, needle.Length - 1);
+        }
+
+        if (!hasNeedle)
+            return false;
+
         try
         {
-            string json = File.ReadAllText(instance.VersionJsonPath);
-            return needles.Any(needle => json.Contains(needle, StringComparison.OrdinalIgnoreCase));
+            char[] buffer = ArrayPool<char>.Shared.Rent(8 * 1024 + overlapLength);
+            try
+            {
+                using StreamReader reader = new(
+                    new FileStream(
+                        instance.VersionJsonPath,
+                        FileMode.Open,
+                        FileAccess.Read,
+                        FileShare.ReadWrite,
+                        bufferSize: 16 * 1024,
+                        useAsync: false),
+                    Encoding.UTF8,
+                    detectEncodingFromByteOrderMarks: true,
+                    bufferSize: 8 * 1024,
+                    leaveOpen: false);
+
+                int carryLength = 0;
+                while (true)
+                {
+                    int read = reader.ReadBlock(buffer, carryLength, buffer.Length - carryLength);
+                    if (read == 0)
+                        return false;
+
+                    ReadOnlySpan<char> current = buffer.AsSpan(0, carryLength + read);
+                    foreach (string needle in needles)
+                    {
+                        if (!string.IsNullOrWhiteSpace(needle) &&
+                            current.Contains(needle, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return true;
+                        }
+                    }
+
+                    carryLength = Math.Min(overlapLength, current.Length);
+                    if (carryLength > 0)
+                        current[^carryLength..].CopyTo(buffer);
+                }
+            }
+            finally
+            {
+                ArrayPool<char>.Shared.Return(buffer);
+            }
         }
         catch (Exception)
         {
