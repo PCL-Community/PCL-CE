@@ -48,7 +48,15 @@ public class MyPageRight : ContentControl, IDisposable
 
     public MyScrollViewer? PanScroll
     {
-        get => GetValue(PanScrollProperty);
+        get
+        {
+            MyScrollViewer? scroll = GetValue(PanScrollProperty);
+            if (scroll is not null)
+                return scroll;
+
+            scroll = ResolveCopiedPageScrollViewer();
+            return scroll;
+        }
         set => SetValue(PanScrollProperty, value);
     }
 
@@ -470,6 +478,44 @@ public class MyPageRight : ContentControl, IDisposable
     private Control? GetContentTarget() => _pageContentPanel ?? Content as Control;
 
     private Control? GetHiddenAlwaysPanel() => IsControlVisible(_pageAlwaysPanel) ? null : _pageAlwaysPanel;
+
+    private MyScrollViewer? ResolveCopiedPageScrollViewer()
+    {
+        if (this.FindControl<MyScrollViewer>("PanBack") is { } namedScroll)
+            return namedScroll;
+
+        if (GetContentTarget() is { } content)
+            return FindScrollViewer(content, preferPanBack: true) ?? FindScrollViewer(content, preferPanBack: false);
+
+        return null;
+    }
+
+    private static MyScrollViewer? FindScrollViewer(Control control, bool preferPanBack)
+    {
+        if (control is MyScrollViewer viewer && (!preferPanBack || viewer.Name == "PanBack"))
+            return viewer;
+
+        foreach (MyScrollViewer visualViewer in control.GetVisualDescendants().OfType<MyScrollViewer>())
+        {
+            if (!preferPanBack || visualViewer.Name == "PanBack")
+                return visualViewer;
+        }
+
+        if (control is ContentControl { Content: Control content })
+            return FindScrollViewer(content, preferPanBack);
+
+        if (control is Panel panel)
+        {
+            foreach (Control child in panel.Children)
+            {
+                MyScrollViewer? nested = FindScrollViewer(child, preferPanBack);
+                if (nested is not null)
+                    return nested;
+            }
+        }
+
+        return null;
+    }
 
     private static bool IsControlVisible(Control? control) => control?.IsVisible == true;
 

@@ -205,6 +205,66 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void MainWindow_BackToTopUsesAutoResolvedPageScroll()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MainWindow window = new();
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                ModAnimation.AdvanceUntilIdleForTesting();
+
+                StackPanel content = new();
+                for (int i = 0; i < 60; i++)
+                {
+                    content.Children.Add(new MyCard
+                    {
+                        Title = "滚动项 " + i,
+                        Height = 40d,
+                        Margin = new Thickness(0d, 0d, 0d, 5d)
+                    });
+                }
+
+                MyScrollViewer panBack = new()
+                {
+                    Name = "PanBack",
+                    Width = 520d,
+                    Height = 240d,
+                    VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
+                    HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                    Content = content
+                };
+                MyPageRight copiedPage = new()
+                {
+                    Content = panBack
+                };
+                window.FindControl<Border>("PanMainRight")!.Child = copiedPage;
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                panBack.PerformVerticalOffsetDelta(1800d);
+                ModAnimation.AdvanceUntilIdleForTesting();
+                InvokePrivateNoArgs(window, "RefreshBackToTopBinding");
+
+                MyExtraButton back = window.FindControl<MyExtraButton>("BtnExtraBack")!;
+                Assert.IsTrue(back.Show);
+
+                Click(window, back);
+                ModAnimation.AdvanceUntilIdleForTesting();
+
+                Assert.AreEqual(0d, panBack.Offset.Y, 0.01d);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void AvaloniaThemeManager_DarkSettingsUpdatesPclThemeResources()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
@@ -7251,6 +7311,76 @@ public sealed class AvaloniaHeadlessTests
 
                 Assert.AreEqual(10d, ((TranslateTransform)scrollBar.RenderTransform!).X, 0.01d);
                 Assert.IsFalse(viewer.IsVisible);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void MyPageRight_AutoResolvesCopiedPageScrollViewer()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MyScrollViewer first = new()
+            {
+                Name = "FirstScroll",
+                Content = new Border { Height = 200d }
+            };
+            MyScrollViewer panBack = new()
+            {
+                Name = "PanBack",
+                Content = new Border { Height = 200d }
+            };
+            MyScrollViewer explicitScroll = new()
+            {
+                Name = "ExplicitScroll",
+                Content = new Border { Height = 200d }
+            };
+            MyPageRight page = new()
+            {
+                Content = new StackPanel
+                {
+                    Children =
+                    {
+                        first,
+                        new Border { Child = panBack }
+                    }
+                }
+            };
+            Window window = new()
+            {
+                Width = 320d,
+                Height = 180d,
+                Content = page
+            };
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.AreSame(panBack, page.PanScroll);
+
+                page.PanScroll = explicitScroll;
+                Assert.AreSame(explicitScroll, page.PanScroll);
+
+                page.PanScroll = null;
+                page.Content = new StackPanel
+                {
+                    Children =
+                    {
+                        new TextBlock { Text = "无命名滚动区前的内容" },
+                        first
+                    }
+                };
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.AreSame(first, page.PanScroll);
             }
             finally
             {
