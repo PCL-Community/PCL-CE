@@ -71,10 +71,10 @@ public partial class PageSetupGameManage : MyPageRight, ISettingsPageInteraction
     private void SliderLoad()
     {
         if (SliderDownloadThread is not null)
-            SliderDownloadThread.getHintText = new Func<object, object>(value => (int)value + 1);
+            SliderDownloadThread.getHintText = value => value + 1;
 
         if (SliderDownloadSpeed is not null)
-            SliderDownloadSpeed.getHintText = new Func<object, object>(value => FormatSpeedLimit((int)value));
+            SliderDownloadSpeed.getHintText = FormatSpeedLimit;
     }
 
     private static string FormatSpeedLimit(int value)

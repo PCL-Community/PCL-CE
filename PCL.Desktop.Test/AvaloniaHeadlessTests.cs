@@ -6531,7 +6531,7 @@ public sealed class AvaloniaHeadlessTests
                 MaxValue = 100,
                 Value = 50,
                 ValueByKey = 5,
-                getHintText = new Func<object, object>(value => $"值 {value}")
+                getHintText = value => $"值 {value}"
             };
             Window window = new()
             {

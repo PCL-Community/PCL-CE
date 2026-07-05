@@ -89,7 +89,7 @@ public partial class MySlider : Border
 
     public event PreviewChangeEventHandler? PreviewChange;
 
-    public Delegate? getHintText { get; set; }
+    public Func<int, object?>? getHintText { get; set; }
 
     public int MaxValue
     {
@@ -144,7 +144,7 @@ public partial class MySlider : Border
         if (getHintText is null || _popup is null || _textHint is null)
             return;
 
-        _textHint.Text = getHintText.DynamicInvoke(Value)?.ToString() ?? string.Empty;
+        _textHint.Text = getHintText(Value)?.ToString() ?? string.Empty;
         _popup.HorizontalOffset = _shapeDot?.Margin.Left ?? 0d;
         _popup.IsOpen = true;
     }
