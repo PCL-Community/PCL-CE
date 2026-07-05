@@ -18,11 +18,8 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
 {
     private const string CustomLogoOptionKey = "UiCustomLogoPath";
 
-    public IReadOnlyList<string> ThemeColors => LauncherSettingsPageBinder.ThemeColorNames;
-
     public PageSetupUI()
     {
-        DataContext = this;
         AvaloniaXamlLoader.Load(this);
         PanScroll = PanBack;
         LauncherSettingsPageBinder.Attach(this);

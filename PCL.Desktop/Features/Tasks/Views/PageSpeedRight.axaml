@@ -1,8 +1,7 @@
 <legacy:MyPageRight x:Class="PCL.Desktop.Features.Tasks.Views.PageSpeedRight"
                     xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:legacy="using:PCL.Desktop.Controls.Legacy"
-                    PanScroll="{Binding #PanBack}">
+                    xmlns:legacy="using:PCL.Desktop.Controls.Legacy">
     <legacy:MyScrollViewer x:Name="PanBack"
                            VerticalScrollBarVisibility="Auto"
                            HorizontalScrollBarVisibility="Disabled">

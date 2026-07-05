@@ -45,9 +45,9 @@
                                 <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Theme.FollowSystem}" /> 
                             </legacy:MyComboBox>
                             <TextBlock Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{DynamicResource Setup.Ui.Theme.LightColor}"/>
-                            <legacy:MyComboBox Grid.Column="3" x:Name="ComboLightColor" Tag="UiLightColor" ItemsSource="{Binding ThemeColors}" SelectionChanged="ThemeColor_Change"/>
+                            <legacy:MyComboBox Grid.Column="3" x:Name="ComboLightColor" Tag="UiLightColor" SelectionChanged="ThemeColor_Change"/>
                             <TextBlock Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{DynamicResource Setup.Ui.Theme.DarkColor}"/>
-                            <legacy:MyComboBox Grid.Column="5" x:Name="ComboDarkColor" Tag="UiDarkColor" ItemsSource="{Binding ThemeColors}" SelectionChanged="ThemeColor_Change"/>
+                            <legacy:MyComboBox Grid.Column="5" x:Name="ComboDarkColor" Tag="UiDarkColor" SelectionChanged="ThemeColor_Change"/>
 
                         </Grid>
                         <legacy:MyCheckBox Text="{DynamicResource Setup.Ui.Basic.ShowLogo}" Margin="-1,0,0,7" Height="22"

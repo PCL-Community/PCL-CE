@@ -926,7 +926,7 @@ IPv6 优先：-Djava.net.preferIPv6Stack=true</x:String>
                         Foreground="{TemplateBinding Foreground}"
                         IsTabStop="False"
                         Focusable="False"
-                        IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                        IsChecked="{TemplateBinding IsDropDownOpen, Mode=TwoWay}">
             <ToggleButton.Template>
               <ControlTemplate>
                 <Border Background="{DynamicResource ColorBrushSemiTransparent}" />

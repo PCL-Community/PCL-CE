@@ -1,8 +1,7 @@
 <legacy:MyPageRight
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:legacy="using:PCL.Desktop.Controls.Legacy" xmlns:views="using:PCL.Desktop.Features.Instances.Views" x:Class="PCL.Desktop.Features.Instances.Views.PageInstanceInstallRight"
-    PanScroll="{Binding ElementName=PanBack}">
+    xmlns:legacy="using:PCL.Desktop.Controls.Legacy" xmlns:views="using:PCL.Desktop.Features.Instances.Views" x:Class="PCL.Desktop.Features.Instances.Views.PageInstanceInstallRight">
     <Grid>
         <Grid x:Name="PanAllBack">
             <legacy:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"

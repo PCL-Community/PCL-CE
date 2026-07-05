@@ -41,8 +41,7 @@
                        VerticalAlignment="Bottom" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"
                        FontSize="11" Foreground="{DynamicResource ColorBrushGray3}" RenderTransformOrigin="0.5,-0.2">
                 <TextBlock.RenderTransform>
-                    <ScaleTransform ScaleX="{Binding RealRenderTransform.ScaleX, ElementName=BtnLaunch, Mode=OneWay}"
-                                    ScaleY="{Binding RealRenderTransform.ScaleY, ElementName=BtnLaunch, Mode=OneWay}" />
+                    <ScaleTransform />
                 </TextBlock.RenderTransform>
             </TextBlock>
         </Grid>

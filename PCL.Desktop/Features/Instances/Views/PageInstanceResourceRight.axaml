@@ -3,7 +3,6 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:legacy="using:PCL.Desktop.Controls.Legacy"
-    PanScroll="{Binding ElementName=PanBack}"
     Grid.IsSharedSizeScope="True">
     <Grid>
         <Grid x:Name="PanAllBack">

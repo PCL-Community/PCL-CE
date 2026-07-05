@@ -3,7 +3,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:legacy="using:PCL.Desktop.Controls.Legacy"
     x:Class="PCL.Desktop.Features.Instances.Views.PageInstanceSavesInfoRight"
-    PanScroll="{Binding ElementName=PanBack}"
     Grid.IsSharedSizeScope="True">
     <legacy:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel Margin="25,10,25,10" x:Name="PanMain">

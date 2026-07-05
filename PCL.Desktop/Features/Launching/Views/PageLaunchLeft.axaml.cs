@@ -5,6 +5,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Desktop.Controls.Legacy;
 
@@ -23,6 +24,7 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
     {
         AvaloniaXamlLoader.Load(this);
         AnimatedControl = this.FindControl<Grid>("PanInput");
+        WireLaunchButtonScaleMirror();
         AttachedToVisualTree += (_, _) =>
         {
             if (_isLoadedOnce)
@@ -31,6 +33,20 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
             _isLoadedOnce = true;
             _ = EnsureInstancesLoadedAsync();
         };
+    }
+
+    private void WireLaunchButtonScaleMirror()
+    {
+        if (this.FindControl<MyButton>("BtnLaunch")?.RealRenderTransform is not ScaleTransform buttonScale ||
+            this.FindControl<TextBlock>("LabVersion")?.RenderTransform is not ScaleTransform labelScale)
+        {
+            return;
+        }
+
+        labelScale.ScaleX = buttonScale.ScaleX;
+        labelScale.ScaleY = buttonScale.ScaleY;
+        buttonScale.GetObservable(ScaleTransform.ScaleXProperty).Subscribe(value => labelScale.ScaleX = value);
+        buttonScale.GetObservable(ScaleTransform.ScaleYProperty).Subscribe(value => labelScale.ScaleY = value);
     }
 
     public interface ILoginPage

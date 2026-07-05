@@ -132,6 +132,12 @@ public partial class PageInstanceExportRight : MyPageRight
             nameBox.GotFocus += (_, _) => FillDefaultNameOnFocus();
         if (this.FindControl<MyIconTextButton>("BtnOverrideCancel") is { } overrideCancel)
             overrideCancel.Click += (_, _) => ResetConfigOverrides();
+        WireVisibilityToggle("CheckOptionsMod", "PanOptionsMod");
+        WireVisibilityToggle("CheckOptionsResourcePacks", "PanOptionsResourcePacks");
+        WireVisibilityToggle("CheckOptionsShaderPacks", "PanOptionsShaderPacks");
+        WireVisibilityToggle("CheckOptionsSaves", "PanOptionsSaves");
+        WireVisibilityToggle("CheckOptionsPcl", "PanOptionsPcl");
+        WireVisibilityToggle("CheckAdvancedInclude", "HintAdvancedInclude");
     }
 
     private void FillDefaultNameOnFocus()
@@ -220,6 +226,37 @@ public partial class PageInstanceExportRight : MyPageRight
             checkBox.IsVisible = visible;
             checkBox.Checked = option.DefaultChecked && visible;
         }
+        SyncDependentVisibility();
+    }
+
+    private void WireVisibilityToggle(string checkBoxName, string targetName)
+    {
+        if (this.FindControl<MyCheckBox>(checkBoxName) is not { } checkBox)
+            return;
+
+        checkBox.Change += (_, _) => SyncVisibility(checkBoxName, targetName);
+        SyncVisibility(checkBoxName, targetName);
+    }
+
+    private void SyncDependentVisibility()
+    {
+        SyncVisibility("CheckOptionsMod", "PanOptionsMod");
+        SyncVisibility("CheckOptionsResourcePacks", "PanOptionsResourcePacks");
+        SyncVisibility("CheckOptionsShaderPacks", "PanOptionsShaderPacks");
+        SyncVisibility("CheckOptionsSaves", "PanOptionsSaves");
+        SyncVisibility("CheckOptionsPcl", "PanOptionsPcl");
+        SyncVisibility("CheckAdvancedInclude", "HintAdvancedInclude");
+    }
+
+    private void SyncVisibility(string checkBoxName, string targetName)
+    {
+        if (this.FindControl<MyCheckBox>(checkBoxName) is not { } checkBox ||
+            this.FindControl<Control>(targetName) is not { } target)
+        {
+            return;
+        }
+
+        target.IsVisible = checkBox.Checked == true;
     }
 
     private void ResetConfigOverrides()

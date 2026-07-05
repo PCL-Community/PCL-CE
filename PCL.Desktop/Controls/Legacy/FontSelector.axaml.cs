@@ -5,6 +5,7 @@
 using System.Collections.ObjectModel;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Templates;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -23,6 +24,12 @@ public partial class FontSelector : ContentControl
         _comboFont = this.FindControl<MyComboBox>("ComboFont")
             ?? throw new InvalidOperationException("FontSelector 缺少 ComboFont。");
         _comboFont.ItemsSource = CustomFontCollection;
+        _comboFont.ItemTemplate = new FuncDataTemplate<CustomFontProperties>(
+            static (font, _) => new TextBlock
+            {
+                Text = font?.Name ?? string.Empty,
+                FontFamily = font?.Font ?? FontFamily.Default
+            });
         AttachedToVisualTree += (_, _) => _ = LoadFontsAsync();
     }
 

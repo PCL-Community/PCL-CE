@@ -1,8 +1,7 @@
 <legacy:MyPageRight
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:legacy="using:PCL.Desktop.Controls.Legacy" xmlns:views="using:PCL.Desktop.Features.Instances.Views" x:Class="PCL.Desktop.Features.Instances.Views.PageInstanceExportRight"
-    PanScroll="{Binding ElementName=PanBack}">
+    xmlns:legacy="using:PCL.Desktop.Controls.Legacy" xmlns:views="using:PCL.Desktop.Features.Instances.Views" x:Class="PCL.Desktop.Features.Instances.Views.PageInstanceExportRight">
     <Grid x:Name="PanAllBack">
         <legacy:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                               x:Name="PanBack">
@@ -81,8 +80,7 @@
                                     RequireModLoader="True" />
                             </legacy:MyCheckBox.Tag>
                         </legacy:MyCheckBox>
-                        <StackPanel Margin="30,0,0,0"
-                                    IsVisible="{Binding Checked, ElementName=CheckOptionsMod}">
+                        <StackPanel Margin="30,0,0,0" x:Name="PanOptionsMod">
                             <legacy:MyCheckBox>
                                 <legacy:MyCheckBox.Tag>
                                     <views:ExportOption
@@ -153,8 +151,7 @@
                                     DefaultChecked="True" />
                             </legacy:MyCheckBox.Tag>
                         </legacy:MyCheckBox>
-                        <StackPanel Margin="30,0,0,0" x:Name="PanOptionsResourcePacks"
-                                    IsVisible="{Binding Checked, ElementName=CheckOptionsResourcePacks}" />
+                        <StackPanel Margin="30,0,0,0" x:Name="PanOptionsResourcePacks" />
                         <legacy:MyCheckBox x:Name="CheckOptionsShaderPacks">
                             <legacy:MyCheckBox.Tag>
                                 <views:ExportOption
@@ -164,8 +161,7 @@
                                     RequireModLoaderOrOptiFine="True" />
                             </legacy:MyCheckBox.Tag>
                         </legacy:MyCheckBox>
-                        <StackPanel Margin="30,0,0,0" x:Name="PanOptionsShaderPacks"
-                                    IsVisible="{Binding Checked, ElementName=CheckOptionsShaderPacks}" />
+                        <StackPanel Margin="30,0,0,0" x:Name="PanOptionsShaderPacks" />
                         <legacy:MyCheckBox>
                             <legacy:MyCheckBox.Tag>
                                 <views:ExportOption
@@ -202,8 +198,7 @@
                                     DefaultChecked="False" />
                             </legacy:MyCheckBox.Tag>
                         </legacy:MyCheckBox>
-                        <StackPanel Margin="30,0,0,0" x:Name="PanOptionsSaves"
-                                    IsVisible="{Binding Checked, ElementName=CheckOptionsSaves}" />
+                        <StackPanel Margin="30,0,0,0" x:Name="PanOptionsSaves" />
                         <legacy:MyCheckBox>
                             <legacy:MyCheckBox.Tag>
                                 <views:ExportOption
@@ -220,8 +215,7 @@
                                     DefaultChecked="True" />
                             </legacy:MyCheckBox.Tag>
                         </legacy:MyCheckBox>
-                        <StackPanel Margin="30,0,0,0"
-                                    IsVisible="{Binding Checked, ElementName=CheckOptionsPcl}">
+                        <StackPanel Margin="30,0,0,0" x:Name="PanOptionsPcl">
                             <legacy:MyCheckBox x:Name="CheckOptionsPclCustom">
                                 <legacy:MyCheckBox.Tag>
                                     <views:ExportOption
@@ -237,9 +231,9 @@
                               IsSwapped="True">
                     <StackPanel Margin="25,37,23,20">
                         <legacy:MyHint
+                            x:Name="HintAdvancedInclude"
                             Text="{DynamicResource Instance.Export.Advanced.BundleHint}"
-                            Theme="Yellow" Margin="0,2,0,8"
-                            IsVisible="{Binding Checked, ElementName=CheckAdvancedInclude}" />
+                            Theme="Yellow" Margin="0,2,0,8" />
                         <legacy:MyCheckBox Text="{DynamicResource Instance.Export.Advanced.BundleFiles}"
                                           x:Name="CheckAdvancedInclude"
                                           Change="CheckAdvancedInclude_Change"
