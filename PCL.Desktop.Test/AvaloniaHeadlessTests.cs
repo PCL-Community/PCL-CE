@@ -6209,6 +6209,71 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void MyCard_AniDisposeUsesWpfExitAnimationAndFallback()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MyCard animatedCard = new()
+            {
+                Title = "可移除",
+                Width = 220,
+                Height = 80
+            };
+            MyCard collapsedCard = new()
+            {
+                Title = "可隐藏",
+                Width = 220,
+                Height = 80,
+                IsHitTestVisible = false
+            };
+            StackPanel panel = new()
+            {
+                Children =
+                {
+                    animatedCard,
+                    collapsedCard
+                }
+            };
+            Window window = new()
+            {
+                Width = 320,
+                Height = 220,
+                Content = new Border
+                {
+                    Padding = new Thickness(20),
+                    Child = panel
+                }
+            };
+
+            int callbackCount = 0;
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                ModAnimation.AniDispose(animatedCard, removeFromChildren: true, _ => callbackCount++);
+                Assert.IsFalse(animatedCard.IsHitTestVisible);
+                ModAnimation.AdvanceUntilIdleForTesting();
+
+                Assert.IsFalse(panel.Children.Contains(animatedCard));
+                Assert.AreEqual(1, callbackCount);
+
+                ModAnimation.AniDispose(collapsedCard, removeFromChildren: false, _ => callbackCount++);
+
+                Assert.IsFalse(collapsedCard.IsVisible);
+                Assert.AreEqual(2, callbackCount);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void MyRadioBox_KeepsWpfSingleSelectionBehavior()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();

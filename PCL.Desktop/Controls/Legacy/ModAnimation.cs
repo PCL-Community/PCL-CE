@@ -315,6 +315,37 @@ public static partial class ModAnimation
             $"MyCard Dispose {control.GetHashCode()}");
     }
 
+    public static void AniDispose(MyCard control, bool removeFromChildren, ParameterizedThreadStart? callBack = null)
+    {
+        if (control.IsHitTestVisible)
+        {
+            control.IsHitTestVisible = false;
+            double height = GetControlHeight(control);
+            AniStart(
+                new[]
+                {
+                    AaScaleTransform(control, -0.08d, 200, ease: new AniEaseInFluent()),
+                    AaOpacity(control, -1d, 200, ease: new AniEaseOutFluent()),
+                    AaHeight(control, -height, 150, 100, new AniEaseOutFluent()),
+                    AaCode(() => DisposeControl(control, removeFromChildren, callBack), after: true)
+                },
+                $"MyCard Dispose {control.GetHashCode()}");
+            return;
+        }
+
+        DisposeControl(control, removeFromChildren, callBack);
+    }
+
+    private static void DisposeControl(Control control, bool removeFromChildren, ParameterizedThreadStart? callBack)
+    {
+        if (removeFromChildren && control.Parent is Panel panel)
+            panel.Children.Remove(control);
+        else
+            control.IsVisible = false;
+
+        callBack?.Invoke(control);
+    }
+
     public static List<AniData> AaStack(StackPanel stack, int time = 100, int delay = 25)
     {
         List<AniData> animations = [];
