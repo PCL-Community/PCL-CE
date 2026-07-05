@@ -2227,6 +2227,92 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void PageDownloadInstall_AppliesWpfLoaderCardAvailability()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageDownloadInstall page = new();
+            SetPrivateField(
+                page,
+                "_versions",
+                new[]
+                {
+                    new MinecraftVersionManifestEntry("1.20.1", "release", "https://example.invalid/1.20.1.json", DateTimeOffset.Parse("2023-06-12T00:00:00Z")),
+                    new MinecraftVersionManifestEntry("1.12.2", "release", "https://example.invalid/1.12.2.json", DateTimeOffset.Parse("2017-09-18T00:00:00Z"))
+                });
+            Window window = new()
+            {
+                Width = 620,
+                Height = 520,
+                Content = page
+            };
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                page.FocusVersionAsync("1.20.1").GetAwaiter().GetResult();
+                ModAnimation.AdvanceUntilIdleForTesting();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                AssertLoaderVisible(page, "Forge", "可以添加");
+                AssertLoaderVisible(page, "NeoForge", "可以添加");
+                AssertLoaderVisible(page, "Fabric", "可以添加");
+                AssertLoaderVisible(page, "Quilt", "可以添加");
+                AssertLoaderVisible(page, "LabyMod", "可以添加");
+                AssertLoaderVisible(page, "OptiFine", "可以添加");
+                AssertLoaderHidden(page, "Cleanroom");
+                AssertLoaderHidden(page, "LiteLoader");
+                AssertLoaderHidden(page, "LegacyFabric");
+                AssertLoaderHidden(page, "FabricApi");
+                AssertLoaderHidden(page, "OptiFabric");
+
+                page.FocusVersionAsync("1.12.2").GetAwaiter().GetResult();
+                ModAnimation.AdvanceUntilIdleForTesting();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                AssertLoaderVisible(page, "Forge", "可以添加");
+                AssertLoaderVisible(page, "Cleanroom", "可以添加");
+                AssertLoaderVisible(page, "LegacyFabric", "可以添加");
+                AssertLoaderVisible(page, "LiteLoader", "可以添加");
+                AssertLoaderVisible(page, "LabyMod", "可以添加");
+                AssertLoaderVisible(page, "OptiFine", "可以添加");
+                AssertLoaderHidden(page, "NeoForge");
+                AssertLoaderHidden(page, "Fabric");
+                AssertLoaderHidden(page, "Quilt");
+                AssertLoaderHidden(page, "FabricApi");
+                AssertLoaderHidden(page, "LegacyFabricApi");
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    private static void AssertLoaderVisible(PageDownloadInstall page, string name, string status)
+    {
+        MyCard card = page.FindControl<MyCard>("Card" + name)!;
+        TextBlock label = page.FindControl<TextBlock>("Lab" + name)!;
+        Control info = page.FindControl<Control>("Pan" + name + "Info")!;
+        Control clear = page.FindControl<Control>("Btn" + name + "Clear")!;
+
+        Assert.IsTrue(card.IsVisible, name + " card should follow WPF visibility rules.");
+        Assert.IsTrue(card.IsSwapped, name + " card should reset to collapsed after selecting vanilla.");
+        Assert.IsTrue(info.IsVisible, name + " summary row should be visible while collapsed.");
+        Assert.IsFalse(clear.IsVisible, name + " clear button should be hidden without a selected loader.");
+        Assert.AreEqual(status, label.Text);
+    }
+
+    private static void AssertLoaderHidden(PageDownloadInstall page, string name)
+    {
+        Assert.IsFalse(page.FindControl<MyCard>("Card" + name)!.IsVisible, name + " card should be hidden.");
+    }
+
+    [TestMethod]
     public void PageDownloadInstall_SelectPageSwitchUsesWpfAnimationStates()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();

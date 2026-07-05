@@ -57,6 +57,7 @@ public partial class PageDownloadInstall : MyPageRight
     ];
 
     private readonly MinecraftVanillaInstallService _installService;
+    private readonly Dictionary<string, LoaderSupportState> _loaderStates = [];
     private IReadOnlyList<MinecraftVersionManifestEntry> _versions = [];
     private DownloadVersionFilter _filter = DownloadVersionFilter.All;
     private string _searchText = string.Empty;
@@ -233,6 +234,7 @@ public partial class PageDownloadInstall : MyPageRight
             loading.Text = "正在获取 Minecraft 版本列表";
 
         InitializeLoaderCards();
+        WireLoaderCards();
         HideAllHints();
         ApplySelectPageState(isSelectPage: false);
         SetLoadingVisible(false);
@@ -526,7 +528,7 @@ public partial class PageDownloadInstall : MyPageRight
         _isInSelectPage = true;
         SetSelectName(version.Id);
         SetSelectedLogo(version);
-        InitializeLoaderCards();
+        ReloadSelectedLoaderCards();
         HideAllHints();
 
         if (this.FindControl<MyExtraTextButton>("BtnStart") is { } button)
@@ -567,21 +569,73 @@ public partial class PageDownloadInstall : MyPageRight
 
     private void InitializeLoaderCards()
     {
-        const string canAdd = "可添加";
         CollapseLoaderCards();
-        SetLoaderInfo("Forge", canAdd, iconVisible: false);
-        SetLoaderInfo("Cleanroom", canAdd, iconVisible: false);
-        SetLoaderInfo("NeoForge", canAdd, iconVisible: false);
-        SetLoaderInfo("Fabric", canAdd, iconVisible: false);
-        SetLoaderInfo("LegacyFabric", canAdd, iconVisible: false);
-        SetLoaderInfo("FabricApi", canAdd, iconVisible: false);
-        SetLoaderInfo("LegacyFabricApi", canAdd, iconVisible: false);
-        SetLoaderInfo("Quilt", canAdd, iconVisible: false);
-        SetLoaderInfo("QSL", canAdd, iconVisible: false);
-        SetLoaderInfo("LabyMod", canAdd, iconVisible: false);
-        SetLoaderInfo("OptiFine", canAdd, iconVisible: false);
-        SetLoaderInfo("OptiFabric", canAdd, iconVisible: false);
-        SetLoaderInfo("LiteLoader", canAdd, iconVisible: false);
+        foreach (string name in LoaderCardNames)
+            SetLoaderInfo(name, LoaderSupportState.VisibleClosed(CanAddText()));
+    }
+
+    private void WireLoaderCards()
+    {
+        foreach (string name in LoaderCardNames)
+        {
+            if (this.FindControl<MyCard>("Card" + name) is not { } card)
+                continue;
+
+            card.PreviewSwap += (_, args) =>
+            {
+                if (!_loaderStates.TryGetValue(name, out LoaderSupportState? state) || !state.CanOpen)
+                    args.Handled = true;
+            };
+            card.Swap += (_, _) => RefreshLoaderInfoPanel(name);
+        }
+    }
+
+    private void ReloadSelectedLoaderCards()
+    {
+        if (_selectedVersion is null)
+        {
+            InitializeLoaderCards();
+            return;
+        }
+
+        CollapseLoaderCards();
+        HideAllHints();
+
+        string versionId = _selectedVersion.Id;
+        int vanillaDrop = VersionToDrop(versionId, allowSnapshot: true);
+        bool formatFit = IsFormatFit(versionId);
+        string canAdd = CanAddText();
+
+        SetLoaderInfo("OptiFine", LoaderSupportState.VisibleClosed(canAdd));
+        SetLoaderInfo("LiteLoader", vanillaDrop >= 130
+            ? LoaderSupportState.Hidden()
+            : LoaderSupportState.VisibleClosed(canAdd));
+        SetLoaderInfo("Forge", formatFit
+            ? LoaderSupportState.VisibleClosed(canAdd)
+            : LoaderSupportState.Hidden());
+        SetLoaderInfo("Cleanroom", string.Equals(versionId, "1.12.2", StringComparison.OrdinalIgnoreCase)
+            ? LoaderSupportState.VisibleClosed(canAdd)
+            : LoaderSupportState.Hidden());
+        SetLoaderInfo("NeoForge", vanillaDrop is > 0 and < 200
+            ? LoaderSupportState.Hidden()
+            : LoaderSupportState.VisibleClosed(canAdd));
+        SetLoaderInfo("Fabric", vanillaDrop > 130
+            ? LoaderSupportState.VisibleClosed(canAdd)
+            : LoaderSupportState.Hidden());
+        SetLoaderInfo("LegacyFabric", vanillaDrop > 130
+            ? LoaderSupportState.Hidden()
+            : LoaderSupportState.VisibleClosed(canAdd));
+        SetLoaderInfo("Quilt", vanillaDrop >= 144
+            ? LoaderSupportState.VisibleClosed(canAdd)
+            : LoaderSupportState.Hidden());
+        SetLoaderInfo("LabyMod", vanillaDrop >= 80
+            ? LoaderSupportState.VisibleClosed(canAdd)
+            : LoaderSupportState.Hidden());
+
+        SetLoaderInfo("FabricApi", LoaderSupportState.Hidden());
+        SetLoaderInfo("LegacyFabricApi", LoaderSupportState.Hidden());
+        SetLoaderInfo("QSL", LoaderSupportState.Hidden());
+        SetLoaderInfo("OptiFabric", LoaderSupportState.Hidden());
     }
 
     private void CollapseLoaderCards()
@@ -593,19 +647,41 @@ public partial class PageDownloadInstall : MyPageRight
         }
     }
 
-    private void SetLoaderInfo(string name, string text, bool iconVisible)
+    private void SetLoaderInfo(string name, LoaderSupportState state)
     {
+        _loaderStates[name] = state;
+
+        if (this.FindControl<MyCard>("Card" + name) is { } card)
+        {
+            card.IsVisible = state.IsVisible;
+            if (!state.CanOpen)
+                card.IsSwapped = true;
+            card.MainSwap.IsVisible = state.CanOpen;
+        }
+
+        RefreshLoaderInfoPanel(name);
+
         if (this.FindControl<TextBlock>("Lab" + name) is { } label)
         {
-            label.Text = text;
+            label.Text = state.Text;
             label.Foreground = LegacyResourceResolver.Brush(label, "ColorBrushGray4", "#8c8c8c");
         }
 
         if (this.FindControl<Image>("Img" + name) is { } image)
-            image.IsVisible = iconVisible;
+            image.IsVisible = state.IconVisible;
 
         if (this.FindControl<Control>("Btn" + name + "Clear") is { } clearButton)
             clearButton.IsVisible = false;
+    }
+
+    private void RefreshLoaderInfoPanel(string name)
+    {
+        if (this.FindControl<Control>("Pan" + name + "Info") is not { } info)
+            return;
+
+        bool isCollapsed = this.FindControl<MyCard>("Card" + name)?.IsSwapped ?? true;
+        info.IsVisible = isCollapsed;
+        info.Opacity = isCollapsed ? 1d : 0d;
     }
 
     private void HideAllHints()
@@ -890,6 +966,50 @@ public partial class PageDownloadInstall : MyPageRight
                name.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
     }
 
+    private string CanAddText() =>
+        ResourceText("Download.Install.State.CanAdd", "可以添加");
+
+    private static bool IsFormatFit(string? version)
+    {
+        if (string.IsNullOrWhiteSpace(version))
+            return false;
+
+        if (version.Length >= 3 &&
+            version.StartsWith("1.", StringComparison.Ordinal) &&
+            char.IsDigit(version[2]))
+        {
+            return true;
+        }
+
+        string major = version.Split('.', 2)[0];
+        return int.TryParse(major, NumberStyles.Integer, CultureInfo.InvariantCulture, out int majorValue) &&
+               majorValue > 25 &&
+               version.Contains('.', StringComparison.Ordinal);
+    }
+
+    private static int VersionToDrop(string? version, bool allowSnapshot = false)
+    {
+        if (string.IsNullOrWhiteSpace(version))
+            return 0;
+        if (!allowSnapshot && version.Contains('-', StringComparison.Ordinal))
+            return 0;
+
+        string[] segments = version.Split('-', 2)[0].Split('.');
+        if (segments.Length < 2 ||
+            !int.TryParse(segments[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int major) ||
+            !int.TryParse(segments[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int minor))
+        {
+            return 0;
+        }
+
+        if (major == 1)
+            return minor * 10;
+        if (major < 25)
+            return 0;
+
+        return major * 10 + minor;
+    }
+
     private static Task RunOnUiThreadAsync(Action action)
     {
         if (Dispatcher.UIThread.CheckAccess())
@@ -933,4 +1053,15 @@ public partial class PageDownloadInstall : MyPageRight
         string Logo);
 
     private sealed record VersionListItemTag(DownloadVersionView Version, bool IsFilterable);
+
+    private sealed record LoaderSupportState(
+        bool IsVisible,
+        bool CanOpen,
+        string Text,
+        bool IconVisible)
+    {
+        public static LoaderSupportState Hidden() => new(false, false, string.Empty, false);
+
+        public static LoaderSupportState VisibleClosed(string text) => new(true, false, text, false);
+    }
 }
