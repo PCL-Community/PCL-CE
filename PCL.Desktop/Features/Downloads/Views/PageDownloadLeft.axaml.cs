@@ -97,7 +97,5 @@ public partial class PageDownloadLeft : MyPageLeft
     }
 
     private static DownloadVersionFilter ToVersionFilter(int value) =>
-        Enum.IsDefined(typeof(DownloadVersionFilter), value)
-            ? (DownloadVersionFilter)value
-            : DownloadVersionFilter.All;
+        DownloadVersionFilterRegistry.Normalize(value);
 }
