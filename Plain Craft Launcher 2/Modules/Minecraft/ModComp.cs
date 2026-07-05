@@ -2717,11 +2717,11 @@ public static class ModComp
         //  <summary>
         //  未经处理的支持的游戏版本列表。
         // </summary>
-        public readonly List<string> RawGameVersions;
+        public readonly List<string> RawGameVersions = new();
         /// <summary>
         ///     支持的游戏版本列表。类型包括："26.1.5"，"26.1"，"26.1 预览版"，"1.18.5"，"1.18"，"1.18 预览版"，"21w15a"，"未知版本"。
         /// </summary>
-        public readonly List<string> GameVersions;
+        public readonly List<string> GameVersions = new();
 
         /// <summary>
         ///     文件的 SHA1 或 MD5。
@@ -2736,7 +2736,7 @@ public static class ModComp
         /// <summary>
         ///     支持的 Mod 加载器列表。可能为空。
         /// </summary>
-        public readonly List<CompLoaderType> ModLoaders;
+        public readonly List<CompLoaderType> ModLoaders = new();
 
         /// <summary>
         ///     该文件的所有可选依赖工程的 Project.Id。
