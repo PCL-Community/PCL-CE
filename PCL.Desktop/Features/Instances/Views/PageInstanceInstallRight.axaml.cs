@@ -8,7 +8,6 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using System.Text.Json;
 using PCL.Application.Instances;
 using PCL.Desktop.Controls.Legacy;
 using PCL.Desktop.Features.Launching.Views;
@@ -19,8 +18,6 @@ namespace PCL.Desktop.Features.Instances.Views;
 public partial class PageInstanceInstallRight : MyPageRight
 {
     private LaunchInstanceInfo? _instance;
-
-    private sealed record InstanceVersionJsonInfo(string MinecraftVersionId, IReadOnlyList<string> Libraries);
 
     public PageInstanceInstallRight()
     {
@@ -122,22 +119,22 @@ public partial class PageInstanceInstallRight : MyPageRight
     private void InitializeLoaderCards(LaunchInstanceInfo instance)
     {
         CollapseLoaderCards();
-        InstanceVersionJsonInfo versionInfo = ReadInstanceVersionJsonInfo(instance);
+        MinecraftVersionJsonInfo versionInfo = MinecraftVersionJsonInspector.Read(instance);
         string minecraftVersionId = versionInfo.MinecraftVersionId;
         IReadOnlyList<string> libraries = versionInfo.Libraries;
-        string? forge = DetectLibrary(libraries, "net.minecraftforge:forge:", "minecraftforge") ?? DetectLoader(instance, "forge");
-        string? cleanroom = DetectLibrary(libraries, "com.cleanroommc:cleanroom:", "cleanroom") ?? DetectLoader(instance, "cleanroom");
-        string? neoForge = DetectLibrary(libraries, "net.neoforged:neoforge:", "net.neoforge:forge:", "neoforge") ?? DetectLoader(instance, "neoforge");
-        string? fabric = DetectLibrary(libraries, "net.fabricmc:fabric-loader:") ?? DetectLoader(instance, "fabric-loader", "fabric");
-        string? legacyFabric = DetectLibrary(libraries, "net.legacyfabric:", "legacyfabric") ?? DetectLoader(instance, "legacyfabric");
+        string? forge = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "net.minecraftforge:forge:", "minecraftforge") ?? DetectLoader(instance, "forge");
+        string? cleanroom = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "com.cleanroommc:cleanroom:", "cleanroom") ?? DetectLoader(instance, "cleanroom");
+        string? neoForge = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "net.neoforged:neoforge:", "net.neoforge:forge:", "neoforge") ?? DetectLoader(instance, "neoforge");
+        string? fabric = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "net.fabricmc:fabric-loader:") ?? DetectLoader(instance, "fabric-loader", "fabric");
+        string? legacyFabric = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "net.legacyfabric:", "legacyfabric") ?? DetectLoader(instance, "legacyfabric");
         string? fabricApi = DetectModFile(instance, "fabric-api");
         string? legacyFabricApi = DetectModFile(instance, "legacy-fabric-api");
-        string? quilt = DetectLibrary(libraries, "org.quiltmc:quilt-loader:") ?? DetectLoader(instance, "quilt");
+        string? quilt = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "org.quiltmc:quilt-loader:") ?? DetectLoader(instance, "quilt");
         string? qsl = DetectModFile(instance, "qsl", "quilted-fabric-api");
-        string? labyMod = DetectLibrary(libraries, "labymod") ?? DetectLoader(instance, "labymod");
-        string? optiFine = DetectLibrary(libraries, "optifine") ?? DetectLoader(instance, "optifine");
+        string? labyMod = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "labymod") ?? DetectLoader(instance, "labymod");
+        string? optiFine = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "optifine") ?? DetectLoader(instance, "optifine");
         string? optiFabric = DetectModFile(instance, "optifabric");
-        string? liteLoader = DetectLibrary(libraries, "liteloader") ?? DetectLoader(instance, "liteloader");
+        string? liteLoader = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "liteloader") ?? DetectLoader(instance, "liteloader");
 
         SetLoaderInfo("Forge", forge, "Anvil.png");
         SetLoaderInfo("Cleanroom", cleanroom, "Cleanroom.png");
@@ -309,76 +306,7 @@ public partial class PageInstanceInstallRight : MyPageRight
 
     private static string ResolveMinecraftVersionId(LaunchInstanceInfo instance)
     {
-        return ReadInstanceVersionJsonInfo(instance).MinecraftVersionId;
-    }
-
-    private static InstanceVersionJsonInfo ReadInstanceVersionJsonInfo(LaunchInstanceInfo instance)
-    {
-        if (!File.Exists(instance.VersionJsonPath))
-            return new InstanceVersionJsonInfo(instance.Name, []);
-
-        try
-        {
-            using FileStream stream = File.OpenRead(instance.VersionJsonPath);
-            using JsonDocument document = JsonDocument.Parse(stream);
-            JsonElement root = document.RootElement;
-            string inherited = ReadJsonString(root, "inheritsFrom");
-            if (!string.IsNullOrWhiteSpace(inherited))
-                return new InstanceVersionJsonInfo(inherited, ReadLibraryNames(root).ToArray());
-
-            string id = ReadJsonString(root, "id");
-            return new InstanceVersionJsonInfo(
-                string.IsNullOrWhiteSpace(id) ? instance.Name : id,
-                ReadLibraryNames(root).ToArray());
-        }
-        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
-        {
-            return new InstanceVersionJsonInfo(instance.Name, []);
-        }
-    }
-
-    private static string ReadJsonString(JsonElement element, string propertyName) =>
-        element.TryGetProperty(propertyName, out JsonElement property) && property.ValueKind == JsonValueKind.String
-            ? property.GetString() ?? string.Empty
-            : string.Empty;
-
-    private static IEnumerable<string> ReadLibraryNames(JsonElement root)
-    {
-        if (!root.TryGetProperty("libraries", out JsonElement libraries) ||
-            libraries.ValueKind != JsonValueKind.Array)
-        {
-            yield break;
-        }
-
-        foreach (JsonElement library in libraries.EnumerateArray())
-        {
-            if (library.TryGetProperty("name", out JsonElement nameElement) &&
-                nameElement.ValueKind == JsonValueKind.String &&
-                !string.IsNullOrWhiteSpace(nameElement.GetString()))
-            {
-                yield return nameElement.GetString()!;
-            }
-        }
-    }
-
-    private static string? DetectLibrary(IReadOnlyList<string> libraries, params string[] needles)
-    {
-        string? library = libraries.FirstOrDefault(library =>
-            needles.Any(needle => library.Contains(needle, StringComparison.OrdinalIgnoreCase)));
-        return string.IsNullOrWhiteSpace(library) ? null : SimplifyLibraryVersion(library);
-    }
-
-    private static string SimplifyLibraryVersion(string library)
-    {
-        int versionIndex = library.LastIndexOf(':');
-        if (versionIndex < 0 || versionIndex == library.Length - 1)
-            return "已安装";
-
-        string version = library[(versionIndex + 1)..];
-        int minecraftPrefixIndex = version.IndexOf('-');
-        return minecraftPrefixIndex > 0 && minecraftPrefixIndex < version.Length - 1
-            ? version[(minecraftPrefixIndex + 1)..]
-            : version;
+        return MinecraftVersionJsonInspector.Read(instance).MinecraftVersionId;
     }
 
     private void HideAllHints()

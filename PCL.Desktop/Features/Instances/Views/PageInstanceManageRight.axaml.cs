@@ -2,7 +2,6 @@
 // Modifications Copyright (c) 2026 PCL N contributors.
 // Licensed under the Apache License, Version 2.0.
 
-using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -12,6 +11,7 @@ using Avalonia.VisualTree;
 using PCL.Application.Instances;
 using PCL.Desktop.Controls.Legacy;
 using PCL.Desktop.Features.Launching.Views;
+using PCL.Desktop.Features.Shared;
 
 namespace PCL.Desktop.Features.Instances.Views;
 
@@ -393,27 +393,15 @@ public partial class PageInstanceManageRight : MyPageRight
 
     private InstanceJsonInfo ReadInstanceJsonInfo(LaunchInstanceInfo instance)
     {
-        try
-        {
-            using FileStream stream = File.OpenRead(instance.VersionJsonPath);
-            using JsonDocument document = JsonDocument.Parse(stream);
-            JsonElement root = document.RootElement;
-            string? id = root.TryGetProperty("id", out JsonElement idElement) ? idElement.GetString() : null;
-            string? inheritsFrom = root.TryGetProperty("inheritsFrom", out JsonElement inheritsElement) ? inheritsElement.GetString() : null;
-            List<string> libraries = ReadLibraryNames(root).ToList();
-            IReadOnlyList<InstanceInfoItem> loaderItems = DetectLoaderInfo(libraries, ResourceText("Instance.Overall.Info.Installed", "已安装"));
-            return new InstanceJsonInfo(
-                string.IsNullOrWhiteSpace(inheritsFrom)
-                    ? (string.IsNullOrWhiteSpace(id) ? instance.Name : id)
-                    : inheritsFrom,
-                inheritsFrom,
-                loaderItems,
-                loaderItems.Any(static item => item.IsModable));
-        }
-        catch (Exception)
-        {
-            return new InstanceJsonInfo(instance.Name, null, [], IsModable: false);
-        }
+        MinecraftVersionJsonInfo jsonInfo = MinecraftVersionJsonInspector.Read(instance);
+        IReadOnlyList<InstanceInfoItem> loaderItems = DetectLoaderInfo(
+            jsonInfo.Libraries,
+            ResourceText("Instance.Overall.Info.Installed", "已安装"));
+        return new InstanceJsonInfo(
+            jsonInfo.MinecraftVersionId,
+            jsonInfo.InheritsFrom,
+            loaderItems,
+            loaderItems.Any(static item => item.IsModable));
     }
 
     private static List<InstanceInfoItem> DetectLoaderInfo(IReadOnlyList<string> libraries, string installedText)
@@ -451,44 +439,11 @@ public partial class PageInstanceManageRight : MyPageRight
         string? explicitInfo,
         params string[] needles)
     {
-        string? library = libraries.FirstOrDefault(library =>
-            needles.Any(needle => library.Contains(needle, StringComparison.OrdinalIgnoreCase)));
-        if (string.IsNullOrWhiteSpace(library))
+        string? version = MinecraftLoaderLibraryDetector.DetectVersion(libraries, needles);
+        if (string.IsNullOrWhiteSpace(version))
             return;
 
-        items.Add(new InstanceInfoItem(title, explicitInfo ?? SimplifyLibraryVersion(library), imageName, isModable));
-    }
-
-    private static string SimplifyLibraryVersion(string library)
-    {
-        int versionIndex = library.LastIndexOf(':');
-        if (versionIndex < 0 || versionIndex == library.Length - 1)
-            return "已安装";
-
-        string version = library[(versionIndex + 1)..];
-        int minecraftPrefixIndex = version.IndexOf('-');
-        return minecraftPrefixIndex > 0 && minecraftPrefixIndex < version.Length - 1
-            ? version[(minecraftPrefixIndex + 1)..]
-            : version;
-    }
-
-    private static IEnumerable<string> ReadLibraryNames(JsonElement root)
-    {
-        if (!root.TryGetProperty("libraries", out JsonElement libraries) ||
-            libraries.ValueKind != JsonValueKind.Array)
-        {
-            yield break;
-        }
-
-        foreach (JsonElement library in libraries.EnumerateArray())
-        {
-            if (library.TryGetProperty("name", out JsonElement nameElement) &&
-                nameElement.ValueKind == JsonValueKind.String &&
-                !string.IsNullOrWhiteSpace(nameElement.GetString()))
-            {
-                yield return nameElement.GetString()!;
-            }
-        }
+        items.Add(new InstanceInfoItem(title, explicitInfo ?? version, imageName, isModable));
     }
 
     private void OpenMinecraftSubFolder(string name)
