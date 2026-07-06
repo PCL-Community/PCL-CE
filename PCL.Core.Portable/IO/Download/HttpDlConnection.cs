@@ -58,10 +58,14 @@ public sealed class HttpDlConnection : IDlConnection, IDisposable, IAsyncDisposa
             .ConfigureAwait(false);
 
         bool isPartial = _response.StatusCode == HttpStatusCode.PartialContent;
-        long effectiveBeginOffset = isPartial ? beginOffset : 0;
+        ContentRangeHeaderValue? contentRange = _response.Content.Headers.ContentRange;
+        long effectiveBeginOffset = isPartial ? contentRange?.From ?? beginOffset : 0;
+        if (isPartial && beginOffset > 0 && effectiveBeginOffset != beginOffset)
+            throw new IOException($"服务器返回的续传起点不匹配：期望 {beginOffset}，实际 {effectiveBeginOffset}。");
+
         long contentLength = _response.Content.Headers.ContentLength ?? -1;
         long totalLength = isPartial
-            ? _response.Content.Headers.ContentRange?.Length ?? (contentLength >= 0 ? effectiveBeginOffset + contentLength : -1)
+            ? contentRange?.Length ?? (contentLength >= 0 ? effectiveBeginOffset + contentLength : -1)
             : contentLength;
         long endOffset = contentLength >= 0 ? effectiveBeginOffset + contentLength - 1 : -1;
         bool supportsSegments = _response.Headers.AcceptRanges.Contains("bytes") || _response.Content.Headers.ContentRange is not null;

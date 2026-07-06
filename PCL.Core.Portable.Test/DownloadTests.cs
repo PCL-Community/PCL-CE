@@ -38,6 +38,17 @@ public sealed class DownloadTests
     }
 
     [TestMethod]
+    public async Task HttpConnectionRejectsMismatchedPartialContentRange()
+    {
+        var expected = Encoding.UTF8.GetBytes("portable range payload");
+        using var client = new HttpClient(new MismatchedRangeResponseHandler(expected));
+        await using var connection = new HttpDlConnection(client, "https://pcl.invalid/file");
+
+        await Assert.ThrowsExactlyAsync<IOException>(
+            () => connection.StartAsync(9).AsTask());
+    }
+
+    [TestMethod]
     public async Task FileWriterPreservesPartialTemporaryFileUntilCommit()
     {
         var directory = Path.Combine(Path.GetTempPath(), $"pcl-writer-{Guid.NewGuid():N}");
@@ -278,6 +289,27 @@ public sealed class DownloadTests
                     content.Length);
             }
 
+            return Task.FromResult(response);
+        }
+    }
+
+    private sealed class MismatchedRangeResponseHandler(byte[] content) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            var response = new HttpResponseMessage(HttpStatusCode.PartialContent)
+            {
+                RequestMessage = request,
+                Content = new ByteArrayContent(content)
+            };
+            response.Content.Headers.ContentLength = content.Length;
+            response.Content.Headers.ContentRange = new ContentRangeHeaderValue(
+                0,
+                content.Length - 1,
+                content.Length);
+            response.Headers.AcceptRanges.Add("bytes");
             return Task.FromResult(response);
         }
     }
