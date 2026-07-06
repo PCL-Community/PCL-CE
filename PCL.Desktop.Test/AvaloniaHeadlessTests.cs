@@ -4286,8 +4286,8 @@ public sealed class AvaloniaHeadlessTests
                     Height = 480,
                     Content = page
                 };
-                bool modifyRequested = false;
-                page.ModifyRequested += (_, _) => modifyRequested = true;
+                InstanceInstallModifyRequest? modifyRequest = null;
+                page.ModifyRequested += (_, request) => modifyRequest = request;
 
                 try
                 {
@@ -4311,7 +4311,97 @@ public sealed class AvaloniaHeadlessTests
 
                     Click(window, page.FindControl<MyExtraTextButton>("BtnSelectStart")!);
 
-                    Assert.IsTrue(modifyRequested);
+                    Assert.AreEqual(instance, modifyRequest?.Instance);
+                    Assert.AreEqual("1.20.1", modifyRequest?.MinecraftVersionId);
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }, CancellationToken.None);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void PageInstanceInstallRight_SelectsMinecraftVersionInCopiedWpfList()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+        string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-install-minecraft-" + Guid.NewGuid().ToString("N"));
+
+        try
+        {
+            string versionDirectory = System.IO.Path.Combine(root, "versions", "fabric-pack");
+            Directory.CreateDirectory(versionDirectory);
+            File.WriteAllText(
+                System.IO.Path.Combine(versionDirectory, "fabric-pack.json"),
+                """
+                {
+                  "id": "fabric-pack",
+                  "inheritsFrom": "1.20.1",
+                  "libraries": [
+                    { "name": "net.fabricmc:fabric-loader:0.16.10" }
+                  ]
+                }
+                """);
+            LaunchInstanceInfo instance = new("fabric-pack", System.IO.Path.Combine(versionDirectory, "fabric-pack.json"), versionDirectory);
+
+            session.Dispatch(() =>
+            {
+                PageInstanceInstallRight page = new();
+                SetPrivateField(
+                    page,
+                    "_versions",
+                    new[]
+                    {
+                        new MinecraftVersionManifestEntry("1.20.2", "release", "https://example.invalid/1.20.2.json", DateTimeOffset.Parse("2023-09-21T00:00:00Z")),
+                        new MinecraftVersionManifestEntry("1.20.1", "release", "https://example.invalid/1.20.1.json", DateTimeOffset.Parse("2023-06-12T00:00:00Z")),
+                        new MinecraftVersionManifestEntry("24w14a", "snapshot", "https://example.invalid/24w14a.json", DateTimeOffset.Parse("2024-04-03T00:00:00Z"))
+                    });
+                Window window = new()
+                {
+                    Width = 720,
+                    Height = 520,
+                    Content = page
+                };
+                InstanceInstallModifyRequest? modifyRequest = null;
+                page.ModifyRequested += (_, request) => modifyRequest = request;
+
+                try
+                {
+                    window.Show();
+                    page.SetInstance(instance);
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                    Click(window, page.FindControl<MyCard>("CardMinecraft")!);
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                    Assert.IsFalse(page.FindControl<StackPanel>("PanSelect")!.IsVisible);
+                    Assert.IsTrue(page.FindControl<StackPanel>("PanMinecraft")!.IsVisible);
+                    Assert.IsFalse(page.FindControl<MyExtraTextButton>("BtnSelectStart")!.Show);
+                    Assert.IsTrue(page.GetVisualDescendants().OfType<MyCard>().Any(card => card.Title == "最新版本"));
+                    Assert.IsTrue(page.GetVisualDescendants().OfType<MyCard>().Any(card => card.Title == "正式版 (2)"));
+
+                    MyListItem versionItem = page.GetVisualDescendants()
+                        .OfType<MyListItem>()
+                        .First(item => item.Title == "1.20.2" && item.IsVisible);
+                    Click(window, versionItem);
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                    Assert.IsTrue(page.FindControl<StackPanel>("PanSelect")!.IsVisible);
+                    Assert.IsFalse(page.FindControl<StackPanel>("PanMinecraft")!.IsVisible);
+                    Assert.AreEqual("1.20.2", page.FindControl<TextBlock>("LabMinecraft")!.Text);
+                    Assert.AreEqual("1.20.2  |  无额外安装", page.FindControl<MyListItem>("ItemSelect")!.Info);
+                    Assert.AreEqual("可添加", page.FindControl<TextBlock>("LabFabric")!.Text);
+
+                    Click(window, page.FindControl<MyExtraTextButton>("BtnSelectStart")!);
+
+                    Assert.AreEqual(instance, modifyRequest?.Instance);
+                    Assert.AreEqual("1.20.2", modifyRequest?.MinecraftVersionId);
                 }
                 finally
                 {

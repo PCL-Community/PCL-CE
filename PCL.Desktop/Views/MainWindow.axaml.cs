@@ -1017,14 +1017,16 @@ public partial class MainWindow : Window, IDisposable
     private PageInstanceInstallRight CreateInstanceInstallPage()
     {
         PageInstanceInstallRight page = new();
-        page.DownloadRequested += (_, _) => SelectNavRoute(DownloadRoute, animate: true);
-        page.ModifyRequested += (_, instance) => _ = OpenDownloadInstallForInstanceAsync(instance);
+        page.ModifyRequested += (_, request) => _ = OpenDownloadInstallForInstanceAsync(request);
         return page;
     }
 
-    private async Task OpenDownloadInstallForInstanceAsync(LaunchInstanceInfo instance)
+    private async Task OpenDownloadInstallForInstanceAsync(InstanceInstallModifyRequest request)
     {
-        string versionId = ReadMinecraftVersionId(instance);
+        LaunchInstanceInfo instance = request.Instance;
+        string versionId = string.IsNullOrWhiteSpace(request.MinecraftVersionId)
+            ? ReadMinecraftVersionId(instance)
+            : request.MinecraftVersionId;
         string minecraftRoot = GetMinecraftRootFromInstance(instance);
         PageDownloadInstall installPage = ActivateDownloadInstallPage(animate: true);
         await installPage.FocusVersionAsync(

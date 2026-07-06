@@ -2,12 +2,16 @@
 // Modifications Copyright (c) 2026 PCL N contributors.
 // Licensed under the Apache License, Version 2.0.
 
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Avalonia.Threading;
+using System.Globalization;
+using PCL.Application.Downloads;
 using PCL.Application.Instances;
 using PCL.Desktop.Controls.Legacy;
 using PCL.Desktop.Features.Launching.Views;
@@ -15,12 +19,33 @@ using PCL.Desktop.Features.Shared;
 
 namespace PCL.Desktop.Features.Instances.Views;
 
+public sealed record InstanceInstallModifyRequest(LaunchInstanceInfo Instance, string MinecraftVersionId);
+
 public partial class PageInstanceInstallRight : MyPageRight
 {
+    private static readonly MinecraftVersionCategory[] VersionCategoryOrder =
+    [
+        MinecraftVersionCategory.Release,
+        MinecraftVersionCategory.Snapshot,
+        MinecraftVersionCategory.BeforeRelease,
+        MinecraftVersionCategory.AprilFools
+    ];
+
+    private readonly MinecraftVanillaInstallService _installService;
+    private IReadOnlyList<MinecraftVersionManifestEntry> _versions = [];
     private LaunchInstanceInfo? _instance;
+    private string _selectedMinecraftVersionId = string.Empty;
+    private string _selectedMinecraftLogo = BlockAssetRoot + "Grass.png";
+    private bool _isLoadingMinecraftVersions;
 
     public PageInstanceInstallRight()
+        : this(new MinecraftVanillaInstallService())
     {
+    }
+
+    public PageInstanceInstallRight(MinecraftVanillaInstallService installService)
+    {
+        _installService = installService;
         AvaloniaXamlLoader.Load(this);
         PanScroll = this.FindControl<MyScrollViewer>("PanBack");
         WireWpfCopiedControls();
@@ -28,9 +53,7 @@ public partial class PageInstanceInstallRight : MyPageRight
         HideAllHints();
     }
 
-    public event EventHandler<LaunchInstanceInfo>? ModifyRequested;
-
-    public event EventHandler<LaunchInstanceInfo>? DownloadRequested;
+    public event EventHandler<InstanceInstallModifyRequest>? ModifyRequested;
 
     public void SetInstance(LaunchInstanceInfo instance)
     {
@@ -43,6 +66,9 @@ public partial class PageInstanceInstallRight : MyPageRight
         if (_instance is null)
             return;
 
+        MinecraftVersionJsonInfo versionInfo = MinecraftVersionJsonInspector.Read(_instance);
+        _selectedMinecraftVersionId = versionInfo.MinecraftVersionId;
+        _selectedMinecraftLogo = BlockAssetRoot + GetVersionLogoImageName("release");
         PanScroll?.ScrollToHome();
         ApplySelectPageState();
         PopulateSelectedInstance(_instance);
@@ -60,7 +86,7 @@ public partial class PageInstanceInstallRight : MyPageRight
             startButton.Click += (_, _) =>
             {
                 if (_instance is not null)
-                    ModifyRequested?.Invoke(this, _instance);
+                    ModifyRequested?.Invoke(this, new InstanceInstallModifyRequest(_instance, _selectedMinecraftVersionId));
             };
         }
     }
@@ -96,6 +122,323 @@ public partial class PageInstanceInstallRight : MyPageRight
         }
     }
 
+    private void ApplyMinecraftPageState()
+    {
+        if (this.FindControl<Control>("PanSelect") is { } select)
+        {
+            select.IsVisible = false;
+            select.IsHitTestVisible = false;
+            select.Opacity = 0d;
+            ResetTranslateX(select);
+        }
+
+        if (this.FindControl<Control>("PanMinecraft") is { } minecraft)
+        {
+            minecraft.IsVisible = true;
+            minecraft.IsHitTestVisible = true;
+            minecraft.Opacity = 1d;
+            ResetTranslateX(minecraft);
+        }
+
+        if (this.FindControl<MyExtraTextButton>("BtnSelectStart") is { } startButton)
+            startButton.Show = false;
+
+        if (this.FindControl<MyScrollViewer>("PanBack") is { } scroll)
+        {
+            scroll.IsHitTestVisible = true;
+            scroll.ScrollToHome();
+        }
+    }
+
+    private async Task EnsureMinecraftVersionsAsync()
+    {
+        if (_versions.Count > 0)
+        {
+            RenderMinecraftVersions();
+            return;
+        }
+
+        if (_isLoadingMinecraftVersions)
+            return;
+
+        _isLoadingMinecraftVersions = true;
+        SetMinecraftVersionListMessage("Minecraft", "正在获取版本列表，请稍候。");
+        try
+        {
+            IReadOnlyList<MinecraftVersionManifestEntry> versions = await _installService
+                .GetVersionManifestAsync(preferOfficialSource: true)
+                .ConfigureAwait(false);
+            await RunOnUiThreadAsync(() =>
+            {
+                _versions = versions;
+                RenderMinecraftVersions();
+            }).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or FormatException)
+        {
+            await RunOnUiThreadAsync(() =>
+                SetMinecraftVersionListMessage("Minecraft", "获取版本列表失败：" + ex.Message)).ConfigureAwait(false);
+        }
+        finally
+        {
+            _isLoadingMinecraftVersions = false;
+        }
+    }
+
+    private void RenderMinecraftVersions()
+    {
+        if (this.FindControl<StackPanel>("PanMinecraft") is not { } panel)
+            return;
+
+        panel.Children.Clear();
+        if (_versions.Count == 0)
+        {
+            SetMinecraftVersionListMessage("Minecraft", "暂时没有可选择的 Minecraft 版本。");
+            return;
+        }
+
+        MinecraftVersionView[] views = BuildMinecraftVersionViews(_versions);
+        Dictionary<MinecraftVersionCategory, List<MinecraftVersionView>> categories = CreateVersionDictionary(views);
+        AddLatestMinecraftVersionCard(panel, categories);
+        foreach (MinecraftVersionCategory category in VersionCategoryOrder)
+        {
+            IReadOnlyList<MinecraftVersionView> versions = categories[category];
+            if (versions.Count == 0)
+                continue;
+
+            panel.Children.Add(CreateMinecraftVersionCard(
+                GetVersionCategoryTitle(category) + " (" + versions.Count.ToString(CultureInfo.CurrentCulture) + ")",
+                versions,
+                isSwapped: true,
+                margin: new Thickness(0d, 0d, 0d, 15d)));
+        }
+    }
+
+    private void AddLatestMinecraftVersionCard(
+        StackPanel panel,
+        IReadOnlyDictionary<MinecraftVersionCategory, List<MinecraftVersionView>> categories)
+    {
+        MinecraftVersionView? latestRelease = categories[MinecraftVersionCategory.Release].FirstOrDefault();
+        MinecraftVersionView? latestSnapshot = categories[MinecraftVersionCategory.Snapshot].FirstOrDefault();
+        List<MinecraftVersionView> latest = [];
+
+        if (latestRelease is not null)
+        {
+            latest.Add(latestRelease with
+            {
+                Info = ResourceText(
+                    "Download.Version.Latest.Release",
+                    "最新正式版，发布于 {0}",
+                    FormatReleaseTime(latestRelease.ReleaseTime))
+            });
+        }
+
+        if (latestSnapshot is not null &&
+            (latestRelease is null ||
+             (latestSnapshot.ReleaseTime ?? DateTimeOffset.MinValue) > (latestRelease.ReleaseTime ?? DateTimeOffset.MinValue)))
+        {
+            latest.Add(latestSnapshot with
+            {
+                Info = ResourceText(
+                    "Download.Version.Latest.Development",
+                    "最新预览版，发布于 {0}",
+                    FormatReleaseTime(latestSnapshot.ReleaseTime))
+            });
+        }
+
+        if (latest.Count == 0)
+            return;
+
+        panel.Children.Add(CreateMinecraftVersionCard(
+            ResourceText("Download.Version.Latest.Title", "最新版本"),
+            latest,
+            isSwapped: false,
+            margin: new Thickness(0d, 15d, 0d, 15d)));
+    }
+
+    private MyCard CreateMinecraftVersionCard(
+        string title,
+        IReadOnlyList<MinecraftVersionView> versions,
+        bool isSwapped,
+        Thickness margin)
+    {
+        StackPanel stack = new()
+        {
+            Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
+            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top,
+            RenderTransform = new TranslateTransform(),
+            Tag = versions
+        };
+        MyCard card = new()
+        {
+            Title = title,
+            Margin = margin,
+            SwapControl = stack,
+            InstallMethod = InstallMinecraftVersionItems,
+            IsSwapped = isSwapped
+        };
+        card.Children.Add(stack);
+        MyCard.StackInstall(ref stack, InstallMinecraftVersionItems);
+        return card;
+    }
+
+    private void InstallMinecraftVersionItems(StackPanel stack)
+    {
+        if (stack.Tag is not IReadOnlyList<MinecraftVersionView> versions)
+            return;
+
+        foreach (MinecraftVersionView version in versions)
+            stack.Children.Add(CreateMinecraftVersionItem(version));
+    }
+
+    private MyListItem CreateMinecraftVersionItem(MinecraftVersionView version)
+    {
+        MyListItem item = new()
+        {
+            Title = version.Title,
+            Info = version.Info,
+            Type = MyListItem.CheckType.Clickable,
+            Logo = version.Logo,
+            LogoScale = 1d,
+            Height = 42d,
+            Margin = new Thickness(0, 0, 0, 2),
+            Tag = version.Manifest
+        };
+        item.Click += (_, _) => SelectMinecraftVersion(version);
+        return item;
+    }
+
+    private void SelectMinecraftVersion(MinecraftVersionView version)
+    {
+        _selectedMinecraftVersionId = version.Manifest.Id;
+        _selectedMinecraftLogo = version.Logo;
+        if (this.FindControl<TextBlock>("LabMinecraft") is { } label)
+            label.Text = version.Manifest.Id;
+        if (this.FindControl<Image>("ImgMinecraft") is { } image)
+        {
+            image.Source = LoadImage(version.Logo) ?? LoadBlockImage("Grass.png");
+            image.Tag = version.Logo;
+        }
+
+        CollapseLoaderCards();
+        ApplyBlankLoaderCards(version.Manifest.Id);
+        ApplySelectedInstanceSummary(version.Manifest.Id, null, null, null, null, null, null, null, null, null);
+        ApplySelectPageState();
+    }
+
+    private void ApplyBlankLoaderCards(string minecraftVersionId)
+    {
+        SetLoaderInfo("Forge", null, "Anvil.png");
+        SetLoaderInfo("Cleanroom", null, "Cleanroom.png");
+        SetLoaderInfo("NeoForge", null, "NeoForge.png");
+        SetLoaderInfo("Fabric", null, "Fabric.png");
+        SetLoaderInfo("LegacyFabric", null, "Fabric.png");
+        SetLoaderInfo("FabricApi", null, "Fabric.png");
+        SetLoaderInfo("LegacyFabricApi", null, "Fabric.png");
+        SetLoaderInfo("Quilt", null, "Quilt.png");
+        SetLoaderInfo("QSL", null, "Quilt.png");
+        SetLoaderInfo("LabyMod", null, "LabyMod.png");
+        SetLoaderInfo("OptiFine", null, "GrassPath.png");
+        SetLoaderInfo("OptiFabric", null, "OptiFabric.png");
+        SetLoaderInfo("LiteLoader", null, "Egg.png");
+        ApplyLoaderCardVisibility(minecraftVersionId);
+    }
+
+    private void SetMinecraftVersionListMessage(string title, string message)
+    {
+        if (this.FindControl<StackPanel>("PanMinecraft") is not { } panel)
+            return;
+
+        panel.Children.Clear();
+        MyCard card = new()
+        {
+            Title = title,
+            Margin = new Thickness(0d, 15d, 0d, 15d),
+            UseAnimation = false
+        };
+        card.Children.Add(new TextBlock
+        {
+            Text = message,
+            FontSize = 13.5d,
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(25d, 38d, 23d, 16d)
+        });
+        panel.Children.Add(card);
+    }
+
+    private static MinecraftVersionView[] BuildMinecraftVersionViews(IReadOnlyList<MinecraftVersionManifestEntry> versions)
+    {
+        MinecraftVersionView[] views = new MinecraftVersionView[versions.Count];
+        for (int i = 0; i < versions.Count; i++)
+            views[i] = CreateMinecraftVersionView(versions[i]);
+        return views;
+    }
+
+    private static MinecraftVersionView CreateMinecraftVersionView(MinecraftVersionManifestEntry version)
+    {
+        MinecraftVersionClassification classification = MinecraftVersionCatalogClassifier.Classify(version);
+        string id = classification.Id;
+        string type = classification.Type;
+        string title = MinecraftVersionCatalogClassifier.FormatVersion(id).Replace("_", " ", StringComparison.Ordinal);
+        string info = string.Equals(title, id, StringComparison.Ordinal)
+            ? FormatReleaseTime(version.ReleaseTime)
+            : $"{FormatReleaseTime(version.ReleaseTime)} | {id}";
+        MinecraftVersionManifestEntry manifest = version with
+        {
+            Id = id,
+            Type = type
+        };
+
+        return new MinecraftVersionView(
+            manifest,
+            title,
+            info,
+            version.ReleaseTime,
+            classification.Category,
+            BlockAssetRoot + GetVersionLogoImageName(type));
+    }
+
+    private static Dictionary<MinecraftVersionCategory, List<MinecraftVersionView>> CreateVersionDictionary(
+        IReadOnlyList<MinecraftVersionView> versions)
+    {
+        Dictionary<MinecraftVersionCategory, List<MinecraftVersionView>> categories = VersionCategoryOrder.ToDictionary(
+            category => category,
+            _ => new List<MinecraftVersionView>());
+        foreach (MinecraftVersionView version in versions)
+            categories[version.Category].Add(version);
+
+        foreach (MinecraftVersionCategory category in VersionCategoryOrder)
+            categories[category] = categories[category]
+                .OrderByDescending(version => version.ReleaseTime ?? DateTimeOffset.MinValue)
+                .ToList();
+
+        return categories;
+    }
+
+    private string GetVersionCategoryTitle(MinecraftVersionCategory category) =>
+        category switch
+        {
+            MinecraftVersionCategory.Release => ResourceText("Download.Version.Type.Release", "正式版"),
+            MinecraftVersionCategory.Snapshot => ResourceText("Download.Version.Type.Development", "预览版"),
+            MinecraftVersionCategory.BeforeRelease => ResourceText("Download.Version.Type.BeforeRelease", "远古版"),
+            MinecraftVersionCategory.AprilFools => ResourceText("Download.Version.Type.AprilFools", "愚人节版"),
+            _ => category.ToString()
+        };
+
+    private static string FormatReleaseTime(DateTimeOffset? releaseTime) =>
+        releaseTime?.ToLocalTime().ToString("g", CultureInfo.CurrentCulture) ?? "未知日期";
+
+    private static string GetVersionLogoImageName(string type)
+    {
+        return type.ToLowerInvariant() switch
+        {
+            "release" => "Grass.png",
+            "snapshot" or "pending" => "CommandBlock.png",
+            "special" => "GoldBlock.png",
+            _ => "CobbleStone.png"
+        };
+    }
+
     private void PopulateSelectedInstance(LaunchInstanceInfo instance)
     {
         InstanceMetadata metadata = InstanceMetadataStore.LoadAsync(instance.InstanceDirectory).GetAwaiter().GetResult();
@@ -107,12 +450,12 @@ public partial class PageInstanceInstallRight : MyPageRight
         }
 
         if (this.FindControl<TextBlock>("LabMinecraft") is { } label)
-            label.Text = instance.Name;
+            label.Text = _selectedMinecraftVersionId;
 
         if (this.FindControl<Image>("ImgMinecraft") is { } image)
         {
-            image.Source = LoadImage(logo) ?? LoadBlockImage("Grass.png");
-            image.Tag = logo;
+            image.Source = LoadImage(_selectedMinecraftLogo) ?? LoadImage(logo) ?? LoadBlockImage("Grass.png");
+            image.Tag = _selectedMinecraftLogo;
         }
     }
 
@@ -382,18 +725,35 @@ public partial class PageInstanceInstallRight : MyPageRight
         return File.OpenRead(address);
     }
 
-    private string ResourceText(string key, string fallback) =>
-        this.TryFindResource(key, ActualThemeVariant, out object? value) && value is string text
+    private static Task RunOnUiThreadAsync(Action action)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            action();
+            return Task.CompletedTask;
+        }
+
+        return Dispatcher.UIThread.InvokeAsync(action).GetTask();
+    }
+
+    private string ResourceText(string key, string fallback, params object[] args)
+    {
+        string text = fallback;
+        if (this.TryFindResource(key, ActualThemeVariant, out object? value) && value is string resourceText)
+            text = resourceText;
+
+        return args.Length == 0
             ? text
-            : fallback;
+            : string.Format(CultureInfo.CurrentCulture, text, args);
+    }
 
     private const string BlockAssetRoot = InstanceDisplayHelper.BlockAssetRoot;
 
     private void CardMinecraft_PreviewSwap(object sender, RouteEventArgs e)
     {
         e.Handled = true;
-        if (_instance is not null)
-            DownloadRequested?.Invoke(this, _instance);
+        ApplyMinecraftPageState();
+        _ = EnsureMinecraftVersionsAsync();
     }
 
     private void CardForge_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
@@ -469,4 +829,12 @@ public partial class PageInstanceInstallRight : MyPageRight
 
         return instance.InstanceDirectory;
     }
+
+    private sealed record MinecraftVersionView(
+        MinecraftVersionManifestEntry Manifest,
+        string Title,
+        string Info,
+        DateTimeOffset? ReleaseTime,
+        MinecraftVersionCategory Category,
+        string Logo);
 }
