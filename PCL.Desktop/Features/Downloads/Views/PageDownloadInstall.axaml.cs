@@ -97,7 +97,8 @@ public partial class PageDownloadInstall : MyPageRight
         string versionId,
         string? installName = null,
         bool preserveInstallNameOnLoaderSelect = false,
-        string? minecraftRootDirectory = null)
+        string? minecraftRootDirectory = null,
+        MinecraftLoaderKind? openLoaderKind = null)
     {
         if (string.IsNullOrWhiteSpace(versionId))
             return;
@@ -118,12 +119,31 @@ public partial class PageDownloadInstall : MyPageRight
         {
             ReloadVersionList();
             SelectVersion(version);
+            if (openLoaderKind is { } loaderKind)
+                await OpenLoaderCardAsync(loaderKind).ConfigureAwait(true);
             return;
         }
 
         if (this.FindControl<MySearchBar>("TextSearchVersion") is { } fallbackSearchBar)
             fallbackSearchBar.Text = versionId;
         ReloadVersionList();
+    }
+
+    public async Task OpenLoaderCardAsync(MinecraftLoaderKind kind)
+    {
+        if (_selectedVersion is null)
+            return;
+
+        string name = GetLoaderCardName(kind);
+        if (!_loaderStates.TryGetValue(name, out LoaderSupportState? state) || !state.CanOpen)
+            return;
+
+        if (this.FindControl<MyCard>("Card" + name) is not { } card)
+            return;
+
+        card.IsSwapped = false;
+        RefreshLoaderInfoPanel(name);
+        await EnsureLoaderVersionsRenderedAsync(name).ConfigureAwait(true);
     }
 
     public void ClearInstallTargetOverride()

@@ -2788,16 +2788,15 @@ public sealed class AvaloniaHeadlessTests
                         "1.20.1",
                         "My Fabric Pack",
                         preserveInstallNameOnLoaderSelect: true,
-                        minecraftRootDirectory: @"D:\Games\.minecraft")
+                        minecraftRootDirectory: @"D:\Games\.minecraft",
+                        openLoaderKind: MinecraftLoaderKind.Fabric)
                     .GetAwaiter()
                     .GetResult();
                 ModAnimation.AdvanceUntilIdleForTesting();
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
                 Assert.AreEqual("My Fabric Pack", page.FindControl<MyTextBox>("TextSelectName")!.Text);
-
-                Click(window, page.FindControl<MyCard>("CardFabric")!);
-                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Assert.IsFalse(page.FindControl<MyCard>("CardFabric")!.IsSwapped);
 
                 MyListItem loaderItem = page.GetVisualDescendants()
                     .OfType<MyListItem>()
@@ -4313,6 +4312,15 @@ public sealed class AvaloniaHeadlessTests
 
                     Assert.AreEqual(instance, modifyRequest?.Instance);
                     Assert.AreEqual("1.20.1", modifyRequest?.MinecraftVersionId);
+                    Assert.IsNull(modifyRequest?.LoaderKind);
+
+                    modifyRequest = null;
+                    Click(window, page.FindControl<MyCard>("CardFabric")!);
+
+                    Assert.AreEqual(instance, modifyRequest?.Instance);
+                    Assert.AreEqual("1.20.1", modifyRequest?.MinecraftVersionId);
+                    Assert.AreEqual(MinecraftLoaderKind.Fabric, modifyRequest?.LoaderKind);
+                    Assert.IsTrue(page.FindControl<MyCard>("CardFabric")!.IsSwapped);
                 }
                 finally
                 {
@@ -4402,6 +4410,7 @@ public sealed class AvaloniaHeadlessTests
 
                     Assert.AreEqual(instance, modifyRequest?.Instance);
                     Assert.AreEqual("1.20.2", modifyRequest?.MinecraftVersionId);
+                    Assert.IsNull(modifyRequest?.LoaderKind);
                 }
                 finally
                 {

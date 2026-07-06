@@ -19,7 +19,10 @@ using PCL.Desktop.Features.Shared;
 
 namespace PCL.Desktop.Features.Instances.Views;
 
-public sealed record InstanceInstallModifyRequest(LaunchInstanceInfo Instance, string MinecraftVersionId);
+public sealed record InstanceInstallModifyRequest(
+    LaunchInstanceInfo Instance,
+    string MinecraftVersionId,
+    MinecraftLoaderKind? LoaderKind = null);
 
 public partial class PageInstanceInstallRight : MyPageRight
 {
@@ -762,7 +765,8 @@ public partial class PageInstanceInstallRight : MyPageRight
 
     private void CardNeoForge_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
 
-    private void CardFabric_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
+    private void CardFabric_PreviewSwap(object sender, RouteEventArgs e) =>
+        RequestLoaderInstall(MinecraftLoaderKind.Fabric, e);
 
     private void CardLegacyFabric_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
 
@@ -770,7 +774,8 @@ public partial class PageInstanceInstallRight : MyPageRight
 
     private void CardLegacyFabricApi_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
 
-    private void CardQuilt_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
+    private void CardQuilt_PreviewSwap(object sender, RouteEventArgs e) =>
+        RequestLoaderInstall(MinecraftLoaderKind.Quilt, e);
 
     private void CardQSL_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
 
@@ -780,9 +785,18 @@ public partial class PageInstanceInstallRight : MyPageRight
 
     private void CardLiteLoader_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
 
+    private void RequestLoaderInstall(MinecraftLoaderKind kind, RouteEventArgs e)
+    {
+        e.Handled = true;
+        if (_instance is null)
+            return;
+
+        ModifyRequested?.Invoke(this, new InstanceInstallModifyRequest(_instance, _selectedMinecraftVersionId, kind));
+    }
+
     private static void HandleUnavailableLoader(RouteEventArgs e)
     {
-        e.Handled = false;
+        e.Handled = true;
     }
 
     private void Forge_Clear(object sender, PointerReleasedEventArgs e) => ClearLoader("Forge", e);

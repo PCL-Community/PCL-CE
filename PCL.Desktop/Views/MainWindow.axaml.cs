@@ -1033,7 +1033,8 @@ public partial class MainWindow : Window, IDisposable
                 versionId,
                 instance.Name,
                 preserveInstallNameOnLoaderSelect: true,
-                minecraftRootDirectory: minecraftRoot)
+                minecraftRootDirectory: minecraftRoot,
+                openLoaderKind: request.LoaderKind)
             .ConfigureAwait(true);
     }
 
