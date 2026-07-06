@@ -843,6 +843,7 @@ IPv6 优先：-Djava.net.preferIPv6Stack=true</x:String>
     <x:String x:Key="Instance.Setup.GameJava.ToolTip">若将 Java 放在游戏文件夹或 PCL 文件夹，在进行自动选择时 PCL 会尽量优先选择它</x:String>
     <x:String x:Key="Instance.Setup.Java.Loading">加载中……</x:String>
     <x:String x:Key="Instance.Setup.OpenGlobalSettings">全局设置</x:String>
+    <x:String x:Key="Instance.Install.NoExtraInstall">无额外安装</x:String>
     <x:String x:Key="Instance.Install.Action.StartModify">开始修改</x:String>
     <x:String x:Key="Instance.Install.Action.ModifyLabel">修改</x:String>
     <x:String x:Key="Instance.Export.Option.Game">游戏本体</x:String>

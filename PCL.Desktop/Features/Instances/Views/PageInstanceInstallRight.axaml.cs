@@ -20,6 +20,8 @@ public partial class PageInstanceInstallRight : MyPageRight
 {
     private LaunchInstanceInfo? _instance;
 
+    private sealed record InstanceVersionJsonInfo(string MinecraftVersionId, IReadOnlyList<string> Libraries);
+
     public PageInstanceInstallRight()
     {
         AvaloniaXamlLoader.Load(this);
@@ -104,7 +106,6 @@ public partial class PageInstanceInstallRight : MyPageRight
         if (this.FindControl<MyListItem>("ItemSelect") is { } item)
         {
             item.Title = instance.Name;
-            item.Info = instance.InstanceDirectory;
             item.Logo = logo;
         }
 
@@ -121,20 +122,48 @@ public partial class PageInstanceInstallRight : MyPageRight
     private void InitializeLoaderCards(LaunchInstanceInfo instance)
     {
         CollapseLoaderCards();
-        SetLoaderInfo("Forge", DetectLoader(instance, "forge"), "Anvil.png");
-        SetLoaderInfo("Cleanroom", DetectLoader(instance, "cleanroom"), "Cleanroom.png");
-        SetLoaderInfo("NeoForge", DetectLoader(instance, "neoforge"), "NeoForge.png");
-        SetLoaderInfo("Fabric", DetectLoader(instance, "fabric-loader", "fabric"), "Fabric.png");
-        SetLoaderInfo("LegacyFabric", DetectLoader(instance, "legacyfabric"), "Fabric.png");
-        SetLoaderInfo("FabricApi", DetectModFile(instance, "fabric-api"), "Fabric.png");
-        SetLoaderInfo("LegacyFabricApi", DetectModFile(instance, "legacy-fabric-api"), "Fabric.png");
-        SetLoaderInfo("Quilt", DetectLoader(instance, "quilt"), "Quilt.png");
-        SetLoaderInfo("QSL", DetectModFile(instance, "qsl", "quilted-fabric-api"), "Quilt.png");
-        SetLoaderInfo("LabyMod", DetectLoader(instance, "labymod"), "LabyMod.png");
-        SetLoaderInfo("OptiFine", DetectLoader(instance, "optifine"), "GrassPath.png");
-        SetLoaderInfo("OptiFabric", DetectModFile(instance, "optifabric"), "OptiFabric.png");
-        SetLoaderInfo("LiteLoader", DetectLoader(instance, "liteloader"), "Egg.png");
-        ApplyLoaderCardVisibility(ResolveMinecraftVersionId(instance));
+        InstanceVersionJsonInfo versionInfo = ReadInstanceVersionJsonInfo(instance);
+        string minecraftVersionId = versionInfo.MinecraftVersionId;
+        IReadOnlyList<string> libraries = versionInfo.Libraries;
+        string? forge = DetectLibrary(libraries, "net.minecraftforge:forge:", "minecraftforge") ?? DetectLoader(instance, "forge");
+        string? cleanroom = DetectLibrary(libraries, "com.cleanroommc:cleanroom:", "cleanroom") ?? DetectLoader(instance, "cleanroom");
+        string? neoForge = DetectLibrary(libraries, "net.neoforged:neoforge:", "net.neoforge:forge:", "neoforge") ?? DetectLoader(instance, "neoforge");
+        string? fabric = DetectLibrary(libraries, "net.fabricmc:fabric-loader:") ?? DetectLoader(instance, "fabric-loader", "fabric");
+        string? legacyFabric = DetectLibrary(libraries, "net.legacyfabric:", "legacyfabric") ?? DetectLoader(instance, "legacyfabric");
+        string? fabricApi = DetectModFile(instance, "fabric-api");
+        string? legacyFabricApi = DetectModFile(instance, "legacy-fabric-api");
+        string? quilt = DetectLibrary(libraries, "org.quiltmc:quilt-loader:") ?? DetectLoader(instance, "quilt");
+        string? qsl = DetectModFile(instance, "qsl", "quilted-fabric-api");
+        string? labyMod = DetectLibrary(libraries, "labymod") ?? DetectLoader(instance, "labymod");
+        string? optiFine = DetectLibrary(libraries, "optifine") ?? DetectLoader(instance, "optifine");
+        string? optiFabric = DetectModFile(instance, "optifabric");
+        string? liteLoader = DetectLibrary(libraries, "liteloader") ?? DetectLoader(instance, "liteloader");
+
+        SetLoaderInfo("Forge", forge, "Anvil.png");
+        SetLoaderInfo("Cleanroom", cleanroom, "Cleanroom.png");
+        SetLoaderInfo("NeoForge", neoForge, "NeoForge.png");
+        SetLoaderInfo("Fabric", fabric, "Fabric.png");
+        SetLoaderInfo("LegacyFabric", legacyFabric, "Fabric.png");
+        SetLoaderInfo("FabricApi", fabricApi, "Fabric.png");
+        SetLoaderInfo("LegacyFabricApi", legacyFabricApi, "Fabric.png");
+        SetLoaderInfo("Quilt", quilt, "Quilt.png");
+        SetLoaderInfo("QSL", qsl, "Quilt.png");
+        SetLoaderInfo("LabyMod", labyMod, "LabyMod.png");
+        SetLoaderInfo("OptiFine", optiFine, "GrassPath.png");
+        SetLoaderInfo("OptiFabric", optiFabric, "OptiFabric.png");
+        SetLoaderInfo("LiteLoader", liteLoader, "Egg.png");
+        ApplyLoaderCardVisibility(minecraftVersionId);
+        ApplySelectedInstanceSummary(
+            minecraftVersionId,
+            fabric,
+            legacyFabric,
+            quilt,
+            forge,
+            neoForge,
+            cleanroom,
+            labyMod,
+            optiFine,
+            liteLoader);
     }
 
     private void SetLoaderInfo(string name, string? detectedVersion, string imageName)
@@ -189,6 +218,47 @@ public partial class PageInstanceInstallRight : MyPageRight
             card.IsSwapped = true;
     }
 
+    private void ApplySelectedInstanceSummary(
+        string minecraftVersionId,
+        string? fabric,
+        string? legacyFabric,
+        string? quilt,
+        string? forge,
+        string? neoForge,
+        string? cleanroom,
+        string? labyMod,
+        string? optiFine,
+        string? liteLoader)
+    {
+        if (this.FindControl<MyListItem>("ItemSelect") is not { } item)
+            return;
+
+        List<string> parts = [minecraftVersionId];
+        AddInstallPart(parts, "Common.Installation.Fabric", "Fabric", fabric?.Replace("+build", string.Empty, StringComparison.Ordinal));
+        AddInstallPart(parts, "Common.Installation.LegacyFabric", "Legacy Fabric", legacyFabric);
+        AddInstallPart(parts, "Common.Installation.Quilt", "Quilt", quilt);
+        AddInstallPart(parts, "Common.Installation.Forge", "Forge", forge);
+        AddInstallPart(parts, "Common.Installation.NeoForge", "NeoForge", neoForge);
+        AddInstallPart(parts, "Common.Installation.Cleanroom", "Cleanroom", cleanroom);
+        AddInstallPart(parts, "Common.Installation.LabyMod", "LabyMod", labyMod);
+        AddInstallPart(parts, "Common.Installation.OptiFine", "OptiFine", optiFine);
+
+        if (!string.IsNullOrWhiteSpace(liteLoader))
+            parts.Add(ResourceText("Common.Installation.LiteLoader", "LiteLoader"));
+        if (parts.Count == 1)
+            parts.Add(ResourceText("Instance.Install.NoExtraInstall", "无额外安装"));
+
+        item.Info = string.Join("  |  ", parts);
+    }
+
+    private void AddInstallPart(List<string> parts, string nameKey, string fallbackName, string? version)
+    {
+        if (string.IsNullOrWhiteSpace(version))
+            return;
+
+        parts.Add(ResourceText(nameKey, fallbackName) + " " + version);
+    }
+
     private static void ResetTranslateX(Control control)
     {
         if (control.RenderTransform is TranslateTransform transform)
@@ -239,8 +309,13 @@ public partial class PageInstanceInstallRight : MyPageRight
 
     private static string ResolveMinecraftVersionId(LaunchInstanceInfo instance)
     {
+        return ReadInstanceVersionJsonInfo(instance).MinecraftVersionId;
+    }
+
+    private static InstanceVersionJsonInfo ReadInstanceVersionJsonInfo(LaunchInstanceInfo instance)
+    {
         if (!File.Exists(instance.VersionJsonPath))
-            return instance.Name;
+            return new InstanceVersionJsonInfo(instance.Name, []);
 
         try
         {
@@ -249,14 +324,16 @@ public partial class PageInstanceInstallRight : MyPageRight
             JsonElement root = document.RootElement;
             string inherited = ReadJsonString(root, "inheritsFrom");
             if (!string.IsNullOrWhiteSpace(inherited))
-                return inherited;
+                return new InstanceVersionJsonInfo(inherited, ReadLibraryNames(root).ToArray());
 
             string id = ReadJsonString(root, "id");
-            return string.IsNullOrWhiteSpace(id) ? instance.Name : id;
+            return new InstanceVersionJsonInfo(
+                string.IsNullOrWhiteSpace(id) ? instance.Name : id,
+                ReadLibraryNames(root).ToArray());
         }
         catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
         {
-            return instance.Name;
+            return new InstanceVersionJsonInfo(instance.Name, []);
         }
     }
 
@@ -264,6 +341,45 @@ public partial class PageInstanceInstallRight : MyPageRight
         element.TryGetProperty(propertyName, out JsonElement property) && property.ValueKind == JsonValueKind.String
             ? property.GetString() ?? string.Empty
             : string.Empty;
+
+    private static IEnumerable<string> ReadLibraryNames(JsonElement root)
+    {
+        if (!root.TryGetProperty("libraries", out JsonElement libraries) ||
+            libraries.ValueKind != JsonValueKind.Array)
+        {
+            yield break;
+        }
+
+        foreach (JsonElement library in libraries.EnumerateArray())
+        {
+            if (library.TryGetProperty("name", out JsonElement nameElement) &&
+                nameElement.ValueKind == JsonValueKind.String &&
+                !string.IsNullOrWhiteSpace(nameElement.GetString()))
+            {
+                yield return nameElement.GetString()!;
+            }
+        }
+    }
+
+    private static string? DetectLibrary(IReadOnlyList<string> libraries, params string[] needles)
+    {
+        string? library = libraries.FirstOrDefault(library =>
+            needles.Any(needle => library.Contains(needle, StringComparison.OrdinalIgnoreCase)));
+        return string.IsNullOrWhiteSpace(library) ? null : SimplifyLibraryVersion(library);
+    }
+
+    private static string SimplifyLibraryVersion(string library)
+    {
+        int versionIndex = library.LastIndexOf(':');
+        if (versionIndex < 0 || versionIndex == library.Length - 1)
+            return "已安装";
+
+        string version = library[(versionIndex + 1)..];
+        int minecraftPrefixIndex = version.IndexOf('-');
+        return minecraftPrefixIndex > 0 && minecraftPrefixIndex < version.Length - 1
+            ? version[(minecraftPrefixIndex + 1)..]
+            : version;
+    }
 
     private void HideAllHints()
     {
@@ -337,6 +453,11 @@ public partial class PageInstanceInstallRight : MyPageRight
 
         return File.OpenRead(address);
     }
+
+    private string ResourceText(string key, string fallback) =>
+        this.TryFindResource(key, ActualThemeVariant, out object? value) && value is string text
+            ? text
+            : fallback;
 
     private const string BlockAssetRoot = InstanceDisplayHelper.BlockAssetRoot;
 

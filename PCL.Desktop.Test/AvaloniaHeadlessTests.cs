@@ -4258,6 +4258,17 @@ public sealed class AvaloniaHeadlessTests
             string versionDirectory = System.IO.Path.Combine(root, "versions", "1.20.1");
             Directory.CreateDirectory(versionDirectory);
             File.WriteAllText(System.IO.Path.Combine(versionDirectory, "fabric-loader-0.16.10.jar"), "loader");
+            File.WriteAllText(
+                System.IO.Path.Combine(versionDirectory, "1.20.1.json"),
+                """
+                {
+                  "id": "fabric-loader-0.16.10-1.20.1",
+                  "inheritsFrom": "1.20.1",
+                  "libraries": [
+                    { "name": "net.fabricmc:fabric-loader:0.16.10" }
+                  ]
+                }
+                """);
             InstanceMetadataStore.SaveAsync(
                 versionDirectory,
                 new InstanceMetadata
@@ -4286,9 +4297,10 @@ public sealed class AvaloniaHeadlessTests
 
                     Assert.AreEqual("1.20.1", page.FindControl<MyListItem>("ItemSelect")!.Title);
                     Assert.IsTrue(page.FindControl<MyListItem>("ItemSelect")!.Logo.EndsWith("Fabric.png", StringComparison.OrdinalIgnoreCase));
+                    Assert.AreEqual("1.20.1  |  Fabric 0.16.10", page.FindControl<MyListItem>("ItemSelect")!.Info);
                     Assert.AreEqual("1.20.1", page.FindControl<TextBlock>("LabMinecraft")!.Text);
                     Assert.IsTrue((page.FindControl<Image>("ImgMinecraft")!.Tag as string)?.EndsWith("Fabric.png", StringComparison.OrdinalIgnoreCase) == true);
-                    Assert.AreEqual("fabric-loader-0.16.10", page.FindControl<TextBlock>("LabFabric")!.Text);
+                    Assert.AreEqual("0.16.10", page.FindControl<TextBlock>("LabFabric")!.Text);
                     Assert.IsTrue(page.FindControl<MyCard>("CardFabric")!.IsVisible);
                     Assert.IsTrue(page.FindControl<MyCard>("CardNeoForge")!.IsVisible);
                     Assert.IsFalse(page.FindControl<MyCard>("CardLiteLoader")!.IsVisible);
