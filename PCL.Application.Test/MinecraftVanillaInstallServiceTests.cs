@@ -319,8 +319,14 @@ public sealed class MinecraftVanillaInstallServiceTests
             Assert.IsTrue(maxActiveRequests > 1, "安装文件下载应并发执行。");
             Assert.IsTrue(progress.Any(item => item.ActiveThreads > 1), "安装进度应上报真实活动线程数。");
             Assert.IsTrue(progress.Any(item => item.ThreadLimit == 4), "安装进度应保留请求的线程上限。");
+            Assert.IsTrue(progress.Any(item => item.Stage == "下载资源索引"), "安装进度应展示资源索引下载阶段。");
             Assert.IsTrue(progress.Any(item => item.Steps.Any(step => step.Name == "下载客户端")), "安装进度应展示客户端下载子任务。");
             Assert.IsTrue(progress.Any(item => item.Steps.Any(step => step.Name == "下载运行库")), "安装进度应展示运行库下载子任务。");
+            Assert.IsTrue(
+                progress.Any(item => item.Steps.Any(step =>
+                    step.Name == "下载运行库" &&
+                    step.Detail.EndsWith(".jar", StringComparison.Ordinal))),
+                "安装进度应展示正在下载的具体运行库文件。");
         }
         finally
         {

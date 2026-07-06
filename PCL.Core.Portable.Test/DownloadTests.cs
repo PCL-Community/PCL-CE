@@ -177,6 +177,52 @@ public sealed class DownloadTests
     }
 
     [TestMethod]
+    public async Task DownloadServiceDiscardsInvalidResumeRangeAndFallsBack()
+    {
+        var directory = Path.Combine(
+            Path.GetTempPath(),
+            $"pcl-invalid-resume-{Guid.NewGuid():N}");
+        var destination = Path.Combine(directory, "artifact.bin");
+        var temporary = destination + ".PCLDownloading";
+        var expected = Encoding.UTF8.GetBytes("fresh payload");
+        using var client = new HttpClient(new InvalidRangeThenSuccessHandler(expected));
+
+        try
+        {
+            Directory.CreateDirectory(directory);
+            await File.WriteAllBytesAsync(
+                temporary,
+                Encoding.UTF8.GetBytes("this temporary file is too long"));
+
+            var result = await new DownloadService().DownloadAsync(
+                new DownloadRequest
+                {
+                    Sources =
+                    [
+                        "https://pcl.invalid/range-fails",
+                        "https://pcl.invalid/success"
+                    ],
+                    DestinationPath = destination,
+                    ConnectionFactory = url =>
+                        new HttpDlConnection(client, url)
+                });
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual("https://pcl.invalid/success", result.SuccessfulSource);
+            Assert.AreEqual(1, result.Errors.Count);
+            Assert.IsFalse(File.Exists(temporary));
+            CollectionAssert.AreEqual(
+                expected,
+                await File.ReadAllBytesAsync(destination));
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public async Task SharedDownloadKeepsRunningWhenOneWaiterCancels()
     {
         var directory = Path.Combine(
@@ -259,6 +305,29 @@ public sealed class DownloadTests
                 Content = new ByteArrayContent(content)
             };
             response.Content.Headers.ContentLength = content.Length;
+            return Task.FromResult(response);
+        }
+    }
+
+    private sealed class InvalidRangeThenSuccessHandler(byte[] content) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            if (request.RequestUri!.AbsolutePath == "/range-fails")
+            {
+                return Task.FromResult(new HttpResponseMessage(
+                    HttpStatusCode.RequestedRangeNotSatisfiable));
+            }
+
+            var response = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                RequestMessage = request,
+                Content = new ByteArrayContent(content)
+            };
+            response.Content.Headers.ContentLength = content.Length;
+            response.Headers.AcceptRanges.Add("bytes");
             return Task.FromResult(response);
         }
     }

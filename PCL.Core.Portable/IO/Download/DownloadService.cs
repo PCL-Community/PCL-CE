@@ -96,6 +96,7 @@ public sealed class DownloadService
 
             IDlConnection? connection = null;
             IDlWriter? writer = null;
+            long requestedOffset = 0;
             try
             {
                 report(new DownloadProgress(
@@ -107,7 +108,7 @@ public sealed class DownloadService
                 writer = request.WriterFactory(request.DestinationPath)
                          ?? throw new InvalidOperationException(
                              $"No download writer was created for {request.DestinationPath}.");
-                long requestedOffset = Math.Max(0, writer.ExistingLength);
+                requestedOffset = Math.Max(0, writer.ExistingLength);
                 connection = request.ConnectionFactory(source)
                              ?? throw new InvalidOperationException(
                                  $"No download connection was created for {source}.");
@@ -196,6 +197,9 @@ public sealed class DownloadService
             }
             catch (Exception exception)
             {
+                if (ShouldDiscardPartialDownload(exception, requestedOffset))
+                    await ResetPartialDownloadAsync(writer, cancellationToken).ConfigureAwait(false);
+
                 errors.Add(new DownloadAttemptError(
                     source,
                     exception.Message,
@@ -233,6 +237,31 @@ public sealed class DownloadService
     {
         var elapsed = Stopwatch.GetElapsedTime(startedAt).TotalSeconds;
         return elapsed < 0.1 ? 0 : checked((long)(bytes / elapsed));
+    }
+
+    private static bool ShouldDiscardPartialDownload(Exception exception, long requestedOffset) =>
+        requestedOffset > 0 &&
+        exception is HttpRequestException { StatusCode: System.Net.HttpStatusCode.RequestedRangeNotSatisfiable };
+
+    private static async ValueTask ResetPartialDownloadAsync(
+        IDlWriter? writer,
+        CancellationToken cancellationToken)
+    {
+        if (writer is null)
+            return;
+
+        Stream? resetStream = null;
+        try
+        {
+            resetStream = await writer.CreateStreamAsync(0, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            if (resetStream is IAsyncDisposable asyncDisposable)
+                await asyncDisposable.DisposeAsync().ConfigureAwait(false);
+            else
+                resetStream?.Dispose();
+        }
     }
 
     private static async ValueTask StopWriterAsync(IDlWriter? writer)

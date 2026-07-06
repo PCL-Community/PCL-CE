@@ -239,7 +239,15 @@ public sealed class MinecraftVanillaInstallService
         List<PlannedDownload> files = [];
         AddClientJarDownload(files, versionId, versionJson, instanceDirectory, preferOfficialSource);
         AddLibraryDownloads(files, versionJson, minecraftRoot, instanceDirectory, preferOfficialSource);
-        await AddAssetDownloadsAsync(files, versionJson, minecraftRoot, instanceDirectory, preferOfficialSource, cancellationToken)
+        await AddAssetDownloadsAsync(
+                files,
+                versionJson,
+                minecraftRoot,
+                instanceDirectory,
+                preferOfficialSource,
+                downloadThreadLimit,
+                progress,
+                cancellationToken)
             .ConfigureAwait(false);
 
         int total = Math.Max(files.Count, 1);
@@ -502,6 +510,8 @@ public sealed class MinecraftVanillaInstallService
         string minecraftRoot,
         string instanceDirectory,
         bool preferOfficialSource,
+        int downloadThreadLimit,
+        IProgress<MinecraftInstallProgress>? progress,
         CancellationToken cancellationToken)
     {
         MinecraftAssetIndexDownloadPlan indexPlan = MinecraftClientDownloadPlanner.CreateAssetIndexPlan(
@@ -521,12 +531,20 @@ public sealed class MinecraftVanillaInstallService
                 "下载资源索引",
                 0,
                 1,
-                progress: null,
+                progress,
                 activeThreads: 1,
-                threadLimit: 1,
+                threadLimit: downloadThreadLimit,
                 cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
+        progress?.Report(CreateProgress(
+            "解析资源索引",
+            Path.GetFileName(indexPlan.LocalPath!),
+            0d,
+            0,
+            1,
+            activeThreads: 1,
+            threadLimit: downloadThreadLimit));
         JsonObject indexJson = await ReadJsonObjectAsync(indexPlan.LocalPath!, cancellationToken).ConfigureAwait(false);
         IReadOnlyList<MinecraftAssetToken> assets = MinecraftAssetListResolver.GetAssetList(
             new MinecraftAssetListRequest
@@ -816,12 +834,16 @@ public sealed class MinecraftVanillaInstallService
 
     private sealed class FileDownloadProgressReporter
     {
+        private const int MaxActiveFileRows = 8;
+
         private readonly object _sync = new();
         private readonly ProgressThrottle _throttle = new();
         private readonly IProgress<MinecraftInstallProgress>? _progress;
         private readonly double[] _fileProgress;
         private readonly long[] _fileSpeeds;
         private readonly bool[] _fileCompleted;
+        private readonly bool[] _fileActive;
+        private readonly string?[] _fileDetails;
         private readonly int[] _fileStageIndexes;
         private readonly DownloadStageAggregate[] _stages;
         private readonly int _threadLimit;
@@ -839,6 +861,8 @@ public sealed class MinecraftVanillaInstallService
             _fileProgress = new double[files.Count];
             _fileSpeeds = new long[files.Count];
             _fileCompleted = new bool[files.Count];
+            _fileActive = new bool[files.Count];
+            _fileDetails = new string?[files.Count];
             _fileStageIndexes = new int[files.Count];
             _stages = CreateStageAggregates(files, _fileStageIndexes);
             _threadLimit = Math.Max(1, threadLimit);
@@ -852,6 +876,8 @@ public sealed class MinecraftVanillaInstallService
                 DownloadStageAggregate stage = StageFor(index);
                 stage.ActiveFiles++;
                 stage.Started = true;
+                _fileActive[index] = true;
+                _fileDetails[index] = detail;
                 ReportLocked(stage.Name, detail);
             }
         }
@@ -863,6 +889,7 @@ public sealed class MinecraftVanillaInstallService
                 _activeThreads = Math.Max(0, _activeThreads - 1);
                 DownloadStageAggregate stage = StageFor(index);
                 stage.ActiveFiles = Math.Max(0, stage.ActiveFiles - 1);
+                _fileActive[index] = false;
                 ReportLocked(stage.Name, detail);
             }
         }
@@ -878,6 +905,8 @@ public sealed class MinecraftVanillaInstallService
                 _fileProgress[index] = nextProgress;
                 _progressSum += progressDelta;
                 stage.ProgressSum += progressDelta;
+                if (!string.IsNullOrWhiteSpace(update.Detail))
+                    _fileDetails[index] = update.Detail;
 
                 long nextSpeed = Math.Max(0, update.SpeedBytesPerSecond);
                 _speedSum += nextSpeed - _fileSpeeds[index];
@@ -899,6 +928,8 @@ public sealed class MinecraftVanillaInstallService
                     stage.CompletedFiles++;
                 }
 
+                _fileActive[index] = false;
+                _fileDetails[index] = detail;
                 double progressDelta = 1d - _fileProgress[index];
                 _fileProgress[index] = 1d;
                 _progressSum += progressDelta;
@@ -938,7 +969,7 @@ public sealed class MinecraftVanillaInstallService
 
         private MinecraftInstallStepProgress[] CreateStepsLocked()
         {
-            MinecraftInstallStepProgress[] steps = new MinecraftInstallStepProgress[_stages.Length];
+            List<MinecraftInstallStepProgress> steps = new(_stages.Length + Math.Min(MaxActiveFileRows, _activeThreads));
             for (int i = 0; i < _stages.Length; i++)
             {
                 DownloadStageAggregate stage = _stages[i];
@@ -950,14 +981,44 @@ public sealed class MinecraftVanillaInstallService
                     : stage.ActiveFiles > 0 || stage.Started || stage.ProgressSum > 0d
                         ? MinecraftInstallStepState.Running
                         : MinecraftInstallStepState.Waiting;
-                steps[i] = new MinecraftInstallStepProgress(
+                steps.Add(new MinecraftInstallStepProgress(
                     stage.Name,
                     $"{stage.CompletedFiles} / {stage.TotalFiles} 个文件",
                     progress,
-                    state);
+                    state));
             }
 
-            return steps;
+            int activeRows = 0;
+            int hiddenActiveRows = 0;
+            for (int i = 0; i < _fileActive.Length; i++)
+            {
+                if (!_fileActive[i] || _fileCompleted[i])
+                    continue;
+
+                if (activeRows >= MaxActiveFileRows)
+                {
+                    hiddenActiveRows++;
+                    continue;
+                }
+
+                steps.Add(new MinecraftInstallStepProgress(
+                    StageFor(i).Name,
+                    _fileDetails[i] ?? "正在下载",
+                    _fileProgress[i],
+                    MinecraftInstallStepState.Running));
+                activeRows++;
+            }
+
+            if (hiddenActiveRows > 0)
+            {
+                steps.Add(new MinecraftInstallStepProgress(
+                    "其他下载线程",
+                    $"还有 {hiddenActiveRows} 个文件正在下载",
+                    _progressSum / _fileProgress.Length,
+                    MinecraftInstallStepState.Running));
+            }
+
+            return steps.ToArray();
         }
 
         private static DownloadStageAggregate[] CreateStageAggregates(
