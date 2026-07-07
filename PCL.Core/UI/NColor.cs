@@ -53,11 +53,6 @@ public struct NColor :
         _color = new Vector4(r, g, b, a);
     }
 
-    public NColor(double r, double g, double b, double a = 255d)
-        : this((float)r, (float)g, (float)b, (float)a)
-    {
-    }
-
     public NColor(Color color) : this(color.R, color.G, color.B, color.A)
     {
     }
@@ -134,57 +129,7 @@ public struct NColor :
         _color = new Vector4(r, g, b, a);
     }
 
-    public NColor(object? obj)
-    {
-        switch (obj)
-        {
-            case null:
-                _color = new Vector4(255f, 255f, 255f, 255f);
-                break;
-            case NColor color:
-                _color = color._color;
-                break;
-            case Color color:
-                _color = new Vector4(color.R, color.G, color.B, color.A);
-                break;
-            case System.Drawing.Color color:
-                _color = new Vector4(color.R, color.G, color.B, color.A);
-                break;
-            case SolidColorBrush brush:
-                var brushColor = brush.Color;
-                _color = new Vector4(brushColor.R, brushColor.G, brushColor.B, brushColor.A);
-                break;
-            case Brush brush:
-                var solidBrush = (SolidColorBrush)brush;
-                var solidBrushColor = solidBrush.Color;
-                _color = new Vector4(solidBrushColor.R, solidBrushColor.G, solidBrushColor.B, solidBrushColor.A);
-                break;
-            case string str:
-                _color = new NColor(str)._color;
-                break;
-            default:
-                _color = new Vector4(
-                    Convert.ToSingle(((dynamic)obj).R),
-                    Convert.ToSingle(((dynamic)obj).G),
-                    Convert.ToSingle(((dynamic)obj).B),
-                    Convert.ToSingle(((dynamic)obj).A));
-                break;
-        }
-    }
-
     public NColor(float a, NColor color) : this(color.R, color.G, color.B, a)
-    {
-    }
-
-    public NColor(double a, NColor color) : this(color.R, color.G, color.B, (float)a)
-    {
-    }
-
-    public NColor(double a, Brush brush) : this(a, (NColor)brush)
-    {
-    }
-
-    public NColor(double a, SolidColorBrush brush) : this(a, (NColor)brush)
     {
     }
 
@@ -203,33 +148,6 @@ public struct NColor :
     private NColor(Vector4 v)
     {
         _color = v;
-    }
-
-    public static NColor FromArgb(double a, double r, double g, double b)
-    {
-        return new NColor(r, g, b, a);
-    }
-
-    public NColor WithAlpha(double value)
-    {
-        var color = this;
-        color.A = (float)value;
-        return color;
-    }
-
-    public static NColor Lerp(NColor from, NColor to, double progress)
-    {
-        var p = (float)progress;
-        return Round(from * (1f - p) + to * p, 6);
-    }
-
-    public static NColor Round(NColor color, int digits = 0)
-    {
-        return new NColor(
-            Math.Round(color.R, digits),
-            Math.Round(color.G, digits),
-            Math.Round(color.B, digits),
-            Math.Round(color.A, digits));
     }
 
     #endregion
@@ -251,29 +169,9 @@ public struct NColor :
         return new NColor(a._color * b);
     }
 
-    public static NColor operator *(NColor a, double b)
-    {
-        return new NColor(a._color * (float)b);
-    }
-
-    public static NColor operator *(float a, NColor b)
-    {
-        return new NColor(b._color * a);
-    }
-
-    public static NColor operator *(double a, NColor b)
-    {
-        return new NColor(b._color * (float)a);
-    }
-
     public static NColor operator /(NColor a, float b)
     {
         return b == 0 ? throw new DivideByZeroException("除数不能为零。") : new NColor(a._color / b);
-    }
-
-    public static NColor operator /(NColor a, double b)
-    {
-        return b == 0 ? throw new DivideByZeroException("除数不能为零。") : new NColor(a._color / (float)b);
     }
 
     public static bool operator ==(NColor a, NColor b)
@@ -342,39 +240,6 @@ public struct NColor :
         return color;
     }
 
-    private static readonly double[] _PerceptualCenterOffsets =
-    [
-        +0.10d, -0.06d, -0.30d, -0.19d,
-        -0.15d, -0.24d, -0.32d, -0.09d,
-        +0.18d, +0.05d, -0.12d, -0.02d,
-        +0.10d
-    ];
-
-    public static NColor FromPerceptualHsl(double hue, double saturation, double lightness)
-    {
-        if (saturation == 0d)
-            return FromHsl(hue, saturation, lightness);
-
-        hue %= 360d;
-        if (hue < 0d)
-            hue += 360d;
-
-        var segmentPosition = hue / 30d;
-        var segmentIndex = (int)segmentPosition;
-        var segmentBlend = segmentPosition - segmentIndex;
-
-        var centerOffset = _PerceptualCenterOffsets[segmentIndex] +
-                           (_PerceptualCenterOffsets[segmentIndex + 1] - _PerceptualCenterOffsets[segmentIndex]) *
-                           segmentBlend;
-
-        var visualCenter = 50d - centerOffset * saturation;
-        var adjustedLightness = lightness < visualCenter
-            ? lightness / visualCenter * 50d
-            : (1d + (lightness - visualCenter) / (100d - visualCenter)) * 50d;
-
-        return FromHsl(hue, saturation, adjustedLightness);
-    }
-
     private static double _Hue(double v1, double v2, double vH)
     {
         if (vH < 0) vH += 1;
@@ -390,25 +255,11 @@ public struct NColor :
 
     #endregion
 
-    public override string ToString()
-    {
-        return $"({A},{R},{G},{B})";
-    }
-
     #region 隐式转换
 
     public static implicit operator Color(NColor color)
     {
         return Color.FromArgb(
-            (byte)Math.Clamp(color.A, 0, 255),
-            (byte)Math.Clamp(color.R, 0, 255),
-            (byte)Math.Clamp(color.G, 0, 255),
-            (byte)Math.Clamp(color.B, 0, 255));
-    }
-
-    public static implicit operator System.Drawing.Color(NColor color)
-    {
-        return System.Drawing.Color.FromArgb(
             (byte)Math.Clamp(color.A, 0, 255),
             (byte)Math.Clamp(color.R, 0, 255),
             (byte)Math.Clamp(color.G, 0, 255),
@@ -428,16 +279,6 @@ public struct NColor :
     public static implicit operator NColor(Color color)
     {
         return new NColor(color);
-    }
-
-    public static implicit operator NColor(System.Drawing.Color color)
-    {
-        return new NColor(color);
-    }
-
-    public static implicit operator NColor(string value)
-    {
-        return new NColor(value);
     }
 
     public static implicit operator NColor(Brush brush)

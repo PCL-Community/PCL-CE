@@ -199,7 +199,7 @@ public partial class MyIconTextButton
         ModAnimation.AniStart(ModAnimation.AaColor(this, BackgroundProperty, resourceKey, duration), ColorAnimationKey);
     }
 
-    private void StartBackgroundAnimation(NColor delta, int duration)
+    private void StartBackgroundAnimation(MyColor delta, int duration)
     {
         ModAnimation.AniStart(ModAnimation.AaColor(this, BackgroundProperty, delta, duration), ColorAnimationKey);
     }

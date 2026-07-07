@@ -61,7 +61,7 @@ public class AnimatedBackgroundGrid : Grid
                 new[]
                 {
                     ModAnimation.AaColor(grid.AnimatableElement, grid._animatableBrushProperty,
-                        new NColor(brush) - grid.AnimatableBrush, 300)
+                        new MyColor(brush) - grid.AnimatableBrush, 300)
                 }, "MyCard Theme " + grid.uuid);
             await Task.Delay(300);
             grid.AnimatableBrush = brush;

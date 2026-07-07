@@ -59,13 +59,13 @@ internal static class SvgIconControlHelper
 
     internal static void AnimateSvgIconBrushTo(
         SvgIcon svgIcon,
-        NColor color,
+        MyColor color,
         int duration,
         string? animationKey = null)
     {
         if (svgIcon.Visibility == Visibility.Visible)
             svgIcon.AnimateIconBrushTo(
-                color,
+                new NColor((Color)color),
                 TimeSpan.FromMilliseconds(duration),
                 animationKey: animationKey);
     }
