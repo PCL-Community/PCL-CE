@@ -1552,6 +1552,7 @@
     <sys:String x:Key="Launch.Account.Profile.Create">新建档案</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Create.SelectAuthType.Title">新建档案 - 选择验证类型</sys:String>
     <sys:String x:Key="Launch.Account.Profile.CreateAndSelectHint">新建并选择一个档案以启动游戏</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.RequireMicrosoftHint">需要先进行一次正版验证才能使用其他验证方式</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Created">档案新建成功！</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Delete">删除档案</sys:String>
     <sys:String x:Key="Launch.Account.Profile.DeleteConfirm.Message">你正在选择删除此档案，该操作无法撤销。&#xA;确定继续？</sys:String>
@@ -3156,8 +3157,8 @@
     <sys:String x:Key="Setup.Update.CheckAgain">再次检查</sys:String>
     <sys:String x:Key="Setup.Update.CheckFailed">检查更新时出错</sys:String>
     <sys:String x:Key="Setup.Update.Checking">正在检查更新...</sys:String>
-    <sys:String x:Key="Setup.Update.DotNetMissing.DownloadRuntime">下载 .NET 8 运行时</sys:String>
-    <sys:String x:Key="Setup.Update.DotNetMissing.Message">发现了启动器更新（版本 {0}），但是新版本要求你的电脑安装 .NET 8 才可以运行。&#xA;你需要先安装 .NET 8 才可以继续更新。&#xA;&#xA;点击下方按钮打开网页，然后选择 ⌈.NET 桌面运行时⌋ 中的 {1} 选项下载。</sys:String>
+    <sys:String x:Key="Setup.Update.DotNetMissing.DownloadRuntime">下载 .NET 10 运行时</sys:String>
+    <sys:String x:Key="Setup.Update.DotNetMissing.Message">发现了启动器更新（版本 {0}），但是新版本要求你的电脑安装 .NET 10 才可以运行。&#xA;你需要先安装 .NET 10 才可以继续更新。&#xA;&#xA;点击下方按钮打开网页，然后选择 ⌈.NET 桌面运行时⌋ 中的 {1} 选项下载。</sys:String>
     <sys:String x:Key="Setup.Update.DotNetMissing.Title">启动器更新 - 缺少运行环境</sys:String>
     <sys:String x:Key="Setup.Update.Error.NetworkFailed">无法获取最新版本信息，请检查网络连接</sys:String>
     <sys:String x:Key="Setup.Update.Install">下载并安装</sys:String>
@@ -3224,7 +3225,7 @@
     <sys:String x:Key="SystemDialog.File.SelectTitle">选择文件</sys:String>
     <sys:String x:Key="SystemDialog.Folder.OpenFailed.Message">无法打开文件资源管理器。请尝试关闭安全软件（例如 360 安全卫士）。&#xA;&#xA;路径：{0}</sys:String>
     <sys:String x:Key="SystemDialog.Folder.SelectTitle">选择文件夹</sys:String>
-    <sys:String x:Key="SystemDialog.Startup.DotNetRuntimeOutdated.Message">你的 .NET 桌面运行时已过期或损坏。请重新安装 .NET 8。</sys:String>
+    <sys:String x:Key="SystemDialog.Startup.DotNetRuntimeOutdated.Message">你的 .NET 桌面运行时已过期或损坏。请重新安装 .NET 10。</sys:String>
     <sys:String x:Key="SystemDialog.Startup.InitializationTitle">PCL CE 初始化失败</sys:String>
 
     <!-- SystemDialog.Error -->
@@ -3232,7 +3233,7 @@
     <sys:String x:Key="SystemDialog.Error.Detail.WithException">{0}&#xA;&#xA;详细信息：&#xA;{1}</sys:String>
     <sys:String x:Key="SystemDialog.Error.Message.WithLogExportGuidance">{0}&#xA;&#xA;若要寻求帮助，请不要关闭启动器。请立即导出日志（设置 → 查看日志 → 导出日志），并发送导出的日志压缩包；仅发送此窗口的截图通常无法帮助定位问题。</sys:String>
     <sys:String x:Key="SystemDialog.Error.OperationFailed.Message">执行操作时发生错误。&#xA;&#xA;操作信息：&#xA;{0}&#xA;&#xA;详细信息：&#xA;{1}</sys:String>
-    <sys:String x:Key="SystemDialog.Error.OperationFailed.RuntimeMessage">执行操作时发生错误。&#xA;&#xA;操作信息：&#xA;{0}&#xA;&#xA;详细信息：&#xA;{1}&#xA;&#xA;与系统底层交互失败。请尝试重新安装 .NET 8。</sys:String>
+    <sys:String x:Key="SystemDialog.Error.OperationFailed.RuntimeMessage">执行操作时发生错误。&#xA;&#xA;操作信息：&#xA;{0}&#xA;&#xA;详细信息：&#xA;{1}&#xA;&#xA;与系统底层交互失败。请尝试重新安装 .NET 10。</sys:String>
     <sys:String x:Key="SystemDialog.Error.Title">错误</sys:String>
     <sys:String x:Key="SystemDialog.Error.Unexpected.Message">发生意外错误。</sys:String>
     <sys:String x:Key="SystemDialog.Error.Unexpected.Title">发生意外错误</sys:String>

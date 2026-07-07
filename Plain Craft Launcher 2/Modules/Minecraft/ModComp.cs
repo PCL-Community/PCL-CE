@@ -2386,84 +2386,209 @@ public static class ModComp
         var isChineseSearch = Lang.IsChineseMainland &&
                               RegexPatterns.HasChineseChar.IsMatch(rawFilter) &&
                               !string.IsNullOrEmpty(rawFilter);
+
         if (isChineseSearch && request.type is CompType.Mod or CompType.DataPack)
         {
             var searchEntries = new List<SearchEntry<CompDatabaseEntry>>();
+
             using (var conn = CompDB)
             {
-                var sql =
-                    "SELECT * FROM ModTranslation WHERE ChineseName LIKE @p OR CurseForgeSlug LIKE @p OR ModrinthSlug LIKE @p";
-                var searchRes = conn.Query<CompDatabaseEntry>(sql, new { p = $"%{rawFilter}%" });
+                var likeEscaped = rawFilter
+                    .Replace("\\", @"\\")
+                    .Replace("%", "\\%")
+                    .Replace("_", "\\_");
+
+                var searchRes = conn
+                    .Query<CompDatabaseEntry>(
+                        """
+                        SELECT *
+                        FROM ModTranslation
+                        WHERE ChineseName LIKE @p ESCAPE '\'
+                           OR CurseForgeSlug LIKE @p ESCAPE '\'
+                           OR ModrinthSlug LIKE @p ESCAPE '\'
+                        """,
+                        new { p = $"%{likeEscaped}%" })
+                    .ToList();
+
                 foreach (var searchItem in searchRes)
                 {
-                    if (searchItem.ChineseName.Contains("动态的树")) continue;
-                    var searchSource = searchItem.ChineseName.BeforeFirst(" (")
-                        .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries)
+                    if (searchItem.ChineseName.Contains("动态的树"))
+                        continue;
+
+                    var searchSource = searchItem.ChineseName
+                        .BeforeFirst(" (")
+                        .Split(['/'], StringSplitOptions.RemoveEmptyEntries)
                         .Select(alias => new KeyValuePair<string, double>(alias, 1d))
                         .ToList();
-                    searchSource.Add(new KeyValuePair<string, double>(
-                        searchItem.ChineseName.AfterFirst(" (") + (searchItem.CurseForgeSlug ?? "") + (searchItem.ModrinthSlug ?? ""),
-                        0.5d));
+
+                    searchSource.Add(
+                        new KeyValuePair<string, double>(
+                            searchItem.ChineseName.AfterFirst(" (") +
+                            (searchItem.CurseForgeSlug ?? "") +
+                            (searchItem.ModrinthSlug ?? ""),
+                            0.5d));
+
                     searchEntries.Add(new SearchEntry<CompDatabaseEntry>(searchItem, searchSource));
                 }
             }
 
             var searchResults = SimilaritySearch.Search(searchEntries, request.searchText, 40, 0.2);
-            if (!searchResults.Any()) throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
+
+            if (searchResults.Count == 0)
+                throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
 
             string[] ExtractWords(SearchEntry<CompDatabaseEntry> result)
             {
                 var word = "";
+
                 if (result.Item.CurseForgeSlug is not null)
                     word += result.Item.CurseForgeSlug.Replace("-", " ").Replace("/", " ") + " ";
+
                 if (result.Item.ModrinthSlug is not null)
                     word += result.Item.ModrinthSlug.Replace("-", " ").Replace("/", " ") + " ";
-                word += result.Item.ChineseName.AfterLast(" (").TrimEnd(')', ' ').BeforeFirst(" - ")
-                    .Replace(":", "").Replace("(", "").Replace(")", "").ToLower().Replace("/", " ").Replace("-", " ");
-                var words = word.ToLower().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                words = words.Select(w => w.TrimStart('{', '[', '(').TrimEnd('}', ']', ')')).Where(
-                    w =>
+
+                word += result.Item.ChineseName
+                    .AfterLast(" (")
+                    .TrimEnd(')', ' ')
+                    .BeforeFirst(" - ")
+                    .Replace(":", "")
+                    .Replace("(", "")
+                    .Replace(")", "")
+                    .ToLower()
+                    .Replace("/", " ")
+                    .Replace("-", " ");
+
+                var words = word
+                    .ToLower()
+                    .Split([' '], StringSplitOptions.RemoveEmptyEntries);
+
+                words = words
+                    .Select(w => w.TrimStart('{', '[', '(').TrimEnd('}', ']', ')'))
+                    .Where(w =>
                     {
-                        if (w.Length <= 1) return false;
-                        if (new[] { "the", "of", "mod", "and" }.Contains(w)) return false;
-                        if (NumberUtils.ParseDoubleOrZero(w) > 0) return false;
-                        if (w.Split(' ').Length > 3 && w.Contains("ftb")) return false;
-                        return true;
-                    }).Distinct().ToArray();
+                        return w switch
+                        {
+                            _ when w.Length <= 1 => false,
+
+                            _ when !w.Any(char.IsLetterOrDigit) => false,
+
+                            _ when new[] { "the", "of", "for", "mod", "and", "forge", "fabric", "quilt", "neoforge" }
+                                .Contains(w) => false,
+
+                            _ when NumberUtils.ParseDoubleOrZero(w) > 0 => false,
+
+                            _ when w.Split(' ').Length > 3 && w.Contains("ftb") => false,
+
+                            _ => true
+                        };
+                    })
+                    .Distinct()
+                    .ToArray();
+
                 return words;
             }
 
-            var wordWeights = new Dictionary<string, double>();
+            var wordModCount = new Dictionary<string, HashSet<int>>();
+
             foreach (var result in searchResults)
+            foreach (var word in ExtractWords(result))
             {
-                foreach (var word in ExtractWords(result))
-                {
-                    var similarity = result.SearchSource.Any(s => string.Equals(s.Key, request.searchText, StringComparison.Ordinal))
-                        ? 100000
-                        : result.Similarity;
-                    if (!wordWeights.ContainsKey(word))
-                        wordWeights.Add(word, 0);
-                    wordWeights[word] += similarity;
-                }
+                if (!wordModCount.TryGetValue(word, out var mods))
+                    wordModCount[word] = mods = [];
+
+                mods.Add(result.Item.WikiId);
             }
 
-            if (!wordWeights.Any()) throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
+            if (wordModCount.Count == 0)
+                throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
 
-            var sortedWords = wordWeights.OrderByDescending(w => w.Value).ToList();
-            if (sortedWords.First().Value >= 100000)
+            static string NormalizeName(string s)
             {
-                request.searchText = string.Join(" ", sortedWords.Where(w => w.Value >= 100000).Select(w => w.Key));
+                return new string(s
+                    .Where(c => !char.IsWhiteSpace(c) && !char.IsSurrogate(c))
+                    .ToArray());
+            }
+
+            string CanonName(string name)
+            {
+                return NormalizeName(name.BeforeFirst(" ("));
+            }
+
+            var normalizedQuery = NormalizeName(rawFilter);
+
+            var exactNameEntries = searchResults
+                .Where(r => CanonName(r.Item.ChineseName) == normalizedQuery)
+                .ToList();
+
+            var exactNameMods = exactNameEntries
+                .Select(r => r.Item.WikiId)
+                .Distinct()
+                .Count();
+
+            if (exactNameMods == 1)
+            {
+                var canonicalEntry = exactNameEntries
+                    .OrderByDescending(r => r.AbsoluteRight)
+                    .ThenByDescending(r => r.Similarity)
+                    .ThenBy(r => (r.Item.CurseForgeSlug ?? r.Item.ModrinthSlug ?? r.Item.ChineseName).Length)
+                    .First();
+
+                var canonicalWords = ExtractWords(canonicalEntry);
+
+                request.searchText = canonicalWords.Length != 0
+                    ? string.Join(" ", canonicalWords)
+                    : string.Join(
+                        " ",
+                        wordModCount
+                            .OrderByDescending(w => w.Value.Count)
+                            .Take(2)
+                            .Select(w => w.Key));
+
+                var cfSlugs = exactNameEntries
+                    .Select(r => r.Item.CurseForgeSlug)
+                    .Where(s => !string.IsNullOrEmpty(s))
+                    .Select(s => s!)
+                    .Distinct()
+                    .ToList();
+
+                if (cfSlugs.Count == 1)
+                    request.curseForgeAltSearchText = cfSlugs[0];
             }
             else
             {
-                request.searchText = string.Join(" ", sortedWords.Take(5).Select(w => w.Key));
-                request.curseForgeAltSearchText = string.Join(" ", ExtractWords(searchResults.First()));
-                LogWrapper.Debug("[Comp] 中文搜索基础关键词（CurseForge）：" + request.curseForgeAltSearchText);
+                var maxCount = wordModCount.Values.Max(mods => mods.Count);
+
+                if (maxCount <= 1)
+                {
+                    var best = searchResults
+                        .OrderByDescending(r => r.AbsoluteRight)
+                        .ThenByDescending(r => r.Similarity)
+                        .ThenBy(r => (r.Item.CurseForgeSlug ?? r.Item.ModrinthSlug ?? r.Item.ChineseName).Length)
+                        .First();
+
+                    request.searchText = string.Join(" ", ExtractWords(best));
+                }
+                else
+                {
+                    var tied = wordModCount
+                        .Where(w => w.Value.Count == maxCount)
+                        .OrderBy(w => w.Key.Length)
+                        .ToList();
+
+                    var anchorMods = tied[0].Value;
+
+                    request.searchText = string.Join(
+                        " ",
+                        tied
+                            .Where(w => w.Value.Overlaps(anchorMods))
+                            .Take(3)
+                            .Select(w => w.Key));
+                }
             }
 
             LogWrapper.Debug("[Comp] 中文搜索基础关键词：" + request.searchText);
         }
-
+        
         // 最终处理关键字：分割、去重
         void processKeywords(ref string text)
         {
@@ -2710,11 +2835,11 @@ public static class ModComp
         //  <summary>
         //  未经处理的支持的游戏版本列表。
         // </summary>
-        public readonly List<string> RawGameVersions;
+        public readonly List<string> RawGameVersions = new();
         /// <summary>
         ///     支持的游戏版本列表。类型包括："26.1.5"，"26.1"，"26.1 预览版"，"1.18.5"，"1.18"，"1.18 预览版"，"21w15a"，"未知版本"。
         /// </summary>
-        public readonly List<string> GameVersions;
+        public readonly List<string> GameVersions = new();
 
         /// <summary>
         ///     文件的 SHA1 或 MD5。
@@ -2729,7 +2854,7 @@ public static class ModComp
         /// <summary>
         ///     支持的 Mod 加载器列表。可能为空。
         /// </summary>
-        public readonly List<CompLoaderType> ModLoaders;
+        public readonly List<CompLoaderType> ModLoaders = new();
 
         /// <summary>
         ///     该文件的所有可选依赖工程的 Project.Id。

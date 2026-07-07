@@ -1475,6 +1475,10 @@ public static class ModLaunch
         }
 
         // 最终完成
+        // 兜底校验：若走到这里仍未取得有效 AccessToken（例如回退登录的 HTTP 失败被 McLoginRequestLogin
+        // 吞掉并返回 false），说明登录实际失败，必须中止，避免带着空凭据继续启动（见 #3307 review）。
+        if (string.IsNullOrEmpty(data.output.AccessToken))
+            throw new Exception(Lang.Text("Minecraft.Launch.Login.Failed"));
         data.Progress = 0.95d;
     }
 
@@ -1619,9 +1623,13 @@ public static class ModLaunch
         }
         catch (HttpResponseException ex)
         {
-            if (_TryGetLastError(ex, out var message)) ModMain.MyMsgBox(message, Lang.Text("Minecraft.Launch.Login.Failed"));
+            // 刷新失败必须向上抛出：否则 McLoginServerStart 会把本次登录判为“刷新成功”、带着空令牌继续
+            // 启动，并丧失“回退到普通登录”的自动恢复机会。保留服务端错误详情作为消息，并把原始
+            // HttpResponseException（含状态码/堆栈）作为 InnerException 以便诊断；同时显式 Dispose 及时
+            // 释放底层 Response，不依赖终结器兜底（其回收时机不确定，可能令底层资源驻留）。
+            var message = _TryGetLastError(ex, out var detail) ? detail : ex.Message;
             ex.Dispose();
-            return;
+            throw new Exception(message, ex);
         }
     }
 

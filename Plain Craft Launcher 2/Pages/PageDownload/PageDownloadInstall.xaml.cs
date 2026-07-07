@@ -23,6 +23,7 @@ public partial class PageDownloadInstall
         InitializeComponent();
         PanScroll = PanBack;
         LoadMinecraft.Text = Lang.Text("Download.Version.LoadingList");
+        WeakLanguageChanged.Add(this, OnLanguageChanged);
         BtnBack.Click += (_, _) => ExitSelectPage();
         CardOptiFine.Swap += (_, _) => ReloadSelected();
         LoadOptiFine.StateChanged += (_, _, _) => ReloadSelected();
@@ -90,6 +91,7 @@ public partial class PageDownloadInstall
         TextSelectName.KeyDown += TextSelectName_KeyDown;
         BtnStart.Click += (_, _) => BtnStart_Click();
     }
+    private static void OnLanguageChanged(PageDownloadInstall page) => page._OnLanguageChanged();
 
     private void LoaderInit()
     {
@@ -995,34 +997,7 @@ public partial class PageDownloadInstall
             if (ModDownload.dlClientListLoader.output.Value["versions"] is not JsonArray versions)
                 return;
 
-            var categoryOrder = new[]
-            {
-                McVersionCategory.Release,
-                McVersionCategory.Snapshot,
-                McVersionCategory.BeforeRelease,
-                McVersionCategory.AprilFools
-            };
-
-            var dict = categoryOrder.ToDictionary(
-                category => category,
-                _ => new List<JsonObject>()
-            );
-
-            foreach (JsonObject version in versions)
-            {
-                var category = McVersionClassifier.ClassifyVersion(version);
-                dict[category].Add(version);
-            }
-
-            foreach (var category in categoryOrder)
-                dict[category] = dict[category]
-                    .OrderByDescending(McVersionClassifier.GetReleaseTime)
-                    .ToList();
-
-            PanMinecraft.Children.Clear();
-
-            _AddLatestVersionCard(dict);
-            _AddCategoryCards(dict, categoryOrder);
+            _RebuildVersionCards(versions);
 
             if (mcVersionWaitingForSelect is null) return;
 
@@ -1047,6 +1022,45 @@ public partial class PageDownloadInstall
                 userSummary: Lang.Text("Download.Install.Error.OperationFailed"));
         }
     }
+
+    private void _RebuildVersionCards(JsonArray versions)
+    {
+        var categoryOrder = new[]
+        {
+            McVersionCategory.Release,
+            McVersionCategory.Snapshot,
+            McVersionCategory.BeforeRelease,
+            McVersionCategory.AprilFools
+        };
+
+        var dict = categoryOrder.ToDictionary(
+            category => category,
+            _ => new List<JsonObject>()
+        );
+
+        foreach (JsonObject version in versions)
+        {
+            var category = McVersionClassifier.ClassifyVersion(version);
+            dict[category].Add(version);
+        }
+
+        foreach (var category in categoryOrder)
+            dict[category] = dict[category]
+                .OrderByDescending(McVersionClassifier.GetReleaseTime)
+                .ToList();
+
+        PanMinecraft.Children.Clear();
+
+        _AddLatestVersionCard(dict);
+        _AddCategoryCards(dict, categoryOrder);
+    }
+
+    private void _OnLanguageChanged() => ModBase.RunInUi(() =>
+    {
+        LoadMinecraft.Text = Lang.Text("Download.Version.LoadingList");
+        if (ModDownload.dlClientListLoader.output.Value?["versions"] is JsonArray versions)
+            _RebuildVersionCards(versions);
+    });
 
     private void _AddLatestVersionCard(Dictionary<McVersionCategory, List<JsonObject>> dict)
     {

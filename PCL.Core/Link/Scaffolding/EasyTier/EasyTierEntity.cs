@@ -311,13 +311,14 @@ public class EasyTierEntity
     /// Checks the status of EasyTier network until it is ready or time-out.
     /// </summary>
     /// <returns>Returns 0 when the network is ready, otherwise returns 1 for timeout.</returns>
-    public async Task<(bool, EtPlayerList?)> CheckEasyTierStatusAsync()
+    public async Task<(bool, EtPlayerList?)> CheckEasyTierStatusAsync(CancellationToken ct = default)
     {
         var retryCount = 0;
 
         while (_etProcess is null && retryCount < 10)
         {
-            await Task.Delay(1000).ConfigureAwait(false);
+            ct.ThrowIfCancellationRequested();
+            await Task.Delay(1000, ct).ConfigureAwait(false);
             retryCount++;
         }
 
@@ -327,13 +328,14 @@ public class EasyTierEntity
         }
 
         retryCount = 0;
-        while (State is not EtState.Ready && retryCount < 10)
+        while (State is EtState.Active && retryCount < 300)
         {
+            ct.ThrowIfCancellationRequested();
             var info = await _GetPlayersAsync().ConfigureAwait(false);
             if (info.Host is null)
             {
                 LogWrapper.Debug("EasyTierEntity", "Retry to get EasyTier Info.");
-                await Task.Delay(1000).ConfigureAwait(false);
+                await Task.Delay(1000, ct).ConfigureAwait(false);
                 retryCount++;
                 continue;
             }
@@ -347,7 +349,7 @@ public class EasyTierEntity
                 return (true, info);
             }
 
-            await Task.Delay(1000).ConfigureAwait(false);
+            await Task.Delay(1000, ct).ConfigureAwait(false);
             retryCount++;
         }
 

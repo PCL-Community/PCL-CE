@@ -468,7 +468,15 @@ public static class ModProfile
                     selectedProfile.Username = (string)resultJson["name"];
                     profileList.Add(selectedProfile);
                     lastUsedProfile = profileList.Count - 1;
-                    ModMain.frmLaunchLeft.RefreshPage(true);
+                    // 本方法在后台线程执行（阻塞网络请求），下面操作 WPF 控件，必须切回 UI 线程，
+                    // 否则触发线程亲和性异常——与本文件其他从后台线程刷新界面处一样用 RunInUi 包裹。
+                    ModBase.RunInUi(() =>
+                    {
+                        // 改名成功后正处于档案页(ProfileSkin)，此时 RefreshPage 因目标页与当前页相同会提前
+                        // 返回、不刷新显示的玩家 ID，需显式 Reload 当前档案页，使新 ID 立即生效。
+                        ModMain.frmLoginProfileSkin?.Reload();
+                        ModMain.frmLaunchLeft.RefreshPage(true);
+                    });
                     SaveProfile();
                 }
                 catch (HttpRequestException ex)

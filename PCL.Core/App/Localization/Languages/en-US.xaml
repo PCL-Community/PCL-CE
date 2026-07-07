@@ -1552,6 +1552,7 @@
     <sys:String x:Key="Launch.Account.Profile.Create">New profile</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Create.SelectAuthType.Title">New profile - Select login type</sys:String>
     <sys:String x:Key="Launch.Account.Profile.CreateAndSelectHint">Create and select a profile before launching the game</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.RequireMicrosoftHint">A Microsoft profile is required to create profiles using other login types</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Created">Profile created!</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Delete">Delete profile</sys:String>
     <sys:String x:Key="Launch.Account.Profile.DeleteConfirm.Message">You are about to delete this profile. This action cannot be undone.&#xA;Are you sure you want to continue?</sys:String>
@@ -3156,8 +3157,8 @@
     <sys:String x:Key="Setup.Update.CheckAgain">Check again</sys:String>
     <sys:String x:Key="Setup.Update.CheckFailed">Failed to check for updates</sys:String>
     <sys:String x:Key="Setup.Update.Checking">Checking for updates...</sys:String>
-    <sys:String x:Key="Setup.Update.DotNetMissing.DownloadRuntime">Download .NET 8 Runtime</sys:String>
-    <sys:String x:Key="Setup.Update.DotNetMissing.Message">A launcher update (version {0}) was found, but the new version requires .NET 8 to be installed on your computer.&#xA;You need to install .NET 8 before continuing the update.&#xA;&#xA;Click the button below to open the webpage, then select {1} under ".NET Desktop Runtime" to download.</sys:String>
+    <sys:String x:Key="Setup.Update.DotNetMissing.DownloadRuntime">Download .NET 10 Runtime</sys:String>
+    <sys:String x:Key="Setup.Update.DotNetMissing.Message">A launcher update (version {0}) was found, but the new version requires .NET 10 to be installed on your computer.&#xA;You need to install .NET 10 before continuing the update.&#xA;&#xA;Click the button below to open the webpage, then select {1} under ".NET Desktop Runtime" to download.</sys:String>
     <sys:String x:Key="Setup.Update.DotNetMissing.Title">Launcher update - missing runtime</sys:String>
     <sys:String x:Key="Setup.Update.Error.NetworkFailed">Unable to retrieve latest version information. Please check your network connection.</sys:String>
     <sys:String x:Key="Setup.Update.Install">Download and install</sys:String>
@@ -3224,7 +3225,7 @@
     <sys:String x:Key="SystemDialog.File.SelectTitle">Select file</sys:String>
     <sys:String x:Key="SystemDialog.Folder.OpenFailed.Message">Failed to open File Explorer. Try closing security software, such as 360 Total Security.&#xA;&#xA;Path: {0}</sys:String>
     <sys:String x:Key="SystemDialog.Folder.SelectTitle">Select folder</sys:String>
-    <sys:String x:Key="SystemDialog.Startup.DotNetRuntimeOutdated.Message">Your .NET Desktop Runtime is outdated or corrupted. Please reinstall .NET 8.</sys:String>
+    <sys:String x:Key="SystemDialog.Startup.DotNetRuntimeOutdated.Message">Your .NET Desktop Runtime is outdated or corrupted. Please reinstall .NET 10.</sys:String>
     <sys:String x:Key="SystemDialog.Startup.InitializationTitle">PCL CE failed to initialize</sys:String>
 
     <!-- SystemDialog.Error -->
@@ -3232,7 +3233,7 @@
     <sys:String x:Key="SystemDialog.Error.Detail.WithException">{0}&#xA;&#xA;Details:&#xA;{1}</sys:String>
     <sys:String x:Key="SystemDialog.Error.Message.WithLogExportGuidance">{0}&#xA;&#xA;When asking for help, do not close launcher. Export the logs now (Settings → View logs → Export logs), then send the exported log archive. A screenshot of this window alone is usually not enough to diagnose the problem.</sys:String>
     <sys:String x:Key="SystemDialog.Error.OperationFailed.Message">An error occurred while performing this operation.&#xA;&#xA;Operation:&#xA;{0}&#xA;&#xA;Details:&#xA;{1}</sys:String>
-    <sys:String x:Key="SystemDialog.Error.OperationFailed.RuntimeMessage">An error occurred while performing this operation.&#xA;&#xA;Operation:&#xA;{0}&#xA;&#xA;Details:&#xA;{1}&#xA;&#xA;A low-level system operation failed. Please try reinstalling .NET 8.</sys:String>
+    <sys:String x:Key="SystemDialog.Error.OperationFailed.RuntimeMessage">An error occurred while performing this operation.&#xA;&#xA;Operation:&#xA;{0}&#xA;&#xA;Details:&#xA;{1}&#xA;&#xA;A low-level system operation failed. Please try reinstalling .NET 10.</sys:String>
     <sys:String x:Key="SystemDialog.Error.Title">Error</sys:String>
     <sys:String x:Key="SystemDialog.Error.Unexpected.Message">An unexpected error occurred.</sys:String>
     <sys:String x:Key="SystemDialog.Error.Unexpected.Title">Unexpected error</sys:String>

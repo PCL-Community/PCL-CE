@@ -169,7 +169,7 @@ public partial class Application
                 detail.Contains("MS.Internal.AppModel.ITaskbarList.HrInit") ||
                 detail.Contains("未能加载文件或程序集"))
             {
-                LauncherProcess.OpenWebsite("https://get.dot.net/8");
+                LauncherProcess.OpenWebsite("https://get.dot.net/10");
                 LogWrapper.Error(
                     e.Exception,
                     Lang.Text("SystemDialog.Startup.DotNetRuntimeOutdated.Message"));

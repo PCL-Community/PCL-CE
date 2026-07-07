@@ -42,7 +42,9 @@ public partial class PageDownloadCompFavorites
         ComboTargetFav.SelectionChanged += ComboTargetFav_Selected;
         HintGetFail.MouseLeftButtonDown += HintGetFail_MouseLeftButtonDown;
         PanSearchBox.TextChanged += SearchRun;
+        WeakLanguageChanged.Add(this, OnLanguageChanged); 
     }
+    private static void OnLanguageChanged(PageDownloadCompFavorites page) => ModBase.RunInUi(page._RefreshCategoryTitles);
 
     private ModComp.CompFavorites.FavData CurrentFavTarget
     {
@@ -154,55 +156,7 @@ public partial class PageDownloadCompFavorites
             },
             CompType = type
         };
-        switch (type)
-        {
-            case -1:
-            {
-                newItem.Title = Lang.Text("Download.Comp.Favorites.SearchResults.Title");
-                break;
-            }
-            case (int)ModComp.CompType.Mod:
-            {
-                newItem.Title = Lang.Text("Download.Comp.Favorites.Category.Mod");
-                break;
-            }
-            case (int)ModComp.CompType.ModPack:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.Modpack")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.ResourcePack:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.ResourcePack")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.Shader:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.Shader")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.DataPack:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.DataPack")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.Plugin:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.Plugin")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.World:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.World")} ({{0}})";
-                break;
-            }
-
-            default:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Favorites.UnknownType")} ({{0}})";
-                break;
-            }
-        }
+        newItem.Title = _GetCategoryTitleFormat(type);
 
         newItem.Card.Title = string.Format(newItem.Title, 0);
         newItem.Card.Children.Add(newItem.ContentList);
@@ -225,6 +179,26 @@ public partial class PageDownloadCompFavorites
                 continue;
             PanContentList.Children.Add(item.Card);
         }
+    }
+
+    private static string _GetCategoryTitleFormat(int type) => type switch
+    {
+        -1 => Lang.Text("Download.Comp.Favorites.SearchResults.Title"),
+        (int)ModComp.CompType.Mod => Lang.Text("Download.Comp.Favorites.Category.Mod"),
+        (int)ModComp.CompType.ModPack => $"{Lang.Text("Download.Comp.Type.Modpack")} ({{0}})",
+        (int)ModComp.CompType.ResourcePack => $"{Lang.Text("Download.Comp.Type.ResourcePack")} ({{0}})",
+        (int)ModComp.CompType.Shader => $"{Lang.Text("Download.Comp.Type.Shader")} ({{0}})",
+        (int)ModComp.CompType.DataPack => $"{Lang.Text("Download.Comp.Type.DataPack")} ({{0}})",
+        (int)ModComp.CompType.Plugin => $"{Lang.Text("Download.Comp.Type.Plugin")} ({{0}})",
+        (int)ModComp.CompType.World => $"{Lang.Text("Download.Comp.Type.World")} ({{0}})",
+        _ => $"{Lang.Text("Download.Comp.Favorites.UnknownType")} ({{0}})"
+    };
+
+    private void _RefreshCategoryTitles()
+    {
+        foreach (var item in itemList)
+            item.Title = _GetCategoryTitleFormat(item.CompType);
+        RefreshCardTitle();
     }
 
     private void RefreshCardTitle()

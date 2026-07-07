@@ -76,7 +76,7 @@ public class LoaderDownload : ModLoader.LoaderBase
                 }
                 catch (Exception ex)
                 {
-                    file.Errors.Add(ex);
+                    file.AddError(ex);
                     file.State = NetState.Interrupted;
                     exceptions.Enqueue(ex);
                     _cancellationTokenSource?.Cancel();
@@ -110,8 +110,7 @@ public class LoaderDownload : ModLoader.LoaderBase
     private async Task ProcessFileAsync(DownloadFile file, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (!file.Loaders.Contains(this))
-            file.Loaders.Add(this);
+        file.RegisterLoader(this);
 
         if (State >= LoadState.Finished)
             return;
@@ -187,7 +186,10 @@ public class LoaderDownload : ModLoader.LoaderBase
 
     public void OnFileFail(DownloadFile file)
     {
-        OnFail(file.Errors.Any() ? file.Errors : new List<Exception> { new Exception($"文件下载失败：{file.LocalPath}") });
+        var errors = file.Errors;
+        OnFail(errors.Count > 0
+            ? errors.ToList()
+            : new List<Exception> { new Exception($"文件下载失败：{file.LocalPath}") });
     }
 
     public void OnFail(List<Exception> exList)
@@ -206,7 +208,7 @@ public class LoaderDownload : ModLoader.LoaderBase
             file.State = NetState.Interrupted;
             file.Speed = 0;
             file.ActiveThreads = 0;
-            file.Errors.AddRange(exList);
+            file.AddErrors(exList);
         }
 
         ModNet.NetManager.Finish(this);

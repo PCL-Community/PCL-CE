@@ -664,6 +664,9 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     /// </summary>
     private void BtnManageDownload_Click(object sender, MouseButtonEventArgs e)
     {
+        var datapackPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
+        Directory.CreateDirectory(datapackPath);
+        PageDownloadCompDetail.cachedFolder[ModComp.CompType.DataPack] = datapackPath;
         ModMain.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadDataPack);
         PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
     }
