@@ -159,20 +159,6 @@ public partial class PageSetupUpdate
 
     private void BtnUpdate_Click(object sender, MouseButtonEventArgs e)
     {
-        // 检查 .NET 版本
-        if (!updateInfo.VersionName.StartsWithF("2.13.") && !ModBase
-                .ShellAndGetOutput("cmd", "/c dotnet --list-runtimes")
-                .ContainsF("Microsoft.WindowsDesktop.App 10.0.", true))
-        {
-            ModMain.MyMsgBox(
-                Lang.Text("Setup.Update.DotNetMissing.Message", updateInfo.VersionName,
-                    SystemInfo.IsArm64System ? "Arm64" : "x64"),
-                Lang.Text("Setup.Update.DotNetMissing.Title"),
-                Lang.Text("Setup.Update.DotNetMissing.DownloadRuntime"), Lang.Text("Common.Action.Cancel"),
-                button1Action: () => ModBase.OpenWebsite("https://get.dot.net/10"), forceWait: true);
-            return;
-        }
-
         if (UpdateManager.isUpdateWaitingRestart) UpdateManager.UpdateRestart(true);
         // 开始更新流程
         UpdateManager.UpdateStart(UpdateEnums.UpdateType.UpdateNow);
