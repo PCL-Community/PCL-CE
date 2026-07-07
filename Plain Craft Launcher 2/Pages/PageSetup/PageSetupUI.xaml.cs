@@ -1,8 +1,9 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.App.Localization;
@@ -12,8 +13,8 @@ namespace PCL;
 public partial class PageSetupUI
 {
     public string[] ThemeColors => Basics.IsAprilFool 
-        ? [Lang.Text("Setup.Ui.ThemeColor.SkyBlue"), Lang.Text("Setup.Ui.ThemeColor.CatBlue"), Lang.Text("Setup.Ui.ThemeColor.CrashBlue"), Lang.Text("Setup.Ui.ThemeColor.Hmcl")]
-        : [Lang.Text("Setup.Ui.ThemeColor.SkyBlue"), Lang.Text("Setup.Ui.ThemeColor.CatBlue"), Lang.Text("Setup.Ui.ThemeColor.CrashBlue")];
+        ? [Lang.Text("Setup.Ui.Theme.Color.SkyBlue"), Lang.Text("Setup.Ui.Theme.Color.CatBlue"), Lang.Text("Setup.Ui.Theme.Color.CrashBlue"), Lang.Text("Setup.Ui.Theme.Color.Hmcl")]
+        : [Lang.Text("Setup.Ui.Theme.Color.SkyBlue"), Lang.Text("Setup.Ui.Theme.Color.CatBlue"), Lang.Text("Setup.Ui.Theme.Color.CrashBlue")];
     
     public new bool isLoaded;
 
@@ -54,7 +55,6 @@ public partial class PageSetupUI
             ComboDarkColor.SelectedIndex = (int)Config.Preference.Theme.DarkColor;
             ComboLightColor.SelectedIndex = (int)Config.Preference.Theme.LightColor;
             CheckShowLaunchingHint.Checked = Config.Preference.ShowLaunchingHint;
-            CheckHintAlignRight.Checked = Config.Preference.HintAlignRight;
 
             // 字体设置
             ComboUiFont.SelectedFontTag = Config.Preference.Font;
@@ -156,12 +156,20 @@ public partial class PageSetupUI
         }
         catch (NullReferenceException ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Ui.Error.ConfigReset"), ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.Ui.Error.ConfigReset"),
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Ui.Error.ConfigReset"));
             Reset();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Ui.Error.LoadFailed"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.Ui.Error.LoadFailed"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Ui.Error.LoadFailed"));
         }
     }
 
@@ -172,11 +180,15 @@ public partial class PageSetupUI
         {
             Config.Preference.Reset();
             ModBase.Log("[Setup] 已初始化个性化设置！");
-            ModMain.Hint(Lang.Text("Setup.Ui.Initialized"), ModMain.HintType.Finish, false);
+            HintService.Hint(Lang.Text("Setup.Ui.Initialized"), HintType.Success, false);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Ui.Error.InitFailed"), ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.Ui.Error.InitFailed"),
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Ui.Error.InitFailed"));
         }
 
         Reload();
@@ -221,69 +233,7 @@ public partial class PageSetupUI
 
     private static void SetByTag(string tag, object value)
     {
-        switch (tag)
-        {
-            case "UiLauncherTransparent": Config.Preference.Theme.WindowOpacity = (int)value; break;
-            case "UiBackgroundOpacity": Config.Preference.Background.WallpaperOpacity = (int)value; break;
-            case "UiBackgroundBlur": Config.Preference.Background.WallpaperBlurRadius = (int)value; break;
-            case "UiBlurValue": Config.Preference.Blur.Radius = (int)value; break;
-            case "UiBlurSamplingRate": Config.Preference.Blur.SamplingRate = (int)value; break;
-            case "UiMusicVolume": Config.Preference.Music.Volume = (int)value; break;
-
-            case "UiLauncherLogo": Config.Preference.ShowStartupLogo = (bool)value; break;
-            case "UiShowLaunchingHint": Config.Preference.ShowLaunchingHint = (bool)value; break;
-            case "UiHintAlignRight": Config.Preference.HintAlignRight = (bool)value; ModMain.Hint(Lang.Text("Setup.Ui.Basic.HintAlignRight.Changed")); break;
-            case "UiLockWindowSize": Config.Preference.LockWindowSize = (bool)value; break;
-            case "UiBlur": Config.Preference.Blur.IsEnabled = (bool)value; break;
-            case "UiAutoPauseVideo": Config.Preference.Background.AutoPauseVideo = (bool)value; break;
-            case "UiBackgroundColorful": Config.Preference.Background.BackgroundColorful = (bool)value; break;
-            case "UiMusicRandom": Config.Preference.Music.ShufflePlayback = (bool)value; break;
-            case "UiMusicAuto": Config.Preference.Music.StartOnStartup = (bool)value; break;
-            case "UiMusicStart": Config.Preference.Music.StartInGame = (bool)value; break;
-            case "UiMusicStop": Config.Preference.Music.StopInGame = (bool)value; break;
-            case "UiMusicSMTC": Config.Preference.Music.EnableSMTC = (bool)value; break;
-            case "UiLogoLeft": Config.Preference.TopBarLeftAlign = (bool)value; break;
-
-            case "UiDarkMode": Config.Preference.Theme.ColorMode = (ColorMode)(int)value; break;
-            case "UiDarkColor": Config.Preference.Theme.DarkColor = (ColorTheme)(int)value; break;
-            case "UiLightColor": Config.Preference.Theme.LightColor = (ColorTheme)(int)value; break;
-            case "UiBlurType": Config.Preference.Blur.KernelType = (int)value; break;
-            case "UiBackgroundSuit": Config.Preference.Background.WallpaperSuitMode = (int)value; break;
-            case "UiCustomPreset": Config.Preference.Homepage.SelectedPreset = (int)value; break;
-            case "UiCustomNet": Config.Preference.Homepage.CustomUrl = (string)value; break;
-            case "UiLogoType": Config.Preference.WindowTitleType = (LauncherTitleType)(int)value; break;
-            case "UiLogoText": Config.Preference.WindowTitleCustomText = (string)value; break;
-            case "UiCustomType": Config.Preference.Homepage.Type = (int)value; break;
-
-            case "UiHiddenPageDownload": Config.Preference.Hide.PageDownload = (bool)value; break;
-            case "UiHiddenPageSetup": Config.Preference.Hide.PageSetup = (bool)value; break;
-            case "UiHiddenPageTools": Config.Preference.Hide.PageTools = (bool)value; break;
-            case "UiHiddenSetupLaunch": Config.Preference.Hide.SetupLaunch = (bool)value; break;
-            case "UiHiddenSetupUi": Config.Preference.Hide.SetupUi = (bool)value; break;
-            case "UiHiddenSetupLauncherLanguage": Config.Preference.Hide.SetupLauncherLanguage = (bool)value; break;
-            case "UiHiddenSetupLauncherMisc": Config.Preference.Hide.SetupLauncherMisc = (bool)value; break;
-            case "UiHiddenSetupGameManage": Config.Preference.Hide.SetupGameManage = (bool)value; break;
-            case "UiHiddenSetupJava": Config.Preference.Hide.SetupJava = (bool)value; break;
-            case "UiHiddenSetupUpdate": Config.Preference.Hide.SetupUpdate = (bool)value; break;
-            case "UiHiddenSetupGameLink": Config.Preference.Hide.SetupGameLink = (bool)value; break;
-            case "UiHiddenSetupAbout": Config.Preference.Hide.SetupAbout = (bool)value; break;
-            case "UiHiddenSetupFeedback": Config.Preference.Hide.SetupFeedback = (bool)value; break;
-            case "UiHiddenSetupLog": Config.Preference.Hide.SetupLog = (bool)value; break;
-            case "UiHiddenToolsGameLink": Config.Preference.Hide.ToolsGameLink = (bool)value; break;
-            case "UiHiddenToolsTest": Config.Preference.Hide.ToolsTest = (bool)value; break;
-            case "UiHiddenVersionEdit": Config.Preference.Hide.InstanceEdit = (bool)value; break;
-            case "UiHiddenVersionExport": Config.Preference.Hide.InstanceExport = (bool)value; break;
-            case "UiHiddenVersionSave": Config.Preference.Hide.InstanceSave = (bool)value; break;
-            case "UiHiddenVersionScreenshot": Config.Preference.Hide.InstanceScreenshot = (bool)value; break;
-            case "UiHiddenVersionMod": Config.Preference.Hide.InstanceMod = (bool)value; break;
-            case "UiHiddenVersionResourcePack": Config.Preference.Hide.InstanceResourcePack = (bool)value; break;
-            case "UiHiddenVersionShader": Config.Preference.Hide.InstanceShader = (bool)value; break;
-            case "UiHiddenVersionSchematic": Config.Preference.Hide.InstanceSchematic = (bool)value; break;
-            case "UiHiddenVersionServer": Config.Preference.Hide.InstanceServer = (bool)value; break;
-            case "UiHiddenFunctionSelect": Config.Preference.Hide.FunctionSelect = (bool)value; break;
-            case "UiHiddenFunctionModUpdate": Config.Preference.Hide.FunctionModUpdate = (bool)value; break;
-            case "UiHiddenFunctionHidden": Config.Preference.Hide.FunctionHidden = (bool)value; break;
-        }
+        ConfigService.TrySetValue(tag, value);
     }
 
     private void ComboFontChange(object sender, SelectionChangedEventArgs e)
@@ -341,7 +291,7 @@ public partial class PageSetupUI
         {
             ModBase.DeleteDirectory(ModBase.exePath + @"PCL\Pictures");
             BackgroundRefresh(false, true);
-            ModMain.Hint(Lang.Text("Setup.Ui.Background.Clear.Success"), ModMain.HintType.Finish);
+            HintService.Hint(Lang.Text("Setup.Ui.Background.Clear.Success"), HintType.Success);
         }
     }
 
@@ -374,12 +324,18 @@ public partial class PageSetupUI
                     if (videoEx.Message.Contains("0xC00D109B"))
                         ModBase.Log(
                             $"""
-                             刷新背景内容失败，该视频文件可能并非 H.264（AVC） 格式。
-                             你可以尝试使用视频转码工具打开视频文件并设定目标格式为 H.264（AVC） ，然后转码该视频。
+                             刷新背景内容失败，该视频文件可能并非 H.264（AVC）格式。
+                             你可以尝试使用视频转码工具打开视频文件并设定目标格式为 H.264（AVC），然后转码该视频。
                              文件：{videoAddress}
-                             """, ModBase.LogLevel.Msgbox);
+                             """,
+                            ModBase.LogLevel.Msgbox,
+                            userSummary: Lang.Text("Setup.Ui.Error.BackgroundVideoUnsupported"));
                     else
-                        ModBase.Log(videoEx, $"刷新背景内容失败（{videoAddress}）", ModBase.LogLevel.Msgbox);
+                        ModBase.Log(
+                            videoEx,
+                            $"刷新背景内容失败（{videoAddress}）",
+                            ModBase.LogLevel.Msgbox,
+                            userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 }
             };
             ModMain.frmMain.VideoBack.MediaFailed -= videoHandler;
@@ -397,13 +353,13 @@ public partial class PageSetupUI
                     if (ModMain.frmMain.ImgBack.Visibility == Visibility.Collapsed)
                     {
                         if (isHint)
-                            ModMain.Hint(Lang.Text("Setup.Ui.Background.NoAvailableContent"), ModMain.HintType.Critical);
+                            HintService.Hint(Lang.Text("Setup.Ui.Background.NoAvailableContent"), HintType.Error);
                     }
                     else
                     {
                         ModMain.frmMain.ImgBack.Visibility = Visibility.Collapsed;
                         if (isHint)
-                            ModMain.Hint(Lang.Text("Setup.Ui.Background.Cleared"), ModMain.HintType.Finish);
+                            HintService.Hint(Lang.Text("Setup.Ui.Background.Cleared"), HintType.Success);
                     }
                 }
 
@@ -424,7 +380,7 @@ public partial class PageSetupUI
                         _ = Config.Preference.Background.WallpaperSuitMode;
                         ModMain.frmMain.ImgBack.Visibility = Visibility.Visible;
                         if (isHint)
-                                ModMain.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", ModBase.GetFileNameFromPath(address)), ModMain.HintType.Finish,
+                                HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", ModBase.GetFileNameFromPath(address)), HintType.Success,
                                 false);
                     }
                     catch (Exception ex)
@@ -434,12 +390,12 @@ public partial class PageSetupUI
                             ModMain.frmMain.VideoBack.MediaFailed += videoHandler;
                             ModBase.Log(ex, "[UI] 加载背景图片失败" + address);
                             if (ModBase.modeDebug)
-                                ModMain.Hint(Lang.Text("Setup.Ui.Background.ImageLoadFailed", address));
+                                HintService.Hint(Lang.Text("Setup.Ui.Background.ImageLoadFailed", address));
                             ModMain.frmMain.ImgBack.Visibility = Visibility.Visible;
                             ModMain.frmMain.VideoBack.Source = new Uri(address, UriKind.Absolute);
                             ModVideoBack.VideoPlay();
                             if (isHint)
-                            ModMain.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", ModBase.GetFileNameFromPath(address)), ModMain.HintType.Finish,
+                            HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", ModBase.GetFileNameFromPath(address)), HintType.Success,
                                     false);
                         }
                         catch (Exception playEx)
@@ -456,14 +412,20 @@ public partial class PageSetupUI
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新背景内容时出现未知错误", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "刷新背景内容时出现未知错误",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
         }
     }
 
     // 顶部栏
     private void BtnLogoChange_Click(object sender, MouseButtonEventArgs e)
     {
-        var fileName = SystemDialogs.SelectFile("常用图片文件(*.png;*.jpg;*.gif;*.webp)|*.png;*.jpg;*.gif;*.webp", "选择图片");
+        var fileName = SystemDialogs.SelectFile(
+            Lang.Text("Setup.Ui.ImageFile.Filter"),
+            Lang.Text("Setup.Ui.ImageFile.SelectTitle"));
         if (string.IsNullOrEmpty(fileName))
             return;
         try
@@ -478,13 +440,19 @@ public partial class PageSetupUI
         catch (Exception ex)
         {
             if (ex.Message.Contains("参数无效"))
-                ModBase.Log("""
-                            改变标题栏图片失败，该图片文件可能并非标准格式。
-                            你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。
-                            """,
-                    ModBase.LogLevel.Msgbox);
+                ModBase.Log(
+                    """
+                    改变标题栏图片失败，该图片文件可能并非标准格式。
+                    你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。
+                    """,
+                    ModBase.LogLevel.Msgbox,
+                    userSummary: Lang.Text("Setup.Ui.Error.TitleImageInvalidFormat"));
             else
-                ModBase.Log(ex, "设置标题栏图片失败", ModBase.LogLevel.Msgbox);
+                ModBase.Log(
+                    ex,
+                    "设置标题栏图片失败",
+                    ModBase.LogLevel.Msgbox,
+                    userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
             ModMain.frmMain.ImageTitleLogo.Source = null;
         }
     }
@@ -506,13 +474,19 @@ public partial class PageSetupUI
             catch (Exception ex)
             {
                 if (ex.Message.Contains("参数无效"))
-                    ModBase.Log("""
-                                调整标题栏图片失败，该图片文件可能并非标准格式。
-                                你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。
-                                """,
-                        ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        """
+                        调整标题栏图片失败，该图片文件可能并非标准格式。
+                        你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。
+                        """,
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Setup.Ui.Error.TitleImageResizeInvalidFormat"));
                 else
-                    ModBase.Log(ex, "调整标题栏图片失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        "调整标题栏图片失败",
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 ModMain.frmMain.ImageTitleLogo.Source = null;
                 e.handled = true;
                 try
@@ -521,7 +495,11 @@ public partial class PageSetupUI
                 }
                 catch (Exception exx)
                 {
-                    ModBase.Log(exx, "清理错误的标题栏图片失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        exx,
+                        "清理错误的标题栏图片失败",
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 }
             }
 
@@ -546,7 +524,11 @@ public partial class PageSetupUI
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "复制标题栏图片失败", ModBase.LogLevel.Msgbox);
+                ModBase.Log(
+                    ex,
+                    "复制标题栏图片失败",
+                    ModBase.LogLevel.Msgbox,
+                    userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
             }
         }
     }
@@ -557,11 +539,15 @@ public partial class PageSetupUI
         {
             File.Delete(ModBase.exePath + @"PCL\Logo.png");
             RadioLogoType1.SetChecked(true, true);
-            ModMain.Hint(Lang.Text("Setup.Ui.Logo.Clear.Success"), ModMain.HintType.Finish);
+            HintService.Hint(Lang.Text("Setup.Ui.Logo.Clear.Success"), HintType.Success);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "清空标题栏图片失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                "清空标题栏图片失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
         }
     }
 
@@ -605,7 +591,7 @@ public partial class PageSetupUI
                 isWarn: true) == 1)
             ModBase.RunInThread(() =>
             {
-                ModMain.Hint(Lang.Text("Setup.Ui.Music.Deleting"));
+                HintService.Hint(Lang.Text("Setup.Ui.Music.Deleting"));
                 // 停止播放音乐
                 ModMusic.musicNAudio = null;
                 ModMusic.musicWaitingList = new List<string>();
@@ -616,11 +602,15 @@ public partial class PageSetupUI
                 {
                     ModBase.DeleteDirectory(ModBase.exePath + @"PCL\Musics");
                     // DisableSMTCSupport()
-                    ModMain.Hint(Lang.Text("Setup.Ui.Music.Delete.Success"), ModMain.HintType.Finish);
+                    HintService.Hint(Lang.Text("Setup.Ui.Music.Delete.Success"), HintType.Success);
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "删除背景音乐失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        "删除背景音乐失败",
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 }
 
                 try
@@ -630,7 +620,11 @@ public partial class PageSetupUI
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "重建背景音乐文件夹失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        "重建背景音乐文件夹失败",
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 }
             });
     }
@@ -657,14 +651,12 @@ public partial class PageSetupUI
     private void BtnCustomRefresh_Click(object sender, MouseButtonEventArgs e)
     {
         ModMain.frmLaunchRight.ForceRefresh();
-        ModMain.Hint(Lang.Text("Setup.Ui.Homepage.Refresh.Success"), ModMain.HintType.Finish);
+        HintService.Hint(Lang.Text("Setup.Ui.Homepage.Refresh.Success"), HintType.Success);
     }
 
     private void BtnCustomTutorial_Click(object sender, MouseButtonEventArgs e)
     {
-        ModMain.MyMsgBox(
-            Lang.Text("Setup.Ui.Homepage.Tutorial.Message"),
-            Lang.Text("Setup.Ui.Homepage.Tutorial.Title"));
+        ModBase.OpenWebsite("https://docs.pclc.cc/ce/customization/xaml-format");
     }
 
     // 主题
@@ -879,7 +871,11 @@ public partial class PageSetupUI
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新功能隐藏项目失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "刷新功能隐藏项目失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
         }
     }
 
@@ -954,7 +950,7 @@ public partial class PageSetupUI
     private void HiddenHint(object sender, bool user)
     {
         if (ModAnimation.AniControlEnabled == 0 && sender is MyCheckBox checkBox && checkBox.Checked == true)
-            ModMain.Hint(Lang.Text("Setup.Ui.FeatureHide.TemporaryHint"));
+            HintService.Hint(Lang.Text("Setup.Ui.FeatureHide.TemporaryHint"));
     }
 
     #endregion

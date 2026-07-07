@@ -1,4 +1,4 @@
-using System.Security.Authentication;
+﻿using System.Security.Authentication;
 using System.Windows;
 using PCL.Core.App.Localization;
 
@@ -47,7 +47,7 @@ public partial class PageLoginMs
             }
             catch (ThreadInterruptedException ex)
             {
-                ModMain.Hint(Lang.Text("Launch.Account.LoginCancelled"));
+                HintService.Hint(Lang.Text("Launch.Account.LoginCancelled"));
             }
             catch (Exception ex)
             {
@@ -56,17 +56,25 @@ public partial class PageLoginMs
                 }
                 else if (ex.Message.StartsWith("$"))
                 {
-                    ModMain.Hint(ex.Message.TrimStart('$'), ModMain.HintType.Critical);
+                    HintService.Hint(
+                        Lang.Text("Launch.Account.Microsoft.LoginFailed.WithDetail", ex.Message.TrimStart('$')),
+                        HintType.Error);
                 }
                 else if (ex is AuthenticationException && ex.Message.ContainsF("SSL/TLS"))
                 {
-                    ModBase.Log(ex,
-                        Lang.Text("Launch.Account.Microsoft.LoginFailed.Message") + "\r\n" + ex.Message,
-                        ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        $"{Lang.Text("Launch.Account.Microsoft.LoginFailed.Message")}\r\n{ex.Message}",
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Launch.Account.Microsoft.Error.OperationFailed"));
                 }
                 else
                 {
-                    ModBase.Log(ex, Lang.Text("Launch.Account.Microsoft.LoginFailed.Title"), ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        Lang.Text("Launch.Account.Microsoft.LoginFailed.Title"),
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Launch.Account.Microsoft.LoginFailed.Title"));
                 }
             }
             finally

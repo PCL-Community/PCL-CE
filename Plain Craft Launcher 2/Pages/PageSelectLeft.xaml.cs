@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -229,8 +229,6 @@ public partial class PageSelectLeft : IRefreshable
                     SvgIcon = "lucide/folder-plus"
                 };
                 ToolTipService.SetPlacement(itemCreate, PlacementMode.Right);
-                ToolTipService.SetHorizontalOffset(itemCreate, -50);
-                ToolTipService.SetVerticalOffset(itemCreate, 2.5);
                 itemCreate.Click += (_, _) => ModMain.frmSelectLeft.Create_Click();
                 ModMain.frmSelectLeft.PanList.Children.Add(itemCreate);
             }
@@ -246,8 +244,6 @@ public partial class PageSelectLeft : IRefreshable
                 SvgIcon = "lucide/folder-input"
             };
             ToolTipService.SetPlacement(itemAdd, PlacementMode.Right);
-            ToolTipService.SetHorizontalOffset(itemAdd, -50);
-            ToolTipService.SetVerticalOffset(itemAdd, 2.5);
             itemAdd.Click += (_, _) => ModMain.frmSelectLeft.Add_Click();
             ModMain.frmSelectLeft.PanList.Children.Add(itemAdd);
 
@@ -262,8 +258,6 @@ public partial class PageSelectLeft : IRefreshable
                 SvgIcon = "lucide/package-plus"
             };
             ToolTipService.SetPlacement(itemInstall, PlacementMode.Right);
-            ToolTipService.SetHorizontalOffset(itemInstall, -50);
-            ToolTipService.SetVerticalOffset(itemInstall, 2.5);
             itemInstall.Click += (_, _) => ModModpack.ModpackInstall();
             ModMain.frmSelectLeft.PanList.Children.Add(itemInstall);
 
@@ -351,7 +345,7 @@ public partial class PageSelectLeft : IRefreshable
         // 检查是否有下载任务
         if (ModNet.HasDownloadingTask())
         {
-            ModMain.Hint(Lang.Text("Select.Folder.CannotAddWhileDownloading"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Select.Folder.CannotAddWhileDownloading"), HintType.Error);
             return;
         }
 
@@ -363,7 +357,7 @@ public partial class PageSelectLeft : IRefreshable
                 return;
             if (newFolder.Contains('!') || newFolder.Contains(';'))
             {
-                ModMain.Hint(Lang.Text("Select.Folder.InvalidPathChars"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Select.Folder.InvalidPathChars"), HintType.Error);
                 return;
             }
 
@@ -384,7 +378,11 @@ public partial class PageSelectLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Select.Folder.Error.Add", newFolder), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Select.Folder.Error.Add", newFolder),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Select.Folder.Error.Add", newFolder));
         }
     }
 
@@ -414,7 +412,7 @@ public partial class PageSelectLeft : IRefreshable
                 if (!ModBase.CheckPermission(folderPath))
                 {
                     if (!showHint) throw new Exception("PCL 没有访问文件夹的权限：" + folderPath);
-                    ModMain.Hint(Lang.Text("Select.Folder.AccessDenied"), ModMain.HintType.Critical);
+                    HintService.Hint(Lang.Text("Select.Folder.AccessDenied"), HintType.Error);
                     return;
                 }
 
@@ -437,14 +435,14 @@ public partial class PageSelectLeft : IRefreshable
                     isAdded = true;
                     if (folder.Split(">")[0] == displayName)
                     {
-                        if (showHint) ModMain.Hint(Lang.Text("Select.Folder.AlreadyInList"));
+                        if (showHint) HintService.Hint(Lang.Text("Select.Folder.AlreadyInList"));
                         return;
                     }
 
                     folders[i] = $"{displayName}>{folderPath}";
                     isReplace = true;
                     if (showHint)
-                        ModMain.Hint(Lang.Text("Select.Folder.NameUpdated", displayName), ModMain.HintType.Finish);
+                        HintService.Hint(Lang.Text("Select.Folder.NameUpdated", displayName), HintType.Success);
                     break;
                 }
 
@@ -453,7 +451,7 @@ public partial class PageSelectLeft : IRefreshable
                 States.Game.SelectedFolder = folderPath.Replace(ModBase.exePath, "$");
                 ModFolder.mcFolderListLoader.Start(isForceRestart: true);
                 if (isReplace) return;
-                if (showHint) ModMain.Hint(Lang.Text("Select.Folder.Added", displayName), ModMain.HintType.Finish);
+                if (showHint) HintService.Hint(Lang.Text("Select.Folder.Added", displayName), HintType.Success);
                 var modFolder = new DirectoryInfo(folderPath + @"mods\");
                 if (!(modFolder.Exists && modFolder.EnumerateFiles().Count() >= 3)) return;
                 var versionFolder = new DirectoryInfo(folderPath + @"versions\");
@@ -472,7 +470,11 @@ public partial class PageSelectLeft : IRefreshable
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Select.Folder.Error.AddNew"), ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Select.Folder.Error.AddNew"),
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Select.Folder.Error.AddNew"));
             }
         }); // 加上斜杠……
     }
@@ -483,7 +485,7 @@ public partial class PageSelectLeft : IRefreshable
         // 检查是否有下载任务
         if (ModNet.HasDownloadingTask())
         {
-            ModMain.Hint(Lang.Text("Select.Folder.CannotCreateWhileDownloading"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Select.Folder.CannotCreateWhileDownloading"), HintType.Error);
             return;
         }
 
@@ -493,7 +495,7 @@ public partial class PageSelectLeft : IRefreshable
             Directory.CreateDirectory(ModBase.exePath + @".minecraft\versions\");
             States.Game.SelectedFolder = @"$.minecraft\";
             ModFolder.McFolderLauncherProfilesJsonCreate(ModBase.exePath + @".minecraft\");
-            ModMain.Hint(Lang.Text("Select.Folder.CreateSuccess"), ModMain.HintType.Finish);
+            HintService.Hint(Lang.Text("Select.Folder.CreateSuccess"), HintType.Success);
         }
 
         ModFolder.mcFolderListLoader.Start(isForceRestart: true);
@@ -553,17 +555,21 @@ public partial class PageSelectLeft : IRefreshable
 
             // 保存
             States.Game.Folders = folders.Count == 0 ? "" : folders.ToArray().Join("|");
-            ModMain.Hint(
+            HintService.Hint(
                 folder.type == ModFolder.McFolder.Types.Custom
                     ? Lang.Text("Select.Folder.RemoveSuccess", name)
                     : Lang.Text("Select.Folder.RestoreSuccess"),
-                ModMain.HintType.Finish);
+                HintType.Success);
             ModFolder.mcFolderListLoader.Start(isForceRestart: true);
         }
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Select.Folder.Error.Remove"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Select.Folder.Error.Remove"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Select.Folder.Error.Remove"));
         }
     }
 
@@ -613,15 +619,19 @@ public partial class PageSelectLeft : IRefreshable
         {
             try
             {
-                ModMain.Hint(inProgress);
+                HintService.Hint(inProgress);
                 ModBase.DeleteDirectory(folder.Location);
                 if (isClearing)
                     Directory.CreateDirectory(folder.Location);
-                ModMain.Hint(success, ModMain.HintType.Finish);
+                HintService.Hint(success, HintType.Success);
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Select.Folder.Error.Operate", deleteText, folder.Name), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Select.Folder.Error.Operate", deleteText, folder.Name),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Select.Folder.Error.Operate", deleteText, folder.Name));
             }
             finally
             {
@@ -693,14 +703,18 @@ public partial class PageSelectLeft : IRefreshable
             // 如果没有添加过，则添加进去（因为修改了默认项的名称）
             if (!isAdded)
                 folders.Add($"{newName}>{folder.Location}");
-            ModMain.Hint(Lang.Text("Select.Folder.NameUpdated", newName), ModMain.HintType.Finish);
+            HintService.Hint(Lang.Text("Select.Folder.NameUpdated", newName), HintType.Success);
             // 保存
             States.Game.Folders = folders.ToArray().Join("|");
             ModFolder.mcFolderListLoader.Start(isForceRestart: true);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Select.Folder.Error.Rename"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Select.Folder.Error.Rename"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Select.Folder.Error.Rename"));
         }
     }
 
@@ -712,7 +726,7 @@ public partial class PageSelectLeft : IRefreshable
         // 检查是否有下载任务
         if (ModNet.HasDownloadingTask(true))
         {
-            ModMain.Hint(Lang.Text("Select.Folder.SwitchBlockedByDownload"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Select.Folder.SwitchBlockedByDownload"), HintType.Error);
             e.handled = true;
             return;
         }
@@ -871,7 +885,11 @@ public partial class PageSelectLeft : IRefreshable
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Select.Folder.Error.DragDrop"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Select.Folder.Error.DragDrop"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Select.Folder.Error.DragDrop"));
         }
         finally
         {

@@ -366,7 +366,11 @@ public partial class PageSelectRight
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Select.Instance.Error.UiUpdate"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Select.Instance.Error.UiUpdate"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Select.Instance.Error.UiUpdate"));
         }
     }
 
@@ -405,7 +409,11 @@ public partial class PageSelectRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Select.Instance.Error.IconLoad"), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Select.Instance.Error.IconLoad"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Select.Instance.Error.IconLoad"));
             newItem.Logo = "pack://application:,,,/images/Blocks/RedstoneBlock.png";
         }
 
@@ -541,15 +549,15 @@ public partial class PageSelectRight
                     if (isShiftPressed)
                     {
                         ModBase.DeleteDirectory(mcInstance.PathInstance);
-                        ModMain.Hint(Lang.Text("Select.Instance.Delete.PermanentSuccess", mcInstance.Name),
-                            ModMain.HintType.Finish);
+                        HintService.Hint(Lang.Text("Select.Instance.Delete.PermanentSuccess", mcInstance.Name),
+                            HintType.Success);
                     }
                     else
                     {
                         FileSystem.DeleteDirectory(mcInstance.PathInstance, UIOption.AllDialogs,
                             RecycleOption.SendToRecycleBin);
-                        ModMain.Hint(Lang.Text("Select.Instance.Delete.RecycleBinSuccess", mcInstance.Name),
-                            ModMain.HintType.Finish);
+                        HintService.Hint(Lang.Text("Select.Instance.Delete.RecycleBinSuccess", mcInstance.Name),
+                            HintType.Success);
                     }
 
                     break;
@@ -599,7 +607,11 @@ public partial class PageSelectRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Select.Instance.Error.Delete", mcInstance.Name), ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                Lang.Text("Select.Instance.Error.Delete", mcInstance.Name),
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Select.Instance.Error.Delete", mcInstance.Name));
         }
     }
 

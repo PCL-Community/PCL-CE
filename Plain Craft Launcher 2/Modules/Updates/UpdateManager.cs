@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using PCL.Core.App;
@@ -59,7 +59,11 @@ public static class UpdateManager
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Update.Check.Failed"), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Update.Check.Failed"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Update.Check.Failed"));
             return UpdateEnums.VersionStatus.Unknown;
         }
     }
@@ -154,7 +158,7 @@ public static class UpdateManager
             {
                 ModBase.Log(ex, "[Update] 获取启动器更新失败");
                 if (type != UpdateEnums.UpdateType.Silent)
-                    ModMain.Hint(Lang.Text("Update.Error.FetchFailed"), ModMain.HintType.Critical);
+                    HintService.Hint(Lang.Text("Update.Error.FetchFailed"), HintType.Error);
             }
         });
     }

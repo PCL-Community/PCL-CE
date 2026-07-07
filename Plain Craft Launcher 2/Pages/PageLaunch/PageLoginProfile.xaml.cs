@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -43,13 +43,18 @@ public partial class PageLoginProfile
         ModProfile.GetProfile();
         try
         {
-            foreach (var Profile in ModProfile.profileList)
-                ProfileCollection.Add(new ProfileItem(Profile));
+            foreach (var p in ModProfile.profileList)
+                ProfileCollection.Add(new ProfileItem(p));
+            HintMicrosoft.Visibility = ModProfile.profileList.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             ModBase.Log("[Profile] 档案列表刷新完成");
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.Read"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Launch.Account.Profile.Error.Read"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Launch.Account.Profile.Error.Read"));
         }
 
         if (!ModProfile.profileList.Any())
@@ -188,12 +193,7 @@ public partial class PageLoginProfile
         ModBase.RunInUi(() => RefreshProfileList());
     }
 
-    // 导入 / 导出档案
-    private void BtnPort_Click(object sender, EventArgs e)
-    {
-        ModProfile.MigrateProfile();
-        ModBase.RunInUi(() => RefreshProfileList());
-    }
+    
 
     #endregion
 }

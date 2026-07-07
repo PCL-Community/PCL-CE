@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -233,7 +233,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "加载数据包列表 UI 失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "加载数据包列表 UI 失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
         }
     }
 
@@ -551,7 +555,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "打开 datapacks 文件夹失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                "打开 datapacks 文件夹失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
         }
     }
 
@@ -568,8 +576,10 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     /// </summary>
     private void BtnManageInstall_Click(object sender, MouseButtonEventArgs e)
     {
-        var fileList = SystemDialogs.SelectFiles("数据包文件(*.zip)|*.zip", "选择要安装的数据包");
-        if (fileList is null || !fileList.Any())
+        var fileList = SystemDialogs.SelectFiles(
+            Lang.Text("Instance.Saves.Datapack.Install.FileDialog.Filter"),
+            Lang.Text("Instance.Saves.Datapack.Install.FileDialog.Title"));
+        if (fileList is null || fileList.Length == 0)
             return;
         InstallDatapackFiles(fileList);
         Refresh();
@@ -588,14 +598,14 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         // 检查文件扩展名
         if (extension != "zip")
         {
-            ModMain.Hint(Lang.Text("Instance.Resource.Install.UnsupportedFormat", extension, Lang.Text("Download.Comp.Type.DataPack"), "zip"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Resource.Install.UnsupportedFormat", extension, Lang.Text("Download.Comp.Type.DataPack"), "zip"), HintType.Error);
             return;
         }
 
         // 检查回收站
         if (filePathList.First().Contains(@":\$RECYCLE.BIN\"))
         {
-            ModMain.Hint(Lang.Text("Instance.Resource.Install.RestoreFromRecycleBin"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Resource.Install.RestoreFromRecycleBin"), HintType.Error);
             return;
         }
 
@@ -628,9 +638,9 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             }
 
             if (filePathList.Count() == 1)
-                ModMain.Hint(Lang.Text("Instance.Resource.Install.SuccessSingle", ModBase.GetFileNameFromPath(filePathList.First())), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Resource.Install.SuccessSingle", ModBase.GetFileNameFromPath(filePathList.First())), HintType.Success);
             else
-                ModMain.Hint(Lang.Text("Instance.Resource.Install.SuccessMultiple", filePathList.Count(), Lang.Text("Download.Comp.Type.DataPack")), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Resource.Install.SuccessMultiple", filePathList.Count(), Lang.Text("Download.Comp.Type.DataPack")), HintType.Success);
 
             // 刷新列表
             if (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
@@ -641,7 +651,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "复制数据包文件失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                "复制数据包文件失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
         }
     }
 
@@ -650,6 +664,9 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     /// </summary>
     private void BtnManageDownload_Click(object sender, MouseButtonEventArgs e)
     {
+        var datapackPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
+        Directory.CreateDirectory(datapackPath);
+        PageDownloadCompDetail.cachedFolder[ModComp.CompType.DataPack] = datapackPath;
         ModMain.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadDataPack);
         PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
     }
@@ -676,7 +693,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "导出数据包信息失败", ModBase.LogLevel.Msgbox);
+                ModBase.Log(
+                    ex,
+                    "导出数据包信息失败",
+                    ModBase.LogLevel.Msgbox,
+                    userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
             }
         }
 
@@ -967,7 +988,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
             catch (Exception ex)
             {
-                ModBase.Log(ex, "执行排序时出错", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "执行排序时出错",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
             }
         }
     }
@@ -1077,7 +1102,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             }
             catch (FileNotFoundException ex)
             {
-                ModBase.Log(ex, $"未找到需要重命名的数据包（{datapackEntity.path ?? "null"}）", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    $"未找到需要重命名的数据包（{datapackEntity.path ?? "null"}）",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
                 ReloadDatapackFileList(true);
                 return;
             }
@@ -1118,7 +1147,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"更新 UI 列表项失败：{datapackEntity.FileName}", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    $"更新 UI 列表项失败：{datapackEntity.FileName}",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
             }
         }
 
@@ -1130,7 +1163,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
         else
         {
-            ModMain.Hint(Lang.Text("Instance.Saves.Datapack.ToggleWarning"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Instance.Saves.Datapack.ToggleWarning"), HintType.Error);
             ReloadDatapackFileList(true);
         }
 
@@ -1226,56 +1259,62 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             }
 
             if (skippedUnsafeFileCount > 0)
-                ModMain.Hint($"已跳过 {skippedUnsafeFileCount} 个文件名不安全的数据包更新。", ModMain.HintType.Critical);
+                HintService.Hint(
+                    Lang.Text("Instance.Saves.Datapack.Update.UnsafeFilesSkipped", skippedUnsafeFileCount),
+                    HintType.Error);
             if (!fileList.Any())
                 return;
 
             // 构造加载器
             var installLoaders = new List<ModLoader.LoaderBase>();
             var finishedFileNames = new List<string>();
-            installLoaders.Add(new LoaderDownload("下载新版数据包文件", fileList)
-                { ProgressWeight = updateEntryList.Count * 1.5d });
+            installLoaders.Add(
+                new LoaderDownload(Lang.Text("Instance.Saves.Datapack.Update.Task.DownloadFiles"), fileList)
+                    { ProgressWeight = updateEntryList.Count * 1.5d });
 
-            installLoaders.Add(new ModLoader.LoaderTask<int, int>("替换旧版数据包文件", _ =>
-            {
-                try
+            installLoaders.Add(new ModLoader.LoaderTask<int, int>(
+                Lang.Text("Instance.Saves.Datapack.Update.Task.ReplaceFiles"), _ =>
                 {
-                    foreach (var Entry in updateEntryList)
-                        if (File.Exists(Entry.path))
-                            Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.path, UIOption.AllDialogs,
-                                RecycleOption.SendToRecycleBin);
-                        else
-                            ModBase.Log($"[DatapackUpdate] 未找到更新前的数据包文件，跳过对它的删除：{Entry.path}", ModBase.LogLevel.Debug);
-
-                    foreach (var Entry in fileCopyList)
+                    try
                     {
-                        if (File.Exists(Entry.Value))
-                        {
-                            Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.Value, UIOption.AllDialogs,
-                                RecycleOption.SendToRecycleBin);
-                            ModBase.Log($"[Datapack] 更新后的数据包文件已存在，将会把它放入回收站：{Entry.Value}", ModBase.LogLevel.Debug);
-                        }
+                        foreach (var Entry in updateEntryList)
+                            if (File.Exists(Entry.path))
+                                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.path, UIOption.AllDialogs,
+                                    RecycleOption.SendToRecycleBin);
+                            else
+                                ModBase.Log($"[DatapackUpdate] 未找到更新前的数据包文件，跳过对它的删除：{Entry.path}",
+                                    ModBase.LogLevel.Debug);
 
-                        if (Directory.Exists(ModBase.GetPathFromFullPath(Entry.Value)))
+                        foreach (var Entry in fileCopyList)
                         {
-                            File.Move(Entry.Key, Entry.Value);
-                            finishedFileNames.Add(ModBase.GetFileNameFromPath(Entry.Value));
-                        }
-                        else
-                        {
-                            ModBase.Log($"[Datapack] 更新后的目标文件夹已被删除：{Entry.Value}", ModBase.LogLevel.Debug);
+                            if (File.Exists(Entry.Value))
+                            {
+                                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.Value, UIOption.AllDialogs,
+                                    RecycleOption.SendToRecycleBin);
+                                ModBase.Log($"[Datapack] 更新后的数据包文件已存在，将会把它放入回收站：{Entry.Value}", ModBase.LogLevel.Debug);
+                            }
+
+                            if (Directory.Exists(ModBase.GetPathFromFullPath(Entry.Value)))
+                            {
+                                File.Move(Entry.Key, Entry.Value);
+                                finishedFileNames.Add(ModBase.GetFileNameFromPath(Entry.Value));
+                            }
+                            else
+                            {
+                                ModBase.Log($"[Datapack] 更新后的目标文件夹已被删除：{Entry.Value}", ModBase.LogLevel.Debug);
+                            }
                         }
                     }
-                }
-                catch (OperationCanceledException ex)
-                {
-                    ModBase.Log(ex, "替换旧版数据包文件时被主动取消");
-                }
-            }));
+                    catch (OperationCanceledException ex)
+                    {
+                        ModBase.Log(ex, "替换旧版数据包文件时被主动取消");
+                    }
+                }));
 
             // 结束处理
             var loader = new ModLoader.LoaderCombo<IEnumerable<ModLocalComp.LocalCompFile>>(
-                $"数据包更新：{ModBase.GetFolderNameFromPath(PageInstanceSavesLeft.currentSave)}", installLoaders);
+                Lang.Text("Instance.Saves.Datapack.Update.Task.Title",
+                    ModBase.GetFolderNameFromPath(PageInstanceSavesLeft.currentSave)), installLoaders);
             var pathDatapacks = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
 
             loader.OnStateChanged = _ =>
@@ -1293,13 +1332,13 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                             }
                             case 1:
                             {
-                                ModMain.Hint(Lang.Text("Instance.Resource.Update.SuccessSingle", finishedFileNames.Single()), ModMain.HintType.Finish);
+                                HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessSingle", finishedFileNames.Single()), HintType.Success);
                                 break;
                             }
 
                             default:
                             {
-                                ModMain.Hint(Lang.Text("Instance.Resource.Update.SuccessMultiple", finishedFileNames.Count), ModMain.HintType.Finish);
+                                HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessMultiple", finishedFileNames.Count), HintType.Success);
                                 break;
                             }
                         }
@@ -1308,12 +1347,12 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                     }
                     case ModBase.LoadState.Failed:
                     {
-                        ModMain.Hint(Lang.Text("Instance.Resource.Update.Failed", loader.Error.Message), ModMain.HintType.Critical);
+                        HintService.Hint(Lang.Text("Instance.Resource.Update.Failed", loader.Error.Message), HintType.Error);
                         break;
                     }
                     case ModBase.LoadState.Aborted:
                     {
-                        ModMain.Hint(Lang.Text("Instance.Resource.Update.Aborted"));
+                        HintService.Hint(Lang.Text("Instance.Resource.Update.Aborted"));
                         break;
                     }
 
@@ -1399,7 +1438,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, $"删除数据包失败（{DatapackEntity.path}）", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        $"删除数据包失败（{DatapackEntity.path}）",
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
                     isSuccessful = false;
                 }
 
@@ -1418,7 +1461,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             RefreshBars();
             if (!isSuccessful)
             {
-                ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.FileOccupied"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.FileOccupied"), HintType.Error);
                 ReloadDatapackFileList(true);
             }
             else if (PanList.Children.Count == 0)
@@ -1435,17 +1478,17 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             if (isShiftPressed)
             {
                 if (datapackList.Count() == 1)
-                    ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentSingle", datapackList.Single().FileName), ModMain.HintType.Finish);
+                    HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentSingle", datapackList.Single().FileName), HintType.Success);
                 else
-                    ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentMultiple", datapackList.Count()), ModMain.HintType.Finish);
+                    HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentMultiple", datapackList.Count()), HintType.Success);
             }
             else if (datapackList.Count() == 1)
             {
-                ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleSingle", datapackList.Single().FileName), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleSingle", datapackList.Single().FileName), HintType.Success);
             }
             else
             {
-                ModMain.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleMultiple", datapackList.Count()), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleMultiple", datapackList.Count()), HintType.Success);
             }
         }
         catch (OperationCanceledException ex)
@@ -1455,7 +1498,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "删除数据包出现未知错误", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "删除数据包出现未知错误",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
             ReloadDatapackFileList(true);
         }
 
@@ -1500,8 +1547,10 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             if (datapackEntry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable)
             {
                 ModMain.MyMsgBox(
-                    Lang.Text("Instance.Saves.Datapack.Info.ReadFailed") + "\r\n" + "\r\n" + Lang.Text("Instance.Resource.Item.Info.DetailedError") +
-                    datapackEntry.FileUnavailableReason.Message, Lang.Text("Instance.Saves.Datapack.Info.ReadFailedTitle"));
+                    Lang.Text(
+                        "Instance.Saves.Datapack.Info.ReadFailed.WithDetail",
+                        datapackEntry.FileUnavailableReason.ToString()),
+                    Lang.Text("Instance.Saves.Datapack.Info.ReadFailedTitle"));
                 return;
             }
 
@@ -1546,7 +1595,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取数据包详情失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "获取数据包详情失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
         }
     }
 
@@ -1560,7 +1613,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "打开数据包文件位置失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "打开数据包文件位置失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
         }
     }
 
@@ -1625,7 +1682,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 }
 
                 // 进行搜索
-                searchResult = ModBase.Search(queryList, SearchBox.Text, 6, 0.35d).Select(r => r.item).ToList();
+                searchResult = ModBase.Search(queryList, SearchBox.Text, ModBase.MaxLocalSearchDepth, 0.35d).Select(r => r.item).ToList();
             }
 
             RefreshUI();

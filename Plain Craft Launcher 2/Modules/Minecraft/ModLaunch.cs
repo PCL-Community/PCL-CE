@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
@@ -162,7 +162,7 @@ public static class ModLaunch
                 {
                     case 2:
                     {
-                        ModMain.Hint(Lang.Text("Minecraft.Launch.DemoMode"), ModMain.HintType.Critical);
+                        HintService.Hint(Lang.Text("Minecraft.Launch.DemoMode"), HintType.Error);
                         currentLaunchOptions.ExtraArgs.Add("--demo");
                         break;
                     }
@@ -235,7 +235,7 @@ public static class ModLaunch
             throw new Exception("McLaunchStart 必须在 UI 线程调用！");
         if (mcLaunchLoader.State == ModBase.LoadState.Loading)
         {
-            ModMain.Hint(Lang.Text("Minecraft.Launch.Error.AlreadyLaunching"), ModMain.HintType.Critical);
+            HintService.Hint(Lang.Text("Minecraft.Launch.Error.AlreadyLaunching"), HintType.Error);
             isLaunching = false;
             return false;
         }
@@ -249,7 +249,7 @@ public static class ModLaunch
             currentLaunchOptions.instance.Load();
             if (currentLaunchOptions.instance.state == McInstanceState.Error)
             {
-                ModMain.Hint(Lang.Text("Minecraft.Launch.Error.CannotLaunch", currentLaunchOptions.instance.Desc), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Launch.Error.CannotLaunch", currentLaunchOptions.instance.Desc), HintType.Error);
                 isLaunching = false;
                 return false;
             }
@@ -329,7 +329,7 @@ public static class ModLaunch
         catch (Exception ex)
         {
             if (!ex.Message.StartsWithF("$$"))
-                ModMain.Hint(ex.Message, ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Launch.Precheck.Failed.WithDetail", ex.Message), HintType.Error);
             throw;
         }
 
@@ -377,15 +377,15 @@ public static class ModLaunch
             {
                 case ModBase.LoadState.Finished:
                 {
-                    ModMain.Hint(Lang.Text("Minecraft.Launch.Success", ModInstanceList.McMcInstanceSelected.Name), ModMain.HintType.Finish);
+                    HintService.Hint(Lang.Text("Minecraft.Launch.Success", ModInstanceList.McMcInstanceSelected.Name), HintType.Success);
                     break;
                 }
                 case ModBase.LoadState.Aborted:
                 {
                     if (abortHint is null)
-                        ModMain.Hint(currentLaunchOptions?.SaveBatch is null ? Lang.Text("Minecraft.Launch.Cancelled") : Lang.Text("Minecraft.Launch.ExportScript.Cancelled"));
+                        HintService.Hint(currentLaunchOptions?.SaveBatch is null ? Lang.Text("Minecraft.Launch.Cancelled") : Lang.Text("Minecraft.Launch.ExportScript.Cancelled"));
                     else
-                        ModMain.Hint(abortHint, ModMain.HintType.Finish);
+                        HintService.Hint(abortHint, HintType.Success);
 
                     break;
                 }
@@ -412,8 +412,12 @@ public static class ModLaunch
                     // 若有以 $ 开头的错误信息，则以此为准显示提示
                     // 若错误信息为 $$，则不提示
                     if (currentEx.Message != "$$")
-                        ModMain.MyMsgBox(currentEx.Message.TrimStart('$'),
-                            currentLaunchOptions?.SaveBatch is null ? Lang.Text("Launch.Error.Title") : Lang.Text("Launch.Error.ExportScriptTitle"));
+                        ModMain.MyMsgBox(
+                            Lang.Text("Minecraft.Launch.Error.SpecialMessage.WithDetail",
+                                currentEx.Message.TrimStart('$')),
+                            currentLaunchOptions?.SaveBatch is null
+                                ? Lang.Text("Launch.Error.Title")
+                                : Lang.Text("Launch.Error.ExportScriptTitle"));
                     throw;
                 }
 
@@ -426,8 +430,18 @@ public static class ModLaunch
 
             // 没有特殊处理过的错误信息
             McLaunchLog("错误：" + ex);
-            ModBase.Log(ex, currentLaunchOptions?.SaveBatch is null ? "Minecraft launch failed" : "Export script failed",
-                ModBase.LogLevel.Msgbox, currentLaunchOptions?.SaveBatch is null ? Lang.Text("Launch.Error.Title") : Lang.Text("Launch.Error.ExportScriptTitle"));
+            ModBase.Log(
+                ex,
+                currentLaunchOptions?.SaveBatch is null
+                    ? "Minecraft launch failed"
+                    : "Export script failed",
+                ModBase.LogLevel.Msgbox,
+                currentLaunchOptions?.SaveBatch is null
+                    ? Lang.Text("Launch.Error.Title")
+                    : Lang.Text("Launch.Error.ExportScriptTitle"),
+                userSummary: currentLaunchOptions?.SaveBatch is null
+                    ? Lang.Text("Minecraft.Launch.Error.LaunchFailed")
+                    : Lang.Text("Minecraft.Launch.Error.ExportScriptFailed"));
             throw;
         }
     }
@@ -604,7 +618,11 @@ public static class ModLaunch
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Minecraft.Launch.Login.Error.Input"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Minecraft.Launch.Login.Error.Input"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Launch.Login.Error.Input"));
         }
 
         return loginData;
@@ -764,7 +782,7 @@ public static class ModLaunch
                     ModProfile.profileList[index].Username = result[1];
                     ModProfile.profileList[index].AccessToken = accessToken;
                     ModProfile.profileList[index].RefreshToken = oauthRefreshToken;
-                    ModMain.Hint(Lang.Text("Minecraft.Launch.Login.Microsoft.ProfileAlreadyAdded"));
+                    HintService.Hint(Lang.Text("Minecraft.Launch.Login.Microsoft.ProfileAlreadyAdded"));
                     goto SkipLogin;
                 }
             }
@@ -1380,11 +1398,14 @@ public static class ModLaunch
             }
             catch (WebException ex)
             {
-                HandleHttpWebException(ex, "验证登录失败");
+                _HandleHttpWebException(ex, "验证登录失败");
+            }
+            catch (HttpResponseException ex){
+                ModProfile.ProfileLog($"验证登录失败: {ex}");
             }
             catch (Exception ex)
             {
-                HandleException(ex, "验证登录失败");
+                _HandleException(ex, "验证登录失败", "Minecraft.Launch.Login.Auth.ValidationFailed.WithDetail");
             }
 
             data.Progress = 0.25d;
@@ -1401,7 +1422,10 @@ public static class ModLaunch
             catch (Exception ex)
             {
                 ModProfile.ProfileLog(Lang.Text("Minecraft.Launch.Login.Auth.RefreshFailed") + ": " + ex);
-                ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Auth.RefreshFailed") + ": " + ex, Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"), isWarn: true);
+                ModMain.MyMsgBox(
+                    Lang.Text("Minecraft.Launch.Login.Auth.RefreshFailed.WithDetail", ex.ToString()),
+                    Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"),
+                    isWarn: true);
                 if (wasRefreshed)
                     throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.SecondRefreshFailed"), ex);
             }
@@ -1415,11 +1439,11 @@ public static class ModLaunch
         }
         catch (WebException ex)
         {
-            HandleLoginHttpException(ex);
+            _HandleLoginHttpException(ex);
         }
         catch (Exception ex)
         {
-            HandleException(ex, "第三方登录失败");
+            _HandleException(ex, "第三方登录失败", "Minecraft.Launch.Login.Auth.LoginFailed.WithDetail");
         }
 
         // 如果需要刷新，循环刷新一次
@@ -1439,12 +1463,19 @@ public static class ModLaunch
             catch (Exception ex)
             {
                 ModProfile.ProfileLog(Lang.Text("Minecraft.Launch.Login.Auth.RefreshFailed") + ": " + ex);
-                ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Auth.RefreshFailed") + ": " + ex, Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"), isWarn: true);
+                ModMain.MyMsgBox(
+                    Lang.Text("Minecraft.Launch.Login.Auth.RefreshFailed.WithDetail", ex.ToString()),
+                    Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"),
+                    isWarn: true);
                 throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.SecondRefreshFailed"), ex);
             }
         }
 
         // 最终完成
+        // 兜底校验：若走到这里仍未取得有效 AccessToken（例如回退登录的 HTTP 失败被 McLoginRequestLogin
+        // 吞掉并返回 false），说明登录实际失败，必须中止，避免带着空凭据继续启动（见 #3307 review）。
+        if (string.IsNullOrEmpty(data.output.AccessToken))
+            throw new Exception(Lang.Text("Minecraft.Launch.Login.Failed"));
         data.Progress = 0.95d;
     }
 
@@ -1460,57 +1491,52 @@ public static class ModLaunch
     /// <summary>
     ///     统一处理 HttpWebException
     /// </summary>
-    private static void HandleHttpWebException(WebException ex, string logPrefix)
+    private static void _HandleHttpWebException(WebException ex, string logPrefix)
     {
         var allMessage = ex.ToString();
         ModProfile.ProfileLog(logPrefix + "：" + allMessage);
 
-        if ((allMessage.Contains("超时") || allMessage.Contains("imeout")) && !allMessage.Contains("403"))
-        {
-            ModProfile.ProfileLog("已触发超时登录失败");
-            ModMain.MyMsgBox(
-                Lang.Text("Minecraft.Launch.Login.Auth.Timeout.DetailMessage") + "\r\n" + "\r\n" +
-                ex.Message,
-                Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"), isWarn: true);
+        if ((!allMessage.Contains("超时") && !allMessage.Contains("imeout"))
+            || allMessage.Contains("403"))
+            return;
+        ModProfile.ProfileLog("已触发超时登录失败");
+        var message = Lang.Text("Minecraft.Launch.Login.Auth.Timeout.WithDetail", ex.ToString());
+        ModMain.MyMsgBox(
+            message,
+            Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"),
+            isWarn: true);
 
-            throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.Timeout.Message") + "\r\n" +
-                                "\r\n" + "详细信息：" + ex.InnerException);
-        }
+        throw new Exception("$" + message);
     }
 
     /// <summary>
     ///     统一处理普通异常
     /// </summary>
-    private static void HandleException(Exception ex, string logPrefix)
+    private static void _HandleException(
+        Exception ex,
+        string logPrefix,
+        string userMessageKey)
     {
         ModProfile.ProfileLog(logPrefix + "：" + ex);
-        ModMain.MyMsgBox(logPrefix + ": " + ex, Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"), isWarn: true);
-        throw new Exception("$" + logPrefix + "\r\n" + "\r\n" + "详细信息：" + ex);
+        var message = Lang.Text(userMessageKey, ex.ToString());
+        ModMain.MyMsgBox(
+            message,
+            Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"),
+            isWarn: true);
+        throw new Exception("$" + message);
     }
 
     /// <summary>
     ///     处理普通登录 HttpWebException
     /// </summary>
-    private static void HandleLoginHttpException(WebException ex)
+    private static void _HandleLoginHttpException(WebException ex)
     {
         ModProfile.ProfileLog("验证失败：" + ex);
-        string message = null;
-        var responseText = ex.InnerException;
-
-        try
-        {
-            message = Lang.Text("Minecraft.Launch.Login.Auth.DetailPrefix");
-        }
-        catch
-        {
-            // 忽略解析错误
-        }
-
-        if (message is null)
-            message = Lang.Text("Minecraft.Launch.Login.Auth.NetworkFailed.Message") + "\r\n" + "\r\n" +
-                       "详细信息：" + responseText;
-
-        ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Auth.RefreshFailed") + ": " + ex, Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"), isWarn: true);
+        var message = Lang.Text("Minecraft.Launch.Login.Auth.NetworkFailed.WithDetail", ex.ToString());
+        ModMain.MyMsgBox(
+            message,
+            Lang.Text("Minecraft.Launch.Login.Auth.FailedTitle"),
+            isWarn: true);
         throw new Exception("$" + message);
     }
 
@@ -1594,9 +1620,13 @@ public static class ModLaunch
         }
         catch (HttpResponseException ex)
         {
-            if (_TryGetLastError(ex, out var message)) ModMain.MyMsgBox(message, Lang.Text("Minecraft.Launch.Login.Failed"));
+            // 刷新失败必须向上抛出：否则 McLoginServerStart 会把本次登录判为“刷新成功”、带着空令牌继续
+            // 启动，并丧失“回退到普通登录”的自动恢复机会。保留服务端错误详情作为消息，并把原始
+            // HttpResponseException（含状态码/堆栈）作为 InnerException 以便诊断；同时显式 Dispose 及时
+            // 释放底层 Response，不依赖终结器兜底（其回收时机不确定，可能令底层资源驻留）。
+            var message = _TryGetLastError(ex, out var detail) ? detail : ex.Message;
             ex.Dispose();
-            return;
+            throw new Exception(message, ex);
         }
     }
 
@@ -1626,12 +1656,12 @@ public static class ModLaunch
             if (loginJson["availableProfiles"].AsArray().Count == 0)
             {
                 if (data.input.ForceReselectProfile)
-                    ModMain.Hint(Lang.Text("Minecraft.Launch.Login.Auth.NoProfileCannotSwitch"), ModMain.HintType.Critical);
+                    HintService.Hint(Lang.Text("Minecraft.Launch.Login.Auth.NoProfileCannotSwitch"), HintType.Error);
                 throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.NoProfile"));
             }
 
             if (data.input.ForceReselectProfile && loginJson["availableProfiles"].AsArray().Count == 1)
-                ModMain.Hint(Lang.Text("Minecraft.Launch.Login.Auth.OnlyOneProfile"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Launch.Login.Auth.OnlyOneProfile"), HintType.Error);
             string selectedName = null;
             string selectedId = null;
             if ((loginJson["selectedProfile"] is null || data.input.ForceReselectProfile) &&
@@ -2066,7 +2096,7 @@ public static class ModLaunch
             }
             else
             {
-                ModMain.Hint(Lang.Text("Minecraft.Launch.Error.NoJava"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Minecraft.Launch.Error.NoJava"), HintType.Error);
                 throw new Exception("$$");
             }
         }
@@ -2102,8 +2132,13 @@ public static class ModLaunch
         double availableGb = KernelInterop.GetAvailablePhysicalMemoryBytes() / 1073741824.0;
         ModLaunch.McLaunchLog($"当前剩余内存：{availableGb.ToString("N1", CultureInfo.InvariantCulture)}G");
         double totalRamMb = PageInstanceSetup.GetRam(ModInstanceList.McMcInstanceSelected) * 1024d;
+        var maxHeapArg = Math.Floor(totalRamMb).ToString(CultureInfo.InvariantCulture);
         dataList.Add("-Xmn" + Math.Floor(totalRamMb * 0.15).ToString(CultureInfo.InvariantCulture) + "m");
-        dataList.Add("-Xmx" + Math.Floor(totalRamMb).ToString(CultureInfo.InvariantCulture) + "m");
+        dataList.Add("-Xmx" + maxHeapArg + "m");
+        // #3282: 固定堆大小时追加 -Xms 使其等于 -Xmx（复用同一数值以保持一致），隐式禁用内存归还降低延迟抖动、利于 ZGC。
+        // 若 dataList 中已存在 -Xms（例如用户自定义参数已设）则跳过，避免重复/冲突。
+        if (Config.Launch.LockMemory && !dataList.Any(d => d.Contains("-Xms", StringComparison.OrdinalIgnoreCase)))
+            dataList.Add("-Xms" + maxHeapArg + "m");
         if (!dataList.Any(d => d.Contains("-Dlog4j2.formatMsgNoLookups=true")))
             dataList.Add("-Dlog4j2.formatMsgNoLookups=true");
     }
@@ -2239,15 +2274,20 @@ public static class ModLaunch
     }
 
     /// <summary>
-    ///     判断是否使用 RetroWrapper。
-    ///     TODO: 在更换为 Drop 比较版本号后可能不准确，需要测试确认。
+    /// 判断是否使用 LegacyFix。
     /// </summary>
-    private static bool McLaunchNeedsRetroWrapper(McInstance mc)
+    private static bool McLaunchNeedsLegacyFix(McInstance mc)
     {
-        return (mc.releaseTime >= new DateTime(2013, 6, 25) && mc.Info.Drop == 99) ||
-               (mc.Info.Drop < 60 && mc.Info.Drop != 99 &&
-                !Config.Launch.DisableRw &&
-                !Config.Instance.DisableRw[mc.PathInstance]); // <1.6
+        if (Config.Launch.DisableLF || Config.Instance.DisableLF[mc.PathInstance])
+        {
+            ModBase.Log("[Launch] LegacyFix 已被禁用");
+            return false;
+        }
+        if (mc.releaseTime < new DateTime(2013, 6, 25) && mc.releaseTime.Year > 2000)
+        {
+            return true;
+        }
+        return false;
     }
 
     /// <summary>
@@ -2396,7 +2436,7 @@ public static class ModLaunch
                     // 不包含端口号
                     finalArguments += " --server " + server + " --port 25565";
                 if (ModInstanceList.McMcInstanceSelected.Info.HasOptiFine)
-                    ModMain.Hint(Lang.Text("Minecraft.Launch.Error.OptiFineAutoJoinWarning"), ModMain.HintType.Critical);
+                    HintService.Hint(Lang.Text("Minecraft.Launch.Error.OptiFineAutoJoinWarning"), HintType.Error);
             }
         }
 
@@ -2424,9 +2464,13 @@ public static class ModLaunch
         dataList.Add("-Xmn" +
                      Math.Floor(PageInstanceSetup.GetRam(ModInstanceList.McMcInstanceSelected,
                          !mcLaunchJavaSelected.Installation.Is64Bit) * 1024d * 0.15d) + "m");
-        dataList.Add("-Xmx" +
-                     Math.Floor(PageInstanceSetup.GetRam(ModInstanceList.McMcInstanceSelected,
-                         !mcLaunchJavaSelected.Installation.Is64Bit) * 1024d) + "m");
+        var maxHeapArg = Math.Floor(PageInstanceSetup.GetRam(ModInstanceList.McMcInstanceSelected,
+            !mcLaunchJavaSelected.Installation.Is64Bit) * 1024d);
+        dataList.Add("-Xmx" + maxHeapArg + "m");
+        // #3282: 固定堆大小时追加 -Xms 使其等于 -Xmx（复用同一数值以保持一致），隐式禁用内存归还降低延迟抖动、利于 ZGC。
+        // 若 dataList 中已存在 -Xms（例如用户自定义参数已设）则跳过，避免重复/冲突。
+        if (Config.Launch.LockMemory && !dataList.Any(d => d.Contains("-Xms", StringComparison.OrdinalIgnoreCase)))
+            dataList.Add("-Xms" + maxHeapArg + "m");
         dataList.Add("\"-Djava.library.path=" + GetNativesFolder() + "\"");
         dataList.Add("-cp ${classpath}"); // 把支持库添加进启动参数表
 
@@ -2492,8 +2536,25 @@ public static class ModLaunch
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.Proxy"), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Minecraft.Launch.Error.Proxy"),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Minecraft.Launch.Error.Proxy"));
             }
+
+        // 添加 LegacyFix 相关参数
+        if (McLaunchNeedsLegacyFix(instance))
+        {
+            var legacyFixPath = Path.Combine(ModBase.pathPure, "legacyfix.jar");
+            dataList.Add("-javaagent:\"" + legacyFixPath + "\"");
+
+            // Beta 1.6 以前版本需要添加的参数
+            if (instance.releaseTime < new DateTime(2011, 5, 25))
+            {
+                dataList.Add("-Djava.util.Arrays.useLegacyMergeSort=true");
+            }
+        }
 
         // 添加 Java Wrapper 作为主 Jar
         if (ModBase.IsUtf8CodePage() && !Config.Launch.DisableJlw &&
@@ -2613,13 +2674,13 @@ public static class ModLaunch
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.Proxy"), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Minecraft.Launch.Error.Proxy"),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Minecraft.Launch.Error.Proxy"));
             }
 
-        // 添加 RetroWrapper 相关参数
-        if (McLaunchNeedsRetroWrapper(instance))
-            // https://github.com/NeRdTheNed/RetroWrapper/wiki/RetroWrapper-flags
-            dataList.Add("-Dretrowrapper.doUpdateCheck=false");
         // 添加 Java Wrapper 作为主 Jar
         if (ModBase.IsUtf8CodePage() && !Config.Launch.DisableJlw &&
             !Config.Instance.DisableJlw[ModInstanceList.McMcInstanceSelected?.PathInstance])
@@ -2667,9 +2728,6 @@ public static class ModLaunch
     private static string McLaunchArgumentsGameOld(McInstance version)
     {
         var dataList = new List<string>();
-
-        // 添加 RetroWrapper 相关参数
-        if (McLaunchNeedsRetroWrapper(version)) dataList.Add("--tweakClass com.zero.retrowrapper.RetroTweaker");
 
         // 本地化 Minecraft 启动信息
         var basicString = version.JsonObject["minecraftArguments"].ToString();
@@ -2887,18 +2945,17 @@ public static class ModLaunch
         var cpStrings = new List<string>();
         string optiFineCp = null;
 
-        // RetroWrapper 释放
-        if (McLaunchNeedsRetroWrapper(instance))
+        // LegacyFix 释放
+        if (McLaunchNeedsLegacyFix(instance))
         {
-            var wrapperPath = ModFolder.mcFolderSelected + @"libraries\retrowrapper\RetroWrapper.jar";
+            var legacyFixPath = Path.Combine(ModBase.pathPure, "legacyfix.jar");
             try
             {
-                ModBase.WriteFile(wrapperPath, ModBase.GetResourceStream("Resources/retro-wrapper.jar"));
-                cpStrings.Add(wrapperPath);
+                ModBase.WriteFile(legacyFixPath, ModBase.GetResourceStream("Resources/legacyfix.jar"));
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "RetroWrapper 释放失败");
+                ModBase.Log(ex, "LegacyFix 释放失败");
             }
         }
 
@@ -3082,7 +3139,11 @@ public static class ModLaunch
                 }
                 catch (Exception exx)
                 {
-                    ModBase.Log(exx, Lang.Text("Minecraft.Launch.Error.GpuSet"), ModBase.LogLevel.Hint);
+                    ModBase.Log(
+                        exx,
+                        Lang.Text("Minecraft.Launch.Error.GpuSet"),
+                        ModBase.LogLevel.Hint,
+                        userSummary: Lang.Text("Minecraft.Launch.Error.GpuSet"));
                 }
             }
         }
@@ -3163,7 +3224,11 @@ public static class ModLaunch
                 }
                 catch (Exception exx)
                 {
-                    ModBase.Log(exx, "更新 launcher_profiles.json 失败", ModBase.LogLevel.Feedback);
+                    ModBase.Log(
+                        exx,
+                        "更新 launcher_profiles.json 失败",
+                        ModBase.LogLevel.Feedback,
+                        userSummary: Lang.Text("Minecraft.Launch.Error.UpdateProfilesFailed"));
                 }
             }
         } while (false);
@@ -3221,7 +3286,11 @@ public static class ModLaunch
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "更新 options.txt 失败", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "更新 options.txt 失败",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Minecraft.Launch.Error.UpdateOptionsFailed"));
             }
         }
 
@@ -3355,7 +3424,11 @@ public static class ModLaunch
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.CustomCommand"), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Minecraft.Launch.Error.CustomCommand"),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Minecraft.Launch.Error.CustomCommand"));
             }
             finally
             {
@@ -3385,7 +3458,11 @@ public static class ModLaunch
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.CustomCommand"), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Minecraft.Launch.Error.CustomCommand"),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Minecraft.Launch.Error.CustomCommand"));
             }
             finally
             {
@@ -3466,7 +3543,11 @@ public static class ModLaunch
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Minecraft.Launch.Error.PrioritySet"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Minecraft.Launch.Error.PrioritySet"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Launch.Error.PrioritySet"));
         }
     }
 

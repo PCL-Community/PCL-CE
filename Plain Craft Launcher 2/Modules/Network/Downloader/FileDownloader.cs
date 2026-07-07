@@ -1,40 +1,39 @@
 using System.IO;
 using System.Net.Http;
-using System.Threading;
 using Downloader;
 using PCL.Core.IO.Net;
-using PCL.Core.Utils;
+
 
 namespace PCL.Network;
 
 public static class FileDownloader
 {
-    public static Task Download(string url, string localPath, bool useBrowserUserAgent = false,
+    public static async Task DownloadAsync(string url, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "", CancellationToken cancellationToken = default,
         bool enableParallelChunks = true, DownloadFile? trackedFile = null)
     {
-        return DownloadCoreAsync(new[] { url }, localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
-            enableParallelChunks, trackedFile);
+        await DownloadCoreAsync([url], localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
+            enableParallelChunks, trackedFile).ConfigureAwait(false);
     }
 
-    public static Task Download(IEnumerable<string> urls, string localPath, bool useBrowserUserAgent = false,
+    public static async Task DownloadAsync(IEnumerable<string> urls, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "", CancellationToken cancellationToken = default,
         bool enableParallelChunks = true, DownloadFile? trackedFile = null)
     {
-        return DownloadCoreAsync(urls, localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
-            enableParallelChunks, trackedFile);
+        await DownloadCoreAsync(urls, localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
+            enableParallelChunks, trackedFile).ConfigureAwait(false);
     }
 
     public static void DownloadByLoader(string url, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "")
     {
-        Download(url, localPath, useBrowserUserAgent, customUserAgent).GetAwaiter().GetResult();
+        DownloadAsync(url, localPath, useBrowserUserAgent, customUserAgent).GetAwaiter().GetResult();
     }
 
     public static void DownloadByLoader(IEnumerable<string> urls, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "")
     {
-        Download(urls, localPath, useBrowserUserAgent, customUserAgent).GetAwaiter().GetResult();
+        DownloadAsync(urls, localPath, useBrowserUserAgent, customUserAgent).GetAwaiter().GetResult();
     }
 
     private static async Task DownloadCoreAsync(IEnumerable<string> urls, string localPath, bool useBrowserUserAgent,
@@ -89,8 +88,7 @@ public static class FileDownloader
             BlockTimeout = 60000,
             DownloadFileExtension = ModNet.netDownloadEnd,
             EnableAutoResumeDownload = false,
-            RequestConfiguration = DownloadRequestFactory.Create(url, useBrowserUserAgent, customUserAgent),
-            CustomHttpClientFactory = () => NetworkService.GetClient(),
+            CustomHttpClientFactory = () => GetHttpClient(url),
             MinimumSizeOfChunking = 1024 * 1024L,
         };
 
@@ -207,5 +205,16 @@ public static class FileDownloader
                 Thread.Sleep(100);
             }
         }
+    }
+
+    private static HttpClient GetHttpClient(string url)
+    {
+        if (Uri.TryCreate(url, UriKind.Absolute, out var parsedUri)
+            && parsedUri.Host is "edge.forgecdn.net" or "mediafilez.forgecdn.net" or "forgecdn.net" or "api.curseforge.com")
+        {
+            return NetworkService.GetClient(NetworkService.CurseForgeApi);
+        }
+        
+        return NetworkService.GetClient();
     }
 }

@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -251,7 +251,7 @@ public partial class PageInstanceInstall
         if (!(bool)States.Hint.InstallPageBack)
         {
             States.Hint.InstallPageBack = true;
-            ModMain.Hint(Lang.Text("Download.Install.Hint.MinecraftBack"));
+            HintService.Hint(Lang.Text("Download.Install.Hint.MinecraftBack"));
         }
 
         // 如果在选择页面按了刷新键，选择页的东西可能会由于动画被隐藏，但不会由于加载结束而再次显示，因此这里需要手动恢复
@@ -1156,8 +1156,10 @@ public partial class PageInstanceInstall
             };
         if (currentInstance.HasCleanroom)
         {
+            selectedLoaderName = "Cleanroom";
             selectedAPIName = "Cleanroom";
             selectedCleanroomVersion = currentInstance.Cleanroom;
+            selectedCleanroom = new ModDownload.DlCleanroomListEntry(selectedCleanroomVersion);
         }
         else if (currentInstance.HasForge)
         {
@@ -1413,7 +1415,11 @@ public partial class PageInstanceInstall
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "可视化安装版本列表出错", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    "可视化安装版本列表出错",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Instance.Install.Error.OperationFailed"));
             }
         } while (false);
     }
@@ -1538,7 +1544,11 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 OptiFine 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 OptiFine 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Install.Error.OperationFailed"));
         }
     }
 
@@ -1617,7 +1627,11 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 LiteLoader 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 LiteLoader 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Install.Error.OperationFailed"));
         }
     }
 
@@ -1721,7 +1735,11 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Forge 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 Forge 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Install.Error.OperationFailed"));
         }
     }
 
@@ -1803,7 +1821,11 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 NeoForge 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 NeoForge 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Install.Error.OperationFailed"));
         }
     }
 
@@ -1883,7 +1905,11 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Cleanroom 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 Cleanroom 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Install.Error.OperationFailed"));
         }
     }
 
@@ -1900,7 +1926,9 @@ public partial class PageInstanceInstall
     private void Cleanroom_Clear(object sender, MouseButtonEventArgs e)
     {
         selectedCleanroom = null;
+        selectedCleanroomVersion = null;
         selectedLoaderName = null;
+        selectedAPIName = null;
         CardCleanroom.IsSwapped = true;
         e.Handled = true;
         OptiFine_Loaded();
@@ -1969,7 +1997,11 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Fabric 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 Fabric 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Install.Error.OperationFailed"));
         }
     }
 
@@ -2134,7 +2166,11 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Fabric API 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 Fabric API 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Install.Error.OperationFailed"));
         }
     }
 
@@ -2215,14 +2251,18 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 LegacyFabric 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 LegacyFabric 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Install.Error.OperationFailed"));
         }
     }
 
     // 选择与清除
     public void LegacyFabric_Selected(MyListItem sender, EventArgs e)
     {
-        selectedLegacyFabric = ((dynamic)sender.Tag)("version").ToString();
+        selectedLegacyFabric = ((dynamic)sender.Tag)["version"].ToString();
         selectedLoaderName = "LegacyFabric";
         LegacyFabricApi_Loaded();
         CardLegacyFabric.IsSwapped = true;
@@ -2344,7 +2384,11 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Legacy Fabric API 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 Legacy Fabric API 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Install.Error.OperationFailed"));
         }
     }
 
@@ -2429,7 +2473,11 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Quilt 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 Quilt 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Install.Error.OperationFailed"));
         }
     }
 
@@ -2565,7 +2613,11 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 QSL 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 QSL 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Install.Error.OperationFailed"));
         }
     }
 
@@ -2696,7 +2748,11 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 OptiFabric 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 OptiFabric 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Install.Error.OperationFailed"));
         }
     }
 
@@ -2800,7 +2856,11 @@ public partial class PageInstanceInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 LabyMod 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 LabyMod 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Install.Error.OperationFailed"));
         }
     }
 

@@ -15,8 +15,9 @@
                     <local:MyButton MinWidth="100" Text="{DynamicResource Tools.Test.Luck.Title}" Margin="0,0,15,15"
                                     Click="BtnLuck_Click" />
                     <local:MyButton MinWidth="100" Text="{DynamicResource Tools.Test.Crash.Title}"
-                                    ToolTip="{DynamicResource Tools.Test.Crash.ToolTip}" ColorType="Red"
-                                    Margin="0,0,15,15" Click="BtnCrash_Click" />
+                                    ToolTip="{DynamicResource Tools.Test.Crash.ManualCrash}" ColorType="Red"
+                                    Margin="0,0,15,15" Click="BtnCrash_Click"
+                                    Visibility="Collapsed" x:Name="BtnCrash" />
                     <local:MyButton MinWidth="120" Text="{DynamicResource Tools.Test.Shortcut.Title}"
                                     ToolTip="{DynamicResource Tools.Test.Shortcut.ToolTip}" Margin="0,0,15,15"
                                     Click="BtnCreateShortcut_Click" />
@@ -55,12 +56,6 @@
                                 <val:HttpAndUncValidator />
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
-
-                        <TextBlock Grid.Column="0" Grid.Row="1"
-                                   Text="{DynamicResource Tools.Test.CustomDownload.UserAgent}" />
-                        <local:MyTextBox x:Name="TextUserAgent" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2"
-                                         ValidatedTextChanged="TextUserAgent_OnValidatedTextChanged"
-                                         Margin="0,10" />
 
                         <TextBlock Grid.Column="0" Grid.Row="2"
                                    Text="{DynamicResource Tools.Test.CustomDownload.SaveTo}" />

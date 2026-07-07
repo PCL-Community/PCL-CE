@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
@@ -112,7 +112,7 @@ public partial class PageInstanceLeft : IRefreshable
             }
             case FormMain.PageSubType.VersionScreenshot:
             {
-                var ignore= PageInstanceScreenshot.Refresh();
+                var ignore= PageInstanceScreenshot.RefreshAsync();
                 break;
             }
             case FormMain.PageSubType.VersionWorld:
@@ -301,7 +301,11 @@ public partial class PageInstanceLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + (int)id + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "切换分页面失败（ID " + (int)id + "）",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Error.OperationFailed"));
         }
         finally
         {

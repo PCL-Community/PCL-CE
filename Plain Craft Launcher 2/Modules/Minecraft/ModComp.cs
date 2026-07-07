@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Compression;
@@ -19,6 +19,7 @@ using PCL.Core.Logging;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Hash;
 using PCL.Network;
+using PCL.Network.Loaders;
 using ProtoBuf;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
@@ -184,6 +185,29 @@ public static class ModComp
         World = 7
     }
 
+    public enum CompDepsInstallTypes
+    {
+        /// <summary>
+        ///     无法解析依赖
+        /// </summary>
+        Unresolved = 0,
+
+        /// <summary>
+        ///     用户选择安装前置
+        /// </summary>
+        WithDeps = 1,
+
+        /// <summary>
+        ///     用户选择只安装本体，不安装前置
+        /// </summary>
+        WithoutDeps = 2,
+
+        /// <summary>
+        ///     用户取消安装
+        /// </summary>        
+        Cancel = 3,
+    }
+
     public static string GetCompTypeName(CompType type) => Lang.Text(type switch
     {
         CompType.Mod => "Download.Comp.Type.Mod",
@@ -336,12 +360,12 @@ public static class ModComp
                         if (hasFavs)
                         {
                             i.Favs.Remove(project.Id);
-                            ModMain.Hint(Lang.Text("Download.Comp.Detail.Favorites.Remove", project.TranslatedName, i.Name), ModMain.HintType.Finish);
+                            HintService.Hint(Lang.Text("Download.Comp.Detail.Favorites.Remove", project.TranslatedName, i.Name), HintType.Success);
                         }
                         else
                         {
                             i.Favs.Add(project.Id);
-                            ModMain.Hint(Lang.Text("Download.Comp.Detail.Favorites.Add", project.TranslatedName, i.Name), ModMain.HintType.Finish);
+                            HintService.Hint(Lang.Text("Download.Comp.Detail.Favorites.Add", project.TranslatedName, i.Name), HintType.Success);
                         }
 
                         Save();
@@ -383,11 +407,11 @@ public static class ModComp
                         Save();
                         var successCount = i.Favs.Count - count;
                         var failedCount = project.Count - successCount;
-                        ModMain.Hint(
+                        HintService.Hint(
                             Lang.Text(failedCount > 0
                                 ? "Download.Comp.Detail.Favorites.BulkAddWithFailures"
                                 : "Download.Comp.Detail.Favorites.BulkAdd", successCount, i.Name, failedCount),
-                            ModMain.HintType.Finish);
+                            HintType.Success);
                     }
                     catch (Exception ex)
                     {
@@ -621,17 +645,20 @@ public static class ModComp
                     System.Windows.Application.Current.Dispatcher.BeginInvoke(new Func<Task>(async () =>
                     {
                         if (ModMain.MyMsgBox(
-                                "PCL detected a resource link in clipboard. Do you want to jump to the details page?",
-                                "Link Detected", "Confirm", "Cancel", forceWait: true) == 1)
+                                Lang.Text("Download.Comp.Detail.Clipboard.Detected.Message"),
+                                Lang.Text("Download.Comp.Detail.Clipboard.Detected.Title"),
+                                Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"),
+                                forceWait: true) == 1)
                         {
-                            ModMain.Hint("Fetching resource info...");
+                            HintService.Hint(Lang.Text("Download.Comp.Detail.Clipboard.Fetching"));
 
                             var ids = new List<string> { projectId };
                             var compProjects = await CompRequest.GetCompProjectsByIdsAsync(ids);
 
                             if (compProjects.Count == 0)
                             {
-                                ModMain.Hint("Invalid resource content.", ModMain.HintType.Critical);
+                                HintService.Hint(Lang.Text("Download.Comp.Detail.Clipboard.InvalidContent"),
+                                    HintType.Error);
                                 return;
                             }
 
@@ -780,7 +807,11 @@ public static class ModComp
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取模组翻译信息失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "获取模组翻译信息失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Minecraft.Comp.Error.OperationFailed"));
             return null;
         }
     }
@@ -1444,11 +1475,19 @@ public static class ModComp
                     return null;
                 }
 
-                ModBase.Log(ex, "获取中文描述时出现错误", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "获取中文描述时出现错误",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Minecraft.Comp.Error.OperationFailed"));
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "获取中文描述时出现错误", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "获取中文描述时出现错误",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Minecraft.Comp.Error.OperationFailed"));
             }
 
             return result;
@@ -1486,7 +1525,9 @@ public static class ModComp
         /// <summary>
         ///     将当前工程信息实例化为控件。
         /// </summary>
-        public MyVirtualizingElement<MyCompItem> ToCompItem(bool showMcVersionDesc, bool showLoaderDesc)
+        /// <param name="showQuickDownload">是否在卡片右侧显示快速下载按钮（仅搜索结果页应传 true）。</param>
+        public MyVirtualizingElement<MyCompItem> ToCompItem(bool showMcVersionDesc, bool showLoaderDesc,
+            bool showQuickDownload = false)
         {
             // --- 1. 获取版本描述 (核心算法优化) ---
             string gameVersionDescription;
@@ -1597,6 +1638,7 @@ public static class ModComp
 
                     newItem.Tags = Tags;
                     newItem.Description = Description.Replace("\r", "").Replace("\n", "");
+                    newItem.ShowDownloadBtn = showQuickDownload;
 
                     // 下边栏逻辑切换
                     newItem.LabVersion.Text = (showMcVersionDesc, showLoaderDesc) switch
@@ -2352,9 +2394,10 @@ public static class ModComp
             var searchEntries = new List<ModBase.SearchEntry<CompDatabaseEntry>>();
             using (var conn = CompDB)
             {
-                var sql =
-                    "SELECT * FROM ModTranslation WHERE ChineseName LIKE @p OR CurseForgeSlug LIKE @p OR ModrinthSlug LIKE @p";
-                var searchRes = conn.Query<CompDatabaseEntry>(sql, new { p = $"%{rawFilter}%" });
+                var likeEscaped = rawFilter.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+                var searchRes = conn.Query<CompDatabaseEntry>(
+                    "SELECT * FROM ModTranslation WHERE ChineseName LIKE @p ESCAPE '\\' OR CurseForgeSlug LIKE @p ESCAPE '\\' OR ModrinthSlug LIKE @p ESCAPE '\\'",
+                    new { p = $"%{likeEscaped}%" }).ToList();
                 foreach (var searchItem in searchRes)
                 {
                     if (searchItem.ChineseName.Contains("动态的树")) continue;
@@ -2387,7 +2430,8 @@ public static class ModComp
                     w =>
                     {
                         if (w.Length <= 1) return false;
-                        if (new[] { "the", "of", "mod", "and" }.Contains(w)) return false;
+                        if (!w.Any(char.IsLetterOrDigit)) return false;
+                        if (new[] { "the", "of", "for", "mod", "and", "forge", "fabric", "quilt", "neoforge" }.Contains(w)) return false;
                         if (ModBase.Val(w) > 0) return false;
                         if (w.Split(' ').Length > 3 && w.Contains("ftb")) return false;
                         return true;
@@ -2395,34 +2439,66 @@ public static class ModComp
                 return words;
             }
 
-            var wordWeights = new Dictionary<string, double>();
+            var wordModCount = new Dictionary<string, HashSet<int>>();
             foreach (var result in searchResults)
-            {
                 foreach (var word in ExtractWords(result))
                 {
-                    var similarity = result.searchSource.Any(s => s.aliases.Contains(request.searchText))
-                        ? 100000
-                        : result.similarity;
-                    if (!wordWeights.ContainsKey(word))
-                        wordWeights.Add(word, 0);
-                    wordWeights[word] += similarity;
+                    if (!wordModCount.TryGetValue(word, out var mods))
+                        wordModCount[word] = mods = new HashSet<int>();
+                    mods.Add(result.item.WikiId);
                 }
-            }
 
-            if (!wordWeights.Any()) throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
+            if (wordModCount.Count == 0) throw new Exception(Lang.Text("Download.Comp.List.NoResults"));
 
-            var sortedWords = wordWeights.OrderByDescending(w => w.Value).ToList();
-            if (sortedWords.First().Value >= 100000)
+            static string NormalizeName(string s) =>
+                new string(s.Where(c => !char.IsWhiteSpace(c) && !char.IsSurrogate(c)).ToArray());
+            string CanonName(string name) => NormalizeName(name.BeforeFirst(" ("));
+            var normalizedQuery = NormalizeName(rawFilter);
+            var exactNameEntries = searchResults
+                .Where(r => CanonName(r.item.ChineseName) == normalizedQuery).ToList();
+            var exactNameMods = exactNameEntries.Select(r => r.item.WikiId).Distinct().Count();
+
+            if (exactNameMods == 1)
             {
-                request.searchText = string.Join(" ", sortedWords.Where(w => w.Value >= 100000).Select(w => w.Key));
+                var canonicalEntry = exactNameEntries
+                    .OrderByDescending(r => r.absoluteRight)
+                    .ThenByDescending(r => r.similarity)
+                    .ThenBy(r => (r.item.CurseForgeSlug ?? r.item.ModrinthSlug ?? r.item.ChineseName).Length)
+                    .First();
+                var canonicalWords = ExtractWords(canonicalEntry);
+                request.searchText = canonicalWords.Any()
+                    ? string.Join(" ", canonicalWords)
+                    : string.Join(" ", wordModCount.OrderByDescending(w => w.Value.Count).Take(2).Select(w => w.Key));
+                var cfSlugs = exactNameEntries.Select(r => r.item.CurseForgeSlug)
+                    .Where(s => s is not null).Distinct().ToList();
+                if (cfSlugs.Count == 1)
+                    request.curseForgeAltSearchText = cfSlugs[0];
             }
             else
             {
-                request.searchText = string.Join(" ", sortedWords.Take(5).Select(w => w.Key));
-                request.curseForgeAltSearchText = string.Join(" ", ExtractWords(searchResults.First()));
-                LogWrapper.Debug("[Comp] 中文搜索基础关键词（CurseForge）：" + request.curseForgeAltSearchText);
+                var maxCount = wordModCount.Values.Max(mods => mods.Count);
+                if (maxCount <= 1)
+                {
+                    var best = searchResults
+                        .OrderByDescending(r => r.absoluteRight)
+                        .ThenByDescending(r => r.similarity)
+                        .ThenBy(r => (r.item.CurseForgeSlug ?? r.item.ModrinthSlug ?? r.item.ChineseName).Length)
+                        .First();
+                    request.searchText = string.Join(" ", ExtractWords(best));
+                }
+                else
+                {
+                    var tied = wordModCount
+                        .Where(w => w.Value.Count == maxCount)
+                        .OrderBy(w => w.Key.Length)
+                        .ToList();
+                    var anchorMods = tied[0].Value;
+                    request.searchText = string.Join(" ", tied
+                        .Where(w => w.Value.Overlaps(anchorMods))
+                        .Take(3)
+                        .Select(w => w.Key));
+                }
             }
-
             LogWrapper.Debug("[Comp] 中文搜索基础关键词：" + request.searchText);
         }
 
@@ -2675,11 +2751,11 @@ public static class ModComp
         //  <summary>
         //  未经处理的支持的游戏版本列表。
         // </summary>
-        public readonly List<string> RawGameVersions;
+        public readonly List<string> RawGameVersions = new();
         /// <summary>
         ///     支持的游戏版本列表。类型包括："26.1.5"，"26.1"，"26.1 预览版"，"1.18.5"，"1.18"，"1.18 预览版"，"21w15a"，"未知版本"。
         /// </summary>
-        public readonly List<string> GameVersions;
+        public readonly List<string> GameVersions = new();
 
         /// <summary>
         ///     文件的 SHA1 或 MD5。
@@ -2694,7 +2770,7 @@ public static class ModComp
         /// <summary>
         ///     支持的 Mod 加载器列表。可能为空。
         /// </summary>
-        public readonly List<CompLoaderType> ModLoaders;
+        public readonly List<CompLoaderType> ModLoaders = new();
 
         /// <summary>
         ///     该文件的所有可选依赖工程的 Project.Id。
@@ -2790,9 +2866,9 @@ public static class ModComp
                 if (data.ContainsKey("Dependencies"))
                     Dependencies = data["Dependencies"].ToObject<List<string>>();
                 if (data.ContainsKey("RawOptionalDependencies"))
-                    RawDependencies = data["RawOptionalDependencies"].ToObject<List<string>>();
+                    RawOptionalDependencies = data["RawOptionalDependencies"].ToObject<List<string>>();
                 if (data.ContainsKey("OptionalDependencies"))
-                    Dependencies = data["OptionalDependencies"].ToObject<List<string>>();
+                    OptionalDependencies = data["OptionalDependencies"].ToObject<List<string>>();
             }
 
             #endregion
@@ -3336,6 +3412,268 @@ public static class ModComp
         var result = sanitized.ToString().Trim();
         return result is "" or "." or ".." ? "download" : result;
     }
+
+    #region 快速下载（资源卡片下载按钮）
+
+    /// <summary>
+    /// 资源卡片的快速下载入口：按 <see cref="Config.Download.Comp.QuickDownloadBehavior"/> 指定的行为，
+    /// 下载该资源最新（优先 Release、其次最新发布）的兼容版本到目标实例或文件夹。
+    /// 由 <see cref="MyCompItem"/> 上的快速下载按钮调用。快速下载不会自动安装前置。
+    /// </summary>
+    public static void QuickDownload(CompProject project)
+    {
+        ModBase.RunInNewThread(() =>
+        {
+            try
+            {
+                HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.Loading"), HintType.Info);
+                var files = FilterFilesByType(
+                    CompFilesGet(project.Id, project.FromCurseForge).Where(f => f.Available).ToList(),
+                    project.Type);
+                if (files.Count == 0)
+                {
+                    HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.NoFile"), HintType.Info);
+                    return;
+                }
+
+                var behavior = Config.Download.Comp.QuickDownloadBehavior;
+                if (behavior == 0)
+                {
+                    // 总是询问：弹「方式选择」
+                    int? choice = ModBase.RunInUiWait(() =>
+                    {
+                        var options = new List<IMyRadio>
+                        {
+                            new MyRadioBox { Text = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.CurrentInstance") },
+                            new MyRadioBox { Text = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.AskInstance") },
+                            new MyRadioBox { Text = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.AskPath") }
+                        };
+                        return ModMain.MyMsgBoxSelect(options,
+                            Lang.Text("Download.Comp.QuickDownload.ChooseMethod.Title"),
+                            button1: Lang.Text("Common.Action.Continue"),
+                            button2: Lang.Text("Common.Action.Cancel"));
+                    });
+                    if (choice is null) return; // 用户取消
+                    behavior = choice.Value + 1; // 0→1 当前实例, 1→2 选实例, 2→3 选路径
+                }
+
+                switch (behavior)
+                {
+                    case 1: // 下载到当前选中实例
+                        _QuickDownloadToInstance(project, files, ModInstanceList.McMcInstanceSelected);
+                        break;
+                    case 2: // 询问并下载到选择的实例
+                    {
+                        var instance = _QuickDownloadPickInstance(project, files);
+                        if (instance is null) return;
+                        _QuickDownloadToInstance(project, files, instance);
+                        break;
+                    }
+                    case 3: // 询问并下载到一个路径
+                        _QuickDownloadToFolder(project, files);
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(
+                    ex,
+                    "[Comp] 快速下载失败",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Minecraft.Comp.Error.OperationFailed"));
+            }
+        }, "Comp QuickDownload");
+    }
+
+    /// <summary>下载到指定实例的最新兼容版本。</summary>
+    private static void _QuickDownloadToInstance(CompProject project, List<CompFile> files, McInstance? instance)
+    {
+        if (instance is null)
+        {
+            HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.NoInstance"), HintType.Info);
+            return;
+        }
+        if (!instance.IsLoaded) instance.Load();
+        var compatible = files
+            .Where(f => IsInstanceSuitableForFile(instance, f, _ResolveLoaders(f, project)))
+            .ToList();
+        var file = _PickLatestFile(compatible);
+        if (file is null)
+        {
+            HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.NoCompatibleFile"), HintType.Info);
+            return;
+        }
+        var folder = instance.PathIndie + _GetSubFolder(project.Type);
+        Directory.CreateDirectory(folder);
+        var target = Path.Combine(folder, CompFileNameGet(project, file));
+        _StartQuickDownload(file, target);
+        HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.DownloadStarted", project.RawName), HintType.Success);
+    }
+
+    /// <summary>弹实例列表让用户选择，返回选中的实例（兼容者优先、当前选中实例居首）；取消或无兼容实例返回 null。</summary>
+    private static McInstance? _QuickDownloadPickInstance(CompProject project, List<CompFile> files)
+    {
+        var needLoad = ModInstanceList.mcInstanceListLoader.State != ModBase.LoadState.Finished;
+        if (needLoad)
+        {
+            HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.Loading"), HintType.Info);
+            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+                ModLoader.LoaderFolderRunType.ForceRun, 1, "versions\\", true);
+        }
+        var compatible = ModInstanceList.mcInstanceList.Values
+            .SelectMany(l => l)
+            .Where(v => v is not null && files.Any(f => IsInstanceSuitableForFile(v, f, _ResolveLoaders(f, project))))
+            .ToList();
+        if (compatible.Count == 0)
+        {
+            HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.NoCompatibleInstance"), HintType.Info);
+            return null;
+        }
+        // 当前选中实例排首位（呼应 issue「第一行应为当前所选实例」）
+        var current = ModInstanceList.McMcInstanceSelected;
+        if (current is not null)
+            compatible = compatible
+                .OrderBy(v => v == current ? 0 : 1)
+                .ThenBy(v => v.Name)
+                .ToList();
+        int? idx = ModBase.RunInUiWait(() =>
+        {
+            var options = compatible
+                .Select(v => (IMyRadio)new MyRadioBox { Text = v.Name })
+                .ToList();
+            return ModMain.MyMsgBoxSelect(options,
+                Lang.Text("Download.Comp.QuickDownload.ChooseInstance.Title"),
+                button1: Lang.Text("Common.Action.Continue"),
+                button2: Lang.Text("Common.Action.Cancel"));
+        });
+        if (idx is null) return null;
+        return compatible[idx.Value];
+    }
+
+    /// <summary>下载最新版本到用户选择的文件夹。</summary>
+    private static void _QuickDownloadToFolder(CompProject project, List<CompFile> files)
+    {
+        var file = _PickLatestFile(files);
+        if (file is null)
+        {
+            HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.NoFile"), HintType.Info);
+            return;
+        }
+        var saveFolder = ModBase.RunInUiWait(() =>
+            SystemDialogs.SelectFolder(Lang.Text("Download.Comp.QuickDownload.Hint.SelectFolder")));
+        if (string.IsNullOrWhiteSpace(saveFolder)) return; // 取消
+        var target = Path.Combine(saveFolder, CompFileNameGet(project, file));
+        _StartQuickDownload(file, target);
+        HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.DownloadStarted", project.RawName), HintType.Success);
+    }
+
+    /// <summary>构造并启动单文件下载任务（与详情页 Save_Click 末段一致）。</summary>
+    private static void _StartQuickDownload(CompFile file, string target)
+    {
+        var desc = file.Type switch
+        {
+            CompType.Mod => Lang.Text("Download.Comp.Type.Mod"),
+            CompType.ResourcePack => Lang.Text("Download.Comp.Type.ResourcePack"),
+            CompType.Shader => Lang.Text("Download.Comp.Type.Shader"),
+            CompType.DataPack => Lang.Text("Download.Comp.Type.DataPack"),
+            CompType.World => Lang.Text("Download.Comp.Type.World"),
+            _ => Lang.Text("Download.Comp.Type.Mod")
+        };
+        var loaderName = Lang.Text("Download.Comp.Detail.DownloadResource", desc,
+            ModBase.GetFileNameWithoutExtentionFromPath(target));
+        var loaders = new List<ModLoader.LoaderBase>
+        {
+            new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadFile"),
+                new List<DownloadFile> { file.ToNetFile(target) })
+            {
+                ProgressWeight = 6,
+                block = true
+            }
+        };
+        if (file.Type == CompType.World)
+        {
+            var extractDir = Path.GetDirectoryName(target);
+            loaders.Add(new ModLoader.LoaderTask<int, int>(
+                Lang.Text("Download.Comp.Detail.InstallWorld"),
+                _ => ModBase.ExtractFile(target, extractDir, Encoding.UTF8))
+            {
+                ProgressWeight = 0.1d,
+                block = true
+            });
+            loaders.Add(new ModLoader.LoaderTask<int, int>(
+                Lang.Text("Download.Comp.Detail.CleanCache"),
+                _ => System.IO.File.Delete(target)));
+        }
+        var loader = new ModLoader.LoaderCombo<int>(loaderName, loaders)
+        {
+            OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly
+        };
+        loader.Start(1);
+        ModLoader.LoaderTaskbarAdd(loader);
+        ModMain.frmMain.BtnExtraDownload.ShowRefresh();
+        ModMain.frmMain.BtnExtraDownload.Ribble();
+    }
+
+    /// <summary>根据资源类型返回实例内的目标子文件夹（与 Save_Click 一致）。</summary>
+    private static string _GetSubFolder(CompType type) => type switch
+    {
+        CompType.Mod => "mods\\",
+        CompType.ResourcePack => "resourcepacks\\",
+        CompType.Shader => "shaderpacks\\",
+        CompType.World => "saves\\",
+        _ => ""
+    };
+
+    /// <summary>取文件自身声明的加载器，缺失时回退到工程的加载器。</summary>
+    private static List<CompLoaderType> _ResolveLoaders(CompFile file, CompProject project)
+        => file.ModLoaders.Count > 0 ? file.ModLoaders : project.ModLoaders;
+
+    /// <summary>
+    /// 按资源类型筛选文件，与详情页 GetResults 一致：Modrinth 会返回 Mod / 服务端插件 / 数据包混合的列表，
+    /// 需过滤回当前类型，避免快速下载到另一种产物。光影与资源包不筛（原版光影以资源包格式发布）。
+    /// </summary>
+    private static List<CompFile> FilterFilesByType(List<CompFile> files, CompType type)
+    {
+        if (type == CompType.Shader || type == CompType.ResourcePack)
+            return files;
+        return files.Where(f => f.Type == type).ToList();
+    }
+
+    /// <summary>判断某实例是否兼容该文件（基于 Save_Click 的 isVersionSuitable，补全了 Quilt 判定）。</summary>
+    public static bool IsInstanceSuitableForFile(McInstance? version, CompFile file, List<CompLoaderType> allowedLoaders)
+    {
+        if (version is null) return false;
+        if (!version.IsLoaded) version.Load();
+
+        // 只对 Mod 和数据包进行版本检测
+        if (file.Type == CompType.Mod || file.Type == CompType.DataPack)
+            if (file.GameVersions.Any(v => v.Contains(".")) &&
+                !file.GameVersions.Any(v => v.Contains(".") && v == version.Info.VanillaName))
+                return false;
+
+        // 加载器判定
+        if (allowedLoaders.Count == 0) return true; // 无要求
+        if (allowedLoaders.Contains(CompLoaderType.Forge) && version.Info.HasForge) return true;
+        if (allowedLoaders.Contains(CompLoaderType.Fabric) &&
+            (version.Info.HasFabric || version.Info.HasLegacyFabric)) return true;
+        if (allowedLoaders.Contains(CompLoaderType.NeoForge) && version.Info.HasNeoForge) return true;
+        if (allowedLoaders.Contains(CompLoaderType.Quilt) && version.Info.HasQuilt) return true;
+        if (allowedLoaders.Contains(CompLoaderType.LiteLoader) && version.Info.HasLiteLoader) return true;
+        return false;
+    }
+
+    /// <summary>挑选最新文件：优先 Release，其次按发布日期最新。compatFilter 为空时不做兼容过滤。</summary>
+    private static CompFile? _PickLatestFile(List<CompFile> files, Func<CompFile, bool>? compatFilter = null)
+    {
+        var candidates = (compatFilter is null ? files : files.Where(compatFilter)).ToList();
+        if (candidates.Count == 0) return null;
+        return candidates
+            .OrderByDescending(f => f.Status == CompFileStatus.Release)
+            .ThenByDescending(f => f.ReleaseDate)
+            .First();
+    }
+
+    #endregion
 
     /// <summary>
     /// 预载包含大量 CompFile 的卡片，添加必要的元素和前置列表。

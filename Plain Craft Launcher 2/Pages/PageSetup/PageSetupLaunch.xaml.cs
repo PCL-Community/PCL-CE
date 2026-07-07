@@ -1,9 +1,10 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.Utils.OS;
 using PCL.Core.App.Localization;
 
@@ -60,6 +61,7 @@ public partial class PageSetupLaunch
             TextArgumentWindowHeight.Text = Config.Launch.GameWindowHeight.ToString();
             ComboMsAuthType.SelectedIndex = Config.Launch.LoginMsAuthType;
             ComboPreferredIpStack.SelectedIndex = (int)Config.Launch.PreferredIpStack;
+            WindowTypeUIRefresh();
 
             // 游戏内存
             ((MyRadioBox)FindName("RadioRamType" + Config.Launch.MemoryAllocationMode)).Checked = true;
@@ -71,10 +73,12 @@ public partial class PageSetupLaunch
             TextAdvanceGame.Text = Config.Launch.GameArgs;
             TextAdvanceRun.Text = Config.Launch.PreLaunchCommand;
             CheckAdvanceRunWait.Checked = Config.Launch.PreLaunchCommandWait;
-            CheckAdvanceDisableRW.Checked = Config.Launch.DisableRw;
+            CheckAdvanceDisableLF.Checked = Config.Launch.DisableLF;
             CheckAdvanceGraphicCard.Checked = Config.Launch.SetGpuPreference;
             CheckAdvanceNoJavaw.Checked = Config.Launch.NoJavaw;
             CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Launch.DisableLwjglUnsafeAgent;
+            CheckAdvanceDisableCrashAnalysis.Checked = Config.Launch.DisableCrashAnalysis;
+            CheckAdvanceLockMemory.Checked = Config.Launch.LockMemory;
             if (SystemInfo.IsArm64System)
             {
                 CheckAdvanceDisableJLW.Checked = true;
@@ -89,12 +93,20 @@ public partial class PageSetupLaunch
 
         catch (NullReferenceException ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Launch.Error.ConfigReset"), ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.Launch.Error.ConfigReset"),
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Launch.Error.ConfigReset"));
             Reset();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Launch.Error.LoadFailed"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.Launch.Error.LoadFailed"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Launch.Error.LoadFailed"));
         }
     }
 
@@ -105,11 +117,15 @@ public partial class PageSetupLaunch
         {
             Config.Launch.Reset();
             ModBase.Log("[Setup] 已初始化启动设置");
-            ModMain.Hint(Lang.Text("Setup.Launch.Initialized"), ModMain.HintType.Finish, false);
+            HintService.Hint(Lang.Text("Setup.Launch.Initialized"), HintType.Success, false);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Launch.Error.InitFailed"), ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.Launch.Error.InitFailed"),
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Launch.Error.InitFailed"));
         }
 
         Reload();
@@ -121,28 +137,28 @@ public partial class PageSetupLaunch
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
         if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
-            SetLaunchByTag(gotCfg[0], int.Parse(gotCfg[1]));
+            SetByTag(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
     private void TextBoxChange(object senderRaw, RoutedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetLaunchByTag(sender.Tag?.ToString(), sender.Text);
+            SetByTag(sender.Tag?.ToString(), sender.Text);
     }
 
     private void TextArgumentTitle_OnTextChanged(object senderRaw, TextChangedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetLaunchByTag(sender.Tag?.ToString(), sender.Text);
+            SetByTag(sender.Tag?.ToString(), sender.Text);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetLaunchByTag(sender.Tag?.ToString(), sender.Value);
+            SetByTag(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
@@ -151,8 +167,9 @@ public partial class PageSetupLaunch
         if (ModAnimation.AniControlEnabled == 0)
         {
             var senderTag = sender.Tag?.ToString();
-            SetLaunchByTag(senderTag,
+            SetByTag(senderTag,
                 senderTag == "LaunchArgumentPriority" ? Convert.ToInt32(sender.SelectedValue) : sender.SelectedIndex);
+            if (senderTag == "LaunchArgumentWindowType") WindowTypeUIRefresh();
         }
     }
 
@@ -160,35 +177,11 @@ public partial class PageSetupLaunch
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetLaunchByTag(sender.Tag?.ToString(), sender.Checked);
+            SetByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
-    private static void SetLaunchByTag(string tag, object value)
-    {
-        switch (tag)
-        {
-            case "LaunchRamType": Config.Launch.MemoryAllocationMode = (int)value; break;
-            case "LaunchRamCustom": Config.Launch.CustomMemorySize = (int)value; break;
-            case "LaunchArgumentTitle": Config.Launch.Title = (string)value; break;
-            case "LaunchArgumentInfo": Config.Launch.TypeInfo = (string)value; break;
-            case "LaunchArgumentIndieV2": Config.Launch.IndieSolutionV2 = (int)value; break;
-            case "LaunchArgumentVisible": Config.Launch.LauncherVisibility = (LauncherVisibility)(int)value; break;
-            case "LaunchArgumentPriority": Config.Launch.ProcessPriority = (GameProcessPriority)(int)value; break;
-            case "LaunchArgumentWindowType": Config.Launch.GameWindowMode = (GameWindowSizeMode)(int)value; break;
-            case "LoginMsAuthType": Config.Launch.LoginMsAuthType = (int)value; break;
-            case "LaunchPreferredIpStack": Config.Launch.PreferredIpStack = (JvmPreferredIpStack)(int)value; break;
-            case "LaunchAdvanceRenderer": Config.Launch.Renderer = (int)value; break;
-            case "LaunchAdvanceJvm": Config.Launch.JvmArgs = (string)value; break;
-            case "LaunchAdvanceGame": Config.Launch.GameArgs = (string)value; break;
-            case "LaunchAdvanceRun": Config.Launch.PreLaunchCommand = (string)value; break;
-            case "LaunchAdvanceRunWait": Config.Launch.PreLaunchCommandWait = (bool)value; break;
-            case "LaunchAdvanceDisableJLW": Config.Launch.DisableJlw = (bool)value; break;
-            case "LaunchAdvanceDisableRW": Config.Launch.DisableRw = (bool)value; break;
-            case "LaunchAdvanceGraphicCard": Config.Launch.SetGpuPreference = (bool)value; break;
-            case "LaunchAdvanceNoJavaw": Config.Launch.NoJavaw = (bool)value; break;
-            case "LaunchAdvanceDisableLwjglUnsafeAgent": Config.Launch.DisableLwjglUnsafeAgent = (bool)value; break;
-        }
-    }
+    private static void SetByTag(string tag, object value)
+        => ConfigService.TrySetValue(tag, value);
 
     // 切换到实例独立设置
     private void BtnSwitch_Click(object sender, MouseButtonEventArgs e)
@@ -522,9 +515,9 @@ public partial class PageSetupLaunch
             return;
         if (ComboArgumentVisibie.SelectedIndex == 0)
             if (ModMain.MyMsgBox(
-                    Lang.Text("Setup.Launch.Visibility.CloseImmediately.Warning.Message"),
-                    Lang.Text("Setup.Launch.Visibility.CloseImmediately.Warning.Title"),
-                    Lang.Text("Setup.Launch.Visibility.CloseImmediately.Warning.Continue"),
+                    Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Message"),
+                    Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Title"),
+                    Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Continue"),
                     Lang.Text("Common.Action.Cancel")) == 2)
                 ComboArgumentVisibie.SelectedItem = sizeChangedEventArgs.RemovedItems[0];
     }
@@ -534,7 +527,7 @@ public partial class PageSetupLaunch
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
-        ModMain.MyMsgBox(Lang.Text("Setup.Launch.InstanceIsolation.DefaultPolicyHint"));
+        ModMain.MyMsgBox(Lang.Text("Setup.Launch.Options.InstanceIsolation.DefaultPolicyHint"));
     }
 
     #endregion

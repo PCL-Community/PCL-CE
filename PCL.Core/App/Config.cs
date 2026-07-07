@@ -91,6 +91,7 @@ public static partial class Config
             [ConfigItem<bool>("ToolDownloadClipboard", false)] public partial bool ReadClipboard { get; set; }
             [ConfigItem<int>("ToolDownloadMod", 1)] public partial int CompSourceSolution { get; set; }
             [ConfigItem<int>("ToolModLocalNameStyle", 0)] public partial int UiCompNameSolution { get; set; }
+            [ConfigItem<int>("ToolDownloadQuickBehavior", 0)] public partial int QuickDownloadBehavior { get; set; }
         }
     }
 
@@ -196,11 +197,6 @@ public static partial class Config
         /// 在启动游戏时显示你知道吗。
         /// </summary>
         [ConfigItem<bool>("UiShowLaunchingHint", true, ConfigSource.Local)] public partial bool ShowLaunchingHint { get; set; }
-
-        /// <summary>
-        /// 提示气泡靠右弹出。
-        /// </summary>
-        [ConfigItem<bool>("UiHintAlignRight", false, ConfigSource.Local)] public partial bool HintAlignRight { get; set; }
 
         /// <summary>
         /// 标题内容类型。
@@ -485,6 +481,11 @@ public static partial class Config
         [ConfigItem<int>("LaunchRamCustom", 15, ConfigSource.Local)] public partial int CustomMemorySize { get; set; }
 
         /// <summary>
+        /// 是否固定堆大小：启用后额外追加 -Xms 并使其等于 -Xmx，隐式禁用内存归还以降低延迟抖动、利于 ZGC。见 #3282。
+        /// </summary>
+        [ConfigItem<bool>("LaunchAdvanceLockMemory", false, ConfigSource.Local)] public partial bool LockMemory { get; set; }
+
+        /// <summary>
         /// 优先 IP 协议栈。
         /// </summary>
         [ConfigItem<JvmPreferredIpStack>("LaunchPreferredIpStack", JvmPreferredIpStack.Default)] public partial JvmPreferredIpStack PreferredIpStack { get; set; }
@@ -515,9 +516,9 @@ public static partial class Config
         [ConfigItem<bool>("LaunchAdvanceDisableJLW", true, ConfigSource.Local)] public partial bool DisableJlw { get; set; }
 
         /// <summary>
-        /// 禁用 Retro Wrapper
+        /// 禁用 LegacyFix
         /// </summary>
-        [ConfigItem<bool>("LaunchAdvanceDisableRW", false, ConfigSource.Local)] public partial bool DisableRw { get; set; }
+        [ConfigItem<bool>("LaunchAdvanceDisableLF", false, ConfigSource.Local)] public partial bool DisableLF { get; set; }
 
         /// <summary>
         /// 强制使用高性能显卡。
@@ -533,7 +534,12 @@ public static partial class Config
         /// 禁用 LWJGL Unsafe Agent。
         /// </summary>
         [ConfigItem<bool>("LaunchAdvanceDisableLwjglUnsafeAgent", false)] public partial bool DisableLwjglUnsafeAgent { get; set; }
-        
+
+        /// <summary>
+        /// 禁用自动崩溃分析。
+        /// </summary>
+        [ConfigItem<bool>("LaunchAdvanceDisableCrashAnalysis", false, ConfigSource.Local)] public partial bool DisableCrashAnalysis { get; set; }
+
         /// <summary>
         /// 渲染器。
         /// </summary>
@@ -553,11 +559,6 @@ public static partial class Config
         /// 选择的默认 Java 实例。
         /// </summary>
         [ConfigItem<string>("LaunchArgumentJavaSelect", "")] public partial string SelectedJava { get; set; }
-
-        /// <summary>
-        /// 版本隔离 V1。
-        /// </summary>
-        [ConfigItem<int>("LaunchArgumentIndie", 0, ConfigSource.Local)] public partial int IndieSolutionV1 { get; set; }
 
         /// <summary>
         /// 版本隔离 V2。
@@ -614,7 +615,7 @@ public static partial class Config
         [ConfigItem<bool>("VersionAdvanceDisableJLW", false)] public partial ArgConfig<bool> DisableJlw { get; }
         [ConfigItem<bool>("VersionAdvanceDisableLwjglUnsafeAgent", false)] public partial ArgConfig<bool> DisableLwjglUnsafeAgent { get; }
         [ConfigItem<bool>("VersionAdvanceUseProxyV2", false)] public partial ArgConfig<bool> UseProxy { get; }
-        [ConfigItem<bool>("VersionAdvanceDisableRW", false)] public partial ArgConfig<bool> DisableRw { get; }
+        [ConfigItem<bool>("VersionAdvanceDisableLF", false)] public partial ArgConfig<bool> DisableLF { get; }
         [ConfigItem<bool>("VersionUseDebugLog4j2Config", false)] public partial ArgConfig<bool> UseDebugLof4j2Config { get; }
         [ConfigItem<int>("VersionRamType", 2)] public partial ArgConfig<int> MemorySolution { get; }
         [ConfigItem<int>("VersionRamCustom", 15)] public partial ArgConfig<int> CustomMemorySize { get; }

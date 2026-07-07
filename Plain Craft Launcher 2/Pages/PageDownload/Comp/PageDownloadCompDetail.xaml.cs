@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Eventing.Reader;
 using System.IO;
@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using FluentValidation;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Logging;
 using PCL.Core.Minecraft.ResourceProject;
 using PCL.Core.UI;
 using PCL.Core.Utils;
@@ -100,12 +101,14 @@ public partial class PageDownloadCompDetail
                     {
                         case ModBase.LoadState.Failed:
                         {
-                            ModMain.Hint(myLoader.name + Lang.Text("Common.Status.Failure") + myLoader.Error.Message, ModMain.HintType.Critical);
+                            HintService.Hint(
+                                Lang.Text("Download.Comp.Detail.Task.Failed", myLoader.name,
+                                    myLoader.Error.ToString()), HintType.Error);
                             break;
                         }
                         case ModBase.LoadState.Aborted:
                         {
-                            ModMain.Hint(myLoader.name + Lang.Text("Common.Status.Cancelled"));
+                            HintService.Hint(Lang.Text("Download.Comp.Detail.Task.Cancelled", myLoader.name));
                             break;
                         }
                         case ModBase.LoadState.Loading:
@@ -125,7 +128,11 @@ public partial class PageDownloadCompDetail
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "下载资源整合包失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "下载资源整合包失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Comp.Error.OperationFailed"));
         }
     }
 
@@ -182,7 +189,7 @@ public partial class PageDownloadCompDetail
                 var needLoad = ModInstanceList.mcInstanceListLoader.State != ModBase.LoadState.Finished;
                 if (needLoad)
                 {
-                    ModMain.Hint(Lang.Text("Download.Comp.Detail.FindingApplicableInstance"));
+                    HintService.Hint(Lang.Text("Download.Comp.Detail.FindingApplicableInstance"));
                     ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                         ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\", true);
                 }
@@ -203,7 +210,7 @@ public partial class PageDownloadCompDetail
                 {
                     defaultFolder = ModFolder.mcFolderSelected;
                     if (needLoad)
-                        ModMain.Hint(Lang.Text("Download.Comp.Detail.NoApplicableInstance"));
+                        HintService.Hint(Lang.Text("Download.Comp.Detail.NoApplicableInstance"));
                     else
                         ModBase.Log("[Comp] 由于当前实例不兼容，使用当前的 MC 文件夹作为默认下载位置");
                 }
@@ -236,7 +243,11 @@ public partial class PageDownloadCompDetail
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "下载世界资源失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "下载世界资源失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Comp.Error.OperationFailed"));
         }
     }
 
@@ -332,7 +343,7 @@ public partial class PageDownloadCompDetail
                         var needLoad = ModInstanceList.mcInstanceListLoader.State != ModBase.LoadState.Finished;
                         if (needLoad)
                         {
-                            ModMain.Hint(Lang.Text("Download.Comp.Detail.FindingApplicableInstance"));
+                            HintService.Hint(Lang.Text("Download.Comp.Detail.FindingApplicableInstance"));
                             ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                                 ModLoader.LoaderFolderRunType.ForceRun, 1, "versions\\", true);
                         }
@@ -355,7 +366,7 @@ public partial class PageDownloadCompDetail
                         {
                             defaultFolder = ModFolder.mcFolderSelected;
                             if (needLoad)
-                                ModMain.Hint(Lang.Text("Download.Comp.Detail.NoApplicableInstance"));
+                                HintService.Hint(Lang.Text("Download.Comp.Detail.NoApplicableInstance"));
                             else
                                 ModBase.Log("[Comp] 由于当前实例不兼容，使用当前的 MC 文件夹作为默认下载位置");
                         }
@@ -387,7 +398,6 @@ public partial class PageDownloadCompDetail
                             cachedFolder.Add(file.Type, targetDir);
                     }
 
-                    var downloadFiles = new List<DownloadFile> { file.ToNetFile(target) };
                     if (file.Type == ModComp.CompType.Mod && Config.Download.Comp.AutoInstallDependencies &&
                         file.Dependencies.Any())
                     {
@@ -440,16 +450,65 @@ public partial class PageDownloadCompDetail
                             var resolver = new ModDependencyResolver();
                             var result = resolver.Resolve(request);
 
-                            if (result.Unresolved.Any() || result.ToInstall.Any())
-                            {
-                                if (!ModCompDependency.ConfirmDependencyInstall(result))
+                            void DownloadDependencies()
+                            {    
+                                if (!result.ToInstall.Any())
                                 {
+                                    ModBase.Log("[CompDeps] 所有前置均无法解析，仅下载 Mod 本体");
                                     return;
                                 }
-
+                                
                                 ModBase.Log($"[CompDeps] 准备下载: {result.ToInstall.Count} 个前置");
                                 var depDownloads = ModCompDependency.BuildDependencyDownloads(result, targetDir);
-                                downloadFiles = depDownloads.Concat(downloadFiles).ToList();
+                                foreach (var (depFilename, downloadFile) in depDownloads)
+                                {
+                                    var depLoaderName = Lang.Text("Download.Comp.Detail.DownloadResource", desc,
+                                        ModBase.GetFileNameWithoutExtentionFromPath(depFilename));
+                                    var depLoaders = new List<ModLoader.LoaderBase>
+                                    {
+                                        new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadFile"),
+                                            new List<DownloadFile> { downloadFile })
+                                        {
+                                            ProgressWeight = 6,
+                                            block = true
+                                        }
+                                    };
+
+                                    // 启动加载器
+                                    var depLoader = new ModLoader.LoaderCombo<int>(depLoaderName, depLoaders);
+                                    depLoader.OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly;
+                                    depLoader.Start(1);
+                                    ModLoader.LoaderTaskbarAdd(depLoader);
+                                }
+                            }
+                            
+                            if (result.Unresolved.Any() || result.ToInstall.Any())
+                            {
+                                var installChoice = ModCompDependency.ConfirmDependencyInstall(result);
+
+                                switch (installChoice)
+                                {
+                                    case ModComp.CompDepsInstallTypes.Unresolved:
+                                        ModBase.Log("[CompDeps] 发现无法解析的前置");
+                                        DownloadDependencies();
+                                        break;
+
+                                    case ModComp.CompDepsInstallTypes.WithDeps:
+                                        DownloadDependencies();
+                                        break;
+
+                                    case ModComp.CompDepsInstallTypes.WithoutDeps:
+                                        ModBase.Log("[CompDeps] 用户选择仅下载 Mod 本体，跳过前置下载");
+                                        break;
+
+                                    case ModComp.CompDepsInstallTypes.Cancel:
+                                        ModBase.Log("[CompDeps] 用户取消安装");
+                                        return;
+
+                                    default:
+                                        ModBase.Log($"[CompDeps] 未知返回值: {installChoice} ，终止下载");
+                                        return;
+                                }
                             }
                             else
                             {
@@ -459,8 +518,15 @@ public partial class PageDownloadCompDetail
                         catch (Exception depEx)
                         {
                             ModBase.Log(depEx, "[CompDeps] 依赖解析失败，跳过前置安装");
-                            ModMain.MyMsgBox("前置 Mod 解析失败，将仅下载本体。\n\n" + depEx.Message,
-                                "前置解析失败", button1: "继续下载", isWarn: true, forceWait: true);
+                            var message = ExceptionDetails.Compose(
+                                Lang.Text("Download.Comp.Dependency.ResolveFailed.Message"),
+                                depEx);
+                            ModMain.MyMsgBox(
+                                message,
+                                Lang.Text("Download.Comp.Dependency.ResolveFailed.Title"),
+                                Lang.Text("Download.Comp.Dependency.ResolveFailed.Continue"),
+                                isWarn: true,
+                                forceWait: true);
                         }
                     }
 
@@ -470,7 +536,7 @@ public partial class PageDownloadCompDetail
                     var loaders = new List<ModLoader.LoaderBase>
                     {
                         new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadFile"),
-                            downloadFiles)
+                            new List<DownloadFile> { file.ToNetFile(target) })
                         {
                             ProgressWeight = 6,
                             block = true
@@ -489,7 +555,11 @@ public partial class PageDownloadCompDetail
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "保存资源文件失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    "保存资源文件失败",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Download.Comp.Error.OperationFailed"));
             }
         }, "Download CompDetail Save");
     }
@@ -523,7 +593,7 @@ public partial class PageDownloadCompDetail
     // 翻译简介
     private async void BtnTranslate_Click(object sender, EventArgs e)
     {
-        ModMain.Hint(Lang.Text("Download.Comp.Detail.DescriptionTranslating", _project.TranslatedName));
+        HintService.Hint(Lang.Text("Download.Comp.Detail.DescriptionTranslating", _project.TranslatedName));
         var chineseDescription = await _project.ChineseDescription;
         if (chineseDescription is null)
             return;
@@ -1054,7 +1124,11 @@ public partial class PageDownloadCompDetail
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化工程下载列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化工程下载列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Comp.Error.OperationFailed"));
         }
     }
 

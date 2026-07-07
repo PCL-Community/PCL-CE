@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -96,15 +96,6 @@ public static class ModMain
     private static int timer150Count;
 
     /// <summary>
-    ///     等待弹出的提示列表。以 {String, HintType, Log As Boolean} 形式存储为数组。
-    /// </summary>
-    private static ModBase.SafeList<HintMessage> HintWaiting
-    {
-        get => field ??= new ModBase.SafeList<HintMessage>();
-        set;
-    }
-
-    /// <summary>
     ///     等待显示的弹窗。
     /// </summary>
     public static List<MyMsgBoxConverter> WaitingMyMsgBox { get; } = [];
@@ -115,7 +106,7 @@ public static class ModMain
         {
             #region 每 50ms 执行一次的代码
 
-            HintTick();
+            HintService.Tick();
             MyMsgBoxTick();
             frmMain!.DragTick();
             ModLoader.LoaderTaskbarProgressRefresh();
@@ -125,7 +116,11 @@ public static class ModMain
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "短程主时钟执行异常", ModBase.LogLevel.Critical);
+            ModBase.Log(
+                ex,
+                "短程主时钟执行异常",
+                ModBase.LogLevel.Critical,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
 
         timer4Count += 1;
@@ -170,7 +165,11 @@ public static class ModMain
 
             catch (Exception ex)
             {
-                ModBase.Log(ex, "长程主时钟执行异常", ModBase.LogLevel.Critical);
+                ModBase.Log(
+                    ex,
+                    "长程主时钟执行异常",
+                    ModBase.LogLevel.Critical,
+                    userSummary: Lang.Text("Main.Error.OperationFailed"));
             }
         }
     }
@@ -189,7 +188,11 @@ public static class ModMain
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "程序主时钟出错", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    "程序主时钟出错",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Main.Error.OperationFailed"));
             }
         }, "Timer Main");
         if (!isAprilEnabled)
@@ -212,266 +215,14 @@ public static class ModMain
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "愚人节主时钟出错", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    "愚人节主时钟出错",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Main.Error.OperationFailed"));
             }
         }, "Timer Main Fool");
     }
-
-    #region 弹出提示
-
-    /// <summary>
-    ///     提示信息的种类。
-    /// </summary>
-    public enum HintType
-    {
-        /// <summary>
-        ///     信息，通常是蓝色的“i”。
-        /// </summary>
-        /// <remarks></remarks>
-        Info,
-
-        /// <summary>
-        ///     已完成，通常是绿色的“√”。
-        /// </summary>
-        /// <remarks></remarks>
-        Finish,
-
-        /// <summary>
-        ///     错误，通常是红色的“×”。
-        /// </summary>
-        /// <remarks></remarks>
-        Critical
-    }
-
-    private struct HintMessage
-    {
-        public string Text;
-        public HintType Type;
-        public bool Log;
-    }
-
-
-    /// <summary>
-    ///     在窗口弹出提示文本。
-    /// </summary>
-    public static void Hint(string? text, HintType type = HintType.Info, bool log = true)
-    {
-        HintWaiting.Add(new HintMessage { Text = text ?? "", Type = type, Log = log });
-    }
-
-    public static void HintWrapper_OnShow(string message, HintTheme messageTheme)
-    {
-        var hintType = messageTheme switch
-        {
-            HintTheme.Error => HintType.Critical,
-            HintTheme.Info => HintType.Info,
-            _ => HintType.Finish
-        };
-        Hint(message, hintType);
-    }
-
-    private static void HintTick()
-    {
-        try
-        {
-            // 根据配置更新提示气泡对齐方向
-            frmMain!.PanHint.HorizontalAlignment = Config.Preference.HintAlignRight
-                ? HorizontalAlignment.Right
-                : HorizontalAlignment.Left;
-
-            // Tag 存储了：{ 是否可以重用, Uuid }
-            if (!HintWaiting.Any())
-                return;
-            while (HintWaiting.Any())
-            {
-                // '清除空提示
-                // If IsNothing(HintWaiting(0)) OrElse IsNothing(HintWaiting(0)(0)) Then
-                // HintWaiting.RemoveAt(0)
-                // Continue Do
-                // End If
-                var currentHint = HintWaiting[0];
-                // 去回车
-                currentHint.Text = currentHint.Text.Replace("\r\n", " ").Replace("\r", " ")
-                    .Replace("\n", " ");
-                // 超量提示直接忽略
-                if (frmMain!.PanHint.Children.Count >= 20)
-                    goto EndHint;
-                // 检查是否有重复提示
-                Border? doubleStack = null;
-                foreach (Border stack in frmMain.PanHint.Children)
-                    if (stack.Tag is object[] tagArray && (bool)tagArray[0] &&
-                                              (((TextBlock)stack.Child).Text ?? "") == (currentHint.Text ?? ""))
-                        doubleStack = stack;
-                // 获取渐变颜色
-                ModBase.MyColor targetColor0, targetColor1;
-                var percent = 0.3d;
-                switch (currentHint.Type)
-                {
-                    case HintType.Info:
-                    {
-                        targetColor0 = new ModBase.MyColor(215d, 37d, 155d, 252d);
-                        targetColor1 = new ModBase.MyColor(215d, 10d, 142d, 252d);
-                        break;
-                    }
-                    case HintType.Finish:
-                    {
-                        targetColor0 = new ModBase.MyColor(215d, 33d, 177d, 33d);
-                        targetColor1 = new ModBase.MyColor(215d, 29d, 160d, 29d); // HintType.Critical
-                        break;
-                    }
-
-                    default:
-                    {
-                        targetColor0 = new ModBase.MyColor(215d, 255d, 53d, 11d);
-                        targetColor1 = new ModBase.MyColor(215d, 255d, 43d, 0d);
-                        break;
-                    }
-                }
-
-                // 根据提示方向准备参数
-                var alignRight = Config.Preference.HintAlignRight;
-                var slideSign = alignRight ? -1d : 1d;
-
-                if (doubleStack is not null)
-                {
-                    var doubleStackTag = (object[])doubleStack.Tag;
-                    // 有重复提示，且该提示的进入动画已播放
-                    if (!ModAnimation.AniIsRun($"Hint Show {doubleStackTag[1]}"))
-                    {
-                        ModAnimation.AniStop($"Hint Hide {doubleStackTag[1]}");
-                        var delay = (800d + ModBase.MathClamp(currentHint.Text!.Length, 5d, 23d) * 180d) *
-                                    ModAnimation.aniSpeed;
-                        ModAnimation.AniStart(new[]
-                            {
-                                ModAnimation.AaX(doubleStack, alignRight ? doubleStack.Margin.Right + 12 : -12 - doubleStack.Margin.Left, 50,
-                                    ease: new ModAnimation.AniEaseOutFluent()),
-                                ModAnimation.AaX(doubleStack, -slideSign * 8, 50, 50, new ModAnimation.AniEaseInFluent()),
-                                ModAnimation.AaX(doubleStack, slideSign * 8, 50, 100, new ModAnimation.AniEaseOutFluent()),
-                                ModAnimation.AaX(doubleStack, -slideSign * 8, 50, 150, new ModAnimation.AniEaseInFluent()),
-                                ModAnimation.AaDouble(i =>
-                                {
-                                    percent += (double)i;
-                                    var gradient = (LinearGradientBrush)doubleStack.Background;
-                                    gradient.GradientStops[0].Color = targetColor0 * percent +
-                                                                      new ModBase.MyColor(255d, 255d, 255d) *
-                                                                      (1d - percent);
-                                    gradient.GradientStops[1].Color = targetColor1 * percent +
-                                                                      new ModBase.MyColor(255d, 255d, 255d) *
-                                                                      (1d - percent);
-                                }, 0.7d, 250),
-                                ModAnimation.AaX(doubleStack, -slideSign * 50, 200, (int)Math.Round(delay),
-                                    new ModAnimation.AniEaseInFluent()),
-                                ModAnimation.AaOpacity(doubleStack, -1, 150, (int)Math.Round(delay)),
-                                ModAnimation.AaCode(() => doubleStackTag[0] = false,
-                                    (int)Math.Round(delay)),
-                                ModAnimation.AaHeight(doubleStack, -26, 100, ease: new ModAnimation.AniEaseOutFluent(),
-                                    after: true),
-                                ModAnimation.AaCode(() => frmMain.PanHint.Children.Remove(doubleStack), after: true)
-                            },
-                            $"Hint Hide {doubleStackTag[1]}");
-                    }
-                }
-                else
-                {
-                    // 准备控件
-                    var newHintTag = new object[] { true, ModBase.GetUuid() };
-                    var newHintControl = new Border
-                    {
-                        Tag = newHintTag, Margin = alignRight ? new Thickness(20d, 0d, -70d, 0d) : new Thickness(-70, 0d, 20d, 0d),
-                        Opacity = 0d,
-                        Height = 0d, HorizontalAlignment = alignRight ? HorizontalAlignment.Right : HorizontalAlignment.Left,
-                        CornerRadius = alignRight ? new CornerRadius(6d, 0d, 0d, 6d) : new CornerRadius(0d, 6d, 6d, 0d),
-                        Background = new LinearGradientBrush(
-                            new GradientStopCollection(new List<GradientStop>
-                            {
-                                new(targetColor0 * percent + new ModBase.MyColor(255d, 255d, 255d) * (1d - percent),
-                                    0d),
-                                new(targetColor1 * percent + new ModBase.MyColor(255d, 255d, 255d) * (1d - percent), 1d)
-                            }), 90d),
-                        Child = new TextBlock
-                        {
-                            TextTrimming = TextTrimming.CharacterEllipsis, FontSize = 13d, Text = currentHint.Text,
-                            Foreground = new ModBase.MyColor(255d, 255d, 255d), Margin = alignRight ? new Thickness(8d, 5d, 33d, 5d) : new Thickness(33d, 5d, 8d, 5d)
-                        }
-                    };
-                    // AddHandler NewHintControl.MouseLeftButtonDown, AddressOf HideAllHint
-                    frmMain.PanHint.Children.Add(newHintControl);
-                    // 控件动画
-                    var animations = new List<ModAnimation.AniData>();
-                    if (frmMain.PanHint.Children.Count > 1)
-                        // 已有提示
-                        animations.Add(ModAnimation.AaHeight(newHintControl, 26d, 150,
-                            ease: new ModAnimation.AniEaseOutFluent()));
-                    else
-                        // 是唯一提示
-                        newHintControl.Height = 26d;
-                    // 开始动画
-                    animations.AddRange([
-                        ModAnimation.AaX(newHintControl, slideSign * 30d,
-                            ease: new ModAnimation.AniEaseOutElastic(ModAnimation.AniEasePower.Weak)),
-                        ModAnimation.AaX(newHintControl, slideSign * 20d, 200, ease: new ModAnimation.AniEaseOutFluent()),
-                        ModAnimation.AaOpacity(newHintControl, 1d, 100),
-                        ModAnimation.AaDouble(i =>
-                        {
-                            percent += (double)i;
-                            var gradient = (LinearGradientBrush)newHintControl.Background;
-                            gradient.GradientStops[0].Color = targetColor0 * percent +
-                                                              new ModBase.MyColor(255d, 255d, 255d) * (1d - percent);
-                            gradient.GradientStops[1].Color = targetColor1 * percent +
-                                                              new ModBase.MyColor(255d, 255d, 255d) * (1d - percent);
-                        }, 0.7d, 250, 100)
-                    ]);
-                    ModAnimation.AniStart(animations, $"Hint Show {newHintTag[1]}");
-                    // 结束动画
-                    var delay = (800d + ModBase.MathClamp(currentHint.Text!.Length, 5d, 23d) * 180d) *
-                                ModAnimation.aniSpeed;
-                    ModAnimation.AniStart(
-                        new[]
-                        {
-                            ModAnimation.AaX(newHintControl, -slideSign * 50, 200, (int)Math.Round(delay),
-                                new ModAnimation.AniEaseInFluent()),
-                            ModAnimation.AaOpacity(newHintControl, -1, 150, (int)Math.Round(delay)),
-                            ModAnimation.AaCode(() => newHintTag[0] = false, (int)Math.Round(delay)),
-                            ModAnimation.AaHeight(newHintControl, -26, 100, ease: new ModAnimation.AniEaseOutFluent(),
-                                after: true),
-                            ModAnimation.AaCode(() => frmMain.PanHint.Children.Remove(newHintControl), after: true)
-                        }, $"Hint Hide {newHintTag[1]}");
-                }
-
-                // 结束处理
-                EndHint: ;
-
-                if (currentHint.Log)
-                    ModBase.Log("[UI] 弹出提示：" + currentHint.Text);
-                HintWaiting.RemoveAt(0);
-            }
-        }
-        catch (Exception ex)
-        {
-            ModBase.Log(ex, "显示弹出提示失败", ModBase.LogLevel.Normal);
-        }
-    }
-
-    private static void HideAllHint()
-    {
-        var hideSign = Config.Preference.HintAlignRight ? -1d : 1d;
-        foreach (Border control in frmMain!.PanHint.Children)
-        {
-            var controlTag = (object[])control.Tag;
-            control.IsHitTestVisible = false;
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaX(control, -hideSign * 50, 200, ease: new ModAnimation.AniEaseInFluent()),
-                    ModAnimation.AaOpacity(control, -1, 150, ease: new ModAnimation.AniEaseInFluent()),
-                    ModAnimation.AaCode(() => controlTag[0] = false),
-                    ModAnimation.AaHeight(control, -26, 100, ease: new ModAnimation.AniEaseOutFluent(), after: true),
-                    ModAnimation.AaCode(() => frmMain.PanHint.Children.Remove(control), after: true)
-                }, $"Hint Hide {controlTag[1]}");
-        }
-    }
-
-    #endregion
 
     #region 弹窗
 
@@ -886,7 +637,11 @@ public static class ModMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "处理等待中的弹窗失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "处理等待中的弹窗失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
 
@@ -906,38 +661,6 @@ public static class ModMain
             button1Action: btnAct1, button2Action: btnAct2, button3Action: btnAct3);
     }
 
-    #endregion
-
-    #region 页面声明
-
-    // 在最后进行页面声明，避免颜色尚未加载完毕
-
-    // 窗体声明
-
-
-    // 页面声明（出于单元测试考虑，初始化页面已转入 FormMain 中）
-
-
-    // 工具页面声明
-
-
-    // 下载页面声明
-
-
-    // 设置页面声明
-
-
-    // 登录页面声明
-
-
-    // 实例设置页面声明
-
-
-    // 实例存档页面
-
-
-    // 资源信息分页声明
-    
     #endregion
 
     #region 愚人节
@@ -1063,22 +786,22 @@ public static class ModMain
                 {
                     case 0:
                     {
-                        Hint("放弃吧！只需要点一下右下角的小白旗……");
+                        HintService.Hint("放弃吧！只需要点一下右下角的小白旗……");
                         break;
                     }
                     case 1:
                     {
-                        Hint("看到右下角的那面小白旗了吗？");
+                        HintService.Hint("看到右下角的那面小白旗了吗？");
                         break;
                     }
                     case 2:
                     {
-                        Hint("这里建议点一下右下角的小白旗投降呢.jpg");
+                        HintService.Hint("这里建议点一下右下角的小白旗投降呢.jpg");
                         break;
                     }
                     case 3:
                     {
-                        Hint("右下角的小白旗永远等着你……");
+                        HintService.Hint("右下角的小白旗永远等着你……");
                         break;
                     }
                 }
@@ -1087,7 +810,11 @@ public static class ModMain
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "愚人节移动出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "愚人节移动出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
 
@@ -1107,7 +834,11 @@ public static class ModMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "设置窗口置顶失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "设置窗口置顶失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
 
@@ -1345,7 +1076,7 @@ public static class ModMain
         // 收集事件列表
         var events = CustomEventService.GetEvents(control).ToList();
         var eventType = CustomEventService.GetEventType(control);
-        if (eventType != CustomEvent.EventType.None)
+        if (eventType != EventType.None)
             events.Add(new CustomEvent(eventType, CustomEventService.GetEventData(control)));
 
         if (!events.Any()) return;

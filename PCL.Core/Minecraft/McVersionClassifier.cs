@@ -35,10 +35,16 @@ public static class McVersionClassifier
         return type switch
         {
             "release" => McVersionCategory.Release,
-            "special" => McVersionCategory.AprilFools,
+            "special" => _RefreshAprilFools(version, idLower),
             "snapshot" or "pending" => _ClassifySnapshotOrPending(version, idLower),
             _ => McVersionCategory.BeforeRelease
         };
+    }
+
+    private static McVersionCategory _RefreshAprilFools(JsonObject version, string idLower)
+    {
+        _TryMarkAprilFoolsVersion(version, idLower);
+        return McVersionCategory.AprilFools;
     }
 
     public static DateTime GetReleaseTime(JsonObject version)

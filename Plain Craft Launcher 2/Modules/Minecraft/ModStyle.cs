@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -7,6 +7,7 @@ using System.Windows.Threading;
 using PCL.Core.UI.Controls;
 using PCL.Core.Utils;
 
+using PCL.Core.App.Localization;
 namespace PCL;
 
 internal static class ModStyle
@@ -91,7 +92,10 @@ internal static class ModStyle
         {
             if (Dispatcher is null)
             {
-                ModBase.Log("[TimerRun] Dispatcher is null, unable to run", ModBase.LogLevel.Critical);
+                ModBase.Log(
+                    "[TimerRun] Dispatcher is null, unable to run",
+                    ModBase.LogLevel.Critical,
+                    userSummary: Lang.Text("Minecraft.Launch.Error.DispatcherUnavailable"));
                 return;
             }
 

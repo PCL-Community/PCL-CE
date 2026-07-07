@@ -1,4 +1,4 @@
-﻿using PCL.Core.Utils;
+using PCL.Core.Utils;
 using System;
 using System.IO;
 

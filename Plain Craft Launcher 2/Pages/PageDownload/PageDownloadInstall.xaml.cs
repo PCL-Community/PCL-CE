@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,11 +18,12 @@ public partial class PageDownloadInstall
 
     public PageDownloadInstall()
     {
-        PanScroll = PanBack;
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
+        PanScroll = PanBack;
         LoadMinecraft.Text = Lang.Text("Download.Version.LoadingList");
+        WeakLanguageChanged.Add(this, OnLanguageChanged);
         BtnBack.Click += (_, _) => ExitSelectPage();
         CardOptiFine.Swap += (_, _) => ReloadSelected();
         LoadOptiFine.StateChanged += (_, _, _) => ReloadSelected();
@@ -90,6 +91,7 @@ public partial class PageDownloadInstall
         TextSelectName.KeyDown += TextSelectName_KeyDown;
         BtnStart.Click += (_, _) => BtnStart_Click();
     }
+    private static void OnLanguageChanged(PageDownloadInstall page) => page._OnLanguageChanged();
 
     private void LoaderInit()
     {
@@ -211,7 +213,7 @@ public partial class PageDownloadInstall
         if (!States.Hint.InstallPageBack)
         {
             States.Hint.InstallPageBack = true;
-            ModMain.Hint(Lang.Text("Download.Install.Hint.MinecraftBack"));
+            HintService.Hint(Lang.Text("Download.Install.Hint.MinecraftBack"));
         }
 
         // 如果在选择页面按了刷新键，选择页的东西可能会由于动画被隐藏，但不会由于加载结束而再次显示，因此这里需要手动恢复
@@ -995,34 +997,7 @@ public partial class PageDownloadInstall
             if (ModDownload.dlClientListLoader.output.Value["versions"] is not JsonArray versions)
                 return;
 
-            var categoryOrder = new[]
-            {
-                McVersionCategory.Release,
-                McVersionCategory.Snapshot,
-                McVersionCategory.BeforeRelease,
-                McVersionCategory.AprilFools
-            };
-
-            var dict = categoryOrder.ToDictionary(
-                category => category,
-                _ => new List<JsonObject>()
-            );
-
-            foreach (JsonObject version in versions)
-            {
-                var category = McVersionClassifier.ClassifyVersion(version);
-                dict[category].Add(version);
-            }
-
-            foreach (var category in categoryOrder)
-                dict[category] = dict[category]
-                    .OrderByDescending(McVersionClassifier.GetReleaseTime)
-                    .ToList();
-
-            PanMinecraft.Children.Clear();
-
-            _AddLatestVersionCard(dict);
-            _AddCategoryCards(dict, categoryOrder);
+            _RebuildVersionCards(versions);
 
             if (mcVersionWaitingForSelect is null) return;
 
@@ -1040,9 +1015,52 @@ public partial class PageDownloadInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Install.Error.OperationFailed"));
         }
     }
+
+    private void _RebuildVersionCards(JsonArray versions)
+    {
+        var categoryOrder = new[]
+        {
+            McVersionCategory.Release,
+            McVersionCategory.Snapshot,
+            McVersionCategory.BeforeRelease,
+            McVersionCategory.AprilFools
+        };
+
+        var dict = categoryOrder.ToDictionary(
+            category => category,
+            _ => new List<JsonObject>()
+        );
+
+        foreach (JsonObject version in versions)
+        {
+            var category = McVersionClassifier.ClassifyVersion(version);
+            dict[category].Add(version);
+        }
+
+        foreach (var category in categoryOrder)
+            dict[category] = dict[category]
+                .OrderByDescending(McVersionClassifier.GetReleaseTime)
+                .ToList();
+
+        PanMinecraft.Children.Clear();
+
+        _AddLatestVersionCard(dict);
+        _AddCategoryCards(dict, categoryOrder);
+    }
+
+    private void _OnLanguageChanged() => ModBase.RunInUi(() =>
+    {
+        LoadMinecraft.Text = Lang.Text("Download.Version.LoadingList");
+        if (ModDownload.dlClientListLoader.output.Value?["versions"] is JsonArray versions)
+            _RebuildVersionCards(versions);
+    });
 
     private void _AddLatestVersionCard(Dictionary<McVersionCategory, List<JsonObject>> dict)
     {
@@ -1261,7 +1279,11 @@ public partial class PageDownloadInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 OptiFine 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 OptiFine 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Install.Error.OperationFailed"));
         }
     }
 
@@ -1340,7 +1362,11 @@ public partial class PageDownloadInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 LiteLoader 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 LiteLoader 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Install.Error.OperationFailed"));
         }
     }
 
@@ -1442,7 +1468,11 @@ public partial class PageDownloadInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Forge 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 Forge 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Install.Error.OperationFailed"));
         }
     }
 
@@ -1524,7 +1554,11 @@ public partial class PageDownloadInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 NeoForge 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 NeoForge 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Install.Error.OperationFailed"));
         }
     }
 
@@ -1604,7 +1638,11 @@ public partial class PageDownloadInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Cleanroom 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 Cleanroom 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Install.Error.OperationFailed"));
         }
     }
 
@@ -1690,7 +1728,11 @@ public partial class PageDownloadInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Fabric 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 Fabric 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Install.Error.OperationFailed"));
         }
     }
 
@@ -1805,7 +1847,7 @@ public partial class PageDownloadInstall
                 if (!IsFabricApiCompatible(version))
                     continue;
                 PanFabricApi.Children.Add(
-                    ModDownloadLib.FabricApiDownloadListItem(version, (a, b) => this.Fabric_Selected((dynamic)a, b)));
+                    ModDownloadLib.FabricApiDownloadListItem(version, (a, b) => this.FabricApi_Selected((dynamic)a, b)));
             }
 
             // 自动选择 Fabric API
@@ -1819,7 +1861,11 @@ public partial class PageDownloadInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Fabric API 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 Fabric API 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Install.Error.OperationFailed"));
         }
     }
 
@@ -1900,7 +1946,11 @@ public partial class PageDownloadInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 LegacyFabric 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 LegacyFabric 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Install.Error.OperationFailed"));
         }
     }
 
@@ -2029,7 +2079,11 @@ public partial class PageDownloadInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Legacy Fabric API 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 Legacy Fabric API 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Install.Error.OperationFailed"));
         }
     }
 
@@ -2114,7 +2168,11 @@ public partial class PageDownloadInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Quilt 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 Quilt 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Install.Error.OperationFailed"));
         }
     }
 
@@ -2250,7 +2308,11 @@ public partial class PageDownloadInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 QSL 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 QSL 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Install.Error.OperationFailed"));
         }
     }
 
@@ -2381,7 +2443,11 @@ public partial class PageDownloadInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 OptiFabric 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 OptiFabric 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Install.Error.OperationFailed"));
         }
     }
 
@@ -2485,7 +2551,11 @@ public partial class PageDownloadInstall
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 LabyMod 安装版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 LabyMod 安装版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Install.Error.OperationFailed"));
         }
     }
 

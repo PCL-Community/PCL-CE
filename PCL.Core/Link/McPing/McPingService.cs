@@ -1,4 +1,4 @@
-﻿using System.Buffers.Binary;
+using System.Buffers.Binary;
 using PCL.Core.App.Localization;
 using PCL.Core.Link.McPing.Model;
 using PCL.Core.Logging;

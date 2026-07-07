@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using PCL.Core.App;
@@ -77,14 +77,18 @@ public partial class PageLogLeft
             if (!States.Hint.MaxGameLog)
             {
                 States.Hint.MaxGameLog = true;
-                ModMain.Hint(Lang.Text("LogPage.MaxLines.Hint", 500));
+                HintService.Hint(Lang.Text("LogPage.MaxLines.Hint", 500));
             }
 
             isLoading -= 1;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "构建游戏实时日志 UI 出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "构建游戏实时日志 UI 出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("LogPage.Error.OperationFailed"));
         }
     }
 

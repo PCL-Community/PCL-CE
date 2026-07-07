@@ -1,4 +1,4 @@
-using System.Collections.Specialized;
+﻿using System.Collections.Specialized;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -51,7 +51,7 @@ public partial class PageInstanceSaves : IRefreshable
         if (ModMain.frmInstanceSaves is not null)
             ModMain.frmInstanceSaves.Reload();
         ModMain.frmInstanceLeft.ItemWorld.Checked = true;
-        ModMain.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), log: false);
+        HintService.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), log: false);
     }
 
     private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
@@ -232,12 +232,16 @@ public partial class PageInstanceSaves : IRefreshable
                             {
                                 FileSystem.DeleteDirectory(tmpCurFolder, UIOption.OnlyErrorDialogs,
                                     RecycleOption.SendToRecycleBin);
-                                ModMain.Hint(Lang.Text("Instance.Saves.DeletedToRecycleBin"));
+                                HintService.Hint(Lang.Text("Instance.Saves.DeletedToRecycleBin"));
                                 ModBase.RunInUiWait(() => RemoveItem(worldItem));
                             }
                             catch (Exception ex)
                             {
-                                ModBase.Log(ex, Lang.Text("Instance.Saves.DeleteFailed"), ModBase.LogLevel.Hint);
+                                ModBase.Log(
+                                    ex,
+                                    Lang.Text("Instance.Saves.DeleteFailed"),
+                                    ModBase.LogLevel.Hint,
+                                    userSummary: Lang.Text("Instance.Saves.DeleteFailed"));
                                 ModBase.RunInUiWait(() => Reload());
                             }
                         });
@@ -254,17 +258,21 @@ public partial class PageInstanceSaves : IRefreshable
                             if (Directory.Exists(tmpCurFolder))
                             {
                                 Clipboard.SetFileDropList(new StringCollection { tmpCurFolder });
-                                ModMain.Hint(Lang.Text("Instance.Saves.CopiedToClipboard"));
-                                ModMain.Hint(Lang.Text("Instance.Saves.CopyPasteWarning"));
+                                HintService.Hint(Lang.Text("Instance.Saves.CopiedToClipboard"));
+                                HintService.Hint(Lang.Text("Instance.Saves.CopyPasteWarning"));
                             }
                             else
                             {
-                                ModMain.Hint(Lang.Text("Instance.Saves.FolderNotFound"));
+                                HintService.Hint(Lang.Text("Instance.Saves.FolderNotFound"));
                             }
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, Lang.Text("Instance.Saves.CopyFailed"), ModBase.LogLevel.Hint);
+                            ModBase.Log(
+                                ex,
+                                Lang.Text("Instance.Saves.CopyFailed"),
+                                ModBase.LogLevel.Hint,
+                                userSummary: Lang.Text("Instance.Saves.CopyFailed"));
                         }
                     };
                     var btnInfo = new MyIconButton
@@ -304,7 +312,11 @@ public partial class PageInstanceSaves : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Saves.RefreshUiFailed"), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Instance.Saves.RefreshUiFailed"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Instance.Saves.RefreshUiFailed"));
         }
     }
 
@@ -317,7 +329,11 @@ public partial class PageInstanceSaves : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "检查存档快捷启动失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "检查存档快捷启动失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
         }
     }
 
@@ -349,7 +365,11 @@ public partial class PageInstanceSaves : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Saves.LoadListFailed"), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Instance.Saves.LoadListFailed"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Instance.Saves.LoadListFailed"));
         }
     }
 
@@ -380,7 +400,7 @@ public partial class PageInstanceSaves : IRefreshable
                     {
                         if (Directory.Exists(worldPath + GetFolderNameFromPath(i)))
                         {
-                            ModMain.Hint(Lang.Text("Instance.Saves.DuplicateFolder", GetFolderNameFromPath(i)));
+                            HintService.Hint(Lang.Text("Instance.Saves.DuplicateFolder", GetFolderNameFromPath(i)));
                         }
                         else
                         {
@@ -390,16 +410,20 @@ public partial class PageInstanceSaves : IRefreshable
                     }
                     else
                     {
-                        ModMain.Hint(Lang.Text("Instance.Saves.SourceNotFolder"));
+                        HintService.Hint(Lang.Text("Instance.Saves.SourceNotFolder"));
                     }
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, Lang.Text("Instance.Saves.PasteFolderFailed"), ModBase.LogLevel.Hint);
+                    ModBase.Log(
+                        ex,
+                        Lang.Text("Instance.Saves.PasteFolderFailed"),
+                        ModBase.LogLevel.Hint,
+                        userSummary: Lang.Text("Instance.Saves.PasteFolderFailed"));
                 }
 
             if (copied > 0)
-                ModMain.Hint(Lang.Text("Instance.Saves.PastedCount", copied.ToString()), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Saves.PastedCount", copied.ToString()), HintType.Success);
             ModBase.RunInUi(() => Reload());
         }));
         var loader = new ModLoader.LoaderCombo<int>($"{PageInstanceLeft.McInstance.Name} - {Lang.Text("Instance.Saves.CopySave")}", loaders)
@@ -408,6 +432,12 @@ public partial class PageInstanceSaves : IRefreshable
         ModLoader.LoaderTaskbarAdd(loader);
         ModMain.frmMain.BtnExtraDownload.ShowRefresh();
         ModMain.frmMain.BtnExtraDownload.Ribble();
+    }
+
+    private void BtnDownloadNew_Click(object sender, MouseButtonEventArgs e)
+    {
+        ModMain.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadWorld);
+        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
     }
 
     #region 搜索和排序
@@ -498,7 +528,7 @@ public partial class PageInstanceSaves : IRefreshable
                     queryList.Add(new ModBase.SearchEntry<string> { item = saveFolder, searchSource = searchSource });
                 }
 
-                _searchResult = ModBase.Search(queryList, SearchBox.Text, 6, 0.35d).Select(r => r.item).ToList();
+                _searchResult = ModBase.Search(queryList, SearchBox.Text, ModBase.MaxLocalSearchDepth, 0.35d).Select(r => r.item).ToList();
             }
             else
             {

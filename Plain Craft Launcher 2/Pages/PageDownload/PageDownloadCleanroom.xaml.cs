@@ -1,8 +1,9 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
+using PCL.Core.App.Localization;
 namespace PCL;
 
 public partial class PageDownloadCleanroom
@@ -63,7 +64,11 @@ public partial class PageDownloadCleanroom
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Cleanroom 版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 Cleanroom 版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
     }
 

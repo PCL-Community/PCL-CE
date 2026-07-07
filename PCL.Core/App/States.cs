@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using PCL.Core.App.Configuration;
 
 namespace PCL.Core.App;
