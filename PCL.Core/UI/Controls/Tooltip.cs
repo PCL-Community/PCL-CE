@@ -529,6 +529,7 @@ public static class Tooltip
                 Margin = _InnerPad,
                 FontSize = TipFontSize,
                 LineHeight = TipLineHeight,
+                LineStackingStrategy = LineStackingStrategy.BlockLineHeight,
                 MaxWidth = tipW
             };
             tb.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrush1");
