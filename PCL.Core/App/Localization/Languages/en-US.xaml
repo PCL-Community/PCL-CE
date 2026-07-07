@@ -3225,7 +3225,7 @@
     <sys:String x:Key="SystemDialog.File.SelectTitle">Select file</sys:String>
     <sys:String x:Key="SystemDialog.Folder.OpenFailed.Message">Failed to open File Explorer. Try closing security software, such as 360 Total Security.&#xA;&#xA;Path: {0}</sys:String>
     <sys:String x:Key="SystemDialog.Folder.SelectTitle">Select folder</sys:String>
-    <sys:String x:Key="SystemDialog.Startup.DotNetRuntimeOutdated.Message">Your .NET Desktop Runtime is outdated or corrupted. Please reinstall .NET 8.</sys:String>
+    <sys:String x:Key="SystemDialog.Startup.DotNetRuntimeOutdated.Message">Your .NET Desktop Runtime is outdated or corrupted. Please reinstall .NET 10.</sys:String>
     <sys:String x:Key="SystemDialog.Startup.InitializationTitle">PCL CE failed to initialize</sys:String>
 
     <!-- SystemDialog.Error -->
@@ -3233,7 +3233,7 @@
     <sys:String x:Key="SystemDialog.Error.Detail.WithException">{0}&#xA;&#xA;Details:&#xA;{1}</sys:String>
     <sys:String x:Key="SystemDialog.Error.Message.WithLogExportGuidance">{0}&#xA;&#xA;When asking for help, do not close launcher. Export the logs now (Settings → View logs → Export logs), then send the exported log archive. A screenshot of this window alone is usually not enough to diagnose the problem.</sys:String>
     <sys:String x:Key="SystemDialog.Error.OperationFailed.Message">An error occurred while performing this operation.&#xA;&#xA;Operation:&#xA;{0}&#xA;&#xA;Details:&#xA;{1}</sys:String>
-    <sys:String x:Key="SystemDialog.Error.OperationFailed.RuntimeMessage">An error occurred while performing this operation.&#xA;&#xA;Operation:&#xA;{0}&#xA;&#xA;Details:&#xA;{1}&#xA;&#xA;A low-level system operation failed. Please try reinstalling .NET 8.</sys:String>
+    <sys:String x:Key="SystemDialog.Error.OperationFailed.RuntimeMessage">An error occurred while performing this operation.&#xA;&#xA;Operation:&#xA;{0}&#xA;&#xA;Details:&#xA;{1}&#xA;&#xA;A low-level system operation failed. Please try reinstalling .NET 10.</sys:String>
     <sys:String x:Key="SystemDialog.Error.Title">Error</sys:String>
     <sys:String x:Key="SystemDialog.Error.Unexpected.Message">An unexpected error occurred.</sys:String>
     <sys:String x:Key="SystemDialog.Error.Unexpected.Title">Unexpected error</sys:String>

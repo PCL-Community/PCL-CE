@@ -3225,7 +3225,7 @@
     <sys:String x:Key="SystemDialog.File.SelectTitle">选择文件</sys:String>
     <sys:String x:Key="SystemDialog.Folder.OpenFailed.Message">无法打开文件资源管理器。请尝试关闭安全软件（例如 360 安全卫士）。&#xA;&#xA;路径：{0}</sys:String>
     <sys:String x:Key="SystemDialog.Folder.SelectTitle">选择文件夹</sys:String>
-    <sys:String x:Key="SystemDialog.Startup.DotNetRuntimeOutdated.Message">你的 .NET 桌面运行时已过期或损坏。请重新安装 .NET 8。</sys:String>
+    <sys:String x:Key="SystemDialog.Startup.DotNetRuntimeOutdated.Message">你的 .NET 桌面运行时已过期或损坏。请重新安装 .NET 10。</sys:String>
     <sys:String x:Key="SystemDialog.Startup.InitializationTitle">PCL CE 初始化失败</sys:String>
 
     <!-- SystemDialog.Error -->
@@ -3233,7 +3233,7 @@
     <sys:String x:Key="SystemDialog.Error.Detail.WithException">{0}&#xA;&#xA;详细信息：&#xA;{1}</sys:String>
     <sys:String x:Key="SystemDialog.Error.Message.WithLogExportGuidance">{0}&#xA;&#xA;若要寻求帮助，请不要关闭启动器。请立即导出日志（设置 → 查看日志 → 导出日志），并发送导出的日志压缩包；仅发送此窗口的截图通常无法帮助定位问题。</sys:String>
     <sys:String x:Key="SystemDialog.Error.OperationFailed.Message">执行操作时发生错误。&#xA;&#xA;操作信息：&#xA;{0}&#xA;&#xA;详细信息：&#xA;{1}</sys:String>
-    <sys:String x:Key="SystemDialog.Error.OperationFailed.RuntimeMessage">执行操作时发生错误。&#xA;&#xA;操作信息：&#xA;{0}&#xA;&#xA;详细信息：&#xA;{1}&#xA;&#xA;与系统底层交互失败。请尝试重新安装 .NET 8。</sys:String>
+    <sys:String x:Key="SystemDialog.Error.OperationFailed.RuntimeMessage">执行操作时发生错误。&#xA;&#xA;操作信息：&#xA;{0}&#xA;&#xA;详细信息：&#xA;{1}&#xA;&#xA;与系统底层交互失败。请尝试重新安装 .NET 10。</sys:String>
     <sys:String x:Key="SystemDialog.Error.Title">错误</sys:String>
     <sys:String x:Key="SystemDialog.Error.Unexpected.Message">发生意外错误。</sys:String>
     <sys:String x:Key="SystemDialog.Error.Unexpected.Title">发生意外错误</sys:String>
