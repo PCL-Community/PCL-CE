@@ -44,7 +44,7 @@ public partial class PageDownloadCompFavorites
         PanSearchBox.TextChanged += SearchRun;
         WeakLanguageChanged.Add(this, OnLanguageChanged); 
     }
-    private static void OnLanguageChanged(PageDownloadCompFavorites page) => ModBase.RunInUi(page._RefreshCategoryTitles);
+    private static void OnLanguageChanged(PageDownloadCompFavorites page) => UiThread.Post(page._RefreshCategoryTitles);
 
     private ModComp.CompFavorites.FavData CurrentFavTarget
     {

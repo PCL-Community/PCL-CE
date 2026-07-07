@@ -1055,7 +1055,7 @@ public partial class PageDownloadInstall
         _AddCategoryCards(dict, categoryOrder);
     }
 
-    private void _OnLanguageChanged() => ModBase.RunInUi(() =>
+    private void _OnLanguageChanged() => UiThread.Post(() =>
     {
         LoadMinecraft.Text = Lang.Text("Download.Version.LoadingList");
         if (ModDownload.dlClientListLoader.output.Value?["versions"] is JsonArray versions)
