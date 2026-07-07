@@ -118,6 +118,15 @@ public static class Tooltip
             FrameworkElement.LoadedEvent, _OnComboLoadedHandler, true);
         EventManager.RegisterClassHandler(typeof(ComboBox),
             UIElement.PreviewMouseDownEvent, _OnComboMouseDownHandler, true);
+
+        EventManager.RegisterClassHandler(typeof(Window),
+            UIElement.MouseLeaveEvent, new MouseEventHandler(OnWindowLeave), true);
+    }
+
+    private static void OnWindowLeave(object s, MouseEventArgs e)
+    {
+        if (_target is not null)
+            _WindDown();
     }
 
     public static void Disable()
