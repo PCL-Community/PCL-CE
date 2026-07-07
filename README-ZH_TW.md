@@ -39,8 +39,8 @@ PCL CE 是基於 PCL 開放原始碼二次開發的社群版本，包括了主�
 | 作業系統 | 支援情況 | 環境要求 |
 |---|---|---|
 | Windows 10 1809 (17763) 或更高 | ✅ 完整支援 | [.NET 10 Desktop Runtime](https://get.dot.net/10) |
-| Windows 10 1607 (14393) - Windows 10 1809 (17763) | ⚠️ 理論能跑，酌情提供社群支援 | [.NET 10 Desktop Runtime](https://get.dot.net/10) |
-| Windows 10 1511 或更低版本 | ❌ 不支援 | / |
+| Windows 8 - Windows 10 1809 (17763) | ⚠️ 理論能跑，酌情提供社群支援 | [.NET 10 Desktop Runtime](https://get.dot.net/10) |
+| Windows 7 或更低版本 | ❌ 不支援 | / |
 | macOS / Linux / 其他作業系統 | ⚠️ 僅跨平台開發支援（交叉編譯）| [.NET 10 SDK](https://get.dot.net/10) |
 
 **✅ 完整支援**：盡可能提供一切相關支援，但必須確保啟動器為最新版本。
