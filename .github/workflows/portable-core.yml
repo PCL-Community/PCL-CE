@@ -84,3 +84,221 @@ jobs:
         run: |
           ./PCL.Desktop/bin/Release/net10.0/${{ steps.runtime.outputs.rid }}/publish/PCL.Desktop --validate-environment
           ./PCL.Desktop/bin/Release/net10.0/${{ steps.runtime.outputs.rid }}/publish/PCL.Desktop --validate-assets
+
+  desktop-single-file:
+    name: single-file (${{ matrix.rid }}, ${{ matrix.runtime_label }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-latest
+            rid: win-x64
+            os_name: win
+            architecture: x64
+            platform: x64
+            binary_name: PCL.Desktop.exe
+            runtime_label: runtime
+            runtime_variant: SelfContained
+            self_contained: true
+          - runner: windows-latest
+            rid: win-x64
+            os_name: win
+            architecture: x64
+            platform: x64
+            binary_name: PCL.Desktop.exe
+            runtime_label: noruntime
+            runtime_variant: NoRuntime
+            self_contained: false
+          - runner: windows-latest
+            rid: win-arm64
+            os_name: win
+            architecture: arm64
+            platform: ARM64
+            binary_name: PCL.Desktop.exe
+            runtime_label: runtime
+            runtime_variant: SelfContained
+            self_contained: true
+          - runner: windows-latest
+            rid: win-arm64
+            os_name: win
+            architecture: arm64
+            platform: ARM64
+            binary_name: PCL.Desktop.exe
+            runtime_label: noruntime
+            runtime_variant: NoRuntime
+            self_contained: false
+          - runner: ubuntu-latest
+            rid: linux-x64
+            os_name: linux
+            architecture: x64
+            platform: x64
+            binary_name: PCL.Desktop
+            runtime_label: runtime
+            runtime_variant: SelfContained
+            self_contained: true
+          - runner: ubuntu-latest
+            rid: linux-x64
+            os_name: linux
+            architecture: x64
+            platform: x64
+            binary_name: PCL.Desktop
+            runtime_label: noruntime
+            runtime_variant: NoRuntime
+            self_contained: false
+          - runner: ubuntu-latest
+            rid: linux-arm64
+            os_name: linux
+            architecture: arm64
+            platform: ARM64
+            binary_name: PCL.Desktop
+            runtime_label: runtime
+            runtime_variant: SelfContained
+            self_contained: true
+          - runner: ubuntu-latest
+            rid: linux-arm64
+            os_name: linux
+            architecture: arm64
+            platform: ARM64
+            binary_name: PCL.Desktop
+            runtime_label: noruntime
+            runtime_variant: NoRuntime
+            self_contained: false
+          - runner: macos-latest
+            rid: osx-x64
+            os_name: mac
+            architecture: x64
+            platform: x64
+            binary_name: PCL.Desktop
+            runtime_label: runtime
+            runtime_variant: SelfContained
+            self_contained: true
+          - runner: macos-latest
+            rid: osx-x64
+            os_name: mac
+            architecture: x64
+            platform: x64
+            binary_name: PCL.Desktop
+            runtime_label: noruntime
+            runtime_variant: NoRuntime
+            self_contained: false
+          - runner: macos-latest
+            rid: osx-arm64
+            os_name: mac
+            architecture: arm64
+            platform: ARM64
+            binary_name: PCL.Desktop
+            runtime_label: runtime
+            runtime_variant: SelfContained
+            self_contained: true
+          - runner: macos-latest
+            rid: osx-arm64
+            os_name: mac
+            architecture: arm64
+            platform: ARM64
+            binary_name: PCL.Desktop
+            runtime_label: noruntime
+            runtime_variant: NoRuntime
+            self_contained: false
+    runs-on: ${{ matrix.runner }}
+    env:
+      ARTIFACT_NAME: PCL2_N_Portable_${{ matrix.os_name }}_${{ matrix.architecture }}_${{ matrix.runtime_label }}
+      PUBLISH_DIR: artifact/${{ matrix.rid }}-${{ matrix.runtime_label }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - name: Publish portable single-file binary
+        shell: bash
+        run: |
+          dotnet publish PCL.Desktop/PCL.Desktop.csproj \
+            -c Release \
+            -r "${{ matrix.rid }}" \
+            --self-contained "${{ matrix.self_contained }}" \
+            -p:Platform="${{ matrix.platform }}" \
+            -p:PublishAot=false \
+            -p:PublishTrimmed=false \
+            -p:PublishSingleFile=true \
+            -p:EnableCompressionInSingleFile="${{ matrix.self_contained }}" \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:PclRuntimeVariant="${{ matrix.runtime_variant }}" \
+            -p:DebugType=None \
+            -p:DebugSymbols=false \
+            -p:DeleteExistingFiles=true \
+            -warnaserror:CA1416 \
+            -o "$PUBLISH_DIR"
+      - name: Validate single-file output
+        shell: bash
+        run: |
+          binary="$PUBLISH_DIR/${{ matrix.binary_name }}"
+          test -s "$binary" || {
+            echo "::error file=$binary::Portable single-file binary is missing."
+            exit 1
+          }
+
+          shopt -s nullglob
+          unexpected=()
+          for file in "$PUBLISH_DIR"/*; do
+            name="$(basename "$file")"
+            if [[ -d "$file" ]]; then
+              unexpected+=("$name")
+              continue
+            fi
+            if [[ "$name" == "${{ matrix.binary_name }}" ]]; then
+              continue
+            fi
+            case "$name" in
+              *.pdb|*.xml|*.dbg)
+                rm -f "$file"
+                ;;
+              *)
+                unexpected+=("$name")
+                ;;
+            esac
+          done
+          if (( ${#unexpected[@]} > 0 )); then
+            echo "::error::Portable publish produced extra runtime files; expected a single-file binary."
+            printf '%s\n' "${unexpected[@]}"
+            exit 1
+          fi
+
+          file_count=0
+          for file in "$PUBLISH_DIR"/*; do
+            [[ -f "$file" ]] && ((file_count += 1))
+          done
+          if (( file_count != 1 )); then
+            echo "::error::Portable artifact directory should contain exactly one binary after cleanup."
+            exit 1
+          fi
+
+          can_run=false
+          if [[ "$RUNNER_OS" == "Windows" && "${{ matrix.rid }}" == "win-x64" ]]; then
+            can_run=true
+          elif [[ "$RUNNER_OS" == "Linux" && "${{ matrix.rid }}" == "linux-x64" ]]; then
+            can_run=true
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            machine="$(uname -m)"
+            if [[ "$machine" == "arm64" && "${{ matrix.rid }}" == "osx-arm64" ]]; then
+              can_run=true
+            elif [[ "$machine" == "x86_64" && "${{ matrix.rid }}" == "osx-x64" ]]; then
+              can_run=true
+            fi
+          fi
+
+          if [[ "$can_run" == "true" ]]; then
+            "$binary" --validate-environment
+            "$binary" --validate-assets
+          fi
+
+          mkdir -p upload
+          extension=""
+          if [[ "${{ matrix.os_name }}" == "win" ]]; then
+            extension=".exe"
+          fi
+          cp "$binary" "upload/${ARTIFACT_NAME}${extension}"
+          chmod +x "upload/${ARTIFACT_NAME}${extension}" || true
+      - name: Upload portable single-file artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: upload/*
