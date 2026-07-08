@@ -204,7 +204,7 @@ public static class Files {
             var fullPath = GetFullPath(filePath);
             if (File.Exists(fullPath)) {
                 // 使用 ReadAllBytesAsync
-                return await File.ReadAllBytesAsync(fullPath, cancelToken);
+                return await File.ReadAllBytesAsync(fullPath, cancelToken).ConfigureAwait(false);
             }
             throw new FileNotFoundException(fullPath);
         } catch (Exception ex) {
@@ -224,8 +224,8 @@ public static class Files {
         try {
             var fullPath = GetFullPath(filePath);
             if (!File.Exists(fullPath)) throw new FileNotFoundException(fullPath);
-            if (encoding is null) return await File.ReadAllTextAsync(fullPath, cancelToken);
-            return await File.ReadAllTextAsync(fullPath, encoding, cancelToken);
+            if (encoding is null) return await File.ReadAllTextAsync(fullPath, cancelToken).ConfigureAwait(false);
+            return await File.ReadAllTextAsync(fullPath, encoding, cancelToken).ConfigureAwait(false);
         } catch (Exception ex) {
             LogWrapper.Warn(ex, $"读取文件出错：{filePath}");
             return "";
@@ -243,7 +243,7 @@ public static class Files {
         try {
             ArgumentNullException.ThrowIfNull(stream);
             using var memoryStream = new MemoryStream();
-            await stream.CopyToAsync(memoryStream, cancelToken);
+            await stream.CopyToAsync(memoryStream, cancelToken).ConfigureAwait(false);
             // 使用 MemoryStream 的内部 buffer 避免再分配一次完整的 byte 数组以节省内存
             // 注：内部 buffer 长度可能大于实际数据长度
             var buffer = memoryStream.GetBuffer();
@@ -269,7 +269,7 @@ public static class Files {
 
             await using var fileStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
             var memoryStream = new MemoryStream();
-            await fileStream.CopyToAsync(memoryStream, cancelToken);
+            await fileStream.CopyToAsync(memoryStream, cancelToken).ConfigureAwait(false);
             memoryStream.Position = 0; // 重置流位置以便后续读取
             return memoryStream;
         } catch (Exception ex) {
@@ -299,10 +299,10 @@ public static class Files {
             await using (var fileStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 encoding ??= EncodingDetector.DetectEncoding(fileStream);
             // 注：从此处开始，编码检测使用的 stream 已经销毁
-            await File.AppendAllTextAsync(fullPath, text, encoding, cancelToken);
+            await File.AppendAllTextAsync(fullPath, text, encoding, cancelToken).ConfigureAwait(false);
         } else {
             encoding ??= new UTF8Encoding(false); // 无 BOM 的 UTF-8
-            await File.WriteAllTextAsync(fullPath, text, encoding, cancelToken);
+            await File.WriteAllTextAsync(fullPath, text, encoding, cancelToken).ConfigureAwait(false);
         }
     }
 
@@ -324,7 +324,7 @@ public static class Files {
 
         var fileMode = append ? FileMode.Append : FileMode.Create;
         await using var fileStream = new FileStream(fullPath, fileMode, FileAccess.Write, FileShare.Read);
-        await fileStream.WriteAsync(content.AsMemory(), cancelToken);
+        await fileStream.WriteAsync(content.AsMemory(), cancelToken).ConfigureAwait(false);
     }
 
     /// <summary>
