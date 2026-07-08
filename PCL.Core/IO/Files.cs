@@ -396,17 +396,17 @@ public static class Files {
         {
             Directory.CreateDirectory(destDirectory); // 创建目标目录（同步操作，因为通常很快且无异步版本）
 
-            if (compressFilePath.EndsWithF(".gz") || compressFilePath.EndsWithF(".tgz"))
+            if (compressFilePath.EndsWithF(".gz", true) || compressFilePath.EndsWithF(".tgz", true))
                 await _ExtractGZipAsync(compressFilePath, destDirectory, progressIncrementHandler, archiveEncoding,
                     cancellationToken).ConfigureAwait(false);
-            else if (compressFilePath.EndsWithF(".bz2"))
+            else if (compressFilePath.EndsWithF(".bz2", true))
                 await _ExtractBZip2Async(compressFilePath, destDirectory, progressIncrementHandler, cancellationToken)
                     .ConfigureAwait(false);
-            else if (compressFilePath.EndsWithF(".tar"))
+            else if (compressFilePath.EndsWithF(".tar", true))
                 await _ExtractTarAsync(compressFilePath, destDirectory, progressIncrementHandler, archiveEncoding,
                     cancellationToken).ConfigureAwait(false);
-            else if (compressFilePath.EndsWithF(".zip") || compressFilePath.EndsWithF(".jar") ||
-                     compressFilePath.EndsWithF(".mrpack"))
+            else if (compressFilePath.EndsWithF(".zip", true) || compressFilePath.EndsWithF(".jar", true) ||
+                     compressFilePath.EndsWithF(".mrpack", true))
                 await _ExtractZipAsync(compressFilePath, destDirectory, progressIncrementHandler, archiveEncoding,
                     cancellationToken).ConfigureAwait(false);
             else

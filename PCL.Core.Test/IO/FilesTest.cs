@@ -58,4 +58,33 @@ public class FilesTest
         Assert.HasCount(1, progress);
         Assert.AreEqual(1d, progress[0], 0.0000001d);
     }
+
+    [TestMethod]
+    public async Task ExtractFileAsyncAcceptsZipArchiveExtensionsCaseInsensitively()
+    {
+        var encoding = Encoding.GetEncoding("GB18030");
+
+        foreach (var fileName in new[] { "PACK.ZIP", "foo.JAR", "pack.MRPACK" })
+        {
+            var archivePath = Path.Combine(_tempDir, fileName);
+            var outputPath = Path.Combine(_tempDir, Path.GetFileNameWithoutExtension(fileName) + "-out");
+
+            await using (var archive = await ZipFile.OpenAsync(
+                             archivePath,
+                             ZipArchiveMode.Create,
+                             encoding, TestContext.CancellationToken))
+            {
+                var entry = archive.CreateEntry("overrides/uppercase-extension.txt");
+                await using var stream = await entry.OpenAsync(TestContext.CancellationToken);
+                await using var writer = new StreamWriter(stream, Encoding.UTF8);
+                await writer.WriteAsync("ok");
+            }
+
+            await Files.ExtractFileAsync(archivePath, outputPath, null, encoding, TestContext.CancellationToken);
+
+            var extractedFile = Path.Combine(outputPath, "overrides", "uppercase-extension.txt");
+            Assert.IsTrue(File.Exists(extractedFile), $"Failed to extract {fileName}");
+            Assert.AreEqual("ok", await File.ReadAllTextAsync(extractedFile, TestContext.CancellationToken));
+        }
+    }
 }
