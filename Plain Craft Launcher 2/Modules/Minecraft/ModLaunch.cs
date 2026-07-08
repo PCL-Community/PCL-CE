@@ -3187,9 +3187,12 @@ public static class ModLaunch
             }";
                 var replaceJson = (JsonObject)JsonCompat.ParseNode(replaceJsonString);
                 // 更新文件
-                var profiles =
-                    (JsonObject)JsonCompat.ParseNode(
-                        Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(ModFolder.mcFolderSelected + "launcher_profiles.json")).GetAwaiter().GetResult());
+                var profiles = (JsonObject)JsonCompat.ParseNode(
+                    Files.ReadAllTextOrEmptyAsync(
+                            LauncherFileSystem.ResolvePath(ModFolder.mcFolderSelected + "launcher_profiles.json"),
+                            Encoding.GetEncoding("GB18030"))
+                        .GetAwaiter()
+                        .GetResult());
                 profiles.Merge(replaceJson);
                 Files.WriteFileAsync(LauncherFileSystem.ResolvePath(ModFolder.mcFolderSelected + "launcher_profiles.json"), profiles.ToString(), encoding: Encoding.GetEncoding("GB18030")).GetAwaiter().GetResult();
                 McLaunchLog("已更新 launcher_profiles.json");
@@ -3222,9 +3225,12 @@ public static class ModLaunch
                     }";
                     var replaceJson = (JsonObject)JsonCompat.ParseNode(replaceJsonString);
                     // 更新文件
-                    var profiles =
-                        (JsonObject)JsonCompat.ParseNode(
-                            Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(ModFolder.mcFolderSelected + "launcher_profiles.json")).GetAwaiter().GetResult());
+                    var profiles = (JsonObject)JsonCompat.ParseNode(
+                        Files.ReadAllTextOrEmptyAsync(
+                                LauncherFileSystem.ResolvePath(ModFolder.mcFolderSelected + "launcher_profiles.json"),
+                                Encoding.GetEncoding("GB18030"))
+                            .GetAwaiter()
+                            .GetResult());
                     profiles.Merge(replaceJson);
                     Files.WriteFileAsync(LauncherFileSystem.ResolvePath(ModFolder.mcFolderSelected + "launcher_profiles.json"), profiles.ToString(), encoding: Encoding.GetEncoding("GB18030")).GetAwaiter().GetResult();
                     McLaunchLog("已在删除后更新 launcher_profiles.json");

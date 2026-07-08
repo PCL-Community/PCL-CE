@@ -42,22 +42,15 @@ public static class PathUtils
     }
 
     /// <summary>
-    ///     从本地路径或 URL 中提取文件名，URL 查询字符串与片段会被忽略。
+    ///     从本地路径或 URL 中提取文件名；只有远程 URL 的查询字符串与片段会被忽略。
     /// </summary>
     public static string GetFileNameFromUrlOrPath(string path)
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
         path = path.Trim(' ', '"');
 
-        if (Uri.TryCreate(path, UriKind.Absolute, out var uri) && !string.IsNullOrEmpty(uri.LocalPath))
-        {
+        if (_TryCreateRemoteUri(path, out var uri) && !string.IsNullOrEmpty(uri.LocalPath))
             path = Uri.UnescapeDataString(uri.LocalPath);
-        }
-        else
-        {
-            var queryIndex = path.IndexOfAny(['?', '#']);
-            if (queryIndex >= 0) path = path[..queryIndex];
-        }
 
         if (_EndsWithDirectorySeparator(path))
             throw new ArgumentException($"不包含文件名：{path}", nameof(path));
@@ -71,6 +64,19 @@ public static class PathUtils
             > 250 => throw new PathTooLongException($"文件名过长：{fileName}"),
             _ => fileName
         };
+    }
+
+    private static bool _TryCreateRemoteUri(string path, out Uri uri)
+    {
+        if (!Uri.TryCreate(path, UriKind.Absolute, out uri!))
+            return false;
+
+        if (uri.IsFile || uri.Scheme.Length <= 1)
+            return false;
+
+        return uri.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
+               || uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
+               || uri.Scheme.Equals(Uri.UriSchemeFtp, StringComparison.OrdinalIgnoreCase);
     }
 
     public static string GetFileNameWithoutExtensionFromUrlOrPath(string path)

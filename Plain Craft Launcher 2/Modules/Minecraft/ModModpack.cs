@@ -263,7 +263,13 @@ public static class ModModpack
                 Directories.DeleteDirectoryAsync(installTemp).GetAwaiter().GetResult();
 
                 // 解压文件，ProgressIncrementHandler 通过 Lambda 更新进度
-                Files.ExtractFileAsync(fileAddress, installTemp, delta => loader.Progress += delta * progressIncrement).GetAwaiter().GetResult();
+                Files.ExtractFileAsync(
+                        fileAddress,
+                        installTemp,
+                        delta => loader.Progress += delta * progressIncrement,
+                        encode)
+                    .GetAwaiter()
+                    .GetResult();
 
                 // 解压成功，更新进度并退出循环
                 loader.Progress = initialProgress + progressIncrement;

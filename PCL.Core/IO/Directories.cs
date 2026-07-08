@@ -193,7 +193,7 @@ public static class Directories
     /// </summary>
     /// <param name="fromPath">源文件夹路径。</param>
     /// <param name="toPath">目标文件夹路径。</param>
-    /// <param name="progressIncrementHandler">进度更新回调，接收 0 到 1 的进度值。</param>
+    /// <param name="progressIncrementHandler">进度增量回调，每复制一个文件传入本次增加的进度值。</param>
     /// <param name="cancellationToken">取消操作的令牌。</param>
     /// <exception cref="ArgumentNullException">源或目标文件夹路径为空。</exception>
     /// <exception cref="OperationCanceledException">操作被取消。</exception>
@@ -212,7 +212,7 @@ public static class Directories
 
         var allFiles = (await EnumerateFilesAsync(fromPath, cancellationToken).ConfigureAwait(false)).ToList();
         var totalFiles = allFiles.Count;
-        long copiedFiles = 0;
+        var progressStep = totalFiles > 0 ? 1d / totalFiles : 1d;
 
         foreach (var file in allFiles) {
             cancellationToken.ThrowIfCancellationRequested();
@@ -226,8 +226,7 @@ public static class Directories
             for (var attempt = 0; attempt < 2; attempt++) {
                 try {
                     await FileCopyAsync(file.FullName, destFilePath, overwrite: true, cancellationToken).ConfigureAwait(false);
-                    copiedFiles++;
-                    progressIncrementHandler?.Invoke((double)copiedFiles / totalFiles);
+                    progressIncrementHandler?.Invoke(progressStep);
                     break;
                 } catch (Exception ex) when (attempt == 0) {
                     LogWrapper.Error(ex, $"复制文件失败，将在 0.3s 后重试（{file.FullName} 到 {destFilePath}）");

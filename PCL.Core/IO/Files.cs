@@ -12,6 +12,8 @@ using PCL.Core.App.Localization;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -20,6 +22,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using PCL.Core.App;
+using ZipFile = System.IO.Compression.ZipFile;
 
 namespace PCL.Core.IO;
 
@@ -356,43 +359,61 @@ public static class Files {
     #region 文件解压
 
     /// <summary>
-    /// 尝试根据文件后缀名判断文件种类并解压，支持 zip、gz、tar、tar.gz 和 bzip2。
-    /// 会尝试将 jar 文件以 zip 方式解压。不会清空目标目录，但会创建不存在的目录。
+    ///     尝试根据文件后缀名判断文件种类并解压，支持 zip、jar、mrpack、gz、tar、tar.gz 和 bzip2。
+    ///     会尝试将 jar 与 mrpack 文件以 zip 方式解压。不会清空目标目录，但会创建不存在的目录。
     /// </summary>
     /// <param name="compressFilePath">压缩文件路径</param>
     /// <param name="destDirectory">目标解压目录</param>
-    /// <param name="progressIncrementHandler">进度更新回调，接收 0.0 到 1.0 的进度值</param>
+    /// <param name="progressIncrementHandler">进度增量回调，接收本次解压增加的进度值</param>
+    /// <param name="archiveEncoding">归档文件名编码；为空时使用 GB18030 作为兼容回退。</param>
     /// <param name="cancellationToken">取消操作的令牌</param>
     /// <returns>异步任务。</returns>
-    /// <exception cref="ArgumentNullException">当 <paramref name="compressFilePath"/> 或 <paramref name="destDirectory"/> 为 null 或空时抛出</exception>
+    /// <exception cref="ArgumentNullException">
+    ///     当 <paramref name="compressFilePath" /> 或 <paramref name="destDirectory" /> 为
+    ///     null 或空时抛出
+    /// </exception>
     /// <exception cref="NotSupportedException">当文件格式不受支持时抛出</exception>
-    public static async Task ExtractFileAsync(string? compressFilePath, string? destDirectory, Action<double>? progressIncrementHandler = null,
-        CancellationToken cancellationToken = default) {
-        if (string.IsNullOrEmpty(compressFilePath)) {
+    public static async Task ExtractFileAsync(
+        string? compressFilePath,
+        string? destDirectory,
+        Action<double>? progressIncrementHandler = null,
+        Encoding? archiveEncoding = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(compressFilePath))
+        {
             LogWrapper.Error(new ArgumentNullException(nameof(compressFilePath)), "压缩文件路径为空");
             return;
         }
 
-        if (string.IsNullOrEmpty(destDirectory)) {
+        if (string.IsNullOrEmpty(destDirectory))
+        {
             LogWrapper.Error(new ArgumentNullException(nameof(destDirectory)), "目标目录路径为空");
             return;
         }
 
-        try {
+        try
+        {
             Directory.CreateDirectory(destDirectory); // 创建目标目录（同步操作，因为通常很快且无异步版本）
 
-            if (compressFilePath.EndsWithF(".gz") || compressFilePath.EndsWithF(".tgz")) {
-                await _ExtractGZipAsync(compressFilePath, destDirectory, progressIncrementHandler, cancellationToken).ConfigureAwait(false);
-            } else if (compressFilePath.EndsWithF(".bz2")) {
-                await _ExtractBZip2Async(compressFilePath, destDirectory, progressIncrementHandler, cancellationToken).ConfigureAwait(false);
-            } else if (compressFilePath.EndsWithF(".tar")) {
-                await _ExtractTarAsync(compressFilePath, destDirectory, progressIncrementHandler, cancellationToken).ConfigureAwait(false);
-            } else if (compressFilePath.EndsWithF(".zip") || compressFilePath.EndsWithF(".jar")) {
-                await _ExtractZipAsync(compressFilePath, destDirectory, progressIncrementHandler, cancellationToken).ConfigureAwait(false);
-            } else {
+            if (compressFilePath.EndsWithF(".gz") || compressFilePath.EndsWithF(".tgz"))
+                await _ExtractGZipAsync(compressFilePath, destDirectory, progressIncrementHandler, archiveEncoding,
+                    cancellationToken).ConfigureAwait(false);
+            else if (compressFilePath.EndsWithF(".bz2"))
+                await _ExtractBZip2Async(compressFilePath, destDirectory, progressIncrementHandler, cancellationToken)
+                    .ConfigureAwait(false);
+            else if (compressFilePath.EndsWithF(".tar"))
+                await _ExtractTarAsync(compressFilePath, destDirectory, progressIncrementHandler, archiveEncoding,
+                    cancellationToken).ConfigureAwait(false);
+            else if (compressFilePath.EndsWithF(".zip") || compressFilePath.EndsWithF(".jar") ||
+                     compressFilePath.EndsWithF(".mrpack"))
+                await _ExtractZipAsync(compressFilePath, destDirectory, progressIncrementHandler, archiveEncoding,
+                    cancellationToken).ConfigureAwait(false);
+            else
                 throw new NotSupportedException("不支持的压缩文件格式");
-            }
-        } catch (Exception ex) {
+        }
+        catch (Exception ex)
+        {
             LogWrapper.Error(ex, $"解压文件 {compressFilePath} 失败");
             throw;
         }
@@ -405,6 +426,7 @@ public static class Files {
         string compressFilePath,
         string destDirectory,
         Action<double>? progressIncrementHandler,
+        Encoding? archiveEncoding,
         CancellationToken cancellationToken)
     {
         var outputFileName = Path.GetFileName(compressFilePath).ToLower();
@@ -424,7 +446,7 @@ public static class Files {
         if (isTarGZip)
         {
             // 处理 .tgz / .tar.gz 文件
-            await using TarInputStream tarStream = new(gzipStream, Encoding.UTF8);
+            await using TarInputStream tarStream = new(gzipStream, archiveEncoding ?? Encoding.GetEncoding("GB18030"));
 
             await _ExtractTarStreamAsync(
                     tarStream,
@@ -479,10 +501,11 @@ public static class Files {
         string compressFilePath,
         string destDirectory,
         Action<double>? progressIncrementHandler,
+        Encoding? archiveEncoding,
         CancellationToken cancellationToken)
     {
         await using FileStream compressedFile = new(compressFilePath, FileMode.Open, FileAccess.Read);
-        await using TarInputStream tarStream = new(compressedFile, Encoding.UTF8);
+        await using TarInputStream tarStream = new(compressedFile, archiveEncoding ?? Encoding.GetEncoding("GB18030"));
 
         await _ExtractTarStreamAsync(
                 tarStream,
@@ -606,24 +629,33 @@ public static class Files {
     }
 
     /// <summary>
-    ///     异步解压 Zip 文件（包括 .zip 和 .jar）。
+    ///     异步解压 Zip 文件（包括 .zip、.jar 和 .mrpack）。
     /// </summary>
     private static async Task _ExtractZipAsync(
         string compressFilePath,
         string destDirectory,
         Action<double>? progressIncrementHandler,
+        Encoding? archiveEncoding,
         CancellationToken cancellationToken)
     {
-        using ZipFile zipFile = new(compressFilePath);
+        await using var archive = await ZipFile.OpenAsync(
+            compressFilePath,
+            ZipArchiveMode.Read,
+            archiveEncoding ?? Encoding.GetEncoding("GB18030"),
+            cancellationToken);
 
-        var totalEntries = zipFile.Count;
-        long currentEntry = 0;
+        var fileEntries = archive.Entries
+            .Where(entry => !entry.FullName.EndsWith('/') && !entry.FullName.EndsWith('\\'))
+            .ToList();
+        var progressStep = fileEntries.Count > 0 ? 1d / fileEntries.Count : 1d;
 
-        foreach (ZipEntry entry in zipFile)
+        foreach (var entry in archive.Entries)
         {
-            var destinationPath = _GetSafePath(destDirectory, entry.Name);
+            cancellationToken.ThrowIfCancellationRequested();
 
-            if (entry.IsDirectory)
+            var destinationPath = _GetSafePath(destDirectory, entry.FullName);
+
+            if (entry.FullName.EndsWith('/') || entry.FullName.EndsWith('\\'))
             {
                 Directory.CreateDirectory(destinationPath);
                 continue;
@@ -631,15 +663,14 @@ public static class Files {
 
             Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
 
-            await using var zipStream = zipFile.GetInputStream(entry);
+            await using var zipStream = await entry.OpenAsync(cancellationToken);
             await using FileStream outputStream = new(destinationPath, FileMode.Create, FileAccess.Write);
 
             await zipStream
                 .CopyToAsync(outputStream, cancellationToken)
                 .ConfigureAwait(false);
 
-            currentEntry++;
-            progressIncrementHandler?.Invoke((double)currentEntry / totalEntries);
+            progressIncrementHandler?.Invoke(progressStep);
         }
     }
 
