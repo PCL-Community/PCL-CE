@@ -3089,6 +3089,9 @@
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McOfficialFeed">Minecraft Official Feed</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McSkin">Minecraft Skin Recommendation (Author: wkea)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McUpdateSummary">Minecraft Update Summary (Author: pynickle, partially AI-generated)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.NewsToday">News Today (Author: EYicheng)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.MinecraftKnowledge">Minecraft Knowledge (Author: awaEric233)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.ModpackRecommendation">Modpack Recommendation Engine (Author: CHMYGZ)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.OpenBmclapi">OpenBMCLAPI Dashboard Lite (Authors: Silverteal, Mxmilu666)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.OpenMcim">OpenMCIM Dashboard (Author: SALTWOOD)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.PclAnnouncement">PCL CE Announcements</sys:String>

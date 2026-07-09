@@ -203,13 +203,32 @@ public partial class PageLaunchRight : IRefreshable
                     url = "https://raw.gitcode.com/ENC_Euphony/PCL-AI-Summary-HomePage/raw/master/Custom.xaml";
                     content = LoadFromNetwork(url);
                     break;
-
+                
                 case 14:
+                    LogWrapper.Info("[Page] 主页预设：今日新闻热点");
+                    url = "https://pcl.wyc-w.top/index.xaml";
+                    content = LoadFromNetwork(url);
+                    break;
+                
+                case 15:
+                    LogWrapper.Info("[Page] 主页预设：Minecraft 芝士站");
+                    url = "https://www.xxag.top/mkss";
+                    content = LoadFromNetwork(url);
+                    break;
+                
+                case 16:
+                    LogWrapper.Info("[Page] 主页预设：整合包推荐引擎");
+                    url = "https://qawsedrftgyhujiko.fun/pcl2/Custom.xaml";
+                    content = LoadFromNetwork(url);
+                    break;
+
+                case 17:
                     LogWrapper.Info("[Page] 主页预设：PCL CE 公告栏");
                     url = "https://s3.pysio.online/pcl2-ce/apiv2/pages/announce.xaml";
                     content = LoadFromNetwork(url);
                     break;
-                case 15:
+                
+                case 18:
                     LogWrapper.Info("[Page] 主页预设：Minecraft 信息流");
                     Dispatcher.Invoke(() =>
                     {
