@@ -1873,6 +1873,8 @@
     <sys:String x:Key="Main.UpdateLog.Empty">Welcome!</sys:String>
     <sys:String x:Key="Main.UpdateLog.FullChangelog">Full changelog</sys:String>
     <sys:String x:Key="Main.UpdateLog.Title">PCL CE has been updated to {0} {1}</sys:String>
+    <sys:String x:Key="Main.HomepageReset.Title">Homepage preset setting has been reset</sys:String>
+    <sys:String x:Key="Main.HomepageReset.Content">The homepage preset setting has been reset due to the launcher update.&#xA;Please go to Settings - Personalization and select the preset again.</sys:String>
 
     <!-- Main.FileDrag -->
 

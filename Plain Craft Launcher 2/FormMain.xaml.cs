@@ -350,7 +350,7 @@ public partial class FormMain
         if (lastVersionCode < 521 && Config.Preference.Homepage.SelectedPreset >= 3)
         {
             Config.Preference.Homepage.SelectedPreset = 0;
-            ModMain.MyMsgBox("由于版本更新，已重置主页预设，请重新前往 设置 - 个性化 选择预设", "主页预设已重置");
+            ModMain.MyMsgBox(Lang.Text("Main.HomepageReset.Content"), Lang.Text("Main.HomepageReset.Title"));
         }
     }
 
