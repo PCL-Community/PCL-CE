@@ -178,12 +178,12 @@
                                    TextTrimming="None" Margin="2,0,0,5" FontSize="11" HorizontalAlignment="Left" />
                         <StackPanel Grid.Row="2" Orientation="Horizontal" Grid.ColumnSpan="3" Margin="2,3,0,0"
                                     HorizontalAlignment="Left">
-                            <TextBlock x:Name="LabRamUsed" Text="4.7 GB" FontSize="16"
+                            <TextBlock x:Name="LabRamUsed" Text="4.7 GiB" FontSize="16"
                                        Foreground="{DynamicResource ColorBrushMemory}" TextTrimming="None" />
-                            <TextBlock x:Name="LabRamTotal" Text=" / 7.9 GB" FontSize="16"
+                            <TextBlock x:Name="LabRamTotal" Text=" / 7.9 GiB" FontSize="16"
                                        Foreground="{DynamicResource ColorBrushMemory}" TextTrimming="None" />
                         </StackPanel>
-                        <TextBlock Grid.Row="2" x:Name="LabRamGame" Text="2.5 GB" Grid.ColumnSpan="3"
+                        <TextBlock Grid.Row="2" x:Name="LabRamGame" Text="2.5 GiB" Grid.ColumnSpan="3"
                                    TextTrimming="None" Margin="2,3,0,0" FontSize="16"
                                    Foreground="{DynamicResource ColorBrushMemory}" HorizontalAlignment="Left" />
                     </Grid>

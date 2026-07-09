@@ -202,12 +202,12 @@
 
     <sys:String x:Key="Crash.Report.Environment.Cpu">CPU：{0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.EnvironmentSection">- 环境信息 -</sys:String>
-    <sys:String x:Key="Crash.Report.Environment.Gpu">显卡 {0}：{1} ({2} MB, {3})</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.Gpu">显卡 {0}：{1} ({2} MiB, {3})</sys:String>
     <sys:String x:Key="Crash.Report.Environment.InstanceSection">- 实例信息 -</sys:String>
     <sys:String x:Key="Crash.Report.Environment.LauncherId">识别码：{0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.LauncherVersion">PCL CE 版本：{0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.Log4j2NoLookups">Log4j2 NoLookups：{0}</sys:String>
-    <sys:String x:Key="Crash.Report.Environment.MemoryAllocation">内存分配 (分配的内存 / 已安装物理内存)：{0} / {1} GB ({2} MB)</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.MemoryAllocation">内存分配 (分配的内存 / 已安装物理内存)：{0} / {1} GiB ({2} MiB)</sys:String>
     <sys:String x:Key="Crash.Report.Environment.MinecraftFolder">MC 文件夹：{0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.OperatingSystem">操作系统：{0}（64 位：{1}, ARM64: {2}）</sys:String>
     <sys:String x:Key="Crash.Report.Environment.ProfileName">档案名称：{0} (验证方式：{1})</sys:String>
@@ -1644,7 +1644,7 @@
     <sys:String x:Key="Launch.Skin.File.Error">皮肤文件存在错误</sys:String>
     <sys:String x:Key="Launch.Skin.FileDialog.Filter">皮肤文件(*.png;*.jpg;*.webp)|*.png;*.jpg;*.webp</sys:String>
     <sys:String x:Key="Launch.Skin.FileDialog.Title">选择皮肤文件</sys:String>
-    <sys:String x:Key="Launch.Skin.FileTooLarge">皮肤文件大小需小于 24 KB，而所选文件大小为 {0} KB</sys:String>
+    <sys:String x:Key="Launch.Skin.FileTooLarge">皮肤文件大小需小于 24 KiB，而所选文件大小为 {0} KiB</sys:String>
     <sys:String x:Key="Launch.Skin.InvalidSize">皮肤图片大小应为 64x32 像素或 64x64 像素！</sys:String>
     <sys:String x:Key="Launch.Skin.Load.Error.Avatar">载入头像失败：{0}</sys:String>
     <sys:String x:Key="Launch.Skin.Load.Error.Corrupted">皮肤文件已损坏：{0}</sys:String>
@@ -2756,11 +2756,11 @@
 
     <sys:String x:Key="Setup.Launch.Memory.Auto">自动配置</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Auto.ToolTip">根据安装的模组量与电脑剩余内存，动态调整为游戏分配的内存</sys:String>
-    <sys:String x:Key="Setup.Launch.Memory.AvailableSuffix">可用 {0} GB</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.AvailableSuffix">可用 {0} GiB</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.GameAllocation">游戏分配</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Title">游戏内存</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.UsedTotal">已使用内存 / 已安装内存</sys:String>
-    <sys:String x:Key="Setup.Launch.Memory.Warning.Java32Bit">32 位 Java 只能分配最多 1 GB 的内存。强烈建议换用 64 位的 Java！</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Warning.Java32Bit">32 位 Java 只能分配最多 1 GiB 的内存。强烈建议换用 64 位的 Java！</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Warning.TooMuch">你给游戏分配的内存过多，这可能引发游戏崩溃。建议优先考虑「自动分配」选项！</sys:String>
 
     <!-- Setup.Launch.Options -->

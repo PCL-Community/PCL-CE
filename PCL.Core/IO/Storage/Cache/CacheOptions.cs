@@ -14,13 +14,13 @@ public record CacheOptions
     public required string FileCacheRoot { get; init; }
     /// <summary>
     /// Max physical cache size. When the total cache size exceeds this limit, the eviction process will be triggered to free up space.<br/>
-    /// <b>(Default: 2 GB)</b>
+    /// <b>(Default: 2 GiB)</b>
     /// </summary>
-    public long MaxCacheSize { get; init; } = 2L * 1024 * 1024 * 1024; // 2 GB
+    public long MaxCacheSize { get; init; } = 2L * 1024 * 1024 * 1024; // 2 GiB
     /// <summary>
     /// SQLite inline storage size limit. Cache entries smaller than or equal to this size will be stored directly in the SQLite database, while larger entries will be stored as file-mapped.<br/>
     /// </summary>
-    public int MaxInlineSize { get; init; } = 256 * 1024; // 256 KB
+    public int MaxInlineSize { get; init; } = 256 * 1024; // 256 KiB
     /// <summary>
     /// Background eviction interval. The cache will automatically check for expired entries and evict them at this interval.<br/>
     /// <b>(Default: 5 minutes)</b>
@@ -28,9 +28,9 @@ public record CacheOptions
     public TimeSpan EvictionInterval { get; init; } = TimeSpan.FromMinutes(5);
     /// <summary>
     /// Reserve bytes for the cache. This amount of space will always be reserved for the cache, even when eviction is triggered.<br/>
-    /// <b>(Default: 256 MB)</b>
+    /// <b>(Default: 256 MiB)</b>
     /// </summary>
-    public long ReserveBytes { get; init; } = 256L * 1024 * 1024; // 256 MB
+    public long ReserveBytes { get; init; } = 256L * 1024 * 1024; // 256 MiB
     /// <summary>
     /// Whether to enable compression for cache entries. (Enabled by default)<br/>
     /// </summary>

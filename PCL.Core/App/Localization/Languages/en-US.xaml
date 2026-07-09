@@ -202,12 +202,12 @@
 
     <sys:String x:Key="Crash.Report.Environment.Cpu">CPU：{0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.EnvironmentSection">- Environment information -</sys:String>
-    <sys:String x:Key="Crash.Report.Environment.Gpu">GPU {0}: {1} ({2} MB, {3})</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.Gpu">GPU {0}: {1} ({2} MiB, {3})</sys:String>
     <sys:String x:Key="Crash.Report.Environment.InstanceSection">- Instance information -</sys:String>
     <sys:String x:Key="Crash.Report.Environment.LauncherId">Identification code: {0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.LauncherVersion">PCL CE version: {0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.Log4j2NoLookups">Log4j2 NoLookups：{0}</sys:String>
-    <sys:String x:Key="Crash.Report.Environment.MemoryAllocation">Memory allocation (allocated memory / installed physical memory): {0} / {1} GB ({2} MB)</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.MemoryAllocation">Memory allocation (allocated memory / installed physical memory): {0} / {1} GiB ({2} MiB)</sys:String>
     <sys:String x:Key="Crash.Report.Environment.MinecraftFolder">Minecraft folder: {0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.OperatingSystem">Operating system: {0} (64-bit: {1}, ARM64: {2})</sys:String>
     <sys:String x:Key="Crash.Report.Environment.ProfileName">Profile name: {0} (login method: {1})</sys:String>
@@ -1644,7 +1644,7 @@
     <sys:String x:Key="Launch.Skin.File.Error">Skin file error</sys:String>
     <sys:String x:Key="Launch.Skin.FileDialog.Filter">Skin file (*.png;*.jpg;*.webp)|*.png;*.jpg;*.webp</sys:String>
     <sys:String x:Key="Launch.Skin.FileDialog.Title">Select skin file</sys:String>
-    <sys:String x:Key="Launch.Skin.FileTooLarge">The skin file must be smaller than 24 KB. The selected file is {0} KB.</sys:String>
+    <sys:String x:Key="Launch.Skin.FileTooLarge">The skin file must be smaller than 24 KiB. The selected file is {0} KiB.</sys:String>
     <sys:String x:Key="Launch.Skin.InvalidSize">The skin image should be 64x32 pixels or 64x64 pixels!</sys:String>
     <sys:String x:Key="Launch.Skin.Load.Error.Avatar">Failed to load avatar: {0}</sys:String>
     <sys:String x:Key="Launch.Skin.Load.Error.Corrupted">Skin file is corrupted: {0}</sys:String>
@@ -2756,11 +2756,11 @@
 
     <sys:String x:Key="Setup.Launch.Memory.Auto">Auto</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Auto.ToolTip">Dynamically adjust the memory allocated to the game based on the installed mods and available system memory.</sys:String>
-    <sys:String x:Key="Setup.Launch.Memory.AvailableSuffix">Available: {0} GB</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.AvailableSuffix">Available: {0} GiB</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.GameAllocation">Game allocation</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Title">Game memory</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.UsedTotal">Used / installed memory</sys:String>
-    <sys:String x:Key="Setup.Launch.Memory.Warning.Java32Bit">32-bit Java can only allocate up to 1 GB of memory. It is strongly recommended to use 64-bit Java!</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Warning.Java32Bit">32-bit Java can only allocate up to 1 GiB of memory. It is strongly recommended to use 64-bit Java!</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Warning.TooMuch">You have allocated too much memory to the game, which may cause crashes. It is recommended to use Auto first!</sys:String>
 
     <!-- Setup.Launch.Options -->

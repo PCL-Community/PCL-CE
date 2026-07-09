@@ -94,7 +94,7 @@ public sealed partial class StartupService
         info.Append("\n系统版本: ").Append(Environment.OSVersion.Version).Append(" (").Append(GetArchitectureName(RuntimeInformation.OSArchitecture)).Append(')');
         var memory = KernelInterop.GetPhysicalMemoryBytes();
         const int memoryDiv = 1024 * 1024;
-        info.Append("\n可用内存: ").Append(memory.Available / memoryDiv).Append('/').Append(memory.Total / memoryDiv).Append(" MB");
+        info.Append("\n可用内存: ").Append(memory.Available / memoryDiv).Append('/').Append(memory.Total / memoryDiv).Append(" MiB");
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         var cp = Encoding.GetEncoding(0);
         info.Append("\n默认代码页: ").Append(cp.EncodingName).Append(" (").Append(cp.CodePage).Append(')');
