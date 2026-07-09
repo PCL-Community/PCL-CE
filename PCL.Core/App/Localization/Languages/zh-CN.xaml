@@ -3092,6 +3092,7 @@
     <sys:String x:Key="Setup.Ui.Homepage.Preset.NewsToday">今日新闻热点（作者：EYicheng）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.MinecraftKnowledge">Minecraft 芝士站（作者：awaEric233）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.ModpackRecommendation">整合包推荐引擎（作者：CHMYGZ）</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.Bangumi">Bangumi 番剧主页（作者：wzyaeu）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.OpenBmclapi">OpenBMCLAPI 仪表盘 Lite（作者：Silverteal、Mxmilu666）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.OpenMcim">OpenMCIM 仪表盘（作者：SALTWOOD）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.PclAnnouncement">PCL CE 公告栏</sys:String>

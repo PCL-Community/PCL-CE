@@ -357,6 +357,7 @@
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.NewsToday}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.MinecraftKnowledge}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.ModpackRecommendation}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.Bangumi}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclAnnouncement}"/>
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McOfficialFeed}"/>
                         </local:MyComboBox>
