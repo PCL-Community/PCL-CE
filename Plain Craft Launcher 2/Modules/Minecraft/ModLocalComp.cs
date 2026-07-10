@@ -1090,6 +1090,7 @@ public static class ModLocalComp
                 jar = new ZipArchive(new FileStream(path, FileMode.Open));
                 // 信息获取
                 LookupMetadata(jar);
+                EmbeddedMods = ModJarInJar.Resolve(path, jar);
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -1112,9 +1113,14 @@ public static class ModLocalComp
         }
 
         /// <summary>
+        ///     内嵌模组列表，由 <see cref="ModJarInJar" /> 解析填充。
+        /// </summary>
+        public List<LocalCompFile> EmbeddedMods = new();
+
+        /// <summary>
         ///     从 Jar 文件中获取 Mod 信息。
         /// </summary>
-        private void LookupMetadata(ZipArchive jar)
+        internal void LookupMetadata(ZipArchive jar)
         {
             #region 尝试使用 mcmod.info
 
@@ -1346,7 +1352,8 @@ public static class ModLocalComp
             try
             {
                 // 获取 mods.toml 文件
-                var tomlEntry = jar.GetEntry("META-INF/mods.toml");
+                var tomlEntry = jar.GetEntry("META-INF/mods.toml")
+                                ?? jar.GetEntry("META-INF/neoforge.mods.toml");
                 string tomlText = null;
                 if (tomlEntry is not null)
                 {

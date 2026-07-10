@@ -214,6 +214,18 @@
     <sys:String x:Key="Crash.Report.Environment.ProfileSection">- Profile information -</sys:String>
     <sys:String x:Key="Crash.Report.Environment.SelectedJava">Selected Java VM: {0}</sys:String>
 
+    <!-- Crash.Report.JarInJarMod -->
+
+    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateDescription">These mods may conflict with their bundled copies and cause crashes:</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateEntry">{0} [{1}] &lt;-&gt; bundled in {2} ({3})</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateHeuristic">(Matched by Mod ID; may include false positives.)</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateNone">None</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateSection">=== Potentially duplicated mods (installed standalone AND bundled via Jar-in-Jar) ===</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.JarInJarNone">No Jar-in-Jar info found</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.JarInJarSection">=== Jar-in-Jar info (enabled mods only) ===</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.ModListDirectory">Directory: {0}</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.ModListSection">=== Mod list ===</sys:String>
+
     <!-- Crash.Suggestion -->
 
     <sys:String x:Key="Crash.Suggestion.DisableTheseMods">Try disabling these mods one by one, then check whether the game still crashes.</sys:String>
