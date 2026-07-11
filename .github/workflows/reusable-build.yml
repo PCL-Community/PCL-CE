@@ -1,4 +1,4 @@
-name: Build (Reusable)
+name: Build Avalonia Desktop (Reusable)
 
 permissions:
   contents: read
@@ -9,44 +9,45 @@ on:
       configuration:
         required: true
         type: string
+      runner:
+        required: true
+        type: string
+      runtime_id:
+        required: true
+        type: string
       architecture:
         required: true
         type: string
+      binary_name:
+        required: true
+        type: string
       self_contained:
-        required: false
+        required: true
         type: boolean
-        default: true
-      artifact_suffix:
-        required: false
-        type: string
-        default: ''
       runtime_variant:
-        required: false
+        required: true
         type: string
-        default: SelfContained
 
 jobs:
   build:
-    name: Build
-    runs-on: ubuntu-latest
+    name: ${{ inputs.runtime_id }} / ${{ inputs.runtime_variant }}
+    runs-on: ${{ inputs.runner }}
     env:
       LANG: en_US.UTF-8
+      PUBLISH_DIR: artifact
+      ARTIFACT_NAME: PCL_N_${{ inputs.configuration }}_${{ inputs.runtime_id }}_${{ inputs.runtime_variant }}
 
     steps:
-      - name: Checkout
+      - name: Checkout Avalonia branch
         uses: actions/checkout@v6
-
-      - name: Set Describe
-        run: |
-          describe=`git describe --tags --always`
-          echo "describe=$describe" >> $GITHUB_ENV
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
 
-      - name: Build Project
+      - name: Publish Avalonia desktop
+        shell: bash
         env:
           PCL_WRITE_SECRET: '1'
           PCL_MS_CLIENT_ID: ${{ secrets.CLIENT_ID }}
@@ -58,32 +59,45 @@ jobs:
           PCL_LOBBY_DEFAULT_SECRET: ${{ secrets.LOBBY_DEFAULT_SECRET }}
           PCL_GITHUB_SHA: ${{ github.sha }}
         run: |
-          arch=$(echo "${{ inputs.architecture }}" | tr '[:upper:]' '[:lower:]')
-          case "$arch" in
-            x64) rid=win-x64 ;;
-            x86) rid=win-x86 ;;
-            arm64) rid=win-arm64 ;;
-            *) rid=win-x64 ;;
-          esac
           dotnet publish PCL.Desktop/PCL.Desktop.csproj \
-            -c ${{ inputs.configuration }} \
-            -r "$rid" --self-contained "${{ inputs.self_contained }}" \
-            -p:Platform=${{ inputs.architecture }} \
+            -c "${{ inputs.configuration }}" \
+            -r "${{ inputs.runtime_id }}" \
+            --self-contained "${{ inputs.self_contained }}" \
+            -p:Platform="${{ inputs.architecture }}" \
             -p:PublishAot=false \
-            -p:PclRuntimeVariant=${{ inputs.runtime_variant }} \
-            -p:DeleteExistingFiles=true -o ./artifact
+            -p:PublishTrimmed=false \
+            -p:PublishSingleFile=true \
+            -p:EnableCompressionInSingleFile="${{ inputs.self_contained }}" \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:PclRuntimeVariant="${{ inputs.runtime_variant }}" \
+            -p:DebugType=None \
+            -p:DebugSymbols=false \
+            -p:DeleteExistingFiles=true \
+            -warnaserror:CA1416 \
+            -o "$PUBLISH_DIR"
 
-      - name: Validate desktop artifact
+      - name: Validate Avalonia artifact
         shell: bash
         run: |
-          executable="./artifact/PCL.Desktop.exe"
-          test -s "$executable" || {
-            echo "::error file=$executable::Published launcher executable is missing."
+          binary="$PUBLISH_DIR/${{ inputs.binary_name }}"
+          test -s "$binary" || {
+            echo "::error file=$binary::Published Avalonia launcher executable is missing."
             exit 1
           }
 
-      - name: Upload the Build Artifact
+          find "$PUBLISH_DIR" -type f \( -name '*.pdb' -o -name '*.xml' -o -name '*.dbg' \) -delete
+          file_count=$(find "$PUBLISH_DIR" -maxdepth 1 -type f | wc -l | tr -d ' ')
+          if [[ "$file_count" != "1" ]]; then
+            echo "::error::Expected one portable Avalonia binary, found $file_count files."
+            find "$PUBLISH_DIR" -maxdepth 2 -print
+            exit 1
+          fi
+
+          chmod +x "$binary" || true
+
+      - name: Upload Avalonia build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PCL2_N_${{ inputs.configuration }}_${{ inputs.architecture }}${{ inputs.artifact_suffix }}
-          path: artifact/**
+          name: ${{ env.ARTIFACT_NAME }}
+          path: artifact/${{ inputs.binary_name }}
+          if-no-files-found: error

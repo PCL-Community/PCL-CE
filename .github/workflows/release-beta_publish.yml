@@ -1,4 +1,4 @@
-name: Publish (Beta)
+name: Publish Avalonia (Beta)
 
 permissions:
   contents: read
@@ -7,42 +7,38 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: Existing prerelease tag to upload assets to
+        required: true
+        type: string
 
 jobs:
   build:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.release.prerelease }}
     strategy:
-      matrix:
-        include:
-          - configuration: Beta
-            architecture: x64
-            self_contained: true
-            artifact_suffix: ''
-            runtime_variant: SelfContained
-          - configuration: Beta
-            architecture: x64
-            self_contained: false
-            artifact_suffix: _NoRuntime
-            runtime_variant: NoRuntime
-          - configuration: Beta
-            architecture: ARM64
-            self_contained: true
-            artifact_suffix: ''
-            runtime_variant: SelfContained
-          - configuration: Beta
-            architecture: ARM64
-            self_contained: false
-            artifact_suffix: _NoRuntime
-            runtime_variant: NoRuntime
       fail-fast: false
+      matrix:
+        target:
+          - { runner: windows-latest, runtime_id: win-x64, architecture: x64, binary_name: PCL.Desktop.exe }
+          - { runner: windows-latest, runtime_id: win-arm64, architecture: ARM64, binary_name: PCL.Desktop.exe }
+          - { runner: ubuntu-latest, runtime_id: linux-x64, architecture: x64, binary_name: PCL.Desktop }
+          - { runner: ubuntu-latest, runtime_id: linux-arm64, architecture: ARM64, binary_name: PCL.Desktop }
+          - { runner: macos-latest, runtime_id: osx-x64, architecture: x64, binary_name: PCL.Desktop }
+          - { runner: macos-latest, runtime_id: osx-arm64, architecture: ARM64, binary_name: PCL.Desktop }
+        runtime:
+          - { self_contained: true, variant: SelfContained }
+          - { self_contained: false, variant: NoRuntime }
 
     uses: ./.github/workflows/reusable-build.yml
     with:
-      configuration: ${{ matrix.configuration }}
-      architecture: ${{ matrix.architecture }}
-      self_contained: ${{ matrix.self_contained }}
-      artifact_suffix: ${{ matrix.artifact_suffix }}
-      runtime_variant: ${{ matrix.runtime_variant }}
+      configuration: Beta
+      runner: ${{ matrix.target.runner }}
+      runtime_id: ${{ matrix.target.runtime_id }}
+      architecture: ${{ matrix.target.architecture }}
+      binary_name: ${{ matrix.target.binary_name }}
+      self_contained: ${{ matrix.runtime.self_contained }}
+      runtime_variant: ${{ matrix.runtime.variant }}
     secrets: inherit
 
   changelog:
@@ -52,56 +48,54 @@ jobs:
     continue-on-error: true
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.release.prerelease }}
     steps:
-      - name: Checkout all
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
-      - name: Install git-cliff
-        uses: taiki-e/install-action@git-cliff
-
+      - uses: taiki-e/install-action@git-cliff
       - name: Generate changelog
         run: git-cliff --latest -o CHANGELOG.md
-
-      - name: Add changelog to release
+      - name: Add changelog to prerelease
         uses: softprops/action-gh-release@v2.5.0
         with:
-          tag_name: ${{ github.event.release.tag_name }}
+          tag_name: ${{ github.event.release.tag_name || inputs.tag_name }}
           body_path: CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  rename_and_release:
+  publish-assets:
     permissions:
       contents: write
-      actions: write
     needs: [build, changelog]
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        include:
-          - configuration: Beta
-            architecture: x64
-            artifact_suffix: ''
-          - configuration: Beta
-            architecture: x64
-            artifact_suffix: _NoRuntime
-          - configuration: Beta
-            architecture: ARM64
-            artifact_suffix: ''
-          - configuration: Beta
-            architecture: ARM64
-            artifact_suffix: _NoRuntime
+        target:
+          - { runtime_id: win-x64, binary_name: PCL.Desktop.exe, package: zip }
+          - { runtime_id: win-arm64, binary_name: PCL.Desktop.exe, package: zip }
+          - { runtime_id: linux-x64, binary_name: PCL.Desktop, package: tar }
+          - { runtime_id: linux-arm64, binary_name: PCL.Desktop, package: tar }
+          - { runtime_id: osx-x64, binary_name: PCL.Desktop, package: tar }
+          - { runtime_id: osx-arm64, binary_name: PCL.Desktop, package: tar }
+        runtime_variant: [SelfContained, NoRuntime]
     steps:
-      - name: Download Build Artifact
+      - name: Download Avalonia artifact
         uses: actions/download-artifact@v4
         with:
-          name: PCL2_N_${{ matrix.configuration }}_${{ matrix.architecture }}${{ matrix.artifact_suffix }}
-          path: ./artifact
+          name: PCL_N_Beta_${{ matrix.target.runtime_id }}_${{ matrix.runtime_variant }}
+          path: artifact
 
-      - name: Rename binaries
+      - name: Package prerelease asset
+        shell: bash
         run: |
-          mv "./artifact/PCL.Desktop.exe" "PCL2_N_${{ matrix.configuration }}_${{ matrix.architecture }}${{ matrix.artifact_suffix }}.exe"
+          base="PCL_N_Beta_${{ matrix.target.runtime_id }}_${{ matrix.runtime_variant }}"
+          mkdir -p dist
+          chmod +x "artifact/${{ matrix.target.binary_name }}" || true
+          if [[ "${{ matrix.target.package }}" == "zip" ]]; then
+            (cd artifact && zip -9 "../dist/${base}.zip" "${{ matrix.target.binary_name }}")
+          else
+            tar -C artifact -czf "dist/${base}.tar.gz" "${{ matrix.target.binary_name }}"
+          fi
 
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v6
@@ -109,15 +103,16 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
-      - name: Sign the binary
+      - name: Sign prerelease asset
+        shell: bash
         run: |
-          gpg --detach-sign --armor "PCL2_N_${{ matrix.configuration }}_${{ matrix.architecture }}${{ matrix.artifact_suffix }}.exe"
+          asset=$(find dist -maxdepth 1 -type f | head -n 1)
+          gpg --detach-sign --armor "$asset"
 
-      - name: Upload binary and signature to Release
-        uses: softprops/action-gh-release@v2.2.2
+      - name: Upload Avalonia assets to prerelease
+        uses: softprops/action-gh-release@v2.5.0
         with:
-          files: |
-            PCL2_N_${{ matrix.configuration }}_${{ matrix.architecture }}${{ matrix.artifact_suffix }}.exe
-            PCL2_N_${{ matrix.configuration }}_${{ matrix.architecture }}${{ matrix.artifact_suffix }}.exe.asc
+          tag_name: ${{ github.event.release.tag_name || inputs.tag_name }}
+          files: dist/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

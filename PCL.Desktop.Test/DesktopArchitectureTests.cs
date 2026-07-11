@@ -277,6 +277,35 @@ public sealed class DesktopArchitectureTests
         StringAssert.Contains(generatorSource, "PclBuildInfo.g.cs");
     }
 
+    [TestMethod]
+    public void ReleaseWorkflowsPublishAvaloniaForEveryDesktopRuntime()
+    {
+        string desktopRoot = FindDesktopProjectRoot();
+        string repoRoot = Directory.GetParent(desktopRoot)?.FullName
+            ?? throw new DirectoryNotFoundException("Could not locate repository root.");
+        string workflowRoot = Path.Combine(repoRoot, ".github", "workflows");
+        string reusable = File.ReadAllText(Path.Combine(workflowRoot, "reusable-build.yml"));
+        string stable = File.ReadAllText(Path.Combine(workflowRoot, "release-stable_publish.yml"));
+        string beta = File.ReadAllText(Path.Combine(workflowRoot, "release-beta_publish.yml"));
+
+        foreach (string runtime in new[] { "win-x64", "win-arm64", "linux-x64", "linux-arm64", "osx-x64", "osx-arm64" })
+        {
+            StringAssert.Contains(stable, runtime);
+            StringAssert.Contains(beta, runtime);
+        }
+
+        foreach (string workflow in new[] { stable, beta })
+        {
+            StringAssert.Contains(workflow, "SelfContained");
+            StringAssert.Contains(workflow, "NoRuntime");
+            StringAssert.Contains(workflow, "PCL.Desktop");
+        }
+
+        StringAssert.Contains(reusable, "PCL.Desktop/PCL.Desktop.csproj");
+        StringAssert.Contains(reusable, "PublishSingleFile=true");
+        Assert.IsFalse(reusable.Contains("Plain Craft Launcher 2", StringComparison.Ordinal));
+    }
+
     private static string FindDesktopProjectRoot()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);

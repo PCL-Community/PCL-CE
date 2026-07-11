@@ -26,13 +26,24 @@ jobs:
       matrix:
         include:
           - configuration: CI
+            runner: windows-latest
+            runtime_id: win-x64
             architecture: x64
+            binary_name: PCL.Desktop.exe
           - configuration: CI
+            runner: windows-latest
+            runtime_id: win-arm64
             architecture: ARM64
+            binary_name: PCL.Desktop.exe
       fail-fast: false
 
     uses: ./.github/workflows/reusable-build.yml
     with:
       configuration: ${{ matrix.configuration }}
+      runner: ${{ matrix.runner }}
+      runtime_id: ${{ matrix.runtime_id }}
       architecture: ${{ matrix.architecture }}
+      binary_name: ${{ matrix.binary_name }}
+      self_contained: true
+      runtime_variant: SelfContained
     secrets: inherit
