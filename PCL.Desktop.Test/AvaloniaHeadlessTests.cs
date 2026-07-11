@@ -4659,6 +4659,54 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void PageSetupUI_ConfiguresTextAndImageTitleModesAtRuntime()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+        string settingsPath = Environment.GetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH")!;
+
+        session.Dispatch(() =>
+        {
+            PageSetupUI page = new();
+            Window window = new() { Width = 900, Height = 640, Content = page };
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                page.FindControl<MyRadioBox>("RadioLogoType2")!.SetChecked(true, user: true);
+                Assert.IsTrue(page.FindControl<Grid>("PanLogoText")!.IsVisible);
+                MyTextBox titleText = page.FindControl<MyTextBox>("TextLogoText")!;
+                titleText.Text = "Headless title";
+                Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+
+                using (LauncherSettingsStore store = new(settingsPath))
+                {
+                    LauncherSettings saved = store.LoadAsync().AsTask().GetAwaiter().GetResult().Settings;
+                    Assert.AreEqual(2, saved.IntegerOptions["UiLogoType"]);
+                    Assert.AreEqual("Headless title", saved.TextOptions["UiLogoText"]);
+                }
+
+                using MainWindow main = new();
+                Assert.IsTrue(main.FindControl<TextBlock>("LabTitleLogo")!.IsVisible);
+                Assert.AreEqual("Headless title", main.FindControl<TextBlock>("LabTitleLogo")!.Text);
+
+                string logoPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(settingsPath)!, "Logo.png");
+                using (Stream source = Avalonia.Platform.AssetLoader.Open(new Uri("avares://PCL.Desktop/Assets/icon.png")))
+                using (FileStream target = File.Create(logoPath))
+                    source.CopyTo(target);
+                page.FindControl<MyRadioBox>("RadioLogoType3")!.SetChecked(true, user: true);
+                page.RefreshPage();
+                Assert.IsTrue(page.FindControl<Grid>("PanLogoChange")!.IsVisible);
+                Assert.IsTrue(page.FindControl<MyButton>("BtnLogoDelete")!.IsVisible);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    [TestMethod]
     public void PageSetupAbout_UsesUnifiedMetadataAndSponsorLink()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();

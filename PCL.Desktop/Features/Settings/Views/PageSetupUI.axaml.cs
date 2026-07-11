@@ -113,11 +113,16 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
 
     private async void BtnLogoChange_Click(object? sender, EventArgs e)
     {
+        await SelectCustomLogoAsync().ConfigureAwait(true);
+    }
+
+    private async Task<bool> SelectCustomLogoAsync()
+    {
         IStorageProvider? storage = TopLevel.GetTopLevel(this)?.StorageProvider;
         if (storage is null)
         {
             MessageRequested?.Invoke(this, new SettingsMessageRequestedEventArgs("无法更换图标", "当前窗口无法打开文件选择器。"));
-            return;
+            return false;
         }
 
         IReadOnlyList<IStorageFile> files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
@@ -134,7 +139,7 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
             ]
         }).ConfigureAwait(true);
         if (files.Count == 0)
-            return;
+            return false;
 
         string targetPath = GetCustomLogoPath();
         Directory.CreateDirectory(Path.GetDirectoryName(targetPath) ?? LauncherSettingsPageBinder.CreateDataDirectory());
@@ -154,7 +159,8 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
         settings.SetTextOption(LauncherSettingKeys.UiCustomLogoPath, targetPath);
         LauncherSettingsPageBinder.SaveSettings(settings);
         RefreshLogoUi();
-        MessageRequested?.Invoke(this, new SettingsMessageRequestedEventArgs("图标已更新", "自定义标题栏图标会在重新创建窗口后完整生效。"));
+        MessageRequested?.Invoke(this, new SettingsMessageRequestedEventArgs("图标已更新", "自定义标题栏图标已立即应用。"));
+        return true;
     }
 
     private void BtnLogoDelete_Click(object? sender, EventArgs e)
@@ -168,6 +174,7 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
             LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
             settings.RemoveTextOption(LauncherSettingKeys.UiCustomLogoPath);
             LauncherSettingsPageBinder.SaveSettings(settings);
+            this.FindControl<MyRadioBox>("RadioLogoType1")?.SetChecked(true, user: true);
             RefreshLogoUi();
             MessageRequested?.Invoke(this, new SettingsMessageRequestedEventArgs("图标已清除", "已恢复默认标题栏图标。"));
         }
@@ -253,8 +260,14 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
         RefreshLogoUi();
     }
 
-    private void RadioLogoType3_Check(object sender, RouteEventArgs e)
+    private async void RadioLogoType3_Check(object sender, RouteEventArgs e)
     {
+        if (!File.Exists(GetCustomLogoPath()))
+        {
+            e.Handled = true;
+            if (await SelectCustomLogoAsync().ConfigureAwait(true))
+                this.FindControl<MyRadioBox>("RadioLogoType3")?.SetChecked(true, user: true);
+        }
         RefreshLogoUi();
     }
 
@@ -291,18 +304,18 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
 
     private void RefreshBackgroundUi(bool showMessage)
     {
-        int count = CountFiles(GetBackgroundDirectory(), "*.png", "*.jpg", "*.jpeg", "*.webp", "*.gif", "*.mp4", "*.webm");
+        int count = CountFiles(GetBackgroundDirectory(), "*.png", "*.jpg", "*.jpeg", "*.webp", "*.gif", "*.mp4", "*.webm", "*.mkv", "*.mov");
         bool hasContent = count > 0;
-        if (PanBackgroundOpacity is not null)
-            PanBackgroundOpacity.IsVisible = hasContent;
-        if (PanBackgroundBlur is not null)
-            PanBackgroundBlur.IsVisible = hasContent;
-        if (PanBackgroundSuit is not null)
-            PanBackgroundSuit.IsVisible = hasContent;
-        if (BtnBackgroundClear is not null)
-            BtnBackgroundClear.IsVisible = hasContent;
-        if (CardBackground is not null)
-            CardBackground.Title = hasContent ? $"背景图片与视频 ({count})" : "背景图片与视频";
+        if (this.FindControl<Grid>("PanBackgroundOpacity") is { } opacity)
+            opacity.IsVisible = hasContent;
+        if (this.FindControl<Grid>("PanBackgroundBlur") is { } blur)
+            blur.IsVisible = hasContent;
+        if (this.FindControl<Grid>("PanBackgroundSuit") is { } suit)
+            suit.IsVisible = hasContent;
+        if (this.FindControl<MyButton>("BtnBackgroundClear") is { } clear)
+            clear.IsVisible = hasContent;
+        if (this.FindControl<MyCard>("CardBackground") is { } card)
+            card.Title = hasContent ? $"背景图片与视频 ({count})" : "背景图片与视频";
 
         if (showMessage)
         {
@@ -319,14 +332,14 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
     {
         int count = CountFiles(GetMusicDirectory(), "*.mp3", "*.wav", "*.flac", "*.ogg", "*.m4a");
         bool hasContent = count > 0;
-        if (PanMusicVolume is not null)
-            PanMusicVolume.IsVisible = hasContent;
-        if (PanMusicDetail is not null)
-            PanMusicDetail.IsVisible = hasContent;
-        if (BtnMusicClear is not null)
-            BtnMusicClear.IsVisible = hasContent;
-        if (CardMusic is not null)
-            CardMusic.Title = hasContent ? $"背景音乐 ({count})" : "背景音乐";
+        if (this.FindControl<Grid>("PanMusicVolume") is { } volume)
+            volume.IsVisible = hasContent;
+        if (this.FindControl<StackPanel>("PanMusicDetail") is { } detail)
+            detail.IsVisible = hasContent;
+        if (this.FindControl<MyButton>("BtnMusicClear") is { } clear)
+            clear.IsVisible = hasContent;
+        if (this.FindControl<MyCard>("CardMusic") is { } card)
+            card.Title = hasContent ? $"背景音乐 ({count})" : "背景音乐";
 
         if (showMessage)
         {
@@ -339,15 +352,15 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
 
     private void RefreshLogoUi()
     {
-        bool isCustomLogoSelected = RadioLogoType3?.Checked == true;
-        if (PanLogoChange is not null)
-            PanLogoChange.IsVisible = isCustomLogoSelected;
-        if (PanLogoText is not null)
-            PanLogoText.IsVisible = RadioLogoType2?.Checked == true;
-        if (CheckLogoLeft is not null)
-            CheckLogoLeft.IsVisible = RadioLogoType0?.Checked == true;
-        if (BtnLogoDelete is not null)
-            BtnLogoDelete.IsVisible = File.Exists(GetCustomLogoPath());
+        bool isCustomLogoSelected = this.FindControl<MyRadioBox>("RadioLogoType3")?.Checked == true;
+        if (this.FindControl<Grid>("PanLogoChange") is { } imageOptions)
+            imageOptions.IsVisible = isCustomLogoSelected;
+        if (this.FindControl<Grid>("PanLogoText") is { } textOptions)
+            textOptions.IsVisible = this.FindControl<MyRadioBox>("RadioLogoType2")?.Checked == true;
+        if (this.FindControl<MyCheckBox>("CheckLogoLeft") is { } alignLeft)
+            alignLeft.IsVisible = this.FindControl<MyRadioBox>("RadioLogoType0")?.Checked == true;
+        if (this.FindControl<MyButton>("BtnLogoDelete") is { } delete)
+            delete.IsVisible = isCustomLogoSelected && File.Exists(GetCustomLogoPath());
     }
 
     private void RefreshBlurUi()
@@ -359,23 +372,23 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
     private void RefreshHomepageUi()
     {
         int selectedType = GetSelectedHomepageType();
-        if (PanCustomLocal is not null)
-            PanCustomLocal.IsVisible = selectedType == 1;
-        if (PanCustomNet is not null)
-            PanCustomNet.IsVisible = selectedType == 2;
-        if (PanCustomPreset is not null)
-            PanCustomPreset.IsVisible = selectedType == 3;
-        if (HintCustomWarn is not null)
-            HintCustomWarn.IsVisible = selectedType == 2;
+        if (this.FindControl<Grid>("PanCustomLocal") is { } local)
+            local.IsVisible = selectedType == 1;
+        if (this.FindControl<Grid>("PanCustomNet") is { } network)
+            network.IsVisible = selectedType == 2;
+        if (this.FindControl<Grid>("PanCustomPreset") is { } preset)
+            preset.IsVisible = selectedType == 3;
+        if (this.FindControl<MyHint>("HintCustomWarn") is { } warning)
+            warning.IsVisible = selectedType == 2;
     }
 
     private int GetSelectedHomepageType()
     {
-        if (RadioCustomType1?.Checked == true)
+        if (this.FindControl<MyRadioBox>("RadioCustomType1")?.Checked == true)
             return 1;
-        if (RadioCustomType2?.Checked == true)
+        if (this.FindControl<MyRadioBox>("RadioCustomType2")?.Checked == true)
             return 2;
-        if (RadioCustomType3?.Checked == true)
+        if (this.FindControl<MyRadioBox>("RadioCustomType3")?.Checked == true)
             return 3;
         return 0;
     }
