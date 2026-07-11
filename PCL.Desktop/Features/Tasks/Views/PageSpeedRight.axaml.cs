@@ -29,6 +29,8 @@ public partial class PageSpeedRight : MyPageRight
 
     public event EventHandler<TaskManagerTaskEventArgs>? CancelRequested;
 
+    public event EventHandler<TaskManagerTaskEventArgs>? DismissRequested;
+
     public int TaskCount => _cards.Count;
 
     public bool HasActiveTasks => _cards.Values.Any(static card =>
@@ -47,7 +49,9 @@ public partial class PageSpeedRight : MyPageRight
 
             card.State = snapshot.State;
             card.Card.Title = snapshot.Title;
-            card.CancelButton.IsVisible = snapshot.State is TaskManagerTaskState.Waiting or TaskManagerTaskState.Running;
+            bool isActive = snapshot.State is TaskManagerTaskState.Waiting or TaskManagerTaskState.Running;
+            card.CancelButton.IsVisible = isActive || snapshot.State is TaskManagerTaskState.Failed or TaskManagerTaskState.Canceled;
+            card.CancelButton.ToolTip = isActive ? "取消任务" : "移除任务";
             UpdateContentRows(card, snapshot);
         });
     }
@@ -102,7 +106,18 @@ public partial class PageSpeedRight : MyPageRight
             Theme = MyIconButton.Themes.Black,
             ToolTip = "取消任务"
         };
-        cancelButton.Click += (_, _) => CancelRequested?.Invoke(this, new TaskManagerTaskEventArgs(snapshot.TaskId));
+        cancelButton.Click += (_, _) =>
+        {
+            if (_cards.TryGetValue(snapshot.TaskId, out TaskCardView? current) &&
+                current.State is TaskManagerTaskState.Waiting or TaskManagerTaskState.Running)
+            {
+                CancelRequested?.Invoke(this, new TaskManagerTaskEventArgs(snapshot.TaskId));
+            }
+            else
+            {
+                DismissRequested?.Invoke(this, new TaskManagerTaskEventArgs(snapshot.TaskId));
+            }
+        };
 
         card.Children.Add(content);
         card.Children.Add(cancelButton);

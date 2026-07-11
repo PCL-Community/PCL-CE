@@ -27,6 +27,7 @@ using PCL.Application.Launching;
 using PCL.Application.Minecraft.Launch.Arguments;
 using PCL.Application.Settings;
 using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Features.Community;
 using PCL.Desktop.Hosting;
 using PCL.Desktop.Platform;
 using PCL.Desktop.Features.Downloads.Views;
@@ -53,6 +54,7 @@ public partial class MainWindow : Window, IDisposable
     private double _navAnimTarget;
     private int _navAnimElapsed;
     private NavigationRouteId? _currentNavRoute;
+    private NavigationRouteId? _pendingNavRoute;
     private bool _isMainWindowOpened;
     private PageLaunchLeft? _launchLeft;
     private PageLaunchRight? _launchRight;
@@ -63,9 +65,12 @@ public partial class MainWindow : Window, IDisposable
     private PageLoginOffline? _loginOfflinePage;
     private PageDownloadLeft? _downloadLeft;
     private PageDownloadInstall? _downloadInstallPage;
+    private PageCommunityLeft? _communityLeft;
+    private PageCommunityRight? _communityRight;
     private PageSpeedLeft? _speedLeft;
     private PageSpeedRight? _speedRight;
     private PageInstanceLeft? _instanceLeft;
+    private PageInstanceSelectLeft? _instanceSelectLeft;
     private PageInstanceSelectRight? _instanceSelectPage;
     private PageInstanceManageRight? _instanceManagePage;
     private PageInstanceSetupRight? _instanceSetupPage;
@@ -84,11 +89,14 @@ public partial class MainWindow : Window, IDisposable
     private Action? _titleInnerBackAction;
     private MyScrollViewer? _backButtonScrollViewer;
     private CancellationTokenSource? _launchCancellation;
+    private CancellationTokenSource? _microsoftLoginCancellation;
     private readonly MinecraftVanillaInstallService _minecraftInstallService = new();
     private readonly ThirdPartyAuthService _thirdPartyAuthService = new();
+    private readonly IMicrosoftMinecraftAuthService _microsoftAuthService;
     private PageSetupLeft? _setupLeft;
     private MyPageRight? _setupRight;
     private readonly List<LoginProfileInfo> _loginProfiles = [];
+    private readonly List<MinecraftFolderInfo> _minecraftFolders = [];
     private readonly NavigationPageDescriptor[] _navigationPages;
     private readonly Dictionary<string, TaskManagerEntrySnapshot> _taskSnapshots = [];
     private readonly Dictionary<string, CancellationTokenSource> _taskCancellations = [];
@@ -98,6 +106,9 @@ public partial class MainWindow : Window, IDisposable
     private int _taskSequence;
     private bool _isTaskManagerVisible;
     private NavigationRouteId? _taskManagerBackRoute;
+    private Action? _taskManagerBackAction;
+    private string? _selectedMinecraftRoot;
+    private bool _minecraftFoldersLoaded;
 
     private const double NavCollapsedWidth = 50d;
     private const int NavAnimDuration = 200;
@@ -107,13 +118,20 @@ public partial class MainWindow : Window, IDisposable
     private static readonly NavigationRouteId SettingsRoute = DesktopNavigationRegistry.SettingsRoute;
 
     public MainWindow()
+        : this(new MicrosoftMinecraftAuthService())
     {
+    }
+
+    public MainWindow(IMicrosoftMinecraftAuthService microsoftAuthService)
+    {
+        _microsoftAuthService = microsoftAuthService ?? throw new ArgumentNullException(nameof(microsoftAuthService));
         AvaloniaXamlLoader.Load(this);
         _navigationPages = CreateNavigationPageMap(DesktopHost.Current.Navigation);
         BuildMainNavigationItems();
         _desktopPageContext = new DesktopPageContext(
             CreateLaunchMainPage,
             CreateDownloadMainPage,
+            CreateCommunityMainPage,
             CreateSettingsMainPage,
             CreatePlaceholderMainPage);
         Opacity = 0d;
@@ -133,6 +151,22 @@ public partial class MainWindow : Window, IDisposable
 
     private void FormMain_KeyDown(object? sender, KeyEventArgs e)
     {
+        if (this.FindControl<Panel>("PanMsg") is { Children.Count: > 0 })
+            return;
+
+        if (e.Key == Key.Escape && _isTitleSubPageVisible)
+        {
+            BtnTitleInner_Click(sender, EventArgs.Empty);
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key == Key.F11 &&
+            this.FindControl<Border>("PanMainRight")?.Child is PageInstanceSelectRight instanceSelectPage)
+        {
+            instanceSelectPage.ShowHidden = !instanceSelectPage.ShowHidden;
+            e.Handled = true;
+        }
     }
 
     private void FormMain_MouseDown(object? sender, PointerPressedEventArgs e)
@@ -573,6 +607,18 @@ public partial class MainWindow : Window, IDisposable
             return;
         route = descriptor.Route;
 
+        if (_pendingNavRoute is NavigationRouteId pendingRoute && pendingRoute.Equals(route.Value))
+        {
+            return;
+        }
+
+        if (_currentNavRoute is NavigationRouteId currentRoute && currentRoute.Equals(route.Value))
+        {
+            if (_isTitleSubPageVisible || _isTaskManagerVisible)
+                ApplyPagePlaceholder(route);
+            return;
+        }
+
         MyListItem? selected = null;
         foreach (MyListItem item in GetNavItems())
         {
@@ -593,7 +639,7 @@ public partial class MainWindow : Window, IDisposable
                 item.Checked = false;
         }
 
-        if (!animate || (_currentNavRoute is NavigationRouteId currentRoute && currentRoute.Equals(route.Value)))
+        if (!animate)
         {
             ApplyPagePlaceholder(route);
             return;
@@ -623,6 +669,7 @@ public partial class MainWindow : Window, IDisposable
             return;
 
         _currentNavRoute = descriptor.Route;
+        _pendingNavRoute = null;
         int requestId = ++_registeredPageRequestId;
         PageCreateContext context = new(descriptor.Route.Value, DesktopHost.Current.Services, _desktopPageContext);
         ValueTask<DesktopMainPage> createTask;
@@ -725,7 +772,10 @@ public partial class MainWindow : Window, IDisposable
 
     private PageLaunchLeft CreateLaunchLeftPage()
     {
+        EnsureMinecraftFoldersLoaded();
         PageLaunchLeft page = new();
+        page.SetPreferredInstanceDirectory(LoadPreferredInstanceDirectory());
+        page.SetMinecraftRootDirectory(_selectedMinecraftRoot);
         page.DownloadRequested += (_, _) => SelectNavRoute(DownloadRoute, animate: true);
         page.InstanceSelectRequested += (_, _) => ApplyInstanceSelectPage();
         page.InstanceSettingsRequested += (_, _) =>
@@ -754,11 +804,53 @@ public partial class MainWindow : Window, IDisposable
             rightPage,
             Activated: () =>
             {
-                if (rightPage is PageDownloadInstall installPage)
-                    installPage.ClearInstallTargetOverride();
                 _downloadLeft.TriggerShowAnimation();
-                rightPage.PageOnEnter();
+                if (rightPage is PageDownloadInstall installPage)
+                {
+                    if (!installPage.HasPendingFocusedNavigation)
+                        installPage.ClearInstallTargetOverride();
+                    installPage.PageOnEnter();
+                }
+                else
+                {
+                    rightPage.PageOnEnter();
+                }
             });
+    }
+
+    private DesktopMainPage CreateCommunityMainPage()
+    {
+        _communityRight ??= CreateCommunityRightPage();
+        _communityLeft ??= CreateCommunityLeftPage(_communityRight);
+        return new DesktopMainPage(
+            _communityLeft,
+            _communityRight,
+            Activated: () =>
+            {
+                _communityLeft.TriggerShowAnimation();
+                _communityRight.PageOnEnter();
+            });
+    }
+
+    private static PageCommunityLeft CreateCommunityLeftPage(PageCommunityRight rightPage)
+    {
+        PageCommunityLeft page = new();
+        page.CategoryChanged += (_, category) => _ = rightPage.SetCategoryAsync(category);
+        page.RefreshRequested += (_, category) =>
+        {
+            if (rightPage.Category == category)
+                _ = rightPage.RefreshAsync();
+            else
+                _ = rightPage.SetCategoryAsync(category);
+        };
+        return page;
+    }
+
+    private PageCommunityRight CreateCommunityRightPage()
+    {
+        PageCommunityRight page = new();
+        page.OpenProjectRequested += (_, entry) => OpenExternalUrl(entry.WebsiteUrl);
+        return page;
     }
 
     private PageDownloadLeft CreateDownloadLeftPage()
@@ -786,6 +878,7 @@ public partial class MainWindow : Window, IDisposable
 
         PageSpeedRight page = new();
         page.CancelRequested += (_, args) => CancelTrackedTask(args.TaskId);
+        page.DismissRequested += (_, args) => RemoveTask(args.TaskId);
         _speedRight = page;
         return _speedRight;
     }
@@ -813,13 +906,36 @@ public partial class MainWindow : Window, IDisposable
             return;
         }
 
-        leftHost.Child = null;
+        EnsureMinecraftFoldersLoaded();
+        _instanceSelectLeft ??= CreateInstanceSelectLeftPage();
+        _instanceSelectLeft.SetFolders(_minecraftFolders, _selectedMinecraftRoot);
+        leftHost.Child = _instanceSelectLeft;
+        _instanceSelectLeft.TriggerShowAnimation();
         _instanceSelectPage ??= CreateInstanceSelectPage();
         _instanceSelectPage.SetInstances(_launchLeft?.Instances ?? [], _launchLeft?.SelectedInstance);
         rightHost.Child = _instanceSelectPage;
         EnterTitleSubPage("选择版本");
         RefreshBackToTopBinding();
         _instanceSelectPage.PageOnEnter();
+    }
+
+    private PageInstanceSelectLeft CreateInstanceSelectLeftPage()
+    {
+        PageInstanceSelectLeft page = new();
+        page.FolderSelected += (_, folder) => _ = SelectMinecraftFolderAsync(folder);
+        page.FolderRefreshRequested += (_, folder) => _ = SelectMinecraftFolderAsync(folder, forceRefresh: true);
+        page.FolderOpenRequested += (_, folder) => OpenFolder(folder.RootDirectory);
+        page.FolderRenameRequested += (_, folder) => ShowInputDialog(
+            "重命名游戏文件夹",
+            "请输入新的显示名称。",
+            folder.Name,
+            "游戏文件夹名称",
+            result => RenameMinecraftFolder(folder, result));
+        page.FolderRemoveRequested += (_, folder) => RemoveMinecraftFolder(folder);
+        page.CreateFolderRequested += (_, _) => _ = CreateDefaultMinecraftFolderAsync();
+        page.AddFolderRequested += (_, _) => _ = AddMinecraftFolderAsync();
+        page.ImportModpackRequested += (_, _) => _ = PickModpackForImportAsync();
+        return page;
     }
 
     private PageInstanceSelectRight CreateInstanceSelectPage()
@@ -838,11 +954,329 @@ public partial class MainWindow : Window, IDisposable
         page.InstanceSelected += (_, instance) =>
         {
             _launchLeft?.SetInstances(_launchLeft.Instances, instance);
+            PersistPreferredInstanceDirectory(_launchLeft?.PreferredInstanceDirectory ?? instance.InstanceDirectory);
             _launchRight?.AppendLog($"已选择游戏版本 {instance.Name}。");
             SelectNavRoute(LaunchRoute, animate: true);
         };
         page.InstanceManageRequested += (_, instance) => ApplyInstanceManagePage(instance);
         return page;
+    }
+
+    private static string? LoadPreferredInstanceDirectory()
+    {
+        try
+        {
+            LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+            string directory = settings.GetTextOption(LauncherSettingKeys.LaunchSelectedInstanceDirectory);
+            return string.IsNullOrWhiteSpace(directory) ? null : directory;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        {
+            return null;
+        }
+    }
+
+    private void PersistPreferredInstanceDirectory(string? instanceDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(instanceDirectory))
+            return;
+
+        try
+        {
+            LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+            settings.SetTextOption(LauncherSettingKeys.LaunchSelectedInstanceDirectory, instanceDirectory);
+            LauncherSettingsPageBinder.SaveSettings(settings);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        {
+            _launchRight?.AppendLog("未能保存所选游戏版本：" + ex.Message);
+        }
+    }
+
+    private void EnsureMinecraftFoldersLoaded()
+    {
+        if (_minecraftFoldersLoaded)
+            return;
+
+        _minecraftFoldersLoaded = true;
+        _minecraftFolders.Clear();
+        foreach (string root in LaunchInstanceDiscovery.GetCandidateRoots())
+        {
+            string? normalized = NormalizeDirectoryPath(root);
+            if (normalized is null || _minecraftFolders.Any(folder =>
+                    string.Equals(folder.RootDirectory, normalized, StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+
+            _minecraftFolders.Add(new MinecraftFolderInfo(GetAutomaticMinecraftFolderName(normalized), normalized));
+        }
+
+        try
+        {
+            LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+            string serializedFolders = settings.GetTextOption(LauncherSettingKeys.LaunchMinecraftFolders);
+            if (!string.IsNullOrWhiteSpace(serializedFolders))
+            {
+                MinecraftFolderSetting[] customFolders = ParseMinecraftFolderSettings(serializedFolders);
+                foreach (MinecraftFolderSetting custom in customFolders)
+                {
+                    string? normalized = NormalizeDirectoryPath(custom.RootDirectory);
+                    if (normalized is null || _minecraftFolders.Any(folder =>
+                            string.Equals(folder.RootDirectory, normalized, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        continue;
+                    }
+
+                    string name = string.IsNullOrWhiteSpace(custom.Name)
+                        ? GetAutomaticMinecraftFolderName(normalized)
+                        : custom.Name.Trim();
+                    _minecraftFolders.Add(new MinecraftFolderInfo(name, normalized, IsCustom: true));
+                }
+            }
+
+            _selectedMinecraftRoot = NormalizeDirectoryPath(
+                settings.GetTextOption(LauncherSettingKeys.LaunchSelectedMinecraftRoot));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException or JsonException)
+        {
+            _selectedMinecraftRoot = null;
+        }
+
+        if (_minecraftFolders.Count == 0)
+        {
+            string fallback = Path.Combine(AppContext.BaseDirectory, ".minecraft");
+            _minecraftFolders.Add(new MinecraftFolderInfo("当前文件夹", NormalizeDirectoryPath(fallback) ?? fallback));
+        }
+
+        if (_selectedMinecraftRoot is null || !_minecraftFolders.Any(folder =>
+                string.Equals(folder.RootDirectory, _selectedMinecraftRoot, StringComparison.OrdinalIgnoreCase)))
+        {
+            _selectedMinecraftRoot = TryGetMinecraftRootFromInstanceDirectory(LoadPreferredInstanceDirectory())
+                                     ?? _minecraftFolders[0].RootDirectory;
+            if (!_minecraftFolders.Any(folder =>
+                    string.Equals(folder.RootDirectory, _selectedMinecraftRoot, StringComparison.OrdinalIgnoreCase)))
+            {
+                _selectedMinecraftRoot = _minecraftFolders[0].RootDirectory;
+            }
+        }
+    }
+
+    private async Task SelectMinecraftFolderAsync(MinecraftFolderInfo folder, bool forceRefresh = false)
+    {
+        string? normalized = NormalizeDirectoryPath(folder.RootDirectory);
+        if (normalized is null || _launchLeft is null)
+            return;
+
+        bool changed = !string.Equals(_selectedMinecraftRoot, normalized, StringComparison.OrdinalIgnoreCase);
+        _selectedMinecraftRoot = normalized;
+        PersistMinecraftFolders();
+        _instanceSelectLeft?.SetFolders(_minecraftFolders, _selectedMinecraftRoot);
+        _launchLeft.SetMinecraftRootDirectory(normalized);
+        if (changed || forceRefresh)
+            await _launchLeft.RefreshInstancesAsync().ConfigureAwait(true);
+
+        _instanceSelectPage?.SetInstances(_launchLeft.Instances, _launchLeft.SelectedInstance);
+    }
+
+    private async Task AddMinecraftFolderAsync()
+    {
+        string? selected = await PickOpenFolderPathAsync("选择 Minecraft 文件夹").ConfigureAwait(true);
+        if (string.IsNullOrWhiteSpace(selected))
+            return;
+
+        string root = NormalizeSelectedMinecraftRoot(selected);
+        MinecraftFolderInfo folder = AddOrGetMinecraftFolder(root, GetAutomaticMinecraftFolderName(root));
+        await SelectMinecraftFolderAsync(folder, forceRefresh: true).ConfigureAwait(true);
+    }
+
+    private async Task CreateDefaultMinecraftFolderAsync()
+    {
+        string root = Path.Combine(AppContext.BaseDirectory, ".minecraft");
+        Directory.CreateDirectory(Path.Combine(root, "versions"));
+        MinecraftFolderInfo folder = AddOrGetMinecraftFolder(root, "当前文件夹");
+        await SelectMinecraftFolderAsync(folder, forceRefresh: true).ConfigureAwait(true);
+    }
+
+    private async Task PickModpackForImportAsync()
+    {
+        string? sourcePath = await PickOpenFilePathAsync(
+                "选择整合包",
+                new FilePickerFileType("整合包压缩文件") { Patterns = ["*.zip", "*.mrpack"] })
+            .ConfigureAwait(true);
+        if (!string.IsNullOrWhiteSpace(sourcePath))
+            _launchRight?.AppendLog("已选择整合包：" + sourcePath);
+    }
+
+    private MinecraftFolderInfo AddOrGetMinecraftFolder(string rootDirectory, string name)
+    {
+        string normalized = NormalizeDirectoryPath(rootDirectory)
+                            ?? throw new ArgumentException("Minecraft 文件夹路径无效。", nameof(rootDirectory));
+        MinecraftFolderInfo? existing = _minecraftFolders.FirstOrDefault(folder =>
+            string.Equals(folder.RootDirectory, normalized, StringComparison.OrdinalIgnoreCase));
+        if (existing is not null)
+            return existing;
+
+        MinecraftFolderInfo added = new(name, normalized, IsCustom: true);
+        _minecraftFolders.Add(added);
+        PersistMinecraftFolders();
+        _instanceSelectLeft?.SetFolders(_minecraftFolders, _selectedMinecraftRoot);
+        return added;
+    }
+
+    private void RenameMinecraftFolder(MinecraftFolderInfo folder, string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return;
+
+        int index = _minecraftFolders.IndexOf(folder);
+        if (index < 0)
+            return;
+
+        _minecraftFolders[index] = folder with { Name = name.Trim(), IsCustom = true };
+        PersistMinecraftFolders();
+        _instanceSelectLeft?.SetFolders(_minecraftFolders, _selectedMinecraftRoot);
+    }
+
+    private void RemoveMinecraftFolder(MinecraftFolderInfo folder)
+    {
+        if (!folder.IsCustom || !_minecraftFolders.Remove(folder))
+            return;
+
+        if (_minecraftFolders.Count == 0)
+        {
+            string fallback = NormalizeDirectoryPath(Path.Combine(AppContext.BaseDirectory, ".minecraft"))
+                              ?? Path.Combine(AppContext.BaseDirectory, ".minecraft");
+            _minecraftFolders.Add(new MinecraftFolderInfo("当前文件夹", fallback));
+        }
+
+        if (string.Equals(_selectedMinecraftRoot, folder.RootDirectory, StringComparison.OrdinalIgnoreCase))
+        {
+            _selectedMinecraftRoot = _minecraftFolders[0].RootDirectory;
+            _ = SelectMinecraftFolderAsync(_minecraftFolders[0], forceRefresh: true);
+        }
+        else
+        {
+            PersistMinecraftFolders();
+            _instanceSelectLeft?.SetFolders(_minecraftFolders, _selectedMinecraftRoot);
+        }
+    }
+
+    private void PersistMinecraftFolders()
+    {
+        try
+        {
+            LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+            MinecraftFolderSetting[] customFolders = _minecraftFolders
+                .Where(static folder => folder.IsCustom)
+                .Select(static folder => new MinecraftFolderSetting(folder.Name, folder.RootDirectory))
+                .ToArray();
+            settings.SetTextOption(
+                LauncherSettingKeys.LaunchMinecraftFolders,
+                SerializeMinecraftFolderSettings(customFolders));
+            settings.SetTextOption(
+                LauncherSettingKeys.LaunchSelectedMinecraftRoot,
+                _selectedMinecraftRoot ?? string.Empty);
+            LauncherSettingsPageBinder.SaveSettings(settings);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        {
+            _launchRight?.AppendLog("未能保存游戏文件夹列表：" + ex.Message);
+        }
+    }
+
+    private static MinecraftFolderSetting[] ParseMinecraftFolderSettings(string json)
+    {
+        using JsonDocument document = JsonDocument.Parse(json);
+        if (document.RootElement.ValueKind != JsonValueKind.Array)
+            return [];
+
+        List<MinecraftFolderSetting> result = [];
+        foreach (JsonElement element in document.RootElement.EnumerateArray())
+        {
+            if (element.ValueKind != JsonValueKind.Object)
+                continue;
+
+            string? name = TryReadJsonString(element, "name") ?? TryReadJsonString(element, "Name");
+            string? rootDirectory = TryReadJsonString(element, "rootDirectory") ??
+                                    TryReadJsonString(element, "RootDirectory");
+            if (!string.IsNullOrWhiteSpace(rootDirectory))
+                result.Add(new MinecraftFolderSetting(name ?? string.Empty, rootDirectory));
+        }
+
+        return result.ToArray();
+    }
+
+    private static string SerializeMinecraftFolderSettings(IEnumerable<MinecraftFolderSetting> folders)
+    {
+        using MemoryStream stream = new();
+        using (Utf8JsonWriter writer = new(stream))
+        {
+            writer.WriteStartArray();
+            foreach (MinecraftFolderSetting folder in folders)
+            {
+                writer.WriteStartObject();
+                writer.WriteString("name", folder.Name);
+                writer.WriteString("rootDirectory", folder.RootDirectory);
+                writer.WriteEndObject();
+            }
+            writer.WriteEndArray();
+        }
+
+        return Encoding.UTF8.GetString(stream.ToArray());
+    }
+
+    private static string NormalizeSelectedMinecraftRoot(string selectedDirectory)
+    {
+        string root = NormalizeDirectoryPath(selectedDirectory) ?? selectedDirectory;
+        string nestedMinecraft = Path.Combine(root, ".minecraft");
+        return Directory.Exists(Path.Combine(nestedMinecraft, "versions")) &&
+               !Directory.Exists(Path.Combine(root, "versions"))
+            ? nestedMinecraft
+            : root;
+    }
+
+    private static string GetAutomaticMinecraftFolderName(string rootDirectory)
+    {
+        string normalizedBase = NormalizeDirectoryPath(Path.Combine(AppContext.BaseDirectory, ".minecraft")) ?? string.Empty;
+        if (string.Equals(rootDirectory, normalizedBase, StringComparison.OrdinalIgnoreCase))
+            return "当前文件夹";
+
+        string trimmed = rootDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        string leaf = Path.GetFileName(trimmed);
+        if (string.Equals(leaf, ".minecraft", StringComparison.OrdinalIgnoreCase))
+        {
+            string? parent = Path.GetDirectoryName(trimmed);
+            string parentName = string.IsNullOrWhiteSpace(parent) ? string.Empty : Path.GetFileName(parent);
+            return string.IsNullOrWhiteSpace(parentName) ? "Minecraft" : parentName;
+        }
+
+        return string.IsNullOrWhiteSpace(leaf) ? rootDirectory : leaf;
+    }
+
+    private static string? TryGetMinecraftRootFromInstanceDirectory(string? instanceDirectory)
+    {
+        string? normalized = NormalizeDirectoryPath(instanceDirectory);
+        if (normalized is null)
+            return null;
+
+        DirectoryInfo? versions = Directory.GetParent(normalized);
+        return versions?.Parent?.FullName is { } root ? NormalizeDirectoryPath(root) : null;
+    }
+
+    private static string? NormalizeDirectoryPath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return null;
+
+        try
+        {
+            return Path.TrimEndingDirectorySeparator(Path.GetFullPath(path.Trim()));
+        }
+        catch (Exception ex) when (ex is ArgumentException or IOException or NotSupportedException)
+        {
+            return null;
+        }
     }
 
     private void ApplyInstanceManagePage(LaunchInstanceInfo instance, InstancePageSubType subPage = InstancePageSubType.Overall)
@@ -858,18 +1292,20 @@ public partial class MainWindow : Window, IDisposable
         _instanceLeft ??= CreateInstanceLeftPage();
         _instanceLeft.SetInstance(instance);
         subPage = _instanceLeft.NormalizePage(subPage);
-        leftHost.Child = _instanceLeft;
-        _instanceLeft.TriggerShowAnimation();
+        if (!ReferenceEquals(leftHost.Child, _instanceLeft))
+        {
+            if (leftHost.Child is MyPageLeft oldLeft)
+                oldLeft.TriggerHideAnimation();
+            leftHost.Child = _instanceLeft;
+            _instanceLeft.TriggerShowAnimation();
+        }
         _instanceLeft.SelectPage(subPage);
         EnterTitleSubPage($"版本设置 - {instance.Name}");
 
         MyPageRight rightPage = GetInstanceRightPage(instance, subPage);
         MyPageRight? oldRight = rightHost.Child as MyPageRight;
         if (ReferenceEquals(oldRight, rightPage))
-        {
-            rightPage.PageOnEnter();
             return;
-        }
 
         oldRight?.PageOnExit();
         rightHost.Child = rightPage;
@@ -1034,7 +1470,8 @@ public partial class MainWindow : Window, IDisposable
                 instance.Name,
                 preserveInstallNameOnLoaderSelect: true,
                 minecraftRootDirectory: minecraftRoot,
-                openLoaderKind: request.LoaderKind)
+                openLoaderKind: request.LoaderKind,
+                replaceExistingVersion: true)
             .ConfigureAwait(true);
     }
 
@@ -1042,7 +1479,7 @@ public partial class MainWindow : Window, IDisposable
     {
         _downloadLeft ??= CreateDownloadLeftPage();
         PageDownloadInstall installPage = CreateDownloadInstallPage();
-        _downloadLeft.PageChange(DownloadPageSubType.Install, force: true);
+        _downloadLeft.PageChange(DownloadPageSubType.Install);
         SelectNavRoute(DownloadRoute, animate);
         return installPage;
     }
@@ -1063,11 +1500,14 @@ public partial class MainWindow : Window, IDisposable
         }
 
         if (!_isTaskManagerVisible)
+        {
             _taskManagerBackRoute = GetCurrentNavigationRoute();
+            _taskManagerBackAction = CaptureTaskManagerBackAction();
+        }
 
         _registeredPageRequestId++;
         _isTaskManagerVisible = true;
-        _titleInnerBackAction = () => SelectNavRoute(_taskManagerBackRoute ?? LaunchRoute, animate: true);
+        _titleInnerBackAction = ReturnFromTaskManager;
 
         _speedLeft ??= new PageSpeedLeft();
         PageSpeedRight rightPage = CreateTaskManagerRightPage();
@@ -1127,6 +1567,33 @@ public partial class MainWindow : Window, IDisposable
             : _navigationPages.Length > 0
                 ? _navigationPages[0].Route
                 : LaunchRoute;
+
+    private Action CaptureTaskManagerBackAction()
+    {
+        if (this.FindControl<Border>("PanMainRight")?.Child is PageInstanceSelectRight)
+            return ApplyInstanceSelectPage;
+
+        if (_managedInstance is not null &&
+            this.FindControl<Border>("PanMainLeft")?.Child is PageInstanceLeft &&
+            _instanceLeft is not null)
+        {
+            LaunchInstanceInfo instance = _managedInstance;
+            InstancePageSubType subPage = _instanceLeft.PageId;
+            return () => ApplyInstanceManagePage(instance, subPage);
+        }
+
+        NavigationRouteId route = _taskManagerBackRoute ?? LaunchRoute;
+        return () => SelectNavRoute(route, animate: true);
+    }
+
+    private void ReturnFromTaskManager()
+    {
+        Action backAction = _taskManagerBackAction ??
+                            (() => SelectNavRoute(_taskManagerBackRoute ?? LaunchRoute, animate: true));
+        _taskManagerBackAction = null;
+        _isTaskManagerVisible = false;
+        backAction();
+    }
 
     private string GetResourceText(string key, string fallback)
     {
@@ -1270,13 +1737,18 @@ public partial class MainWindow : Window, IDisposable
     private async Task RemoveTaskAfterDelayAsync(string taskId, TimeSpan delay)
     {
         await Task.Delay(delay).ConfigureAwait(true);
+        RemoveTask(taskId);
+    }
+
+    private void RemoveTask(string taskId)
+    {
         _taskSnapshots.Remove(taskId);
         _speedRight?.RemoveTask(taskId);
         UpdateTaskManagerViews();
         RefreshTaskManagerButton();
 
         if (_isTaskManagerVisible && _taskSnapshots.Count == 0)
-            SelectNavRoute(_taskManagerBackRoute ?? LaunchRoute, animate: true);
+            ReturnFromTaskManager();
     }
 
     private void UpdateTaskManagerViews()
@@ -1338,8 +1810,11 @@ public partial class MainWindow : Window, IDisposable
 
         bool hasActiveTask = _taskSnapshots.Values.Any(static snapshot =>
             snapshot.State is TaskManagerTaskState.Waiting or TaskManagerTaskState.Running);
-        button.Progress = hasActiveTask ? CreateTaskManagerSummary().Progress : 0d;
-        button.Show = hasActiveTask && !_isTaskManagerVisible;
+        bool hasVisibleTask = _taskSnapshots.Values.Any(static snapshot =>
+            snapshot.State is TaskManagerTaskState.Waiting or TaskManagerTaskState.Running or
+                TaskManagerTaskState.Failed or TaskManagerTaskState.Canceled);
+        button.Progress = hasActiveTask ? CreateTaskManagerSummary().Progress : hasVisibleTask ? 1d : 0d;
+        button.Show = hasVisibleTask && !_isTaskManagerVisible;
     }
 
     private string CreateTaskId(string kind, string identity)
@@ -1520,6 +1995,21 @@ public partial class MainWindow : Window, IDisposable
         PageInstanceServerRight page = new();
         page.RefreshRequested += (_, _) => page.Reload();
         page.AddServerRequested += (_, instance) => PromptAddServer(instance, page);
+        page.ConnectServerRequested += (_, server) =>
+        {
+            if (_managedInstance is { } instance && _launchLeft is { } launchPage)
+                _ = StartMinecraftAsync(launchPage, instance, serverAddress: server.Address);
+        };
+        page.EditServerRequested += (_, server) =>
+        {
+            if (_managedInstance is { } instance)
+                PromptEditServer(instance, page, server);
+        };
+        page.RemoveServerRequested += (_, server) =>
+        {
+            if (_managedInstance is { } instance)
+                PromptRemoveServer(instance, page, server);
+        };
         return page;
     }
 
@@ -1572,6 +2062,112 @@ public partial class MainWindow : Window, IDisposable
         }
     }
 
+    private void PromptEditServer(
+        LaunchInstanceInfo instance,
+        PageInstanceServerRight page,
+        MinecraftServerEntry server)
+    {
+        ShowInputDialog(
+            "编辑服务器名称",
+            "修改服务器在列表中显示的名称。",
+            server.Name,
+            "服务器名称",
+            name =>
+            {
+                if (string.IsNullOrWhiteSpace(name))
+                    return;
+
+                ShowInputDialog(
+                    "编辑服务器地址",
+                    "请输入服务器域名、IP，或带端口的地址。",
+                    server.Address,
+                    "例如 play.example.net",
+                    address =>
+                    {
+                        if (!string.IsNullOrWhiteSpace(address))
+                        {
+                            _ = UpdateServerAsync(
+                                instance,
+                                page,
+                                server,
+                                server with { Name = name.Trim(), Address = address.Trim() });
+                        }
+                    });
+            });
+    }
+
+    private async Task UpdateServerAsync(
+        LaunchInstanceInfo instance,
+        PageInstanceServerRight page,
+        MinecraftServerEntry original,
+        MinecraftServerEntry updated)
+    {
+        try
+        {
+            bool changed = await MinecraftServerListService.UpdateAsync(
+                    GetMinecraftRootFromInstance(instance),
+                    original,
+                    updated)
+                .ConfigureAwait(true);
+            if (!changed)
+            {
+                ShowTextDialog("编辑失败", "服务器条目已不存在，请刷新列表后重试。");
+                return;
+            }
+
+            page.Reload();
+            _launchRight?.AppendLog($"已更新服务器 {updated.Name}。");
+        }
+        catch (Exception ex)
+        {
+            ShowTextDialog("编辑失败", "未能更新服务器。\n\n详细信息：" + ex.Message);
+        }
+    }
+
+    private void PromptRemoveServer(
+        LaunchInstanceInfo instance,
+        PageInstanceServerRight page,
+        MinecraftServerEntry server)
+    {
+        ShowConfirmDialog(
+            "删除服务器",
+            $"确定要从列表中删除“{server.Name}”吗？\n\n{server.Address}",
+            confirmed =>
+            {
+                if (confirmed)
+                    _ = RemoveServerAsync(instance, page, server);
+            },
+            "删除",
+            "取消",
+            isWarn: true);
+    }
+
+    private async Task RemoveServerAsync(
+        LaunchInstanceInfo instance,
+        PageInstanceServerRight page,
+        MinecraftServerEntry server)
+    {
+        try
+        {
+            bool removed = await MinecraftServerListService.RemoveAsync(
+                    GetMinecraftRootFromInstance(instance),
+                    server)
+                .ConfigureAwait(true);
+            if (!removed)
+            {
+                ShowTextDialog("删除失败", "服务器条目已不存在，请刷新列表后重试。");
+                return;
+            }
+
+            page.Reload();
+            _launchRight?.AppendLog($"已删除服务器 {server.Name}。");
+        }
+        catch (Exception ex)
+        {
+            ShowTextDialog("删除失败", "未能删除服务器。\n\n详细信息：" + ex.Message);
+        }
+    }
+
     private DesktopMainPage CreateSettingsMainPage()
     {
         _setupLeft ??= CreateSetupLeftPage();
@@ -1592,6 +2188,14 @@ public partial class MainWindow : Window, IDisposable
         PageSetupLeft page = new();
         page.PageCreated += (_, created) => WireSetupPage(created);
         page.PageChanged += (_, args) => ApplySetupRightPage(args.Page);
+        page.ResetRequested += (_, args) =>
+            ShowConfirmDialog(
+                args.Title,
+                args.Message,
+                args.Complete,
+                args.PrimaryButton,
+                args.SecondaryButton,
+                args.IsWarn);
         return page;
     }
 
@@ -2155,7 +2759,8 @@ public partial class MainWindow : Window, IDisposable
                         MinecraftRootDirectory = minecraftRoot,
                         PreferOfficialSource = true,
                         DownloadThreadLimit = downloadThreadLimit,
-                        Loader = request.Loader
+                        Loader = request.Loader,
+                        ReplaceExistingVersion = request.ReplaceExistingVersion
                     },
                     progress,
                     cancellation.Token)
@@ -2187,7 +2792,11 @@ public partial class MainWindow : Window, IDisposable
         }
     }
 
-    private async Task StartMinecraftAsync(PageLaunchLeft launchPage, LaunchInstanceInfo instance, string? worldName = null)
+    private async Task StartMinecraftAsync(
+        PageLaunchLeft launchPage,
+        LaunchInstanceInfo instance,
+        string? worldName = null,
+        string? serverAddress = null)
     {
         LoginProfileInfo? profile = _loginProfiles.FirstOrDefault();
         if (profile is null)
@@ -2200,6 +2809,46 @@ public partial class MainWindow : Window, IDisposable
         _launchCancellation?.Cancel();
         _launchCancellation?.Dispose();
         _launchCancellation = new CancellationTokenSource();
+
+        if (profile.Kind == LaunchLoginProfileKind.Microsoft &&
+            !string.IsNullOrWhiteSpace(profile.RefreshToken))
+        {
+            string clientId = MicrosoftMinecraftAuthService.ResolveClientId();
+            if (string.IsNullOrWhiteSpace(clientId))
+            {
+                ShowTextDialog(
+                    "Microsoft 登录配置缺失",
+                    "缺少 Microsoft 登录配置，无法刷新正版登录状态。请提供 PCL_MS_CLIENT_ID 后重试。");
+                return;
+            }
+
+            try
+            {
+                launchPage.UpdateLaunchingStatus("正在刷新正版登录", 0.08d, "验证 Microsoft 账户");
+                MicrosoftMinecraftLoginResult refreshed = await _microsoftAuthService
+                    .RefreshAsync(clientId, profile.RefreshToken, _launchCancellation.Token)
+                    .ConfigureAwait(true);
+                profile = profile with
+                {
+                    Username = refreshed.Username,
+                    Uuid = refreshed.Uuid,
+                    AccessToken = refreshed.AccessToken,
+                    RefreshToken = refreshed.RefreshToken,
+                    SkinAddress = refreshed.SkinAddress ?? profile.SkinAddress,
+                    Info = refreshed.OwnsMinecraft ? "Microsoft 正版" : profile.Info
+                };
+                AddOrUpdateLoginProfile(profile);
+                _loginProfilePage?.SetProfiles(_loginProfiles, profile);
+                _loginProfileSkinPage?.SetProfile(profile);
+                SaveProfilesInBackground("刷新 Microsoft 正版档案");
+            }
+            catch (Exception ex)
+            {
+                launchPage.PageChangeToLogin();
+                ShowTextDialog("Microsoft 登录已失效", "无法刷新正版登录状态，请重新登录。\n\n详细信息：" + ex.Message);
+                return;
+            }
+        }
 
         try
         {
@@ -2214,7 +2863,8 @@ public partial class MainWindow : Window, IDisposable
                     ResolvePreferredJavaExecutablePath(),
                     _launchCancellation.Token,
                     worldName,
-                    metadata)
+                    metadata,
+                    serverAddress)
                 .ConfigureAwait(true);
 
             if (!string.IsNullOrWhiteSpace(metadata.PreLaunchCommand))
@@ -2231,9 +2881,11 @@ public partial class MainWindow : Window, IDisposable
 
             launchPage.LaunchingRefresh("游戏进程已启动", 1d, isLaunched: true, method: "PID " + process.Id.ToString(CultureInfo.InvariantCulture));
             await IncrementInstanceLaunchCountAsync(instance).ConfigureAwait(true);
-            _launchRight?.AppendLog(string.IsNullOrWhiteSpace(worldName)
-                ? $"{instance.Name} 已启动。"
-                : $"{instance.Name} 已启动，正在进入存档 {worldName}。");
+            _launchRight?.AppendLog(!string.IsNullOrWhiteSpace(worldName)
+                ? $"{instance.Name} 已启动，正在进入存档 {worldName}。"
+                : !string.IsNullOrWhiteSpace(serverAddress)
+                    ? $"{instance.Name} 已启动，正在连接服务器 {serverAddress}。"
+                    : $"{instance.Name} 已启动。");
         }
         catch (OperationCanceledException)
         {
@@ -2277,7 +2929,8 @@ public partial class MainWindow : Window, IDisposable
         string javaExecutablePath,
         CancellationToken cancellationToken,
         string? worldName = null,
-        InstanceMetadata? metadataOverride = null)
+        InstanceMetadata? metadataOverride = null,
+        string? serverAddress = null)
     {
         InstanceMetadata metadata = metadataOverride ??
             await InstanceMetadataStore.LoadAsync(instance.InstanceDirectory, cancellationToken).ConfigureAwait(false);
@@ -2310,7 +2963,9 @@ public partial class MainWindow : Window, IDisposable
                 AuthlibServer = authlibServer,
                 AuthlibPrefetchedMetadata = authlibMetadata,
                 PreferredIpStack = GetPreferredIpStack(settings),
-                Server = string.IsNullOrWhiteSpace(worldName) ? metadata.ServerToEnter : null,
+                Server = string.IsNullOrWhiteSpace(worldName)
+                    ? FirstNonEmpty(serverAddress, metadata.ServerToEnter)
+                    : null,
                 ReleaseTime = TryReadReleaseTime(instance),
                 HasOptiFine = HasOptiFine(instance),
                 WorldName = worldName
@@ -2994,6 +3649,21 @@ public partial class MainWindow : Window, IDisposable
         return files.Count == 0 ? null : files[0].TryGetLocalPath();
     }
 
+    private async Task<string?> PickOpenFolderPathAsync(string title)
+    {
+        IStorageProvider? storage = TopLevel.GetTopLevel(this)?.StorageProvider;
+        if (storage?.CanPickFolder != true)
+            return null;
+
+        IReadOnlyList<IStorageFolder> folders = await storage.OpenFolderPickerAsync(
+            new FolderPickerOpenOptions
+            {
+                Title = title,
+                AllowMultiple = false
+            });
+        return folders.Count == 0 ? null : folders[0].TryGetLocalPath();
+    }
+
     private static string GetDesktopOrBaseDirectory()
     {
         string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
@@ -3007,8 +3677,11 @@ public partial class MainWindow : Window, IDisposable
         return string.IsNullOrWhiteSpace(sanitized) ? "Minecraft" : sanitized;
     }
 
-    private static string GetDefaultMinecraftRoot()
+    private string GetDefaultMinecraftRoot()
     {
+        if (!string.IsNullOrWhiteSpace(_launchLeft?.MinecraftRootDirectory))
+            return _launchLeft.MinecraftRootDirectory;
+
         IReadOnlyList<string> roots = LaunchInstanceDiscovery.GetCandidateRoots();
         foreach (string root in roots)
         {
@@ -3166,8 +3839,11 @@ public partial class MainWindow : Window, IDisposable
         DisposeTrackedTasks();
         _launchCancellation?.Cancel();
         _launchCancellation?.Dispose();
+        _microsoftLoginCancellation?.Cancel();
+        _microsoftLoginCancellation?.Dispose();
         (_launchLeft as IDisposable)?.Dispose();
         _launchRight?.Dispose();
+        _communityRight?.Dispose();
         _instanceSelectPage?.Dispose();
         _setupRight?.Dispose();
         GC.SuppressFinalize(this);
@@ -3199,18 +3875,86 @@ public partial class MainWindow : Window, IDisposable
         page.PurchaseRequested += (_, _) => OpenExternalUrl(
             "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
         page.WebsiteRequested += (_, _) => OpenExternalUrl("https://www.minecraft.net/zh-hans");
-        page.LoginRequested += (_, _) => ShowOnlinePluginUnavailable(page);
+        page.LoginRequested += (_, _) => _ = StartMicrosoftLoginAsync(page, launchPage);
         return page;
     }
 
-    private void ShowOnlinePluginUnavailable(PageLoginMs page)
+    private async Task StartMicrosoftLoginAsync(PageLoginMs page, PageLaunchLeft launchPage)
     {
-        page.FinishLogin();
-        _launchRight?.AppendLog("Microsoft 登录需要 Online 内置插件，目前尚未启用。");
-        ShowTextDialog(
-            "Microsoft 登录暂不可用",
-            "在线账户功能将由后续 Online Host Module 提供。当前版本可以先使用离线档案或第三方登录。",
-            "知道了");
+        string clientId = MicrosoftMinecraftAuthService.ResolveClientId();
+        if (string.IsNullOrWhiteSpace(clientId))
+        {
+            page.FinishLogin();
+            _launchRight?.AppendLog("缺少 Microsoft 登录配置：PCL_MS_CLIENT_ID。");
+            ShowTextDialog(
+                "Microsoft 登录配置缺失",
+                "缺少 Microsoft 登录配置。请为启动器提供 PCL_MS_CLIENT_ID（Microsoft OAuth 公共客户端 ID）后重试。",
+                "知道了");
+            return;
+        }
+
+        _microsoftLoginCancellation?.Cancel();
+        _microsoftLoginCancellation?.Dispose();
+        _microsoftLoginCancellation = new CancellationTokenSource();
+        CancellationToken cancellationToken = _microsoftLoginCancellation.Token;
+        MyMsgLogin? dialog = null;
+        try
+        {
+            _launchRight?.AppendLog("正在申请 Microsoft 设备登录代码。");
+            page.UpdateProgress(0.04d);
+            MicrosoftDeviceCodeInfo deviceCode = await _microsoftAuthService
+                .RequestDeviceCodeAsync(clientId, cancellationToken)
+                .ConfigureAwait(true);
+            page.UpdateProgress(0.08d);
+            dialog = new MyMsgLogin
+            {
+                Title = "Microsoft 正版档案登录",
+                Caption = deviceCode.Message + $"\n\n授权码：{deviceCode.UserCode}",
+                UserCode = deviceCode.UserCode,
+                Website = FirstNonEmpty(deviceCode.VerificationUriComplete, deviceCode.VerificationUri)
+            };
+            ShowLoginDialog(dialog, () => _microsoftLoginCancellation?.Cancel());
+
+            Progress<double> progress = new(value => page.UpdateProgress(value));
+            MicrosoftMinecraftLoginResult result = await _microsoftAuthService
+                .CompleteDeviceLoginAsync(clientId, deviceCode, progress, cancellationToken)
+                .ConfigureAwait(true);
+            if (dialog.Parent is not null)
+                dialog.CloseLikeWpf();
+
+            LoginProfileInfo profile = new(
+                result.Username,
+                result.OwnsMinecraft ? "Microsoft 正版" : "Microsoft 账户",
+                LaunchLoginProfileKind.Microsoft,
+                result.Uuid,
+                SvgIcon: "lucide/badge-check",
+                SkinAddress: result.SkinAddress,
+                AccessToken: result.AccessToken,
+                RefreshToken: result.RefreshToken);
+            AddOrUpdateLoginProfile(profile);
+            _loginProfilePage?.SetProfiles(_loginProfiles, profile);
+            _loginProfileSkinPage?.SetProfile(profile);
+            launchPage.SetSelectedProfilePresent(true);
+            launchPage.RefreshPage(anim: true);
+            SaveProfilesInBackground("保存 Microsoft 正版档案");
+            _launchRight?.AppendLog($"Microsoft 登录成功，已选中档案 {profile.Username}。");
+            ShowTextDialog("登录成功", $"已添加并选中正版档案 {profile.Username}。", "知道了");
+        }
+        catch (OperationCanceledException)
+        {
+            _launchRight?.AppendLog("Microsoft 登录已取消。");
+        }
+        catch (Exception ex)
+        {
+            if (dialog?.Parent is not null)
+                dialog.CloseLikeWpf();
+            _launchRight?.AppendLog("Microsoft 登录失败：" + ex.Message);
+            ShowTextDialog("Microsoft 登录失败", ex.Message, "知道了");
+        }
+        finally
+        {
+            page.FinishLogin();
+        }
     }
 
     private static string FirstNonEmpty(params string?[] values)
@@ -3648,6 +4392,7 @@ public partial class MainWindow : Window, IDisposable
 
     private void BeginPageChangeAnimation(NavigationRouteId route)
     {
+        _pendingNavRoute = route;
         if (this.FindControl<Control>("PanMainRight") is not { } right)
         {
             ApplyPagePlaceholder(route);
@@ -3757,5 +4502,7 @@ public partial class MainWindow : Window, IDisposable
         double inverse = 1d - progress;
         return 1d - inverse * inverse * inverse;
     }
+
+    private sealed record MinecraftFolderSetting(string Name, string RootDirectory);
 
 }

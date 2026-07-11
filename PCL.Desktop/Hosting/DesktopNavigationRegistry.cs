@@ -31,7 +31,7 @@ internal static partial class DesktopNavigationRegistry
 
     [DesktopNavigationPage("pcl.builtin.community", CommunityRouteValue, "社区", "lucide/download", 20)]
     private static DesktopMainPage CreateCommunityPage(DesktopPageContext context) =>
-        context.CreatePlaceholderPage("社区");
+        context.CreateCommunityPage();
 
     [DesktopNavigationPage("pcl.builtin.settings", SettingsRouteValue, "设置", "lucide/settings", 40)]
     private static DesktopMainPage CreateSettingsPage(DesktopPageContext context) =>
