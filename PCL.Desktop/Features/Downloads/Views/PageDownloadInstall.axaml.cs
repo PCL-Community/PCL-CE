@@ -174,6 +174,73 @@ public partial class PageDownloadInstall : MyPageRight
         PopulateLoaderVersionList(name, kind, _loaderVersionCache[(kind, _selectedVersion.Id)]);
     }
 
+    public async Task FocusExistingInstallAddonAsync(
+        string gameVersion,
+        string installName,
+        string minecraftRootDirectory,
+        MinecraftLoaderKind currentLoaderKind,
+        string currentLoaderVersion,
+        MinecraftInstallAddonKind addonKind,
+        string? currentOptiFineVersion = null)
+    {
+        await FocusVersionAsync(
+                gameVersion,
+                installName,
+                preserveInstallNameOnLoaderSelect: true,
+                minecraftRootDirectory: minecraftRootDirectory,
+                replaceExistingVersion: true)
+            .ConfigureAwait(true);
+        if (_selectedVersion is null)
+            return;
+
+        MinecraftLoaderVersionEntry loader = new(currentLoaderKind, currentLoaderVersion, true);
+        _loaderVersionCache[(currentLoaderKind, _selectedVersion.Id)] = [loader];
+        _selectedLoaderKind = currentLoaderKind;
+        _selectedLoaderVersion = loader;
+        if (!string.IsNullOrWhiteSpace(currentOptiFineVersion))
+        {
+            _selectedOptiFineAddon = new MinecraftLoaderVersionEntry(
+                MinecraftLoaderKind.OptiFine,
+                currentOptiFineVersion,
+                true);
+        }
+
+        ReloadSelectedLoaderCards();
+        BeginLoaderVersionPreload();
+        await OpenAddonCardAsync(addonKind).ConfigureAwait(true);
+    }
+
+    public async Task OpenAddonCardAsync(MinecraftInstallAddonKind kind)
+    {
+        if (_selectedVersion is null)
+            return;
+
+        DownloadAddonDescriptor addon = DownloadAddonRegistry.All.ToArray().FirstOrDefault(candidate => candidate.Kind == kind);
+        if (string.IsNullOrWhiteSpace(addon.CardName) ||
+            !_loaderStates.TryGetValue(addon.CardName, out LoaderSupportState? state) ||
+            !state.IsVisible)
+        {
+            return;
+        }
+
+        if (!state.CanOpen)
+        {
+            if (!await EnsureAddonVersionsRenderedAsync(addon.CardName).ConfigureAwait(true))
+                return;
+            ReloadSelectedLoaderCards();
+        }
+
+        if (this.FindControl<MyCard>("Card" + addon.CardName) is not { } card ||
+            !_addonVersionCache.TryGetValue((kind, _selectedVersion.Id), out IReadOnlyList<MinecraftInstallAddonVersionEntry>? versions))
+        {
+            return;
+        }
+
+        PopulateAddonVersionList(addon.CardName, addon, versions);
+        card.IsSwapped = false;
+        RefreshLoaderInfoPanel(addon.CardName);
+    }
+
     public void ClearInstallTargetOverride()
     {
         _preferredInstallName = null;

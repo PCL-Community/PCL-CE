@@ -22,7 +22,11 @@ namespace PCL.Desktop.Features.Instances.Views;
 public sealed record InstanceInstallModifyRequest(
     LaunchInstanceInfo Instance,
     string MinecraftVersionId,
-    MinecraftLoaderKind? LoaderKind = null);
+    MinecraftLoaderKind? LoaderKind = null,
+    MinecraftInstallAddonKind? AddonKind = null,
+    MinecraftLoaderKind? CurrentLoaderKind = null,
+    string? CurrentLoaderVersion = null,
+    string? CurrentOptiFineVersion = null);
 
 public partial class PageInstanceInstallRight : MyPageRight
 {
@@ -471,8 +475,10 @@ public partial class PageInstanceInstallRight : MyPageRight
         string? forge = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "net.minecraftforge:forge:", "minecraftforge") ?? DetectLoader(instance, "forge");
         string? cleanroom = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "com.cleanroommc:cleanroom:", "cleanroom") ?? DetectLoader(instance, "cleanroom");
         string? neoForge = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "net.neoforged:neoforge:", "net.neoforge:forge:", "neoforge") ?? DetectLoader(instance, "neoforge");
-        string? fabric = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "net.fabricmc:fabric-loader:") ?? DetectLoader(instance, "fabric-loader", "fabric");
-        string? legacyFabric = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "net.legacyfabric:", "legacyfabric") ?? DetectLoader(instance, "legacyfabric");
+        bool hasLegacyFabricLibraries = libraries.Any(library => library.Contains("net.legacyfabric:", StringComparison.OrdinalIgnoreCase));
+        string? fabricLoaderVersion = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "net.fabricmc:fabric-loader:");
+        string? fabric = hasLegacyFabricLibraries ? null : fabricLoaderVersion ?? DetectLoader(instance, "fabric-loader", "fabric");
+        string? legacyFabric = hasLegacyFabricLibraries ? fabricLoaderVersion ?? DetectLoader(instance, "legacyfabric") : null;
         string? fabricApi = DetectModFile(instance, "fabric-api");
         string? legacyFabricApi = DetectModFile(instance, "legacy-fabric-api");
         string? quilt = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "org.quiltmc:quilt-loader:") ?? DetectLoader(instance, "quilt");
@@ -496,6 +502,10 @@ public partial class PageInstanceInstallRight : MyPageRight
         SetLoaderInfo("OptiFabric", optiFabric, "OptiFabric.png");
         SetLoaderInfo("LiteLoader", liteLoader, "Egg.png");
         ApplyLoaderCardVisibility(minecraftVersionId);
+        SetLoaderCardVisible("FabricApi", fabric is not null || quilt is not null);
+        SetLoaderCardVisible("LegacyFabricApi", legacyFabric is not null);
+        SetLoaderCardVisible("QSL", quilt is not null);
+        SetLoaderCardVisible("OptiFabric", (fabric is not null || legacyFabric is not null) && optiFine is not null);
         ApplySelectedInstanceSummary(
             minecraftVersionId,
             fabric,
@@ -630,15 +640,21 @@ public partial class PageInstanceInstallRight : MyPageRight
 
     private static string? DetectModFile(LaunchInstanceInfo instance, params string[] needles)
     {
-        string mods = Path.Combine(GetMinecraftRootFromInstance(instance), "mods");
-        if (!Directory.Exists(mods))
-            return null;
-
-        foreach (string file in Directory.EnumerateFiles(mods, "*", SearchOption.TopDirectoryOnly))
+        string[] modDirectories =
+        [
+            Path.Combine(instance.InstanceDirectory, "mods"),
+            Path.Combine(GetMinecraftRootFromInstance(instance), "mods")
+        ];
+        foreach (string mods in modDirectories.Distinct(StringComparer.OrdinalIgnoreCase))
         {
-            string name = Path.GetFileName(file);
-            if (needles.Any(needle => name.Contains(needle, StringComparison.OrdinalIgnoreCase)))
-                return SimplifyVersionName(name);
+            if (!Directory.Exists(mods))
+                continue;
+            foreach (string file in Directory.EnumerateFiles(mods, "*", SearchOption.TopDirectoryOnly))
+            {
+                string name = Path.GetFileName(file);
+                if (needles.Any(needle => name.Contains(needle, StringComparison.OrdinalIgnoreCase)))
+                    return SimplifyVersionName(name);
+            }
         }
 
         return null;
@@ -774,14 +790,17 @@ public partial class PageInstanceInstallRight : MyPageRight
     private void CardLegacyFabric_PreviewSwap(object sender, RouteEventArgs e) =>
         RequestLoaderInstall(MinecraftLoaderKind.LegacyFabric, e);
 
-    private void CardFabricApi_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
+    private void CardFabricApi_PreviewSwap(object sender, RouteEventArgs e) =>
+        RequestAddonInstall(MinecraftInstallAddonKind.FabricApi, e);
 
-    private void CardLegacyFabricApi_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
+    private void CardLegacyFabricApi_PreviewSwap(object sender, RouteEventArgs e) =>
+        RequestAddonInstall(MinecraftInstallAddonKind.LegacyFabricApi, e);
 
     private void CardQuilt_PreviewSwap(object sender, RouteEventArgs e) =>
         RequestLoaderInstall(MinecraftLoaderKind.Quilt, e);
 
-    private void CardQSL_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
+    private void CardQSL_PreviewSwap(object sender, RouteEventArgs e) =>
+        RequestAddonInstall(MinecraftInstallAddonKind.Qsl, e);
 
     private void CardLabyMod_PreviewSwap(object sender, RouteEventArgs e) =>
         RequestLoaderInstall(MinecraftLoaderKind.LabyMod, e);
@@ -789,7 +808,8 @@ public partial class PageInstanceInstallRight : MyPageRight
     private void CardOptiFine_PreviewSwap(object sender, RouteEventArgs e) =>
         RequestLoaderInstall(MinecraftLoaderKind.OptiFine, e);
 
-    private void CardOptiFabric_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
+    private void CardOptiFabric_PreviewSwap(object sender, RouteEventArgs e) =>
+        RequestAddonInstall(MinecraftInstallAddonKind.OptiFabric, e);
 
     private void CardLiteLoader_PreviewSwap(object sender, RouteEventArgs e) =>
         RequestLoaderInstall(MinecraftLoaderKind.LiteLoader, e);
@@ -803,9 +823,56 @@ public partial class PageInstanceInstallRight : MyPageRight
         ModifyRequested?.Invoke(this, new InstanceInstallModifyRequest(_instance, _selectedMinecraftVersionId, kind));
     }
 
-    private static void HandleUnavailableLoader(RouteEventArgs e)
+    private void RequestAddonInstall(MinecraftInstallAddonKind kind, RouteEventArgs e)
     {
         e.Handled = true;
+        if (_instance is null)
+            return;
+
+        (MinecraftLoaderKind? loaderKind, string? loaderVersion, string? optiFineVersion) = DetectCurrentLoaderSelection(_instance);
+        if (loaderKind is null || string.IsNullOrWhiteSpace(loaderVersion))
+            return;
+        ModifyRequested?.Invoke(this, new InstanceInstallModifyRequest(
+            _instance,
+            _selectedMinecraftVersionId,
+            AddonKind: kind,
+            CurrentLoaderKind: loaderKind,
+            CurrentLoaderVersion: loaderVersion,
+            CurrentOptiFineVersion: optiFineVersion));
+    }
+
+    private static (MinecraftLoaderKind? Kind, string? Version, string? OptiFineVersion) DetectCurrentLoaderSelection(
+        LaunchInstanceInfo instance)
+    {
+        IReadOnlyList<string> libraries = MinecraftVersionJsonInspector.Read(instance).Libraries;
+        string? optiFine = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "optifine") ?? DetectLoader(instance, "optifine");
+        bool hasLegacyFabricLibraries = libraries.Any(library => library.Contains("net.legacyfabric:", StringComparison.OrdinalIgnoreCase));
+        string? fabricLoaderVersion = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "net.fabricmc:fabric-loader:");
+        (MinecraftLoaderKind Kind, string? Version)[] candidates =
+        [
+            (MinecraftLoaderKind.LegacyFabric, hasLegacyFabricLibraries ? fabricLoaderVersion : null),
+            (MinecraftLoaderKind.Fabric, hasLegacyFabricLibraries ? null : fabricLoaderVersion),
+            (MinecraftLoaderKind.Quilt, MinecraftLoaderLibraryDetector.DetectVersion(libraries, "org.quiltmc:quilt-loader:")),
+            (MinecraftLoaderKind.Forge, MinecraftLoaderLibraryDetector.DetectVersion(libraries, "net.minecraftforge:forge:", "minecraftforge")),
+            (MinecraftLoaderKind.NeoForge, MinecraftLoaderLibraryDetector.DetectVersion(libraries, "net.neoforged:neoforge:", "net.neoforge:forge:")),
+            (MinecraftLoaderKind.Cleanroom, MinecraftLoaderLibraryDetector.DetectVersion(libraries, "com.cleanroommc:cleanroom:")),
+            (MinecraftLoaderKind.LabyMod, MinecraftLoaderLibraryDetector.DetectVersion(libraries, "labymod")),
+            (MinecraftLoaderKind.LiteLoader, MinecraftLoaderLibraryDetector.DetectVersion(libraries, "liteloader"))
+        ];
+        foreach ((MinecraftLoaderKind kind, string? version) in candidates)
+        {
+            if (!string.IsNullOrWhiteSpace(version))
+                return (kind, version, NormalizeOptiFineVersion(optiFine));
+        }
+
+        return (null, null, NormalizeOptiFineVersion(optiFine));
+    }
+
+    private static string? NormalizeOptiFineVersion(string? version)
+    {
+        if (string.IsNullOrWhiteSpace(version))
+            return null;
+        return version.StartsWith("OptiFine_", StringComparison.OrdinalIgnoreCase) ? version[9..] : version;
     }
 
     private void Forge_Clear(object sender, PointerReleasedEventArgs e) => ClearLoader("Forge", e);

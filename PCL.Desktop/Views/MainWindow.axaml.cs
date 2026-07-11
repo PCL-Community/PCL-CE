@@ -1507,6 +1507,22 @@ public partial class MainWindow : Window, IDisposable
             : request.MinecraftVersionId;
         string minecraftRoot = GetMinecraftRootFromInstance(instance);
         PageDownloadInstall installPage = ActivateDownloadInstallPage(animate: true);
+        if (request.AddonKind is { } addonKind &&
+            request.CurrentLoaderKind is { } currentLoaderKind &&
+            !string.IsNullOrWhiteSpace(request.CurrentLoaderVersion))
+        {
+            await installPage.FocusExistingInstallAddonAsync(
+                    versionId,
+                    instance.Name,
+                    minecraftRoot,
+                    currentLoaderKind,
+                    request.CurrentLoaderVersion,
+                    addonKind,
+                    request.CurrentOptiFineVersion)
+                .ConfigureAwait(true);
+            return;
+        }
+
         await installPage.FocusVersionAsync(
                 versionId,
                 instance.Name,

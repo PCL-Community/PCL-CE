@@ -3476,6 +3476,54 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void PageDownloadInstall_RestoresExistingLoaderBeforeAddingAddon()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageDownloadInstall page = new(
+                new MinecraftVanillaInstallService(),
+                new FakeMinecraftLoaderMetadataService(),
+                new FakeMinecraftInstallAddonMetadataService());
+            SetPrivateField(
+                page,
+                "_versions",
+                new[]
+                {
+                    new MinecraftVersionManifestEntry("1.20.1", "release", "https://example.invalid/1.20.1.json", DateTimeOffset.Parse("2023-06-12T00:00:00Z"))
+                });
+            Window window = new() { Width = 620, Height = 520, Content = page };
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                page.FocusExistingInstallAddonAsync(
+                        "1.20.1",
+                        "Existing Fabric Pack",
+                        @"D:\Games\.minecraft",
+                        MinecraftLoaderKind.Fabric,
+                        "0.16.10",
+                        MinecraftInstallAddonKind.FabricApi)
+                    .GetAwaiter()
+                    .GetResult();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.AreEqual("0.16.10", page.FindControl<TextBlock>("LabFabric")!.Text);
+                Assert.IsFalse(page.FindControl<MyCard>("CardFabricApi")!.IsSwapped);
+                Assert.IsTrue(page.FindControl<StackPanel>("PanFabricApi")!.Children
+                    .OfType<MyListItem>()
+                    .Any(item => item.Title == "0.100.0+1.20.1"));
+                Assert.AreEqual("Existing Fabric Pack", page.FindControl<MyTextBox>("TextSelectName")!.Text);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void PageDownloadInstall_PreloadsLoaderListsBeforeAllowingExpansion()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
@@ -5834,6 +5882,13 @@ public sealed class AvaloniaHeadlessTests
                         Assert.AreEqual(kind, modifyRequest?.LoaderKind, cardName);
                         Assert.IsTrue(page.FindControl<MyCard>("Card" + cardName)!.IsSwapped, cardName);
                     }
+
+                    modifyRequest = null;
+                    Assert.IsTrue(page.FindControl<MyCard>("CardFabricApi")!.IsVisible);
+                    Click(window, page.FindControl<MyCard>("CardFabricApi")!);
+                    Assert.AreEqual(MinecraftInstallAddonKind.FabricApi, modifyRequest?.AddonKind);
+                    Assert.AreEqual(MinecraftLoaderKind.Fabric, modifyRequest?.CurrentLoaderKind);
+                    Assert.AreEqual("0.16.10", modifyRequest?.CurrentLoaderVersion);
                 }
                 finally
                 {
