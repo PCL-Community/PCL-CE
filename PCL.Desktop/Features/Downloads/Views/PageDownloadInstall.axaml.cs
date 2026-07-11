@@ -228,6 +228,8 @@ public partial class PageDownloadInstall : MyPageRight
             if (!await EnsureAddonVersionsRenderedAsync(addon.CardName).ConfigureAwait(true))
                 return;
             ReloadSelectedLoaderCards();
+            if (!_loaderStates.TryGetValue(addon.CardName, out state) || !state.CanOpen)
+                return;
         }
 
         if (this.FindControl<MyCard>("Card" + addon.CardName) is not { } card ||
@@ -807,28 +809,22 @@ public partial class PageDownloadInstall : MyPageRight
         SetLoaderInfo("QSL", _selectedLoaderKind == MinecraftLoaderKind.Quilt
             ? CreateAddonState(MinecraftInstallAddonKind.Qsl, canAdd)
             : LoaderSupportState.Hidden());
-        SetLoaderInfo("OptiFabric",
-            _selectedLoaderKind is MinecraftLoaderKind.Fabric or MinecraftLoaderKind.LegacyFabric && _selectedOptiFineAddon is not null
-                ? CreateAddonState(MinecraftInstallAddonKind.OptiFabric, canAdd)
-                : LoaderSupportState.Hidden());
+        SetLoaderInfo("OptiFabric", LoaderSupportState.Hidden());
 
         if (_selectedLoaderKind == MinecraftLoaderKind.Fabric &&
+            !_selectedAddons.ContainsKey(MinecraftInstallAddonKind.FabricApi) &&
             this.FindControl<Control>("HintFabricAPI") is { } fabricHint)
         {
             fabricHint.IsVisible = true;
         }
 
         if (_selectedLoaderKind == MinecraftLoaderKind.Quilt &&
+            !_selectedAddons.ContainsKey(MinecraftInstallAddonKind.Qsl) &&
             this.FindControl<Control>("HintQSL") is { } qslHint)
         {
             qslHint.IsVisible = true;
         }
 
-        if (_selectedOptiFineAddon is not null &&
-            this.FindControl<Control>("HintOptiFabric") is { } optiFabricHint)
-        {
-            optiFabricHint.IsVisible = _selectedLoaderKind is MinecraftLoaderKind.Fabric or MinecraftLoaderKind.LegacyFabric;
-        }
     }
 
     private void CollapseLoaderCards()
@@ -852,12 +848,23 @@ public partial class PageDownloadInstall : MyPageRight
         if (_selectedLoaderKind is not null && _selectedLoaderKind != MinecraftLoaderKind.OptiFine)
             return LoaderSupportState.VisibleClosed(incompatibleLoader ?? canAdd);
 
+        if (_selectedLoaderKind == MinecraftLoaderKind.OptiFine &&
+            kind is MinecraftLoaderKind.Fabric or MinecraftLoaderKind.LegacyFabric)
+        {
+            return LoaderSupportState.VisibleClosed(ResourceText(
+                "Download.Install.Compat.IncompatibleWithLoader",
+                "与 {0} 不兼容",
+                GetLoaderDisplayName(MinecraftLoaderKind.OptiFine)));
+        }
+
         if (_selectedVersion is null)
             return LoaderSupportState.VisibleClosed(canAdd);
 
         (MinecraftLoaderKind Kind, string GameVersion) key = (kind, _selectedVersion.Id);
-        if (_loaderVersionCache.ContainsKey(key))
-            return LoaderSupportState.VisibleOpen(canAdd);
+        if (_loaderVersionCache.TryGetValue(key, out IReadOnlyList<MinecraftLoaderVersionEntry>? versions))
+            return versions.Count == 0
+                ? LoaderSupportState.VisibleClosed("暂无可用版本")
+                : LoaderSupportState.VisibleOpen(canAdd);
 
         return LoaderSupportState.VisibleClosed(
             _loaderVersionErrors.TryGetValue(key, out string? error)
@@ -871,12 +878,19 @@ public partial class PageDownloadInstall : MyPageRight
             return LoaderSupportState.Selected(addon.DisplayVersion);
         if (_selectedLoaderKind == MinecraftLoaderKind.OptiFine && _selectedLoaderVersion is { } selected)
             return LoaderSupportState.Selected(selected.DisplayVersion);
+        if (_selectedLoaderKind is MinecraftLoaderKind.Fabric or MinecraftLoaderKind.LegacyFabric)
+            return LoaderSupportState.VisibleClosed(ResourceText(
+                "Download.Install.Compat.IncompatibleWithLoader",
+                "与 {0} 不兼容",
+                GetLoaderDisplayName(_selectedLoaderKind.Value)));
         if (_selectedVersion is null)
             return LoaderSupportState.VisibleClosed(canAdd);
 
         (MinecraftLoaderKind Kind, string GameVersion) key = (MinecraftLoaderKind.OptiFine, _selectedVersion.Id);
-        if (_loaderVersionCache.ContainsKey(key))
-            return LoaderSupportState.VisibleOpen(canAdd);
+        if (_loaderVersionCache.TryGetValue(key, out IReadOnlyList<MinecraftLoaderVersionEntry>? versions))
+            return versions.Count == 0
+                ? LoaderSupportState.VisibleClosed("暂无可用版本")
+                : LoaderSupportState.VisibleOpen(canAdd);
         return LoaderSupportState.VisibleClosed(
             _loaderVersionErrors.TryGetValue(key, out string? error)
                 ? "版本列表加载失败：" + error
@@ -911,8 +925,10 @@ public partial class PageDownloadInstall : MyPageRight
             return LoaderSupportState.VisibleClosed(canAdd);
 
         (MinecraftInstallAddonKind Kind, string GameVersion) key = (kind, _selectedVersion.Id);
-        if (_addonVersionCache.ContainsKey(key))
-            return LoaderSupportState.VisibleOpen(canAdd);
+        if (_addonVersionCache.TryGetValue(key, out IReadOnlyList<MinecraftInstallAddonVersionEntry>? versions))
+            return versions.Count == 0
+                ? LoaderSupportState.VisibleClosed("暂无可用版本")
+                : LoaderSupportState.VisibleOpen(canAdd);
         return LoaderSupportState.VisibleClosed(
             _addonVersionErrors.TryGetValue(key, out string? error)
                 ? "版本列表加载失败：" + error
@@ -1168,6 +1184,11 @@ public partial class PageDownloadInstall : MyPageRight
 
             _selectedLoaderKind = kind;
             _selectedLoaderVersion = version;
+            if (kind is MinecraftLoaderKind.Fabric or MinecraftLoaderKind.LegacyFabric)
+            {
+                _selectedOptiFineAddon = null;
+                _selectedAddons.Remove(MinecraftInstallAddonKind.OptiFabric);
+            }
             if (!_preserveInstallNameOnLoaderSelect || string.IsNullOrWhiteSpace(this.FindControl<MyTextBox>("TextSelectName")?.Text))
                 SetSelectName(MinecraftLoaderVersionJsonBuilder.CreateDefaultVersionId(kind, _selectedVersion.Id, version.Version));
         }

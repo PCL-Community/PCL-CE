@@ -2735,6 +2735,11 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsNotNull(page.FindControl<MyListItem>("ItemSnapshot"));
                 Assert.IsNotNull(page.FindControl<MyListItem>("ItemBeforeRelease"));
                 Assert.IsNotNull(page.FindControl<MyListItem>("ItemAprilFools"));
+                Assert.AreEqual("版本类型", page.GetVisualDescendants().OfType<TextBlock>().First().Text);
+                Assert.AreEqual("全部版本", page.FindControl<MyListItem>("ItemAll")!.Title);
+                Assert.AreEqual(
+                    "全部版本",
+                    page.FindControl<MyListItem>("ItemAll")!.FindControl<TextBlock>("LabTitle")!.Text);
                 Assert.AreSame(installPage, page.GetOrCreateCurrentPage());
                 Assert.AreEqual(DownloadVersionFilter.All, page.FindControl<MyListItem>("ItemAll")!.Tag);
                 Assert.AreEqual(DownloadVersionFilter.Release, page.FindControl<MyListItem>("ItemRelease")!.Tag);
@@ -2902,6 +2907,9 @@ public sealed class AvaloniaHeadlessTests
         session.Dispatch(() =>
         {
             PageDownloadInstall page = new(new MinecraftVanillaInstallService(), new FakeMinecraftLoaderMetadataService(), new FakeMinecraftInstallAddonMetadataService());
+            GetPrivateField<Dictionary<(MinecraftLoaderKind Kind, string GameVersion), IReadOnlyList<MinecraftLoaderVersionEntry>>>(
+                page,
+                "_loaderVersionCache")[(MinecraftLoaderKind.NeoForge, "1.20.1")] = [];
             SetPrivateField(
                 page,
                 "_versions",
@@ -2927,7 +2935,8 @@ public sealed class AvaloniaHeadlessTests
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
                 AssertLoaderVisible(page, "Forge", "可以添加");
-                AssertLoaderVisible(page, "NeoForge", "可以添加");
+                AssertLoaderVisible(page, "NeoForge", "暂无可用版本");
+                Assert.IsFalse(page.FindControl<MyCard>("CardNeoForge")!.MainSwap.IsVisible);
                 AssertLoaderVisible(page, "Fabric", "可以添加");
                 AssertLoaderVisible(page, "Quilt", "可以添加");
                 AssertLoaderVisible(page, "LabyMod", "可以添加");
@@ -3028,27 +3037,10 @@ public sealed class AvaloniaHeadlessTests
                     .First(item => item.Title == "0.100.0+1.20.1");
                 Click(window, apiItem);
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-
-                MyCard optiFineCard = page.FindControl<MyCard>("CardOptiFine")!;
-                Click(window, optiFineCard);
-                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-                MyListItem optiFineItem = page.FindControl<StackPanel>("PanOptiFine")!.Children
-                    .OfType<MyListItem>()
-                    .First(item => item.Title == "1.20.1_HD_U_I6");
-                Click(window, optiFineItem);
-                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-                Assert.AreEqual("0.16.14", page.FindControl<TextBlock>("LabFabric")!.Text);
-
-                MyCard optiFabricCard = page.FindControl<MyCard>("CardOptiFabric")!;
-                Assert.IsTrue(optiFabricCard.IsVisible);
-                Assert.IsTrue(optiFabricCard.MainSwap.IsVisible);
-                Click(window, optiFabricCard);
-                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-                MyListItem optiFabricItem = page.FindControl<StackPanel>("PanOptiFabric")!.Children
-                    .OfType<MyListItem>()
-                    .First();
-                Click(window, optiFabricItem);
-                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Assert.IsFalse(page.FindControl<Control>("HintFabricAPI")!.IsVisible);
+                Assert.AreEqual("与 Fabric 不兼容", page.FindControl<TextBlock>("LabOptiFine")!.Text);
+                Assert.IsFalse(page.FindControl<MyCard>("CardOptiFine")!.MainSwap.IsVisible);
+                Assert.IsFalse(page.FindControl<MyCard>("CardOptiFabric")!.IsVisible);
 
                 Click(window, page.FindControl<MyExtraTextButton>("BtnStart")!);
 
@@ -3060,9 +3052,7 @@ public sealed class AvaloniaHeadlessTests
                 CollectionAssert.AreEquivalent(
                     new[]
                     {
-                        MinecraftInstallAddonKind.FabricApi,
-                        MinecraftInstallAddonKind.OptiFine,
-                        MinecraftInstallAddonKind.OptiFabric
+                        MinecraftInstallAddonKind.FabricApi
                     },
                     requested?.Addons?.Select(addon => addon.Kind).ToArray());
             }
