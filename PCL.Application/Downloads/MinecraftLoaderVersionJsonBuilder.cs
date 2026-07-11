@@ -57,9 +57,21 @@ public static class MinecraftLoaderVersionJsonBuilder
         string loaderName = kind switch
         {
             MinecraftLoaderKind.Fabric => "fabric-loader",
+            MinecraftLoaderKind.LegacyFabric => "legacy-fabric-loader",
             MinecraftLoaderKind.Quilt => "quilt-loader",
+            MinecraftLoaderKind.LabyMod => "labymod",
+            MinecraftLoaderKind.LiteLoader => "liteloader",
             _ => kind.ToString().ToLowerInvariant()
         };
+        if (kind == MinecraftLoaderKind.LabyMod)
+        {
+            string[] parts = loaderVersion.Split('+', 3, StringSplitOptions.TrimEntries);
+            if (parts.Length == 3)
+                return $"{loaderName}-{parts[2]}-{gameVersion}";
+        }
+
+        if (kind == MinecraftLoaderKind.LiteLoader)
+            return $"{gameVersion}-LiteLoader";
         return $"{loaderName}-{loaderVersion}-{gameVersion}";
     }
 

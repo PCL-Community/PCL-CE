@@ -55,6 +55,12 @@ public interface IMinecraftLoaderMetadataService
         MinecraftLoaderInstallRequest request,
         string gameVersion,
         CancellationToken cancellationToken = default);
+
+    Task<JsonObject> GetLoaderVersionProfileAsync(
+        MinecraftLoaderInstallRequest request,
+        string gameVersion,
+        CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException($"{request.Kind} 不提供可直接使用的版本描述文件。");
 }
 
 public sealed class MinecraftLoaderMetadataService : IMinecraftLoaderMetadataService
@@ -72,6 +78,7 @@ public sealed class MinecraftLoaderMetadataService : IMinecraftLoaderMetadataSer
     private const string LiteLoaderVersionsUrl = "https://dl.liteloader.com/versions/versions.json";
     private const string OptiFineVersionsUrl = "https://optifine.net/downloads";
     private const string LabyModManifestRoot = "https://releases.r2.labymod.net/api/v1/manifest/";
+    private const string LabyModDownloadManifestRoot = "https://releases.r2.labymod.net/api/v1/download/manifest/labymod4/";
 
     private readonly HttpClient _httpClient;
 
@@ -129,6 +136,24 @@ public sealed class MinecraftLoaderMetadataService : IMinecraftLoaderMetadataSer
         }
 
         throw new InvalidOperationException($"未找到 {request.Kind} {request.LoaderVersion} 对 Minecraft {gameVersion} 的安装元数据。");
+    }
+
+    public async Task<JsonObject> GetLoaderVersionProfileAsync(
+        MinecraftLoaderInstallRequest request,
+        string gameVersion,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentException.ThrowIfNullOrWhiteSpace(gameVersion);
+
+        return request.Kind switch
+        {
+            MinecraftLoaderKind.LabyMod => await GetLabyModProfileAsync(request.LoaderVersion, gameVersion, cancellationToken)
+                .ConfigureAwait(false),
+            MinecraftLoaderKind.LiteLoader => await GetLiteLoaderProfileAsync(request.LoaderVersion, gameVersion, cancellationToken)
+                .ConfigureAwait(false),
+            _ => throw new NotSupportedException($"{request.Kind} 不提供可直接使用的版本描述文件。")
+        };
     }
 
     private async Task<JsonArray> GetLoaderMetadataArrayAsync(
@@ -411,10 +436,65 @@ public sealed class MinecraftLoaderMetadataService : IMinecraftLoaderMetadataSer
             string? version = manifest["labyModVersion"]?.ToString();
             string? commit = manifest["commitReference"]?.ToString();
             if (!string.IsNullOrWhiteSpace(version) && !string.IsNullOrWhiteSpace(commit))
-                result.Add(new MinecraftLoaderVersionEntry(MinecraftLoaderKind.LabyMod, $"{channel}:{version}:{commit}", stable));
+                result.Add(new MinecraftLoaderVersionEntry(MinecraftLoaderKind.LabyMod, $"{channel}+{version}+{commit}", stable));
         }
 
         return result;
+    }
+
+    private async Task<JsonObject> GetLabyModProfileAsync(
+        string loaderVersion,
+        string gameVersion,
+        CancellationToken cancellationToken)
+    {
+        string[] parts = loaderVersion.Split('+', 3, StringSplitOptions.TrimEntries);
+        if (parts.Length != 3 || parts.Any(string.IsNullOrWhiteSpace))
+            throw new FormatException("LabyMod 版本标识无效。");
+
+        string url = $"{LabyModDownloadManifestRoot}{Uri.EscapeDataString(parts[0])}/" +
+                     $"{Uri.EscapeDataString(gameVersion)}/{Uri.EscapeDataString(parts[2])}.json";
+        string json = await GetStringAsync(url, cancellationToken).ConfigureAwait(false);
+        return JsonNode.Parse(json) as JsonObject
+               ?? throw new FormatException("LabyMod 版本描述不是对象。");
+    }
+
+    private async Task<JsonObject> GetLiteLoaderProfileAsync(
+        string loaderVersion,
+        string gameVersion,
+        CancellationToken cancellationToken)
+    {
+        string json = await GetStringAsync(LiteLoaderVersionsUrl, cancellationToken).ConfigureAwait(false);
+        JsonObject root = JsonNode.Parse(json) as JsonObject
+                          ?? throw new FormatException("LiteLoader 版本列表不是对象。");
+        JsonObject? game = root["versions"]?[gameVersion] as JsonObject;
+        JsonObject? channel = game?["artefacts"] as JsonObject ?? game?["snapshots"] as JsonObject;
+        JsonObject? latest = channel?["com.mumfrey:liteloader"]?["latest"] as JsonObject;
+        if (latest is null || !string.Equals(latest["version"]?.ToString(), loaderVersion, StringComparison.Ordinal))
+            throw new InvalidOperationException($"未找到 LiteLoader {loaderVersion} 对 Minecraft {gameVersion} 的安装元数据。");
+
+        JsonArray libraries = latest["libraries"]?.DeepClone() as JsonArray ?? [];
+        libraries.Add((JsonNode)new JsonObject
+        {
+            ["name"] = "com.mumfrey:liteloader:" + loaderVersion,
+            ["url"] = "https://dl.liteloader.com/versions/"
+        });
+        string now = DateTimeOffset.UtcNow.UtcDateTime.ToString("O", CultureInfo.InvariantCulture);
+        return new JsonObject
+        {
+            ["id"] = gameVersion + "-LiteLoader",
+            ["inheritsFrom"] = gameVersion,
+            ["jar"] = gameVersion,
+            ["time"] = now,
+            ["releaseTime"] = now,
+            ["type"] = "release",
+            ["arguments"] = new JsonObject
+            {
+                ["game"] = new JsonArray("--tweakClass", latest["tweakClass"]?.ToString() ?? "com.mumfrey.liteloader.launch.LiteLoaderTweaker")
+            },
+            ["libraries"] = libraries,
+            ["mainClass"] = "net.minecraft.launchwrapper.Launch",
+            ["minimumLauncherVersion"] = 18
+        };
     }
 
     private async Task<string> GetStringAsync(string url, CancellationToken cancellationToken)

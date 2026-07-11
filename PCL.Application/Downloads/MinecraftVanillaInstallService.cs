@@ -342,6 +342,20 @@ public sealed class MinecraftVanillaInstallService
         IProgress<MinecraftInstallProgress>? progress,
         CancellationToken cancellationToken)
     {
+        if (loaderRequest.Kind is MinecraftLoaderKind.LabyMod or MinecraftLoaderKind.LiteLoader)
+        {
+            return await InstallProfileLoaderAsync(
+                    request,
+                    loaderRequest,
+                    baseVersionId,
+                    minecraftRoot,
+                    preferOfficialSource,
+                    downloadThreadLimit,
+                    progress,
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+
         string loaderName = loaderRequest.Kind.ToString();
         progress?.Report(CreateProgress("准备安装加载器", $"{loaderName} {loaderRequest.LoaderVersion}", 0d, 0, 1, 0, downloadThreadLimit));
 
@@ -359,6 +373,54 @@ public sealed class MinecraftVanillaInstallService
                 Type = baseVersionJson["type"]?.ToString() ?? "release",
                 Time = TryReadDateTimeOffset(baseVersionJson["releaseTime"] ?? baseVersionJson["time"])
             });
+
+        string instanceDirectory = Path.Combine(minecraftRoot, "versions", request.VersionId);
+        string versionJsonPath = Path.Combine(instanceDirectory, request.VersionId + ".json");
+        Directory.CreateDirectory(instanceDirectory);
+        await WriteJsonObjectAsync(loaderVersionJson, versionJsonPath, cancellationToken).ConfigureAwait(false);
+
+        await DownloadVersionFilesAsync(
+                request.VersionId,
+                loaderVersionJson,
+                minecraftRoot,
+                instanceDirectory,
+                preferOfficialSource,
+                downloadThreadLimit,
+                progress,
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        return new MinecraftInstallResult(request.VersionId, minecraftRoot, instanceDirectory, versionJsonPath);
+    }
+
+    private async Task<MinecraftInstallResult> InstallProfileLoaderAsync(
+        MinecraftInstallRequest request,
+        MinecraftLoaderInstallRequest loaderRequest,
+        string baseVersionId,
+        string minecraftRoot,
+        bool preferOfficialSource,
+        int downloadThreadLimit,
+        IProgress<MinecraftInstallProgress>? progress,
+        CancellationToken cancellationToken)
+    {
+        string loaderName = loaderRequest.Kind.ToString();
+        progress?.Report(CreateProgress(
+            "获取加载器版本描述",
+            $"{loaderName} {loaderRequest.LoaderVersion}",
+            0d,
+            0,
+            1,
+            0,
+            downloadThreadLimit));
+
+        JsonObject loaderVersionJson = await _loaderMetadataService.GetLoaderVersionProfileAsync(
+                loaderRequest,
+                baseVersionId,
+                cancellationToken)
+            .ConfigureAwait(false);
+        loaderVersionJson["id"] = request.VersionId;
+        if (loaderRequest.Kind == MinecraftLoaderKind.LabyMod)
+            loaderVersionJson["clientVersion"] = baseVersionId;
 
         string instanceDirectory = Path.Combine(minecraftRoot, "versions", request.VersionId);
         string versionJsonPath = Path.Combine(instanceDirectory, request.VersionId + ".json");

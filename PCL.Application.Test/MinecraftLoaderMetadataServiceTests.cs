@@ -3,6 +3,7 @@
 // Licensed under the Apache License, Version 2.0.
 
 using System.Net;
+using System.Text.Json.Nodes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Application.Downloads;
 
@@ -98,10 +99,41 @@ public sealed class MinecraftLoaderMetadataServiceTests
             "1.21.8");
 
         CollectionAssert.AreEqual(
-            new[] { "production:4.5.14:prod123", "snapshot:4.6.0:snap456" },
+            new[] { "production+4.5.14+prod123", "snapshot+4.6.0+snap456" },
             versions.Select(entry => entry.Version).ToArray());
         Assert.IsTrue(versions[0].Stable);
         Assert.IsFalse(versions[1].Stable);
+    }
+
+    [TestMethod]
+    public async Task GetLoaderVersionProfileAsync_BuildsLiteLoaderAndDownloadsLabyModProfiles()
+    {
+        string? requestedPath = null;
+        using HttpClient client = new(new DelegateHandler(request =>
+        {
+            requestedPath = request.RequestUri!.AbsolutePath;
+            if (requestedPath.Contains("labymod4", StringComparison.Ordinal))
+                return Ok("""{"id":"upstream","libraries":[],"mainClass":"net.labymod.Main"}""");
+            return Ok("""
+                {"versions":{"1.12.2":{"snapshots":{"com.mumfrey:liteloader":{"latest":{
+                  "version":"1.12.2-SNAPSHOT","stream":"SNAPSHOT","tweakClass":"com.mumfrey.liteloader.launch.LiteLoaderTweaker",
+                  "libraries":[{"name":"net.minecraft:launchwrapper:1.12"}]
+                }}}}}}
+                """);
+        }));
+        MinecraftLoaderMetadataService service = new(client);
+
+        JsonObject laby = await service.GetLoaderVersionProfileAsync(
+            new MinecraftLoaderInstallRequest(MinecraftLoaderKind.LabyMod, "production+4.5.14+prod123"),
+            "1.21.8");
+        StringAssert.Contains(requestedPath, "/labymod4/production/1.21.8/prod123.json");
+        Assert.AreEqual("net.labymod.Main", laby["mainClass"]?.ToString());
+
+        JsonObject lite = await service.GetLoaderVersionProfileAsync(
+            new MinecraftLoaderInstallRequest(MinecraftLoaderKind.LiteLoader, "1.12.2-SNAPSHOT"),
+            "1.12.2");
+        Assert.AreEqual("1.12.2", lite["inheritsFrom"]?.ToString());
+        StringAssert.Contains(lite["libraries"]!.ToJsonString(), "com.mumfrey:liteloader:1.12.2-SNAPSHOT");
     }
 
     private static string MavenMetadata(params string[] versions) =>

@@ -377,6 +377,59 @@ public sealed class MinecraftVanillaInstallServiceTests
     }
 
     [TestMethod]
+    public async Task InstallAsync_InstallsDirectProfileLoaderWithRequestedId()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "pcl-install-profile-" + Guid.NewGuid().ToString("N"));
+        using HttpClient client = new(new DelegateHandler(request =>
+        {
+            if (request.RequestUri!.AbsolutePath.Contains("assets", StringComparison.Ordinal))
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""{"objects":{}}""")
+                };
+            }
+
+            if (request.RequestUri!.AbsolutePath.EndsWith(".jar", StringComparison.Ordinal))
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new ByteArrayContent([0x50, 0x4B, 0x03, 0x04])
+                };
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("""{"id":"1.21.8","type":"release","assetIndex":{"id":"empty","url":"https://example.invalid/assets/empty.json"}}""")
+            };
+        }));
+        MinecraftVanillaInstallService service = new(client, new FakeMinecraftLoaderMetadataService());
+
+        try
+        {
+            MinecraftInstallResult result = await service.InstallAsync(
+                new MinecraftInstallRequest
+                {
+                    VersionId = "labymod-prod123-1.21.8",
+                    BaseVersionId = "1.21.8",
+                    VersionJsonUrl = "https://example.invalid/versions/1.21.8.json",
+                    MinecraftRootDirectory = root,
+                    Loader = new MinecraftLoaderInstallRequest(MinecraftLoaderKind.LabyMod, "production+4.5.14+prod123")
+                });
+
+            JsonObject profile = JsonNode.Parse(await File.ReadAllTextAsync(result.VersionJsonPath))!.AsObject();
+            Assert.AreEqual("labymod-prod123-1.21.8", profile["id"]?.ToString());
+            Assert.AreEqual("1.21.8", profile["clientVersion"]?.ToString());
+            Assert.IsTrue(File.Exists(Path.Combine(result.InstanceDirectory, "labymod-prod123-1.21.8.jar")));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public async Task InstallAsync_DownloadsVersionFilesConcurrently()
     {
         string root = Path.Combine(Path.GetTempPath(), "pcl-install-parallel-" + Guid.NewGuid().ToString("N"));
@@ -533,6 +586,26 @@ public sealed class MinecraftVanillaInstallServiceTests
                     new MinecraftLoaderLibrary("net.fabricmc:fabric-loader:0.16.14", "https://maven.fabricmc.net/")
                 ],
                 17));
+
+        public Task<JsonObject> GetLoaderVersionProfileAsync(
+            MinecraftLoaderInstallRequest request,
+            string gameVersion,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(new JsonObject
+            {
+                ["id"] = gameVersion,
+                ["type"] = "release",
+                ["mainClass"] = "net.labymod.Main",
+                ["downloads"] = new JsonObject
+                {
+                    ["client"] = new JsonObject
+                    {
+                        ["url"] = "https://example.invalid/client/labymod.jar",
+                        ["size"] = 4
+                    }
+                },
+                ["libraries"] = new JsonArray()
+            });
     }
 
     private sealed class DelegateHandler(Func<HttpRequestMessage, HttpResponseMessage> handle) : HttpMessageHandler
