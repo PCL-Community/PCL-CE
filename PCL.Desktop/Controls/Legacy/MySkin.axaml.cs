@@ -9,11 +9,13 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 
 namespace PCL.Desktop.Controls.Legacy;
 
 public partial class MySkin : Grid
 {
+    private static readonly HttpClient SkinClient = new() { Timeout = TimeSpan.FromSeconds(15) };
     public static readonly StyledProperty<string> AddressProperty =
         AvaloniaProperty.Register<MySkin, string>(nameof(Address), string.Empty);
 
@@ -24,6 +26,7 @@ public partial class MySkin : Grid
     private readonly Image? _frontImage;
     private readonly Border? _shadow;
     private bool _isSkinMouseDown;
+    private int _loadVersion;
 
     public MySkin()
     {
@@ -45,7 +48,10 @@ public partial class MySkin : Grid
         PointerExited += PanSkin_PointerExited;
         PointerPressed += PanSkin_PointerPressed;
         PointerReleased += PanSkin_PointerReleased;
-        this.GetObservable(AddressProperty).Subscribe(_ => Load());
+        this.GetObservable(AddressProperty).Subscribe(address =>
+        {
+            _ = LoadAsync();
+        });
         this.GetObservable(HasCapeProperty).Subscribe(value =>
         {
             if (this.FindControl<MyMenuItem>("BtnSkinCape") is { } cape)
@@ -73,42 +79,78 @@ public partial class MySkin : Grid
         set => SetValue(HasCapeProperty, value);
     }
 
-    public void Load()
+    public void Load() => _ = LoadAsync();
+
+    private async Task LoadAsync()
     {
+        string address = Address.Trim();
+        int loadVersion = Interlocked.Increment(ref _loadVersion);
         try
         {
-            if (string.IsNullOrWhiteSpace(Address) || !File.Exists(Address))
+            Bitmap bitmap;
+            if (File.Exists(address))
             {
-                Clear();
+                await using FileStream stream = File.OpenRead(address);
+                bitmap = new Bitmap(stream);
+            }
+            else if (Uri.TryCreate(address, UriKind.Absolute, out Uri? uri) &&
+                     (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+            {
+                byte[] bytes = await SkinClient.GetByteArrayAsync(uri).ConfigureAwait(false);
+                await using MemoryStream stream = new(bytes, writable: false);
+                bitmap = new Bitmap(stream);
+            }
+            else
+            {
+                await ClearIfCurrentAsync(loadVersion).ConfigureAwait(false);
                 return;
             }
 
-            using FileStream stream = File.OpenRead(Address);
-            Bitmap bitmap = new(stream);
             PixelSize size = bitmap.PixelSize;
             if (size.Width < 32 || size.Height < 32)
             {
-                Clear();
+                bitmap.Dispose();
+                await ClearIfCurrentAsync(loadVersion).ConfigureAwait(false);
                 return;
             }
 
             int scale = Math.Max(1, (int)Math.Round(size.Width / 64d));
-            _backImage!.Source = Crop(bitmap, scale * 8, scale * 8, scale * 8, scale * 8);
-            _frontImage!.Source = size.Width >= 64 && size.Height >= 32
-                ? Crop(bitmap, scale * 40, scale * 8, scale * 8, scale * 8)
-                : null;
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (loadVersion != _loadVersion)
+                {
+                    bitmap.Dispose();
+                    return;
+                }
+
+                _backImage!.Source = Crop(bitmap, scale * 8, scale * 8, scale * 8, scale * 8);
+                _frontImage!.Source = size.Width >= 64 && size.Height >= 32
+                    ? Crop(bitmap, scale * 40, scale * 8, scale * 8, scale * 8)
+                    : null;
+            });
         }
-        catch (IOException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or HttpRequestException or TaskCanceledException)
         {
-            Clear();
-        }
-        catch (UnauthorizedAccessException)
-        {
-            Clear();
+            await ClearIfCurrentAsync(loadVersion).ConfigureAwait(false);
         }
     }
 
+    private Task ClearIfCurrentAsync(int loadVersion)
+    {
+        return Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            if (loadVersion == _loadVersion)
+                ClearImages();
+        }).GetTask();
+    }
+
     public void Clear()
+    {
+        Interlocked.Increment(ref _loadVersion);
+        ClearImages();
+    }
+
+    private void ClearImages()
     {
         if (_frontImage is not null)
             _frontImage.Source = null;

@@ -369,7 +369,7 @@
 
                 </Grid>
 
-                <StackPanel x:Name="PanHint" IsHitTestVisible="False" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                <StackPanel x:Name="PanHint" IsHitTestVisible="False" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="450"
 
                             Margin="0,0,70,20"
 

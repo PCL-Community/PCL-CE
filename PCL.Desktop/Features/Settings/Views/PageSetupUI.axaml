@@ -285,7 +285,7 @@
                         <legacy:MyRadioBox Text="{DynamicResource Setup.Ui.Homepage.Blank}" x:Name="RadioCustomType0" Height="22" Tag="UiCustomType/0"
                                           Grid.Column="0" Check="RadioBoxChange" />
                         <legacy:MyRadioBox Text="{DynamicResource Setup.Ui.Homepage.Preset}" x:Name="RadioCustomType3" Height="22" Tag="UiCustomType/3"
-                                          Grid.Column="1" Check="RadioBoxChange" />
+                                          Grid.Column="1" Check="RadioBoxChange" IsEnabled="False" ToolTip.Tip="预设主页暂未开放" />
                         <legacy:MyRadioBox Text="{DynamicResource Setup.Ui.Homepage.LocalFile}" x:Name="RadioCustomType1" Height="22" Tag="UiCustomType/1"
                                           Grid.Column="2" Check="RadioBoxChange" />
                         <legacy:MyRadioBox Text="{DynamicResource Setup.Ui.Homepage.NetUpdate}" x:Name="RadioCustomType2" Height="22" Tag="UiCustomType/2"
@@ -328,24 +328,8 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Homepage.PresetLabel}" Margin="0,0,25,0" />
                         <legacy:MyComboBox x:Name="ComboCustomPreset" Grid.ColumnSpan="2" Tag="UiCustomPreset"
-                                          Grid.Column="1" SelectionChanged="ComboChange">
-                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.Trivia}" />
-                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.EchoCave}" IsVisible="False" />
-                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McNews}" />
-                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.SimpleHomepage}" />
-                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.DailyModpack}" />
-                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McSkin}" />
-                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.OpenBmclapi}" />
-                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclMarket}" />
-                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclNews}" />
-                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclManual}" />
-                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.OpenMcim}" IsVisible="False" />
-                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.Magazine}" />
-                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.GitHub}" />
-                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McUpdateSummary}" />
-                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclAnnouncement}"/>
-                            <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McOfficialFeed}"/>
-                        </legacy:MyComboBox>
+                                          Grid.Column="1" SelectionChanged="ComboChange" IsEnabled="False"
+                                          HintText="暂无可用预设" />
                     </Grid>
                 </StackPanel>
             </legacy:MyCard>

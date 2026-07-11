@@ -836,12 +836,79 @@ public partial class MainWindow : Window, IDisposable
         {
             _launchCancellation?.Cancel();
             page.PageChangeToLogin();
-            _launchRight?.AppendLog("已取消启动。");
+            HandleStatusMessage("已取消启动。");
         };
-        page.StatusMessage += (_, message) => _launchRight?.AppendLog(message);
+        page.StatusMessage += (_, message) => HandleStatusMessage(message);
         page.LoginPageRequested += (_, type) => ApplyLaunchLoginPage(page, type);
         page.LaunchRequested += (_, instance) => _ = StartMinecraftAsync(page, instance);
         return page;
+    }
+
+    private void HandleStatusMessage(string message)
+    {
+        _launchRight?.AppendLog(message);
+        ShowNotification(message);
+    }
+
+    private void ShowNotification(string message, bool critical = false)
+    {
+        if (this.FindControl<StackPanel>("PanHint") is not { } host)
+            return;
+
+        string text = message.Replace("\r\n", " ", StringComparison.Ordinal)
+            .Replace('\r', ' ')
+            .Replace('\n', ' ')
+            .Trim();
+        if (text.Length == 0)
+            return;
+
+        Border? duplicate = host.Children.OfType<Border>()
+            .FirstOrDefault(border => string.Equals(border.Tag as string, text, StringComparison.Ordinal));
+        if (duplicate is not null)
+        {
+            host.Children.Remove(duplicate);
+            host.Children.Add(duplicate);
+            return;
+        }
+
+        while (host.Children.Count >= 20)
+            host.Children.RemoveAt(0);
+
+        Border notification = new()
+        {
+            Tag = text,
+            MinHeight = 38d,
+            Margin = new Thickness(0d, 4d, 0d, 0d),
+            Padding = new Thickness(14d, 8d),
+            CornerRadius = new CornerRadius(4d),
+            Background = new LinearGradientBrush
+            {
+                StartPoint = new RelativePoint(0d, 0.5d, RelativeUnit.Relative),
+                EndPoint = new RelativePoint(1d, 0.5d, RelativeUnit.Relative),
+                GradientStops =
+                {
+                    new GradientStop(critical ? Color.Parse("#d7ff4c4c") : Color.Parse("#d7259bfc"), 0d),
+                    new GradientStop(critical ? Color.Parse("#d7ce2111") : Color.Parse("#d70a8efc"), 1d)
+                }
+            },
+            Child = new TextBlock
+            {
+                Text = text,
+                Foreground = Brushes.White,
+                FontSize = 13d,
+                TextWrapping = TextWrapping.Wrap,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+            }
+        };
+        host.Children.Add(notification);
+
+        DispatcherTimer timer = new() { Interval = TimeSpan.FromSeconds(4.5d) };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            host.Children.Remove(notification);
+        };
+        timer.Start();
     }
 
     private DesktopMainPage CreateDownloadMainPage()
@@ -1941,7 +2008,7 @@ public partial class MainWindow : Window, IDisposable
         PageInstanceScreenshotRight page = new();
         page.OpenFolderRequested += (_, path) => OpenFolder(path);
         page.OpenFileRequested += (_, path) => OpenExistingPath(path);
-        page.StatusMessage += (_, message) => _launchRight?.AppendLog(message);
+        page.StatusMessage += (_, message) => HandleStatusMessage(message);
         return page;
     }
 
@@ -1955,14 +2022,14 @@ public partial class MainWindow : Window, IDisposable
             if (_managedInstance is not null && _launchLeft is not null)
                 _ = StartMinecraftAsync(_launchLeft, _managedInstance, worldName);
         };
-        page.StatusMessage += (_, message) => _launchRight?.AppendLog(message);
+        page.StatusMessage += (_, message) => HandleStatusMessage(message);
         return page;
     }
 
     private PageInstanceSavesInfoRight CreateInstanceSavesInfoPage()
     {
         PageInstanceSavesInfoRight page = new();
-        page.StatusMessage += (_, message) => _launchRight?.AppendLog(message);
+        page.StatusMessage += (_, message) => HandleStatusMessage(message);
         page.DatapackManageRequested += (_, saveFolder) => ShowInstanceDatapacks(saveFolder);
         return page;
     }
@@ -2042,7 +2109,7 @@ public partial class MainWindow : Window, IDisposable
         PageInstanceResourceRight page = new();
         page.OpenFolderRequested += (_, path) => OpenFolder(path);
         page.DownloadRequested += (_, _) => SelectNavRoute(DownloadRoute, animate: true);
-        page.StatusMessage += (_, message) => _launchRight?.AppendLog(message);
+        page.StatusMessage += (_, message) => HandleStatusMessage(message);
         return page;
     }
 
@@ -2051,7 +2118,7 @@ public partial class MainWindow : Window, IDisposable
         PageInstanceResourceRight page = new();
         page.OpenFolderRequested += (_, path) => OpenFolder(path);
         page.DownloadRequested += (_, _) => SelectNavRoute(DownloadRoute, animate: true);
-        page.StatusMessage += (_, message) => _launchRight?.AppendLog(message);
+        page.StatusMessage += (_, message) => HandleStatusMessage(message);
         return page;
     }
 
@@ -4947,7 +5014,7 @@ public partial class MainWindow : Window, IDisposable
                 _ = LoadNetworkHomepageAsync(address, _homepageLoadCancellation.Token);
                 break;
             case 3:
-                _launchRight.LoadTextContent(PageLaunchRight.GetRandomHint(raw: true));
+                _launchRight.ClearCustomContent();
                 break;
             default:
                 _launchRight.ClearCustomContent();

@@ -51,9 +51,9 @@ public partial class PageLoginProfileSkin : Grid, PageLaunchLeft.ILoginPage
             type.Text = Profile.Info;
         if (this.FindControl<MySkin>("Skin") is { } skin)
         {
-            skin.Clear();
             skin.HasCape = Profile.Kind != LaunchLoginProfileKind.Offline;
             skin.Address = Profile.SkinAddress ?? string.Empty;
+            skin.Load();
         }
         if (this.FindControl<MyIconButton>("BtnEdit") is { } edit)
             edit.IsVisible = Profile.Kind != LaunchLoginProfileKind.Offline;

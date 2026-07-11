@@ -114,6 +114,13 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsNull(window.FindControl<MyListItem>("BtnTitleSelect4"));
                 Assert.IsNotNull(window.FindControl<AnimatedBackgroundGrid>("PanTitle"));
                 Assert.IsNotNull(window.FindControl<Grid>("PanForm")!.Background);
+                typeof(MainWindow).GetMethod(
+                        "ShowNotification",
+                        System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                    .Invoke(window, ["Headless notification", false]);
+                Assert.AreEqual(
+                    "Headless notification",
+                    ((Border)window.FindControl<StackPanel>("PanHint")!.Children.Single()).Tag);
                 Assert.AreEqual(
                     Color.FromArgb(0xd2, 0xfb, 0xfb, 0xfb),
                     ((SolidColorBrush)window.FindControl<Border>("PanNavLayer")!.Background!).Color);
@@ -4781,6 +4788,8 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual("50%", page.FindControl<MySlider>("SliderMusicVolume")!.getHintText!(500));
                 Assert.AreEqual("16 px", page.FindControl<MySlider>("SliderBlurValue")!.getHintText!(16));
                 Assert.AreEqual("70%", page.FindControl<MySlider>("SliderBlurSamplingRate")!.getHintText!(70));
+                Assert.IsFalse(page.FindControl<MyRadioBox>("RadioCustomType3")!.IsEnabled);
+                Assert.AreEqual(0, page.FindControl<MyComboBox>("ComboCustomPreset")!.ItemCount);
 
                 Grid blurOptions = page.FindControl<Grid>("PanBlurValue")!;
                 Assert.IsFalse(blurOptions.IsVisible);
@@ -7059,7 +7068,17 @@ public sealed class AvaloniaHeadlessTests
 
         session.Dispatch(() =>
         {
-            LoginProfileInfo profile = new("Steve", "离线登录", LaunchLoginProfileKind.Offline);
+            string skinPath = System.IO.Path.Combine(
+                System.IO.Path.GetTempPath(),
+                "pcl-headless-skin-" + Guid.NewGuid().ToString("N") + ".png");
+            using (Stream source = Avalonia.Platform.AssetLoader.Open(new Uri("avares://PCL.Desktop/Assets/icon.png")))
+            using (FileStream target = File.Create(skinPath))
+                source.CopyTo(target);
+            LoginProfileInfo profile = new(
+                "Steve",
+                "离线登录",
+                LaunchLoginProfileKind.Offline,
+                SkinAddress: skinPath);
             PageLoginProfile profilePage = new();
             Window window = new()
             {
@@ -7082,12 +7101,17 @@ public sealed class AvaloniaHeadlessTests
 
                 PageLoginProfileSkin skinPage = new();
                 skinPage.SetProfile(profile);
+                window.Content = skinPage;
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Avalonia.Threading.Dispatcher.UIThread.RunJobs();
                 Assert.AreEqual("Steve", skinPage.FindControl<TextBlock>("TextName")!.Text);
                 Assert.IsFalse(skinPage.FindControl<MyIconButton>("BtnEdit")!.IsVisible);
+                Assert.IsNotNull(skinPage.FindControl<MySkin>("Skin")!.FindControl<Image>("ImgBack")!.Source);
             }
             finally
             {
                 window.Close();
+                File.Delete(skinPath);
             }
         }, CancellationToken.None);
     }
