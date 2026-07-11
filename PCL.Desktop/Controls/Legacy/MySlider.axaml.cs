@@ -31,8 +31,8 @@ public partial class MySlider : Border
         AvaloniaProperty.Register<MySlider, uint>(nameof(ValueByKey), 1U);
 
     private readonly Grid? _mainPanel;
-    private readonly Line? _lineBack;
-    private readonly Line? _lineFore;
+    private readonly Border? _lineBack;
+    private readonly Border? _lineFore;
     private readonly Ellipse? _shapeDot;
     private readonly Popup? _popup;
     private readonly TextBlock? _textHint;
@@ -49,8 +49,8 @@ public partial class MySlider : Border
         ScrollViewer.SetBringIntoViewOnFocusChange(this, false);
 
         _mainPanel = this.FindControl<Grid>("PanMain");
-        _lineBack = this.FindControl<Line>("LineBack");
-        _lineFore = this.FindControl<Line>("LineFore");
+        _lineBack = this.FindControl<Border>("LineBack");
+        _lineFore = this.FindControl<Border>("LineFore");
         _shapeDot = this.FindControl<Ellipse>("ShapeDot");
         _popup = this.FindControl<Popup>("Popup");
         _textHint = this.FindControl<TextBlock>("TextHint");
@@ -302,7 +302,7 @@ public partial class MySlider : Border
                 ModAnimation.AaColor(_shapeDot, Shape.StrokeProperty, foregroundName, animationTime)
             ];
             if (_lineFore is not null)
-                animations.Add(ModAnimation.AaColor(_lineFore, Shape.StrokeProperty, foregroundName, animationTime));
+                animations.Add(ModAnimation.AaColor(_lineFore, BackgroundProperty, foregroundName, animationTime));
             ModAnimation.AniStart(animations, "MySlider Color " + Uuid);
             return;
         }
@@ -312,7 +312,7 @@ public partial class MySlider : Border
         IBrush dotFill = FindBrush(dotFillName, "#96c0f9");
         BorderBrush = foreground;
         if (_lineFore is not null)
-            _lineFore.Stroke = foreground;
+            _lineFore.Background = foreground;
         _shapeDot.Stroke = foreground;
         _shapeDot.Fill = dotFill;
     }

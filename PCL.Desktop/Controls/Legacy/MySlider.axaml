@@ -14,12 +14,10 @@
     Background="{StaticResource ColorBrushSemiTransparent}"
     Focusable="True">
     <Grid x:Name="PanMain" MinHeight="16" MaxHeight="16" IsHitTestVisible="False">
-        <Line x:Name="LineBack" Height="4" Stroke="{DynamicResource ColorBrushBg0}" Opacity="0.3"
-              StrokeThickness="1" StartPoint="0,2" EndPoint="10000,2" HorizontalAlignment="Right"
-              Width="0" Margin="0,0,1,0" />
-        <Line x:Name="LineFore" Height="4" Stroke="{DynamicResource ColorBrushBg0}"
-              StrokeThickness="2" StartPoint="0,2" EndPoint="10000,2" Width="0"
-              HorizontalAlignment="Left" Margin="1,0,0,0" />
+        <Border x:Name="LineBack" Height="1" Background="{DynamicResource ColorBrushBg0}" Opacity="0.3"
+                HorizontalAlignment="Right" VerticalAlignment="Center" Width="0" Margin="0,0,1,0" />
+        <Border x:Name="LineFore" Height="2" Background="{DynamicResource ColorBrushBg0}"
+                HorizontalAlignment="Left" VerticalAlignment="Center" Width="0" Margin="1,0,0,0" />
         <Ellipse x:Name="ShapeDot" HorizontalAlignment="Left" Width="10" Height="10"
                  Stroke="{DynamicResource ColorBrushBg0}" StrokeThickness="1.2"
                  Fill="{DynamicResource ColorBrushBg0}" VerticalAlignment="Center"
