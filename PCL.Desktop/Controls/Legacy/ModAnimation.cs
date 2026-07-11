@@ -75,6 +75,16 @@ public static partial class ModAnimation
             AniTimer(deltaTick);
     }
 
+    public static void ResetForTesting()
+    {
+        AniGroups.Clear();
+        _aniTimer?.Stop();
+        _aniTimer = null;
+        _aniLastTick = 0d;
+        AniControlEnabled = 0;
+        aniSpeed = 1d;
+    }
+
     public static void AniTimer(int deltaTick)
     {
         if (AniGroups.Count == 0)

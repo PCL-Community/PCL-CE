@@ -15,6 +15,7 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
 using FluentValidation;
+using PCL.Application.Accounts;
 using PCL.Application.Downloads;
 using PCL.Application.Instances;
 using PCL.Application.Launching;
@@ -22,6 +23,7 @@ using PCL.Application.Settings;
 using PCL.Core.App;
 using PCL.Desktop;
 using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Features.Community;
 using PCL.Desktop.Theme;
 using PCL.Desktop.Views;
 using PCL.Desktop.Features.Downloads.Views;
@@ -192,6 +194,51 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsNotNull(FindVisual<PageInstanceSelectRight>(window));
 
                 Click(window, window.FindControl<MyIconButton>("BtnTitleInner")!);
+                ModAnimation.AdvanceUntilIdleForTesting();
+
+                Assert.IsFalse(window.FindControl<Control>("PanTitleInner")!.IsVisible);
+                Assert.IsNotNull(FindVisual<PageLaunchLeft>(window));
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void MainWindow_InstanceSelectSupportsWpfEscapeAndHiddenVersionKeys()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MainWindow window = new();
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                ModAnimation.AdvanceUntilIdleForTesting();
+
+                PageLaunchLeft launchPage = FindVisual<PageLaunchLeft>(window)!;
+                launchPage.SetInstances(
+                [
+                    new LaunchInstanceInfo(
+                        "1.20.1",
+                        @"D:\Minecraft\versions\1.20.1\1.20.1.json",
+                        @"D:\Minecraft\versions\1.20.1")
+                ]);
+                Click(window, launchPage.FindControl<MyButton>("BtnInstance")!);
+                ModAnimation.AdvanceUntilIdleForTesting();
+
+                PageInstanceSelectRight selectPage = FindVisual<PageInstanceSelectRight>(window)!;
+                Assert.IsFalse(selectPage.ShowHidden);
+
+                window.KeyPress(Key.F11, RawInputModifiers.None, PhysicalKey.F11, string.Empty);
+                Assert.IsTrue(selectPage.ShowHidden);
+                Assert.IsTrue(window.FindControl<Control>("PanTitleInner")!.IsVisible);
+
+                window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, string.Empty);
                 ModAnimation.AdvanceUntilIdleForTesting();
 
                 Assert.IsFalse(window.FindControl<Control>("PanTitleInner")!.IsVisible);
@@ -2306,20 +2353,181 @@ public sealed class AvaloniaHeadlessTests
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
                 Control right = window.FindControl<Control>("PanMainRight")!;
-                Click(window, window.FindControl<MyListItem>("BtnTitleSelect2")!);
+                MyListItem communityNav = window.FindControl<Panel>("PanTitleSelect")!.Children
+                    .OfType<MyListItem>()
+                    .Single(item => item.Tag?.ToString() == "pcl.community");
+                var selectNavPage = typeof(MainWindow).GetMethod(
+                    "SelectNavPage",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                    ?? throw new InvalidOperationException("SelectNavPage was not found.");
+                selectNavPage.Invoke(window, [communityNav.Tag, true]);
 
                 ModAnimation.AdvanceForTesting(16, 3);
                 Assert.IsTrue(right.Opacity < 1d);
 
                 AdvancePageChangeAnimation(window);
                 Assert.AreEqual(1d, right.Opacity, 0.01d);
-                Assert.AreEqual("正在加载社区页面", FindVisual<MyLoading>(window, "LoadMain")!.Text);
+                Assert.IsNotNull(FindVisual<PageCommunityLeft>(window));
+                Assert.IsNotNull(FindVisual<PageCommunityRight>(window));
             }
             finally
             {
                 window.Close();
             }
-        }, CancellationToken.None);
+        }, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    [TestMethod]
+    public void PageNavigationLeftColumns_UseWpfWidthAndStretchItems()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            foreach (MyPageLeft page in new MyPageLeft[]
+                     {
+                         new PageDownloadLeft(),
+                         new PageCommunityLeft(),
+                         new PageSetupLeft(),
+                         new PageInstanceLeft()
+                     })
+            {
+                Grid layout = new()
+                {
+                    ColumnDefinitions = new ColumnDefinitions("Auto,*"),
+                    Children =
+                    {
+                        page,
+                        new Border { [Grid.ColumnProperty] = 1 }
+                    }
+                };
+                Window window = new() { Width = 850, Height = 760, Content = layout };
+                try
+                {
+                    window.Show();
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                    double[] itemWidths = page.GetVisualDescendants().OfType<MyListItem>()
+                        .Where(item => item.IsVisible)
+                        .Select(item => item.Bounds.Width)
+                        .ToArray();
+
+                    Assert.AreEqual(152d, page.Bounds.Width, 0.01d, page.GetType().Name);
+                    Assert.IsTrue(itemWidths.Length > 0, page.GetType().Name);
+                    Assert.IsTrue(itemWidths.Min() >= 140d, page.GetType().Name);
+                    Assert.AreEqual(itemWidths.Min(), itemWidths.Max(), 0.01d, page.GetType().Name);
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }
+        }, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    [TestMethod]
+    public async Task ModrinthCommunityResourceCatalog_UsesDocumentedFacetsAndParsesResults()
+    {
+        List<Uri> requestedUris = [];
+        using HttpClient client = new(new DelegateHttpMessageHandler(request =>
+        {
+            requestedUris.Add(request.RequestUri!);
+            return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    """
+                    {
+                      "hits": [
+                        {
+                          "project_id": "AANobbMI",
+                          "slug": "sodium",
+                          "title": "Sodium",
+                          "description": "性能优化 Mod",
+                          "project_type": "mod",
+                          "icon_url": "https://cdn.modrinth.com/data/AANobbMI/icon.png",
+                          "downloads": 12345,
+                          "date_modified": "2026-01-01T00:00:00Z"
+                        }
+                      ]
+                    }
+                    """,
+                    System.Text.Encoding.UTF8,
+                    "application/json")
+            };
+        }));
+        using ModrinthCommunityResourceCatalog catalog = new(client);
+
+        IReadOnlyList<CommunityResourceEntry> entries = await catalog.SearchAsync(
+            CommunityResourceCategory.Mod,
+            " sodium ");
+
+        CommunityResourceEntry entry = entries.Single();
+        Assert.AreEqual("AANobbMI", entry.ProjectId);
+        Assert.AreEqual("https://modrinth.com/mod/sodium", entry.WebsiteUrl);
+        Assert.AreEqual(12_345L, entry.Downloads);
+        Assert.AreEqual(DateTimeOffset.Parse("2026-01-01T00:00:00Z"), entry.UpdatedAt);
+        string modQuery = Uri.UnescapeDataString(requestedUris.Single().Query);
+        StringAssert.Contains(modQuery, "query=sodium");
+        StringAssert.Contains(modQuery, "[[\"project_type:mod\"]]");
+
+        await catalog.SearchAsync(CommunityResourceCategory.DataPack, string.Empty);
+        string dataPackQuery = Uri.UnescapeDataString(requestedUris[1].Query);
+        StringAssert.Contains(dataPackQuery, "[[\"all_project_types:datapack\"]]");
+    }
+
+    [TestMethod]
+    public void CommunityPages_SwitchCategoriesAndRenderCatalogResults()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(async () =>
+        {
+            FakeCommunityResourceCatalog catalog = new();
+            PageCommunityLeft left = new();
+            PageCommunityRight right = new(catalog);
+            Window window = new()
+            {
+                Width = 620,
+                Height = 520,
+                Content = right
+            };
+            CommunityResourceEntry? opened = null;
+            right.OpenProjectRequested += (_, entry) => opened = entry;
+            left.CategoryChanged += (_, category) => _ = right.SetCategoryAsync(category);
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                right.PageOnEnter();
+                ModAnimation.AdvanceUntilIdleForTesting();
+                await right.RefreshAsync().ConfigureAwait(true);
+                Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                MyListItem[] renderedItems = right.GetVisualDescendants().OfType<MyListItem>().ToArray();
+                Assert.IsTrue(renderedItems.Any(item => item.Title == "Sodium"));
+                MyListItem result = renderedItems.Single(item => item.Title == "Sodium");
+                Assert.AreEqual(CommunityResourceCategory.Mod, catalog.LastCategory);
+                Assert.IsTrue(result.Info.Contains("性能优化", StringComparison.Ordinal));
+                ClickAt(window, result, new Point(80d, result.Bounds.Height / 2d));
+                Assert.AreEqual("sodium", opened?.Slug);
+
+                Assert.IsTrue(left.TrySelectCategory(CommunityResourceCategory.Shader));
+                await WaitForConditionAsync(() => catalog.LastCategory == CommunityResourceCategory.Shader);
+                await right.RefreshAsync().ConfigureAwait(true);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Assert.AreEqual(CommunityResourceCategory.Shader, right.Category);
+                Assert.IsTrue(left.FindControl<StackPanel>("PanItem")!.Children
+                    .OfType<MyListItem>()
+                    .Single(item => item.Tag is CommunityResourceCategory.Shader)
+                    .Checked);
+            }
+            finally
+            {
+                window.Close();
+                right.Dispose();
+            }
+        }, CancellationToken.None).GetAwaiter().GetResult();
     }
 
     [TestMethod]
@@ -2354,11 +2562,18 @@ public sealed class AvaloniaHeadlessTests
             Directory.CreateDirectory(versionDirectory);
             File.WriteAllText(System.IO.Path.Combine(versionDirectory, "1.20.1.json"), "{}");
 
-            IReadOnlyList<LaunchInstanceInfo> instances = LaunchInstanceDiscovery.Discover([root]);
+            List<LaunchInstanceDiscoveryProgress> progressEvents = [];
+            IReadOnlyList<LaunchInstanceInfo> instances = LaunchInstanceDiscovery.Discover(
+                [root],
+                new CallbackProgress<LaunchInstanceDiscoveryProgress>(progressEvents.Add));
 
             Assert.AreEqual(1, instances.Count);
             Assert.AreEqual("1.20.1", instances[0].Name);
             Assert.AreEqual(versionDirectory, instances[0].InstanceDirectory);
+            Assert.IsTrue(progressEvents.Any(progress => progress.Stage == "正在扫描游戏文件夹"));
+            Assert.IsTrue(progressEvents.Any(progress =>
+                progress.Stage == "正在检查游戏版本" && progress.Current == progress.Total && progress.Found == 1));
+            Assert.AreEqual("游戏版本检查完成", progressEvents[^1].Stage);
         }
         finally
         {
@@ -2789,7 +3004,8 @@ public sealed class AvaloniaHeadlessTests
                         "My Fabric Pack",
                         preserveInstallNameOnLoaderSelect: true,
                         minecraftRootDirectory: @"D:\Games\.minecraft",
-                        openLoaderKind: MinecraftLoaderKind.Fabric)
+                        openLoaderKind: MinecraftLoaderKind.Fabric,
+                        replaceExistingVersion: true)
                     .GetAwaiter()
                     .GetResult();
                 ModAnimation.AdvanceUntilIdleForTesting();
@@ -2811,6 +3027,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual("My Fabric Pack", requested?.VersionId);
                 Assert.AreEqual("1.20.1", requested?.BaseVersionId);
                 Assert.AreEqual(@"D:\Games\.minecraft", requested?.MinecraftRootDirectory);
+                Assert.IsTrue(requested?.ReplaceExistingVersion);
                 Assert.AreEqual(MinecraftLoaderKind.Fabric, requested?.Loader?.Kind);
                 Assert.AreEqual("0.16.14", requested?.Loader?.LoaderVersion);
             }
@@ -3009,11 +3226,18 @@ public sealed class AvaloniaHeadlessTests
                 Content = page
             };
             int cancelCount = 0;
+            int dismissCount = 0;
             string? canceledTask = null;
+            string? dismissedTask = null;
             page.CancelRequested += (_, args) =>
             {
                 cancelCount++;
                 canceledTask = args.TaskId;
+            };
+            page.DismissRequested += (_, args) =>
+            {
+                dismissCount++;
+                dismissedTask = args.TaskId;
             };
 
             try
@@ -3103,6 +3327,28 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual(1, page.TaskCount);
 
                 page.UpsertTask(new TaskManagerEntrySnapshot(
+                    "failed:demo",
+                    "失败任务",
+                    "任务失败",
+                    "请查看错误信息",
+                    0.3d,
+                    1,
+                    3,
+                    0,
+                    TaskManagerTaskState.Failed,
+                    ErrorMessage: "网络连接失败"));
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                MyCard failedCard = page.GetVisualDescendants().OfType<MyCard>().Single(item => item.Title == "失败任务");
+                MyIconButton dismissButton = failedCard.GetVisualDescendants()
+                    .OfType<MyIconButton>()
+                    .Single(button => Equals(button.ToolTip, "移除任务"));
+                Assert.IsTrue(dismissButton.IsVisible);
+                Click(window, dismissButton);
+                Assert.AreEqual(1, dismissCount);
+                Assert.AreEqual("failed:demo", dismissedTask);
+                page.RemoveTask("failed:demo");
+
+                page.UpsertTask(new TaskManagerEntrySnapshot(
                     "install:1.20.1",
                     "安装 1.20.1",
                     "安装完成",
@@ -3121,6 +3367,238 @@ public sealed class AvaloniaHeadlessTests
                 page.RemoveTask("install:1.20.1");
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
                 Assert.AreEqual(0, page.TaskCount);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void MainWindow_RepeatedMainNavigationRequestDoesNotReenterPage()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MainWindow window = new();
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                int before = GetPrivateField<int>(window, "_registeredPageRequestId");
+                NavigationRouteId settings = NavigationRouteId.Parse("pcl.settings");
+
+                InvokePrivateMethod(window, "SelectNavPage", settings, true);
+                InvokePrivateMethod(window, "SelectNavPage", settings, true);
+                Assert.AreEqual(before, GetPrivateField<int>(window, "_registeredPageRequestId"));
+
+                AdvancePageChangeAnimation(window);
+                Assert.AreEqual(before + 1, GetPrivateField<int>(window, "_registeredPageRequestId"));
+                Border leftHost = window.FindControl<Border>("PanMainLeft")!;
+                Border rightHost = window.FindControl<Border>("PanMainRight")!;
+                Control? left = leftHost.Child;
+                Control? right = rightHost.Child;
+
+                InvokePrivateMethod(window, "SelectNavPage", settings, true);
+                Assert.AreEqual(before + 1, GetPrivateField<int>(window, "_registeredPageRequestId"));
+                Assert.AreSame(left, leftHost.Child);
+                Assert.AreSame(right, rightHost.Child);
+                Assert.IsFalse(ModAnimation.AniIsRun("FrmMain PageChangeRight"));
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    [TestMethod]
+    public void MainWindow_InstanceSubpageSwitchDoesNotReplayLeftNavigationEntrance()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+        string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-subnav-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            string versionDirectory = System.IO.Path.Combine(root, "versions", "1.20.1");
+            Directory.CreateDirectory(versionDirectory);
+            string jsonPath = System.IO.Path.Combine(versionDirectory, "1.20.1.json");
+            File.WriteAllText(jsonPath, "{\"id\":\"1.20.1\"}");
+            LaunchInstanceInfo instance = new("1.20.1", jsonPath, versionDirectory);
+
+            session.Dispatch(() =>
+            {
+                MainWindow window = new();
+                try
+                {
+                    window.Show();
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                    InvokePrivateMethod(window, "ApplyInstanceManagePage", instance, InstancePageSubType.Overall);
+                    ModAnimation.AdvanceUntilIdleForTesting();
+
+                    Border leftHost = window.FindControl<Border>("PanMainLeft")!;
+                    MyPageLeft left = (MyPageLeft)leftHost.Child!;
+                    int pageUuid = GetPrivateField<int>(left, "_uuid");
+                    InvokePrivateMethod(window, "ApplyInstanceManagePage", instance, InstancePageSubType.Export);
+
+                    Assert.AreSame(left, leftHost.Child);
+                    Assert.IsFalse(ModAnimation.AniIsRun("PageLeft PageChange " + pageUuid));
+                    Assert.IsInstanceOfType<PageInstanceExportRight>(window.FindControl<Border>("PanMainRight")!.Child);
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void MyButton_RedPaletteIsAppliedOnAttachBeforeFirstHover()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MyButton button = new()
+            {
+                Text = "删除",
+                ColorType = MyButton.ColorState.Red,
+                Width = 130,
+                Height = 36
+            };
+            Window window = new()
+            {
+                Width = 240,
+                Height = 120,
+                Content = new Border { Margin = new Thickness(20), Child = button }
+            };
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Border fore = button.FindControl<Border>("PanFore")!;
+                TextBlock label = button.FindControl<TextBlock>("LabText")!;
+                Assert.IsTrue(ModAnimation.AniIsRun("MyButton Color " + button.Uuid));
+                ModAnimation.AdvanceUntilIdleForTesting();
+                Assert.AreEqual(RequiredBrush("ColorBrushRedDark").Color, ((SolidColorBrush)fore.BorderBrush!).Color);
+                Assert.AreEqual(RequiredBrush("ColorBrushRedDark").Color, ((SolidColorBrush)label.Foreground!).Color);
+
+                MoveTo(window, button);
+                Assert.IsTrue(ModAnimation.AniIsRun("MyButton Color " + button.Uuid));
+                ModAnimation.AdvanceUntilIdleForTesting();
+                Assert.AreEqual(RequiredBrush("ColorBrushRedLight").Color, ((SolidColorBrush)fore.BorderBrush!).Color);
+                Assert.AreEqual(RequiredBrush("ColorBrushRedBack").Color, ((SolidColorBrush)fore.Background!).Color);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    [TestMethod]
+    public void MainWindow_TaskManagerReturnsToExactInstanceSubPage()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+        string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-task-back-instance-" + Guid.NewGuid().ToString("N"));
+        string instanceDirectory = System.IO.Path.Combine(root, "versions", "CustomPack");
+        string jsonPath = System.IO.Path.Combine(instanceDirectory, "CustomPack.json");
+
+        try
+        {
+            Directory.CreateDirectory(instanceDirectory);
+            File.WriteAllText(jsonPath, """{"id":"CustomPack"}""");
+
+            session.Dispatch(() =>
+            {
+                MainWindow window = new();
+                LaunchInstanceInfo instance = new("CustomPack", jsonPath, instanceDirectory);
+                try
+                {
+                    window.Show();
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                    ModAnimation.AdvanceUntilIdleForTesting();
+
+                    var applyInstance = typeof(MainWindow).GetMethod(
+                        "ApplyInstanceManagePage",
+                        System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                        ?? throw new InvalidOperationException("ApplyInstanceManagePage was not found.");
+                    applyInstance.Invoke(window, [instance, InstancePageSubType.Setup]);
+                    Assert.IsNotNull(FindVisual<PageInstanceSetupRight>(window));
+
+                    var applyTasks = typeof(MainWindow).GetMethod(
+                        "ApplyTaskManagerPage",
+                        System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                        ?? throw new InvalidOperationException("ApplyTaskManagerPage was not found.");
+                    applyTasks.Invoke(window, [false]);
+                    Assert.IsNotNull(FindVisual<PageSpeedRight>(window));
+                    Assert.AreEqual("任务管理", window.FindControl<TextBlock>("LabTitleInner")!.Text);
+
+                    Click(window, window.FindControl<MyIconButton>("BtnTitleInner")!);
+                    ModAnimation.AdvanceUntilIdleForTesting();
+
+                    Assert.IsNotNull(FindVisual<PageInstanceSetupRight>(window));
+                    Assert.AreEqual(InstancePageSubType.Setup, FindVisual<PageInstanceLeft>(window)!.PageId);
+                    StringAssert.Contains(window.FindControl<TextBlock>("LabTitleInner")!.Text, "CustomPack");
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }, CancellationToken.None);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void MainWindow_FailedTaskCanReenterAndDismissFromTaskManager()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MainWindow window = new();
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                ModAnimation.AdvanceUntilIdleForTesting();
+
+                var trackFailed = typeof(MainWindow).GetMethod(
+                    "TrackTaskFailed",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                    ?? throw new InvalidOperationException("TrackTaskFailed was not found.");
+                trackFailed.Invoke(window, ["failed:test", "测试失败任务", "网络连接失败", false]);
+                ModAnimation.AdvanceUntilIdleForTesting();
+
+                MyExtraButton taskButton = window.FindControl<MyExtraButton>("BtnExtraDownload")!;
+                Assert.IsTrue(taskButton.Show);
+                Click(window, taskButton);
+                ModAnimation.AdvanceUntilIdleForTesting();
+
+                PageSpeedRight taskPage = FindVisual<PageSpeedRight>(window)!;
+                MyCard failedCard = taskPage.GetVisualDescendants().OfType<MyCard>()
+                    .Single(card => card.Title == "测试失败任务");
+                MyIconButton dismiss = failedCard.GetVisualDescendants().OfType<MyIconButton>()
+                    .Single(button => Equals(button.ToolTip, "移除任务"));
+                Click(window, dismiss);
+                ModAnimation.AdvanceUntilIdleForTesting();
+
+                Assert.IsNotNull(FindVisual<PageLaunchLeft>(window));
+                Assert.IsFalse(taskButton.Show);
             }
             finally
             {
@@ -3286,7 +3764,7 @@ public sealed class AvaloniaHeadlessTests
 
             var task = (Task<MinecraftProcessLaunchPlan>)method.Invoke(
                 null,
-                [instance, profile, "java", CancellationToken.None, null, null])!;
+                [instance, profile, "java", CancellationToken.None, null, null, null])!;
             MinecraftProcessLaunchPlan plan = await task;
 
             Assert.AreEqual(instanceDirectory, plan.StartInfo.WorkingDirectory);
@@ -3311,46 +3789,197 @@ public sealed class AvaloniaHeadlessTests
     public void PageInstanceSelectRight_UsesWpfSearchEmptyAndCardStructure()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
+        string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-select-" + Guid.NewGuid().ToString("N"));
+        string selectedDirectory = System.IO.Path.Combine(root, "versions", "1.20.1");
+        string secondDirectory = System.IO.Path.Combine(root, "versions", "1.21");
+
+        try
+        {
+            Directory.CreateDirectory(selectedDirectory);
+            Directory.CreateDirectory(secondDirectory);
+            File.WriteAllText(System.IO.Path.Combine(selectedDirectory, "1.20.1.json"), "{}" );
+            File.WriteAllText(System.IO.Path.Combine(secondDirectory, "1.21.json"), "{}" );
+
+            session.Dispatch(() =>
+            {
+                PageInstanceSelectRight page = new();
+                LaunchInstanceInfo selected = new("1.20.1", System.IO.Path.Combine(selectedDirectory, "1.20.1.json"), selectedDirectory);
+                LaunchInstanceInfo second = new("1.21", System.IO.Path.Combine(secondDirectory, "1.21.json"), secondDirectory);
+                Window window = new()
+                {
+                    Width = 560,
+                    Height = 420,
+                    Content = page
+                };
+                LaunchInstanceInfo? chosen = null;
+                page.InstanceSelected += (_, instance) => chosen = instance;
+
+                try
+                {
+                    window.Show();
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                    page.SetInstances([selected, second], selected);
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                    Assert.IsNotNull(page.FindControl<MySearchBox>("PanVerSearchBox"));
+                    Assert.IsNotNull(page.FindControl<MyCard>("PanEmpty"));
+                    Assert.IsNotNull(page.FindControl<MyCard>("PanEmptySearch"));
+                    Assert.IsFalse(page.FindControl<MyCard>("PanEmpty")!.IsVisible);
+                    Assert.AreEqual("常规版本 (2)", page.GetVisualDescendants().OfType<MyCard>().First(card => card.Title.StartsWith("常规版本", StringComparison.Ordinal)).Title);
+
+                    MyListItem item = page.GetVisualDescendants().OfType<MyListItem>().Single(listItem => listItem.Title == "1.21");
+                    Assert.AreEqual("avares://PCL.Desktop/WpfOriginal/Images/Blocks/Grass.png", item.Logo);
+                    Assert.AreEqual("1.21", DisplayText(item.FindControl<TextBlock>("LabTitle")!));
+                    Click(window, item);
+
+                    Assert.AreEqual("1.21", chosen?.Name);
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }, CancellationToken.None);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void PageInstanceSelectLeft_ListsMinecraftRootsAndRaisesSelection()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
 
         session.Dispatch(() =>
         {
-            PageInstanceSelectRight page = new();
-            LaunchInstanceInfo selected = new("1.20.1", @"D:\Minecraft\versions\1.20.1\1.20.1.json", @"D:\Minecraft\versions\1.20.1");
-            LaunchInstanceInfo second = new("1.21", @"D:\Minecraft\versions\1.21\1.21.json", @"D:\Minecraft\versions\1.21");
-            Window window = new()
-            {
-                Width = 560,
-                Height = 420,
-                Content = page
-            };
-            LaunchInstanceInfo? chosen = null;
-            page.InstanceSelected += (_, instance) => chosen = instance;
+            PageInstanceSelectLeft page = new();
+            MinecraftFolderInfo first = new("主目录", @"D:\Minecraft-A");
+            MinecraftFolderInfo second = new("测试目录", @"D:\Minecraft-B", IsCustom: true);
+            MinecraftFolderInfo? selected = null;
+            page.FolderSelected += (_, folder) => selected = folder;
+            page.SetFolders([first, second], second.RootDirectory);
 
-            try
-            {
-                window.Show();
-                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-                page.SetInstances([selected, second], selected);
-                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+            MyListItem[] folders = page.FindControl<StackPanel>("PanList")!.Children
+                .OfType<MyListItem>()
+                .Where(item => item.Tag is MinecraftFolderInfo)
+                .ToArray();
+            Assert.AreEqual(2, folders.Length);
+            Assert.IsFalse(folders[0].Checked);
+            Assert.IsTrue(folders[1].Checked);
+            Assert.AreEqual(4, folders[1].Buttons.Count);
 
-                Assert.IsNotNull(page.FindControl<MySearchBox>("PanVerSearchBox"));
-                Assert.IsNotNull(page.FindControl<MyCard>("PanEmpty"));
-                Assert.IsNotNull(page.FindControl<MyCard>("PanEmptySearch"));
-                Assert.IsFalse(page.FindControl<MyCard>("PanEmpty")!.IsVisible);
-                Assert.AreEqual("常规版本 (2)", page.GetVisualDescendants().OfType<MyCard>().First(card => card.Title.StartsWith("常规版本", StringComparison.Ordinal)).Title);
-
-                MyListItem item = page.GetVisualDescendants().OfType<MyListItem>().Single(listItem => listItem.Title == "1.21");
-                Assert.AreEqual("avares://PCL.Desktop/WpfOriginal/Images/Blocks/Grass.png", item.Logo);
-                Assert.AreEqual("1.21", DisplayText(item.FindControl<TextBlock>("LabTitle")!));
-                Click(window, item);
-
-                Assert.AreEqual("1.21", chosen?.Name);
-            }
-            finally
-            {
-                window.Close();
-            }
+            Assert.IsTrue(page.TrySelectFolder(first));
+            Assert.AreSame(first, selected);
+            Assert.AreEqual(first.RootDirectory, page.SelectedRootDirectory);
         }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void MainWindow_InstanceSelectUsesFolderLeftPageAndScopesDiscovery()
+    {
+        string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-folder-select-" + Guid.NewGuid().ToString("N"));
+        string firstRoot = System.IO.Path.Combine(root, "Minecraft-A");
+        string secondRoot = System.IO.Path.Combine(root, "Minecraft-B");
+        string? previousRoots = Environment.GetEnvironmentVariable("PCLN_MINECRAFT_ROOTS");
+
+        try
+        {
+            CreateDiscoveredInstance(firstRoot, "First");
+            CreateDiscoveredInstance(secondRoot, "Second");
+            Environment.SetEnvironmentVariable("PCLN_MINECRAFT_ROOTS", string.Join(System.IO.Path.PathSeparator, firstRoot, secondRoot));
+            using SafeHeadlessUnitTestSession session = CreateSession();
+
+            session.Dispatch(async () =>
+            {
+                MainWindow window = new();
+                try
+                {
+                    window.Show();
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                    ModAnimation.AdvanceUntilIdleForTesting();
+                    PageLaunchLeft launchPage = FindVisual<PageLaunchLeft>(window)!;
+                    await launchPage.EnsureInstancesLoadedAsync().ConfigureAwait(true);
+
+                    Click(window, launchPage.FindControl<MyButton>("BtnInstance")!);
+                    ModAnimation.AdvanceUntilIdleForTesting();
+
+                    PageInstanceSelectLeft left = FindVisual<PageInstanceSelectLeft>(window)!;
+                    PageInstanceSelectRight right = FindVisual<PageInstanceSelectRight>(window)!;
+                    Assert.IsNotNull(left);
+                    Assert.IsTrue(right.GetVisualDescendants().OfType<MyListItem>().Any(item => item.Title == "First"));
+
+                    MyListItem secondFolder = left.FindControl<StackPanel>("PanList")!.Children
+                        .OfType<MyListItem>()
+                        .Single(item => item.Tag is MinecraftFolderInfo folder &&
+                            string.Equals(folder.RootDirectory, secondRoot, StringComparison.OrdinalIgnoreCase));
+                    Click(window, secondFolder);
+                    await WaitForConditionAsync(() =>
+                        right.GetVisualDescendants().OfType<MyListItem>().Any(item => item.Title == "Second"));
+
+                    Assert.IsFalse(right.GetVisualDescendants().OfType<MyListItem>().Any(item => item.Title == "First"));
+                    string settingsPath = Environment.GetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH")!;
+                    using LauncherSettingsStore settingsStore = new(settingsPath);
+                    LauncherSettings settings = (await settingsStore.LoadAsync().ConfigureAwait(true)).Settings;
+                    Assert.AreEqual(
+                        System.IO.Path.TrimEndingDirectorySeparator(System.IO.Path.GetFullPath(secondRoot)),
+                        settings.GetTextOption(LauncherSettingKeys.LaunchSelectedMinecraftRoot));
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("PCLN_MINECRAFT_ROOTS", previousRoots);
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void PageInstanceSelectRight_InvalidJsonOpensFolderInsteadOfSelectingOrManaging()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+        string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-invalid-" + Guid.NewGuid().ToString("N"));
+        string instanceDirectory = System.IO.Path.Combine(root, "versions", "Broken");
+        string jsonPath = System.IO.Path.Combine(instanceDirectory, "Broken.json");
+
+        try
+        {
+            Directory.CreateDirectory(instanceDirectory);
+            File.WriteAllText(jsonPath, "{ this is not json }");
+
+            session.Dispatch(() =>
+            {
+                PageInstanceSelectRight page = new();
+                LaunchInstanceInfo broken = new("Broken", jsonPath, instanceDirectory);
+                LaunchInstanceInfo? selected = null;
+                LaunchInstanceInfo? opened = null;
+                LaunchInstanceInfo? managed = null;
+                page.InstanceSelected += (_, instance) => selected = instance;
+                page.InstanceOpenFolderRequested += (_, instance) => opened = instance;
+                page.InstanceManageRequested += (_, instance) => managed = instance;
+                page.SetInstances([broken], null);
+
+                Assert.IsFalse(page.TrySelectInstance(broken));
+                Assert.IsNull(selected);
+                Assert.AreSame(broken, opened);
+                Assert.IsNull(managed);
+
+                MyListItem item = page.GetVisualDescendants().OfType<MyListItem>().Single(listItem => listItem.Title == "Broken");
+                Assert.AreEqual("avares://PCL.Desktop/WpfOriginal/Images/Blocks/RedstoneBlock.png", item.Logo);
+                Assert.AreEqual("lucide/folder-open", item.Buttons.Last().SvgIcon);
+            }, CancellationToken.None);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
     }
 
     [TestMethod]
@@ -3706,6 +4335,101 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void MainWindow_SelectedInstanceSurvivesRefreshAndWindowRecreation()
+    {
+        string root = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            "pcl-selected-instance-" + Guid.NewGuid().ToString("N"));
+        string minecraftRoot = System.IO.Path.Combine(root, ".minecraft");
+        string settingsPath = System.IO.Path.Combine(root, "launcher-settings.json");
+        string? previousRoots = Environment.GetEnvironmentVariable("PCLN_MINECRAFT_ROOTS");
+        string? previousSettings = Environment.GetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH");
+
+        try
+        {
+            string firstDirectory = CreateDiscoveredInstance(minecraftRoot, "FirstPack");
+            string selectedDirectory = CreateDiscoveredInstance(minecraftRoot, "SelectedPack");
+            Directory.SetLastWriteTimeUtc(firstDirectory, DateTime.UtcNow.AddMinutes(1));
+            Directory.SetLastWriteTimeUtc(selectedDirectory, DateTime.UtcNow);
+            Environment.SetEnvironmentVariable("PCLN_MINECRAFT_ROOTS", minecraftRoot);
+            Environment.SetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH", settingsPath);
+
+            using SafeHeadlessUnitTestSession session = CreateSession();
+            session.Dispatch(async () =>
+            {
+                MainWindow firstWindow = new();
+                try
+                {
+                    firstWindow.Show();
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                    ModAnimation.AdvanceUntilIdleForTesting();
+
+                    PageLaunchLeft firstLaunchPage = FindVisual<PageLaunchLeft>(firstWindow)!;
+                    await firstLaunchPage.EnsureInstancesLoadedAsync().ConfigureAwait(true);
+                    LaunchInstanceInfo firstInstance = new(
+                        "FirstPack",
+                        System.IO.Path.Combine(firstDirectory, "FirstPack.json"),
+                        firstDirectory);
+                    LaunchInstanceInfo selectedInstance = new(
+                        "SelectedPack",
+                        System.IO.Path.Combine(selectedDirectory, "SelectedPack.json"),
+                        selectedDirectory);
+                    firstLaunchPage.SetInstances([firstInstance, selectedInstance], firstInstance);
+
+                    Click(firstWindow, firstLaunchPage.FindControl<MyButton>("BtnInstance")!);
+                    ModAnimation.AdvanceUntilIdleForTesting();
+                    PageInstanceSelectRight selectPage = FindVisual<PageInstanceSelectRight>(firstWindow)!;
+                    Assert.IsTrue(selectPage.TrySelectInstance(selectedInstance));
+                    ModAnimation.AdvanceUntilIdleForTesting();
+
+                    Assert.AreEqual("SelectedPack", firstLaunchPage.SelectedInstance?.Name);
+                    await firstLaunchPage.RefreshInstancesAsync().ConfigureAwait(true);
+                    Assert.AreEqual("SelectedPack", firstLaunchPage.SelectedInstance?.Name);
+                }
+                finally
+                {
+                    firstWindow.Close();
+                }
+
+                using (LauncherSettingsStore store = new(settingsPath))
+                {
+                    LauncherSettings saved = (await store.LoadAsync().ConfigureAwait(true)).Settings;
+                    Assert.AreEqual(
+                        System.IO.Path.TrimEndingDirectorySeparator(System.IO.Path.GetFullPath(selectedDirectory)),
+                        saved.GetTextOption(LauncherSettingKeys.LaunchSelectedInstanceDirectory));
+                }
+
+                MainWindow secondWindow = new();
+                try
+                {
+                    secondWindow.Show();
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                    ModAnimation.AdvanceUntilIdleForTesting();
+
+                    PageLaunchLeft secondLaunchPage = FindVisual<PageLaunchLeft>(secondWindow)!;
+                    await secondLaunchPage.EnsureInstancesLoadedAsync().ConfigureAwait(true);
+
+                    Assert.AreEqual("SelectedPack", secondLaunchPage.SelectedInstance?.Name);
+                    Assert.AreEqual(
+                        System.IO.Path.TrimEndingDirectorySeparator(System.IO.Path.GetFullPath(selectedDirectory)),
+                        secondLaunchPage.PreferredInstanceDirectory);
+                }
+                finally
+                {
+                    secondWindow.Close();
+                }
+            }, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("PCLN_MINECRAFT_ROOTS", previousRoots);
+            Environment.SetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH", previousSettings);
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public void SettingsPages_LoadAndPersistTaggedWpfControls()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
@@ -3761,6 +4485,7 @@ public sealed class AvaloniaHeadlessTests
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
                 Assert.AreEqual(1, ui.FindControl<MyComboBox>("ComboDarkMode")!.SelectedIndex);
+                Assert.IsNull(ui.FindControl<MyCard>("CardSwitch"));
                 Assert.AreEqual(1, ui.FindControl<MyComboBox>("ComboLightColor")!.SelectedIndex);
                 Assert.AreEqual(2, ui.FindControl<MyComboBox>("ComboDarkColor")!.SelectedIndex);
                 Assert.AreEqual(2, gameManage.FindControl<MyComboBox>("ComboDownloadSource")!.SelectedIndex);
@@ -3805,6 +4530,175 @@ public sealed class AvaloniaHeadlessTests
             if (Directory.Exists(root))
                 Directory.Delete(root, recursive: true);
         }
+    }
+
+    [TestMethod]
+    public void SettingsPageReset_RestoresOnlyTheSelectedPageDefaults()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+        string settingsPath = Environment.GetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH")!;
+        using (LauncherSettingsStore store = new(settingsPath))
+        {
+            LauncherSettings configured = new()
+            {
+                AutomaticallyRepairGameIssues = false,
+                IntegerOptions = new Dictionary<string, int>
+                {
+                    ["LaunchRamCustom"] = 24,
+                    ["UiBackgroundOpacity"] = 7
+                },
+                TextOptions = new Dictionary<string, string>
+                {
+                    ["LaunchArgumentInfo"] = "custom",
+                    ["UiLogoText"] = "keep-me"
+                }
+            };
+            store.SaveAsync(configured).AsTask().GetAwaiter().GetResult();
+        }
+
+        session.Dispatch(() =>
+        {
+            PageSetupLeft left = new();
+            PageSetupLaunch launch = (PageSetupLaunch)left.PageGet(SetupPageSubType.Launch);
+            left.Reset(new MyIconButton { Tag = SetupPageSubType.Launch }, EventArgs.Empty);
+
+            using LauncherSettingsStore store = new(settingsPath);
+            LauncherSettings saved = store.LoadAsync().AsTask().GetAwaiter().GetResult().Settings;
+            Assert.IsTrue(saved.AutomaticallyRepairGameIssues);
+            Assert.IsFalse(saved.IntegerOptions.ContainsKey("LaunchRamCustom"));
+            Assert.IsFalse(saved.TextOptions.ContainsKey("LaunchArgumentInfo"));
+            Assert.AreEqual(7, saved.IntegerOptions["UiBackgroundOpacity"]);
+            Assert.AreEqual("keep-me", saved.TextOptions["UiLogoText"]);
+            Assert.IsTrue(launch.FindControl<MyCheckBox>("CheckAutoRepairGame")!.Checked);
+        }, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    [TestMethod]
+    public void PageSetupUI_PreservesAndPersistsFontSelectionAcrossAsyncFontLoad()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+        string settingsPath = Environment.GetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH")!;
+
+        const string fontName = "PCL Headless Test Font";
+        using (LauncherSettingsStore store = new(settingsPath))
+        {
+            LauncherSettings settings = new();
+            settings.SetTextOption("UiFont", fontName);
+            store.SaveAsync(settings).AsTask().GetAwaiter().GetResult();
+        }
+
+        session.Dispatch(() =>
+        {
+            PageSetupUI page = new();
+            FontSelector selector = page.FindControl<FontSelector>("ComboUiFont")!;
+            selector.EnsureFontsLoadedAsync([new FontFamily(fontName)]).GetAwaiter().GetResult();
+
+            Assert.AreEqual(fontName, selector.SelectedFontTag, ignoreCase: true);
+            selector.SelectedIndex = 0;
+            Assert.AreEqual(
+                new FontFamily("Microsoft YaHei UI, Segoe UI, Arial"),
+                Avalonia.Application.Current!.Resources["LaunchFontFamily"]);
+
+            using LauncherSettingsStore savedStore = new(settingsPath);
+            LauncherSettings saved = savedStore.LoadAsync().AsTask().GetAwaiter().GetResult().Settings;
+            Assert.IsFalse(saved.TextOptions.ContainsKey("UiFont"));
+        }, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    [TestMethod]
+    public void PageSetupLauncherMisc_UpdatesDependentControlsAndHints()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageSetupLauncherMisc misc = new();
+            Window window = new() { Width = 900, Height = 640, Content = misc };
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Assert.IsFalse(misc.FindControl<Grid>("HttpProxyCustom")!.IsVisible);
+                misc.FindControl<MyRadioBox>("RadioHttpProxyType2")!.Checked = true;
+                Assert.IsTrue(misc.FindControl<Grid>("HttpProxyCustom")!.IsVisible);
+                Assert.AreEqual("1 FPS", misc.FindControl<MySlider>("SliderAniFPS")!.getHintText!(0));
+                Assert.AreEqual("不限量", misc.FindControl<MySlider>("SliderMaxLog")!.getHintText!(29));
+                Assert.AreEqual("关闭", misc.FindControl<MySlider>("SliderDebugAnim")!.getHintText!(30));
+
+                bool confirmationRequested = false;
+                misc.ConfirmRequested += (_, args) =>
+                {
+                    confirmationRequested = true;
+                    args.Complete(false);
+                };
+                MyComboBox activity = misc.FindControl<MyComboBox>("ComboSystemActivity")!;
+                activity.SelectedIndex = 1;
+                activity.SelectedIndex = 2;
+                Assert.IsTrue(confirmationRequested);
+                Assert.AreEqual(1, activity.SelectedIndex);
+
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    [TestMethod]
+    public void PageSetupUpdate_RequiresConfirmationForPreviewChannels()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageSetupUpdate page = new();
+            MyComboBox channel = page.FindControl<MyComboBox>("ComboSystemUpdateChannel")!;
+            bool confirmationRequested = false;
+            page.ConfirmRequested += (_, args) =>
+            {
+                confirmationRequested = true;
+                Assert.IsTrue(args.IsWarn);
+                args.Complete(false);
+            };
+
+            channel.SelectedIndex = 1;
+            Assert.IsTrue(confirmationRequested);
+            Assert.AreEqual(0, channel.SelectedIndex);
+        }, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    [TestMethod]
+    public void PageSetupLauncherLanguage_PersistsAndResetsSelections()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+        string settingsPath = Environment.GetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH")!;
+
+        session.Dispatch(() =>
+        {
+            PageSetupLauncherLanguage page = new();
+            page.Reload();
+            MyComboBox language = page.FindControl<MyComboBox>("ComboUiLanguage")!;
+            MyComboBox format = page.FindControl<MyComboBox>("ComboUiFormatCulture")!;
+            language.SelectedItem = language.Items.OfType<MyComboBoxItem>()
+                .Single(item => string.Equals(item.Tag?.ToString(), "en-US", StringComparison.OrdinalIgnoreCase));
+            format.SelectedItem = format.Items.OfType<MyComboBoxItem>()
+                .Single(item => string.Equals(item.Tag?.ToString(), "follow-language", StringComparison.OrdinalIgnoreCase));
+
+            using (LauncherSettingsStore store = new(settingsPath))
+            {
+                LauncherSettings saved = store.LoadAsync().AsTask().GetAwaiter().GetResult().Settings;
+                Assert.AreEqual("en-US", saved.GetTextOption("UiLanguage"));
+                Assert.AreEqual("follow-language", saved.GetTextOption("UiFormatCulture"));
+            }
+
+            page.Reset();
+            using LauncherSettingsStore resetStore = new(settingsPath);
+            LauncherSettings reset = resetStore.LoadAsync().AsTask().GetAwaiter().GetResult().Settings;
+            Assert.IsFalse(reset.TextOptions.ContainsKey("UiLanguage"));
+            Assert.IsFalse(reset.TextOptions.ContainsKey("UiFormatCulture"));
+            Assert.AreEqual("auto", ((MyComboBoxItem)language.SelectedItem!).Tag);
+        }, CancellationToken.None).GetAwaiter().GetResult();
     }
 
     [TestMethod]
@@ -4192,6 +5086,73 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void PageInstanceSetupRight_RefreshesWpfRamDisplayForCurrentInstance()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+        string root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pcl-instance-ram-" + Guid.NewGuid().ToString("N"));
+
+        try
+        {
+            string versionDirectory = System.IO.Path.Combine(root, "versions", "Fabric 1.20.1");
+            string versionJsonPath = System.IO.Path.Combine(versionDirectory, "Fabric 1.20.1.json");
+            Directory.CreateDirectory(versionDirectory);
+            File.WriteAllText(versionJsonPath, """{"id":"Fabric 1.20.1","libraries":[{"name":"net.fabricmc:fabric-loader:0.16.14"}]}""");
+            InstanceMetadataStore.SaveAsync(
+                versionDirectory,
+                new InstanceMetadata
+                {
+                    MemorySolution = 1,
+                    CustomMemorySize = 25
+                }).GetAwaiter().GetResult();
+            LaunchInstanceInfo instance = new("Fabric 1.20.1", versionJsonPath, versionDirectory);
+
+            session.Dispatch(() =>
+            {
+                const long gibibyte = 1024L * 1024L * 1024L;
+                PageInstanceSetupRight page = new(new FixedSystemInfoProvider(16 * gibibyte, 8 * gibibyte));
+                page.SetInstance(instance);
+                Window window = new()
+                {
+                    Width = 760,
+                    Height = 620,
+                    Content = page
+                };
+
+                try
+                {
+                    window.Show();
+                    Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                    Grid ramDisplay = page.FindControl<Grid>("PanRamDisplay")!;
+                    Assert.AreEqual(8d, ramDisplay.ColumnDefinitions[0].Width.Value, 0.01d);
+                    Assert.AreEqual(8d, ramDisplay.ColumnDefinitions[1].Width.Value, 0.01d);
+                    Assert.AreEqual(0d, ramDisplay.ColumnDefinitions[2].Width.Value, 0.01d);
+                    StringAssert.StartsWith(page.FindControl<TextBlock>("LabRamGame")!.Text, "8");
+                    Assert.AreEqual("8.0 GB", page.FindControl<TextBlock>("LabRamUsed")!.Text);
+                    Assert.AreEqual(" / 16.0 GB", page.FindControl<TextBlock>("LabRamTotal")!.Text);
+                    Assert.AreEqual(33, page.FindControl<MySlider>("SliderRamCustom")!.MaxValue);
+                    Assert.IsFalse(page.FindControl<MyHint>("HintRamTooHigh")!.IsVisible);
+
+                    page.FindControl<MySlider>("SliderRamCustom")!.Value = 33;
+                    Assert.IsTrue(page.FindControl<TextBlock>("LabRamGame")!.Text!.Contains("可用 8.0 GB", StringComparison.Ordinal));
+                    Assert.IsTrue(page.FindControl<MyHint>("HintRamTooHigh")!.IsVisible);
+                }
+                finally
+                {
+                    window.Close();
+                    page.Dispose();
+                }
+            }, CancellationToken.None);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public void PageInstanceExportRight_UsesCopiedWpfOptionTreeAndRaisesExportRequest()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
@@ -4226,6 +5187,15 @@ public sealed class AvaloniaHeadlessTests
                     Assert.IsNotNull(page.FindControl<MyCard>("CardOptions"));
                     Assert.IsTrue(page.FindControl<MyCheckBox>("CheckOptionsBasic")!.Inlines.Count > 0);
                     Assert.IsTrue(page.FindControl<MyCheckBox>("CheckOptionsOptions")!.IsVisible);
+                    Assert.AreEqual(
+                        "游戏本体",
+                        DisplayText(page.FindControl<MyCheckBox>("CheckOptionsBasic")!.FindControl<TextBlock>("LabText")!));
+                    StringAssert.Contains(
+                        DisplayText(page.FindControl<MyCheckBox>("CheckOptionsOptions")!.FindControl<TextBlock>("LabText")!),
+                        "游戏本体设置");
+                    StringAssert.Contains(
+                        DisplayText(page.FindControl<MyCheckBox>("CheckOptionsOptions")!.FindControl<TextBlock>("LabText")!),
+                        "键位、音量、视频设置等");
 
                     Click(window, page.FindControl<MyExtraTextButton>("BtnExport")!);
 
@@ -5135,6 +6105,35 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void PageLaunchLeft_AnimatedLoginPageSwitchMatchesWpfTiming()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageLaunchLeft page = new();
+            TextBlock first = new() { Text = "第一个登录页" };
+            TextBlock second = new() { Text = "第二个登录页" };
+            Grid loginHost = page.FindControl<Grid>("PanLogin")!;
+
+            page.SetLoginPage(first, animate: false);
+            page.SetLoginPage(second, animate: true);
+
+            Assert.AreSame(second, page.CurrentLoginPage);
+            Assert.AreSame(first, loginHost.Children.Single());
+
+            ModAnimation.AdvanceForTesting(99);
+            Assert.AreSame(first, loginHost.Children.Single());
+
+            ModAnimation.AdvanceForTesting(1);
+            Assert.AreSame(second, loginHost.Children.Single());
+
+            ModAnimation.AdvanceUntilIdleForTesting();
+            Assert.AreEqual(1d, loginHost.Opacity, 0.001d);
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void PageLaunchLeft_FollowsWpfLaunchButtonStateRules()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
@@ -5148,22 +6147,25 @@ public sealed class AvaloniaHeadlessTests
             Assert.AreEqual("正在加载", page.FindControl<MyButton>("BtnLaunch")!.Text);
             Assert.IsFalse(page.FindControl<MyButton>("BtnLaunch")!.IsEnabled);
             Assert.IsFalse(page.FindControl<Control>("BtnInstance")!.IsEnabled);
+            Assert.IsTrue(page.FindControl<MyLoading>("LoadInstanceCheck")!.IsVisible);
+            Assert.AreEqual(
+                MyLoading.MyLoadingState.Run,
+                page.FindControl<MyLoading>("LoadInstanceCheck")!.State.LoadingState);
 
             page.SetInstances([instance]);
             Assert.AreEqual("启动游戏", page.FindControl<MyButton>("BtnLaunch")!.Text);
             Assert.IsFalse(page.FindControl<MyButton>("BtnLaunch")!.IsEnabled);
+            Assert.IsFalse(page.FindControl<MyLoading>("LoadInstanceCheck")!.IsVisible);
+            Assert.AreEqual(
+                MyLoading.MyLoadingState.Stop,
+                page.FindControl<MyLoading>("LoadInstanceCheck")!.State.LoadingState);
 
             page.SetSelectedProfilePresent(true);
             Assert.IsTrue(page.FindControl<MyButton>("BtnLaunch")!.IsEnabled);
 
             page.SetInstances([]);
-            page.SetPreferenceState(isDownloadPageHidden: false, isFunctionSelectHidden: false);
             Assert.AreEqual("下载游戏", page.FindControl<MyButton>("BtnLaunch")!.Text);
             Assert.IsTrue(page.FindControl<MyButton>("BtnLaunch")!.IsEnabled);
-
-            page.SetPreferenceState(isDownloadPageHidden: true, isFunctionSelectHidden: false);
-            Assert.AreEqual("启动游戏", page.FindControl<MyButton>("BtnLaunch")!.Text);
-            Assert.IsFalse(page.FindControl<MyButton>("BtnLaunch")!.IsEnabled);
         }, CancellationToken.None);
     }
 
@@ -5324,12 +6326,35 @@ public sealed class AvaloniaHeadlessTests
                 page.ShowLaunching(instance);
                 Assert.IsTrue(page.IsLaunchInProgress);
                 Assert.IsTrue(page.FindControl<Grid>("PanLaunching")!.IsVisible);
+                Assert.IsFalse(page.FindControl<Grid>("PanLaunching")!.IsHitTestVisible);
+                Assert.AreEqual(
+                    MyLoading.MyLoadingState.Run,
+                    page.FindControl<MyLoading>("LoadLaunching")!.State.LoadingState);
+
+                ModAnimation.AdvanceUntilIdleForTesting();
+                Assert.IsTrue(page.FindControl<Grid>("PanLaunching")!.IsHitTestVisible);
+                Assert.AreEqual(0d, page.FindControl<Grid>("PanInput")!.Opacity, 0.001d);
+                Assert.AreEqual(
+                    1.2d,
+                    ((ScaleTransform)page.FindControl<Grid>("PanInput")!.RenderTransform!).ScaleX,
+                    0.001d);
 
                 Click(window, page.FindControl<MyButton>("BtnCancel")!);
 
                 Assert.IsTrue(cancelRequested);
                 Assert.IsFalse(page.IsLaunchInProgress);
-                Assert.IsFalse(page.FindControl<Grid>("PanLaunching")!.IsVisible);
+                Assert.IsFalse(page.FindControl<Grid>("PanInput")!.IsHitTestVisible);
+                Assert.AreEqual(
+                    MyLoading.MyLoadingState.Stop,
+                    page.FindControl<MyLoading>("LoadLaunching")!.State.LoadingState);
+
+                ModAnimation.AdvanceUntilIdleForTesting();
+                Assert.IsTrue(page.FindControl<Grid>("PanLaunching")!.IsVisible);
+                Assert.AreEqual(0d, page.FindControl<Grid>("PanLaunching")!.Opacity, 0.001d);
+                Assert.AreEqual(
+                    0.8d,
+                    ((ScaleTransform)page.FindControl<Grid>("PanLaunching")!.RenderTransform!).ScaleX,
+                    0.001d);
                 Assert.IsTrue(page.FindControl<Grid>("PanInput")!.IsVisible);
                 Assert.IsTrue(page.FindControl<Grid>("PanInput")!.IsHitTestVisible);
             }
@@ -5553,8 +6578,15 @@ public sealed class AvaloniaHeadlessTests
                 PageLaunchLeft launchPage = FindVisual<PageLaunchLeft>(window)!;
                 launchPage.RefreshPage(anim: true, PageLaunchLeft.LaunchLoginPageType.Ms);
                 PageLoginMs loginPage = (PageLoginMs)launchPage.CurrentLoginPage!;
+                ModAnimation.AdvanceUntilIdleForTesting();
+                Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+                launchPage.SetLoginPage(
+                    loginPage,
+                    animate: false,
+                    PageLaunchLeft.LaunchLoginPageType.Ms);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
-                Click(window, loginPage.FindControl<MyButton>("BtnLogin")!);
+                loginPage.RequestLogin();
                 MyMsgText dialog = FindVisual<MyMsgText>(window)!;
 
                 Assert.IsNotNull(dialog);
@@ -5567,7 +6599,7 @@ public sealed class AvaloniaHeadlessTests
                 ModAnimation.AdvanceUntilIdleForTesting();
                 Assert.AreEqual(1d, dialog.Opacity, 0.001d);
 
-                Click(window, dialog.FindControl<MyButton>("Btn1")!);
+                InvokePrivateMethod(dialog, "CloseWithResult", 1);
                 ModAnimation.AdvanceUntilIdleForTesting();
                 Assert.IsFalse(window.FindControl<BlurBorder>("PanMsgBackground")!.IsVisible);
             }
@@ -5577,7 +6609,73 @@ public sealed class AvaloniaHeadlessTests
                 Environment.SetEnvironmentVariable("PCL_MS_CLIENT_ID", previousClientId);
                 Environment.SetEnvironmentVariable("MS_CLIENT_ID", previousShortClientId);
             }
-        }, CancellationToken.None);
+        }, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    [TestMethod]
+    public void MainWindow_MicrosoftLoginCompletesInMainProgramWithoutOnlinePlugin()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+        string? previousClientId = Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID");
+        Environment.SetEnvironmentVariable("PCL_MS_CLIENT_ID", "test-client-id");
+        FakeMicrosoftMinecraftAuthService authService = new();
+
+        try
+        {
+            session.Dispatch(async () =>
+            {
+                MainWindow window = new(authService);
+                try
+                {
+                    window.Show();
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                    PageLaunchLeft launchPage = FindVisual<PageLaunchLeft>(window)!;
+                    launchPage.RefreshPage(anim: true, PageLaunchLeft.LaunchLoginPageType.Ms);
+                    PageLoginMs loginPage = (PageLoginMs)launchPage.CurrentLoginPage!;
+                    ModAnimation.AdvanceUntilIdleForTesting();
+                    Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+                    launchPage.SetLoginPage(
+                        loginPage,
+                        animate: false,
+                        PageLaunchLeft.LaunchLoginPageType.Ms);
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                    loginPage.RequestLogin();
+                    await WaitForConditionAsync(() => FindVisual<MyMsgLogin>(window) is not null);
+                    MyMsgLogin dialog = FindVisual<MyMsgLogin>(window)!;
+                    Assert.AreEqual("ABCD-EFGH", dialog.UserCode);
+                    Assert.AreEqual("https://microsoft.com/link?otc=ABCD-EFGH", dialog.Website);
+                    Assert.IsTrue(loginPage.IsLoggingIn);
+                    Assert.AreEqual("test-client-id", authService.RequestedClientId);
+
+                    authService.Completion.SetResult(new MicrosoftMinecraftLoginResult(
+                        "Steve",
+                        "0123456789abcdef0123456789abcdef",
+                        "minecraft-access",
+                        "microsoft-refresh",
+                        "https://textures.example/skin.png",
+                        true));
+                    await WaitForConditionAsync(() => launchPage.CurrentLoginPage is PageLoginProfileSkin);
+
+                    PageLoginProfileSkin profileSkin = (PageLoginProfileSkin)launchPage.CurrentLoginPage!;
+                    Assert.AreEqual("Steve", profileSkin.Profile?.Username);
+                    Assert.AreEqual(LaunchLoginProfileKind.Microsoft, profileSkin.Profile?.Kind);
+                    Assert.AreEqual("minecraft-access", profileSkin.Profile?.AccessToken);
+                    Assert.AreEqual("microsoft-refresh", profileSkin.Profile?.RefreshToken);
+                    Assert.AreEqual("Steve", profileSkin.FindControl<TextBlock>("TextName")!.Text);
+                    Assert.IsFalse(loginPage.IsLoggingIn);
+                    Assert.IsNotNull(FindVisual<MyMsgText>(window));
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("PCL_MS_CLIENT_ID", previousClientId);
+        }
     }
 
     [TestMethod]
@@ -6185,6 +7283,60 @@ public sealed class AvaloniaHeadlessTests
                 window.Close();
             }
         }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void PageLaunchRight_LivePatchUsesMappingTargetAndAllowedProperties()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+        string directory = System.IO.Path.Combine(AppContext.BaseDirectory, "PCL");
+        string patchFile = System.IO.Path.Combine(directory, "CustomLive.json");
+        string? originalPatch = File.Exists(patchFile) ? File.ReadAllText(patchFile) : null;
+
+        try
+        {
+            Directory.CreateDirectory(directory);
+            File.WriteAllText(
+                patchFile,
+                """
+                {
+                  "homepage-title": {
+                    "properties": {
+                      "text": "实时更新后的主页",
+                      "opacity": "0.42",
+                      "isEnabled": "false"
+                    },
+                    "tooltip": "来自 live patch"
+                  }
+                }
+                """);
+
+            session.Dispatch(() =>
+            {
+                PageLaunchRight page = new();
+                TextBlock target = new()
+                {
+                    Tag = "homepage-title",
+                    Text = "更新前"
+                };
+                page.AddCustomContent(target);
+
+                InvokePrivateMethod(page, "ApplyHomepageLivePatchesFromFile");
+
+                Assert.AreEqual("实时更新后的主页", target.Text);
+                Assert.AreEqual(0.42d, target.Opacity, 0.001d);
+                Assert.IsFalse(target.IsEnabled);
+                Assert.AreEqual("来自 live patch", ToolTip.GetTip(target));
+                page.Dispose();
+            }, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        finally
+        {
+            if (originalPatch is null)
+                File.Delete(patchFile);
+            else
+                File.WriteAllText(patchFile, originalPatch);
+        }
     }
 
     [TestMethod]
@@ -7954,7 +9106,7 @@ public sealed class AvaloniaHeadlessTests
                     .OfType<MyTextBox>()
                     .Single(textBox => textBox.Name == "PART_EditableTextBox");
                 Assert.IsTrue(editableTextBox.IsVisible);
-                Assert.IsNotNull(comboBox.ItemTemplate);
+                Assert.IsNull(comboBox.ItemTemplate);
 
                 editableTextBox.CaretIndex = 1;
                 comboBox.Text = "手动输入";
@@ -7963,6 +9115,18 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsNull(comboBox.SelectedItem);
                 Assert.AreEqual(1, editableTextBox.CaretIndex);
                 Assert.AreEqual(1, textChangedCount);
+
+                editableTextBox.Text = string.Empty;
+                editableTextBox.CaretIndex = 0;
+                editableTextBox.Focus();
+                TypeText(window, "custom");
+                Assert.AreEqual("custom", editableTextBox.Text);
+                Assert.AreEqual("custom", comboBox.Text);
+                Assert.IsNull(comboBox.SelectedItem);
+
+                comboBox.SelectedIndex = 1;
+                Assert.AreEqual("自定义", comboBox.Text);
+                Assert.AreEqual("自定义", editableTextBox.Text);
 
                 MyComboBoxItem item = new() { Content = "选项" };
                 string implicitText = item;
@@ -8109,26 +9273,230 @@ public sealed class AvaloniaHeadlessTests
         }, CancellationToken.None);
     }
 
+    private static string CreateDiscoveredInstance(string minecraftRoot, string name)
+    {
+        string instanceDirectory = System.IO.Path.Combine(minecraftRoot, "versions", name);
+        Directory.CreateDirectory(instanceDirectory);
+        File.WriteAllText(
+            System.IO.Path.Combine(instanceDirectory, name + ".json"),
+            "{\"id\":\"" + name + "\"}");
+        return instanceDirectory;
+    }
+
     private static SafeHeadlessUnitTestSession CreateSession()
     {
+        string? previousLaunchProfilesPath = Environment.GetEnvironmentVariable("PCLN_LAUNCH_PROFILES_PATH");
+        string? previousSettingsPath = Environment.GetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH");
         Environment.SetEnvironmentVariable(
             "PCLN_LAUNCH_PROFILES_PATH",
             System.IO.Path.Combine(
                 System.IO.Path.GetTempPath(),
                 "pcl-desktop-test-profiles-" + Guid.NewGuid().ToString("N") + ".json"));
-        return new SafeHeadlessUnitTestSession(
-            HeadlessUnitTestSession.StartNew(
-                typeof(App),
-                AvaloniaTestIsolationLevel.PerTest));
+        if (string.IsNullOrWhiteSpace(previousSettingsPath))
+        {
+            Environment.SetEnvironmentVariable(
+                "PCLN_LAUNCHER_SETTINGS_PATH",
+                System.IO.Path.Combine(
+                    System.IO.Path.GetTempPath(),
+                    "pcl-desktop-test-settings-" + Guid.NewGuid().ToString("N") + ".json"));
+        }
+
+        try
+        {
+            return new SafeHeadlessUnitTestSession(
+                HeadlessUnitTestSession.StartNew(
+                    typeof(App),
+                    AvaloniaTestIsolationLevel.PerTest),
+                previousLaunchProfilesPath,
+                previousSettingsPath);
+        }
+        catch
+        {
+            Environment.SetEnvironmentVariable("PCLN_LAUNCH_PROFILES_PATH", previousLaunchProfilesPath);
+            Environment.SetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH", previousSettingsPath);
+            throw;
+        }
+    }
+
+    [TestMethod]
+    public void MainWindow_InstanceMinecraftChangeMarksInstallAsReplacement()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+        string root = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            "pcl-instance-replace-route-" + Guid.NewGuid().ToString("N"));
+
+        try
+        {
+            string minecraftRoot = System.IO.Path.Combine(root, ".minecraft");
+            string instanceDirectory = System.IO.Path.Combine(minecraftRoot, "versions", "CustomPack");
+            string instanceJson = System.IO.Path.Combine(instanceDirectory, "CustomPack.json");
+            Directory.CreateDirectory(instanceDirectory);
+            File.WriteAllText(instanceJson, """{"id":"CustomPack","inheritsFrom":"1.20.1"}""");
+
+            session.Dispatch(async () =>
+            {
+                PageDownloadInstall installPage = new(
+                    new MinecraftVanillaInstallService(),
+                    new FakeMinecraftLoaderMetadataService());
+                SetPrivateField(
+                    installPage,
+                    "_versions",
+                    new[]
+                    {
+                        new MinecraftVersionManifestEntry(
+                            "1.20.2",
+                            "release",
+                            "https://example.invalid/1.20.2.json",
+                            DateTimeOffset.Parse("2023-09-21T00:00:00Z"))
+                    });
+
+                MainWindow window = new();
+                SetPrivateField(window, "_downloadInstallPage", installPage);
+                DownloadInstallRequest? requested = null;
+                installPage.InstallRequested += (_, request) => requested = request;
+
+                try
+                {
+                    window.Show();
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                    ModAnimation.AdvanceUntilIdleForTesting();
+
+                    var method = typeof(MainWindow).GetMethod(
+                        "OpenDownloadInstallForInstanceAsync",
+                        System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                        ?? throw new InvalidOperationException("OpenDownloadInstallForInstanceAsync was not found.");
+                    Task routeTask = (Task)method.Invoke(
+                        window,
+                        [new InstanceInstallModifyRequest(
+                            new LaunchInstanceInfo("CustomPack", instanceJson, instanceDirectory),
+                            "1.20.2")])!;
+                    await routeTask.ConfigureAwait(true);
+                    ModAnimation.AdvanceUntilIdleForTesting();
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                    Assert.AreSame(installPage, FindVisual<PageDownloadInstall>(window));
+                    Assert.AreEqual("CustomPack", installPage.FindControl<MyTextBox>("TextSelectName")!.Text);
+                    Assert.IsTrue(installPage.FindControl<StackPanel>("PanSelect")!.IsVisible);
+                    InvokePrivateMethod(installPage, "StartSelectedInstall");
+
+                    Assert.IsNotNull(requested);
+                    Assert.AreEqual("CustomPack", requested.VersionId);
+                    Assert.AreEqual("1.20.2", requested.BaseVersionId);
+                    Assert.AreEqual(minecraftRoot, requested.MinecraftRootDirectory);
+                    Assert.IsTrue(requested.ReplaceExistingVersion);
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    private sealed class FakeCommunityResourceCatalog : ICommunityResourceCatalog
+    {
+        public CommunityResourceCategory LastCategory { get; private set; }
+
+        public Task<IReadOnlyList<CommunityResourceEntry>> SearchAsync(
+            CommunityResourceCategory category,
+            string query,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            LastCategory = category;
+            IReadOnlyList<CommunityResourceEntry> entries =
+            [
+                new CommunityResourceEntry(
+                    "AANobbMI",
+                    "sodium",
+                    category == CommunityResourceCategory.Shader ? "Iris Shaders" : "Sodium",
+                    category == CommunityResourceCategory.Shader ? "光影加载器" : "性能优化 Mod",
+                    category == CommunityResourceCategory.Shader ? "shader" : "mod",
+                    null,
+                    12_345,
+                    DateTimeOffset.Parse("2026-01-01T00:00:00Z"))
+            ];
+            return Task.FromResult(entries);
+        }
+    }
+
+    private sealed class CallbackProgress<T>(Action<T> callback) : IProgress<T>
+    {
+        public void Report(T value) => callback(value);
+    }
+
+    private sealed class FakeMicrosoftMinecraftAuthService : IMicrosoftMinecraftAuthService
+    {
+        public TaskCompletionSource<MicrosoftMinecraftLoginResult> Completion { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public string RequestedClientId { get; private set; } = string.Empty;
+
+        public Task<MicrosoftDeviceCodeInfo> RequestDeviceCodeAsync(
+            string clientId,
+            CancellationToken cancellationToken = default)
+        {
+            RequestedClientId = clientId;
+            return Task.FromResult(new MicrosoftDeviceCodeInfo(
+                "device-code",
+                "ABCD-EFGH",
+                "https://microsoft.com/link",
+                "https://microsoft.com/link?otc=ABCD-EFGH",
+                "请登录 Microsoft 账户。",
+                TimeSpan.FromMinutes(15),
+                TimeSpan.FromSeconds(5)));
+        }
+
+        public async Task<MicrosoftMinecraftLoginResult> CompleteDeviceLoginAsync(
+            string clientId,
+            MicrosoftDeviceCodeInfo deviceCode,
+            IProgress<double>? progress = null,
+            CancellationToken cancellationToken = default)
+        {
+            progress?.Report(0.5d);
+            return await Completion.Task.WaitAsync(cancellationToken);
+        }
+
+        public Task<MicrosoftMinecraftLoginResult> RefreshAsync(
+            string clientId,
+            string refreshToken,
+            CancellationToken cancellationToken = default) =>
+            Completion.Task.WaitAsync(cancellationToken);
+    }
+
+    private sealed class FixedSystemInfoProvider(long totalBytes, long availableBytes)
+        : PCL.Platform.Abstractions.System.ISystemInfoProvider
+    {
+        public PCL.Platform.Abstractions.System.OperatingSystemInfo GetOperatingSystem() =>
+            new("Test", "1", "x64", true);
+
+        public PCL.Platform.Abstractions.System.MemoryInfo GetMemoryInfo() =>
+            new(totalBytes, availableBytes);
+
+        public PCL.Platform.Abstractions.System.CpuInfo GetCpuInfo() =>
+            new("Test CPU", 8, "x64");
     }
 
     private sealed class SafeHeadlessUnitTestSession : IDisposable
     {
         private readonly HeadlessUnitTestSession _inner;
+        private readonly string? _previousLaunchProfilesPath;
+        private readonly string? _previousSettingsPath;
 
-        public SafeHeadlessUnitTestSession(HeadlessUnitTestSession inner)
+        public SafeHeadlessUnitTestSession(
+            HeadlessUnitTestSession inner,
+            string? previousLaunchProfilesPath,
+            string? previousSettingsPath)
         {
             _inner = inner;
+            _previousLaunchProfilesPath = previousLaunchProfilesPath;
+            _previousSettingsPath = previousSettingsPath;
         }
 
         public Task Dispatch(Action action, CancellationToken cancellationToken) =>
@@ -8151,10 +9519,18 @@ public sealed class AvaloniaHeadlessTests
         {
             try
             {
+                _inner.Dispatch(
+                    () => ModAnimation.ResetForTesting(),
+                    CancellationToken.None).GetAwaiter().GetResult();
                 _inner.Dispose();
             }
             catch (Exception ex) when (IsAvaloniaHeadlessTeardown(ex))
             {
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("PCLN_LAUNCH_PROFILES_PATH", _previousLaunchProfilesPath);
+                Environment.SetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH", _previousSettingsPath);
             }
         }
 
@@ -8299,6 +9675,24 @@ public sealed class AvaloniaHeadlessTests
         ModAnimation.AdvanceForTesting(16, 32);
     }
 
+    private static void InvokePrivateMethod(object target, string methodName)
+    {
+        var method = target.GetType().GetMethod(
+            methodName,
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException($"Method '{methodName}' was not found.");
+        method.Invoke(target, null);
+    }
+
+    private static void InvokePrivateMethod(object target, string methodName, params object?[] arguments)
+    {
+        var method = target.GetType().GetMethod(
+            methodName,
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException($"Method '{methodName}' was not found.");
+        method.Invoke(target, arguments);
+    }
+
     private static void InvokePrivateTick(MainWindow window, string methodName, int count)
     {
         InvokePrivateTick((object)window, methodName, count);
@@ -8343,10 +9737,18 @@ public sealed class AvaloniaHeadlessTests
 
     private static T GetPrivateField<T>(object instance, string fieldName)
     {
-        var field = instance.GetType().GetField(
-            fieldName,
-            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
-            ?? throw new InvalidOperationException($"Field '{fieldName}' was not found.");
+        Type? type = instance.GetType();
+        System.Reflection.FieldInfo? field = null;
+        while (type is not null && field is null)
+        {
+            field = type.GetField(
+                fieldName,
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            type = type.BaseType;
+        }
+
+        if (field is null)
+            throw new InvalidOperationException($"Field '{fieldName}' was not found.");
         return (T)field.GetValue(instance)!;
     }
 
