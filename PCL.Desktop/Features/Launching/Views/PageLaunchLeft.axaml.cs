@@ -18,6 +18,8 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
     private Task? _refreshInstancesTask;
     private bool _isLoadedOnce;
     private bool _isInstanceLoadFinished;
+    private string? _minecraftRootDirectory;
+    private string? _preferredInstanceDirectory;
     private double _showProgress;
 
     public PageLaunchLeft()
@@ -25,6 +27,7 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
         AvaloniaXamlLoader.Load(this);
         AnimatedControl = this.FindControl<Grid>("PanInput");
         WireLaunchButtonScaleMirror();
+        SetLoadingState();
         AttachedToVisualTree += (_, _) =>
         {
             if (_isLoadedOnce)
@@ -76,17 +79,15 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
 
     public LaunchInstanceInfo? SelectedInstance { get; private set; }
 
+    public string? PreferredInstanceDirectory => _preferredInstanceDirectory;
+
+    public string? MinecraftRootDirectory => _minecraftRootDirectory;
+
     public Control? CurrentLoginPage { get; private set; }
 
     public LaunchLoginPageType CurrentLoginPageType { get; private set; } = LaunchLoginPageType.None;
 
     public bool HasSelectedProfile { get; private set; }
-
-    public bool IsDownloadPageHidden { get; private set; }
-
-    public bool IsFunctionSelectHidden { get; private set; }
-
-    public bool HiddenForceShow { get; private set; }
 
     public bool IsLaunchInProgress { get; private set; }
 
@@ -121,6 +122,8 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
 
     public async Task RefreshInstancesAsync()
     {
+        string? selectedDirectory = NormalizeInstanceDirectory(SelectedInstance?.InstanceDirectory)
+                                    ?? _preferredInstanceDirectory;
         _refreshCancellation?.Cancel();
         _refreshCancellation?.Dispose();
         _refreshCancellation = new CancellationTokenSource();
@@ -129,15 +132,27 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
         await RunOnUiThreadAsync(SetLoadingState).ConfigureAwait(false);
         try
         {
-            IReadOnlyList<LaunchInstanceInfo> instances =
-                await LaunchInstanceDiscovery.DiscoverAsync(cancellationToken).ConfigureAwait(false);
+            Progress<LaunchInstanceDiscoveryProgress> progress = new(UpdateInstanceDiscoveryProgress);
+            IReadOnlyList<LaunchInstanceInfo> instances = _minecraftRootDirectory is null
+                ? await LaunchInstanceDiscovery.DiscoverAsync(
+                        LaunchInstanceDiscovery.GetCandidateRoots(),
+                        progress,
+                        cancellationToken)
+                    .ConfigureAwait(false)
+                : await LaunchInstanceDiscovery.DiscoverAsync(
+                        [_minecraftRootDirectory],
+                        progress,
+                        cancellationToken)
+                    .ConfigureAwait(false);
             if (cancellationToken.IsCancellationRequested)
                 return;
 
             await RunOnUiThreadAsync(() =>
             {
                 Instances = instances;
-                SelectedInstance = Instances.Count > 0 ? Instances[0] : null;
+                SelectedInstance = FindInstanceByDirectory(Instances, selectedDirectory)
+                                   ?? (Instances.Count > 0 ? Instances[0] : null);
+                RememberSelectedInstance();
                 _isInstanceLoadFinished = true;
                 RefreshButtonsUI();
                 RefreshPage(anim: false);
@@ -160,10 +175,41 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
 
     public void SetInstances(IReadOnlyList<LaunchInstanceInfo> instances, LaunchInstanceInfo? selectedInstance = null)
     {
+        string? selectedDirectory = NormalizeInstanceDirectory(selectedInstance?.InstanceDirectory)
+                                    ?? NormalizeInstanceDirectory(SelectedInstance?.InstanceDirectory)
+                                    ?? _preferredInstanceDirectory;
         Instances = instances;
-        SelectedInstance = selectedInstance ?? (instances.Count > 0 ? instances[0] : null);
+        SelectedInstance = FindInstanceByDirectory(instances, selectedDirectory)
+                           ?? (instances.Count > 0 ? instances[0] : null);
+        RememberSelectedInstance();
         _isInstanceLoadFinished = true;
         RefreshButtonsUI();
+    }
+
+    public void SetPreferredInstanceDirectory(string? instanceDirectory)
+    {
+        _preferredInstanceDirectory = NormalizeInstanceDirectory(instanceDirectory);
+        if (!_isInstanceLoadFinished || Instances.Count == 0)
+            return;
+
+        LaunchInstanceInfo? preferred = FindInstanceByDirectory(Instances, _preferredInstanceDirectory);
+        if (preferred is null)
+            return;
+
+        SelectedInstance = preferred;
+        RememberSelectedInstance();
+        RefreshButtonsUI();
+        RefreshPage(anim: false);
+    }
+
+    public void SetMinecraftRootDirectory(string? minecraftRootDirectory)
+    {
+        string? normalized = NormalizeMinecraftRoot(minecraftRootDirectory);
+        if (string.Equals(_minecraftRootDirectory, normalized, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        _minecraftRootDirectory = normalized;
+        _isInstanceLoadFinished = false;
     }
 
     public void SetInstanceLoading(bool isLoading)
@@ -182,17 +228,6 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
         RefreshPage(anim: false);
     }
 
-    public void SetPreferenceState(
-        bool isDownloadPageHidden,
-        bool isFunctionSelectHidden,
-        bool hiddenForceShow = false)
-    {
-        IsDownloadPageHidden = isDownloadPageHidden;
-        IsFunctionSelectHidden = isFunctionSelectHidden;
-        HiddenForceShow = hiddenForceShow;
-        RefreshButtonsUI();
-    }
-
     public void Dispose()
     {
         _refreshCancellation?.Cancel();
@@ -207,14 +242,43 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
         if (panLogin is null)
             return;
 
+        ModAnimation.AniStop("FrmLogin PageChange");
         CurrentLoginPage = page;
         if (pageType != LaunchLoginPageType.None)
             CurrentLoginPageType = pageType;
-        panLogin.Children.Clear();
-        panLogin.Children.Add(page);
         page.Opacity = 1d;
         if (page is ILoginPage loginPage)
             loginPage.Reload();
+
+        if (!animate)
+        {
+            panLogin.Children.Clear();
+            panLogin.Children.Add(page);
+            panLogin.Opacity = 1d;
+            return;
+        }
+
+        ModAnimation.AniStart(
+            new List<ModAnimation.AniData>
+            {
+                ModAnimation.AaOpacity(
+                    panLogin,
+                    -panLogin.Opacity,
+                    100,
+                    ease: new ModAnimation.AniEaseOutFluent()),
+                ModAnimation.AaCode(() =>
+                {
+                    panLogin.Children.Clear();
+                    panLogin.Children.Add(page);
+                }, 100),
+                ModAnimation.AaOpacity(
+                    panLogin,
+                    1d,
+                    100,
+                    120,
+                    new ModAnimation.AniEaseInFluent())
+            },
+            "FrmLogin PageChange");
     }
 
     public void PageChangeToLogin()
@@ -222,38 +286,45 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
         if (CurrentLoginPage is ILoginPage loginPage)
             loginPage.Reload();
 
-        if (this.FindControl<Grid>("PanInput") is { } input)
-        {
-            input.IsVisible = true;
-            input.Opacity = 1d;
-            input.IsHitTestVisible = true;
-        }
+        Grid? input = this.FindControl<Grid>("PanInput");
+        Grid? launching = this.FindControl<Grid>("PanLaunching");
+        if (input is null || launching is null)
+            return;
 
-        if (this.FindControl<Grid>("PanLaunching") is { } launching)
-        {
-            launching.Opacity = 0d;
-            launching.IsVisible = false;
-            launching.IsHitTestVisible = false;
-        }
+        input.IsHitTestVisible = false;
+        launching.IsHitTestVisible = false;
+        SetLaunchLoadingState(MyLoading.MyLoadingState.Stop);
+        input.IsVisible = true;
+        ModAnimation.AniStart(
+            new List<ModAnimation.AniData>
+            {
+                ModAnimation.AaOpacity(launching, -launching.Opacity, 150),
+                ModAnimation.AaScaleTransform(
+                    launching,
+                    0.8d - GetScaleX(launching),
+                    150,
+                    ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
+                ModAnimation.AaOpacity(input, 1d - input.Opacity, 250, 50),
+                ModAnimation.AaScaleTransform(
+                    input,
+                    1d - GetScaleX(input),
+                    300,
+                    50,
+                    new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
+                ModAnimation.AaCode(() => input.IsHitTestVisible = true, 200)
+            },
+            "Launch State Page",
+            refreshTime: true);
 
         IsLaunchInProgress = false;
     }
 
     public void ShowLaunching(LaunchInstanceInfo? instance)
     {
-        if (this.FindControl<Grid>("PanInput") is { } input)
-        {
-            input.IsHitTestVisible = false;
-            input.Opacity = 0d;
-            input.IsVisible = true;
-        }
-
-        if (this.FindControl<Grid>("PanLaunching") is { } launching)
-        {
-            launching.IsVisible = true;
-            launching.Opacity = 1d;
-            launching.IsHitTestVisible = true;
-        }
+        Grid? input = this.FindControl<Grid>("PanInput");
+        Grid? launching = this.FindControl<Grid>("PanLaunching");
+        if (input is null || launching is null)
+            return;
 
         IsLaunchInProgress = true;
         _showProgress = 0d;
@@ -261,7 +332,35 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
         SetText("LabLaunchingName", instance?.Name ?? "等待选择版本");
         SetText("LabLaunchingStage", "准备启动环境");
         SetText("LabLaunchingMethod", "等待账户档案");
-        SetLaunchProgress(0.05d);
+        SetLaunchProgress(0d);
+        SetVisible("LabLaunchingDownloadLeft", false);
+        SetVisible("LabLaunchingDownload", false);
+
+        input.IsHitTestVisible = false;
+        launching.IsHitTestVisible = false;
+        SetLaunchLoadingState(MyLoading.MyLoadingState.Run);
+        launching.IsVisible = true;
+        ModAnimation.AniStart(
+            new List<ModAnimation.AniData>
+            {
+                ModAnimation.AaOpacity(input, 0d, 50),
+                ModAnimation.AaOpacity(
+                    input,
+                    -input.Opacity,
+                    110,
+                    ease: new ModAnimation.AniEaseInFluent(),
+                    after: true),
+                ModAnimation.AaScaleTransform(input, 1.2d - GetScaleX(input), 160),
+                ModAnimation.AaOpacity(launching, 1d - launching.Opacity, 150, 100),
+                ModAnimation.AaScaleTransform(
+                    launching,
+                    1d - GetScaleX(launching),
+                    500,
+                    100,
+                    new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
+                ModAnimation.AaCode(() => launching.IsHitTestVisible = true, 150)
+            },
+            "Launch State Page");
     }
 
     public void ShowRepairing()
@@ -336,24 +435,18 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
             return;
         }
 
+        SetInstanceCheckLoadingState(MyLoading.MyLoadingState.Stop, isVisible: false);
+
         if (SelectedInstance is null)
         {
-            if (IsDownloadPageHidden && !HiddenForceShow)
-            {
-                _launchButtonAction = LaunchButtonAction.Disabled;
-                SetLaunchButton("启动游戏", isEnabled: false);
-            }
-            else
-            {
-                _launchButtonAction = LaunchButtonAction.Download;
-                SetLaunchButton("下载游戏", isEnabled: true);
-            }
+            _launchButtonAction = LaunchButtonAction.Download;
+            SetLaunchButton("下载游戏", isEnabled: true);
 
             SetText("LabVersion", "未找到可启动的游戏版本");
             SetButtonEnabled("BtnInstance", true);
             SetVisible("BtnMore", false);
             SetLoginSummary("尚未选择账户档案", "你可以先登录或创建离线档案；没有本地版本时会引导下载游戏。");
-            ApplyFunctionVisibility();
+            SetVisible("BtnInstance", true);
             return;
         }
 
@@ -361,7 +454,8 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
         SetLaunchButton("启动游戏", isEnabled: HasSelectedProfile);
         SetText("LabVersion", SelectedInstance.Name);
         SetButtonEnabled("BtnInstance", true);
-        ApplyFunctionVisibility();
+        SetVisible("BtnInstance", true);
+        SetVisible("BtnMore", true);
         SetLoginSummary("账户档案入口已就绪", "Microsoft、第三方与离线档案会继续挂载到这里。");
     }
 
@@ -374,6 +468,7 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
         SetButtonEnabled("BtnInstance", false);
         SetVisible("BtnMore", false);
         SetLoginSummary("正在读取账户档案", "Microsoft、第三方与离线档案页面会继续沿用这里的分页入口。");
+        SetInstanceCheckLoadingState(MyLoading.MyLoadingState.Run, isVisible: true);
     }
 
     private void SetDisabledState(string message)
@@ -383,6 +478,7 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
         SetLaunchButton("启动游戏", isEnabled: false);
         SetText("LabVersion", message);
         SetButtonEnabled("BtnInstance", true);
+        SetInstanceCheckLoadingState(MyLoading.MyLoadingState.Error, isVisible: true);
         SetVisible("BtnMore", false);
     }
 
@@ -459,9 +555,10 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
         if (!IsLaunchInProgress)
             return;
 
-        CancelLaunchRequested?.Invoke(this, EventArgs.Empty);
         SetText("LabLaunchingStage", "已请求取消启动");
-        PageChangeToLogin();
+        CancelLaunchRequested?.Invoke(this, EventArgs.Empty);
+        if (IsLaunchInProgress)
+            PageChangeToLogin();
     }
 
     private void PanLaunchingInfo_SizeChanged(object? sender, SizeChangedEventArgs e)
@@ -495,13 +592,6 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
             control.Opacity = opacity;
     }
 
-    private void ApplyFunctionVisibility()
-    {
-        bool visible = HiddenForceShow || !IsFunctionSelectHidden;
-        SetVisible("BtnInstance", visible);
-        SetVisible("BtnMore", SelectedInstance is not null && visible);
-    }
-
     private void ApplyLoginStateSummary(LaunchLoginPageType type)
     {
         string title = type switch
@@ -527,6 +617,62 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
     private static bool HasIgnoreMarker(LaunchInstanceInfo instance) =>
         File.Exists(instance.InstanceDirectory + ".pclignore");
 
+    private static LaunchInstanceInfo? FindInstanceByDirectory(
+        IReadOnlyList<LaunchInstanceInfo> instances,
+        string? instanceDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(instanceDirectory))
+            return null;
+
+        StringComparison comparison = OperatingSystem.IsWindows()
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+        foreach (LaunchInstanceInfo instance in instances)
+        {
+            string? candidate = NormalizeInstanceDirectory(instance.InstanceDirectory);
+            if (candidate is not null && string.Equals(candidate, instanceDirectory, comparison))
+                return instance;
+        }
+
+        return null;
+    }
+
+    private void RememberSelectedInstance()
+    {
+        if (SelectedInstance is not null)
+            _preferredInstanceDirectory = NormalizeInstanceDirectory(SelectedInstance.InstanceDirectory);
+    }
+
+    private static string? NormalizeInstanceDirectory(string? instanceDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(instanceDirectory))
+            return null;
+
+        try
+        {
+            return Path.TrimEndingDirectorySeparator(Path.GetFullPath(instanceDirectory.Trim()));
+        }
+        catch (Exception ex) when (ex is ArgumentException or IOException or NotSupportedException)
+        {
+            return null;
+        }
+    }
+
+    private static string? NormalizeMinecraftRoot(string? minecraftRootDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(minecraftRootDirectory))
+            return null;
+
+        try
+        {
+            return Path.TrimEndingDirectorySeparator(Path.GetFullPath(minecraftRootDirectory.Trim()));
+        }
+        catch (Exception ex) when (ex is ArgumentException or IOException or NotSupportedException)
+        {
+            return null;
+        }
+    }
+
     private void SetLoginSummary(string title, string subtitle)
     {
         SetText("LabLoginTitle", title);
@@ -548,8 +694,38 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
             progressBar.ColumnDefinitions[1].Width = new GridLength(1d - ratio, GridUnitType.Star);
         }
 
-        SetText("LabLaunchingProgress", ratio.ToString("P0", System.Globalization.CultureInfo.CurrentCulture));
+        SetText("LabLaunchingProgress", ratio.ToString("P2", System.Globalization.CultureInfo.CurrentCulture));
     }
+
+    private void SetLaunchLoadingState(MyLoading.MyLoadingState state)
+    {
+        if (this.FindControl<MyLoading>("LoadLaunching") is { } loading)
+            loading.State.LoadingState = state;
+    }
+
+    private void UpdateInstanceDiscoveryProgress(LaunchInstanceDiscoveryProgress progress)
+    {
+        string detail = progress.Total > 0 && progress.Stage == "正在检查游戏版本"
+            ? $"{progress.Stage} ({Math.Min(progress.Current, progress.Total)}/{progress.Total}) · 已找到 {progress.Found} 个"
+            : progress.Stage;
+        SetText("LabVersion", detail);
+        if (this.FindControl<MyLoading>("LoadInstanceCheck") is { } loading)
+            loading.Text = detail;
+    }
+
+    private void SetInstanceCheckLoadingState(MyLoading.MyLoadingState state, bool isVisible)
+    {
+        if (this.FindControl<MyLoading>("LoadInstanceCheck") is not { } loading)
+            return;
+
+        loading.IsVisible = isVisible;
+        loading.State.LoadingState = state;
+        if (state == MyLoading.MyLoadingState.Run)
+            loading.Text = "正在检查游戏版本";
+    }
+
+    private static double GetScaleX(Control control) =>
+        control.RenderTransform is ScaleTransform scale ? scale.ScaleX : 1d;
 
     private static Task RunOnUiThreadAsync(Action action)
     {

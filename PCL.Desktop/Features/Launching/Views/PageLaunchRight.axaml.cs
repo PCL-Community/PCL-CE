@@ -7,6 +7,7 @@ using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using PCL.Desktop.Controls.Legacy;
 
 namespace PCL.Desktop.Features.Launching.Views;
@@ -15,7 +16,19 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
 {
     private const string HomepageLivePatchFileName = "CustomLive.json";
     private const string HomepageLiveSupportFileName = "CustomLive.supported.json";
+    private static readonly Dictionary<string, string> HomepageLiveAllowedProperties = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["text"] = "Text",
+        ["title"] = "Title",
+        ["info"] = "Info",
+        ["tooltip"] = "ToolTip",
+        ["visibility"] = "IsVisible",
+        ["isVisible"] = "IsVisible",
+        ["isEnabled"] = "IsEnabled",
+        ["opacity"] = "Opacity"
+    };
     private FileSystemWatcher? _homepageLiveWatcher;
+    private DispatcherTimer? _homepageLivePatchTimer;
     private bool _disposed;
     private int _loadedContentHash = -1;
 
@@ -192,11 +205,11 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
             {
                 NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.FileName
             };
-            _homepageLiveWatcher.Changed += (_, _) => ApplyHomepageLivePatchesFromFile();
-            _homepageLiveWatcher.Created += (_, _) => ApplyHomepageLivePatchesFromFile();
-            _homepageLiveWatcher.Renamed += (_, _) => ApplyHomepageLivePatchesFromFile();
+            _homepageLiveWatcher.Changed += (_, _) => QueueHomepageLivePatchApply();
+            _homepageLiveWatcher.Created += (_, _) => QueueHomepageLivePatchApply();
+            _homepageLiveWatcher.Renamed += (_, _) => QueueHomepageLivePatchApply();
             _homepageLiveWatcher.EnableRaisingEvents = true;
-            ApplyHomepageLivePatchesFromFile();
+            QueueHomepageLivePatchApply();
         }
         catch (Exception ex)
         {
@@ -216,11 +229,47 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
         }
 
         _homepageLiveWatcher = null;
+        if (_homepageLivePatchTimer is not null)
+        {
+            _homepageLivePatchTimer.Stop();
+            _homepageLivePatchTimer.Tick -= HomepageLivePatchTimer_Tick;
+            _homepageLivePatchTimer = null;
+        }
         DeleteHomepageLiveSupportMarker();
+    }
+
+    private void QueueHomepageLivePatchApply()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_homepageLiveWatcher is null || _disposed)
+                return;
+
+            _homepageLivePatchTimer ??= new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(120)
+            };
+            _homepageLivePatchTimer.Tick -= HomepageLivePatchTimer_Tick;
+            _homepageLivePatchTimer.Tick += HomepageLivePatchTimer_Tick;
+            _homepageLivePatchTimer.Stop();
+            _homepageLivePatchTimer.Start();
+        });
+    }
+
+    private void HomepageLivePatchTimer_Tick(object? sender, EventArgs e)
+    {
+        _homepageLivePatchTimer?.Stop();
+        ApplyHomepageLivePatchesFromFile();
     }
 
     private void ApplyHomepageLivePatchesFromFile()
     {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(ApplyHomepageLivePatchesFromFile);
+            return;
+        }
+
         if (CustomPanel is not { Children.Count: > 0 })
             return;
 
@@ -230,9 +279,8 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
 
         try
         {
-            using FileStream stream = new(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-            using JsonDocument document = JsonDocument.Parse(stream);
-            foreach (JsonElement patch in EnumeratePatches(document.RootElement))
+            using JsonDocument document = JsonDocument.Parse(ReadHomepageLivePatchFile(file));
+            foreach (HomepageLivePatch patch in EnumeratePatches(document.RootElement))
                 ApplyHomepageLivePatch(patch);
         }
         catch (Exception ex)
@@ -241,12 +289,13 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
         }
     }
 
-    private static IEnumerable<JsonElement> EnumeratePatches(JsonElement root)
+    private static IEnumerable<HomepageLivePatch> EnumeratePatches(JsonElement root)
     {
         if (root.ValueKind == JsonValueKind.Array)
         {
             foreach (JsonElement patch in root.EnumerateArray())
-                yield return patch;
+                if (patch.ValueKind == JsonValueKind.Object)
+                    yield return new HomepageLivePatch(patch, null);
             yield break;
         }
 
@@ -256,47 +305,107 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
         if (root.TryGetProperty("patches", out JsonElement patches) && patches.ValueKind == JsonValueKind.Array)
         {
             foreach (JsonElement patch in patches.EnumerateArray())
-                yield return patch;
+                if (patch.ValueKind == JsonValueKind.Object)
+                    yield return new HomepageLivePatch(patch, null);
             yield break;
         }
 
         if (TryGetString(root, out _, "target", "tag", "name"))
         {
-            yield return root;
+            yield return new HomepageLivePatch(root, null);
             yield break;
         }
 
         foreach (JsonProperty property in root.EnumerateObject())
         {
             if (property.Value.ValueKind == JsonValueKind.Object)
-                yield return property.Value;
+                yield return new HomepageLivePatch(property.Value, property.Name);
         }
     }
 
-    private void ApplyHomepageLivePatch(JsonElement patch)
+    private void ApplyHomepageLivePatch(HomepageLivePatch patch)
     {
-        if (!TryGetString(patch, out string? target, "target", "tag", "name") || string.IsNullOrWhiteSpace(target))
+        string? target = TryGetString(patch.Content, out string? explicitTarget, "target", "tag", "name")
+            ? explicitTarget
+            : patch.ImpliedTarget;
+        if (string.IsNullOrWhiteSpace(target))
             return;
 
         foreach (Control element in FindElementsByTag(CustomPanel!, target))
-            ApplyHomepageLivePatchToElement(element, patch);
+            ApplyHomepageLivePatchToElement(element, patch.Content);
     }
 
     private static void ApplyHomepageLivePatchToElement(Control element, JsonElement patch)
     {
-        if (TryGetString(patch, out string? text, "text") && element is TextBlock textBlock)
-            textBlock.Text = text;
-        if (TryGetString(patch, out string? title, "title") && !string.IsNullOrEmpty(title) && element is MyCard card)
-            card.Title = title;
-        if (TryGetString(patch, out string? opacity, "opacity") &&
-            double.TryParse(opacity, NumberStyles.Float, CultureInfo.InvariantCulture, out double opacityValue))
-            element.Opacity = Math.Clamp(opacityValue, 0d, 1d);
-        if (TryGetString(patch, out string? isEnabled, "isEnabled") &&
-            bool.TryParse(isEnabled, out bool enabledValue))
-            element.IsEnabled = enabledValue;
-        if (TryGetString(patch, out string? isVisible, "isVisible", "visibility"))
-            element.IsVisible = !string.Equals(isVisible, "Collapsed", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(isVisible, "False", StringComparison.OrdinalIgnoreCase);
+        SetPropertyIfPresent(element, patch, "text", "Text");
+        SetPropertyIfPresent(element, patch, "title", "Title");
+        SetPropertyIfPresent(element, patch, "info", "Info");
+        SetPropertyIfPresent(element, patch, "tooltip", "ToolTip");
+        SetPropertyIfPresent(element, patch, "toolTip", "ToolTip");
+        SetPropertyIfPresent(element, patch, "visibility", "IsVisible");
+        SetPropertyIfPresent(element, patch, "isVisible", "IsVisible");
+        SetPropertyIfPresent(element, patch, "isEnabled", "IsEnabled");
+        SetPropertyIfPresent(element, patch, "opacity", "Opacity");
+
+        if (TryGetProperty(patch, "properties", out JsonElement properties) && properties.ValueKind == JsonValueKind.Object)
+        {
+            foreach (JsonProperty property in properties.EnumerateObject())
+                TrySetElementProperty(element, property.Name, property.Value.ToString());
+        }
+    }
+
+    private static void SetPropertyIfPresent(Control element, JsonElement patch, string jsonName, string propertyName)
+    {
+        if (TryGetProperty(patch, jsonName, out JsonElement value))
+            TrySetElementProperty(element, propertyName, value.ToString());
+    }
+
+    private static bool TrySetElementProperty(Control element, string propertyName, string value)
+    {
+        if (!HomepageLiveAllowedProperties.TryGetValue(propertyName, out string? allowedPropertyName))
+            return false;
+
+        if (string.Equals(allowedPropertyName, "ToolTip", StringComparison.Ordinal))
+        {
+            ToolTip.SetTip(element, value);
+            return true;
+        }
+
+        var property = element.GetType().GetProperty(allowedPropertyName);
+        if (property is null || !property.CanWrite)
+            return false;
+
+        try
+        {
+            Type propertyType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+            string trimmedValue = value.Trim();
+            object convertedValue;
+            if (propertyType == typeof(string) || propertyType == typeof(object))
+                convertedValue = value;
+            else if (propertyType == typeof(bool) && string.Equals(allowedPropertyName, "IsVisible", StringComparison.Ordinal))
+                convertedValue = !string.Equals(trimmedValue, "Collapsed", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(trimmedValue, "Hidden", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(trimmedValue, "False", StringComparison.OrdinalIgnoreCase);
+            else if (propertyType == typeof(bool) && bool.TryParse(trimmedValue, out bool boolValue))
+                convertedValue = boolValue;
+            else if (propertyType == typeof(int) && int.TryParse(trimmedValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out int intValue))
+                convertedValue = intValue;
+            else if (propertyType == typeof(double) && double.TryParse(trimmedValue, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out double doubleValue))
+                convertedValue = string.Equals(allowedPropertyName, "Opacity", StringComparison.Ordinal)
+                    ? Math.Clamp(doubleValue, 0d, 1d)
+                    : doubleValue;
+            else if (propertyType.IsEnum && Enum.TryParse(propertyType, trimmedValue, true, out object? enumValue) && enumValue is not null)
+                convertedValue = enumValue;
+            else
+                return false;
+
+            property.SetValue(element, convertedValue);
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 
     private static IEnumerable<Control> FindElementsByTag(Control root, string tag)
@@ -343,6 +452,45 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
         return false;
     }
 
+    private static bool TryGetProperty(JsonElement element, string name, out JsonElement value)
+    {
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            foreach (JsonProperty property in element.EnumerateObject())
+            {
+                if (string.Equals(property.Name, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    value = property.Value;
+                    return true;
+                }
+            }
+        }
+
+        value = default;
+        return false;
+    }
+
+    private static string ReadHomepageLivePatchFile(string file)
+    {
+        Exception? lastException = null;
+        for (int attempt = 0; attempt < 3; attempt++)
+        {
+            try
+            {
+                using FileStream stream = new(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using StreamReader reader = new(stream);
+                return reader.ReadToEnd();
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                lastException = ex;
+                Thread.Sleep(50);
+            }
+        }
+
+        throw lastException ?? new IOException("Unable to read custom homepage live patch file.");
+    }
+
     private static string[] LoadExternalHints()
     {
         string file = Path.Combine(AppContext.BaseDirectory, "PCL", "hints.txt");
@@ -387,7 +535,23 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
     private static void DeleteHomepageLiveSupportMarker()
     {
         string markerPath = Path.Combine(GetHomepageLiveDirectory(), HomepageLiveSupportFileName);
-        if (File.Exists(markerPath))
-            File.Delete(markerPath);
+        if (!File.Exists(markerPath))
+            return;
+
+        try
+        {
+            using JsonDocument marker = JsonDocument.Parse(ReadHomepageLivePatchFile(markerPath));
+            if (TryGetProperty(marker.RootElement, "processId", out JsonElement processId) &&
+                processId.TryGetInt32(out int markerProcessId) &&
+                markerProcessId == Environment.ProcessId)
+            {
+                File.Delete(markerPath);
+            }
+        }
+        catch (Exception)
+        {
+        }
     }
+
+    private readonly record struct HomepageLivePatch(JsonElement Content, string? ImpliedTarget);
 }

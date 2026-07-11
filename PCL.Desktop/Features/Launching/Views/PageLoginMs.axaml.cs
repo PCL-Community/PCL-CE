@@ -56,9 +56,7 @@ public partial class PageLoginMs : StackPanel, PageLaunchLeft.ILoginPage
         ResetLoginButton();
     }
 
-    private void BtnBackClick(object? sender, RoutedEventArgs e) => BackRequested?.Invoke(this, EventArgs.Empty);
-
-    private void BtnLoginClick(object? sender, EventArgs e)
+    public void RequestLogin()
     {
         if (IsLoggingIn)
             return;
@@ -66,6 +64,10 @@ public partial class PageLoginMs : StackPanel, PageLaunchLeft.ILoginPage
         StartLogin();
         LoginRequested?.Invoke(this, EventArgs.Empty);
     }
+
+    private void BtnBackClick(object? sender, RoutedEventArgs e) => BackRequested?.Invoke(this, EventArgs.Empty);
+
+    private void BtnLoginClick(object? sender, EventArgs e) => RequestLogin();
 
     private void BtnPurchaseClick(object? sender, RoutedEventArgs e) => PurchaseRequested?.Invoke(this, EventArgs.Empty);
 

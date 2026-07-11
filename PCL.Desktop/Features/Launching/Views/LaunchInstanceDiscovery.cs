@@ -6,27 +6,66 @@ namespace PCL.Desktop.Features.Launching.Views;
 
 public sealed record LaunchInstanceInfo(string Name, string VersionJsonPath, string InstanceDirectory);
 
+public sealed record LaunchInstanceDiscoveryProgress(
+    string Stage,
+    int Current,
+    int Total,
+    int Found,
+    string? RootDirectory = null);
+
 public static class LaunchInstanceDiscovery
 {
     public static Task<IReadOnlyList<LaunchInstanceInfo>> DiscoverAsync(CancellationToken cancellationToken = default) =>
         Task.Run(() => Discover(GetCandidateRoots(), cancellationToken), cancellationToken);
 
+    public static Task<IReadOnlyList<LaunchInstanceInfo>> DiscoverAsync(
+        IEnumerable<string> candidateRoots,
+        CancellationToken cancellationToken = default)
+        => DiscoverAsync(candidateRoots, progress: null, cancellationToken);
+
+    public static Task<IReadOnlyList<LaunchInstanceInfo>> DiscoverAsync(
+        IEnumerable<string> candidateRoots,
+        IProgress<LaunchInstanceDiscoveryProgress>? progress,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(candidateRoots);
+        string[] roots = candidateRoots.ToArray();
+        return Task.Run(() => Discover(roots, progress, cancellationToken), cancellationToken);
+    }
+
     public static IReadOnlyList<LaunchInstanceInfo> Discover(
         IEnumerable<string> candidateRoots,
         CancellationToken cancellationToken = default)
+        => Discover(candidateRoots, progress: null, cancellationToken);
+
+    public static IReadOnlyList<LaunchInstanceInfo> Discover(
+        IEnumerable<string> candidateRoots,
+        IProgress<LaunchInstanceDiscoveryProgress>? progress,
+        CancellationToken cancellationToken = default)
     {
-        List<LaunchInstanceInfo> result = [];
-        foreach (string root in candidateRoots.Where(path => !string.IsNullOrWhiteSpace(path)).Distinct(StringComparer.OrdinalIgnoreCase))
+        string[] roots = candidateRoots
+            .Where(path => !string.IsNullOrWhiteSpace(path))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        List<(LaunchInstanceInfo Instance, DateTime LastWriteTimeUtc)> result = [];
+        for (int rootIndex = 0; rootIndex < roots.Length; rootIndex++)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            string root = roots[rootIndex];
+            progress?.Report(new LaunchInstanceDiscoveryProgress(
+                "正在扫描游戏文件夹",
+                rootIndex,
+                roots.Length,
+                result.Count,
+                root));
             string versionsRoot = Path.Combine(root, "versions");
             if (!Directory.Exists(versionsRoot))
                 continue;
 
-            string[] versionDirectories;
+            DirectoryInfo[] versionDirectories;
             try
             {
-                versionDirectories = Directory.GetDirectories(versionsRoot);
+                versionDirectories = new DirectoryInfo(versionsRoot).GetDirectories();
             }
             catch (IOException)
             {
@@ -37,24 +76,46 @@ public static class LaunchInstanceDiscovery
                 continue;
             }
 
-            foreach (string versionDirectory in versionDirectories)
+            progress?.Report(new LaunchInstanceDiscoveryProgress(
+                "正在检查游戏版本",
+                0,
+                versionDirectories.Length,
+                result.Count,
+                root));
+            for (int versionIndex = 0; versionIndex < versionDirectories.Length; versionIndex++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                string name = Path.GetFileName(versionDirectory);
-                if (string.IsNullOrWhiteSpace(name))
-                    continue;
+                DirectoryInfo versionDirectory = versionDirectories[versionIndex];
+                string name = versionDirectory.Name;
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    string jsonPath = Path.Combine(versionDirectory.FullName, name + ".json");
+                    if (File.Exists(jsonPath))
+                    {
+                        result.Add((
+                            new LaunchInstanceInfo(name, jsonPath, versionDirectory.FullName),
+                            versionDirectory.LastWriteTimeUtc));
+                    }
+                }
 
-                string jsonPath = Path.Combine(versionDirectory, name + ".json");
-                if (!File.Exists(jsonPath))
-                    continue;
-
-                result.Add(new LaunchInstanceInfo(name, jsonPath, versionDirectory));
+                progress?.Report(new LaunchInstanceDiscoveryProgress(
+                    "正在检查游戏版本",
+                    versionIndex + 1,
+                    versionDirectories.Length,
+                    result.Count,
+                    root));
             }
         }
 
+        progress?.Report(new LaunchInstanceDiscoveryProgress(
+            "游戏版本检查完成",
+            roots.Length,
+            roots.Length,
+            result.Count));
         return result
-            .OrderByDescending(instance => Directory.GetLastWriteTimeUtc(instance.InstanceDirectory))
-            .ThenBy(instance => instance.Name, StringComparer.OrdinalIgnoreCase)
+            .OrderByDescending(entry => entry.LastWriteTimeUtc)
+            .ThenBy(entry => entry.Instance.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(entry => entry.Instance)
             .ToArray();
     }
 
