@@ -32,7 +32,6 @@ public static class ModJarInJar
             {
                 var entry = jar.GetEntry(nestedPath);
                 if (entry is null) continue;
-                // 嵌套 jar 流不可 seek，需复制到 MemoryStream 后再作为独立 ZipArchive 打开
                 using var ms = new MemoryStream();
                 using (var es = entry.Open()) es.CopyTo(ms);
                 ms.Position = 0;
