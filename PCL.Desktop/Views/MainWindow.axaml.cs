@@ -4614,17 +4614,56 @@ public partial class MainWindow : Window, IDisposable
         ModAnimation.Configure(
             settings.GetIntegerOption("UiAniFPS", LauncherSettingDefaults.GetInteger("UiAniFPS")) + 1,
             settings.GetIntegerOption("SystemDebugAnim", LauncherSettingDefaults.GetInteger("SystemDebugAnim")));
-        TransparencyLevelHint = settings.GetBooleanOption(
-            "UiBlur",
-            LauncherSettingDefaults.GetBoolean("UiBlur"))
-            ? [WindowTransparencyLevel.AcrylicBlur]
-            : [WindowTransparencyLevel.None];
+        // WPF only applies the optional advanced material to the modal overlay.
+        // Applying native acrylic to this borderless window also tints its transparent
+        // shadow margin, which leaves a visible rectangular frame around PanBack.
+        TransparencyLevelHint = [WindowTransparencyLevel.None];
+        ApplyFormBackground(settings);
         ApplyTitleAppearance(settings);
         ApplyBackgroundAppearance(settings);
         ApplyNetworkProxy(settings);
         _launchRight?.SetMaximumLogLines(ResolveMaximumLogLines(settings));
         ApplyLaunchPageSettings(settings);
         ApplyHomepageSettings(settings);
+    }
+
+    private void ApplyFormBackground(LauncherSettings settings)
+    {
+        if (this.FindControl<Grid>("PanForm") is not { } form)
+            return;
+
+        bool colorful = settings.GetBooleanOption(
+            "UiBackgroundColorful",
+            LauncherSettingDefaults.GetBoolean("UiBackgroundColorful"));
+        if (!colorful)
+        {
+            form.Background = TryGetResource("ColorBrushBackground", null, out object? background) && background is IBrush brush
+                ? brush
+                : new SolidColorBrush(Color.Parse("#fbfbfb"));
+            return;
+        }
+
+        Color first = ResolveThemeColor("ColorObject6", "#d5e6fd");
+        Color middle = ResolveThemeColor("ColorObject7", "#e0eafd");
+        Color last = ResolveThemeColor("ColorObject8", "#eaf2fe");
+        form.Background = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0.9d, 0d, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(0.1d, 1d, RelativeUnit.Relative),
+            GradientStops =
+            {
+                new GradientStop(first, 0d),
+                new GradientStop(middle, 0.4d),
+                new GradientStop(last, 1d)
+            }
+        };
+    }
+
+    private Color ResolveThemeColor(string key, string fallback)
+    {
+        return TryGetResource(key, null, out object? resource) && resource is Color color
+            ? color
+            : Color.Parse(fallback);
     }
 
     private void ApplyLaunchPageSettings(LauncherSettings settings)

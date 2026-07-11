@@ -4973,7 +4973,9 @@ public sealed class AvaloniaHeadlessTests
             window.Show();
             AvaloniaHeadlessPlatform.ForceRenderTimerTick();
             Assert.IsFalse(window.CanResize);
-            CollectionAssert.Contains(window.TransparencyLevelHint.ToArray(), WindowTransparencyLevel.AcrylicBlur);
+            CollectionAssert.Contains(window.TransparencyLevelHint.ToArray(), WindowTransparencyLevel.None);
+            Assert.IsFalse(window.TransparencyLevelHint.Contains(WindowTransparencyLevel.AcrylicBlur));
+            Assert.IsNotNull(window.FindControl<Grid>("PanForm")!.Background);
             Assert.AreEqual("Headless PCL", window.FindControl<TextBlock>("LabTitleLogo")!.Text);
             Assert.IsTrue(window.FindControl<TextBlock>("LabTitleLogo")!.IsVisible);
             Assert.IsFalse(window.FindControl<Avalonia.Controls.Shapes.Path>("ShapeTitleLogo")!.IsVisible);
