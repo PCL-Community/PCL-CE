@@ -63,10 +63,10 @@
                             <RowDefinition />
                         </Grid.RowDefinitions>
                         
-                        <legacy:MyImage x:Name="ImgUpdateIcon" Source="https://www.pclc.cc/img/pcl-ce/icon.webp"
+                        <legacy:MyImage x:Name="ImgUpdateIcon" Source="avares://PCL.Desktop/Assets/icon.png"
                                        Grid.Column="0" Grid.Row="0" Grid.RowSpan="3" Height="50" Width="50"
                                        HorizontalAlignment="Left" VerticalAlignment="Center" />
-                        <TextBlock x:Name="TextUpdateName" Text="PCL N 2.14.0" FontWeight="Bold" FontSize="20"
+                        <TextBlock x:Name="TextUpdateName" Text="PCL N" FontWeight="Bold" FontSize="20"
                                    Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
                         <TextBlock x:Name="TextUpdateDesc" Text="by MUXUE1230" FontSize="14" Grid.Row="2"
                                    Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Top" />
@@ -103,7 +103,7 @@
                                Grid.RowSpan="3" Height="50" Width="50" HorizontalAlignment="Left"
                                VerticalAlignment="Center" />
                         
-                        <TextBlock x:Name="TextCurrentVersion" Text="PCL N 2.13.4" FontWeight="Bold" FontSize="20"
+                        <TextBlock x:Name="TextCurrentVersion" Text="PCL N" FontWeight="Bold" FontSize="20"
                                    Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
                         <TextBlock x:Name="TextCurrentDesc" Text="{DynamicResource Setup.Update.Latest}" FontSize="14" Grid.Row="2" Grid.Column="2"
                                    HorizontalAlignment="Left" VerticalAlignment="Top" />

@@ -3895,6 +3895,9 @@ public sealed class AvaloniaHeadlessTests
                     .ToArray();
 
                 Assert.IsTrue(leftText.Any(text => text.StartsWith("42", StringComparison.Ordinal)));
+                CollectionAssert.IsSubsetOf(
+                    new[] { "总进度", "下载速度", "剩余文件", "剩余线程" },
+                    leftText);
                 Assert.IsTrue(leftText.Contains("2.0 KB/s"));
                 Assert.IsTrue(leftText.Contains("7"));
                 Assert.IsTrue(leftText.Contains("2 / 4"));
@@ -5120,18 +5123,41 @@ public sealed class AvaloniaHeadlessTests
         session.Dispatch(() =>
         {
             PageSetupUpdate page = new();
+            Window window = new() { Width = 800, Height = 600, Content = page };
             MyComboBox channel = page.FindControl<MyComboBox>("ComboSystemUpdateChannel")!;
             bool confirmationRequested = false;
+            string? messageTitle = null;
             page.ConfirmRequested += (_, args) =>
             {
                 confirmationRequested = true;
                 Assert.IsTrue(args.IsWarn);
                 args.Complete(false);
             };
+            page.MessageRequested += (_, args) => messageTitle = args.Title;
 
-            channel.SelectedIndex = 1;
-            Assert.IsTrue(confirmationRequested);
-            Assert.AreEqual(0, channel.SelectedIndex);
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Type metadataType = typeof(MainWindow).Assembly.GetType("PCL.Desktop.Hosting.PclMetadata")!;
+                object metadata = metadataType.GetProperty("Current")!.GetValue(null)!;
+                string expectedVersion = "PCL N " + metadataType.GetProperty("DisplayVersion")!.GetValue(metadata);
+                Assert.AreEqual(expectedVersion, page.FindControl<TextBlock>("TextCurrentVersion")!.Text);
+                Assert.AreEqual(expectedVersion, page.FindControl<TextBlock>("TextUpdateName")!.Text);
+                Assert.IsFalse(page.FindControl<MyCard>("CardUpdate")!.IsVisible);
+                Assert.IsTrue(page.FindControl<MyCard>("CardCheck")!.IsVisible);
+
+                Click(window, page.FindControl<MyButton>("BtnCheckAgain")!);
+                Assert.AreEqual("暂不支持检查更新", messageTitle);
+
+                channel.SelectedIndex = 1;
+                Assert.IsTrue(confirmationRequested);
+                Assert.AreEqual(0, channel.SelectedIndex);
+            }
+            finally
+            {
+                window.Close();
+            }
         }, CancellationToken.None).GetAwaiter().GetResult();
     }
 
