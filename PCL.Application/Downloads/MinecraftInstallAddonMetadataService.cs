@@ -62,7 +62,7 @@ public sealed class MinecraftInstallAddonMetadataService : IMinecraftInstallAddo
         (string project, string loader) = GetProject(kind);
         string gameVersions = Uri.EscapeDataString($"[\"{gameVersion}\"]");
         string loaders = Uri.EscapeDataString($"[\"{loader}\"]");
-        string url = $"{ModrinthApiRoot}{project}/version?game_versions={gameVersions}&loaders={loaders}&featured=true";
+        string url = $"{ModrinthApiRoot}{project}/version?game_versions={gameVersions}&loaders={loaders}";
         using HttpRequestMessage request = new(HttpMethod.Get, url);
         ConfigureRequest(request);
         using HttpResponseMessage response = await _httpClient.SendAsync(

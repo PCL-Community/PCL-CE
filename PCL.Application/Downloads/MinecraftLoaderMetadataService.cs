@@ -29,7 +29,20 @@ public sealed record MinecraftLoaderInstallRequest(MinecraftLoaderKind Kind, str
 
 public sealed record MinecraftLoaderVersionEntry(MinecraftLoaderKind Kind, string Version, bool Stable)
 {
-    public string DisplayVersion => Version.Replace("+build", string.Empty, StringComparison.Ordinal);
+    public string DisplayVersion
+    {
+        get
+        {
+            if (Kind == MinecraftLoaderKind.LabyMod)
+            {
+                string[] parts = Version.Split('+', 3, StringSplitOptions.TrimEntries);
+                if (parts.Length == 3)
+                    return parts[1];
+            }
+
+            return Version.Replace("+build", string.Empty, StringComparison.Ordinal);
+        }
+    }
 }
 
 public sealed record MinecraftLoaderLibrary(string Name, string? Url);

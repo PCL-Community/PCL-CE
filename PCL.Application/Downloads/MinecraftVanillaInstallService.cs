@@ -482,8 +482,11 @@ public sealed class MinecraftVanillaInstallService
             loaderRequest.Kind,
             baseVersionId,
             loaderRequest.LoaderVersion);
-        string workingRoot = Path.Combine(Path.GetTempPath(), "PCLN", "loader-" + Guid.NewGuid().ToString("N"));
-        string installerPath = Path.Combine(workingRoot, artifact.FileName);
+        string temporaryDirectory = Path.Combine(Path.GetTempPath(), "PCLN", "loader-" + Guid.NewGuid().ToString("N"));
+        string workingRoot = loaderRequest.Kind == MinecraftLoaderKind.OptiFine
+            ? Path.Combine(temporaryDirectory, ".minecraft")
+            : temporaryDirectory;
+        string installerPath = Path.Combine(temporaryDirectory, artifact.FileName);
         try
         {
             Directory.CreateDirectory(workingRoot);
@@ -569,7 +572,7 @@ public sealed class MinecraftVanillaInstallService
         }
         finally
         {
-            TryDeleteDirectory(workingRoot);
+            TryDeleteDirectory(temporaryDirectory);
         }
     }
 
