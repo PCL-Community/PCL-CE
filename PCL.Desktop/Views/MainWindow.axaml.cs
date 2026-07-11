@@ -2802,7 +2802,8 @@ public partial class MainWindow : Window, IDisposable
                         PreferOfficialSource = true,
                         DownloadThreadLimit = downloadThreadLimit,
                         Loader = request.Loader,
-                        ReplaceExistingVersion = request.ReplaceExistingVersion
+                        ReplaceExistingVersion = request.ReplaceExistingVersion,
+                        JavaExecutablePath = ResolvePreferredJavaExecutablePath(forceConsole: true)
                     },
                     progress,
                     cancellation.Token)
@@ -3257,19 +3258,27 @@ public partial class MainWindow : Window, IDisposable
             .ToArray();
     }
 
-    private static string ResolvePreferredJavaExecutablePath()
+    private static string ResolvePreferredJavaExecutablePath(bool forceConsole = false)
     {
-        bool forceConsoleJava = LauncherSettingDefaults.GetBoolean("LaunchAdvanceNoJavaw");
+        bool forceConsoleJava = forceConsole || LauncherSettingDefaults.GetBoolean("LaunchAdvanceNoJavaw");
         try
         {
             LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-            forceConsoleJava = settings.GetBooleanOption(
+            forceConsoleJava = forceConsole || settings.GetBooleanOption(
                 "LaunchAdvanceNoJavaw",
                 LauncherSettingDefaults.GetBoolean("LaunchAdvanceNoJavaw"));
             if (settings.TryGetTextOption(LauncherSettingKeys.LaunchSelectedJava, out string? selectedJava) &&
                 !string.IsNullOrWhiteSpace(selectedJava) &&
                 File.Exists(selectedJava))
             {
+                if (OperatingSystem.IsWindows() && forceConsoleJava &&
+                    string.Equals(Path.GetFileName(selectedJava), "javaw.exe", StringComparison.OrdinalIgnoreCase))
+                {
+                    string java = Path.Combine(Path.GetDirectoryName(selectedJava) ?? string.Empty, "java.exe");
+                    if (File.Exists(java))
+                        return java;
+                }
+
                 if (!forceConsoleJava && OperatingSystem.IsWindows() &&
                     string.Equals(Path.GetFileName(selectedJava), "java.exe", StringComparison.OrdinalIgnoreCase))
                 {

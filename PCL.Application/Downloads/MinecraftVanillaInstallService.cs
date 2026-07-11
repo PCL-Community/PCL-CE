@@ -32,6 +32,7 @@ public sealed record MinecraftInstallRequest
     public int DownloadThreadLimit { get; init; } = 64;
     public MinecraftLoaderInstallRequest? Loader { get; init; }
     public bool ReplaceExistingVersion { get; init; }
+    public string JavaExecutablePath { get; init; } = "java";
 }
 
 public sealed record MinecraftInstallProgress
@@ -76,14 +77,17 @@ public sealed class MinecraftVanillaInstallService
     private const int MaxDownloadThreadLimit = 256;
     private readonly HttpClient _httpClient;
     private readonly IMinecraftLoaderMetadataService _loaderMetadataService;
+    private readonly IMinecraftExternalLoaderInstaller _externalLoaderInstaller;
     private readonly DownloadService _downloadService = new();
 
     public MinecraftVanillaInstallService(
         HttpClient? httpClient = null,
-        IMinecraftLoaderMetadataService? loaderMetadataService = null)
+        IMinecraftLoaderMetadataService? loaderMetadataService = null,
+        IMinecraftExternalLoaderInstaller? externalLoaderInstaller = null)
     {
         _httpClient = httpClient ?? PortableHttp.Client;
         _loaderMetadataService = loaderMetadataService ?? new MinecraftLoaderMetadataService(_httpClient);
+        _externalLoaderInstaller = externalLoaderInstaller ?? new MinecraftExternalLoaderInstaller();
     }
 
     public async Task<IReadOnlyList<MinecraftVersionManifestEntry>> GetVersionManifestAsync(
@@ -342,6 +346,23 @@ public sealed class MinecraftVanillaInstallService
         IProgress<MinecraftInstallProgress>? progress,
         CancellationToken cancellationToken)
     {
+        if (loaderRequest.Kind is MinecraftLoaderKind.Forge or
+            MinecraftLoaderKind.NeoForge or
+            MinecraftLoaderKind.Cleanroom or
+            MinecraftLoaderKind.OptiFine)
+        {
+            return await InstallExternalLoaderAsync(
+                    request,
+                    loaderRequest,
+                    baseVersionId,
+                    minecraftRoot,
+                    preferOfficialSource,
+                    downloadThreadLimit,
+                    progress,
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+
         if (loaderRequest.Kind is MinecraftLoaderKind.LabyMod or MinecraftLoaderKind.LiteLoader)
         {
             return await InstallProfileLoaderAsync(
@@ -391,6 +412,196 @@ public sealed class MinecraftVanillaInstallService
             .ConfigureAwait(false);
 
         return new MinecraftInstallResult(request.VersionId, minecraftRoot, instanceDirectory, versionJsonPath);
+    }
+
+    private async Task<MinecraftInstallResult> InstallExternalLoaderAsync(
+        MinecraftInstallRequest request,
+        MinecraftLoaderInstallRequest loaderRequest,
+        string baseVersionId,
+        string minecraftRoot,
+        bool preferOfficialSource,
+        int downloadThreadLimit,
+        IProgress<MinecraftInstallProgress>? progress,
+        CancellationToken cancellationToken)
+    {
+        MinecraftLoaderInstallerArtifact artifact = MinecraftLoaderInstallerArtifactResolver.Resolve(
+            loaderRequest.Kind,
+            baseVersionId,
+            loaderRequest.LoaderVersion);
+        string workingRoot = Path.Combine(Path.GetTempPath(), "PCLN", "loader-" + Guid.NewGuid().ToString("N"));
+        string installerPath = Path.Combine(workingRoot, artifact.FileName);
+        try
+        {
+            Directory.CreateDirectory(workingRoot);
+            progress?.Report(CreateProgress(
+                "下载加载器安装器",
+                $"{loaderRequest.Kind} {loaderRequest.LoaderVersion}",
+                0d,
+                0,
+                1,
+                0,
+                downloadThreadLimit));
+            await DownloadIfNeededAsync(
+                    artifact.Sources,
+                    installerPath,
+                    expectedSize: -1,
+                    expectedSha1: null,
+                    "下载加载器安装器",
+                    0,
+                    1,
+                    progress,
+                    activeThreads: 1,
+                    threadLimit: downloadThreadLimit,
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            PrepareExternalInstallerRoot(workingRoot, minecraftRoot, baseVersionId);
+            progress?.Report(CreateProgress(
+                "运行加载器安装器",
+                artifact.FileName,
+                0.35d,
+                0,
+                1,
+                0,
+                downloadThreadLimit));
+            Progress<string> installerOutput = new(line => progress?.Report(CreateProgress(
+                "运行加载器安装器",
+                line,
+                0.55d,
+                0,
+                1,
+                0,
+                downloadThreadLimit)));
+            await _externalLoaderInstaller.RunAsync(
+                    new MinecraftExternalLoaderInstallRequest(
+                        loaderRequest.Kind,
+                        loaderRequest.LoaderVersion,
+                        baseVersionId,
+                        string.IsNullOrWhiteSpace(request.JavaExecutablePath) ? "java" : request.JavaExecutablePath,
+                        installerPath,
+                        workingRoot),
+                    installerOutput,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            string generatedJsonPath = FindGeneratedLoaderJson(
+                workingRoot,
+                baseVersionId,
+                loaderRequest.Kind,
+                loaderRequest.LoaderVersion);
+            JsonObject loaderVersionJson = await ReadJsonObjectAsync(generatedJsonPath, cancellationToken).ConfigureAwait(false);
+            loaderVersionJson["id"] = request.VersionId;
+            if (loaderVersionJson["inheritsFrom"] is null && loaderRequest.Kind != MinecraftLoaderKind.OptiFine)
+                loaderVersionJson["inheritsFrom"] = baseVersionId;
+
+            string instanceDirectory = Path.Combine(minecraftRoot, "versions", request.VersionId);
+            string versionJsonPath = Path.Combine(instanceDirectory, request.VersionId + ".json");
+            Directory.CreateDirectory(instanceDirectory);
+            CopyDirectoryIfPresent(Path.Combine(workingRoot, "libraries"), Path.Combine(minecraftRoot, "libraries"));
+            CopyGeneratedVersionJar(generatedJsonPath, instanceDirectory, request.VersionId);
+            await WriteJsonObjectAsync(loaderVersionJson, versionJsonPath, cancellationToken).ConfigureAwait(false);
+
+            await DownloadVersionFilesAsync(
+                    request.VersionId,
+                    loaderVersionJson,
+                    minecraftRoot,
+                    instanceDirectory,
+                    preferOfficialSource,
+                    downloadThreadLimit,
+                    progress,
+                    cancellationToken)
+                .ConfigureAwait(false);
+            return new MinecraftInstallResult(request.VersionId, minecraftRoot, instanceDirectory, versionJsonPath);
+        }
+        finally
+        {
+            TryDeleteDirectory(workingRoot);
+        }
+    }
+
+    private static void PrepareExternalInstallerRoot(string workingRoot, string minecraftRoot, string baseVersionId)
+    {
+        string sourceDirectory = Path.Combine(minecraftRoot, "versions", baseVersionId);
+        string targetDirectory = Path.Combine(workingRoot, "versions", baseVersionId);
+        Directory.CreateDirectory(targetDirectory);
+        foreach (string extension in new[] { ".json", ".jar" })
+        {
+            string source = Path.Combine(sourceDirectory, baseVersionId + extension);
+            if (File.Exists(source))
+                File.Copy(source, Path.Combine(targetDirectory, baseVersionId + extension), overwrite: true);
+        }
+
+        File.WriteAllText(Path.Combine(workingRoot, "launcher_profiles.json"), "{\"profiles\":{}}");
+    }
+
+    private static string FindGeneratedLoaderJson(
+        string workingRoot,
+        string baseVersionId,
+        MinecraftLoaderKind kind,
+        string loaderVersion)
+    {
+        string versionsRoot = Path.Combine(workingRoot, "versions");
+        string[] candidates = Directory.Exists(versionsRoot)
+            ? Directory.GetFiles(versionsRoot, "*.json", SearchOption.AllDirectories)
+                .Where(path => !string.Equals(
+                    Path.GetFileNameWithoutExtension(path),
+                    baseVersionId,
+                    StringComparison.OrdinalIgnoreCase))
+                .ToArray()
+            : [];
+        if (candidates.Length == 0)
+            throw new InvalidOperationException($"{kind} 安装器没有生成版本描述文件。");
+
+        string normalizedLoader = loaderVersion.Replace("+", string.Empty, StringComparison.Ordinal)
+            .Replace("-", string.Empty, StringComparison.Ordinal)
+            .Replace("_", string.Empty, StringComparison.Ordinal);
+        return candidates
+            .OrderByDescending(path => NormalizeFileName(path).Contains(normalizedLoader, StringComparison.OrdinalIgnoreCase))
+            .ThenByDescending(File.GetLastWriteTimeUtc)
+            .First();
+    }
+
+    private static string NormalizeFileName(string path) =>
+        Path.GetFileNameWithoutExtension(path)
+            .Replace("+", string.Empty, StringComparison.Ordinal)
+            .Replace("-", string.Empty, StringComparison.Ordinal)
+            .Replace("_", string.Empty, StringComparison.Ordinal);
+
+    private static void CopyGeneratedVersionJar(string generatedJsonPath, string targetDirectory, string targetVersionId)
+    {
+        string sourceDirectory = Path.GetDirectoryName(generatedJsonPath)!;
+        string? jar = Directory.GetFiles(sourceDirectory, "*.jar", SearchOption.TopDirectoryOnly).FirstOrDefault();
+        if (jar is not null)
+            File.Copy(jar, Path.Combine(targetDirectory, targetVersionId + ".jar"), overwrite: true);
+    }
+
+    private static void CopyDirectoryIfPresent(string sourceDirectory, string targetDirectory)
+    {
+        if (!Directory.Exists(sourceDirectory))
+            return;
+
+        foreach (string sourceFile in Directory.GetFiles(sourceDirectory, "*", SearchOption.AllDirectories))
+        {
+            string relative = Path.GetRelativePath(sourceDirectory, sourceFile);
+            string targetFile = Path.Combine(targetDirectory, relative);
+            Directory.CreateDirectory(Path.GetDirectoryName(targetFile)!);
+            File.Copy(sourceFile, targetFile, overwrite: true);
+        }
+    }
+
+    private static void TryDeleteDirectory(string path)
+    {
+        try
+        {
+            if (Directory.Exists(path))
+                Directory.Delete(path, recursive: true);
+        }
+        catch (IOException)
+        {
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
     }
 
     private async Task<MinecraftInstallResult> InstallProfileLoaderAsync(

@@ -430,6 +430,52 @@ public sealed class MinecraftVanillaInstallServiceTests
     }
 
     [TestMethod]
+    public async Task InstallAsync_RunsExternalLoaderInTemporaryRootAndMergesOutput()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "pcl-install-external-" + Guid.NewGuid().ToString("N"));
+        using HttpClient client = new(new DelegateHandler(request =>
+        {
+            if (request.RequestUri!.AbsolutePath.Contains("assets", StringComparison.Ordinal))
+                return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""{"objects":{}}""") };
+            if (request.RequestUri.AbsolutePath.EndsWith(".jar", StringComparison.Ordinal))
+                return new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent([0x50, 0x4B, 0x03, 0x04]) };
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("""{"id":"1.20.1","type":"release","assetIndex":{"id":"empty","url":"https://example.invalid/assets/empty.json"}}""")
+            };
+        }));
+        FakeExternalLoaderInstaller installer = new();
+        MinecraftVanillaInstallService service = new(client, new FakeMinecraftLoaderMetadataService(), installer);
+
+        try
+        {
+            MinecraftInstallResult result = await service.InstallAsync(
+                new MinecraftInstallRequest
+                {
+                    VersionId = "My Forge Pack",
+                    BaseVersionId = "1.20.1",
+                    VersionJsonUrl = "https://example.invalid/versions/1.20.1.json",
+                    MinecraftRootDirectory = root,
+                    JavaExecutablePath = @"D:\Java\bin\java.exe",
+                    Loader = new MinecraftLoaderInstallRequest(MinecraftLoaderKind.Forge, "47.2.0")
+                });
+
+            Assert.IsNotNull(installer.Request);
+            Assert.AreEqual(@"D:\Java\bin\java.exe", installer.Request.JavaExecutablePath);
+            Assert.IsFalse(Directory.Exists(installer.Request.MinecraftRootDirectory));
+            JsonObject profile = JsonNode.Parse(await File.ReadAllTextAsync(result.VersionJsonPath))!.AsObject();
+            Assert.AreEqual("My Forge Pack", profile["id"]?.ToString());
+            Assert.AreEqual("1.20.1", profile["inheritsFrom"]?.ToString());
+            Assert.IsTrue(File.Exists(Path.Combine(root, "libraries", "example", "generated.jar")));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public async Task InstallAsync_DownloadsVersionFilesConcurrently()
     {
         string root = Path.Combine(Path.GetTempPath(), "pcl-install-parallel-" + Guid.NewGuid().ToString("N"));
@@ -606,6 +652,29 @@ public sealed class MinecraftVanillaInstallServiceTests
                 },
                 ["libraries"] = new JsonArray()
             });
+    }
+
+    private sealed class FakeExternalLoaderInstaller : IMinecraftExternalLoaderInstaller
+    {
+        public MinecraftExternalLoaderInstallRequest? Request { get; private set; }
+
+        public Task RunAsync(
+            MinecraftExternalLoaderInstallRequest request,
+            IProgress<string>? output = null,
+            CancellationToken cancellationToken = default)
+        {
+            Request = request;
+            string generatedDirectory = Path.Combine(request.MinecraftRootDirectory, "versions", "1.20.1-forge-47.2.0");
+            Directory.CreateDirectory(generatedDirectory);
+            File.WriteAllText(
+                Path.Combine(generatedDirectory, "1.20.1-forge-47.2.0.json"),
+                """{"id":"1.20.1-forge-47.2.0","inheritsFrom":"1.20.1","type":"release","libraries":[]}""");
+            string library = Path.Combine(request.MinecraftRootDirectory, "libraries", "example", "generated.jar");
+            Directory.CreateDirectory(Path.GetDirectoryName(library)!);
+            File.WriteAllBytes(library, [0x50, 0x4B, 0x03, 0x04]);
+            output?.Report("true");
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class DelegateHandler(Func<HttpRequestMessage, HttpResponseMessage> handle) : HttpMessageHandler
