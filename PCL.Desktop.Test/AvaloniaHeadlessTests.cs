@@ -103,10 +103,16 @@ public sealed class AvaloniaHeadlessTests
             MainWindow window = new();
             try
             {
+                MyIconButton closeButton = window.FindControl<MyIconButton>("BtnTitleClose")!;
+                Assert.AreEqual(MyIconButton.Themes.White, closeButton.Theme);
+                Assert.AreEqual(
+                    Colors.White,
+                    ((SolidColorBrush)closeButton.FindControl<SvgIcon>("ShapeSvgIcon")!.IconBrush!).Color);
                 window.Show();
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
                 Assert.AreEqual(WindowDecorations.None, window.WindowDecorations);
+                Assert.IsFalse(window.Topmost);
                 Assert.IsNotNull(window.FindControl<MyIconButton>("BtnTitleClose"));
                 Assert.IsNotNull(window.FindControl<MyIconButton>("BtnTitleMin"));
                 Assert.IsNotNull(window.FindControl<MyListItem>("BtnTitleSelect0"));
@@ -411,6 +417,20 @@ public sealed class AvaloniaHeadlessTests
                     foreground.R > 180 && foreground.G > 180 && foreground.B > 180,
                     $"Dark foreground should stay readable, actual: {foreground}.");
                 Assert.AreEqual((byte)Math.Round(0.824d * 255d), cardBackground.A);
+
+                using MainWindow window = new();
+                typeof(MainWindow).GetMethod(
+                        "ApplyRuntimeSettings",
+                        System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                    .Invoke(window, [new LauncherSettings
+                    {
+                        ColorMode = ColorMode.Dark,
+                        DarkColor = ColorTheme.CatBlue,
+                        BooleanOptions = new Dictionary<string, bool> { ["UiBackgroundColorful"] = true }
+                    }]);
+                LinearGradientBrush formBackground = (LinearGradientBrush)window.FindControl<Grid>("PanForm")!.Background!;
+                Assert.IsTrue(formBackground.GradientStops.All(stop =>
+                    stop.Color.R < 120 && stop.Color.G < 120 && stop.Color.B < 120));
             }
             finally
             {
@@ -5325,6 +5345,13 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual(1, isolation.SelectedIndex);
                 Assert.IsFalse(string.IsNullOrWhiteSpace(isolation.SelectionText));
                 Assert.IsNull(messageTitle, "Applying the saved isolation option must not show a user-action warning.");
+                isolation.SelectedIndex = 0;
+                Assert.IsNull(messageTitle, "A closed, programmatic selection must not show the isolation warning.");
+                isolation.IsDropDownOpen = true;
+                isolation.SelectedIndex = 1;
+                Assert.AreEqual("实例隔离说明", messageTitle);
+                isolation.IsDropDownOpen = false;
+                messageTitle = null;
 
                 MySlider customRam = page.FindControl<MySlider>("SliderRamCustom")!;
                 Assert.IsFalse(customRam.IsEnabled);
@@ -7110,6 +7137,10 @@ public sealed class AvaloniaHeadlessTests
                 profilePage.SetProfiles([profile]);
                 window.Show();
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+
+                MySkin profileHead = profilePage.GetVisualDescendants().OfType<MySkin>().Single();
+                Assert.IsNotNull(profileHead.FindControl<Image>("ImgBack")!.Source);
 
                 Click(window, FindVisual<MyListItem>(profilePage)!);
 

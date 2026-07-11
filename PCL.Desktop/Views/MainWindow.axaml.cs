@@ -28,10 +28,12 @@ using PCL.Application.Instances;
 using PCL.Application.Launching;
 using PCL.Application.Minecraft.Launch.Arguments;
 using PCL.Application.Settings;
+using PCL.Core.App;
 using PCL.Desktop.Controls.Legacy;
 using PCL.Desktop.Features.Community;
 using PCL.Desktop.Hosting;
 using PCL.Desktop.Localization;
+using PCL.Desktop.Theme;
 using PCL.Desktop.Platform;
 using PCL.Desktop.Features.Downloads.Views;
 using PCL.Desktop.Features.Instances.Views;
@@ -4709,17 +4711,23 @@ public partial class MainWindow : Window, IDisposable
         bool colorful = settings.GetBooleanOption(
             "UiBackgroundColorful",
             LauncherSettingDefaults.GetBoolean("UiBackgroundColorful"));
+        bool isDarkMode = settings.ColorMode switch
+        {
+            ColorMode.Light => false,
+            ColorMode.Dark => true,
+            _ => Avalonia.Application.Current?.ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark
+        };
+        ColorTheme theme = isDarkMode ? settings.DarkColor : settings.LightColor;
+        IReadOnlyDictionary<string, Color> palette = ThemeColorPalette.Create(isDarkMode, theme);
         if (!colorful)
         {
-            form.Background = TryGetResource("ColorBrushBackground", null, out object? background) && background is IBrush brush
-                ? brush
-                : new SolidColorBrush(Color.Parse("#fbfbfb"));
+            form.Background = new SolidColorBrush(palette["ColorBrushBackground"]);
             return;
         }
 
-        Color first = ResolveThemeColor("ColorObject6", "#d5e6fd");
-        Color middle = ResolveThemeColor("ColorObject7", "#e0eafd");
-        Color last = ResolveThemeColor("ColorObject8", "#eaf2fe");
+        Color first = palette["ColorObject6"];
+        Color middle = palette["ColorObject7"];
+        Color last = palette["ColorObject8"];
         form.Background = new LinearGradientBrush
         {
             StartPoint = new RelativePoint(0.9d, 0d, RelativeUnit.Relative),
@@ -4731,13 +4739,6 @@ public partial class MainWindow : Window, IDisposable
                 new GradientStop(last, 1d)
             }
         };
-    }
-
-    private Color ResolveThemeColor(string key, string fallback)
-    {
-        return TryGetResource(key, null, out object? resource) && resource is Color color
-            ? color
-            : Color.Parse(fallback);
     }
 
     private void ApplyLaunchPageSettings(LauncherSettings settings)

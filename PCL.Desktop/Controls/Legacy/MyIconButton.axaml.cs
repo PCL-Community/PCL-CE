@@ -342,7 +342,7 @@ public partial class MyIconButton : Border
         ModAnimation.AniStop("MyIconButton Color " + Uuid);
         Color icon = Theme switch
         {
-            Themes.White => Color.FromRgb(234, 242, 254),
+            Themes.White => Colors.White,
             Themes.Black => GetBlackThemeColor(alpha: 160),
             Themes.Red => Color.FromArgb(160, 255, 76, 76),
             Themes.Custom => WithAlpha(GetForegroundColor(), 160),

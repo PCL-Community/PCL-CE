@@ -14,7 +14,10 @@ public sealed record LoginProfileInfo(
     string? SkinAddress = null,
     string AuthServer = "",
     string AccessToken = "",
-    string RefreshToken = "");
+    string RefreshToken = "")
+{
+    public bool HasSkin => !string.IsNullOrWhiteSpace(SkinAddress);
+}
 
 public enum LaunchLoginProfileKind
 {

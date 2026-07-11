@@ -16,7 +16,7 @@
 
     x:Name="WindMain" x:Class="PCL.Desktop.Views.MainWindow"
 
-    DragDrop.AllowDrop="True" Topmost="True" Title="Plain Craft Launcher N Edition " MinHeight="470" MinWidth="810"
+    DragDrop.AllowDrop="True" Topmost="False" Title="Plain Craft Launcher N Edition " MinHeight="470" MinWidth="810"
 
      Icon="avares://PCL.Desktop/Assets/icon.png"
 
