@@ -31,6 +31,7 @@ using PCL.Desktop.Features.Instances.Views;
 using PCL.Desktop.Features.Launching.Views;
 using PCL.Desktop.Features.Settings.Views;
 using PCL.Desktop.Features.Tasks.Views;
+using PCL.Desktop.Localization;
 using PCL.Domain.Minecraft.Java;
 using PCL.UI.Abstractions.Navigation;
 
@@ -4533,6 +4534,118 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void PageSetupUI_UsesLegacyDefaultsHintsAndDependentVisibility()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageSetupUI page = new();
+            Window window = new() { Width = 900, Height = 640, Content = page };
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.AreEqual(600, page.FindControl<MySlider>("SliderLauncherOpacity")!.Value);
+                Assert.AreEqual(1000, page.FindControl<MySlider>("SliderBackgroundOpacity")!.Value);
+                Assert.AreEqual(16, page.FindControl<MySlider>("SliderBlurValue")!.Value);
+                Assert.AreEqual(70, page.FindControl<MySlider>("SliderBlurSamplingRate")!.Value);
+                Assert.AreEqual(500, page.FindControl<MySlider>("SliderMusicVolume")!.Value);
+                Assert.AreEqual("100%", page.FindControl<MySlider>("SliderLauncherOpacity")!.getHintText!(600));
+                Assert.AreEqual("50%", page.FindControl<MySlider>("SliderMusicVolume")!.getHintText!(500));
+                Assert.AreEqual("16 px", page.FindControl<MySlider>("SliderBlurValue")!.getHintText!(16));
+                Assert.AreEqual("70%", page.FindControl<MySlider>("SliderBlurSamplingRate")!.getHintText!(70));
+
+                Grid blurOptions = page.FindControl<Grid>("PanBlurValue")!;
+                Assert.IsFalse(blurOptions.IsVisible);
+                page.FindControl<MyCheckBox>("CheckBlur")!.Checked = true;
+                Assert.IsTrue(blurOptions.IsVisible);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    [TestMethod]
+    public void MainWindow_AppliesPersistedRuntimeAppearanceSettings()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+        string settingsPath = Environment.GetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH")!;
+        string backgroundPath = System.IO.Path.Combine(
+            System.IO.Path.GetDirectoryName(settingsPath)!,
+            "Backgrounds",
+            "background.png");
+        using (LauncherSettingsStore store = new(settingsPath))
+        {
+            string homepageDirectory = System.IO.Path.Combine(
+                System.IO.Path.GetDirectoryName(settingsPath)!,
+                "CustomHomepage");
+            Directory.CreateDirectory(homepageDirectory);
+            File.WriteAllText(System.IO.Path.Combine(homepageDirectory, "Custom.md"), "Headless custom homepage");
+            string backgroundDirectory = System.IO.Path.Combine(
+                System.IO.Path.GetDirectoryName(settingsPath)!,
+                "Backgrounds");
+            Directory.CreateDirectory(backgroundDirectory);
+            LauncherSettings settings = new()
+            {
+                BooleanOptions = new Dictionary<string, bool>
+                {
+                    ["UiLockWindowSize"] = true,
+                    ["UiBlur"] = true,
+                    ["UiLogoLeft"] = true,
+                    ["UiShowLaunchingHint"] = false,
+                    ["SystemDebugMode"] = true
+                },
+                IntegerOptions = new Dictionary<string, int>
+                {
+                    ["UiLauncherTransparent"] = 300,
+                    ["UiLogoType"] = 2,
+                    ["UiCustomType"] = 1,
+                    ["UiBackgroundOpacity"] = 500,
+                    ["UiBackgroundBlur"] = 4,
+                    ["UiBackgroundSuit"] = 2
+                },
+                TextOptions = new Dictionary<string, string>
+                {
+                    ["UiLogoText"] = "Headless PCL"
+                }
+            };
+            store.SaveAsync(settings).AsTask().GetAwaiter().GetResult();
+        }
+
+        session.Dispatch(() =>
+        {
+            using (Stream source = Avalonia.Platform.AssetLoader.Open(new Uri("avares://PCL.Desktop/Assets/icon.png")))
+            using (FileStream target = File.Create(backgroundPath))
+                source.CopyTo(target);
+            using MainWindow window = new();
+            window.Show();
+            AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+            Assert.IsFalse(window.CanResize);
+            CollectionAssert.Contains(window.TransparencyLevelHint.ToArray(), WindowTransparencyLevel.AcrylicBlur);
+            Assert.AreEqual("Headless PCL", window.FindControl<TextBlock>("LabTitleLogo")!.Text);
+            Assert.IsTrue(window.FindControl<TextBlock>("LabTitleLogo")!.IsVisible);
+            Assert.IsFalse(window.FindControl<Avalonia.Controls.Shapes.Path>("ShapeTitleLogo")!.IsVisible);
+            Assert.AreEqual(HorizontalAlignment.Left, window.FindControl<Grid>("PanTitleMain")!.HorizontalAlignment);
+            Image background = window.FindControl<Image>("ImageBack")!;
+            Assert.IsNotNull(background.Source);
+            Assert.AreEqual(0.5d, background.Opacity, 0.001d);
+            Assert.AreEqual(Stretch.Uniform, background.Stretch);
+            Assert.AreEqual(4d, ((BlurEffect)background.Effect!).Radius);
+            PageLaunchLeft launch = window.GetVisualDescendants().OfType<PageLaunchLeft>().Single();
+            launch.ShowLaunching(null);
+            Assert.IsFalse(launch.FindControl<Grid>("PanLaunchingHint")!.IsVisible);
+            Assert.IsTrue(window.GetVisualDescendants().OfType<PageLaunchRight>().Single().IsDebugLogVisible);
+            Assert.IsTrue(window.GetVisualDescendants().OfType<TextBlock>()
+                .Any(text => text.Text?.Contains("Headless custom homepage", StringComparison.Ordinal) == true));
+            window.Close();
+        }, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    [TestMethod]
     public void SettingsPageReset_RestoresOnlyTheSelectedPageDefaults()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
@@ -4685,6 +4798,34 @@ public sealed class AvaloniaHeadlessTests
             format.SelectedItem = format.Items.OfType<MyComboBoxItem>()
                 .Single(item => string.Equals(item.Tag?.ToString(), "follow-language", StringComparison.OrdinalIgnoreCase));
 
+            Assert.AreEqual("en-US", System.Globalization.CultureInfo.CurrentUICulture.Name);
+            Assert.AreEqual("en-US", System.Globalization.CultureInfo.CurrentCulture.Name);
+            Assert.AreEqual(
+                "Personalization",
+                AvaloniaLocalizationManager.GetText("Setup.Left.Item.Ui", "missing"));
+            PageSetupLeft localizedNavigation = new();
+            Window localizedWindow = new() { Content = localizedNavigation };
+            try
+            {
+                localizedWindow.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Assert.AreEqual(
+                    "Personalization",
+                    localizedNavigation.FindControl<MyListItem>("ItemUI")!.Title);
+            }
+            finally
+            {
+                localizedWindow.Close();
+            }
+            using (MainWindow localizedMain = new())
+            {
+                MyListItem[] navigationItems = localizedMain.FindControl<Panel>("PanTitleSelect")!.Children
+                    .OfType<MyListItem>()
+                    .ToArray();
+                Assert.AreEqual("Launch", navigationItems[0].Title);
+                Assert.AreEqual("Settings", navigationItems[3].Title);
+            }
+
             using (LauncherSettingsStore store = new(settingsPath))
             {
                 LauncherSettings saved = store.LoadAsync().AsTask().GetAwaiter().GetResult().Settings;
@@ -4698,6 +4839,33 @@ public sealed class AvaloniaHeadlessTests
             Assert.IsFalse(reset.TextOptions.ContainsKey("UiLanguage"));
             Assert.IsFalse(reset.TextOptions.ContainsKey("UiFormatCulture"));
             Assert.AreEqual("auto", ((MyComboBoxItem)language.SelectedItem!).Tag);
+        }, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    [TestMethod]
+    public void PageSetupLaunch_RefreshesMemoryDisplayFromLiveProvider()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MutableSystemInfoProvider provider = new(16L << 30, 12L << 30);
+            PageSetupLaunch page = new(provider);
+            Window window = new() { Width = 900, Height = 640, Content = page };
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Assert.AreEqual("4.0 GB", page.FindControl<TextBlock>("LabRamUsed")!.Text);
+
+                provider.AvailableBytes = 8L << 30;
+                page.RefreshMemoryDisplay();
+                Assert.AreEqual("8.0 GB", page.FindControl<TextBlock>("LabRamUsed")!.Text);
+            }
+            finally
+            {
+                window.Close();
+            }
         }, CancellationToken.None).GetAwaiter().GetResult();
     }
 
@@ -4762,6 +4930,15 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsFalse(widthBox.IsVisible);
                 Assert.IsFalse(heightBox.IsVisible);
                 Assert.IsFalse(separator.IsVisible);
+
+                MyComboBox priority = page.FindControl<MyComboBox>("ComboArgumentPriority")!;
+                Assert.AreEqual(3, priority.SelectedIndex);
+                priority.SelectedIndex = 0;
+                using (LauncherSettingsStore priorityStore = new(settingsPath))
+                {
+                    LauncherSettings prioritySettings = priorityStore.LoadAsync().AsTask().GetAwaiter().GetResult().Settings;
+                    Assert.AreEqual(4, prioritySettings.IntegerOptions["LaunchArgumentPriority"]);
+                }
 
                 page.FindControl<MyComboBox>("ComboArgumentWindowType")!.SelectedIndex = 3;
                 Assert.IsTrue(widthBox.IsVisible);
@@ -8354,8 +8531,8 @@ public sealed class AvaloniaHeadlessTests
                 window.Show();
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
-                Line lineFore = slider.FindControl<Line>("LineFore")!;
-                Line lineBack = slider.FindControl<Line>("LineBack")!;
+                Border lineFore = slider.FindControl<Border>("LineFore")!;
+                Border lineBack = slider.FindControl<Border>("LineBack")!;
                 Ellipse dot = slider.FindControl<Ellipse>("ShapeDot")!;
                 Popup popup = slider.FindControl<Popup>("Popup")!;
                 TextBlock textHint = slider.FindControl<TextBlock>("TextHint")!;
@@ -9478,6 +9655,21 @@ public sealed class AvaloniaHeadlessTests
 
         public PCL.Platform.Abstractions.System.MemoryInfo GetMemoryInfo() =>
             new(totalBytes, availableBytes);
+
+        public PCL.Platform.Abstractions.System.CpuInfo GetCpuInfo() =>
+            new("Test CPU", 8, "x64");
+    }
+
+    private sealed class MutableSystemInfoProvider(long totalBytes, long availableBytes)
+        : PCL.Platform.Abstractions.System.ISystemInfoProvider
+    {
+        public long AvailableBytes { get; set; } = availableBytes;
+
+        public PCL.Platform.Abstractions.System.OperatingSystemInfo GetOperatingSystem() =>
+            new("Test", "1", "x64", true);
+
+        public PCL.Platform.Abstractions.System.MemoryInfo GetMemoryInfo() =>
+            new(totalBytes, AvailableBytes);
 
         public PCL.Platform.Abstractions.System.CpuInfo GetCpuInfo() =>
             new("Test CPU", 8, "x64");
