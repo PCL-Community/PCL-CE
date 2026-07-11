@@ -4692,6 +4692,53 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void PageSetupFeedback_LoadsEveryGitHubPageAndExcludesPullRequests()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+        int requestCount = 0;
+        using HttpClient client = new(new StubHttpMessageHandler(request =>
+        {
+            requestCount++;
+            bool firstPage = request.RequestUri?.Query.EndsWith("page=1", StringComparison.Ordinal) == true;
+            int first = firstPage ? 1 : 101;
+            int count = firstPage ? 100 : 1;
+            object[] issues = Enumerable.Range(first, count)
+                .Select(number => new
+                {
+                    number,
+                    title = "Issue " + number,
+                    user = new { login = "tester" },
+                    html_url = "https://github.com/MuXue1230-owo/PCL-N/issues/" + number,
+                    created_at = "2026-07-11T00:00:00Z",
+                    state = number == 101 ? "closed" : "open",
+                    labels = number == 101 ? new[] { new { id = 11215658137L, name = "完成" } } : [],
+                    pull_request = firstPage && number == 1 ? new { url = "https://api.github.com/pulls/1" } : null
+                })
+                .Cast<object>()
+                .ToArray();
+            string json = System.Text.Json.JsonSerializer.Serialize(issues);
+            return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
+            };
+        }));
+
+        session.Dispatch(async () =>
+        {
+            using PageSetupFeedback page = new(client);
+            await WaitForConditionAsync(() =>
+                page.LoadedIssueCount == 100 &&
+                page.FindControl<StackPanel>("PanListWait")!.Children.Count +
+                page.FindControl<StackPanel>("PanListCompleted")!.Children.Count == 100).ConfigureAwait(true);
+
+            Assert.AreEqual(2, requestCount);
+            Assert.AreEqual(100, page.LoadedIssueCount);
+            Assert.AreEqual(99, page.FindControl<StackPanel>("PanListWait")!.Children.Count);
+            Assert.AreEqual(1, page.FindControl<StackPanel>("PanListCompleted")!.Children.Count);
+        }, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    [TestMethod]
     public void MainWindow_AppliesPersistedRuntimeAppearanceSettings()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
@@ -9890,6 +9937,17 @@ public sealed class AvaloniaHeadlessTests
 
         public PCL.Platform.Abstractions.System.CpuInfo GetCpuInfo() =>
             new("Test CPU", 8, "x64");
+    }
+
+    private sealed class StubHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> handler) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult(handler(request));
+        }
     }
 
     private sealed class SafeHeadlessUnitTestSession : IDisposable
