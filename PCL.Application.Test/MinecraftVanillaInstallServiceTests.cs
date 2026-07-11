@@ -59,6 +59,172 @@ public sealed class MinecraftVanillaInstallServiceTests
     }
 
     [TestMethod]
+    public async Task InstallAsync_ReplacesExistingInstanceCoreFilesWhenRequested()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "pcl-install-replace-" + Guid.NewGuid().ToString("N"));
+        byte[] oldJar = [0x01, 0x02, 0x03];
+        byte[] newJar = [0x50, 0x4B, 0x03, 0x04];
+        string newJarSha1 = Convert.ToHexString(SHA1.HashData(newJar)).ToLowerInvariant();
+        int versionJsonRequests = 0;
+        using HttpClient client = new(new DelegateHandler(request =>
+        {
+            string path = request.RequestUri!.AbsolutePath;
+            if (path.Contains("/assets/", StringComparison.Ordinal))
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""{"objects":{}}""")
+                };
+            }
+
+            if (path.EndsWith("/client.jar", StringComparison.Ordinal))
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new ByteArrayContent(newJar)
+                };
+            }
+
+            versionJsonRequests++;
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    $$"""
+                    {
+                      "id": "1.20.2",
+                      "type": "release",
+                      "downloads": {
+                        "client": {
+                          "url": "https://example.invalid/client.jar",
+                          "size": {{newJar.Length}},
+                          "sha1": "{{newJarSha1}}"
+                        }
+                      },
+                      "assetIndex": {
+                        "id": "empty",
+                        "url": "https://example.invalid/assets/empty.json"
+                      }
+                    }
+                    """)
+            };
+        }));
+        MinecraftVanillaInstallService service = new(client);
+
+        try
+        {
+            string instanceDirectory = Path.Combine(root, "versions", "CustomPack");
+            string versionJsonPath = Path.Combine(instanceDirectory, "CustomPack.json");
+            string versionJarPath = Path.Combine(instanceDirectory, "CustomPack.jar");
+            Directory.CreateDirectory(instanceDirectory);
+            await File.WriteAllTextAsync(
+                versionJsonPath,
+                """{"id":"CustomPack","inheritsFrom":"1.20.1","mainClass":"old.Main"}""");
+            await File.WriteAllBytesAsync(versionJarPath, oldJar);
+
+            MinecraftInstallResult result = await service.InstallAsync(
+                new MinecraftInstallRequest
+                {
+                    VersionId = "CustomPack",
+                    BaseVersionId = "1.20.2",
+                    VersionJsonUrl = "https://example.invalid/versions/1.20.2.json",
+                    MinecraftRootDirectory = root,
+                    ReplaceExistingVersion = true
+                });
+
+            Assert.AreEqual(1, versionJsonRequests);
+            Assert.AreEqual(versionJsonPath, result.VersionJsonPath);
+            JsonObject json = JsonNode.Parse(await File.ReadAllTextAsync(versionJsonPath))!.AsObject();
+            Assert.AreEqual("CustomPack", json["id"]?.GetValue<string>());
+            Assert.IsNull(json["inheritsFrom"]);
+            CollectionAssert.AreEqual(newJar, await File.ReadAllBytesAsync(versionJarPath));
+            Assert.IsFalse(Directory.EnumerateFiles(instanceDirectory)
+                .Any(file => file.Contains(".pcl-backup-", StringComparison.Ordinal)));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task InstallAsync_RestoresExistingInstanceCoreFilesWhenReplacementFails()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "pcl-install-restore-" + Guid.NewGuid().ToString("N"));
+        byte[] oldJar = [0x01, 0x02, 0x03];
+        byte[] unavailableJar = [0x50, 0x4B, 0x03, 0x04];
+        string unavailableJarSha1 = Convert.ToHexString(SHA1.HashData(unavailableJar)).ToLowerInvariant();
+        using HttpClient client = new(new DelegateHandler(request =>
+        {
+            string path = request.RequestUri!.AbsolutePath;
+            if (path.Contains("/assets/", StringComparison.Ordinal))
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""{"objects":{}}""")
+                };
+            }
+
+            if (path.EndsWith(".jar", StringComparison.Ordinal))
+                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    $$"""
+                    {
+                      "id": "1.20.2",
+                      "type": "release",
+                      "downloads": {
+                        "client": {
+                          "url": "https://example.invalid/client.jar",
+                          "size": {{unavailableJar.Length}},
+                          "sha1": "{{unavailableJarSha1}}"
+                        }
+                      },
+                      "assetIndex": {
+                        "id": "empty",
+                        "url": "https://example.invalid/assets/empty.json"
+                      }
+                    }
+                    """)
+            };
+        }));
+        MinecraftVanillaInstallService service = new(client);
+
+        try
+        {
+            string instanceDirectory = Path.Combine(root, "versions", "CustomPack");
+            string versionJsonPath = Path.Combine(instanceDirectory, "CustomPack.json");
+            string versionJarPath = Path.Combine(instanceDirectory, "CustomPack.jar");
+            const string oldJson = "{\"id\":\"CustomPack\",\"inheritsFrom\":\"1.20.1\",\"mainClass\":\"old.Main\"}";
+            Directory.CreateDirectory(instanceDirectory);
+            await File.WriteAllTextAsync(versionJsonPath, oldJson);
+            await File.WriteAllBytesAsync(versionJarPath, oldJar);
+
+            await Assert.ThrowsAsync<IOException>(() => service.InstallAsync(
+                new MinecraftInstallRequest
+                {
+                    VersionId = "CustomPack",
+                    BaseVersionId = "1.20.2",
+                    VersionJsonUrl = "https://example.invalid/versions/1.20.2.json",
+                    MinecraftRootDirectory = root,
+                    ReplaceExistingVersion = true
+                }));
+
+            Assert.AreEqual(oldJson, await File.ReadAllTextAsync(versionJsonPath));
+            CollectionAssert.AreEqual(oldJar, await File.ReadAllBytesAsync(versionJarPath));
+            Assert.IsFalse(Directory.EnumerateFiles(instanceDirectory)
+                .Any(file => file.Contains(".pcl-backup-", StringComparison.Ordinal)));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public async Task InstallAsync_DownloadsClientJarIntoInstanceDirectory()
     {
         string root = Path.Combine(Path.GetTempPath(), "pcl-install-client-" + Guid.NewGuid().ToString("N"));

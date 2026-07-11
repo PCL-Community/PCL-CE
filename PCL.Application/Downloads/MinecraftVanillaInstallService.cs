@@ -31,6 +31,7 @@ public sealed record MinecraftInstallRequest
     public bool PreferOfficialSource { get; init; } = true;
     public int DownloadThreadLimit { get; init; } = 64;
     public MinecraftLoaderInstallRequest? Loader { get; init; }
+    public bool ReplaceExistingVersion { get; init; }
 }
 
 public sealed record MinecraftInstallProgress
@@ -143,56 +144,75 @@ public sealed class MinecraftVanillaInstallService
         string vanillaInstallId = installsLoader ? baseVersionId : request.VersionId;
         string vanillaInstanceDirectory = Path.Combine(minecraftRoot, "versions", vanillaInstallId);
         string vanillaVersionJsonPath = Path.Combine(vanillaInstanceDirectory, vanillaInstallId + ".json");
-        Directory.CreateDirectory(vanillaInstanceDirectory);
-        int downloadThreadLimit = NormalizeDownloadThreadLimit(request.DownloadThreadLimit);
-
-        progress?.Report(CreateProgress("准备安装", request.VersionId, 0d, 0, 1, 0, downloadThreadLimit));
-        await DownloadIfNeededAsync(
-                MinecraftDownloadSourcePlanner.GetLauncherOrMetaSources(request.VersionJsonUrl, request.PreferOfficialSource),
-                vanillaVersionJsonPath,
-                expectedSize: -1,
-                expectedSha1: null,
-                "下载版本描述",
-                0,
-                1,
-                progress,
-                activeThreads: 1,
-                threadLimit: downloadThreadLimit,
-                cancellationToken: cancellationToken)
-            .ConfigureAwait(false);
-
-        JsonObject versionJson = await ReadJsonObjectAsync(vanillaVersionJsonPath, cancellationToken).ConfigureAwait(false);
-        await NormalizeVersionIdAsync(versionJson, vanillaInstallId, vanillaVersionJsonPath, cancellationToken).ConfigureAwait(false);
-        await DownloadVersionFilesAsync(
-                vanillaInstallId,
-                versionJson,
-                minecraftRoot,
-                vanillaInstanceDirectory,
-                request.PreferOfficialSource,
-                downloadThreadLimit,
-                progress,
-                cancellationToken)
-            .ConfigureAwait(false);
-
-        if (request.Loader is { } loaderRequest)
+        VersionCoreBackup? coreBackup = request.ReplaceExistingVersion
+            ? VersionCoreBackup.Create(minecraftRoot, request.VersionId)
+            : null;
+        bool installCompleted = false;
+        try
         {
-            MinecraftInstallResult loaderResult = await InstallLoaderAsync(
-                    request,
-                    loaderRequest,
-                    baseVersionId,
+            Directory.CreateDirectory(vanillaInstanceDirectory);
+            int downloadThreadLimit = NormalizeDownloadThreadLimit(request.DownloadThreadLimit);
+
+            progress?.Report(CreateProgress("准备安装", request.VersionId, 0d, 0, 1, 0, downloadThreadLimit));
+            await DownloadIfNeededAsync(
+                    MinecraftDownloadSourcePlanner.GetLauncherOrMetaSources(request.VersionJsonUrl, request.PreferOfficialSource),
+                    vanillaVersionJsonPath,
+                    expectedSize: -1,
+                    expectedSha1: null,
+                    "下载版本描述",
+                    0,
+                    1,
+                    progress,
+                    activeThreads: 1,
+                    threadLimit: downloadThreadLimit,
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            JsonObject versionJson = await ReadJsonObjectAsync(vanillaVersionJsonPath, cancellationToken).ConfigureAwait(false);
+            await NormalizeVersionIdAsync(versionJson, vanillaInstallId, vanillaVersionJsonPath, cancellationToken).ConfigureAwait(false);
+            await DownloadVersionFilesAsync(
+                    vanillaInstallId,
                     versionJson,
                     minecraftRoot,
+                    vanillaInstanceDirectory,
                     request.PreferOfficialSource,
                     downloadThreadLimit,
                     progress,
                     cancellationToken)
                 .ConfigureAwait(false);
-            progress?.Report(CreateProgress("安装完成", request.VersionId, 1d, 1, 1, 0, downloadThreadLimit));
-            return loaderResult;
-        }
 
-        progress?.Report(CreateProgress("安装完成", request.VersionId, 1d, 1, 1, 0, downloadThreadLimit));
-        return new MinecraftInstallResult(request.VersionId, minecraftRoot, vanillaInstanceDirectory, vanillaVersionJsonPath);
+            MinecraftInstallResult result = request.Loader is { } loaderRequest
+                ? await InstallLoaderAsync(
+                        request,
+                        loaderRequest,
+                        baseVersionId,
+                        versionJson,
+                        minecraftRoot,
+                        request.PreferOfficialSource,
+                        downloadThreadLimit,
+                        progress,
+                        cancellationToken)
+                    .ConfigureAwait(false)
+                : new MinecraftInstallResult(
+                    request.VersionId,
+                    minecraftRoot,
+                    vanillaInstanceDirectory,
+                    vanillaVersionJsonPath);
+
+            progress?.Report(CreateProgress("安装完成", request.VersionId, 1d, 1, 1, 0, downloadThreadLimit));
+            installCompleted = true;
+            return result;
+        }
+        finally
+        {
+            if (coreBackup is not null)
+            {
+                if (installCompleted)
+                    coreBackup.Commit();
+                else
+                    coreBackup.Restore();
+            }
+        }
     }
 
     public async Task<MinecraftInstallResult> RepairAsync(
@@ -706,6 +726,90 @@ public sealed class MinecraftVanillaInstallService
         {
             // Keep the original validation failure as the actionable error.
         }
+    }
+
+    private sealed class VersionCoreBackup
+    {
+        private readonly BackupEntry[] _entries;
+
+        private VersionCoreBackup(BackupEntry[] entries)
+        {
+            _entries = entries;
+        }
+
+        public static VersionCoreBackup Create(string minecraftRoot, string versionId)
+        {
+            string instanceDirectory = Path.Combine(minecraftRoot, "versions", versionId);
+            Directory.CreateDirectory(instanceDirectory);
+            string backupSuffix = ".pcl-backup-" + Guid.NewGuid().ToString("N");
+            BackupEntry[] entries =
+            [
+                CreateEntry(Path.Combine(instanceDirectory, versionId + ".json"), backupSuffix),
+                CreateEntry(Path.Combine(instanceDirectory, versionId + ".jar"), backupSuffix)
+            ];
+
+            List<BackupEntry> moved = [];
+            try
+            {
+                foreach (BackupEntry entry in entries)
+                {
+                    if (entry.BackupPath is null)
+                        continue;
+
+                    File.Move(entry.OriginalPath, entry.BackupPath);
+                    moved.Add(entry);
+                }
+            }
+            catch
+            {
+                foreach (BackupEntry entry in moved.AsEnumerable().Reverse())
+                {
+                    if (entry.BackupPath is not null && File.Exists(entry.BackupPath))
+                        File.Move(entry.BackupPath, entry.OriginalPath, overwrite: true);
+                }
+
+                throw;
+            }
+
+            return new VersionCoreBackup(entries);
+        }
+
+        public void Commit()
+        {
+            foreach (BackupEntry entry in _entries)
+            {
+                try
+                {
+                    DeleteFileIfExists(entry.BackupPath);
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    // The installed files are already committed. A stale backup is safer than failing the install.
+                }
+            }
+        }
+
+        public void Restore()
+        {
+            foreach (BackupEntry entry in _entries)
+            {
+                DeleteFileIfExists(entry.OriginalPath + ".PCLDownloading");
+                DeleteFileIfExists(entry.OriginalPath);
+                if (entry.BackupPath is not null && File.Exists(entry.BackupPath))
+                    File.Move(entry.BackupPath, entry.OriginalPath, overwrite: true);
+            }
+        }
+
+        private static BackupEntry CreateEntry(string originalPath, string backupSuffix) =>
+            new(originalPath, File.Exists(originalPath) ? originalPath + backupSuffix : null);
+
+        private static void DeleteFileIfExists(string? path)
+        {
+            if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+                File.Delete(path);
+        }
+
+        private sealed record BackupEntry(string OriginalPath, string? BackupPath);
     }
 
     private static MinecraftInstallProgress CreateProgress(

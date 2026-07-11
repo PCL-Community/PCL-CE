@@ -23,7 +23,8 @@ public sealed record DownloadInstallRequest(
     string BaseVersionId,
     string VersionJsonUrl,
     MinecraftLoaderInstallRequest? Loader,
-    string? MinecraftRootDirectory = null);
+    string? MinecraftRootDirectory = null,
+    bool ReplaceExistingVersion = false);
 
 public partial class PageDownloadInstall : MyPageRight
 {
@@ -59,10 +60,12 @@ public partial class PageDownloadInstall : MyPageRight
     private MinecraftLoaderVersionEntry? _selectedLoaderVersion;
     private string? _preferredInstallName;
     private string? _targetMinecraftRootDirectory;
+    private bool _replaceExistingVersion;
     private bool _preserveInstallNameOnLoaderSelect;
     private bool _isLoading;
     private bool _isInSelectPage;
     private bool _isUpdatingSelectName;
+    private bool _keepSelectPageOnNextEnter;
 
     public PageDownloadInstall()
         : this(new MinecraftVanillaInstallService(), new MinecraftLoaderMetadataService())
@@ -93,12 +96,15 @@ public partial class PageDownloadInstall : MyPageRight
 
     public event EventHandler<DownloadInstallRequest>? InstallRequested;
 
+    public bool HasPendingFocusedNavigation => _keepSelectPageOnNextEnter;
+
     public async Task FocusVersionAsync(
         string versionId,
         string? installName = null,
         bool preserveInstallNameOnLoaderSelect = false,
         string? minecraftRootDirectory = null,
-        MinecraftLoaderKind? openLoaderKind = null)
+        MinecraftLoaderKind? openLoaderKind = null,
+        bool replaceExistingVersion = false)
     {
         if (string.IsNullOrWhiteSpace(versionId))
             return;
@@ -106,6 +112,8 @@ public partial class PageDownloadInstall : MyPageRight
         _preferredInstallName = string.IsNullOrWhiteSpace(installName) ? null : installName.Trim();
         _preserveInstallNameOnLoaderSelect = preserveInstallNameOnLoaderSelect;
         _targetMinecraftRootDirectory = string.IsNullOrWhiteSpace(minecraftRootDirectory) ? null : minecraftRootDirectory;
+        _replaceExistingVersion = replaceExistingVersion;
+        _keepSelectPageOnNextEnter = !this.IsAttachedToVisualTree();
 
         ExitSelectPage();
         _filter = DownloadVersionFilter.All;
@@ -151,11 +159,14 @@ public partial class PageDownloadInstall : MyPageRight
         _preferredInstallName = null;
         _targetMinecraftRootDirectory = null;
         _preserveInstallNameOnLoaderSelect = false;
+        _replaceExistingVersion = false;
+        _keepSelectPageOnNextEnter = false;
     }
 
     public void ApplyVersionFilter(DownloadVersionFilter filter)
     {
-        ExitSelectPage();
+        if (!_keepSelectPageOnNextEnter)
+            ExitSelectPage();
         _filter = filter;
         if (this.FindControl<StackPanel>("PanMinecraft")?.Children.Count > 0)
             ApplyRenderedFilters();
@@ -241,7 +252,9 @@ public partial class PageDownloadInstall : MyPageRight
     public new void PageOnEnter()
     {
         base.PageOnEnter();
-        if (_isInSelectPage)
+        bool keepSelectPage = _keepSelectPageOnNextEnter;
+        _keepSelectPageOnNextEnter = false;
+        if (_isInSelectPage && !keepSelectPage)
             ExitSelectPage();
     }
 
@@ -1159,7 +1172,8 @@ public partial class PageDownloadInstall : MyPageRight
             _selectedVersion.Id,
             _selectedVersion.Url,
             loader,
-            _targetMinecraftRootDirectory);
+            _targetMinecraftRootDirectory,
+            _replaceExistingVersion);
         InstallRequested?.Invoke(this, request);
     }
 
