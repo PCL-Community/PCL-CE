@@ -21,15 +21,50 @@ internal static class DownloadLoaderRegistry
     private static readonly DownloadLoaderDescriptor[] Descriptors =
     [
         new(
+            MinecraftLoaderKind.Forge,
+            MinecraftLoaderCardId.Forge,
+            "Forge",
+            "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Anvil.png"),
+        new(
+            MinecraftLoaderKind.Cleanroom,
+            MinecraftLoaderCardId.Cleanroom,
+            "Cleanroom",
+            "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Cleanroom.png"),
+        new(
+            MinecraftLoaderKind.NeoForge,
+            MinecraftLoaderCardId.NeoForge,
+            "NeoForge",
+            "avares://PCL.Desktop/WpfOriginal/Images/Blocks/NeoForge.png"),
+        new(
             MinecraftLoaderKind.Fabric,
             MinecraftLoaderCardId.Fabric,
             "Fabric",
             "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png"),
         new(
+            MinecraftLoaderKind.LegacyFabric,
+            MinecraftLoaderCardId.LegacyFabric,
+            "Legacy Fabric",
+            "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png"),
+        new(
             MinecraftLoaderKind.Quilt,
             MinecraftLoaderCardId.Quilt,
             "Quilt",
-            "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Quilt.png")
+            "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Quilt.png"),
+        new(
+            MinecraftLoaderKind.LabyMod,
+            MinecraftLoaderCardId.LabyMod,
+            "LabyMod",
+            "avares://PCL.Desktop/WpfOriginal/Images/Blocks/LabyMod.png"),
+        new(
+            MinecraftLoaderKind.OptiFine,
+            MinecraftLoaderCardId.OptiFine,
+            "OptiFine",
+            "avares://PCL.Desktop/WpfOriginal/Images/Blocks/GrassPath.png"),
+        new(
+            MinecraftLoaderKind.LiteLoader,
+            MinecraftLoaderCardId.LiteLoader,
+            "LiteLoader",
+            "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Egg.png")
     ];
 
     public static ReadOnlySpan<DownloadLoaderDescriptor> All => Descriptors;

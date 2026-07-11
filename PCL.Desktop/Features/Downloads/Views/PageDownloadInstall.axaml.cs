@@ -696,30 +696,30 @@ public partial class PageDownloadInstall : MyPageRight
                 "与 {0} 不兼容",
                 GetLoaderDisplayName(_selectedLoaderKind.Value));
 
-        SetLoaderInfo("OptiFine", LoaderSupportState.VisibleClosed(canAdd));
+        SetLoaderInfo("OptiFine", CreateLoaderState(MinecraftLoaderKind.OptiFine, canAdd, incompatibleLoader));
         SetLoaderInfo("LiteLoader", vanillaDrop >= 130
             ? LoaderSupportState.Hidden()
-            : LoaderSupportState.VisibleClosed(canAdd));
+            : CreateLoaderState(MinecraftLoaderKind.LiteLoader, canAdd, incompatibleLoader));
         SetLoaderInfo("Forge", formatFit
-            ? LoaderSupportState.VisibleClosed(canAdd)
+            ? CreateLoaderState(MinecraftLoaderKind.Forge, canAdd, incompatibleLoader)
             : LoaderSupportState.Hidden());
         SetLoaderInfo("Cleanroom", string.Equals(versionId, "1.12.2", StringComparison.OrdinalIgnoreCase)
-            ? LoaderSupportState.VisibleClosed(canAdd)
+            ? CreateLoaderState(MinecraftLoaderKind.Cleanroom, canAdd, incompatibleLoader)
             : LoaderSupportState.Hidden());
         SetLoaderInfo("NeoForge", vanillaDrop is > 0 and < 200
             ? LoaderSupportState.Hidden()
-            : LoaderSupportState.VisibleClosed(canAdd));
+            : CreateLoaderState(MinecraftLoaderKind.NeoForge, canAdd, incompatibleLoader));
         SetLoaderInfo("Fabric", vanillaDrop > 130
             ? CreateLoaderState(MinecraftLoaderKind.Fabric, canAdd, incompatibleLoader)
             : LoaderSupportState.Hidden());
         SetLoaderInfo("LegacyFabric", vanillaDrop > 130
             ? LoaderSupportState.Hidden()
-            : LoaderSupportState.VisibleClosed(canAdd));
+            : CreateLoaderState(MinecraftLoaderKind.LegacyFabric, canAdd, incompatibleLoader));
         SetLoaderInfo("Quilt", vanillaDrop >= 144
             ? CreateLoaderState(MinecraftLoaderKind.Quilt, canAdd, incompatibleLoader)
             : LoaderSupportState.Hidden());
         SetLoaderInfo("LabyMod", vanillaDrop >= 80
-            ? LoaderSupportState.VisibleClosed(canAdd)
+            ? CreateLoaderState(MinecraftLoaderKind.LabyMod, canAdd, incompatibleLoader)
             : LoaderSupportState.Hidden());
 
         SetLoaderInfo("FabricApi", _selectedLoaderKind is MinecraftLoaderKind.Fabric or MinecraftLoaderKind.Quilt

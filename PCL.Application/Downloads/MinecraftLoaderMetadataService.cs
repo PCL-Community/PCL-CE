@@ -6,14 +6,23 @@ using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using PCL.Core.IO.Net;
 
 namespace PCL.Application.Downloads;
 
 public enum MinecraftLoaderKind
 {
+    Forge,
+    Cleanroom,
+    NeoForge,
     Fabric,
-    Quilt
+    LegacyFabric,
+    Quilt,
+    LabyMod,
+    OptiFine,
+    LiteLoader
 }
 
 public sealed record MinecraftLoaderInstallRequest(MinecraftLoaderKind Kind, string LoaderVersion);
@@ -52,8 +61,17 @@ public sealed class MinecraftLoaderMetadataService : IMinecraftLoaderMetadataSer
 {
     private const string FabricMetadataRoot = "https://meta.fabricmc.net/v2/versions/loader/";
     private const string FabricMavenRoot = "https://maven.fabricmc.net/";
+    private const string LegacyFabricMetadataRoot = "https://meta.legacyfabric.net/v2/versions/loader/";
+    private const string LegacyFabricMavenRoot = "https://maven.legacyfabric.net/";
     private const string QuiltMetadataRoot = "https://meta.quiltmc.org/v3/versions/loader/";
     private const string QuiltMavenRoot = "https://maven.quiltmc.org/repository/release/";
+    private const string ForgeMetadataUrl = "https://maven.minecraftforge.net/net/minecraftforge/forge/maven-metadata.xml";
+    private const string NeoForgeMetadataUrl = "https://maven.neoforged.net/releases/net/neoforged/neoforge/maven-metadata.xml";
+    private const string NeoForgeLegacyMetadataUrl = "https://maven.neoforged.net/releases/net/neoforged/forge/maven-metadata.xml";
+    private const string CleanroomReleasesUrl = "https://api.github.com/repos/CleanroomMC/Cleanroom/releases?per_page=100";
+    private const string LiteLoaderVersionsUrl = "https://dl.liteloader.com/versions/versions.json";
+    private const string OptiFineVersionsUrl = "https://optifine.net/downloads";
+    private const string LabyModManifestRoot = "https://releases.r2.labymod.net/api/v1/manifest/";
 
     private readonly HttpClient _httpClient;
 
@@ -67,6 +85,9 @@ public sealed class MinecraftLoaderMetadataService : IMinecraftLoaderMetadataSer
         string gameVersion,
         CancellationToken cancellationToken = default)
     {
+        if (kind is not (MinecraftLoaderKind.Fabric or MinecraftLoaderKind.LegacyFabric or MinecraftLoaderKind.Quilt))
+            return await GetSpecialLoaderVersionsAsync(kind, gameVersion, cancellationToken).ConfigureAwait(false);
+
         JsonArray versions = await GetLoaderMetadataArrayAsync(kind, gameVersion, cancellationToken).ConfigureAwait(false);
         List<MinecraftLoaderVersionEntry> result = new(versions.Count);
         foreach (JsonNode? node in versions)
@@ -92,6 +113,9 @@ public sealed class MinecraftLoaderMetadataService : IMinecraftLoaderMetadataSer
         ArgumentNullException.ThrowIfNull(request);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.LoaderVersion);
         ArgumentException.ThrowIfNullOrWhiteSpace(gameVersion);
+
+        if (request.Kind is not (MinecraftLoaderKind.Fabric or MinecraftLoaderKind.LegacyFabric or MinecraftLoaderKind.Quilt))
+            throw new NotSupportedException($"{request.Kind} 需要安装器流程，不能按 Fabric/Quilt 元数据安装。");
 
         JsonArray versions = await GetLoaderMetadataArrayAsync(request.Kind, gameVersion, cancellationToken).ConfigureAwait(false);
         foreach (JsonNode? node in versions)
@@ -146,7 +170,7 @@ public sealed class MinecraftLoaderMetadataService : IMinecraftLoaderMetadataSer
         AddLauncherMetaLibraries(libraries, launcherMeta["libraries"]?["client"]);
 
         libraries.Add(new MinecraftLoaderLibrary(mappingMaven, mappingRepository));
-        libraries.Add(new MinecraftLoaderLibrary(loaderMaven, kind == MinecraftLoaderKind.Fabric ? FabricMavenRoot : QuiltMavenRoot));
+        libraries.Add(new MinecraftLoaderLibrary(loaderMaven, GetLoaderMavenRoot(kind)));
 
         return new MinecraftLoaderInstallMetadata(
             kind,
@@ -166,7 +190,8 @@ public sealed class MinecraftLoaderMetadataService : IMinecraftLoaderMetadataSer
 
         JsonObject intermediary = entry["intermediary"] as JsonObject
                                   ?? throw new FormatException("加载器元数据缺少 intermediary 节点。");
-        return (RequiredString(intermediary, "maven"), FabricMavenRoot);
+        return (RequiredString(intermediary, "maven"),
+            kind == MinecraftLoaderKind.LegacyFabric ? LegacyFabricMavenRoot : FabricMavenRoot);
     }
 
     private static void AddLauncherMetaLibraries(List<MinecraftLoaderLibrary> libraries, JsonNode? node)
@@ -238,9 +263,201 @@ public sealed class MinecraftLoaderMetadataService : IMinecraftLoaderMetadataSer
         kind switch
         {
             MinecraftLoaderKind.Fabric => FabricMetadataRoot,
+            MinecraftLoaderKind.LegacyFabric => LegacyFabricMetadataRoot,
             MinecraftLoaderKind.Quilt => QuiltMetadataRoot,
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
         };
+
+    private static string GetLoaderMavenRoot(MinecraftLoaderKind kind) =>
+        kind switch
+        {
+            MinecraftLoaderKind.Fabric or MinecraftLoaderKind.LegacyFabric => FabricMavenRoot,
+            MinecraftLoaderKind.Quilt => QuiltMavenRoot,
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
+        };
+
+    private Task<IReadOnlyList<MinecraftLoaderVersionEntry>> GetSpecialLoaderVersionsAsync(
+        MinecraftLoaderKind kind,
+        string gameVersion,
+        CancellationToken cancellationToken) =>
+        kind switch
+        {
+            MinecraftLoaderKind.Forge => GetForgeVersionsAsync(gameVersion, cancellationToken),
+            MinecraftLoaderKind.NeoForge => GetNeoForgeVersionsAsync(gameVersion, cancellationToken),
+            MinecraftLoaderKind.Cleanroom => GetCleanroomVersionsAsync(gameVersion, cancellationToken),
+            MinecraftLoaderKind.LiteLoader => GetLiteLoaderVersionsAsync(gameVersion, cancellationToken),
+            MinecraftLoaderKind.OptiFine => GetOptiFineVersionsAsync(gameVersion, cancellationToken),
+            MinecraftLoaderKind.LabyMod => GetLabyModVersionsAsync(gameVersion, cancellationToken),
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
+        };
+
+    private async Task<IReadOnlyList<MinecraftLoaderVersionEntry>> GetForgeVersionsAsync(
+        string gameVersion,
+        CancellationToken cancellationToken)
+    {
+        string xml = await GetStringAsync(ForgeMetadataUrl, cancellationToken).ConfigureAwait(false);
+        string prefix = NormalizeGameVersion(gameVersion).Replace("-", "_", StringComparison.Ordinal) + "-";
+        return ReadMavenVersions(xml)
+            .Where(version => version.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            .Select(version => version[prefix.Length..])
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select(version => new MinecraftLoaderVersionEntry(MinecraftLoaderKind.Forge, version, IsReleaseVersion(version)))
+            .ToArray();
+    }
+
+    private async Task<IReadOnlyList<MinecraftLoaderVersionEntry>> GetNeoForgeVersionsAsync(
+        string gameVersion,
+        CancellationToken cancellationToken)
+    {
+        List<string> versions = [];
+        if (string.Equals(gameVersion, "1.20.1", StringComparison.OrdinalIgnoreCase))
+        {
+            string legacyXml = await GetStringAsync(NeoForgeLegacyMetadataUrl, cancellationToken).ConfigureAwait(false);
+            versions.AddRange(ReadMavenVersions(legacyXml).Where(version => version.StartsWith("1.20.1-", StringComparison.Ordinal)));
+        }
+        else
+        {
+            string xml = await GetStringAsync(NeoForgeMetadataUrl, cancellationToken).ConfigureAwait(false);
+            versions.AddRange(ReadMavenVersions(xml).Where(version =>
+                string.Equals(GetNeoForgeGameVersion(version), gameVersion, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        return versions
+            .AsEnumerable()
+            .Reverse()
+            .Where(static version => !string.Equals(version, "1.20.1-47.1.82", StringComparison.Ordinal))
+            .Select(version => new MinecraftLoaderVersionEntry(
+                MinecraftLoaderKind.NeoForge,
+                version.StartsWith("1.20.1-", StringComparison.Ordinal) ? version[7..] : version,
+                IsReleaseVersion(version)))
+            .ToArray();
+    }
+
+    private async Task<IReadOnlyList<MinecraftLoaderVersionEntry>> GetCleanroomVersionsAsync(
+        string gameVersion,
+        CancellationToken cancellationToken)
+    {
+        if (!string.Equals(gameVersion, "1.12.2", StringComparison.OrdinalIgnoreCase))
+            return [];
+
+        string json = await GetStringAsync(CleanroomReleasesUrl, cancellationToken).ConfigureAwait(false);
+        JsonArray releases = JsonNode.Parse(json) as JsonArray
+                             ?? throw new FormatException("Cleanroom 发布列表不是数组。");
+        return releases
+            .OfType<JsonObject>()
+            .Select(release => release["tag_name"]?.ToString())
+            .Where(static version => !string.IsNullOrWhiteSpace(version))
+            .Select(version => new MinecraftLoaderVersionEntry(
+                MinecraftLoaderKind.Cleanroom,
+                version!,
+                IsReleaseVersion(version!)))
+            .ToArray();
+    }
+
+    private async Task<IReadOnlyList<MinecraftLoaderVersionEntry>> GetLiteLoaderVersionsAsync(
+        string gameVersion,
+        CancellationToken cancellationToken)
+    {
+        string json = await GetStringAsync(LiteLoaderVersionsUrl, cancellationToken).ConfigureAwait(false);
+        JsonObject root = JsonNode.Parse(json) as JsonObject
+                          ?? throw new FormatException("LiteLoader 版本列表不是对象。");
+        JsonObject? game = root["versions"]?[gameVersion] as JsonObject;
+        JsonObject? channel = game?["artefacts"] as JsonObject ?? game?["snapshots"] as JsonObject;
+        JsonObject? latest = channel?["com.mumfrey:liteloader"]?["latest"] as JsonObject;
+        string? version = latest?["version"]?.ToString();
+        if (string.IsNullOrWhiteSpace(version))
+            return [];
+
+        bool stable = !string.Equals(latest?["stream"]?.ToString(), "SNAPSHOT", StringComparison.OrdinalIgnoreCase);
+        return [new MinecraftLoaderVersionEntry(MinecraftLoaderKind.LiteLoader, version, stable)];
+    }
+
+    private async Task<IReadOnlyList<MinecraftLoaderVersionEntry>> GetOptiFineVersionsAsync(
+        string gameVersion,
+        CancellationToken cancellationToken)
+    {
+        string html = await GetStringAsync(OptiFineVersionsUrl, cancellationToken).ConfigureAwait(false);
+        MatchCollection matches = Regex.Matches(
+            html,
+            "OptiFine_(?<version>[0-9A-Za-z_.]+)\\.jar",
+            RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+        string prefix = gameVersion + "_";
+        return matches.Cast<Match>()
+            .Select(match => match.Groups["version"].Value)
+            .Where(version => version.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select(version => new MinecraftLoaderVersionEntry(MinecraftLoaderKind.OptiFine, version, IsReleaseVersion(version)))
+            .ToArray();
+    }
+
+    private async Task<IReadOnlyList<MinecraftLoaderVersionEntry>> GetLabyModVersionsAsync(
+        string gameVersion,
+        CancellationToken cancellationToken)
+    {
+        List<MinecraftLoaderVersionEntry> result = [];
+        foreach ((string channel, bool stable) in new[] { ("production", true), ("snapshot", false) })
+        {
+            string json = await GetStringAsync(LabyModManifestRoot + channel + "/latest.json", cancellationToken)
+                .ConfigureAwait(false);
+            JsonObject manifest = JsonNode.Parse(json) as JsonObject
+                                  ?? throw new FormatException($"LabyMod {channel} 清单不是对象。");
+            bool supportsGame = manifest["minecraftVersions"] is JsonArray games && games
+                .OfType<JsonObject>()
+                .Any(game => string.Equals(game["version"]?.ToString(), gameVersion, StringComparison.OrdinalIgnoreCase) ||
+                             string.Equals(game["tag"]?.ToString(), gameVersion, StringComparison.OrdinalIgnoreCase));
+            if (!supportsGame)
+                continue;
+
+            string? version = manifest["labyModVersion"]?.ToString();
+            string? commit = manifest["commitReference"]?.ToString();
+            if (!string.IsNullOrWhiteSpace(version) && !string.IsNullOrWhiteSpace(commit))
+                result.Add(new MinecraftLoaderVersionEntry(MinecraftLoaderKind.LabyMod, $"{channel}:{version}:{commit}", stable));
+        }
+
+        return result;
+    }
+
+    private async Task<string> GetStringAsync(string url, CancellationToken cancellationToken)
+    {
+        using HttpRequestMessage request = new(HttpMethod.Get, url);
+        ConfigureRequest(request);
+        using HttpResponseMessage response = await _httpClient.SendAsync(
+                request,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken)
+            .ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+        return await PortableHttp.ReadStringAsync(response, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static IEnumerable<string> ReadMavenVersions(string xml)
+    {
+        XDocument document = XDocument.Parse(xml, LoadOptions.None);
+        return document.Descendants("version")
+            .Select(static element => element.Value.Trim())
+            .Where(static version => !string.IsNullOrWhiteSpace(version));
+    }
+
+    private static string? GetNeoForgeGameVersion(string version)
+    {
+        string numeric = version.Split('-', 2)[0];
+        string[] pieces = numeric.Split('.');
+        if (pieces.Length < 2 || !int.TryParse(pieces[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int major))
+            return null;
+
+        if (major == 0 && pieces.Length >= 2)
+            return pieces[1];
+        return major >= 24
+            ? $"{major}.{pieces[1]}" + (pieces.Length > 2 && pieces[2] != "0" ? "." + pieces[2] : string.Empty)
+            : $"1.{major}" + (pieces[1] != "0" ? "." + pieces[1] : string.Empty);
+    }
+
+    private static bool IsReleaseVersion(string version) =>
+        !version.Contains("alpha", StringComparison.OrdinalIgnoreCase) &&
+        !version.Contains("beta", StringComparison.OrdinalIgnoreCase) &&
+        !version.Contains("snapshot", StringComparison.OrdinalIgnoreCase) &&
+        !version.Contains("pre", StringComparison.OrdinalIgnoreCase) &&
+        !version.Contains("rc", StringComparison.OrdinalIgnoreCase);
 
     private static string NormalizeGameVersion(string version) =>
         version.Replace("∞", "infinite", StringComparison.Ordinal)
