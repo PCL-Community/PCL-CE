@@ -8,14 +8,17 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using Avalonia.Threading;
 
 namespace PCL.Desktop.Controls.Legacy;
 
 public partial class FontSelector : ContentControl
 {
     private bool _fontsLoaded;
+    private bool _isInitializing;
+    private bool _hasPendingFontTag;
+    private Task? _loadTask;
     private MyComboBox? _comboFont;
+    private string _pendingFontTag = string.Empty;
     private string? _tooltip;
 
     public FontSelector()
@@ -52,16 +55,15 @@ public partial class FontSelector : ContentControl
         get => (ComboFontControl.SelectedItem as CustomFontProperties)?.Tag;
         set
         {
-            for (int i = 0; i < CustomFontCollection.Count; i++)
+            string normalized = value?.Trim() ?? string.Empty;
+            if (!_fontsLoaded || CustomFontCollection.Any(static font => font.Tag == "__loading"))
             {
-                if (string.Equals(CustomFontCollection[i].Tag, value, StringComparison.Ordinal))
-                {
-                    ComboFontControl.SelectedIndex = i;
-                    return;
-                }
+                _pendingFontTag = normalized;
+                _hasPendingFontTag = true;
+                return;
             }
 
-            ComboFontControl.SelectedIndex = 0;
+            SelectFont(normalized);
         }
     }
 
@@ -85,12 +87,18 @@ public partial class FontSelector : ContentControl
         _comboFont ??= this.FindControl<MyComboBox>("ComboFont")
             ?? throw new InvalidOperationException("FontSelector 缺少 ComboFont。");
 
-    private async Task LoadFontsAsync()
+    private Task LoadFontsAsync()
+    {
+        return EnsureFontsLoadedAsync();
+    }
+
+    private Task LoadFontsCoreAsync(FontFamily[]? suppliedFonts)
     {
         if (_fontsLoaded)
-            return;
+            return Task.CompletedTask;
 
         _fontsLoaded = true;
+        _isInitializing = true;
         MyComboBox comboFont = ComboFontControl;
         comboFont.IsEnabled = false;
         CustomFontCollection.Clear();
@@ -98,31 +106,54 @@ public partial class FontSelector : ContentControl
         CustomFontCollection.Add(new CustomFontProperties("正在加载字体列表...", FontFamily.Default, "__loading"));
         comboFont.SelectedIndex = 0;
 
-        List<CustomFontProperties> fonts = await Task.Run(static () =>
-            FontManager.Current.SystemFonts
-                .Select(static font => new CustomFontProperties(
-                    string.IsNullOrWhiteSpace(font.Name) ? font.ToString() : font.Name,
-                    font,
-                    string.IsNullOrWhiteSpace(font.Name) ? font.ToString() : font.Name))
-                .DistinctBy(static font => font.Tag, StringComparer.OrdinalIgnoreCase)
-                .OrderBy(static font => font.Name, StringComparer.CurrentCultureIgnoreCase)
-                .ToList()).ConfigureAwait(false);
+        FontFamily[] systemFonts = suppliedFonts ?? FontManager.Current.SystemFonts.ToArray();
+        List<CustomFontProperties> fonts = systemFonts
+            .Select(static font => new CustomFontProperties(
+                string.IsNullOrWhiteSpace(font.Name) ? font.ToString() : font.Name,
+                font,
+                string.IsNullOrWhiteSpace(font.Name) ? font.ToString() : font.Name))
+            .DistinctBy(static font => font.Tag, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(static font => font.Name, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
 
-        await Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            CustomFontCollection.Clear();
-            CustomFontCollection.Add(new CustomFontProperties("默认", FontFamily.Default, string.Empty));
-            foreach (CustomFontProperties font in fonts)
-                CustomFontCollection.Add(font);
+        CustomFontCollection.Clear();
+        CustomFontCollection.Add(new CustomFontProperties("默认", FontFamily.Default, string.Empty));
+        foreach (CustomFontProperties font in fonts)
+            CustomFontCollection.Add(font);
 
-            MyComboBox uiComboFont = ComboFontControl;
-            uiComboFont.SelectedIndex = 0;
-            uiComboFont.IsEnabled = base.IsEnabled;
-        });
+        MyComboBox uiComboFont = ComboFontControl;
+        SelectFont(_hasPendingFontTag ? _pendingFontTag : string.Empty);
+        _hasPendingFontTag = false;
+        uiComboFont.IsEnabled = base.IsEnabled;
+        _isInitializing = false;
+        return Task.CompletedTask;
     }
 
-    private void ComboFontSelectionChanged(object? sender, SelectionChangedEventArgs e) =>
-        SelectionChanged?.Invoke(this, e);
+    public Task EnsureFontsLoadedAsync(IEnumerable<FontFamily>? suppliedFonts = null)
+    {
+        FontFamily[]? snapshot = suppliedFonts?.ToArray();
+        return _loadTask ??= LoadFontsCoreAsync(snapshot);
+    }
+
+    private void SelectFont(string tag)
+    {
+        for (int i = 0; i < CustomFontCollection.Count; i++)
+        {
+            if (!string.Equals(CustomFontCollection[i].Tag, tag, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            ComboFontControl.SelectedIndex = i;
+            return;
+        }
+
+        ComboFontControl.SelectedIndex = CustomFontCollection.Count == 0 ? -1 : 0;
+    }
+
+    private void ComboFontSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (!_isInitializing)
+            SelectionChanged?.Invoke(this, e);
+    }
 
     public sealed class CustomFontProperties(string name, FontFamily font, string tag)
     {

@@ -6,6 +6,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.LogicalTree;
 using Avalonia.VisualTree;
+using System.Runtime.CompilerServices;
 using PCL.Application.Settings;
 using PCL.Core.App;
 using PCL.Desktop.Controls.Legacy;
@@ -18,6 +19,7 @@ internal static class LauncherSettingsPageBinder
 {
     private const string SettingsPathOverrideEnvironmentVariable = "PCLN_LAUNCHER_SETTINGS_PATH";
     private static readonly object LatestSavedSettingsLock = new();
+    private static readonly ConditionalWeakTable<MyPageRight, BindingState> BindingStates = new();
     private static LatestSavedSettings? _latestSavedSettings;
 
     private static readonly ColorTheme[] ThemeOrder =
@@ -40,15 +42,17 @@ internal static class LauncherSettingsPageBinder
     {
         ArgumentNullException.ThrowIfNull(page);
 
+        BindingState state = new(page, settingsApplied);
+        BindingStates.Remove(page);
+        BindingStates.Add(page, state);
         LauncherSettings settings = LoadSettings();
-        bool isApplying = true;
         ApplySettings(page, settings);
         settingsApplied?.Invoke(settings);
-        isApplying = false;
+        state.IsApplying = false;
         Window? ownerWindow = null;
         page.AttachedToVisualTree += (_, _) =>
         {
-            isApplying = false;
+            state.IsApplying = false;
             if (TopLevel.GetTopLevel(page) is not Window window || ReferenceEquals(ownerWindow, window))
                 return;
 
@@ -63,12 +67,12 @@ internal static class LauncherSettingsPageBinder
             ownerWindow.Closing += OwnerWindow_Closing;
             ownerWindow.Closed += OwnerWindow_Closed;
         };
-        page.DetachedFromVisualTree += (_, _) => isApplying = true;
-        page.DetachedFromLogicalTree += (_, _) => isApplying = true;
+        page.DetachedFromVisualTree += (_, _) => state.IsApplying = true;
+        page.DetachedFromLogicalTree += (_, _) => state.IsApplying = true;
 
         void OwnerWindow_Closing(object? sender, WindowClosingEventArgs e)
         {
-            isApplying = true;
+            state.IsApplying = true;
             if (ownerWindow is not null)
             {
                 UnwireOwnerWindow(ownerWindow);
@@ -76,13 +80,13 @@ internal static class LauncherSettingsPageBinder
             ownerWindow = null;
         }
 
-        void OwnerWindow_Activated(object? sender, EventArgs e) => isApplying = false;
+        void OwnerWindow_Activated(object? sender, EventArgs e) => state.IsApplying = false;
 
-        void OwnerWindow_Deactivated(object? sender, EventArgs e) => isApplying = true;
+        void OwnerWindow_Deactivated(object? sender, EventArgs e) => state.IsApplying = true;
 
         void OwnerWindow_Closed(object? sender, EventArgs e)
         {
-            isApplying = true;
+            state.IsApplying = true;
             FlushLatestSettings();
             if (ownerWindow is not null)
             {
@@ -99,11 +103,11 @@ internal static class LauncherSettingsPageBinder
             window.Closed -= OwnerWindow_Closed;
         }
 
-        foreach (MyCheckBox checkBox in page.GetVisualDescendants().OfType<MyCheckBox>())
+        foreach (MyCheckBox checkBox in GetControlDescendants(page).OfType<MyCheckBox>())
         {
             checkBox.Change += (_, _) =>
             {
-                if (isApplying || !IsInteractive(page))
+                if (state.IsApplying || !IsInteractive(page))
                     return;
 
                 string? tag = GetTag(checkBox);
@@ -120,11 +124,11 @@ internal static class LauncherSettingsPageBinder
             };
         }
 
-        foreach (MyComboBox comboBox in page.GetVisualDescendants().OfType<MyComboBox>())
+        foreach (MyComboBox comboBox in GetControlDescendants(page).OfType<MyComboBox>())
         {
             void PersistComboBox()
             {
-                if (isApplying || !IsInteractive(page) || comboBox.SelectedIndex < 0)
+                if (state.IsApplying || !IsInteractive(page) || comboBox.SelectedIndex < 0)
                     return;
 
                 string? tag = GetTag(comboBox);
@@ -171,7 +175,7 @@ internal static class LauncherSettingsPageBinder
             {
                 comboBox.TextChanged += (_, _) =>
                 {
-                    if (isApplying || !IsInteractive(page))
+                    if (state.IsApplying || !IsInteractive(page))
                         return;
 
                     string? tag = GetTag(comboBox);
@@ -185,11 +189,11 @@ internal static class LauncherSettingsPageBinder
             }
         }
 
-        foreach (MySlider slider in page.GetVisualDescendants().OfType<MySlider>())
+        foreach (MySlider slider in GetControlDescendants(page).OfType<MySlider>())
         {
             slider.Change += (_, _) =>
             {
-                if (isApplying || !IsInteractive(page))
+                if (state.IsApplying || !IsInteractive(page))
                     return;
 
                 string? tag = GetTag(slider);
@@ -202,11 +206,11 @@ internal static class LauncherSettingsPageBinder
             };
         }
 
-        foreach (MyTextBox textBox in page.GetVisualDescendants().OfType<MyTextBox>())
+        foreach (MyTextBox textBox in GetControlDescendants(page).OfType<MyTextBox>())
         {
             textBox.TextChanged += (_, _) =>
             {
-                if (isApplying || !IsInteractive(page))
+                if (state.IsApplying || !IsInteractive(page))
                     return;
 
                 string? tag = GetTag(textBox);
@@ -219,11 +223,11 @@ internal static class LauncherSettingsPageBinder
             };
         }
 
-        foreach (MyRadioBox radioBox in page.GetVisualDescendants().OfType<MyRadioBox>())
+        foreach (MyRadioBox radioBox in GetControlDescendants(page).OfType<MyRadioBox>())
         {
             radioBox.Check += (_, _) =>
             {
-                if (isApplying || !IsInteractive(page) || !radioBox.Checked)
+                if (state.IsApplying || !IsInteractive(page) || !radioBox.Checked)
                     return;
 
                 if (!TryParseRadioTag(GetTag(radioBox), out string? key, out int value))
@@ -236,9 +240,94 @@ internal static class LauncherSettingsPageBinder
         }
     }
 
+    internal static bool ResetPage(MyPageRight page)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+        if (!BindingStates.TryGetValue(page, out BindingState? state))
+            return false;
+
+        state.IsApplying = true;
+        try
+        {
+            LauncherSettings settings = LoadSettings();
+            LauncherSettings defaults = new();
+            bool resetAutoRepair = page is PageSetupLaunch;
+            bool resetColorMode = page is PageSetupUI;
+            bool resetLightColor = page is PageSetupUI;
+            bool resetDarkColor = page is PageSetupUI;
+            bool resetDownloadSource = page is PageSetupGameManage;
+
+            foreach (Control control in state.TaggedControls)
+            {
+                string? tag = GetTag(control);
+                if (string.IsNullOrWhiteSpace(tag))
+                    continue;
+
+                string settingKey = control is MyRadioBox && TryParseRadioTag(tag, out string key, out _)
+                    ? key
+                    : tag;
+                settings.BooleanOptions.Remove(settingKey);
+                settings.IntegerOptions.Remove(settingKey);
+                settings.TextOptions.Remove(settingKey);
+
+                resetAutoRepair |= tag == "LaunchAutoRepairGame";
+                resetColorMode |= tag == "UiDarkMode";
+                resetLightColor |= tag == "UiLightColor";
+                resetDarkColor |= tag == "UiDarkColor";
+                resetDownloadSource |= tag is "ToolDownloadSource" or "ToolDownloadVersion" or "ToolDownloadMod";
+            }
+
+            settings = settings with
+            {
+                AutomaticallyRepairGameIssues = resetAutoRepair
+                    ? defaults.AutomaticallyRepairGameIssues
+                    : settings.AutomaticallyRepairGameIssues,
+                ColorMode = resetColorMode ? defaults.ColorMode : settings.ColorMode,
+                LightColor = resetLightColor ? defaults.LightColor : settings.LightColor,
+                DarkColor = resetDarkColor ? defaults.DarkColor : settings.DarkColor,
+                DownloadSource = resetDownloadSource ? defaults.DownloadSource : settings.DownloadSource
+            };
+
+            SaveSettings(settings);
+            state.RestoreControlDefaults();
+            ApplySettings(page, settings);
+            state.SettingsApplied?.Invoke(settings);
+            if (page is IRefreshableSettingsPage refreshable)
+                refreshable.RefreshPage();
+            return true;
+        }
+        finally
+        {
+            state.IsApplying = !page.IsAttachedToVisualTree();
+        }
+    }
+
+    internal static bool ReloadPage(MyPageRight page)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+        if (!BindingStates.TryGetValue(page, out BindingState? state))
+            return false;
+
+        state.IsApplying = true;
+        try
+        {
+            LauncherSettings settings = LoadSettings();
+            state.RestoreControlDefaults();
+            ApplySettings(page, settings);
+            state.SettingsApplied?.Invoke(settings);
+            if (page is IRefreshableSettingsPage refreshable)
+                refreshable.RefreshPage();
+            return true;
+        }
+        finally
+        {
+            state.IsApplying = !page.IsAttachedToVisualTree();
+        }
+    }
+
     private static void ApplySettings(MyPageRight page, LauncherSettings settings)
     {
-        foreach (MyComboBox comboBox in page.GetVisualDescendants().OfType<MyComboBox>())
+        foreach (MyComboBox comboBox in GetControlDescendants(page).OfType<MyComboBox>())
         {
             string? tag = GetTag(comboBox);
             if (string.IsNullOrWhiteSpace(tag))
@@ -262,7 +351,7 @@ internal static class LauncherSettingsPageBinder
                 comboBox.Text = text ?? string.Empty;
         }
 
-        foreach (MyCheckBox checkBox in page.GetVisualDescendants().OfType<MyCheckBox>())
+        foreach (MyCheckBox checkBox in GetControlDescendants(page).OfType<MyCheckBox>())
         {
             string? tag = GetTag(checkBox);
             if (string.IsNullOrWhiteSpace(tag))
@@ -274,21 +363,21 @@ internal static class LauncherSettingsPageBinder
                 checkBox.Checked = value;
         }
 
-        foreach (MySlider slider in page.GetVisualDescendants().OfType<MySlider>())
+        foreach (MySlider slider in GetControlDescendants(page).OfType<MySlider>())
         {
             string? tag = GetTag(slider);
             if (!string.IsNullOrWhiteSpace(tag) && settings.TryGetIntegerOption(tag, out int value))
                 slider.Value = Math.Clamp(value, 0, slider.MaxValue);
         }
 
-        foreach (MyTextBox textBox in page.GetVisualDescendants().OfType<MyTextBox>())
+        foreach (MyTextBox textBox in GetControlDescendants(page).OfType<MyTextBox>())
         {
             string? tag = GetTag(textBox);
             if (!string.IsNullOrWhiteSpace(tag) && settings.TryGetTextOption(tag, out string? value))
                 textBox.Text = value ?? string.Empty;
         }
 
-        foreach (IGrouping<string, MyRadioBox> group in page.GetVisualDescendants()
+        foreach (IGrouping<string, MyRadioBox> group in GetControlDescendants(page)
                      .OfType<MyRadioBox>()
                      .Select(static radio => (Radio: radio, Parsed: TryParseRadioTag(GetTag(radio), out string? key, out int value)
                          ? (Key: key, Value: value)
@@ -355,6 +444,12 @@ internal static class LauncherSettingsPageBinder
 
     private static string? GetTag(Control control) => control.Tag?.ToString();
 
+    private static IEnumerable<Control> GetControlDescendants(Control page) =>
+        page.GetVisualDescendants()
+            .OfType<Control>()
+            .Concat(page.GetLogicalDescendants().OfType<Control>())
+            .Distinct();
+
     private static bool IsInteractive(Control page)
     {
         if (!page.IsAttachedToVisualTree())
@@ -394,4 +489,57 @@ internal static class LauncherSettingsPageBinder
     }
 
     private sealed record LatestSavedSettings(string SettingsPath, LauncherSettings Settings);
+
+    private sealed class BindingState
+    {
+        private readonly Dictionary<MyComboBox, (int Index, string Text)> _comboDefaults;
+        private readonly Dictionary<MyCheckBox, bool?> _checkDefaults;
+        private readonly Dictionary<MySlider, int> _sliderDefaults;
+        private readonly Dictionary<MyTextBox, string> _textDefaults;
+        private readonly Dictionary<MyRadioBox, bool> _radioDefaults;
+
+        public BindingState(MyPageRight page, Action<LauncherSettings>? settingsApplied)
+        {
+            SettingsApplied = settingsApplied;
+            TaggedControls = GetControlDescendants(page)
+                .Where(static control => !string.IsNullOrWhiteSpace(GetTag(control)))
+                .ToArray();
+            _comboDefaults = TaggedControls.OfType<MyComboBox>()
+                .ToDictionary(static combo => combo, static combo => (combo.SelectedIndex, combo.Text ?? string.Empty));
+            _checkDefaults = TaggedControls.OfType<MyCheckBox>()
+                .ToDictionary(static check => check, static check => check.Checked);
+            _sliderDefaults = TaggedControls.OfType<MySlider>()
+                .ToDictionary(static slider => slider, static slider => slider.Value);
+            _textDefaults = TaggedControls.OfType<MyTextBox>()
+                .ToDictionary(static text => text, static text => text.Text ?? string.Empty);
+            _radioDefaults = TaggedControls.OfType<MyRadioBox>()
+                .ToDictionary(static radio => radio, static radio => radio.Checked);
+        }
+
+        public bool IsApplying { get; set; } = true;
+
+        public Control[] TaggedControls { get; }
+
+        public Action<LauncherSettings>? SettingsApplied { get; }
+
+        public void RestoreControlDefaults()
+        {
+            foreach ((MyComboBox combo, (int index, string text)) in _comboDefaults)
+            {
+                if (combo.ItemCount > 0)
+                    combo.SelectedIndex = Math.Clamp(index, 0, combo.ItemCount - 1);
+                if (combo.IsEditable)
+                    combo.Text = text;
+            }
+
+            foreach ((MyCheckBox check, bool? value) in _checkDefaults)
+                check.Checked = value;
+            foreach ((MySlider slider, int value) in _sliderDefaults)
+                slider.Value = value;
+            foreach ((MyTextBox text, string value) in _textDefaults)
+                text.Text = value;
+            foreach ((MyRadioBox radio, bool value) in _radioDefaults)
+                radio.Checked = value;
+        }
+    }
 }

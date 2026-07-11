@@ -57,14 +57,40 @@ public partial class PageSetupLeft : MyPageLeft
 
     public event EventHandler<MyPageRight>? PageCreated;
 
+    public event EventHandler<SettingsConfirmRequestedEventArgs>? ResetRequested;
+
     public SetupPageSubType PageId { get; private set; }
 
     public MyPageRight GetOrCreateCurrentPage() => PageGet(PageId);
 
     public void Reset(object? sender, EventArgs e)
     {
-        if (sender is MyIconButton button && TryReadPage(button.Tag, out SetupPageSubType page))
-            PageChange(page);
+        if (sender is not MyIconButton button || !TryReadPage(button.Tag, out SetupPageSubType page))
+            return;
+
+        MyPageRight target = PageGet(page);
+        PageChange(page, force: true);
+        void Complete(bool confirmed)
+        {
+            if (!confirmed)
+                return;
+
+            if (target is PageSetupLauncherLanguage languagePage)
+                languagePage.Reset();
+            else
+                LauncherSettingsPageBinder.ResetPage(target);
+        }
+
+        SettingsConfirmRequestedEventArgs args = new(
+            "初始化设置",
+            $"确定要将“{GetPageTitle(page)}”恢复为默认设置吗？",
+            Complete,
+            primaryButton: "初始化",
+            isWarn: true);
+        if (ResetRequested is { } resetRequested)
+            resetRequested.Invoke(this, args);
+        else
+            Complete(true);
     }
 
     public void Refresh(object? sender, EventArgs e)

@@ -38,6 +38,7 @@ public static class AvaloniaThemeManager
         {
             application.RequestedThemeVariant = IsDarkMode ? ThemeVariant.Dark : ThemeVariant.Light;
             ApplyResources(application.Resources, ThemeColorPalette.Create(IsDarkMode, ResolveTheme(IsDarkMode)));
+            application.Resources["LaunchFontFamily"] = ResolveLaunchFontFamily(CurrentSettings);
         }
     }
 
@@ -87,6 +88,22 @@ public static class AvaloniaThemeManager
                 resources[entry.Key] = new SolidColorBrush(entry.Value);
             else
                 resources[entry.Key] = entry.Value;
+        }
+    }
+
+    private static FontFamily ResolveLaunchFontFamily(LauncherSettings settings)
+    {
+        string fontName = settings.GetTextOption("UiFont").Trim();
+        if (string.IsNullOrEmpty(fontName))
+            return new FontFamily("Microsoft YaHei UI, Segoe UI, Arial");
+
+        try
+        {
+            return new FontFamily(fontName);
+        }
+        catch (ArgumentException)
+        {
+            return new FontFamily("Microsoft YaHei UI, Segoe UI, Arial");
         }
     }
 }

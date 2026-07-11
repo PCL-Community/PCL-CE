@@ -24,6 +24,12 @@ public static class LauncherSettingKeys
 
     public static readonly SettingKey LaunchSelectedJava = new("LaunchSelectedJava");
 
+    public static readonly SettingKey LaunchSelectedInstanceDirectory = new("LaunchSelectedInstanceDirectory");
+
+    public static readonly SettingKey LaunchMinecraftFolders = new("LaunchMinecraftFolders");
+
+    public static readonly SettingKey LaunchSelectedMinecraftRoot = new("LaunchSelectedMinecraftRoot");
+
     public static readonly SettingKey JavaCustomRoots = new("JavaCustomRoots");
 
     public static readonly SettingKey HintDownloadThread = new("HintDownloadThread");

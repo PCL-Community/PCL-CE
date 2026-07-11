@@ -7,6 +7,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Threading;
+using PCL.Application.Settings;
 using PCL.Desktop.Controls.Legacy;
 
 namespace PCL.Desktop.Features.Settings.Views;
@@ -15,20 +17,24 @@ public partial class PageSetupLauncherLanguage : MyPageRight
 {
     private const string Auto = "auto";
     private const string FormatCultureFollowLanguage = "follow-language";
-    private static string _language = Auto;
-    private static string _formatCulture = Auto;
+    private string _language = Auto;
+    private string _formatCulture = Auto;
     private bool _isLoaded;
+    private bool _reloadQueued;
 
     public PageSetupLauncherLanguage()
     {
         AvaloniaXamlLoader.Load(this);
-        PanScroll = PanBack;
+        PanScroll = LanguageScroll;
+        LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+        _language = NormalizeConfigValue(settings.GetTextOption("UiLanguage", Auto));
+        _formatCulture = NormalizeConfigValue(settings.GetTextOption("UiFormatCulture", Auto));
         AttachedToVisualTree += PageSetupLauncherLanguage_Loaded;
     }
 
     private void PageSetupLauncherLanguage_Loaded(object? sender, VisualTreeAttachmentEventArgs e)
     {
-        PanBack.Offset = Vector.Zero;
+        LanguageScroll.Offset = Vector.Zero;
         if (_isLoaded)
             return;
 
@@ -62,14 +68,18 @@ public partial class PageSetupLauncherLanguage : MyPageRight
     {
         _language = Auto;
         _formatCulture = Auto;
+        LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+        settings.TextOptions.Remove("UiLanguage");
+        settings.TextOptions.Remove("UiFormatCulture");
+        LauncherSettingsPageBinder.SaveSettings(settings);
         Reload();
     }
 
     private void ReloadLanguageCombo()
     {
-        ComboUiLanguage.Items.Clear();
+        LanguageCombo.Items.Clear();
         SupportedLanguage autoLanguage = ResolveLanguage(Auto);
-        ComboUiLanguage.Items.Add(CreateLanguageComboItem(
+        LanguageCombo.Items.Add(CreateLanguageComboItem(
             string.Format(
                 CultureInfo.CurrentCulture,
                 FindString("Setup.LauncherLanguage.UiLanguage.Auto", "跟随系统（{0}）"),
@@ -78,30 +88,30 @@ public partial class PageSetupLauncherLanguage : MyPageRight
             autoLanguage));
 
         foreach (SupportedLanguage language in SupportedLanguages)
-            ComboUiLanguage.Items.Add(CreateLanguageComboItem(GetLanguageDisplay(language), language.Code, language));
+            LanguageCombo.Items.Add(CreateLanguageComboItem(GetLanguageDisplay(language), language.Code, language));
 
         string selectedLanguageTag = IsLanguageSupported(_language)
             ? string.Equals(_language, Auto, StringComparison.OrdinalIgnoreCase) ? Auto : ResolveLanguage(_language).Code
             : Auto;
-        SelectComboItem(ComboUiLanguage, selectedLanguageTag);
+        SelectComboItem(LanguageCombo, selectedLanguageTag);
     }
 
     private void ReloadFormatCultureCombo()
     {
-        ComboUiFormatCulture.Items.Clear();
-        ComboUiFormatCulture.Items.Add(new MyComboBoxItem
+        FormatCultureCombo.Items.Clear();
+        FormatCultureCombo.Items.Add(new MyComboBoxItem
         {
             Content = FindString("Setup.LauncherLanguage.FormatCulture.Auto", "跟随系统区域格式"),
             Tag = Auto
         });
-        ComboUiFormatCulture.Items.Add(new MyComboBoxItem
+        FormatCultureCombo.Items.Add(new MyComboBoxItem
         {
             Content = FindString("Setup.LauncherLanguage.FormatCulture.FollowLanguage", "同步界面语言"),
             Tag = FormatCultureFollowLanguage
         });
 
         foreach (CultureInfo culture in GetBuiltInFormatCultures())
-            ComboUiFormatCulture.Items.Add(new MyComboBoxItem
+            FormatCultureCombo.Items.Add(new MyComboBoxItem
             {
                 Content = GetCultureDisplay(culture),
                 Tag = culture.Name
@@ -109,19 +119,19 @@ public partial class PageSetupLauncherLanguage : MyPageRight
 
         string configValue = NormalizeConfigValue(_formatCulture);
         if (!IsFormatCultureItemExisting(configValue) && TryGetCulture(configValue, out CultureInfo? customCulture))
-            ComboUiFormatCulture.Items.Add(new MyComboBoxItem
+            FormatCultureCombo.Items.Add(new MyComboBoxItem
             {
                 Content = GetCultureDisplay(customCulture),
                 Tag = customCulture.Name
             });
 
-        SelectComboItem(ComboUiFormatCulture, IsFormatCultureItemExisting(configValue) ? configValue : Auto);
+        SelectComboItem(FormatCultureCombo, IsFormatCultureItemExisting(configValue) ? configValue : Auto);
     }
 
     private void ComboUiLanguage_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (ModAnimation.AniControlEnabled != 0 ||
-            ComboUiLanguage.SelectedItem is not MyComboBoxItem item)
+            LanguageCombo.SelectedItem is not MyComboBoxItem item)
         {
             return;
         }
@@ -131,13 +141,14 @@ public partial class PageSetupLauncherLanguage : MyPageRight
             return;
 
         _language = value;
-        Reload();
+        SaveLocalizationSetting("UiLanguage", value);
+        QueueReload();
     }
 
     private void ComboUiFormatCulture_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (ModAnimation.AniControlEnabled != 0 ||
-            ComboUiFormatCulture.SelectedItem is not MyComboBoxItem item)
+            FormatCultureCombo.SelectedItem is not MyComboBoxItem item)
         {
             return;
         }
@@ -147,7 +158,8 @@ public partial class PageSetupLauncherLanguage : MyPageRight
             return;
 
         _formatCulture = value;
-        Reload();
+        SaveLocalizationSetting("UiFormatCulture", value);
+        QueueReload();
     }
 
     private static IEnumerable<CultureInfo> GetBuiltInFormatCultures()
@@ -175,6 +187,31 @@ public partial class PageSetupLauncherLanguage : MyPageRight
 
     private static string NormalizeConfigValue(string? value) =>
         string.IsNullOrWhiteSpace(value) ? Auto : value;
+
+    private static void SaveLocalizationSetting(string key, string value)
+    {
+        LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+        if (string.Equals(value, Auto, StringComparison.OrdinalIgnoreCase))
+            settings.TextOptions.Remove(key);
+        else
+            settings.SetTextOption(key, value);
+        LauncherSettingsPageBinder.SaveSettings(settings);
+    }
+
+    private void QueueReload()
+    {
+        if (_reloadQueued)
+            return;
+
+        _reloadQueued = true;
+        Dispatcher.UIThread.Post(
+            () =>
+            {
+                _reloadQueued = false;
+                Reload();
+            },
+            DispatcherPriority.Background);
+    }
 
     private static bool TryGetCulture(string value, out CultureInfo culture)
     {
@@ -205,7 +242,7 @@ public partial class PageSetupLauncherLanguage : MyPageRight
     }
 
     private bool IsFormatCultureItemExisting(string tag) =>
-        ComboUiFormatCulture.Items.OfType<MyComboBoxItem>()
+        FormatCultureCombo.Items.OfType<MyComboBoxItem>()
             .Any(item => string.Equals(item.Tag?.ToString(), tag, StringComparison.OrdinalIgnoreCase));
 
     private static bool IsLanguageSupported(string value) =>
@@ -236,6 +273,15 @@ public partial class PageSetupLauncherLanguage : MyPageRight
 
         return fallback;
     }
+
+    private MyScrollViewer LanguageScroll => this.FindControl<MyScrollViewer>("PanBack")
+        ?? throw new InvalidOperationException("PageSetupLauncherLanguage 缺少 PanBack。");
+
+    private MyComboBox LanguageCombo => this.FindControl<MyComboBox>("ComboUiLanguage")
+        ?? throw new InvalidOperationException("PageSetupLauncherLanguage 缺少 ComboUiLanguage。");
+
+    private MyComboBox FormatCultureCombo => this.FindControl<MyComboBox>("ComboUiFormatCulture")
+        ?? throw new InvalidOperationException("PageSetupLauncherLanguage 缺少 ComboUiFormatCulture。");
 
     private static readonly SupportedLanguage[] SupportedLanguages =
     [

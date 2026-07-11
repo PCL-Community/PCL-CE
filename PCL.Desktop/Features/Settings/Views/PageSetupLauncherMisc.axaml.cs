@@ -16,11 +16,22 @@ namespace PCL.Desktop.Features.Settings.Views;
 
 public partial class PageSetupLauncherMisc : MyPageRight, ISettingsPageInteractionSource
 {
+    private bool _isInitializing = true;
+    private bool _isRevertingActivity;
+    private int _lastActivityIndex;
+
     public PageSetupLauncherMisc()
     {
         AvaloniaXamlLoader.Load(this);
         PanScroll = PanBack;
-        LauncherSettingsPageBinder.Attach(this);
+        SliderLoad();
+        LauncherSettingsPageBinder.Attach(this, _ =>
+        {
+            RefreshDependentVisibility();
+            _lastActivityIndex = Math.Max(0, ActivityCombo.SelectedIndex);
+        });
+        _isInitializing = false;
+        AttachedToVisualTree += (_, _) => RefreshDependentVisibility();
     }
 
     public event EventHandler<SettingsPathRequestedEventArgs>? OpenPathRequested;
@@ -121,6 +132,8 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISettingsPageInteracti
                             throw new InvalidDataException("选择的文件不是有效的 PCL N 设置文件。");
 
                         LauncherSettingsPageBinder.SaveSettings(result.Settings);
+                        LauncherSettingsPageBinder.ReloadPage(this);
+                        PCL.Desktop.Theme.AvaloniaThemeManager.Apply(result.Settings);
                         MessageRequested?.Invoke(
                             this,
                             new SettingsMessageRequestedEventArgs(
@@ -142,21 +155,113 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISettingsPageInteracti
 
     private void CheckDebugMode_OnChange(object sender, bool user)
     {
+        if (user)
+        {
+            MessageRequested?.Invoke(
+                this,
+                new SettingsMessageRequestedEventArgs(
+                    "调试模式已更改",
+                    "调试模式会记录更多诊断信息，并可能略微影响启动器性能。"));
+        }
     }
 
     private void CheckSystemDisableHardwareAcceleration_OnChange(object sender, bool user)
     {
+        if (user)
+        {
+            MessageRequested?.Invoke(
+                this,
+                new SettingsMessageRequestedEventArgs(
+                    "需要重启",
+                    "硬件加速设置将在重启启动器后完整生效。"));
+        }
     }
 
     private void ComboSystemActivity_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
+        MyComboBox activityCombo = ActivityCombo;
+        if (_isInitializing || _isRevertingActivity || activityCombo.SelectedIndex < 0)
+            return;
+
+        int selectedIndex = activityCombo.SelectedIndex;
+        if (selectedIndex != 2)
+        {
+            _lastActivityIndex = selectedIndex;
+            return;
+        }
+
+        int previousIndex = _lastActivityIndex == 2 ? 1 : _lastActivityIndex;
+        void Complete(bool confirmed)
+        {
+            if (confirmed)
+            {
+                _lastActivityIndex = 2;
+                return;
+            }
+
+            _isRevertingActivity = true;
+            try
+            {
+                activityCombo.SelectedIndex = Math.Clamp(previousIndex, 0, activityCombo.ItemCount - 1);
+                _lastActivityIndex = activityCombo.SelectedIndex;
+            }
+            finally
+            {
+                _isRevertingActivity = false;
+            }
+        }
+
+        SettingsConfirmRequestedEventArgs args = new(
+            "关闭公告提醒",
+            "关闭后将不会显示包括重要安全通知在内的启动器公告。确定继续吗？",
+            Complete,
+            primaryButton: "仍然关闭",
+            isWarn: true);
+        if (ConfirmRequested is { } confirmRequested)
+            confirmRequested.Invoke(this, args);
+        else
+            Complete(false);
     }
 
     private void RadioBoxChange(object sender, RouteEventArgs e)
     {
+        RefreshDependentVisibility();
     }
 
     private void SliderChange(object sender, bool user)
     {
     }
+
+    private void SliderLoad()
+    {
+        MySlider sliderDebugAnim = this.FindControl<MySlider>("SliderDebugAnim")
+            ?? throw new InvalidOperationException("PageSetupLauncherMisc 缺少 SliderDebugAnim。");
+        MySlider sliderAniFps = this.FindControl<MySlider>("SliderAniFPS")
+            ?? throw new InvalidOperationException("PageSetupLauncherMisc 缺少 SliderAniFPS。");
+        MySlider sliderMaxLog = this.FindControl<MySlider>("SliderMaxLog")
+            ?? throw new InvalidOperationException("PageSetupLauncherMisc 缺少 SliderMaxLog。");
+
+        sliderDebugAnim.getHintText = value => value > 29
+            ? "关闭"
+            : (value / 10d + 0.1d).ToString("N1", System.Globalization.CultureInfo.CurrentCulture) + "x";
+        sliderAniFps.getHintText = value => $"{value + 1} FPS";
+        sliderMaxLog.getHintText = value => value switch
+        {
+            <= 5 => value * 10 + 50,
+            <= 13 => value * 50 - 150,
+            <= 28 => value * 100 - 800,
+            _ => "不限量"
+        };
+    }
+
+    private void RefreshDependentVisibility()
+    {
+        Grid? customPanel = this.FindControl<Grid>("HttpProxyCustom");
+        MyRadioBox? customRadio = this.FindControl<MyRadioBox>("RadioHttpProxyType2");
+        if (customPanel is not null)
+            customPanel.IsVisible = customRadio?.Checked == true;
+    }
+
+    private MyComboBox ActivityCombo => this.FindControl<MyComboBox>("ComboSystemActivity")
+        ?? throw new InvalidOperationException("PageSetupLauncherMisc 缺少 ComboSystemActivity。");
 }

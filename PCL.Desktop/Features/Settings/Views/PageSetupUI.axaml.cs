@@ -9,6 +9,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
 using PCL.Application.Settings;
 using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Theme;
 
 #pragma warning disable CA1822, CS0067
 
@@ -20,7 +21,11 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
     {
         AvaloniaXamlLoader.Load(this);
         PanScroll = PanBack;
-        LauncherSettingsPageBinder.Attach(this);
+        LauncherSettingsPageBinder.Attach(this, settings =>
+        {
+            UiFontSelector.SelectedFontTag = settings.GetTextOption("UiFont");
+            MotdFontSelector.SelectedFontTag = settings.GetTextOption("UiMotdFont");
+        });
         AttachedToVisualTree += (_, _) => RefreshPage();
     }
 
@@ -205,10 +210,12 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
 
     private void ComboFontChange(object? sender, SelectionChangedEventArgs e)
     {
+        SaveFontOption("UiFont", UiFontSelector.SelectedFontTag, applyTheme: true);
     }
 
     private void ComboMotdFontChange(object? sender, SelectionChangedEventArgs e)
     {
+        SaveFontOption("UiMotdFont", MotdFontSelector.SelectedFontTag, applyTheme: false);
     }
 
     private void RadioBoxChange(object sender, RouteEventArgs e)
@@ -233,6 +240,25 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
     private void ThemeColor_Change(object? sender, SelectionChangedEventArgs e)
     {
     }
+
+    private static void SaveFontOption(string key, string? fontTag, bool applyTheme)
+    {
+        LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+        string normalized = fontTag?.Trim() ?? string.Empty;
+        if (string.IsNullOrEmpty(normalized))
+            settings.TextOptions.Remove(key);
+        else
+            settings.SetTextOption(key, normalized);
+        LauncherSettingsPageBinder.SaveSettings(settings);
+        if (applyTheme)
+            AvaloniaThemeManager.Apply(settings);
+    }
+
+    private FontSelector UiFontSelector => this.FindControl<FontSelector>("ComboUiFont")
+        ?? throw new InvalidOperationException("PageSetupUI 缺少 ComboUiFont。");
+
+    private FontSelector MotdFontSelector => this.FindControl<FontSelector>("ComboUiMotdFont")
+        ?? throw new InvalidOperationException("PageSetupUI 缺少 ComboUiMotdFont。");
 
     private void RefreshBackgroundUi(bool showMessage)
     {
