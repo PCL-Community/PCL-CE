@@ -14,6 +14,17 @@ namespace PCL.Platform.Test;
 public sealed class DefaultPlatformServiceTests
 {
     [TestMethod]
+    public void SystemInfoProviderReportsLivePhysicalMemory()
+    {
+        DefaultSystemInfoProvider provider = new();
+        PCL.Platform.Abstractions.System.MemoryInfo memory = provider.GetMemoryInfo();
+
+        Assert.IsTrue(memory.TotalBytes > 0);
+        Assert.IsTrue(memory.AvailableBytes > 0);
+        Assert.IsTrue(memory.AvailableBytes <= memory.TotalBytes);
+    }
+
+    [TestMethod]
     public void PathProvider_ShouldReturnAbsoluteDirectories()
     {
         DefaultPlatformPathProvider provider = new();

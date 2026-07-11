@@ -12,6 +12,7 @@ using PCL.Application.Launching;
 using PCL.Application.Settings;
 using PCL.Desktop.Controls.Legacy;
 using PCL.Platform.System;
+using PCL.Platform.Abstractions.System;
 
 #pragma warning disable CA1822, CS0067
 
@@ -24,13 +25,19 @@ public partial class PageSetupLaunch : MyPageRight, ISettingsPageInteractionSour
         "-Djdk.lang.Process.allowAmbiguousCommands=true -Dfml.ignoreInvalidMinecraftCertificates=True " +
         "-Dfml.ignorePatchDiscrepancies=True -Dlog4j2.formatMsgNoLookups=true";
 
-    private readonly DefaultSystemInfoProvider _systemInfoProvider = new();
+    private readonly ISystemInfoProvider _systemInfoProvider;
     private readonly DispatcherTimer _ramRefreshTimer;
     private int _ramTextLeft = 2;
     private int _ramTextRight = 1;
 
     public PageSetupLaunch()
+        : this(new DefaultSystemInfoProvider())
     {
+    }
+
+    public PageSetupLaunch(ISystemInfoProvider systemInfoProvider)
+    {
+        _systemInfoProvider = systemInfoProvider ?? throw new ArgumentNullException(nameof(systemInfoProvider));
         AvaloniaXamlLoader.Load(this);
         if (this.FindControl<MyScrollViewer>("PanBack") is { } panBack)
             PanScroll = panBack;
@@ -60,6 +67,8 @@ public partial class PageSetupLaunch : MyPageRight, ISettingsPageInteractionSour
     public event EventHandler<SettingsConfirmRequestedEventArgs>? ConfirmRequested;
 
     public event EventHandler? SwitchToInstanceSetupRequested;
+
+    public void RefreshMemoryDisplay() => RefreshRam(showAnim: false);
 
     private void BtnAdvanceJvmReset_Click(object? sender, EventArgs e)
     {
