@@ -94,6 +94,111 @@ public sealed class MinecraftServerListService
             .ConfigureAwait(false);
     }
 
+    public static Task<bool> UpdateAsync(
+        string minecraftRoot,
+        MinecraftServerEntry original,
+        MinecraftServerEntry updated,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(original);
+        ValidateEntry(updated, nameof(updated));
+        return MutateAsync(
+            minecraftRoot,
+            servers =>
+            {
+                int index = FindServerIndex(servers, original);
+                if (index < 0 || servers[index] is not NbtCompound server)
+                    return false;
+
+                server["name"] = new NbtString("name", updated.Name.Trim());
+                server["ip"] = new NbtString("ip", updated.Address.Trim());
+                if (!string.IsNullOrWhiteSpace(updated.Icon))
+                    server["icon"] = new NbtString("icon", updated.Icon);
+                return true;
+            },
+            cancellationToken);
+    }
+
+    public static Task<bool> RemoveAsync(
+        string minecraftRoot,
+        MinecraftServerEntry entry,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+        return MutateAsync(
+            minecraftRoot,
+            servers =>
+            {
+                int index = FindServerIndex(servers, entry);
+                if (index < 0)
+                    return false;
+
+                servers.RemoveAt(index);
+                return true;
+            },
+            cancellationToken);
+    }
+
+    private static async Task<bool> MutateAsync(
+        string minecraftRoot,
+        Func<NbtList, bool> mutate,
+        CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(minecraftRoot);
+        ArgumentNullException.ThrowIfNull(mutate);
+        string serversFile = Path.Combine(Path.GetFullPath(minecraftRoot), "servers.dat");
+        if (!File.Exists(serversFile))
+            return false;
+
+        return await Task.Run(
+                () =>
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    NbtFile nbtFile = LoadExistingServerFile(serversFile);
+                    NbtList? servers = nbtFile.RootTag.Get<NbtList>("servers");
+                    if (servers is null || !mutate(servers))
+                        return false;
+
+                    using FileStream stream = new(
+                        serversFile,
+                        FileMode.Create,
+                        FileAccess.Write,
+                        FileShare.None);
+                    nbtFile.SaveToStream(stream, NbtCompression.GZip);
+                    return true;
+                },
+                cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    private static int FindServerIndex(NbtList servers, MinecraftServerEntry entry)
+    {
+        for (int index = 0; index < servers.Count; index++)
+        {
+            if (servers[index] is not NbtCompound server)
+                continue;
+
+            string name = server.Get<NbtString>("name")?.Value ?? string.Empty;
+            string address = server.Get<NbtString>("ip")?.Value ?? string.Empty;
+            if (string.Equals(name, entry.Name, StringComparison.Ordinal) &&
+                string.Equals(address, entry.Address, StringComparison.OrdinalIgnoreCase))
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    private static void ValidateEntry(MinecraftServerEntry entry, string parameterName)
+    {
+        ArgumentNullException.ThrowIfNull(entry, parameterName);
+        if (string.IsNullOrWhiteSpace(entry.Name))
+            throw new ArgumentException("服务器名称不能为空。", parameterName);
+        if (string.IsNullOrWhiteSpace(entry.Address))
+            throw new ArgumentException("服务器地址不能为空。", parameterName);
+    }
+
     private static NbtFile LoadExistingServerFile(string serversFile)
     {
         try

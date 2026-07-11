@@ -81,6 +81,37 @@ public sealed class MinecraftServerListServiceTests
         }
     }
 
+    [TestMethod]
+    public async Task UpdateAndRemoveAsync_PersistServerChanges()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "pcl-server-list-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+
+        try
+        {
+            WriteServersDat(root);
+            MinecraftServerEntry original = new("Hypixel", "mc.hypixel.net", null);
+            MinecraftServerEntry updated = new("Example", "play.example.net:25566", null);
+
+            Assert.IsTrue(await MinecraftServerListService.UpdateAsync(root, original, updated));
+            IReadOnlyList<MinecraftServerEntry> afterUpdate = await MinecraftServerListService.LoadAsync(root);
+            Assert.AreEqual("Example", afterUpdate[0].Name);
+            Assert.AreEqual("play.example.net:25566", afterUpdate[0].Address);
+            Assert.IsFalse(await MinecraftServerListService.UpdateAsync(root, original, updated));
+
+            Assert.IsTrue(await MinecraftServerListService.RemoveAsync(root, updated));
+            IReadOnlyList<MinecraftServerEntry> afterRemove = await MinecraftServerListService.LoadAsync(root);
+            Assert.AreEqual(1, afterRemove.Count);
+            Assert.AreEqual("Local", afterRemove[0].Name);
+            Assert.IsFalse(await MinecraftServerListService.RemoveAsync(root, updated));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
     private static void WriteServersDat(string root)
     {
         NbtCompound rootTag = new("");
