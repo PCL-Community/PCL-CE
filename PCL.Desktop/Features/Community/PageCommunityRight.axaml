@@ -1,0 +1,25 @@
+<legacy:MyPageRight x:Class="PCL.Desktop.Features.Community.PageCommunityRight"
+                    xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:legacy="using:PCL.Desktop.Controls.Legacy">
+    <Grid>
+        <Grid x:Name="PanAllBack">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="54" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <legacy:MySearchBar x:Name="TextSearch" Margin="25,10,25,0"
+                                HintText="搜索社区资源" />
+            <legacy:MyScrollViewer x:Name="PanBack" Grid.Row="1"
+                                   VerticalScrollBarVisibility="Auto"
+                                   HorizontalScrollBarVisibility="Disabled">
+                <StackPanel x:Name="PanMain" Margin="25,0,25,10" />
+            </legacy:MyScrollViewer>
+        </Grid>
+        <legacy:MyCard x:Name="PanLoad" HorizontalAlignment="Center"
+                       VerticalAlignment="Center" Margin="40" UseAnimation="False">
+            <legacy:MyLoading x:Name="Load" Margin="20,20,20,17"
+                              Text="正在加载社区资源" AutoRun="False" />
+        </legacy:MyCard>
+    </Grid>
+</legacy:MyPageRight>

@@ -1,0 +1,10 @@
+<legacy:MyPageLeft x:Class="PCL.Desktop.Features.Community.PageCommunityLeft"
+                   xmlns="https://github.com/avaloniaui"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                   xmlns:legacy="using:PCL.Desktop.Controls.Legacy"
+                   Width="152">
+    <legacy:MyScrollViewer HorizontalScrollBarVisibility="Disabled"
+                           VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,12,0,0" x:Name="PanItem" />
+    </legacy:MyScrollViewer>
+</legacy:MyPageLeft>

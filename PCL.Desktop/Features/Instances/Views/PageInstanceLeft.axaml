@@ -1,7 +1,8 @@
 <legacy:MyPageLeft x:Class="PCL.Desktop.Features.Instances.Views.PageInstanceLeft"
                   xmlns="https://github.com/avaloniaui"
                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                  xmlns:legacy="using:PCL.Desktop.Controls.Legacy">
+                  xmlns:legacy="using:PCL.Desktop.Controls.Legacy"
+                  Width="152">
     <legacy:MyScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="0,12,0,0" x:Name="PanItem">
             <TextBlock Text="{DynamicResource Instance.Left.Game}" Margin="13,6,5,4" Opacity="0.6" FontSize="12" />

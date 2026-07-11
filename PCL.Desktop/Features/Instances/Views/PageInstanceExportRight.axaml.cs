@@ -32,6 +32,10 @@ public class ExportOption : AvaloniaObject
         set => SetValue(DescriptionProperty, value);
     }
 
+    public string? TitleResourceKey { get; set; }
+
+    public string? DescriptionResourceKey { get; set; }
+
     public string? Rules { get; set; }
 
     public string? ShowRules { get; set; }
@@ -213,10 +217,12 @@ public partial class PageInstanceExportRight : MyPageRight
 
             checkBox.Height = 26d;
             checkBox.Inlines.Clear();
-            checkBox.Inlines.Add(new Run(option.Title));
-            if (!string.IsNullOrWhiteSpace(option.Description))
+            string title = ResolveOptionText(checkBox, option.TitleResourceKey, option.Title);
+            string description = ResolveOptionText(checkBox, option.DescriptionResourceKey, option.Description);
+            checkBox.Inlines.Add(new Run(title));
+            if (!string.IsNullOrWhiteSpace(description))
             {
-                checkBox.Inlines.Add(new Run("   " + option.Description)
+                checkBox.Inlines.Add(new Run("   " + description)
                 {
                     Foreground = LegacyResourceResolver.Brush(checkBox, "ColorBrushGray5", "#9aa0a6")
                 });
@@ -227,6 +233,18 @@ public partial class PageInstanceExportRight : MyPageRight
             checkBox.Checked = option.DefaultChecked && visible;
         }
         SyncDependentVisibility();
+    }
+
+    private static string ResolveOptionText(Control owner, string? resourceKey, string fallback)
+    {
+        if (!string.IsNullOrWhiteSpace(resourceKey) &&
+            LegacyResourceResolver.TryResolve(owner, resourceKey, out object? resource) &&
+            resource is not null)
+        {
+            return resource.ToString() ?? fallback;
+        }
+
+        return fallback;
     }
 
     private void WireVisibilityToggle(string checkBoxName, string targetName)

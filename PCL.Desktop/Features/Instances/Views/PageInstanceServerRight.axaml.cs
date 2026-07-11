@@ -2,10 +2,13 @@
 // Modifications Copyright (c) 2026 PCL N contributors.
 // Licensed under the Apache License, Version 2.0.
 
+using System.Net.Sockets;
+using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using PCL.Application.Instances;
 using PCL.Desktop.Controls.Legacy;
 using PCL.Desktop.Features.Launching.Views;
@@ -14,10 +17,17 @@ namespace PCL.Desktop.Features.Instances.Views;
 
 public partial class PageInstanceServerRight : MyPageRight
 {
+    private readonly IMinecraftServerStatusService _statusService;
     private LaunchInstanceInfo? _instance;
 
     public PageInstanceServerRight()
+        : this(new MinecraftServerStatusService())
     {
+    }
+
+    public PageInstanceServerRight(IMinecraftServerStatusService statusService)
+    {
+        _statusService = statusService ?? throw new ArgumentNullException(nameof(statusService));
         AvaloniaXamlLoader.Load(this);
         PanScroll = this.FindControl<MyScrollViewer>("PanBack");
     }
@@ -83,7 +93,7 @@ public partial class PageInstanceServerRight : MyPageRight
         {
             ServerCard serverCard = new();
             serverCard.UpdateServerInfo(server);
-            serverCard.RefreshRequested += (_, entry) => RefreshServerRequested?.Invoke(this, entry);
+            serverCard.RefreshRequested += (_, entry) => _ = RefreshServerCardAsync(serverCard, entry);
             serverCard.ConnectRequested += (_, entry) => ConnectServerRequested?.Invoke(this, entry);
             serverCard.EditRequested += (_, entry) => EditServerRequested?.Invoke(this, entry);
             serverCard.RemoveRequested += (_, entry) => RemoveServerRequested?.Invoke(this, entry);
@@ -98,6 +108,11 @@ public partial class PageInstanceServerRight : MyPageRight
         if (_instance is not null)
             RefreshRequested?.Invoke(this, _instance);
         Reload();
+        foreach (ServerCard card in this.GetVisualDescendants().OfType<ServerCard>())
+        {
+            if (card.Server is { } server)
+                _ = RefreshServerCardAsync(card, server);
+        }
     }
 
     private void BtnAddServer_Click(object? sender, EventArgs e)
@@ -114,6 +129,24 @@ public partial class PageInstanceServerRight : MyPageRight
             content.IsVisible = !isVisible;
         if (this.FindControl<Control>("PanServers") is { } servers)
             servers.IsVisible = !isVisible;
+    }
+
+    private async Task RefreshServerCardAsync(ServerCard card, MinecraftServerEntry server)
+    {
+        card.SetRefreshing();
+        RefreshServerRequested?.Invoke(this, server);
+        try
+        {
+            MinecraftServerStatus status = await _statusService.QueryAsync(server.Address).ConfigureAwait(true);
+            if (card.IsAttachedToVisualTree() && Equals(card.Server, server))
+                card.UpdateStatus(status);
+        }
+        catch (Exception ex) when (ex is SocketException or IOException or TimeoutException or
+                                   OperationCanceledException or FormatException or JsonException or InvalidDataException)
+        {
+            if (card.IsAttachedToVisualTree() && Equals(card.Server, server))
+                card.UpdateStatusError(ex is OperationCanceledException ? "连接超时" : ex.Message);
+        }
     }
 
     private static string GetMinecraftRootFromInstance(LaunchInstanceInfo instance)

@@ -2,26 +2,57 @@
 // Modifications Copyright (c) 2026 PCL N contributors.
 // Licensed under the Apache License, Version 2.0.
 
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using PCL.Application.Instances;
+using PCL.Application.Launching;
+using PCL.Application.Settings;
 using PCL.Desktop.Controls.Legacy;
 using PCL.Desktop.Features.Launching.Views;
+using PCL.Desktop.Features.Settings.Views;
+using PCL.Platform.Abstractions.System;
+using PCL.Platform.System;
 
 namespace PCL.Desktop.Features.Instances.Views;
 
 public partial class PageInstanceSetupRight : MyPageRight
 {
+    private readonly ISystemInfoProvider _systemInfoProvider;
+    private readonly DispatcherTimer _ramRefreshTimer;
     private LaunchInstanceInfo? _instance;
     private InstanceMetadata _metadata = new();
     private bool _isLoading;
+    private int _globalMemorySolution;
+    private int _globalCustomMemorySize = 15;
+    private int _ramTextLeft = 2;
 
     public PageInstanceSetupRight()
+        : this(new DefaultSystemInfoProvider())
     {
+    }
+
+    public PageInstanceSetupRight(ISystemInfoProvider systemInfoProvider)
+    {
+        _systemInfoProvider = systemInfoProvider ?? throw new ArgumentNullException(nameof(systemInfoProvider));
         AvaloniaXamlLoader.Load(this);
         PanScroll = this.FindControl<MyScrollViewer>("PanBack");
+        _ramRefreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _ramRefreshTimer.Tick += RamRefreshTimer_Tick;
+        AttachedToVisualTree += (_, _) =>
+        {
+            ReloadGlobalMemorySettings();
+            RefreshRam(showAnim: false);
+            _ramRefreshTimer.Start();
+        };
+        DetachedFromVisualTree += (_, _) => _ramRefreshTimer.Stop();
+        if (this.FindControl<Grid>("PanRamDisplay") is { } ramDisplay)
+            ramDisplay.SizeChanged += (_, _) => RefreshRamText();
+        if (this.FindControl<Avalonia.Controls.Shapes.Rectangle>("RectRamUsed") is { } ramUsed)
+            ramUsed.SizeChanged += (_, _) => RefreshRamText();
         WireControls();
     }
 
@@ -31,7 +62,17 @@ public partial class PageInstanceSetupRight : MyPageRight
     {
         _instance = instance;
         _metadata = InstanceMetadataStore.LoadAsync(instance.InstanceDirectory).GetAwaiter().GetResult();
+        ReloadGlobalMemorySettings();
         ApplyMetadata();
+        RefreshRam(showAnim: false);
+    }
+
+    public override void Dispose()
+    {
+        _ramRefreshTimer.Stop();
+        _ramRefreshTimer.Tick -= RamRefreshTimer_Tick;
+        base.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     private void WireControls()
@@ -87,6 +128,7 @@ public partial class PageInstanceSetupRight : MyPageRight
             ApplyRamMode();
             ApplyServerLoginMode();
             ApplyPreLaunchCommandVisibility();
+            RefreshRam(showAnim: false);
         }
         finally
         {
@@ -169,6 +211,7 @@ public partial class PageInstanceSetupRight : MyPageRight
         if (int.TryParse(name["RadioRamType".Length..], out int value))
             UpdateMetadata(metadata => metadata with { MemorySolution = value });
         ApplyRamMode();
+        RefreshRam(showAnim: true);
     }
 
     private void Slider_Change(object sender, bool user)
@@ -177,6 +220,7 @@ public partial class PageInstanceSetupRight : MyPageRight
             return;
 
         UpdateMetadata(metadata => metadata with { CustomMemorySize = slider.Value });
+        RefreshRam(showAnim: true);
     }
 
     private void UpdateMetadata(Func<InstanceMetadata, InstanceMetadata> update)
@@ -192,6 +236,242 @@ public partial class PageInstanceSetupRight : MyPageRight
     {
         if (this.FindControl<MySlider>("SliderRamCustom") is { } slider)
             slider.IsEnabled = _metadata.MemorySolution == 1;
+    }
+
+    private void RamRefreshTimer_Tick(object? sender, EventArgs e) => RefreshRam(showAnim: true);
+
+    private void RefreshRam(bool showAnim)
+    {
+        if (_instance is null ||
+            this.FindControl<MySlider>("SliderRamCustom") is not { } sliderRamCustom ||
+            this.FindControl<TextBlock>("LabRamGame") is not { } labRamGame ||
+            this.FindControl<TextBlock>("LabRamUsed") is not { } labRamUsed ||
+            this.FindControl<TextBlock>("LabRamTotal") is not { } labRamTotal ||
+            this.FindControl<Grid>("PanRamDisplay") is not { } panRamDisplay)
+        {
+            return;
+        }
+
+        MemoryInfo memory = _systemInfoProvider.GetMemoryInfo();
+        double ramTotal = Math.Round(Math.Max(memory.TotalBytes, 4L * 1024 * 1024 * 1024) / 1024d / 1024d / 1024d, 1);
+        double ramAvailable = memory.AvailableBytes > 0
+            ? Math.Round(memory.AvailableBytes / 1024d / 1024d / 1024d, 1)
+            : Math.Round(ramTotal * 0.65d, 1);
+        ramAvailable = Math.Clamp(ramAvailable, 0.1d, ramTotal);
+
+        int memorySolution = _metadata.MemorySolution;
+        int customMemorySize = _metadata.CustomMemorySize;
+        if (memorySolution == 2)
+        {
+            memorySolution = _globalMemorySolution;
+            customMemorySize = _globalCustomMemorySize;
+        }
+
+        (LaunchMemoryProfile profile, int modCount) = GetMemoryProfile();
+        double ramGame = LaunchMemoryCalculator.ResolveMemoryMegabytes(
+            new LaunchMemoryRequest
+            {
+                MemorySolution = memorySolution,
+                CustomMemorySize = customMemorySize,
+                MemoryInfo = memory with
+                {
+                    AvailableBytes = memory.AvailableBytes > 0
+                        ? memory.AvailableBytes
+                        : (long)(ramAvailable * 1024d * 1024d * 1024d)
+                },
+                Profile = profile,
+                ModCount = modCount
+            }) / 1024d;
+
+        double ramGameActual = Math.Round(Math.Min(ramGame, ramAvailable), 5);
+        double ramUsed = Math.Round(Math.Max(0d, ramTotal - ramAvailable), 5);
+        double ramEmpty = Math.Round(Math.Clamp(ramTotal - ramUsed - ramGame, 0d, 1000d), 1);
+
+        sliderRamCustom.MaxValue = GetRamSliderMaxValue(ramTotal);
+        labRamGame.Text = Math.Abs(ramGame - ramGameActual) > 0.001d
+            ? $"{ramGame:N1} GB (可用 {ramGameActual:N1} GB)"
+            : $"{ramGame:N1} GB";
+        labRamUsed.Text = $"{ramUsed:N1} GB";
+        labRamTotal.Text = $" / {ramTotal:N1} GB";
+        if (this.FindControl<MyHint>("LabRamWarn") is { } labRamWarn)
+            labRamWarn.IsVisible = false;
+        if (this.FindControl<MyHint>("HintRamTooHigh") is { } hintRamTooHigh)
+            hintRamTooHigh.IsVisible = ramTotal > 0d && ramGame / ramTotal > 0.75d;
+
+        if (panRamDisplay.ColumnDefinitions.Count >= 3)
+        {
+            if (showAnim)
+            {
+                ModAnimation.AniStart(
+                    new[]
+                    {
+                        ModAnimation.AaGridLengthWidth(
+                            panRamDisplay.ColumnDefinitions[0],
+                            ramUsed - panRamDisplay.ColumnDefinitions[0].Width.Value,
+                            800,
+                            ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
+                        ModAnimation.AaGridLengthWidth(
+                            panRamDisplay.ColumnDefinitions[1],
+                            ramGameActual - panRamDisplay.ColumnDefinitions[1].Width.Value,
+                            800,
+                            ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
+                        ModAnimation.AaGridLengthWidth(
+                            panRamDisplay.ColumnDefinitions[2],
+                            ramEmpty - panRamDisplay.ColumnDefinitions[2].Width.Value,
+                            800,
+                            ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong))
+                    },
+                    "VersionSetup Ram Grid");
+            }
+            else
+            {
+                SetRamColumn(panRamDisplay.ColumnDefinitions[0], ramUsed);
+                SetRamColumn(panRamDisplay.ColumnDefinitions[1], ramGameActual);
+                SetRamColumn(panRamDisplay.ColumnDefinitions[2], ramEmpty);
+            }
+        }
+
+        Dispatcher.UIThread.Post(RefreshRamText, DispatcherPriority.Loaded);
+    }
+
+    private (LaunchMemoryProfile Profile, int ModCount) GetMemoryProfile()
+    {
+        if (_instance is null)
+            return (LaunchMemoryProfile.Vanilla, 0);
+
+        HashSet<string> modFiles = new(StringComparer.OrdinalIgnoreCase);
+        AddModFiles(modFiles, Path.Combine(_instance.InstanceDirectory, "mods"));
+        if (!_metadata.InstanceIsolation)
+        {
+            DirectoryInfo? versionsDirectory = Directory.GetParent(_instance.InstanceDirectory);
+            if (versionsDirectory?.Parent is { } minecraftRoot)
+                AddModFiles(modFiles, Path.Combine(minecraftRoot.FullName, "mods"));
+        }
+
+        string versionJson = ReadVersionJson(_instance.VersionJsonPath);
+        if (modFiles.Count > 0 || ContainsAny(versionJson, "fabric-loader", "forge", "neoforge", "quilt"))
+            return (LaunchMemoryProfile.Modded, modFiles.Count);
+        return ContainsAny(versionJson, "optifine")
+            ? (LaunchMemoryProfile.OptiFine, 0)
+            : (LaunchMemoryProfile.Vanilla, 0);
+    }
+
+    private static void AddModFiles(HashSet<string> files, string directory)
+    {
+        if (!Directory.Exists(directory))
+            return;
+
+        try
+        {
+            foreach (string file in Directory.EnumerateFiles(directory, "*.jar", SearchOption.TopDirectoryOnly))
+                files.Add(file);
+        }
+        catch (IOException)
+        {
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
+    }
+
+    private static string ReadVersionJson(string path)
+    {
+        try
+        {
+            return File.Exists(path) ? File.ReadAllText(path) : string.Empty;
+        }
+        catch (IOException)
+        {
+            return string.Empty;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return string.Empty;
+        }
+    }
+
+    private static bool ContainsAny(string text, params string[] values) =>
+        values.Any(value => text.Contains(value, StringComparison.OrdinalIgnoreCase));
+
+    private static int GetRamSliderMaxValue(double ramTotal)
+    {
+        if (ramTotal <= 1.5d)
+            return (int)Math.Round(Math.Max(Math.Floor((ramTotal - 0.3d) / 0.1d), 1d));
+        if (ramTotal <= 8d)
+            return (int)Math.Round(Math.Floor((ramTotal - 1.5d) / 0.5d) + 12d);
+        if (ramTotal <= 16d)
+            return (int)Math.Round(Math.Floor((ramTotal - 8d) / 1d) + 25d);
+        return (int)Math.Round(Math.Floor((ramTotal - 16d) / 2d) + 33d);
+    }
+
+    private static void SetRamColumn(ColumnDefinition column, double value)
+    {
+        column.Width = new GridLength(Math.Max(0d, value), GridUnitType.Star);
+    }
+
+    private void RefreshRamText()
+    {
+        if (this.FindControl<Grid>("PanRamDisplay") is not { } panRamDisplay ||
+            this.FindControl<Avalonia.Controls.Shapes.Rectangle>("RectRamUsed") is not { } rectRamUsed ||
+            this.FindControl<TextBlock>("LabRamGame") is not { } labRamGame ||
+            this.FindControl<TextBlock>("LabRamUsed") is not { } labRamUsed ||
+            this.FindControl<TextBlock>("LabRamTotal") is not { } labRamTotal ||
+            this.FindControl<TextBlock>("LabRamGameTitle") is not { } labRamGameTitle ||
+            this.FindControl<TextBlock>("LabRamUsedTitle") is not { } labRamUsedTitle)
+        {
+            return;
+        }
+
+        double rectUsedWidth = rectRamUsed.Bounds.Width;
+        double totalWidth = panRamDisplay.Bounds.Width;
+        if (totalWidth <= 0d)
+            return;
+
+        double labGameWidth = GetTextWidth(labRamGame);
+        double labUsedWidth = GetTextWidth(labRamUsed);
+        double labTotalWidth = GetTextWidth(labRamTotal);
+        double labGameTitleWidth = GetTextWidth(labRamGameTitle);
+        double labUsedTitleWidth = GetTextWidth(labRamUsedTitle);
+
+        int left = rectUsedWidth - 30d < labUsedWidth || rectUsedWidth - 30d < labUsedTitleWidth
+            ? 0
+            : rectUsedWidth - 25d < labUsedWidth + labTotalWidth ? 1 : 2;
+        if (_ramTextLeft != left)
+        {
+            _ramTextLeft = left;
+            labRamUsed.Opacity = left == 0 ? 0d : 1d;
+            labRamTotal.Opacity = left == 2 ? 1d : 0d;
+            labRamUsedTitle.Opacity = left == 0 ? 0d : 0.7d;
+        }
+
+        int right = totalWidth < labGameWidth + 2d + rectUsedWidth ||
+                    totalWidth < labGameTitleWidth + 2d + rectUsedWidth
+            ? 0
+            : 1;
+        if (right == 0)
+        {
+            labRamGame.Margin = new Thickness(Math.Max(2d, totalWidth - labGameWidth), 3d, 0d, 0d);
+            labRamGameTitle.Margin = new Thickness(Math.Max(2d, totalWidth - labGameTitleWidth), 0d, 0d, 5d);
+        }
+        else
+        {
+            labRamGame.Margin = new Thickness(2d + rectUsedWidth, 3d, 0d, 0d);
+            labRamGameTitle.Margin = new Thickness(2d + rectUsedWidth, 0d, 0d, 5d);
+        }
+
+    }
+
+    private void ReloadGlobalMemorySettings()
+    {
+        LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+        _globalMemorySolution = settings.GetIntegerOption(LauncherSettingKeys.LaunchRamType, 0);
+        _globalCustomMemorySize = settings.GetIntegerOption(LauncherSettingKeys.LaunchRamCustom, 15);
+    }
+
+    private static double GetTextWidth(TextBlock textBlock)
+    {
+        textBlock.Measure(Size.Infinity);
+        return Math.Max(textBlock.Bounds.Width, textBlock.DesiredSize.Width);
     }
 
     private void ApplyServerLoginMode()

@@ -254,6 +254,23 @@ internal static class InstanceDisplayHelper
         }
     }
 
+    public static bool IsValid(LaunchInstanceInfo instance)
+    {
+        if (!File.Exists(instance.VersionJsonPath))
+            return false;
+
+        try
+        {
+            using FileStream stream = File.OpenRead(instance.VersionJsonPath);
+            using JsonDocument document = JsonDocument.Parse(stream);
+            return document.RootElement.ValueKind == JsonValueKind.Object;
+        }
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
     private static bool IsModLoaderLibrary(string library) =>
         library.Contains("net.minecraftforge:forge:", StringComparison.OrdinalIgnoreCase) ||
         library.Contains("minecraftforge", StringComparison.OrdinalIgnoreCase) ||

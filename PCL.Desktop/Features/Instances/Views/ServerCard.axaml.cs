@@ -54,6 +54,33 @@ public sealed partial class ServerCard : MyCard
         SetIcon(server.Icon);
     }
 
+    public void SetRefreshing()
+    {
+        _serverPlayer.Text = "正在连接";
+        _serverMotd.Text = "正在获取服务器状态…";
+    }
+
+    public void UpdateStatus(MinecraftServerStatus status)
+    {
+        ArgumentNullException.ThrowIfNull(status);
+        _serverPlayer.Text = status.MaximumPlayers > 0
+            ? $"{status.OnlinePlayers}/{status.MaximumPlayers} · {Math.Max(0d, status.Latency.TotalMilliseconds):N0} ms"
+            : $"{Math.Max(0d, status.Latency.TotalMilliseconds):N0} ms";
+        _serverMotd.Text = string.IsNullOrWhiteSpace(status.Description)
+            ? status.VersionName
+            : status.Description;
+        ToolTip.SetTip(_serverMotd, _serverMotd.Text);
+        if (!string.IsNullOrWhiteSpace(status.Icon))
+            SetIcon(status.Icon);
+    }
+
+    public void UpdateStatusError(string message)
+    {
+        _serverPlayer.Text = "连接失败";
+        _serverMotd.Text = string.IsNullOrWhiteSpace(message) ? "无法获取服务器状态" : message;
+        ToolTip.SetTip(_serverMotd, _serverMotd.Text);
+    }
+
     private void BtnConnect_Click(object? sender, EventArgs e)
     {
         if (_server is not null)

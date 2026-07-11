@@ -69,6 +69,22 @@ public partial class PageInstanceSelectRight : MyPageRight, IDisposable
 
     public event EventHandler<LaunchInstanceInfo>? InstanceDeleteRequested;
 
+    public bool TrySelectInstance(LaunchInstanceInfo instance)
+    {
+        ArgumentNullException.ThrowIfNull(instance);
+        if (!_instances.Contains(instance))
+            return false;
+
+        if (!InstanceDisplayHelper.IsValid(instance))
+        {
+            InstanceOpenFolderRequested?.Invoke(this, instance);
+            return false;
+        }
+
+        InstanceSelected?.Invoke(this, instance);
+        return true;
+    }
+
     public void SetLoadingState(bool isLoading = true)
     {
         _isLoading = isLoading;
@@ -385,6 +401,7 @@ public partial class PageInstanceSelectRight : MyPageRight, IDisposable
     private MyListItem CreateInstanceItem(InstanceEntry entry)
     {
         LaunchInstanceInfo instance = entry.Instance;
+        bool isValid = InstanceDisplayHelper.IsValid(instance);
         MyIconButton btnOpenFolder = new()
         {
             LogoScale = 1.1d,
@@ -404,10 +421,16 @@ public partial class PageInstanceSelectRight : MyPageRight, IDisposable
         MyIconButton btnSettings = new()
         {
             LogoScale = 1.1d,
-            SvgIcon = "lucide/settings",
-            ToolTip = "版本设置"
+            SvgIcon = isValid ? "lucide/settings" : "lucide/folder-open",
+            ToolTip = isValid ? "版本设置" : "打开版本文件夹"
         };
-        btnSettings.Click += (_, _) => InstanceManageRequested?.Invoke(this, instance);
+        btnSettings.Click += (_, _) =>
+        {
+            if (isValid)
+                InstanceManageRequested?.Invoke(this, instance);
+            else
+                InstanceOpenFolderRequested?.Invoke(this, instance);
+        };
 
         MyListItem item = new()
         {
@@ -428,7 +451,7 @@ public partial class PageInstanceSelectRight : MyPageRight, IDisposable
             item.Info = "当前选择 · " + instance.InstanceDirectory;
         }
 
-        item.Click += (_, _) => InstanceSelected?.Invoke(this, instance);
+        item.Click += (_, _) => TrySelectInstance(instance);
         return item;
     }
 

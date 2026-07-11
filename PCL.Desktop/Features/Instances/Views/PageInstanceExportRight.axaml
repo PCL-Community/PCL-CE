@@ -40,6 +40,7 @@
                             <legacy:MyCheckBox.Tag>
                                 <views:ExportOption
                                     Title="{DynamicResource Instance.Export.Option.Game}"
+                                    TitleResourceKey="Instance.Export.Option.Game"
                                     DefaultChecked="True" />
                             </legacy:MyCheckBox.Tag>
                         </legacy:MyCheckBox>
@@ -48,6 +49,8 @@
                                 <views:ExportOption
                                     Title="{DynamicResource Instance.Export.Option.GameSettings}"
                                     Description="{DynamicResource Instance.Export.Option.GameSettings.Desc}"
+                                    TitleResourceKey="Instance.Export.Option.GameSettings"
+                                    DescriptionResourceKey="Instance.Export.Option.GameSettings.Desc"
                                     Rules="options.txt|configureddefaults/"
                                     DefaultChecked="True" />
                             </legacy:MyCheckBox.Tag>
@@ -57,6 +60,8 @@
                                 <views:ExportOption
                                     Title="{DynamicResource Instance.Export.Option.GameProfile}"
                                     Description="{DynamicResource Instance.Export.Option.GameProfile.Desc}"
+                                    TitleResourceKey="Instance.Export.Option.GameProfile"
+                                    DescriptionResourceKey="Instance.Export.Option.GameProfile.Desc"
                                     Rules="hotbar.nbt|command_history.txt"
                                     DefaultChecked="False" />
                             </legacy:MyCheckBox.Tag>
@@ -65,6 +70,7 @@
                             <legacy:MyCheckBox.Tag>
                                 <views:ExportOption
                                     Title="{DynamicResource Instance.Export.Option.OptiFine}"
+                                    TitleResourceKey="Instance.Export.Option.OptiFine"
                                     Rules="optionsof.txt|optionsshaders.txt"
                                     DefaultChecked="True"
                                     RequireOptiFine="True" />
@@ -75,6 +81,8 @@
                                 <views:ExportOption
                                     Title="{DynamicResource Instance.Export.Option.Mod}"
                                     Description="{DynamicResource Instance.Export.Option.Mod.Desc}"
+                                    TitleResourceKey="Instance.Export.Option.Mod"
+                                    DescriptionResourceKey="Instance.Export.Option.Mod.Desc"
                                     Rules="mods/|!mods/*.disabled|!mods/*.old|!mods/.connector/|coremods/|lib/|!mods/mcef-libraries/|!mods/mcef-cache/"
                                     DefaultChecked="True"
                                     RequireModLoader="True" />
@@ -85,6 +93,7 @@
                                 <legacy:MyCheckBox.Tag>
                                     <views:ExportOption
                                         Title="{DynamicResource Instance.Export.Option.DisabledMod}"
+                                        TitleResourceKey="Instance.Export.Option.DisabledMod"
                                         Rules="mods/*.disabled|mods/*.old" />
                                 </legacy:MyCheckBox.Tag>
                             </legacy:MyCheckBox>
@@ -93,6 +102,8 @@
                                     <views:ExportOption
                                         Title="{DynamicResource Instance.Export.Option.ImportantData}"
                                         Description="{DynamicResource Instance.Export.Option.ImportantData.Desc}"
+                                        TitleResourceKey="Instance.Export.Option.ImportantData"
+                                        DescriptionResourceKey="Instance.Export.Option.ImportantData.Desc"
                                         Rules="addons/|multiblocked/|modpack-update-checker/|global_packs/|global_resource_packs/|global_data_packs/|optional_data_packs/|maps/|icon.png|mods-resourcepacks/|matmos/|resource_assorts/|resource_assorts.json|patchouli_books/|datapacks/|kubejs*/|!kubejs*/probe/|!kubejs*/exported/|!kubejs*/jsconfig.json|!kubejs*/README.txt|openloader/|worldshape/|resources/|scripts/|structures/|fontfiles/|oresources/|packmenu/|craftpresence/|pointblanks/|template*/|!template*/playerdata/|!template*/stats/"
                                         DefaultChecked="True" />
                                 </legacy:MyCheckBox.Tag>
@@ -101,6 +112,7 @@
                                 <legacy:MyCheckBox.Tag>
                                     <views:ExportOption
                                         Title="{DynamicResource Instance.Export.Option.ModSettings}"
+                                        TitleResourceKey="Instance.Export.Option.ModSettings"
                                         Rules="config/|!config/accountsx/|!config/jei/world/|!config/worldedit/|config/worldedit/worldedit.properties|!config/spark/|config/spark/config.json|defaultconfigs/|journeymap/config/|journeymap/server/|TrashSlotSaveState.json|customfov.txt|gg.essential.mod/|essential/|!essential/*/|!essential/*.jar*|!essential/screenshot-checksum-caches.json|!essential/microsoft_accounts.json|paragliderSettings.nbt|local/client_config.json|local/ftbl.json|local/client/sidebar_buttons.json|local/client/ftbutilities.cfg|local/client/ftblib.cfg|local/client/xencraft.cfg|liteloader.properties|default_reference.xml|CustomSkinLoader/CustomSkinLoader.json"
                                         DefaultChecked="True" />
                                 </legacy:MyCheckBox.Tag>
@@ -110,6 +122,8 @@
                                     <views:ExportOption
                                         Title="{DynamicResource Instance.Export.Option.Maps}"
                                         Description="{DynamicResource Instance.Export.Option.Maps.Desc}"
+                                        TitleResourceKey="Instance.Export.Option.Maps"
+                                        DescriptionResourceKey="Instance.Export.Option.Maps.Desc"
                                         Rules="journeymap/data/|xaero/|XaeroWaypoints/|XaeroWorldMap/"
                                         DefaultChecked="False" />
                                 </legacy:MyCheckBox.Tag>
@@ -119,6 +133,8 @@
                                     <views:ExportOption
                                         Title="{DynamicResource Instance.Export.Option.Jei}"
                                         Description="{DynamicResource Instance.Export.Option.Jei.Desc}"
+                                        TitleResourceKey="Instance.Export.Option.Jei"
+                                        DescriptionResourceKey="Instance.Export.Option.Jei.Desc"
                                         Rules="config/jei/world/"
                                         DefaultChecked="False" />
                                 </legacy:MyCheckBox.Tag>
@@ -128,6 +144,8 @@
                                     <views:ExportOption
                                         Title="{DynamicResource Instance.Export.Option.Emi}"
                                         Description="{DynamicResource Instance.Export.Option.Emi.Desc}"
+                                        TitleResourceKey="Instance.Export.Option.Emi"
+                                        DescriptionResourceKey="Instance.Export.Option.Emi.Desc"
                                         Rules="emi.json"
                                         DefaultChecked="False" />
                                 </legacy:MyCheckBox.Tag>
@@ -137,6 +155,8 @@
                                     <views:ExportOption
                                         Title="{DynamicResource Instance.Export.Option.Patchouli}"
                                         Description="{DynamicResource Instance.Export.Option.Patchouli.Desc}"
+                                        TitleResourceKey="Instance.Export.Option.Patchouli"
+                                        DescriptionResourceKey="Instance.Export.Option.Patchouli.Desc"
                                         Rules="patchouli_data.json"
                                         DefaultChecked="False" />
                                 </legacy:MyCheckBox.Tag>
@@ -147,6 +167,8 @@
                                 <views:ExportOption
                                     Title="{DynamicResource Instance.Export.Option.ResourcePacks}"
                                     Description="{DynamicResource Instance.Export.Option.ResourcePacks.Desc}"
+                                    TitleResourceKey="Instance.Export.Option.ResourcePacks"
+                                    DescriptionResourceKey="Instance.Export.Option.ResourcePacks.Desc"
                                     ShowRules="resourcepacks/|texturepacks/"
                                     DefaultChecked="True" />
                             </legacy:MyCheckBox.Tag>
@@ -156,6 +178,7 @@
                             <legacy:MyCheckBox.Tag>
                                 <views:ExportOption
                                     Title="{DynamicResource Instance.Export.Option.ShaderPacks}"
+                                    TitleResourceKey="Instance.Export.Option.ShaderPacks"
                                     ShowRules="shaderpacks/"
                                     DefaultChecked="True"
                                     RequireModLoaderOrOptiFine="True" />
@@ -166,6 +189,7 @@
                             <legacy:MyCheckBox.Tag>
                                 <views:ExportOption
                                     Title="{DynamicResource Instance.Export.Option.Screenshots}"
+                                    TitleResourceKey="Instance.Export.Option.Screenshots"
                                     Rules="screenshots/"
                                     DefaultChecked="False" />
                             </legacy:MyCheckBox.Tag>
@@ -175,6 +199,8 @@
                                 <views:ExportOption
                                     Title="{DynamicResource Instance.Export.Option.Structures}"
                                     Description="{DynamicResource Instance.Export.Option.Structures.Desc}"
+                                    TitleResourceKey="Instance.Export.Option.Structures"
+                                    DescriptionResourceKey="Instance.Export.Option.Structures.Desc"
                                     Rules="schematics/"
                                     DefaultChecked="False" />
                             </legacy:MyCheckBox.Tag>
@@ -184,6 +210,8 @@
                                 <views:ExportOption
                                     Title="{DynamicResource Instance.Export.Option.Replay}"
                                     Description="{DynamicResource Instance.Export.Option.Replay.Desc}"
+                                    TitleResourceKey="Instance.Export.Option.Replay"
+                                    DescriptionResourceKey="Instance.Export.Option.Replay.Desc"
                                     Rules="replay_recordings/|replay_videos/"
                                     RequireModLoader="True"
                                     DefaultChecked="False" />
@@ -194,6 +222,8 @@
                                 <views:ExportOption
                                     Title="{DynamicResource Instance.Export.Option.Saves}"
                                     Description="{DynamicResource Instance.Export.Option.Saves.Desc}"
+                                    TitleResourceKey="Instance.Export.Option.Saves"
+                                    DescriptionResourceKey="Instance.Export.Option.Saves.Desc"
                                     ShowRules="saves/"
                                     DefaultChecked="False" />
                             </legacy:MyCheckBox.Tag>
@@ -203,6 +233,7 @@
                             <legacy:MyCheckBox.Tag>
                                 <views:ExportOption
                                     Title="{DynamicResource Instance.Export.Option.Servers}"
+                                    TitleResourceKey="Instance.Export.Option.Servers"
                                     Rules="servers.dat"
                                     DefaultChecked="False" />
                             </legacy:MyCheckBox.Tag>
@@ -212,6 +243,8 @@
                                 <views:ExportOption
                                     Title="{DynamicResource Instance.Export.Option.Launcher}"
                                     Description="{DynamicResource Instance.Export.Option.Launcher.Desc}"
+                                    TitleResourceKey="Instance.Export.Option.Launcher"
+                                    DescriptionResourceKey="Instance.Export.Option.Launcher.Desc"
                                     DefaultChecked="True" />
                             </legacy:MyCheckBox.Tag>
                         </legacy:MyCheckBox>
@@ -221,6 +254,8 @@
                                     <views:ExportOption
                                         Title="{DynamicResource Instance.Export.Option.LauncherCustom}"
                                         Description="{DynamicResource Instance.Export.Option.LauncherCustom.Desc}"
+                                        TitleResourceKey="Instance.Export.Option.LauncherCustom"
+                                        DescriptionResourceKey="Instance.Export.Option.LauncherCustom.Desc"
                                         DefaultChecked="True" />
                                 </legacy:MyCheckBox.Tag>
                             </legacy:MyCheckBox>
