@@ -313,7 +313,7 @@ internal sealed class CrashReportExporter
 
             var duplicates = new List<string>();
             foreach (var host in activeMods)
-                foreach (var embedded in host.EmbeddedMods)
+                foreach (var embedded in _FlattenEmbedded(host.EmbeddedMods))
                 {
                     if (string.IsNullOrEmpty(embedded.ModId)
                         || !modsByModId.TryGetValue(embedded.ModId, out var matches))
@@ -375,6 +375,17 @@ internal sealed class CrashReportExporter
         catch (Exception ex)
         {
             LogWrapper.Warn(ex, "Crash", "导出模组信息失败");
+        }
+    }
+
+    private static IEnumerable<ModLocalComp.LocalCompFile> _FlattenEmbedded(List<ModLocalComp.LocalCompFile> mods)
+    {
+        foreach (var mod in mods)
+        {
+            yield return mod;
+            if (mod.EmbeddedMods.Any())
+                foreach (var child in _FlattenEmbedded(mod.EmbeddedMods))
+                    yield return child;
         }
     }
 
