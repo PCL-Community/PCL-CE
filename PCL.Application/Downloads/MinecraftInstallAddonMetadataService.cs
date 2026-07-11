@@ -14,7 +14,8 @@ public enum MinecraftInstallAddonKind
     FabricApi,
     LegacyFabricApi,
     Qsl,
-    OptiFabric
+    OptiFabric,
+    OptiFine
 }
 
 public sealed record MinecraftInstallAddonVersionEntry(

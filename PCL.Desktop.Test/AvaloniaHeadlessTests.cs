@@ -3017,6 +3017,27 @@ public sealed class AvaloniaHeadlessTests
                 Click(window, apiItem);
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
+                MyCard optiFineCard = page.FindControl<MyCard>("CardOptiFine")!;
+                Click(window, optiFineCard);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                MyListItem optiFineItem = page.FindControl<StackPanel>("PanOptiFine")!.Children
+                    .OfType<MyListItem>()
+                    .First(item => item.Title == "1.20.1_HD_U_I6");
+                Click(window, optiFineItem);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Assert.AreEqual("0.16.14", page.FindControl<TextBlock>("LabFabric")!.Text);
+
+                MyCard optiFabricCard = page.FindControl<MyCard>("CardOptiFabric")!;
+                Assert.IsTrue(optiFabricCard.IsVisible);
+                Assert.IsTrue(optiFabricCard.MainSwap.IsVisible);
+                Click(window, optiFabricCard);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                MyListItem optiFabricItem = page.FindControl<StackPanel>("PanOptiFabric")!.Children
+                    .OfType<MyListItem>()
+                    .First();
+                Click(window, optiFabricItem);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
                 Click(window, page.FindControl<MyExtraTextButton>("BtnStart")!);
 
                 Assert.AreEqual("fabric-loader-0.16.14-1.20.1", requested?.VersionId);
@@ -3024,8 +3045,14 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual("https://example.invalid/1.20.1.json", requested?.VersionJsonUrl);
                 Assert.AreEqual(MinecraftLoaderKind.Fabric, requested?.Loader?.Kind);
                 Assert.AreEqual("0.16.14", requested?.Loader?.LoaderVersion);
-                Assert.AreEqual(MinecraftInstallAddonKind.FabricApi, requested?.Addons?.Single().Kind);
-                Assert.AreEqual("fabric-api.jar", requested?.Addons?.Single().FileName);
+                CollectionAssert.AreEquivalent(
+                    new[]
+                    {
+                        MinecraftInstallAddonKind.FabricApi,
+                        MinecraftInstallAddonKind.OptiFine,
+                        MinecraftInstallAddonKind.OptiFabric
+                    },
+                    requested?.Addons?.Select(addon => addon.Kind).ToArray());
             }
             finally
             {
@@ -10346,7 +10373,10 @@ public sealed class AvaloniaHeadlessTests
             CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<MinecraftLoaderVersionEntry>>(
             [
-                new MinecraftLoaderVersionEntry(kind, "0.16.14", true)
+                new MinecraftLoaderVersionEntry(
+                    kind,
+                    kind == MinecraftLoaderKind.OptiFine ? "1.20.1_HD_U_I6" : "0.16.14",
+                    true)
             ]);
 
         public Task<MinecraftLoaderInstallMetadata> GetLoaderInstallMetadataAsync(
@@ -10409,8 +10439,8 @@ public sealed class AvaloniaHeadlessTests
                 new MinecraftInstallAddonVersionEntry(
                     kind,
                     "0.100.0+1.20.1",
-                    "fabric-api.jar",
-                    "https://cdn.example/fabric-api.jar",
+                    kind.ToString().ToLowerInvariant() + ".jar",
+                    "https://cdn.example/" + kind.ToString().ToLowerInvariant() + ".jar",
                     null,
                     1234,
                     true)
