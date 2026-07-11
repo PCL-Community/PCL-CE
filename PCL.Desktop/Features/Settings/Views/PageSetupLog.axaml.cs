@@ -33,20 +33,21 @@ public partial class PageSetupLog : MyPageRight, IRefreshableSettingsPage, ISett
 
     public void RefreshPage()
     {
-        if (PanList is null)
+        StackPanel? panList = this.FindControl<StackPanel>("PanList");
+        if (panList is null)
             return;
 
         Directory.CreateDirectory(GetLogDirectory());
-        PanList.Children.Clear();
+        panList.Children.Clear();
         FileInfo[] logs = EnumerateLogs().ToArray();
         if (logs.Length == 0)
         {
-            PanList.Children.Add(new MyHint
+            panList.Children.Add(new MyHint
             {
                 Text = "当前还没有可导出的日志文件。",
                 Theme = MyHint.Themes.Blue
             });
-            ControlVisualHelpers.AnimateListEntrance(PanList, "Log File List");
+            ControlVisualHelpers.AnimateListEntrance(panList, "Log File List");
             return;
         }
 
@@ -58,7 +59,7 @@ public partial class PageSetupLog : MyPageRight, IRefreshableSettingsPage, ISett
                 ToolTip = "打开日志文件"
             };
             open.Click += (_, _) => OpenPathRequested?.Invoke(this, new SettingsPathRequestedEventArgs(log.FullName));
-            PanList.Children.Add(new MyListItem
+            panList.Children.Add(new MyListItem
             {
                 Title = log.Name,
                 Info = $"{FormatSize(log.Length)}，{log.LastWriteTime:yyyy-MM-dd HH:mm:ss}",
@@ -69,7 +70,7 @@ public partial class PageSetupLog : MyPageRight, IRefreshableSettingsPage, ISett
                 Buttons = [open]
             });
         }
-        ControlVisualHelpers.AnimateListEntrance(PanList, "Log File List");
+        ControlVisualHelpers.AnimateListEntrance(panList, "Log File List");
     }
 
     private void ButtonClean_OnClick(object? sender, EventArgs e)

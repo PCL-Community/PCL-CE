@@ -13,6 +13,7 @@ using PCL.Desktop.Theme;
 using PCL.Desktop.Views;
 using PCL.Desktop.Features.Settings.Views;
 using PCL.Application.Settings;
+using PCL.Desktop.Diagnostics;
 
 namespace PCL.Desktop;
 
@@ -27,6 +28,7 @@ public sealed partial class App : Avalonia.Application
     public override void OnFrameworkInitializationCompleted()
     {
         LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+        DesktopFileLog.Initialize();
         AvaloniaThemeManager.Apply(settings);
         AvaloniaLocalizationManager.InitializeFromSettings(settings);
         DesktopHost.Initialize();

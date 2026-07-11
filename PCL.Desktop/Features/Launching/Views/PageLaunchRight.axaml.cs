@@ -9,6 +9,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Diagnostics;
 
 namespace PCL.Desktop.Features.Launching.Views;
 
@@ -132,6 +133,7 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
 
     public void AppendLog(string message)
     {
+        DesktopFileLog.Write(message);
         if (this.FindControl<TextBlock>("LabLog") is not { } log)
             return;
 

@@ -9,18 +9,11 @@
         WindowDecorations="None"
         WindowStartupLocation="CenterScreen"
         Background="Transparent">
-    <Border Width="112"
-            Height="112"
-            CornerRadius="28"
-            Background="#F7FFFFFF"
-            BoxShadow="0 8 28 #33000000"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center">
-        <Image Source="avares://PCL.Desktop/Assets/icon.png"
-               Width="82"
-               Height="82"
-               Stretch="Uniform"
-               HorizontalAlignment="Center"
-               VerticalAlignment="Center" />
-    </Border>
+    <Image x:Name="SplashIcon"
+           Source="avares://PCL.Desktop/Assets/icon.png"
+           Width="112"
+           Height="112"
+           Stretch="Uniform"
+           HorizontalAlignment="Center"
+           VerticalAlignment="Center" />
 </Window>

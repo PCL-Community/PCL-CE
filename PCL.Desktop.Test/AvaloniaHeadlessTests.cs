@@ -23,6 +23,7 @@ using PCL.Application.Settings;
 using PCL.Core.App;
 using PCL.Desktop;
 using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Diagnostics;
 using PCL.Desktop.Features.Community;
 using PCL.Desktop.Theme;
 using PCL.Desktop.Views;
@@ -2600,6 +2601,9 @@ public sealed class AvaloniaHeadlessTests
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
                 Assert.IsNotNull(splash.CaptureRenderedFrame());
+                Assert.IsNotNull(splash.FindControl<Image>("SplashIcon")?.Source);
+                Assert.IsFalse(splash.GetVisualDescendants().OfType<Border>()
+                    .Any(border => border.Background is SolidColorBrush { Color.R: > 240, Color.G: > 240, Color.B: > 240, Color.A: > 0 }));
             }
             finally
             {
@@ -3429,6 +3433,36 @@ public sealed class AvaloniaHeadlessTests
                 window.Close();
             }
         }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void PageSetupLog_ListsThePersistentDesktopSessionLog()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+        DesktopFileLog.Write("headless persistent log marker");
+
+        session.Dispatch(() =>
+        {
+            PageSetupLog page = new();
+            Window window = new() { Width = 700, Height = 500, Content = page };
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                page.RefreshPage();
+
+                Assert.IsTrue(File.Exists(DesktopFileLog.CurrentLogPath));
+                Assert.IsTrue(File.ReadAllText(DesktopFileLog.CurrentLogPath)
+                    .Contains("headless persistent log marker", StringComparison.Ordinal));
+                Assert.IsTrue(page.FindControl<StackPanel>("PanList")!.Children
+                    .OfType<MyListItem>()
+                    .Any(item => item.Title.EndsWith(".log", StringComparison.OrdinalIgnoreCase)));
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None).GetAwaiter().GetResult();
     }
 
     [TestMethod]
