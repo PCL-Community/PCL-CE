@@ -110,7 +110,11 @@ public sealed class MinecraftProcessLaunchServiceTests
                       "--username",
                       "${auth_player_name}",
                       "--gameDir",
-                      "${game_directory}"
+                      "${game_directory}",
+                      "--versionType",
+                      "${version_type}",
+                      "--launcherName",
+                      "${launcher_name}"
                     ]
                   },
                   "assetIndex": {
@@ -149,11 +153,15 @@ public sealed class MinecraftProcessLaunchServiceTests
                     MinecraftRootDirectory = root,
                     PlayerName = "Steve",
                     PlayerUuid = "00000000000000000000000000000000",
+                    LauncherName = "Custom Launcher",
+                    VersionType = "Custom Type",
                     JavaExecutablePath = "java"
                 });
 
             StringAssert.Contains(plan.StartInfo.Arguments, "net.fabricmc.loader.impl.launch.knot.KnotClient");
             StringAssert.Contains(plan.StartInfo.Arguments, "--username Steve");
+            StringAssert.Contains(plan.StartInfo.Arguments, "--versionType \"Custom Type\"");
+            StringAssert.Contains(plan.StartInfo.Arguments, "--launcherName \"Custom Launcher\"");
             CollectionAssert.Contains(plan.ClasspathEntries.ToArray(), baseJarPath);
             Assert.IsTrue(plan.ClasspathEntries.Any(path => path.EndsWith(
                 Path.Combine("net", "fabricmc", "fabric-loader", "0.16.14", "fabric-loader-0.16.14.jar"),

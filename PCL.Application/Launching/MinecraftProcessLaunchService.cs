@@ -37,6 +37,8 @@ public sealed record MinecraftProcessLaunchRequest
     public DateTimeOffset? ReleaseTime { get; init; }
     public bool HasOptiFine { get; init; }
     public string? WorldName { get; init; }
+    public string LauncherName { get; init; } = "PCL-N";
+    public string VersionType { get; init; } = "PCL-N";
 }
 
 public sealed record MinecraftProcessLaunchPlan(
@@ -164,7 +166,7 @@ public static class MinecraftProcessLaunchService
         new(StringComparer.Ordinal)
         {
             ["${natives_directory}"] = Quote(nativesDirectory),
-            ["${launcher_name}"] = "PCL-N",
+            ["${launcher_name}"] = request.LauncherName,
             ["${launcher_version}"] = "Avalonia",
             ["${classpath}"] = Quote(classpath),
             ["${auth_player_name}"] = request.PlayerName,
@@ -177,7 +179,7 @@ public static class MinecraftProcessLaunchService
             ["${clientid}"] = Guid.NewGuid().ToString("N"),
             ["${auth_xuid}"] = "0",
             ["${user_type}"] = "msa",
-            ["${version_type}"] = "PCL-N",
+            ["${version_type}"] = request.VersionType,
             ["${resolution_width}"] = request.Width.ToString(System.Globalization.CultureInfo.InvariantCulture),
             ["${resolution_height}"] = request.Height.ToString(System.Globalization.CultureInfo.InvariantCulture),
             ["${quickPlayPath}"] = string.Empty,
