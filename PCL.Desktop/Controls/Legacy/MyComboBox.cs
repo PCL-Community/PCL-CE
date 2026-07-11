@@ -7,7 +7,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
-using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
@@ -34,30 +33,6 @@ public class MyComboBox : ComboBox
     private TextBox? _editableTextBox;
     private Grid? _panPopup;
     private Border? _dropDownBorder;
-    private bool _usesWpfEditableItemTemplate;
-
-    private static readonly IDataTemplate WpfEditableItemTemplate = new FuncDataTemplate<object?>(
-        static (item, _) =>
-        {
-            MyIconButton deleteButton = new()
-            {
-                Height = 20d,
-                Width = 20d,
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
-                Tag = item,
-                SvgIcon = "lucide/x"
-            };
-
-            return new MyListItem
-            {
-                Title = item?.ToString() ?? string.Empty,
-                FontSize = 13d,
-                MaxHeight = 26d,
-                IsScaleAnimationEnabled = false,
-                Margin = new Thickness(-3d, 0d, 0d, 0d),
-                Buttons = [deleteButton]
-            };
-        });
 
     public MyComboBox()
     {
@@ -235,32 +210,7 @@ public class MyComboBox : ComboBox
         if (_editableTextBox is not null)
             _editableTextBox.IsVisible = IsEditable;
 
-        RefreshEditableItemTemplate();
-    }
-
-    private void RefreshEditableItemTemplate()
-    {
-        if (IsEditable)
-        {
-            IsTabStop = false;
-            if (ItemTemplate is null)
-            {
-                ItemTemplate = WpfEditableItemTemplate;
-                _usesWpfEditableItemTemplate = true;
-            }
-            else
-            {
-                _usesWpfEditableItemTemplate = ReferenceEquals(ItemTemplate, WpfEditableItemTemplate);
-            }
-
-            return;
-        }
-
-        if (_usesWpfEditableItemTemplate && ReferenceEquals(ItemTemplate, WpfEditableItemTemplate))
-        {
-            ItemTemplate = null;
-            _usesWpfEditableItemTemplate = false;
-        }
+        IsTabStop = !IsEditable;
     }
 
     private void RefreshDropDownArrow(bool animate)

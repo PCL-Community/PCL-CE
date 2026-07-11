@@ -96,6 +96,7 @@ public partial class MyButton : Border
             if (_label is not null)
                 _label.Padding = padding;
         });
+        AttachedToVisualTree += (_, _) => RefreshColor();
         RefreshColor();
     }
 
