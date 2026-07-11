@@ -2,6 +2,7 @@
     x:Class="PCL.Desktop.Features.Settings.Views.PageSetupAbout"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:hosting="using:PCL.Desktop.Hosting"
     xmlns:legacy="using:PCL.Desktop.Controls.Legacy">
     <legacy:MyScrollViewer
         x:Name="PanBack"
@@ -281,7 +282,7 @@
                 Title="{DynamicResource Setup.About.Licenses.Title}">
                 <ItemsControl x:Name="LicenseList" Margin="25,42,23,4" >
                     <ItemsControl.ItemTemplate>
-                        <DataTemplate>
+                        <DataTemplate x:DataType="hosting:PclMetadataLicense">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="LicenseName" />
@@ -297,13 +298,13 @@
                                     Grid.Row="0"
                                     Grid.Column="0"
                                     FontWeight="Bold"
-                                    Text="{Binding Name}"
+                                    Text="{CompiledBinding Name}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Grid.Row="0"
                                     Grid.Column="2"
                                     Grid.ColumnSpan="2"
-                                    Text="{Binding Info}"
+                                    Text="{CompiledBinding Info}"
                                     TextWrapping="Wrap" />
                                 <legacy:MyButton
                                     Grid.Row="1"
@@ -312,7 +313,7 @@
                                     Margin="0,7,20,18"
                                     HorizontalAlignment="Left"
                                     Padding="13,0"
-                                    Tag="{Binding Website}"
+                                    Tag="{CompiledBinding Website}"
                                     Click="BtnMetadataUrl_Click"
                                     Text="{DynamicResource Setup.About.Licenses.ViewWebsite}" IsVisible="True" />
                                 <legacy:MyButton
@@ -322,7 +323,7 @@
                                     Margin="0,7,20,18"
                                     HorizontalAlignment="Left"
                                     Padding="13,0"
-                                    Tag="{Binding License}"
+                                    Tag="{CompiledBinding License}"
                                     Click="BtnMetadataUrl_Click"
                                     Text="{DynamicResource Setup.About.Licenses.ViewLicense}" IsVisible="True" />
                             </Grid>

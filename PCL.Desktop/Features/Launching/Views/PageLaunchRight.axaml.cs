@@ -392,41 +392,90 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
             return true;
         }
 
-        var property = element.GetType().GetProperty(allowedPropertyName);
-        if (property is null || !property.CanWrite)
-            return false;
-
         try
         {
-            Type propertyType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
             string trimmedValue = value.Trim();
-            object convertedValue;
-            if (propertyType == typeof(string) || propertyType == typeof(object))
-                convertedValue = value;
-            else if (propertyType == typeof(bool) && string.Equals(allowedPropertyName, "IsVisible", StringComparison.Ordinal))
-                convertedValue = !string.Equals(trimmedValue, "Collapsed", StringComparison.OrdinalIgnoreCase) &&
+            if (string.Equals(allowedPropertyName, "IsVisible", StringComparison.Ordinal))
+            {
+                element.IsVisible = !string.Equals(trimmedValue, "Collapsed", StringComparison.OrdinalIgnoreCase) &&
                     !string.Equals(trimmedValue, "Hidden", StringComparison.OrdinalIgnoreCase) &&
                     !string.Equals(trimmedValue, "False", StringComparison.OrdinalIgnoreCase);
-            else if (propertyType == typeof(bool) && bool.TryParse(trimmedValue, out bool boolValue))
-                convertedValue = boolValue;
-            else if (propertyType == typeof(int) && int.TryParse(trimmedValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out int intValue))
-                convertedValue = intValue;
-            else if (propertyType == typeof(double) && double.TryParse(trimmedValue, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out double doubleValue))
-                convertedValue = string.Equals(allowedPropertyName, "Opacity", StringComparison.Ordinal)
-                    ? Math.Clamp(doubleValue, 0d, 1d)
-                    : doubleValue;
-            else if (propertyType.IsEnum && Enum.TryParse(propertyType, trimmedValue, true, out object? enumValue) && enumValue is not null)
-                convertedValue = enumValue;
-            else
-                return false;
+                return true;
+            }
 
-            property.SetValue(element, convertedValue);
-            return true;
+            if (string.Equals(allowedPropertyName, "IsEnabled", StringComparison.Ordinal) &&
+                bool.TryParse(trimmedValue, out bool enabled))
+            {
+                element.IsEnabled = enabled;
+                return true;
+            }
+
+            if (string.Equals(allowedPropertyName, "Opacity", StringComparison.Ordinal) &&
+                double.TryParse(trimmedValue, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out double opacity))
+            {
+                element.Opacity = Math.Clamp(opacity, 0d, 1d);
+                return true;
+            }
+
+            return allowedPropertyName switch
+            {
+                "Text" => TrySetText(element, value),
+                "Title" => TrySetTitle(element, value),
+                "Info" => TrySetInfo(element, value),
+                _ => false
+            };
         }
         catch (Exception)
         {
             return false;
         }
+    }
+
+    private static bool TrySetText(Control element, string value)
+    {
+        switch (element)
+        {
+            case TextBlock textBlock:
+                textBlock.Text = value;
+                return true;
+            case TextBox textBox:
+                textBox.Text = value;
+                return true;
+            case MyButton button:
+                button.Text = value;
+                return true;
+            case MyExtraTextButton extraButton:
+                extraButton.Text = value;
+                return true;
+            case MyCheckBox checkBox:
+                checkBox.Text = value;
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private static bool TrySetTitle(Control element, string value)
+    {
+        switch (element)
+        {
+            case MyCard card:
+                card.Title = value;
+                return true;
+            case MyListItem item:
+                item.Title = value;
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private static bool TrySetInfo(Control element, string value)
+    {
+        if (element is not MyListItem item)
+            return false;
+        item.Info = value;
+        return true;
     }
 
     private static IEnumerable<Control> FindElementsByTag(Control root, string tag)

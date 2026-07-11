@@ -104,6 +104,8 @@ public class MyComboBox : ComboBox
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
+        if (_editableTextBox is not null)
+            _editableTextBox.TextChanged -= EditableTextBox_TextChanged;
         base.OnApplyTemplate(e);
         _dropDownArrow = e.NameScope.Find<PathShape>("PART_DropDownArrow");
         _selectedContentPresenter = e.NameScope.Find<ContentPresenter>("PART_Content")
@@ -121,6 +123,8 @@ public class MyComboBox : ComboBox
         if (_editableTextBox is not null)
         {
             _editableTextBox.Tag = Tag;
+            _editableTextBox.Text = base.Text ?? _text;
+            _editableTextBox.TextChanged += EditableTextBox_TextChanged;
             _editableTextBox.GetObservable(IsFocusedProperty).Subscribe(_ => RefreshColor());
             if (_editableTextBox is MyTextBox myTextBox)
                 myTextBox.HintText = HintText;
@@ -324,6 +328,12 @@ public class MyComboBox : ComboBox
             return;
 
         _text = text ?? string.Empty;
+        if (_editableTextBox is not null && !string.Equals(_editableTextBox.Text, _text, StringComparison.Ordinal))
+        {
+            int currentCaret = _editableTextBox.CaretIndex;
+            _editableTextBox.Text = _text;
+            _editableTextBox.CaretIndex = Math.Clamp(currentCaret, 0, _text.Length);
+        }
         TextChanged?.Invoke(this, new TextChangedEventArgs(TextBox.TextChangedEvent, this));
         if (SelectedItem is null || Text == SelectedItem.ToString())
             return;
@@ -336,6 +346,21 @@ public class MyComboBox : ComboBox
         if (_editableTextBox is not null && rawCaretIndex is int caretIndex)
             _editableTextBox.CaretIndex = Math.Clamp(caretIndex, 0, _editableTextBox.Text?.Length ?? 0);
         _isTextChanging = false;
+    }
+
+    private void EditableTextBox_TextChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (_isTextChanging || _editableTextBox is null)
+            return;
+
+        _isTextChanging = true;
+        string text = _editableTextBox.Text ?? string.Empty;
+        _text = text;
+        base.Text = text;
+        if (SelectedItem is not null && !string.Equals(text, SelectedItem.ToString(), StringComparison.Ordinal))
+            SelectedItem = null;
+        _isTextChanging = false;
+        TextChanged?.Invoke(this, e);
     }
 
     private IBrush FindBrush(string key, string fallback)

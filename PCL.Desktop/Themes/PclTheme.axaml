@@ -983,7 +983,6 @@ IPv6 优先：-Djava.net.preferIPv6Stack=true</x:String>
                             Padding="0"
                             BorderThickness="0"
                             Background="{DynamicResource ColorBrushTransparent}"
-                            Text="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
                             IsVisible="False" />
           <Path x:Name="PART_DropDownArrow"
                 Width="15"
