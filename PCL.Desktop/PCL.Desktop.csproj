@@ -57,6 +57,9 @@
     <EmbeddedResource Include="../PCL.Core/App/Localization/Languages/en-US.xaml">
       <LogicalName>PCL.Desktop.Localization.en-US.xaml</LogicalName>
     </EmbeddedResource>
+    <EmbeddedResource Include="metadata.json">
+      <LogicalName>PCL.Desktop.metadata.json</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="WpfOriginal/**/*.cs" />

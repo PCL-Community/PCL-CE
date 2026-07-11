@@ -345,6 +345,7 @@
     <x:String x:Key="Setup.About.Community.Info">Plain Craft Launcher N Edition 的开发者！</x:String>
     <x:String x:Key="Setup.About.Community.Name">MUXUE1230</x:String>
     <x:String x:Key="Setup.About.GitHubHome">GitHub 主页</x:String>
+    <x:String x:Key="Setup.About.SponsorCommunityAuthor">赞助作者</x:String>
     <x:String x:Key="Setup.About.Legal.CommunitySource">PCL N Edition 开源代码</x:String>
     <x:String x:Key="Setup.About.Legal.CopyrightText">Copyright © 2026 MUXUE1230 &amp; 龙腾猫跃.非 MINECRAFT 官方产品。未经 MOJANG 或 MICROSOFT 批准，也不与 MOJANG 或 MICROSOFT 关联。</x:String>
     <x:String x:Key="Setup.About.Legal.OtherInfo">其他信息</x:String>

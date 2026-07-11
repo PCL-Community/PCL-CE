@@ -4659,6 +4659,39 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void PageSetupAbout_UsesUnifiedMetadataAndSponsorLink()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageSetupAbout page = new();
+            Window window = new() { Width = 900, Height = 640, Content = page };
+            string? openedUrl = null;
+            page.OpenUrlRequested += (_, args) => openedUrl = args.Url;
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                MyListItem about = page.FindControl<MyListItem>("ItemAboutPcl")!;
+                Assert.IsTrue(about.Info.Contains("1.0.144", StringComparison.Ordinal));
+                Assert.IsFalse(about.Info.Contains("%VERSION", StringComparison.Ordinal));
+                Assert.AreEqual(6, page.FindControl<ItemsControl>("LicenseList")!.Items.Count);
+
+                MyButton sponsor = page.FindControl<MyButton>("BtnCommunityHome")!;
+                Assert.AreEqual("赞助作者", sponsor.Text);
+                Click(window, sponsor);
+                Assert.AreEqual("https://ifdian.net/a/pclne", openedUrl);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    [TestMethod]
     public void MainWindow_AppliesPersistedRuntimeAppearanceSettings()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();

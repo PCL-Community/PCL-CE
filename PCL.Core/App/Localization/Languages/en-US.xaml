@@ -1895,6 +1895,7 @@
     <sys:String x:Key="Setup.About.Version.Info">Current version: %VERSION% (%BRANCH%, %VERSIONCODE%, %COMMIT_HASH%)</sys:String>
     <sys:String x:Key="Setup.About.SponsorOriginalAuthor">Sponsor original author</sys:String>
     <sys:String x:Key="Setup.About.GitHubHome">GitHub page</sys:String>
+    <sys:String x:Key="Setup.About.SponsorCommunityAuthor">Sponsor author</sys:String>
     <sys:String x:Key="Setup.About.SourceCode">Source code</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.Title">Special thanks</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.Name.Bangbang93">bangbang93</sys:String>

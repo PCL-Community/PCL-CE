@@ -1895,6 +1895,7 @@
     <sys:String x:Key="Setup.About.Version.Info">当前版本: %VERSION% (%BRANCH%, %VERSIONCODE%, %COMMIT_HASH%)</sys:String>
     <sys:String x:Key="Setup.About.SponsorOriginalAuthor">赞助原作者</sys:String>
     <sys:String x:Key="Setup.About.GitHubHome">GitHub 主页</sys:String>
+    <sys:String x:Key="Setup.About.SponsorCommunityAuthor">赞助作者</sys:String>
     <sys:String x:Key="Setup.About.SourceCode">查看源代码</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.Title">特别鸣谢</sys:String>
     <sys:String x:Key="Setup.About.SpecialThanks.Name.Bangbang93">bangbang93</sys:String>

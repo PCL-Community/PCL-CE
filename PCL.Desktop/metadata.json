@@ -1,0 +1,51 @@
+{
+  "name": "Plain Craft Launcher N Edition",
+  "version": {
+    "base": "1.0.144",
+    "upstream": "2.15.0",
+    "suffix": "beta",
+    "code": 144
+  },
+  "branch": "dev",
+  "commit": "local",
+  "repository": "https://github.com/MuXue1230-owo/PCL-N",
+  "sponsor": "https://ifdian.net/a/pclne",
+  "licenses": [
+    {
+      "name": "PCL N Avalonia Desktop",
+      "info": "Copyright © MUXUE1230 and PCL N contributors; Apache-2.0",
+      "website": "https://github.com/MuXue1230-owo/PCL-N/tree/dev/PCL.Desktop",
+      "license": "https://github.com/MuXue1230-owo/PCL-N/blob/dev/LICENSE"
+    },
+    {
+      "name": "Avalonia",
+      "info": "Copyright © AvaloniaUI; MIT",
+      "website": "https://avaloniaui.net/",
+      "license": "https://github.com/AvaloniaUI/Avalonia/blob/master/licence.md"
+    },
+    {
+      "name": "LibVLCSharp / LibVLC",
+      "info": "Copyright © VideoLAN and contributors; LGPL-2.1-or-later",
+      "website": "https://www.videolan.org/",
+      "license": "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html"
+    },
+    {
+      "name": "Lucide",
+      "info": "Copyright © Lucide Contributors; ISC and MIT",
+      "website": "https://lucide.dev/",
+      "license": "https://lucide.dev/license"
+    },
+    {
+      "name": "Wacton.Unicolour",
+      "info": "Copyright © William Acton; MIT",
+      "website": "https://github.com/waacton/Unicolour",
+      "license": "https://github.com/waacton/Unicolour/blob/main/LICENSE"
+    },
+    {
+      "name": "FluentValidation",
+      "info": "Copyright © Jeremy Skinner and contributors; Apache-2.0",
+      "website": "https://github.com/FluentValidation/FluentValidation",
+      "license": "https://github.com/FluentValidation/FluentValidation/blob/main/License.txt"
+    }
+  ]
+}

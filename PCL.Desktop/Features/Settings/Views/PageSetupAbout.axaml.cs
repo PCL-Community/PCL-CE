@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Hosting;
 
 #pragma warning disable CA1822, CS0067
 
@@ -20,6 +21,8 @@ public partial class PageSetupAbout : MyPageRight, ISettingsPageInteractionSourc
     {
         AvaloniaXamlLoader.Load(this);
         PanScroll = PanBack;
+        ApplyMetadata();
+        AttachedToVisualTree += (_, _) => ApplyMetadata();
     }
 
     public event EventHandler<SettingsPathRequestedEventArgs>? OpenPathRequested;
@@ -53,12 +56,12 @@ public partial class PageSetupAbout : MyPageRight, ISettingsPageInteractionSourc
 
     private void BtnCommunityHome_Click(object? sender, EventArgs e)
     {
-        OpenUrlRequested?.Invoke(this, new SettingsUrlRequestedEventArgs("https://github.com/MuXue1230-owo/PCL-N"));
+        OpenUrlRequested?.Invoke(this, new SettingsUrlRequestedEventArgs(PclMetadata.Current.Sponsor));
     }
 
     private void BtnSourceCode_Click(object? sender, EventArgs e)
     {
-        OpenUrlRequested?.Invoke(this, new SettingsUrlRequestedEventArgs("https://github.com/MuXue1230-owo/PCL-N"));
+        OpenUrlRequested?.Invoke(this, new SettingsUrlRequestedEventArgs(PclMetadata.Current.Repository));
     }
 
     private void BtnSponsorMirror_Click(object? sender, EventArgs e)
@@ -79,5 +82,34 @@ public partial class PageSetupAbout : MyPageRight, ISettingsPageInteractionSourc
     private void BtnUpstreamSource_Click(object? sender, EventArgs e)
     {
         OpenUrlRequested?.Invoke(this, new SettingsUrlRequestedEventArgs("https://github.com/PCL-Community/PCL-CE"));
+    }
+
+    private void BtnMetadataUrl_Click(object? sender, EventArgs e)
+    {
+        if (sender is MyButton { Tag: string url } && Uri.TryCreate(url, UriKind.Absolute, out _))
+            OpenUrlRequested?.Invoke(this, new SettingsUrlRequestedEventArgs(url));
+    }
+
+    private void ApplyMetadata()
+    {
+        PclMetadata metadata = PclMetadata.Current;
+        if (this.FindControl<MyListItem>("ItemAboutPcl") is { } about)
+        {
+            string commit = string.IsNullOrWhiteSpace(PclBuildInfo.SourceRevisionId)
+                ? metadata.Commit
+                : PclBuildInfo.SourceRevisionId;
+            if (commit.Length > 8)
+                commit = commit[..8];
+            string template = about.Info;
+            about.Title = metadata.Name.Replace("Plain Craft Launcher ", "PCL ", StringComparison.Ordinal);
+            about.Info = template
+                .Replace("%VERSION%", metadata.DisplayVersion, StringComparison.Ordinal)
+                .Replace("%VERSIONCODE%", metadata.Version.Code.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.Ordinal)
+                .Replace("%BRANCH%", metadata.Branch, StringComparison.Ordinal)
+                .Replace("%COMMIT_HASH%", commit, StringComparison.Ordinal);
+        }
+
+        if (this.FindControl<ItemsControl>("LicenseList") is { } licenses)
+            licenses.ItemsSource = metadata.Licenses;
     }
 }

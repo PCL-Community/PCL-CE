@@ -91,7 +91,7 @@
                         Grid.Row="1"
                         Grid.Column="2"
                         Height="35"
-                        Text="{DynamicResource Setup.About.GitHubHome}"
+                        Text="{DynamicResource Setup.About.SponsorCommunityAuthor}"
                         Click="BtnCommunityHome_Click" />
                     <legacy:MyButton
                         x:Name="BtnSourceCode"
@@ -279,7 +279,7 @@
                 CanSwap="True"
                 IsSwapped="True"
                 Title="{DynamicResource Setup.About.Licenses.Title}">
-                <ItemsControl Margin="25,42,23,4" >
+                <ItemsControl x:Name="LicenseList" Margin="25,42,23,4" >
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Grid>
@@ -297,13 +297,13 @@
                                     Grid.Row="0"
                                     Grid.Column="0"
                                     FontWeight="Bold"
-                                    Text=""
+                                    Text="{Binding Name}"
                                     TextWrapping="Wrap" />
                                 <TextBlock
                                     Grid.Row="0"
                                     Grid.Column="2"
                                     Grid.ColumnSpan="2"
-                                    Text=""
+                                    Text="{Binding Info}"
                                     TextWrapping="Wrap" />
                                 <legacy:MyButton
                                     Grid.Row="1"
@@ -312,6 +312,8 @@
                                     Margin="0,7,20,18"
                                     HorizontalAlignment="Left"
                                     Padding="13,0"
+                                    Tag="{Binding Website}"
+                                    Click="BtnMetadataUrl_Click"
                                     Text="{DynamicResource Setup.About.Licenses.ViewWebsite}" IsVisible="True" />
                                 <legacy:MyButton
                                     Grid.Row="1"
@@ -320,6 +322,8 @@
                                     Margin="0,7,20,18"
                                     HorizontalAlignment="Left"
                                     Padding="13,0"
+                                    Tag="{Binding License}"
+                                    Click="BtnMetadataUrl_Click"
                                     Text="{DynamicResource Setup.About.Licenses.ViewLicense}" IsVisible="True" />
                             </Grid>
                         </DataTemplate>
