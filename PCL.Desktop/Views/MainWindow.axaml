@@ -180,7 +180,7 @@
 
         <Border x:Name="PanBack" Margin="10" CornerRadius="8" ClipToBounds="True">
 
-            <Grid x:Name="PanForm" Background="{DynamicResource ColorBrushBackground}">
+            <Grid x:Name="PanForm">
 
                 <Grid.RowDefinitions>
 

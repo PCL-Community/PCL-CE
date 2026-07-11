@@ -113,13 +113,17 @@ public partial class MainWindow : Window, IDisposable
     private Action? _taskManagerBackAction;
     private string? _selectedMinecraftRoot;
     private bool _minecraftFoldersLoaded;
+    private bool _isGameRunning;
     private double _targetWindowOpacity = 1d;
     private string? _backgroundStamp;
+    private string? _backgroundFile;
+    private string? _backgroundRefreshToken;
     private Bitmap? _backgroundBitmap;
     private string? _titleLogoFile;
     private Bitmap? _titleLogoBitmap;
     private string? _homepageSignature;
     private CancellationTokenSource? _homepageLoadCancellation;
+    private readonly IDisposable _windowStateSubscription;
 
     private const double NavCollapsedWidth = 50d;
     private const int NavAnimDuration = 200;
@@ -137,6 +141,9 @@ public partial class MainWindow : Window, IDisposable
     {
         _microsoftAuthService = microsoftAuthService ?? throw new ArgumentNullException(nameof(microsoftAuthService));
         AvaloniaXamlLoader.Load(this);
+        _windowStateSubscription = this.GetObservable(WindowStateProperty).Subscribe(_ => UpdateBackgroundVideoPlayback());
+        if (this.FindControl<MediaElement>("VideoBack") is { } video)
+            video.MediaFailed += VideoFailed;
         _navigationPages = CreateNavigationPageMap(DesktopHost.Current.Navigation);
         BuildMainNavigationItems();
         _desktopPageContext = new DesktopPageContext(
@@ -224,10 +231,12 @@ public partial class MainWindow : Window, IDisposable
         AvaloniaLocalizationManager.LanguageChanged -= LocalizationChanged;
         CancelAllTrackedTasks();
         _launchCancellation?.Cancel();
+        this.FindControl<MediaElement>("VideoBack")?.Stop();
     }
 
     private void FormMain_Activated(object? sender, EventArgs e)
     {
+        UpdateBackgroundVideoPlayback();
     }
 
     private void FrmMain_Drop(object? sender, DragEventArgs e)
@@ -240,6 +249,18 @@ public partial class MainWindow : Window, IDisposable
 
     private void VideoEnded(object? sender, EventArgs e)
     {
+        if (sender is not MediaElement video || video.Source is null)
+            return;
+
+        video.Stop();
+        UpdateBackgroundVideoPlayback();
+    }
+
+    private void VideoFailed(object? sender, MediaFailedEventArgs e)
+    {
+        if (sender is MediaElement video)
+            video.IsVisible = false;
+        Debug.WriteLine($"[UI] 背景视频播放失败：{e.Exception.Message}");
     }
 
     private void PanTitle_SizeChanged(object? sender, SizeChangedEventArgs e)
@@ -2913,6 +2934,8 @@ public partial class MainWindow : Window, IDisposable
             if (process is null)
                 throw new InvalidOperationException("Java 进程未能启动。");
             ApplyProcessPriority(process, runtimeSettings);
+            _isGameRunning = true;
+            UpdateBackgroundVideoPlayback(runtimeSettings);
             ApplyLauncherVisibility(process, runtimeSettings);
 
             launchPage.LaunchingRefresh("游戏进程已启动", 1d, isLaunched: true, method: "PID " + process.Id.ToString(CultureInfo.InvariantCulture));
@@ -3103,37 +3126,39 @@ public partial class MainWindow : Window, IDisposable
                 break;
             case 2:
                 Hide();
-                _ = RestoreAfterGameExitAsync(process, closeLauncher: true, minimizeOnly: false);
                 break;
             case 3:
                 Hide();
-                _ = RestoreAfterGameExitAsync(process, closeLauncher: false, minimizeOnly: false);
                 break;
             case 4:
                 WindowState = WindowState.Minimized;
-                _ = RestoreAfterGameExitAsync(process, closeLauncher: false, minimizeOnly: true);
                 break;
         }
+
+        _ = RestoreAfterGameExitAsync(process, visibility);
     }
 
-    private async Task RestoreAfterGameExitAsync(Process process, bool closeLauncher, bool minimizeOnly)
+    private async Task RestoreAfterGameExitAsync(Process process, int visibility)
     {
         try
         {
             await process.WaitForExitAsync().ConfigureAwait(false);
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                if (closeLauncher)
+                _isGameRunning = false;
+                UpdateBackgroundVideoPlayback();
+                if (visibility == 2)
                 {
                     Close();
                     return;
                 }
 
-                if (!IsVisible)
+                if (visibility == 3 && !IsVisible)
                     Show();
-                if (minimizeOnly || WindowState == WindowState.Minimized)
+                if (visibility == 4 && WindowState == WindowState.Minimized)
                     WindowState = WindowState.Normal;
-                Activate();
+                if (visibility is 3 or 4)
+                    Activate();
             });
         }
         catch (Exception ex) when (ex is InvalidOperationException or ObjectDisposedException)
@@ -3959,6 +3984,12 @@ public partial class MainWindow : Window, IDisposable
         AvaloniaLocalizationManager.LanguageChanged -= LocalizationChanged;
         _backgroundBitmap?.Dispose();
         _backgroundBitmap = null;
+        _windowStateSubscription.Dispose();
+        if (this.FindControl<MediaElement>("VideoBack") is { } video)
+        {
+            video.MediaFailed -= VideoFailed;
+            video.Dispose();
+        }
         _titleLogoBitmap?.Dispose();
         _titleLogoBitmap = null;
         _homepageLoadCancellation?.Cancel();
@@ -4653,27 +4684,40 @@ public partial class MainWindow : Window, IDisposable
     private void ApplyBackgroundAppearance(LauncherSettings settings)
     {
         Image? image = this.FindControl<Image>("ImageBack");
-        if (image is null)
+        MediaElement? video = this.FindControl<MediaElement>("VideoBack");
+        if (image is null || video is null)
             return;
 
         string directory = Path.Combine(LauncherSettingsPageBinder.CreateDataDirectory(), "Backgrounds");
-        string? file = Directory.Exists(directory)
+        string[] files = Directory.Exists(directory)
             ? Directory.EnumerateFiles(directory, "*", SearchOption.TopDirectoryOnly)
-                .Where(static path => path.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
-                                      path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
-                                      path.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
-                                      path.EndsWith(".webp", StringComparison.OrdinalIgnoreCase) ||
-                                      path.EndsWith(".gif", StringComparison.OrdinalIgnoreCase))
+                .Where(IsSupportedBackgroundFile)
                 .OrderBy(static path => path, StringComparer.OrdinalIgnoreCase)
-                .FirstOrDefault()
-            : null;
+                .ToArray()
+            : [];
+        StringComparer pathComparer = OperatingSystem.IsWindows()
+            ? StringComparer.OrdinalIgnoreCase
+            : StringComparer.Ordinal;
+        string refreshToken = settings.GetTextOption("UiBackgroundRefreshToken", string.Empty);
+        bool refreshRequested = !string.Equals(_backgroundRefreshToken, refreshToken, StringComparison.Ordinal);
+        _backgroundRefreshToken = refreshToken;
+        string? file = !refreshRequested && _backgroundFile is not null && files.Contains(_backgroundFile, pathComparer)
+            ? _backgroundFile
+            : files.Length == 0 ? null : files[Random.Shared.Next(files.Length)];
+        _backgroundFile = file;
         string? backgroundStamp = file is null ? null : GetFileStamp(file);
+        bool isVideo = file is not null && IsVideoBackgroundFile(file);
         if (!string.Equals(_backgroundStamp, backgroundStamp, StringComparison.Ordinal))
         {
             _backgroundBitmap?.Dispose();
             _backgroundBitmap = null;
             _backgroundStamp = backgroundStamp;
-            if (file is not null)
+            video.Close();
+            if (file is not null && isVideo)
+            {
+                video.Source = new Uri(file, UriKind.Absolute);
+            }
+            else if (file is not null)
             {
                 try
                 {
@@ -4688,13 +4732,49 @@ public partial class MainWindow : Window, IDisposable
         }
 
         image.IsVisible = _backgroundBitmap is not null;
-        image.Opacity = Math.Clamp(
+        video.IsVisible = isVideo && video.Source is not null;
+        double opacity = Math.Clamp(
             settings.GetIntegerOption("UiBackgroundOpacity", LauncherSettingDefaults.GetInteger("UiBackgroundOpacity")) / 1000d,
             0d,
             1d);
+        image.Opacity = opacity;
+        video.Opacity = opacity;
         int blurRadius = settings.GetIntegerOption("UiBackgroundBlur", LauncherSettingDefaults.GetInteger("UiBackgroundBlur"));
         image.Effect = blurRadius > 0 ? new BlurEffect { Radius = blurRadius } : null;
-        ApplyBackgroundSuit(image, settings.GetIntegerOption("UiBackgroundSuit", LauncherSettingDefaults.GetInteger("UiBackgroundSuit")));
+        video.Effect = blurRadius > 0 ? new BlurEffect { Radius = blurRadius } : null;
+        int backgroundSuit = settings.GetIntegerOption("UiBackgroundSuit", LauncherSettingDefaults.GetInteger("UiBackgroundSuit"));
+        ApplyBackgroundSuit(image, backgroundSuit);
+        ApplyBackgroundSuit(video, backgroundSuit);
+        UpdateBackgroundVideoPlayback(settings);
+    }
+
+    private static bool IsSupportedBackgroundFile(string path) =>
+        path.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+        path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+        path.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+        path.EndsWith(".webp", StringComparison.OrdinalIgnoreCase) ||
+        path.EndsWith(".gif", StringComparison.OrdinalIgnoreCase) ||
+        IsVideoBackgroundFile(path);
+
+    private static bool IsVideoBackgroundFile(string path) =>
+        path.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) ||
+        path.EndsWith(".webm", StringComparison.OrdinalIgnoreCase) ||
+        path.EndsWith(".mkv", StringComparison.OrdinalIgnoreCase) ||
+        path.EndsWith(".mov", StringComparison.OrdinalIgnoreCase);
+
+    private void UpdateBackgroundVideoPlayback(LauncherSettings? settings = null)
+    {
+        if (this.FindControl<MediaElement>("VideoBack") is not { Source: not null, IsVisible: true } video)
+            return;
+
+        settings ??= LauncherSettingsPageBinder.LoadSettings();
+        bool pauseForGame = _isGameRunning && settings.GetBooleanOption(
+            "UiAutoPauseVideo",
+            LauncherSettingDefaults.GetBoolean("UiAutoPauseVideo"));
+        if (WindowState == WindowState.Minimized || pauseForGame)
+            video.Pause();
+        else if (!video.IsPlaying)
+            video.Play();
     }
 
     private static void ApplyBackgroundSuit(Image image, int mode)

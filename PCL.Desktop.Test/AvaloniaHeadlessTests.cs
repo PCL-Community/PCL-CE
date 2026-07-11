@@ -42,6 +42,57 @@ namespace PCL.Desktop.Test;
 public sealed class AvaloniaHeadlessTests
 {
     [TestMethod]
+    public void MediaElement_VideoFramesStayInsideAvaloniaComposition()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            using MediaElement media = new();
+            IntPtr chroma = System.Runtime.InteropServices.Marshal.AllocHGlobal(4);
+            try
+            {
+                object?[] formatArguments = [IntPtr.Zero, chroma, 2u, 2u, 0u, 0u];
+                object? result = typeof(MediaElement).GetMethod(
+                        "ConfigureVideoFormat",
+                        System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                    .Invoke(media, formatArguments);
+                Assert.AreEqual(1u, result);
+                Assert.AreEqual(8u, formatArguments[4]);
+                Assert.AreEqual(2u, formatArguments[5]);
+
+                Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+                Assert.IsInstanceOfType<Avalonia.Media.Imaging.WriteableBitmap>(((Image)media).Source);
+
+                IntPtr frameBuffer = (IntPtr)typeof(MediaElement).GetField(
+                        "_frameBuffer",
+                        System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                    .GetValue(media)!;
+                byte[] pixels = Enumerable.Repeat((byte)0x7f, 16).ToArray();
+                System.Runtime.InteropServices.Marshal.Copy(pixels, 0, frameBuffer, pixels.Length);
+                typeof(MediaElement).GetMethod(
+                        "DisplayVideoFrame",
+                        System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                    .Invoke(media, [IntPtr.Zero, frameBuffer]);
+                typeof(MediaElement).GetMethod(
+                        "UpdateFrameBitmap",
+                        System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                    .Invoke(media, null);
+
+                byte[] frameCopy = (byte[])typeof(MediaElement).GetField(
+                        "_frameCopy",
+                        System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                    .GetValue(media)!;
+                Assert.AreEqual(0x7f, frameCopy[0]);
+            }
+            finally
+            {
+                System.Runtime.InteropServices.Marshal.FreeHGlobal(chroma);
+            }
+        }, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    [TestMethod]
     public void MainWindow_LoadsPclChromeAndCanRenderHeadless()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
@@ -61,6 +112,10 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsNotNull(window.FindControl<MyListItem>("BtnTitleSelect3"));
                 Assert.IsNull(window.FindControl<MyListItem>("BtnTitleSelect4"));
                 Assert.IsNotNull(window.FindControl<AnimatedBackgroundGrid>("PanTitle"));
+                Assert.IsNull(window.FindControl<Grid>("PanForm")!.Background);
+                Assert.AreEqual(
+                    Color.FromArgb(0xd2, 0xfb, 0xfb, 0xfb),
+                    ((SolidColorBrush)window.FindControl<Border>("PanNavLayer")!.Background!).Color);
                 Assert.IsNotNull(window.Icon);
                 Assert.IsTrue(window.FindControl<MyListItem>("BtnTitleSelect0")!.Checked);
                 Assert.IsFalse(window.FindControl<MyListItem>("BtnTitleSelect1")!.Checked);

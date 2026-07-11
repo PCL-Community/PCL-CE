@@ -89,6 +89,9 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
 
     private void BtnBackgroundRefresh_Click(object? sender, EventArgs e)
     {
+        LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+        settings.SetTextOption("UiBackgroundRefreshToken", Guid.NewGuid().ToString("N"));
+        LauncherSettingsPageBinder.SaveSettings(settings);
         RefreshBackgroundUi(showMessage: true);
     }
 

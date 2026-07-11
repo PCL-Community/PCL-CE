@@ -27,6 +27,7 @@
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <PclRuntimeVariant Condition="'$(PclRuntimeVariant)' == ''">SelfContained</PclRuntimeVariant>
+    <IncludeAllContentForSelfExtract Condition="'$(PublishSingleFile)' == 'true'">true</IncludeAllContentForSelfExtract>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
@@ -43,6 +44,11 @@
     <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.4" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="LibVLCSharp" Version="3.10.0" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23.1"
+                      Condition="('$(RuntimeIdentifier)' == '' AND $([MSBuild]::IsOSPlatform('Windows'))) OR $([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('win-'))" />
+    <PackageReference Include="VideoLAN.LibVLC.Mac" Version="3.1.3.1"
+                      Condition="('$(RuntimeIdentifier)' == '' AND $([MSBuild]::IsOSPlatform('OSX'))) OR $([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('osx-'))" />
     <PackageReference Include="Wacton.Unicolour" Version="6.4.0" />
   </ItemGroup>
   <ItemGroup>
