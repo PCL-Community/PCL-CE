@@ -264,26 +264,36 @@ internal sealed class CrashReportExporter
 
         try
         {
-            var modsFolder = instance.PathIndie +
-                             (instance.Info.HasLabyMod
-                                 ? Path.Combine("labymod-neo", "fabric", instance.Info.VanillaName)
-                                 : "") + ModLocalComp.GetPathNameByCompType(ModComp.CompType.Mod) + @"\";
+            var modsFolderName = ModLocalComp.GetPathNameByCompType(ModComp.CompType.Mod);
+            var modsFolder = instance.Info.HasLabyMod
+                ? Path.Combine(instance.PathIndie, "labymod-neo", "fabric", instance.Info.VanillaName, modsFolderName)
+                : Path.Combine(instance.PathIndie, modsFolderName);
 
             if (!Directory.Exists(modsFolder))
                 return;
 
-            var activeMods = new List<ModLocalComp.LocalCompFile>();
-            foreach (var file in Directory.GetFiles(modsFolder))
+            // 老 Forge（Drop < 130）的启用 Mod 位于 mods/<版本名> 子目录，需一并扫描
+            var scanFolders = new List<string> { modsFolder };
+            if (instance.Info.HasForge && instance.Info.Drop < 130)
             {
-                if (!ModLocalComp.LocalCompFile.IsModFile(file)
-                    || file.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase)
-                    || file.EndsWith(".old", StringComparison.OrdinalIgnoreCase))
-                    continue;
-                var mod = new ModLocalComp.LocalCompFile(file);
-                mod.Load();
-                if (mod.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine)
-                    activeMods.Add(mod);
+                var versionSubFolder = Path.Combine(modsFolder, instance.Info.VanillaName);
+                if (Directory.Exists(versionSubFolder))
+                    scanFolders.Add(versionSubFolder);
             }
+
+            var activeMods = new List<ModLocalComp.LocalCompFile>();
+            foreach (var folder in scanFolders)
+                foreach (var file in Directory.GetFiles(folder))
+                {
+                    if (!ModLocalComp.LocalCompFile.IsModFile(file)
+                        || file.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase)
+                        || file.EndsWith(".old", StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    var mod = new ModLocalComp.LocalCompFile(file);
+                    mod.Load();
+                    if (mod.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine)
+                        activeMods.Add(mod);
+                }
 
             activeMods = activeMods
                 .OrderBy(m => m.Name ?? m.FileName, StringComparer.OrdinalIgnoreCase)
@@ -291,18 +301,28 @@ internal sealed class CrashReportExporter
 
             var sb = new StringBuilder();
 
+            var modsByModId = new Dictionary<string, List<ModLocalComp.LocalCompFile>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var mod in activeMods)
+            {
+                if (string.IsNullOrEmpty(mod.ModId))
+                    continue;
+                if (!modsByModId.TryGetValue(mod.ModId, out var list))
+                    modsByModId[mod.ModId] = list = new List<ModLocalComp.LocalCompFile>();
+                list.Add(mod);
+            }
+
             var duplicates = new List<string>();
             foreach (var host in activeMods)
                 foreach (var embedded in host.EmbeddedMods)
                 {
-                    if (string.IsNullOrEmpty(embedded.ModId))
+                    if (string.IsNullOrEmpty(embedded.ModId)
+                        || !modsByModId.TryGetValue(embedded.ModId, out var matches))
                         continue;
-                    foreach (var other in activeMods)
+                    foreach (var other in matches)
                     {
                         if (ReferenceEquals(other, host))
                             continue;
-                        if (string.Equals(other.ModId, embedded.ModId, StringComparison.OrdinalIgnoreCase))
-                            duplicates.Add(Lang.Text("Crash.Report.JarInJarMod.DuplicateEntry", other.Name, other.FileName, host.Name, embedded.Name ?? embedded.ModId));
+                        duplicates.Add(Lang.Text("Crash.Report.JarInJarMod.DuplicateEntry", other.Name, other.FileName, host.Name, embedded.Name ?? embedded.ModId));
                     }
                 }
 

@@ -1115,7 +1115,7 @@ public static class ModLocalComp
         /// <summary>
         ///     内嵌模组列表，由 <see cref="ModJarInJar" /> 解析填充。
         /// </summary>
-        public List<LocalCompFile> EmbeddedMods = new();
+        public List<LocalCompFile> EmbeddedMods { get; internal set; } = new();
 
         /// <summary>
         ///     从 Jar 文件中获取 Mod 信息。
