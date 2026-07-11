@@ -32,6 +32,8 @@ internal static class DownloadLoaderRegistry
             "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Quilt.png")
     ];
 
+    public static ReadOnlySpan<DownloadLoaderDescriptor> All => Descriptors;
+
     public static bool TryGetByCardName(string? cardName, out DownloadLoaderDescriptor descriptor)
     {
         if (string.IsNullOrWhiteSpace(cardName))

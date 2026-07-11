@@ -52,6 +52,8 @@ public partial class PageDownloadInstall : MyPageRight
     private readonly IMinecraftLoaderMetadataService _loaderMetadataService;
     private readonly Dictionary<string, LoaderSupportState> _loaderStates = [];
     private readonly Dictionary<(MinecraftLoaderKind Kind, string GameVersion), IReadOnlyList<MinecraftLoaderVersionEntry>> _loaderVersionCache = [];
+    private readonly Dictionary<(MinecraftLoaderKind Kind, string GameVersion), Task<IReadOnlyList<MinecraftLoaderVersionEntry>>> _loaderVersionLoads = [];
+    private readonly Dictionary<(MinecraftLoaderKind Kind, string GameVersion), string> _loaderVersionErrors = [];
     private IReadOnlyList<MinecraftVersionManifestEntry> _versions = [];
     private DownloadVersionFilter _filter = DownloadVersionFilter.All;
     private string _searchText = string.Empty;
@@ -143,15 +145,24 @@ public partial class PageDownloadInstall : MyPageRight
             return;
 
         string name = GetLoaderCardName(kind);
-        if (!_loaderStates.TryGetValue(name, out LoaderSupportState? state) || !state.CanOpen)
+        if (!_loaderStates.TryGetValue(name, out LoaderSupportState? state) || !state.IsVisible)
             return;
+
+        if (!state.CanOpen)
+        {
+            if (!await EnsureLoaderVersionsRenderedAsync(name).ConfigureAwait(true))
+                return;
+            ReloadSelectedLoaderCards();
+            if (!_loaderStates.TryGetValue(name, out state) || !state.CanOpen)
+                return;
+        }
 
         if (this.FindControl<MyCard>("Card" + name) is not { } card)
             return;
 
         card.IsSwapped = false;
         RefreshLoaderInfoPanel(name);
-        await EnsureLoaderVersionsRenderedAsync(name).ConfigureAwait(true);
+        PopulateLoaderVersionList(name, kind, _loaderVersionCache[(kind, _selectedVersion.Id)]);
     }
 
     public void ClearInstallTargetOverride()
@@ -588,6 +599,7 @@ public partial class PageDownloadInstall : MyPageRight
             SetSelectName(_preferredInstallName);
         SetSelectedLogo(version);
         ReloadSelectedLoaderCards();
+        BeginLoaderVersionPreload();
         HideAllHints();
 
         if (this.FindControl<MyExtraTextButton>("BtnStart") is { } button)
@@ -649,8 +661,6 @@ public partial class PageDownloadInstall : MyPageRight
             card.Swap += (_, _) =>
             {
                 RefreshLoaderInfoPanel(name);
-                if (!card.IsSwapped)
-                    _ = EnsureLoaderVersionsRenderedAsync(name);
             };
 
             if (this.FindControl<Control>("Btn" + name + "Clear") is { } clearButton)
@@ -755,7 +765,37 @@ public partial class PageDownloadInstall : MyPageRight
         if (_selectedLoaderKind is not null)
             return LoaderSupportState.VisibleClosed(incompatibleLoader ?? canAdd);
 
-        return LoaderSupportState.VisibleOpen(canAdd);
+        if (_selectedVersion is null)
+            return LoaderSupportState.VisibleClosed(canAdd);
+
+        (MinecraftLoaderKind Kind, string GameVersion) key = (kind, _selectedVersion.Id);
+        if (_loaderVersionCache.ContainsKey(key))
+            return LoaderSupportState.VisibleOpen(canAdd);
+
+        return LoaderSupportState.VisibleClosed(
+            _loaderVersionErrors.TryGetValue(key, out string? error)
+                ? "版本列表加载失败：" + error
+                : "正在获取版本列表");
+    }
+
+    private void BeginLoaderVersionPreload()
+    {
+        if (_selectedVersion is null)
+            return;
+
+        foreach (DownloadLoaderDescriptor loader in DownloadLoaderRegistry.All)
+        {
+            string name = loader.CardName;
+            if (_loaderStates.TryGetValue(name, out LoaderSupportState? state) && state.IsVisible)
+                _ = PreloadLoaderVersionsAsync(name, _selectedVersion.Id);
+        }
+    }
+
+    private async Task PreloadLoaderVersionsAsync(string name, string expectedGameVersion)
+    {
+        await EnsureLoaderVersionsRenderedAsync(name).ConfigureAwait(true);
+        if (string.Equals(_selectedVersion?.Id, expectedGameVersion, StringComparison.Ordinal))
+            ReloadSelectedLoaderCards();
     }
 
     private void SetLoaderInfo(string name, LoaderSupportState state)
@@ -795,10 +835,10 @@ public partial class PageDownloadInstall : MyPageRight
         info.Opacity = isCollapsed ? 1d : 0d;
     }
 
-    private async Task EnsureLoaderVersionsRenderedAsync(string name)
+    private async Task<bool> EnsureLoaderVersionsRenderedAsync(string name)
     {
         if (_selectedVersion is null || !DownloadLoaderRegistry.TryGetByCardName(name, out DownloadLoaderDescriptor loader))
-            return;
+            return false;
 
         string gameVersion = _selectedVersion.Id;
         MinecraftLoaderKind kind = loader.Kind;
@@ -806,21 +846,33 @@ public partial class PageDownloadInstall : MyPageRight
         if (_loaderVersionCache.TryGetValue(key, out IReadOnlyList<MinecraftLoaderVersionEntry>? cached))
         {
             PopulateLoaderVersionList(name, kind, cached);
-            return;
+            return true;
         }
 
         SetLoaderVersionPanelMessage(name, "正在获取版本列表", "请稍候。");
         try
         {
-            IReadOnlyList<MinecraftLoaderVersionEntry> versions = await _loaderMetadataService
-                .GetLoaderVersionsAsync(kind, gameVersion)
-                .ConfigureAwait(false);
+            if (!_loaderVersionLoads.TryGetValue(key, out Task<IReadOnlyList<MinecraftLoaderVersionEntry>>? load))
+            {
+                load = _loaderMetadataService.GetLoaderVersionsAsync(kind, gameVersion);
+                _loaderVersionLoads[key] = load;
+            }
+
+            IReadOnlyList<MinecraftLoaderVersionEntry> versions = await load.ConfigureAwait(true);
             _loaderVersionCache[key] = versions;
-            await RunOnUiThreadAsync(() => PopulateLoaderVersionList(name, kind, versions)).ConfigureAwait(false);
+            _loaderVersionErrors.Remove(key);
+            PopulateLoaderVersionList(name, kind, versions);
+            return true;
         }
         catch (Exception ex) when (ex is HttpRequestException or IOException or FormatException or InvalidOperationException)
         {
-            await RunOnUiThreadAsync(() => SetLoaderVersionPanelMessage(name, "获取版本列表失败", ex.Message)).ConfigureAwait(false);
+            _loaderVersionErrors[key] = ex.Message;
+            SetLoaderVersionPanelMessage(name, "获取版本列表失败", ex.Message);
+            return false;
+        }
+        finally
+        {
+            _loaderVersionLoads.Remove(key);
         }
     }
 

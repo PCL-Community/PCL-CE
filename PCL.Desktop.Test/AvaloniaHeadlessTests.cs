@@ -2747,7 +2747,7 @@ public sealed class AvaloniaHeadlessTests
 
         session.Dispatch(() =>
         {
-            PageDownloadInstall page = new();
+            PageDownloadInstall page = new(new MinecraftVanillaInstallService(), new FakeMinecraftLoaderMetadataService());
             SetPrivateField(
                 page,
                 "_versions",
@@ -3427,6 +3427,49 @@ public sealed class AvaloniaHeadlessTests
                 page.RemoveTask("install:1.20.1");
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
                 Assert.AreEqual(0, page.TaskCount);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void PageDownloadInstall_PreloadsLoaderListsBeforeAllowingExpansion()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            DelayedMinecraftLoaderMetadataService metadata = new();
+            PageDownloadInstall page = new(new MinecraftVanillaInstallService(), metadata);
+            SetPrivateField(
+                page,
+                "_versions",
+                new[]
+                {
+                    new MinecraftVersionManifestEntry("1.20.1", "release", "https://example.invalid/1.20.1.json", DateTimeOffset.Parse("2023-06-12T00:00:00Z"))
+                });
+            Window window = new()
+            {
+                Width = 620,
+                Height = 520,
+                Content = page
+            };
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                page.FocusVersionAsync("1.20.1").GetAwaiter().GetResult();
+
+                MyCard fabricCard = page.FindControl<MyCard>("CardFabric")!;
+                Assert.AreEqual(1, metadata.GetRequestCount(MinecraftLoaderKind.Fabric));
+                Assert.AreEqual(1, metadata.GetRequestCount(MinecraftLoaderKind.Quilt));
+                Assert.IsTrue(fabricCard.IsSwapped);
+                Assert.IsFalse(fabricCard.MainSwap.IsVisible);
+                Assert.AreEqual("正在获取版本列表", page.FindControl<TextBlock>("LabFabric")!.Text);
             }
             finally
             {
@@ -10283,6 +10326,48 @@ public sealed class AvaloniaHeadlessTests
             string gameVersion,
             CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
+    }
+
+    private sealed class DelayedMinecraftLoaderMetadataService : IMinecraftLoaderMetadataService
+    {
+        private readonly Dictionary<MinecraftLoaderKind, TaskCompletionSource<IReadOnlyList<MinecraftLoaderVersionEntry>>> _completions = [];
+        private readonly Dictionary<MinecraftLoaderKind, int> _requestCounts = [];
+
+        public Task<IReadOnlyList<MinecraftLoaderVersionEntry>> GetLoaderVersionsAsync(
+            MinecraftLoaderKind kind,
+            string gameVersion,
+            CancellationToken cancellationToken = default)
+        {
+            _requestCounts[kind] = GetRequestCount(kind) + 1;
+            if (!_completions.TryGetValue(kind, out TaskCompletionSource<IReadOnlyList<MinecraftLoaderVersionEntry>>? completion))
+            {
+                completion = new TaskCompletionSource<IReadOnlyList<MinecraftLoaderVersionEntry>>(
+                    TaskCreationOptions.RunContinuationsAsynchronously);
+                _completions[kind] = completion;
+            }
+
+            return completion.Task.WaitAsync(cancellationToken);
+        }
+
+        public Task<MinecraftLoaderInstallMetadata> GetLoaderInstallMetadataAsync(
+            MinecraftLoaderInstallRequest request,
+            string gameVersion,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public int GetRequestCount(MinecraftLoaderKind kind) =>
+            _requestCounts.TryGetValue(kind, out int count) ? count : 0;
+
+        public void Complete(MinecraftLoaderKind kind)
+        {
+            if (_completions.TryGetValue(kind, out TaskCompletionSource<IReadOnlyList<MinecraftLoaderVersionEntry>>? completion))
+            {
+                completion.TrySetResult(
+                [
+                    new MinecraftLoaderVersionEntry(kind, "0.16.14", true)
+                ]);
+            }
+        }
     }
 
     private sealed class DelegateHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> handle) : HttpMessageHandler
