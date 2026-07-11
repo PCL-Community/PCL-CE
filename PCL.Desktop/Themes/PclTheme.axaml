@@ -125,6 +125,10 @@
     <x:String x:Key="Download.Left.Filter.VersionType.AprilFools">愚人节版本</x:String>
     <x:String x:Key="Download.Install.SearchVersion">搜索 Minecraft 版本</x:String>
     <x:String x:Key="Download.Install.StartDownload">开始下载</x:String>
+    <x:String x:Key="Speed.Progress.Total">总进度</x:String>
+    <x:String x:Key="Speed.Progress.Speed">下载速度</x:String>
+    <x:String x:Key="Speed.Progress.RemainingFiles">剩余文件</x:String>
+    <x:String x:Key="Speed.Progress.RemainingThreads">剩余线程</x:String>
     <x:String x:Key="Download.Install.Warning.FabricApi">建议同时安装 Fabric API，否则部分 Fabric Mod 可能无法运行。</x:String>
     <x:String x:Key="Download.Install.Warning.LegacyFabricApi">建议同时安装 Legacy Fabric API，否则部分 Legacy Fabric Mod 可能无法运行。</x:String>
     <x:String x:Key="Download.Install.Warning.OptiFabric">同时选择 Fabric 与 OptiFine 时，通常需要安装 OptiFabric。</x:String>
