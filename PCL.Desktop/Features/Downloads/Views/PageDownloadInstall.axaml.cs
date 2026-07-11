@@ -24,7 +24,8 @@ public sealed record DownloadInstallRequest(
     string VersionJsonUrl,
     MinecraftLoaderInstallRequest? Loader,
     string? MinecraftRootDirectory = null,
-    bool ReplaceExistingVersion = false);
+    bool ReplaceExistingVersion = false,
+    IReadOnlyList<MinecraftInstallAddonRequest>? Addons = null);
 
 public partial class PageDownloadInstall : MyPageRight
 {
@@ -50,10 +51,15 @@ public partial class PageDownloadInstall : MyPageRight
 
     private readonly MinecraftVanillaInstallService _installService;
     private readonly IMinecraftLoaderMetadataService _loaderMetadataService;
+    private readonly IMinecraftInstallAddonMetadataService _addonMetadataService;
     private readonly Dictionary<string, LoaderSupportState> _loaderStates = [];
     private readonly Dictionary<(MinecraftLoaderKind Kind, string GameVersion), IReadOnlyList<MinecraftLoaderVersionEntry>> _loaderVersionCache = [];
     private readonly Dictionary<(MinecraftLoaderKind Kind, string GameVersion), Task<IReadOnlyList<MinecraftLoaderVersionEntry>>> _loaderVersionLoads = [];
     private readonly Dictionary<(MinecraftLoaderKind Kind, string GameVersion), string> _loaderVersionErrors = [];
+    private readonly Dictionary<(MinecraftInstallAddonKind Kind, string GameVersion), IReadOnlyList<MinecraftInstallAddonVersionEntry>> _addonVersionCache = [];
+    private readonly Dictionary<(MinecraftInstallAddonKind Kind, string GameVersion), Task<IReadOnlyList<MinecraftInstallAddonVersionEntry>>> _addonVersionLoads = [];
+    private readonly Dictionary<(MinecraftInstallAddonKind Kind, string GameVersion), string> _addonVersionErrors = [];
+    private readonly Dictionary<MinecraftInstallAddonKind, MinecraftInstallAddonVersionEntry> _selectedAddons = [];
     private IReadOnlyList<MinecraftVersionManifestEntry> _versions = [];
     private DownloadVersionFilter _filter = DownloadVersionFilter.All;
     private string _searchText = string.Empty;
@@ -70,21 +76,23 @@ public partial class PageDownloadInstall : MyPageRight
     private bool _keepSelectPageOnNextEnter;
 
     public PageDownloadInstall()
-        : this(new MinecraftVanillaInstallService(), new MinecraftLoaderMetadataService())
+        : this(new MinecraftVanillaInstallService(), new MinecraftLoaderMetadataService(), new MinecraftInstallAddonMetadataService())
     {
     }
 
     public PageDownloadInstall(MinecraftVanillaInstallService installService)
-        : this(installService, new MinecraftLoaderMetadataService())
+        : this(installService, new MinecraftLoaderMetadataService(), new MinecraftInstallAddonMetadataService())
     {
     }
 
     public PageDownloadInstall(
         MinecraftVanillaInstallService installService,
-        IMinecraftLoaderMetadataService loaderMetadataService)
+        IMinecraftLoaderMetadataService loaderMetadataService,
+        IMinecraftInstallAddonMetadataService? addonMetadataService = null)
     {
         _installService = installService;
         _loaderMetadataService = loaderMetadataService;
+        _addonMetadataService = addonMetadataService ?? new MinecraftInstallAddonMetadataService();
         AvaloniaXamlLoader.Load(this);
         PanScroll = this.FindControl<MyScrollViewer>("PanBack");
 
@@ -723,11 +731,13 @@ public partial class PageDownloadInstall : MyPageRight
             : LoaderSupportState.Hidden());
 
         SetLoaderInfo("FabricApi", _selectedLoaderKind is MinecraftLoaderKind.Fabric or MinecraftLoaderKind.Quilt
-            ? LoaderSupportState.VisibleClosed(canAdd)
+            ? CreateAddonState(MinecraftInstallAddonKind.FabricApi, canAdd)
             : LoaderSupportState.Hidden());
-        SetLoaderInfo("LegacyFabricApi", LoaderSupportState.Hidden());
+        SetLoaderInfo("LegacyFabricApi", _selectedLoaderKind == MinecraftLoaderKind.LegacyFabric
+            ? CreateAddonState(MinecraftInstallAddonKind.LegacyFabricApi, canAdd)
+            : LoaderSupportState.Hidden());
         SetLoaderInfo("QSL", _selectedLoaderKind == MinecraftLoaderKind.Quilt
-            ? LoaderSupportState.VisibleClosed(canAdd)
+            ? CreateAddonState(MinecraftInstallAddonKind.Qsl, canAdd)
             : LoaderSupportState.Hidden());
         SetLoaderInfo("OptiFabric", LoaderSupportState.Hidden());
 
@@ -789,11 +799,41 @@ public partial class PageDownloadInstall : MyPageRight
             if (_loaderStates.TryGetValue(name, out LoaderSupportState? state) && state.IsVisible)
                 _ = PreloadLoaderVersionsAsync(name, _selectedVersion.Id);
         }
+
+        foreach (DownloadAddonDescriptor addon in DownloadAddonRegistry.All)
+        {
+            string name = addon.CardName;
+            if (_loaderStates.TryGetValue(name, out LoaderSupportState? state) && state.IsVisible)
+                _ = PreloadAddonVersionsAsync(name, _selectedVersion.Id);
+        }
+    }
+
+    private LoaderSupportState CreateAddonState(MinecraftInstallAddonKind kind, string canAdd)
+    {
+        if (_selectedAddons.TryGetValue(kind, out MinecraftInstallAddonVersionEntry? selected))
+            return LoaderSupportState.Selected(selected.Version);
+        if (_selectedVersion is null)
+            return LoaderSupportState.VisibleClosed(canAdd);
+
+        (MinecraftInstallAddonKind Kind, string GameVersion) key = (kind, _selectedVersion.Id);
+        if (_addonVersionCache.ContainsKey(key))
+            return LoaderSupportState.VisibleOpen(canAdd);
+        return LoaderSupportState.VisibleClosed(
+            _addonVersionErrors.TryGetValue(key, out string? error)
+                ? "版本列表加载失败：" + error
+                : "正在获取版本列表");
     }
 
     private async Task PreloadLoaderVersionsAsync(string name, string expectedGameVersion)
     {
         await EnsureLoaderVersionsRenderedAsync(name).ConfigureAwait(true);
+        if (string.Equals(_selectedVersion?.Id, expectedGameVersion, StringComparison.Ordinal))
+            ReloadSelectedLoaderCards();
+    }
+
+    private async Task PreloadAddonVersionsAsync(string name, string expectedGameVersion)
+    {
+        await EnsureAddonVersionsRenderedAsync(name).ConfigureAwait(true);
         if (string.Equals(_selectedVersion?.Id, expectedGameVersion, StringComparison.Ordinal))
             ReloadSelectedLoaderCards();
     }
@@ -876,6 +916,88 @@ public partial class PageDownloadInstall : MyPageRight
         }
     }
 
+    private async Task<bool> EnsureAddonVersionsRenderedAsync(string name)
+    {
+        if (_selectedVersion is null || !DownloadAddonRegistry.TryGetByCardName(name, out DownloadAddonDescriptor addon))
+            return false;
+
+        string gameVersion = _selectedVersion.Id;
+        (MinecraftInstallAddonKind Kind, string GameVersion) key = (addon.Kind, gameVersion);
+        if (_addonVersionCache.TryGetValue(key, out IReadOnlyList<MinecraftInstallAddonVersionEntry>? cached))
+        {
+            PopulateAddonVersionList(name, addon, cached);
+            return true;
+        }
+
+        SetLoaderVersionPanelMessage(name, "正在获取版本列表", "请稍候。");
+        try
+        {
+            if (!_addonVersionLoads.TryGetValue(key, out Task<IReadOnlyList<MinecraftInstallAddonVersionEntry>>? load))
+            {
+                load = _addonMetadataService.GetVersionsAsync(addon.Kind, gameVersion);
+                _addonVersionLoads[key] = load;
+            }
+
+            IReadOnlyList<MinecraftInstallAddonVersionEntry> versions = await load.ConfigureAwait(true);
+            _addonVersionCache[key] = versions;
+            _addonVersionErrors.Remove(key);
+            PopulateAddonVersionList(name, addon, versions);
+            return true;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or FormatException or InvalidOperationException)
+        {
+            _addonVersionErrors[key] = ex.Message;
+            SetLoaderVersionPanelMessage(name, "获取版本列表失败", ex.Message);
+            return false;
+        }
+        finally
+        {
+            _addonVersionLoads.Remove(key);
+        }
+    }
+
+    private void PopulateAddonVersionList(
+        string name,
+        DownloadAddonDescriptor addon,
+        IReadOnlyList<MinecraftInstallAddonVersionEntry> versions)
+    {
+        if (this.FindControl<StackPanel>("Pan" + name) is not { } panel)
+            return;
+
+        panel.Children.Clear();
+        if (versions.Count == 0)
+        {
+            SetLoaderVersionPanelMessage(name, "没有可用版本", "当前 Minecraft 版本暂时没有兼容的附加组件版本。");
+            return;
+        }
+
+        foreach (MinecraftInstallAddonVersionEntry version in versions)
+        {
+            MyListItem item = new()
+            {
+                Title = version.Version,
+                Info = version.Stable ? "稳定版" : "测试版",
+                Type = MyListItem.CheckType.Clickable,
+                Logo = addon.Logo,
+                LogoScale = 0.82d,
+                Height = 42d,
+                Margin = new Thickness(0, 0, 0, 2),
+                Tag = version
+            };
+            item.Click += (_, _) => SelectAddonVersion(addon, version);
+            panel.Children.Add(item);
+        }
+        ControlVisualHelpers.AnimateListEntrance(panel, "Download Addon List " + name);
+    }
+
+    private void SelectAddonVersion(DownloadAddonDescriptor addon, MinecraftInstallAddonVersionEntry version)
+    {
+        _selectedAddons[addon.Kind] = version;
+        if (this.FindControl<MyCard>("Card" + addon.CardName) is { } card)
+            card.IsSwapped = true;
+        ReloadSelectedLoaderCards();
+    }
+
     private void PopulateLoaderVersionList(
         string name,
         MinecraftLoaderKind kind,
@@ -943,10 +1065,18 @@ public partial class PageDownloadInstall : MyPageRight
             card.IsSwapped = true;
         HideAllHints();
         ReloadSelectedLoaderCards();
+        BeginLoaderVersionPreload();
     }
 
     private void ClearSelectedLoader(string name)
     {
+        if (DownloadAddonRegistry.TryGetByCardName(name, out DownloadAddonDescriptor addon))
+        {
+            _selectedAddons.Remove(addon.Kind);
+            ReloadSelectedLoaderCards();
+            return;
+        }
+
         if (!DownloadLoaderRegistry.TryGetByCardName(name, out DownloadLoaderDescriptor loader) ||
             _selectedLoaderKind != loader.Kind)
         {
@@ -966,6 +1096,7 @@ public partial class PageDownloadInstall : MyPageRight
     {
         _selectedLoaderKind = null;
         _selectedLoaderVersion = null;
+        _selectedAddons.Clear();
     }
 
     private void HideAllHints()
@@ -1228,7 +1359,8 @@ public partial class PageDownloadInstall : MyPageRight
             _selectedVersion.Url,
             loader,
             _targetMinecraftRootDirectory,
-            _replaceExistingVersion);
+            _replaceExistingVersion,
+            CreateSelectedAddonRequests());
         InstallRequested?.Invoke(this, request);
     }
 
@@ -1238,6 +1370,17 @@ public partial class PageDownloadInstall : MyPageRight
             ? new MinecraftLoaderInstallRequest(kind, version.Version)
             : null;
     }
+
+    private MinecraftInstallAddonRequest[] CreateSelectedAddonRequests() =>
+        _selectedAddons.Values
+            .Select(version => new MinecraftInstallAddonRequest(
+                version.Kind,
+                version.Version,
+                version.FileName,
+                version.Url,
+                version.Sha1,
+                version.Size))
+            .ToArray();
 
     private void RefreshSelectNameValidation()
     {

@@ -2747,7 +2747,7 @@ public sealed class AvaloniaHeadlessTests
 
         session.Dispatch(() =>
         {
-            PageDownloadInstall page = new(new MinecraftVanillaInstallService(), new FakeMinecraftLoaderMetadataService());
+            PageDownloadInstall page = new(new MinecraftVanillaInstallService(), new FakeMinecraftLoaderMetadataService(), new FakeMinecraftInstallAddonMetadataService());
             SetPrivateField(
                 page,
                 "_versions",
@@ -2889,7 +2889,7 @@ public sealed class AvaloniaHeadlessTests
 
         session.Dispatch(() =>
         {
-            PageDownloadInstall page = new();
+            PageDownloadInstall page = new(new MinecraftVanillaInstallService(), new FakeMinecraftLoaderMetadataService(), new FakeMinecraftInstallAddonMetadataService());
             SetPrivateField(
                 page,
                 "_versions",
@@ -2956,7 +2956,7 @@ public sealed class AvaloniaHeadlessTests
 
         session.Dispatch(() =>
         {
-            PageDownloadInstall page = new(new MinecraftVanillaInstallService(), new FakeMinecraftLoaderMetadataService());
+            PageDownloadInstall page = new(new MinecraftVanillaInstallService(), new FakeMinecraftLoaderMetadataService(), new FakeMinecraftInstallAddonMetadataService());
             SetPrivateField(
                 page,
                 "_versions",
@@ -3006,6 +3006,17 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsTrue(page.FindControl<Control>("BtnFabricClear")!.IsVisible);
                 Assert.IsTrue(page.FindControl<Control>("HintFabricAPI")!.IsVisible);
 
+                MyCard fabricApiCard = page.FindControl<MyCard>("CardFabricApi")!;
+                Assert.IsTrue(fabricApiCard.IsVisible);
+                Assert.IsTrue(fabricApiCard.MainSwap.IsVisible);
+                Click(window, fabricApiCard);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                MyListItem apiItem = page.GetVisualDescendants()
+                    .OfType<MyListItem>()
+                    .First(item => item.Title == "0.100.0+1.20.1");
+                Click(window, apiItem);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
                 Click(window, page.FindControl<MyExtraTextButton>("BtnStart")!);
 
                 Assert.AreEqual("fabric-loader-0.16.14-1.20.1", requested?.VersionId);
@@ -3013,6 +3024,8 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual("https://example.invalid/1.20.1.json", requested?.VersionJsonUrl);
                 Assert.AreEqual(MinecraftLoaderKind.Fabric, requested?.Loader?.Kind);
                 Assert.AreEqual("0.16.14", requested?.Loader?.LoaderVersion);
+                Assert.AreEqual(MinecraftInstallAddonKind.FabricApi, requested?.Addons?.Single().Kind);
+                Assert.AreEqual("fabric-api.jar", requested?.Addons?.Single().FileName);
             }
             finally
             {
@@ -3028,7 +3041,7 @@ public sealed class AvaloniaHeadlessTests
 
         session.Dispatch(() =>
         {
-            PageDownloadInstall page = new(new MinecraftVanillaInstallService(), new FakeMinecraftLoaderMetadataService());
+            PageDownloadInstall page = new(new MinecraftVanillaInstallService(), new FakeMinecraftLoaderMetadataService(), new FakeMinecraftInstallAddonMetadataService());
             SetPrivateField(
                 page,
                 "_versions",
@@ -10383,6 +10396,25 @@ public sealed class AvaloniaHeadlessTests
                 ]);
             }
         }
+    }
+
+    private sealed class FakeMinecraftInstallAddonMetadataService : IMinecraftInstallAddonMetadataService
+    {
+        public Task<IReadOnlyList<MinecraftInstallAddonVersionEntry>> GetVersionsAsync(
+            MinecraftInstallAddonKind kind,
+            string gameVersion,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<MinecraftInstallAddonVersionEntry>>(
+            [
+                new MinecraftInstallAddonVersionEntry(
+                    kind,
+                    "0.100.0+1.20.1",
+                    "fabric-api.jar",
+                    "https://cdn.example/fabric-api.jar",
+                    null,
+                    1234,
+                    true)
+            ]);
     }
 
     private sealed class DelegateHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> handle) : HttpMessageHandler

@@ -103,3 +103,44 @@ internal static class DownloadLoaderRegistry
     }
 
 }
+
+internal readonly record struct DownloadAddonDescriptor(
+    MinecraftInstallAddonKind Kind,
+    MinecraftLoaderCardId CardId,
+    string DisplayName,
+    string Logo)
+{
+    public string CardName => CardId.Value;
+}
+
+internal static class DownloadAddonRegistry
+{
+    private static readonly DownloadAddonDescriptor[] Descriptors =
+    [
+        new(MinecraftInstallAddonKind.FabricApi, MinecraftLoaderCardId.FabricApi, "Fabric API",
+            "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png"),
+        new(MinecraftInstallAddonKind.LegacyFabricApi, MinecraftLoaderCardId.LegacyFabricApi, "Legacy Fabric API",
+            "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png"),
+        new(MinecraftInstallAddonKind.Qsl, MinecraftLoaderCardId.Qsl, "QSL",
+            "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Quilt.png"),
+        new(MinecraftInstallAddonKind.OptiFabric, MinecraftLoaderCardId.OptiFabric, "OptiFabric",
+            "avares://PCL.Desktop/WpfOriginal/Images/Blocks/OptiFabric.png")
+    ];
+
+    public static ReadOnlySpan<DownloadAddonDescriptor> All => Descriptors;
+
+    public static bool TryGetByCardName(string? cardName, out DownloadAddonDescriptor descriptor)
+    {
+        foreach (DownloadAddonDescriptor candidate in Descriptors)
+        {
+            if (string.Equals(candidate.CardName, cardName, StringComparison.Ordinal))
+            {
+                descriptor = candidate;
+                return true;
+            }
+        }
+
+        descriptor = default;
+        return false;
+    }
+}

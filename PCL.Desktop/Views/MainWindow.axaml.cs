@@ -2802,6 +2802,7 @@ public partial class MainWindow : Window, IDisposable
                         PreferOfficialSource = true,
                         DownloadThreadLimit = downloadThreadLimit,
                         Loader = request.Loader,
+                        Addons = request.Addons ?? [],
                         ReplaceExistingVersion = request.ReplaceExistingVersion,
                         JavaExecutablePath = ResolvePreferredJavaExecutablePath(forceConsole: true)
                     },

@@ -31,6 +31,7 @@ public sealed record MinecraftInstallRequest
     public bool PreferOfficialSource { get; init; } = true;
     public int DownloadThreadLimit { get; init; } = 64;
     public MinecraftLoaderInstallRequest? Loader { get; init; }
+    public IReadOnlyList<MinecraftInstallAddonRequest> Addons { get; init; } = [];
     public bool ReplaceExistingVersion { get; init; }
     public string JavaExecutablePath { get; init; } = "java";
 }
@@ -203,6 +204,14 @@ public sealed class MinecraftVanillaInstallService
                     vanillaInstanceDirectory,
                     vanillaVersionJsonPath);
 
+            await InstallAddonsAsync(
+                    request.Addons,
+                    result.InstanceDirectory,
+                    downloadThreadLimit,
+                    progress,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
             progress?.Report(CreateProgress("安装完成", request.VersionId, 1d, 1, 1, 0, downloadThreadLimit));
             installCompleted = true;
             return result;
@@ -216,6 +225,51 @@ public sealed class MinecraftVanillaInstallService
                 else
                     coreBackup.Restore();
             }
+        }
+    }
+
+    private async Task InstallAddonsAsync(
+        IReadOnlyList<MinecraftInstallAddonRequest> addons,
+        string instanceDirectory,
+        int downloadThreadLimit,
+        IProgress<MinecraftInstallProgress>? progress,
+        CancellationToken cancellationToken)
+    {
+        if (addons.Count == 0)
+            return;
+
+        string modsDirectory = Path.Combine(instanceDirectory, "mods");
+        Directory.CreateDirectory(modsDirectory);
+        int completed = 0;
+        foreach (MinecraftInstallAddonRequest addon in addons)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            string safeFileName = Path.GetFileName(addon.FileName);
+            if (string.IsNullOrWhiteSpace(safeFileName))
+                throw new InvalidOperationException($"{addon.Kind} 下载文件名无效。");
+
+            progress?.Report(CreateProgress(
+                "安装附加组件",
+                $"{addon.Kind} {addon.Version}",
+                completed / (double)addons.Count,
+                completed,
+                addons.Count,
+                0,
+                downloadThreadLimit));
+            await DownloadIfNeededAsync(
+                    [addon.Url],
+                    Path.Combine(modsDirectory, safeFileName),
+                    addon.Size,
+                    addon.Sha1,
+                    "安装附加组件",
+                    completed,
+                    addons.Count,
+                    progress,
+                    activeThreads: 1,
+                    threadLimit: downloadThreadLimit,
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+            completed++;
         }
     }
 

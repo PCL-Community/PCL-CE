@@ -476,6 +476,55 @@ public sealed class MinecraftVanillaInstallServiceTests
     }
 
     [TestMethod]
+    public async Task InstallAsync_DownloadsSelectedAddonsIntoIsolatedModsDirectory()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "pcl-install-addon-" + Guid.NewGuid().ToString("N"));
+        byte[] addonBytes = [0x50, 0x4B, 0x03, 0x04];
+        using HttpClient client = new(new DelegateHandler(request =>
+        {
+            string path = request.RequestUri!.AbsolutePath;
+            if (path.EndsWith("fabric-api.jar", StringComparison.Ordinal))
+                return new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(addonBytes) };
+            if (path.Contains("assets", StringComparison.Ordinal))
+                return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""{"objects":{}}""") };
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("""{"id":"1.20.1","type":"release","assetIndex":{"id":"empty","url":"https://example.invalid/assets/empty.json"}}""")
+            };
+        }));
+        MinecraftVanillaInstallService service = new(client);
+
+        try
+        {
+            MinecraftInstallResult result = await service.InstallAsync(new MinecraftInstallRequest
+            {
+                VersionId = "1.20.1",
+                VersionJsonUrl = "https://example.invalid/versions/1.20.1.json",
+                MinecraftRootDirectory = root,
+                Addons =
+                [
+                    new MinecraftInstallAddonRequest(
+                        MinecraftInstallAddonKind.FabricApi,
+                        "0.100.0+1.20.1",
+                        "fabric-api.jar",
+                        "https://cdn.example/fabric-api.jar",
+                        null,
+                        addonBytes.Length)
+                ]
+            });
+
+            CollectionAssert.AreEqual(
+                addonBytes,
+                await File.ReadAllBytesAsync(Path.Combine(result.InstanceDirectory, "mods", "fabric-api.jar")));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public async Task InstallAsync_DownloadsVersionFilesConcurrently()
     {
         string root = Path.Combine(Path.GetTempPath(), "pcl-install-parallel-" + Guid.NewGuid().ToString("N"));
