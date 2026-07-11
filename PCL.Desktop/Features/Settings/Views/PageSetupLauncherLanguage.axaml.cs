@@ -35,11 +35,11 @@ public partial class PageSetupLauncherLanguage : MyPageRight
 
     private void PageSetupLauncherLanguage_Loaded(object? sender, VisualTreeAttachmentEventArgs e)
     {
-        LanguageScroll.Offset = Vector.Zero;
         if (_isLoaded)
             return;
 
         _isLoaded = true;
+        LanguageScroll.Offset = Vector.Zero;
         ModAnimation.AniControlEnabled += 1;
         try
         {

@@ -8,11 +8,51 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using Avalonia.Threading;
 
 namespace PCL.Desktop.Controls.Legacy;
 
 internal static class ControlVisualHelpers
 {
+    internal static void AnimateListEntrance(Panel panel, string animationKey)
+    {
+        if (!ShouldAnimate(panel) || panel.Children.Count == 0)
+            return;
+
+        Control[] children = panel.Children.Take(30).ToArray();
+        foreach (Control child in children)
+        {
+            child.Opacity = 0d;
+            if (child.RenderTransform is not TranslateTransform translate)
+            {
+                translate = new TranslateTransform();
+                child.RenderTransform = translate;
+            }
+            translate.Y = 8d;
+        }
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            List<ModAnimation.AniData> animations = [];
+            int index = 0;
+            foreach (Control child in children.Where(panel.Children.Contains))
+            {
+                int delay = Math.Min(index * 18, 180);
+                animations.Add(ModAnimation.AaOpacity(child, 1d, 160, delay));
+                animations.Add(ModAnimation.AaTranslateY(
+                    child,
+                    -8d,
+                    220,
+                    delay,
+                    new ModAnimation.AniEaseOutFluent()));
+                index++;
+            }
+
+            if (animations.Count > 0)
+                ModAnimation.AniStart(animations, animationKey);
+        }, DispatcherPriority.Loaded);
+    }
+
     internal static bool ShouldAnimate(Control control, object? animationOverride = null) =>
         control.IsAttachedToVisualTree() &&
         control.IsVisible &&

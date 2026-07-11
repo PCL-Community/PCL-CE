@@ -9,6 +9,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using PathShape = Avalonia.Controls.Shapes.Path;
 
@@ -23,6 +24,9 @@ public class MyComboBox : ComboBox
 
     public static readonly StyledProperty<string> HintTextProperty =
         AvaloniaProperty.Register<MyComboBox, string>(nameof(HintText), string.Empty);
+
+    public static readonly StyledProperty<string> SelectionTextProperty =
+        AvaloniaProperty.Register<MyComboBox, string>(nameof(SelectionText), string.Empty);
 
     private bool _isMouseDown;
     private bool _isTextChanging;
@@ -68,6 +72,12 @@ public class MyComboBox : ComboBox
     {
         get => GetValue(HintTextProperty);
         set => SetValue(HintTextProperty, value);
+    }
+
+    public string SelectionText
+    {
+        get => GetValue(SelectionTextProperty);
+        private set => SetCurrentValue(SelectionTextProperty, value);
     }
 
     public new string Text
@@ -150,6 +160,7 @@ public class MyComboBox : ComboBox
             change.Property == SelectedIndexProperty)
         {
             _text = SelectedItem?.ToString() ?? string.Empty;
+            RefreshSelectionText();
         }
     }
 
@@ -252,6 +263,7 @@ public class MyComboBox : ComboBox
 
     private void MyComboBox_DropDownOpened(object? sender, EventArgs e)
     {
+        RefreshSelectionText();
         _realWidth = Width;
         if (DropDownWidthSync && !double.IsNaN(Bounds.Width) && Bounds.Width > 0d)
             Width = Bounds.Width;
@@ -274,6 +286,9 @@ public class MyComboBox : ComboBox
     private void MyComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         _text = SelectedItem?.ToString() ?? string.Empty;
+        RefreshSelectionText();
+        if (IsDropDownOpen)
+            Dispatcher.UIThread.Post(() => IsDropDownOpen = false, DispatcherPriority.Input);
     }
 
     private void EnsureWpfMarkedSelection()
@@ -288,8 +303,19 @@ public class MyComboBox : ComboBox
 
             SelectedItem = comboBoxItem;
             _text = comboBoxItem.ToString();
+            RefreshSelectionText();
             return;
         }
+    }
+
+    private void RefreshSelectionText()
+    {
+        SelectionText = SelectedItem switch
+        {
+            MyComboBoxItem item => item.Content?.ToString() ?? string.Empty,
+            null => string.Empty,
+            _ => SelectedItem.ToString() ?? string.Empty
+        };
     }
 
     private void OnTextPropertyChanged(string? text)

@@ -154,6 +154,7 @@ public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISet
                 Margin = new Avalonia.Thickness(0d, 12d, 0d, 0d)
             });
             ShowJavaContent();
+            ControlVisualHelpers.AnimateListEntrance(contentPanel, "Java Runtime List");
             return;
         }
 
@@ -161,6 +162,7 @@ public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISet
             contentPanel.Children.Add(BuildJavaItem(candidate, selectedJava));
 
         ShowJavaContent();
+        ControlVisualHelpers.AnimateListEntrance(contentPanel, "Java Runtime List");
     }
 
     private void HideJavaContent()

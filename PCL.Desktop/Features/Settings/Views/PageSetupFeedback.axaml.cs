@@ -91,6 +91,14 @@ public partial class PageSetupFeedback : MyPageRight, IRefreshableSettingsPage, 
         SetPanelVisibility(PanListDecline, PanContentDecline);
         SetPanelVisibility(PanListIgnored, PanContentIgnored);
         SetPanelVisibility(PanListDuplicate, PanContentDuplicate);
+        foreach (StackPanel panel in new[]
+                 {
+                     PanListProcessing, PanListWaitingProcess, PanListWait, PanListPause, PanListUpnext,
+                     PanListCompleted, PanListDecline, PanListIgnored, PanListDuplicate
+                 })
+        {
+            ControlVisualHelpers.AnimateListEntrance(panel, "Feedback List " + panel.Name);
+        }
     }
 
     private void Feedback_Click(object? sender, EventArgs e)

@@ -264,6 +264,7 @@ public sealed partial class MyRadioBox : Grid, IMyRadio
 
         if (Checked)
         {
+            _dot.Margin = new Thickness(10d - GetWidth(_dot) / 2d, 0d, 0d, 0d);
             if (_dot.Opacity < 0.01d)
                 _dot.Opacity = 1d;
             ModAnimation.AniStart(

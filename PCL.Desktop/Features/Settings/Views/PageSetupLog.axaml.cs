@@ -46,6 +46,7 @@ public partial class PageSetupLog : MyPageRight, IRefreshableSettingsPage, ISett
                 Text = "当前还没有可导出的日志文件。",
                 Theme = MyHint.Themes.Blue
             });
+            ControlVisualHelpers.AnimateListEntrance(PanList, "Log File List");
             return;
         }
 
@@ -68,6 +69,7 @@ public partial class PageSetupLog : MyPageRight, IRefreshableSettingsPage, ISett
                 Buttons = [open]
             });
         }
+        ControlVisualHelpers.AnimateListEntrance(PanList, "Log File List");
     }
 
     private void ButtonClean_OnClick(object? sender, EventArgs e)

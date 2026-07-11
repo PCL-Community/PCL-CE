@@ -4916,6 +4916,48 @@ public sealed class AvaloniaHeadlessTests
                 provider.AvailableBytes = 8L << 30;
                 page.RefreshMemoryDisplay();
                 Assert.AreEqual("8.0 GB", page.FindControl<TextBlock>("LabRamUsed")!.Text);
+
+                Avalonia.Controls.Shapes.Rectangle usedBar = page.FindControl<Avalonia.Controls.Shapes.Rectangle>("RectRamUsed")!;
+                TextBlock game = page.FindControl<TextBlock>("LabRamGame")!;
+                game.Text = "64.0 GB (可用 1.0 GB)";
+                InvokePrivateNoArgs(page, "RefreshRamText");
+                Point usedRight = usedBar.TranslatePoint(new Point(usedBar.Bounds.Width, 0d), page)!.Value;
+                Point gameLeft = game.TranslatePoint(new Point(0d, 0d), page)!.Value;
+                Assert.IsTrue(
+                    gameLeft.X >= usedRight.X,
+                    $"RAM game text must not jump across the stable used-memory bar. usedRight={usedRight.X}, gameLeft={gameLeft.X}");
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    [TestMethod]
+    public void SettingsPages_PreserveScrollOffsetAcrossVisualReattachment()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageSetupLaunch page = new();
+            Window window = new() { Width = 900, Height = 360, Content = page };
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                MyScrollViewer scroll = page.FindControl<MyScrollViewer>("PanBack")!;
+                scroll.Offset = new Vector(0d, 180d);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                double preservedOffset = scroll.Offset.Y;
+                Assert.IsTrue(preservedOffset > 0d);
+
+                window.Content = new Border();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                window.Content = page;
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Assert.AreEqual(preservedOffset, scroll.Offset.Y, 0.01d);
             }
             finally
             {
@@ -4953,6 +4995,13 @@ public sealed class AvaloniaHeadlessTests
                 window.Show();
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                MySlider customRam = page.FindControl<MySlider>("SliderRamCustom")!;
+                Assert.IsFalse(customRam.IsEnabled);
+                page.FindControl<MyRadioBox>("RadioRamType1")!.SetChecked(true, user: true);
+                Assert.IsTrue(customRam.IsEnabled);
+                customRam.Value = 18;
+                Assert.AreEqual(18, customRam.Value);
 
                 TextBlock titleLabel = page.GetVisualDescendants()
                     .OfType<TextBlock>()
@@ -5102,9 +5151,11 @@ public sealed class AvaloniaHeadlessTests
                     });
 
                 InvokePrivateNoArgs(page, "RenderJavaList");
+                Avalonia.Threading.Dispatcher.UIThread.RunJobs();
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
                 Assert.IsTrue(page.FindControl<MyCard>("CardContent")!.IsVisible);
+                Assert.IsTrue(ModAnimation.AniIsRun("Java Runtime List"));
                 Assert.IsTrue(page.FindControl<StackPanel>("PanContent")!.Children.OfType<MyListItem>().Any(item =>
                     item.Title.StartsWith("JDK 21", StringComparison.Ordinal)));
 
@@ -8052,6 +8103,9 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsTrue(ModAnimation.AniIsRun("MyRadioBox Border " + second.Uuid));
                 Assert.IsTrue(ModAnimation.AniIsRun("MyRadioBox Dot " + second.Uuid));
                 Assert.IsTrue(ModAnimation.AniIsRun("MyRadioBox BorderColor " + second.Uuid));
+                ModAnimation.AdvanceUntilIdleForTesting();
+                Ellipse selectedDot = second.FindControl<Ellipse>("ShapeDot")!;
+                Assert.AreEqual(10d, selectedDot.Margin.Left + selectedDot.Width / 2d, 0.001d);
 
                 first.PreviewCheck += (_, e) => e.Handled = true;
                 Click(window, first);
@@ -8729,6 +8783,47 @@ public sealed class AvaloniaHeadlessTests
                 comboBox.IsDropDownOpen = false;
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
                 Assert.AreEqual(180d, comboBox.Width, 0.01d);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void MyComboBox_KeepsSelectedItemVisibleAndClosesAfterSelection()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            MyComboBoxItem automatic = new() { Content = "自动" };
+            MyComboBoxItem custom = new() { Content = "自定义" };
+            MyComboBox comboBox = new()
+            {
+                Width = 180,
+                Items = { automatic, custom },
+                SelectedItem = automatic
+            };
+            Window window = new() { Width = 320, Height = 180, Content = comboBox };
+
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Assert.AreEqual("自动", comboBox.SelectionText);
+                Assert.AreEqual("自动", comboBox.ContentPresenter?.Content);
+
+                comboBox.IsDropDownOpen = true;
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                CollectionAssert.Contains(comboBox.GetRealizedContainers().ToArray(), automatic);
+
+                comboBox.SelectedItem = custom;
+                Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+                Assert.IsFalse(comboBox.IsDropDownOpen);
+                Assert.AreEqual("自定义", comboBox.SelectionText);
+                Assert.AreEqual("自定义", comboBox.ContentPresenter?.Content);
             }
             finally
             {

@@ -272,6 +272,7 @@ public partial class PageInstanceSelectRight : MyPageRight, IDisposable
 
             if (panel.Children.Count == 1 && panel.Children[0] is MyCard { IsSwapped: true } onlyCard)
                 onlyCard.IsSwapped = false;
+            ControlVisualHelpers.AnimateListEntrance(panel, "Instance Select List");
         }
 
         SetVisible("PanVerSearchBox", _instances.Count > 0);

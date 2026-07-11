@@ -157,6 +157,7 @@ public partial class PageCommunityRight : MyPageRight, IDisposable
         panel.InvalidateArrange();
         PanScroll?.InvalidateMeasure();
         PanScroll?.InvalidateArrange();
+        ControlVisualHelpers.AnimateListEntrance(panel, "Community Resource List");
     }
 
     private MyListItem CreateResourceItem(CommunityResourceEntry entry)

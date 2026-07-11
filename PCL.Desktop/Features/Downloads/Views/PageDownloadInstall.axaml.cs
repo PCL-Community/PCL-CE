@@ -307,6 +307,7 @@ public partial class PageDownloadInstall : MyPageRight
             panel.Children.Add(CreateMessageCard(
                 "没有找到匹配的版本",
                 "可以清空搜索词，或在左侧切换到“全部版本”后再试。"));
+            ControlVisualHelpers.AnimateListEntrance(panel, "Download Version List");
             return;
         }
 
@@ -314,6 +315,7 @@ public partial class PageDownloadInstall : MyPageRight
         AddLatestVersionCard(panel, categories);
         AddOtherVersionsCard(panel, categories);
         ApplyRenderedFilters();
+        ControlVisualHelpers.AnimateListEntrance(panel, "Download Version List");
     }
 
     private bool TryFindVersion(string versionId, out MinecraftVersionManifestEntry version)
@@ -839,6 +841,7 @@ public partial class PageDownloadInstall : MyPageRight
 
         foreach (MinecraftLoaderVersionEntry version in versions)
             panel.Children.Add(CreateLoaderVersionItem(kind, version));
+        ControlVisualHelpers.AnimateListEntrance(panel, "Download Loader List " + name);
     }
 
     private MyListItem CreateLoaderVersionItem(MinecraftLoaderKind kind, MinecraftLoaderVersionEntry version)

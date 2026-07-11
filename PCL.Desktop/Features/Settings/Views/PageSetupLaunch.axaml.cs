@@ -7,6 +7,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Application.Launching;
 using PCL.Application.Settings;
@@ -29,6 +30,7 @@ public partial class PageSetupLaunch : MyPageRight, ISettingsPageInteractionSour
     private readonly DispatcherTimer _ramRefreshTimer;
     private int _ramTextLeft = 2;
     private int _ramTextRight = 1;
+    private bool _hasAttached;
 
     public PageSetupLaunch()
         : this(new DefaultSystemInfoProvider())
@@ -46,7 +48,11 @@ public partial class PageSetupLaunch : MyPageRight, ISettingsPageInteractionSour
         _ramRefreshTimer.Tick += (_, _) => RefreshRam(showAnim: true);
         AttachedToVisualTree += (_, _) =>
         {
-            this.FindControl<MyScrollViewer>("PanBack")?.ScrollToHome();
+            if (!_hasAttached)
+            {
+                _hasAttached = true;
+                this.FindControl<MyScrollViewer>("PanBack")?.ScrollToHome();
+            }
             RefreshDependentVisibility();
             RefreshRam(showAnim: false);
             _ramRefreshTimer.Start();
@@ -56,6 +62,11 @@ public partial class PageSetupLaunch : MyPageRight, ISettingsPageInteractionSour
             ramDisplay.SizeChanged += (_, _) => RefreshRamText();
         if (this.FindControl<Avalonia.Controls.Shapes.Rectangle>("RectRamUsed") is { } ramUsed)
             ramUsed.SizeChanged += (_, _) => RefreshRamText();
+        if (this.FindControl<MyRadioBox>("RadioRamType1") is { } customMode &&
+            this.FindControl<MySlider>("SliderRamCustom") is { } customSlider)
+        {
+            customMode.GetObservable(MyRadioBox.CheckedProperty).Subscribe(isChecked => customSlider.IsEnabled = isChecked);
+        }
     }
 
     public event EventHandler<SettingsPathRequestedEventArgs>? OpenPathRequested;
@@ -245,6 +256,9 @@ public partial class PageSetupLaunch : MyPageRight, ISettingsPageInteractionSour
             SetRamColumn(panRamDisplay.ColumnDefinitions[1], ramGameActual);
             SetRamColumn(panRamDisplay.ColumnDefinitions[2], ramEmpty);
         }
+        // Text changes take effect before the deferred layout pass. Reposition immediately so a
+        // freshly widened label can never spend one frame on the previous (too far left) margin.
+        RefreshRamText();
         Dispatcher.UIThread.Post(RefreshRamText, DispatcherPriority.Loaded);
     }
 
@@ -282,11 +296,18 @@ public partial class PageSetupLaunch : MyPageRight, ISettingsPageInteractionSour
         if (totalWidth <= 0d)
             return;
 
+        labRamGame.MaxWidth = double.PositiveInfinity;
+        labRamGameTitle.MaxWidth = double.PositiveInfinity;
         double labGameWidth = GetTextWidth(labRamGame);
         double labUsedWidth = GetTextWidth(labRamUsed);
         double labTotalWidth = GetTextWidth(labRamTotal);
         double labGameTitleWidth = GetTextWidth(labRamGameTitle);
         double labUsedTitleWidth = GetTextWidth(labRamUsedTitle);
+        double gameAvailableWidth = Math.Max(0d, totalWidth - rectUsedWidth - 2d);
+        labRamGame.MaxWidth = gameAvailableWidth;
+        labRamGameTitle.MaxWidth = gameAvailableWidth;
+        labRamGame.TextTrimming = TextTrimming.CharacterEllipsis;
+        labRamGameTitle.TextTrimming = TextTrimming.CharacterEllipsis;
 
         int left;
         if (rectUsedWidth - 30d < labUsedWidth || rectUsedWidth - 30d < labUsedTitleWidth)
@@ -295,6 +316,11 @@ public partial class PageSetupLaunch : MyPageRight, ISettingsPageInteractionSour
             left = 1;
         else
             left = 2;
+
+        if (left > _ramTextLeft && rectUsedWidth < Math.Max(labUsedWidth, labUsedTitleWidth) + 46d)
+            left = _ramTextLeft;
+        if (left == 2 && _ramTextLeft < 2 && rectUsedWidth < labUsedWidth + labTotalWidth + 41d)
+            left = _ramTextLeft;
 
         if (_ramTextLeft != left)
         {
@@ -308,11 +334,14 @@ public partial class PageSetupLaunch : MyPageRight, ISettingsPageInteractionSour
                     totalWidth < labGameTitleWidth + 2d + rectUsedWidth
             ? 0
             : 1;
+        double rightRequiredWidth = Math.Max(labGameWidth, labGameTitleWidth) + 2d + rectUsedWidth;
+        if (_ramTextRight == 0 && right == 1 && totalWidth < rightRequiredWidth + 16d)
+            right = 0;
 
         if (right == 0)
         {
-            labRamGame.Margin = new Thickness(Math.Max(2d, totalWidth - labGameWidth), 3d, 0d, 0d);
-            labRamGameTitle.Margin = new Thickness(Math.Max(2d, totalWidth - labGameTitleWidth), 0d, 0d, 5d);
+            labRamGame.Margin = new Thickness(Math.Max(rectUsedWidth + 2d, totalWidth - labGameWidth), 3d, 0d, 0d);
+            labRamGameTitle.Margin = new Thickness(Math.Max(rectUsedWidth + 2d, totalWidth - labGameTitleWidth), 0d, 0d, 5d);
         }
         else
         {
