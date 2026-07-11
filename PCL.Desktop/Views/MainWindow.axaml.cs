@@ -159,6 +159,7 @@ public partial class MainWindow : Window, IDisposable
         LauncherSettingsPageBinder.SettingsChanged += LauncherSettingsChanged;
         AvaloniaLocalizationManager.LanguageChanged += LocalizationChanged;
         ApplyRuntimeSettings(LauncherSettingsPageBinder.LoadSettings());
+        RefreshTitleButtonsBeforeFirstFrame();
         RefreshNavigationText();
         CaptureShowAnimationTransforms();
         Opened += (_, _) =>
@@ -169,6 +170,12 @@ public partial class MainWindow : Window, IDisposable
         SyncTitleOverlayWidth();
         _ = LoadProfilesAsync();
         SelectNavRoute(LaunchRoute, animate: false);
+    }
+
+    private void RefreshTitleButtonsBeforeFirstFrame()
+    {
+        foreach (string name in new[] { "BtnTitleClose", "BtnTitleMin", "BtnTitleHelp" })
+            this.FindControl<MyIconButton>(name)?.RefreshAnim();
     }
 
     private void FormMain_KeyDown(object? sender, KeyEventArgs e)

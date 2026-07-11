@@ -9,6 +9,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using PCL.Application.Launching;
 using PCL.Application.Settings;
 using PCL.Desktop.Controls.Legacy;
@@ -105,7 +106,7 @@ public partial class PageSetupLaunch : MyPageRight, ISettingsPageInteractionSour
     private void ComboAdvanceRenderer_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         ComboChange(sender, e);
-        if (sender is MyComboBox { SelectedIndex: > 0 })
+        if (_hasAttached && this.IsAttachedToVisualTree() && sender is MyComboBox { SelectedIndex: > 0 })
         {
             MessageRequested?.Invoke(
                 this,
@@ -118,7 +119,7 @@ public partial class PageSetupLaunch : MyPageRight, ISettingsPageInteractionSour
     private void ComboArgumentIndie_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         ComboChange(sender, e);
-        if (sender is MyComboBox { SelectedIndex: > 0 })
+        if (_hasAttached && this.IsAttachedToVisualTree() && sender is MyComboBox { SelectedIndex: > 0 })
         {
             MessageRequested?.Invoke(
                 this,
@@ -131,7 +132,7 @@ public partial class PageSetupLaunch : MyPageRight, ISettingsPageInteractionSour
     private void ComboArgumentVisibie_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         ComboChange(sender, e);
-        if (sender is MyComboBox { SelectedIndex: 0 })
+        if (_hasAttached && this.IsAttachedToVisualTree() && sender is MyComboBox { SelectedIndex: 0 })
         {
             MessageRequested?.Invoke(
                 this,

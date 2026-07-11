@@ -60,7 +60,16 @@ public class MyComboBox : ComboBox
         this.GetObservable(IsEditableProperty).Subscribe(_ => RefreshEditableVisibility());
         this.GetObservable(HintTextProperty).Subscribe(text => PlaceholderText = text);
         this.GetObservable(ComboBox.TextProperty).Subscribe(OnTextPropertyChanged);
-        AttachedToVisualTree += (_, _) => EnsureWpfMarkedSelection();
+        AttachedToVisualTree += (_, _) =>
+        {
+            EnsureWpfMarkedSelection();
+            RefreshSelectionText();
+            Dispatcher.UIThread.Post(() =>
+            {
+                EnsureWpfMarkedSelection();
+                RefreshSelectionText();
+            }, DispatcherPriority.Loaded);
+        };
         RefreshColor();
     }
 
@@ -132,6 +141,8 @@ public class MyComboBox : ComboBox
 
         RefreshEditableVisibility();
         RefreshDropDownArrow(animate: false);
+        EnsureWpfMarkedSelection();
+        RefreshSelectionText();
     }
 
     protected override bool NeedsContainerOverride(object? item, int index, out object? recycleKey)

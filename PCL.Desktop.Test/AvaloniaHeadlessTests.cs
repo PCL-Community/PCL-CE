@@ -113,7 +113,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsNotNull(window.FindControl<MyListItem>("BtnTitleSelect3"));
                 Assert.IsNull(window.FindControl<MyListItem>("BtnTitleSelect4"));
                 Assert.IsNotNull(window.FindControl<AnimatedBackgroundGrid>("PanTitle"));
-                Assert.IsNull(window.FindControl<Grid>("PanForm")!.Background);
+                Assert.IsNotNull(window.FindControl<Grid>("PanForm")!.Background);
                 Assert.AreEqual(
                     Color.FromArgb(0xd2, 0xfb, 0xfb, 0xfb),
                     ((SolidColorBrush)window.FindControl<Border>("PanNavLayer")!.Background!).Color);
@@ -273,6 +273,11 @@ public sealed class AvaloniaHeadlessTests
             MainWindow window = new();
             try
             {
+                MyIconButton closeButton = window.FindControl<MyIconButton>("BtnTitleClose")!;
+                Assert.AreEqual(MyIconButton.Themes.White, closeButton.Theme);
+                Assert.AreEqual(
+                    Color.FromRgb(234, 242, 254),
+                    ((SolidColorBrush)closeButton.FindControl<SvgIcon>("ShapeSvgIcon")!.IconBrush!).Color);
                 window.Show();
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
                 ModAnimation.AdvanceUntilIdleForTesting();
@@ -5291,6 +5296,11 @@ public sealed class AvaloniaHeadlessTests
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
+                MyComboBox isolation = page.FindControl<MyComboBox>("ComboArgumentIndieV2")!;
+                Assert.AreEqual(1, isolation.SelectedIndex);
+                Assert.IsFalse(string.IsNullOrWhiteSpace(isolation.SelectionText));
+                Assert.IsNull(messageTitle, "Applying the saved isolation option must not show a user-action warning.");
+
                 MySlider customRam = page.FindControl<MySlider>("SliderRamCustom")!;
                 Assert.IsFalse(customRam.IsEnabled);
                 page.FindControl<MyRadioBox>("RadioRamType1")!.SetChecked(true, user: true);
@@ -7797,6 +7807,7 @@ public sealed class AvaloniaHeadlessTests
                 new FontSelector.CustomFontProperties("Arial", new FontFamily("Arial"), "Arial"));
             fontSelector.SelectedFontTag = "Arial";
             fontSelector.Tooltip = "选择字体";
+            Assert.AreEqual("Arial", fontSelector.CustomFontCollection[0].ToString());
 
             MinecraftServerQuery serverQuery = new()
             {

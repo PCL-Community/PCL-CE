@@ -162,5 +162,7 @@ public partial class FontSelector : ContentControl
         public FontFamily Font { get; } = font;
 
         public string Tag { get; } = tag;
+
+        public override string ToString() => Name;
     }
 }
