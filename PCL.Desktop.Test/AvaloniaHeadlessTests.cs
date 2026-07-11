@@ -5779,6 +5779,21 @@ public sealed class AvaloniaHeadlessTests
                     Assert.AreEqual("1.20.1", modifyRequest?.MinecraftVersionId);
                     Assert.AreEqual(MinecraftLoaderKind.Fabric, modifyRequest?.LoaderKind);
                     Assert.IsTrue(page.FindControl<MyCard>("CardFabric")!.IsSwapped);
+
+                    foreach ((string cardName, MinecraftLoaderKind kind) in new[]
+                             {
+                                 ("Forge", MinecraftLoaderKind.Forge),
+                                 ("NeoForge", MinecraftLoaderKind.NeoForge),
+                                 ("Quilt", MinecraftLoaderKind.Quilt),
+                                 ("LabyMod", MinecraftLoaderKind.LabyMod),
+                                 ("OptiFine", MinecraftLoaderKind.OptiFine)
+                             })
+                    {
+                        modifyRequest = null;
+                        Click(window, page.FindControl<MyCard>("Card" + cardName)!);
+                        Assert.AreEqual(kind, modifyRequest?.LoaderKind, cardName);
+                        Assert.IsTrue(page.FindControl<MyCard>("Card" + cardName)!.IsSwapped, cardName);
+                    }
                 }
                 finally
                 {

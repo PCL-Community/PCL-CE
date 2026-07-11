@@ -759,16 +759,20 @@ public partial class PageInstanceInstallRight : MyPageRight
         _ = EnsureMinecraftVersionsAsync();
     }
 
-    private void CardForge_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
+    private void CardForge_PreviewSwap(object sender, RouteEventArgs e) =>
+        RequestLoaderInstall(MinecraftLoaderKind.Forge, e);
 
-    private void CardCleanroom_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
+    private void CardCleanroom_PreviewSwap(object sender, RouteEventArgs e) =>
+        RequestLoaderInstall(MinecraftLoaderKind.Cleanroom, e);
 
-    private void CardNeoForge_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
+    private void CardNeoForge_PreviewSwap(object sender, RouteEventArgs e) =>
+        RequestLoaderInstall(MinecraftLoaderKind.NeoForge, e);
 
     private void CardFabric_PreviewSwap(object sender, RouteEventArgs e) =>
         RequestLoaderInstall(MinecraftLoaderKind.Fabric, e);
 
-    private void CardLegacyFabric_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
+    private void CardLegacyFabric_PreviewSwap(object sender, RouteEventArgs e) =>
+        RequestLoaderInstall(MinecraftLoaderKind.LegacyFabric, e);
 
     private void CardFabricApi_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
 
@@ -779,11 +783,16 @@ public partial class PageInstanceInstallRight : MyPageRight
 
     private void CardQSL_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
 
-    private void CardLabyMod_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
+    private void CardLabyMod_PreviewSwap(object sender, RouteEventArgs e) =>
+        RequestLoaderInstall(MinecraftLoaderKind.LabyMod, e);
+
+    private void CardOptiFine_PreviewSwap(object sender, RouteEventArgs e) =>
+        RequestLoaderInstall(MinecraftLoaderKind.OptiFine, e);
 
     private void CardOptiFabric_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
 
-    private void CardLiteLoader_PreviewSwap(object sender, RouteEventArgs e) => HandleUnavailableLoader(e);
+    private void CardLiteLoader_PreviewSwap(object sender, RouteEventArgs e) =>
+        RequestLoaderInstall(MinecraftLoaderKind.LiteLoader, e);
 
     private void RequestLoaderInstall(MinecraftLoaderKind kind, RouteEventArgs e)
     {
