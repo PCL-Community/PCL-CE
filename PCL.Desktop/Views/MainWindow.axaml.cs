@@ -6,6 +6,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO.Compression;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -16,6 +17,7 @@ using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
@@ -29,6 +31,7 @@ using PCL.Application.Settings;
 using PCL.Desktop.Controls.Legacy;
 using PCL.Desktop.Features.Community;
 using PCL.Desktop.Hosting;
+using PCL.Desktop.Localization;
 using PCL.Desktop.Platform;
 using PCL.Desktop.Features.Downloads.Views;
 using PCL.Desktop.Features.Instances.Views;
@@ -43,6 +46,7 @@ namespace PCL.Desktop.Views;
 
 public partial class MainWindow : Window, IDisposable
 {
+    private static readonly IWebProxy SystemDefaultProxy = HttpClient.DefaultProxy;
     private Control? _showAnimationRoot;
     private RotateTransform? _showAnimationRotate;
     private TranslateTransform? _showAnimationTranslate;
@@ -109,6 +113,13 @@ public partial class MainWindow : Window, IDisposable
     private Action? _taskManagerBackAction;
     private string? _selectedMinecraftRoot;
     private bool _minecraftFoldersLoaded;
+    private double _targetWindowOpacity = 1d;
+    private string? _backgroundStamp;
+    private Bitmap? _backgroundBitmap;
+    private string? _titleLogoFile;
+    private Bitmap? _titleLogoBitmap;
+    private string? _homepageSignature;
+    private CancellationTokenSource? _homepageLoadCancellation;
 
     private const double NavCollapsedWidth = 50d;
     private const int NavAnimDuration = 200;
@@ -138,6 +149,10 @@ public partial class MainWindow : Window, IDisposable
         CanResize = true;
         WindowDecorations = Avalonia.Controls.WindowDecorations.None;
         SetWindowIcon();
+        LauncherSettingsPageBinder.SettingsChanged += LauncherSettingsChanged;
+        AvaloniaLocalizationManager.LanguageChanged += LocalizationChanged;
+        ApplyRuntimeSettings(LauncherSettingsPageBinder.LoadSettings());
+        RefreshNavigationText();
         CaptureShowAnimationTransforms();
         Opened += (_, _) =>
         {
@@ -205,6 +220,8 @@ public partial class MainWindow : Window, IDisposable
 
     private void FormMain_Closing(object? sender, WindowClosingEventArgs e)
     {
+        LauncherSettingsPageBinder.SettingsChanged -= LauncherSettingsChanged;
+        AvaloniaLocalizationManager.LanguageChanged -= LocalizationChanged;
         CancelAllTrackedTasks();
         _launchCancellation?.Cancel();
     }
@@ -759,6 +776,10 @@ public partial class MainWindow : Window, IDisposable
     {
         _launchLeft ??= CreateLaunchLeftPage();
         _launchRight ??= new PageLaunchRight();
+        LauncherSettings launchSettings = LauncherSettingsPageBinder.LoadSettings();
+        _launchRight.SetMaximumLogLines(ResolveMaximumLogLines(launchSettings));
+        ApplyLaunchPageSettings(launchSettings);
+        ApplyHomepageSettings(launchSettings);
         return new DesktopMainPage(
             _launchLeft,
             _launchRight,
@@ -2857,6 +2878,7 @@ public partial class MainWindow : Window, IDisposable
                     instance.InstanceDirectory,
                     _launchCancellation.Token)
                 .ConfigureAwait(true);
+            LauncherSettings runtimeSettings = LauncherSettingsPageBinder.LoadSettings();
             MinecraftProcessLaunchPlan plan = await CreateLaunchPlanAsync(
                     instance,
                     profile,
@@ -2867,10 +2889,22 @@ public partial class MainWindow : Window, IDisposable
                     serverAddress)
                 .ConfigureAwait(true);
 
-            if (!string.IsNullOrWhiteSpace(metadata.PreLaunchCommand))
+            string preLaunchCommand = FirstNonEmpty(
+                metadata.PreLaunchCommand,
+                runtimeSettings.GetTextOption("LaunchAdvanceRun", LauncherSettingDefaults.GetText("LaunchAdvanceRun"))) ?? string.Empty;
+            bool waitForPreLaunchCommand = !string.IsNullOrWhiteSpace(metadata.PreLaunchCommand)
+                ? metadata.WaitForPreLaunchCommand
+                : runtimeSettings.GetBooleanOption(
+                    "LaunchAdvanceRunWait",
+                    LauncherSettingDefaults.GetBoolean("LaunchAdvanceRunWait"));
+            if (!string.IsNullOrWhiteSpace(preLaunchCommand))
             {
                 launchPage.UpdateLaunchingStatus("正在执行预启动命令", 0.58d, "运行启动前任务");
-                await RunPreLaunchCommandAsync(metadata, plan.StartInfo.WorkingDirectory, _launchCancellation.Token)
+                await RunPreLaunchCommandAsync(
+                        preLaunchCommand,
+                        waitForPreLaunchCommand,
+                        plan.StartInfo.WorkingDirectory,
+                        _launchCancellation.Token)
                     .ConfigureAwait(true);
             }
 
@@ -2878,6 +2912,8 @@ public partial class MainWindow : Window, IDisposable
             Process? process = Process.Start(plan.StartInfo);
             if (process is null)
                 throw new InvalidOperationException("Java 进程未能启动。");
+            ApplyProcessPriority(process, runtimeSettings);
+            ApplyLauncherVisibility(process, runtimeSettings);
 
             launchPage.LaunchingRefresh("游戏进程已启动", 1d, isLaunched: true, method: "PID " + process.Id.ToString(CultureInfo.InvariantCulture));
             await IncrementInstanceLaunchCountAsync(instance).ConfigureAwait(true);
@@ -2968,7 +3004,9 @@ public partial class MainWindow : Window, IDisposable
                     : null,
                 ReleaseTime = TryReadReleaseTime(instance),
                 HasOptiFine = HasOptiFine(instance),
-                WorldName = worldName
+                WorldName = worldName,
+                LauncherName = "PCL-N",
+                VersionType = settings.GetTextOption("LaunchArgumentInfo", LauncherSettingDefaults.GetText("LaunchArgumentInfo"))
             },
             cancellationToken).ConfigureAwait(false);
     }
@@ -2996,18 +3034,19 @@ public partial class MainWindow : Window, IDisposable
     }
 
     private static async Task RunPreLaunchCommandAsync(
-        InstanceMetadata metadata,
+        string command,
+        bool waitForExit,
         string workingDirectory,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(metadata.PreLaunchCommand))
+        if (string.IsNullOrWhiteSpace(command))
             return;
 
-        using Process? process = Process.Start(CreateShellStartInfo(metadata.PreLaunchCommand, workingDirectory));
+        using Process? process = Process.Start(CreateShellStartInfo(command, workingDirectory));
         if (process is null)
             throw new InvalidOperationException("预启动命令未能启动。");
 
-        if (!metadata.WaitForPreLaunchCommand)
+        if (!waitForExit)
             return;
 
         await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
@@ -3030,6 +3069,80 @@ public partial class MainWindow : Window, IDisposable
             startInfo.ArgumentList.Add("-lc");
         startInfo.ArgumentList.Add(command);
         return startInfo;
+    }
+
+    private static void ApplyProcessPriority(Process process, LauncherSettings settings)
+    {
+        try
+        {
+            process.PriorityClass = settings.GetIntegerOption(
+                "LaunchArgumentPriority",
+                LauncherSettingDefaults.GetInteger("LaunchArgumentPriority")) switch
+            {
+                0 => ProcessPriorityClass.AboveNormal,
+                2 => ProcessPriorityClass.BelowNormal,
+                3 => ProcessPriorityClass.High,
+                4 => ProcessPriorityClass.RealTime,
+                _ => ProcessPriorityClass.Normal
+            };
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception or NotSupportedException)
+        {
+        }
+    }
+
+    private void ApplyLauncherVisibility(Process process, LauncherSettings settings)
+    {
+        int visibility = settings.GetIntegerOption(
+            "LaunchArgumentVisible",
+            LauncherSettingDefaults.GetInteger("LaunchArgumentVisible"));
+        switch (visibility)
+        {
+            case 0:
+                Close();
+                break;
+            case 2:
+                Hide();
+                _ = RestoreAfterGameExitAsync(process, closeLauncher: true, minimizeOnly: false);
+                break;
+            case 3:
+                Hide();
+                _ = RestoreAfterGameExitAsync(process, closeLauncher: false, minimizeOnly: false);
+                break;
+            case 4:
+                WindowState = WindowState.Minimized;
+                _ = RestoreAfterGameExitAsync(process, closeLauncher: false, minimizeOnly: true);
+                break;
+        }
+    }
+
+    private async Task RestoreAfterGameExitAsync(Process process, bool closeLauncher, bool minimizeOnly)
+    {
+        try
+        {
+            await process.WaitForExitAsync().ConfigureAwait(false);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (closeLauncher)
+                {
+                    Close();
+                    return;
+                }
+
+                if (!IsVisible)
+                    Show();
+                if (minimizeOnly || WindowState == WindowState.Minimized)
+                    WindowState = WindowState.Normal;
+                Activate();
+            });
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or ObjectDisposedException)
+        {
+        }
+        finally
+        {
+            process.Dispose();
+        }
     }
 
     private static int ResolveLaunchMemoryMegabytes(
@@ -3121,14 +3234,18 @@ public partial class MainWindow : Window, IDisposable
 
     private static string ResolvePreferredJavaExecutablePath()
     {
+        bool forceConsoleJava = LauncherSettingDefaults.GetBoolean("LaunchAdvanceNoJavaw");
         try
         {
             LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+            forceConsoleJava = settings.GetBooleanOption(
+                "LaunchAdvanceNoJavaw",
+                LauncherSettingDefaults.GetBoolean("LaunchAdvanceNoJavaw"));
             if (settings.TryGetTextOption(LauncherSettingKeys.LaunchSelectedJava, out string? selectedJava) &&
                 !string.IsNullOrWhiteSpace(selectedJava) &&
                 File.Exists(selectedJava))
             {
-                if (OperatingSystem.IsWindows() &&
+                if (!forceConsoleJava && OperatingSystem.IsWindows() &&
                     string.Equals(Path.GetFileName(selectedJava), "java.exe", StringComparison.OrdinalIgnoreCase))
                 {
                     string javaw = Path.Combine(Path.GetDirectoryName(selectedJava) ?? string.Empty, "javaw.exe");
@@ -3144,7 +3261,9 @@ public partial class MainWindow : Window, IDisposable
             // 启动路径读取失败时退回系统 PATH，避免设置文件损坏阻断启动。
         }
 
-        return OperatingSystem.IsWindows() ? "javaw" : "java";
+        return OperatingSystem.IsWindows() && !forceConsoleJava
+            ? "javaw"
+            : "java";
     }
 
     private void PromptRenameInstance(LaunchInstanceInfo instance)
@@ -3836,6 +3955,15 @@ public partial class MainWindow : Window, IDisposable
 
     public void Dispose()
     {
+        LauncherSettingsPageBinder.SettingsChanged -= LauncherSettingsChanged;
+        AvaloniaLocalizationManager.LanguageChanged -= LocalizationChanged;
+        _backgroundBitmap?.Dispose();
+        _backgroundBitmap = null;
+        _titleLogoBitmap?.Dispose();
+        _titleLogoBitmap = null;
+        _homepageLoadCancellation?.Cancel();
+        _homepageLoadCancellation?.Dispose();
+        _homepageLoadCancellation = null;
         DisposeTrackedTasks();
         _launchCancellation?.Cancel();
         _launchCancellation?.Dispose();
@@ -4390,6 +4518,366 @@ public partial class MainWindow : Window, IDisposable
         }
     }
 
+    private void LauncherSettingsChanged(LauncherSettings settings)
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(() => ApplyRuntimeSettings(settings));
+            return;
+        }
+
+        ApplyRuntimeSettings(settings);
+    }
+
+    private void LocalizationChanged(object? sender, EventArgs e)
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(RefreshNavigationText);
+            return;
+        }
+
+        RefreshNavigationText();
+    }
+
+    private void ApplyRuntimeSettings(LauncherSettings settings)
+    {
+        _targetWindowOpacity = Math.Clamp(
+            0.4d + settings.GetIntegerOption(
+                "UiLauncherTransparent",
+                LauncherSettingDefaults.GetInteger("UiLauncherTransparent")) / 1000d,
+            0.4d,
+            1d);
+        if (_isMainWindowOpened)
+            Opacity = _targetWindowOpacity;
+
+        CanResize = !settings.GetBooleanOption(
+            "UiLockWindowSize",
+            LauncherSettingDefaults.GetBoolean("UiLockWindowSize"));
+        ModAnimation.Configure(
+            settings.GetIntegerOption("UiAniFPS", LauncherSettingDefaults.GetInteger("UiAniFPS")) + 1,
+            settings.GetIntegerOption("SystemDebugAnim", LauncherSettingDefaults.GetInteger("SystemDebugAnim")));
+        TransparencyLevelHint = settings.GetBooleanOption(
+            "UiBlur",
+            LauncherSettingDefaults.GetBoolean("UiBlur"))
+            ? [WindowTransparencyLevel.AcrylicBlur]
+            : [WindowTransparencyLevel.None];
+        ApplyTitleAppearance(settings);
+        ApplyBackgroundAppearance(settings);
+        ApplyNetworkProxy(settings);
+        _launchRight?.SetMaximumLogLines(ResolveMaximumLogLines(settings));
+        ApplyLaunchPageSettings(settings);
+        ApplyHomepageSettings(settings);
+    }
+
+    private void ApplyLaunchPageSettings(LauncherSettings settings)
+    {
+        _launchLeft?.ConfigureLaunchingHint(settings.GetBooleanOption(
+            "UiShowLaunchingHint",
+            LauncherSettingDefaults.GetBoolean("UiShowLaunchingHint")));
+        _launchRight?.ConfigureDebugLog(settings.GetBooleanOption(
+            "SystemDebugMode",
+            LauncherSettingDefaults.GetBoolean("SystemDebugMode")));
+        if (this.FindControl<StackPanel>("PanHint") is { } hints)
+        {
+            bool alignRight = settings.GetBooleanOption(
+                "UiHintAlignRight",
+                LauncherSettingDefaults.GetBoolean("UiHintAlignRight"));
+            hints.HorizontalAlignment = alignRight
+                ? Avalonia.Layout.HorizontalAlignment.Right
+                : Avalonia.Layout.HorizontalAlignment.Left;
+            hints.Margin = alignRight
+                ? new Thickness(0d, 0d, 70d, 20d)
+                : new Thickness(70d, 0d, 0d, 20d);
+        }
+    }
+
+    private void ApplyTitleAppearance(LauncherSettings settings)
+    {
+        Avalonia.Controls.Shapes.Path? defaultLogo = this.FindControl<Avalonia.Controls.Shapes.Path>("ShapeTitleLogo");
+        MyImage? customLogo = this.FindControl<MyImage>("ImageTitleLogo");
+        TextBlock? customText = this.FindControl<TextBlock>("LabTitleLogo");
+        Grid? titleMain = this.FindControl<Grid>("PanTitleMain");
+        if (defaultLogo is null || customLogo is null || customText is null)
+            return;
+
+        int titleType = settings.GetIntegerOption("UiLogoType", LauncherSettingDefaults.GetInteger("UiLogoType"));
+        string logoPath = settings.GetTextOption(
+            LauncherSettingKeys.UiCustomLogoPath,
+            Path.Combine(LauncherSettingsPageBinder.CreateDataDirectory(), "Logo.png"));
+        bool hasCustomImage = titleType == 3 && File.Exists(logoPath);
+        defaultLogo.IsVisible = titleType == 1 || titleType == 3 && !hasCustomImage;
+        customText.IsVisible = titleType == 2;
+        customLogo.IsVisible = hasCustomImage;
+        customText.Text = settings.GetTextOption("UiLogoText", LauncherSettingDefaults.GetText("UiLogoText"));
+        if (string.IsNullOrWhiteSpace(customText.Text))
+            customText.Text = "PCL N";
+
+        if (hasCustomImage)
+        {
+            try
+            {
+                string logoStamp = GetFileStamp(logoPath);
+                if (!string.Equals(_titleLogoFile, logoStamp, StringComparison.Ordinal))
+                {
+                    _titleLogoBitmap?.Dispose();
+                    _titleLogoBitmap = new Bitmap(logoPath);
+                    _titleLogoFile = logoStamp;
+                }
+                customLogo.Source = _titleLogoBitmap;
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+            {
+                customLogo.IsVisible = false;
+                defaultLogo.IsVisible = true;
+            }
+        }
+        else
+        {
+            customLogo.Source = null;
+            _titleLogoBitmap?.Dispose();
+            _titleLogoBitmap = null;
+            _titleLogoFile = null;
+        }
+
+        if (titleMain is not null)
+        {
+            titleMain.HorizontalAlignment = settings.GetBooleanOption(
+                "UiLogoLeft",
+                LauncherSettingDefaults.GetBoolean("UiLogoLeft"))
+                ? Avalonia.Layout.HorizontalAlignment.Left
+                : Avalonia.Layout.HorizontalAlignment.Center;
+        }
+    }
+
+    private void ApplyBackgroundAppearance(LauncherSettings settings)
+    {
+        Image? image = this.FindControl<Image>("ImageBack");
+        if (image is null)
+            return;
+
+        string directory = Path.Combine(LauncherSettingsPageBinder.CreateDataDirectory(), "Backgrounds");
+        string? file = Directory.Exists(directory)
+            ? Directory.EnumerateFiles(directory, "*", SearchOption.TopDirectoryOnly)
+                .Where(static path => path.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+                                      path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                                      path.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+                                      path.EndsWith(".webp", StringComparison.OrdinalIgnoreCase) ||
+                                      path.EndsWith(".gif", StringComparison.OrdinalIgnoreCase))
+                .OrderBy(static path => path, StringComparer.OrdinalIgnoreCase)
+                .FirstOrDefault()
+            : null;
+        string? backgroundStamp = file is null ? null : GetFileStamp(file);
+        if (!string.Equals(_backgroundStamp, backgroundStamp, StringComparison.Ordinal))
+        {
+            _backgroundBitmap?.Dispose();
+            _backgroundBitmap = null;
+            _backgroundStamp = backgroundStamp;
+            if (file is not null)
+            {
+                try
+                {
+                    _backgroundBitmap = new Bitmap(file);
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+                {
+                    _backgroundStamp = null;
+                }
+            }
+            image.Source = _backgroundBitmap;
+        }
+
+        image.IsVisible = _backgroundBitmap is not null;
+        image.Opacity = Math.Clamp(
+            settings.GetIntegerOption("UiBackgroundOpacity", LauncherSettingDefaults.GetInteger("UiBackgroundOpacity")) / 1000d,
+            0d,
+            1d);
+        int blurRadius = settings.GetIntegerOption("UiBackgroundBlur", LauncherSettingDefaults.GetInteger("UiBackgroundBlur"));
+        image.Effect = blurRadius > 0 ? new BlurEffect { Radius = blurRadius } : null;
+        ApplyBackgroundSuit(image, settings.GetIntegerOption("UiBackgroundSuit", LauncherSettingDefaults.GetInteger("UiBackgroundSuit")));
+    }
+
+    private static void ApplyBackgroundSuit(Image image, int mode)
+    {
+        image.Stretch = mode switch
+        {
+            2 => Stretch.Uniform,
+            3 => Stretch.Fill,
+            >= 1 => Stretch.None,
+            _ => Stretch.UniformToFill
+        };
+        image.HorizontalAlignment = mode switch
+        {
+            5 or 7 => Avalonia.Layout.HorizontalAlignment.Left,
+            6 or 8 => Avalonia.Layout.HorizontalAlignment.Right,
+            _ => Avalonia.Layout.HorizontalAlignment.Center
+        };
+        image.VerticalAlignment = mode switch
+        {
+            5 or 6 => Avalonia.Layout.VerticalAlignment.Top,
+            7 or 8 => Avalonia.Layout.VerticalAlignment.Bottom,
+            _ => Avalonia.Layout.VerticalAlignment.Center
+        };
+    }
+
+    private static int ResolveMaximumLogLines(LauncherSettings settings)
+    {
+        int value = settings.GetIntegerOption("SystemMaxLog", LauncherSettingDefaults.GetInteger("SystemMaxLog"));
+        return value switch
+        {
+            <= 5 => value * 10 + 50,
+            <= 13 => value * 50 - 150,
+            <= 28 => value * 100 - 800,
+            _ => int.MaxValue
+        };
+    }
+
+    private static void ApplyNetworkProxy(LauncherSettings settings)
+    {
+        int proxyType = settings.GetIntegerOption(
+            "SystemHttpProxyType",
+            LauncherSettingDefaults.GetInteger("SystemHttpProxyType"));
+        if (proxyType == 1)
+        {
+            HttpClient.DefaultProxy = SystemDefaultProxy;
+            return;
+        }
+
+        if (proxyType != 2)
+        {
+            HttpClient.DefaultProxy = new WebProxy();
+            return;
+        }
+
+        string address = settings.GetTextOption("SystemHttpProxy", LauncherSettingDefaults.GetText("SystemHttpProxy"));
+        if (!Uri.TryCreate(address, UriKind.Absolute, out Uri? proxyAddress))
+            return;
+
+        WebProxy proxy = new(proxyAddress);
+        string username = settings.GetTextOption(
+            "SystemHttpProxyCustomUsername",
+            LauncherSettingDefaults.GetText("SystemHttpProxyCustomUsername"));
+        if (!string.IsNullOrWhiteSpace(username))
+        {
+            proxy.Credentials = new NetworkCredential(
+                username,
+                settings.GetTextOption(
+                    "SystemHttpProxyCustomPassword",
+                    LauncherSettingDefaults.GetText("SystemHttpProxyCustomPassword")));
+        }
+        HttpClient.DefaultProxy = proxy;
+    }
+
+    private void ApplyHomepageSettings(LauncherSettings settings)
+    {
+        if (_launchRight is null)
+            return;
+
+        int mode = settings.GetIntegerOption("UiCustomType", LauncherSettingDefaults.GetInteger("UiCustomType"));
+        string networkAddress = settings.GetTextOption("UiCustomNet", LauncherSettingDefaults.GetText("UiCustomNet"));
+        int preset = settings.GetIntegerOption("UiCustomPreset", LauncherSettingDefaults.GetInteger("UiCustomPreset"));
+        string signature = $"{mode.ToString(CultureInfo.InvariantCulture)}|{preset.ToString(CultureInfo.InvariantCulture)}|{networkAddress}";
+        if (mode != 1 && string.Equals(_homepageSignature, signature, StringComparison.Ordinal))
+            return;
+
+        _homepageSignature = signature;
+        _homepageLoadCancellation?.Cancel();
+        _homepageLoadCancellation?.Dispose();
+        _homepageLoadCancellation = null;
+
+        switch (mode)
+        {
+            case 1:
+                LoadLocalHomepage();
+                break;
+            case 2 when Uri.TryCreate(networkAddress, UriKind.Absolute, out Uri? address):
+                _homepageLoadCancellation = new CancellationTokenSource();
+                _ = LoadNetworkHomepageAsync(address, _homepageLoadCancellation.Token);
+                break;
+            case 3:
+                _launchRight.LoadTextContent(PageLaunchRight.GetRandomHint(raw: true));
+                break;
+            default:
+                _launchRight.ClearCustomContent();
+                break;
+        }
+    }
+
+    private void LoadLocalHomepage()
+    {
+        string directory = Path.Combine(LauncherSettingsPageBinder.CreateDataDirectory(), "CustomHomepage");
+        string? file = Directory.Exists(directory)
+            ? Directory.EnumerateFiles(directory, "*", SearchOption.TopDirectoryOnly)
+                .Where(static path => path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) ||
+                                      path.EndsWith(".md", StringComparison.OrdinalIgnoreCase) ||
+                                      path.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
+                .OrderBy(static path => path, StringComparer.OrdinalIgnoreCase)
+                .FirstOrDefault()
+            : null;
+        if (file is null)
+        {
+            _launchRight?.LoadTextContent("自定义主页目录中没有 .txt、.md 或 .xaml 文件。");
+            return;
+        }
+
+        try
+        {
+            _launchRight?.LoadTextContent(File.ReadAllText(file));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _launchRight?.LoadTextContent("读取自定义主页失败：" + ex.Message);
+        }
+    }
+
+    private async Task LoadNetworkHomepageAsync(Uri address, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using HttpClient client = new() { Timeout = TimeSpan.FromSeconds(15) };
+            string content = await client.GetStringAsync(address, cancellationToken).ConfigureAwait(false);
+            if (content.Length > 1024 * 1024)
+                content = content[..(1024 * 1024)];
+            await Dispatcher.UIThread.InvokeAsync(() => _launchRight?.LoadTextContent(content));
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+                _launchRight?.LoadTextContent("下载自定义主页失败：" + ex.Message));
+        }
+    }
+
+    private static string GetFileStamp(string path)
+    {
+        FileInfo file = new(path);
+        return string.Concat(
+            file.FullName,
+            "|",
+            file.Length.ToString(CultureInfo.InvariantCulture),
+            "|",
+            file.LastWriteTimeUtc.Ticks.ToString(CultureInfo.InvariantCulture));
+    }
+
+    private void RefreshNavigationText()
+    {
+        foreach (MyListItem item in GetNavItems())
+        {
+            if (!TryGetNavRoute(item, out NavigationRouteId route))
+                continue;
+            item.Title = route.Value switch
+            {
+                DesktopNavigationRegistry.LaunchRouteValue => AvaloniaLocalizationManager.GetText("Main.TopTitle.Launch", "启动"),
+                DesktopNavigationRegistry.DownloadRouteValue => AvaloniaLocalizationManager.GetText("Main.TopTitle.Download", "下载"),
+                DesktopNavigationRegistry.CommunityRouteValue => AvaloniaLocalizationManager.GetText("Main.TopTitle.Community", "社区"),
+                DesktopNavigationRegistry.SettingsRouteValue => AvaloniaLocalizationManager.GetText("Main.TopTitle.Settings", "设置"),
+                _ => item.Title
+            };
+        }
+    }
+
     private void BeginPageChangeAnimation(NavigationRouteId route)
     {
         _pendingNavRoute = route;
@@ -4467,7 +4955,7 @@ public partial class MainWindow : Window, IDisposable
         ModAnimation.AniStart(
             new List<ModAnimation.AniData>
             {
-                ModAnimation.AaOpacity(this, 1d, 250, 100),
+                ModAnimation.AaOpacity(this, _targetWindowOpacity - Opacity, 250, 100),
                 ModAnimation.AaDouble(
                     value =>
                     {

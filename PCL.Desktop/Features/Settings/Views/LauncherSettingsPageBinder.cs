@@ -38,6 +38,8 @@ internal static class LauncherSettingsPageBinder
         "HMCL 蓝"
     ];
 
+    internal static event Action<LauncherSettings>? SettingsChanged;
+
     public static void Attach(MyPageRight page, Action<LauncherSettings>? settingsApplied = null)
     {
         ArgumentNullException.ThrowIfNull(page);
@@ -136,7 +138,7 @@ internal static class LauncherSettingsPageBinder
                     return;
 
                 settings = LoadSettings();
-                settings.SetIntegerOption(tag, comboBox.SelectedIndex);
+                settings.SetIntegerOption(tag, GetComboValue(comboBox));
                 bool shouldApplyTheme = false;
                 settings = tag switch
                 {
@@ -345,10 +347,14 @@ internal static class LauncherSettingsPageBinder
             else if (tag is "ToolDownloadSource" or "ToolDownloadVersion" or "ToolDownloadMod")
                 SetComboIndex(comboBox, (int)settings.DownloadSource);
             else if (settings.TryGetIntegerOption(tag, out int index))
-                SetComboIndex(comboBox, index);
+                SetComboValue(comboBox, index);
+            else
+                SetComboValue(comboBox, LauncherSettingDefaults.GetInteger(tag, comboBox.SelectedIndex));
 
             if (comboBox.IsEditable && settings.TryGetTextOption(tag, out string? text))
                 comboBox.Text = text ?? string.Empty;
+            else if (comboBox.IsEditable)
+                comboBox.Text = LauncherSettingDefaults.GetText(tag, comboBox.Text ?? string.Empty);
         }
 
         foreach (MyCheckBox checkBox in GetControlDescendants(page).OfType<MyCheckBox>())
@@ -361,20 +367,31 @@ internal static class LauncherSettingsPageBinder
                 checkBox.Checked = settings.AutomaticallyRepairGameIssues;
             else if (settings.TryGetBooleanOption(tag, out bool value))
                 checkBox.Checked = value;
+            else
+                checkBox.Checked = LauncherSettingDefaults.GetBoolean(tag, checkBox.Checked == true);
         }
 
         foreach (MySlider slider in GetControlDescendants(page).OfType<MySlider>())
         {
             string? tag = GetTag(slider);
-            if (!string.IsNullOrWhiteSpace(tag) && settings.TryGetIntegerOption(tag, out int value))
+            if (!string.IsNullOrWhiteSpace(tag))
+            {
+                int value = settings.TryGetIntegerOption(tag, out int configured)
+                    ? configured
+                    : LauncherSettingDefaults.GetInteger(tag, slider.Value);
                 slider.Value = Math.Clamp(value, 0, slider.MaxValue);
+            }
         }
 
         foreach (MyTextBox textBox in GetControlDescendants(page).OfType<MyTextBox>())
         {
             string? tag = GetTag(textBox);
-            if (!string.IsNullOrWhiteSpace(tag) && settings.TryGetTextOption(tag, out string? value))
-                textBox.Text = value ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(tag))
+            {
+                textBox.Text = settings.TryGetTextOption(tag, out string? value)
+                    ? value ?? string.Empty
+                    : LauncherSettingDefaults.GetText(tag, textBox.Text ?? string.Empty);
+            }
         }
 
         foreach (IGrouping<string, MyRadioBox> group in GetControlDescendants(page)
@@ -385,8 +402,9 @@ internal static class LauncherSettingsPageBinder
                      .Where(static item => item.Parsed is not null)
                      .GroupBy(static item => item.Parsed!.Value.Key, static item => item.Radio))
         {
-            if (!settings.TryGetIntegerOption(group.Key, out int selectedValue))
-                continue;
+            int selectedValue = settings.TryGetIntegerOption(group.Key, out int configuredValue)
+                ? configuredValue
+                : LauncherSettingDefaults.GetInteger(group.Key);
 
             foreach (MyRadioBox radioBox in group)
             {
@@ -410,7 +428,10 @@ internal static class LauncherSettingsPageBinder
         store.SaveAsync(settings).AsTask().GetAwaiter().GetResult();
         lock (LatestSavedSettingsLock)
             _latestSavedSettings = new LatestSavedSettings(settingsPath, settings);
+        SettingsChanged?.Invoke(settings);
     }
+
+    internal static void NotifySettingsChanged() => SettingsChanged?.Invoke(LoadSettings());
 
     private static void FlushLatestSettings()
     {
@@ -541,5 +562,32 @@ internal static class LauncherSettingsPageBinder
             foreach ((MyRadioBox radio, bool value) in _radioDefaults)
                 radio.Checked = value;
         }
+    }
+
+    private static int GetComboValue(MyComboBox comboBox)
+    {
+        if (comboBox.SelectedItem is MyComboBoxItem { Tag: { } tag } &&
+            int.TryParse(tag.ToString(), out int taggedValue))
+        {
+            return taggedValue;
+        }
+
+        return comboBox.SelectedIndex;
+    }
+
+    private static void SetComboValue(MyComboBox comboBox, int value)
+    {
+        MyComboBoxItem? taggedItem = comboBox.Items
+            .OfType<MyComboBoxItem>()
+            .FirstOrDefault(item => item.Tag is not null &&
+                                    int.TryParse(item.Tag.ToString(), out int taggedValue) &&
+                                    taggedValue == value);
+        if (taggedItem is not null)
+        {
+            comboBox.SelectedItem = taggedItem;
+            return;
+        }
+
+        SetComboIndex(comboBox, value);
     }
 }

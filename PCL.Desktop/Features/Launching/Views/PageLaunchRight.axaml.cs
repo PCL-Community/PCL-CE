@@ -31,6 +31,8 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
     private DispatcherTimer? _homepageLivePatchTimer;
     private bool _disposed;
     private int _loadedContentHash = -1;
+    private int _maximumLogLines = 500;
+    private bool _showDebugLog;
 
     public PageLaunchRight()
     {
@@ -58,7 +60,7 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
 
     public void Refresh()
     {
-        IsDebugLogVisible = false;
+        IsDebugLogVisible = _showDebugLog;
         SetCommunityHintText();
         AppendLog("启动页已就绪。");
     }
@@ -137,6 +139,23 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
         log.Text = string.IsNullOrEmpty(log.Text)
             ? $"[{timestamp}] {message}"
             : log.Text + Environment.NewLine + $"[{timestamp}] {message}";
+        if (_maximumLogLines != int.MaxValue)
+        {
+            string[] lines = log.Text.Split(Environment.NewLine);
+            if (lines.Length > _maximumLogLines)
+                log.Text = string.Join(Environment.NewLine, lines[^_maximumLogLines..]);
+        }
+    }
+
+    public void SetMaximumLogLines(int maximumLogLines)
+    {
+        _maximumLogLines = maximumLogLines <= 0 ? 1 : maximumLogLines;
+    }
+
+    public void ConfigureDebugLog(bool isVisible)
+    {
+        _showDebugLog = isVisible;
+        IsDebugLogVisible = isVisible;
     }
 
     public static string GetRandomHint(bool enableLengthLimit = false, bool raw = false)

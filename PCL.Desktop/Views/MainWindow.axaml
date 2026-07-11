@@ -198,7 +198,9 @@
 
                 </Grid.ColumnDefinitions>
 
-                <Canvas x:Name="ImgBack" IsHitTestVisible="False" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+                <Grid x:Name="ImgBack" IsHitTestVisible="False" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+
+                    <Image x:Name="ImageBack" Stretch="UniformToFill" IsHitTestVisible="False" IsVisible="False" />
 
                     <local:MediaElement x:Name="VideoBack" LoadedBehavior="Manual" UnloadedBehavior="Stop"
 
@@ -206,7 +208,7 @@
 
                                   MediaEnded="VideoEnded" Volume="0" />
 
-                </Canvas>
+                </Grid>
 
                 <local:AnimatedBackgroundGrid Grid.Row="0" Grid.ColumnSpan="2" x:Name="PanTitle" Height="48"
 

@@ -23,6 +23,7 @@ public static partial class ModAnimation
     private static readonly Stopwatch AniClock = new();
     private static DispatcherTimer? _aniTimer;
     private static double _aniLastTick;
+    private static TimeSpan _frameInterval = TimeSpan.FromMilliseconds(16d);
 
     public static int AniControlEnabled { get; set; }
 
@@ -75,6 +76,15 @@ public static partial class ModAnimation
             AniTimer(deltaTick);
     }
 
+    public static void Configure(int framesPerSecond, int speedSliderValue)
+    {
+        int fps = Math.Clamp(framesPerSecond, 1, 240);
+        _frameInterval = TimeSpan.FromSeconds(1d / fps);
+        aniSpeed = speedSliderValue > 29 ? 1000d : Math.Max(0.1d, speedSliderValue / 10d + 0.1d);
+        if (_aniTimer is not null)
+            _aniTimer.Interval = _frameInterval;
+    }
+
     public static void ResetForTesting()
     {
         AniGroups.Clear();
@@ -83,6 +93,7 @@ public static partial class ModAnimation
         _aniLastTick = 0d;
         AniControlEnabled = 0;
         aniSpeed = 1d;
+        _frameInterval = TimeSpan.FromMilliseconds(16d);
     }
 
     public static void AniTimer(int deltaTick)
@@ -1061,7 +1072,7 @@ public static partial class ModAnimation
         _aniLastTick = 0d;
         _aniTimer = new DispatcherTimer
         {
-            Interval = TimeSpan.FromMilliseconds(16d)
+            Interval = _frameInterval
         };
         _aniTimer.Tick += (_, _) =>
         {

@@ -2,6 +2,7 @@
 // Modifications Copyright (c) 2026 PCL N contributors.
 // Licensed under the Apache License, Version 2.0.
 
+using System.Globalization;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -26,7 +27,28 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
             UiFontSelector.SelectedFontTag = settings.GetTextOption("UiFont");
             MotdFontSelector.SelectedFontTag = settings.GetTextOption("UiMotdFont");
         });
+        InitializeSliderHints();
         AttachedToVisualTree += (_, _) => RefreshPage();
+    }
+
+    private void InitializeSliderHints()
+    {
+        if (this.FindControl<MySlider>("SliderMusicVolume") is { } musicVolume)
+            musicVolume.getHintText = value =>
+                (Math.Ceiling(value * 0.1d) / 100d).ToString("P0", CultureInfo.CurrentCulture);
+        if (this.FindControl<MySlider>("SliderLauncherOpacity") is { } launcherOpacity)
+            launcherOpacity.getHintText = value =>
+                (Math.Round(40d + value * 0.1d) / 100d).ToString("P0", CultureInfo.CurrentCulture);
+        if (this.FindControl<MySlider>("SliderBackgroundOpacity") is { } backgroundOpacity)
+            backgroundOpacity.getHintText = value =>
+                (Math.Round(value * 0.1d) / 100d).ToString("P0", CultureInfo.CurrentCulture);
+        if (this.FindControl<MySlider>("SliderBackgroundBlur") is { } backgroundBlur)
+            backgroundBlur.getHintText = value => value.ToString(CultureInfo.CurrentCulture) + " px";
+        if (this.FindControl<MySlider>("SliderBlurValue") is { } blurValue)
+            blurValue.getHintText = value => value.ToString(CultureInfo.CurrentCulture) + " px";
+        if (this.FindControl<MySlider>("SliderBlurSamplingRate") is { } blurSampling)
+            blurSampling.getHintText = value =>
+                (value / 100d).ToString("P0", CultureInfo.CurrentCulture);
     }
 
     public event EventHandler<SettingsPathRequestedEventArgs>? OpenPathRequested;
@@ -43,6 +65,7 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
         RefreshMusicUi(showMessage: false);
         RefreshLogoUi();
         RefreshHomepageUi();
+        RefreshBlurUi();
     }
 
     private void BtnBackgroundClear_Click(object? sender, EventArgs e)
@@ -72,6 +95,7 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
     private void BtnCustomRefresh_Click(object? sender, EventArgs e)
     {
         Directory.CreateDirectory(GetCustomHomepageDirectory());
+        LauncherSettingsPageBinder.NotifySettingsChanged();
         MessageRequested?.Invoke(
             this,
             new SettingsMessageRequestedEventArgs(
@@ -190,6 +214,8 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
 
     private void CheckBoxChange(object sender, bool user)
     {
+        if (sender is MyCheckBox { Tag: "UiBlur" })
+            RefreshBlurUi();
     }
 
     private void CheckMusicStart_OnChange(object sender, bool user)
@@ -278,10 +304,12 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
         if (showMessage)
         {
             string message = hasContent
-                ? $"已找到 {count} 个背景文件。重新进入启动页后会按设置应用。"
+                ? $"已找到 {count} 个背景文件并立即应用。"
                 : "背景目录中没有可用的图片或视频。";
             MessageRequested?.Invoke(this, new SettingsMessageRequestedEventArgs("背景已刷新", message));
         }
+
+        LauncherSettingsPageBinder.NotifySettingsChanged();
     }
 
     private void RefreshMusicUi(bool showMessage)
@@ -317,6 +345,12 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
             CheckLogoLeft.IsVisible = RadioLogoType0?.Checked == true;
         if (BtnLogoDelete is not null)
             BtnLogoDelete.IsVisible = File.Exists(GetCustomLogoPath());
+    }
+
+    private void RefreshBlurUi()
+    {
+        if (this.FindControl<Grid>("PanBlurValue") is { } options)
+            options.IsVisible = this.FindControl<MyCheckBox>("CheckBlur")?.Checked == true;
     }
 
     private void RefreshHomepageUi()

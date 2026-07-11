@@ -7,9 +7,12 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using PCL.Desktop.Hosting;
+using PCL.Desktop.Localization;
 using PCL.Desktop.Platform;
 using PCL.Desktop.Theme;
 using PCL.Desktop.Views;
+using PCL.Desktop.Features.Settings.Views;
+using PCL.Application.Settings;
 
 namespace PCL.Desktop;
 
@@ -23,13 +26,18 @@ public sealed partial class App : Avalonia.Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        AvaloniaThemeManager.InitializeFromSettings();
+        LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+        AvaloniaThemeManager.Apply(settings);
+        AvaloniaLocalizationManager.InitializeFromSettings(settings);
         DesktopHost.Initialize();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            _splashWindow = new SplashWindow();
-            _splashWindow.Show();
+            if (settings.GetBooleanOption("UiLauncherLogo", LauncherSettingDefaults.GetBoolean("UiLauncherLogo")))
+            {
+                _splashWindow = new SplashWindow();
+                _splashWindow.Show();
+            }
 
             MainWindow mainWindow = new();
             mainWindow.Opened += (_, _) => _splashWindow?.CloseWithFade(TimeSpan.FromMilliseconds(400));

@@ -21,6 +21,7 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
     private string? _minecraftRootDirectory;
     private string? _preferredInstanceDirectory;
     private double _showProgress;
+    private bool _showLaunchingHint = true;
 
     public PageLaunchLeft()
     {
@@ -317,6 +318,13 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
             refreshTime: true);
 
         IsLaunchInProgress = false;
+        SetVisible("PanLaunchingHint", false);
+    }
+
+    public void ConfigureLaunchingHint(bool isEnabled)
+    {
+        _showLaunchingHint = isEnabled;
+        SetVisible("PanLaunchingHint", isEnabled && IsLaunchInProgress);
     }
 
     public void ShowLaunching(LaunchInstanceInfo? instance)
@@ -332,6 +340,8 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
         SetText("LabLaunchingName", instance?.Name ?? "等待选择版本");
         SetText("LabLaunchingStage", "准备启动环境");
         SetText("LabLaunchingMethod", "等待账户档案");
+        SetText("LabLaunchingHint", PageLaunchRight.GetRandomHint(enableLengthLimit: true, raw: true));
+        SetVisible("PanLaunchingHint", _showLaunchingHint);
         SetLaunchProgress(0d);
         SetVisible("LabLaunchingDownloadLeft", false);
         SetVisible("LabLaunchingDownload", false);
