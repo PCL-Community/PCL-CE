@@ -249,7 +249,7 @@ public sealed class DesktopArchitectureTests
     }
 
     [TestMethod]
-    public void DesktopBuildInfo_UsesGeneratedStaticMetadata()
+    public void DesktopVersionSurfacesUseUnifiedMetadata()
     {
         string desktopRoot = FindDesktopProjectRoot();
         string repoRoot = Directory.GetParent(desktopRoot)?.FullName
@@ -268,7 +268,8 @@ public sealed class DesktopArchitectureTests
 
         StringAssert.Contains(csprojSource, "CompilerVisibleProperty Include=\"InformationalVersion\"");
         StringAssert.Contains(csprojSource, "CompilerVisibleProperty Include=\"Version\"");
-        StringAssert.Contains(updatePageSource, "PclBuildInfo.DisplayVersion");
+        StringAssert.Contains(csprojSource, "EmbeddedResource Include=\"metadata.json\"");
+        StringAssert.Contains(updatePageSource, "PclMetadata.Current.DisplayVersion");
         Assert.IsFalse(updatePageSource.Contains("Assembly.GetCustomAttribute", StringComparison.Ordinal));
         Assert.IsFalse(updatePageSource.Contains("Assembly.GetName()", StringComparison.Ordinal));
         StringAssert.Contains(generatorSource, "build_property.");
