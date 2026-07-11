@@ -10,6 +10,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Application.Settings;
 using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Localization;
 
 namespace PCL.Desktop.Features.Settings.Views;
 
@@ -72,6 +73,7 @@ public partial class PageSetupLauncherLanguage : MyPageRight
         settings.TextOptions.Remove("UiLanguage");
         settings.TextOptions.Remove("UiFormatCulture");
         LauncherSettingsPageBinder.SaveSettings(settings);
+        AvaloniaLocalizationManager.Apply(_language, _formatCulture);
         Reload();
     }
 
@@ -142,6 +144,7 @@ public partial class PageSetupLauncherLanguage : MyPageRight
 
         _language = value;
         SaveLocalizationSetting("UiLanguage", value);
+        AvaloniaLocalizationManager.Apply(_language, _formatCulture);
         QueueReload();
     }
 
@@ -159,6 +162,7 @@ public partial class PageSetupLauncherLanguage : MyPageRight
 
         _formatCulture = value;
         SaveLocalizationSetting("UiFormatCulture", value);
+        AvaloniaLocalizationManager.Apply(_language, _formatCulture);
         QueueReload();
     }
 
