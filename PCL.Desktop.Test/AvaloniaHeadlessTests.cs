@@ -3958,6 +3958,7 @@ public sealed class AvaloniaHeadlessTests
                     "game": [
                       "--username", "${auth_player_name}",
                       "--gameDir", "${game_directory}",
+                      "--versionType", "${version_type}",
                       "--width", "${resolution_width}",
                       "--height", "${resolution_height}"
                     ]
@@ -3976,14 +3977,16 @@ public sealed class AvaloniaHeadlessTests
                             ["LaunchArgumentWindowType"] = 3,
                             ["LaunchPreferredIpStack"] = 2,
                             ["LaunchRamType"] = 1,
-                            ["LaunchRamCustom"] = 20
+                            ["LaunchRamCustom"] = 20,
+                            ["SystemHttpProxyType"] = 2
                         },
                         TextOptions = new Dictionary<string, string>
                         {
                             ["LaunchArgumentWindowWidth"] = "1280",
                             ["LaunchArgumentWindowHeight"] = "720",
                             ["LaunchAdvanceJvm"] = "-Dglobal=true",
-                            ["LaunchAdvanceGame"] = "--global"
+                            ["LaunchAdvanceGame"] = "--global",
+                            ["SystemHttpProxy"] = "http://127.0.0.1:7890"
                         }
                     });
             }
@@ -3998,7 +4001,9 @@ public sealed class AvaloniaHeadlessTests
                     JvmArguments = "-Dinstance=true",
                     GameArguments = "--instance",
                     ClasspathHead = headJar,
-                    ServerToEnter = "play.example.com"
+                    ServerToEnter = "play.example.com",
+                    CustomInfo = "Fabric 测试实例",
+                    UseProxy = true
                 });
 
             LaunchInstanceInfo instance = new("CustomPack", versionJsonPath, instanceDirectory);
@@ -4016,8 +4021,11 @@ public sealed class AvaloniaHeadlessTests
             Assert.AreEqual(instanceDirectory, plan.StartInfo.WorkingDirectory);
             StringAssert.Contains(plan.StartInfo.Arguments, "-Xmx2048m");
             StringAssert.Contains(plan.StartInfo.Arguments, "-Dinstance=true");
+            StringAssert.Contains(plan.StartInfo.Arguments, "-Dhttp.proxyHost=127.0.0.1");
+            StringAssert.Contains(plan.StartInfo.Arguments, "-Dhttp.proxyPort=7890");
             StringAssert.Contains(plan.StartInfo.Arguments, "-Djava.net.preferIPv6Stack=true");
             StringAssert.Contains(plan.StartInfo.Arguments, "--instance");
+            StringAssert.Contains(plan.StartInfo.Arguments, "--versionType \"Fabric 测试实例\"");
             StringAssert.Contains(plan.StartInfo.Arguments, "--quickPlayMultiplayer \"play.example.com\"");
             StringAssert.Contains(plan.StartInfo.Arguments, "--width 1280");
             StringAssert.Contains(plan.StartInfo.Arguments, "--height 720");
@@ -5742,7 +5750,9 @@ public sealed class AvaloniaHeadlessTests
                 new InstanceMetadata
                 {
                     MemorySolution = 1,
-                    CustomMemorySize = 25
+                    CustomMemorySize = 25,
+                    ServerLoginRequirement = 2,
+                    AuthServerAddress = "https://example.com/api/yggdrasil"
                 }).GetAwaiter().GetResult();
             LaunchInstanceInfo instance = new("Fabric 1.20.1", versionJsonPath, versionDirectory);
 
@@ -5751,6 +5761,7 @@ public sealed class AvaloniaHeadlessTests
                 const long gibibyte = 1024L * 1024L * 1024L;
                 PageInstanceSetupRight page = new(new FixedSystemInfoProvider(16 * gibibyte, 8 * gibibyte));
                 page.SetInstance(instance);
+                page.ConfirmRequested += (_, args) => args.Complete(true);
                 Window window = new()
                 {
                     Width = 760,
@@ -5773,10 +5784,38 @@ public sealed class AvaloniaHeadlessTests
                     Assert.AreEqual(" / 16.0 GB", page.FindControl<TextBlock>("LabRamTotal")!.Text);
                     Assert.AreEqual(33, page.FindControl<MySlider>("SliderRamCustom")!.MaxValue);
                     Assert.IsFalse(page.FindControl<MyHint>("HintRamTooHigh")!.IsVisible);
+                    Assert.IsTrue(page.FindControl<MyTextBox>("TextServerAuthServer")!.IsVisible);
+                    Assert.IsTrue(page.FindControl<MyButton>("BtnServerAuthLittle")!.IsVisible);
+                    Assert.IsTrue(page.FindControl<MyButton>("BtnServerAuthLock")!.IsEnabled);
+
+                    MyComboBox title = page.FindControl<MyComboBox>("TextArgumentTitle")!;
+                    title.Text = "独立标题";
+                    page.FindControl<MyTextBox>("TextArgumentInfo")!.Text = "Fabric 测试实例";
+                    page.FindControl<MyTextBox>("TextServerEnter")!.Text = "localhost：25565";
+                    Assert.AreEqual("localhost:25565", page.FindControl<MyTextBox>("TextServerEnter")!.Text);
+
+                    Click(window, page.FindControl<MyButton>("BtnServerAuthLittle")!);
+                    Assert.AreEqual("https://littleskin.cn/api/yggdrasil", page.FindControl<MyTextBox>("TextServerAuthServer")!.Text);
+                    Assert.AreEqual("LittleSkin", page.FindControl<MyTextBox>("TextServerAuthName")!.Text);
+
+                    Click(window, page.FindControl<MyButton>("BtnServerAuthLock")!);
+                    Assert.IsFalse(page.FindControl<MyComboBox>("ComboServerLoginRequire")!.IsEnabled);
+                    Assert.IsTrue(page.FindControl<MyHint>("HintServerLoginLock")!.IsVisible);
 
                     page.FindControl<MySlider>("SliderRamCustom")!.Value = 33;
                     Assert.IsTrue(page.FindControl<TextBlock>("LabRamGame")!.Text!.Contains("可用 8.0 GB", StringComparison.Ordinal));
                     Assert.IsTrue(page.FindControl<MyHint>("HintRamTooHigh")!.IsVisible);
+
+                    WaitForCondition(() =>
+                    {
+                        InstanceMetadata saved = InstanceMetadataStore.LoadAsync(versionDirectory).GetAwaiter().GetResult();
+                        return saved.WindowTitle == "独立标题" &&
+                               saved.CustomInfo == "Fabric 测试实例" &&
+                               saved.ServerToEnter == "localhost:25565" &&
+                               saved.AuthServerDisplayName == "LittleSkin" &&
+                               saved.AuthSettingsLocked &&
+                               saved.CustomMemorySize == 33;
+                    });
                 }
                 finally
                 {

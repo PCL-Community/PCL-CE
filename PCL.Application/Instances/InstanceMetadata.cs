@@ -34,6 +34,10 @@ public sealed record InstanceMetadata
 
     public string CustomInfo { get; init; } = string.Empty;
 
+    public int JavaSelectionMode { get; init; }
+
+    public string SelectedJavaPath { get; init; } = string.Empty;
+
     public int MemorySolution { get; init; } = 2;
 
     public int CustomMemorySize { get; init; } = 13;
@@ -45,6 +49,8 @@ public sealed record InstanceMetadata
     public string AuthRegisterAddress { get; init; } = string.Empty;
 
     public string AuthServerDisplayName { get; init; } = string.Empty;
+
+    public bool AuthSettingsLocked { get; init; }
 
     public string ServerToEnter { get; init; } = string.Empty;
 

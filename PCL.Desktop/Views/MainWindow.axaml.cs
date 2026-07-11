@@ -1556,6 +1556,21 @@ public partial class MainWindow : Window, IDisposable
     {
         PageInstanceSetupRight page = new();
         page.OpenGlobalSettingsRequested += (_, _) => SelectNavRoute(SettingsRoute, animate: true);
+        page.MessageRequested += (_, args) => ShowTextDialog(args.Title, args.Message, args.PrimaryButton);
+        page.ConfirmRequested += (_, args) => ShowConfirmDialog(
+            args.Title,
+            args.Message,
+            args.Complete,
+            args.PrimaryButton,
+            args.SecondaryButton,
+            args.IsWarn);
+        page.CreateAuthProfileRequested += (_, authServer) =>
+        {
+            SelectNavRoute(LaunchRoute, animate: true);
+            _launchLeft ??= CreateLaunchLeftPage();
+            ApplyLaunchLoginPage(_launchLeft, PageLaunchLeft.LaunchLoginPageType.Auth);
+            _loginAuthPage?.SetServer(authServer);
+        };
         return page;
     }
 
@@ -2997,7 +3012,7 @@ public partial class MainWindow : Window, IDisposable
             MinecraftProcessLaunchPlan plan = await CreateLaunchPlanAsync(
                     instance,
                     profile,
-                    ResolvePreferredJavaExecutablePath(),
+                    ResolveInstanceJavaExecutablePath(metadata),
                     _launchCancellation.Token,
                     worldName,
                     metadata,
@@ -3109,7 +3124,7 @@ public partial class MainWindow : Window, IDisposable
                 Height = height,
                 Fullscreen = windowType == 0,
                 IsolatedGameDirectory = metadata.InstanceIsolation,
-                CustomJvmArguments = FirstNonEmpty(metadata.JvmArguments, GetTextOption(settings, LauncherSettingKeys.LaunchAdvanceJvm)),
+                CustomJvmArguments = BuildInstanceJvmArguments(metadata, settings),
                 CustomGameArguments = FirstNonEmpty(metadata.GameArguments, GetTextOption(settings, LauncherSettingKeys.LaunchAdvanceGame)),
                 ClasspathHeadEntries = SplitClasspathHead(metadata.ClasspathHead),
                 AuthlibInjectorPath = authlibPath,
@@ -3123,7 +3138,9 @@ public partial class MainWindow : Window, IDisposable
                 HasOptiFine = HasOptiFine(instance),
                 WorldName = worldName,
                 LauncherName = "PCL-N",
-                VersionType = settings.GetTextOption("LaunchArgumentInfo", LauncherSettingDefaults.GetText("LaunchArgumentInfo"))
+                VersionType = FirstNonEmpty(
+                    metadata.CustomInfo,
+                    settings.GetTextOption("LaunchArgumentInfo", LauncherSettingDefaults.GetText("LaunchArgumentInfo"))) ?? "PCL-N"
             },
             cancellationToken).ConfigureAwait(false);
     }
@@ -3349,6 +3366,26 @@ public partial class MainWindow : Window, IDisposable
                 StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Where(static entry => !string.IsNullOrWhiteSpace(entry))
             .ToArray();
+    }
+
+    private static string BuildInstanceJvmArguments(InstanceMetadata metadata, LauncherSettings settings)
+    {
+        string arguments = FirstNonEmpty(
+            metadata.JvmArguments,
+            GetTextOption(settings, LauncherSettingKeys.LaunchAdvanceJvm)) ?? string.Empty;
+        if (!metadata.UseProxy ||
+            settings.GetIntegerOption("SystemHttpProxyType", LauncherSettingDefaults.GetInteger("SystemHttpProxyType")) != 2 ||
+            !Uri.TryCreate(
+                settings.GetTextOption("SystemHttpProxy", LauncherSettingDefaults.GetText("SystemHttpProxy")),
+                UriKind.Absolute,
+                out Uri? proxy))
+        {
+            return arguments;
+        }
+
+        string proxyArguments = $"-Dhttp.proxyHost={proxy.Host} -Dhttp.proxyPort={proxy.Port} " +
+                                $"-Dhttps.proxyHost={proxy.Host} -Dhttps.proxyPort={proxy.Port}";
+        return string.IsNullOrWhiteSpace(arguments) ? proxyArguments : arguments.Trim() + " " + proxyArguments;
     }
 
     private static string ResolvePreferredJavaExecutablePath(bool forceConsole = false)
@@ -3893,6 +3930,37 @@ public partial class MainWindow : Window, IDisposable
                 })
             .ConfigureAwait(true);
         return files.Count == 0 ? null : files[0].TryGetLocalPath();
+    }
+
+    private static string ResolveInstanceJavaExecutablePath(InstanceMetadata metadata, bool forceConsole = false)
+    {
+        if (metadata.JavaSelectionMode == 2 &&
+            !string.IsNullOrWhiteSpace(metadata.SelectedJavaPath) &&
+            File.Exists(metadata.SelectedJavaPath))
+        {
+            string selectedJava = metadata.SelectedJavaPath;
+            if (OperatingSystem.IsWindows())
+            {
+                string directory = Path.GetDirectoryName(selectedJava) ?? string.Empty;
+                if (forceConsole && string.Equals(Path.GetFileName(selectedJava), "javaw.exe", StringComparison.OrdinalIgnoreCase))
+                {
+                    string consoleJava = Path.Combine(directory, "java.exe");
+                    if (File.Exists(consoleJava))
+                        return consoleJava;
+                }
+                if (!forceConsole && string.Equals(Path.GetFileName(selectedJava), "java.exe", StringComparison.OrdinalIgnoreCase))
+                {
+                    string windowJava = Path.Combine(directory, "javaw.exe");
+                    if (File.Exists(windowJava))
+                        return windowJava;
+                }
+            }
+            return selectedJava;
+        }
+
+        if (metadata.JavaSelectionMode == 1)
+            return OperatingSystem.IsWindows() && !forceConsole ? "javaw" : "java";
+        return ResolvePreferredJavaExecutablePath(forceConsole);
     }
 
     private async Task<string?> PickOpenFolderPathAsync(string title)

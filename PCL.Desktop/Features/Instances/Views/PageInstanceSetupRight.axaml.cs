@@ -14,7 +14,9 @@ using PCL.Application.Settings;
 using PCL.Desktop.Controls.Legacy;
 using PCL.Desktop.Features.Launching.Views;
 using PCL.Desktop.Features.Settings.Views;
+using PCL.Domain.Minecraft.Java;
 using PCL.Platform.Abstractions.System;
+using PCL.Platform.Java;
 using PCL.Platform.System;
 
 namespace PCL.Desktop.Features.Instances.Views;
@@ -23,12 +25,14 @@ public partial class PageInstanceSetupRight : MyPageRight
 {
     private readonly ISystemInfoProvider _systemInfoProvider;
     private readonly DispatcherTimer _ramRefreshTimer;
+    private readonly SemaphoreSlim _saveGate = new(1, 1);
     private LaunchInstanceInfo? _instance;
     private InstanceMetadata _metadata = new();
     private bool _isLoading;
     private int _globalMemorySolution;
     private int _globalCustomMemorySize = 15;
     private int _ramTextLeft = 2;
+    private int _javaLoadVersion;
 
     public PageInstanceSetupRight()
         : this(new DefaultSystemInfoProvider())
@@ -46,6 +50,7 @@ public partial class PageInstanceSetupRight : MyPageRight
         {
             ReloadGlobalMemorySettings();
             RefreshRam(showAnim: false);
+            _ = RefreshJavaComboBoxAsync();
             _ramRefreshTimer.Start();
         };
         DetachedFromVisualTree += (_, _) => _ramRefreshTimer.Stop();
@@ -58,6 +63,12 @@ public partial class PageInstanceSetupRight : MyPageRight
 
     public event EventHandler? OpenGlobalSettingsRequested;
 
+    public event EventHandler<SettingsMessageRequestedEventArgs>? MessageRequested;
+
+    public event EventHandler<SettingsConfirmRequestedEventArgs>? ConfirmRequested;
+
+    public event EventHandler<string>? CreateAuthProfileRequested;
+
     public void SetInstance(LaunchInstanceInfo instance)
     {
         _instance = instance;
@@ -65,6 +76,7 @@ public partial class PageInstanceSetupRight : MyPageRight
         ReloadGlobalMemorySettings();
         ApplyMetadata();
         RefreshRam(showAnim: false);
+        _ = RefreshJavaComboBoxAsync();
     }
 
     public override void Dispose()
@@ -83,6 +95,11 @@ public partial class PageInstanceSetupRight : MyPageRight
         foreach (MyComboBox comboBox in this.GetVisualDescendants().OfType<MyComboBox>())
             comboBox.SelectionChanged += ComboBox_SelectionChanged;
 
+        if (this.FindControl<MyComboBox>("TextArgumentTitle") is { } title)
+            title.TextChanged += EditableTitle_TextChanged;
+        if (this.FindControl<MyComboBox>("ComboArgumentJava") is { } javaCombo)
+            javaCombo.DropDownOpened += ComboArgumentJava_DropDownOpened;
+
         foreach (MyCheckBox checkBox in this.GetVisualDescendants().OfType<MyCheckBox>())
             checkBox.Change += CheckBox_Change;
 
@@ -94,6 +111,14 @@ public partial class PageInstanceSetupRight : MyPageRight
 
         if (this.FindControl<MyExtraTextButton>("BtnSwitch") is { } switchButton)
             switchButton.Click += (_, _) => OpenGlobalSettingsRequested?.Invoke(this, EventArgs.Empty);
+        if (this.FindControl<MyTextBox>("TextServerAuthServer") is { } authServer)
+            authServer.LostFocus += TextServerAuthServer_LostFocus;
+        if (this.FindControl<MyButton>("BtnServerAuthLittle") is { } littleSkin)
+            littleSkin.Click += (_, _) => ApplyLittleSkinPreset();
+        if (this.FindControl<MyButton>("BtnServerAuthLock") is { } lockButton)
+            lockButton.Click += (_, _) => LockAuthSettings();
+        if (this.FindControl<MyButton>("BtnServerNewProfile") is { } newProfile)
+            newProfile.Click += (_, _) => CreateAuthProfileRequested?.Invoke(this, _metadata.AuthServerAddress);
     }
 
     private void ApplyMetadata()
@@ -125,6 +150,7 @@ public partial class PageInstanceSetupRight : MyPageRight
             SetChecked("CheckAdvanceDisableRW", _metadata.DisableRw);
             SetChecked("CheckUseDebugLog4j2Config", _metadata.UseDebugLog4j2Config);
             SetChecked("CheckAdvanceDisableLwjglUnsafeAgent", _metadata.DisableLwjglUnsafeAgent);
+            ApplyWindowTitleMode();
             ApplyRamMode();
             ApplyServerLoginMode();
             ApplyPreLaunchCommandVisibility();
@@ -140,6 +166,12 @@ public partial class PageInstanceSetupRight : MyPageRight
     {
         if (_isLoading || sender is not MyTextBox textBox)
             return;
+
+        if (textBox.Tag?.ToString() == "VersionServerEnter" && textBox.Text?.Contains('：') == true)
+        {
+            textBox.Text = textBox.Text.Replace('：', ':');
+            return;
+        }
 
         UpdateMetadata(metadata => (textBox.Tag?.ToString()) switch
         {
@@ -166,6 +198,27 @@ public partial class PageInstanceSetupRight : MyPageRight
         if (ReferenceEquals(comboBox, this.FindControl<MyComboBox>("TextArgumentTitle")))
         {
             UpdateMetadata(metadata => metadata with { WindowTitle = comboBox.Text ?? string.Empty });
+            ApplyWindowTitleMode();
+            return;
+        }
+
+        if (ReferenceEquals(comboBox, this.FindControl<MyComboBox>("ComboArgumentJava")))
+        {
+            JavaSelectionOption? option = comboBox.SelectedItem switch
+            {
+                JavaSelectionOption direct => direct,
+                MyComboBoxItem { Tag: JavaSelectionOption tagged } => tagged,
+                _ => null
+            };
+            if (option is not null)
+            {
+                UpdateMetadata(metadata => metadata with
+                {
+                    JavaSelectionMode = option.Mode,
+                    SelectedJavaPath = option.JavaExecutablePath
+                });
+                RefreshRam(showAnim: true);
+            }
             return;
         }
 
@@ -198,6 +251,17 @@ public partial class PageInstanceSetupRight : MyPageRight
             "VersionAdvanceDisableLwjglUnsafeAgent" => metadata with { DisableLwjglUnsafeAgent = value },
             _ => metadata
         });
+        if (checkBox.Tag?.ToString() == "VersionArgumentTitleEmpty")
+            ApplyWindowTitleMode();
+    }
+
+    private void EditableTitle_TextChanged(object sender, TextChangedEventArgs? e)
+    {
+        if (_isLoading || sender is not MyComboBox comboBox)
+            return;
+
+        UpdateMetadata(metadata => metadata with { WindowTitle = comboBox.Text ?? string.Empty });
+        ApplyWindowTitleMode();
     }
 
     private void RadioBox_Check(object sender, RouteEventArgs e)
@@ -229,7 +293,20 @@ public partial class PageInstanceSetupRight : MyPageRight
             return;
 
         _metadata = update(_metadata);
-        _ = InstanceMetadataStore.SaveAsync(_instance.InstanceDirectory, _metadata);
+        _ = SaveLatestMetadataAsync(_instance.InstanceDirectory);
+    }
+
+    private async Task SaveLatestMetadataAsync(string instanceDirectory)
+    {
+        await _saveGate.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            await InstanceMetadataStore.SaveAsync(instanceDirectory, _metadata).ConfigureAwait(false);
+        }
+        finally
+        {
+            _saveGate.Release();
+        }
     }
 
     private void ApplyRamMode()
@@ -474,6 +551,174 @@ public partial class PageInstanceSetupRight : MyPageRight
         return Math.Max(textBlock.Bounds.Width, textBlock.DesiredSize.Width);
     }
 
+    private async Task RefreshJavaComboBoxAsync()
+    {
+        if (_instance is null || this.FindControl<MyComboBox>("ComboArgumentJava") is not { } comboBox)
+            return;
+
+        int loadVersion = Interlocked.Increment(ref _javaLoadVersion);
+        string instanceDirectory = _instance.InstanceDirectory;
+        comboBox.IsEnabled = false;
+        _isLoading = true;
+        try
+        {
+            comboBox.Items.Clear();
+            comboBox.Items.Add(new MyComboBoxItem { Content = "正在扫描 Java…", IsEnabled = false });
+            comboBox.SelectedIndex = 0;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+
+        IReadOnlyList<JavaRuntimeCandidate> candidates;
+        try
+        {
+            candidates = await Task.Run(() => new FileSystemJavaLocator()
+                .FindAllAsync(CancellationToken.None)
+                .AsTask()
+                .GetAwaiter()
+                .GetResult()).ConfigureAwait(true);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
+        {
+            candidates = [];
+        }
+
+        if (loadVersion != _javaLoadVersion ||
+            _instance is null ||
+            !string.Equals(_instance.InstanceDirectory, instanceDirectory, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        List<JavaSelectionOption> options =
+        [
+            new JavaSelectionOption(0, string.Empty, "跟随全局设置"),
+            new JavaSelectionOption(1, string.Empty, "自动选择")
+        ];
+        options.AddRange(candidates
+            .Where(static candidate => candidate.IsAvailable && candidate.IsEnabled)
+            .Select(static candidate => new JavaSelectionOption(
+                2,
+                candidate.Installation.JavaExecutablePath,
+                $"Java {candidate.Installation.MajorVersion} · {candidate.Installation.Brand} · {candidate.Installation.JavaHome}"))
+            .DistinctBy(static option => option.JavaExecutablePath, OperatingSystem.IsWindows()
+                ? StringComparer.OrdinalIgnoreCase
+                : StringComparer.Ordinal));
+        if (_metadata.JavaSelectionMode == 2 &&
+            !string.IsNullOrWhiteSpace(_metadata.SelectedJavaPath) &&
+            options.All(option => !string.Equals(
+                option.JavaExecutablePath,
+                _metadata.SelectedJavaPath,
+                OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal)))
+        {
+            options.Add(new JavaSelectionOption(2, _metadata.SelectedJavaPath, "已选择（当前不可用）· " + _metadata.SelectedJavaPath));
+        }
+
+        _isLoading = true;
+        try
+        {
+            comboBox.Items.Clear();
+            MyComboBoxItem? selected = null;
+            foreach (JavaSelectionOption option in options)
+            {
+                MyComboBoxItem item = new() { Content = option.DisplayText, Tag = option };
+                comboBox.Items.Add(item);
+                if (option.Mode == _metadata.JavaSelectionMode &&
+                    (option.Mode != 2 || string.Equals(
+                        option.JavaExecutablePath,
+                        _metadata.SelectedJavaPath,
+                        OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal)))
+                {
+                    selected = item;
+                }
+            }
+            comboBox.SelectedItem = selected ?? comboBox.Items[0];
+            comboBox.IsEnabled = true;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void ComboArgumentJava_DropDownOpened(object? sender, EventArgs e)
+    {
+        if (sender is MyComboBox { IsEnabled: false } comboBox)
+            comboBox.IsDropDownOpen = false;
+    }
+
+    private void ApplyWindowTitleMode()
+    {
+        if (this.FindControl<MyComboBox>("TextArgumentTitle") is not { } title ||
+            this.FindControl<MyCheckBox>("CheckArgumentTitleEmpty") is not { } useGlobal)
+        {
+            return;
+        }
+
+        useGlobal.IsVisible = string.IsNullOrEmpty(title.Text);
+        title.HintText = useGlobal.Checked == true ? "默认" : "跟随全局设置";
+    }
+
+    private void TextServerAuthServer_LostFocus(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not MyTextBox textBox || string.IsNullOrWhiteSpace(textBox.Text))
+            return;
+
+        string value = textBox.Text.Trim().TrimEnd('/');
+        if (!value.EndsWith("/api/yggdrasil", StringComparison.OrdinalIgnoreCase))
+            value += "/api/yggdrasil";
+        if (!string.Equals(textBox.Text, value, StringComparison.Ordinal))
+        {
+            textBox.Text = value;
+            MessageRequested?.Invoke(this, new SettingsMessageRequestedEventArgs("已格式化认证服务器", "认证服务器地址已补全为 Yggdrasil API 地址。"));
+        }
+        ApplyServerLoginMode();
+    }
+
+    private void ApplyLittleSkinPreset()
+    {
+        void Apply()
+        {
+            SetText("TextServerAuthServer", "https://littleskin.cn/api/yggdrasil");
+            SetText("TextServerAuthRegister", "https://littleskin.cn/auth/register");
+            SetText("TextServerAuthName", "LittleSkin");
+            ApplyServerLoginMode();
+        }
+
+        if (!string.IsNullOrWhiteSpace(_metadata.AuthServerAddress) &&
+            !string.Equals(_metadata.AuthServerAddress, "https://littleskin.cn/api/yggdrasil", StringComparison.OrdinalIgnoreCase))
+        {
+            ConfirmRequested?.Invoke(this, new SettingsConfirmRequestedEventArgs(
+                "覆盖认证服务器",
+                "当前已经填写了其他认证服务器，是否替换为 LittleSkin？",
+                confirmed => { if (confirmed) Apply(); },
+                primaryButton: "替换"));
+            return;
+        }
+        Apply();
+    }
+
+    private void LockAuthSettings()
+    {
+        if (_metadata.AuthSettingsLocked)
+            return;
+
+        ConfirmRequested?.Invoke(this, new SettingsConfirmRequestedEventArgs(
+            "锁定登录方式",
+            "锁定后只能通过初始化该版本的独立设置解除。确定继续吗？",
+            confirmed =>
+            {
+                if (!confirmed)
+                    return;
+                UpdateMetadata(metadata => metadata with { AuthSettingsLocked = true });
+                ApplyServerLoginMode();
+            },
+            primaryButton: "锁定",
+            isWarn: true));
+    }
+
     private void ApplyServerLoginMode()
     {
         bool showAuth = _metadata.ServerLoginRequirement is 2 or 3;
@@ -483,6 +728,30 @@ public partial class PageInstanceSetupRight : MyPageRight
         SetVisible("TextServerAuthRegister", showAuth);
         SetVisible("LabServerAuthName", showAuth);
         SetVisible("TextServerAuthName", showAuth);
+        SetVisible("BtnServerAuthLittle", showAuth);
+        SetVisible("BtnServerAuthLock", showAuth);
+        SetVisible("BtnServerNewProfile", showAuth);
+
+        bool enabled = !_metadata.AuthSettingsLocked;
+        if (this.FindControl<MyComboBox>("ComboServerLoginRequire") is { } requirement)
+            requirement.IsEnabled = enabled;
+        foreach (string name in new[] { "TextServerAuthServer", "TextServerAuthRegister", "TextServerAuthName" })
+        {
+            if (this.FindControl<Control>(name) is { } control)
+                control.IsEnabled = enabled;
+        }
+        if (this.FindControl<MyButton>("BtnServerAuthLittle") is { } littleSkin)
+            littleSkin.IsEnabled = enabled;
+        if (this.FindControl<MyButton>("BtnServerAuthLock") is { } lockButton)
+            lockButton.IsEnabled = enabled && Uri.TryCreate(_metadata.AuthServerAddress, UriKind.Absolute, out _);
+        SetVisible("HintServerLoginLock", showAuth && _metadata.AuthSettingsLocked);
+
+        bool secure = showAuth && _metadata.AuthServerAddress.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
+        bool insecure = showAuth && _metadata.AuthServerAddress.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
+        SetVisible("LabServerAuthServerSecurityVerify", secure);
+        SetVisible("LabServerAuthServerSecurity", insecure);
+        SetVisible("LabServerAuthServerSecurityCL", secure || insecure);
+        this.FindControl<MyCard>("CardServer")?.TriggerForceResize();
     }
 
     private void ApplyPreLaunchCommandVisibility()
@@ -526,6 +795,11 @@ public partial class PageInstanceSetupRight : MyPageRight
     {
         if (this.FindControl<MyComboBox>(name) is { } comboBox && comboBox.ItemCount > 0)
             comboBox.SelectedIndex = Math.Clamp(index, 0, comboBox.ItemCount - 1);
+    }
+
+    private sealed record JavaSelectionOption(int Mode, string JavaExecutablePath, string DisplayText)
+    {
+        public override string ToString() => DisplayText;
     }
 
     private void SetVisible(string name, bool visible)
