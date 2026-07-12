@@ -24,27 +24,36 @@
                                              Margin="0,7,10,0" HorizontalAlignment="Left" />
                         </WrapPanel>
                     </legacy:MyCard>
+                    <!-- Title sits at y≈12–40 (MyCard title chrome); filters must start below SwapedHeight. -->
                     <legacy:MyCard x:Name="PanListBack" VerticalAlignment="Top" Margin="0,0,0,14"
-                                   Title="{DynamicResource Instance.Resource.ListTitle}" MinHeight="55">
-                        <StackPanel x:Name="PanFilter" Margin="15,13,0,0" Orientation="Horizontal"
-                                    VerticalAlignment="Top" HorizontalAlignment="Left" Height="28">
-                            <legacy:MyRadioButton Tag="0" ColorType="Highlight" VerticalAlignment="Center"
-                                                  Margin="2,0" Text="{DynamicResource Instance.Resource.Filter.All}"
-                                                  x:Name="BtnFilterAll" Checked="True" />
-                            <legacy:MyRadioButton Tag="1" ColorType="Highlight" VerticalAlignment="Center"
-                                                  Margin="2,0" Text="{DynamicResource Instance.Resource.Filter.Enabled}"
-                                                  x:Name="BtnFilterEnabled" />
-                            <legacy:MyRadioButton Tag="2" ColorType="Highlight" VerticalAlignment="Center"
-                                                  Margin="2,0" Text="{DynamicResource Instance.Resource.Filter.Disabled}"
-                                                  x:Name="BtnFilterDisabled" />
-                        </StackPanel>
-                        <StackPanel Margin="0,13,15,0" Orientation="Horizontal" VerticalAlignment="Top"
-                                    HorizontalAlignment="Right" Height="28">
-                            <legacy:MyIconTextButton x:Name="BtnSort"
-                                                     Text="{DynamicResource Instance.Resource.Sort.Text}"
-                                                     SvgIcon="lucide/arrow-up-down" />
-                        </StackPanel>
-                        <StackPanel Margin="20,48,18,22" x:Name="PanList" VerticalAlignment="Top" />
+                                   Title="{DynamicResource Instance.Resource.ListTitle}" MinHeight="90">
+                        <Grid Margin="12,40,12,12">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="0" Margin="3,0,3,8" MinHeight="28">
+                                <StackPanel x:Name="PanFilter" Orientation="Horizontal"
+                                            VerticalAlignment="Center" HorizontalAlignment="Left">
+                                    <legacy:MyRadioButton Tag="0" ColorType="Highlight" VerticalAlignment="Center"
+                                                          Margin="2,0" Text="{DynamicResource Instance.Resource.Filter.All}"
+                                                          x:Name="BtnFilterAll" Checked="True" />
+                                    <legacy:MyRadioButton Tag="1" ColorType="Highlight" VerticalAlignment="Center"
+                                                          Margin="2,0" Text="{DynamicResource Instance.Resource.Filter.Enabled}"
+                                                          x:Name="BtnFilterEnabled" />
+                                    <legacy:MyRadioButton Tag="2" ColorType="Highlight" VerticalAlignment="Center"
+                                                          Margin="2,0" Text="{DynamicResource Instance.Resource.Filter.Disabled}"
+                                                          x:Name="BtnFilterDisabled" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                            HorizontalAlignment="Right">
+                                    <legacy:MyIconTextButton x:Name="BtnSort"
+                                                             Text="{DynamicResource Instance.Resource.Sort.Text}"
+                                                             SvgIcon="lucide/arrow-up-down" />
+                                </StackPanel>
+                            </Grid>
+                            <StackPanel Grid.Row="1" Margin="8,0,6,6" x:Name="PanList" VerticalAlignment="Top" />
+                        </Grid>
                     </legacy:MyCard>
                 </StackPanel>
             </legacy:MyScrollViewer>
