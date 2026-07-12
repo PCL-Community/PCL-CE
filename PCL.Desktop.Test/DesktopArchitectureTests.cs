@@ -322,10 +322,14 @@ public sealed class DesktopArchitectureTests
         string solutionSource = File.ReadAllText(Path.Combine(repoRoot, "PCL-N.slnx"));
 
         StringAssert.Contains(projectSource, "PCL.Desktop.Embedded.PCL.Plugin.dll");
+        StringAssert.Contains(projectSource, "PCL.Desktop.Embedded.PCL.N.Plugin.Abstractions.dll");
         StringAssert.Contains(projectSource, "PublishTrimmed>false");
         StringAssert.Contains(loaderSource, "Assembly.Load(buffer.ToArray())");
+        StringAssert.Contains(loaderSource, "LoadResourceAssembly(AbstractionsResourceName)");
         Assert.IsFalse(solutionSource.Contains("PCL.Plugin", StringComparison.Ordinal));
         Assert.IsFalse(projectSource.Contains("ProjectReference Include=\"../PCL.Plugin", StringComparison.Ordinal));
+        Assert.IsFalse(solutionSource.Contains("PCL.Plugin.Host.Abstractions", StringComparison.Ordinal));
+        Assert.IsFalse(projectSource.Contains("PCL.Plugin.Host.Abstractions", StringComparison.Ordinal));
     }
 
     [TestMethod]

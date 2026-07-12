@@ -19,11 +19,16 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 $pluginDirectory = Split-Path -Parent $PluginProject
 $pluginAssembly = Join-Path $pluginDirectory "bin\$Configuration\net10.0\PCL.Plugin.dll"
+$pluginAbstractionsAssembly = Join-Path $pluginDirectory "bin\$Configuration\net10.0\PCL.N.Plugin.Abstractions.dll"
 if (-not (Test-Path -LiteralPath $pluginAssembly -PathType Leaf)) {
     throw "Plugin assembly was not produced: $pluginAssembly"
+}
+if (-not (Test-Path -LiteralPath $pluginAbstractionsAssembly -PathType Leaf)) {
+    throw "Plugin abstractions assembly was not produced: $pluginAbstractionsAssembly"
 }
 
 dotnet run --project (Join-Path $repoRoot 'PCL.Desktop\PCL.Desktop.csproj') `
     -c $Configuration `
-    "-p:PclPluginAssembly=$pluginAssembly"
+    "-p:PclPluginAssembly=$pluginAssembly" `
+    "-p:PclPluginAbstractionsAssembly=$pluginAbstractionsAssembly"
 exit $LASTEXITCODE

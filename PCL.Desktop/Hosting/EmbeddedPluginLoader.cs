@@ -11,9 +11,11 @@ namespace PCL.Desktop.Hosting;
 internal static class EmbeddedPluginLoader
 {
     internal const string ResourceName = "PCL.Desktop.Embedded.PCL.Plugin.dll";
+    internal const string AbstractionsResourceName = "PCL.Desktop.Embedded.PCL.N.Plugin.Abstractions.dll";
 
     private static readonly object SyncRoot = new();
     private static Assembly? _loadedAssembly;
+    private static Assembly? _loadedAbstractionsAssembly;
 
     [UnconditionalSuppressMessage(
         "Trimming",
@@ -26,16 +28,27 @@ internal static class EmbeddedPluginLoader
             if (_loadedAssembly is not null)
                 return _loadedAssembly;
 
-            Assembly hostAssembly = typeof(EmbeddedPluginLoader).Assembly;
-            using Stream? resource = hostAssembly.GetManifestResourceStream(ResourceName);
-            if (resource is null)
-                return null;
+            _loadedAbstractionsAssembly ??= LoadResourceAssembly(AbstractionsResourceName);
 
-            using MemoryStream buffer = new();
-            resource.CopyTo(buffer);
-            _loadedAssembly = Assembly.Load(buffer.ToArray());
+            _loadedAssembly = LoadResourceAssembly(ResourceName);
             return _loadedAssembly;
         }
+    }
+
+    [UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2026",
+        Justification = "Injected platform assemblies are bundled only in non-trimmed, non-AOT desktop publishes.")]
+    private static Assembly? LoadResourceAssembly(string resourceName)
+    {
+        Assembly hostAssembly = typeof(EmbeddedPluginLoader).Assembly;
+        using Stream? resource = hostAssembly.GetManifestResourceStream(resourceName);
+        if (resource is null)
+            return null;
+
+        using MemoryStream buffer = new();
+        resource.CopyTo(buffer);
+        return Assembly.Load(buffer.ToArray());
     }
 
     [UnconditionalSuppressMessage(

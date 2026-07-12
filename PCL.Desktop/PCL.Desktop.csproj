@@ -29,6 +29,7 @@
     <PclRuntimeVariant Condition="'$(PclRuntimeVariant)' == ''">SelfContained</PclRuntimeVariant>
     <IncludeAllContentForSelfExtract Condition="'$(PublishSingleFile)' == 'true'">true</IncludeAllContentForSelfExtract>
     <PclPluginAssembly Condition="'$(PclPluginAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginAssembly)'))</PclPluginAssembly>
+    <PclPluginAbstractionsAssembly Condition="'$(PclPluginAbstractionsAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginAbstractionsAssembly)'))</PclPluginAbstractionsAssembly>
   </PropertyGroup>
   <PropertyGroup Condition="'$(PclPluginAssembly)' != ''">
     <PublishAot>false</PublishAot>
@@ -68,10 +69,16 @@
                       Condition="'$(PclPluginAssembly)' != '' and Exists('$(PclPluginAssembly)')">
       <LogicalName>PCL.Desktop.Embedded.PCL.Plugin.dll</LogicalName>
     </EmbeddedResource>
+    <EmbeddedResource Include="$(PclPluginAbstractionsAssembly)"
+                      Condition="'$(PclPluginAbstractionsAssembly)' != '' and Exists('$(PclPluginAbstractionsAssembly)')">
+      <LogicalName>PCL.Desktop.Embedded.PCL.N.Plugin.Abstractions.dll</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
   <Target Name="ValidatePclPluginAssembly" BeforeTargets="PrepareForBuild" Condition="'$(PclPluginAssembly)' != ''">
     <Error Condition="!Exists('$(PclPluginAssembly)')"
            Text="PCL.Plugin assembly was requested but not found: $(PclPluginAssembly)" />
+    <Error Condition="'$(PclPluginAbstractionsAssembly)' == '' or !Exists('$(PclPluginAbstractionsAssembly)')"
+           Text="PCL.Plugin requires PCL.N.Plugin.Abstractions in the default load context: $(PclPluginAbstractionsAssembly)" />
   </Target>
   <ItemGroup>
     <ProjectReference Include="../PCL.Desktop.SourceGenerators/PCL.Desktop.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

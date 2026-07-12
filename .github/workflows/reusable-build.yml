@@ -70,9 +70,9 @@ jobs:
           New-Item -ItemType Directory -Force -Path plugin | Out-Null
           $tag = '${{ inputs.plugin_tag }}'
           if ([string]::IsNullOrWhiteSpace($tag) -or $tag -eq 'latest') {
-            gh release download --repo MuXue1230-owo/PCL.Plugin --dir plugin --pattern 'PCL.Plugin.dll*'
+            gh release download --repo MuXue1230-owo/PCL.Plugin --dir plugin --pattern '*.dll*'
           } else {
-            gh release download $tag --repo MuXue1230-owo/PCL.Plugin --dir plugin --pattern 'PCL.Plugin.dll*'
+            gh release download $tag --repo MuXue1230-owo/PCL.Plugin --dir plugin --pattern '*.dll*'
           }
           if ($LASTEXITCODE -ne 0) {
             throw "Unable to download PCL.Plugin release '$tag'."
@@ -82,6 +82,11 @@ jobs:
           $actual = (Get-FileHash plugin/PCL.Plugin.dll -Algorithm SHA256).Hash.ToLowerInvariant()
           if ($actual -ne $expected.ToLowerInvariant()) {
             throw "PCL.Plugin checksum mismatch. Expected $expected, got $actual."
+          }
+          $contractsExpected = (Get-Content -LiteralPath plugin/PCL.N.Plugin.Abstractions.dll.sha256 -Raw).Split(' ', [System.StringSplitOptions]::RemoveEmptyEntries)[0]
+          $contractsActual = (Get-FileHash plugin/PCL.N.Plugin.Abstractions.dll -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($contractsActual -ne $contractsExpected.ToLowerInvariant()) {
+            throw "PCL.N.Plugin.Abstractions checksum mismatch. Expected $contractsExpected, got $contractsActual."
           }
 
       - name: Publish Avalonia desktop
@@ -97,10 +102,14 @@ jobs:
           PCL_LOBBY_DEFAULT_SECRET: ${{ secrets.LOBBY_DEFAULT_SECRET }}
           PCL_GITHUB_SHA: ${{ github.sha }}
           PCL_PLUGIN_ASSEMBLY: ${{ github.workspace }}/plugin/PCL.Plugin.dll
+          PCL_PLUGIN_ABSTRACTIONS_ASSEMBLY: ${{ github.workspace }}/plugin/PCL.N.Plugin.Abstractions.dll
         run: |
           plugin_args=()
           if [[ "${{ inputs.include_plugin }}" == "true" ]]; then
-            plugin_args=(-p:PclPluginAssembly="$PCL_PLUGIN_ASSEMBLY")
+            plugin_args=(
+              -p:PclPluginAssembly="$PCL_PLUGIN_ASSEMBLY"
+              -p:PclPluginAbstractionsAssembly="$PCL_PLUGIN_ABSTRACTIONS_ASSEMBLY"
+            )
           fi
 
           dotnet publish PCL.Desktop/PCL.Desktop.csproj \
