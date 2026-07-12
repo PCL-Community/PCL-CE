@@ -3520,6 +3520,15 @@ public sealed class AvaloniaHeadlessTests
         if (!pluginExpected)
             return;
 
+        Type loaderType = typeof(MainWindow).Assembly.GetType(
+            "PCL.Desktop.Hosting.EmbeddedPluginLoader",
+            throwOnError: true)!;
+        object? modules = loaderType.GetMethod(
+                "LoadHostModules",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)!
+            .Invoke(null, null);
+        Assert.IsNotNull(modules, "Embedded plugin modules must load before starting the UI thread.");
+
         using SafeHeadlessUnitTestSession session = CreateSession();
         session.Dispatch(() =>
         {
