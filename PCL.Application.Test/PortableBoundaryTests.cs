@@ -2,6 +2,7 @@
 // Modifications Copyright (c) 2026 PCL N contributors.
 // Licensed under the Apache License, Version 2.0.
 
+using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace PCL.Application.Test;
@@ -9,23 +10,24 @@ namespace PCL.Application.Test;
 [TestClass]
 public sealed class PortableBoundaryTests
 {
-    private static readonly string[] ForbiddenPatterns =
+    // Word-boundary match so setting keys like ToolDownloadClipboard are not false positives.
+    private static readonly (string Name, Regex Pattern)[] ForbiddenPatterns =
     [
-        "System.Windows",
-        "Avalonia.",
-        "System.Management",
-        "Microsoft.Win32",
-        "WindowInteropHelper",
-        "HwndSource",
-        "MessageBox",
-        "Dispatcher",
-        "Clipboard",
-        "OpenFileDialog",
-        "DllImport",
-        "LibraryImport",
-        "kernel32",
-        "user32",
-        "shell32"
+        ("System.Windows", new Regex(@"System\.Windows", RegexOptions.CultureInvariant | RegexOptions.Compiled)),
+        ("Avalonia.", new Regex(@"Avalonia\.", RegexOptions.CultureInvariant | RegexOptions.Compiled)),
+        ("System.Management", new Regex(@"System\.Management", RegexOptions.CultureInvariant | RegexOptions.Compiled)),
+        ("Microsoft.Win32", new Regex(@"Microsoft\.Win32", RegexOptions.CultureInvariant | RegexOptions.Compiled)),
+        ("WindowInteropHelper", new Regex(@"\bWindowInteropHelper\b", RegexOptions.CultureInvariant | RegexOptions.Compiled)),
+        ("HwndSource", new Regex(@"\bHwndSource\b", RegexOptions.CultureInvariant | RegexOptions.Compiled)),
+        ("MessageBox", new Regex(@"\bMessageBox\b", RegexOptions.CultureInvariant | RegexOptions.Compiled)),
+        ("Dispatcher", new Regex(@"\bDispatcher\b", RegexOptions.CultureInvariant | RegexOptions.Compiled)),
+        ("Clipboard", new Regex(@"\bClipboard\b", RegexOptions.CultureInvariant | RegexOptions.Compiled)),
+        ("OpenFileDialog", new Regex(@"\bOpenFileDialog\b", RegexOptions.CultureInvariant | RegexOptions.Compiled)),
+        ("DllImport", new Regex(@"\bDllImport\b", RegexOptions.CultureInvariant | RegexOptions.Compiled)),
+        ("LibraryImport", new Regex(@"\bLibraryImport\b", RegexOptions.CultureInvariant | RegexOptions.Compiled)),
+        ("kernel32", new Regex(@"\bkernel32\b", RegexOptions.CultureInvariant | RegexOptions.Compiled | RegexOptions.IgnoreCase)),
+        ("user32", new Regex(@"\buser32\b", RegexOptions.CultureInvariant | RegexOptions.Compiled | RegexOptions.IgnoreCase)),
+        ("shell32", new Regex(@"\bshell32\b", RegexOptions.CultureInvariant | RegexOptions.Compiled | RegexOptions.IgnoreCase))
     ];
 
     [TestMethod]
@@ -43,10 +45,10 @@ public sealed class PortableBoundaryTests
         foreach (string file in projectDirectories.SelectMany(EnumerateSourceFiles))
         {
             string text = File.ReadAllText(file);
-            foreach (string pattern in ForbiddenPatterns)
+            foreach ((string name, Regex pattern) in ForbiddenPatterns)
             {
-                if (text.Contains(pattern, StringComparison.Ordinal))
-                    violations.Add($"{Path.GetRelativePath(root, file)} contains {pattern}");
+                if (pattern.IsMatch(text))
+                    violations.Add($"{Path.GetRelativePath(root, file)} contains {name}");
             }
         }
 
