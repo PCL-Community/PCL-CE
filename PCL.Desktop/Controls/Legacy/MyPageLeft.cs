@@ -15,6 +15,24 @@ public class MyPageLeft : Grid
 
     private readonly int _uuid = Random.Shared.Next();
 
+    public MyPageLeft()
+    {
+        // WPF left pages read as frosted panels over wallpaper (ColorBrushTransparentBackground).
+        // Host Border also sets this; this covers pages not hosted under PanMainLeft.
+        if (Avalonia.Application.Current?.TryGetResource(
+                "ColorBrushTransparentBackground",
+                Avalonia.Application.Current.ActualThemeVariant,
+                out object? resource) == true &&
+            resource is IBrush frosted)
+        {
+            Background = frosted;
+        }
+        else
+        {
+            Background = new SolidColorBrush(Color.Parse("#d2fbfbfb"));
+        }
+    }
+
     public Control? AnimatedControl
     {
         get => GetValue(AnimatedControlProperty);

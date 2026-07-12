@@ -335,6 +335,10 @@ public partial class MainWindow : Window, IDisposable
 
     private void PanMainLeft_SizeChanged(object? sender, SizeChangedEventArgs e)
     {
+        // WPF FormMain.PanMainLeft_Resize tracked RectLeftBackground width.
+        // Frosted fill is applied on the PanMainLeft host; keep names for compatibility.
+        if (this.FindControl<AnimatedBackgroundGrid>("RectLeftBackground") is { } rectBg)
+            rectBg.Width = Math.Max(0d, e.NewSize.Width);
     }
 
     private void BtnExtraUpdateRestart_Click(object? sender, EventArgs e)
