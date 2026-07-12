@@ -770,18 +770,19 @@ public static class ModLaunch
         data.Progress = 0.98d;
 
         // 检查是否已有相同档案
+        ModProfile.McProfile existingProfile = null;
         foreach (var profile in ModProfile.profileList)
             if (profile.Type == McLoginType.Ms &&
                 string.Equals(profile.Username, result[1], StringComparison.Ordinal) &&
                 string.Equals(profile.Uuid, result[0], StringComparison.Ordinal))
             {
                 isNewProfile = false;
+                existingProfile = profile;
                 if (ModProfile.isCreatingProfile)
                 {
-                    var index = ModProfile.profileList.IndexOf(profile);
-                    ModProfile.profileList[index].Username = result[1];
-                    ModProfile.profileList[index].AccessToken = accessToken;
-                    ModProfile.profileList[index].RefreshToken = oauthRefreshToken;
+                    profile.Username = result[1];
+                    profile.AccessToken = accessToken;
+                    profile.RefreshToken = oauthRefreshToken;
                     HintService.Hint(Lang.Text("Minecraft.Launch.Login.Microsoft.ProfileAlreadyAdded"));
                     goto SkipLogin;
                 }
@@ -805,12 +806,11 @@ public static class ModLaunch
             ModProfile.selectedProfile = newProfile;
             ModProfile.isCreatingProfile = false;
         }
-        else
+        else if (existingProfile is not null)
         {
-            var index = ModProfile.profileList.IndexOf(ModProfile.selectedProfile);
-            ModProfile.profileList[index].Username = result[1];
-            ModProfile.profileList[index].AccessToken = accessToken;
-            ModProfile.profileList[index].RefreshToken = oauthRefreshToken;
+            existingProfile.Username = result[1];
+            existingProfile.AccessToken = accessToken;
+            existingProfile.RefreshToken = oauthRefreshToken;
         }
 
         ModProfile.SaveProfile();
@@ -1582,12 +1582,14 @@ public static class ModLaunch
     {
         try
         {
+            // 提前缓存档案引用，避免后台执行期间被 UI 线程修改 selectedProfile 导致写入错误的档案
+            var cachedProfile = ModProfile.selectedProfile;
 
             var refreshInfo = new JsonObject();
             var selectProfile = new JsonObject
-                { { "name", ModProfile.selectedProfile.Username }, { "id", ModProfile.selectedProfile.Uuid } };
+                { { "name", cachedProfile.Username }, { "id", cachedProfile.Uuid } };
             refreshInfo.Add("selectedProfile", selectProfile);
-            refreshInfo.Add("accessToken", ModProfile.selectedProfile.AccessToken);
+            refreshInfo.Add("accessToken", cachedProfile.AccessToken);
             refreshInfo.Add("requestUser", true);
             ModProfile.ProfileLog("刷新登录开始（Refresh, Authlib");
             var loginJson = (JsonObject)ModBase.GetJson(Requester.Fetch(data.input.BaseUrl + "/refresh",
@@ -1602,20 +1604,23 @@ public static class ModLaunch
             ));
             // 将登录结果输出
             if (loginJson["selectedProfile"] is null)
-                throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.InvalidProfile", ModProfile.selectedProfile.Username));
+                throw new Exception(Lang.Text("Minecraft.Launch.Login.Auth.InvalidProfile", cachedProfile.Username));
             data.output.AccessToken = loginJson["accessToken"].ToString();
             data.output.ClientToken = loginJson["clientToken"].ToString();
             data.output.Uuid = loginJson["selectedProfile"]["id"].ToString();
             data.output.Name = loginJson["selectedProfile"]["name"].ToString();
             data.output.Type = "Auth";
             // 保存缓存
-            var profileIndex = ModProfile.profileList.IndexOf(ModProfile.selectedProfile);
-            ModProfile.profileList[profileIndex].Username = data.output.Name;
-            ModProfile.profileList[profileIndex].AccessToken = data.output.AccessToken;
-            ModProfile.profileList[profileIndex].ClientToken = data.output.ClientToken;
-            ModProfile.profileList[profileIndex].Uuid = data.output.Uuid;
-            ModProfile.profileList[profileIndex].Name = data.input.UserName;
-            ModProfile.profileList[profileIndex].Password = data.input.Password;
+            var profileIndex = ModProfile.profileList.IndexOf(cachedProfile);
+            if (profileIndex >= 0)
+            {
+                ModProfile.profileList[profileIndex].Username = data.output.Name;
+                ModProfile.profileList[profileIndex].AccessToken = data.output.AccessToken;
+                ModProfile.profileList[profileIndex].ClientToken = data.output.ClientToken;
+                ModProfile.profileList[profileIndex].Uuid = data.output.Uuid;
+                ModProfile.profileList[profileIndex].Name = data.input.UserName;
+                ModProfile.profileList[profileIndex].Password = data.input.Password;
+            }
             ModProfile.ProfileLog("刷新登录成功（Refresh, Authlib）");
         }
         catch (HttpResponseException ex)
@@ -1634,6 +1639,8 @@ public static class ModLaunch
     {
         try
         {
+            // 提前缓存档案引用，避免后台执行期间被 UI 线程修改 selectedProfile 导致写入错误的档案
+            var cachedProfile = ModProfile.selectedProfile;
             var needRefresh = false;
             ModProfile.ProfileLog("登录开始（Login, Authlib）");
             var requestData = new JsonObject
@@ -1669,7 +1676,7 @@ public static class ModLaunch
             {
                 // 要求选择档案；优先从缓存读取
                 needRefresh = true;
-                var cacheId = ModProfile.selectedProfile is not null ? ModProfile.selectedProfile.Uuid : "";
+                var cacheId = cachedProfile is not null ? cachedProfile.Uuid : "";
                 foreach (var profile in loginJson["availableProfiles"].AsArray())
                     if ((profile["id"].ToString() ?? "") == (cacheId ?? ""))
                     {
@@ -1719,12 +1726,15 @@ public static class ModLaunch
             // 保存缓存
             if (data.input.IsExist)
             {
-                var profileIndex = ModProfile.profileList.IndexOf(ModProfile.selectedProfile);
-                ModProfile.profileList[profileIndex].Username = data.output.Name;
-                ModProfile.profileList[profileIndex].Uuid = data.output.Uuid;
-                ModProfile.profileList[profileIndex].ServerName = serverName;
-                ModProfile.profileList[profileIndex].AccessToken = data.output.AccessToken;
-                ModProfile.profileList[profileIndex].ClientToken = data.output.ClientToken;
+                var profileIndex = ModProfile.profileList.IndexOf(cachedProfile);
+                if (profileIndex >= 0)
+                {
+                    ModProfile.profileList[profileIndex].Username = data.output.Name;
+                    ModProfile.profileList[profileIndex].Uuid = data.output.Uuid;
+                    ModProfile.profileList[profileIndex].ServerName = serverName;
+                    ModProfile.profileList[profileIndex].AccessToken = data.output.AccessToken;
+                    ModProfile.profileList[profileIndex].ClientToken = data.output.ClientToken;
+                }
             }
             else
             {
