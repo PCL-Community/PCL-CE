@@ -949,7 +949,7 @@ public partial class MainWindow : Window, IDisposable
         }
 
         StartShowAnimation();
-        // WPF FormMain first-run chain: EULA → community welcome → special build notice.
+        // First-run chain: community welcome → special build notice (no EULA gate).
         Dispatcher.UIThread.Post(MaybeShowFirstRunDialogs, DispatcherPriority.Background);
     }
 
@@ -962,15 +962,6 @@ public partial class MainWindow : Window, IDisposable
         try
         {
             LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-            bool eulaAccepted = settings.GetBooleanOption(
-                "SystemEulaAccepted",
-                LauncherSettingDefaults.GetBoolean("SystemEulaAccepted"));
-            if (!eulaAccepted)
-            {
-                ShowFirstLaunchEulaDialog(settings);
-                return;
-            }
-
             MaybeShowCommunityWelcome(settings);
         }
         catch (Exception ex)
@@ -981,58 +972,12 @@ public partial class MainWindow : Window, IDisposable
     }
 
     /// <summary>
-    /// Skip EULA / community / special-build modal chains under automated hosts.
+    /// Skip community / special-build modal chains under automated hosts.
     /// <c>PCL_DISABLE_FIRST_RUN</c> or <c>PCL_DISABLE_DEBUG_HINT</c> (any non-empty value).
     /// </summary>
     private static bool ShouldSuppressStartupDialogs() =>
         !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("PCL_DISABLE_FIRST_RUN")) ||
         !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("PCL_DISABLE_DEBUG_HINT"));
-
-    private void ShowFirstLaunchEulaDialog(LauncherSettings settings)
-    {
-        string title = AvaloniaLocalizationManager.GetText("Main.Eula.Title", "服务条款与免责声明授权");
-        string message = AvaloniaLocalizationManager.GetText(
-            "Main.Eula.Message",
-            "在使用 PCL 之前，请阅读并同意服务条款与免责声明。");
-        string viewLabel = AvaloniaLocalizationManager.GetText("Main.Eula.View", "查看条款");
-
-        ShowConfirmDialog(
-            title,
-            message + "\n\n" +
-            "点击「同意并继续」表示你已阅读并接受相关条款。\n" +
-            "详细说明见项目仓库；也可点击「" + viewLabel + "」打开项目主页。\n" +
-            "（在线服务相关条款将随插件体系接入，当前不依赖 Online 工程。）",
-            confirmed =>
-            {
-                if (!confirmed)
-                {
-                    // Secondary: open project home (terms will move into plugin-hosted docs later).
-                    try
-                    {
-                        Process.Start(new ProcessStartInfo
-                        {
-                            FileName = "https://github.com/MuXue1230-owo/PCL-N",
-                            UseShellExecute = true
-                        });
-                    }
-                    catch
-                    {
-                        // ignore
-                    }
-
-                    ShowHint("需同意条款后才能使用，关闭后将退出");
-                    Dispatcher.UIThread.Post(() => Close(), DispatcherPriority.Background);
-                    return;
-                }
-
-                settings.SetBooleanOption("SystemEulaAccepted", true);
-                LauncherSettingsPageBinder.SaveSettings(settings);
-                MaybeShowCommunityWelcome(settings);
-            },
-            "同意并继续",
-            viewLabel,
-            isWarn: false);
-    }
 
     private void MaybeShowCommunityWelcome(LauncherSettings settings)
     {

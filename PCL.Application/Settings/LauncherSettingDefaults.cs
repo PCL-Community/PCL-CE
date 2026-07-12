@@ -41,7 +41,6 @@ public static class LauncherSettingDefaults
         ["LaunchAdvanceDisableLwjglUnsafeAgent"] = false,
         ["LaunchAutoRepairGame"] = true,
         ["ToolDownloadClipboard"] = false,
-        ["SystemEulaAccepted"] = false,
         ["UiHideNEditionHint"] = false
     };
 

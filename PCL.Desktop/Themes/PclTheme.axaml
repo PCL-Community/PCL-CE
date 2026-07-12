@@ -117,9 +117,6 @@
     <x:String x:Key="Main.SpecialVersion.HideHintNotice">可设置环境变量 PCL_DISABLE_DEBUG_HINT 为任意值以隐藏此提示。</x:String>
     <x:String x:Key="Main.SpecialVersion.IUnderstand">我知道我在做什么</x:String>
     <x:String x:Key="Main.SpecialVersion.OpenDownloadPageAndExit">打开最新下载页并退出</x:String>
-    <x:String x:Key="Main.Eula.Title">服务条款与免责声明授权</x:String>
-    <x:String x:Key="Main.Eula.Message">在使用 PCL 之前，请阅读并同意服务条款与免责声明。</x:String>
-    <x:String x:Key="Main.Eula.View">查看条款</x:String>
     <x:String x:Key="Update.CommunityNotice.Title">PCL N Edition</x:String>
     <x:String x:Key="Update.CommunityNotice.Body">欢迎使用 Plain Craft Launcher N Edition！&#x0a;&#x0a;PCL N 是由 MUXUE1230 维护的个人分支，与官方作者 LTCat 及 PCL-Community 无隶属关系。&#x0a;&#x0a;主要特性：&#x0a;- 离线档案借用正版皮肤&#x0a;- 实例内资源浏览与一键下载&#x0a;- Fluent 风格界面&#x0a;&#x0a;请将问题反馈到本项目 GitHub Issues。&#x0a;&#x0a;此提示在每次版本更新后显示一次。</x:String>
     <x:String x:Key="Update.CommunityNotice.Confirm">开始使用</x:String>
