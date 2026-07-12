@@ -42,6 +42,11 @@ public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISet
         if (panLoad is null || cardLoad is null || panMain is null)
             return;
 
+        panLoad.Text = GetPlatformText(
+            "正在扫描 Windows 注册表、Program Files、JAVA_HOME 与 PATH 中的 Java",
+            "正在扫描 /Library/Java、Homebrew、JAVA_HOME 与 PATH 中的 Java",
+            "正在扫描 /usr/lib/jvm、SDKMAN、JAVA_HOME 与 PATH 中的 Java");
+
         _loaderInitialized = true;
         PageLoaderInit(
             panLoad,
@@ -149,7 +154,10 @@ public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISet
         {
             contentPanel.Children.Add(new MyHint
             {
-                Text = "暂未找到可用 Java。你可以点击“添加”并选择 java 或 java.exe 文件。",
+                Text = GetPlatformText(
+                    "暂未找到可用 Java。你可以点击“添加”并选择 java.exe 或 javaw.exe。",
+                    "暂未找到可用 Java。你可以点击“添加”并选择 JDK 的 bin/java 文件。",
+                    "暂未找到可用 Java。你可以点击“添加”并选择可执行的 bin/java 文件。"),
                 Theme = MyHint.Themes.Yellow,
                 Margin = new Avalonia.Thickness(0d, 12d, 0d, 0d)
             });
@@ -249,15 +257,18 @@ public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISet
 
         IReadOnlyList<IStorageFile> files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = OperatingSystem.IsWindows() ? "选择 java.exe 或 javaw.exe" : "选择 java 可执行文件",
+            Title = GetPlatformText(
+                "选择 java.exe 或 javaw.exe",
+                "选择 macOS JDK 中的 bin/java",
+                "选择 Linux Java 可执行文件 bin/java"),
             AllowMultiple = false,
             FileTypeFilter =
             [
                 new FilePickerFileType("Java 可执行文件")
                 {
                     Patterns = OperatingSystem.IsWindows()
-                        ? ["java.exe", "javaw.exe", "*.exe"]
-                        : ["java", "java*"]
+                        ? ["java.exe", "javaw.exe"]
+                        : ["java"]
                 }
             ]
         }).ConfigureAwait(true);
@@ -275,7 +286,10 @@ public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISet
                 this,
                 new SettingsMessageRequestedEventArgs(
                     "未找到 Java",
-                    "请选择 Java 安装目录中的 java 或 java.exe 文件。"));
+                    GetPlatformText(
+                        "请选择 Java 安装目录中的 java.exe 或 javaw.exe 文件。",
+                        "请选择 .jdk/Contents/Home/bin/java 或 JDK 的 bin/java 文件。",
+                        "请选择 JDK/JRE 安装目录中的 bin/java 可执行文件。")));
             return;
         }
 
@@ -405,4 +419,8 @@ public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISet
 
     private static StringComparison GetPathComparison() =>
         OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+
+    private static string GetPlatformText(string windows, string macOS, string linux) =>
+        OperatingSystem.IsWindows() ? windows :
+        OperatingSystem.IsMacOS() ? macOS : linux;
 }

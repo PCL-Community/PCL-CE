@@ -4,6 +4,8 @@
 
 using System.Collections.Frozen;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
+using Microsoft.Win32;
 using PCL.Domain.Minecraft.Java;
 using PCL.Platform.Abstractions.Java;
 
@@ -82,6 +84,9 @@ public sealed class FileSystemJavaLocator : IJavaLocator
 
         if (OperatingSystem.IsWindows())
         {
+            foreach (string registryHome in EnumerateWindowsRegistryJavaHomes())
+                yield return registryHome;
+
             foreach (string root in EnumerateExisting(
                          Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
                          Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)))
@@ -106,6 +111,65 @@ public sealed class FileSystemJavaLocator : IJavaLocator
             yield return "/opt/java";
             yield return "/opt/jdk";
             yield return Path.Combine(GetHomeDirectory(), ".sdkman", "candidates", "java");
+        }
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static IEnumerable<string> EnumerateWindowsRegistryJavaHomes()
+    {
+        List<string> homes = [];
+        foreach (RegistryView view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
+        {
+            try
+            {
+                using RegistryKey machine = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, view);
+                CollectRegistryJavaHomes(machine, @"SOFTWARE\JavaSoft", homes, depth: 3);
+                CollectRegistryJavaHomes(machine, @"SOFTWARE\Eclipse Adoptium", homes, depth: 5);
+                CollectRegistryJavaHomes(machine, @"SOFTWARE\Microsoft\JDK", homes, depth: 3);
+            }
+            catch (Exception ex) when (ex is UnauthorizedAccessException or global::System.Security.SecurityException or IOException)
+            {
+                // A locked vendor key must not prevent the remaining discovery sources from running.
+            }
+        }
+
+        return homes.Distinct(StringComparer.OrdinalIgnoreCase);
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static void CollectRegistryJavaHomes(
+        RegistryKey parent,
+        string subKeyPath,
+        List<string> homes,
+        int depth)
+    {
+        using RegistryKey? key = parent.OpenSubKey(subKeyPath);
+        if (key is null)
+            return;
+
+        CollectRegistryJavaHomes(key, homes, depth);
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static void CollectRegistryJavaHomes(RegistryKey key, List<string> homes, int depth)
+    {
+        if (key.GetValue("JavaHome") is string javaHome && !string.IsNullOrWhiteSpace(javaHome))
+            homes.Add(javaHome);
+        if (depth <= 0)
+            return;
+
+        foreach (string subKeyName in key.GetSubKeyNames())
+        {
+            try
+            {
+                using RegistryKey? child = key.OpenSubKey(subKeyName);
+                if (child is not null)
+                    CollectRegistryJavaHomes(child, homes, depth - 1);
+            }
+            catch (Exception ex) when (ex is UnauthorizedAccessException or global::System.Security.SecurityException or IOException)
+            {
+                // Continue with other vendor/version keys.
+            }
         }
     }
 
@@ -344,9 +408,10 @@ public sealed class FileSystemJavaLocator : IJavaLocator
 
     private static string GetJavacExecutableName() => OperatingSystem.IsWindows() ? "javac.exe" : "javac";
 
-    private static bool IsJavaExecutableName(string fileName) =>
-        string.Equals(fileName, "java", StringComparison.OrdinalIgnoreCase) ||
-        string.Equals(fileName, "java.exe", StringComparison.OrdinalIgnoreCase);
+    private static bool IsJavaExecutableName(string fileName) => OperatingSystem.IsWindows()
+        ? string.Equals(fileName, "java.exe", StringComparison.OrdinalIgnoreCase) ||
+          string.Equals(fileName, "javaw.exe", StringComparison.OrdinalIgnoreCase)
+        : string.Equals(fileName, "java", StringComparison.Ordinal);
 
     private static StringComparer GetPathComparer() =>
         OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
