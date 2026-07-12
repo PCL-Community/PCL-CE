@@ -2,30 +2,23 @@
 // Modifications Copyright (c) 2026 PCL N contributors.
 // Licensed under the Apache License, Version 2.0.
 
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using PCL.Desktop.Controls.Legacy;
 
 namespace PCL.Desktop.Features.Community;
 
+/// <summary>
+/// Left rail for community resources — layout mirrors WPF <c>PageCommunityLeft</c>.
+/// </summary>
 public partial class PageCommunityLeft : MyPageLeft, IRefreshable
 {
-    private static readonly CommunityCategoryDescriptor[] Categories =
-    [
-        new(CommunityResourceCategory.Mod, "Mod", "lucide/puzzle"),
-        new(CommunityResourceCategory.Modpack, "整合包", "lucide/package"),
-        new(CommunityResourceCategory.DataPack, "数据包", "lucide/boxes"),
-        new(CommunityResourceCategory.ResourcePack, "资源包", "lucide/layers"),
-        new(CommunityResourceCategory.Shader, "光影包", "lucide/sparkles"),
-        new(CommunityResourceCategory.World, "世界", "lucide/globe")
-    ];
-
     public PageCommunityLeft()
     {
         AvaloniaXamlLoader.Load(this);
         AnimatedControl = this.FindControl<Control>("PanItem");
-        ReloadItems();
+        AttachRefreshButtons();
+        SyncChecks();
     }
 
     public CommunityResourceCategory Category { get; private set; } = CommunityResourceCategory.Mod;
@@ -36,11 +29,11 @@ public partial class PageCommunityLeft : MyPageLeft, IRefreshable
 
     public bool TrySelectCategory(CommunityResourceCategory category)
     {
-        if (!Categories.Any(descriptor => descriptor.Category == category))
-            return false;
-
         if (Category == category)
+        {
+            SyncChecks();
             return true;
+        }
 
         Category = category;
         SyncChecks();
@@ -50,64 +43,67 @@ public partial class PageCommunityLeft : MyPageLeft, IRefreshable
 
     public void Refresh() => RefreshRequested?.Invoke(this, Category);
 
-    private void ReloadItems()
+    private void PageCheck(object senderRaw, RouteEventArgs e)
     {
-        if (this.FindControl<StackPanel>("PanItem") is not { } panel)
+        if (senderRaw is not MyListItem item)
             return;
 
-        panel.Children.Clear();
-        panel.Children.Add(new TextBlock
-        {
-            Text = "社区资源",
-            Margin = new Thickness(13d, 10d, 5d, 4d),
-            Opacity = 0.6d,
-            FontSize = 12d
-        });
-        foreach (CommunityCategoryDescriptor descriptor in Categories)
-            panel.Children.Add(CreateCategoryItem(descriptor));
+        CommunityResourceCategory category = ParseTag(item.Tag);
+        if (Category == category)
+            return;
+
+        Category = category;
         SyncChecks();
+        CategoryChanged?.Invoke(this, category);
     }
 
-    private MyListItem CreateCategoryItem(CommunityCategoryDescriptor descriptor)
+    private void AttachRefreshButtons()
     {
-        MyIconButton refresh = new()
+        foreach (MyListItem item in GetCategoryItems())
         {
-            SvgIcon = "lucide/refresh-cw",
-            LogoScale = 0.85d,
-            ToolTip = "刷新"
-        };
-        refresh.Click += (_, _) => RefreshRequested?.Invoke(this, descriptor.Category);
-
-        MyListItem item = new()
-        {
-            Title = descriptor.Title,
-            SvgIcon = descriptor.Icon,
-            LogoScale = 0.95d,
-            Height = 36d,
-            MinPaddingRight = 35d,
-            Type = MyListItem.CheckType.RadioBox,
-            IsScaleAnimationEnabled = false,
-            Tag = descriptor.Category,
-            Buttons = [refresh]
-        };
-        item.Click += (_, _) => TrySelectCategory(descriptor.Category);
-        return item;
+            MyIconButton refresh = new()
+            {
+                SvgIcon = "lucide/refresh-cw",
+                LogoScale = 0.85d,
+                ToolTip = "刷新"
+            };
+            CommunityResourceCategory category = ParseTag(item.Tag);
+            refresh.Click += (_, _) =>
+            {
+                TrySelectCategory(category);
+                RefreshRequested?.Invoke(this, category);
+            };
+            item.Buttons = [refresh];
+        }
     }
 
     private void SyncChecks()
     {
-        if (this.FindControl<StackPanel>("PanItem") is not { } panel)
-            return;
+        foreach (MyListItem item in GetCategoryItems())
+            item.SetChecked(ParseTag(item.Tag) == Category, user: false, animate: false);
+    }
 
-        foreach (MyListItem item in panel.Children.OfType<MyListItem>())
+    private IEnumerable<MyListItem> GetCategoryItems()
+    {
+        if (this.FindControl<StackPanel>("PanItem") is not { } panel)
+            yield break;
+
+        foreach (Control child in panel.Children)
         {
-            if (item.Tag is CommunityResourceCategory category)
-                item.SetChecked(category == Category, user: false, animate: false);
+            if (child is MyListItem item && item.Name is not null && item.Name.StartsWith("Item", StringComparison.Ordinal))
+                yield return item;
         }
     }
 
-    private sealed record CommunityCategoryDescriptor(
-        CommunityResourceCategory Category,
-        string Title,
-        string Icon);
+    private static CommunityResourceCategory ParseTag(object? tag) =>
+        tag switch
+        {
+            CommunityResourceCategory category => category,
+            "Modpack" => CommunityResourceCategory.Modpack,
+            "DataPack" => CommunityResourceCategory.DataPack,
+            "ResourcePack" => CommunityResourceCategory.ResourcePack,
+            "Shader" => CommunityResourceCategory.Shader,
+            "World" => CommunityResourceCategory.World,
+            _ => CommunityResourceCategory.Mod
+        };
 }

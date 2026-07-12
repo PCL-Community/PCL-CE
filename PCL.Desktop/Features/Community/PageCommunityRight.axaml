@@ -1,25 +1,105 @@
+<!-- Layout mirror of WPF PageComp: filters always visible; load overlay only over content -->
 <legacy:MyPageRight x:Class="PCL.Desktop.Features.Community.PageCommunityRight"
                     xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:legacy="using:PCL.Desktop.Controls.Legacy">
-    <Grid>
-        <Grid x:Name="PanAllBack">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="54" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-            <legacy:MySearchBar x:Name="TextSearch" Margin="25,10,25,0"
-                                HintText="搜索社区资源" />
-            <legacy:MyScrollViewer x:Name="PanBack" Grid.Row="1"
+    <Grid RowDefinitions="Auto,*">
+        <!-- Row 0: always-visible search + filters (never covered by loading) -->
+        <StackPanel x:Name="PanAlways" Grid.Row="0" Margin="25,12,25,0">
+            <legacy:MySearchBar x:Name="PanSearchBox"
+                                Margin="0,0,0,15"
+                                HintText="搜索社区资源…" />
+            <legacy:MyCard Margin="0,0,0,12" UseAnimation="False">
+                <Grid Margin="7" HorizontalAlignment="Stretch"
+                      ColumnDefinitions="Auto,*,Auto,1.3*,Auto,*,Auto"
+                      RowDefinitions="28,8,28">
+                    <TextBlock x:Name="LabSource" Grid.Row="0" Grid.Column="0"
+                               VerticalAlignment="Center" Text="来源" Margin="5,0,5,0" Opacity="0.75" />
+                    <legacy:MyComboBox x:Name="ComboSearchSource" Grid.Row="0" Grid.Column="1" Height="28" />
+
+                    <TextBlock x:Name="LabTag" Grid.Row="0" Grid.Column="2"
+                               VerticalAlignment="Center" Text="分类" Margin="5,0,5,0" Opacity="0.75" />
+                    <legacy:MyComboBox x:Name="ComboSearchTag" Grid.Row="0" Grid.Column="3"
+                                       Height="28" MaxDropDownHeight="320" />
+
+                    <TextBlock x:Name="LabSort" Grid.Row="0" Grid.Column="4"
+                               VerticalAlignment="Center" Text="排序" Margin="5,0,5,0" Opacity="0.75" />
+                    <legacy:MyComboBox x:Name="ComboSearchSort" Grid.Row="0" Grid.Column="5"
+                                       Height="28" MaxDropDownHeight="320" />
+
+                    <StackPanel Grid.Row="0" Grid.Column="6" Grid.RowSpan="3"
+                                Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <!-- WPF-size icon buttons (~25) — avoid default large hit targets -->
+                        <legacy:MyIconButton x:Name="BtnSearchReset"
+                                             SvgIcon="lucide/rotate-ccw"
+                                             ToolTip="重置筛选"
+                                             Width="25" Height="25"
+                                             LogoScale="0.82"
+                                             Margin="3,0,0,0" />
+                        <legacy:MyIconButton x:Name="BtnSearchInstallModPack"
+                                             SvgIcon="lucide/download"
+                                             IsVisible="False"
+                                             ToolTip="安装本地整合包"
+                                             Width="25" Height="25"
+                                             LogoScale="0.82"
+                                             Margin="3,0,0,0" />
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0"
+                               VerticalAlignment="Center" Text="版本" Margin="5,0,5,0" Opacity="0.75" />
+                    <legacy:MyComboBox x:Name="TextSearchVersion" Grid.Row="2" Grid.Column="1"
+                                       Height="28" IsEditable="True" MaxDropDownHeight="320" />
+
+                    <TextBlock x:Name="LabLoader" Grid.Row="2" Grid.Column="2"
+                               VerticalAlignment="Center" Text="加载器" Margin="5,0,5,0" Opacity="0.75" />
+                    <legacy:MyComboBox x:Name="ComboSearchLoader" Grid.Row="2" Grid.Column="3"
+                                       Height="28" MaxDropDownHeight="320" />
+                    <legacy:MyComboBox x:Name="ComboSearchShaderLoader" Grid.Row="2" Grid.Column="3"
+                                       Height="28" MaxDropDownHeight="320" IsVisible="False" />
+                </Grid>
+            </legacy:MyCard>
+        </StackPanel>
+
+        <!-- Row 1: content OR loading (mutually exclusive, no empty bars under spinner) -->
+        <Grid Grid.Row="1" Margin="25,0,25,20">
+            <legacy:MyScrollViewer x:Name="PanBack"
                                    VerticalScrollBarVisibility="Auto"
                                    HorizontalScrollBarVisibility="Disabled">
-                <StackPanel x:Name="PanMain" Margin="25,0,25,10" />
+                <StackPanel x:Name="PanContent">
+                    <legacy:MyHint x:Name="HintError" IsVisible="False" Theme="Yellow"
+                                   Text="加载失败" Margin="0,0,0,15" />
+                    <legacy:MyCard x:Name="CardProjects" UseAnimation="False">
+                        <StackPanel x:Name="PanProjects" Margin="12" />
+                    </legacy:MyCard>
+                    <legacy:MyCard Margin="0,15,0,0" x:Name="CardPages" HorizontalAlignment="Center"
+                                   UseAnimation="False">
+                        <StackPanel Orientation="Horizontal" Height="28" Margin="10,7"
+                                    HorizontalAlignment="Center">
+                            <legacy:MyIconButton x:Name="BtnPageFirst" SvgIcon="lucide/chevrons-left"
+                                                 LogoScale="0.9" Margin="0,0,5,0" ToolTip="首页" />
+                            <legacy:MyIconButton x:Name="BtnPageLeft" SvgIcon="lucide/chevron-left"
+                                                 LogoScale="0.9" Margin="0,0,5,0" ToolTip="上一页" />
+                            <TextBlock x:Name="LabPage" Text="1" Margin="8,0,13,0" FontSize="15"
+                                       VerticalAlignment="Center" MinWidth="24" TextAlignment="Center" />
+                            <legacy:MyIconButton x:Name="BtnPageRight" SvgIcon="lucide/chevron-right"
+                                                 LogoScale="0.9" Margin="0,0,5,0" ToolTip="下一页" />
+                        </StackPanel>
+                    </legacy:MyCard>
+                </StackPanel>
             </legacy:MyScrollViewer>
+
+            <legacy:MyCard x:Name="PanLoad"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Margin="40,30"
+                           UseAnimation="False"
+                           IsVisible="False">
+                <legacy:MyLoading x:Name="Load"
+                                  Margin="20,20,20,17"
+                                  HorizontalAlignment="Center"
+                                  Text="正在获取资源列表"
+                                  AutoRun="False" />
+            </legacy:MyCard>
         </Grid>
-        <legacy:MyCard x:Name="PanLoad" HorizontalAlignment="Center"
-                       VerticalAlignment="Center" Margin="40" UseAnimation="False">
-            <legacy:MyLoading x:Name="Load" Margin="20,20,20,17"
-                              Text="正在加载社区资源" AutoRun="False" />
-        </legacy:MyCard>
     </Grid>
 </legacy:MyPageRight>

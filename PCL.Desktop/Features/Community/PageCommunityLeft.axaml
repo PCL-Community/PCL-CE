@@ -1,3 +1,4 @@
+<!-- Community left rail: same category set as WPF PageDownloadLeft community section -->
 <legacy:MyPageLeft x:Class="PCL.Desktop.Features.Community.PageCommunityLeft"
                    xmlns="https://github.com/avaloniaui"
                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -5,6 +6,27 @@
                    Width="152">
     <legacy:MyScrollViewer HorizontalScrollBarVisibility="Disabled"
                            VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="0,12,0,0" x:Name="PanItem" />
+        <StackPanel Margin="0,12,0,0" x:Name="PanItem">
+            <TextBlock Text="社区资源" Margin="13,10,5,4" Opacity="0.6" FontSize="12" />
+
+            <legacy:MyListItem x:Name="ItemMod" Checked="True" Type="RadioBox" IsScaleAnimationEnabled="False"
+                              Tag="Mod" Check="PageCheck" MinPaddingRight="35" Height="36"
+                              Title="Mod" SvgIcon="lucide/puzzle" LogoScale="0.97" />
+            <legacy:MyListItem x:Name="ItemPack" Type="RadioBox" IsScaleAnimationEnabled="False"
+                              Tag="Modpack" Check="PageCheck" MinPaddingRight="35" Height="36"
+                              Title="整合包" SvgIcon="lucide/package" LogoScale="0.98" />
+            <legacy:MyListItem x:Name="ItemDataPack" Type="RadioBox" IsScaleAnimationEnabled="False"
+                              Tag="DataPack" Check="PageCheck" MinPaddingRight="35" Height="36"
+                              Title="数据包" SvgIcon="lucide/file-archive" LogoScale="0.96" />
+            <legacy:MyListItem x:Name="ItemResourcePack" Type="RadioBox" IsScaleAnimationEnabled="False"
+                              Tag="ResourcePack" Check="PageCheck" MinPaddingRight="35" Height="36"
+                              Title="资源包" SvgIcon="lucide/layers" LogoScale="0.81" />
+            <legacy:MyListItem x:Name="ItemShader" Type="RadioBox" IsScaleAnimationEnabled="False"
+                              Tag="Shader" Check="PageCheck" MinPaddingRight="35" Height="36"
+                              Title="光影包" SvgIcon="lucide/sparkles" LogoScale="1.04" />
+            <legacy:MyListItem x:Name="ItemWorld" Type="RadioBox" IsScaleAnimationEnabled="False"
+                              Tag="World" Check="PageCheck" MinPaddingRight="35" Height="36"
+                              Title="世界" SvgIcon="lucide/globe" LogoScale="0.85" />
+        </StackPanel>
     </legacy:MyScrollViewer>
 </legacy:MyPageLeft>

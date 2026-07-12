@@ -1,0 +1,79 @@
+<!-- Independent page mirror of WPF PageDownloadCompDetail -->
+<legacy:MyPageRight x:Class="PCL.Desktop.Features.Community.PageCommunityDetail"
+                    xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:legacy="using:PCL.Desktop.Controls.Legacy">
+    <Grid>
+        <legacy:MyScrollViewer x:Name="PanBack"
+                               VerticalScrollBarVisibility="Auto"
+                               HorizontalScrollBarVisibility="Disabled">
+            <Grid Margin="25,25,25,10" RowDefinitions="Auto,*">
+                <!-- CardIntro: project header (MyCompItem style) + action buttons -->
+                <legacy:MyCard Margin="0,0,0,25" x:Name="CardIntro" UseAnimation="False">
+                    <StackPanel Margin="22,20,12,20" x:Name="PanIntro">
+                        <!-- Project summary row (non-interactive MyListItem like WPF ToCompItem) -->
+                        <legacy:MyListItem x:Name="ItemProject"
+                                           Height="64"
+                                           Type="None"
+                                           IsHitTestVisible="False"
+                                           LogoScale="1.08"
+                                           Margin="-7,-7,0,10" />
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <legacy:MyIconTextButton x:Name="BtnIntroWeb"
+                                                     Text="Modrinth"
+                                                     SvgIcon="lucide/globe"
+                                                     ColorType="Highlight"
+                                                     Margin="0,0,6,0" />
+                            <legacy:MyIconTextButton x:Name="BtnIntroCopy"
+                                                     Text="复制名称"
+                                                     SvgIcon="lucide/copy"
+                                                     ColorType="Highlight"
+                                                     Margin="0,0,6,0" />
+                            <legacy:MyIconTextButton x:Name="BtnIntroLinkCopy"
+                                                     Text="复制链接"
+                                                     SvgIcon="lucide/link"
+                                                     ColorType="Highlight"
+                                                     Margin="0,0,6,0" />
+                        </StackPanel>
+                    </StackPanel>
+                </legacy:MyCard>
+
+                <!-- Content + loading share row 1 -->
+                <Grid Grid.Row="1">
+                    <StackPanel x:Name="PanMain">
+                        <!-- Chip filters (WPF PanInstanceFilter / PanModLoaderFilter) — wrap inside card -->
+                        <legacy:MyCard Margin="0,0,0,15" x:Name="CardFilter" UseAnimation="False" ClipToBounds="True">
+                            <StackPanel Margin="8,10,8,8">
+                                <WrapPanel x:Name="PanInstanceFilter"
+                                           Orientation="Horizontal"
+                                           Margin="2,0,2,4" />
+                                <WrapPanel x:Name="PanModLoaderFilter"
+                                           Orientation="Horizontal"
+                                           Margin="2,4,2,0" />
+                            </StackPanel>
+                        </legacy:MyCard>
+
+                        <legacy:MyHint x:Name="HintError" IsVisible="False" Theme="Yellow" Margin="0,0,0,12" />
+
+                        <!-- Version groups -->
+                        <StackPanel x:Name="PanResults" />
+                    </StackPanel>
+
+                    <legacy:MyCard x:Name="PanLoad"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   UseAnimation="False"
+                                   Margin="0,0,0,8"
+                                   IsVisible="False">
+                        <legacy:MyLoading x:Name="Load"
+                                          Margin="20,20,20,17"
+                                          HorizontalAlignment="Center"
+                                          Text="正在获取版本列表"
+                                          AutoRun="False" />
+                    </legacy:MyCard>
+                </Grid>
+            </Grid>
+        </legacy:MyScrollViewer>
+    </Grid>
+</legacy:MyPageRight>

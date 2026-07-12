@@ -18,6 +18,19 @@ public enum CommunityResourceCategory
     World
 }
 
+public enum CommunityResourceSort
+{
+    Relevance,
+    Downloads,
+    Updated
+}
+
+public sealed record CommunitySearchOptions(
+    CommunityResourceSort Sort = CommunityResourceSort.Relevance,
+    string? GameVersion = null,
+    string? Loader = null,
+    string? Tag = null);
+
 public sealed record CommunityResourceEntry(
     string ProjectId,
     string Slug,
@@ -28,14 +41,42 @@ public sealed record CommunityResourceEntry(
     long Downloads,
     DateTimeOffset? UpdatedAt)
 {
-    public string WebsiteUrl => "https://modrinth.com/" + ProjectType + "/" + Slug;
+    public string WebsiteUrl => "https://modrinth.com/" + ProjectType + "/" + (string.IsNullOrWhiteSpace(Slug) ? ProjectId : Slug);
 }
+
+public sealed record CommunityResourceDownloadFile(
+    string FileName,
+    string Url,
+    long Size,
+    string VersionId,
+    string VersionName);
+
+public sealed record CommunityResourceVersion(
+    string VersionId,
+    string Name,
+    string VersionNumber,
+    string? Changelog,
+    DateTimeOffset? PublishedAt,
+    IReadOnlyList<string> GameVersions,
+    IReadOnlyList<string> Loaders,
+    IReadOnlyList<CommunityResourceDownloadFile> Files);
 
 public interface ICommunityResourceCatalog
 {
     Task<IReadOnlyList<CommunityResourceEntry>> SearchAsync(
         CommunityResourceCategory category,
         string query,
+        CommunitySearchOptions? options = null,
+        CancellationToken cancellationToken = default);
+
+    Task<CommunityResourceDownloadFile?> ResolveDownloadAsync(
+        CommunityResourceEntry entry,
+        CommunitySearchOptions? options = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CommunityResourceVersion>> GetVersionsAsync(
+        CommunityResourceEntry entry,
+        CommunitySearchOptions? options = null,
         CancellationToken cancellationToken = default);
 }
 
@@ -58,11 +99,19 @@ public sealed class ModrinthCommunityResourceCatalog : ICommunityResourceCatalog
     public async Task<IReadOnlyList<CommunityResourceEntry>> SearchAsync(
         CommunityResourceCategory category,
         string query,
+        CommunitySearchOptions? options = null,
         CancellationToken cancellationToken = default)
     {
-        string facets = CreateFacets(category);
-        string requestUrl = "https://api.modrinth.com/v2/search?limit=30&index=relevance&query=" +
-                            Uri.EscapeDataString(query?.Trim() ?? string.Empty) +
+        options ??= new CommunitySearchOptions();
+        string facets = CreateFacets(category, options);
+        string index = options.Sort switch
+        {
+            CommunityResourceSort.Downloads => "downloads",
+            CommunityResourceSort.Updated => "updated",
+            _ => "relevance"
+        };
+        string requestUrl = "https://api.modrinth.com/v2/search?limit=80&index=" + index +
+                            "&query=" + Uri.EscapeDataString(query?.Trim() ?? string.Empty) +
                             "&facets=" + Uri.EscapeDataString(facets);
         using HttpResponseMessage response = await _client.GetAsync(requestUrl, cancellationToken).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
@@ -80,11 +129,13 @@ public sealed class ModrinthCommunityResourceCatalog : ICommunityResourceCatalog
             string projectId = ReadString(hit, "project_id");
             string slug = ReadString(hit, "slug");
             string title = ReadString(hit, "title");
-            if (string.IsNullOrWhiteSpace(slug) || string.IsNullOrWhiteSpace(title))
+            if (string.IsNullOrWhiteSpace(projectId) && string.IsNullOrWhiteSpace(slug))
                 continue;
+            if (string.IsNullOrWhiteSpace(title))
+                title = slug;
 
             entries.Add(new CommunityResourceEntry(
-                projectId,
+                string.IsNullOrWhiteSpace(projectId) ? slug : projectId,
                 slug,
                 title,
                 ReadString(hit, "description"),
@@ -97,6 +148,157 @@ public sealed class ModrinthCommunityResourceCatalog : ICommunityResourceCatalog
         return entries;
     }
 
+    public async Task<CommunityResourceDownloadFile?> ResolveDownloadAsync(
+        CommunityResourceEntry entry,
+        CommunitySearchOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+        options ??= new CommunitySearchOptions();
+        string id = string.IsNullOrWhiteSpace(entry.ProjectId) ? entry.Slug : entry.ProjectId;
+        if (string.IsNullOrWhiteSpace(id))
+            return null;
+
+        List<string> query = ["limit=20"];
+        if (!string.IsNullOrWhiteSpace(options.GameVersion))
+            query.Add("game_versions=" + Uri.EscapeDataString("[\"" + options.GameVersion.Trim() + "\"]"));
+        if (!string.IsNullOrWhiteSpace(options.Loader) &&
+            !string.Equals(options.Loader, "any", StringComparison.OrdinalIgnoreCase))
+        {
+            query.Add("loaders=" + Uri.EscapeDataString("[\"" + options.Loader.Trim().ToLowerInvariant() + "\"]"));
+        }
+
+        string requestUrl = "https://api.modrinth.com/v2/project/" + Uri.EscapeDataString(id) +
+                            "/version?" + string.Join('&', query);
+        using HttpResponseMessage response = await _client.GetAsync(requestUrl, cancellationToken).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+        await using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        using JsonDocument document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+        if (document.RootElement.ValueKind != JsonValueKind.Array)
+            return null;
+
+        foreach (JsonElement version in document.RootElement.EnumerateArray())
+        {
+            if (version.ValueKind != JsonValueKind.Object)
+                continue;
+            if (!TryGetProperty(version, "files", out JsonElement files) || files.ValueKind != JsonValueKind.Array)
+                continue;
+
+            JsonElement? primary = null;
+            foreach (JsonElement file in files.EnumerateArray())
+            {
+                if (file.ValueKind != JsonValueKind.Object)
+                    continue;
+                if (TryGetProperty(file, "primary", out JsonElement primaryFlag) &&
+                    primaryFlag.ValueKind == JsonValueKind.True)
+                {
+                    primary = file;
+                    break;
+                }
+
+                primary ??= file;
+            }
+
+            if (primary is not { } chosen)
+                continue;
+
+            string url = ReadString(chosen, "url");
+            string fileName = ReadString(chosen, "filename");
+            if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(fileName))
+                continue;
+
+            long size = 0;
+            if (TryGetProperty(chosen, "size", out JsonElement sizeElement))
+                sizeElement.TryGetInt64(out size);
+
+            return new CommunityResourceDownloadFile(
+                fileName,
+                url,
+                size,
+                ReadString(version, "id"),
+                ReadString(version, "name"));
+        }
+
+        return null;
+    }
+
+    public async Task<IReadOnlyList<CommunityResourceVersion>> GetVersionsAsync(
+        CommunityResourceEntry entry,
+        CommunitySearchOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+        options ??= new CommunitySearchOptions();
+        string id = string.IsNullOrWhiteSpace(entry.ProjectId) ? entry.Slug : entry.ProjectId;
+        if (string.IsNullOrWhiteSpace(id))
+            return [];
+
+        // WPF CompFilesGet loads a large version list then groups client-side by game version.
+        List<string> query = ["limit=100"];
+        if (!string.IsNullOrWhiteSpace(options.GameVersion))
+            query.Add("game_versions=" + Uri.EscapeDataString("[\"" + options.GameVersion.Trim() + "\"]"));
+        if (!string.IsNullOrWhiteSpace(options.Loader) &&
+            !string.Equals(options.Loader, "any", StringComparison.OrdinalIgnoreCase))
+        {
+            query.Add("loaders=" + Uri.EscapeDataString("[\"" + options.Loader.Trim().ToLowerInvariant() + "\"]"));
+        }
+
+        string requestUrl = "https://api.modrinth.com/v2/project/" + Uri.EscapeDataString(id) +
+                            "/version?" + string.Join('&', query);
+        using HttpResponseMessage response = await _client.GetAsync(requestUrl, cancellationToken).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+        await using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        using JsonDocument document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+        if (document.RootElement.ValueKind != JsonValueKind.Array)
+            return [];
+
+        List<CommunityResourceVersion> versions = [];
+        foreach (JsonElement version in document.RootElement.EnumerateArray())
+        {
+            if (version.ValueKind != JsonValueKind.Object)
+                continue;
+
+            List<CommunityResourceDownloadFile> files = [];
+            if (TryGetProperty(version, "files", out JsonElement filesEl) && filesEl.ValueKind == JsonValueKind.Array)
+            {
+                foreach (JsonElement file in filesEl.EnumerateArray())
+                {
+                    if (file.ValueKind != JsonValueKind.Object)
+                        continue;
+                    string url = ReadString(file, "url");
+                    string fileName = ReadString(file, "filename");
+                    if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(fileName))
+                        continue;
+                    long size = 0;
+                    if (TryGetProperty(file, "size", out JsonElement sizeEl))
+                        sizeEl.TryGetInt64(out size);
+                    files.Add(new CommunityResourceDownloadFile(
+                        fileName,
+                        url,
+                        size,
+                        ReadString(version, "id"),
+                        ReadString(version, "name")));
+                }
+            }
+
+            if (files.Count == 0)
+                continue;
+
+            versions.Add(new CommunityResourceVersion(
+                ReadString(version, "id"),
+                ReadString(version, "name"),
+                ReadString(version, "version_number"),
+                NullIfWhiteSpace(ReadString(version, "changelog")),
+                ReadDateTimeOffset(version, "date_published"),
+                ReadStringArray(version, "game_versions"),
+                ReadStringArray(version, "loaders"),
+                files));
+        }
+
+        return versions;
+    }
+
     public void Dispose()
     {
         if (_ownsClient)
@@ -107,23 +309,45 @@ public sealed class ModrinthCommunityResourceCatalog : ICommunityResourceCatalog
     {
         HttpClient client = new()
         {
-            Timeout = TimeSpan.FromSeconds(20)
+            Timeout = TimeSpan.FromSeconds(30)
         };
         client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("PCL-N", "1.0"));
         return client;
     }
 
-    private static string CreateFacets(CommunityResourceCategory category) =>
-        category switch
+    private static string CreateFacets(CommunityResourceCategory category, CommunitySearchOptions options)
+    {
+        List<string> groups =
+        [
+            category switch
+            {
+                CommunityResourceCategory.Mod => "[\"project_type:mod\"]",
+                CommunityResourceCategory.Modpack => "[\"project_type:modpack\"]",
+                CommunityResourceCategory.DataPack => "[\"project_type:datapack\"]",
+                CommunityResourceCategory.ResourcePack => "[\"project_type:resourcepack\"]",
+                CommunityResourceCategory.Shader => "[\"project_type:shader\"]",
+                CommunityResourceCategory.World => "[\"project_type:world\"]",
+                _ => "[\"project_type:mod\"]"
+            }
+        ];
+
+        if (!string.IsNullOrWhiteSpace(options.GameVersion))
+            groups.Add("[\"versions:" + EscapeFacetValue(options.GameVersion.Trim()) + "\"]");
+
+        if (!string.IsNullOrWhiteSpace(options.Loader) &&
+            !string.Equals(options.Loader, "any", StringComparison.OrdinalIgnoreCase))
         {
-            CommunityResourceCategory.Mod => "[[\"project_type:mod\"]]",
-            CommunityResourceCategory.Modpack => "[[\"project_type:modpack\"]]",
-            CommunityResourceCategory.DataPack => "[[\"all_project_types:datapack\"]]",
-            CommunityResourceCategory.ResourcePack => "[[\"project_type:resourcepack\"]]",
-            CommunityResourceCategory.Shader => "[[\"project_type:shader\"]]",
-            CommunityResourceCategory.World => "[[\"project_type:mod\"],[\"categories:worldgen\"]]",
-            _ => "[]"
-        };
+            groups.Add("[\"categories:" + EscapeFacetValue(options.Loader.Trim().ToLowerInvariant()) + "\"]");
+        }
+
+        if (!string.IsNullOrWhiteSpace(options.Tag))
+            groups.Add("[\"categories:" + EscapeFacetValue(options.Tag.Trim().ToLowerInvariant()) + "\"]");
+
+        return "[" + string.Join(',', groups) + "]";
+    }
+
+    private static string EscapeFacetValue(string value) =>
+        value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal);
 
     private static string NormalizeProjectType(string projectType, CommunityResourceCategory category)
     {
@@ -135,6 +359,8 @@ public sealed class ModrinthCommunityResourceCatalog : ICommunityResourceCatalog
             CommunityResourceCategory.Modpack => "modpack",
             CommunityResourceCategory.ResourcePack => "resourcepack",
             CommunityResourceCategory.Shader => "shader",
+            CommunityResourceCategory.DataPack => "datapack",
+            CommunityResourceCategory.World => "world",
             _ => "mod"
         };
     }
@@ -153,6 +379,25 @@ public sealed class ModrinthCommunityResourceCatalog : ICommunityResourceCatalog
             : null;
 
     private static string? NullIfWhiteSpace(string value) => string.IsNullOrWhiteSpace(value) ? null : value;
+
+    private static IReadOnlyList<string> ReadStringArray(JsonElement element, string name)
+    {
+        if (!TryGetProperty(element, name, out JsonElement array) || array.ValueKind != JsonValueKind.Array)
+            return [];
+
+        List<string> items = [];
+        foreach (JsonElement item in array.EnumerateArray())
+        {
+            if (item.ValueKind == JsonValueKind.String)
+            {
+                string? s = item.GetString();
+                if (!string.IsNullOrWhiteSpace(s))
+                    items.Add(s);
+            }
+        }
+
+        return items;
+    }
 
     private static bool TryGetProperty(JsonElement element, string name, out JsonElement value)
     {
