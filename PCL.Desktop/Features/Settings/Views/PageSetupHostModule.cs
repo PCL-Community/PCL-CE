@@ -412,6 +412,23 @@ public sealed class PageSetupHostModule : MyPageRight, IRefreshableSettingsPage
             Opacity = 0.75,
             TextWrapping = TextWrapping.Wrap
         });
+        if (entry.RequiredDependencies.Count > 0 || entry.MissingPrerequisites.Count > 0)
+        {
+            string depLine = entry.MissingPrerequisites.Count > 0
+                ? "前置缺失: " + string.Join(", ", entry.MissingPrerequisites)
+                : "前置: " + string.Join(", ", entry.RequiredDependencies);
+            text.Children.Add(new TextBlock
+            {
+                Text = entry.DependencyState is null ? depLine : entry.DependencyState + " · " + depLine,
+                FontSize = 11d,
+                Opacity = 0.7,
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = entry.MissingPrerequisites.Count > 0
+                    ? new SolidColorBrush(Color.FromRgb(180, 90, 40))
+                    : null
+            });
+        }
+
         Grid.SetColumn(text, 0);
         grid.Children.Add(text);
 

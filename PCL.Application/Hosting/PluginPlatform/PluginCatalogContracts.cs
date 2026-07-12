@@ -12,7 +12,10 @@ internal sealed record PluginCatalogEntry(
     string? InstalledPath,
     bool IsEnabled,
     bool IsLoaded,
-    string? StatusMessage);
+    string? StatusMessage,
+    IReadOnlyList<string> RequiredDependencies,
+    IReadOnlyList<string> MissingPrerequisites,
+    string? DependencyState);
 
 /// <summary>Local marketplace listing (directory-scanned <c>.pnp</c>, design §19 skeleton without Online).</summary>
 internal sealed record PluginMarketListing(
