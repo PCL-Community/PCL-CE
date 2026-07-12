@@ -6,7 +6,9 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using PCL.Application.Settings;
 using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Hosting;
 
 namespace PCL.Desktop.Features.Settings.Views;
 
@@ -35,11 +37,15 @@ public sealed class SetupPageChangedEventArgs(SetupPageSubType pageId, MyPageRig
 public partial class PageSetupLeft : MyPageLeft
 {
     private readonly Dictionary<SetupPageSubType, MyPageRight> _pages = [];
+    private readonly HostSettingsPageDescriptor? _hostSettingsPage;
     private bool _isLoadedOnce;
 
     public PageSetupLeft()
     {
         AvaloniaXamlLoader.Load(this);
+        IReadOnlyList<HostSettingsPageDescriptor> hostPages = DesktopHost.Current.SettingsPages.Pages;
+        _hostSettingsPage = hostPages.Count > 0 ? hostPages[0] : null;
+        RegisterHostSettingsPage();
         AnimatedControl = Required<Control>("PanItem");
         InitializeRegisteredPageTags();
         PageId = SetupPageSubType.Launch;
@@ -115,7 +121,9 @@ public partial class PageSetupLeft : MyPageLeft
         if (_pages.TryGetValue(page, out MyPageRight? cached))
             return cached;
 
-        MyPageRight created = SetupPageRegistry.CreatePage(page);
+        MyPageRight created = page == SetupPageSubType.Plugin && _hostSettingsPage is not null
+            ? new PageSetupHostModule(_hostSettingsPage)
+            : SetupPageRegistry.CreatePage(page);
         _pages[page] = created;
         PageCreated?.Invoke(this, created);
         return created;
@@ -136,10 +144,10 @@ public partial class PageSetupLeft : MyPageLeft
         this.FindControl<T>(name)
         ?? throw new InvalidOperationException($"PageSetupLeft 缺少控件：{name}");
 
-    private static bool TryReadPage(object? tag, out SetupPageSubType page)
+    private bool TryReadPage(object? tag, out SetupPageSubType page)
     {
         page = SetupPageSubType.Launch;
-        if (tag is SetupPageSubType typedPage && SetupPageRegistry.IsDefined(typedPage))
+        if (tag is SetupPageSubType typedPage && IsPageDefined(typedPage))
         {
             page = typedPage;
             return true;
@@ -152,7 +160,7 @@ public partial class PageSetupLeft : MyPageLeft
             string text when int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed) => parsed,
             _ => int.MinValue
         };
-        if (!SetupPageRegistry.IsDefined((SetupPageSubType)value))
+        if (!IsPageDefined((SetupPageSubType)value))
             return false;
 
         page = (SetupPageSubType)value;
@@ -174,6 +182,37 @@ public partial class PageSetupLeft : MyPageLeft
         }
     }
 
+    private void RegisterHostSettingsPage()
+    {
+        if (_hostSettingsPage is null || this.FindControl<Panel>("PanItem") is not { } panel)
+            return;
+
+        MyListItem item = new()
+        {
+            Name = "ItemPlugin",
+            IsScaleAnimationEnabled = false,
+            Tag = SetupPageSubType.Plugin,
+            MinPaddingRight = 35d,
+            Height = 36d,
+            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top,
+            Title = _hostSettingsPage.Title,
+            Type = MyListItem.CheckType.RadioBox,
+            LogoScale = 0.95d,
+            SvgIcon = _hostSettingsPage.Icon
+        };
+        item.Check += PageCheck;
+
+        int aboutIndex = panel.Children
+            .Select((child, index) => (child, index))
+            .FirstOrDefault(pair => pair.child is Control { Name: "TextAboutCategory" })
+            .index;
+        panel.Children.Insert(aboutIndex > 0 ? aboutIndex : panel.Children.Count, item);
+    }
+
+    private bool IsPageDefined(SetupPageSubType page) =>
+        SetupPageRegistry.IsDefined(page) ||
+        (page == SetupPageSubType.Plugin && _hostSettingsPage is not null);
+
     private IEnumerable<MyListItem> GetItems()
     {
         if (this.FindControl<Panel>("PanItem") is not { } panel)
@@ -186,5 +225,8 @@ public partial class PageSetupLeft : MyPageLeft
         }
     }
 
-    private static string GetPageTitle(SetupPageSubType page) => SetupPageRegistry.GetTitle(page);
+    private string GetPageTitle(SetupPageSubType page) =>
+        page == SetupPageSubType.Plugin && _hostSettingsPage is not null
+            ? _hostSettingsPage.Title
+            : SetupPageRegistry.GetTitle(page);
 }

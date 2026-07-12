@@ -1342,7 +1342,7 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
-    public void MainWindow_SettingsNavLoadsMigratedSetupLeftAndPluginPage()
+    public void MainWindow_SettingsNavDoesNotExposePluginPageWithoutHostModule()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
 
@@ -1361,31 +1361,12 @@ public sealed class AvaloniaHeadlessTests
 
                 Assert.IsNotNull(setupLeft);
                 Assert.IsTrue(setupLeft.FindControl<MyListItem>("ItemLaunch")!.Checked);
-                Assert.AreEqual(SetupPageSubType.Plugin, setupLeft.FindControl<MyListItem>("ItemPlugin")!.Tag);
+                Assert.IsNull(setupLeft.FindControl<MyListItem>("ItemPlugin"));
                 Assert.AreEqual(
                     SetupPageSubType.Java,
                     setupLeft.FindControl<MyListItem>("ItemJava")!.Buttons.Single().Tag);
                 Assert.IsInstanceOfType<PageSetupLaunch>(FindVisual<MyPageRight>(window));
 
-                Click(window, setupLeft.FindControl<MyListItem>("ItemPlugin")!);
-                ModAnimation.AdvanceUntilIdleForTesting();
-                PageSetupPlugin pluginPage = FindVisual<PageSetupPlugin>(window)!;
-
-                Assert.IsNotNull(pluginPage);
-                Assert.IsTrue(setupLeft.FindControl<MyListItem>("ItemPlugin")!.Checked);
-                Assert.AreEqual("敬请期待", pluginPage.FindControl<TextBlock>("LabComingSoon")!.Text);
-                StringAssert.Contains(
-                    pluginPage.FindControl<TextBlock>("LabDescription")!.Text,
-                    "Host Module");
-                StringAssert.Contains(
-                    pluginPage.FindControl<TextBlock>("LabPluginState")!.Text,
-                    "Online 后续将作为外部 Host Module 接入");
-                StringAssert.Contains(
-                    pluginPage.FindControl<TextBlock>("LabPluginState")!.Text,
-                    "已启用 4 个 Host Module");
-                StringAssert.Contains(
-                    pluginPage.FindControl<TextBlock>("LabPluginState")!.Text,
-                    "注册 4 个导航入口");
             }
             finally
             {
@@ -3489,6 +3470,37 @@ public sealed class AvaloniaHeadlessTests
                 page.RemoveTask("install:1.20.1");
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
                 Assert.AreEqual(0, page.TaskCount);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    public void HostModuleSettingsPage_RendersRegisteredContent()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            PageSetupHostModule page = new(new PCL.Application.Settings.HostSettingsPageDescriptor(
+                "pcl.plugin.settings",
+                "插件",
+                "lucide/plug",
+                "PCL.Plugin 已加载",
+                "此页面由插件 HostModule 注册。",
+                [new PCL.Application.Settings.HostSettingsHintDescriptor("重启后应用插件变更。", true)]));
+            Window window = new() { Width = 600d, Height = 400d, Content = page };
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                Assert.AreEqual("PCL.Plugin 已加载", page.FindControl<TextBlock>("LabHostHeading")!.Text);
+                Assert.AreEqual("此页面由插件 HostModule 注册。", page.FindControl<TextBlock>("LabHostDescription")!.Text);
+                Assert.AreEqual(1, page.GetVisualDescendants().OfType<MyHint>().Count());
             }
             finally
             {

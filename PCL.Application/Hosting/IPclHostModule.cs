@@ -32,6 +32,8 @@ public interface IPclHostBuilder
 
     ISettingsRegistry Settings { get; }
 
+    IHostSettingsPageRegistry SettingsPages { get; }
+
     IThemeRegistry Themes { get; }
 
     IAccountProviderRegistry Accounts { get; }
@@ -52,6 +54,8 @@ public interface IPclHost
     ICommandRegistry Commands { get; }
 
     ISettingsRegistry Settings { get; }
+
+    IHostSettingsPageRegistry SettingsPages { get; }
 
     IThemeRegistry Themes { get; }
 
@@ -78,6 +82,8 @@ public sealed class PclHostBuilder : IPclHostBuilder
     public ICommandRegistry Commands { get; } = new CommandRegistry();
 
     public ISettingsRegistry Settings { get; } = new SettingsRegistry();
+
+    public IHostSettingsPageRegistry SettingsPages { get; } = new HostSettingsPageRegistry();
 
     public IThemeRegistry Themes { get; } = new ThemeRegistry();
 
@@ -114,6 +120,7 @@ public sealed class PclHostBuilder : IPclHostBuilder
             Navigation,
             Commands,
             Settings,
+            SettingsPages,
             Themes,
             Accounts,
             Downloads,
@@ -127,6 +134,7 @@ internal sealed class PclHost(
     INavigationRegistry navigation,
     ICommandRegistry commands,
     ISettingsRegistry settings,
+    IHostSettingsPageRegistry settingsPages,
     IThemeRegistry themes,
     IAccountProviderRegistry accounts,
     IDownloadSourceRegistry downloads,
@@ -142,6 +150,8 @@ internal sealed class PclHost(
     public ICommandRegistry Commands { get; } = commands;
 
     public ISettingsRegistry Settings { get; } = settings;
+
+    public IHostSettingsPageRegistry SettingsPages { get; } = settingsPages;
 
     public IThemeRegistry Themes { get; } = themes;
 

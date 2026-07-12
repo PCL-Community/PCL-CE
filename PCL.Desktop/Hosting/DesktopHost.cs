@@ -8,7 +8,7 @@ using PCL.UI.Abstractions.Pages;
 
 namespace PCL.Desktop.Hosting;
 
-internal static partial class DesktopHost
+internal static class DesktopHost
 {
     private static IPclHost? _current;
 
@@ -28,11 +28,10 @@ internal static partial class DesktopHost
 
         PclHostBuilder builder = new();
         DesktopNavigationRegistry.RegisterGeneratedHostModules(builder);
-        RegisterInjectedHostModules(builder);
+        foreach (IPclHostModule module in EmbeddedPluginLoader.LoadHostModules())
+            builder.AddModule(module);
         _current = builder.Build();
     }
-
-    static partial void RegisterInjectedHostModules(PclHostBuilder builder);
 }
 
 internal static class DesktopNavigationModule

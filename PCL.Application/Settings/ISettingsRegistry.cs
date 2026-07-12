@@ -10,6 +10,18 @@ public sealed record SettingDescriptor(
     string? Description = null,
     object? DefaultValue = null);
 
+public sealed record HostSettingsHintDescriptor(
+    string Text,
+    bool IsWarning = false);
+
+public sealed record HostSettingsPageDescriptor(
+    string Id,
+    string Title,
+    string Icon,
+    string Heading,
+    string Description,
+    IReadOnlyList<HostSettingsHintDescriptor> Hints);
+
 public interface ISettingsRegistry
 {
     IReadOnlyList<SettingDescriptor> Settings { get; }
@@ -57,4 +69,45 @@ public sealed class SettingsRegistry : ISettingsRegistry
 
     private void RefreshSnapshot() =>
         _snapshot = _settings.ToArray();
+}
+
+public interface IHostSettingsPageRegistry
+{
+    IReadOnlyList<HostSettingsPageDescriptor> Pages { get; }
+
+    void AddPage(HostSettingsPageDescriptor descriptor);
+
+    bool RemovePage(string id);
+}
+
+public sealed class HostSettingsPageRegistry : IHostSettingsPageRegistry
+{
+    private readonly List<HostSettingsPageDescriptor> _pages = [];
+    private readonly Dictionary<string, HostSettingsPageDescriptor> _pageMap = new(StringComparer.OrdinalIgnoreCase);
+    private IReadOnlyList<HostSettingsPageDescriptor> _snapshot = Array.Empty<HostSettingsPageDescriptor>();
+
+    public IReadOnlyList<HostSettingsPageDescriptor> Pages => _snapshot;
+
+    public void AddPage(HostSettingsPageDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentException.ThrowIfNullOrWhiteSpace(descriptor.Id);
+        ArgumentException.ThrowIfNullOrWhiteSpace(descriptor.Title);
+        ArgumentException.ThrowIfNullOrWhiteSpace(descriptor.Icon);
+        if (!_pageMap.TryAdd(descriptor.Id, descriptor))
+            throw new InvalidOperationException($"Host 设置页已注册：{descriptor.Id}");
+
+        _pages.Add(descriptor);
+        _snapshot = _pages.ToArray();
+    }
+
+    public bool RemovePage(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id) || !_pageMap.Remove(id))
+            return false;
+
+        _pages.RemoveAll(page => string.Equals(page.Id, id, StringComparison.OrdinalIgnoreCase));
+        _snapshot = _pages.ToArray();
+        return true;
+    }
 }

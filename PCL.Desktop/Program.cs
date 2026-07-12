@@ -19,7 +19,12 @@ internal static class Program
         if (args.Contains("--validate-assets", StringComparer.OrdinalIgnoreCase))
             return ValidateAssets();
         if (args.Contains("--validate-plugin", StringComparer.OrdinalIgnoreCase))
-            return EmbeddedPluginLoader.Load() is null ? 1 : 0;
+        {
+            DesktopHost.Initialize();
+            return DesktopHost.Current.ModuleIds.Count > 0 && DesktopHost.Current.SettingsPages.Pages.Count > 0
+                ? 0
+                : 1;
+        }
 
         EmbeddedPluginLoader.Load();
 

@@ -35,6 +35,7 @@ public sealed class HostModuleTests
         Assert.IsTrue(host.Commands.TryGetCommand(new CommandId("sample.refresh"), out CommandDescriptor command));
         Assert.AreEqual("刷新", command.Title);
         Assert.AreEqual(new SettingKey("sample.setting"), host.Settings.Settings.Single().Key);
+        Assert.AreEqual("sample.settings", host.SettingsPages.Pages.Single().Id);
         Assert.AreEqual(new ThemeId("sample.theme"), host.Themes.Themes.Single().Id);
         Assert.AreEqual(new AccountProviderId("sample.account"), host.Accounts.Providers.Single().Id);
         Assert.AreEqual(new DownloadSourceId("sample.download"), host.Downloads.Sources.Single().Id);
@@ -84,6 +85,10 @@ public sealed class HostModuleTests
         settings.AddSetting(new SettingDescriptor("sample.setting", "设置"));
 
         Assert.ThrowsExactly<InvalidOperationException>(() => settings.AddSetting(new SettingDescriptor("SAMPLE.SETTING", "设置")));
+
+        HostSettingsPageRegistry settingsPages = new();
+        settingsPages.AddPage(CreateSettingsPage("sample.settings"));
+        Assert.ThrowsExactly<InvalidOperationException>(() => settingsPages.AddPage(CreateSettingsPage("SAMPLE.SETTINGS")));
 
         ExtensionRegistry extensions = new();
         extensions.AddExtension(new ExtensionDescriptor(new ExtensionId("sample.extension"), "扩展"));
@@ -274,6 +279,9 @@ public sealed class HostModuleTests
     private static CommandDescriptor CreateCommand(string id, string title = "命令") =>
         new(new CommandId(id), title, static (_, _) => ValueTask.CompletedTask);
 
+    private static HostSettingsPageDescriptor CreateSettingsPage(string id) =>
+        new(id, "插件", "lucide/plug", "插件模块", "由 Host Module 注册。", []);
+
     private sealed class SampleHostModule : IPclHostModule
     {
         public const string ModuleId = "sample.host";
@@ -287,6 +295,7 @@ public sealed class HostModuleTests
             builder.Navigation.AddPage(CreatePage("sample.home"));
             builder.Commands.AddCommand(CreateCommand("sample.refresh", "刷新"));
             builder.Settings.AddSetting(new SettingDescriptor("sample.setting", "示例设置"));
+            builder.SettingsPages.AddPage(CreateSettingsPage("sample.settings"));
             builder.Themes.AddTheme(new ThemeDescriptor
             {
                 Id = new ThemeId("sample.theme"),
