@@ -72,7 +72,7 @@
         <!-- 日志与遥测 -->
         <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.3" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
-        <PackageReference Include="Sentry" Version="6.3.1" />
+        <PackageReference Include="Sentry" Version="6.6.0" />
         <!-- 身份认证 -->
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
         <!-- 验证 -->
