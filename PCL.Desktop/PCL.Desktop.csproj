@@ -33,6 +33,18 @@
     <PclPluginBouncyCastleAssembly Condition="'$(PclPluginBouncyCastleAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginBouncyCastleAssembly)'))</PclPluginBouncyCastleAssembly>
     <PclPluginJsonCanonicalizerAssembly Condition="'$(PclPluginJsonCanonicalizerAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginJsonCanonicalizerAssembly)'))</PclPluginJsonCanonicalizerAssembly>
     <PclPluginEs6NumberSerializerAssembly Condition="'$(PclPluginEs6NumberSerializerAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginEs6NumberSerializerAssembly)'))</PclPluginEs6NumberSerializerAssembly>
+
+    <!-- CI secret pre-write (PCL_WRITE_SECRET=1 embeds values into PclEmbeddedSecrets). -->
+    <PclWriteSecret Condition="'$(PclWriteSecret)' == ''">$([System.Environment]::GetEnvironmentVariable('PCL_WRITE_SECRET'))</PclWriteSecret>
+    <PclMsClientId Condition="'$(PclMsClientId)' == ''">$([System.Environment]::GetEnvironmentVariable('PCL_MS_CLIENT_ID'))</PclMsClientId>
+    <PclMsClientId Condition="'$(PclMsClientId)' == ''">$([System.Environment]::GetEnvironmentVariable('MS_CLIENT_ID'))</PclMsClientId>
+    <PclCurseForgeApiKey Condition="'$(PclCurseForgeApiKey)' == ''">$([System.Environment]::GetEnvironmentVariable('PCL_CURSEFORGE_API_KEY'))</PclCurseForgeApiKey>
+    <PclSentryDsn Condition="'$(PclSentryDsn)' == ''">$([System.Environment]::GetEnvironmentVariable('PCL_SENTRY_DSN'))</PclSentryDsn>
+    <PclNaidClientId Condition="'$(PclNaidClientId)' == ''">$([System.Environment]::GetEnvironmentVariable('PCL_NAID_CLIENT_ID'))</PclNaidClientId>
+    <PclNaidClientSecret Condition="'$(PclNaidClientSecret)' == ''">$([System.Environment]::GetEnvironmentVariable('PCL_NAID_CLIENT_SECRET'))</PclNaidClientSecret>
+    <PclLinkServerRoot Condition="'$(PclLinkServerRoot)' == ''">$([System.Environment]::GetEnvironmentVariable('PCL_LINK_SERVER_ROOT'))</PclLinkServerRoot>
+    <PclLobbyDefaultSecret Condition="'$(PclLobbyDefaultSecret)' == ''">$([System.Environment]::GetEnvironmentVariable('PCL_LOBBY_DEFAULT_SECRET'))</PclLobbyDefaultSecret>
+    <PclGithubSha Condition="'$(PclGithubSha)' == ''">$([System.Environment]::GetEnvironmentVariable('PCL_GITHUB_SHA'))</PclGithubSha>
   </PropertyGroup>
   <PropertyGroup Condition="'$(PclPluginAssembly)' != ''">
     <PublishAot>false</PublishAot>
@@ -48,6 +60,15 @@
     <CompilerVisibleProperty Include="InformationalVersion" />
     <CompilerVisibleProperty Include="Version" />
     <CompilerVisibleProperty Include="SourceRevisionId" />
+    <CompilerVisibleProperty Include="PclWriteSecret" />
+    <CompilerVisibleProperty Include="PclMsClientId" />
+    <CompilerVisibleProperty Include="PclCurseForgeApiKey" />
+    <CompilerVisibleProperty Include="PclSentryDsn" />
+    <CompilerVisibleProperty Include="PclNaidClientId" />
+    <CompilerVisibleProperty Include="PclNaidClientSecret" />
+    <CompilerVisibleProperty Include="PclLinkServerRoot" />
+    <CompilerVisibleProperty Include="PclLobbyDefaultSecret" />
+    <CompilerVisibleProperty Include="PclGithubSha" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
@@ -107,4 +128,5 @@
     <ProjectReference Include="../PCL.Platform/PCL.Platform.csproj" />
     <ProjectReference Include="../PCL.UI.Abstractions/PCL.UI.Abstractions.csproj" />
   </ItemGroup>
+  <Import Project="GenerateEmbeddedSecrets.targets" />
 </Project>

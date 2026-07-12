@@ -68,7 +68,10 @@ public sealed class MicrosoftMinecraftAuthService : IMicrosoftMinecraftAuthServi
     public static string ResolveClientId() =>
         FirstNonEmpty(
             Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID"),
-            Environment.GetEnvironmentVariable("MS_CLIENT_ID"));
+            Environment.GetEnvironmentVariable("MS_CLIENT_ID"),
+            // Legacy / alternate env names used by some CI secret mappings.
+            Environment.GetEnvironmentVariable("PCL_CLIENT_ID"),
+            Environment.GetEnvironmentVariable("CLIENT_ID"));
 
     public async Task<MicrosoftDeviceCodeInfo> RequestDeviceCodeAsync(
         string clientId,

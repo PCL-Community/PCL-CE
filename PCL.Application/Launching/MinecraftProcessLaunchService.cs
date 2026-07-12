@@ -74,19 +74,26 @@ public static class MinecraftProcessLaunchService
         string mainClass = FindString(versionJson, inheritedVersionJsons, "mainClass")
                            ?? throw new FormatException("version.json 缺少 mainClass。");
         string gameDirectory = request.IsolatedGameDirectory ? instanceDirectory : minecraftRoot;
-        string nativesDirectory = Path.Combine(instanceDirectory, "natives");
+        // WPF uses "{versionId}-natives". Prefer that if already populated (PCL2/CE installs).
+        string nativesDirectory = ResolveNativesDirectory(instanceDirectory, request.VersionId);
         string versionJar = Path.Combine(instanceDirectory, request.VersionId + ".jar");
 
         MinecraftArgumentRuleContext ruleContext = CreateRuleContext();
         IReadOnlyList<MinecraftLibraryToken> libraries = ResolveLibraries(versionJson, inheritedVersionJsons, minecraftRoot, instanceDirectory);
 
+        // Extract both legacy IsNatives classifiers and modern artifact natives (name ends with :natives-os).
+        // Modern natives stay on the classpath; we still pre-extract DLLs so -Djava.library.path is usable.
+        string[] nativeArchives = libraries
+            .Where(static library => File.Exists(library.LocalPath) &&
+                                     (library.IsNatives || IsModernNativeLibrary(library.OriginalName)))
+            .Select(static library => library.LocalPath)
+            .Distinct(GetPathComparer())
+            .ToArray();
+
         MinecraftNativeExtractionResult nativeExtraction = MinecraftNativeExtractionService.Extract(
             new MinecraftNativeExtractionRequest
             {
-                ArchivePaths = libraries
-                    .Where(static library => library.IsNatives && File.Exists(library.LocalPath))
-                    .Select(static library => library.LocalPath)
-                    .ToArray(),
+                ArchivePaths = nativeArchives,
                 TargetDirectory = nativesDirectory,
                 OperatingSystem = GetNativeOperatingSystem()
             });
@@ -162,13 +169,22 @@ public static class MinecraftProcessLaunchService
         string gameDirectory,
         string nativesDirectory,
         string classpath,
-        string assetIndexName) =>
-        new(StringComparer.Ordinal)
+        string assetIndexName)
+    {
+        // NeoForge/Forge module path uses these (unquoted) — leaving them literal causes instant exit code 1.
+        string libraryDirectory = Path.Combine(minecraftRoot, "libraries");
+        string classpathSeparator = Path.PathSeparator.ToString();
+
+        return new(StringComparer.Ordinal)
         {
             ["${natives_directory}"] = Quote(nativesDirectory),
             ["${launcher_name}"] = request.LauncherName,
             ["${launcher_version}"] = "Avalonia",
             ["${classpath}"] = Quote(classpath),
+            ["${classpath_separator}"] = classpathSeparator,
+            // Must NOT Quote — value is embedded mid-token: ${library_directory}/cpw/mods/...
+            ["${library_directory}"] = libraryDirectory,
+            ["${libraries_directory}"] = libraryDirectory,
             ["${auth_player_name}"] = request.PlayerName,
             ["${version_name}"] = request.VersionId,
             ["${game_directory}"] = Quote(gameDirectory),
@@ -183,8 +199,14 @@ public static class MinecraftProcessLaunchService
             ["${resolution_width}"] = request.Width.ToString(System.Globalization.CultureInfo.InvariantCulture),
             ["${resolution_height}"] = request.Height.ToString(System.Globalization.CultureInfo.InvariantCulture),
             ["${quickPlayPath}"] = string.Empty,
+            ["${quickPlaySingleplayer}"] = string.Empty,
+            ["${quickPlayMultiplayer}"] = string.Empty,
+            ["${quickPlayRealms}"] = string.Empty,
+            // logging.client.argument uses ${path} for the downloaded log4j config; empty is safe (JVM default).
+            ["${path}"] = string.Empty,
             ["${game_assets}"] = Quote(Path.Combine(minecraftRoot, "assets", "virtual", "legacy"))
         };
+    }
 
     private static async Task<IReadOnlyList<InheritedVersionJson>> ReadInheritedVersionJsonsAsync(
         JsonObject versionJson,
@@ -357,6 +379,38 @@ public static class MinecraftProcessLaunchService
         if (OperatingSystem.IsMacOS())
             return MinecraftNativeOperatingSystem.MacOs;
         return MinecraftNativeOperatingSystem.Unknown;
+    }
+
+    /// <summary>
+    /// Prefer an already-populated WPF-style "{versionId}-natives" folder; otherwise use "natives".
+    /// </summary>
+    private static string ResolveNativesDirectory(string instanceDirectory, string versionId)
+    {
+        string versionNatives = Path.Combine(instanceDirectory, versionId + "-natives");
+        if (Directory.Exists(versionNatives) &&
+            Directory.EnumerateFiles(versionNatives, "*", SearchOption.AllDirectories).Any())
+        {
+            return versionNatives;
+        }
+
+        return Path.Combine(instanceDirectory, "natives");
+    }
+
+    /// <summary>
+    /// Modern Mojang/NeoForge libraries use coordinates like "org.lwjgl:lwjgl:3.3.3:natives-windows"
+    /// without a legacy "natives" JSON map.
+    /// </summary>
+    private static bool IsModernNativeLibrary(string? originalName)
+    {
+        if (string.IsNullOrWhiteSpace(originalName))
+            return false;
+
+        string[] parts = originalName.Split(':');
+        if (parts.Length < 4)
+            return false;
+
+        string classifier = parts[3];
+        return classifier.StartsWith("natives-", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string Quote(string value) =>

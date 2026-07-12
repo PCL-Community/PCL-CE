@@ -47,4 +47,6 @@ jobs:
       runtime_variant: SelfContained
       include_plugin: ${{ github.event_name != 'pull_request' }}
       plugin_tag: ${{ vars.PCL_PLUGIN_TAG || 'latest' }}
+      # PRs from forks cannot read secrets; only require CLIENT_ID on non-PR runs.
+      require_ms_client_id: ${{ github.event_name != 'pull_request' }}
     secrets: inherit

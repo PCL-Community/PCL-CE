@@ -35,7 +35,31 @@ on:
         required: false
         default: latest
         type: string
+      require_ms_client_id:
+        description: Fail the build when Microsoft OAuth CLIENT_ID secret is missing
+        required: false
+        default: true
+        type: boolean
     secrets:
+      # Prefer CLIENT_ID (legacy name). MS_CLIENT_ID / PCL_MS_CLIENT_ID are accepted aliases.
+      CLIENT_ID:
+        required: false
+      MS_CLIENT_ID:
+        required: false
+      PCL_MS_CLIENT_ID:
+        required: false
+      CURSEFORGE_API_KEY:
+        required: false
+      SENTRY_DSN:
+        required: false
+      NAID_CLIENT_ID:
+        required: false
+      NAID_CLIENT_SECRET:
+        required: false
+      LINK_SERVER_ROOTS:
+        required: false
+      LOBBY_DEFAULT_SECRET:
+        required: false
       PCL_PLUGIN_TOKEN:
         required: false
 
@@ -47,6 +71,9 @@ jobs:
       LANG: en_US.UTF-8
       PUBLISH_DIR: artifact
       ARTIFACT_NAME: PCL_N_${{ inputs.configuration }}_${{ inputs.runtime_id }}_${{ inputs.runtime_variant }}
+      # Stabilize MSBuild node crashes (MSB4166) on constrained runners.
+      DOTNET_CLI_UI_LANGUAGE: en
+      MSBUILDDISABLENODEREUSE: 1
 
     steps:
       - name: Checkout Avalonia branch
@@ -56,6 +83,42 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
+
+      - name: Resolve Microsoft Client ID secret
+        id: ms_client
+        shell: bash
+        env:
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          MS_CLIENT_ID: ${{ secrets.MS_CLIENT_ID }}
+          PCL_MS_CLIENT_ID: ${{ secrets.PCL_MS_CLIENT_ID }}
+        run: |
+          set -euo pipefail
+          value=""
+          if [[ -n "${PCL_MS_CLIENT_ID:-}" ]]; then
+            value="$PCL_MS_CLIENT_ID"
+          elif [[ -n "${MS_CLIENT_ID:-}" ]]; then
+            value="$MS_CLIENT_ID"
+          elif [[ -n "${CLIENT_ID:-}" ]]; then
+            value="$CLIENT_ID"
+          fi
+          echo "has_value=$([[ -n "$value" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          # Mask and export for later steps (do not print value).
+          if [[ -n "$value" ]]; then
+            echo "::add-mask::$value"
+            echo "PCL_MS_CLIENT_ID=$value" >> "$GITHUB_ENV"
+          fi
+
+      - name: Require Microsoft Client ID for publish builds
+        if: ${{ inputs.require_ms_client_id }}
+        shell: bash
+        run: |
+          if [[ "${{ steps.ms_client.outputs.has_value }}" != "true" ]]; then
+            echo "::error::Missing Microsoft OAuth client id secret."
+            echo "Add a repository secret named CLIENT_ID (or MS_CLIENT_ID / PCL_MS_CLIENT_ID)."
+            echo "It is embedded into the binary at publish time via PCL_WRITE_SECRET."
+            exit 1
+          fi
+          echo "Microsoft CLIENT_ID secret is present (value masked)."
 
       - name: Download private plugin release
         if: ${{ inputs.include_plugin }}
@@ -103,7 +166,8 @@ jobs:
         shell: bash
         env:
           PCL_WRITE_SECRET: '1'
-          PCL_MS_CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          # Prefer env written by Resolve step; fall back to raw secrets for other keys.
+          PCL_MS_CLIENT_ID: ${{ env.PCL_MS_CLIENT_ID }}
           PCL_CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
           PCL_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           PCL_NAID_CLIENT_ID: ${{ secrets.NAID_CLIENT_ID }}
@@ -117,6 +181,7 @@ jobs:
           PCL_PLUGIN_JSON_CANONICALIZER_ASSEMBLY: ${{ github.workspace }}/plugin/jsoncanonicalizer.dll
           PCL_PLUGIN_ES6_NUMBER_SERIALIZER_ASSEMBLY: ${{ github.workspace }}/plugin/es6numberserializer.dll
         run: |
+          set -euo pipefail
           plugin_args=()
           if [[ "${{ inputs.include_plugin }}" == "true" ]]; then
             plugin_args=(
@@ -128,10 +193,13 @@ jobs:
             )
           fi
 
+          # Single-node publish reduces MSB4166 child-node crashes under memory pressure.
           dotnet publish PCL.Desktop/PCL.Desktop.csproj \
             -c "${{ inputs.configuration }}" \
             -r "${{ inputs.runtime_id }}" \
             --self-contained "${{ inputs.self_contained }}" \
+            -m:1 \
+            -nodeReuse:false \
             -p:Platform="${{ inputs.architecture }}" \
             -p:PublishAot=false \
             -p:PublishTrimmed=false \
@@ -139,6 +207,7 @@ jobs:
             -p:EnableCompressionInSingleFile="${{ inputs.self_contained }}" \
             -p:IncludeNativeLibrariesForSelfExtract=true \
             -p:PclRuntimeVariant="${{ inputs.runtime_variant }}" \
+            -p:PclWriteSecret=1 \
             -p:DebugType=None \
             -p:DebugSymbols=false \
             -p:DeleteExistingFiles=true \
@@ -164,6 +233,15 @@ jobs:
           fi
 
           chmod +x "$binary" || true
+
+          # Smoke-check embedded secrets when CLIENT_ID was required.
+          if [[ "${{ inputs.require_ms_client_id }}" == "true" ]]; then
+            if ! "$binary" --validate-secrets; then
+              echo "::error::Published binary is missing embedded secrets (PCL_WRITE_SECRET / CLIENT_ID)."
+              exit 1
+            fi
+            echo "Embedded secrets validation passed."
+          fi
 
       - name: Upload Avalonia build artifact
         uses: actions/upload-artifact@v4

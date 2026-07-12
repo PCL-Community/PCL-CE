@@ -3,6 +3,7 @@
 // Licensed under the Apache License, Version 2.0.
 
 using System.Collections.Frozen;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Microsoft.Win32;
@@ -56,10 +57,35 @@ public sealed class FileSystemJavaLocator : IJavaLocator
             if (candidate is null)
                 continue;
 
-            candidates.TryAdd(candidate.Installation.JavaExecutablePath, candidate);
+            // Prefer a real JDK home over a PATH/javapath shim for the same major version path key.
+            string key = candidate.Installation.JavaExecutablePath;
+            if (candidates.TryGetValue(key, out JavaRuntimeCandidate? existing))
+            {
+                if (IsBetterCandidate(candidate, existing))
+                    candidates[key] = candidate;
+                continue;
+            }
+
+            candidates[key] = candidate;
         }
 
-        return ValueTask.FromResult<IReadOnlyList<JavaRuntimeCandidate>>(candidates.Values.ToArray());
+        // Also index by java home so shim + real home don't both win confusingly later.
+        return ValueTask.FromResult<IReadOnlyList<JavaRuntimeCandidate>>(
+            candidates.Values
+                .GroupBy(static c => Path.GetFullPath(c.Installation.JavaHome), GetPathComparer())
+                .Select(static group => group.OrderByDescending(static c => c.Installation.MajorVersion)
+                    .ThenBy(static c => c.Installation.IsJre)
+                    .First())
+                .ToArray());
+    }
+
+    private static bool IsBetterCandidate(JavaRuntimeCandidate candidate, JavaRuntimeCandidate existing)
+    {
+        if (candidate.Installation.MajorVersion != existing.Installation.MajorVersion)
+            return candidate.Installation.MajorVersion > existing.Installation.MajorVersion;
+        if (candidate.Installation.IsJre != existing.Installation.IsJre)
+            return !candidate.Installation.IsJre && existing.Installation.IsJre;
+        return candidate.Installation.Version.CompareTo(existing.Installation.Version) > 0;
     }
 
     private IEnumerable<string> EnumerateJavaHomes(CancellationToken cancellationToken)
@@ -82,6 +108,10 @@ public sealed class FileSystemJavaLocator : IJavaLocator
         foreach (string pathEntry in EnumeratePathEntries())
             yield return pathEntry;
 
+        // PCL-managed Mojang runtimes downloaded by the launcher.
+        foreach (string runtimeRoot in EnumerateManagedRuntimeRoots())
+            yield return runtimeRoot;
+
         if (OperatingSystem.IsWindows())
         {
             foreach (string registryHome in EnumerateWindowsRegistryJavaHomes())
@@ -89,12 +119,19 @@ public sealed class FileSystemJavaLocator : IJavaLocator
 
             foreach (string root in EnumerateExisting(
                          Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
-                         Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)))
+                         Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
+                         @"D:\Program Files",
+                         @"D:\Program Files (x86)",
+                         @"C:\Program Files",
+                         @"C:\Program Files (x86)"))
             {
                 yield return Path.Combine(root, "Java");
                 yield return Path.Combine(root, "Eclipse Adoptium");
                 yield return Path.Combine(root, "Microsoft");
                 yield return Path.Combine(root, "Zulu");
+                yield return Path.Combine(root, "BellSoft");
+                yield return Path.Combine(root, "Amazon Corretto");
+                yield return Path.Combine(root, "Common Files", "Oracle", "Java");
             }
         }
         else if (OperatingSystem.IsMacOS())
@@ -197,13 +234,37 @@ public sealed class FileSystemJavaLocator : IJavaLocator
             string? childHome = ResolveJavaHome(child);
             if (childHome is not null)
                 yield return childHome;
+
+            // One extra level for vendor trees like Program Files\Java\jdk-21.0.10
+            // and Program Files\Eclipse Adoptium\jdk-17.0.x-hotspot.
+            foreach (string grandChild in SafeEnumerateDirectories(child))
+            {
+                string? grandChildHome = ResolveJavaHome(grandChild);
+                if (grandChildHome is not null)
+                    yield return grandChildHome;
+            }
         }
     }
 
     private static string? ResolveJavaHome(string path)
     {
         if (File.Exists(path) && IsJavaExecutableName(Path.GetFileName(path)))
-            return Path.GetFullPath(Path.Combine(Path.GetDirectoryName(path)!, ".."));
+        {
+            string? directory = Path.GetDirectoryName(path);
+            if (string.IsNullOrWhiteSpace(directory))
+                return null;
+
+            // .../bin/java(.exe)
+            if (string.Equals(Path.GetFileName(directory), "bin", StringComparison.OrdinalIgnoreCase))
+            {
+                string? home = Directory.GetParent(directory)?.FullName;
+                if (!string.IsNullOrWhiteSpace(home) && File.Exists(GetJavaExecutablePath(home)))
+                    return Path.GetFullPath(home);
+            }
+
+            // Oracle javapath shim directory: treat as non-home; TryCreateCandidate will probe -version.
+            return Path.GetFullPath(directory);
+        }
 
         if (Directory.Exists(path))
         {
@@ -214,6 +275,7 @@ public sealed class FileSystemJavaLocator : IJavaLocator
             if (File.Exists(GetJavaExecutablePath(path)))
                 return Path.GetFullPath(path);
 
+            // PATH entry pointing at bin/
             string parent = Directory.GetParent(path)?.FullName ?? string.Empty;
             if (string.Equals(Path.GetFileName(path), "bin", StringComparison.OrdinalIgnoreCase) &&
                 !string.IsNullOrEmpty(parent) &&
@@ -221,6 +283,10 @@ public sealed class FileSystemJavaLocator : IJavaLocator
             {
                 return Path.GetFullPath(parent);
             }
+
+            // Directory that directly contains java.exe (javapath).
+            if (File.Exists(Path.Combine(path, GetJavaExecutableName())))
+                return Path.GetFullPath(path);
         }
 
         return null;
@@ -228,30 +294,116 @@ public sealed class FileSystemJavaLocator : IJavaLocator
 
     private static JavaRuntimeCandidate? TryCreateCandidate(string javaHome)
     {
-        string javaExecutable = GetJavaExecutablePath(javaHome);
+        string javaExecutable = File.Exists(GetJavaExecutablePath(javaHome))
+            ? GetJavaExecutablePath(javaHome)
+            : Path.Combine(javaHome, GetJavaExecutableName());
         if (!File.Exists(javaExecutable))
             return null;
 
         Dictionary<string, string> release = ReadReleaseFile(Path.Combine(javaHome, "release"));
+        // Mojang runtime layout: .../runtime/<component>/<platform>/<component>
+        if (release.Count == 0)
+        {
+            string nestedRelease = Path.Combine(javaHome, Path.GetFileName(javaHome), "release");
+            if (File.Exists(nestedRelease))
+                release = ReadReleaseFile(nestedRelease);
+        }
+
         Version parsedVersion;
         if (!TryParseVersion(GetReleaseValue(release, "JAVA_VERSION"), out Version? version) || version is null)
-            parsedVersion = new Version(0, 0, 0, 0);
+        {
+            if (!TryProbeJavaVersion(javaExecutable, out parsedVersion))
+                parsedVersion = new Version(0, 0, 0, 0);
+        }
         else
+        {
             parsedVersion = version;
+        }
+
+        // Skip unusable zero-version shims that could not be probed.
+        if (parsedVersion.Major == 0 && parsedVersion.Minor == 0)
+            return null;
 
         JavaArchitecture architecture = ParseArchitecture(GetReleaseValue(release, "OS_ARCH"));
-        bool isJre = !File.Exists(Path.Combine(javaHome, "bin", GetJavacExecutableName()));
+        bool isJre = !File.Exists(Path.Combine(javaHome, "bin", GetJavacExecutableName())) &&
+                     !File.Exists(Path.Combine(javaHome, GetJavacExecutableName()));
+        string resolvedHome = File.Exists(GetJavaExecutablePath(javaHome))
+            ? Path.GetFullPath(javaHome)
+            : Path.GetFullPath(javaHome);
+        string resolvedExecutable = Path.GetFullPath(javaExecutable);
+        string? windowed = OperatingSystem.IsWindows()
+            ? (GetWindowedJavaExecutablePath(resolvedHome) ??
+               (File.Exists(Path.Combine(resolvedHome, "javaw.exe"))
+                   ? Path.GetFullPath(Path.Combine(resolvedHome, "javaw.exe"))
+                   : null))
+            : null;
+
         JavaInstallation installation = new(
-            Path.GetFullPath(javaHome),
-            Path.GetFullPath(javaExecutable),
-            OperatingSystem.IsWindows() ? GetWindowedJavaExecutablePath(javaHome) : null,
+            resolvedHome,
+            resolvedExecutable,
+            windowed,
             parsedVersion,
-            ParseBrand(GetReleaseValue(release, "IMPLEMENTOR")),
+            ParseBrand(GetReleaseValue(release, "IMPLEMENTOR") ?? resolvedHome),
             architecture,
-            architecture is JavaArchitecture.X64 or JavaArchitecture.Arm64,
+            architecture is JavaArchitecture.X64 or JavaArchitecture.Arm64 or JavaArchitecture.Unknown,
             isJre);
 
         return new JavaRuntimeCandidate(installation, Source: JavaSource.AutoScanned);
+    }
+
+    private static bool TryProbeJavaVersion(string javaExecutable, out Version version)
+    {
+        version = new Version(0, 0, 0, 0);
+        try
+        {
+            using Process process = new()
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = javaExecutable,
+                    Arguments = "-version",
+                    RedirectStandardError = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+            if (!process.Start())
+                return false;
+
+            string stderr = process.StandardError.ReadToEnd();
+            string stdout = process.StandardOutput.ReadToEnd();
+            if (!process.WaitForExit(4000))
+            {
+                try { process.Kill(entireProcessTree: true); } catch { /* ignore */ }
+                return false;
+            }
+
+            string text = string.IsNullOrWhiteSpace(stderr) ? stdout : stderr;
+            // openjdk version "21.0.2"  OR  java version "1.8.0_202"
+            foreach (string line in text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
+            {
+                int firstQuote = line.IndexOf('"');
+                int secondQuote = firstQuote >= 0 ? line.IndexOf('"', firstQuote + 1) : -1;
+                if (firstQuote < 0 || secondQuote <= firstQuote)
+                    continue;
+
+                string token = line[(firstQuote + 1)..secondQuote];
+                if (TryParseVersion(token, out Version? parsed) && parsed is not null)
+                {
+                    version = parsed;
+                    return version.Major > 0 || version.Minor > 0;
+                }
+            }
+        }
+        catch (Exception ex) when (
+            ex is IOException or UnauthorizedAccessException or InvalidOperationException or
+            global::System.ComponentModel.Win32Exception)
+        {
+            return false;
+        }
+
+        return false;
     }
 
     private static Dictionary<string, string> ReadReleaseFile(string releaseFile)
@@ -359,6 +511,26 @@ public sealed class FileSystemJavaLocator : IJavaLocator
 
         version = new Version(parts[0], parts[1], parts[2], parts[3]);
         return true;
+    }
+
+    private static IEnumerable<string> EnumerateManagedRuntimeRoots()
+    {
+        List<string> roots = [];
+        try
+        {
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            if (!string.IsNullOrWhiteSpace(appData))
+                roots.Add(Path.Combine(appData, ".minecraft", "runtime"));
+            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            if (!string.IsNullOrWhiteSpace(localAppData))
+                roots.Add(Path.Combine(localAppData, "PCL-N", "runtime"));
+        }
+        catch (Exception)
+        {
+            // Environment folder lookup can fail in restricted hosts; skip managed roots.
+        }
+
+        return roots;
     }
 
     private static IEnumerable<string> EnumeratePathEntries()
