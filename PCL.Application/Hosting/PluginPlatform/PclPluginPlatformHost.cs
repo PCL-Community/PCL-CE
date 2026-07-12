@@ -14,12 +14,14 @@ internal sealed class PclPluginPlatformHost : IPclPluginPlatformHost
         IHostSettingsPageRegistry settingsPages,
         IPluginHostDispatcher? dispatcher = null,
         IPluginHostNotifications? notifications = null,
-        IPluginHostInstanceQuery? instances = null)
+        IPluginHostInstanceQuery? instances = null,
+        IPluginHostUiComposition? uiComposition = null)
     {
         SettingsPages = settingsPages ?? throw new ArgumentNullException(nameof(settingsPages));
         Dispatcher = dispatcher ?? ImmediatePluginHostDispatcher.Instance;
         Notifications = notifications ?? CapturingPluginHostNotifications.Instance;
         Instances = instances;
+        UiComposition = uiComposition;
     }
 
     public IHostSettingsPageRegistry SettingsPages { get; }
@@ -29,6 +31,8 @@ internal sealed class PclPluginPlatformHost : IPclPluginPlatformHost
     public IPluginHostNotifications Notifications { get; }
 
     public IPluginHostInstanceQuery? Instances { get; }
+
+    public IPluginHostUiComposition? UiComposition { get; }
 }
 
 internal sealed class ImmediatePluginHostDispatcher : IPluginHostDispatcher

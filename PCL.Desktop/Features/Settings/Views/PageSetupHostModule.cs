@@ -23,6 +23,8 @@ public sealed class PageSetupHostModule : MyPageRight, IRefreshableSettingsPage
     private readonly HostSettingsPageDescriptor _descriptor;
     private readonly StackPanel _pluginList = new() { Spacing = 8 };
     private readonly StackPanel _marketList = new() { Spacing = 8 };
+    private readonly StackPanel _conflictList = new() { Spacing = 8 };
+    private readonly StackPanel _compatList = new() { Spacing = 6 };
     private readonly TextBlock _statusLabel = new()
     {
         FontSize = 12d,
@@ -114,6 +116,8 @@ public sealed class PageSetupHostModule : MyPageRight, IRefreshableSettingsPage
             _statusLabel.Text = "插件目录未初始化。";
             _pluginList.Children.Clear();
             _marketList.Children.Clear();
+            _conflictList.Children.Clear();
+            _compatList.Children.Clear();
             return;
         }
 
@@ -133,8 +137,8 @@ public sealed class PageSetupHostModule : MyPageRight, IRefreshableSettingsPage
 
             PluginUiPatchApplyResult apply = catalog.ApplyUiPatches();
             _patchStatusLabel.Text =
-                $"UI Patch：应用 {apply.AppliedGlobalIds.Count} · SafeMode 拦截 {apply.BlockedBySafeMode.Count} · " +
-                $"冲突拦截 {apply.BlockedByConflict.Count}";
+                $"UI Patch：逻辑应用 {apply.AppliedGlobalIds.Count} · 视觉应用 {apply.VisuallyAppliedGlobalIds.Count} · " +
+                $"Safe 拦截 {apply.BlockedBySafeMode.Count} · 冲突拦截 {apply.BlockedByConflict.Count}";
 
             _pluginList.Children.Clear();
             if (entries.Count == 0)
@@ -151,6 +155,50 @@ public sealed class PageSetupHostModule : MyPageRight, IRefreshableSettingsPage
             {
                 foreach (PluginCatalogEntry entry in entries)
                     _pluginList.Children.Add(CreatePluginRow(entry));
+            }
+
+            _conflictList.Children.Clear();
+            PluginUiConflictSummary[] conflicts = apply.Conflicts
+                .Where(static c => string.Equals(c.Severity, "Error", StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+            if (conflicts.Length == 0)
+            {
+                _conflictList.Children.Add(new TextBlock
+                {
+                    Text = "当前无阻塞性 UI 冲突。",
+                    FontSize = 12d,
+                    Opacity = 0.75
+                });
+            }
+            else
+            {
+                foreach (PluginUiConflictSummary conflict in conflicts)
+                    _conflictList.Children.Add(CreateConflictRow(conflict));
+            }
+
+            _compatList.Children.Clear();
+            IReadOnlyList<PluginCompatibilityRecord> compat = catalog.ListCompatibility();
+            if (compat.Count == 0)
+            {
+                _compatList.Children.Add(new TextBlock
+                {
+                    Text = "尚无本地兼容性观测记录。",
+                    FontSize = 12d,
+                    Opacity = 0.75
+                });
+            }
+            else
+            {
+                foreach (PluginCompatibilityRecord record in compat.Take(8))
+                {
+                    _compatList.Children.Add(new TextBlock
+                    {
+                        Text = $"{record.PluginA} × {record.PluginB} @ {record.Target} → {record.Result}",
+                        FontSize = 12d,
+                        Opacity = 0.8,
+                        TextWrapping = TextWrapping.Wrap
+                    });
+                }
             }
         }
         catch (Exception ex)
@@ -231,7 +279,87 @@ public sealed class PageSetupHostModule : MyPageRight, IRefreshableSettingsPage
             Margin = new Thickness(0, 12, 0, 0)
         });
         panel.Children.Add(_marketList);
+
+        panel.Children.Add(new TextBlock
+        {
+            Text = "UI 冲突决策",
+            FontWeight = FontWeight.SemiBold,
+            Margin = new Thickness(0, 12, 0, 0)
+        });
+        panel.Children.Add(_conflictList);
+
+        panel.Children.Add(new TextBlock
+        {
+            Text = "本地兼容性观测（最近）",
+            FontWeight = FontWeight.SemiBold,
+            Margin = new Thickness(0, 12, 0, 0)
+        });
+        panel.Children.Add(_compatList);
         return panel;
+    }
+
+    private Border CreateConflictRow(PluginUiConflictSummary conflict)
+    {
+        Border border = new()
+        {
+            BorderBrush = new SolidColorBrush(Color.FromArgb(60, 200, 120, 40)),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(6),
+            Padding = new Thickness(12, 10, 12, 10)
+        };
+
+        StackPanel stack = new() { Spacing = 6 };
+        stack.Children.Add(new TextBlock
+        {
+            Text = $"{conflict.Kind} · {conflict.Target}",
+            FontWeight = FontWeight.SemiBold,
+            FontSize = 13d,
+            TextWrapping = TextWrapping.Wrap
+        });
+        stack.Children.Add(new TextBlock
+        {
+            Text = $"{conflict.LeftGlobalId}  vs  {conflict.RightGlobalId}\n{conflict.Message}" +
+                   (conflict.Resolution is null ? string.Empty : $"\n已决策：{conflict.Resolution}"),
+            FontSize = 12d,
+            Opacity = 0.8,
+            TextWrapping = TextWrapping.Wrap
+        });
+
+        StackPanel buttons = new() { Orientation = Orientation.Horizontal, Spacing = 6 };
+        buttons.Children.Add(CreateConflictActionButton("禁用左侧", conflict, PluginConflictResolution.DisableLeft));
+        buttons.Children.Add(CreateConflictActionButton("禁用右侧", conflict, PluginConflictResolution.DisableRight));
+        buttons.Children.Add(CreateConflictActionButton("强制两者", conflict, PluginConflictResolution.ForceBoth));
+        stack.Children.Add(buttons);
+
+        border.Child = stack;
+        return border;
+    }
+
+    private MyButton CreateConflictActionButton(
+        string text,
+        PluginUiConflictSummary conflict,
+        PluginConflictResolution resolution)
+    {
+        MyButton button = new() { Text = text, MinWidth = 88, Height = 30 };
+        string left = conflict.LeftGlobalId;
+        string right = conflict.RightGlobalId;
+        button.Click += (_, _) =>
+        {
+            try
+            {
+                PluginCatalogAccess.Current.ResolveUiConflict(left, right, resolution);
+                DesktopPluginHostNotifications.Instance.ShowInformation($"冲突决策已保存：{resolution}");
+            }
+            catch (Exception ex)
+            {
+                DesktopPluginHostNotifications.Instance.ShowWarning(ex.Message);
+            }
+            finally
+            {
+                RefreshPage();
+            }
+        };
+        return button;
     }
 
     private void PersistSafetyFromUi()

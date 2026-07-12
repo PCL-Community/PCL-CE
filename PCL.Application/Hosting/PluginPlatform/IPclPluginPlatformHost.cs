@@ -20,7 +20,33 @@ internal interface IPclPluginPlatformHost
 
     /// <summary>Optional instance directory query for <c>pcl.instances.read</c>.</summary>
     IPluginHostInstanceQuery? Instances { get; }
+
+    /// <summary>Optional Avalonia composition bridge for UI Patch apply (Desktop-only).</summary>
+    IPluginHostUiComposition? UiComposition { get; }
 }
+
+/// <summary>
+/// Host-side visual composition for plugin UI patches (no Avalonia types in Application ABI).
+/// Desktop implements with real controls; PCL.Plugin only calls these methods.
+/// </summary>
+internal interface IPluginHostUiComposition
+{
+    void ClearSlot(string surfaceId, string slotId);
+
+    void Inject(string surfaceId, string slotId, HostUiInjectionRequest request);
+
+    bool TrySetProperty(string surfaceId, string? slotId, string propertyPath, string? value);
+
+    bool TrySetVisible(string surfaceId, bool isVisible);
+
+    bool IsTargetRegistered(string surfaceId);
+}
+
+internal sealed record HostUiInjectionRequest(
+    string PluginId,
+    string ContributionId,
+    string Title,
+    int Order);
 
 /// <summary>Read-only Minecraft instance listing for plugins (design §9).</summary>
 internal interface IPluginHostInstanceQuery

@@ -37,7 +37,8 @@ internal static class DesktopHost
             _current.SettingsPages,
             AvaloniaPluginHostDispatcher.Instance,
             DesktopPluginHostNotifications.Instance,
-            DesktopPluginHostInstanceQuery.Instance));
+            DesktopPluginHostInstanceQuery.Instance,
+            DesktopPluginHostUiComposition.Instance));
         // Third-party .pnp catalog + load enabled plugins (no-op when plugin DLL is not embedded).
         EmbeddedPluginLoader.InitializeRuntime();
     }

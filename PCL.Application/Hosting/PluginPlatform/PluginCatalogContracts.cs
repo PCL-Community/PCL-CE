@@ -32,13 +32,43 @@ internal sealed record PluginSafetySettings(
     public static PluginSafetySettings Default { get; } = new(false, false);
 }
 
-/// <summary>Result of applying a planned UI patch graph (no Avalonia tree mutation yet).</summary>
+/// <summary>Result of applying a planned UI patch graph.</summary>
 internal sealed record PluginUiPatchApplyResult(
     IReadOnlyList<string> AppliedGlobalIds,
     IReadOnlyList<string> SkippedGlobalIds,
     IReadOnlyList<string> BlockedBySafeMode,
     IReadOnlyList<string> BlockedByConflict,
-    bool UiSafeMode);
+    IReadOnlyList<string> VisuallyAppliedGlobalIds,
+    bool UiSafeMode,
+    IReadOnlyList<PluginUiConflictSummary> Conflicts);
+
+/// <summary>Conflict row for host management UI (design §13.5).</summary>
+internal sealed record PluginUiConflictSummary(
+    string Kind,
+    string Severity,
+    string LeftGlobalId,
+    string RightGlobalId,
+    string Target,
+    string Message,
+    string? Resolution);
+
+/// <summary>User resolution for a conflict pair (design §13.5).</summary>
+internal enum PluginConflictResolution
+{
+    None = 0,
+    DisableLeft = 1,
+    DisableRight = 2,
+    ForceBoth = 3
+}
+
+/// <summary>Local compatibility observation (design §19.3 skeleton, offline).</summary>
+internal sealed record PluginCompatibilityRecord(
+    string PluginA,
+    string PluginB,
+    string Target,
+    string Result,
+    string Evidence,
+    DateTimeOffset ObservedAt);
 
 /// <summary>Privileged catalog / session surface used by Desktop settings (InternalsVisibleTo PCL.Plugin).</summary>
 internal interface IPluginCatalogService
@@ -64,6 +94,12 @@ internal interface IPluginCatalogService
 
     /// <summary>Plan + apply UI patches under current safety policy.</summary>
     PluginUiPatchApplyResult ApplyUiPatches();
+
+    IReadOnlyList<PluginUiConflictSummary> ListUiConflicts();
+
+    void ResolveUiConflict(string leftGlobalId, string rightGlobalId, PluginConflictResolution resolution);
+
+    IReadOnlyList<PluginCompatibilityRecord> ListCompatibility();
 }
 
 /// <summary>Process-wide catalog access for Desktop + PCL.Plugin bootstrap.</summary>

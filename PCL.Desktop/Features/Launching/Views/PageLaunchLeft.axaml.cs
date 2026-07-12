@@ -4,10 +4,12 @@
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Hosting;
 using PCL.Desktop.Localization;
 
 namespace PCL.Desktop.Features.Launching.Views;
@@ -27,12 +29,14 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
     private double _targetProgress;
     private double _renderedProgress;
     private bool _showLaunchingHint = true;
+    private StackPanel? _pluginInjectPanel;
 
     public PageLaunchLeft()
     {
         AvaloniaXamlLoader.Load(this);
         AnimatedControl = this.FindControl<Grid>("PanInput");
         WireLaunchButtonScaleMirror();
+        RegisterPluginUiSurfaces();
         SetLoadingState();
         AttachedToVisualTree += (_, _) =>
         {
@@ -42,6 +46,40 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
             _isLoadedOnce = true;
             _ = EnsureInstancesLoadedAsync();
         };
+        DetachedFromVisualTree += (_, _) => UnregisterPluginUiSurfaces();
+    }
+
+    private void RegisterPluginUiSurfaces()
+    {
+        if (this.FindControl<MyButton>("BtnLaunch") is { } launchButton)
+            DesktopPluginHostUiComposition.Instance.RegisterTarget("pcl.page.launch", launchButton);
+
+        if (this.FindControl<Grid>("PanInput") is not { } input)
+            return;
+
+        _pluginInjectPanel = new StackPanel
+        {
+            Name = "PanPluginPrimaryActionsAfter",
+            Spacing = 4,
+            Margin = new Thickness(20, 6, 20, 0),
+            Orientation = Orientation.Vertical
+        };
+        // Place after launch row (row 2): reuse row 3 area above instance buttons by inserting at end of grid.
+        Grid.SetRow(_pluginInjectPanel, 3);
+        Grid.SetColumn(_pluginInjectPanel, 0);
+        Grid.SetColumnSpan(_pluginInjectPanel, 5);
+        // Push inject host above instance buttons with negative margin if needed — keep simple append.
+        input.Children.Add(_pluginInjectPanel);
+        DesktopPluginHostUiComposition.Instance.RegisterSlot(
+            "pcl.page.launch",
+            "primary-actions.after",
+            _pluginInjectPanel);
+    }
+
+    private static void UnregisterPluginUiSurfaces()
+    {
+        DesktopPluginHostUiComposition.Instance.UnregisterTarget("pcl.page.launch");
+        DesktopPluginHostUiComposition.Instance.UnregisterSlot("pcl.page.launch", "primary-actions.after");
     }
 
     private void WireLaunchButtonScaleMirror()
@@ -280,6 +318,7 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
 
     public void Dispose()
     {
+        UnregisterPluginUiSurfaces();
         _refreshCancellation?.Cancel();
         _refreshCancellation?.Dispose();
         _refreshCancellation = null;
