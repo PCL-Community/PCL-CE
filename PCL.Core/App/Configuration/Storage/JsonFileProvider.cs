@@ -79,7 +79,7 @@ public class JsonFileProvider : CommonFileProvider, IEnumerableKeyProvider
             Set(key, fallback);
             return fallback;
         }
-        Exception GetNullException() => new NullReferenceException($"Deserialized value is null: '{key}'");
+        Exception GetNullException() => new InvalidDataException($"Deserialized value is null: '{key}'");
     }
 
     public override void Set<T>(string key, T value)
