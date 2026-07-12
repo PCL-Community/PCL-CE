@@ -7,7 +7,6 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
-using Avalonia.VisualTree;
 using PCL.Application.Instances;
 using PCL.Application.Launching;
 using PCL.Application.Settings;
@@ -29,6 +28,7 @@ public partial class PageInstanceSetupRight : MyPageRight
     private LaunchInstanceInfo? _instance;
     private InstanceMetadata _metadata = new();
     private bool _isLoading;
+    private bool _controlsWired;
     private int _globalMemorySolution;
     private int _globalCustomMemorySize = 15;
     private int _ramTextLeft = 2;
@@ -52,13 +52,18 @@ public partial class PageInstanceSetupRight : MyPageRight
             RefreshRam(showAnim: false);
             _ = RefreshJavaComboBoxAsync();
             _ramRefreshTimer.Start();
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (_instance is not null)
+                    ApplyMetadata();
+                WireControls();
+            }, DispatcherPriority.Background);
         };
         DetachedFromVisualTree += (_, _) => _ramRefreshTimer.Stop();
         if (this.FindControl<Grid>("PanRamDisplay") is { } ramDisplay)
             ramDisplay.SizeChanged += (_, _) => RefreshRamText();
         if (this.FindControl<Avalonia.Controls.Shapes.Rectangle>("RectRamUsed") is { } ramUsed)
             ramUsed.SizeChanged += (_, _) => RefreshRamText();
-        WireControls();
     }
 
     public event EventHandler? OpenGlobalSettingsRequested;
@@ -68,6 +73,12 @@ public partial class PageInstanceSetupRight : MyPageRight
     public event EventHandler<SettingsConfirmRequestedEventArgs>? ConfirmRequested;
 
     public event EventHandler<string>? CreateAuthProfileRequested;
+
+    public async Task WaitForPendingMetadataWritesAsync()
+    {
+        await _saveGate.WaitAsync().ConfigureAwait(false);
+        _saveGate.Release();
+    }
 
     public void SetInstance(LaunchInstanceInfo instance)
     {
@@ -89,22 +100,56 @@ public partial class PageInstanceSetupRight : MyPageRight
 
     private void WireControls()
     {
-        foreach (MyTextBox textBox in this.GetVisualDescendants().OfType<MyTextBox>())
-            textBox.TextChanged += TextBox_TextChanged;
+        if (_controlsWired)
+            return;
+        _controlsWired = true;
 
-        foreach (MyComboBox comboBox in this.GetVisualDescendants().OfType<MyComboBox>())
-            comboBox.SelectionChanged += ComboBox_SelectionChanged;
+        foreach (string name in new[]
+                 {
+                     "TextArgumentInfo", "TextServerAuthServer", "TextServerAuthRegister", "TextServerAuthName",
+                     "TextAdvanceJvm", "TextAdvanceGame", "TextAdvanceClasspathHead", "TextAdvanceRun"
+                 })
+        {
+            if (this.FindControl<MyTextBox>(name) is { } textBox)
+                textBox.TextChanged += TextBox_TextChanged;
+        }
+        if (this.FindControl<MyTextBox>("TextServerEnter") is { } serverToEnter)
+        {
+            serverToEnter.GetObservable(TextBox.TextProperty)
+                .Subscribe(text => ServerToEnterTextChanged(serverToEnter, text));
+        }
+
+        foreach (string name in new[]
+                 {
+                     "ComboArgumentIndieV2", "TextArgumentTitle", "ComboArgumentJava",
+                     "ComboServerLoginRequire", "ComboAdvanceRenderer"
+                 })
+        {
+            if (this.FindControl<MyComboBox>(name) is { } comboBox)
+                comboBox.SelectionChanged += ComboBox_SelectionChanged;
+        }
 
         if (this.FindControl<MyComboBox>("TextArgumentTitle") is { } title)
             title.TextChanged += EditableTitle_TextChanged;
         if (this.FindControl<MyComboBox>("ComboArgumentJava") is { } javaCombo)
             javaCombo.DropDownOpened += ComboArgumentJava_DropDownOpened;
 
-        foreach (MyCheckBox checkBox in this.GetVisualDescendants().OfType<MyCheckBox>())
-            checkBox.Change += CheckBox_Change;
+        foreach (string name in new[]
+                 {
+                     "CheckArgumentTitleEmpty", "CheckAdvanceRunWait", "CheckAdvanceJava", "CheckAdvanceAssetsV2",
+                     "CheckAdvanceUseProxyV2", "CheckAdvanceDisableJLW", "CheckAdvanceDisableRW",
+                     "CheckUseDebugLog4j2Config", "CheckAdvanceDisableLwjglUnsafeAgent"
+                 })
+        {
+            if (this.FindControl<MyCheckBox>(name) is { } checkBox)
+                checkBox.Change += CheckBox_Change;
+        }
 
-        foreach (MyRadioBox radioBox in this.GetVisualDescendants().OfType<MyRadioBox>())
-            radioBox.Check += RadioBox_Check;
+        foreach (string name in new[] { "RadioRamType0", "RadioRamType1", "RadioRamType2" })
+        {
+            if (this.FindControl<MyRadioBox>(name) is { } radioBox)
+                radioBox.Check += RadioBox_Check;
+        }
 
         if (this.FindControl<MySlider>("SliderRamCustom") is { } slider)
             slider.Change += Slider_Change;
@@ -187,6 +232,21 @@ public partial class PageInstanceSetupRight : MyPageRight
             _ => metadata
         });
         ApplyPreLaunchCommandVisibility();
+    }
+
+    private void ServerToEnterTextChanged(MyTextBox textBox, string? text)
+    {
+        if (_isLoading)
+            return;
+
+        string normalized = (text ?? string.Empty).Replace('：', ':');
+        if (!string.Equals(text, normalized, StringComparison.Ordinal))
+        {
+            textBox.SetCurrentValue(TextBox.TextProperty, normalized);
+            return;
+        }
+
+        UpdateMetadata(metadata => metadata with { ServerToEnter = normalized });
     }
 
     private void ComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)

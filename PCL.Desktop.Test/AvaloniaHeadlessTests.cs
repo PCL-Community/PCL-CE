@@ -5792,7 +5792,11 @@ public sealed class AvaloniaHeadlessTests
                     page.FindControl<MyTextBox>("TextServerEnter")!.Text = "localhost：25565";
                     Assert.AreEqual("localhost:25565", page.FindControl<MyTextBox>("TextServerEnter")!.Text);
 
-                    Click(window, page.FindControl<MyButton>("BtnServerAuthLittle")!);
+                    MyButton littleSkinButton = page.FindControl<MyButton>("BtnServerAuthLittle")!;
+                    littleSkinButton.BringIntoView();
+                    Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                    Click(window, littleSkinButton);
                     Assert.AreEqual("https://littleskin.cn/api/yggdrasil", page.FindControl<MyTextBox>("TextServerAuthServer")!.Text);
                     Assert.AreEqual("LittleSkin", page.FindControl<MyTextBox>("TextServerAuthName")!.Text);
 
@@ -5804,16 +5808,14 @@ public sealed class AvaloniaHeadlessTests
                     Assert.IsTrue(page.FindControl<TextBlock>("LabRamGame")!.Text!.Contains("可用 8.0 GB", StringComparison.Ordinal));
                     Assert.IsTrue(page.FindControl<MyHint>("HintRamTooHigh")!.IsVisible);
 
-                    WaitForCondition(() =>
-                    {
-                        InstanceMetadata saved = InstanceMetadataStore.LoadAsync(versionDirectory).GetAwaiter().GetResult();
-                        return saved.WindowTitle == "独立标题" &&
-                               saved.CustomInfo == "Fabric 测试实例" &&
-                               saved.ServerToEnter == "localhost:25565" &&
-                               saved.AuthServerDisplayName == "LittleSkin" &&
-                               saved.AuthSettingsLocked &&
-                               saved.CustomMemorySize == 33;
-                    });
+                    page.WaitForPendingMetadataWritesAsync().GetAwaiter().GetResult();
+                    InstanceMetadata saved = InstanceMetadataStore.LoadAsync(versionDirectory).GetAwaiter().GetResult();
+                    Assert.AreEqual("独立标题", saved.WindowTitle);
+                    Assert.AreEqual("Fabric 测试实例", saved.CustomInfo);
+                    Assert.AreEqual("localhost:25565", saved.ServerToEnter);
+                    Assert.AreEqual("LittleSkin", saved.AuthServerDisplayName);
+                    Assert.IsTrue(saved.AuthSettingsLocked);
+                    Assert.AreEqual(33, saved.CustomMemorySize);
                 }
                 finally
                 {
