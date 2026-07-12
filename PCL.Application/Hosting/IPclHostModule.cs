@@ -2,45 +2,59 @@
 // Modifications Copyright (c) 2026 PCL N contributors.
 // Licensed under the Apache License, Version 2.0.
 
+using PCL.Application.Accounts;
+using PCL.Application.Downloads;
 using PCL.Application.Extensions;
 using PCL.Application.Launching;
 using PCL.Application.Settings;
-using PCL.Application.Accounts;
-using PCL.Application.Downloads;
 using PCL.UI.Abstractions.Commands;
 using PCL.UI.Abstractions.Navigation;
 using PCL.UI.Abstractions.Themes;
 
 namespace PCL.Application.Hosting;
 
-public interface IPclHostModule
+public readonly record struct HostApiVersion(int Major, int Minor) : IComparable<HostApiVersion>
 {
-    HostModuleId Id { get; }
+    public int CompareTo(HostApiVersion other)
+    {
+        int majorComparison = Major.CompareTo(other.Major);
+        return majorComparison != 0 ? majorComparison : Minor.CompareTo(other.Minor);
+    }
 
-    void Configure(IPclHostBuilder builder);
+    public override string ToString() => $"{Major}.{Minor}";
+
+    public static bool operator <(HostApiVersion left, HostApiVersion right) => left.CompareTo(right) < 0;
+
+    public static bool operator >(HostApiVersion left, HostApiVersion right) => left.CompareTo(right) > 0;
+
+    public static bool operator <=(HostApiVersion left, HostApiVersion right) => left.CompareTo(right) <= 0;
+
+    public static bool operator >=(HostApiVersion left, HostApiVersion right) => left.CompareTo(right) >= 0;
+}
+
+public static class PclPluginHostApi
+{
+    public static HostApiVersion Current { get; } = new(0, 1);
 }
 
 public interface IPclHostBuilder
 {
-    IServiceRegistry Services { get; }
+    HostApiVersion ApiVersion { get; }
 
-    IExtensionRegistry Extensions { get; }
+    void AddExtension(ExtensionDescriptor descriptor);
 
-    INavigationRegistry Navigation { get; }
+    void AddSettingsPage(HostSettingsPageDescriptor descriptor);
+}
 
-    ICommandRegistry Commands { get; }
+public interface IPclHostModule
+{
+    HostModuleId Id { get; }
 
-    ISettingsRegistry Settings { get; }
+    HostApiVersion MinimumHostApiVersion { get; }
 
-    IHostSettingsPageRegistry SettingsPages { get; }
+    HostApiVersion MaximumHostApiVersionExclusive { get; }
 
-    IThemeRegistry Themes { get; }
-
-    IAccountProviderRegistry Accounts { get; }
-
-    IDownloadSourceRegistry Downloads { get; }
-
-    ILaunchPipelineBuilder Launching { get; }
+    void Configure(IPclHostBuilder builder);
 }
 
 public interface IPclHost
@@ -73,6 +87,8 @@ public sealed class PclHostBuilder : IPclHostBuilder
     private readonly List<HostModuleId> _moduleIds = [];
     private readonly HashSet<string> _moduleIdSet = new(StringComparer.OrdinalIgnoreCase);
 
+    public HostApiVersion ApiVersion => PclPluginHostApi.Current;
+
     public IServiceRegistry Services { get; } = new ServiceRegistry();
 
     public IExtensionRegistry Extensions { get; } = new ExtensionRegistry();
@@ -93,7 +109,7 @@ public sealed class PclHostBuilder : IPclHostBuilder
 
     public ILaunchPipelineBuilder Launching { get; } = new LaunchPipelineBuilder();
 
-    public PclHostBuilder AddModule(HostModuleId id, Action<IPclHostBuilder> configure)
+    public PclHostBuilder AddModule(HostModuleId id, Action<PclHostBuilder> configure)
     {
         ArgumentNullException.ThrowIfNull(configure);
         if (string.IsNullOrWhiteSpace(id.Value))
@@ -102,16 +118,29 @@ public sealed class PclHostBuilder : IPclHostBuilder
             throw new InvalidOperationException($"Host Module 已注册：{id.Value}");
 
         configure(this);
-        _moduleIdSet.Add(id.Value);
-        _moduleIds.Add(id);
+        RegisterModuleId(id);
         return this;
     }
 
     public PclHostBuilder AddModule(IPclHostModule hostModule)
     {
         ArgumentNullException.ThrowIfNull(hostModule);
-        return AddModule(hostModule.Id, hostModule.Configure);
+        ValidateHostApiRange(hostModule);
+        if (_moduleIdSet.Contains(hostModule.Id.Value))
+            throw new InvalidOperationException($"Host Module 已注册：{hostModule.Id.Value}");
+
+        hostModule.Configure(this);
+        RegisterModuleId(hostModule.Id);
+        return this;
     }
+
+    public void AddExtension(ExtensionDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        Extensions.AddExtension(descriptor);
+    }
+
+    public void AddSettingsPage(HostSettingsPageDescriptor descriptor) => SettingsPages.AddPage(descriptor);
 
     public IPclHost Build() =>
         new PclHost(
@@ -126,6 +155,29 @@ public sealed class PclHostBuilder : IPclHostBuilder
             Downloads,
             Launching,
             _moduleIds.ToArray());
+
+    private void RegisterModuleId(HostModuleId id)
+    {
+        _moduleIdSet.Add(id.Value);
+        _moduleIds.Add(id);
+    }
+
+    private void ValidateHostApiRange(IPclHostModule hostModule)
+    {
+        if (hostModule.MinimumHostApiVersion >= hostModule.MaximumHostApiVersionExclusive)
+        {
+            throw new InvalidOperationException(
+                $"Host Module '{hostModule.Id}' 声明了无效的 Host API 范围：" +
+                $"[{hostModule.MinimumHostApiVersion}, {hostModule.MaximumHostApiVersionExclusive})。");
+        }
+
+        if (ApiVersion < hostModule.MinimumHostApiVersion || ApiVersion >= hostModule.MaximumHostApiVersionExclusive)
+        {
+            throw new NotSupportedException(
+                $"Host Module '{hostModule.Id}' 不支持 PCL N Host API {ApiVersion}；" +
+                $"需要 [{hostModule.MinimumHostApiVersion}, {hostModule.MaximumHostApiVersionExclusive})。");
+        }
+    }
 }
 
 internal sealed class PclHost(

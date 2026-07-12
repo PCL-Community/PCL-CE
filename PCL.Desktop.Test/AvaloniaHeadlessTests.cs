@@ -3485,13 +3485,13 @@ public sealed class AvaloniaHeadlessTests
 
         session.Dispatch(() =>
         {
-            PageSetupHostModule page = new(new PCL.Application.Settings.HostSettingsPageDescriptor(
+            PageSetupHostModule page = new(new HostSettingsPageDescriptor(
                 "pcl.plugin.settings",
                 "插件",
                 "lucide/plug",
                 "PCL.Plugin 已加载",
                 "此页面由插件 HostModule 注册。",
-                [new PCL.Application.Settings.HostSettingsHintDescriptor("重启后应用插件变更。", true)]));
+                [new HostSettingsHintDescriptor("重启后应用插件变更。", HostSettingsHintKind.Warning)]));
             Window window = new() { Width = 600d, Height = 400d, Content = page };
             try
             {

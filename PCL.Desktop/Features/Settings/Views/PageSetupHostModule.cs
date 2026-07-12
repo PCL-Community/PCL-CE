@@ -40,7 +40,12 @@ public sealed class PageSetupHostModule : MyPageRight
             content.Children.Add(new MyHint
             {
                 Text = hint.Text,
-                Theme = hint.IsWarning ? MyHint.Themes.Yellow : MyHint.Themes.Blue,
+                Theme = hint.Kind switch
+                {
+                    HostSettingsHintKind.Warning => MyHint.Themes.Yellow,
+                    HostSettingsHintKind.Error => MyHint.Themes.Red,
+                    _ => MyHint.Themes.Blue
+                },
                 Margin = new Thickness(0d, 6d, 0d, 0d)
             });
         }

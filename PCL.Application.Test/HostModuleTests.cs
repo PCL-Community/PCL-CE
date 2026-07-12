@@ -26,6 +26,7 @@ public sealed class HostModuleTests
 
         IPclHost host = builder
             .AddModule(new SampleHostModule())
+            .AddModule(new HostModuleId("sample.internal"), ConfigureInternalModule)
             .Build();
 
         CollectionAssert.Contains(host.ModuleIds.ToArray(), new HostModuleId(SampleHostModule.ModuleId));
@@ -51,6 +52,18 @@ public sealed class HostModuleTests
         builder.AddModule(new SampleHostModule());
 
         Assert.ThrowsExactly<InvalidOperationException>(() => builder.AddModule(new SampleHostModule()));
+    }
+
+    [TestMethod]
+    public void AddModule_RejectsInvalidOrUnsupportedHostApiRange()
+    {
+        PclHostBuilder builder = new();
+
+        Assert.ThrowsExactly<InvalidOperationException>(() => builder.AddModule(
+            new VersionedHostModule("invalid.range", new HostApiVersion(1, 0), new HostApiVersion(1, 0))));
+        Assert.ThrowsExactly<NotSupportedException>(() => builder.AddModule(
+            new VersionedHostModule("future.host", new HostApiVersion(1, 0), new HostApiVersion(2, 0))));
+        Assert.AreEqual(0, builder.Build().ModuleIds.Count);
     }
 
     [TestMethod]
@@ -282,43 +295,66 @@ public sealed class HostModuleTests
     private static HostSettingsPageDescriptor CreateSettingsPage(string id) =>
         new(id, "插件", "lucide/plug", "插件模块", "由 Host Module 注册。", []);
 
+    private static void ConfigureInternalModule(PclHostBuilder builder)
+    {
+        builder.Services.AddSingleton("sample-service");
+        builder.Navigation.AddPage(CreatePage("sample.home"));
+        builder.Commands.AddCommand(CreateCommand("sample.refresh", "刷新"));
+        builder.Settings.AddSetting(new SettingDescriptor("sample.setting", "示例设置"));
+        builder.Themes.AddTheme(new ThemeDescriptor
+        {
+            Id = new ThemeId("sample.theme"),
+            DisplayName = "示例主题"
+        });
+        builder.Accounts.AddProvider(new AccountProviderDescriptor
+        {
+            Id = new AccountProviderId("sample.account"),
+            DisplayName = "示例账号",
+            ProviderType = typeof(SampleAccountProvider)
+        });
+        builder.Downloads.AddSource(new DownloadSourceDescriptor
+        {
+            Id = new DownloadSourceId("sample.download"),
+            DisplayName = "示例下载源",
+            BaseUri = new Uri("https://example.invalid/"),
+            Kind = DownloadSourceKind.Metadata
+        });
+        builder.Launching.Use(static _ => new SampleLaunchMiddleware());
+    }
+
     private sealed class SampleHostModule : IPclHostModule
     {
         public const string ModuleId = "sample.host";
 
         public HostModuleId Id => new(ModuleId);
 
+        public HostApiVersion MinimumHostApiVersion => new(0, 1);
+
+        public HostApiVersion MaximumHostApiVersionExclusive => new(1, 0);
+
         public void Configure(IPclHostBuilder builder)
         {
-            builder.Services.AddSingleton("sample-service");
-            builder.Extensions.AddExtension(new ExtensionDescriptor(new ExtensionId("sample.extension"), "示例扩展"));
-            builder.Navigation.AddPage(CreatePage("sample.home"));
-            builder.Commands.AddCommand(CreateCommand("sample.refresh", "刷新"));
-            builder.Settings.AddSetting(new SettingDescriptor("sample.setting", "示例设置"));
-            builder.SettingsPages.AddPage(CreateSettingsPage("sample.settings"));
-            builder.Themes.AddTheme(new ThemeDescriptor
-            {
-                Id = new ThemeId("sample.theme"),
-                DisplayName = "示例主题"
-            });
-            builder.Accounts.AddProvider(new AccountProviderDescriptor
-            {
-                Id = new AccountProviderId("sample.account"),
-                DisplayName = "示例账号",
-                ProviderType = typeof(SampleAccountProvider)
-            });
-            builder.Downloads.AddSource(new DownloadSourceDescriptor
-            {
-                Id = new DownloadSourceId("sample.download"),
-                DisplayName = "示例下载源",
-                BaseUri = new Uri("https://example.invalid/"),
-                Kind = DownloadSourceKind.Metadata
-            });
-            builder.Launching.Use(static _ => new SampleLaunchMiddleware());
+            builder.AddExtension(new ExtensionDescriptor(new ExtensionId("sample.extension"), "示例扩展"));
+            builder.AddSettingsPage(CreateSettingsPage("sample.settings"));
         }
     }
 
     private sealed class SampleAccountProvider;
+
+    private sealed class VersionedHostModule(
+        string id,
+        HostApiVersion minimum,
+        HostApiVersion maximumExclusive) : IPclHostModule
+    {
+        public HostModuleId Id { get; } = new(id);
+
+        public HostApiVersion MinimumHostApiVersion { get; } = minimum;
+
+        public HostApiVersion MaximumHostApiVersionExclusive { get; } = maximumExclusive;
+
+        public void Configure(IPclHostBuilder builder) => throw new AssertFailedException(
+            "An incompatible HostModule must be rejected before Configure is called.");
+    }
 
     private sealed class SampleLaunchMiddleware : ILaunchMiddleware
     {

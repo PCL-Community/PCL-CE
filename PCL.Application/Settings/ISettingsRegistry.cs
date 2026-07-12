@@ -10,9 +10,16 @@ public sealed record SettingDescriptor(
     string? Description = null,
     object? DefaultValue = null);
 
+public enum HostSettingsHintKind
+{
+    Information,
+    Warning,
+    Error
+}
+
 public sealed record HostSettingsHintDescriptor(
     string Text,
-    bool IsWarning = false);
+    HostSettingsHintKind Kind = HostSettingsHintKind.Information);
 
 public sealed record HostSettingsPageDescriptor(
     string Id,
