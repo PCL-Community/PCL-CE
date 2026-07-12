@@ -1000,18 +1000,18 @@ public partial class MainWindow : Window, IDisposable
             title,
             message + "\n\n" +
             "点击「同意并继续」表示你已阅读并接受相关条款。\n" +
-            "完整文本见项目仓库 Legal 文档；也可点击「" + viewLabel + "」打开说明。",
+            "详细说明见项目仓库；也可点击「" + viewLabel + "」打开项目主页。\n" +
+            "（在线服务相关条款将随插件体系接入，当前不依赖 Online 工程。）",
             confirmed =>
             {
                 if (!confirmed)
                 {
-                    // Secondary opens legal page and keeps app running so user can re-open next launch.
+                    // Secondary: open project home (terms will move into plugin-hosted docs later).
                     try
                     {
                         Process.Start(new ProcessStartInfo
                         {
-                            // Split path segment so architecture source scan does not flag the online project folder name.
-                            FileName = "https://github.com/MuXue1230-owo/PCL-N/blob/dev/" + "PCL." + "Online/Legal/TERMS_ZH.md",
+                            FileName = "https://github.com/MuXue1230-owo/PCL-N",
                             UseShellExecute = true
                         });
                     }
