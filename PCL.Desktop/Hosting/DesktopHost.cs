@@ -36,7 +36,10 @@ internal static class DesktopHost
         PluginPlatformHostAccess.Initialize(new PclPluginPlatformHost(
             _current.SettingsPages,
             AvaloniaPluginHostDispatcher.Instance,
-            DesktopPluginHostNotifications.Instance));
+            DesktopPluginHostNotifications.Instance,
+            DesktopPluginHostInstanceQuery.Instance));
+        // Third-party .pnp catalog + load enabled plugins (no-op when plugin DLL is not embedded).
+        EmbeddedPluginLoader.InitializeRuntime();
     }
 }
 

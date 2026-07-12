@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.Loader;
 using PCL.Application.Hosting;
+using PCL.Platform.Paths;
 
 namespace PCL.Desktop.Hosting;
 
@@ -105,5 +106,61 @@ internal static class EmbeddedPluginLoader
         }
 #pragma warning restore IL2070, IL2067, IL2075
         return modules;
+    }
+
+    /// <summary>
+    /// Initializes the third-party plugin install root and catalog after the host bridge is ready.
+    /// Uses reflection so Desktop never takes a compile-time dependency on PCL.Plugin types.
+    /// </summary>
+    [UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2026",
+        Justification = "Plugin bootstrap type is only present when the injected assembly is embedded.")]
+    [UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2075",
+        Justification = "Method names on the public bootstrap type are stable host contracts.")]
+    public static void InitializeRuntime()
+    {
+        Assembly? assembly = Load();
+        if (assembly is null)
+            return;
+
+        Type? bootstrap = assembly.GetType("PCL.Plugin.Host.PluginPlatformBootstrap", throwOnError: false);
+        if (bootstrap is null)
+            return;
+
+        string runtimeRoot = Path.Combine(
+            new DefaultPlatformPathProvider().ApplicationDataDirectory,
+            "PCL-N",
+            "plugin-runtime");
+        MethodInfo? initialize = bootstrap.GetMethod(
+            "Initialize",
+            BindingFlags.Public | BindingFlags.Static,
+            binder: null,
+            types: [typeof(string)],
+            modifiers: null);
+        initialize?.Invoke(null, [runtimeRoot]);
+
+        MethodInfo? loadEnabled = bootstrap.GetMethod(
+            "LoadEnabledAsync",
+            BindingFlags.Public | BindingFlags.Static,
+            binder: null,
+            types: [typeof(CancellationToken)],
+            modifiers: null);
+        if (loadEnabled is not null)
+        {
+            object? taskObj = loadEnabled.Invoke(null, [CancellationToken.None]);
+            if (taskObj is Task task)
+                _ = task.ContinueWith(
+                    static t =>
+                    {
+                        if (t.IsFaulted)
+                        {
+                            // best-effort; management UI surfaces load status
+                        }
+                    },
+                    TaskScheduler.Default);
+        }
     }
 }

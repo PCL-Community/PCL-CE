@@ -17,7 +17,22 @@ internal interface IPclPluginPlatformHost
     IPluginHostDispatcher Dispatcher { get; }
 
     IPluginHostNotifications Notifications { get; }
+
+    /// <summary>Optional instance directory query for <c>pcl.instances.read</c>.</summary>
+    IPluginHostInstanceQuery? Instances { get; }
 }
+
+/// <summary>Read-only Minecraft instance listing for plugins (design §9).</summary>
+internal interface IPluginHostInstanceQuery
+{
+    IReadOnlyList<HostPluginInstanceInfo> ListInstances();
+}
+
+internal sealed record HostPluginInstanceInfo(
+    string Id,
+    string Name,
+    string InstanceDirectory,
+    string? VersionJsonPath);
 
 internal interface IPluginHostDispatcher
 {
