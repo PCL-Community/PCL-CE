@@ -22,12 +22,14 @@ public sealed class DefaultSystemInfoProvider : ISystemInfoProvider
             return windowsMemory;
         if (OperatingSystem.IsLinux() && TryGetLinuxMemory(out MemoryInfo linuxMemory))
             return linuxMemory;
+        if (OperatingSystem.IsMacOS() && TryGetMacMemory(out MemoryInfo macMemory))
+            return macMemory;
 
         GCMemoryInfo gcMemoryInfo = GC.GetGCMemoryInfo();
         long totalBytes = Math.Max(0, gcMemoryInfo.TotalAvailableMemoryBytes);
         long availableBytes = gcMemoryInfo.MemoryLoadBytes > 0 && totalBytes >= gcMemoryInfo.MemoryLoadBytes
             ? totalBytes - gcMemoryInfo.MemoryLoadBytes
-            : 0;
+            : Math.Max(0, totalBytes - GC.GetTotalMemory(forceFullCollection: false));
         return new MemoryInfo(totalBytes, availableBytes);
     }
 
@@ -94,9 +96,74 @@ public sealed class DefaultSystemInfoProvider : ISystemInfoProvider
         return false;
     }
 
+    private static bool TryGetMacMemory(out MemoryInfo memory)
+    {
+        if (!TryReadMacSysctl("hw.memsize", out ulong total) || total == 0)
+        {
+            memory = new MemoryInfo(0, 0);
+            return false;
+        }
+
+        TryReadMacSysctl("hw.pagesize", out ulong pageSize);
+        ulong availablePages = 0;
+        foreach (string key in new[]
+                 {
+                     "vm.page_free_count",
+                     "vm.page_inactive_count",
+                     "vm.page_speculative_count",
+                     "vm.page_purgeable_count"
+                 })
+        {
+            if (TryReadMacSysctl(key, out ulong pages))
+                availablePages = checked(availablePages + pages);
+        }
+
+        ulong available = pageSize > 0 && availablePages > 0
+            ? Math.Min(total, checked(pageSize * availablePages))
+            : Math.Min(total, (ulong)Math.Max(1L, checked((long)Math.Min(total, long.MaxValue)) - GC.GetTotalMemory(false)));
+        memory = new MemoryInfo(
+            checked((long)Math.Min(total, long.MaxValue)),
+            checked((long)Math.Min(available, long.MaxValue)));
+        return true;
+    }
+
+    private static bool TryReadMacSysctl(string name, out ulong value)
+    {
+        nuint length = sizeof(ulong);
+        value = 0;
+        if (SysctlByName(name, ref value, ref length, IntPtr.Zero, 0) == 0 && length == sizeof(ulong))
+            return true;
+
+        uint smallValue = 0;
+        length = sizeof(uint);
+        if (SysctlByName32(name, ref smallValue, ref length, IntPtr.Zero, 0) != 0 || length != sizeof(uint))
+            return false;
+
+        value = smallValue;
+        return true;
+    }
+
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool GlobalMemoryStatusEx(ref MemoryStatusEx buffer);
+
+    [DllImport("libSystem.dylib", EntryPoint = "sysctlbyname", SetLastError = true, CharSet = CharSet.Ansi,
+        BestFitMapping = false, ThrowOnUnmappableChar = true)]
+    private static extern int SysctlByName(
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string name,
+        ref ulong oldValue,
+        ref nuint oldLength,
+        IntPtr newValue,
+        nuint newLength);
+
+    [DllImport("libSystem.dylib", EntryPoint = "sysctlbyname", SetLastError = true, CharSet = CharSet.Ansi,
+        BestFitMapping = false, ThrowOnUnmappableChar = true)]
+    private static extern int SysctlByName32(
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string name,
+        ref uint oldValue,
+        ref nuint oldLength,
+        IntPtr newValue,
+        nuint newLength);
 
     [StructLayout(LayoutKind.Sequential)]
     private struct MemoryStatusEx
