@@ -55,7 +55,7 @@ public sealed class PortableBoundaryTests
         DirectoryInfo? current = new(AppContext.BaseDirectory);
         while (current is not null)
         {
-            if (File.Exists(Path.Combine(current.FullName, "PCL.Portable.slnx")))
+            if (File.Exists(Path.Combine(current.FullName, "PCL-N.slnx")))
                 return current.FullName;
             current = current.Parent;
         }

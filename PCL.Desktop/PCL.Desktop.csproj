@@ -74,11 +74,6 @@
            Text="PCL.Plugin assembly was requested but not found: $(PclPluginAssembly)" />
   </Target>
   <ItemGroup>
-    <Compile Remove="WpfOriginal/**/*.cs" />
-    <None Include="WpfOriginal/**/*.cs" />
-    <None Include="WpfOriginal/**/*.xaml" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="../PCL.Desktop.SourceGenerators/PCL.Desktop.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="../PCL.Application/PCL.Application.csproj" />
     <ProjectReference Include="../PCL.Platform/PCL.Platform.csproj" />

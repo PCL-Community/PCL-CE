@@ -349,8 +349,7 @@ public sealed class DesktopArchitectureTests
     private static bool ShouldSkipSourceScan(string relativePath)
     {
         string normalized = relativePath.Replace('\\', '/');
-        return normalized.StartsWith("WpfOriginal/", StringComparison.OrdinalIgnoreCase) ||
-               normalized.StartsWith("bin/", StringComparison.OrdinalIgnoreCase) ||
+        return normalized.StartsWith("bin/", StringComparison.OrdinalIgnoreCase) ||
                normalized.StartsWith("obj/", StringComparison.OrdinalIgnoreCase);
     }
 
