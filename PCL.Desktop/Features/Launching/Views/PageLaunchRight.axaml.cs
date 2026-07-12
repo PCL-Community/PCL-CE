@@ -8,8 +8,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+using PCL.Application.Settings;
 using PCL.Desktop.Controls.Legacy;
 using PCL.Desktop.Diagnostics;
+using PCL.Desktop.Features.Settings.Views;
+using PCL.Desktop.Localization;
 
 namespace PCL.Desktop.Features.Launching.Views;
 
@@ -162,16 +165,10 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
 
     public static string GetRandomHint(bool enableLengthLimit = false, bool raw = false)
     {
+        // WPF-aligned tip pool: external PCL/hints.txt overrides built-in community tips.
         string[] lines = LoadExternalHints();
         if (lines.Length == 0)
-        {
-            lines =
-            [
-                "准备好后，点击启动游戏即可进入 Minecraft。",
-                "可以在版本管理中查看、修复或导出当前游戏版本。",
-                "没有本地版本时，启动按钮会引导你前往下载页。"
-            ];
-        }
+            lines = BuiltInCommunityHints;
 
         if (enableLengthLimit)
         {
@@ -187,6 +184,29 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
             .Replace("\"", "&quot;", StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// Built-in tips when PCL/hints.txt is absent — tone matches classic PCL community tips.
+    /// </summary>
+    private static readonly string[] BuiltInCommunityHints =
+    [
+        "今天也要元气满满地启动 Minecraft 哦！",
+        "版本设置里可以单独给某个版本指定 Java 和内存。",
+        "启动前请确认账户档案已选好，否则会跳转到登录页。",
+        "没有本地版本时，点启动会引导你前往下载页安装游戏。",
+        "在社区页可以搜索 Mod、整合包、资源包与光影。",
+        "下载社区资源不会打断当前页面，任务进度在右下角查看。",
+        "游戏崩溃时，可在版本文件夹的 logs/latest.log 查看日志。",
+        "实例隔离开启后，Mod 与配置会写在版本文件夹内。",
+        "自定义 JVM 参数请谨慎填写，错误参数可能导致无法启动。",
+        "正版登录后可在账户页查看与刷新皮肤。",
+        "想快速进服？在版本设置的服务器页添加地址后一键启动。",
+        "光影需要 Iris / OptiFine 等支持，否则版本页不会显示光影入口。",
+        "投影（.litematic 等）需要安装 Litematica 等投影类 Mod。",
+        "设置 → 个性化 可以调整主题色与窗口背景。",
+        "任务管理页可以取消正在进行的下载与安装任务。",
+        "感谢使用 PCL N，也欢迎向社区反馈问题与建议！"
+    ];
+
     public override void Dispose()
     {
         if (_disposed)
@@ -200,16 +220,66 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
 
     private void BtnHintClose_Click(object? sender, EventArgs e)
     {
-        if (this.FindControl<MyCard>("PanHint") is { } hint)
-            hint.IsVisible = false;
+        // WPF: permanent hide requires typing the PCL N developer name (MUXUE1230).
+        CommunityHintHideRequested?.Invoke(this, EventArgs.Empty);
     }
+
+    /// <summary>Raised when user clicks close on the N Edition notice card.</summary>
+    public event EventHandler? CommunityHintHideRequested;
 
     private void SetCommunityHintText()
     {
+        if (IsCommunityHintPermanentlyHidden())
+        {
+            if (this.FindControl<MyCard>("PanHint") is { } hidden)
+                hidden.IsVisible = false;
+            return;
+        }
+
+        // WPF PageLaunchRight: fixed N Edition notice (not random tips).
+        // Optional second line from hide prompt.
+        string message = AvaloniaLocalizationManager.GetText(
+            "Launch.Right.CommunityHint.Message",
+            "你正在使用 PCL N Edition！\n\n此版本由独立开发者维护，与官方 PCL 的开发路径与体验并不相同。\n\n若你误下载了 N 版，强烈建议改用官方 PCL 做长期使用；并将 N 版问题提交到 N 版仓库，不要反馈给官方仓库。");
+        string[] parts = message.Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
         if (this.FindControl<TextBlock>("LabHint1") is { } first)
-            first.Text = "感谢使用 PCL N Edition。此版本由社区维护，并会持续同步上游许可要求。";
+            first.Text = parts.Length > 0 ? parts[0] : message;
         if (this.FindControl<TextBlock>("LabHint2") is { } second)
-            second.Text = "你可以在设置中查看相关许可与项目信息。";
+        {
+            if (parts.Length > 1)
+                second.Text = string.Join("\n\n", parts.Skip(1));
+            else
+            {
+                second.Text = AvaloniaLocalizationManager.GetText(
+                    "Launch.Right.CommunityHint.HidePrompt",
+                    "若要永久隐藏此提示，请点击右上角关闭并输入正确的 PCL N 开发者名称。");
+            }
+        }
+
+        if (this.FindControl<MyCard>("PanHint") is { } card)
+            card.IsVisible = true;
+    }
+
+    internal static bool IsCommunityHintPermanentlyHidden()
+    {
+        try
+        {
+            LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+            return settings.GetBooleanOption("UiHideNEditionHint", false);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    internal static void SetCommunityHintPermanentlyHidden(bool hidden)
+    {
+        LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+        settings.SetBooleanOption("UiHideNEditionHint", hidden);
+        LauncherSettingsPageBinder.SaveSettings(settings);
     }
 
     private void EnsureHomepageLiveWatcher()
@@ -561,23 +631,39 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable, IDisposable
         throw lastException ?? new IOException("Unable to read custom homepage live patch file.");
     }
 
+    private static string[]? _cachedHints;
+    private static readonly object HintCacheGate = new();
+
+    /// <summary>
+    /// Cached once — never re-hit disk on the UI thread during ShowLaunching.
+    /// </summary>
     private static string[] LoadExternalHints()
     {
-        string file = Path.Combine(AppContext.BaseDirectory, "PCL", "hints.txt");
-        if (!File.Exists(file))
-            return [];
+        lock (HintCacheGate)
+        {
+            if (_cachedHints is not null)
+                return _cachedHints;
+        }
 
+        string file = Path.Combine(AppContext.BaseDirectory, "PCL", "hints.txt");
+        string[] loaded;
         try
         {
-            return File.ReadLines(file)
-                .Where(line => !string.IsNullOrWhiteSpace(line))
-                .Select(line => line.Trim())
-                .ToArray();
+            loaded = File.Exists(file)
+                ? File.ReadLines(file)
+                    .Where(line => !string.IsNullOrWhiteSpace(line))
+                    .Select(line => line.Trim())
+                    .ToArray()
+                : [];
         }
         catch
         {
-            return [];
+            loaded = [];
         }
+
+        lock (HintCacheGate)
+            _cachedHints = loaded;
+        return loaded;
     }
 
     private static string GetHomepageLiveDirectory() => Path.Combine(AppContext.BaseDirectory, "PCL");

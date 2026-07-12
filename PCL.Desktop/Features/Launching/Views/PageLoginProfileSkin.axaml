@@ -53,36 +53,14 @@
                                      ToolTip="皮肤与披风"
                                      LogoScale="1.08"
                                      SvgIcon="lucide/shirt"
-                                     Click="BtnSkinClick">
-                    <legacy:MyIconButton.ContextMenu>
-                        <ContextMenu>
-                            <legacy:MyMenuItem Click="SkinClick"
-                                               Header="更换皮肤" />
-                            <legacy:MyMenuItem Click="BtnSkinSaveClick"
-                                               Header="保存皮肤" />
-                            <legacy:MyMenuItem Click="BtnSkinRefreshClick"
-                                               Header="刷新皮肤" />
-                            <legacy:MyMenuItem Click="BtnSkinCapeClick"
-                                               Header="更换披风" />
-                        </ContextMenu>
-                    </legacy:MyIconButton.ContextMenu>
-                </legacy:MyIconButton>
+                                     Click="BtnSkinClick" />
                 <legacy:MyIconButton Height="24"
                                      Margin="0,0,9,0"
                                      x:Name="BtnEdit"
                                      ToolTip="编辑档案"
                                      LogoScale="1.1"
                                      SvgIcon="lucide/pencil"
-                                     Click="BtnEditClick">
-                    <legacy:MyIconButton.ContextMenu>
-                        <ContextMenu>
-                            <legacy:MyMenuItem Click="BtnEditPasswordClick"
-                                               Header="修改密码" />
-                            <legacy:MyMenuItem Click="BtnEditNameClick"
-                                               Header="修改用户名" />
-                        </ContextMenu>
-                    </legacy:MyIconButton.ContextMenu>
-                </legacy:MyIconButton>
+                                     Click="BtnEditClick" />
                 <legacy:MyIconButton Height="24"
                                      x:Name="BtnSelect"
                                      Margin="0,0,0,0"

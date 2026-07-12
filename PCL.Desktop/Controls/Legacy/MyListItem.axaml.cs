@@ -11,6 +11,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Avalonia.Threading;
 using PathShape = Avalonia.Controls.Shapes.Path;
 
 namespace PCL.Desktop.Controls.Legacy;
@@ -92,6 +93,8 @@ public partial class MyListItem : Grid, IMyRadio
     private bool _isPressed;
     private bool _isLoaded;
     private string? _lastColorState;
+    private int _logoLoadGeneration;
+    private Bitmap? _ownedLogoBitmap;
 
 #pragma warning disable IDE1006, CA1051
     public bool isMouseOverAnimationEnabled = true;
@@ -421,18 +424,24 @@ public partial class MyListItem : Grid, IMyRadio
                 IsVisible = false,
                 IsHitTestVisible = false
             };
+            // Pixel-art skins / low-res icons: nearest-neighbor (no anti-alias blur).
+            RenderOptions.SetBitmapInterpolationMode(_logoImage, BitmapInterpolationMode.None);
             _logoHost.Children.Add(_logoPath);
             _logoHost.Children.Add(_svgIcon);
             _logoHost.Children.Add(_logoImage);
             Children.Add(_logoHost);
         }
 
-        var usesSvg = !string.IsNullOrWhiteSpace(SvgIcon);
-        var usesImage = !usesSvg && IsImageLogo(Logo);
+        // Prefer Logo (incl. remote URL) over SvgIcon so account/community heads & icons can show.
+        bool hasLogo = AsyncLogoLoader.IsLoadableLogo(Logo);
+        bool usesImage = hasLogo;
+        bool usesSvg = !usesImage && !string.IsNullOrWhiteSpace(SvgIcon);
+        bool usesPath = !usesImage && !usesSvg && !string.IsNullOrWhiteSpace(Logo);
+
         if (_logoPath is not null)
         {
-            _logoPath.IsVisible = !usesSvg && !usesImage;
-            if (!usesSvg && !usesImage && !string.IsNullOrWhiteSpace(Logo))
+            _logoPath.IsVisible = usesPath;
+            if (usesPath)
             {
                 try
                 {
@@ -444,19 +453,80 @@ public partial class MyListItem : Grid, IMyRadio
                 }
             }
         }
+
         if (_svgIcon is not null)
         {
             _svgIcon.IsVisible = usesSvg;
-            _svgIcon.Icon = SvgIcon;
+            if (usesSvg)
+                _svgIcon.Icon = SvgIcon;
         }
+
         if (_logoImage is not null)
         {
-            _logoImage.IsVisible = usesImage;
-            _logoImage.Source = usesImage ? LoadLogoImage(Logo) : null;
+            if (!usesImage)
+            {
+                Interlocked.Increment(ref _logoLoadGeneration);
+                _logoImage.IsVisible = false;
+                _logoImage.Source = null;
+                DisposeOwnedLogo();
+            }
+            else
+            {
+                _logoImage.IsVisible = true;
+                // WPF-style: show placeholder immediately, then swap to async download.
+                Bitmap? local = AsyncLogoLoader.TryLoadLocal(Logo);
+                if (local is not null)
+                {
+                    Interlocked.Increment(ref _logoLoadGeneration);
+                    DisposeOwnedLogo();
+                    _ownedLogoBitmap = local;
+                    _logoImage.Source = local;
+                }
+                else if (AsyncLogoLoader.IsRemote(Logo) || AsyncLogoLoader.IsUuidSkin(Logo))
+                {
+                    // Remote texture URL or uuid: (Mojang sessionserver) — async dual-layer head.
+                    _logoImage.Source = AsyncLogoLoader.GetPlaceholder();
+                    int generation = Interlocked.Increment(ref _logoLoadGeneration);
+                    string address = Logo;
+                    AsyncLogoLoader.BeginLoad(address, generation, (gen, bitmap) =>
+                    {
+                        if (gen != _logoLoadGeneration || _logoImage is null)
+                            return;
+                        if (bitmap is null)
+                        {
+                            _logoImage.Source = AsyncLogoLoader.GetPlaceholder();
+                            return;
+                        }
+
+                        DisposeOwnedLogo();
+                        // Memory-cache bitmaps are shared — do not dispose them on next load.
+                        _logoImage.Source = bitmap;
+                    });
+                }
+                else
+                {
+                    Interlocked.Increment(ref _logoLoadGeneration);
+                    _logoImage.Source = AsyncLogoLoader.GetPlaceholder();
+                }
+            }
         }
+
         RefreshLayoutMetrics();
         ApplyForegroundBrush();
         RefreshColor(_isLoaded);
+    }
+
+    private void DisposeOwnedLogo()
+    {
+        // Only dispose bitmaps we created locally (not shared placeholder / memory cache).
+        if (_ownedLogoBitmap is null)
+            return;
+        if (!ReferenceEquals(_ownedLogoBitmap, AsyncLogoLoader.GetPlaceholder()))
+        {
+            try { _ownedLogoBitmap.Dispose(); } catch { /* ignore */ }
+        }
+
+        _ownedLogoBitmap = null;
     }
 
     private void RefreshLayoutMetrics()
@@ -465,17 +535,25 @@ public partial class MyListItem : Grid, IMyRadio
             return;
 
         bool isSmall = Height < 40d;
+        bool isCompRow = Height >= 56d; // community / profile rows — larger logo column (WPF MyCompItem ~50)
         bool hasLogo = !string.IsNullOrWhiteSpace(SvgIcon) || !string.IsNullOrWhiteSpace(Logo);
+        double logoColumn = !hasLogo ? 0d : isCompRow ? 50d : 34d;
 
         ColumnDefinitions[0].Width = new GridLength(Type is CheckType.RadioBox or CheckType.CheckBox
             ? 6d
             : isSmall ? 4d : 2d);
-        ColumnDefinitions[2].Width = new GridLength((hasLogo ? 34d : 0d) + (isSmall ? 0d : 4d));
+        ColumnDefinitions[2].Width = new GridLength(logoColumn + (isSmall ? 0d : 4d));
 
         if (_logoHost is not null)
         {
-            _logoHost.Margin = new Thickness(isSmall ? 6d : 8d, 8d, isSmall ? 4d : 6d, 8d);
+            _logoHost.Margin = new Thickness(
+                isSmall ? 6d : 8d,
+                isCompRow ? 7d : 8d,
+                isSmall ? 4d : 6d,
+                isCompRow ? 7d : 8d);
             _logoHost.RenderTransform = new ScaleTransform(LogoScale, LogoScale);
+            if (_logoImage is not null)
+                RenderOptions.SetBitmapInterpolationMode(_logoImage, BitmapInterpolationMode.None);
         }
         if (_rectBack is not null)
             _rectBack.CornerRadius = new CornerRadius(IsScaleAnimationEnabled || Height > 40d ? 6d : 0d);
@@ -935,43 +1013,6 @@ public partial class MyListItem : Grid, IMyRadio
                 }
             };
             panel.Children.Add(tag);
-        }
-    }
-
-    private static bool IsImageLogo(string? logo)
-    {
-        if (string.IsNullOrWhiteSpace(logo))
-            return false;
-
-        string normalized = NormalizeLogoUri(logo);
-        return normalized.StartsWith("avares://", StringComparison.OrdinalIgnoreCase) ||
-               normalized.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
-               normalized.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
-               normalized.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
-               normalized.EndsWith(".webp", StringComparison.OrdinalIgnoreCase) ||
-               normalized.EndsWith(".ico", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static Bitmap? LoadLogoImage(string logo)
-    {
-        try
-        {
-            string normalized = NormalizeLogoUri(logo);
-            if (File.Exists(normalized))
-            {
-                using Stream fileStream = File.OpenRead(normalized);
-                return new Bitmap(fileStream);
-            }
-
-            if (!Uri.TryCreate(normalized, UriKind.Absolute, out Uri? uri))
-                return null;
-
-            using Stream stream = uri.IsFile ? File.OpenRead(uri.LocalPath) : AssetLoader.Open(uri);
-            return new Bitmap(stream);
-        }
-        catch (Exception)
-        {
-            return null;
         }
     }
 

@@ -8,11 +8,14 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Localization;
 
 namespace PCL.Desktop.Features.Launching.Views;
 
 public partial class PageLaunchLeft : MyPageLeft, IDisposable
 {
+    private const int ProgressAnimDurationMs = 260;
+
     private LaunchButtonAction _launchButtonAction = LaunchButtonAction.Loading;
     private CancellationTokenSource? _refreshCancellation;
     private Task? _refreshInstancesTask;
@@ -21,6 +24,8 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
     private string? _minecraftRootDirectory;
     private string? _preferredInstanceDirectory;
     private double _showProgress;
+    private double _targetProgress;
+    private double _renderedProgress;
     private bool _showLaunchingHint = true;
 
     public PageLaunchLeft()
@@ -125,28 +130,45 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
     {
         string? selectedDirectory = NormalizeInstanceDirectory(SelectedInstance?.InstanceDirectory)
                                     ?? _preferredInstanceDirectory;
+        IReadOnlyList<LaunchInstanceInfo> previousInstances = Instances;
+        LaunchInstanceInfo? previousSelected = SelectedInstance;
+        bool hadInstances = _isInstanceLoadFinished && previousInstances.Count > 0;
+
         _refreshCancellation?.Cancel();
         _refreshCancellation?.Dispose();
         _refreshCancellation = new CancellationTokenSource();
+        // Soft timeout so huge folders don't leave the button on “正在检查游戏版本” forever.
+        _refreshCancellation.CancelAfter(TimeSpan.FromSeconds(20));
         CancellationToken cancellationToken = _refreshCancellation.Token;
 
-        await RunOnUiThreadAsync(SetLoadingState).ConfigureAwait(false);
+        // Only hard-disable the launch button on first load; re-scan keeps previous UI.
+        if (!hadInstances)
+            await RunOnUiThreadAsync(SetLoadingState).ConfigureAwait(false);
+        else
+            await RunOnUiThreadAsync(() => StatusMessage?.Invoke(this, "正在刷新游戏版本列表…")).ConfigureAwait(false);
+
         try
         {
             Progress<LaunchInstanceDiscoveryProgress> progress = new(UpdateInstanceDiscoveryProgress);
-            IReadOnlyList<LaunchInstanceInfo> instances = _minecraftRootDirectory is null
-                ? await LaunchInstanceDiscovery.DiscoverAsync(
-                        LaunchInstanceDiscovery.GetCandidateRoots(),
-                        progress,
-                        cancellationToken)
-                    .ConfigureAwait(false)
-                : await LaunchInstanceDiscovery.DiscoverAsync(
-                        [_minecraftRootDirectory],
-                        progress,
-                        cancellationToken)
-                    .ConfigureAwait(false);
-            if (cancellationToken.IsCancellationRequested)
+            // Prefer the selected Minecraft root to avoid multi-folder full scans.
+            IReadOnlyList<string> roots = !string.IsNullOrWhiteSpace(_minecraftRootDirectory)
+                ? [_minecraftRootDirectory]
+                : LaunchInstanceDiscovery.GetCandidateRoots();
+            IReadOnlyList<LaunchInstanceInfo> instances = await LaunchInstanceDiscovery.DiscoverAsync(
+                    roots,
+                    progress,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            if (cancellationToken.IsCancellationRequested && instances.Count == 0 && hadInstances)
+            {
+                await RunOnUiThreadAsync(() =>
+                {
+                    _isInstanceLoadFinished = true;
+                    RefreshButtonsUI();
+                }).ConfigureAwait(false);
                 return;
+            }
 
             await RunOnUiThreadAsync(() =>
             {
@@ -161,15 +183,40 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
         }
         catch (OperationCanceledException)
         {
+            // Never leave the button stuck on “正在检查游戏版本”.
+            await RunOnUiThreadAsync(() =>
+            {
+                if (!_isInstanceLoadFinished)
+                {
+                    Instances = previousInstances;
+                    SelectedInstance = previousSelected;
+                    _isInstanceLoadFinished = true;
+                }
+
+                RefreshButtonsUI();
+                if (!hadInstances)
+                    StatusMessage?.Invoke(this, "检查游戏版本已取消或超时。");
+            }).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             await RunOnUiThreadAsync(() =>
             {
-                Instances = [];
-                SelectedInstance = null;
-                SetDisabledState("检查游戏版本时遇到问题");
-                StatusMessage?.Invoke(this, "未能检查本地游戏版本：" + ex.Message);
+                if (hadInstances)
+                {
+                    Instances = previousInstances;
+                    SelectedInstance = previousSelected;
+                    _isInstanceLoadFinished = true;
+                    RefreshButtonsUI();
+                    StatusMessage?.Invoke(this, "刷新游戏版本失败：" + ex.Message);
+                }
+                else
+                {
+                    Instances = [];
+                    SelectedInstance = null;
+                    SetDisabledState("检查游戏版本时遇到问题");
+                    StatusMessage?.Invoke(this, "未能检查本地游戏版本：" + ex.Message);
+                }
             }).ConfigureAwait(false);
         }
     }
@@ -210,7 +257,9 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
             return;
 
         _minecraftRootDirectory = normalized;
+        // Root changed: allow a fresh scan, but keep prior instances visible until the new scan finishes.
         _isInstanceLoadFinished = false;
+        _ = RefreshInstancesAsync();
     }
 
     public void SetInstanceLoading(bool isLoading)
@@ -336,13 +385,15 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
 
         IsLaunchInProgress = true;
         _showProgress = 0d;
-        SetText("LabLaunchingTitle", "正在启动");
+        _targetProgress = 0d;
+        _renderedProgress = 0d;
+        SetText("LabLaunchingTitle", AvaloniaLocalizationManager.GetText("Launch.Status.Title.Launching", "正在启动"));
         SetText("LabLaunchingName", instance?.Name ?? "等待选择版本");
-        SetText("LabLaunchingStage", "准备启动环境");
+        SetText("LabLaunchingStage", AvaloniaLocalizationManager.GetText("Common.Action.Initialize", "初始化"));
         SetText("LabLaunchingMethod", "等待账户档案");
         SetText("LabLaunchingHint", PageLaunchRight.GetRandomHint(enableLengthLimit: true, raw: true));
         SetVisible("PanLaunchingHint", _showLaunchingHint);
-        SetLaunchProgress(0d);
+        ApplyLaunchProgressVisual(0d, animate: false);
         SetVisible("LabLaunchingDownloadLeft", false);
         SetVisible("LabLaunchingDownload", false);
 
@@ -377,7 +428,9 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
     {
         SetText("LabLaunchingTitle", "正在自动修复");
         SetText("LabLaunchingStage", "正在下载缺失文件");
-        SetLaunchProgress(0d);
+        _targetProgress = 0d;
+        _showProgress = 0d;
+        ApplyLaunchProgressVisual(0d, animate: false);
     }
 
     public void UpdateRepairStep(int current, int total)
@@ -387,22 +440,23 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
 
         double ratio = Math.Clamp(current / (double)total, 0d, 1d);
         SetText("LabLaunchingStage", $"正在下载缺失文件 ({current}/{total})");
-        SetLaunchProgress(ratio);
+        _targetProgress = ratio;
+        _showProgress = ratio;
+        ApplyLaunchProgressVisual(ratio, animate: true);
     }
 
     public void HideRepairing()
     {
-        SetText("LabLaunchingTitle", "正在启动");
-        SetText("LabLaunchingStage", "初始化");
-        SetLaunchProgress(0d);
+        SetText("LabLaunchingTitle", AvaloniaLocalizationManager.GetText("Launch.Status.Title.Launching", "正在启动"));
+        SetText("LabLaunchingStage", AvaloniaLocalizationManager.GetText("Common.Action.Initialize", "初始化"));
+        _targetProgress = 0d;
+        _showProgress = 0d;
+        ApplyLaunchProgressVisual(0d, animate: false);
     }
 
     public void UpdateLaunchingStatus(string stage, double progress, string? method = null)
     {
-        SetText("LabLaunchingStage", stage);
-        if (!string.IsNullOrWhiteSpace(method))
-            SetText("LabLaunchingMethod", method);
-        SetLaunchProgress(progress);
+        LaunchingRefresh(stage, progress, isLaunched: false, method);
     }
 
     public void LaunchingRefresh(
@@ -413,18 +467,32 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
         string? downloadSpeed = null)
     {
         actualProgress = Math.Clamp(actualProgress, 0d, 1d);
-        if (actualProgress >= _showProgress)
-            _showProgress += (actualProgress - _showProgress) * 0.2d + 0.005d;
-        if (actualProgress <= _showProgress)
-            _showProgress = actualProgress;
+        _targetProgress = isLaunched ? 1d : actualProgress;
+
+        // WPF-style ease: each refresh (including stage heartbeats) creeps display progress
+        // toward the real value, then animates the bar over ~260ms so it never looks frozen.
         if (isLaunched)
             _showProgress = 1d;
+        else if (actualProgress < _showProgress)
+            _showProgress = actualProgress;
+        else
+        {
+            _showProgress += (_targetProgress - _showProgress) * 0.2d + 0.005d;
+            if (_showProgress > _targetProgress)
+                _showProgress = _targetProgress;
+        }
 
-        SetText("LabLaunchingTitle", isLaunched ? "游戏已启动" : "正在启动");
+        _showProgress = Math.Clamp(_showProgress, 0d, 1d);
+        ApplyLaunchProgressVisual(_showProgress, animate: true);
+
+        SetText(
+            "LabLaunchingTitle",
+            isLaunched
+                ? AvaloniaLocalizationManager.GetText("Launch.Status.Title.Launched", "游戏已启动")
+                : AvaloniaLocalizationManager.GetText("Launch.Status.Title.Launching", "正在启动"));
         SetText("LabLaunchingStage", stage);
         if (!string.IsNullOrWhiteSpace(method))
             SetText("LabLaunchingMethod", method);
-        SetLaunchProgress(_showProgress);
 
         bool hasDownloadSpeed = !string.IsNullOrWhiteSpace(downloadSpeed);
         SetVisible("LabLaunchingDownloadLeft", hasDownloadSpeed);
@@ -533,8 +601,13 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
                     return;
                 }
 
-                ShowLaunching(SelectedInstance);
-                LaunchRequested?.Invoke(this, SelectedInstance);
+                // Paint launching UI first; fire LaunchRequested on next dispatcher pass so
+                // the click stack returns and animations can start before any launch work.
+                LaunchInstanceInfo instance = SelectedInstance;
+                ShowLaunching(instance);
+                Dispatcher.UIThread.Post(
+                    () => LaunchRequested?.Invoke(this, instance),
+                    DispatcherPriority.Background);
                 break;
             case LaunchButtonAction.Download:
                 DownloadRequested?.Invoke(this, EventArgs.Empty);
@@ -565,7 +638,12 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
         if (!IsLaunchInProgress)
             return;
 
-        SetText("LabLaunchingStage", "已请求取消启动");
+        SetText("LabLaunchingStage", AvaloniaLocalizationManager.GetText(
+            "Minecraft.Launch.Cancelled.Request",
+            "已请求取消启动"));
+        // Request cancellation first; return to login immediately so the launching pane
+        // does not stay stuck if the orchestrator is mid-stage. MainWindow only cancels
+        // the token and does not call PageChangeToLogin again.
         CancelLaunchRequested?.Invoke(this, EventArgs.Empty);
         if (IsLaunchInProgress)
             PageChangeToLogin();
@@ -695,16 +773,52 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
             block.Text = text;
     }
 
-    private void SetLaunchProgress(double ratio)
+    private void ApplyLaunchProgressVisual(double ratio, bool animate)
     {
         ratio = Math.Clamp(ratio, 0d, 1d);
-        if (this.FindControl<Grid>("PanLaunchingProgressBar") is { ColumnDefinitions.Count: >= 2 } progressBar)
+        SetText("LabLaunchingProgress", ratio.ToString("P2", System.Globalization.CultureInfo.CurrentCulture));
+
+        if (this.FindControl<Grid>("PanLaunchingProgressBar") is not { ColumnDefinitions.Count: >= 2 } progressBar)
         {
-            progressBar.ColumnDefinitions[0].Width = new GridLength(ratio, GridUnitType.Star);
-            progressBar.ColumnDefinitions[1].Width = new GridLength(1d - ratio, GridUnitType.Star);
+            _renderedProgress = ratio;
+            return;
         }
 
-        SetText("LabLaunchingProgress", ratio.ToString("P2", System.Globalization.CultureInfo.CurrentCulture));
+        ColumnDefinition finished = progressBar.ColumnDefinitions[0];
+        ColumnDefinition unfinished = progressBar.ColumnDefinitions[1];
+        if (!animate)
+        {
+            ModAnimation.AniStop("Launching Progress");
+            finished.Width = new GridLength(ratio, GridUnitType.Star);
+            unfinished.Width = new GridLength(1d - ratio, GridUnitType.Star);
+            _renderedProgress = ratio;
+            return;
+        }
+
+        double finishedDelta = ratio - finished.Width.Value;
+        double unfinishedDelta = (1d - ratio) - unfinished.Width.Value;
+        if (Math.Abs(finishedDelta) < 0.0005d && Math.Abs(unfinishedDelta) < 0.0005d)
+        {
+            _renderedProgress = ratio;
+            return;
+        }
+
+        ModAnimation.AniStart(
+            new List<ModAnimation.AniData>
+            {
+                ModAnimation.AaGridLengthWidth(
+                    finished,
+                    finishedDelta,
+                    ProgressAnimDurationMs,
+                    ease: new ModAnimation.AniEaseOutFluent()),
+                ModAnimation.AaGridLengthWidth(
+                    unfinished,
+                    unfinishedDelta,
+                    ProgressAnimDurationMs,
+                    ease: new ModAnimation.AniEaseOutFluent())
+            },
+            "Launching Progress");
+        _renderedProgress = ratio;
     }
 
     private void SetLaunchLoadingState(MyLoading.MyLoadingState state)

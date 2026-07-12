@@ -2,6 +2,7 @@
 // Modifications Copyright (c) 2026 PCL N contributors.
 // Licensed under the Apache License, Version 2.0.
 
+using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -9,6 +10,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Threading;
 
 namespace PCL.Desktop.Controls.Legacy;
@@ -25,7 +27,8 @@ public partial class MySkin : Grid
     private readonly Image? _backImage;
     private readonly Image? _frontImage;
     private readonly Border? _shadow;
-    private Bitmap? _skinBitmap;
+    private Bitmap? _faceBitmap;
+    private Bitmap? _hatBitmap;
     private bool _isSkinMouseDown;
     private int _loadVersion;
 
@@ -82,27 +85,52 @@ public partial class MySkin : Grid
 
     public void Load() => _ = LoadAsync();
 
+    /// <summary>
+    /// Prefer explicit skin texture URL/path.
+    /// Third-party (Authlib) uses <paramref name="authServer"/> sessionserver; otherwise Mojang.
+    /// Never invent a Steve CDN default.
+    /// </summary>
+    public static string ResolveSkinAddress(string? skinAddress, string? uuid = null, string? authServer = null)
+    {
+        if (!string.IsNullOrWhiteSpace(skinAddress))
+            return skinAddress.Trim();
+
+        string normalized = NormalizeUuid(uuid);
+        if (string.IsNullOrWhiteSpace(normalized))
+            return string.Empty;
+
+        if (!string.IsNullOrWhiteSpace(authServer))
+        {
+            string baseUrl = NormalizeAuthServerBase(authServer);
+            if (!string.IsNullOrWhiteSpace(baseUrl))
+                return baseUrl + "/sessionserver/session/minecraft/profile/" + normalized;
+        }
+
+        return "uuid:" + normalized;
+    }
+
+    private static string NormalizeAuthServerBase(string authServer)
+    {
+        string baseUrl = authServer.Trim().TrimEnd('/');
+        if (baseUrl.EndsWith("/authserver", StringComparison.OrdinalIgnoreCase))
+            baseUrl = baseUrl[..^"/authserver".Length].TrimEnd('/');
+        return baseUrl;
+    }
+
     private async Task LoadAsync()
     {
         string address = Address.Trim();
         int loadVersion = Interlocked.Increment(ref _loadVersion);
         try
         {
-            byte[] bytes;
-            if (File.Exists(address))
+            if (string.IsNullOrWhiteSpace(address))
             {
-                bytes = await File.ReadAllBytesAsync(address).ConfigureAwait(false);
+                await ClearIfCurrentAsync(loadVersion).ConfigureAwait(false);
+                return;
             }
-            else if (Uri.TryCreate(address, UriKind.Absolute, out Uri? uri) &&
-                     (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
-            {
-                uri = NormalizeSkinUri(uri);
-                using HttpResponseMessage response = await SkinClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead)
-                    .ConfigureAwait(false);
-                response.EnsureSuccessStatusCode();
-                bytes = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
-            }
-            else
+
+            byte[]? bytes = await LoadSkinBytesAsync(address).ConfigureAwait(false);
+            if (bytes is null || bytes.Length < 64)
             {
                 await ClearIfCurrentAsync(loadVersion).ConfigureAwait(false);
                 return;
@@ -110,30 +138,145 @@ public partial class MySkin : Grid
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                using MemoryStream stream = new(bytes, writable: false);
-                Bitmap bitmap = new(stream);
-                PixelSize size = bitmap.PixelSize;
-                if (loadVersion != _loadVersion || size.Width < 32 || size.Height < 32)
-                {
-                    bitmap.Dispose();
-                    if (loadVersion == _loadVersion)
-                        ClearImages();
+                if (loadVersion != _loadVersion)
                     return;
-                }
 
-                int scale = Math.Max(1, (int)Math.Round(size.Width / 64d));
-                ClearImages();
-                _skinBitmap = bitmap;
-                _backImage!.Source = Crop(bitmap, scale * 8, scale * 8, scale * 8, scale * 8);
-                _frontImage!.Source = size.Width >= 64 && size.Height >= 32
-                    ? Crop(bitmap, scale * 40, scale * 8, scale * 8, scale * 8)
-                    : null;
+                try
+                {
+                    using MemoryStream stream = new(bytes, writable: false);
+                    using Bitmap fullSkin = new(stream);
+                    PixelSize size = fullSkin.PixelSize;
+                    if (size.Width < 32 || size.Height < 32)
+                    {
+                        ClearImages();
+                        return;
+                    }
+
+                    int scale = Math.Max(1, (int)Math.Round(size.Width / 64d));
+                    // WPF: face at (8,8) 8x8; hat overlay at (40,8) 8x8 — pixel-scaled layered head.
+                    Bitmap? face = CropToBitmap(fullSkin, scale * 8, scale * 8, scale * 8, scale * 8);
+                    Bitmap? hat = size.Width >= 64 && size.Height >= 32
+                        ? CropToBitmap(fullSkin, scale * 40, scale * 8, scale * 8, scale * 8)
+                        : null;
+
+                    ClearImages();
+                    _faceBitmap = face;
+                    _hatBitmap = hat;
+                    if (_backImage is not null)
+                        _backImage.Source = face;
+                    if (_frontImage is not null)
+                        _frontImage.Source = hat;
+                }
+                catch (Exception)
+                {
+                    ClearImages();
+                }
             });
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or HttpRequestException or TaskCanceledException)
+        catch (Exception)
         {
             await ClearIfCurrentAsync(loadVersion).ConfigureAwait(false);
         }
+    }
+
+    private static async Task<byte[]?> LoadSkinBytesAsync(string address)
+    {
+        if (File.Exists(address))
+            return await File.ReadAllBytesAsync(address).ConfigureAwait(false);
+
+        // Built-in offline defaults: avares://PCL.Desktop/Assets/Legacy/Skins/Steve.png
+        if (address.StartsWith("avares://", StringComparison.OrdinalIgnoreCase) &&
+            Uri.TryCreate(address, UriKind.Absolute, out Uri? avaresUri))
+        {
+            await using Stream stream = AssetLoader.Open(avaresUri);
+            using MemoryStream ms = new();
+            await stream.CopyToAsync(ms).ConfigureAwait(false);
+            return ms.ToArray();
+        }
+
+        if (address.StartsWith("uuid:", StringComparison.OrdinalIgnoreCase))
+        {
+            string uuid = NormalizeUuid(address["uuid:".Length..]);
+            string? textureUrl = await ResolveTextureUrlFromUuidAsync(uuid).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(textureUrl))
+                return null;
+            address = textureUrl;
+        }
+
+        if (!Uri.TryCreate(address, UriKind.Absolute, out Uri? uri) ||
+            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        {
+            return null;
+        }
+
+        uri = NormalizeSkinUri(uri);
+
+        // Session profile JSON (Mojang or Authlib sessionserver) masquerading as skin address.
+        if (IsSessionProfileUri(uri))
+        {
+            string? textureUrl = await ResolveTextureUrlFromSessionProfileAsync(uri).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(textureUrl))
+                return null;
+            uri = NormalizeSkinUri(new Uri(textureUrl));
+        }
+
+        string localPath = await EnsureCachedSkinAsync(uri, CancellationToken.None).ConfigureAwait(false);
+        return await File.ReadAllBytesAsync(localPath).ConfigureAwait(false);
+    }
+
+    private static bool IsSessionProfileUri(Uri uri)
+    {
+        string path = uri.AbsolutePath;
+        return path.Contains("/session/minecraft/profile/", StringComparison.OrdinalIgnoreCase) ||
+               uri.Host.Contains("sessionserver.mojang.com", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static async Task<string?> ResolveTextureUrlFromUuidAsync(string uuid)
+    {
+        if (string.IsNullOrWhiteSpace(uuid) || uuid.Length != 32)
+            return null;
+
+        Uri profileUri = new("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
+        return await ResolveTextureUrlFromSessionProfileAsync(profileUri).ConfigureAwait(false);
+    }
+
+    private static async Task<string?> ResolveTextureUrlFromSessionProfileAsync(Uri profileUri)
+    {
+        using HttpResponseMessage response = await SkinClient.GetAsync(profileUri, CancellationToken.None).ConfigureAwait(false);
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        string body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+        using JsonDocument document = JsonDocument.Parse(body);
+        if (!document.RootElement.TryGetProperty("properties", out JsonElement properties) ||
+            properties.ValueKind != JsonValueKind.Array)
+        {
+            return null;
+        }
+
+        foreach (JsonElement property in properties.EnumerateArray())
+        {
+            if (property.ValueKind != JsonValueKind.Object)
+                continue;
+            string name = property.TryGetProperty("name", out JsonElement nameEl) ? nameEl.GetString() ?? "" : "";
+            if (!string.Equals(name, "textures", StringComparison.OrdinalIgnoreCase))
+                continue;
+            string? encoded = property.TryGetProperty("value", out JsonElement valueEl) ? valueEl.GetString() : null;
+            if (string.IsNullOrWhiteSpace(encoded))
+                continue;
+
+            byte[] decoded = Convert.FromBase64String(encoded);
+            using JsonDocument texturesDoc = JsonDocument.Parse(decoded);
+            if (texturesDoc.RootElement.TryGetProperty("textures", out JsonElement textures) &&
+                textures.TryGetProperty("SKIN", out JsonElement skin) &&
+                skin.TryGetProperty("url", out JsonElement urlEl) &&
+                urlEl.ValueKind == JsonValueKind.String)
+            {
+                return urlEl.GetString();
+            }
+        }
+
+        return null;
     }
 
     private Task ClearIfCurrentAsync(int loadVersion)
@@ -157,27 +300,78 @@ public partial class MySkin : Grid
             _frontImage.Source = null;
         if (_backImage is not null)
             _backImage.Source = null;
-        _skinBitmap?.Dispose();
-        _skinBitmap = null;
+        _faceBitmap?.Dispose();
+        _hatBitmap?.Dispose();
+        _faceBitmap = null;
+        _hatBitmap = null;
     }
 
     private static HttpClient CreateSkinClient()
     {
         HttpClient client = new() { Timeout = TimeSpan.FromSeconds(15) };
         client.DefaultRequestHeaders.UserAgent.ParseAdd("PCL-N/1.0");
-        client.DefaultRequestHeaders.Accept.ParseAdd("image/png,image/*;q=0.8");
+        client.DefaultRequestHeaders.Accept.ParseAdd("image/png,image/*;q=0.8,*/*;q=0.5");
         return client;
     }
 
     private static Uri NormalizeSkinUri(Uri uri)
     {
         if (uri.Scheme == Uri.UriSchemeHttp &&
-            string.Equals(uri.Host, "textures.minecraft.net", StringComparison.OrdinalIgnoreCase))
+            (string.Equals(uri.Host, "textures.minecraft.net", StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(uri.Host, "crafatar.com", StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(uri.Host, "mc-heads.net", StringComparison.OrdinalIgnoreCase) ||
+             uri.Host.Contains("littleskin", StringComparison.OrdinalIgnoreCase)))
         {
             return new UriBuilder(uri) { Scheme = Uri.UriSchemeHttps, Port = -1 }.Uri;
         }
 
         return uri;
+    }
+
+    private static async Task<string> EnsureCachedSkinAsync(Uri uri, CancellationToken cancellationToken)
+    {
+        string cacheRoot = Path.Combine(Path.GetTempPath(), "PCL-N", "Cache", "Skin");
+        Directory.CreateDirectory(cacheRoot);
+        string fileName = Convert.ToHexString(
+            System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(uri.AbsoluteUri)))
+            .ToLowerInvariant() + ".png";
+        string cachePath = Path.Combine(cacheRoot, fileName);
+        if (File.Exists(cachePath) && new FileInfo(cachePath).Length > 32)
+            return cachePath;
+
+        using HttpResponseMessage response = await SkinClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+            .ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+        byte[] bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
+        string temp = cachePath + ".download";
+        await File.WriteAllBytesAsync(temp, bytes, cancellationToken).ConfigureAwait(false);
+        if (File.Exists(cachePath))
+            File.Delete(cachePath);
+        File.Move(temp, cachePath);
+        return cachePath;
+    }
+
+    private static string NormalizeUuid(string? uuid)
+    {
+        if (string.IsNullOrWhiteSpace(uuid))
+            return string.Empty;
+
+        return new string(uuid.Where(static ch => ch is not ('-' or ' ')).ToArray()).ToLowerInvariant();
+    }
+
+    private static string? TryExtractUuid(string address)
+    {
+        // crafatar.com/skins/{uuid} or .../avatars/{uuid}
+        string[] parts = address.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        for (int i = parts.Length - 1; i >= 0; i--)
+        {
+            string token = parts[i].Split('?', 2)[0];
+            string normalized = NormalizeUuid(token);
+            if (normalized.Length == 32)
+                return normalized;
+        }
+
+        return null;
     }
 
     public void BtnSkinSaveClick(object? sender, RoutedEventArgs e) => SaveRequested?.Invoke(this, EventArgs.Empty);
@@ -227,10 +421,25 @@ public partial class MySkin : Grid
         e.Handled = true;
     }
 
-    private static CroppedBitmap Crop(Bitmap source, int x, int y, int width, int height) =>
-        new()
+    private static Bitmap? CropToBitmap(Bitmap source, int x, int y, int width, int height)
+    {
+        if (width <= 0 || height <= 0)
+            return null;
+
+        PixelSize size = source.PixelSize;
+        if (x < 0 || y < 0 || x + width > size.Width || y + height > size.Height)
+            return null;
+
+        // Draw a cropped region into a new bitmap so we do not depend on CroppedBitmap quirks.
+        RenderTargetBitmap target = new(new PixelSize(width, height), new Vector(96, 96));
+        using (DrawingContext context = target.CreateDrawingContext())
         {
-            Source = source,
-            SourceRect = new PixelRect(x, y, width, height)
-        };
+            context.DrawImage(
+                source,
+                new Rect(x, y, width, height),
+                new Rect(0, 0, width, height));
+        }
+
+        return target;
+    }
 }

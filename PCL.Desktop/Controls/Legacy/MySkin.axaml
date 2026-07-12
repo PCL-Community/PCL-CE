@@ -4,6 +4,7 @@
       xmlns:legacy="using:PCL.Desktop.Controls.Legacy"
       Height="64"
       Width="64"
+      UseLayoutRounding="True"
       RenderTransformOrigin="50%,50%"
       Background="{StaticResource ColorBrushSemiTransparent}"
       ToolTip.Tip="{DynamicResource Launch.Skin.Change.ToolTip}">
@@ -26,20 +27,25 @@
                                Icon="M764.330761 922.841896h-496.758545c-18.741345 0-33.869901-15.128556-33.869901-33.8699V540.789416l-68.642999 29.805512c-15.805954 6.77398-34.0957 0.903197-42.676075-13.999559L22.354135 386.116869c-7.225579-12.418964-5.870783-28.224917 3.38699-39.063286 36.805292-42.901874 256.959647-176.349283 300.764718-202.767806 15.805954-9.483572 36.353693-4.515987 46.063065 11.064168 43.579272 69.320397 86.932745 74.739581 143.156781 74.739581s99.577508-5.419184 143.156781-74.739581c9.709372-15.580154 30.257111-20.54774 46.063065-11.064168 43.805072 26.418523 263.959427 159.865932 300.764719 202.767806 9.483572 11.064168 10.838368 26.644322 3.38699 39.063286l-100.029107 170.4785c-8.580375 14.676957-26.870121 20.773539-42.676075 13.999559l-68.642999-29.805512v348.18258c0.451599 18.741345-14.676957 33.869901-33.418302 33.8699z" />
         </ContextMenu>
     </Grid.ContextMenu>
+    <!-- WPF-style layered head (face + hat overlay) with nearest-neighbor for pixel “3D” look -->
     <Border x:Name="ShadowSkin"
-            CornerRadius="8"
+            CornerRadius="2"
             BoxShadow="0 0 10 0 #330b5bcb"
             Opacity="0.2" />
     <Image x:Name="ImgBack"
            Width="48"
            Height="48"
            Stretch="Fill"
+           RenderOptions.BitmapInterpolationMode="None"
+           UseLayoutRounding="True"
            HorizontalAlignment="Center"
            VerticalAlignment="Center" />
     <Image x:Name="ImgFore"
            Width="56"
            Height="56"
            Stretch="Fill"
+           RenderOptions.BitmapInterpolationMode="None"
+           UseLayoutRounding="True"
            HorizontalAlignment="Center"
            VerticalAlignment="Center" />
 </Grid>

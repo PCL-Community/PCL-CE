@@ -38,14 +38,11 @@
                                            Title="{CompiledBinding Username}"
                                            Info="{CompiledBinding Info}"
                                            Type="Clickable"
-                                           Logo="{CompiledBinding Logo}"
-                                           SvgIcon="{CompiledBinding SvgIcon}"
+                                           Logo="{CompiledBinding DisplayHeadAddress}"
+                                           SvgIcon="{CompiledBinding ListSvgIcon}"
+                                           Height="48"
+                                           LogoScale="1.05"
                                            Click="SelectProfile" />
-                        <Viewbox Width="32" Height="32" Margin="12,0,0,0"
-                                 HorizontalAlignment="Left" VerticalAlignment="Center"
-                                 IsHitTestVisible="False" IsVisible="{CompiledBinding HasSkin}">
-                            <legacy:MySkin Address="{CompiledBinding SkinAddress}" HasCape="False" />
-                        </Viewbox>
                     </Grid>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>

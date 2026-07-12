@@ -3,9 +3,11 @@
 // Licensed under the Apache License, Version 2.0.
 
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using PCL.Desktop.Controls.Legacy;
 
 namespace PCL.Desktop.Features.Launching.Views;
@@ -52,40 +54,95 @@ public partial class PageLoginProfileSkin : Grid, PageLaunchLeft.ILoginPage
         if (this.FindControl<MySkin>("Skin") is { } skin)
         {
             skin.HasCape = Profile.Kind != LaunchLoginProfileKind.Offline;
-            skin.Address = Profile.SkinAddress ?? string.Empty;
+            string address = Profile.Kind == LaunchLoginProfileKind.Offline
+                ? Profile.DisplaySkinAddress
+                : MySkin.ResolveSkinAddress(
+                    Profile.SkinAddress,
+                    Profile.Uuid,
+                    Profile.Kind == LaunchLoginProfileKind.ThirdParty ? Profile.AuthServer : null);
+            if (string.IsNullOrWhiteSpace(address))
+                address = Profile.DisplaySkinAddress;
+            skin.Address = address;
             skin.Load();
         }
         if (this.FindControl<MyIconButton>("BtnEdit") is { } edit)
-            edit.IsVisible = Profile.Kind != LaunchLoginProfileKind.Offline;
+            edit.IsVisible = true;
     }
 
     private void ShowPanel(object? sender, PointerEventArgs e) => SetButtonsOpacity(1d);
 
     private void HidePanel(object? sender, PointerEventArgs e) => SetButtonsOpacity(0d);
 
-    private void BtnSkinClick(object? sender, EventArgs e)
+    private void BtnSkinClick(object? sender, EventArgs e) => OpenSkinMenu();
+
+    private void BtnEditClick(object? sender, EventArgs e) => OpenEditMenu();
+
+    /// <summary>
+    /// WPF-style ContextMenu + MyMenuItem (fixed min width so text is not zero-width).
+    /// </summary>
+    private void OpenSkinMenu()
     {
-        if (sender is MyIconButton { ContextMenu: { } menu } button)
-            menu.Open(button);
+        if (this.FindControl<MyIconButton>("BtnSkin") is not { } button)
+            return;
+
+        ContextMenu menu = new()
+        {
+            Placement = PlacementMode.Bottom,
+            MinWidth = 160
+        };
+        menu.Items.Add(CreateMenuItem("更换皮肤", () => ChangeSkinRequested?.Invoke(this, EventArgs.Empty)));
+        menu.Items.Add(CreateMenuItem("保存皮肤", () => SaveSkinRequested?.Invoke(this, EventArgs.Empty)));
+        menu.Items.Add(CreateMenuItem("刷新皮肤", () => RefreshSkinRequested?.Invoke(this, EventArgs.Empty)));
+        if (Profile?.Kind != LaunchLoginProfileKind.Offline)
+            menu.Items.Add(CreateMenuItem("更换披风", () => ChangeCapeRequested?.Invoke(this, EventArgs.Empty)));
+
+        ShowContextMenu(button, menu);
     }
 
-    private void BtnEditClick(object? sender, EventArgs e)
+    private void OpenEditMenu()
     {
-        if (sender is MyIconButton { ContextMenu: { } menu } button)
-            menu.Open(button);
+        if (this.FindControl<MyIconButton>("BtnEdit") is not { } button)
+            return;
+
+        ContextMenu menu = new()
+        {
+            Placement = PlacementMode.Bottom,
+            MinWidth = 160
+        };
+        menu.Items.Add(CreateMenuItem("修改密码", () => EditPasswordRequested?.Invoke(this, EventArgs.Empty)));
+        menu.Items.Add(CreateMenuItem("修改用户名", () => EditNameRequested?.Invoke(this, EventArgs.Empty)));
+        ShowContextMenu(button, menu);
     }
 
-    private void SkinClick(object? sender, RoutedEventArgs e) => ChangeSkinRequested?.Invoke(this, EventArgs.Empty);
+    private static MyMenuItem CreateMenuItem(string header, Action action)
+    {
+        MyMenuItem item = new()
+        {
+            Header = header,
+            MinWidth = 150,
+            MinHeight = 32,
+            Padding = new Avalonia.Thickness(14, 7)
+        };
+        item.Click += (_, e) =>
+        {
+            e.Handled = true;
+            action();
+        };
+        return item;
+    }
 
-    private void BtnSkinSaveClick(object? sender, RoutedEventArgs e) => SaveSkinRequested?.Invoke(this, EventArgs.Empty);
+    private static void ShowContextMenu(Control target, ContextMenu menu)
+    {
+        void Open()
+        {
+            menu.Open(target);
+        }
 
-    private void BtnSkinRefreshClick(object? sender, RoutedEventArgs e) => RefreshSkinRequested?.Invoke(this, EventArgs.Empty);
-
-    private void BtnSkinCapeClick(object? sender, RoutedEventArgs e) => ChangeCapeRequested?.Invoke(this, EventArgs.Empty);
-
-    private void BtnEditPasswordClick(object? sender, RoutedEventArgs e) => EditPasswordRequested?.Invoke(this, EventArgs.Empty);
-
-    private void BtnEditNameClick(object? sender, RoutedEventArgs e) => EditNameRequested?.Invoke(this, EventArgs.Empty);
+        if (Dispatcher.UIThread.CheckAccess())
+            Open();
+        else
+            Dispatcher.UIThread.Post(Open);
+    }
 
     private void ChangeProfile(object? sender, EventArgs e) => ChangeProfileRequested?.Invoke(this, EventArgs.Empty);
 
