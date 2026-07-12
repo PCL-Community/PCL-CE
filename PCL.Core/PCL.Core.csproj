@@ -68,7 +68,7 @@
         <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.3" />
         <PackageReference Include="Polly" Version="8.6.5" />
         <!-- 本地化 -->
-        <PackageReference Include="Humanizer.Core.zh-CN" Version="3.0.1" />
+        <PackageReference Include="Humanizer.Core.zh-CN" Version="3.0.10" />
         <!-- 日志与遥测 -->
         <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.3" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
