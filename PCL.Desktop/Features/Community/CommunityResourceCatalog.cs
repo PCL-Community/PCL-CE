@@ -61,6 +61,22 @@ public sealed record CommunityResourceVersion(
     IReadOnlyList<string> Loaders,
     IReadOnlyList<CommunityResourceDownloadFile> Files);
 
+public sealed record CommunityResourceFileIdentity(
+    string ProjectId,
+    string ProjectSlug,
+    string ProjectTitle,
+    string ProjectType,
+    string VersionId,
+    string VersionNumber,
+    DateTimeOffset? PublishedAt,
+    string? IconUrl,
+    string WebsiteUrl);
+
+public sealed record CommunityResourceUpdateCandidate(
+    CommunityResourceFileIdentity Current,
+    CommunityResourceVersion Latest,
+    CommunityResourceDownloadFile PrimaryFile);
+
 public interface ICommunityResourceCatalog
 {
     Task<IReadOnlyList<CommunityResourceEntry>> SearchAsync(
@@ -76,6 +92,17 @@ public interface ICommunityResourceCatalog
 
     Task<IReadOnlyList<CommunityResourceVersion>> GetVersionsAsync(
         CommunityResourceEntry entry,
+        CommunitySearchOptions? options = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>WPF-style: identify a local jar/zip by SHA-1 against Modrinth version files.</summary>
+    Task<CommunityResourceFileIdentity?> LookupFileBySha1Async(
+        string sha1Hex,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Latest project version matching optional game/loader filters.</summary>
+    Task<CommunityResourceVersion?> GetLatestVersionAsync(
+        string projectId,
         CommunitySearchOptions? options = null,
         CancellationToken cancellationToken = default);
 }
@@ -297,6 +324,106 @@ public sealed class ModrinthCommunityResourceCatalog : ICommunityResourceCatalog
         }
 
         return versions;
+    }
+
+    public async Task<CommunityResourceFileIdentity?> LookupFileBySha1Async(
+        string sha1Hex,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(sha1Hex) || sha1Hex.Length is not (40 or 64))
+            return null;
+
+        string algorithm = sha1Hex.Length == 64 ? "sha512" : "sha1";
+        string url = "https://api.modrinth.com/v2/version_file/" + Uri.EscapeDataString(sha1Hex.ToLowerInvariant()) +
+                     "?algorithm=" + algorithm;
+        try
+        {
+            using HttpResponseMessage response = await _client.GetAsync(url, cancellationToken).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+                return null;
+
+            await using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            using JsonDocument document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+            JsonElement root = document.RootElement;
+            string projectId = ReadString(root, "project_id");
+            string versionId = ReadString(root, "id");
+            if (string.IsNullOrWhiteSpace(projectId) || string.IsNullOrWhiteSpace(versionId))
+                return null;
+
+            string versionNumber = ReadString(root, "version_number");
+            DateTimeOffset? published = ReadDateTimeOffset(root, "date_published");
+
+            // Project metadata for title / icon / type.
+            string title = projectId;
+            string slug = projectId;
+            string projectType = "mod";
+            string? iconUrl = null;
+            try
+            {
+                string projectUrl = "https://api.modrinth.com/v2/project/" + Uri.EscapeDataString(projectId);
+                using HttpResponseMessage projectResponse = await _client.GetAsync(projectUrl, cancellationToken)
+                    .ConfigureAwait(false);
+                if (projectResponse.IsSuccessStatusCode)
+                {
+                    await using Stream projectStream =
+                        await projectResponse.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                    using JsonDocument projectDoc =
+                        await JsonDocument.ParseAsync(projectStream, cancellationToken: cancellationToken)
+                            .ConfigureAwait(false);
+                    title = NullIfWhiteSpace(ReadString(projectDoc.RootElement, "title")) ?? title;
+                    slug = NullIfWhiteSpace(ReadString(projectDoc.RootElement, "slug")) ?? slug;
+                    projectType = NullIfWhiteSpace(ReadString(projectDoc.RootElement, "project_type")) ?? projectType;
+                    iconUrl = NullIfWhiteSpace(ReadString(projectDoc.RootElement, "icon_url"));
+                }
+            }
+            catch
+            {
+                // identity still useful without project decoration
+            }
+
+            string website = "https://modrinth.com/" + projectType + "/" +
+                             (string.IsNullOrWhiteSpace(slug) ? projectId : slug);
+            return new CommunityResourceFileIdentity(
+                projectId,
+                slug,
+                title,
+                projectType,
+                versionId,
+                versionNumber,
+                published,
+                iconUrl,
+                website);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException or IOException)
+        {
+            return null;
+        }
+    }
+
+    public async Task<CommunityResourceVersion?> GetLatestVersionAsync(
+        string projectId,
+        CommunitySearchOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(projectId))
+            return null;
+
+        options ??= new CommunitySearchOptions();
+        CommunityResourceEntry stub = new(
+            projectId,
+            projectId,
+            projectId,
+            string.Empty,
+            "mod",
+            null,
+            0,
+            null);
+        IReadOnlyList<CommunityResourceVersion> versions =
+            await GetVersionsAsync(stub, options, cancellationToken).ConfigureAwait(false);
+        return versions
+            .OrderByDescending(static v => v.PublishedAt ?? DateTimeOffset.MinValue)
+            .FirstOrDefault();
     }
 
     public void Dispose()

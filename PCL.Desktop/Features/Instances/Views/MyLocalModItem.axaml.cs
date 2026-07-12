@@ -41,6 +41,8 @@ public partial class MyLocalModItem : Grid
         _logo = this.FindControl<MyImage>("PathLogo");
         _tagsPanel = this.FindControl<StackPanel>("PanTags");
         _paddingRightColumn = ColumnDefinitions.Count > 5 ? ColumnDefinitions[5] : null;
+        if (this.FindControl<MyIconButton>("BtnUpdate") is { } update)
+            update.Click += (_, _) => UpdateRequested?.Invoke(this, EventArgs.Empty);
 
         PointerEntered += (_, _) => RefreshColor(animate: true);
         PointerExited += (_, _) =>
@@ -65,6 +67,23 @@ public partial class MyLocalModItem : Grid
     public event EventHandler<RouteEventArgs>? Check;
 
     public event EventHandler<RouteEventArgs>? Changed;
+
+    /// <summary>Raised when the user clicks the small update icon (resource-site newer version).</summary>
+    public event EventHandler? UpdateRequested;
+
+    public bool ShowUpdateButton
+    {
+        get => field;
+        set
+        {
+            field = value;
+            if (this.FindControl<MyIconButton>("BtnUpdate") is { } update)
+            {
+                update.IsVisible = value;
+                update.ToolTip = value ? "发现新版本，点击更新" : null;
+            }
+        }
+    }
 
     public int Uuid { get; } = Random.Shared.Next();
 

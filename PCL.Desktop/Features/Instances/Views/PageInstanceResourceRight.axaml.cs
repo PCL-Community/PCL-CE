@@ -3,15 +3,19 @@
 // Licensed under the Apache License, Version 2.0.
 
 using System.Globalization;
+using System.Security.Cryptography;
 using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using PCL.Application.Instances;
 using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Features.Community;
 using PCL.Desktop.Features.Launching.Views;
+using PCL.Desktop.Features.Shared;
 
 namespace PCL.Desktop.Features.Instances.Views;
 
@@ -25,6 +29,9 @@ public partial class PageInstanceResourceRight : MyPageRight
     private string _folder = string.Empty;
     private List<ResourceEntry> _entries = [];
     private bool _isLoading;
+    private int _catalogScanVersion;
+    private readonly Dictionary<string, LocalCatalogMatch> _catalogByPath =
+        new(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 
     public PageInstanceResourceRight()
     {
@@ -111,7 +118,9 @@ public partial class PageInstanceResourceRight : MyPageRight
                 .Where(IsAcceptedPath)
                 .Select(path => new ResourceEntry(path, Directory.Exists(path), IsDisabledPath(path), GetLength(path), File.GetCreationTime(path), File.GetLastWriteTime(path)))
                 .ToList();
+            _catalogByPath.Clear();
             RefreshUI();
+            _ = ResolveCatalogMatchesAsync();
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
@@ -215,14 +224,38 @@ public partial class PageInstanceResourceRight : MyPageRight
 
     private MyLocalModItem CreateEntryItem(ResourceEntry entry)
     {
+        _catalogByPath.TryGetValue(entry.FullPath, out LocalCatalogMatch? match);
+
         MyLocalModItem item = new()
         {
-            Title = GetDisplayName(entry),
-            Description = GetEntryInfo(entry),
-            Logo = GetEntryLogo(entry),
-            State = entry.IsDisabled ? ResourceItemState.Disabled : ResourceItemState.Fine
+            Title = match?.Identity.ProjectTitle is { Length: > 0 } mapped
+                ? mapped
+                : GetDisplayName(entry),
+            SubTitle = match is null
+                ? string.Empty
+                : " · Modrinth" + (string.IsNullOrWhiteSpace(match.Identity.VersionNumber)
+                    ? string.Empty
+                    : " " + match.Identity.VersionNumber),
+            Description = match is null
+                ? GetEntryInfo(entry)
+                : (match.HasUpdate
+                    ? "有更新可用 · " + (match.LatestVersionNumber ?? "") + " · "
+                    : string.Empty) + GetEntryInfo(entry),
+            Logo = !string.IsNullOrWhiteSpace(match?.Identity.IconUrl)
+                ? match!.Identity.IconUrl!
+                : GetEntryLogo(entry),
+            State = entry.IsDisabled ? ResourceItemState.Disabled : ResourceItemState.Fine,
+            ShowUpdateButton = match?.HasUpdate == true,
+            Tag = entry
         };
-        item.Click += (_, _) => OpenEntryLocation(entry);
+        item.Click += (_, _) =>
+        {
+            if (match is not null && !string.IsNullOrWhiteSpace(match.Identity.WebsiteUrl))
+                OpenExternalUrl(match.Identity.WebsiteUrl);
+            else
+                OpenEntryLocation(entry);
+        };
+        item.UpdateRequested += (_, _) => _ = ApplyCatalogUpdateAsync(entry, match);
 
         List<MyIconButton> buttons =
         [
@@ -256,6 +289,225 @@ public partial class PageInstanceResourceRight : MyPageRight
 
         item.Buttons = buttons;
         return item;
+    }
+
+    private async Task ResolveCatalogMatchesAsync()
+    {
+        // Only jar/zip files can be fingerprinted against Modrinth.
+        if (_kind is InstanceResourceKind.Schematic or InstanceResourceKind.None)
+            return;
+
+        int scan = Interlocked.Increment(ref _catalogScanVersion);
+        List<ResourceEntry> files = _entries.Where(static e => !e.IsDirectory).ToList();
+        if (files.Count == 0)
+            return;
+
+        string? gameVersion = _instance is null
+            ? null
+            : MinecraftVersionJsonInspector.Read(_instance).MinecraftVersionId;
+        string? loaderHint = DetectLoaderHint(_instance);
+
+        using ModrinthCommunityResourceCatalog catalog = new();
+        using SemaphoreSlim gate = new(3, 3);
+        List<Task> tasks = [];
+
+        foreach (ResourceEntry entry in files)
+        {
+            tasks.Add(Task.Run(async () =>
+            {
+                await gate.WaitAsync().ConfigureAwait(false);
+                try
+                {
+                    if (scan != _catalogScanVersion)
+                        return;
+
+                    string? sha1 = await ComputeSha1HexAsync(entry.FullPath).ConfigureAwait(false);
+                    if (string.IsNullOrWhiteSpace(sha1))
+                        return;
+
+                    CommunityResourceFileIdentity? identity =
+                        await catalog.LookupFileBySha1Async(sha1, CancellationToken.None).ConfigureAwait(false);
+                    if (identity is null || scan != _catalogScanVersion)
+                        return;
+
+                    CommunitySearchOptions options = new(
+                        CommunityResourceSort.Updated,
+                        string.IsNullOrWhiteSpace(gameVersion) ? null : gameVersion,
+                        loaderHint,
+                        null);
+                    CommunityResourceVersion? latest =
+                        await catalog.GetLatestVersionAsync(identity.ProjectId, options, CancellationToken.None)
+                            .ConfigureAwait(false);
+
+                    bool hasUpdate = false;
+                    string? latestNumber = null;
+                    CommunityResourceDownloadFile? primary = null;
+                    if (latest is not null &&
+                        !string.Equals(latest.VersionId, identity.VersionId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Prefer published-at; fall back to different version id.
+                        if (latest.PublishedAt is { } latestAt &&
+                            identity.PublishedAt is { } currentAt)
+                        {
+                            hasUpdate = latestAt > currentAt.AddMinutes(1);
+                        }
+                        else
+                        {
+                            hasUpdate = true;
+                        }
+
+                        latestNumber = latest.VersionNumber;
+                        primary = latest.Files.Count > 0 ? latest.Files[0] : null;
+                    }
+
+                    LocalCatalogMatch match = new(identity, hasUpdate, latestNumber, primary);
+                    lock (_catalogByPath)
+                        _catalogByPath[entry.FullPath] = match;
+                }
+                finally
+                {
+                    gate.Release();
+                }
+            }));
+        }
+
+        try
+        {
+            await Task.WhenAll(tasks).ConfigureAwait(true);
+        }
+        catch
+        {
+            // individual lookups already swallow network errors
+        }
+
+        if (scan != _catalogScanVersion)
+            return;
+
+        await Dispatcher.UIThread.InvokeAsync(RefreshUI);
+        int mapped = _catalogByPath.Count;
+        int updates = _catalogByPath.Values.Count(static m => m.HasUpdate);
+        if (mapped > 0)
+        {
+            StatusMessage?.Invoke(
+                this,
+                updates > 0
+                    ? $"已识别 {mapped} 个资源站项目，其中 {updates} 个可更新"
+                    : $"已识别 {mapped} 个资源站项目");
+        }
+    }
+
+    private async Task ApplyCatalogUpdateAsync(ResourceEntry entry, LocalCatalogMatch? match)
+    {
+        if (match is not { HasUpdate: true, PrimaryFile: { } file })
+        {
+            StatusMessage?.Invoke(this, "当前没有可应用的更新。");
+            return;
+        }
+
+        try
+        {
+            StatusMessage?.Invoke(this, "正在更新 " + (match.Identity.ProjectTitle ?? GetDisplayName(entry)) + "…");
+            using HttpClient client = new() { Timeout = TimeSpan.FromMinutes(10) };
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("PCL-N/1.0");
+            using HttpResponseMessage response = await client.GetAsync(
+                    file.Url,
+                    HttpCompletionOption.ResponseHeadersRead)
+                .ConfigureAwait(true);
+            response.EnsureSuccessStatusCode();
+
+            string targetName = SanitizeFileName(file.FileName);
+            string targetPath = Path.Combine(_folder, targetName);
+            string tempPath = targetPath + ".download";
+            await using (Stream network = await response.Content.ReadAsStreamAsync().ConfigureAwait(true))
+            await using (FileStream output = File.Create(tempPath))
+            {
+                await network.CopyToAsync(output).ConfigureAwait(true);
+            }
+
+            // Replace current file (keep disabled suffix if present).
+            string finalPath = entry.IsDisabled && !targetPath.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase)
+                ? targetPath + ".disabled"
+                : targetPath;
+
+            if (!string.Equals(entry.FullPath, finalPath, StringComparison.OrdinalIgnoreCase) &&
+                File.Exists(entry.FullPath))
+            {
+                File.Delete(entry.FullPath);
+            }
+
+            if (File.Exists(finalPath))
+                File.Delete(finalPath);
+            File.Move(tempPath, finalPath);
+
+            StatusMessage?.Invoke(this, "已更新：" + match.Identity.ProjectTitle);
+            Reload();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or HttpRequestException or TaskCanceledException)
+        {
+            StatusMessage?.Invoke(this, "更新失败：" + ex.Message);
+        }
+    }
+
+    private static string? DetectLoaderHint(LaunchInstanceInfo? instance)
+    {
+        if (instance is null)
+            return null;
+        try
+        {
+            MinecraftVersionJsonInfo info = MinecraftVersionJsonInspector.Read(instance);
+            string joined = string.Join(' ', info.Libraries);
+            if (joined.Contains("neoforge", StringComparison.OrdinalIgnoreCase))
+                return "neoforge";
+            if (joined.Contains("minecraftforge", StringComparison.OrdinalIgnoreCase))
+                return "forge";
+            if (joined.Contains("fabric-loader", StringComparison.OrdinalIgnoreCase))
+                return "fabric";
+            if (joined.Contains("quilt-loader", StringComparison.OrdinalIgnoreCase))
+                return "quilt";
+        }
+        catch
+        {
+            // ignore
+        }
+
+        return null;
+    }
+
+    private static async Task<string?> ComputeSha1HexAsync(string path)
+    {
+        try
+        {
+            await using FileStream stream = File.OpenRead(path);
+            byte[] hash = await SHA1.HashDataAsync(stream).ConfigureAwait(false);
+            return Convert.ToHexString(hash).ToLowerInvariant();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
+    private static void OpenExternalUrl(string url)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = url,
+                UseShellExecute = true
+            });
+        }
+        catch
+        {
+            // ignore
+        }
+    }
+
+    private static string SanitizeFileName(string name)
+    {
+        foreach (char c in Path.GetInvalidFileNameChars())
+            name = name.Replace(c, '_');
+        return string.IsNullOrWhiteSpace(name) ? "download.bin" : name;
     }
 
     private IEnumerable<ResourceEntry> GetFilteredEntries()
@@ -596,4 +848,10 @@ public partial class PageInstanceResourceRight : MyPageRight
         long Length,
         DateTime CreationTime,
         DateTime ModifyTime);
+
+    private sealed record LocalCatalogMatch(
+        CommunityResourceFileIdentity Identity,
+        bool HasUpdate,
+        string? LatestVersionNumber,
+        CommunityResourceDownloadFile? PrimaryFile);
 }
