@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "hostVersion": "1.0.0",
+  "surfaces": [
+    {
+      "id": "pcl.window.main",
+      "kind": "window",
+      "version": "1.0",
+      "supportedOperations": [ "observe" ],
+      "slots": []
+    },
+    {
+      "id": "pcl.navigation.main",
+      "kind": "region",
+      "version": "1.0",
+      "supportedOperations": [ "observe", "inject" ],
+      "slots": [
+        {
+          "id": "items.after-download",
+          "cardinality": "many",
+          "allowedOperations": [ "inject", "observe" ]
+        }
+      ]
+    },
+    {
+      "id": "pcl.page.launch",
+      "kind": "page",
+      "version": "3.1",
+      "supportedOperations": [ "observe", "inject", "modify", "replace", "wrap" ],
+      "slots": [
+        {
+          "id": "primary-actions.launch-button",
+          "cardinality": "one",
+          "allowedOperations": [ "observe", "modify", "replace", "wrap" ]
+        },
+        {
+          "id": "primary-actions.after",
+          "cardinality": "many",
+          "allowedOperations": [ "inject" ]
+        }
+      ]
+    },
+    {
+      "id": "pcl.page.settings",
+      "kind": "page",
+      "version": "1.0",
+      "supportedOperations": [ "observe", "inject" ],
+      "slots": [
+        {
+          "id": "sidebar.after-plugin",
+          "cardinality": "many",
+          "allowedOperations": [ "inject" ]
+        }
+      ]
+    }
+  ]
+}

@@ -83,6 +83,10 @@
   </ItemGroup>
   <ItemGroup>
     <AvaloniaResource Include="Assets/**" />
+    <!-- Host UI surface catalog for PCL.Plugin (design §11.1); not Avalonia XAML. -->
+    <Content Include="Assets/UiSurfaces/PCL.Desktop.UiSurface.json"
+             CopyToOutputDirectory="PreserveNewest"
+             TargetPath="PCL.Desktop.UiSurface.json" />
     <EmbeddedResource Include="Localization/en-US.xaml">
       <LogicalName>PCL.Desktop.Localization.en-US.xaml</LogicalName>
     </EmbeddedResource>
