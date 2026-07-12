@@ -4,6 +4,7 @@
 
 using Avalonia;
 using Avalonia.Platform;
+using PCL.Desktop.Hosting;
 using PCL.Desktop.Platform;
 
 namespace PCL.Desktop;
@@ -17,6 +18,10 @@ internal static class Program
             return ValidateEnvironment();
         if (args.Contains("--validate-assets", StringComparer.OrdinalIgnoreCase))
             return ValidateAssets();
+        if (args.Contains("--validate-plugin", StringComparer.OrdinalIgnoreCase))
+            return EmbeddedPluginLoader.Load() is null ? 1 : 0;
+
+        EmbeddedPluginLoader.Load();
 
         using SingleInstanceCoordinator singleInstance = SingleInstanceCoordinator.Create();
         if (!singleInstance.IsPrimaryInstance)
@@ -45,7 +50,7 @@ internal static class Program
         var assetLoader = new StandardAssetLoader(typeof(Program).Assembly);
         return ValidateResource(assetLoader, "avares://PCL.Desktop/Assets/icon.png") &&
                ValidateResource(assetLoader, "avares://PCL.Desktop/Assets/icon.ico") &&
-               ValidateResource(assetLoader, "avares://PCL.Desktop/WpfOriginal/Images/icon.png")
+               ValidateResource(assetLoader, "avares://PCL.Desktop/Assets/Legacy/icon.png")
             ? 0
             : 1;
     }

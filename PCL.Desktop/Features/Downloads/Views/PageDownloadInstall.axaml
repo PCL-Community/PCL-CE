@@ -64,7 +64,7 @@
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
                                 <Image x:Name="ImgForge" Margin="0,0,7,0" Height="18"
-                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Anvil.png" />
+                                       Source="avares://PCL.Desktop/Assets/Legacy/Blocks/Anvil.png" />
                                 <TextBlock x:Name="LabForge" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
@@ -90,7 +90,7 @@
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
                                 <Image x:Name="ImgCleanroom" Margin="0,0,7,0" Height="18"
-                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Cleanroom.png" />
+                                       Source="avares://PCL.Desktop/Assets/Legacy/Blocks/Cleanroom.png" />
                                 <TextBlock x:Name="LabCleanroom" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
@@ -116,7 +116,7 @@
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
                                 <Image x:Name="ImgNeoForge" Margin="0,0,7,0" Height="18"
-                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/NeoForge.png" />
+                                       Source="avares://PCL.Desktop/Assets/Legacy/Blocks/NeoForge.png" />
                                 <TextBlock x:Name="LabNeoForge" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
@@ -142,7 +142,7 @@
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
                                 <Image x:Name="ImgFabric" Margin="0,0,7,0" Height="18"
-                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png" />
+                                       Source="avares://PCL.Desktop/Assets/Legacy/Blocks/Fabric.png" />
                                 <TextBlock x:Name="LabFabric" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
@@ -168,7 +168,7 @@
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
                                 <Image x:Name="ImgLegacyFabric" Margin="0,0,7,0" Height="18"
-                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png" />
+                                       Source="avares://PCL.Desktop/Assets/Legacy/Blocks/Fabric.png" />
                                 <TextBlock x:Name="LabLegacyFabric" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
@@ -194,7 +194,7 @@
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
                                 <Image x:Name="ImgFabricApi" Margin="0,0,7,0" Height="18"
-                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png" />
+                                       Source="avares://PCL.Desktop/Assets/Legacy/Blocks/Fabric.png" />
                                 <TextBlock x:Name="LabFabricApi" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
@@ -221,7 +221,7 @@
                                 </Grid.ColumnDefinitions>
                                 <Image x:Name="ImgLegacyFabricApi" Margin="0,0,7,0"
                                        Height="18"
-                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png" />
+                                       Source="avares://PCL.Desktop/Assets/Legacy/Blocks/Fabric.png" />
                                 <TextBlock x:Name="LabLegacyFabricApi" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
@@ -247,7 +247,7 @@
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
                                 <Image x:Name="ImgQuilt" Margin="0,0,7,0" Height="18"
-                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Quilt.png" />
+                                       Source="avares://PCL.Desktop/Assets/Legacy/Blocks/Quilt.png" />
                                 <TextBlock x:Name="LabQuilt" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
@@ -273,7 +273,7 @@
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
                                 <Image x:Name="ImgQSL" Margin="0,0,7,0" Height="18"
-                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Quilt.png" />
+                                       Source="avares://PCL.Desktop/Assets/Legacy/Blocks/Quilt.png" />
                                 <TextBlock x:Name="LabQSL" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
                                            Grid.Column="1" />
                             </Grid>
@@ -299,7 +299,7 @@
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
                                 <Image x:Name="ImgLabyMod" Margin="0,0,7,0" Height="18"
-                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/LabyMod.png" />
+                                       Source="avares://PCL.Desktop/Assets/Legacy/Blocks/LabyMod.png" />
                                 <TextBlock x:Name="LabLabyMod" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
@@ -327,7 +327,7 @@
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
                                 <Image x:Name="ImgOptiFine" Margin="0,0,7,0" Height="18"
-                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/GrassPath.png" />
+                                       Source="avares://PCL.Desktop/Assets/Legacy/Blocks/GrassPath.png" />
                                 <TextBlock x:Name="LabOptiFine" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
@@ -353,7 +353,7 @@
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
                                 <Image x:Name="ImgOptiFabric" Margin="0,0,7,0" Height="18"
-                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/OptiFabric.png" />
+                                       Source="avares://PCL.Desktop/Assets/Legacy/Blocks/OptiFabric.png" />
                                 <TextBlock x:Name="LabOptiFabric" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
@@ -379,7 +379,7 @@
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
                                 <Image x:Name="ImgLiteLoader" Margin="-1,0,6,0" Height="20"
-                                       Source="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Egg.png" />
+                                       Source="avares://PCL.Desktop/Assets/Legacy/Blocks/Egg.png" />
                                 <TextBlock x:Name="LabLiteLoader" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>

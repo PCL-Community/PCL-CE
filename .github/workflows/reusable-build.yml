@@ -27,6 +27,17 @@ on:
       runtime_variant:
         required: true
         type: string
+      include_plugin:
+        required: false
+        default: false
+        type: boolean
+      plugin_tag:
+        required: false
+        default: latest
+        type: string
+    secrets:
+      PCL_PLUGIN_TOKEN:
+        required: false
 
 jobs:
   build:
@@ -46,6 +57,33 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      - name: Download private plugin release
+        if: ${{ inputs.include_plugin }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.PCL_PLUGIN_TOKEN }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:GH_TOKEN)) {
+            throw 'PCL_PLUGIN_TOKEN is required to download the private PCL.Plugin release.'
+          }
+
+          New-Item -ItemType Directory -Force -Path plugin | Out-Null
+          $tag = '${{ inputs.plugin_tag }}'
+          if ([string]::IsNullOrWhiteSpace($tag) -or $tag -eq 'latest') {
+            gh release download --repo MuXue1230-owo/PCL.Plugin --dir plugin --pattern 'PCL.Plugin.dll*'
+          } else {
+            gh release download $tag --repo MuXue1230-owo/PCL.Plugin --dir plugin --pattern 'PCL.Plugin.dll*'
+          }
+          if ($LASTEXITCODE -ne 0) {
+            throw "Unable to download PCL.Plugin release '$tag'."
+          }
+
+          $expected = (Get-Content -LiteralPath plugin/PCL.Plugin.dll.sha256 -Raw).Split(' ', [System.StringSplitOptions]::RemoveEmptyEntries)[0]
+          $actual = (Get-FileHash plugin/PCL.Plugin.dll -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $expected.ToLowerInvariant()) {
+            throw "PCL.Plugin checksum mismatch. Expected $expected, got $actual."
+          }
+
       - name: Publish Avalonia desktop
         shell: bash
         env:
@@ -58,7 +96,13 @@ jobs:
           PCL_LINK_SERVER_ROOT: ${{ secrets.LINK_SERVER_ROOTS }}
           PCL_LOBBY_DEFAULT_SECRET: ${{ secrets.LOBBY_DEFAULT_SECRET }}
           PCL_GITHUB_SHA: ${{ github.sha }}
+          PCL_PLUGIN_ASSEMBLY: ${{ github.workspace }}/plugin/PCL.Plugin.dll
         run: |
+          plugin_args=()
+          if [[ "${{ inputs.include_plugin }}" == "true" ]]; then
+            plugin_args=(-p:PclPluginAssembly="$PCL_PLUGIN_ASSEMBLY")
+          fi
+
           dotnet publish PCL.Desktop/PCL.Desktop.csproj \
             -c "${{ inputs.configuration }}" \
             -r "${{ inputs.runtime_id }}" \
@@ -73,6 +117,7 @@ jobs:
             -p:DebugType=None \
             -p:DebugSymbols=false \
             -p:DeleteExistingFiles=true \
+            "${plugin_args[@]}" \
             -warnaserror:CA1416 \
             -o "$PUBLISH_DIR"
 

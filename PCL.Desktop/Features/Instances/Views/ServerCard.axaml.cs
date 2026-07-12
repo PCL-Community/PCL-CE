@@ -15,7 +15,7 @@ namespace PCL.Desktop.Features.Instances.Views;
 
 public sealed partial class ServerCard : MyCard
 {
-    private const string DefaultServerIcon = "avares://PCL.Desktop/WpfOriginal/Images/Icons/DefaultServer.png";
+    private const string DefaultServerIcon = "avares://PCL.Desktop/Assets/Legacy/Icons/DefaultServer.png";
 
     private readonly Image _serverIcon;
     private readonly TextBlock _serverName;

@@ -28,6 +28,11 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <PclRuntimeVariant Condition="'$(PclRuntimeVariant)' == ''">SelfContained</PclRuntimeVariant>
     <IncludeAllContentForSelfExtract Condition="'$(PublishSingleFile)' == 'true'">true</IncludeAllContentForSelfExtract>
+    <PclPluginAssembly Condition="'$(PclPluginAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginAssembly)'))</PclPluginAssembly>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(PclPluginAssembly)' != ''">
+    <PublishAot>false</PublishAot>
+    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
@@ -53,14 +58,21 @@
   </ItemGroup>
   <ItemGroup>
     <AvaloniaResource Include="Assets/**" />
-    <AvaloniaResource Include="WpfOriginal/Images/**" />
-    <EmbeddedResource Include="../PCL.Core/App/Localization/Languages/en-US.xaml">
+    <EmbeddedResource Include="Localization/en-US.xaml">
       <LogicalName>PCL.Desktop.Localization.en-US.xaml</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="metadata.json">
       <LogicalName>PCL.Desktop.metadata.json</LogicalName>
     </EmbeddedResource>
+    <EmbeddedResource Include="$(PclPluginAssembly)"
+                      Condition="'$(PclPluginAssembly)' != '' and Exists('$(PclPluginAssembly)')">
+      <LogicalName>PCL.Desktop.Embedded.PCL.Plugin.dll</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
+  <Target Name="ValidatePclPluginAssembly" BeforeTargets="PrepareForBuild" Condition="'$(PclPluginAssembly)' != ''">
+    <Error Condition="!Exists('$(PclPluginAssembly)')"
+           Text="PCL.Plugin assembly was requested but not found: $(PclPluginAssembly)" />
+  </Target>
   <ItemGroup>
     <Compile Remove="WpfOriginal/**/*.cs" />
     <None Include="WpfOriginal/**/*.cs" />

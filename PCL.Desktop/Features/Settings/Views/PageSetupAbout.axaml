@@ -49,7 +49,7 @@
                         x:Name="ImgPCLLogo"
                         Grid.Row="2"
                         Margin="3" PointerPressed="ImgPCLLogo_Click"
-                        Source="avares://PCL.Desktop/WpfOriginal/Images/Heads/Logo-N.png">
+                        Source="avares://PCL.Desktop/Assets/Legacy/Heads/Logo-N.png">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"
@@ -60,7 +60,7 @@
                     <Image
                         Grid.Row="0"
                         Margin="3"
-                        Source="avares://PCL.Desktop/WpfOriginal/Images/Heads/LTCat.jpg">
+                        Source="avares://PCL.Desktop/Assets/Legacy/Heads/LTCat.jpg">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"
@@ -72,7 +72,7 @@
                         x:Name="ImgPCLCommunity"
                         Grid.Row="1"  PointerPressed="ImgPCLCommunity_Click"
                         Margin="3"
-                        Source="avares://PCL.Desktop/WpfOriginal/Images/Heads/PCL-N.jpg">
+                        Source="avares://PCL.Desktop/Assets/Legacy/Heads/PCL-N.jpg">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"
@@ -155,7 +155,7 @@
                     <Image
                         Grid.Row="0"
                         Margin="3"
-                        Source="avares://PCL.Desktop/WpfOriginal/Images/Heads/bangbang93.png">
+                        Source="avares://PCL.Desktop/Assets/Legacy/Heads/bangbang93.png">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"
@@ -167,7 +167,7 @@
                         x:Name="ImgMcmod"
                         Grid.Row="1"
                         Margin="3"
-                        Source="avares://PCL.Desktop/WpfOriginal/Images/Heads/wiki.png">
+                        Source="avares://PCL.Desktop/Assets/Legacy/Heads/wiki.png">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"
@@ -178,7 +178,7 @@
                     <Image
                         Grid.Row="2"
                         Margin="3"
-                        Source="avares://PCL.Desktop/WpfOriginal/Images/Heads/z0z0r4.png">
+                        Source="avares://PCL.Desktop/Assets/Legacy/Heads/z0z0r4.png">
                         <Image.Clip>
                             <EllipseGeometry
                                 Center="17 17"

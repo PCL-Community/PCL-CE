@@ -1428,7 +1428,7 @@ public partial class PageDownloadInstall : MyPageRight
     }
 
     private static string GetVersionLogoUri(string type) =>
-        $"avares://PCL.Desktop/WpfOriginal/Images/Blocks/{GetVersionLogoImageName(type)}";
+        $"avares://PCL.Desktop/Assets/Legacy/Blocks/{GetVersionLogoImageName(type)}";
 
     private static string GetVersionLogoImageName(MinecraftVersionManifestEntry version)
     {
@@ -1453,7 +1453,7 @@ public partial class PageDownloadInstall : MyPageRight
     {
         try
         {
-            using Stream stream = AssetLoader.Open(new Uri($"avares://PCL.Desktop/WpfOriginal/Images/Blocks/{imageName}", UriKind.Absolute));
+            using Stream stream = AssetLoader.Open(new Uri($"avares://PCL.Desktop/Assets/Legacy/Blocks/{imageName}", UriKind.Absolute));
             return new Bitmap(stream);
         }
         catch (IOException)

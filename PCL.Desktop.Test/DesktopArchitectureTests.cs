@@ -40,7 +40,7 @@ public sealed class DesktopArchitectureTests
     }
 
     [TestMethod]
-    public void DesktopSource_DoesNotUseWpfApisOutsideOriginalReferenceCopy()
+    public void DesktopSource_DoesNotUseWpfApis()
     {
         string desktopRoot = FindDesktopProjectRoot();
         string[] forbiddenTokens =
@@ -54,7 +54,6 @@ public sealed class DesktopArchitectureTests
             "PresentationFramework",
             "PresentationCore",
             "WindowsBase",
-            "PCL.Plugin",
             "PCL.Online",
             "Plain Craft Launcher 2"
         ];
@@ -77,7 +76,7 @@ public sealed class DesktopArchitectureTests
         Assert.AreEqual(
             0,
             violations.Count,
-            "PCL.Desktop Avalonia sources must not use WPF or legacy UI APIs outside WpfOriginal:" +
+            "PCL.Desktop Avalonia sources must not use WPF or legacy UI APIs:" +
             Environment.NewLine +
             string.Join(Environment.NewLine, violations));
     }
@@ -303,7 +302,28 @@ public sealed class DesktopArchitectureTests
 
         StringAssert.Contains(reusable, "PCL.Desktop/PCL.Desktop.csproj");
         StringAssert.Contains(reusable, "PublishSingleFile=true");
+        StringAssert.Contains(reusable, "gh release download --repo MuXue1230-owo/PCL.Plugin");
+        StringAssert.Contains(reusable, "PclPluginAssembly");
+        StringAssert.Contains(stable, "include_plugin: true");
+        StringAssert.Contains(beta, "include_plugin: true");
         Assert.IsFalse(reusable.Contains("Plain Craft Launcher 2", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    public void DesktopPlugin_IsEmbeddedWithoutJoiningTheSolution()
+    {
+        string desktopRoot = FindDesktopProjectRoot();
+        string repoRoot = Directory.GetParent(desktopRoot)?.FullName
+            ?? throw new DirectoryNotFoundException("Could not locate repository root.");
+        string projectSource = File.ReadAllText(Path.Combine(desktopRoot, "PCL.Desktop.csproj"));
+        string loaderSource = File.ReadAllText(Path.Combine(desktopRoot, "Hosting", "EmbeddedPluginLoader.cs"));
+        string solutionSource = File.ReadAllText(Path.Combine(repoRoot, "PCL-N.slnx"));
+
+        StringAssert.Contains(projectSource, "PCL.Desktop.Embedded.PCL.Plugin.dll");
+        StringAssert.Contains(projectSource, "PublishTrimmed>false");
+        StringAssert.Contains(loaderSource, "Assembly.Load(buffer.ToArray())");
+        Assert.IsFalse(solutionSource.Contains("PCL.Plugin", StringComparison.Ordinal));
+        Assert.IsFalse(projectSource.Contains("ProjectReference Include=\"../PCL.Plugin", StringComparison.Ordinal));
     }
 
     private static string FindDesktopProjectRoot()

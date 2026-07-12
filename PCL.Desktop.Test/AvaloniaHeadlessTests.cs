@@ -1108,7 +1108,7 @@ public sealed class AvaloniaHeadlessTests
                 Title = "disabled.jar",
                 SubTitle = "  |  1.0.0",
                 Description = "禁用 · 8 KB · 修改于今天",
-                Logo = "avares://PCL.Desktop/WpfOriginal/Images/Blocks/CommandBlock.png",
+                Logo = "avares://PCL.Desktop/Assets/Legacy/Blocks/CommandBlock.png",
                 State = ResourceItemState.Disabled,
                 Tags = ["本地"],
                 Buttons = [openButton],
@@ -3297,8 +3297,8 @@ public sealed class AvaloniaHeadlessTests
                     .First(item => item.Title == "25w14craftmine");
                 AssertRenderedVersionItem(releaseItem, "1.21.5");
                 AssertRenderedVersionItem(aprilFoolsItem, "25w14craftmine");
-                Assert.AreEqual("avares://PCL.Desktop/WpfOriginal/Images/Blocks/Grass.png", releaseItem.Logo);
-                Assert.AreEqual("avares://PCL.Desktop/WpfOriginal/Images/Blocks/GoldBlock.png", aprilFoolsItem.Logo);
+                Assert.AreEqual("avares://PCL.Desktop/Assets/Legacy/Blocks/Grass.png", releaseItem.Logo);
+                Assert.AreEqual("avares://PCL.Desktop/Assets/Legacy/Blocks/GoldBlock.png", aprilFoolsItem.Logo);
             }
             finally
             {
@@ -4082,7 +4082,7 @@ public sealed class AvaloniaHeadlessTests
                     Assert.AreEqual("常规版本 (2)", page.GetVisualDescendants().OfType<MyCard>().First(card => card.Title.StartsWith("常规版本", StringComparison.Ordinal)).Title);
 
                     MyListItem item = page.GetVisualDescendants().OfType<MyListItem>().Single(listItem => listItem.Title == "1.21");
-                    Assert.AreEqual("avares://PCL.Desktop/WpfOriginal/Images/Blocks/Grass.png", item.Logo);
+                    Assert.AreEqual("avares://PCL.Desktop/Assets/Legacy/Blocks/Grass.png", item.Logo);
                     Assert.AreEqual("1.21", DisplayText(item.FindControl<TextBlock>("LabTitle")!));
                     Click(window, item);
 
@@ -4225,7 +4225,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsNull(managed);
 
                 MyListItem item = page.GetVisualDescendants().OfType<MyListItem>().Single(listItem => listItem.Title == "Broken");
-                Assert.AreEqual("avares://PCL.Desktop/WpfOriginal/Images/Blocks/RedstoneBlock.png", item.Logo);
+                Assert.AreEqual("avares://PCL.Desktop/Assets/Legacy/Blocks/RedstoneBlock.png", item.Logo);
                 Assert.AreEqual("lucide/folder-open", item.Buttons.Last().SvgIcon);
             }, CancellationToken.None);
         }
@@ -4404,34 +4404,32 @@ public sealed class AvaloniaHeadlessTests
                 MyListItem displayItem = page.GetVisualDescendants().OfType<MyListItem>().First(item => item.Title == "1.20.1");
                 Assert.AreEqual("Fabric 整合包", displayItem.Info);
                 Assert.IsTrue(displayItem.Logo.EndsWith("Fabric.png", StringComparison.OrdinalIgnoreCase));
-                StringAssert.StartsWith(displayItem.Logo, "avares://PCL.Desktop/WpfOriginal/Images/Blocks/");
+                StringAssert.StartsWith(displayItem.Logo, "avares://PCL.Desktop/Assets/Legacy/Blocks/");
 
                 MyComboBox logoCombo = page.FindControl<MyComboBox>("ComboDisplayLogo")!;
                 MyComboBoxItem quilt = logoCombo.Items.OfType<MyComboBoxItem>().First(item =>
                     item.Tag?.ToString()?.EndsWith("Quilt.png", StringComparison.OrdinalIgnoreCase) == true);
                 logoCombo.SelectedItem = quilt;
                 page.FindControl<MyComboBox>("ComboDisplayType")!.SelectedIndex = 4;
-            }, CancellationToken.None);
+            }, CancellationToken.None).GetAwaiter().GetResult();
 
-            WaitForCondition(() =>
-            {
-                InstanceMetadata metadata = InstanceMetadataStore.LoadAsync(versionDirectory).GetAwaiter().GetResult();
-                return metadata.CardType == 4 &&
-                       metadata.LogoPath.EndsWith("Quilt.png", StringComparison.OrdinalIgnoreCase);
-            });
+            page!.WaitForPendingMetadataWritesAsync().GetAwaiter().GetResult();
+            InstanceMetadata savedMetadata = InstanceMetadataStore.LoadAsync(versionDirectory).GetAwaiter().GetResult();
+            Assert.AreEqual(4, savedMetadata.CardType);
+            Assert.IsTrue(savedMetadata.LogoPath.EndsWith("Quilt.png", StringComparison.OrdinalIgnoreCase));
 
             session.Dispatch(() =>
             {
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
                 MyListItem displayItem = page!.GetVisualDescendants().OfType<MyListItem>().First(item => item.Title == "1.20.1");
                 Assert.IsTrue(displayItem.Logo.EndsWith("Quilt.png", StringComparison.OrdinalIgnoreCase));
-            }, CancellationToken.None);
+            }, CancellationToken.None).GetAwaiter().GetResult();
         }
         finally
         {
             if (window is not null)
             {
-                session.Dispatch(() => window.Close(), CancellationToken.None);
+                session.Dispatch(() => window.Close(), CancellationToken.None).GetAwaiter().GetResult();
             }
 
             if (Directory.Exists(root))
@@ -4462,14 +4460,14 @@ public sealed class AvaloniaHeadlessTests
                 {
                     Description = "Fabric 整合包",
                     CardType = 2,
-                    LogoPath = "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png"
+                    LogoPath = "avares://PCL.Desktop/Assets/Legacy/Blocks/Fabric.png"
                 }).GetAwaiter().GetResult();
             InstanceMetadataStore.SaveAsync(
                 starDirectory,
                 new InstanceMetadata
                 {
                     IsStarred = true,
-                    LogoPath = "avares://PCL.Desktop/WpfOriginal/Images/Blocks/GoldBlock.png"
+                    LogoPath = "avares://PCL.Desktop/Assets/Legacy/Blocks/GoldBlock.png"
                 }).GetAwaiter().GetResult();
 
             session.Dispatch(async () =>
@@ -5822,7 +5820,7 @@ public sealed class AvaloniaHeadlessTests
                     window.Close();
                     page.Dispose();
                 }
-            }, CancellationToken.None);
+            }, CancellationToken.None).GetAwaiter().GetResult();
         }
         finally
         {
@@ -5921,7 +5919,7 @@ public sealed class AvaloniaHeadlessTests
                 versionDirectory,
                 new InstanceMetadata
                 {
-                    LogoPath = "avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png"
+                    LogoPath = "avares://PCL.Desktop/Assets/Legacy/Blocks/Fabric.png"
                 }).GetAwaiter().GetResult();
             LaunchInstanceInfo instance = new("1.20.1", System.IO.Path.Combine(versionDirectory, "1.20.1.json"), versionDirectory);
 

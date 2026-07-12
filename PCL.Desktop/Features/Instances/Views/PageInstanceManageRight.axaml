@@ -29,28 +29,28 @@
                             <legacy:MyComboBoxItem Content="{DynamicResource Common.Option.Auto}" IsSelected="True" Tag="" />
                             <legacy:MyComboBoxItem Content="{DynamicResource Common.Option.Customize}" x:Name="ItemDisplayLogoCustom" />
                             <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Cobblestone}"
-                                                  Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/CobbleStone.png" />
+                                                  Tag="avares://PCL.Desktop/Assets/Legacy/Blocks/CobbleStone.png" />
                             <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.CommandBlock}"
-                                                  Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/CommandBlock.png" />
-                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.GoldBlock}" Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/GoldBlock.png" />
-                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.GrassBlock}" Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Grass.png" />
-                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.DirtPath}" Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/GrassPath.png" />
-                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Anvil}" Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Anvil.png" />
+                                                  Tag="avares://PCL.Desktop/Assets/Legacy/Blocks/CommandBlock.png" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.GoldBlock}" Tag="avares://PCL.Desktop/Assets/Legacy/Blocks/GoldBlock.png" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.GrassBlock}" Tag="avares://PCL.Desktop/Assets/Legacy/Blocks/Grass.png" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.DirtPath}" Tag="avares://PCL.Desktop/Assets/Legacy/Blocks/GrassPath.png" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Anvil}" Tag="avares://PCL.Desktop/Assets/Legacy/Blocks/Anvil.png" />
                             <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.RedstoneBlock}"
-                                                  Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/RedstoneBlock.png" />
+                                                  Tag="avares://PCL.Desktop/Assets/Legacy/Blocks/RedstoneBlock.png" />
                             <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.RedstoneLampOn}"
-                                                  Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/RedstoneLampOn.png" />
+                                                  Tag="avares://PCL.Desktop/Assets/Legacy/Blocks/RedstoneLampOn.png" />
                             <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.RedstoneLampOff}"
-                                                  Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/RedstoneLampOff.png" />
-                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Egg}" Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Egg.png" />
+                                                  Tag="avares://PCL.Desktop/Assets/Legacy/Blocks/RedstoneLampOff.png" />
+                            <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Egg}" Tag="avares://PCL.Desktop/Assets/Legacy/Blocks/Egg.png" />
                             <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Fabric}"
-                                                  Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Fabric.png" />
+                                                  Tag="avares://PCL.Desktop/Assets/Legacy/Blocks/Fabric.png" />
                             <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Quilt}"
-                                                  Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Quilt.png" />
+                                                  Tag="avares://PCL.Desktop/Assets/Legacy/Blocks/Quilt.png" />
                             <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.NeoForgeFox}"
-                                                  Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/NeoForge.png" />
+                                                  Tag="avares://PCL.Desktop/Assets/Legacy/Blocks/NeoForge.png" />
                             <legacy:MyComboBoxItem Content="{DynamicResource Instance.Overall.Icon.Cleanroom}"
-                                                  Tag="avares://PCL.Desktop/WpfOriginal/Images/Blocks/Cleanroom.png" />
+                                                  Tag="avares://PCL.Desktop/Assets/Legacy/Blocks/Cleanroom.png" />
                         </legacy:MyComboBox>
                         <TextBlock VerticalAlignment="Center" Grid.Row="2" HorizontalAlignment="Left" Text="{DynamicResource Instance.Overall.Category.Title}"
                                    Margin="0,0,25,0" />

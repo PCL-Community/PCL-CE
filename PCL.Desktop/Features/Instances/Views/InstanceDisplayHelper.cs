@@ -10,8 +10,8 @@ namespace PCL.Desktop.Features.Instances.Views;
 
 internal static class InstanceDisplayHelper
 {
-    public const string ImageAssetRoot = "avares://PCL.Desktop/WpfOriginal/Images/";
-    public const string BlockAssetRoot = "avares://PCL.Desktop/WpfOriginal/Images/Blocks/";
+    public const string ImageAssetRoot = "avares://PCL.Desktop/Assets/Legacy/";
+    public const string BlockAssetRoot = "avares://PCL.Desktop/Assets/Legacy/Blocks/";
     public const string DefaultLogo = BlockAssetRoot + "Grass.png";
     public const string ErrorLogo = BlockAssetRoot + "RedstoneBlock.png";
     public const string CustomLogoRelativePath = "PCL\\Logo.png";

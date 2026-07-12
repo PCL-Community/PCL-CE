@@ -23,7 +23,7 @@ namespace PCL.Desktop.Controls.Legacy;
 public class MyImage : Image
 {
     private const string WpfImagePrefix = "pack://application:,,,/images/";
-    private const string AvaloniaImagePrefix = "avares://PCL.Desktop/WpfOriginal/Images/";
+    private const string AvaloniaImagePrefix = "avares://PCL.Desktop/Assets/Legacy/";
     private static readonly ConcurrentDictionary<string, Task<string>> DownloadTasks = new(StringComparer.Ordinal);
     private static readonly string ImageCacheDirectory = Path.Combine(Path.GetTempPath(), "PCL-N", "Cache", "Images");
 

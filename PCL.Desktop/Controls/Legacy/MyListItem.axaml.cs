@@ -979,7 +979,7 @@ public partial class MyListItem : Grid, IMyRadio
     {
         const string wpfImagePrefix = "pack://application:,,,/images/";
         if (logo.StartsWith(wpfImagePrefix, StringComparison.OrdinalIgnoreCase))
-            return "avares://PCL.Desktop/WpfOriginal/Images/" + logo[wpfImagePrefix.Length..];
+            return "avares://PCL.Desktop/Assets/Legacy/" + logo[wpfImagePrefix.Length..];
 
         return logo;
     }

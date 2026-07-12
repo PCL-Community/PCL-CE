@@ -30,7 +30,7 @@
             CornerRadius="4"
             ClipToBounds="True">
         <Border.Background>
-            <ImageBrush Source="avares://PCL.Desktop/WpfOriginal/Images/Backgrounds/server_bg.png"
+            <ImageBrush Source="avares://PCL.Desktop/Assets/Legacy/Backgrounds/server_bg.png"
                         Stretch="None"
                         TileMode="Tile" />
         </Border.Background>

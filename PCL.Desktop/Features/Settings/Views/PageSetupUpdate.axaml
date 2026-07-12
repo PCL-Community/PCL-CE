@@ -99,7 +99,7 @@
                             <RowDefinition Height="1" />
                             <RowDefinition Height="20" />
                         </Grid.RowDefinitions>
-                        <Image Source="avares://PCL.Desktop/WpfOriginal/Images/icon.png" Grid.Column="0" Grid.Row="0"
+                        <Image Source="avares://PCL.Desktop/Assets/Legacy/icon.png" Grid.Column="0" Grid.Row="0"
                                Grid.RowSpan="3" Height="50" Width="50" HorizontalAlignment="Left"
                                VerticalAlignment="Center" />
                         
@@ -134,7 +134,7 @@
                             <RowDefinition Height="10" />
                             <RowDefinition />
                         </Grid.RowDefinitions>
-                        <Image Source="avares://PCL.Desktop/WpfOriginal/Images/icon.png" Grid.Column="0" Grid.Row="0" Grid.RowSpan="3"
+                        <Image Source="avares://PCL.Desktop/Assets/Legacy/icon.png" Grid.Column="0" Grid.Row="0" Grid.RowSpan="3"
                                Height="50" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center" />
                         
                         <TextBlock x:Name="TextOptionalUpdateName" Text="AquaCL 3.0.0" FontWeight="Bold" FontSize="20"

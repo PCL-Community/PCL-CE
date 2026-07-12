@@ -288,7 +288,7 @@ public partial class MinecraftServer : Grid, IDisposable
         try
         {
             using Stream stream = AssetLoader.Open(
-                new Uri("avares://PCL.Desktop/WpfOriginal/Images/Icons/DefaultServer.png"));
+                new Uri("avares://PCL.Desktop/Assets/Legacy/Icons/DefaultServer.png"));
             SetImageSource(new Bitmap(stream));
         }
         catch (IOException)
