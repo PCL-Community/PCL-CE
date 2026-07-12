@@ -326,6 +326,19 @@ public sealed class DesktopArchitectureTests
         Assert.IsFalse(projectSource.Contains("ProjectReference Include=\"../PCL.Plugin", StringComparison.Ordinal));
     }
 
+    [TestMethod]
+    public void PortableWorkflow_BuildsTheCurrentSolution()
+    {
+        string desktopRoot = FindDesktopProjectRoot();
+        string repoRoot = Directory.GetParent(desktopRoot)?.FullName
+            ?? throw new DirectoryNotFoundException("Could not locate repository root.");
+        string workflow = File.ReadAllText(Path.Combine(repoRoot, ".github", "workflows", "portable-core.yml"));
+
+        StringAssert.Contains(workflow, "dotnet restore PCL-N.slnx");
+        StringAssert.Contains(workflow, "dotnet build PCL-N.slnx");
+        Assert.IsFalse(workflow.Contains("PCL.Portable.slnx", StringComparison.Ordinal));
+    }
+
     private static string FindDesktopProjectRoot()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);

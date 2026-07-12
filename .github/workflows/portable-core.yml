@@ -23,9 +23,9 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - name: Restore portable graph
-        run: dotnet restore PCL.Portable.slnx -p:Configuration=Release
+        run: dotnet restore PCL-N.slnx -p:Configuration=Release
       - name: Build portable graph with warnings as errors
-        run: dotnet build PCL.Portable.slnx -c Release --no-restore -warnaserror
+        run: dotnet build PCL-N.slnx -c Release --no-restore -warnaserror
       - name: Run portable tests
         # Keep solution build coverage, but run test projects one by one:
         # VSTest solution orchestration can leave Avalonia.Headless test hosts hanging.
