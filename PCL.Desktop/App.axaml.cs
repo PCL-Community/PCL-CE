@@ -40,20 +40,28 @@ public sealed partial class App : Avalonia.Application
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                if (settings.GetBooleanOption("UiLauncherLogo", LauncherSettingDefaults.GetBoolean("UiLauncherLogo")))
+                // Headless unit tests host their own windows; skip splash/MainWindow shell.
+                bool skipShell =
+                    !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("PCL_DISABLE_FIRST_RUN")) ||
+                    !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("PCL_DISABLE_DEBUG_HINT"));
+
+                if (!skipShell)
                 {
-                    _splashWindow = new SplashWindow();
-                    _splashWindow.Show();
+                    if (settings.GetBooleanOption("UiLauncherLogo", LauncherSettingDefaults.GetBoolean("UiLauncherLogo")))
+                    {
+                        _splashWindow = new SplashWindow();
+                        _splashWindow.Show();
+                    }
+
+                    MainWindow mainWindow = new();
+                    mainWindow.Opened += (_, _) => _splashWindow?.CloseWithFade(TimeSpan.FromMilliseconds(400));
+                    SingleInstanceCoordinator?.ActivationRequested += (_, _) =>
+                        Dispatcher.UIThread.Post(mainWindow.ActivateExistingInstance);
+                    if (SingleInstanceCoordinator?.ConsumePendingActivation() == true)
+                        Dispatcher.UIThread.Post(mainWindow.ActivateExistingInstance);
+
+                    desktop.MainWindow = mainWindow;
                 }
-
-                MainWindow mainWindow = new();
-                mainWindow.Opened += (_, _) => _splashWindow?.CloseWithFade(TimeSpan.FromMilliseconds(400));
-                SingleInstanceCoordinator?.ActivationRequested += (_, _) =>
-                    Dispatcher.UIThread.Post(mainWindow.ActivateExistingInstance);
-                if (SingleInstanceCoordinator?.ConsumePendingActivation() == true)
-                    Dispatcher.UIThread.Post(mainWindow.ActivateExistingInstance);
-
-                desktop.MainWindow = mainWindow;
             }
 
             base.OnFrameworkInitializationCompleted();

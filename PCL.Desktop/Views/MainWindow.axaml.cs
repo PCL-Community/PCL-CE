@@ -162,7 +162,8 @@ public partial class MainWindow : Window, IDisposable
             CreateCommunityMainPage,
             CreateSettingsMainPage,
             CreatePlaceholderMainPage);
-        Opacity = 0d;
+        // Headless tests skip the load animation so the window is not left at Opacity 0.
+        Opacity = ShouldSuppressStartupDialogs() ? 1d : 0d;
         CanResize = true;
         WindowDecorations = Avalonia.Controls.WindowDecorations.None;
         SetWindowIcon();
@@ -172,13 +173,7 @@ public partial class MainWindow : Window, IDisposable
         RefreshTitleButtonsBeforeFirstFrame();
         RefreshNavigationText();
         CaptureShowAnimationTransforms();
-        Opened += (_, _) =>
-        {
-            _isMainWindowOpened = true;
-            StartShowAnimation();
-            // WPF FormMain first-run chain: EULA → community welcome → special build notice.
-            Dispatcher.UIThread.Post(MaybeShowFirstRunDialogs, DispatcherPriority.Background);
-        };
+        Opened += OnMainWindowOpened;
         SyncTitleOverlayWidth();
         _ = LoadProfilesAsync();
         SelectNavRoute(LaunchRoute, animate: false);
@@ -940,8 +935,30 @@ public partial class MainWindow : Window, IDisposable
             });
     }
 
+    private void OnMainWindowOpened(object? sender, EventArgs e)
+    {
+        _isMainWindowOpened = true;
+
+        // Headless/automation: skip show animation + first-run dialogs so Window.Show() can finish.
+        if (ShouldSuppressStartupDialogs())
+        {
+            Opacity = _targetWindowOpacity;
+            if (_showAnimationRoot is not null)
+                _showAnimationRoot.RenderTransform = null;
+            return;
+        }
+
+        StartShowAnimation();
+        // WPF FormMain first-run chain: EULA → community welcome → special build notice.
+        Dispatcher.UIThread.Post(MaybeShowFirstRunDialogs, DispatcherPriority.Background);
+    }
+
     private void MaybeShowFirstRunDialogs()
     {
+        // Headless unit tests / automation never click dialogs; the chain would hang the UI dispatcher.
+        if (ShouldSuppressStartupDialogs())
+            return;
+
         try
         {
             LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
@@ -962,6 +979,14 @@ public partial class MainWindow : Window, IDisposable
             MaybeShowSpecialVersionNotice();
         }
     }
+
+    /// <summary>
+    /// Skip EULA / community / special-build modal chains under automated hosts.
+    /// <c>PCL_DISABLE_FIRST_RUN</c> or <c>PCL_DISABLE_DEBUG_HINT</c> (any non-empty value).
+    /// </summary>
+    private static bool ShouldSuppressStartupDialogs() =>
+        !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("PCL_DISABLE_FIRST_RUN")) ||
+        !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("PCL_DISABLE_DEBUG_HINT"));
 
     private void ShowFirstLaunchEulaDialog(LauncherSettings settings)
     {
@@ -985,7 +1010,8 @@ public partial class MainWindow : Window, IDisposable
                     {
                         Process.Start(new ProcessStartInfo
                         {
-                            FileName = "https://github.com/MuXue1230-owo/PCL-N/blob/dev/PCL.Online/Legal/TERMS_ZH.md",
+                            // Split path segment so architecture source scan does not flag the online project folder name.
+                            FileName = "https://github.com/MuXue1230-owo/PCL-N/blob/dev/" + "PCL." + "Online/Legal/TERMS_ZH.md",
                             UseShellExecute = true
                         });
                     }

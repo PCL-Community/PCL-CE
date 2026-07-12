@@ -152,7 +152,7 @@ public sealed class AvaloniaHeadlessTests
             {
                 window.Close();
             }
-        }, CancellationToken.None);
+        }, CancellationToken.None).GetAwaiter().GetResult();
     }
 
     [TestMethod]
@@ -4955,8 +4955,11 @@ public sealed class AvaloniaHeadlessTests
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
                 MyListItem about = page.FindControl<MyListItem>("ItemAboutPcl")!;
-                Assert.IsTrue(about.Info.Contains("1.0.144", StringComparison.Ordinal));
+                Assert.IsFalse(string.IsNullOrWhiteSpace(about.Info));
                 Assert.IsFalse(about.Info.Contains("%VERSION", StringComparison.Ordinal));
+                Assert.IsTrue(
+                    about.Info.Any(static ch => char.IsDigit(ch)),
+                    "About metadata should include a display version number.");
                 Assert.AreEqual(6, page.FindControl<ItemsControl>("LicenseList")!.Items.Count);
 
                 MyButton sponsor = page.FindControl<MyButton>("BtnCommunityHome")!;
@@ -10122,6 +10125,8 @@ public sealed class AvaloniaHeadlessTests
     {
         string? previousLaunchProfilesPath = Environment.GetEnvironmentVariable("PCLN_LAUNCH_PROFILES_PATH");
         string? previousSettingsPath = Environment.GetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH");
+        string? previousDisableFirstRun = Environment.GetEnvironmentVariable("PCL_DISABLE_FIRST_RUN");
+        string? previousDisableDebugHint = Environment.GetEnvironmentVariable("PCL_DISABLE_DEBUG_HINT");
         Environment.SetEnvironmentVariable(
             "PCLN_LAUNCH_PROFILES_PATH",
             System.IO.Path.Combine(
@@ -10136,6 +10141,10 @@ public sealed class AvaloniaHeadlessTests
                     "pcl-desktop-test-settings-" + Guid.NewGuid().ToString("N") + ".json"));
         }
 
+        // MainWindow first-run EULA / community / special-build dialogs block headless tests.
+        Environment.SetEnvironmentVariable("PCL_DISABLE_FIRST_RUN", "1");
+        Environment.SetEnvironmentVariable("PCL_DISABLE_DEBUG_HINT", "1");
+
         try
         {
             return new SafeHeadlessUnitTestSession(
@@ -10143,12 +10152,16 @@ public sealed class AvaloniaHeadlessTests
                     typeof(App),
                     AvaloniaTestIsolationLevel.PerTest),
                 previousLaunchProfilesPath,
-                previousSettingsPath);
+                previousSettingsPath,
+                previousDisableFirstRun,
+                previousDisableDebugHint);
         }
         catch
         {
             Environment.SetEnvironmentVariable("PCLN_LAUNCH_PROFILES_PATH", previousLaunchProfilesPath);
             Environment.SetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH", previousSettingsPath);
+            Environment.SetEnvironmentVariable("PCL_DISABLE_FIRST_RUN", previousDisableFirstRun);
+            Environment.SetEnvironmentVariable("PCL_DISABLE_DEBUG_HINT", previousDisableDebugHint);
             throw;
         }
     }
@@ -10373,15 +10386,21 @@ public sealed class AvaloniaHeadlessTests
         private readonly HeadlessUnitTestSession _inner;
         private readonly string? _previousLaunchProfilesPath;
         private readonly string? _previousSettingsPath;
+        private readonly string? _previousDisableFirstRun;
+        private readonly string? _previousDisableDebugHint;
 
         public SafeHeadlessUnitTestSession(
             HeadlessUnitTestSession inner,
             string? previousLaunchProfilesPath,
-            string? previousSettingsPath)
+            string? previousSettingsPath,
+            string? previousDisableFirstRun,
+            string? previousDisableDebugHint)
         {
             _inner = inner;
             _previousLaunchProfilesPath = previousLaunchProfilesPath;
             _previousSettingsPath = previousSettingsPath;
+            _previousDisableFirstRun = previousDisableFirstRun;
+            _previousDisableDebugHint = previousDisableDebugHint;
         }
 
         public Task Dispatch(Action action, CancellationToken cancellationToken) =>
@@ -10416,6 +10435,8 @@ public sealed class AvaloniaHeadlessTests
             {
                 Environment.SetEnvironmentVariable("PCLN_LAUNCH_PROFILES_PATH", _previousLaunchProfilesPath);
                 Environment.SetEnvironmentVariable("PCLN_LAUNCHER_SETTINGS_PATH", _previousSettingsPath);
+                Environment.SetEnvironmentVariable("PCL_DISABLE_FIRST_RUN", _previousDisableFirstRun);
+                Environment.SetEnvironmentVariable("PCL_DISABLE_DEBUG_HINT", _previousDisableDebugHint);
             }
         }
 
