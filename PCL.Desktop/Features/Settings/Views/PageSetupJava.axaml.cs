@@ -9,6 +9,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
 using PCL.Application.Settings;
 using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Features.Launching;
 using PCL.Domain.Minecraft.Java;
 using PCL.Platform.Java;
 
@@ -74,57 +75,12 @@ public partial class PageSetupJava : MyPageRight, IRefreshableSettingsPage, ISet
     private async Task LoadJavaListAsync(CancellationToken cancellationToken)
     {
         LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-        string[] customRoots = ReadCustomJavaRoots(settings);
-        List<JavaRuntimeCandidate> candidates = [];
-
-        IReadOnlyList<JavaRuntimeCandidate> autoCandidates =
-            await Task.Run(
-                    () => new FileSystemJavaLocator()
-                        .FindAllAsync(cancellationToken)
-                        .AsTask()
-                        .GetAwaiter()
-                        .GetResult(),
-                    cancellationToken)
-                .ConfigureAwait(true);
-        candidates.AddRange(autoCandidates);
-
-        if (customRoots.Length > 0)
-        {
-            IReadOnlyList<JavaRuntimeCandidate> manualCandidates =
-                await Task.Run(
-                        () => new FileSystemJavaLocator(customRoots)
-                            .FindAllAsync(cancellationToken)
-                            .AsTask()
-                            .GetAwaiter()
-                            .GetResult(),
-                        cancellationToken)
-                    .ConfigureAwait(true);
-
-            candidates.AddRange(manualCandidates.Select(static candidate => candidate with
-            {
-                Source = JavaSource.ManualAdded
-            }));
-        }
-
-        Dictionary<string, JavaRuntimeCandidate> merged = new(GetPathComparer());
-        foreach (JavaRuntimeCandidate candidate in candidates)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            string key = candidate.Installation.JavaExecutablePath;
-            if (!merged.TryGetValue(key, out JavaRuntimeCandidate? existing) ||
-                candidate.Source == JavaSource.ManualAdded ||
-                existing.Source != JavaSource.ManualAdded)
-            {
-                merged[key] = ApplySavedState(candidate, settings);
-            }
-        }
-
-        _javaCandidates = merged.Values
-            .OrderByDescending(static candidate => candidate.IsEnabled)
-            .ThenByDescending(static candidate => candidate.Installation.MajorVersion)
-            .ThenBy(static candidate => candidate.Installation.Brand.ToString(), StringComparer.CurrentCultureIgnoreCase)
-            .ThenBy(static candidate => candidate.Installation.JavaHome, GetPathComparer())
-            .ToList();
+        // Same catalog as launch so Settings selection matches what 启动游戏 uses.
+        IReadOnlyList<JavaRuntimeCandidate> catalog = await Task.Run(
+                () => JavaRuntimeCatalog.LoadAsync(settings, cancellationToken).GetAwaiter().GetResult(),
+                cancellationToken)
+            .ConfigureAwait(true);
+        _javaCandidates = catalog.ToList();
     }
 
     private void RenderJavaList()

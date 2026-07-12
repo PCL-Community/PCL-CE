@@ -40,9 +40,9 @@
                             <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Theme.Title}" />
                             <legacy:MyComboBox Grid.Column="1" x:Name="ComboDarkMode" Tag="UiDarkMode"
                                               SelectionChanged="ComboChange">
-                                <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Theme.Light}" />
-                                <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Theme.Dark}" />
-                                <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Theme.FollowSystem}" /> 
+                                <legacy:MyComboBoxItem Content="浅色" />
+                                <legacy:MyComboBoxItem Content="深色" />
+                                <legacy:MyComboBoxItem Content="跟随系统" IsSelected="True" />
                             </legacy:MyComboBox>
                             <TextBlock Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{DynamicResource Setup.Ui.Theme.LightColor}"/>
                             <legacy:MyComboBox Grid.Column="3" x:Name="ComboLightColor" Tag="UiLightColor" SelectionChanged="ThemeColor_Change"/>
@@ -93,9 +93,10 @@
                                 <legacy:MyComboBox Grid.Row="2" Grid.Column="1" x:Name="ComboBlurType" Tag="UiBlurType"
                                                   Height="28" MinWidth="100" ToolTip.Tip="{DynamicResource Setup.Ui.Basic.BlurMethod.ToolTip}"
                                                   SelectionChanged="ComboChange">
-                                    <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Basic.BlurMethod.Gaussian}"
-                                                          ToolTip.Tip="{DynamicResource Setup.Ui.Basic.BlurMethod.Gaussian.ToolTip}" />
-                                    <legacy:MyComboBoxItem Content="{DynamicResource Setup.Ui.Basic.BlurMethod.Box}"
+                                    <legacy:MyComboBoxItem Content="高斯模糊"
+                                                          ToolTip.Tip="{DynamicResource Setup.Ui.Basic.BlurMethod.Gaussian.ToolTip}"
+                                                          IsSelected="True" />
+                                    <legacy:MyComboBoxItem Content="盒状模糊"
                                                           ToolTip.Tip="{DynamicResource Setup.Ui.Basic.BlurMethod.Box.ToolTip}" />
                                 </legacy:MyComboBox>
                             </Grid>
@@ -329,7 +330,8 @@
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Homepage.PresetLabel}" Margin="0,0,25,0" />
                         <legacy:MyComboBox x:Name="ComboCustomPreset" Grid.ColumnSpan="2" Tag="UiCustomPreset"
                                           Grid.Column="1" SelectionChanged="ComboChange" IsEnabled="False"
-                                          HintText="暂无可用预设" />
+                                          HintText="暂无可用预设"
+                                          ToolTip.Tip="暂不支持" />
                     </Grid>
                 </StackPanel>
             </legacy:MyCard>

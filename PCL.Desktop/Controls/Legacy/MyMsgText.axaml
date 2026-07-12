@@ -4,6 +4,8 @@
       xmlns:legacy="using:PCL.Desktop.Controls.Legacy"
       RenderTransformOrigin="0%,50%"
       MinWidth="400"
+      MaxWidth="720"
+      MaxHeight="560"
       HorizontalAlignment="Center"
       VerticalAlignment="Center"
       Margin="25">
@@ -16,24 +18,21 @@
     <Border x:Name="PanBorder"
             CornerRadius="8"
             Background="{DynamicResource ColorBrushBackground}"
-            BoxShadow="0 4 28 0 #663c3c3c">
+            BoxShadow="0 4 28 0 #663c3c3c"
+            ClipToBounds="False">
+        <!-- Auto rows only: never starve caption with * height under Center alignment -->
         <Grid x:Name="PanMain"
               VerticalAlignment="Top"
-              Margin="22,22,22,23">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="2" />
-                <RowDefinition Height="13" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+              Margin="22,22,22,20"
+              RowDefinitions="Auto,2,12,Auto,16,Auto">
             <TextBlock Grid.Row="0"
                        x:Name="LabTitle"
                        FontSize="23"
                        TextTrimming="None"
+                       TextWrapping="Wrap"
                        Foreground="{DynamicResource ColorBrush2}"
                        HorizontalAlignment="Left"
-                       Margin="7,-1,70,9"
+                       Margin="7,-1,12,9"
                        Text="提示"
                        VerticalAlignment="Top" />
             <Rectangle x:Name="ShapeLine"
@@ -42,37 +41,39 @@
                        Fill="{DynamicResource ColorBrush2}" />
             <legacy:MyScrollViewer Grid.Row="3"
                                    VerticalAlignment="Top"
-                                   Margin="0,0,0,17"
-                                   Padding="7,0,15,0"
-                                   MaxHeight="260"
+                                   Margin="0,0,0,0"
+                                   Padding="7,0,8,4"
+                                   MaxHeight="320"
                                    VerticalScrollBarVisibility="Auto"
                                    HorizontalScrollBarVisibility="Disabled">
                 <TextBlock x:Name="LabCaption"
                            TextTrimming="None"
                            TextWrapping="Wrap"
                            FontSize="15"
-                           LineHeight="18"
+                           LineHeight="22"
                            Foreground="{DynamicResource ColorBrush1}"
                            FontWeight="Normal"
-                           Padding="1" />
+                           Padding="1,0,4,8" />
             </legacy:MyScrollViewer>
-            <StackPanel Grid.Row="4"
+            <StackPanel Grid.Row="5"
                         x:Name="PanBtn"
                         VerticalAlignment="Top"
                         HorizontalAlignment="Right"
-                        Margin="150,0,8,0"
+                        Margin="12,0,4,0"
                         Orientation="Horizontal">
                 <legacy:MyButton ColorType="Normal"
                                  Text="确定"
                                  x:Name="Btn1"
                                  Margin="12,0,0,0"
                                  Padding="5,0"
+                                 MinHeight="32"
                                  Click="Btn1Click" />
                 <legacy:MyButton ColorType="Normal"
                                  Text="取消"
                                  x:Name="Btn2"
                                  Margin="12,0,0,0"
                                  Padding="5,0"
+                                 MinHeight="32"
                                  IsVisible="False"
                                  Click="Btn2Click" />
                 <legacy:MyButton ColorType="Normal"
@@ -80,6 +81,7 @@
                                  x:Name="Btn3"
                                  Margin="12,0,0,0"
                                  Padding="5,0"
+                                 MinHeight="32"
                                  IsVisible="False"
                                  Click="Btn3Click" />
             </StackPanel>

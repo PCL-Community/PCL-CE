@@ -323,6 +323,9 @@ public class MyComboBox : ComboBox
         }
     }
 
+    /// <summary>Recompute closed-state selection caption (used after programmatic Items rebuild).</summary>
+    public void RefreshSelectionDisplay() => RefreshSelectionText();
+
     private void RefreshSelectionText()
     {
         SelectionText = SelectedItem switch

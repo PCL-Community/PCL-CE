@@ -39,7 +39,8 @@ public static class LauncherSettingDefaults
         ["LaunchAdvanceGraphicCard"] = true,
         ["LaunchAdvanceNoJavaw"] = false,
         ["LaunchAdvanceDisableLwjglUnsafeAgent"] = false,
-        ["LaunchAutoRepairGame"] = true
+        ["LaunchAutoRepairGame"] = true,
+        ["ToolDownloadClipboard"] = false
     };
 
     private static readonly Dictionary<string, int> IntegerDefaults = new(StringComparer.OrdinalIgnoreCase)

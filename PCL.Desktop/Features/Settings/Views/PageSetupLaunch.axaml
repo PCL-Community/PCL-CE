@@ -59,7 +59,7 @@
                         <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Launch.CustomInfo.Label}"
                                    Margin="0,0,25,0" />
                         <legacy:MyTextBox x:Name="TextArgumentInfo" Grid.Row="4" Grid.ColumnSpan="2"
-                                         Tag="LaunchArgumentInfo" Text="PCL" Grid.Column="1"
+                                         Tag="LaunchArgumentInfo" Text="PCLN" Grid.Column="1"
                                          ValidatedTextChanged="TextBoxChange"
                                          ToolTip.Tip="{DynamicResource Setup.Launch.CustomInfo.ToolTip}">
                             <legacy:MyTextBox.ValidateRules>
@@ -182,7 +182,7 @@
                         <legacy:MyRadioBox Grid.Row="2" Text="{DynamicResource Common.Option.Customize}" x:Name="RadioRamType1" Tag="LaunchRamType/1"
                                           Margin="0,0,20,0" Check="RadioBoxChange" />
                         <legacy:MySlider Grid.Row="2" Grid.Column="1" IsEnabled="False" x:Name="SliderRamCustom"
-                                        Tag="LaunchRamCustom" MaxValue="49" Value="13" Change="SliderChange" />
+                                        Tag="LaunchRamCustom" MaxValue="49" Value="15" Change="SliderChange" />
                     </Grid>
                     <Grid x:Name="PanRamDisplay" Margin="0,11,2,0">
                         <Grid.ColumnDefinitions>

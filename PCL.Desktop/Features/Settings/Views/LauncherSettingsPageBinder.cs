@@ -138,7 +138,8 @@ internal static class LauncherSettingsPageBinder
                     return;
 
                 settings = LoadSettings();
-                settings.SetIntegerOption(tag, GetComboValue(comboBox));
+                int comboValue = GetComboValue(comboBox);
+                settings.SetIntegerOption(tag, comboValue);
                 bool shouldApplyTheme = false;
                 settings = tag switch
                 {
@@ -165,6 +166,7 @@ internal static class LauncherSettingsPageBinder
                 if (comboBox.IsEditable)
                     settings.SetTextOption(tag, comboBox.Text ?? string.Empty);
 
+                // Always flush immediately so defaults/persist survive page switches.
                 SaveSettings(settings);
                 if (shouldApplyTheme)
                     AvaloniaThemeManager.Apply(settings);
@@ -336,7 +338,7 @@ internal static class LauncherSettingsPageBinder
                 continue;
 
             if (tag is "UiLightColor" or "UiDarkColor")
-                comboBox.ItemsSource = ThemeColorNames;
+                EnsureThemeColorItems(comboBox);
 
             if (tag == "UiDarkMode")
                 SetComboIndex(comboBox, (int)settings.ColorMode);
@@ -349,12 +351,20 @@ internal static class LauncherSettingsPageBinder
             else if (settings.TryGetIntegerOption(tag, out int index))
                 SetComboValue(comboBox, index);
             else
-                SetComboValue(comboBox, LauncherSettingDefaults.GetInteger(tag, comboBox.SelectedIndex));
+            {
+                int defaultIndex = LauncherSettingDefaults.GetInteger(
+                    tag,
+                    comboBox.SelectedIndex >= 0 ? comboBox.SelectedIndex : 0);
+                SetComboValue(comboBox, defaultIndex);
+            }
 
             if (comboBox.IsEditable && settings.TryGetTextOption(tag, out string? text))
                 comboBox.Text = text ?? string.Empty;
             else if (comboBox.IsEditable)
                 comboBox.Text = LauncherSettingDefaults.GetText(tag, comboBox.Text ?? string.Empty);
+
+            // Force visible selection text (string ItemsSource / DynamicResource could leave blank).
+            comboBox.RefreshSelectionDisplay();
         }
 
         foreach (MyCheckBox checkBox in GetControlDescendants(page).OfType<MyCheckBox>())
@@ -368,7 +378,11 @@ internal static class LauncherSettingsPageBinder
             else if (settings.TryGetBooleanOption(tag, out bool value))
                 checkBox.Checked = value;
             else
-                checkBox.Checked = LauncherSettingDefaults.GetBoolean(tag, checkBox.Checked == true);
+            {
+                // Use LauncherSettingDefaults when present; otherwise keep XAML Checked.
+                bool xamlFallback = checkBox.Checked == true;
+                checkBox.Checked = LauncherSettingDefaults.GetBoolean(tag, xamlFallback);
+            }
         }
 
         foreach (MySlider slider in GetControlDescendants(page).OfType<MySlider>())
@@ -498,6 +512,43 @@ internal static class LauncherSettingsPageBinder
     {
         if (comboBox.ItemCount > 0)
             comboBox.SelectedIndex = Math.Clamp(index, 0, comboBox.ItemCount - 1);
+    }
+
+    /// <summary>
+    /// Populate light/dark theme color combos with real <see cref="MyComboBoxItem"/>s
+    /// so the closed selection always shows text (string ItemsSource was blank on enter).
+    /// </summary>
+    private static void EnsureThemeColorItems(MyComboBox comboBox)
+    {
+        bool needsRebuild = comboBox.ItemCount != ThemeColorNames.Length;
+        if (!needsRebuild)
+        {
+            for (int i = 0; i < ThemeColorNames.Length; i++)
+            {
+                string shown = comboBox.Items[i] switch
+                {
+                    MyComboBoxItem item => item.Content?.ToString() ?? string.Empty,
+                    string s => s,
+                    _ => comboBox.Items[i]?.ToString() ?? string.Empty
+                };
+                if (!string.Equals(shown, ThemeColorNames[i], StringComparison.Ordinal))
+                {
+                    needsRebuild = true;
+                    break;
+                }
+            }
+        }
+
+        if (!needsRebuild)
+            return;
+
+        int preserve = comboBox.SelectedIndex;
+        comboBox.ItemsSource = null;
+        comboBox.Items.Clear();
+        foreach (string name in ThemeColorNames)
+            comboBox.Items.Add(new MyComboBoxItem { Content = name });
+        if (preserve >= 0)
+            comboBox.SelectedIndex = Math.Clamp(preserve, 0, ThemeColorNames.Length - 1);
     }
 
     private static ColorTheme GetTheme(int index) =>

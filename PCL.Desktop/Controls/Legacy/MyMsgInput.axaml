@@ -44,9 +44,9 @@
             <legacy:MyScrollViewer Grid.Row="3"
                                    x:Name="PanText"
                                    VerticalAlignment="Top"
-                                   Margin="0,0,0,7"
-                                   Padding="7,0,15,0"
-                                   MaxHeight="220"
+                                   Margin="0,0,0,8"
+                                   Padding="7,0,8,4"
+                                   MaxHeight="260"
                                    VerticalScrollBarVisibility="Auto"
                                    HorizontalScrollBarVisibility="Disabled">
                 <TextBlock x:Name="LabText"
@@ -54,10 +54,10 @@
                            TextTrimming="None"
                            TextWrapping="Wrap"
                            FontSize="15"
-                           LineHeight="18"
+                           LineHeight="22"
                            Foreground="{DynamicResource ColorBrush1}"
                            FontWeight="Normal"
-                           Padding="1" />
+                           Padding="1,0,4,6" />
             </legacy:MyScrollViewer>
             <legacy:MyTextBox Grid.Row="4"
                               x:Name="TextArea"
@@ -69,19 +69,21 @@
                         x:Name="PanBtn"
                         VerticalAlignment="Top"
                         HorizontalAlignment="Right"
-                        Margin="150,0,8,0"
+                        Margin="12,0,4,0"
                         Orientation="Horizontal">
                 <legacy:MyButton ColorType="Normal"
                                  Text="确定"
                                  x:Name="Btn1"
                                  Margin="12,0,0,0"
                                  Padding="5,0"
+                                 MinHeight="32"
                                  Click="Btn1Click" />
                 <legacy:MyButton ColorType="Normal"
                                  Text="取消"
                                  x:Name="Btn2"
                                  Margin="12,0,0,0"
                                  Padding="5,0"
+                                 MinHeight="32"
                                  Click="Btn2Click" />
             </StackPanel>
         </Grid>

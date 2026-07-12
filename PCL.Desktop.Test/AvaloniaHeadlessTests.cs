@@ -121,7 +121,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsNotNull(window.FindControl<AnimatedBackgroundGrid>("PanTitle"));
                 Assert.IsNotNull(window.FindControl<Grid>("PanForm")!.Background);
                 typeof(MainWindow).GetMethod(
-                        "ShowNotification",
+                        "ShowHint",
                         System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
                     .Invoke(window, ["Headless notification", false]);
                 Assert.AreEqual(

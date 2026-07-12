@@ -40,7 +40,7 @@ public sealed record InstanceMetadata
 
     public int MemorySolution { get; init; } = 2;
 
-    public int CustomMemorySize { get; init; } = 13;
+    public int CustomMemorySize { get; init; } = 15;
 
     public int ServerLoginRequirement { get; init; }
 
@@ -64,7 +64,7 @@ public sealed record InstanceMetadata
 
     public string PreLaunchCommand { get; init; } = string.Empty;
 
-    public bool WaitForPreLaunchCommand { get; init; }
+    public bool WaitForPreLaunchCommand { get; init; } = true;
 
     public bool IgnoreJavaCompatibility { get; init; }
 
