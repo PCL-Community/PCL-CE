@@ -174,10 +174,14 @@ public partial class MainWindow : Window, IDisposable
         RefreshNavigationText();
         CaptureShowAnimationTransforms();
         Opened += OnMainWindowOpened;
+        DesktopPluginHostNotifications.Instance.Attach(OnPluginHostNotification);
         SyncTitleOverlayWidth();
         _ = LoadProfilesAsync();
         SelectNavRoute(LaunchRoute, animate: false);
     }
+
+    private void OnPluginHostNotification(string message, bool critical) =>
+        ShowHint(message, critical);
 
     private void RefreshTitleButtonsBeforeFirstFrame()
     {
@@ -5258,6 +5262,7 @@ public partial class MainWindow : Window, IDisposable
 
     public void Dispose()
     {
+        DesktopPluginHostNotifications.Instance.Detach(OnPluginHostNotification);
         LauncherSettingsPageBinder.SettingsChanged -= LauncherSettingsChanged;
         AvaloniaLocalizationManager.LanguageChanged -= LocalizationChanged;
         _backgroundBitmap?.Dispose();

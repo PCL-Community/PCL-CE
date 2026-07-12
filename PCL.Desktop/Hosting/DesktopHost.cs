@@ -33,7 +33,10 @@ internal static class DesktopHost
             builder.AddModule(module);
         _current = builder.Build();
         // Narrow internal bridge for PCL.Plugin (design §3). Not part of public SDK ABI.
-        PluginPlatformHostAccess.Initialize(new PclPluginPlatformHost(_current.SettingsPages));
+        PluginPlatformHostAccess.Initialize(new PclPluginPlatformHost(
+            _current.SettingsPages,
+            AvaloniaPluginHostDispatcher.Instance,
+            DesktopPluginHostNotifications.Instance));
     }
 }
 
