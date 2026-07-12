@@ -1,10 +1,10 @@
 {
   "name": "Plain Craft Launcher N Edition",
   "version": {
-    "base": "1.0.144",
+    "base": "1.1.0",
     "upstream": "2.15.0",
-    "suffix": "beta",
-    "code": 144
+    "suffix": "release",
+    "code": 200
   },
   "branch": "dev",
   "commit": "local",
@@ -13,7 +13,7 @@
   "licenses": [
     {
       "name": "PCL N Avalonia Desktop",
-      "info": "Copyright © MUXUE1230 and PCL N contributors; Apache-2.0",
+      "info": "Copyright © MUXUE1230; Apache-2.0",
       "website": "https://github.com/MuXue1230-owo/PCL-N/tree/dev/PCL.Desktop",
       "license": "https://github.com/MuXue1230-owo/PCL-N/blob/dev/LICENSE"
     },
