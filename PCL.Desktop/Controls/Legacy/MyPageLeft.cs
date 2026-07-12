@@ -15,31 +15,6 @@ public class MyPageLeft : Grid
 
     private readonly int _uuid = Random.Shared.Next();
 
-    public MyPageLeft()
-    {
-        // WPF FormMain.RectLeftBackground uses ColorBrushBackgroundTransparentSidebar (#F1FFFFFF).
-        if (Avalonia.Application.Current?.TryGetResource(
-                "ColorBrushBackgroundTransparentSidebar",
-                Avalonia.Application.Current.ActualThemeVariant,
-                out object? resource) == true &&
-            resource is IBrush frosted)
-        {
-            Background = frosted;
-        }
-        else if (Avalonia.Application.Current?.TryGetResource(
-                     "ColorBrushTransparentBackground",
-                     Avalonia.Application.Current.ActualThemeVariant,
-                     out object? fallback) == true &&
-                 fallback is IBrush cardFrosted)
-        {
-            Background = cardFrosted;
-        }
-        else
-        {
-            Background = new SolidColorBrush(Color.Parse("#F1FFFFFF"));
-        }
-    }
-
     public Control? AnimatedControl
     {
         get => GetValue(AnimatedControlProperty);

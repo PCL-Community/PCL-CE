@@ -51,7 +51,7 @@
     <SolidColorBrush x:Key="ColorBrushTransparent" Color="#00ffffff" />
     <SolidColorBrush x:Key="ColorBrushSemiTransparent" Color="#01eaf2fe" />
     <SolidColorBrush x:Key="ColorBrushTransparentBackground" Color="#d2fbfbfb" />
-    <!-- WPF Application.xaml: left sub-nav frosted strip (FormMain.RectLeftBackground) -->
+    <!-- Fallback only; live value is written by ThemeColorPalette on theme apply. -->
     <SolidColorBrush x:Key="ColorBrushBackgroundTransparentSidebar" Color="#F1FFFFFF" />
     <SolidColorBrush x:Key="ColorBrushBackground" Color="#fbfbfb" />
     <SolidColorBrush x:Key="ColorBrushToolTip" Color="#e5ffffff" />
@@ -1064,6 +1064,11 @@ IPv6 优先：-Djava.net.preferIPv6Stack=true</x:String>
     <Setter Property="Background" Value="{DynamicResource ColorBrushTransparent}" />
     <Setter Property="Padding" Value="6,4" />
     <Setter Property="MinHeight" Value="26" />
+  </Style>
+
+  <!-- Left pages: theme-tinted frosted strip (FormMain.RectLeftBackground) -->
+  <Style Selector="legacy|MyPageLeft">
+    <Setter Property="Background" Value="{DynamicResource ColorBrushBackgroundTransparentSidebar}" />
   </Style>
 
   <!-- WPF-like thin scrollbar (after page enter animation settles) -->

@@ -16,7 +16,8 @@ public static class ThemeColorPalette
     private static readonly ToneProfile DarkTone = new(
         L1: 0.96d, L2: 0.75d, L3: 0.6d, L4: 0.65d,
         L5: 0.45d, L6: 0.25d, L7: 0.225d, L8: 0.2d,
-        LBackground: 0.3d, LForeground: 1d, LWhite: 0.275d);
+        LBackground: 0.3d, LForeground: 1d, LWhite: 0.275d,
+        LSidebar: 0.28d, CSidebar: 0.02d, ASidebar: 0.92d);
 
     public static IReadOnlyDictionary<string, Color> Create(bool isDarkMode, ColorTheme theme)
     {
@@ -54,6 +55,15 @@ public static class ThemeColorPalette
             FromLch(Adjust(tone.L8, args.LightAdjust), Adjust(tone.C8, args.ChromaAdjust), args.Hue, tone.ASemiTransparent));
         AddThemeColor(resources, "Bg0", Adjust(tone.L5, args.LightAdjust), Adjust(tone.C5, args.ChromaAdjust), args.Hue);
         AddThemeColor(resources, "Bg1", Adjust(tone.L7, args.LightAdjust), Adjust(tone.C7, args.ChromaAdjust), args.Hue, tone.ASemiWhite);
+        // WPF FormMain.RectLeftBackground: frosted strip over wallpaper, tinted by theme Hue/chroma.
+        // Alpha ≈ 0xF1/255 so wallpaper still shows through (classic #F1FFFFFF with theme light color).
+        AddThemeColor(
+            resources,
+            "BackgroundTransparentSidebar",
+            Adjust(tone.LSidebar, args.LightAdjust),
+            Adjust(tone.CSidebar, args.ChromaAdjust),
+            args.Hue,
+            tone.ASidebar);
 
         AddBrush(resources, "RedLight", Color.Parse("#ff4c4c"));
         AddBrush(resources, "RedDark", Color.Parse("#ce2111"));
@@ -164,5 +174,9 @@ public static class ThemeColorPalette
         double AHalfTransparent = 0.5d,
         double ATransparent = 0d,
         double ABackground = 0.824d,
-        double AToolTip = 0.9d);
+        double AToolTip = 0.9d,
+        // Left sub-nav frosted panel (WPF ColorBrushBackgroundTransparentSidebar).
+        double LSidebar = 0.97d,
+        double CSidebar = 0.012d,
+        double ASidebar = 0.945d); // 0xF1 / 255
 }
