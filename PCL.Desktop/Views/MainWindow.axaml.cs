@@ -5900,12 +5900,8 @@ public partial class MainWindow : Window, IDisposable
         bool colorful = settings.GetBooleanOption(
             "UiBackgroundColorful",
             LauncherSettingDefaults.GetBoolean("UiBackgroundColorful"));
-        bool isDarkMode = settings.ColorMode switch
-        {
-            ColorMode.Light => false,
-            ColorMode.Dark => true,
-            _ => Avalonia.Application.Current?.ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark
-        };
+        // Prefer live theme manager state so ColorMode.System tracks OS preference.
+        bool isDarkMode = AvaloniaThemeManager.IsDarkMode;
         ColorTheme theme = isDarkMode ? settings.DarkColor : settings.LightColor;
         IReadOnlyDictionary<string, Color> palette = ThemeColorPalette.Create(isDarkMode, theme);
         if (!colorful)

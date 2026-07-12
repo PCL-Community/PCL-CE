@@ -10,6 +10,8 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Threading;
+using PCL.Desktop.Theme;
 
 namespace PCL.Desktop.Controls.Legacy;
 
@@ -97,7 +99,18 @@ public partial class MyButton : Border
                 _label.Padding = padding;
         });
         AttachedToVisualTree += (_, _) => RefreshColor();
+        DetachedFromVisualTree += (_, _) => AvaloniaThemeManager.ThemeChanged -= OnThemeChanged;
+        AvaloniaThemeManager.ThemeChanged += OnThemeChanged;
         RefreshColor();
+    }
+
+    private void OnThemeChanged()
+    {
+        // Theme brushes may be mutated in place; re-bind control state (hover/normal keys).
+        if (Dispatcher.UIThread.CheckAccess())
+            RefreshColor();
+        else
+            Dispatcher.UIThread.Post(RefreshColor, DispatcherPriority.Background);
     }
 
     public event EventHandler? Click;

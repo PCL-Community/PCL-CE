@@ -166,10 +166,11 @@ internal static class LauncherSettingsPageBinder
                 if (comboBox.IsEditable)
                     settings.SetTextOption(tag, comboBox.Text ?? string.Empty);
 
-                // Always flush immediately so defaults/persist survive page switches.
-                SaveSettings(settings);
+                // Apply theme palette first so SettingsChanged / form chrome see new colors.
                 if (shouldApplyTheme)
                     AvaloniaThemeManager.Apply(settings);
+                // Always flush immediately so defaults/persist survive page switches.
+                SaveSettings(settings);
             }
 
             comboBox.SelectionChanged += (_, _) => PersistComboBox();

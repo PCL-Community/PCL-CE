@@ -12,6 +12,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using PCL.Desktop.Theme;
 using PathShape = Avalonia.Controls.Shapes.Path;
 
 namespace PCL.Desktop.Controls.Legacy;
@@ -137,6 +138,8 @@ public partial class MyListItem : Grid, IMyRadio
             RefreshCheckedVisual(animate: false);
             RefreshColor(animate: false);
         };
+        DetachedFromVisualTree += (_, _) => AvaloniaThemeManager.ThemeChanged -= OnThemeChanged;
+        AvaloniaThemeManager.ThemeChanged += OnThemeChanged;
 
         this.GetObservable(TitleProperty).Subscribe(text =>
         {
@@ -184,6 +187,20 @@ public partial class MyListItem : Grid, IMyRadio
         RefreshCheckIndicator();
         RefreshCheckedVisual(animate: false);
         RefreshColor(animate: false);
+    }
+
+    private void OnThemeChanged()
+    {
+        void Refresh()
+        {
+            RefreshColor(animate: false);
+            RefreshCheckedVisual(animate: false);
+        }
+
+        if (Dispatcher.UIThread.CheckAccess())
+            Refresh();
+        else
+            Dispatcher.UIThread.Post(Refresh, DispatcherPriority.Background);
     }
 
     public event EventHandler<PointerReleasedEventArgs>? Click;
