@@ -1,0 +1,64 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PCL.Desktop.Views.CrashReportWindow"
+        Title="PCL N — 未捕获异常"
+        Width="640"
+        Height="480"
+        MinWidth="480"
+        MinHeight="360"
+        CanResize="True"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="True"
+        Topmost="True">
+    <Grid Margin="20" RowDefinitions="Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0"
+                   Text="启动器遇到未捕获的异常"
+                   FontSize="18"
+                   FontWeight="Bold"
+                   Margin="0,0,0,8" />
+        <TextBlock Grid.Row="1"
+                   Text="程序已尽量拦截该错误，以免直接闪退。请将下方信息提交到 GitHub Issue，便于我们修复。"
+                   TextWrapping="Wrap"
+                   Opacity="0.85"
+                   Margin="0,0,0,12" />
+
+        <TextBox Grid.Row="2"
+                 x:Name="TxtReport"
+                 IsReadOnly="True"
+                 AcceptsReturn="True"
+                 TextWrapping="Wrap"
+                 FontFamily="Consolas, Cascadia Mono, Courier New, monospace"
+                 FontSize="12"
+                 VerticalAlignment="Stretch"
+                 HorizontalAlignment="Stretch"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto" />
+
+        <StackPanel Grid.Row="3"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Spacing="10"
+                    Margin="0,14,0,0">
+            <Button x:Name="BtnCopy"
+                    Content="复制报告"
+                    MinWidth="100"
+                    Padding="12,6"
+                    Click="BtnCopy_Click" />
+            <Button x:Name="BtnOpenIssue"
+                    Content="提交 Issue"
+                    MinWidth="110"
+                    Padding="12,6"
+                    Click="BtnOpenIssue_Click" />
+            <Button x:Name="BtnContinue"
+                    Content="继续运行"
+                    MinWidth="100"
+                    Padding="12,6"
+                    Click="BtnContinue_Click" />
+            <Button x:Name="BtnExit"
+                    Content="退出启动器"
+                    MinWidth="110"
+                    Padding="12,6"
+                    Click="BtnExit_Click" />
+        </StackPanel>
+    </Grid>
+</Window>

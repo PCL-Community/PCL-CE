@@ -4,6 +4,7 @@
 
 using Avalonia;
 using Avalonia.Platform;
+using PCL.Desktop.Diagnostics;
 using PCL.Desktop.Hosting;
 using PCL.Desktop.Platform;
 
@@ -14,28 +15,44 @@ internal static class Program
     [STAThread]
     public static int Main(string[] args)
     {
-        if (args.Contains("--validate-environment", StringComparer.OrdinalIgnoreCase))
-            return ValidateEnvironment();
-        if (args.Contains("--validate-assets", StringComparer.OrdinalIgnoreCase))
-            return ValidateAssets();
-        if (args.Contains("--validate-plugin", StringComparer.OrdinalIgnoreCase))
+        // Catch process-wide crashes as early as possible.
+        UnhandledExceptionGuard.Install();
+
+        try
         {
-            DesktopHost.Initialize();
-            return DesktopHost.Current.ModuleIds.Count > 0 && DesktopHost.Current.SettingsPages.Pages.Count > 0
-                ? 0
-                : 1;
+            // Apply CI-embedded secrets (MS client id, etc.) before any auth/UI code runs.
+            PclEmbeddedSecrets.ApplyToEnvironment();
+
+            if (args.Contains("--validate-environment", StringComparer.OrdinalIgnoreCase))
+                return ValidateEnvironment();
+            if (args.Contains("--validate-assets", StringComparer.OrdinalIgnoreCase))
+                return ValidateAssets();
+            if (args.Contains("--validate-secrets", StringComparer.OrdinalIgnoreCase))
+                return PclEmbeddedSecrets.Count > 0 ? 0 : 2;
+            if (args.Contains("--validate-plugin", StringComparer.OrdinalIgnoreCase))
+            {
+                DesktopHost.Initialize();
+                return DesktopHost.Current.ModuleIds.Count > 0 && DesktopHost.Current.SettingsPages.Pages.Count > 0
+                    ? 0
+                    : 1;
+            }
+
+            EmbeddedPluginLoader.Load();
+
+            using SingleInstanceCoordinator singleInstance = SingleInstanceCoordinator.Create();
+            if (!singleInstance.IsPrimaryInstance)
+                return singleInstance.SignalExistingInstance();
+
+            App.SingleInstanceCoordinator = singleInstance;
+            singleInstance.StartListening();
+            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+            return 0;
         }
-
-        EmbeddedPluginLoader.Load();
-
-        using SingleInstanceCoordinator singleInstance = SingleInstanceCoordinator.Create();
-        if (!singleInstance.IsPrimaryInstance)
-            return singleInstance.SignalExistingInstance();
-
-        App.SingleInstanceCoordinator = singleInstance;
-        singleInstance.StartListening();
-        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
-        return 0;
+        catch (Exception ex)
+        {
+            UnhandledExceptionGuard.Report(ex, "Program.Main", canContinue: false);
+            return 1;
+        }
     }
 
     public static AppBuilder BuildAvaloniaApp() =>

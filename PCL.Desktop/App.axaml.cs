@@ -27,30 +27,41 @@ public sealed partial class App : Avalonia.Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-        DesktopFileLog.Initialize();
-        AvaloniaThemeManager.Apply(settings);
-        AvaloniaLocalizationManager.InitializeFromSettings(settings);
-        DesktopHost.Initialize();
+        // UI-thread unhandled exceptions (Avalonia Dispatcher) → crash dialog + Issue prompt.
+        UnhandledExceptionGuard.AttachUiDispatcher();
 
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        try
         {
-            if (settings.GetBooleanOption("UiLauncherLogo", LauncherSettingDefaults.GetBoolean("UiLauncherLogo")))
+            LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+            DesktopFileLog.Initialize();
+            AvaloniaThemeManager.Apply(settings);
+            AvaloniaLocalizationManager.InitializeFromSettings(settings);
+            DesktopHost.Initialize();
+
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                _splashWindow = new SplashWindow();
-                _splashWindow.Show();
+                if (settings.GetBooleanOption("UiLauncherLogo", LauncherSettingDefaults.GetBoolean("UiLauncherLogo")))
+                {
+                    _splashWindow = new SplashWindow();
+                    _splashWindow.Show();
+                }
+
+                MainWindow mainWindow = new();
+                mainWindow.Opened += (_, _) => _splashWindow?.CloseWithFade(TimeSpan.FromMilliseconds(400));
+                SingleInstanceCoordinator?.ActivationRequested += (_, _) =>
+                    Dispatcher.UIThread.Post(mainWindow.ActivateExistingInstance);
+                if (SingleInstanceCoordinator?.ConsumePendingActivation() == true)
+                    Dispatcher.UIThread.Post(mainWindow.ActivateExistingInstance);
+
+                desktop.MainWindow = mainWindow;
             }
 
-            MainWindow mainWindow = new();
-            mainWindow.Opened += (_, _) => _splashWindow?.CloseWithFade(TimeSpan.FromMilliseconds(400));
-            SingleInstanceCoordinator?.ActivationRequested += (_, _) =>
-                Dispatcher.UIThread.Post(mainWindow.ActivateExistingInstance);
-            if (SingleInstanceCoordinator?.ConsumePendingActivation() == true)
-                Dispatcher.UIThread.Post(mainWindow.ActivateExistingInstance);
-
-            desktop.MainWindow = mainWindow;
+            base.OnFrameworkInitializationCompleted();
         }
-
-        base.OnFrameworkInitializationCompleted();
+        catch (Exception ex)
+        {
+            UnhandledExceptionGuard.Report(ex, "App.OnFrameworkInitializationCompleted", canContinue: false);
+            throw;
+        }
     }
 }
