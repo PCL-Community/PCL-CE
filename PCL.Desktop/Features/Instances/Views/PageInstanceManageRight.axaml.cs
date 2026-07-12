@@ -341,12 +341,12 @@ public partial class PageInstanceManageRight : MyPageRight
         if (instance is null)
             return;
 
-        await _metadataWriteLock.WaitAsync().ConfigureAwait(false);
+        await _metadataWriteLock.WaitAsync();
         try
         {
             InstanceMetadata metadata = update(_metadata);
             _metadata = metadata;
-            await InstanceMetadataStore.SaveAsync(instance.InstanceDirectory, metadata).ConfigureAwait(false);
+            await InstanceMetadataStore.SaveAsync(instance.InstanceDirectory, metadata);
         }
         finally
         {
@@ -363,7 +363,7 @@ public partial class PageInstanceManageRight : MyPageRight
 
             PopulateDisplayItem(instance);
             ApplyMetadataToControls();
-        }).ConfigureAwait(false);
+        });
     }
 
     private void SelectLogoItem(string logoPath)

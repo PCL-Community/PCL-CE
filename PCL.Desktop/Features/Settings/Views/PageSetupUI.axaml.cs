@@ -35,21 +35,24 @@ public partial class PageSetupUI : MyPageRight, IRefreshableSettingsPage, ISetti
     {
         if (this.FindControl<MySlider>("SliderMusicVolume") is { } musicVolume)
             musicVolume.getHintText = value =>
-                (Math.Ceiling(value * 0.1d) / 100d).ToString("P0", CultureInfo.CurrentCulture);
+                FormatPercent(Math.Ceiling(value * 0.1d));
         if (this.FindControl<MySlider>("SliderLauncherOpacity") is { } launcherOpacity)
             launcherOpacity.getHintText = value =>
-                (Math.Round(40d + value * 0.1d) / 100d).ToString("P0", CultureInfo.CurrentCulture);
+                FormatPercent(Math.Round(40d + value * 0.1d));
         if (this.FindControl<MySlider>("SliderBackgroundOpacity") is { } backgroundOpacity)
             backgroundOpacity.getHintText = value =>
-                (Math.Round(value * 0.1d) / 100d).ToString("P0", CultureInfo.CurrentCulture);
+                FormatPercent(Math.Round(value * 0.1d));
         if (this.FindControl<MySlider>("SliderBackgroundBlur") is { } backgroundBlur)
             backgroundBlur.getHintText = value => value.ToString(CultureInfo.CurrentCulture) + " px";
         if (this.FindControl<MySlider>("SliderBlurValue") is { } blurValue)
             blurValue.getHintText = value => value.ToString(CultureInfo.CurrentCulture) + " px";
         if (this.FindControl<MySlider>("SliderBlurSamplingRate") is { } blurSampling)
             blurSampling.getHintText = value =>
-                (value / 100d).ToString("P0", CultureInfo.CurrentCulture);
+                FormatPercent(value);
     }
+
+    private static string FormatPercent(double value) =>
+        value.ToString("0", CultureInfo.InvariantCulture) + "%";
 
     public event EventHandler<SettingsPathRequestedEventArgs>? OpenPathRequested;
 

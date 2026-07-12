@@ -3969,7 +3969,13 @@ public sealed class AvaloniaHeadlessTests
 
                 Assert.IsTrue(leftText.Any(text => text.StartsWith("42", StringComparison.Ordinal)));
                 CollectionAssert.IsSubsetOf(
-                    new[] { "总进度", "下载速度", "剩余文件", "剩余线程" },
+                    new[]
+                    {
+                        AvaloniaLocalizationManager.GetText("Speed.Progress.Total", "总进度"),
+                        AvaloniaLocalizationManager.GetText("Speed.Progress.Speed", "下载速度"),
+                        AvaloniaLocalizationManager.GetText("Speed.Progress.RemainingFiles", "剩余文件"),
+                        AvaloniaLocalizationManager.GetText("Speed.Progress.RemainingThreads", "剩余线程")
+                    },
                     leftText);
                 Assert.IsTrue(leftText.Contains("2.0 KB/s"));
                 Assert.IsTrue(leftText.Contains("7"));
@@ -4945,7 +4951,9 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual(6, page.FindControl<ItemsControl>("LicenseList")!.Items.Count);
 
                 MyButton sponsor = page.FindControl<MyButton>("BtnCommunityHome")!;
-                Assert.AreEqual("赞助作者", sponsor.Text);
+                Assert.AreEqual(
+                    AvaloniaLocalizationManager.GetText("Setup.About.SponsorCommunityAuthor", "赞助作者"),
+                    sponsor.Text);
                 Click(window, sponsor);
                 Assert.AreEqual("https://ifdian.net/a/pclne", openedUrl);
             }
