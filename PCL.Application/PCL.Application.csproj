@@ -27,4 +27,11 @@
     <ProjectReference Include="..\PCL.Platform.Abstractions\PCL.Platform.Abstractions.csproj" />
     <ProjectReference Include="..\PCL.UI.Abstractions\PCL.UI.Abstractions.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Privileged plugin platform (not a third-party .pnp). Design §2–§3. -->
+    <InternalsVisibleTo Include="PCL.Plugin" />
+    <InternalsVisibleTo Include="PCL.Plugin.Test" />
+    <InternalsVisibleTo Include="PCL.Desktop" />
+    <InternalsVisibleTo Include="PCL.Application.Test" />
+  </ItemGroup>
 </Project>

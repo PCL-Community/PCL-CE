@@ -3,6 +3,7 @@
 // Licensed under the Apache License, Version 2.0.
 
 using PCL.Application.Hosting;
+using PCL.Application.Hosting.PluginPlatform;
 using PCL.UI.Abstractions.Navigation;
 using PCL.UI.Abstractions.Pages;
 
@@ -31,6 +32,8 @@ internal static class DesktopHost
         foreach (IPclHostModule module in EmbeddedPluginLoader.LoadHostModules())
             builder.AddModule(module);
         _current = builder.Build();
+        // Narrow internal bridge for PCL.Plugin (design §3). Not part of public SDK ABI.
+        PluginPlatformHostAccess.Initialize(new PclPluginPlatformHost(_current.SettingsPages));
     }
 }
 
