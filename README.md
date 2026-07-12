@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="Plain Craft Launcher 2/Images/icon.ico" alt="Logo" width="80" height="80">
+<img src="PCL.Desktop/Assets/icon.ico" alt="Logo" width="80" height="80">
 
 # PCL N Edition
 
@@ -13,46 +13,106 @@
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/MuXue1230-owo/PCL-N/build-test.yml)
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/MuXue1230-owo/PCL-N/total)
 
-[PCL N Edition 下载](https://github.com/MuXue1230-owo/PCL-N/releases/latest) |
-[提交问题](https://github.com/MuXue1230-owo/PCL-N/issues/new/choose)
+[下载最新版本](https://github.com/MuXue1230-owo/PCL-N/releases/latest) |
+[提交问题](https://github.com/MuXue1230-owo/PCL-N/issues/new/choose) |
+[赞助](https://ifdian.net/a/pclne)
 
 </div>
 
-PCL N Edition 是基于 PCL-CE 开源代码，由 MUXUE1230 独立开发和维护的版本！
+**PCL N Edition**（Plain Craft Launcher N Edition）是由 [MUXUE1230](https://github.com/MuXue1230-owo) 独立开发和维护的 Minecraft 启动器。
 
-PCL N Edition 的版本号与主线并非严格对应关系，也请不要向官方仓库反馈 PCL N Edition 问题。
+当前主线基于 **.NET 10 + Avalonia 12** 重写，面向 Windows / Linux / macOS，提供单文件发布与模块化架构。版本号与 PCL / PCL-CE 主线**并非严格对应**，请不要向其他仓库反馈 PCL N 的问题。
 
-欢迎大家来用用看！
+欢迎试用与反馈！
+
+## ✨ 主要特性
+
+- **跨平台桌面壳**：`PCL.Desktop` 基于 Avalonia，支持 win / linux / osx 的 x64 与 arm64
+- **模块化核心**：可移植核心、领域模型、应用服务、平台抽象与 UI 抽象分层
+- **启动与实例管理**：版本安装、Java 选择、启动参数规划、实例元数据与导出
+- **账号体系**：微软正版、离线、第三方 / Authlib-Injector 等登录流程
+- **下载与资源**：Minecraft 客户端 / 资源 / 库文件下载规划与任务管理
+- **插件宿主**：内置 HostModule 桥接与第三方 `.pnp` 插件运行时（签名校验、隔离加载）
+- **发布形态**：自包含（SelfContained）与依赖运行时（NoRuntime）两种产物，发布包附带 GPG 签名
+
+## 🏗 仓库结构
+
+主解决方案：[`PCL-N.slnx`](PCL-N.slnx)
+
+| 项目 | 说明 |
+|---|---|
+| `PCL.Core.Portable` | 可移植核心原语（IO、工具、Minecraft 协议相关等），Native AOT 友好 |
+| `PCL.Domain` | 领域模型 |
+| `PCL.Platform.Abstractions` / `PCL.Platform` | 平台能力抽象与默认实现（路径、进程、系统信息、Java 定位等） |
+| `PCL.Application` | 应用服务层（账号、下载、实例、启动、设置等） |
+| `PCL.UI.Abstractions` | UI 无关的命令、导航、主题、通知等抽象 |
+| `PCL.Desktop` | Avalonia 桌面壳与功能页面 |
+| `PCL.Desktop.SourceGenerators` | 桌面导航 / 设置 / 下载 / 实例页面注册源生成 |
+| `*.Test` / `*.AotSmoke` | 单元测试与 AOT 冒烟测试 |
+
+相关仓库与目录：
+
+- 第三方插件公开契约：[PCL-N-Plugin-SDK](https://github.com/MuXue1230-owo/PCL-N-Plugin-SDK)
+- 私有插件运行时与内置 HostModule：`PCL.Plugin/`（见其 README）
+- 在线服务端：`PCL.Server/`（独立部署，见其 README）
 
 ## 💻 支持平台
 
-| 操作系统 | 支持情况 |
-|---|---|
-| Windows 10 1809 (17763) 或更高 | ✅ 完整支持 |
-| Windows 8 - Windows 10 1809 (17763) 或更低 | ⚠️ 理论能跑，酌情提供社区支持 |
-| Windows 7 或更低版本 | ❌ 不支持 |
-| macOS / Linux / 其他操作系统 | ⚠️ 仅跨平台开发支持（交叉编译） |
+| 平台 | 架构 | 支持情况 |
+|---|---|---|
+| Windows 10 / 11 | x64、ARM64 | ✅ 完整支持 |
+| Linux | x64、ARM64 | ✅ 支持（发行版差异请以最新版本实测为准） |
+| macOS | x64、ARM64 | ✅ 支持 |
+| 更旧的 Windows / 其他系统 | — | ❌ 不保证可用 |
 
-**✅ 完整支持**：尽可能提供一切相关支持，但必须确保启动器为最新版本。
+**发布产物命名约定**（Release）：
 
-**⚠️ 理论能跑，酌情提供社区支持**：PCL N 应该可以在这些平台上运行，但不保证功能完全可用。你可能需要升级到完整支持的系统版本以获得进一步社区技术支持。
+- `PCL_N_Release_<rid>_SelfContained`：自包含，无需预装 .NET
+- `PCL_N_Release_<rid>_NoRuntime`：体积更小，需要本机安装 [.NET 10 运行时](https://dotnet.microsoft.com/download/dotnet/10.0)
 
-**❌ 不支持**：PCL N 在这些平台的可用性较低，甚至压根打不开。请升级操作系统以使用 PCL N。
+其中 `<rid>` 为 `win-x64`、`win-arm64`、`linux-x64`、`linux-arm64`、`osx-x64`、`osx-arm64`。
 
-**⚠️ 仅跨平台开发支持（交叉编译）**：PCL N 的源代码可以在 macOS 与 Linux 平台编译，但无法直接运行。作为开发者，你可以在这些平台上进行开发，然后将编译产物转移到 Windows 系统测试。
+**说明**：
 
-**注**：    
-社区仅对最新版本的启动器提供支持。    
-取决于部分问题的特殊性（如系统不完整），有时你仍然必须升级操作系统以继续获得支持。    
-PCL N 始终建议使用最新版本的操作系统以获得最佳体验。    
-你仍然可以尝试在不受支持的系统上使用 PCL N，但可能会遇到很多额外问题。
+- 我们仅对**最新版本**提供支持
+- 建议使用较新的操作系统与显卡驱动以获得最佳体验
+- 在不受支持的环境上仍可尝试运行，但可能遇到额外问题
+
+## 🛠 从源码构建
+
+**环境要求**：[.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)（仓库 `global.json` 固定 SDK 策略）
+
+```powershell
+# 还原与构建主解决方案
+dotnet restore .\PCL-N.slnx
+dotnet build .\PCL-N.slnx -c Release
+
+# 运行桌面启动器（开发）
+dotnet run --project .\PCL.Desktop\PCL.Desktop.csproj
+
+# 运行测试
+dotnet test .\PCL-N.slnx -c Release
+
+# 发布单文件（示例：Windows x64 自包含）
+dotnet publish .\PCL.Desktop\PCL.Desktop.csproj `
+  -c Release `
+  -r win-x64 `
+  --self-contained true `
+  -p:PublishSingleFile=true `
+  -p:IncludeNativeLibrariesForSelfExtract=true `
+  -o .\artifacts\win-x64
+```
+
+完整多平台发布由 GitHub Actions 的 `release-stable_publish.yml` / `release-beta_publish.yml` 完成。
 
 ## 🔒 许可证
 
-- `Plain Craft Launcher 2/` 使用 [自定义许可证](https://github.com/MuXue1230-owo/PCL-N/blob/dev/Plain%20Craft%20Launcher%202/LICENCE)
-- `其余所有目录` 使用 [Apache License 2.0](https://github.com/MuXue1230-owo/PCL-N/blob/dev/LICENSE)
+本仓库代码默认使用 [Apache License 2.0](LICENSE)。
+
+第三方依赖的许可证信息见 `PCL.Desktop/metadata.json` 与各项目 NOTICE（如有）。
 
 ## 🌟 统计数据
+
 ![Alt](https://repobeats.axiom.co/api/embed/803751b94f0b1e8682bf9b5aba0f0dd9f2d156fd.svg "Repobeats analytics image")
 
 [![Star History Chart](https://api.star-history.com/svg?repos=MuXue1230-owo/PCL-N&type=Date)](https://www.star-history.com/#MuXue1230-owo/PCL-N&Date)

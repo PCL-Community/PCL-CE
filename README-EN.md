@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="Plain Craft Launcher 2/Images/icon.ico" alt="Logo" width="80" height="80">
+<img src="PCL.Desktop/Assets/icon.ico" alt="Logo" width="80" height="80">
 
 # PCL N Edition
 
@@ -13,46 +13,106 @@
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/MuXue1230-owo/PCL-N/build-test.yml)
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/MuXue1230-owo/PCL-N/total)
 
-[download](https://github.com/MuXue1230-owo/PCL-N/releases/latest) |
-[Submit issues](https://github.com/MuXue1230-owo/PCL-N/issues/new/choose)
+[Download](https://github.com/MuXue1230-owo/PCL-N/releases/latest) |
+[Submit issues](https://github.com/MuXue1230-owo/PCL-N/issues/new/choose) |
+[Sponsor](https://ifdian.net/a/pclne)
 
 </div>
 
-PCL N Edition is based on PCL open-source code, independently developed and maintained by MUXUE1230.
+**PCL N Edition** (Plain Craft Launcher N Edition) is a Minecraft launcher independently developed and maintained by [MUXUE1230](https://github.com/MuXue1230-owo).
 
-The version numbers of the N Edition do not strictly correspond to those of the main branch, so please do not report N Edition issues to the official repository.
+The current mainline is a rewrite on **.NET 10 + Avalonia 12**, targeting Windows, Linux, and macOS with single-file publishing and a modular architecture. Version numbers **do not strictly map** to PCL / PCL-CE mainline releases—please do **not** report PCL N issues to other repositories.
 
-Everyone is welcome to try it out!
+Feedback and contributions are welcome!
 
-## 💻 Supported Platforms
+## ✨ Features
 
-| Operating System | Support Status |
+- **Cross-platform desktop shell**: `PCL.Desktop` on Avalonia, with win / linux / osx builds for x64 and arm64
+- **Modular core**: portable core, domain model, application services, platform abstractions, and UI abstractions
+- **Launch & instances**: version install, Java selection, launch argument planning, instance metadata and export
+- **Accounts**: Microsoft, offline, and third-party / Authlib-Injector login flows
+- **Downloads & assets**: client / asset / library download planning and task management
+- **Plugin host**: built-in HostModule bridge and third-party `.pnp` plugin runtime (signature verification, isolated loading)
+- **Release flavors**: SelfContained and NoRuntime artifacts; release packages are GPG-signed
+
+## 🏗 Repository layout
+
+Main solution: [`PCL-N.slnx`](PCL-N.slnx)
+
+| Project | Description |
 |---|---|
-| Windows 10 1809 (17763) or later | ✅ Fully supported |
-| Windows 8 to Windows 10 1809 (17763) or earlier | ⚠️ Expected to run; community support offered at discretion |
-| Windows 7 or earlier | ❌ Not supported |
-| macOS / Linux / Other OS | ⚠️ Cross-platform development only (cross-compilation) |
+| `PCL.Core.Portable` | Portable core primitives (IO, utilities, Minecraft-related helpers); Native AOT friendly |
+| `PCL.Domain` | Domain model |
+| `PCL.Platform.Abstractions` / `PCL.Platform` | Platform capability abstractions and default implementations (paths, processes, system info, Java discovery, etc.) |
+| `PCL.Application` | Application services (accounts, downloads, instances, launching, settings, etc.) |
+| `PCL.UI.Abstractions` | UI-agnostic commands, navigation, themes, notifications, and related abstractions |
+| `PCL.Desktop` | Avalonia desktop shell and feature pages |
+| `PCL.Desktop.SourceGenerators` | Source generators for desktop navigation / settings / download / instance page registration |
+| `*.Test` / `*.AotSmoke` | Unit tests and AOT smoke tests |
 
-**✅ Fully supported**: We will provide as much support as possible, but you must ensure you are using the latest version of the launcher.
+Related repos and directories:
 
-**⚠️ Expected to run; community support offered at discretion**: PCL N is expected to run on these platforms, but full functionality is not guaranteed. You may need to upgrade to a fully supported OS version to receive further community technical support.
+- Public third-party plugin contracts: [PCL-N-Plugin-SDK](https://github.com/MuXue1230-owo/PCL-N-Plugin-SDK)
+- Private plugin runtime and built-in HostModule: `PCL.Plugin/` (see its README)
+- Online server: `PCL.Server/` (deployed separately; see its README)
 
-**❌ Not supported**: PCL N may not be usable on these platforms and might not even launch at all. Please upgrade your OS to use PCL N.
+## 💻 Supported platforms
 
-**⚠️ Cross-platform development only (cross-compilation)**: PCL N’s source code can be built on macOS and Linux, but it cannot run directly. As a developer, you can develop on these platforms and then move the build artifacts to Windows for testing.
+| Platform | Architectures | Status |
+|---|---|---|
+| Windows 10 / 11 | x64, ARM64 | ✅ Fully supported |
+| Linux | x64, ARM64 | ✅ Supported (distro differences depend on latest release testing) |
+| macOS | x64, ARM64 | ✅ Supported |
+| Older Windows / other OS | — | ❌ Not guaranteed |
 
-**Note**:     
-The community only supports the latest version of the launcher.    
-Depending on the nature of certain issues (e.g., an incomplete system environment), you may still need to upgrade your OS to continue receiving support.    
-PCL N always recommends using the latest version of your OS for the best experience.    
-You can still try using the latest launcher version on unsupported platforms, but you may encounter many additional problems.
+**Release artifact naming** (Release channel):
+
+- `PCL_N_Release_<rid>_SelfContained`: self-contained; no preinstalled .NET required
+- `PCL_N_Release_<rid>_NoRuntime`: smaller download; requires the [.NET 10 runtime](https://dotnet.microsoft.com/download/dotnet/10.0)
+
+`<rid>` is one of `win-x64`, `win-arm64`, `linux-x64`, `linux-arm64`, `osx-x64`, `osx-arm64`.
+
+**Notes**:
+
+- Community support targets the **latest launcher version** only
+- A recent OS and GPU driver stack is recommended
+- You may still try unsupported environments, but extra issues are expected
+
+## 🛠 Build from source
+
+**Requirements**: [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (see `global.json` for SDK policy)
+
+```powershell
+# Restore and build the main solution
+dotnet restore .\PCL-N.slnx
+dotnet build .\PCL-N.slnx -c Release
+
+# Run the desktop launcher (development)
+dotnet run --project .\PCL.Desktop\PCL.Desktop.csproj
+
+# Run tests
+dotnet test .\PCL-N.slnx -c Release
+
+# Publish a single-file binary (example: Windows x64 self-contained)
+dotnet publish .\PCL.Desktop\PCL.Desktop.csproj `
+  -c Release `
+  -r win-x64 `
+  --self-contained true `
+  -p:PublishSingleFile=true `
+  -p:IncludeNativeLibrariesForSelfExtract=true `
+  -o .\artifacts\win-x64
+```
+
+Full multi-platform releases are produced by GitHub Actions workflows `release-stable_publish.yml` and `release-beta_publish.yml`.
 
 ## 🔒 License
 
-- `Plain Craft Launcher 2/` uses [Custom License](https://github.com/MuXue1230-owo/PCL-N/blob/dev/Plain%20Craft%20Launcher%202/LICENCE)
-- `All other directories` use [Apache License 2.0](https://github.com/MuXue1230-owo/PCL-N/blob/dev/LICENSE)
+Source code in this repository is licensed under the [Apache License 2.0](LICENSE).
 
-## 🌟 Statistic
+Third-party license notices are listed in `PCL.Desktop/metadata.json` and project NOTICE files where applicable.
+
+## 🌟 Statistics
+
 ![Alt](https://repobeats.axiom.co/api/embed/803751b94f0b1e8682bf9b5aba0f0dd9f2d156fd.svg "Repobeats analytics image")
 
 [![Star History Chart](https://api.star-history.com/svg?repos=MuXue1230-owo/PCL-N&type=Date)](https://www.star-history.com/#MuXue1230-owo/PCL-N&Date)
