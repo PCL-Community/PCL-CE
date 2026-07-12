@@ -45,4 +45,6 @@ jobs:
       binary_name: ${{ matrix.binary_name }}
       self_contained: true
       runtime_variant: SelfContained
+      include_plugin: ${{ github.event_name != 'pull_request' }}
+      plugin_tag: ${{ vars.PCL_PLUGIN_TAG || 'latest' }}
     secrets: inherit

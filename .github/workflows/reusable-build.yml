@@ -78,15 +78,25 @@ jobs:
             throw "Unable to download PCL.Plugin release '$tag'."
           }
 
-          $expected = (Get-Content -LiteralPath plugin/PCL.Plugin.dll.sha256 -Raw).Split(' ', [System.StringSplitOptions]::RemoveEmptyEntries)[0]
-          $actual = (Get-FileHash plugin/PCL.Plugin.dll -Algorithm SHA256).Hash.ToLowerInvariant()
-          if ($actual -ne $expected.ToLowerInvariant()) {
-            throw "PCL.Plugin checksum mismatch. Expected $expected, got $actual."
-          }
-          $contractsExpected = (Get-Content -LiteralPath plugin/PCL.N.Plugin.Abstractions.dll.sha256 -Raw).Split(' ', [System.StringSplitOptions]::RemoveEmptyEntries)[0]
-          $contractsActual = (Get-FileHash plugin/PCL.N.Plugin.Abstractions.dll -Algorithm SHA256).Hash.ToLowerInvariant()
-          if ($contractsActual -ne $contractsExpected.ToLowerInvariant()) {
-            throw "PCL.N.Plugin.Abstractions checksum mismatch. Expected $contractsExpected, got $contractsActual."
+          $assemblies = @(
+            'PCL.Plugin.dll',
+            'PCL.N.Plugin.Abstractions.dll',
+            'BouncyCastle.Cryptography.dll',
+            'jsoncanonicalizer.dll',
+            'es6numberserializer.dll'
+          )
+          foreach ($assembly in $assemblies) {
+            $path = Join-Path plugin $assembly
+            $checksumPath = "$path.sha256"
+            if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or
+                -not (Test-Path -LiteralPath $checksumPath -PathType Leaf)) {
+              throw "PCL.Plugin release is missing $assembly or its checksum."
+            }
+            $expected = (Get-Content -LiteralPath $checksumPath -Raw).Split(' ', [System.StringSplitOptions]::RemoveEmptyEntries)[0]
+            $actual = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actual -ne $expected.ToLowerInvariant()) {
+              throw "$assembly checksum mismatch. Expected $expected, got $actual."
+            }
           }
 
       - name: Publish Avalonia desktop
@@ -103,12 +113,18 @@ jobs:
           PCL_GITHUB_SHA: ${{ github.sha }}
           PCL_PLUGIN_ASSEMBLY: ${{ github.workspace }}/plugin/PCL.Plugin.dll
           PCL_PLUGIN_ABSTRACTIONS_ASSEMBLY: ${{ github.workspace }}/plugin/PCL.N.Plugin.Abstractions.dll
+          PCL_PLUGIN_BOUNCY_CASTLE_ASSEMBLY: ${{ github.workspace }}/plugin/BouncyCastle.Cryptography.dll
+          PCL_PLUGIN_JSON_CANONICALIZER_ASSEMBLY: ${{ github.workspace }}/plugin/jsoncanonicalizer.dll
+          PCL_PLUGIN_ES6_NUMBER_SERIALIZER_ASSEMBLY: ${{ github.workspace }}/plugin/es6numberserializer.dll
         run: |
           plugin_args=()
           if [[ "${{ inputs.include_plugin }}" == "true" ]]; then
             plugin_args=(
               -p:PclPluginAssembly="$PCL_PLUGIN_ASSEMBLY"
               -p:PclPluginAbstractionsAssembly="$PCL_PLUGIN_ABSTRACTIONS_ASSEMBLY"
+              -p:PclPluginBouncyCastleAssembly="$PCL_PLUGIN_BOUNCY_CASTLE_ASSEMBLY"
+              -p:PclPluginJsonCanonicalizerAssembly="$PCL_PLUGIN_JSON_CANONICALIZER_ASSEMBLY"
+              -p:PclPluginEs6NumberSerializerAssembly="$PCL_PLUGIN_ES6_NUMBER_SERIALIZER_ASSEMBLY"
             )
           fi
 
