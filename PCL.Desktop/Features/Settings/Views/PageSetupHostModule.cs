@@ -15,13 +15,14 @@ using PCL.Desktop.Hosting;
 namespace PCL.Desktop.Features.Settings.Views;
 
 /// <summary>
-/// HostModule settings page. For <c>pcl.plugin.settings</c>, renders install/list/enable UI
-/// when the embedded plugin catalog is available.
+/// HostModule settings page. For <c>pcl.plugin.settings</c>, renders install/list/enable UI,
+/// Safe Mode toggles, and local-folder marketplace when the plugin runtime is embedded.
 /// </summary>
 public sealed class PageSetupHostModule : MyPageRight, IRefreshableSettingsPage
 {
     private readonly HostSettingsPageDescriptor _descriptor;
     private readonly StackPanel _pluginList = new() { Spacing = 8 };
+    private readonly StackPanel _marketList = new() { Spacing = 8 };
     private readonly TextBlock _statusLabel = new()
     {
         FontSize = 12d,
@@ -29,6 +30,14 @@ public sealed class PageSetupHostModule : MyPageRight, IRefreshableSettingsPage
         TextWrapping = TextWrapping.Wrap,
         Margin = new Thickness(0d, 0d, 0d, 8d)
     };
+    private readonly TextBlock _patchStatusLabel = new()
+    {
+        FontSize = 12d,
+        Opacity = 0.75,
+        TextWrapping = TextWrapping.Wrap
+    };
+    private CheckBox? _pluginSafeModeBox;
+    private CheckBox? _uiSafeModeBox;
 
     public PageSetupHostModule(HostSettingsPageDescriptor descriptor)
     {
@@ -104,29 +113,45 @@ public sealed class PageSetupHostModule : MyPageRight, IRefreshableSettingsPage
         {
             _statusLabel.Text = "插件目录未初始化。";
             _pluginList.Children.Clear();
+            _marketList.Children.Clear();
             return;
         }
 
         try
         {
             IPluginCatalogService catalog = PluginCatalogAccess.Current;
+            PluginSafetySettings safety = catalog.Safety;
+            if (_pluginSafeModeBox is not null)
+                _pluginSafeModeBox.IsChecked = safety.PluginSafeMode;
+            if (_uiSafeModeBox is not null)
+                _uiSafeModeBox.IsChecked = safety.UiSafeMode;
+
             IReadOnlyList<PluginCatalogEntry> entries = catalog.ListInstalled();
-            _statusLabel.Text = $"运行时目录：{catalog.RootPath} · 已安装 {entries.Count} 个插件";
+            _statusLabel.Text =
+                $"运行时：{catalog.RootPath} · 已安装 {entries.Count} · " +
+                $"PluginSafe={(safety.PluginSafeMode ? "开" : "关")} · UiSafe={(safety.UiSafeMode ? "开" : "关")}";
+
+            PluginUiPatchApplyResult apply = catalog.ApplyUiPatches();
+            _patchStatusLabel.Text =
+                $"UI Patch：应用 {apply.AppliedGlobalIds.Count} · SafeMode 拦截 {apply.BlockedBySafeMode.Count} · " +
+                $"冲突拦截 {apply.BlockedByConflict.Count}";
+
             _pluginList.Children.Clear();
             if (entries.Count == 0)
             {
                 _pluginList.Children.Add(new TextBlock
                 {
-                    Text = "尚未安装第三方插件。点击「安装 .pnp」选择已签名的插件包。",
+                    Text = "尚未安装第三方插件。可「安装 .pnp」或「扫描本地市场目录」。",
                     FontSize = 13d,
                     Opacity = 0.8,
                     TextWrapping = TextWrapping.Wrap
                 });
-                return;
             }
-
-            foreach (PluginCatalogEntry entry in entries)
-                _pluginList.Children.Add(CreatePluginRow(entry));
+            else
+            {
+                foreach (PluginCatalogEntry entry in entries)
+                    _pluginList.Children.Add(CreatePluginRow(entry));
+            }
         }
         catch (Exception ex)
         {
@@ -138,6 +163,23 @@ public sealed class PageSetupHostModule : MyPageRight, IRefreshableSettingsPage
     {
         StackPanel panel = new() { Margin = new Thickness(0d, 16d, 0d, 0d), Spacing = 10 };
         panel.Children.Add(_statusLabel);
+        panel.Children.Add(_patchStatusLabel);
+
+        // Safe mode
+        _pluginSafeModeBox = new CheckBox
+        {
+            Content = "Plugin Safe Mode（不加载第三方插件）",
+            FontSize = 13d
+        };
+        _pluginSafeModeBox.IsCheckedChanged += (_, _) => PersistSafetyFromUi();
+        _uiSafeModeBox = new CheckBox
+        {
+            Content = "UI Safe Mode（跳过 modify/replace/raw 类 Patch）",
+            FontSize = 13d
+        };
+        _uiSafeModeBox.IsCheckedChanged += (_, _) => PersistSafetyFromUi();
+        panel.Children.Add(_pluginSafeModeBox);
+        panel.Children.Add(_uiSafeModeBox);
 
         StackPanel actions = new()
         {
@@ -146,13 +188,72 @@ public sealed class PageSetupHostModule : MyPageRight, IRefreshableSettingsPage
         };
         MyButton installButton = new() { Text = "安装 .pnp", MinWidth = 110 };
         installButton.Click += async (_, _) => await InstallPackageAsync().ConfigureAwait(true);
+        MyButton marketButton = new() { Text = "扫描本地市场", MinWidth = 120 };
+        marketButton.Click += async (_, _) => await BrowseLocalMarketAsync().ConfigureAwait(true);
         MyButton refreshButton = new() { Text = "刷新", MinWidth = 80 };
         refreshButton.Click += (_, _) => RefreshPage();
+        MyButton applyPatchButton = new() { Text = "重算 UI Patch", MinWidth = 120 };
+        applyPatchButton.Click += (_, _) =>
+        {
+            try
+            {
+                PluginUiPatchApplyResult result = PluginCatalogAccess.Current.ApplyUiPatches();
+                DesktopPluginHostNotifications.Instance.ShowInformation(
+                    $"UI Patch 已应用 {result.AppliedGlobalIds.Count} 项（Safe 拦截 {result.BlockedBySafeMode.Count}）");
+            }
+            catch (Exception ex)
+            {
+                DesktopPluginHostNotifications.Instance.ShowWarning(ex.Message);
+            }
+            finally
+            {
+                RefreshPage();
+            }
+        };
         actions.Children.Add(installButton);
+        actions.Children.Add(marketButton);
+        actions.Children.Add(applyPatchButton);
         actions.Children.Add(refreshButton);
         panel.Children.Add(actions);
+
+        panel.Children.Add(new TextBlock
+        {
+            Text = "已安装",
+            FontWeight = FontWeight.SemiBold,
+            Margin = new Thickness(0, 8, 0, 0)
+        });
         panel.Children.Add(_pluginList);
+
+        panel.Children.Add(new TextBlock
+        {
+            Text = "本地市场（最近一次扫描）",
+            FontWeight = FontWeight.SemiBold,
+            Margin = new Thickness(0, 12, 0, 0)
+        });
+        panel.Children.Add(_marketList);
         return panel;
+    }
+
+    private void PersistSafetyFromUi()
+    {
+        if (!PluginCatalogAccess.IsInitialized || _pluginSafeModeBox is null || _uiSafeModeBox is null)
+            return;
+
+        try
+        {
+            PluginCatalogAccess.Current.SetSafety(new PluginSafetySettings(
+                _pluginSafeModeBox.IsChecked == true,
+                _uiSafeModeBox.IsChecked == true));
+            DesktopPluginHostNotifications.Instance.ShowInformation("安全模式设置已保存");
+        }
+        catch (Exception ex)
+        {
+            DesktopPluginHostNotifications.Instance.ShowWarning(ex.Message);
+        }
+        finally
+        {
+            RefreshPage();
+        }
     }
 
     private Border CreatePluginRow(PluginCatalogEntry entry)
@@ -220,6 +321,84 @@ public sealed class PageSetupHostModule : MyPageRight, IRefreshableSettingsPage
         return border;
     }
 
+    private Border CreateMarketRow(PluginMarketListing listing)
+    {
+        Border border = new()
+        {
+            BorderBrush = new SolidColorBrush(Color.FromArgb(40, 128, 128, 128)),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(6),
+            Padding = new Thickness(12, 10, 12, 10)
+        };
+
+        Grid grid = new();
+        grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+        grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
+
+        string title = listing.Name ?? Path.GetFileName(listing.PackagePath);
+        string detail = listing.Error is not null
+            ? $"{listing.PluginId ?? "?"} · {listing.Error}"
+            : $"{listing.PluginId ?? "?"} · v{listing.Version ?? "—"} · {(listing.CanInspect ? "签名校验通过" : "仅元数据")}";
+
+        StackPanel text = new() { Spacing = 2 };
+        text.Children.Add(new TextBlock { Text = title, FontWeight = FontWeight.SemiBold, FontSize = 14d });
+        text.Children.Add(new TextBlock
+        {
+            Text = detail,
+            FontSize = 12d,
+            Opacity = 0.75,
+            TextWrapping = TextWrapping.Wrap
+        });
+        if (!string.IsNullOrWhiteSpace(listing.Summary))
+        {
+            text.Children.Add(new TextBlock
+            {
+                Text = listing.Summary,
+                FontSize = 12d,
+                Opacity = 0.65,
+                TextWrapping = TextWrapping.Wrap
+            });
+        }
+
+        Grid.SetColumn(text, 0);
+        grid.Children.Add(text);
+
+        MyButton install = new()
+        {
+            Text = "安装",
+            MinWidth = 72,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(12, 0, 0, 0),
+            IsEnabled = listing.Error is null || listing.PluginId is not null
+        };
+        string packagePath = listing.PackagePath;
+        install.Click += async (_, _) =>
+        {
+            install.IsEnabled = false;
+            try
+            {
+                PluginCatalogEntry entry = await PluginCatalogAccess.Current
+                    .InstallPackageAsync(packagePath)
+                    .ConfigureAwait(true);
+                DesktopPluginHostNotifications.Instance.ShowInformation(
+                    $"已安装 {entry.Name} ({entry.PluginId} {entry.ActiveVersion})");
+            }
+            catch (Exception ex)
+            {
+                DesktopPluginHostNotifications.Instance.ShowWarning("安装失败：" + ex.Message);
+            }
+            finally
+            {
+                RefreshPage();
+            }
+        };
+        Grid.SetColumn(install, 1);
+        grid.Children.Add(install);
+
+        border.Child = grid;
+        return border;
+    }
+
     private async Task InstallPackageAsync()
     {
         if (!PluginCatalogAccess.IsInitialized)
@@ -271,6 +450,62 @@ public sealed class PageSetupHostModule : MyPageRight, IRefreshableSettingsPage
         finally
         {
             RefreshPage();
+        }
+    }
+
+    private async Task BrowseLocalMarketAsync()
+    {
+        if (!PluginCatalogAccess.IsInitialized)
+            return;
+
+        TopLevel? topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel?.StorageProvider is null)
+        {
+            DesktopPluginHostNotifications.Instance.ShowWarning("无法打开文件夹选择器。");
+            return;
+        }
+
+        IReadOnlyList<IStorageFolder> folders = await topLevel.StorageProvider.OpenFolderPickerAsync(
+            new FolderPickerOpenOptions
+            {
+                Title = "选择本地插件市场目录（扫描 *.pnp）",
+                AllowMultiple = false
+            }).ConfigureAwait(true);
+
+        if (folders.Count == 0)
+            return;
+
+        string? path = folders[0].TryGetLocalPath();
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            DesktopPluginHostNotifications.Instance.ShowWarning("无法读取所选目录路径。");
+            return;
+        }
+
+        try
+        {
+            IReadOnlyList<PluginMarketListing> listings = PluginCatalogAccess.Current.BrowseLocalMarket(path);
+            _marketList.Children.Clear();
+            if (listings.Count == 0)
+            {
+                _marketList.Children.Add(new TextBlock
+                {
+                    Text = $"目录中未找到 .pnp：{path}",
+                    FontSize = 13d,
+                    Opacity = 0.8,
+                    TextWrapping = TextWrapping.Wrap
+                });
+            }
+            else
+            {
+                foreach (PluginMarketListing listing in listings)
+                    _marketList.Children.Add(CreateMarketRow(listing));
+                DesktopPluginHostNotifications.Instance.ShowInformation($"本地市场扫描到 {listings.Count} 个包");
+            }
+        }
+        catch (Exception ex)
+        {
+            DesktopPluginHostNotifications.Instance.ShowWarning("扫描失败：" + ex.Message);
         }
     }
 
