@@ -129,7 +129,9 @@ public sealed class DesktopArchitectureTests
 
         StringAssert.Contains(setupLeftSource, "SetupPageRegistry.CreatePage(page)");
         Assert.IsFalse(setupLeftSource.Contains("page switch", StringComparison.Ordinal));
-        Assert.AreEqual(11, CountOccurrences(registrySource, "[SetupPage("));
+        Assert.AreEqual(10, CountOccurrences(registrySource, "[SetupPage("));
+        Assert.IsFalse(registrySource.Contains("SetupPageSubType.Plugin", StringComparison.Ordinal));
+        StringAssert.Contains(setupLeftSource, "new PageSetupHostModule(_hostSettingsPage)");
         StringAssert.Contains(generatorSource, "SetupPageRegistry.g.cs");
         StringAssert.Contains(generatorSource, "public static partial global::PCL.Desktop.Controls.Legacy.MyPageRight CreatePage");
     }
