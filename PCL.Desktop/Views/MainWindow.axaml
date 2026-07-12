@@ -369,13 +369,16 @@
 
                 </Grid>
 
-                <StackPanel x:Name="PanHint" IsHitTestVisible="False" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="450"
+                <!-- WPF FormMain.PanHint host: content column only, single-line toast bars. -->
+                <StackPanel x:Name="PanHint" IsHitTestVisible="False"
+                            HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                            Width="420" MaxWidth="420"
+                            Margin="15,0,0,15"
+                            Grid.Row="1" Grid.Column="1"
+                            ZIndex="2" />
 
-                            Margin="0,0,70,20"
-
-                            Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" />
-
-                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Grid.Row="1" Grid.Column="1" Margin="15">
+                <StackPanel x:Name="PanExtraButtons" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                            Grid.Row="1" Grid.Column="1" Margin="15" ZIndex="3">
 
                     <local:MyExtraButton x:Name="BtnExtraUpdateRestart" HorizontalAlignment="Right"
 

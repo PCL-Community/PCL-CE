@@ -106,9 +106,22 @@
     <x:String x:Key="Launch.Home.InstanceSettings">版本设置</x:String>
     <x:String x:Key="Launch.Home.Button.Loading">正在加载</x:String>
     <x:String x:Key="Launch.Home.VersionList.Loading">正在检查游戏版本</x:String>
-    <x:String x:Key="Launch.Right.CommunityHint.Title">社区提示</x:String>
+    <x:String x:Key="Launch.Right.CommunityHint.Title">N 版提示</x:String>
+    <x:String x:Key="Launch.Right.CommunityHint.Message">你正在使用 PCL N Edition！&#x0a;&#x0a;此版本由独立开发者维护，与官方 PCL 的开发路径与使用体验并不相同。&#x0a;&#x0a;若你误下载了 N 版，强烈建议改用官方 PCL 做长期使用。另外，请将 N 版问题提交到 N 版仓库，不要反馈给官方仓库！</x:String>
+    <x:String x:Key="Launch.Right.CommunityHint.HidePrompt">若要永久隐藏此提示，请输入正确的 PCL N 开发者名称。</x:String>
+    <x:String x:Key="Launch.Right.CommunityHint.InputTitle">输入 PCL N 开发者名称</x:String>
+    <x:String x:Key="Launch.Right.CommunityHint.WrongInput">不太对哦……</x:String>
+    <x:String x:Key="Main.SpecialVersion.Title">特殊版本提示</x:String>
+    <x:String x:Key="Main.SpecialVersion.DebugHint">当前 PCL N Edition 为 Debug 构建。&#x0a;该构建仅用于开发调试，可能存在严重性能问题或各种异常网络行为。&#x0a;&#x0a;非开发者用户运行此构建导致的问题不在社区支持范围内，相关 Issue 可能被直接关闭。&#x0a;除非你是开发者，请立即删除此构建并改用最新稳定版。</x:String>
+    <x:String x:Key="Main.SpecialVersion.CiHint">当前 PCL N Edition 为自动化 CI 构建。&#x0a;该构建包含最新的错误修复、优化与功能，但性能与稳定性较低，不适合日常使用或制作整合包。&#x0a;&#x0a;除非社区开发者要求你使用，或你明确想尝鲜，否则请改用最新稳定版。</x:String>
+    <x:String x:Key="Main.SpecialVersion.HideHintNotice">可设置环境变量 PCL_DISABLE_DEBUG_HINT 为任意值以隐藏此提示。</x:String>
+    <x:String x:Key="Main.SpecialVersion.IUnderstand">我知道我在做什么</x:String>
+    <x:String x:Key="Main.SpecialVersion.OpenDownloadPageAndExit">打开最新下载页并退出</x:String>
     <x:String x:Key="Launch.Right.Log.Title">启动日志</x:String>
     <x:String x:Key="Launch.Status.Title.Launching">正在启动</x:String>
+    <x:String x:Key="Launch.Status.Title.Launched">游戏已启动</x:String>
+    <x:String x:Key="Launch.Status.Title.ExportingScript">正在导出脚本</x:String>
+    <x:String x:Key="Launch.Status.Completed">已完成</x:String>
     <x:String x:Key="Launch.Status.CurrentStep">当前步骤</x:String>
     <x:String x:Key="Launch.Status.DownloadLibs">下载运行库</x:String>
     <x:String x:Key="Launch.Status.LoginMethod">登录方式</x:String>
@@ -117,6 +130,20 @@
     <x:String x:Key="Launch.Status.DownloadSpeed">下载速度</x:String>
     <x:String x:Key="Launch.Status.Trivia">你知道吗</x:String>
     <x:String x:Key="Launch.Status.Trivia.Placeholder">选择版本和账户后，就可以从这里启动 Minecraft。</x:String>
+    <x:String x:Key="Launch.Account.Type.Offline">离线</x:String>
+    <x:String x:Key="Launch.Account.Type.Microsoft">微软</x:String>
+    <x:String x:Key="Launch.Account.Type.ThirdParty">第三方</x:String>
+    <x:String x:Key="Minecraft.Launch.Stage.GetJava">获取 Java</x:String>
+    <x:String x:Key="Minecraft.Launch.Stage.Login">登录</x:String>
+    <x:String x:Key="Minecraft.Launch.Stage.CompleteFiles">补全文件</x:String>
+    <x:String x:Key="Minecraft.Launch.Stage.GetArguments">获取启动参数</x:String>
+    <x:String x:Key="Minecraft.Launch.Stage.ExtractNatives">解压 Natives</x:String>
+    <x:String x:Key="Minecraft.Launch.Stage.PreLaunch">预启动处理</x:String>
+    <x:String x:Key="Minecraft.Launch.Stage.CustomCommand">执行自定义命令</x:String>
+    <x:String x:Key="Minecraft.Launch.Stage.StartProcess">启动进程</x:String>
+    <x:String x:Key="Minecraft.Launch.Stage.WaitWindow">等待游戏窗口</x:String>
+    <x:String x:Key="Minecraft.Launch.Stage.End">结束处理</x:String>
+    <x:String x:Key="Minecraft.Launch.Stage.Root">Minecraft 启动</x:String>
     <x:String x:Key="Download.Left.Filter.VersionType">版本类型</x:String>
     <x:String x:Key="Download.Left.Filter.VersionType.All">全部版本</x:String>
     <x:String x:Key="Download.Left.Filter.VersionType.Release">正式版</x:String>
@@ -1032,6 +1059,34 @@ IPv6 优先：-Djava.net.preferIPv6Stack=true</x:String>
     <Setter Property="Background" Value="{DynamicResource ColorBrushTransparent}" />
     <Setter Property="Padding" Value="6,4" />
     <Setter Property="MinHeight" Value="26" />
+  </Style>
+
+  <!-- WPF-like thin scrollbar (after page enter animation settles) -->
+  <Style Selector="ScrollBar">
+    <Setter Property="AllowAutoHide" Value="False" />
+  </Style>
+  <Style Selector="ScrollBar:vertical">
+    <Setter Property="Width" Value="9" />
+    <Setter Property="MinWidth" Value="9" />
+    <Setter Property="Margin" Value="0,2,1,2" />
+  </Style>
+  <Style Selector="ScrollBar:horizontal">
+    <Setter Property="Height" Value="9" />
+    <Setter Property="MinHeight" Value="9" />
+  </Style>
+  <Style Selector="ScrollBar /template/ Thumb">
+    <Setter Property="Background" Value="{DynamicResource ColorBrush5}" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="MinHeight" Value="28" />
+  </Style>
+  <Style Selector="ScrollBar /template/ Thumb:pointerover">
+    <Setter Property="Background" Value="{DynamicResource ColorBrush3}" />
+  </Style>
+  <Style Selector="ScrollBar /template/ Thumb:pressed">
+    <Setter Property="Background" Value="{DynamicResource ColorBrush2}" />
+  </Style>
+  <Style Selector="ScrollBar /template/ RepeatButton">
+    <Setter Property="IsVisible" Value="False" />
   </Style>
 </Styles>
 

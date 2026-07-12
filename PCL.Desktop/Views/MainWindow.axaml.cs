@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO.Compression;
 using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -37,6 +38,7 @@ using PCL.Desktop.Theme;
 using PCL.Desktop.Platform;
 using PCL.Desktop.Features.Downloads.Views;
 using PCL.Desktop.Features.Instances.Views;
+using PCL.Desktop.Features.Launching;
 using PCL.Desktop.Features.Launching.Views;
 using PCL.Desktop.Features.Settings.Views;
 using PCL.Desktop.Features.Tasks.Views;
@@ -73,6 +75,7 @@ public partial class MainWindow : Window, IDisposable
     private PageDownloadInstall? _downloadInstallPage;
     private PageCommunityLeft? _communityLeft;
     private PageCommunityRight? _communityRight;
+    private PageCommunityDetail? _communityDetail;
     private PageSpeedLeft? _speedLeft;
     private PageSpeedRight? _speedRight;
     private PageInstanceLeft? _instanceLeft;
@@ -97,6 +100,7 @@ public partial class MainWindow : Window, IDisposable
     private CancellationTokenSource? _launchCancellation;
     private CancellationTokenSource? _microsoftLoginCancellation;
     private readonly MinecraftVanillaInstallService _minecraftInstallService = new();
+    private readonly MinecraftLaunchCoordinator _launchCoordinator;
     private readonly ThirdPartyAuthService _thirdPartyAuthService = new();
     private readonly IMicrosoftMinecraftAuthService _microsoftAuthService;
     private PageSetupLeft? _setupLeft;
@@ -116,6 +120,7 @@ public partial class MainWindow : Window, IDisposable
     private string? _selectedMinecraftRoot;
     private bool _minecraftFoldersLoaded;
     private bool _isGameRunning;
+    private Process? _runningGameProcess;
     private double _targetWindowOpacity = 1d;
     private string? _backgroundStamp;
     private string? _backgroundFile;
@@ -132,6 +137,7 @@ public partial class MainWindow : Window, IDisposable
 
     private static readonly NavigationRouteId LaunchRoute = DesktopNavigationRegistry.LaunchRoute;
     private static readonly NavigationRouteId DownloadRoute = DesktopNavigationRegistry.DownloadRoute;
+    private static readonly NavigationRouteId CommunityRoute = DesktopNavigationRegistry.CommunityRoute;
     private static readonly NavigationRouteId SettingsRoute = DesktopNavigationRegistry.SettingsRoute;
 
     public MainWindow()
@@ -142,6 +148,7 @@ public partial class MainWindow : Window, IDisposable
     public MainWindow(IMicrosoftMinecraftAuthService microsoftAuthService)
     {
         _microsoftAuthService = microsoftAuthService ?? throw new ArgumentNullException(nameof(microsoftAuthService));
+        _launchCoordinator = new MinecraftLaunchCoordinator(_minecraftInstallService);
         AvaloniaXamlLoader.Load(this);
         _windowStateSubscription = this.GetObservable(WindowStateProperty).Subscribe(_ => UpdateBackgroundVideoPlayback());
         if (this.FindControl<MediaElement>("VideoBack") is { } video)
@@ -168,6 +175,7 @@ public partial class MainWindow : Window, IDisposable
         {
             _isMainWindowOpened = true;
             StartShowAnimation();
+            Dispatcher.UIThread.Post(MaybeShowSpecialVersionNotice, DispatcherPriority.Background);
         };
         SyncTitleOverlayWidth();
         _ = LoadProfilesAsync();
@@ -353,10 +361,69 @@ public partial class MainWindow : Window, IDisposable
 
     private void BtnExtraShutdown_Click(object? sender, EventArgs e)
     {
+        // WPF: kill the watched Minecraft process and hide the shutdown extra button.
+        Process? process = _runningGameProcess;
+        if (process is null || process.HasExited)
+        {
+            SetGameRunningExtras(null);
+            return;
+        }
+
+        ShowConfirmDialog(
+            "关闭游戏",
+            "确定要强制结束正在运行的 Minecraft 进程吗？未保存的进度可能会丢失。",
+            confirmed =>
+            {
+                if (!confirmed)
+                    return;
+                try
+                {
+                    if (!process.HasExited)
+                        process.Kill(entireProcessTree: true);
+                }
+                catch (Exception ex)
+                {
+                    ShowHint("结束游戏失败：" + TruncateHint(ex.Message), critical: true);
+                }
+                finally
+                {
+                    SetGameRunningExtras(null);
+                }
+            },
+            "结束游戏",
+            "取消");
     }
 
     private void BtnExtraLog_Click(object? sender, EventArgs e)
     {
+        // WPF BtnExtraLog: open the running instance's logs folder / latest.log.
+        try
+        {
+            LaunchInstanceInfo? instance = _launchLeft?.SelectedInstance ?? _managedInstance;
+            if (instance is null)
+            {
+                ShowHint("当前没有可查看的游戏日志");
+                return;
+            }
+
+            string logsDir = Path.Combine(instance.InstanceDirectory, "logs");
+            string latestLog = Path.Combine(logsDir, "latest.log");
+            string openTarget = File.Exists(latestLog)
+                ? latestLog
+                : Directory.Exists(logsDir)
+                    ? logsDir
+                    : instance.InstanceDirectory;
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = openTarget,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            ShowHint("打开游戏日志失败：" + TruncateHint(ex.Message), critical: true);
+        }
     }
 
     private void BtnExtraMusic_Click(object? sender, EventArgs e)
@@ -514,9 +581,16 @@ public partial class MainWindow : Window, IDisposable
             return;
 
         MyScrollViewer? scroll = _backButtonScrollViewer ?? GetCurrentRightScroll();
-        back.Show = scroll is not null &&
-            scroll.IsVisible &&
-            scroll.Offset.Y > Height + (back.Show ? 0d : 700d);
+        // WPF: show once scrolled roughly one viewport (not window height + 700px).
+        double threshold = scroll is null
+            ? double.MaxValue
+            : Math.Max(240d, scroll.Viewport.Height * 0.55d);
+        bool show = scroll is { IsVisible: true } && scroll.Offset.Y > threshold;
+        back.Show = show;
+        // Keep IsVisible in sync so the button is actually clickable (Show alone is not enough
+        // before the extra-button host has applied scale animations on first frame).
+        if (!back.IsVisible && show)
+            back.IsVisible = true;
     }
 
     private MyScrollViewer? GetCurrentRightScroll() =>
@@ -805,7 +879,12 @@ public partial class MainWindow : Window, IDisposable
     private DesktopMainPage CreateLaunchMainPage()
     {
         _launchLeft ??= CreateLaunchLeftPage();
-        _launchRight ??= new PageLaunchRight();
+        if (_launchRight is null)
+        {
+            _launchRight = new PageLaunchRight();
+            _launchRight.CommunityHintHideRequested += (_, _) => PromptHideCommunityHint();
+        }
+
         LauncherSettings launchSettings = LauncherSettingsPageBinder.LoadSettings();
         _launchRight.SetMaximumLogLines(ResolveMaximumLogLines(launchSettings));
         ApplyLaunchPageSettings(launchSettings);
@@ -819,6 +898,121 @@ public partial class MainWindow : Window, IDisposable
                 _launchLeft.TriggerShowAnimation();
                 _launchRight.PageOnEnter();
             });
+    }
+
+    private void PromptHideCommunityHint()
+    {
+        ShowInputDialog(
+            AvaloniaLocalizationManager.GetText(
+                "Launch.Right.CommunityHint.InputTitle",
+                "输入 PCL N 开发者名称"),
+            AvaloniaLocalizationManager.GetText(
+                "Launch.Right.CommunityHint.HidePrompt",
+                "若要永久隐藏此提示，请输入正确的 PCL N 开发者名称。"),
+            string.Empty,
+            "开发者名称",
+            answer =>
+            {
+                if (answer is null)
+                    return;
+
+                // WPF: must match developer name (MUXUE1230, case-insensitive).
+                if (string.Equals(answer.Trim(), "MUXUE1230", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(answer.Trim(), "muxue1230-owo", StringComparison.OrdinalIgnoreCase))
+                {
+                    PageLaunchRight.SetCommunityHintPermanentlyHidden(true);
+                    if (_launchRight?.FindControl<MyCard>("PanHint") is { } card)
+                        card.IsVisible = false;
+                    ShowHint("已永久隐藏 N 版提示");
+                }
+                else
+                {
+                    ShowTextDialog(
+                        AvaloniaLocalizationManager.GetText(
+                            "Launch.Right.CommunityHint.Title",
+                            "社区提示"),
+                        AvaloniaLocalizationManager.GetText(
+                            "Launch.Right.CommunityHint.WrongInput",
+                            "不太对哦……"));
+                }
+            });
+    }
+
+    private void MaybeShowSpecialVersionNotice()
+    {
+        // WPF FormMain special build notice (Debug / CI).
+        if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("PCL_DISABLE_DEBUG_HINT")))
+            return;
+
+        bool isDebug =
+#if DEBUG
+            true;
+#else
+            false;
+#endif
+        bool isCi =
+            string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(Environment.GetEnvironmentVariable("GITHUB_ACTIONS"), "true", StringComparison.OrdinalIgnoreCase) ||
+            PclBuildInfo.InformationalVersion.Contains("ci", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(GetAssemblyConfiguration(), "CI", StringComparison.OrdinalIgnoreCase);
+
+        if (!isDebug && !isCi)
+            return;
+
+        string title = AvaloniaLocalizationManager.GetText("Main.SpecialVersion.Title", "特殊版本提示");
+        string body = isDebug
+            ? AvaloniaLocalizationManager.GetText(
+                "Main.SpecialVersion.DebugHint",
+                "当前 PCL N Edition 为 Debug 构建。\n该构建仅用于开发调试。")
+            : AvaloniaLocalizationManager.GetText(
+                "Main.SpecialVersion.CiHint",
+                "当前 PCL N Edition 为自动化 CI 构建。\n稳定性较低，不适合日常使用。");
+        string hideNotice = AvaloniaLocalizationManager.GetText(
+            "Main.SpecialVersion.HideHintNotice",
+            "可设置环境变量 PCL_DISABLE_DEBUG_HINT 为任意值以隐藏此提示。");
+
+        ShowConfirmDialog(
+            title,
+            body + "\n\n" + hideNotice,
+            confirmed =>
+            {
+                if (confirmed)
+                    return;
+
+                // Secondary: open download page and exit.
+                try
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "https://github.com/MuXue1230-owo/PCL-N/releases/latest",
+                        UseShellExecute = true
+                    });
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                Close();
+            },
+            AvaloniaLocalizationManager.GetText("Main.SpecialVersion.IUnderstand", "我知道我在做什么"),
+            AvaloniaLocalizationManager.GetText("Main.SpecialVersion.OpenDownloadPageAndExit", "打开最新下载页并退出"),
+            isWarn: true);
+    }
+
+    private static string GetAssemblyConfiguration()
+    {
+        try
+        {
+            return Assembly.GetEntryAssembly()
+                       ?.GetCustomAttribute<AssemblyConfigurationAttribute>()
+                       ?.Configuration
+                   ?? string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
     }
 
     private PageLaunchLeft CreateLaunchLeftPage()
@@ -837,7 +1031,6 @@ public partial class MainWindow : Window, IDisposable
         page.CancelLaunchRequested += (_, _) =>
         {
             _launchCancellation?.Cancel();
-            page.PageChangeToLogin();
             HandleStatusMessage("已取消启动。");
         };
         page.StatusMessage += (_, message) => HandleStatusMessage(message);
@@ -848,19 +1041,19 @@ public partial class MainWindow : Window, IDisposable
 
     private void HandleStatusMessage(string message)
     {
+        // WPF: most status strings only go to the launch log; bottom Hint is reserved for short toasts.
         _launchRight?.AppendLog(message);
-        ShowNotification(message);
     }
 
-    private void ShowNotification(string message, bool critical = false)
+    /// <summary>
+    /// WPF FormMain.Hint — single-line bottom toast (PanHint). No multi-line wrap.
+    /// </summary>
+    private void ShowHint(string message, bool critical = false)
     {
         if (this.FindControl<StackPanel>("PanHint") is not { } host)
             return;
 
-        string text = message.Replace("\r\n", " ", StringComparison.Ordinal)
-            .Replace('\r', ' ')
-            .Replace('\n', ' ')
-            .Trim();
+        string text = TruncateHint(message);
         if (text.Length == 0)
             return;
 
@@ -873,44 +1066,84 @@ public partial class MainWindow : Window, IDisposable
             return;
         }
 
-        while (host.Children.Count >= 20)
+        // WPF keeps a very short stack (typically ≤3).
+        while (host.Children.Count >= 3)
             host.Children.RemoveAt(0);
 
-        Border notification = new()
+        bool alignRight = host.HorizontalAlignment == Avalonia.Layout.HorizontalAlignment.Right;
+        double enterOffset = 28d;
+        Thickness startMargin = alignRight
+            ? new Thickness(0d, 0d, -enterOffset, 6d)
+            : new Thickness(-enterOffset, 0d, 0d, 6d);
+        Thickness restMargin = new(0d, 0d, 0d, 6d);
+
+        Border bar = new()
         {
             Tag = text,
-            MinHeight = 38d,
-            Margin = new Thickness(0d, 4d, 0d, 0d),
-            Padding = new Thickness(14d, 8d),
-            CornerRadius = new CornerRadius(4d),
-            Background = new LinearGradientBrush
-            {
-                StartPoint = new RelativePoint(0d, 0.5d, RelativeUnit.Relative),
-                EndPoint = new RelativePoint(1d, 0.5d, RelativeUnit.Relative),
-                GradientStops =
-                {
-                    new GradientStop(critical ? Color.Parse("#d7ff4c4c") : Color.Parse("#d7259bfc"), 0d),
-                    new GradientStop(critical ? Color.Parse("#d7ce2111") : Color.Parse("#d70a8efc"), 1d)
-                }
-            },
+            Height = 34d,
+            MaxHeight = 34d,
+            MaxWidth = 420d,
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
+            Margin = startMargin,
+            Padding = new Thickness(14d, 0d, 14d, 0d),
+            CornerRadius = new CornerRadius(3d),
+            Opacity = 0d,
+            ClipToBounds = true,
+            Background = new SolidColorBrush(
+                critical ? Color.Parse("#E0CE2111") : Color.Parse("#E0259BFC")),
             Child = new TextBlock
             {
                 Text = text,
                 Foreground = Brushes.White,
                 FontSize = 13d,
-                TextWrapping = TextWrapping.Wrap,
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+                TextWrapping = TextWrapping.NoWrap,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                MaxLines = 1
             }
         };
-        host.Children.Add(notification);
+        host.Children.Add(bar);
 
-        DispatcherTimer timer = new() { Interval = TimeSpan.FromSeconds(4.5d) };
+        string aniKey = "FrmMain Hint " + text.GetHashCode(StringComparison.Ordinal);
+        List<ModAnimation.AniData> enter =
+        [
+            ModAnimation.AaOpacity(bar, 1d - bar.Opacity, 150, ease: new ModAnimation.AniEaseOutFluent())
+        ];
+        if (!alignRight)
+            enter.Add(ModAnimation.AaX(bar, enterOffset, 200, ease: new ModAnimation.AniEaseOutFluent()));
+        else
+            enter.Add(ModAnimation.AaCode(() => bar.Margin = restMargin, 0));
+        ModAnimation.AniStart(enter, aniKey + " In");
+
+        DispatcherTimer timer = new() { Interval = TimeSpan.FromSeconds(3.8d) };
         timer.Tick += (_, _) =>
         {
             timer.Stop();
-            host.Children.Remove(notification);
+            List<ModAnimation.AniData> exit =
+            [
+                ModAnimation.AaOpacity(bar, -bar.Opacity, 160, ease: new ModAnimation.AniEaseInFluent())
+            ];
+            if (!alignRight)
+                exit.Add(ModAnimation.AaX(bar, -enterOffset, 160, ease: new ModAnimation.AniEaseInFluent()));
+            exit.Add(ModAnimation.AaCode(() => host.Children.Remove(bar), after: true));
+            ModAnimation.AniStart(exit, aniKey + " Out");
         };
         timer.Start();
+    }
+
+    private static string TruncateHint(string? message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+            return string.Empty;
+
+        string text = message
+            .Replace("\r\n", " ", StringComparison.Ordinal)
+            .Replace('\r', ' ')
+            .Replace('\n', ' ')
+            .Trim();
+        // WPF Hint is single-line; keep captions short so they don't overflow the bar.
+        const int maxChars = 48;
+        return text.Length <= maxChars ? text : text[..(maxChars - 1)] + "…";
     }
 
     private DesktopMainPage CreateDownloadMainPage()
@@ -967,8 +1200,215 @@ public partial class MainWindow : Window, IDisposable
     private PageCommunityRight CreateCommunityRightPage()
     {
         PageCommunityRight page = new();
-        page.OpenProjectRequested += (_, entry) => OpenExternalUrl(entry.WebsiteUrl);
+        page.OpenProjectRequested += (_, entry) => _ = OpenCommunityDetailAsync(entry, page.Category, page.CurrentSearchOptions);
+        page.DownloadRequested += (_, request) => _ = DownloadCommunityResourceAsync(request);
         return page;
+    }
+
+    private PageCommunityDetail CreateCommunityDetailPage()
+    {
+        PageCommunityDetail page = new();
+        page.BackRequested += (_, _) => CloseCommunityDetail();
+        page.OpenWebRequested += (_, entry) => OpenExternalUrl(entry.WebsiteUrl);
+        page.DownloadRequested += (_, request) => _ = DownloadCommunityResourceAsync(request);
+        return page;
+    }
+
+    private void ApplyCommunityRightPage(MyPageRight target)
+    {
+        if (this.FindControl<Border>("PanMainRight") is not { } rightHost)
+            return;
+
+        MyPageRight? oldRight = rightHost.Child as MyPageRight;
+        if (ReferenceEquals(oldRight, target))
+            return;
+
+        oldRight?.PageOnExit();
+        rightHost.Child = target;
+        RefreshBackToTopBinding();
+        target.PageOnEnter();
+    }
+
+    /// <summary>
+    /// Open resource detail as a fully independent page (WPF FormMain PageDownloadCompDetail):
+    /// replaces both left + right content, not only the right pane.
+    /// </summary>
+    private async Task OpenCommunityDetailAsync(
+        CommunityResourceEntry entry,
+        CommunityResourceCategory category,
+        CommunitySearchOptions options)
+    {
+        _communityDetail ??= CreateCommunityDetailPage();
+        _communityRight ??= CreateCommunityRightPage();
+        _communityLeft ??= CreateCommunityLeftPage(_communityRight);
+
+        if (this.FindControl<Border>("PanMainLeft") is not { } leftHost ||
+            this.FindControl<Border>("PanMainRight") is not { } rightHost)
+        {
+            return;
+        }
+
+        // Full-frame detail: clear left rail, host detail in right (full content width).
+        if (leftHost.Child is MyPageLeft oldLeft)
+            oldLeft.TriggerHideAnimation();
+        leftHost.Child = null;
+
+        MyPageRight? oldRight = rightHost.Child as MyPageRight;
+        if (!ReferenceEquals(oldRight, _communityDetail))
+        {
+            oldRight?.PageOnExit();
+            rightHost.Child = _communityDetail;
+            RefreshBackToTopBinding();
+            _communityDetail.PageOnEnter();
+        }
+
+        EnterTitleSubPage(entry.Title);
+        _titleInnerBackAction = CloseCommunityDetail;
+        await _communityDetail.ShowAsync(entry, category, options).ConfigureAwait(true);
+    }
+
+    private void CloseCommunityDetail()
+    {
+        _titleInnerBackAction = null;
+        _communityRight ??= CreateCommunityRightPage();
+        _communityLeft ??= CreateCommunityLeftPage(_communityRight);
+
+        if (this.FindControl<Border>("PanMainLeft") is { } leftHost)
+        {
+            if (!ReferenceEquals(leftHost.Child, _communityLeft))
+            {
+                leftHost.Child = _communityLeft;
+                _communityLeft.TriggerShowAnimation();
+            }
+        }
+
+        if (this.FindControl<Border>("PanMainRight") is { } rightHost)
+        {
+            MyPageRight? oldRight = rightHost.Child as MyPageRight;
+            if (!ReferenceEquals(oldRight, _communityRight))
+            {
+                oldRight?.PageOnExit();
+                rightHost.Child = _communityRight;
+                RefreshBackToTopBinding();
+                _communityRight.PageOnEnter();
+            }
+        }
+
+        ExitTitleSubPage();
+    }
+
+    private async Task DownloadCommunityResourceAsync(CommunityResourceDownloadRequest request)
+    {
+        LaunchInstanceInfo? instance = _launchLeft?.SelectedInstance ?? _managedInstance;
+        string taskId = CreateTaskId("community", request.Entry.ProjectId);
+        using CancellationTokenSource cancellation = RegisterTrackedTask(taskId);
+        string taskTitle = "下载 " + request.Entry.Title;
+
+        // WPF: stay on community list (or return from detail) — do not jump to task manager.
+        if (this.FindControl<Border>("PanMainRight")?.Child is PageCommunityDetail)
+            CloseCommunityDetail();
+
+        TrackTaskBegin(taskId, taskTitle, "解析下载地址");
+        ShowHint("已开始下载：" + request.Entry.Title);
+
+        try
+        {
+            CommunityResourceDownloadFile? file = request.PreferredFile;
+            if (file is null)
+            {
+                using ModrinthCommunityResourceCatalog catalog = new();
+                file = await catalog.ResolveDownloadAsync(
+                        request.Entry,
+                        request.Options,
+                        cancellation.Token)
+                    .ConfigureAwait(true);
+            }
+
+            if (file is null)
+            {
+                TrackTaskFailed(taskId, taskTitle, "未找到匹配当前筛选条件的版本文件。", canceled: false);
+                ShowHint("下载失败：未找到可下载的文件", critical: true);
+                return;
+            }
+
+            string targetDirectory = ResolveCommunityDownloadDirectory(request.Category, instance);
+            Directory.CreateDirectory(targetDirectory);
+            string targetPath = Path.Combine(targetDirectory, SanitizeFileName(file.FileName));
+            TrackTaskBegin(taskId, taskTitle, "正在下载 " + file.FileName);
+
+            using HttpClient client = new() { Timeout = TimeSpan.FromMinutes(10) };
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("PCL-N/1.0");
+            using HttpResponseMessage response = await client.GetAsync(
+                    file.Url,
+                    HttpCompletionOption.ResponseHeadersRead,
+                    cancellation.Token)
+                .ConfigureAwait(true);
+            response.EnsureSuccessStatusCode();
+            long? total = response.Content.Headers.ContentLength;
+            await using Stream network = await response.Content.ReadAsStreamAsync(cancellation.Token).ConfigureAwait(true);
+            await using FileStream output = new(
+                targetPath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None,
+                64 * 1024,
+                useAsync: true);
+            byte[] buffer = new byte[64 * 1024];
+            long written = 0;
+            int read;
+            while ((read = await network.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellation.Token)
+                       .ConfigureAwait(true)) > 0)
+            {
+                await output.WriteAsync(buffer.AsMemory(0, read), cancellation.Token).ConfigureAwait(true);
+                written += read;
+                double progress = total is > 0 ? written / (double)total.Value : 0d;
+                TrackTaskProgress(
+                    taskId,
+                    taskTitle,
+                    Math.Clamp(progress, 0d, 1d),
+                    $"{written.ToString(CultureInfo.InvariantCulture)} / {(total?.ToString(CultureInfo.InvariantCulture) ?? "?")} 字节");
+            }
+
+            TrackTaskFinished(taskId, taskTitle, "已保存到 " + targetPath);
+            _launchRight?.AppendLog($"社区资源已下载：{request.Entry.Title} → {targetPath}");
+            ShowHint("下载完成：" + Path.GetFileName(targetPath));
+        }
+        catch (OperationCanceledException)
+        {
+            TrackTaskFailed(taskId, taskTitle, "下载已取消。", canceled: true);
+            ShowHint("下载已取消");
+        }
+        catch (Exception ex)
+        {
+            TrackTaskFailed(taskId, taskTitle, ex.Message, canceled: false);
+            ShowHint("下载失败：" + TruncateHint(ex.Message), critical: true);
+        }
+        finally
+        {
+            UnregisterTrackedTask(taskId, cancellation);
+        }
+    }
+
+    private static string ResolveCommunityDownloadDirectory(
+        CommunityResourceCategory category,
+        LaunchInstanceInfo? instance)
+    {
+        string baseDir = instance is not null
+            ? instance.InstanceDirectory
+            : Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+                "PCL-N Downloads");
+
+        return category switch
+        {
+            CommunityResourceCategory.Mod => Path.Combine(baseDir, "mods"),
+            CommunityResourceCategory.ResourcePack => Path.Combine(baseDir, "resourcepacks"),
+            CommunityResourceCategory.Shader => Path.Combine(baseDir, "shaderpacks"),
+            CommunityResourceCategory.DataPack => Path.Combine(baseDir, "datapacks"),
+            CommunityResourceCategory.Modpack => Path.Combine(baseDir, "modpacks"),
+            CommunityResourceCategory.World => Path.Combine(baseDir, "saves"),
+            _ => baseDir
+        };
     }
 
     private PageDownloadLeft CreateDownloadLeftPage()
@@ -1770,6 +2210,22 @@ public partial class MainWindow : Window, IDisposable
         NotifyTaskManagerButton(ribble: true);
     }
 
+    private void TrackTaskProgress(string taskId, string title, double progress, string detail)
+    {
+        TaskManagerEntrySnapshot previous = GetTaskSnapshotOrDefault(taskId, title);
+        _taskSnapshots[taskId] = previous with
+        {
+            Title = title,
+            Stage = previous.Stage,
+            Detail = detail,
+            Progress = Math.Clamp(progress, 0d, 1d),
+            State = TaskManagerTaskState.Running,
+            ErrorMessage = null
+        };
+        UpdateTaskManagerViews();
+        RefreshTaskManagerButton();
+    }
+
     private void TrackInstallProgress(string taskId, string title, MinecraftInstallProgress progress)
     {
         string stage = string.IsNullOrWhiteSpace(progress.Stage) ? "正在处理下载任务" : progress.Stage;
@@ -2125,8 +2581,12 @@ public partial class MainWindow : Window, IDisposable
     {
         PageInstanceResourceRight page = new();
         page.OpenFolderRequested += (_, path) => OpenFolder(path);
-        page.DownloadRequested += (_, _) => SelectNavRoute(DownloadRoute, animate: true);
-        page.StatusMessage += (_, message) => HandleStatusMessage(message);
+        page.DownloadRequested += (_, subPage) => OpenCommunityForResourcePage(subPage);
+        page.StatusMessage += (_, message) =>
+        {
+            HandleStatusMessage(message);
+            ShowHint(message);
+        };
         return page;
     }
 
@@ -2134,9 +2594,35 @@ public partial class MainWindow : Window, IDisposable
     {
         PageInstanceResourceRight page = new();
         page.OpenFolderRequested += (_, path) => OpenFolder(path);
-        page.DownloadRequested += (_, _) => SelectNavRoute(DownloadRoute, animate: true);
-        page.StatusMessage += (_, message) => HandleStatusMessage(message);
+        page.DownloadRequested += (_, _) =>
+        {
+            SelectNavRoute(CommunityRoute, animate: true);
+            _ = _communityLeft?.TrySelectCategory(CommunityResourceCategory.DataPack) == true
+                ? _communityRight?.SetCategoryAsync(CommunityResourceCategory.DataPack)
+                : Task.CompletedTask;
+        };
+        page.StatusMessage += (_, message) =>
+        {
+            HandleStatusMessage(message);
+            ShowHint(message);
+        };
         return page;
+    }
+
+    private void OpenCommunityForResourcePage(InstancePageSubType subPage)
+    {
+        CommunityResourceCategory category = subPage switch
+        {
+            InstancePageSubType.Mods => CommunityResourceCategory.Mod,
+            InstancePageSubType.ResourcePacks => CommunityResourceCategory.ResourcePack,
+            InstancePageSubType.Shaders => CommunityResourceCategory.Shader,
+            InstancePageSubType.Schematics => CommunityResourceCategory.World,
+            _ => CommunityResourceCategory.Mod
+        };
+
+        SelectNavRoute(CommunityRoute, animate: true);
+        if (_communityLeft is not null && _communityLeft.TrySelectCategory(category))
+            _ = _communityRight?.SetCategoryAsync(category);
     }
 
     private PageInstanceServerRight CreateInstanceServerPage()
@@ -2198,8 +2684,9 @@ public partial class MainWindow : Window, IDisposable
     {
         try
         {
+            string gameDir = await InstanceGameDirectory.ResolveAsync(instance).ConfigureAwait(true);
             await MinecraftServerListService.AddAsync(
-                    GetMinecraftRootFromInstance(instance),
+                    gameDir,
                     new MinecraftServerEntry(name, address, null))
                 .ConfigureAwait(true);
             page.Reload();
@@ -2253,8 +2740,9 @@ public partial class MainWindow : Window, IDisposable
     {
         try
         {
+            string gameDir = await InstanceGameDirectory.ResolveAsync(instance).ConfigureAwait(true);
             bool changed = await MinecraftServerListService.UpdateAsync(
-                    GetMinecraftRootFromInstance(instance),
+                    gameDir,
                     original,
                     updated)
                 .ConfigureAwait(true);
@@ -2298,8 +2786,9 @@ public partial class MainWindow : Window, IDisposable
     {
         try
         {
+            string gameDir = await InstanceGameDirectory.ResolveAsync(instance).ConfigureAwait(true);
             bool removed = await MinecraftServerListService.RemoveAsync(
-                    GetMinecraftRootFromInstance(instance),
+                    gameDir,
                     server)
                 .ConfigureAwait(true);
             if (!removed)
@@ -2494,7 +2983,7 @@ public partial class MainWindow : Window, IDisposable
         };
         page.ChangeSkinRequested += (_, _) => OpenProfileAppearancePage(page.Profile, "更换皮肤");
         page.SaveSkinRequested += (_, _) => _ = SaveProfileSkinAsync(page.Profile);
-        page.RefreshSkinRequested += (_, _) => RefreshProfileSkin(page);
+        page.RefreshSkinRequested += (_, _) => _ = RefreshProfileSkinAsync(page);
         page.ChangeCapeRequested += (_, _) => OpenProfileAppearancePage(page.Profile, "更换披风");
         page.EditPasswordRequested += (_, _) => OpenProfileSecurityPage(page.Profile);
         page.EditNameRequested += (_, _) => OpenProfileNamePage(page.Profile);
@@ -2508,8 +2997,8 @@ public partial class MainWindow : Window, IDisposable
 
         if (profile.Kind == LaunchLoginProfileKind.Microsoft)
         {
-            OpenExternalUrl("https://www.minecraft.net/msaprofile/mygames/editskin");
-            ShowTextDialog(action, "已打开 Minecraft 官方档案页面。请在网页中完成修改，之后回到启动器重新登录或刷新档案。", "知道了");
+            // WPF: ModProfile.ChangeSkinMs — pick local PNG and upload to Minecraft services.
+            _ = ChangeMicrosoftSkinAsync(profile, action);
             return;
         }
 
@@ -2519,7 +3008,161 @@ public partial class MainWindow : Window, IDisposable
             return;
         }
 
-        ShowTextDialog(action, "离线档案不会同步在线皮肤或披风。你可以在创建离线档案时选择一个已登录正版档案的皮肤作为外观来源。", "知道了");
+        // WPF offline: borrow MS profile skin or pick local file.
+        ShowOfflineSkinOptions(profile, action);
+    }
+
+    private void ShowOfflineSkinOptions(LoginProfileInfo profile, string action)
+    {
+        List<LoginProfileInfo> msProfiles = _loginProfiles
+            .Where(static p => p.Kind == LaunchLoginProfileKind.Microsoft)
+            .ToList();
+        if (msProfiles.Count == 0)
+        {
+            _ = PickOfflineSkinFileAsync(profile, action);
+            return;
+        }
+
+        List<MyListItem> items =
+        [
+            CreateProfileTypeItem("使用本地 PNG 文件", "从磁盘选择皮肤文件作为离线外观。", "lucide/image")
+        ];
+        foreach (LoginProfileInfo ms in msProfiles)
+        {
+            items.Add(CreateProfileTypeItem(
+                "借用 " + ms.Username + " 的正版皮肤",
+                "使用该正版档案当前皮肤作为离线外观来源。",
+                "lucide/user"));
+        }
+
+        MyMsgSelect dialog = new();
+        dialog.Configure(action, items);
+        ShowSelectionDialog(dialog, selectedIndex =>
+        {
+            if (selectedIndex is not int index)
+                return;
+            if (index == 0)
+            {
+                _ = PickOfflineSkinFileAsync(profile, action);
+                return;
+            }
+
+            LoginProfileInfo source = msProfiles[index - 1];
+            string skin = MySkin.ResolveSkinAddress(
+                source.SkinAddress,
+                source.Uuid,
+                source.Kind == LaunchLoginProfileKind.ThirdParty ? source.AuthServer : null);
+            LoginProfileInfo updated = profile with { SkinAddress = skin };
+            ReplaceLoginProfile(profile, updated);
+            _loginProfilePage?.SetProfiles(_loginProfiles, updated);
+            _loginProfileSkinPage?.SetProfile(updated);
+            SaveProfilesInBackground("借用正版皮肤");
+            HandleStatusMessage($"已为 {updated.Username} 借用 {source.Username} 的皮肤。");
+        });
+    }
+
+    private async Task PickOfflineSkinFileAsync(LoginProfileInfo profile, string action)
+    {
+        string? path = await PickOpenFilePathAsync(
+                action,
+                new FilePickerFileType("皮肤 PNG") { Patterns = ["*.png"] })
+            .ConfigureAwait(true);
+        if (string.IsNullOrWhiteSpace(path))
+            return;
+
+        LoginProfileInfo updated = profile with { SkinAddress = path };
+        ReplaceLoginProfile(profile, updated);
+        _loginProfilePage?.SetProfiles(_loginProfiles, updated);
+        _loginProfileSkinPage?.SetProfile(updated);
+        SaveProfilesInBackground("更新离线皮肤");
+        ShowTextDialog(action, "已使用本地皮肤文件：\n" + path, "知道了");
+    }
+
+    private async Task ChangeMicrosoftSkinAsync(LoginProfileInfo profile, string action)
+    {
+        string? path = await PickOpenFilePathAsync(
+                action,
+                new FilePickerFileType("皮肤 PNG") { Patterns = ["*.png"] })
+            .ConfigureAwait(true);
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            return;
+
+        if (string.IsNullOrWhiteSpace(profile.AccessToken))
+        {
+            ShowTextDialog(action, "当前正版档案缺少访问令牌，请先重新登录后再更换皮肤。", "知道了");
+            return;
+        }
+
+        try
+        {
+            HandleStatusMessage("正在上传皮肤…");
+            byte[] bytes = await File.ReadAllBytesAsync(path).ConfigureAwait(true);
+            using MultipartFormDataContent content = new();
+            content.Add(new StringContent("classic"), "variant");
+            ByteArrayContent fileContent = new(bytes);
+            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/png");
+            content.Add(fileContent, "file", Path.GetFileName(path));
+
+            using HttpClient client = new() { Timeout = TimeSpan.FromMinutes(2) };
+            using HttpRequestMessage request = new(
+                HttpMethod.Post,
+                "https://api.minecraftservices.com/minecraft/profile/skins")
+            {
+                Content = content
+            };
+            request.Headers.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", profile.AccessToken);
+            request.Headers.TryAddWithoutValidation("Accept", "*/*");
+            using HttpResponseMessage response = await client.SendAsync(request).ConfigureAwait(true);
+            string body = await response.Content.ReadAsStringAsync().ConfigureAwait(true);
+            if (!response.IsSuccessStatusCode)
+            {
+                ShowTextDialog(action, "皮肤上传失败。\n\n" + body, "知道了");
+                return;
+            }
+
+            string? skinUrl = null;
+            using (JsonDocument document = JsonDocument.Parse(body))
+            {
+                if (document.RootElement.TryGetProperty("skins", out JsonElement skins) &&
+                    skins.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (JsonElement skin in skins.EnumerateArray())
+                    {
+                        if (skin.ValueKind != JsonValueKind.Object)
+                            continue;
+                        string state = skin.TryGetProperty("state", out JsonElement stateEl)
+                            ? stateEl.GetString() ?? string.Empty
+                            : string.Empty;
+                        string? url = skin.TryGetProperty("url", out JsonElement urlEl)
+                            ? urlEl.GetString()
+                            : null;
+                        if (string.Equals(state, "ACTIVE", StringComparison.OrdinalIgnoreCase) &&
+                            !string.IsNullOrWhiteSpace(url))
+                        {
+                            skinUrl = url;
+                            break;
+                        }
+
+                        skinUrl ??= url;
+                    }
+                }
+            }
+
+            LoginProfileInfo updated = profile with
+            {
+                SkinAddress = skinUrl ?? path
+            };
+            ReplaceLoginProfile(profile, updated);
+            _loginProfilePage?.SetProfiles(_loginProfiles, updated);
+            _loginProfileSkinPage?.SetProfile(updated);
+            SaveProfilesInBackground("更换 Microsoft 皮肤");
+            ShowTextDialog(action, "皮肤已上传并更新。", "知道了");
+        }
+        catch (Exception ex)
+        {
+            ShowTextDialog(action, "皮肤上传失败。\n\n详细信息：" + ex.Message, "知道了");
+        }
     }
 
     private void OpenProfileSecurityPage(LoginProfileInfo? profile)
@@ -2550,8 +3193,18 @@ public partial class MainWindow : Window, IDisposable
 
         if (profile.Kind == LaunchLoginProfileKind.Microsoft)
         {
-            OpenExternalUrl("https://www.minecraft.net/msaprofile/mygames/editprofile");
-            ShowTextDialog("修改玩家名", "已打开 Minecraft 官方档案页面。玩家名修改完成后，请回到启动器重新登录或刷新档案。", "知道了");
+            // WPF: ModProfile.EditProfileId — rename via Minecraft services API.
+            ShowInputDialog(
+                "修改玩家名",
+                "正版玩家名 30 天内通常只能修改一次。请输入 3–16 位字母/数字/下划线。",
+                profile.Username,
+                "新的玩家名",
+                newName =>
+                {
+                    if (string.IsNullOrWhiteSpace(newName))
+                        return;
+                    _ = RenameMicrosoftProfileAsync(profile, newName.Trim());
+                });
             return;
         }
 
@@ -2561,20 +3214,168 @@ public partial class MainWindow : Window, IDisposable
             return;
         }
 
-        ShowTextDialog("修改玩家名", "离线档案的玩家名保存在本地。请新建一个离线档案来使用新的玩家名。", "知道了");
+        // WPF offline: rename + regenerate offline UUID from the new name.
+        ShowInputDialog(
+            "修改档案",
+            "请输入新的离线玩家名（3–16 位字母、数字或下划线）。",
+            profile.Username,
+            "玩家名",
+            newName =>
+            {
+                if (string.IsNullOrWhiteSpace(newName))
+                    return;
+
+                string trimmed = newName.Trim();
+                if (!System.Text.RegularExpressions.Regex.IsMatch(trimmed, @"^[A-Za-z0-9_]{3,16}$"))
+                {
+                    ShowTextDialog("修改档案", "玩家名不合法。请使用 3–16 位字母、数字或下划线。", "知道了");
+                    return;
+                }
+
+                if (string.Equals(trimmed, profile.Username, StringComparison.Ordinal))
+                    return;
+
+                string uuid = CreateOfflineUuid(trimmed, legacy: false);
+                LoginProfileInfo updated = profile with
+                {
+                    Username = trimmed,
+                    Uuid = uuid,
+                    Info = string.IsNullOrWhiteSpace(profile.Info) || profile.Info.Contains("离线", StringComparison.Ordinal)
+                        ? "离线"
+                        : profile.Info
+                };
+                ReplaceLoginProfile(profile, updated);
+                _loginProfilePage?.SetProfiles(_loginProfiles, updated);
+                _loginProfileSkinPage?.SetProfile(updated);
+                SaveProfilesInBackground("修改离线档案");
+                HandleStatusMessage("已将离线档案重命名为 " + trimmed);
+            });
+    }
+
+    private async Task RenameMicrosoftProfileAsync(LoginProfileInfo profile, string newUsername)
+    {
+        if (string.IsNullOrWhiteSpace(profile.AccessToken))
+        {
+            ShowTextDialog("修改玩家名", "当前正版档案缺少访问令牌，请先重新登录。", "知道了");
+            return;
+        }
+
+        if (!System.Text.RegularExpressions.Regex.IsMatch(newUsername, @"^[A-Za-z0-9_]{3,16}$"))
+        {
+            ShowTextDialog("修改玩家名", "玩家名不合法。请使用 3–16 位字母、数字或下划线。", "知道了");
+            return;
+        }
+
+        try
+        {
+            using HttpClient client = new() { Timeout = TimeSpan.FromSeconds(30) };
+            using (HttpRequestMessage check = new(
+                       HttpMethod.Get,
+                       "https://api.minecraftservices.com/minecraft/profile/name/" +
+                       Uri.EscapeDataString(newUsername) + "/available"))
+            {
+                check.Headers.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", profile.AccessToken);
+                using HttpResponseMessage checkResponse = await client.SendAsync(check).ConfigureAwait(true);
+                string checkBody = await checkResponse.Content.ReadAsStringAsync().ConfigureAwait(true);
+                if (checkResponse.IsSuccessStatusCode)
+                {
+                    using JsonDocument checkDoc = JsonDocument.Parse(checkBody);
+                    string status = checkDoc.RootElement.TryGetProperty("status", out JsonElement statusEl)
+                        ? statusEl.GetString() ?? string.Empty
+                        : string.Empty;
+                    if (string.Equals(status, "DUPLICATE", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ShowTextDialog("修改玩家名", "该玩家名已被占用。", "知道了");
+                        return;
+                    }
+
+                    if (string.Equals(status, "NOT_ALLOWED", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ShowTextDialog("修改玩家名", "该玩家名不被允许。", "知道了");
+                        return;
+                    }
+                }
+            }
+
+            using HttpRequestMessage put = new(
+                HttpMethod.Put,
+                "https://api.minecraftservices.com/minecraft/profile/name/" + Uri.EscapeDataString(newUsername));
+            put.Headers.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", profile.AccessToken);
+            put.Content = new StringContent(string.Empty);
+            using HttpResponseMessage putResponse = await client.SendAsync(put).ConfigureAwait(true);
+            string putBody = await putResponse.Content.ReadAsStringAsync().ConfigureAwait(true);
+            if (!putResponse.IsSuccessStatusCode)
+            {
+                string message = putResponse.StatusCode == System.Net.HttpStatusCode.Forbidden
+                    ? "修改被拒绝（可能处于冷却期或权限不足）。"
+                    : putBody;
+                ShowTextDialog("修改玩家名", "修改失败。\n\n" + message, "知道了");
+                return;
+            }
+
+            string finalName = newUsername;
+            try
+            {
+                using JsonDocument result = JsonDocument.Parse(putBody);
+                if (result.RootElement.TryGetProperty("name", out JsonElement nameEl) &&
+                    nameEl.ValueKind == JsonValueKind.String &&
+                    !string.IsNullOrWhiteSpace(nameEl.GetString()))
+                {
+                    finalName = nameEl.GetString()!;
+                }
+            }
+            catch (JsonException)
+            {
+            }
+
+            LoginProfileInfo updated = profile with { Username = finalName };
+            ReplaceLoginProfile(profile, updated);
+            _loginProfilePage?.SetProfiles(_loginProfiles, updated);
+            _loginProfileSkinPage?.SetProfile(updated);
+            SaveProfilesInBackground("修改 Microsoft 玩家名");
+            ShowTextDialog("修改玩家名", "玩家名已更新为：" + finalName, "知道了");
+        }
+        catch (Exception ex)
+        {
+            ShowTextDialog("修改玩家名", "修改失败。\n\n详细信息：" + ex.Message, "知道了");
+        }
+    }
+
+    private static string CreateOfflineUuid(string username, bool legacy)
+    {
+        byte[] bytes = System.Text.Encoding.UTF8.GetBytes(legacy ? username : "OfflinePlayer:" + username);
+#pragma warning disable CA5351
+        byte[] hash = System.Security.Cryptography.MD5.HashData(bytes);
+#pragma warning restore CA5351
+        hash[6] = (byte)((hash[6] & 0x0f) | 0x30);
+        hash[8] = (byte)((hash[8] & 0x3f) | 0x80);
+        return new Guid(hash).ToString("N");
     }
 
     private void OpenAuthServerProfilePage(LoginProfileInfo profile, string action)
     {
-        string? url = NormalizeAuthServerUrl(profile.AuthServer);
-        if (url is not null)
+        // WPF: strip /api/yggdrasil/authserver and open /user/profile (or server root).
+        string? server = profile.AuthServer?.Trim();
+        if (string.IsNullOrWhiteSpace(server))
         {
-            OpenExternalUrl(url);
-            ShowTextDialog(action, "已打开此第三方账户所属的认证服务器。请在服务器网页中完成账户资料修改。", "知道了");
+            ShowTextDialog(action, "第三方账户的资料由认证服务器管理，但当前档案没有记录可打开的服务器地址。请到对应认证服务器的网站中修改。", "知道了");
             return;
         }
 
-        ShowTextDialog(action, "第三方账户的资料由认证服务器管理，但当前档案没有记录可打开的服务器地址。请到对应认证服务器的网站中修改。", "知道了");
+        string url = server;
+        int authIdx = url.IndexOf("api/yggdrasil/authserver", StringComparison.OrdinalIgnoreCase);
+        if (authIdx >= 0)
+            url = url[..authIdx].TrimEnd('/') + "/user/profile";
+        else
+            url = NormalizeAuthServerUrl(server) ?? server;
+
+        if (!url.Contains("://", StringComparison.Ordinal))
+            url = "https://" + url.TrimStart('/');
+
+        OpenExternalUrl(url);
+        ShowTextDialog(action, "已打开此第三方账户所属的认证服务器页面。请在服务器网页中完成账户资料修改。", "知道了");
     }
 
     private async Task SaveProfileSkinAsync(LoginProfileInfo? profile)
@@ -2622,10 +3423,40 @@ public partial class MainWindow : Window, IDisposable
         }
     }
 
-    private void RefreshProfileSkin(PageLoginProfileSkin page)
+    private async Task RefreshProfileSkinAsync(PageLoginProfileSkin page)
     {
-        page.Reload();
-        ShowTextDialog("已刷新档案显示", "启动器已重新载入当前档案信息。若你刚刚在网页中修改了皮肤或披风，请重新登录以获取最新资料。", "知道了");
+        LoginProfileInfo? profile = page.Profile;
+        if (profile is null)
+            return;
+
+        try
+        {
+            if (profile.Kind == LaunchLoginProfileKind.Microsoft &&
+                !string.IsNullOrWhiteSpace(profile.RefreshToken))
+            {
+                LoginProfileInfo refreshed = await RefreshLaunchProfileAsync(profile, CancellationToken.None)
+                    .ConfigureAwait(true);
+                AddOrUpdateLoginProfile(refreshed);
+                _loginProfilePage?.SetProfiles(_loginProfiles, refreshed);
+                page.SetProfile(refreshed);
+                SaveProfilesInBackground("刷新 Microsoft 皮肤");
+                ShowTextDialog("皮肤已刷新", "已从 Microsoft 重新获取档案与皮肤信息。", "知道了");
+                return;
+            }
+
+            page.Reload();
+            ShowTextDialog(
+                "已刷新档案显示",
+                profile.Kind == LaunchLoginProfileKind.Offline
+                    ? "已重新加载离线档案皮肤。若使用本地 PNG，请确认文件仍然存在。"
+                    : "已重新载入档案信息。第三方皮肤请在认证站修改后重新登录。",
+                "知道了");
+        }
+        catch (Exception ex)
+        {
+            page.Reload();
+            ShowTextDialog("刷新失败", "未能刷新皮肤。\n\n详细信息：" + ex.Message, "知道了");
+        }
     }
 
     private void ShowProfileTypeSelector(PageLaunchLeft launchPage)
@@ -2949,122 +3780,286 @@ public partial class MainWindow : Window, IDisposable
         string? worldName = null,
         string? serverAddress = null)
     {
-        LoginProfileInfo? profile = _loginProfiles.FirstOrDefault();
+        // Prefer the profile currently shown on the login UI (not always the first saved entry).
+        LoginProfileInfo? profile =
+            _loginProfileSkinPage?.Profile ??
+            _loginProfilePage?.SelectedProfile ??
+            _loginProfiles.FirstOrDefault();
         if (profile is null)
         {
-            launchPage.PageChangeToLogin();
+            if (launchPage.IsLaunchInProgress)
+                launchPage.PageChangeToLogin();
             ShowTextDialog("请选择账户档案", "启动游戏前需要先选择或创建一个账户档案。");
             return;
         }
 
+        // Paint launching UI immediately (PageLaunchLeft already calls ShowLaunching on click;
+        // keep a fallback for other entry points). Then hop off the UI thread completely.
+        if (!launchPage.IsLaunchInProgress)
+            launchPage.ShowLaunching(instance);
+
+        // Yield until after layout + animation frames so the launching pane is visible
+        // before any disk/network work (WPF ModLaunch similarly paints first).
+        await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Render);
+        await Task.Yield();
+        await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Loaded);
+        await Task.Delay(32).ConfigureAwait(false);
+        await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background);
+
         _launchCancellation?.Cancel();
         _launchCancellation?.Dispose();
         _launchCancellation = new CancellationTokenSource();
+        CancellationToken cancellationToken = _launchCancellation.Token;
 
-        if (profile.Kind == LaunchLoginProfileKind.Microsoft &&
-            !string.IsNullOrWhiteSpace(profile.RefreshToken))
+        try
         {
-            string clientId = MicrosoftMinecraftAuthService.ResolveClientId();
-            if (string.IsNullOrWhiteSpace(clientId))
+            // Entire prep + coordinate pipeline off UI thread (no UI-thread JSON/IO).
+            string instanceDirectory = instance.InstanceDirectory;
+            InstanceMetadata metadata = await InstanceMetadataStore.LoadAsync(
+                    instanceDirectory,
+                    cancellationToken)
+                .ConfigureAwait(false);
+            LauncherSettings runtimeSettings = await Task.Run(
+                    LauncherSettingsPageBinder.LoadSettings,
+                    cancellationToken)
+                .ConfigureAwait(false);
+            string method = MinecraftLaunchCoordinator.FormatLoginMethod(profile);
+            Dispatcher.UIThread.Post(() => launchPage.LaunchingRefresh(
+                AvaloniaLocalizationManager.GetText("Common.Action.Initialize", "初始化"),
+                0d,
+                method: method), DispatcherPriority.Background);
+
+            MinecraftLaunchCoordinatorResult result = await _launchCoordinator.RunAsync(
+                    new MinecraftLaunchCoordinatorRequest
+                    {
+                        Instance = instance,
+                        Profile = profile,
+                        Metadata = metadata,
+                        Settings = runtimeSettings,
+                        MinecraftRootDirectory = GetMinecraftRootFromInstance(instance),
+                        PreferOfficialSource = runtimeSettings.DownloadSource !=
+                                               DownloadSourcePreference.MirrorOnly,
+                        WorldName = worldName,
+                        ServerAddress = serverAddress,
+                        Report = report =>
+                        {
+                            // Always Post — never call LaunchingRefresh synchronously on a hot path.
+                            Dispatcher.UIThread.Post(
+                                () => launchPage.LaunchingRefresh(
+                                    report.StageName,
+                                    report.Progress,
+                                    report.IsLaunched,
+                                    report.Method,
+                                    report.DownloadSpeed),
+                                DispatcherPriority.Background);
+                        },
+                        Log = message =>
+                        {
+                            Dispatcher.UIThread.Post(
+                                () => _launchRight?.AppendLog(message),
+                                DispatcherPriority.Background);
+                        },
+                        RefreshProfileAsync = RefreshLaunchProfileAsync,
+                        CreatePlanAsync = CreateLaunchPlanAsync,
+                        RunPreLaunchCommandAsync = RunPreLaunchCommandAsync,
+                        ApplyProcessPriority = ApplyProcessPriority,
+                        ConfirmJavaDownloadAsync = ConfirmJavaDownloadAsync
+                    },
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            // Launch pipeline succeeded — never fold post-success UI side effects into "启动失败".
+            // (e.g. Close()/Hide launcher visibility can throw ObjectDisposedException.)
+            try
             {
-                ShowTextDialog(
-                    "Microsoft 登录配置缺失",
-                    "缺少 Microsoft 登录配置，无法刷新正版登录状态。请提供 PCL_MS_CLIENT_ID 后重试。");
-                return;
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    if (!ReferenceEquals(result.Profile, profile) &&
+                        result.Profile.Kind == LaunchLoginProfileKind.Microsoft)
+                    {
+                        AddOrUpdateLoginProfile(result.Profile);
+                        _loginProfilePage?.SetProfiles(_loginProfiles, result.Profile);
+                        _loginProfileSkinPage?.SetProfile(result.Profile);
+                        SaveProfilesInBackground("刷新 Microsoft 正版档案");
+                    }
+
+                    Process process = result.Process;
+                    SetGameRunningExtras(process);
+                    UpdateBackgroundVideoPlayback(runtimeSettings);
+                    _launchRight?.AppendLog(!string.IsNullOrWhiteSpace(worldName)
+                        ? $"{instance.Name} 已启动，正在进入存档 {worldName}。"
+                        : !string.IsNullOrWhiteSpace(serverAddress)
+                            ? $"{instance.Name} 已启动，正在连接服务器 {serverAddress}。"
+                            : $"{instance.Name} 已启动。");
+
+                    if (runtimeSettings.GetIntegerOption(
+                            "LaunchArgumentVisible",
+                            LauncherSettingDefaults.GetInteger("LaunchArgumentVisible")) != 0)
+                    {
+                        launchPage.PageChangeToLogin();
+                    }
+
+                    // Visibility last — Close/Hide must not reverse a successful launch UX.
+                    ApplyLauncherVisibility(process, runtimeSettings);
+                });
+            }
+            catch (Exception postEx)
+            {
+                _launchRight?.AppendLog("启动后界面处理异常（游戏已启动）：" + postEx.Message);
             }
 
             try
             {
-                launchPage.UpdateLaunchingStatus("正在刷新正版登录", 0.08d, "验证 Microsoft 账户");
-                MicrosoftMinecraftLoginResult refreshed = await _microsoftAuthService
-                    .RefreshAsync(clientId, profile.RefreshToken, _launchCancellation.Token)
-                    .ConfigureAwait(true);
-                profile = profile with
-                {
-                    Username = refreshed.Username,
-                    Uuid = refreshed.Uuid,
-                    AccessToken = refreshed.AccessToken,
-                    RefreshToken = refreshed.RefreshToken,
-                    SkinAddress = refreshed.SkinAddress ?? profile.SkinAddress,
-                    Info = refreshed.OwnsMinecraft ? "Microsoft 正版" : profile.Info
-                };
-                AddOrUpdateLoginProfile(profile);
-                _loginProfilePage?.SetProfiles(_loginProfiles, profile);
-                _loginProfileSkinPage?.SetProfile(profile);
-                SaveProfilesInBackground("刷新 Microsoft 正版档案");
+                await IncrementInstanceLaunchCountAsync(instance).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (Exception countEx)
             {
-                launchPage.PageChangeToLogin();
-                ShowTextDialog("Microsoft 登录已失效", "无法刷新正版登录状态，请重新登录。\n\n详细信息：" + ex.Message);
-                return;
+                _launchRight?.AppendLog("记录启动次数失败：" + countEx.Message);
             }
-        }
-
-        try
-        {
-            launchPage.UpdateLaunchingStatus("正在读取版本文件", 0.18d, "准备启动参数");
-            InstanceMetadata metadata = await InstanceMetadataStore.LoadAsync(
-                    instance.InstanceDirectory,
-                    _launchCancellation.Token)
-                .ConfigureAwait(true);
-            LauncherSettings runtimeSettings = LauncherSettingsPageBinder.LoadSettings();
-            MinecraftProcessLaunchPlan plan = await CreateLaunchPlanAsync(
-                    instance,
-                    profile,
-                    ResolveInstanceJavaExecutablePath(metadata),
-                    _launchCancellation.Token,
-                    worldName,
-                    metadata,
-                    serverAddress)
-                .ConfigureAwait(true);
-
-            string preLaunchCommand = FirstNonEmpty(
-                metadata.PreLaunchCommand,
-                runtimeSettings.GetTextOption("LaunchAdvanceRun", LauncherSettingDefaults.GetText("LaunchAdvanceRun"))) ?? string.Empty;
-            bool waitForPreLaunchCommand = !string.IsNullOrWhiteSpace(metadata.PreLaunchCommand)
-                ? metadata.WaitForPreLaunchCommand
-                : runtimeSettings.GetBooleanOption(
-                    "LaunchAdvanceRunWait",
-                    LauncherSettingDefaults.GetBoolean("LaunchAdvanceRunWait"));
-            if (!string.IsNullOrWhiteSpace(preLaunchCommand))
-            {
-                launchPage.UpdateLaunchingStatus("正在执行预启动命令", 0.58d, "运行启动前任务");
-                await RunPreLaunchCommandAsync(
-                        preLaunchCommand,
-                        waitForPreLaunchCommand,
-                        plan.StartInfo.WorkingDirectory,
-                        _launchCancellation.Token)
-                    .ConfigureAwait(true);
-            }
-
-            launchPage.UpdateLaunchingStatus("正在启动 Java 进程", 0.72d, "启动 Minecraft");
-            Process? process = Process.Start(plan.StartInfo);
-            if (process is null)
-                throw new InvalidOperationException("Java 进程未能启动。");
-            ApplyProcessPriority(process, runtimeSettings);
-            _isGameRunning = true;
-            UpdateBackgroundVideoPlayback(runtimeSettings);
-            ApplyLauncherVisibility(process, runtimeSettings);
-
-            launchPage.LaunchingRefresh("游戏进程已启动", 1d, isLaunched: true, method: "PID " + process.Id.ToString(CultureInfo.InvariantCulture));
-            await IncrementInstanceLaunchCountAsync(instance).ConfigureAwait(true);
-            _launchRight?.AppendLog(!string.IsNullOrWhiteSpace(worldName)
-                ? $"{instance.Name} 已启动，正在进入存档 {worldName}。"
-                : !string.IsNullOrWhiteSpace(serverAddress)
-                    ? $"{instance.Name} 已启动，正在连接服务器 {serverAddress}。"
-                    : $"{instance.Name} 已启动。");
         }
         catch (OperationCanceledException)
         {
-            launchPage.PageChangeToLogin();
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (launchPage.IsLaunchInProgress)
+                    launchPage.PageChangeToLogin();
+            });
         }
         catch (Exception ex)
         {
-            launchPage.PageChangeToLogin();
-            ShowTextDialog("启动失败", "未能启动游戏。\n\n详细信息：" + ex.Message);
-            _launchRight?.AppendLog("启动失败：" + ex.Message);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (launchPage.IsLaunchInProgress)
+                    launchPage.PageChangeToLogin();
+                ShowTextDialog("启动失败", "未能启动游戏。\n\n详细信息：" + ex.Message);
+                _launchRight?.AppendLog("启动失败：" + ex.Message);
+            });
         }
+    }
+
+    private void SetGameRunningExtras(Process? process)
+    {
+        if (!ReferenceEquals(_runningGameProcess, process))
+        {
+            if (_runningGameProcess is { } previous)
+            {
+                try
+                {
+                    previous.EnableRaisingEvents = false;
+                    previous.Exited -= RunningGameProcess_Exited;
+                }
+                catch
+                {
+                    // process may already be disposed
+                }
+            }
+
+            _runningGameProcess = process is { HasExited: false } ? process : null;
+            if (_runningGameProcess is { } current)
+            {
+                try
+                {
+                    current.EnableRaisingEvents = true;
+                    current.Exited += RunningGameProcess_Exited;
+                }
+                catch
+                {
+                    // EnableRaisingEvents can throw if process already exited
+                    _runningGameProcess = null;
+                }
+            }
+        }
+        else if (process is null || process.HasExited)
+        {
+            _runningGameProcess = null;
+        }
+
+        _isGameRunning = _runningGameProcess is not null;
+
+        if (this.FindControl<MyExtraButton>("BtnExtraShutdown") is { } shutdown)
+        {
+            // WPF: BtnExtraShutdown.Show = game running (bottom-right extra power button)
+            shutdown.Show = _isGameRunning;
+        }
+
+        if (this.FindControl<MyExtraButton>("BtnExtraLog") is { } logBtn)
+            logBtn.Show = _isGameRunning;
+    }
+
+    private void RunningGameProcess_Exited(object? sender, EventArgs e)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (ReferenceEquals(_runningGameProcess, sender) ||
+                _runningGameProcess is null ||
+                _runningGameProcess.HasExited)
+            {
+                SetGameRunningExtras(null);
+            }
+        }, DispatcherPriority.Background);
+    }
+
+    private Task<bool> ConfirmJavaDownloadAsync(string versionLabel, CancellationToken cancellationToken)
+    {
+        // Always Post so we never show+await a modal on the same UI stack frame (deadlock/freeze).
+        TaskCompletionSource<bool> tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        CancellationTokenRegistration registration = cancellationToken.Register(
+            static state => ((TaskCompletionSource<bool>)state!).TrySetCanceled(),
+            tcs);
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                tcs.TrySetCanceled(cancellationToken);
+                registration.Dispose();
+                return;
+            }
+
+            ShowConfirmDialog(
+                "需要下载 Java",
+                "启动该版本需要 Java " + versionLabel + "，但本机未找到兼容的 Java。\n\n是否由 PCL N 自动下载并安装官方运行时？",
+                confirmed =>
+                {
+                    registration.Dispose();
+                    tcs.TrySetResult(confirmed);
+                },
+                "下载并安装",
+                "取消");
+        });
+
+        return tcs.Task;
+    }
+
+    private async Task<LoginProfileInfo> RefreshLaunchProfileAsync(
+        LoginProfileInfo profile,
+        CancellationToken cancellationToken)
+    {
+        if (profile.Kind != LaunchLoginProfileKind.Microsoft ||
+            string.IsNullOrWhiteSpace(profile.RefreshToken))
+        {
+            return profile;
+        }
+
+        string clientId = MicrosoftMinecraftAuthService.ResolveClientId();
+        if (string.IsNullOrWhiteSpace(clientId))
+        {
+            throw new InvalidOperationException(
+                "缺少 Microsoft 登录配置，无法刷新正版登录状态。请提供 PCL_MS_CLIENT_ID 后重试。");
+        }
+
+        MicrosoftMinecraftLoginResult refreshed = await _microsoftAuthService
+            .RefreshAsync(clientId, profile.RefreshToken, cancellationToken)
+            .ConfigureAwait(false);
+        return profile with
+        {
+            Username = refreshed.Username,
+            Uuid = refreshed.Uuid,
+            AccessToken = refreshed.AccessToken,
+            RefreshToken = refreshed.RefreshToken,
+            SkinAddress = refreshed.SkinAddress ?? profile.SkinAddress,
+            Info = refreshed.OwnsMinecraft ? "Microsoft 正版" : profile.Info
+        };
     }
 
     private async Task IncrementInstanceLaunchCountAsync(LaunchInstanceInfo instance)
@@ -3102,7 +4097,11 @@ public partial class MainWindow : Window, IDisposable
     {
         InstanceMetadata metadata = metadataOverride ??
             await InstanceMetadataStore.LoadAsync(instance.InstanceDirectory, cancellationToken).ConfigureAwait(false);
-        LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+        // Never hit settings store synchronously on the launch path (disk IO hitch).
+        LauncherSettings settings = await Task.Run(
+                LauncherSettingsPageBinder.LoadSettings,
+                cancellationToken)
+            .ConfigureAwait(false);
         int windowType = GetIntegerOption(settings, LauncherSettingKeys.LaunchArgumentWindowType, 1);
         (int width, int height) = GetWindowSize(settings);
         (string? authlibPath, string? authlibServer, string? authlibMetadata) =
@@ -3256,7 +4255,7 @@ public partial class MainWindow : Window, IDisposable
             await process.WaitForExitAsync().ConfigureAwait(false);
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                _isGameRunning = false;
+                SetGameRunningExtras(null);
                 UpdateBackgroundVideoPlayback();
                 if (visibility == 2)
                 {
@@ -3274,6 +4273,7 @@ public partial class MainWindow : Window, IDisposable
         }
         catch (Exception ex) when (ex is InvalidOperationException or ObjectDisposedException)
         {
+            await Dispatcher.UIThread.InvokeAsync(() => SetGameRunningExtras(null));
         }
         finally
         {
@@ -3462,7 +4462,21 @@ public partial class MainWindow : Window, IDisposable
 
     private void PromptEditInstanceDescription(LaunchInstanceInfo instance)
     {
-        InstanceMetadata metadata = InstanceMetadataStore.LoadAsync(instance.InstanceDirectory).GetAwaiter().GetResult();
+        _ = PromptEditInstanceDescriptionAsync(instance);
+    }
+
+    private async Task PromptEditInstanceDescriptionAsync(LaunchInstanceInfo instance)
+    {
+        InstanceMetadata metadata;
+        try
+        {
+            metadata = await InstanceMetadataStore.LoadAsync(instance.InstanceDirectory).ConfigureAwait(true);
+        }
+        catch
+        {
+            metadata = new InstanceMetadata();
+        }
+
         ShowInputDialog(
             "编辑版本描述",
             "这段描述会显示在版本卡片上，用来区分不同配置或整合包。",
@@ -3537,7 +4551,31 @@ public partial class MainWindow : Window, IDisposable
                 .ConfigureAwait(true)
                 ?? Path.Combine(GetDesktopOrBaseDirectory(), suggestedFileName);
 
-            MinecraftProcessLaunchPlan plan = await CreateLaunchPlanAsync(instance, profile, "java", CancellationToken.None)
+            InstanceMetadata metadata = await InstanceMetadataStore.LoadAsync(instance.InstanceDirectory)
+                .ConfigureAwait(true);
+            LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+            string javaPath = await _launchCoordinator.ResolveJavaExecutableAsync(
+                    new MinecraftLaunchCoordinatorRequest
+                    {
+                        Instance = instance,
+                        Profile = profile,
+                        Metadata = metadata,
+                        Settings = settings,
+                        MinecraftRootDirectory = GetMinecraftRootFromInstance(instance),
+                        Report = static _ => { },
+                        RefreshProfileAsync = static (current, _) => Task.FromResult(current),
+                        CreatePlanAsync = CreateLaunchPlanAsync,
+                        RunPreLaunchCommandAsync = RunPreLaunchCommandAsync,
+                        ApplyProcessPriority = ApplyProcessPriority
+                    },
+                    CancellationToken.None)
+                .ConfigureAwait(true);
+            MinecraftProcessLaunchPlan plan = await CreateLaunchPlanAsync(
+                    instance,
+                    profile,
+                    javaPath,
+                    CancellationToken.None,
+                    metadataOverride: metadata)
                 .ConfigureAwait(true);
             await MinecraftLaunchScriptService.SaveAsync(
                     new MinecraftLaunchScriptRequest
@@ -4318,12 +5356,17 @@ public partial class MainWindow : Window, IDisposable
                     new ThirdPartyAuthLoginRequest(request.Server, request.Username, request.Password))
                 .ConfigureAwait(true);
             page.UpdateProgress(0.8d);
+            string skinAddress = MySkin.ResolveSkinAddress(
+                skinAddress: null,
+                uuid: result.Uuid,
+                authServer: result.AuthServer);
             LoginProfileInfo profile = new(
                 result.Username,
                 $"Authlib-Injector · {result.AuthServerDisplayName}",
                 LaunchLoginProfileKind.ThirdParty,
                 result.Uuid,
                 SvgIcon: "lucide/key-round",
+                SkinAddress: string.IsNullOrWhiteSpace(skinAddress) ? null : skinAddress,
                 AuthServer: result.AuthServer,
                 AccessToken: result.AccessToken);
             AddOrUpdateLoginProfile(profile);
@@ -4405,6 +5448,14 @@ public partial class MainWindow : Window, IDisposable
         if (existingIndex >= 0)
             _loginProfiles.RemoveAt(existingIndex);
         _loginProfiles.Insert(0, profile);
+    }
+
+    private void ReplaceLoginProfile(LoginProfileInfo original, LoginProfileInfo updated)
+    {
+        int existingIndex = _loginProfiles.FindIndex(existing => IsSameProfile(existing, original));
+        if (existingIndex >= 0)
+            _loginProfiles.RemoveAt(existingIndex);
+        _loginProfiles.Insert(0, updated);
     }
 
     private async Task ImportProfilesAsync(PageLoginProfile page, PageLaunchLeft launchPage)
@@ -4822,12 +5873,14 @@ public partial class MainWindow : Window, IDisposable
             bool alignRight = settings.GetBooleanOption(
                 "UiHintAlignRight",
                 LauncherSettingDefaults.GetBoolean("UiHintAlignRight"));
+            // WPF: left = Margin 25,0,0,18; right = leave room for PanExtraButtons (~70)
+            // Content column only — leave room for PanExtraButtons when right-aligned.
             hints.HorizontalAlignment = alignRight
                 ? Avalonia.Layout.HorizontalAlignment.Right
                 : Avalonia.Layout.HorizontalAlignment.Left;
             hints.Margin = alignRight
-                ? new Thickness(0d, 0d, 70d, 20d)
-                : new Thickness(70d, 0d, 0d, 20d);
+                ? new Thickness(0d, 0d, 70d, 18d)
+                : new Thickness(12d, 0d, 0d, 18d);
         }
     }
 
