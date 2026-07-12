@@ -3,10 +3,13 @@
 // Licensed under the Apache License, Version 2.0.
 
 using System.Globalization;
+using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
+using Avalonia.Styling;
+using PCL.Application.Instances;
 using PCL.Desktop.Controls.Legacy;
 using PCL.Desktop.Features.Launching.Views;
 
@@ -21,6 +24,7 @@ public partial class PageInstanceResourceRight : MyPageRight
     private ResourceSort _sort = ResourceSort.FileName;
     private string _folder = string.Empty;
     private List<ResourceEntry> _entries = [];
+    private bool _isLoading;
 
     public PageInstanceResourceRight()
     {
@@ -37,7 +41,7 @@ public partial class PageInstanceResourceRight : MyPageRight
 
     public void SetContext(LaunchInstanceInfo instance, InstancePageSubType page)
     {
-        _instance = instance;
+        _instance = instance ?? throw new ArgumentNullException(nameof(instance));
         _page = page;
         _kind = InstancePageRegistry.GetResourceKind(page);
         if (_kind == InstanceResourceKind.None)
@@ -47,10 +51,41 @@ public partial class PageInstanceResourceRight : MyPageRight
         if (string.IsNullOrWhiteSpace(relativePath))
             relativePath = "mods";
 
-        _folder = Path.Combine(GetMinecraftRootFromInstance(instance), relativePath);
-        Directory.CreateDirectory(_folder);
-        ApplyKindChrome();
-        Reload();
+        // WPF: isolated instance → version folder; else shared .minecraft root.
+        _ = SetContextAsync(instance, relativePath);
+    }
+
+    private async Task SetContextAsync(LaunchInstanceInfo instance, string relativePath)
+    {
+        if (_isLoading)
+            return;
+        _isLoading = true;
+        try
+        {
+            bool isolated = true;
+            try
+            {
+                InstanceMetadata metadata = await InstanceMetadataStore.LoadAsync(instance.InstanceDirectory)
+                    .ConfigureAwait(true);
+                isolated = metadata.InstanceIsolation;
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+            {
+                isolated = true;
+            }
+
+            string gameDir = isolated
+                ? instance.InstanceDirectory
+                : GetMinecraftRootFromInstance(instance);
+            _folder = Path.Combine(gameDir, relativePath);
+            Directory.CreateDirectory(_folder);
+            ApplyKindChrome();
+            Reload();
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 
     public void SetDataPackFolder(string saveFolder)
@@ -154,8 +189,11 @@ public partial class PageInstanceResourceRight : MyPageRight
 
         if (this.FindControl<MyCard>("PanListBack") is { } listBack)
         {
-            string titleKey = IsSearching ? "Instance.Resource.SearchResultTitle" : "Instance.Resource.ListTitleWithCount";
-            listBack.Title = Text(titleKey, KindDisplayName(_kind), showing.Count.ToString(CultureInfo.CurrentCulture));
+            string kind = KindDisplayName(_kind);
+            string count = showing.Count.ToString(CultureInfo.CurrentCulture);
+            listBack.Title = IsSearching
+                ? Text("Instance.Resource.SearchResultTitle", kind, count)
+                : Text("Instance.Resource.ListTitleWithCount", kind, count);
         }
 
         bool isEmpty = _entries.Count == 0;
@@ -384,11 +422,15 @@ public partial class PageInstanceResourceRight : MyPageRight
         {
             InstanceResourceKind.Mod => fileName.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) ||
                                 fileName.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase),
-            InstanceResourceKind.ResourcePack or InstanceResourceKind.ShaderPack or InstanceResourceKind.DataPack => extension.Equals(".zip", StringComparison.OrdinalIgnoreCase),
+            InstanceResourceKind.ResourcePack or InstanceResourceKind.ShaderPack or InstanceResourceKind.DataPack =>
+                extension.Equals(".zip", StringComparison.OrdinalIgnoreCase) ||
+                // Iris / OptiFine may also drop loose folders; folders already accepted above.
+                extension.Equals(".jar", StringComparison.OrdinalIgnoreCase),
             InstanceResourceKind.Schematic => extension.Equals(".schematic", StringComparison.OrdinalIgnoreCase) ||
                                       extension.Equals(".schem", StringComparison.OrdinalIgnoreCase) ||
                                       extension.Equals(".litematic", StringComparison.OrdinalIgnoreCase) ||
-                                      extension.Equals(".nbt", StringComparison.OrdinalIgnoreCase),
+                                      extension.Equals(".nbt", StringComparison.OrdinalIgnoreCase) ||
+                                      extension.Equals(".bp", StringComparison.OrdinalIgnoreCase),
             _ => false
         };
     }
@@ -476,11 +518,48 @@ public partial class PageInstanceResourceRight : MyPageRight
 
     private string Text(string key, params string[] args)
     {
-        string value = TryGetResource(key, null, out object? resource) && resource is string text
-            ? text
-            : key;
-        return args.Length == 0 ? value : string.Format(CultureInfo.CurrentCulture, value, args);
+        string? value = null;
+        // Prefer app/theme resource dictionaries (PclTheme + localization).
+        if (Avalonia.Application.Current?.TryGetResource(key, ActualThemeVariant, out object? appRes) == true &&
+            appRes is string appText)
+        {
+            value = appText;
+        }
+        else if (TryGetResource(key, ActualThemeVariant, out object? localRes) && localRes is string localText)
+        {
+            value = localText;
+        }
+
+        value ??= BuiltInResourceText(key) ?? key;
+        return args.Length == 0
+            ? value
+            : string.Format(CultureInfo.CurrentCulture, value, args);
     }
+
+    private static string? BuiltInResourceText(string key) =>
+        key switch
+        {
+            "Instance.Resource.ListTitle" => "{0} 列表",
+            "Instance.Resource.ListTitleWithCount" => "{0} 列表 ({1})",
+            "Instance.Resource.SearchResultTitle" => "{0} 搜索结果 ({1})",
+            "Instance.Resource.Sort.Text" => "排序：{0}",
+            "Instance.Resource.Sort.FileName" => "文件名",
+            "Instance.Resource.Sort.ModifyTime" => "修改时间",
+            "Instance.Resource.Sort.AddTime" => "添加时间",
+            "Instance.Resource.Sort.FileSize" => "文件大小",
+            "Instance.Resource.Empty.Title" => "还没有 {0}",
+            "Instance.Resource.Empty.Description" => "这个版本还没有 {0}。你可以下载新的内容，或从本地文件安装。",
+            "Instance.Resource.Item.Info" => "{0} · {1} · 修改于 {2}",
+            "Instance.Resource.State.Enabled" => "已启用",
+            "Instance.Resource.State.Disabled" => "已禁用",
+            "Instance.Resource.State.File" => "文件",
+            "Instance.Resource.State.Folder" => "文件夹",
+            "Common.Action.Open" => "打开",
+            "Common.Action.Delete" => "删除",
+            "Instance.Resource.Enable" => "启用",
+            "Instance.Resource.Disable" => "禁用",
+            _ => null
+        };
 
     private static string GetMinecraftRootFromInstance(LaunchInstanceInfo instance)
     {

@@ -440,8 +440,16 @@ public partial class PageInstanceManageRight : MyPageRight
     private static List<InstanceInfoItem> DetectLoaderInfo(IReadOnlyList<string> libraries, string installedText)
     {
         List<InstanceInfoItem> items = [];
-        AddLoader(items, libraries, "Forge", "Anvil.png", isModable: true, "net.minecraftforge:forge:", "minecraftforge");
-        AddLoader(items, libraries, "NeoForge", "NeoForge.png", isModable: true, "net.neoforged:neoforge:", "net.neoforge:forge:", "neoforge");
+        // Detect NeoForge first; Forge needles must not match NeoForge libraries
+        // (substring "forge" appears inside "neoforge" / "neoforged").
+        AddLoader(items, libraries, "NeoForge", "NeoForge.png", isModable: true,
+            "net.neoforged:neoforge:", "net.neoforge:forge:");
+        bool hasNeoForge = items.Any(static i => string.Equals(i.Title, "NeoForge", StringComparison.Ordinal));
+        if (!hasNeoForge)
+        {
+            AddLoader(items, libraries, "Forge", "Anvil.png", isModable: true,
+                "net.minecraftforge:forge:");
+        }
         AddLoader(items, libraries, "Cleanroom", "Cleanroom.png", isModable: true, "com.cleanroommc:cleanroom:", "cleanroom");
         AddLoader(items, libraries, "Fabric", "Fabric.png", isModable: true, "net.fabricmc:fabric-loader:");
         AddLoader(items, libraries, "Quilt", "Quilt.png", isModable: true, "org.quiltmc:quilt-loader:");

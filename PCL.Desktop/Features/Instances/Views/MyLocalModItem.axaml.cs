@@ -310,9 +310,13 @@ public partial class MyLocalModItem : Grid
 
     private void ApplyButtons()
     {
-        if (_buttonStack is not null)
+        // Detach previous button host first. Removing the StackPanel alone does not
+        // clear its Children, so MyIconButton instances keep a visual parent and
+        // re-adding them throws (Avalonia: already has a visual parent).
+        if (_buttonStack is Panel oldHost)
         {
-            Children.Remove(_buttonStack);
+            oldHost.Children.Clear();
+            Children.Remove(oldHost);
             _buttonStack = null;
         }
 
@@ -329,6 +333,11 @@ public partial class MyLocalModItem : Grid
         };
         foreach (MyIconButton button in Buttons)
         {
+            // Same button instance may still be parented if ApplyButtons ran twice
+            // (ctor SyncVisuals + AttachedToVisualTree) before the host was cleared.
+            if (button.Parent is Panel existingParent)
+                existingParent.Children.Remove(button);
+
             if (double.IsNaN(button.Height))
                 button.Height = 25d;
             if (double.IsNaN(button.Width))

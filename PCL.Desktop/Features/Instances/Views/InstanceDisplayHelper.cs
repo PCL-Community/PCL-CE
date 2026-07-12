@@ -129,16 +129,19 @@ internal static class InstanceDisplayHelper
             return BlockAssetRoot + "Cleanroom.png";
         }
 
-        if (lowerSignal.Contains("minecraftforge", StringComparison.Ordinal) &&
-            !lowerSignal.Contains("net.neoforge", StringComparison.Ordinal))
-        {
-            return BlockAssetRoot + "Anvil.png";
-        }
-
-        if (lowerSignal.Contains("net.neoforge", StringComparison.Ordinal) ||
+        // NeoForge before Forge — "forge" is a substring of "neoforge"/"neoforged".
+        if (lowerSignal.Contains("net.neoforged", StringComparison.Ordinal) ||
+            lowerSignal.Contains("net.neoforge", StringComparison.Ordinal) ||
             lowerSignal.Contains("neoforge", StringComparison.Ordinal))
         {
             return BlockAssetRoot + "NeoForge.png";
+        }
+
+        if (lowerSignal.Contains("net.minecraftforge:forge", StringComparison.Ordinal) ||
+            (lowerSignal.Contains("minecraftforge", StringComparison.Ordinal) &&
+             !lowerSignal.Contains("neoforge", StringComparison.Ordinal)))
+        {
+            return BlockAssetRoot + "Anvil.png";
         }
 
         return logo;
@@ -252,6 +255,86 @@ internal static class InstanceDisplayHelper
         {
             return false;
         }
+    }
+
+    /// <summary>
+    /// Shader packs UI: show only when OptiFine / Iris / Oculus / Sodium+Iris-class mods exist.
+    /// </summary>
+    public static bool HasShaderSupport(LaunchInstanceInfo instance)
+    {
+        if (HasLibraryNeedle(instance, "optifine", "optifine:optifine"))
+            return true;
+
+        return HasModJarNeedle(
+            instance,
+            "iris",
+            "oculus",
+            "optifine",
+            "optifabric",
+            "canvas-renderer",
+            "angelica");
+    }
+
+    /// <summary>
+    /// Schematics / 投影 UI: show only when a projection mod is installed (Litematica, etc.).
+    /// </summary>
+    public static bool HasSchematicSupport(LaunchInstanceInfo instance) =>
+        HasModJarNeedle(
+            instance,
+            "litematica",
+            "schematica",
+            "worldedit",
+            "axiom",
+            "syncmatica",
+            "baritone");
+
+    private static bool HasLibraryNeedle(LaunchInstanceInfo instance, params string[] needles)
+    {
+        if (!File.Exists(instance.VersionJsonPath))
+            return false;
+
+        try
+        {
+            using FileStream stream = File.OpenRead(instance.VersionJsonPath);
+            using JsonDocument document = JsonDocument.Parse(stream);
+            return ReadLibraryNames(document.RootElement)
+                .Any(library => needles.Any(n => library.Contains(n, StringComparison.OrdinalIgnoreCase)));
+        }
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
+    private static bool HasModJarNeedle(LaunchInstanceInfo instance, params string[] needles)
+    {
+        foreach (string modsDir in EnumerateModsDirectories(instance))
+        {
+            try
+            {
+                if (!Directory.Exists(modsDir))
+                    continue;
+                foreach (string file in Directory.EnumerateFiles(modsDir, "*.jar*", SearchOption.TopDirectoryOnly))
+                {
+                    string name = Path.GetFileName(file);
+                    if (needles.Any(n => name.Contains(n, StringComparison.OrdinalIgnoreCase)))
+                        return true;
+                }
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+            }
+        }
+
+        return false;
+    }
+
+    private static IEnumerable<string> EnumerateModsDirectories(LaunchInstanceInfo instance)
+    {
+        yield return Path.Combine(instance.InstanceDirectory, "mods");
+        DirectoryInfo versionDirectory = new(instance.InstanceDirectory);
+        if (versionDirectory.Parent?.Parent is { } minecraftRoot)
+            yield return Path.Combine(minecraftRoot.FullName, "mods");
     }
 
     public static bool IsValid(LaunchInstanceInfo instance)

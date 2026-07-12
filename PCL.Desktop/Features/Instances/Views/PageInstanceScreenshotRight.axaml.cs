@@ -56,8 +56,20 @@ public partial class PageInstanceScreenshotRight : MyPageRight
 
     public void SetInstance(LaunchInstanceInfo instance)
     {
-        _instance = instance;
-        _screenshotPath = Path.Combine(GetMinecraftRootFromInstance(instance), "screenshots");
+        _instance = instance ?? throw new ArgumentNullException(nameof(instance));
+        _ = SetInstanceAsync(instance);
+    }
+
+    private async Task SetInstanceAsync(LaunchInstanceInfo instance)
+    {
+        string gameDir = await InstanceGameDirectory.ResolveAsync(instance).ConfigureAwait(true);
+        if (_instance is null ||
+            !string.Equals(_instance.InstanceDirectory, instance.InstanceDirectory, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _screenshotPath = Path.Combine(gameDir, "screenshots");
         if (!Directory.Exists(_screenshotPath))
             Directory.CreateDirectory(_screenshotPath);
 
@@ -65,12 +77,12 @@ public partial class PageInstanceScreenshotRight : MyPageRight
             PanScroll.ScrollToHome();
         if (_isLoad)
         {
-            _ = Reload();
+            await Reload().ConfigureAwait(true);
             return;
         }
 
         _isLoad = true;
-        Dispatcher.UIThread.Post(async () => await Reload().ConfigureAwait(true));
+        await Reload().ConfigureAwait(true);
     }
 
     public async Task Reload()

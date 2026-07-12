@@ -62,11 +62,12 @@ public partial class PageInstanceServerRight : MyPageRight
             return;
         }
 
-        string minecraftRoot = GetMinecraftRootFromInstance(_instance);
+        // servers.dat lives under the active game directory (isolated version folder or shared root).
+        string gameDir = InstanceGameDirectory.ResolveAsync(_instance).GetAwaiter().GetResult();
         IReadOnlyList<MinecraftServerEntry> servers;
         try
         {
-            servers = MinecraftServerListService.LoadAsync(minecraftRoot).GetAwaiter().GetResult();
+            servers = MinecraftServerListService.LoadAsync(gameDir).GetAwaiter().GetResult();
         }
         catch (Exception)
         {

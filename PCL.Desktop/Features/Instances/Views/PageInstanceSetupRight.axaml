@@ -132,7 +132,7 @@
                             x:Name="SliderRamCustom"
                             Tag="VersionRamCustom"
                             MaxValue="49"
-                            Value="13"
+                            Value="15"
                             Margin="0,0,12,0" />
                     </Grid>
                     <Grid x:Name="PanRamDisplay" Margin="0,11,2,0">

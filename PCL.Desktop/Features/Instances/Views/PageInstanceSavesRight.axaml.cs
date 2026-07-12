@@ -52,8 +52,20 @@ public partial class PageInstanceSavesRight : MyPageRight
 
     public void SetInstance(LaunchInstanceInfo instance)
     {
-        _instance = instance;
-        _worldPath = Path.Combine(GetMinecraftRootFromInstance(instance), "saves");
+        _instance = instance ?? throw new ArgumentNullException(nameof(instance));
+        _ = SetInstanceAsync(instance);
+    }
+
+    private async Task SetInstanceAsync(LaunchInstanceInfo instance)
+    {
+        string gameDir = await InstanceGameDirectory.ResolveAsync(instance).ConfigureAwait(true);
+        if (_instance is null ||
+            !string.Equals(_instance.InstanceDirectory, instance.InstanceDirectory, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _worldPath = Path.Combine(gameDir, "saves");
         if (!Directory.Exists(_worldPath))
             Directory.CreateDirectory(_worldPath);
 

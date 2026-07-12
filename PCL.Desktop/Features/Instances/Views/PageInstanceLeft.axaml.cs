@@ -30,6 +30,8 @@ public partial class PageInstanceLeft : MyPageLeft
 {
     private LaunchInstanceInfo? _instance;
     private bool _isModable;
+    private bool _hasShaderSupport;
+    private bool _hasSchematicSupport;
 
     public PageInstanceLeft()
     {
@@ -50,11 +52,23 @@ public partial class PageInstanceLeft : MyPageLeft
     {
         _instance = instance;
         _isModable = InstanceDisplayHelper.IsModable(instance);
-        RefreshModDisabled();
+        _hasShaderSupport = _isModable && InstanceDisplayHelper.HasShaderSupport(instance);
+        _hasSchematicSupport = _isModable && InstanceDisplayHelper.HasSchematicSupport(instance);
+        RefreshResourceNavVisibility();
     }
 
-    public InstancePageSubType NormalizePage(InstancePageSubType page) =>
-        page == InstancePageSubType.Mods && !_isModable ? InstancePageSubType.ModsDisabled : page;
+    public InstancePageSubType NormalizePage(InstancePageSubType page)
+    {
+        if (page == InstancePageSubType.Mods && !_isModable)
+            return InstancePageSubType.ModsDisabled;
+        if (page == InstancePageSubType.Shaders && !_hasShaderSupport)
+            return InstancePageSubType.Overall;
+        if (page == InstancePageSubType.Schematics && !_hasSchematicSupport)
+            return InstancePageSubType.Overall;
+        if (page == InstancePageSubType.ModsDisabled && _isModable)
+            return InstancePageSubType.Mods;
+        return page;
+    }
 
     public void PageChange(InstancePageSubType page, bool force = false)
     {
@@ -83,13 +97,23 @@ public partial class PageInstanceLeft : MyPageLeft
             PageChange(page);
     }
 
-    private void RefreshModDisabled()
+    private void RefreshResourceNavVisibility()
     {
+        // WPF PageVersionLeft:
+        // - Mod only when a mod loader is installed (else show disabled stub)
+        // - 光影 only when Iris/OptiFine/… present
+        // - 投影 only when Litematica/… present
         if (this.FindControl<MyListItem>("ItemMod") is { } itemMod)
             itemMod.IsVisible = _instance is null || _isModable;
 
         if (this.FindControl<MyListItem>("ItemModDisabled") is { } itemModDisabled)
             itemModDisabled.IsVisible = _instance is not null && !_isModable;
+
+        if (this.FindControl<MyListItem>("ItemShader") is { } itemShader)
+            itemShader.IsVisible = _instance is null || _hasShaderSupport;
+
+        if (this.FindControl<MyListItem>("ItemSchematic") is { } itemSchematic)
+            itemSchematic.IsVisible = _instance is null || _hasSchematicSupport;
     }
 
     private void RefreshButton_Click(object? sender, EventArgs e)

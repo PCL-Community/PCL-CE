@@ -2,10 +2,12 @@
 // Modifications Copyright (c) 2026 PCL N contributors.
 // Licensed under the Apache License, Version 2.0.
 
+using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Application.Instances;
 using PCL.Application.Launching;
@@ -32,6 +34,7 @@ public partial class PageInstanceSetupRight : MyPageRight
     private int _globalMemorySolution;
     private int _globalCustomMemorySize = 15;
     private int _ramTextLeft = 2;
+    private int _ramTextRight = 1;
     private int _javaLoadVersion;
 
     public PageInstanceSetupRight()
@@ -82,12 +85,39 @@ public partial class PageInstanceSetupRight : MyPageRight
 
     public void SetInstance(LaunchInstanceInfo instance)
     {
+        _instance = instance ?? throw new ArgumentNullException(nameof(instance));
+        // Never block the UI thread on metadata IO — load async and paint when ready.
+        _ = SetInstanceAsync(instance);
+    }
+
+    public async Task SetInstanceAsync(LaunchInstanceInfo instance)
+    {
+        ArgumentNullException.ThrowIfNull(instance);
         _instance = instance;
-        _metadata = InstanceMetadataStore.LoadAsync(instance.InstanceDirectory).GetAwaiter().GetResult();
+        string directory = instance.InstanceDirectory;
+
+        InstanceMetadata metadata;
+        try
+        {
+            metadata = await InstanceMetadataStore.LoadAsync(directory).ConfigureAwait(true);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+        {
+            metadata = new InstanceMetadata();
+        }
+
+        // Stale if user switched instances mid-load.
+        if (_instance is null ||
+            !string.Equals(_instance.InstanceDirectory, directory, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _metadata = metadata;
         ReloadGlobalMemorySettings();
         ApplyMetadata();
         RefreshRam(showAnim: false);
-        _ = RefreshJavaComboBoxAsync();
+        await RefreshJavaComboBoxAsync().ConfigureAwait(true);
     }
 
     public override void Dispose()
@@ -468,6 +498,8 @@ public partial class PageInstanceSetupRight : MyPageRight
             }
         }
 
+        // Immediate + deferred — same anti-flicker pattern as global Setup.Launch.
+        RefreshRamText();
         Dispatcher.UIThread.Post(RefreshRamText, DispatcherPriority.Loaded);
     }
 
@@ -548,6 +580,7 @@ public partial class PageInstanceSetupRight : MyPageRight
 
     private void RefreshRamText()
     {
+        // Same hysteresis as PageSetupLaunch.RefreshRamText — prevents “游戏分配” L/R flicker.
         if (this.FindControl<Grid>("PanRamDisplay") is not { } panRamDisplay ||
             this.FindControl<Avalonia.Controls.Shapes.Rectangle>("RectRamUsed") is not { } rectRamUsed ||
             this.FindControl<TextBlock>("LabRamGame") is not { } labRamGame ||
@@ -564,15 +597,32 @@ public partial class PageInstanceSetupRight : MyPageRight
         if (totalWidth <= 0d)
             return;
 
+        labRamGame.MaxWidth = double.PositiveInfinity;
+        labRamGameTitle.MaxWidth = double.PositiveInfinity;
         double labGameWidth = GetTextWidth(labRamGame);
         double labUsedWidth = GetTextWidth(labRamUsed);
         double labTotalWidth = GetTextWidth(labRamTotal);
         double labGameTitleWidth = GetTextWidth(labRamGameTitle);
         double labUsedTitleWidth = GetTextWidth(labRamUsedTitle);
+        double gameAvailableWidth = Math.Max(0d, totalWidth - rectUsedWidth - 2d);
+        labRamGame.MaxWidth = gameAvailableWidth;
+        labRamGameTitle.MaxWidth = gameAvailableWidth;
+        labRamGame.TextTrimming = TextTrimming.CharacterEllipsis;
+        labRamGameTitle.TextTrimming = TextTrimming.CharacterEllipsis;
 
-        int left = rectUsedWidth - 30d < labUsedWidth || rectUsedWidth - 30d < labUsedTitleWidth
-            ? 0
-            : rectUsedWidth - 25d < labUsedWidth + labTotalWidth ? 1 : 2;
+        int left;
+        if (rectUsedWidth - 30d < labUsedWidth || rectUsedWidth - 30d < labUsedTitleWidth)
+            left = 0;
+        else if (rectUsedWidth - 25d < labUsedWidth + labTotalWidth)
+            left = 1;
+        else
+            left = 2;
+
+        if (left > _ramTextLeft && rectUsedWidth < Math.Max(labUsedWidth, labUsedTitleWidth) + 46d)
+            left = _ramTextLeft;
+        if (left == 2 && _ramTextLeft < 2 && rectUsedWidth < labUsedWidth + labTotalWidth + 41d)
+            left = _ramTextLeft;
+
         if (_ramTextLeft != left)
         {
             _ramTextLeft = left;
@@ -585,10 +635,14 @@ public partial class PageInstanceSetupRight : MyPageRight
                     totalWidth < labGameTitleWidth + 2d + rectUsedWidth
             ? 0
             : 1;
+        double rightRequiredWidth = Math.Max(labGameWidth, labGameTitleWidth) + 2d + rectUsedWidth;
+        if (_ramTextRight == 0 && right == 1 && totalWidth < rightRequiredWidth + 16d)
+            right = 0;
+
         if (right == 0)
         {
-            labRamGame.Margin = new Thickness(Math.Max(2d, totalWidth - labGameWidth), 3d, 0d, 0d);
-            labRamGameTitle.Margin = new Thickness(Math.Max(2d, totalWidth - labGameTitleWidth), 0d, 0d, 5d);
+            labRamGame.Margin = new Thickness(Math.Max(rectUsedWidth + 2d, totalWidth - labGameWidth), 3d, 0d, 0d);
+            labRamGameTitle.Margin = new Thickness(Math.Max(rectUsedWidth + 2d, totalWidth - labGameTitleWidth), 0d, 0d, 5d);
         }
         else
         {
@@ -596,13 +650,18 @@ public partial class PageInstanceSetupRight : MyPageRight
             labRamGameTitle.Margin = new Thickness(2d + rectUsedWidth, 0d, 0d, 5d);
         }
 
+        _ramTextRight = right;
     }
 
     private void ReloadGlobalMemorySettings()
     {
         LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-        _globalMemorySolution = settings.GetIntegerOption(LauncherSettingKeys.LaunchRamType, 0);
-        _globalCustomMemorySize = settings.GetIntegerOption(LauncherSettingKeys.LaunchRamCustom, 15);
+        _globalMemorySolution = settings.GetIntegerOption(
+            LauncherSettingKeys.LaunchRamType,
+            LauncherSettingDefaults.GetInteger("LaunchRamType"));
+        _globalCustomMemorySize = settings.GetIntegerOption(
+            LauncherSettingKeys.LaunchRamCustom,
+            LauncherSettingDefaults.GetInteger("LaunchRamCustom"));
     }
 
     private static double GetTextWidth(TextBlock textBlock)

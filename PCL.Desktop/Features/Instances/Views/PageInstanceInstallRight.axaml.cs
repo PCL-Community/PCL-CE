@@ -472,9 +472,17 @@ public partial class PageInstanceInstallRight : MyPageRight
         MinecraftVersionJsonInfo versionInfo = MinecraftVersionJsonInspector.Read(instance);
         string minecraftVersionId = versionInfo.MinecraftVersionId;
         IReadOnlyList<string> libraries = versionInfo.Libraries;
-        string? forge = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "net.minecraftforge:forge:", "minecraftforge") ?? DetectLoader(instance, "forge");
+        // NeoForge first — DetectLoader("forge") would also match "neoforge" filenames.
+        string? neoForge = MinecraftLoaderLibraryDetector.DetectVersion(
+                               libraries,
+                               "net.neoforged:neoforge:",
+                               "net.neoforge:forge:")
+                           ?? DetectLoader(instance, "neoforge");
+        string? forge = string.IsNullOrWhiteSpace(neoForge)
+            ? MinecraftLoaderLibraryDetector.DetectVersion(libraries, "net.minecraftforge:forge:")
+              ?? DetectLoaderExcluding(instance, include: "forge", exclude: "neoforge")
+            : null;
         string? cleanroom = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "com.cleanroommc:cleanroom:", "cleanroom") ?? DetectLoader(instance, "cleanroom");
-        string? neoForge = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "net.neoforged:neoforge:", "net.neoforge:forge:", "neoforge") ?? DetectLoader(instance, "neoforge");
         bool hasLegacyFabricLibraries = libraries.Any(library => library.Contains("net.legacyfabric:", StringComparison.OrdinalIgnoreCase));
         string? fabricLoaderVersion = MinecraftLoaderLibraryDetector.DetectVersion(libraries, "net.fabricmc:fabric-loader:");
         string? fabric = hasLegacyFabricLibraries ? null : fabricLoaderVersion ?? DetectLoader(instance, "fabric-loader", "fabric");
@@ -632,6 +640,30 @@ public partial class PageInstanceInstallRight : MyPageRight
         {
             string name = Path.GetFileName(file);
             if (needles.Any(needle => name.Contains(needle, StringComparison.OrdinalIgnoreCase)))
+                return SimplifyVersionName(name);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Like <see cref="DetectLoader"/> but skips names containing <paramref name="exclude"/>
+    /// (used so "forge" does not match "neoforge-…").
+    /// </summary>
+    private static string? DetectLoaderExcluding(
+        LaunchInstanceInfo instance,
+        string include,
+        string exclude)
+    {
+        if (!Directory.Exists(instance.InstanceDirectory))
+            return null;
+
+        foreach (string file in Directory.EnumerateFiles(instance.InstanceDirectory, "*", SearchOption.TopDirectoryOnly))
+        {
+            string name = Path.GetFileName(file);
+            if (name.Contains(exclude, StringComparison.OrdinalIgnoreCase))
+                continue;
+            if (name.Contains(include, StringComparison.OrdinalIgnoreCase))
                 return SimplifyVersionName(name);
         }
 
@@ -853,8 +885,8 @@ public partial class PageInstanceInstallRight : MyPageRight
             (MinecraftLoaderKind.LegacyFabric, hasLegacyFabricLibraries ? fabricLoaderVersion : null),
             (MinecraftLoaderKind.Fabric, hasLegacyFabricLibraries ? null : fabricLoaderVersion),
             (MinecraftLoaderKind.Quilt, MinecraftLoaderLibraryDetector.DetectVersion(libraries, "org.quiltmc:quilt-loader:")),
-            (MinecraftLoaderKind.Forge, MinecraftLoaderLibraryDetector.DetectVersion(libraries, "net.minecraftforge:forge:", "minecraftforge")),
             (MinecraftLoaderKind.NeoForge, MinecraftLoaderLibraryDetector.DetectVersion(libraries, "net.neoforged:neoforge:", "net.neoforge:forge:")),
+            (MinecraftLoaderKind.Forge, MinecraftLoaderLibraryDetector.DetectVersion(libraries, "net.minecraftforge:forge:")),
             (MinecraftLoaderKind.Cleanroom, MinecraftLoaderLibraryDetector.DetectVersion(libraries, "com.cleanroommc:cleanroom:")),
             (MinecraftLoaderKind.LabyMod, MinecraftLoaderLibraryDetector.DetectVersion(libraries, "labymod")),
             (MinecraftLoaderKind.LiteLoader, MinecraftLoaderLibraryDetector.DetectVersion(libraries, "liteloader"))
