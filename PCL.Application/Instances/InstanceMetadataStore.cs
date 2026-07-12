@@ -11,7 +11,7 @@ public static class InstanceMetadataStore
 {
     public const string MetadataDirectoryName = "PCL";
     public const string MetadataFileName = "InstanceMetadata.json";
-    private static readonly ConcurrentDictionary<string, SemaphoreSlim> SaveLocks = new(StringComparer.Ordinal);
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> AccessLocks = new(StringComparer.Ordinal);
 
     public static string GetMetadataPath(string instanceDirectory)
     {
@@ -24,11 +24,14 @@ public static class InstanceMetadataStore
         CancellationToken cancellationToken = default)
     {
         string metadataPath = GetMetadataPath(instanceDirectory);
-        if (!File.Exists(metadataPath))
-            return new InstanceMetadata();
+        SemaphoreSlim accessLock = AccessLocks.GetOrAdd(metadataPath, static _ => new SemaphoreSlim(1, 1));
+        await accessLock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
+            if (!File.Exists(metadataPath))
+                return new InstanceMetadata();
+
             await using FileStream stream = new(
                 metadataPath,
                 FileMode.Open,
@@ -53,6 +56,10 @@ public static class InstanceMetadataStore
         {
             return new InstanceMetadata();
         }
+        finally
+        {
+            accessLock.Release();
+        }
     }
 
     public static async Task SaveAsync(
@@ -70,7 +77,7 @@ public static class InstanceMetadataStore
         }
 
         string metadataPath = GetMetadataPath(instanceDirectory);
-        SemaphoreSlim saveLock = SaveLocks.GetOrAdd(metadataPath, static _ => new SemaphoreSlim(1, 1));
+        SemaphoreSlim saveLock = AccessLocks.GetOrAdd(metadataPath, static _ => new SemaphoreSlim(1, 1));
         await saveLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         string temporaryPath = string.Empty;
         try

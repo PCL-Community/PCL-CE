@@ -20,6 +20,7 @@ public partial class PageInstanceManageRight : MyPageRight
     private LaunchInstanceInfo? _instance;
     private InstanceMetadata _metadata = new();
     private readonly SemaphoreSlim _metadataWriteLock = new(1, 1);
+    private Task _pendingMetadataWrite = Task.CompletedTask;
     private bool _isApplyingMetadata;
 
     public PageInstanceManageRight()
@@ -50,6 +51,8 @@ public partial class PageInstanceManageRight : MyPageRight
     public event EventHandler<LaunchInstanceInfo>? ResetSettingsRequested;
 
     public event EventHandler<LaunchInstanceInfo>? PatchCoreRequested;
+
+    public Task WaitForPendingMetadataWritesAsync() => _pendingMetadataWrite;
 
     public void SetInstance(LaunchInstanceInfo instance)
     {
@@ -232,9 +235,14 @@ public partial class PageInstanceManageRight : MyPageRight
             return;
         }
 
-        string logoPath = (comboBox.SelectedItem as MyComboBoxItem)?.Tag?.ToString() ?? string.Empty;
+        if (comboBox.SelectedItem is not MyComboBoxItem selectedItem ||
+            string.IsNullOrWhiteSpace(selectedItem.Tag?.ToString()))
+        {
+            return;
+        }
+
         TryDeleteCustomLogo(_instance);
-        await UpdateMetadataAsync(metadata => metadata with { LogoPath = logoPath }).ConfigureAwait(true);
+        await PersistSelectedDisplayOptionsAsync().ConfigureAwait(true);
     }
 
     private async void ComboDisplayType_SelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -242,8 +250,10 @@ public partial class PageInstanceManageRight : MyPageRight
         if (_isApplyingMetadata || sender is not MyComboBox comboBox)
             return;
 
-        int selectedIndex = Math.Max(0, comboBox.SelectedIndex);
-        await UpdateMetadataAsync(metadata => metadata with { CardType = selectedIndex }).ConfigureAwait(true);
+        if (comboBox.SelectedIndex < 0)
+            return;
+
+        await PersistSelectedDisplayOptionsAsync().ConfigureAwait(true);
     }
 
     private async Task SelectCustomLogoAsync()
@@ -294,10 +304,35 @@ public partial class PageInstanceManageRight : MyPageRight
             await source.CopyToAsync(destination).ConfigureAwait(false);
         }
 
-        await UpdateMetadataAsync(metadata => metadata with
+        await TrackMetadataUpdate(metadata => metadata with
         {
             LogoPath = InstanceDisplayHelper.CustomLogoRelativePath
         }).ConfigureAwait(true);
+    }
+
+    private Task TrackMetadataUpdate(Func<InstanceMetadata, InstanceMetadata> update)
+    {
+        Task task = UpdateMetadataAsync(update);
+        _pendingMetadataWrite = task;
+        return task;
+    }
+
+    private Task PersistSelectedDisplayOptionsAsync()
+    {
+        if (this.FindControl<MyComboBox>("ComboDisplayLogo") is not { SelectedItem: MyComboBoxItem logoItem } ||
+            string.IsNullOrWhiteSpace(logoItem.Tag?.ToString()) ||
+            this.FindControl<MyComboBox>("ComboDisplayType") is not { SelectedIndex: >= 0 } typeCombo)
+        {
+            return Task.CompletedTask;
+        }
+
+        string logoPath = logoItem.Tag!.ToString()!;
+        int cardType = typeCombo.SelectedIndex;
+        return TrackMetadataUpdate(metadata => metadata with
+        {
+            LogoPath = logoPath,
+            CardType = cardType
+        });
     }
 
     private async Task UpdateMetadataAsync(Func<InstanceMetadata, InstanceMetadata> update)
@@ -312,24 +347,23 @@ public partial class PageInstanceManageRight : MyPageRight
             InstanceMetadata metadata = update(_metadata);
             _metadata = metadata;
             await InstanceMetadataStore.SaveAsync(instance.InstanceDirectory, metadata).ConfigureAwait(false);
-
-            await RunOnUiThreadAsync(() =>
-            {
-                if (_instance is null ||
-                    !string.Equals(_instance.InstanceDirectory, instance.InstanceDirectory, StringComparison.OrdinalIgnoreCase))
-                {
-                    return;
-                }
-
-                _metadata = metadata;
-                PopulateDisplayItem(instance);
-                ApplyMetadataToControls();
-            }).ConfigureAwait(false);
         }
         finally
         {
             _metadataWriteLock.Release();
         }
+
+        await RunOnUiThreadAsync(() =>
+        {
+            if (_instance is null ||
+                !string.Equals(_instance.InstanceDirectory, instance.InstanceDirectory, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            PopulateDisplayItem(instance);
+            ApplyMetadataToControls();
+        }).ConfigureAwait(false);
     }
 
     private void SelectLogoItem(string logoPath)

@@ -65,4 +65,34 @@ public sealed class InstanceMetadataStoreTests
                 Directory.Delete(root, recursive: true);
         }
     }
+
+    [TestMethod]
+    public async Task LoadAsync_DuringSaveNeverReturnsTransientDefaultMetadata()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "pcl-instance-metadata-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+
+        try
+        {
+            await InstanceMetadataStore.SaveAsync(root, new InstanceMetadata { Description = "before" });
+
+            for (int iteration = 0; iteration < 20; iteration++)
+            {
+                string expected = $"after-{iteration}";
+                Task save = InstanceMetadataStore.SaveAsync(root, new InstanceMetadata { Description = expected });
+                Task<InstanceMetadata>[] reads = Enumerable.Range(0, 20)
+                    .Select(_ => InstanceMetadataStore.LoadAsync(root))
+                    .ToArray();
+
+                await Task.WhenAll(reads.Cast<Task>().Append(save));
+                Assert.IsTrue(reads.All(static read => !string.IsNullOrEmpty(read.Result.Description)));
+                Assert.AreEqual(expected, (await InstanceMetadataStore.LoadAsync(root)).Description);
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
 }
