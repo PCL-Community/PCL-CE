@@ -202,7 +202,10 @@ internal static class ModStyle
 
                 if (isColorCode)
                 {
+                    var prevColor = color;
                     if (!MotdRenderer.TryGetColorFromCode(c.ToString(), isDarkMode, out color))
+                    {
+                        color = prevColor; // out 会将 color 置为 null，统一恢复为之前的颜色
                         switch (c)
                         {
                             // 格式化代码
@@ -252,6 +255,7 @@ internal static class ModStyle
                                 break;
                             }
                         }
+                    }
 
                     if (!string.IsNullOrEmpty(curRun.Text) && c.ToString() != "k" && c.ToString() != "K") // 遇到格式代码但是有文本，重开一个Run
                     {
