@@ -4,6 +4,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Runtime.Loader;
 using PCL.Application.Hosting;
 
 namespace PCL.Desktop.Hosting;
@@ -63,7 +64,8 @@ internal static class EmbeddedPluginLoader
 
         using MemoryStream buffer = new();
         resource.CopyTo(buffer);
-        return Assembly.Load(buffer.ToArray());
+        buffer.Position = 0;
+        return AssemblyLoadContext.Default.LoadFromStream(buffer);
     }
 
     private static void LoadRequiredDependency(string resourceName)

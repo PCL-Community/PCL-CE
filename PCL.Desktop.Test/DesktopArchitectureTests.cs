@@ -330,7 +330,7 @@ public sealed class DesktopArchitectureTests
         StringAssert.Contains(projectSource, "PCL.Desktop.Embedded.jsoncanonicalizer.dll");
         StringAssert.Contains(projectSource, "PCL.Desktop.Embedded.es6numberserializer.dll");
         StringAssert.Contains(projectSource, "PublishTrimmed>false");
-        StringAssert.Contains(loaderSource, "Assembly.Load(buffer.ToArray())");
+        StringAssert.Contains(loaderSource, "AssemblyLoadContext.Default.LoadFromStream(buffer)");
         StringAssert.Contains(loaderSource, "if (!HasResource(ResourceName))");
         StringAssert.Contains(loaderSource, "LoadResourceAssembly(AbstractionsResourceName)");
         StringAssert.Contains(loaderSource, "LoadRequiredDependency(BouncyCastleResourceName)");
