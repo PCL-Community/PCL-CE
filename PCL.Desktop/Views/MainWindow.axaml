@@ -339,10 +339,10 @@
 
                     </Grid.ColumnDefinitions>
 
-                    <!-- WPF: left sub-nav sits on frosted ColorBrushTransparentBackground over wallpaper. -->
+                    <!-- WPF FormMain.RectLeftBackground: ColorBrushBackgroundTransparentSidebar over wallpaper. -->
                     <Border Grid.Column="0" Grid.IsSharedSizeScope="True"
                             ClipToBounds="True"
-                            Background="{DynamicResource ColorBrushTransparentBackground}">
+                            Background="{DynamicResource ColorBrushBackgroundTransparentSidebar}">
 
                         <Border x:Name="PanMainLeft"
 
@@ -436,14 +436,14 @@
 
                 </controls:BlurBorder>
 
-                <!-- Kept for WPF FormMain name compatibility; frosted fill is on PanMainLeft. -->
+                <!-- Name-compat only; live frosted fill is on PanMainLeft host (WPF ColorBrushBackgroundTransparentSidebar). -->
                 <local:AnimatedBackgroundGrid x:Name="RectLeftBackground"
                                               Grid.Row="1" Grid.Column="1"
                                               HorizontalAlignment="Left"
                                               Width="0"
                                               IsHitTestVisible="False"
                                               IsVisible="False"
-                                              BackgroundBrush="{DynamicResource ColorBrushTransparentBackground}" />
+                                              BackgroundBrush="{DynamicResource ColorBrushBackgroundTransparentSidebar}" />
 
                 <Rectangle x:Name="RectLeftShadow"
                            Grid.Row="1" Grid.Column="1"

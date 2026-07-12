@@ -17,19 +17,26 @@ public class MyPageLeft : Grid
 
     public MyPageLeft()
     {
-        // WPF left pages read as frosted panels over wallpaper (ColorBrushTransparentBackground).
-        // Host Border also sets this; this covers pages not hosted under PanMainLeft.
+        // WPF FormMain.RectLeftBackground uses ColorBrushBackgroundTransparentSidebar (#F1FFFFFF).
         if (Avalonia.Application.Current?.TryGetResource(
-                "ColorBrushTransparentBackground",
+                "ColorBrushBackgroundTransparentSidebar",
                 Avalonia.Application.Current.ActualThemeVariant,
                 out object? resource) == true &&
             resource is IBrush frosted)
         {
             Background = frosted;
         }
+        else if (Avalonia.Application.Current?.TryGetResource(
+                     "ColorBrushTransparentBackground",
+                     Avalonia.Application.Current.ActualThemeVariant,
+                     out object? fallback) == true &&
+                 fallback is IBrush cardFrosted)
+        {
+            Background = cardFrosted;
+        }
         else
         {
-            Background = new SolidColorBrush(Color.Parse("#d2fbfbfb"));
+            Background = new SolidColorBrush(Color.Parse("#F1FFFFFF"));
         }
     }
 

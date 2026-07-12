@@ -51,6 +51,8 @@
     <SolidColorBrush x:Key="ColorBrushTransparent" Color="#00ffffff" />
     <SolidColorBrush x:Key="ColorBrushSemiTransparent" Color="#01eaf2fe" />
     <SolidColorBrush x:Key="ColorBrushTransparentBackground" Color="#d2fbfbfb" />
+    <!-- WPF Application.xaml: left sub-nav frosted strip (FormMain.RectLeftBackground) -->
+    <SolidColorBrush x:Key="ColorBrushBackgroundTransparentSidebar" Color="#F1FFFFFF" />
     <SolidColorBrush x:Key="ColorBrushBackground" Color="#fbfbfb" />
     <SolidColorBrush x:Key="ColorBrushToolTip" Color="#e5ffffff" />
 
