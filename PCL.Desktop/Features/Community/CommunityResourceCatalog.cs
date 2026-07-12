@@ -507,7 +507,7 @@ public sealed class ModrinthCommunityResourceCatalog : ICommunityResourceCatalog
 
     private static string? NullIfWhiteSpace(string value) => string.IsNullOrWhiteSpace(value) ? null : value;
 
-    private static IReadOnlyList<string> ReadStringArray(JsonElement element, string name)
+    private static List<string> ReadStringArray(JsonElement element, string name)
     {
         if (!TryGetProperty(element, name, out JsonElement array) || array.ValueKind != JsonValueKind.Array)
             return [];

@@ -58,7 +58,10 @@ public partial class PageCommunityDetail : MyPageRight, IDisposable
         SetLoading(false);
     }
 
+    // Host may subscribe for title-bar / gesture back; currently title bar owns navigation.
+#pragma warning disable CS0067
     public event EventHandler? BackRequested;
+#pragma warning restore CS0067
 
     public event EventHandler<CommunityResourceEntry>? OpenWebRequested;
 

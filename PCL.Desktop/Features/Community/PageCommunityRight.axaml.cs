@@ -455,7 +455,7 @@ public partial class PageCommunityRight : MyPageRight, IDisposable
     }
 
     /// <summary>MyCompItem-style row: icon · title · description · downloads/time/source · actions.</summary>
-    private Control CreateCompItem(CommunityResourceEntry entry, CommunitySearchOptions options)
+    private MyListItem CreateCompItem(CommunityResourceEntry entry, CommunitySearchOptions options)
     {
         MyIconButton website = new()
         {

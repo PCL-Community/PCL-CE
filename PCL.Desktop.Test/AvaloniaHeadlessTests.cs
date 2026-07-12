@@ -10241,6 +10241,7 @@ public sealed class AvaloniaHeadlessTests
         public Task<IReadOnlyList<CommunityResourceEntry>> SearchAsync(
             CommunityResourceCategory category,
             string query,
+            CommunitySearchOptions? options = null,
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -10259,6 +10260,29 @@ public sealed class AvaloniaHeadlessTests
             ];
             return Task.FromResult(entries);
         }
+
+        public Task<CommunityResourceDownloadFile?> ResolveDownloadAsync(
+            CommunityResourceEntry entry,
+            CommunitySearchOptions? options = null,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult<CommunityResourceDownloadFile?>(null);
+
+        public Task<IReadOnlyList<CommunityResourceVersion>> GetVersionsAsync(
+            CommunityResourceEntry entry,
+            CommunitySearchOptions? options = null,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<CommunityResourceVersion>>([]);
+
+        public Task<CommunityResourceFileIdentity?> LookupFileBySha1Async(
+            string sha1Hex,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult<CommunityResourceFileIdentity?>(null);
+
+        public Task<CommunityResourceVersion?> GetLatestVersionAsync(
+            string projectId,
+            CommunitySearchOptions? options = null,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult<CommunityResourceVersion?>(null);
     }
 
     private sealed class CallbackProgress<T>(Action<T> callback) : IProgress<T>

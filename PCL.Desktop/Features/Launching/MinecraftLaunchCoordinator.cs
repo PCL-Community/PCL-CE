@@ -277,7 +277,7 @@ internal sealed class MinecraftLaunchCoordinator
         return javaExecutablePath;
     }
 
-    public async Task<string> ResolveJavaExecutableAsync(
+    public static async Task<string> ResolveJavaExecutableAsync(
         MinecraftLaunchCoordinatorRequest request,
         CancellationToken cancellationToken)
     {

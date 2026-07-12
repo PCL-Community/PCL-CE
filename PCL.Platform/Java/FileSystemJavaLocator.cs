@@ -513,7 +513,7 @@ public sealed class FileSystemJavaLocator : IJavaLocator
         return true;
     }
 
-    private static IEnumerable<string> EnumerateManagedRuntimeRoots()
+    private static List<string> EnumerateManagedRuntimeRoots()
     {
         List<string> roots = [];
         try

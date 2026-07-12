@@ -235,12 +235,38 @@ jobs:
           chmod +x "$binary" || true
 
           # Smoke-check embedded secrets when CLIENT_ID was required.
+          # Only execute the binary when RID matches this runner (win-arm64 on windows-latest x64
+          # fails with "cannot execute binary file: Exec format error").
           if [[ "${{ inputs.require_ms_client_id }}" == "true" ]]; then
-            if ! "$binary" --validate-secrets; then
-              echo "::error::Published binary is missing embedded secrets (PCL_WRITE_SECRET / CLIENT_ID)."
-              exit 1
+            rid="${{ inputs.runtime_id }}"
+            need_os=""
+            need_arch=""
+            case "$rid" in
+              win-x64) need_os=Windows; need_arch=X64 ;;
+              win-arm64) need_os=Windows; need_arch=ARM64 ;;
+              linux-x64) need_os=Linux; need_arch=X64 ;;
+              linux-arm64) need_os=Linux; need_arch=ARM64 ;;
+              osx-x64) need_os=macOS; need_arch=X64 ;;
+              osx-arm64) need_os=macOS; need_arch=ARM64 ;;
+            esac
+
+            can_execute=false
+            if [[ -n "$need_os" && -n "$need_arch" &&
+                  "${{ runner.os }}" == "$need_os" &&
+                  "${{ runner.arch }}" == "$need_arch" ]]; then
+              can_execute=true
             fi
-            echo "Embedded secrets validation passed."
+
+            if [[ "$can_execute" == "true" ]]; then
+              if ! "$binary" --validate-secrets; then
+                echo "::error::Published binary is missing embedded secrets (PCL_WRITE_SECRET / CLIENT_ID)."
+                exit 1
+              fi
+              echo "Embedded secrets validation passed (native execute)."
+            else
+              echo "Skipping native --validate-secrets for cross-arch RID '$rid' on ${{ runner.os }}/${{ runner.arch }}."
+              echo "Secret presence was already enforced at build time (require_ms_client_id + PCL_WRITE_SECRET)."
+            fi
           fi
 
       - name: Upload Avalonia build artifact

@@ -4649,7 +4649,7 @@ public partial class MainWindow : Window, IDisposable
             InstanceMetadata metadata = await InstanceMetadataStore.LoadAsync(instance.InstanceDirectory)
                 .ConfigureAwait(true);
             LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
-            string javaPath = await _launchCoordinator.ResolveJavaExecutableAsync(
+            string javaPath = await MinecraftLaunchCoordinator.ResolveJavaExecutableAsync(
                     new MinecraftLaunchCoordinatorRequest
                     {
                         Instance = instance,

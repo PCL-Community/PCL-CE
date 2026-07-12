@@ -478,7 +478,10 @@ public partial class PageInstanceResourceRight : MyPageRight
         try
         {
             await using FileStream stream = File.OpenRead(path);
+            // SHA-1 is required by Modrinth version_file API (not used for security).
+#pragma warning disable CA5350
             byte[] hash = await SHA1.HashDataAsync(stream).ConfigureAwait(false);
+#pragma warning restore CA5350
             return Convert.ToHexString(hash).ToLowerInvariant();
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
