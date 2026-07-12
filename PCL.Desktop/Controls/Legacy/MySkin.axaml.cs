@@ -15,7 +15,7 @@ namespace PCL.Desktop.Controls.Legacy;
 
 public partial class MySkin : Grid
 {
-    private static readonly HttpClient SkinClient = new() { Timeout = TimeSpan.FromSeconds(15) };
+    private static readonly HttpClient SkinClient = CreateSkinClient();
     public static readonly StyledProperty<string> AddressProperty =
         AvaloniaProperty.Register<MySkin, string>(nameof(Address), string.Empty);
 
@@ -25,6 +25,7 @@ public partial class MySkin : Grid
     private readonly Image? _backImage;
     private readonly Image? _frontImage;
     private readonly Border? _shadow;
+    private Bitmap? _skinBitmap;
     private bool _isSkinMouseDown;
     private int _loadVersion;
 
@@ -87,18 +88,19 @@ public partial class MySkin : Grid
         int loadVersion = Interlocked.Increment(ref _loadVersion);
         try
         {
-            Bitmap bitmap;
+            byte[] bytes;
             if (File.Exists(address))
             {
-                await using FileStream stream = File.OpenRead(address);
-                bitmap = new Bitmap(stream);
+                bytes = await File.ReadAllBytesAsync(address).ConfigureAwait(false);
             }
             else if (Uri.TryCreate(address, UriKind.Absolute, out Uri? uri) &&
                      (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
             {
-                byte[] bytes = await SkinClient.GetByteArrayAsync(uri).ConfigureAwait(false);
-                await using MemoryStream stream = new(bytes, writable: false);
-                bitmap = new Bitmap(stream);
+                uri = NormalizeSkinUri(uri);
+                using HttpResponseMessage response = await SkinClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead)
+                    .ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                bytes = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
             }
             else
             {
@@ -106,23 +108,22 @@ public partial class MySkin : Grid
                 return;
             }
 
-            PixelSize size = bitmap.PixelSize;
-            if (size.Width < 32 || size.Height < 32)
-            {
-                bitmap.Dispose();
-                await ClearIfCurrentAsync(loadVersion).ConfigureAwait(false);
-                return;
-            }
-
-            int scale = Math.Max(1, (int)Math.Round(size.Width / 64d));
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                if (loadVersion != _loadVersion)
+                using MemoryStream stream = new(bytes, writable: false);
+                Bitmap bitmap = new(stream);
+                PixelSize size = bitmap.PixelSize;
+                if (loadVersion != _loadVersion || size.Width < 32 || size.Height < 32)
                 {
                     bitmap.Dispose();
+                    if (loadVersion == _loadVersion)
+                        ClearImages();
                     return;
                 }
 
+                int scale = Math.Max(1, (int)Math.Round(size.Width / 64d));
+                ClearImages();
+                _skinBitmap = bitmap;
                 _backImage!.Source = Crop(bitmap, scale * 8, scale * 8, scale * 8, scale * 8);
                 _frontImage!.Source = size.Width >= 64 && size.Height >= 32
                     ? Crop(bitmap, scale * 40, scale * 8, scale * 8, scale * 8)
@@ -156,6 +157,27 @@ public partial class MySkin : Grid
             _frontImage.Source = null;
         if (_backImage is not null)
             _backImage.Source = null;
+        _skinBitmap?.Dispose();
+        _skinBitmap = null;
+    }
+
+    private static HttpClient CreateSkinClient()
+    {
+        HttpClient client = new() { Timeout = TimeSpan.FromSeconds(15) };
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("PCL-N/1.0");
+        client.DefaultRequestHeaders.Accept.ParseAdd("image/png,image/*;q=0.8");
+        return client;
+    }
+
+    private static Uri NormalizeSkinUri(Uri uri)
+    {
+        if (uri.Scheme == Uri.UriSchemeHttp &&
+            string.Equals(uri.Host, "textures.minecraft.net", StringComparison.OrdinalIgnoreCase))
+        {
+            return new UriBuilder(uri) { Scheme = Uri.UriSchemeHttps, Port = -1 }.Uri;
+        }
+
+        return uri;
     }
 
     public void BtnSkinSaveClick(object? sender, RoutedEventArgs e) => SaveRequested?.Invoke(this, EventArgs.Empty);
