@@ -31,6 +31,7 @@ using PCL.Application.Minecraft.Launch.Arguments;
 using PCL.Application.Settings;
 using PCL.Core.App;
 using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Diagnostics;
 using PCL.Desktop.Features.Community;
 using PCL.Desktop.Hosting;
 using PCL.Desktop.Localization;
@@ -175,7 +176,8 @@ public partial class MainWindow : Window, IDisposable
         {
             _isMainWindowOpened = true;
             StartShowAnimation();
-            Dispatcher.UIThread.Post(MaybeShowSpecialVersionNotice, DispatcherPriority.Background);
+            // WPF FormMain first-run chain: EULA → community welcome → special build notice.
+            Dispatcher.UIThread.Post(MaybeShowFirstRunDialogs, DispatcherPriority.Background);
         };
         SyncTitleOverlayWidth();
         _ = LoadProfilesAsync();
@@ -936,6 +938,99 @@ public partial class MainWindow : Window, IDisposable
                             "不太对哦……"));
                 }
             });
+    }
+
+    private void MaybeShowFirstRunDialogs()
+    {
+        try
+        {
+            LauncherSettings settings = LauncherSettingsPageBinder.LoadSettings();
+            bool eulaAccepted = settings.GetBooleanOption(
+                "SystemEulaAccepted",
+                LauncherSettingDefaults.GetBoolean("SystemEulaAccepted"));
+            if (!eulaAccepted)
+            {
+                ShowFirstLaunchEulaDialog(settings);
+                return;
+            }
+
+            MaybeShowCommunityWelcome(settings);
+        }
+        catch (Exception ex)
+        {
+            DesktopFileLog.Write("[FirstRun] " + ex.Message);
+            MaybeShowSpecialVersionNotice();
+        }
+    }
+
+    private void ShowFirstLaunchEulaDialog(LauncherSettings settings)
+    {
+        string title = AvaloniaLocalizationManager.GetText("Main.Eula.Title", "服务条款与免责声明授权");
+        string message = AvaloniaLocalizationManager.GetText(
+            "Main.Eula.Message",
+            "在使用 PCL 之前，请阅读并同意服务条款与免责声明。");
+        string viewLabel = AvaloniaLocalizationManager.GetText("Main.Eula.View", "查看条款");
+
+        ShowConfirmDialog(
+            title,
+            message + "\n\n" +
+            "点击「同意并继续」表示你已阅读并接受相关条款。\n" +
+            "完整文本见项目仓库 Legal 文档；也可点击「" + viewLabel + "」打开说明。",
+            confirmed =>
+            {
+                if (!confirmed)
+                {
+                    // Secondary opens legal page and keeps app running so user can re-open next launch.
+                    try
+                    {
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = "https://github.com/MuXue1230-owo/PCL-N/blob/dev/PCL.Online/Legal/TERMS_ZH.md",
+                            UseShellExecute = true
+                        });
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+
+                    ShowHint("需同意条款后才能使用，关闭后将退出");
+                    Dispatcher.UIThread.Post(() => Close(), DispatcherPriority.Background);
+                    return;
+                }
+
+                settings.SetBooleanOption("SystemEulaAccepted", true);
+                LauncherSettingsPageBinder.SaveSettings(settings);
+                MaybeShowCommunityWelcome(settings);
+            },
+            "同意并继续",
+            viewLabel,
+            isWarn: false);
+    }
+
+    private void MaybeShowCommunityWelcome(LauncherSettings settings)
+    {
+        string currentVersion = PclBuildInfo.DisplayVersion;
+        string seen = settings.GetTextOption("UiCommunityNoticeVersion", string.Empty);
+        if (string.Equals(seen, currentVersion, StringComparison.Ordinal))
+        {
+            MaybeShowSpecialVersionNotice();
+            return;
+        }
+
+        string title = AvaloniaLocalizationManager.GetText("Update.CommunityNotice.Title", "PCL N Edition");
+        string body = AvaloniaLocalizationManager.GetText(
+            "Update.CommunityNotice.Body",
+            "欢迎使用 Plain Craft Launcher N Edition！\n\n" +
+            "PCL N 是由 MUXUE1230 维护的个人分支，与官方 / 社区版无隶属关系。\n" +
+            "请将问题反馈到本项目的 GitHub Issues。\n\n" +
+            "此提示在每次版本更新后显示一次。");
+        string confirm = AvaloniaLocalizationManager.GetText("Update.CommunityNotice.Confirm", "开始使用");
+
+        ShowTextDialog(title, body, confirm);
+        settings.SetTextOption("UiCommunityNoticeVersion", currentVersion);
+        LauncherSettingsPageBinder.SaveSettings(settings);
+        MaybeShowSpecialVersionNotice();
     }
 
     private void MaybeShowSpecialVersionNotice()
