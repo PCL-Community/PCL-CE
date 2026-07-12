@@ -66,7 +66,7 @@
         <PackageReference Include="Ae.Dns.Client" Version="3.1.0" />
         <PackageReference Include="Stun.Net" Version="9.0.1" />
         <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.3" />
-        <PackageReference Include="Polly" Version="8.6.5" />
+        <PackageReference Include="Polly" Version="8.7.0" />
         <!-- 本地化 -->
         <PackageReference Include="Humanizer.Core.zh-CN" Version="3.0.1" />
         <!-- 日志与遥测 -->
