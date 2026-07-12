@@ -20,15 +20,20 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 $pluginDirectory = Split-Path -Parent $PluginProject
 $pluginAssembly = Join-Path $pluginDirectory "bin\$Configuration\net10.0\PCL.Plugin.dll"
 $pluginAbstractionsAssembly = Join-Path $pluginDirectory "bin\$Configuration\net10.0\PCL.N.Plugin.Abstractions.dll"
-if (-not (Test-Path -LiteralPath $pluginAssembly -PathType Leaf)) {
-    throw "Plugin assembly was not produced: $pluginAssembly"
-}
-if (-not (Test-Path -LiteralPath $pluginAbstractionsAssembly -PathType Leaf)) {
-    throw "Plugin abstractions assembly was not produced: $pluginAbstractionsAssembly"
+$pluginBouncyCastleAssembly = Join-Path $pluginDirectory "bin\$Configuration\net10.0\BouncyCastle.Cryptography.dll"
+$pluginJsonCanonicalizerAssembly = Join-Path $pluginDirectory "bin\$Configuration\net10.0\jsoncanonicalizer.dll"
+$pluginEs6NumberSerializerAssembly = Join-Path $pluginDirectory "bin\$Configuration\net10.0\es6numberserializer.dll"
+foreach ($assembly in @($pluginAssembly, $pluginAbstractionsAssembly, $pluginBouncyCastleAssembly, $pluginJsonCanonicalizerAssembly, $pluginEs6NumberSerializerAssembly)) {
+    if (-not (Test-Path -LiteralPath $assembly -PathType Leaf)) {
+        throw "Plugin assembly was not produced: $assembly"
+    }
 }
 
 dotnet run --project (Join-Path $repoRoot 'PCL.Desktop\PCL.Desktop.csproj') `
     -c $Configuration `
     "-p:PclPluginAssembly=$pluginAssembly" `
-    "-p:PclPluginAbstractionsAssembly=$pluginAbstractionsAssembly"
+    "-p:PclPluginAbstractionsAssembly=$pluginAbstractionsAssembly" `
+    "-p:PclPluginBouncyCastleAssembly=$pluginBouncyCastleAssembly" `
+    "-p:PclPluginJsonCanonicalizerAssembly=$pluginJsonCanonicalizerAssembly" `
+    "-p:PclPluginEs6NumberSerializerAssembly=$pluginEs6NumberSerializerAssembly"
 exit $LASTEXITCODE

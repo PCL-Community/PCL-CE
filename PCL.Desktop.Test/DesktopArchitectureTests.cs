@@ -306,6 +306,9 @@ public sealed class DesktopArchitectureTests
         StringAssert.Contains(reusable, "PublishSingleFile=true");
         StringAssert.Contains(reusable, "gh release download --repo MuXue1230-owo/PCL.Plugin");
         StringAssert.Contains(reusable, "PclPluginAssembly");
+        StringAssert.Contains(reusable, "PclPluginBouncyCastleAssembly");
+        StringAssert.Contains(reusable, "PclPluginJsonCanonicalizerAssembly");
+        StringAssert.Contains(reusable, "PclPluginEs6NumberSerializerAssembly");
         StringAssert.Contains(stable, "include_plugin: true");
         StringAssert.Contains(beta, "include_plugin: true");
         Assert.IsFalse(reusable.Contains("Plain Craft Launcher 2", StringComparison.Ordinal));
@@ -323,9 +326,16 @@ public sealed class DesktopArchitectureTests
 
         StringAssert.Contains(projectSource, "PCL.Desktop.Embedded.PCL.Plugin.dll");
         StringAssert.Contains(projectSource, "PCL.Desktop.Embedded.PCL.N.Plugin.Abstractions.dll");
+        StringAssert.Contains(projectSource, "PCL.Desktop.Embedded.BouncyCastle.Cryptography.dll");
+        StringAssert.Contains(projectSource, "PCL.Desktop.Embedded.jsoncanonicalizer.dll");
+        StringAssert.Contains(projectSource, "PCL.Desktop.Embedded.es6numberserializer.dll");
         StringAssert.Contains(projectSource, "PublishTrimmed>false");
         StringAssert.Contains(loaderSource, "Assembly.Load(buffer.ToArray())");
+        StringAssert.Contains(loaderSource, "if (!HasResource(ResourceName))");
         StringAssert.Contains(loaderSource, "LoadResourceAssembly(AbstractionsResourceName)");
+        StringAssert.Contains(loaderSource, "LoadRequiredDependency(BouncyCastleResourceName)");
+        StringAssert.Contains(loaderSource, "LoadRequiredDependency(JsonCanonicalizerResourceName)");
+        StringAssert.Contains(loaderSource, "LoadRequiredDependency(Es6NumberSerializerResourceName)");
         Assert.IsFalse(solutionSource.Contains("PCL.Plugin", StringComparison.Ordinal));
         Assert.IsFalse(projectSource.Contains("ProjectReference Include=\"../PCL.Plugin", StringComparison.Ordinal));
         Assert.IsFalse(solutionSource.Contains("PCL.Plugin.Host.Abstractions", StringComparison.Ordinal));

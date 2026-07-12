@@ -12,10 +12,14 @@ internal static class EmbeddedPluginLoader
 {
     internal const string ResourceName = "PCL.Desktop.Embedded.PCL.Plugin.dll";
     internal const string AbstractionsResourceName = "PCL.Desktop.Embedded.PCL.N.Plugin.Abstractions.dll";
+    internal const string BouncyCastleResourceName = "PCL.Desktop.Embedded.BouncyCastle.Cryptography.dll";
+    internal const string JsonCanonicalizerResourceName = "PCL.Desktop.Embedded.jsoncanonicalizer.dll";
+    internal const string Es6NumberSerializerResourceName = "PCL.Desktop.Embedded.es6numberserializer.dll";
 
     private static readonly object SyncRoot = new();
     private static Assembly? _loadedAssembly;
     private static Assembly? _loadedAbstractionsAssembly;
+    private static readonly List<Assembly> LoadedDependencyAssemblies = [];
 
     [UnconditionalSuppressMessage(
         "Trimming",
@@ -27,13 +31,24 @@ internal static class EmbeddedPluginLoader
         {
             if (_loadedAssembly is not null)
                 return _loadedAssembly;
+            if (!HasResource(ResourceName))
+                return null;
 
             _loadedAbstractionsAssembly ??= LoadResourceAssembly(AbstractionsResourceName);
+            if (LoadedDependencyAssemblies.Count == 0)
+            {
+                LoadRequiredDependency(Es6NumberSerializerResourceName);
+                LoadRequiredDependency(JsonCanonicalizerResourceName);
+                LoadRequiredDependency(BouncyCastleResourceName);
+            }
 
             _loadedAssembly = LoadResourceAssembly(ResourceName);
             return _loadedAssembly;
         }
     }
+
+    private static bool HasResource(string resourceName) =>
+        typeof(EmbeddedPluginLoader).Assembly.GetManifestResourceInfo(resourceName) is not null;
 
     [UnconditionalSuppressMessage(
         "Trimming",
@@ -49,6 +64,13 @@ internal static class EmbeddedPluginLoader
         using MemoryStream buffer = new();
         resource.CopyTo(buffer);
         return Assembly.Load(buffer.ToArray());
+    }
+
+    private static void LoadRequiredDependency(string resourceName)
+    {
+        Assembly assembly = LoadResourceAssembly(resourceName)
+            ?? throw new InvalidOperationException($"Embedded plugin dependency is missing: {resourceName}");
+        LoadedDependencyAssemblies.Add(assembly);
     }
 
     [UnconditionalSuppressMessage(

@@ -30,6 +30,9 @@
     <IncludeAllContentForSelfExtract Condition="'$(PublishSingleFile)' == 'true'">true</IncludeAllContentForSelfExtract>
     <PclPluginAssembly Condition="'$(PclPluginAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginAssembly)'))</PclPluginAssembly>
     <PclPluginAbstractionsAssembly Condition="'$(PclPluginAbstractionsAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginAbstractionsAssembly)'))</PclPluginAbstractionsAssembly>
+    <PclPluginBouncyCastleAssembly Condition="'$(PclPluginBouncyCastleAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginBouncyCastleAssembly)'))</PclPluginBouncyCastleAssembly>
+    <PclPluginJsonCanonicalizerAssembly Condition="'$(PclPluginJsonCanonicalizerAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginJsonCanonicalizerAssembly)'))</PclPluginJsonCanonicalizerAssembly>
+    <PclPluginEs6NumberSerializerAssembly Condition="'$(PclPluginEs6NumberSerializerAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginEs6NumberSerializerAssembly)'))</PclPluginEs6NumberSerializerAssembly>
   </PropertyGroup>
   <PropertyGroup Condition="'$(PclPluginAssembly)' != ''">
     <PublishAot>false</PublishAot>
@@ -73,12 +76,30 @@
                       Condition="'$(PclPluginAbstractionsAssembly)' != '' and Exists('$(PclPluginAbstractionsAssembly)')">
       <LogicalName>PCL.Desktop.Embedded.PCL.N.Plugin.Abstractions.dll</LogicalName>
     </EmbeddedResource>
+    <EmbeddedResource Include="$(PclPluginBouncyCastleAssembly)"
+                      Condition="'$(PclPluginBouncyCastleAssembly)' != '' and Exists('$(PclPluginBouncyCastleAssembly)')">
+      <LogicalName>PCL.Desktop.Embedded.BouncyCastle.Cryptography.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(PclPluginJsonCanonicalizerAssembly)"
+                      Condition="'$(PclPluginJsonCanonicalizerAssembly)' != '' and Exists('$(PclPluginJsonCanonicalizerAssembly)')">
+      <LogicalName>PCL.Desktop.Embedded.jsoncanonicalizer.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(PclPluginEs6NumberSerializerAssembly)"
+                      Condition="'$(PclPluginEs6NumberSerializerAssembly)' != '' and Exists('$(PclPluginEs6NumberSerializerAssembly)')">
+      <LogicalName>PCL.Desktop.Embedded.es6numberserializer.dll</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
   <Target Name="ValidatePclPluginAssembly" BeforeTargets="PrepareForBuild" Condition="'$(PclPluginAssembly)' != ''">
     <Error Condition="!Exists('$(PclPluginAssembly)')"
            Text="PCL.Plugin assembly was requested but not found: $(PclPluginAssembly)" />
     <Error Condition="'$(PclPluginAbstractionsAssembly)' == '' or !Exists('$(PclPluginAbstractionsAssembly)')"
            Text="PCL.Plugin requires PCL.N.Plugin.Abstractions in the default load context: $(PclPluginAbstractionsAssembly)" />
+    <Error Condition="'$(PclPluginBouncyCastleAssembly)' == '' or !Exists('$(PclPluginBouncyCastleAssembly)')"
+           Text="PCL.Plugin requires BouncyCastle.Cryptography: $(PclPluginBouncyCastleAssembly)" />
+    <Error Condition="'$(PclPluginJsonCanonicalizerAssembly)' == '' or !Exists('$(PclPluginJsonCanonicalizerAssembly)')"
+           Text="PCL.Plugin requires jsoncanonicalizer: $(PclPluginJsonCanonicalizerAssembly)" />
+    <Error Condition="'$(PclPluginEs6NumberSerializerAssembly)' == '' or !Exists('$(PclPluginEs6NumberSerializerAssembly)')"
+           Text="PCL.Plugin requires es6numberserializer: $(PclPluginEs6NumberSerializerAssembly)" />
   </Target>
   <ItemGroup>
     <ProjectReference Include="../PCL.Desktop.SourceGenerators/PCL.Desktop.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
