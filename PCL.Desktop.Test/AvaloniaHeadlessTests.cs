@@ -3510,6 +3510,47 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    [TestCategory("InjectedPlugin")]
+    public void InjectedPlugin_RegistersSettingsPageInHeadlessUi()
+    {
+        bool pluginExpected = string.Equals(
+            Environment.GetEnvironmentVariable("PCLN_EXPECT_PLUGIN_UI"),
+            "1",
+            StringComparison.Ordinal);
+        if (!pluginExpected)
+            return;
+
+        using SafeHeadlessUnitTestSession session = CreateSession();
+        session.Dispatch(() =>
+        {
+            MainWindow window = new();
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Click(window, window.FindControl<MyListItem>("BtnTitleSelect3")!);
+                ModAnimation.AdvanceUntilIdleForTesting();
+
+                PageSetupLeft setupLeft = FindVisual<PageSetupLeft>(window)!;
+                MyListItem pluginItem = setupLeft.FindControl<MyListItem>("ItemPlugin")!;
+                Assert.IsNotNull(pluginItem);
+                Assert.AreEqual("插件", pluginItem.Title);
+                Click(window, pluginItem);
+                ModAnimation.AdvanceUntilIdleForTesting();
+
+                PageSetupHostModule page = FindVisual<PageSetupHostModule>(window)!;
+                StringAssert.Contains(page.FindControl<TextBlock>("LabHostHeading")!.Text, "HostModule");
+                StringAssert.Contains(page.FindControl<TextBlock>("LabHostDescription")!.Text, "正版登录验证不属于插件功能");
+                Assert.AreEqual(2, page.GetVisualDescendants().OfType<MyHint>().Count());
+            }
+            finally
+            {
+                window.Close();
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     public void PageDownloadInstall_RestoresExistingLoaderBeforeAddingAddon()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
