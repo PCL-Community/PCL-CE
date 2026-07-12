@@ -292,7 +292,7 @@ public partial class PageInstanceManageRight : MyPageRight
         Directory.CreateDirectory(Path.GetDirectoryName(logoPath)
             ?? throw new InvalidOperationException("无法确定自定义图标目录。"));
 
-        await using (Stream source = await files[0].OpenReadAsync().ConfigureAwait(false))
+        await using (Stream source = await files[0].OpenReadAsync().ConfigureAwait(true))
         await using (FileStream destination = new(
                          logoPath,
                          FileMode.Create,
@@ -301,7 +301,7 @@ public partial class PageInstanceManageRight : MyPageRight
                          bufferSize: 8 * 1024,
                          FileOptions.Asynchronous | FileOptions.WriteThrough))
         {
-            await source.CopyToAsync(destination).ConfigureAwait(false);
+            await source.CopyToAsync(destination).ConfigureAwait(true);
         }
 
         await TrackMetadataUpdate(metadata => metadata with
@@ -335,35 +335,34 @@ public partial class PageInstanceManageRight : MyPageRight
         });
     }
 
-    private async Task UpdateMetadataAsync(Func<InstanceMetadata, InstanceMetadata> update)
+    private Task UpdateMetadataAsync(Func<InstanceMetadata, InstanceMetadata> update)
     {
         LaunchInstanceInfo? instance = _instance;
         if (instance is null)
-            return;
+            return Task.CompletedTask;
 
-        await _metadataWriteLock.WaitAsync();
+        InstanceMetadata metadata = update(_metadata);
+        _metadata = metadata;
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            PopulateDisplayItem(instance);
+            ApplyMetadataToControls();
+        }
+
+        return SaveMetadataAsync(instance, metadata);
+    }
+
+    private async Task SaveMetadataAsync(LaunchInstanceInfo instance, InstanceMetadata metadata)
+    {
+        await _metadataWriteLock.WaitAsync().ConfigureAwait(false);
         try
         {
-            InstanceMetadata metadata = update(_metadata);
-            _metadata = metadata;
-            await InstanceMetadataStore.SaveAsync(instance.InstanceDirectory, metadata);
+            await InstanceMetadataStore.SaveAsync(instance.InstanceDirectory, metadata).ConfigureAwait(false);
         }
         finally
         {
             _metadataWriteLock.Release();
         }
-
-        await RunOnUiThreadAsync(() =>
-        {
-            if (_instance is null ||
-                !string.Equals(_instance.InstanceDirectory, instance.InstanceDirectory, StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
-
-            PopulateDisplayItem(instance);
-            ApplyMetadataToControls();
-        });
     }
 
     private void SelectLogoItem(string logoPath)
