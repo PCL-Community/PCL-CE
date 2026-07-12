@@ -219,6 +219,16 @@
                                     DefaultChecked="False" />
                             </local:MyCheckBox.Tag>
                         </local:MyCheckBox>
+                        <local:MyCheckBox x:Name="CheckOptionsOtherFolders" Change="CheckOptionsOtherFolders_Change">
+                            <local:MyCheckBox.Tag>
+                                <local:ExportOption
+                                    Title="{DynamicResource Instance.Export.Option.OtherFolders}"
+                                    Description="{DynamicResource Instance.Export.Option.OtherFolders.Desc}"
+                                    DefaultChecked="False" />
+                            </local:MyCheckBox.Tag>
+                        </local:MyCheckBox>
+                        <StackPanel Margin="30,0,0,0" x:Name="PanOptionsOtherFolders"
+                                    Visibility="{Binding Checked, ElementName=CheckOptionsOtherFolders, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         <local:MyCheckBox x:Name="CheckOptionsPcl">
                             <local:MyCheckBox.Tag>
                                 <local:ExportOption

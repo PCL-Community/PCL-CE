@@ -900,6 +900,8 @@
     <sys:String x:Key="Instance.Export.Option.Saves">单人游戏存档</sys:String>
     <sys:String x:Key="Instance.Export.Option.Saves.Desc">世界/地图</sys:String>
     <sys:String x:Key="Instance.Export.Option.Screenshots">截图</sys:String>
+    <sys:String x:Key="Instance.Export.Option.OtherFolders">其他文件夹</sys:String>
+    <sys:String x:Key="Instance.Export.Option.OtherFolders.Desc">未被上方选项覆盖的文件夹</sys:String>
     <sys:String x:Key="Instance.Export.Option.Servers">多人游戏服务器列表</sys:String>
     <sys:String x:Key="Instance.Export.Option.ShaderPacks">光影包</sys:String>
     <sys:String x:Key="Instance.Export.Option.Structures">导出的结构</sys:String>

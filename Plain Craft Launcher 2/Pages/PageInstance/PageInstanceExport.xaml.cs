@@ -115,6 +115,15 @@ public partial class PageInstanceExport : IRefreshable
         CheckOptionsPcl.IsEnabled = (bool)!CheckAdvancedModrinth.Checked;
     }
 
+    // 勾选"其他文件夹"时，同步勾选/取消所有子选项
+    private void CheckOptionsOtherFolders_Change(object sender, bool user)
+    {
+        if (!user) return;
+        foreach (var child in PanOptionsOtherFolders.Children)
+            if (child is MyCheckBox childBox)
+                childBox.Checked = CheckOptionsOtherFolders.Checked;
+    }
+
     // 勾选打包资源文件时，禁止开启 Modrinth 上传模式
     private void CheckAdvancedInclude_Change(object sender, bool user)
     {
@@ -135,6 +144,82 @@ public partial class PageInstanceExport : IRefreshable
         ReloadSubOptions(PanOptionsResourcePacks, true, true, "resourcepacks", "texturepacks");
         ReloadSubOptions(PanOptionsSaves, false, true, "saves");
         ReloadSubOptions(PanOptionsShaderPacks, true, true, "shaderpacks");
+        ReloadOtherFolders();
+    }
+
+    /// <summary>
+    ///     扫描实例根目录下未被已有选项覆盖的文件夹，生成独立的复选框。
+    /// </summary>
+    private void ReloadOtherFolders()
+    {
+        PanOptionsOtherFolders.Children.Clear();
+
+        var pathIndie = PageInstanceLeft.McInstance.PathIndie;
+        var rootDir = new DirectoryInfo(pathIndie);
+        if (!rootDir.Exists)
+        {
+            CheckOptionsOtherFolders.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        var coveredFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            // 模组
+            "mods", "coremods", "lib",
+            // 整合包重要数据
+            "addons", "multiblocked", "modpack-update-checker", "global_packs",
+            "global_resource_packs", "global_data_packs", "optional_data_packs", "maps",
+            "mods-resourcepacks", "matmos", "resource_assorts",
+            "patchouli_books", "datapacks",
+            "openloader", "worldshape", "resources", "scripts", "structures",
+            "fontfiles", "oresources", "packmenu", "craftpresence", "pointblanks",
+            // 模组设置
+            "config", "defaultconfigs", "journeymap", "local", "essential", "gg.essential.mod",
+            "CustomSkinLoader",
+            // 地图
+            "xaero", "XaeroWaypoints", "XaeroWorldMap",
+            // 资源包
+            "resourcepacks", "texturepacks",
+            // 光影
+            "shaderpacks",
+            // 截图 / 结构 / 录像
+            "screenshots", "schematics",
+            "replay_recordings", "replay_videos",
+            // 存档 / 设置文件夹
+            "saves", "configureddefaults",
+            // 始终跳过（大量文件或无用缓存）
+            "assets", "versions", "libraries", "structureCacheV1",
+            ".fabric", ".git", "avatar-cache", "cosmetic-cache",
+            // PCL 单独处理
+            "PCL",
+        };
+
+        var coveredPrefixes = new[] { "kubejs", "template" };
+        var coveredSuffixes = new[] { "-natives" };
+
+        foreach (var subDir in rootDir.EnumerateDirectories())
+        {
+            if (coveredFolders.Contains(subDir.Name))
+                continue;
+            if (coveredPrefixes.Any(p => subDir.Name.StartsWithF(p)))
+                continue;
+            if (coveredSuffixes.Any(s => subDir.Name.EndsWithF(s, true)))
+                continue;
+
+            PanOptionsOtherFolders.Children.Add(new MyCheckBox
+            {
+                Tag = new ExportOption
+                {
+                    Title = subDir.Name,
+                    DefaultChecked = false,
+                    Rules = ModBase.EscapeLikePattern($"{subDir.Name}/")
+                }
+            });
+        }
+
+        CheckOptionsOtherFolders.Visibility = PanOptionsOtherFolders.Children.Count > 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 
     private void ReloadSubOptions(StackPanel panel, bool acceptCompressedFile, bool acceptFolder,

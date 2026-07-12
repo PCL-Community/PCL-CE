@@ -900,6 +900,8 @@
     <sys:String x:Key="Instance.Export.Option.Saves">Singleplayer saves</sys:String>
     <sys:String x:Key="Instance.Export.Option.Saves.Desc">Worlds / maps</sys:String>
     <sys:String x:Key="Instance.Export.Option.Screenshots">Screenshots</sys:String>
+    <sys:String x:Key="Instance.Export.Option.OtherFolders">Other folders</sys:String>
+    <sys:String x:Key="Instance.Export.Option.OtherFolders.Desc">Other folders not covered by the options above</sys:String>
     <sys:String x:Key="Instance.Export.Option.Servers">Multiplayer server list</sys:String>
     <sys:String x:Key="Instance.Export.Option.ShaderPacks">Shader packs</sys:String>
     <sys:String x:Key="Instance.Export.Option.Structures">Exported structures</sys:String>
