@@ -3,15 +3,15 @@
   "version": {
     "base": "2.15.0",
     "upstream": "2.12.1",
-    "suffix": "beta.7",
-    "code": 521
+    "suffix": "",
+    "code": 522
   },
   "licenses": [
     {
       "name": "PCL.Core",
       "info": "Copyright © PCL Community",
-      "website": "https://github.com/PCL-Community/PCL2-CE/tree/dev/PCL.Core",
-      "license": "https://github.com/PCL-Community/PCL2-CE/blob/dev/LICENSE"
+      "website": "https://github.com/PCL-Community/PCL-CE/tree/dev/PCL.Core",
+      "license": "https://github.com/PCL-Community/PCL-CE/blob/dev/LICENSE"
     },
     {
       "name": "LegacyFix",
