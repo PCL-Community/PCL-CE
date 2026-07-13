@@ -17,6 +17,9 @@ namespace PCL.Desktop.Theme;
 public static class AvaloniaThemeManager
 {
     private const string SettingsPathOverrideEnvironmentVariable = "PCLN_LAUNCHER_SETTINGS_PATH";
+    private const string WindowsDefaultFontFamily = "Microsoft YaHei UI, Segoe UI, Arial";
+    private const string MacOsDefaultFontFamily = "PingFang SC, Hiragino Sans GB, Helvetica Neue, Arial";
+    private const string LinuxDefaultFontFamily = "Noto Sans CJK SC, Noto Sans SC, WenQuanYi Micro Hei, DejaVu Sans";
     private static bool _platformThemeHooked;
 
     public static LauncherSettings CurrentSettings { get; private set; } = new();
@@ -175,7 +178,14 @@ public static class AvaloniaThemeManager
     {
         string fontName = settings.GetTextOption("UiFont").Trim();
         if (string.IsNullOrEmpty(fontName))
-            return new FontFamily("Microsoft YaHei UI, Segoe UI, Arial");
+            return new FontFamily(GetDefaultLaunchFontFamilyName());
+
+        // FontFamily construction does not fail when the named family is absent.
+        // Settings copied from Windows therefore used to leave Linux with a
+        // non-rendering font. Fall back to the platform chain when no installed
+        // family matches the configured single-family name.
+        if (!fontName.Contains(',') && !IsInstalledFont(fontName))
+            return new FontFamily(GetDefaultLaunchFontFamilyName());
 
         try
         {
@@ -183,7 +193,31 @@ public static class AvaloniaThemeManager
         }
         catch (ArgumentException)
         {
-            return new FontFamily("Microsoft YaHei UI, Segoe UI, Arial");
+            return new FontFamily(GetDefaultLaunchFontFamilyName());
+        }
+    }
+
+    internal static string GetDefaultLaunchFontFamilyName()
+    {
+        if (OperatingSystem.IsLinux())
+            return LinuxDefaultFontFamily;
+        if (OperatingSystem.IsMacOS())
+            return MacOsDefaultFontFamily;
+        return WindowsDefaultFontFamily;
+    }
+
+    private static bool IsInstalledFont(string fontName)
+    {
+        try
+        {
+            return FontManager.Current.SystemFonts.Any(font =>
+                string.Equals(font.Name, fontName, StringComparison.OrdinalIgnoreCase));
+        }
+        catch (InvalidOperationException)
+        {
+            // Theme initialization can run before the platform font manager in
+            // tooling/headless contexts; keep the user's value in that case.
+            return true;
         }
     }
 }

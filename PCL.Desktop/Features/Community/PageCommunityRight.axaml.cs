@@ -15,7 +15,7 @@ namespace PCL.Desktop.Features.Community;
 
 /// <summary>
 /// Community resource browser — control IDs and filter layout mirror WPF <c>PageComp</c>.
-/// Data source is currently Modrinth (CurseForge parity is a follow-up).
+/// Searches Modrinth and CurseForge through a shared catalog router.
 /// </summary>
 public partial class PageCommunityRight : MyPageRight, IDisposable
 {
@@ -23,6 +23,7 @@ public partial class PageCommunityRight : MyPageRight, IDisposable
 
     private readonly ICommunityResourceCatalog _catalog;
     private readonly bool _ownsCatalog;
+    private readonly CommunityFavoritesStore? _favorites;
     private readonly DispatcherTimer _searchTimer;
     private CancellationTokenSource? _loadCancellation;
     private CommunityResourceCategory _category = CommunityResourceCategory.Mod;
@@ -34,14 +35,18 @@ public partial class PageCommunityRight : MyPageRight, IDisposable
     private bool _filtersReady;
 
     public PageCommunityRight()
-        : this(new ModrinthCommunityResourceCatalog(), ownsCatalog: true)
+        : this(new CompositeCommunityResourceCatalog(), ownsCatalog: true)
     {
     }
 
-    public PageCommunityRight(ICommunityResourceCatalog catalog, bool ownsCatalog = false)
+    public PageCommunityRight(
+        ICommunityResourceCatalog catalog,
+        bool ownsCatalog = false,
+        CommunityFavoritesStore? favorites = null)
     {
         _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
         _ownsCatalog = ownsCatalog;
+        _favorites = favorites;
         AvaloniaXamlLoader.Load(this);
         PanScroll = this.FindControl<MyScrollViewer>("PanBack");
         _searchTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(280) };
@@ -203,11 +208,11 @@ public partial class PageCommunityRight : MyPageRight, IDisposable
             return;
         _filtersReady = true;
 
-        // WPF PageComp: All / CurseForge / Modrinth — currently only Modrinth is wired.
+        // WPF PageComp: All / CurseForge / Modrinth.
         BindCombo("ComboSearchSource",
         [
             new FilterOption("all", "全部"),
-            new FilterOption("curseforge", "CurseForge（暂未接入）"),
+            new FilterOption("curseforge", "CurseForge"),
             new FilterOption("modrinth", "Modrinth")
         ], 0);
 
@@ -391,7 +396,16 @@ public partial class PageCommunityRight : MyPageRight, IDisposable
         }
 
         string? tag = SelectedTagId();
-        return new CommunitySearchOptions(sort, gameVersion, loader, tag);
+        CommunityResourceSource source =
+            this.FindControl<MyComboBox>("ComboSearchSource")?.SelectedItem is FilterOption sourceOption
+                ? sourceOption.Id switch
+                {
+                    "curseforge" => CommunityResourceSource.CurseForge,
+                    "modrinth" => CommunityResourceSource.Modrinth,
+                    _ => CommunityResourceSource.All
+                }
+                : CommunityResourceSource.All;
+        return new CommunitySearchOptions(sort, gameVersion, loader, tag, source);
     }
 
     private string? SelectedTagId()
@@ -457,6 +471,25 @@ public partial class PageCommunityRight : MyPageRight, IDisposable
     /// <summary>MyCompItem-style row: icon · title · description · downloads/time/source · actions.</summary>
     private MyListItem CreateCompItem(CommunityResourceEntry entry, CommunitySearchOptions options)
     {
+        MyIconButton favorite = new()
+        {
+            SvgIcon = _favorites?.Contains(entry) == true ? "lucide/star-off" : "lucide/star",
+            LogoScale = 0.9d,
+            ToolTip = _favorites?.Contains(entry) == true ? "取消收藏" : "收藏",
+            Width = 25,
+            Height = 25,
+            Margin = new Thickness(0, 0, 4, 0),
+            IsVisible = _favorites is not null
+        };
+        favorite.Click += (_, _) =>
+        {
+            if (_favorites is null)
+                return;
+            bool added = _favorites.Toggle(entry, _category);
+            favorite.SvgIcon = added ? "lucide/star-off" : "lucide/star";
+            favorite.ToolTip = added ? "取消收藏" : "收藏";
+        };
+
         MyIconButton website = new()
         {
             SvgIcon = "lucide/external-link",
@@ -496,14 +529,15 @@ public partial class PageCommunityRight : MyPageRight, IDisposable
         MyListItem item = new()
         {
             Title = entry.Title,
-            Info = info + "  ·  ↓" + downloadsText + "  ·  " + timeText + "  ·  Modrinth",
+            Info = info + "  ·  ↓" + downloadsText + "  ·  " + timeText + "  ·  " +
+                   (entry.Source == CommunityResourceSource.CurseForge ? "CurseForge" : "Modrinth"),
             Height = 64d,
             Type = MyListItem.CheckType.Clickable,
             Tag = entry,
             SvgIcon = CategoryIcon(_category),
             Logo = entry.IconUrl ?? string.Empty,
             LogoScale = 1.05d,
-            Buttons = [download, website]
+            Buttons = [download, favorite, website]
         };
 
         item.Click += (_, _) => OpenProjectRequested?.Invoke(this, entry);

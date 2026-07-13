@@ -151,7 +151,12 @@ public static class MinecraftVersionCatalogClassifier
             _ => null
         };
 
-        bool isAprilFools = descriptor is not null || IsReleasedOnAprilFoolsDay(version.ReleaseTime);
+        // Mojang also ships ordinary releases on April 1st (for example 26.1.1).
+        // Keep the date heuristic for snapshot-like entries, but never let it
+        // override an explicit release type unless the version id is known.
+        bool isAprilFools = descriptor is not null ||
+                            (!type.Equals("release", StringComparison.OrdinalIgnoreCase) &&
+                             IsReleasedOnAprilFoolsDay(version.ReleaseTime));
         if (!isAprilFools)
             return false;
 

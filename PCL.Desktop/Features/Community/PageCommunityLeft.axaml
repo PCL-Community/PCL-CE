@@ -9,6 +9,10 @@
         <StackPanel Margin="0,12,0,0" x:Name="PanItem">
             <TextBlock Text="社区资源" Margin="13,10,5,4" Opacity="0.6" FontSize="12" />
 
+            <legacy:MyListItem x:Name="ItemFavorites" Type="RadioBox" IsScaleAnimationEnabled="False"
+                              Tag="Favorites" Check="PageCheck" MinPaddingRight="35" Height="36"
+                              Title="收藏夹" SvgIcon="lucide/star" LogoScale="0.95" />
+
             <legacy:MyListItem x:Name="ItemMod" Checked="True" Type="RadioBox" IsScaleAnimationEnabled="False"
                               Tag="Mod" Check="PageCheck" MinPaddingRight="35" Height="36"
                               Title="Mod" SvgIcon="lucide/puzzle" LogoScale="0.97" />

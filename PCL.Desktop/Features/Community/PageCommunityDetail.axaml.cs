@@ -22,6 +22,7 @@ public partial class PageCommunityDetail : MyPageRight, IDisposable
 {
     private readonly ICommunityResourceCatalog _catalog;
     private readonly bool _ownsCatalog;
+    private readonly CommunityFavoritesStore? _favorites;
     private CommunityResourceEntry? _entry;
     private CommunitySearchOptions _baseOptions = new();
     private CommunityResourceCategory _category = CommunityResourceCategory.Mod;
@@ -33,14 +34,18 @@ public partial class PageCommunityDetail : MyPageRight, IDisposable
     private bool _filtersReady;
 
     public PageCommunityDetail()
-        : this(new ModrinthCommunityResourceCatalog(), ownsCatalog: true)
+        : this(new CompositeCommunityResourceCatalog(), ownsCatalog: true)
     {
     }
 
-    public PageCommunityDetail(ICommunityResourceCatalog catalog, bool ownsCatalog = false)
+    public PageCommunityDetail(
+        ICommunityResourceCatalog catalog,
+        bool ownsCatalog = false,
+        CommunityFavoritesStore? favorites = null)
     {
         _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
         _ownsCatalog = ownsCatalog;
+        _favorites = favorites;
         AvaloniaXamlLoader.Load(this);
         PanScroll = this.FindControl<MyScrollViewer>("PanBack");
 
@@ -54,6 +59,8 @@ public partial class PageCommunityDetail : MyPageRight, IDisposable
             copyName.Click += (_, _) => _ = CopyTextAsync(_entry?.Title ?? string.Empty);
         if (this.FindControl<MyIconTextButton>("BtnIntroLinkCopy") is { } copyLink)
             copyLink.Click += (_, _) => _ = CopyTextAsync(_entry?.WebsiteUrl ?? string.Empty);
+        if (this.FindControl<MyIconTextButton>("BtnIntroFavorite") is { } favorite)
+            favorite.Click += (_, _) => ToggleFavorite();
 
         SetLoading(false);
     }
@@ -81,6 +88,7 @@ public partial class PageCommunityDetail : MyPageRight, IDisposable
         _loaderFilter = null;
         _filtersReady = false;
         BindIntro(entry);
+        UpdateFavoriteButton();
         await ReloadVersionsAsync().ConfigureAwait(true);
     }
 
@@ -115,7 +123,25 @@ public partial class PageCommunityDetail : MyPageRight, IDisposable
         }
 
         if (this.FindControl<MyIconTextButton>("BtnIntroWeb") is { } web)
-            web.Text = "Modrinth";
+            web.Text = entry.Source == CommunityResourceSource.CurseForge ? "CurseForge" : "Modrinth";
+    }
+
+    private void ToggleFavorite()
+    {
+        if (_favorites is null || _entry is null)
+            return;
+        _favorites.Toggle(_entry, _category);
+        UpdateFavoriteButton();
+    }
+
+    private void UpdateFavoriteButton()
+    {
+        if (this.FindControl<MyIconTextButton>("BtnIntroFavorite") is not { } button)
+            return;
+        button.IsVisible = _favorites is not null;
+        bool favorite = _favorites is not null && _entry is not null && _favorites.Contains(_entry);
+        button.Text = favorite ? "取消收藏" : "收藏";
+        button.SvgIcon = favorite ? "lucide/star-off" : "lucide/star";
     }
 
     private async Task ReloadVersionsAsync()
@@ -137,7 +163,8 @@ public partial class PageCommunityDetail : MyPageRight, IDisposable
                 _baseOptions.Sort,
                 GameVersion: null,
                 Loader: null,
-                Tag: _baseOptions.Tag);
+                Tag: _baseOptions.Tag,
+                Source: _entry.Source);
             IReadOnlyList<CommunityResourceVersion> versions =
                 await _catalog.GetVersionsAsync(_entry, fetchOptions, token).ConfigureAwait(false);
             token.ThrowIfCancellationRequested();

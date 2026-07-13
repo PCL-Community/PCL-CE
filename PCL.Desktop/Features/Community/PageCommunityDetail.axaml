@@ -35,6 +35,11 @@
                                                      SvgIcon="lucide/link"
                                                      ColorType="Highlight"
                                                      Margin="0,0,6,0" />
+                            <legacy:MyIconTextButton x:Name="BtnIntroFavorite"
+                                                     Text="收藏"
+                                                     SvgIcon="lucide/star"
+                                                     ColorType="Highlight"
+                                                     Margin="0,0,6,0" />
                         </StackPanel>
                     </StackPanel>
                 </legacy:MyCard>

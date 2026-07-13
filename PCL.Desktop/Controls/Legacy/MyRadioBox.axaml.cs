@@ -21,7 +21,9 @@ public sealed partial class MyRadioBox : Grid, IMyRadio
 #pragma warning restore CA1711
 
     private const double BorderUncheckedSize = 18d;
-    private const double DotCheckedSize = 9d;
+    // Keep both ellipses on whole device-independent pixels. The previous
+    // 9 px dot required a 5.5 px offset and looked off-centre after rasterizing.
+    private const double DotCheckedSize = 8d;
     private const int CheckAnimationMilliseconds = 150;
     private const int MouseInAnimationMilliseconds = 100;
     private const int MouseOutAnimationMilliseconds = 200;
@@ -244,7 +246,7 @@ public sealed partial class MyRadioBox : Grid, IMyRadio
             {
                 _dot.Width = DotCheckedSize;
                 _dot.Height = DotCheckedSize;
-                _dot.Margin = new Thickness(5.5d, 0d, 0d, 0d);
+                _dot.Margin = new Thickness(6d, 0d, 0d, 0d);
                 _dot.Opacity = 1d;
                 _border.Stroke = ResolveBrush(IsEnabled ? "ColorBrush2" : "ColorBrushGray4", IsEnabled ? "#0b5bcb" : "#a6a6a6");
                 SyncDotBrush();

@@ -25,11 +25,19 @@ public enum CommunityResourceSort
     Updated
 }
 
+public enum CommunityResourceSource
+{
+    All,
+    Modrinth,
+    CurseForge
+}
+
 public sealed record CommunitySearchOptions(
     CommunityResourceSort Sort = CommunityResourceSort.Relevance,
     string? GameVersion = null,
     string? Loader = null,
-    string? Tag = null);
+    string? Tag = null,
+    CommunityResourceSource Source = CommunityResourceSource.All);
 
 public sealed record CommunityResourceEntry(
     string ProjectId,
@@ -41,7 +49,24 @@ public sealed record CommunityResourceEntry(
     long Downloads,
     DateTimeOffset? UpdatedAt)
 {
-    public string WebsiteUrl => "https://modrinth.com/" + ProjectType + "/" + (string.IsNullOrWhiteSpace(Slug) ? ProjectId : Slug);
+    public CommunityResourceSource Source { get; init; } = CommunityResourceSource.Modrinth;
+
+    public string? ProjectUrl { get; init; }
+
+    public string WebsiteUrl => ProjectUrl ?? (Source == CommunityResourceSource.CurseForge
+        ? "https://www.curseforge.com/minecraft/" + CurseForgeProjectPath(ProjectType) + "/" +
+          (string.IsNullOrWhiteSpace(Slug) ? ProjectId : Slug)
+        : "https://modrinth.com/" + ProjectType + "/" + (string.IsNullOrWhiteSpace(Slug) ? ProjectId : Slug));
+
+    private static string CurseForgeProjectPath(string projectType) => projectType.ToLowerInvariant() switch
+    {
+        "modpack" => "modpacks",
+        "resourcepack" => "texture-packs",
+        "shader" => "shaders",
+        "datapack" => "data-packs",
+        "world" => "worlds",
+        _ => "mc-mods"
+    };
 }
 
 public sealed record CommunityResourceDownloadFile(

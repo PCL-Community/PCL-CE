@@ -51,6 +51,17 @@ public sealed class MinecraftVersionCatalogClassifierTests
     }
 
     [TestMethod]
+    public void Classify_ShouldNotTreatOrdinaryAprilFirstReleaseAsAprilFools()
+    {
+        MinecraftVersionClassification release = MinecraftVersionCatalogClassifier.Classify(
+            Version("26.1.1", "release", "2026-04-01T12:00:00Z"));
+
+        Assert.AreEqual(MinecraftVersionCategory.Release, release.Category);
+        Assert.AreEqual("release", release.Type);
+        Assert.IsNull(release.AprilFoolsDescriptor);
+    }
+
+    [TestMethod]
     public void FormatVersion_ShouldKeepWpfDisplayAliases()
     {
         Assert.AreEqual("Classic_0.30", MinecraftVersionCatalogClassifier.FormatVersion("c0.30_01c"));

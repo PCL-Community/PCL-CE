@@ -12,7 +12,7 @@
     <x:Double x:Key="BlurRadius">0</x:Double>
     <x:Double x:Key="BlurSamplingRate">0.7</x:Double>
 
-    <FontFamily x:Key="LaunchFontFamily">Microsoft YaHei UI, Segoe UI, Arial</FontFamily>
+    <FontFamily x:Key="LaunchFontFamily">Microsoft YaHei UI, PingFang SC, Noto Sans CJK SC, Noto Sans SC, WenQuanYi Micro Hei, Segoe UI, DejaVu Sans, Arial</FontFamily>
 
     <SolidColorBrush x:Key="ColorBrush1" Color="#343d4a" />
     <SolidColorBrush x:Key="ColorBrush2" Color="#0b5bcb" />

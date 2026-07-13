@@ -23,19 +23,24 @@ public partial class PageCommunityLeft : MyPageLeft, IRefreshable
 
     public CommunityResourceCategory Category { get; private set; } = CommunityResourceCategory.Mod;
 
+    public bool IsFavoritesSelected { get; private set; }
+
     public event EventHandler<CommunityResourceCategory>? CategoryChanged;
 
     public event EventHandler<CommunityResourceCategory>? RefreshRequested;
 
+    public event EventHandler? FavoritesRequested;
+
     public bool TrySelectCategory(CommunityResourceCategory category)
     {
-        if (Category == category)
+        if (!IsFavoritesSelected && Category == category)
         {
             SyncChecks();
             return true;
         }
 
         Category = category;
+        IsFavoritesSelected = false;
         SyncChecks();
         CategoryChanged?.Invoke(this, category);
         return true;
@@ -48,11 +53,22 @@ public partial class PageCommunityLeft : MyPageLeft, IRefreshable
         if (senderRaw is not MyListItem item)
             return;
 
+        if (string.Equals(item.Tag as string, "Favorites", StringComparison.Ordinal))
+        {
+            if (IsFavoritesSelected)
+                return;
+            IsFavoritesSelected = true;
+            SyncChecks();
+            FavoritesRequested?.Invoke(this, EventArgs.Empty);
+            return;
+        }
+
         CommunityResourceCategory category = ParseTag(item.Tag);
-        if (Category == category)
+        if (!IsFavoritesSelected && Category == category)
             return;
 
         Category = category;
+        IsFavoritesSelected = false;
         SyncChecks();
         CategoryChanged?.Invoke(this, category);
     }
@@ -61,6 +77,9 @@ public partial class PageCommunityLeft : MyPageLeft, IRefreshable
     {
         foreach (MyListItem item in GetCategoryItems())
         {
+            if (string.Equals(item.Tag as string, "Favorites", StringComparison.Ordinal))
+                continue;
+
             MyIconButton refresh = new()
             {
                 SvgIcon = "lucide/refresh-cw",
@@ -80,7 +99,12 @@ public partial class PageCommunityLeft : MyPageLeft, IRefreshable
     private void SyncChecks()
     {
         foreach (MyListItem item in GetCategoryItems())
-            item.SetChecked(ParseTag(item.Tag) == Category, user: false, animate: false);
+        {
+            bool isFavorite = string.Equals(item.Tag as string, "Favorites", StringComparison.Ordinal);
+            item.SetChecked(isFavorite ? IsFavoritesSelected : !IsFavoritesSelected && ParseTag(item.Tag) == Category,
+                user: false,
+                animate: false);
+        }
     }
 
     private IEnumerable<MyListItem> GetCategoryItems()

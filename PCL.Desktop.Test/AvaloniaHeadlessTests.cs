@@ -116,6 +116,14 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsFalse(window.Topmost);
                 Assert.IsNotNull(window.FindControl<MyIconButton>("BtnTitleClose"));
                 Assert.IsNotNull(window.FindControl<MyIconButton>("BtnTitleMin"));
+                Assert.IsNotNull(window.FindControl<MyIconButton>("BtnTitleMax"));
+                CollectionAssert.AreEquivalent(
+                    new[] { "North", "South", "West", "East", "NorthWest", "NorthEast", "SouthWest", "SouthEast" },
+                    window.GetVisualDescendants().OfType<Border>()
+                        .Select(border => border.Tag as string)
+                        .Where(tag => tag is not null && Enum.TryParse<WindowEdge>(tag, out _))
+                        .Cast<string>()
+                        .ToArray());
                 Assert.IsNotNull(window.FindControl<MyListItem>("BtnTitleSelect0"));
                 Assert.IsNotNull(window.FindControl<MyListItem>("BtnTitleSelect3"));
                 Assert.IsNull(window.FindControl<MyListItem>("BtnTitleSelect4"));
@@ -8922,7 +8930,14 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsTrue(ModAnimation.AniIsRun("MyRadioBox BorderColor " + second.Uuid));
                 ModAnimation.AdvanceUntilIdleForTesting();
                 Ellipse selectedDot = second.FindControl<Ellipse>("ShapeDot")!;
+                Ellipse selectedBorder = second.FindControl<Ellipse>("ShapeBorder")!;
+                Assert.AreEqual(8d, selectedDot.Width, 0.001d);
+                Assert.AreEqual(6d, selectedDot.Margin.Left, 0.001d);
                 Assert.AreEqual(10d, selectedDot.Margin.Left + selectedDot.Width / 2d, 0.001d);
+                Assert.AreEqual(
+                    selectedBorder.Margin.Left + selectedBorder.Width / 2d,
+                    selectedDot.Margin.Left + selectedDot.Width / 2d,
+                    0.001d);
 
                 first.PreviewCheck += (_, e) => e.Handled = true;
                 Click(window, first);

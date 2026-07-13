@@ -25,9 +25,12 @@ internal static class MinecraftVersionJsonInspector
             using JsonDocument document = JsonDocument.Parse(stream);
             JsonElement root = document.RootElement;
             string inherited = ReadJsonString(root, "inheritsFrom");
+            string clientVersion = ReadJsonString(root, "clientVersion");
             string id = ReadJsonString(root, "id");
             string minecraftVersionId = string.IsNullOrWhiteSpace(inherited)
-                ? (string.IsNullOrWhiteSpace(id) ? instance.Name : id)
+                ? (!string.IsNullOrWhiteSpace(clientVersion)
+                    ? clientVersion
+                    : string.IsNullOrWhiteSpace(id) ? instance.Name : id)
                 : inherited;
 
             return new MinecraftVersionJsonInfo(

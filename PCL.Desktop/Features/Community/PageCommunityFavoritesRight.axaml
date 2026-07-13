@@ -1,0 +1,16 @@
+<legacy:MyPageRight x:Class="PCL.Desktop.Features.Community.PageCommunityFavoritesRight"
+                    xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:legacy="using:PCL.Desktop.Controls.Legacy">
+    <legacy:MyScrollViewer x:Name="PanBack"
+                           VerticalScrollBarVisibility="Auto"
+                           HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="25,25,25,20">
+            <TextBlock Text="收藏夹" FontSize="20" FontWeight="Bold" Margin="2,0,0,4" />
+            <TextBlock Text="收藏的社区资源会保存在本机。" Opacity="0.65" Margin="2,0,0,15" />
+            <legacy:MyCard UseAnimation="False">
+                <StackPanel x:Name="PanFavorites" Margin="12" />
+            </legacy:MyCard>
+        </StackPanel>
+    </legacy:MyScrollViewer>
+</legacy:MyPageRight>

@@ -43,6 +43,7 @@ using PCL.Desktop.Features.Instances.Views;
 using PCL.Desktop.Features.Launching;
 using PCL.Desktop.Features.Launching.Views;
 using PCL.Desktop.Features.Settings.Views;
+using PCL.Desktop.Features.Shared;
 using PCL.Desktop.Features.Tasks.Views;
 using PCL.Platform.Paths;
 using PCL.UI.Abstractions.Navigation;
@@ -78,6 +79,8 @@ public partial class MainWindow : Window, IDisposable
     private PageCommunityLeft? _communityLeft;
     private PageCommunityRight? _communityRight;
     private PageCommunityDetail? _communityDetail;
+    private PageCommunityFavoritesRight? _communityFavoritesRight;
+    private readonly CommunityFavoritesStore _communityFavorites = new();
     private PageSpeedLeft? _speedLeft;
     private PageSpeedRight? _speedRight;
     private PageInstanceLeft? _instanceLeft;
@@ -123,6 +126,7 @@ public partial class MainWindow : Window, IDisposable
     private bool _minecraftFoldersLoaded;
     private bool _isGameRunning;
     private Process? _runningGameProcess;
+    private RunningGameContext? _runningGameContext;
     private double _targetWindowOpacity = 1d;
     private string? _backgroundStamp;
     private string? _backgroundFile;
@@ -152,7 +156,11 @@ public partial class MainWindow : Window, IDisposable
         _microsoftAuthService = microsoftAuthService ?? throw new ArgumentNullException(nameof(microsoftAuthService));
         _launchCoordinator = new MinecraftLaunchCoordinator(_minecraftInstallService);
         AvaloniaXamlLoader.Load(this);
-        _windowStateSubscription = this.GetObservable(WindowStateProperty).Subscribe(_ => UpdateBackgroundVideoPlayback());
+        _windowStateSubscription = this.GetObservable(WindowStateProperty).Subscribe(_ =>
+        {
+            UpdateBackgroundVideoPlayback();
+            UpdateWindowChrome();
+        });
         if (this.FindControl<MediaElement>("VideoBack") is { } video)
             video.MediaFailed += VideoFailed;
         _navigationPages = CreateNavigationPageMap(DesktopHost.Current.Navigation);
@@ -186,7 +194,7 @@ public partial class MainWindow : Window, IDisposable
 
     private void RefreshTitleButtonsBeforeFirstFrame()
     {
-        foreach (string name in new[] { "BtnTitleClose", "BtnTitleMin", "BtnTitleHelp" })
+        foreach (string name in new[] { "BtnTitleClose", "BtnTitleMax", "BtnTitleMin", "BtnTitleHelp" })
             this.FindControl<MyIconButton>(name)?.RefreshAnim();
     }
 
@@ -291,6 +299,8 @@ public partial class MainWindow : Window, IDisposable
 
     private void BtnTitleMin_Click(object? sender, EventArgs e) =>
         WindowState = WindowState.Minimized;
+
+    private void BtnTitleMax_Click(object? sender, EventArgs e) => ToggleMaximized();
 
     private void BtnTitleHelp_Click(object? sender, EventArgs e)
     {
@@ -442,8 +452,63 @@ public partial class MainWindow : Window, IDisposable
 
     private void FormDragMove(object? sender, PointerPressedEventArgs e)
     {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-            BeginMoveDrag(e);
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            return;
+
+        if (e.ClickCount == 2 && CanResize)
+        {
+            ToggleMaximized();
+            e.Handled = true;
+            return;
+        }
+
+        BeginMoveDrag(e);
+    }
+
+    private void ToggleMaximized()
+    {
+        if (!CanResize)
+            return;
+
+        WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal
+            : WindowState.Maximized;
+    }
+
+    private void ResizeGrip_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!CanResize || WindowState != WindowState.Normal ||
+            sender is not Control { Tag: string edgeName } ||
+            !Enum.TryParse(edgeName, ignoreCase: false, out WindowEdge edge) ||
+            !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            return;
+        }
+
+        BeginResizeDrag(edge, e);
+        e.Handled = true;
+    }
+
+    private void UpdateWindowChrome()
+    {
+        bool maximized = WindowState == WindowState.Maximized;
+        if (this.FindControl<Border>("PanBack") is { } background)
+        {
+            background.Margin = maximized ? new Thickness(0d) : new Thickness(10d);
+            background.CornerRadius = maximized ? new CornerRadius(0d) : new CornerRadius(8d);
+        }
+
+        if (this.FindControl<MyIconButton>("BtnTitleMax") is { } maximizeButton)
+            maximizeButton.SvgIcon = maximized ? "lucide/copy" : "lucide/square";
+
+        // SizeChanged re-measures PanTitle after the native state transition.
+        // Keep the normal title layer visible during the immediate state update.
+        SyncTitleOverlayWidth();
+        if (!_isTitleSubPageVisible && this.FindControl<Control>("PanTitleMain") is { } titleMain)
+        {
+            titleMain.IsVisible = true;
+            titleMain.Opacity = 1d;
+        }
     }
 
     private void SyncTitleOverlayWidth()
@@ -1258,10 +1323,14 @@ public partial class MainWindow : Window, IDisposable
             });
     }
 
-    private static PageCommunityLeft CreateCommunityLeftPage(PageCommunityRight rightPage)
+    private PageCommunityLeft CreateCommunityLeftPage(PageCommunityRight rightPage)
     {
         PageCommunityLeft page = new();
-        page.CategoryChanged += (_, category) => _ = rightPage.SetCategoryAsync(category);
+        page.CategoryChanged += (_, category) =>
+        {
+            ApplyCommunityRightPage(rightPage);
+            _ = rightPage.SetCategoryAsync(category);
+        };
         page.RefreshRequested += (_, category) =>
         {
             if (rightPage.Category == category)
@@ -1269,12 +1338,18 @@ public partial class MainWindow : Window, IDisposable
             else
                 _ = rightPage.SetCategoryAsync(category);
         };
+        page.FavoritesRequested += (_, _) =>
+        {
+            _communityFavoritesRight ??= CreateCommunityFavoritesRightPage();
+            _communityFavoritesRight.Refresh();
+            ApplyCommunityRightPage(_communityFavoritesRight);
+        };
         return page;
     }
 
     private PageCommunityRight CreateCommunityRightPage()
     {
-        PageCommunityRight page = new();
+        PageCommunityRight page = new(new CompositeCommunityResourceCatalog(), ownsCatalog: true, _communityFavorites);
         page.OpenProjectRequested += (_, entry) => _ = OpenCommunityDetailAsync(entry, page.Category, page.CurrentSearchOptions);
         page.DownloadRequested += (_, request) => _ = DownloadCommunityResourceAsync(request);
         return page;
@@ -1282,9 +1357,21 @@ public partial class MainWindow : Window, IDisposable
 
     private PageCommunityDetail CreateCommunityDetailPage()
     {
-        PageCommunityDetail page = new();
+        PageCommunityDetail page = new(new CompositeCommunityResourceCatalog(), ownsCatalog: true, _communityFavorites);
         page.BackRequested += (_, _) => CloseCommunityDetail();
         page.OpenWebRequested += (_, entry) => OpenExternalUrl(entry.WebsiteUrl);
+        page.DownloadRequested += (_, request) => _ = DownloadCommunityResourceAsync(request);
+        return page;
+    }
+
+    private PageCommunityFavoritesRight CreateCommunityFavoritesRightPage()
+    {
+        PageCommunityFavoritesRight page = new(_communityFavorites);
+        page.OpenProjectRequested += (_, favorite) =>
+            _ = OpenCommunityDetailAsync(
+                favorite.Entry,
+                favorite.Category,
+                new CommunitySearchOptions(Source: favorite.Entry.Source));
         page.DownloadRequested += (_, request) => _ = DownloadCommunityResourceAsync(request);
         return page;
     }
@@ -1360,12 +1447,15 @@ public partial class MainWindow : Window, IDisposable
         if (this.FindControl<Border>("PanMainRight") is { } rightHost)
         {
             MyPageRight? oldRight = rightHost.Child as MyPageRight;
-            if (!ReferenceEquals(oldRight, _communityRight))
+            MyPageRight target = _communityLeft.IsFavoritesSelected
+                ? _communityFavoritesRight ??= CreateCommunityFavoritesRightPage()
+                : _communityRight;
+            if (!ReferenceEquals(oldRight, target))
             {
                 oldRight?.PageOnExit();
-                rightHost.Child = _communityRight;
+                rightHost.Child = target;
                 RefreshBackToTopBinding();
-                _communityRight.PageOnEnter();
+                target.PageOnEnter();
             }
         }
 
@@ -1385,16 +1475,20 @@ public partial class MainWindow : Window, IDisposable
 
         TrackTaskBegin(taskId, taskTitle, "解析下载地址");
         ShowHint("已开始下载：" + request.Entry.Title);
+        string? temporaryDownloadPath = null;
 
         try
         {
             CommunityResourceDownloadFile? file = request.PreferredFile;
             if (file is null)
             {
-                using ModrinthCommunityResourceCatalog catalog = new();
+                CommunitySearchOptions downloadOptions = instance is null
+                    ? request.Options
+                    : CommunityInstanceCompatibility.Apply(request.Options, request.Category, instance);
+                using CompositeCommunityResourceCatalog catalog = new();
                 file = await catalog.ResolveDownloadAsync(
                         request.Entry,
-                        request.Options,
+                        downloadOptions,
                         cancellation.Token)
                     .ConfigureAwait(true);
             }
@@ -1406,9 +1500,15 @@ public partial class MainWindow : Window, IDisposable
                 return;
             }
 
-            string targetDirectory = ResolveCommunityDownloadDirectory(request.Category, instance);
+            string baseDirectory = instance is null
+                ? Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+                    "PCL-N Downloads")
+                : await InstanceGameDirectory.ResolveAsync(instance, cancellation.Token).ConfigureAwait(true);
+            string targetDirectory = ResolveCommunityDownloadDirectory(request.Category, baseDirectory);
             Directory.CreateDirectory(targetDirectory);
             string targetPath = Path.Combine(targetDirectory, SanitizeFileName(file.FileName));
+            temporaryDownloadPath = targetPath + "." + Guid.NewGuid().ToString("N") + ".PCLDownloading";
             TrackTaskBegin(taskId, taskTitle, "正在下载 " + file.FileName);
 
             using HttpClient client = new() { Timeout = TimeSpan.FromMinutes(10) };
@@ -1421,32 +1521,60 @@ public partial class MainWindow : Window, IDisposable
             response.EnsureSuccessStatusCode();
             long? total = response.Content.Headers.ContentLength;
             await using Stream network = await response.Content.ReadAsStreamAsync(cancellation.Token).ConfigureAwait(true);
-            await using FileStream output = new(
-                targetPath,
-                FileMode.Create,
-                FileAccess.Write,
-                FileShare.None,
-                64 * 1024,
-                useAsync: true);
-            byte[] buffer = new byte[64 * 1024];
-            long written = 0;
-            int read;
-            while ((read = await network.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellation.Token)
-                       .ConfigureAwait(true)) > 0)
             {
-                await output.WriteAsync(buffer.AsMemory(0, read), cancellation.Token).ConfigureAwait(true);
-                written += read;
-                double progress = total is > 0 ? written / (double)total.Value : 0d;
-                TrackTaskProgress(
-                    taskId,
-                    taskTitle,
-                    Math.Clamp(progress, 0d, 1d),
-                    $"{written.ToString(CultureInfo.InvariantCulture)} / {(total?.ToString(CultureInfo.InvariantCulture) ?? "?")} 字节");
+                await using FileStream output = new(
+                    temporaryDownloadPath,
+                    FileMode.CreateNew,
+                    FileAccess.Write,
+                    FileShare.None,
+                    64 * 1024,
+                    useAsync: true);
+                byte[] buffer = new byte[64 * 1024];
+                long written = 0;
+                int read;
+                while ((read = await network.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellation.Token)
+                           .ConfigureAwait(true)) > 0)
+                {
+                    await output.WriteAsync(buffer.AsMemory(0, read), cancellation.Token).ConfigureAwait(true);
+                    written += read;
+                    double progress = total is > 0 ? written / (double)total.Value : 0d;
+                    TrackTaskProgress(
+                        taskId,
+                        taskTitle,
+                        Math.Clamp(progress, 0d, 1d),
+                        $"{written.ToString(CultureInfo.InvariantCulture)} / {(total?.ToString(CultureInfo.InvariantCulture) ?? "?")} 字节");
+                }
             }
 
-            TrackTaskFinished(taskId, taskTitle, "已保存到 " + targetPath);
-            _launchRight?.AppendLog($"社区资源已下载：{request.Entry.Title} → {targetPath}");
-            ShowHint("下载完成：" + Path.GetFileName(targetPath));
+            if (request.Category == CommunityResourceCategory.Mod)
+            {
+                targetPath = MinecraftModArchiveInstaller.Install(
+                    temporaryDownloadPath,
+                    targetDirectory,
+                    Path.GetFileName(targetPath));
+            }
+            else
+            {
+                File.Move(temporaryDownloadPath, targetPath, overwrite: true);
+            }
+
+            temporaryDownloadPath = null;
+
+            string completedPath = targetPath;
+            if (request.Category == CommunityResourceCategory.World)
+            {
+                TrackTaskBegin(taskId, taskTitle, "正在安装世界");
+                completedPath = await MinecraftWorldArchiveInstaller
+                    .InstallAsync(targetPath, targetDirectory, cancellation.Token)
+                    .ConfigureAwait(true);
+                File.Delete(targetPath);
+            }
+
+            TrackTaskFinished(taskId, taskTitle, "已保存到 " + completedPath);
+            _launchRight?.AppendLog($"社区资源已下载：{request.Entry.Title} → {completedPath}");
+            ShowHint(request.Category == CommunityResourceCategory.World
+                ? "世界安装完成：" + Path.GetFileName(completedPath)
+                : "下载完成：" + Path.GetFileName(completedPath));
         }
         catch (OperationCanceledException)
         {
@@ -1460,29 +1588,39 @@ public partial class MainWindow : Window, IDisposable
         }
         finally
         {
+            if (!string.IsNullOrWhiteSpace(temporaryDownloadPath) && File.Exists(temporaryDownloadPath))
+            {
+                try
+                {
+                    File.Delete(temporaryDownloadPath);
+                }
+                catch (IOException)
+                {
+                    // A failed cleanup must not mask the original download result.
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    // A failed cleanup must not mask the original download result.
+                }
+            }
+
             UnregisterTrackedTask(taskId, cancellation);
         }
     }
 
     private static string ResolveCommunityDownloadDirectory(
         CommunityResourceCategory category,
-        LaunchInstanceInfo? instance)
+        string baseDirectory)
     {
-        string baseDir = instance is not null
-            ? instance.InstanceDirectory
-            : Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-                "PCL-N Downloads");
-
         return category switch
         {
-            CommunityResourceCategory.Mod => Path.Combine(baseDir, "mods"),
-            CommunityResourceCategory.ResourcePack => Path.Combine(baseDir, "resourcepacks"),
-            CommunityResourceCategory.Shader => Path.Combine(baseDir, "shaderpacks"),
-            CommunityResourceCategory.DataPack => Path.Combine(baseDir, "datapacks"),
-            CommunityResourceCategory.Modpack => Path.Combine(baseDir, "modpacks"),
-            CommunityResourceCategory.World => Path.Combine(baseDir, "saves"),
-            _ => baseDir
+            CommunityResourceCategory.Mod => Path.Combine(baseDirectory, "mods"),
+            CommunityResourceCategory.ResourcePack => Path.Combine(baseDirectory, "resourcepacks"),
+            CommunityResourceCategory.Shader => Path.Combine(baseDirectory, "shaderpacks"),
+            CommunityResourceCategory.DataPack => Path.Combine(baseDirectory, "datapacks"),
+            CommunityResourceCategory.Modpack => Path.Combine(baseDirectory, "modpacks"),
+            CommunityResourceCategory.World => Path.Combine(baseDirectory, "saves"),
+            _ => baseDirectory
         };
     }
 
@@ -3885,6 +4023,7 @@ public partial class MainWindow : Window, IDisposable
         _launchCancellation?.Dispose();
         _launchCancellation = new CancellationTokenSource();
         CancellationToken cancellationToken = _launchCancellation.Token;
+        LauncherSettings? runtimeSettingsForRepair = null;
 
         try
         {
@@ -3898,6 +4037,7 @@ public partial class MainWindow : Window, IDisposable
                     LauncherSettingsPageBinder.LoadSettings,
                     cancellationToken)
                 .ConfigureAwait(false);
+            runtimeSettingsForRepair = runtimeSettings;
             string method = MinecraftLaunchCoordinator.FormatLoginMethod(profile);
             Dispatcher.UIThread.Post(() => launchPage.LaunchingRefresh(
                 AvaloniaLocalizationManager.GetText("Common.Action.Initialize", "初始化"),
@@ -3959,7 +4099,7 @@ public partial class MainWindow : Window, IDisposable
                     }
 
                     Process process = result.Process;
-                    SetGameRunningExtras(process);
+                    SetGameRunningExtras(process, new RunningGameContext(instance, launchPage, runtimeSettings));
                     UpdateBackgroundVideoPlayback(runtimeSettings);
                     _launchRight?.AppendLog(!string.IsNullOrWhiteSpace(worldName)
                         ? $"{instance.Name} 已启动，正在进入存档 {worldName}。"
@@ -4002,17 +4142,29 @@ public partial class MainWindow : Window, IDisposable
         }
         catch (Exception ex)
         {
-            await Dispatcher.UIThread.InvokeAsync(() =>
+            if (runtimeSettingsForRepair is { AutomaticallyRepairGameIssues: true } repairSettings &&
+                ex.Message.Contains("游戏进程在启动后立即退出", StringComparison.Ordinal))
             {
-                if (launchPage.IsLaunchInProgress)
-                    launchPage.PageChangeToLogin();
-                ShowTextDialog("启动失败", "未能启动游戏。\n\n详细信息：" + ex.Message);
-                _launchRight?.AppendLog("启动失败：" + ex.Message);
-            });
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                    _launchRight?.AppendLog("启动失败，正在检查缺失前置：" + ex.Message));
+                await TryRepairMissingDependenciesAsync(
+                        new RunningGameContext(instance, launchPage, repairSettings))
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    if (launchPage.IsLaunchInProgress)
+                        launchPage.PageChangeToLogin();
+                    ShowTextDialog("启动失败", "未能启动游戏。\n\n详细信息：" + ex.Message);
+                    _launchRight?.AppendLog("启动失败：" + ex.Message);
+                });
+            }
         }
     }
 
-    private void SetGameRunningExtras(Process? process)
+    private void SetGameRunningExtras(Process? process, RunningGameContext? context = null)
     {
         if (!ReferenceEquals(_runningGameProcess, process))
         {
@@ -4030,6 +4182,7 @@ public partial class MainWindow : Window, IDisposable
             }
 
             _runningGameProcess = process is { HasExited: false } ? process : null;
+            _runningGameContext = _runningGameProcess is null ? null : context;
             if (_runningGameProcess is { } current)
             {
                 try
@@ -4041,12 +4194,14 @@ public partial class MainWindow : Window, IDisposable
                 {
                     // EnableRaisingEvents can throw if process already exited
                     _runningGameProcess = null;
+                    _runningGameContext = null;
                 }
             }
         }
         else if (process is null || process.HasExited)
         {
             _runningGameProcess = null;
+            _runningGameContext = null;
         }
 
         _isGameRunning = _runningGameProcess is not null;
@@ -4063,6 +4218,20 @@ public partial class MainWindow : Window, IDisposable
 
     private void RunningGameProcess_Exited(object? sender, EventArgs e)
     {
+        RunningGameContext? context = _runningGameContext;
+        int exitCode = 0;
+        if (sender is Process process)
+        {
+            try
+            {
+                exitCode = process.ExitCode;
+            }
+            catch (InvalidOperationException)
+            {
+                exitCode = -1;
+            }
+        }
+
         Dispatcher.UIThread.Post(() =>
         {
             if (ReferenceEquals(_runningGameProcess, sender) ||
@@ -4072,7 +4241,196 @@ public partial class MainWindow : Window, IDisposable
                 SetGameRunningExtras(null);
             }
         }, DispatcherPriority.Background);
+
+        if (exitCode != 0 && context is { Settings.AutomaticallyRepairGameIssues: true })
+            _ = TryRepairMissingDependenciesAsync(context);
     }
+
+    private async Task TryRepairMissingDependenciesAsync(RunningGameContext context)
+    {
+        try
+        {
+            string gameDirectory = await InstanceGameDirectory.ResolveAsync(context.Instance).ConfigureAwait(false);
+            IReadOnlyList<string> crashLines = await ReadRecentCrashLinesAsync(gameDirectory).ConfigureAwait(false);
+            IReadOnlyList<MinecraftMissingDependency> dependencies = MinecraftMissingDependencyParser.Parse(crashLines);
+            if (dependencies.Count == 0)
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    _launchRight?.AppendLog("自动修复：崩溃日志中未识别到缺失前置模组。");
+                    ShowHint("自动修复：未识别到缺失前置模组");
+                    if (context.LaunchPage.IsLaunchInProgress)
+                        context.LaunchPage.PageChangeToLogin();
+                });
+                return;
+            }
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                context.LaunchPage.ShowRepairing();
+                _launchRight?.AppendLog($"自动修复：发现 {dependencies.Count} 个缺失前置模组。");
+            });
+
+            string modsDirectory = Path.Combine(gameDirectory, "mods");
+            Directory.CreateDirectory(modsDirectory);
+            string gameVersion = MinecraftVersionJsonInspector.Read(context.Instance).MinecraftVersionId;
+            int repaired = 0;
+            using CompositeCommunityResourceCatalog catalog = new();
+            using HttpClient downloader = new() { Timeout = TimeSpan.FromMinutes(5) };
+            downloader.DefaultRequestHeaders.UserAgent.ParseAdd("PCL-N/1.0");
+            for (int index = 0; index < dependencies.Count; index++)
+            {
+                MinecraftMissingDependency dependency = dependencies[index];
+                await Dispatcher.UIThread.InvokeAsync(() => context.LaunchPage.UpdateRepairStep(index + 1, dependencies.Count));
+                if (await DownloadMissingDependencyAsync(
+                        catalog,
+                        downloader,
+                        dependency,
+                        gameVersion,
+                        modsDirectory)
+                    .ConfigureAwait(false))
+                {
+                    repaired++;
+                }
+            }
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                context.LaunchPage.HideRepairing();
+                if (context.LaunchPage.IsLaunchInProgress)
+                    context.LaunchPage.PageChangeToLogin();
+                string result = repaired == dependencies.Count
+                    ? $"自动修复完成：已安装 {repaired} 个前置模组，请重新启动游戏。"
+                    : $"自动修复完成：已安装 {repaired}/{dependencies.Count} 个前置模组。";
+                _launchRight?.AppendLog(result);
+                ShowHint(result, critical: repaired != dependencies.Count);
+            });
+        }
+        catch (Exception ex)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                context.LaunchPage.HideRepairing();
+                if (context.LaunchPage.IsLaunchInProgress)
+                    context.LaunchPage.PageChangeToLogin();
+                _launchRight?.AppendLog("自动修复失败：" + ex.Message);
+                ShowHint("自动修复失败：" + TruncateHint(ex.Message), critical: true);
+            });
+        }
+    }
+
+    private static async Task<bool> DownloadMissingDependencyAsync(
+        CompositeCommunityResourceCatalog catalog,
+        HttpClient downloader,
+        MinecraftMissingDependency dependency,
+        string gameVersion,
+        string modsDirectory)
+    {
+        CommunitySearchOptions options = new(
+            CommunityResourceSort.Relevance,
+            GameVersion: gameVersion,
+            Loader: "fabric",
+            Source: CommunityResourceSource.All);
+        IReadOnlyList<CommunityResourceEntry> entries = await catalog.SearchAsync(
+                CommunityResourceCategory.Mod,
+                dependency.ModId,
+                options)
+            .ConfigureAwait(false);
+        CommunityResourceEntry? entry = entries
+            .OrderBy(candidate => GetDependencyMatchScore(candidate, dependency))
+            .FirstOrDefault();
+        if (entry is null && !string.Equals(dependency.Name, dependency.ModId, StringComparison.OrdinalIgnoreCase))
+        {
+            entries = await catalog.SearchAsync(
+                    CommunityResourceCategory.Mod,
+                    dependency.Name,
+                    options)
+                .ConfigureAwait(false);
+            entry = entries.OrderBy(candidate => GetDependencyMatchScore(candidate, dependency)).FirstOrDefault();
+        }
+        if (entry is null)
+            return false;
+
+        CommunityResourceDownloadFile? file = await catalog.ResolveDownloadAsync(entry, options).ConfigureAwait(false);
+        if (file is null)
+            return false;
+        string targetPath = Path.Combine(modsDirectory, SanitizeFileName(file.FileName));
+        if (File.Exists(targetPath))
+        {
+            MinecraftModArchiveInstaller.DisableConflicts(targetPath, modsDirectory);
+            return true;
+        }
+
+        string temporaryPath = targetPath + "." + Guid.NewGuid().ToString("N") + ".PCLDownloading";
+        try
+        {
+            using HttpResponseMessage response = await downloader.GetAsync(file.Url, HttpCompletionOption.ResponseHeadersRead)
+                .ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            await using Stream source = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            await using (FileStream target = new(
+                             temporaryPath,
+                             FileMode.CreateNew,
+                             FileAccess.Write,
+                             FileShare.None,
+                             64 * 1024,
+                             useAsync: true))
+            {
+                await source.CopyToAsync(target).ConfigureAwait(false);
+            }
+
+            MinecraftModArchiveInstaller.Install(temporaryPath, modsDirectory, Path.GetFileName(targetPath));
+            return true;
+        }
+        finally
+        {
+            if (File.Exists(temporaryPath))
+                File.Delete(temporaryPath);
+        }
+    }
+
+    private static int GetDependencyMatchScore(
+        CommunityResourceEntry entry,
+        MinecraftMissingDependency dependency)
+    {
+        if (string.Equals(entry.Slug, dependency.ModId, StringComparison.OrdinalIgnoreCase))
+            return 0;
+        if (string.Equals(entry.Title, dependency.Name, StringComparison.OrdinalIgnoreCase))
+            return 1;
+        return 2;
+    }
+
+    private static async Task<IReadOnlyList<string>> ReadRecentCrashLinesAsync(string gameDirectory)
+    {
+        List<string> paths = [];
+        string latestLog = Path.Combine(gameDirectory, "logs", "latest.log");
+        if (File.Exists(latestLog))
+            paths.Add(latestLog);
+        string crashDirectory = Path.Combine(gameDirectory, "crash-reports");
+        if (Directory.Exists(crashDirectory))
+        {
+            string? latestCrash = Directory.EnumerateFiles(crashDirectory, "*.txt", SearchOption.TopDirectoryOnly)
+                .OrderByDescending(File.GetLastWriteTimeUtc)
+                .FirstOrDefault();
+            if (latestCrash is not null)
+                paths.Add(latestCrash);
+        }
+
+        List<string> lines = [];
+        foreach (string path in paths.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            FileInfo file = new(path);
+            if (file.Length > 8L * 1024L * 1024L)
+                continue;
+            lines.AddRange(await File.ReadAllLinesAsync(path).ConfigureAwait(false));
+        }
+        return lines;
+    }
+
+    private sealed record RunningGameContext(
+        LaunchInstanceInfo Instance,
+        PageLaunchLeft LaunchPage,
+        LauncherSettings Settings);
 
     private Task<bool> ConfirmJavaDownloadAsync(string versionLabel, CancellationToken cancellationToken)
     {
@@ -4119,6 +4477,17 @@ public partial class MainWindow : Window, IDisposable
         string clientId = MicrosoftMinecraftAuthService.ResolveClientId();
         if (string.IsNullOrWhiteSpace(clientId))
         {
+            // Local/debug builds may intentionally omit the OAuth client id. A
+            // previously authenticated Minecraft access token remains usable
+            // until its own expiry; refreshing is only mandatory afterwards.
+            if (IsAccessTokenUsable(profile.AccessToken))
+            {
+                Dispatcher.UIThread.Post(
+                    () => _launchRight?.AppendLog("未配置 Microsoft Client ID，使用档案中仍有效的访问令牌启动。"),
+                    DispatcherPriority.Background);
+                return profile;
+            }
+
             throw new InvalidOperationException(
                 "缺少 Microsoft 登录配置，无法刷新正版登录状态。请提供 PCL_MS_CLIENT_ID 后重试。");
         }
@@ -4137,6 +4506,33 @@ public partial class MainWindow : Window, IDisposable
         };
     }
 
+    private static bool IsAccessTokenUsable(string? accessToken)
+    {
+        if (string.IsNullOrWhiteSpace(accessToken))
+            return false;
+
+        string[] parts = accessToken.Split('.');
+        if (parts.Length < 2)
+            return true;
+        try
+        {
+            string payload = parts[1].Replace('-', '+').Replace('_', '/');
+            payload = payload.PadRight(payload.Length + (4 - payload.Length % 4) % 4, '=');
+            using JsonDocument document = JsonDocument.Parse(Convert.FromBase64String(payload));
+            if (!document.RootElement.TryGetProperty("exp", out JsonElement expiration) ||
+                !expiration.TryGetInt64(out long seconds))
+            {
+                return true;
+            }
+
+            return DateTimeOffset.FromUnixTimeSeconds(seconds) > DateTimeOffset.UtcNow.AddMinutes(2d);
+        }
+        catch (Exception ex) when (ex is FormatException or JsonException or ArgumentOutOfRangeException)
+        {
+            return true;
+        }
+    }
+
     private async Task IncrementInstanceLaunchCountAsync(LaunchInstanceInfo instance)
     {
         try
@@ -4144,20 +4540,25 @@ public partial class MainWindow : Window, IDisposable
             InstanceMetadata metadata = await InstanceMetadataStore.UpdateAsync(
                     instance.InstanceDirectory,
                     current => current with { LaunchCount = Math.Max(0, current.LaunchCount) + 1 })
-                .ConfigureAwait(true);
+                .ConfigureAwait(false);
 
-            if (_instanceManagePage is not null &&
-                _managedInstance is not null &&
-                string.Equals(_managedInstance.InstanceDirectory, instance.InstanceDirectory, StringComparison.OrdinalIgnoreCase))
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                _instanceManagePage.SetInstance(instance);
-            }
+                if (_instanceManagePage is not null &&
+                    _managedInstance is not null &&
+                    string.Equals(_managedInstance.InstanceDirectory, instance.InstanceDirectory, StringComparison.OrdinalIgnoreCase))
+                {
+                    _instanceManagePage.SetInstance(instance);
+                }
 
-            _launchRight?.AppendLog($"这是 {instance.Name} 的第 {metadata.LaunchCount.ToString(CultureInfo.InvariantCulture)} 次启动。");
+                _launchRight?.AppendLog($"这是 {instance.Name} 的第 {metadata.LaunchCount.ToString(CultureInfo.InvariantCulture)} 次启动。");
+            });
         }
         catch (Exception ex)
         {
-            _launchRight?.AppendLog("记录启动次数失败：" + ex.Message);
+            Dispatcher.UIThread.Post(
+                () => _launchRight?.AppendLog("记录启动次数失败：" + ex.Message),
+                DispatcherPriority.Background);
         }
     }
 
@@ -5287,6 +5688,7 @@ public partial class MainWindow : Window, IDisposable
         (_launchLeft as IDisposable)?.Dispose();
         _launchRight?.Dispose();
         _communityRight?.Dispose();
+        _communityDetail?.Dispose();
         _instanceSelectPage?.Dispose();
         _setupRight?.Dispose();
         GC.SuppressFinalize(this);

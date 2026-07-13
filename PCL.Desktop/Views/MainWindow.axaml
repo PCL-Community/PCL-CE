@@ -230,9 +230,11 @@
 
                     <local:MyIconButton x:Name="BtnTitleClose" HorizontalAlignment="Right" Height="28" VerticalAlignment="Center" Width="28" Margin="0,0,12,0" Theme="White" Click="BtnTitleClose_Click"
                                         SvgIcon="lucide/x" />
-                    <local:MyIconButton x:Name="BtnTitleMin" HorizontalAlignment="Right" Height="28" VerticalAlignment="Center" Width="28" Margin="0,0,44,0" Theme="White" Click="BtnTitleMin_Click"
+                    <local:MyIconButton x:Name="BtnTitleMax" HorizontalAlignment="Right" Height="28" VerticalAlignment="Center" Width="28" Margin="0,0,44,0" Theme="White" Click="BtnTitleMax_Click"
+                                        SvgIcon="lucide/square" />
+                    <local:MyIconButton x:Name="BtnTitleMin" HorizontalAlignment="Right" Height="28" VerticalAlignment="Center" Width="28" Margin="0,0,76,0" Theme="White" Click="BtnTitleMin_Click"
                                        SvgIcon="lucide/minus" />
-                    <local:MyIconButton x:Name="BtnTitleHelp" HorizontalAlignment="Right" Height="28" VerticalAlignment="Center" Width="28" Margin="0,0,76,0" Theme="White" IsVisible="False" Click="BtnTitleHelp_Click"
+                    <local:MyIconButton x:Name="BtnTitleHelp" HorizontalAlignment="Right" Height="28" VerticalAlignment="Center" Width="28" Margin="0,0,108,0" Theme="White" IsVisible="False" Click="BtnTitleHelp_Click"
                                         SvgIcon="lucide/circle-help" />
                     <Grid x:Name="PanTitleMain" HorizontalAlignment="Left">
 
@@ -455,6 +457,24 @@
             </Grid>
 
         </Border>
+
+        <!-- Borderless windows do not receive native resize hit testing. -->
+        <Border Background="#01000000" Height="4" VerticalAlignment="Top" Margin="22,10,22,0" Cursor="SizeNorthSouth"
+                ZIndex="1000" Tag="North" PointerPressed="ResizeGrip_PointerPressed" />
+        <Border Background="#01000000" Height="4" VerticalAlignment="Bottom" Margin="22,0,22,10" Cursor="SizeNorthSouth"
+                ZIndex="1000" Tag="South" PointerPressed="ResizeGrip_PointerPressed" />
+        <Border Background="#01000000" Width="4" HorizontalAlignment="Left" Margin="10,22,0,22" Cursor="SizeWestEast"
+                ZIndex="1000" Tag="West" PointerPressed="ResizeGrip_PointerPressed" />
+        <Border Background="#01000000" Width="4" HorizontalAlignment="Right" Margin="0,22,10,22" Cursor="SizeWestEast"
+                ZIndex="1000" Tag="East" PointerPressed="ResizeGrip_PointerPressed" />
+        <Border Background="#01000000" Width="14" Height="14" Margin="8,8,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Cursor="TopLeftCorner"
+                ZIndex="1001" Tag="NorthWest" PointerPressed="ResizeGrip_PointerPressed" />
+        <Border Background="#01000000" Width="14" Height="14" Margin="0,8,8,0" HorizontalAlignment="Right" VerticalAlignment="Top" Cursor="TopRightCorner"
+                ZIndex="1001" Tag="NorthEast" PointerPressed="ResizeGrip_PointerPressed" />
+        <Border Background="#01000000" Width="14" Height="14" Margin="8,0,0,8" HorizontalAlignment="Left" VerticalAlignment="Bottom" Cursor="BottomLeftCorner"
+                ZIndex="1001" Tag="SouthWest" PointerPressed="ResizeGrip_PointerPressed" />
+        <Border Background="#01000000" Width="14" Height="14" Margin="0,0,8,8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Cursor="BottomRightCorner"
+                ZIndex="1001" Tag="SouthEast" PointerPressed="ResizeGrip_PointerPressed" />
 
     </Grid>
 
