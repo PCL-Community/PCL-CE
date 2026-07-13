@@ -39,15 +39,15 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
 
         var classifiedFiles = _ClassifyFiles();
 
-        context.DirectOpenFile = classifiedFiles
-            .Where(item => item.Kind is not null)
-            .Select(item => item.File)
-            .OrderByDescending(_GetLastWriteTime)
-            .FirstOrDefault();
-
         var analyzable = classifiedFiles
             .Where(item => item.Kind is not null)
             .ToList();
+
+        context.DirectOpenFile = analyzable
+            .OrderByDescending(item => _KindPriority(item.Kind!.Value))
+            .ThenByDescending(item => _GetLastWriteTime(item.File))
+            .Select(item => item.File)
+            .FirstOrDefault();
 
         var extraFiles = classifiedFiles
             .Where(item => item.Kind is null)
@@ -348,6 +348,15 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
             return new DateTime(1900, 1, 1);
         }
     }
+
+    private static int _KindPriority(CrashLogKind kind) => kind switch
+    {
+        CrashLogKind.CrashReport => 4,
+        CrashLogKind.HsErr       => 3,
+        CrashLogKind.Game         => 2,
+        CrashLogKind.Debug        => 1,
+        _                         => 0
+    };
 
     private static string _GetHeadTailLines(
         IReadOnlyList<string> raw,
