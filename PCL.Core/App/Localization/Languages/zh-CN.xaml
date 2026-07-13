@@ -218,7 +218,7 @@
 
     <sys:String x:Key="Crash.Report.JarInJarMod.ModListDirectory">目录：{0}</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateEntry">{0} [{1}] &lt;-&gt; 内嵌于 {2}（{3}）</sys:String>
-    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateHeuristic">（按 ModId 匹配，可能包含误报）</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateHeuristic">（按模组 ID 匹配，可能包含误报）</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateDescription">以下模组可能与内嵌副本冲突并导致崩溃：</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateNone">无</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateSection">=== 潜在重复模组===</sys:String>

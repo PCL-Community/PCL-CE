@@ -218,11 +218,11 @@
 
     <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateDescription">These mods may conflict with their bundled copies and cause crashes:</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateEntry">{0} [{1}] &lt;-&gt; bundled in {2} ({3})</sys:String>
-    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateHeuristic">(Matched by Mod ID; may include false positives.)</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateHeuristic">(Matched by mod ID and may include false positives.)</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateNone">None</sys:String>
-    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateSection">=== Potentially duplicated mods (installed standalone AND bundled via Jar-in-Jar) ===</sys:String>
-    <sys:String x:Key="Crash.Report.JarInJarMod.JarInJarNone">No Jar-in-Jar info found</sys:String>
-    <sys:String x:Key="Crash.Report.JarInJarMod.JarInJarSection">=== Jar-in-Jar info (enabled mods only) ===</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateSection">=== Potentially duplicated mods (installed standalone and bundled via Jar-in-Jar) ===</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.JarInJarNone">No Jar-in-Jar information found</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.JarInJarSection">=== Jar-in-Jar information (enabled mods only) ===</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.ModListDirectory">Directory: {0}</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.ModListSection">=== Mod list ===</sys:String>
 
