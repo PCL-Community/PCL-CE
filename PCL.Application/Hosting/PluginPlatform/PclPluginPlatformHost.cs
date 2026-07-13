@@ -7,26 +7,30 @@ using PCL.Application.Settings;
 
 namespace PCL.Application.Hosting.PluginPlatform;
 
-/// <summary>Default host bridge: settings pages from <see cref="IPclHost"/> + immediate dispatcher.</summary>
+/// <summary>Default host bridge: settings pages from <see cref="IPclHost"/> + immediate work queue.</summary>
 internal sealed class PclPluginPlatformHost : IPclPluginPlatformHost
 {
     public PclPluginPlatformHost(
+        IHostSettingsPageGroupRegistry settingsPageGroups,
         IHostSettingsPageRegistry settingsPages,
-        IPluginHostDispatcher? dispatcher = null,
+        IPluginHostWorkQueue? workQueue = null,
         IPluginHostNotifications? notifications = null,
         IPluginHostInstanceQuery? instances = null,
         IPluginHostUiComposition? uiComposition = null)
     {
+        SettingsPageGroups = settingsPageGroups ?? throw new ArgumentNullException(nameof(settingsPageGroups));
         SettingsPages = settingsPages ?? throw new ArgumentNullException(nameof(settingsPages));
-        Dispatcher = dispatcher ?? ImmediatePluginHostDispatcher.Instance;
+        WorkQueue = workQueue ?? ImmediatePluginHostWorkQueue.Instance;
         Notifications = notifications ?? CapturingPluginHostNotifications.Instance;
         Instances = instances;
         UiComposition = uiComposition;
     }
 
+    public IHostSettingsPageGroupRegistry SettingsPageGroups { get; }
+
     public IHostSettingsPageRegistry SettingsPages { get; }
 
-    public IPluginHostDispatcher Dispatcher { get; }
+    public IPluginHostWorkQueue WorkQueue { get; }
 
     public IPluginHostNotifications Notifications { get; }
 
@@ -35,9 +39,9 @@ internal sealed class PclPluginPlatformHost : IPclPluginPlatformHost
     public IPluginHostUiComposition? UiComposition { get; }
 }
 
-internal sealed class ImmediatePluginHostDispatcher : IPluginHostDispatcher
+internal sealed class ImmediatePluginHostWorkQueue : IPluginHostWorkQueue
 {
-    public static ImmediatePluginHostDispatcher Instance { get; } = new();
+    public static ImmediatePluginHostWorkQueue Instance { get; } = new();
 
     public void Post(Action action)
     {

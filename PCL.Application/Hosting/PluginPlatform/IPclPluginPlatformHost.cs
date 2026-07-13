@@ -12,9 +12,11 @@ namespace PCL.Application.Hosting.PluginPlatform;
 /// </summary>
 internal interface IPclPluginPlatformHost
 {
+    IHostSettingsPageGroupRegistry SettingsPageGroups { get; }
+
     IHostSettingsPageRegistry SettingsPages { get; }
 
-    IPluginHostDispatcher Dispatcher { get; }
+    IPluginHostWorkQueue WorkQueue { get; }
 
     IPluginHostNotifications Notifications { get; }
 
@@ -40,6 +42,18 @@ internal interface IPluginHostUiComposition
     bool TrySetVisible(string surfaceId, bool isVisible);
 
     bool IsTargetRegistered(string surfaceId);
+
+    /// <summary>Wraps a registered surface target in a host-owned decorator (design §12.4 Wrap).</summary>
+    bool TryWrap(string surfaceId, HostUiWrapRequest request);
+
+    /// <summary>
+    /// Replaces a registered surface target with a host-owned placeholder control
+    /// (design §12.4 / §13.3 Replace — exclusive visual placeholder).
+    /// </summary>
+    bool TryReplace(string surfaceId, HostUiReplaceRequest request);
+
+    /// <summary>Restores targets to pre-wrap/replace state before a new apply pass.</summary>
+    void ResetWrapAndReplace(string surfaceId);
 }
 
 internal sealed record HostUiInjectionRequest(
@@ -47,6 +61,17 @@ internal sealed record HostUiInjectionRequest(
     string ContributionId,
     string Title,
     int Order);
+
+internal sealed record HostUiWrapRequest(
+    string PluginId,
+    string OperationId,
+    string? Label,
+    int Order);
+
+internal sealed record HostUiReplaceRequest(
+    string PluginId,
+    string OperationId,
+    string? Title);
 
 /// <summary>Read-only Minecraft instance listing for plugins (design §9).</summary>
 internal interface IPluginHostInstanceQuery
@@ -60,7 +85,8 @@ internal sealed record HostPluginInstanceInfo(
     string InstanceDirectory,
     string? VersionJsonPath);
 
-internal interface IPluginHostDispatcher
+/// <summary>Host-owned serialized work queue; Desktop supplies its UI-thread implementation.</summary>
+internal interface IPluginHostWorkQueue
 {
     void Post(Action action);
 

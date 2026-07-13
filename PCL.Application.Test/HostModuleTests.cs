@@ -36,7 +36,10 @@ public sealed class HostModuleTests
         Assert.IsTrue(host.Commands.TryGetCommand(new CommandId("sample.refresh"), out CommandDescriptor command));
         Assert.AreEqual("刷新", command.Title);
         Assert.AreEqual(new SettingKey("sample.setting"), host.Settings.Settings.Single().Key);
+        Assert.AreEqual("sample.group", host.SettingsPageGroups.Groups.Single().Id);
         Assert.AreEqual("sample.settings", host.SettingsPages.Pages.Single().Id);
+        Assert.AreEqual("sample.group", host.SettingsPages.Pages.Single().GroupId);
+        Assert.AreEqual(20, host.SettingsPages.Pages.Single().Order);
         Assert.AreEqual(new ThemeId("sample.theme"), host.Themes.Themes.Single().Id);
         Assert.AreEqual(new AccountProviderId("sample.account"), host.Accounts.Providers.Single().Id);
         Assert.AreEqual(new DownloadSourceId("sample.download"), host.Downloads.Sources.Single().Id);
@@ -98,6 +101,11 @@ public sealed class HostModuleTests
         settings.AddSetting(new SettingDescriptor("sample.setting", "设置"));
 
         Assert.ThrowsExactly<InvalidOperationException>(() => settings.AddSetting(new SettingDescriptor("SAMPLE.SETTING", "设置")));
+
+        HostSettingsPageGroupRegistry settingsPageGroups = new();
+        settingsPageGroups.AddGroup(new HostSettingsPageGroupDescriptor("sample.group", "示例分组"));
+        Assert.ThrowsExactly<InvalidOperationException>(() =>
+            settingsPageGroups.AddGroup(new HostSettingsPageGroupDescriptor("SAMPLE.GROUP", "示例分组")));
 
         HostSettingsPageRegistry settingsPages = new();
         settingsPages.AddPage(CreateSettingsPage("sample.settings"));
@@ -293,7 +301,11 @@ public sealed class HostModuleTests
         new(new CommandId(id), title, static (_, _) => ValueTask.CompletedTask);
 
     private static HostSettingsPageDescriptor CreateSettingsPage(string id) =>
-        new(id, "插件", "lucide/plug", "插件模块", "由 Host Module 注册。", []);
+        new(id, "插件", "lucide/plug", "插件模块", "由 Host Module 注册。", [])
+        {
+            GroupId = "sample.group",
+            Order = 20
+        };
 
     private static void ConfigureInternalModule(PclHostBuilder builder)
     {
@@ -335,6 +347,7 @@ public sealed class HostModuleTests
         public void Configure(IPclHostBuilder builder)
         {
             builder.AddExtension(new ExtensionDescriptor(new ExtensionId("sample.extension"), "示例扩展"));
+            builder.AddSettingsPageGroup(new HostSettingsPageGroupDescriptor("sample.group", "示例分组"));
             builder.AddSettingsPage(CreateSettingsPage("sample.settings"));
         }
     }

@@ -21,13 +21,25 @@ public sealed record HostSettingsHintDescriptor(
     string Text,
     HostSettingsHintKind Kind = HostSettingsHintKind.Information);
 
+public sealed record HostSettingsPageGroupDescriptor(
+    string Id,
+    string Title,
+    string? Icon = null,
+    int Order = 500,
+    string? Description = null);
+
 public sealed record HostSettingsPageDescriptor(
     string Id,
     string Title,
     string Icon,
     string Heading,
     string Description,
-    IReadOnlyList<HostSettingsHintDescriptor> Hints);
+    IReadOnlyList<HostSettingsHintDescriptor> Hints)
+{
+    public string? GroupId { get; init; }
+
+    public int Order { get; init; } = 500;
+}
 
 public interface ISettingsRegistry
 {
@@ -76,6 +88,46 @@ public sealed class SettingsRegistry : ISettingsRegistry
 
     private void RefreshSnapshot() =>
         _snapshot = _settings.ToArray();
+}
+
+public interface IHostSettingsPageGroupRegistry
+{
+    IReadOnlyList<HostSettingsPageGroupDescriptor> Groups { get; }
+
+    void AddGroup(HostSettingsPageGroupDescriptor descriptor);
+
+    bool RemoveGroup(string id);
+}
+
+public sealed class HostSettingsPageGroupRegistry : IHostSettingsPageGroupRegistry
+{
+    private readonly List<HostSettingsPageGroupDescriptor> _groups = [];
+    private readonly Dictionary<string, HostSettingsPageGroupDescriptor> _groupMap = new(StringComparer.OrdinalIgnoreCase);
+    private IReadOnlyList<HostSettingsPageGroupDescriptor> _snapshot = Array.Empty<HostSettingsPageGroupDescriptor>();
+
+    public IReadOnlyList<HostSettingsPageGroupDescriptor> Groups => _snapshot;
+
+    public void AddGroup(HostSettingsPageGroupDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentException.ThrowIfNullOrWhiteSpace(descriptor.Id);
+        ArgumentException.ThrowIfNullOrWhiteSpace(descriptor.Title);
+        if (!_groupMap.TryAdd(descriptor.Id, descriptor))
+            throw new InvalidOperationException($"Host 设置页分组已注册：{descriptor.Id}");
+
+        _groups.Add(descriptor);
+        _snapshot = _groups.ToArray();
+    }
+
+    public bool RemoveGroup(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id) || !_groupMap.Remove(id))
+            return false;
+
+        _groups.RemoveAll(group => string.Equals(group.Id, id, StringComparison.OrdinalIgnoreCase));
+        _snapshot = _groups.ToArray();
+        return true;
+    }
 }
 
 public interface IHostSettingsPageRegistry

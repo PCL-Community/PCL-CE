@@ -1362,6 +1362,8 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsNotNull(setupLeft);
                 Assert.IsTrue(setupLeft.FindControl<MyListItem>("ItemLaunch")!.Checked);
                 Assert.IsNull(setupLeft.FindControl<MyListItem>("ItemPlugin"));
+                Assert.IsNull(setupLeft.FindControl<MyListItem>("ItemHostSettings_pcl_plugin_installed"));
+                Assert.IsNull(setupLeft.FindControl<TextBlock>("TextHostSettingsGroup_pcl_plugin"));
                 Assert.AreEqual(
                     SetupPageSubType.Java,
                     setupLeft.FindControl<MyListItem>("ItemJava")!.Buttons.Single().Tag);
@@ -3510,6 +3512,48 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void PluginHostSettingsPages_RenderWithoutInjectedRuntime()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(() =>
+        {
+            HostSettingsPageDescriptor[] descriptors =
+            [
+                new("pcl.plugin.installed", "已安装", "lucide/package", "已安装插件", "管理本地安装的第三方插件。", []),
+                new("pcl.plugin.market", "市场", "lucide/store", "插件市场", "扫描本地 .pnp 包。", []),
+                new("pcl.plugin.safety", "安全", "lucide/shield", "插件安全", "配置安全模式。", []),
+                new("pcl.plugin.ui-patches", "UI Patch", "lucide/panel-top", "UI Patch", "查看 UI Patch 计划。", []),
+                new("pcl.plugin.compatibility", "兼容性", "lucide/git-compare", "兼容性", "查看离线兼容性记录。", [])
+            ];
+
+            foreach (HostSettingsPageDescriptor descriptor in descriptors)
+            {
+                Type factoryType = typeof(PageSetupHostModule).Assembly.GetType(
+                    "PCL.Desktop.Features.Settings.Views.HostSettingsPageFactory",
+                    throwOnError: true)!;
+                MyPageRight page = (MyPageRight)factoryType.GetMethod(
+                    "Create",
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)!
+                    .Invoke(null, [descriptor])!;
+                Window window = new() { Width = 600d, Height = 400d, Content = page };
+                try
+                {
+                    window.Show();
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                    Assert.AreEqual(descriptor.Heading, page.FindControl<TextBlock>("LabHostHeading")!.Text);
+                    Assert.IsTrue(
+                        page.GetType().GetInterfaces().Any(type => type.Name == "IRefreshableSettingsPage"));
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
     [TestCategory("InjectedPlugin")]
     public void InjectedPlugin_RegistersSettingsPageInHeadlessUi()
     {
@@ -3541,16 +3585,25 @@ public sealed class AvaloniaHeadlessTests
                 ModAnimation.AdvanceUntilIdleForTesting();
 
                 PageSetupLeft setupLeft = FindVisual<PageSetupLeft>(window)!;
-                MyListItem pluginItem = setupLeft.FindControl<MyListItem>("ItemPlugin")!;
-                Assert.IsNotNull(pluginItem);
-                Assert.AreEqual("插件", pluginItem.Title);
-                Click(window, pluginItem);
+                TextBlock pluginGroup = setupLeft.FindControl<TextBlock>("TextHostSettingsGroup_pcl_plugin")!;
+                Assert.IsNotNull(pluginGroup);
+                Assert.AreEqual("插件", pluginGroup.Text);
+                MyListItem installedItem = setupLeft.FindControl<MyListItem>("ItemHostSettings_pcl_plugin_installed")!;
+                MyListItem marketItem = setupLeft.FindControl<MyListItem>("ItemHostSettings_pcl_plugin_market")!;
+                MyListItem safetyItem = setupLeft.FindControl<MyListItem>("ItemHostSettings_pcl_plugin_safety")!;
+                MyListItem uiPatchesItem = setupLeft.FindControl<MyListItem>("ItemHostSettings_pcl_plugin_ui_patches")!;
+                MyListItem compatibilityItem = setupLeft.FindControl<MyListItem>("ItemHostSettings_pcl_plugin_compatibility")!;
+                Assert.AreEqual("已安装", installedItem.Title);
+                Assert.AreEqual("市场", marketItem.Title);
+                Assert.AreEqual("安全", safetyItem.Title);
+                Assert.AreEqual("UI Patch", uiPatchesItem.Title);
+                Assert.AreEqual("兼容性", compatibilityItem.Title);
+
+                Click(window, installedItem);
                 ModAnimation.AdvanceUntilIdleForTesting();
 
-                PageSetupHostModule page = FindVisual<PageSetupHostModule>(window)!;
-                StringAssert.Contains(page.FindControl<TextBlock>("LabHostHeading")!.Text, "HostModule");
-                StringAssert.Contains(page.FindControl<TextBlock>("LabHostDescription")!.Text, "正版登录验证不属于插件功能");
-                Assert.AreEqual(2, page.GetVisualDescendants().OfType<MyHint>().Count());
+                MyPageRight page = FindVisual<MyPageRight>(window)!;
+                StringAssert.Contains(page.FindControl<TextBlock>("LabHostHeading")!.Text, "已安装");
             }
             finally
             {

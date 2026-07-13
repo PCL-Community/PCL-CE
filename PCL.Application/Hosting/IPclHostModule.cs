@@ -34,7 +34,7 @@ public readonly record struct HostApiVersion(int Major, int Minor) : IComparable
 
 public static class PclPluginHostApi
 {
-    public static HostApiVersion Current { get; } = new(0, 1);
+    public static HostApiVersion Current { get; } = new(0, 2);
 }
 
 public interface IPclHostBuilder
@@ -42,6 +42,8 @@ public interface IPclHostBuilder
     HostApiVersion ApiVersion { get; }
 
     void AddExtension(ExtensionDescriptor descriptor);
+
+    void AddSettingsPageGroup(HostSettingsPageGroupDescriptor descriptor);
 
     void AddSettingsPage(HostSettingsPageDescriptor descriptor);
 }
@@ -68,6 +70,8 @@ public interface IPclHost
     ICommandRegistry Commands { get; }
 
     ISettingsRegistry Settings { get; }
+
+    IHostSettingsPageGroupRegistry SettingsPageGroups { get; }
 
     IHostSettingsPageRegistry SettingsPages { get; }
 
@@ -98,6 +102,8 @@ public sealed class PclHostBuilder : IPclHostBuilder
     public ICommandRegistry Commands { get; } = new CommandRegistry();
 
     public ISettingsRegistry Settings { get; } = new SettingsRegistry();
+
+    public IHostSettingsPageGroupRegistry SettingsPageGroups { get; } = new HostSettingsPageGroupRegistry();
 
     public IHostSettingsPageRegistry SettingsPages { get; } = new HostSettingsPageRegistry();
 
@@ -140,6 +146,8 @@ public sealed class PclHostBuilder : IPclHostBuilder
         Extensions.AddExtension(descriptor);
     }
 
+    public void AddSettingsPageGroup(HostSettingsPageGroupDescriptor descriptor) => SettingsPageGroups.AddGroup(descriptor);
+
     public void AddSettingsPage(HostSettingsPageDescriptor descriptor) => SettingsPages.AddPage(descriptor);
 
     public IPclHost Build() =>
@@ -149,6 +157,7 @@ public sealed class PclHostBuilder : IPclHostBuilder
             Navigation,
             Commands,
             Settings,
+            SettingsPageGroups,
             SettingsPages,
             Themes,
             Accounts,
@@ -186,6 +195,7 @@ internal sealed class PclHost(
     INavigationRegistry navigation,
     ICommandRegistry commands,
     ISettingsRegistry settings,
+    IHostSettingsPageGroupRegistry settingsPageGroups,
     IHostSettingsPageRegistry settingsPages,
     IThemeRegistry themes,
     IAccountProviderRegistry accounts,
@@ -202,6 +212,8 @@ internal sealed class PclHost(
     public ICommandRegistry Commands { get; } = commands;
 
     public ISettingsRegistry Settings { get; } = settings;
+
+    public IHostSettingsPageGroupRegistry SettingsPageGroups { get; } = settingsPageGroups;
 
     public IHostSettingsPageRegistry SettingsPages { get; } = settingsPages;
 

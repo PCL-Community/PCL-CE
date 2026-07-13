@@ -27,25 +27,42 @@ public enum SetupPageSubType
     Plugin = 12
 }
 
-public sealed class SetupPageChangedEventArgs(SetupPageSubType pageId, MyPageRight page) : EventArgs
+public sealed class SetupPageChangedEventArgs(SetupPageSubType pageId, MyPageRight page, string? hostPageId = null) : EventArgs
 {
     public SetupPageSubType PageId { get; } = pageId;
+
+    public string? HostPageId { get; } = hostPageId;
 
     public MyPageRight Page { get; } = page;
 }
 
 public partial class PageSetupLeft : MyPageLeft
 {
+    private const string DefaultHostSettingsGroupId = "pcl.settings.extensions";
+
+    private static readonly HostSettingsPageGroupDescriptor DefaultHostSettingsGroup = new(
+        DefaultHostSettingsGroupId,
+        "扩展",
+        "lucide/puzzle",
+        500,
+        "由 HostModule 或插件注入的设置页。");
+
     private readonly Dictionary<SetupPageSubType, MyPageRight> _pages = [];
-    private readonly HostSettingsPageDescriptor? _hostSettingsPage;
+    private readonly Dictionary<string, MyPageRight> _hostPages = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, HostSettingsPageDescriptor> _hostPageMap = new(StringComparer.OrdinalIgnoreCase);
+    private readonly IReadOnlyList<HostSettingsPageDescriptor> _hostSettingsPages;
+    private readonly IReadOnlyList<HostSettingsPageGroupDescriptor> _hostSettingsGroups;
     private bool _isLoadedOnce;
+    private string? _hostPageId;
 
     public PageSetupLeft()
     {
         AvaloniaXamlLoader.Load(this);
-        IReadOnlyList<HostSettingsPageDescriptor> hostPages = DesktopHost.Current.SettingsPages.Pages;
-        _hostSettingsPage = hostPages.Count > 0 ? hostPages[0] : null;
-        RegisterHostSettingsPage();
+        _hostSettingsGroups = DesktopHost.Current.SettingsPageGroups.Groups;
+        _hostSettingsPages = DesktopHost.Current.SettingsPages.Pages;
+        foreach (HostSettingsPageDescriptor page in _hostSettingsPages)
+            _hostPageMap[page.Id] = page;
+        RegisterHostSettingsPages();
         AnimatedControl = Required<Control>("PanItem");
         InitializeRegisteredPageTags();
         PageId = SetupPageSubType.Launch;
@@ -67,7 +84,10 @@ public partial class PageSetupLeft : MyPageLeft
 
     public SetupPageSubType PageId { get; private set; }
 
-    public MyPageRight GetOrCreateCurrentPage() => PageGet(PageId);
+    public string? HostPageId => _hostPageId;
+
+    public MyPageRight GetOrCreateCurrentPage() =>
+        _hostPageId is null ? PageGet(PageId) : PageGetHost(_hostPageId);
 
     public void Reset(object? sender, EventArgs e)
     {
@@ -101,10 +121,20 @@ public partial class PageSetupLeft : MyPageLeft
 
     public void Refresh(object? sender, EventArgs e)
     {
-        if (sender is MyIconButton button && TryReadPage(button.Tag, out SetupPageSubType page))
+        if (sender is not MyIconButton button)
+            return;
+
+        if (TryReadPage(button.Tag, out SetupPageSubType page))
         {
             MyPageRight target = PageGet(page);
             PageChange(page, force: true);
+            if (target is IRefreshableSettingsPage refreshable)
+                refreshable.RefreshPage();
+        }
+        else if (TryReadHostPage(button.Tag, out string? hostPageId) && hostPageId is not null)
+        {
+            MyPageRight target = PageGetHost(hostPageId);
+            PageChangeHost(hostPageId, force: true);
             if (target is IRefreshableSettingsPage refreshable)
                 refreshable.RefreshPage();
         }
@@ -112,31 +142,62 @@ public partial class PageSetupLeft : MyPageLeft
 
     private void PageCheck(object senderRaw, RouteEventArgs e)
     {
-        if (senderRaw is MyListItem item && TryReadPage(item.Tag, out SetupPageSubType page))
+        if (senderRaw is not MyListItem item)
+            return;
+
+        if (TryReadHostPage(item.Tag, out string? hostPageId) && hostPageId is not null)
+            PageChangeHost(hostPageId);
+        else if (TryReadPage(item.Tag, out SetupPageSubType page))
             PageChange(page);
     }
 
     public MyPageRight PageGet(SetupPageSubType page)
     {
+        if (page == SetupPageSubType.Plugin && _hostSettingsPages.Count > 0)
+            return PageGetHost(_hostSettingsPages[0].Id);
+
         if (_pages.TryGetValue(page, out MyPageRight? cached))
             return cached;
 
-        MyPageRight created = page == SetupPageSubType.Plugin && _hostSettingsPage is not null
-            ? new PageSetupHostModule(_hostSettingsPage)
-            : SetupPageRegistry.CreatePage(page);
+        MyPageRight created = SetupPageRegistry.CreatePage(page);
         _pages[page] = created;
+        PageCreated?.Invoke(this, created);
+        return created;
+    }
+
+    private MyPageRight PageGetHost(string hostPageId)
+    {
+        if (_hostPages.TryGetValue(hostPageId, out MyPageRight? cached))
+            return cached;
+        if (!_hostPageMap.TryGetValue(hostPageId, out HostSettingsPageDescriptor? descriptor))
+            throw new InvalidOperationException($"Host 设置页未注册：{hostPageId}");
+
+        MyPageRight created = HostSettingsPageFactory.Create(descriptor);
+        _hostPages[hostPageId] = created;
         PageCreated?.Invoke(this, created);
         return created;
     }
 
     public void PageChange(SetupPageSubType page, bool force = false)
     {
-        if (!force && PageId == page)
+        if (!force && _hostPageId is null && PageId == page)
             return;
 
+        _hostPageId = null;
         PageId = page;
         MyPageRight target = PageGet(page);
         PageChanged?.Invoke(this, new SetupPageChangedEventArgs(page, target));
+    }
+
+    private void PageChangeHost(string hostPageId, bool force = false)
+    {
+        if (!force && string.Equals(_hostPageId, hostPageId, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        _hostPageId = hostPageId;
+        PageId = SetupPageSubType.Plugin;
+        MyPageRight target = PageGetHost(hostPageId);
+        PageChanged?.Invoke(this, new SetupPageChangedEventArgs(SetupPageSubType.Plugin, target, hostPageId));
     }
 
     private T Required<T>(string name)
@@ -167,6 +228,16 @@ public partial class PageSetupLeft : MyPageLeft
         return true;
     }
 
+    private bool TryReadHostPage(object? tag, out string? hostPageId)
+    {
+        hostPageId = null;
+        if (tag is not HostSettingsPageTag hostPageTag || !_hostPageMap.ContainsKey(hostPageTag.Id))
+            return false;
+
+        hostPageId = hostPageTag.Id;
+        return true;
+    }
+
     private void InitializeRegisteredPageTags()
     {
         foreach (MyListItem item in GetItems())
@@ -182,36 +253,100 @@ public partial class PageSetupLeft : MyPageLeft
         }
     }
 
-    private void RegisterHostSettingsPage()
+    private void RegisterHostSettingsPages()
     {
-        if (_hostSettingsPage is null || this.FindControl<Panel>("PanItem") is not { } panel)
+        if (_hostSettingsPages.Count == 0 || this.FindControl<Panel>("PanItem") is not { } panel)
             return;
 
-        MyListItem item = new()
-        {
-            Name = "ItemPlugin",
-            IsScaleAnimationEnabled = false,
-            Tag = SetupPageSubType.Plugin,
-            MinPaddingRight = 35d,
-            Height = 36d,
-            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top,
-            Title = _hostSettingsPage.Title,
-            Type = MyListItem.CheckType.RadioBox,
-            LogoScale = 0.95d,
-            SvgIcon = _hostSettingsPage.Icon
-        };
-        item.Check += PageCheck;
-
-        int aboutIndex = panel.Children
+        int insertIndex = panel.Children
             .Select((child, index) => (child, index))
             .FirstOrDefault(pair => pair.child is Control { Name: "TextAboutCategory" })
             .index;
-        panel.Children.Insert(aboutIndex > 0 ? aboutIndex : panel.Children.Count, item);
+        if (insertIndex <= 0)
+            insertIndex = panel.Children.Count;
+
+        foreach (HostSettingsGroupView group in BuildHostSettingsGroups())
+        {
+            panel.Children.Insert(insertIndex++, CreateHostGroupLabel(group.Descriptor));
+            foreach (HostSettingsPageDescriptor page in group.Pages)
+                panel.Children.Insert(insertIndex++, CreateHostPageItem(page));
+        }
+    }
+
+    private HostSettingsGroupView[] BuildHostSettingsGroups()
+    {
+        Dictionary<string, HostSettingsPageGroupDescriptor> groupMap = new(StringComparer.OrdinalIgnoreCase);
+        foreach (HostSettingsPageGroupDescriptor group in _hostSettingsGroups)
+            groupMap[group.Id] = group;
+
+        Dictionary<string, List<HostSettingsPageDescriptor>> pagesByGroup = new(StringComparer.OrdinalIgnoreCase);
+        foreach (HostSettingsPageDescriptor page in _hostSettingsPages)
+        {
+            string groupId = !string.IsNullOrWhiteSpace(page.GroupId) && groupMap.ContainsKey(page.GroupId)
+                ? page.GroupId
+                : DefaultHostSettingsGroupId;
+            if (!pagesByGroup.TryGetValue(groupId, out List<HostSettingsPageDescriptor>? pages))
+            {
+                pages = [];
+                pagesByGroup[groupId] = pages;
+            }
+
+            pages.Add(page);
+        }
+
+        List<HostSettingsGroupView> groups = [];
+        foreach ((string groupId, List<HostSettingsPageDescriptor> pages) in pagesByGroup)
+        {
+            HostSettingsPageGroupDescriptor descriptor = groupMap.TryGetValue(groupId, out HostSettingsPageGroupDescriptor? group)
+                ? group
+                : DefaultHostSettingsGroup;
+            groups.Add(new HostSettingsGroupView(
+                descriptor,
+                pages.OrderBy(static page => page.Order)
+                    .ThenBy(static page => page.Title, StringComparer.CurrentCultureIgnoreCase)
+                    .ThenBy(static page => page.Id, StringComparer.OrdinalIgnoreCase)
+                    .ToArray()));
+        }
+
+        return groups
+            .OrderBy(static group => group.Descriptor.Order)
+            .ThenBy(static group => group.Descriptor.Title, StringComparer.CurrentCultureIgnoreCase)
+            .ThenBy(static group => group.Descriptor.Id, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
+    private static TextBlock CreateHostGroupLabel(HostSettingsPageGroupDescriptor group) =>
+        new()
+        {
+            Name = "TextHostSettingsGroup_" + SanitizeName(group.Id),
+            Text = group.Title,
+            Margin = new Thickness(13, 5, 5, 3),
+            Opacity = 0.6,
+            FontSize = 12
+        };
+
+    private MyListItem CreateHostPageItem(HostSettingsPageDescriptor page)
+    {
+        MyListItem item = new()
+        {
+            Name = "ItemHostSettings_" + SanitizeName(page.Id),
+            IsScaleAnimationEnabled = false,
+            Tag = new HostSettingsPageTag(page.Id),
+            MinPaddingRight = 35d,
+            Height = 36d,
+            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top,
+            Title = page.Title,
+            Type = MyListItem.CheckType.RadioBox,
+            LogoScale = 0.95d,
+            SvgIcon = page.Icon
+        };
+        item.Check += PageCheck;
+        return item;
     }
 
     private bool IsPageDefined(SetupPageSubType page) =>
         SetupPageRegistry.IsDefined(page) ||
-        (page == SetupPageSubType.Plugin && _hostSettingsPage is not null);
+        (page == SetupPageSubType.Plugin && _hostSettingsPages.Count > 0);
 
     private IEnumerable<MyListItem> GetItems()
     {
@@ -226,7 +361,25 @@ public partial class PageSetupLeft : MyPageLeft
     }
 
     private string GetPageTitle(SetupPageSubType page) =>
-        page == SetupPageSubType.Plugin && _hostSettingsPage is not null
-            ? _hostSettingsPage.Title
+        page == SetupPageSubType.Plugin && _hostSettingsPages.Count > 0
+            ? _hostSettingsPages[0].Title
             : SetupPageRegistry.GetTitle(page);
+
+    private static string SanitizeName(string value)
+    {
+        Span<char> buffer = value.Length <= 256 ? stackalloc char[value.Length] : new char[value.Length];
+        for (int i = 0; i < value.Length; i++)
+        {
+            char c = value[i];
+            buffer[i] = char.IsLetterOrDigit(c) ? c : '_';
+        }
+
+        return new string(buffer);
+    }
+
+    private sealed record HostSettingsPageTag(string Id);
+
+    private sealed record HostSettingsGroupView(
+        HostSettingsPageGroupDescriptor Descriptor,
+        IReadOnlyList<HostSettingsPageDescriptor> Pages);
 }

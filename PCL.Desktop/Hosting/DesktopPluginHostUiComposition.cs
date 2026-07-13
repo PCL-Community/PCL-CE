@@ -14,7 +14,7 @@ using PCL.Desktop.Controls.Legacy;
 namespace PCL.Desktop.Hosting;
 
 /// <summary>
-/// Binds host surfaces/slots to live Avalonia controls and applies inject/modify patches.
+/// Binds host surfaces/slots to live Avalonia controls and applies inject/modify/wrap/replace patches.
 /// </summary>
 internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
 {
@@ -22,6 +22,8 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
 
     private readonly ConcurrentDictionary<string, WeakReference> _targets = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, WeakReference> _slots = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, List<WrapRecord>> _wraps = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, ReplaceRecord> _replaces = new(StringComparer.OrdinalIgnoreCase);
 
     public void RegisterTarget(string surfaceId, Control control)
     {
@@ -38,7 +40,11 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
         _slots[SlotKey(surfaceId, slotId)] = new WeakReference(panel);
     }
 
-    public void UnregisterTarget(string surfaceId) => _targets.TryRemove(surfaceId, out _);
+    public void UnregisterTarget(string surfaceId)
+    {
+        ResetWrapAndReplace(surfaceId);
+        _targets.TryRemove(surfaceId, out _);
+    }
 
     public void UnregisterSlot(string surfaceId, string slotId) =>
         _slots.TryRemove(SlotKey(surfaceId, slotId), out _);
@@ -53,7 +59,6 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
 
         void Clear()
         {
-            // Only remove plugin-injected children tagged by us.
             List<Control> remove = panel.Children
                 .OfType<Control>()
                 .Where(static c => c.Tag is string tag && tag.StartsWith("pcl.plugin.inject:", StringComparison.Ordinal))
@@ -62,10 +67,7 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
                 panel.Children.Remove(child);
         }
 
-        if (Dispatcher.UIThread.CheckAccess())
-            Clear();
-        else
-            Dispatcher.UIThread.Post(Clear);
+        RunOnUi(Clear);
     }
 
     public void Inject(string surfaceId, string slotId, HostUiInjectionRequest request)
@@ -77,7 +79,6 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
         void Add()
         {
             string tag = "pcl.plugin.inject:" + request.PluginId + ":" + request.ContributionId;
-            // Replace existing contribution with same id.
             Control? existing = panel.Children.OfType<Control>()
                 .FirstOrDefault(c => string.Equals(c.Tag as string, tag, StringComparison.Ordinal));
             if (existing is not null)
@@ -91,7 +92,6 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
                 Tag = tag
             };
             ToolTip.SetTip(button, $"{request.PluginId} · {request.ContributionId}");
-            // Order: higher order later (append). Simple stable insert by order tag.
             int insertAt = panel.Children.Count;
             for (int i = 0; i < panel.Children.Count; i++)
             {
@@ -110,10 +110,7 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
             panel.Children.Insert(insertAt, button);
         }
 
-        if (Dispatcher.UIThread.CheckAccess())
-            Add();
-        else
-            Dispatcher.UIThread.Post(Add);
+        RunOnUi(Add);
     }
 
     public bool TrySetProperty(string surfaceId, string? slotId, string propertyPath, string? value)
@@ -122,8 +119,7 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
         if (!TryGetTarget(surfaceId, out Control? control) || control is null)
             return false;
 
-        bool result = false;
-        void Set()
+        return RunOnUi(() =>
         {
             string path = propertyPath.Trim();
             if (path.Equals("Text", StringComparison.OrdinalIgnoreCase) ||
@@ -133,49 +129,42 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
                 if (control is MyButton myButton)
                 {
                     myButton.Text = value ?? string.Empty;
-                    result = true;
-                    return;
+                    return true;
                 }
 
                 if (control is TextBlock textBlock)
                 {
                     textBlock.Text = value ?? string.Empty;
-                    result = true;
-                    return;
+                    return true;
                 }
 
                 if (control is ContentControl contentControl)
                 {
                     contentControl.Content = value;
-                    result = true;
+                    return true;
                 }
             }
             else if (path.Equals("IsEnabled", StringComparison.OrdinalIgnoreCase) &&
                      bool.TryParse(value, out bool enabled))
             {
                 control.IsEnabled = enabled;
-                result = true;
+                return true;
             }
             else if (path.Equals("IsVisible", StringComparison.OrdinalIgnoreCase) &&
                      bool.TryParse(value, out bool visible))
             {
                 control.IsVisible = visible;
-                result = true;
+                return true;
             }
             else if (path.Equals("Opacity", StringComparison.OrdinalIgnoreCase) &&
                      double.TryParse(value, System.Globalization.NumberStyles.Float,
                          System.Globalization.CultureInfo.InvariantCulture, out double opacity))
             {
                 control.Opacity = opacity;
-                result = true;
+                return true;
             }
-        }
-
-        if (Dispatcher.UIThread.CheckAccess())
-            Set();
-        else
-            Dispatcher.UIThread.Invoke(Set);
-        return result;
+            return false;
+        });
     }
 
     public bool TrySetVisible(string surfaceId, bool isVisible)
@@ -183,12 +172,135 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
         if (!TryGetTarget(surfaceId, out Control? control) || control is null)
             return false;
 
-        void Set() => control.IsVisible = isVisible;
-        if (Dispatcher.UIThread.CheckAccess())
-            Set();
-        else
-            Dispatcher.UIThread.Post(Set);
+        RunOnUi(() => control.IsVisible = isVisible);
         return true;
+    }
+
+    public bool TryWrap(string surfaceId, HostUiWrapRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if (!TryGetTarget(surfaceId, out Control? control) || control is null)
+            return false;
+        return RunOnUi(() =>
+        {
+            if (control.Parent is not Panel parent)
+                return false;
+            int index = parent.Children.IndexOf(control);
+            if (index < 0)
+                return false;
+
+            parent.Children.RemoveAt(index);
+            Border wrapper = new()
+            {
+                Tag = "pcl.plugin.wrap:" + request.PluginId + ":" + request.OperationId,
+                BorderBrush = new SolidColorBrush(Color.FromArgb(80, 80, 140, 220)),
+                BorderThickness = new Thickness(1.5),
+                CornerRadius = new CornerRadius(4),
+                Padding = new Thickness(2),
+                Margin = control.Margin
+            };
+            StackPanel stack = new() { Spacing = 2 };
+            if (!string.IsNullOrWhiteSpace(request.Label))
+            {
+                stack.Children.Add(new TextBlock
+                {
+                    Text = request.Label,
+                    FontSize = 10,
+                    Opacity = 0.75,
+                    Margin = new Thickness(2, 0, 2, 0)
+                });
+            }
+
+            control.Margin = new Thickness(0);
+            stack.Children.Add(control);
+            wrapper.Child = stack;
+            parent.Children.Insert(index, wrapper);
+
+            List<WrapRecord> list = _wraps.GetOrAdd(surfaceId, static _ => []);
+            list.Add(new WrapRecord(control, wrapper, parent, index, request.PluginId, request.OperationId));
+            // Target still points at original control (now nested).
+            return true;
+        });
+    }
+
+    public bool TryReplace(string surfaceId, HostUiReplaceRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if (!TryGetTarget(surfaceId, out Control? control) || control is null)
+            return false;
+        return RunOnUi(() =>
+        {
+            if (control.Parent is not Panel parent)
+                return false;
+            // Only one exclusive replace per surface.
+            if (_replaces.ContainsKey(surfaceId))
+                return false;
+            int index = parent.Children.IndexOf(control);
+            if (index < 0)
+                return false;
+
+            bool wasVisible = control.IsVisible;
+            control.IsVisible = false;
+
+            Border replacement = new()
+            {
+                Tag = "pcl.plugin.replace:" + request.PluginId + ":" + request.OperationId,
+                Background = new SolidColorBrush(Color.FromArgb(40, 120, 120, 140)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(100, 160, 100, 40)),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(6),
+                Padding = new Thickness(10, 8, 10, 8),
+                MinHeight = Math.Max(32, control.Bounds.Height > 0 ? control.Bounds.Height : 40),
+                Margin = control.Margin
+            };
+            replacement.Child = new TextBlock
+            {
+                Text = string.IsNullOrWhiteSpace(request.Title)
+                    ? $"[Replaced by {request.PluginId}]"
+                    : request.Title,
+                TextWrapping = TextWrapping.Wrap,
+                FontSize = 12
+            };
+            parent.Children.Insert(index + 1, replacement);
+            _replaces[surfaceId] = new ReplaceRecord(control, replacement, parent, wasVisible, request.PluginId, request.OperationId);
+            return true;
+        });
+    }
+
+    public void ResetWrapAndReplace(string surfaceId)
+    {
+        void Reset()
+        {
+            if (_replaces.TryRemove(surfaceId, out ReplaceRecord? replace))
+            {
+                if (replace.Replacement.Parent is Panel rp)
+                    rp.Children.Remove(replace.Replacement);
+                replace.Original.IsVisible = replace.WasVisible;
+            }
+
+            if (_wraps.TryRemove(surfaceId, out List<WrapRecord>? wraps))
+            {
+                // Unwrap in reverse order (outermost first).
+                for (int i = wraps.Count - 1; i >= 0; i--)
+                {
+                    WrapRecord wrap = wraps[i];
+                    if (wrap.Wrapper.Parent is not Panel parent)
+                        continue;
+                    int index = parent.Children.IndexOf(wrap.Wrapper);
+                    if (index < 0)
+                        continue;
+                    // Detach original from wrapper stack.
+                    if (wrap.Wrapper.Child is Panel stack)
+                        stack.Children.Remove(wrap.Original);
+                    else if (wrap.Wrapper.Child == wrap.Original)
+                        wrap.Wrapper.Child = null;
+                    parent.Children.RemoveAt(index);
+                    parent.Children.Insert(index, wrap.Original);
+                }
+            }
+        }
+
+        RunOnUi(Reset);
     }
 
     private bool TryGetTarget(string surfaceId, out Control? control)
@@ -219,4 +331,35 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
         order = control.GetValue(InjectOrderProperty);
         return true;
     }
+
+    private static void RunOnUi(Action action)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+            action();
+        else
+            Dispatcher.UIThread.Invoke(action);
+    }
+
+    private static T RunOnUi<T>(Func<T> action)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+            return action();
+        return Dispatcher.UIThread.Invoke(action);
+    }
+
+    private sealed record WrapRecord(
+        Control Original,
+        Border Wrapper,
+        Panel Parent,
+        int Index,
+        string PluginId,
+        string OperationId);
+
+    private sealed record ReplaceRecord(
+        Control Original,
+        Control Replacement,
+        Panel Parent,
+        bool WasVisible,
+        string PluginId,
+        string OperationId);
 }

@@ -4,6 +4,17 @@
 
 namespace PCL.Application.Hosting.PluginPlatform;
 
+internal static class PluginSettingsPageIds
+{
+    public const string Group = "pcl.plugin";
+    public const string LegacySettings = "pcl.plugin.settings";
+    public const string Installed = "pcl.plugin.installed";
+    public const string Market = "pcl.plugin.market";
+    public const string Safety = "pcl.plugin.safety";
+    public const string UiPatches = "pcl.plugin.ui-patches";
+    public const string Compatibility = "pcl.plugin.compatibility";
+}
+
 /// <summary>Installed third-party plugin row for host management UI (not public SDK ABI).</summary>
 internal sealed record PluginCatalogEntry(
     string PluginId,
@@ -94,6 +105,12 @@ internal interface IPluginCatalogService
 
     /// <summary>Scan a local folder for <c>.pnp</c> packages (offline market source).</summary>
     IReadOnlyList<PluginMarketListing> BrowseLocalMarket(string directoryPath);
+
+    /// <summary>
+    /// Whether a remote market client is configured. HTTP market ABI lives in
+    /// <c>PCL.N.Plugin.IPluginMarketClient</c> (SDK); server is not shipped yet.
+    /// </summary>
+    bool IsRemoteMarketConfigured { get; }
 
     /// <summary>Plan + apply UI patches under current safety policy.</summary>
     PluginUiPatchApplyResult ApplyUiPatches();

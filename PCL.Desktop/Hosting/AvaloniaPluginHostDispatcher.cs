@@ -8,9 +8,9 @@ using PCL.Application.Hosting.PluginPlatform;
 namespace PCL.Desktop.Hosting;
 
 /// <summary>Marshals plugin work onto Avalonia UI thread (design §9 dispatcher).</summary>
-internal sealed class AvaloniaPluginHostDispatcher : IPluginHostDispatcher
+internal sealed class AvaloniaPluginHostWorkQueue : IPluginHostWorkQueue
 {
-    public static AvaloniaPluginHostDispatcher Instance { get; } = new();
+    public static AvaloniaPluginHostWorkQueue Instance { get; } = new();
 
     public void Post(Action action)
     {
