@@ -1,10 +1,10 @@
 {
   "name": "Plain Craft Launcher N Edition",
   "version": {
-    "base": "1.1.1",
+    "base": "1.1.2",
     "upstream": "2.15.0",
-    "suffix": "release",
-    "code": 210
+    "suffix": "beta",
+    "code": 215
   },
   "branch": "dev",
   "commit": "local",
