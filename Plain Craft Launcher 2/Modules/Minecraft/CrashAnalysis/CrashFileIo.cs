@@ -15,7 +15,7 @@ internal static class CrashFileIo
             // 使用 FileShare.ReadWrite 以读取正在被 Logger 写入的文件
             using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using var ms = new MemoryStream();
-            fs.CopyToAsync(ms).GetAwaiter().GetResult();
+            fs.CopyTo(ms);
             return ms.ToArray();
         }
         catch (Exception ex)
