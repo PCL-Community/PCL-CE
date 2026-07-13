@@ -7,6 +7,9 @@ namespace PCL.Application.Hosting.PluginPlatform;
 internal static class PluginSettingsPageIds
 {
     public const string Group = "pcl.plugin";
+    public const string OnlineGroup = "pcl.online";
+    public const string Account = "pcl.online.account";
+    public const string OnlineData = "pcl.online.data";
     public const string LegacySettings = "pcl.plugin.settings";
     public const string Installed = "pcl.plugin.installed";
     public const string Market = "pcl.plugin.market";
