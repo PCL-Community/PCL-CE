@@ -39,6 +39,12 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
 
         var classifiedFiles = _ClassifyFiles();
 
+        context.DirectOpenFile = classifiedFiles
+            .Where(item => item.Kind is not null)
+            .Select(item => item.File)
+            .OrderByDescending(_GetLastWriteTime)
+            .FirstOrDefault();
+
         var analyzable = classifiedFiles
             .Where(item => item.Kind is not null)
             .ToList();
@@ -121,9 +127,6 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
                 LogWrapper.Info("Crash", $"{name} 分类为 Ignore");
                 continue;
             }
-
-            if (kind is not null && context.DirectOpenFile is null)
-                context.DirectOpenFile = file;
 
             result.Add(new ClassifiedCrashLog(file, kind));
             LogWrapper.Info("Crash", $"{name} 分类为 {kind?.ToString() ?? "Extra"}");
