@@ -153,18 +153,6 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISettingsPageInteracti
     {
     }
 
-    private void CheckDebugMode_OnChange(object sender, bool user)
-    {
-        if (user)
-        {
-            MessageRequested?.Invoke(
-                this,
-                new SettingsMessageRequestedEventArgs(
-                    "调试模式已更改",
-                    "调试模式会记录更多诊断信息，并可能略微影响启动器性能。"));
-        }
-    }
-
     private void CheckSystemDisableHardwareAcceleration_OnChange(object sender, bool user)
     {
         if (user)

@@ -17,6 +17,7 @@ using Avalonia.VisualTree;
 using FluentValidation;
 using PCL.Application.Accounts;
 using PCL.Application.Downloads;
+using PCL.Application.Hosting;
 using PCL.Application.Instances;
 using PCL.Application.Launching;
 using PCL.Application.Settings;
@@ -3481,7 +3482,7 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
-    public void HostModuleSettingsPage_RendersRegisteredContent()
+    public void HostModuleSettingsPage_RetainsOnlyRouteIdWithoutGeneratedHeader()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
 
@@ -3500,9 +3501,10 @@ public sealed class AvaloniaHeadlessTests
                 window.Show();
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 
-                Assert.AreEqual("PCL.Plugin 已加载", page.FindControl<TextBlock>("LabHostHeading")!.Text);
-                Assert.AreEqual("此页面由插件 HostModule 注册。", page.FindControl<TextBlock>("LabHostDescription")!.Text);
-                Assert.AreEqual(1, page.GetVisualDescendants().OfType<MyHint>().Count());
+                Assert.AreEqual("pcl.plugin.settings", page.PageId);
+                Assert.IsNull(page.FindControl<TextBlock>("LabHostHeading"));
+                Assert.IsNull(page.FindControl<TextBlock>("LabHostDescription"));
+                Assert.AreEqual(0, page.GetVisualDescendants().OfType<MyHint>().Count());
             }
             finally
             {
@@ -3512,7 +3514,7 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
-    public void PluginHostSettingsPages_RenderWithoutInjectedRuntime()
+    public void PluginHostSettingsPages_WithoutFactoryRemainEmptyRouteTargets()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
 
@@ -3522,6 +3524,7 @@ public sealed class AvaloniaHeadlessTests
             [
                 new("pcl.plugin.installed", "已安装", "lucide/package", "已安装插件", "管理本地安装的第三方插件。", []),
                 new("pcl.plugin.market", "市场", "lucide/store", "插件市场", "扫描本地 .pnp 包。", []),
+                new("pcl.plugin.developer", "开发者模式", "lucide/code-2", "插件开发者模式", "配置插件开发选项。", []),
                 new("pcl.plugin.safety", "安全", "lucide/shield", "插件安全", "配置安全模式。", []),
                 new("pcl.plugin.ui-patches", "UI Patch", "lucide/panel-top", "UI Patch", "查看 UI Patch 计划。", []),
                 new("pcl.plugin.compatibility", "兼容性", "lucide/git-compare", "兼容性", "查看离线兼容性记录。", [])
@@ -3541,14 +3544,91 @@ public sealed class AvaloniaHeadlessTests
                 {
                     window.Show();
                     AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-                    Assert.AreEqual(descriptor.Heading, page.FindControl<TextBlock>("LabHostHeading")!.Text);
-                    Assert.IsTrue(
-                        page.GetType().GetInterfaces().Any(type => type.Name == "IRefreshableSettingsPage"));
+                    Assert.IsNull(page.FindControl<TextBlock>("LabHostHeading"));
+                    Assert.IsNull(page.FindControl<TextBlock>("LabHostDescription"));
+                    Assert.IsInstanceOfType<PageSetupHostModule>(page);
+                    Assert.AreEqual(descriptor.Id, ((PageSetupHostModule)page).PageId);
                 }
                 finally
                 {
                     window.Close();
                 }
+            }
+        }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    [TestCategory("InjectedPlugin")]
+    public void InjectedPlugin_PageFactoriesAreOwnedByPluginAssembly()
+    {
+        bool pluginExpected = string.Equals(
+            Environment.GetEnvironmentVariable("PCLN_EXPECT_PLUGIN_UI"),
+            "1",
+            StringComparison.Ordinal);
+        if (!pluginExpected)
+            return;
+
+        Type loaderType = typeof(MainWindow).Assembly.GetType(
+            "PCL.Desktop.Hosting.EmbeddedPluginLoader",
+            throwOnError: true)!;
+        object? rawModules = loaderType.GetMethod(
+                "LoadHostModules",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)!
+            .Invoke(null, null);
+        IReadOnlyList<IPclHostModule> modules = Assert.IsInstanceOfType<IReadOnlyList<IPclHostModule>>(rawModules);
+        PclHostBuilder builder = new();
+        foreach (IPclHostModule module in modules)
+            builder.AddModule(module);
+        IPclHost host = builder.Build();
+
+        foreach (HostSettingsPageDescriptor page in host.SettingsPages.Pages)
+        {
+            Assert.IsNotNull(page.PageFactory, $"Missing page factory: {page.Id}");
+            Assert.AreEqual("PCL.Plugin", page.PageFactory.Method.DeclaringType?.Assembly.GetName().Name);
+        }
+    }
+
+    [TestMethod]
+    [TestCategory("InjectedPlugin")]
+    public void InjectedPlugin_DeveloperPageFactoryRendersHeadless()
+    {
+        bool pluginExpected = string.Equals(
+            Environment.GetEnvironmentVariable("PCLN_EXPECT_PLUGIN_UI"),
+            "1",
+            StringComparison.Ordinal);
+        if (!pluginExpected)
+            return;
+
+        Type loaderType = typeof(MainWindow).Assembly.GetType(
+            "PCL.Desktop.Hosting.EmbeddedPluginLoader",
+            throwOnError: true)!;
+        IReadOnlyList<IPclHostModule> modules = Assert.IsInstanceOfType<IReadOnlyList<IPclHostModule>>(
+            loaderType.GetMethod(
+                    "LoadHostModules",
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)!
+                .Invoke(null, null));
+        PclHostBuilder builder = new();
+        foreach (IPclHostModule module in modules)
+            builder.AddModule(module);
+        HostSettingsPageDescriptor descriptor = builder.Build().SettingsPages.Pages.Single(page =>
+            page.Id == "pcl.plugin.developer");
+
+        using SafeHeadlessUnitTestSession session = CreateSession();
+        session.Dispatch(() =>
+        {
+            MyPageRight page = Assert.IsInstanceOfType<MyPageRight>(descriptor.PageFactory!());
+            Window window = new() { Width = 700d, Height = 600d, Content = page };
+            try
+            {
+                window.Show();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Assert.IsNotNull(page.FindControl<CheckBox>("CheckPluginDeveloperMode"));
+                Assert.IsNotNull(page.FindControl<CheckBox>("CheckPluginDeveloperDiagnostics"));
+                Assert.IsNull(page.FindControl<TextBlock>("LabHostHeading"));
+            }
+            finally
+            {
+                window.Close();
             }
         }, CancellationToken.None);
     }
@@ -3576,34 +3656,64 @@ public sealed class AvaloniaHeadlessTests
         using SafeHeadlessUnitTestSession session = CreateSession();
         session.Dispatch(() =>
         {
-            MainWindow window = new();
+            PageSetupLeft setupLeft = new();
+            ContentControl pageHost = new();
+            setupLeft.PageChanged += (_, args) => pageHost.Content = args.Page;
+
+            Grid testRoot = new()
+            {
+                ColumnDefinitions = new ColumnDefinitions("190,*")
+            };
+            Grid.SetColumn(setupLeft, 0);
+            Grid.SetColumn(pageHost, 1);
+            testRoot.Children.Add(setupLeft);
+            testRoot.Children.Add(pageHost);
+
+            Window window = new()
+            {
+                Width = 980d,
+                Height = 720d,
+                Content = testRoot
+            };
             try
             {
                 window.Show();
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-                Click(window, window.FindControl<MyListItem>("BtnTitleSelect3")!);
-                ModAnimation.AdvanceUntilIdleForTesting();
 
-                PageSetupLeft setupLeft = FindVisual<PageSetupLeft>(window)!;
                 TextBlock pluginGroup = setupLeft.FindControl<TextBlock>("TextHostSettingsGroup_pcl_plugin")!;
                 Assert.IsNotNull(pluginGroup);
                 Assert.AreEqual("插件", pluginGroup.Text);
                 MyListItem installedItem = setupLeft.FindControl<MyListItem>("ItemHostSettings_pcl_plugin_installed")!;
                 MyListItem marketItem = setupLeft.FindControl<MyListItem>("ItemHostSettings_pcl_plugin_market")!;
-                MyListItem safetyItem = setupLeft.FindControl<MyListItem>("ItemHostSettings_pcl_plugin_safety")!;
-                MyListItem uiPatchesItem = setupLeft.FindControl<MyListItem>("ItemHostSettings_pcl_plugin_ui_patches")!;
-                MyListItem compatibilityItem = setupLeft.FindControl<MyListItem>("ItemHostSettings_pcl_plugin_compatibility")!;
+                MyListItem developerItem = setupLeft.FindControl<MyListItem>("ItemHostSettings_pcl_plugin_developer")!;
                 Assert.AreEqual("已安装", installedItem.Title);
                 Assert.AreEqual("市场", marketItem.Title);
-                Assert.AreEqual("安全", safetyItem.Title);
-                Assert.AreEqual("UI Patch", uiPatchesItem.Title);
-                Assert.AreEqual("兼容性", compatibilityItem.Title);
+                Assert.AreEqual("开发者模式", developerItem.Title);
+                StackPanel navigation = setupLeft.FindControl<StackPanel>("PanItem")!;
+                int miscIndex = navigation.Children.IndexOf(setupLeft.FindControl<MyListItem>("ItemLauncherMisc")!);
+                int developerIndex = navigation.Children.IndexOf(developerItem);
+                int aboutCategoryIndex = navigation.Children.IndexOf(setupLeft.FindControl<TextBlock>("TextAboutCategory")!);
+                Assert.IsTrue(developerIndex > miscIndex && developerIndex < aboutCategoryIndex,
+                    "开发者模式应位于启动器分类内、关于分类之前。");
+                Assert.IsNull(setupLeft.FindControl<MyListItem>("ItemHostSettings_pcl_plugin_safety"));
+                Assert.IsNull(setupLeft.FindControl<MyListItem>("ItemHostSettings_pcl_plugin_ui_patches"));
+                Assert.IsNull(setupLeft.FindControl<MyListItem>("ItemHostSettings_pcl_plugin_compatibility"));
+
+                Click(window, developerItem);
+                ModAnimation.AdvanceUntilIdleForTesting();
+                MyPageRight developerPage = FindVisual<MyPageRight>(window)!;
+                Assert.IsNotNull(developerPage.FindControl<CheckBox>("CheckPluginDeveloperMode"));
+                Assert.IsNotNull(developerPage.FindControl<CheckBox>("CheckPluginDeveloperDiagnostics"));
+                Assert.IsNotNull(developerPage.FindControl<CheckBox>("CheckPluginShowSafetyPage"));
+                Assert.IsNotNull(developerPage.FindControl<CheckBox>("CheckPluginShowUiPatchesPage"));
+                Assert.IsNotNull(developerPage.FindControl<CheckBox>("CheckPluginShowCompatibilityPage"));
 
                 Click(window, installedItem);
                 ModAnimation.AdvanceUntilIdleForTesting();
 
                 MyPageRight page = FindVisual<MyPageRight>(window)!;
-                StringAssert.Contains(page.FindControl<TextBlock>("LabHostHeading")!.Text, "已安装");
+                Assert.IsNull(page.FindControl<TextBlock>("LabHostHeading"));
+                Assert.IsNull(page.FindControl<TextBlock>("LabHostDescription"));
             }
             finally
             {
@@ -5246,6 +5356,7 @@ public sealed class AvaloniaHeadlessTests
                 Assert.AreEqual("1 FPS", misc.FindControl<MySlider>("SliderAniFPS")!.getHintText!(0));
                 Assert.AreEqual("不限量", misc.FindControl<MySlider>("SliderMaxLog")!.getHintText!(29));
                 Assert.AreEqual("关闭", misc.FindControl<MySlider>("SliderDebugAnim")!.getHintText!(30));
+                Assert.IsNull(misc.FindControl<MyCheckBox>("CheckDebugMode"));
 
                 bool confirmationRequested = false;
                 misc.ConfirmRequested += (_, args) =>

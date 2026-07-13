@@ -4,6 +4,11 @@
 
 namespace PCL.Application.Settings;
 
+public static class HostSettingsPageGroupIds
+{
+    public const string Launcher = "pcl.settings.launcher";
+}
+
 public sealed record SettingDescriptor(
     SettingKey Key,
     string Title,
@@ -39,6 +44,17 @@ public sealed record HostSettingsPageDescriptor(
     public string? GroupId { get; init; }
 
     public int Order { get; init; } = 500;
+
+    public bool RequiresDeveloperMode { get; init; }
+
+    /// <summary>
+    /// Optional page implementation supplied by the registering HostModule.
+    /// The host only validates the returned object against its page base type and never fabricates page content.
+    /// </summary>
+    public Func<object>? PageFactory { get; init; }
+
+    /// <summary>Optional visibility decision owned by the registering HostModule.</summary>
+    public Func<bool>? VisibilityPredicate { get; init; }
 }
 
 public interface ISettingsRegistry

@@ -25,6 +25,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using PCL.Application.Accounts;
 using PCL.Application.Downloads;
+using PCL.Application.Hosting.PluginPlatform;
 using PCL.Application.Instances;
 using PCL.Application.Launching;
 using PCL.Application.Minecraft.Launch.Arguments;
@@ -5936,7 +5937,9 @@ public partial class MainWindow : Window, IDisposable
         _launchLeft?.ConfigureLaunchingHint(settings.GetBooleanOption(
             "UiShowLaunchingHint",
             LauncherSettingDefaults.GetBoolean("UiShowLaunchingHint")));
-        _launchRight?.ConfigureDebugLog(settings.GetBooleanOption(
+        bool developerMode = PluginCatalogAccess.IsInitialized &&
+                             PluginCatalogAccess.Current.Safety.DeveloperMode;
+        _launchRight?.ConfigureDebugLog(developerMode && settings.GetBooleanOption(
             "SystemDebugMode",
             LauncherSettingDefaults.GetBoolean("SystemDebugMode")));
         if (this.FindControl<StackPanel>("PanHint") is { } hints)

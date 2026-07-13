@@ -12,6 +12,7 @@ namespace PCL.Desktop.Hosting;
 
 internal static class EmbeddedPluginLoader
 {
+    private const string PluginRuntimePathEnvironmentVariable = "PCLN_PLUGIN_RUNTIME_PATH";
     internal const string ResourceName = "PCL.Desktop.Embedded.PCL.Plugin.dll";
     internal const string AbstractionsResourceName = "PCL.Desktop.Embedded.PCL.N.Plugin.Abstractions.dll";
     internal const string BouncyCastleResourceName = "PCL.Desktop.Embedded.BouncyCastle.Cryptography.dll";
@@ -130,10 +131,13 @@ internal static class EmbeddedPluginLoader
         if (bootstrap is null)
             return;
 
-        string runtimeRoot = Path.Combine(
-            new DefaultPlatformPathProvider().ApplicationDataDirectory,
-            "PCL-N",
-            "plugin-runtime");
+        string? runtimePathOverride = Environment.GetEnvironmentVariable(PluginRuntimePathEnvironmentVariable);
+        string runtimeRoot = string.IsNullOrWhiteSpace(runtimePathOverride)
+            ? Path.Combine(
+                new DefaultPlatformPathProvider().ApplicationDataDirectory,
+                "PCL-N",
+                "plugin-runtime")
+            : Path.GetFullPath(runtimePathOverride);
         MethodInfo? initialize = bootstrap.GetMethod(
             "Initialize",
             BindingFlags.Public | BindingFlags.Static,

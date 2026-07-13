@@ -619,13 +619,13 @@ IPv6 优先：-Djava.net.preferIPv6Stack=true</x:String>
     <x:String x:Key="Setup.Misc.Debug.Delay">添加延迟</x:String>
     <x:String x:Key="Setup.Misc.Debug.Delay.ToolTip">在各个环节添加随机的延迟，拖慢加载速度，以测试部分功能是否正常运行。
 这会严重影响启动器运行，若无特殊需要不建议开启。</x:String>
-    <x:String x:Key="Setup.Misc.Debug.Mode">调试模式</x:String>
-    <x:String x:Key="Setup.Misc.Debug.Mode.ToolTip">显示调试信息与更多错误信息。
-这会导致启动器性能略有下降，若无特殊需要不建议开启。</x:String>
+    <x:String x:Key="Setup.Misc.Debug.Mode">启用开发者诊断日志</x:String>
+    <x:String x:Key="Setup.Misc.Debug.Mode.ToolTip">记录更多诊断信息与错误详情。
+这会导致启动器性能略有下降；插件高级功能需在“插件 - 开发者模式”中单独启用。</x:String>
     <x:String x:Key="Setup.Misc.Debug.SkipCopy">禁止在下载时从其他文件夹复制文件</x:String>
     <x:String x:Key="Setup.Misc.Debug.SkipCopy.ToolTip">在下载时不直接复制其他 MC 文件夹中已经存在的相同文件，而是重新下载文件。
 只建议在测试下载速度时开启。</x:String>
-    <x:String x:Key="Setup.Misc.Debug.Title">调试选项</x:String>
+    <x:String x:Key="Setup.Misc.Debug.Title">测试选项</x:String>
     <x:String x:Key="Setup.Misc.Log.AllLogs">所有日志</x:String>
     <x:String x:Key="Setup.Misc.Log.ClearHistory">清理历史日志</x:String>
     <x:String x:Key="Setup.Misc.Log.Export">导出日志</x:String>

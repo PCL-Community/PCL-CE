@@ -16,12 +16,14 @@ internal sealed class PclPluginPlatformHost : IPclPluginPlatformHost
         IPluginHostWorkQueue? workQueue = null,
         IPluginHostNotifications? notifications = null,
         IPluginHostInstanceQuery? instances = null,
-        IPluginHostUiComposition? uiComposition = null)
+        IPluginHostUiComposition? uiComposition = null,
+        IPluginHostDeveloperDiagnostics? developerDiagnostics = null)
     {
         SettingsPageGroups = settingsPageGroups ?? throw new ArgumentNullException(nameof(settingsPageGroups));
         SettingsPages = settingsPages ?? throw new ArgumentNullException(nameof(settingsPages));
         WorkQueue = workQueue ?? ImmediatePluginHostWorkQueue.Instance;
         Notifications = notifications ?? CapturingPluginHostNotifications.Instance;
+        DeveloperDiagnostics = developerDiagnostics ?? new InMemoryPluginHostDeveloperDiagnostics();
         Instances = instances;
         UiComposition = uiComposition;
     }
@@ -34,9 +36,18 @@ internal sealed class PclPluginPlatformHost : IPclPluginPlatformHost
 
     public IPluginHostNotifications Notifications { get; }
 
+    public IPluginHostDeveloperDiagnostics DeveloperDiagnostics { get; }
+
     public IPluginHostInstanceQuery? Instances { get; }
 
     public IPluginHostUiComposition? UiComposition { get; }
+}
+
+internal sealed class InMemoryPluginHostDeveloperDiagnostics : IPluginHostDeveloperDiagnostics
+{
+    public bool IsEnabled { get; private set; }
+
+    public void SetEnabled(bool enabled) => IsEnabled = enabled;
 }
 
 internal sealed class ImmediatePluginHostWorkQueue : IPluginHostWorkQueue

@@ -158,16 +158,12 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1.5*" />
                             <ColumnDefinition />
-                            <ColumnDefinition />
                         </Grid.ColumnDefinitions>
                         <legacy:MyCheckBox Grid.Column="0" Text="{DynamicResource Setup.Misc.Debug.SkipCopy}" Height="22"
                                           x:Name="CheckDebugSkipCopy" Tag="SystemDebugSkipCopy"
                                           ToolTip.Tip="{DynamicResource Setup.Misc.Debug.SkipCopy.ToolTip}"
                                           Change="CheckBoxChange" />
-                        <legacy:MyCheckBox Grid.Column="1" Text="{DynamicResource Setup.Misc.Debug.Mode}" Height="22" x:Name="CheckDebugMode"
-                                          Tag="SystemDebugMode" ToolTip.Tip="{DynamicResource Setup.Misc.Debug.Mode.ToolTip}"
-                                          Change="CheckDebugMode_OnChange" />
-                        <legacy:MyCheckBox Grid.Column="2" Text="{DynamicResource Setup.Misc.Debug.Delay}" Height="22" x:Name="CheckDebugDelay"
+                        <legacy:MyCheckBox Grid.Column="1" Text="{DynamicResource Setup.Misc.Debug.Delay}" Height="22" x:Name="CheckDebugDelay"
                                           Tag="SystemDebugDelay"
                                           ToolTip.Tip="{DynamicResource Setup.Misc.Debug.Delay.ToolTip}"
                                           Change="CheckBoxChange" />

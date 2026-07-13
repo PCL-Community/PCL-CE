@@ -6,6 +6,8 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
+using PCL.Application.Hosting.PluginPlatform;
 using PCL.Application.Settings;
 using PCL.Desktop.Controls.Legacy;
 using PCL.Desktop.Hosting;
@@ -39,6 +41,7 @@ public sealed class SetupPageChangedEventArgs(SetupPageSubType pageId, MyPageRig
 public partial class PageSetupLeft : MyPageLeft
 {
     private const string DefaultHostSettingsGroupId = "pcl.settings.extensions";
+    private const string LauncherHostSettingsGroupId = HostSettingsPageGroupIds.Launcher;
 
     private static readonly HostSettingsPageGroupDescriptor DefaultHostSettingsGroup = new(
         DefaultHostSettingsGroupId,
@@ -47,12 +50,20 @@ public partial class PageSetupLeft : MyPageLeft
         500,
         "由 HostModule 或插件注入的设置页。");
 
+    private static readonly HostSettingsPageGroupDescriptor LauncherHostSettingsGroup = new(
+        LauncherHostSettingsGroupId,
+        "启动器",
+        "lucide/monitor-cog",
+        0,
+        "位于启动器设置分类内的 HostModule 页面。");
+
     private readonly Dictionary<SetupPageSubType, MyPageRight> _pages = [];
     private readonly Dictionary<string, MyPageRight> _hostPages = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, HostSettingsPageDescriptor> _hostPageMap = new(StringComparer.OrdinalIgnoreCase);
     private readonly IReadOnlyList<HostSettingsPageDescriptor> _hostSettingsPages;
     private readonly IReadOnlyList<HostSettingsPageGroupDescriptor> _hostSettingsGroups;
     private bool _isLoadedOnce;
+    private bool _catalogEventsAttached;
     private string? _hostPageId;
 
     public PageSetupLeft()
@@ -68,11 +79,23 @@ public partial class PageSetupLeft : MyPageLeft
         PageId = SetupPageSubType.Launch;
         AttachedToVisualTree += (_, _) =>
         {
+            if (!_catalogEventsAttached)
+            {
+                PluginCatalogAccess.SafetyChanged += PluginCatalogSafetyChanged;
+                _catalogEventsAttached = true;
+            }
             if (_isLoadedOnce)
                 return;
 
             _isLoadedOnce = true;
             Required<MyListItem>("ItemLaunch").SetChecked(true, user: false);
+        };
+        DetachedFromVisualTree += (_, _) =>
+        {
+            if (!_catalogEventsAttached)
+                return;
+            PluginCatalogAccess.SafetyChanged -= PluginCatalogSafetyChanged;
+            _catalogEventsAttached = false;
         };
     }
 
@@ -265,13 +288,45 @@ public partial class PageSetupLeft : MyPageLeft
         if (insertIndex <= 0)
             insertIndex = panel.Children.Count;
 
-        foreach (HostSettingsGroupView group in BuildHostSettingsGroups())
+        HostSettingsGroupView[] groups = BuildHostSettingsGroups();
+        HostSettingsGroupView? launcherGroup = groups.FirstOrDefault(group =>
+            string.Equals(group.Descriptor.Id, LauncherHostSettingsGroupId, StringComparison.OrdinalIgnoreCase));
+        if (launcherGroup is not null)
         {
+            foreach (HostSettingsPageDescriptor page in launcherGroup.Pages)
+                panel.Children.Insert(insertIndex++, CreateHostPageItem(page));
+        }
+
+        foreach (HostSettingsGroupView group in groups)
+        {
+            if (ReferenceEquals(group, launcherGroup))
+                continue;
             panel.Children.Insert(insertIndex++, CreateHostGroupLabel(group.Descriptor));
             foreach (HostSettingsPageDescriptor page in group.Pages)
                 panel.Children.Insert(insertIndex++, CreateHostPageItem(page));
         }
     }
+
+    /// <summary>Rebuilds dynamic HostModule settings entries after a runtime visibility switch changes.</summary>
+    internal void RefreshHostSettingsPages()
+    {
+        if (this.FindControl<Panel>("PanItem") is not { } panel)
+            return;
+
+        for (int index = panel.Children.Count - 1; index >= 0; index--)
+        {
+            Control child = panel.Children[index];
+            bool isHostGroupLabel = child.Name?.StartsWith("TextHostSettingsGroup_", StringComparison.Ordinal) == true;
+            bool isHostPageItem = child is MyListItem item && TryReadHostPage(item.Tag, out _);
+            if (isHostGroupLabel || isHostPageItem)
+                panel.Children.RemoveAt(index);
+        }
+
+        RegisterHostSettingsPages();
+    }
+
+    private void PluginCatalogSafetyChanged() =>
+        Dispatcher.UIThread.Post(RefreshHostSettingsPages, DispatcherPriority.Background);
 
     private HostSettingsGroupView[] BuildHostSettingsGroups()
     {
@@ -280,10 +335,34 @@ public partial class PageSetupLeft : MyPageLeft
             groupMap[group.Id] = group;
 
         Dictionary<string, List<HostSettingsPageDescriptor>> pagesByGroup = new(StringComparer.OrdinalIgnoreCase);
+        bool developerMode = PluginCatalogAccess.IsInitialized &&
+                             PluginCatalogAccess.Current.Safety.DeveloperMode;
         foreach (HostSettingsPageDescriptor page in _hostSettingsPages)
         {
+            if (page.VisibilityPredicate is not null)
+            {
+                bool isVisible;
+                try
+                {
+                    isVisible = page.VisibilityPredicate();
+                }
+                catch
+                {
+                    isVisible = false;
+                }
+
+                if (!isVisible)
+                    continue;
+            }
+            else if (page.RequiresDeveloperMode && !developerMode)
+            {
+                continue;
+            }
+
             string groupId = !string.IsNullOrWhiteSpace(page.GroupId) && groupMap.ContainsKey(page.GroupId)
                 ? page.GroupId
+                : string.Equals(page.GroupId, LauncherHostSettingsGroupId, StringComparison.OrdinalIgnoreCase)
+                    ? LauncherHostSettingsGroupId
                 : DefaultHostSettingsGroupId;
             if (!pagesByGroup.TryGetValue(groupId, out List<HostSettingsPageDescriptor>? pages))
             {
@@ -299,7 +378,9 @@ public partial class PageSetupLeft : MyPageLeft
         {
             HostSettingsPageGroupDescriptor descriptor = groupMap.TryGetValue(groupId, out HostSettingsPageGroupDescriptor? group)
                 ? group
-                : DefaultHostSettingsGroup;
+                : string.Equals(groupId, LauncherHostSettingsGroupId, StringComparison.OrdinalIgnoreCase)
+                    ? LauncherHostSettingsGroup
+                    : DefaultHostSettingsGroup;
             groups.Add(new HostSettingsGroupView(
                 descriptor,
                 pages.OrderBy(static page => page.Order)

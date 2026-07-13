@@ -10,6 +10,7 @@ internal static class PluginSettingsPageIds
     public const string LegacySettings = "pcl.plugin.settings";
     public const string Installed = "pcl.plugin.installed";
     public const string Market = "pcl.plugin.market";
+    public const string Developer = "pcl.plugin.developer";
     public const string Safety = "pcl.plugin.safety";
     public const string UiPatches = "pcl.plugin.ui-patches";
     public const string Compatibility = "pcl.plugin.compatibility";
@@ -41,9 +42,14 @@ internal sealed record PluginMarketListing(
 /// <summary>Host safety switches (design §17.4).</summary>
 internal sealed record PluginSafetySettings(
     bool PluginSafeMode,
-    bool UiSafeMode)
+    bool UiSafeMode,
+    bool DeveloperMode = false,
+    bool AllowUnsignedPlugins = false,
+    bool ShowSafetyPage = false,
+    bool ShowUiPatchesPage = false,
+    bool ShowCompatibilityPage = false)
 {
-    public static PluginSafetySettings Default { get; } = new(false, false);
+    public static PluginSafetySettings Default { get; } = new(false, false, false, false, false, false, false);
 }
 
 /// <summary>Result of applying a planned UI patch graph.</summary>
@@ -84,6 +90,13 @@ internal sealed record PluginCompatibilityRecord(
     string Evidence,
     DateTimeOffset ObservedAt);
 
+/// <summary>Result of creating a redacted plugin diagnostic package (design §20.4).</summary>
+internal sealed record PluginDiagnosticsExport(
+    string PackagePath,
+    string CompositionHash,
+    DateTimeOffset CreatedAt,
+    long SizeBytes);
+
 /// <summary>Privileged catalog / session surface used by Desktop settings (InternalsVisibleTo PCL.Plugin).</summary>
 internal interface IPluginCatalogService
 {
@@ -120,12 +133,19 @@ internal interface IPluginCatalogService
     void ResolveUiConflict(string leftGlobalId, string rightGlobalId, PluginConflictResolution resolution);
 
     IReadOnlyList<PluginCompatibilityRecord> ListCompatibility();
+
+    /// <summary>Writes a redacted ZIP package for support and compatibility diagnosis.</summary>
+    Task<PluginDiagnosticsExport> ExportDiagnosticsAsync(
+        string packagePath,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>Process-wide catalog access for Desktop + PCL.Plugin bootstrap.</summary>
 internal static class PluginCatalogAccess
 {
     private static IPluginCatalogService? _current;
+
+    public static event Action? SafetyChanged;
 
     public static bool IsInitialized => _current is not null;
 
@@ -138,5 +158,11 @@ internal static class PluginCatalogAccess
         _current = catalog;
     }
 
-    internal static void Reset() => _current = null;
+    public static void NotifySafetyChanged() => SafetyChanged?.Invoke();
+
+    internal static void Reset()
+    {
+        _current = null;
+        SafetyChanged = null;
+    }
 }

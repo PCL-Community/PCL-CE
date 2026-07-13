@@ -30,8 +30,11 @@ foreach ($assembly in @($pluginAssembly, $pluginAbstractionsAssembly, $pluginBou
 }
 
 $previousExpectation = $env:PCLN_EXPECT_PLUGIN_UI
+$previousRuntimePath = $env:PCLN_PLUGIN_RUNTIME_PATH
+$isolatedRuntimePath = Join-Path ([System.IO.Path]::GetTempPath()) ('pcl-plugin-ui-test-' + [Guid]::NewGuid().ToString('N'))
 try {
     $env:PCLN_EXPECT_PLUGIN_UI = '1'
+    $env:PCLN_PLUGIN_RUNTIME_PATH = $isolatedRuntimePath
     dotnet test (Join-Path $repoRoot 'PCL.Desktop.Test\PCL.Desktop.Test.csproj') `
         -c $Configuration `
         "-p:PclPluginAssembly=$pluginAssembly" `
@@ -39,12 +42,17 @@ try {
         "-p:PclPluginBouncyCastleAssembly=$pluginBouncyCastleAssembly" `
         "-p:PclPluginJsonCanonicalizerAssembly=$pluginJsonCanonicalizerAssembly" `
         "-p:PclPluginEs6NumberSerializerAssembly=$pluginEs6NumberSerializerAssembly" `
-        --filter 'FullyQualifiedName~InjectedPlugin_RegistersSettingsPageInHeadlessUi' `
+        --filter 'TestCategory=InjectedPlugin' `
         --blame-hang `
-        --blame-hang-timeout 120s `
+        --blame-hang-timeout 60s `
+        --blame-hang-dump-type mini `
         -warnaserror
     exit $LASTEXITCODE
 }
 finally {
     $env:PCLN_EXPECT_PLUGIN_UI = $previousExpectation
+    $env:PCLN_PLUGIN_RUNTIME_PATH = $previousRuntimePath
+    if (Test-Path -LiteralPath $isolatedRuntimePath) {
+        Remove-Item -LiteralPath $isolatedRuntimePath -Recurse -Force
+    }
 }

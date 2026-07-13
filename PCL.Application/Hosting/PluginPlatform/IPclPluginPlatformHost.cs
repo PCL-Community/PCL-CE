@@ -20,6 +20,8 @@ internal interface IPclPluginPlatformHost
 
     IPluginHostNotifications Notifications { get; }
 
+    IPluginHostDeveloperDiagnostics DeveloperDiagnostics { get; }
+
     /// <summary>Optional instance directory query for <c>pcl.instances.read</c>.</summary>
     IPluginHostInstanceQuery? Instances { get; }
 
@@ -100,6 +102,14 @@ internal interface IPluginHostNotifications
     void ShowInformation(string message);
 
     void ShowWarning(string message);
+}
+
+/// <summary>Host-owned launcher diagnostics switch exposed only to the first-party plugin platform.</summary>
+internal interface IPluginHostDeveloperDiagnostics
+{
+    bool IsEnabled { get; }
+
+    void SetEnabled(bool enabled);
 }
 
 /// <summary>Process-wide access for <c>PCL.Plugin</c> (InternalsVisibleTo).</summary>

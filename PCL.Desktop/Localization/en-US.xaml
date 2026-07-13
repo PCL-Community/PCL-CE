@@ -146,7 +146,7 @@
     <sys:String x:Key="Main.UpdateLog.Empty">Welcome!</sys:String>
     <sys:String x:Key="Main.UpdateLog.Title">PCL N has been updated to {0} {1}</sys:String>
     <sys:String x:Key="Main.UpdateLog.FullChangelog">Full changelog</sys:String>
-    <sys:String x:Key="Main.DebugMode.Hint">[Debug mode] PCL is running in debug mode, which may cause performance degradation. Please do NOT enable it unless necessary!</sys:String>
+    <sys:String x:Key="Main.DebugMode.Hint">[Developer diagnostics] PCL is recording additional diagnostic information, which may reduce performance. Do not enable it unless needed.</sys:String>
     <sys:String x:Key="Main.SpecialVersion.DebugHint">The current PCL N Edition build is a Debug build.&#x0a;This build is only intended for developer debugging and may have serious performance issues or various unexpected network problems.&#x0a;&#x0a;Problems caused by non-developer users running this build are not supported by the community, and related issues may be closed directly.&#x0a;Unless you are a developer, please delete this build immediately and use the latest stable version instead.</sys:String>
     <sys:String x:Key="Main.SpecialVersion.CiHint">The current PCL N Edition build is an automated CI build.&#x0a;This build includes the latest bug fixes, optimizations, and new features, but its performance and stability are lower. It is not suitable for daily use or creating modpacks.&#x0a;&#x0a;Unless a community developer asks you to use it, or you specifically want to do so, please use the latest stable version instead.</sys:String>
     <sys:String x:Key="Main.SpecialVersion.HideHintNotice">You can add the PCL_DISABLE_DEBUG_HINT environment variable with any value to hide this prompt.</sys:String>
@@ -1841,15 +1841,15 @@
 
     <!-- Setup.Misc.Debug -->
 
-    <sys:String x:Key="Setup.Misc.Debug.Title">Debug options</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.Title">Testing options</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.AnimationSpeed">Animation speed</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.SkipCopy">Do not copy files from other folders while downloading</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.SkipCopy.ToolTip">When downloading, do not copy identical files that already exist in other Minecraft folders; re-download them instead.&#x0a;Only recommended for testing download speed.</sys:String>
-    <sys:String x:Key="Setup.Misc.Debug.Mode">Debug mode</sys:String>
-    <sys:String x:Key="Setup.Misc.Debug.Mode.ToolTip">Show debug information and more error details.&#x0a;This may slightly decrease launcher performance. Not recommended unless specifically needed.</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.Mode">Enable developer diagnostic logging</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.Mode.ToolTip">Record additional diagnostics and error details.&#x0a;Plugin advanced features must be enabled separately from Plugins - Developer mode.</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.Delay">Add delay</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.Delay.ToolTip">Add random delays at various stages, slowing down loading to test whether certain features work correctly.&#x0a;This will seriously affect launcher performance. Not recommended unless specifically needed.</sys:String>
-    <sys:String x:Key="Setup.Misc.Debug.Mode.Hint">Some debug information will switch display after refresh or launcher restart!</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.Mode.Hint">Some developer diagnostic details appear after refreshing or restarting the launcher.</sys:String>
 
     <!-- Setup.Misc.Log -->
 
