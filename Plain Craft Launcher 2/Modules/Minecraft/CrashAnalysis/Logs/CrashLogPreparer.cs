@@ -44,7 +44,7 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
             .ToList();
 
         context.DirectOpenFile = analyzable
-            .OrderByDescending(item => _KindPriority(item.Kind!.Value))
+            .OrderBy(item => _IsGeneratedLog(item.File))
             .ThenByDescending(item => _GetLastWriteTime(item.File))
             .Select(item => item.File)
             .FirstOrDefault();
@@ -349,14 +349,8 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
         }
     }
 
-    private static int _KindPriority(CrashLogKind kind) => kind switch
-    {
-        CrashLogKind.CrashReport => 4,
-        CrashLogKind.HsErr       => 3,
-        CrashLogKind.Game         => 2,
-        CrashLogKind.Debug        => 1,
-        _                         => 0
-    };
+    private bool _IsGeneratedLog(CrashLogEntry file) =>
+        file.FullPath.StartsWith(context.TempFolder, StringComparison.OrdinalIgnoreCase);
 
     private static string _GetHeadTailLines(
         IReadOnlyList<string> raw,
