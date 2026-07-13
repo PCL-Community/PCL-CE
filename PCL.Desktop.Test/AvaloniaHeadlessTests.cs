@@ -3838,6 +3838,18 @@ public sealed class AvaloniaHeadlessTests
                 Assert.IsNotNull(developerPage.FindControl<MyCheckBox>("CheckPluginShowUiPatchesPage"));
                 Assert.IsNotNull(developerPage.FindControl<MyCheckBox>("CheckPluginShowCompatibilityPage"));
 
+                Click(window, marketItem);
+                ModAnimation.AdvanceUntilIdleForTesting();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                MyPageRight marketPage = FindVisual<MyPageRight>(window)!;
+                Assert.IsNotNull(marketPage.FindControl<MyCard>("CardPluginOnlineMarket"));
+                Assert.IsNotNull(marketPage.FindControl<MyTextBox>("TextPluginMarketSearch"));
+                Assert.IsNotNull(marketPage.FindControl<MyButton>("BtnPluginMarketSearch"));
+                Assert.IsNotNull(marketPage.FindControl<MyButton>("BtnPluginMarketRefresh"));
+                Assert.IsNotNull(marketPage.FindControl<StackPanel>("PanPluginOnlineMarketList"));
+                Assert.IsNull(marketPage.FindControl<TextBlock>("LabHostHeading"));
+
                 Click(window, installedItem);
                 ModAnimation.AdvanceUntilIdleForTesting();
 
