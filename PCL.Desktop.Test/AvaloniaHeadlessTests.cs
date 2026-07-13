@@ -3622,8 +3622,13 @@ public sealed class AvaloniaHeadlessTests
             {
                 window.Show();
                 AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-                Assert.IsNotNull(page.FindControl<CheckBox>("CheckPluginDeveloperMode"));
-                Assert.IsNotNull(page.FindControl<CheckBox>("CheckPluginDeveloperDiagnostics"));
+                Assert.IsNotNull(page.FindControl<MyCard>("CardPluginDeveloperAuthorization"));
+                Assert.IsNotNull(page.FindControl<MyCard>("CardPluginDeveloperOptions"));
+                Assert.IsNotNull(page.FindControl<TextBox>("TextPluginDeveloperOrderNumber"));
+                Assert.IsNotNull(page.FindControl<MyButton>("BtnPluginVerifyDeveloperOrder"));
+                Assert.IsNotNull(page.FindControl<MyButton>("BtnPluginReplaceDeveloperAuthorization"));
+                Assert.IsNotNull(page.FindControl<MyCheckBox>("CheckPluginDeveloperMode"));
+                Assert.IsNotNull(page.FindControl<MyCheckBox>("CheckPluginDeveloperDiagnostics"));
                 Assert.IsNull(page.FindControl<TextBlock>("LabHostHeading"));
             }
             finally
@@ -3631,6 +3636,126 @@ public sealed class AvaloniaHeadlessTests
                 window.Close();
             }
         }, CancellationToken.None);
+    }
+
+    [TestMethod]
+    [TestCategory("InjectedPlugin")]
+    public void InjectedPlugin_VerifiedDeveloperAuthorizationSwitchesToExpiryAndReplacement()
+    {
+        bool pluginExpected = string.Equals(
+            Environment.GetEnvironmentVariable("PCLN_EXPECT_PLUGIN_UI"),
+            "1",
+            StringComparison.Ordinal);
+        if (!pluginExpected)
+            return;
+
+        Type loaderType = typeof(MainWindow).Assembly.GetType(
+            "PCL.Desktop.Hosting.EmbeddedPluginLoader",
+            throwOnError: true)!;
+        System.Reflection.Assembly pluginAssembly = Assert.IsInstanceOfType<System.Reflection.Assembly>(
+            loaderType.GetMethod(
+                    "Load",
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)!
+                .Invoke(null, null));
+        Type bootstrapType = pluginAssembly.GetType(
+            "PCL.Plugin.Host.PluginPlatformBootstrap",
+            throwOnError: true)!;
+        Task? priorShutdown = bootstrapType.GetMethod("ShutdownAsync")!.Invoke(null, null) as Task;
+        priorShutdown?.GetAwaiter().GetResult();
+
+        string runtimeRoot = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            "pcl-plugin-verified-ui-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(runtimeRoot);
+        try
+        {
+            bootstrapType.GetMethod("Initialize")!.Invoke(null, [runtimeRoot]);
+            object session = bootstrapType.GetField(
+                    "_session",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
+                .GetValue(null)!;
+            Type grantType = pluginAssembly.GetType(
+                "PCL.Plugin.Security.DeveloperAccess.DeveloperAccessGrant",
+                throwOnError: true)!;
+            object grant = Activator.CreateInstance(
+                grantType,
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.Public |
+                System.Reflection.BindingFlags.NonPublic,
+                binder: null,
+                args:
+                [
+                    "headless-order-hash",
+                    "54ee4e286b4211f1851c52540025c377",
+                    "126.60",
+                    DateTimeOffset.UtcNow.AddDays(-1),
+                    null,
+                    true,
+                    DateTimeOffset.UtcNow,
+                    "headless-signature"
+                ],
+                culture: null)!;
+            session.GetType().GetField(
+                    "_developerAccess",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                .SetValue(session, grant);
+
+            IReadOnlyList<IPclHostModule> modules = Assert.IsInstanceOfType<IReadOnlyList<IPclHostModule>>(
+                loaderType.GetMethod(
+                        "LoadHostModules",
+                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)!
+                    .Invoke(null, null));
+            PclHostBuilder builder = new();
+            foreach (IPclHostModule module in modules)
+                builder.AddModule(module);
+            HostSettingsPageDescriptor descriptor = builder.Build().SettingsPages.Pages.Single(page =>
+                page.Id == "pcl.plugin.developer");
+
+            using SafeHeadlessUnitTestSession headless = CreateSession();
+            headless.Dispatch(() =>
+            {
+                MyPageRight page = Assert.IsInstanceOfType<MyPageRight>(descriptor.PageFactory!());
+                Window window = new() { Width = 700d, Height = 600d, Content = page };
+                try
+                {
+                    window.Show();
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                    TextBox order = page.FindControl<TextBox>("TextPluginDeveloperOrderNumber")!;
+                    MyButton verify = page.FindControl<MyButton>("BtnPluginVerifyDeveloperOrder")!;
+                    MyButton replace = page.FindControl<MyButton>("BtnPluginReplaceDeveloperAuthorization")!;
+                    TextBlock expiry = page.FindControl<TextBlock>("TextPluginDeveloperAuthorizationExpiry")!;
+                    Assert.IsFalse(order.IsEffectivelyVisible);
+                    Assert.IsFalse(verify.IsEffectivelyVisible);
+                    Assert.IsTrue(replace.IsEffectivelyVisible);
+                    Assert.AreEqual("授权到期时间：永久", expiry.Text);
+
+                    Click(window, replace);
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                    Assert.IsTrue(order.IsEffectivelyVisible);
+                    Assert.IsTrue(verify.IsEffectivelyVisible);
+                    Assert.IsFalse(replace.IsEffectivelyVisible);
+                    Assert.AreEqual("验证新订单", verify.Text);
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }, CancellationToken.None);
+        }
+        finally
+        {
+            Task? shutdown = bootstrapType.GetMethod("ShutdownAsync")!.Invoke(null, null) as Task;
+            shutdown?.GetAwaiter().GetResult();
+            try
+            {
+                if (Directory.Exists(runtimeRoot))
+                    Directory.Delete(runtimeRoot, recursive: true);
+            }
+            catch
+            {
+                // best-effort cleanup
+            }
+        }
     }
 
     [TestMethod]
@@ -3702,11 +3827,16 @@ public sealed class AvaloniaHeadlessTests
                 Click(window, developerItem);
                 ModAnimation.AdvanceUntilIdleForTesting();
                 MyPageRight developerPage = FindVisual<MyPageRight>(window)!;
-                Assert.IsNotNull(developerPage.FindControl<CheckBox>("CheckPluginDeveloperMode"));
-                Assert.IsNotNull(developerPage.FindControl<CheckBox>("CheckPluginDeveloperDiagnostics"));
-                Assert.IsNotNull(developerPage.FindControl<CheckBox>("CheckPluginShowSafetyPage"));
-                Assert.IsNotNull(developerPage.FindControl<CheckBox>("CheckPluginShowUiPatchesPage"));
-                Assert.IsNotNull(developerPage.FindControl<CheckBox>("CheckPluginShowCompatibilityPage"));
+                Assert.IsNotNull(developerPage.FindControl<MyCard>("CardPluginDeveloperAuthorization"));
+                Assert.IsNotNull(developerPage.FindControl<MyCard>("CardPluginDeveloperOptions"));
+                Assert.IsNotNull(developerPage.FindControl<TextBox>("TextPluginDeveloperOrderNumber"));
+                Assert.IsNotNull(developerPage.FindControl<MyButton>("BtnPluginVerifyDeveloperOrder"));
+                Assert.IsNotNull(developerPage.FindControl<MyButton>("BtnPluginReplaceDeveloperAuthorization"));
+                Assert.IsNotNull(developerPage.FindControl<MyCheckBox>("CheckPluginDeveloperMode"));
+                Assert.IsNotNull(developerPage.FindControl<MyCheckBox>("CheckPluginDeveloperDiagnostics"));
+                Assert.IsNotNull(developerPage.FindControl<MyCheckBox>("CheckPluginShowSafetyPage"));
+                Assert.IsNotNull(developerPage.FindControl<MyCheckBox>("CheckPluginShowUiPatchesPage"));
+                Assert.IsNotNull(developerPage.FindControl<MyCheckBox>("CheckPluginShowCompatibilityPage"));
 
                 Click(window, installedItem);
                 ModAnimation.AdvanceUntilIdleForTesting();

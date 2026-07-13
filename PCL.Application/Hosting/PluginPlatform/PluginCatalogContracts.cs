@@ -52,6 +52,24 @@ internal sealed record PluginSafetySettings(
     public static PluginSafetySettings Default { get; } = new(false, false, false, false, false, false, false);
 }
 
+/// <summary>Current first-party developer entitlement state. Order identifiers are never exposed to the host.</summary>
+internal sealed record PluginDeveloperAccessState(
+    bool IsVerified,
+    bool IsPermanent,
+    string? ShowAmount,
+    DateTimeOffset? SponsoredAt,
+    DateTimeOffset? ExpiresAt,
+    string StatusMessage)
+{
+    public static PluginDeveloperAccessState None { get; } = new(
+        false,
+        false,
+        null,
+        null,
+        null,
+        "尚未验证爱发电订单。");
+}
+
 /// <summary>Result of applying a planned UI patch graph.</summary>
 internal sealed record PluginUiPatchApplyResult(
     IReadOnlyList<string> AppliedGlobalIds,
@@ -104,7 +122,13 @@ internal interface IPluginCatalogService
 
     PluginSafetySettings Safety { get; }
 
+    PluginDeveloperAccessState DeveloperAccess { get; }
+
     void SetSafety(PluginSafetySettings settings);
+
+    Task<PluginDeveloperAccessState> VerifyDeveloperAccessAsync(
+        string orderNumber,
+        CancellationToken cancellationToken = default);
 
     IReadOnlyList<PluginCatalogEntry> ListInstalled();
 
