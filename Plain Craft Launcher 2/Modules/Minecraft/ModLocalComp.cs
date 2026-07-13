@@ -872,6 +872,12 @@ public static class ModLocalComp
         private bool isLoaded;
 
         /// <summary>
+        ///     标记为已加载。用于内嵌（Jar-in-Jar）子项——其元数据已由 <see cref="ModJarInJar" /> 通过
+        ///     LookupMetadata 从已打开的嵌套流读入，虚拟路径不是真实文件，须避免属性 getter 再触发 Load() 清空元数据。
+        /// </summary>
+        internal void MarkLoaded() => isLoaded = true;
+
+        /// <summary>
         ///     Mod 文件是否可被正常读取。
         /// </summary>
         public bool IsFileAvailable

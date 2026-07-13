@@ -40,6 +40,7 @@ public static class ModJarInJar
                 var childPath = parentPath + "!/" + nestedPath;
                 var child = new ModLocalComp.LocalCompFile(childPath);
                 child.LookupMetadata(nestedJar);
+                child.MarkLoaded(); 
                 child.EmbeddedMods = Resolve(childPath, nestedJar, depth + 1);
                 result.Add(child);
             }
