@@ -3603,7 +3603,7 @@ public static class ModBase
             var info = $"""
                 [System] Diagnostic Information:
                 OS: {RuntimeInformation.OSDescription} (32-bit: {SystemInfo.Is32BitSystem})
-                Memory: {availableMb} MB / {totalMb} MB
+                Memory: {availableMb} MiB / {totalMb} MiB
                 DPI: {dpi} ({dpiScale * 100}%)
                 MC Folder: {ModFolder.mcFolderSelected ?? "Nothing"}
                 Executable Path: {exePath}
