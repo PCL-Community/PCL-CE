@@ -24,12 +24,14 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
     private readonly ConcurrentDictionary<string, WeakReference> _slots = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, List<WrapRecord>> _wraps = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, ReplaceRecord> _replaces = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, long> _generations = new(StringComparer.OrdinalIgnoreCase);
 
     public void RegisterTarget(string surfaceId, Control control)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(surfaceId);
         ArgumentNullException.ThrowIfNull(control);
         _targets[surfaceId] = new WeakReference(control);
+        _generations.AddOrUpdate(surfaceId, 1, static (_, generation) => generation + 1);
     }
 
     public void RegisterSlot(string surfaceId, string slotId, Panel panel)
@@ -44,6 +46,7 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
     {
         ResetWrapAndReplace(surfaceId);
         _targets.TryRemove(surfaceId, out _);
+        _generations.AddOrUpdate(surfaceId, 1, static (_, generation) => generation + 1);
     }
 
     public void UnregisterSlot(string surfaceId, string slotId) =>
@@ -51,6 +54,12 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
 
     public bool IsTargetRegistered(string surfaceId) =>
         _targets.TryGetValue(surfaceId, out WeakReference? wr) && wr.IsAlive;
+
+    public object? ResolveTarget(string surfaceId) =>
+        TryGetTarget(surfaceId, out Control? control) ? control : null;
+
+    public long GetTargetGeneration(string surfaceId) =>
+        _generations.TryGetValue(surfaceId, out long generation) ? generation : 0;
 
     public void ClearSlot(string surfaceId, string slotId)
     {
@@ -70,11 +79,11 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
         RunOnUi(Clear);
     }
 
-    public void Inject(string surfaceId, string slotId, HostUiInjectionRequest request)
+    public bool Inject(string surfaceId, string slotId, HostUiInjectionRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
         if (!TryGetSlot(surfaceId, slotId, out Panel? panel) || panel is null)
-            return;
+            return false;
 
         void Add()
         {
@@ -84,14 +93,27 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
             if (existing is not null)
                 panel.Children.Remove(existing);
 
-            MyButton button = new()
+            Control content;
+            if (request.CreateContent?.Invoke() is Control pluginContent)
             {
-                Text = string.IsNullOrWhiteSpace(request.Title) ? request.ContributionId : request.Title,
-                Height = 32,
-                Margin = new Thickness(0, 2, 0, 2),
-                Tag = tag
-            };
-            ToolTip.SetTip(button, $"{request.PluginId} · {request.ContributionId}");
+                content = new Border
+                {
+                    Child = pluginContent,
+                    Margin = new Thickness(0, 2, 0, 2),
+                    Tag = tag
+                };
+            }
+            else
+            {
+                content = new MyButton
+                {
+                    Text = string.IsNullOrWhiteSpace(request.Title) ? request.ContributionId : request.Title,
+                    Height = 32,
+                    Margin = new Thickness(0, 2, 0, 2),
+                    Tag = tag
+                };
+            }
+            ToolTip.SetTip(content, $"{request.PluginId} · {request.ContributionId}");
             int insertAt = panel.Children.Count;
             for (int i = 0; i < panel.Children.Count; i++)
             {
@@ -106,11 +128,12 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
                 }
             }
 
-            button.SetValue(InjectOrderProperty, request.Order);
-            panel.Children.Insert(insertAt, button);
+            content.SetValue(InjectOrderProperty, request.Order);
+            panel.Children.Insert(insertAt, content);
         }
 
         RunOnUi(Add);
+        return true;
     }
 
     public bool TrySetProperty(string surfaceId, string? slotId, string propertyPath, string? value)

@@ -30,7 +30,13 @@ internal sealed record PluginCatalogEntry(
     string? StatusMessage,
     IReadOnlyList<string> RequiredDependencies,
     IReadOnlyList<string> MissingPrerequisites,
-    string? DependencyState);
+    string? DependencyState,
+    IReadOnlyList<PluginPermissionRequest>? PermissionRequests = null,
+    bool RequiresPermissionApproval = false,
+    bool CanRollback = false,
+    string? RollbackVersion = null);
+
+internal sealed record PluginPermissionRequest(string Id, string Reason, bool IsHighRisk);
 
 /// <summary>Local marketplace listing (directory-scanned <c>.pnp</c>, design §19 skeleton without Online).</summary>
 internal sealed record PluginMarketListing(
@@ -136,6 +142,10 @@ internal interface IPluginCatalogService
     IReadOnlyList<PluginCatalogEntry> ListInstalled();
 
     Task SetEnabledAsync(string pluginId, bool enabled, CancellationToken cancellationToken = default);
+
+    Task ApprovePermissionsAsync(string pluginId, CancellationToken cancellationToken = default);
+
+    Task RollbackAsync(string pluginId, CancellationToken cancellationToken = default);
 
     Task<PluginCatalogEntry> InstallPackageAsync(string packagePath, CancellationToken cancellationToken = default);
 

@@ -27,6 +27,12 @@ internal interface IPclPluginPlatformHost
 
     /// <summary>Optional Avalonia composition bridge for UI Patch apply (Desktop-only).</summary>
     IPluginHostUiComposition? UiComposition { get; }
+
+    /// <summary>Optional dynamic main-page registration and navigation bridge.</summary>
+    IPluginHostNavigation? Navigation { get; }
+
+    /// <summary>Optional raw UI object resolver; objects are exposed only through the trusted Avalonia adapter.</summary>
+    IPluginHostRawUiAccess? RawUiAccess { get; }
 }
 
 /// <summary>
@@ -37,7 +43,7 @@ internal interface IPluginHostUiComposition
 {
     void ClearSlot(string surfaceId, string slotId);
 
-    void Inject(string surfaceId, string slotId, HostUiInjectionRequest request);
+    bool Inject(string surfaceId, string slotId, HostUiInjectionRequest request);
 
     bool TrySetProperty(string surfaceId, string? slotId, string propertyPath, string? value);
 
@@ -56,13 +62,54 @@ internal interface IPluginHostUiComposition
 
     /// <summary>Restores targets to pre-wrap/replace state before a new apply pass.</summary>
     void ResetWrapAndReplace(string surfaceId);
+
+    /// <summary>Returns the real registered UI target for audited Raw Avalonia access.</summary>
+    object? ResolveTarget(string surfaceId) => null;
+
+    /// <summary>Monotonic target generation incremented whenever the host rebuilds a target.</summary>
+    long GetTargetGeneration(string surfaceId) => 0;
+}
+
+internal interface IPluginHostNavigation
+{
+    IPluginHostRegistration RegisterPage(HostPluginPageRegistration registration);
+
+    Task NavigateAsync(string route, CancellationToken cancellationToken = default);
+}
+
+internal sealed record HostPluginPageRegistration(
+    string PluginId,
+    string OperationId,
+    string Route,
+    string Title,
+    string? Icon,
+    int Order,
+    Func<object> CreatePage);
+
+internal interface IPluginHostRegistration : IAsyncDisposable
+{
+    string Id { get; }
+
+    bool IsActive { get; }
+}
+
+internal interface IPluginHostRawUiAccess
+{
+    object Application { get; }
+
+    IReadOnlyList<object> TopLevels { get; }
+
+    object? ResolveTarget(string surfaceId);
+
+    long GetTargetGeneration(string surfaceId);
 }
 
 internal sealed record HostUiInjectionRequest(
     string PluginId,
     string ContributionId,
     string Title,
-    int Order);
+    int Order,
+    Func<object>? CreateContent = null);
 
 internal sealed record HostUiWrapRequest(
     string PluginId,

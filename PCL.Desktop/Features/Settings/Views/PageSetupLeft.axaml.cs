@@ -79,6 +79,8 @@ public partial class PageSetupLeft : MyPageLeft
         PageId = SetupPageSubType.Launch;
         AttachedToVisualTree += (_, _) =>
         {
+            if (this.FindControl<StackPanel>("PanItem") is { } panel)
+                DesktopPluginHostUiComposition.Instance.RegisterSlot("pcl.page.settings", "sidebar.after-plugin", panel);
             if (!_catalogEventsAttached)
             {
                 PluginCatalogAccess.SafetyChanged += PluginCatalogSafetyChanged;
@@ -92,6 +94,7 @@ public partial class PageSetupLeft : MyPageLeft
         };
         DetachedFromVisualTree += (_, _) =>
         {
+            DesktopPluginHostUiComposition.Instance.UnregisterSlot("pcl.page.settings", "sidebar.after-plugin");
             if (!_catalogEventsAttached)
                 return;
             PluginCatalogAccess.SafetyChanged -= PluginCatalogSafetyChanged;

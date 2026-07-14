@@ -6,7 +6,7 @@
       "id": "pcl.window.main",
       "kind": "window",
       "version": "1.0",
-      "supportedOperations": [ "observe" ],
+      "supportedOperations": [ "observe", "modify", "wrap", "replace" ],
       "slots": []
     },
     {
@@ -41,13 +41,46 @@
       ]
     },
     {
+      "id": "pcl.component.launch-button",
+      "kind": "control",
+      "version": "1.0",
+      "supportedOperations": [ "observe", "modify", "wrap", "replace" ],
+      "slots": []
+    },
+    {
       "id": "pcl.page.settings",
       "kind": "page",
       "version": "1.0",
-      "supportedOperations": [ "observe", "inject" ],
+      "supportedOperations": [ "observe", "inject", "modify", "wrap", "replace" ],
       "slots": [
         {
           "id": "sidebar.after-plugin",
+          "cardinality": "many",
+          "allowedOperations": [ "inject" ]
+        }
+      ]
+    },
+    {
+      "id": "pcl.page.download",
+      "kind": "page",
+      "version": "1.0",
+      "supportedOperations": [ "observe", "inject", "modify", "wrap", "replace" ],
+      "slots": [
+        {
+          "id": "filters.after",
+          "cardinality": "many",
+          "allowedOperations": [ "inject" ]
+        }
+      ]
+    },
+    {
+      "id": "pcl.page.community",
+      "kind": "page",
+      "version": "1.0",
+      "supportedOperations": [ "observe", "inject", "modify", "wrap", "replace" ],
+      "slots": [
+        {
+          "id": "categories.after",
           "cardinality": "many",
           "allowedOperations": [ "inject" ]
         }

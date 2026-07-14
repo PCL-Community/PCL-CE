@@ -30,6 +30,8 @@
     <IncludeAllContentForSelfExtract Condition="'$(PublishSingleFile)' == 'true'">true</IncludeAllContentForSelfExtract>
     <PclPluginAssembly Condition="'$(PclPluginAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginAssembly)'))</PclPluginAssembly>
     <PclPluginAbstractionsAssembly Condition="'$(PclPluginAbstractionsAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginAbstractionsAssembly)'))</PclPluginAbstractionsAssembly>
+    <PclPluginUiAssembly Condition="'$(PclPluginUiAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginUiAssembly)'))</PclPluginUiAssembly>
+    <PclPluginUiAvaloniaAssembly Condition="'$(PclPluginUiAvaloniaAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginUiAvaloniaAssembly)'))</PclPluginUiAvaloniaAssembly>
     <PclPluginBouncyCastleAssembly Condition="'$(PclPluginBouncyCastleAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginBouncyCastleAssembly)'))</PclPluginBouncyCastleAssembly>
     <PclPluginJsonCanonicalizerAssembly Condition="'$(PclPluginJsonCanonicalizerAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginJsonCanonicalizerAssembly)'))</PclPluginJsonCanonicalizerAssembly>
     <PclPluginEs6NumberSerializerAssembly Condition="'$(PclPluginEs6NumberSerializerAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginEs6NumberSerializerAssembly)'))</PclPluginEs6NumberSerializerAssembly>
@@ -73,6 +75,7 @@
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Markup.Xaml.Loader" Version="12.0.4" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="LibVLCSharp" Version="3.10.0" />
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23.1"
@@ -101,6 +104,14 @@
                       Condition="'$(PclPluginAbstractionsAssembly)' != '' and Exists('$(PclPluginAbstractionsAssembly)')">
       <LogicalName>PCL.Desktop.Embedded.PCL.N.Plugin.Abstractions.dll</LogicalName>
     </EmbeddedResource>
+    <EmbeddedResource Include="$(PclPluginUiAssembly)"
+                      Condition="'$(PclPluginUiAssembly)' != '' and Exists('$(PclPluginUiAssembly)')">
+      <LogicalName>PCL.Desktop.Embedded.PCL.N.Plugin.UI.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(PclPluginUiAvaloniaAssembly)"
+                      Condition="'$(PclPluginUiAvaloniaAssembly)' != '' and Exists('$(PclPluginUiAvaloniaAssembly)')">
+      <LogicalName>PCL.Desktop.Embedded.PCL.N.Plugin.UI.Avalonia.dll</LogicalName>
+    </EmbeddedResource>
     <EmbeddedResource Include="$(PclPluginBouncyCastleAssembly)"
                       Condition="'$(PclPluginBouncyCastleAssembly)' != '' and Exists('$(PclPluginBouncyCastleAssembly)')">
       <LogicalName>PCL.Desktop.Embedded.BouncyCastle.Cryptography.dll</LogicalName>
@@ -119,6 +130,10 @@
            Text="PCL.Plugin assembly was requested but not found: $(PclPluginAssembly)" />
     <Error Condition="'$(PclPluginAbstractionsAssembly)' == '' or !Exists('$(PclPluginAbstractionsAssembly)')"
            Text="PCL.Plugin requires PCL.N.Plugin.Abstractions in the default load context: $(PclPluginAbstractionsAssembly)" />
+    <Error Condition="'$(PclPluginUiAssembly)' == '' or !Exists('$(PclPluginUiAssembly)')"
+           Text="PCL.Plugin requires PCL.N.Plugin.UI in the default load context: $(PclPluginUiAssembly)" />
+    <Error Condition="'$(PclPluginUiAvaloniaAssembly)' == '' or !Exists('$(PclPluginUiAvaloniaAssembly)')"
+           Text="PCL.Plugin requires PCL.N.Plugin.UI.Avalonia in the default load context: $(PclPluginUiAvaloniaAssembly)" />
     <Error Condition="'$(PclPluginBouncyCastleAssembly)' == '' or !Exists('$(PclPluginBouncyCastleAssembly)')"
            Text="PCL.Plugin requires BouncyCastle.Cryptography: $(PclPluginBouncyCastleAssembly)" />
     <Error Condition="'$(PclPluginJsonCanonicalizerAssembly)' == '' or !Exists('$(PclPluginJsonCanonicalizerAssembly)')"

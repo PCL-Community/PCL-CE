@@ -17,7 +17,9 @@ internal sealed class PclPluginPlatformHost : IPclPluginPlatformHost
         IPluginHostNotifications? notifications = null,
         IPluginHostInstanceQuery? instances = null,
         IPluginHostUiComposition? uiComposition = null,
-        IPluginHostDeveloperDiagnostics? developerDiagnostics = null)
+        IPluginHostDeveloperDiagnostics? developerDiagnostics = null,
+        IPluginHostNavigation? navigation = null,
+        IPluginHostRawUiAccess? rawUiAccess = null)
     {
         SettingsPageGroups = settingsPageGroups ?? throw new ArgumentNullException(nameof(settingsPageGroups));
         SettingsPages = settingsPages ?? throw new ArgumentNullException(nameof(settingsPages));
@@ -26,6 +28,8 @@ internal sealed class PclPluginPlatformHost : IPclPluginPlatformHost
         DeveloperDiagnostics = developerDiagnostics ?? new InMemoryPluginHostDeveloperDiagnostics();
         Instances = instances;
         UiComposition = uiComposition;
+        Navigation = navigation;
+        RawUiAccess = rawUiAccess;
     }
 
     public IHostSettingsPageGroupRegistry SettingsPageGroups { get; }
@@ -41,6 +45,10 @@ internal sealed class PclPluginPlatformHost : IPclPluginPlatformHost
     public IPluginHostInstanceQuery? Instances { get; }
 
     public IPluginHostUiComposition? UiComposition { get; }
+
+    public IPluginHostNavigation? Navigation { get; }
+
+    public IPluginHostRawUiAccess? RawUiAccess { get; }
 }
 
 internal sealed class InMemoryPluginHostDeveloperDiagnostics : IPluginHostDeveloperDiagnostics

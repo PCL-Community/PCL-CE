@@ -112,7 +112,7 @@ public partial class MainWindow : Window, IDisposable
     private MyPageRight? _setupRight;
     private readonly List<LoginProfileInfo> _loginProfiles = [];
     private readonly List<MinecraftFolderInfo> _minecraftFolders = [];
-    private readonly NavigationPageDescriptor[] _navigationPages;
+    private NavigationPageDescriptor[] _navigationPages;
     private readonly Dictionary<string, TaskManagerEntrySnapshot> _taskSnapshots = [];
     private readonly Dictionary<string, CancellationTokenSource> _taskCancellations = [];
     private readonly DesktopPageAdapter _pageAdapter = new();
@@ -137,6 +137,7 @@ public partial class MainWindow : Window, IDisposable
     private string? _homepageSignature;
     private CancellationTokenSource? _homepageLoadCancellation;
     private readonly IDisposable _windowStateSubscription;
+    private string? _registeredPluginPageSurfaceId;
 
     private const double NavCollapsedWidth = 50d;
     private const int NavAnimDuration = 200;
@@ -156,6 +157,15 @@ public partial class MainWindow : Window, IDisposable
         _microsoftAuthService = microsoftAuthService ?? throw new ArgumentNullException(nameof(microsoftAuthService));
         _launchCoordinator = new MinecraftLaunchCoordinator(_minecraftInstallService);
         AvaloniaXamlLoader.Load(this);
+        DesktopPluginHostUiComposition.Instance.RegisterTarget("pcl.window.main", this);
+        if (this.FindControl<Panel>("PanTitleSelect") is { } navigationPanel)
+        {
+            DesktopPluginHostUiComposition.Instance.RegisterTarget("pcl.navigation.main", navigationPanel);
+            DesktopPluginHostUiComposition.Instance.RegisterSlot(
+                "pcl.navigation.main",
+                "items.after-download",
+                navigationPanel);
+        }
         _windowStateSubscription = this.GetObservable(WindowStateProperty).Subscribe(_ =>
         {
             UpdateBackgroundVideoPlayback();
@@ -184,6 +194,8 @@ public partial class MainWindow : Window, IDisposable
         CaptureShowAnimationTransforms();
         Opened += OnMainWindowOpened;
         DesktopPluginHostNotifications.Instance.Attach(OnPluginHostNotification);
+        DesktopHost.Current.Navigation.Changed += NavigationRegistryChanged;
+        DesktopPluginHostNavigation.Instance.Attach(NavigateToPluginRoute);
         SyncTitleOverlayWidth();
         _ = LoadProfilesAsync();
         SelectNavRoute(LaunchRoute, animate: false);
@@ -191,6 +203,28 @@ public partial class MainWindow : Window, IDisposable
 
     private void OnPluginHostNotification(string message, bool critical) =>
         ShowHint(message, critical);
+
+    private void NavigationRegistryChanged(object? sender, EventArgs e)
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(() => NavigationRegistryChanged(sender, e));
+            return;
+        }
+
+        NavigationRouteId selected = _currentNavRoute ?? LaunchRoute;
+        _navigationPages = CreateNavigationPageMap(DesktopHost.Current.Navigation);
+        BuildMainNavigationItems();
+        RefreshNavigationText();
+        if (FindNavigationPage(selected) is not null)
+            SelectNavRoute(selected, animate: false);
+    }
+
+    private void NavigateToPluginRoute(string route)
+    {
+        if (!string.IsNullOrWhiteSpace(route))
+            SelectNavRoute(NavigationRouteId.Parse(route), animate: true);
+    }
 
     private void RefreshTitleButtonsBeforeFirstFrame()
     {
@@ -937,6 +971,8 @@ public partial class MainWindow : Window, IDisposable
             rightHost.Child = page.Right;
         }
 
+        RegisterCurrentPluginPageSurface(page.Right);
+
         if (page.Title is { Length: > 0 } title)
             EnterTitleSubPage(title);
         else
@@ -945,6 +981,30 @@ public partial class MainWindow : Window, IDisposable
         RefreshBackToTopBinding();
         page.Activated?.Invoke();
         rightHost.Opacity = 1d;
+    }
+
+    private void RegisterCurrentPluginPageSurface(Control page)
+    {
+        string? surfaceId = _currentNavRoute?.Value switch
+        {
+            DesktopNavigationRegistry.LaunchRouteValue => "pcl.page.launch",
+            DesktopNavigationRegistry.DownloadRouteValue => "pcl.page.download",
+            DesktopNavigationRegistry.CommunityRouteValue => "pcl.page.community",
+            DesktopNavigationRegistry.SettingsRouteValue => "pcl.page.settings",
+            { Length: > 0 } route => route.StartsWith("pcl.", StringComparison.OrdinalIgnoreCase)
+                ? "pcl.page." + route[4..]
+                : route,
+            _ => null
+        };
+        if (_registeredPluginPageSurfaceId is { } previous &&
+            !string.Equals(previous, surfaceId, StringComparison.OrdinalIgnoreCase))
+        {
+            DesktopPluginHostUiComposition.Instance.UnregisterTarget(previous);
+        }
+        if (surfaceId is null)
+            return;
+        _registeredPluginPageSurfaceId = surfaceId;
+        DesktopPluginHostUiComposition.Instance.RegisterTarget(surfaceId, page);
     }
 
     private DesktopMainPage CreateLaunchMainPage()
@@ -5740,7 +5800,14 @@ public partial class MainWindow : Window, IDisposable
 
     public void Dispose()
     {
+        if (_registeredPluginPageSurfaceId is { } pageSurface)
+            DesktopPluginHostUiComposition.Instance.UnregisterTarget(pageSurface);
+        DesktopPluginHostUiComposition.Instance.UnregisterSlot("pcl.navigation.main", "items.after-download");
+        DesktopPluginHostUiComposition.Instance.UnregisterTarget("pcl.navigation.main");
+        DesktopPluginHostUiComposition.Instance.UnregisterTarget("pcl.window.main");
         DesktopPluginHostNotifications.Instance.Detach(OnPluginHostNotification);
+        DesktopHost.Current.Navigation.Changed -= NavigationRegistryChanged;
+        DesktopPluginHostNavigation.Instance.Detach(NavigateToPluginRoute);
         LauncherSettingsPageBinder.SettingsChanged -= LauncherSettingsChanged;
         AvaloniaLocalizationManager.LanguageChanged -= LocalizationChanged;
         _backgroundBitmap?.Dispose();

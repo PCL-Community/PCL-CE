@@ -51,8 +51,9 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
 
     private void RegisterPluginUiSurfaces()
     {
+        DesktopPluginHostUiComposition.Instance.RegisterTarget("pcl.page.launch", this);
         if (this.FindControl<MyButton>("BtnLaunch") is { } launchButton)
-            DesktopPluginHostUiComposition.Instance.RegisterTarget("pcl.page.launch", launchButton);
+            DesktopPluginHostUiComposition.Instance.RegisterTarget("pcl.component.launch-button", launchButton);
 
         if (this.FindControl<Grid>("PanInput") is not { } input)
             return;
@@ -79,6 +80,7 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
     private static void UnregisterPluginUiSurfaces()
     {
         DesktopPluginHostUiComposition.Instance.UnregisterTarget("pcl.page.launch");
+        DesktopPluginHostUiComposition.Instance.UnregisterTarget("pcl.component.launch-button");
         DesktopPluginHostUiComposition.Instance.UnregisterSlot("pcl.page.launch", "primary-actions.after");
     }
 

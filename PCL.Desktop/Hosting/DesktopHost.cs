@@ -32,6 +32,7 @@ internal static class DesktopHost
         foreach (IPclHostModule module in EmbeddedPluginLoader.LoadHostModules())
             builder.AddModule(module);
         _current = builder.Build();
+        DesktopPluginHostNavigation.Instance.Initialize(_current.Navigation);
         // Narrow internal bridge for PCL.Plugin (design §3). Not part of public SDK ABI.
         PluginPlatformHostAccess.Initialize(new PclPluginPlatformHost(
             _current.SettingsPageGroups,
@@ -40,7 +41,9 @@ internal static class DesktopHost
             DesktopPluginHostNotifications.Instance,
             DesktopPluginHostInstanceQuery.Instance,
             DesktopPluginHostUiComposition.Instance,
-            DesktopPluginHostDeveloperDiagnostics.Instance));
+            DesktopPluginHostDeveloperDiagnostics.Instance,
+            DesktopPluginHostNavigation.Instance,
+            DesktopPluginHostRawUiAccess.Instance));
         // Third-party .pnp catalog + load enabled plugins (no-op when plugin DLL is not embedded).
         EmbeddedPluginLoader.InitializeRuntime();
     }

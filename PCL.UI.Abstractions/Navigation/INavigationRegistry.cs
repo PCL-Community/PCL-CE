@@ -23,6 +23,8 @@ public sealed record NavigationPageDescriptor
 
 public interface INavigationRegistry
 {
+    event EventHandler? Changed;
+
     IReadOnlyList<NavigationPageDescriptor> Pages { get; }
 
     void AddPage(NavigationPageDescriptor descriptor);
@@ -40,6 +42,8 @@ public sealed class NavigationRegistry : INavigationRegistry
 
     public IReadOnlyList<NavigationPageDescriptor> Pages => _snapshot;
 
+    public event EventHandler? Changed;
+
     public void AddPage(NavigationPageDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
@@ -49,6 +53,7 @@ public sealed class NavigationRegistry : INavigationRegistry
 
         _pages.Add(descriptor);
         RefreshSnapshot();
+        Changed?.Invoke(this, EventArgs.Empty);
     }
 
     public bool RemovePage(NavigationRouteId route)
@@ -62,6 +67,7 @@ public sealed class NavigationRegistry : INavigationRegistry
 
         _pages.RemoveAt(index);
         RefreshSnapshot();
+        Changed?.Invoke(this, EventArgs.Empty);
         return true;
     }
 
@@ -82,6 +88,7 @@ public sealed class NavigationRegistry : INavigationRegistry
         _pageMap[descriptor.Route.Value] = descriptor;
         _pages[index] = descriptor;
         RefreshSnapshot();
+        Changed?.Invoke(this, EventArgs.Empty);
         return true;
     }
 

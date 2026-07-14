@@ -5,6 +5,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Hosting;
 
 namespace PCL.Desktop.Features.Downloads.Views;
 
@@ -47,6 +48,8 @@ public partial class PageDownloadLeft : MyPageLeft
         InitializeFilterItems();
         AttachedToVisualTree += (_, _) =>
         {
+            if (this.FindControl<StackPanel>("PanItem") is { } panel)
+                DesktopPluginHostUiComposition.Instance.RegisterSlot("pcl.page.download", "filters.after", panel);
             if (_isLoadedOnce)
                 return;
 
@@ -54,6 +57,8 @@ public partial class PageDownloadLeft : MyPageLeft
             this.FindControl<MyListItem>("ItemAll")?.SetChecked(true, user: false, animate: false);
             ApplyCurrentFilter();
         };
+        DetachedFromVisualTree += (_, _) =>
+            DesktopPluginHostUiComposition.Instance.UnregisterSlot("pcl.page.download", "filters.after");
     }
 
     public event EventHandler<DownloadPageChangedEventArgs>? PageChanged;

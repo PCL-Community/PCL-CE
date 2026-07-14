@@ -5,6 +5,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using PCL.Desktop.Controls.Legacy;
+using PCL.Desktop.Hosting;
 
 namespace PCL.Desktop.Features.Community;
 
@@ -19,6 +20,13 @@ public partial class PageCommunityLeft : MyPageLeft, IRefreshable
         AnimatedControl = this.FindControl<Control>("PanItem");
         AttachRefreshButtons();
         SyncChecks();
+        AttachedToVisualTree += (_, _) =>
+        {
+            if (this.FindControl<StackPanel>("PanItem") is { } panel)
+                DesktopPluginHostUiComposition.Instance.RegisterSlot("pcl.page.community", "categories.after", panel);
+        };
+        DetachedFromVisualTree += (_, _) =>
+            DesktopPluginHostUiComposition.Instance.UnregisterSlot("pcl.page.community", "categories.after");
     }
 
     public CommunityResourceCategory Category { get; private set; } = CommunityResourceCategory.Mod;
