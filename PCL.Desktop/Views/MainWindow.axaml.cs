@@ -1475,23 +1475,30 @@ public partial class MainWindow : Window, IDisposable
 
         TrackTaskBegin(taskId, taskTitle, "解析下载地址");
         ShowHint("已开始下载：" + request.Entry.Title);
-        string? temporaryDownloadPath = null;
 
         try
         {
+            CommunitySearchOptions downloadOptions = instance is null
+                ? request.Options
+                : CommunityInstanceCompatibility.Apply(request.Options, request.Category, instance);
+            using CompositeCommunityResourceCatalog catalog = new();
+            CommunityResourceVersion? selectedVersion = request.PreferredVersion;
             CommunityResourceDownloadFile? file = request.PreferredFile;
-            if (file is null)
+            if (selectedVersion is null)
             {
-                CommunitySearchOptions downloadOptions = instance is null
-                    ? request.Options
-                    : CommunityInstanceCompatibility.Apply(request.Options, request.Category, instance);
-                using CompositeCommunityResourceCatalog catalog = new();
-                file = await catalog.ResolveDownloadAsync(
+                IReadOnlyList<CommunityResourceVersion> versions = await catalog.GetVersionsAsync(
                         request.Entry,
                         downloadOptions,
                         cancellation.Token)
                     .ConfigureAwait(true);
+                selectedVersion = file is null
+                    ? versions.OrderByDescending(static version => version.PublishedAt ?? DateTimeOffset.MinValue)
+                        .FirstOrDefault()
+                    : versions.FirstOrDefault(version =>
+                        string.Equals(version.VersionId, file.VersionId, StringComparison.OrdinalIgnoreCase));
             }
+
+            file ??= selectedVersion is { Files.Count: > 0 } ? selectedVersion.Files[0] : null;
 
             if (file is null)
             {
@@ -1500,74 +1507,68 @@ public partial class MainWindow : Window, IDisposable
                 return;
             }
 
+            selectedVersion ??= new CommunityResourceVersion(
+                file.VersionId,
+                file.VersionName,
+                file.VersionName,
+                null,
+                null,
+                [],
+                [],
+                [file]);
+
             string baseDirectory = instance is null
                 ? Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
                     "PCL-N Downloads")
                 : await InstanceGameDirectory.ResolveAsync(instance, cancellation.Token).ConfigureAwait(true);
-            string targetDirectory = ResolveCommunityDownloadDirectory(request.Category, baseDirectory);
-            Directory.CreateDirectory(targetDirectory);
-            string targetPath = Path.Combine(targetDirectory, SanitizeFileName(file.FileName));
-            temporaryDownloadPath = targetPath + "." + Guid.NewGuid().ToString("N") + ".PCLDownloading";
-            TrackTaskBegin(taskId, taskTitle, "正在下载 " + file.FileName);
 
-            using HttpClient client = new() { Timeout = TimeSpan.FromMinutes(10) };
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("PCL-N/1.0");
-            using HttpResponseMessage response = await client.GetAsync(
-                    file.Url,
-                    HttpCompletionOption.ResponseHeadersRead,
-                    cancellation.Token)
-                .ConfigureAwait(true);
-            response.EnsureSuccessStatusCode();
-            long? total = response.Content.Headers.ContentLength;
-            await using Stream network = await response.Content.ReadAsStreamAsync(cancellation.Token).ConfigureAwait(true);
-            {
-                await using FileStream output = new(
-                    temporaryDownloadPath,
-                    FileMode.CreateNew,
-                    FileAccess.Write,
-                    FileShare.None,
-                    64 * 1024,
-                    useAsync: true);
-                byte[] buffer = new byte[64 * 1024];
-                long written = 0;
-                int read;
-                while ((read = await network.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellation.Token)
-                           .ConfigureAwait(true)) > 0)
-                {
-                    await output.WriteAsync(buffer.AsMemory(0, read), cancellation.Token).ConfigureAwait(true);
-                    written += read;
-                    double progress = total is > 0 ? written / (double)total.Value : 0d;
-                    TrackTaskProgress(
-                        taskId,
-                        taskTitle,
-                        Math.Clamp(progress, 0d, 1d),
-                        $"{written.ToString(CultureInfo.InvariantCulture)} / {(total?.ToString(CultureInfo.InvariantCulture) ?? "?")} 字节");
-                }
-            }
-
+            IReadOnlyList<CommunityResourceDownloadPlanItem> plan;
             if (request.Category == CommunityResourceCategory.Mod)
             {
-                targetPath = MinecraftModArchiveInstaller.Install(
-                    temporaryDownloadPath,
-                    targetDirectory,
-                    Path.GetFileName(targetPath));
+                TrackTaskBegin(taskId, taskTitle, "正在解析必需前置");
+                plan = await CommunityResourceDependencyResolver.ResolveRequiredDownloadsAsync(
+                        catalog,
+                        request.Entry,
+                        selectedVersion,
+                        file,
+                        downloadOptions,
+                        cancellation.Token)
+                    .ConfigureAwait(true);
             }
             else
             {
-                File.Move(temporaryDownloadPath, targetPath, overwrite: true);
+                plan = [new CommunityResourceDownloadPlanItem(request.Entry, selectedVersion, file, false)];
             }
 
-            temporaryDownloadPath = null;
-
-            string completedPath = targetPath;
-            if (request.Category == CommunityResourceCategory.World)
+            using HttpClient client = new() { Timeout = TimeSpan.FromMinutes(10) };
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("PCL-N/1.0");
+            string completedPath = string.Empty;
+            int dependencyCount = plan.Count(static item => item.IsDependency);
+            if (dependencyCount > 0)
             {
-                TrackTaskBegin(taskId, taskTitle, "正在安装世界");
-                completedPath = await MinecraftWorldArchiveInstaller
-                    .InstallAsync(targetPath, targetDirectory, cancellation.Token)
+                _launchRight?.AppendLog(
+                    $"社区资源：{request.Entry.Title} 需要 {dependencyCount} 个必需前置，将自动下载。");
+            }
+
+            foreach (CommunityResourceDownloadPlanItem item in plan)
+            {
+                CommunityResourceCategory itemCategory = item.IsDependency
+                    ? CommunityResourceCategory.Mod
+                    : request.Category;
+                string path = await DownloadCommunityPlanItemAsync(
+                        client,
+                        item,
+                        itemCategory,
+                        baseDirectory,
+                        taskId,
+                        taskTitle,
+                        cancellation.Token)
                     .ConfigureAwait(true);
-                File.Delete(targetPath);
+                if (item.IsDependency)
+                    _launchRight?.AppendLog($"已安装前置：{item.Entry.Title} → {path}");
+                else
+                    completedPath = path;
             }
 
             TrackTaskFinished(taskId, taskTitle, "已保存到 " + completedPath);
@@ -1588,23 +1589,98 @@ public partial class MainWindow : Window, IDisposable
         }
         finally
         {
-            if (!string.IsNullOrWhiteSpace(temporaryDownloadPath) && File.Exists(temporaryDownloadPath))
+            UnregisterTrackedTask(taskId, cancellation);
+        }
+    }
+
+    private async Task<string> DownloadCommunityPlanItemAsync(
+        HttpClient client,
+        CommunityResourceDownloadPlanItem item,
+        CommunityResourceCategory category,
+        string baseDirectory,
+        string taskId,
+        string taskTitle,
+        CancellationToken cancellationToken)
+    {
+        string targetDirectory = ResolveCommunityDownloadDirectory(category, baseDirectory);
+        Directory.CreateDirectory(targetDirectory);
+        string targetPath = Path.Combine(targetDirectory, SanitizeFileName(item.File.FileName));
+        string temporaryPath = targetPath + "." + Guid.NewGuid().ToString("N") + ".PCLDownloading";
+        string phase = item.IsDependency
+            ? "正在下载前置 " + item.Entry.Title
+            : "正在下载 " + item.File.FileName;
+        TrackTaskBegin(taskId, taskTitle, phase);
+
+        try
+        {
+            using HttpResponseMessage response = await client.GetAsync(
+                    item.File.Url,
+                    HttpCompletionOption.ResponseHeadersRead,
+                    cancellationToken)
+                .ConfigureAwait(true);
+            response.EnsureSuccessStatusCode();
+            long? total = response.Content.Headers.ContentLength;
+            await using Stream network = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(true);
+            await using (FileStream output = new(
+                             temporaryPath,
+                             FileMode.CreateNew,
+                             FileAccess.Write,
+                             FileShare.None,
+                             64 * 1024,
+                             useAsync: true))
+            {
+                byte[] buffer = new byte[64 * 1024];
+                long written = 0;
+                int read;
+                while ((read = await network.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken)
+                           .ConfigureAwait(true)) > 0)
+                {
+                    await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(true);
+                    written += read;
+                    double progress = total is > 0 ? written / (double)total.Value : 0d;
+                    TrackTaskProgress(
+                        taskId,
+                        taskTitle,
+                        Math.Clamp(progress, 0d, 1d),
+                        $"{written.ToString(CultureInfo.InvariantCulture)} / {(total?.ToString(CultureInfo.InvariantCulture) ?? "?")} 字节");
+                }
+            }
+
+            if (category == CommunityResourceCategory.Mod)
+            {
+                targetPath = MinecraftModArchiveInstaller.Install(
+                    temporaryPath,
+                    targetDirectory,
+                    Path.GetFileName(targetPath));
+            }
+            else
+            {
+                File.Move(temporaryPath, targetPath, overwrite: true);
+            }
+
+            if (category != CommunityResourceCategory.World)
+                return targetPath;
+
+            TrackTaskBegin(taskId, taskTitle, "正在安装世界");
+            string installed = await MinecraftWorldArchiveInstaller
+                .InstallAsync(targetPath, targetDirectory, cancellationToken)
+                .ConfigureAwait(true);
+            File.Delete(targetPath);
+            return installed;
+        }
+        finally
+        {
+            if (File.Exists(temporaryPath))
             {
                 try
                 {
-                    File.Delete(temporaryDownloadPath);
+                    File.Delete(temporaryPath);
                 }
-                catch (IOException)
-                {
-                    // A failed cleanup must not mask the original download result.
-                }
-                catch (UnauthorizedAccessException)
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
                 {
                     // A failed cleanup must not mask the original download result.
                 }
             }
-
-            UnregisterTrackedTask(taskId, cancellation);
         }
     }
 

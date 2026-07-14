@@ -76,6 +76,30 @@ public sealed record CommunityResourceDownloadFile(
     string VersionId,
     string VersionName);
 
+public enum CommunityResourceDependencyType
+{
+    Required,
+    Optional,
+    Incompatible,
+    Embedded,
+    Tool,
+    Unknown
+}
+
+public sealed record CommunityResourceDependency(
+    string ProjectId,
+    string? VersionId,
+    string? FileName,
+    CommunityResourceDependencyType Type,
+    CommunityResourceSource Source)
+{
+    public string? ProjectTitle { get; init; }
+
+    public string DisplayName => !string.IsNullOrWhiteSpace(ProjectTitle)
+        ? ProjectTitle
+        : !string.IsNullOrWhiteSpace(FileName) ? FileName : ProjectId;
+}
+
 public sealed record CommunityResourceVersion(
     string VersionId,
     string Name,
@@ -84,7 +108,10 @@ public sealed record CommunityResourceVersion(
     DateTimeOffset? PublishedAt,
     IReadOnlyList<string> GameVersions,
     IReadOnlyList<string> Loaders,
-    IReadOnlyList<CommunityResourceDownloadFile> Files);
+    IReadOnlyList<CommunityResourceDownloadFile> Files)
+{
+    public IReadOnlyList<CommunityResourceDependency> Dependencies { get; init; } = [];
+}
 
 public sealed record CommunityResourceFileIdentity(
     string ProjectId,
@@ -118,6 +145,11 @@ public interface ICommunityResourceCatalog
     Task<IReadOnlyList<CommunityResourceVersion>> GetVersionsAsync(
         CommunityResourceEntry entry,
         CommunitySearchOptions? options = null,
+        CancellationToken cancellationToken = default);
+
+    Task<CommunityResourceEntry?> GetProjectAsync(
+        CommunityResourceSource source,
+        string projectId,
         CancellationToken cancellationToken = default);
 
     /// <summary>WPF-style: identify a local jar/zip by SHA-1 against Modrinth version files.</summary>
@@ -337,7 +369,7 @@ public sealed class ModrinthCommunityResourceCatalog : ICommunityResourceCatalog
             if (files.Count == 0)
                 continue;
 
-            versions.Add(new CommunityResourceVersion(
+            CommunityResourceVersion parsed = new(
                 ReadString(version, "id"),
                 ReadString(version, "name"),
                 ReadString(version, "version_number"),
@@ -345,10 +377,51 @@ public sealed class ModrinthCommunityResourceCatalog : ICommunityResourceCatalog
                 ReadDateTimeOffset(version, "date_published"),
                 ReadStringArray(version, "game_versions"),
                 ReadStringArray(version, "loaders"),
-                files));
+                files)
+            {
+                Dependencies = ReadModrinthDependencies(version)
+            };
+            versions.Add(parsed);
         }
 
         return versions;
+    }
+
+    public async Task<CommunityResourceEntry?> GetProjectAsync(
+        CommunityResourceSource source,
+        string projectId,
+        CancellationToken cancellationToken = default)
+    {
+        if (source == CommunityResourceSource.CurseForge || string.IsNullOrWhiteSpace(projectId))
+            return null;
+
+        string requestUrl = "https://api.modrinth.com/v2/project/" + Uri.EscapeDataString(projectId.Trim());
+        using HttpResponseMessage response = await _client.GetAsync(requestUrl, cancellationToken).ConfigureAwait(false);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return null;
+        response.EnsureSuccessStatusCode();
+        await using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        using JsonDocument document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+        JsonElement project = document.RootElement;
+        string id = ReadString(project, "id");
+        string slug = ReadString(project, "slug");
+        string title = ReadString(project, "title");
+        if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(title))
+            return null;
+
+        return new CommunityResourceEntry(
+            id,
+            slug,
+            title,
+            ReadString(project, "description"),
+            ReadString(project, "project_type"),
+            NullIfWhiteSpace(ReadString(project, "icon_url")),
+            ReadInt64(project, "downloads"),
+            ReadDateTimeOffset(project, "updated"))
+        {
+            Source = CommunityResourceSource.Modrinth
+        };
     }
 
     public async Task<CommunityResourceFileIdentity?> LookupFileBySha1Async(
@@ -549,6 +622,48 @@ public sealed class ModrinthCommunityResourceCatalog : ICommunityResourceCatalog
         }
 
         return items;
+    }
+
+    private static List<CommunityResourceDependency> ReadModrinthDependencies(JsonElement version)
+    {
+        if (!TryGetProperty(version, "dependencies", out JsonElement dependencies) ||
+            dependencies.ValueKind != JsonValueKind.Array)
+        {
+            return [];
+        }
+
+        List<CommunityResourceDependency> result = [];
+        foreach (JsonElement dependency in dependencies.EnumerateArray())
+        {
+            if (dependency.ValueKind != JsonValueKind.Object)
+                continue;
+            string projectId = ReadString(dependency, "project_id");
+            string versionId = ReadString(dependency, "version_id");
+            string fileName = ReadString(dependency, "file_name");
+            if (string.IsNullOrWhiteSpace(projectId) &&
+                string.IsNullOrWhiteSpace(versionId) &&
+                string.IsNullOrWhiteSpace(fileName))
+            {
+                continue;
+            }
+
+            CommunityResourceDependencyType type = ReadString(dependency, "dependency_type").ToLowerInvariant() switch
+            {
+                "required" => CommunityResourceDependencyType.Required,
+                "optional" => CommunityResourceDependencyType.Optional,
+                "incompatible" => CommunityResourceDependencyType.Incompatible,
+                "embedded" => CommunityResourceDependencyType.Embedded,
+                _ => CommunityResourceDependencyType.Unknown
+            };
+            result.Add(new CommunityResourceDependency(
+                projectId,
+                NullIfWhiteSpace(versionId),
+                NullIfWhiteSpace(fileName),
+                type,
+                CommunityResourceSource.Modrinth));
+        }
+
+        return result;
     }
 
     private static bool TryGetProperty(JsonElement element, string name, out JsonElement value)

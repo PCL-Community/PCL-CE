@@ -604,4 +604,5 @@ public sealed record CommunityResourceDownloadRequest(
     CommunityResourceEntry Entry,
     CommunityResourceCategory Category,
     CommunitySearchOptions Options,
-    CommunityResourceDownloadFile? PreferredFile = null);
+    CommunityResourceDownloadFile? PreferredFile = null,
+    CommunityResourceVersion? PreferredVersion = null);

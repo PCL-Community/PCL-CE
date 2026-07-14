@@ -2612,6 +2612,75 @@ public sealed class AvaloniaHeadlessTests
     }
 
     [TestMethod]
+    public void CommunityDetail_ShowsRequiredDependencies()
+    {
+        using SafeHeadlessUnitTestSession session = CreateSession();
+
+        session.Dispatch(async () =>
+        {
+            CommunityResourceDownloadFile file = new("root.jar", "https://example.test/root.jar", 10, "v1", "1.0");
+            CommunityResourceVersion version = new(
+                "v1",
+                "Root 1.0",
+                "1.0",
+                null,
+                DateTimeOffset.Parse("2026-07-01T00:00:00Z"),
+                ["1.21.1"],
+                ["fabric"],
+                [file])
+            {
+                Dependencies =
+                [
+                    new CommunityResourceDependency(
+                        "fabric-api",
+                        null,
+                        null,
+                        CommunityResourceDependencyType.Required,
+                        CommunityResourceSource.Modrinth)
+                ]
+            };
+            FakeCommunityResourceCatalog catalog = new()
+            {
+                Versions = [version],
+                Projects =
+                [
+                    new CommunityResourceEntry(
+                        "fabric-api",
+                        "fabric-api",
+                        "Fabric API",
+                        string.Empty,
+                        "mod",
+                        null,
+                        0,
+                        null)
+                ]
+            };
+            PageCommunityDetail detail = new(catalog);
+            Window window = new() { Width = 720, Height = 560, Content = detail };
+            try
+            {
+                window.Show();
+                await detail.ShowAsync(
+                    new CommunityResourceEntry("root", "root", "Root Mod", string.Empty, "mod", null, 0, null),
+                    CommunityResourceCategory.Mod,
+                    new CommunitySearchOptions(GameVersion: "1.21.1", Loader: "fabric"));
+                Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+
+                MyListItem rendered = detail.GetVisualDescendants()
+                    .OfType<MyListItem>()
+                    .Single(item => item.Title == "Root 1.0");
+                StringAssert.Contains(rendered.Info, "必需前置：Fabric API");
+            }
+            finally
+            {
+                window.Close();
+                detail.Dispose();
+            }
+        }, CancellationToken.None).GetAwaiter().GetResult();
+    }
+
+    [TestMethod]
     public void SplashWindow_RendersStartupIcon()
     {
         using SafeHeadlessUnitTestSession session = CreateSession();
@@ -10572,6 +10641,10 @@ public sealed class AvaloniaHeadlessTests
     {
         public CommunityResourceCategory LastCategory { get; private set; }
 
+        public IReadOnlyList<CommunityResourceVersion> Versions { get; init; } = [];
+
+        public IReadOnlyList<CommunityResourceEntry> Projects { get; init; } = [];
+
         public Task<IReadOnlyList<CommunityResourceEntry>> SearchAsync(
             CommunityResourceCategory category,
             string query,
@@ -10605,7 +10678,15 @@ public sealed class AvaloniaHeadlessTests
             CommunityResourceEntry entry,
             CommunitySearchOptions? options = null,
             CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<CommunityResourceVersion>>([]);
+            Task.FromResult(Versions);
+
+        public Task<CommunityResourceEntry?> GetProjectAsync(
+            CommunityResourceSource source,
+            string projectId,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(Projects.FirstOrDefault(project =>
+                project.Source == source &&
+                string.Equals(project.ProjectId, projectId, StringComparison.OrdinalIgnoreCase)));
 
         public Task<CommunityResourceFileIdentity?> LookupFileBySha1Async(
             string sha1Hex,

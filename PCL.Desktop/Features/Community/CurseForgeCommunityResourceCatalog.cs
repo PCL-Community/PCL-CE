@@ -163,7 +163,7 @@ public sealed class CurseForgeCommunityResourceCatalog : ICommunityResourceCatal
                 ReadInt64(file, "fileLength"),
                 id,
                 displayName);
-            versions.Add(new CommunityResourceVersion(
+            CommunityResourceVersion parsed = new(
                 id,
                 displayName,
                 displayName,
@@ -171,12 +171,64 @@ public sealed class CurseForgeCommunityResourceCatalog : ICommunityResourceCatal
                 ReadDateTimeOffset(file, "fileDate"),
                 minecraftVersions,
                 loaders,
-                [download]));
+                [download])
+            {
+                Dependencies = ReadCurseForgeDependencies(file)
+            };
+            versions.Add(parsed);
         }
 
         return versions
             .OrderByDescending(static version => version.PublishedAt ?? DateTimeOffset.MinValue)
             .ToArray();
+    }
+
+    public async Task<CommunityResourceEntry?> GetProjectAsync(
+        CommunityResourceSource source,
+        string projectId,
+        CancellationToken cancellationToken = default)
+    {
+        if (source == CommunityResourceSource.Modrinth || string.IsNullOrWhiteSpace(projectId))
+            return null;
+
+        string url = ApiRoot + "/mods/" + Uri.EscapeDataString(projectId.Trim());
+        using HttpResponseMessage response = await SendAsync(HttpMethod.Get, url, cancellationToken).ConfigureAwait(false);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return null;
+        response.EnsureSuccessStatusCode();
+        await using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        using JsonDocument document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+        if (!TryGetProperty(document.RootElement, "data", out JsonElement project) ||
+            project.ValueKind != JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        string id = ReadNumberOrString(project, "id");
+        string title = ReadString(project, "name");
+        if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(title))
+            return null;
+        string? iconUrl = null;
+        if (TryGetProperty(project, "logo", out JsonElement logo) && logo.ValueKind == JsonValueKind.Object)
+            iconUrl = NullIfWhiteSpace(ReadString(logo, "thumbnailUrl")) ?? NullIfWhiteSpace(ReadString(logo, "url"));
+        string? website = null;
+        if (TryGetProperty(project, "links", out JsonElement links) && links.ValueKind == JsonValueKind.Object)
+            website = NullIfWhiteSpace(ReadString(links, "websiteUrl"));
+
+        return new CommunityResourceEntry(
+            id,
+            ReadString(project, "slug"),
+            title,
+            ReadString(project, "summary"),
+            "mod",
+            iconUrl,
+            ReadInt64(project, "downloadCount"),
+            ReadDateTimeOffset(project, "dateModified"))
+        {
+            Source = CommunityResourceSource.CurseForge,
+            ProjectUrl = website
+        };
     }
 
     public Task<CommunityResourceFileIdentity?> LookupFileBySha1Async(
@@ -255,6 +307,44 @@ public sealed class CurseForgeCommunityResourceCatalog : ICommunityResourceCatal
             _ => 0
         };
         return type != 0;
+    }
+
+    private static List<CommunityResourceDependency> ReadCurseForgeDependencies(JsonElement file)
+    {
+        if (!TryGetProperty(file, "dependencies", out JsonElement dependencies) ||
+            dependencies.ValueKind != JsonValueKind.Array)
+        {
+            return [];
+        }
+
+        List<CommunityResourceDependency> result = [];
+        foreach (JsonElement dependency in dependencies.EnumerateArray())
+        {
+            string projectId = ReadNumberOrString(dependency, "modId");
+            if (string.IsNullOrWhiteSpace(projectId))
+                continue;
+            int relationType = TryGetProperty(dependency, "relationType", out JsonElement relation) &&
+                               relation.TryGetInt32(out int parsed)
+                ? parsed
+                : 0;
+            CommunityResourceDependencyType type = relationType switch
+            {
+                3 => CommunityResourceDependencyType.Required,
+                2 => CommunityResourceDependencyType.Optional,
+                5 => CommunityResourceDependencyType.Incompatible,
+                1 or 6 => CommunityResourceDependencyType.Embedded,
+                4 => CommunityResourceDependencyType.Tool,
+                _ => CommunityResourceDependencyType.Unknown
+            };
+            result.Add(new CommunityResourceDependency(
+                projectId,
+                null,
+                null,
+                type,
+                CommunityResourceSource.CurseForge));
+        }
+
+        return result;
     }
 
     private static string GetProjectType(CommunityResourceCategory category) => category switch

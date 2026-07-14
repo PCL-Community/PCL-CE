@@ -73,6 +73,13 @@ public sealed class CompositeCommunityResourceCatalog : ICommunityResourceCatalo
         CancellationToken cancellationToken = default) =>
         Select(entry).GetVersionsAsync(entry, options, cancellationToken);
 
+    public Task<CommunityResourceEntry?> GetProjectAsync(
+        CommunityResourceSource source,
+        string projectId,
+        CancellationToken cancellationToken = default) =>
+        (source == CommunityResourceSource.CurseForge ? _curseForge : _modrinth)
+        .GetProjectAsync(source, projectId, cancellationToken);
+
     public Task<CommunityResourceFileIdentity?> LookupFileBySha1Async(
         string sha1Hex,
         CancellationToken cancellationToken = default) =>

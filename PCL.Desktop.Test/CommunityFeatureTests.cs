@@ -13,6 +13,87 @@ namespace PCL.Desktop.Test;
 public sealed class CommunityFeatureTests
 {
     [TestMethod]
+    public async Task ModrinthDependencies_ShouldDisplayNamesAndResolveBeforeRootDownload()
+    {
+        using HttpClient client = new(new DelegateHandler(request =>
+        {
+            string path = request.RequestUri!.AbsolutePath;
+            return path switch
+            {
+                "/v2/project/root/version" => JsonResponse(
+                    """
+                    [{
+                      "id": "root-version",
+                      "name": "Root 1.0",
+                      "version_number": "1.0",
+                      "date_published": "2026-07-01T00:00:00Z",
+                      "game_versions": ["1.21.1"],
+                      "loaders": ["fabric"],
+                      "dependencies": [{
+                        "project_id": "fabric-api",
+                        "version_id": "fabric-version",
+                        "dependency_type": "required"
+                      }],
+                      "files": [{
+                        "filename": "root.jar",
+                        "url": "https://cdn.modrinth.com/root.jar",
+                        "size": 20
+                      }]
+                    }]
+                    """),
+                "/v2/project/fabric-api" => JsonResponse(
+                    """
+                    {
+                      "id": "fabric-api",
+                      "slug": "fabric-api",
+                      "title": "Fabric API",
+                      "description": "Required API",
+                      "project_type": "mod",
+                      "downloads": 100,
+                      "updated": "2026-07-01T00:00:00Z"
+                    }
+                    """),
+                "/v2/project/fabric-api/version" => JsonResponse(
+                    """
+                    [{
+                      "id": "fabric-version",
+                      "name": "Fabric API 1.0",
+                      "version_number": "1.0",
+                      "date_published": "2026-06-01T00:00:00Z",
+                      "game_versions": ["1.21.1"],
+                      "loaders": ["fabric"],
+                      "dependencies": [],
+                      "files": [{
+                        "filename": "fabric-api.jar",
+                        "url": "https://cdn.modrinth.com/fabric-api.jar",
+                        "size": 10
+                      }]
+                    }]
+                    """),
+                _ => throw new AssertFailedException("Unexpected request: " + request.RequestUri)
+            };
+        }));
+        using ModrinthCommunityResourceCatalog catalog = new(client);
+        CommunityResourceEntry root = new("root", "root", "Root Mod", string.Empty, "mod", null, 0, null);
+        CommunitySearchOptions options = new(GameVersion: "1.21.1", Loader: "fabric");
+
+        IReadOnlyList<CommunityResourceVersion> versions = await catalog.GetVersionsAsync(root, options);
+        IReadOnlyList<CommunityResourceVersion> enriched = await CommunityResourceDependencyResolver
+            .EnrichNamesAsync(catalog, versions);
+        IReadOnlyList<CommunityResourceDownloadPlanItem> plan = await CommunityResourceDependencyResolver
+            .ResolveRequiredDownloadsAsync(catalog, root, versions.Single(), versions.Single().Files.Single(), options);
+
+        CommunityResourceDependency dependency = enriched.Single().Dependencies.Single();
+        Assert.AreEqual(CommunityResourceDependencyType.Required, dependency.Type);
+        Assert.AreEqual("Fabric API", dependency.DisplayName);
+        Assert.AreEqual(2, plan.Count);
+        Assert.IsTrue(plan[0].IsDependency);
+        Assert.AreEqual("Fabric API", plan[0].Entry.Title);
+        Assert.IsFalse(plan[1].IsDependency);
+        Assert.AreEqual("Root Mod", plan[1].Entry.Title);
+    }
+
+    [TestMethod]
     public async Task VersionInspector_ShouldPreferClientVersionForStandaloneLoaderProfile()
     {
         string root = Path.Combine(Path.GetTempPath(), "pcln-version-test-" + Guid.NewGuid().ToString("N"));
@@ -139,7 +220,8 @@ public sealed class CommunityFeatureTests
                 "downloadUrl": null,
                 "fileLength": 1234,
                 "fileDate": "2026-06-02T00:00:00Z",
-                "gameVersions": ["1.20.1", "Fabric"]
+                "gameVersions": ["1.20.1", "Fabric"],
+                "dependencies": [{ "modId": 306612, "relationType": 3 }]
               }]
             }
             """)));
@@ -155,6 +237,8 @@ public sealed class CommunityFeatureTests
         Assert.AreEqual("https://edge.forgecdn.net/files/5678/123/Example%20Mod.jar", version.Files.Single().Url);
         CollectionAssert.Contains(version.GameVersions.ToArray(), "1.20.1");
         CollectionAssert.Contains(version.Loaders.ToArray(), "fabric");
+        Assert.AreEqual(CommunityResourceDependencyType.Required, version.Dependencies.Single().Type);
+        Assert.AreEqual("306612", version.Dependencies.Single().ProjectId);
     }
 
     [TestMethod]

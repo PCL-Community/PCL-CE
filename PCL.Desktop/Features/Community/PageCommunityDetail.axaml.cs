@@ -167,6 +167,9 @@ public partial class PageCommunityDetail : MyPageRight, IDisposable
                 Source: _entry.Source);
             IReadOnlyList<CommunityResourceVersion> versions =
                 await _catalog.GetVersionsAsync(_entry, fetchOptions, token).ConfigureAwait(false);
+            versions = await CommunityResourceDependencyResolver
+                .EnrichNamesAsync(_catalog, versions, token)
+                .ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
 
             await Dispatcher.UIThread.InvokeAsync(() =>
@@ -467,6 +470,7 @@ public partial class PageCommunityDetail : MyPageRight, IDisposable
                 ? p.ToLocalTime().ToString("yyyy/MM/dd", CultureInfo.CurrentCulture)
                 : "—";
             string size = primary.Size > 0 ? FormatSize(primary.Size) : "—";
+            string dependencies = FormatDependencies(version.Dependencies);
 
             MyIconButton download = new()
             {
@@ -480,15 +484,16 @@ public partial class PageCommunityDetail : MyPageRight, IDisposable
             CommunityResourceDownloadFile file = primary;
             download.Click += (_, _) => DownloadRequested?.Invoke(
                 this,
-                new CommunityResourceDownloadRequest(entry, _category, options, file));
+                new CommunityResourceDownloadRequest(entry, _category, options, file, version));
 
             MyListItem item = new()
             {
                 Title = string.IsNullOrWhiteSpace(version.Name)
                     ? version.VersionNumber
                     : version.Name,
-                Info = loaders + " · " + size + " · " + published + " · " + primary.FileName,
-                Height = 48d,
+                Info = loaders + " · " + size + " · " + published + " · " + primary.FileName +
+                       (string.IsNullOrWhiteSpace(dependencies) ? string.Empty : "\n" + dependencies),
+                Height = string.IsNullOrWhiteSpace(dependencies) ? 48d : 66d,
                 Type = MyListItem.CheckType.Clickable,
                 SvgIcon = "lucide/file-archive",
                 Buttons = [download],
@@ -496,8 +501,28 @@ public partial class PageCommunityDetail : MyPageRight, IDisposable
             };
             item.Click += (_, _) => DownloadRequested?.Invoke(
                 this,
-                new CommunityResourceDownloadRequest(entry, _category, options, file));
+                new CommunityResourceDownloadRequest(entry, _category, options, file, version));
             stack.Children.Add(item);
+        }
+    }
+
+    private static string FormatDependencies(IReadOnlyList<CommunityResourceDependency> dependencies)
+    {
+        List<string> groups = [];
+        AddGroup(CommunityResourceDependencyType.Required, "必需前置");
+        AddGroup(CommunityResourceDependencyType.Optional, "可选前置");
+        AddGroup(CommunityResourceDependencyType.Incompatible, "不兼容");
+        return string.Join("；", groups);
+
+        void AddGroup(CommunityResourceDependencyType type, string label)
+        {
+            string[] names = dependencies
+                .Where(dependency => dependency.Type == type)
+                .Select(static dependency => dependency.DisplayName)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+            if (names.Length > 0)
+                groups.Add(label + "：" + string.Join("、", names));
         }
     }
 
