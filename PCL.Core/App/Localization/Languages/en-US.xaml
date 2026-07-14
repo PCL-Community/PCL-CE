@@ -2933,6 +2933,7 @@
     <sys:String x:Key="Setup.Misc.System.MaxLogLines">Real-time log lines</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxLogLines.ToolTip">Maximum number of lines displayed in the real-time log feature. Old logs are automatically deleted when exceeded.</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxLogLines.Unlimited">Unlimited</sys:String>
+    <sys:String x:Key="Setup.Misc.System.StopUsingPclce">Stop using PCL CE</sys:String>
     <sys:String x:Key="Setup.Misc.System.Telemetry">Enable telemetry data collection</sys:String>
     <sys:String x:Key="Setup.Misc.System.Telemetry.ToolTip">When enabled, the launcher will collect and report errors and device environment information. This helps developers fix potential issues and better plan and develop the launcher.&#xA;The following information will be collected: launcher errors, launcher version information and identifier, Windows system version and architecture, installed physical memory size, NAT and IPv6 support status, and whether original PCL, HMCL, or BakaXL have been used.&#xA;&#xA;This data is not associated with you, and we will never sell it to any third party. Not enabling this will not affect other features, but may affect developers' ability to fix potential bugs.&#xA;&#xA;This change will take effect after restarting the launcher.</sys:String>
     <sys:String x:Key="Setup.Misc.System.Title">System</sys:String>
