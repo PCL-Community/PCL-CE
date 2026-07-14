@@ -15,6 +15,7 @@ internal static class EmbeddedPluginLoader
     private const string PluginRuntimePathEnvironmentVariable = "PCLN_PLUGIN_RUNTIME_PATH";
     internal const string ResourceName = "PCL.Desktop.Embedded.PCL.Plugin.dll";
     internal const string AbstractionsResourceName = "PCL.Desktop.Embedded.PCL.N.Plugin.Abstractions.dll";
+    internal const string SdkResourceName = "PCL.Desktop.Embedded.PCL.N.Plugin.Sdk.dll";
     internal const string UiResourceName = "PCL.Desktop.Embedded.PCL.N.Plugin.UI.dll";
     internal const string UiAvaloniaResourceName = "PCL.Desktop.Embedded.PCL.N.Plugin.UI.Avalonia.dll";
     internal const string BouncyCastleResourceName = "PCL.Desktop.Embedded.BouncyCastle.Cryptography.dll";
@@ -44,6 +45,7 @@ internal static class EmbeddedPluginLoader
             {
                 LoadRequiredDependency(UiResourceName);
                 LoadRequiredDependency(UiAvaloniaResourceName);
+                LoadRequiredDependency(SdkResourceName);
                 LoadRequiredDependency(Es6NumberSerializerResourceName);
                 LoadRequiredDependency(JsonCanonicalizerResourceName);
                 LoadRequiredDependency(BouncyCastleResourceName);

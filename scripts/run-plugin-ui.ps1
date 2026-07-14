@@ -20,12 +20,13 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 $pluginDirectory = Split-Path -Parent $PluginProject
 $pluginAssembly = Join-Path $pluginDirectory "bin\$Configuration\net10.0\PCL.Plugin.dll"
 $pluginAbstractionsAssembly = Join-Path $pluginDirectory "bin\$Configuration\net10.0\PCL.N.Plugin.Abstractions.dll"
+$pluginSdkAssembly = Join-Path $pluginDirectory "bin\$Configuration\net10.0\PCL.N.Plugin.Sdk.dll"
 $pluginUiAssembly = Join-Path $pluginDirectory "bin\$Configuration\net10.0\PCL.N.Plugin.UI.dll"
 $pluginUiAvaloniaAssembly = Join-Path $pluginDirectory "bin\$Configuration\net10.0\PCL.N.Plugin.UI.Avalonia.dll"
 $pluginBouncyCastleAssembly = Join-Path $pluginDirectory "bin\$Configuration\net10.0\BouncyCastle.Cryptography.dll"
 $pluginJsonCanonicalizerAssembly = Join-Path $pluginDirectory "bin\$Configuration\net10.0\jsoncanonicalizer.dll"
 $pluginEs6NumberSerializerAssembly = Join-Path $pluginDirectory "bin\$Configuration\net10.0\es6numberserializer.dll"
-foreach ($assembly in @($pluginAssembly, $pluginAbstractionsAssembly, $pluginUiAssembly, $pluginUiAvaloniaAssembly, $pluginBouncyCastleAssembly, $pluginJsonCanonicalizerAssembly, $pluginEs6NumberSerializerAssembly)) {
+foreach ($assembly in @($pluginAssembly, $pluginAbstractionsAssembly, $pluginSdkAssembly, $pluginUiAssembly, $pluginUiAvaloniaAssembly, $pluginBouncyCastleAssembly, $pluginJsonCanonicalizerAssembly, $pluginEs6NumberSerializerAssembly)) {
     if (-not (Test-Path -LiteralPath $assembly -PathType Leaf)) {
         throw "Plugin assembly was not produced: $assembly"
     }
@@ -35,6 +36,7 @@ dotnet run --project (Join-Path $repoRoot 'PCL.Desktop\PCL.Desktop.csproj') `
     -c $Configuration `
     "-p:PclPluginAssembly=$pluginAssembly" `
     "-p:PclPluginAbstractionsAssembly=$pluginAbstractionsAssembly" `
+    "-p:PclPluginSdkAssembly=$pluginSdkAssembly" `
     "-p:PclPluginUiAssembly=$pluginUiAssembly" `
     "-p:PclPluginUiAvaloniaAssembly=$pluginUiAvaloniaAssembly" `
     "-p:PclPluginBouncyCastleAssembly=$pluginBouncyCastleAssembly" `

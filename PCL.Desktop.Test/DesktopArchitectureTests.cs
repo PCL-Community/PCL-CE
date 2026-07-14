@@ -307,6 +307,9 @@ public sealed class DesktopArchitectureTests
         StringAssert.Contains(reusable, "PublishSingleFile=true");
         StringAssert.Contains(reusable, "gh release download --repo MuXue1230-owo/PCL.Plugin");
         StringAssert.Contains(reusable, "PclPluginAssembly");
+        StringAssert.Contains(reusable, "PclPluginSdkAssembly");
+        StringAssert.Contains(reusable, "PclPluginUiAssembly");
+        StringAssert.Contains(reusable, "PclPluginUiAvaloniaAssembly");
         StringAssert.Contains(reusable, "PclPluginBouncyCastleAssembly");
         StringAssert.Contains(reusable, "PclPluginJsonCanonicalizerAssembly");
         StringAssert.Contains(reusable, "PclPluginEs6NumberSerializerAssembly");
@@ -327,6 +330,9 @@ public sealed class DesktopArchitectureTests
 
         StringAssert.Contains(projectSource, "PCL.Desktop.Embedded.PCL.Plugin.dll");
         StringAssert.Contains(projectSource, "PCL.Desktop.Embedded.PCL.N.Plugin.Abstractions.dll");
+        StringAssert.Contains(projectSource, "PCL.Desktop.Embedded.PCL.N.Plugin.Sdk.dll");
+        StringAssert.Contains(projectSource, "PCL.Desktop.Embedded.PCL.N.Plugin.UI.dll");
+        StringAssert.Contains(projectSource, "PCL.Desktop.Embedded.PCL.N.Plugin.UI.Avalonia.dll");
         StringAssert.Contains(projectSource, "PCL.Desktop.Embedded.BouncyCastle.Cryptography.dll");
         StringAssert.Contains(projectSource, "PCL.Desktop.Embedded.jsoncanonicalizer.dll");
         StringAssert.Contains(projectSource, "PCL.Desktop.Embedded.es6numberserializer.dll");
@@ -334,6 +340,7 @@ public sealed class DesktopArchitectureTests
         StringAssert.Contains(loaderSource, "AssemblyLoadContext.Default.LoadFromStream(buffer)");
         StringAssert.Contains(loaderSource, "if (!HasResource(ResourceName))");
         StringAssert.Contains(loaderSource, "LoadResourceAssembly(AbstractionsResourceName)");
+        StringAssert.Contains(loaderSource, "LoadRequiredDependency(SdkResourceName)");
         StringAssert.Contains(loaderSource, "LoadRequiredDependency(BouncyCastleResourceName)");
         StringAssert.Contains(loaderSource, "LoadRequiredDependency(JsonCanonicalizerResourceName)");
         StringAssert.Contains(loaderSource, "LoadRequiredDependency(Es6NumberSerializerResourceName)");

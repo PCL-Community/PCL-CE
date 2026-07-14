@@ -144,6 +144,9 @@ jobs:
           $assemblies = @(
             'PCL.Plugin.dll',
             'PCL.N.Plugin.Abstractions.dll',
+            'PCL.N.Plugin.Sdk.dll',
+            'PCL.N.Plugin.UI.dll',
+            'PCL.N.Plugin.UI.Avalonia.dll',
             'BouncyCastle.Cryptography.dll',
             'jsoncanonicalizer.dll',
             'es6numberserializer.dll'
@@ -177,6 +180,9 @@ jobs:
           PCL_GITHUB_SHA: ${{ github.sha }}
           PCL_PLUGIN_ASSEMBLY: ${{ github.workspace }}/plugin/PCL.Plugin.dll
           PCL_PLUGIN_ABSTRACTIONS_ASSEMBLY: ${{ github.workspace }}/plugin/PCL.N.Plugin.Abstractions.dll
+          PCL_PLUGIN_SDK_ASSEMBLY: ${{ github.workspace }}/plugin/PCL.N.Plugin.Sdk.dll
+          PCL_PLUGIN_UI_ASSEMBLY: ${{ github.workspace }}/plugin/PCL.N.Plugin.UI.dll
+          PCL_PLUGIN_UI_AVALONIA_ASSEMBLY: ${{ github.workspace }}/plugin/PCL.N.Plugin.UI.Avalonia.dll
           PCL_PLUGIN_BOUNCY_CASTLE_ASSEMBLY: ${{ github.workspace }}/plugin/BouncyCastle.Cryptography.dll
           PCL_PLUGIN_JSON_CANONICALIZER_ASSEMBLY: ${{ github.workspace }}/plugin/jsoncanonicalizer.dll
           PCL_PLUGIN_ES6_NUMBER_SERIALIZER_ASSEMBLY: ${{ github.workspace }}/plugin/es6numberserializer.dll
@@ -187,6 +193,9 @@ jobs:
             plugin_args=(
               -p:PclPluginAssembly="$PCL_PLUGIN_ASSEMBLY"
               -p:PclPluginAbstractionsAssembly="$PCL_PLUGIN_ABSTRACTIONS_ASSEMBLY"
+              -p:PclPluginSdkAssembly="$PCL_PLUGIN_SDK_ASSEMBLY"
+              -p:PclPluginUiAssembly="$PCL_PLUGIN_UI_ASSEMBLY"
+              -p:PclPluginUiAvaloniaAssembly="$PCL_PLUGIN_UI_AVALONIA_ASSEMBLY"
               -p:PclPluginBouncyCastleAssembly="$PCL_PLUGIN_BOUNCY_CASTLE_ASSEMBLY"
               -p:PclPluginJsonCanonicalizerAssembly="$PCL_PLUGIN_JSON_CANONICALIZER_ASSEMBLY"
               -p:PclPluginEs6NumberSerializerAssembly="$PCL_PLUGIN_ES6_NUMBER_SERIALIZER_ASSEMBLY"

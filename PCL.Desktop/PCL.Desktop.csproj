@@ -30,6 +30,7 @@
     <IncludeAllContentForSelfExtract Condition="'$(PublishSingleFile)' == 'true'">true</IncludeAllContentForSelfExtract>
     <PclPluginAssembly Condition="'$(PclPluginAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginAssembly)'))</PclPluginAssembly>
     <PclPluginAbstractionsAssembly Condition="'$(PclPluginAbstractionsAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginAbstractionsAssembly)'))</PclPluginAbstractionsAssembly>
+    <PclPluginSdkAssembly Condition="'$(PclPluginSdkAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginSdkAssembly)'))</PclPluginSdkAssembly>
     <PclPluginUiAssembly Condition="'$(PclPluginUiAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginUiAssembly)'))</PclPluginUiAssembly>
     <PclPluginUiAvaloniaAssembly Condition="'$(PclPluginUiAvaloniaAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginUiAvaloniaAssembly)'))</PclPluginUiAvaloniaAssembly>
     <PclPluginBouncyCastleAssembly Condition="'$(PclPluginBouncyCastleAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginBouncyCastleAssembly)'))</PclPluginBouncyCastleAssembly>
@@ -104,6 +105,10 @@
                       Condition="'$(PclPluginAbstractionsAssembly)' != '' and Exists('$(PclPluginAbstractionsAssembly)')">
       <LogicalName>PCL.Desktop.Embedded.PCL.N.Plugin.Abstractions.dll</LogicalName>
     </EmbeddedResource>
+    <EmbeddedResource Include="$(PclPluginSdkAssembly)"
+                      Condition="'$(PclPluginSdkAssembly)' != '' and Exists('$(PclPluginSdkAssembly)')">
+      <LogicalName>PCL.Desktop.Embedded.PCL.N.Plugin.Sdk.dll</LogicalName>
+    </EmbeddedResource>
     <EmbeddedResource Include="$(PclPluginUiAssembly)"
                       Condition="'$(PclPluginUiAssembly)' != '' and Exists('$(PclPluginUiAssembly)')">
       <LogicalName>PCL.Desktop.Embedded.PCL.N.Plugin.UI.dll</LogicalName>
@@ -130,6 +135,8 @@
            Text="PCL.Plugin assembly was requested but not found: $(PclPluginAssembly)" />
     <Error Condition="'$(PclPluginAbstractionsAssembly)' == '' or !Exists('$(PclPluginAbstractionsAssembly)')"
            Text="PCL.Plugin requires PCL.N.Plugin.Abstractions in the default load context: $(PclPluginAbstractionsAssembly)" />
+    <Error Condition="'$(PclPluginSdkAssembly)' == '' or !Exists('$(PclPluginSdkAssembly)')"
+           Text="PCL.Plugin requires PCL.N.Plugin.Sdk in the default load context: $(PclPluginSdkAssembly)" />
     <Error Condition="'$(PclPluginUiAssembly)' == '' or !Exists('$(PclPluginUiAssembly)')"
            Text="PCL.Plugin requires PCL.N.Plugin.UI in the default load context: $(PclPluginUiAssembly)" />
     <Error Condition="'$(PclPluginUiAvaloniaAssembly)' == '' or !Exists('$(PclPluginUiAvaloniaAssembly)')"
