@@ -40,7 +40,7 @@ jobs:
       self_contained: ${{ matrix.runtime.self_contained }}
       runtime_variant: ${{ matrix.runtime.variant }}
       include_plugin: true
-      plugin_tag: ${{ vars.PCL_PLUGIN_TAG || 'latest' }}
+      plugin_tag: ${{ vars.PCL_PLUGIN_TAG || 'v0.11.4' }}
     secrets: inherit
 
   changelog:
