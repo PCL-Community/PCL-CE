@@ -56,9 +56,12 @@ internal sealed record PluginSafetySettings(
     bool AllowUnsignedPlugins = false,
     bool ShowSafetyPage = false,
     bool ShowUiPatchesPage = false,
-    bool ShowCompatibilityPage = false)
+    bool ShowCompatibilityPage = false,
+    bool IsolationMode = false,
+    IReadOnlyList<string>? IsolationPluginIds = null)
 {
-    public static PluginSafetySettings Default { get; } = new(false, false, false, false, false, false, false);
+    public static PluginSafetySettings Default { get; } = new(
+        false, false, false, false, false, false, false, false, []);
 }
 
 /// <summary>Current first-party developer entitlement state. Order identifiers are never exposed to the host.</summary>
