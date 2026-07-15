@@ -51,9 +51,9 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
 
     private void RegisterPluginUiSurfaces()
     {
-        DesktopPluginHostUiComposition.Instance.RegisterTarget("pcl.page.launch", this);
+        DesktopHostUiComposition.Instance.RegisterTarget("pcl.page.launch", this);
         if (this.FindControl<MyButton>("BtnLaunch") is { } launchButton)
-            DesktopPluginHostUiComposition.Instance.RegisterTarget("pcl.component.launch-button", launchButton);
+            DesktopHostUiComposition.Instance.RegisterTarget("pcl.component.launch-button", launchButton);
 
         if (this.FindControl<Grid>("PanInput") is not { } input)
             return;
@@ -71,7 +71,7 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
         Grid.SetColumnSpan(_pluginInjectPanel, 5);
         // Push inject host above instance buttons with negative margin if needed — keep simple append.
         input.Children.Add(_pluginInjectPanel);
-        DesktopPluginHostUiComposition.Instance.RegisterSlot(
+        DesktopHostUiComposition.Instance.RegisterSlot(
             "pcl.page.launch",
             "primary-actions.after",
             _pluginInjectPanel);
@@ -79,9 +79,9 @@ public partial class PageLaunchLeft : MyPageLeft, IDisposable
 
     private static void UnregisterPluginUiSurfaces()
     {
-        DesktopPluginHostUiComposition.Instance.UnregisterTarget("pcl.page.launch");
-        DesktopPluginHostUiComposition.Instance.UnregisterTarget("pcl.component.launch-button");
-        DesktopPluginHostUiComposition.Instance.UnregisterSlot("pcl.page.launch", "primary-actions.after");
+        DesktopHostUiComposition.Instance.UnregisterTarget("pcl.page.launch");
+        DesktopHostUiComposition.Instance.UnregisterTarget("pcl.component.launch-button");
+        DesktopHostUiComposition.Instance.UnregisterSlot("pcl.page.launch", "primary-actions.after");
     }
 
     private void WireLaunchButtonScaleMirror()

@@ -23,10 +23,10 @@ public partial class PageCommunityLeft : MyPageLeft, IRefreshable
         AttachedToVisualTree += (_, _) =>
         {
             if (this.FindControl<StackPanel>("PanItem") is { } panel)
-                DesktopPluginHostUiComposition.Instance.RegisterSlot("pcl.page.community", "categories.after", panel);
+                DesktopHostUiComposition.Instance.RegisterSlot("pcl.page.community", "categories.after", panel);
         };
         DetachedFromVisualTree += (_, _) =>
-            DesktopPluginHostUiComposition.Instance.UnregisterSlot("pcl.page.community", "categories.after");
+            DesktopHostUiComposition.Instance.UnregisterSlot("pcl.page.community", "categories.after");
     }
 
     public CommunityResourceCategory Category { get; private set; } = CommunityResourceCategory.Mod;

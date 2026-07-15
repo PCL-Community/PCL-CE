@@ -37,7 +37,7 @@ internal static class Program
                     : 1;
             }
 
-            EmbeddedPluginLoader.Load();
+            EmbeddedRuntimeExtensionLoader.Load();
 
             using SingleInstanceCoordinator singleInstance = SingleInstanceCoordinator.Create();
             if (!singleInstance.IsPrimaryInstance)

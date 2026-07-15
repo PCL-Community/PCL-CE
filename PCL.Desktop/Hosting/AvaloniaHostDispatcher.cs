@@ -3,14 +3,14 @@
 // Licensed under the Apache License, Version 2.0.
 
 using Avalonia.Threading;
-using PCL.Application.Hosting.PluginPlatform;
+using PCL.Application.Hosting.RuntimeExtensions;
 
 namespace PCL.Desktop.Hosting;
 
 /// <summary>Marshals plugin work onto Avalonia UI thread (design §9 dispatcher).</summary>
-internal sealed class AvaloniaPluginHostWorkQueue : IPluginHostWorkQueue
+internal sealed class AvaloniaHostWorkQueue : IHostWorkQueue
 {
-    public static AvaloniaPluginHostWorkQueue Instance { get; } = new();
+    public static AvaloniaHostWorkQueue Instance { get; } = new();
 
     public void Post(Action action)
     {

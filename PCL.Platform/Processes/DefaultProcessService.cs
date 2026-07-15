@@ -19,7 +19,8 @@ public sealed class DefaultProcessService : IProcessService
             FileName = request.FileName,
             UseShellExecute = false,
             RedirectStandardOutput = request.CaptureOutput,
-            RedirectStandardError = request.CaptureOutput
+            RedirectStandardError = request.CaptureOutput,
+            RedirectStandardInput = request.StandardInput is not null
         };
 
         foreach (string argument in request.Arguments)
@@ -41,6 +42,11 @@ public sealed class DefaultProcessService : IProcessService
         Task<string> errorTask = request.CaptureOutput
             ? process.StandardError.ReadToEndAsync(cancellationToken)
             : Task.FromResult(string.Empty);
+        if (request.StandardInput is not null)
+        {
+            await process.StandardInput.WriteAsync(request.StandardInput.AsMemory(), cancellationToken).ConfigureAwait(false);
+            await process.StandardInput.DisposeAsync().ConfigureAwait(false);
+        }
 
         try
         {

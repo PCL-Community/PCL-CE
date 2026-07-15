@@ -6,13 +6,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.Loader;
 using PCL.Application.Hosting;
-using PCL.Platform.Paths;
 
 namespace PCL.Desktop.Hosting;
 
-internal static class EmbeddedPluginLoader
+internal static class EmbeddedRuntimeExtensionLoader
 {
-    private const string PluginRuntimePathEnvironmentVariable = "PCLN_PLUGIN_RUNTIME_PATH";
     internal const string ResourceName = "PCL.Desktop.Embedded.PCL.Plugin.dll";
     internal const string AbstractionsResourceName = "PCL.Desktop.Embedded.PCL.N.Plugin.Abstractions.dll";
     internal const string SdkResourceName = "PCL.Desktop.Embedded.PCL.N.Plugin.Sdk.dll";
@@ -57,7 +55,7 @@ internal static class EmbeddedPluginLoader
     }
 
     private static bool HasResource(string resourceName) =>
-        typeof(EmbeddedPluginLoader).Assembly.GetManifestResourceInfo(resourceName) is not null;
+        typeof(EmbeddedRuntimeExtensionLoader).Assembly.GetManifestResourceInfo(resourceName) is not null;
 
     [UnconditionalSuppressMessage(
         "Trimming",
@@ -65,7 +63,7 @@ internal static class EmbeddedPluginLoader
         Justification = "Injected platform assemblies are bundled only in non-trimmed, non-AOT desktop publishes.")]
     private static Assembly? LoadResourceAssembly(string resourceName)
     {
-        Assembly hostAssembly = typeof(EmbeddedPluginLoader).Assembly;
+        Assembly hostAssembly = typeof(EmbeddedRuntimeExtensionLoader).Assembly;
         using Stream? resource = hostAssembly.GetManifestResourceStream(resourceName);
         if (resource is null)
             return null;
@@ -115,62 +113,35 @@ internal static class EmbeddedPluginLoader
         return modules;
     }
 
-    /// <summary>
-    /// Initializes the third-party plugin install root and catalog after the host bridge is ready.
-    /// Uses reflection so Desktop never takes a compile-time dependency on PCL.Plugin types.
-    /// </summary>
     [UnconditionalSuppressMessage(
         "Trimming",
         "IL2026",
-        Justification = "Plugin bootstrap type is only present when the injected assembly is embedded.")]
+        Justification = "Injected runtime extensions are bundled only in non-trimmed, non-AOT desktop publishes.")]
     [UnconditionalSuppressMessage(
         "Trimming",
-        "IL2075",
-        Justification = "Method names on the public bootstrap type are stable host contracts.")]
-    public static void InitializeRuntime()
+        "IL2072",
+        Justification = "Runtime extension constructors are preserved in the separately built injected assembly.")]
+    public static IReadOnlyList<IRuntimeExtension> LoadRuntimeExtensions()
     {
         Assembly? assembly = Load();
         if (assembly is null)
-            return;
+            return [];
 
-        Type? bootstrap = assembly.GetType("PCL.Plugin.Host.PluginPlatformBootstrap", throwOnError: false);
-        if (bootstrap is null)
-            return;
-
-        string? runtimePathOverride = Environment.GetEnvironmentVariable(PluginRuntimePathEnvironmentVariable);
-        string runtimeRoot = string.IsNullOrWhiteSpace(runtimePathOverride)
-            ? Path.Combine(
-                new DefaultPlatformPathProvider().ApplicationDataDirectory,
-                "PCL-N",
-                "plugin-runtime")
-            : Path.GetFullPath(runtimePathOverride);
-        MethodInfo? initialize = bootstrap.GetMethod(
-            "Initialize",
-            BindingFlags.Public | BindingFlags.Static,
-            binder: null,
-            types: [typeof(string)],
-            modifiers: null);
-        initialize?.Invoke(null, [runtimeRoot]);
-
-        MethodInfo? loadEnabled = bootstrap.GetMethod(
-            "LoadEnabledAsync",
-            BindingFlags.Public | BindingFlags.Static,
-            binder: null,
-            types: [typeof(CancellationToken)],
-            modifiers: null);
-        if (loadEnabled is not null)
+        List<IRuntimeExtension> extensions = [];
+#pragma warning disable IL2070, IL2067, IL2075
+        foreach (Type type in assembly.GetTypes().OrderBy(static type => type.FullName, StringComparer.Ordinal))
         {
-            object? taskObj = loadEnabled.Invoke(null, [CancellationToken.None]);
-            if (taskObj is Task task)
-                _ = task.ContinueWith(
-                    static t =>
-                    {
-                        if (t.IsFaulted)
-                        {
-                            // best-effort; management UI surfaces load status
-                        }
-                    },
-                    TaskScheduler.Default);
+            if (type.IsAbstract ||
+                type.IsInterface ||
+                !typeof(IRuntimeExtension).IsAssignableFrom(type) ||
+                type.GetConstructor(Type.EmptyTypes) is null)
+            {
+                continue;
+            }
+
+            extensions.Add((IRuntimeExtension)Activator.CreateInstance(type)!);
         }
+#pragma warning restore IL2070, IL2067, IL2075
+        return extensions;
     }
 }

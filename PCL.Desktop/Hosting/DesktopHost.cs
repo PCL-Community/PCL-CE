@@ -3,7 +3,8 @@
 // Licensed under the Apache License, Version 2.0.
 
 using PCL.Application.Hosting;
-using PCL.Application.Hosting.PluginPlatform;
+using PCL.Application.Hosting.RuntimeExtensions;
+using PCL.Application.Launching;
 using PCL.Platform.Paths;
 using PCL.Platform.Processes;
 using PCL.Platform.Security;
@@ -15,6 +16,7 @@ namespace PCL.Desktop.Hosting;
 internal static class DesktopHost
 {
     private static IPclHost? _current;
+    private static IReadOnlyList<IRuntimeExtension> _runtimeExtensions = [];
 
     public static IPclHost Current
     {
@@ -32,28 +34,37 @@ internal static class DesktopHost
 
         PclHostBuilder builder = new();
         DesktopNavigationRegistry.RegisterGeneratedHostModules(builder);
-        foreach (IPclHostModule module in EmbeddedPluginLoader.LoadHostModules())
+        foreach (IPclHostModule module in EmbeddedRuntimeExtensionLoader.LoadHostModules())
             builder.AddModule(module);
         _current = builder.Build();
-        DesktopPluginHostNavigation.Instance.Initialize(_current.Navigation);
-        // Narrow internal bridge for PCL.Plugin (design §3). Not part of public SDK ABI.
+        DesktopHostNavigation.Instance.Initialize(_current.Navigation);
         DefaultPlatformPathProvider platformPaths = new();
-        PluginPlatformHostAccess.Initialize(new PclPluginPlatformHost(
+        RuntimeExtensionHostAccess.Initialize(new RuntimeExtensionHost(
             _current.SettingsPageGroups,
             _current.SettingsPages,
-            AvaloniaPluginHostWorkQueue.Instance,
-            DesktopPluginHostNotifications.Instance,
-            DesktopPluginHostInstanceQuery.Instance,
-            DesktopPluginHostUiComposition.Instance,
-            DesktopPluginHostDeveloperDiagnostics.Instance,
-            DesktopPluginHostNavigation.Instance,
-            DesktopPluginHostRawUiAccess.Instance,
-            new DesktopPluginHostSecureStorage(new DefaultSecureStorage(platformPaths.ApplicationDataDirectory)),
-            DesktopPluginHostUriLauncher.Instance,
+            AvaloniaHostWorkQueue.Instance,
+            DesktopHostNotifications.Instance,
+            DesktopHostInstanceQuery.Instance,
+            DesktopHostUiComposition.Instance,
+            DesktopHostDeveloperDiagnostics.Instance,
+            DesktopHostNavigation.Instance,
+            DesktopHostRawUiAccess.Instance,
+            new DesktopHostSecureStorage(new DefaultSecureStorage(platformPaths.ApplicationDataDirectory)),
+            DesktopHostUriLauncher.Instance,
             platformPaths.ApplicationDataDirectory,
-            platformPaths.CacheDirectory));
-        // Third-party .pnp catalog + load enabled plugins (no-op when plugin DLL is not embedded).
-        EmbeddedPluginLoader.InitializeRuntime();
+            platformPaths.CacheDirectory,
+            gameSessions: GameSessionRegistry.Shared,
+            processes: new DefaultProcessService(),
+            clipboard: DesktopHostClipboard.Instance,
+            accounts: _current.Accounts,
+            downloads: _current.Downloads,
+            launching: _current.Launching));
+        _runtimeExtensions = EmbeddedRuntimeExtensionLoader.LoadRuntimeExtensions();
+        RuntimeExtensionContext extensionContext = new(
+            platformPaths.ApplicationDataDirectory,
+            platformPaths.CacheDirectory);
+        foreach (IRuntimeExtension extension in _runtimeExtensions)
+            extension.Initialize(_current, extensionContext);
     }
 }
 

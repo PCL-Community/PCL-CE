@@ -3,7 +3,7 @@
 // Licensed under the Apache License, Version 2.0.
 
 using System.Collections.Concurrent;
-using PCL.Application.Hosting.PluginPlatform;
+using PCL.Application.Hosting.RuntimeExtensions;
 
 namespace PCL.Desktop.Hosting;
 
@@ -11,9 +11,9 @@ namespace PCL.Desktop.Hosting;
 /// Forwards plugin notifications to the active main-window toast surface when attached;
 /// otherwise captures messages for diagnostics (design §9 notifications).
 /// </summary>
-internal sealed class DesktopPluginHostNotifications : IPluginHostNotifications
+internal sealed class DesktopHostNotifications : IHostNotifications
 {
-    public static DesktopPluginHostNotifications Instance { get; } = new();
+    public static DesktopHostNotifications Instance { get; } = new();
 
     private readonly ConcurrentQueue<string> _captured = new();
     private Action<string, bool>? _handler;

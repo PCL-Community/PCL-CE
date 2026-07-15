@@ -32,9 +32,20 @@ public readonly record struct HostApiVersion(int Major, int Minor) : IComparable
     public static bool operator >=(HostApiVersion left, HostApiVersion right) => left.CompareTo(right) >= 0;
 }
 
-public static class PclPluginHostApi
+public static class PclHostApi
 {
-    public static HostApiVersion Current { get; } = new(0, 2);
+    public static HostApiVersion Current { get; } = new(0, 3);
+}
+
+public sealed record RuntimeExtensionContext(
+    string ApplicationDataDirectory,
+    string CacheDirectory);
+
+public interface IRuntimeExtension
+{
+    void Initialize(IPclHost host, RuntimeExtensionContext context);
+
+    ValueTask ShutdownAsync(CancellationToken cancellationToken = default);
 }
 
 public interface IPclHostBuilder
@@ -91,7 +102,7 @@ public sealed class PclHostBuilder : IPclHostBuilder
     private readonly List<HostModuleId> _moduleIds = [];
     private readonly HashSet<string> _moduleIdSet = new(StringComparer.OrdinalIgnoreCase);
 
-    public HostApiVersion ApiVersion => PclPluginHostApi.Current;
+    public HostApiVersion ApiVersion => PclHostApi.Current;
 
     public IServiceRegistry Services { get; } = new ServiceRegistry();
 

@@ -3,13 +3,13 @@
 
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using PCL.Application.Hosting.PluginPlatform;
+using PCL.Application.Hosting.RuntimeExtensions;
 
 namespace PCL.Desktop.Hosting;
 
-internal sealed class DesktopPluginHostRawUiAccess : IPluginHostRawUiAccess
+internal sealed class DesktopHostRawUiAccess : IHostRawUiAccess
 {
-    public static DesktopPluginHostRawUiAccess Instance { get; } = new();
+    public static DesktopHostRawUiAccess Instance { get; } = new();
 
     public object Application => Avalonia.Application.Current
         ?? throw new InvalidOperationException("Avalonia application is not initialized.");
@@ -20,8 +20,8 @@ internal sealed class DesktopPluginHostRawUiAccess : IPluginHostRawUiAccess
             : [];
 
     public object? ResolveTarget(string surfaceId) =>
-        DesktopPluginHostUiComposition.Instance.ResolveTarget(surfaceId);
+        DesktopHostUiComposition.Instance.ResolveTarget(surfaceId);
 
     public long GetTargetGeneration(string surfaceId) =>
-        DesktopPluginHostUiComposition.Instance.GetTargetGeneration(surfaceId);
+        DesktopHostUiComposition.Instance.GetTargetGeneration(surfaceId);
 }

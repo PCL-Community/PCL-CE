@@ -25,7 +25,6 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using PCL.Application.Accounts;
 using PCL.Application.Downloads;
-using PCL.Application.Hosting.PluginPlatform;
 using PCL.Application.Instances;
 using PCL.Application.Launching;
 using PCL.Application.Minecraft.Launch.Arguments;
@@ -157,11 +156,11 @@ public partial class MainWindow : Window, IDisposable
         _microsoftAuthService = microsoftAuthService ?? throw new ArgumentNullException(nameof(microsoftAuthService));
         _launchCoordinator = new MinecraftLaunchCoordinator(_minecraftInstallService);
         AvaloniaXamlLoader.Load(this);
-        DesktopPluginHostUiComposition.Instance.RegisterTarget("pcl.window.main", this);
+        DesktopHostUiComposition.Instance.RegisterTarget("pcl.window.main", this);
         if (this.FindControl<Panel>("PanTitleSelect") is { } navigationPanel)
         {
-            DesktopPluginHostUiComposition.Instance.RegisterTarget("pcl.navigation.main", navigationPanel);
-            DesktopPluginHostUiComposition.Instance.RegisterSlot(
+            DesktopHostUiComposition.Instance.RegisterTarget("pcl.navigation.main", navigationPanel);
+            DesktopHostUiComposition.Instance.RegisterSlot(
                 "pcl.navigation.main",
                 "items.after-download",
                 navigationPanel);
@@ -193,9 +192,9 @@ public partial class MainWindow : Window, IDisposable
         RefreshNavigationText();
         CaptureShowAnimationTransforms();
         Opened += OnMainWindowOpened;
-        DesktopPluginHostNotifications.Instance.Attach(OnPluginHostNotification);
+        DesktopHostNotifications.Instance.Attach(OnPluginHostNotification);
         DesktopHost.Current.Navigation.Changed += NavigationRegistryChanged;
-        DesktopPluginHostNavigation.Instance.Attach(NavigateToPluginRoute);
+        DesktopHostNavigation.Instance.Attach(NavigateToPluginRoute);
         SyncTitleOverlayWidth();
         _ = LoadProfilesAsync();
         SelectNavRoute(LaunchRoute, animate: false);
@@ -999,12 +998,12 @@ public partial class MainWindow : Window, IDisposable
         if (_registeredPluginPageSurfaceId is { } previous &&
             !string.Equals(previous, surfaceId, StringComparison.OrdinalIgnoreCase))
         {
-            DesktopPluginHostUiComposition.Instance.UnregisterTarget(previous);
+            DesktopHostUiComposition.Instance.UnregisterTarget(previous);
         }
         if (surfaceId is null)
             return;
         _registeredPluginPageSurfaceId = surfaceId;
-        DesktopPluginHostUiComposition.Instance.RegisterTarget(surfaceId, page);
+        DesktopHostUiComposition.Instance.RegisterTarget(surfaceId, page);
     }
 
     private DesktopMainPage CreateLaunchMainPage()
@@ -5801,13 +5800,13 @@ public partial class MainWindow : Window, IDisposable
     public void Dispose()
     {
         if (_registeredPluginPageSurfaceId is { } pageSurface)
-            DesktopPluginHostUiComposition.Instance.UnregisterTarget(pageSurface);
-        DesktopPluginHostUiComposition.Instance.UnregisterSlot("pcl.navigation.main", "items.after-download");
-        DesktopPluginHostUiComposition.Instance.UnregisterTarget("pcl.navigation.main");
-        DesktopPluginHostUiComposition.Instance.UnregisterTarget("pcl.window.main");
-        DesktopPluginHostNotifications.Instance.Detach(OnPluginHostNotification);
+            DesktopHostUiComposition.Instance.UnregisterTarget(pageSurface);
+        DesktopHostUiComposition.Instance.UnregisterSlot("pcl.navigation.main", "items.after-download");
+        DesktopHostUiComposition.Instance.UnregisterTarget("pcl.navigation.main");
+        DesktopHostUiComposition.Instance.UnregisterTarget("pcl.window.main");
+        DesktopHostNotifications.Instance.Detach(OnPluginHostNotification);
         DesktopHost.Current.Navigation.Changed -= NavigationRegistryChanged;
-        DesktopPluginHostNavigation.Instance.Detach(NavigateToPluginRoute);
+        DesktopHostNavigation.Instance.Detach(NavigateToPluginRoute);
         LauncherSettingsPageBinder.SettingsChanged -= LauncherSettingsChanged;
         AvaloniaLocalizationManager.LanguageChanged -= LocalizationChanged;
         _backgroundBitmap?.Dispose();
@@ -6482,9 +6481,7 @@ public partial class MainWindow : Window, IDisposable
         _launchLeft?.ConfigureLaunchingHint(settings.GetBooleanOption(
             "UiShowLaunchingHint",
             LauncherSettingDefaults.GetBoolean("UiShowLaunchingHint")));
-        bool developerMode = PluginCatalogAccess.IsInitialized &&
-                             PluginCatalogAccess.Current.Safety.DeveloperMode;
-        _launchRight?.ConfigureDebugLog(developerMode && settings.GetBooleanOption(
+        _launchRight?.ConfigureDebugLog(settings.GetBooleanOption(
             "SystemDebugMode",
             LauncherSettingDefaults.GetBoolean("SystemDebugMode")));
         if (this.FindControl<StackPanel>("PanHint") is { } hints)

@@ -325,7 +325,7 @@ public sealed class DesktopArchitectureTests
         string repoRoot = Directory.GetParent(desktopRoot)?.FullName
             ?? throw new DirectoryNotFoundException("Could not locate repository root.");
         string projectSource = File.ReadAllText(Path.Combine(desktopRoot, "PCL.Desktop.csproj"));
-        string loaderSource = File.ReadAllText(Path.Combine(desktopRoot, "Hosting", "EmbeddedPluginLoader.cs"));
+        string loaderSource = File.ReadAllText(Path.Combine(desktopRoot, "Hosting", "EmbeddedRuntimeExtensionLoader.cs"));
         string solutionSource = File.ReadAllText(Path.Combine(repoRoot, "PCL-N.slnx"));
 
         StringAssert.Contains(projectSource, "PCL.Desktop.Embedded.PCL.Plugin.dll");
@@ -348,6 +348,56 @@ public sealed class DesktopArchitectureTests
         Assert.IsFalse(projectSource.Contains("ProjectReference Include=\"../PCL.Plugin", StringComparison.Ordinal));
         Assert.IsFalse(solutionSource.Contains("PCL.Plugin.Host.Abstractions", StringComparison.Ordinal));
         Assert.IsFalse(projectSource.Contains("PCL.Plugin.Host.Abstractions", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    public void PclN_DoesNotImplementThePluginPlatform()
+    {
+        string desktopRoot = FindDesktopProjectRoot();
+        string repoRoot = Directory.GetParent(desktopRoot)?.FullName
+            ?? throw new DirectoryNotFoundException("Could not locate repository root.");
+        string applicationRoot = Path.Combine(repoRoot, "PCL.Application");
+        string legacyPlatformRoot = Path.Combine(applicationRoot, "Hosting", "PluginPlatform");
+
+        Assert.IsFalse(Directory.Exists(legacyPlatformRoot) &&
+                       Directory.EnumerateFiles(legacyPlatformRoot, "*.cs", SearchOption.AllDirectories).Any(),
+            "PCL-N must not contain a plugin platform implementation directory.");
+
+        string[] projectFiles = Directory.EnumerateFiles(repoRoot, "*.csproj", SearchOption.AllDirectories)
+            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}PCL.Plugin{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        foreach (string projectFile in projectFiles)
+        {
+            string project = File.ReadAllText(projectFile);
+            Assert.IsFalse(project.Contains("ProjectReference Include=\"../PCL.Plugin", StringComparison.OrdinalIgnoreCase), projectFile);
+            Assert.IsFalse(project.Contains("PCL.N.Plugin.Abstractions.csproj", StringComparison.OrdinalIgnoreCase), projectFile);
+            Assert.IsFalse(project.Contains("PCL.N.Plugin.Sdk.csproj", StringComparison.OrdinalIgnoreCase), projectFile);
+        }
+
+        string[] forbiddenSourceTokens =
+        [
+            "using PCL.N.Plugin",
+            "namespace PCL.Application.Hosting.PluginPlatform",
+            "interface IPluginHost",
+            "class PclPluginPlatformHost",
+            "record PluginSafetySettings",
+            "interface IPluginCatalogService",
+            "class PluginPlatformBootstrap"
+        ];
+        foreach (string sourceFile in Directory.EnumerateFiles(repoRoot, "*.cs", SearchOption.AllDirectories))
+        {
+            if (string.Equals(sourceFile, Path.Combine(repoRoot, "PCL.Desktop.Test", "DesktopArchitectureTests.cs"), StringComparison.OrdinalIgnoreCase) ||
+                sourceFile.Contains($"{Path.DirectorySeparatorChar}PCL.Plugin{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase) ||
+                sourceFile.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase) ||
+                sourceFile.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            string source = File.ReadAllText(sourceFile);
+            foreach (string token in forbiddenSourceTokens)
+                Assert.IsFalse(source.Contains(token, StringComparison.Ordinal), $"{sourceFile}: {token}");
+        }
     }
 
     [TestMethod]

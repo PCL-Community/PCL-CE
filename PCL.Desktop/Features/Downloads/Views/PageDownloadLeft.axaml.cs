@@ -49,7 +49,7 @@ public partial class PageDownloadLeft : MyPageLeft
         AttachedToVisualTree += (_, _) =>
         {
             if (this.FindControl<StackPanel>("PanItem") is { } panel)
-                DesktopPluginHostUiComposition.Instance.RegisterSlot("pcl.page.download", "filters.after", panel);
+                DesktopHostUiComposition.Instance.RegisterSlot("pcl.page.download", "filters.after", panel);
             if (_isLoadedOnce)
                 return;
 
@@ -58,7 +58,7 @@ public partial class PageDownloadLeft : MyPageLeft
             ApplyCurrentFilter();
         };
         DetachedFromVisualTree += (_, _) =>
-            DesktopPluginHostUiComposition.Instance.UnregisterSlot("pcl.page.download", "filters.after");
+            DesktopHostUiComposition.Instance.UnregisterSlot("pcl.page.download", "filters.after");
     }
 
     public event EventHandler<DownloadPageChangedEventArgs>? PageChanged;

@@ -3646,7 +3646,7 @@ public sealed class AvaloniaHeadlessTests
             return;
 
         Type loaderType = typeof(MainWindow).Assembly.GetType(
-            "PCL.Desktop.Hosting.EmbeddedPluginLoader",
+            "PCL.Desktop.Hosting.EmbeddedRuntimeExtensionLoader",
             throwOnError: true)!;
         object? rawModules = loaderType.GetMethod(
                 "LoadHostModules",
@@ -3677,7 +3677,7 @@ public sealed class AvaloniaHeadlessTests
             return;
 
         Type loaderType = typeof(MainWindow).Assembly.GetType(
-            "PCL.Desktop.Hosting.EmbeddedPluginLoader",
+            "PCL.Desktop.Hosting.EmbeddedRuntimeExtensionLoader",
             throwOnError: true)!;
         IReadOnlyList<IPclHostModule> modules = Assert.IsInstanceOfType<IReadOnlyList<IPclHostModule>>(
             loaderType.GetMethod(
@@ -3727,7 +3727,7 @@ public sealed class AvaloniaHeadlessTests
             return;
 
         Type loaderType = typeof(MainWindow).Assembly.GetType(
-            "PCL.Desktop.Hosting.EmbeddedPluginLoader",
+            "PCL.Desktop.Hosting.EmbeddedRuntimeExtensionLoader",
             throwOnError: true)!;
         System.Reflection.Assembly pluginAssembly = Assert.IsInstanceOfType<System.Reflection.Assembly>(
             loaderType.GetMethod(
@@ -3847,7 +3847,7 @@ public sealed class AvaloniaHeadlessTests
             return;
 
         Type loaderType = typeof(MainWindow).Assembly.GetType(
-            "PCL.Desktop.Hosting.EmbeddedPluginLoader",
+            "PCL.Desktop.Hosting.EmbeddedRuntimeExtensionLoader",
             throwOnError: true)!;
         object? modules = loaderType.GetMethod(
                 "LoadHostModules",

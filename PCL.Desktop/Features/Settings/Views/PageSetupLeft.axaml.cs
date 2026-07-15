@@ -7,7 +7,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
-using PCL.Application.Hosting.PluginPlatform;
 using PCL.Application.Settings;
 using PCL.Desktop.Controls.Legacy;
 using PCL.Desktop.Hosting;
@@ -63,7 +62,6 @@ public partial class PageSetupLeft : MyPageLeft
     private readonly IReadOnlyList<HostSettingsPageDescriptor> _hostSettingsPages;
     private readonly IReadOnlyList<HostSettingsPageGroupDescriptor> _hostSettingsGroups;
     private bool _isLoadedOnce;
-    private bool _catalogEventsAttached;
     private string? _hostPageId;
 
     public PageSetupLeft()
@@ -80,12 +78,7 @@ public partial class PageSetupLeft : MyPageLeft
         AttachedToVisualTree += (_, _) =>
         {
             if (this.FindControl<StackPanel>("PanItem") is { } panel)
-                DesktopPluginHostUiComposition.Instance.RegisterSlot("pcl.page.settings", "sidebar.after-plugin", panel);
-            if (!_catalogEventsAttached)
-            {
-                PluginCatalogAccess.SafetyChanged += PluginCatalogSafetyChanged;
-                _catalogEventsAttached = true;
-            }
+                DesktopHostUiComposition.Instance.RegisterSlot("pcl.page.settings", "sidebar.after-plugin", panel);
             if (_isLoadedOnce)
                 return;
 
@@ -93,13 +86,7 @@ public partial class PageSetupLeft : MyPageLeft
             Required<MyListItem>("ItemLaunch").SetChecked(true, user: false);
         };
         DetachedFromVisualTree += (_, _) =>
-        {
-            DesktopPluginHostUiComposition.Instance.UnregisterSlot("pcl.page.settings", "sidebar.after-plugin");
-            if (!_catalogEventsAttached)
-                return;
-            PluginCatalogAccess.SafetyChanged -= PluginCatalogSafetyChanged;
-            _catalogEventsAttached = false;
-        };
+            DesktopHostUiComposition.Instance.UnregisterSlot("pcl.page.settings", "sidebar.after-plugin");
     }
 
     public event EventHandler<SetupPageChangedEventArgs>? PageChanged;
@@ -328,9 +315,6 @@ public partial class PageSetupLeft : MyPageLeft
         RegisterHostSettingsPages();
     }
 
-    private void PluginCatalogSafetyChanged() =>
-        Dispatcher.UIThread.Post(RefreshHostSettingsPages, DispatcherPriority.Background);
-
     private HostSettingsGroupView[] BuildHostSettingsGroups()
     {
         Dictionary<string, HostSettingsPageGroupDescriptor> groupMap = new(StringComparer.OrdinalIgnoreCase);
@@ -338,8 +322,6 @@ public partial class PageSetupLeft : MyPageLeft
             groupMap[group.Id] = group;
 
         Dictionary<string, List<HostSettingsPageDescriptor>> pagesByGroup = new(StringComparer.OrdinalIgnoreCase);
-        bool developerMode = PluginCatalogAccess.IsInitialized &&
-                             PluginCatalogAccess.Current.Safety.DeveloperMode;
         foreach (HostSettingsPageDescriptor page in _hostSettingsPages)
         {
             if (page.VisibilityPredicate is not null)
@@ -356,10 +338,6 @@ public partial class PageSetupLeft : MyPageLeft
 
                 if (!isVisible)
                     continue;
-            }
-            else if (page.RequiresDeveloperMode && !developerMode)
-            {
-                continue;
             }
 
             string groupId = !string.IsNullOrWhiteSpace(page.GroupId) && groupMap.ContainsKey(page.GroupId)

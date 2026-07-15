@@ -17,6 +17,7 @@ public sealed record ProcessStartRequest
     public IReadOnlyDictionary<string, string?> EnvironmentVariables { get; init; } =
         new Dictionary<string, string?>(StringComparer.Ordinal);
     public bool CaptureOutput { get; init; } = true;
+    public string? StandardInput { get; init; }
 }
 
 public sealed record ProcessResult(

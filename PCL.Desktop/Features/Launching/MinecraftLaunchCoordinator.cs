@@ -57,7 +57,8 @@ internal sealed record MinecraftLaunchCoordinatorResult(
     Process Process,
     MinecraftProcessLaunchPlan Plan,
     string JavaExecutablePath,
-    LoginProfileInfo Profile);
+    LoginProfileInfo Profile,
+    Guid SessionId);
 
 internal sealed class MinecraftLaunchCoordinator
 {
@@ -161,6 +162,12 @@ internal sealed class MinecraftLaunchCoordinator
             "\nNatives：" + plan.NativesDirectory +
             "\n参数预览：" + Truncate(plan.StartInfo.Arguments ?? string.Empty, 240));
         Process process = StartProcess(plan);
+        GameSessionSnapshot session = GameSessionRegistry.Shared.Start(request.Instance.Name, process.Id);
+        GameSessionRegistry.Shared.PublishOutput(
+            session.SessionId,
+            GameProcessOutputChannel.Launcher,
+            "Minecraft process started.");
+        _ = ObserveProcessExitAsync(process, session.SessionId);
         request.ApplyProcessPriority(process, request.Settings);
         completed += MinecraftLaunchStages.StartProcess;
         string processMethod = "PID " + process.Id.ToString(CultureInfo.InvariantCulture);
@@ -201,7 +208,7 @@ internal sealed class MinecraftLaunchCoordinator
             isLaunched: true,
             method: processMethod);
 
-        return new MinecraftLaunchCoordinatorResult(process, plan, javaExecutable, profile);
+        return new MinecraftLaunchCoordinatorResult(process, plan, javaExecutable, profile, session.SessionId);
     }
 
     private static async Task<T> RunStageWithHeartbeatAsync<T>(
@@ -488,6 +495,19 @@ internal sealed class MinecraftLaunchCoordinator
         }
 
         log?.Invoke("游戏进程仍在运行（PID " + process.Id.ToString(CultureInfo.InvariantCulture) + "）。");
+    }
+
+    private static async Task ObserveProcessExitAsync(Process process, Guid sessionId)
+    {
+        try
+        {
+            await process.WaitForExitAsync().ConfigureAwait(false);
+            GameSessionRegistry.Shared.Complete(sessionId, process.ExitCode);
+        }
+        catch (Exception exception) when (exception is InvalidOperationException or System.ComponentModel.Win32Exception)
+        {
+            GameSessionRegistry.Shared.Complete(sessionId, -1);
+        }
     }
 
     private static void NormalizeJavaExecutableForLaunch(ProcessStartInfo startInfo)

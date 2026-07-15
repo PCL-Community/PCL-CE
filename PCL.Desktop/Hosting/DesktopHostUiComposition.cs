@@ -5,10 +5,13 @@
 using System.Collections.Concurrent;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Templates;
+using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
-using PCL.Application.Hosting.PluginPlatform;
+using PCL.Application.Hosting.RuntimeExtensions;
 using PCL.Desktop.Controls.Legacy;
 
 namespace PCL.Desktop.Hosting;
@@ -16,15 +19,22 @@ namespace PCL.Desktop.Hosting;
 /// <summary>
 /// Binds host surfaces/slots to live Avalonia controls and applies inject/modify/wrap/replace patches.
 /// </summary>
-internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
+internal sealed class DesktopHostUiComposition : IHostUiComposition
 {
-    public static DesktopPluginHostUiComposition Instance { get; } = new();
+    public static DesktopHostUiComposition Instance { get; } = new();
 
     private readonly ConcurrentDictionary<string, WeakReference> _targets = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, WeakReference> _slots = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, List<WrapRecord>> _wraps = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, ReplaceRecord> _replaces = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, long> _generations = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, InputInterceptor> _inputInterceptors = new(StringComparer.OrdinalIgnoreCase);
+
+    public IHostUiMutationTransaction BeginTransaction(IReadOnlyCollection<string> surfaceIds)
+    {
+        ArgumentNullException.ThrowIfNull(surfaceIds);
+        return RunOnUi<IHostUiMutationTransaction>(() => new MutationTransaction(this, surfaceIds));
+    }
 
     public void RegisterTarget(string surfaceId, Control control)
     {
@@ -87,7 +97,7 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
 
         void Add()
         {
-            string tag = "pcl.plugin.inject:" + request.PluginId + ":" + request.ContributionId;
+            string tag = "pcl.plugin.inject:" + request.OwnerId + ":" + request.ContributionId;
             Control? existing = panel.Children.OfType<Control>()
                 .FirstOrDefault(c => string.Equals(c.Tag as string, tag, StringComparison.Ordinal));
             if (existing is not null)
@@ -113,7 +123,7 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
                     Tag = tag
                 };
             }
-            ToolTip.SetTip(content, $"{request.PluginId} · {request.ContributionId}");
+            ToolTip.SetTip(content, $"{request.OwnerId} · {request.ContributionId}");
             int insertAt = panel.Children.Count;
             for (int i = 0; i < panel.Children.Count; i++)
             {
@@ -215,7 +225,7 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
             parent.Children.RemoveAt(index);
             Border wrapper = new()
             {
-                Tag = "pcl.plugin.wrap:" + request.PluginId + ":" + request.OperationId,
+                Tag = "pcl.plugin.wrap:" + request.OwnerId + ":" + request.OperationId,
                 BorderBrush = new SolidColorBrush(Color.FromArgb(80, 80, 140, 220)),
                 BorderThickness = new Thickness(1.5),
                 CornerRadius = new CornerRadius(4),
@@ -240,7 +250,7 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
             parent.Children.Insert(index, wrapper);
 
             List<WrapRecord> list = _wraps.GetOrAdd(surfaceId, static _ => []);
-            list.Add(new WrapRecord(control, wrapper, parent, index, request.PluginId, request.OperationId));
+            list.Add(new WrapRecord(control, wrapper, parent, index, request.OwnerId, request.OperationId));
             // Target still points at original control (now nested).
             return true;
         });
@@ -267,7 +277,7 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
 
             Border replacement = new()
             {
-                Tag = "pcl.plugin.replace:" + request.PluginId + ":" + request.OperationId,
+                Tag = "pcl.plugin.replace:" + request.OwnerId + ":" + request.OperationId,
                 Background = new SolidColorBrush(Color.FromArgb(40, 120, 120, 140)),
                 BorderBrush = new SolidColorBrush(Color.FromArgb(100, 160, 100, 40)),
                 BorderThickness = new Thickness(1),
@@ -279,15 +289,81 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
             replacement.Child = new TextBlock
             {
                 Text = string.IsNullOrWhiteSpace(request.Title)
-                    ? $"[Replaced by {request.PluginId}]"
+                    ? $"[Replaced by {request.OwnerId}]"
                     : request.Title,
                 TextWrapping = TextWrapping.Wrap,
                 FontSize = 12
             };
             parent.Children.Insert(index + 1, replacement);
-            _replaces[surfaceId] = new ReplaceRecord(control, replacement, parent, wasVisible, request.PluginId, request.OperationId);
+            _replaces[surfaceId] = new ReplaceRecord(control, replacement, parent, wasVisible, request.OwnerId, request.OperationId);
             return true;
         });
+    }
+
+    public bool TryReorder(string surfaceId, string? slotId, int order)
+    {
+        if (!TryGetTarget(surfaceId, out Control? control) || control?.Parent is not Panel parent)
+            return false;
+        return RunOnUi(() =>
+        {
+            int current = parent.Children.IndexOf(control);
+            if (current < 0)
+                return false;
+            int target = Math.Clamp(order, 0, parent.Children.Count - 1);
+            if (target == current)
+                return true;
+            parent.Children.RemoveAt(current);
+            parent.Children.Insert(target, control);
+            return true;
+        });
+    }
+
+    public bool TrySetResource(string surfaceId, string key, object? value)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        return RunOnUi(() =>
+        {
+            if (Avalonia.Application.Current is null)
+                return false;
+            Avalonia.Application.Current.Resources[key] = value;
+            return true;
+        });
+    }
+
+    public bool TrySetStyle(string surfaceId, string selector, object? value)
+    {
+        if (!TryGetTarget(surfaceId, out Control? control) || control is null || string.IsNullOrWhiteSpace(selector))
+            return false;
+        RunOnUi(() =>
+        {
+            string className = selector.Trim().TrimStart('.');
+            if (value is false)
+                control.Classes.Remove(className);
+            else
+                control.Classes.Add(className);
+        });
+        return true;
+    }
+
+    public bool TrySetTemplate(string surfaceId, object? value)
+    {
+        if (!TryGetTarget(surfaceId, out Control? control) || control is not TemplatedControl templated || value is not IControlTemplate template)
+            return false;
+        RunOnUi(() => templated.Template = template);
+        return true;
+    }
+
+    public bool TryInterceptInput(string surfaceId, string operationId)
+    {
+        if (!TryGetTarget(surfaceId, out Control? control) || control is null)
+            return false;
+        RunOnUi(() =>
+        {
+            EventHandler<KeyEventArgs> handler = (_, args) => args.Handled = true;
+            control.KeyDown += handler;
+            _inputInterceptors[operationId] = new InputInterceptor(control, handler);
+        });
+        return true;
     }
 
     public void ResetWrapAndReplace(string surfaceId)
@@ -347,7 +423,7 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
     private static string SlotKey(string surfaceId, string slotId) => surfaceId + "\0" + slotId;
 
     private static readonly AttachedProperty<int> InjectOrderProperty =
-        AvaloniaProperty.RegisterAttached<Control, int>("PluginInjectOrder", typeof(DesktopPluginHostUiComposition));
+        AvaloniaProperty.RegisterAttached<Control, int>("PluginInjectOrder", typeof(DesktopHostUiComposition));
 
     private static bool TryReadOrder(Control control, out int order)
     {
@@ -369,6 +445,82 @@ internal sealed class DesktopPluginHostUiComposition : IPluginHostUiComposition
             return action();
         return Dispatcher.UIThread.Invoke(action);
     }
+
+    private sealed class MutationTransaction : IHostUiMutationTransaction
+    {
+        private readonly DesktopHostUiComposition _owner;
+        private readonly ControlSnapshot[] _controls;
+        private readonly HashSet<string> _interceptors;
+        private int _committed;
+
+        public MutationTransaction(DesktopHostUiComposition owner, IReadOnlyCollection<string> surfaceIds)
+        {
+            _owner = owner;
+            _interceptors = owner._inputInterceptors.Keys.ToHashSet(StringComparer.OrdinalIgnoreCase);
+            _controls = surfaceIds
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Select(surfaceId => owner.TryGetTarget(surfaceId, out Control? control) && control is not null
+                    ? new ControlSnapshot(
+                        surfaceId,
+                        control,
+                        control.IsVisible,
+                        control.Parent as Panel,
+                        control.Parent is Panel parent ? parent.Children.IndexOf(control) : -1,
+                        control.Classes.ToArray(),
+                        control is TemplatedControl templated ? templated.Template : null)
+                    : null)
+                .Where(static snapshot => snapshot is not null)
+                .Cast<ControlSnapshot>()
+                .ToArray();
+        }
+
+        public void Commit() => Interlocked.Exchange(ref _committed, 1);
+
+        public void Dispose()
+        {
+            if (Volatile.Read(ref _committed) != 0)
+                return;
+            RunOnUi(() =>
+            {
+                foreach (ControlSnapshot snapshot in _controls)
+                {
+                    _owner.ResetWrapAndReplace(snapshot.SurfaceId);
+                    snapshot.Control.IsVisible = snapshot.IsVisible;
+                    snapshot.Control.Classes.Clear();
+                    foreach (string className in snapshot.Classes)
+                        snapshot.Control.Classes.Add(className);
+                    if (snapshot.Control is TemplatedControl templated)
+                        templated.Template = snapshot.Template;
+                    if (snapshot.Parent is not null && snapshot.Control.Parent == snapshot.Parent)
+                    {
+                        int current = snapshot.Parent.Children.IndexOf(snapshot.Control);
+                        if (current >= 0 && snapshot.Index >= 0 && current != snapshot.Index)
+                        {
+                            snapshot.Parent.Children.RemoveAt(current);
+                            snapshot.Parent.Children.Insert(Math.Min(snapshot.Index, snapshot.Parent.Children.Count), snapshot.Control);
+                        }
+                    }
+                }
+                foreach ((string id, InputInterceptor interceptor) in _owner._inputInterceptors.ToArray())
+                {
+                    if (_interceptors.Contains(id) || !_owner._inputInterceptors.TryRemove(id, out _))
+                        continue;
+                    interceptor.Control.KeyDown -= interceptor.Handler;
+                }
+            });
+        }
+    }
+
+    private sealed record ControlSnapshot(
+        string SurfaceId,
+        Control Control,
+        bool IsVisible,
+        Panel? Parent,
+        int Index,
+        string[] Classes,
+        IControlTemplate? Template);
+
+    private sealed record InputInterceptor(Control Control, EventHandler<KeyEventArgs> Handler);
 
     private sealed record WrapRecord(
         Control Original,

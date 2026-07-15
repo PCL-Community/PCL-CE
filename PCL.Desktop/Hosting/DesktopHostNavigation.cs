@@ -3,15 +3,15 @@
 
 using Avalonia.Controls;
 using Avalonia.Threading;
-using PCL.Application.Hosting.PluginPlatform;
+using PCL.Application.Hosting.RuntimeExtensions;
 using PCL.UI.Abstractions.Navigation;
 using PCL.UI.Abstractions.Pages;
 
 namespace PCL.Desktop.Hosting;
 
-internal sealed class DesktopPluginHostNavigation : IPluginHostNavigation
+internal sealed class DesktopHostNavigation : IHostDynamicNavigation
 {
-    public static DesktopPluginHostNavigation Instance { get; } = new();
+    public static DesktopHostNavigation Instance { get; } = new();
 
     private INavigationRegistry? _navigation;
     private Action<string>? _navigate;
@@ -23,7 +23,7 @@ internal sealed class DesktopPluginHostNavigation : IPluginHostNavigation
 
     public void Detach(Action<string> navigate) => _navigate -= navigate;
 
-    public IPluginHostRegistration RegisterPage(HostPluginPageRegistration registration)
+    public IHostRegistration RegisterPage(HostPageRegistration registration)
     {
         ArgumentNullException.ThrowIfNull(registration);
         INavigationRegistry navigation = _navigation
@@ -45,7 +45,7 @@ internal sealed class DesktopPluginHostNavigation : IPluginHostNavigation
             })
         });
         return new Registration(
-            registration.PluginId + ":" + registration.OperationId,
+            registration.OwnerId + ":" + registration.OperationId,
             () => navigation.RemovePage(route));
     }
 
@@ -61,7 +61,7 @@ internal sealed class DesktopPluginHostNavigation : IPluginHostNavigation
         return Task.CompletedTask;
     }
 
-    private sealed class Registration(string id, Action release) : IPluginHostRegistration
+    private sealed class Registration(string id, Action release) : IHostRegistration
     {
         private Action? _release = release;
 
