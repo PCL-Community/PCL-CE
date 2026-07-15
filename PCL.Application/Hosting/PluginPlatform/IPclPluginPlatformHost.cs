@@ -3,6 +3,7 @@
 // Licensed under the Apache License, Version 2.0.
 
 using PCL.Application.Settings;
+using PCL.Platform.Abstractions.Security;
 
 namespace PCL.Application.Hosting.PluginPlatform;
 
@@ -21,6 +22,14 @@ internal interface IPclPluginPlatformHost
     IPluginHostNotifications Notifications { get; }
 
     IPluginHostDeveloperDiagnostics DeveloperDiagnostics { get; }
+
+    IPluginHostSecureStorage SecureStorage { get; }
+
+    IPluginHostUriLauncher UriLauncher { get; }
+
+    string ApplicationDataDirectory { get; }
+
+    string CacheDirectory { get; }
 
     /// <summary>Optional instance directory query for <c>pcl.instances.read</c>.</summary>
     IPluginHostInstanceQuery? Instances { get; }
@@ -159,6 +168,25 @@ internal interface IPluginHostDeveloperDiagnostics
     void SetEnabled(bool enabled);
 }
 
+internal interface IPluginHostSecureStorage
+{
+    ValueTask<SecureStorageReadResult> ReadAsync(string key, CancellationToken cancellationToken = default);
+
+    ValueTask<SecureStorageOperationResult> WriteAsync(string key, ReadOnlyMemory<byte> value, CancellationToken cancellationToken = default);
+
+    ValueTask<SecureStorageOperationResult> DeleteAsync(string key, CancellationToken cancellationToken = default);
+
+    ValueTask<SecureStorageReadResult> UnprotectLegacyWindowsAsync(
+        ReadOnlyMemory<byte> encrypted,
+        ReadOnlyMemory<byte> entropy,
+        CancellationToken cancellationToken = default);
+}
+
+internal interface IPluginHostUriLauncher
+{
+    ValueTask<bool> OpenAsync(Uri uri, CancellationToken cancellationToken = default);
+}
+
 /// <summary>Process-wide access for <c>PCL.Plugin</c> (InternalsVisibleTo).</summary>
 internal static class PluginPlatformHostAccess
 {
@@ -167,7 +195,11 @@ internal static class PluginPlatformHostAccess
     public static bool IsInitialized => _current is not null;
 
     public static IPclPluginPlatformHost Current =>
-        _current ?? throw new InvalidOperationException("Plugin platform host bridge is not initialized.");
+        _current ?? Fallback;
+
+    private static IPclPluginPlatformHost Fallback { get; } = new PclPluginPlatformHost(
+        new HostSettingsPageGroupRegistry(),
+        new HostSettingsPageRegistry());
 
     public static void Initialize(IPclPluginPlatformHost host)
     {

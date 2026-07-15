@@ -36,6 +36,7 @@
     <PclPluginBouncyCastleAssembly Condition="'$(PclPluginBouncyCastleAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginBouncyCastleAssembly)'))</PclPluginBouncyCastleAssembly>
     <PclPluginJsonCanonicalizerAssembly Condition="'$(PclPluginJsonCanonicalizerAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginJsonCanonicalizerAssembly)'))</PclPluginJsonCanonicalizerAssembly>
     <PclPluginEs6NumberSerializerAssembly Condition="'$(PclPluginEs6NumberSerializerAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginEs6NumberSerializerAssembly)'))</PclPluginEs6NumberSerializerAssembly>
+    <PclPluginProtectedDataAssembly Condition="'$(PclPluginProtectedDataAssembly)' != ''">$([System.IO.Path]::GetFullPath('$(PclPluginProtectedDataAssembly)'))</PclPluginProtectedDataAssembly>
 
     <!-- CI secret pre-write (PCL_WRITE_SECRET=1 embeds values into PclEmbeddedSecrets). -->
     <PclWriteSecret Condition="'$(PclWriteSecret)' == ''">$([System.Environment]::GetEnvironmentVariable('PCL_WRITE_SECRET'))</PclWriteSecret>

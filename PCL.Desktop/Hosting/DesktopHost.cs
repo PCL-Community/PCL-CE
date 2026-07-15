@@ -4,6 +4,9 @@
 
 using PCL.Application.Hosting;
 using PCL.Application.Hosting.PluginPlatform;
+using PCL.Platform.Paths;
+using PCL.Platform.Processes;
+using PCL.Platform.Security;
 using PCL.UI.Abstractions.Navigation;
 using PCL.UI.Abstractions.Pages;
 
@@ -34,6 +37,7 @@ internal static class DesktopHost
         _current = builder.Build();
         DesktopPluginHostNavigation.Instance.Initialize(_current.Navigation);
         // Narrow internal bridge for PCL.Plugin (design §3). Not part of public SDK ABI.
+        DefaultPlatformPathProvider platformPaths = new();
         PluginPlatformHostAccess.Initialize(new PclPluginPlatformHost(
             _current.SettingsPageGroups,
             _current.SettingsPages,
@@ -43,7 +47,11 @@ internal static class DesktopHost
             DesktopPluginHostUiComposition.Instance,
             DesktopPluginHostDeveloperDiagnostics.Instance,
             DesktopPluginHostNavigation.Instance,
-            DesktopPluginHostRawUiAccess.Instance));
+            DesktopPluginHostRawUiAccess.Instance,
+            new DesktopPluginHostSecureStorage(new DefaultSecureStorage(platformPaths.ApplicationDataDirectory)),
+            DesktopPluginHostUriLauncher.Instance,
+            platformPaths.ApplicationDataDirectory,
+            platformPaths.CacheDirectory));
         // Third-party .pnp catalog + load enabled plugins (no-op when plugin DLL is not embedded).
         EmbeddedPluginLoader.InitializeRuntime();
     }
