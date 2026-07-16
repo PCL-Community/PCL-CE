@@ -51,8 +51,15 @@ public partial class MyMsgMarkdown
     private static void _OpenHyperlink(object sender, ExecutedRoutedEventArgs e)
     {
         var url = e.Parameter?.ToString();
-        if (!string.IsNullOrWhiteSpace(url))
-            ModBase.OpenWebsite(url);
+        if (string.IsNullOrWhiteSpace(url))
+            return;
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)
+            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        {
+            ModBase.Log("[Control] 已忽略非 http(s) 的 Markdown 链接：" + url, ModBase.LogLevel.Developer);
+            return;
+        }
+        ModBase.OpenWebsite(url);
     }
 
     private void ConfigurePrimaryButton(string text, bool isWarn)
