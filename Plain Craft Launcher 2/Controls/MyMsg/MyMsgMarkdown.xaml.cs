@@ -17,6 +17,7 @@ public partial class MyMsgMarkdown
         try
         {
             InitializeComponent();
+            CommandBindings.Add(new CommandBinding(Markdig.Wpf.Commands.Hyperlink, _OpenHyperlink));
             AppendUniqueNameSuffix(Btn1);
             AppendUniqueNameSuffix(Btn2);
             AppendUniqueNameSuffix(Btn3);
@@ -45,6 +46,13 @@ public partial class MyMsgMarkdown
     private void AppendUniqueNameSuffix(FrameworkElement element)
     {
         element.Name += ModBase.GetUuid();
+    }
+
+    private static void _OpenHyperlink(object sender, ExecutedRoutedEventArgs e)
+    {
+        var url = e.Parameter?.ToString();
+        if (!string.IsNullOrWhiteSpace(url))
+            ModBase.OpenWebsite(url);
     }
 
     private void ConfigurePrimaryButton(string text, bool isWarn)
