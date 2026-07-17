@@ -297,7 +297,7 @@ public partial class PageSetupLauncherMisc
             UseShellExecute = false
         });
 
-        Lifecycle.Shutdown(force: true);
+        Environment.Exit(0);
             
         void Delete(IEnumerable<string> paths, bool directory = false)
         {
