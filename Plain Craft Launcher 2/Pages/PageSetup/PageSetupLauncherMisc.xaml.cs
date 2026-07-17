@@ -9,6 +9,7 @@ using PCL.Core.App.Configuration;
 using PCL.Core.App.IoC;
 using PCL.Core.UI;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils.OS;
 
 namespace PCL;
 
@@ -298,7 +299,7 @@ public partial class PageSetupLauncherMisc
         });
 
         // 强制退出
-        Process.GetCurrentProcess().Kill();
+        KernelInterop.ExitProcess();
             
         void Delete(IEnumerable<string> paths, bool directory = false)
         {
