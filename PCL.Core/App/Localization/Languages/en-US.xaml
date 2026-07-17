@@ -953,6 +953,7 @@
     <sys:String x:Key="Instance.Overall.Reset.ConfirmMessage">Are you sure you want to reset instance {0}?&#xA;PCL CE will try to re-download this instance's resource file information from the internet and perform automatic installation.</sys:String>
     <sys:String x:Key="Instance.Overall.Reset.ConfirmTitle">Reset instance confirmation</sys:String>
     <sys:String x:Key="Instance.Overall.Reset.NotSupported">This instance does not support reset yet!</sys:String>
+    <sys:String x:Key="Instance.Overall.Reset.QuiltUnsupported">Cannot reset: Quilt is no longer supported by this launcher.</sys:String>
     <sys:String x:Key="Instance.Overall.Script.ExportFailed">Export launch script failed</sys:String>
     <sys:String x:Key="Instance.Overall.Script.Exporting">Exporting launch script...</sys:String>
     <sys:String x:Key="Instance.Overall.Script.ExportingWarning">Exporting launch script... (Note: using the script to launch may cause your login session to expire!)</sys:String>
@@ -1979,6 +1980,7 @@
     <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Title">Download optional file</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Message">A file path in the modpack exceeds the instance folder. Please report this issue to the modpack author!&#xA;Incorrect file: {0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Title">File path validation failed</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.QuiltUnsupported">Cannot install this modpack: Quilt is no longer supported by this launcher.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.RarUnsupported">PCL CE cannot handle .rar archive files. Please extract and re-archive them in .zip format and try again!</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SelectEmptyFolder.Message">Next, select an empty folder. The modpack will be installed there.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SelectTargetFolder.Title">Select installation target (must be an empty folder)</sys:String>

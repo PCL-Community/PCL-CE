@@ -410,6 +410,10 @@ public static class ModModpack
                     ModBase.Log(ex, "读取整合包 Fabric 版本失败：" + id);
                 }
             }
+            else if (id.StartsWithF("quilt-"))
+            {
+                throw new Exception(Lang.Text("Minecraft.Download.Modpack.QuiltUnsupported"));
+            }
         }
 
         // 解压
@@ -698,6 +702,10 @@ public static class ModModpack
                     fabricVersion = Entry.Value?.ToObject<string>();
                     ModBase.Log("[ModPack] 整合包 Fabric 版本：" + fabricVersion);
                     break;
+                }
+                case "quilt-loader": // eg. 0.26.0
+                {
+                    throw new Exception(Lang.Text("Minecraft.Download.Modpack.QuiltUnsupported"));
                 }
 
                 default:
@@ -1037,6 +1045,9 @@ public static class ModModpack
             return null;
         }
 
+        if (addons.ContainsKey("quilt"))
+            throw new Exception(Lang.Text("Minecraft.Download.Modpack.QuiltUnsupported"));
+
         // 构造安装请求
         var request = new ModDownloadLib.McInstallRequest
         {
@@ -1338,6 +1349,10 @@ public static class ModModpack
                         else if ((string)patchJson["uid"] == "net.fabricmc.fabric-loader")
                         {
                             packInfo.isFabricOverrided = true;
+                        }
+                        else if ((string)patchJson["uid"] == "org.quiltmc.quilt-loader")
+                        {
+                            throw new Exception(Lang.Text("Minecraft.Download.Modpack.QuiltUnsupported"));
                         }
 
                         // JVM 参数
@@ -1658,6 +1673,10 @@ public static class ModModpack
                 {
                     request.fabricVersion = (string)Component["version"];
                     break;
+                }
+                case "org.quiltmc.quilt-loader":
+                {
+                    throw new Exception(Lang.Text("Minecraft.Download.Modpack.QuiltUnsupported"));
                 }
             }
 

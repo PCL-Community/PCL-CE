@@ -650,6 +650,12 @@ public partial class PageInstanceOverall
                 return;
             }
 
+            if (currentVersion.HasQuilt)
+            {
+                HintService.Hint(Lang.Text("Instance.Overall.Reset.QuiltUnsupported"));
+                return;
+            }
+
             // 确认操作
             if (ModMain.MyMsgBox(
                     Lang.Text("Instance.Overall.Reset.ConfirmMessage", PageInstanceLeft.McInstance.Name), Lang.Text("Instance.Overall.Reset.ConfirmTitle"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 2)

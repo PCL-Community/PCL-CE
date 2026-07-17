@@ -953,6 +953,7 @@
     <sys:String x:Key="Instance.Overall.Reset.ConfirmMessage">你确定要重置实例 {0} 吗？&#xA;PCL CE 将会尝试重新从互联网获取此实例的资源文件信息，并重新执行自动安装。</sys:String>
     <sys:String x:Key="Instance.Overall.Reset.ConfirmTitle">实例重置确认</sys:String>
     <sys:String x:Key="Instance.Overall.Reset.NotSupported">该实例暂不支持重置！</sys:String>
+    <sys:String x:Key="Instance.Overall.Reset.QuiltUnsupported">无法重置：当前启动器已不再支持 Quilt 加载器。</sys:String>
     <sys:String x:Key="Instance.Overall.Script.ExportFailed">导出启动脚本失败</sys:String>
     <sys:String x:Key="Instance.Overall.Script.Exporting">正在导出启动脚本……</sys:String>
     <sys:String x:Key="Instance.Overall.Script.ExportingWarning">正在导出启动脚本……（注意，使用脚本启动可能会导致登录失效！）</sys:String>
@@ -1979,6 +1980,7 @@
     <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Title">下载可选文件</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Message">整合包的文件路径超出了实例文件夹，请向整合包作者反馈此问题！&#xD;&#xA;错误的文件：{0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Title">文件路径校验失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.QuiltUnsupported">无法安装整合包：当前启动器已不再支持 Quilt 加载器。</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.RarUnsupported">PCL CE 无法处理 rar 格式的压缩包，请在解压后重新压缩为 zip 格式再试</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SelectEmptyFolder.Message">接下来请选择一个空文件夹，它会被安装到这个文件夹里。</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SelectTargetFolder.Title">选择安装目标（必须是一个空文件夹）</sys:String>
