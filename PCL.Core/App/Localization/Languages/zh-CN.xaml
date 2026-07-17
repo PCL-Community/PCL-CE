@@ -2936,8 +2936,6 @@
     <sys:String x:Key="Setup.Misc.System.MaxLogLines.Unlimited">无限制</sys:String>
     <sys:String x:Key="Setup.Misc.System.StopUsingPclCe">停止使用 PCL CE</sys:String>
     <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.ContinueAndRemove">继续并清理实例文件夹</sys:String>
-    <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Message.Complete">此电脑上有关 PCL CE 的数据均已删除。感谢使用 PCL CE！</sys:String>
-    <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Message.Error">大部分电脑上与 PCL CE 有关的数据被删除，但仍有部分数据未能删除。&#xA;请手动删除这些数据：&#xA;{0}&#xA;&#xA;感谢使用 PCL CE！</sys:String>    
     <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Message.Final">你确定要继续操作吗？这是最后警告！&#xA;与 PCL CE 有关的一切数据将被永久消除！（真的很久！）</sys:String>
     <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Message">即将删除此电脑上与 PCL CE 有关的全部配置、缓存、已保存的账户信息及其他相关数据，并撤销已接受的许可协议。完成后，软件将自动关闭。&#xA;&#xA;但请注意，以下内容无法自动删除或注销：&#xA;- 此电脑上其他 PCL CE 实例的本地数据&#xA;- Natayark 账户&#xA;&#xA;如需同时删除 Minecraft 实例中的 PCL CE 配置文件，请选择“继续并清理实例文件夹”，这不会影响你的游戏配置、模组、存档，以及其他数据。&#xA;&#xA;此操作无法撤销。您确定要继续吗？</sys:String>
     <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Title">停止使用 PCL CE？</sys:String>

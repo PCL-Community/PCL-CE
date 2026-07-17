@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -245,36 +246,32 @@ public partial class PageSetupLauncherMisc
                     Lang.Text("Common.Action.Cancel"),
                     isWarn: true) == 1)
             {
-                var exceptions = StopUsingPClCeCore(result == 2);
-
-                if (exceptions.Count > 0)
-                {
-                    var errorMessages = string.Join('\n', exceptions.Select(ex => ex.Message));
-                    ModMain.MyMsgBox(
-                        Lang.Text("Setup.Misc.System.StopUsingPclCe.Message.Error", errorMessages),
-                        Lang.Text("Common.Dialog.Error"),
-                        Lang.Text("Common.Action.Continue"),
-                        isWarn: true,
-                        forceWait: true);
-                }
-                else
-                {
-                    ModMain.MyMsgBox(
-                        Lang.Text("Setup.Misc.System.StopUsingPclCe.Message.Complete"),
-                        Lang.Text("Common.Dialog.Title"),
-                        Lang.Text("Common.Action.Continue"),
-                        forceWait: true);
-                }
-                
-                Environment.Exit(0);
+                StopUsingPClCeCore(result == 2);
             }
         }
     }
 
-    private List<Exception> StopUsingPClCeCore(bool removeMcResources)
+    private void StopUsingPClCeCore(bool removeMcResources)
     {
-        List<Exception> exceptions = [];
+        // 删除 MC 文件夹内的 PCL CE 配置
+        if (removeMcResources && States.Game.Folders != "")
+        {
+            foreach (var path in States.Game.Folders.Split('|'))
+            {
+                var realPath = path.Split('>')[1];
+                Delete([Path.Combine(realPath, "PCL.ini")]);
+
+                var versionsPath = Path.Combine(realPath, "versions");
+                if (!Directory.Exists(versionsPath)) continue;
+                
+                Delete(
+                    Directory.EnumerateDirectories(versionsPath)
+                        .Select(p => Path.Combine(p, "PCL", "config.v1.yml"))
+                );
+            }
+        }
         
+        // 由于 CE 文件夹正在使用，使用延迟调用 CMD 的方法删除
         List<string> foldersToDelete =
         [
             Paths.Data,
@@ -283,35 +280,27 @@ public partial class PageSetupLauncherMisc
             Paths.SharedLocalData,
             Paths.Temp
         ];
-        
-        // 删除与 PCL CE 有关的文件夹
-        exceptions.AddRange(Delete(foldersToDelete, true));
 
-        // 删除 MC 文件夹内的 PCL CE 配置
-        if (removeMcResources && States.Game.Folders != "")
+        var sb = new StringBuilder();
+        sb.Append("/c timeout /t 5 /nobreak >nul & ");
+        foreach (var folder in foldersToDelete)
         {
-            foreach (var path in States.Game.Folders.Split('|'))
-            {
-                var realPath = path.Split('>')[1];
-                exceptions.AddRange(Delete([Path.Combine(realPath, "PCL.ini")]));
-
-                var versionsPath = Path.Combine(realPath, "versions");
-                if (!Directory.Exists(versionsPath)) continue;
-                exceptions.AddRange(
-                    Delete(
-                        Directory.EnumerateDirectories(versionsPath)
-                            .Select(p => Path.Combine(p, "PCL", "config.v1.yml"))
-                    )
-                );
-            }
+            sb.Append($"rmdir /s /q \"{folder}\\*\" & ");
         }
-
-        return exceptions; 
-            
-        List<Exception> Delete(IEnumerable<string> paths, bool directory = false)
+        
+        Process.Start(new ProcessStartInfo
         {
-            var errors = new List<Exception>();
+            FileName = "cmd.exe",
+            Arguments = sb.ToString(),
+            CreateNoWindow = true,
+            WindowStyle = ProcessWindowStyle.Hidden,
+            UseShellExecute = false
+        });
 
+        Lifecycle.Shutdown(force: true);
+            
+        void Delete(IEnumerable<string> paths, bool directory = false)
+        {
             foreach (var path in paths)
             {
                 try
@@ -327,13 +316,11 @@ public partial class PageSetupLauncherMisc
                         File.Delete(path);
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    errors.Add(new IOException(path, ex));
+                    //
                 }
             }
-
-            return errors;
         }
     }
 
