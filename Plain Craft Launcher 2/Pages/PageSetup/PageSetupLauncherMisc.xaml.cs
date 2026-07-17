@@ -295,9 +295,11 @@ public partial class PageSetupLauncherMisc
                 var realPath = path.Split('>')[1];
                 exceptions.AddRange(Delete([Path.Combine(realPath, "PCL.ini")]));
 
+                var versionsPath = Path.Combine(realPath, "versions");
+                if (!Directory.Exists(versionsPath)) continue;
                 exceptions.AddRange(
                     Delete(
-                        Directory.EnumerateDirectories(Path.Combine(realPath, "versions"))
+                        Directory.EnumerateDirectories(versionsPath)
                             .Select(p => Path.Combine(p, "PCL", "config.v1.yml"))
                     )
                 );
