@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
+using PCL.Core.App.IoC;
 using PCL.Core.UI;
 using PCL.Core.App.Localization;
 
@@ -219,6 +220,121 @@ public partial class PageSetupLauncherMisc
         ModMain.MyMsgBox(Lang.Text("Setup.Misc.System.ImportSettings.Success.Message"), button1: Lang.Text("Setup.Misc.System.ImportSettings.Success.Restart"), forceWait: true);
         Process.Start(new ProcessStartInfo(Basics.ExecutablePath));
         FormMain.EndProgramForce();
+    }
+
+    #endregion
+
+    #region 停止使用 PCL CE
+
+    private void BtnSystemStopUsingPclCe_Click(object sender, MouseButtonEventArgs e)
+    {
+        var result = ModMain.MyMsgBox(
+            Lang.Text("Setup.Misc.System.StopUsingPclCe.Message"),
+            Lang.Text("Setup.Misc.System.StopUsingPclCe.Title"),
+            Lang.Text("Common.Action.Continue"),
+            Lang.Text("Setup.Misc.System.StopUsingPclCe.ContinueAndRemove"),
+            Lang.Text("Common.Action.Cancel"),
+            isWarn: true);
+
+        if (result < 3)
+        {
+            if (ModMain.MyMsgBox(
+                    Lang.Text("Setup.Misc.System.StopUsingPclCe.Message.Final"),
+                    Lang.Text("Common.Dialog.Warning"),
+                    Lang.Text("Common.Action.Continue"),
+                    Lang.Text("Common.Action.Cancel"),
+                    isWarn: true) == 1)
+            {
+                var exceptions = StopUsingPClCeCore(result == 2);
+
+                if (exceptions.Count > 0)
+                {
+                    var errorMessages = string.Join('\n', exceptions.Select(ex => ex.Message));
+                    ModMain.MyMsgBox(
+                        Lang.Text("Setup.Misc.System.StopUsingPclCe.Message.Error", errorMessages),
+                        Lang.Text("Common.Dialog.Error"),
+                        Lang.Text("Common.Action.Continue"),
+                        isWarn: true,
+                        forceWait: true);
+                }
+                else
+                {
+                    ModMain.MyMsgBox(
+                        Lang.Text("Setup.Misc.System.StopUsingPclCe.Message.Complete"),
+                        Lang.Text("Common.Dialog.Title"),
+                        Lang.Text("Common.Action.Continue"),
+                        forceWait: true);
+                }
+                
+                Lifecycle.Shutdown();
+            }
+        }
+    }
+
+    private List<Exception> StopUsingPClCeCore(bool removeMcResources)
+    {
+        List<Exception> exceptions = [];
+        
+        List<string> foldersToDelete =
+        [
+            Paths.Data,
+            Paths.OldSharedData,
+            Paths.SharedData,
+            Paths.SharedLocalData,
+            Paths.Temp
+        ];
+        
+        // 删除与 PCL CE 有关的文件夹
+        exceptions.AddRange(Delete(foldersToDelete, true));
+
+        // 删除 MC 文件夹内的 PCL CE 配置
+        if (removeMcResources && States.Game.Folders != "")
+        {
+            foreach (var path in States.Game.Folders.Split('|'))
+            {
+                var realPath = path.Split('>')[1];
+                exceptions.AddRange(Delete([Path.Combine(realPath, "PCL.ini")]));
+
+                exceptions.AddRange(
+                    Delete(
+                        Directory.EnumerateDirectories(Path.Combine(realPath, "versions"))
+                            .Select(p => Path.Combine(p, "PCL", "config.v1.yml"))
+                    )
+                );
+            }
+        }
+
+        return exceptions; 
+            
+        List<Exception> Delete(IEnumerable<string> paths, bool directory = false)
+        {
+            var errors = new List<Exception>();
+
+            foreach (var path in paths)
+            {
+                Console.WriteLine(path);
+                
+                try
+                {
+                    if (directory ? !Directory.Exists(path) : !File.Exists(path)) continue;
+                    
+                    if (directory)
+                    {
+                        Directory.Delete(path, true);
+                    }
+                    else
+                    {
+                        File.Delete(path);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    errors.Add(new IOException(path, ex));
+                }
+            }
+
+            return errors;
+        }
     }
 
     #endregion
