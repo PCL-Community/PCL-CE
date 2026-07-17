@@ -312,8 +312,6 @@ public partial class PageSetupLauncherMisc
 
             foreach (var path in paths)
             {
-                Console.WriteLine(path);
-                
                 try
                 {
                     if (directory ? !Directory.Exists(path) : !File.Exists(path)) continue;
