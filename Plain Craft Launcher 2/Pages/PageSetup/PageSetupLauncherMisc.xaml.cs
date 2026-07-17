@@ -297,8 +297,8 @@ public partial class PageSetupLauncherMisc
             UseShellExecute = false
         });
 
-        // 最快退出
-        Environment.FailFast("PCL CE Stopped");
+        // 强制退出
+        Process.GetCurrentProcess().Kill();
             
         void Delete(IEnumerable<string> paths, bool directory = false)
         {
