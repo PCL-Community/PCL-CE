@@ -567,7 +567,7 @@ public static class ModModpack
             minecraftName = json["minecraft"]["version"].ToString(),
             forgeVersion = forgeVersion,
             neoForgeVersion = neoForgeVersion,
-            fabricVersion = fabricVersion
+            fabricVersion = fabricVersion,
         };
         var mergeLoaders = ModDownloadLib.McInstallLoader(request);
         // 构造总加载器
@@ -798,7 +798,7 @@ public static class ModModpack
             minecraftName = minecraftVersion,
             forgeVersion = forgeVersion,
             neoForgeVersion = neoForgeVersion,
-            fabricVersion = fabricVersion
+            fabricVersion = fabricVersion,
         };
         var mergeLoaders = ModDownloadLib.McInstallLoader(request);
         // 构造总加载器
@@ -1046,7 +1046,7 @@ public static class ModModpack
             optiFineVersion = addons.ContainsKey("optifine") ? addons["optifine"] : null,
             forgeVersion = addons.ContainsKey("forge") ? addons["forge"] : null,
             neoForgeVersion = addons.ContainsKey("neoforge") ? addons["neoforge"] : null,
-            fabricVersion = addons.ContainsKey("fabric") ? addons["fabric"] : null
+            fabricVersion = addons.ContainsKey("fabric") ? addons["fabric"] : null,
         };
 
         var mergeLoaders = ModDownloadLib.McInstallLoader(request);
