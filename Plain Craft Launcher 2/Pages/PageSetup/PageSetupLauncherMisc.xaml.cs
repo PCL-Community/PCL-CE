@@ -266,7 +266,7 @@ public partial class PageSetupLauncherMisc
                         forceWait: true);
                 }
                 
-                Lifecycle.Shutdown();
+                Environment.Exit(0);
             }
         }
     }
