@@ -683,7 +683,6 @@ public partial class PageInstanceOverall
                 neoForgeVersion = currentVersion.HasNeoForge ? currentVersion.NeoForge : null,
                 cleanroomVersion = currentVersion.HasCleanroom ? currentVersion.Cleanroom : null,
                 fabricVersion = currentVersion.HasFabric ? currentVersion.Fabric : null,
-                quiltVersion = currentVersion.HasQuilt ? currentVersion.Quilt : null,
                 liteLoaderEntry = currentVersion.HasLiteLoader
                     ? new ModDownload.DlLiteLoaderListEntry { Inherit = currentVersion.VanillaName }
                     : null,

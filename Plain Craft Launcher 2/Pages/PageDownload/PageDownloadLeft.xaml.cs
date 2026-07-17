@@ -33,8 +33,6 @@ public partial class PageDownloadLeft : IRefreshable
                 ModDownload.dlLegacyFabricListLoader.Start(isForceRestart: true);
                 ModDownload.dlFabricApiLoader.Start(isForceRestart: true);
                 ModDownload.dlLegacyFabricApiLoader.Start(isForceRestart: true);
-                ModDownload.dlQuiltListLoader.Start(isForceRestart: true);
-                ModDownload.dlQSLLoader.Start(isForceRestart: true);
                 ModDownload.dlOptiFabricLoader.Start(isForceRestart: true);
                 ModDownload.dlLabyModListLoader.Start(isForceRestart: true);
                 ItemInstall.Checked = true;
@@ -166,12 +164,6 @@ public partial class PageDownloadLeft : IRefreshable
                 ItemFabric.Checked = true;
                 break;
             }
-            case FormMain.PageSubType.DownloadQuilt:
-            {
-                ModDownload.dlQuiltListLoader.Start(isForceRestart: true);
-                ItemQuilt.Checked = true;
-                break;
-            }
             case FormMain.PageSubType.DownloadLabyMod:
             {
                 ModDownload.dlLabyModListLoader.Start(isForceRestart: true);
@@ -230,7 +222,6 @@ public partial class PageDownloadLeft : IRefreshable
         ItemLiteLoader.Check += PageCheck;
         ItemFabric.Check += PageCheck;
         ItemLegacyFabric.Check += PageCheck;
-        ItemQuilt.Check += PageCheck;
         ItemLabyMod.Check += PageCheck;
     }
 
@@ -338,12 +329,6 @@ public partial class PageDownloadLeft : IRefreshable
                 if (ModMain.frmDownloadFabric is null)
                     ModMain.frmDownloadFabric = new PageDownloadFabric();
                 return ModMain.frmDownloadFabric;
-            }
-            case FormMain.PageSubType.DownloadQuilt:
-            {
-                if (ModMain.frmDownloadQuilt is null)
-                    ModMain.frmDownloadQuilt = new PageDownloadQuilt();
-                return ModMain.frmDownloadQuilt;
             }
             case FormMain.PageSubType.DownloadLabyMod:
             {

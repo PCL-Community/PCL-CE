@@ -250,22 +250,6 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemQuilt" Type="RadioBox" IsScaleAnimationEnabled="False" Tag="15"
-                              Check="PageCheck"
-                              MinPaddingRight="35" Height="36" VerticalAlignment="Top"
-                              Title="{DynamicResource Download.Left.Quilt}"
-                              LogoScale="1.02"
-                              SvgIcon="lucide/grid-2x2">
-                <local:MyListItem.Buttons>
-                    <x:Array Type="{x:Type local:MyIconButton}">
-                        <local:MyIconButton Tag="15" ToolTip="{DynamicResource Common.Action.Refresh}"
-                                            ToolTipService.Placement="Right" Click="RefreshButton_Click"
-                                            ToolTipService.InitialShowDelay="200" ToolTipService.VerticalOffset="-1"
-                                            LogoScale="0.85"
-                                            SvgIcon="lucide/refresh-cw" />
-                    </x:Array>
-                </local:MyListItem.Buttons>
-            </local:MyListItem>
             <local:MyListItem x:Name="ItemLabyMod" Type="RadioBox" IsScaleAnimationEnabled="False" Tag="17"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"

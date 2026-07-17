@@ -97,7 +97,6 @@
     <sys:String x:Key="Common.Installation.NeoForge">NeoForge</sys:String>
     <sys:String x:Key="Common.Installation.OptiFabric">OptiFabric</sys:String>
     <sys:String x:Key="Common.Installation.OptiFine">OptiFine</sys:String>
-    <sys:String x:Key="Common.Installation.QfapiQsl">QFAPI / QSL</sys:String>
     <sys:String x:Key="Common.Installation.Quilt">Quilt</sys:String>
 
     <!-- Config -->
@@ -634,7 +633,6 @@
     <sys:String x:Key="Download.Install.Compat.RequiresLegacyFabric">需要安装 LegacyFabric</sys:String>
     <sys:String x:Key="Download.Install.Compat.RequiresOptiFine">需要安装 OptiFine</sys:String>
     <sys:String x:Key="Download.Install.Compat.RequiresOptiFineAndFabric">需要安装 OptiFine 与 Fabric</sys:String>
-    <sys:String x:Key="Download.Install.Compat.RequiresQuilt">需要安装 Quilt</sys:String>
 
     <!-- Download.Install.State -->
 
@@ -655,8 +653,6 @@
     <sys:String x:Key="Download.Install.Warning.ModOptiFine">OptiFine 与一部分模组的兼容性不佳，请谨慎安装。</sys:String>
     <sys:String x:Key="Download.Install.Warning.OptiFabric">必须安装 OptiFabric 才能正常使用 OptiFine！</sys:String>
     <sys:String x:Key="Download.Install.Warning.OptiFabricOld">安装结束后，请在模组下载中搜索 OptiFabric Origins 并下载，否则 OptiFine 会无法使用！</sys:String>
-    <sys:String x:Key="Download.Install.Warning.Qsl">如果不安装 QFAPI / QSL，大多数模组都会无法使用！如果 QFAPI / QSL 无可用版本，你可以选择安装 Fabric API。</sys:String>
-    <sys:String x:Key="Download.Install.Warning.QuiltFabricApi">你选择了在 Quilt 中安装 Fabric API，而当前存在适配的 QFAPI / QSL 可供安装。请优先考虑安装 QFAPI / QSL。</sys:String>
 
     <!-- Download.Left -->
 
@@ -677,7 +673,6 @@
     <sys:String x:Key="Download.Left.Modpack">整合包</sys:String>
     <sys:String x:Key="Download.Left.NeoForge">NeoForge</sys:String>
     <sys:String x:Key="Download.Left.Optifine">OptiFine</sys:String>
-    <sys:String x:Key="Download.Left.Quilt">Quilt</sys:String>
     <sys:String x:Key="Download.Left.ResourcePack">资源包</sys:String>
     <sys:String x:Key="Download.Left.Shader">光影包</sys:String>
     <sys:String x:Key="Download.Left.World">世界</sys:String>
@@ -692,7 +687,6 @@
     <sys:String x:Key="Download.Source.MojangOfficial">Mojang 官方源</sys:String>
     <sys:String x:Key="Download.Source.NeoForgeOfficial">NeoForge 官方源</sys:String>
     <sys:String x:Key="Download.Source.OptiFineOfficial">OptiFine 官方源</sys:String>
-    <sys:String x:Key="Download.Source.QuiltOfficial">Quilt 官方源</sys:String>
     <sys:String x:Key="Download.Source.Tag.Uvmc">UVMC 特供下载</sys:String>
 
     <!-- Download.Version -->
@@ -716,7 +710,6 @@
     <sys:String x:Key="Download.Version.Installer.Fabric.Filter">Fabric 安装器 (*.jar)|*.jar</sys:String>
     <sys:String x:Key="Download.Version.Installer.LabyMod.Filter">LabyMod 安装器 (*.jar)|*.jar</sys:String>
     <sys:String x:Key="Download.Version.Installer.LegacyFabric.Filter">LegacyFabric 安装器 (*.jar)|*.jar</sys:String>
-    <sys:String x:Key="Download.Version.Installer.Quilt.Filter">Quilt 安装器 (*.jar)|*.jar</sys:String>
     <sys:String x:Key="Download.Version.LabyMod.Intro.Description">LabyMod 是 Minecraft 下的优化客户端。&#xA;本页面提供 LabyMod 安装器下载，在下载后你需要手动打开安装器进行安装。</sys:String>
     <sys:String x:Key="Download.Version.LabyMod.Intro.Title">LabyMod 简介</sys:String>
     <sys:String x:Key="Download.Version.LabyMod.LoadingList">正在获取 LabyMod 列表</sys:String>
@@ -740,9 +733,6 @@
     <sys:String x:Key="Download.Version.Optifine.Intro.Title">OptiFine 简介</sys:String>
     <sys:String x:Key="Download.Version.Optifine.LoadingList">正在获取 OptiFine 列表</sys:String>
     <sys:String x:Key="Download.Version.Optifine.Snapshot">快照版本</sys:String>
-    <sys:String x:Key="Download.Version.Quilt.Intro.Description">Quilt Loader 是新版 Minecraft 下的轻量模块化模组加载器，你需要先安装它才能安装各种 Quilt 模组。&#xA;本页面提供 Quilt 安装器下载，在下载后你需要手动打开安装器进行安装。</sys:String>
-    <sys:String x:Key="Download.Version.Quilt.Intro.Title">Quilt 简介</sys:String>
-    <sys:String x:Key="Download.Version.Quilt.LoadingList">正在获取 Quilt 列表</sys:String>
     <sys:String x:Key="Download.Version.ReleaseDate">发布于 {0}</sys:String>
     <sys:String x:Key="Download.Version.SaveAs">另存为</sys:String>
     <sys:String x:Key="Download.Version.SaveInstaller">保存安装器</sys:String>
@@ -2033,7 +2023,6 @@
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeMissingAssets">分析缺失资源文件</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeMissingLibraries">分析缺失支持库文件</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeOptiFineLibraries">分析 OptiFine 支持库文件</sys:String>
-    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeQuiltLibraries">分析 Quilt 支持库文件</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeRequiredAssets.Side">分析所需资源文件（副加载器）</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeVanillaAndLabyModLibrariesSide">分析原版与 LabyMod 支持库文件（副加载器）</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeVanillaLibraries.Side">分析原版支持库文件（副加载器）</sys:String>
@@ -2063,7 +2052,6 @@
     <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFabric">下载 OptiFabric</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFineLibraries">下载 OptiFine 支持库文件</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFineMainFile">下载 OptiFine 主文件</sys:String>
-    <sys:String x:Key="Minecraft.Download.Stage.DownloadQfapiQsl">下载 QFAPI / QSL</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadServerFile">下载服务端文件</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaAndLabyModLibrariesSide">下载原版与 LabyMod 支持库文件（副加载器）</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaAssets">下载原版资源文件</sys:String>
@@ -2093,11 +2081,9 @@
     <sys:String x:Key="Minecraft.Download.Stage.ObtainLoaderDetails">获取 {0} 详细信息</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.ObtainOptiFineDownloadUrl">获取 OptiFine 下载地址</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.ObtainOptiFineUrl">获取 OptiFine 主文件下载地址</sys:String>
-    <sys:String x:Key="Minecraft.Download.Stage.ObtainQuiltMainFileUrl">获取 Quilt 主文件下载地址</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.ObtainVanillaJsonUrl">获取原版 Json 文件下载地址</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.OptiFineDownload">OptiFine {0} 下载</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.PrepareLoaderDownload">准备下载 {0}</sys:String>
-    <sys:String x:Key="Minecraft.Download.Stage.QuiltInstallerDownload">Quilt {0} 安装器下载</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.StartLiteLoaderDependencyDownload">启动 LiteLoader 依赖实例下载</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.UpdateAssetsIndex.Background">后台更新资源文件索引</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.VanillaJsonDownload">下载原版 Json 文件</sys:String>

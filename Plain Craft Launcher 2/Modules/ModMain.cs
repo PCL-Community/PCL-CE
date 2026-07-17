@@ -45,7 +45,6 @@ public static class ModMain
     public static PageDownloadNeoForge? frmDownloadNeoForge;
     public static PageDownloadCleanroom? frmDownloadCleanroom;
     public static PageDownloadFabric? frmDownloadFabric;
-    public static PageDownloadQuilt? frmDownloadQuilt;
     public static PageDownloadLabyMod? frmDownloadLabyMod;
     public static PageDownloadLegacyFabric? frmDownloadLegacyFabric;
     public static PageDownloadMod? frmDownloadMod;

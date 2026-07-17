@@ -97,7 +97,6 @@
     <sys:String x:Key="Common.Installation.NeoForge">NeoForge</sys:String>
     <sys:String x:Key="Common.Installation.OptiFabric">OptiFabric</sys:String>
     <sys:String x:Key="Common.Installation.OptiFine">OptiFine</sys:String>
-    <sys:String x:Key="Common.Installation.QfapiQsl">QFAPI / QSL</sys:String>
     <sys:String x:Key="Common.Installation.Quilt">Quilt</sys:String>
 
     <!-- Config -->
@@ -634,7 +633,6 @@
     <sys:String x:Key="Download.Install.Compat.RequiresLegacyFabric">Requires Legacy Fabric</sys:String>
     <sys:String x:Key="Download.Install.Compat.RequiresOptiFine">Requires OptiFine</sys:String>
     <sys:String x:Key="Download.Install.Compat.RequiresOptiFineAndFabric">Requires OptiFine &amp; Fabric</sys:String>
-    <sys:String x:Key="Download.Install.Compat.RequiresQuilt">Requires Quilt</sys:String>
 
     <!-- Download.Install.State -->
 
@@ -655,8 +653,6 @@
     <sys:String x:Key="Download.Install.Warning.ModOptiFine">OptiFine has poor compatibility with some mods. Please install it cautiously.</sys:String>
     <sys:String x:Key="Download.Install.Warning.OptiFabric">OptiFine will be unable to run if OptiFabric is not installed!</sys:String>
     <sys:String x:Key="Download.Install.Warning.OptiFabricOld">Please install "OptiFabric Origins" mod after the installation, otherwise OptiFine will be unable to run!</sys:String>
-    <sys:String x:Key="Download.Install.Warning.Qsl">Most of the mods will be unable to run if QFAPI / QSL is not installed! If QFAPI / QSL has no available version, you can choose to install Fabric API instead.</sys:String>
-    <sys:String x:Key="Download.Install.Warning.QuiltFabricApi">You have selected Fabric API for Quilt, but a compatible QFAPI / QSL version is available. Please consider installing QFAPI / QSL first.</sys:String>
 
     <!-- Download.Left -->
 
@@ -677,7 +673,6 @@
     <sys:String x:Key="Download.Left.Modpack">Modpacks</sys:String>
     <sys:String x:Key="Download.Left.NeoForge">NeoForge</sys:String>
     <sys:String x:Key="Download.Left.Optifine">OptiFine</sys:String>
-    <sys:String x:Key="Download.Left.Quilt">Quilt</sys:String>
     <sys:String x:Key="Download.Left.ResourcePack">Resource packs</sys:String>
     <sys:String x:Key="Download.Left.Shader">Shaders</sys:String>
     <sys:String x:Key="Download.Left.World">Worlds</sys:String>
@@ -692,7 +687,6 @@
     <sys:String x:Key="Download.Source.MojangOfficial">Mojang official source</sys:String>
     <sys:String x:Key="Download.Source.NeoForgeOfficial">NeoForge official source</sys:String>
     <sys:String x:Key="Download.Source.OptiFineOfficial">OptiFine official source</sys:String>
-    <sys:String x:Key="Download.Source.QuiltOfficial">Quilt official source</sys:String>
     <sys:String x:Key="Download.Source.Tag.Uvmc">UVMC Exclusive</sys:String>
 
     <!-- Download.Version -->
@@ -716,7 +710,6 @@
     <sys:String x:Key="Download.Version.Installer.Fabric.Filter">Fabric installer (*.jar)|*.jar</sys:String>
     <sys:String x:Key="Download.Version.Installer.LabyMod.Filter">LabyMod installer (*.jar)|*.jar</sys:String>
     <sys:String x:Key="Download.Version.Installer.LegacyFabric.Filter">Legacy Fabric installer (*.jar)|*.jar</sys:String>
-    <sys:String x:Key="Download.Version.Installer.Quilt.Filter">Quilt installer (*.jar)|*.jar</sys:String>
     <sys:String x:Key="Download.Version.LabyMod.Intro.Description">LabyMod is an optimization client for Minecraft.&#xA;This page offers the LabyMod installer for download. After downloading, you need to complete the installation process manually through the installer.</sys:String>
     <sys:String x:Key="Download.Version.LabyMod.Intro.Title">Introduction of LabyMod</sys:String>
     <sys:String x:Key="Download.Version.LabyMod.LoadingList">Getting LabyMod list...</sys:String>
@@ -740,9 +733,6 @@
     <sys:String x:Key="Download.Version.Optifine.Intro.Title">Introduction of OptiFine</sys:String>
     <sys:String x:Key="Download.Version.Optifine.LoadingList">Getting OptiFine list...</sys:String>
     <sys:String x:Key="Download.Version.Optifine.Snapshot">Snapshot</sys:String>
-    <sys:String x:Key="Download.Version.Quilt.Intro.Description">Quilt Loader is a lightweight, modular mod loader for modern versions of Minecraft.&#xA;You must install it before using any Quilt mods. This page offers the Quilt installer for download. After downloading, you need to complete the installation process manually through the installer.</sys:String>
-    <sys:String x:Key="Download.Version.Quilt.Intro.Title">Introduction of Quilt</sys:String>
-    <sys:String x:Key="Download.Version.Quilt.LoadingList">Getting Quilt list...</sys:String>
     <sys:String x:Key="Download.Version.ReleaseDate">Released on {0}</sys:String>
     <sys:String x:Key="Download.Version.SaveAs">Save as</sys:String>
     <sys:String x:Key="Download.Version.SaveInstaller">Save installer</sys:String>
@@ -2033,7 +2023,6 @@
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeMissingAssets">Analyze missing assets</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeMissingLibraries">Analyze missing libraries</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeOptiFineLibraries">Analyze OptiFine libraries</sys:String>
-    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeQuiltLibraries">Analyze Quilt libraries</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeRequiredAssets.Side">Analyze required assets (side loader)</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeVanillaAndLabyModLibrariesSide">Analyze Vanilla and LabyMod libraries (side loader)</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeVanillaLibraries.Side">Analyze Vanilla libraries (side loader)</sys:String>
@@ -2063,7 +2052,6 @@
     <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFabric">Download OptiFabric</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFineLibraries">Download OptiFine libraries</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFineMainFile">Download OptiFine main file</sys:String>
-    <sys:String x:Key="Minecraft.Download.Stage.DownloadQfapiQsl">Download QFAPI / QSL</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadServerFile">Download server file</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaAndLabyModLibrariesSide">Download Vanilla and LabyMod libraries (side loader)</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaAssets">Download Vanilla assets</sys:String>
@@ -2093,11 +2081,9 @@
     <sys:String x:Key="Minecraft.Download.Stage.ObtainLoaderDetails">Obtain {0} details</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.ObtainOptiFineDownloadUrl">Obtain OptiFine URI</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.ObtainOptiFineUrl">Obtain OptiFine URI</sys:String>
-    <sys:String x:Key="Minecraft.Download.Stage.ObtainQuiltMainFileUrl">Obtain Quilt main file URI</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.ObtainVanillaJsonUrl">Obtain Vanilla JSON URL</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.OptiFineDownload">OptiFine {0} download</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.PrepareLoaderDownload">Prepare to download {0}</sys:String>
-    <sys:String x:Key="Minecraft.Download.Stage.QuiltInstallerDownload">Quilt {0} installer download</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.StartLiteLoaderDependencyDownload">Start LiteLoader dependency download</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.UpdateAssetsIndex.Background">Update assets index (background)</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.VanillaJsonDownload">Download Vanilla JSON</sys:String>

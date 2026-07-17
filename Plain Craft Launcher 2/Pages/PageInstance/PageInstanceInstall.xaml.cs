@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -47,8 +47,6 @@ public partial class PageInstanceInstall
         LoadFabricApi.StateChanged += (_, _, _) => { FabricApi_Loaded(); ReloadSelected(); };
         LoadLegacyFabric.StateChanged += (_, _, _) => { LegacyFabric_Loaded(); ReloadSelected(); };
         LoadLegacyFabricApi.StateChanged += (_, _, _) => { LegacyFabricApi_Loaded(); ReloadSelected(); };
-        LoadQuilt.StateChanged += (_, _, _) => { Quilt_Loaded(); ReloadSelected(); };
-        LoadQSL.StateChanged += (_, _, _) => { QSL_Loaded(); ReloadSelected(); };
         LoadOptiFabric.StateChanged += (_, _, _) => { OptiFabric_Loaded(); ReloadSelected(); };
         LoadLabyMod.StateChanged += (_, _, _) => { LabyMod_Loaded(); ReloadSelected(); };
         PageExit += () => isInSelectPage = false;
@@ -66,13 +64,11 @@ public partial class PageInstanceInstall
         ModDownload.dlOptiFineListLoader.Start(isForceRestart: needRefresh);
         ModDownload.dlLiteLoaderListLoader.Start(isForceRestart: needRefresh);
         ModDownload.dlFabricListLoader.Start(isForceRestart: needRefresh);
-        ModDownload.dlQuiltListLoader.Start(isForceRestart: needRefresh);
         ModDownload.dlNeoForgeListLoader.Start(isForceRestart: needRefresh);
         ModDownload.dlCleanroomListLoader.Start(isForceRestart: needRefresh);
         ModDownload.dlLabyModListLoader.Start(isForceRestart: needRefresh);
         ModDownload.dlLegacyFabricListLoader.Start(isForceRestart: needRefresh);
         ModDownload.dlFabricApiLoader.Start(isForceRestart: needRefresh);
-        ModDownload.dlQSLLoader.Start(isForceRestart: needRefresh);
         ModDownload.dlLegacyFabricApiLoader.Start(isForceRestart: needRefresh);
         ModDownload.dlOptiFabricLoader.Start(isForceRestart: needRefresh);
 
@@ -90,8 +86,6 @@ public partial class PageInstanceInstall
         LoadLiteLoader.State = ModDownload.dlLiteLoaderListLoader;
         LoadFabric.State = ModDownload.dlFabricListLoader;
         LoadFabricApi.State = ModDownload.dlFabricApiLoader;
-        LoadQuilt.State = ModDownload.dlQuiltListLoader;
-        LoadQSL.State = ModDownload.dlQSLLoader;
         LoadNeoForge.State = ModDownload.dlNeoForgeListLoader;
         LoadCleanroom.State = ModDownload.dlCleanroomListLoader;
         LoadOptiFabric.State = ModDownload.dlOptiFabricLoader;
@@ -137,8 +131,6 @@ public partial class PageInstanceInstall
             selectedFabricApi = null;
         if (selectedLegacyFabricApi?.Equals(_currentLegacyFabricApi) == true)
             selectedLegacyFabricApi = null;
-        if (selectedQSL?.Equals(_currentQsl) == true)
-            selectedQSL = null;
         if (selectedOptiFabric?.Equals(_currentOptiFabric) == true)
             selectedOptiFabric = null;
         // 提交安装申请
@@ -156,8 +148,6 @@ public partial class PageInstanceInstall
             cleanroomVersion = selectedCleanroomVersion,
             fabricVersion = selectedFabric,
             fabricApi = selectedFabricApi,
-            quiltVersion = selectedQuilt,
-            qsl = selectedQSL,
             optiFabric = selectedOptiFabric,
             liteLoaderEntry = selectedLiteLoader,
             labyModChannel = selectedLabyModChannel,
@@ -173,8 +163,6 @@ public partial class PageInstanceInstall
             File.Delete(_currentFabricApiPath);
         if (selectedLegacyFabricApi is not null && _currentLegacyFabricApiPath is not null)
             File.Delete(_currentLegacyFabricApiPath);
-        if (selectedQSL is not null && _currentQslPath is not null)
-            File.Delete(_currentQslPath);
         if (selectedOptiFabric is not null && _currentOptiFabricPath is not null)
             File.Delete(_currentOptiFabricPath);
         // 返回主页
@@ -225,7 +213,6 @@ public partial class PageInstanceInstall
         disabledPageAnimControls.Remove(BtnSelectStart);
         BtnSelectStart.Show = true;
         autoSelectedFabricApi = false;
-        autoSelectedQSL = false;
         autoSelectedOptiFabric = false;
         PanSelect.Visibility = Visibility.Visible;
         PanSelect.IsHitTestVisible = true;
@@ -241,8 +228,6 @@ public partial class PageInstanceInstall
         CardCleanroom.IsSwapped = true;
         CardFabric.IsSwapped = true;
         CardFabricApi.IsSwapped = true;
-        CardQuilt.IsSwapped = true;
-        CardQSL.IsSwapped = true;
         CardOptiFabric.IsSwapped = true;
         CardLabyMod.IsSwapped = true;
         CardLegacyFabric.IsSwapped = true;
@@ -271,9 +256,8 @@ public partial class PageInstanceInstall
             forgeLoader.Start(_vanillaName);
         }
 
-        // 启动 Fabric API、QSL、Legacy Fabric API、OptiFabric、LabyMod 加载
+        // 启动 Fabric API、Legacy Fabric API、OptiFabric 加载
         ModDownload.dlFabricApiLoader.Start();
-        ModDownload.dlQSLLoader.Start();
         ModDownload.dlLegacyFabricApiLoader.Start();
         ModDownload.dlOptiFabricLoader.Start();
 
@@ -292,8 +276,6 @@ public partial class PageInstanceInstall
                 LegacyFabric_Loaded();
                 FabricApi_Loaded();
                 LegacyFabricApi_Loaded();
-                Quilt_Loaded();
-                QSL_Loaded();
                 LabyMod_Loaded();
                 OptiFabric_Loaded();
                 ReloadSelected();
@@ -326,10 +308,6 @@ public partial class PageInstanceInstall
                         { Source = CardLegacyFabricApi.MainTextBlock, Mode = BindingMode.OneWay });
                 BtnFabricApiClearInner.SetBinding(Shape.FillProperty,
                     new Binding("Foreground") { Source = CardFabricApi.MainTextBlock, Mode = BindingMode.OneWay });
-                BtnQuiltClearInner.SetBinding(Shape.FillProperty,
-                    new Binding("Foreground") { Source = CardQuilt.MainTextBlock, Mode = BindingMode.OneWay });
-                BtnQSLClearInner.SetBinding(Shape.FillProperty,
-                    new Binding("Foreground") { Source = CardQSL.MainTextBlock, Mode = BindingMode.OneWay });
                 BtnLabyModClearInner.SetBinding(Shape.FillProperty,
                     new Binding("Foreground") { Source = CardLabyMod.MainTextBlock, Mode = BindingMode.OneWay });
                 BtnOptiFabricClearInner.SetBinding(Shape.FillProperty,
@@ -398,12 +376,12 @@ public partial class PageInstanceInstall
     private ModDownload.DlOptiFineListEntry? selectedOptiFine;
 
     /// <summary>
-    ///     选定的 Mod Loader 名称，内容应为 Forge / NeoForge / Fabric / Quilt / Cleanroom / LabyMod / LegacyFabric
+    ///     选定的 Mod Loader 名称，内容应为 Forge / NeoForge / Fabric / Cleanroom / LabyMod / LegacyFabric
     /// </summary>
     private string? selectedLoaderName;
 
     /// <summary>
-    ///     选定的 Mod Loader API 名称，内容应为 Fabric API 或 QFAPI / QSL
+    ///     选定的 Mod Loader API 名称，内容应为 Fabric API
     /// </summary>
     private string? selectedAPIName;
 
@@ -432,12 +410,6 @@ public partial class PageInstanceInstall
 
     // Legacy FabricApi
     private ModComp.CompFile? selectedLegacyFabricApi;
-
-    // Quilt
-    private string? selectedQuilt;
-
-    // QSL
-    private ModComp.CompFile? selectedQSL;
 
     // LabyMod
     private string? selectedLabyModChannel;
@@ -648,7 +620,7 @@ public partial class PageInstanceInstall
         }
 
         // FabricApi
-        if (selectedFabric is null && selectedQuilt is null)
+        if (selectedFabric is null)
         {
             CardFabricApi.Visibility = Visibility.Collapsed;
         }
@@ -657,7 +629,7 @@ public partial class PageInstanceInstall
             CardFabricApi.Visibility = Visibility.Visible;
             var fabricApiError = LoadFabricApiGetError();
             CardFabricApi.MainSwap.Visibility = fabricApiError is null ? Visibility.Visible : Visibility.Collapsed;
-            if (fabricApiError is not null || (selectedFabric is null && selectedQuilt is null))
+            if (fabricApiError is not null || selectedFabric is null)
                 CardFabricApi.IsSwapped = true;
             SetPanelVisibility(PanFabricApiInfo, CardFabricApi.IsSwapped);
             if (selectedFabricApi is null)
@@ -718,7 +690,7 @@ public partial class PageInstanceInstall
             var legacyFabricApiError = LoadLegacyFabricApiGetError();
             CardLegacyFabricApi.MainSwap.Visibility =
                 legacyFabricApiError is null ? Visibility.Visible : Visibility.Collapsed;
-            if (legacyFabricApiError is not null || (selectedLegacyFabric is null && selectedQuilt is null))
+            if (legacyFabricApiError is not null || selectedLegacyFabric is null)
                 CardLegacyFabricApi.IsSwapped = true;
             SetPanelVisibility(PanLegacyFabricApiInfo, CardLegacyFabricApi.IsSwapped);
             if (selectedLegacyFabricApi is null)
@@ -734,64 +706,6 @@ public partial class PageInstanceInstall
                 ImgLegacyFabricApi.Visibility = Visibility.Visible;
                 LabLegacyFabricApi.Text = selectedLegacyFabricApi.DisplayName.Replace("Legacy Fabric API ", "");
                 LabLegacyFabricApi.Foreground = ThemeManager.colorGray1;
-            }
-        }
-
-        // Quilt
-        if (VanillaDrop < 144)
-        {
-            CardQuilt.Visibility = Visibility.Collapsed;
-        }
-        else
-        {
-            CardQuilt.Visibility = Visibility.Visible;
-            var quiltError = LoadQuiltGetError();
-            CardQuilt.MainSwap.Visibility = quiltError is null ? Visibility.Visible : Visibility.Collapsed;
-            if (quiltError is not null)
-                CardQuilt.IsSwapped = true;
-            SetPanelVisibility(PanQuiltInfo, CardQuilt.IsSwapped);
-            if (selectedQuilt is null)
-            {
-                BtnQuiltClear.Visibility = Visibility.Collapsed;
-                ImgQuilt.Visibility = Visibility.Collapsed;
-                LabQuilt.Text = quiltError ?? Lang.Text("Download.Install.State.CanAdd");
-                LabQuilt.Foreground = ThemeManager.colorGray4;
-            }
-            else
-            {
-                BtnQuiltClear.Visibility = Visibility.Visible;
-                ImgQuilt.Visibility = Visibility.Visible;
-                LabQuilt.Text = selectedQuilt.Replace("+build", "");
-                LabQuilt.Foreground = ThemeManager.colorGray1;
-            }
-        }
-
-        // QSL
-        if (selectedQuilt is null)
-        {
-            CardQSL.Visibility = Visibility.Collapsed;
-        }
-        else
-        {
-            CardQSL.Visibility = Visibility.Visible;
-            var qslError = LoadQSLGetError();
-            CardQSL.MainSwap.Visibility = qslError is null ? Visibility.Visible : Visibility.Collapsed;
-            if (qslError is not null || selectedQuilt is null)
-                CardQSL.IsSwapped = true;
-            SetPanelVisibility(PanQSLInfo, CardQSL.IsSwapped);
-            if (selectedQSL is null)
-            {
-                BtnQSLClear.Visibility = Visibility.Collapsed;
-                ImgQSL.Visibility = Visibility.Collapsed;
-                LabQSL.Text = qslError ?? Lang.Text("Download.Install.State.CanAdd");
-                LabQSL.Foreground = ThemeManager.colorGray4;
-            }
-            else
-            {
-                BtnQSLClear.Visibility = Visibility.Visible;
-                ImgQSL.Visibility = Visibility.Visible;
-                LabQSL.Text = selectedQSL.DisplayName.Split("]")[1].Trim();
-                LabQSL.Foreground = ThemeManager.colorGray1;
             }
         }
 
@@ -863,23 +777,6 @@ public partial class PageInstanceInstall
             HintLegacyFabricAPI.Visibility = Visibility.Visible;
         else
             HintLegacyFabricAPI.Visibility = Visibility.Collapsed;
-        if (selectedQuilt is not null && selectedQSL is null && selectedFabricApi is null)
-            HintQSL.Visibility = Visibility.Visible;
-        else
-            HintQSL.Visibility = Visibility.Collapsed;
-        if (selectedQuilt is not null && selectedFabricApi is not null && ModDownload.dlQSLLoader.output is not null)
-            foreach (var Version in ModDownload.dlQSLLoader.output)
-            {
-                if (IsSuitableQSL(Version.GameVersions, _vanillaName))
-                {
-                    HintQuiltFabricAPI.Visibility = Visibility.Visible;
-                    break;
-                }
-
-                HintQuiltFabricAPI.Visibility = Visibility.Collapsed;
-            }
-        else
-            HintQuiltFabricAPI.Visibility = Visibility.Collapsed;
 
         if ((selectedFabric is not null || selectedLegacyFabric is not null) && selectedOptiFine is not null &&
             selectedOptiFabric is null)
@@ -938,8 +835,6 @@ public partial class PageInstanceInstall
         selectedCleanroomVersion = null;
         selectedFabric = null;
         selectedFabricApi = null;
-        selectedQuilt = null;
-        selectedQSL = null;
         selectedOptiFabric = null;
         selectedLabyModCommitRef = null;
         selectedLabyModVersion = null;
@@ -988,8 +883,6 @@ public partial class PageInstanceInstall
 
         if (selectedOptiFine is not null) return "pack://application:,,,/images/Blocks/GrassPath.png";
 
-        if (selectedQuilt is not null) return "pack://application:,,,/images/Blocks/Quilt.png";
-
         if (selectedCleanroom is not null) return "pack://application:,,,/images/Blocks/Cleanroom.png";
 
         if (selectedLabyModVersion is not null) return "pack://application:,,,/images/Blocks/LabyMod.png";
@@ -1011,7 +904,6 @@ public partial class PageInstanceInstall
         {
             ("Common.Installation.Fabric", selectedFabric?.Replace("+build", "")),
             ("Common.Installation.LegacyFabric", selectedLegacyFabric),
-            ("Common.Installation.Quilt", selectedQuilt),
             ("Common.Installation.Forge", selectedForge?.VersionName),
             ("Common.Installation.NeoForge",
                 selectedNeoForge?.VersionName ?? VersionOrNull(selectedNeoForgeVersion)),
@@ -1085,32 +977,6 @@ public partial class PageInstanceInstall
         {
             _currentLegacyFabricApi = result;
             _currentLegacyFabricApiPath = localComp.path;
-        }
-
-        return result;
-    }
-
-    private ModComp.CompFile _currentQsl;
-    private string _currentQslPath;
-
-    private object GetCurrentQsl()
-    {
-        var loaderOutput = ModDownload.dlQSLLoader.output;
-        if (loaderOutput is null)
-            return null;
-        var localComp = ModLocalComp.GetModLocalCompByKeywords(PageInstanceLeft.McInstance, "quilted_fabric_api", "qsl",
-            "qf", "fabric", "api");
-        // 兼容测试版的文件名 没错这玩意测试版命名方式甚至与正式版不一样
-        if (localComp is null)
-            localComp = ModLocalComp.GetModLocalCompByKeywords(PageInstanceLeft.McInstance, "quilted_fabric_api",
-                "quilted-fabric-api");
-        if (localComp is null)
-            return null;
-        var result = loaderOutput.FirstOrDefault(comp => (comp.Hash ?? "") == (localComp.ModrinthHash ?? ""));
-        if (result is not null)
-        {
-            _currentQsl = result;
-            _currentQslPath = localComp.path;
         }
 
         return result;
@@ -1198,15 +1064,8 @@ public partial class PageInstanceInstall
                 forgeType = ModDownload.DlForgelikeEntry.ForgelikeType.NeoForge
             };
         }
-        else if (currentInstance.HasQuilt)
-        {
-            selectedLoaderName = "Quilt";
-            selectedQuilt = currentInstance.Quilt;
-            selectedQSL = (ModComp.CompFile)GetCurrentQsl();
-            selectedFabricApi = (ModComp.CompFile)GetCurrentFabricApi();
-        }
 
-        if ((currentInstance.HasFabric || currentInstance.HasQuilt) && currentInstance.HasOptiFine)
+        if (currentInstance.HasFabric && currentInstance.HasOptiFine)
             selectedOptiFabric = (ModComp.CompFile)GetCurrentOptiFabric();
         _vanillaIcon = "pack://application:,,,/images/Blocks/Grass.png"; // TODO: 需要判断 Icon
         currentInfo = GetSelectInfo();
@@ -1438,7 +1297,7 @@ public partial class PageInstanceInstall
     /// </summary>
     private string LoadOptiFineGetError()
     {
-        if (selectedLoaderName == "NeoForge" || selectedLoaderName == "Quilt" || selectedLoaderName == "LabyMod" || selectedLoaderName == "Cleanroom")
+        if (selectedLoaderName == "NeoForge" || selectedLoaderName == "LabyMod" || selectedLoaderName == "Cleanroom")
             return Lang.Text("Download.Install.Compat.IncompatibleWithLoader", selectedLoaderName);
         if (LoadOptiFine is null || LoadOptiFine.State.LoadingState == MyLoading.MyLoadingState.Run)
             return Lang.Text("Download.Install.State.Loading");
@@ -2124,7 +1983,7 @@ public partial class PageInstanceInstall
         {
             if (ModDownload.dlFabricApiLoader.State != ModBase.LoadState.Finished)
                 return;
-            if (_vanillaName is null || (selectedFabric is null && selectedQuilt is null))
+            if (_vanillaName is null || selectedFabric is null)
                 return;
             // 获取版本列表
             var versions = new List<ModComp.CompFile>();
@@ -2155,8 +2014,7 @@ public partial class PageInstanceInstall
             }
 
             // 自动选择 Fabric API
-            if ((!autoSelectedFabricApi && selectedQuilt is null) ||
-                (selectedQuilt is not null && ReferenceEquals(LoadQSLGetError(), Lang.Text("Download.Install.State.NoAvailableVersion"))))
+            if (!autoSelectedFabricApi)
             {
                 autoSelectedFabricApi = true;
                 ModBase.Log($"[Download] 已自动选择 Fabric API：{((MyListItem)PanFabricApi.Children[0]).Title}");
@@ -2350,7 +2208,7 @@ public partial class PageInstanceInstall
         {
             if (ModDownload.dlLegacyFabricApiLoader.State != ModBase.LoadState.Finished)
                 return;
-            if (_vanillaName is null || (selectedLegacyFabric is null && selectedQuilt is null))
+            if (_vanillaName is null || selectedLegacyFabric is null)
                 return;
             // 获取版本列表
             var versions = new List<ModComp.CompFile>();
@@ -2373,8 +2231,7 @@ public partial class PageInstanceInstall
             }
 
             // 自动选择 Legacy Fabric API
-            if ((!autoSelectedLegacyFabricApi && selectedQuilt is null) ||
-                (selectedQuilt is not null && ReferenceEquals(LoadQSLGetError(), Lang.Text("Download.Install.State.NoAvailableVersion"))))
+            if (!autoSelectedLegacyFabricApi)
             {
                 autoSelectedLegacyFabricApi = true;
                 ModBase.Log($"[Download] 已自动选择 Legacy Fabric API：{((MyListItem)PanLegacyFabricApi.Children[0]).Title}");
@@ -2411,234 +2268,6 @@ public partial class PageInstanceInstall
 
     #endregion
 
-    #region Quilt 列表
-
-    /// <summary>
-    ///     获取 Quilt 的加载异常信息。若正常则返回 Nothing。
-    /// </summary>
-    private string LoadQuiltGetError()
-    {
-        if (selectedOptiFine is not null)
-            return Lang.Text("Download.Install.Compat.IncompatibleWithOptiFine");
-        if (selectedLoaderName is not null && !ReferenceEquals(selectedLoaderName, "Quilt"))
-            return Lang.Text("Download.Install.Compat.IncompatibleWithLoader", selectedLoaderName);
-        // 检查 Loader
-        if (GetLoaderError(LoadQuilt) is not null)
-            return GetLoaderError(LoadQuilt);
-        // 检查版本
-        foreach (JsonObject version in ModDownload.dlFabricListLoader.output.Value["game"].AsArray())
-            if ((version["version"].ToString() ?? "") ==
-                (_vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3") ?? ""))
-            {
-                if (selectedLoaderName is not null && !ReferenceEquals(selectedLoaderName, "Fabric"))
-                    return Lang.Text("Download.Install.Compat.IncompatibleWithLoader", selectedLoaderName);
-                return null;
-            }
-
-        return Lang.Text("Download.Install.State.NoVersion");
-    }
-
-    // 限制展开
-    private void CardQuilt_PreviewSwap(object sender, ModBase.RouteEventArgs e)
-    {
-        if (LoadQuiltGetError() is not null)
-            e.handled = true;
-    }
-
-    /// <summary>
-    ///     尝试重新可视化 Quilt 版本列表。
-    /// </summary>
-    private void Quilt_Loaded()
-    {
-        try
-        {
-            if (ModDownload.dlQuiltListLoader.State != ModBase.LoadState.Finished)
-                return;
-            // 获取版本列表
-            var versions = (JsonArray)ModDownload.dlQuiltListLoader.output.Value["loader"];
-            if (!versions.Any())
-                return;
-            // 可视化
-            PanQuilt.Children.Clear();
-            PanQuilt.Tag = versions;
-            CardQuilt.SwapControl = PanQuilt;
-            CardQuilt.InstallMethod = stack =>
-            {
-                foreach (var item in (IEnumerable)stack.Tag)
-                    stack.Children.Add(
-                        ModDownloadLib.QuiltDownloadListItem((JsonObject)item,
-                            (a, b) => this.Quilt_Selected((dynamic)a, b)));
-            };
-        }
-        catch (Exception ex)
-        {
-            ModBase.Log(
-                ex,
-                "可视化 Quilt 安装版本列表出错",
-                ModBase.LogLevel.Feedback,
-                userSummary: Lang.Text("Instance.Install.Error.OperationFailed"));
-        }
-    }
-
-    // 选择与清除
-    public void Quilt_Selected(MyListItem sender, EventArgs e)
-    {
-        selectedQuilt = ((dynamic)sender.Tag)["version"].ToString();
-        selectedLoaderName = "Quilt";
-        FabricApi_Loaded();
-        QSL_Loaded();
-        CardQuilt.IsSwapped = true;
-        ReloadSelected();
-    }
-
-    private void Quilt_Clear(object sender, MouseButtonEventArgs e)
-    {
-        selectedQuilt = null;
-        selectedQSL = null;
-        selectedFabricApi = null;
-        selectedLoaderName = null;
-        selectedAPIName = null;
-        CardQuilt.IsSwapped = true;
-        e.Handled = true;
-        ReloadSelected();
-    }
-
-    #endregion
-
-    #region QSL 列表
-
-    /// <summary>
-    ///     从显示名判断该 API 是否与某版本适配。
-    /// </summary>
-    public static bool IsSuitableQSL(List<string> supportVersions, string minecraftVersion)
-    {
-        try
-        {
-            if (supportVersions.Contains(minecraftVersion)) return true;
-
-            return false;
-        }
-        catch (Exception ex)
-        {
-            ModBase.Log(ex, "判断 QSL 版本适配性出错（" + supportVersions + ", " + minecraftVersion + "）");
-            return false;
-        }
-    }
-
-    /// <summary>
-    ///     获取 QSL 的加载异常信息。若正常则返回 Nothing。
-    /// </summary>
-    private string LoadQSLGetError()
-    {
-        if (LoadQSL is null || LoadQSL.State.LoadingState == MyLoading.MyLoadingState.Run)
-            return Lang.Text("Download.Version.LoadingList");
-        if (LoadQSL.State.LoadingState == MyLoading.MyLoadingState.Error)
-            return Lang.Text("Download.Install.State.GetVersionListFailed", ((ModLoader.LoaderBase)LoadQSL.State).Error.Message);
-        if (selectedAPIName is not null && !ReferenceEquals(selectedAPIName, "QFAPI / QSL"))
-            return Lang.Text("Download.Install.Compat.IncompatibleWithLoader", selectedAPIName);
-        if (ModDownload.dlQSLLoader.output is null)
-        {
-            if (selectedQuilt is null)
-                return Lang.Text("Download.Install.Compat.RequiresQuilt");
-            return Lang.Text("Download.Version.LoadingList");
-        }
-
-        foreach (var Version in ModDownload.dlQSLLoader.output)
-        {
-            if (!IsSuitableQSL(Version.GameVersions, _vanillaName))
-                continue;
-            if (selectedQuilt is null)
-                return Lang.Text("Download.Install.Compat.RequiresQuilt");
-            return null;
-        }
-
-        return Lang.Text("Download.Install.State.NoAvailableVersion");
-    }
-
-    // 限制展开
-    private void CardQSL_PreviewSwap(object sender, ModBase.RouteEventArgs e)
-    {
-        if (LoadQSLGetError() is not null)
-            e.handled = true;
-    }
-
-    private bool autoSelectedQSL;
-
-    /// <summary>
-    ///     尝试重新可视化 QSL 版本列表。
-    /// </summary>
-    private void QSL_Loaded()
-    {
-        try
-        {
-            if (ModDownload.dlQSLLoader.State != ModBase.LoadState.Finished)
-                return;
-            if (_vanillaName is null || selectedQuilt is null)
-                return;
-            // 获取版本列表
-            var versions = new List<ModComp.CompFile>();
-            foreach (var Version in ModDownload.dlQSLLoader.output)
-                if (IsSuitableQSL(Version.GameVersions, _vanillaName))
-                {
-                    if (!Version.DisplayName.StartsWith("["))
-                    {
-                        ModBase.Log("[Download] 已特判修改 QSL 显示名：" + Version.DisplayName, ModBase.LogLevel.Debug);
-                        Version.DisplayName = "[" + _vanillaName + "] " + Version.DisplayName;
-                    }
-
-                    versions.Add(Version);
-                }
-
-            if (!versions.Any())
-                return;
-            versions = versions.Sort((a, b) => a.ReleaseDate > b.ReleaseDate);
-            // 可视化
-            PanQSL.Children.Clear();
-            foreach (var Version in versions)
-            {
-                if (!IsSuitableQSL(Version.GameVersions, _vanillaName))
-                    continue;
-                PanQSL.Children.Add(
-                    ModDownloadLib.QSLDownloadListItem(Version, (a, b) => this.QSL_Selected((dynamic)a, b)));
-            }
-
-            // 自动选择 QSL
-            if (!autoSelectedQSL)
-            {
-                autoSelectedQSL = true;
-                ModBase.Log($"[Download] 已自动选择 QSL：{((MyListItem)PanQSL.Children[0]).Title}");
-                QSL_Selected((MyListItem)PanQSL.Children[0], null);
-            }
-        }
-        catch (Exception ex)
-        {
-            ModBase.Log(
-                ex,
-                "可视化 QSL 安装版本列表出错",
-                ModBase.LogLevel.Feedback,
-                userSummary: Lang.Text("Instance.Install.Error.OperationFailed"));
-        }
-    }
-
-    // 选择与清除
-    private void QSL_Selected(MyListItem sender, EventArgs e)
-    {
-        selectedQSL = (ModComp.CompFile)sender.Tag;
-        selectedAPIName = "QFAPI / QSL";
-        CardQSL.IsSwapped = true;
-        ReloadSelected();
-    }
-
-    private void QSL_Clear(object sender, MouseButtonEventArgs e)
-    {
-        selectedQSL = null;
-        selectedAPIName = null;
-        CardQSL.IsSwapped = true;
-        e.Handled = true;
-        ReloadSelected();
-    }
-
-    #endregion
 
     #region OptiFabric 列表
 
