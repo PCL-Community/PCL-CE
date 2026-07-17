@@ -285,7 +285,7 @@ public partial class PageSetupLauncherMisc
         sb.Append("/c timeout /t 5 /nobreak >nul & ");
         foreach (var folder in foldersToDelete)
         {
-            sb.Append($"rmdir /s /q \"{folder}\\*\" & ");
+            sb.Append($"rmdir /s /q \"{folder}\" & ");
         }
         
         Process.Start(new ProcessStartInfo
