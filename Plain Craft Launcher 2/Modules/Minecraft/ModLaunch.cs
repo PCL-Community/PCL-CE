@@ -1876,7 +1876,7 @@ public static class ModLaunch
         if (recommendedCode >= 22)
         {
             McLaunchLog("Mojang 要求至少使用 Java " + recommendedCode);
-            minVer = new Version(1, recommendedCode, 0, 0);
+            minVer = new Version(recommendedCode, 0, 0, 0);
             recommendedComponent =
                 ModInstanceList.McMcInstanceSelected.JsonObject?["javaVersion"]?["component"]?.ToString() ??
                 ModInstanceList.McMcInstanceSelected.JsonVersion?["java_component"]?.ToString();
