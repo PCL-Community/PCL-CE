@@ -301,22 +301,14 @@ public partial class PageSetupLauncherMisc
         // 强制退出
         KernelInterop.ExitProcess();
             
-        void Delete(IEnumerable<string> paths, bool directory = false)
+        void Delete(IEnumerable<string> paths)
         {
             foreach (var path in paths)
             {
                 try
                 {
-                    if (directory ? !Directory.Exists(path) : !File.Exists(path)) continue;
-                    
-                    if (directory)
-                    {
-                        Directory.Delete(path, true);
-                    }
-                    else
-                    {
-                        File.Delete(path);
-                    }
+                    if (!File.Exists(path)) continue;
+                    File.Delete(path);
                 }
                 catch (Exception)
                 {
