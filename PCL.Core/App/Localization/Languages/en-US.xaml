@@ -35,7 +35,6 @@
 
     <sys:String x:Key="Common.Dialog.Title">Hint</sys:String>
     <sys:String x:Key="Common.Dialog.Warning">Warning</sys:String>
-    <sys:String x:Key="Common.Dialog.Error">Error</sys:String>
     <sys:String x:Key="Common.Error.InvalidJson">Not a valid JSON file</sys:String>
     <sys:String x:Key="Common.Format.DownloadCount">{0} downloads</sys:String>
     <sys:String x:Key="Common.Format.Number.Digit1">{0}k</sys:String>

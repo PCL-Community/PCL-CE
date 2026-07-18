@@ -35,7 +35,6 @@
 
     <sys:String x:Key="Common.Dialog.Title">提示</sys:String>
     <sys:String x:Key="Common.Dialog.Warning">警告</sys:String>
-    <sys:String x:Key="Common.Dialog.Error">错误</sys:String>
     <sys:String x:Key="Common.Error.InvalidJson">不是有效的 JSON 文件</sys:String>
     <sys:String x:Key="Common.Format.DownloadCount">下载 {0} 次</sys:String>
     <sys:String x:Key="Common.Format.Number.Digit1">{0} 万</sys:String>
