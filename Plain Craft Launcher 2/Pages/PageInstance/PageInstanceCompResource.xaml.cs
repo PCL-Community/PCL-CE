@@ -124,6 +124,12 @@ public partial class PageInstanceCompResource : IRefreshable
             BtnHintDownload.Visibility = Visibility.Collapsed;
         }
 
+        if (currentCompType == ModComp.CompType.Mod)
+            BtnManageJarInJar.Click += (_, _) =>
+                ModMain.frmInstanceLeft?.PageChange(FormMain.PageSubType.VersionModJarInJar);
+        else
+            BtnManageJarInJar.Visibility = Visibility.Collapsed;
+
         Unloaded += Page_Unloaded;
         Loaded += (_, _) => PageOther_Loaded();
         LoaderInit();
@@ -1904,7 +1910,81 @@ public partial class PageInstanceCompResource : IRefreshable
         ChangeAllSelected(false);
     }
 
-    private void EDMods(IEnumerable<ModLocalComp.LocalCompFile> modList, bool isEnable)
+    /// <summary>启用/禁用 Mod。禁用时会检测依赖它的其它 Mod 并弹窗提示是否连带禁用（内嵌模组级联）。</summary>
+    public void EDMods(IEnumerable<ModLocalComp.LocalCompFile> modList, bool isEnable)
+    {
+        var list = modList.ToList();
+        if (!isEnable)
+        {
+            var affected = _JijFindAffected(list);
+            if (affected.Count > 0)
+            {
+                var choice = _AskJijCascade(affected, false);
+                if (choice is null) return;
+                if (choice == 1) list = list.Concat(affected).ToList();
+            }
+        }
+
+        EDModsCore(list, isEnable);
+    }
+
+    /// <summary>删除 Mod。会检测依赖它的其它 Mod 并弹窗提示：仅删此项 / 连带禁用依赖者 / 连带删除依赖者。</summary>
+    public void DeleteMods(IEnumerable<ModLocalComp.LocalCompFile> modList)
+    {
+        var list = modList.ToList();
+        var affected = _JijFindAffected(list);
+        if (affected.Count > 0)
+        {
+            var choice = _AskJijCascade(affected, true);
+            if (choice is null) return;
+            switch (choice)
+            {
+                case 1:
+                    EDModsCore(affected, false);
+                    break;
+                case 2:
+                    list = list.Concat(affected).ToList();
+                    break;
+            }
+        }
+
+        DeleteModsCore(list);
+    }
+
+    // 反查受影响的依赖者（仅 Mod 类型）；非 Mod 或无内嵌依赖返回空
+    private List<ModLocalComp.LocalCompFile> _JijFindAffected(List<ModLocalComp.LocalCompFile> targets)
+    {
+        if (currentCompType != ModComp.CompType.Mod) return new List<ModLocalComp.LocalCompFile>();
+        var index = new ModJarInJarIndex(ModLocalComp.compResourceListLoader.output,
+            PageInstanceLeft.McInstance?.Info?.VanillaName);
+        return index.FindAffected(targets);
+    }
+
+    // 级联选择弹窗；返回 0=仅此项 / 1=连带禁用 /（删除时）2=连带删除；null=取消。名单超 10 条折叠防撑爆
+    private int? _AskJijCascade(List<ModLocalComp.LocalCompFile> affected, bool isDelete)
+    {
+        const int maxShow = 10;
+        var names = string.Join("\n",
+            affected.Take(maxShow).Select(m => " - " + (string.IsNullOrWhiteSpace(m.Name) ? m.FileName : m.Name)));
+        if (affected.Count > maxShow)
+            names += "\n" + Lang.Text("Instance.Resource.Mod.JarInJar.Cascade.More", affected.Count - maxShow);
+
+        var sels = new List<IMyRadio>
+        {
+            new MyRadioBox { Text = Lang.Text("Instance.Resource.Mod.JarInJar.Cascade.OnlySelf") },
+            new MyRadioBox { Text = Lang.Text("Instance.Resource.Mod.JarInJar.Cascade.WithDisable") }
+        };
+        if (isDelete)
+            sels.Add(new MyRadioBox { Text = Lang.Text("Instance.Resource.Mod.JarInJar.Cascade.WithDelete") });
+
+        return ModMain.MyMsgBoxSelect(sels,
+            Lang.Text(isDelete
+                ? "Instance.Resource.Mod.JarInJar.Cascade.DeleteTitle"
+                : "Instance.Resource.Mod.JarInJar.Cascade.DisableTitle", affected.Count, names),
+            Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), true);
+    }
+
+    private void EDModsCore(IEnumerable<ModLocalComp.LocalCompFile> modList, bool isEnable)
     {
         var isSuccessful = true;
         foreach (var ModE in modList)
@@ -2235,7 +2315,7 @@ public partial class PageInstanceCompResource : IRefreshable
         ChangeAllSelected(false);
     }
 
-    private void DeleteMods(IEnumerable<ModLocalComp.LocalCompFile> modList)
+    private void DeleteModsCore(IEnumerable<ModLocalComp.LocalCompFile> modList)
     {
         try
         {

@@ -264,6 +264,7 @@ internal sealed class CrashReportExporter
 
         try
         {
+            ModJarInJarCache.UseInstance(instance.PathInstance);
             var modsFolderName = ModLocalComp.GetPathNameByCompType(ModComp.CompType.Mod);
             var modsFolder = instance.Info.HasLabyMod
                 ? Path.Combine(instance.PathIndie, "labymod-neo", "fabric", instance.Info.VanillaName, modsFolderName)
@@ -345,8 +346,9 @@ internal sealed class CrashReportExporter
             foreach (var mod in activeMods)
             {
                 var line = "|  |-> " + (mod.Name ?? mod.FileName);
-                if (!string.IsNullOrWhiteSpace(mod.Version))
-                    line += $" ({mod.Version})";
+                var version = _CleanVersion(mod.Version);
+                if (!string.IsNullOrWhiteSpace(version))
+                    line += $" ({version})";
                 if (mod.Name != mod.FileName)
                     line += $" [{mod.FileName}]";
                 sb.AppendLine(line);
@@ -370,6 +372,7 @@ internal sealed class CrashReportExporter
                 sb.AppendLine(Lang.Text("Crash.Report.JarInJarMod.JarInJarNone"));
 
             CrashFileIo.WriteText(Path.Combine(reportFolder, ModInfoFileName), sb.ToString(), Encoding.UTF8);
+            ModJarInJarCache.Flush();
             LogWrapper.Info("Crash", "已导出模组列表及 Jar-in-Jar 信息");
         }
         catch (Exception ex)
@@ -395,11 +398,16 @@ internal sealed class CrashReportExporter
         foreach (var mod in mods)
         {
             var line = indent + "|-> " + (mod.Name ?? mod.ModId ?? "?");
-            if (!string.IsNullOrWhiteSpace(mod.Version))
-                line += $" ({mod.Version})";
+            var version = _CleanVersion(mod.Version);
+            if (!string.IsNullOrWhiteSpace(version))
+                line += $" ({version})";
             builder.AppendLine(line);
             if (mod.EmbeddedMods.Any())
                 _AppendEmbeddedMods(builder, mod.EmbeddedMods, depth + 1);
         }
     }
+
+    // 未解析的版本占位符（如 Fabric ${version}、Forge ${file.jarVersion}）显示为空，避免裸 token
+    private static string _CleanVersion(string version)
+        => string.IsNullOrEmpty(version) || version.Contains("${") ? null : version;
 }

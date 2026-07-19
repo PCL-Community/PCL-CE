@@ -832,12 +832,18 @@ public static class ModLocalComp
 
         private Dictionary<string, string> _Dependencies = new();
 
+        // 加载器/平台伪依赖，不作为真实 Mod 依赖收录（保留 minecraft：其版本要求供内嵌目标版本判定使用）
+        private static readonly HashSet<string> _IgnoredDepIds = new(StringComparer.OrdinalIgnoreCase)
+            { "forge", "neoforge", "fabric", "fabricloader", "quilt", "quilt_loader", "java", "mcp" };
+
         private void AddDependency(string modID, string versionRequirement = null)
         {
             // 确保信息正确
             if (modID is null || modID.Length < 2)
                 return;
             modID = modID.ToLower();
+            if (_IgnoredDepIds.Contains(modID))
+                return;
             if (modID == "name" || (ModBase.Val(modID).ToString() ?? "") == (modID ?? ""))
                 return; // 跳过 name 与纯数字 id
             if (versionRequirement is null ||
@@ -876,6 +882,17 @@ public static class ModLocalComp
         ///     LookupMetadata 从已打开的嵌套流读入，虚拟路径不是真实文件，须避免属性 getter 再触发 Load() 清空元数据。
         /// </summary>
         internal void MarkLoaded() => isLoaded = true;
+
+        /// <summary>
+        ///     由 Jar-in-Jar 缓存重建时直接写入已解析的元数据，并标记为已加载（避免属性 getter 触发 Load()）。
+        /// </summary>
+        internal void SetJijMetadata(string name, string modId, string version)
+        {
+            _Name = name;
+            _ModId = modId;
+            _Version = version;
+            isLoaded = true;
+        }
 
         /// <summary>
         ///     Mod 文件是否可被正常读取。
@@ -1096,7 +1113,7 @@ public static class ModLocalComp
                 jar = new ZipArchive(new FileStream(path, FileMode.Open));
                 // 信息获取
                 LookupMetadata(jar);
-                EmbeddedMods = ModJarInJar.Resolve(path, jar);
+                EmbeddedMods = ModJarInJar.ResolveCached(path, jar);
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -1122,6 +1139,12 @@ public static class ModLocalComp
         ///     内嵌模组列表，由 <see cref="ModJarInJar" /> 解析填充。
         /// </summary>
         public List<LocalCompFile> EmbeddedMods { get; internal set; } = new();
+
+        /// <summary>内嵌（Jar-in-Jar）子项声明的加载器（Fabric/Quilt/Forge/NeoForge）；仅内嵌项有值。</summary>
+        public string JijLoader { get; internal set; }
+
+        /// <summary>内嵌（Jar-in-Jar）子项声明的目标 Minecraft 版本范围；仅内嵌项有值。</summary>
+        public string JijTargetMcVersion { get; internal set; }
 
         /// <summary>
         ///     从 Jar 文件中获取 Mod 信息。
@@ -1280,7 +1303,8 @@ public static class ModLocalComp
                     // 依赖处理 (省略了 VB 中的注释部分，按逻辑实现)
                     if (fabricObject.ContainsKey("depends"))
                         foreach (var dep in (JsonObject)fabricObject["depends"])
-                            AddDependency(dep.Key, dep.Value.ToString());
+                            // 版本要求允许为字符串或字符串数组；数组时不取版本，避免 ToString() 污染成 JSON 文本
+                            AddDependency(dep.Key, dep.Value is JsonArray ? null : dep.Value?.ToString());
                 }
                 catch (Exception ex)
                 {
@@ -1484,22 +1508,48 @@ public static class ModLocalComp
                             if (tomlData[0].Value.ContainsKey("authors"))
                                 Authors = tomlData[0].Value["authors"].ToString();
 
-                            // 读取依赖
+                            // 读取依赖：优先 dependencies.<本modid>，并回退裸 [[dependencies]] 与命名不一致的 dependencies.* 段
                             foreach (var subData in tomlData)
-                                if (subData.Key.ToLower() == $"dependencies.{ModId.ToLower()}")
+                            {
+                                var headerL = subData.Key.ToLower();
+                                if (headerL != "dependencies" && !headerL.StartsWithF("dependencies."))
+                                    continue;
                                 {
                                     var depEntry = subData.Value;
-                                    if (depEntry.ContainsKey("modId") &&
-                                        depEntry.ContainsKey("mandatory") && (bool)depEntry["mandatory"] &&
-                                        depEntry.ContainsKey("side") &&
-                                        depEntry["side"].ToString().ToLower() != "server")
-                                        AddDependency(
-                                            depEntry["modId"].ToString(),
-                                            depEntry.ContainsKey("versionRange")
-                                                ? depEntry["versionRange"].ToString()
-                                                : null
-                                        );
+                                    if (depEntry.ContainsKey("modId"))
+                                    {
+                                        // 可选依赖：mandatory=false（Forge）或 type 为可选类（NeoForge）；未显式声明则视为必需
+                                        var optional =
+                                            (depEntry.ContainsKey("mandatory") && depEntry["mandatory"] is bool mb &&
+                                             !mb) ||
+                                            (depEntry.ContainsKey("type") && new[] { "optional", "incompatible", "discouraged" }
+                                                .Contains(depEntry["type"].ToString().ToLower()));
+                                        // 仅服务端依赖与客户端启动无关，排除；side 缺省为 BOTH，不得因缺失而丢弃
+                                        var serverOnly = depEntry.ContainsKey("side") &&
+                                                         depEntry["side"].ToString().ToLower() == "server";
+                                        if (!optional && !serverOnly)
+                                            AddDependency(
+                                                depEntry["modId"].ToString(),
+                                                depEntry.ContainsKey("versionRange")
+                                                    ? depEntry["versionRange"].ToString()
+                                                    : null
+                                            );
+                                    }
                                 }
+                            }
+
+                            // 内联表写法兜底：dependencies[.<id>] = [{ modId="x", ... }]
+                            // 逐行解析器把整行值存为字符串（进不了段落路径），字段名可能是 dependencies 或 dependencies.<自身id>
+                            foreach (var subData in tomlData)
+                                foreach (var kv in subData.Value)
+                                    if (kv.Key.ToLower().StartsWithF("dependencies") &&
+                                        kv.Value is string depsStr &&
+                                        depsStr.IndexOf("modid", StringComparison.OrdinalIgnoreCase) >= 0)
+                                        foreach (System.Text.RegularExpressions.Match dm in
+                                                 System.Text.RegularExpressions.Regex.Matches(depsStr,
+                                                     "modId\\s*=\\s*\"([^\"]+)\"",
+                                                     System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+                                            AddDependency(dm.Groups[1].Value);
 
                             // 加载成功，跳转到完成标签
                             goto Finished;
@@ -1996,6 +2046,7 @@ public static class ModLocalComp
 
             // 加载 Mod 列表 - 优化：对于原理图文件，延迟加载NBT数据
             var modUpdateList = new List<LocalCompFile>();
+            ModJarInJarCache.UseInstance(loader.input.gameVersion.PathInstance);
             foreach (var ModEntry in modList)
             {
                 loader.Progress += 0.94d / modList.Count;
@@ -2028,6 +2079,8 @@ public static class ModLocalComp
 
                 modUpdateList.Add(ModEntry);
             }
+
+            ModJarInJarCache.Flush();
 
             loader.Progress = 0.99d;
             ModBase.Log(
