@@ -70,6 +70,7 @@ public static class ModModpack
 
             // 获取整合包种类与关键 Json
             var packType = -1;
+            ZipArchiveEntry nestedModpackEntry = null;
             do
             {
                 try
@@ -123,11 +124,10 @@ public static class ModModpack
                         break;
                     } // 带启动器的压缩包
 
-                    if (archive.GetEntry("modpack.mrpack") is not null)
+                    nestedModpackEntry = archive.GetEntry("modpack.mrpack");
+                    if (nestedModpackEntry is not null)
                     {
-                        var tempFile = Path.Combine(Paths.Temp, Guid.NewGuid() + ".mrpack");
-                        archive.GetEntry("modpack.mrpack").ExtractToFile(tempFile, overwrite: true);
-                        return ModpackInstall(tempFile);
+                        break;
                     }
 
                     // 从一级目录判断整合包类型
@@ -194,9 +194,9 @@ public static class ModModpack
 
                         if (fullNames[1] == "modpack.mrpack")
                         {
-                            var tempFile = Path.Combine(Paths.Temp, Guid.NewGuid() + ".mrpack");
-                            Entry.ExtractToFile(tempFile, overwrite: true);
-                            return ModpackInstall(tempFile);
+                            nestedModpackEntry = Entry;
+                            exitTry = true;
+                            break;
                         }
                     }
 
@@ -212,6 +212,15 @@ public static class ModModpack
                         throw new Exception(Lang.Text("Minecraft.Download.Modpack.UnsupportedArchive"), ex);
                 }
             } while (false);
+
+            if (nestedModpackEntry is not null)
+            {
+                var tempFile = Path.Combine(ModMain.RequestTaskTempFolder(), "modpack.mrpack");
+                nestedModpackEntry.ExtractToFile(tempFile, overwrite: true);
+                archive.Dispose();
+                archive = null;
+                return ModpackInstall(tempFile, instanceName, logo, resourceId, isOnlineInstall);
+            }
 
             // 执行对应的安装方法
             switch (packType)
