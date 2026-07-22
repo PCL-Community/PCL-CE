@@ -117,11 +117,18 @@ public static class ModModpack
                         break;
                     } // HMCL 整合包
 
-                    if (archive.GetEntry("modpack.zip") is not null || archive.GetEntry("modpack.mrpack") is not null)
+                    if (archive.GetEntry("modpack.zip") is not null)
                     {
                         packType = 9;
                         break;
                     } // 带启动器的压缩包
+
+                    if (archive.GetEntry("modpack.mrpack") is not null)
+                    {
+                        var tempFile = Path.Combine(Paths.Temp, Guid.NewGuid() + ".mrpack");
+                        archive.GetEntry("modpack.mrpack").ExtractToFile(tempFile, overwrite: true);
+                        return ModpackInstall(tempFile);
+                    }
 
                     // 从一级目录判断整合包类型
                     var exitTry = false;
@@ -178,12 +185,19 @@ public static class ModModpack
                             break;
                         } // HMCL 整合包
 
-                        if (fullNames[1] == "modpack.zip" || fullNames[1] == "modpack.mrpack")
+                        if (fullNames[1] == "modpack.zip")
                         {
                             packType = 9;
                             exitTry = true;
                             break;
                         } // 带启动器的压缩包
+
+                        if (fullNames[1] == "modpack.mrpack")
+                        {
+                            var tempFile = Path.Combine(Paths.Temp, Guid.NewGuid() + ".mrpack");
+                            Entry.ExtractToFile(tempFile, overwrite: true);
+                            return ModpackInstall(tempFile);
+                        }
                     }
 
                     if (exitTry) break;
