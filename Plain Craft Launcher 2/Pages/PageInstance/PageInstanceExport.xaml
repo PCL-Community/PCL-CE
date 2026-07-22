@@ -234,7 +234,7 @@
                                 <local:ExportOption
                                     Title="{DynamicResource Instance.Export.Option.Launcher}"
                                     Description="{DynamicResource Instance.Export.Option.Launcher.Desc}"
-                                    DefaultChecked="True" />
+                                    DefaultChecked="False" />
                             </local:MyCheckBox.Tag>
                         </local:MyCheckBox>
                         <StackPanel Margin="30,0,0,0"
