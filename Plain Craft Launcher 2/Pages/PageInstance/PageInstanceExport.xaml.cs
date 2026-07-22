@@ -837,10 +837,10 @@ public partial class PageInstanceExport : IRefreshable
         if (packPath is null)
         {
             var extensions = new List<string>();
-            if (CheckOptionsPcl.Checked == false)
-                extensions.Add(Lang.Text("Instance.Export.MrpackFilter"));
             if (CheckAdvancedModrinth.Checked == false)
                 extensions.Add(Lang.Text("Instance.Export.ZipFilter"));
+            if (CheckOptionsPcl.Checked == false)
+                extensions.Add(Lang.Text("Instance.Export.MrpackFilter"));
             packPath = SystemDialogs.SelectSaveFile(Lang.Text("Instance.Export.SelectSaveLocation"),
                 packName + (string.IsNullOrEmpty(TextExportVersion.Text) ? "" : " " + TextExportVersion.Text),
                 extensions.Join("|"));
