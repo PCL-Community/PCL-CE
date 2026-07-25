@@ -29,7 +29,14 @@ public partial class PageInstanceCompJarInJar
 
     private void RefreshList()
     {
-        var allMods = ModLocalComp.compResourceListLoader.output.Where(m => !m.IsFolder).ToList();
+        var output = ModLocalComp.compResourceListLoader.output;
+        if (!_OutputBelongsToCurrentInstance(output))
+        {
+            GoBack();
+            return;
+        }
+
+        var allMods = output.Where(m => !m.IsFolder).ToList();
         _index = new ModJarInJarIndex(allMods, PageInstanceLeft.McInstance?.Info?.VanillaName);
         PanLoad.Visibility = Visibility.Collapsed;
 
@@ -37,7 +44,8 @@ public partial class PageInstanceCompJarInJar
         foreach (var mod in allMods)
         {
             var missing = mod.Dependencies.Keys
-                .Where(k => !ModJarInJarIndex.IsPlatform(k) && _index.Analyze(mod, k) == JijDepStatus.Missing)
+                .Where(k => !ModJarInJarIndex.IsPlatform(k) && !mod.OptionalDependencies.Contains(k) &&
+                            _index.Analyze(mod, k) == JijDepStatus.Missing)
                 .ToList();
             if (missing.Count > 0)
                 PanWarnList.Children.Add(_Text(
@@ -86,7 +94,8 @@ public partial class PageInstanceCompJarInJar
     {
         var deps = mod.Dependencies.Keys.Where(k => !ModJarInJarIndex.IsPlatform(k)).ToList();
         foreach (var dep in deps)
-            stack.Children.Add(BuildDependencyRow(mod, dep, mod.Dependencies[dep]));
+            stack.Children.Add(BuildDependencyRow(mod, dep, mod.Dependencies[dep],
+                mod.OptionalDependencies.Contains(dep)));
     }
 
     // 内嵌模组：仅展示内嵌树（禁用/删除请在模组列表进行，级联在那里统一处理）
@@ -111,39 +120,67 @@ public partial class PageInstanceCompJarInJar
         {
             Orientation = Orientation.Horizontal, Margin = new Thickness(8 + depth * 20, 2, 0, 2)
         };
-        row.Children.Add(_Text("• " + _DisplayName(e), _BrushMain, true));
-        if (!string.IsNullOrEmpty(e.Version))
-            row.Children.Add(_Text("  " + e.Version, _BrushGray));
+        row.Children.Add(_TextRes("• " + _DisplayName(e), "ColorBrush1", true));
+        var ver = _CleanPlaceholder(e.Version);
+        if (!string.IsNullOrEmpty(ver))
+            row.Children.Add(_TextRes("  (" + ver + ")", "ColorBrush2"));
         if (!string.IsNullOrEmpty(e.JijLoader))
-            row.Children.Add(_Text("  [" + e.JijLoader + "]", _BrushGray));
-        if (!string.IsNullOrEmpty(e.JijTargetMcVersion))
-            row.Children.Add(_Text("  MC " + e.JijTargetMcVersion, _BrushGray));
+            row.Children.Add(_TextRes("  [" + e.JijLoader + "]", "ColorBrush2"));
+        var mc = _CleanPlaceholder(e.JijTargetMcVersion);
+        if (!string.IsNullOrEmpty(mc))
+            row.Children.Add(_TextRes("  MC " + mc, "ColorBrush2"));
         return row;
     }
 
-    private Panel BuildDependencyRow(CompFile mod, string depId, string versionReq)
+    private Panel BuildDependencyRow(CompFile mod, string depId, string versionReq, bool optional)
     {
-        var (label, brush) = _StatusText(_index.Analyze(mod, depId));
+        var status = _index.Analyze(mod, depId);
         var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(8, 2, 0, 2) };
         var text = versionReq is null ? depId : depId + " " + versionReq;
-        row.Children.Add(_Text("• " + text, _BrushMain));
-        row.Children.Add(_Text("  (" + label + ")", brush));
+        row.Children.Add(_TextRes("• " + text, "ColorBrush1"));
+        if (optional)
+            row.Children.Add(_TextRes("  " + Lang.Text("Instance.Resource.Mod.JarInJar.Dep.Optional"), "ColorBrush2"));
+        var label = "  (" + _StatusLabel(status) + ")";
+        // 可选依赖缺失不算问题，用主题灰；其余：内嵌提供灰、已装/已禁/缺失为绿/橙/红语义色
+        if (optional || status == JijDepStatus.Bundled)
+            row.Children.Add(_TextRes(label, "ColorBrush2"));
+        else
+            row.Children.Add(_Text(label, _StatusBrush(status)));
         return row;
     }
 
-    private static (string, Brush) _StatusText(JijDepStatus status) => status switch
+    private static string _StatusLabel(JijDepStatus status) => Lang.Text(status switch
     {
-        JijDepStatus.Installed => (Lang.Text("Instance.Resource.Mod.JarInJar.Dep.Installed"), _BrushOk),
-        JijDepStatus.Disabled => (Lang.Text("Instance.Resource.Mod.JarInJar.Dep.Disabled"), _BrushWarn),
-        JijDepStatus.Bundled => (Lang.Text("Instance.Resource.Mod.JarInJar.Dep.Bundled"), _BrushGray),
-        _ => (Lang.Text("Instance.Resource.Mod.JarInJar.Dep.Missing"), _BrushError)
+        JijDepStatus.Installed => "Instance.Resource.Mod.JarInJar.Dep.Installed",
+        JijDepStatus.Disabled => "Instance.Resource.Mod.JarInJar.Dep.Disabled",
+        JijDepStatus.Bundled => "Instance.Resource.Mod.JarInJar.Dep.Bundled",
+        _ => "Instance.Resource.Mod.JarInJar.Dep.Missing"
+    });
+
+    private static Brush _StatusBrush(JijDepStatus status) => status switch
+    {
+        JijDepStatus.Installed => _BrushOk,
+        JijDepStatus.Disabled => _BrushWarn,
+        _ => _BrushError
     };
 
     #endregion
 
     #region 辅助
 
+    // output 是否属于当前实例（mod 路径必在实例游戏目录 PathIndie 下）；空列表无从判断按匹配处理避免误弹
+    private static bool _OutputBelongsToCurrentInstance(List<CompFile> output)
+    {
+        var inst = PageInstanceLeft.McInstance;
+        if (inst is null || output is null) return false;
+        var first = output.FirstOrDefault(m => !string.IsNullOrEmpty(m.path));
+        return first is null || first.path.StartsWith(inst.PathIndie, StringComparison.OrdinalIgnoreCase);
+    }
+
     // 与模组列表卡片一致的名称显示：有在线工程信息时用 译名 | 原名，否则回退本地名/文件名
+    // 未替换的版本占位符（Forge ${file.jarVersion}、Fabric ${version} 等）不显示原文
+    private static string _CleanPlaceholder(string v) => string.IsNullOrEmpty(v) || v.Contains("${") ? null : v;
+
     private static string _DisplayName(CompFile m)
     {
         if (m.Comp is not null)
@@ -155,8 +192,6 @@ public partial class PageInstanceCompJarInJar
         return string.IsNullOrWhiteSpace(m.Name) ? m.FileName : m.Name;
     }
 
-    private static readonly Brush _BrushMain = (Brush)Application.Current.Resources["ColorBrush1"];
-    private static readonly Brush _BrushGray = (Brush)Application.Current.Resources["ColorBrush2"];
     private static readonly Brush _BrushOk = new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50));
     private static readonly Brush _BrushWarn = new SolidColorBrush(Color.FromRgb(0xFF, 0x98, 0x00));
     private static readonly Brush _BrushError = new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35));
@@ -166,6 +201,17 @@ public partial class PageInstanceCompJarInJar
         Text = text, Foreground = brush, VerticalAlignment = VerticalAlignment.Center,
         FontWeight = bold ? FontWeights.Bold : FontWeights.Normal, TextWrapping = TextWrapping.Wrap
     };
+
+    private static TextBlock _TextRes(string text, string resourceKey, bool bold = false)
+    {
+        var tb = new TextBlock
+        {
+            Text = text, VerticalAlignment = VerticalAlignment.Center,
+            FontWeight = bold ? FontWeights.Bold : FontWeights.Normal, TextWrapping = TextWrapping.Wrap
+        };
+        tb.SetResourceReference(TextBlock.ForegroundProperty, resourceKey);
+        return tb;
+    }
 
     #endregion
 }

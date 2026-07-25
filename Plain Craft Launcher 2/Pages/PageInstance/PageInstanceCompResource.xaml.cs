@@ -1931,6 +1931,8 @@ public partial class PageInstanceCompResource : IRefreshable
     /// <summary>删除 Mod。会检测依赖它的其它 Mod 并弹窗提示：仅删此项 / 连带禁用依赖者 / 连带删除依赖者。</summary>
     public void DeleteMods(IEnumerable<ModLocalComp.LocalCompFile> modList)
     {
+        // 在弹出级联模态框之前捕获 Shift（永久删除意图），否则选完档位时 Shift 多半已松开
+        var isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
         var list = modList.ToList();
         var affected = _JijFindAffected(list);
         if (affected.Count > 0)
@@ -1948,27 +1950,23 @@ public partial class PageInstanceCompResource : IRefreshable
             }
         }
 
-        DeleteModsCore(list);
+        DeleteModsCore(list, isShiftPressed);
     }
 
     // 反查受影响的依赖者（仅 Mod 类型）；非 Mod 或无内嵌依赖返回空
     private List<ModLocalComp.LocalCompFile> _JijFindAffected(List<ModLocalComp.LocalCompFile> targets)
     {
         if (currentCompType != ModComp.CompType.Mod) return new List<ModLocalComp.LocalCompFile>();
-        var index = new ModJarInJarIndex(ModLocalComp.compResourceListLoader.output,
-            PageInstanceLeft.McInstance?.Info?.VanillaName);
+        // 列表尚未就绪则不做级联（不阻塞操作，也避免对 null 列表构建索引）
+        var output = ModLocalComp.compResourceListLoader.output;
+        if (output is null) return new List<ModLocalComp.LocalCompFile>();
+        var index = new ModJarInJarIndex(output, PageInstanceLeft.McInstance?.Info?.VanillaName);
         return index.FindAffected(targets);
     }
 
-    // 级联选择弹窗；返回 0=仅此项 / 1=连带禁用 /（删除时）2=连带删除；null=取消。名单超 10 条折叠防撑爆
+    // 级联选择弹窗；返回 0=仅此项 / 1=连带禁用 /（删除时）2=连带删除；null=取消
     private int? _AskJijCascade(List<ModLocalComp.LocalCompFile> affected, bool isDelete)
     {
-        const int maxShow = 10;
-        var names = string.Join("\n",
-            affected.Take(maxShow).Select(m => " - " + (string.IsNullOrWhiteSpace(m.Name) ? m.FileName : m.Name)));
-        if (affected.Count > maxShow)
-            names += "\n" + Lang.Text("Instance.Resource.Mod.JarInJar.Cascade.More", affected.Count - maxShow);
-
         var sels = new List<IMyRadio>
         {
             new MyRadioBox { Text = Lang.Text("Instance.Resource.Mod.JarInJar.Cascade.OnlySelf") },
@@ -1980,7 +1978,7 @@ public partial class PageInstanceCompResource : IRefreshable
         return ModMain.MyMsgBoxSelect(sels,
             Lang.Text(isDelete
                 ? "Instance.Resource.Mod.JarInJar.Cascade.DeleteTitle"
-                : "Instance.Resource.Mod.JarInJar.Cascade.DisableTitle", affected.Count, names),
+                : "Instance.Resource.Mod.JarInJar.Cascade.DisableTitle", affected.Count),
             Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), true);
     }
 
@@ -2315,12 +2313,11 @@ public partial class PageInstanceCompResource : IRefreshable
         ChangeAllSelected(false);
     }
 
-    private void DeleteModsCore(IEnumerable<ModLocalComp.LocalCompFile> modList)
+    private void DeleteModsCore(IEnumerable<ModLocalComp.LocalCompFile> modList, bool isShiftPressed)
     {
         try
         {
             var isSuccessful = true;
-            var isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
             // 确认需要删除的文件
             // 文件夹只需要删除自身
             modList = modList.SelectMany(target =>

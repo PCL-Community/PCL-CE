@@ -1090,12 +1090,12 @@
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Disabled">Disabled</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Bundled">Bundled</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Missing">Missing</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Optional">[optional]</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.OnlySelf">Only this mod</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.WithDisable">Also disable mods that depend on it</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.WithDelete">Also delete mods that depend on it</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.DisableTitle">Disabling this mod affects {0} mod(s) that depend on it:&#xA;{1}&#xA;Choose how to proceed</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.DeleteTitle">Deleting this mod affects {0} mod(s) that depend on it:&#xA;{1}&#xA;Choose how to proceed</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.More">…and {0} more</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.DisableTitle">Disabling this mod affects {0} mod(s) that depend on it. Choose how to proceed:</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.DeleteTitle">Deleting this mod affects {0} mod(s) that depend on it. Choose how to proceed:</sys:String>
     <sys:String x:Key="Instance.Resource.Schematic.DownloadMod">Download Litematica</sys:String>
     <sys:String x:Key="Instance.Resource.Schematic.Unavailable.Message">You may need to install the Litematica mod first. If you have already installed one, please launch the game once.&#xA;Alternatively, you may have selected the wrong instance. Please use the instance selection button to switch instances.</sys:String>
     <sys:String x:Key="Instance.Resource.Schematic.Unavailable.Title">Schematics unavailable for this instance</sys:String>

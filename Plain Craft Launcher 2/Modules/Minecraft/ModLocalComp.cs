@@ -832,17 +832,28 @@ public static class ModLocalComp
 
         private Dictionary<string, string> _Dependencies = new();
 
-        // 加载器/平台伪依赖，不作为真实 Mod 依赖收录（保留 minecraft：其版本要求供内嵌目标版本判定使用）
-        private static readonly HashSet<string> _IgnoredDepIds = new(StringComparer.OrdinalIgnoreCase)
-            { "forge", "neoforge", "fabric", "fabricloader", "quilt", "quilt_loader", "java", "mcp" };
+        /// <summary>
+        ///     其中被声明为可选（optional / mandatory=false）的依赖 ModID 子集。这些依赖仍列入
+        ///     <see cref="Dependencies" /> 供展示（标注"可选"），但不参与缺失前置警告与禁用/删除级联。
+        /// </summary>
+        public HashSet<string> OptionalDependencies
+        {
+            get
+            {
+                Load();
+                return _OptionalDependencies;
+            }
+        }
 
-        private void AddDependency(string modID, string versionRequirement = null)
+        private readonly HashSet<string> _OptionalDependencies = new(StringComparer.OrdinalIgnoreCase);
+
+        private void AddDependency(string modID, string versionRequirement = null, bool optional = false)
         {
             // 确保信息正确
             if (modID is null || modID.Length < 2)
                 return;
             modID = modID.ToLower();
-            if (_IgnoredDepIds.Contains(modID))
+            if (ModDependencyIds.IsLoaderId(modID)) // 加载器/平台伪依赖不收录（minecraft 除外，其版本另有用途）
                 return;
             if (modID == "name" || (ModBase.Val(modID).ToString() ?? "") == (modID ?? ""))
                 return; // 跳过 name 与纯数字 id
@@ -863,6 +874,9 @@ public static class ModLocalComp
             {
                 _Dependencies.Add(modID, versionRequirement);
             }
+
+            if (optional) _OptionalDependencies.Add(modID);
+            else _OptionalDependencies.Remove(modID); // 任一处声明为必需即覆盖可选标记
         }
 
         #endregion
@@ -1030,13 +1044,26 @@ public static class ModLocalComp
             }
         }
 
+        private readonly object _loadLock = new();
+
         /// <summary>
         ///     进行文件可用性检查与 .class 以外的信息获取。
+        ///     加载器线程与 UI 线程的属性 getter 可能并发触发，须加锁防止同一文件被并行解析。
         /// </summary>
         public void Load(bool forceReload = false)
         {
             if (isLoaded && !forceReload)
                 return;
+            lock (_loadLock)
+            {
+                if (isLoaded && !forceReload)
+                    return;
+                LoadCore();
+            }
+        }
+
+        private void LoadCore()
+        {
             // 初始化
             Init();
 
@@ -1137,8 +1164,19 @@ public static class ModLocalComp
 
         /// <summary>
         ///     内嵌模组列表，由 <see cref="ModJarInJar" /> 解析填充。
+        ///     惰性触发 Load：启/禁用后实体会被替换为未加载的新实例，直读字段会拿到空列表。
         /// </summary>
-        public List<LocalCompFile> EmbeddedMods { get; internal set; } = new();
+        public List<LocalCompFile> EmbeddedMods
+        {
+            get
+            {
+                Load();
+                return _EmbeddedMods;
+            }
+            internal set => _EmbeddedMods = value;
+        }
+
+        private List<LocalCompFile> _EmbeddedMods = new();
 
         /// <summary>内嵌（Jar-in-Jar）子项声明的加载器（Fabric/Quilt/Forge/NeoForge）；仅内嵌项有值。</summary>
         public string JijLoader { get; internal set; }
@@ -1518,38 +1556,45 @@ public static class ModLocalComp
                                     var depEntry = subData.Value;
                                     if (depEntry.ContainsKey("modId"))
                                     {
-                                        // 可选依赖：mandatory=false（Forge）或 type 为可选类（NeoForge）；未显式声明则视为必需
-                                        var optional =
-                                            (depEntry.ContainsKey("mandatory") && depEntry["mandatory"] is bool mb &&
-                                             !mb) ||
-                                            (depEntry.ContainsKey("type") && new[] { "optional", "incompatible", "discouraged" }
-                                                .Contains(depEntry["type"].ToString().ToLower()));
-                                        // 仅服务端依赖与客户端启动无关，排除；side 缺省为 BOTH，不得因缺失而丢弃
-                                        var serverOnly = depEntry.ContainsKey("side") &&
-                                                         depEntry["side"].ToString().ToLower() == "server";
-                                        if (!optional && !serverOnly)
+                                        var type = depEntry.ContainsKey("type")
+                                            ? depEntry["type"].ToString().ToLower()
+                                            : null;
+                                        // incompatible/discouraged 是排斥/劝退，不是依赖，跳过；
+                                        // 仅服务端依赖与客户端无关，跳过（side 缺省为 BOTH，不得因缺失而丢弃）
+                                        var skip = type is "incompatible" or "discouraged" ||
+                                                   (depEntry.ContainsKey("side") &&
+                                                    depEntry["side"].ToString().ToLower() == "server");
+                                        // optional：type=optional 或 mandatory=false；未显式声明即必需
+                                        var optional = type == "optional" ||
+                                                       (depEntry.ContainsKey("mandatory") &&
+                                                        depEntry["mandatory"] is bool mb && !mb);
+                                        if (!skip)
                                             AddDependency(
                                                 depEntry["modId"].ToString(),
                                                 depEntry.ContainsKey("versionRange")
                                                     ? depEntry["versionRange"].ToString()
-                                                    : null
-                                            );
+                                                    : null,
+                                                optional);
                                     }
                                 }
                             }
 
-                            // 内联表写法兜底：dependencies[.<id>] = [{ modId="x", ... }]
-                            // 逐行解析器把整行值存为字符串（进不了段落路径），字段名可能是 dependencies 或 dependencies.<自身id>
-                            foreach (var subData in tomlData)
-                                foreach (var kv in subData.Value)
-                                    if (kv.Key.ToLower().StartsWithF("dependencies") &&
-                                        kv.Value is string depsStr &&
-                                        depsStr.IndexOf("modid", StringComparison.OrdinalIgnoreCase) >= 0)
-                                        foreach (System.Text.RegularExpressions.Match dm in
-                                                 System.Text.RegularExpressions.Regex.Matches(depsStr,
-                                                     "modId\\s*=\\s*\"([^\"]+)\"",
-                                                     System.Text.RegularExpressions.RegexOptions.IgnoreCase))
-                                            AddDependency(dm.Groups[1].Value);
+                            foreach (Match arr in Regex.Matches(tomlText, @"dependencies[.\w]*\s*=\s*\[(.*?)\]",
+                                         RegexOptions.IgnoreCase | RegexOptions.Singleline))
+                                foreach (Match obj in Regex.Matches(arr.Groups[1].Value, @"\{([^}]*)\}"))
+                                {
+                                    var body = obj.Groups[1].Value;
+                                    var idMatch = Regex.Match(body, "modId\\s*=\\s*\"([^\"]+)\"", RegexOptions.IgnoreCase);
+                                    if (!idMatch.Success) continue;
+                                    var lower = body.ToLower();
+                                    // 排斥/劝退/仅服务端：不是依赖，跳过
+                                    if (lower.Contains("\"incompatible\"") || lower.Contains("\"discouraged\"") ||
+                                        Regex.IsMatch(body, "side\\s*=\\s*\"server\"", RegexOptions.IgnoreCase))
+                                        continue;
+                                    var optional = lower.Contains("mandatory=false") ||
+                                                   lower.Contains("mandatory = false") || lower.Contains("\"optional\"");
+                                    AddDependency(idMatch.Groups[1].Value, null, optional);
+                                }
 
                             // 加载成功，跳转到完成标签
                             goto Finished;
@@ -2080,6 +2125,7 @@ public static class ModLocalComp
                 modUpdateList.Add(ModEntry);
             }
 
+            ModJarInJarCache.Prune(modList.Where(m => !m.IsFolder).Select(m => m.path));
             ModJarInJarCache.Flush();
 
             loader.Progress = 0.99d;

@@ -1090,12 +1090,12 @@
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Disabled">已禁用</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Bundled">内嵌提供</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Missing">缺失</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Optional">[可选]</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.OnlySelf">仅操作此模组</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.WithDisable">连带禁用依赖它的模组</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.WithDelete">连带删除依赖它的模组</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.DisableTitle">禁用此模组会影响 {0} 个依赖它的模组：&#xA;{1}&#xA;请选择处理方式</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.DeleteTitle">删除此模组会影响 {0} 个依赖它的模组：&#xA;{1}&#xA;请选择处理方式</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.More">…以及其它 {0} 个</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.DisableTitle">禁用此模组会影响 {0} 个依赖它的模组，请选择处理方式</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.DeleteTitle">删除此模组会影响 {0} 个依赖它的模组，请选择处理方式</sys:String>
     <sys:String x:Key="Instance.Resource.Schematic.DownloadMod">下载投影模组</sys:String>
     <sys:String x:Key="Instance.Resource.Schematic.Unavailable.Message">你可能需要先安装投影模组，如果已经安装过了投影模组请先启动一次游戏。&#xA;也可能是你选择错了实例，请点击实例选择按钮切换实例。</sys:String>
     <sys:String x:Key="Instance.Resource.Schematic.Unavailable.Title">该实例不可用投影原理图</sys:String>

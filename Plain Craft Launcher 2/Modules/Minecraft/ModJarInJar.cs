@@ -19,7 +19,7 @@ public static class ModJarInJar
     ///     解析 <paramref name="jar" /> 内嵌套的其它 Mod jar，返回内嵌 Mod 列表。
     /// </summary>
     public static List<ModLocalComp.LocalCompFile> Resolve(string parentPath, ZipArchive jar, int depth = 0)
-        => _Resolve(parentPath, jar, depth, new[] { MaxNodes });
+        => _Resolve(parentPath, jar, depth, new[] { MaxNodes, 0 });
 
     /// <summary>
     ///     带持久化缓存的解析：按文件指纹命中缓存则直接重建，否则解析并写入缓存（批量结束后需调用
@@ -42,8 +42,11 @@ public static class ModJarInJar
         var cached = ModJarInJarCache.TryGet(modFilePath, lastModified, size);
         if (cached is not null) return _FromNodes(cached, modFilePath);
 
-        var tree = Resolve(modFilePath, jar);
-        ModJarInJarCache.Set(modFilePath, lastModified, size, _ToNodes(tree));
+        var budget = new[] { MaxNodes, 0 };
+        var tree = _Resolve(modFilePath, jar, 0, budget);
+        // 截断树（预算耗尽，budget[1]==1）不入盘：宿主指纹不变会被永久复用，缺失的 id 永不再现；下次启动重扫
+        if (budget[1] == 0)
+            ModJarInJarCache.Set(modFilePath, lastModified, size, _ToNodes(tree));
         return tree;
     }
 
@@ -62,6 +65,7 @@ public static class ModJarInJar
     private static List<ModLocalComp.LocalCompFile> _FromNodes(List<EmbeddedModNode> nodes, string parentPath)
     {
         var result = new List<ModLocalComp.LocalCompFile>();
+        if (nodes is null) return result;
         foreach (var node in nodes)
         {
             var childPath = parentPath + "!/" + node.FileName;
@@ -89,7 +93,12 @@ public static class ModJarInJar
 
         foreach (var nestedPath in nestedPaths.Distinct())
         {
-            if (budget[0] <= 0) break; // 总节点预算，避免病态嵌套爆树
+            if (budget[0] <= 0)
+            {
+                budget[1] = 1; // 节点预算耗尽，标记截断（供上层决定不入盘），避免病态嵌套爆树
+                break;
+            }
+
             var entry = jar.GetEntry(nestedPath);
             if (entry is null) continue;
             budget[0]--;
@@ -100,12 +109,15 @@ public static class ModJarInJar
             // 始终列出该内嵌项：即使下方元数据解析/递归失败，也能按文件名保留（不丢节点）
             result.Add(child);
 
+            string tmp = null;
             try
             {
-                using var ms = new MemoryStream();
-                using (var es = entry.Open()) es.CopyTo(ms);
-                ms.Position = 0;
-                using var nestedJar = new ZipArchive(ms, ZipArchiveMode.Read);
+                // 嵌套流不可 seek，落临时文件后再作为 zip 打开，避免大嵌套 jar 全量进内存
+                tmp = Path.GetTempFileName();
+                using (var es = entry.Open())
+                using (var fs = File.Create(tmp))
+                    es.CopyTo(fs);
+                using var nestedJar = ZipFile.OpenRead(tmp);
                 child.LookupMetadata(nestedJar);
                 child.JijLoader = _DetectLoader(nestedJar);
                 child.JijTargetMcVersion = child.Dependencies.TryGetValue("minecraft", out var mc) ? mc : null;
@@ -114,6 +126,12 @@ public static class ModJarInJar
             catch (Exception ex)
             {
                 ModBase.Log(ex, "解析内嵌 Mod 失败（" + parentPath + " -> " + nestedPath + "）", ModBase.LogLevel.Developer);
+            }
+            finally
+            {
+                if (tmp is not null)
+                    try { File.Delete(tmp); }
+                    catch { /* 临时文件清理失败无妨 */ }
             }
         }
 
