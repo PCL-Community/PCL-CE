@@ -207,9 +207,21 @@ public static class McConstraintMatcher
 
             if (cur >= 0) nums.Add(cur);
             if (nums.Count == 0) return false;
-            var upper = (tilde || nums[0] == 0) && nums.Count >= 2
-                ? nums[0] + "." + (nums[1] + 1)
-                : (nums[0] + 1).ToString();
+            string upper;
+            if (tilde)
+            {
+                // ~：允许 patch 级更新，上界为 minor+1（只有 major 时为 major+1）
+                upper = nums.Count >= 2 ? nums[0] + "." + (nums[1] + 1) : (nums[0] + 1).ToString();
+            }
+            else
+            {
+                // ^：上界为第一个非零组件 +1（其后组件归零）；^0.0.3 → 0.0.4，^0.2.3 → 0.3，^1.2.3 → 2
+                var idx = 0;
+                while (idx < nums.Count && nums[idx] == 0) idx++;
+                if (idx >= nums.Count) idx = nums.Count - 1; // 全零 ^0.0.0：上界为末位 +1（仅匹配自身）
+                upper = string.Join(".", nums.Take(idx).Concat(new[] { nums[idx] + 1 }));
+            }
+
             return McVersionComparer.CompareVersion(mc, upper) < 0;
         }
 

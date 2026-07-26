@@ -875,9 +875,9 @@ public static class ModLocalComp
                 return;
             if (modID == "name" || (ModBase.Val(modID).ToString() ?? "") == (modID ?? ""))
                 return; // 跳过 name 与纯数字 id
-            var raw = versionRequirement is null ||
-                      (!versionRequirement.Contains(".") && !versionRequirement.Contains("-")) ||
-                      versionRequirement.Contains("$")
+            // 原始约束：仅剔除空值与占位符，语法有效性交给 McConstraintMatcher；
+            // 不能因"无 . 无 -"就丢掉 >=2 / [2,) 这类合法整数约束（否则任何 provider 版本都会被判满足）
+            var raw = string.IsNullOrWhiteSpace(versionRequirement) || versionRequirement.Contains("$")
                 ? null
                 : versionRequirement;
             if (!_DependencyRaw.TryGetValue(modID, out var oldRaw) || oldRaw is null) _DependencyRaw[modID] = raw;

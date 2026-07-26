@@ -379,6 +379,12 @@ internal sealed class CrashReportExporter
         {
             LogWrapper.Warn(ex, "Crash", "导出模组信息失败");
         }
+        finally
+        {
+            // 复位本线程的"当前实例"：含 mods 目录不存在的 early return 与异常路径，
+            // 否则本线程后续懒加载别实例的 Mod 会被路由进本实例缓存
+            ModJarInJarCache.UseInstance(null);
+        }
     }
 
     private static IEnumerable<ModLocalComp.LocalCompFile> _FlattenEmbedded(List<ModLocalComp.LocalCompFile> mods)
