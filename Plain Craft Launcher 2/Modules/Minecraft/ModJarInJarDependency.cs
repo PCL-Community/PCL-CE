@@ -89,14 +89,9 @@ public class ModJarInJarIndex
                     Optional = n.OptionalDependencies.Contains(kv.Key), Loader = n.JijLoader
                 });
             _deps[m] = rows
-                .GroupBy(r => r.DepId, StringComparer.OrdinalIgnoreCase)
-                .Select(g => new DepRow
-                {
-                    DepId = g.Key,
-                    Raw = g.Select(r => r.Raw).FirstOrDefault(v => v is not null),
-                    Optional = g.All(r => r.Optional),
-                    Loader = g.Select(r => r.Loader).FirstOrDefault(l => l is not null)
-                }).ToList();
+                .GroupBy(r => (r.DepId, r.Raw, r.Loader, r.Optional))
+                .Select(g => g.First())
+                .ToList();
         }
     }
 
