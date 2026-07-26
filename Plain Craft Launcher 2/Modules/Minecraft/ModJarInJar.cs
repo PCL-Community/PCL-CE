@@ -119,7 +119,7 @@ public static class ModJarInJar
                     es.CopyTo(fs);
                 using var nestedJar = ZipFile.OpenRead(tmp);
                 child.LookupMetadata(nestedJar);
-                child.JijLoader = _DetectLoader(nestedJar);
+                child.JijLoader = DetectLoader(nestedJar);
                 // 用原始约束（未 Maven 化），保留 Fabric semver 原貌供求值
                 child.JijTargetMcVersion = child.DependencyRaw.TryGetValue("minecraft", out var mc) ? mc : null;
                 child.EmbeddedMods = _Resolve(childPath, nestedJar, depth + 1, budget);
@@ -219,7 +219,8 @@ public static class ModJarInJar
         }
     }
 
-    private static string _DetectLoader(ZipArchive jar)
+    /// <summary>按存在的清单文件判断 jar 声明的加载器（Fabric/Quilt/Forge/NeoForge）；无从判断返回 null。</summary>
+    public static string DetectLoader(ZipArchive jar)
     {
         if (jar.GetEntry("fabric.mod.json") is not null) return "Fabric";
         if (jar.GetEntry("quilt.mod.json") is not null) return "Quilt";

@@ -66,7 +66,7 @@ public class ModJarInJarIndex
         if (string.IsNullOrWhiteSpace(providerVersion)) return true;
         var ver = providerVersion.Split('+')[0].Trim(); // 剥 semver 构建元数据（1.0.82+mc1.21.1）
         if (ver.Length == 0 || !char.IsDigit(ver[0])) return true;
-        return McConstraintMatcher.Satisfies(req, null, ver);
+        return McConstraintMatcher.Satisfies(req, dependent.DetectedLoader, ver);
     }
 
     // 本 Mod 自己内嵌的副本是否满足其对该依赖的版本要求（内嵌了但版本不够时不算满足）

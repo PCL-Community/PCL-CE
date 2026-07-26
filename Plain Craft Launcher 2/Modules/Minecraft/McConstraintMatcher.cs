@@ -183,7 +183,9 @@ public static class McConstraintMatcher
         while (i < term.Length && "><=".IndexOf(term[i]) >= 0) i++;
         var op = term.Substring(0, i);
         var ver = term.Substring(i).Trim();
-        if (ver.EndsWith("-")) ver = ver.Substring(0, ver.Length - 1); // Fabric 预发布标记，如 ">=26.1-"
+        // Fabric 预发布下限语法 ">=26.1-"：下界纳入 26.1 的预发布（26.1-pre1 等），而非稳定版 26.1
+        var prereleaseFloor = ver.EndsWith("-");
+        if (prereleaseFloor) ver = ver.Substring(0, ver.Length - 1);
         if (ver.Length == 0) return false;
 
         // ~（同 minor 内可升）与 ^（同 major 内可升；major=0 时按 semver 规则同 minor）
@@ -219,6 +221,9 @@ public static class McConstraintMatcher
         }
 
         if (!IsKnown(ver)) return false; // 不可解析边界 fail-closed
+        if (prereleaseFloor && (op is "" or ">=" or ">") &&
+            string.Equals(mc.Split('-')[0], ver, StringComparison.OrdinalIgnoreCase))
+            return true;
         var c = McVersionComparer.CompareVersion(mc, ver);
         return op switch
         {
@@ -227,7 +232,7 @@ public static class McConstraintMatcher
             ">" => c > 0,
             "<=" => c <= 0,
             "<" => c < 0,
-            _ => false // ~ ^ 及异常运算符：不猜
+            _ => false // 异常运算符：不猜
         };
     }
 

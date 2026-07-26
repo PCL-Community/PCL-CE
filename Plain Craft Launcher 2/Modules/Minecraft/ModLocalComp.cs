@@ -1002,6 +1002,7 @@ public static class ModLocalComp
                 _EmbeddedMods = other._EmbeddedMods;
                 JijLoader = other.JijLoader;
                 JijTargetMcVersion = other.JijTargetMcVersion;
+                DetectedLoader = other.DetectedLoader;
                 Logo = other.Logo;
                 Url = other.Url;
                 Authors = other.Authors;
@@ -1078,6 +1079,7 @@ public static class ModLocalComp
             _EmbeddedMods = new List<LocalCompFile>();
             JijLoader = null;
             JijTargetMcVersion = null;
+            DetectedLoader = null;
             isLoaded = false;
             _FileUnavailableReason = null;
             isInfoWithClassLoaded = false;
@@ -1249,6 +1251,7 @@ public static class ModLocalComp
                 // （如崩溃导出线程与列表加载并发）抛 IOException，把好 Mod 误判为 Unavailable
                 jar = new ZipArchive(new FileStream(path, FileMode.Open, FileAccess.Read,
                     FileShare.Read | FileShare.Write | FileShare.Delete));
+                DetectedLoader = ModJarInJar.DetectLoader(jar); // 供依赖版本约束按加载器方言求值
                 // 信息获取
                 LookupMetadata(jar);
                 EmbeddedMods = ModJarInJar.ResolveCached(path, jar);
@@ -1294,6 +1297,9 @@ public static class ModLocalComp
 
         /// <summary>内嵌（Jar-in-Jar）子项声明的目标 Minecraft 版本范围；仅内嵌项有值。</summary>
         public string JijTargetMcVersion { get; internal set; }
+
+        /// <summary>本 Mod 检出的加载器（Fabric/Quilt/Forge/NeoForge），供依赖版本约束按方言求值；null=未知。</summary>
+        public string DetectedLoader { get; internal set; }
 
         /// <summary>
         ///     从 Jar 文件中获取 Mod 信息。
