@@ -120,7 +120,8 @@ public static class ModJarInJar
                 using var nestedJar = ZipFile.OpenRead(tmp);
                 child.LookupMetadata(nestedJar);
                 child.JijLoader = _DetectLoader(nestedJar);
-                child.JijTargetMcVersion = child.Dependencies.TryGetValue("minecraft", out var mc) ? mc : null;
+                // 用原始约束（未 Maven 化），保留 Fabric semver 原貌供求值
+                child.JijTargetMcVersion = child.DependencyRaw.TryGetValue("minecraft", out var mc) ? mc : null;
                 child.EmbeddedMods = _Resolve(childPath, nestedJar, depth + 1, budget);
             }
             catch (Exception ex)

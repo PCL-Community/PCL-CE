@@ -1091,6 +1091,9 @@
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Bundled">内嵌提供</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Missing">缺失</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Optional">[可选]</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Current">✓ 当前实例使用</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Incompatible">⚠ 不适配当前版本</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Versions">{0} 个版本</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.OnlySelf">仅操作此模组</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.WithDisable">连带禁用依赖它的模组</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.WithDelete">连带删除依赖它的模组</sys:String>

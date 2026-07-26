@@ -15,10 +15,6 @@ public enum JijDepStatus
 }
 
 /// <summary>
-///     内嵌模组依赖分析。构建时按当前实例 MC 版本过滤出"真正会加载"的内嵌副本，
-///     供依赖四态判定与禁用/删除的级联反查复用（模组管理页与内嵌模组二级页共用）。
-/// </summary>
-/// <summary>
 ///     加载器/平台伪依赖 id 的统一判定，供依赖解析（<see cref="ModLocalComp" />.AddDependency）与
 ///     依赖四态/级联分析共用，避免两处 id 集漂移。
 /// </summary>
@@ -36,25 +32,49 @@ public static class ModDependencyIds
         string.Equals(id, "minecraft", StringComparison.OrdinalIgnoreCase) || _loaderIds.Contains(id);
 }
 
+/// <summary>
+///     内嵌模组依赖分析。构建时按当前实例 MC 版本过滤出"真正会加载"的内嵌副本，
+///     供依赖四态判定与禁用/删除的级联反查复用（模组管理页与内嵌模组二级页共用）。
+/// </summary>
 public class ModJarInJarIndex
 {
     private readonly List<CompFile> _allMods;
-    private readonly Dictionary<string, List<CompFile>> _providers = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<CompFile, HashSet<string>> _selfBundled = new();
+    private readonly Dictionary<string, List<(CompFile Mod, string Version)>> _providers =
+        new(StringComparer.OrdinalIgnoreCase);
+    // 每个 Mod 内嵌提供的 (id, 版本) 列表（同一 id 的多版本 wrapper 保留全部副本版本）
+    private readonly Dictionary<CompFile, List<(string Id, string Version)>> _selfBundled = new();
 
     public ModJarInJarIndex(IEnumerable<CompFile> allMods, string mc)
     {
         _allMods = allMods.Where(m => !m.IsFolder).ToList();
         foreach (var m in _allMods)
         {
-            // 仅收录当前实例 MC 版本真正会加载的内嵌副本（多版本 wrapper 只留匹配的那份）
-            var bundled = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            _CollectLoadableIds(m.EmbeddedMods, mc, bundled);
-            _selfBundled[m] = bundled;
+            var loadable = _CollectLoadable(m.EmbeddedMods, mc);
+            _selfBundled[m] = loadable;
 
-            if (!string.IsNullOrEmpty(m.ModId)) _AddProvider(m.ModId, m);
-            foreach (var id in bundled) _AddProvider(id, m);
+            if (!string.IsNullOrEmpty(m.ModId)) _AddProvider(m.ModId, m, m.Version);
+            foreach (var (id, ver) in loadable) _AddProvider(id, m, ver);
         }
+    }
+
+    private static bool _VersionSatisfies(CompFile dependent, string depId, string providerVersion)
+    {
+        var req = dependent.DependencyRaw.TryGetValue(depId, out var r) ? r : null;
+        if (req is null) return true;
+        // provider 版本未知或不可比较（占位符未解析、纯库无版本、"MC1.21-xx" 等字母开头）：
+        // 无法可靠判断时视为满足——错标"缺失"比漏一次版本警告更糟
+        if (string.IsNullOrWhiteSpace(providerVersion)) return true;
+        var ver = providerVersion.Split('+')[0].Trim(); // 剥 semver 构建元数据（1.0.82+mc1.21.1）
+        if (ver.Length == 0 || !char.IsDigit(ver[0])) return true;
+        return McConstraintMatcher.Satisfies(req, null, ver);
+    }
+
+    // 本 Mod 自己内嵌的副本是否满足其对该依赖的版本要求（内嵌了但版本不够时不算满足）
+    private bool _SelfBundleSatisfies(CompFile mod, string depId)
+    {
+        return _selfBundled.TryGetValue(mod, out var self) &&
+               self.Any(x => string.Equals(x.Id, depId, StringComparison.OrdinalIgnoreCase) &&
+                             _VersionSatisfies(mod, depId, x.Version));
     }
 
     public static bool IsPlatform(string id) => ModDependencyIds.IsPlatform(id);
@@ -62,11 +82,12 @@ public class ModJarInJarIndex
     /// <summary>某 Mod 的某条依赖当前处于四态中的哪一态。</summary>
     public JijDepStatus Analyze(CompFile mod, string depId)
     {
+        if (_SelfBundleSatisfies(mod, depId)) return JijDepStatus.Bundled;
         _providers.TryGetValue(depId, out var provs);
-        var external = provs?.Where(p => p != mod).ToList() ?? new List<CompFile>();
-        if (external.Any(p => p.State == CompFile.LocalFileStatus.Fine)) return JijDepStatus.Installed;
-        if (external.Count > 0) return JijDepStatus.Disabled;
-        if (_selfBundled.TryGetValue(mod, out var ids) && ids.Contains(depId)) return JijDepStatus.Bundled;
+        var satisfying = provs?.Where(p => p.Mod != mod && _VersionSatisfies(mod, depId, p.Version)).ToList()
+                         ?? new List<(CompFile Mod, string Version)>();
+        if (satisfying.Any(p => p.Mod.State == CompFile.LocalFileStatus.Fine)) return JijDepStatus.Installed;
+        if (satisfying.Count > 0) return JijDepStatus.Disabled;
         return JijDepStatus.Missing;
     }
 
@@ -89,11 +110,13 @@ public class ModJarInJarIndex
                 {
                     if (ModDependencyIds.IsPlatform(dep)) continue;
                     if (c.OptionalDependencies.Contains(dep)) continue; // 可选依赖不参与级联
-                    if (_selfBundled.TryGetValue(c, out var ids) && ids.Contains(dep)) continue;
+                    if (_SelfBundleSatisfies(c, dep)) continue;
                     if (!_providers.TryGetValue(dep, out var provs)) continue;
-                    var active = provs.Where(p => p.State == CompFile.LocalFileStatus.Fine).ToList();
+                    var active = provs
+                        .Where(p => p.Mod.State == CompFile.LocalFileStatus.Fine && _VersionSatisfies(c, dep, p.Version))
+                        .ToList();
                     if (active.Count == 0) continue; // 本就未满足，忽略
-                    if (active.All(removal.Contains))
+                    if (active.All(p => removal.Contains(p.Mod)))
                     {
                         removal.Add(c);
                         changed = true;
@@ -105,149 +128,47 @@ public class ModJarInJarIndex
         return removal.Where(m => !targetSet.Contains(m)).ToList();
     }
 
-    private void _AddProvider(string id, CompFile top)
+    private void _AddProvider(string id, CompFile top, string version)
     {
         if (!_providers.TryGetValue(id, out var list))
         {
-            list = new List<CompFile>();
+            list = new List<(CompFile, string)>();
             _providers[id] = list;
         }
 
-        if (!list.Contains(top)) list.Add(top);
+        // 去重键含版本：多版本 wrapper 的每份副本版本都保留，供依赖版本区间校验逐一尝试
+        if (!list.Any(p => p.Mod == top && p.Version == version)) list.Add((top, version));
     }
 
     #region MC 版本匹配
 
-    // 递归收集"会加载"的内嵌 ModId：某副本 MC 约束不匹配当前实例则整支剪掉
-    private static void _CollectLoadableIds(List<CompFile> embedded, string mc, HashSet<string> into)
+    // 递归收集"会加载"的内嵌 (ModId, 版本)：某副本 MC 约束不匹配当前实例则整支剪掉
+    private static List<(string Id, string Version)> _CollectLoadable(List<CompFile> embedded, string mc)
+    {
+        var into = new List<(string, string)>();
+        _Collect(embedded, mc, into);
+        return into;
+    }
+
+    private static void _Collect(List<CompFile> embedded, string mc, List<(string, string)> into)
     {
         if (embedded is null) return;
         foreach (var e in embedded)
         {
             if (!_NodeLoads(e, mc)) continue;
-            if (!string.IsNullOrEmpty(e.ModId)) into.Add(e.ModId);
-            _CollectLoadableIds(e.EmbeddedMods, mc, into);
+            if (!string.IsNullOrEmpty(e.ModId)) into.Add((e.ModId, e.Version));
+            _Collect(e.EmbeddedMods, mc, into);
         }
     }
 
-    // 该内嵌副本是否会在当前实例 MC 版本下加载
     private static bool _NodeLoads(CompFile node, string mc)
     {
         if (string.IsNullOrEmpty(mc)) return true; // 拿不到实例版本则不过滤
         var constraint = node.JijTargetMcVersion;
         if (string.IsNullOrWhiteSpace(constraint)) return true; // 无 MC 约束：任意版本均加载
-        if (_McSatisfiesRange(constraint, mc)) return true;
-        // 文件名/版本号里恰好整词出现该实例版本，视作精确命中
-        if (_ContainsVersionToken(node.FileName, mc) || _ContainsVersionToken(node.Version, mc)) return true;
-        // provider 收集宁可多收（fail-open）：约束含 Maven 解析器看不懂的 semver 运算符/通配
-        // （如 Fabric 的 >=1.20 被 AddDependency 规整成 [>=1.20,)）时，拿不准就当作会加载，
-        // 避免漏 provider 导致依赖方误报"缺失"（假红）
-        return constraint.IndexOfAny(new[] { '>', '<', '~', '^', '*' }) >= 0;
-    }
-
-    // 边界是否形如可比较的 MC 版本（1.20.1 / 26.1 / 23w13a 均以数字开头）；
-    // 不可解析的边界整段判不匹配（fail-closed），避免垃圾串经字符串比较误判"匹配一切"
-    private static bool _IsKnownVersion(string s) => s.Length > 0 && char.IsDigit(s[0]);
-
-    // Maven 风格区间：[a,b] [a,b) (a,b) [a,) (,b] [a]（精确）或裸 a（软下限 >=a），逗号分隔的多区间取或
-    private static bool _McSatisfiesRange(string constraint, string mc)
-    {
-        foreach (var interval in _SplitTopLevel(constraint))
-        {
-            var s = interval.Trim();
-            if (s.Length == 0) continue;
-
-            if (s[0] != '[' && s[0] != '(')
-            {
-                if (_IsKnownVersion(s) && McVersionComparer.CompareVersion(mc, s) >= 0) return true; // 裸版本 = 软下限
-                continue;
-            }
-
-            var incLo = s[0] == '[';
-            var incHi = s[^1] == ']';
-            var body = s.Substring(1, s.Length - 2);
-            var comma = body.IndexOf(',');
-            if (comma < 0)
-            {
-                var only = body.Trim(); // [a] 精确
-                if (_IsKnownVersion(only) && McVersionComparer.CompareVersion(mc, only) == 0) return true;
-                continue;
-            }
-
-            var loStr = body.Substring(0, comma).Trim();
-            var hiStr = body.Substring(comma + 1).Trim();
-            if ((loStr.Length > 0 && !_IsKnownVersion(loStr)) ||
-                (hiStr.Length > 0 && !_IsKnownVersion(hiStr)))
-                continue;
-            var ok = true;
-            if (loStr.Length > 0)
-            {
-                var c = McVersionComparer.CompareVersion(mc, loStr);
-                ok = incLo ? c >= 0 : c > 0;
-            }
-
-            if (ok && hiStr.Length > 0)
-            {
-                var c = McVersionComparer.CompareVersion(mc, hiStr);
-                ok = incHi ? c <= 0 : c < 0;
-            }
-
-            if (ok) return true;
-        }
-
-        return false;
-    }
-
-    // 按括号深度为 0 的逗号切分（区间内部的逗号不切）
-    private static List<string> _SplitTopLevel(string s)
-    {
-        var outList = new List<string>();
-        int depth = 0, start = 0;
-        for (var i = 0; i < s.Length; i++)
-        {
-            var ch = s[i];
-            if (ch == '[' || ch == '(') depth++;
-            else if (ch == ']' || ch == ')') depth--;
-            else if (ch == ',' && depth == 0)
-            {
-                outList.Add(s.Substring(start, i - start));
-                start = i + 1;
-            }
-        }
-
-        outList.Add(s.Substring(start));
-        return outList;
-    }
-
-    // version 是否作为完整版本词出现在 haystack 中（"1.21" 不命中 "1.21.2" 或 "9.1.20"）
-    private static bool _ContainsVersionToken(string haystack, string version)
-    {
-        if (string.IsNullOrEmpty(haystack) || string.IsNullOrEmpty(version)) return false;
-        var i = haystack.IndexOf(version, StringComparison.Ordinal);
-        while (i >= 0)
-        {
-            var before = i > 0 ? haystack[i - 1] : ' ';
-            var end = i + version.Length;
-            var after = end < haystack.Length ? haystack[end] : ' ';
-            var leadingOk = before != '.' && !char.IsDigit(before);
-            bool trailingOk;
-            if (char.IsDigit(after))
-                trailingOk = false;
-            else if (after == '.')
-            {
-                var next = end + 1 < haystack.Length ? haystack[end + 1] : ' ';
-                trailingOk = !char.IsDigit(next);
-            }
-            else
-            {
-                trailingOk = true;
-            }
-
-            if (leadingOk && trailingOk) return true;
-            i = haystack.IndexOf(version, i + 1, StringComparison.Ordinal);
-        }
-
-        return false;
+        if (McConstraintMatcher.Satisfies(constraint, node.JijLoader, mc)) return true;
+        return McConstraintMatcher.ContainsVersionToken(node.FileName, mc) ||
+               McConstraintMatcher.ContainsVersionToken(node.Version, mc);
     }
 
     #endregion

@@ -2043,6 +2043,7 @@ public partial class PageInstanceCompResource : IRefreshable
             // 更改 Loader 中的列表
             var newModEntity = new ModLocalComp.LocalCompFile(newPath);
             newModEntity.FromJson(modEntity.ToJson());
+            newModEntity.CopyLoadedStateFrom(modEntity); // 仅改名未改内容，复用已解析元数据，免得 UI 线程重新解压
             if (ModLocalComp.compResourceListLoader.output.Contains(modEntity))
             {
                 var indexOfLoader = ModLocalComp.compResourceListLoader.output.IndexOf(modEntity);

@@ -11,13 +11,18 @@ namespace PCL;
 ///     <c>PCL\JarInJar.json</c>（与 config.v1.yml 同级）。按 Mod 文件路径 + (最后修改时间, 大小) 指纹判断
 ///     有效性，避免每次加载都重新递归解析嵌套 jar；也为后续依赖/级联分析提供可查询的内嵌索引。
 ///     使用前须先 <see cref="UseInstance" /> 注册目标实例，用毕 <see cref="Flush" /> 落盘。
-///     多实例流程（模组列表加载与崩溃导出）可能并发：读写按 Mod 路径前缀路由到所属实例的存储，
-///     路由不到时才回退到最近一次 UseInstance 的实例，避免条目写进错误实例的缓存文件。
+///     "当前实例"按线程记录（<c>[ThreadStatic]</c>），模组列表加载与崩溃导出各自的线程互不干扰。
 /// </summary>
 public static class ModJarInJarCache
 {
     /// <summary>缓存数据结构变化时递增此值以令旧缓存失效（改动 JIJ 解析/节点字段后务必升此值）。</summary>
-    private const int FormatVersion = 2;
+    private const int FormatVersion = 3;
+
+    private static readonly JsonSerializerOptions _jsonOpts = new()
+    {
+        WriteIndented = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
 
     private static readonly object _lock = new();
     private static readonly Dictionary<string, _Store> _stores = new(StringComparer.OrdinalIgnoreCase);
@@ -76,17 +81,6 @@ public static class ModJarInJarCache
         }
     }
 
-    // 按 Mod 文件路径前缀找到所属实例的存储；找不到（如非版本隔离时 mods 在 .minecraft 根下）回退当前实例
-    private static _Store _Route(string modPath)
-    {
-        if (!string.IsNullOrEmpty(modPath))
-            foreach (var s in _stores.Values)
-                if (modPath.StartsWith(s.InstancePath + "\\", StringComparison.OrdinalIgnoreCase) ||
-                    modPath.StartsWith(s.InstancePath + "/", StringComparison.OrdinalIgnoreCase))
-                    return s;
-        return _current;
-    }
-
     // 启/禁用是纯改名、mtime 不变；剥 .disabled 后复用同键避免白白重扫。
     // 保留 .old（.old 可与新文件并存，剥了会键冲突）。
     private static string _NormalizeKey(string path)
@@ -130,10 +124,12 @@ public static class ModJarInJarCache
     /// <summary>指纹匹配时返回缓存的内嵌树，否则返回 null。</summary>
     public static List<EmbeddedModNode> TryGet(string path, long lastModified, long size)
     {
+        // [ThreadStatic] 读取无需锁；未启用缓存的线程（如 UI 惰性加载）直接 bypass，
+        // 不必排队等别的线程在锁内做的读盘/落盘重 IO
+        var store = _current;
+        if (store is null) return null;
         lock (_lock)
         {
-            var store = _Route(path);
-            if (store is null) return null;
             _EnsureLoaded(store);
             if (store.Entries.TryGetValue(_NormalizeKey(path), out var e) && e.LastModified == lastModified &&
                 e.Size == size)
@@ -144,10 +140,10 @@ public static class ModJarInJarCache
 
     public static void Set(string path, long lastModified, long size, List<EmbeddedModNode> tree)
     {
+        var store = _current;
+        if (store is null) return;
         lock (_lock)
         {
-            var store = _Route(path);
-            if (store is null) return;
             _EnsureLoaded(store);
             store.Entries[_NormalizeKey(path)] = new CacheEntry { LastModified = lastModified, Size = size, Tree = tree };
             store.Dirty = true;
@@ -160,12 +156,11 @@ public static class ModJarInJarCache
     /// </summary>
     public static void Prune(IEnumerable<string> keepPaths)
     {
+        var store = _current;
+        if (store is null) return;
         lock (_lock)
         {
             var list = keepPaths as ICollection<string> ?? keepPaths.ToList();
-            // 按 mod 路径路由到所属实例，避免并发切换 _current 时用本实例清单误剪别的实例
-            var store = list.Count > 0 ? _Route(list.First()) : _current;
-            if (store is null) return;
             _EnsureLoaded(store);
             var keep = new HashSet<string>(list.Select(_NormalizeKey), StringComparer.OrdinalIgnoreCase);
             var stale = store.Entries.Keys.Where(k => !keep.Contains(k)).ToList();
@@ -193,7 +188,8 @@ public static class ModJarInJarCache
             Directory.CreateDirectory(Path.GetDirectoryName(store.CachePath)!);
             var tmp = store.CachePath + ".tmp";
             File.WriteAllText(tmp,
-                JsonSerializer.Serialize(new CacheFile { Version = FormatVersion, Entries = store.Entries }));
+                JsonSerializer.Serialize(new CacheFile { Version = FormatVersion, Entries = store.Entries },
+                    _jsonOpts));
             if (File.Exists(store.CachePath)) File.Delete(store.CachePath);
             File.Move(tmp, store.CachePath);
             store.Dirty = false;

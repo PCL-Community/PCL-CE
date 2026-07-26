@@ -12,6 +12,7 @@ namespace PCL;
 public partial class PageInstanceCompJarInJar
 {
     private ModJarInJarIndex _index;
+    private string _instanceMc;
 
     public PageInstanceCompJarInJar()
     {
@@ -37,7 +38,8 @@ public partial class PageInstanceCompJarInJar
         }
 
         var allMods = output.Where(m => !m.IsFolder).ToList();
-        _index = new ModJarInJarIndex(allMods, PageInstanceLeft.McInstance?.Info?.VanillaName);
+        _instanceMc = PageInstanceLeft.McInstance?.Info?.VanillaName;
+        _index = new ModJarInJarIndex(allMods, _instanceMc);
         PanLoad.Visibility = Visibility.Collapsed;
 
         PanWarnList.Children.Clear();
@@ -94,7 +96,8 @@ public partial class PageInstanceCompJarInJar
     {
         var deps = mod.Dependencies.Keys.Where(k => !ModJarInJarIndex.IsPlatform(k)).ToList();
         foreach (var dep in deps)
-            stack.Children.Add(BuildDependencyRow(mod, dep, mod.Dependencies[dep],
+            stack.Children.Add(BuildDependencyRow(mod, dep,
+                mod.DependencyRaw.TryGetValue(dep, out var rawReq) ? rawReq : mod.Dependencies[dep],
                 mod.OptionalDependencies.Contains(dep)));
     }
 
@@ -107,14 +110,39 @@ public partial class PageInstanceCompJarInJar
     private void AppendTreeRows(StackPanel stack, List<CompFile> embedded, int depth)
     {
         if (embedded is null) return;
-        foreach (var e in embedded)
+
+        var ungrouped = embedded.Where(e => string.IsNullOrEmpty(e.ModId)).ToList();
+        foreach (var g in embedded.Where(e => !string.IsNullOrEmpty(e.ModId))
+                     .GroupBy(e => e.ModId, StringComparer.OrdinalIgnoreCase))
         {
-            stack.Children.Add(BuildTreeRow(e, depth));
+            var versions = g.ToList();
+            if (versions.Count == 1)
+            {
+                stack.Children.Add(BuildTreeRow(versions[0], depth, 0, McConstraintMatcher.MatchKind.None));
+                AppendTreeRows(stack, versions[0].EmbeddedMods, depth + 1);
+                continue;
+            }
+
+            var scored = versions
+                .Select(v => (v, kind: McConstraintMatcher.Match(v.FileName, v.Version, v.JijTargetMcVersion,
+                    v.JijLoader, _instanceMc)))
+                .OrderByDescending(x => (int)x.kind).ToList();
+            var rep = scored[0].v;
+            var tooltip = string.Join("\n",
+                versions.Select(v => string.IsNullOrWhiteSpace(v.Version) ? v.FileName : v.Version));
+            stack.Children.Add(BuildTreeRow(rep, depth, versions.Count, scored[0].kind, tooltip));
+            AppendTreeRows(stack, rep.EmbeddedMods, depth + 1);
+        }
+
+        foreach (var e in ungrouped)
+        {
+            stack.Children.Add(BuildTreeRow(e, depth, 0, McConstraintMatcher.MatchKind.None));
             AppendTreeRows(stack, e.EmbeddedMods, depth + 1);
         }
     }
 
-    private Panel BuildTreeRow(CompFile e, int depth)
+    private Panel BuildTreeRow(CompFile e, int depth, int versionCount, McConstraintMatcher.MatchKind kind,
+        string versionsTooltip = null)
     {
         var row = new StackPanel
         {
@@ -125,10 +153,25 @@ public partial class PageInstanceCompJarInJar
         if (!string.IsNullOrEmpty(ver))
             row.Children.Add(_TextRes("  (" + ver + ")", "ColorBrush2"));
         if (!string.IsNullOrEmpty(e.JijLoader))
-            row.Children.Add(_TextRes("  [" + e.JijLoader + "]", "ColorBrush2"));
+            row.Children.Add(_TextRes("  [" + e.JijLoader + "]", "ColorBrush3"));
         var mc = _CleanPlaceholder(e.JijTargetMcVersion);
         if (!string.IsNullOrEmpty(mc))
-            row.Children.Add(_TextRes("  MC " + mc, "ColorBrush2"));
+            row.Children.Add(_TextRes("  (MC " + mc + ")", "ColorBrushInfo"));
+
+        if (versionCount > 1)
+        {
+            var badge = _TextRes("  " + Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.Versions", versionCount),
+                "ColorBrush2");
+            if (!string.IsNullOrEmpty(versionsTooltip)) badge.ToolTip = versionsTooltip;
+            row.Children.Add(badge);
+        }
+
+        if (kind is McConstraintMatcher.MatchKind.Exact or McConstraintMatcher.MatchKind.Range)
+            row.Children.Add(_Text("  " + Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.Current"), _BrushOk));
+        else if (kind == McConstraintMatcher.MatchKind.Incompatible)
+            row.Children.Add(_Text("  " + Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.Incompatible"),
+                _BrushWarn));
+
         return row;
     }
 

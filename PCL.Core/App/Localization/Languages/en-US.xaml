@@ -1091,6 +1091,9 @@
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Bundled">Bundled</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Missing">Missing</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Optional">[optional]</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Current">✓ used by this instance</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Incompatible">⚠ incompatible with this version</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Versions">{0} versions</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.OnlySelf">Only this mod</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.WithDisable">Also disable mods that depend on it</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.WithDelete">Also delete mods that depend on it</sys:String>
