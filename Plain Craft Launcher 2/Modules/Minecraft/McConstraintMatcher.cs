@@ -79,7 +79,7 @@ public static class McConstraintMatcher
     }
 
     // 剥版本号常见的前导 v/V（如 v0.5.1c → 0.5.1c）；仅在其后紧跟数字时剥
-    private static string StripV(string s) =>
+    public static string StripV(string s) =>
         s is { Length: > 1 } && (s[0] == 'v' || s[0] == 'V') && char.IsDigit(s[1]) ? s.Substring(1) : s;
 
     // 比较两个版本，各自先剥前导 v
@@ -190,7 +190,43 @@ public static class McConstraintMatcher
         if (aPre < 0 && bPre < 0) return 0;
         if (aPre < 0) return 1; // a 无预发布 > b（有预发布）
         if (bPre < 0) return -1; // a 有预发布 < b（正式版）
-        return McVersionComparer.CompareVersion(a.Substring(aPre + 1), b.Substring(bPre + 1));
+        return ComparePrerelease(a.Substring(aPre + 1), b.Substring(bPre + 1));
+    }
+
+    private static int ComparePrerelease(string a, string b)
+    {
+        var pa = a.Split('.');
+        var pb = b.Split('.');
+        var n = Math.Min(pa.Length, pb.Length);
+        for (var i = 0; i < n; i++)
+        {
+            bool xn = IsAllDigits(pa[i]), yn = IsAllDigits(pb[i]);
+            int c;
+            if (xn && yn) c = CompareNumericId(pa[i], pb[i]);
+            else if (xn) c = -1; // 数字标识符 < 字母标识符
+            else if (yn) c = 1;
+            else c = string.CompareOrdinal(pa[i], pb[i]);
+            if (c != 0) return c;
+        }
+
+        return pa.Length.CompareTo(pb.Length);
+    }
+
+    private static bool IsAllDigits(string s)
+    {
+        if (s.Length == 0) return false;
+        foreach (var ch in s)
+            if (!char.IsDigit(ch))
+                return false;
+        return true;
+    }
+
+    // 纯数字标识符按数值比：去前导零后先比长度再字典序，避免长串溢出
+    private static int CompareNumericId(string x, string y)
+    {
+        x = x.TrimStart('0');
+        y = y.TrimStart('0');
+        return x.Length != y.Length ? x.Length - y.Length : string.CompareOrdinal(x, y);
     }
 
     // 空格 = AND，|| = OR，运算符 >= > <= < =，x/* 通配，尾 - 预发布标记

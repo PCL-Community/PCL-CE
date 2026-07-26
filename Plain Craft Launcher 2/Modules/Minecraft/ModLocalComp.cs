@@ -865,6 +865,21 @@ public static class ModLocalComp
 
         private readonly HashSet<string> _RequiredDeclared = new(StringComparer.OrdinalIgnoreCase);
 
+        /// <summary>
+        ///     本文件额外提供的 Mod id 别名：multi-mod jar 的兄弟 <c>[[mods]]</c> id 与 Fabric <c>provides</c>。
+        ///     依赖索引把它们当作与主 ModId 同源、同版本的 provider，避免依赖别名时误报缺失。
+        /// </summary>
+        public HashSet<string> ProvidedIds
+        {
+            get
+            {
+                Load();
+                return _ProvidedIds;
+            }
+        }
+
+        private readonly HashSet<string> _ProvidedIds = new(StringComparer.OrdinalIgnoreCase);
+
         private void AddDependency(string modID, string versionRequirement = null, bool optional = false)
         {
             // 确保信息正确
@@ -1009,6 +1024,8 @@ public static class ModLocalComp
                 _OptionalDependencies.UnionWith(other._OptionalDependencies);
                 _RequiredDeclared.Clear();
                 _RequiredDeclared.UnionWith(other._RequiredDeclared);
+                _ProvidedIds.Clear();
+                _ProvidedIds.UnionWith(other._ProvidedIds);
                 _EmbeddedMods = other._EmbeddedMods;
                 JijLoader = other.JijLoader;
                 JijTargetMcVersion = other.JijTargetMcVersion;
@@ -1086,6 +1103,7 @@ public static class ModLocalComp
             _DependencyRaw.Clear();
             _OptionalDependencies.Clear();
             _RequiredDeclared.Clear();
+            _ProvidedIds.Clear();
             _EmbeddedMods = new List<LocalCompFile>();
             JijLoader = null;
             JijTargetMcVersion = null;
@@ -1476,6 +1494,13 @@ public static class ModLocalComp
                                 : dep.Value?.ToString();
                             AddDependency(dep.Key, string.IsNullOrEmpty(ver) ? null : ver);
                         }
+
+                    if (fabricObject["provides"] is JsonArray provides)
+                        foreach (var pv in provides)
+                        {
+                            var id = pv?.ToString();
+                            if (!string.IsNullOrEmpty(id)) _ProvidedIds.Add(id.ToLower());
+                        }
                 }
                 catch (Exception ex)
                 {
@@ -1684,6 +1709,9 @@ public static class ModLocalComp
                                 .Where(s => s.Key == "mods" && s.Value.ContainsKey("modId"))
                                 .Select(s => s.Value["modId"].ToString().ToLower())
                                 .ToHashSet();
+                            foreach (var sib in jarModIds)
+                                if (sib != ownModIdL)
+                                    _ProvidedIds.Add(sib);
                             var sectionHadDeps = false;
                             foreach (var subData in tomlData)
                             {

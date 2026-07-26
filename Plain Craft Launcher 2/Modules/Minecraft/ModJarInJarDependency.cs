@@ -69,6 +69,8 @@ public class ModJarInJarIndex
                 .Select(n => (n.ModId, n.Version)).ToList();
 
             if (!string.IsNullOrEmpty(m.ModId)) _AddProvider(m.ModId, m, m.Version);
+            foreach (var pid in m.ProvidedIds)
+                _AddProvider(pid, m, m.Version);
             foreach (var n in nodes.Where(n => !string.IsNullOrEmpty(n.ModId)))
                 _AddProvider(n.ModId, m, n.Version);
 
@@ -122,7 +124,7 @@ public class ModJarInJarIndex
         // provider 版本未知或不可比较（占位符未解析、纯库无版本、"MC1.21-xx" 等字母开头）：
         // 无法可靠判断时视为满足——错标"缺失"比漏一次版本警告更糟
         if (string.IsNullOrWhiteSpace(providerVersion)) return true;
-        var ver = providerVersion.Trim();
+        var ver = McConstraintMatcher.StripV(providerVersion.Trim());
         if (ver.Length == 0 || !char.IsDigit(ver[0])) return true;
         if (McConstraintMatcher.Satisfies(dep.Raw, dep.Loader, ver)) return true;
         return !McConstraintMatcher.HasComparableLowerBound(dep.Raw);
