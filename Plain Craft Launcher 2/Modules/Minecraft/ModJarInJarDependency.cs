@@ -9,9 +9,10 @@ namespace PCL;
 public enum JijDepStatus
 {
     Installed, // 有启用的独立/其它内嵌提供者
-    Disabled, // 有提供者但都被禁用
+    Disabled, // 有满足版本的提供者但都被禁用
     Bundled, // 无独立提供，但本 Mod 内嵌了它
-    Missing // 无任何提供者
+    VersionMismatch, // 有提供者但版本都不满足约束（装了，但装错版本）
+    Missing // 无任何提供者（根本没装）
 }
 
 /// <summary>
@@ -38,56 +39,116 @@ public static class ModDependencyIds
 /// </summary>
 public class ModJarInJarIndex
 {
+    /// <summary>一条依赖要求（可能来自宿主自身或其某个内嵌 mod），带来源加载器方言与可选标记。</summary>
+    public sealed class DepRow
+    {
+        public string DepId;
+        public string Raw; // 原始版本约束，null=无版本要求
+        public bool Optional;
+        public string Loader; // 声明方的加载器（决定版本方言），null=未知
+    }
+
     private readonly List<CompFile> _allMods;
     private readonly Dictionary<string, List<(CompFile Mod, string Version)>> _providers =
         new(StringComparer.OrdinalIgnoreCase);
     // 每个 Mod 内嵌提供的 (id, 版本) 列表（同一 id 的多版本 wrapper 保留全部副本版本）
     private readonly Dictionary<CompFile, List<(string Id, string Version)>> _selfBundled = new();
+    // 用于缺失警告与级联反查（宿主是启用/禁用单位，故内嵌依赖归到宿主承担）
+    private readonly Dictionary<CompFile, List<DepRow>> _deps = new();
+    // 每个宿主的可加载内嵌节点（关系页把有依赖的内嵌 mod 单独成卡时遍历）
+    private readonly Dictionary<CompFile, List<CompFile>> _loadableNodes = new();
 
     public ModJarInJarIndex(IEnumerable<CompFile> allMods, string mc)
     {
         _allMods = allMods.Where(m => !m.IsFolder).ToList();
         foreach (var m in _allMods)
         {
-            var loadable = _CollectLoadable(m.EmbeddedMods, mc);
-            _selfBundled[m] = loadable;
+            var nodes = _CollectLoadableNodes(m.EmbeddedMods, mc);
+            _loadableNodes[m] = nodes;
+            _selfBundled[m] = nodes.Where(n => !string.IsNullOrEmpty(n.ModId))
+                .Select(n => (n.ModId, n.Version)).ToList();
 
             if (!string.IsNullOrEmpty(m.ModId)) _AddProvider(m.ModId, m, m.Version);
-            foreach (var (id, ver) in loadable) _AddProvider(id, m, ver);
+            foreach (var n in nodes.Where(n => !string.IsNullOrEmpty(n.ModId)))
+                _AddProvider(n.ModId, m, n.Version);
+
+            var rows = new List<DepRow>();
+            foreach (var kv in m.DependencyRaw)
+                rows.Add(new DepRow
+                {
+                    DepId = kv.Key, Raw = kv.Value,
+                    Optional = m.OptionalDependencies.Contains(kv.Key), Loader = m.DetectedLoader
+                });
+            foreach (var n in nodes)
+            foreach (var kv in n.DependencyRaw)
+                rows.Add(new DepRow
+                {
+                    DepId = kv.Key, Raw = kv.Value,
+                    Optional = n.OptionalDependencies.Contains(kv.Key), Loader = n.JijLoader
+                });
+            _deps[m] = rows
+                .GroupBy(r => r.DepId, StringComparer.OrdinalIgnoreCase)
+                .Select(g => new DepRow
+                {
+                    DepId = g.Key,
+                    Raw = g.Select(r => r.Raw).FirstOrDefault(v => v is not null),
+                    Optional = g.All(r => r.Optional),
+                    Loader = g.Select(r => r.Loader).FirstOrDefault(l => l is not null)
+                }).ToList();
         }
     }
 
-    private static bool _VersionSatisfies(CompFile dependent, string depId, string providerVersion)
+    /// <summary>某 Mod 的有效依赖（含其内嵌 mod 上浮的依赖）。用于缺失警告与级联。</summary>
+    public IReadOnlyList<DepRow> GetDependencies(CompFile mod) =>
+        _deps.TryGetValue(mod, out var list) ? list : new List<DepRow>();
+
+    /// <summary>宿主的可加载内嵌节点（关系页遍历，把有依赖的内嵌 mod 单独成卡）。</summary>
+    public IReadOnlyList<CompFile> GetLoadableEmbedded(CompFile host) =>
+        _loadableNodes.TryGetValue(host, out var list) ? list : new List<CompFile>();
+
+    /// <summary>构造某 mod 自身声明的依赖行（不含内嵌上浮），供关系页按 mod 分卡展示。</summary>
+    public static List<DepRow> BuildOwnDependencies(CompFile mod, string loader) =>
+        mod.DependencyRaw.Select(kv => new DepRow
+        {
+            DepId = kv.Key, Raw = kv.Value,
+            Optional = mod.OptionalDependencies.Contains(kv.Key), Loader = loader
+        }).ToList();
+
+    private static string _Norm(string id) => id?.Replace('-', '_');
+
+    private static bool _VersionSatisfies(DepRow dep, string providerVersion)
     {
-        var req = dependent.DependencyRaw.TryGetValue(depId, out var r) ? r : null;
-        if (req is null) return true;
+        if (dep.Raw is null) return true;
         // provider 版本未知或不可比较（占位符未解析、纯库无版本、"MC1.21-xx" 等字母开头）：
         // 无法可靠判断时视为满足——错标"缺失"比漏一次版本警告更糟
         if (string.IsNullOrWhiteSpace(providerVersion)) return true;
-        var ver = providerVersion.Split('+')[0].Trim(); // 剥 semver 构建元数据（1.0.82+mc1.21.1）
+        var ver = providerVersion.Trim();
         if (ver.Length == 0 || !char.IsDigit(ver[0])) return true;
-        return McConstraintMatcher.Satisfies(req, dependent.DetectedLoader, ver);
+        if (McConstraintMatcher.Satisfies(dep.Raw, dep.Loader, ver)) return true;
+        return !McConstraintMatcher.HasComparableLowerBound(dep.Raw);
     }
 
-    // 本 Mod 自己内嵌的副本是否满足其对该依赖的版本要求（内嵌了但版本不够时不算满足）
-    private bool _SelfBundleSatisfies(CompFile mod, string depId)
+    // 本 Mod 自己内嵌的副本是否满足该依赖的版本要求（内嵌了但版本不够时不算满足）
+    private bool _SelfBundleSatisfies(CompFile mod, DepRow dep)
     {
         return _selfBundled.TryGetValue(mod, out var self) &&
-               self.Any(x => string.Equals(x.Id, depId, StringComparison.OrdinalIgnoreCase) &&
-                             _VersionSatisfies(mod, depId, x.Version));
+               self.Any(x => string.Equals(_Norm(x.Id), _Norm(dep.DepId), StringComparison.OrdinalIgnoreCase) &&
+                             _VersionSatisfies(dep, x.Version));
     }
 
     public static bool IsPlatform(string id) => ModDependencyIds.IsPlatform(id);
 
-    /// <summary>某 Mod 的某条依赖当前处于四态中的哪一态。</summary>
-    public JijDepStatus Analyze(CompFile mod, string depId)
+    /// <summary>某 Mod 的某条有效依赖当前处于四态中的哪一态。</summary>
+    public JijDepStatus Analyze(CompFile mod, DepRow dep)
     {
-        if (_SelfBundleSatisfies(mod, depId)) return JijDepStatus.Bundled;
-        _providers.TryGetValue(depId, out var provs);
-        var satisfying = provs?.Where(p => p.Mod != mod && _VersionSatisfies(mod, depId, p.Version)).ToList()
-                         ?? new List<(CompFile Mod, string Version)>();
+        if (_SelfBundleSatisfies(mod, dep)) return JijDepStatus.Bundled;
+        _providers.TryGetValue(_Norm(dep.DepId), out var provs);
+        var others = provs?.Where(p => p.Mod != mod).ToList() ?? new List<(CompFile Mod, string Version)>();
+        var satisfying = others.Where(p => _VersionSatisfies(dep, p.Version)).ToList();
         if (satisfying.Any(p => p.Mod.State == CompFile.LocalFileStatus.Fine)) return JijDepStatus.Installed;
         if (satisfying.Count > 0) return JijDepStatus.Disabled;
+        // 有提供者却无一满足版本：装了但版本不对，区别于根本没装
+        if (others.Count > 0) return JijDepStatus.VersionMismatch;
         return JijDepStatus.Missing;
     }
 
@@ -106,14 +167,14 @@ public class ModJarInJarIndex
             foreach (var c in _allMods)
             {
                 if (c.State != CompFile.LocalFileStatus.Fine || removal.Contains(c)) continue;
-                foreach (var dep in c.Dependencies.Keys)
+                foreach (var dep in GetDependencies(c))
                 {
-                    if (ModDependencyIds.IsPlatform(dep)) continue;
-                    if (c.OptionalDependencies.Contains(dep)) continue; // 可选依赖不参与级联
+                    if (ModDependencyIds.IsPlatform(dep.DepId)) continue;
+                    if (dep.Optional) continue; // 可选依赖不参与级联
                     if (_SelfBundleSatisfies(c, dep)) continue;
-                    if (!_providers.TryGetValue(dep, out var provs)) continue;
+                    if (!_providers.TryGetValue(_Norm(dep.DepId), out var provs)) continue;
                     var active = provs
-                        .Where(p => p.Mod.State == CompFile.LocalFileStatus.Fine && _VersionSatisfies(c, dep, p.Version))
+                        .Where(p => p.Mod.State == CompFile.LocalFileStatus.Fine && _VersionSatisfies(dep, p.Version))
                         .ToList();
                     if (active.Count == 0) continue; // 本就未满足，忽略
                     if (active.All(p => removal.Contains(p.Mod)))
@@ -130,6 +191,7 @@ public class ModJarInJarIndex
 
     private void _AddProvider(string id, CompFile top, string version)
     {
+        id = _Norm(id); // 归一化连字符/下划线，使依赖 yumi-commons-core 能命中 id=yumi_commons_core
         if (!_providers.TryGetValue(id, out var list))
         {
             list = new List<(CompFile, string)>();
@@ -142,21 +204,21 @@ public class ModJarInJarIndex
 
     #region MC 版本匹配
 
-    // 递归收集"会加载"的内嵌 (ModId, 版本)：某副本 MC 约束不匹配当前实例则整支剪掉
-    private static List<(string Id, string Version)> _CollectLoadable(List<CompFile> embedded, string mc)
+    // 递归收集"会加载"的内嵌节点：某副本 MC 约束不匹配当前实例则整支剪掉
+    private static List<CompFile> _CollectLoadableNodes(List<CompFile> embedded, string mc)
     {
-        var into = new List<(string, string)>();
+        var into = new List<CompFile>();
         _Collect(embedded, mc, into);
         return into;
     }
 
-    private static void _Collect(List<CompFile> embedded, string mc, List<(string, string)> into)
+    private static void _Collect(List<CompFile> embedded, string mc, List<CompFile> into)
     {
         if (embedded is null) return;
         foreach (var e in embedded)
         {
             if (!_NodeLoads(e, mc)) continue;
-            if (!string.IsNullOrEmpty(e.ModId)) into.Add((e.ModId, e.Version));
+            into.Add(e);
             _Collect(e.EmbeddedMods, mc, into);
         }
     }

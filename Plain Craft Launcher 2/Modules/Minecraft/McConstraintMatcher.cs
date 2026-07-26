@@ -71,11 +71,34 @@ public static class McConstraintMatcher
         }
     }
 
-    // 版本串是否可比较（1.20.1 / 26.1 / 23w13a 均数字开头；剥掉 Fabric 尾 - 后判断）
+    // 剥 SemVer build metadata（+ 及其后），供 semver 比较用
+    private static string StripBuild(string s)
+    {
+        var i = s.IndexOf('+');
+        return i < 0 ? s : s.Substring(0, i);
+    }
+
+    // 剥版本号常见的前导 v/V（如 v0.5.1c → 0.5.1c）；仅在其后紧跟数字时剥
+    private static string StripV(string s) =>
+        s is { Length: > 1 } && (s[0] == 'v' || s[0] == 'V') && char.IsDigit(s[1]) ? s.Substring(1) : s;
+
+    // 比较两个版本，各自先剥前导 v
+    private static int Cmp(string a, string b) => McVersionComparer.CompareVersion(StripV(a), StripV(b));
+
+    /// <summary>约束是否有可解析的下界版本（供 provider 检查：无可解析下界时应 fail-open 而非误判缺失）。</summary>
+    public static bool HasComparableLowerBound(string constraint)
+    {
+        if (string.IsNullOrWhiteSpace(constraint)) return false;
+        var t = constraint.TrimStart('[', '(', '>', '<', '=', '~', '^', ' ', '"');
+        return IsKnown(t);
+    }
+
+    // 版本串是否可比较（1.20.1 / 26.1 / 23w13a 数字开头，或 v0.5.1c 剥 v 后数字开头；剥掉 Fabric 尾 - 后判断）
     private static bool IsKnown(string s)
     {
         if (string.IsNullOrEmpty(s)) return false;
         if (s.EndsWith("-")) s = s.Substring(0, s.Length - 1);
+        s = StripV(s);
         return s.Length > 0 && char.IsDigit(s[0]);
     }
 
@@ -90,7 +113,7 @@ public static class McConstraintMatcher
 
             if (s[0] != '[' && s[0] != '(')
             {
-                if (IsKnown(s) && McVersionComparer.CompareVersion(mc, s) >= 0) return true; // 裸版本=软下限
+                if (IsKnown(s) && Cmp(mc,s) >= 0) return true; // 裸版本=软下限
                 continue;
             }
 
@@ -102,7 +125,7 @@ public static class McConstraintMatcher
             if (comma < 0)
             {
                 var only = body.Trim(); // [a] 精确
-                if (IsKnown(only) && McVersionComparer.CompareVersion(mc, only) == 0) return true;
+                if (IsKnown(only) && Cmp(mc,only) == 0) return true;
                 continue;
             }
 
@@ -113,13 +136,13 @@ public static class McConstraintMatcher
             var ok = true;
             if (loStr.Length > 0)
             {
-                var c = McVersionComparer.CompareVersion(mc, loStr);
+                var c = Cmp(mc,loStr);
                 ok = incLo ? c >= 0 : c > 0;
             }
 
             if (ok && hiStr.Length > 0)
             {
-                var c = McVersionComparer.CompareVersion(mc, hiStr);
+                var c = Cmp(mc,hiStr);
                 ok = incHi ? c <= 0 : c < 0;
             }
 
@@ -153,6 +176,22 @@ public static class McConstraintMatcher
     #endregion
 
     #region SemVer 谓词（Fabric / Quilt）
+
+    private static int CompareSemVer(string a, string b)
+    {
+        a = StripBuild(a);
+        b = StripBuild(b);
+        var aPre = a.IndexOf('-');
+        var bPre = b.IndexOf('-');
+        var aBase = aPre < 0 ? a : a.Substring(0, aPre);
+        var bBase = bPre < 0 ? b : b.Substring(0, bPre);
+        var c = Cmp(aBase, bBase);
+        if (c != 0) return c;
+        if (aPre < 0 && bPre < 0) return 0;
+        if (aPre < 0) return 1; // a 无预发布 > b（有预发布）
+        if (bPre < 0) return -1; // a 有预发布 < b（正式版）
+        return McVersionComparer.CompareVersion(a.Substring(aPre + 1), b.Substring(bPre + 1));
+    }
 
     // 空格 = AND，|| = OR，运算符 >= > <= < =，x/* 通配，尾 - 预发布标记
     private static bool SatisfiesSemVer(string constraint, string mc)
@@ -194,7 +233,7 @@ public static class McConstraintMatcher
             var tilde = ver[0] == '~';
             var baseVer = ver.Substring(1).Trim();
             if (!IsKnown(baseVer)) return false;
-            if (McVersionComparer.CompareVersion(mc, baseVer) < 0) return false;
+            if (CompareSemVer(mc, baseVer) < 0) return false;
             var nums = new List<int>();
             var cur = -1;
             foreach (var ch in baseVer)
@@ -222,7 +261,7 @@ public static class McConstraintMatcher
                 upper = string.Join(".", nums.Take(idx).Concat(new[] { nums[idx] + 1 }));
             }
 
-            return McVersionComparer.CompareVersion(mc, upper) < 0;
+            return CompareSemVer(mc, upper) < 0;
         }
 
         // 通配 1.20.x / 1.20.* 仅在无运算符时有意义
@@ -236,7 +275,7 @@ public static class McConstraintMatcher
         if (prereleaseFloor && (op is "" or ">=" or ">") &&
             string.Equals(mc.Split('-')[0], ver, StringComparison.OrdinalIgnoreCase))
             return true;
-        var c = McVersionComparer.CompareVersion(mc, ver);
+        var c = CompareSemVer(mc, ver);
         return op switch
         {
             "" or "=" or "==" => c == 0, // Fabric 裸版本是精确匹配

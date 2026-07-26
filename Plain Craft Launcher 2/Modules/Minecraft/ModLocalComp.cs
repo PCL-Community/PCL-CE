@@ -978,6 +978,16 @@ public static class ModLocalComp
             isLoaded = true;
         }
 
+        /// <summary>由 Jar-in-Jar 缓存重建内嵌项时恢复其依赖声明（供该内嵌项作为依赖方参与分析）。</summary>
+        internal void SetJijDependencies(Dictionary<string, string> rawDeps, List<string> optional)
+        {
+            _DependencyRaw.Clear();
+            if (rawDeps is not null)
+                foreach (var kv in rawDeps) _DependencyRaw[kv.Key] = kv.Value;
+            _OptionalDependencies.Clear();
+            if (optional is not null) _OptionalDependencies.UnionWith(optional);
+        }
+
         /// <summary>
         ///     从同一物理文件的已解析实体复制解析结果。启/禁用仅重命名、文件内容未变，
         ///     替换实体后无需在 UI 线程重新解压解析。来源未加载时不做任何事。
@@ -1669,13 +1679,23 @@ public static class ModLocalComp
                             if (tomlData[0].Value.ContainsKey("authors"))
                                 Authors = tomlData[0].Value["authors"].ToString();
 
-                            // 读取依赖：优先 dependencies.<本modid>，并回退裸 [[dependencies]] 与命名不一致的 dependencies.* 段
+                            var ownModIdL = ModId.ToLower();
+                            var jarModIds = tomlData
+                                .Where(s => s.Key == "mods" && s.Value.ContainsKey("modId"))
+                                .Select(s => s.Value["modId"].ToString().ToLower())
+                                .ToHashSet();
                             var sectionHadDeps = false;
                             foreach (var subData in tomlData)
                             {
                                 var headerL = subData.Key.ToLower();
                                 if (headerL != "dependencies" && !headerL.StartsWithF("dependencies."))
                                     continue;
+                                if (headerL.StartsWithF("dependencies."))
+                                {
+                                    var seg = headerL.Substring("dependencies.".Length).Trim('"', ' ');
+                                    if (seg != ownModIdL && jarModIds.Contains(seg)) continue; // 兄弟 mod 的依赖段
+                                }
+
                                 {
                                     var depEntry = subData.Value;
                                     if (depEntry.ContainsKey("modId"))

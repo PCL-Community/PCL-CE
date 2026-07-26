@@ -16,7 +16,7 @@ namespace PCL;
 public static class ModJarInJarCache
 {
     /// <summary>缓存数据结构变化时递增此值以令旧缓存失效（改动 JIJ 解析/节点字段后务必升此值）。</summary>
-    private const int FormatVersion = 3;
+    private const int FormatVersion = 5;
 
     private static readonly JsonSerializerOptions _jsonOpts = new()
     {
@@ -214,6 +214,12 @@ public class EmbeddedModNode
 
     /// <summary>声明的目标 Minecraft 版本范围。</summary>
     public string TargetMcVersion { get; set; }
+
+    /// <summary>本内嵌 mod 声明的依赖（ModId → 原始版本约束），供其作为依赖方参与四态/级联分析。</summary>
+    public Dictionary<string, string> Dependencies { get; set; } = new();
+
+    /// <summary>其中被声明为可选的依赖 ModId 子集。</summary>
+    public List<string> OptionalDeps { get; set; } = new();
 
     public List<EmbeddedModNode> Children { get; set; } = new();
 }

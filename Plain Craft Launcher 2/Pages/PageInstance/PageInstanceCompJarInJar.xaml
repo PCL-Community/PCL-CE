@@ -23,6 +23,9 @@
                     </WrapPanel>
                 </local:MyCard>
 
+                <local:MySearchBox Margin="0,0,0,15" x:Name="SearchBox"
+                                   HintText="{DynamicResource Instance.Resource.Mod.JarInJar.Search.Hint}" />
+
                 <!-- 警告板块 -->
                 <local:MyCard x:Name="CardWarnings" Margin="0,0,0,15">
                     <StackPanel Margin="15,10,15,12">

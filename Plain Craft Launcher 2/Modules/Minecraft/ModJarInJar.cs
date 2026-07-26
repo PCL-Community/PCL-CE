@@ -59,6 +59,8 @@ public static class ModJarInJar
             Version = m.Version,
             Loader = m.JijLoader,
             TargetMcVersion = m.JijTargetMcVersion,
+            Dependencies = new Dictionary<string, string>(m.DependencyRaw),
+            OptionalDeps = m.OptionalDependencies.ToList(),
             Children = _ToNodes(m.EmbeddedMods)
         }).ToList();
 
@@ -73,6 +75,7 @@ public static class ModJarInJar
             child.SetJijMetadata(node.Name, node.ModId, node.Version);
             child.JijLoader = node.Loader;
             child.JijTargetMcVersion = node.TargetMcVersion;
+            child.SetJijDependencies(node.Dependencies, node.OptionalDeps);
             child.EmbeddedMods = _FromNodes(node.Children, childPath);
             result.Add(child);
         }
