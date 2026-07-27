@@ -1970,10 +1970,6 @@
 
     <!-- Minecraft.Download.Modpack -->
 
-    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.DoNotUse">Do not use</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.Message">The modpack appears to include its own launcher. Switch to using it to continue?&#xD;&#xA;Will open: {0}</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.Title">Switch to modpack launcher?</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.BundledLauncher.UseBundled">Use bundled</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.EncryptedArchiveUnsupported">PCL CE cannot handle encrypted archives. Please extract and re-archive them in an unencrypted .zip format and try again.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Error.OperationFailed">A modpack operation failed. See the details below.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.FileDialog.Filter">Modpack files(*.rar;*.zip;*.mrpack)|*.rar;*.zip;*.mrpack</sys:String>
@@ -1982,6 +1978,8 @@
     <sys:String x:Key="Minecraft.Download.Modpack.Installing">This modpack is currently being installed!</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.InvalidGamePathChars">Game path cannot contain exclamation marks (!) or semicolons (;): {0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.Generic">This modpack does not provide game version information and cannot be installed!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.NotRecognized.Message">PCL CE could not recognise the modpack format of {0}.&#xD;&#xA;Please make sure it is a CurseForge, Modrinth, MultiMC/Prism, MCBBS, HMCL or server modpack file.</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.NotRecognized.Title">Unrecognised modpack</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.Hmcl">This HMCL modpack does not provide game version information and cannot be installed!</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.McbbsAddons">This MCBBS modpack does not provide game version addon information and cannot be installed!</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.ModMissingRequiredInfoSkipped">A mod is missing required information and has been skipped: {0}</sys:String>
@@ -1994,17 +1992,14 @@
     <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Title">File path validation failed</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.QuiltUnsupported">Cannot install this modpack: Quilt is no longer supported by this launcher.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.RarUnsupported">PCL CE cannot handle .rar archive files. Please extract and re-archive them in .zip format and try again!</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.SelectEmptyFolder.Message">Next, select an empty folder. The modpack will be installed there.</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.SelectTargetFolder.Title">Select installation target (must be an empty folder)</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SomeModsDeleted">Some mod versions in the modpack have been deleted by the mod authors, so installation cannot continue. Please report this issue to the modpack author.</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.TargetFolderMustBeEmpty">Please select an empty folder as the installation target!</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Task.CurseForgeInstall">Install CurseForge modpack: {0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Task.HmclInstall">Install HMCL modpack: {0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Task.McbbsInstall">Install MCBBS modpack: {0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Task.MmcInstall">Install MultiMC modpack: {0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Task.ModrinthInstall">Install Modrinth modpack: {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.Task.ServerInstall">Install server modpack: {0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.TooOldUnsupported">This modpack version is too old and no longer supported!</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.UnknownArchiveStructure">No suitable file structure was found. This may not be a Minecraft archive.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.UnknownLoader">Cannot install modpack, unknown mod loader {0} (version {1})!</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.UnsupportedArchive">Failed to open the modpack file. The file may be corrupted or in an unsupported archive format.</sys:String>
 
