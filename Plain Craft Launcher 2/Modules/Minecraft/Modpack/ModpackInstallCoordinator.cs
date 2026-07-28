@@ -41,7 +41,7 @@ internal static class ModpackInstallCoordinator
             })
         {
             ProgressWeight = context.ExtractionProgressWeight,
-            block = false
+            block = true
         };
     }
 
