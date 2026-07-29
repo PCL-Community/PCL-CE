@@ -314,6 +314,8 @@ public partial class PageDownloadCompDetail
                         // 加载器判定
                         if (!allowedLoaders.Any()) return true; // 无要求
                         if (allowedLoaders.Contains(ModComp.CompLoaderType.Forge) && version.Info.HasForge) return true;
+                        if (allowedLoaders.Contains(ModComp.CompLoaderType.Forge) && version.Info.HasCleanroom) 
+                            return true;
                         if (allowedLoaders.Contains(ModComp.CompLoaderType.Fabric) &&
                             (version.Info.HasFabric || version.Info.HasLegacyFabric)) return true;
                         if (allowedLoaders.Contains(ModComp.CompLoaderType.NeoForge) && version.Info.HasNeoForge)
