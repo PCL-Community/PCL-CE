@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using PCL.Core.Logging;
@@ -44,6 +45,12 @@ public sealed class ModpackInstallSession : IDisposable
     /// 非 <c>null</c> 时释放覆写文件按更新语义执行。
     /// </summary>
     public ModpackConfiguration? Previous { get; private set; }
+
+    /// <summary>
+    /// 已释放到暂存目录的 JAR Mod，按 MultiMC 组件声明顺序排列。
+    /// 游戏主 JAR 生成后由宿主交给 <see cref="ModpackJarModMerger"/> 处理。
+    /// </summary>
+    public IReadOnlyList<string> ExtractedJarModFiles { get; private set; } = [];
 
     private ModpackInstallSession(ModpackArchive archive, ModpackDescriptor descriptor, string? extractedFile)
     {
@@ -145,7 +152,8 @@ public sealed class ModpackInstallSession : IDisposable
     }
 
     /// <summary>
-    /// 释放内嵌载荷（库文件、JAR Mod），保持其原有目录结构。
+    /// 释放内嵌载荷。库文件保持原目录结构，JAR Mod 则进入 PCL 专用暂存目录，
+    /// 避免留下一个不会被游戏消费的实例 <c>jarmods</c> 目录。
     /// </summary>
     public async Task<IReadOnlyList<ModpackFileSnapshot>> ExtractPayloadsAsync(
         IProgress<double>? progress = null, CancellationToken cancellationToken = default)
@@ -153,14 +161,64 @@ public sealed class ModpackInstallSession : IDisposable
         var plan = _RequirePlan();
         if (plan.EmbeddedPayloads.Count == 0) return [];
 
-        var directives = new List<ModpackOverride>(plan.EmbeddedPayloads.Count);
-        foreach (var payload in plan.EmbeddedPayloads)
-            directives.Add(new ModpackOverride(payload.ArchiveDirectory, payload.ArchiveDirectory));
+        var snapshots = new List<ModpackFileSnapshot>();
+        var jarModFiles = new List<string>();
 
-        return await ModpackOverrideExtractor
-            .ExtractAsync(_archive, directives, plan.InstanceDirectory, progress, previous: null, cancellationToken)
-            .ConfigureAwait(false);
+        foreach (var payload in plan.EmbeddedPayloads)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (payload.Kind == ModpackPayloadKind.Libraries)
+            {
+                var extracted = await ModpackOverrideExtractor.ExtractAsync(
+                        _archive,
+                        [new ModpackOverride(payload.ArchiveDirectory, payload.ArchiveDirectory)],
+                        plan.InstanceDirectory,
+                        progress,
+                        previous: null,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+                snapshots.AddRange(extracted);
+                continue;
+            }
+
+            var stagingDirectory = GetJarModStagingDirectory(plan.InstanceDirectory);
+            if (Directory.Exists(stagingDirectory)) Directory.Delete(stagingDirectory, recursive: true);
+
+            var targetSubPath = Path.GetRelativePath(plan.InstanceDirectory, stagingDirectory);
+            var staged = await ModpackOverrideExtractor.ExtractAsync(
+                    _archive,
+                    [new ModpackOverride(payload.ArchiveDirectory, targetSubPath)],
+                    plan.InstanceDirectory,
+                    progress,
+                    previous: null,
+                    cancellationToken)
+                .ConfigureAwait(false);
+            snapshots.AddRange(staged);
+
+            var orderedFiles = payload.OrderedFiles is { Count: > 0 }
+                ? payload.OrderedFiles
+                : staged.Select(snapshot => Path.GetRelativePath(
+                    stagingDirectory,
+                    Path.Combine(plan.InstanceDirectory, snapshot.Path))).ToArray();
+
+            foreach (var relativePath in orderedFiles)
+            {
+                var fullPath = ModpackPathPolicy.ResolveWithin(stagingDirectory, relativePath);
+                if (!File.Exists(fullPath))
+                    throw new ModpackException($"整合包声明的 JAR Mod 不存在：{relativePath}");
+
+                jarModFiles.Add(fullPath);
+            }
+        }
+
+        ExtractedJarModFiles = jarModFiles;
+        return snapshots;
     }
+
+    /// <summary>返回实例内供 JAR Mod 使用的专用暂存目录。</summary>
+    public static string GetJarModStagingDirectory(string instanceDirectory)
+        => Path.Combine(Path.GetFullPath(instanceDirectory), "PCL", "ModpackInstall", "JarMods");
 
     /// <summary>
     /// 把压缩包内的某个文件复制到指定位置，用于取出实例图标等零散资源。

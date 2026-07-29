@@ -3,12 +3,11 @@ using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.Modpack;
 using PCL.Core.Minecraft.Modpack.Installation;
+using PCL.Core.Minecraft.Modpack.Model;
 using PCL.Core.Minecraft.Modpack.MultiMc;
 using PCL.Core.UI;
-using PCL.Core.Utils;
 using PCL.Core.Utils.Validate;
 using PCL.Modpack;
-using PCL.Network;
 using PCL.Network.Loaders;
 using static PCL.ModLoader;
 
@@ -53,6 +52,9 @@ public static class ModModpack
         /// <summary>需要叠加到实例 JSON 上的内容。</summary>
         public JsonObject overridedJson = new();
 
+        /// <summary>MultiMC 组件的原始顺序，用于把自定义补丁穿插到加载器 JSON 之间。</summary>
+        public IReadOnlyList<ModpackVersionComponent> orderedComponents = [];
+
         /// <summary>
         ///     由 PCL.Core 的版本补丁构造，补丁为空时返回 <c>null</c>。
         ///     <para>
@@ -61,8 +63,7 @@ public static class ModModpack
         ///         因此它们的 JSON 仍需正常合并。
         ///     </para>
         /// </summary>
-        internal static MMCPackInfo? FromVersionPatch(
-            PCL.Core.Minecraft.Modpack.Model.ModpackVersionPatch? patch)
+        internal static MMCPackInfo? FromVersionPatch(ModpackVersionPatch? patch)
         {
             if (patch is null || patch.IsEmpty) return null;
 
@@ -72,7 +73,13 @@ public static class ModModpack
             {
                 isMinecraftOverrided = patch.ReplacesGameJson,
                 isMcArgsEdited = patch.OverridesGameArguments,
-                overridedJson = patch.VersionJson.DeepClone().AsObject()
+                overridedJson = patch.VersionJson.DeepClone().AsObject(),
+                orderedComponents = patch.OrderedComponents
+                    .Select(component => component with
+                    {
+                        Patch = component.Patch?.DeepClone().AsObject()
+                    })
+                    .ToArray()
             };
         }
     }
@@ -113,13 +120,13 @@ public static class ModModpack
     /// <param name="instanceName">指定实例名；为 <c>null</c> 时取整合包名称，必要时询问用户。</param>
     /// <param name="logo">实例图标路径。</param>
     /// <param name="resourceId">在线整合包的项目 ID。</param>
-    /// <param name="isOnlineInstall">是否由在线下载页发起，决定安装后是否跳转到任务管理页。</param>
+    /// <param name="isOnlineInstall">是否由在线下载页发起；在线流程拥有下载的临时源文件。</param>
     /// <exception cref="ModBase.CancelledException" />
     public static LoaderCombo<string> ModpackInstall(
         string file, string? instanceName = null, string? logo = null,
         string? resourceId = null, bool isOnlineInstall = false)
     {
-        ModBase.Log("[Modpack] 整合包安装请求：" + (file ?? "null"));
+        ModBase.Log("[Modpack] 整合包安装请求：" + file);
         if (string.IsNullOrEmpty(file)) throw new ModBase.CancelledException();
 
         var session = _OpenSession(file);
@@ -194,7 +201,7 @@ public static class ModModpack
         }
 
         var loaderName = _BuildTaskName(descriptor.Format, instanceName);
-        if (loaderTaskbar.Any(l => (l.name ?? "") == loaderName))
+        if (loaderTaskbar.Any(l => l.name == loaderName))
         {
             HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);
             throw new ModBase.CancelledException();
@@ -206,6 +213,8 @@ public static class ModModpack
             file,
             logo,
             resourceId,
+            isOnlineInstall,
+            [],
             // 释放阶段按每 6 MB 约 1 秒估算耗时
             ExtractionProgressWeight: Math.Max(1d, new FileInfo(file).Length / 1024d / 1024d / 6d));
 
@@ -285,7 +294,7 @@ public static class ModModpack
             States.Instance.CustomInfo[folder] = description;
         }
 
-        _CleanupSourceFiles(folder, context.SourceFilePath);
+        _CleanupSourceFiles(folder, context.SourceFilePath, context.IsOnlineInstall);
     }
 
     private static void _TryFetchDescription(string folder, string resourceId)
@@ -304,8 +313,10 @@ public static class ModModpack
     /// <summary>
     ///     删除安装过程中残留的整合包原始文件。
     /// </summary>
-    private static void _CleanupSourceFiles(string instanceFolder, string sourceFile)
+    private static void _CleanupSourceFiles(string instanceFolder, string sourceFile, bool isOnlineInstall)
     {
+        if (!isOnlineInstall) return;
+
         foreach (var name in new[] { "原始整合包.zip", "原始整合包.mrpack" })
         {
             var path = Path.Combine(instanceFolder, name);

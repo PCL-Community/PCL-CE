@@ -318,6 +318,51 @@ public class ModpackIdentifierTest
     }
 
     [TestMethod]
+    public async Task PreservesMultiMcComponentAndJarModOrder()
+    {
+        var path = _CreateArchive(new Dictionary<string, string>
+        {
+            ["mmc-pack.json"] = """
+                {
+                  "formatVersion": 1,
+                  "components": [
+                    { "uid": "net.minecraft", "version": "1.12.2" },
+                    { "uid": "net.minecraftforge", "version": "14.23.5.2860" },
+                    { "uid": "com.example.custom", "version": "1.0" }
+                  ]
+                }
+                """,
+            ["instance.cfg"] = "name=Ordered Pack",
+            ["patches/com.example.custom.json"] = """
+                {
+                  "formatVersion": 1,
+                  "uid": "com.example.custom",
+                  "version": "1.0",
+                  "mainClass": "com.example.CustomMain",
+                  "jarMods": [{ "filename": "first.jar" }],
+                  "+jarMods": [{ "MMC-filename": "second.jar" }]
+                }
+                """,
+            ["jarmods/first.jar"] = "first",
+            ["jarmods/second.jar"] = "second"
+        });
+
+        var descriptor = await ModpackIdentifier.Shared.ReadAsync(path);
+        var patch = descriptor.VersionPatch;
+
+        Assert.IsNotNull(patch);
+        CollectionAssert.AreEqual(
+            new[] { "net.minecraft", "net.minecraftforge", "com.example.custom" },
+            patch.OrderedComponents.Select(component => component.Uid).ToArray());
+        Assert.AreEqual(ModpackVersionComponentKind.Loader, patch.OrderedComponents[1].Kind);
+        Assert.AreEqual(ModLoaderKind.Forge, patch.OrderedComponents[1].LoaderKind);
+        Assert.AreEqual(ModpackVersionComponentKind.CustomPatch, patch.OrderedComponents[2].Kind);
+
+        var jarMods = descriptor.EmbeddedPayloads.Single(payload => payload.Kind == ModpackPayloadKind.JarMods);
+        CollectionAssert.AreEqual(new[] { "first.jar", "second.jar" }, jarMods.OrderedFiles!.ToArray());
+    }
+
+    [TestMethod]
     public async Task IdentifiesServerModpack()
     {
         var path = _CreateArchive(new Dictionary<string, string>

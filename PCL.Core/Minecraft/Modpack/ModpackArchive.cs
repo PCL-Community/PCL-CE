@@ -107,7 +107,7 @@ public sealed class ModpackArchive : IDisposable
         var prefix = _NormalizeKey(relativeDirectory);
         if (prefix.Length == 0) return _entries.Count > 0;
         prefix += '/';
-        return _entries.Keys.Any(key => key.StartsWith(prefix, StringComparison.Ordinal));
+        return _entries.Keys.Any(key => key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -122,7 +122,7 @@ public sealed class ModpackArchive : IDisposable
 
         foreach (var (key, entry) in _entries)
         {
-            if (!key.StartsWith(prefix, StringComparison.Ordinal)) continue;
+            if (!key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) continue;
             yield return new ModpackArchiveItem(entry, key[prefix.Length..]);
         }
     }

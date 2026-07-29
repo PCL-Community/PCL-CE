@@ -120,6 +120,169 @@ public static class MultiMcPatchMerger
     }
 
     /// <summary>
+    /// 把一个原始 MultiMC 补丁应用到已有的官方版本 JSON。
+    /// <para>
+    /// 与 <see cref="Merge"/> 不同，本方法保留补丁在组件列表中的实际位置，并能在前置组件
+    /// 已写入库列表后正确处理 <c>-libraries</c>。宿主在穿插 PCL 生成的加载器 JSON 时使用它。
+    /// </para>
+    /// </summary>
+    public static void ApplyTo(JsonObject target, JsonObject patch)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        ArgumentNullException.ThrowIfNull(patch);
+
+        _ApplyLibraries(target, patch);
+
+        if (patch["mainClass"]?.GetValue<string?>() is { Length: > 0 } mainClass)
+            target["mainClass"] = mainClass;
+
+        if (patch["assetIndex"] is JsonObject assetIndex)
+            target["assetIndex"] = assetIndex.DeepClone();
+
+        if (patch["assets"]?.GetValue<string?>() is { Length: > 0 } assets)
+            target["assets"] = assets;
+
+        if (patch["compatibleJavaMajors"] is JsonArray majors)
+        {
+            var values = majors
+                .Select(node => node?.GetValue<int?>())
+                .Where(value => value is not null)
+                .Select(value => value!.Value)
+                .ToHashSet();
+            if (_ResolveJavaVersion(values) is { } javaVersion) target["javaVersion"] = javaVersion;
+        }
+
+        _ApplyArguments(target, patch);
+        _ApplyRemainingFields(target, patch);
+    }
+
+    private static void _ApplyLibraries(JsonObject target, JsonObject patch)
+    {
+        if (patch["libraries"] is null && patch["+libraries"] is null &&
+            patch["mavenFiles"] is null && patch["-libraries"] is null)
+            return;
+
+        var libraries = new LibrarySet();
+        libraries.AddRange(target["libraries"] as JsonArray);
+        libraries.AddRange(patch["libraries"] as JsonArray);
+        libraries.AddRange(patch["+libraries"] as JsonArray);
+        libraries.AddRange(patch["mavenFiles"] as JsonArray);
+        libraries.RemoveRange(patch["-libraries"] as JsonArray);
+
+        if (libraries.Count > 0) target["libraries"] = libraries.ToJsonArray();
+        else target.Remove("libraries");
+    }
+
+    private static void _ApplyArguments(JsonObject target, JsonObject patch)
+    {
+        var hasLegacy = patch["minecraftArguments"]?.GetValue<string?>() is { Length: > 0 };
+        var hasGameChanges = hasLegacy || patch["+gameArgs"] is JsonArray ||
+                             patch["-gameArgs"] is JsonArray || patch["+tweakers"] is JsonArray;
+        var hasJvmChanges = patch["+jvmArgs"] is JsonArray || patch["-jvmArgs"] is JsonArray;
+        if (!hasGameChanges && !hasJvmChanges) return;
+
+        var arguments = target["arguments"] as JsonObject;
+        if (arguments is null)
+        {
+            arguments = new JsonObject();
+            target["arguments"] = arguments;
+        }
+
+        if (hasGameChanges)
+        {
+            JsonArray game;
+            if (hasLegacy)
+            {
+                game = _ToJsonArray(patch["minecraftArguments"]!.GetValue<string>()
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+                arguments["game"] = game;
+            }
+            else
+            {
+                game = _GetOrCreateArray(arguments, "game");
+            }
+
+            _AppendNodes(game, patch["+gameArgs"] as JsonArray);
+            _RemoveNodes(game, patch["-gameArgs"] as JsonArray);
+
+            foreach (var tweaker in _ReadStrings(patch["+tweakers"] as JsonArray))
+            {
+                game.Add("--tweakClass");
+                game.Add(tweaker);
+            }
+        }
+
+        if (hasJvmChanges)
+        {
+            var jvm = _GetOrCreateArray(arguments, "jvm");
+            _AppendNodes(jvm, patch["+jvmArgs"] as JsonArray);
+            _RemoveNodes(jvm, patch["-jvmArgs"] as JsonArray);
+        }
+    }
+
+    /// <summary>
+    /// 保留格式未来扩展的标量与普通数组字段；组件元数据和已翻译字段不写入官方版本 JSON。
+    /// </summary>
+    private static void _ApplyRemainingFields(JsonObject target, JsonObject patch)
+    {
+        foreach (var (key, value) in patch)
+        {
+            if (_HandledOrMetadataFields.Contains(key)) continue;
+
+            if (key.StartsWith('+') && key.Length > 1 && value is JsonArray additions)
+            {
+                _AppendNodes(_GetOrCreateArray(target, key[1..]), additions);
+                continue;
+            }
+
+            if (key.StartsWith('-') && key.Length > 1 && value is JsonArray removals)
+            {
+                if (target[key[1..]] is JsonArray existing) _RemoveNodes(existing, removals);
+                continue;
+            }
+
+            target[key] = value?.DeepClone();
+        }
+    }
+
+    private static JsonArray _GetOrCreateArray(JsonObject owner, string propertyName)
+    {
+        if (owner[propertyName] is JsonArray existing) return existing;
+
+        var created = new JsonArray();
+        owner[propertyName] = created;
+        return created;
+    }
+
+    private static void _AppendNodes(JsonArray target, JsonArray? source)
+    {
+        if (source is null) return;
+        foreach (var node in source) target.Add(node?.DeepClone());
+    }
+
+    private static void _RemoveNodes(JsonArray target, JsonArray? removals)
+    {
+        if (removals is null) return;
+
+        foreach (var removal in removals)
+        {
+            for (var index = target.Count - 1; index >= 0; index--)
+            {
+                if (JsonNode.DeepEquals(target[index], removal)) target.RemoveAt(index);
+            }
+        }
+    }
+
+    private static readonly HashSet<string> _HandledOrMetadataFields = new(StringComparer.Ordinal)
+    {
+        "formatVersion", "uid", "id", "name", "version", "order", "requires", "volatile",
+        "type", "releaseTime",
+        "libraries", "+libraries", "-libraries", "mavenFiles", "jarMods", "+jarMods",
+        "mainClass", "assetIndex", "assets", "compatibleJavaMajors", "minecraftArguments",
+        "+gameArgs", "-gameArgs", "+jvmArgs", "-jvmArgs", "+tweakers"
+    };
+
+    /// <summary>
     /// 官方版本 JSON 中固定存在的 JVM 参数。
     /// </summary>
     private static readonly string[] _StandardJvmArguments =

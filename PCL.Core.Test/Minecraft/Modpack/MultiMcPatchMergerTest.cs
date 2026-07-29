@@ -173,6 +173,94 @@ public class MultiMcPatchMergerTest
     }
 
     [TestMethod]
+    public void AppliesCustomPatchAfterLoaderWithoutLosingItsPosition()
+    {
+        var output = new JsonObject
+        {
+            ["mainClass"] = "net.minecraft.client.Main",
+            ["libraries"] = new JsonArray
+            {
+                new JsonObject { ["name"] = "com.example:remove-me:1.0" }
+            }
+        };
+
+        MultiMcPatchMerger.ApplyTo(output, JsonNode.Parse("""
+            {
+              "uid": "net.minecraftforge",
+              "mainClass": "cpw.mods.bootstraplauncher.BootstrapLauncher",
+              "+libraries": [{ "name": "com.example:forge:1.0" }]
+            }
+            """)!.AsObject());
+        MultiMcPatchMerger.ApplyTo(output, JsonNode.Parse("""
+            {
+              "uid": "com.example.custom",
+              "mainClass": "com.example.CustomMain",
+              "-libraries": [{ "name": "com.example:remove-me:1.0" }]
+            }
+            """)!.AsObject());
+
+        Assert.AreEqual("com.example.CustomMain", output["mainClass"]!.GetValue<string>());
+        var libraries = output["libraries"]!.AsArray()
+            .Select(node => node!["name"]!.GetValue<string>()).ToArray();
+        CollectionAssert.AreEqual(new[] { "com.example:forge:1.0" }, libraries);
+    }
+
+    [TestMethod]
+    public void PatchWithoutLibraryOperationsLeavesExistingLibrariesUntouched()
+    {
+        var first = new JsonObject
+        {
+            ["name"] = "com.example:shared:1.0",
+            ["rules"] = new JsonArray
+            {
+                new JsonObject { ["action"] = "allow", ["os"] = new JsonObject { ["name"] = "windows" } }
+            }
+        };
+        var second = new JsonObject
+        {
+            ["name"] = "com.example:shared:2.0",
+            ["rules"] = new JsonArray
+            {
+                new JsonObject { ["action"] = "allow", ["os"] = new JsonObject { ["name"] = "linux" } }
+            }
+        };
+        var output = new JsonObject
+        {
+            ["libraries"] = new JsonArray(first.DeepClone(), second.DeepClone())
+        };
+        var expected = output["libraries"]!.DeepClone();
+
+        MultiMcPatchMerger.ApplyTo(output, JsonNode.Parse("""
+            { "uid": "com.example.custom", "mainClass": "com.example.CustomMain" }
+            """)!.AsObject());
+
+        Assert.IsTrue(JsonNode.DeepEquals(expected, output["libraries"]));
+    }
+
+    [TestMethod]
+    public void KeepsBaseReleaseMetadataButPreservesUnknownExtensionFields()
+    {
+        var output = new JsonObject
+        {
+            ["type"] = "release",
+            ["releaseTime"] = "2020-01-01T00:00:00Z"
+        };
+
+        MultiMcPatchMerger.ApplyTo(output, JsonNode.Parse("""
+            {
+              "uid": "com.example.custom",
+              "type": "snapshot",
+              "releaseTime": "2030-01-01T00:00:00Z",
+              "customExtension": { "enabled": true }
+            }
+            """)!.AsObject());
+
+        Assert.AreEqual("release", output["type"]!.GetValue<string>());
+        Assert.AreEqual("2020-01-01T00:00:00Z", output["releaseTime"]!.GetValue<string>());
+        Assert.IsTrue(output["customExtension"]!["enabled"]!.GetValue<bool>());
+    }
+
+    [TestMethod]
     public void ReturnsNullForEmptyInput()
     {
         Assert.IsNull(MultiMcPatchMerger.Merge([], selfContained: false));

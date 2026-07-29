@@ -194,6 +194,11 @@ public static class ModpackOverrideExtractor
 
             var fullPath = Path.Combine(root, normalized);
             if (!ModpackPathPolicy.IsWithin(root, Path.GetFullPath(fullPath)) || !File.Exists(fullPath)) continue;
+            if (!_MatchesRecordedHash(fullPath, stale.Hash))
+            {
+                LogWrapper.Debug("Modpack", $"保留用户修改过的已移除文件：{normalized}");
+                continue;
+            }
 
             try
             {
@@ -205,6 +210,27 @@ public static class ModpackOverrideExtractor
                 // 逐个文件的问题只记日志：Warn 在调试构建中会弹提示条，按文件数量弹会刷屏
                 LogWrapper.Info("Modpack", $"删除文件失败：{normalized}（{ex.Message}）");
             }
+        }
+    }
+
+    /// <summary>
+    /// 只有磁盘文件仍与上次安装记录一致时，更新流程才拥有删除它的权限。
+    /// 无法读取或记录缺少校验值时按用户文件处理并保留。
+    /// </summary>
+    private static bool _MatchesRecordedHash(string filePath, string recordedHash)
+    {
+        if (string.IsNullOrWhiteSpace(recordedHash)) return false;
+
+        try
+        {
+            using var stream = File.OpenRead(filePath);
+            var currentHash = Convert.ToHexStringLower(SHA1.HashData(stream));
+            return string.Equals(currentHash, recordedHash, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            LogWrapper.Info("Modpack", $"读取待删除文件失败，已保留：{filePath}（{ex.Message}）");
+            return false;
         }
     }
 

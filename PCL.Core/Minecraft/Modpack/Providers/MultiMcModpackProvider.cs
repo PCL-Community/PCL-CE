@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using PCL.Core.Minecraft.Modpack.Manifests;
@@ -67,7 +68,7 @@ public sealed class MultiMcModpackProvider : IModpackProvider
             Overrides = archive.HasDirectory(MinecraftDirectory)
                 ? [ModpackOverride.ToInstanceRoot(MinecraftDirectory)]
                 : [],
-            EmbeddedPayloads = _CollectPayloads(archive),
+            EmbeddedPayloads = _CollectPayloads(archive, versionPatch?.JarModFileNames ?? []),
             LaunchOptions = _ParseLaunchOptions(archive, config),
             VersionPatch = versionPatch,
             RawManifest = archive.HasEntry(PackFileName)
@@ -135,7 +136,8 @@ public sealed class MultiMcModpackProvider : IModpackProvider
         return loaders;
     }
 
-    private static List<ModpackEmbeddedPayload> _CollectPayloads(ModpackArchive archive)
+    private static List<ModpackEmbeddedPayload> _CollectPayloads(
+        ModpackArchive archive, IReadOnlyList<string> declaredJarMods)
     {
         var payloads = new List<ModpackEmbeddedPayload>(2);
 
@@ -143,7 +145,19 @@ public sealed class MultiMcModpackProvider : IModpackProvider
             payloads.Add(new ModpackEmbeddedPayload(ModpackPayloadKind.Libraries, LibrariesDirectory));
 
         if (archive.HasDirectory(JarModsDirectory))
-            payloads.Add(new ModpackEmbeddedPayload(ModpackPayloadKind.JarMods, JarModsDirectory));
+        {
+            IReadOnlyList<string> ordered = declaredJarMods.Count > 0
+                ? declaredJarMods
+                : archive.EnumerateFiles(JarModsDirectory)
+                    .Select(item => item.RelativePath)
+                    .Where(path => path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) ||
+                                   path.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                    .ToArray();
+
+            if (ordered.Count > 0)
+                payloads.Add(new ModpackEmbeddedPayload(
+                    ModpackPayloadKind.JarMods, JarModsDirectory, ordered));
+        }
 
         return payloads;
     }
@@ -168,6 +182,9 @@ public sealed class MultiMcModpackProvider : IModpackProvider
     {
         var localPatches = _ReadLocalPatches(archive);
         var applicable = new List<MultiMcPatch>();
+        var orderedComponents = new List<ModpackVersionComponent>();
+        var jarModFileNames = new List<string>();
+        var seenJarMods = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         // 按 mmc-pack.json 中的组件顺序应用 —— 这是 MultiMC 的权威顺序
         foreach (var component in components)
@@ -178,31 +195,52 @@ public sealed class MultiMcModpackProvider : IModpackProvider
             if (string.IsNullOrWhiteSpace(uid)) continue;
 
             var role = MultiMcComponentCatalog.GetRole(uid);
+            if (role == MultiMcComponentRole.Game)
+                orderedComponents.Add(new ModpackVersionComponent(
+                    uid, ModpackVersionComponentKind.Game));
+            else if (role == MultiMcComponentRole.ModLoader &&
+                     MultiMcComponentCatalog.ResolveLoader(uid, component.ResolveVersion()) is { } loaderKind)
+                orderedComponents.Add(new ModpackVersionComponent(
+                    uid, ModpackVersionComponentKind.Loader, loaderKind));
+
             if (role is not MultiMcComponentRole.Unknown)
             {
-                if (localPatches.ContainsKey(uid))
+                if (localPatches.TryGetValue(uid, out var knownLocal))
+                {
+                    _AppendJarModFileNames(knownLocal, jarModFileNames, seenJarMods);
                     warnings.Add($"整合包自带了组件「{uid}」的版本补丁，PCL 将改用官方渠道安装该组件");
-                continue;
-            }
-
-            if (localPatches.TryGetValue(uid, out var local))
-            {
-                applicable.Add(local);
+                }
                 continue;
             }
 
             var version = component.ResolveVersion();
-            if (context.MetaClient is null || string.IsNullOrWhiteSpace(version))
+            MultiMcPatch? resolved = null;
+            if (localPatches.TryGetValue(uid, out var local))
             {
-                warnings.Add($"整合包缺少自定义组件「{uid}」的定义，该组件将被忽略");
-                continue;
+                resolved = local;
+            }
+            else
+            {
+                if (context.MetaClient is null || string.IsNullOrWhiteSpace(version))
+                {
+                    warnings.Add($"整合包缺少自定义组件「{uid}」的定义，该组件将被忽略");
+                    continue;
+                }
+
+                resolved = await context.MetaClient
+                    .TryGetPatchAsync(uid, version, cancellationToken)
+                    .ConfigureAwait(false);
             }
 
-            var remote = await context.MetaClient
-                .TryGetPatchAsync(uid, version, cancellationToken)
-                .ConfigureAwait(false);
-
-            if (remote is not null) applicable.Add(remote);
+            if (resolved is not null)
+            {
+                applicable.Add(resolved);
+                orderedComponents.Add(new ModpackVersionComponent(
+                    uid,
+                    ModpackVersionComponentKind.CustomPatch,
+                    Patch: resolved.Raw.DeepClone().AsObject()));
+                _AppendJarModFileNames(resolved, jarModFileNames, seenJarMods);
+            }
             else warnings.Add($"未能获取自定义组件「{uid}」（版本 {version}）的定义，该组件将被忽略");
         }
 
@@ -212,13 +250,56 @@ public sealed class MultiMcModpackProvider : IModpackProvider
             .Where(uid => !string.IsNullOrWhiteSpace(uid))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        applicable.AddRange(localPatches.Values
-            .Where(patch => !declaredUids.Contains(patch.Uid))
-            .Where(patch => MultiMcComponentCatalog.GetRole(patch.Uid) == MultiMcComponentRole.Unknown)
-            .OrderBy(patch => patch.Order));
+        foreach (var patch in localPatches.Values
+                     .Where(patch => !declaredUids.Contains(patch.Uid))
+                     .OrderBy(patch => patch.Order))
+        {
+            _AppendJarModFileNames(patch, jarModFileNames, seenJarMods);
+            if (MultiMcComponentCatalog.GetRole(patch.Uid) != MultiMcComponentRole.Unknown) continue;
+
+            applicable.Add(patch);
+            orderedComponents.Add(new ModpackVersionComponent(
+                patch.Uid,
+                ModpackVersionComponentKind.CustomPatch,
+                Patch: patch.Raw.DeepClone().AsObject()));
+        }
 
         // 补丁作为增量叠加到 PCL 生成的实例 JSON 上，因此不产出自包含的完整 JSON
-        return MultiMcPatchMerger.Merge(applicable, selfContained: false);
+        var merged = MultiMcPatchMerger.Merge(applicable, selfContained: false);
+        if (merged is null && applicable.Count == 0 && jarModFileNames.Count == 0) return null;
+
+        return new ModpackVersionPatch(
+            merged?.VersionJson ?? new JsonObject(),
+            ReplacesGameJson: false,
+            merged?.AppliedComponentUids ?? applicable.Select(patch => patch.Uid).ToArray())
+        {
+            OrderedComponents = orderedComponents,
+            JarModFileNames = jarModFileNames
+        };
+    }
+
+    private static void _AppendJarModFileNames(
+        MultiMcPatch patch, List<string> target, HashSet<string> seen)
+    {
+        foreach (var propertyName in new[] { "jarMods", "+jarMods" })
+        {
+            if (patch.Raw[propertyName] is not JsonArray entries) continue;
+
+            foreach (var entry in entries)
+            {
+                var fileName = entry switch
+                {
+                    JsonObject obj => obj["MMC-filename"]?.GetValue<string?>() ??
+                                      obj["filename"]?.GetValue<string?>(),
+                    JsonValue value when value.TryGetValue<string>(out var text) => text,
+                    _ => null
+                };
+
+                if (string.IsNullOrWhiteSpace(fileName)) continue;
+                fileName = fileName.Trim();
+                if (seen.Add(fileName)) target.Add(fileName);
+            }
+        }
     }
 
     private static Dictionary<string, MultiMcPatch> _ReadLocalPatches(ModpackArchive archive)

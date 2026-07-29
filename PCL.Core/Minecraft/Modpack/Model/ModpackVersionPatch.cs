@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Nodes;
 
 namespace PCL.Core.Minecraft.Modpack.Model;
@@ -21,8 +22,19 @@ public sealed record ModpackVersionPatch(
     bool ReplacesGameJson,
     IReadOnlyList<string> AppliedComponentUids)
 {
+    /// <summary>
+    /// MultiMC 原始组件顺序。自定义补丁必须在其声明位置应用，不能提前聚合到 Minecraft
+    /// 本体上，否则位于 Forge/Fabric 之后的字段会被加载器 JSON 重新覆盖。
+    /// </summary>
+    public IReadOnlyList<ModpackVersionComponent> OrderedComponents { get; init; } = [];
+
+    /// <summary>JAR Mod 文件名，按组件和补丁中的声明顺序排列。</summary>
+    public IReadOnlyList<string> JarModFileNames { get; init; } = [];
+
     /// <summary>合并结果是否为空 —— 为空时无需对实例 JSON 做任何处理。</summary>
-    public bool IsEmpty => VersionJson.Count == 0;
+    public bool IsEmpty => VersionJson.Count == 0 &&
+                           !OrderedComponents.Any(component =>
+                               component.Kind == ModpackVersionComponentKind.CustomPatch);
 
     /// <summary>
     /// 补丁是否自带完整的游戏启动参数。
@@ -31,5 +43,31 @@ public sealed record ModpackVersionPatch(
     /// 该字段与 <c>arguments.game</c> 表达同一件事，同时存在会让参数被传入两遍。
     /// </para>
     /// </summary>
-    public bool OverridesGameArguments => VersionJson["arguments"]?["game"] is JsonArray { Count: > 0 };
+    public bool OverridesGameArguments =>
+        VersionJson["arguments"]?["game"] is JsonArray { Count: > 0 } ||
+        OrderedComponents.Any(component => component.Patch is { } patch &&
+            (patch["minecraftArguments"] is not null || patch["+gameArgs"] is JsonArray { Count: > 0 }));
 }
+
+/// <summary>有序版本组件的种类。</summary>
+public enum ModpackVersionComponentKind
+{
+    /// <summary>Minecraft 本体，由 PCL 下载的原版 JSON 代替。</summary>
+    Game,
+
+    /// <summary>PCL 能直接安装的加载器，由对应的安装结果 JSON 代替。</summary>
+    Loader,
+
+    /// <summary>启动器无法自行安装的自定义 MultiMC 补丁。</summary>
+    CustomPatch
+}
+
+/// <summary>
+/// MultiMC 组件序列中的一个操作。<see cref="LoaderKind"/> 仅对加载器有效，
+/// <see cref="Patch"/> 仅对自定义补丁有效。
+/// </summary>
+public sealed record ModpackVersionComponent(
+    string Uid,
+    ModpackVersionComponentKind Kind,
+    ModLoaderKind? LoaderKind = null,
+    JsonObject? Patch = null);

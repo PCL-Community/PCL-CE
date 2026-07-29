@@ -64,6 +64,7 @@ internal static class ModpackInstallCoordinator
             .GetAwaiter().GetResult();
 
         session.ExtractPayloadsAsync().GetAwaiter().GetResult();
+        context.JarModFiles.AddRange(session.ExtractedJarModFiles);
         task.Progress = 0.8d;
 
         // 阶段三：写入实例设置
@@ -212,8 +213,49 @@ internal static class ModpackInstallCoordinator
             legacyFabricVersion = components.GetLoaderVersion(ModLoaderKind.LegacyFabric)!,
             cleanroomVersion = components.GetLoaderVersion(ModLoaderKind.Cleanroom)!,
             optiFineVersion = components.GetLoaderVersion(ModLoaderKind.OptiFine)!,
+            liteLoaderEntry = _ResolveLiteLoaderEntry(components)!,
+            jarModFiles = context.JarModFiles,
+            jarModStagingDirectory = ModpackInstallSession.GetJarModStagingDirectory(context.InstanceDirectory),
             mmcPackInfo = ModModpack.MMCPackInfo.FromVersionPatch(descriptor.VersionPatch)!
         };
+    }
+
+    /// <summary>
+    /// LiteLoader 安装器需要完整的版本元数据，只有清单中的字符串不足以构造安装任务。
+    /// 在整个任务启动前解析并严格匹配，避免悄悄退化为原版 Minecraft。
+    /// </summary>
+    private static ModDownload.DlLiteLoaderListEntry? _ResolveLiteLoaderEntry(ModpackComponents components)
+    {
+        var declaredVersion = components.GetLoaderVersion(ModLoaderKind.LiteLoader);
+        if (declaredVersion is null) return null;
+
+        try
+        {
+            ModDownload.dlLiteLoaderListLoader.WaitForExit();
+        }
+        catch (Exception ex)
+        {
+            throw new ModpackUnsupportedContentException(
+                $"无法获取 LiteLoader {declaredVersion} 的安装信息：{ex.Message}");
+        }
+
+        var entry = ModDownload.dlLiteLoaderListLoader.output.Value?
+            .FirstOrDefault(candidate =>
+                string.Equals(candidate.Inherit, components.GameVersion, StringComparison.OrdinalIgnoreCase) &&
+                _MatchesLiteLoaderVersion(candidate, declaredVersion, components.GameVersion));
+
+        return entry ?? throw new ModpackUnsupportedContentException(
+            $"无法安装整合包：未找到适用于 Minecraft {components.GameVersion} 的 LiteLoader {declaredVersion}。");
+    }
+
+    private static bool _MatchesLiteLoaderVersion(
+        ModDownload.DlLiteLoaderListEntry entry, string declaredVersion, string gameVersion)
+    {
+        if (string.Equals(declaredVersion, gameVersion, StringComparison.OrdinalIgnoreCase)) return true;
+
+        var metadataVersion = entry.jsonToken?["version"]?.GetValue<string?>();
+        return !string.IsNullOrWhiteSpace(metadataVersion) &&
+               string.Equals(declaredVersion, metadataVersion, StringComparison.OrdinalIgnoreCase);
     }
 }
 
@@ -225,6 +267,8 @@ internal static class ModpackInstallCoordinator
 /// <param name="SourceFilePath">整合包文件路径。</param>
 /// <param name="LogoPath">外部指定的实例图标路径。</param>
 /// <param name="ResourceId">在线整合包的项目 ID。</param>
+/// <param name="IsOnlineInstall">源文件是否为在线安装流程持有的临时下载。</param>
+/// <param name="JarModFiles">跨安装阶段共享的 JAR Mod 暂存文件列表。</param>
 /// <param name="ExtractionProgressWeight">释放阶段的进度权重。</param>
 internal readonly record struct ModpackInstallContext(
     string InstanceName,
@@ -232,4 +276,6 @@ internal readonly record struct ModpackInstallContext(
     string SourceFilePath,
     string? LogoPath,
     string? ResourceId,
+    bool IsOnlineInstall,
+    List<string> JarModFiles,
     double ExtractionProgressWeight);

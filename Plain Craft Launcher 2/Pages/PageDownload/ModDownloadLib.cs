@@ -12,6 +12,9 @@ using PCL.Core.App.Configuration.Storage;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Minecraft;
+using PCL.Core.Minecraft.Modpack.Installation;
+using PCL.Core.Minecraft.Modpack.Model;
+using PCL.Core.Minecraft.Modpack.MultiMc;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Network;
@@ -3581,6 +3584,12 @@ public static class ModDownloadLib
         /// </summary>
         public ModModpack.MMCPackInfo mmcPackInfo = null;
 
+        /// <summary>按声明顺序暂存的 MultiMC JAR Mod。</summary>
+        public IReadOnlyList<string> jarModFiles = [];
+
+        /// <summary>JAR Mod 暂存目录，合并成功后清理。</summary>
+        public string jarModStagingDirectory = null;
+
         /// <summary>
         ///     欲下载的 NeoForge。
         /// </summary>
@@ -4042,6 +4051,24 @@ public static class ModDownloadLib
                 neoForgeFolder, request.neoForgeVersion, cleanroomFolder, request.cleanroomVersion, fabricFolder,
                 labyModFolder, request.labyModChannel, liteLoaderFolder, request.mmcPackInfo,
                 legacyFabricFolder);
+
+            if (request.jarModFiles.Count > 0)
+            {
+                var gameJar = Path.Combine(instanceFolder, request.targetInstanceName + ".jar");
+                ModpackJarModMerger.Merge(gameJar, request.jarModFiles);
+                ModBase.Log($"[Modpack] 已按顺序合并 {request.jarModFiles.Count} 个 JAR Mod");
+
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(request.jarModStagingDirectory) &&
+                        Directory.Exists(request.jarModStagingDirectory))
+                        Directory.Delete(request.jarModStagingDirectory, recursive: true);
+                }
+                catch (Exception ex)
+                {
+                    ModBase.Log(ex, "[Modpack] 清理 JAR Mod 暂存目录失败");
+                }
+            }
             task.Progress = 0.2d;
             // 迁移文件
             if (Directory.Exists(Path.Combine(tempMcFolder, "libraries")))
@@ -4249,7 +4276,7 @@ public static class ModDownloadLib
 
         #endregion
 
-        JsonObject outputJson;
+        JsonObject outputJson = new();
         JsonObject minecraftJson = null;
         JsonObject optiFineJson = null;
         JsonObject forgeJson = null;
@@ -4374,88 +4401,102 @@ public static class ModDownloadLib
                 splitArguments.Add(rawArguments[i]);
 
         var realArguments = splitArguments.Distinct().ToList().Join(" ");
-        // 合并
-        // 相关讨论见 #2801
-        if (mMCPackInfo is not null)
+        // 合并。MultiMC 自定义组件必须在 mmc-pack.json 中的原位置应用；例如位于 Forge
+        // 之后的 mainClass 应当覆盖 Forge，而不是先写到原版 JSON 后又被 Forge 覆盖。
+        var appliedLoaders = new HashSet<ModLoaderKind>();
+
+        void ApplyLoader(ModLoaderKind kind)
         {
-            if (mMCPackInfo.isMinecraftOverrided)
+            if (!appliedLoaders.Add(kind)) return;
+
+            var loaderJson = kind switch
             {
-                ModBase.Log("[Download] 当前实例的 MC 核心已被修改，使用对应的 MMC 整合包参数");
-                outputJson = mMCPackInfo.overridedJson;
-            }
-            else
+                ModLoaderKind.OptiFine => optiFineJson,
+                ModLoaderKind.Forge => forgeJson,
+                ModLoaderKind.NeoForge => neoForgeJson,
+                ModLoaderKind.Cleanroom => cleanroomJson,
+                ModLoaderKind.LiteLoader => liteLoaderJson,
+                ModLoaderKind.Fabric => fabricJson,
+                ModLoaderKind.LegacyFabric => legacyFabricJson,
+                _ => null
+            };
+
+            if (loaderJson is null) return;
+            loaderJson.Remove("releaseTime");
+            loaderJson.Remove("time");
+            outputJson.Merge(loaderJson);
+        }
+
+        void ApplyRemainingLoaders()
+        {
+            ApplyLoader(ModLoaderKind.OptiFine);
+            ApplyLoader(ModLoaderKind.Forge);
+            ApplyLoader(ModLoaderKind.NeoForge);
+            ApplyLoader(ModLoaderKind.Cleanroom);
+            ApplyLoader(ModLoaderKind.LiteLoader);
+            ApplyLoader(ModLoaderKind.Fabric);
+            ApplyLoader(ModLoaderKind.LegacyFabric);
+        }
+
+        if (mMCPackInfo?.orderedComponents.Count > 0)
+        {
+            var hasGameComponent = mMCPackInfo.orderedComponents.Any(component =>
+                component.Kind == ModpackVersionComponentKind.Game);
+            if (!hasGameComponent && minecraftJson is not null)
+                outputJson.Merge(minecraftJson);
+
+            var gameApplied = false;
+            foreach (var component in mMCPackInfo.orderedComponents)
             {
-                ModBase.Log("[Download] 存在无修改 MC 核心文件的 MMC 整合包信息，应用相关参数");
-                outputJson = minecraftJson;
-                // 合并来自 MultiMC 的 JSON
-                outputJson.Merge(mMCPackInfo.overridedJson);
+                switch (component.Kind)
+                {
+                    case ModpackVersionComponentKind.Game when !gameApplied:
+                        if (minecraftJson is not null) outputJson.Merge(minecraftJson);
+                        gameApplied = true;
+                        break;
+                    case ModpackVersionComponentKind.Loader when component.LoaderKind is { } loaderKind:
+                        ApplyLoader(loaderKind);
+                        break;
+                    case ModpackVersionComponentKind.CustomPatch when component.Patch is { } patch:
+                        MultiMcPatchMerger.ApplyTo(outputJson, patch);
+                        break;
+                }
             }
+
+            // 非 MultiMC 组件带来的加载器仍按 PCL 的常规顺序补到末尾。
+            ApplyRemainingLoaders();
         }
         else
         {
-            outputJson = minecraftJson;
+            // 兼容不带有序组件信息的旧调用方。
+            if (mMCPackInfo?.isMinecraftOverrided == true)
+            {
+                ModBase.Log("[Download] 当前实例的 MC 核心已被修改，使用对应的 MMC 整合包参数");
+                outputJson = mMCPackInfo.overridedJson.DeepClone().AsObject();
+            }
+            else
+            {
+                if (minecraftJson is not null) outputJson.Merge(minecraftJson);
+                if (mMCPackInfo is not null)
+                {
+                    ModBase.Log("[Download] 存在无修改 MC 核心文件的 MMC 整合包信息，应用相关参数");
+                    outputJson.Merge(mMCPackInfo.overridedJson);
+                }
+            }
+
+            if (hasOptiFine) ApplyLoader(ModLoaderKind.OptiFine);
+            if (hasForge && (mMCPackInfo is null || !mMCPackInfo.isForgeOverrided))
+                ApplyLoader(ModLoaderKind.Forge);
+            if (hasNeoForge && (mMCPackInfo is null || !mMCPackInfo.isNeoForgeOverrided))
+                ApplyLoader(ModLoaderKind.NeoForge);
+            if (hasCleanroom && (mMCPackInfo is null || !mMCPackInfo.isCleanroomOverrided))
+                ApplyLoader(ModLoaderKind.Cleanroom);
+            if (hasLiteLoader) ApplyLoader(ModLoaderKind.LiteLoader);
+            if (hasFabric && (mMCPackInfo is null || !mMCPackInfo.isFabricOverrided))
+                ApplyLoader(ModLoaderKind.Fabric);
+            if (hasLegacyFabric && (mMCPackInfo is null || !mMCPackInfo.isFabricOverrided))
+                ApplyLoader(ModLoaderKind.LegacyFabric);
         }
-
-        if (hasOptiFine)
-        {
-            // 合并 OptiFine
-            optiFineJson.Remove("releaseTime");
-            optiFineJson.Remove("time");
-            outputJson.Merge(optiFineJson);
-        }
-
-        if (hasForge)
-            if (mMCPackInfo is null || !mMCPackInfo.isForgeOverrided)
-            {
-                // 合并 Forge
-                forgeJson.Remove("releaseTime");
-                forgeJson.Remove("time");
-                outputJson.Merge(forgeJson);
-            }
-
-        if (hasNeoForge)
-            if (mMCPackInfo is null || !mMCPackInfo.isNeoForgeOverrided)
-            {
-                // 合并 NeoForge
-                neoForgeJson.Remove("releaseTime");
-                neoForgeJson.Remove("time");
-                outputJson.Merge(neoForgeJson);
-            }
-
-        if (hasCleanroom)
-            if (mMCPackInfo is null || !mMCPackInfo.isCleanroomOverrided)
-            {
-                // 合并 Cleanroom
-                cleanroomJson.Remove("releaseTime");
-                cleanroomJson.Remove("time");
-                outputJson.Merge(cleanroomJson);
-            }
-
-        if (hasLiteLoader)
-        {
-            // 合并 LiteLoader
-            liteLoaderJson.Remove("releaseTime");
-            liteLoaderJson.Remove("time");
-            outputJson.Merge(liteLoaderJson);
-        }
-
-        if (hasFabric)
-            if (mMCPackInfo is null || !mMCPackInfo.isFabricOverrided)
-            {
-                // 合并 Fabric
-                fabricJson.Remove("releaseTime");
-                fabricJson.Remove("time");
-                outputJson.Merge(fabricJson);
-            }
-
-        if (hasLegacyFabric)
-            if (mMCPackInfo is null || !mMCPackInfo.isFabricOverrided)
-            {
-                // 合并 Fabric
-                legacyFabricJson.Remove("releaseTime");
-                legacyFabricJson.Remove("time");
-                outputJson.Merge(legacyFabricJson);
-            }
 
         if (hasLabyMod)
         {

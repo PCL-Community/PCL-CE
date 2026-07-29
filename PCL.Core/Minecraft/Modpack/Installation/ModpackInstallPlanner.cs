@@ -100,17 +100,14 @@ public sealed class ModpackInstallPlanner
         ModpackCurseForgeFile file, string instanceDirectory)
     {
         if (string.IsNullOrWhiteSpace(file.FileName)) return null;
+        if (string.IsNullOrWhiteSpace(file.TargetPath) ||
+            !ModpackPathPolicy.TryNormalizeRelativePath(file.TargetPath, out var relativePath))
+            return null;
 
         var urls = new List<string>();
         if (!string.IsNullOrWhiteSpace(file.Url)) urls.Add(file.Url.Trim());
         if (CurseForgeResourceClassifier.BuildCdnUrl(file.FileId, file.FileName) is { } cdnUrl) urls.Add(cdnUrl);
         if (urls.Count == 0) return null;
-
-        // 清单未声明路径时，缺少分类信息，只能按模组处理
-        var relativePath = file.TargetPath is not null &&
-                           ModpackPathPolicy.TryNormalizeRelativePath(file.TargetPath, out var declared)
-            ? declared
-            : ModpackResourcePaths.CombineWithDirectory(ModpackResourceKind.Mod, file.FileName);
 
         return new ModpackPlannedDownload
         {
