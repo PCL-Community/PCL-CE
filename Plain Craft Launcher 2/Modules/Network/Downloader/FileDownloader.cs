@@ -78,11 +78,13 @@ public static class FileDownloader
         CleanupTempFiles(localPath);
 
         var perFileThreadLimit = enableParallelChunks ? Math.Max(1, ModNet.NetTaskThreadLimit) : 1;
+        // 限制最大分块数，防止大文件下载时内存爆炸
+        var chunkCount = Math.Min(perFileThreadLimit, 4);
         var configuration = new DownloadConfiguration
         {
-            ChunkCount = perFileThreadLimit,
-            ParallelCount = perFileThreadLimit,
-            ParallelDownload = perFileThreadLimit > 1,
+            ChunkCount = chunkCount,
+            ParallelCount = chunkCount,
+            ParallelDownload = chunkCount > 1,
             MaximumBytesPerSecond = ModNet.NetTaskSpeedLimitHigh > 0 ? ModNet.NetTaskSpeedLimitHigh : 0,
             MaxTryAgainOnFailure = 2,
             BlockTimeout = 60000,
@@ -90,6 +92,7 @@ public static class FileDownloader
             EnableAutoResumeDownload = false,
             CustomHttpClientFactory = () => GetHttpClient(url),
             MinimumSizeOfChunking = 1024 * 1024L,
+            MaximumMemoryBufferBytes = 256L * 1024 * 1024,
         };
 
         using var downloader = new DownloadService(configuration);
