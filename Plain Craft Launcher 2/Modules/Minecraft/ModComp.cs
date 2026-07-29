@@ -3654,6 +3654,8 @@ public static class ModComp
         // 加载器判定
         if (allowedLoaders.Count == 0) return true; // 无要求
         if (allowedLoaders.Contains(CompLoaderType.Forge) && version.Info.HasForge) return true;
+        if (allowedLoaders.Contains(CompLoaderType.Forge) && version.Info.HasCleanroom) 
+            return true;
         if (allowedLoaders.Contains(CompLoaderType.Fabric) &&
             (version.Info.HasFabric || version.Info.HasLegacyFabric)) return true;
         if (allowedLoaders.Contains(CompLoaderType.NeoForge) && version.Info.HasNeoForge) return true;
