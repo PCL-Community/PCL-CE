@@ -391,6 +391,8 @@ public partial class PageDownloadInstall
             return;
         _ReloadSelected_Ongoing = true;
         // 主预览
+        try
+        {
         SelectNameUpdate();
         ImgLogo.Source = GetSelectLogo();
         // OptiFine
@@ -766,7 +768,11 @@ public partial class PageDownloadInstall
         else
             HintModOptiFine.Visibility = Visibility.Collapsed;
         // 结束
-        _ReloadSelected_Ongoing = false;
+        }
+        finally
+        {
+            _ReloadSelected_Ongoing = false;
+        }
     }
 
     /// <summary>
