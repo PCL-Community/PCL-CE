@@ -307,7 +307,7 @@ namespace PCL;
 
             //XXwYY的快照
             // 按年份估算
-            if (segments.Length == 1 && segments[0].Length >= 3
+            if (allowSnapshot && segments.Length == 1 && segments[0].Length >= 3
                 && segments[0][2] == 'w'
                 && char.IsDigit(segments[0][0]) && char.IsDigit(segments[0][1]))
             {
