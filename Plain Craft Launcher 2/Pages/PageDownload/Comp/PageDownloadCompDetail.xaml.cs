@@ -429,7 +429,7 @@ public partial class PageDownloadCompDetail
                             var targetLoaders = new List<ModComp.CompLoaderType>();
                             if (targetInstance is not null)
                             {
-                                if (targetInstance.Info.HasForge)
+                                if (targetInstance.Info.HasForge || targetInstance.Info.HasCleanroom)
                                     targetLoaders.Add(ModComp.CompLoaderType.Forge);
                                 if (targetInstance.Info.HasFabric || targetInstance.Info.HasLegacyFabric)
                                     targetLoaders.Add(ModComp.CompLoaderType.Fabric);
