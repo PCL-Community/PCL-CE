@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Eventing.Reader;
 using System.IO;
@@ -1157,7 +1157,12 @@ public partial class PageDownloadCompDetail
         if (foldOld && McInstanceInfo.VersionToDrop(name, true) < 120)
             return Lang.Text("Download.Comp.Detail.VersionGroup.Old");
         if (groupedByDrop)
-            return McInstanceInfo.DropToVersion(McInstanceInfo.VersionToDrop(name, true));
+        {
+            var drop = McInstanceInfo.VersionToDrop(name, true);
+            if (drop >= 0)
+                return McInstanceInfo.DropToVersion(drop);
+            return name;
+        }
 
         return name;
     }

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -436,6 +436,8 @@ public partial class PageInstanceInstall
         if (_vanillaName is null || _ReloadSelected_Ongoing)
             return;
         _ReloadSelected_Ongoing = true;
+        try
+        {
         var selectedInfo = GetSelectInfo();
         // 主预览
         ItemSelect.Title = PageInstanceLeft.McInstance.Name;
@@ -461,28 +463,37 @@ public partial class PageInstanceInstall
         LabMinecraft.Text = _vanillaName;
         LabMinecraft.Foreground = ThemeManager.colorGray1;
         // OptiFine
-        var optiFineError = LoadOptiFineGetError();
-        CardOptiFine.MainSwap.Visibility = optiFineError is null ? Visibility.Visible : Visibility.Collapsed;
-        if (optiFineError is not null)
-            CardOptiFine.IsSwapped = true; // 例如在同时展开卡片时选择了不兼容项则强制折叠
-        SetPanelVisibility(PanOptiFineInfo, CardOptiFine.IsSwapped);
-        if (selectedOptiFine is null)
+        if (!McVersionComparer.CompareVersionGe(_vanillaName, "1.7.2"))
         {
-            BtnOptiFineClear.Visibility = Visibility.Collapsed;
-            ImgOptiFine.Visibility = Visibility.Collapsed;
-            LabOptiFine.Text = optiFineError ?? Lang.Text("Download.Install.State.CanAdd");
-            LabOptiFine.Foreground = ThemeManager.colorGray4;
+            CardOptiFine.Visibility = Visibility.Collapsed;
         }
         else
         {
-            BtnOptiFineClear.Visibility = Visibility.Visible;
-            ImgOptiFine.Visibility = Visibility.Visible;
-            LabOptiFine.Text = selectedOptiFine.DisplayName.Replace(_vanillaName + " ", "");
-            LabOptiFine.Foreground = ThemeManager.colorGray1;
+            var optiFineError = LoadOptiFineGetError();
+            CardOptiFine.MainSwap.Visibility = optiFineError is null ? Visibility.Visible : Visibility.Collapsed;
+            if (optiFineError is not null)
+                CardOptiFine.IsSwapped = true;
+            SetPanelVisibility(PanOptiFineInfo, CardOptiFine.IsSwapped);
+            if (selectedOptiFine is null)
+            {
+                BtnOptiFineClear.Visibility = Visibility.Collapsed;
+                ImgOptiFine.Visibility = Visibility.Collapsed;
+                LabOptiFine.Text = optiFineError ?? Lang.Text("Download.Install.State.CanAdd");
+                LabOptiFine.Foreground = ThemeManager.colorGray4;
+            }
+            else
+            {
+                BtnOptiFineClear.Visibility = Visibility.Visible;
+                ImgOptiFine.Visibility = Visibility.Visible;
+                LabOptiFine.Text = selectedOptiFine.DisplayName.Replace(_vanillaName + " ", "");
+                LabOptiFine.Foreground = ThemeManager.colorGray1;
+            }
         }
 
         // LiteLoader
-        if (VanillaDrop >= 130)
+        if (!McInstanceInfo.IsFormatFit(_vanillaName)
+            || !McVersionComparer.CompareVersionGe(_vanillaName, "1.5.2")
+            || !McVersionComparer.CompareVersionGe("1.12.2", _vanillaName))
         {
             CardLiteLoader.Visibility = Visibility.Collapsed;
         }
@@ -511,7 +522,8 @@ public partial class PageInstanceInstall
         }
 
         // Forge
-        if (!McInstanceInfo.IsFormatFit(_vanillaName))
+        if (!McInstanceInfo.IsFormatFit(_vanillaName)
+            || !McVersionComparer.CompareVersionGe(_vanillaName, "1.1"))
         {
             CardForge.Visibility = Visibility.Collapsed;
         }
@@ -569,7 +581,8 @@ public partial class PageInstanceInstall
         }
 
         // NeoForge
-        if (VanillaDrop is > 0 and < 200) // 匹配 1.20.1+ 与一些愚人节版本
+        if (!McInstanceInfo.IsFormatFit(_vanillaName)
+            || !McVersionComparer.CompareVersionGe(_vanillaName, "1.20.1"))
         {
             CardNeoForge.Visibility = Visibility.Collapsed;
         }
@@ -598,7 +611,8 @@ public partial class PageInstanceInstall
         }
 
         // Fabric
-        if (VanillaDrop < 0 || VanillaDrop <= 130)
+        if (VanillaDrop < 130
+            || (VanillaDrop == 130 && !McVersionComparer.CompareVersionGe(_vanillaName, "18w43b")))
         {
             CardFabric.Visibility = Visibility.Collapsed;
         }
@@ -657,7 +671,7 @@ public partial class PageInstanceInstall
         }
 
         // LegacyFabric
-        if (VanillaDrop > 130)
+        if (VanillaDrop < 30 || VanillaDrop > 130)
         {
             CardLegacyFabric.Visibility = Visibility.Collapsed;
         }
@@ -717,7 +731,7 @@ public partial class PageInstanceInstall
         }
 
         // LabyMod
-        if (VanillaDrop < 80)
+        if (!McVersionComparer.CompareVersionGe(_vanillaName, "1.8.9"))
         {
             CardLabyMod.Visibility = Visibility.Collapsed;
         }
@@ -820,7 +834,11 @@ public partial class PageInstanceInstall
         else
             HintModOptiFine.Visibility = Visibility.Collapsed;
         // 结束
-        _ReloadSelected_Ongoing = false;
+        }
+        finally
+        {
+            _ReloadSelected_Ongoing = false;
+        }
     }
 
     /// <summary>
