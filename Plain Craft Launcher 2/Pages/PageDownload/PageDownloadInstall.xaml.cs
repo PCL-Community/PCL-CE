@@ -402,6 +402,7 @@ public partial class PageDownloadInstall
         }
         else
         {
+            CardOptiFine.Visibility = Visibility.Visible;
             var optiFineError = LoadOptiFineGetError();
             CardOptiFine.MainSwap.Visibility = optiFineError is null ? Visibility.Visible : Visibility.Collapsed;
             if (optiFineError is not null)
