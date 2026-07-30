@@ -1,10 +1,13 @@
 using System.IO;
+using System.Text.Json;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.Java.UserPreference;
 using PCL.Core.Minecraft.Modpack;
 using PCL.Core.Minecraft.Modpack.Installation;
 using PCL.Core.Minecraft.Modpack.Model;
 using PCL.Core.UI;
+using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Network.Loaders;
 using static PCL.ModLoader;
@@ -57,6 +60,7 @@ internal static class ModpackInstallCoordinator
 
         task.Progress = 0.15d;
         _ReportUnresolvedFiles(plan);
+        _ReportWarnings(plan);
 
         // 阶段二：释放覆写文件与内嵌载荷
         var overrideSnapshots = session
@@ -64,7 +68,6 @@ internal static class ModpackInstallCoordinator
             .GetAwaiter().GetResult();
 
         session.ExtractPayloadsAsync().GetAwaiter().GetResult();
-        context.JarModFiles.AddRange(session.ExtractedJarModFiles);
         task.Progress = 0.8d;
 
         // 阶段三：写入实例设置
@@ -86,6 +89,17 @@ internal static class ModpackInstallCoordinator
         ModBase.Log($"[Modpack] 有 {plan.UnresolvedFiles.Count} 个文件无法获取下载信息：" +
                     string.Join("、", plan.UnresolvedFiles.Take(10)));
         HintService.Hint(Lang.Text("Minecraft.Download.Modpack.SomeModsDeleted"), HintType.Error);
+    }
+
+    private static void _ReportWarnings(ModpackInstallPlan plan)
+    {
+        if (plan.Warnings.Count == 0) return;
+
+        ModBase.Log($"[Modpack] 安装方案包含 {plan.Warnings.Count} 项提示：");
+        foreach (var warning in plan.Warnings) ModBase.Log("[Modpack]   " + warning);
+        HintService.Hint(
+            Lang.Text("Minecraft.Download.Modpack.WarningSummary", plan.Warnings.Count),
+            HintType.Warning);
     }
 
     /// <summary>
@@ -141,8 +155,34 @@ internal static class ModpackInstallCoordinator
         Config.Instance.IndieV2[folder] = true;
 
         var options = plan.LaunchOptions;
-        if (options.JvmArguments.Count > 0)
-            Config.Instance.JvmArgs[folder] = string.Join(" ", options.JvmArguments);
+        var jvmArguments = options.JvmArguments.ToList();
+
+        if (options.MinMemoryMegabytes is { } minMemory)
+            jvmArguments.Add($"-Xms{minMemory}M");
+
+        if (options.MaxMemoryMegabytes is { } maxMemory)
+        {
+            Config.Instance.MemorySolution[folder] = 1;
+            Config.Instance.CustomMemorySize[folder] = _FindClosestMemorySliderValue(maxMemory);
+            // PCL 的滑杆不能精确表达任意 MB 值，显式参数保证导入值不被取整。
+            jvmArguments.Add($"-Xmx{maxMemory}M");
+        }
+
+        if (options.PermGenMegabytes is { } permGen)
+            Config.Instance.PermGen[folder] = permGen;
+
+        if (plan.VersionPatch?.JarMods.Count > 0)
+        {
+            if (!jvmArguments.Any(argument => argument.Contains(
+                    "-Dfml.ignoreInvalidMinecraftCertificates=", StringComparison.OrdinalIgnoreCase)))
+                jvmArguments.Add("-Dfml.ignoreInvalidMinecraftCertificates=true");
+            if (!jvmArguments.Any(argument => argument.Contains(
+                    "-Dfml.ignorePatchDiscrepancies=", StringComparison.OrdinalIgnoreCase)))
+                jvmArguments.Add("-Dfml.ignorePatchDiscrepancies=true");
+        }
+
+        if (jvmArguments.Count > 0)
+            Config.Instance.JvmArgs[folder] = string.Join(" ", jvmArguments);
 
         if (options.GameArguments.Count > 0)
             Config.Instance.GameArgs[folder] = string.Join(" ", options.GameArguments);
@@ -156,7 +196,76 @@ internal static class ModpackInstallCoordinator
         if (options.IgnoreJavaCompatibility is true)
             Config.Instance.IgnoreJavaCompatibility[folder] = true;
 
+        _ApplyJavaPath(options.JavaPath, folder);
+
         _ApplyLogo(session, plan, context);
+    }
+
+    private static void _ApplyJavaPath(string? configuredPath, string instanceFolder)
+    {
+        if (string.IsNullOrWhiteSpace(configuredPath)) return;
+
+        var expanded = Environment.ExpandEnvironmentVariables(configuredPath.Trim().Trim('"'));
+        var executable = _ResolveJavaExecutable(expanded);
+        if (executable is null)
+        {
+            ModBase.Log($"[Modpack] MultiMC 指定的 Java 路径不存在，已忽略：{configuredPath}");
+            HintService.Hint(
+                Lang.Text("Minecraft.Download.Modpack.JavaPathMissing", configuredPath),
+                HintType.Warning);
+            return;
+        }
+
+        JavaPreference preference = new ExistingJava(executable);
+        Config.Instance.SelectedJava[instanceFolder] =
+            JsonSerializer.Serialize(preference, JsonCompat.SerializerOptions);
+    }
+
+    private static string? _ResolveJavaExecutable(string path)
+    {
+        if (File.Exists(path)) return Path.GetFullPath(path);
+        if (!Directory.Exists(path)) return null;
+
+        foreach (var candidate in new[]
+                 {
+                     Path.Combine(path, "bin", "javaw.exe"),
+                     Path.Combine(path, "bin", "java.exe"),
+                     Path.Combine(path, "javaw.exe"),
+                     Path.Combine(path, "java.exe")
+                 })
+        {
+            if (File.Exists(candidate)) return Path.GetFullPath(candidate);
+        }
+
+        return null;
+    }
+
+    private static int _FindClosestMemorySliderValue(int megabytes)
+    {
+        var bestValue = 0;
+        var bestDistance = int.MaxValue;
+
+        for (var value = 0; value <= 49; value++)
+        {
+            var distance = Math.Abs(_MemorySliderMegabytes(value) - megabytes);
+            if (distance >= bestDistance) continue;
+            bestDistance = distance;
+            bestValue = value;
+        }
+
+        return bestValue;
+    }
+
+    private static int _MemorySliderMegabytes(int value)
+    {
+        var gigabytes = value switch
+        {
+            <= 12 => value * 0.1d + 0.3d,
+            <= 25 => (value - 12) * 0.5d + 1.5d,
+            <= 33 => value - 25d + 8d,
+            _ => (value - 33) * 2d + 16d
+        };
+        return (int)Math.Round(gigabytes * 1024d);
     }
 
     /// <summary>
@@ -200,6 +309,13 @@ internal static class ModpackInstallCoordinator
         ModpackDescriptor descriptor, ModpackInstallContext context)
     {
         var components = descriptor.Components;
+        var mmcPackInfo = ModModpack.MMCPackInfo.FromVersionPatch(descriptor.VersionPatch);
+
+        context.JarModFiles.Clear();
+        if (mmcPackInfo is not null)
+            for (var index = 0; index < mmcPackInfo.jarMods.Count; index++)
+                context.JarModFiles.Add(ModpackInstallSession.GetJarModStagingPath(
+                    context.InstanceDirectory, mmcPackInfo.jarMods[index], index));
 
         // McInstallRequest 的各版本号字段以 null 表示「不安装该加载器」，只是未标注可空
         return new ModDownloadLib.McInstallRequest
@@ -216,7 +332,7 @@ internal static class ModpackInstallCoordinator
             liteLoaderEntry = _ResolveLiteLoaderEntry(components)!,
             jarModFiles = context.JarModFiles,
             jarModStagingDirectory = ModpackInstallSession.GetJarModStagingDirectory(context.InstanceDirectory),
-            mmcPackInfo = ModModpack.MMCPackInfo.FromVersionPatch(descriptor.VersionPatch)!
+            mmcPackInfo = mmcPackInfo!
         };
     }
 

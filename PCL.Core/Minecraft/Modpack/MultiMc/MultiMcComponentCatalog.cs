@@ -43,6 +43,7 @@ public static class MultiMcComponentCatalog
             ["net.minecraftforge"] = ModLoaderKind.Forge,
             ["net.neoforged"] = ModLoaderKind.NeoForge,
             ["net.fabricmc.fabric-loader"] = ModLoaderKind.Fabric,
+            ["net.legacyfabric.fabric-loader"] = ModLoaderKind.LegacyFabric,
             ["org.quiltmc.quilt-loader"] = ModLoaderKind.Quilt,
             ["com.mumfrey.liteloader"] = ModLoaderKind.LiteLoader,
             ["optifine"] = ModLoaderKind.OptiFine

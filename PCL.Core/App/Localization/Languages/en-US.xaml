@@ -1977,8 +1977,9 @@
     <sys:String x:Key="Minecraft.Download.Modpack.InputInstanceName">Enter instance name</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Installing">This modpack is currently being installed!</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.InvalidGamePathChars">Game path cannot contain exclamation marks (!) or semicolons (;): {0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.JavaPathMissing">The Java path specified by the modpack does not exist. PCL's Java settings will be used instead: {0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.Generic">This modpack does not provide game version information and cannot be installed!</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.NotRecognized.Message">PCL CE could not recognise the modpack format of {0}.&#xD;&#xA;Please make sure it is a CurseForge, Modrinth, MultiMC/Prism, MCBBS, HMCL or server modpack file.</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.NotRecognized.Message">PCL CE could not recognise the modpack format of {0}.&#xD;&#xA;Please make sure it is a CurseForge, Modrinth, MultiMC/Prism, MCBBS or HMCL modpack file.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.NotRecognized.Title">Unrecognised modpack</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.Hmcl">This HMCL modpack does not provide game version information and cannot be installed!</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.McbbsAddons">This MCBBS modpack does not provide game version addon information and cannot be installed!</sys:String>
@@ -1998,10 +1999,10 @@
     <sys:String x:Key="Minecraft.Download.Modpack.Task.McbbsInstall">Install MCBBS modpack: {0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Task.MmcInstall">Install MultiMC modpack: {0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Task.ModrinthInstall">Install Modrinth modpack: {0}</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.Task.ServerInstall">Install server modpack: {0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.TooOldUnsupported">This modpack version is too old and no longer supported!</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.UnknownLoader">Cannot install modpack, unknown mod loader {0} (version {1})!</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.UnsupportedArchive">Failed to open the modpack file. The file may be corrupted or in an unsupported archive format.</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.WarningSummary">The modpack reported {0} compatibility warning(s). See the log for details.</sys:String>
 
     <!-- Minecraft.Download.Modpack.Stage -->
 

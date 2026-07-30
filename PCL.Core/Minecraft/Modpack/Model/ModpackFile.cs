@@ -52,7 +52,7 @@ public abstract record ModpackFile
 }
 
 /// <summary>
-/// 已知下载地址的文件。Modrinth、MCBBS 的 <c>addon</c> 条目与 Server 格式均属此类。
+/// 已知下载地址的文件。Modrinth 与 MCBBS 的直接下载条目均属此类。
 /// </summary>
 public sealed record ModpackDirectFile : ModpackFile
 {

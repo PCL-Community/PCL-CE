@@ -4052,23 +4052,6 @@ public static class ModDownloadLib
                 labyModFolder, request.labyModChannel, liteLoaderFolder, request.mmcPackInfo,
                 legacyFabricFolder);
 
-            if (request.jarModFiles.Count > 0)
-            {
-                var gameJar = Path.Combine(instanceFolder, request.targetInstanceName + ".jar");
-                ModpackJarModMerger.Merge(gameJar, request.jarModFiles);
-                ModBase.Log($"[Modpack] 已按顺序合并 {request.jarModFiles.Count} 个 JAR Mod");
-
-                try
-                {
-                    if (!string.IsNullOrWhiteSpace(request.jarModStagingDirectory) &&
-                        Directory.Exists(request.jarModStagingDirectory))
-                        Directory.Delete(request.jarModStagingDirectory, recursive: true);
-                }
-                catch (Exception ex)
-                {
-                    ModBase.Log(ex, "[Modpack] 清理 JAR Mod 暂存目录失败");
-                }
-            }
             task.Progress = 0.2d;
             // 迁移文件
             if (Directory.Exists(Path.Combine(tempMcFolder, "libraries")))
@@ -4095,7 +4078,7 @@ public static class ModDownloadLib
             block = true
         });
         // 补全文件
-        if (!dontFixLibraries && (request.optiFineEntry is not null ||
+        if (!dontFixLibraries && (request.mmcPackInfo is not null || request.optiFineEntry is not null ||
                                   (request.forgeVersion is not null &&
                                    Convert.ToDouble(request.forgeVersion.BeforeFirst(".")) >= 20d) ||
                                   request.neoForgeVersion is not null || request.fabricVersion is not null ||
@@ -4124,8 +4107,51 @@ public static class ModDownloadLib
             {
                 loadersLib.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
                         Lang.Text("Minecraft.Download.Stage.AnalyzeGameLibrariesSide"),
-                        task => task.output =
-                            ModLibrary.McLibNetFilesFromInstance(new McInstance(instanceFolder)))
+                        task =>
+                        {
+                            var instance = new McInstance(instanceFolder);
+                            var files = ModLibrary.McLibNetFilesFromInstance(instance);
+
+                            if (request.mmcPackInfo?.mavenFiles.Count > 0)
+                            {
+                                var mavenJson = new JsonObject { ["libraries"] = new JsonArray() };
+                                var libraries = mavenJson["libraries"]!.AsArray();
+                                foreach (var library in request.mmcPackInfo.mavenFiles)
+                                    libraries.Add(library.DeepClone());
+
+                                var tokens = ModLibrary.McLibListGetWithJson(
+                                    mavenJson,
+                                    keepSameNameDifferentVersionResult: true,
+                                    targetMcInstance: instance);
+                                files.AddRange(ModLibrary.McLibNetFilesFromTokens(tokens));
+                            }
+
+                            if (request.mmcPackInfo?.jarMods.Count > 0)
+                            {
+                                for (var index = 0; index < request.mmcPackInfo.jarMods.Count; index++)
+                                {
+                                    var jarMod = request.mmcPackInfo.jarMods[index];
+                                    if (jarMod.IsLocal) continue;
+
+                                    var urls = jarMod.DownloadUrls
+                                        .SelectMany(ModDownload.DlSourceLibraryGet)
+                                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                                        .ToArray();
+                                    files.Add(new DownloadFile(
+                                        urls,
+                                        request.jarModFiles[index],
+                                        new ModBase.FileChecker(
+                                            actualSize: jarMod.FileSize ?? -1,
+                                            hash: jarMod.Sha1),
+                                        true));
+                                }
+                            }
+
+                            if (request.mmcPackInfo?.traits.Contains("legacyFML", StringComparer.Ordinal) == true)
+                                files.AddRange(_GetLegacyFmlLibraryDownloads(instance, request.minecraftName));
+
+                            task.output = files;
+                        })
                     { ProgressWeight = 1d, show = false });
                 loadersLib.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadGameLibrariesSide"),
                         new List<DownloadFile>())
@@ -4136,6 +4162,48 @@ public static class ModDownloadLib
             }
         }
 
+        // mainJar 与 JAR Mod 必须等补全任务下载完远程制品后再应用；否则远程主 JAR
+        // 会覆盖已经修改过的游戏 JAR。
+        if (request.mmcPackInfo?.localMainJarFileName is { Length: > 0 } || request.jarModFiles.Count > 0)
+            loaderList.Add(new ModLoader.LoaderTask<int, int>(
+                Lang.Text("Minecraft.Download.Modpack.Stage.FinalizeFiles"),
+                _ =>
+                {
+                    if (request.mmcPackInfo?.localMainJarFileName is { Length: > 0 } localMainJar)
+                    {
+                        var source = Path.Combine(instanceFolder, "libraries", localMainJar);
+                        var target = Path.Combine(instanceFolder, request.targetInstanceName + ".jar");
+                        if (!File.Exists(source))
+                            throw new FileNotFoundException("MultiMC 整合包声明的本地主 JAR 不存在", source);
+
+                        File.Copy(source, target, overwrite: true);
+                        ModBase.Log($"[Modpack] 已应用 MultiMC 本地主 JAR：{localMainJar}");
+                    }
+
+                    if (request.jarModFiles.Count > 0)
+                    {
+                        var gameJar = Path.Combine(instanceFolder, request.targetInstanceName + ".jar");
+                        ModpackJarModMerger.Merge(gameJar, request.jarModFiles);
+                        ModBase.Log($"[Modpack] 已按顺序合并 {request.jarModFiles.Count} 个 JAR Mod");
+                    }
+
+                    try
+                    {
+                        if (!string.IsNullOrWhiteSpace(request.jarModStagingDirectory) &&
+                            Directory.Exists(request.jarModStagingDirectory))
+                            Directory.Delete(request.jarModStagingDirectory, recursive: true);
+                    }
+                    catch (Exception ex)
+                    {
+                        ModBase.Log(ex, "[Modpack] 清理 JAR Mod 暂存目录失败");
+                    }
+                })
+            {
+                ProgressWeight = 0.2d,
+                show = false,
+                block = true
+            });
+
         // 删除忽略标识
         loaderList.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Minecraft.Download.Stage.DeleteIgnoreFlag"),
                 _ => File.Delete(Path.Combine(instanceFolder, ".pclignore")))
@@ -4143,6 +4211,73 @@ public static class ModDownloadLib
         // 总加载器
         return loaderList;
     }
+
+    private static IEnumerable<DownloadFile> _GetLegacyFmlLibraryDownloads(
+        McInstance instance, string minecraftVersion)
+    {
+        if (!_LegacyFmlLibraries.TryGetValue(minecraftVersion, out var libraries)) yield break;
+
+        var targetDirectory = Path.Combine(instance.PathIndie, "lib");
+        foreach (var (fileName, sha1) in libraries)
+            yield return new DownloadFile(
+                new[] { $"https://files.multimc.org/fmllibs/{fileName}" },
+                Path.Combine(targetDirectory, fileName),
+                new ModBase.FileChecker(hash: sha1));
+    }
+
+    private static readonly (string FileName, string Sha1)[] _LegacyFml14Libraries =
+    [
+        ("argo-2.25.jar", "bb672829fde76cb163004752b86b0484bd0a7f4b"),
+        ("guava-12.0.1.jar", "b8e78b9af7bf45900e14c6f958486b6ca682195f"),
+        ("asm-all-4.0.jar", "98308890597acb64047f7e896638e0d98753ae82"),
+        ("bcprov-jdk15on-147.jar", "b6f5d9926b0afbde9f4dbe3db88c5247be7794bb")
+    ];
+
+    private static readonly IReadOnlyDictionary<string, (string FileName, string Sha1)[]> _LegacyFmlLibraries =
+        new Dictionary<string, (string, string)[]>(StringComparer.Ordinal)
+        {
+            ["1.3.2"] =
+            [
+                ("argo-2.25.jar", "bb672829fde76cb163004752b86b0484bd0a7f4b"),
+                ("guava-12.0.1.jar", "b8e78b9af7bf45900e14c6f958486b6ca682195f"),
+                ("asm-all-4.0.jar", "98308890597acb64047f7e896638e0d98753ae82")
+            ],
+            ["1.4"] = _LegacyFml14Libraries,
+            ["1.4.1"] = _LegacyFml14Libraries,
+            ["1.4.2"] = _LegacyFml14Libraries,
+            ["1.4.3"] = _LegacyFml14Libraries,
+            ["1.4.4"] = _LegacyFml14Libraries,
+            ["1.4.5"] = _LegacyFml14Libraries,
+            ["1.4.6"] = _LegacyFml14Libraries,
+            ["1.4.7"] = _LegacyFml14Libraries,
+            ["1.5"] =
+            [
+                ("argo-small-3.2.jar", "58912ea2858d168c50781f956fa5b59f0f7c6b51"),
+                ("guava-14.0-rc3.jar", "931ae21fa8014c3ce686aaa621eae565fefb1a6a"),
+                ("asm-all-4.1.jar", "054986e962b88d8660ae4566475658469595ef58"),
+                ("bcprov-jdk15on-148.jar", "960dea7c9181ba0b17e8bab0c06a43f0a5f04e65"),
+                ("deobfuscation_data_1.5.zip", "5f7c142d53776f16304c0bbe10542014abad6af8"),
+                ("scala-library.jar", "458d046151ad179c85429ed7420ffb1eaf6ddf85")
+            ],
+            ["1.5.1"] =
+            [
+                ("argo-small-3.2.jar", "58912ea2858d168c50781f956fa5b59f0f7c6b51"),
+                ("guava-14.0-rc3.jar", "931ae21fa8014c3ce686aaa621eae565fefb1a6a"),
+                ("asm-all-4.1.jar", "054986e962b88d8660ae4566475658469595ef58"),
+                ("bcprov-jdk15on-148.jar", "960dea7c9181ba0b17e8bab0c06a43f0a5f04e65"),
+                ("deobfuscation_data_1.5.1.zip", "22e221a0d89516c1f721d6cab056a7e37471d0a6"),
+                ("scala-library.jar", "458d046151ad179c85429ed7420ffb1eaf6ddf85")
+            ],
+            ["1.5.2"] =
+            [
+                ("argo-small-3.2.jar", "58912ea2858d168c50781f956fa5b59f0f7c6b51"),
+                ("guava-14.0-rc3.jar", "931ae21fa8014c3ce686aaa621eae565fefb1a6a"),
+                ("asm-all-4.1.jar", "054986e962b88d8660ae4566475658469595ef58"),
+                ("bcprov-jdk15on-148.jar", "960dea7c9181ba0b17e8bab0c06a43f0a5f04e65"),
+                ("deobfuscation_data_1.5.2.zip", "446e55cd986582c70fcf12cb27bc00114c5adfd9"),
+                ("scala-library.jar", "458d046151ad179c85429ed7420ffb1eaf6ddf85")
+            ]
+        };
 
     /// <summary>
     ///     将多个实例 JSON 进行合并，如果目标已存在则直接覆盖。失败会抛出异常。
@@ -4450,12 +4585,19 @@ public static class ModDownloadLib
             {
                 switch (component.Kind)
                 {
-                    case ModpackVersionComponentKind.Game when !gameApplied:
-                        if (minecraftJson is not null) outputJson.Merge(minecraftJson);
-                        gameApplied = true;
+                    case ModpackVersionComponentKind.Game:
+                        if (!gameApplied)
+                        {
+                            if (minecraftJson is not null) outputJson.Merge(minecraftJson);
+                            gameApplied = true;
+                        }
+                        if (component.Patch is { } gamePatch)
+                            MultiMcPatchMerger.ApplyTo(outputJson, gamePatch);
                         break;
                     case ModpackVersionComponentKind.Loader when component.LoaderKind is { } loaderKind:
                         ApplyLoader(loaderKind);
+                        if (component.Patch is { } loaderPatch)
+                            MultiMcPatchMerger.ApplyTo(outputJson, loaderPatch);
                         break;
                     case ModpackVersionComponentKind.CustomPatch when component.Patch is { } patch:
                         MultiMcPatchMerger.ApplyTo(outputJson, patch);

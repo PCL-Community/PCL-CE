@@ -55,12 +55,23 @@ public static class ModModpack
         /// <summary>MultiMC 组件的原始顺序，用于把自定义补丁穿插到加载器 JSON 之间。</summary>
         public IReadOnlyList<ModpackVersionComponent> orderedComponents = [];
 
+        /// <summary>只下载、不加入运行时 classpath 的 MultiMC Maven 文件。</summary>
+        public IReadOnlyList<JsonObject> mavenFiles = [];
+
+        /// <summary>由实例 <c>libraries/</c> 提供的主 JAR 文件名。</summary>
+        public string? localMainJarFileName;
+
+        /// <summary>按组件顺序排列的本地与远程 JAR Mod。</summary>
+        public IReadOnlyList<ModpackJarMod> jarMods = [];
+
+        /// <summary>MultiMC 组件声明的实例特征。</summary>
+        public IReadOnlyList<string> traits = [];
+
         /// <summary>
         ///     由 PCL.Core 的版本补丁构造，补丁为空时返回 <c>null</c>。
         ///     <para>
-        ///         各加载器的 <c>is*Overrided</c> 均为 <c>false</c>：识别层只合并启动器无法自行安装的
-        ///         自定义组件补丁，Minecraft 与各加载器一律走 PCL 的官方安装渠道，
-        ///         因此它们的 JSON 仍需正常合并。
+        ///         Minecraft 与 PCL 可安装的加载器仍以官方安装结果作为基础；MultiMC 本地补丁会在
+        ///         对应组件的位置继续叠加，以保留整合包作者的定制内容。
         ///     </para>
         /// </summary>
         internal static MMCPackInfo? FromVersionPatch(ModpackVersionPatch? patch)
@@ -74,6 +85,13 @@ public static class ModModpack
                 isMinecraftOverrided = patch.ReplacesGameJson,
                 isMcArgsEdited = patch.OverridesGameArguments,
                 overridedJson = patch.VersionJson.DeepClone().AsObject(),
+                mavenFiles = patch.MavenFiles.Select(file => file.DeepClone().AsObject()).ToArray(),
+                localMainJarFileName = patch.LocalMainJarFileName,
+                jarMods = patch.JarMods.Select(jarMod => jarMod with
+                {
+                    DownloadUrls = jarMod.DownloadUrls.ToArray()
+                }).ToArray(),
+                traits = patch.Traits.ToArray(),
                 orderedComponents = patch.OrderedComponents
                     .Select(component => component with
                     {
@@ -373,6 +391,6 @@ public static class ModModpack
         ModpackFormat.MultiMc => Lang.Text("Minecraft.Download.Modpack.Task.MmcInstall", instanceName),
         ModpackFormat.Mcbbs => Lang.Text("Minecraft.Download.Modpack.Task.McbbsInstall", instanceName),
         ModpackFormat.Hmcl => Lang.Text("Minecraft.Download.Modpack.Task.HmclInstall", instanceName),
-        _ => Lang.Text("Minecraft.Download.Modpack.Task.ServerInstall", instanceName)
+        _ => throw new ArgumentOutOfRangeException(nameof(format), format, "不支持的整合包格式")
     };
 }

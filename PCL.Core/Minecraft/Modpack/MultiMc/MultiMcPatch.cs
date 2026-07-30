@@ -63,10 +63,17 @@ public sealed class MultiMcPatch
 
     /// <summary>读取补丁声明的依赖。</summary>
     public IReadOnlyList<MultiMcPatchRequirement> GetRequirements()
-    {
-        if (Raw["requires"] is not JsonArray requires) return [];
+        => _ReadRequirements("requires");
 
-        return requires
+    /// <summary>读取补丁声明的冲突。</summary>
+    public IReadOnlyList<MultiMcPatchRequirement> GetConflicts()
+        => _ReadRequirements("conflicts");
+
+    private IReadOnlyList<MultiMcPatchRequirement> _ReadRequirements(string propertyName)
+    {
+        if (Raw[propertyName] is not JsonArray requirements) return [];
+
+        return requirements
             .OfType<JsonObject>()
             .Select(item => new MultiMcPatchRequirement(
                 item["uid"]?.GetValue<string?>(),

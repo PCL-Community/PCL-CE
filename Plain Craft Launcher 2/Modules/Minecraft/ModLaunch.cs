@@ -2113,6 +2113,7 @@ public static class ModLaunch
             string.IsNullOrEmpty(dataJvmCustom)
                 ? Config.Launch.JvmArgs
                 : dataJvmCustom); // 可变 JVM 参数
+        _AppendImportedPermGen(dataList);
         switch (Config.Launch.PreferredIpStack)
         {
             case JvmPreferredIpStack.PreferV4:
@@ -2134,13 +2135,24 @@ public static class ModLaunch
         double totalRamMb = PageInstanceSetup.GetRam(ModInstanceList.McMcInstanceSelected) * 1024d;
         var maxHeapArg = Math.Floor(totalRamMb).ToString(CultureInfo.InvariantCulture);
         dataList.Add("-Xmn" + Math.Floor(totalRamMb * 0.15).ToString(CultureInfo.InvariantCulture) + "m");
-        dataList.Add("-Xmx" + maxHeapArg + "m");
+        if (!dataList.Any(d => d.Contains("-Xmx", StringComparison.OrdinalIgnoreCase)))
+            dataList.Add("-Xmx" + maxHeapArg + "m");
         // #3282: 固定堆大小时追加 -Xms 使其等于 -Xmx（复用同一数值以保持一致），隐式禁用内存归还降低延迟抖动、利于 ZGC。
         // 若 dataList 中已存在 -Xms（例如用户自定义参数已设）则跳过，避免重复/冲突。
         if (Config.Launch.LockMemory && !dataList.Any(d => d.Contains("-Xms", StringComparison.OrdinalIgnoreCase)))
             dataList.Add("-Xms" + maxHeapArg + "m");
         if (!dataList.Any(d => d.Contains("-Dlog4j2.formatMsgNoLookups=true")))
             dataList.Add("-Dlog4j2.formatMsgNoLookups=true");
+    }
+
+    private static void _AppendImportedPermGen(List<string> dataList)
+    {
+        var permGen = Config.Instance.PermGen[ModInstanceList.McMcInstanceSelected?.PathInstance];
+        if (permGen <= 0 || permGen == 64 || mcLaunchJavaSelected.Installation.MajorVersion >= 8 ||
+            dataList.Any(argument => argument.Contains("-XX:PermSize=", StringComparison.OrdinalIgnoreCase)))
+            return;
+
+        dataList.Add($"-XX:PermSize={permGen}m");
     }
 
     public class LaunchArgument
@@ -2461,12 +2473,14 @@ public static class ModLaunch
             argumentJvm += " -Dlog4j2.formatMsgNoLookups=true";
         argumentJvm = argumentJvm.Replace(" -XX:MaxDirectMemorySize=256M", ""); // #3511 的清理
         dataList.Insert(0, argumentJvm); // 可变 JVM 参数
+        _AppendImportedPermGen(dataList);
         dataList.Add("-Xmn" +
                      Math.Floor(PageInstanceSetup.GetRam(ModInstanceList.McMcInstanceSelected,
                          !mcLaunchJavaSelected.Installation.Is64Bit) * 1024d * 0.15d) + "m");
         var maxHeapArg = Math.Floor(PageInstanceSetup.GetRam(ModInstanceList.McMcInstanceSelected,
             !mcLaunchJavaSelected.Installation.Is64Bit) * 1024d);
-        dataList.Add("-Xmx" + maxHeapArg + "m");
+        if (!dataList.Any(d => d.Contains("-Xmx", StringComparison.OrdinalIgnoreCase)))
+            dataList.Add("-Xmx" + maxHeapArg + "m");
         // #3282: 固定堆大小时追加 -Xms 使其等于 -Xmx（复用同一数值以保持一致），隐式禁用内存归还降低延迟抖动、利于 ZGC。
         // 若 dataList 中已存在 -Xms（例如用户自定义参数已设）则跳过，避免重复/冲突。
         if (Config.Launch.LockMemory && !dataList.Any(d => d.Contains("-Xms", StringComparison.OrdinalIgnoreCase)))

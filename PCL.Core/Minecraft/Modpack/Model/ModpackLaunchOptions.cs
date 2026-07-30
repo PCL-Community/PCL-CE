@@ -23,6 +23,9 @@ public sealed record ModpackLaunchOptions
     /// <summary>最大内存（MB）。</summary>
     public int? MaxMemoryMegabytes { get; init; }
 
+    /// <summary>Java 8 以前使用的永久代初始大小（MB）。</summary>
+    public int? PermGenMegabytes { get; init; }
+
     /// <summary>指定的 Java 可执行文件路径。</summary>
     public string? JavaPath { get; init; }
 
@@ -58,6 +61,7 @@ public sealed record ModpackLaunchOptions
         GameArguments.Count == 0 &&
         MinMemoryMegabytes is null &&
         MaxMemoryMegabytes is null &&
+        PermGenMegabytes is null &&
         JavaPath is null &&
         SupportedJavaMajors.Count == 0 &&
         PreLaunchCommand is null &&

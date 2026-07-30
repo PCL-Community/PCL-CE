@@ -1977,8 +1977,9 @@
     <sys:String x:Key="Minecraft.Download.Modpack.InputInstanceName">输入实例名称</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Installing">该整合包正在安装中！</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.InvalidGamePathChars">游戏路径中不能含有感叹号或分号：{0}</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.JavaPathMissing">整合包指定的 Java 路径不存在，已改用 PCL 的 Java 设置：{0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.Generic">该整合包未提供游戏版本信息，无法安装！</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.NotRecognized.Message">PCL CE 无法识别 {0} 的整合包格式。&#xD;&#xA;请确认这是一个 CurseForge、Modrinth、MultiMC/Prism、MCBBS、HMCL 或服务端整合包文件。</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.NotRecognized.Message">PCL CE 无法识别 {0} 的整合包格式。&#xD;&#xA;请确认这是一个 CurseForge、Modrinth、MultiMC/Prism、MCBBS 或 HMCL 整合包文件。</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.NotRecognized.Title">无法识别整合包</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.Hmcl">该 HMCL 整合包未提供游戏版本信息，无法安装！</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.MissingGameVersion.McbbsAddons">该 MCBBS 整合包未提供游戏版本附加信息，无法安装！</sys:String>
@@ -1998,10 +1999,10 @@
     <sys:String x:Key="Minecraft.Download.Modpack.Task.McbbsInstall">MCBBS 整合包安装：{0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Task.MmcInstall">MMC 整合包安装：{0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.Task.ModrinthInstall">Modrinth 整合包安装：{0}</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.Task.ServerInstall">服务端整合包安装：{0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.TooOldUnsupported">该整合包版本过老，已不支持进行安装！</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.UnknownLoader">无法安装整合包，其中出现了未知的模组加载器 {0}（版本为 {1}）！</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.UnsupportedArchive">打开整合包文件失败，文件可能损坏或为不支持的压缩包格式</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.WarningSummary">整合包包含 {0} 项兼容性提示，详情请查看日志</sys:String>
 
     <!-- Minecraft.Download.Modpack.Stage -->
 

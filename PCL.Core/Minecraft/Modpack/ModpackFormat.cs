@@ -17,9 +17,6 @@ public enum ModpackFormat
     /// <summary>MCBBS 格式，特征文件 <c>mcbbs.packmeta</c>，或含 <c>addons</c> 字段的 <c>manifest.json</c>。</summary>
     Mcbbs,
 
-    /// <summary>服务端整合包格式，特征文件 <c>server-manifest.json</c>。</summary>
-    Server,
-
     /// <summary>HMCL 自有格式，特征文件 <c>modpack.json</c>。不属于跨启动器的公共规范。</summary>
     Hmcl
 }
@@ -39,7 +36,6 @@ public static class ModpackFormatExtensions
         ModpackFormat.Modrinth => "Modrinth",
         ModpackFormat.MultiMc => "MultiMC",
         ModpackFormat.Mcbbs => "Mcbbs",
-        ModpackFormat.Server => "Server",
         ModpackFormat.Hmcl => "HMCL",
         _ => format.ToString()
     };
@@ -53,7 +49,6 @@ public static class ModpackFormatExtensions
         "modrinth" => ModpackFormat.Modrinth,
         "multimc" or "mmc" or "prism" => ModpackFormat.MultiMc,
         "mcbbs" => ModpackFormat.Mcbbs,
-        "server" => ModpackFormat.Server,
         "hmcl" => ModpackFormat.Hmcl,
         _ => null
     };

@@ -5,7 +5,7 @@ using PCL.Core.Minecraft.Modpack.Model;
 namespace PCL.Core.Minecraft.Modpack.Providers;
 
 /// <summary>
-/// <c>addons</c> 列表到 <see cref="ModpackComponents"/> 的解析，供 MCBBS 与 Server 两种格式共用。
+/// MCBBS <c>addons</c> 列表到 <see cref="ModpackComponents"/> 的解析。
 /// </summary>
 internal static class ModpackAddonResolver
 {

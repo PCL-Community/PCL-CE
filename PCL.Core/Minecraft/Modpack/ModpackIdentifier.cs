@@ -28,7 +28,6 @@ public sealed class ModpackIdentifier
         new McbbsModpackProvider(),
         new CurseForgeModpackProvider(),
         new ModrinthModpackProvider(),
-        new ServerModpackProvider(),
         new HmclModpackProvider()
     ];
 

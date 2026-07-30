@@ -65,6 +65,30 @@ public class ModpackJarModMergerTest
         CollectionAssert.AreEqual(before, File.ReadAllBytes(gameJar));
     }
 
+    [TestMethod]
+    public void RemovesOriginalMetaInfButKeepsJarModMetaInf()
+    {
+        var directory = _CreateDirectory();
+        var gameJar = _CreateJar(directory, "game.jar", new Dictionary<string, string>
+        {
+            ["META-INF/MANIFEST.MF"] = "signed",
+            ["base.txt"] = "base"
+        });
+        var jarMod = _CreateJar(directory, "mod.jar", new Dictionary<string, string>
+        {
+            ["META-INF/services/com.example.Service"] = "com.example.Implementation",
+            ["modded.txt"] = "modded"
+        });
+
+        ModpackJarModMerger.Merge(gameJar, [jarMod]);
+
+        using var archive = ZipFile.OpenRead(gameJar);
+        Assert.IsNull(archive.GetEntry("META-INF/MANIFEST.MF"));
+        Assert.IsNotNull(archive.GetEntry("META-INF/services/com.example.Service"));
+        Assert.IsNotNull(archive.GetEntry("base.txt"));
+        Assert.IsNotNull(archive.GetEntry("modded.txt"));
+    }
+
     private string _CreateDirectory()
     {
         _temporaryDirectory = Path.Combine(Path.GetTempPath(), $"pclce-jarmod-test-{Guid.NewGuid():N}");

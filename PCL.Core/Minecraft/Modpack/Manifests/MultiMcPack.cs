@@ -33,6 +33,10 @@ public sealed class MultiMcComponent
     [JsonPropertyName("cachedVersion")]
     public string? CachedVersion { get; set; }
 
+    /// <summary>组件已被禁用，不得参与依赖解析或安装。</summary>
+    [JsonPropertyName("disabled")]
+    public bool Disabled { get; set; }
+
     /// <summary>允许自动更新。</summary>
     [JsonPropertyName("cachedVolatile")]
     public bool CachedVolatile { get; set; }
@@ -48,6 +52,10 @@ public sealed class MultiMcComponent
     /// <summary>已缓存的依赖声明。</summary>
     [JsonPropertyName("cachedRequires")]
     public List<MultiMcRequirement>? CachedRequires { get; set; }
+
+    /// <summary>已缓存的冲突声明。</summary>
+    [JsonPropertyName("cachedConflicts")]
+    public List<MultiMcRequirement>? CachedConflicts { get; set; }
 
     /// <summary>解析实际生效的版本号 —— <c>version</c> 缺失时回退到 <c>cachedVersion</c>。</summary>
     public string? ResolveVersion() =>

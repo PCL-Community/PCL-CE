@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Text.Json.Nodes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using PCL.Core.Minecraft.Modpack.Model;
 using PCL.Core.Minecraft.Modpack.MultiMc;
 using PCL.Core.Utils;
 
@@ -41,7 +42,7 @@ public class MultiMcPatchMergerTest
     }
 
     /// <summary>
-    /// 同一坐标的库以后应用者为准，版本号不参与去重标识。
+    /// 同一坐标只有严格更高的版本才能替换，版本号不参与去重标识。
     /// </summary>
     [TestMethod]
     public void LaterLibraryReplacesEarlierWithSameCoordinate()
@@ -56,6 +57,73 @@ public class MultiMcPatchMergerTest
         var libraries = result.VersionJson["libraries"]!.AsArray();
         Assert.AreEqual(1, libraries.Count);
         Assert.AreEqual("org.ow2.asm:asm:9.6", libraries[0]!["name"]!.GetValue<string>());
+    }
+
+    [TestMethod]
+    public void LowerOrEqualLibraryDoesNotReplaceExistingEntry()
+    {
+        var result = MultiMcPatchMerger.Merge(
+        [
+            _Patch("""{ "uid": "a", "libraries": [{ "name": "org.ow2.asm:asm:9.6", "origin": "first" }] }"""),
+            _Patch("""{ "uid": "b", "libraries": [{ "name": "org.ow2.asm:asm:9.0", "origin": "lower" }] }"""),
+            _Patch("""{ "uid": "c", "libraries": [{ "name": "org.ow2.asm:asm:9.6", "origin": "equal" }] }""")
+        ], selfContained: false);
+
+        var library = result!.VersionJson["libraries"]!.AsArray().Single()!.AsObject();
+        Assert.AreEqual("org.ow2.asm:asm:9.6", library["name"]!.GetValue<string>());
+        Assert.AreEqual("first", library["origin"]!.GetValue<string>());
+    }
+
+    [TestMethod]
+    public void KeepsNativeAndRegularLibrariesWithSameCoordinateSeparate()
+    {
+        var result = MultiMcPatchMerger.Merge(
+        [
+            _Patch("""
+                {
+                  "uid": "a",
+                  "libraries": [
+                    { "name": "com.example:shared:1.0" },
+                    {
+                      "name": "com.example:shared:1.0",
+                      "natives": { "windows": "natives-windows-${arch}" },
+                      "downloads": {
+                        "classifiers": {
+                          "natives-windows": { "path": "com/example/shared/1.0/shared-1.0-natives-windows.jar" }
+                        }
+                      }
+                    }
+                  ]
+                }
+                """)
+        ], selfContained: false);
+
+        Assert.AreEqual(2, result!.VersionJson["libraries"]!.AsArray().Count);
+    }
+
+    [TestMethod]
+    public void InactiveHigherLibraryDoesNotReplaceActiveVersion()
+    {
+        var result = MultiMcPatchMerger.Merge(
+        [
+            _Patch("""{ "uid": "a", "libraries": [{ "name": "com.example:conditional:1.0" }] }"""),
+            _Patch("""
+                {
+                  "uid": "b",
+                  "libraries": [{
+                    "name": "com.example:conditional:9.0",
+                    "rules": [{ "action": "allow", "os": { "name": "linux" } }]
+                  }]
+                }
+                """),
+            _Patch("""{ "uid": "c", "libraries": [{ "name": "com.example:conditional:2.0" }] }""")
+        ], selfContained: false);
+
+        var active = result!.VersionJson["libraries"]!.AsArray()
+            .Select(node => node!.AsObject())
+            .Where(MultiMcPatchMerger.IsLibraryActiveOnCurrentSystem)
+            .Single();
+        Assert.AreEqual("com.example:conditional:2.0", active["name"]!.GetValue<string>());
     }
 
     [TestMethod]
@@ -87,6 +155,81 @@ public class MultiMcPatchMergerTest
 
         CollectionAssert.AreEqual(new[] { "--tweakClass", "com.example.Tweaker" }, game);
         Assert.IsTrue(result.OverridesGameArguments);
+    }
+
+    [TestMethod]
+    public void ReappliedTweakerMovesToLaterComponentPosition()
+    {
+        var result = MultiMcPatchMerger.Merge(
+        [
+            _Patch("""{ "uid": "a", "+tweakers": ["first", "moved", "third"] }"""),
+            _Patch("""{ "uid": "b", "+tweakers": ["moved"] }""")
+        ], selfContained: false);
+
+        CollectionAssert.AreEqual(
+            new[]
+            {
+                "--tweakClass", "first",
+                "--tweakClass", "third",
+                "--tweakClass", "moved"
+            },
+            result!.VersionJson["arguments"]!["game"]!.AsArray()
+                .Select(node => node!.GetValue<string>()).ToArray());
+    }
+
+    [TestMethod]
+    public void DirectModernGameArgumentsSuppressLegacyArguments()
+    {
+        var patch = new ModpackVersionPatch(new JsonObject(), false, [])
+        {
+            OrderedComponents =
+            [
+                new ModpackVersionComponent(
+                    "com.example",
+                    ModpackVersionComponentKind.CustomPatch,
+                    Patch: JsonNode.Parse("""
+                        { "arguments": { "game": [] } }
+                        """)!.AsObject())
+            ]
+        };
+
+        Assert.IsTrue(patch.OverridesGameArguments);
+    }
+
+    [TestMethod]
+    public void PreservesLegacyArgumentsWhenAppendingModernGameArguments()
+    {
+        var output = JsonNode.Parse("""
+            {
+              "minecraftArguments": "--username ${auth_player_name} --assetIndex \"legacy assets\""
+            }
+            """)!.AsObject();
+
+        MultiMcPatchMerger.ApplyTo(output, JsonNode.Parse("""
+            { "uid": "com.example", "+gameArgs": ["--demo"] }
+            """)!.AsObject());
+
+        Assert.IsFalse(output.ContainsKey("minecraftArguments"));
+        CollectionAssert.AreEqual(
+            new[] { "--username", "${auth_player_name}", "--assetIndex", "legacy assets", "--demo" },
+            output["arguments"]!["game"]!.AsArray()
+                .Select(node => node!.GetValue<string>()).ToArray());
+    }
+
+    [TestMethod]
+    public void RemovingGameArgumentsMarksPatchAsOverridingThem()
+    {
+        var result = MultiMcPatchMerger.Merge(
+        [
+            _Patch("""{ "uid": "a", "minecraftArguments": "--demo --width 800" }"""),
+            _Patch("""{ "uid": "b", "-gameArgs": ["--demo"] }""")
+        ], selfContained: false);
+
+        Assert.IsTrue(result!.OverridesGameArguments);
+        CollectionAssert.AreEqual(
+            new[] { "--width", "800" },
+            result.VersionJson["arguments"]!["game"]!.AsArray()
+                .Select(node => node!.GetValue<string>()).ToArray());
     }
 
     /// <summary>
@@ -142,6 +285,21 @@ public class MultiMcPatchMergerTest
         Assert.AreEqual("java-runtime-delta", result.VersionJson["javaVersion"]!["component"]!.GetValue<string>());
     }
 
+    [TestMethod]
+    public void PreservesTraitsInFirstSeenOrder()
+    {
+        var result = MultiMcPatchMerger.Merge(
+        [
+            _Patch("""{ "uid": "a", "+traits": ["legacyFML", "texturepacks"] }"""),
+            _Patch("""{ "uid": "b", "+traits": ["legacyFML", "XR:Initial"] }""")
+        ], selfContained: false);
+
+        CollectionAssert.AreEqual(
+            new[] { "legacyFML", "texturepacks", "XR:Initial" },
+            result!.Traits.ToArray());
+        Assert.IsFalse(result.IsEmpty);
+    }
+
     /// <summary>
     /// MultiMC 专有的库字段需翻译为官方 JSON 的等价写法。
     /// </summary>
@@ -170,6 +328,102 @@ public class MultiMcPatchMergerTest
         Assert.AreEqual("local", library["hint"]!.GetValue<string>());
         Assert.AreEqual("https://example.com/lib.jar",
             library["downloads"]!["artifact"]!["url"]!.GetValue<string>());
+    }
+
+    [TestMethod]
+    public void PreservesExplicitArtifactPathAndBuildsClassifierPathForCustomFileName()
+    {
+        var explicitPath = MultiMcPatchMerger.NormalizeLibrary(JsonNode.Parse("""
+            {
+              "name": "com.example:custom:1.0:client@zip",
+              "downloads": { "artifact": { "path": "custom/location/client.zip" } }
+            }
+            """)!.AsObject());
+        Assert.AreEqual(
+            "custom/location/client.zip",
+            explicitPath["downloads"]!["artifact"]!["path"]!.GetValue<string>());
+
+        var renamed = MultiMcPatchMerger.NormalizeLibrary(JsonNode.Parse("""
+            {
+              "name": "com.example:native:2.0",
+              "MMC-filename": "renamed.bin",
+              "natives": { "windows": "natives-windows" },
+              "downloads": {
+                "classifiers": {
+                  "natives-windows": { "path": "old/path/native.jar" }
+                }
+              }
+            }
+            """)!.AsObject());
+
+        Assert.AreEqual(
+            "com/example/native/2.0/renamed.bin",
+            renamed["downloads"]!["artifact"]!["path"]!.GetValue<string>());
+        Assert.AreEqual(
+            "com/example/native/2.0/renamed.bin",
+            renamed["downloads"]!["classifiers"]!["natives-windows"]!["path"]!.GetValue<string>());
+    }
+
+    [TestMethod]
+    public void RemoteMainJarFallsBackToMinecraftLibraryRepository()
+    {
+        var result = MultiMcPatchMerger.Merge(
+        [
+            _Patch("""
+                {
+                  "uid": "com.example.customjar",
+                  "mainJar": { "name": "com.example:custom-client:1.0:client" }
+                }
+                """)
+        ], selfContained: false);
+
+        var client = result!.VersionJson["downloads"]!["client"]!;
+        Assert.AreEqual(
+            "https://libraries.minecraft.net/com/example/custom-client/1.0/custom-client-1.0-client.jar",
+            client["url"]!.GetValue<string>());
+        Assert.AreEqual(
+            "com/example/custom-client/1.0/custom-client-1.0-client.jar",
+            client["path"]!.GetValue<string>());
+    }
+
+    [TestMethod]
+    public void MainJarTakesPrecedenceOverDownloadsInSamePatch()
+    {
+        var output = new JsonObject();
+
+        MultiMcPatchMerger.ApplyTo(output, JsonNode.Parse("""
+            {
+              "uid": "com.example.customjar",
+              "downloads": { "client": { "url": "https://example.com/wrong.jar" } },
+              "mainJar": {
+                "name": "com.example:custom-client:1.0",
+                "MMC-absoluteUrl": "https://example.com/right.jar"
+              }
+            }
+            """)!.AsObject());
+
+        Assert.AreEqual(
+            "https://example.com/right.jar",
+            output["downloads"]!["client"]!["url"]!.GetValue<string>());
+    }
+
+    [TestMethod]
+    public void CustomComponentCannotOverrideMinecraftAssetIndex()
+    {
+        var output = JsonNode.Parse("""
+            { "assetIndex": { "id": "base" }, "assets": "base" }
+            """)!.AsObject();
+
+        MultiMcPatchMerger.ApplyTo(output, JsonNode.Parse("""
+            {
+              "uid": "com.example.custom",
+              "assetIndex": { "id": "wrong" },
+              "assets": "wrong"
+            }
+            """)!.AsObject());
+
+        Assert.AreEqual("base", output["assetIndex"]!["id"]!.GetValue<string>());
+        Assert.AreEqual("base", output["assets"]!.GetValue<string>());
     }
 
     [TestMethod]

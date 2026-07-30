@@ -7,11 +7,12 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.Minecraft.Modpack;
 using PCL.Core.Minecraft.Modpack.Model;
+using PCL.Core.Minecraft.Modpack.MultiMc;
 
 namespace PCL.Core.Test.Minecraft.Modpack;
 
 /// <summary>
-/// 六种整合包格式的识别与解析测试。全部使用内存中构造的压缩包，不依赖网络。
+/// 五种整合包格式的识别与解析测试。全部使用内存中构造的压缩包，不依赖网络。
 /// </summary>
 [TestClass]
 public class ModpackIdentifierTest
@@ -339,8 +340,19 @@ public class ModpackIdentifierTest
                   "uid": "com.example.custom",
                   "version": "1.0",
                   "mainClass": "com.example.CustomMain",
-                  "jarMods": [{ "filename": "first.jar" }],
-                  "+jarMods": [{ "MMC-filename": "second.jar" }]
+                  "jarMods": [
+                    {
+                      "name": "org.multimc.jarmods:first:1",
+                      "MMC-hint": "local",
+                      "MMC-filename": "first.jar"
+                    },
+                    {
+                      "name": "org.multimc.jarmods:second:1",
+                      "MMC-hint": "local",
+                      "MMC-filename": "second.jar"
+                    }
+                  ],
+                  "+jarMods": [{ "name": "ignored-legacy.jar" }]
                 }
                 """,
             ["jarmods/first.jar"] = "first",
@@ -363,7 +375,255 @@ public class ModpackIdentifierTest
     }
 
     [TestMethod]
-    public async Task IdentifiesServerModpack()
+    public async Task InstallsPre16ForgeAsMultiMcJarModComponent()
+    {
+        var path = _CreateArchive(new Dictionary<string, string>
+        {
+            ["mmc-pack.json"] = """
+                {
+                  "formatVersion": 1,
+                  "components": [
+                    { "uid": "net.minecraft", "version": "1.5.2" },
+                    { "uid": "net.minecraftforge", "version": "7.8.1.738" }
+                  ]
+                }
+                """,
+            ["instance.cfg"] = "name=Legacy Forge Pack",
+            ["patches/net.minecraftforge.json"] = """
+                {
+                  "formatVersion": 1,
+                  "uid": "net.minecraftforge",
+                  "version": "7.8.1.738",
+                  "+traits": ["legacyFML"],
+                  "jarMods": [{
+                    "name": "net.minecraftforge:forge:1.5.2-7.8.1.738:universal",
+                    "downloads": { "artifact": {
+                      "sha1": "76223709288287a6a8d22ab16b43a6ab2a284a0d",
+                      "size": 2033732,
+                      "url": "https://maven.minecraftforge.net/net/minecraftforge/forge/1.5.2-7.8.1.738/forge-1.5.2-7.8.1.738-universal.zip"
+                    }}
+                  }],
+                  "requires": [{ "equals": "1.5.2", "uid": "net.minecraft" }]
+                }
+                """
+        });
+
+        var descriptor = await ModpackIdentifier.Shared.ReadAsync(path);
+        var patch = descriptor.VersionPatch!;
+
+        Assert.IsNull(descriptor.Components.GetLoaderVersion(ModLoaderKind.Forge));
+        Assert.AreEqual(ModpackVersionComponentKind.CustomPatch, patch.OrderedComponents[1].Kind);
+        Assert.IsNull(patch.OrderedComponents[1].LoaderKind);
+        CollectionAssert.Contains(patch.Traits.ToArray(), "legacyFML");
+
+        var jarMod = patch.JarMods.Single();
+        Assert.IsFalse(jarMod.IsLocal);
+        // Prism 按 Maven 坐标将该 ZIP 缓存为 .jar；两者都是 ZIP 容器，扩展名不影响合并。
+        Assert.AreEqual("forge-1.5.2-7.8.1.738-universal.jar", jarMod.FileName);
+        Assert.AreEqual("76223709288287a6a8d22ab16b43a6ab2a284a0d", jarMod.Sha1);
+    }
+
+    [TestMethod]
+    public async Task KeepsForge16AsPclInstallableLoader()
+    {
+        var path = _CreateArchive(new Dictionary<string, string>
+        {
+            ["mmc-pack.json"] = """
+                {
+                  "formatVersion": 1,
+                  "components": [
+                    { "uid": "net.minecraft", "version": "1.6.4" },
+                    { "uid": "net.minecraftforge", "version": "9.11.1.1345" }
+                  ]
+                }
+                """,
+            ["instance.cfg"] = "name=Forge 1.6.4 Pack",
+            ["patches/net.minecraftforge.json"] = """
+                {
+                  "formatVersion": 1,
+                  "uid": "net.minecraftforge",
+                  "version": "9.11.1.1345",
+                  "+tweakers": ["cpw.mods.fml.common.launcher.FMLTweaker"],
+                  "mainClass": "net.minecraft.launchwrapper.Launch",
+                  "requires": [{ "equals": "1.6.4", "uid": "net.minecraft" }]
+                }
+                """
+        });
+
+        var descriptor = await ModpackIdentifier.Shared.ReadAsync(path);
+
+        Assert.AreEqual("9.11.1.1345", descriptor.Components.GetLoaderVersion(ModLoaderKind.Forge));
+        Assert.AreEqual(
+            ModpackVersionComponentKind.Loader,
+            descriptor.VersionPatch!.OrderedComponents[1].Kind);
+    }
+
+    [TestMethod]
+    public async Task ReadsLegacyPlusJarModsByName()
+    {
+        var path = _CreateArchive(new Dictionary<string, string>
+        {
+            ["mmc-pack.json"] = """
+                {
+                  "formatVersion": 1,
+                  "components": [
+                    { "uid": "net.minecraft", "version": "1.12.2" },
+                    { "uid": "com.example.legacy", "version": "1.0" }
+                  ]
+                }
+                """,
+            ["instance.cfg"] = "name=Legacy JAR Mod",
+            ["patches/com.example.legacy.json"] = """
+                {
+                  "formatVersion": 1,
+                  "uid": "com.example.legacy",
+                  "version": "1.0",
+                  "+jarMods": [{ "name": "legacy.jar", "originalName": "Legacy" }]
+                }
+                """,
+            ["jarmods/legacy.jar"] = "legacy"
+        });
+
+        var descriptor = await ModpackIdentifier.Shared.ReadAsync(path);
+
+        var jarMod = descriptor.VersionPatch!.JarMods.Single();
+        Assert.AreEqual("legacy.jar", jarMod.FileName);
+        Assert.IsTrue(jarMod.IsLocal);
+    }
+
+    [TestMethod]
+    public async Task ReadsRemoteModernJarModMetadata()
+    {
+        var path = _CreateArchive(new Dictionary<string, string>
+        {
+            ["mmc-pack.json"] = """
+                {
+                  "formatVersion": 1,
+                  "components": [
+                    { "uid": "net.minecraft", "version": "1.12.2" },
+                    { "uid": "com.example.remote", "version": "1.0" }
+                  ]
+                }
+                """,
+            ["instance.cfg"] = "name=Remote JAR Mod",
+            ["patches/com.example.remote.json"] = """
+                {
+                  "formatVersion": 1,
+                  "uid": "com.example.remote",
+                  "version": "1.0",
+                  "jarMods": [{
+                    "name": "com.example:remote-jarmod:1.2:client@zip",
+                    "MMC-filename": "remote.jar",
+                    "MMC-absoluteUrl": "https://example.com/files/remote.jar",
+                    "downloads": { "artifact": { "sha1": "abcdef", "size": 12345 } }
+                  }]
+                }
+                """
+        });
+
+        var descriptor = await ModpackIdentifier.Shared.ReadAsync(path);
+
+        var jarMod = descriptor.VersionPatch!.JarMods.Single();
+        Assert.AreEqual("remote.jar", jarMod.FileName);
+        Assert.IsFalse(jarMod.IsLocal);
+        Assert.AreEqual("https://example.com/files/remote.jar", jarMod.DownloadUrls.Single());
+        Assert.AreEqual("abcdef", jarMod.Sha1);
+        Assert.AreEqual(12345L, jarMod.FileSize);
+        Assert.IsFalse(descriptor.EmbeddedPayloads.Any(payload => payload.Kind == ModpackPayloadKind.JarMods));
+    }
+
+    [TestMethod]
+    public async Task RejectsMissingLocalJarMod()
+    {
+        var path = _CreateArchive(new Dictionary<string, string>
+        {
+            ["mmc-pack.json"] = """
+                {
+                  "formatVersion": 1,
+                  "components": [
+                    { "uid": "net.minecraft", "version": "1.12.2" },
+                    { "uid": "com.example.missing", "version": "1.0" }
+                  ]
+                }
+                """,
+            ["instance.cfg"] = "name=Missing JAR Mod",
+            ["patches/com.example.missing.json"] = """
+                {
+                  "formatVersion": 1,
+                  "uid": "com.example.missing",
+                  "version": "1.0",
+                  "jarMods": [{
+                    "name": "org.multimc.jarmods:missing:1",
+                    "MMC-hint": "local",
+                    "MMC-filename": "missing.jar"
+                  }]
+                }
+                """
+        });
+
+        await Assert.ThrowsExactlyAsync<ModpackManifestInvalidException>(
+            () => ModpackIdentifier.Shared.ReadAsync(path));
+    }
+
+    [TestMethod]
+    public async Task RejectsMalformedMainJarDefinition()
+    {
+        var path = _CreateArchive(new Dictionary<string, string>
+        {
+            ["mmc-pack.json"] = """
+                {
+                  "formatVersion": 1,
+                  "components": [
+                    { "uid": "net.minecraft", "version": "1.12.2" },
+                    { "uid": "com.example.bad", "version": "1.0" }
+                  ]
+                }
+                """,
+            ["instance.cfg"] = "name=Bad Main JAR",
+            ["patches/com.example.bad.json"] = """
+                {
+                  "formatVersion": 1,
+                  "uid": "com.example.bad",
+                  "version": "1.0",
+                  "mainJar": "not-a-library"
+                }
+                """
+        });
+
+        await Assert.ThrowsExactlyAsync<ModpackManifestInvalidException>(
+            () => ModpackIdentifier.Shared.ReadAsync(path));
+    }
+
+    [TestMethod]
+    public async Task ParsesPrismIniCommentsEscapesAndMemorySettings()
+    {
+        var path = _CreateArchive(new Dictionary<string, string>
+        {
+            ["mmc-pack.json"] = """
+                { "formatVersion": 1, "components": [{ "uid": "net.minecraft", "version": "1.7.10" }] }
+                """,
+            ["instance.cfg"] = """
+                name=INI Pack # discarded
+                notes=Keep \# hash # discarded
+                OverrideMemory=true
+                MinMemAlloc=4096 # swapped
+                MaxMemAlloc=1024
+                PermGen=192
+                """
+        });
+
+        var descriptor = await ModpackIdentifier.Shared.ReadAsync(path);
+
+        Assert.AreEqual("INI Pack", descriptor.Metadata.Name);
+        Assert.AreEqual("Keep # hash", descriptor.LaunchOptions.Notes);
+        Assert.AreEqual(1024, descriptor.LaunchOptions.MinMemoryMegabytes);
+        Assert.AreEqual(4096, descriptor.LaunchOptions.MaxMemoryMegabytes);
+        Assert.AreEqual(192, descriptor.LaunchOptions.PermGenMegabytes);
+        Assert.IsTrue(descriptor.Warnings.Any(warning => warning.Contains("MinMemAlloc")));
+    }
+
+    [TestMethod]
+    public async Task ServerManifestIsNoLongerRecognized()
     {
         var path = _CreateArchive(new Dictionary<string, string>
         {
@@ -378,14 +638,8 @@ public class ModpackIdentifierTest
                 """
         });
 
-        var descriptor = await ModpackIdentifier.Shared.ReadAsync(path);
-
-        Assert.AreEqual(ModpackFormat.Server, descriptor.Format);
-        Assert.AreEqual("1.18.2", descriptor.Components.GameVersion);
-        Assert.AreEqual("40.2.0", descriptor.Components.GetLoaderVersion(ModLoaderKind.Forge));
-
-        var file = (ModpackDirectFile)descriptor.Files.Single();
-        Assert.AreEqual("https://example.com/api/mods/a.jar", file.Urls.Single());
+        await Assert.ThrowsExactlyAsync<ModpackFormatNotRecognizedException>(
+            () => ModpackIdentifier.Shared.ReadAsync(path));
     }
 
     [TestMethod]

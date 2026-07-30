@@ -42,6 +42,11 @@ public static class ModpackJarModMerger
                        temporaryPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
             using (var targetArchive = new ZipArchive(targetStream, ZipArchiveMode.Update, leaveOpen: false))
             {
+                // Prism 在重建被修改的主 JAR 时不会复制原版 META-INF；保留签名文件会让
+                // 被 JAR Mod 覆盖后的类校验失败。JAR Mod 自己提供的 META-INF 仍会随后写入。
+                foreach (var signatureEntry in targetArchive.Entries.Where(_IsOriginalMetaInfEntry).ToArray())
+                    signatureEntry.Delete();
+
                 foreach (var jarModPath in jarModPaths)
                     _ApplyJarMod(targetArchive, jarModPath);
             }
@@ -98,4 +103,7 @@ public static class ModpackJarModMerger
 
     private static bool _IsDirectoryEntry(ZipArchiveEntry entry)
         => entry.FullName.EndsWith('/') || entry.FullName.EndsWith('\\');
+
+    private static bool _IsOriginalMetaInfEntry(ZipArchiveEntry entry)
+        => entry.FullName.Replace('\\', '/').Contains("META-INF", StringComparison.OrdinalIgnoreCase);
 }

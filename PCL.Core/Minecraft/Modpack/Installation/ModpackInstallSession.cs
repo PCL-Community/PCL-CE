@@ -163,6 +163,7 @@ public sealed class ModpackInstallSession : IDisposable
 
         var snapshots = new List<ModpackFileSnapshot>();
         var jarModFiles = new List<string>();
+        var jarModStagingPrepared = false;
 
         foreach (var payload in plan.EmbeddedPayloads)
         {
@@ -172,7 +173,9 @@ public sealed class ModpackInstallSession : IDisposable
             {
                 var extracted = await ModpackOverrideExtractor.ExtractAsync(
                         _archive,
-                        [new ModpackOverride(payload.ArchiveDirectory, payload.ArchiveDirectory)],
+                        [new ModpackOverride(
+                            payload.ArchiveDirectory,
+                            payload.TargetDirectory ?? payload.ArchiveDirectory)],
                         plan.InstanceDirectory,
                         progress,
                         previous: null,
@@ -182,9 +185,14 @@ public sealed class ModpackInstallSession : IDisposable
                 continue;
             }
 
-            var stagingDirectory = GetJarModStagingDirectory(plan.InstanceDirectory);
-            if (Directory.Exists(stagingDirectory)) Directory.Delete(stagingDirectory, recursive: true);
+            var stagingRoot = GetJarModStagingDirectory(plan.InstanceDirectory);
+            if (!jarModStagingPrepared)
+            {
+                if (Directory.Exists(stagingRoot)) Directory.Delete(stagingRoot, recursive: true);
+                jarModStagingPrepared = true;
+            }
 
+            var stagingDirectory = GetLocalJarModStagingDirectory(plan.InstanceDirectory);
             var targetSubPath = Path.GetRelativePath(plan.InstanceDirectory, stagingDirectory);
             var staged = await ModpackOverrideExtractor.ExtractAsync(
                     _archive,
@@ -219,6 +227,22 @@ public sealed class ModpackInstallSession : IDisposable
     /// <summary>返回实例内供 JAR Mod 使用的专用暂存目录。</summary>
     public static string GetJarModStagingDirectory(string instanceDirectory)
         => Path.Combine(Path.GetFullPath(instanceDirectory), "PCL", "ModpackInstall", "JarMods");
+
+    /// <summary>返回整合包内嵌 JAR Mod 的暂存目录。</summary>
+    public static string GetLocalJarModStagingDirectory(string instanceDirectory)
+        => Path.Combine(GetJarModStagingDirectory(instanceDirectory), "Local");
+
+    /// <summary>返回某个有序 JAR Mod 的最终暂存路径。</summary>
+    public static string GetJarModStagingPath(
+        string instanceDirectory, ModpackJarMod jarMod, int index)
+    {
+        ArgumentNullException.ThrowIfNull(jarMod);
+
+        var directory = jarMod.IsLocal
+            ? GetLocalJarModStagingDirectory(instanceDirectory)
+            : Path.Combine(GetJarModStagingDirectory(instanceDirectory), "Remote", index.ToString("D4"));
+        return ModpackPathPolicy.ResolveWithin(directory, jarMod.FileName);
+    }
 
     /// <summary>
     /// 把压缩包内的某个文件复制到指定位置，用于取出实例图标等零散资源。

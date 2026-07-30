@@ -28,13 +28,33 @@ public sealed record ModpackVersionPatch(
     /// </summary>
     public IReadOnlyList<ModpackVersionComponent> OrderedComponents { get; init; } = [];
 
-    /// <summary>JAR Mod 文件名，按组件和补丁中的声明顺序排列。</summary>
-    public IReadOnlyList<string> JarModFileNames { get; init; } = [];
+    /// <summary>JAR Mod 制品，按组件和补丁中的声明顺序排列。</summary>
+    public IReadOnlyList<ModpackJarMod> JarMods { get; init; } = [];
+
+    /// <summary>兼容调用方使用的有序 JAR Mod 文件名视图。</summary>
+    public IReadOnlyList<string> JarModFileNames => JarMods.Select(jarMod => jarMod.FileName).ToArray();
+
+    /// <summary>
+    /// 只需下载、不加入运行时 classpath 的 Maven 文件。
+    /// MultiMC 用它为安装器或包装器准备辅助文件，不能混入 <c>libraries</c>。
+    /// </summary>
+    public IReadOnlyList<JsonObject> MavenFiles { get; init; } = [];
+
+    /// <summary>
+    /// 由整合包内 <c>libraries/</c> 提供的主 JAR 文件名；为空时使用版本 JSON 的远程下载信息。
+    /// </summary>
+    public string? LocalMainJarFileName { get; init; }
+
+    /// <summary>组件补丁声明的 MultiMC traits，按首次出现的顺序排列。</summary>
+    public IReadOnlyList<string> Traits { get; init; } = [];
 
     /// <summary>合并结果是否为空 —— 为空时无需对实例 JSON 做任何处理。</summary>
     public bool IsEmpty => VersionJson.Count == 0 &&
-                           !OrderedComponents.Any(component =>
-                               component.Kind == ModpackVersionComponentKind.CustomPatch);
+                           MavenFiles.Count == 0 &&
+                           LocalMainJarFileName is null &&
+                           JarMods.Count == 0 &&
+                           Traits.Count == 0 &&
+                           !OrderedComponents.Any(component => component.Patch is not null);
 
     /// <summary>
     /// 补丁是否自带完整的游戏启动参数。
@@ -44,10 +64,28 @@ public sealed record ModpackVersionPatch(
     /// </para>
     /// </summary>
     public bool OverridesGameArguments =>
-        VersionJson["arguments"]?["game"] is JsonArray { Count: > 0 } ||
+        _DefinesModernGameArguments(VersionJson) ||
         OrderedComponents.Any(component => component.Patch is { } patch &&
-            (patch["minecraftArguments"] is not null || patch["+gameArgs"] is JsonArray { Count: > 0 }));
+            (_DefinesModernGameArguments(patch) ||
+             patch["minecraftArguments"]?.GetValue<string?>() is { Length: > 0 } ||
+             patch["+gameArgs"] is JsonArray { Count: > 0 } ||
+             patch["-gameArgs"] is JsonArray { Count: > 0 } ||
+             patch["+tweakers"] is JsonArray { Count: > 0 }));
+
+    private static bool _DefinesModernGameArguments(JsonObject patch)
+        => patch["arguments"] is JsonObject arguments && arguments.ContainsKey("game");
 }
+
+/// <summary>
+/// 一个按 MultiMC 组件顺序应用的 JAR Mod。远程制品包含完整下载信息；本地制品从
+/// 整合包的 <c>jarmods/</c> 目录提取。
+/// </summary>
+public sealed record ModpackJarMod(
+    string FileName,
+    bool IsLocal,
+    IReadOnlyList<string> DownloadUrls,
+    string? Sha1 = null,
+    long? FileSize = null);
 
 /// <summary>有序版本组件的种类。</summary>
 public enum ModpackVersionComponentKind
@@ -63,8 +101,8 @@ public enum ModpackVersionComponentKind
 }
 
 /// <summary>
-/// MultiMC 组件序列中的一个操作。<see cref="LoaderKind"/> 仅对加载器有效，
-/// <see cref="Patch"/> 仅对自定义补丁有效。
+/// MultiMC 组件序列中的一个操作。<see cref="LoaderKind"/> 仅对加载器有效；
+/// <see cref="Patch"/> 既可表示自定义组件，也可表示 Minecraft / 加载器的本地覆盖补丁。
 /// </summary>
 public sealed record ModpackVersionComponent(
     string Uid,

@@ -4,7 +4,7 @@ using PCL.Core.Minecraft.Modpack.Model;
 namespace PCL.Core.Minecraft.Modpack.Manifests;
 
 /// <summary>
-/// MCBBS 与 Server 格式共用的组件条目。
+/// MCBBS 格式的组件条目。
 /// </summary>
 public sealed class ModpackAddon
 {

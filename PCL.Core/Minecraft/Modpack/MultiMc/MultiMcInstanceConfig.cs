@@ -7,12 +7,8 @@ using System.Text;
 namespace PCL.Core.Minecraft.Modpack.MultiMc;
 
 /// <summary>
-/// <c>instance.cfg</c> 的解析结果。
-/// <para>
-/// 该文件按 Java <c>Properties</c> 的语法书写（<c>key=value</c>，值中可含转义序列），
-/// 因此这里实现一个专用解析器，而不是套用通用 INI 读取 ——
-/// 通用 INI 会把值里的 <c>:</c> 当作分隔符，进而截断 <c>JvmArgs</c> 之类的内容。
-/// </para>
+/// <c>instance.cfg</c> 的解析结果。语法与 Prism Launcher 的 <c>INIFile</c> 一致：
+/// 只以 <c>=</c> 分隔键值，未转义的 <c>#</c> 开始行内注释，并支持其定义的转义序列。
 /// </summary>
 public sealed class MultiMcInstanceConfig
 {
@@ -25,15 +21,15 @@ public sealed class MultiMcInstanceConfig
     {
         var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var logicalLine in _EnumerateLogicalLines(content))
+        foreach (var rawLine in content.Split('\n'))
         {
-            var line = logicalLine.TrimStart();
-            if (line.Length == 0 || line[0] is '#' or '!') continue;
+            var line = _StripComment(rawLine.TrimEnd('\r'));
+            if (line.Length == 0) continue;
 
             var separator = line.IndexOf('=');
-            if (separator <= 0) continue;
+            if (separator < 0) continue;
 
-            var key = line[..separator].TrimEnd();
+            var key = line[..separator].Trim();
             if (key.Length == 0) continue;
 
             values[key] = _Unescape(line[(separator + 1)..].Trim());
@@ -80,43 +76,20 @@ public sealed class MultiMcInstanceConfig
     public string? GetOverridden(string overrideKey, string valueKey)
         => GetBoolean(overrideKey) ? GetString(valueKey) : null;
 
-    /// <summary>
-    /// 将物理行合并为逻辑行 —— 以反斜杠结尾的行与下一行相连。
-    /// </summary>
-    private static IEnumerable<string> _EnumerateLogicalLines(string content)
+    private static string _StripComment(string line)
     {
-        var builder = new StringBuilder();
-
-        foreach (var rawLine in content.Split('\n'))
+        for (var index = 0; index < line.Length; index++)
         {
-            var line = rawLine.TrimEnd('\r');
-
-            // 结尾的反斜杠表示续行，但成对的反斜杠是转义后的字面反斜杠
-            var trailingBackslashes = 0;
-            for (var i = line.Length - 1; i >= 0 && line[i] == '\\'; i--) trailingBackslashes++;
-
-            if (trailingBackslashes % 2 == 1)
-            {
-                builder.Append(line, 0, line.Length - 1);
-                continue;
-            }
-
-            if (builder.Length == 0)
-            {
-                yield return line;
-                continue;
-            }
-
-            builder.Append(line);
-            yield return builder.ToString();
-            builder.Clear();
+            if (line[index] == '#' && (index == 0 || line[index - 1] != '\\'))
+                return line[..index].Trim();
         }
 
-        if (builder.Length > 0) yield return builder.ToString();
+        return line.Trim();
     }
 
     /// <summary>
-    /// 还原 Java <c>Properties</c> 的转义序列。
+    /// 还原 Prism INIFile 支持的转义序列。除 <c>\n</c>、<c>\t</c>、<c>\#</c>
+    /// 外的反斜杠转义均按其后字符的字面值处理。
     /// </summary>
     private static string _Unescape(string value)
     {
@@ -124,30 +97,29 @@ public sealed class MultiMcInstanceConfig
 
         var builder = new StringBuilder(value.Length);
 
-        for (var i = 0; i < value.Length; i++)
+        var escaped = false;
+        foreach (var character in value)
         {
-            if (value[i] != '\\' || i + 1 >= value.Length)
+            if (escaped)
             {
-                builder.Append(value[i]);
+                builder.Append(character switch
+                {
+                    'n' => '\n',
+                    't' => '\t',
+                    '#' => '#',
+                    _ => character
+                });
+                escaped = false;
                 continue;
             }
 
-            var escaped = value[++i];
-            switch (escaped)
+            if (character == '\\')
             {
-                case 'n': builder.Append('\n'); break;
-                case 'r': builder.Append('\r'); break;
-                case 't': builder.Append('\t'); break;
-                case 'f': builder.Append('\f'); break;
-                case 'u' when i + 4 < value.Length
-                              && ushort.TryParse(value.AsSpan(i + 1, 4), NumberStyles.HexNumber,
-                                  CultureInfo.InvariantCulture, out var codePoint):
-                    builder.Append((char)codePoint);
-                    i += 4;
-                    break;
-                // 其余情况（含 \\ 、\: 、\= 、\# 、\! 与未知转义）一律取字面字符
-                default: builder.Append(escaped); break;
+                escaped = true;
+                continue;
             }
+
+            builder.Append(character);
         }
 
         return builder.ToString();

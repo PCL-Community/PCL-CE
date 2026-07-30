@@ -240,10 +240,17 @@ public static class ModLibrary
             if (!McJsonRuleCheck(library["rules"]))
                 continue;
 
-            // 获取根节点下的 url
-            var rootUrl = (string)library["url"];
-            if (rootUrl is not null)
-                rootUrl += McLibGet((string)library["name"], false, true, customMcFolder).Replace(@"\", "/");
+            var artifactPath = library["downloads"] is not null && library["downloads"]["artifact"] is not null
+                ? library["downloads"]["artifact"]["path"]
+                : null;
+
+            // 获取根节点下的 Maven 仓库地址。具体制品自带的 URL 始终优先。
+            var repositoryUrl = (string)library["url"];
+            string BuildRepositoryUrl(string relativePath)
+            {
+                if (repositoryUrl is null) return null;
+                return repositoryUrl.TrimEnd('/') + "/" + relativePath.Replace(@"\", "/").TrimStart('/');
+            }
 
             // 是否为纯本地项
             var hint = (string)library["hint"];
@@ -254,33 +261,43 @@ public static class ModLibrary
             {
                 string localPath;
                 if (isLocal && targetMcInstance is not null) // 纯本地项
-                    localPath = targetMcInstance.PathInstance + @"libraries\" +
-                                library["name"].ToString().AfterFirst(":").Replace(":", "-") + ".jar";
+                {
+                    var localFileName = artifactPath is null
+                        ? library["name"].ToString().AfterFirst(":").Replace(":", "-") + ".jar"
+                        : Path.GetFileName(artifactPath.ToString());
+                    localPath = Path.Combine(targetMcInstance.PathInstance, "libraries", localFileName);
+                }
                 else
                     localPath = McLibGet((string)library["name"], customMcFolder: customMcFolder);
-                var artifactPath = library["downloads"] is not null && library["downloads"]["artifact"] is not null
-                    ? library["downloads"]["artifact"]["path"]
-                    : null;
                 try
                 {
                     if (library["downloads"] is not null && library["downloads"]["artifact"] is not null)
                     {
+                        var artifact = library["downloads"]["artifact"];
                         var init = new McLibToken();
                         basicArray.Add((init.OriginalName = (string)library["name"],
-                            init.Url = (string)(rootUrl ?? library["downloads"]["artifact"]["url"]),
-                            init.LocalPath = artifactPath is null
+                            init.Url = (string)artifact["url"] ?? BuildRepositoryUrl(
+                                artifactPath?.ToString() ??
+                                McLibGet((string)library["name"], false, true, customMcFolder)),
+                            init.LocalPath = isLocal
+                                ? localPath
+                                : artifactPath is null
                                 ? McLibGet((string)library["name"], customMcFolder: customMcFolder)
                                 : McLibGetByArtifactPath(artifactPath.ToString(), customMcFolder),
-                            init.size = (long)Math.Round(
-                                ModBase.Val(library["downloads"]["artifact"]["size"].ToString())),
-                            init.IsNatives = false, init.Sha1 = library["downloads"]["artifact"]["sha1"]?.ToString(),
+                            init.size = artifact["size"] is null
+                                ? 0L
+                                : (long)Math.Round(ModBase.Val(artifact["size"].ToString())),
+                            init.IsNatives = false, init.Sha1 = artifact["sha1"]?.ToString(),
                             init.IsLocal = isLocal, init).init);
                     }
                     else
                     {
                         basicArray.Add(new McLibToken
                         {
-                            OriginalName = (string)library["name"], Url = rootUrl, LocalPath = localPath, size = 0L,
+                            OriginalName = (string)library["name"],
+                            Url = BuildRepositoryUrl(McLibGet(
+                                (string)library["name"], false, true, customMcFolder)),
+                            LocalPath = localPath, size = 0L,
                             IsNatives = false, Sha1 = null, IsLocal = isLocal
                         });
                     }
@@ -295,7 +312,10 @@ public static class ModLibrary
                     ModBase.Log(ex, "处理实际支持库列表失败（无 Natives，" + (library["name"] ?? "Nothing") + "）");
                     basicArray.Add(new McLibToken
                     {
-                        OriginalName = (string)library["name"], Url = rootUrl, LocalPath = localPath, size = 0L,
+                        OriginalName = (string)library["name"],
+                        Url = BuildRepositoryUrl(McLibGet(
+                            (string)library["name"], false, true, customMcFolder)),
+                        LocalPath = localPath, size = 0L,
                         IsNatives = false, Sha1 = null
                     });
                 }
@@ -306,6 +326,15 @@ public static class ModLibrary
                                  library["downloads"]["classifiers"]["natives-windows"] is not null
                     ? library["downloads"]["classifiers"]["natives-windows"]["path"]
                     : null;
+                var fallbackNativeRelativePath = McLibGet(
+                        (string)library["name"], false, true, customMcFolder)
+                    .Replace(".jar", "-" + library["natives"]["windows"] + ".jar")
+                    .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32");
+                var fallbackNativePath = Path.Combine(customMcFolder, "libraries", fallbackNativeRelativePath);
+                var localNativePath = isLocal && targetMcInstance is not null
+                    ? Path.Combine(targetMcInstance.PathInstance, "libraries",
+                        Path.GetFileName(nativePath?.ToString() ?? fallbackNativePath))
+                    : null;
                 try
                 {
                     if (library["downloads"] is not null && library["downloads"]["classifiers"] is not null &&
@@ -313,25 +342,27 @@ public static class ModLibrary
                         basicArray.Add(new McLibToken
                         {
                             OriginalName = (string)library["name"],
-                            Url = (string)(rootUrl ?? library["downloads"]["classifiers"]["natives-windows"]["url"]),
-                            LocalPath = nativePath is null
-                                ? McLibGet((string)library["name"], customMcFolder: customMcFolder)
-                                    .Replace(".jar", "-" + library["natives"]["windows"] + ".jar")
-                                    .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32")
-                                : McLibGetByArtifactPath(nativePath.ToString(), customMcFolder),
-                            size = (long)Math.Round(
-                                ModBase.Val(library["downloads"]["classifiers"]["natives-windows"]["size"].ToString())),
+                            Url = (string)library["downloads"]["classifiers"]["natives-windows"]["url"] ??
+                                  BuildRepositoryUrl(nativePath?.ToString() ?? fallbackNativeRelativePath) ??
+                                  (string)library["downloads"]?["artifact"]?["url"],
+                            LocalPath = localNativePath ?? (nativePath is null
+                                ? fallbackNativePath
+                                : McLibGetByArtifactPath(nativePath.ToString(), customMcFolder)),
+                            size = library["downloads"]["classifiers"]["natives-windows"]["size"] is null
+                                ? 0L
+                                : (long)Math.Round(ModBase.Val(
+                                    library["downloads"]["classifiers"]["natives-windows"]["size"].ToString())),
                             IsNatives = true,
-                            Sha1 = library["downloads"]["classifiers"]["natives-windows"]["sha1"].ToString(),
+                            Sha1 = library["downloads"]["classifiers"]["natives-windows"]["sha1"]?.ToString(),
                             IsLocal = isLocal
                         });
                     else
                         basicArray.Add(new McLibToken
                         {
-                            OriginalName = (string)library["name"], Url = rootUrl,
-                            LocalPath = McLibGet((string)library["name"], customMcFolder: customMcFolder)
-                                .Replace(".jar", "-" + library["natives"]["windows"] + ".jar")
-                                .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32"),
+                            OriginalName = (string)library["name"],
+                            Url = BuildRepositoryUrl(fallbackNativeRelativePath) ??
+                                  (string)library["downloads"]?["artifact"]?["url"],
+                            LocalPath = localNativePath ?? fallbackNativePath,
                             size = 0L, IsNatives = true, Sha1 = null, IsLocal = isLocal
                         });
                 }
@@ -345,10 +376,9 @@ public static class ModLibrary
                     ModBase.Log(ex, "处理实际支持库列表失败（有 Natives，" + (library["name"] ?? "Nothing") + "）");
                     basicArray.Add(new McLibToken
                     {
-                        OriginalName = (string)library["name"], Url = rootUrl,
-                        LocalPath = McLibGet((string)library["name"], customMcFolder: customMcFolder)
-                            .Replace(".jar", "-" + library["natives"]["windows"] + ".jar")
-                            .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32"),
+                        OriginalName = (string)library["name"],
+                        Url = BuildRepositoryUrl(fallbackNativeRelativePath),
+                        LocalPath = localNativePath ?? fallbackNativePath,
                         size = 0L, IsNatives = true, Sha1 = null, IsLocal = false
                     });
                 }
