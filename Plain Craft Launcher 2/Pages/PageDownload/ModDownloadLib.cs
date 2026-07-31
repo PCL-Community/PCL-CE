@@ -722,10 +722,11 @@ public static class ModDownloadLib
                 if (!ModJava.JavaDownloadConfirm(Lang.Text("Minecraft.Download.Error.JavaVersionRequired")))
                     throw new Exception(Lang.Text("Minecraft.Download.Error.JavaNotFoundInstallCanceled"));
                 // 开始自动下载
+                var downloadJavaMajor = javaVersion.Major >= 9 ? javaVersion.Major : 8;
                 var javaLoader = ModJava.GetJavaDownloadLoader();
                 try
                 {
-                    javaLoader.Start(21, true);
+                    javaLoader.Start(downloadJavaMajor, true);
                     while (javaLoader.State == ModBase.LoadState.Loading && !task.IsAborted)
                         Thread.Sleep(10);
                 }
