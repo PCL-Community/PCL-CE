@@ -731,7 +731,8 @@ public partial class PageInstanceInstall
         }
 
         // LabyMod
-        if (!McVersionComparer.CompareVersionGe(_vanillaName, "1.8.9"))
+        if (!McInstanceInfo.IsFormatFit(_vanillaName)
+            || !McVersionComparer.CompareVersionGe(_vanillaName, "1.8.9"))
         {
             CardLabyMod.Visibility = Visibility.Collapsed;
         }
