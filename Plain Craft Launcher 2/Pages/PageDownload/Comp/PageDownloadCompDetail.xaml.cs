@@ -227,7 +227,11 @@ public partial class PageDownloadCompDetail
             var targetPath = target.BeforeLast(@"\");
             var logoFileAddress = MyImage.GetTempPath(_compItem.Logo);
             loaders.Add(new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadWorldFile"),
-                new List<DownloadFile> { file.ToNetFile(target) }) { ProgressWeight = 10d, block = true });
+                    new List<DownloadFile>
+                    {
+                        file.ToNetFile(target, ModComp.DownloadReason.Standalone, file.RawGameVersions.FirstOrDefault())
+                    })
+                { ProgressWeight = 10d, block = true });
             loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Download.Comp.Detail.InstallWorld"),
                 _ => ModBase.ExtractFile(target, targetPath, Encoding.UTF8)) { ProgressWeight = 0.1d, block = true });
             loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Download.Comp.Detail.CleanCache"),
@@ -537,7 +541,12 @@ public partial class PageDownloadCompDetail
                     var loaders = new List<ModLoader.LoaderBase>
                     {
                         new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadFile"),
-                            new List<DownloadFile> { file.ToNetFile(target) })
+                            new List<DownloadFile>
+                            {
+                                file.Type == ModComp.CompType.Mod
+                                    ? file.ToNetFile(target)
+                                    : file.ToNetFile(target, ModComp.DownloadReason.Standalone, null)
+                            })
                         {
                             ProgressWeight = 6,
                             block = true

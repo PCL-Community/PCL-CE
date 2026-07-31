@@ -1253,7 +1253,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 }
 
                 // 添加到下载列表
-                fileList.Add(file.ToNetFile(tempAddress, ModComp.DownloadReason.Update));
+                fileList.Add(file.ToNetFile(tempAddress, ModComp.DownloadReason.Update,
+                    file.RawGameVersions.FirstOrDefault()));
                 fileCopyList[tempAddress] = realAddress;
                 updateEntryList.Add(Entry);
             }

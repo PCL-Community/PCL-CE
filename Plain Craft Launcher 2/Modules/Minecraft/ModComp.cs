@@ -3660,7 +3660,12 @@ public static class ModComp
         var loaders = new List<ModLoader.LoaderBase>
         {
             new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadFile"),
-                new List<DownloadFile> { file.ToNetFile(target) })
+                new List<DownloadFile>
+                {
+                    file.Type == CompType.Mod
+                        ? file.ToNetFile(target)
+                        : file.ToNetFile(target, DownloadReason.Standalone, null)
+                })
             {
                 ProgressWeight = 6,
                 block = true
