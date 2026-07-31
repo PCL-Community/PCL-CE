@@ -3896,17 +3896,29 @@ public static class ModDownloadLib
         // Fabric API
         if (request.fabricApi is not null)
             loaderList.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadFabricApi"),
-                    new List<DownloadFile> { request.fabricApi.ToNetFile(modsTempFolder, ModComp.DownloadReason.Dependency) })
+                    new List<DownloadFile>
+                    {
+                        request.fabricApi.ToNetFile(modsTempFolder, ModComp.DownloadReason.Dependency, null,
+                            ModComp.CompLoaderType.Fabric)
+                    })
                 { ProgressWeight = 3d, block = false });
         // LegacyFabric API
         if (request.legacyFabricApi is not null)
             loaderList.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadLegacyFabricApi"),
-                    new List<DownloadFile> { request.legacyFabricApi.ToNetFile(modsTempFolder, ModComp.DownloadReason.Dependency) })
+                    new List<DownloadFile>
+                    {
+                        request.legacyFabricApi.ToNetFile(modsTempFolder, ModComp.DownloadReason.Dependency, null,
+                            ModComp.CompLoaderType.Fabric)
+                    })
                 { ProgressWeight = 3d, block = false });
         // OptiFabric
         if (request.optiFabric is not null)
             loaderList.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Stage.DownloadOptiFabric"),
-                    new List<DownloadFile> { request.optiFabric.ToNetFile(modsTempFolder, ModComp.DownloadReason.Dependency) })
+                    new List<DownloadFile>
+                    {
+                        request.optiFabric.ToNetFile(modsTempFolder, ModComp.DownloadReason.Dependency, null,
+                            ModComp.CompLoaderType.Fabric)
+                    })
                 { ProgressWeight = 3d, block = false });
         // LabyMod
         if (request.labyModCommitRef is not null)
