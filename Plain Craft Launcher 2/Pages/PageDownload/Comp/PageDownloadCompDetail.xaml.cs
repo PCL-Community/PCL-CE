@@ -85,7 +85,8 @@ public partial class PageDownloadCompDetail
             var target =
                 $@"{ModFolder.mcFolderSelected}versions\{instanceName}\原始整合包.{(_project.FromCurseForge ? "zip" : "mrpack")}";
             var logoFileAddress = MyImage.GetTempPath(_compItem.Logo);
-            loaders.Add(new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadModpackFile"), new List<DownloadFile> { file.ToNetFile(target) })
+            loaders.Add(new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadModpackFile"),
+                    new List<DownloadFile> { file.ToNetFile(target, ModComp.DownloadReason.ModPack) })
                 { ProgressWeight = 10d, block = true });
             loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Download.Comp.Detail.PrepareModpackInstall"),
                 _ => ModModpack.ModpackInstall(target, instanceName,

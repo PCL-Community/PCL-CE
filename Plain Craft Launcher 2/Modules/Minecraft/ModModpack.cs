@@ -379,6 +379,7 @@ public static class ModModpack
         string forgeVersion = null;
         string neoForgeVersion = null;
         string fabricVersion = null;
+        var modLoader = ModComp.CompLoaderType.Any;
         foreach (var Entry in (dynamic)json["minecraft"]["modLoaders"] ?? Array.Empty<JsonNode>())
         {
             string id = (Entry["id"] ?? "").ToString().ToLower();
@@ -389,12 +390,14 @@ public static class ModModpack
                     throw new Exception(Lang.Text("Minecraft.Download.Modpack.TooOldUnsupported"));
                 ModBase.Log("[ModPack] 整合包 Forge 版本：" + id);
                 forgeVersion = id.Replace("forge-", "");
+                modLoader = ModComp.CompLoaderType.Forge;
             }
             else if (id.StartsWithF("neoforge-"))
             {
                 // NeoForge 指定
                 ModBase.Log("[ModPack] 整合包 NeoForge 版本：" + id);
                 neoForgeVersion = id.Replace("neoforge-", "");
+                modLoader = ModComp.CompLoaderType.NeoForge;
             }
             else if (id.StartsWithF("fabric-"))
             {
@@ -403,6 +406,7 @@ public static class ModModpack
                 {
                     ModBase.Log("[ModPack] 整合包 Fabric 版本：" + id);
                     fabricVersion = id.Replace("fabric-", "");
+                    modLoader = ModComp.CompLoaderType.Fabric;
                     break;
                 }
                 catch (Exception ex)
@@ -543,7 +547,8 @@ public static class ModModpack
                         continue;
                     // 实际的添加
                     fileList.Add(id,
-                        file.ToNetFile($@"{ModFolder.mcFolderSelected}versions\{instanceName}\{targetFolder}\"));
+                        file.ToNetFile($@"{ModFolder.mcFolderSelected}versions\{instanceName}\{targetFolder}\",
+                            ModComp.DownloadReason.ModPack, json["minecraft"]!["version"]!.ToString(), modLoader));
                     task.Progress += 1d / (1 + modList.Count);
                 }
 
@@ -676,6 +681,7 @@ public static class ModModpack
         string forgeVersion = null;
         string neoForgeVersion = null;
         string fabricVersion = null;
+        var modLoader = ModComp.CompLoaderType.Any;
         foreach (var Entry in json["dependencies"]?.AsObject() ?? new JsonObject())
             switch (Entry.Key.ToLower() ?? "")
             {
@@ -687,6 +693,7 @@ public static class ModModpack
                 case "forge": // eg. 14.23.5.2859 / 1.19-41.1.0
                 {
                     forgeVersion = Entry.Value?.ToObject<string>();
+                    modLoader = ModComp.CompLoaderType.Forge;
                     ModBase.Log("[ModPack] 整合包 Forge 版本：" + forgeVersion);
                     break;
                 }
@@ -694,12 +701,14 @@ public static class ModModpack
                 case "neo-forge": // eg. 20.6.98-beta
                 {
                     neoForgeVersion = Entry.Value?.ToObject<string>();
+                    modLoader = ModComp.CompLoaderType.NeoForge;
                     ModBase.Log("[ModPack] 整合包 NeoForge 版本：" + neoForgeVersion);
                     break;
                 }
                 case "fabric-loader": // eg. 0.14.14
                 {
                     fabricVersion = Entry.Value?.ToObject<string>();
+                    modLoader = ModComp.CompLoaderType.Fabric;
                     ModBase.Log("[ModPack] 整合包 Fabric 版本：" + fabricVersion);
                     break;
                 }
@@ -788,7 +797,9 @@ public static class ModModpack
                 throw new ModBase.CancelledException();
             }
 
-            fileList.Add(new DownloadFile(urls, targetPath,
+            fileList.Add(new DownloadFile(
+                ModComp.CompFile.HandleModrinthDownloadUrls(urls, ModComp.DownloadReason.ModPack, minecraftVersion,
+                    modLoader), targetPath,
                 new ModBase.FileChecker(actualSize: ((JsonNode)File["fileSize"]).ToObject<long>(),
                     hash: File["hashes"]["sha1"].ToString()), true));
         }
