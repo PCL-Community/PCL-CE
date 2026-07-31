@@ -3136,7 +3136,7 @@ public static class ModComp
         /// <returns>下载信息。</returns>
         public DownloadFile ToNetFile(string localAddress, DownloadReason reason = DownloadReason.Standalone)
         {
-            return ToNetFile(localAddress, reason, RawGameVersions[0], ModLoaders[0]);
+            return ToNetFile(localAddress, reason, RawGameVersions.FirstOrDefault(), ModLoaders.FirstOrDefault());
         }
         
         /// <summary>
@@ -3153,6 +3153,11 @@ public static class ModComp
             string? version,
             CompLoaderType modLoader = CompLoaderType.Any)
         {
+            if (DownloadUrls is null)
+            {
+                throw new InvalidCastException("DownloadUrls 为空");
+            }
+            
             return new DownloadFile(HandleModrinthDownloadUrls(DownloadUrls, reason, version, modLoader),
                 localAddress + (localAddress.EndsWithF(@"\") ? CompFileNameSanitize(FileName) : ""),
                 new ModBase.FileChecker(hash: Hash), true);
