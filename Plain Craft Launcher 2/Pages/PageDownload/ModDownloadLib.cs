@@ -709,14 +709,14 @@ public static class ModDownloadLib
         }
     }
 
-    private static void McDownloadOptiFineInstall(string baseMcFolderHome, string target, ModLoader.LoaderTask<List<DownloadFile>, bool> task, bool useJavaWrapper)
+    private static void McDownloadOptiFineInstall(string baseMcFolderHome, string target, ModLoader.LoaderTask<List<DownloadFile>, bool> task, bool useJavaWrapper, Version javaVersion)
     {
         // 选择 Java
         JavaEntry java;
         lock (ModJava.javaLock)
         {
             java = ModJava.JavaSelect(Lang.Text("Minecraft.Download.Error.InstallationCanceled"),
-                new Version(1, 8, 0, 0));
+                javaVersion);
             if (java is null)
             {
                 if (!ModJava.JavaDownloadConfirm(Lang.Text("Minecraft.Download.Error.JavaVersionRequired")))
@@ -736,7 +736,7 @@ public static class ModDownloadLib
 
                 // 检查下载结果
                 java = ModJava.JavaSelect(Lang.Text("Minecraft.Download.Error.InstallationCanceled"),
-                    new Version(1, 8, 0, 0));
+                        javaVersion);
                 if (task.IsAborted)
                     return;
                 if (java is null)
@@ -887,6 +887,9 @@ public static class ModDownloadLib
             ? $"{ModMain.RequestTaskTempFolder()}OptiFine.jar"
             : $@"{mcFolder}libraries\optifine\OptiFine\{downloadInfo.NameFile.Replace("OptiFine_", "").Replace(".jar", "").Replace("preview_", "")}\{downloadInfo.NameFile.Replace("OptiFine_", "OptiFine-").Replace("preview_", "")}";
         var loaders = new List<ModLoader.LoaderBase>();
+        var javaVersion = McVersionComparer.CompareVersionGe(downloadInfo.Inherit, "26.1.2")
+            ? new Version(21, 0, 0, 0)
+            : new Version(1, 8, 0, 0);
 
         // 获取下载地址
         loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
@@ -1015,7 +1018,7 @@ public static class ModDownloadLib
 
                     try
                     {
-                        McDownloadOptiFineInstall(baseMcFolderHome, target, task, useJavaWrapper);
+                        McDownloadOptiFineInstall(baseMcFolderHome, target, task, useJavaWrapper, javaVersion);
                     }
                     catch (Exception ex)
                     {
