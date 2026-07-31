@@ -725,7 +725,7 @@ public static class ModDownloadLib
                 var javaLoader = ModJava.GetJavaDownloadLoader();
                 try
                 {
-                    javaLoader.Start(17, true);
+                    javaLoader.Start(21, true);
                     while (javaLoader.State == ModBase.LoadState.Loading && !task.IsAborted)
                         Thread.Sleep(10);
                 }
