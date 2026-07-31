@@ -314,6 +314,8 @@ public partial class PageDownloadCompDetail
                         // 加载器判定
                         if (!allowedLoaders.Any()) return true; // 无要求
                         if (allowedLoaders.Contains(ModComp.CompLoaderType.Forge) && version.Info.HasForge) return true;
+                        if (allowedLoaders.Contains(ModComp.CompLoaderType.Forge) && version.Info.HasCleanroom) 
+                            return true;
                         if (allowedLoaders.Contains(ModComp.CompLoaderType.Fabric) &&
                             (version.Info.HasFabric || version.Info.HasLegacyFabric)) return true;
                         if (allowedLoaders.Contains(ModComp.CompLoaderType.NeoForge) && version.Info.HasNeoForge)
@@ -427,7 +429,7 @@ public partial class PageDownloadCompDetail
                             var targetLoaders = new List<ModComp.CompLoaderType>();
                             if (targetInstance is not null)
                             {
-                                if (targetInstance.Info.HasForge)
+                                if (targetInstance.Info.HasForge || targetInstance.Info.HasCleanroom)
                                     targetLoaders.Add(ModComp.CompLoaderType.Forge);
                                 if (targetInstance.Info.HasFabric || targetInstance.Info.HasLegacyFabric)
                                     targetLoaders.Add(ModComp.CompLoaderType.Fabric);
