@@ -293,6 +293,75 @@ public class ModpackIdentifierTest
     }
 
     /// <summary>
+    /// HMCL 的 MultiMC 导出器可能重复写入 net.minecraft；Prism Launcher 会保留第一项。
+    /// </summary>
+    [TestMethod]
+    public async Task AcceptsHmclMultiMcExportWithDuplicateMinecraftComponent()
+    {
+        var path = _CreateArchive(new Dictionary<string, string>
+        {
+            ["mmc-pack.json"] = """
+                {
+                  "formatVersion": 1,
+                  "components": [
+                    {
+                      "important": true,
+                      "dependencyOnly": false,
+                      "uid": "net.minecraft",
+                      "version": "1.21.1"
+                    },
+                    {
+                      "important": false,
+                      "dependencyOnly": false,
+                      "uid": "net.minecraft",
+                      "version": "1.21.1"
+                    },
+                    {
+                      "important": false,
+                      "dependencyOnly": false,
+                      "uid": "net.neoforged",
+                      "version": "21.1.238"
+                    }
+                  ]
+                }
+                """,
+            ["instance.cfg"] = "name=HMCL Export"
+        });
+
+        var descriptor = await ModpackIdentifier.Shared.ReadAsync(path);
+
+        Assert.AreEqual("1.21.1", descriptor.Components.GameVersion);
+        Assert.AreEqual("21.1.238", descriptor.Components.GetLoaderVersion(ModLoaderKind.NeoForge));
+        Assert.IsTrue(descriptor.Warnings.Any(warning =>
+            warning.Contains("net.minecraft") && warning.Contains("忽略后续条目")));
+    }
+
+    /// <summary>
+    /// 重复 UID 即便声明了不同版本，也必须与 Prism Launcher 一样以第一项为准。
+    /// </summary>
+    [TestMethod]
+    public async Task KeepsFirstMultiMcComponentWhenUidIsDuplicated()
+    {
+        var path = _CreateArchive(new Dictionary<string, string>
+        {
+            ["mmc-pack.json"] = """
+                {
+                  "formatVersion": 1,
+                  "components": [
+                    { "uid": "net.minecraft", "version": "1.20.1", "important": true },
+                    { "uid": "net.minecraft", "version": "1.21.1" }
+                  ]
+                }
+                """,
+            ["instance.cfg"] = "name=Duplicate Component"
+        });
+
+        var descriptor = await ModpackIdentifier.Shared.ReadAsync(path);
+
+        Assert.AreEqual("1.20.1", descriptor.Components.GameVersion);
+    }
+
+    /// <summary>
     /// Override 开关为 false 时，实例级取值不应生效。
     /// </summary>
     [TestMethod]

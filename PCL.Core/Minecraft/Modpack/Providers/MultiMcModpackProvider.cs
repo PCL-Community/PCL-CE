@@ -45,7 +45,7 @@ public sealed class MultiMcModpackProvider : IModpackProvider
         var packPath = _At(root, PackFileName);
         var warnings = new List<string>();
         var config = MultiMcInstanceConfig.Parse(archive.ReadAllText(configPath));
-        var pack = _ReadPack(archive, packPath);
+        var pack = _ReadPack(archive, packPath, warnings);
         var localPatches = _ReadLocalPatches(archive, root);
 
         var sourceComponents = pack?.Components ?? localPatches.Values
@@ -110,7 +110,7 @@ public sealed class MultiMcModpackProvider : IModpackProvider
         };
     }
 
-    private MultiMcPack? _ReadPack(ModpackArchive archive, string packPath)
+    private MultiMcPack? _ReadPack(ModpackArchive archive, string packPath, List<string> warnings)
     {
         if (!archive.HasEntry(packPath)) return null;
 
@@ -133,6 +133,8 @@ public sealed class MultiMcModpackProvider : IModpackProvider
             throw new ModpackManifestInvalidException(Format, packPath, "缺少 components 数组");
 
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var reportedDuplicates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var uniqueComponents = new List<MultiMcComponent>(pack.Components.Count);
         foreach (var component in pack.Components)
         {
             if (string.IsNullOrWhiteSpace(component.Uid))
@@ -140,9 +142,18 @@ public sealed class MultiMcModpackProvider : IModpackProvider
 
             component.Uid = component.Uid.Trim();
             if (!seen.Add(component.Uid))
-                throw new ModpackManifestInvalidException(
-                    Format, packPath, $"组件 uid 重复：{component.Uid}");
+            {
+                // Prism Launcher keeps the first declaration and ignores later entries with the same UID.
+                // HMCL can emit net.minecraft twice when exporting a MultiMC pack.
+                if (reportedDuplicates.Add(component.Uid))
+                    warnings.Add($"mmc-pack.json 中的组件「{component.Uid}」重复，已按 Prism Launcher 行为忽略后续条目");
+                continue;
+            }
+
+            uniqueComponents.Add(component);
         }
+
+        pack.Components = uniqueComponents;
 
         return pack;
     }
