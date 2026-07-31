@@ -3183,11 +3183,15 @@ public static class ModComp
         {
             foreach (var url in urls)
             {
-                if (!url.Contains("modrinth", StringComparison.InvariantCultureIgnoreCase)) yield return url;
+                if (!url.Contains("modrinth", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    yield return url;
+                    continue;
+                }
 
                 var sb = new StringBuilder(url);
             
-                sb.Append("?mr_download_reason=");
+                sb.Append(url.Contains('?') ? "&mr_download_reason=" : "?mr_download_reason=");
                 sb.Append(reason.ToString().ToLowerInvariant());
 
                 if (version is not null)
