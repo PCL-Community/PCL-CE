@@ -582,8 +582,7 @@ public partial class PageInstanceInstall
         }
 
         // NeoForge
-        if (!McInstanceInfo.IsFormatFit(_vanillaName)
-            || !McVersionComparer.CompareVersionGe(_vanillaName, "1.20.1"))
+        if (!McVersionComparer.CompareVersionGe(_vanillaName, "1.20.1"))
         {
             CardNeoForge.Visibility = Visibility.Collapsed;
         }
