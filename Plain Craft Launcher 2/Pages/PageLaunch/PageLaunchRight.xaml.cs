@@ -283,7 +283,7 @@ public partial class PageLaunchRight : IRefreshable
         string[]? lines = null;
 
         // 外部文件
-        var externalPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\PCL\\hints.txt";
+        var externalPath = Path.Combine(ModBase.exePath, "PCL", "hints.txt");
         if (File.Exists(externalPath))
         {
             try
