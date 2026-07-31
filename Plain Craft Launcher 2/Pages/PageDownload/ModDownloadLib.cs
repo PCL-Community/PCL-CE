@@ -716,7 +716,7 @@ public static class ModDownloadLib
         lock (ModJava.javaLock)
         {
             java = ModJava.JavaSelect(Lang.Text("Minecraft.Download.Error.InstallationCanceled"),
-                javaVersion);
+                javaVersion, enforceVersionRange: true);
             if (java is null)
             {
                 if (!ModJava.JavaDownloadConfirm(Lang.Text("Minecraft.Download.Error.JavaVersionRequired")))
@@ -736,7 +736,7 @@ public static class ModDownloadLib
 
                 // 检查下载结果
                 java = ModJava.JavaSelect(Lang.Text("Minecraft.Download.Error.InstallationCanceled"),
-                        javaVersion);
+                        javaVersion, enforceVersionRange: true);
                 if (task.IsAborted)
                     return;
                 if (java is null)
