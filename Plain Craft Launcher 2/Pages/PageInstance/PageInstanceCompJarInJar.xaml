@@ -35,6 +35,16 @@
                     </StackPanel>
                 </local:MyCard>
 
+                <!-- 冲突关系板块 -->
+                <local:MyCard x:Name="CardConflicts" Margin="0,0,0,15">
+                    <StackPanel Margin="15,10,15,12">
+                        <TextBlock Text="{DynamicResource Instance.Resource.Mod.JarInJar.Section.Conflicts}"
+                                   ToolTip="{DynamicResource Instance.Resource.Mod.JarInJar.Conflict.Tooltip}"
+                                   FontSize="16" FontWeight="Bold" Foreground="{DynamicResource ColorBrush3}" />
+                        <StackPanel x:Name="PanConflictList" Margin="0,8,0,0" />
+                    </StackPanel>
+                </local:MyCard>
+
                 <!-- 模组关系板块 -->
                 <StackPanel x:Name="SectionRelations">
                     <TextBlock Text="{DynamicResource Instance.Resource.Mod.JarInJar.Section.Relations}"

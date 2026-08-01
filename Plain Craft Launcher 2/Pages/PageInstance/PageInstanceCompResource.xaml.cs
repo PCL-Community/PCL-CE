@@ -1916,6 +1916,7 @@ public partial class PageInstanceCompResource : IRefreshable
         var list = modList.ToList();
         if (!isEnable)
         {
+            if (!_ConfirmCascadeReady()) return;
             var affected = _JijFindAffected(list);
             if (affected.Count > 0)
             {
@@ -1931,8 +1932,9 @@ public partial class PageInstanceCompResource : IRefreshable
     /// <summary>删除 Mod。会检测依赖它的其它 Mod 并弹窗提示：仅删此项 / 连带禁用依赖者 / 连带删除依赖者。</summary>
     public void DeleteMods(IEnumerable<ModLocalComp.LocalCompFile> modList)
     {
-        // 在弹出级联模态框之前捕获 Shift（永久删除意图），否则选完档位时 Shift 多半已松开
+        // 在弹出任何模态框之前捕获 Shift（永久删除意图），否则选完档位时 Shift 多半已松开
         var isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+        if (!_ConfirmCascadeReady()) return;
         var list = modList.ToList();
         var affected = _JijFindAffected(list);
         if (affected.Count > 0)
@@ -1951,6 +1953,16 @@ public partial class PageInstanceCompResource : IRefreshable
         }
 
         DeleteModsCore(list, isShiftPressed);
+    }
+
+    // 后台内嵌（Jar-in-Jar）解析未完成时，级联反查可能遗漏内嵌依赖，禁用/删除前提示确认
+    private bool _ConfirmCascadeReady()
+    {
+        if (currentCompType != ModComp.CompType.Mod || ModLocalComp.CompJijResolved) return true;
+        return ModMain.MyMsgBox(
+            Lang.Text("Instance.Resource.Mod.JarInJar.ParsePending.Message"),
+            Lang.Text("Instance.Resource.Mod.JarInJar.ParsePending.Title"),
+            Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 1;
     }
 
     // 反查受影响的依赖者（仅 Mod 类型）；非 Mod 或无内嵌依赖返回空

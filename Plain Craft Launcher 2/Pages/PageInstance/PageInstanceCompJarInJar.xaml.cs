@@ -52,6 +52,15 @@ public partial class PageInstanceCompJarInJar
     private static void GoBack()
         => ModMain.frmInstanceLeft?.PageChange(FormMain.PageSubType.VersionMod);
 
+    /// <summary>
+    ///     后台内嵌解析（Phase 2）完成后由加载流程回调：仅当本页仍在显示时重建关系，
+    ///     补上此前 pending 期间打开所看到的空内嵌数据。非当前页则忽略（避免误触发 GoBack）。
+    /// </summary>
+    public void OnJijResolved()
+    {
+        if (IsVisible) RefreshList();
+    }
+
     #region 列表构建
 
     private void RefreshList()
@@ -80,6 +89,17 @@ public partial class PageInstanceCompJarInJar
 
         var hasWarning = PanWarnList.Children.Count > 0;
         CardWarnings.Visibility = hasWarning ? Visibility.Visible : Visibility.Collapsed;
+
+        PanConflictList.Children.Clear();
+        var conflictCount = 0;
+        foreach (var (a, b, hard) in _index.FindActiveConflicts())
+        {
+            if (!_Match(a) && !_Match(b)) continue; // 搜索过滤：任一方命中即显示
+            PanConflictList.Children.Add(_MakeConflictRow(a, b, hard));
+            conflictCount++;
+        }
+
+        CardConflicts.Visibility = conflictCount > 0 ? Visibility.Visible : Visibility.Collapsed;
 
         PanRelationList.Children.Clear();
         var relationCount = 0;
@@ -115,9 +135,10 @@ public partial class PageInstanceCompJarInJar
         SectionBundled.Visibility = bundledMods.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
         // 搜索无结果时不显示"没有模组"空态（避免误导为实例本身没有），仅留空白
-        PanEmpty.Visibility = hasWarning || relationCount > 0 || bundledMods.Count > 0 || _search.Length > 0
-            ? Visibility.Collapsed
-            : Visibility.Visible;
+        PanEmpty.Visibility =
+            hasWarning || conflictCount > 0 || relationCount > 0 || bundledMods.Count > 0 || _search.Length > 0
+                ? Visibility.Collapsed
+                : Visibility.Visible;
     }
 
     private MyCard _MakeCard(CompFile mod, Action<StackPanel, CompFile> build)
@@ -145,7 +166,9 @@ public partial class PageInstanceCompJarInJar
         var missing = probed.Where(x => x.status == JijDepStatus.Missing).Select(x => x.d.DepId).ToList();
         var mismatch = probed.Where(x => x.status == JijDepStatus.VersionMismatch)
             .Select(x => x.d.Raw is null ? x.d.DepId : x.d.DepId + " " + x.d.Raw).ToList();
-        if (missing.Count == 0 && mismatch.Count == 0) return;
+        // 版本匹配的 provider 全部被禁用：运行时同样不可用，需提示（用户重新启用即可修复）
+        var disabled = probed.Where(x => x.status == JijDepStatus.Disabled).Select(x => x.d.DepId).ToList();
+        if (missing.Count == 0 && mismatch.Count == 0 && disabled.Count == 0) return;
         var name = parent is null
             ? _DisplayName(mod)
             : _DisplayName(mod) + " " +
@@ -158,6 +181,25 @@ public partial class PageInstanceCompJarInJar
             PanWarnList.Children.Add(_Text(
                 Lang.Text("Instance.Resource.Mod.JarInJar.Warning.VersionMismatch", name, string.Join(", ", mismatch)),
                 _BrushWarn));
+        if (disabled.Count > 0)
+            PanWarnList.Children.Add(_Text(
+                Lang.Text("Instance.Resource.Mod.JarInJar.Warning.Disabled", name, string.Join(", ", disabled)),
+                _BrushWarn));
+    }
+
+    // 一条冲突：彩色级别标签（不兼容=红 / 不建议共存=橙）+「A 与 B」
+    private Panel _MakeConflictRow(CompFile a, CompFile b, bool hard)
+    {
+        var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 2) };
+        row.Children.Add(_Text(
+            Lang.Text(hard
+                ? "Instance.Resource.Mod.JarInJar.Conflict.Incompatible"
+                : "Instance.Resource.Mod.JarInJar.Conflict.Discouraged"),
+            hard ? _BrushError : _BrushWarn));
+        row.Children.Add(_TextRes(
+            "  " + Lang.Text("Instance.Resource.Mod.JarInJar.Conflict.Pair", _DisplayName(a), _DisplayName(b)),
+            "ColorBrush1"));
+        return row;
     }
 
     private MyCard _MakeRelationCard(CompFile mod, CompFile parent, List<ModJarInJarIndex.DepRow> deps)

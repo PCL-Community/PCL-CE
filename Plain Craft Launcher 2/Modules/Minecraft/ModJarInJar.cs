@@ -25,7 +25,8 @@ public static class ModJarInJar
     ///     带持久化缓存的解析：按文件指纹命中缓存则直接重建，否则解析并写入缓存（批量结束后需调用
     ///     <see cref="ModJarInJarCache.Flush" /> 落盘）。
     /// </summary>
-    public static List<ModLocalComp.LocalCompFile> ResolveCached(string modFilePath, ZipArchive jar)
+    public static List<ModLocalComp.LocalCompFile> ResolveCached(string modFilePath, ZipArchive jar,
+        ModLocalComp.LocalCompFile self = null, bool deferOnMiss = false)
     {
         long lastModified, size;
         try
@@ -36,17 +37,21 @@ public static class ModJarInJar
         }
         catch
         {
-            return Resolve(modFilePath, jar);
+            return deferOnMiss ? null : Resolve(modFilePath, jar);
         }
 
         var cached = ModJarInJarCache.TryGet(modFilePath, lastModified, size);
         if (cached is not null) return _FromNodes(cached, modFilePath);
+        // 缓存未命中且要求延后：返回 null 交由列表加载完成后的后台线程补解析，
+        // 不在首屏同步解压嵌套 jar（冷缓存下几百个 mod 的递归解压会拖慢列表出现）
+        if (deferOnMiss) return null;
 
         var budget = new[] { MaxNodes, 0 };
         var tree = _Resolve(modFilePath, jar, 0, budget);
         // 截断树（预算耗尽，budget[1]==1）不入盘：宿主指纹不变会被永久复用，缺失的 id 永不再现；下次启动重扫
+        // self?.BuildJijSelfNode() 直接读字段，不经属性 getter——否则会在 Load() 内重入 Load() 无限递归卡死
         if (budget[1] == 0)
-            ModJarInJarCache.Set(modFilePath, lastModified, size, _ToNodes(tree));
+            ModJarInJarCache.Set(modFilePath, lastModified, size, _ToNodes(tree), self?.BuildJijSelfNode());
         return tree;
     }
 
@@ -61,6 +66,9 @@ public static class ModJarInJar
             TargetMcVersion = m.JijTargetMcVersion,
             Dependencies = new Dictionary<string, string>(m.DependencyRaw),
             OptionalDeps = m.OptionalDependencies.ToList(),
+            Conflicts = m.Conflicts.Select(kv => new EmbeddedConflict
+                { Target = kv.Key, Raw = kv.Value.Raw, Hard = kv.Value.Hard }).ToList(),
+            ProvidedIds = m.ProvidedIds.ToList(),
             Children = _ToNodes(m.EmbeddedMods)
         }).ToList();
 
@@ -76,6 +84,7 @@ public static class ModJarInJar
             child.JijLoader = node.Loader;
             child.JijTargetMcVersion = node.TargetMcVersion;
             child.SetJijDependencies(node.Dependencies, node.OptionalDeps);
+            child.SetJijConflicts(node.Conflicts, node.ProvidedIds);
             child.EmbeddedMods = _FromNodes(node.Children, childPath);
             result.Add(child);
         }
@@ -207,9 +216,18 @@ public static class ModJarInJar
         {
             var entry = jar.GetEntry("META-INF/MANIFEST.MF");
             if (entry is null) return;
+            // JAR manifest 按 72 字节折行，续行以单个空格开头且无分隔符续接上一行；
+            // 需先展开再解析，否则 Connector 等长内嵌路径会在续行处被截断而找不到条目
+            var sb = new System.Text.StringBuilder();
             foreach (var raw in ModBase.ReadFile(entry.Open()).Split('\n'))
             {
                 var line = raw.TrimEnd('\r');
+                if (line.StartsWith(" ")) sb.Append(line, 1, line.Length - 1);
+                else sb.Append('\n').Append(line);
+            }
+
+            foreach (var line in sb.ToString().Split('\n'))
+            {
                 if (!line.StartsWith("Embedded-Dependencies-Mod:", StringComparison.OrdinalIgnoreCase)) continue;
                 var value = line.Substring("Embedded-Dependencies-Mod:".Length).Trim();
                 if (!string.IsNullOrEmpty(value)) paths.Add(value);

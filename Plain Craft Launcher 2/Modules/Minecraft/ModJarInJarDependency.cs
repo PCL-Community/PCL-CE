@@ -73,6 +73,10 @@ public class ModJarInJarIndex
                 _AddProvider(pid, m, m.Version);
             foreach (var n in nodes.Where(n => !string.IsNullOrEmpty(n.ModId)))
                 _AddProvider(n.ModId, m, n.Version);
+            // 内嵌节点自身的别名(multi-mod 兄弟/provides)也由宿主提供
+            foreach (var n in nodes)
+            foreach (var pid in n.ProvidedIds)
+                _AddProvider(pid, m, n.Version);
 
             var rows = new List<DepRow>();
             foreach (var kv in m.DependencyRaw)
@@ -128,9 +132,14 @@ public class ModJarInJarIndex
     // 本 Mod 自己内嵌的副本是否满足该依赖的版本要求（内嵌了但版本不够时不算满足）
     private bool _SelfBundleSatisfies(CompFile mod, DepRow dep)
     {
-        return _selfBundled.TryGetValue(mod, out var self) &&
-               self.Any(x => string.Equals(_Norm(x.Id), _Norm(dep.DepId), StringComparison.OrdinalIgnoreCase) &&
-                             _VersionSatisfies(dep, x.Version));
+        if (_selfBundled.TryGetValue(mod, out var self) &&
+            self.Any(x => string.Equals(_Norm(x.Id), _Norm(dep.DepId), StringComparison.OrdinalIgnoreCase) &&
+                          _VersionSatisfies(dep, x.Version)))
+            return true;
+        // 同 jar 别名(multi-mod 兄弟/provides)由本文件提供，版本即宿主自身版本——否则 provider 过滤会把自己排除而误报缺失
+        return mod.ProvidedIds.Any(a =>
+                   string.Equals(_Norm(a), _Norm(dep.DepId), StringComparison.OrdinalIgnoreCase)) &&
+               _VersionSatisfies(dep, mod.Version);
     }
 
     public static bool IsPlatform(string id) => ModDependencyIds.IsPlatform(id);
@@ -147,6 +156,53 @@ public class ModJarInJarIndex
         // 有提供者却无一满足版本：装了但版本不对，区别于根本没装
         if (others.Count > 0) return JijDepStatus.VersionMismatch;
         return JijDepStatus.Missing;
+    }
+
+    /// <summary>
+    ///     实际生效的冲突关系：声明方与对方均启用(Fine)、且对方版本落在冲突范围内（range 空=任意版本）。
+    ///     无序对去重，同一对同时被硬/软声明时取硬。仅检测顶层 Mod 声明（不含内嵌节点）。
+    /// </summary>
+    public List<(CompFile A, CompFile B, bool Hard)> FindActiveConflicts()
+    {
+        var order = new Dictionary<CompFile, int>();
+        for (var i = 0; i < _allMods.Count; i++) order[_allMods[i]] = i;
+        var pairs = new Dictionary<(CompFile, CompFile), bool>();
+        foreach (var m in _allMods)
+        {
+            if (m.State != CompFile.LocalFileStatus.Fine) continue;
+            // 宿主自身冲突 + 各可加载内嵌节点冲突，声明方都归宿主(启用单位)，各按自己的 loader 方言判版本
+            _CollectConflicts(m, m.Conflicts, m.DetectedLoader, order, pairs);
+            foreach (var n in _loadableNodes[m])
+                _CollectConflicts(m, n.Conflicts, n.JijLoader, order, pairs);
+        }
+
+        return pairs.Select(kv => (kv.Key.Item1, kv.Key.Item2, kv.Value)).ToList();
+    }
+
+    private void _CollectConflicts(CompFile declarer,
+        IReadOnlyDictionary<string, (string Raw, bool Hard)> conflicts, string loader,
+        Dictionary<CompFile, int> order, Dictionary<(CompFile, CompFile), bool> pairs)
+    {
+        foreach (var kv in conflicts)
+        {
+            if (!_providers.TryGetValue(_Norm(kv.Key), out var provs)) continue;
+            var (range, hard) = kv.Value;
+            foreach (var p in provs)
+            {
+                if (p.Mod == declarer || p.Mod.State != CompFile.LocalFileStatus.Fine) continue;
+                // 对方版本满足 range 才算撞上（按声明方 loader 方言）；range 空=任意版本都冲突
+                if (range != null)
+                {
+                    var ver = McConstraintMatcher.StripV(p.Version?.Trim() ?? "");
+                    // 对方版本不可解析（未替换占位符 ${version}、纯字母开头）时无法确认是否落入冲突范围，
+                    // fail-closed 不误报——否则占位符会被版本比较器当作小于任意数字版本而假撞 "<x" 范围
+                    if (ver.Length == 0 || !char.IsDigit(ver[0])) continue;
+                    if (!McConstraintMatcher.Satisfies(range, loader, ver)) continue;
+                }
+                var key = order[declarer] < order[p.Mod] ? (declarer, p.Mod) : (p.Mod, declarer);
+                pairs[key] = pairs.TryGetValue(key, out var h) ? h || hard : hard;
+            }
+        }
     }
 
     /// <summary>
