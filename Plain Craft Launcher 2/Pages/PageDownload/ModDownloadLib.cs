@@ -613,7 +613,7 @@ public static class ModDownloadLib
         {
             var id = downloadInfo.NameVersion;
             var versionFolder = Path.Combine(ModFolder.mcFolderSelected, "versions", id);
-            var isNewVersion = ModBase.Val(downloadInfo.Inherit.Split(".")[1]) >= 14d;
+            var isNewVersion = McVersionComparer.CompareVersionGe(downloadInfo.Inherit, "1.14");
             var target = isNewVersion
                 ? Path.Combine(ModBase.pathTemp, "Cache", "Code", downloadInfo.NameVersion + "_" + ModBase.GetUuid())
                 : Path.Combine(ModFolder.mcFolderSelected, "libraries", "optifine", "OptiFine",
@@ -709,23 +709,24 @@ public static class ModDownloadLib
         }
     }
 
-    private static void McDownloadOptiFineInstall(string baseMcFolderHome, string target, ModLoader.LoaderTask<List<DownloadFile>, bool> task, bool useJavaWrapper)
+    private static void McDownloadOptiFineInstall(string baseMcFolderHome, string target, ModLoader.LoaderTask<List<DownloadFile>, bool> task, bool useJavaWrapper, Version javaVersion)
     {
         // 选择 Java
         JavaEntry java;
         lock (ModJava.javaLock)
         {
             java = ModJava.JavaSelect(Lang.Text("Minecraft.Download.Error.InstallationCanceled"),
-                new Version(1, 8, 0, 0));
+                javaVersion, enforceVersionRange: true);
             if (java is null)
             {
                 if (!ModJava.JavaDownloadConfirm(Lang.Text("Minecraft.Download.Error.JavaVersionRequired")))
                     throw new Exception(Lang.Text("Minecraft.Download.Error.JavaNotFoundInstallCanceled"));
                 // 开始自动下载
+                var downloadJavaMajor = javaVersion.Major >= 9 ? javaVersion.Major : 8;
                 var javaLoader = ModJava.GetJavaDownloadLoader();
                 try
                 {
-                    javaLoader.Start(17, true);
+                    javaLoader.Start(downloadJavaMajor, true);
                     while (javaLoader.State == ModBase.LoadState.Loading && !task.IsAborted)
                         Thread.Sleep(10);
                 }
@@ -736,7 +737,7 @@ public static class ModDownloadLib
 
                 // 检查下载结果
                 java = ModJava.JavaSelect(Lang.Text("Minecraft.Download.Error.InstallationCanceled"),
-                    new Version(1, 8, 0, 0));
+                        javaVersion, enforceVersionRange: true);
                 if (task.IsAborted)
                     return;
                 if (java is null)
@@ -882,11 +883,14 @@ public static class ModDownloadLib
         var isCustomFolder = (mcFolder ?? "") != (ModFolder.mcFolderSelected ?? "");
         var id = downloadInfo.NameVersion;
         var versionFolder = Path.Combine(mcFolder, "versions", id);
-        var isNewVersion = downloadInfo.Inherit.Contains("w") || ModBase.Val(downloadInfo.Inherit.Split(".")[1]) >= 14d;
+        var isNewVersion = downloadInfo.Inherit.Contains("w") || McVersionComparer.CompareVersionGe(downloadInfo.Inherit, "1.14");
         var target = isNewVersion
             ? $"{ModMain.RequestTaskTempFolder()}OptiFine.jar"
             : $@"{mcFolder}libraries\optifine\OptiFine\{downloadInfo.NameFile.Replace("OptiFine_", "").Replace(".jar", "").Replace("preview_", "")}\{downloadInfo.NameFile.Replace("OptiFine_", "OptiFine-").Replace("preview_", "")}";
         var loaders = new List<ModLoader.LoaderBase>();
+        var javaVersion = McVersionComparer.CompareVersionGe(downloadInfo.Inherit, "26.1.2")
+            ? new Version(21, 0, 0, 0)
+            : new Version(1, 8, 0, 0);
 
         // 获取下载地址
         loaders.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>(
@@ -1015,7 +1019,7 @@ public static class ModDownloadLib
 
                     try
                     {
-                        McDownloadOptiFineInstall(baseMcFolderHome, target, task, useJavaWrapper);
+                        McDownloadOptiFineInstall(baseMcFolderHome, target, task, useJavaWrapper, javaVersion);
                     }
                     catch (Exception ex)
                     {
