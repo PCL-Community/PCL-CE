@@ -205,7 +205,6 @@ public partial class PageDownloadLeft : IRefreshable
 
     public PageDownloadLeft()
     {
-        AnimatedControl = PanItem;
         InitializeComponent();
         ItemInstall.Check += PageCheck;
         ItemMod.Check += PageCheck;
@@ -223,6 +222,8 @@ public partial class PageDownloadLeft : IRefreshable
         ItemFabric.Check += PageCheck;
         ItemLegacyFabric.Check += PageCheck;
         ItemLabyMod.Check += PageCheck;
+
+        AnimatedControl = PanItem;
     }
 
     /// <summary>
@@ -377,7 +378,7 @@ public partial class PageDownloadLeft : IRefreshable
         }
     }
 
-    private static void PageChangeRun(MyPageRight target)
+     private static void PageChangeRun(MyPageRight target)
     {
         ModAnimation.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
         if (target.Parent is not null)
