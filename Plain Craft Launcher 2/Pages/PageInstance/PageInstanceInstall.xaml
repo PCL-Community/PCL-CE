@@ -303,7 +303,8 @@
                         </local:MyCard>
                         <local:MyCard Title="{DynamicResource Common.Installation.OptiFine}" Height="40"
                                       Margin="0,15,0,0" x:Name="CardOptiFine"
-                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True">
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True"
+                                      PreviewSwap="CardOptiFine_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top">
                                 <StackPanel Name="PanOptiFine" />
                             </StackPanel>

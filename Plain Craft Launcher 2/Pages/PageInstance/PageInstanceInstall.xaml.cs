@@ -1392,6 +1392,8 @@ public partial class PageInstanceInstall
     {
         try
         {
+            // 页面实例切换后，旧实例的列表不能继续留在卡片中。
+            PanOptiFine.Children.Clear();
             if (ModDownload.dlOptiFineListLoader.State != ModBase.LoadState.Finished)
                 return;
 
@@ -1418,7 +1420,6 @@ public partial class PageInstanceInstall
                 return McVersionComparer.CompareVersion(left.DisplayName, right.DisplayName) != 0;
             });
             // 可视化
-            PanOptiFine.Children.Clear();
             foreach (var Version in versions)
                 PanOptiFine.Children.Add(
                     ModDownloadLib.OptiFineDownloadListItem(Version, (a, b) =>
