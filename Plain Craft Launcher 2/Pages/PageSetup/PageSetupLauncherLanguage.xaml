@@ -178,7 +178,7 @@
                             SvgIcon="lucide/book-marked"
                             ToolTip="{DynamicResource Setup.Language.Banner.ViewDeveloperDocs}"
                             local:CustomEventService.EventType="OpenUrl"
-                            local:CustomEventService.EventData="https://github.com/PCL-Community/PCL-CE/wiki/开发指南" />
+                            local:CustomEventService.EventData="https://docs.pclc.cc/ce/developers/" />
                     </StackPanel>
                 </StackPanel>
             </local:MyCard>
