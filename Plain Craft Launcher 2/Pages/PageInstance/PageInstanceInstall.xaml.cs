@@ -869,6 +869,54 @@ public partial class PageInstanceInstall
         selectedLegacyFabricApi = null;
     }
 
+    /// <summary>
+    ///     选择主 Mod 加载器时，清除其它主加载器及其专属组件。
+    ///     OptiFine 与 LiteLoader 可与部分加载器共存，故不在此处清除。
+    /// </summary>
+    private void SelectModLoader(string loaderName)
+    {
+        if (loaderName != "Forge")
+            selectedForge = null;
+
+        if (loaderName != "NeoForge")
+        {
+            selectedNeoForge = null;
+            selectedNeoForgeVersion = null;
+        }
+
+        if (loaderName != "Cleanroom")
+        {
+            selectedCleanroom = null;
+            selectedCleanroomVersion = null;
+        }
+
+        if (loaderName != "Fabric")
+        {
+            selectedFabric = null;
+            selectedFabricApi = null;
+            selectedOptiFabric = null;
+            autoSelectedFabricApi = false;
+            autoSelectedOptiFabric = false;
+        }
+
+        if (loaderName != "LegacyFabric")
+        {
+            selectedLegacyFabric = null;
+            selectedLegacyFabricApi = null;
+            autoSelectedLegacyFabricApi = false;
+        }
+
+        if (loaderName != "LabyMod")
+        {
+            selectedLabyModChannel = null;
+            selectedLabyModCommitRef = null;
+            selectedLabyModVersion = null;
+        }
+
+        selectedLoaderName = loaderName;
+        selectedAPIName = null;
+    }
+
     // 信息栏动画
     private void SetPanelVisibility(Grid panel, bool visible)
     {
@@ -1628,8 +1676,8 @@ public partial class PageInstanceInstall
     // 选择与清除
     private void Forge_Selected(MyListItem sender, EventArgs e)
     {
+        SelectModLoader("Forge");
         selectedForge = (ModDownload.DlForgeVersionEntry)sender.Tag;
-        selectedLoaderName = "Forge";
         CardForge.IsSwapped = true;
         if (selectedOptiFine is not null &&
                                   !(bool)IsOptiFineSuitForForge(selectedOptiFine, selectedForge))
@@ -1714,8 +1762,8 @@ public partial class PageInstanceInstall
     // 选择与清除
     private void NeoForge_Selected(MyListItem sender, EventArgs e)
     {
+        SelectModLoader("NeoForge");
         selectedNeoForge = (ModDownload.DlNeoForgeListEntry)sender.Tag;
-        selectedLoaderName = "NeoForge";
         CardNeoForge.IsSwapped = true;
         OptiFine_Loaded();
         ReloadSelected();
@@ -1800,8 +1848,8 @@ public partial class PageInstanceInstall
     // 选择与清除
     private void Cleanroom_Selected(MyListItem sender, EventArgs e)
     {
+        SelectModLoader("Cleanroom");
         selectedCleanroom = (ModDownload.DlCleanroomListEntry)sender.Tag;
-        selectedLoaderName = "Cleanroom";
         CardCleanroom.IsSwapped = true;
         OptiFine_Loaded();
         ReloadSelected();
@@ -1892,8 +1940,8 @@ public partial class PageInstanceInstall
     // 选择与清除
     public void Fabric_Selected(MyListItem sender, EventArgs e)
     {
+        SelectModLoader("Fabric");
         selectedFabric = ((dynamic)sender.Tag)["version"].ToString();
-        selectedLoaderName = "Fabric";
         FabricApi_Loaded();
         OptiFabric_Loaded();
         CardFabric.IsSwapped = true;
@@ -2145,8 +2193,8 @@ public partial class PageInstanceInstall
     // 选择与清除
     public void LegacyFabric_Selected(MyListItem sender, EventArgs e)
     {
+        SelectModLoader("LegacyFabric");
         selectedLegacyFabric = ((dynamic)sender.Tag)["version"].ToString();
-        selectedLoaderName = "LegacyFabric";
         LegacyFabricApi_Loaded();
         CardLegacyFabric.IsSwapped = true;
         ReloadSelected();
@@ -2523,11 +2571,11 @@ public partial class PageInstanceInstall
     // 选择与清除
     public void LabyMod_Selected(MyListItem sender, EventArgs e)
     {
+        SelectModLoader("LabyMod");
         selectedLabyModChannel = ((dynamic)sender.Tag)("channel").ToString();
         selectedLabyModCommitRef = ((dynamic)sender.Tag)("commitReference").ToString();
         selectedLabyModVersion =
             ((dynamic)sender.Tag)("version").ToString() + (selectedLabyModChannel == "snapshot" ? " " + Lang.Text("Download.Version.Type.Snapshot") : " " + Lang.Text("Download.Version.Type.Stable"));
-        selectedLoaderName = "LabyMod";
         CardLabyMod.IsSwapped = true;
         ReloadSelected();
     }
