@@ -2096,7 +2096,7 @@ public partial class PageInstanceCompResource : IRefreshable
                                   Entry.FileName.Replace(currentReplaceName, newestReplaceName);
                 var realAddress = ModBase.GetPathFromFullPath(Entry.path) +
                                   Entry.FileName.Replace(currentReplaceName, newestReplaceName);
-                fileList.Add(file.ToNetFile(tempAddress));
+                fileList.Add(file.ToNetFile(tempAddress, ModComp.DownloadReason.Update));
                 fileCopyList[tempAddress] = realAddress;
             }
 
