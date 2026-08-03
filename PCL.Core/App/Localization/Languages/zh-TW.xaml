@@ -2706,7 +2706,13 @@
     <sys:String x:Key="Setup.Language.FormatCulture">區域格式</sys:String>
     <sys:String x:Key="Setup.Language.FormatCulture.Auto">跟隨系統區域格式</sys:String>
     <sys:String x:Key="Setup.Language.FormatCulture.FollowLanguage">同步介面語言</sys:String>
-    <sys:String x:Key="Setup.Language.Hint">目前僅部分新增介面支援多語言功能，其餘介面將在後續遷移中逐步完成生效。&#xA;&#xA;為確保工作效率與便捷性，遷移過程中僅確保「English (US)」與「简体中文（中国大陆）」部分可用。其餘語言將在未來遷移工作完成後，交由社群於翻譯平台進行翻譯貢獻。</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.TitlePrefix">讓</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.TitleSuffix">走向國際化。</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.DescriptionLine1">在社群的共同助力下，PCL CE 正邁向國際化的新篇章。</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.DescriptionLine2">歡迎向我們的 GitHub 倉庫提交 Pull Request，與我們一同完善多語言支援，為 PCL CE 更好地服務全球使用者的目標添磚加瓦。</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.DescriptionLine3">感謝每一位參與翻譯、校對與改進的貢獻者，讓 PCL CE 因你們而更加完善。</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.SubmitPullRequest">提交 Pull Request</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.ViewDeveloperDocs">查看開發文件</sys:String>
     <sys:String x:Key="Setup.Language.Reset.Success">已初始化語言頁設定！</sys:String>
     <sys:String x:Key="Setup.Language.Title">語言</sys:String>
     <sys:String x:Key="Setup.Language.UiLanguage">介面語言</sys:String>
