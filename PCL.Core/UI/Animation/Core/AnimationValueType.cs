@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.UI.Animation.Core;
+namespace PCL.Core.UI.Animation.Core;
 
 /// <summary>
 /// 用于指定动画值的解释方式。。

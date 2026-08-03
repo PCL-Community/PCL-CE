@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
@@ -18,7 +18,7 @@ public static class HttpRequestExtension
             VersionPolicy = request.VersionPolicy
         };
 
-        if (request.Content != null)
+        if (request.Content is not null)
         {
             clone.Content = await request.Content._DeepCloneAsync().ConfigureAwait(false);
         }

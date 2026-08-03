@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace PCL.Core.UI.Animation.Animatable;
 
@@ -24,4 +24,5 @@ public sealed class ClrAnimatable<TOwner, T> : IAnimatable
 
     object? IAnimatable.GetValue() => GetValue();
     void IAnimatable.SetValue(object? value) => SetValue((T)value!);
+    void IAnimatable.SetValue<TValue>(TValue value) => SetValue((T)(object)value!);
 }

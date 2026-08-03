@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace PCL.Core.UI.Animation.ValueProcessor;
@@ -6,6 +6,8 @@ namespace PCL.Core.UI.Animation.ValueProcessor;
 public static class ValueProcessorManager
 {
     private static readonly Dictionary<Type, Func<object, object>> _Filters = new();
+    private static readonly Dictionary<Type, Func<object, object, object>> _Adders = new();
+    private static readonly Dictionary<Type, Func<object, double, object>> _Scalers = new();
     
     private static class Cache<T>
     {
@@ -18,6 +20,8 @@ public static class ValueProcessorManager
         Cache<T>.Processor = processor;
         
         _Filters[typeof(T)] = o => processor.Filter((T)o)!;
+        _Adders[typeof(T)] = (o1, o2) => processor.Add((T)o1, (T)o2)!;
+        _Scalers[typeof(T)] = (o, f) => processor.Scale((T)o, f)!;
     }
 
     public static T Filter<T>(T value)
@@ -41,6 +45,15 @@ public static class ValueProcessorManager
         return p.Add(value1, value2);
     }
     
+    public static object Add(object value1, object value2)
+    {
+        var t = value1.GetType();
+        if (t != value2.GetType())
+            throw new InvalidOperationException($"类型不一致：{t} vs {value2.GetType()}");
+
+        return _Adders.TryGetValue(t, out var func) ? func(value1, value2) : value2;
+    }
+    
     public static T Subtract<T>(T value1, T value2)
     {
         var p = Cache<T>.Processor
@@ -53,5 +66,25 @@ public static class ValueProcessorManager
         var p = Cache<T>.Processor
                 ?? throw new InvalidOperationException($"类型未注册：{typeof(T)}");
         return p.Scale(value, factor);
+    }
+    
+    public static object Scale(object value, double factor)
+    {
+        var t = value.GetType();
+        return _Scalers.TryGetValue(t, out var func) ? func(value, factor) : value;
+    }
+    
+    public static T DefaultValue<T>()
+    {
+        var p = Cache<T>.Processor
+                ?? throw new InvalidOperationException($"类型未注册：{typeof(T)}");
+        return p.DefaultValue();
+    }
+    
+    public static bool Equal<T>(T value1, T value2)
+    {
+        var p = Cache<T>.Processor
+                ?? throw new InvalidOperationException($"类型未注册：{typeof(T)}");
+        return p.Equal(value1, value2);
     }
 }

@@ -1,0 +1,13 @@
+<!-- Formatted by xaml-lang-formatter at 2026-06-28T17:16:52. -->
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xml:space="preserve">
+
+    <!-- Meta -->
+
+    <sys:String x:Key="Meta.Code">es-ES</sys:String>
+    <sys:String x:Key="Meta.Name">Español (España)</sys:String>
+
+</ResourceDictionary>

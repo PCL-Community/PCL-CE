@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Dynamic;
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -13,11 +13,9 @@ namespace PCL.Core.Test
         public void TestDynamicJson()
         {
             dynamic obj = new { a = 123, b = new { c = this, d = "text" } };
-            var options = new JsonSerializerOptions
+            var options = new JsonSerializerOptions(JsonCompat.SerializerOptions)
             {
-                WriteIndented = true, 
-                Converters = { new ExpandoObjectConverter() },
-                AllowTrailingCommas = true
+                WriteIndented = true
             };
             string json = JsonSerializer.Serialize(obj, options);
             Console.WriteLine(json);

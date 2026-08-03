@@ -1,0 +1,1050 @@
+
+PCL CE is a community-derived version of PCL developed by PCL-Community.
+
+Create a hints.txt file in the PCL folder to customize the "Did You Know" content. Make sure the encoding is UTF-8!
+
+In the Java Edition, you can change the language settings in the language options. Oddly enough, besides many national languages, there are also Pirate Speak, Upside-down English, Classical Chinese (Huaxia), and other strange languages.
+
+Vietnam's Hang Sơn Đoòng cave is one of the inspirations for the lush caves biome.
+
+Pigs in Minecraft resemble real-life Yorkshire pigs.
+
+The white frog is based on the real-life gray tree frog (Dryophytes versicolor).
+
+The hardness of bedrock is -1.
+
+A compass not bound to a lodestone always points to the world spawn point, which is the first spawn point in that world.
+
+Parrots dance around jukeboxes that are playing music discs.
+
+Putting a glass pane on a map in a cartography table locks the map's content.
+
+When a baby turtle grows up, it drops a scute.
+
+Turtles return to their home beach to lay eggs, no matter how far away they are.
+
+The number of elder guardians in an ocean monument is fixed; if you kill one, there will be one fewer elder guardian in that world.
+
+Potions ignore armor, so don't think you can wear netherite armor to survive someone with a bunch of damage potions.
+
+In reality, kelp is a type of algae, not an angiosperm.
+
+The feature in Minecraft where parrots die from eating cookies containing cocoa beans is based on reality, where chocolate is highly toxic to parrots.
+
+Minecraft is the best-selling video game in the world, with over 350 million copies sold globally, and has been officially certified by Guinness World Records.
+
+Real-life green patina forms on metal surfaces and is quite easy to scrape off; this is reflected in the game's mechanic of removing oxidation with an axe.
+
+The basic time unit in the game is a tick, 1 tick = 0.05 seconds, and one day = 24,000 ticks = 20 minutes.
+
+Mojang has stated that the main reason for adding polar bears, turtles, pandas, bees, and axolotls to Minecraft is that they are endangered in reality, hoping to raise players' awareness through this.
+
+In Java Edition, a mob named "Dinnerbone" or "Grumm" will be upside down (except for squids and glow squids).
+
+Naming a sheep "jeb_" makes its wool cycle through colors continuously, but the wool dropped when sheared retains its original color.
+
+Naming a vindicator "Johnny" makes it attack all nearby mobs, a reference to the film The Shining.
+
+Although cows, chickens, and villagers have some apparent gender characteristics, according to Jeb in an interview, only the player has a gender in Minecraft; all other mobs are genderless.
+
+Phantoms, glow squids, allays, sniffers, and armadillos were added to the game through public votes, held at MINECON Earth 2017, Minecraft Live 2020, Minecraft Live 2021, Minecraft Live 2022, and Minecraft Live 2023 respectively.
+
+The copper golem was a mob that lost the Minecraft Live 2021 mob vote, but was later added to the game in the "Copper Age" with changed functionality.
+
+In the article "Meet the Nitwit," the nitwit villager and the bat are described as the most "useless" mobs in Minecraft.
+
+Mobs sometimes look at a player who is not in Spectator mode when idle.
+
+The biomes in the Nether and End, the Deep Dark, the Pale Garden, and those with giant mushrooms are fictional; the rest of the biomes are designed entirely or mostly based on the real world.
+
+If you apply a Nether biome in a Superflat world, only Nether mobs (ghasts, zombie piglin groups, piglin groups, and occasional magma cubes) will spawn in the Overworld, it will not rain, and Nether features and structures (such as nether quartz and glowstone clusters, and nether fortresses) will not generate, though mineshafts can still generate.
+
+A single block can contain its own independent biome.
+
+Specific blocks can be placed in positions where they normally cannot be placed by using special means. For example, using /setblock or a bug to place a sign in mid-air will keep it there until it is broken or receives a block update that checks whether it should be destroyed.
+
+In Java Edition, you can use specific commands to spawn villagers with custom trades.
+
+If the custom-traded villager is a nitwit or unemployed, those trades will work normally but won't give the villager experience points; unemployed villagers will also replace the custom trades with their corresponding profession's novice trades after claiming a job site block.
+
+In Java Edition, the demand in supply and demand mechanics can become negative and keep decreasing indefinitely, so trades that are not used for a long time are hard to increase in price (because it takes many trades to make a large negative demand positive).
+
+The April Fools snapshot 25w14craftmine added the "Traitor" profession, selling a variety of mining effects.
+
+There are a total of 18 different armor trim smithing templates and 11 different trimming materials, allowing for 198 different trimmed appearances per armor piece.
+
+Smelting a full stack (64 items) in a single furnace takes 10 minutes and 40 seconds; using multiple furnaces in parallel can reduce the total time.
+
+Using charcoal as fuel is 4 times (×4.57) more efficient than using logs or wood, and 1 1⁄4 times more efficient than using planks.
+
+In Bedrock Edition, using planks to craft wooden slabs as fuel is more efficient (×1.875) than using planks to smelt logs or wood into charcoal.
+
+The ideal fuel for smelting charcoal is charcoal itself.
+
+Compressing coal into blocks increases smelting efficiency (×1.11). 9 coals can smelt 72 items, while a block of coal can smelt 80 items.
+
+If using wooden tools as fuel, the most cost-effective approach is to use them until they have only 1 durability left, then use them as fuel.
+
+Although nether wood and their products cannot be directly used as fuel, they can be crafted into items such as sticks (which can also be made from Overworld wood) to achieve this indirectly.
+
+"Smelting" is a fairly broad term in Minecraft, whereas in the real world it has a more precise definition.
+
+Although the allay resembles a vex in appearance, it cannot pass through blocks like a vex can.
+
+The original design of the allay, "Wisp", also appears in Minecraft Dungeons, spawning in Woodland Prisons to guide players to secret areas.
+
+The allay's English name "allay" means "to reduce or alleviate," while the vex's name "vex" means "to annoy or worry."
+
+The use of amethyst shards as the item to spawn allays was mainly because they are renewable, and related blocks (amethyst blocks and budding amethysts) produce musical sounds that suit the allay, also giving amethyst geodes more use.
+
+According to an official blog post, when a player gives an item to an allay, it forms "a magical connection that prevents the allay from being accidentally hurt."
+
+Initially, Mojang planned for allays to spawn naturally in forest biomes, but they chose to have them generate in woodland mansion prisons to highlight the theme of friendship.
+
+Equipping an armor stand with certain blocks can cause rendering glitches. According to Searge, this is because transparent rendering for entities is not yet fully supported.
+
+The unused lower part of the armor stand texture file contains signatures from JAPPA, Chi Wong, and Searge.
+
+When a player places an armor stand, there is a tiny random deviation in its pose: ±5° for head pitch, ±10° for head yaw, and ±5° for body yaw. This often makes armor stands look slightly misaligned.
+
+In the mob vote and concept art, armadillos were shown with eyes on the sides of their heads, but when initially implemented, their eyes were moved to the front because artist Jasper Boerstra thought players would struggle to form an emotional connection if the head had a blank forehead. After community feedback, the eyes were moved back to the sides.
+
+Real armadillos tuck their heads tightly when rolling into a ball, but in-game armadillos occasionally poke their heads out when curled up, as it looks funny and cute.
+
+The setting that armadillos eat spider eyes and scare away spiders and cave spiders is based on reality: armadillos eat a large number of invertebrates annually, including spiders.
+
+Armadillos were erroneously described as "neutral mobs" in the update changelog.
+
+According to Jeb, bats are a type of ambient mob — they spawn frequently, like squids, but also despawn frequently, because they serve no purpose when not near players.
+
+In Minecraft: The Island, there is a scene where Guy accidentally hits a bat instead of a creeper at a critical moment, wasting his last arrow. According to the author, this actually happened to him while playing the game.
+
+Camels in Minecraft are based on real-life dromedaries, which have a single hump.
+
+The cold-weather chicken is inspired by real-life Polish chickens.
+
+Players cannot interact with a chicken riding in a minecart because the minecart's hitbox covers the chicken's hitbox.
+
+When a chicken is killed in mid-air, its "body" falls slower than other mobs and still shows the wing-flapping animation.
+
+Because chickens are small, they can "hide" inside a hopper or cauldron, protecting them from lava or water above those blocks.
+
+Notch tweeted that he would change chickens into ducks a few weeks before the end of the Beta version, causing a heated discussion on Twitter. Days later, Jeb was still receiving feedback about that message and confirmed it was just a joke.
+
+When loading/creating/exiting a world on the legacy Console Edition, a message appears: "Is it a Chicken, or a duck?" Also, the final line of the mob descriptions reads "... and a chicken... Or is it a duck?"
+
+The Pocket Edition 0.3.0 changelog referred to chickens as ducks.
+
+Notch later called chickens "the chicken/duck/whatevers" in a blog post, implying that at the time, the chicken didn't have an official name.
+
+In reality, chickens are oviparous, but in-game chickens can give birth directly to baby chickens.
+
+In the April Fools version Java Edition 2.0, diamond and lapis lazuli chicken variants were added.
+
+In Java Edition, chickens spawn more frequently in sparse jungles than in other biomes.
+
+Resource files contain special animations for rusted or oxidized copper golems, but they currently use the same animations as normal copper golems.
+
+The copper golem appeared as an easter egg in the 2022 and 2023 mob vote servers and the "Wacky Mojang Office Party" event server.
+
+The top of the copper golem resembles a lightning rod, but it is purely decorative and has no actual function.
+
+In officially released early concept art, the top part of the copper golem was originally designed to attract lightning and toggle the golem between idle and inactive states.
+
+The temperate cow in the game resembles the real-life Norwegian Red cattle.
+
+The cold-weather cow is based on real-life Highland cattle.
+
+In the PC Gamer demo, cows had a "PCG" logo on their sides.
+
+Notch tweeted that all "breedable" friendly animals exhibit characteristics of both sexes and can breed among themselves. This applies to cows, as they have horns and produce milk (although some real-life cow species have horns on females).
+
+In Minecraft Earth, cows do not have three-dimensional udders.
+
+The glow squid resembles the real-life firefly squid.
+
+In Bedrock Edition, when a glow squid is out of water, its tentacle waving speed decreases as its oxygen depletes; when oxygen runs out, the tentacles stop moving and the glow squid starts taking damage.
+
+In Java Edition, glow squids are not affected by the "Dinnerbone" and "Grumm" name easter eggs.
+
+The first concept of the happy ghast came from concept art of a flying ghast mount in Minecraft Legends.
+
+LadyAgnes stated that the happy ghast's design was inspired by hot air balloons.
+
+Baby ghasts have gills on their appearance and use double-layered textures; adult happy ghasts lack gills and use single-layered textures. Accordingly, baby ghasts do not drown, while adult happy ghasts can drown.
+
+In Bedrock Edition, the texture of the happy ghast's goggles is slightly stretched vertically when falling, and the position of the eyeglass frame is one pixel lower than in Java Edition.
+
+When equipped with a harness, the happy ghast's model is slightly scaled down to keep the overall model size unchanged.
+
+An article on minecraft.net introduced the collective noun for happy ghasts as "A chuckle of happy ghasts."
+
+When a player jumps while riding a horse, if there is insufficient headroom, the player will clip into the block above; if that block is solid, the player takes damage.
+
+The Simplified Chinese and Taiwanese Traditional Chinese term "哞菇" (Mōugū) is a blend of the cow's moo sound and "mushroom," similar to the English name "Mooshroom," which is a blend of "Moo" and "Mushroom."
+
+In Minecraft Earth, there is a variant of mooshroom with buttercups on its back, called "Moobloom." In the Minecraft Live 2020 mob vote, Moobloom was eliminated in the first round with 28.3% of the vote.
+
+There is also another variant with pink daisies, called "Moolip."
+
+In Minecraft Dungeons, mooshrooms are hostile mobs.
+
+"Mule" specifically refers to the offspring of a male donkey (jack) and a female horse (mare). The offspring of a female donkey (jenny) and a male horse (stallion) is called a "hinny." However, because mules are more common than hinnies, "mule" can colloquially refer to any horse-donkey hybrid.
+
+In reality, because horses and donkeys are reproductively isolated, their hybrid offspring (mules) are generally infertile.
+
+Four of the five parrot textures are based on real-life macaws: red – scarlet macaw; blue – hyacinth macaw; green – great green macaw; cyan – blue-and-yellow macaw. The gray parrot is based on the real-life cockatiel, with its characteristic "blush" (an orange patch of feathers over the ear area).
+
+The parrot dancing behavior references the "Party Parrot" meme, frequently used by members of the Minecraft team in their communications.
+
+Two splash texts warn players not to feed parrots chocolate or avocado.
+
+Since creepers have no idle sound or footsteps, when a parrot detects a nearby creeper, it can only mimic the creeper's fuse sound.
+
+One of the parrot's idle sounds, idle6.ogg, says the English word "hello."
+
+If a player rides a saddled pig into a minecart, the minecart's speed increases to that of a powered rail. Whether occupied or not, the minecart only stops when hitting a block. Other entities and unpowered powered rails only reduce it to a minimum speed.
+
+House music artist deadmau5 released songs titled "Get In The Cart, Pig" (later renamed "Fn Pig") and "Infra Turbo Pigcart Racer," referencing his experience of herding pigs into minecarts in Minecraft.
+
+The tropical pig resembles the real-life red river hog found in African rainforests.
+
+The killer rabbit references the Rabbit of Caerbannog from the British comedy film Monty Python and the Holy Grail, suggested by @88bully.
+
+Although rabbits are attracted to carrots, they are not attracted to carrot-on-a-stick.
+
+If a sheep spawner is placed via /setblock, the rotating model inside the spawner is a black sheep, but the spawned sheep will be a naturally occurring sheep color unless a specific color is added to the NBT tags. Even with a specified color, other colors may still spawn.
+
+Sheep can eat grass through partial blocks, even when in a moving minecart.
+
+Sheep are large enough that they cannot pass through a gap between two diagonally placed fence posts, whereas players (and most other mobs) can easily pass through.
+
+The horse model (including skeleton horses) was designed with help from Dr. Zhark (John Olarte), author of the Mo' Creatures mod, and is based on horses from that mod. Dr. Zhark is therefore credited in the game's credits.
+
+In multiplayer, you can determine which of two skeleton horses ridden by different players is faster: each player leashes the other's skeleton horse and they have a tug-of-war; the horse that is pulled more easily is the slower one.
+
+In Java Edition, you can use the command /summon skeleton_horse ~ ~ ~ {Tame:1, equipment:{saddle:{id:saddle,count:1}}} to spawn a rideable skeleton horse equipped with a saddle.
+
+Although skeleton horses are undead and cannot be fed, they still perform a head-bobbing grazing animation, presumably intentionally retained by the developers.
+
+In Java Edition, skeleton riders do not need a saddle to control a skeleton horse, but players do. This may be due to different riding requirements, as skeletons also do not need a saddle to control spiders.
+
+If many skeleton riders spawn in the same location, some skeletons may be knocked off their horses.
+
+Unlike skeletons and their variants, wolves do not actively attack skeleton horses. This allows skeleton riders to be killed by untamed wolves without player intervention, leaving the skeleton horses alive.
+
+The official English name for a baby sniffer is "Snifflet."
+
+The sniffer's walking animation references real-life centipedes, and its sprawling, legs-splayed pose references the "sploot" position of real-life corgis.
+
+In Bedrock Edition, attacking squids underwater causes them to rise about 1⁄3 to 1⁄2 of a block.
+
+In Java Edition, squids have no death animation.
+
+In Bedrock Edition, when a squid is exposed to air, its tentacle waving speed decreases as oxygen depletes; when oxygen runs out, the tentacles stop moving and the squid begins taking suffocation damage.
+
+In reality, squids have two long tentacles and eight arms, while in-game squids more closely resemble octopuses. Real squids and octopuses have beak-like mouths, but in-game squids have teeth arranged in their mouths.
+
+In Java Edition, squids are not affected by the "Dinnerbone" and "Grumm" name easter eggs.
+
+The Java Edition advancement "This Boat Has Legs" is a joke about Mojang's initial plan to add "Nether boats," which eventually became striders.
+
+Brandon Pearce once considered giving striders a freezing mechanic when they leave lava. They would curl up their legs and flop around like fish out of water until they die, but this idea was scrapped because it was "too sad."
+
+The strider's side-to-side swaying animation while walking was an accidental development artifact that Brandon found "weird and funny," so he kept it.
+
+The string dropped by striders upon death represents their mane, which is, in lore, the source of the string used by piglins to craft crossbows.
+
+Baby turtles are extremely short in-game: only 0.12 blocks tall in Java Edition or 0.032 blocks tall in Bedrock Edition. This is intended to approximate the real-life size ratio of baby to adult turtles, though even then, it is much larger than real baby turtles.
+
+Although adult turtles and baby turtles in water have no natural predators in the game, if a baby turtle is being chased and grows into an adult or enters water, the attacking mob will continue to attack, except for untamed cats, ocelots, and foxes.
+
+The fact that turtles do not drown in water may reference reality, as aquatic turtles can briefly breathe through their cloacal skin (though they can still drown if underwater too long).
+
+The turtle's homing behavior is based on reality: baby turtles memorize the route from their birth and return to that beach to lay eggs.
+
+The turtle's scute shedding is based on reality: aquatic turtles shed scutes as they grow, similar to snakes shedding skin, while land turtles do not shed scutes.
+
+The in-game goat is based on the real-life Rocky Mountain goat, and its sounds are taken from real domestic goats.
+
+The screaming goat is not a fictional variant; it is based on the screaming behavior of some real goats.
+
+Although a goat's ram attack deals damage, developers have stated that the ramming is meant to be mischievous play, not intentional harm.
+
+The goat model was created using Blockbench 3D modeling software.
+
+In the Caves & Cliffs Part I official trailer at 0:24 (the scene where a goat falls off a cliff), the constellation Capricornus (the sea-goat) appears in the night sky. "Capricornus" is also the Latin name for goat horns.
+
+Unlike most villager-like mobs, villagers do not display a sitting-down animation when riding entities like minecarts or boats. This is intentional, and also applies to witches and wandering traders.
+
+Villagers were inspired by shopkeepers in the game Dungeon Master 2: The Legend of Skullkeep.
+
+Naming a villager with a name tag causes that name to appear in the trade interface title.
+
+When villagers enter mating mode, they walk very slowly. However, when night falls or a raid begins, they will quickly run indoors.
+
+Unlike players, villagers can sleep in beds in dimensions where bed_works is false (in vanilla, the Nether and End) without causing an explosion, making villages feasible in those dimensions. Based on this, players can deduce the Overworld's day/night cycle by observing whether villagers in such dimensions sleep.
+
+The new villager outfits in the Village & Pillage update were inspired by 2018 fashion shows, such as Gucci.
+
+Villagers sometimes sleep in odd positions on beds at night, hanging off the side or even clipping into walls.
+
+In Java Edition, even while sleeping, villagers can "slide" to pick up nearby food and return to bed, which can trigger the odd sleeping poses described above.
+
+In Bedrock Edition, although snowy taiga villages generate with snowy villagers, the building style remains the same as regular taiga villages.
+
+In Java Edition, enabling the "Programmer Art" resource pack gives all villagers green hoods because the hooded nitwit villager texture in that pack shares the same file path (entity/villager/villager.png) as the base villager texture from before Village & Pillage.
+
+The pre-Village & Pillage nitwit villager texture originally included a hood, but it was not rendered in earlier versions.
+
+In Bedrock Edition, enabling the Classic Textures pack from the marketplace does not revert villager textures to the pre-texture-update version because the old villager textures are in the entity/villager directory, while the new ones are in entity/villager2.
+
+Using commands to place an item in a villager's hand shows the same visual effect as their normal trade display, but does not make the villager offer that item for sale.
+
+The fisher villager's outfit features a texture of the pre-Update Aquatic raw fish (cyan), intentionally retained by texture artist Jasper Boerstra.
+
+The master-level butcher villager's trade of buying sweet berries may reference the Swedish habit of eating meat with berry jam.
+
+Although villagers have butcher and fisher professions, based on the food they use for breeding (bread, carrots, potatoes, beetroots), villagers may be vegetarian; meat items may exist only for player trading.
+
+In Java Edition, villagers like cats. If a cat is nearby, a villager will look down at it and sometimes try to follow it.
+
+Villagers only actively look at players, cats, or other villagers, not at any other mob (including iron golems).
+
+Villagers have varying fleeing speeds; they run at 2.16 blocks per second. In Bedrock Edition, the fleeing speed is 0.6 times that of Java Edition, making them easy prey for vindicators (except during raids). In Java Edition, villagers run 0.65 blocks per second faster than vindicators.
+
+In Java Edition, naturally spawned zombie villagers with a profession become unemployed when cured, possibly because their trade data was not bound.
+
+In Java Edition, a baby zombie villager that spawned as part of a chicken jockey will remain riding the chicken after being cured, and even when it grows into an adult villager or turns into a witch, it will not dismount. In Bedrock Edition, the baby zombie villager dismounts when cured.
+
+Even in a boat, villagers (including babies) that have claimed a bed can sleep when near it.
+
+Before 21w18a, the axolotl texture file included an open mouth, and concept art by Mariana Salimena showed an axolotl opening its mouth to suck or drink water. This may be an unimplemented feature.
+
+The real-life axolotl (Mexican walking fish, six-horned dinosaur) is critically endangered in the wild. Other endangered species in the game include polar bears, turtles, pandas, and bees. The development team said adding these endangered species to Minecraft is meant to raise player awareness.
+
+The spawn chance of blue axolotls is 1⁄1200 because 1200 is approximately the number of wild axolotls in reality.
+
+In a development diary video, it was mentioned that tropical fish buckets can be used to feed axolotls, but tropical fish items cannot, because real Mexican axolotls only eat live food.
+
+The axolotl's regeneration ability is based on the limb regeneration of real Mexican axolotls.
+
+The brown axolotl variant is called "wild" in the game files because it is based on the wild-type (natural) axolotl.
+
+The pink axolotl variant is called "leucistic" in Bedrock Edition's in-game name, and "lucy" (short for leucistic) in the game files for both editions, because it is based on the real leucistic (black-eyed white) axolotl.
+
+Of the five axolotl color variants, only the blue one is not based on reality; it's an intentional easter egg and a reference to Mudkip from Pokémon.
+
+Since real axolotls lack vocal cords, the in-game axolotl sounds are based on real axolotl gulping sounds when out of water, mixed with processed dog barks.
+
+Axolotls were also called "the cutest predator" during Minecraft Live 2020, later used as an advancement name.
+
+One of the release notes for Minecraft Launcher 2.2.25xx contained a message encrypted with the Standard Galactic Alphabet: "T⍑ᒷ ᔑ ̇/𝙹ꖎ𝙹ℸ ̣ ꖎᓭ ᔑ∷ᒷ リ𝙹ℸ ̣ ∴⍑ᔑℸ ̣ ℸ ̣ ⍑ᒷ|| ᓭᒷᒷᒲ", which decodes to "The Axolotls are not what they seem."
+
+This is a parody of a cryptic phrase from the TV series Twin Peaks: "The owls are not what they seem."
+
+This likely refers to the fact that axolotls look cute but are fierce predators.
+
+A green axolotl appeared in the Minecraft Live 2020 recap video and the Caves & Cliffs Part I official trailer, but it does not exist in the game. LadyAgnes said in a livestream that she doesn't know why.
+
+During the MINECON Earth 2018 livestream, Jeb revealed that a new cat texture would be chosen by the community. Ultimately, GoodTimesWithScar's cat "Jellie" won, and its skin was added in Java Edition 1.14 and Bedrock Edition 1.10.0. Jellie the cat passed away on January 5, 2024.
+
+In real life, cats are famous for their ability to right themselves during a fall (though they can still be injured). This is reflected in Minecraft: cats and ocelots are completely immune to fall damage.
+
+Before Java Edition 1.14 and Bedrock Edition 1.10.0, cats were tamed from ocelots, whereas real cats evolved from African wildcats that live in savannas.
+
+A tabby cat named "Winslow" appeared in Minecraft: Story Mode Episode 6, "A Portal to Mystery," long before tabbies were added to the base game, and the two skins are very similar.
+
+The tuxedo cat is based on Jeb's pet female cat "Newton," who passed away in 2014.
+
+The white cat skin is based on the Khao Manee, a rare Thai cat breed.
+
+The black cat skin is based on the Bombay cat, whose ancestors are the Burmese and American Shorthair.
+
+The in-game tabby and white cats display heterochromia (two different eye colors).
+
+You can breed two tabby cats in the game, but this is impossible in reality because nearly all calico/tabby cats are female, and the rare males are infertile.
+
+Cat sounds were recorded from Samuel Åberg's pet cat Odi.
+
+The tropical frog is based on the real-life gray tree frog, and the temperate frog is based on the real-life bullfrog.
+
+Frogs were originally designed to eat fireflies to produce froglight, but the plan was scrapped after developers discovered that some firefly species are toxic to some frog species in reality.
+
+Both frogs and axolotls are amphibians, but frogs do not take damage or die from dehydration when out of water.
+
+In Java Edition, by modifying frog_food.json, frogs can be made to actively attack most mobs, including players and other frogs. Against armor stands and the Ender Dragon, frogs will repeatedly attempt to eat them but cannot deal damage or swallow them.
+
+Ocelots were the first mob created by Jon Kågström, an AI expert who worked with Jeb on Minecraft. Jeb helped create the ocelot texture because Jon had difficulty with it.
+
+In real life, cats are famous for their ability to right themselves during a fall (though they can still be injured). This is reflected in Minecraft: cats and ocelots are completely immune to fall damage.
+
+The bee's size in Minecraft is much larger than real bees, chosen because Mojang thought it was the cutest size.
+
+The bee's death after stinging is based on reality: a worker bee's stinger is connected to its internal organs, and after stinging, the stinger is pulled out along with the organs.
+
+To create the dolphin sounds in the game, Mojang's lead sound designer Samuel Åberg went to Kolmården Wildlife Park to record real dolphin sounds.
+
+If a dolphin is beached on land and in a hostile state, it will slowly move toward its target.
+
+The white particles that appear when a dolphin leads a player to treasure are the same as those from fireworks.
+
+In a MINECON 2017 demo shot, the dolphin's head and body were separate. In the official artwork for Java Edition 1.13, the dolphin's head and body are also separate.
+
+Dolphins do not naturally spawn in frozen oceans. If a dolphin accidentally enters a frozen ocean, it may become trapped under ice and suffocate.
+
+Spawning a dolphin with the command /summon dolphin ~ ~ ~ {NoAI:1b} (no AI) will cause it to survive on land and drown in water.
+
+Before foxes were added, a model error made foxes look like boxy objects.
+
+Although foxes appear to hold items in their mouths, they actually hold them in their main hand. This means you can use /item replace (Java Edition) or /replaceitem (Bedrock Edition) to change the item a fox is carrying.
+
+In reality, some species of foxes jump surprisingly high to catch their prey, a behavior also reflected in Minecraft foxes.
+
+The fox's behavior of jumping and sinking into snow is based on reality. Red foxes and arctic foxes will jump high to dive into the snow to hunt prey such as lemmings or rodents.
+
+The splash text "In case it isn't obvious, foxes aren't players" was added due to MC-166292.
+
+In-game fox sounds are a mix of cat and dog sounds, rather than actual fox sounds.
+
+The red fox in the game is based on the real red fox, and the white fox is based on the real arctic fox, which in reality are two completely different species.
+
+The iron golem's behavior of giving poppies to baby villagers pays homage to the ancient robot in Hayao Miyazaki's film Castle in the Sky. The baby villager notices the poppy in the iron golem's hand, slowly approaches, and eventually accepts it.
+
+Iron golems do not voluntarily enter boats or minecarts. In Bedrock Edition, pushing a minecart on rails into an iron golem will cause the iron golem to enter the minecart.
+
+The iron golem was a purchasable item on the Xbox 360 Marketplace.
+
+The green and purple carpet patterns on llamas have creeper and enderman designs, respectively. A llama wearing a gray carpet has a mask similar to a superhero's.
+
+To create the panda sounds in the game, Mojang's lead sound designer Samuel Åberg traveled to Guangzhou to record giant panda sounds.
+
+The baby panda sneeze sound in the game is a mix of real baby panda and cat sounds, plus a parrot mimicking a sneeze.
+
+The adult panda's startled reaction to a baby panda sneezing likely references a real-life video of a baby panda sneezing while its mother was eating.
+
+The brown panda is a real subspecies of giant panda, known as the Qinling panda.
+
+The bamboo and cake that pandas hold while eating are actually in their main hand slot. Using commands (/item in JE or /replaceitem in BE) to replace them with another item will cause the panda to try to eat that item. In Java Edition, the panda will drop the item after a short while; in Bedrock Edition, it will only stop eating and drop the item after taking damage.
+
+On Bedrock Edition touch devices, the "Feed" button does not appear when holding a cake near a panda.
+
+Adding polar bears to Minecraft was Jeb's wife's suggestion, as she loves polar bears. Polar bears were added after the birth of their son, Björn (Swedish for "bear"), because Jeb had said he would add polar bears after they had their "own little bear."
+
+Unlike most baby mobs of breedable animals, baby polar bear sounds are not simply sped-up versions of the adult sounds, but rather unique. This is also reflected in subtitles.
+
+In Bedrock Edition, after trader llamas became a separate mob, enabling the "Classic Textures" resource pack from the marketplace causes their texture to become invisible in-game. Trader llamas that were already spawned as llamas before the change are unaffected.
+
+Wolves can teleport onto blocks with incomplete collision boxes.
+
+In Java Edition, if a player attacks a wolf and then moves a large distance (e.g., 70 blocks), the wolf will remain angry but will no longer attack the player.
+
+Although difficult to hit, wolves will still attempt to chase flying mobs like bats and phantoms.
+
+The fact that wolves can eat fish to restore health may reference reality: in the wild, wolves on the Alaska Peninsula, due to a long-term lack of meat, derive about 20% of their meat intake from salmon.
+
+In Java Edition, using a wolf spawn egg on a tamed wolf will produce a baby wolf that is also tamed.
+
+Because tamed wolves have high health, a warden's melee attack needs to hit a tamed wolf twice to kill it.
+
+The ashen wolf resembles a real-life husky.
+
+The black wolf resembles a real-life black wolf (a melanistic gray wolf or red wolf).
+
+The chestnut wolf resembles a real-life Ethiopian wolf or jackal.
+
+The spotted wolf resembles a real-life African wild dog.
+
+The striped wolf resembles a real-life coyote or striped hyena.
+
+The snowy wolf resembles a real-life Arctic wolf.
+
+The new wolf sound variants were recorded by Mojang Studios sound designer Sandra Karlsson at a dog daycare center, capturing dog barks.
+
+Blazes under the Invisibility effect still have visible black smoke.
+
+According to Jeb, all mobs in Minecraft are square, so to give blazes a "burning" and magical feel, he made them as "rods orbiting a core" and added eyes to make them more humanoid.
+
+Although blazes have no visible feet, they still produce footstep sounds.
+
+According to Felix Jones, the name "Bogged" came from an incident where the development team was trapped in a bathroom.
+
+Notch tweeted: "I think creepers should be made out of leaves or something. I don't know why they explode."
+
+When asked what a creeper feels like, Notch said creepers feel "crisp, like dry leaves."
+
+Creepers are bright green because the old leaf texture in Minecraft was bright green, allowing creepers to camouflage better, making them extremely dangerous as they are hard to spot from a distance.
+
+Creepers are one of the few mobs that did not change texture in the texture update.
+
+When asked about the principle behind a creeper's explosion, Dinnerbone said: "The creeper trembles violently with fear, and this action sets it off, much like rubbing two sticks together to start a fire."
+
+The creeper's English name is derived from the adjective "creepy," implying it is a strange, unsettling thing. The verb form "creep" means "to move slowly and stealthily." Later, the creeper's behavior was changed to silently approach players and self-destruct, which may reference the meaning of "creep."
+
+Charged creepers are one of the few hostile mobs that remain a significant threat to late-game players. Even with full netherite armor and the maximum damage reduction of 80% from enchantments, a charged creeper can still deal up to 20.32 (♥ × 10.16) damage; with only Protection IV on all pieces, it can deal up to 36.576 (♥ × 18.288) damage.
+
+When a charged creeper is under the Invisibility effect, its blue "arcs" remain visible.
+
+The blue "arcs" on a charged creeper are named "creeper_armor" in the texture file.
+
+The hissing sound before a creeper explodes is actually the TNT hissing sound played at 0.5x speed.
+
+The cloud texture contains a creeper face rotated 90° to the right (facing east).
+
+Creepers ranked tenth in Guinness World Records' "Top 50 Video Game Villains of All Time" released in 2013.
+
+On Monday, June 18, 2012, a creeper was sent into space.
+
+The eyes of the elder guardian are actually the "head" part of its model, creating the illusion of moving eyes.
+
+The beholder from Dungeons & Dragons was one inspiration for the elder guardian.
+
+The elder guardian was called a "miniboss" by Jeb and was initially designed as a boss, but it is not a true boss mob.
+
+According to Jeb, elder guardians exist to encourage players to solve the ocean monument's maze rather than dig through it. He also said that the "ghost" effect was meant to hint at the source of mining fatigue, and the sudden scare was unintentional.
+
+According to Jeb, elder guardians drop wet sponge to ensure players can obtain wet sponge even from ocean monuments that lack a sponge room.
+
+In the April Fools version 3D Shareware v1.34 for Java Edition, elder guardians drop blue keys.
+
+Before 14w28a, endermites had a chance to spawn when an enderman teleported. According to Dinnerbone, this is because endermen pass through some "intermediate dimension" during teleportation and bring back "something bad."
+
+Dinnerbone once mentioned he had a "master plan" for endermites and the dragon egg, but the idea never came to fruition.
+
+Unlike other illagers, evokers do not chase their targets.
+
+According to minecraft.net, evokers do not hold totems of undying to avoid death because they need their hands free to cast spells, but in reality, evokers holding items via commands can still cast spells.
+
+The English name "Ghast" is derived from "ghastly." The word "ghast" as a monster name was coined by H.P. Lovecraft and later appeared in many fantasy stories and games.
+
+In a Reddit AMA, C418 revealed that ghast sounds came from his cat, which made that noise when disturbed while sleeping.
+
+If a ghast is trapped in a 1-block-thick cube, its fireballs can pass through the cube. This is because all projectile entities are spawned one block in front of the shooter to prevent the projectile from immediately hitting the shooter.
+
+Despite the "ghast" name and not being attacked by withers, ghasts are not undead mobs.
+
+In rare cases, a ghast can see through blocks and attack a player (most often in enclosed spaces).
+
+With a Power I bow fully drawn, a ghast can be killed in one shot; a crossbow crit can also one-shot a ghast.
+
+The moving "eye" of a guardian corresponds to the "head" part of its model.
+
+Underwater, guardians make deep, roaring sounds, but on land, they make high-pitched squeaking sounds.
+
+Strength normally enhances only melee attacks, but in Java Edition, if a guardian is given Strength, its laser attack damage increases.
+
+When a guardian is placed on a slime block, it bounces higher and higher, reaching up to 17 blocks high.
+
+Before the texture update, the guardian texture file had the word "jeb" written in the bottom right corner.
+
+Even if a guardian is given the {NoAI:1} tag via summoning commands, its eyes will still follow the player.
+
+If a guardian is placed in a 1.5-block-high space, it can move faster.
+
+Hoglins avoid warped fungi because they dislike the smell.
+
+The name "Hoglin" was chosen by the community; hoglins were originally called "Piglin Beasts." Similarly, the ravager's name was community-chosen; it was originally called "Illager Beast."
+
+Henrik Kniberg released a video showing a joke feature where a group of hoglins, after killing piglins, would shake their heads and then stand on their hind legs to dance, similar to the piglin's "victory dance."
+
+Husks were created by Jason Mayer during a game jam.
+
+When a named large magma cube splits into smaller ones, the smaller ones retain the same name, similar to slimes.
+
+Before 18w10a, phantoms had a red-textured version that was scrapped because it looked too much like a Nether mob.
+
+In Minecraft Dungeons, the red phantom was added as a Halloween event pet in 2022.
+
+The "Creature of the Night" sketch from the mob vote had a mouth, which was scrapped because it made the phantom look like a plush toy.
+
+Phantom sounds were recorded from Samuel Åberg's young son's screams.
+
+Piglin brutes were designed late in the 1.16 development cycle; the developers didn't want to add new content just before release, so it was postponed to a later version.
+
+The piglin brute's golden arm brace is meant to provide protection, which is why they have high health.
+
+In lore, piglin brutes have poor eyesight, possibly indicated by the scar over their left eye and their smaller hostile range compared to normal piglins.
+
+Pillagers and crossbows originated from Minecraft Dungeons, even though they were first implemented in Minecraft.
+
+Pillager designs reference European pirates, and their voices have a heavy pirate accent with a hint of British English.
+
+Pillagers were added to Village & Pillage to give villagers a "true" enemy and balance the new village mechanics.
+
+Pillagers are slightly taller than other illagers and villagers.
+
+Pillagers do not clasp their arms together like villagers, witches, evokers, vindicators, or illusioners. Without a crossbow, pillagers drop their arms to their sides. If a pillager without a crossbow joins a raid, it will adopt the vindicator's attack pose; similar behavior is seen in piglins, but a pillager without a crossbow cannot attack.
+
+In Java Edition, pillagers can use tipped arrows or fireworks in their offhand.
+
+In Java Edition, the command /summon pillager ~ ~ ~ {} summons a "passive" pillager that does not actively attack any entities.
+
+In Bedrock Edition, equipping a pillager with a crossbow enchanted with Quick Charge V (via third-party editors) or higher causes the game to crash because such crossbows cannot be loaded.
+
+In Java Edition, pillagers will not load crossbows with Quick Charge VI or higher and will not attack.
+
+In Bedrock Edition, if a pillager uses a crossbow with enchantments, only Quick Charge and Piercing take effect. If a pillager has no crossbow, its arrow shooting speed becomes much faster (it can shoot arrows out of thin air).
+
+In Java Edition, if a pillager is spawned empty-handed or its crossbow durability runs out, it will pick up any type of banner (not just ominous banners) and hold it.
+
+Ravagers are inspired by the Persian mythical creature manticore, particularly referencing the manticore design from Dungeons & Dragons.
+
+When first added, ravagers would flee from rabbits, referencing the myth that elephants fear mice. This feature was later removed at Jeb's request because it "didn't fit the ravager's profile."
+
+The ravager's neck-extending attack may reference medieval siege weapons, specifically the goat's head battering ram.
+
+The ravager's roar that pushes enemies back after exiting its stun state may reference the signature enraged behavior of large monsters in the Monster Hunter series.
+
+In the April Fools version 3D Shareware v1.34, ravagers drop yellow keys.
+
+In Bedrock Edition, you can use spawn event commands to spawn ravagers with riders, e.g., /summon ravager ~ ~ ~ ~ ~ minecraft:spawn_with_pillager_rider to spawn a ravager with a pillager rider.
+
+Ravagers die from fall damage only when falling from at least 104 blocks.
+
+The Shulker's English name is a contraction of "Shell Lurker."
+
+Naming a shulker "Dinnerbone" or "Grumm" will turn it upside down, revealing the spiral pattern on its bottom. An upside-down shulker floats about 1⁄16 of a block above the ground.
+
+A shulker is a full cubic block in size, but its model is slightly smaller.
+
+When a gravity-affected block (e.g., gravel, anvil) is placed on top of a shulker, the block drops as an item.
+
+In the game's texture files, the shulker's projectile is named "spark.png."
+
+The shulker's texture file was named "endergolem.png" in version 1.9.4, and shulkers still inherit from AbstractGolem in the game files.
+
+When a player stands on a shulker's open shell, they can sneak and not fall off as if standing on a block. If the shell opens sideways, it acts like a vertical slab, and the player can stand on it without falling until the shell closes.
+
+Arrows shot at a closed shulker shell will bounce off, similar to shooting a player in Creative mode or a player holding a shield, but tipped arrow effects still apply.
+
+If there are blocks on the top and sides of a shulker, it will attach to the side block.
+
+In reality, silverfish are harmless, shrimp-like insects found in dark areas of buildings, wooden structures, and trees; they are notorious for damaging wood, paper, and clothing. They hibernate underwater in cold temperatures, resembling small stones or gravel, which mirrors their in-game ability to hide in stone.
+
+The April Fools joke Java Edition 2.0 added "Redstone Bugs," which behave like silverfish and spawn where redstone signal strength changes rapidly.
+
+If aware of a player, skeletons can shoot arrows behind them, sometimes injuring themselves.
+
+Skeletons and their variants only use bows, not crossbows.
+
+A player can obtain up to 28 experience from a large slime and all its splits: the largest gives 4 experience; the first split gives up to 8 (into 4 smaller slimes); the next split gives up to 16 (each of those splits into 4). The total is 4+8+16=28.
+
+When a named large slime splits into smaller slimes, the smaller ones keep the same name.
+
+In Java Edition, a slime with size 127 (summoned via commands) is the largest mob in the game.
+
+Tiny slimes are the weakest hostile mobs, with only 1 (♥) health and no ability to deal damage.
+
+Because slime movement speed depends on size, on flat ground, a size 8 slime can be faster than a player without status effects.
+
+When a slime checks for nearby players to attack or decides to despawn, it does not check from the outer edge of its hitbox but from the midpoint on the X and Z axes and the bottom of the Y axis. This means a custom-sized giant slime might spawn as a passive mob right in front of the player. If large enough, it might even despawn while its outer edge is less than 1 block away.
+
+In Bedrock Edition, slimes can naturally spawn on glowing obsidian, even though glowing obsidian cannot normally be placed in the world.
+
+According to Jeb, the stray concept came from a game jam held by the Bellevue team. Jason Major made a bunch of cool mobs, and Jeb thought the stray would fit well among the new mobs they were planning to add.
+
+The stray's texture shows an ice necklace, but strays do not drop any ice-related items.
+
+Strays only use bows, not crossbows, like skeletons and wither skeletons.
+
+Strays can shoot arrows of Slowness that last 30 seconds, but their drops are arrows of Slowness that last 11 seconds.
+
+According to The Minecraft Mob Encyclopedia, the vindicator's intelligence is no better than a zombie's, just with more health. Cory Scheviak once said that vindicators' AI might be a bit "derpy."
+
+According to Jeb, the design of vindicators named "Johnny" (attacking all mobs except other illagers) references the axe-wielding madman from the horror film The Shining.
+
+The concept of the warden first appeared during the Nether Update as a scrapped piglin variant: blind but sensitive to sound, spawning in a deep Nether biome, using smell to locate and try to dig up nearby gold ore.
+
+The warden's design was inspired by Lovecraftian horror, expressing mysterious, unknown fear rather than traditional jump scares.
+
+Developers view the warden as a "force of nature" rather than a boss, designed to be very strong to discourage combat. Thus, the advancements "Monster Hunter" and "Monsters Hunted" do not require killing a warden.
+
+The warden applies darkness similarly to how elder guardians apply mining fatigue.
+
+Because tamed wolves have high health (40 ♥ × 20), a warden's melee attack needs to hit twice to kill one.
+
+Although the warden is blind in lore, entering its perspective in Spectator mode still shows normal vision.
+
+If a warden is teleported away while emerging from the ground, the particle blocks it produces are still from the original emerging block.
+
+In Bedrock Edition, wardens can dig into the void floor.
+
+Although witches can spawn as part of raids, they are not illagers. Developer Cory Scheviak said they're "just hitching a ride." Thus, they do not attack villagers or wandering traders, and if they accidentally hit an illager, they will be attacked back (Bedrock Edition only).
+
+In Bedrock Edition, if a witch's splash potion hits another witch, the hit witch will fight back. However, two hostile witches are extremely difficult to kill without player intervention because they constantly drink healing potions and have magic resistance that nullifies most damage.
+
+Witches drink healing potions when injured, making suffocation and cactus damage ineffective ways to kill them.
+
+When a witch is killed without Looting, the chance for the maximum drop (6 items) is 1⁄81 (≈1.2%).
+
+When drinking potions, a witch's nose lifts and points forward. When idle, the nose wiggles slightly.
+
+When asked why witches drop sticks (which are unrelated to brewing), Dinnerbone joked that it's because witches are made of wood. He later explained that it's a reference to a scene from Monty Python and the Holy Grail.
+
+The witch is based on the Russian folklore figure Baba Yaga, whose house stands on chicken legs, and the swamp hut is designed in that style.
+
+The witch's nose has a small raised pixel that is considered a mole.
+
+Like other skeleton variants, wither skeletons do not use crossbows.
+
+The stone sword dropped by a wither skeleton can have 0 durability remaining. In Java Edition, if durability is reduced below 1, the item is destroyed, so this provides a way to obtain a stone sword with a durability value not normally achievable.
+
+The English name "Zoglin" is a contraction of "Zombified Hoglin."
+
+Before Java Edition 1.19.3 (22w45a) and Bedrock Edition 1.19.50.21, Steve and zombies wore identical clothing and had the same skin pattern.
+
+Zombies, skeletons, and creepers are the earliest hostile mobs added to the game that have not been removed.
+
+Adult zombie trial spawners can still spawn baby zombies and chicken jockey zombies, while baby zombie trial spawners only spawn baby zombies, never chicken jockeys (even if chickens are introduced nearby). Baby zombies spawned from normal trial spawners do not spawn with armor or weapons.
+
+Zombies equip armor in the order: helmet → chestplate → leggings → boots. For example, a zombie that spawns wearing leggings will always also have a helmet and chestplate.
+
+Piglins that spawn with armor have a similar property, even more pronounced.
+
+In Bedrock Edition, when a zombie villager holds a trident, the arm holding the trident droops.
+
+The Simplified Chinese and Traditional Chinese name for the Creaking, "嘎枝" (Gāzhī), is a pun blending "creaking" and "branch."
+
+The Creaking's appearance references an early warden design called "Stalker." Its asymmetrical design was intended to increase "weirdness."
+
+The three orange horizontal lines on the Creaking's face look like oddly positioned eyes and a mouth, but actually all three lines are its eyes, similar to the Watcher in Minecraft Dungeons.
+
+Happy birthday to Luo Tianyi!
+
+In lore, the Creaking is a "puppet" of the Creaking Heart, and its feet are "rooted into the ground," as seen in the root-like textures on its feet and the alternating leg movement animation.
+
+Some of the Creaking's sounds were made using teeth, twigs and leaves, squeaky chairs, tables, pretzel sticks, and knuckles.
+
+If forced to teleport to the Nether or End via commands, the Creaking dies immediately (rather than crumbling from deactivation), even if a Creaking Heart that matches its home_pos data exists and is active in that dimension. As a result, the dying Creaking still triggers wind charge, weaving, and oozing effects, but not infestation.
+
+The drowned's groaning sounds were made by sound designer Samuel Åberg gargling milk.
+
+During the day, drowned need to be in water to attack; a drowned holding a trident but out of water, even in shade, will not burn, nor will it throw the trident at targets in range.
+
+An adult drowned's head can rotate 360°.
+
+In Bedrock Edition, a drowned holding a nautilus shell uses a gesture similar to the player's, rather than keeping both arms straight out.
+
+In Bedrock Edition, when a drowned wears a helmet, the helmet appears under the drowned's texture, looking like it's worn under the scalp because the drowned's head second layer is larger than in Java Edition.
+
+In Bedrock Edition, drowned that can throw tridents are a special variant; even if they lose their trident, they can still attack with trident throws. Normal drowned, even if given a trident, cannot perform ranged attacks but will still make the throwing animation.
+
+Notch has publicly stated that endermen are a "subtle" reference to "Slenderman." They resemble the urban legend creature in appearance and name. Considering the later addition of The End, he may have already thought of the name "Enderman" rather than using suggestions from Reddit.
+
+In Java Edition, entering an enderman's perspective in Spectator mode inverts the screen colors (negative effect). In enderman vision, end stone appears like blue cobblestone, the End sky is white, obsidian pillars are white, other endermans are white creatures with green eyes, and the Ender Dragon is white.
+
+If a mob is 64–72 blocks (4–4.5 chunks) away from an angered enderman, the enderman will teleport directly to it.
+
+The purple particles of endermen are hardcoded and cannot be changed without mods.
+
+The enderman's eye texture is separate from its body texture, allowing only the eyes to glow.
+
+The enderman's jaw is actually part of its outer skin layer. Normally, it overlaps with the inner head; when angered, the head shifts upward, revealing the open mouth.
+
+In Bedrock Edition, using /playanimation to apply the enderman's scary_face animation to a drowned produces a similar effect, pulling the head away from the outer skin.
+
+The enderman teleport animation appears as a "fast movement" effect, but it is still an instantaneous teleport.
+
+Endermen can only be damaged by melee attacks or splash water bottles, as other attacks cause them to teleport away. An exception is when they cannot teleport: arrows will bounce off (Java Edition) or pass through (Bedrock Edition).
+
+Players using ender pearls or chorus fruit also play the enderman teleport sound.
+
+Because endermen can pick up and place carved pumpkins, they may accidentally build iron golems or snow golems, which will then attack the enderman.
+
+Placing a hopper under a chest to extract items does not anger nearby piglins.
+
+During bartering, an iron boot thrown by a piglin may be picked up and worn by that piglin.
+
+In Bedrock Edition, piglins that spawn holding crossbows are a separate variant; they can shoot arrows even without a crossbow. Piglins that spawn holding gold swords cannot shoot arrows even if given a crossbow.
+
+Piglin sounds were made by mixing recordings of the Swedish pig breed "Linderödssvin."
+
+If a piglin's AI is removed via command, it will still pick up and admire gold items, but it will keep admiring the item indefinitely unless attacked. It can still pick up and wear armor, and will replace it with better armor.
+
+Items obtained from bartering with piglins (like water bottles, iron items) and items found in bastion remnant chests (iron, diamond) suggest that piglins have visited the Overworld. The gold blocks and gold items in ruined portals suggest piglins are associated with them, possibly having entered the Overworld through ruined portals.
+
+The two white pixels above a piglin's head are its eyes, and the protruding red pixels below are its nose.
+
+In Java Edition, entering a spider's perspective in Spectator mode adds a reddish blur filter and gives the spider's hexavision (six eyes).
+
+Spiders actually float slightly above the ground, though it's not very noticeable.
+
+When a spider dies, it flips over onto its back, similar to real spiders and some insects, which lose control and end up upside down.
+
+The cave spider's texture has higher resolution than the normal spider because it occupies a smaller area of the texture file.
+
+The cave spider's hitbox is only 13.9% the volume of the normal spider's hitbox, but its model is 34.3% of the normal spider's size. Its shadow is larger, covering 49% of the area.
+
+Before the texture update, the zombie pigman skin file had the text "THX XAPHOBIA" written in unused space, as Notch's thanks to skin creator XaPhobia.
+
+Before Bedrock Edition 1.16.0, zombie pigmen could spawn wearing armor, and baby zombie pigmen could ride adult animals or zombies.
+
+Piglins that transform into zombified piglins retain their crossbows, but cannot shoot arrows.
+
+Zombified piglins do not naturally attack villagers, but in Java Edition, if a villager is killed by a zombified piglin, it can be infected into a zombie villager with the same probability as if killed by a zombie.
+
+Unlike piglins, zombified piglins have no right ear.
+
+In Java Edition, by repeatedly executing /tp to prevent a dying ender dragon from reaching the exit portal, the dragon cannot start its death animation.
+
+If the ender dragon's health is high enough, it can still emit beam-like effects without being near death.
+
+The ender dragon's hitbox is larger than its actual model, making it easier to hit from a distance, but also making the player easier to be pushed and knocked by the dragon.
+
+In Java Edition, players cannot normally enter the ender dragon's perspective in Spectator mode. If forced via commands, the view is located about 1 block above the dragon's body.
+
+In Java Edition, pressing F3+B shows that the ender dragon's head orientation data is opposite to its actual orientation, explaining the head orientation error in spawner dragon models.
+
+When hitboxes are shown, the ender dragon's hitbox is not always perfectly aligned with its body animation, especially during turns, which may cause players to hit the model but not the hitbox, dealing no damage.
+
+If an ender dragon is summoned in the Overworld via commands, it will fly to x=0, z=0 and circle around that point, similar to the End. Placing end crystals in the Overworld will heal the dragon normally, but the dragon will not linger around them; it will continue flying around.
+
+The ender dragon appears as a spirit in Super Smash Bros. Ultimate's Steve/Alex DLC. As a legendary spirit, it makes the player breathe fire for a long duration at the start of each battle.
+
+On Reddit, Notch used "she" to refer to the ender dragon and called her "Jean?", similar to naming the player "Steve?"
+
+When asked about the difficulty of controlling the ender dragon, Notch tweeted: "If (I) could beat it completely, it'd be too easy."
+
+According to Jeb, the wither's design was inspired by the mechanic of players summoning bosses in Terraria. The name "Wither" comes from a poison spell in Whispers in Akarra (a game Jeb made).
+
+The Simplified Chinese name "凋灵" (Diāolíng) is a portmanteau of the status effect "凋零" (wither) and "亡灵" (undead). The English name "Wither" is a double entendre, referring to both the verb "to wither" and the noun for the mob.
+
+There is a painting showing a wither spawn structure made of soul sand and wither skeleton skulls, hinting at the summoning method.
+
+If the wither takes void damage, it will frantically fire blue wither skulls.
+
+The wither's pattern appears on all four sides of carved red sandstone.
+
+In Java Edition, the wither's two smaller heads fire slightly slower. The smaller heads attack every 2–3 seconds, while the central head always attacks every 2 seconds.
+
+Minecraft: Story Mode features a monster called the "Wither Storm," whose spawning structure replaces the central soul sand with a command block.
+
+Although the wither has no visible feet, it still produces footstep sounds.
+
+In the April Fools joke version 3D Shareware v1.34 for Java Edition, the wither drops red keys.
+
+In Bedrock Edition, the wither's "wither armor" flashes between white and blue; in Java Edition, it also flashes, but only in white.
+
+The authors of the MD3 format mobs are Hayden Scott-Baron, a former Minecraft artist. After Scott-Baron left the development team in early 2010, they were removed from the game.
+
+Although MD3 files contain movement animations for these mobs, they only appear as static sliding poses in the game.
+
+Rana's design as a frog-suited character may be related to her name, as "Rana" means frog in some languages.
+
+The Ancient City is inspired by Mayan temples and ancient Roman architecture.
+
+Developers wanted the Ancient City to feel built for creatures larger than the player, hence the slightly taller steps and rooms, and a large central statue.
+
+Sometimes, the piston door in structure city_center_3 is broken: a redstone dust is misplaced in the circuit, causing the door to be normally open and only briefly close when a sculk sensor is activated.
+
+Some ruined portals are tall enough that even when partially buried, the entire structure may still be fully exposed.
+
+If a mineshaft generates at the bedrock layer, it will replace some bedrock at the top of that layer.
+
+Sometimes multiple mineshafts generate close together, and their tunnels may intersect.
+
+When subtitles are on and you are in a mineshaft area, you may see "Minecart rolls" in subtitles. This can indicate the presence of a mineshaft, and the ambient cave sounds are replaced by minecart brake noises.
+
+The center coordinate found via /locate etc. for a mineshaft is not the location of the dirt room but some arbitrary point in the tunnel system.
+
+Although strongholds do not naturally generate exposed to the surface, a canyon that cuts down to them can expose them.
+
+In strongholds, only regular stone can naturally generate as infested variants; mossy stone bricks and cracked stone bricks will not generate as infested blocks.
+
+In Java Edition, in a customized world type, stronghold walls other than the portal room may be missing, making the stronghold appear broken.
+
+In Java Edition, the axis of the initial spiral staircase in a stronghold is always at (4,4) within the chunk.
+
+Doors generated in strongholds always face toward the initial spiral staircase, which can be used to determine if you are going inward or outward.
+
+In Java Edition, projects have found seeds for all strongholds within the first ring that have active end portals in version 1.16.
+
+In Bedrock Edition, because strongholds were added before buttons, all doors in strongholds are wooden doors, and this was not changed even after buttons were added.
+
+Developers spent about 16–20 hours designing and building the Trail Ruins.
+
+The trial chamber concept began when David Carlton proposed redoing dungeons in a meeting.
+
+The trial chamber's design blends Mesoamerican architectural styles with futuristic technology.
+
+Brandon Pearce described the trial chamber's builders as "pretty tinkery."
+
+Some hidden rooms are deliberately designed in trial chambers, usually hinted by an abnormally waxed copper grate at the lowest level.
+
+The generation of the chamber_5/eruption dueling chamber is quite random; the entrance may sometimes be blocked by other structures, preventing player entry.
+
+Not all dueling chambers contain an ominous vault; chamber_1's ominous vault may be replaced by a staircase, and the pedestal dueling chamber's ominous vault may be replaced by a dispenser.
+
+Due to the narrow space in the chamber_8 dueling chamber, skeletons or their variants often accidentally hit each other and retaliate, which was the developers' intended design.
+
+When the floor dispenser in the assembly dueling chamber contains a water bucket, it will simply throw the bucket because it cannot place water.
+
+In the eruption dueling chamber, the outer ring ground is marked with waxed oxidized cut copper blocks indicating the farthest water flow distance from dispensers. Due to the influence of some auxiliary structures, this distance does not match the marking; in the predecessor chamber_5, they matched exactly.
+
+In trial chamber crossroads, pink beds generate less frequently than other colors, intentionally.
+
+The orange markings on the exterior of desert temples resemble the ankh (symbol of life) on ancient Egyptian houses.
+
+The top pyramid of a desert temple perfectly encloses a fully powered (4-layer) beacon pyramid, with the hole being the exact spot for the beacon.
+
+Because the basement has no light, hostile mobs may spawn inside and trigger the TNT trap.
+
+In most cases, the top hole of a desert temple is exposed to the surface, allowing players to enter directly, though they may take fall damage.
+
+When a desert temple generates above a canyon, it does not generate a foundation extending into the canyon like village buildings; instead, the bottom is hollow, but a floor always generates under the TNT.
+
+In Java Edition, if you use the furnace in an igloo, its light may melt the ice windows, creating water that washes away the carpet and potentially reveals the basement entrance. This is intentional.
+
+An igloo with a basement is considered a "village" because it contains villagers and beds. It also has job site blocks (a brewing stand and cauldron). A player with Bad Omen entering it will trigger a raid.
+
+Igloos may generate on cliffs or slopes, causing their normally underground portion to be exposed.
+
+In Bedrock Edition, the igloo basement is surrounded by a 1-block-wide layer of air.
+
+In Bedrock Edition, the normal villager in the left side of the igloo basement offers discounted trades, implying it was previously a zombie villager cured by the igloo's original owner. The golden apple in the chest and the weakness potion in the brewing stand are presumably for curing the zombie villager on the right.
+
+Jungle temples may generate overlapping terrain, introducing blocks like leaves inside the temple, which can cover chests or dispensers and cut redstone lines.
+
+The footprint of a jungle temple is a 15×12 rectangle.
+
+The "hut" part of a swamp hut generates at or above ground level, while the "pillars" extend downward to solid ground. If a swamp hut is partly above sea level but above a deep chasm (like a canyon), the pillars will extend all the way down.
+
+Swamp huts can sometimes overlap each other.
+
+The Pale Garden biome that generates with a woodland mansion is rarer than the mushroom field biome.
+
+Most blocks composing a woodland mansion are flammable, so lighting a fire or pouring lava inside can cause an unstoppable fire. Some mansions generate near lava lakes, which can cause them to self-ignite.
+
+The illager eyebrows in the straight staircase, curved staircase, illager head painting, and illager statue rooms have a different shape (slanted upward separately) compared to the actual illager eyebrows (which are connected inward like villagers).
+
+Based on the logic of the fake end portal room, the lava room interior may be a statue mimicking an end crystal: obsidian base, glass enclosing a core.
+
+Ocean monuments are built entirely from full blocks because waterlogging mechanics did not exist when they were added.
+
+In Java Edition, if lava seas are enabled in a customized world, ocean monuments can naturally generate in lava seas; the water that generates with the monument will turn into obsidian upon block updates, encasing the monument.
+
+Icebergs can generate above ocean monuments, causing elder guardians to suffocate.
+
+Guardians spawned by ocean monuments actively attack squids. As a result, ink sacs from dead squids are often found on the ocean surface above monuments.
+
+In Bedrock Edition, underwater ruins generate at roughly equal spacing in the X and Z directions.
+
+In Bedrock Edition, a water source block always generates above the chest; it is unclear if this is intentional.
+
+In Java Edition, shipwrecks spanning chunk boundaries may generate with different wood types on each side, and sometimes misalignment (e.g., differing heights) occurs. Old villages had similar issues.
+
+Bastion remnants and nearby nether fortresses may connect, leading to an endless battle between wither skeletons and piglins.
+
+In extremely rare cases, a nether fortress may generate with no interior rooms except for a single lava well chamber.
+
+Sometimes two or more nether fortresses generate very close together or even interwoven, creating a larger fortress.
+
+In the nether fortress lava well (not the lava well chamber), there is a 1-block gap in the nether bricks, allowing lava to flow out.
+
+Nether fossils may represent the remains of a giant creature that once lived in soul sand valleys.
+
+Although nether fossils and Overworld fossils are both fossils, nether fossils are a structure, while Overworld fossils are a feature.
+
+Some ruined portals are tall enough that even when partially buried, the entire structure may still be fully exposed.
+
+When end cities were added in 15w31a, the magenta stained glass on the end ship's deck was used to tint the beam of a beacon below. Even though the beacon was removed, the glass remained.
+
+Some end city structures resemble traditional Asian pagodas, possibly referencing the Summer Palace that Jeb visited before 15w31a was released.
+
+The banner on top of the tower has a magenta and black pattern reminiscent of the missing texture.
+
+Due to world generation structure mechanics, the structure generation point and farthest fragment cannot exceed 8 chunks, so there is a small chance an end ship generates only partially, potentially causing the elytra or dragon head to be missing.
+
+According to Jeb, initially they wanted a village population growth system that adapted to player expansion, but they found that identifying houses required heavy computation and slowed the game, so they settled on a simplified system where a door that "separates interior from exterior" counts as a house. After the Village & Pillage update, the definition of a "house" was changed to a valid bed.
+
+Before Village & Pillage, village houses and farms were filled underneath with cobblestone and dirt respectively to avoid floating. If a village generated over a canyon, this could create large cobblestone or dirt pillars in the canyon.
+
+After Village & Pillage, village buildings generate with a roughly rectangular platform of blocks below them (block type depends on nearby terrain). This often makes the terrain look unnatural in rugged landscapes.
+
+In rare cases, you can find a village with just a single house or even just one job site (a building with a job site block).
+
+The new plains village closely resembles the pre-Village & Pillage village, especially retaining the old church and blacksmith designs.
+
+In rare cases, underwater ruins can generate within a village, causing the drowneds that spawn with the ruins to attack villagers.
+
+There is space between the interior ceiling and the wooden roof of a blacksmith's house, allowing mobs to spawn inside.
+
+Snowy villages contain a small house very similar to an igloo, but without carpet, crafting table, furnace, or basement. An actual igloo may also generate in a village, easily overlooked. During a raid, a surviving cleric villager in the igloo basement could potentially cause the raid to fail.
+
+Villages do not have jungle or swamp biome variants, possibly because vines and seagrass would interfere with villager pathfinding.
+
+Although villages do not naturally generate in jungles or swamps, villagers with jungle or swamp appearance can still spawn naturally when a village generates on the border of such biomes.
+
+It is possible for a village to generate on the border of two or more biomes but only use the building style of one.
+
+The original inhabitants of villages were pigmen, whose later design concepts were used for piglins.
+
+PCL CE is developed by PCL-Community based on the official PCL, and has no affiliation with LTCat(龙腾猫跃).
+
+PCL CE supports importing HMCL archives.
+
+PCL CE is developed by PCL-Community, but PCL-Community develops more than just PCL CE.
+
+PCL CE stands for Plain Craft Launcher Community Edition.
+
+Your Minecraft downloads are so fast thanks to bangbang93's BMCLAPI!
+
+PCL CE can directly update the Minecraft game and mod loaders from the "Instance Settings - Modify" tab.
+
+PCL CE supports Gaussian blur.
+
+PCL CE supports dynamic backgrounds.
+
+According to official edition statistics, 94.5% of users clicked on the "Do not click" button (don't even think about it; this community edition doesn't have that).
+
+PCL CE has implemented some of the official PCL's toolbox features, such as memory optimization, daily luck, game cache cleaning, high-speed download, and more community-developed tools.
+
+PCL CE supports log viewing and exporting, making it easy for users to submit detailed logs when reporting bugs.
+
+PCL CE supports using Mirror酱 to accelerate updates.
+
+PCL CE supports dark mode, so your eyes won't be blinded when sneaking in some Minecraft gaming at night.
+
+PCL CE supports all drag-and-drop operations from the official version; you can directly drag and drop modpacks or mods to install.
+
+PCL CE has its own user group, but you need to be able to open GitHub to know the group number.
+
+When the game crashes, never just send a screenshot! Always send the log!! Without the log, even God wouldn't know how to fix it!!!
+
+Alt+F4 closes the window, it's not diamonds or a gift pack!
+
+Most of the PCL CE development team are students, so updates might be a bit slow.
+
+PCL CE supports checking server status in "Instance Settings - Server" or "Tools - Toolbox - Peek at Server", so you can see if your favorite server is online without entering the game.
+
+PCL CE allows save backups in "Instance Settings - Saves - Details - Backup".
+
+PCL CE allows modifying save game difficulty, command permission, and difficulty lock in "Instance Settings - Saves - Details".
+
+PCL CE supports translating mod descriptions.
+
+PCL CE's multiplayer feature uses EasyTier for P2P hole punching.
+
+PCL CE can upgrade a game instance's Authlib during installation to fix Minecraft 1.16.5's multiplayer issues.
+
+Press F12 to temporarily re-display hidden settings.
+
+PCL CE supports changing fonts.
+
+PCL CE supports changing the game's process priority. With proper settings, the game won't compete for CPU while idling, nor will other programs compete while you play.
+
+Do not run PCL CE as administrator unless necessary; this causes various permission issues and breaks system-level interactions such as drag-and-drop!
+
+Hover your mouse over some text in the settings to see a detailed explanation of that setting.
+
+LostInTianyi!
+
+Luo Tianyi's birthday is July 12th every year.
+
+Follow Luo Tianyi, thank you meow!
+
+Hatsune Miku's birthday is August 31st every year.
+
+Hatsune Miku's Japanese voice provider is Saki Fujita.
+
+Hatsune Miku's representative color is #39C5BB.

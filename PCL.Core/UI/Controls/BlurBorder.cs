@@ -175,14 +175,14 @@ public class BlurBorder : Border
         if (drawingVisual.Drawing is not null)
         {
             var layoutClip = CalculateLayoutClip(RenderSize, BorderThickness, CornerRadius);
-            if (layoutClip != null)
+            if (layoutClip is not null)
             {
                 dc.PushClip(layoutClip);
             }
 
             BackgroundPresenter.DrawVisual(dc, drawingVisual, default);
 
-            if (layoutClip != null)
+            if (layoutClip is not null)
             {
                 dc.Pop();
             }

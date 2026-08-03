@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -40,8 +41,9 @@ public sealed class Logger : IAsyncDisposable
 
     private void _CreateNewFile()
     {
-        var nameFormat = (Configuration.FileNameFormat ?? $"Launch-{DateTime.Now:yyyy-M-d}-{{0}}") + ".log";
-        var filename = nameFormat.Replace("{0}", $"{DateTime.Now:HHmmssfff}");
+        var now = DateTime.Now;
+        var nameFormat = (Configuration.FileNameFormat ?? $"Launch-{now.ToString("yyyy-M-d", CultureInfo.InvariantCulture)}-{{0}}") + ".log";
+        var filename = nameFormat.Replace("{0}", now.ToString("HHmmssfff", CultureInfo.InvariantCulture));
         var filePath = Path.Combine(Configuration.StoreFolder, filename);
         _files.Add(filePath);
         var lastWriter = _currentStream;
@@ -53,14 +55,14 @@ public sealed class Logger : IAsyncDisposable
 
         _ = Task.Run(async () =>
         {
-            if (lastWriter != null)
+            if (lastWriter is not null)
                 try
                 {
                     await lastWriter.DisposeAsync().ConfigureAwait(false);
                 }
                 catch (Exception) { /* Don't care */ }
 
-            if (lastFile != null)
+            if (lastFile is not null)
                 try
                 {
                     await lastFile.DisposeAsync().ConfigureAwait(false);
@@ -150,7 +152,7 @@ public sealed class Logger : IAsyncDisposable
         catch (Exception e)
         {
             // 出错了先干到标准输出流中吧 Orz
-            Console.WriteLine($"[{_GetTimeFormatted()}] [ERROR] An error occured while processing log queue: {e.Message}");
+            Console.WriteLine($"[{_GetTimeFormatted()}] [ERROR] An error occurred while processing log queue: {e.Message}");
             throw;
         }
     }
@@ -168,7 +170,7 @@ public sealed class Logger : IAsyncDisposable
         }
         catch (Exception e)
         {
-            Console.WriteLine($"[{_GetTimeFormatted()}] [ERROR] An error occured while writing log file: {e.Message}");
+            Console.WriteLine($"[{_GetTimeFormatted()}] [ERROR] An error occurred while writing log file: {e.Message}");
             await File.AppendAllTextAsync(Path.Combine(Configuration.StoreFolder, "Error.log"), $"[{_GetTimeFormatted}] LogCycle Error: {e}\n");
             throw;
         }
@@ -183,9 +185,9 @@ public sealed class Logger : IAsyncDisposable
         _logChannel.Writer.Complete();
         await _processingTask.ConfigureAwait(false);
 
-        if (_currentStream != null)
+        if (_currentStream is not null)
             await _currentStream.DisposeAsync().ConfigureAwait(false);
-        if (_currentFile != null)
+        if (_currentFile is not null)
             await _currentFile.DisposeAsync().ConfigureAwait(false);
     }
 }

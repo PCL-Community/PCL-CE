@@ -1,9 +1,10 @@
+using System.Buffers.Binary;
+using PCL.Core.App.Localization;
 using PCL.Core.Link.McPing.Model;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -49,6 +50,13 @@ public class McPingService : IMcPingService
         _timeout = timeout;
     }
 
+    public McPingService(string host, IPEndPoint endpoint, int timeout = DefaultTimeout)
+    {
+        _endpoint = endpoint;
+        _host = host;
+        _timeout = timeout;
+    }
+
     /// <summary>
     /// 执行现代Minecraft协议的服务器探测
     /// </summary>
@@ -67,7 +75,7 @@ public class McPingService : IMcPingService
         }
         catch (OperationCanceledException)
         {
-            LogWrapper.Error(new TimeoutException("连接超时"), ModuleName, $"Failed to connect to the {_endpoint}");
+            LogWrapper.Error(new TimeoutException(Lang.Text("Tools.ServerQuery.Error.Timeout.Connect")), ModuleName, $"Failed to connect to the {_endpoint}");
             return null;
         }
         catch (Exception e)
@@ -82,8 +90,8 @@ public class McPingService : IMcPingService
         var handshakePacket = _BuildHandshakePacket(_host, _endpoint.Port);
         var statusPacket = _BuildStatusRequestPacket();
 
-        using var res = new MemoryStream();
-        var watcher = new Stopwatch();
+        byte[]? statusPayload;
+        long latency = 0;
         try
         {
             await stream.WriteAsync(handshakePacket, linkedCts.Token);
@@ -92,24 +100,17 @@ public class McPingService : IMcPingService
             await stream.WriteAsync(statusPacket, linkedCts.Token);
             LogWrapper.Debug(ModuleName, $"Status sent, packet length: {statusPacket.Length}");
 
-            var buffer = new byte[4096];
-            watcher.Start();
+            var pingTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var pingPacket = _BuildPingRequestPacket(pingTimestamp);
+            
+            await stream.WriteAsync(pingPacket, linkedCts.Token);
+            LogWrapper.Debug(ModuleName, $"Ping sent, packet length: {pingPacket.Length}");
 
-            var totalLength = Convert.ToInt64(await VarIntHelper.ReadFromStreamAsync(stream, linkedCts.Token));
-            watcher.Stop();
-            LogWrapper.Debug(ModuleName, $"Total length: {totalLength}");
-
-            long readLength = 0;
-            while (readLength < totalLength)
-            {
-                var curReaded = await stream.ReadAsync(buffer, linkedCts.Token);
-                readLength += curReaded;
-                await res.WriteAsync(buffer, 0, curReaded, linkedCts.Token);
-            }
+            (statusPayload, latency) = await _ReadStatusPayloadAsync(stream, linkedCts.Token);
         }
         catch (OperationCanceledException)
         {
-            LogWrapper.Error(new TimeoutException("数据读写超时"), "McPing", $"Operation timed out on {_endpoint}");
+            LogWrapper.Error(new TimeoutException(Lang.Text("Tools.ServerQuery.Error.Timeout.ReadWrite")), "McPing", $"Operation timed out on {_endpoint}");
             return null;
         }
         catch (Exception e)
@@ -124,14 +125,10 @@ public class McPingService : IMcPingService
 
         so.Close();
 
-        var retBinary = res.ToArray();
-        var dataLength =
-            Convert.ToInt32(VarIntHelper.Decode(retBinary.Skip(1).ToArray(), out var packDataHeaderLength));
-        LogWrapper.Debug(ModuleName, $"ServerDataLength: {dataLength}");
-        if (dataLength > retBinary.Length) throw new Exception("The server data is too large");
-        var retCtx = Encoding.UTF8.GetString(retBinary.Skip(1 + packDataHeaderLength).Take(dataLength).ToArray());
+        if (statusPayload is null || statusPayload.Length == 0) throw new InvalidDataException(Lang.Text("Tools.ServerQuery.State.NoInfo"));
+        var retCtx = Encoding.UTF8.GetString(statusPayload);
 
-        var retJson = JsonNode.Parse(retCtx) ?? throw new NullReferenceException("服务器返回了错误的信息");
+        var retJson = JsonCompat.ParseNode(retCtx) ?? throw new NullReferenceException(Lang.Text("Tools.ServerQuery.Error.InvalidResponse"));
 #if DEBUG
         var resJsonDebug = retJson.DeepClone();
         if (resJsonDebug is JsonObject jsonObject && jsonObject.ContainsKey("favicon"))
@@ -147,13 +144,13 @@ public class McPingService : IMcPingService
             retJson["description"] = _ConvertJNodeToMcString(descObj);
         }
 
-        var response = JsonSerializer.Deserialize<McPingResult>(retJson);
-        if (response?.Version == null)
-            throw new NullReferenceException("服务器返回了错误的字段，缺失: version");
+        var response = JsonSerializer.Deserialize<McPingResult>(retJson, JsonCompat.SerializerOptions);
+        if (response?.Version is null)
+            throw new NullReferenceException(Lang.Text("Tools.ServerQuery.Error.InvalidResponse"));
 
         response = response with
         {
-            Latency = watcher.ElapsedMilliseconds
+            Latency = latency
         };
 
         return response;
@@ -178,7 +175,7 @@ public class McPingService : IMcPingService
         handshake.AddRange(VarIntHelper.Encode(0)); //状态头 表明这是一个握手包
         handshake.AddRange(VarIntHelper.Encode(772)); //协议头 表明请求客户端的版本
         var binaryIp = Encoding.UTF8.GetBytes(serverIp);
-        if (binaryIp.Length > 255) throw new Exception("服务器地址过长");
+        if (binaryIp.Length > 255) throw new Exception(Lang.Text("Tools.ServerQuery.Error.AddressTooLong"));
         handshake.AddRange(VarIntHelper.Encode((uint)binaryIp.Length)); //服务器地址长度
         handshake.AddRange(binaryIp); //服务器地址
         handshake.AddRange(BitConverter.GetBytes((ushort)serverPort).AsEnumerable().Reverse()); //服务器端口
@@ -196,9 +193,87 @@ public class McPingService : IMcPingService
         return statusRequest.ToArray();
     }
 
+    private byte[] _BuildPingRequestPacket(long timestamp)
+    {
+        List<byte> pingRequest = [];
+        // Packet ID 使用值为 1 的 VarInt 编码和 8 字节的 long 时间戳
+        pingRequest.AddRange(VarIntHelper.Encode(9));
+        pingRequest.AddRange(VarIntHelper.Encode(1));
+        pingRequest.AddRange(BitConverter.GetBytes(timestamp).AsEnumerable().Reverse());
+        return pingRequest.ToArray();
+    }
+
+    private async Task<(byte[] StatusPayload, long Latency)> _ReadStatusPayloadAsync(Stream stream, CancellationToken cancellationToken)
+    {
+        byte[]? statusPayload = null;
+        long? latency = null;
+
+        try
+        {
+            while (statusPayload is null || latency is null)
+            {
+                var packetLength = checked((int)await VarIntHelper.ReadFromStreamAsync(stream, cancellationToken));
+                LogWrapper.Debug(ModuleName, $"Packet length: {packetLength}");
+                if (packetLength <= 0) throw new InvalidDataException(Lang.Text("Tools.ServerQuery.Error.EmptyPacket"));
+
+                var packetData = await _ReadExactAsync(stream, packetLength, cancellationToken);
+                using var packetStream = new MemoryStream(packetData, writable: false);
+                var packetId = checked((int)await VarIntHelper.ReadFromStreamAsync(packetStream, cancellationToken));
+                LogWrapper.Debug(ModuleName, $"Packet id: {packetId}");
+
+                switch (packetId)
+                {
+                    case 0:
+                        var jsonLength = checked((int)await VarIntHelper.ReadFromStreamAsync(packetStream, cancellationToken));
+                        statusPayload = await _ReadExactAsync(packetStream, jsonLength, cancellationToken);
+                        if (packetStream.Position != packetStream.Length)
+                            LogWrapper.Warn(ModuleName, $"Status packet contains {packetStream.Length - packetStream.Position} trailing bytes.");
+                        break;
+
+                    case 1:
+                        var pongData = await _ReadExactAsync(packetStream, 8, cancellationToken);
+                        if (packetStream.Position != packetStream.Length)
+                            LogWrapper.Warn(ModuleName, $"Pong packet contains {packetStream.Length - packetStream.Position} trailing bytes.");
+                        latency = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - _ReadInt64BigEndian(pongData);
+                        break;
+
+                    default:
+                        LogWrapper.Warn(ModuleName, $"Ignore unexpected packet type: {packetId}");
+                        break;
+                }
+            }
+        }
+        catch (EndOfStreamException ex)
+        {
+            if (statusPayload is not null && latency is null)
+                throw new EndOfStreamException(Lang.Text("Tools.ServerQuery.Error.StaleConnection"), ex);
+
+            if (statusPayload is null)
+                throw new EndOfStreamException(Lang.Text("Tools.ServerQuery.Error.IncompleteConnection"), ex);
+
+            throw;
+        }
+
+        return (statusPayload, latency.Value);
+    }
+
+    private static long _ReadInt64BigEndian(byte[] data)
+    {
+        return data.Length != 8
+            ? throw new ArgumentException(Lang.Text("Tools.ServerQuery.Error.PongDataLength"), nameof(data))
+            : BinaryPrimitives.ReadInt64BigEndian(data);
+    }
+
+    private static async Task<byte[]> _ReadExactAsync(Stream stream, int length, CancellationToken cancellationToken)
+    {
+        var buffer = new byte[length];
+        await stream.ReadExactlyAsync(buffer, cancellationToken);
+        return buffer;
+    }
+
     private static string _ConvertJNodeToMcString(JsonNode? jsonNode)
     {
-        if (jsonNode == null) return string.Empty;
+        if (jsonNode is null) return string.Empty;
         StringBuilder result = new();
         Stack<JsonNode> stack = new();
         stack.Push(jsonNode);
@@ -218,7 +293,7 @@ public class McPingService : IMcPingService
                         if (obj.TryGetPropertyValue("extra", out var extraNode) && extraNode is JsonArray extraArray)
                             // 逆序压栈保证原始顺序
                             for (var i = extraArray.Count - 1; i >= 0; i--)
-                                if (extraArray[i] != null)
+                                if (extraArray[i] is not null)
                                     stack.Push(extraArray[i]!);
                         // 检查并处理 text 属性
                         if (obj.TryGetPropertyValue("text", out _))
@@ -250,7 +325,7 @@ public class McPingService : IMcPingService
                         var jArr = current.AsArray();
                         // LogWrapper.Debug("McPing",$"Treat {array} as JArray");
                         for (var i = jArr.Count - 1; i >= 0; i--)
-                            if (jArr[i] != null)
+                            if (jArr[i] is not null)
                                 stack.Push(jArr[i]!);
                         break;
                     }

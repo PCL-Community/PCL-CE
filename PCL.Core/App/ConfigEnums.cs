@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.App;
+namespace PCL.Core.App;
 
 /// <summary>
 /// 联机协议偏好
@@ -59,7 +59,9 @@ public enum GameProcessPriority
 {
     AboveNormal = 0,
     Normal = 1,
-    BelowNormal = 2
+    BelowNormal = 2,
+    High = 3,
+    RealTime = 4
 }
 
 /// <summary>

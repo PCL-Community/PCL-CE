@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.Utils.Codecs;
+namespace PCL.Core.Utils.Codecs;
 
 using System;
 using System.Text;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace PCL.Core.Logging;
 
@@ -33,6 +33,8 @@ public static class LogWrapper
     // Debug
     public static void Debug(string? module, string msg) => OnLog?.Invoke(LogLevel.Debug, msg, module);
     public static void Debug(string msg) => Debug(null, msg);
+
+    public static void Debug(Exception ex, string module, string message) => Debug(module, $"{message}: {ex.ToString()}");
 
     // Trace
     public static void Trace(string? module, string msg) => OnLog?.Invoke(LogLevel.Trace, msg, module);

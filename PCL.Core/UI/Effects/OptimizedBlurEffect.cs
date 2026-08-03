@@ -157,13 +157,13 @@ public sealed class OptimizedBlurEffect : Freezable
     /// </summary>
     public WriteableBitmap? ApplyBlur(BitmapSource? source)
     {
-        if (source == null || Radius < 0.5)
+        if (source is null || Radius < 0.5)
             return null;
 
         lock (_renderLock)
         {
             var currentSize = new Size(source.PixelWidth, source.PixelHeight);
-            var needsRerender = _cachedResult == null ||
+            var needsRerender = _cachedResult is null ||
                                 !Size.Equals(_lastRenderSize, currentSize) ||
                                 Math.Abs(_lastRadius - Radius) > 0.1 ||
                                 Math.Abs(_lastSamplingRate - SamplingRate) > 0.05;
@@ -190,7 +190,7 @@ public sealed class OptimizedBlurEffect : Freezable
     /// </summary>
     public WriteableBitmap? RenderBlurredBitmap(Visual? visual, Size size)
     {
-        if (visual == null || size.Width <= 0 || size.Height <= 0)
+        if (visual is null || size.Width <= 0 || size.Height <= 0)
             return null;
 
         try

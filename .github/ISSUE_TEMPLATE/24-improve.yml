@@ -1,0 +1,49 @@
+name: "[新版] 优化建议 / [New Version] Improvement Suggestion"
+description: "对新版 PCL CE 已有功能的小幅度优化或改进建议 / Suggest a minor improvement to an existing feature in the new PCL CE version."
+title: "[C#]: "
+type: "优化"
+body:
+  - type: markdown
+    id: "desc"
+    attributes:
+      value: |
+        ## 感谢参与 PCL CE 新版本测试！
+        请注意您目前正在提交和新版本有关的优化建议。
+        由于我们目前不受理针对旧版本的优化建议，如果您使用的不是新版本 (2.15.x)，
+        您可以尝试更新到 2.15.x 版本 (Beta 渠道)，或是在晚一些 2.15.0 推送到正式版之后再来提交反馈
+        
+        ## Thank you for testing the new PCL CE version!
+        Please note that you are submitting an improvement suggestion for the new version.
+        Since we currently do not accept improvement suggestions for the legacy version, if you are not using the new version (2.15.x), you can update to 2.15.x on the Beta channel, or submit feedback after 2.15.0 is released to the stable channel.
+  - type: checkboxes
+    id: "yml-1"
+    attributes:
+      label: "检查项 / Checklist"
+      description: "请逐个检查下列项目，并勾选确认 / Please review each item below and check the boxes to confirm."
+      options:
+        - label: "我已在 [Issues 页面](https://github.com/PCL-Community/PCL-CE/issues?q=is%3Aissue+) 中搜索，确认了这一建议未在社区版被提交过 / I have searched the [Issues page](https://github.com/PCL-Community/PCL-CE/issues?q=is%3Aissue+) and confirmed that this suggestion has not been submitted to the Community Edition yet."
+          required: true
+        - label: "我确认只是全部选中而没有[仔细确认](https://github.com/PCL-Community/PCL-CE/issues?q=is%3Aissue+)就直接提交了这个 Issue，并且同意这个 Issue 可以直接被关闭 / I confirm that I checked all boxes without carefully reading them, and agree that this issue may be closed directly."
+          required: false
+        - label: "我确认我所描述的改进是现实的、有理有据的，而不是我临时起意的 / I confirm that the improvement I describe is realistic, reasonable, and well-justified, rather than something I came up with on a whim."
+          required: true
+        - label: "我已知悉社区不对这类 Issue 的完成时间作出任何保证，并有足够的耐心等待社区开发者的处理，同时已知悉如果我作出催促、质问或类似的举动，这个 Issue 可能会被直接关闭 / I understand that the community does not guarantee any completion time for this type of issue, and I am willing to wait patiently for the community developers' review and handling. I also understand that excessive urging, demanding, or similar behavior may result in this issue being closed."
+          required: true
+  - type: textarea
+    id: "yml-2"
+    attributes:
+      label: 描述 / Description
+      description: "详细描述具体需要优化哪些地方，要改成怎样的 / Describe in detail what needs to be improved and how it should be changed."
+    validations:
+      required: true
+  - type: textarea
+    id: "yml-3"
+    attributes:
+      label: 原因 / Reason
+      description: "详细描述你为什么需要这项优化，这有助于开发者评估它的优先度 / Explain why this improvement is needed. This helps developers evaluate its priority."
+      placeholder: |
+        示例 / Example：
+        这项优化让我可以更方便地 xxxx / This improvement would make it easier for me to xxxx.
+        如果没有这项优化，我每次都必须 xxxx，让操作变得很麻烦 / Without this improvement, I have to xxxx every time, making the process cumbersome.
+    validations:
+      required: false

@@ -1,4 +1,4 @@
-﻿using System.Net.Sockets;
+using System.Net.Sockets;
 
 namespace PCL.Core.IO.Net;
 

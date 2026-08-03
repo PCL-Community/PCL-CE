@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using FluentValidation;
 using FluentValidation.Results;
@@ -14,14 +14,14 @@ public class FolderPathValidator(bool useMinecraftCharCheck) : FileSystemValidat
     {
     }
 
-    private void BuildRules()
+    private void _BuildRules()
     {
         RuleFor(x => x)
             .NotEmpty().WithMessage("输入内容不能为空！")
             .Must(x => !x.EndsWith(' ')).WithMessage("文件夹名不能以空格结尾！")
             .Must(x => !x.EndsWith('.')).WithMessage("文件夹名不能以小数点结尾！");
 
-        RuleForEach(x => GetSubPaths(x))
+        RuleForEach(x => _GetSubPaths(x))
             .Must(x => !string.IsNullOrWhiteSpace(x)).WithMessage("文件夹路径存在错误！")
             .Must(x => !x.StartsWith(' ')).WithMessage("文件夹名不能以空格开头！")
             .Must(x => !x.EndsWith(' ')).WithMessage("文件夹名不能以空格结尾！")
@@ -29,7 +29,7 @@ public class FolderPathValidator(bool useMinecraftCharCheck) : FileSystemValidat
             .Custom((fileName, context) => 
             {
                 var invalidChar = CheckInvalidStrings(fileName, UseMinecraftCharCheck ? ["!;"] : []);
-                if (invalidChar != null)
+                if (invalidChar is not null)
                 {
                     context.AddFailure($"文件夹名不可包含 {invalidChar} 字符！");
                 }
@@ -37,7 +37,7 @@ public class FolderPathValidator(bool useMinecraftCharCheck) : FileSystemValidat
             .Custom((fileName, context) => 
             {
                 var reservedWord = CheckReservedWord(fileName, []);
-                if (reservedWord != null)
+                if (reservedWord is not null)
                 {
                     context.AddFailure($"文件夹名不可为 {reservedWord}！");
                 }
@@ -48,11 +48,11 @@ public class FolderPathValidator(bool useMinecraftCharCheck) : FileSystemValidat
     
     protected override bool PreValidate(ValidationContext<string> context, ValidationResult result)
     {
-        BuildRules();
+        _BuildRules();
         return base.PreValidate(context, result);
     }
     
-    private static string[] GetSubPaths(string path)
+    private static string[] _GetSubPaths(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
         {

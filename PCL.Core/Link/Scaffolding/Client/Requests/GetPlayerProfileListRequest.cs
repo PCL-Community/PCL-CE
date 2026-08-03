@@ -5,12 +5,13 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using PCL.Core.Link.Scaffolding.Client.Abstractions;
 using PCL.Core.Link.Scaffolding.Client.Models;
+using PCL.Core.Utils;
 
 namespace PCL.Core.Link.Scaffolding.Client.Requests;
 
 public sealed class GetPlayerProfileListRequest : IRequest<IReadOnlyList<PlayerProfile>>
 {
-    private static readonly JsonSerializerOptions _JsonOptions = new()
+    private static readonly JsonSerializerOptions _JsonOptions = new(JsonCompat.SerializerOptions)
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull

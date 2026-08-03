@@ -34,7 +34,7 @@ public class RpcResponse
     public RpcResponse(RpcResponseStatus status, RpcResponseType type = RpcResponseType.Empty, string? content = null,
         string? name = null)
     {
-        if (content != null && type == RpcResponseType.Empty)
+        if (content is not null && type == RpcResponseType.Empty)
             throw new ArgumentException("Empty response with non-null content");
         Status = status;
         Type = type;
@@ -46,9 +46,9 @@ public class RpcResponse
     // [content]
     public void Response(StreamWriter writer)
     {
-        var nameArea = Name == null ? "" : $" {Name}";
+        var nameArea = Name is null ? "" : $" {Name}";
         writer.WriteLine($"{Status.ToString().ToUpperInvariant()} {Type.ToString().ToLowerInvariant()}{nameArea}");
-        if (Content != null)
+        if (Content is not null)
             writer.WriteLine(Content);
     }
 

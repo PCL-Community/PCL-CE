@@ -132,11 +132,11 @@ public sealed class AdaptiveBlurEffect : ShaderEffect
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static void _EnsureShaderInitialized()
     {
-        if (_cachedShader != null) return;
+        if (_cachedShader is not null) return;
 
         lock (_ShaderLock)
         {
-            if (_cachedShader == null)
+            if (_cachedShader is null)
             {
                 try
                 {

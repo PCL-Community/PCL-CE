@@ -1,7 +1,7 @@
 using System;
 using System.Net.Http;
 
-namespace PCL.Core.IO.Net.Http.Client.Request;
+namespace PCL.Core.IO.Net.Http;
 
 public static class HttpBasicExtension
 {

@@ -1,4 +1,4 @@
-﻿using PCL.Core.Logging;
+using PCL.Core.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,7 +26,7 @@ public class WhereCommandScanner : IJavaScanner
             };
 
             using var proc = Process.Start(psi);
-            if (proc == null) return;
+            if (proc is null) return;
 
             var output = proc.StandardOutput.ReadToEnd();
             proc.WaitForExit();

@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.App.Tasks;
+namespace PCL.Core.App.Tasks;
 
 public enum TaskState
 {

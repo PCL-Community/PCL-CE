@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
@@ -21,7 +21,7 @@ public static class StringConvertExtension
 
         if (value is null)
         {
-            if (!targetType.IsValueType || Nullable.GetUnderlyingType(targetType) != null) return null;
+            if (!targetType.IsValueType || Nullable.GetUnderlyingType(targetType) is not null) return null;
             return Activator.CreateInstance(targetType);
         }
 
@@ -42,7 +42,7 @@ public static class StringConvertExtension
 
         if (targetType.IsEnum) return Enum.Parse(targetType, value, ignoreCase: true);
 
-        var parse = targetType.GetMethod("Parse", 
+        var parse = targetType.GetMethod("Parse",
             BindingFlags.Public | BindingFlags.Static,
             binder: null, types: [typeof(string)], modifiers: null);
         if (parse is not null) return parse.Invoke(null, [value]);
@@ -62,7 +62,7 @@ public static class StringExtension
 {
     public static string? ConvertToString(object? obj)
     {
-        if (obj == null) return null;
+        if (obj is null) return null;
         if (obj is string s) return s;
 
         var converter = TypeDescriptor.GetConverter(obj.GetType());
@@ -171,7 +171,7 @@ public static class StringExtension
 
     extension(string input)
     {
-          
+
         public T ParseToEnum<T>() where T : struct, Enum
         {
             if (String.IsNullOrWhiteSpace(input))
@@ -228,7 +228,7 @@ public static class StringExtension
         /// <returns>替换后的文本</returns>
         [return: NotNullIfNotNull(nameof(input))]
         public string? Replace(Regex regex, string replacement)
-            => input == null ? null : regex.Replace(input, replacement);
+            => input is null ? null : regex.Replace(input, replacement);
 
         /// <summary>
         /// 判断指定文本是否能成功匹配正则表达式。
@@ -236,7 +236,7 @@ public static class StringExtension
         /// <param name="regex">正则表达式</param>
         /// <returns>若匹配成功则为 <c>true</c>，若文本为 <c>null</c> 或匹配不成功则为 <c>false</c></returns>
         public bool IsMatch(Regex regex)
-            => input != null && regex.IsMatch(input);
+            => input is not null && regex.IsMatch(input);
     }
 
     extension(string str)
@@ -282,5 +282,11 @@ public static class StringExtension
 
         public int LastIndexOfF(string subStr, int startIndex, bool ignoreCase = false)
             => str.LastIndexOf(subStr, startIndex, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+    }
+
+    extension(string hex)
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public byte[] HexToBytes() => Convert.FromHexString(hex);
     }
 }

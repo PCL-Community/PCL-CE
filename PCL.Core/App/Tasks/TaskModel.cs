@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -49,7 +48,7 @@ public partial class TaskModel : ObservableObject
     /// </summary>
     public RelayCommand Cancel
     {
-        get => field ??= new RelayCommand(OnCancel ?? _EmptyAction, () => OnCancel != null);
+        get => field ??= new RelayCommand(OnCancel ?? _EmptyAction, () => OnCancel is not null);
     } = null!;
 
     /// <summary>
@@ -62,7 +61,7 @@ public partial class TaskModel : ObservableObject
     /// </summary>
     public RelayCommand Pause
     {
-        get => field ??= new RelayCommand(OnPause ?? _EmptyAction, () => OnPause != null);
+        get => field ??= new RelayCommand(OnPause ?? _EmptyAction, () => OnPause is not null);
     } = null!;
 
     /// <summary>

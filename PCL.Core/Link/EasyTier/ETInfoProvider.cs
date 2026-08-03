@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -8,8 +8,8 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using PCL.Core.App;
-using PCL.Core.IO;
 using PCL.Core.Logging;
+using PCL.Core.Utils;
 
 namespace PCL.Core.Link.EasyTier;
 // ReSharper disable InconsistentNaming, CompareOfFloatsByEqualityOperator
@@ -97,17 +97,17 @@ public static class ETInfoProvider
     {
         var retryCount = 0;
         var process = ETController.ETProcess;
-        while (process == null && retryCount < 10)
+        while (process is null && retryCount < 10)
         {
             await Task.Delay(1000);
             retryCount++;
         }
-        if (process != null)
+        if (process is not null)
         {
             while (ETController.Status != ETState.Ready)
             {
                 var info = GetPlayerList().Item1?[0];
-                if (info == null)
+                if (info is null)
                 {
                     await Task.Delay(1000);
                     continue;
@@ -142,12 +142,12 @@ public static class ETInfoProvider
 
             var playerList = new List<ETPlayerInfo>();
             ETPlayerInfo? localInfo = null;
-            if (JsonNode.Parse(output) is not JsonArray json)
+            if (JsonCompat.ParseNode(output) is not JsonArray json)
                 return new Tuple<List<ETPlayerInfo>?, ETPlayerInfo?>(null, null);
             foreach (var p in json)
             {
-                var info = p.Deserialize<ETPeerInfo>();
-                if (info == null) { continue; }
+                var info = p.Deserialize<ETPeerInfo>(JsonCompat.SerializerOptions);
+                if (info is null) { continue; }
                 if (info.Hostname.StartsWith("PublicServer")) { continue; } // 服务器
                 var hostnameSplit = info.Hostname.Split('|');
                 var playerInfo = new ETPlayerInfo

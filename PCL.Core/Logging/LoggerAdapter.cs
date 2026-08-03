@@ -118,7 +118,7 @@ public class LoggerAdapter(Logger logger, string categoryName) : ILogger
                 break;
         }
 
-        if (exception != null)
+        if (exception is not null)
         {
             var exceptionMessage = $"Exception: {exception}";
             _innerLogger.Log($"[{_categoryName}] {exceptionMessage}");
@@ -128,7 +128,7 @@ public class LoggerAdapter(Logger logger, string categoryName) : ILogger
     private string _BuildScopeContext()
     {
         var stack = _ScopeStack.Value;
-        if (stack == null || stack.Count == 0)
+        if (stack is null || stack.Count == 0)
             return string.Empty;
 
         var scopes = stack.AsEnumerable().Reverse();

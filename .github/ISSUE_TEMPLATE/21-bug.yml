@@ -1,0 +1,67 @@
+name: "[新版] 综合 Bug 反馈 / [New] General Bug Report"
+description: "遇见了与新版 PCL CE 启动器功能相关的 Bug / Report a bug related to launcher features in the new PCL CE version"
+title: "[C#]: "
+type: "Bug"
+body:
+  - type: markdown
+    id: "desc"
+    attributes:
+      value: |
+        ## 感谢参与 PCL CE 新版本测试！
+        请注意您目前正在提交和新版本有关的综合 Bug 反馈。
+        如果您使用的不是新版本 (2.15.x)，请到 [旧版综合 Bug 反馈区](https://github.com/PCL-Community/PCL-CE/issues/new?template=1-bug.yml) 提交反馈。
+        
+        ## Thank you for testing the new PCL CE version!
+        Please note that you are submitting a general bug report for the new version.
+        If you are not using the new version (2.15.x), please use the [legacy general bug report template](https://github.com/PCL-Community/PCL-CE/issues/new?template=1-bug.yml).
+  - type: checkboxes
+    id: "yml-1"
+    attributes:
+      label: "检查项 / Checklist"
+      description: "请逐个检查下列项目，并勾选确认 / Please review each item below and check the boxes to confirm."
+      options:
+        - label: "我已在 [Issues 页面](https://github.com/PCL-Community/PCL-CE/issues?q=is%3Aissue+) 中搜索，确认了这一 Bug 未被提交过 / I have searched the [Issues page](https://github.com/PCL-Community/PCL-CE/issues?q=is%3Aissue+) and confirmed that this bug has not been reported yet."
+          required: true
+        - label: "我确认只是全部选中而没有[仔细确认](https://github.com/PCL-Community/PCL-CE/issues?q=is%3Aissue+)就直接提交了这个 Issue，并且同意这个 Issue 可以直接被关闭 / I confirm that I checked all boxes without carefully reading them, and agree that this issue may be closed directly."
+          required: false
+        - label: "我确认正在使用当前更新分支的最新版 PCL CE，若不是，此 Issue 可能会被直接关闭（更新方式：启动器 `设置-关于-软件更新` 检查更新，或在 [Releases](https://github.com/PCL-Community/PCL-CE/releases) 页面下载） / I confirm that I am using the latest PCL CE version on the current update channel. If not, this issue may be closed directly. To update, check for updates in `Settings → About → Updates`, or download the latest version from the [Releases page](https://github.com/PCL-Community/PCL-CE/releases)."
+          required: true
+        - label: "我确认会详细描述我所遇到的问题，并附上日志和截图，而不是随便填点东西敷衍了事 / I will describe the problem in detail, attach logs and screenshots, and avoid submitting vague or incomplete information."
+          required: true
+  - type: textarea
+    id: "yml-2"
+    attributes:
+      label: "描述 / Description"
+      description: "详细描述该 Bug 的具体表现 / Describe the specific behavior of the bug in detail."
+    validations:
+      required: true
+  - type: textarea
+    id: "yml-3"
+    attributes:
+      label: "重现步骤 / Steps to Reproduce"
+      description: "详细描述要怎么操作才能再次触发这个 Bug / Describe the exact steps needed to reproduce this bug."
+      placeholder: |
+        示例：
+        1、点击 xxxx
+        2、往下滚，然后点击 xxxx
+        Example:
+        1. Click xxxx
+        2. Scroll down, then click xxxx
+    validations:
+      required: true
+  - type: textarea
+    id: "yml-4"
+    attributes:
+      label: "日志与附件 / Logs & Attachments"
+      description: "在问题发生后立即使用 `设置-查看日志-导出日志` 并上传导出的压缩包。**若手动关掉了启动器或启动器直接崩溃，请重启之后使用 `导出全部日志` 而不是 `导出日志`，否则导出的日志可能不包含故障关键信息。** / After the issue occurs, immediately use `Settings → Logs → Export log` and upload the exported zip file. **If you manually closed the launcher, or if the launcher crashed, restart PCL CE and use `Export all logs` instead of `Export log`; otherwise, the exported logs may not contain key information about the issue.**"
+      placeholder: |
+        先点击这个文本框，然后再将文件直接拖拽到文本框中以上传。
+        如果有相关截图或文件，也请一并上传。
+        请勿自行判断是否需要日志，日志文件并不仅仅包含发生错误的信息，还可能包含其它关键信息。
+        如果缺少相关日志用于分析问题，此 Issue 可能会被直接关闭。
+        Click this text box first, then drag and drop files here to upload.
+        Please also upload any relevant screenshots or files.
+        Do not decide on your own whether logs are needed. Logs may contain not only error messages, but other key information as well.
+        If the required logs are missing, this issue may be closed directly.
+    validations:
+      required: true

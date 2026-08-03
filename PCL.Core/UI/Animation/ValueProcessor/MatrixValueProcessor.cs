@@ -1,4 +1,4 @@
-﻿using System.Windows.Media;
+using System.Windows.Media;
 
 namespace PCL.Core.UI.Animation.ValueProcessor;
 
@@ -29,4 +29,8 @@ public class MatrixValueProcessor : IValueProcessor<Matrix>
             value.M21 * factor, value.M22 * factor,
             value.OffsetX * factor, value.OffsetY * factor);
     }
+
+    public Matrix DefaultValue() => new();
+    
+    public bool Equal(Matrix value1, Matrix value2) => value1 == value2;
 }

@@ -1,0 +1,472 @@
+﻿using System.IO;
+using System.Windows.Controls;
+using NAudio;
+using NAudio.Wave;
+using PCL.Core.App;
+using PCL.Core.App.Localization;
+using PCL.Core.Utils;
+
+namespace PCL;
+
+public static class ModMusic
+{
+    /// <summary>
+    ///     当前正在播放的 NAudio.Wave.WaveOutEvent。
+    /// </summary>
+    public static WaveOutEvent musicNAudio;
+
+    /// <summary>
+    ///     当前播放的音乐地址。
+    /// </summary>
+    private static string musicCurrent = "";
+
+    private static void MusicLoop(bool isFirstLoad = false)
+    {
+        WaveOutEvent currentWave = null;
+        AudioFileReader reader = null;
+
+        try
+        {
+            currentWave = new WaveOutEvent();
+            musicNAudio = currentWave;
+            currentWave.DeviceNumber = -1; // 使用默认设备
+
+            reader = new AudioFileReader(musicCurrent);
+            currentWave.Init(reader);
+            currentWave.Play();
+
+            // 首次加载且用户未启用自动播放，则暂停
+            if (isFirstLoad && !Config.Preference.Music.StartOnStartup) currentWave.Pause();
+
+            MusicRefreshUI();
+
+            var lastVolume = Config.Preference.Music.Volume;
+            currentWave.Volume = lastVolume / 1000.0f;
+
+            // 播放主循环
+            while (currentWave.Equals(musicNAudio) && currentWave.PlaybackState != PlaybackState.Stopped)
+            {
+                // 音量动态更新
+                var currentVolume = Config.Preference.Music.Volume;
+                if (currentVolume != lastVolume)
+                {
+                    lastVolume = currentVolume;
+                    currentWave.Volume = currentVolume / 1000.0f;
+                }
+
+                // 更新进度条
+                if (reader.TotalTime.TotalMilliseconds > 0d)
+                {
+                    var progress = reader.CurrentTime.TotalMilliseconds / reader.TotalTime.TotalMilliseconds;
+                    ModBase.RunInUi(() => ModMain.frmMain.BtnExtraMusic.Progress = progress);
+                }
+
+                Thread.Sleep(100);
+            }
+
+            // 播放结束，继续下一首
+            if (currentWave.PlaybackState == PlaybackState.Stopped &&
+                (musicAllList?.Any() is { } arg5 ? arg5 : (bool?)null).GetValueOrDefault())
+                MusicStartPlay(DequeueNextMusicAddress(), isFirstLoad);
+        }
+
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, $"播放音乐出现内部错误（{musicCurrent}）", ModBase.LogLevel.Developer);
+
+            // 错误处理：精准提示用户
+            var fileName = ModBase.GetFileNameFromPath(musicCurrent);
+            if (ex is MmException)
+            {
+                var msg = ex.Message;
+                if (msg.Contains("AlreadyAllocated"))
+                    HintService.Hint(Lang.Text("Music.Error.DeviceBusy"), HintType.Error);
+                else if (msg.Contains("NoDriver") || msg.Contains("BadDeviceId"))
+                    HintService.Hint(Lang.Text("Music.Error.DeviceChanged"), HintType.Error);
+                else
+                    ModBase.Log(
+                        ex,
+                        $"播放失败（{fileName}）",
+                        ModBase.LogLevel.Hint,
+                        userSummary: Lang.Text("Music.Error.PlaybackFailed", fileName));
+            }
+            else if (ex.Message.Contains("Got a frame at sample rate") ||
+                     ex.Message.Contains("does not support changes to"))
+            {
+                HintService.Hint(
+                    Lang.Text("Music.Error.PropertyChangeUnsupported", fileName),
+                    HintType.Error);
+            }
+            else if ((!musicCurrent.EndsWithF(".wav", true) && !musicCurrent.EndsWithF(".mp3", true) &&
+                      !musicCurrent.EndsWithF(".flac", true)) || ex.Message.Contains("0xC00D36C4"))
+            {
+                HintService.Hint(
+                    Lang.Text("Music.Error.UnsupportedFormat", fileName),
+                    HintType.Error);
+            }
+            else
+            {
+                ModBase.Log(
+                    ex,
+                    $"播放失败（{fileName}）",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Music.Error.PlaybackFailed", fileName));
+            }
+
+            // 移除无效文件
+            musicAllList?.Remove(musicCurrent);
+            musicWaitingList?.Remove(musicCurrent);
+            MusicRefreshUI();
+
+            Thread.Sleep(2000);
+
+            // 尝试播放下一首
+            if (ex is FileNotFoundException)
+                MusicRefreshPlay(true, isFirstLoad);
+            else
+                MusicStartPlay(DequeueNextMusicAddress(), isFirstLoad);
+        }
+        finally
+        {
+            currentWave?.Dispose();
+            reader?.Dispose();
+            MusicRefreshUI();
+        }
+    }
+
+    #region 播放列表
+
+    /// <summary>
+    ///     接下来要播放的音乐文件路径。未初始化时为 Nothing。
+    /// </summary>
+    public static List<string> musicWaitingList;
+
+    /// <summary>
+    ///     全部音乐文件路径。未初始化时为 Nothing。
+    /// </summary>
+    public static List<string> musicAllList;
+
+    /// <summary>
+    ///     初始化音乐播放列表。
+    /// </summary>
+    /// <param name="forceReload">强制全部重新载入列表。</param>
+    /// <param name="preventFirst">在重载列表时避免让某项成为第一项。</param>
+    private static void MusicListInit(bool forceReload, string preventFirst = null)
+    {
+        if (forceReload)
+            musicAllList = null;
+
+        try
+        {
+            if (musicAllList is null)
+            {
+                musicAllList = new List<string>();
+                var musicDir = Path.Combine(ModBase.exePath, "PCL", "Musics");
+                Directory.CreateDirectory(musicDir);
+                foreach (var file in ModBase.EnumerateFiles(musicDir))
+                {
+                    var ext = file.Extension.ToLowerInvariant();
+                    // 忽略非音频文件
+                    if (new[] { ".ini", ".jpg", ".txt", ".cfg", ".lrc", ".db", ".png" }.Contains(ext))
+                        continue;
+                    musicAllList.Add(file.FullName);
+                }
+            }
+
+            // 根据设置决定是否随机
+            if (Config.Preference.Music.ShufflePlayback)
+                musicWaitingList = RandomUtils.Shuffle(new List<string>(musicAllList));
+            else
+                musicWaitingList = new List<string>(musicAllList);
+
+            // 避免 PreventFirst 成为第一项
+            if (preventFirst is not null && musicWaitingList.Count > 0 && string.Equals(musicWaitingList[0],
+                    preventFirst, StringComparison.OrdinalIgnoreCase))
+            {
+                musicWaitingList.RemoveAt(0);
+                musicWaitingList.Add(preventFirst);
+            }
+        }
+
+        catch (Exception ex)
+        {
+            ModBase.Log(
+                ex,
+                "初始化音乐列表失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Music.Error.OperationFailed"));
+        }
+    }
+
+    /// <summary>
+    ///     获取下一首播放的音乐路径并将其从列表中移除。
+    ///     如果没有，可能会返回 Nothing。
+    /// </summary>
+    private static string DequeueNextMusicAddress()
+    {
+        if (musicAllList is null || !musicAllList.Any() || !musicWaitingList.Any()) MusicListInit(false);
+
+        if (musicWaitingList.Any())
+        {
+            var nextMusic = musicWaitingList[0];
+            musicWaitingList.RemoveAt(0);
+            if (!musicWaitingList.Any()) MusicListInit(false, nextMusic);
+            return nextMusic;
+        }
+
+        return null;
+    }
+
+    #endregion
+
+    #region UI 控制
+
+    /// <summary>
+    ///     刷新背景音乐按钮 UI 与设置页 UI。
+    /// </summary>
+    private static void MusicRefreshUI()
+    {
+        ModBase.RunInUi(() =>
+        {
+            try
+            {
+                if ((musicAllList?.Any() is { } arg1 ? arg1 : null) == false)
+                {
+                    ModMain.frmMain.BtnExtraMusic.Show = false;
+                }
+                else
+                {
+                    ModMain.frmMain.BtnExtraMusic.Show = true;
+                    var fileName = ModBase.GetFileNameWithoutExtentionFromPath(musicCurrent);
+                    var isSingle = musicAllList.Count == 1;
+                    string tipText;
+                    if (MusicState == MusicStates.Pause)
+                    {
+                        ModMain.frmMain.BtnExtraMusic.SvgIcon = "lucide/play";
+                        ModMain.frmMain.BtnExtraMusic.LogoScale = 0.8d;
+                        tipText = Lang.Text(
+                            isSingle
+                                ? "Music.ToolTip.Paused.Single"
+                                : "Music.ToolTip.Paused.Multiple",
+                            fileName);
+                    }
+                    else
+                    {
+                        ModMain.frmMain.BtnExtraMusic.SvgIcon = "lucide/music";
+                        ModMain.frmMain.BtnExtraMusic.LogoScale = 1d;
+                        tipText = Lang.Text(
+                            isSingle
+                                ? "Music.ToolTip.Playing.Single"
+                                : "Music.ToolTip.Playing.Multiple",
+                            fileName);
+                    }
+
+                    ModMain.frmMain.BtnExtraMusic.ToolTip = tipText;
+                    ToolTipService.SetVerticalOffset(ModMain.frmMain.BtnExtraMusic,
+                        tipText.Contains("\n") ? 10 : 16);
+                }
+
+                ModMain.frmSetupUI?.MusicRefreshUI();
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(
+                    ex,
+                    "刷新背景音乐 UI 失败",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Music.Error.OperationFailed"));
+            }
+        });
+    }
+
+    public static void MusicControlPause()
+    {
+        if (musicNAudio is null)
+        {
+            HintService.Hint(Lang.Text("Music.Error.NotStarted"), HintType.Error);
+            return;
+        }
+
+        switch (MusicState)
+        {
+            case MusicStates.Pause:
+            {
+                MusicResume();
+                break;
+            }
+            case MusicStates.Play:
+            {
+                MusicPause(); // Stop
+                break;
+            }
+
+            default:
+            {
+                ModBase.Log("[Music] 音乐目前为停止状态，已强制尝试开始播放", ModBase.LogLevel.Debug);
+                MusicRefreshPlay(false);
+                break;
+            }
+        }
+    }
+
+    public static void MusicControlNext()
+    {
+        if (musicAllList?.Count is { } arg2 && arg2 == 1)
+        {
+            MusicStartPlay(musicCurrent);
+            HintService.Hint(Lang.Text("Music.Hint.Replaying", ModBase.GetFileNameFromPath(musicCurrent)),
+                HintType.Success);
+        }
+        else
+        {
+            var addr = DequeueNextMusicAddress();
+            if (addr is null)
+            {
+                HintService.Hint(Lang.Text("Music.Error.NoAvailable"), HintType.Error);
+            }
+            else
+            {
+                MusicStartPlay(addr);
+                HintService.Hint(Lang.Text("Music.Hint.Playing", ModBase.GetFileNameFromPath(addr)),
+                    HintType.Success);
+            }
+        }
+
+        MusicRefreshUI();
+    }
+
+    #endregion
+
+    #region 主状态控制
+
+    public static MusicStates MusicState
+    {
+        get
+        {
+            if (musicNAudio is null)
+                return MusicStates.Stop;
+            return musicNAudio.PlaybackState == PlaybackState.Paused ? MusicStates.Pause :
+                musicNAudio.PlaybackState == PlaybackState.Stopped ? MusicStates.Stop : MusicStates.Play;
+        }
+    }
+
+    public enum MusicStates
+    {
+        Stop,
+        Play,
+        Pause
+    }
+
+    public static void MusicRefreshPlay(bool showHint, bool isFirstLoad = false)
+    {
+        try
+        {
+            MusicListInit(true);
+
+            if ((musicAllList?.Any() is { } arg3 ? arg3 : null) == false)
+            {
+                if (musicNAudio is not null)
+                {
+                    musicNAudio = null;
+                    if (showHint)
+                        HintService.Hint(Lang.Text("Music.Hint.Cleared"), HintType.Success);
+                }
+                else if (showHint)
+                {
+                    HintService.Hint(Lang.Text("Music.Error.NotDetected"), HintType.Error);
+                }
+            }
+            else
+            {
+                var addr = DequeueNextMusicAddress();
+                if (addr is null)
+                {
+                    if (showHint)
+                        HintService.Hint(Lang.Text("Music.Error.NoAvailable"), HintType.Error);
+                }
+                else
+                {
+                    try
+                    {
+                        MusicStartPlay(addr, isFirstLoad);
+                        if (showHint)
+                            HintService.Hint(
+                                Lang.Text("Music.Hint.Refreshed", ModBase.GetFileNameFromPath(addr)),
+                                HintType.Success,
+                                false);
+                    }
+                    catch
+                    {
+                        // 容错：播放失败已在 MusicLoop 中处理
+                    }
+                }
+            }
+
+            MusicRefreshUI();
+        }
+
+        catch (Exception ex)
+        {
+            ModBase.Log(
+                ex,
+                "刷新背景音乐播放失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Music.Error.OperationFailed"));
+        }
+    }
+
+    private static void MusicStartPlay(string address, bool isFirstLoad = false)
+    {
+        if (string.IsNullOrEmpty(address))
+            return;
+        ModBase.Log("[Music] 播放开始：" + address);
+        musicCurrent = address;
+        ModBase.RunInNewThread(() => MusicLoop(isFirstLoad), "Music", ThreadPriority.BelowNormal);
+    }
+
+    public static bool MusicPause()
+    {
+        if (MusicState != MusicStates.Play)
+        {
+            ModBase.Log($"[Music] 无需暂停播放，当前状态为 {MusicState}");
+            return false;
+        }
+
+        ModBase.RunInThread(() =>
+        {
+            ModBase.Log("[Music] 已暂停播放");
+            musicNAudio?.Pause();
+            MusicRefreshUI();
+        });
+        return true;
+    }
+
+    public static bool MusicResume()
+    {
+        if (MusicState == MusicStates.Play || musicAllList.Count == 0)
+        {
+            ModBase.Log($"[Music] 无需继续播放，当前状态为 {MusicState}");
+            return false;
+        }
+
+        ModBase.RunInThread(() =>
+        {
+            ModBase.Log("[Music] 已恢复播放");
+            try
+            {
+                musicNAudio?.Play();
+            }
+            catch
+            {
+                // 参考 PR #5415：设备变更后需 Stop + Play
+                musicNAudio?.Stop();
+                musicNAudio?.Play();
+            }
+
+            MusicRefreshUI();
+        });
+        return true;
+    }
+
+    #endregion
+}

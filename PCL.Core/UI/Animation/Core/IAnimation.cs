@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using PCL.Core.UI.Animation.Animatable;
 
@@ -7,9 +7,13 @@ namespace PCL.Core.UI.Animation.Core;
 public interface IAnimation
 {
     /// <summary>
-    /// 动画是否已完成。
+    /// 动画名。
     /// </summary>
-    bool IsCompleted { get; }
+    string Name { get; set; }
+    /// <summary>
+    /// 当前动画状态。
+    /// </summary>
+    AnimationStatus Status { get; }
     /// <summary>
     /// 当前动画帧索引。
     /// </summary>
@@ -19,18 +23,18 @@ public interface IAnimation
     /// </summary>
     /// <param name="target">被动画的对象。</param>
     /// <returns>返回表示异步动画操作的任务。</returns>
-    Task RunAsync(IAnimatable target);
+    Task<IAnimation> RunAsync(IAnimatable target);
     /// <summary>
     /// 一发即忘方式运行动画。
     /// </summary>
     /// <param name="target">被动画的对象。</param>
-    void RunFireAndForget(IAnimatable target);
+    IAnimation RunFireAndForget(IAnimatable target);
     /// <summary>
     /// 取消动画。
     /// </summary>
     void Cancel();
     /// <summary>
-    /// 计算下一帧。。
+    /// 计算下一帧。
     /// </summary>
     /// <param name="target">被动画的对象。</param>
     /// <returns>动画帧。</returns>

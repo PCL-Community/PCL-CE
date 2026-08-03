@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Net.Http;
 
-namespace PCL.Core.IO.Net.Http.Client.Request;
+namespace PCL.Core.IO.Net.Http;
 
 public static class HttpCookieExtension
 {

@@ -1,5 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using PCL.Core.Link.Scaffolding.Client.Models;
+using System.Text.Json.Serialization;
 
 namespace PCL.Core.Minecraft.IdentityModel.Yggdrasil;
 
@@ -7,7 +6,7 @@ public record YggdrasilCredential
 {
     [JsonPropertyName("username")] public required string User { get; init; }
     [JsonPropertyName("password")] public required string Password { get; init; }
-    [JsonPropertyName("agent")] public Agent Agent = new();
+    [JsonPropertyName("agent")] public Agent Agent { get; init; } = new();
     [JsonPropertyName("requestUser")] public bool RequestUser { get; set; }
 }
 
@@ -36,11 +35,11 @@ public record YggdrasilAuthenticateResult
     /// <summary>
     /// 可用档案
     /// </summary>
-    [JsonPropertyName("availableProfiles")] public required Profile[]? AvailableProfiles { get; init; }
+    [JsonPropertyName("availableProfiles")] public Profile[]? AvailableProfiles { get; init; }
     /// <summary>
     /// 用户信息
     /// </summary>
-    [JsonPropertyName("user")] public Profile? User;
+    [JsonPropertyName("user")] public Profile? User { get; init; }
 }
 
 public record YggdrasilRefresh

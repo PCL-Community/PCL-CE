@@ -1,29 +1,29 @@
 {
   "name": "Plain Craft Launcher Community Edition",
   "version": {
-    "base": "2.14.6",
+    "base": "2.15.0",
     "upstream": "2.12.1",
     "suffix": "",
-    "code": 514
+    "code": 522
   },
   "licenses": [
     {
       "name": "PCL.Core",
       "info": "Copyright © PCL Community",
-      "website": "https://github.com/PCL-Community/PCL2-CE/tree/dev/PCL.Core",
-      "license": "https://github.com/PCL-Community/PCL2-CE/blob/dev/LICENSE"
+      "website": "https://github.com/PCL-Community/PCL-CE/tree/dev/PCL.Core",
+      "license": "https://github.com/PCL-Community/PCL-CE/blob/dev/LICENSE"
+    },
+    {
+      "name": "LegacyFix",
+      "info": "Copyright © betacraftuk\nLicensed under the GPL-3.0 license.",
+      "website": "https://github.com/betacraftuk/legacyfix",
+      "license": "https://github.com/betacraftuk/legacyfix/blob/master/LICENSE"
     },
     {
       "name": "Java Launch Wrapper",
       "info": "Copyright © 2022 00ll00\nLicensed under the MIT License.",
       "website": "https://github.com/00ll00/java_launch_wrapper",
       "license": "https://github.com/00ll00/java_launch_wrapper?tab=MIT-1-ov-file#readme"
-    },
-    {
-      "name": "Newtonsoft.Json",
-      "info": "Copyright © 2007 James Newton-King\nLicensed under the MIT License.",
-      "website": "https://www.newtonsoft.com/json",
-      "license": "https://opensource.org/licenses/MIT"
     },
     {
       "name": "NAudio",
@@ -50,18 +50,6 @@
       "license": "https://github.com/HMBSbige/NatTypeTester/blob/master/LICENSE"
     },
     {
-      "name": "IPNetwork",
-      "info": "Copyright © 2015, lduchosal",
-      "website": "https://github.com/lduchosal/ipnetwork",
-      "license": "https://github.com/lduchosal/ipnetwork/blob/master/LICENSE"
-    },
-    {
-      "name": "TagLibSharp",
-      "info": "Copyright © 2006-2007 Brian Nickel.\nCopyright © 2009-2020 Other contributors",
-      "website": "https://github.com/mono/taglib-sharp",
-      "license": "https://github.com/mono/taglib-sharp/blob/main/COPYING"
-    },
-    {
       "name": "LiteDB",
       "info": "Copyright © 2014-2022 Mauricio David",
       "website": "https://github.com/litedb-org/LiteDB",
@@ -72,12 +60,6 @@
       "info": "Copyright © 2016-2021 Nicolas Musset",
       "website": "https://github.com/Kryptos-FR/markdig.wpf",
       "license": "https://github.com/Kryptos-FR/markdig.wpf/blob/main/LICENSE.md"
-    },
-    {
-      "name": "CacheCow",
-      "info": "Copyright © 2013 Ali Kheyrollahi",
-      "website": "https://github.com/aliostad/CacheCow",
-      "license": "https://github.com/aliostad/CacheCow/blob/master/LICENSE.txt"
     },
     {
       "name": "Mesa Loader Windows",
@@ -132,6 +114,18 @@
       "info": "Copyright © HMCL-dev\nLicensed under the Apache-2.0 license.",
       "website": "https://github.com/HMCL-dev/lwjgl-unsafe-agent",
       "license": "https://github.com/HMCL-dev/lwjgl-unsafe-agent/blob/main/LICENSE"
+    },
+    {
+      "name": "Downloader",
+      "info": "Copyright © Behzad Khosravifar\nLicensed under the MIT license.",
+      "website": "https://github.com/bezzad/Downloader",
+      "license": "https://github.com/bezzad/Downloader/blob/master/LICENSE"
+    },
+    {
+      "name": "DotNet.Glob",
+      "info": "Copyright © 2015-present Darrell Tunnell\nLicensed under the MIT license.",
+      "website": "https://github.com/dazinator/DotNet.Glob",
+      "license": "https://github.com/dazinator/DotNet.Glob/blob/master/LICENSE"
     }
   ]
 }

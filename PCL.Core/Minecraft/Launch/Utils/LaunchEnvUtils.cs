@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using PCL.Core.App;
 using PCL.Core.Logging;
@@ -44,7 +44,7 @@ public static class LaunchEnvUtils {
 
     private static void _WriteResourceToFile(string resourceName, string path) {
         using var sourceStream = Basics.GetResourceStream(resourceName);
-        if (sourceStream == null) {
+        if (sourceStream is null) {
             throw new FileNotFoundException($"资源 {resourceName} 未找到。");
         }
 

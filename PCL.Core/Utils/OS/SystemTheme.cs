@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Security;
 using Microsoft.Win32;
@@ -17,7 +17,7 @@ public class SystemTheme {
     public static bool IsSystemInDarkMode() {
         try {
             using var registryKey = Registry.CurrentUser.OpenSubKey(ThemeRegistryPath);
-            if (registryKey == null) {
+            if (registryKey is null) {
                 LogWrapper.Warn($"注册表键 {ThemeRegistryPath} 不存在");
                 return false;
             }

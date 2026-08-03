@@ -1,8 +1,7 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Security;
 using Microsoft.Win32;
-using PCL.Core.App;
 using PCL.Core.Logging;
 
 namespace PCL.Core.UI.Theme;

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.IO.Net;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
@@ -51,7 +52,7 @@ public static class ETController
     {
         try
         {
-            if (TargetLobby == null || Precheck() != 0)
+            if (TargetLobby is null || Precheck() != 0)
             {
                 return 1;
             }
@@ -82,7 +83,7 @@ public static class ETController
                     name = "terracotta-mc-" + name;
                     break;
                 default:
-                    throw new NotSupportedException("不支持的大厅类型: " + TargetLobby.Type);
+                    throw new NotSupportedException(Lang.Text("Link.Lobby.UnsupportedType", TargetLobby.Type));
             }
 
             arguments.AddFlag("no-tun");
@@ -199,7 +200,7 @@ public static class ETController
 
     public static void Exit()
     {
-        if (Status == ETState.Stopped || ETProcess == null) return;
+        if (Status == ETState.Stopped || ETProcess is null) return;
         try
         {
             LogWrapper.Info("Link", $"关闭 EasyTier (PID: {ETProcess.Id})");

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Encodings.Web;
@@ -6,6 +6,7 @@ using System.Text.Json;
 using PCL.Core.App.IoC;
 using PCL.Core.Logging;
 using PCL.Core.Utils.Diagnostics;
+using PCL.Core.Utils;
 
 namespace PCL.Core.App.Configuration.Storage;
 
@@ -79,7 +80,7 @@ public abstract class ConfigStorage : IConfigProvider
         return hasOutput;
     }
 
-    private static readonly JsonSerializerOptions _SerializerOptions = new()
+    private static readonly JsonSerializerOptions _SerializerOptions = new(JsonCompat.SerializerOptions)
     {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
@@ -104,7 +105,7 @@ public abstract class ConfigStorage : IConfigProvider
             ? "Stack:\n|=> " + string.Join("\n|=> ", StackHelper.GetStack(includeParameters: true, needFileInfo: needFileInfo).Skip(1))
             : "Caller: " + StackHelper.GetDirectCallerName(includeParameters: true, skipAppFrames: 2);
         var msg = $"Storage Access: {accessAction} {ToString()}\n" +
-            $"|- Context: {(accessContext == null ? "" : "(" + accessContext.GetType().Name + ") ")}{context}\n" +
+            $"|- Context: {(accessContext is null ? "" : "(" + accessContext.GetType().Name + ") ")}{context}\n" +
             $"|- Key: ({typeof(TKey).Name}) {key}\n" +
             $"|- Value: ({typeof(TValue).Name}) {(accessHasValue ? value : "undefined")}\n" +
             $"|- {caller}";

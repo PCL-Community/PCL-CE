@@ -16,7 +16,7 @@ public sealed class WeightedDnsRacerClient : IDnsClient
 
     public WeightedDnsRacerClient(int concurrentCount, params IDnsClient[] clients)
     {
-        if (clients == null || clients.Length < concurrentCount)
+        if (clients is null || clients.Length < concurrentCount)
             throw new ArgumentException("Not enough clients.");
 
         _concurrentCount = concurrentCount;
@@ -44,8 +44,8 @@ public sealed class WeightedDnsRacerClient : IDnsClient
             tasks[i] = task;
         }
 
-        var winnerTask = await tasks.WhenAnySuccess().ConfigureAwait(false);
-        if (winnerTask == null) throw new InvalidOperationException("All queries failed.");
+        var winnerTask = await tasks.WhenAnySuccessAsync().ConfigureAwait(false);
+        if (winnerTask is null) throw new InvalidOperationException("All queries failed.");
 
         var winner = candidates[Array.IndexOf(tasks, winnerTask)].Client;
 

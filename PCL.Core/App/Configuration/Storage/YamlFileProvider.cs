@@ -1,9 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using PCL.Core.IO;
 using PCL.Core.Logging;
 using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
@@ -46,7 +45,7 @@ public class YamlFileProvider : CommonFileProvider, IEnumerableKeyProvider
     public YamlFileProvider(string path) : base(path)
     {
         var rootNode = _LoadFile(path);
-        if (rootNode != null)
+        if (rootNode is not null)
         {
             _rootNode = rootNode;
             return;

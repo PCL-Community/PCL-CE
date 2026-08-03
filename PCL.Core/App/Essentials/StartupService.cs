@@ -10,6 +10,7 @@ using PCL.Core.App.Cli;
 using PCL.Core.App.IoC;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
+using PCL.Core.Utils;
 
 namespace PCL.Core.App.Essentials;
 
@@ -60,17 +61,17 @@ public sealed partial class StartupService
         bool registerCallback = false)
     {
         var isCallback = false;
-        if (handler == null)
+        if (handler is null)
         {
             _HandleCallbackMap.TryGetValue(command, out handler);
-            if (handler == null) return false;
+            if (handler is null) return false;
             isCallback = true;
         }
         else if (registerCallback) _HandleCallbackMap.TryAdd(command, handler);
         lock (_UnhandledCommandMap)
         {
             _UnhandledCommandMap.TryGetValue(command, out var model);
-            if (model == null) return false;
+            if (model is null) return false;
             // remove all related commands
             foreach (var x in _UnhandledCommandMap.Keys.Where(x => x.StartsWith(command)).ToList())
                 _UnhandledCommandMap.Remove(x);
@@ -93,7 +94,7 @@ public sealed partial class StartupService
         info.Append("\n系统版本: ").Append(Environment.OSVersion.Version).Append(" (").Append(GetArchitectureName(RuntimeInformation.OSArchitecture)).Append(')');
         var memory = KernelInterop.GetPhysicalMemoryBytes();
         const int memoryDiv = 1024 * 1024;
-        info.Append("\n可用内存: ").Append(memory.Available / memoryDiv).Append('/').Append(memory.Total / memoryDiv).Append(" MB");
+        info.Append("\n可用内存: ").Append(memory.Available / memoryDiv).Append('/').Append(memory.Total / memoryDiv).Append(" MiB");
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         var cp = Encoding.GetEncoding(0);
         info.Append("\n默认代码页: ").Append(cp.EncodingName).Append(" (").Append(cp.CodePage).Append(')');
@@ -115,7 +116,6 @@ public sealed partial class StartupService
         IEnumerable<SubcommandDefinition> subcommands = [
             ("update", [("execute"), ("success"), ("failed")]),
             ("activate", []),
-            ("memory", []),
             ("promote", []),
         ];
         Context.Debug("正在解析命令行参数...");
@@ -124,7 +124,7 @@ public sealed partial class StartupService
         while (true)
         {
             _UnhandledCommandMap[prefix.ToString()] = c;
-            if (c.Subcommand == null) break;
+            if (c.Subcommand is null) break;
             if (prefix.Length != 0) prefix.Append('.');
             prefix.Append(c.Subcommand.CommandText);
             c = c.Subcommand;
@@ -136,11 +136,11 @@ public sealed partial class StartupService
     [RegisterRpc("cli")]
     public static RpcResponse OnRpcCommand(string? argument, string? content, bool indent)
     {
-        if (content == null) return RpcResponse.Err("Must provide valid JSON model");
+        if (content is null) return RpcResponse.Err("Must provide valid JSON model");
         try
         {
-            var models = JsonSerializer.Deserialize<Dictionary<string, CommandLine>>(content);
-            if (models == null) return RpcResponse.Err("Invalid JSON: empty/null content");
+            var models = JsonSerializer.Deserialize<Dictionary<string, CommandLine>>(content, JsonCompat.SerializerOptions);
+            if (models is null) return RpcResponse.Err("Invalid JSON: empty/null content");
             Task.Run(() =>
             {
                 foreach (var (command, model) in models)

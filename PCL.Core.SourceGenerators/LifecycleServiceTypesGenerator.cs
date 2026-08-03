@@ -39,7 +39,7 @@ public class LifecycleServiceTypesGenerator : IIncrementalGenerator
 
         // 生成代码
         context.RegisterSourceOutput(combinedProvider, 
-            static (spc, data) => _Execute(spc, data.Left.FirstOrDefault() ?? new List<string>(), [..data.Right.Where(x => x != null).Select(x => x!)]));
+            static (spc, data) => _Execute(spc, data.Left.FirstOrDefault() ?? new List<string>(), [..data.Right.Where(x => x is not null).Select(x => x!)]));
     }
 
     private static List<string>? _GetValidLifecycleStates(string? content)
@@ -100,13 +100,13 @@ public class LifecycleServiceTypesGenerator : IIncrementalGenerator
             .SelectMany(al => al.Attributes)
             .FirstOrDefault(a => a.Name.ToString().Contains("LifecycleService"));
 
-        if (lifecycleAttribute == null)
+        if (lifecycleAttribute is null)
             return null;
 
         // 获取语义模型信息
         var semanticModel = context.SemanticModel;
         var classSymbol = semanticModel.GetDeclaredSymbol(classDeclaration);
-        if (classSymbol == null)
+        if (classSymbol is null)
             return null;
 
         // 解析属性参数
@@ -127,12 +127,12 @@ public class LifecycleServiceTypesGenerator : IIncrementalGenerator
                 .FirstOrDefault(arg => arg.NameEquals?.Name.Identifier.ValueText == "Priority");
 
             // 如果没有找到命名的Priority参数，检查第二个位置参数
-            if (priorityArg == null && lifecycleAttribute.ArgumentList.Arguments.Count > 1)
+            if (priorityArg is null && lifecycleAttribute.ArgumentList.Arguments.Count > 1)
             {
                 priorityArg = lifecycleAttribute.ArgumentList.Arguments[1];
             }
 
-            if (priorityArg != null)
+            if (priorityArg is not null)
             {
                 priority = _ParsePriorityExpression(priorityArg.Expression, semanticModel);
             }

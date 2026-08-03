@@ -100,12 +100,12 @@ public sealed class ConfigGenerator : IIncrementalGenerator
     {
         var propSyntax = (PropertyDeclarationSyntax)ctx.Node;
         var symbol = ctx.SemanticModel.GetDeclaredSymbol(propSyntax);
-        if (symbol == null) return null;
+        if (symbol is null) return null;
 
         var compilation = ctx.SemanticModel.Compilation;
         var attrDefItem = compilation.GetTypeByMetadataName("PCL.Core.App.Configuration.ConfigItemAttribute`1");
         var attrDefAny  = compilation.GetTypeByMetadataName("PCL.Core.App.Configuration.AnyConfigItemAttribute`1");
-        if (attrDefItem == null && attrDefAny == null) return null;
+        if (attrDefItem is null && attrDefAny is null) return null;
 
         AttributeData? picked = null;
         var isAny = false;
@@ -113,17 +113,17 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         foreach (var a in symbol.GetAttributes())
         {
             var ac = a.AttributeClass;
-            if (ac == null) continue;
-            if (attrDefItem != null && SymbolEqualityComparer.Default.Equals(ac.ConstructedFrom, attrDefItem))
+            if (ac is null) continue;
+            if (attrDefItem is not null && SymbolEqualityComparer.Default.Equals(ac.ConstructedFrom, attrDefItem))
             {
                 picked = a; isAny = false; break;
             }
-            if (attrDefAny != null && SymbolEqualityComparer.Default.Equals(ac.ConstructedFrom, attrDefAny))
+            if (attrDefAny is not null && SymbolEqualityComparer.Default.Equals(ac.ConstructedFrom, attrDefAny))
             {
                 picked = a; isAny = true; break;
             }
         }
-        if (picked == null) return null;
+        if (picked is null) return null;
 
         if (picked.ConstructorArguments.Length < 1) return null;
         var key = picked.ConstructorArguments[0].Value as string;
@@ -134,7 +134,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         string? sourceCode = null;
 
         var attrSyntax = (AttributeSyntax?)picked.ApplicationSyntaxReference?.GetSyntax();
-        if (attrSyntax != null)
+        if (attrSyntax is not null)
         {
             var args = attrSyntax.ArgumentList?.Arguments;
 
@@ -180,17 +180,17 @@ public sealed class ConfigGenerator : IIncrementalGenerator
     {
         var classSyntax = (ClassDeclarationSyntax)ctx.Node;
         var symbol = ModelExtensions.GetDeclaredSymbol(ctx.SemanticModel, classSyntax) as INamedTypeSymbol;
-        if (symbol == null) return null;
+        if (symbol is null) return null;
 
         var compilation = ctx.SemanticModel.Compilation;
         var attrDef = compilation.GetTypeByMetadataName("PCL.Core.App.Configuration.ConfigGroupAttribute");
-        if (attrDef == null) return null;
+        if (attrDef is null) return null;
 
         var attr = symbol.GetAttributes().FirstOrDefault(a =>
-            a.AttributeClass != null &&
+            a.AttributeClass is not null &&
             SymbolEqualityComparer.Default.Equals(a.AttributeClass, attrDef));
 
-        if (attr == null) return null;
+        if (attr is null) return null;
 
         if (attr.ConstructorArguments.Length < 1) return null;
         var name = attr.ConstructorArguments[0].Value as string;
@@ -294,7 +294,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         foreach (var node in groupMap.Values)
         {
             var parentType = node.Model.GroupType.ContainingType;
-            if (parentType != null && !SymbolEqualityComparer.Default.Equals(parentType, configType))
+            if (parentType is not null && !SymbolEqualityComparer.Default.Equals(parentType, configType))
             {
                 if (groupMap.TryGetValue(parentType, out var parentNode))
                 {
@@ -313,7 +313,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         foreach (var item in items.Except(topItems))
         {
             var container = item.Property.ContainingType;
-            if (container == null) continue;
+            if (container is null) continue;
             if (groupMap.TryGetValue(container, out var groupNode))
             {
                 groupNode.Items.Add(item);
@@ -477,7 +477,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         }
 
         var container = item.Property.ContainingType;
-        while (container != null)
+        while (container is not null)
         {
             var group = groupLookup(container);
             if (group is { HasDeclaredSource: true, DeclaredSourceCode: { } declared })
@@ -513,7 +513,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
           .Append("public ").Append(staticKeyword).Append("partial ")
           .Append(fullTypeName ?? typeName).Append(' ').Append(propName);
 
-        if (fullTypeName != null)
+        if (fullTypeName is not null)
         {
             var accessorName = "ACCESSOR_" + propName;
             sb.Append(" => ").Append(accessorName).AppendLine(";");
@@ -600,7 +600,7 @@ public sealed class ConfigGenerator : IIncrementalGenerator
         foreach (var item in node.Items.OrderBy(i => i.DeclOrder))
         {
             var result = _EmitItem(sb, item, indent + 1, isTopLevel: false, resolveSource);
-            if (result != null) accessorInitializers.Add(result);
+            if (result is not null) accessorInitializers.Add(result);
             sb.AppendLine();
         }
 

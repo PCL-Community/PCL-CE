@@ -6,8 +6,9 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using PCL.Core.Utils;
 
-namespace PCL.Core.IO.Net.Http.Client.Request;
+namespace PCL.Core.IO.Net.Http;
 
 public static class HttpResponseExtension
 {
@@ -66,7 +67,7 @@ public static class HttpResponseExtension
             try
             {
                 await using var stream = await responseMessage.AsStreamAsync(cancellationToken).ConfigureAwait(false);
-                return await JsonSerializer.DeserializeAsync<T>(stream, options, cancellationToken)
+                return await JsonSerializer.DeserializeAsync<T>(stream, options ?? JsonCompat.SerializerOptions, cancellationToken)
                     .ConfigureAwait(false);
             } catch(JsonException ex)
             {

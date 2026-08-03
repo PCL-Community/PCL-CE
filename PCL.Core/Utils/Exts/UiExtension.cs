@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.Utils.Exts;
+namespace PCL.Core.Utils.Exts;
 
 using System;
 using System.Windows;

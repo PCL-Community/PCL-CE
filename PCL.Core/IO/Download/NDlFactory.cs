@@ -47,7 +47,7 @@ public abstract class NDlFactory<TSourceArgument, TTargetArgument> : NDlFactory
     public override IDlConnection? CreateConnection(string resId)
     {
         var source = SourceMapping.Parse(resId);
-        return (source == null) ? null : CreateConnection(source);
+        return (source is null) ? null : CreateConnection(source);
     }
 
     /// <summary>
@@ -60,6 +60,6 @@ public abstract class NDlFactory<TSourceArgument, TTargetArgument> : NDlFactory
     public override IDlWriter? CreateWriter(string resId)
     {
         var target = TargetMapping.Parse(resId);
-        return (target == null) ? null : CreateWriter(target);
+        return (target is null) ? null : CreateWriter(target);
     }
 }

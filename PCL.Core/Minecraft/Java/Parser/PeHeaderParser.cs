@@ -1,4 +1,4 @@
-﻿using PCL.Core.Logging;
+using PCL.Core.Logging;
 using PCL.Core.Utils;
 using System;
 using System.Collections.Generic;
@@ -87,6 +87,6 @@ public class PeHeaderParser : IJavaParser
     {
         var match = _BrandMap.Keys
             .FirstOrDefault(k => output.Contains(k, StringComparison.OrdinalIgnoreCase));
-        return match != null ? _BrandMap[match] : JavaBrandType.Unknown;
+        return match is not null ? _BrandMap[match] : JavaBrandType.Unknown;
     }
 }

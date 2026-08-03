@@ -2,10 +2,10 @@
 <Configuration status="WARN">
     <Appenders>
         <Console name="SysOut" target="SYSTEM_OUT">
-            <PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level]: %msg%n" />
+            <PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level]: %msg%n"/>
         </Console>
         <Queue name="ServerGuiConsole">
-            <PatternLayout pattern="[%d{HH:mm:ss} %level]: %msg%n" />
+            <PatternLayout pattern="[%d{HH:mm:ss} %level]: %msg%n"/>
         </Queue>
         <RollingRandomAccessFile name="File" fileName="logs/latest.log" filePattern="logs/%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level] [%logger]: %msg%n"/>
@@ -14,7 +14,8 @@
                 <OnStartupTriggeringPolicy/>
             </Policies>
         </RollingRandomAccessFile>
-        <RollingRandomAccessFile name="DebugFile" fileName="logs/debug.log" filePattern="logs/debug-%d{yyyy-MM-dd}-%i.log.gz">
+        <RollingRandomAccessFile name="DebugFile" fileName="logs/debug.log"
+                                 filePattern="logs/debug-%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss}] [%t/%level] [%logger]: %msg%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>

@@ -17,24 +17,24 @@ namespace PCL.Core.UI
     /// </summary>
     public class BackgroundPresenter : FrameworkElement
     {
-        private static readonly FieldInfo _drawingContentOfUIElement = typeof(UIElement)
+        private static readonly FieldInfo _DrawingContentOfUIElement = typeof(UIElement)
             .GetField("_drawingContent", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-        private static readonly FieldInfo _contentOfDrawingVisual = typeof(DrawingVisual)
+        private static readonly FieldInfo _ContentOfDrawingVisual = typeof(DrawingVisual)
             .GetField("_content", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-        private static readonly FieldInfo _offsetOfVisual = typeof(Visual)
+        private static readonly FieldInfo _OffsetOfVisual = typeof(Visual)
             .GetField("_offset", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-        private static readonly Func<UIElement, DrawingContext> _renderOpenMethod = (Func<UIElement, DrawingContext>)typeof(UIElement)
+        private static readonly Func<UIElement, DrawingContext> _RenderOpenMethod = (Func<UIElement, DrawingContext>)typeof(UIElement)
             .GetMethod("RenderOpen", BindingFlags.Instance | BindingFlags.NonPublic)!
             .CreateDelegate(typeof(Func<UIElement, DrawingContext>));
 
-        private static readonly Action<UIElement, DrawingContext> _onRenderMethod = (Action<UIElement, DrawingContext>)typeof(UIElement)
+        private static readonly Action<UIElement, DrawingContext> _OnRenderMethod = (Action<UIElement, DrawingContext>)typeof(UIElement)
             .GetMethod("OnRender", BindingFlags.Instance | BindingFlags.NonPublic)!
             .CreateDelegate(typeof(Action<UIElement, DrawingContext>));
 
-        private static readonly GetContentBoundsDelegate _methodGetContentBounds = (GetContentBoundsDelegate)typeof(VisualBrush)
+        private static readonly GetContentBoundsDelegate _MethodGetContentBounds = (GetContentBoundsDelegate)typeof(VisualBrush)
             .GetMethod("GetContentBounds", BindingFlags.Instance | BindingFlags.NonPublic)!
             .CreateDelegate(typeof(GetContentBoundsDelegate));
 
@@ -43,17 +43,17 @@ namespace PCL.Core.UI
 
         public static void ForceRender(UIElement target)
         {
-            using var drawingContext = _renderOpenMethod(target);
+            using var drawingContext = _RenderOpenMethod(target);
 
-            _onRenderMethod.Invoke(target, drawingContext);
+            _OnRenderMethod.Invoke(target, drawingContext);
         }
 
         internal static void DrawVisual(DrawingContext drawingContext, Visual visual, Point relatedXY)
         {
             var visualBrush = new VisualBrush(visual);
-            var visualOffset = (Vector)_offsetOfVisual.GetValue(visual)!;
+            var visualOffset = (Vector)_OffsetOfVisual.GetValue(visual)!;
 
-            _methodGetContentBounds.Invoke(visualBrush, out var contentBounds);
+            _MethodGetContentBounds.Invoke(visualBrush, out var contentBounds);
             relatedXY -= visualOffset;
             if (contentBounds.IsEmpty)
             {
@@ -156,10 +156,10 @@ namespace PCL.Core.UI
                 var parentRelatedXY = currentParent.TranslatePoint(default, self);
 
                 // has render data
-                if (_drawingContentOfUIElement.GetValue(currentParent) is { } parentDrawingContent)
+                if (_DrawingContentOfUIElement.GetValue(currentParent) is { } parentDrawingContent)
                 {
                     var drawingVisual = new DrawingVisual();
-                    _contentOfDrawingVisual.SetValue(drawingVisual, parentDrawingContent);
+                    _ContentOfDrawingVisual.SetValue(drawingVisual, parentDrawingContent);
 
                     DrawVisual(drawingContext, drawingVisual, parentRelatedXY);
                 }

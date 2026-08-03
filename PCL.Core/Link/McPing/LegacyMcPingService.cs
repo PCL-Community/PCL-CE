@@ -54,9 +54,9 @@ public class LegacyMcPingService : IMcPingService
         // 这里需要迁移原来McPing类中的PingOldAsync方法逻辑
         
         using var so = new Socket(SocketType.Stream, ProtocolType.Tcp);
-        using var cts = new CancellationTokenSource();
-        cts.CancelAfter(_timeout);
-        cts.Token.Register(() =>
+        using var timeoutCts = new CancellationTokenSource(_timeout);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+        linkedCts.Token.Register(() =>
         {
             try
             {
@@ -67,15 +67,15 @@ public class LegacyMcPingService : IMcPingService
                 /* Ignore */
             }
         });
-        
-        await so.ConnectAsync(_endpoint, cts.Token);
+
+        await so.ConnectAsync(_endpoint, linkedCts.Token);
         LogWrapper.Debug("LegacyMcPing", $"Connected to {_endpoint}");
         await using var stream = new NetworkStream(so, false);
 
         var queryPack = new byte[] { 0xfe, 0x01 };
-        await stream.WriteAsync(queryPack.AsMemory(0, queryPack.Length), cts.Token);
+        await stream.WriteAsync(queryPack.AsMemory(0, queryPack.Length), linkedCts.Token);
         var ms = new MemoryStream();
-        await stream.CopyToAsync(ms, cts.Token);
+        await stream.CopyToAsync(ms, linkedCts.Token);
         so.Close();
         var retData = ms.ToArray();
         if (retData.Length < 21 || (retData.Length >= 21 && retData[0] != 0xff))

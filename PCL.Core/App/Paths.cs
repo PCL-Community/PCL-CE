@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using PCL.Core.Utils.OS;
 using Special = System.Environment.SpecialFolder;

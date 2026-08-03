@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,7 +35,7 @@ public static class NbtFileHandler {
             }, cancelToken);
 
             var result = nbtFile.RootTag.Get<T>(tagName);
-            if (result == null) {
+            if (result is null) {
                 LogWrapper.Warn($"未找到指定的 NBT 标签：{tagName}");
             }
 

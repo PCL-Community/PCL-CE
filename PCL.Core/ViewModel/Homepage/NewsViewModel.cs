@@ -1,13 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
-using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Logging;
 using PCL.Core.Model.Tools.News;
 using System;
 using System.Collections.ObjectModel;
 using System.Net;
 using System.Threading.Tasks;
+using PCL.Core.IO.Net.Http;
 
 namespace PCL.Core.ViewModel.Homepage;
 
@@ -15,6 +15,12 @@ public partial class NewsViewModel : ObservableObject
 {
     private const string BaseApiUrl = "https://net-secondary.web.minecraft-services.net/api/v1.0/zh-cn/search";
     private const int PageSize = 24;
+    private static readonly string[] AllowedNewsLinkHosts =
+    [
+        "minecraft.net",
+        "minecraft-services.net",
+        "microsoft.com"
+    ];
     private int _currentPage = 1;
 
     public ObservableCollection<NewsItem> NewsItems { get; } = new();
@@ -27,12 +33,12 @@ public partial class NewsViewModel : ObservableObject
 
     public NewsViewModel()
     {
-        LoadDataCommand.Execute(null);
+        _LoadDataCommand.Execute(null);
     }
 
     [RelayCommand]
 #pragma warning disable IDE1006 // 命名样式
-    private async Task LoadDataAsync()
+    private async Task _LoadDataAsync()
 #pragma warning restore IDE1006 // 命名样式
     {
         if (IsLoading) return;
@@ -49,7 +55,7 @@ public partial class NewsViewModel : ObservableObject
             resp.EnsureSuccessStatusCode();
             var json = await resp.AsJsonAsync<ApiResponse>();
 
-            if (json?.Result?.Results != null)
+            if (json?.Result?.Results is not null)
             {
                 foreach (var item in json.Result.Results)
                 {
@@ -71,10 +77,38 @@ public partial class NewsViewModel : ObservableObject
 
     [RelayCommand]
 #pragma warning disable IDE1006 // 命名样式
-    private void OpenRead(string url)
+    private void _OpenRead(string? url)
 #pragma warning restore IDE1006 // 命名样式
     {
-        Basics.OpenPath(url);
+        if (!IsSafeNewsLink(url))
+        {
+            LogWrapper.Warn("Homepage", $"已拦截不安全的 Minecraft 信息流链接：{url ?? "<null>"}");
+            return;
+        }
+
+        Basics.OpenPath(url!);
+    }
+
+    internal static bool IsSafeNewsLink(string? url)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return false;
+        if (!uri.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase) &&
+            !uri.Scheme.Equals("http", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var host = uri.IdnHost;
+        foreach (var allowedHost in AllowedNewsLinkHosts)
+        {
+            if (host.Equals(allowedHost, StringComparison.OrdinalIgnoreCase) ||
+                host.EndsWith($".{allowedHost}", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }

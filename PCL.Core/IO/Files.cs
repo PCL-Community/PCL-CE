@@ -1,12 +1,14 @@
-﻿using ICSharpCode.SharpZipLib.BZip2;
+using ICSharpCode.SharpZipLib.BZip2;
 using ICSharpCode.SharpZipLib.GZip;
 using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
 using PCL.Core.Logging;
 using PCL.Core.UI;
+using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Hash;
+using PCL.Core.App.Localization;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,10 +24,9 @@ using PCL.Core.App;
 namespace PCL.Core.IO;
 
 public static class Files {
-    public static readonly JsonSerializerOptions PrettierJsonOptions = new() {
+    public static readonly JsonSerializerOptions PrettierJsonOptions = new(JsonCompat.SerializerOptions) {
         WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
     /// <summary>
@@ -220,7 +221,7 @@ public static class Files {
         try {
             var fullPath = GetFullPath(filePath);
             if (!File.Exists(fullPath)) throw new FileNotFoundException(fullPath);
-            if (encoding == null) return await File.ReadAllTextAsync(fullPath, cancelToken);
+            if (encoding is null) return await File.ReadAllTextAsync(fullPath, cancelToken);
             return await File.ReadAllTextAsync(fullPath, encoding, cancelToken);
         } catch (Exception ex) {
             LogWrapper.Warn(ex, $"读取文件出错：{filePath}");
@@ -331,7 +332,7 @@ public static class Files {
     /// <param name="cancelToken">取消令牌</param>
     /// <returns>写入是否成功</returns>
     public static async Task<bool> WriteFileAsync(string filePath, Stream? stream, CancellationToken cancelToken = default) {
-        if (stream == null) return false;
+        if (stream is null) return false;
         try {
             var fullPath = GetFullPath(filePath);
             var directoryName = Path.GetDirectoryName(fullPath);
@@ -398,57 +399,101 @@ public static class Files {
     }
 
     /// <summary>
-    /// 异步解压 GZip 文件（包括 .gz 和 .tgz）。
+    ///     异步解压 GZip 文件（包括 .gz、.tgz 和 .tar.gz）。
     /// </summary>
-    private static async Task _ExtractGZipAsync(string compressFilePath, string destDirectory, Action<double>? progressIncrementHandler, CancellationToken cancellationToken) {
+    private static async Task _ExtractGZipAsync(
+        string compressFilePath,
+        string destDirectory,
+        Action<double>? progressIncrementHandler,
+        CancellationToken cancellationToken)
+    {
         var outputFileName = Path.GetFileName(compressFilePath).ToLower();
-        if (outputFileName.EndsWithF(".tar.gz") || outputFileName.EndsWithF(".tgz")) {
-            outputFileName = outputFileName.Replace(".tar.gz", "").Replace(".tgz", "");
-        } else if (outputFileName.EndsWithF(".gz")) {
-            outputFileName = outputFileName.Replace(".gz", "");
-        }
-        var outputPath = Path.Combine(destDirectory, outputFileName);
+        var isTarGZip = outputFileName.EndsWithF(".tar.gz") || outputFileName.EndsWithF(".tgz");
+
+        if (isTarGZip)
+            outputFileName = outputFileName
+                .Replace(".tar.gz", "")
+                .Replace(".tgz", "");
+        else if (outputFileName.EndsWithF(".gz")) outputFileName = outputFileName.Replace(".gz", "");
+
+        var outputPath = _GetSafePath(destDirectory, outputFileName);
 
         await using FileStream compressedFile = new(compressFilePath, FileMode.Open, FileAccess.Read);
         await using GZipInputStream gzipStream = new(compressedFile);
 
-        if (compressFilePath.EndsWithF(".tgz")) {
-            // 处理 .tgz（tar.gz）文件
+        if (isTarGZip)
+        {
+            // 处理 .tgz / .tar.gz 文件
             await using TarInputStream tarStream = new(gzipStream, Encoding.UTF8);
-            await _ExtractTarStreamAsync(tarStream, destDirectory, progressIncrementHandler, cancellationToken).ConfigureAwait(false);
-        } else {
+
+            await _ExtractTarStreamAsync(
+                    tarStream,
+                    destDirectory,
+                    progressIncrementHandler,
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+        else
+        {
             // 处理普通 .gz 文件
-            await using FileStream outputStream = new(outputPath, FileMode.OpenOrCreate, FileAccess.Write);
-            await gzipStream.CopyToAsync(outputStream, cancellationToken).ConfigureAwait(false);
+            await using FileStream outputStream = new(outputPath, FileMode.Create, FileAccess.Write);
+
+            await gzipStream
+                .CopyToAsync(outputStream, cancellationToken)
+                .ConfigureAwait(false);
+
             progressIncrementHandler?.Invoke(1.0);
         }
     }
 
     /// <summary>
-    /// 异步解压 BZip2 文件。
+    ///     异步解压 BZip2 文件。
     /// </summary>
-    private static async Task _ExtractBZip2Async(string compressFilePath, string destDirectory, Action<double>? progressIncrementHandler, CancellationToken cancellationToken) {
-        var outputFileName = Path.GetFileName(compressFilePath).ToLower().Replace(".bz2", "");
-        var outputPath = Path.Combine(destDirectory, outputFileName);
+    private static async Task _ExtractBZip2Async(
+        string compressFilePath,
+        string destDirectory,
+        Action<double>? progressIncrementHandler,
+        CancellationToken cancellationToken)
+    {
+        var outputFileName = Path.GetFileName(compressFilePath)
+            .ToLower()
+            .Replace(".bz2", "");
+
+        var outputPath = _GetSafePath(destDirectory, outputFileName);
 
         await using FileStream compressedFile = new(compressFilePath, FileMode.Open, FileAccess.Read);
         await using BZip2InputStream bzip2Stream = new(compressedFile);
-        await using FileStream outputStream = new(outputPath, FileMode.OpenOrCreate, FileAccess.Write);
-        await bzip2Stream.CopyToAsync(outputStream, cancellationToken).ConfigureAwait(false);
+        await using FileStream outputStream = new(outputPath, FileMode.Create, FileAccess.Write);
+
+        await bzip2Stream
+            .CopyToAsync(outputStream, cancellationToken)
+            .ConfigureAwait(false);
+
         progressIncrementHandler?.Invoke(1.0);
     }
 
     /// <summary>
-    /// 异步解压 Tar 文件。
+    ///     异步解压 Tar 文件。
     /// </summary>
-    private static async Task _ExtractTarAsync(string compressFilePath, string destDirectory, Action<double>? progressIncrementHandler, CancellationToken cancellationToken) {
+    private static async Task _ExtractTarAsync(
+        string compressFilePath,
+        string destDirectory,
+        Action<double>? progressIncrementHandler,
+        CancellationToken cancellationToken)
+    {
         await using FileStream compressedFile = new(compressFilePath, FileMode.Open, FileAccess.Read);
         await using TarInputStream tarStream = new(compressedFile, Encoding.UTF8);
-        await _ExtractTarStreamAsync(tarStream, destDirectory, progressIncrementHandler, cancellationToken).ConfigureAwait(false);
+
+        await _ExtractTarStreamAsync(
+                tarStream,
+                destDirectory,
+                progressIncrementHandler,
+                cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
-    /// 异步解压 Tar 流中的内容到指定目录。
+    ///     异步解压 Tar 流中的内容到指定目录。
     /// </summary>
     /// <param name="tarStream">要解压的 Tar 输入流。</param>
     /// <param name="destDirectory">目标解压目录。</param>
@@ -457,11 +502,19 @@ public static class Files {
     /// <exception cref="OperationCanceledException">如果操作被取消。</exception>
     /// <exception cref="InvalidOperationException">如果路径不合法或解压失败。</exception>
     /// <exception cref="IOException">如果发生 IO 相关错误。</exception>
-    private static async Task _ExtractTarStreamAsync(TarInputStream tarStream, string destDirectory, Action<double>? progressIncrementHandler, CancellationToken cancellationToken) {
+    private static async Task _ExtractTarStreamAsync(
+        TarInputStream tarStream,
+        string destDirectory,
+        Action<double>? progressIncrementHandler,
+        CancellationToken cancellationToken)
+    {
         var entries = new List<TarEntry>();
         long totalBytes = 0;
-        while (await _GetNextEntryAsync(tarStream, cancellationToken).ConfigureAwait(false) is { } entry) {
+
+        while (await _GetNextEntryAsync(tarStream, cancellationToken).ConfigureAwait(false) is { } entry)
+        {
             cancellationToken.ThrowIfCancellationRequested();
+
             entries.Add(entry);
             totalBytes += entry.Size;
         }
@@ -469,69 +522,122 @@ public static class Files {
         long processedBytes = 0;
 
         tarStream.Reset(); // 重置流以重新读取条目
-        foreach (var entry in entries) {
+
+        foreach (var entry in entries)
+        {
             cancellationToken.ThrowIfCancellationRequested();
-            try {
+
+            try
+            {
                 var destinationPath = _GetSafePath(destDirectory, entry.Name);
-                if (entry.IsDirectory) {
-                    await _CreateDirectoryAsync(destinationPath, cancellationToken).ConfigureAwait(false);
+
+                if (entry.IsDirectory)
+                {
+                    await _CreateDirectoryAsync(destinationPath, cancellationToken)
+                        .ConfigureAwait(false);
+
                     continue;
                 }
 
-                await _CreateDirectoryAsync(Path.GetDirectoryName(destinationPath)!, cancellationToken).ConfigureAwait(false);
-                if (entry.Size == 0) {
+                await _CreateDirectoryAsync(Path.GetDirectoryName(destinationPath)!, cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (entry.Size == 0)
+                {
                     await File.Create(destinationPath).DisposeAsync();
                     continue;
                 }
 
-                await using FileStream outputStream = new(destinationPath, FileMode.OpenOrCreate, FileAccess.Write);
-                await tarStream.CopyEntryContentsAsync(outputStream, cancellationToken).ConfigureAwait(false);
+                await using FileStream outputStream = new(destinationPath, FileMode.Create, FileAccess.Write);
+
+                await tarStream
+                    .CopyEntryContentsAsync(outputStream, cancellationToken)
+                    .ConfigureAwait(false);
+
                 processedBytes += entry.Size;
                 progressIncrementHandler?.Invoke((double)processedBytes / totalBytes);
-            } catch (IOException ex) {
-                throw new InvalidOperationException($"Failed to extract entry {entry.Name}: {ex.Message}", ex);
+            }
+            catch (IOException ex)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to extract entry {entry.Name}: {ex.Message}",
+                    ex);
             }
         }
     }
 
-    private static async Task<TarEntry?> _GetNextEntryAsync(TarInputStream tarStream, CancellationToken cancellationToken) {
+    private static async Task<TarEntry?> _GetNextEntryAsync(
+        TarInputStream tarStream,
+        CancellationToken cancellationToken)
+    {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
         var task = Task.Run(tarStream.GetNextEntry, cts.Token);
-        if (await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(10), cts.Token)).ConfigureAwait(false) == task) {
+
+        if (await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(10), cts.Token)).ConfigureAwait(false) == task)
             return await task.ConfigureAwait(false);
-        }
+
         throw new TimeoutException("Operation timed out while reading next Tar entry.");
     }
 
-    private static string _GetSafePath(string destDirectory, string entryName) {
-        var fullPath = Path.GetFullPath(Path.Combine(destDirectory, entryName));
-        return fullPath.StartsWith(Path.GetFullPath(destDirectory)) ? fullPath : throw new InvalidOperationException($"Invalid path detected: {entryName}");
+    private static string _GetSafePath(
+        string destDirectory,
+        string entryName)
+    {
+        var destinationRoot =
+            Path.GetFullPath(destDirectory)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) +
+            Path.DirectorySeparatorChar;
+
+        var fullPath = Path.GetFullPath(Path.Combine(destinationRoot, entryName));
+
+        return fullPath.StartsWith(destinationRoot, StringComparison.OrdinalIgnoreCase)
+            ? fullPath
+            : throw new InvalidOperationException($"Invalid path detected: {entryName}");
     }
 
-    private static async Task _CreateDirectoryAsync(string path, CancellationToken cancellationToken) {
-        await Task.Run(() => Directory.CreateDirectory(path), cancellationToken).ConfigureAwait(false);
+    private static async Task _CreateDirectoryAsync(
+        string path,
+        CancellationToken cancellationToken)
+    {
+        await Task
+            .Run(() => Directory.CreateDirectory(path), cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
-    /// 异步解压 Zip 文件（包括 .zip 和 .jar）。
+    ///     异步解压 Zip 文件（包括 .zip 和 .jar）。
     /// </summary>
-    private static async Task _ExtractZipAsync(string compressFilePath, string destDirectory, Action<double>? progressIncrementHandler, CancellationToken cancellationToken) {
+    private static async Task _ExtractZipAsync(
+        string compressFilePath,
+        string destDirectory,
+        Action<double>? progressIncrementHandler,
+        CancellationToken cancellationToken)
+    {
         using ZipFile zipFile = new(compressFilePath);
 
         var totalEntries = zipFile.Count;
         long currentEntry = 0;
 
-        foreach (ZipEntry entry in zipFile) {
-            var destinationPath = Path.Combine(destDirectory, entry.Name);
-            if (entry.IsDirectory) {
+        foreach (ZipEntry entry in zipFile)
+        {
+            var destinationPath = _GetSafePath(destDirectory, entry.Name);
+
+            if (entry.IsDirectory)
+            {
                 Directory.CreateDirectory(destinationPath);
                 continue;
             }
 
             Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+
             await using var zipStream = zipFile.GetInputStream(entry);
-            await using FileStream outputStream = new(destinationPath, FileMode.OpenOrCreate, FileAccess.Write);
-            await zipStream.CopyToAsync(outputStream, cancellationToken).ConfigureAwait(false);
+            await using FileStream outputStream = new(destinationPath, FileMode.Create, FileAccess.Write);
+
+            await zipStream
+                .CopyToAsync(outputStream, cancellationToken)
+                .ConfigureAwait(false);
+
             currentEntry++;
             progressIncrementHandler?.Invoke((double)currentEntry / totalEntries);
         }
@@ -647,7 +753,7 @@ public static class Files {
         }
 
         var dataObject = Clipboard.GetDataObject();
-        if (dataObject == null || !dataObject.GetDataPresent(DataFormats.FileDrop)) {
+        if (dataObject is null || !dataObject.GetDataPresent(DataFormats.FileDrop)) {
             return 0;
         }
 
@@ -683,11 +789,11 @@ public static class Files {
     /// <returns>合并后的 JSON 对象。如果输入无效，返回源或目标的深拷贝。</returns>
     /// <exception cref="ArgumentNullException">如果 target 和 source 均为 null，则抛出异常。</exception>
     public static JsonNode MergeJson(JsonNode target, JsonNode source) {
-        if (target == null && source == null) {
+        if (target is null && source is null) {
             throw new ArgumentNullException(nameof(target), "目标和源 JSON 不能同时为 null。");
         }
 
-        if (target == null) {
+        if (target is null) {
             return source.DeepClone();
         }
 
@@ -701,7 +807,7 @@ public static class Files {
         foreach (var (key, sourceValue) in sourceObj) {
             var targetValue = result[key];
 
-            if (sourceValue == null) {
+            if (sourceValue is null) {
                 // 忽略 null 值，保留目标值
                 continue;
             }
@@ -716,7 +822,7 @@ public static class Files {
 
                 // 添加目标数组元素
                 foreach (var item in targetArray) {
-                    if (item == null) {
+                    if (item is null) {
                         continue;
                     }
                     var itemStr = item.ToJsonString();
@@ -727,7 +833,7 @@ public static class Files {
 
                 // 添加源数组元素（源覆盖目标）
                 foreach (var item in sourceArray) {
-                    if (item == null) {
+                    if (item is null) {
                         continue;
                     }
                     var itemStr = item.ToJsonString();
@@ -802,10 +908,10 @@ public static class Files {
                 var content = await ReadAllTextOrEmptyAsync(localPath);
                 if (string.IsNullOrEmpty(content)) throw new Exception("读取到的文件为空");
                 try {
-                    using var document = JsonDocument.Parse(content);
+                    using var document = JsonDocument.Parse(content, JsonCompat.DocumentOptions);
                     // 简单验证 JSON 有效性
                 } catch (JsonException ex) {
-                    throw new Exception("不是有效的 Json 文件", ex);
+                    throw new Exception(Lang.Text("Common.Error.InvalidJson"), ex);
                 }
             }
 

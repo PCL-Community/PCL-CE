@@ -1,7 +1,9 @@
-﻿namespace PCL.Core.UI.Animation.Easings;
+namespace PCL.Core.UI.Animation.Easings;
 
 public class QuadEaseInOut : Easing
 {
+    public static QuadEaseInOut Shared { get; } = new();
+    
     protected override double EaseCore(double progress)
     {
         if (progress < 0.5)

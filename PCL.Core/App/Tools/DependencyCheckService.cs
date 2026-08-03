@@ -1,11 +1,12 @@
-using PCL.Core.App.IoC;
-using PCL.Core.UI;
-using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using PCL.Core.App.IoC;
+using PCL.Core.App.Localization;
+using PCL.Core.UI;
+using PCL.Core.Utils;
 
 namespace PCL.Core.App.Tools;
 
@@ -14,26 +15,26 @@ namespace PCL.Core.App.Tools;
 public sealed partial class DependencyCheckService
 {
     [LifecycleStart]
-    private static async Task _Start()
+    private static async Task _StartAsync()
     {
-        Context.Info("开始环境检查……");
+        Context.Info(Lang.Text("Tools.Test.Dependency.Checking"));
 
         if (RuntimeInformation.OSArchitecture.Equals(Architecture.Arm64))
-            await _CheckAndAsk("Microsoft.D3DMappingLayers", "OpenGL 兼容包", "9nqpsl29bfff")
+            await _CheckAndAskAsync("Microsoft.D3DMappingLayers", "OpenGL 兼容包", "9nqpsl29bfff")
                 .ConfigureAwait(false);
 
-        await _CheckAndAsk("Microsoft.WebpImageExtension", "WebP 组件包", "9pg2dk419drg")
+        await _CheckAndAskAsync("Microsoft.WebpImageExtension", "WebP 组件包", "9pg2dk419drg")
             .ConfigureAwait(false);
     }
 
-    private static async Task _CheckAndAsk(string packageId, string packageName, string storeId)
+    private static async Task _CheckAndAskAsync(string packageId, string packageName, string storeId)
     {
         if (!await _CheckPackageAsync(packageId))
         {
             Context.Info($"检测到依赖缺失 (package-id = {packageId})");
             var selection = MsgBoxWrapper.Show(
-                $"当前系统环境缺失软件运行所需依赖“{packageName}”\n\n点击确定打开微软应用商店安装",
-                buttons: ["确定", "稍后"]);
+                Lang.Text("Tools.Test.Dependency.MissingMessage", packageName),
+                buttons: [Lang.Text("Common.Action.Confirm"), Lang.Text("Tools.Test.Dependency.Later")]);
             if (selection == 1) _LaunchMsStore(storeId);
         }
     }
@@ -43,7 +44,7 @@ public sealed partial class DependencyCheckService
         Context.Info($"正在打开微软应用商店 (id = {id})");
         var psi = new ProcessStartInfo()
         {
-            FileName = $"ms-windows-store://pdp?launch=true&hl=zh-cn&gl=cn&referrer=storeforweb&productid={id}&mode=full",
+            FileName = $"ms-windows-store://pdp?launch=true&productid={id}&mode=full",
             UseShellExecute = true
         };
         using var ps = new Process() { StartInfo = psi };
@@ -71,20 +72,20 @@ public sealed partial class DependencyCheckService
         try
         {
             // ConvertTo-Json 结构不一定可靠，不太能 Serialize
-            jnode = await JsonNode.ParseAsync(ps.StandardOutput.BaseStream);
+            jnode = await JsonNode.ParseAsync(ps.StandardOutput.BaseStream, JsonCompat.NodeOptions, JsonCompat.DocumentOptions);
         }
         catch
         {
             return false;
         }
 
-        if (jnode == null) return false;
+        if (jnode is null) return false;
         if (jnode.GetValueKind().Equals(JsonValueKind.Array))
         {
             var hasPack = false;
             foreach (var node in jnode.AsArray())
             {
-                if (node != null && CheckPackSuit(node, id))
+                if (node is not null && CheckPackSuit(node, id))
                 {
                     hasPack = true;
                     break;
@@ -102,8 +103,8 @@ public sealed partial class DependencyCheckService
         // 检查当前的 JsonNode 下是否是符合的包
         static bool CheckPackSuit(JsonNode jnode, string id)
         {
-            var findedPackName = jnode["Name"]?.GetValue<string>();
-            return findedPackName != null && findedPackName.Contains(id);
+            var findedPackName = JsonCompat.ToObject<string>(jnode["Name"]);
+            return findedPackName is not null && findedPackName.Contains(id);
         }
     }
 }

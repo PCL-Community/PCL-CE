@@ -1,4 +1,5 @@
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Link.Natayark;
 using PCL.Core.Link.Scaffolding;
 using PCL.Core.Link.Scaffolding.Client.Models;
@@ -36,6 +37,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
         new(_CheckGameState, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(15));
 
     private static bool _isGameWatcherRunnable = false;
+    private static int _isLeaving;
 
     /// <summary>
     /// Current lobby state.
@@ -108,7 +110,8 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
     /// <inheritdoc />
     public override void Stop()
     {
-        _ = _LobbyController.CloseAsync();
+        _lobbyCts.Cancel();
+        _LobbyController.CloseAsync().GetAwaiter().GetResult();
         _ServerGameWatcher.Dispose();
         _lobbyCts.Dispose();
 
@@ -157,7 +160,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
                     Convert.ToDateTime(expTime).CompareTo(DateTime.Now) < 0)
                 {
                     States.Link.NaidRefreshToken = string.Empty;
-                    HintWrapper.Show("Natayark ID 令牌已过期，请重新登录", HintTheme.Error);
+                    HintWrapper.Show(Lang.Text("Tools.GameLink.Natayark.TokenExpired"), HintTheme.Error);
                 }
                 else
                 {
@@ -173,7 +176,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
         catch (Exception ex)
         {
             LogWrapper.Error(ex, "LobbyService", "Lobby service initialization failed.");
-            HintWrapper.Show("大厅服务初始化失败，请检查网络连接。", HintTheme.Error);
+            HintWrapper.Show(Lang.Text("Link.Lobby.InitFailed"), HintTheme.Error);
             _SetState(LobbyState.Error);
         }
     }
@@ -217,7 +220,10 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
                         throw new ArgumentNullException(nameof(pingRes), "Failed to ping minecraft entity.");
                     }
 
-                    var worldName = $"{pingRes.Description} / {pingRes.Version.Name} ({info.Address.Port})";
+                    var worldName = Lang.Text("Link.Lobby.WorldNameFormat",
+                        pingRes.Description,
+                        pingRes.Version.Name,
+                        info.Address.Port);
                     await _RunInUiAsync(() => DiscoveredWorlds.Add(new FoundWorld(worldName, info.Address.Port)))
                         .ConfigureAwait(false);
                 }
@@ -249,7 +255,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
     {
         if (_NotHaveNaid())
         {
-            HintWrapper.Show("请先登录 Natayark ID 再使用大厅！", HintTheme.Error);
+            HintWrapper.Show(Lang.Text("Link.Lobby.LoginRequired"), HintTheme.Error);
             return false;
         }
 
@@ -263,7 +269,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
             var serverEntity = await _LobbyController.LaunchServerAsync(username, port).ConfigureAwait(false);
             if (serverEntity is null)
             {
-                HintWrapper.Show("在创建房间的时候遇到了问题，请查看日志并将此问题反馈给开发者！", HintTheme.Error);
+                HintWrapper.Show(Lang.Text("Link.Lobby.CreateRoomFailed"), HintTheme.Error);
                 return false;
             }
 
@@ -287,7 +293,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
         catch (Exception ex)
         {
             LogWrapper.Error(ex, "LobbyService", "Failed to create lobby.");
-            HintWrapper.Show("创建大厅失败，请检查日志或向开发者反馈。", HintTheme.Error);
+            HintWrapper.Show(Lang.Text("Link.Lobby.CreateLobbyFailed"), HintTheme.Error);
             await LeaveLobbyAsync().ConfigureAwait(false);
 
             return false;
@@ -370,12 +376,12 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
             CurrentUserName = username;
             CurrentLobbyCode = lobbyCode;
 
-            var clientEntity = await _LobbyController.LaunchClientAsync(username, lobbyCode).ConfigureAwait(false);
+            var clientEntity = await _LobbyController.LaunchClientAsync(username, lobbyCode, _lobbyCts.Token).ConfigureAwait(false);
 
             if (clientEntity is null)
             {
                 throw new InvalidOperationException(
-                    "加入大厅失败，可能是大厅不存在或已被解散");
+                    Lang.Text("Link.Lobby.JoinFailed"));
             }
 
             clientEntity.Client.Heartbeat += _ClientOnHeartbeat;
@@ -386,9 +392,13 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
         catch (ArgumentException codeEx)
         {
             LogWrapper.Error(codeEx, "LobbyService", $"Failed to join lobby {lobbyCode}.");
-            HintWrapper.Show("大厅编号格式不正确，请检查后再试！", HintTheme.Error);
+            HintWrapper.Show(Lang.Text("Link.Lobby.InvalidCodeFormat"), HintTheme.Error);
             await LeaveLobbyAsync().ConfigureAwait(false);
 
+            return false;
+        }
+        catch (OperationCanceledException)
+        {
             return false;
         }
         catch (Exception ex)
@@ -406,8 +416,6 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
     private static void _ClientOnServerShutDown()
     {
         OnServerShutDown?.Invoke();
-
-        _ = LeaveLobbyAsync();
     }
 
     private static void _ClientOnHeartbeat(IReadOnlyList<PlayerProfile> players, long latency)
@@ -456,22 +464,25 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
     /// </summary>
     public static async Task LeaveLobbyAsync()
     {
-        _SetState(LobbyState.Leaving);
+        if (Interlocked.Exchange(ref _isLeaving, 1) == 1)
+            return;
 
         try
         {
+            _SetState(LobbyState.Leaving);
+
             await _lobbyCts.CancelAsync().ConfigureAwait(false);
 
             Players.Clear();
             CurrentLobbyCode = null;
             CurrentUserName = null;
 
-            if (_LobbyController.ScfClientEntity?.Client != null)
+            if (_LobbyController.ScfClientEntity?.Client is not null)
             {
                 _LobbyController.ScfClientEntity.Client.Heartbeat -= _ClientOnHeartbeat;
             }
 
-            if (_LobbyController.ScfServerEntity?.Server != null)
+            if (_LobbyController.ScfServerEntity?.Server is not null)
             {
                 _LobbyController.ScfServerEntity.Server.PlayerProfilePing -= _ServerOnPlayerPing;
                 _LobbyController.ScfServerEntity.Server.ServerStarted -= _ServerOnServerStarted;
@@ -493,6 +504,10 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
         catch (Exception ex)
         {
             LogWrapper.Error(ex, "LobbyService", "Failed when leave lobby.");
+        }
+        finally
+        {
+            _isLeaving = 0;
         }
     }
 
