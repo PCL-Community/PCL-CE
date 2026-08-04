@@ -977,6 +977,20 @@ public static class ModModpack
 
     #region MCBBS
 
+    private static string HandleLaunchArguments(JsonNode? argumentNode)
+    {
+        IEnumerable<string> arguments = argumentNode switch
+        {
+            JsonArray array => array.OfType<JsonValue>()
+                .Where(argument => argument.GetValueKind() == JsonValueKind.String)
+                .Select(argument => argument.GetValue<string>()),
+            JsonValue argument when argument.GetValueKind() == JsonValueKind.String =>
+                [argument.GetValue<string>()],
+            _ => []
+        };
+        return string.Join(" ", arguments.Where(argument => !string.IsNullOrWhiteSpace(argument)));
+    }
+
     private static LoaderCombo<string> InstallPackMCBBS(string fileAddress, ZipArchive archive,
         string archiveBaseFolder, string instanceName = null)
     {
@@ -1031,12 +1045,8 @@ public static class ModModpack
             if (json["launchInfo"] is not null)
             {
                 var launchInfo = (JsonObject)json["launchInfo"];
-                Config.Instance.JvmArgs[versionFolder] = launchInfo["javaArgument"] is JsonArray jvmArguments
-                    ? string.Join(" ", jvmArguments.Select(argument => argument?.ToString()))
-                    : launchInfo["javaArgument"]?.ToString() ?? "";
-                Config.Instance.GameArgs[versionFolder] = launchInfo["launchArgument"] is JsonArray gameArguments
-                    ? string.Join(" ", gameArguments.Select(argument => argument?.ToString()))
-                    : launchInfo["launchArgument"]?.ToString() ?? "";
+                Config.Instance.JvmArgs[versionFolder] = HandleLaunchArguments(launchInfo["javaArgument"]);
+                Config.Instance.GameArgs[versionFolder] = HandleLaunchArguments(launchInfo["launchArgument"]);
             }
 
             // 整合包版本
