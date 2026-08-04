@@ -1031,8 +1031,12 @@ public static class ModModpack
             if (json["launchInfo"] is not null)
             {
                 var launchInfo = (JsonObject)json["launchInfo"];
-                Config.Instance.JvmArgs[versionFolder] = string.Join(" ", launchInfo["javaArgument"]);
-                Config.Instance.GameArgs[versionFolder] = string.Join(" ", launchInfo["launchArgument"]);
+                Config.Instance.JvmArgs[versionFolder] = launchInfo["javaArgument"] is JsonArray jvmArguments
+                    ? string.Join(" ", jvmArguments.Select(argument => argument?.ToString()))
+                    : launchInfo["javaArgument"]?.ToString() ?? "";
+                Config.Instance.GameArgs[versionFolder] = launchInfo["launchArgument"] is JsonArray gameArguments
+                    ? string.Join(" ", gameArguments.Select(argument => argument?.ToString()))
+                    : launchInfo["launchArgument"]?.ToString() ?? "";
             }
 
             // 整合包版本
