@@ -8,7 +8,8 @@ public static class ModNet
     public const string NetDownloadEnd = ".PCLDownloading";
     public const int NetTaskConnectionLimitMax = 256;
     public const int NetTaskSingleFileConnectionLimitMax = 8;
-    public const int NetTaskConnectionsPerHostLimit = 8;
+    // 主机级限制不再低于全局设置；默认仍由 NetTaskConnectionLimit（64）控制。
+    public const int NetTaskConnectionsPerHostLimit = NetTaskConnectionLimitMax;
     public const long NetTaskBufferBudgetBytes = 512L * 1024 * 1024;
 
     /// <summary>所有下载任务共享的最大活跃 HTTP 连接数。</summary>

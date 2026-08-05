@@ -80,7 +80,8 @@ public static class FileDownloader
         CleanupTempFiles(localPath);
 
         if (enableParallelChunks && await AdaptiveRangeDownloader.TryDownloadAsync(url, localPath,
-                useBrowserUserAgent, customUserAgent, cancellationToken, trackedFile).ConfigureAwait(false))
+                useBrowserUserAgent, customUserAgent, cancellationToken, trackedFile,
+                trackedFile?.Check?.actualSize ?? -1).ConfigureAwait(false))
         {
             PromoteTempFile(localPath);
             if (!File.Exists(localPath))

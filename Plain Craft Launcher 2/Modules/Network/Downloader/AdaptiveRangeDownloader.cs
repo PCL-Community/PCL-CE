@@ -42,8 +42,13 @@ internal sealed class AdaptiveRangeDownloader
 
     /// <summary>若文件适合 Range 分段下载则完成下载并返回 true，否则返回 false 交给顺序下载器处理。</summary>
     public static async Task<bool> TryDownloadAsync(string url, string localPath, bool useBrowserUserAgent,
-        string customUserAgent, CancellationToken cancellationToken, DownloadFile? trackedFile)
+        string customUserAgent, CancellationToken cancellationToken, DownloadFile? trackedFile,
+        long expectedSize = -1)
     {
+        // 下载清单已有大小时，小文件直接走顺序请求，避免额外的 Range 探测往返。
+        if (expectedSize >= 0 && expectedSize < SmallFileThreshold)
+            return false;
+
         var downloader = new AdaptiveRangeDownloader(url, localPath, useBrowserUserAgent, customUserAgent, trackedFile);
         var probe = await downloader.ProbeAsync(cancellationToken).ConfigureAwait(false);
         if (probe is null || probe.Value.Size < SmallFileThreshold)
