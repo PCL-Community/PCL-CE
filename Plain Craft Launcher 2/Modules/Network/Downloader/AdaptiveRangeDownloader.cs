@@ -13,7 +13,7 @@ namespace PCL.Network;
 /// <summary>为支持 HTTP Range 的大文件提供动态分段下载与慢连接恢复。</summary>
 internal sealed class AdaptiveRangeDownloader
 {
-    private const long SmallFileThreshold = 32L * 1024 * 1024;
+    internal const long SmallFileThreshold = 32L * 1024 * 1024;
     private const long TargetSegmentSize = 8L * 1024 * 1024;
     private const int MaxSegmentCount = 1024;
     private const int MaxExpandedSegmentCount = MaxSegmentCount * 2;
@@ -169,6 +169,7 @@ internal sealed class AdaptiveRangeDownloader
         public long End { get; set; } = end;
         public long Downloaded { get; set; }
         public int FailureCount { get; set; }
+        public long LastRateSampleTick { get; set; }
         public long Remaining => End - Start - Downloaded + 1;
         public long CurrentOffset => Start + Downloaded;
     }
@@ -287,6 +288,7 @@ internal sealed class AdaptiveRangeDownloader
                 ValidateRangeResponse(response, segment);
 
                 await using var input = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                using var readTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 while (segment.Remaining > 0)
                 {
                     using var bufferLease = await DownloadResourceManager.ReserveBufferAsync(BufferSize, cancellationToken)
@@ -295,19 +297,16 @@ internal sealed class AdaptiveRangeDownloader
                     try
                     {
                         int read;
-                        using (var readTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+                        readTimeout.CancelAfter(ReadTimeoutMilliseconds);
+                        try
                         {
-                            readTimeout.CancelAfter(ReadTimeoutMilliseconds);
-                            try
-                            {
-                                read = await input.ReadAsync(buffer.AsMemory(0, BufferSize), readTimeout.Token)
-                                    .ConfigureAwait(false);
-                            }
-                            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested &&
-                                                                   readTimeout.IsCancellationRequested)
-                            {
-                                throw new SlowSegmentException("分段在等待数据时超时");
-                            }
+                            read = await input.ReadAsync(buffer.AsMemory(0, BufferSize), readTimeout.Token)
+                                .ConfigureAwait(false);
+                        }
+                        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested &&
+                                                               readTimeout.IsCancellationRequested)
+                        {
+                            throw new SlowSegmentException("分段在等待数据时超时");
                         }
 
                         if (read == 0)
@@ -347,10 +346,14 @@ internal sealed class AdaptiveRangeDownloader
         {
             var now = Stopwatch.GetTimestamp();
             var elapsedSeconds = Math.Max(0.001, (double)(now - startedAt) / Stopwatch.Frequency);
-            _rates[segment.Id] = new RateSample(attemptBytes / elapsedSeconds, now);
+            if (now - segment.LastRateSampleTick >= Stopwatch.Frequency / 2)
+            {
+                segment.LastRateSampleTick = now;
+                _rates[segment.Id] = new RateSample(attemptBytes / elapsedSeconds, now);
 
-            if (IsSignificantlySlow(segment, attemptBytes, startedAt, now))
-                throw new SlowSegmentException("分段速度明显低于其他活跃连接");
+                if (IsSignificantlySlow(segment, attemptBytes, startedAt, now))
+                    throw new SlowSegmentException("分段速度明显低于其他活跃连接");
+            }
 
             ReportProgress(downloaded, activeConnections);
         }

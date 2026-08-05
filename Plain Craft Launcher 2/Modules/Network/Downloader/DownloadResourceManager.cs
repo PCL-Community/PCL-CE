@@ -131,15 +131,17 @@ internal sealed class AsyncQuota
 
     public void Release(long amount)
     {
-        TaskCompletionSource[] waiters;
+        TaskCompletionSource? waiter = null;
         lock (_lock)
         {
             _used = Math.Max(0, _used - amount);
-            waiters = _waiters.ToArray();
-            _waiters.Clear();
+            if (_waiters.Count > 0)
+            {
+                waiter = _waiters[0];
+                _waiters.RemoveAt(0);
+            }
         }
 
-        foreach (var waiter in waiters)
-            waiter.TrySetResult();
+        waiter?.TrySetResult();
     }
 }

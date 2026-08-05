@@ -131,8 +131,9 @@ public class LoaderDownload : ModLoader.LoaderBase
         }
 
         file.State = PCL.Network.NetState.Connecting;
-        // 全局资源管理器会限制总连接数，因此多个大文件也可安全地使用分段下载。
-        const bool enableParallelChunks = true;
+        // 批量任务中未知大小的文件直接下载，避免小文件逐个产生一次 Range 探测。
+        var expectedSize = file.Check?.actualSize ?? -1;
+        var enableParallelChunks = files.Count <= 1 || expectedSize >= AdaptiveRangeDownloader.SmallFileThreshold;
         for (var retry = 0; retry < 4; retry++)
         {
             cancellationToken.ThrowIfCancellationRequested();

@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.IO;
-using System.Net.Http.Headers;
 using System.Net.Http;
 using PCL.Core.IO.Net;
 
@@ -103,8 +102,6 @@ public static class FileDownloader
         using var connection = await DownloadResourceManager.AcquireConnectionAsync(url, cancellationToken)
             .ConfigureAwait(false);
         using var request = CreateDownloadRequest(url, useBrowserUserAgent, customUserAgent);
-        request.Headers.AcceptEncoding.Clear();
-        request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("identity"));
         using var response = await GetHttpClient(url)
             .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode)
@@ -125,6 +122,7 @@ public static class FileDownloader
         long lastProgressBytes = 0;
         var lastProgressTick = Stopwatch.GetTimestamp();
         await using var input = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        using var readTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         await using var output = new FileStream(localPath + ModNet.NetDownloadEnd, FileMode.Create, FileAccess.Write,
             FileShare.Read, bufferSize: 1, FileOptions.Asynchronous | FileOptions.SequentialScan);
         while (true)
@@ -135,19 +133,16 @@ public static class FileDownloader
             try
             {
                 int read;
-                using (var readTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+                readTimeout.CancelAfter(readTimeoutMilliseconds);
+                try
                 {
-                    readTimeout.CancelAfter(readTimeoutMilliseconds);
-                    try
-                    {
-                        read = await input.ReadAsync(buffer.AsMemory(0, bufferSize), readTimeout.Token)
-                            .ConfigureAwait(false);
-                    }
-                    catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested &&
-                                                           readTimeout.IsCancellationRequested)
-                    {
-                        throw new TimeoutException($"下载超时（{url}）");
-                    }
+                    read = await input.ReadAsync(buffer.AsMemory(0, bufferSize), readTimeout.Token)
+                        .ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested &&
+                                                       readTimeout.IsCancellationRequested)
+                {
+                    throw new TimeoutException($"下载超时（{url}）");
                 }
 
                 if (read == 0)
