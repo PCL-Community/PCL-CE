@@ -99,7 +99,7 @@ public static class FileDownloader
         string customUserAgent, CancellationToken cancellationToken, DownloadFile? trackedFile)
     {
         const int bufferSize = 64 * 1024;
-        const int readTimeoutMilliseconds = 60_000;
+        const int readTimeoutMilliseconds = 30_000;
         using var connection = await DownloadResourceManager.AcquireConnectionAsync(url, cancellationToken)
             .ConfigureAwait(false);
         using var request = CreateDownloadRequest(url, useBrowserUserAgent, customUserAgent);
