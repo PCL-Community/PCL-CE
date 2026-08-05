@@ -3542,8 +3542,9 @@ public static class ModComp
                     {
                         var instances = _QuickDownloadPickInstances(project, files);
                         if (instances is null) return;
+                        var startedTargets = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                         foreach (var instance in instances)
-                            _QuickDownloadToInstance(project, files, instance);
+                            _QuickDownloadToInstance(project, files, instance, startedTargets);
                         break;
                     }
                     case 3: // 询问并下载到一个路径
@@ -3563,7 +3564,8 @@ public static class ModComp
     }
 
     /// <summary>下载到指定实例的最新兼容版本。</summary>
-    private static void _QuickDownloadToInstance(CompProject project, List<CompFile> files, McInstance? instance)
+    private static void _QuickDownloadToInstance(CompProject project, List<CompFile> files, McInstance? instance,
+        ISet<string>? startedTargets = null)
     {
         if (instance is null)
         {
@@ -3583,6 +3585,9 @@ public static class ModComp
         var folder = instance.PathIndie + _GetSubFolder(project.Type);
         Directory.CreateDirectory(folder);
         var target = Path.Combine(folder, CompFileNameGet(project, file));
+        //只下载一次，避免并发写同一文件
+        if (startedTargets is not null && !startedTargets.Add(target))
+            return;
         _StartQuickDownload(file, target);
         HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.DownloadStarted", project.RawName), HintType.Success);
     }
