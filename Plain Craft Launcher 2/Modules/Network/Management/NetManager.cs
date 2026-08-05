@@ -43,11 +43,7 @@ public sealed class NetManager
 
     public int ConnectionCount
     {
-        get
-        {
-            lock (LockFiles)
-                return Files.Values.Sum(file => file.ActiveThreads);
-        }
+        get => DownloadResourceManager.ActiveConnectionCount;
     }
 
     [Obsolete("请使用 ConnectionCount。")]

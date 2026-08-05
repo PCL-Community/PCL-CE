@@ -10,7 +10,10 @@ internal static class DownloadResourceManager
     private static readonly AsyncQuota BufferQuota = new();
     private static readonly ConcurrentDictionary<string, AsyncQuota> HostConnectionQuotas = new(StringComparer.OrdinalIgnoreCase);
     private static readonly object BandwidthLock = new();
+    private static int _activeConnectionCount;
     private static long _nextBandwidthTick;
+
+    public static int ActiveConnectionCount => Volatile.Read(ref _activeConnectionCount);
 
     public static async ValueTask<DownloadConnectionLease> AcquireConnectionAsync(string url,
         CancellationToken cancellationToken)
@@ -24,6 +27,7 @@ internal static class DownloadResourceManager
             var globalLease = await ConnectionQuota.AcquireAsync(1,
                 () => Math.Clamp(ModNet.NetTaskConnectionLimit, 1, ModNet.NetTaskConnectionLimitMax), cancellationToken)
                 .ConfigureAwait(false);
+            Interlocked.Increment(ref _activeConnectionCount);
             return new DownloadConnectionLease(globalLease, hostLease);
         }
         catch
@@ -36,6 +40,11 @@ internal static class DownloadResourceManager
     public static ValueTask<DownloadQuotaLease> ReserveBufferAsync(int bytes, CancellationToken cancellationToken)
     {
         return BufferQuota.AcquireAsync(bytes, () => ModNet.NetTaskBufferBudgetBytes, cancellationToken);
+    }
+
+    internal static void ReleaseConnection()
+    {
+        Interlocked.Decrement(ref _activeConnectionCount);
     }
 
     public static Task ThrottleAsync(int bytes, CancellationToken cancellationToken)
@@ -67,7 +76,12 @@ internal sealed class DownloadConnectionLease(DownloadQuotaLease globalLease, Do
 
     public void Dispose()
     {
-        Interlocked.Exchange(ref _globalLease, null)?.Dispose();
+        var globalLease = Interlocked.Exchange(ref _globalLease, null);
+        if (globalLease is null)
+            return;
+
+        DownloadResourceManager.ReleaseConnection();
+        globalLease.Dispose();
         Interlocked.Exchange(ref _hostLease, null)?.Dispose();
     }
 }

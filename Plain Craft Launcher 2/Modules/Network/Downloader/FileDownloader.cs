@@ -159,6 +159,7 @@ public static class FileDownloader
             }
         }
 
+        connection.Dispose();
         await output.FlushAsync(cancellationToken).ConfigureAwait(false);
         await output.DisposeAsync().ConfigureAwait(false);
         if (totalSize >= 0 && downloaded != totalSize)

@@ -50,12 +50,25 @@ internal sealed class AdaptiveRangeDownloader
             return false;
 
         var downloader = new AdaptiveRangeDownloader(url, localPath, useBrowserUserAgent, customUserAgent, trackedFile);
-        var probe = await downloader.ProbeAsync(cancellationToken).ConfigureAwait(false);
-        if (probe is null || probe.Value.Size < SmallFileThreshold)
-            return false;
+        var totalSize = expectedSize;
+        if (totalSize < 0)
+        {
+            var probe = await downloader.ProbeAsync(cancellationToken).ConfigureAwait(false);
+            if (probe is null || probe.Value.Size < SmallFileThreshold)
+                return false;
+            totalSize = probe.Value.Size;
+        }
 
-        await downloader.DownloadAsync(probe.Value.Size, cancellationToken).ConfigureAwait(false);
-        return true;
+        try
+        {
+            await downloader.DownloadAsync(totalSize, cancellationToken).ConfigureAwait(false);
+            return true;
+        }
+        catch (RangeNotSupportedException ex)
+        {
+            ModBase.Log(ex, $"[Download] 下载源不支持可靠的 Range，改用顺序下载：{url}", ModBase.LogLevel.Debug);
+            return false;
+        }
     }
 
     private async Task<RangeProbe?> ProbeAsync(CancellationToken cancellationToken)
@@ -276,7 +289,7 @@ internal sealed class AdaptiveRangeDownloader
         {
             using var connection = await DownloadResourceManager.AcquireConnectionAsync(_owner._url, cancellationToken)
                 .ConfigureAwait(false);
-            var activeConnections = Interlocked.Increment(ref _activeConnections);
+            Interlocked.Increment(ref _activeConnections);
             var startedAt = Stopwatch.GetTimestamp();
             var attemptBytes = 0L;
             try
@@ -320,7 +333,7 @@ internal sealed class AdaptiveRangeDownloader
                         segment.Downloaded += read;
                         attemptBytes += read;
                         var downloaded = Interlocked.Add(ref _downloadedBytes, read);
-                        ReportRateAndProgress(segment, attemptBytes, startedAt, downloaded, activeConnections);
+                        ReportRateAndProgress(segment, attemptBytes, startedAt, downloaded);
                     }
                     finally
                     {
@@ -336,13 +349,12 @@ internal sealed class AdaptiveRangeDownloader
             finally
             {
                 _rates.TryRemove(segment.Id, out _);
-                activeConnections = Interlocked.Decrement(ref _activeConnections);
+                var activeConnections = Interlocked.Decrement(ref _activeConnections);
                 ReportProgress(Interlocked.Read(ref _downloadedBytes), activeConnections, force: true);
             }
         }
 
-        private void ReportRateAndProgress(DownloadSegment segment, long attemptBytes, long startedAt, long downloaded,
-            int activeConnections)
+        private void ReportRateAndProgress(DownloadSegment segment, long attemptBytes, long startedAt, long downloaded)
         {
             var now = Stopwatch.GetTimestamp();
             var elapsedSeconds = Math.Max(0.001, (double)(now - startedAt) / Stopwatch.Frequency);
@@ -355,7 +367,7 @@ internal sealed class AdaptiveRangeDownloader
                     throw new SlowSegmentException("分段速度明显低于其他活跃连接");
             }
 
-            ReportProgress(downloaded, activeConnections);
+            ReportProgress(downloaded, Volatile.Read(ref _activeConnections));
         }
 
         private bool IsSignificantlySlow(DownloadSegment segment, long attemptBytes, long startedAt, long now)
@@ -413,16 +425,17 @@ internal sealed class AdaptiveRangeDownloader
         private void ValidateRangeResponse(HttpResponseMessage response, DownloadSegment segment)
         {
             if (response.StatusCode != HttpStatusCode.PartialContent)
-                throw new IOException($"服务器未按 Range 返回分段，状态码：{(int)response.StatusCode}");
+                throw new RangeNotSupportedException($"服务器未按 Range 返回分段，状态码：{(int)response.StatusCode}");
 
             var range = response.Content.Headers.ContentRange;
             if (range?.Unit != "bytes" || range.From != segment.CurrentOffset || range.To != segment.End ||
                 range.Length != _totalSize)
-                throw new IOException("服务器返回的 Content-Range 与请求分段不一致");
+                throw new RangeNotSupportedException("服务器返回的 Content-Range 与请求分段不一致");
         }
 
         private readonly record struct RateSample(double BytesPerSecond, long UpdatedAt);
     }
 
     private sealed class SlowSegmentException(string message) : IOException(message);
+    private sealed class RangeNotSupportedException(string message) : Exception(message);
 }
