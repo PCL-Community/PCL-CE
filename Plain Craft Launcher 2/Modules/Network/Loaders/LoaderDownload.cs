@@ -105,7 +105,8 @@ public class LoaderDownload : ModLoader.LoaderBase
 
     private int GetMaxParallelFiles()
     {
-        return Math.Max(1, Math.Min(files.Count, Math.Clamp(ModNet.NetTaskThreadLimit, 1, 64)));
+        return Math.Max(1, Math.Min(files.Count,
+            Math.Clamp(ModNet.NetTaskConnectionLimit, 1, ModNet.NetTaskConnectionLimitMax)));
     }
 
     private async Task ProcessFileAsync(PCL.Network.DownloadFile file, CancellationToken cancellationToken)
@@ -130,7 +131,8 @@ public class LoaderDownload : ModLoader.LoaderBase
         }
 
         file.State = PCL.Network.NetState.Connecting;
-        var enableParallelChunks = files.Count <= 1;
+        // 全局资源管理器会限制总连接数，因此多个大文件也可安全地使用分段下载。
+        const bool enableParallelChunks = true;
         for (var retry = 0; retry < 4; retry++)
         {
             cancellationToken.ThrowIfCancellationRequested();

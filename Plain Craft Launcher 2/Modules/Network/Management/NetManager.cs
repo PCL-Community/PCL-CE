@@ -41,7 +41,7 @@ public sealed class NetManager
         }
     }
 
-    public int ThreadCount
+    public int ConnectionCount
     {
         get
         {
@@ -49,6 +49,9 @@ public sealed class NetManager
                 return Files.Values.Sum(file => file.ActiveThreads);
         }
     }
+
+    [Obsolete("请使用 ConnectionCount。")]
+    public int ThreadCount => ConnectionCount;
 
     public void Start(PCL.Network.Loaders.LoaderDownload task)
     {

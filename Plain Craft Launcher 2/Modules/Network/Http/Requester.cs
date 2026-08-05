@@ -145,16 +145,18 @@ public static class Requester
 
     public static DownloadService CreateDownloadService(string url, bool useBrowserUserAgent = false)
     {
-        var chunkCount = Math.Min(Math.Max(1, ModNet.NetTaskThreadLimit), 4);
+        var chunkCount = Math.Min(Math.Clamp(ModNet.NetTaskConnectionLimit, 1,
+            ModNet.NetTaskSingleFileConnectionLimitMax), ModNet.NetTaskSingleFileConnectionLimit);
         return new DownloadService(new DownloadConfiguration
         {
             ChunkCount = chunkCount,
             ParallelCount = chunkCount,
             ParallelDownload = chunkCount > 1,
             MaximumBytesPerSecond = ModNet.NetTaskSpeedLimitHigh > 0 ? ModNet.NetTaskSpeedLimitHigh : 0,
-            DownloadFileExtension = ModNet.netDownloadEnd,
+            DownloadFileExtension = ModNet.NetDownloadEnd,
             EnableAutoResumeDownload = false,
-            MaximumMemoryBufferBytes = 256L * 1024 * 1024,
+            MaximumMemoryBufferBytes = 2L * 1024 * 1024,
+            BufferBlockSize = 64 * 1024,
             RequestConfiguration = DownloadRequestFactory.Create(url, useBrowserUserAgent)
         });
     }

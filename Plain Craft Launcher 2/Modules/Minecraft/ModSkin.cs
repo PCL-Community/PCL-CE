@@ -153,9 +153,9 @@ public static class ModSkin
         {
             if (!File.Exists(fileAddress))
             {
-                FileDownloader.DownloadAsync(address, fileAddress + ModNet.netDownloadEnd).GetAwaiter().GetResult();
+                FileDownloader.DownloadAsync(address, fileAddress + ModNet.NetDownloadEnd).GetAwaiter().GetResult();
                 File.Delete(fileAddress);
-                FileSystem.Rename(fileAddress + ModNet.netDownloadEnd, fileAddress);
+                FileSystem.Rename(fileAddress + ModNet.NetDownloadEnd, fileAddress);
                 ModBase.Log("[Minecraft] 皮肤下载成功：" + fileAddress);
             }
 
