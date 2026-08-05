@@ -302,19 +302,19 @@ internal sealed class AdaptiveRangeDownloader
 
                 await using var input = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
                 using var readTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                while (segment.Remaining > 0)
+                using var bufferLease = await DownloadResourceManager.ReserveBufferAsync(BufferSize, cancellationToken)
+                    .ConfigureAwait(false);
+                var buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
+                try
                 {
-                    using var bufferLease = await DownloadResourceManager.ReserveBufferAsync(BufferSize, cancellationToken)
-                        .ConfigureAwait(false);
-                    var buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
-                    try
+                    while (segment.Remaining > 0)
                     {
                         int read;
                         readTimeout.CancelAfter(ReadTimeoutMilliseconds);
                         try
                         {
                             read = await input.ReadAsync(buffer.AsMemory(0, BufferSize), readTimeout.Token)
-                                .ConfigureAwait(false);
+                                    .ConfigureAwait(false);
                         }
                         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested &&
                                                                readTimeout.IsCancellationRequested)
@@ -335,10 +335,10 @@ internal sealed class AdaptiveRangeDownloader
                         var downloaded = Interlocked.Add(ref _downloadedBytes, read);
                         ReportRateAndProgress(segment, attemptBytes, startedAt, downloaded);
                     }
-                    finally
-                    {
-                        ArrayPool<byte>.Shared.Return(buffer);
-                    }
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(buffer);
                 }
 
                 if (segment.Remaining > 0)

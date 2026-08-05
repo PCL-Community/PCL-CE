@@ -124,13 +124,13 @@ public static class FileDownloader
         await using var input = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
         using var readTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         await using var output = new FileStream(localPath + ModNet.NetDownloadEnd, FileMode.Create, FileAccess.Write,
-            FileShare.Read, bufferSize: 1, FileOptions.Asynchronous | FileOptions.SequentialScan);
-        while (true)
+            FileShare.Read, bufferSize: bufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
+        using var bufferLease = await DownloadResourceManager.ReserveBufferAsync(bufferSize, cancellationToken)
+            .ConfigureAwait(false);
+        var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+        try
         {
-            using var bufferLease = await DownloadResourceManager.ReserveBufferAsync(bufferSize, cancellationToken)
-                .ConfigureAwait(false);
-            var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
-            try
+            while (true)
             {
                 int read;
                 readTimeout.CancelAfter(readTimeoutMilliseconds);
@@ -153,14 +153,13 @@ public static class FileDownloader
                 downloaded += read;
                 UpdateSequentialProgress(trackedFile, downloaded, totalSize, ref lastProgressBytes, ref lastProgressTick);
             }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
         }
 
         connection.Dispose();
-        await output.FlushAsync(cancellationToken).ConfigureAwait(false);
         await output.DisposeAsync().ConfigureAwait(false);
         if (totalSize >= 0 && downloaded != totalSize)
             throw new IOException($"下载不完整：已写入 {downloaded}，应为 {totalSize}");
