@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using PCL.Core.IO.Net;
 
@@ -202,6 +203,8 @@ public static class FileDownloader
     {
         var request = new HttpRequestMessage(HttpMethod.Get, url);
         RequestSigning.SecretHeadersSign(url, ref request, useBrowserUserAgent, customUserAgent);
+        request.Version = HttpVersion.Version11;
+        request.VersionPolicy = HttpVersionPolicy.RequestVersionExact;
         return request;
     }
 

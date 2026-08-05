@@ -117,17 +117,24 @@ public class LoaderDownload : ModLoader.LoaderBase
         if (State >= ModBase.LoadState.Finished)
             return;
         Directory.CreateDirectory(Path.GetDirectoryName(file.LocalPath) ?? throw new IOException("下载路径无效"));
-        if (file.Check?.canUseExistsFile == true && file.Check.Check(file.LocalPath) is null)
+        var checker = file.Check;
+        if (checker?.canUseExistsFile == true && File.Exists(file.LocalPath))
         {
-            file.IsCopy = true;
-            file.State = PCL.Network.NetState.Finished;
-            try { file.TotalSize = new FileInfo(file.LocalPath).Length; }
-            catch (IOException) { file.TotalSize = -1; }
-            file.DownloadedBytes = file.TotalSize;
-            file.Speed = 0;
-            file.ActiveThreads = 0;
-            OnFileFinish(file);
-            return;
+            var checkResult = string.IsNullOrEmpty(checker.hash)
+                ? checker.Check(file.LocalPath)
+                : await Task.Run(() => checker.Check(file.LocalPath), cancellationToken).ConfigureAwait(false);
+            if (checkResult is null)
+            {
+                file.IsCopy = true;
+                file.State = PCL.Network.NetState.Finished;
+                try { file.TotalSize = new FileInfo(file.LocalPath).Length; }
+                catch (IOException) { file.TotalSize = -1; }
+                file.DownloadedBytes = file.TotalSize;
+                file.Speed = 0;
+                file.ActiveThreads = 0;
+                OnFileFinish(file);
+                return;
+            }
         }
 
         file.State = PCL.Network.NetState.Connecting;

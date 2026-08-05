@@ -13,7 +13,7 @@ namespace PCL.Network;
 /// <summary>为支持 HTTP Range 的大文件提供动态分段下载与慢连接恢复。</summary>
 internal sealed class AdaptiveRangeDownloader
 {
-    internal const long SmallFileThreshold = 32L * 1024 * 1024;
+    internal const long SmallFileThreshold = 4L * 1024 * 1024;
     private const long TargetSegmentSize = 8L * 1024 * 1024;
     private const int MaxSegmentCount = 1024;
     private const int MaxExpandedSegmentCount = MaxSegmentCount * 2;
