@@ -36,6 +36,10 @@ public static class ModMain
     public static PageToolsLeft? frmToolsLeft;
     public static PageToolsGameLink? frmToolsGameLink;
     public static PageToolsTest? frmToolsTest;
+#if DEBUG
+    public static PageTestLeft? frmTestLeft;
+    public static PageTestRight? frmTestRight;
+#endif
     public static PageDownloadLeft? frmDownloadLeft;
     public static PageDownloadInstall? frmDownloadInstall;
     public static PageDownloadClient? frmDownloadClient;
