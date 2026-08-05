@@ -34,11 +34,7 @@ public sealed class NetManager
 
     public long Speed
     {
-        get
-        {
-            lock (LockFiles)
-                return Files.Values.Sum(file => file.Speed);
-        }
+        get => DownloadResourceManager.DownloadSpeed;
     }
 
     public int ConnectionCount

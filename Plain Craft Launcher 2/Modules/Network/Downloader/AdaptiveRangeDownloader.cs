@@ -329,6 +329,7 @@ internal sealed class AdaptiveRangeDownloader
                         await DownloadResourceManager.ThrottleAsync(read, cancellationToken).ConfigureAwait(false);
                         await RandomAccess.WriteAsync(_fileHandle, buffer.AsMemory(0, read), segment.CurrentOffset,
                             cancellationToken).ConfigureAwait(false);
+                        DownloadResourceManager.RecordDownloadedBytes(read);
 
                         segment.Downloaded += read;
                         attemptBytes += read;

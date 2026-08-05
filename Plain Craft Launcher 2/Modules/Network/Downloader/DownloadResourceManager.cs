@@ -10,10 +10,42 @@ internal static class DownloadResourceManager
     private static readonly AsyncQuota BufferQuota = new();
     private static readonly ConcurrentDictionary<string, AsyncQuota> HostConnectionQuotas = new(StringComparer.OrdinalIgnoreCase);
     private static readonly object BandwidthLock = new();
+    private static readonly object SpeedLock = new();
     private static int _activeConnectionCount;
+    private static long _speedBytes;
+    private static long _speedSnapshotTick = Stopwatch.GetTimestamp();
+    private static long _speed;
     private static long _nextBandwidthTick;
 
     public static int ActiveConnectionCount => Volatile.Read(ref _activeConnectionCount);
+
+    public static long DownloadSpeed
+    {
+        get
+        {
+            lock (SpeedLock)
+            {
+                var now = Stopwatch.GetTimestamp();
+                var elapsedTicks = now - _speedSnapshotTick;
+                if (elapsedTicks >= Stopwatch.Frequency / 4)
+                {
+                    var bytes = Interlocked.Exchange(ref _speedBytes, 0);
+                    _speed = elapsedTicks > 0
+                        ? Math.Max(0L, (long)(bytes * (double)Stopwatch.Frequency / elapsedTicks))
+                        : 0L;
+                    _speedSnapshotTick = now;
+                }
+
+                return _speed;
+            }
+        }
+    }
+
+    internal static void RecordDownloadedBytes(long bytes)
+    {
+        if (bytes > 0)
+            Interlocked.Add(ref _speedBytes, bytes);
+    }
 
     public static async ValueTask<DownloadConnectionLease> AcquireConnectionAsync(string url,
         CancellationToken cancellationToken)

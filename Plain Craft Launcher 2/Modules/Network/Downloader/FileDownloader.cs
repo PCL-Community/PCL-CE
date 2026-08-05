@@ -150,6 +150,7 @@ public static class FileDownloader
 
                 await DownloadResourceManager.ThrottleAsync(read, cancellationToken).ConfigureAwait(false);
                 await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
+                DownloadResourceManager.RecordDownloadedBytes(read);
                 downloaded += read;
                 UpdateSequentialProgress(trackedFile, downloaded, totalSize, ref lastProgressBytes, ref lastProgressTick);
             }
