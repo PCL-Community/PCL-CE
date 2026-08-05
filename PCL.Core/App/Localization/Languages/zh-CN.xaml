@@ -2674,10 +2674,10 @@
     <sys:String x:Key="Setup.GameManage.Download.TargetFolder.Hint">请在 启动 → 实例选择 → 文件夹列表 中更改下载目标文件夹。&#xA;在某个文件夹或游戏实例上右键，即可选择打开对应文件夹。</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Threads">最大并发连接数</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Threads.TooManyWarning.Confirm">我知道了</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.Threads.TooManyWarning.Message">过高的并发连接数可能导致服务器限速、网络卡顿或磁盘压力增加。&#xA;64 个连接通常已足够，除非你确认下载源和网络环境能够从更多连接中受益。</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.Threads.ToolTip">限制所有下载任务合计使用的网络连接数。分段大小和慢速重试会自动调整；64 个连接通常已足够。</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.Threads.TooManyWarning.Message">过高的并发连接数可能导致下载时出现非常严重的卡顿，甚至导致服务器使用更严格的限速策略。&#xA;64 个连接通常已经可以满足需求。除非你知道自己在做什么，否则不建议设置更高的并发连接数！</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.Threads.ToolTip">限制所有下载任务合计使用的网络连接数。64 个连接通常已经足够。</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.FileConnections">单文件最大连接数</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.FileConnections.ToolTip">大文件最多同时使用的连接数。提高该值可能加快被单连接限速的下载，但也更容易被下载源限速。</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.FileConnections.ToolTip">大文件最多同时使用的连接数。提高该值可能加快被单连接限速的下载，但也有可能更容易被下载源限速。</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Unlimited">无限制</sys:String>
 
     <!-- Setup.Java -->

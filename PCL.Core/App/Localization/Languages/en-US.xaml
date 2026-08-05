@@ -2674,8 +2674,8 @@
     <sys:String x:Key="Setup.GameManage.Download.TargetFolder.Hint">Go to Launch → Selection → Folder list to change the download target folder.&#xA;Right-click a folder or game instance to open the corresponding folder.</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Threads">Max concurrent connections</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Threads.TooManyWarning.Confirm">I see</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.Threads.TooManyWarning.Message">A high connection limit can trigger server throttling, network lag, or disk pressure.&#xA;64 connections are usually sufficient unless you know that your sources and network benefit from more.</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.Threads.ToolTip">Limits the total network connections used by all downloads. Segment sizing and slow-connection retries are adjusted automatically; 64 connections are usually sufficient.</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.Threads.TooManyWarning.Message">A high connection limit can lead to severe lag or even stricter throttling strategies from the server.&#xA;64 connections are usually sufficient. Do not set it higher unless you know what you are doing!</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.Threads.ToolTip">Limits the total network connections used by all download tasks. 64 connections are usually sufficient.</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.FileConnections">Max connections per file</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.FileConnections.ToolTip">The most connections a large file may use at once. A higher value can help sources that cap each connection, but may also trigger source throttling.</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Unlimited">Unlimited</sys:String>
