@@ -3540,9 +3540,10 @@ public static class ModComp
                         break;
                     case 2: // 询问并下载到选择的实例
                     {
-                        var instance = _QuickDownloadPickInstance(project, files);
-                        if (instance is null) return;
-                        _QuickDownloadToInstance(project, files, instance);
+                        var instances = _QuickDownloadPickInstances(project, files);
+                        if (instances is null) return;
+                        foreach (var instance in instances)
+                            _QuickDownloadToInstance(project, files, instance);
                         break;
                     }
                     case 3: // 询问并下载到一个路径
@@ -3587,7 +3588,7 @@ public static class ModComp
     }
 
     /// <summary>弹实例列表让用户选择，返回选中的实例（兼容者优先、当前选中实例居首）；取消或无兼容实例返回 null。</summary>
-    private static McInstance? _QuickDownloadPickInstance(CompProject project, List<CompFile> files)
+    private static List<McInstance>? _QuickDownloadPickInstances(CompProject project, List<CompFile> files)
     {
         var needLoad = ModInstanceList.mcInstanceListLoader.State != ModBase.LoadState.Finished;
         if (needLoad)
@@ -3612,18 +3613,18 @@ public static class ModComp
                 .OrderBy(v => v == current ? 0 : 1)
                 .ThenBy(v => v.Name)
                 .ToList();
-        int? idx = ModBase.RunInUiWait(() =>
+        var indices = ModBase.RunInUiWait(() =>
         {
             var options = compatible
-                .Select(v => (IMyRadio)new MyRadioBox { Text = v.Name })
+                .Select(v => new MyListItem { Title = v.Name })
                 .ToList();
-            return ModMain.MyMsgBoxSelect(options,
+            return ModMain.MyMsgBoxMultiSelect(options,
                 Lang.Text("Download.Comp.QuickDownload.ChooseInstance.Title"),
                 button1: Lang.Text("Common.Action.Continue"),
                 button2: Lang.Text("Common.Action.Cancel"));
         });
-        if (idx is null) return null;
-        return compatible[idx.Value];
+        if (indices is null) return null;
+        return indices.Select(i => compatible[i]).ToList();
     }
 
     /// <summary>下载最新版本到用户选择的文件夹。</summary>
