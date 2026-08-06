@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text.Json.Nodes;
 using PCL.Core.Utils;
@@ -45,6 +46,21 @@ public sealed class ModrinthManifest
     /// 需要下载的文件列表；缺失或为空表示没有需要联网下载的文件。
     /// </summary>
     public List<ModrinthFile>? Files { get; init; }
+
+    /// <summary>
+    /// 按键名（大小写不敏感）获取依赖版本，如 <c>minecraft</c>、<c>fabric-loader</c>。
+    /// </summary>
+    /// <param name="key">依赖键名。</param>
+    /// <returns>依赖的版本值；不存在时返回 null。</returns>
+    public string? GetDependency(string key)
+    {
+        if (Dependencies is null)
+            return null;
+        foreach (var dependency in Dependencies)
+            if (string.Equals(dependency.Key, key, StringComparison.OrdinalIgnoreCase))
+                return dependency.Value;
+        return null;
+    }
 
     /// <summary>
     /// 宽松解析 Modrinth 清单。

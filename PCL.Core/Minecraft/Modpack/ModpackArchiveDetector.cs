@@ -70,6 +70,30 @@ public static class ModpackArchiveDetector
             if (RegexPatterns.ModpackLazyInstance.Match(entryName).Success)
                 return new ModpackDetection(ModpackFormat.LazyPack, "");
 
+        // 嵌套整合包：更深的层级（深度 ≥ 3）存在已知整合包标记，说明压缩包内还打包了其他内容。
+        // 仅通过唯一标记（modpack.zip / modrinth.index.json 等）或带 minecraft 字段的 manifest.json 判定，
+        // 避免把模组自身的 manifest.json 误判为整合包。
+        foreach (var entryName in archive.EntryNames)
+        {
+            var parts = entryName.Split("/");
+            if (parts.Length <= 2)
+                continue; // 根目录与一级目录已在上面处理
+            switch (parts[^1])
+            {
+                case "modpack.zip":
+                case "modpack.mrpack":
+                case "modpack.json":
+                case "modrinth.index.json":
+                case "mmc-pack.json":
+                case "mcbbs.packmeta":
+                    return new ModpackDetection(ModpackFormat.LauncherPack, "");
+                case "manifest.json":
+                    if (_HasMinecraft(archive.ReadEntryText(entryName)))
+                        return new ModpackDetection(ModpackFormat.LauncherPack, "");
+                    break;
+            }
+        }
+
         return new ModpackDetection(ModpackFormat.Unknown, "");
     }
 
@@ -83,6 +107,23 @@ public static class ModpackArchiveDetector
         {
             var node = JsonNode.Parse(jsonText);
             return node?["addons"] is not null;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 判断 <c>manifest.json</c> 是否包含 <c>minecraft</c> 字段（CurseForge 整合包清单的必要字段）。
+    /// 模组的 <c>manifest.json</c>（如 Fabric 模组）不含该字段，可用于区分嵌套整合包与普通文件。
+    /// </summary>
+    private static bool _HasMinecraft(string jsonText)
+    {
+        try
+        {
+            var node = JsonNode.Parse(jsonText);
+            return node?["minecraft"] is not null;
         }
         catch (JsonException)
         {

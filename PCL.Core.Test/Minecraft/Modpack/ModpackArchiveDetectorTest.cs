@@ -114,6 +114,53 @@ public class ModpackArchiveDetectorTest
     }
 
     [TestMethod]
+    public void DetectsDeepNestedModrinthAsLauncherPack()
+    {
+        var archive = new FakeModpackArchive("外层/整合包/modrinth.index.json", "外层/说明.txt");
+        var result = ModpackArchiveDetector.Detect(archive);
+        Assert.AreEqual(ModpackFormat.LauncherPack, result.Format);
+    }
+
+    [TestMethod]
+    public void DetectsDeepNestedMultiMcAsLauncherPack()
+    {
+        var archive = new FakeModpackArchive("外层/子目录/mmc-pack.json", "外层/启动器.exe");
+        var result = ModpackArchiveDetector.Detect(archive);
+        Assert.AreEqual(ModpackFormat.LauncherPack, result.Format);
+    }
+
+    [TestMethod]
+    public void DetectsDeepNestedCurseForgeAsLauncherPack()
+    {
+        var archive = new FakeModpackArchive(
+            new KeyValuePair<string, string>("外层/整合包/manifest.json", ManifestWithoutAddons),
+            new KeyValuePair<string, string>("外层/启动器.exe", ""));
+        var result = ModpackArchiveDetector.Detect(archive);
+        Assert.AreEqual(ModpackFormat.LauncherPack, result.Format);
+    }
+
+    [TestMethod]
+    public void DeepModManifestDoesNotCountAsModpack()
+    {
+        // Fabric 模组的 manifest.json 不含 minecraft 字段，不应被误判为整合包
+        const string modManifest =
+            """{"schemaVersion":1,"id":"example_mod","version":"1.0.0","depends":{"minecraft":">=1.20"}}""";
+        var archive = new FakeModpackArchive(
+            new KeyValuePair<string, string>("mods/ExampleMod/manifest.json", modManifest),
+            new KeyValuePair<string, string>("README.txt", ""));
+        var result = ModpackArchiveDetector.Detect(archive);
+        Assert.AreEqual(ModpackFormat.Unknown, result.Format);
+    }
+
+    [TestMethod]
+    public void DeepNestedModpackZipAsLauncherPack()
+    {
+        var archive = new FakeModpackArchive("外层/子目录/modpack.mrpack", "外层/说明.txt");
+        var result = ModpackArchiveDetector.Detect(archive);
+        Assert.AreEqual(ModpackFormat.LauncherPack, result.Format);
+    }
+
+    [TestMethod]
     public void RootManifestTakesPriorityOverSubfolderFiles()
     {
         var archive = new FakeModpackArchive(

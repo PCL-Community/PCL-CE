@@ -79,6 +79,26 @@ public class ModrinthManifestTest
     }
 
     [TestMethod]
+    public void GetDependencyIsCaseInsensitive()
+    {
+        const string json = """{"dependencies":{"Minecraft":"1.20.1","Fabric-Loader":"0.16.5"}}""";
+        var manifest = ModrinthManifest.Parse(JsonCompat.ParseNode(json));
+        Assert.IsNotNull(manifest);
+        Assert.AreEqual("1.20.1", manifest.GetDependency("minecraft"));
+        Assert.AreEqual("1.20.1", manifest.GetDependency("MINECRAFT"));
+        Assert.AreEqual("0.16.5", manifest.GetDependency("fabric-loader"));
+        Assert.IsNull(manifest.GetDependency("forge"));
+    }
+
+    [TestMethod]
+    public void GetDependencyReturnsNullWhenNoDependencies()
+    {
+        var manifest = ModrinthManifest.Parse(JsonCompat.ParseNode("""{"name":"Test"}"""));
+        Assert.IsNotNull(manifest);
+        Assert.IsNull(manifest.GetDependency("minecraft"));
+    }
+
+    [TestMethod]
     public void ParseNullReturnsNull()
     {
         Assert.IsNull(ModrinthManifest.Parse(null));
