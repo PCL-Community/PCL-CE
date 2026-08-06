@@ -77,8 +77,8 @@ internal sealed class AdaptiveRangeDownloader
             .ConfigureAwait(false);
         using var request = CreateRequest(HttpMethod.Get, DownloadRequestKind.RangeProbe);
         request.Headers.Range = new RangeHeaderValue(0, 0);
-        using var response = await FileDownloader.GetHttpClient(_url)
-            .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+        using var response = await FileDownloader.SendDownloadRequestAsync(_url, request, cancellationToken)
+            .ConfigureAwait(false);
 
         if (response.StatusCode != HttpStatusCode.PartialContent)
             return null;
@@ -296,8 +296,8 @@ internal sealed class AdaptiveRangeDownloader
             {
                 using var request = _owner.CreateRequest(HttpMethod.Get, DownloadRequestKind.RangeSegment);
                 request.Headers.Range = new RangeHeaderValue(segment.CurrentOffset, segment.End);
-                using var response = await FileDownloader.GetHttpClient(_owner._url)
-                    .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                using var response = await FileDownloader.SendDownloadRequestAsync(_owner._url, request,
+                    cancellationToken).ConfigureAwait(false);
                 ValidateRangeResponse(response, segment);
 
                 await using var input = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);

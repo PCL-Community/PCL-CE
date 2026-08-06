@@ -5,12 +5,16 @@ using System.Net;
 using System.Net.Http;
 using PCL.Core.App;
 using PCL.Core.IO.Net;
+using PCL.Core.Utils;
 
 
 namespace PCL.Network;
 
 public static class FileDownloader
 {
+    private const int RequestTimeoutMilliseconds = 30_000;
+    private const int MaxDownloadRetries = 3;
+
     public static async Task DownloadAsync(string url, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "", CancellationToken cancellationToken = default,
         bool enableParallelChunks = true, DownloadFile? trackedFile = null)
@@ -50,25 +54,35 @@ public static class FileDownloader
         Directory.CreateDirectory(Path.GetDirectoryName(localPath) ?? throw new ArgumentException("下载路径无效", nameof(localPath)));
 
         Exception? lastException = null;
-        foreach (var url in urlList)
+        for (var retry = 0; retry <= MaxDownloadRetries; retry++)
         {
-            try
+            foreach (var url in urlList)
             {
-                await DownloadSingleAsync(url, localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
-                    enableParallelChunks, trackedFile).ConfigureAwait(false);
-                return;
+                try
+                {
+                    await DownloadSingleAsync(url, localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
+                        enableParallelChunks, trackedFile).ConfigureAwait(false);
+                    return;
+                }
+                catch (OperationCanceledException)
+                {
+                    CleanupTempFiles(localPath);
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    lastException = ex;
+                    CleanupTempFiles(localPath);
+                    ModBase.Log(ex, $"[Download] 下载源失败：{url}", ModBase.LogLevel.Debug);
+                }
             }
-            catch (OperationCanceledException)
-            {
-                CleanupTempFiles(localPath);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                lastException = ex;
-                CleanupTempFiles(localPath);
-                ModBase.Log(ex, $"[Download] 下载失败，尝试下一个源：{url}", ModBase.LogLevel.Debug);
-            }
+
+            if (retry >= MaxDownloadRetries)
+                break;
+
+            ModBase.Log(lastException, $"[Download] 重试 {retry + 1}/{MaxDownloadRetries}：{localPath}",
+                ModBase.LogLevel.Debug);
+            await Task.Delay(RandomUtils.NextInt(300, 500 + retry * 300), cancellationToken).ConfigureAwait(false);
         }
 
         throw new IOException($"下载失败：{localPath}", lastException);
@@ -111,8 +125,7 @@ public static class FileDownloader
         using var connection = await DownloadResourceManager.AcquireConnectionAsync(url, cancellationToken)
             .ConfigureAwait(false);
         using var request = CreateDownloadRequest(url, useBrowserUserAgent, customUserAgent, requestKind);
-        using var response = await GetHttpClient(url)
-            .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+        using var response = await SendDownloadRequestAsync(url, request, cancellationToken).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode)
             throw new HttpRequestException($"下载请求失败：{(int)response.StatusCode} {response.ReasonPhrase}");
 
@@ -213,6 +226,24 @@ public static class FileDownloader
         RequestSigning.SecretHeadersSign(url, ref request, useBrowserUserAgent, customUserAgent);
         ApplyHttpVersion(request, requestKind);
         return request;
+    }
+
+    internal static async Task<HttpResponseMessage> SendDownloadRequestAsync(string url,
+        HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        using var requestTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        requestTimeout.CancelAfter(RequestTimeoutMilliseconds);
+        try
+        {
+            return await GetHttpClient(url)
+                .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, requestTimeout.Token)
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested &&
+                                                    requestTimeout.IsCancellationRequested)
+        {
+            throw new TimeoutException($"等待下载源响应超时（30 秒）：{url}", ex);
+        }
     }
 
     private static void ApplyHttpVersion(HttpRequestMessage request, DownloadRequestKind requestKind)

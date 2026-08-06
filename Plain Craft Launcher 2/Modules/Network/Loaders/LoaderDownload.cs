@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using PCL.Core.Utils;
 
 namespace PCL.Network.Loaders;
 
@@ -141,25 +140,8 @@ public class LoaderDownload : ModLoader.LoaderBase
         // 批量任务中未知大小的文件直接下载，避免小文件逐个产生一次 Range 探测。
         var expectedSize = file.Check?.actualSize ?? -1;
         var enableParallelChunks = files.Count <= 1 || expectedSize >= AdaptiveRangeDownloader.SmallFileThreshold;
-        for (var retry = 0; retry < 4; retry++)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            try
-            {
-                await FileDownloader.DownloadAsync(file.Urls, file.LocalPath, file.UseBrowserUserAgent, file.CustomUserAgent,
-                    cancellationToken, enableParallelChunks, file).ConfigureAwait(false);
-                break;
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex) when (retry < 3)
-            {
-                ModBase.Log(ex, $"[Download] 重试 {retry + 1}/3：{file.LocalPath}", ModBase.LogLevel.Debug);
-                Thread.Sleep(RandomUtils.NextInt(300, 500 + retry * 300));
-            }
-        }
+        await FileDownloader.DownloadAsync(file.Urls, file.LocalPath, file.UseBrowserUserAgent, file.CustomUserAgent,
+            cancellationToken, enableParallelChunks, file).ConfigureAwait(false);
         try { file.TotalSize = new FileInfo(file.LocalPath).Length; }
         catch (IOException) { file.TotalSize = -1; }
         file.IsUnknownSize = file.TotalSize < 0;
