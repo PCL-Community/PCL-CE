@@ -57,7 +57,7 @@ public static partial class ModModpack
         public JsonObject OverriddenJson = new();
     }
 
-    private static LoaderCombo<string> _InstallMultiMc(string fileAddress, ZipArchive archive,
+    private static LoaderCombo<string> _InstallMultiMc(string sourcePath, IModpackArchiveReader archive,
         string archiveBaseFolder)
     {
         // 读取 Json 文件
@@ -65,9 +65,8 @@ public static partial class ModModpack
         string packInstance;
         try
         {
-            packJson = (JsonObject)ModBase.GetJson(
-                ModBase.ReadFile(archive.GetEntry(archiveBaseFolder + "mmc-pack.json").Open(), Encoding.UTF8));
-            packInstance = ModBase.ReadFile(archive.GetEntry(archiveBaseFolder + "instance.cfg").Open(), Encoding.UTF8);
+            packJson = (JsonObject)ModBase.GetJson(archive.ReadEntryText(archiveBaseFolder + "mmc-pack.json"));
+            packInstance = archive.ReadEntryText(archiveBaseFolder + "instance.cfg");
         }
         catch (Exception ex)
         {
@@ -87,7 +86,7 @@ public static partial class ModModpack
         installLoaders.Add(new LoaderTask<string, int>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractModpack"),
             task =>
         {
-            _ExtractModpackFiles(installTemp, fileAddress, task, 0.55d);
+            _ExtractModpackFiles(installTemp, sourcePath, task, 0.55d);
             _CopyOverrideDirectory(Path.Combine(installTemp, archiveBaseFolder, "libraries"),
                 Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName, "libraries"), task, 0.2d);
             _CopyOverrideDirectory(Path.Combine(installTemp, archiveBaseFolder, ".minecraft"),
@@ -97,7 +96,7 @@ public static partial class ModModpack
                 installTemp, archiveBaseFolder, instanceName);
         })
         {
-            ProgressWeight = new FileInfo(fileAddress).Length / 1024d / 1024d / 6d,
+            ProgressWeight = new FileInfo(sourcePath).Length / 1024d / 1024d / 6d,
             block = false
         }); // 每 6M 需要 1s
         // 构造实例安装请求
@@ -171,7 +170,7 @@ public static partial class ModModpack
     ///     解析 <c>patches/</c> 目录下的 JSON 补丁，构建 <see cref="MMCPackInfo" /> 覆盖信息。
     ///     参考 https://github.com/MultiMC/Launcher/wiki/JSON-Patches
     /// </summary>
-    private static MMCPackInfo? _BuildMultiMcPackInfo(ZipArchive archive, string archiveBaseFolder,
+    private static MMCPackInfo? _BuildMultiMcPackInfo(IModpackArchiveReader archive, string archiveBaseFolder,
         JsonObject packJson)
     {
         MMCPackInfo packInfo = null;
@@ -179,17 +178,16 @@ public static partial class ModModpack
         {
             // 部分压缩工具不会写入 "patches/" 目录条目，因此不能只检查目录项，
             // 而应检查是否存在任何位于 patches/ 下的文件条目。
-            if (!archive.Entries.Any(e => !e.FullName.EndsWith("/") &&
-                                          e.FullName.StartsWith(archiveBaseFolder + "patches/")))
+            if (!archive.EntryNames.Any(e => !e.EndsWith("/") &&
+                                             e.StartsWith(archiveBaseFolder + "patches/")))
                 return null;
             ModBase.Log("[ModPack] 安装的 MultiMC 整合包存在 JSON Patches");
             // 排序预处理
             var patches = new List<KeyValuePair<JsonObject, int>>();
-            foreach (var entry in archive.Entries)
-                if (!entry.FullName.EndsWith("/") && entry.FullName.StartsWith(archiveBaseFolder + "patches/"))
+            foreach (var entryName in archive.EntryNames)
+                if (!entryName.EndsWith("/") && entryName.StartsWith(archiveBaseFolder + "patches/"))
                 {
-                    var patch = (JsonObject)ModBase.GetJson(ModBase.ReadFile(
-                        archive.GetEntry(entry.FullName).Open(), Encoding.UTF8));
+                    var patch = (JsonObject)ModBase.GetJson(archive.ReadEntryText(entryName));
                     patches.Add(new KeyValuePair<JsonObject, int>(patch,
                         (int)(patch["order"] is not null ? patch["order"] : 0)));
                 }

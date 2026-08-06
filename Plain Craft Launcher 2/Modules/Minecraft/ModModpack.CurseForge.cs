@@ -15,7 +15,7 @@ public static partial class ModModpack
 {
     #region CurseForge
 
-    private static LoaderCombo<string> _InstallCurseForge(string fileAddress, ZipArchive archive,
+    private static LoaderCombo<string> _InstallCurseForge(string sourcePath, IModpackArchiveReader archive,
         string archiveBaseFolder, string instanceName = null, string logo = null, string resourceId = null,
         bool isOnlineInstall = false)
     {
@@ -23,8 +23,7 @@ public static partial class ModModpack
         JsonObject json;
         try
         {
-            json = (JsonObject)ModBase.GetJson(
-                ModBase.ReadFile(archive.GetEntry(archiveBaseFolder + "manifest.json").Open()));
+            json = (JsonObject)ModBase.GetJson(archive.ReadEntryText(archiveBaseFolder + "manifest.json"));
         }
         catch (Exception ex)
         {
@@ -87,18 +86,19 @@ public static partial class ModModpack
         // 解压
         var installTemp = ModMain.RequestTaskTempFolder();
         var installLoaders = new List<LoaderBase>();
-        var overrideHome = manifest.Overrides ?? "";
+        // overrides 字段缺失时按规范默认为 "overrides"，避免整包不解压导致覆写内容（mods/config/saves 等）丢失
+        var overrideHome = manifest.Overrides ?? "overrides";
         if (!string.IsNullOrEmpty(overrideHome))
             installLoaders.Add(new LoaderTask<string, int>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractModpack"),
                 task =>
             {
-                _ExtractModpackFiles(installTemp, fileAddress, task, 0.6d);
+                _ExtractModpackFiles(installTemp, sourcePath, task, 0.6d);
                 _CopyOverrideDirectory(
                     Path.Combine(installTemp, archiveBaseFolder, overrideHome == "." || overrideHome == "./" ? "" : overrideHome),
                     _GetVersionFolder(instanceName), task, 0.4d);
             })
             {
-                ProgressWeight = new FileInfo(fileAddress).Length / 1024d / 1024d / 6d,
+                ProgressWeight = new FileInfo(sourcePath).Length / 1024d / 1024d / 6d,
                 block = false
             }); // 每 6M 需要 1s
         // 获取 Mod 列表
@@ -253,7 +253,7 @@ public static partial class ModModpack
             { show = false, ProgressWeight = mergeLoaders.Sum(l => l.ProgressWeight) });
         loaders.Add(new LoaderTask<string, string>(Lang.Text("Minecraft.Download.Modpack.Stage.FinalizeFiles"), task =>
         {
-            _FinalizeInstance(_GetVersionFolder(instanceName), fileAddress, logo, "CurseForge",
+            _FinalizeInstance(_GetVersionFolder(instanceName), sourcePath, logo, "CurseForge",
                 manifest.Version, resourceId);
         })
         {

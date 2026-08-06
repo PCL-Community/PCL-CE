@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.Modpack;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using static PCL.ModLoader;
@@ -13,8 +14,7 @@ public static partial class ModModpack
 {
     #region 带启动器的压缩包
 
-    private static LoaderCombo<string> _InstallLauncherPack(string fileAddress, ZipArchive archive,
-        string archiveBaseFolder)
+    private static LoaderCombo<string> _InstallLauncherPack(string sourcePath, string archiveBaseFolder)
     {
         // 获取解压路径
         ModMain.MyMsgBox(Lang.Text("Minecraft.Download.Modpack.SelectEmptyFolder.Message"),
@@ -33,7 +33,7 @@ public static partial class ModModpack
         {
             new LoaderTask<string, int>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractArchive"), task =>
             {
-                _ExtractModpackFiles(targetFolder, fileAddress, task, 0.9d);
+                _ExtractModpackFiles(targetFolder, sourcePath, task, 0.9d);
                 Thread.Sleep(400); // 避免文件争用
                 // 查找解压后的 exe 文件
                 string launcher = null;
@@ -93,11 +93,9 @@ public static partial class ModModpack
                 {
                     if (Directory.Exists(innerPackPath))
                     {
-                        // 文件夹形式的整合包：重新打包为临时 zip 后走统一安装流程
-                        var tempZip = Path.Combine(ModMain.RequestTaskTempFolder(), "modpack.zip");
-                        ModBase.Log("[Modpack] 内层整合包为文件夹，重新打包后安装：" + innerPackPath);
-                        ZipFile.CreateFromDirectory(innerPackPath, tempZip);
-                        ModpackInstall(tempZip);
+                        // 文件夹形式的整合包：直接以文件夹为来源安装，无需重新打包
+                        ModBase.Log("[Modpack] 内层整合包为文件夹，直接安装：" + innerPackPath);
+                        _InstallSource(new FolderModpackArchiveReader(innerPackPath), innerPackPath);
                     }
                     else
                     {
@@ -160,13 +158,13 @@ public static partial class ModModpack
 
     #region 普通压缩包
 
-    private static LoaderCombo<string> _InstallCompress(string fileAddress, ZipArchive archive)
+    private static LoaderCombo<string> _InstallCompress(string sourcePath, IModpackArchiveReader archive)
     {
         // 尝试定位 .minecraft 文件夹：寻找形如 “/versions/XXX/XXX.json” 的路径
         Match match = null;
-        foreach (var entry in archive.Entries)
+        foreach (var entryName in archive.EntryNames)
         {
-            var entryMatch = RegexPatterns.ModpackLazyInstance.Match("/" + entry.FullName);
+            var entryMatch = RegexPatterns.ModpackLazyInstance.Match("/" + entryName);
             if (entryMatch.Success)
             {
                 match = entryMatch;
@@ -203,7 +201,7 @@ public static partial class ModModpack
         {
             new LoaderTask<string, int>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractArchive"), task =>
             {
-                _ExtractModpackFiles(targetFolder, fileAddress, task, 0.95d);
+                _ExtractModpackFiles(targetFolder, sourcePath, task, 0.95d);
                 // 加入文件夹列表
                 PageSelectLeft.AddFolder(Path.Combine(targetFolder, archiveBaseFolder), ModBase.GetFolderNameFromPath(targetFolder),
                     false);

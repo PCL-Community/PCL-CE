@@ -56,61 +56,20 @@ public static partial class ModModpack
         ZipArchive archive = null;
         try
         {
-            // 字符校验
-            var targetFolder = $@"{ModFolder.mcFolderSelected}versions\{instanceName}\";
-            if (targetFolder.Contains("!") || targetFolder.Contains(";"))
-            {
-                HintService.Hint(Lang.Text("Minecraft.Download.Modpack.InvalidGamePathChars", targetFolder),
-                    HintType.Error);
-                throw new ModBase.CancelledException();
-            }
+            archive = new ZipArchive(new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read));
+            if (archive.Entries.Any(e => e.IsEncrypted))
+                throw new Exception(Lang.Text("Minecraft.Download.Modpack.EncryptedArchiveUnsupported"));
+        }
+        catch (Exception ex)
+        {
+            // 打开压缩包失败（非压缩包、文件损坏等）
+            throw _WrapSourceOpenError(ex, file);
+        }
 
-            // 获取整合包种类与关键 Json
-            ModpackFormat packType;
-            string archiveBaseFolder;
-            try
-            {
-                archive = new ZipArchive(new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read));
-                if (archive.Entries.Any(e => e.IsEncrypted))
-                    throw new Exception(Lang.Text("Minecraft.Download.Modpack.EncryptedArchiveUnsupported"));
-                var detection = ModpackArchiveDetector.Detect(new ZipModpackArchiveReader(archive));
-                packType = detection.Format;
-                archiveBaseFolder = detection.ArchiveBaseFolder;
-                ModBase.Log($"[ModPack] 整合包格式识别结果：{packType}（基础目录：{archiveBaseFolder}）");
-            }
-            catch (Exception ex)
-            {
-                if (ex.Message.Contains("Error.WinIOError"))
-                    throw new Exception(Lang.Text("Minecraft.Download.Modpack.OpenFailed"), ex);
-                else if (file.EndsWithF(".rar", true))
-                    throw new Exception(Lang.Text("Minecraft.Download.Modpack.RarUnsupported"), ex);
-                else
-                    throw new Exception(Lang.Text("Minecraft.Download.Modpack.UnsupportedArchive"), ex);
-            }
-
-            // 执行对应的安装方法
-            switch (packType)
-            {
-                case ModpackFormat.CurseForge:
-                    return _InstallCurseForge(file, archive, archiveBaseFolder, instanceName, logo, resourceId,
-                        isOnlineInstall);
-                case ModpackFormat.Modrinth:
-                    return _InstallModrinth(file, archive, archiveBaseFolder, instanceName, logo, resourceId,
-                        isOnlineInstall);
-                case ModpackFormat.MultiMc:
-                    return _InstallMultiMc(file, archive, archiveBaseFolder);
-                case ModpackFormat.Mcbbs:
-                    return _InstallMcbbs(file, archive, archiveBaseFolder, instanceName);
-                case ModpackFormat.Hmcl:
-                    return _InstallHmcl(file, archive, archiveBaseFolder);
-                case ModpackFormat.LauncherPack:
-                    return _InstallLauncherPack(file, archive, archiveBaseFolder);
-                case ModpackFormat.LazyPack:
-                    return _InstallCompress(file, archive);
-                default:
-                    ModBase.Log("[ModPack] 整合包种类：未能识别，假定为压缩包");
-                    return _InstallCompress(file, archive);
-            }
+        try
+        {
+            return _InstallSource(new ZipModpackArchiveReader(archive), file, instanceName, logo, resourceId,
+                isOnlineInstall);
         }
         finally
         {
@@ -119,14 +78,93 @@ public static partial class ModModpack
         }
     }
 
+    /// <summary>
+    ///     从统一的整合包来源（zip 文件或文件夹）安装整合包，并返回顶层加载器。
+    ///     内部完成格式检测与分派。
+    /// </summary>
+    private static LoaderCombo<string> _InstallSource(IModpackArchiveReader source, string sourcePath,
+        string instanceName = null, string logo = null, string resourceId = null, bool isOnlineInstall = false)
+    {
+        // 字符校验
+        var targetFolder = $@"{ModFolder.mcFolderSelected}versions\{instanceName}\";
+        if (targetFolder.Contains("!") || targetFolder.Contains(";"))
+        {
+            HintService.Hint(Lang.Text("Minecraft.Download.Modpack.InvalidGamePathChars", targetFolder),
+                HintType.Error);
+            throw new ModBase.CancelledException();
+        }
+
+        // 获取整合包种类与关键 Json
+        ModpackFormat packType;
+        string archiveBaseFolder;
+        try
+        {
+            var detection = ModpackArchiveDetector.Detect(source);
+            packType = detection.Format;
+            archiveBaseFolder = detection.ArchiveBaseFolder;
+            ModBase.Log($"[ModPack] 整合包格式识别结果：{packType}（基础目录：{archiveBaseFolder}）");
+        }
+        catch (Exception ex)
+        {
+            // 格式检测阶段失败
+            throw _WrapSourceOpenError(ex, sourcePath);
+        }
+
+        // 执行对应的安装方法
+        switch (packType)
+        {
+            case ModpackFormat.CurseForge:
+                return _InstallCurseForge(sourcePath, source, archiveBaseFolder, instanceName, logo, resourceId,
+                    isOnlineInstall);
+            case ModpackFormat.Modrinth:
+                return _InstallModrinth(sourcePath, source, archiveBaseFolder, instanceName, logo, resourceId,
+                    isOnlineInstall);
+            case ModpackFormat.MultiMc:
+                return _InstallMultiMc(sourcePath, source, archiveBaseFolder);
+            case ModpackFormat.Mcbbs:
+                return _InstallMcbbs(sourcePath, source, archiveBaseFolder, instanceName);
+            case ModpackFormat.Hmcl:
+                return _InstallHmcl(sourcePath, source, archiveBaseFolder);
+            case ModpackFormat.LauncherPack:
+                return _InstallLauncherPack(sourcePath, archiveBaseFolder);
+            case ModpackFormat.LazyPack:
+                return _InstallCompress(sourcePath, source);
+            default:
+                ModBase.Log("[ModPack] 整合包种类：未能识别，假定为压缩包");
+                return _InstallCompress(sourcePath, source);
+        }
+    }
+
+    /// <summary>
+    ///     将压缩包打开/格式检测阶段的异常包装为“无法处理该压缩包”类的用户可见错误。
+    /// </summary>
+    private static Exception _WrapSourceOpenError(Exception ex, string sourcePath)
+    {
+        if (ex.Message.Contains("Error.WinIOError"))
+            return new Exception(Lang.Text("Minecraft.Download.Modpack.OpenFailed"), ex);
+        if (sourcePath.EndsWithF(".rar", true))
+            return new Exception(Lang.Text("Minecraft.Download.Modpack.RarUnsupported"), ex);
+        return new Exception(Lang.Text("Minecraft.Download.Modpack.UnsupportedArchive"), ex);
+    }
+
     #region 共享流程
 
     /// <summary>
     ///     解压整合包文件到临时目录，失败时切换编码并重试。
     /// </summary>
-    private static void _ExtractModpackFiles(string installTemp, string fileAddress, LoaderBase loader,
+    private static void _ExtractModpackFiles(string installTemp, string sourcePath, LoaderBase loader,
         double progressIncrement)
     {
+        // 文件夹来源：直接复制，无需编码切换重试
+        if (Directory.Exists(sourcePath))
+        {
+            var folderInitialProgress = loader.Progress;
+            loader.Progress = folderInitialProgress;
+            ModBase.CopyDirectory(sourcePath, installTemp, delta => loader.Progress += delta * progressIncrement);
+            loader.Progress = folderInitialProgress + progressIncrement;
+            return;
+        }
+
         // 解压文件
         var retryCount = 1;
         var encode = Encoding.GetEncoding("GB18030");
@@ -141,7 +179,7 @@ public static partial class ModModpack
                 ModBase.DeleteDirectory(installTemp);
 
                 // 解压文件，ProgressIncrementHandler 通过 Lambda 更新进度
-                ModBase.ExtractFile(fileAddress, installTemp, encode,
+                ModBase.ExtractFile(sourcePath, installTemp, encode,
                     delta => loader.Progress += delta * progressIncrement);
 
                 // 解压成功，更新进度并退出循环

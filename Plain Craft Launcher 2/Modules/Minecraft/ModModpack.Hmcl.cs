@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Text;
 using System.Text.Json.Nodes;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.Modpack;
 using PCL.Core.Utils;
 using static PCL.ModLoader;
 
@@ -12,14 +13,14 @@ public static partial class ModModpack
 {
     #region HMCL
 
-    private static LoaderCombo<string> _InstallHmcl(string fileAddress, ZipArchive archive, string archiveBaseFolder)
+    private static LoaderCombo<string> _InstallHmcl(string sourcePath, IModpackArchiveReader archive,
+        string archiveBaseFolder)
     {
         // 读取 Json 文件
         JsonObject json;
         try
         {
-            json = (JsonObject)ModBase.GetJson(
-                ModBase.ReadFile(archive.GetEntry(archiveBaseFolder + "modpack.json").Open(), Encoding.UTF8));
+            json = (JsonObject)ModBase.GetJson(archive.ReadEntryText(archiveBaseFolder + "modpack.json"));
         }
         catch (Exception ex)
         {
@@ -35,12 +36,12 @@ public static partial class ModModpack
         installLoaders.Add(new LoaderTask<string, int>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractModpack"),
             task =>
         {
-            _ExtractModpackFiles(installTemp, fileAddress, task, 0.6d);
+            _ExtractModpackFiles(installTemp, sourcePath, task, 0.6d);
             _CopyOverrideDirectory(Path.Combine(installTemp, archiveBaseFolder, "minecraft"),
                 Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName), task, 0.4d);
         })
         {
-            ProgressWeight = new FileInfo(fileAddress).Length / 1024d / 1024d / 6d,
+            ProgressWeight = new FileInfo(sourcePath).Length / 1024d / 1024d / 6d,
             block = false
         }); // 每 6M 需要 1s
         // 构造游戏本体安装加载器

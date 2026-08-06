@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.Modpack;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using static PCL.ModLoader;
@@ -14,28 +15,30 @@ public static partial class ModModpack
 {
     #region MCBBS
 
-    private static LoaderCombo<string> _InstallMcbbs(string fileAddress, ZipArchive archive,
+    private static LoaderCombo<string> _InstallMcbbs(string sourcePath, IModpackArchiveReader archive,
         string archiveBaseFolder, string instanceName = null)
     {
         // 读取 Json 文件
         JsonObject json;
         try
         {
-            var entry = archive.GetEntry(archiveBaseFolder + "mcbbs.packmeta") ??
-                        archive.GetEntry(archiveBaseFolder + "manifest.json");
-            using (var stream = entry.Open())
-            {
-                json = (JsonObject)ModBase.GetJson(ModBase.ReadFile(stream, Encoding.UTF8));
-            }
+            var entryName = archive.EntryExists(archiveBaseFolder + "mcbbs.packmeta")
+                ? archiveBaseFolder + "mcbbs.packmeta"
+                : archiveBaseFolder + "manifest.json";
+            json = (JsonObject)ModBase.GetJson(archive.ReadEntryText(entryName));
         }
         catch (Exception ex)
         {
             throw new Exception("MCBBS 整合包安装信息存在问题", ex);
         }
 
+        var manifest = McbbsManifest.Parse(json);
+        if (manifest is null)
+            throw new Exception("MCBBS 整合包安装信息存在问题");
+
         // 获取实例名
         if (instanceName is null)
-            instanceName = _PromptInstanceName(json["name"]?.ToString() ?? "");
+            instanceName = _PromptInstanceName(manifest.Name ?? "");
 
         // 解压与路径准备
         var installTemp = ModMain.RequestTaskTempFolder();
@@ -46,34 +49,37 @@ public static partial class ModModpack
         var unzipTask = new LoaderTask<string, int>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractModpack"),
             task =>
         {
-            _ExtractModpackFiles(installTemp, fileAddress, task, 0.6);
+            _ExtractModpackFiles(installTemp, sourcePath, task, 0.6);
             _CopyOverrideDirectory(
                 Path.Combine(installTemp, archiveBaseFolder, "overrides"),
                 Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName),
                 task, 0.4);
 
             // JVM 参数处理
-            if (json["launchInfo"] is not null)
+            if (manifest.LaunchInfo is not null)
             {
-                var launchInfo = (JsonObject)json["launchInfo"];
-                Config.Instance.JvmArgs[versionFolder] = string.Join(" ", launchInfo["javaArgument"]);
-                Config.Instance.GameArgs[versionFolder] = string.Join(" ", launchInfo["launchArgument"]);
+                Config.Instance.JvmArgs[versionFolder] =
+                    string.Join(" ", manifest.LaunchInfo.JavaArgument ?? new JsonArray());
+                Config.Instance.GameArgs[versionFolder] =
+                    string.Join(" ", manifest.LaunchInfo.LaunchArgument ?? new JsonArray());
             }
 
             // 整合包版本
-            if (json["version"] is not null) States.Instance.ModpackVersion[versionFolder] = json["version"].ToString();
+            if (manifest.Version is not null) States.Instance.ModpackVersion[versionFolder] = manifest.Version;
         });
 
-        unzipTask.ProgressWeight = new FileInfo(fileAddress).Length / 1024.0 / 1024.0 / 6.0; // 每 6M 需要 1s
+        unzipTask.ProgressWeight = new FileInfo(sourcePath).Length / 1024.0 / 1024.0 / 6.0; // 每 6M 需要 1s
         unzipTask.block = false;
         installLoaders.Add(unzipTask);
 
         // 构造加载器
-        if (json["addons"] is null)
+        if (manifest.Addons is null)
             throw new Exception(Lang.Text("Minecraft.Download.Modpack.MissingGameVersion.McbbsAddons"));
 
         var addons = new Dictionary<string, string>();
-        foreach (var entryNode in json["addons"].AsArray()) { var entry = entryNode.AsObject(); addons.Add(entry["id"].ToString(), entry["version"].ToString()); }
+        foreach (var addon in manifest.Addons)
+            if (addon.Id is not null)
+                addons.Add(addon.Id, addon.Version ?? "");
 
         if (!addons.ContainsKey("game"))
         {
