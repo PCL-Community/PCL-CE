@@ -583,10 +583,10 @@ public static class Tooltip
 
         if (mode is PlacementMode.Mouse)
         {
-            _flyout.Placement = PlacementMode.Relative;
+            _flyout.Placement = PlacementMode.Left;
             _flyout.PlacementRectangle = default;
             _flyout.HorizontalOffset = Math.Round(pt.X + 15 + ToolTipService.GetHorizontalOffset(target));
-            _flyout.VerticalOffset = Math.Round(pt.Y + 25 + ToolTipService.GetVerticalOffset(target));
+            _flyout.VerticalOffset = Math.Round(pt.Y + 15 + ToolTipService.GetVerticalOffset(target));
         }
         else if (mode is PlacementMode.MousePoint)
         {
