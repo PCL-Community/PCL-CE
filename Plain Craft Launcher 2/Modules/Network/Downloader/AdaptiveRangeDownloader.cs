@@ -20,6 +20,8 @@ internal sealed class AdaptiveRangeDownloader
     private const int BufferSize = 64 * 1024;
     private const int ReadTimeoutMilliseconds = 15_000;
     private const int SlowCheckSeconds = 8;
+    private const long SlowSpeedBytesPerSecond = 50L * 1024;
+    private const long ClearlyFastSegmentBytesPerSecond = 128L * 1024;
     private const long SlowSplitThreshold = 2L * 1024 * 1024;
     private const long MinimumRestartRemaining = 1L * 1024 * 1024;
     private const int MaxSegmentRetries = 2;
@@ -392,8 +394,14 @@ internal sealed class AdaptiveRangeDownloader
 
             Array.Sort(rates);
             var median = rates[rates.Length / 2];
+            var fastest = rates[^1];
             var ownRate = attemptBytes / elapsedSeconds;
-            return median >= 128 * 1024 && ownRate * 4 < median;
+
+            // 确保至少一个分片的速度更高，当所有连接都被同一个源限速时，不会让所有分片一起反复重启
+            var hasClearlyFasterSegment = fastest >= ClearlyFastSegmentBytesPerSecond && ownRate * 4 < fastest;
+            var relativelySlow = median >= ClearlyFastSegmentBytesPerSecond && ownRate * 4 < median;
+            var absolutelySlow = ownRate < SlowSpeedBytesPerSecond && hasClearlyFasterSegment;
+            return relativelySlow || absolutelySlow;
         }
 
         private void AddCompletedRate(long attemptBytes, long startedAt)

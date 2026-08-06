@@ -14,6 +14,9 @@ public static class FileDownloader
 {
     private const int RequestTimeoutMilliseconds = 30_000;
     private const int MaxDownloadRetries = 3;
+    private const int SequentialSlowCheckSeconds = 3;
+    private const long SequentialSlowRestartMinimumSize = 50L * 1024;
+    private const long SlowSpeedBytesPerSecond = 50L * 1024;
 
     public static async Task DownloadAsync(string url, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "", CancellationToken cancellationToken = default,
@@ -130,6 +133,9 @@ public static class FileDownloader
             throw new HttpRequestException($"下载请求失败：{(int)response.StatusCode} {response.ReasonPhrase}");
 
         var totalSize = response.Content.Headers.ContentLength ?? -1;
+        // 某些源使用 chunked 传输没有 Content-Length，但清单校验信息仍可能带有文件大小
+        // 这个大小只用于慢速判断，完整性仍按响应头的 totalSize 校验
+        var slowCheckSize = totalSize > 0 ? totalSize : trackedFile?.Check?.actualSize ?? -1;
         if (trackedFile is not null)
         {
             trackedFile.State = PCL.Network.NetState.Downloading;
@@ -150,6 +156,9 @@ public static class FileDownloader
         using var bufferLease = await DownloadResourceManager.ReserveBufferAsync(bufferSize, cancellationToken)
             .ConfigureAwait(false);
         var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+        var slowCheckEnabled = slowCheckSize > SequentialSlowRestartMinimumSize && ModNet.NetTaskSpeedLimitHigh <= 0;
+        var slowCheckBytes = 0L;
+        var slowCheckTick = Stopwatch.GetTimestamp();
         try
         {
             while (true)
@@ -175,6 +184,21 @@ public static class FileDownloader
                 DownloadResourceManager.RecordDownloadedBytes(read);
                 downloaded += read;
                 UpdateSequentialProgress(trackedFile, downloaded, totalSize, ref lastProgressBytes, ref lastProgressTick);
+
+                if (slowCheckEnabled && downloaded < slowCheckSize)
+                {
+                    var now = Stopwatch.GetTimestamp();
+                    var elapsed = (double)(now - slowCheckTick) / Stopwatch.Frequency;
+                    if (elapsed >= SequentialSlowCheckSeconds)
+                    {
+                        var speed = (downloaded - slowCheckBytes) / Math.Max(0.001, elapsed);
+                        if (speed < SlowSpeedBytesPerSecond)
+                            throw new SlowSequentialDownloadException($"顺序下载速度低于 {SlowSpeedBytesPerSecond / 1024} KiB/s");
+
+                        slowCheckBytes = downloaded;
+                        slowCheckTick = now;
+                    }
+                }
             }
         }
         finally
@@ -331,6 +355,8 @@ public static class FileDownloader
             }
         }
     }
+
+    private sealed class SlowSequentialDownloadException(string message) : IOException(message);
 
     internal static HttpClient GetHttpClient(string url)
     {
