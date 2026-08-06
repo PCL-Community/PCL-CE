@@ -14,9 +14,9 @@ public static class FileDownloader
 {
     private const int RequestTimeoutMilliseconds = 30_000;
     private const int MaxDownloadRetries = 3;
-    private const int SequentialSlowCheckSeconds = 3;
+    private const int SequentialSlowCheckSeconds = 5;
     private const long SequentialSlowRestartMinimumSize = 50L * 1024;
-    private const long SlowSpeedBytesPerSecond = 50L * 1024;
+    private const long SequentialSlowSpeedBytesPerSecond = 40L * 1024;
 
     public static async Task DownloadAsync(string url, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "", CancellationToken cancellationToken = default,
@@ -192,8 +192,9 @@ public static class FileDownloader
                     if (elapsed >= SequentialSlowCheckSeconds)
                     {
                         var speed = (downloaded - slowCheckBytes) / Math.Max(0.001, elapsed);
-                        if (speed < SlowSpeedBytesPerSecond)
-                            throw new SlowSequentialDownloadException($"顺序下载速度低于 {SlowSpeedBytesPerSecond / 1024} KiB/s");
+                        if (speed < SequentialSlowSpeedBytesPerSecond)
+                            throw new SlowSequentialDownloadException(
+                                $"顺序下载速度连续 {SequentialSlowCheckSeconds} 秒低于 {SequentialSlowSpeedBytesPerSecond / 1024} KiB/s");
 
                         slowCheckBytes = downloaded;
                         slowCheckTick = now;
