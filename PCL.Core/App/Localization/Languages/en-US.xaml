@@ -2678,6 +2678,13 @@
     <sys:String x:Key="Setup.GameManage.Download.Threads.ToolTip">Limits the total network connections used by all download tasks. 64 connections are usually sufficient.</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.FileConnections">Max connections per file</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.FileConnections.ToolTip">The most connections a large file may use at once. A higher value can help sources that cap each connection, but may also trigger source throttling.</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol">File download protocol</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Auto">Automatic (recommended)</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Auto.ToolTip">Prefer HTTP/2 for small files and batch downloads, and use HTTP/1.1 for large segmented downloads to balance concurrency and compatibility.</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http11">HTTP/1.1</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http11.ToolTip">Force HTTP/1.1 for all file downloads. This can help environments where independent connections improve large-file throughput.</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http2">Prefer HTTP/2</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http2.ToolTip">Prefer HTTP/2 for all file downloads, falling back to HTTP/1.1 when the source or proxy does not support it.</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Unlimited">Unlimited</sys:String>
 
     <!-- Setup.Java -->

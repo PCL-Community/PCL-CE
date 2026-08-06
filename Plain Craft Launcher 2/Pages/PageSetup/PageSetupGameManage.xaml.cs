@@ -51,7 +51,9 @@ public partial class PageSetupGameManage
     {
         // 下载
         SliderDownloadThread.Value = Config.Download.ThreadLimit;
+        SliderDownloadFileConnection.Value = Config.Download.FileConnectionLimit;
         SliderDownloadSpeed.Value = Config.Download.SpeedLimit;
+        ComboDownloadHttpMode.SelectedIndex = (int)Config.Download.HttpMode;
         ComboDownloadSource.SelectedIndex = Config.Download.FileSource;
         ComboDownloadVersion.SelectedIndex = Config.Download.VersionListSource;
         CheckDownloadAutoSelectVersion.Checked = Config.Download.AutoSelectInstance;

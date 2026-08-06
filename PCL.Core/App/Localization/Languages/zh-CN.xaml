@@ -2678,6 +2678,13 @@
     <sys:String x:Key="Setup.GameManage.Download.Threads.ToolTip">限制所有下载任务合计使用的网络连接数。64 个连接通常已经足够。</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.FileConnections">单文件最大连接数</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.FileConnections.ToolTip">大文件最多同时使用的连接数。提高该值可能加快被单连接限速的下载，但也有可能更容易被下载源限速。</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol">文件下载协议</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Auto">自动选择（推荐）</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Auto.ToolTip">小文件和批量下载优先使用 HTTP/2；大文件分段下载使用 HTTP/1.1，以兼顾并发和兼容性。</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http11">HTTP/1.1</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http11.ToolTip">所有文件下载强制使用 HTTP/1.1。适合需要多条独立连接提升大文件速度的网络环境。</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http2">优先使用 HTTP/2</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http2.ToolTip">所有文件下载优先使用 HTTP/2；如果下载源或代理不支持，会自动回退到 HTTP/1.1。</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Unlimited">无限制</sys:String>
 
     <!-- Setup.Java -->

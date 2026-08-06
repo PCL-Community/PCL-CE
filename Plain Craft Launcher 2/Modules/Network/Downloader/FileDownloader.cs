@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using PCL.Core.App;
 using PCL.Core.IO.Net;
 
 
@@ -79,9 +80,15 @@ public static class FileDownloader
         ModBase.Log($"[Download] 开始下载：{url} -> {localPath}");
         CleanupTempFiles(localPath);
 
+        var expectedSize = trackedFile?.Check?.actualSize ?? -1;
+        var sequentialRequestKind = (expectedSize >= 0 && expectedSize < AdaptiveRangeDownloader.SmallFileThreshold) ||
+                                     (expectedSize < 0 && !enableParallelChunks)
+            ? DownloadRequestKind.SmallOrBatch
+            : DownloadRequestKind.LargeOrUnknown;
+
         if (enableParallelChunks && await AdaptiveRangeDownloader.TryDownloadAsync(url, localPath,
                 useBrowserUserAgent, customUserAgent, cancellationToken, trackedFile,
-                trackedFile?.Check?.actualSize ?? -1).ConfigureAwait(false))
+                expectedSize).ConfigureAwait(false))
         {
             PromoteTempFile(localPath);
             if (!File.Exists(localPath))
@@ -92,17 +99,18 @@ public static class FileDownloader
         }
 
         await DownloadSequentiallyAsync(url, localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
-            trackedFile).ConfigureAwait(false);
+            trackedFile, sequentialRequestKind).ConfigureAwait(false);
     }
 
     private static async Task DownloadSequentiallyAsync(string url, string localPath, bool useBrowserUserAgent,
-        string customUserAgent, CancellationToken cancellationToken, DownloadFile? trackedFile)
+        string customUserAgent, CancellationToken cancellationToken, DownloadFile? trackedFile,
+        DownloadRequestKind requestKind)
     {
         const int bufferSize = 64 * 1024;
         const int readTimeoutMilliseconds = 30_000;
         using var connection = await DownloadResourceManager.AcquireConnectionAsync(url, cancellationToken)
             .ConfigureAwait(false);
-        using var request = CreateDownloadRequest(url, useBrowserUserAgent, customUserAgent);
+        using var request = CreateDownloadRequest(url, useBrowserUserAgent, customUserAgent, requestKind);
         using var response = await GetHttpClient(url)
             .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode)
@@ -199,13 +207,44 @@ public static class FileDownloader
     }
 
     internal static HttpRequestMessage CreateDownloadRequest(string url, bool useBrowserUserAgent,
-        string customUserAgent)
+        string customUserAgent, DownloadRequestKind requestKind)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, url);
         RequestSigning.SecretHeadersSign(url, ref request, useBrowserUserAgent, customUserAgent);
-        request.Version = HttpVersion.Version11;
-        request.VersionPolicy = HttpVersionPolicy.RequestVersionExact;
+        ApplyHttpVersion(request, requestKind);
         return request;
+    }
+
+    private static void ApplyHttpVersion(HttpRequestMessage request, DownloadRequestKind requestKind)
+    {
+        switch (Config.Download.HttpMode)
+        {
+            case DownloadHttpMode.Http11:
+                request.Version = HttpVersion.Version11;
+                request.VersionPolicy = HttpVersionPolicy.RequestVersionExact;
+                return;
+            case DownloadHttpMode.Http2:
+                request.Version = HttpVersion.Version20;
+                request.VersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
+                return;
+        }
+
+        // 自动模式规则：
+        // 1. 已知小于 4 MiB 的文件，以及批量任务中的顺序下载，优先 HTTP/2，
+        //    让大量小文件复用连接并通过多个 Stream 并发传输。
+        // 2. Range 探测、Range 分段，以及大小未知的单文件下载使用 HTTP/1.1，
+        //    让大文件分段获得独立 TCP 连接；Range 不可用时也避免再次切换协议。
+        // 3. HTTP/2 使用 RequestVersionOrLower，源站或代理不支持时自动回退到 HTTP/1.1。
+        if (requestKind == DownloadRequestKind.SmallOrBatch)
+        {
+            request.Version = HttpVersion.Version20;
+            request.VersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
+        }
+        else
+        {
+            request.Version = HttpVersion.Version11;
+            request.VersionPolicy = HttpVersionPolicy.RequestVersionExact;
+        }
     }
 
     private static void MarkDownloadCompleted(DownloadFile? trackedFile)
@@ -272,4 +311,12 @@ public static class FileDownloader
         
         return NetworkService.GetClient();
     }
+}
+
+internal enum DownloadRequestKind
+{
+    SmallOrBatch,
+    LargeOrUnknown,
+    RangeProbe,
+    RangeSegment
 }
