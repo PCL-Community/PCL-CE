@@ -188,7 +188,7 @@ public partial class PageLaunchRight : IRefreshable
 
                 case 7:
                     LogWrapper.Info("[Page] 主页预设：杂志主页");
-                    url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Ext1nguisher/Custom.xaml";
+                    url = "http://118.195.192.193:26995/d/magazine-homepage-pcl/Custom.xaml";
                     content = LoadFromNetwork(url);
                     break;
 
