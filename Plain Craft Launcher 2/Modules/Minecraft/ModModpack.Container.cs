@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.Modpack;
@@ -14,30 +14,29 @@ public static partial class ModModpack
 {
     #region 带启动器的压缩包
 
-    private static LoaderCombo<string> _InstallLauncherPack(string sourcePath, string archiveBaseFolder)
+    /// <summary>
+    ///     懒人包 .minecraft 根目录下属于共享/系统目录、应由启动器在运行时自动补全的内容，
+    ///     安装时不需要复制进实例文件夹。
+    /// </summary>
+    private static readonly HashSet<string> _LazyPackSharedFolders = new(StringComparer.OrdinalIgnoreCase)
     {
-        // 获取解压路径
-        ModMain.MyMsgBox(Lang.Text("Minecraft.Download.Modpack.SelectEmptyFolder.Message"),
-            Lang.Text("Common.Action.Install"), Lang.Text("Common.Action.Continue"), forceWait: true);
-        var targetFolder = SystemDialogs.SelectFolder(Lang.Text("Minecraft.Download.Modpack.SelectTargetFolder.Title"));
-        if (string.IsNullOrEmpty(targetFolder))
-            throw new ModBase.CancelledException();
-        if (Directory.GetFileSystemEntries(targetFolder).Length > 0)
-        {
-            HintService.Hint(Lang.Text("Minecraft.Download.Modpack.TargetFolderMustBeEmpty"), HintType.Error);
-            throw new ModBase.CancelledException();
-        }
+        "versions", "libraries", "assets", "crash-reports", "logs",
+        "launcher_profiles.json", "usercache.json", "usernamecache.json"
+    };
 
-        // 解压
+    private static LoaderCombo<string> _InstallLauncherPack(string sourcePath)
+    {
+        // 解压到临时目录（无需用户选择空文件夹），内层整合包安装完成后由系统自动清理
+        var installTemp = ModMain.RequestTaskTempFolder();
         var loader = new LoaderCombo<string>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractArchive"), new[]
         {
             new LoaderTask<string, int>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractArchive"), task =>
             {
-                _ExtractModpackFiles(targetFolder, sourcePath, task, 0.9d);
+                _ExtractModpackFiles(installTemp, sourcePath, task, 0.9d);
                 Thread.Sleep(400); // 避免文件争用
                 // 查找解压后的 exe 文件
                 string launcher = null;
-                foreach (var exeFile in Directory.GetFiles(targetFolder, "*.exe", SearchOption.TopDirectoryOnly))
+                foreach (var exeFile in Directory.GetFiles(installTemp, "*.exe", SearchOption.TopDirectoryOnly))
                 {
                     var info = FileVersionInfo.GetVersionInfo(exeFile);
                     ModBase.Log($"[Modpack] 文件 {exeFile} 的产品名标识为 {info.ProductName}");
@@ -68,7 +67,8 @@ public static partial class ModModpack
                             Lang.Text("Minecraft.Download.Modpack.BundledLauncher.DoNotUse")
                         ) == 1)
                     {
-                        ModBase.OpenExplorer(targetFolder);
+                        // 换用附带启动器：保留临时目录供其使用
+                        ModBase.OpenExplorer(installTemp);
                         ModBase.ShellOnly(launcher, "--wait"); // 要求等待已有的 PCL 退出
                         ModBase.Log("[Modpack] 为换用整合包中的启动器启动，强制结束程序");
                         ModMain.frmMain.EndProgram(false);
@@ -80,36 +80,24 @@ public static partial class ModModpack
                     ModBase.Log("[Modpack] 未找到压缩包中附带的启动器");
                 }
 
-                ModBase.OpenExplorer(targetFolder);
-                // 加入文件夹列表
-                var instanceName = ModBase.GetFolderNameFromPath(targetFolder);
-                Directory.CreateDirectory(Path.Combine(targetFolder, ".minecraft"));
-                PageSelectLeft.AddFolder(
-                    Path.Combine(targetFolder, ".minecraft", archiveBaseFolder.Replace("/", @"\").TrimStart('\\')), instanceName,
-                    false); // 格式例如：包裹文件夹\.minecraft\（最短为空字符串）
                 // 寻找并安装内层整合包（任意格式：modpack.* 压缩包文件或文件夹形式的整合包）
-                var innerPackPath = _FindInnerModpack(targetFolder);
+                var innerPackPath = _FindInnerModpack(installTemp);
                 if (innerPackPath is not null)
                 {
+                    ModBase.Log("[Modpack] 调用内层整合包继续安装：" + innerPackPath);
                     if (Directory.Exists(innerPackPath))
-                    {
-                        // 文件夹形式的整合包：直接以文件夹为来源安装，无需重新打包
-                        ModBase.Log("[Modpack] 内层整合包为文件夹，直接安装：" + innerPackPath);
                         _InstallSource(new FolderModpackArchiveReader(innerPackPath), innerPackPath);
-                    }
                     else
-                    {
-                        ModBase.Log("[Modpack] 调用内层整合包文件继续安装：" + innerPackPath);
                         ModpackInstall(innerPackPath);
-                    }
                 }
                 else
                 {
+                    HintService.Hint(Lang.Text("Minecraft.Download.Modpack.UnknownArchiveStructure"), HintType.Error);
                     ModBase.Log("[Modpack] 未在压缩包中找到内层整合包");
                 }
             })
         });
-        loader.Start(targetFolder);
+        loader.Start(installTemp);
         LoaderTaskbarAdd(loader);
         ModMain.frmMain.BtnExtraDownload.ShowRefresh();
         ModMain.frmMain.BtnExtraDownload.Ribble();
@@ -156,7 +144,7 @@ public static partial class ModModpack
 
     #endregion
 
-    #region 普通压缩包
+    #region 懒人包（完整实例压缩包）
 
     private static LoaderCombo<string> _InstallCompress(string sourcePath, IModpackArchiveReader archive)
     {
@@ -175,48 +163,96 @@ public static partial class ModModpack
         if (match is null)
             throw new Exception(Lang.Text("Minecraft.Download.Modpack.UnknownArchiveStructure")); // 没有匹配
         var archiveBaseFolder = match.Value.Replace("/", @"\").TrimStart('\\'); // 格式例如：包裹文件夹\.minecraft\（最短为空字符串）
-        var instanceName = match.Groups[1].Value;
-        ModBase.Log("[ModPack] 检测到压缩包的 .minecraft 根目录：" + archiveBaseFolder + "，命中的实例名：" + instanceName);
-        // 获取解压路径
-        ModMain.MyMsgBox(Lang.Text("Minecraft.Download.Modpack.SelectEmptyFolder.Message"),
-            Lang.Text("Common.Action.Install"), Lang.Text("Common.Action.Continue"), forceWait: true);
-        var targetFolder = SystemDialogs.SelectFolder(Lang.Text("Minecraft.Download.Modpack.SelectTargetFolder.Title"));
-        if (string.IsNullOrEmpty(targetFolder))
-            throw new ModBase.CancelledException();
-        if (targetFolder.Contains("!") || targetFolder.Contains(";"))
-        {
-            HintService.Hint(Lang.Text("Minecraft.Download.Modpack.InvalidGamePathChars", targetFolder),
-                HintType.Error);
-            throw new ModBase.CancelledException();
-        }
+        var packVersionName = match.Groups[1].Value;
+        ModBase.Log("[ModPack] 检测到懒人包的 .minecraft 根目录：" + archiveBaseFolder + "，命中的实例名：" + packVersionName);
 
-        if (Directory.GetFileSystemEntries(targetFolder).Length > 0)
-        {
-            HintService.Hint(Lang.Text("Minecraft.Download.Modpack.TargetFolderMustBeEmpty"), HintType.Error);
-            throw new ModBase.CancelledException();
-        }
+        // 实例名：与现有实例不冲突时直接用懒人包自己的，冲突时让用户改名
+        var instanceName = _PromptInstanceName(packVersionName);
 
-        // 解压
+        // 解压到临时目录，复制实例内容到版本文件夹后删除临时目录
+        var installTemp = ModMain.RequestTaskTempFolder();
         var loader = new LoaderCombo<string>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractArchive"), new[]
         {
             new LoaderTask<string, int>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractArchive"), task =>
             {
-                _ExtractModpackFiles(targetFolder, sourcePath, task, 0.95d);
-                // 加入文件夹列表
-                PageSelectLeft.AddFolder(Path.Combine(targetFolder, archiveBaseFolder), ModBase.GetFolderNameFromPath(targetFolder),
-                    false);
-                Thread.Sleep(400); // 避免文件争用
+                _ExtractModpackFiles(installTemp, sourcePath, task, 0.6d);
+                task.Progress = 0.6d;
+                _InstallLazyPackInstance(installTemp, archiveBaseFolder, packVersionName, instanceName);
+                task.Progress = 0.95d;
+                // 用完即删
+                ModBase.DeleteDirectory(installTemp);
                 ModBase.RunInUi(() => ModMain.frmMain.PageChange(FormMain.PageType.InstanceSelect));
             })
+            {
+                ProgressWeight = new FileInfo(sourcePath).Length / 1024d / 1024d / 6d
+            } // 每 6M 需要 1s
         })
         {
             OnStateChanged = ModDownloadLib.McInstallState
         };
-        loader.Start(targetFolder);
+        loader.Start(_GetVersionFolder(instanceName));
         LoaderTaskbarAdd(loader);
         ModMain.frmMain.BtnExtraDownload.ShowRefresh();
         ModMain.frmMain.BtnExtraDownload.Ribble();
         return loader;
+    }
+
+    /// <summary>
+    ///     将懒人包解压后的 .minecraft 实例内容安装到当前游戏文件夹的 <c>versions\{实例名}</c> 下。
+    ///     仅复制实例自身内容（版本配置、mods/config/saves 等），共享目录（libraries/assets 等）由启动器在运行时自动补全。
+    /// </summary>
+    private static void _InstallLazyPackInstance(string installTemp, string archiveBaseFolder, string packVersionName,
+        string instanceName)
+    {
+        var mcRoot = Path.Combine(installTemp, archiveBaseFolder.TrimEnd('\\'));
+        var instanceFolder = _GetVersionFolder(instanceName);
+        Directory.CreateDirectory(instanceFolder);
+
+        // 复制版本文件夹全部内容（json/jar 改名并修正 id，其余文件如 mods/config 一并复制，兼容隔离与非隔离两种布局）
+        var versionDir = Path.Combine(mcRoot, "versions", packVersionName);
+        if (Directory.Exists(versionDir))
+            foreach (var item in Directory.GetFileSystemEntries(versionDir))
+            {
+                var name = Path.GetFileName(item);
+                if (name.Equals(packVersionName + ".json", StringComparison.OrdinalIgnoreCase))
+                {
+                    var versionJson = (JsonObject)ModBase.GetJson(ModBase.ReadFile(item));
+                    if (!string.Equals(instanceName, packVersionName, StringComparison.OrdinalIgnoreCase))
+                        versionJson["id"] = instanceName;
+                    ModBase.WriteFile(Path.Combine(instanceFolder, instanceName + ".json"), versionJson.ToString());
+                }
+                else if (name.Equals(packVersionName + ".jar", StringComparison.OrdinalIgnoreCase))
+                {
+                    ModBase.CopyFile(item, Path.Combine(instanceFolder, instanceName + ".jar"));
+                }
+                else if (Directory.Exists(item))
+                {
+                    ModBase.CopyDirectory(item, Path.Combine(instanceFolder, name), null);
+                }
+                else
+                {
+                    ModBase.CopyFile(item, Path.Combine(instanceFolder, name));
+                }
+            }
+
+        // 复制 .minecraft 根目录下的实例内容（mods/config/saves/options.txt 等），跳过共享目录
+        foreach (var item in Directory.GetFileSystemEntries(mcRoot))
+        {
+            var name = Path.GetFileName(item);
+            if (_LazyPackSharedFolders.Contains(name))
+                continue;
+            var dest = Path.Combine(instanceFolder, name);
+            if (Directory.Exists(item))
+                ModBase.CopyDirectory(item, dest, null);
+            else
+                ModBase.CopyFile(item, dest);
+        }
+
+        // 开启版本隔离
+        var versionIni = instanceFolder + @"PCL\Setup.ini";
+        ModBase.WriteIni(versionIni, "VersionArgumentIndie", 1.ToString());
+        ModBase.WriteIni(versionIni, "VersionArgumentIndieV2", true.ToString());
+        ModBase.IniClearCache(versionIni);
     }
 
     #endregion

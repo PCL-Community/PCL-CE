@@ -126,7 +126,7 @@ public static partial class ModModpack
             case ModpackFormat.Hmcl:
                 return _InstallHmcl(sourcePath, source, archiveBaseFolder);
             case ModpackFormat.LauncherPack:
-                return _InstallLauncherPack(sourcePath, archiveBaseFolder);
+                return _InstallLauncherPack(sourcePath);
             case ModpackFormat.LazyPack:
                 return _InstallCompress(sourcePath, source);
             default:
