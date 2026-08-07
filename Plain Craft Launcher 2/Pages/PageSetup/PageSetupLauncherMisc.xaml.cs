@@ -182,6 +182,26 @@ public partial class PageSetupLauncherMisc
             2) ComboSystemActivity.SelectedItem = e.RemovedItems[0];
     }
 
+    // 测试弹窗（调试选项）
+    private void BtnToastTest_Click(object sender, MouseButtonEventArgs e)
+    {
+        var text = TextToastTestContent.Text;
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            HintService.Hint("请输入要测试的弹窗内容。", HintType.Warning, false);
+            return;
+        }
+
+        var type = ComboToastTestType.SelectedIndex switch
+        {
+            1 => HintType.Success,
+            2 => HintType.Error,
+            3 => HintType.Warning,
+            _ => HintType.Info
+        };
+        HintService.Hint(text, type);
+    }
+
     private void CheckDebugMode_OnChange(object sender, bool user)
     {
         CheckBoxChange(sender, user);

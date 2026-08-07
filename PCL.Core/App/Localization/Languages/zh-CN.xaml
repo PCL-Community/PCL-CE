@@ -2898,6 +2898,13 @@
     <sys:String x:Key="Setup.Misc.Debug.SkipCopy">禁止在下载时从其他文件夹复制文件</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.SkipCopy.ToolTip">在下载时不直接复制其他 MC 文件夹中已经存在的相同文件，而是重新下载文件。&#xA;只建议在测试下载速度时开启。</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.Title">调试选项</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.TestToast.Type">弹窗类型</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.TestToast.Type.Info">信息</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.TestToast.Type.Success">成功</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.TestToast.Type.Error">错误</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.TestToast.Type.Warning">警告</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.TestToast.Content">弹窗内容</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.TestToast.Show">弹出测试弹窗</sys:String>
 
     <!-- Setup.Misc.Network -->
 
