@@ -2907,6 +2907,7 @@
     <sys:String x:Key="Setup.Misc.Debug.TestToast.Type.Warning">警告</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.TestToast.Content">弹窗内容</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.TestToast.Show">弹出测试弹窗</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.TestToast.ShowBatch">连续触发多条</sys:String>
 
     <!-- Setup.Misc.Network -->
 

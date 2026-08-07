@@ -202,6 +202,22 @@ public partial class PageSetupLauncherMisc
         HintService.Hint(text, type);
     }
 
+    // 连续触发多条弹窗（调试选项）
+    private void BtnToastTestBatch_Click(object sender, MouseButtonEventArgs e)
+    {
+        const int batchCount = 6;
+        var baseText = TextToastTestContent.Text;
+        if (string.IsNullOrWhiteSpace(baseText))
+        {
+            HintService.Hint("请输入要测试的弹窗内容。", HintType.Warning, false);
+            return;
+        }
+
+        var types = new[] { HintType.Info, HintType.Success, HintType.Error, HintType.Warning };
+        for (var i = 0; i < batchCount; i++)
+            HintService.Hint($"[{i + 1}/{batchCount}] {baseText}", types[i % types.Length], log: false);
+    }
+
     private void CheckDebugMode_OnChange(object sender, bool user)
     {
         CheckBoxChange(sender, user);

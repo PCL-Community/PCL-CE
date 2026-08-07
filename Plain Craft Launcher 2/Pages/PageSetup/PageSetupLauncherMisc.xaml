@@ -167,9 +167,14 @@
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Misc.Debug.TestToast.Type.Error}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Misc.Debug.TestToast.Type.Warning}" />
                         </local:MyComboBox>
-                        <local:MyButton Grid.Column="2" x:Name="BtnToastTest" MinWidth="120" Margin="15,0,0,0"
-                                        Text="{DynamicResource Setup.Misc.Debug.TestToast.Show}" Padding="13,0"
-                                        Click="BtnToastTest_Click" />
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="15,0,0,0">
+                            <local:MyButton x:Name="BtnToastTest" MinWidth="120"
+                                            Text="{DynamicResource Setup.Misc.Debug.TestToast.Show}" Padding="13,0"
+                                            Click="BtnToastTest_Click" />
+                            <local:MyButton x:Name="BtnToastTestBatch" MinWidth="120" Margin="10,0,0,0"
+                                            Text="{DynamicResource Setup.Misc.Debug.TestToast.ShowBatch}" Padding="13,0"
+                                            Click="BtnToastTestBatch_Click" />
+                        </StackPanel>
                     </Grid>
                     <Grid Margin="0,0,0,10">
                         <Grid.ColumnDefinitions>
