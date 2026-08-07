@@ -8,7 +8,7 @@
         CornerRadius="8" BorderThickness="0"
         UseLayoutRounding="True" SnapsToDevicePixels="True">
     <Border.Effect>
-        <DropShadowEffect BlurRadius="16" Opacity="0.2" ShadowDepth="4" Direction="270" Color="#000000" />
+        <DropShadowEffect BlurRadius="12" Opacity="0.16" ShadowDepth="2" Direction="270" Color="#000000" />
     </Border.Effect>
     <Grid x:Name="RootGrid" SizeChanged="RootGrid_SizeChanged">
         <Grid.RowDefinitions>
@@ -16,7 +16,7 @@
             <RowDefinition Height="3" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Margin="10,8,10,6">
+        <Grid Grid.Row="0" Margin="13,8,10,6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
@@ -35,12 +35,22 @@
                                 Margin="8,0,0,0" SvgIcon="lucide/x" Theme="Custom" />
         </Grid>
 
-        <Rectangle x:Name="ProgressBar" Height="3" Grid.Row="1"
-                   HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
-                   RenderTransformOrigin="0,0.5">
-            <Rectangle.RenderTransform>
-                <ScaleTransform ScaleX="1" ScaleY="1" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
+        <!-- 下沉轨道 + 时间线填充：一条彩色时间线骑在暗槽上 -->
+        <Grid Grid.Row="1">
+            <Rectangle x:Name="ProgressTrack" Height="3" VerticalAlignment="Bottom" />
+            <Rectangle x:Name="ProgressBar" Height="3" VerticalAlignment="Bottom"
+                       HorizontalAlignment="Left"
+                       RenderTransformOrigin="0,0.5">
+                <Rectangle.RenderTransform>
+                    <ScaleTransform ScaleX="1" ScaleY="1" />
+                </Rectangle.RenderTransform>
+            </Rectangle>
+        </Grid>
+
+        <!-- 左侧楔形色标：类型状态，两端 45° 斜切，像被刻刀切出的色条 -->
+        <Path x:Name="AccentBar" Grid.Row="0" Grid.RowSpan="2"
+              Width="3" HorizontalAlignment="Left" VerticalAlignment="Stretch"
+              Margin="1,0,0,0" IsHitTestVisible="False"
+              Stretch="Fill" Data="M 0,0.08 L 1,0 L 1,1 L 0,0.92 Z" />
     </Grid>
 </Border>

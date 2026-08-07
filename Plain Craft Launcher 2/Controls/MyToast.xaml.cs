@@ -224,6 +224,7 @@ public partial class MyToast
 
     private void UpdateColors()
     {
+        var isInfo = ToastType == HintType.Info;
         var baseHue = ToastType switch
         {
             HintType.Success => 145d,
@@ -232,21 +233,26 @@ public partial class MyToast
             _ => 210d
         };
         var res = System.Windows.Application.Current.Resources;
-        var accent = new ModBase.MyColor().FromHSL2(baseHue, 75, 60);
+        var accent = new ModBase.MyColor().FromHSL2(baseHue, isInfo ? 38d : 75d, isInfo ? 56d : 60d);
         var bg = ThemeService.IsDarkMode
             ? new SolidColorBrush(LabColor.FromLch(0.35))
             : (Brush)res["ColorBrushBackground"];
         var text = (SolidColorBrush)res["ColorBrushGray1"];
         var accentBrush = new SolidColorBrush(accent);
+        var track = new SolidColorBrush(ThemeService.IsDarkMode
+            ? Color.FromArgb(70, 255, 255, 255) // 暗色卡片上略亮的内嵌暗槽
+            : Color.FromArgb(60, 0, 0, 0));      // 亮色卡片上略暗的内嵌暗槽
 
         Root.Background = bg;
         Root.BorderBrush = bg;
         TitleText.Foreground = text;
-        ProgressBar.Fill = accentBrush;
+        ProgressTrack.Fill = track;
+        ProgressBar.Fill = isInfo ? text : accentBrush; // 信息类型淡化，其余类型带色
         BtnClose.Foreground = text;
         ToastIcon.Icon = Icon;
         ToastIcon.IconBrush = accentBrush;
         ToastIcon.StrokeThickness = 0;
+        AccentBar.Fill = accentBrush;
     }
 
     #region 拖动关闭
