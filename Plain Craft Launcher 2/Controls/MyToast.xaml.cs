@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.UI.Theme;
 
 namespace PCL;
@@ -77,6 +78,13 @@ public partial class MyToast
         set => TitleText.Text = value;
     }
 
+    // 点击展开，展示完整内容
+    private void ShowDetail()
+    {
+        if (IsDismissing) return;
+        ModMain.MyMsgBox(Context, Lang.Text("Main.Toast.Detail.Title"), Lang.Text("Common.Action.Confirm"));
+    }
+
     public string Icon { get; set; } = "lucide/info";
 
     public HintType ToastType { get; set; } = HintType.Info;
@@ -92,7 +100,7 @@ public partial class MyToast
         if (Parent is not Panel)
             return;
         if (System.Windows.Application.Current.MainWindow is not null)
-            MaxWidth = System.Windows.Application.Current.MainWindow.ActualWidth * 0.9;
+            MaxWidth = Math.Min(System.Windows.Application.Current.MainWindow.ActualWidth * 0.9, 420d);
         Margin = new Thickness(0, 0, 16, 4);
         Opacity = 0;
 
@@ -284,6 +292,7 @@ public partial class MyToast
         if (_dragPending && !_isDragging)
         {
             _dragPending = false;
+            ShowDetail();
             return;
         }
 

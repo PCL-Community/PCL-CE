@@ -66,6 +66,8 @@
     <sys:String x:Key="Common.Action.Cancel">取消</sys:String>
     <sys:String x:Key="Common.Action.Close">关闭</sys:String>
     <sys:String x:Key="Common.Action.Confirm">确定</sys:String>
+    <sys:String x:Key="Main.Toast.Detail.Title">提示详情</sys:String>
+    <sys:String x:Key="Main.Toast.Detail.ToolTip">点击查看完整内容</sys:String>
     <sys:String x:Key="Common.Action.Continue">继续</sys:String>
     <sys:String x:Key="Common.Action.Copy">复制</sys:String>
     <sys:String x:Key="Common.Action.Decline">拒绝</sys:String>
