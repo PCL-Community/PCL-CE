@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using PCL.Core.App.Localization;
@@ -42,11 +43,12 @@ public static partial class ModModpack
                     var info = FileVersionInfo.GetVersionInfo(probePath);
                     var productName = info.ProductName;
                     ModBase.Log($"[Modpack] 探测到附带可执行文件 {entryName}，产品名：{productName}");
-                    // PCL 或第三方启动器（与原有判断一致），排除 PCL 管理助手
-                    if (productName == "Plain Craft Launcher" ||
+                    // PCL 或第三方启动器，排除 PCL 管理助手
+                    if (productName == "Plain Craft Launcher Community Edition" ||
+                        productName == "Plain Craft Launcher" ||
                         (productName is not null &&
                          (productName.ContainsF("Launcher", true) || productName.ContainsF("启动", true)) &&
-                         productName != "Plain Craft Launcher Admin Manager"))
+                         productName != "Plain Craft Launcher Admin Manager")) //我不知道这个”PCL 管理助手“是什么，原来在重构前的ModModpack.cs第1150行
                     {
                         bundledLauncherEntry = entryName;
                         break;
@@ -153,12 +155,18 @@ public static partial class ModModpack
     /// <returns>内层整合包的文件路径或文件夹路径；未找到时返回 null。</returns>
     private static string? _FindInnerModpack(string rootFolder)
     {
-        // 优先：modpack.zip / modpack.mrpack 等压缩包文件
+        // 优先：modpack.* 压缩包文件（常见命名，无需校验）
         foreach (var file in Directory.GetFiles(rootFolder, "modpack.*", SearchOption.AllDirectories))
             if (file.EndsWithF(".zip", true) || file.EndsWithF(".mrpack", true))
                 return file;
 
-        // 其次：包含已知清单的文件夹（按目录深度由浅到深搜索，优先匹配最外层的整合包）
+        // 其次：任意名称的 .zip / .mrpack 文件（部分懒人包的内层整合包不叫 modpack.*），校验确实是整合包
+        foreach (var file in Directory.EnumerateFiles(rootFolder, "*.zip", SearchOption.AllDirectories)
+                     .Concat(Directory.EnumerateFiles(rootFolder, "*.mrpack", SearchOption.AllDirectories)))
+            if (_IsModpackArchive(file))
+                return file;
+
+        // 再次：包含已知清单的文件夹（按目录深度由浅到深搜索，优先匹配最外层的整合包）
         foreach (var directory in Directory.GetDirectories(rootFolder, "*", SearchOption.AllDirectories)
                      .OrderBy(directory => directory.Length))
         {
@@ -181,6 +189,25 @@ public static partial class ModModpack
         }
 
         return null;
+    }
+
+    /// <summary>
+    ///     判断一个压缩包文件是否是整合包：使用格式识别器检查其根目录或一级目录是否存在已知整合包清单。
+    ///     资源包等普通 zip 不包含这些清单，会被排除，避免误把非整合包文件当作内层整合包。
+    /// </summary>
+    /// <param name="filePath">压缩包文件路径。</param>
+    private static bool _IsModpackArchive(string filePath)
+    {
+        try
+        {
+            using var archive = ZipFile.OpenRead(filePath);
+            var format = ModpackArchiveDetector.Detect(new ZipModpackArchiveReader(archive)).Format;
+            return format != ModpackFormat.Unknown;
+        }
+        catch (Exception)
+        {
+            return false; // 无法打开或识别失败的压缩包不算整合包
+        }
     }
 
     #endregion
@@ -289,11 +316,82 @@ public static partial class ModModpack
                 ModBase.CopyFile(item, dest);
         }
 
+        // 复制共享目录（libraries/assets）到游戏文件夹根目录，避免重复下载并保留整合包的特殊依赖版本；
+        // 同名文件内容不同时由用户决定跳过还是覆盖。
+        _CopySharedFolderWithConflict(Path.Combine(mcRoot, "libraries"),
+            Path.Combine(ModFolder.mcFolderSelected, "libraries"));
+        _CopySharedFolderWithConflict(Path.Combine(mcRoot, "assets"),
+            Path.Combine(ModFolder.mcFolderSelected, "assets"));
+
         // 开启版本隔离
         var versionIni = instanceFolder + @"PCL\Setup.ini";
         ModBase.WriteIni(versionIni, "VersionArgumentIndie", 1.ToString());
         ModBase.WriteIni(versionIni, "VersionArgumentIndieV2", true.ToString());
         ModBase.IniClearCache(versionIni);
+    }
+
+    /// <summary>
+    ///     复制共享目录（如 libraries/assets）到游戏文件夹根目录。
+    ///     同名文件先比较内容：内容相同则跳过；内容不同时弹窗让用户选择跳过或覆盖（可全部跳过/全部覆盖，默认跳过）。
+    /// </summary>
+    private static void _CopySharedFolderWithConflict(string sourceFolder, string destFolder)
+    {
+        if (!Directory.Exists(sourceFolder))
+            return;
+        Directory.CreateDirectory(destFolder);
+        var overwriteAll = false;
+        var skipAll = false;
+        foreach (var sourceFile in Directory.EnumerateFiles(sourceFolder, "*", SearchOption.AllDirectories))
+        {
+            var relativePath = Path.GetRelativePath(sourceFolder, sourceFile);
+            var destFile = Path.Combine(destFolder, relativePath);
+            if (File.Exists(destFile))
+            {
+                // 同名文件：先比较内容，相同则无需处理
+                if (_FilesEqual(sourceFile, destFile))
+                    continue;
+                if (skipAll)
+                    continue;
+                if (!overwriteAll)
+                {
+                    var choice = ModMain.MyMsgBox(
+                        Lang.Text("Minecraft.Download.Modpack.OverwriteConfirm.Message", relativePath),
+                        Lang.Text("Minecraft.Download.Modpack.OverwriteConfirm.Title"),
+                        Lang.Text("Minecraft.Download.Modpack.OptionalFile.Skip"),
+                        Lang.Text("Common.Action.Overwrite"),
+                        Lang.Text("Minecraft.Download.Modpack.OverwriteConfirm.OverwriteAll"),
+                        highLight: true, forceWait: true,
+                        button4: Lang.Text("Minecraft.Download.Modpack.OverwriteConfirm.SkipAll"));
+                    switch (choice)
+                    {
+                        case 1: continue; // 跳过
+                        case 2: break; // 覆盖
+                        case 3: overwriteAll = true; break; // 全部覆盖
+                        case 4: skipAll = true; continue; // 全部跳过
+                    }
+                }
+            }
+
+            Directory.CreateDirectory(Path.GetDirectoryName(destFile) ?? "");
+            File.Copy(sourceFile, destFile, true);
+        }
+    }
+
+    /// <summary>
+    ///     比较两个文件内容是否相同（先比大小，再比 MD5）。
+    /// </summary>
+    private static bool _FilesEqual(string fileA, string fileB)
+    {
+        try
+        {
+            if (new FileInfo(fileA).Length != new FileInfo(fileB).Length)
+                return false;
+            return ModBase.GetFileMD5(fileA) == ModBase.GetFileMD5(fileB);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 
     #endregion
