@@ -152,6 +152,8 @@ public static partial class ModModpack
                 ProgressWeight = modList.Count / 10d
             }); // 每 10 Mod 需要 1s
             // 构造 NetFile
+            // 地图（World）文件：下载到临时目录，随后解压成 saves\地图名\ 文件夹
+            var worldExtracts = new List<(string archivePath, string targetDirectory)>();
             modDownloadLoaders.Add(new LoaderTask<JsonArray, List<DownloadFile>>(
                 Lang.Text("Minecraft.Download.Modpack.Stage.BuildModsDownloadInfo"), task =>
             {
@@ -189,7 +191,9 @@ public static partial class ModModpack
                             targetFolder = "resourcepacks";
                             type = ModComp.CompType.ResourcePack;
                         }
-                        else if (moduleNames.Contains("level.dat"))
+                        // 地图存档的 level.dat 常位于一层父文件夹内（如 MyMap/level.dat），需按路径段判断
+                        else if (moduleNames.Any(name =>
+                                     name.Split("/").Last().Equals("level.dat", StringComparison.OrdinalIgnoreCase)))
                         {
                             targetFolder = "saves";
                             type = ModComp.CompType.World;
@@ -210,10 +214,24 @@ public static partial class ModModpack
                     var file = new ModComp.CompFile((JsonObject)modJson, type);
                     if (!file.Available)
                         continue;
-                    // 实际的添加
-                    fileList.Add(id,
-                        file.ToNetFile(_GetVersionFolder(instanceName) + targetFolder + @"\",
-                            ModComp.DownloadReason.ModPack, manifest.Minecraft.Version, modLoader));
+                    if (type == ModComp.CompType.World)
+                    {
+                        // 地图：先下载到临时目录，下载完成后解压成 saves\地图名\ 文件夹（压缩包本身无法被游戏直接读取）
+                        var archivePath = Path.Combine(installTemp, "world_" + worldExtracts.Count + ".tmp");
+                        fileList.Add(id,
+                            file.ToNetFile(archivePath,
+                                ModComp.DownloadReason.ModPack, manifest.Minecraft.Version, modLoader));
+                        worldExtracts.Add((archivePath,
+                            _GetVersionFolder(instanceName) + "saves\\" +
+                            ModBase.GetFileNameWithoutExtentionFromPath(file.FileName) + "\\"));
+                    }
+                    else
+                    {
+                        // 实际的添加
+                        fileList.Add(id,
+                            file.ToNetFile(_GetVersionFolder(instanceName) + targetFolder + @"\",
+                                ModComp.DownloadReason.ModPack, manifest.Minecraft.Version, modLoader));
+                    }
                     task.Progress += 1d / (1 + modList.Count);
                 }
 
@@ -226,6 +244,14 @@ public static partial class ModModpack
             // 下载 Mod 文件
             modDownloadLoaders.Add(new LoaderDownload(Lang.Text("Minecraft.Download.Modpack.Stage.DownloadMods"), [])
                 { ProgressWeight = modList.Count * 1.5d }); // 每个 Mod 需要 1.5s
+            // 解压地图存档（下载到临时目录的地图，解压成 saves\地图名\ 文件夹）
+            modDownloadLoaders.Add(new LoaderTask<string, int>(
+                Lang.Text("Minecraft.Download.Modpack.Stage.ExtractModpack"), task =>
+            {
+                foreach (var (archivePath, targetDirectory) in worldExtracts)
+                    _ExtractArchiveToDirectory(archivePath, targetDirectory);
+            })
+            { show = false, ProgressWeight = 1d });
             // 构造加载器
             installLoaders.Add(
                 new LoaderCombo<int>(Lang.Text("Minecraft.Download.Modpack.Stage.DownloadMods.MainLoader"),
@@ -253,8 +279,16 @@ public static partial class ModModpack
             { show = false, ProgressWeight = mergeLoaders.Sum(l => l.ProgressWeight) });
         loaders.Add(new LoaderTask<string, string>(Lang.Text("Minecraft.Download.Modpack.Stage.FinalizeFiles"), task =>
         {
-            _FinalizeInstance(_GetVersionFolder(instanceName), sourcePath, logo, "CurseForge",
+            var versionFolder = _GetVersionFolder(instanceName);
+            _FinalizeInstance(versionFolder, sourcePath, logo, "CurseForge",
                 manifest.Version, resourceId);
+            // 本地安装没有外部 logo 时，尝试使用整合包内嵌的图标（manifest.json 的 image 字段）
+            if (logo is null && manifest.Image is not null)
+            {
+                var iconPath = Path.Combine(installTemp, archiveBaseFolder.Replace("/", @"\"),
+                    manifest.Image.Replace("/", @"\"));
+                _SetInstanceIcon(versionFolder, iconPath);
+            }
         })
         {
             ProgressWeight = 0.1d,

@@ -308,13 +308,8 @@ public static partial class ModModpack
         string modpackVersion, string resourceId)
     {
         // 设置图标
-        if (logo is not null && File.Exists(logo))
-        {
-            File.Copy(logo, Path.Combine(versionFolder, "PCL", "Logo.png"), true);
-            States.Instance.LogoPath[versionFolder] = @"PCL\Logo.png";
-            States.Instance.IsLogoCustom[versionFolder] = true;
-            ModBase.Log("[ModPack] 已设置整合包 Logo：" + logo);
-        }
+        if (logo is not null)
+            _SetInstanceIcon(versionFolder, logo);
 
         // 删除原始整合包文件
         foreach (var target in new[] { Path.Combine(versionFolder, "原始整合包.zip"), Path.Combine(versionFolder, "原始整合包.mrpack") })
@@ -348,6 +343,21 @@ public static partial class ModModpack
                 ModBase.Log(ex, "[ModPack] 获取整合包描述文本失败");
             }
         } while (false);
+    }
+
+    /// <summary>
+    ///     将图标文件复制到实例的 <c>PCL\Logo.png</c> 并标记为自定义图标。
+    /// </summary>
+    private static void _SetInstanceIcon(string versionFolder, string iconSourcePath)
+    {
+        if (!File.Exists(iconSourcePath))
+            return;
+        var logoPath = Path.Combine(versionFolder, "PCL", "Logo.png");
+        Directory.CreateDirectory(Path.GetDirectoryName(logoPath) ?? "");
+        File.Copy(iconSourcePath, logoPath, true);
+        States.Instance.LogoPath[versionFolder] = @"PCL\Logo.png";
+        States.Instance.IsLogoCustom[versionFolder] = true;
+        ModBase.Log("[ModPack] 已设置整合包 Logo：" + iconSourcePath);
     }
 
     #endregion

@@ -36,6 +36,11 @@ public sealed class CurseForgeManifest
     public string? Author { get; init; }
 
     /// <summary>
+    /// 整合包图标路径（可选），通常是压缩包内的相对路径，如 <c>profileImage/xxx.jpg</c>。
+    /// </summary>
+    public string? Image { get; init; }
+
+    /// <summary>
     /// 游戏相关信息；缺失时表示清单未声明游戏版本。
     /// </summary>
     public CurseForgeMinecraft? Minecraft { get; init; }
