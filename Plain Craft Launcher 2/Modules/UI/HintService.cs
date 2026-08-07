@@ -64,7 +64,7 @@ public static class HintService
             var activeCount = ModMain.frmMain.PanHint.Children.OfType<MyToast>().Count(t => !t.IsDismissing);
             if (activeCount >= 5)
             {
-                var oldest = ModMain.frmMain.PanHint.Children.OfType<MyToast>().FirstOrDefault(t => !t.IsDismissing);
+                var oldest = ModMain.frmMain.PanHint.Children.OfType<MyToast>().LastOrDefault(t => !t.IsDismissing);
                 oldest?.Dismiss();
                 return;
             }
@@ -83,7 +83,7 @@ public static class HintService
                 DisplayDuration = (800d + ModBase.MathClamp(currentHint.Text.Length, 5d, 23d) * 180d) * ModAnimation.aniSpeed
             };
 
-            ModMain.frmMain.PanHint.Children.Add(toast);
+            ModMain.frmMain.PanHint.Children.Insert(0, toast);
             toast.Show();
 
             if (currentHint.Log)
