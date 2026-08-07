@@ -1857,6 +1857,10 @@ public static class ModBase
     {
         try
         {
+            // JsonNode 数值（如版本 json 中的 majorVersion）无法被 Conversion.Val 转换，需单独处理，
+            // 否则会捕获异常返回 0，导致 JSON 中声明的 Java 版本要求被忽略（见 MMC 整合包 Java 选择 bug）。
+            if (str is JsonNode node)
+                return node.ToObject<double>();
             return str is "&" ? 0d : Conversion.Val(str);
         }
         catch
