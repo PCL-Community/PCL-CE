@@ -65,6 +65,7 @@ public partial class MyToast
             ModAnimation.AniStop($"Toast Dismiss {Uuid}");
             ModAnimation.AniStop($"Toast Emphasize {Uuid}");
             ModAnimation.AniStop($"Toast Drag Return {Uuid}");
+            ModAnimation.AniStop($"Toast StackSettle {Uuid}");
             ProgressBar.BeginAnimation(WidthProperty, null);
         };
     }
@@ -111,12 +112,18 @@ public partial class MyToast
 
         RenderTransform = new TranslateTransform(60, 0);
 
+        // 图标“按入”微动效：0.8 → 1，略带过头回弹，呼应启动器按钮的按压语言
+        ToastIcon.RenderTransformOrigin = new Point(0.5, 0.5);
+        ToastIcon.RenderTransform = new ScaleTransform(0.8, 0.8);
+
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
         var enterAnimations = new List<ModAnimation.AniData>
         {
-            ModAnimation.AaTranslateX(this, -60, 400, ease: new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaTranslateX(this, -60, 380, ease: new ModAnimation.AniEaseOutCar()),
             ModAnimation.AaHeight(this, _targetHeight, 150, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaOpacity(this, 1, 100)
+            ModAnimation.AaOpacity(this, 1, 100),
+            ModAnimation.AaScaleTransform(ToastIcon, 0.2, 260, 120,
+                ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak))
         };
         ModAnimation.AniStart(enterAnimations, $"Toast Show {Uuid}");
 
@@ -133,11 +140,11 @@ public partial class MyToast
         if (RenderTransform is TranslateTransform tt) tt.X = 0;
         Opacity = 1;
         Height = _targetHeight;
+        ToastIcon.RenderTransform = new ScaleTransform(1, 1); // 若入场动效尚未结束，先复位图标缩放
         ModAnimation.AniStart(new List<ModAnimation.AniData>
         {
-            ModAnimation.AaTranslateX(this, -8, 70, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaTranslateX(this, 16, 70, after: true),
-            ModAnimation.AaTranslateX(this, -8, 60, after: true, ease: new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaTranslateX(this, -10, 90, ease: new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaTranslateX(this, 10, 140, after: true, ease: new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaCode(RestartHideAnimation, after: true),
         }, $"Toast Emphasize {Uuid}");
     }
@@ -178,6 +185,7 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Hide {Uuid}");
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
+        ModAnimation.AniStop($"Toast StackSettle {Uuid}");
         ProgressBar.BeginAnimation(WidthProperty, null);
         ModAnimation.AniStart(new List<ModAnimation.AniData>
         {

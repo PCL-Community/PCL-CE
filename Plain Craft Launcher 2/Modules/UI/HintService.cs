@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using PCL.Core.UI;
 
 namespace PCL;
@@ -110,8 +111,20 @@ public static class HintService
         for (var i = 0; i < toasts.Count; i++)
         {
             var t = toasts[i]; // Children 顺序，索引 0 = 最新
-            t.Margin = new Thickness(0, 0, 16, ToastBottomMargin + i * ToastPeek);
+            var oldBottom = t.Margin.Bottom;
+            var newBottom = ToastBottomMargin + i * ToastPeek;
+            var shift = oldBottom - newBottom; // >0 下落补位，<0 上抬让位
+            t.Margin = new Thickness(0, 0, 16, newBottom);
             t.VerticalAlignment = VerticalAlignment.Bottom; // 底部锚定（Grid 内叠置的关键，防止 Stretch 居中断层）
+            if (Math.Abs(shift) > 0.5)
+            {
+                var tt = t.RenderTransform as TranslateTransform ?? new TranslateTransform();
+                t.RenderTransform = tt;
+                tt.Y = -shift; // 视觉先停在旧位置，再动画归零，形成整体层动
+                ModAnimation.AniStart(
+                    ModAnimation.AaTranslateY(t, shift, 200, ease: new ModAnimation.AniEaseOutFluent()),
+                    $"Toast StackSettle {t.Uuid}");
+            }
             Panel.SetZIndex(t, toasts.Count - 1 - i); // 最新 Z 最高
         }
     }
