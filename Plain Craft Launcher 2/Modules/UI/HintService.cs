@@ -1,10 +1,16 @@
 using System.Windows;
+using System.Windows.Controls;
 using PCL.Core.UI;
 
 namespace PCL;
 
 public static class HintService
 {
+    /// <summary>叠置时旧弹窗露出的上沿高度（像素）。</summary>
+    private const double ToastPeek = 10d;
+    /// <summary>弹窗离容器底部的边距（像素）。</summary>
+    private const double ToastBottomMargin = 4d;
+
     private struct HintMessage
     {
         public string Text;
@@ -85,6 +91,7 @@ public static class HintService
 
             ModMain.frmMain.PanHint.Children.Insert(0, toast);
             toast.Show();
+            RearrangeToasts();
 
             if (currentHint.Log)
                 ModBase.Log("[UI] 弹出提示：" + currentHint.Text);
@@ -96,9 +103,28 @@ public static class HintService
         }
     }
 
+    // 按叠置规则重排所有弹窗：最新在最前（Z 最高）且在最下，旧弹窗向上错开露出上沿
+    private static void RearrangeToasts()
+    {
+        var toasts = ModMain.frmMain.PanHint.Children.OfType<MyToast>().Where(t => !t.IsDismissing).ToList();
+        for (var i = 0; i < toasts.Count; i++)
+        {
+            var t = toasts[i]; // Children 顺序，索引 0 = 最新
+            t.Margin = new Thickness(0, 0, 16, ToastBottomMargin + i * ToastPeek);
+            t.VerticalAlignment = VerticalAlignment.Bottom; // 底部锚定（Grid 内叠置的关键，防止 Stretch 居中断层）
+            Panel.SetZIndex(t, toasts.Count - 1 - i); // 最新 Z 最高
+        }
+    }
+
     public static void HideAll()
     {
         foreach (MyToast toast in ModMain.frmMain!.PanHint.Children.OfType<MyToast>().ToList())
             toast.Dismiss();
+    }
+
+    // 弹窗移除后回填错位（由 MyToast 移除自身后调用）
+    internal static void OnToastRemoved(MyToast toast)
+    {
+        RearrangeToasts();
     }
 }

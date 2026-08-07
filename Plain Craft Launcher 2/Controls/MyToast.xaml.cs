@@ -159,7 +159,10 @@ public partial class MyToast
             ModAnimation.AaCode(() =>
             {
                 if (Parent is Panel p)
+                {
                     p.Children.Remove(this);
+                    HintService.OnToastRemoved(this);
+                }
             }, after: true)
         }, $"Toast Hide {Uuid}");
     }
@@ -183,7 +186,10 @@ public partial class MyToast
             ModAnimation.AaCode(() =>
             {
                 if (Parent is Panel p)
+                {
                     p.Children.Remove(this);
+                    HintService.OnToastRemoved(this);
+                }
             }, after: true)
         }, $"Toast Dismiss {Uuid}");
     }
