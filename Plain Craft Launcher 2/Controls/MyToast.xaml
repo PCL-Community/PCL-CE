@@ -28,7 +28,7 @@
 
             <TextBlock x:Name="TitleText" Grid.Column="1" VerticalAlignment="Center"
                        FontSize="13" FontWeight="Bold"
-                       TextWrapping="Wrap" LineHeight="16" MaxHeight="48"
+                       TextWrapping="Wrap" LineHeight="16" MaxHeight="96"
                        TextTrimming="CharacterEllipsis" />
 
             <local:MyIconButton Grid.Column="2" x:Name="BtnClose" Width="20" Height="20"

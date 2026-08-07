@@ -41,6 +41,8 @@ public partial class MyToast
     // 进度条状态
     private double _progressStartWidth;
     private double _progressTotalMs;
+    private bool _pausedByHover;
+    private double _hoverRemainingMs;
 
     public MyToast()
     {
@@ -50,6 +52,8 @@ public partial class MyToast
         PreviewMouseMove += Toast_PreviewMouseMove;
         PreviewMouseLeftButtonUp += Toast_PreviewMouseLeftButtonUp;
         LostMouseCapture += Toast_LostMouseCapture;
+        Root.MouseEnter += Root_MouseEnter;
+        Root.MouseLeave += Root_MouseLeave;
         Loaded += (_, _) =>
         {
             UpdateColors();
@@ -67,6 +71,7 @@ public partial class MyToast
             ModAnimation.AniStop($"Toast Drag Return {Uuid}");
             ModAnimation.AniStop($"Toast StackSettle {Uuid}");
             ProgressBar.BeginAnimation(WidthProperty, null);
+            ResetHoverPause();
         };
     }
 
@@ -83,7 +88,8 @@ public partial class MyToast
     private void ShowDetail()
     {
         if (IsDismissing) return;
-        ModMain.MyMsgBox(Context, Lang.Text("Main.Toast.Detail.Title"), Lang.Text("Common.Action.Confirm"));
+        ModMain.MyMsgBoxByHintType(Context, ToastType, Lang.Text("Main.Toast.Detail.Title"),
+            Lang.Text("Common.Action.Confirm"));
     }
 
     public string Icon { get; set; } = "lucide/info";
@@ -137,14 +143,16 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
         ProgressBar.BeginAnimation(WidthProperty, null);
+        ResetHoverPause();
         if (RenderTransform is TranslateTransform tt) tt.X = 0;
         Opacity = 1;
         Height = _targetHeight;
         ToastIcon.RenderTransform = new ScaleTransform(1, 1); // 若入场动效尚未结束，先复位图标缩放
         ModAnimation.AniStart(new List<ModAnimation.AniData>
         {
-            ModAnimation.AaTranslateX(this, -10, 90, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaTranslateX(this, 10, 140, after: true, ease: new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaTranslateX(this, -14, 90, ease: new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaTranslateX(this, 18, 100, after: true, ease: new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaTranslateX(this, -4, 110, after: true, ease: new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaCode(RestartHideAnimation, after: true),
         }, $"Toast Emphasize {Uuid}");
     }
@@ -187,6 +195,7 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
         ModAnimation.AniStop($"Toast StackSettle {Uuid}");
         ProgressBar.BeginAnimation(WidthProperty, null);
+        ResetHoverPause();
         ModAnimation.AniStart(new List<ModAnimation.AniData>
         {
             ModAnimation.AaTranslateX(this, 60, 150, ease: new ModAnimation.AniEaseInFluent()),
@@ -225,20 +234,21 @@ public partial class MyToast
     private void UpdateColors()
     {
         var isInfo = ToastType == HintType.Info;
-        var baseHue = ToastType switch
-        {
-            HintType.Success => 145d,
-            HintType.Error => 355d,
-            HintType.Warning => 40d,
-            _ => 210d
-        };
         var res = System.Windows.Application.Current.Resources;
-        var accent = new ModBase.MyColor().FromHSL2(baseHue, isInfo ? 38d : 75d, isInfo ? 56d : 60d);
+        // 信息类型整体用主题色，其余类型用饱和状态色
+        var accentBrush = isInfo
+            ? (Brush)res["ColorBrush2"]
+            : new SolidColorBrush(ToastType switch
+            {
+                HintType.Success => new ModBase.MyColor().FromHSL2(145d, 75d, 60d),
+                HintType.Error => new ModBase.MyColor().FromHSL2(355d, 75d, 60d),
+                HintType.Warning => new ModBase.MyColor().FromHSL2(40d, 75d, 60d),
+                _ => new ModBase.MyColor().FromHSL2(210d, 75d, 60d)
+            });
         var bg = ThemeService.IsDarkMode
             ? new SolidColorBrush(LabColor.FromLch(0.35))
             : (Brush)res["ColorBrushBackground"];
         var text = (SolidColorBrush)res["ColorBrushGray1"];
-        var accentBrush = new SolidColorBrush(accent);
         var track = new SolidColorBrush(ThemeService.IsDarkMode
             ? Color.FromArgb(70, 255, 255, 255) // 暗色卡片上略亮的内嵌暗槽
             : Color.FromArgb(60, 0, 0, 0));      // 亮色卡片上略暗的内嵌暗槽
@@ -247,7 +257,7 @@ public partial class MyToast
         Root.BorderBrush = bg;
         TitleText.Foreground = text;
         ProgressTrack.Fill = track;
-        ProgressBar.Fill = isInfo ? text : accentBrush; // 信息类型淡化，其余类型带色
+        ProgressBar.Fill = accentBrush; // Info 为主题色，其余类型为状态色
         BtnClose.Foreground = text;
         ToastIcon.Icon = Icon;
         ToastIcon.IconBrush = accentBrush;
@@ -454,6 +464,45 @@ public partial class MyToast
             return 0d;
         var currentWidth = ProgressBar.Width;
         return _progressTotalMs * (currentWidth / _progressStartWidth);
+    }
+
+    private void Root_MouseEnter(object sender, MouseEventArgs e)
+    {
+        if (_isDragging || _pausedByHover)
+            return;
+        // 悬停暂停：停住隐藏倒计时并冻结进度条，移出后按剩余时间恢复
+        ModAnimation.AniStop($"Toast Hide {Uuid}");
+        var currentWidth = ProgressBar.Width;
+        ProgressBar.BeginAnimation(WidthProperty, null);
+        ProgressBar.Width = currentWidth;
+        _hoverRemainingMs = GetProgressRemainingMs();
+        _pausedByHover = true;
+        ProgressBar.Opacity = 0.4;
+    }
+
+    private void Root_MouseLeave(object sender, MouseEventArgs e)
+    {
+        if (_isDragging)
+            return; // 拖拽接管进度条，悬停恢复交由 ReturnFromDrag 处理
+        if (!_pausedByHover)
+            return;
+        _pausedByHover = false;
+        ProgressBar.Opacity = 1;
+        if (_hoverRemainingMs <= 0 || ProgressBar.Width <= 0)
+            return; // 已结束或未启动，无需恢复动画
+        StartHideAnimation(_hoverRemainingMs);
+        var currentWidth = ProgressBar.Width;
+        var anim = new DoubleAnimation(currentWidth, 0d, TimeSpan.FromMilliseconds(_hoverRemainingMs));
+        ProgressBar.BeginAnimation(WidthProperty, anim);
+    }
+
+    private void ResetHoverPause()
+    {
+        if (!_pausedByHover)
+            return;
+        _pausedByHover = false;
+        _hoverRemainingMs = 0;
+        ProgressBar.Opacity = 1;
     }
 
     #endregion
