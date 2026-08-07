@@ -35,4 +35,10 @@ internal sealed class FolderModpackArchiveReader : IModpackArchiveReader
     {
         return ModBase.ReadFile(Path.Combine(_root, entryName));
     }
+
+    public void ExtractEntryToFile(string entryName, string destinationPath)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath) ?? "");
+        File.Copy(Path.Combine(_root, entryName), destinationPath, true);
+    }
 }

@@ -36,4 +36,14 @@ internal sealed class ZipModpackArchiveReader : IModpackArchiveReader
         using var stream = _archive.GetEntry(entryName)?.Open();
         return stream is null ? "" : ModBase.ReadFile(stream);
     }
+
+    public void ExtractEntryToFile(string entryName, string destinationPath)
+    {
+        using var stream = _archive.GetEntry(entryName)?.Open();
+        if (stream is null)
+            return;
+        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath) ?? "");
+        using var file = File.Create(destinationPath);
+        stream.CopyTo(file);
+    }
 }

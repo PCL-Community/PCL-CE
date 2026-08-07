@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using PCL.Core.Minecraft.Modpack;
 
@@ -31,5 +32,13 @@ internal sealed class FakeModpackArchive : IModpackArchiveReader
     public string ReadEntryText(string entryName)
     {
         return _entries[entryName];
+    }
+
+    public void ExtractEntryToFile(string entryName, string destinationPath)
+    {
+        if (!_entries.TryGetValue(entryName, out var content))
+            return;
+        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath) ?? "");
+        File.WriteAllText(destinationPath, content);
     }
 }

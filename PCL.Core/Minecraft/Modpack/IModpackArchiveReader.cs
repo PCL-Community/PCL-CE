@@ -24,4 +24,11 @@ public interface IModpackArchiveReader
     /// </summary>
     /// <param name="entryName">条目名。</param>
     string ReadEntryText(string entryName);
+
+    /// <summary>
+    /// 将指定条目按原始字节提取到目标文件（用于探测二进制文件，如附带启动器的 exe）。
+    /// </summary>
+    /// <param name="entryName">条目名。</param>
+    /// <param name="destinationPath">目标文件路径。</param>
+    void ExtractEntryToFile(string entryName, string destinationPath);
 }

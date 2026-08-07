@@ -24,62 +24,103 @@ public static partial class ModModpack
         "launcher_profiles.json", "usercache.json", "usernamecache.json"
     };
 
-    private static LoaderCombo<string> _InstallLauncherPack(string sourcePath)
+    private static LoaderCombo<string> _InstallLauncherPack(string sourcePath, IModpackArchiveReader archive)
     {
-        // 解压到临时目录（无需用户选择空文件夹），内层整合包安装完成后由系统自动清理
+        // 阶段 0：只探测压缩包是否附带启动器（仅提取顶层 exe 读取产品名，不完整解压）
+        string bundledLauncherEntry = null;
+        var probeFolder = ModMain.RequestTaskTempFolder();
+        try
+        {
+            foreach (var entryName in archive.EntryNames)
+            {
+                if (entryName.Contains("/") || !entryName.EndsWithF(".exe", true))
+                    continue; // 只探测顶层的 *.exe
+                try
+                {
+                    var probePath = Path.Combine(probeFolder, Path.GetFileName(entryName));
+                    archive.ExtractEntryToFile(entryName, probePath);
+                    var info = FileVersionInfo.GetVersionInfo(probePath);
+                    var productName = info.ProductName;
+                    ModBase.Log($"[Modpack] 探测到附带可执行文件 {entryName}，产品名：{productName}");
+                    // PCL 或第三方启动器（与原有判断一致），排除 PCL 管理助手
+                    if (productName == "Plain Craft Launcher" ||
+                        (productName is not null &&
+                         (productName.ContainsF("Launcher", true) || productName.ContainsF("启动", true)) &&
+                         productName != "Plain Craft Launcher Admin Manager"))
+                    {
+                        bundledLauncherEntry = entryName;
+                        break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ModBase.Log(ex, "探测压缩包内附带启动器失败：" + entryName);
+                }
+            }
+        }
+        finally
+        {
+            ModBase.DeleteDirectory(probeFolder);
+        }
+
+        // 询问用户是否换用附带启动器
+        if (bundledLauncherEntry is not null)
+        {
+            var bundledPath = bundledLauncherEntry.Replace("/", @"\");
+            ModBase.Log("[Modpack] 找到压缩包中附带的启动器：" + bundledPath);
+            if (ModMain.MyMsgBox(Lang.Text("Minecraft.Download.Modpack.BundledLauncher.Message", bundledPath),
+                    Lang.Text("Minecraft.Download.Modpack.BundledLauncher.Title"),
+                    Lang.Text("Minecraft.Download.Modpack.BundledLauncher.UseBundled"),
+                    Lang.Text("Minecraft.Download.Modpack.BundledLauncher.DoNotUse")) == 1)
+            {
+                // 附带启动器需要把文件安装到它自己的持久目录里，因此让用户选一个空文件夹并直接解压进去。
+                ModMain.MyMsgBox(Lang.Text("Minecraft.Download.Modpack.SelectEmptyFolder.Message"),
+                    Lang.Text("Common.Action.Install"), Lang.Text("Common.Action.Continue"), forceWait: true);
+                var targetFolder = SystemDialogs.SelectFolder(Lang.Text("Minecraft.Download.Modpack.SelectTargetFolder.Title"));
+                if (string.IsNullOrEmpty(targetFolder))
+                    throw new ModBase.CancelledException();
+                if (Directory.GetFileSystemEntries(targetFolder).Length > 0)
+                {
+                    HintService.Hint(Lang.Text("Minecraft.Download.Modpack.TargetFolderMustBeEmpty"), HintType.Error);
+                    throw new ModBase.CancelledException();
+                }
+
+                // 直接解压到所选文件夹（不走临时目录），然后从该文件夹运行附带启动器
+                var launcherLoader = new LoaderCombo<string>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractArchive"), new[]
+                {
+                    new LoaderTask<string, int>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractArchive"), task =>
+                    {
+                        _ExtractModpackFiles(targetFolder, sourcePath, task, 0.9d);
+                        task.Progress = 0.95d;
+                        ModBase.OpenExplorer(targetFolder);
+                        ModBase.ShellOnly(Path.Combine(targetFolder, bundledPath), "--wait"); // 要求等待已有的 PCL 退出
+                        ModBase.Log("[Modpack] 为换用整合包中的启动器启动，强制结束程序");
+                        ModMain.frmMain.EndProgram(false);
+                    })
+                });
+                launcherLoader.Start(targetFolder);
+                LoaderTaskbarAdd(launcherLoader);
+                ModMain.frmMain.BtnExtraDownload.ShowRefresh();
+                ModMain.frmMain.BtnExtraDownload.Ribble();
+                return launcherLoader;
+            }
+
+            ModBase.Log("[Modpack] 用户选择不使用附带启动器，继续安装到 PCL");
+        }
+        else
+        {
+            ModBase.Log("[Modpack] 未找到压缩包中附带的启动器");
+        }
+
+        // 阶段 1：安装到 PCL（解压到临时目录，找内层整合包安装，临时目录由系统自动清理）
         var installTemp = ModMain.RequestTaskTempFolder();
-        var loader = new LoaderCombo<string>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractArchive"), new[]
+        var installLoader = new LoaderCombo<string>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractArchive"), new[]
         {
             new LoaderTask<string, int>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractArchive"), task =>
             {
                 _ExtractModpackFiles(installTemp, sourcePath, task, 0.9d);
                 Thread.Sleep(400); // 避免文件争用
-                // 查找解压后的 exe 文件
-                string launcher = null;
-                foreach (var exeFile in Directory.GetFiles(installTemp, "*.exe", SearchOption.TopDirectoryOnly))
-                {
-                    var info = FileVersionInfo.GetVersionInfo(exeFile);
-                    ModBase.Log($"[Modpack] 文件 {exeFile} 的产品名标识为 {info.ProductName}");
-                    if (info.ProductName == "Plain Craft Launcher")
-                    {
-                        launcher = exeFile;
-                        ModBase.Log($"[Modpack] 发现整合包附带的 PCL 启动器：{exeFile}");
-                    }
-                    else if ((info.ProductName.ContainsF("Launcher", true) || info.ProductName.ContainsF("启动", true)) &&
-                             !(info.ProductName == "Plain Craft Launcher Admin Manager"))
-                    {
-                        if (launcher is null)
-                        {
-                            launcher = exeFile;
-                            ModBase.Log($"[Modpack] 发现整合包附带的疑似第三方启动器：{exeFile}");
-                        }
-                    }
-                }
-
                 task.Progress = 0.95d;
-                // 尝试使用附带的启动器打开
-                if (launcher is not null)
-                {
-                    ModBase.Log("[Modpack] 找到压缩包中附带的启动器：" + launcher);
-                    if (ModMain.MyMsgBox(Lang.Text("Minecraft.Download.Modpack.BundledLauncher.Message", launcher),
-                            Lang.Text("Minecraft.Download.Modpack.BundledLauncher.Title"),
-                            Lang.Text("Minecraft.Download.Modpack.BundledLauncher.UseBundled"),
-                            Lang.Text("Minecraft.Download.Modpack.BundledLauncher.DoNotUse")
-                        ) == 1)
-                    {
-                        // 换用附带启动器：保留临时目录供其使用
-                        ModBase.OpenExplorer(installTemp);
-                        ModBase.ShellOnly(launcher, "--wait"); // 要求等待已有的 PCL 退出
-                        ModBase.Log("[Modpack] 为换用整合包中的启动器启动，强制结束程序");
-                        ModMain.frmMain.EndProgram(false);
-                        return;
-                    }
-                }
-                else
-                {
-                    ModBase.Log("[Modpack] 未找到压缩包中附带的启动器");
-                }
-
                 // 寻找并安装内层整合包（任意格式：modpack.* 压缩包文件或文件夹形式的整合包）
                 var innerPackPath = _FindInnerModpack(installTemp);
                 if (innerPackPath is not null)
@@ -97,11 +138,11 @@ public static partial class ModModpack
                 }
             })
         });
-        loader.Start(installTemp);
-        LoaderTaskbarAdd(loader);
+        installLoader.Start(installTemp);
+        LoaderTaskbarAdd(installLoader);
         ModMain.frmMain.BtnExtraDownload.ShowRefresh();
         ModMain.frmMain.BtnExtraDownload.Ribble();
-        return loader;
+        return installLoader;
     }
 
     /// <summary>
