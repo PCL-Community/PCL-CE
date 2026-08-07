@@ -1,6 +1,7 @@
 <Grid x:Class="PCL.MyMsgText"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:svgIcon="clr-namespace:PCL.Core.UI.Controls.SvgIcon;assembly=PCL.Core"
       xmlns:my="clr-namespace:PCL"
       RenderTransformOrigin="0,0.5" UseLayoutRounding="True" SnapsToDevicePixels="True" MinWidth="400"
       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="25">
@@ -23,8 +24,11 @@
                 <RowDefinition Height="1*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
+            <svgIcon:SvgIcon Grid.Row="0" x:Name="ToastTypeIcon" Width="18" Height="18"
+                             HorizontalAlignment="Left" VerticalAlignment="Top" Margin="7,4,0,0"
+                             UseOriginalColor="False" StrokeThickness="0" />
             <TextBlock Grid.Row="0" FontSize="23" TextTrimming="None" Foreground="{DynamicResource ColorBrush2}"
-                       HorizontalAlignment="Left" Name="LabTitle" Margin="7,-1,70,9" Text="测试标题文本"
+                       HorizontalAlignment="Left" Name="LabTitle" Margin="31,-1,70,9" Text="测试标题文本"
                        VerticalAlignment="Top" SnapsToDevicePixels="False" UseLayoutRounding="False" />
             <Rectangle x:Name="ShapeLine" Grid.Row="1" Height="2" Fill="{Binding Foreground, ElementName=LabTitle}" />
             <my:MyScrollViewer Grid.Row="3" VerticalAlignment="Top" x:Name="PanCaption" Margin="0,0,0,17"

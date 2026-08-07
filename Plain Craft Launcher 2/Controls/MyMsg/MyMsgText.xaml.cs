@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
 using PCL.Core.UI.Controls;
 
 using PCL.Core.App.Localization;
@@ -23,10 +24,26 @@ public partial class MyMsgText
             myConverter = converter;
             LabTitle.Text = converter.Title;
             LabCaption.Text = converter.Text;
-            ConfigurePrimaryButton(converter.Button1, converter.IsWarn);
+            ConfigurePrimaryButton(converter.Button1, converter.IsWarn || converter.HintType == HintType.Error);
             ConfigureSecondaryButton(Btn2, converter.Button2);
             ConfigureSecondaryButton(Btn3, converter.Button3);
             ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
+            // 按提示类型设置标题图标与颜色（与 MyToast 的图标映射一致）
+            var hintType = converter.HintType ?? HintType.Info;
+            ToastTypeIcon.Icon = hintType switch
+            {
+                HintType.Success => "lucide/circle-check",
+                HintType.Error => "lucide/circle-minus",
+                HintType.Warning => "lucide/triangle-alert",
+                _ => "lucide/info"
+            };
+            ToastTypeIcon.IconBrush = hintType switch
+            {
+                HintType.Success => new SolidColorBrush(new ModBase.MyColor().FromHSL2(145d, 75d, 60d)),
+                HintType.Error => new SolidColorBrush(new ModBase.MyColor().FromHSL2(355d, 75d, 60d)),
+                HintType.Warning => new SolidColorBrush(new ModBase.MyColor().FromHSL2(40d, 75d, 60d)),
+                _ => (Brush)System.Windows.Application.Current.Resources["ColorBrush2"]
+            };
         }
 
         catch (Exception ex)
