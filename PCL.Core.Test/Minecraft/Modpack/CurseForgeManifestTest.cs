@@ -16,6 +16,7 @@ public class CurseForgeManifestTest
               "manifestVersion": 1,
               "name": "示例整合包",
               "version": "1.0.0",
+              "recommendedRam": 8192,
               "author": "作者名",
               "minecraft": {
                 "version": "1.20.1",
@@ -34,6 +35,7 @@ public class CurseForgeManifestTest
         Assert.AreEqual(1, manifest.ManifestVersion);
         Assert.AreEqual("示例整合包", manifest.Name);
         Assert.AreEqual("1.0.0", manifest.Version);
+        Assert.AreEqual(8192, manifest.RecommendedRam);
         Assert.AreEqual("作者名", manifest.Author);
         Assert.AreEqual("1.20.1", manifest.Minecraft?.Version);
         Assert.IsNotNull(manifest.Minecraft?.ModLoaders);
@@ -47,6 +49,36 @@ public class CurseForgeManifestTest
         Assert.IsFalse(manifest.Files[0].IsOptional);
         Assert.IsTrue(manifest.Files[1].IsOptional);
         Assert.AreEqual("overrides", manifest.Overrides);
+    }
+
+    [TestMethod]
+    public void RecommendedRamPrefersRootOverMinecraft()
+    {
+        const string json = """
+            {
+              "recommendedRam": 4096,
+              "minecraft": {
+                "version": "1.20.1",
+                "recommendedRam": 8192
+              }
+            }
+            """;
+        var manifest = CurseForgeManifest.Parse(JsonCompat.ParseNode(json));
+        Assert.IsNotNull(manifest);
+        Assert.AreEqual(4096, manifest.RecommendedRam);
+        Assert.AreEqual(8192, manifest.Minecraft?.RecommendedRam);
+        Assert.AreEqual(4096, manifest.RecommendedRamEffective);
+    }
+
+    [TestMethod]
+    public void RecommendedRamFromMinecraftWhenRootMissing()
+    {
+        const string json = """{"minecraft": { "version": "1.20.1", "recommendedRam": 8192 }}""";
+        var manifest = CurseForgeManifest.Parse(JsonCompat.ParseNode(json));
+        Assert.IsNotNull(manifest);
+        Assert.IsNull(manifest.RecommendedRam);
+        Assert.AreEqual(8192, manifest.Minecraft?.RecommendedRam);
+        Assert.AreEqual(8192, manifest.RecommendedRamEffective);
     }
 
     [TestMethod]
@@ -70,6 +102,8 @@ public class CurseForgeManifestTest
         Assert.IsNull(manifest.Files);
         Assert.IsNull(manifest.Overrides);
         Assert.IsNull(manifest.Version);
+        Assert.IsNull(manifest.RecommendedRam);
+        Assert.IsNull(manifest.RecommendedRamEffective);
     }
 
     [TestMethod]

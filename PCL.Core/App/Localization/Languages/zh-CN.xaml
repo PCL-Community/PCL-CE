@@ -1386,6 +1386,7 @@
     <sys:String x:Key="Instance.Setup.Hint">这些设置只对该游戏实例生效，不影响其他实例。</sys:String>
     <sys:String x:Key="Instance.Setup.Initialize.Success">已初始化实例独立设置！</sys:String>
     <sys:String x:Key="Instance.Setup.Memory.Used">已使用内存</sys:String>
+    <sys:String x:Key="Instance.Setup.ModpackRecommendedRam">使用整合包推荐内存</sys:String>
     <sys:String x:Key="Instance.Setup.OpenGlobalSettings">全局设置</sys:String>
 
     <!-- Instance.Setup.Advanced -->
@@ -1994,6 +1995,8 @@
     <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Title">文件路径校验失败</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.QuiltUnsupported">无法安装整合包：当前启动器已不再支持 Quilt 加载器。</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.RarUnsupported">PCL CE 无法处理 rar 格式的压缩包，请在解压后重新压缩为 zip 格式再试</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRam.Message">该整合包有推荐内存 {0} GiB，是否使用整合包推荐的内存？</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRam.Title">整合包推荐内存</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SelectEmptyFolder.Message">接下来请选择一个空文件夹，它会被安装到这个文件夹里。</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SelectTargetFolder.Title">选择安装目标（必须是一个空文件夹）</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SomeModsDeleted">整合包中的部分模组版本已被模组作者删除，所以没法继续安装了，请向整合包作者反馈该问题</sys:String>

@@ -302,10 +302,11 @@ public static partial class ModModpack
     }
 
     /// <summary>
-    ///     整合包安装收尾：设置图标、删除原始整合包文件、写入整合包版本/来源/ID 信息并尝试获取整合包描述。
+    ///     整合包安装收尾：设置图标、删除原始整合包文件、写入整合包版本/来源/ID/推荐内存信息并尝试获取整合包描述。
     /// </summary>
+    /// <param name="recommendedRam">整合包推荐的启动内存（单位 MB）；0 表示未声明。</param>
     private static void _FinalizeInstance(string versionFolder, string fileAddress, string logo, string modpackSource,
-        string modpackVersion, string resourceId)
+        string modpackVersion, string resourceId, int recommendedRam = 0)
     {
         // 设置图标
         if (logo is not null)
@@ -329,6 +330,7 @@ public static partial class ModModpack
         if (modpackVersion is not null) States.Instance.ModpackVersion[versionFolder] = modpackVersion;
         States.Instance.ModpackSource[versionFolder] = modpackSource;
         States.Instance.ModpackId[versionFolder] = resourceId;
+        States.Instance.ModpackRam[versionFolder] = recommendedRam; // 0 表示未声明推荐内存
         do
         {
             try

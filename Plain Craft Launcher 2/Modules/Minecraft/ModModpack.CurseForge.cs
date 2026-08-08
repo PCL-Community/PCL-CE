@@ -1,6 +1,7 @@
 using System.IO;
 using System.IO.Compression;
 using System.Text.Json.Nodes;
+using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.Modpack;
 using PCL.Core.UI;
@@ -37,6 +38,17 @@ public static partial class ModModpack
         // 获取实例名
         if (instanceName is null)
             instanceName = _PromptInstanceName(manifest.Name ?? "");
+
+        // 推荐内存询问：清单声明了推荐内存时，询问是否使用
+        // （确定 → 使用推荐内存模式；取消 → 跟随全局设置，即默认选项）
+        var useRecommendedRam = false;
+        if (manifest.RecommendedRamEffective is > 0)
+            useRecommendedRam = ModMain.MyMsgBox(
+                Lang.Text("Minecraft.Download.Modpack.RecommendedRam.Message",
+                    (manifest.RecommendedRamEffective.Value / 1024d).ToString("0.#")),
+                Lang.Text("Minecraft.Download.Modpack.RecommendedRam.Title"),
+                Lang.Text("Common.Action.Confirm"),
+                Lang.Text("Common.Action.Cancel")) == 1;
 
         // 获取 Mod API 版本信息
         string forgeVersion = null;
@@ -174,14 +186,16 @@ public static partial class ModModpack
                             ) == 2)
                             continue;
 
-                    // 根据 modules 和文件名后缀判断资源类型
+                    // 根据 modules、文件名后缀与游戏版本需求判断资源类型
                     string targetFolder;
                     ModComp.CompType type;
                     if (modJson["modules"].AsArray().Any()) // modules 可能返回 null（#1006）
                     {
                         var moduleNames = ((JsonArray)modJson["modules"]).Select(l => l["name"].ToString()).ToList();
+                        var fileName = modJson?["FileName"]?.ToString() ?? "";
+                        var gameVersions = ((JsonArray)modJson?["gameVersions"])?.Select(v => v.ToString()).ToList() ?? [];
                         if (moduleNames.Contains("META-INF") || moduleNames.Contains("mcmod.info") ||
-                            (modJson?["FileName"]?.ToString()?.EndsWithF(".jar", true)).GetValueOrDefault())
+                            fileName.EndsWithF(".jar", true))
                         {
                             targetFolder = "mods";
                             type = ModComp.CompType.Mod;
@@ -191,9 +205,23 @@ public static partial class ModModpack
                             targetFolder = "resourcepacks";
                             type = ModComp.CompType.ResourcePack;
                         }
-                        // 地图存档的 level.dat 常位于一层父文件夹内（如 MyMap/level.dat），需按路径段判断
+                        // 光影包：含 shaders 目录 / .placebo 文件，或声明了 OptiFine/Iris 需求
+                        else if (moduleNames.Contains("shaders") || moduleNames.Any(name => name.EndsWithF(".placebo", true)) ||
+                                 gameVersions.Contains("OptiFine", StringComparer.OrdinalIgnoreCase) ||
+                                 gameVersions.Contains("Iris", StringComparer.OrdinalIgnoreCase))
+                        {
+                            targetFolder = "shaderpacks";
+                            type = ModComp.CompType.Shader;
+                        }
+                        // 地图存档：level.dat 可能位于一层父文件夹内（如 MyMap/level.dat），需按路径段判断
                         else if (moduleNames.Any(name =>
                                      name.Split("/").Last().Equals("level.dat", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            targetFolder = "saves";
+                            type = ModComp.CompType.World;
+                        }
+                        // 地图存档（包裹式）：modules 仅有一个无扩展名的顶层条目时，是“zip 内再包一层存档文件夹”的地图
+                        else if (moduleNames.Count == 1 && !Path.HasExtension(moduleNames[0]))
                         {
                             targetFolder = "saves";
                             type = ModComp.CompType.World;
@@ -281,7 +309,16 @@ public static partial class ModModpack
         {
             var versionFolder = _GetVersionFolder(instanceName);
             _FinalizeInstance(versionFolder, sourcePath, logo, "CurseForge",
-                manifest.Version, resourceId);
+                manifest.Version, resourceId, manifest.RecommendedRamEffective ?? 0);
+            // 应用推荐内存选择：仅当清单声明了推荐内存时写配置
+            // （确定 → 使用推荐内存模式；取消 → 跟随全局设置，即默认选项）
+            // MemorySolution 注册了 UI 观察者（ModSetup.VersionRamType），需在 UI 线程写入，
+            // 避免在后台安装线程触发观察者导致跨线程访问 UI 控件。
+            if (manifest.RecommendedRamEffective is > 0)
+            {
+                var memorySolution = useRecommendedRam ? 3 : 2;
+                ModBase.RunInUi(() => Config.Instance.MemorySolution[versionFolder] = memorySolution);
+            }
             // 本地安装没有外部 logo 时，尝试使用整合包内嵌的图标（manifest.json 的 image 字段）
             if (logo is null && manifest.Image is not null)
             {

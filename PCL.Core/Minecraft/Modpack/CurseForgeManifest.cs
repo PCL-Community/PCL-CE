@@ -31,6 +31,17 @@ public sealed class CurseForgeManifest
     public string? Version { get; init; }
 
     /// <summary>
+    /// 整合包推荐的启动内存（单位 MB，可选），如 <c>4096</c> 表示 4 GiB；缺失时表示未声明推荐内存。
+    /// </summary>
+    public int? RecommendedRam { get; init; }
+
+    /// <summary>
+    /// 有效的推荐内存：根级 <c>recommendedRam</c> 优先，其次 <c>minecraft.recommendedRam</c>；
+    /// 两者都不存在时表示未声明推荐内存。
+    /// </summary>
+    public int? RecommendedRamEffective => RecommendedRam ?? Minecraft?.RecommendedRam;
+
+    /// <summary>
     /// 作者名称（可选）。
     /// </summary>
     public string? Author { get; init; }
@@ -75,6 +86,11 @@ public sealed class CurseForgeMinecraft
     /// Minecraft 版本号，如 <c>"1.20.1"</c>。
     /// </summary>
     public string? Version { get; init; }
+
+    /// <summary>
+    /// 推荐内存（单位 MB，可选）；部分整合包把 <c>recommendedRam</c> 放在 <c>minecraft</c> 对象内而非根级。
+    /// </summary>
+    public int? RecommendedRam { get; init; }
 
     /// <summary>
     /// 加载器列表，如 <c>forge-47.2.0</c>、<c>fabric-0.15.11</c>。

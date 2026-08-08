@@ -33,6 +33,7 @@ public partial class PageInstanceSetup
         RadioRamType2.Check += RadioBoxChange;
         RadioRamType0.Check += RadioBoxChange;
         RadioRamType1.Check += RadioBoxChange;
+        RadioRamType3.Check += RadioBoxChange;
         SliderRamCustom.Change += SliderChange;
 
         ComboServerLoginRequire.SelectionChanged += ComboServerLogin_Changed;
@@ -108,6 +109,8 @@ public partial class PageInstanceSetup
             ((MyRadioBox)FindName("RadioRamType" + ramType)).Checked = true;
             SliderRamCustom.Value = Config.Instance.CustomMemorySize[PageInstanceLeft.McInstance.PathInstance];
             RamType(ramType);
+            // 整合包未声明推荐内存时禁用「使用整合包推荐内存」选项
+            RadioRamType3.IsEnabled = States.Instance.ModpackRam[PageInstanceLeft.McInstance.PathInstance] > 0;
 
             // 服务器
             TextServerEnter.Text = Config.Instance.ServerToEnter[PageInstanceLeft.McInstance.PathInstance];
@@ -445,13 +448,24 @@ public partial class PageInstanceSetup
         if (Config.Instance.MemorySolution[instancePath] == 2)
             return PageSetupLaunch.GetRam(version, true, is32BitJava);
 
+        // 使用整合包推荐内存：按整合包清单声明的推荐内存分配（单位 MB → GB）
+        if (Config.Instance.MemorySolution[instancePath] == 3 && States.Instance.ModpackRam[instancePath] > 0)
+        {
+            var ramRecommended = States.Instance.ModpackRam[instancePath] / 1024d;
+            // 若使用 32 位 Java，则限制为 1G
+            if (is32BitJava ?? !ModJava.IsGameSet64BitJava(PageInstanceLeft.McInstance))
+                ramRecommended = Math.Min(1d, ramRecommended);
+            return ramRecommended;
+        }
+
         // ------------------------------------------
         // 修改下方代码时需要一并修改 PageSetupLaunch
         // ------------------------------------------
 
         // 使用当前实例的设置
         var ramGive = default(double);
-        if (Config.Instance.MemorySolution[instancePath] == 0)
+        // 推荐内存模式未声明推荐值时回退到自动配置
+        if (Config.Instance.MemorySolution[instancePath] == 0 || Config.Instance.MemorySolution[instancePath] == 3)
         {
             // 自动配置
             var ramAvailable =

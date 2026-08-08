@@ -1386,6 +1386,7 @@
     <sys:String x:Key="Instance.Setup.Hint">These settings only apply to this game instance and do not affect other instances.</sys:String>
     <sys:String x:Key="Instance.Setup.Initialize.Success">Instance settings initialized!</sys:String>
     <sys:String x:Key="Instance.Setup.Memory.Used">Memory used</sys:String>
+    <sys:String x:Key="Instance.Setup.ModpackRecommendedRam">Use modpack recommended memory</sys:String>
     <sys:String x:Key="Instance.Setup.OpenGlobalSettings">Global settings</sys:String>
 
     <!-- Instance.Setup.Advanced -->
@@ -1994,6 +1995,8 @@
     <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Title">File path validation failed</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.QuiltUnsupported">Cannot install this modpack: Quilt is no longer supported by this launcher.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.RarUnsupported">PCL CE cannot handle .rar archive files. Please extract and re-archive them in .zip format and try again!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRam.Message">This modpack recommends {0} GiB of memory. Use the modpack's recommended memory?</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRam.Title">Modpack recommended memory</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SelectEmptyFolder.Message">Next, select an empty folder. The modpack will be installed there.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SelectTargetFolder.Title">Select installation target (must be an empty folder)</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SomeModsDeleted">Some mod versions in the modpack have been deleted by the mod authors, so installation cannot continue. Please report this issue to the modpack author.</sys:String>
