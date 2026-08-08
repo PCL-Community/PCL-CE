@@ -46,6 +46,9 @@ public partial class MyToast
     private bool _pausedByHover;
     private double _hoverRemainingMs;
 
+    /// <summary>悬停暂停开始时刻（毫秒），配合 _hoverRemainingMs 判断暂停期间倒计时是否已走完。</summary>
+    private long _pauseStartedAtTick;
+
     /// <summary>当前隐藏动画倒计时结束、实际开始滑出/淡出的起始 tick（0 表示无待滑出的隐藏）。</summary>
     private long _hideStartsAtTick;
 
@@ -160,6 +163,7 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
         ResetDimBlur(); // 停掉淡化组并复位模糊，随后三段回弹后由 RearrangeToasts 重新淡化+模糊
+        _hideStartsAtTick = 0; // 隐藏倒计时被取消，复位标志避免 IsHiding 误判
         IsEntering = false; // 入场动画被中断，入场末段的重排回调不会再执行，这里复位标记
         ProgressBar.BeginAnimation(WidthProperty, null);
         ResetHoverPause();
@@ -225,6 +229,7 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
         ModAnimation.AniStop($"Toast StackSettle {Uuid}");
         ResetDimBlur();
+        _hideStartsAtTick = 0; // 隐藏动画被取消（改为滑动关闭），复位标志避免 IsHiding 误判
         ProgressBar.BeginAnimation(WidthProperty, null);
         ResetHoverPause();
         ModAnimation.AniStart(new List<ModAnimation.AniData>
@@ -396,6 +401,7 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
         ResetDimBlur(); // 拖拽是用户主动操作，弹窗需清晰可读，模糊复位为 0
+        _hideStartsAtTick = 0; // 拖拽取消隐藏倒计时，复位标志避免 IsHiding 误判
         IsEntering = false; // 入场动画被拖拽中断，入场末段的重排回调不会再执行，这里复位标记
 
         PauseProgress();
@@ -512,6 +518,8 @@ public partial class MyToast
         ProgressBar.BeginAnimation(WidthProperty, null);
         ProgressBar.Width = currentWidth;
         _hoverRemainingMs = GetProgressRemainingMs();
+        _pauseStartedAtTick = TimeUtils.GetTimeTick();
+        _hideStartsAtTick = 0; // 悬停暂停即取消隐藏倒计时，结束判定改由 _pauseStartedAtTick + 剩余时长得出
         _pausedByHover = true;
         ProgressBar.Opacity = 0.4;
     }
@@ -527,7 +535,7 @@ public partial class MyToast
         if (_hoverRemainingMs <= 0 || ProgressBar.Width <= 0)
             return; // 已结束或未启动，无需恢复动画
         // 异常路径：暂停期间倒计时已走完，不再恢复倒计时，直接滑出消失
-        if (_hideStartsAtTick > 0 && TimeUtils.GetTimeTick() >= _hideStartsAtTick)
+        if (_pauseStartedAtTick > 0 && TimeUtils.GetTimeTick() - _pauseStartedAtTick >= _hoverRemainingMs)
         {
             StartHideAnimation(0);
             return;
@@ -544,6 +552,7 @@ public partial class MyToast
             return;
         _pausedByHover = false;
         _hoverRemainingMs = 0;
+        _pauseStartedAtTick = 0;
         ProgressBar.Opacity = 1;
     }
 
