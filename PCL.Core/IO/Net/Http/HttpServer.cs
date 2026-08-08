@@ -16,6 +16,7 @@ public abstract class HttpServer : IDisposable
     private Task? _handleLoop;
     private CancellationTokenSource? _cancellationTokenSource;
     private readonly Dictionary<(HttpMethod method, string path), Func<HttpListenerRequest, Task<HttpRouteResponse>>> _handlers = new();
+    private readonly Dictionary<(HttpMethod method, string path), Func<HttpListenerRequest, IReadOnlyDictionary<string, string>, Task<HttpRouteResponse>>> _templateHandlers = new();
     private bool _initialized = false;
 
     protected HttpServer(IPAddress[] listenAddr, ushort port = 0)
@@ -61,11 +62,28 @@ public abstract class HttpServer : IDisposable
     }
 
     /// <summary>
+    /// 注册一个带路径参数的路由处理器。
+    /// </summary>
+    /// <param name="method">HTTP 方法</param>
+    /// <param name="pathTemplate">路由路径模板，<c>{xxx}</c> 段为路径参数，匹配任意单个路径段并捕获其值</param>
+    /// <param name="handler">请求处理函数，第二个参数为捕获的路径参数集合</param>
+    protected void RegisterWithParams(HttpMethod method, string pathTemplate, Func<HttpListenerRequest, IReadOnlyDictionary<string, string>, Task<HttpRouteResponse>> handler)
+    {
+        ArgumentNullException.ThrowIfNull(method);
+        ArgumentNullException.ThrowIfNull(pathTemplate);
+        ArgumentNullException.ThrowIfNull(handler);
+
+        _templateHandlers[(method, pathTemplate)] = handler;
+    }
+
+    /// <summary>
     /// 启动 HTTP 服务器。
     /// </summary>
     public void Start()
     {
-        // 如果没有注册路由，调用 Init 初始化
+        // 如果没有注册精确路由，调用 Init 初始化。这里只检查 _handlers.Count：即使 Init 里只注册了模板路由
+        //（_templateHandlers 非空但 _handlers.Count 仍为 0），_initialized 也会被置位，因此 Init 永远只执行一次；
+        // 若子类在 Start 之前已通过 Register 注册精确路由，同样不会重复初始化。
         if (!_initialized && _handlers.Count == 0)
         {
             Init();
@@ -110,6 +128,15 @@ public abstract class HttpServer : IDisposable
                 return;
             }
 
+            // 其次尝试模板路由匹配：{param} 段匹配任意单个路径段并捕获其值
+            foreach (var ((templateMethod, templatePath), templateHandler) in _templateHandlers)
+            {
+                if (templateMethod != method) continue;
+                if (!_TryMatchTemplate(templatePath, path, out var parameters)) continue;
+                await _ExecuteHandlerAsync(templateHandler, parameters, request, response);
+                return;
+            }
+
             // 如果没有精确匹配，尝试通配符匹配
             if (_handlers.TryGetValue((method, "*"), out var wildcardHandler))
             {
@@ -135,9 +162,19 @@ public abstract class HttpServer : IDisposable
 
     private static async Task _ExecuteHandlerAsync(Func<HttpListenerRequest, Task<HttpRouteResponse>> handler, HttpListenerRequest request, HttpListenerResponse response)
     {
+        await _ExecuteCoreAsync(() => handler(request), response);
+    }
+
+    private static async Task _ExecuteHandlerAsync(Func<HttpListenerRequest, IReadOnlyDictionary<string, string>, Task<HttpRouteResponse>> handler, IReadOnlyDictionary<string, string> parameters, HttpListenerRequest request, HttpListenerResponse response)
+    {
+        await _ExecuteCoreAsync(() => handler(request, parameters), response);
+    }
+
+    private static async Task _ExecuteCoreAsync(Func<Task<HttpRouteResponse>> invoke, HttpListenerResponse response)
+    {
         try
         {
-            var routeResponse = await handler(request);
+            var routeResponse = await invoke();
             routeResponse.Pour(response);
         }
         catch (Exception ex)
@@ -149,6 +186,29 @@ public abstract class HttpServer : IDisposable
                 HttpRouteResponse.Text($"Internal Server Error:\n{ex}", "text/plain", System.Text.Encoding.UTF8);
             errorResponse.Pour(response);
         }
+    }
+
+    /// <summary>
+    /// 尝试将请求路径与路径模板匹配。<c>{param}</c> 段匹配任意单个路径段并捕获其值，
+    /// 非参数段必须与请求段完全一致（区分大小写），且两边的路径段数必须相等。
+    /// 路径以 <c>/</c> 开头，模板与请求使用相同的 <c>/</c> 分段方式，保证首尾空段互相抵消。
+    /// </summary>
+    private static bool _TryMatchTemplate(string template, string requestPath, out Dictionary<string, string> parameters)
+    {
+        parameters = new Dictionary<string, string>();
+        var templateSegments = template.Split('/');
+        var requestSegments = requestPath.Split('/');
+        if (templateSegments.Length != requestSegments.Length) return false;
+
+        for (var i = 0; i < templateSegments.Length; i++)
+        {
+            var templateSegment = templateSegments[i];
+            if (templateSegment.Length > 2 && templateSegment[0] == '{' && templateSegment[^1] == '}')
+                parameters[templateSegment[1..^1]] = requestSegments[i];
+            else if (!string.Equals(templateSegment, requestSegments[i], StringComparison.Ordinal))
+                return false;
+        }
+        return true;
     }
 
     /// <summary>
