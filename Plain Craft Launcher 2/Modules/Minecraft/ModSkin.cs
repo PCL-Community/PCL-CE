@@ -177,19 +177,6 @@ public static class ModSkin
         var c = int.Parse(uuid[23].ToString(), NumberStyles.AllowHexSpecifier);
         var d = int.Parse(uuid[31].ToString(), NumberStyles.AllowHexSpecifier);
         return ((a ^ b ^ c ^ d) % 2) != 0 ? "Alex" : "Steve";
-        // Math.floorMod(uuid.hashCode(), 18)
-
-        // Public Function hashCode(ByVal str As String) As Integer
-        // Dim hash As Integer = 0
-        // Dim n As Integer = str.Length
-        // If n = 0 Then
-        // Return hash
-        // End If
-        // For i As Integer = 0 To n - 1
-        // hash = hash + Asc(str(i)) * (1 << (n - i - 1))
-        // Next
-        // Return hash
-        // End Function
     }
 
     /// <summary>

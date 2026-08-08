@@ -88,7 +88,6 @@ public partial class OfflineSkinDialog
                                Uri.TryCreate(TextCslApi.Text.Trim(), UriKind.Absolute, out _);
     }
 
-    // 选择皮肤文件
     private void BtnSelectSkin_Click(object sender, MouseButtonEventArgs e)
     {
         var fileName = SystemDialogs.SelectFile(Lang.Text("Launch.Skin.FileDialog.Filter"),
@@ -129,7 +128,6 @@ public partial class OfflineSkinDialog
         TextSkinPath.Text = fileName;
     }
 
-    // 选择披风文件
     private void BtnSelectCape_Click(object sender, MouseButtonEventArgs e)
     {
         var fileName = SystemDialogs.SelectFile(Lang.Text("Launch.Skin.FileDialog.Filter"),
@@ -151,13 +149,11 @@ public partial class OfflineSkinDialog
         TextCapePath.Text = fileName;
     }
 
-    // 打开 LittleSkin 官网
     private void BtnOpenLittleSkin_Click(object sender, MouseButtonEventArgs e)
     {
         ModBase.OpenWebsite("https://littleskin.cn");
     }
 
-    // 确定：回写皮肤配置并保存
     private void BtnConfirm_Click(object sender, MouseButtonEventArgs e)
     {
         if (CurrentType == SkinType.CustomSkinLoaderApi &&
@@ -178,7 +174,6 @@ public partial class OfflineSkinDialog
         DialogResult = true;
     }
 
-    // 取消
     private void BtnCancel_Click(object sender, MouseButtonEventArgs e)
     {
         DialogResult = false;
