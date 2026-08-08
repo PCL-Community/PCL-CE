@@ -223,7 +223,9 @@ public sealed class OfflineSkinServer : HttpServer
         {
             var skin = new JsonObject
             {
-                ["url"] = $"http://localhost:{Port}/textures/{skinTexture.Hash}"
+                // 用 127.0.0.1 而非 localhost：HttpListener 对具体 IP 前缀要求 Host 头严格匹配，
+                // 与 ModLaunch 注入的 javaagent 地址保持一致，避免 Host 头不匹配导致 404
+                ["url"] = $"http://127.0.0.1:{Port}/textures/{skinTexture.Hash}"
             };
             if (loadedSkin.Model == TextureModel.Slim)
                 skin["metadata"] = new JsonObject { ["model"] = "slim" };
@@ -233,7 +235,7 @@ public sealed class OfflineSkinServer : HttpServer
         if (loadedSkin?.Cape is { } capeTexture)
             textures["CAPE"] = new JsonObject
             {
-                ["url"] = $"http://localhost:{Port}/textures/{capeTexture.Hash}"
+                ["url"] = $"http://127.0.0.1:{Port}/textures/{capeTexture.Hash}"
             };
 
         return new JsonObject

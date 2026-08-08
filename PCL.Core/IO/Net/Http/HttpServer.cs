@@ -35,7 +35,12 @@ public abstract class HttpServer : IDisposable
         var hosts = new List<string>();
         foreach (var address in listenAddr)
         {
-            _server.Prefixes.Add($"http://{address}:{port}/");
+            // IPv6 地址在 URI host 中必须用方括号包裹（如 [::1]），否则 HttpListener.AddPrefix 抛
+            // "Only Uri prefixes with a valid hostname are supported"
+            var host = address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
+                ? $"[{address}]"
+                : address.ToString();
+            _server.Prefixes.Add($"http://{host}:{port}/");
             hosts.Add(address.ToString());
         }
         Host = hosts.ToArray();

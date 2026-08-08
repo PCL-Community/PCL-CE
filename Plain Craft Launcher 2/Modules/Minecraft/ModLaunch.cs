@@ -2789,12 +2789,14 @@ public static class ModLaunch
             mcLaunchOfflineSkinServer ??= new OfflineSkinServer();
             mcLaunchOfflineSkinServer.AddCharacter(uuid, profile.Username, loadedSkin);
             mcLaunchOfflineSkinServer.Start();
-            ModBase.Log($"[Launch] 已启动离线皮肤服务器：http://localhost:{mcLaunchOfflineSkinServer.Port}");
+            ModBase.Log($"[Launch] 已启动离线皮肤服务器：http://127.0.0.1:{mcLaunchOfflineSkinServer.Port}");
 
             // 注入 authlib-injector javaagent（离线服务器已在线，无需 yggdrasil.prefetched）
+            // 用 127.0.0.1 而非 localhost：HttpListener 对具体 IP 前缀要求 Host 头严格匹配，
+            // localhost 可能解析为 ::1 导致 Host 头与监听前缀不一致而 404
             dataList.Insert(0,
                 "-javaagent:\"" + injectorPath + "\"=" +
-                $"http://localhost:{mcLaunchOfflineSkinServer.Port}" +
+                $"http://127.0.0.1:{mcLaunchOfflineSkinServer.Port}" +
                 " -Dauthlibinjector.side=client");
         }
         catch (Exception ex)

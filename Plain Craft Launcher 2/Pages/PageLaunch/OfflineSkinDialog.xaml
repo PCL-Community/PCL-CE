@@ -8,7 +8,8 @@
         ResizeMode="NoResize"
         ShowInTaskbar="False"
         Background="{DynamicResource ColorBrushBackground}">
-    <Grid Margin="22,18,22,16">
+    <Grid Margin="22,18,22,16" HorizontalAlignment="Left" VerticalAlignment="Top"
+          Width="426">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="16" />

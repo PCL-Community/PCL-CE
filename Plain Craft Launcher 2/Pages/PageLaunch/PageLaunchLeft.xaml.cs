@@ -960,13 +960,9 @@ public partial class PageLaunchLeft
             var loadedSkin = ModSkin.LoadSkinAsync(skinConfig, username).GetAwaiter().GetResult();
             if (loadedSkin?.Skin is { } skinTexture)
             {
-                // 优先直接使用本地皮肤文件路径，避免不必要的临时文件导出
-                if (skinConfig.Type == SkinType.LocalFile &&
-                    !string.IsNullOrEmpty(skinConfig.LocalSkinPath) &&
-                    File.Exists(skinConfig.LocalSkinPath))
-                    return skinConfig.LocalSkinPath!;
-
-                var tempDir = Path.Combine(ModBase.pathTemp, "Skin", "Avatar");
+                // 导出到 Cache\Skin\ 下的临时文件：MySkin.Load 依赖路径含 "Skin\" 子串来解析 skinHeadId，
+                // 直接返回原始文件路径会因缺少该约定导致头像缓存目录拼错而加载失败
+                var tempDir = Path.Combine(ModBase.pathTemp, "Cache", "Skin");
                 Directory.CreateDirectory(tempDir);
                 var tempPath = Path.Combine(tempDir, $"{ModProfile.selectedProfile.Uuid}.png");
                 skinTexture.Image.Save(tempPath, System.Drawing.Imaging.ImageFormat.Png);
