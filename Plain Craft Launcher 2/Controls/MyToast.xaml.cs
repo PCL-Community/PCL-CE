@@ -74,6 +74,7 @@ public partial class MyToast
             ModAnimation.AniStop($"Toast Emphasize {Uuid}");
             ModAnimation.AniStop($"Toast Drag Return {Uuid}");
             ModAnimation.AniStop($"Toast StackSettle {Uuid}");
+            ModAnimation.AniStop($"Toast Dim {Uuid}");
             ProgressBar.BeginAnimation(WidthProperty, null);
             ResetHoverPause();
         };
@@ -104,6 +105,15 @@ public partial class MyToast
 
     public bool IsDismissing { get; private set; }
 
+    /// <summary>是否正处于入场动画期间（淡化系统应跳过，避免入场 Opacity 动画与淡化冲突）。</summary>
+    internal bool IsEntering { get; set; }
+
+    /// <summary>是否正在被用户拖拽（拖拽期间透明度由拖拽逻辑接管，淡化系统应跳过）。</summary>
+    internal bool IsDragging => _isDragging;
+
+    /// <summary>隐藏动画是否已进入实际滑出/淡出阶段（此时不再改写其 Opacity）。</summary>
+    internal bool IsHiding => _hideStartsAtTick > 0 && TimeUtils.GetTimeTick() >= _hideStartsAtTick;
+
     private double _targetHeight;
 
     public void Show()
@@ -114,6 +124,7 @@ public partial class MyToast
             MaxWidth = Math.Min(System.Windows.Application.Current.MainWindow.ActualWidth * 0.9, 360d);
         Margin = new Thickness(0, 0, 16, 4);
         Opacity = 0;
+        IsEntering = true;
 
         Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         Arrange(new Rect(0, 0, DesiredSize.Width, DesiredSize.Height));
@@ -133,7 +144,8 @@ public partial class MyToast
             ModAnimation.AaHeight(this, _targetHeight, 150, ease: new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaOpacity(this, 1, 100),
             ModAnimation.AaScaleTransform(ToastIcon, 0.2, 260, 120,
-                ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak))
+                ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
+            ModAnimation.AaCode(() => HintService.NotifyToastShown(this), after: true)
         };
         ModAnimation.AniStart(enterAnimations, $"Toast Show {Uuid}");
 
@@ -146,6 +158,8 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Hide {Uuid}");
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
+        ModAnimation.AniStop($"Toast Dim {Uuid}");
+        IsEntering = false; // 入场动画被中断，入场末段的重排回调不会再执行，这里复位标记
         ProgressBar.BeginAnimation(WidthProperty, null);
         ResetHoverPause();
         if (RenderTransform is TranslateTransform tt) tt.X = 0;
@@ -158,6 +172,7 @@ public partial class MyToast
             ModAnimation.AaTranslateX(this, 18, 100, after: true, ease: new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaTranslateX(this, -4, 110, after: true, ease: new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaCode(RestartHideAnimation, after: true),
+            ModAnimation.AaCode(() => HintService.RearrangeToasts(), after: true),
         }, $"Toast Emphasize {Uuid}");
     }
 
@@ -199,6 +214,7 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
         ModAnimation.AniStop($"Toast StackSettle {Uuid}");
+        ModAnimation.AniStop($"Toast Dim {Uuid}");
         ProgressBar.BeginAnimation(WidthProperty, null);
         ResetHoverPause();
         ModAnimation.AniStart(new List<ModAnimation.AniData>
@@ -369,6 +385,8 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Hide {Uuid}");
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
+        ModAnimation.AniStop($"Toast Dim {Uuid}");
+        IsEntering = false; // 入场动画被拖拽中断，入场末段的重排回调不会再执行，这里复位标记
 
         PauseProgress();
 

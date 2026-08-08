@@ -105,7 +105,8 @@ public static class HintService
     }
 
     // 按叠置规则重排所有弹窗：最新在最前（Z 最高）且在最下，旧弹窗向上错开露出上沿
-    private static void RearrangeToasts()
+    // 同时按叠置次序对每个弹窗做淡化：最新全亮，旧弹窗递减至 55% 下限，形成清晰视觉层次
+    internal static void RearrangeToasts()
     {
         var toasts = ModMain.frmMain.PanHint.Children.OfType<MyToast>().Where(t => !t.IsDismissing).ToList();
         for (var i = 0; i < toasts.Count; i++)
@@ -126,6 +127,19 @@ public static class HintService
                     $"Toast StackSettle {t.Uuid}");
             }
             Panel.SetZIndex(t, toasts.Count - 1 - i); // 最新 Z 最高
+
+            // 淡化：入场中/拖拽中/隐藏滑出中的弹窗，其 Opacity 分别由入场、拖拽、淡出动画接管，淡化系统不介入
+            if (t.IsEntering || t.IsDragging || t.IsHiding ||
+                ModAnimation.AniIsRun($"Toast Drag Return {t.Uuid}"))
+                continue;
+            var target = i == 0 ? 1d : Math.Max(1d - i * 0.15, 0.55d);
+            var delta = target - t.Opacity;
+            if (Math.Abs(delta) > 0.001)
+            {
+                ModAnimation.AniStart(
+                    ModAnimation.AaOpacity(t, delta, 200, ease: new ModAnimation.AniEaseOutFluent()),
+                    $"Toast Dim {t.Uuid}");
+            }
         }
     }
 
@@ -138,6 +152,13 @@ public static class HintService
     // 弹窗移除后回填错位（由 MyToast 移除自身后调用）
     internal static void OnToastRemoved(MyToast toast)
     {
+        RearrangeToasts();
+    }
+
+    // 新弹窗入场动画结束后的回调：复位入场标记并重新分层（把已就位的弹窗淡化到各自档位）
+    internal static void NotifyToastShown(MyToast toast)
+    {
+        toast.IsEntering = false;
         RearrangeToasts();
     }
 }
