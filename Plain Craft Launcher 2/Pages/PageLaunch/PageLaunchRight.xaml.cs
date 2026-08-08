@@ -188,7 +188,7 @@ public partial class PageLaunchRight : IRefreshable
 
                 case 7:
                     LogWrapper.Info("[Page] 主页预设：杂志主页");
-                    url = "http://118.195.192.193:26995/d/magazine-homepage-pcl/Custom.xaml";
+                    url = "https://gh-proxy.com/https://github.com/CreeperIsASpy/Magazine-Homepage-PCL/raw/main/output/Custom.xaml";
                     content = LoadFromNetwork(url);
                     break;
 
