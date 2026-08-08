@@ -3614,7 +3614,9 @@ public static class ModLaunch
         gameProcess.EnableRaisingEvents = true;
         gameProcess.Exited += (_, _) =>
         {
-            if (mcLaunchOfflineSkinServer is not null)
+            // 仅当退出的正是当前记录的游戏进程时才关闭服务器：
+            // 多开时先退出的游戏不能关掉仍在服务后一局游戏的服务器
+            if (ReferenceEquals(mcLaunchProcess, gameProcess) && mcLaunchOfflineSkinServer is not null)
             {
                 mcLaunchOfflineSkinServer.Dispose();
                 mcLaunchOfflineSkinServer = null;

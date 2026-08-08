@@ -18,6 +18,7 @@ public abstract class HttpServer : IDisposable
     private readonly Dictionary<(HttpMethod method, string path), Func<HttpListenerRequest, Task<HttpRouteResponse>>> _handlers = new();
     private readonly Dictionary<(HttpMethod method, string path), Func<HttpListenerRequest, IReadOnlyDictionary<string, string>, Task<HttpRouteResponse>>> _templateHandlers = new();
     private bool _initialized = false;
+    private bool _started = false;
     private bool _disposed = false;
 
     protected HttpServer(IPAddress[] listenAddr, ushort port = 0)
@@ -83,10 +84,13 @@ public abstract class HttpServer : IDisposable
     }
 
     /// <summary>
-    /// 启动 HTTP 服务器。
+    /// 启动 HTTP 服务器。重复调用安全，已启动时直接返回。
     /// </summary>
     public void Start()
     {
+        // 重复调用安全：上一局游戏未退出时再次启动会复用同一服务器
+        if (_started) return;
+
         // 若未注册任何路由（精确或模板），调用 Init 初始化。检查两者确保子类若在 Start 前
         // 通过 Register 注册了精确路由、而 Init 里只注册模板路由时，模板路由也不会被跳过。
         if (!_initialized && _handlers.Count == 0 && _templateHandlers.Count == 0)
@@ -97,6 +101,7 @@ public abstract class HttpServer : IDisposable
 
         _cancellationTokenSource = new CancellationTokenSource();
         _server.Start();
+        _started = true;
         _handleLoop = _HandleRequestAsync();
     }
 
