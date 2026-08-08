@@ -3710,13 +3710,6 @@ public static class ModLaunch
 
     private static void McLaunchEnd()
     {
-        // 关闭离线皮肤服务器（游戏已结束/启动已收尾，确保不残留监听端口）
-        if (mcLaunchOfflineSkinServer is not null)
-        {
-            mcLaunchOfflineSkinServer.Dispose();
-            mcLaunchOfflineSkinServer = null;
-        }
-
         McLaunchLog("开始启动结束处理");
 
         // 暂停或开始音乐播放

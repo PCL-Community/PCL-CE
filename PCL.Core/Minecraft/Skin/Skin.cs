@@ -4,27 +4,25 @@ using System.Text.Json.Nodes;
 
 namespace PCL.Core.Minecraft.Skin;
 
-using TextureModelKind = TextureModel;
-
 /// <summary>
 /// 离线账户的自定义皮肤配置模型。
 /// </summary>
 /// <param name="Type">皮肤来源类型。</param>
 /// <param name="CslApi">Custom Skin Loader API 的皮肤接口地址。</param>
-/// <param name="TextureModel">皮肤纹理模型（宽/细）。</param>
+/// <param name="Model">皮肤纹理模型（宽/细）。</param>
 /// <param name="LocalSkinPath">本地皮肤文件路径。</param>
 /// <param name="LocalCapePath">本地披风文件路径。</param>
 public sealed record Skin(
     SkinType Type,
     string? CslApi,
-    TextureModel TextureModel,
+    TextureModel Model,
     string? LocalSkinPath,
     string? LocalCapePath)
 {
     /// <summary>
     /// 是否为纤细（Alex）模型。
     /// </summary>
-    public bool IsSlim => TextureModel == TextureModelKind.Slim;
+    public bool IsSlim => Model == TextureModel.Slim;
 
     /// <summary>
     /// 从存储 JSON 中反序列化皮肤配置。
@@ -42,16 +40,16 @@ public sealed record Skin(
                 return null;
 
             // textureModel 只有严格等于 "slim" 才算纤细模型，其余一律视为经典模型
-            var textureModel = TextureModelKind.Wide;
+            var model = TextureModel.Wide;
             if (storage["textureModel"] is JsonValue modelValue
                 && modelValue.TryGetValue<string>(out var modelText)
                 && string.Equals(modelText, "slim", StringComparison.Ordinal))
-                textureModel = TextureModelKind.Slim;
+                model = TextureModel.Slim;
 
             return new Skin(
                 type,
                 GetNullableString(storage, "cslApi"),
-                textureModel,
+                model,
                 GetNullableString(storage, "localSkinPath"),
                 GetNullableString(storage, "localCapePath"));
         }

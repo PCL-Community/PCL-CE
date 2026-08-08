@@ -239,7 +239,7 @@ public static class ModSkin
     {
         var skinBitmap = await LoadBitmapAsync(skin.LocalSkinPath).ConfigureAwait(false);
         var capeBitmap = await LoadBitmapAsync(skin.LocalCapePath).ConfigureAwait(false);
-        return new LoadedSkin(skin.TextureModel,
+        return new LoadedSkin(skin.Model,
             skinBitmap is null ? null : SkinTexture.Load(skinBitmap),
             capeBitmap is null ? null : SkinTexture.Load(capeBitmap));
     }
@@ -347,7 +347,7 @@ public static class ModSkin
     /// </summary>
     /// <param name="url">原始 API 地址。</param>
     /// <returns>规范化后的 API 地址。</returns>
-    public static string NormalizeCslUrl(string? url)
+    private static string NormalizeCslUrl(string? url)
     {
         if (string.IsNullOrWhiteSpace(url))
             return "";

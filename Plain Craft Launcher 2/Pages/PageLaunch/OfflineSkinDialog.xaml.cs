@@ -14,13 +14,6 @@ namespace PCL;
 /// </summary>
 public partial class OfflineSkinDialog
 {
-    // 皮肤类型选项顺序，与 ComboType 中的项一一对应
-    private static readonly SkinType[] TypeOrder =
-    [
-        SkinType.Default, SkinType.Steve, SkinType.Alex, SkinType.LocalFile, SkinType.LittleSkin,
-        SkinType.CustomSkinLoaderApi
-    ];
-
     private string _skinPath;
     private string _capePath;
     private TextureModel _model = TextureModel.Wide;
@@ -31,13 +24,29 @@ public partial class OfflineSkinDialog
         Loaded += (_, _) => LoadCurrentSkin();
     }
 
+    /// <summary>
+    ///     当前选中的皮肤类型，取自 ComboType 选中项的 Tag（XAML 中已与 SkinType 枚举名对应）。
+    /// </summary>
     private SkinType CurrentType
     {
         get
         {
-            var index = ComboType.SelectedIndex;
-            return index >= 0 && index < TypeOrder.Length ? TypeOrder[index] : SkinType.Default;
+            if (ComboType.SelectedItem is MyComboBoxItem { Tag: string tag } &&
+                Enum.TryParse(tag, out SkinType type))
+                return type;
+            return SkinType.Default;
         }
+    }
+
+    /// <summary>
+    ///     按 Tag 查找下拉框中的项序号，未找到返回 0。
+    /// </summary>
+    private static int FindComboIndex(ComboBox combo, string tag)
+    {
+        for (var i = 0; i < combo.Items.Count; i++)
+            if (combo.Items[i] is MyComboBoxItem { Tag: string itemTag } && itemTag == tag)
+                return i;
+        return 0;
     }
 
     /// <summary>
@@ -46,11 +55,11 @@ public partial class OfflineSkinDialog
     private void LoadCurrentSkin()
     {
         var skin = ModProfile.selectedProfile?.Skin;
-        _model = skin?.TextureModel ?? TextureModel.Wide;
+        _model = skin?.Model ?? TextureModel.Wide;
         _skinPath = skin?.LocalSkinPath ?? "";
         _capePath = skin?.LocalCapePath ?? "";
 
-        ComboType.SelectedIndex = skin is null ? 0 : Array.IndexOf(TypeOrder, skin.Type);
+        ComboType.SelectedIndex = skin is null ? 0 : FindComboIndex(ComboType, skin.Type.ToString());
         ComboModel.SelectedIndex = _model == TextureModel.Slim ? 1 : 0;
         TextSkinPath.Text = _skinPath;
         TextCapePath.Text = _capePath;
@@ -153,6 +162,18 @@ public partial class OfflineSkinDialog
             {
                 HintService.Hint(Lang.Text("Launch.Skin.InvalidSize"), HintType.Error);
                 return;
+            }
+
+            // 依据手臂区域自动判定模型（Steve 宽臂 / Alex 细臂），用户之后仍可手动调整
+            try
+            {
+                var isSlim = new NormalizedSkin(image.pic).IsSlim();
+                _model = isSlim ? TextureModel.Slim : TextureModel.Wide;
+                ComboModel.SelectedIndex = isSlim ? 1 : 0;
+            }
+            catch (InvalidSkinException)
+            {
+                // 尺寸已通过上方校验，此处仅作兜底，忽略即可
             }
         }
         catch (Exception ex)

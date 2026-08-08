@@ -52,19 +52,6 @@ public sealed class SkinTexture
     }
 
     /// <summary>
-    /// 是否已缓存指定哈希的纹理。
-    /// </summary>
-    /// <param name="hash">纹理哈希。</param>
-    /// <returns>已缓存返回 <c>true</c>。</returns>
-    public static bool Has(string hash)
-    {
-        lock (CacheLock)
-        {
-            return Cache.ContainsKey(hash);
-        }
-    }
-
-    /// <summary>
     /// 获取指定哈希的纹理，未命中时返回 <c>null</c>。
     /// </summary>
     /// <param name="hash">纹理哈希。</param>

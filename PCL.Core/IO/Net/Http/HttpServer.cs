@@ -81,10 +81,9 @@ public abstract class HttpServer : IDisposable
     /// </summary>
     public void Start()
     {
-        // 如果没有注册精确路由，调用 Init 初始化。这里只检查 _handlers.Count：即使 Init 里只注册了模板路由
-        //（_templateHandlers 非空但 _handlers.Count 仍为 0），_initialized 也会被置位，因此 Init 永远只执行一次；
-        // 若子类在 Start 之前已通过 Register 注册精确路由，同样不会重复初始化。
-        if (!_initialized && _handlers.Count == 0)
+        // 若未注册任何路由（精确或模板），调用 Init 初始化。检查两者确保子类若在 Start 前
+        // 通过 Register 注册了精确路由、而 Init 里只注册模板路由时，模板路由也不会被跳过。
+        if (!_initialized && _handlers.Count == 0 && _templateHandlers.Count == 0)
         {
             Init();
             _initialized = true;

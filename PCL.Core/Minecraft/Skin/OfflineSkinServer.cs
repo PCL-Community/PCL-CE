@@ -79,6 +79,7 @@ public sealed class OfflineSkinServer : HttpServer
             {
                 ["serverName"] = "PCL CE",
                 ["implementationName"] = "PCL CE",
+                // 版本号与 metadata.json 保持一致；升级启动器版本时需同步更新
                 ["implementationVersion"] = "2.15.0",
                 ["feature.non_email_login"] = true
             }
@@ -171,7 +172,7 @@ public sealed class OfflineSkinServer : HttpServer
     private Task<HttpRouteResponse> _HandleTexture(HttpListenerRequest request, IReadOnlyDictionary<string, string> parameters)
     {
         var hash = parameters["hash"];
-        var texture = SkinTexture.Has(hash) ? SkinTexture.Get(hash) : null;
+        var texture = SkinTexture.Get(hash);
         if (texture?.Image is not { } image)
             return HttpRouteResponse.NotFound.AsTask();
 
