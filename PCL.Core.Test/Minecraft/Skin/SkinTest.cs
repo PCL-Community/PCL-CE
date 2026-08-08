@@ -103,7 +103,7 @@ public class SkinTest
     public void NormalizedSkin_IsSlim_TransparentRightArm_ReturnsTrue()
     {
         // 64x64 皮肤,右臂区域 (50,16)2x4 放一个透明像素 → slim
-        var bmp = CreateBitmap(64, 64, unchecked((int)unchecked((int)0xFF888888)));
+        var bmp = CreateBitmap(64, 64, unchecked((int)0xFF888888));
         for (var y = 16; y < 20; y++)
             for (var x = 50; x < 52; x++)
                 bmp.SetPixel(x, y, Color.FromArgb(0, 0, 0, 0));
@@ -115,7 +115,7 @@ public class SkinTest
     public void NormalizedSkin_IsSlim_SolidSkin_ReturnsFalse()
     {
         // 全不透明且非黑的皮肤 → 非 slim
-        var bmp = CreateBitmap(64, 64, unchecked((int)unchecked((int)0xFF888888)));
+        var bmp = CreateBitmap(64, 64, unchecked((int)0xFF888888));
         Assert.IsFalse(new NormalizedSkin(bmp).IsSlim());
     }
 
@@ -123,7 +123,7 @@ public class SkinTest
     public void NormalizedSkin_IsSlim_AllBlackRightArm_ReturnsTrue()
     {
         // 右臂四区域全黑 → slim(HMCL 的 isAreaBlack 分支)
-        var bmp = CreateBitmap(64, 64, unchecked((int)unchecked((int)0xFF888888)));
+        var bmp = CreateBitmap(64, 64, unchecked((int)0xFF888888));
         for (var y = 16; y < 20; y++)
             for (var x = 50; x < 52; x++)
                 bmp.SetPixel(x, y, Color.FromArgb(0xFF, 0, 0, 0));
