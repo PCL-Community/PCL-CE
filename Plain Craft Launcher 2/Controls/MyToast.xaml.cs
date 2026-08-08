@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Theme;
@@ -158,7 +159,7 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Hide {Uuid}");
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
-        ModAnimation.AniStop($"Toast Dim {Uuid}");
+        ResetDimBlur(); // 停掉淡化组并复位模糊，随后三段回弹后由 RearrangeToasts 重新淡化+模糊
         IsEntering = false; // 入场动画被中断，入场末段的重排回调不会再执行，这里复位标记
         ProgressBar.BeginAnimation(WidthProperty, null);
         ResetHoverPause();
@@ -182,10 +183,19 @@ public partial class MyToast
         StartProgressAnimation(DisplayDuration);
     }
 
+    /// <summary>停掉淡化动画组，并瞬时复位毛玻璃模糊为 0（隐藏/拖拽/强调前调用，防止残留模糊）。</summary>
+    private void ResetDimBlur()
+    {
+        ModAnimation.AniStop($"Toast Dim {Uuid}");
+        if (RootGrid.Effect is BlurEffect be)
+            be.Radius = 0;
+    }
+
     private void StartHideAnimation(double delayMs)
     {
         var delay = (int)Math.Round(delayMs);
         _hideStartsAtTick = TimeUtils.GetTimeTick() + delay;
+        ResetDimBlur(); // 隐藏滑出阶段：停掉淡化组并瞬时复位模糊，避免向右滑+淡出时残留毛玻璃
         ModAnimation.AniStart(new List<ModAnimation.AniData>
         {
             ModAnimation.AaTranslateX(this, 60, 150, delay, new ModAnimation.AniEaseInFluent()),
@@ -214,7 +224,7 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
         ModAnimation.AniStop($"Toast StackSettle {Uuid}");
-        ModAnimation.AniStop($"Toast Dim {Uuid}");
+        ResetDimBlur();
         ProgressBar.BeginAnimation(WidthProperty, null);
         ResetHoverPause();
         ModAnimation.AniStart(new List<ModAnimation.AniData>
@@ -274,8 +284,8 @@ public partial class MyToast
             ? Color.FromArgb(70, 255, 255, 255) // 暗色卡片上略亮的内嵌暗槽
             : Color.FromArgb(60, 0, 0, 0));      // 亮色卡片上略暗的内嵌暗槽
 
-        Root.Background = bg;
-        Root.BorderBrush = bg;
+        // 卡片背景移到 RootGrid：模糊 RootGrid 时背景一起模糊，并被 8px 圆角裁剪；阴影仍在 Root 上不受影响
+        RootGrid.Background = bg;
         TitleText.Foreground = text;
         ProgressTrack.Fill = track;
         ProgressBar.Fill = accentBrush; // Info 为主题色，其余类型为状态色
@@ -385,7 +395,7 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Hide {Uuid}");
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
-        ModAnimation.AniStop($"Toast Dim {Uuid}");
+        ResetDimBlur(); // 拖拽是用户主动操作，弹窗需清晰可读，模糊复位为 0
         IsEntering = false; // 入场动画被拖拽中断，入场末段的重排回调不会再执行，这里复位标记
 
         PauseProgress();

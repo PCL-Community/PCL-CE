@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using PCL.Core.UI;
 
 namespace PCL;
@@ -133,12 +134,27 @@ public static class HintService
                 ModAnimation.AniIsRun($"Toast Drag Return {t.Uuid}"))
                 continue;
             var target = i == 0 ? 1d : Math.Max(1d - i * 0.15, 0.55d);
-            var delta = target - t.Opacity;
-            if (Math.Abs(delta) > 0.001)
+            var opacityDelta = target - t.Opacity;
+
+            // 毛玻璃模糊：最新清晰，旧弹窗按叠置次序递增、封顶 14，与 Opacity 下限配套（越旧越模糊越淡）
+            var targetBlur = i == 0 ? 0d : Math.Min(5d + i * 4.5, 14d);
+            if (t.RootGrid.Effect is not BlurEffect blur)
             {
-                ModAnimation.AniStart(
-                    ModAnimation.AaOpacity(t, delta, 200, ease: new ModAnimation.AniEaseOutFluent()),
-                    $"Toast Dim {t.Uuid}");
+                blur = new BlurEffect { Radius = 0, RenderingBias = RenderingBias.Performance };
+                t.RootGrid.Effect = blur;
+            }
+            var blurDelta = targetBlur - blur.Radius;
+
+            if (Math.Abs(opacityDelta) > 0.001 || Math.Abs(blurDelta) > 0.001)
+            {
+                // 与 Opacity 同组同组名，一起 AniStop / 一起重放
+                var dimAnims = new List<ModAnimation.AniData>();
+                if (Math.Abs(opacityDelta) > 0.001)
+                    dimAnims.Add(ModAnimation.AaOpacity(t, opacityDelta, 200, ease: new ModAnimation.AniEaseOutFluent()));
+                if (Math.Abs(blurDelta) > 0.001)
+                    dimAnims.Add(ModAnimation.AaDouble(v => blur.Radius += (double)v, blurDelta, 200,
+                        ease: new ModAnimation.AniEaseOutFluent()));
+                ModAnimation.AniStart(dimAnims, $"Toast Dim {t.Uuid}");
             }
         }
     }
