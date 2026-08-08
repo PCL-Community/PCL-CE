@@ -10,32 +10,6 @@ namespace PCL.Core.Minecraft.Skin;
 internal static class PixelAccess
 {
     /// <summary>
-    /// 读取指定像素的 ARGB 值。单次调用会对整张位图加锁/解锁，适合少量采样。
-    /// </summary>
-    /// <param name="bitmap">目标位图。</param>
-    /// <param name="x">像素 X 坐标。</param>
-    /// <param name="y">像素 Y 坐标。</param>
-    /// <returns>像素的 ARGB 值（alpha 在高位）。</returns>
-    public static int GetPixel(Bitmap bitmap, int x, int y)
-    {
-        using var accessor = Lock(bitmap, ImageLockMode.ReadOnly);
-        return accessor.GetPixel(x, y);
-    }
-
-    /// <summary>
-    /// 写入指定像素的 ARGB 值。单次调用会对整张位图加锁/解锁，适合少量写入。
-    /// </summary>
-    /// <param name="bitmap">目标位图。</param>
-    /// <param name="x">像素 X 坐标。</param>
-    /// <param name="y">像素 Y 坐标。</param>
-    /// <param name="argb">要写入的 ARGB 值（alpha 在高位）。</param>
-    public static void SetPixel(Bitmap bitmap, int x, int y, int argb)
-    {
-        using var accessor = Lock(bitmap, ImageLockMode.ReadWrite);
-        accessor.SetPixel(x, y, argb);
-    }
-
-    /// <summary>
     /// 锁定位图以获得批量访问句柄。使用完毕后应释放句柄以解锁位图。
     /// </summary>
     /// <param name="bitmap">目标位图。</param>

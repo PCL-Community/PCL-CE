@@ -72,46 +72,38 @@ public sealed class SkinTexture
     /// <returns>小写十六进制哈希字符串。</returns>
     public static string ComputeHash(Bitmap image)
     {
-        using var sha256 = SHA256.Create();
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
 
-        var header = new byte[8];
+        Span<byte> header = stackalloc byte[8];
         BinaryPrimitives.WriteInt32BigEndian(header, image.Width);
-        BinaryPrimitives.WriteInt32BigEndian(header.AsSpan(4), image.Height);
-        sha256.TransformBlock(header, 0, header.Length, null, 0);
+        BinaryPrimitives.WriteInt32BigEndian(header.Slice(4), image.Height);
+        hash.AppendData(header);
 
         using var accessor = PixelAccess.Lock(image, ImageLockMode.ReadOnly);
-        var buffer = new byte[4096];
-        var bufferIndex = 0;
+        Span<byte> pixel = stackalloc byte[4];
         for (var y = 0; y < accessor.Height; y++)
         {
             for (var x = 0; x < accessor.Width; x++)
             {
-                var pixel = accessor.GetPixel(x, y);
-                var alpha = (byte)(pixel >> 24);
-                var red = (byte)(pixel >> 16);
-                var green = (byte)(pixel >> 8);
-                var blue = (byte)pixel;
+                var argb = accessor.GetPixel(x, y);
+                var alpha = (byte)(argb >> 24);
+                var red = (byte)(argb >> 16);
+                var green = (byte)(argb >> 8);
+                var blue = (byte)argb;
                 if (alpha == 0)
                 {
                     red = 0;
                     green = 0;
                     blue = 0;
                 }
-                buffer[bufferIndex++] = alpha;
-                buffer[bufferIndex++] = red;
-                buffer[bufferIndex++] = green;
-                buffer[bufferIndex++] = blue;
-                if (bufferIndex == buffer.Length)
-                {
-                    sha256.TransformBlock(buffer, 0, buffer.Length, null, 0);
-                    bufferIndex = 0;
-                }
+                pixel[0] = alpha;
+                pixel[1] = red;
+                pixel[2] = green;
+                pixel[3] = blue;
+                hash.AppendData(pixel);
             }
         }
-        if (bufferIndex > 0)
-            sha256.TransformBlock(buffer, 0, bufferIndex, null, 0);
 
-        sha256.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
-        return Convert.ToHexString(sha256.Hash!).ToLowerInvariant();
+        return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
     }
 }

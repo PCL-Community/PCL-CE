@@ -1,5 +1,6 @@
 using System;
-using System.Text;
+using System.Collections.Generic;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace PCL.Core.Minecraft.Skin;
@@ -23,6 +24,19 @@ public sealed record Skin(
     /// 是否为纤细（Alex）模型。
     /// </summary>
     public bool IsSlim => Model == TextureModel.Slim;
+
+    /// <summary>
+    /// 存储键（snake_case，忽略大小写）到皮肤类型的映射。
+    /// </summary>
+    private static readonly Dictionary<string, SkinType> TypeByStorageKey = CreateTypeByStorageKey();
+
+    private static Dictionary<string, SkinType> CreateTypeByStorageKey()
+    {
+        var map = new Dictionary<string, SkinType>(StringComparer.OrdinalIgnoreCase);
+        foreach (var value in Enum.GetValues<SkinType>())
+            map[JsonNamingPolicy.SnakeCaseLower.ConvertName(value.ToString())] = value;
+        return map;
+    }
 
     /// <summary>
     /// 从存储 JSON 中反序列化皮肤配置。
@@ -65,7 +79,7 @@ public sealed record Skin(
     /// <param name="storage">已存在的存储对象，键会写入其中。</param>
     public void WriteStorage(JsonObject storage)
     {
-        storage["type"] = TypeToSnakeCase(Type);
+        storage["type"] = JsonNamingPolicy.SnakeCaseLower.ConvertName(Type.ToString());
         storage["cslApi"] = CslApi;
         storage["textureModel"] = IsSlim ? "slim" : "wide";
         storage["localSkinPath"] = LocalSkinPath;
@@ -80,31 +94,8 @@ public sealed record Skin(
         throw new InvalidOperationException($"字段 {key} 的类型不是字符串。");
     }
 
-    private static string TypeToSnakeCase(SkinType type) => ToSnakeCase(type.ToString());
-
-    private static string ToSnakeCase(string name)
-    {
-        var sb = new StringBuilder(name.Length + 4);
-        foreach (var c in name)
-        {
-            if (char.IsUpper(c) && sb.Length > 0)
-                sb.Append('_');
-            sb.Append(char.ToLowerInvariant(c));
-        }
-        return sb.ToString();
-    }
-
     private static bool TryParseType(string text, out SkinType type)
     {
-        foreach (var candidate in Enum.GetValues<SkinType>())
-        {
-            if (string.Equals(TypeToSnakeCase(candidate), text, StringComparison.OrdinalIgnoreCase))
-            {
-                type = candidate;
-                return true;
-            }
-        }
-        type = default;
-        return false;
+        return TypeByStorageKey.TryGetValue(text, out type);
     }
 }

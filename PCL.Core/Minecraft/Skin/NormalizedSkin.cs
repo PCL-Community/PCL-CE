@@ -68,38 +68,40 @@ public sealed class NormalizedSkin
     /// <returns>纤细模型返回 <c>true</c>，经典模型返回 <c>false</c>。</returns>
     public bool IsSlim()
     {
-        return HasTransparency(50, 16, 2, 4)
-            || HasTransparency(54, 20, 2, 12)
-            || HasTransparency(42, 48, 2, 4)
-            || HasTransparency(46, 52, 2, 12)
-            || (IsAreaBlack(50, 16, 2, 4)
-                && IsAreaBlack(54, 20, 2, 12)
-                && IsAreaBlack(42, 48, 2, 4)
-                && IsAreaBlack(46, 52, 2, 12));
+        // 统一加锁一次，循环内批量采样，避免逐像素 LockBits/UnlockBits
+        using var accessor = PixelAccess.Lock(NormalizedTexture, ImageLockMode.ReadOnly);
+        return HasTransparency(accessor, 50, 16, 2, 4)
+            || HasTransparency(accessor, 54, 20, 2, 12)
+            || HasTransparency(accessor, 42, 48, 2, 4)
+            || HasTransparency(accessor, 46, 52, 2, 12)
+            || (IsAreaBlack(accessor, 50, 16, 2, 4)
+                && IsAreaBlack(accessor, 54, 20, 2, 12)
+                && IsAreaBlack(accessor, 42, 48, 2, 4)
+                && IsAreaBlack(accessor, 46, 52, 2, 12));
     }
 
-    private bool HasTransparency(int x0, int y0, int width, int height)
+    private bool HasTransparency(PixelAccessor accessor, int x0, int y0, int width, int height)
     {
         var s = Scale;
         for (var y = y0 * s; y < (y0 + height) * s; y++)
         {
             for (var x = x0 * s; x < (x0 + width) * s; x++)
             {
-                if (((PixelAccess.GetPixel(NormalizedTexture, x, y) >> 24) & 0xff) != 0xff)
+                if (((accessor.GetPixel(x, y) >> 24) & 0xff) != 0xff)
                     return true;
             }
         }
         return false;
     }
 
-    private bool IsAreaBlack(int x0, int y0, int width, int height)
+    private bool IsAreaBlack(PixelAccessor accessor, int x0, int y0, int width, int height)
     {
         var s = Scale;
         for (var y = y0 * s; y < (y0 + height) * s; y++)
         {
             for (var x = x0 * s; x < (x0 + width) * s; x++)
             {
-                if ((uint)PixelAccess.GetPixel(NormalizedTexture, x, y) != 0xff000000u)
+                if ((uint)accessor.GetPixel(x, y) != 0xff000000u)
                     return false;
             }
         }

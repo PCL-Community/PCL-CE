@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
@@ -247,7 +248,7 @@ public sealed class OfflineSkinServer : HttpServer
         };
     }
 
-    private bool _TryGetByName(string name, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out Character character)
+    private bool _TryGetByName(string name, [NotNullWhen(true)] out Character character)
     {
         lock (_syncRoot)
         {
@@ -261,7 +262,7 @@ public sealed class OfflineSkinServer : HttpServer
         }
     }
 
-    private bool _TryGetByUuid(Guid uuid, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out Character character)
+    private bool _TryGetByUuid(Guid uuid, [NotNullWhen(true)] out Character character)
     {
         lock (_syncRoot)
         {
