@@ -27,7 +27,7 @@
             <svgIcon:SvgIcon Grid.Row="0" x:Name="ToastTypeIcon" Width="18" Height="18"
                              HorizontalAlignment="Left" VerticalAlignment="Top" Margin="7,4,0,0"
                              UseOriginalColor="False" StrokeThickness="0" />
-            <TextBlock Grid.Row="0" FontSize="23" TextTrimming="None" Foreground="{DynamicResource ColorBrush2}"
+            <TextBlock Grid.Row="0" FontSize="23" TextTrimming="None"
                        HorizontalAlignment="Left" Name="LabTitle" Margin="31,-1,70,9" Text="测试标题文本"
                        VerticalAlignment="Top" SnapsToDevicePixels="False" UseLayoutRounding="False" />
             <Rectangle x:Name="ShapeLine" Grid.Row="1" Height="2" Fill="{Binding Foreground, ElementName=LabTitle}" />
@@ -41,6 +41,9 @@
             </my:MyScrollViewer>
             <StackPanel Grid.Row="4" Name="PanBtn" VerticalAlignment="Top" HorizontalAlignment="Right"
                         Margin="150,0,8,0" Orientation="Horizontal">
+                <my:MyButton ColorType="Normal" Text="{DynamicResource Common.Action.Copy}" Click="BtnCopy_Click"
+                             x:Name="BtnCopy" Margin="12,0,0,0"
+                             TextPadding="7" SnapsToDevicePixels="False" Padding="5,0" UseLayoutRounding="False" />
                 <my:MyButton ColorType="Normal" x:FieldModifier="public" Text="测试按钮1" Click="Btn1_Click" x:Name="Btn1"
                              Margin="12,0,0,0"
                              TextPadding="7" SnapsToDevicePixels="False" Padding="5,0" UseLayoutRounding="False" />
