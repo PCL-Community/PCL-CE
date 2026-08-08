@@ -14,8 +14,8 @@ namespace PCL;
 /// </summary>
 public partial class OfflineSkinDialog
 {
-    private string _skinPath;
-    private string _capePath;
+    private string _skinPath = "";
+    private string _capePath = "";
     private TextureModel _model = TextureModel.Wide;
 
     public OfflineSkinDialog()
@@ -66,7 +66,6 @@ public partial class OfflineSkinDialog
         TextCslApi.Text = skin?.CslApi ?? "";
 
         UpdatePanels();
-        UpdatePreview();
         UpdateConfirmEnabled();
     }
 
@@ -87,63 +86,6 @@ public partial class OfflineSkinDialog
     {
         BtnConfirm.IsEnabled = CurrentType != SkinType.CustomSkinLoaderApi ||
                                Uri.TryCreate(TextCslApi.Text.Trim(), UriKind.Absolute, out _);
-    }
-
-    /// <summary>
-    ///     刷新头像预览。
-    /// </summary>
-    private void UpdatePreview()
-    {
-        try
-        {
-            var path = GetPreviewPath();
-            if (string.IsNullOrEmpty(path) || !File.Exists(path))
-            {
-                ImgPreviewFace.Source = null;
-                ImgPreviewHair.Source = null;
-                return;
-            }
-
-            var image = new MyBitmap(path);
-            var scale = Math.Max(1, (int)Math.Round(image.pic.Width / 64d));
-            // 脸层
-            var face = image.Clip(scale * 8, scale * 8, scale * 8, scale * 8);
-            // 头发层（仅现代格式 64x64 及以上的皮肤才有）
-            MyBitmap? hair = null;
-            if (image.pic.Width >= 64 && image.pic.Height >= 64)
-                hair = image.Clip(scale * 40, scale * 8, scale * 8, scale * 8);
-
-            ImgPreviewFace.Source = face;
-            ImgPreviewHair.Source = hair is null ? null : hair;
-        }
-        catch (Exception ex)
-        {
-            ImgPreviewFace.Source = null;
-            ImgPreviewHair.Source = null;
-            ModBase.Log(ex, "刷新皮肤预览失败", ModBase.LogLevel.Developer);
-        }
-    }
-
-    private string GetPreviewPath()
-    {
-        switch (CurrentType)
-        {
-            case SkinType.Default:
-            case SkinType.Steve:
-                return ModBase.pathImage + "Skins/Steve.png";
-            case SkinType.Alex:
-                return ModBase.pathImage + "Skins/Alex.png";
-            case SkinType.LocalFile:
-                return _skinPath;
-            case SkinType.LittleSkin:
-            case SkinType.CustomSkinLoaderApi:
-                // 在线皮肤无法离线预览，按当前模型显示默认皮肤占位
-                return _model == TextureModel.Slim
-                    ? ModBase.pathImage + "Skins/Alex.png"
-                    : ModBase.pathImage + "Skins/Steve.png";
-            default:
-                return ModBase.pathImage + "Skins/Steve.png";
-        }
     }
 
     // 选择皮肤文件
@@ -185,7 +127,6 @@ public partial class OfflineSkinDialog
 
         _skinPath = fileName;
         TextSkinPath.Text = fileName;
-        UpdatePreview();
     }
 
     // 选择披风文件
@@ -246,14 +187,12 @@ public partial class OfflineSkinDialog
     private void ComboType_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         UpdatePanels();
-        UpdatePreview();
         UpdateConfirmEnabled();
     }
 
     private void ComboModel_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         _model = ComboModel.SelectedIndex == 1 ? TextureModel.Slim : TextureModel.Wide;
-        UpdatePreview();
     }
 
     private void TextCslApi_TextChanged(object sender, TextChangedEventArgs e)
