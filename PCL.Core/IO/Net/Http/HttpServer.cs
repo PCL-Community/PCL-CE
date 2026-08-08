@@ -18,6 +18,7 @@ public abstract class HttpServer : IDisposable
     private readonly Dictionary<(HttpMethod method, string path), Func<HttpListenerRequest, Task<HttpRouteResponse>>> _handlers = new();
     private readonly Dictionary<(HttpMethod method, string path), Func<HttpListenerRequest, IReadOnlyDictionary<string, string>, Task<HttpRouteResponse>>> _templateHandlers = new();
     private bool _initialized = false;
+    private bool _disposed = false;
 
     protected HttpServer(IPAddress[] listenAddr, ushort port = 0)
     {
@@ -227,6 +228,8 @@ public abstract class HttpServer : IDisposable
     public void Dispose()
     {
         GC.SuppressFinalize(this);
+        if (_disposed) return; // 幂等：重复 Dispose 安全（进程退出事件与启动流程兜底可能竞态调用）
+        _disposed = true;
         Stop();
         _server.Close();
         _cancellationTokenSource?.Dispose();

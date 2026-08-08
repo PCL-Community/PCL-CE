@@ -447,11 +447,19 @@ public static class ModLaunch
         }
         finally
         {
-            // 关闭离线皮肤服务器（无论启动成功、失败还是取消，都不应残留监听端口）
+            // 兜底清理：游戏进程未成功运行（未创建或已退出）时，服务器必须关闭。
+            // 若游戏仍在运行，则交给进程 Exited 事件在游戏退出时关闭（皮肤需存活到游戏退出）。
             if (mcLaunchOfflineSkinServer is not null)
             {
-                mcLaunchOfflineSkinServer.Dispose();
-                mcLaunchOfflineSkinServer = null;
+                var processExited = mcLaunchProcess is null;
+                if (!processExited)
+                    try { processExited = mcLaunchProcess.HasExited; }
+                    catch { processExited = true; } // 进程对象无效时视为已退出，走清理
+                if (processExited)
+                {
+                    mcLaunchOfflineSkinServer.Dispose();
+                    mcLaunchOfflineSkinServer = null;
+                }
             }
         }
     }
@@ -3601,6 +3609,17 @@ public static class ModLaunch
 
         loader.output = gameProcess;
         mcLaunchProcess = gameProcess;
+        // 离线皮肤服务器需要存活到游戏退出（皮肤在进入世界/第三人称时才会拉取）。
+        // 挂在进程退出事件上，而不是启动流程 finally，否则游戏窗口一出现服务器就被销毁。
+        gameProcess.EnableRaisingEvents = true;
+        gameProcess.Exited += (_, _) =>
+        {
+            if (mcLaunchOfflineSkinServer is not null)
+            {
+                mcLaunchOfflineSkinServer.Dispose();
+                mcLaunchOfflineSkinServer = null;
+            }
+        };
         // 进程优先级处理
         try
         {
