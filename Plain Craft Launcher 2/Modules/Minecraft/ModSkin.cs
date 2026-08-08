@@ -290,7 +290,7 @@ public static class ModSkin
 
     /// <summary>
     ///     下载并加载指定哈希的 CSL 皮肤贴图。
-    ///     贴图先暂存到 <see cref="ModBase.pathTemp" /> 下的 Skin 文件夹（已存在则直接复用，不重复下载），
+    ///     贴图先暂存到 <see cref="ModBase.pathTemp" /> 下的 Skin 文件夹，
     ///     读取完成后删除临时文件。
     /// </summary>
     /// <param name="api">Custom Skin Loader API 地址。</param>
@@ -304,8 +304,7 @@ public static class ModSkin
         try
         {
             Directory.CreateDirectory(directory);
-            if (!File.Exists(tempPath))
-                await FileDownloader.DownloadAsync(url, tempPath).ConfigureAwait(false);
+            await FileDownloader.DownloadAsync(url, tempPath).ConfigureAwait(false);
 
             var bitmap = await Task.Run(() => new MyBitmap(tempPath).pic).ConfigureAwait(false);
             return SkinTexture.Load(bitmap);
