@@ -244,15 +244,31 @@ public sealed class OfflineSkinServer : HttpServer
         };
     }
 
-    private bool _TryGetByName(string name, out Character character)
+    private bool _TryGetByName(string name, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out Character character)
     {
         lock (_syncRoot)
-            return _charactersByName.TryGetValue(name, out character);
+        {
+            if (_charactersByName.TryGetValue(name, out var found))
+            {
+                character = found;
+                return true;
+            }
+            character = null!;
+            return false;
+        }
     }
 
-    private bool _TryGetByUuid(Guid uuid, out Character character)
+    private bool _TryGetByUuid(Guid uuid, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out Character character)
     {
         lock (_syncRoot)
-            return _charactersByUuid.TryGetValue(uuid, out character);
+        {
+            if (_charactersByUuid.TryGetValue(uuid, out var found))
+            {
+                character = found;
+                return true;
+            }
+            character = null!;
+            return false;
+        }
     }
 }

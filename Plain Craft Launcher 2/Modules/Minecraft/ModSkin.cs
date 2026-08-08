@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.Json.Nodes;
 using Microsoft.VisualBasic;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.Skin;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Network;
@@ -188,5 +190,170 @@ public static class ModSkin
         // Next
         // Return hash
         // End Function
+    }
+
+    /// <summary>
+    ///     根据皮肤配置加载离线皮肤的贴图数据。无皮肤或加载失败时返回 <c>null</c>。
+    /// </summary>
+    /// <param name="skin">离线账户的皮肤配置。</param>
+    /// <param name="username">离线用户名，用于请求 Custom Skin Loader API。</param>
+    /// <returns>加载到的皮肤数据；无皮肤或加载失败为 <c>null</c>。</returns>
+    public static async Task<LoadedSkin?> LoadSkinAsync(Skin skin, string username)
+    {
+        switch (skin.Type)
+        {
+            case SkinType.Default:
+                return null;
+            case SkinType.Steve:
+                return LoadBuiltin("Steve", TextureModel.Wide);
+            case SkinType.Alex:
+                return LoadBuiltin("Alex", TextureModel.Slim);
+            case SkinType.LocalFile:
+                return await LoadLocalFileAsync(skin).ConfigureAwait(false);
+            case SkinType.LittleSkin:
+            case SkinType.CustomSkinLoaderApi:
+                return await LoadCslAsync(skin, username).ConfigureAwait(false);
+            default:
+                throw new NotSupportedException($"不支持的皮肤来源类型：{skin.Type}");
+        }
+    }
+
+    /// <summary>
+    ///     加载启动器内置的皮肤贴图（Steve / Alex），不含披风。
+    /// </summary>
+    /// <param name="name">皮肤名称（Steve 或 Alex），对应 <see cref="ModBase.pathImage" /> 下 Skins 文件夹中的文件名。</param>
+    /// <param name="model">皮肤的纹理模型。</param>
+    /// <returns>内置皮肤数据。</returns>
+    private static LoadedSkin LoadBuiltin(string name, TextureModel model)
+    {
+        var bitmap = new MyBitmap(ModBase.pathImage + "Skins/" + name + ".png").pic;
+        return new LoadedSkin(model, SkinTexture.Load(bitmap), null);
+    }
+
+    /// <summary>
+    ///     加载本地皮肤文件与本地披风文件。
+    /// </summary>
+    /// <param name="skin">皮肤配置，包含本地文件路径。</param>
+    /// <returns>加载到的皮肤数据；皮肤与披风均未设置或读取失败时为 <c>null</c>。</returns>
+    private static async Task<LoadedSkin?> LoadLocalFileAsync(Skin skin)
+    {
+        var skinBitmap = await LoadBitmapAsync(skin.LocalSkinPath).ConfigureAwait(false);
+        var capeBitmap = await LoadBitmapAsync(skin.LocalCapePath).ConfigureAwait(false);
+        return new LoadedSkin(skin.TextureModel,
+            skinBitmap is null ? null : SkinTexture.Load(skinBitmap),
+            capeBitmap is null ? null : SkinTexture.Load(capeBitmap));
+    }
+
+    /// <summary>
+    ///     从本地文件加载位图。路径为空、文件不存在或图片损坏时返回 <c>null</c> 并记录开发者日志。
+    /// </summary>
+    /// <param name="path">图片文件路径。</param>
+    /// <returns>加载到的位图；失败为 <c>null</c>。</returns>
+    private static async Task<Bitmap?> LoadBitmapAsync(string? path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return null;
+        try
+        {
+            return await Task.Run(() => new MyBitmap(path).pic).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, $"加载本地皮肤图片失败：{path}", ModBase.LogLevel.Developer);
+            return null;
+        }
+    }
+
+    /// <summary>
+    ///     通过 Custom Skin Loader API 加载皮肤与披风。
+    ///     分为两步：先请求 <c>{api}/{username}.json</c> 获取皮肤信息，再并行下载皮肤与披风贴图。
+    /// </summary>
+    /// <param name="skin">皮肤配置。</param>
+    /// <param name="username">离线用户名。</param>
+    /// <returns>加载到的皮肤数据；请求失败或无皮肤时为 <c>null</c>。</returns>
+    private static async Task<LoadedSkin?> LoadCslAsync(Skin skin, string username)
+    {
+        var api = skin.Type == SkinType.LittleSkin ? "https://littleskin.cn/csl" : NormalizeCslUrl(skin.CslApi);
+        if (string.IsNullOrEmpty(api) || string.IsNullOrEmpty(username))
+            return null;
+
+        // 第一步：获取皮肤信息 JSON
+        var jsonText = ModNet.NetGetCodeByRequestRetry($"{api}/{username}.json")?.ToString();
+        if (string.IsNullOrEmpty(jsonText))
+            return null;
+        var parsed = SkinJson.FromJson(jsonText);
+        if (parsed is null || !parsed.HasSkin)
+            return null;
+
+        var model = parsed.GetModel();
+
+        // 第二步：并行下载皮肤与披风贴图
+        var skinTask = parsed.SkinHash is null
+            ? Task.FromResult<SkinTexture?>(null)
+            : DownloadCslTextureAsync(api, parsed.SkinHash);
+        var capeTask = parsed.CapeHash is null
+            ? Task.FromResult<SkinTexture?>(null)
+            : DownloadCslTextureAsync(api, parsed.CapeHash);
+        var skinTex = await skinTask.ConfigureAwait(false);
+        var capeTex = await capeTask.ConfigureAwait(false);
+        if (skinTex is null)
+            return null;
+        return new LoadedSkin(model ?? TextureModel.Wide, skinTex, capeTex);
+    }
+
+    /// <summary>
+    ///     下载并加载指定哈希的 CSL 皮肤贴图。
+    ///     贴图先暂存到 <see cref="ModBase.pathTemp" /> 下的 Skin 文件夹（已存在则直接复用，不重复下载），
+    ///     读取完成后删除临时文件。
+    /// </summary>
+    /// <param name="api">Custom Skin Loader API 地址。</param>
+    /// <param name="hash">贴图哈希。</param>
+    /// <returns>加载到的贴图；下载或读取失败为 <c>null</c>。</returns>
+    private static async Task<SkinTexture?> DownloadCslTextureAsync(string api, string hash)
+    {
+        var directory = Path.Combine(ModBase.pathTemp, "Skin");
+        var tempPath = Path.Combine(directory, hash + ".png");
+        var url = $"{api}/textures/{hash}";
+        try
+        {
+            Directory.CreateDirectory(directory);
+            if (!File.Exists(tempPath))
+                await FileDownloader.DownloadAsync(url, tempPath).ConfigureAwait(false);
+
+            var bitmap = await Task.Run(() => new MyBitmap(tempPath).pic).ConfigureAwait(false);
+            return SkinTexture.Load(bitmap);
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, $"下载或读取 CSL 皮肤贴图失败：{url}", ModBase.LogLevel.Developer);
+            return null;
+        }
+        finally
+        {
+            try
+            {
+                if (File.Exists(tempPath))
+                    File.Delete(tempPath);
+            }
+            catch
+            {
+                // 临时文件删除失败不影响皮肤加载结果
+            }
+        }
+    }
+
+    /// <summary>
+    ///     规范化 Custom Skin Loader API 地址：空白返回空字符串，缺失协议时补全 <c>https://</c>，并去除末尾的斜杠。
+    /// </summary>
+    /// <param name="url">原始 API 地址。</param>
+    /// <returns>规范化后的 API 地址。</returns>
+    public static string NormalizeCslUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return "";
+        var result = url.Trim();
+        if (!result.Contains("://"))
+            result = "https://" + result;
+        return result.TrimEnd('/');
     }
 }

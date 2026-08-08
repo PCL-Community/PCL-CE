@@ -8,6 +8,7 @@ using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net;
+using PCL.Core.Minecraft.Skin;
 
 namespace PCL;
 
@@ -153,6 +154,11 @@ public static class ModProfile
         public string SkinHeadId;
 
         /// <summary>
+        ///     离线账户的自定义皮肤配置
+        /// </summary>
+        public Skin? Skin;
+
+        /// <summary>
         ///     档案类型
         /// </summary>
         public ModLaunch.McLoginType Type;
@@ -230,7 +236,9 @@ public static class ModProfile
                         Uuid = (string)Profile["uuid"],
                         Username = (string)Profile["username"],
                         Desc = (string)Profile["desc"],
-                        SkinHeadId = (string)Profile["skinHeadId"]
+                        SkinHeadId = (string)Profile["skinHeadId"],
+                        // 兼容旧版 profiles.json：无 skin 键时自动为 null
+                        Skin = Profile["skin"] is JsonObject skinStorage ? Skin.FromStorage(skinStorage) : null
                     };
                 profileList.Add(newProfile);
             }
@@ -298,11 +306,21 @@ public static class ModProfile
                             { "desc", Profile.Desc }, { "skinHeadId", Profile.SkinHeadId }
                         };
                     else
+                    {
+                        // 离线账户的自定义皮肤配置，可能为 null
+                        JsonObject? skinObj = null;
+                        if (Profile.Skin is not null)
+                        {
+                            skinObj = new JsonObject();
+                            Profile.Skin.WriteStorage(skinObj);
+                        }
+
                         profileJobj = new JsonObject
                         {
                             { "type", "offline" }, { "uuid", Profile.Uuid }, { "username", Profile.Username },
-                            { "desc", Profile.Desc }, { "skinHeadId", Profile.SkinHeadId }
+                            { "desc", Profile.Desc }, { "skinHeadId", Profile.SkinHeadId }, { "skin", skinObj }
                         };
+                    }
                     list.Add(profileJobj);
                 }
 

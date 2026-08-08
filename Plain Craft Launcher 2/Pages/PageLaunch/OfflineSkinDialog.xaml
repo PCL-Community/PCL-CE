@@ -1,0 +1,118 @@
+<Window x:Class="PCL.OfflineSkinDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:PCL"
+        Title="{DynamicResource Launch.OfflineSkin.Title}"
+        Width="470" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="{DynamicResource ColorBrushBackground}">
+    <Grid Margin="22,18,22,16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="16" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="22" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 标题 -->
+        <TextBlock Grid.Row="0" Text="{DynamicResource Launch.OfflineSkin.Title}" FontSize="20"
+                   Foreground="{DynamicResource ColorBrush2}" />
+
+        <!-- 主体 -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal">
+            <!-- 头像预览 -->
+            <Border Width="88" Height="88" CornerRadius="6" VerticalAlignment="Top"
+                    Background="{DynamicResource ColorBrushSemiTransparent}">
+                <Grid>
+                    <Image x:Name="ImgPreviewHair" Width="56" Height="56" Stretch="Fill"
+                           RenderOptions.BitmapScalingMode="NearestNeighbor" SnapsToDevicePixels="True" />
+                    <Image x:Name="ImgPreviewFace" Width="48" Height="48" Stretch="Fill"
+                           RenderOptions.BitmapScalingMode="NearestNeighbor" SnapsToDevicePixels="True"
+                           Margin="4" />
+                </Grid>
+            </Border>
+
+            <!-- 选项 -->
+            <StackPanel Margin="16,0,0,0" Width="320">
+                <TextBlock Text="{DynamicResource Launch.OfflineSkin.Type}" />
+                <local:MyComboBox x:Name="ComboType" Height="28" Margin="0,4,0,0"
+                                  SelectionChanged="ComboType_SelectionChanged">
+                    <local:MyComboBoxItem Content="{DynamicResource Launch.OfflineSkin.Type.Default}"
+                                          Tag="Default" />
+                    <local:MyComboBoxItem Content="{DynamicResource Launch.OfflineSkin.Type.Steve}"
+                                          Tag="Steve" />
+                    <local:MyComboBoxItem Content="{DynamicResource Launch.OfflineSkin.Type.Alex}"
+                                          Tag="Alex" />
+                    <local:MyComboBoxItem Content="{DynamicResource Launch.OfflineSkin.Type.LocalFile}"
+                                          Tag="LocalFile" />
+                    <local:MyComboBoxItem Content="{DynamicResource Launch.OfflineSkin.Type.LittleSkin}"
+                                          Tag="LittleSkin" />
+                    <local:MyComboBoxItem Content="{DynamicResource Launch.OfflineSkin.Type.CslApi}"
+                                          Tag="CustomSkinLoaderApi" />
+                </local:MyComboBox>
+
+                <!-- 本地文件选项 -->
+                <StackPanel x:Name="PanLocalFile" Margin="0,12,0,0" Visibility="Collapsed">
+                    <TextBlock Text="{DynamicResource Launch.OfflineSkin.Model}" />
+                    <local:MyComboBox x:Name="ComboModel" Height="28" Margin="0,4,0,0"
+                                      SelectionChanged="ComboModel_SelectionChanged">
+                        <local:MyComboBoxItem Content="{DynamicResource Launch.OfflineSkin.Model.Wide}"
+                                              Tag="Wide" />
+                        <local:MyComboBoxItem Content="{DynamicResource Launch.OfflineSkin.Model.Slim}"
+                                              Tag="Slim" />
+                    </local:MyComboBox>
+
+                    <TextBlock Text="{DynamicResource Launch.OfflineSkin.SkinFile}" Margin="0,12,0,0" />
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <local:MyTextBox x:Name="TextSkinPath" Height="28" IsReadOnly="True" />
+                        <local:MyButton Grid.Column="1" Text="{DynamicResource Launch.OfflineSkin.SelectSkin}"
+                                        Height="28" Margin="8,0,0,0" ColorType="Normal"
+                                        Click="BtnSelectSkin_Click" />
+                    </Grid>
+
+                    <TextBlock Text="{DynamicResource Launch.OfflineSkin.CapeFile}" Margin="0,12,0,0" />
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <local:MyTextBox x:Name="TextCapePath" Height="28" IsReadOnly="True" />
+                        <local:MyButton Grid.Column="1" Text="{DynamicResource Launch.OfflineSkin.SelectCape}"
+                                        Height="28" Margin="8,0,0,0" ColorType="Normal"
+                                        Click="BtnSelectCape_Click" />
+                    </Grid>
+                </StackPanel>
+
+                <!-- CSL API 选项 -->
+                <StackPanel x:Name="PanCslApi" Margin="0,12,0,0" Visibility="Collapsed">
+                    <TextBlock Text="{DynamicResource Launch.OfflineSkin.CslApiUrl}" />
+                    <local:MyTextBox x:Name="TextCslApi" Height="28" Margin="0,4,0,0"
+                                     TextChanged="TextCslApi_TextChanged" />
+                </StackPanel>
+
+                <!-- LittleSkin 选项 -->
+                <StackPanel x:Name="PanLittleSkin" Margin="0,12,0,0" Visibility="Collapsed">
+                    <TextBlock Text="{DynamicResource Launch.OfflineSkin.LittleSkinHint}" TextWrapping="Wrap" />
+                    <local:MyButton Text="{DynamicResource Launch.OfflineSkin.OpenLittleSkin}" Height="28"
+                                    Margin="0,8,0,0" ColorType="Normal" HorizontalAlignment="Left"
+                                    Click="BtnOpenLittleSkin_Click" />
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- 底部按钮 -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+            <local:MyButton x:Name="BtnConfirm" Text="{DynamicResource Launch.OfflineSkin.Confirm}" Width="72"
+                            Height="28" ColorType="Highlight" Click="BtnConfirm_Click" />
+            <local:MyButton Text="{DynamicResource Launch.OfflineSkin.Cancel}" Width="72" Height="28"
+                            Margin="12,0,0,0" ColorType="Normal" Click="BtnCancel_Click" />
+        </StackPanel>
+    </Grid>
+</Window>

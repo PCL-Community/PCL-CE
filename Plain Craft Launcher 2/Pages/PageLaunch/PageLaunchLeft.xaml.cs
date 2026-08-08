@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.Skin;
 using PCL.Core.Utils;
 using PCL.Network;
 
@@ -935,12 +936,49 @@ public partial class PageLaunchLeft
             if (ModMain.frmLoginProfileSkin is not null && ModMain.frmLoginProfileSkin.Skin is not null)
                 ModMain.frmLoginProfileSkin.Skin.Clear();
         });
-        data.output = ModBase.pathImage + "Skins/" + ModSkin.McSkinSex(data.input[1]) + ".png";
+
+        // 若离线账户配置了自定义皮肤，则加载它；否则回退到按 UUID 判定的默认 Steve/Alex
+        var skinConfig = ModProfile.selectedProfile.Skin;
+        data.output = skinConfig is not null && skinConfig.Type != SkinType.Default
+            ? LoadLegacyCustomSkin(skinConfig, data.input[0])
+            : ModBase.pathImage + "Skins/" + ModSkin.McSkinSex(data.input[1]) + ".png";
+
         // 刷新显示
         if (ModMain.frmLoginProfileSkin is not null && ReferenceEquals(ModMain.frmLoginProfileSkin.Skin.loader, data))
             ModBase.RunInUi(() => ModMain.frmLoginProfileSkin.Skin.Load());
         else if (!data.IsAborted) // 如果已经中断，Input 也被清空，就不会再次刷新
             data.input = null; // 清空输入，因为皮肤实际上没有被渲染，如果不清空切换到页面的 Start 会由于输入相同而不渲染
+    }
+
+    /// <summary>
+    ///     加载离线账户的自定义皮肤，并导出为临时 PNG 供头像显示。加载失败时回退到默认 Steve/Alex。
+    /// </summary>
+    private static string LoadLegacyCustomSkin(Skin skinConfig, string username)
+    {
+        try
+        {
+            var loadedSkin = ModSkin.LoadSkinAsync(skinConfig, username).GetAwaiter().GetResult();
+            if (loadedSkin?.Skin is { } skinTexture)
+            {
+                // 优先直接使用本地皮肤文件路径，避免不必要的临时文件导出
+                if (skinConfig.Type == SkinType.LocalFile &&
+                    !string.IsNullOrEmpty(skinConfig.LocalSkinPath) &&
+                    File.Exists(skinConfig.LocalSkinPath))
+                    return skinConfig.LocalSkinPath!;
+
+                var tempDir = Path.Combine(ModBase.pathTemp, "Skin", "Avatar");
+                Directory.CreateDirectory(tempDir);
+                var tempPath = Path.Combine(tempDir, $"{ModProfile.selectedProfile.Uuid}.png");
+                skinTexture.Image.Save(tempPath, System.Drawing.Imaging.ImageFormat.Png);
+                return tempPath;
+            }
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "加载离线自定义皮肤失败，回退到默认皮肤", ModBase.LogLevel.Developer);
+        }
+
+        return ModBase.pathImage + "Skins/" + ModSkin.McSkinSex(ModProfile.selectedProfile.Uuid) + ".png";
     }
 
     // Authlib-Injector 皮肤
