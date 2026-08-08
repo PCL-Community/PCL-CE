@@ -6,6 +6,7 @@ using System.Windows.Media.Animation;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Theme;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -43,6 +44,9 @@ public partial class MyToast
     private double _progressTotalMs;
     private bool _pausedByHover;
     private double _hoverRemainingMs;
+
+    /// <summary>当前隐藏动画倒计时结束、实际开始滑出/淡出的起始 tick（0 表示无待滑出的隐藏）。</summary>
+    private long _hideStartsAtTick;
 
     public MyToast()
     {
@@ -166,10 +170,11 @@ public partial class MyToast
     private void StartHideAnimation(double delayMs)
     {
         var delay = (int)Math.Round(delayMs);
+        _hideStartsAtTick = TimeUtils.GetTimeTick() + delay;
         ModAnimation.AniStart(new List<ModAnimation.AniData>
         {
-            ModAnimation.AaTranslateX(this, 60, 200, delay, new ModAnimation.AniEaseInFluent()),
-            ModAnimation.AaOpacity(this, -1, 150, delay),
+            ModAnimation.AaTranslateX(this, 60, 150, delay, new ModAnimation.AniEaseInFluent()),
+            ModAnimation.AaOpacity(this, -1, 110, delay),
             ModAnimation.AaHeight(this, -_targetHeight, 100, ease: new ModAnimation.AniEaseOutFluent(), after: true),
             ModAnimation.AaCode(() =>
             {
@@ -468,7 +473,10 @@ public partial class MyToast
 
     private void Root_MouseEnter(object sender, MouseEventArgs e)
     {
-        if (_isDragging || _pausedByHover)
+        if (_isDragging || _pausedByHover || IsDismissing)
+            return;
+        // 隐藏动画已进入滑出/淡出阶段：不悬停暂停，避免停掉半途的隐藏导致卡半透明、永不消失
+        if (_hideStartsAtTick > 0 && TimeUtils.GetTimeTick() >= _hideStartsAtTick)
             return;
         // 悬停暂停：停住隐藏倒计时并冻结进度条，移出后按剩余时间恢复
         ModAnimation.AniStop($"Toast Hide {Uuid}");
@@ -490,6 +498,12 @@ public partial class MyToast
         ProgressBar.Opacity = 1;
         if (_hoverRemainingMs <= 0 || ProgressBar.Width <= 0)
             return; // 已结束或未启动，无需恢复动画
+        // 异常路径：暂停期间倒计时已走完，不再恢复倒计时，直接滑出消失
+        if (_hideStartsAtTick > 0 && TimeUtils.GetTimeTick() >= _hideStartsAtTick)
+        {
+            StartHideAnimation(0);
+            return;
+        }
         StartHideAnimation(_hoverRemainingMs);
         var currentWidth = ProgressBar.Width;
         var anim = new DoubleAnimation(currentWidth, 0d, TimeSpan.FromMilliseconds(_hoverRemainingMs));
