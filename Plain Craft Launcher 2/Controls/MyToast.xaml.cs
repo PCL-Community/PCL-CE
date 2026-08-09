@@ -162,7 +162,7 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Hide {Uuid}");
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
-        ResetDimBlur(); // 停掉淡化组并复位模糊，随后三段回弹后由 RearrangeToasts 重新淡化+模糊
+        ResetDim(); // 停掉淡化组，随后三段回弹后由 RearrangeToasts 重新淡化
         _hideStartsAtTick = 0; // 隐藏倒计时被取消，复位标志避免 IsHiding 误判
         IsEntering = false; // 入场动画被中断，入场末段的重排回调不会再执行，这里复位标记
         ProgressBar.BeginAnimation(WidthProperty, null);
@@ -187,19 +187,17 @@ public partial class MyToast
         StartProgressAnimation(DisplayDuration);
     }
 
-    /// <summary>停掉淡化动画组，并瞬时复位毛玻璃模糊为 0（隐藏/拖拽/强调前调用，防止残留模糊）。</summary>
-    private void ResetDimBlur()
+    /// <summary>停掉淡化动画组（隐藏/拖拽/强调前调用）。</summary>
+    private void ResetDim()
     {
         ModAnimation.AniStop($"Toast Dim {Uuid}");
-        if (RootGrid.Effect is BlurEffect be)
-            be.Radius = 0;
     }
 
     private void StartHideAnimation(double delayMs)
     {
         var delay = (int)Math.Round(delayMs);
         _hideStartsAtTick = TimeUtils.GetTimeTick() + delay;
-        ResetDimBlur(); // 隐藏滑出阶段：停掉淡化组并瞬时复位模糊，避免向右滑+淡出时残留毛玻璃
+        ResetDim(); // 隐藏滑出阶段：停掉淡化组，避免向右滑+淡出时残留淡化
         ModAnimation.AniStart(new List<ModAnimation.AniData>
         {
             ModAnimation.AaTranslateX(this, 60, 150, delay, new ModAnimation.AniEaseInFluent()),
@@ -228,7 +226,7 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
         ModAnimation.AniStop($"Toast StackSettle {Uuid}");
-        ResetDimBlur();
+        ResetDim();
         _hideStartsAtTick = 0; // 隐藏动画被取消（改为滑动关闭），复位标志避免 IsHiding 误判
         ProgressBar.BeginAnimation(WidthProperty, null);
         ResetHoverPause();
@@ -400,7 +398,7 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Hide {Uuid}");
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
-        ResetDimBlur(); // 拖拽是用户主动操作，弹窗需清晰可读，模糊复位为 0
+        ResetDim(); // 拖拽是用户主动操作，弹窗需清晰可读
         _hideStartsAtTick = 0; // 拖拽取消隐藏倒计时，复位标志避免 IsHiding 误判
         IsEntering = false; // 入场动画被拖拽中断，入场末段的重排回调不会再执行，这里复位标记
 
