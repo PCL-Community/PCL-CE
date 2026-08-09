@@ -65,16 +65,16 @@
         <StackPanel x:Name="PanLittleSkin" Margin="0,12,0,0" Visibility="Collapsed">
             <TextBlock Text="{DynamicResource Launch.OfflineSkin.LittleSkinHint}" TextWrapping="Wrap"
                        TextAlignment="Center" />
-            <local:MyButton Text="{DynamicResource Launch.OfflineSkin.OpenLittleSkin}" Height="28"
+            <local:MyButton Text="{DynamicResource Launch.OfflineSkin.OpenLittleSkin}" Height="35"
                             Margin="0,8,0,0" ColorType="Normal" HorizontalAlignment="Center"
                             Click="BtnOpenLittleSkin_Click" />
         </StackPanel>
 
         <!-- 底部按钮 -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
-            <local:MyButton x:Name="BtnCancel" Width="50" ColorType="Normal"
+            <local:MyButton x:Name="BtnCancel" Width="50" Height="35" ColorType="Normal"
                             Text="{DynamicResource Launch.OfflineSkin.Cancel}" Click="BtnCancel_Click" />
-            <local:MyButton x:Name="BtnConfirm" Width="50" Margin="10,0,0,0" ColorType="Highlight"
+            <local:MyButton x:Name="BtnConfirm" Width="50" Height="35" Margin="10,0,0,0" ColorType="Highlight"
                             Text="{DynamicResource Launch.OfflineSkin.Confirm}" Click="BtnConfirm_Click" />
         </StackPanel>
     </StackPanel>
