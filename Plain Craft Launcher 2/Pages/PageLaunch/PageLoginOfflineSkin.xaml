@@ -35,9 +35,13 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <local:MyTextBox x:Name="TextSkinPath" Height="28" IsReadOnly="True" />
-                <local:MyIconButton Grid.Column="1" Height="28" Width="28" Margin="6,0,0,0"
-                                    ToolTip="{DynamicResource Launch.OfflineSkin.SelectSkin}"
-                                    SvgIcon="lucide/folder-open" Click="BtnSelectSkin_Click" />
+                <Border Grid.Column="1" Margin="6,0,0,0" CornerRadius="6" BorderThickness="1"
+                        BorderBrush="{DynamicResource ColorBrushBg0}"
+                        Background="{DynamicResource ColorBrushHalfWhite}">
+                    <local:MyIconButton Height="26" Width="26"
+                                        ToolTip="{DynamicResource Launch.OfflineSkin.SelectSkin}"
+                                        SvgIcon="lucide/folder-open" Click="BtnSelectSkin_Click" />
+                </Border>
             </Grid>
 
             <TextBlock Text="{DynamicResource Launch.OfflineSkin.CapeFile}" Margin="0,12,0,0"
@@ -48,9 +52,13 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <local:MyTextBox x:Name="TextCapePath" Height="28" IsReadOnly="True" />
-                <local:MyIconButton Grid.Column="1" Height="28" Width="28" Margin="6,0,0,0"
-                                    ToolTip="{DynamicResource Launch.OfflineSkin.SelectCape}"
-                                    SvgIcon="lucide/folder-open" Click="BtnSelectCape_Click" />
+                <Border Grid.Column="1" Margin="6,0,0,0" CornerRadius="6" BorderThickness="1"
+                        BorderBrush="{DynamicResource ColorBrushBg0}"
+                        Background="{DynamicResource ColorBrushHalfWhite}">
+                    <local:MyIconButton Height="26" Width="26"
+                                        ToolTip="{DynamicResource Launch.OfflineSkin.SelectCape}"
+                                        SvgIcon="lucide/folder-open" Click="BtnSelectCape_Click" />
+                </Border>
             </Grid>
         </StackPanel>
 
