@@ -86,7 +86,7 @@ public partial class PageLoginOfflineSkin
                                Uri.TryCreate(TextCslApi.Text.Trim(), UriKind.Absolute, out _);
     }
 
-    private void BtnSelectSkin_Click(object sender, MouseButtonEventArgs e)
+    private void BtnSelectSkin_Click(object sender, EventArgs e)
     {
         var fileName = SystemDialogs.SelectFile(Lang.Text("Launch.Skin.FileDialog.Filter"),
             Lang.Text("Launch.Skin.FileDialog.Title"));
@@ -126,7 +126,7 @@ public partial class PageLoginOfflineSkin
         TextSkinPath.Text = fileName;
     }
 
-    private void BtnSelectCape_Click(object sender, MouseButtonEventArgs e)
+    private void BtnSelectCape_Click(object sender, EventArgs e)
     {
         var fileName = SystemDialogs.SelectFile(Lang.Text("Launch.Skin.FileDialog.Filter"),
             Lang.Text("Launch.Skin.FileDialog.Title"));

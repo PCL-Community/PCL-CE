@@ -29,15 +29,29 @@
 
             <TextBlock Text="{DynamicResource Launch.OfflineSkin.SkinFile}" Margin="0,12,0,0"
                        HorizontalAlignment="Center" />
-            <local:MyTextBox x:Name="TextSkinPath" Height="28" Margin="0,4,0,0" IsReadOnly="True" />
-            <local:MyButton Text="{DynamicResource Launch.OfflineSkin.SelectSkin}" Height="28" Margin="0,6,0,0"
-                            ColorType="Normal" HorizontalAlignment="Center" Click="BtnSelectSkin_Click" />
+            <Grid Margin="0,4,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <local:MyTextBox x:Name="TextSkinPath" Height="28" IsReadOnly="True" />
+                <local:MyIconButton Grid.Column="1" Height="28" Width="28" Margin="6,0,0,0"
+                                    ToolTip="{DynamicResource Launch.OfflineSkin.SelectSkin}"
+                                    SvgIcon="lucide/folder-open" Click="BtnSelectSkin_Click" />
+            </Grid>
 
             <TextBlock Text="{DynamicResource Launch.OfflineSkin.CapeFile}" Margin="0,12,0,0"
                        HorizontalAlignment="Center" />
-            <local:MyTextBox x:Name="TextCapePath" Height="28" Margin="0,4,0,0" IsReadOnly="True" />
-            <local:MyButton Text="{DynamicResource Launch.OfflineSkin.SelectCape}" Height="28" Margin="0,6,0,0"
-                            ColorType="Normal" HorizontalAlignment="Center" Click="BtnSelectCape_Click" />
+            <Grid Margin="0,4,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <local:MyTextBox x:Name="TextCapePath" Height="28" IsReadOnly="True" />
+                <local:MyIconButton Grid.Column="1" Height="28" Width="28" Margin="6,0,0,0"
+                                    ToolTip="{DynamicResource Launch.OfflineSkin.SelectCape}"
+                                    SvgIcon="lucide/folder-open" Click="BtnSelectCape_Click" />
+            </Grid>
         </StackPanel>
 
         <!-- CSL API 选项 -->
