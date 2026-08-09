@@ -12,6 +12,10 @@ public static class HintService
     private const double ToastPeek = 10d;
     /// <summary>弹窗离容器底部的边距（像素）。</summary>
     private const double ToastBottomMargin = 4d;
+    /// <summary>叠置时每个旧弹窗逐级的淡出幅度（透明度逐级升高）。</summary>
+    private const double ToastDimStep = 0.15d;
+    /// <summary>叠置时旧弹窗不透明度的下限，保证始终可读。</summary>
+    private const double ToastDimFloor = 0.55d;
 
     private struct HintMessage
     {
@@ -105,6 +109,15 @@ public static class HintService
         }
     }
 
+    // 按叠置次序计算弹窗应保持的不透明度：最新弹窗最不透明（透明度最低），旧弹窗逐级递减
+    // 弹窗的叠置次序由 PanHint.Children 决定，索引 0 = 最新
+    internal static double GetStackTargetOpacity(MyToast toast)
+    {
+        var index = ModMain.frmMain.PanHint.Children.OfType<MyToast>()
+            .Where(t => !t.IsDismissing).ToList().IndexOf(toast);
+        return index <= 0 ? 1d : Math.Max(1d - index * ToastDimStep, ToastDimFloor);
+    }
+
     // 按叠置规则重排所有弹窗：最新在最前（Z 最高）且在最下，旧弹窗向上错开露出上沿
     // 同时按叠置次序对每个弹窗做淡化：最新全亮，旧弹窗递减至 55% 下限，形成清晰视觉层次
     internal static void RearrangeToasts()
@@ -133,7 +146,7 @@ public static class HintService
             if (t.IsEntering || t.IsDragging || t.IsHiding ||
                 ModAnimation.AniIsRun($"Toast Drag Return {t.Uuid}"))
                 continue;
-            var target = i == 0 ? 1d : Math.Max(1d - i * 0.15, 0.55d);
+            var target = GetStackTargetOpacity(t);
             var opacityDelta = target - t.Opacity;
 
             if (Math.Abs(opacityDelta) > 0.001)

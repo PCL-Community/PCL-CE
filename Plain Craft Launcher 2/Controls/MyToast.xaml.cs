@@ -436,11 +436,17 @@ public partial class MyToast
 
         ResumeProgress(remaining);
 
+        // 拖拽可能是旧弹窗：按叠置档位复位不透明度而非一律 1，避免与最新弹窗一样亮、叠置层次被破坏
+        var targetOpacity = HintService.GetStackTargetOpacity(this);
         ModAnimation.AniStart(new List<ModAnimation.AniData>
         {
             ModAnimation.AaTranslateX(this, -currentX, ReturnAnimationMs, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaOpacity(this, 1d - currentOpacity, ReturnAnimationMs),
-            ModAnimation.AaCode(() => StartHideAnimation(GetProgressRemainingMs()), after: true)
+            ModAnimation.AaOpacity(this, targetOpacity - currentOpacity, ReturnAnimationMs),
+            ModAnimation.AaCode(() =>
+            {
+                HintService.RearrangeToasts(); // 复位后重算淡化，保证最新弹窗始终最不透明
+                StartHideAnimation(GetProgressRemainingMs());
+            }, after: true)
         }, $"Toast Drag Return {Uuid}");
     }
 
