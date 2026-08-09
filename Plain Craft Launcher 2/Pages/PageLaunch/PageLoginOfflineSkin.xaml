@@ -71,13 +71,11 @@
         </StackPanel>
 
         <!-- 底部按钮 -->
-        <Grid Height="28" Margin="0,16,0,0">
-            <local:MyButton x:Name="BtnCancel" Width="50" Margin="-100,0,0,0" ColorType="Normal"
-                            Text="{DynamicResource Launch.OfflineSkin.Cancel}" HorizontalAlignment="Center"
-                            Click="BtnCancel_Click" />
-            <local:MyButton x:Name="BtnConfirm" Width="50" Margin="20,0,0,0" ColorType="Highlight"
-                            Text="{DynamicResource Launch.OfflineSkin.Confirm}" HorizontalAlignment="Center"
-                            Click="BtnConfirm_Click" />
-        </Grid>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
+            <local:MyButton x:Name="BtnCancel" Width="50" ColorType="Normal"
+                            Text="{DynamicResource Launch.OfflineSkin.Cancel}" Click="BtnCancel_Click" />
+            <local:MyButton x:Name="BtnConfirm" Width="50" Margin="10,0,0,0" ColorType="Highlight"
+                            Text="{DynamicResource Launch.OfflineSkin.Confirm}" Click="BtnConfirm_Click" />
+        </StackPanel>
     </StackPanel>
 </Grid>
