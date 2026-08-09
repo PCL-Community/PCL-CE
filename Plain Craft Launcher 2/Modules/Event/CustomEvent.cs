@@ -1,8 +1,10 @@
 ﻿using System.IO;
+using System.Runtime.InteropServices;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils.OS;
+using PCL.Network;
 
 namespace PCL
 {
@@ -94,7 +96,7 @@ namespace PCL
             [EventType.WriteSetting] = _WriteSetting,
             [EventType.ModifyVariable] = _WriteVariable,
             [EventType.WriteVariable] = _WriteVariable,
-            [EventType.OpenHelp] = (_, __) => ModBase.OpenWebsite("https://docs.pclc.cc/ce"),
+            [EventType.OpenHelp] = _OpenHelp,
         };
 
         /// <summary>
@@ -318,17 +320,75 @@ namespace PCL
                 HintService.Hint(Lang.Text("Event.Variable.Written", args[0], args[1]), HintType.Success);
         }
 
+        /// <summary>
+        /// 打开帮助或自定义主页页面
+        /// </summary>
+        private static void _OpenHelp(string arg, EventType type)
+        {
+            var args = SplitArgs(arg);
+            if (!args[0].StartsWithF("http", true))
+            {
+                ModBase.OpenWebsite("https://docs.pclc.cc/ce");
+                return;
+            }
+            var actualPaths = GetAbsoluteUrls(args[0], type);
+            var location = actualPaths.FirstOrDefault();
+            
+            
+        }
+
         public static string[] GetAbsoluteUrls(string relativeUrl, EventType type)
         {
+            if (relativeUrl.StartsWithF("http", true))
+            {
+                if (ModBase.RunInUi()) throw new Exception("能打开联网帮助页面的 MyListItem 必须手动设置 Title、Info 属性！");
+                
+                // 获取文件名
+                string rawFileName;
+                try
+                {
+                    rawFileName = relativeUrl.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).BeforeFirst("#").BeforeFirst("?");
+                    if (!rawFileName.EndsWithF(".json", true)) throw new Exception("未指向 .json 后缀的文件");
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("联网帮助页面须指向一个帮助 JSON 文件，并在同路径下包含相应 XAML 文件！\n" +
+                                        "例如：\n" +
+                                        " - https://www.baidu.com/test.json（填写这个路径）\n" +
+                                        " - https://www.baidu.com/test.xaml（同时也需要包含这个文件）", e);
+                }
+                
+                // 下载文件
+                string temp = ModMain.RequestTaskTempFolder() + rawFileName;
+                ModBase.Log($"转换网络资源: {relativeUrl} -> {temp}");
+                try
+                {
+                    ModNet.NetDownloadByClient(relativeUrl, temp);
+                    ModNet.NetDownloadByClient(relativeUrl.Replace(".json", ".xaml"), temp.Replace(".json", ".xaml"));
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("下载指定的文件失败！\n" +
+                                        "注意，联网帮助页面须指向一个帮助 JSON 文件，并在同路径下包含相应 XAML 文件！\n" +
+                                        "例如：\n" +
+                                        " - https://www.baidu.com/test.json（填写这个路径）\n" +
+                                        " - https://www.baidu.com/test.xaml（同时也需要包含这个文件）", e);
+                }
+
+                relativeUrl = temp;
+            }
+            relativeUrl = relativeUrl.Replace('/', '\\').ToLower().TrimStart('\\');
+            
+            // 确认路径
             relativeUrl = relativeUrl.Replace('/', '\\').ToLower().TrimStart('\\');
             var pclDir = Path.Combine(Basics.ExecutableDirectory, "PCL");
 
-            if (relativeUrl.Contains(":\\"))
+            if (relativeUrl.Contains(":\\")) // 绝对路径
             {
                 ModBase.Log($"[Control] 自定义事件中由绝对路径 {type}: {relativeUrl}");
                 return [relativeUrl, pclDir];
             }
-            if (File.Exists(Path.Combine(pclDir, relativeUrl)))
+            if (File.Exists(Path.Combine(pclDir, relativeUrl))) // 相对 PCL 文件夹的路径
             {
                 var fullPath = Path.Combine(pclDir, relativeUrl);
                 var resolved = Path.GetFullPath(fullPath);
@@ -337,7 +397,7 @@ namespace PCL
                 ModBase.Log($"[Control] 自定义事件中由相对 PCL 文件夹的路径 {type}: {fullPath}");
                 return [fullPath, pclDir];
             }
-            if (type is EventType.OpenFile or EventType.ExecuteCommand)
+            if (type is EventType.OpenFile or EventType.ExecuteCommand) // 直接使用原有路径启动程序
             {
                 ModBase.Log($"[Control] 自定义事件中直接 {type}: {relativeUrl}");
                 return [relativeUrl, pclDir];
