@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -10,18 +8,18 @@ using PCL.Core.UI;
 namespace PCL;
 
 /// <summary>
-///     离线账户的皮肤设置对话框，参照 HMCL 的 OfflineAccountSkinPane 实现。
+///     离线账户的皮肤设置页面，参照 HMCL 的 OfflineAccountSkinPane 实现。
 /// </summary>
-public partial class OfflineSkinDialog
+public partial class PageLoginOfflineSkin
 {
     private string _skinPath = "";
     private string _capePath = "";
     private TextureModel _model = TextureModel.Wide;
 
-    public OfflineSkinDialog()
+    public PageLoginOfflineSkin()
     {
         InitializeComponent();
-        Loaded += (_, _) => LoadCurrentSkin();
+        Loaded += (_, _) => Reload();
     }
 
     /// <summary>
@@ -50,9 +48,9 @@ public partial class OfflineSkinDialog
     }
 
     /// <summary>
-    ///     打开时回显当前档案已保存的皮肤配置。
+    ///     回显当前档案已保存的皮肤配置。
     /// </summary>
-    private void LoadCurrentSkin()
+    public void Reload()
     {
         var skin = ModProfile.selectedProfile?.Skin;
         _model = skin?.Model ?? TextureModel.Wide;
@@ -171,12 +169,13 @@ public partial class OfflineSkinDialog
         ModProfile.selectedProfile.Skin = skin;
         ModProfile.SaveProfile();
         HintService.Hint(Lang.Text("Launch.OfflineSkin.Saved"), HintType.Success);
-        DialogResult = true;
+        ModMain.frmLoginProfileSkin?.Reload();
+        ModMain.frmLaunchLeft.RefreshPage(true);
     }
 
     private void BtnCancel_Click(object sender, MouseButtonEventArgs e)
     {
-        DialogResult = false;
+        ModMain.frmLaunchLeft.RefreshPage(true);
     }
 
     private void ComboType_SelectionChanged(object sender, SelectionChangedEventArgs e)

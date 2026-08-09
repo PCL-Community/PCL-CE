@@ -669,7 +669,8 @@ public partial class PageLaunchLeft
         Ms,
         Profile,
         ProfileSkin,
-        Offline
+        Offline,
+        OfflineSkin
     }
 
     /// <summary>
@@ -710,6 +711,12 @@ public partial class PageLaunchLeft
                 if (ModMain.frmLoginOffline is null)
                     ModMain.frmLoginOffline = new PageLoginOffline();
                 return ModMain.frmLoginOffline;
+            }
+            case PageType.OfflineSkin:
+            {
+                if (ModMain.frmLoginOfflineSkin is null)
+                    ModMain.frmLoginOfflineSkin = new PageLoginOfflineSkin();
+                return ModMain.frmLoginOfflineSkin;
             }
 
             default:
@@ -820,6 +827,16 @@ public partial class PageLaunchLeft
         if (pageCurrent == type)
             return;
         PageChange(type, anim);
+    }
+
+    /// <summary>
+    ///     切换到离线皮肤设置页面，并刷新页面内容。
+    /// </summary>
+    public void PageChangeToOfflineSkin()
+    {
+        var page = (PageLoginOfflineSkin)PageGet(PageType.OfflineSkin);
+        PageChange(PageType.OfflineSkin, true);
+        page.Reload();
     }
 
     #endregion

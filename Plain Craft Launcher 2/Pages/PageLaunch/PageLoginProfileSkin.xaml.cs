@@ -128,7 +128,7 @@ public partial class PageLoginProfileSkin
             ModBase.OpenWebsite(ModProfile.selectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
-            OpenOfflineSkinDialog();
+            OpenOfflineSkinPage();
     }
 
     // 保存皮肤
@@ -152,23 +152,14 @@ public partial class PageLoginProfileSkin
             ModBase.OpenWebsite(ModProfile.selectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
-            OpenOfflineSkinDialog();
+            OpenOfflineSkinPage();
     }
 
     #endregion
 
-    // 打开离线皮肤设置对话框
-    private void OpenOfflineSkinDialog()
+    // 打开离线皮肤设置页面
+    private void OpenOfflineSkinPage()
     {
-        ModBase.RunInUi(() =>
-        {
-            var dialog = new OfflineSkinDialog { Owner = ModMain.frmMain };
-            if (dialog.ShowDialog() == true)
-            {
-                // 刷新档案界面显示新皮肤
-                ModMain.frmLoginProfileSkin?.Reload();
-                ModMain.frmLaunchLeft.RefreshPage(true);
-            }
-        });
+        ModBase.RunInUi(() => ModMain.frmLaunchLeft.PageChangeToOfflineSkin());
     }
 }
