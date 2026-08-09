@@ -16,7 +16,7 @@
             <RowDefinition Height="3" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Margin="13,8,10,6">
+        <Grid Grid.Row="0" Margin="10,8,10,6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
@@ -46,11 +46,5 @@
                 </Rectangle.RenderTransform>
             </Rectangle>
         </Grid>
-
-        <!-- 左侧楔形色标：类型状态，两端 45° 斜切，像被刻刀切出的色条 -->
-        <Path x:Name="AccentBar" Grid.Row="0" Grid.RowSpan="2"
-              Width="3" HorizontalAlignment="Left" VerticalAlignment="Stretch"
-              Margin="1,0,0,0" IsHitTestVisible="False"
-              Stretch="Fill" Data="M 0,0.08 L 1,0 L 1,1 L 0,0.92 Z" />
     </Grid>
 </Border>

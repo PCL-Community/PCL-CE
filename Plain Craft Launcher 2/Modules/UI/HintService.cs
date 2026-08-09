@@ -1,21 +1,14 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Media.Effects;
 using PCL.Core.UI;
 
 namespace PCL;
 
 public static class HintService
 {
-    /// <summary>叠置时旧弹窗露出的上沿高度（像素）。</summary>
-    private const double ToastPeek = 10d;
-    /// <summary>弹窗离容器底部的边距（像素）。</summary>
-    private const double ToastBottomMargin = 4d;
-    /// <summary>叠置时每个旧弹窗逐级的淡出幅度（透明度逐级升高）。</summary>
-    private const double ToastDimStep = 0.15d;
-    /// <summary>叠置时旧弹窗不透明度的下限，保证始终可读。</summary>
-    private const double ToastDimFloor = 0.55d;
+    /// <summary>相邻弹窗之间的间距（像素）。</summary>
+    private const double ToastGap = 4d;
 
     private struct HintMessage
     {
@@ -109,28 +102,31 @@ public static class HintService
         }
     }
 
-    // 按叠置次序计算弹窗应保持的不透明度：最新弹窗最不透明（透明度最低），旧弹窗逐级递减
-    // 弹窗的叠置次序由 PanHint.Children 决定，索引 0 = 最新
-    internal static double GetStackTargetOpacity(MyToast toast)
-    {
-        var index = ModMain.frmMain.PanHint.Children.OfType<MyToast>()
-            .Where(t => !t.IsDismissing).ToList().IndexOf(toast);
-        return index <= 0 ? 1d : Math.Max(1d - index * ToastDimStep, ToastDimFloor);
-    }
-
-    // 按叠置规则重排所有弹窗：最新在最前（Z 最高）且在最下，旧弹窗向上错开露出上沿
-    // 同时按叠置次序对每个弹窗做淡化：最新全亮，旧弹窗递减至 55% 下限，形成清晰视觉层次
+    // 非叠置布局：弹窗自底向上纵向排开，最新在最下，旧弹窗依次上移，彼此不重叠
     internal static void RearrangeToasts()
     {
         var toasts = ModMain.frmMain.PanHint.Children.OfType<MyToast>().Where(t => !t.IsDismissing).ToList();
+        if (toasts.Count == 0)
+            return;
+        var available = ModMain.frmMain.PanHint.ActualHeight;
+        if (available > 0)
+        {
+            var required = toasts.Sum(t => t._targetHeight + ToastGap) + ToastGap;
+            if (required > available)
+            {
+                toasts[^1].Dismiss(); // 超出可用高度时收掉最旧的弹窗，保证其余完整可见
+                return;
+            }
+        }
+        var bottom = ToastGap;
         for (var i = 0; i < toasts.Count; i++)
         {
             var t = toasts[i]; // Children 顺序，索引 0 = 最新
             var oldBottom = t.Margin.Bottom;
-            var newBottom = ToastBottomMargin + i * ToastPeek;
-            var shift = oldBottom - newBottom; // >0 下落补位，<0 上抬让位
-            t.Margin = new Thickness(0, 0, 16, newBottom);
-            t.VerticalAlignment = VerticalAlignment.Bottom; // 底部锚定（Grid 内叠置的关键，防止 Stretch 居中断层）
+            var shift = oldBottom - bottom; // >0 下落补位，<0 上抬让位
+            t.Margin = new Thickness(0, 0, 16, bottom);
+            t.VerticalAlignment = VerticalAlignment.Bottom;
+            Panel.SetZIndex(t, toasts.Count - 1 - i);
             if (Math.Abs(shift) > 0.5)
             {
                 var tt = t.RenderTransform as TranslateTransform ?? new TranslateTransform();
@@ -140,19 +136,7 @@ public static class HintService
                     ModAnimation.AaTranslateY(t, shift, 200, ease: new ModAnimation.AniEaseOutFluent()),
                     $"Toast StackSettle {t.Uuid}");
             }
-            Panel.SetZIndex(t, toasts.Count - 1 - i); // 最新 Z 最高
-
-            // 淡化：入场中/拖拽中/隐藏滑出中的弹窗，其 Opacity 分别由入场、拖拽、淡出动画接管，淡化系统不介入
-            if (t.IsEntering || t.IsDragging || t.IsHiding ||
-                ModAnimation.AniIsRun($"Toast Drag Return {t.Uuid}"))
-                continue;
-            var target = GetStackTargetOpacity(t);
-            var opacityDelta = target - t.Opacity;
-
-            if (Math.Abs(opacityDelta) > 0.001)
-                ModAnimation.AniStart(
-                    ModAnimation.AaOpacity(t, opacityDelta, 200, ease: new ModAnimation.AniEaseOutFluent()),
-                    $"Toast Dim {t.Uuid}");
+            bottom += t._targetHeight + ToastGap;
         }
     }
 
@@ -165,13 +149,6 @@ public static class HintService
     // 弹窗移除后回填错位（由 MyToast 移除自身后调用）
     internal static void OnToastRemoved(MyToast toast)
     {
-        RearrangeToasts();
-    }
-
-    // 新弹窗入场动画结束后的回调：复位入场标记并重新分层（把已就位的弹窗淡化到各自档位）
-    internal static void NotifyToastShown(MyToast toast)
-    {
-        toast.IsEntering = false;
         RearrangeToasts();
     }
 }

@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Media.Effects;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Theme;
@@ -78,7 +77,6 @@ public partial class MyToast
             ModAnimation.AniStop($"Toast Emphasize {Uuid}");
             ModAnimation.AniStop($"Toast Drag Return {Uuid}");
             ModAnimation.AniStop($"Toast StackSettle {Uuid}");
-            ModAnimation.AniStop($"Toast Dim {Uuid}");
             ProgressBar.BeginAnimation(WidthProperty, null);
             ResetHoverPause();
         };
@@ -109,16 +107,8 @@ public partial class MyToast
 
     public bool IsDismissing { get; private set; }
 
-    /// <summary>是否正处于入场动画期间（淡化系统应跳过，避免入场 Opacity 动画与淡化冲突）。</summary>
-    internal bool IsEntering { get; set; }
-
-    /// <summary>是否正在被用户拖拽（拖拽期间透明度由拖拽逻辑接管，淡化系统应跳过）。</summary>
-    internal bool IsDragging => _isDragging;
-
-    /// <summary>隐藏动画是否已进入实际滑出/淡出阶段（此时不再改写其 Opacity）。</summary>
-    internal bool IsHiding => _hideStartsAtTick > 0 && TimeUtils.GetTimeTick() >= _hideStartsAtTick;
-
-    private double _targetHeight;
+    /// <summary>弹窗完全展开后的目标高度，用于纵向排布的定位计算。</summary>
+    internal double _targetHeight;
 
     public void Show()
     {
@@ -128,7 +118,6 @@ public partial class MyToast
             MaxWidth = Math.Min(System.Windows.Application.Current.MainWindow.ActualWidth * 0.9, 360d);
         Margin = new Thickness(0, 0, 16, 4);
         Opacity = 0;
-        IsEntering = true;
 
         Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         Arrange(new Rect(0, 0, DesiredSize.Width, DesiredSize.Height));
@@ -148,8 +137,7 @@ public partial class MyToast
             ModAnimation.AaHeight(this, _targetHeight, 150, ease: new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaOpacity(this, 1, 100),
             ModAnimation.AaScaleTransform(ToastIcon, 0.2, 260, 120,
-                ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaCode(() => HintService.NotifyToastShown(this), after: true)
+                ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak))
         };
         ModAnimation.AniStart(enterAnimations, $"Toast Show {Uuid}");
 
@@ -162,9 +150,7 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Hide {Uuid}");
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
-        ResetDim(); // 停掉淡化组，随后三段回弹后由 RearrangeToasts 重新淡化
         _hideStartsAtTick = 0; // 隐藏倒计时被取消，复位标志避免 IsHiding 误判
-        IsEntering = false; // 入场动画被中断，入场末段的重排回调不会再执行，这里复位标记
         ProgressBar.BeginAnimation(WidthProperty, null);
         ResetHoverPause();
         if (RenderTransform is TranslateTransform tt) tt.X = 0;
@@ -176,8 +162,7 @@ public partial class MyToast
             ModAnimation.AaTranslateX(this, -14, 90, ease: new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaTranslateX(this, 18, 100, after: true, ease: new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaTranslateX(this, -4, 110, after: true, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaCode(RestartHideAnimation, after: true),
-            ModAnimation.AaCode(() => HintService.RearrangeToasts(), after: true),
+            ModAnimation.AaCode(RestartHideAnimation, after: true)
         }, $"Toast Emphasize {Uuid}");
     }
 
@@ -187,17 +172,10 @@ public partial class MyToast
         StartProgressAnimation(DisplayDuration);
     }
 
-    /// <summary>停掉淡化动画组（隐藏/拖拽/强调前调用）。</summary>
-    private void ResetDim()
-    {
-        ModAnimation.AniStop($"Toast Dim {Uuid}");
-    }
-
     private void StartHideAnimation(double delayMs)
     {
         var delay = (int)Math.Round(delayMs);
         _hideStartsAtTick = TimeUtils.GetTimeTick() + delay;
-        ResetDim(); // 隐藏滑出阶段：停掉淡化组，避免向右滑+淡出时残留淡化
         ModAnimation.AniStart(new List<ModAnimation.AniData>
         {
             ModAnimation.AaTranslateX(this, 60, 150, delay, new ModAnimation.AniEaseInFluent()),
@@ -226,7 +204,6 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
         ModAnimation.AniStop($"Toast StackSettle {Uuid}");
-        ResetDim();
         _hideStartsAtTick = 0; // 隐藏动画被取消（改为滑动关闭），复位标志避免 IsHiding 误判
         ProgressBar.BeginAnimation(WidthProperty, null);
         ResetHoverPause();
@@ -296,7 +273,6 @@ public partial class MyToast
         ToastIcon.Icon = Icon;
         ToastIcon.IconBrush = accentBrush;
         ToastIcon.StrokeThickness = 0;
-        AccentBar.Fill = accentBrush;
     }
 
     #region 拖动关闭
@@ -398,9 +374,7 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Hide {Uuid}");
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
-        ResetDim(); // 拖拽是用户主动操作，弹窗需清晰可读
         _hideStartsAtTick = 0; // 拖拽取消隐藏倒计时，复位标志避免 IsHiding 误判
-        IsEntering = false; // 入场动画被拖拽中断，入场末段的重排回调不会再执行，这里复位标记
 
         PauseProgress();
 
@@ -436,15 +410,13 @@ public partial class MyToast
 
         ResumeProgress(remaining);
 
-        // 拖拽可能是旧弹窗：按叠置档位复位不透明度而非一律 1，避免与最新弹窗一样亮、叠置层次被破坏
-        var targetOpacity = HintService.GetStackTargetOpacity(this);
         ModAnimation.AniStart(new List<ModAnimation.AniData>
         {
             ModAnimation.AaTranslateX(this, -currentX, ReturnAnimationMs, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaOpacity(this, targetOpacity - currentOpacity, ReturnAnimationMs),
+            ModAnimation.AaOpacity(this, 1d - currentOpacity, ReturnAnimationMs),
             ModAnimation.AaCode(() =>
             {
-                HintService.RearrangeToasts(); // 复位后重算淡化，保证最新弹窗始终最不透明
+                HintService.RearrangeToasts(); // 复位后重排，让位/补位的旧弹窗回到正确位置
                 StartHideAnimation(GetProgressRemainingMs());
             }, after: true)
         }, $"Toast Drag Return {Uuid}");
