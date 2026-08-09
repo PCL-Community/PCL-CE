@@ -291,11 +291,6 @@ public static class ModMain
         public MyMsgBoxType Type;
 
         /// <summary>
-        ///     弹窗标题图标的提示类型。为 null 时按 Info 处理，不指定则不显示类型联动视觉。
-        /// </summary>
-        public HintType? HintType;
-
-        /// <summary>
         ///     输入模式：输入验证规则。
         /// </summary>
         public Collection<IValidator<string>> ValidateRules;
@@ -410,31 +405,6 @@ public static class ModMain
         }
 
         // 不进行等待，直接返回
-        return 1;
-    }
-
-    /// <summary>
-    ///     显示一个带提示类型标题图标的弹窗，返回点击按钮的编号（从 1 开始）。
-    ///     不阻塞当前线程，弹窗加入队列由主时钟显示。
-    /// </summary>
-    /// <param name="caption">弹窗的内容。</param>
-    /// <param name="type">提示类型，决定标题图标与配色。</param>
-    /// <param name="title">弹窗的标题，默认为通用标题。</param>
-    /// <param name="button1">显示的第一个按钮，默认为“确定”。</param>
-    public static int MyMsgBoxByHintType(string caption, HintType type, string? title = null, string? button1 = null)
-    {
-        title ??= GetDefaultDialogTitle();
-        button1 ??= GetDefaultConfirmText();
-        // 将弹窗列入队列
-        var converter = new MyMsgBoxConverter
-        {
-            Type = MyMsgBoxType.Text, Button1 = button1, Button2 = "", Button3 = "", Text = caption, Title = title,
-            HintType = type
-        };
-        WaitingMyMsgBox.Add(converter);
-        if (ModBase.RunInUi())
-            // 若为 UI 线程，立即执行弹窗刻，避免快速（连点器）点击时多次弹窗
-            MyMsgBoxTick();
         return 1;
     }
 

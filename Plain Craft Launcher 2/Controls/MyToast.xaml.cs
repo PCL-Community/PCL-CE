@@ -95,8 +95,7 @@ public partial class MyToast
     private void ShowDetail()
     {
         if (IsDismissing) return;
-        ModMain.MyMsgBoxByHintType(Context, ToastType, Lang.Text("Main.Toast.Detail.Title"),
-            Lang.Text("Common.Action.Confirm"));
+        ModMain.MyMsgBox(Context, Lang.Text("Main.Toast.Detail.Title"), Lang.Text("Common.Action.Confirm"));
     }
 
     public string Icon { get; set; } = "lucide/info";
