@@ -1997,6 +1997,10 @@
     <sys:String x:Key="Minecraft.Download.Modpack.RarUnsupported">PCL CE 无法处理 rar 格式的压缩包，请在解压后重新压缩为 zip 格式再试</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRam.Message">该整合包有推荐内存 {0} GiB，是否使用整合包推荐的内存？</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRam.Title">整合包推荐内存</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRamUnfit.Message">该整合包有推荐内存 {0} GiB，可能不适合你的电脑，建议使用自动配置</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRamUnfit.Title">整合包推荐内存</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRamUnfit.KeepRecommended">继续用整合包的推荐内存</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRamUnfit.UseAuto">使用自动配置</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SelectEmptyFolder.Message">接下来请选择一个空文件夹，它会被安装到这个文件夹里。</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SelectTargetFolder.Title">选择安装目标（必须是一个空文件夹）</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SomeModsDeleted">整合包中的部分模组版本已被模组作者删除，所以没法继续安装了，请向整合包作者反馈该问题</sys:String>
@@ -2282,6 +2286,10 @@
     <sys:String x:Key="Minecraft.Launch.Precheck.RequireMicrosoft">当前实例要求使用正版验证，请使用正版验证档案启动游戏！</sys:String>
     <sys:String x:Key="Minecraft.Launch.Precheck.RequireMicrosoftOrThirdParty">当前实例要求使用正版验证或第三方验证，请使用符合要求的档案启动游戏！</sys:String>
     <sys:String x:Key="Minecraft.Launch.Precheck.RequireThirdParty">当前实例要求使用第三方验证，请使用第三方验证档案启动游戏！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.ModpackRecommendedRamUnfit.Message">整合包作者的推荐内存可能不适合你的电脑，是否切换自动配置？</sys:String>
+    <sys:String x:Key="Minecraft.Launch.ModpackRecommendedRamUnfit.Title">整合包推荐内存</sys:String>
+    <sys:String x:Key="Minecraft.Launch.ModpackRecommendedRamUnfit.SwitchAuto">切换自动配置</sys:String>
+    <sys:String x:Key="Minecraft.Launch.ModpackRecommendedRamUnfit.KeepRecommended">继续用整合包的推荐内存</sys:String>
 
     <!-- Minecraft.Launch.Stage -->
 

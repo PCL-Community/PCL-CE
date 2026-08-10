@@ -6,6 +6,7 @@ using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.Modpack;
 using PCL.Core.UI;
 using PCL.Core.Utils;
+using PCL.Core.Utils.OS;
 using PCL.Network;
 using PCL.Network.Loaders;
 using static PCL.ModLoader;
@@ -39,16 +40,45 @@ public static partial class ModModpack
         if (instanceName is null)
             instanceName = _PromptInstanceName(manifest.Name ?? "");
 
-        // 推荐内存询问：清单声明了推荐内存时，询问是否使用
-        // （确定 → 使用推荐内存模式；取消 → 跟随全局设置，即默认选项）
-        var useRecommendedRam = false;
-        if (manifest.RecommendedRamEffective is > 0)
-            useRecommendedRam = ModMain.MyMsgBox(
-                Lang.Text("Minecraft.Download.Modpack.RecommendedRam.Message",
-                    (manifest.RecommendedRamEffective.Value / 1024d).ToString("0.#")),
-                Lang.Text("Minecraft.Download.Modpack.RecommendedRam.Title"),
-                Lang.Text("Common.Action.Confirm"),
-                Lang.Text("Common.Action.Cancel")) == 1;
+        // 推荐内存询问：清单声明了推荐内存时，先校验其是否适合用户的电脑
+        // （使用推荐 → 推荐内存模式；取消 → 跟随全局设置；不适合时自动 → 自动配置）
+        var recommendedRam = manifest.RecommendedRamEffective ?? 0;
+        var useRecommendedRam = false; // 最终是否使用推荐内存模式
+        var useAutoRam = false; // 最终是否使用自动配置模式（推荐内存不适合时）
+        if (recommendedRam > 0)
+        {
+            var totalMemoryMb = KernelInterop.GetPhysicalMemoryBytes().Total / 1024d / 1024d;
+            if (recommendedRam > totalMemoryMb)
+            {
+                useAutoRam = true;
+            }
+            else
+            {
+                // 阈值 = max(总内存*80%, 总内存-6GB)，推荐内存超过阈值时警告
+                var threshold = Math.Max(totalMemoryMb * 0.8d, totalMemoryMb - 6d * 1024d);
+                if (recommendedRam > threshold)
+                {
+                    // 推荐内存不合理
+                    useRecommendedRam = ModMain.MyMsgBox(
+                        Lang.Text("Minecraft.Download.Modpack.RecommendedRamUnfit.Message",(recommendedRam / 1024d).ToString("0.#")),
+                        Lang.Text("Minecraft.Download.Modpack.RecommendedRamUnfit.Title"),
+                        Lang.Text("Minecraft.Download.Modpack.RecommendedRamUnfit.UseAuto"),
+                        Lang.Text("Minecraft.Download.Modpack.RecommendedRamUnfit.KeepRecommended")) == 1;
+                    if (!useRecommendedRam)
+                        useAutoRam = true;
+                }
+                else
+                {
+                    // 推荐内存合理
+                    useRecommendedRam = ModMain.MyMsgBox(
+                        Lang.Text("Minecraft.Download.Modpack.RecommendedRam.Message",
+                            (recommendedRam / 1024d).ToString("0.#")),
+                        Lang.Text("Minecraft.Download.Modpack.RecommendedRam.Title"),
+                        Lang.Text("Common.Action.Confirm"),
+                        Lang.Text("Common.Action.Cancel")) == 1;
+                }
+            }
+        }
 
         // 获取 Mod API 版本信息
         string forgeVersion = null;
@@ -311,12 +341,12 @@ public static partial class ModModpack
             _FinalizeInstance(versionFolder, sourcePath, logo, "CurseForge",
                 manifest.Version, resourceId, manifest.RecommendedRamEffective ?? 0);
             // 应用推荐内存选择：仅当清单声明了推荐内存时写配置
-            // （确定 → 使用推荐内存模式；取消 → 跟随全局设置，即默认选项）
+            // （使用推荐 → 推荐内存模式；不适合时自动 → 自动配置；正常取消 → 跟随全局设置）
             // MemorySolution 注册了 UI 观察者（ModSetup.VersionRamType），需在 UI 线程写入，
             // 避免在后台安装线程触发观察者导致跨线程访问 UI 控件。
-            if (manifest.RecommendedRamEffective is > 0)
+            if (recommendedRam > 0)
             {
-                var memorySolution = useRecommendedRam ? 3 : 2;
+                var memorySolution = useRecommendedRam ? 3 : (useAutoRam ? 0 : 2);
                 ModBase.RunInUi(() => Config.Instance.MemorySolution[versionFolder] = memorySolution);
             }
             // 本地安装没有外部 logo 时，尝试使用整合包内嵌的图标（manifest.json 的 image 字段）

@@ -268,6 +268,8 @@ public static partial class ModModpack
     /// <summary>
     ///     将懒人包解压后的 .minecraft 实例内容安装到当前游戏文件夹的 <c>versions\{实例名}</c> 下。
     ///     仅复制实例自身内容（版本配置、mods/config/saves 等），共享目录（libraries/assets 等）由启动器在运行时自动补全。
+    ///     先复制根目录内容，再复制实例目录（版本文件夹）内容，两者同名文件统一走“校验+复制”，
+    ///     内容不同时弹窗让用户决定（默认覆盖，即实例目录内容优先）。
     /// </summary>
     private static void _InstallLazyPackInstance(string installTemp, string archiveBaseFolder, string packVersionName,
         string instanceName)
@@ -275,8 +277,24 @@ public static partial class ModModpack
         var mcRoot = Path.Combine(installTemp, archiveBaseFolder.TrimEnd('\\'));
         var instanceFolder = _GetVersionFolder(instanceName);
         Directory.CreateDirectory(instanceFolder);
+        // 本次安装的冲突处理状态（“全部覆盖 / 全部跳过”在两个复制阶段间保持）
+        var conflictState = new CopyConflictState();
 
-        // 复制版本文件夹全部内容（json/jar 改名并修正 id，其余文件如 mods/config 一并复制，兼容隔离与非隔离两种布局）
+        // 先复制 .minecraft 根目录下的实例内容（mods/config/saves/options.txt 等），跳过共享目录
+        foreach (var item in Directory.GetFileSystemEntries(mcRoot))
+        {
+            var name = Path.GetFileName(item);
+            if (_LazyPackSharedFolders.Contains(name))
+                continue;
+            var dest = Path.Combine(instanceFolder, name);
+            if (Directory.Exists(item))
+                _CopyDirectoryWithConflict(item, dest, conflictState, overwriteAsDefault: true);
+            else
+                _CopyFileWithConflict(item, dest, name, conflictState, overwriteAsDefault: true);
+        }
+
+        // 再复制版本文件夹全部内容（json/jar 改名并修正 id，其余文件如 mods/config 一并复制，兼容隔离与非隔离两种布局）。
+        // 与根目录同名且内容不同的文件弹窗让用户决定，默认覆盖（实例目录内容优先）。
         var versionDir = Path.Combine(mcRoot, "versions", packVersionName);
         if (Directory.Exists(versionDir))
             foreach (var item in Directory.GetFileSystemEntries(versionDir))
@@ -295,32 +313,21 @@ public static partial class ModModpack
                 }
                 else if (Directory.Exists(item))
                 {
-                    ModBase.CopyDirectory(item, Path.Combine(instanceFolder, name), null);
+                    _CopyDirectoryWithConflict(item, Path.Combine(instanceFolder, name), conflictState,
+                        overwriteAsDefault: true);
                 }
                 else
                 {
-                    ModBase.CopyFile(item, Path.Combine(instanceFolder, name));
+                    _CopyFileWithConflict(item, Path.Combine(instanceFolder, name), name, conflictState,
+                        overwriteAsDefault: true);
                 }
             }
 
-        // 复制 .minecraft 根目录下的实例内容（mods/config/saves/options.txt 等），跳过共享目录
-        foreach (var item in Directory.GetFileSystemEntries(mcRoot))
-        {
-            var name = Path.GetFileName(item);
-            if (_LazyPackSharedFolders.Contains(name))
-                continue;
-            var dest = Path.Combine(instanceFolder, name);
-            if (Directory.Exists(item))
-                ModBase.CopyDirectory(item, dest, null);
-            else
-                ModBase.CopyFile(item, dest);
-        }
-
         // 复制共享目录（libraries/assets）到游戏文件夹根目录，避免重复下载并保留整合包的特殊依赖版本；
-        // 同名文件内容不同时由用户决定跳过还是覆盖。
-        _CopySharedFolderWithConflict(Path.Combine(mcRoot, "libraries"),
+        // 同名文件内容不同时由用户决定跳过还是覆盖（默认跳过）。
+        _CopyDirectoryWithConflict(Path.Combine(mcRoot, "libraries"),
             Path.Combine(ModFolder.mcFolderSelected, "libraries"));
-        _CopySharedFolderWithConflict(Path.Combine(mcRoot, "assets"),
+        _CopyDirectoryWithConflict(Path.Combine(mcRoot, "assets"),
             Path.Combine(ModFolder.mcFolderSelected, "assets"));
 
         // 开启版本隔离
@@ -331,50 +338,94 @@ public static partial class ModModpack
     }
 
     /// <summary>
-    ///     复制共享目录（如 libraries/assets）到游戏文件夹根目录。
-    ///     同名文件先比较内容：内容相同则跳过；内容不同时弹窗让用户选择跳过或覆盖（可全部跳过/全部覆盖，默认跳过）。
+    ///     复制一个目录到目标目录（含子目录），同名文件先比较内容（相同则跳过）；
+    ///     内容不同时弹窗让用户选择（跳过 / 覆盖 / 全部覆盖 / 全部跳过）。
     /// </summary>
-    private static void _CopySharedFolderWithConflict(string sourceFolder, string destFolder)
+    /// <param name="sourceFolder">源目录。</param>
+    /// <param name="destFolder">目标目录。</param>
+    /// <param name="state">本次复制操作的冲突处理状态；未提供时本次复制独立新建。</param>
+    /// <param name="overwriteAsDefault">弹窗默认选项是否为“覆盖”；false 时默认“跳过”。</param>
+    private static void _CopyDirectoryWithConflict(string sourceFolder, string destFolder, CopyConflictState? state = null,
+        bool overwriteAsDefault = false)
     {
+        state ??= new CopyConflictState();
         if (!Directory.Exists(sourceFolder))
             return;
         Directory.CreateDirectory(destFolder);
-        var overwriteAll = false;
-        var skipAll = false;
         foreach (var sourceFile in Directory.EnumerateFiles(sourceFolder, "*", SearchOption.AllDirectories))
         {
             var relativePath = Path.GetRelativePath(sourceFolder, sourceFile);
-            var destFile = Path.Combine(destFolder, relativePath);
-            if (File.Exists(destFile))
+            _CopyFileWithConflict(sourceFile, Path.Combine(destFolder, relativePath), relativePath, state,
+                overwriteAsDefault);
+        }
+    }
+
+    /// <summary>
+    ///     复制单个文件到目标路径，同名文件先比较内容（相同则跳过）；
+    ///     内容不同时弹窗让用户选择（跳过 / 覆盖 / 全部覆盖 / 全部跳过）。
+    ///     弹窗默认选项由 <paramref name="overwriteAsDefault"/> 决定：MyMsgText 会高亮第一个按钮，因此默认按钮放在第一位。
+    /// </summary>
+    /// <param name="sourceFile">源文件。</param>
+    /// <param name="destFile">目标文件。</param>
+    /// <param name="displayPath">弹窗提示中显示的文件路径；为 null 时显示文件名。</param>
+    /// <param name="state">本次复制操作的冲突处理状态。</param>
+    /// <param name="overwriteAsDefault">弹窗默认选项是否为“覆盖”；false 时默认“跳过”。</param>
+    private static void _CopyFileWithConflict(string sourceFile, string destFile, string displayPath,
+        CopyConflictState state, bool overwriteAsDefault = false)
+    {
+        if (File.Exists(destFile))
+        {
+            // 同名文件：先比较内容，相同则无需处理
+            if (_FilesEqual(sourceFile, destFile))
+                return;
+            if (state.SkipAll)
+                return;
+            if (!state.OverwriteAll)
             {
-                // 同名文件：先比较内容，相同则无需处理
-                if (_FilesEqual(sourceFile, destFile))
-                    continue;
-                if (skipAll)
-                    continue;
-                if (!overwriteAll)
+                var choice = ModMain.MyMsgBox(
+                    Lang.Text("Minecraft.Download.Modpack.OverwriteConfirm.Message",
+                        displayPath ?? Path.GetFileName(sourceFile)),
+                    Lang.Text("Minecraft.Download.Modpack.OverwriteConfirm.Title"),
+                    overwriteAsDefault
+                        ? Lang.Text("Common.Action.Overwrite")
+                        : Lang.Text("Minecraft.Download.Modpack.OptionalFile.Skip"),
+                    overwriteAsDefault
+                        ? Lang.Text("Minecraft.Download.Modpack.OptionalFile.Skip")
+                        : Lang.Text("Common.Action.Overwrite"),
+                    Lang.Text("Minecraft.Download.Modpack.OverwriteConfirm.OverwriteAll"),
+                    highLight: true, forceWait: true,
+                    button4: Lang.Text("Minecraft.Download.Modpack.OverwriteConfirm.SkipAll"));
+                switch (choice)
                 {
-                    var choice = ModMain.MyMsgBox(
-                        Lang.Text("Minecraft.Download.Modpack.OverwriteConfirm.Message", relativePath),
-                        Lang.Text("Minecraft.Download.Modpack.OverwriteConfirm.Title"),
-                        Lang.Text("Minecraft.Download.Modpack.OptionalFile.Skip"),
-                        Lang.Text("Common.Action.Overwrite"),
-                        Lang.Text("Minecraft.Download.Modpack.OverwriteConfirm.OverwriteAll"),
-                        highLight: true, forceWait: true,
-                        button4: Lang.Text("Minecraft.Download.Modpack.OverwriteConfirm.SkipAll"));
-                    switch (choice)
-                    {
-                        case 1: continue; // 跳过
-                        case 2: break; // 覆盖
-                        case 3: overwriteAll = true; break; // 全部覆盖
-                        case 4: skipAll = true; continue; // 全部跳过
-                    }
+                    case 1: // 第一个按钮：覆盖（overwriteAsDefault）或跳过（非 overwriteAsDefault）
+                        if (!overwriteAsDefault)
+                            return;
+                        break;
+                    case 2: // 第二个按钮：跳过（overwriteAsDefault）或覆盖（非 overwriteAsDefault）
+                        if (overwriteAsDefault)
+                            return;
+                        break;
+                    case 3: // 全部覆盖
+                        state.OverwriteAll = true;
+                        break;
+                    case 4: // 全部跳过
+                        state.SkipAll = true;
+                        return;
                 }
             }
-
-            Directory.CreateDirectory(Path.GetDirectoryName(destFile) ?? "");
-            File.Copy(sourceFile, destFile, true);
         }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(destFile) ?? "");
+        File.Copy(sourceFile, destFile, true);
+    }
+
+    /// <summary>
+    ///     一次复制操作中“全部覆盖 / 全部跳过”的持久状态。
+    /// </summary>
+    private sealed class CopyConflictState
+    {
+        public bool OverwriteAll;
+        public bool SkipAll;
     }
 
     /// <summary>

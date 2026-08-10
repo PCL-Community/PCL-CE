@@ -109,8 +109,11 @@ public partial class PageInstanceSetup
             ((MyRadioBox)FindName("RadioRamType" + ramType)).Checked = true;
             SliderRamCustom.Value = Config.Instance.CustomMemorySize[PageInstanceLeft.McInstance.PathInstance];
             RamType(ramType);
-            // 整合包未声明推荐内存时禁用「使用整合包推荐内存」选项
-            RadioRamType3.IsEnabled = States.Instance.ModpackRam[PageInstanceLeft.McInstance.PathInstance] > 0;
+            // 整合包未声明推荐内存、或推荐内存大于本机物理内存时禁用「使用整合包推荐内存」选项
+            // （推荐内存超过物理内存说明该推荐值不适合本机，需等物理内存变大后才可选）
+            var modpackRam = States.Instance.ModpackRam[PageInstanceLeft.McInstance.PathInstance];
+            RadioRamType3.IsEnabled = modpackRam > 0 &&
+                                      modpackRam <= KernelInterop.GetPhysicalMemoryBytes().Total / 1024d / 1024d;
 
             // 服务器
             TextServerEnter.Text = Config.Instance.ServerToEnter[PageInstanceLeft.McInstance.PathInstance];
