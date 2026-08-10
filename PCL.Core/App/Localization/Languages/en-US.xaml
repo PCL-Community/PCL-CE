@@ -1997,7 +1997,7 @@
     <sys:String x:Key="Minecraft.Download.Modpack.RarUnsupported">PCL CE cannot handle .rar archive files. Please extract and re-archive them in .zip format and try again!</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRam.Message">This modpack recommends {0} GiB of memory. Use the modpack's recommended memory?</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRam.Title">Modpack recommended memory</sys:String>
-    <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRamUnfit.Message">The modpack author's recommended memory may not suit your computer. Auto-configuration is recommended.</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRamUnfit.Message">This modpack recommends {0} GiB of memory, which may not suit your computer. Auto-configuration is recommended.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRamUnfit.Title">Modpack recommended memory</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRamUnfit.KeepRecommended">Keep recommended</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRamUnfit.UseAuto">Use auto-config</sys:String>

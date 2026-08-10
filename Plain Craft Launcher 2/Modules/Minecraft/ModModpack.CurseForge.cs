@@ -63,7 +63,7 @@ public static partial class ModModpack
                         Lang.Text("Minecraft.Download.Modpack.RecommendedRamUnfit.Message",(recommendedRam / 1024d).ToString("0.#")),
                         Lang.Text("Minecraft.Download.Modpack.RecommendedRamUnfit.Title"),
                         Lang.Text("Minecraft.Download.Modpack.RecommendedRamUnfit.UseAuto"),
-                        Lang.Text("Minecraft.Download.Modpack.RecommendedRamUnfit.KeepRecommended")) == 1;
+                        Lang.Text("Minecraft.Download.Modpack.RecommendedRamUnfit.KeepRecommended")) == 2;
                     if (!useRecommendedRam)
                         useAutoRam = true;
                 }
