@@ -212,6 +212,25 @@ public static partial class ModModpack
     }
 
     /// <summary>
+    ///     计算整合包源解压阶段的进度权重（预计时间秒）。
+    ///     文件来源取文件大小；文件夹来源（内层文件夹形式整合包）取目录下所有文件总大小，
+    /// </summary>
+    private static double _GetModpackProgressWeight(string sourcePath)
+    {
+        try
+        {
+            if (Directory.Exists(sourcePath))
+                return Directory.EnumerateFiles(sourcePath, "*", SearchOption.AllDirectories)
+                    .Sum(file => new FileInfo(file).Length) / 1024d / 1024d / 6d;
+            return new FileInfo(sourcePath).Length / 1024d / 1024d / 6d;
+        }
+        catch (Exception)
+        {
+            return 1d;
+        }
+    }
+
+    /// <summary>
     ///     从整合包的 override 目录复制文件，同时设置 PCL 的配置文件与版本隔离。
     ///     对路径末尾是否为 \ 没有要求。
     /// </summary>

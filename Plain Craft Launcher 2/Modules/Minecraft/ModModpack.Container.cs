@@ -252,7 +252,7 @@ public static partial class ModModpack
                 ModBase.RunInUi(() => ModMain.frmMain.PageChange(FormMain.PageType.InstanceSelect));
             })
             {
-                ProgressWeight = new FileInfo(sourcePath).Length / 1024d / 1024d / 6d
+                ProgressWeight = _GetModpackProgressWeight(sourcePath)
             } // 每 6M 需要 1s
         })
         {

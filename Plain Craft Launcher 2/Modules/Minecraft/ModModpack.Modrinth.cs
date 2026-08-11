@@ -101,7 +101,7 @@ public static partial class ModModpack
                 Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName), task, 0.1d);
         })
         {
-            ProgressWeight = new FileInfo(sourcePath).Length / 1024d / 1024d / 6d,
+            ProgressWeight = _GetModpackProgressWeight(sourcePath),
             block = false
         }); // 每 6M 需要 1s
         // 获取下载文件列表

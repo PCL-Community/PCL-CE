@@ -68,7 +68,7 @@ public static partial class ModModpack
             if (manifest.Version is not null) States.Instance.ModpackVersion[versionFolder] = manifest.Version;
         });
 
-        unzipTask.ProgressWeight = new FileInfo(sourcePath).Length / 1024.0 / 1024.0 / 6.0; // 每 6M 需要 1s
+        unzipTask.ProgressWeight = _GetModpackProgressWeight(sourcePath); // 每 6M 需要 1s
         unzipTask.block = false;
         installLoaders.Add(unzipTask);
 

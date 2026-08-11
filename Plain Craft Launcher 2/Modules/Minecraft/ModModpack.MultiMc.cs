@@ -96,7 +96,7 @@ public static partial class ModModpack
                 installTemp, archiveBaseFolder, instanceName);
         })
         {
-            ProgressWeight = new FileInfo(sourcePath).Length / 1024d / 1024d / 6d,
+            ProgressWeight = _GetModpackProgressWeight(sourcePath),
             block = false
         }); // 每 6M 需要 1s
         // 构造实例安装请求

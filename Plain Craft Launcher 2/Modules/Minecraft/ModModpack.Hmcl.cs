@@ -41,7 +41,7 @@ public static partial class ModModpack
                 Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName), task, 0.4d);
         })
         {
-            ProgressWeight = new FileInfo(sourcePath).Length / 1024d / 1024d / 6d,
+            ProgressWeight = _GetModpackProgressWeight(sourcePath),
             block = false
         }); // 每 6M 需要 1s
         // 构造游戏本体安装加载器
