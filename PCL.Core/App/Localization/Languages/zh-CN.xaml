@@ -1687,7 +1687,7 @@
     <sys:String x:Key="Launch.OfflineSkin.SelectCape">选择披风文件…</sys:String>
     <sys:String x:Key="Launch.OfflineSkin.CslApiUrl">CSL API 地址</sys:String>
     <sys:String x:Key="Launch.OfflineSkin.LittleSkinHint">LittleSkin 为 Minecraft 玩家提供皮肤托管服务。</sys:String>
-    <sys:String x:Key="Launch.OfflineSkin.OpenLittleSkin">打开其官网</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.OpenLittleSkin">打开官网</sys:String>
     <sys:String x:Key="Launch.OfflineSkin.Confirm">确定</sys:String>
     <sys:String x:Key="Launch.OfflineSkin.Cancel">取消</sys:String>
     <sys:String x:Key="Launch.OfflineSkin.Saved">皮肤已保存</sys:String>
