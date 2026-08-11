@@ -65,9 +65,9 @@ public static class ModpackArchiveDetector
             }
         }
 
-        // 懒人包：存在 .minecraft/versions/&lt;版本&gt;/&lt;版本&gt;.json 结构
+        // 懒人包：存在 versions/&lt;版本&gt;/&lt;版本&gt;.json 结构。
         foreach (var entryName in archive.EntryNames)
-            if (RegexPatterns.ModpackLazyInstance.Match(entryName).Success)
+            if (RegexPatterns.ModpackLazyInstance.Match("/" + entryName).Success)
                 return new ModpackDetection(ModpackFormat.LazyPack, "");
 
         // 嵌套整合包：更深的层级（深度 ≥ 3）存在已知整合包标记，说明压缩包内还打包了其他内容。

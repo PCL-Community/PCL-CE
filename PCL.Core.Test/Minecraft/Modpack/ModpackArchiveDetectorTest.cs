@@ -106,6 +106,14 @@ public class ModpackArchiveDetectorTest
     }
 
     [TestMethod]
+    public void DetectsRootLayoutLazyPack()
+    {
+        var archive = new FakeModpackArchive("versions/1.20.1/1.20.1.json", "mods/Test.jar", "README.txt");
+        var result = ModpackArchiveDetector.Detect(archive);
+        Assert.AreEqual(ModpackFormat.LazyPack, result.Format);
+    }
+
+    [TestMethod]
     public void ReturnsUnknownForUnrecognizedArchive()
     {
         var archive = new FakeModpackArchive("README.txt", "data/something.dat");
