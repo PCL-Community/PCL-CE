@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Runtime.InteropServices;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
@@ -326,29 +325,58 @@ namespace PCL
         private static void _OpenHelp(string arg, EventType type)
         {
             var args = SplitArgs(arg);
-            if (!args[0].StartsWithF("http", true))
+            if (!Uri.TryCreate(args[0], UriKind.Absolute, out var uri) ||
+                (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
             {
                 ModBase.OpenWebsite("https://docs.pclc.cc/ce");
                 return;
             }
-            var actualPaths = GetAbsoluteUrls(args[0], type);
-            var location = actualPaths.FirstOrDefault();
-            
-            
+
+            ModBase.RunInThread(() =>
+            {
+                try
+                {
+                    var actualPaths = GetAbsoluteUrls(args[0], type);
+                    var location = actualPaths[0];
+                    var content = PageHelpDetail.LoadContent(location);
+                    ModBase.RunInUiWait(() =>
+                    {
+                        var page = new PageHelpDetail(content);
+                        ModMain.frmMain.PageChange(new FormMain.PageStackData
+                        {
+                            page = FormMain.PageType.HelpDetail,
+                            helpPage = page
+                        });
+                    });
+                }
+                catch (Exception ex)
+                {
+                    ModBase.Log(
+                        ex,
+                        Lang.Text("Event.Error.ExecutionFailed", type, arg),
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Event.Error.ExecutionFailed", type, arg));
+                }
+            });
         }
 
         public static string[] GetAbsoluteUrls(string relativeUrl, EventType type)
         {
-            if (relativeUrl.StartsWithF("http", true))
+            if (type == EventType.OpenHelp &&
+                Uri.TryCreate(relativeUrl, UriKind.Absolute, out var remoteUri) &&
+                (remoteUri.Scheme == Uri.UriSchemeHttp || remoteUri.Scheme == Uri.UriSchemeHttps))
             {
                 if (ModBase.RunInUi()) throw new Exception("能打开联网帮助页面的 MyListItem 必须手动设置 Title、Info 属性！");
-                
+
                 // 获取文件名
                 string rawFileName;
                 try
                 {
-                    rawFileName = relativeUrl.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).BeforeFirst("#").BeforeFirst("?");
-                    if (!rawFileName.EndsWithF(".json", true)) throw new Exception("未指向 .json 后缀的文件");
+                    rawFileName = Uri.UnescapeDataString(Path.GetFileName(remoteUri.AbsolutePath));
+                    if (!Path.GetExtension(rawFileName).Equals(".json", StringComparison.OrdinalIgnoreCase))
+                        throw new Exception("未指向 .json 后缀的文件");
+                    if (rawFileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+                        throw new Exception("文件名包含非法字符");
                 }
                 catch (Exception e)
                 {
@@ -357,14 +385,20 @@ namespace PCL
                                         " - https://www.baidu.com/test.json（填写这个路径）\n" +
                                         " - https://www.baidu.com/test.xaml（同时也需要包含这个文件）", e);
                 }
-                
+
                 // 下载文件
-                string temp = ModMain.RequestTaskTempFolder() + rawFileName;
-                ModBase.Log($"转换网络资源: {relativeUrl} -> {temp}");
+                var tempFolder = ModMain.RequestTaskTempFolder();
+                var jsonPath = Path.Combine(tempFolder, rawFileName);
+                var xamlPath = Path.ChangeExtension(jsonPath, ".xaml");
+                var xamlUri = new UriBuilder(remoteUri)
+                {
+                    Path = Path.ChangeExtension(remoteUri.AbsolutePath, ".xaml").Replace('\\', '/')
+                }.Uri.AbsoluteUri;
+                ModBase.Log($"[Control] 转换网络帮助资源：{relativeUrl} -> {jsonPath}");
                 try
                 {
-                    ModNet.NetDownloadByClient(relativeUrl, temp);
-                    ModNet.NetDownloadByClient(relativeUrl.Replace(".json", ".xaml"), temp.Replace(".json", ".xaml"));
+                    ModNet.NetDownloadByClient(remoteUri.AbsoluteUri, jsonPath);
+                    ModNet.NetDownloadByClient(xamlUri, xamlPath);
                 }
                 catch (Exception e)
                 {
@@ -375,15 +409,14 @@ namespace PCL
                                         " - https://www.baidu.com/test.xaml（同时也需要包含这个文件）", e);
                 }
 
-                relativeUrl = temp;
+                relativeUrl = jsonPath;
             }
-            relativeUrl = relativeUrl.Replace('/', '\\').ToLower().TrimStart('\\');
-            
+
             // 确认路径
-            relativeUrl = relativeUrl.Replace('/', '\\').ToLower().TrimStart('\\');
+            relativeUrl = relativeUrl.Replace('/', Path.DirectorySeparatorChar);
             var pclDir = Path.Combine(Basics.ExecutableDirectory, "PCL");
 
-            if (relativeUrl.Contains(":\\")) // 绝对路径
+            if (Path.IsPathFullyQualified(relativeUrl)) // 绝对路径
             {
                 ModBase.Log($"[Control] 自定义事件中由绝对路径 {type}: {relativeUrl}");
                 return [relativeUrl, pclDir];
