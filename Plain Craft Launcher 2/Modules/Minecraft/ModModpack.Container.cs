@@ -293,7 +293,7 @@ public static partial class ModModpack
                 _CopyFileWithConflict(item, dest, name, conflictState, overwriteAsDefault: true);
         }
 
-        // 再复制版本文件夹全部内容（json/jar 改名并修正 id，其余文件如 mods/config 一并复制，兼容隔离与非隔离两种布局）。
+        // 再复制版本文件夹全部内容（json/jar 改名并修正 id、jar 字段，其余文件如 mods/config 一并复制，兼容隔离与非隔离两种布局）。
         // 与根目录同名且内容不同的文件弹窗让用户决定，默认覆盖（实例目录内容优先）。
         var versionDir = Path.Combine(mcRoot, "versions", packVersionName);
         if (Directory.Exists(versionDir))
@@ -304,7 +304,12 @@ public static partial class ModModpack
                 {
                     var versionJson = (JsonObject)ModBase.GetJson(ModBase.ReadFile(item));
                     if (!string.Equals(instanceName, packVersionName, StringComparison.OrdinalIgnoreCase))
+                    {
                         versionJson["id"] = instanceName;
+                        // jar 字段指向原名时一并改写为实例名
+                        if (string.Equals(versionJson["jar"]?.ToString(), packVersionName, StringComparison.OrdinalIgnoreCase))
+                            versionJson["jar"] = instanceName;
+                    }
                     ModBase.WriteFile(Path.Combine(instanceFolder, instanceName + ".json"), versionJson.ToString());
                 }
                 else if (name.Equals(packVersionName + ".jar", StringComparison.OrdinalIgnoreCase))
