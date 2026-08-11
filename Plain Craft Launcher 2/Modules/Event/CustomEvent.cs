@@ -397,8 +397,10 @@ namespace PCL
                 ModBase.Log($"[Control] 转换网络帮助资源：{relativeUrl} -> {jsonPath}");
                 try
                 {
-                    ModNet.NetDownloadByClient(remoteUri.AbsoluteUri, jsonPath);
-                    ModNet.NetDownloadByClient(xamlUri, xamlPath);
+                    Task.WhenAll(
+                        ModNet.NetDownloadByClient(remoteUri.AbsoluteUri, jsonPath),
+                        ModNet.NetDownloadByClient(xamlUri, xamlPath)
+                    ).GetAwaiter().GetResult();
                 }
                 catch (Exception e)
                 {
