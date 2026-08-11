@@ -100,12 +100,10 @@
                         Click="BtnOpenLittleSkin_Click" />
     </StackPanel>
     <!-- 底部按钮 -->
-    <Grid Grid.Row="4" Grid.Column="1">
-        <local:MyButton x:Name="BtnCancel" Width="50" Margin="-100,0,0,0" ColorType="Normal"
-                        Text="{DynamicResource Launch.OfflineSkin.Cancel}" HorizontalAlignment="Center"
-                        Click="BtnCancel_Click" />
-        <local:MyButton x:Name="BtnConfirm" Width="50" Margin="20,0,0,0" ColorType="Highlight"
-                        Text="{DynamicResource Launch.OfflineSkin.Confirm}" HorizontalAlignment="Center"
-                        Click="BtnConfirm_Click" />
-    </Grid>
+    <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
+        <local:MyButton x:Name="BtnCancel" Width="50" ColorType="Normal"
+                        Text="{DynamicResource Launch.OfflineSkin.Cancel}" Click="BtnCancel_Click" />
+        <local:MyButton x:Name="BtnConfirm" Width="50" Margin="10,0,0,0" ColorType="Highlight"
+                        Text="{DynamicResource Launch.OfflineSkin.Confirm}" Click="BtnConfirm_Click" />
+    </StackPanel>
 </Grid>
