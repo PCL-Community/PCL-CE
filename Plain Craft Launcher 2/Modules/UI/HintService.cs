@@ -47,7 +47,7 @@ public static class HintService
         try
         {
             ModMain.frmMain!.PanHint.HorizontalAlignment = HorizontalAlignment.Right;
-            ModMain.frmMain.PanHint.VerticalAlignment = VerticalAlignment.Bottom;
+            ModMain.frmMain.PanHint.VerticalAlignment = VerticalAlignment.Stretch;
 
             var extraHeight = ModMain.frmMain.PanExtraButtons.ActualHeight;
             ModMain.frmMain.PanHint.Margin = new Thickness(0, 0, 0, extraHeight > 0 ? extraHeight + 20 : 20);
@@ -90,6 +90,8 @@ public static class HintService
 
             ModMain.frmMain.PanHint.Children.Insert(0, toast);
             toast.Show();
+            System.IO.File.AppendAllText(@"C:\Users\imagi\AppData\Local\Temp\opencode\toast-debug.log",
+                $"SHOW uuid={toast.Uuid} dur={toast.DisplayDuration} active={activeCount} tick={PCL.Core.Utils.TimeUtils.GetTimeTick()}\n");
             RearrangeToasts();
 
             if (currentHint.Log)
@@ -114,6 +116,8 @@ public static class HintService
             var required = toasts.Sum(t => t._targetHeight + ToastGap) + ToastGap;
             if (required > available)
             {
+                System.IO.File.AppendAllText(@"C:\Users\imagi\AppData\Local\Temp\opencode\toast-debug.log",
+                    $"OVERFLOW dismiss toast={toasts[^1].Uuid} avail={available:0.0} req={required:0.0} tick={PCL.Core.Utils.TimeUtils.GetTimeTick()}\n");
                 toasts[^1].Dismiss(); // 超出可用高度时收掉最旧的弹窗，保证其余完整可见
                 return;
             }

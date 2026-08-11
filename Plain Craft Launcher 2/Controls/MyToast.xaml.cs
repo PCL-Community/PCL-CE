@@ -184,6 +184,8 @@ public partial class MyToast
             {
                 if (Parent is Panel p)
                 {
+                    System.IO.File.AppendAllText(@"C:\Users\imagi\AppData\Local\Temp\opencode\toast-debug.log",
+                        $"REMOVED toast={Uuid} tick={TimeUtils.GetTimeTick()}\n");
                     p.Children.Remove(this);
                     HintService.OnToastRemoved(this);
                 }
@@ -194,6 +196,8 @@ public partial class MyToast
     public void Dismiss()
     {
         if (IsDismissing) return;
+        System.IO.File.AppendAllText(@"C:\Users\imagi\AppData\Local\Temp\opencode\toast-debug.log",
+            $"DISMISS toast={Uuid} tick={TimeUtils.GetTimeTick()}\n");
         IsDismissing = true;
         _isDragging = false;
         _dragPending = false;

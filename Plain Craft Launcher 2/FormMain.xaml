@@ -220,7 +220,7 @@
                     </Border>
                 </Grid>
                 <Grid x:Name="PanHint" UseLayoutRounding="True"
-                      SnapsToDevicePixels="True" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                      SnapsToDevicePixels="True" HorizontalAlignment="Left" VerticalAlignment="Stretch"
                       Margin="0,0,0,20"
                       Grid.Row="0" Grid.RowSpan="2" Panel.ZIndex="1" />
                 <StackPanel x:Name="PanExtraButtons" HorizontalAlignment="Right" VerticalAlignment="Bottom" Grid.Row="1" Margin="15">
