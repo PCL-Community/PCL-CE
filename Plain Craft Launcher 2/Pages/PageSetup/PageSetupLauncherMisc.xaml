@@ -154,37 +154,6 @@
 
             <local:MyCard x:Name="CardDebug" Margin="0,0,0,15" Title="{DynamicResource Setup.Misc.Debug.Title}" CanSwap="True" IsSwapped="True">
                 <StackPanel Margin="25,40,25,15">
-                    <Grid Margin="0,0,0,10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
-                            <ColumnDefinition />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Misc.Debug.TestToast.Type}" Margin="0,0,25,0" />
-                        <local:MyComboBox x:Name="ComboToastTestType" Grid.Column="1" SelectedIndex="0">
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Misc.Debug.TestToast.Type.Info}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Misc.Debug.TestToast.Type.Success}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Misc.Debug.TestToast.Type.Error}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Misc.Debug.TestToast.Type.Warning}" />
-                        </local:MyComboBox>
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="15,0,0,0">
-                            <local:MyButton x:Name="BtnToastTest" MinWidth="120"
-                                            Text="{DynamicResource Setup.Misc.Debug.TestToast.Show}" Padding="13,0"
-                                            Click="BtnToastTest_Click" />
-                            <local:MyButton x:Name="BtnToastTestBatch" MinWidth="120" Margin="10,0,0,0"
-                                            Text="{DynamicResource Setup.Misc.Debug.TestToast.ShowBatch}" Padding="13,0"
-                                            Click="BtnToastTestBatch_Click" />
-                        </StackPanel>
-                    </Grid>
-                    <Grid Margin="0,0,0,10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
-                            <ColumnDefinition />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Misc.Debug.TestToast.Content}" Margin="0,0,25,0" />
-                        <local:MyTextBox x:Name="TextToastTestContent" Grid.Column="1"
-                                         Text="这是一条测试弹窗！" />
-                    </Grid>
                     <Grid x:Name="PanDebugAnim" Height="22" Margin="0,0,0,10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />

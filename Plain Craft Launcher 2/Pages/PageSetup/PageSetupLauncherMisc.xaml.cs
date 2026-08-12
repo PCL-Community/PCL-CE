@@ -182,42 +182,6 @@ public partial class PageSetupLauncherMisc
             2) ComboSystemActivity.SelectedItem = e.RemovedItems[0];
     }
 
-    // 测试弹窗（调试选项）
-    private void BtnToastTest_Click(object sender, MouseButtonEventArgs e)
-    {
-        var text = TextToastTestContent.Text;
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            HintService.Hint("请输入要测试的弹窗内容。", HintType.Warning, false);
-            return;
-        }
-
-        var type = ComboToastTestType.SelectedIndex switch
-        {
-            1 => HintType.Success,
-            2 => HintType.Error,
-            3 => HintType.Warning,
-            _ => HintType.Info
-        };
-        HintService.Hint(text, type);
-    }
-
-    // 连续触发多条弹窗（调试选项）
-    private void BtnToastTestBatch_Click(object sender, MouseButtonEventArgs e)
-    {
-        const int batchCount = 6;
-        var baseText = TextToastTestContent.Text;
-        if (string.IsNullOrWhiteSpace(baseText))
-        {
-            HintService.Hint("请输入要测试的弹窗内容。", HintType.Warning, false);
-            return;
-        }
-
-        var types = new[] { HintType.Info, HintType.Success, HintType.Error, HintType.Warning };
-        for (var i = 0; i < batchCount; i++)
-            HintService.Hint($"[{i + 1}/{batchCount}] {baseText}", types[i % types.Length], log: false);
-    }
-
     private void CheckDebugMode_OnChange(object sender, bool user)
     {
         CheckBoxChange(sender, user);

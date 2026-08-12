@@ -2900,14 +2900,6 @@
     <sys:String x:Key="Setup.Misc.Debug.SkipCopy">Do not copy files from other folders while downloading</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.SkipCopy.ToolTip">When downloading, do not copy identical files that already exist in other Minecraft folders; re-download them instead.&#xA;Only recommended for testing download speed.</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.Title">Debug options</sys:String>
-    <sys:String x:Key="Setup.Misc.Debug.TestToast.Type">Toast type</sys:String>
-    <sys:String x:Key="Setup.Misc.Debug.TestToast.Type.Info">Info</sys:String>
-    <sys:String x:Key="Setup.Misc.Debug.TestToast.Type.Success">Success</sys:String>
-    <sys:String x:Key="Setup.Misc.Debug.TestToast.Type.Error">Error</sys:String>
-    <sys:String x:Key="Setup.Misc.Debug.TestToast.Type.Warning">Warning</sys:String>
-    <sys:String x:Key="Setup.Misc.Debug.TestToast.Content">Toast content</sys:String>
-    <sys:String x:Key="Setup.Misc.Debug.TestToast.Show">Show test toast</sys:String>
-    <sys:String x:Key="Setup.Misc.Debug.TestToast.ShowBatch">Show a burst of toasts</sys:String>
 
     <!-- Setup.Misc.Network -->
 
