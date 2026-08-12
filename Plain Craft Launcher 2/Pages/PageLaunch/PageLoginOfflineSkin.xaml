@@ -56,7 +56,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <local:MyTextBox x:Name="TextSkinPath" Height="28" IsReadOnly="True" />
-            <Border Grid.Column="1" Margin="6,0,0,0" CornerRadius="6" BorderThickness="1"
+            <Border Grid.Column="1" Margin="6,0,0,0" CornerRadius="2" BorderThickness="1"
                     BorderBrush="{DynamicResource ColorBrushBg0}"
                     Background="{DynamicResource ColorBrushHalfWhite}">
                 <local:MyIconButton Height="26" Width="26"
@@ -72,7 +72,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <local:MyTextBox x:Name="TextCapePath" Height="28" IsReadOnly="True" />
-            <Border Grid.Column="1" Margin="6,0,0,0" CornerRadius="6" BorderThickness="1"
+            <Border Grid.Column="1" Margin="6,0,0,0" CornerRadius="2" BorderThickness="1"
                     BorderBrush="{DynamicResource ColorBrushBg0}"
                     Background="{DynamicResource ColorBrushHalfWhite}">
                 <local:MyIconButton Height="26" Width="26"
