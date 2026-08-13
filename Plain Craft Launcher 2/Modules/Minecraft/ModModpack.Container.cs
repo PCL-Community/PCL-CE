@@ -267,9 +267,6 @@ public static partial class ModModpack
 
     /// <summary>
     ///     将懒人包解压后的 .minecraft 实例内容安装到当前游戏文件夹的 <c>versions\{实例名}</c> 下。
-    ///     仅复制实例自身内容（版本配置、mods/config/saves 等），共享目录（libraries/assets 等）由启动器在运行时自动补全。
-    ///     先复制根目录内容，再复制实例目录（版本文件夹）内容，两者同名文件统一走“校验+复制”，
-    ///     内容不同时弹窗让用户决定（默认覆盖，即实例目录内容优先）。
     /// </summary>
     private static void _InstallLazyPackInstance(string installTemp, string archiveBaseFolder, string packVersionName,
         string instanceName)
@@ -292,41 +289,43 @@ public static partial class ModModpack
             else
                 _CopyFileWithConflict(item, dest, name, conflictState, overwriteAsDefault: true);
         }
-
-        // 再复制版本文件夹全部内容（json/jar 改名并修正 id、jar 字段，其余文件如 mods/config 一并复制，兼容隔离与非隔离两种布局）。
-        // 与根目录同名且内容不同的文件弹窗让用户决定，默认覆盖（实例目录内容优先）。
-        var versionDir = Path.Combine(mcRoot, "versions", packVersionName);
-        if (Directory.Exists(versionDir))
-            foreach (var item in Directory.GetFileSystemEntries(versionDir))
+        var bundledVersionsRoot = Path.Combine(mcRoot, "versions");
+        var bundledVersionFolders = Directory.Exists(bundledVersionsRoot)
+            ? Directory.GetDirectories(bundledVersionsRoot)
+                .Where(dir => File.Exists(Path.Combine(dir, Path.GetFileName(dir) + ".json"))).ToList()
+            : new List<string>();
+        var pclVersionsRoot = Path.Combine(ModFolder.mcFolderSelected, "versions");
+        var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (Directory.Exists(pclVersionsRoot))
+            foreach (var existing in Directory.GetDirectories(pclVersionsRoot))
+                usedNames.Add(Path.GetFileName(existing));
+        usedNames.Add(instanceName);
+        var nameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var versionFolder in bundledVersionFolders)
+        {
+            var sourceName = Path.GetFileName(versionFolder);
+            string destName;
+            if (sourceName.Equals(packVersionName, StringComparison.OrdinalIgnoreCase))
+                destName = instanceName;
+            else if (usedNames.Add(sourceName))
+                destName = sourceName;
+            else
             {
-                var name = Path.GetFileName(item);
-                if (name.Equals(packVersionName + ".json", StringComparison.OrdinalIgnoreCase))
-                {
-                    var versionJson = (JsonObject)ModBase.GetJson(ModBase.ReadFile(item));
-                    if (!string.Equals(instanceName, packVersionName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        versionJson["id"] = instanceName;
-                        // jar 字段指向原名时一并改写为实例名
-                        if (string.Equals(versionJson["jar"]?.ToString(), packVersionName, StringComparison.OrdinalIgnoreCase))
-                            versionJson["jar"] = instanceName;
-                    }
-                    ModBase.WriteFile(Path.Combine(instanceFolder, instanceName + ".json"), versionJson.ToString());
-                }
-                else if (name.Equals(packVersionName + ".jar", StringComparison.OrdinalIgnoreCase))
-                {
-                    ModBase.CopyFile(item, Path.Combine(instanceFolder, instanceName + ".jar"));
-                }
-                else if (Directory.Exists(item))
-                {
-                    _CopyDirectoryWithConflict(item, Path.Combine(instanceFolder, name), conflictState,
-                        overwriteAsDefault: true);
-                }
-                else
-                {
-                    _CopyFileWithConflict(item, Path.Combine(instanceFolder, name), name, conflictState,
-                        overwriteAsDefault: true);
-                }
+                destName = sourceName;
+                var suffix = 1;
+                while (!usedNames.Add(destName + "-PCL" + (suffix == 1 ? "" : suffix.ToString())))
+                    suffix++;
+                destName += "-PCL" + (suffix == 1 ? "" : suffix.ToString());
             }
+            nameMap[sourceName] = destName;
+        }
+        // 按目标名逐一复制，json/jar 引用随 nameMap 一并改写
+        foreach (var versionFolder in bundledVersionFolders)
+        {
+            var sourceName = Path.GetFileName(versionFolder);
+            var destName = nameMap[sourceName];
+            _CopyBundledVersion(versionFolder, Path.Combine(pclVersionsRoot, destName), sourceName, destName, nameMap);
+        }
 
         // 复制共享目录（libraries/assets）到游戏文件夹根目录，避免重复下载并保留整合包的特殊依赖版本；
         // 同名文件内容不同时由用户决定跳过还是覆盖（默认跳过）。
@@ -340,6 +339,50 @@ public static partial class ModModpack
         ModBase.WriteIni(versionIni, "VersionArgumentIndie", 1.ToString());
         ModBase.WriteIni(versionIni, "VersionArgumentIndieV2", true.ToString());
         ModBase.IniClearCache(versionIni);
+    }
+
+    /// <summary>
+    ///     将懒人包内的单个版本文件夹完整复制到目标版本文件夹。
+    ///     源名与目标名不同时（主实例改名、或与已有实例重名自动改名），json/jar 文件同步改名，
+    ///     并修正 json 的 <c>id</c> / <c>jar</c> / <c>inheritsFrom</c> 字段；继承引用按
+    ///     <paramref name="nameMap" /> 一并改写，保证改名后的继承链仍能正确解析。
+    /// </summary>
+    /// <param name="sourceFolder">包内源版本文件夹</param>
+    /// <param name="destFolder">PCL 中目标版本文件夹</param>
+    /// <param name="sourceName">源版本名</param>
+    /// <param name="destName">目标版本名</param>
+    /// <param name="nameMap">包内原版本名到目标名的映射，用于改写继承引用</param>
+    private static void _CopyBundledVersion(string sourceFolder, string destFolder, string sourceName, string destName,
+        IReadOnlyDictionary<string, string> nameMap)
+    {
+        Directory.CreateDirectory(destFolder);
+        foreach (var item in Directory.GetFileSystemEntries(sourceFolder))
+        {
+            var itemName = Path.GetFileName(item);
+            if (itemName.Equals(sourceName + ".json", StringComparison.OrdinalIgnoreCase))
+            {
+                var json = (JsonObject)ModBase.GetJson(ModBase.ReadFile(item));
+                json["id"] = destName;
+                if (json["jar"]?.ToString() is string jar && nameMap.TryGetValue(jar, out var newJar))
+                    json["jar"] = newJar;
+                if (json["inheritsFrom"]?.ToString() is string inherit &&
+                    nameMap.TryGetValue(inherit, out var newInherit))
+                    json["inheritsFrom"] = newInherit;
+                ModBase.WriteFile(Path.Combine(destFolder, destName + ".json"), json.ToString());
+            }
+            else if (itemName.Equals(sourceName + ".jar", StringComparison.OrdinalIgnoreCase))
+            {
+                ModBase.CopyFile(item, Path.Combine(destFolder, destName + ".jar"));
+            }
+            else if (Directory.Exists(item))
+            {
+                ModBase.CopyDirectory(item, Path.Combine(destFolder, itemName));
+            }
+            else
+            {
+                ModBase.CopyFile(item, Path.Combine(destFolder, itemName));
+            }
+        }
     }
 
     /// <summary>
