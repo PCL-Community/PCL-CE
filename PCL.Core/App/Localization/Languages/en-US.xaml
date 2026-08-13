@@ -1671,7 +1671,7 @@
     <!-- Launch.OfflineSkin -->
 
     <sys:String x:Key="Launch.OfflineSkin.Title">Skin Settings</sys:String>
-    <sys:String x:Key="Launch.OfflineSkin.Type">Skin Type</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Type">Type</sys:String>
     <sys:String x:Key="Launch.OfflineSkin.Type.Default">Default</sys:String>
     <sys:String x:Key="Launch.OfflineSkin.Type.Steve">Steve</sys:String>
     <sys:String x:Key="Launch.OfflineSkin.Type.Alex">Alex</sys:String>
@@ -1681,9 +1681,9 @@
     <sys:String x:Key="Launch.OfflineSkin.Model">Model</sys:String>
     <sys:String x:Key="Launch.OfflineSkin.Model.Wide">Steve (wide arms)</sys:String>
     <sys:String x:Key="Launch.OfflineSkin.Model.Slim">Alex (slim arms)</sys:String>
-    <sys:String x:Key="Launch.OfflineSkin.SkinFile">Skin file</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.SkinFile">Skin</sys:String>
     <sys:String x:Key="Launch.OfflineSkin.SelectSkin">Select skin file...</sys:String>
-    <sys:String x:Key="Launch.OfflineSkin.CapeFile">Cape file</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.CapeFile">Cape</sys:String>
     <sys:String x:Key="Launch.OfflineSkin.SelectCape">Select cape file...</sys:String>
     <sys:String x:Key="Launch.OfflineSkin.CslApiUrl">CSL API URL</sys:String>
     <sys:String x:Key="Launch.OfflineSkin.LittleSkinHint">LittleSkin provides skin hosting for Minecraft players.</sys:String>
