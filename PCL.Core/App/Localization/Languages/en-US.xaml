@@ -1386,6 +1386,7 @@
     <sys:String x:Key="Instance.Setup.Hint">These settings only apply to this game instance and do not affect other instances.</sys:String>
     <sys:String x:Key="Instance.Setup.Initialize.Success">Instance settings initialized!</sys:String>
     <sys:String x:Key="Instance.Setup.Memory.Used">Memory used</sys:String>
+    <sys:String x:Key="Instance.Setup.ModpackRecommendedRam">Use modpack recommended memory</sys:String>
     <sys:String x:Key="Instance.Setup.OpenGlobalSettings">Global settings</sys:String>
 
     <!-- Instance.Setup.Advanced -->
@@ -1994,6 +1995,12 @@
     <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Title">File path validation failed</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.QuiltUnsupported">Cannot install this modpack: Quilt is no longer supported by this launcher.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.RarUnsupported">PCL CE cannot handle .rar archive files. Please extract and re-archive them in .zip format and try again!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRam.Message">This modpack recommends {0} GiB of memory. Use the modpack's recommended memory?</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRam.Title">Modpack recommended memory</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRamUnfit.Message">This modpack recommends {0} GiB of memory, which may not suit your computer. Auto-configuration is recommended.</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRamUnfit.Title">Modpack recommended memory</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRamUnfit.KeepRecommended">Keep recommended</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.RecommendedRamUnfit.UseAuto">Use auto-config</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SelectEmptyFolder.Message">Next, select an empty folder. The modpack will be installed there.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SelectTargetFolder.Title">Select installation target (must be an empty folder)</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SomeModsDeleted">Some mod versions in the modpack have been deleted by the mod authors, so installation cannot continue. Please report this issue to the modpack author.</sys:String>
@@ -2006,6 +2013,10 @@
     <sys:String x:Key="Minecraft.Download.Modpack.TooOldUnsupported">This modpack version is too old and no longer supported!</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.UnknownArchiveStructure">No suitable file structure was found. This may not be a Minecraft archive.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.UnknownLoader">Cannot install modpack, unknown mod loader {0} (version {1})!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OverwriteConfirm.Message">A same-named file has different content: {0}&#xD;&#xA;Skip or overwrite it?</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OverwriteConfirm.Title">File content conflict</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OverwriteConfirm.OverwriteAll">Overwrite all</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.OverwriteConfirm.SkipAll">Skip all</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.UnsupportedArchive">Failed to open the modpack file. The file may be corrupted or in an unsupported archive format.</sys:String>
 
     <!-- Minecraft.Download.Modpack.Stage -->
@@ -2275,6 +2286,10 @@
     <sys:String x:Key="Minecraft.Launch.Precheck.RequireMicrosoft">This instance requires Microsoft login. Please use a Microsoft login profile!</sys:String>
     <sys:String x:Key="Minecraft.Launch.Precheck.RequireMicrosoftOrThirdParty">This instance requires Microsoft or third-party login. Please use a matching profile!</sys:String>
     <sys:String x:Key="Minecraft.Launch.Precheck.RequireThirdParty">This instance requires third-party login. Please use a third-party login profile!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.ModpackRecommendedRamUnfit.Message">The modpack author's recommended memory may not suit your computer. Switch to auto-configuration?</sys:String>
+    <sys:String x:Key="Minecraft.Launch.ModpackRecommendedRamUnfit.Title">Modpack recommended memory</sys:String>
+    <sys:String x:Key="Minecraft.Launch.ModpackRecommendedRamUnfit.SwitchAuto">Switch to auto-config</sys:String>
+    <sys:String x:Key="Minecraft.Launch.ModpackRecommendedRamUnfit.KeepRecommended">Keep recommended</sys:String>
 
     <!-- Minecraft.Launch.Stage -->
 

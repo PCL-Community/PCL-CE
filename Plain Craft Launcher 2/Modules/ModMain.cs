@@ -253,6 +253,13 @@ public static class ModMain
         /// </summary>
         public Action Button3Action;
 
+        public string Button4 = "";
+
+        /// <summary>
+        ///     点击第四个按钮将执行该方法，不关闭弹窗。
+        /// </summary>
+        public Action Button4Action;
+
         /// <summary>
         ///     输入模式：文本框的文本。
         ///     选择模式：需要放进去的 List(Of MyListItem)。
@@ -327,18 +334,21 @@ public static class ModMain
     /// <param name="isWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
     public static int MyMsgBox(string caption, string? title = null, string? button1 = null, string? button2 = "",
         string? button3 = "", bool isWarn = false, bool highLight = true, bool forceWait = false,
-        Action button1Action = null, Action button2Action = null, Action button3Action = null)
+        Action button1Action = null, Action button2Action = null, Action button3Action = null, string? button4 = "",
+        Action button4Action = null)
     {
         title ??= GetDefaultDialogTitle();
         button1 ??= GetDefaultConfirmText();
         button2 ??= "";
         button3 ??= "";
+        button4 ??= "";
         // 将弹窗列入队列
         var converter = new MyMsgBoxConverter
         {
-            Type = MyMsgBoxType.Text, Button1 = button1, Button2 = button2, Button3 = button3, Text = caption,
-            IsWarn = isWarn, Title = title, HighLight = highLight, ForceWait = true, Button1Action = button1Action,
-            Button2Action = button2Action, Button3Action = button3Action
+            Type = MyMsgBoxType.Text, Button1 = button1, Button2 = button2, Button3 = button3, Button4 = button4,
+            Text = caption, IsWarn = isWarn, Title = title, HighLight = highLight, ForceWait = true,
+            Button1Action = button1Action, Button2Action = button2Action, Button3Action = button3Action,
+            Button4Action = button4Action
         };
         WaitingMyMsgBox.Add(converter);
         if (ModBase.RunInUi())

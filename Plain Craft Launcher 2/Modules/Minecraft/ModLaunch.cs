@@ -88,6 +88,31 @@ public static class ModLaunch
         if (!string.IsNullOrEmpty(checkResult))
             throw new ArgumentException(checkResult);
 
+        // 检查整合包推荐内存是否适合当前剩余内存：不足时提醒用户切换自动配置
+        if (Config.Instance.MemorySolution[ModInstanceList.McMcInstanceSelected.PathInstance] == 3)
+        {
+            var recommendedRamMb = States.Instance.ModpackRam[ModInstanceList.McMcInstanceSelected.PathInstance];
+            if (recommendedRamMb > 0)
+            {
+                var availableMb = KernelInterop.GetAvailablePhysicalMemoryBytes() / 1024d / 1024d;
+                // 剩余内存*80% 仍不足推荐值，或分配推荐内存后剩余不足 2GB
+                if (availableMb * 0.8d < recommendedRamMb || availableMb - recommendedRamMb < 2d * 1024d)
+                {
+                    var switchToAuto = ModMain.MyMsgBox(
+                        Lang.Text("Minecraft.Launch.ModpackRecommendedRamUnfit.Message"),
+                        Lang.Text("Minecraft.Launch.ModpackRecommendedRamUnfit.Title"),
+                        Lang.Text("Minecraft.Launch.ModpackRecommendedRamUnfit.SwitchAuto"),
+                        Lang.Text("Minecraft.Launch.ModpackRecommendedRamUnfit.KeepRecommended")) == 1;
+                    if (switchToAuto)
+                    {
+                        // 切换为自动配置并持久化，本次启动后续读取内存时即生效
+                        ModBase.RunInUiWait(() => Config.Instance.MemorySolution[ModInstanceList.McMcInstanceSelected.PathInstance] = 0);
+                        ModBase.Log("[Launch] 整合包推荐内存可能不适合当前环境，已切换为自动配置");
+                    }
+                }
+            }
+        }
+
 #if BETA
         if (currentLaunchOptions?.SaveBatch is null) // 保存脚本时不提示
         {

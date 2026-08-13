@@ -352,5 +352,6 @@ public static partial class States
         [ConfigItem<string>("VersionModpackVersion", "")] public partial ArgConfig<string> ModpackVersion { get; }
         [ConfigItem<string>("VersionModpackSource", "")] public partial ArgConfig<string> ModpackSource { get; }
         [ConfigItem<string>("VersionModpackId", "")] public partial ArgConfig<string> ModpackId { get; }
+        [ConfigItem<int>("VersionModpackRam", 0)] public partial ArgConfig<int> ModpackRam { get; }
     }
 }

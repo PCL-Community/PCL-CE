@@ -243,4 +243,15 @@ public static partial class RegexPatterns
     [GeneratedRegex(@"[0-9a-zA-Z_-]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex _ModIdMatch();
     #endregion
+
+    #region 整合包识别
+
+    /// <summary>
+    /// 懒人包（完整实例压缩包）结构识别：匹配形如 <c>.../versions/&lt;版本&gt;/&lt;版本&gt;.json</c> 的路径，
+    /// 表示压缩包内含可直接使用的 .minecraft 实例目录。
+    /// </summary>
+    public static readonly Regex ModpackLazyInstance = _ModpackLazyInstance();
+    [GeneratedRegex(@"^.*\/(?=versions\/(?<ver>[^\/]+)\/(\k<ver>)\.json$)", RegexOptions.IgnoreCase)]
+    private static partial Regex _ModpackLazyInstance();
+    #endregion
 }

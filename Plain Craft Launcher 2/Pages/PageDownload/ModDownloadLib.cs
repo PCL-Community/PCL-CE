@@ -4394,17 +4394,17 @@ public static class ModDownloadLib
         // 相关讨论见 #2801
         if (mMCPackInfo is not null)
         {
-            if (mMCPackInfo.isMinecraftOverrided)
+            if (mMCPackInfo.IsMinecraftOverridden)
             {
                 ModBase.Log("[Download] 当前实例的 MC 核心已被修改，使用对应的 MMC 整合包参数");
-                outputJson = mMCPackInfo.overridedJson;
+                outputJson = mMCPackInfo.OverriddenJson;
             }
             else
             {
                 ModBase.Log("[Download] 存在无修改 MC 核心文件的 MMC 整合包信息，应用相关参数");
                 outputJson = minecraftJson;
                 // 合并来自 MultiMC 的 JSON
-                outputJson.Merge(mMCPackInfo.overridedJson);
+                outputJson.Merge(mMCPackInfo.OverriddenJson);
             }
         }
         else
@@ -4421,7 +4421,7 @@ public static class ModDownloadLib
         }
 
         if (hasForge)
-            if (mMCPackInfo is null || !mMCPackInfo.isForgeOverrided)
+            if (mMCPackInfo is null || !mMCPackInfo.IsForgeOverridden)
             {
                 // 合并 Forge
                 forgeJson.Remove("releaseTime");
@@ -4430,7 +4430,7 @@ public static class ModDownloadLib
             }
 
         if (hasNeoForge)
-            if (mMCPackInfo is null || !mMCPackInfo.isNeoForgeOverrided)
+            if (mMCPackInfo is null || !mMCPackInfo.IsNeoForgeOverridden)
             {
                 // 合并 NeoForge
                 neoForgeJson.Remove("releaseTime");
@@ -4439,7 +4439,7 @@ public static class ModDownloadLib
             }
 
         if (hasCleanroom)
-            if (mMCPackInfo is null || !mMCPackInfo.isCleanroomOverrided)
+            if (mMCPackInfo is null || !mMCPackInfo.IsCleanroomOverridden)
             {
                 // 合并 Cleanroom
                 cleanroomJson.Remove("releaseTime");
@@ -4456,7 +4456,7 @@ public static class ModDownloadLib
         }
 
         if (hasFabric)
-            if (mMCPackInfo is null || !mMCPackInfo.isFabricOverrided)
+            if (mMCPackInfo is null || !mMCPackInfo.IsFabricOverridden)
             {
                 // 合并 Fabric
                 fabricJson.Remove("releaseTime");
@@ -4465,7 +4465,7 @@ public static class ModDownloadLib
             }
 
         if (hasLegacyFabric)
-            if (mMCPackInfo is null || !mMCPackInfo.isFabricOverrided)
+            if (mMCPackInfo is null || !mMCPackInfo.IsFabricOverridden)
             {
                 // 合并 Fabric
                 legacyFabricJson.Remove("releaseTime");
@@ -4550,7 +4550,7 @@ public static class ModDownloadLib
         // 修改
         if (realArguments is not null && !string.IsNullOrEmpty(realArguments.Replace(" ", "")))
             outputJson["minecraftArguments"] = realArguments;
-        if (mMCPackInfo is not null && mMCPackInfo.isMcArgsEdited)
+        if (mMCPackInfo is not null && mMCPackInfo.IsMcArgsEdited)
             outputJson.Remove("minecraftArguments");
         outputJson.Remove("_comment_");
         outputJson.Remove("inheritsFrom");
