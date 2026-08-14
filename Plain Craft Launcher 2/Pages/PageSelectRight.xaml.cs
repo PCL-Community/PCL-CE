@@ -532,7 +532,8 @@ public partial class PageSelectRight
         {
             var isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
             var isHintIndie = mcInstance.state != McInstanceState.Error &&
-                              (mcInstance.PathIndie ?? "") != (ModFolder.mcFolderSelected ?? "");
+                              !string.Equals(mcInstance.PathIndie, ModFolder.mcFolderSelected,
+                                  StringComparison.OrdinalIgnoreCase);
             var confirmMsg = isShiftPressed
                 ? Lang.Text("Select.Instance.Delete.ConfirmPermanentMessage", mcInstance.Name)
                 : Lang.Text("Select.Instance.Delete.ConfirmMessage", mcInstance.Name);
