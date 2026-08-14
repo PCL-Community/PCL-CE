@@ -977,7 +977,7 @@
     <sys:String x:Key="Instance.Overall.Shortcuts.SavesFolder">Saves folder</sys:String>
     <sys:String x:Key="Instance.Overall.Shortcuts.Title">Shortcuts</sys:String>
     <sys:String x:Key="Instance.Overall.Unfavorite">Unfavorite</sys:String>
-    <sys:String x:Key="Instance.PersonalFiles.Backup.DeleteHint">Screenshots and schematics will be backed up to PCL\PersonalFiles before deletion. Deletion is canceled if the backup fails.</sys:String>
+    <sys:String x:Key="Instance.PersonalFiles.Backup.DeleteHint">Files will be backed up to a folder before deletion.</sys:String>
     <sys:String x:Key="Instance.PersonalFiles.Backup.Failed">Failed to back up screenshots or schematics. The instance was kept. See the error details.</sys:String>
     <sys:String x:Key="Instance.PersonalFiles.Backup.Success">Backed up {0} personal file(s) to: {1}</sys:String>
 
