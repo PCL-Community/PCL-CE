@@ -566,9 +566,9 @@ public static partial class Config
         [ConfigItem<int>("LaunchArgumentIndieV2", 4, ConfigSource.Local)] public partial int IndieSolutionV2 { get; set; }
 
         /// <summary>
-        /// 删除隔离实例前备份截图与投影原理图。
+        /// 删除隔离实例前的个人文件备份模式。
         /// </summary>
-        [ConfigItem<bool>("LaunchArgumentPreservePersonalFiles", true, ConfigSource.Local)] public partial bool PreservePersonalFiles { get; set; }
+        [ConfigItem<PersonalFilesBackupMode>("LaunchArgumentPersonalFilesBackupMode", PersonalFilesBackupMode.AskEveryTime, ConfigSource.Local)] public partial PersonalFilesBackupMode PersonalFilesBackup { get; set; }
 
         /// <summary>
         /// 游戏启动后启动器可见性。

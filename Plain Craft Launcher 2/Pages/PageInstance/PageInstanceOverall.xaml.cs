@@ -752,8 +752,8 @@ public partial class PageInstanceOverall
                 (false, false) => "Instance.Overall.Delete.ConfirmMessage"
             };
             var confirmMessage = Lang.Text(confirmMessageKey, PageInstanceLeft.McInstance.Name);
-            if (isIsolatedInstance && Config.Launch.PreservePersonalFiles)
-                confirmMessage += "\r\n" + Lang.Text("Instance.PersonalFiles.Backup.DeleteHint");
+            var backupHint = isIsolatedInstance ? ModPersonalFiles.GetDeleteHint() : null;
+            if (backupHint is not null) confirmMessage += "\r\n" + backupHint;
 
             var confirmResult = ModMain.MyMsgBox(
                 confirmMessage,
@@ -766,8 +766,8 @@ public partial class PageInstanceOverall
             {
                 case 1:
                 {
-                    if (isIsolatedInstance && Config.Launch.PreservePersonalFiles &&
-                        !ModPersonalFiles.TryBackupBeforeDelete(PageInstanceLeft.McInstance)) return;
+                    if (isIsolatedInstance &&
+                        !ModPersonalFiles.TryHandleBeforeDelete(PageInstanceLeft.McInstance)) return;
                     var instancePath = PageInstanceLeft.McInstance.PathInstance;
                     var instanceName = PageInstanceLeft.McInstance.Name;
                     ModBase.IniClearCache(Path.Combine(PageInstanceLeft.McInstance.PathIndie, "options.txt"));

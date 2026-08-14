@@ -1,4 +1,5 @@
 using System.IO;
+using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
 
@@ -27,10 +28,35 @@ public static class ModPersonalFiles
         return (fileCount, targetFolder);
     }
 
-    public static bool TryBackupBeforeDelete(McInstance instance)
+    public static string? GetDeleteHint()
+    {
+        return Config.Launch.PersonalFilesBackup switch
+        {
+            PersonalFilesBackupMode.Disabled => null,
+            PersonalFilesBackupMode.AskEveryTime => Lang.Text("Instance.PersonalFiles.Backup.AskHint"),
+            _ => Lang.Text("Instance.PersonalFiles.Backup.DeleteHint")
+        };
+    }
+
+    public static bool TryHandleBeforeDelete(McInstance instance)
     {
         try
         {
+            var backupMode = Config.Launch.PersonalFilesBackup;
+            if (backupMode == PersonalFilesBackupMode.Disabled) return true;
+            if (backupMode == PersonalFilesBackupMode.AskEveryTime)
+            {
+                if (!_HasScreenshots(instance.PathIndie)) return true;
+                var promptResult = ModMain.MyMsgBox(
+                    Lang.Text("Instance.PersonalFiles.Backup.Ask.Message", instance.Name),
+                    Lang.Text("Instance.PersonalFiles.Backup.Ask.Title"),
+                    Lang.Text("Instance.PersonalFiles.Backup.Ask.BackupAndDelete"),
+                    Lang.Text("Instance.PersonalFiles.Backup.Ask.DeleteWithoutBackup"),
+                    Lang.Text("Common.Action.Cancel"));
+                if (promptResult == 2) return true;
+                if (promptResult != 1) return false;
+            }
+
             var result = _Backup(instance);
             if (result.FileCount > 0)
                 HintService.Hint(Lang.Text("Instance.PersonalFiles.Backup.Success", result.FileCount,
@@ -45,17 +71,18 @@ public static class ModPersonalFiles
         }
     }
 
+    private static bool _HasScreenshots(string instanceFolder)
+    {
+        var screenshotFolder = Path.Combine(instanceFolder, "screenshots");
+        return Directory.Exists(screenshotFolder) &&
+               Directory.EnumerateFiles(screenshotFolder, "*", _CreateEnumerationOptions()).Any();
+    }
+
     private static int _CopyDirectory(string sourceFolder, string targetFolder)
     {
         if (!Directory.Exists(sourceFolder)) return 0;
-        var options = new EnumerationOptions
-        {
-            RecurseSubdirectories = true,
-            IgnoreInaccessible = false,
-            AttributesToSkip = FileAttributes.ReparsePoint
-        };
         var fileCount = 0;
-        foreach (var sourceFile in Directory.EnumerateFiles(sourceFolder, "*", options))
+        foreach (var sourceFile in Directory.EnumerateFiles(sourceFolder, "*", _CreateEnumerationOptions()))
         {
             var targetFile = Path.Combine(targetFolder, Path.GetRelativePath(sourceFolder, sourceFile));
             ModBase.CopyFile(sourceFile, targetFile);
@@ -65,5 +92,15 @@ public static class ModPersonalFiles
         }
 
         return fileCount;
+    }
+
+    private static EnumerationOptions _CreateEnumerationOptions()
+    {
+        return new EnumerationOptions
+        {
+            RecurseSubdirectories = true,
+            IgnoreInaccessible = false,
+            AttributesToSkip = FileAttributes.ReparsePoint
+        };
     }
 }
