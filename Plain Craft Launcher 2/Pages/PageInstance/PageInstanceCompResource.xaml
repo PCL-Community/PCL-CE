@@ -20,6 +20,8 @@
 
                             <local:MyButton x:Name="BtnManageInstall" MinWidth="110" Text="{DynamicResource Instance.Resource.InstallFromFiles}" Padding="13,7"
                                             Margin="0,7,15,0" HorizontalAlignment="Left" />
+                            <local:MyButton x:Name="BtnManageImport" MinWidth="110" Text="{DynamicResource Instance.Resource.ImportFromInstance}" Padding="13,7"
+                                            Margin="0,7,15,0" HorizontalAlignment="Left" Visibility="Collapsed" />
                             <local:MyButton x:Name="BtnManageDownload" MinWidth="110" Text="{DynamicResource Instance.Resource.DownloadNew}" Padding="13,7"
                                             Margin="0,7,15,0" HorizontalAlignment="Left" />
                             <local:MyButton x:Name="BtnManageSelectAll" MinWidth="110" Text="{DynamicResource Instance.Resource.SelectAll}" Padding="13,7"

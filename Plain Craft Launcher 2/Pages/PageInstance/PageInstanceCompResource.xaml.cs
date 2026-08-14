@@ -40,6 +40,7 @@ public partial class PageInstanceCompResource : IRefreshable
         BtnHintOpen.Click += BtnManageOpen_Click;
         BtnManageSelectAll.Click += BtnManageSelectAll_Click;
         BtnManageInstall.Click += BtnManageInstall_Click;
+        BtnManageImport.Click += BtnManageImport_Click;
         BtnHintInstall.Click += BtnManageInstall_Click;
         BtnManageInfoExport.Click += BtnManageInfoExport_Click;
         BtnManageDownload.Click += BtnManageDownload_Click;
@@ -117,6 +118,9 @@ public partial class PageInstanceCompResource : IRefreshable
             BtnSelectDisable.Visibility = Visibility.Collapsed;
         }
 
+        if (new[] { ModComp.CompType.Shader, ModComp.CompType.ResourcePack }.Contains(currentCompType))
+            BtnManageImport.Visibility = Visibility.Visible;
+
         // 投影文件管理页隐藏下载按钮
         if (currentCompType == ModComp.CompType.Schematic)
         {
@@ -136,6 +140,7 @@ public partial class PageInstanceCompResource : IRefreshable
         BtnHintOpen.Click += BtnManageOpen_Click;
         BtnManageSelectAll.Click += BtnManageSelectAll_Click;
         BtnManageInstall.Click += BtnManageInstall_Click;
+        BtnManageImport.Click += BtnManageImport_Click;
         BtnHintInstall.Click += BtnManageInstall_Click;
         BtnManageDownload.Click += BtnManageDownload_Click;
         BtnHintDownload.Click += BtnManageDownload_Click;
@@ -1019,6 +1024,56 @@ public partial class PageInstanceCompResource : IRefreshable
         if (fileList is null || !fileList.Any())
             return;
         InstallCompFiles(fileList, currentCompType, CurrentFolderPath);
+    }
+
+    /// <summary>
+    ///     从其他实例导入资源包或光影包。
+    /// </summary>
+    private void BtnManageImport_Click(object sender, MouseButtonEventArgs e)
+    {
+        var folderName = currentCompType switch
+        {
+            ModComp.CompType.ResourcePack => "resourcepacks",
+            ModComp.CompType.Shader => "shaderpacks",
+            _ => null
+        };
+        if (folderName is null) return;
+
+        var targetFolder = Path.GetFullPath(Path.Combine(PageInstanceLeft.McInstance.PathIndie, folderName));
+        var sources = ModInstanceList.mcInstanceList.Values.SelectMany(list => list)
+            .Where(instance => instance.state != McInstanceState.Error &&
+                               !instance.Equals(PageInstanceLeft.McInstance))
+            .Select(instance =>
+            {
+                var sourceFolder = Path.GetFullPath(Path.Combine(instance.PathIndie, folderName));
+                var files = Directory.Exists(sourceFolder)
+                    ? Directory.GetFiles(sourceFolder, "*.zip", SearchOption.TopDirectoryOnly)
+                    : [];
+                return (Instance: instance, Folder: sourceFolder, Files: files);
+            })
+            .Where(source => !source.Folder.Equals(targetFolder, StringComparison.OrdinalIgnoreCase) &&
+                             source.Files.Length > 0)
+            .OrderBy(source => source.Instance.Name)
+            .ToList();
+
+        if (sources.Count == 0)
+        {
+            HintService.Hint(Lang.Text("Instance.Resource.Import.NoAvailableInstance"));
+            return;
+        }
+
+        var selection = sources.Select(source => (IMyRadio)new MyListItem
+        {
+            Title = source.Instance.Name,
+            Info = Lang.Text("Instance.Resource.Import.FileCount", source.Files.Length),
+            Type = MyListItem.CheckType.RadioBox
+        }).ToList();
+        var selectedIndex = ModMain.MyMsgBoxSelect(selection,
+            Lang.Text("Instance.Resource.Import.SelectInstance"),
+            Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"));
+        if (selectedIndex is null) return;
+
+        InstallCompFiles(sources[selectedIndex.Value].Files, currentCompType, CurrentFolderPath);
     }
 
     /// <summary>
