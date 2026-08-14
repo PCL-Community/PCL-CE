@@ -6,25 +6,21 @@ namespace PCL;
 
 public static class ModPersonalFiles
 {
-    public static string ArchiveRoot =>
+    private static string _ArchiveRoot =>
         Path.GetFullPath(Path.Combine(ModFolder.mcFolderSelected, "PCL", "PersonalFiles"));
 
-    public static (int FileCount, string TargetFolder) Backup(McInstance instance,
-        bool includeScreenshots = true, bool includeSchematics = true)
+    private static (int FileCount, string TargetFolder) _Backup(McInstance instance)
     {
-        var targetFolder = Path.Combine(ArchiveRoot, instance.Name);
+        var targetFolder = Path.Combine(_ArchiveRoot, instance.Name);
         var instancePath = Path.GetFullPath(instance.PathInstance);
         if (!instancePath.EndsWith(Path.DirectorySeparatorChar)) instancePath += Path.DirectorySeparatorChar;
         if (targetFolder.StartsWith(instancePath, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("回忆文件备份目录不能位于实例目录中");
 
-        var fileCount = 0;
-        if (includeScreenshots)
-            fileCount += _CopyDirectory(Path.Combine(instance.PathIndie, "screenshots"),
-                Path.Combine(targetFolder, "screenshots"));
-        if (includeSchematics)
-            fileCount += _CopyDirectory(Path.Combine(instance.PathIndie, "schematics"),
-                Path.Combine(targetFolder, "schematics"));
+        var fileCount = _CopyDirectory(Path.Combine(instance.PathIndie, "screenshots"),
+            Path.Combine(targetFolder, "screenshots"));
+        fileCount += _CopyDirectory(Path.Combine(instance.PathIndie, "schematics"),
+            Path.Combine(targetFolder, "schematics"));
 
         if (fileCount > 0)
             ModBase.Log($"[PersonalFiles] 已备份实例 {instance.Name} 的 {fileCount} 个回忆文件到 {targetFolder}");
@@ -35,7 +31,7 @@ public static class ModPersonalFiles
     {
         try
         {
-            var result = Backup(instance);
+            var result = _Backup(instance);
             if (result.FileCount > 0)
                 HintService.Hint(Lang.Text("Instance.PersonalFiles.Backup.Success", result.FileCount,
                     result.TargetFolder), HintType.Success);
