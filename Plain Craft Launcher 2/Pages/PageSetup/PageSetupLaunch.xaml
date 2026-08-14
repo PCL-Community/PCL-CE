@@ -161,6 +161,11 @@
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.IpStack.Ipv6}" />
                         </local:MyComboBox>
                     </Grid>
+                    <local:MyCheckBox x:Name="CheckArgumentPreservePersonalFiles" Height="28"
+                                      Margin="0,10,0,0" Tag="LaunchArgumentPreservePersonalFiles"
+                                      Text="{DynamicResource Setup.Launch.Options.PersonalFilesBackup}"
+                                      ToolTip="{DynamicResource Setup.Launch.Options.PersonalFilesBackup.ToolTip}"
+                                      Change="CheckBoxChange" />
                 </StackPanel>
             </local:MyCard>
             <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Setup.Launch.Memory.Title}">

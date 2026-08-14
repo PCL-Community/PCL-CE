@@ -2817,6 +2817,8 @@
     <sys:String x:Key="Setup.Launch.Options.InstanceIsolation.NonRelease.ToolTip">Isolate snapshots, pre-releases, old versions, and April Fools' versions from other instances.</sys:String>
     <sys:String x:Key="Setup.Launch.Options.InstanceIsolation.None.ToolTip">All instances use the same profile. Saves, mods, resource packs, and other files are shared.&#xA;If multiple instances with mods installed are present, this may cause mod conflicts.</sys:String>
     <sys:String x:Key="Setup.Launch.Options.InstanceIsolation.ToolTip">When installing a new instance, the isolation option for the new instance will be automatically set accordingly.&#xA;To adjust the isolation policy for an existing instance, please go to instance settings.</sys:String>
+    <sys:String x:Key="Setup.Launch.Options.PersonalFilesBackup">Back up screenshots and schematics when deleting isolated instances</sys:String>
+    <sys:String x:Key="Setup.Launch.Options.PersonalFilesBackup.ToolTip">Before deleting an instance, copy its screenshots and schematics folders to PCL\PersonalFiles in the current Minecraft folder. Deletion is canceled if the backup fails.</sys:String>
 
     <!-- Setup.Launch.Options.Visibility -->
 

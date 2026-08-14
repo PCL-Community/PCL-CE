@@ -2817,6 +2817,8 @@
     <sys:String x:Key="Setup.Launch.Options.InstanceIsolation.NonRelease.ToolTip">将 Minecraft 快照、预发布版、远古版本、愚人节版本与其他实例进行隔离</sys:String>
     <sys:String x:Key="Setup.Launch.Options.InstanceIsolation.None.ToolTip">所有实例均使用同一档案，存档、模组、资源包等均为公用。&#xA;若存在多个安装了模组的实例，可能会导致模组冲突。</sys:String>
     <sys:String x:Key="Setup.Launch.Options.InstanceIsolation.ToolTip">当安装新实例时，据此自动设置新实例的隔离选项。&#xA;若想调整已有实例的隔离策略，请前往它的实例设置。</sys:String>
+    <sys:String x:Key="Setup.Launch.Options.PersonalFilesBackup">删除隔离实例时备份截图与投影原理图</sys:String>
+    <sys:String x:Key="Setup.Launch.Options.PersonalFilesBackup.ToolTip">删除实例前，将 screenshots 与 schematics 文件夹复制到当前 Minecraft 文件夹下的 PCL\PersonalFiles。备份失败时会取消删除。</sys:String>
 
     <!-- Setup.Launch.Options.Visibility -->
 

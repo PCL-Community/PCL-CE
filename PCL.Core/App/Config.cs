@@ -566,6 +566,11 @@ public static partial class Config
         [ConfigItem<int>("LaunchArgumentIndieV2", 4, ConfigSource.Local)] public partial int IndieSolutionV2 { get; set; }
 
         /// <summary>
+        /// 删除隔离实例前备份截图与投影原理图。
+        /// </summary>
+        [ConfigItem<bool>("LaunchArgumentPreservePersonalFiles", true, ConfigSource.Local)] public partial bool PreservePersonalFiles { get; set; }
+
+        /// <summary>
         /// 游戏启动后启动器可见性。
         /// </summary>
         [ConfigItem<LauncherVisibility>("LaunchArgumentVisible", LauncherVisibility.DoNothing)] public partial LauncherVisibility LauncherVisibility { get; set; }
