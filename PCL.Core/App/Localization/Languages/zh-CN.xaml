@@ -977,6 +977,9 @@
     <sys:String x:Key="Instance.Overall.Shortcuts.SavesFolder">存档文件夹</sys:String>
     <sys:String x:Key="Instance.Overall.Shortcuts.Title">快捷方式</sys:String>
     <sys:String x:Key="Instance.Overall.Unfavorite">从收藏夹中移除</sys:String>
+    <sys:String x:Key="Instance.PersonalFiles.Backup.DeleteHint">删除前会将截图与投影原理图备份到 PCL\PersonalFiles；备份失败时会取消删除。</sys:String>
+    <sys:String x:Key="Instance.PersonalFiles.Backup.Failed">备份截图或投影原理图失败，实例未删除。请查看错误详情。</sys:String>
+    <sys:String x:Key="Instance.PersonalFiles.Backup.Success">已将 {0} 个回忆文件备份到：{1}</sys:String>
 
     <!-- Instance.Overall.Icon -->
 

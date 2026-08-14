@@ -537,12 +537,16 @@ public partial class PageSelectRight
                 ? Lang.Text("Select.Instance.Delete.ConfirmPermanentMessage", mcInstance.Name)
                 : Lang.Text("Select.Instance.Delete.ConfirmMessage", mcInstance.Name);
             var confirmFullMsg = confirmMsg +
-                                 (isHintIndie ? "\r\n" + Lang.Text("Select.Instance.Delete.IsolatedWarning") : "");
+                                  (isHintIndie ? "\r\n" + Lang.Text("Select.Instance.Delete.IsolatedWarning") : "");
+            if (isHintIndie && Config.Launch.PreservePersonalFiles)
+                confirmFullMsg += "\r\n" + Lang.Text("Instance.PersonalFiles.Backup.DeleteHint");
             switch (ModMain.MyMsgBox(confirmFullMsg, Lang.Text("Select.Instance.Delete.ConfirmTitle"),
                         button2: Lang.Text("Common.Action.Cancel"), isWarn: true))
             {
                 case 1:
                 {
+                    if (isHintIndie && Config.Launch.PreservePersonalFiles &&
+                        !ModPersonalFiles.TryBackupBeforeDelete(mcInstance)) return;
                     ModBase.IniClearCache(Path.Combine(mcInstance.PathIndie, "options.txt"));
                     ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
                         mcInstance.PathInstance);
