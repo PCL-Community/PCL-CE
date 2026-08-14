@@ -1051,7 +1051,7 @@ public partial class PageInstanceCompResource : IRefreshable
             .Select(instance =>
             {
                 var sourceFolder = Path.GetFullPath(Path.Combine(instance.PathIndie, folderName));
-                var files = GetImportFiles(instance, sourceFolder);
+                var files = _GetImportFiles(instance, sourceFolder);
                 return (Instance: instance, Folder: sourceFolder, Files: files);
             })
             .Where(source => !source.Folder.Equals(targetFolder, StringComparison.OrdinalIgnoreCase) &&
@@ -1079,7 +1079,7 @@ public partial class PageInstanceCompResource : IRefreshable
         InstallCompFiles(sources[selectedIndex.Value].Files, currentCompType, CurrentFolderPath);
     }
 
-    private static string[] GetImportFiles(McInstance instance, string sourceFolder)
+    private static string[] _GetImportFiles(McInstance instance, string sourceFolder)
     {
         try
         {
