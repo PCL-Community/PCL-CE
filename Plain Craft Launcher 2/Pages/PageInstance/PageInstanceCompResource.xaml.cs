@@ -42,6 +42,7 @@ public partial class PageInstanceCompResource : IRefreshable
         BtnManageInstall.Click += BtnManageInstall_Click;
         BtnManageImport.Click += BtnManageImport_Click;
         BtnHintInstall.Click += BtnManageInstall_Click;
+        BtnHintImport.Click += BtnManageImport_Click;
         BtnManageInfoExport.Click += BtnManageInfoExport_Click;
         BtnManageDownload.Click += BtnManageDownload_Click;
         BtnHintDownload.Click += BtnManageDownload_Click;
@@ -119,7 +120,10 @@ public partial class PageInstanceCompResource : IRefreshable
         }
 
         if (new[] { ModComp.CompType.Shader, ModComp.CompType.ResourcePack }.Contains(currentCompType))
+        {
             BtnManageImport.Visibility = Visibility.Visible;
+            BtnHintImport.Visibility = Visibility.Visible;
+        }
 
         // 投影文件管理页隐藏下载按钮
         if (currentCompType == ModComp.CompType.Schematic)
@@ -142,6 +146,7 @@ public partial class PageInstanceCompResource : IRefreshable
         BtnManageInstall.Click += BtnManageInstall_Click;
         BtnManageImport.Click += BtnManageImport_Click;
         BtnHintInstall.Click += BtnManageInstall_Click;
+        BtnHintImport.Click += BtnManageImport_Click;
         BtnManageDownload.Click += BtnManageDownload_Click;
         BtnHintDownload.Click += BtnManageDownload_Click;
         BtnManageInfoExport.Click += BtnManageInfoExport_Click;
@@ -1046,9 +1051,7 @@ public partial class PageInstanceCompResource : IRefreshable
             .Select(instance =>
             {
                 var sourceFolder = Path.GetFullPath(Path.Combine(instance.PathIndie, folderName));
-                var files = Directory.Exists(sourceFolder)
-                    ? Directory.GetFiles(sourceFolder, "*.zip", SearchOption.TopDirectoryOnly)
-                    : [];
+                var files = GetImportFiles(instance, sourceFolder);
                 return (Instance: instance, Folder: sourceFolder, Files: files);
             })
             .Where(source => !source.Folder.Equals(targetFolder, StringComparison.OrdinalIgnoreCase) &&
@@ -1074,6 +1077,21 @@ public partial class PageInstanceCompResource : IRefreshable
         if (selectedIndex is null) return;
 
         InstallCompFiles(sources[selectedIndex.Value].Files, currentCompType, CurrentFolderPath);
+    }
+
+    private static string[] GetImportFiles(McInstance instance, string sourceFolder)
+    {
+        try
+        {
+            return Directory.Exists(sourceFolder)
+                ? Directory.GetFiles(sourceFolder, "*.zip", SearchOption.TopDirectoryOnly)
+                : [];
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, $"读取实例 {instance.Name} 的资源文件失败");
+            return [];
+        }
     }
 
     /// <summary>
