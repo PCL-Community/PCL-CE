@@ -1051,11 +1051,11 @@ public partial class PageInstanceCompResource : IRefreshable
             .Select(instance =>
             {
                 var sourceFolder = Path.GetFullPath(Path.Combine(instance.PathIndie, folderName));
-                var files = _GetImportFiles(instance, sourceFolder);
-                return (Instance: instance, Folder: sourceFolder, Files: files);
+                var entries = _GetImportEntries(instance, sourceFolder);
+                return (Instance: instance, Folder: sourceFolder, Entries: entries);
             })
             .Where(source => !source.Folder.Equals(targetFolder, StringComparison.OrdinalIgnoreCase) &&
-                             source.Files.Length > 0)
+                             source.Entries.Length > 0)
             .OrderBy(source => source.Instance.Name)
             .ToList();
 
@@ -1068,7 +1068,7 @@ public partial class PageInstanceCompResource : IRefreshable
         var selection = sources.Select(source => (IMyRadio)new MyListItem
         {
             Title = source.Instance.Name,
-            Info = Lang.Text("Instance.Resource.Import.FileCount", source.Files.Length),
+            Info = Lang.Text("Instance.Resource.Import.ItemCount", source.Entries.Length),
             Type = MyListItem.CheckType.RadioBox
         }).ToList();
         var selectedIndex = ModMain.MyMsgBoxSelect(selection,
@@ -1076,21 +1076,99 @@ public partial class PageInstanceCompResource : IRefreshable
             Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"));
         if (selectedIndex is null) return;
 
-        InstallCompFiles(sources[selectedIndex.Value].Files, currentCompType, CurrentFolderPath);
+        _ImportEntries(sources[selectedIndex.Value].Entries, targetFolder);
     }
 
-    private static string[] _GetImportFiles(McInstance instance, string sourceFolder)
+    private static string[] _GetImportEntries(McInstance instance, string sourceFolder)
     {
         try
         {
             return Directory.Exists(sourceFolder)
-                ? Directory.GetFiles(sourceFolder, "*.zip", SearchOption.TopDirectoryOnly)
+                ? Directory.EnumerateFileSystemEntries(sourceFolder, "*", new EnumerationOptions
+                {
+                    RecurseSubdirectories = false,
+                    IgnoreInaccessible = false,
+                    AttributesToSkip = FileAttributes.ReparsePoint
+                }).ToArray()
                 : [];
         }
         catch (Exception ex)
         {
             ModBase.Log(ex, $"读取实例 {instance.Name} 的资源文件失败");
             return [];
+        }
+    }
+
+    private void _ImportEntries(IEnumerable<string> entries, string targetFolder)
+    {
+        try
+        {
+            Directory.CreateDirectory(targetFolder);
+            var importedCount = 0;
+            foreach (var sourceEntry in entries)
+            {
+                var entryName = Path.GetFileName(Path.TrimEndingDirectorySeparator(sourceEntry));
+                var targetEntry = Path.Combine(targetFolder, entryName);
+                if (File.Exists(targetEntry) || Directory.Exists(targetEntry))
+                {
+                    if (ModMain.MyMsgBox(
+                            Lang.Text("Instance.Resource.Import.OverwriteConfirm.Message", entryName),
+                            Lang.Text("Instance.Resource.Import.OverwriteConfirm.Title"),
+                            Lang.Text("Common.Action.Overwrite"), Lang.Text("Common.Action.Cancel")) != 1)
+                        continue;
+                    _DeleteImportTarget(targetEntry);
+                }
+
+                if (File.Exists(sourceEntry))
+                    ModBase.CopyFile(sourceEntry, targetEntry);
+                else if (Directory.Exists(sourceEntry))
+                    _CopyImportDirectory(sourceEntry, targetEntry);
+                else
+                    continue;
+                importedCount += 1;
+            }
+
+            if (importedCount > 0)
+            {
+                HintService.Hint(Lang.Text("Instance.Resource.Import.Success", importedCount), HintType.Success);
+                ReloadCompFileList(true);
+            }
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "从其他实例复制资源失败", ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
+        }
+    }
+
+    private static void _DeleteImportTarget(string targetEntry)
+    {
+        if (File.Exists(targetEntry))
+        {
+            File.Delete(targetEntry);
+            return;
+        }
+
+        if (!Directory.Exists(targetEntry)) return;
+        if (File.GetAttributes(targetEntry).HasFlag(FileAttributes.ReparsePoint))
+            Directory.Delete(targetEntry);
+        else
+            ModBase.DeleteDirectory(targetEntry);
+    }
+
+    private static void _CopyImportDirectory(string sourceFolder, string targetFolder)
+    {
+        Directory.CreateDirectory(targetFolder);
+        var options = new EnumerationOptions
+        {
+            RecurseSubdirectories = true,
+            IgnoreInaccessible = false,
+            AttributesToSkip = FileAttributes.ReparsePoint
+        };
+        foreach (var sourceFile in Directory.EnumerateFiles(sourceFolder, "*", options))
+        {
+            var targetFile = Path.Combine(targetFolder, Path.GetRelativePath(sourceFolder, sourceFile));
+            ModBase.CopyFile(sourceFile, targetFile);
         }
     }
 
