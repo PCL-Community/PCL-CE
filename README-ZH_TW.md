@@ -65,7 +65,7 @@ PCL CE 始終建議使用最新版本的作業系統以獲得最佳體驗。
 ## 🌟 統計資料
 ![Alt](https://repobeats.axiom.co/api/embed/3e46296e6e3a134991a783480fd2f62723bb0353.svg "Repobeats analytics image")
 
-[![Star History Chart](https://api.star-history.com/svg?repos=PCL-Community/PCL-CE&type=Date)](https://www.star-history.com/#PCL-Community/PCL-CE&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=PCL-Community/PCL-CE&type=Date)](https://star-history.dera.page/#PCL-Community/PCL-CE&type=Date)
 
 **此頁瀏覽量**（總計 / 今日）：[![Hits](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL-CE)](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL-CE&web=true)
 ## ❤️ 貢獻者

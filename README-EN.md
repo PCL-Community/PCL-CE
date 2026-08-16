@@ -65,7 +65,7 @@ You can still try using the latest launcher version on unsupported platforms, bu
 ## 🌟 Statistic
 ![Alt](https://repobeats.axiom.co/api/embed/3e46296e6e3a134991a783480fd2f62723bb0353.svg "Repobeats analytics image")
 
-[![Star History Chart](https://api.star-history.com/svg?repos=PCL-Community/PCL-CE&type=Date)](https://www.star-history.com/#PCL-Community/PCL-CE&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=PCL-Community/PCL-CE&type=Date)](https://star-history.dera.page/#PCL-Community/PCL-CE&type=Date)
 
 **Views** (Total / Today): [![Hits](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL-CE)](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL-CE&web=true)
 ## ❤️ Contributors
