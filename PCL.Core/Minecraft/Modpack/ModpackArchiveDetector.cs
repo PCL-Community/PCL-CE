@@ -105,7 +105,7 @@ public static class ModpackArchiveDetector
     {
         try
         {
-            var node = JsonNode.Parse(jsonText);
+            var node = JsonCompat.ParseNode(jsonText);
             return node?["addons"] is not null;
         }
         catch (JsonException)
@@ -122,7 +122,7 @@ public static class ModpackArchiveDetector
     {
         try
         {
-            var node = JsonNode.Parse(jsonText);
+            var node = JsonCompat.ParseNode(jsonText);
             return node?["minecraft"] is not null;
         }
         catch (JsonException)
