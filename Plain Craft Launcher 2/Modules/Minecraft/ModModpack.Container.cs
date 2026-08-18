@@ -216,22 +216,24 @@ public static partial class ModModpack
 
     private static LoaderCombo<string> _InstallCompress(string sourcePath, IModpackArchiveReader archive)
     {
-        // 尝试定位 .minecraft 文件夹：寻找形如 “/versions/XXX/XXX.json” 的路径
-        Match match = null;
+        Match firstMatch = null;
+        var versionNames = new List<string>();
+        var versionNameSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var entryName in archive.EntryNames)
         {
             var entryMatch = RegexPatterns.ModpackLazyInstance.Match("/" + entryName);
-            if (entryMatch.Success)
-            {
-                match = entryMatch;
-                break;
-            }
+            if (!entryMatch.Success)
+                continue;
+            firstMatch ??= entryMatch;
+            var versionName = entryMatch.Groups[1].Value;
+            if (versionNameSet.Add(versionName))
+                versionNames.Add(versionName);
         }
 
-        if (match is null)
-            throw new Exception(Lang.Text("Minecraft.Download.Modpack.UnknownArchiveStructure")); // 没有匹配
-        var archiveBaseFolder = match.Value.Replace("/", @"\").TrimStart('\\'); // 格式例如：包裹文件夹\.minecraft\（最短为空字符串）
-        var packVersionName = match.Groups[1].Value;
+        if (firstMatch is null)
+            throw new Exception(Lang.Text("Minecraft.Download.Modpack.UnknownArchiveStructure"));
+        var archiveBaseFolder = firstMatch.Value.Replace("/", @"\").TrimStart('\\');
+        var packVersionName = _ResolveLazyPackPrimaryVersion(archive, versionNames);
         ModBase.Log("[ModPack] 检测到懒人包的 .minecraft 根目录：" + archiveBaseFolder + "，命中的实例名：" + packVersionName);
 
         // 实例名：与现有实例不冲突时直接用懒人包自己的，冲突时让用户改名
@@ -266,7 +268,74 @@ public static partial class ModModpack
     }
 
     /// <summary>
-    ///     将懒人包解压后的 .minecraft 实例内容安装到当前游戏文件夹的 <c>versions\{实例名}</c> 下。
+    ///     从懒人包内打包的多个版本中确定主实例（整合包本体）。
+    ///     通过继承关系推断：不被任何其他版本 <c>inheritsFrom</c> 引用的版本即继承链顶端。
+    ///     无法唯一确定时弹窗让用户选择.
+    /// </summary>
+    /// <param name="archive">压缩包读取器</param>
+    /// <param name="versionNames">版本名列表</param>
+    private static string _ResolveLazyPackPrimaryVersion(IModpackArchiveReader archive, IReadOnlyList<string> versionNames)
+    {
+        if (versionNames.Count == 0)
+            return "";
+        if (versionNames.Count == 1)
+            return versionNames[0];
+
+        var versionSet = new HashSet<string>(versionNames, StringComparer.OrdinalIgnoreCase);
+        var referenced = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var entryName in archive.EntryNames)
+        {
+            var m = RegexPatterns.ModpackLazyInstance.Match("/" + entryName);
+            if (!m.Success)
+                continue;
+            var versionName = m.Groups[1].Value;
+            if (!versionSet.Contains(versionName))
+                continue;
+            JsonObject json;
+            try
+            {
+                json = (JsonObject)ModBase.GetJson(archive.ReadEntryText(entryName));
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "[ModPack] 读取懒人包版本 json 失败，跳过继承推断：" + entryName);
+                continue;
+            }
+            if (json["inheritsFrom"]?.ToString() is string inheritsFrom && versionSet.Contains(inheritsFrom))
+                referenced.Add(inheritsFrom);
+        }
+
+        var candidates = versionNames.Where(v => !referenced.Contains(v)).ToList();
+        if (candidates.Count == 1)
+        {
+            ModBase.Log("[ModPack] 懒人包主实例由继承关系推断为：" + candidates[0]);
+            return candidates[0];
+        }
+        
+        return _PromptLazyPackPrimaryVersion(versionNames);
+    }
+
+    /// <summary>
+    ///     弹出选择框让用户确定懒人包的主实例。
+    /// </summary>
+    /// <param name="versionNames">所有候选版本名。</param>
+    private static string _PromptLazyPackPrimaryVersion(IReadOnlyList<string> versionNames)
+    {
+        var radioBoxes = versionNames
+            .Select(name => new MyRadioBox { Text = name })
+            .Cast<IMyRadio>()
+            .ToList();
+        var result = ModMain.MyMsgBoxSelect(radioBoxes,
+            Lang.Text("Minecraft.Download.Modpack.LazyPack.SelectPrimaryVersion.Title"),
+            Lang.Text("Common.Action.Confirm"),
+            Lang.Text("Common.Action.Cancel"));
+        if (result is null || result.Value < 0 || result.Value >= versionNames.Count)
+            throw new ModBase.CancelledException();
+        return versionNames[result.Value];
+    }
+
+    /// <summary>
+    ///     将懒人包解压后的 .minecraft 实例内容安装到当前游戏文件夹的 <c>versions\\{实例名}</c> 下。
     /// </summary>
     private static void _InstallLazyPackInstance(string installTemp, string archiveBaseFolder, string packVersionName,
         string instanceName)

@@ -2013,6 +2013,7 @@
     <sys:String x:Key="Minecraft.Download.Modpack.TooOldUnsupported">该整合包版本过老，已不支持进行安装！</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.UnknownArchiveStructure">未能找到适合的文件结构，这可能不是一个 MC 压缩包</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.UnknownLoader">无法安装整合包，其中出现了未知的模组加载器 {0}（版本为 {1}）！</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.LazyPack.SelectPrimaryVersion.Title">请选择要安装的主实例</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.OverwriteConfirm.Message">发现同名文件内容不同：{0}&#xD;&#xA;要跳过还是覆盖？</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.OverwriteConfirm.Title">文件内容冲突</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.OverwriteConfirm.OverwriteAll">全部覆盖</sys:String>

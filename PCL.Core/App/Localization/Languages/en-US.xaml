@@ -2013,6 +2013,7 @@
     <sys:String x:Key="Minecraft.Download.Modpack.TooOldUnsupported">This modpack version is too old and no longer supported!</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.UnknownArchiveStructure">No suitable file structure was found. This may not be a Minecraft archive.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.UnknownLoader">Cannot install modpack, unknown mod loader {0} (version {1})!</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.LazyPack.SelectPrimaryVersion.Title">Select the primary instance to install</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.OverwriteConfirm.Message">A same-named file has different content: {0}&#xD;&#xA;Skip or overwrite it?</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.OverwriteConfirm.Title">File content conflict</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.OverwriteConfirm.OverwriteAll">Overwrite all</sys:String>
