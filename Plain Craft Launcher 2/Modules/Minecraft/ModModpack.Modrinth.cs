@@ -229,7 +229,9 @@ public static partial class ModModpack
         if (path.EndsWith("/") || path.EndsWith("\\"))
             return true;
         var normalizedDir = Path.GetDirectoryName(path.TrimEnd('/', '\\'))?.Replace("\\", "/").TrimEnd('/');
-        return normalizedDir != null && normalizedDir.EndsWith("/saves", StringComparison.OrdinalIgnoreCase);
+        return normalizedDir != null &&
+               (string.Equals(normalizedDir, "saves", StringComparison.OrdinalIgnoreCase) ||
+                normalizedDir.EndsWith("/saves", StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
