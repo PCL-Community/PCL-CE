@@ -220,20 +220,22 @@ public static partial class ModModpack
     }
 
     /// <summary>
-    ///     判断 Modrinth 文件项的目标是否是一个文件夹（文件名无扩展名）。
+    ///     判断 Modrinth 文件项的目标是否是一个文件夹（path 以斜杠结尾，或位于 saves 目录下）。
     ///     若是，下载内容应为需解压的压缩包（通常用于地图存档等文件夹形式的内容）。
     /// </summary>
     private static bool _IsDirectoryDownload(ModrinthFile file)
     {
         var path = file.Path ?? "";
-        var trimmed = path.TrimEnd('/', '\\');
-        return !string.IsNullOrEmpty(trimmed) && !Path.GetFileName(trimmed).Contains(".");
+        if (path.EndsWith("/") || path.EndsWith("\\"))
+            return true;
+        var normalizedDir = Path.GetDirectoryName(path.TrimEnd('/', '\\'))?.Replace("\\", "/").TrimEnd('/');
+        return normalizedDir != null && normalizedDir.EndsWith("/saves", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
     ///     将下载的压缩包解压到目标文件夹（用于地图存档等目录形式的下载项）。
     ///     解压到临时暂存目录后，若存在单层嵌套的存档根目录（zip 内再包一层文件夹）则直接使用该目录；
-    ///     内容不是压缩包时回退为按普通文件复制。
+    ///     不是有效的 Minecraft 存档（没有 level.dat）或非压缩包时回退为按普通文件复制。
     /// </summary>
     private static void _ExtractArchiveToDirectory(string archivePath, string targetDirectory)
     {
@@ -243,14 +245,27 @@ public static partial class ModModpack
             ModBase.DeleteDirectory(staging);
             Directory.CreateDirectory(staging);
             ModBase.ExtractFile(archivePath, staging, Encoding.UTF8, null);
-            var saveRoot = SaveImportHelper.GetSaveRootDirectory(staging) ?? staging;
-            ModBase.CopyDirectory(saveRoot, targetDirectory, null);
-            ModBase.DeleteDirectory(staging);
+            var saveRoot = SaveImportHelper.GetSaveRootDirectory(staging);
+            if (saveRoot is null)
+            {
+                ModBase.DeleteDirectory(staging);
+                if (Directory.Exists(targetDirectory))
+                    ModBase.DeleteDirectory(targetDirectory, true);
+                Directory.CreateDirectory(Path.GetDirectoryName(targetDirectory) ?? targetDirectory);
+                ModBase.CopyFile(archivePath, targetDirectory);
+            }
+            else
+            {
+                ModBase.CopyDirectory(saveRoot, targetDirectory, null);
+                ModBase.DeleteDirectory(staging);
+            }
         }
         catch (Exception ex)
         {
             // 内容不是可解压的压缩包，改为按普通文件复制到目标路径
             ModBase.Log(ex, "整合包下载项按压缩包解压失败，改为直接复制文件：" + archivePath);
+            if (Directory.Exists(targetDirectory))
+                ModBase.DeleteDirectory(targetDirectory, true);
             Directory.CreateDirectory(Path.GetDirectoryName(targetDirectory) ?? targetDirectory);
             ModBase.CopyFile(archivePath, targetDirectory);
         }
