@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -54,7 +54,8 @@ public partial class PageToolsTest
 
         TextDownloadFolder.Validate();
         TextDownloadName.Validate();
-        TextUserAgent.Text = States.Tool.DownloadUserAgent;
+        TextDownloadUrl.Validate();
+        StartButtonRefresh();
     }
 
     private void StartButtonRefresh()
@@ -80,11 +81,6 @@ public partial class PageToolsTest
         TextDownloadName.Validate();
     }
 
-    private void SaveCustomUserAgent(object sender, RoutedEventArgs e)
-    {
-        States.Tool.DownloadUserAgent = TextUserAgent.Text;
-    }
-
     private static void DownloadState(ModLoader.LoaderCombo<int> loader)
     {
         try
@@ -99,7 +95,11 @@ public partial class PageToolsTest
                 }
                 case ModBase.LoadState.Failed:
                 {
-                    ModBase.Log(loader.Error, $"{loader.name}失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        loader.Error,
+                        $"{loader.name}失败",
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Tools.Test.Error.OperationFailed"));
                     Console.Beep();
                     break;
                 }
@@ -134,7 +134,11 @@ public partial class PageToolsTest
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"访问文件夹失败（{folder}）", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    $"访问文件夹失败（{folder}）",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Tools.Test.Error.OperationFailed"));
                 return;
             }
 
@@ -158,7 +162,11 @@ public partial class PageToolsTest
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "开始自定义下载失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "开始自定义下载失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Tools.Test.Error.OperationFailed"));
         }
     }
 
@@ -274,7 +282,11 @@ public partial class PageToolsTest
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "清理垃圾失败", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "清理垃圾失败",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Tools.Test.Error.OperationFailed"));
             }
             finally
             {
@@ -308,6 +320,7 @@ public partial class PageToolsTest
         {
             if (!string.IsNullOrEmpty(TextDownloadName.Text) || string.IsNullOrEmpty(TextDownloadUrl.Text)) return;
             TextDownloadName.Text = ModBase.GetFileNameFromPath(WebUtility.UrlDecode(TextDownloadUrl.Text));
+            StartButtonRefresh();
         }
         catch
         {
@@ -336,7 +349,7 @@ public partial class PageToolsTest
 
     private void BtnDownloadStart_Click(object sender, MouseButtonEventArgs e)
     {
-        StartCustomDownload(TextDownloadUrl.Text, TextDownloadName.Text, TextDownloadFolder.Text, TextUserAgent.Text);
+        StartCustomDownload(TextDownloadUrl.Text, TextDownloadName.Text, TextDownloadFolder.Text);
         TextDownloadUrl.Text = "";
         TextDownloadUrl.Validate();
         TextDownloadUrl.ForceShowAsSuccess();
@@ -745,11 +758,4 @@ public partial class PageToolsTest
         SaveCacheDownloadFolder(sender, e);
         TextDownloadName_ValidateChanged(sender, e);
     }
-
-    private void TextUserAgent_OnValidatedTextChanged(object sender, RoutedEventArgs e)
-    {
-        SaveCustomUserAgent(sender, e);
-        TextDownloadFolder_ValidateChanged(sender, e);
-    }
-
 }

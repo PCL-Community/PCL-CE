@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -366,7 +366,11 @@ public partial class PageSelectRight
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Select.Instance.Error.UiUpdate"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Select.Instance.Error.UiUpdate"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Select.Instance.Error.UiUpdate"));
         }
     }
 
@@ -405,7 +409,11 @@ public partial class PageSelectRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Select.Instance.Error.IconLoad"), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Select.Instance.Error.IconLoad"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Select.Instance.Error.IconLoad"));
             newItem.Logo = "pack://application:,,,/images/Blocks/RedstoneBlock.png";
         }
 
@@ -599,7 +607,11 @@ public partial class PageSelectRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Select.Instance.Error.Delete", mcInstance.Name), ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                Lang.Text("Select.Instance.Error.Delete", mcInstance.Name),
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Select.Instance.Error.Delete", mcInstance.Name));
         }
     }
 

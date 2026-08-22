@@ -1,4 +1,4 @@
-using System.Collections.Specialized;
+﻿using System.Collections.Specialized;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -237,7 +237,11 @@ public partial class PageInstanceSaves : IRefreshable
                             }
                             catch (Exception ex)
                             {
-                                ModBase.Log(ex, Lang.Text("Instance.Saves.DeleteFailed"), ModBase.LogLevel.Hint);
+                                ModBase.Log(
+                                    ex,
+                                    Lang.Text("Instance.Saves.DeleteFailed"),
+                                    ModBase.LogLevel.Hint,
+                                    userSummary: Lang.Text("Instance.Saves.DeleteFailed"));
                                 ModBase.RunInUiWait(() => Reload());
                             }
                         });
@@ -264,7 +268,11 @@ public partial class PageInstanceSaves : IRefreshable
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, Lang.Text("Instance.Saves.CopyFailed"), ModBase.LogLevel.Hint);
+                            ModBase.Log(
+                                ex,
+                                Lang.Text("Instance.Saves.CopyFailed"),
+                                ModBase.LogLevel.Hint,
+                                userSummary: Lang.Text("Instance.Saves.CopyFailed"));
                         }
                     };
                     var btnInfo = new MyIconButton
@@ -304,7 +312,11 @@ public partial class PageInstanceSaves : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Saves.RefreshUiFailed"), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Instance.Saves.RefreshUiFailed"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Instance.Saves.RefreshUiFailed"));
         }
     }
 
@@ -317,7 +329,11 @@ public partial class PageInstanceSaves : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "检查存档快捷启动失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "检查存档快捷启动失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
         }
     }
 
@@ -349,7 +365,11 @@ public partial class PageInstanceSaves : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Saves.LoadListFailed"), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Instance.Saves.LoadListFailed"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Instance.Saves.LoadListFailed"));
         }
     }
 
@@ -395,7 +415,11 @@ public partial class PageInstanceSaves : IRefreshable
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, Lang.Text("Instance.Saves.PasteFolderFailed"), ModBase.LogLevel.Hint);
+                    ModBase.Log(
+                        ex,
+                        Lang.Text("Instance.Saves.PasteFolderFailed"),
+                        ModBase.LogLevel.Hint,
+                        userSummary: Lang.Text("Instance.Saves.PasteFolderFailed"));
                 }
 
             if (copied > 0)
@@ -408,6 +432,12 @@ public partial class PageInstanceSaves : IRefreshable
         ModLoader.LoaderTaskbarAdd(loader);
         ModMain.frmMain.BtnExtraDownload.ShowRefresh();
         ModMain.frmMain.BtnExtraDownload.Ribble();
+    }
+
+    private void BtnDownloadNew_Click(object sender, MouseButtonEventArgs e)
+    {
+        ModMain.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadWorld);
+        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
     }
 
     #region 搜索和排序
@@ -498,7 +528,7 @@ public partial class PageInstanceSaves : IRefreshable
                     queryList.Add(new ModBase.SearchEntry<string> { item = saveFolder, searchSource = searchSource });
                 }
 
-                _searchResult = ModBase.Search(queryList, SearchBox.Text, 6, 0.35d).Select(r => r.item).ToList();
+                _searchResult = ModBase.Search(queryList, SearchBox.Text, ModBase.MaxLocalSearchDepth, 0.35d).Select(r => r.item).ToList();
             }
             else
             {

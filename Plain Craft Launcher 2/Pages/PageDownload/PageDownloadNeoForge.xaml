@@ -20,7 +20,7 @@
                         <local:MyButton x:Name="BtnWeb" Grid.Column="0" MinWidth="140"
                                         Text="{DynamicResource Download.Version.OpenWebsite}" Padding="13,0"
                                         Margin="0,0,20,0" HorizontalAlignment="Left" ColorType="Highlight"
-                                        local:CustomEventService.EventType="打开网页"
+                                        local:CustomEventService.EventType="OpenUrl"
                                         local:CustomEventService.EventData="https://neoforged.net/" />
                     </Grid>
                 </StackPanel>

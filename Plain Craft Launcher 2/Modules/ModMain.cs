@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -45,7 +45,6 @@ public static class ModMain
     public static PageDownloadNeoForge? frmDownloadNeoForge;
     public static PageDownloadCleanroom? frmDownloadCleanroom;
     public static PageDownloadFabric? frmDownloadFabric;
-    public static PageDownloadQuilt? frmDownloadQuilt;
     public static PageDownloadLabyMod? frmDownloadLabyMod;
     public static PageDownloadLegacyFabric? frmDownloadLegacyFabric;
     public static PageDownloadMod? frmDownloadMod;
@@ -116,7 +115,11 @@ public static class ModMain
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "短程主时钟执行异常", ModBase.LogLevel.Critical);
+            ModBase.Log(
+                ex,
+                "短程主时钟执行异常",
+                ModBase.LogLevel.Critical,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
 
         timer4Count += 1;
@@ -161,7 +164,11 @@ public static class ModMain
 
             catch (Exception ex)
             {
-                ModBase.Log(ex, "长程主时钟执行异常", ModBase.LogLevel.Critical);
+                ModBase.Log(
+                    ex,
+                    "长程主时钟执行异常",
+                    ModBase.LogLevel.Critical,
+                    userSummary: Lang.Text("Main.Error.OperationFailed"));
             }
         }
     }
@@ -180,7 +187,11 @@ public static class ModMain
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "程序主时钟出错", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    "程序主时钟出错",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Main.Error.OperationFailed"));
             }
         }, "Timer Main");
         if (!isAprilEnabled)
@@ -203,7 +214,11 @@ public static class ModMain
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "愚人节主时钟出错", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    "愚人节主时钟出错",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Main.Error.OperationFailed"));
             }
         }, "Timer Main Fool");
     }
@@ -621,7 +636,11 @@ public static class ModMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "处理等待中的弹窗失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "处理等待中的弹窗失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
 
@@ -790,7 +809,11 @@ public static class ModMain
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "愚人节移动出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "愚人节移动出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
 
@@ -810,7 +833,11 @@ public static class ModMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "设置窗口置顶失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "设置窗口置顶失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
 
@@ -1048,7 +1075,7 @@ public static class ModMain
         // 收集事件列表
         var events = CustomEventService.GetEvents(control).ToList();
         var eventType = CustomEventService.GetEventType(control);
-        if (eventType != CustomEvent.EventType.None)
+        if (eventType != EventType.None)
             events.Add(new CustomEvent(eventType, CustomEventService.GetEventData(control)));
 
         if (!events.Any()) return;

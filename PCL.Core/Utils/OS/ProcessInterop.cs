@@ -43,6 +43,8 @@ public class ProcessInterop {
             psi.UseShellExecute = true;
             psi.Verb = "runas";
         }
+        if (Directory.Exists(path))
+            psi.UseShellExecute = true;
 
         return Process.Start(psi);
     }

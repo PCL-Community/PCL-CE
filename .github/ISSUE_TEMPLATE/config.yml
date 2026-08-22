@@ -1,14 +1,17 @@
 blank_issues_enabled: false
 contact_links:
-  - name: "旧版本优化反馈、新功能请求暂不受理"
+  - name: "旧版本优化反馈、新功能请求暂不受理 / Legacy Version Improvement Feedback and Feature Requests Are Not Accepted"
     url: "https://github.com/PCL-Community/PCL-CE/issues/new/choose"
-    about: "由于开发重心已经转移到 C# 新版本，所以目前不计划再对旧版做优化和新功能了。你可以在晚一些时候向新版本提交新功能请求。"
-  - name: "新版本新功能请求暂不受理"
+    about: "由于开发重心已经转移到 C# 新版本，所以目前不计划再对旧版做优化和新功能了。/ Because development focus has shifted to the new C# version, we currently do not plan to optimize the legacy version or add new features to it. You can submit feature requests for the new version later."
+  - name: "新版本新功能请求暂不受理 / New Version Feature Requests Are Temporarily Not Accepted"
     url: "https://github.com/PCL-Community/PCL-CE/issues/new/choose"
-    about: "由于 C# 新版本还不稳定，我们暂时不受理对新版本提出的新功能请求，请在晚一些时候再来"
-  - name: 主页预设反馈
-    url: https://github.com/Meloong-Git/PCL2/discussions/categories/自定义主页
-    about: 提交与预设的主页（设置 → 个性化 → 主页预设）中的具体内容相关的反馈
-  - name: 提问 / 讨论
-    url: https://github.com/PCL-Community/PCL2-CE/discussions/new
-    about: 想问问或谈谈关于社区版的事情...
+    about: "由于 C# 新版本还不稳定，我们暂时不受理对新版本提出的新功能请求，请在晚一些时候再来。/ Because the new C# version is still unstable, we are temporarily not accepting feature requests for it. Please check back later."
+  - name: "主页预设反馈 / Homepage Preset Feedback"
+    url: https://github.com/Meloong-Git/PCL/discussions/categories/自定义主页
+    about: "提交与预设的主页（设置 → 个性化 → 主页预设）中的具体内容相关的反馈 / Submit feedback about specific content in homepage presets (Settings → Personalization → Homepage Presets)."
+  - name: "帮助文档反馈 / Help Documentation Feedback"
+    url: https://github.com/PCL-Community/docs.pclc.cc/issues
+    about: "提交与 PCL CE 帮助文档（独立文档站）中的具体内容相关的反馈 / Submit feedback about specific content in the PCL CE help documentation on the standalone documentation site."
+  - name: "提问 / 讨论 / Questions / Discussions"
+    url: https://github.com/PCL-Community/PCL-CE/discussions/new
+    about: "想问问或谈谈关于社区版的事情 / Ask questions or discuss topics about the Community Edition."

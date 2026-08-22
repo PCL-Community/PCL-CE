@@ -59,9 +59,9 @@ public partial class MyHint
         set
         {
             if (value)
-                BorderThickness = new Thickness(ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d), 3d, ModBase.GetWPFSize(1d));
+                BorderThickness = new Thickness(3d, ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d), ModBase.GetWPFSize(1d));
             else
-                BorderThickness = new Thickness(0d, 0d, 3d, 0d);
+                BorderThickness = new Thickness(3d, 0d, 0d, 0d);
         }
     }
 

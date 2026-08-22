@@ -42,6 +42,7 @@ public partial class PageSetupAbout
             ItemMcmod.Visibility = Visibility.Collapsed;
             BtnMcmod.Visibility = Visibility.Collapsed;
             ImgMcmod.Visibility = Visibility.Collapsed;
+            RowMcmod.Height = new GridLength(0);
         }
 
         LoadContributersAsync();

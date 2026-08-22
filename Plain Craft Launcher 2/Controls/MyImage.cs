@@ -144,7 +144,6 @@ public class MyImage : Image
             using (var fs = new FileStream(tempDownloadingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
             {
                 using (var response = await HttpRequest.Create(url)
-                           .WithHttpVersionOption(HttpVersion.Version30)
                            .SendAsync(addMetedata: false))
                 {
                     response.EnsureSuccessStatusCode();

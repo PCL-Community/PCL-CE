@@ -46,12 +46,12 @@
                                 Text="{DynamicResource Launch.Account.LoginDialog.ReopenWebpage}" x:Name="Btn1"
                                 Margin="12,0,0,0" TextPadding="7" SnapsToDevicePixels="False" Padding="5,0"
                                 UseLayoutRounding="False"
-                                local:CustomEventService.EventType="打开网页" />
+                                local:CustomEventService.EventType="OpenUrl" />
                 <local:MyButton ColorType="Normal" x:FieldModifier="public"
                                 Text="{DynamicResource Launch.Account.LoginDialog.CopyCode}" x:Name="Btn2"
                                 Margin="12,0,0,0" TextPadding="7" SnapsToDevicePixels="False" Padding="5,0"
                                 UseLayoutRounding="False"
-                                local:CustomEventService.EventType="复制文本" />
+                                local:CustomEventService.EventType="CopyText" />
                 <local:MyButton ColorType="Normal" x:FieldModifier="public"
                                 Text="{DynamicResource Common.Action.Cancel}" x:Name="Btn3" Margin="12,0,0,0"
                                 TextPadding="7" SnapsToDevicePixels="False" Padding="5,0" UseLayoutRounding="False"

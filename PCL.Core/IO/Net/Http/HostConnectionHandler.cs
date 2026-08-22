@@ -66,7 +66,7 @@ public class HostConnectionHandler
             // 等待首个成功连接
             var winner = await connectionTasks
                 .ToArray()
-                .WhenAnySuccess()
+                .WhenAnySuccessAsync()
                 .ConfigureAwait(false);
             var stream = await winner.ConfigureAwait(false);
 
@@ -78,7 +78,7 @@ public class HostConnectionHandler
             // 取消其他连接
             // ReSharper disable once MethodHasAsyncOverload
             cancellationSource.Cancel();
-            _ = _CleanupUnusedConnections(connectionTasks, winner).ConfigureAwait(false);
+            _ = _CleanupUnusedConnectionsAsync(connectionTasks, winner).ConfigureAwait(false);
 
             return stream;
         }
@@ -91,7 +91,7 @@ public class HostConnectionHandler
             // 清理所有连接
             // ReSharper disable once MethodHasAsyncOverload
             cancellationSource.Cancel();
-            _ = _CleanupUnusedConnections(connectionTasks, null).ConfigureAwait(false);
+            _ = _CleanupUnusedConnectionsAsync(connectionTasks, null).ConfigureAwait(false);
 
             LogWrapper.Error(ex, ModuleName, $"All connection attempts failed for {host}");
             throw new HttpRequestException($"Connection failed for {host}", ex);
@@ -207,7 +207,7 @@ public class HostConnectionHandler
         }
     }
 
-    private static async Task _CleanupUnusedConnections(
+    private static async Task _CleanupUnusedConnectionsAsync(
         List<Task<NetworkStream>> allTasks,
         Task<NetworkStream>? winnerTask)
     {

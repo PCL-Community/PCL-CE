@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -229,8 +229,6 @@ public partial class PageSelectLeft : IRefreshable
                     SvgIcon = "lucide/folder-plus"
                 };
                 ToolTipService.SetPlacement(itemCreate, PlacementMode.Right);
-                ToolTipService.SetHorizontalOffset(itemCreate, -50);
-                ToolTipService.SetVerticalOffset(itemCreate, 2.5);
                 itemCreate.Click += (_, _) => ModMain.frmSelectLeft.Create_Click();
                 ModMain.frmSelectLeft.PanList.Children.Add(itemCreate);
             }
@@ -246,8 +244,6 @@ public partial class PageSelectLeft : IRefreshable
                 SvgIcon = "lucide/folder-input"
             };
             ToolTipService.SetPlacement(itemAdd, PlacementMode.Right);
-            ToolTipService.SetHorizontalOffset(itemAdd, -50);
-            ToolTipService.SetVerticalOffset(itemAdd, 2.5);
             itemAdd.Click += (_, _) => ModMain.frmSelectLeft.Add_Click();
             ModMain.frmSelectLeft.PanList.Children.Add(itemAdd);
 
@@ -262,8 +258,6 @@ public partial class PageSelectLeft : IRefreshable
                 SvgIcon = "lucide/package-plus"
             };
             ToolTipService.SetPlacement(itemInstall, PlacementMode.Right);
-            ToolTipService.SetHorizontalOffset(itemInstall, -50);
-            ToolTipService.SetVerticalOffset(itemInstall, 2.5);
             itemInstall.Click += (_, _) => ModModpack.ModpackInstall();
             ModMain.frmSelectLeft.PanList.Children.Add(itemInstall);
 
@@ -384,7 +378,11 @@ public partial class PageSelectLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Select.Folder.Error.Add", newFolder), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Select.Folder.Error.Add", newFolder),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Select.Folder.Error.Add", newFolder));
         }
     }
 
@@ -472,7 +470,11 @@ public partial class PageSelectLeft : IRefreshable
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Select.Folder.Error.AddNew"), ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Select.Folder.Error.AddNew"),
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Select.Folder.Error.AddNew"));
             }
         }); // 加上斜杠……
     }
@@ -563,7 +565,11 @@ public partial class PageSelectLeft : IRefreshable
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Select.Folder.Error.Remove"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Select.Folder.Error.Remove"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Select.Folder.Error.Remove"));
         }
     }
 
@@ -621,7 +627,11 @@ public partial class PageSelectLeft : IRefreshable
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Select.Folder.Error.Operate", deleteText, folder.Name), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Select.Folder.Error.Operate", deleteText, folder.Name),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Select.Folder.Error.Operate", deleteText, folder.Name));
             }
             finally
             {
@@ -700,7 +710,11 @@ public partial class PageSelectLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Select.Folder.Error.Rename"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Select.Folder.Error.Rename"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Select.Folder.Error.Rename"));
         }
     }
 
@@ -871,7 +885,11 @@ public partial class PageSelectLeft : IRefreshable
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Select.Folder.Error.DragDrop"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Select.Folder.Error.DragDrop"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Select.Folder.Error.DragDrop"));
         }
         finally
         {

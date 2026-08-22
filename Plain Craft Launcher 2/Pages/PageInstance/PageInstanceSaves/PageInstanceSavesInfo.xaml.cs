@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using Humanizer;
 using PCL.Core.App.Localization;
@@ -97,7 +97,11 @@ public partial class PageInstanceSavesInfo : IRefreshable
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Error.LoadFailed"), ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                Lang.Text("Instance.Saves.Info.Error.LoadFailed"),
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Saves.Info.Error.LoadFailed"));
             PanContent.Visibility = Visibility.Collapsed;
             PanSettings.Visibility = Visibility.Collapsed;
             PanSettingsList.Children.Clear();
@@ -136,10 +140,21 @@ public partial class PageInstanceSavesInfo : IRefreshable
                         AllowCommands = new Editable<bool>((int)combo.SelectedValue == 1),
                     });
                 }
-                finally { WriteLock.Release(); }
+                finally
+                {
+                    WriteLock.Release();
+                }
+
                 HintService.Hint(Lang.Text("Instance.Saves.Info.Modify.CheatSuccess"), HintType.Success);
             }
-            catch (Exception ex) { ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Modify.CheatFailed"), ModBase.LogLevel.Hint); }
+            catch (Exception ex)
+            {
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Instance.Saves.Info.Modify.CheatFailed"),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Instance.Saves.Info.Modify.CheatFailed"));
+            }
         };
 
         AddSettingRow(Lang.Text("Instance.Saves.Info.AllowCommands"), combo);
@@ -189,10 +204,21 @@ public partial class PageInstanceSavesInfo : IRefreshable
                         LockDifficulty = new Editable<bool>(!isHardcore && lockCheckBox.Checked == true),
                     });
                 }
-                finally { WriteLock.Release(); }
+                finally
+                {
+                    WriteLock.Release();
+                }
+
                 HintService.Hint(Lang.Text("Instance.Saves.Info.Modify.DifficultySuccess"), HintType.Success);
             }
-            catch (Exception ex) { ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Modify.DifficultyFailed"), ModBase.LogLevel.Hint); }
+            catch (Exception ex)
+            {
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Instance.Saves.Info.Modify.DifficultyFailed"),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Instance.Saves.Info.Modify.DifficultyFailed"));
+            }
         }
 
         combo.SelectionChanged += async (_, _) => await ApplyAsync();
@@ -232,8 +258,18 @@ public partial class PageInstanceSavesInfo : IRefreshable
             var seedBtn = new MyTextButton { Text = content, Margin = new Thickness(0d, 3d, 0d, 3d) };
             seedBtn.Click += (_, _) =>
             {
-                try { ModBase.ClipboardSet(content); }
-                catch (Exception ex) { ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Error.ClipboardFailed"), ModBase.LogLevel.Hint); }
+                try
+                {
+                    ModBase.ClipboardSet(content);
+                }
+                catch (Exception ex)
+                {
+                    ModBase.Log(
+                        ex,
+                        Lang.Text("Instance.Saves.Info.Error.ClipboardFailed"),
+                        ModBase.LogLevel.Hint,
+                        userSummary: Lang.Text("Instance.Saves.Info.Error.ClipboardFailed"));
+                }
             };
             contentStack.Children.Add(seedBtn);
 
@@ -284,14 +320,19 @@ public partial class PageInstanceSavesInfo : IRefreshable
         {
             if (versionName is null)
             {
-                ModBase.Log(Lang.Text("Instance.Saves.Info.Chunkbase.UnknownVersion"), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    Lang.Text("Instance.Saves.Info.Chunkbase.UnknownVersion"),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Instance.Saves.Info.Chunkbase.UnknownVersion"));
                 return;
             }
 
             if (versionName.Any(char.IsLetter))
             {
-                ModBase.Log(Lang.Text("Instance.Saves.Info.Chunkbase.PreviewVersion", versionName),
-                    ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    Lang.Text("Instance.Saves.Info.Chunkbase.PreviewVersion", versionName),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Instance.Saves.Info.Chunkbase.PreviewVersion", versionName));
                 return;
             }
 
@@ -303,6 +344,13 @@ public partial class PageInstanceSavesInfo : IRefreshable
             ModBase.OpenWebsite(
                 $"https://www.chunkbase.com/apps/seed-map#seed={seed}&platform=java_{usedVersion}&dimension=overworld");
         }
-        catch (Exception ex) { ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Error.ChunkbaseFailed"), ModBase.LogLevel.Hint); }
+        catch (Exception ex)
+        {
+            ModBase.Log(
+                ex,
+                Lang.Text("Instance.Saves.Info.Error.ChunkbaseFailed"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Instance.Saves.Info.Error.ChunkbaseFailed"));
+        }
     }
 }

@@ -101,20 +101,20 @@ public static class ModNet
 
     public static Task NetDownloadByClient(string url, string localFile, bool useBrowserUserAgent = false)
     {
-        return FileDownloader.Download(url, localFile, useBrowserUserAgent);
+        return FileDownloader.DownloadAsync(url, localFile, useBrowserUserAgent);
     }
 
     public static void NetDownloadByLoader(string url, string localFile, ModLoader.LoaderBase? loaderToSyncProgress = null,
         ModBase.FileChecker? check = null, bool useBrowserUserAgent = false)
     {
-        FileDownloader.Download(url, localFile, useBrowserUserAgent).GetAwaiter().GetResult();
+        FileDownloader.DownloadAsync(url, localFile, useBrowserUserAgent).GetAwaiter().GetResult();
     }
 
     public static void NetDownloadByLoader(IEnumerable<string> urls, string localFile,
         ModLoader.LoaderBase? loaderToSyncProgress = null, ModBase.FileChecker? check = null,
         bool useBrowserUserAgent = false)
     {
-        FileDownloader.Download(urls, localFile, useBrowserUserAgent).GetAwaiter().GetResult();
+        FileDownloader.DownloadAsync(urls, localFile, useBrowserUserAgent).GetAwaiter().GetResult();
     }
 
     public static bool HasDownloadingTask(bool ignoreCustomDownload = false)

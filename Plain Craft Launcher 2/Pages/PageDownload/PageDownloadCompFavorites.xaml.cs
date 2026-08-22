@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
@@ -42,7 +42,9 @@ public partial class PageDownloadCompFavorites
         ComboTargetFav.SelectionChanged += ComboTargetFav_Selected;
         HintGetFail.MouseLeftButtonDown += HintGetFail_MouseLeftButtonDown;
         PanSearchBox.TextChanged += SearchRun;
+        WeakLanguageChanged.Add(this, OnLanguageChanged); 
     }
+    private static void OnLanguageChanged(PageDownloadCompFavorites page) => ModBase.RunInUi(page._RefreshCategoryTitles);
 
     private ModComp.CompFavorites.FavData CurrentFavTarget
     {
@@ -154,55 +156,7 @@ public partial class PageDownloadCompFavorites
             },
             CompType = type
         };
-        switch (type)
-        {
-            case -1:
-            {
-                newItem.Title = Lang.Text("Download.Comp.Favorites.SearchResults.Title");
-                break;
-            }
-            case (int)ModComp.CompType.Mod:
-            {
-                newItem.Title = "Mod ({0})";
-                break;
-            }
-            case (int)ModComp.CompType.ModPack:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.Modpack")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.ResourcePack:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.ResourcePack")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.Shader:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.Shader")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.DataPack:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.DataPack")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.Plugin:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.Plugin")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.World:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.World")} ({{0}})";
-                break;
-            }
-
-            default:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Favorites.UnknownType")} ({{0}})";
-                break;
-            }
-        }
+        newItem.Title = _GetCategoryTitleFormat(type);
 
         newItem.Card.Title = string.Format(newItem.Title, 0);
         newItem.Card.Children.Add(newItem.ContentList);
@@ -225,6 +179,26 @@ public partial class PageDownloadCompFavorites
                 continue;
             PanContentList.Children.Add(item.Card);
         }
+    }
+
+    private static string _GetCategoryTitleFormat(int type) => type switch
+    {
+        -1 => Lang.Text("Download.Comp.Favorites.SearchResults.Title"),
+        (int)ModComp.CompType.Mod => Lang.Text("Download.Comp.Favorites.Category.Mod"),
+        (int)ModComp.CompType.ModPack => $"{Lang.Text("Download.Comp.Type.Modpack")} ({{0}})",
+        (int)ModComp.CompType.ResourcePack => $"{Lang.Text("Download.Comp.Type.ResourcePack")} ({{0}})",
+        (int)ModComp.CompType.Shader => $"{Lang.Text("Download.Comp.Type.Shader")} ({{0}})",
+        (int)ModComp.CompType.DataPack => $"{Lang.Text("Download.Comp.Type.DataPack")} ({{0}})",
+        (int)ModComp.CompType.Plugin => $"{Lang.Text("Download.Comp.Type.Plugin")} ({{0}})",
+        (int)ModComp.CompType.World => $"{Lang.Text("Download.Comp.Type.World")} ({{0}})",
+        _ => $"{Lang.Text("Download.Comp.Favorites.UnknownType")} ({{0}})"
+    };
+
+    private void _RefreshCategoryTitles()
+    {
+        foreach (var item in itemList)
+            item.Title = _GetCategoryTitleFormat(item.CompType);
+        RefreshCardTitle();
     }
 
     private void RefreshCardTitle()
@@ -282,7 +256,11 @@ public partial class PageDownloadCompFavorites
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化收藏夹列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化收藏夹列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
         }
     }
 
@@ -492,7 +470,11 @@ public partial class PageDownloadCompFavorites
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[CompFavourites] 分享收藏时发生错误", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "[CompFavourites] 分享收藏时发生错误",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
         }
     }
 
@@ -578,7 +560,11 @@ public partial class PageDownloadCompFavorites
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, $"获取 {Item} 的下载信息失败", ModBase.LogLevel.Hint);
+                            ModBase.Log(
+                                ex,
+                                $"获取 {Item} 的下载信息失败",
+                                ModBase.LogLevel.Hint,
+                                userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
                         }
                         finally
                         {
@@ -675,7 +661,11 @@ public partial class PageDownloadCompFavorites
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "批量下载收藏时发生错误", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "批量下载收藏时发生错误",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
         }
     }
 
@@ -738,7 +728,11 @@ public partial class PageDownloadCompFavorites
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "[Favourites] 分享收藏时发生错误", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "[Favourites] 分享收藏时发生错误",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
             }
         };
         body.Items.Add(newItem);
@@ -784,7 +778,11 @@ public partial class PageDownloadCompFavorites
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "解析分享数据失败", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "解析分享数据失败",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
             }
         };
         body.Items.Add(newItem);
@@ -906,7 +904,7 @@ public partial class PageDownloadCompFavorites
             }
 
             // 进行搜索
-            searchResult = ModBase.Search(queryList, PanSearchBox.Text, 6, 0.35d).Select(r => r.item).ToList();
+            searchResult = ModBase.Search(queryList, PanSearchBox.Text, ModBase.MaxLocalSearchDepth, 0.35d).Select(r => r.item).ToList();
         }
 
         RefreshContent();

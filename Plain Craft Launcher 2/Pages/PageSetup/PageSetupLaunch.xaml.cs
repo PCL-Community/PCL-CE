@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -66,6 +66,7 @@ public partial class PageSetupLaunch
             // 游戏内存
             ((MyRadioBox)FindName("RadioRamType" + Config.Launch.MemoryAllocationMode)).Checked = true;
             SliderRamCustom.Value = Config.Launch.CustomMemorySize;
+            RamType(Config.Launch.MemoryAllocationMode);
 
             // 高级设置
             ComboAdvanceRenderer.SelectedIndex = Config.Launch.Renderer;
@@ -77,6 +78,8 @@ public partial class PageSetupLaunch
             CheckAdvanceGraphicCard.Checked = Config.Launch.SetGpuPreference;
             CheckAdvanceNoJavaw.Checked = Config.Launch.NoJavaw;
             CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Launch.DisableLwjglUnsafeAgent;
+            CheckAdvanceDisableCrashAnalysis.Checked = Config.Launch.DisableCrashAnalysis;
+            CheckAdvanceLockMemory.Checked = Config.Launch.LockMemory;
             if (SystemInfo.IsArm64System)
             {
                 CheckAdvanceDisableJLW.Checked = true;
@@ -91,12 +94,20 @@ public partial class PageSetupLaunch
 
         catch (NullReferenceException ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Launch.Error.ConfigReset"), ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.Launch.Error.ConfigReset"),
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Launch.Error.ConfigReset"));
             Reset();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Launch.Error.LoadFailed"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.Launch.Error.LoadFailed"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Launch.Error.LoadFailed"));
         }
     }
 
@@ -111,7 +122,11 @@ public partial class PageSetupLaunch
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Launch.Error.InitFailed"), ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.Launch.Error.InitFailed"),
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Launch.Error.InitFailed"));
         }
 
         Reload();
@@ -224,9 +239,9 @@ public partial class PageSetupLaunch
         else
             SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((ramTotal - 16d) / 2d) + 33d);
         // 设置文本
-        LabRamGame.Text = $"{Lang.Number(ramGame, "N1")} GB{(ramGame != ramGameActual ? $" ({Lang.Text("Setup.Launch.Memory.AvailableSuffix", Lang.Number(ramGameActual, "N1"))})" : "")}";
-        LabRamUsed.Text = $"{Lang.Number(ramUsed, "N1")} GB";
-        LabRamTotal.Text = $" / {Lang.Number(ramTotal, "N1")} GB";
+        LabRamGame.Text = $"{Lang.Number(ramGame, "N1")} GiB{(ramGame != ramGameActual ? $" ({Lang.Text("Setup.Launch.Memory.AvailableSuffix", Lang.Number(ramGameActual, "N1"))})" : "")}";
+        LabRamUsed.Text = $"{Lang.Number(ramUsed, "N1")} GiB";
+        LabRamTotal.Text = $" / {Lang.Number(ramTotal, "N1")} GiB";
         LabRamWarn.Visibility =
             ramGame == 1d && !ModJava.IsGameSet64BitJava() && !SystemInfo.Is32BitSystem && ModJava.Javas.ExistAnyJava()
                 ? Visibility.Visible
@@ -501,9 +516,9 @@ public partial class PageSetupLaunch
             return;
         if (ComboArgumentVisibie.SelectedIndex == 0)
             if (ModMain.MyMsgBox(
-                    Lang.Text("Setup.Launch.Visibility.CloseImmediately.Warning.Message"),
-                    Lang.Text("Setup.Launch.Visibility.CloseImmediately.Warning.Title"),
-                    Lang.Text("Setup.Launch.Visibility.CloseImmediately.Warning.Continue"),
+                    Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Message"),
+                    Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Title"),
+                    Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Continue"),
                     Lang.Text("Common.Action.Cancel")) == 2)
                 ComboArgumentVisibie.SelectedItem = sizeChangedEventArgs.RemovedItems[0];
     }
@@ -513,7 +528,7 @@ public partial class PageSetupLaunch
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
-        ModMain.MyMsgBox(Lang.Text("Setup.Launch.InstanceIsolation.DefaultPolicyHint"));
+        ModMain.MyMsgBox(Lang.Text("Setup.Launch.Options.InstanceIsolation.DefaultPolicyHint"));
     }
 
     #endregion

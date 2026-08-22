@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Globalization;
 using System.Reflection;
 using System.Windows;
@@ -18,8 +18,12 @@ public partial class PageLaunchRight : IRefreshable
     public PageLaunchRight()
     {
         InitializeComponent();
-        onlineLoader = new ModLoader.LoaderTask<string, int>("下载主页", OnlineLoaderSub)
-            { reloadTimeout = 10 * 60 * 1000 };
+        onlineLoader = new ModLoader.LoaderTask<string, int>(
+            Lang.Text("Launch.Homepage.Task.Download"),
+            OnlineLoaderSub)
+        {
+            reloadTimeout = 10 * 60 * 1000
+        };
         Loaded += (_, _) => Init();
         Loaded += (_, _) => Refresh();
         Unloaded += (_, _) => _DisposeHomepageLiveWatcher();
@@ -75,8 +79,13 @@ public partial class PageLaunchRight : IRefreshable
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "加载 PCL 主页自定义信息失败",
-                        ModBase.modeDebug ? ModBase.LogLevel.Msgbox : ModBase.LogLevel.Hint);
+                    ModBase.Log(
+                        ex,
+                        "加载 PCL 主页自定义信息失败",
+                        ModBase.modeDebug
+                            ? ModBase.LogLevel.Msgbox
+                            : ModBase.LogLevel.Hint,
+                        userSummary: Lang.Text("Launch.Error.OperationFailed"));
                 }
             }, $"刷新主页 #{ModBase.GetUuid()}");
     }
@@ -125,81 +134,106 @@ public partial class PageLaunchRight : IRefreshable
 
                 case 2:
                     LogWrapper.Info("[Page] 主页预设：Minecraft 新闻");
-                    url = "https://pcl.mcnews.thestack.top";
+                    url = "https://news.bugjump.net";
                     content = LoadFromNetwork(url);
                     break;
+
+                // case 3:
+                //     LogWrapper.Info("[Page] 主页预设：简单主页");
+                //     url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/MFn233/Custom.xaml";
+                //     content = LoadFromNetwork(url);
+                //     break;
 
                 case 3:
-                    LogWrapper.Info("[Page] 主页预设：简单主页");
-                    url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/MFn233/Custom.xaml";
-                    content = LoadFromNetwork(url);
-                    break;
-
-                case 4:
                     LogWrapper.Info("[Page] 主页预设：每日整合包推荐");
                     url = "https://pclsub.sodamc.com/";
                     content = LoadFromNetwork(url);
                     break;
 
-                case 5:
+                case 4:
                     LogWrapper.Info("[Page] 主页预设：Minecraft 皮肤推荐");
                     url = "https://forgepixel.com/pcl_sub_file";
                     content = LoadFromNetwork(url);
                     break;
 
-                case 6:
+                case 5:
                     LogWrapper.Info("[Page] 主页预设：OpenBMCLAPI 仪表盘 Lite");
                     url = "https://pcl-bmcl.milu.ink/";
                     content = LoadFromNetwork(url);
                     break;
 
-                case 7:
-                    LogWrapper.Info("[Page] 主页预设：主页市场");
-                    url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom.xaml";
-                    content = LoadFromNetwork(url);
-                    break;
+                // case 7:
+                //     LogWrapper.Info("[Page] 主页预设：主页市场");
+                //     url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom.xaml";
+                //     content = LoadFromNetwork(url);
+                //     break;
 
-                case 8:
-                    LogWrapper.Info("[Page] 主页预设：更新日志");
-                    url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Joker2184/UpdateHomepage.xaml";
-                    content = LoadFromNetwork(url);
-                    break;
+                // case 8:
+                //     LogWrapper.Info("[Page] 主页预设：更新日志");
+                //     url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Joker2184/UpdateHomepage.xaml";
+                //     content = LoadFromNetwork(url);
+                //     break;
 
-                case 9:
+                case 6:
                     LogWrapper.Info("[Page] 主页预设：PCL 新功能说明书");
                     url = "https://raw.gitcode.com/WForst-Breeze/WhatsNewPCL/raw/main/Custom.xaml";
                     content = LoadFromNetwork(url);
                     break;
 
-                case 10:
-                    LogWrapper.Info("[Page] 主页预设：OpenMCIM Dashboard");
-                    url = "https://files.mcimirror.top/PCL";
-                    content = LoadFromNetwork(url);
-                    break;
+                // case 10:
+                //     LogWrapper.Info("[Page] 主页预设：OpenMCIM Dashboard");
+                //     url = "https://files.mcimirror.top/PCL";
+                //     content = LoadFromNetwork(url);
+                //     break;
 
-                case 11:
+                case 7:
                     LogWrapper.Info("[Page] 主页预设：杂志主页");
                     url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Ext1nguisher/Custom.xaml";
                     content = LoadFromNetwork(url);
                     break;
 
-                case 12:
+                case 8:
                     LogWrapper.Info("[Page] 主页预设：PCL GitHub 仪表盘");
                     url = "https://ddf.pcl-community.org/Custom.xaml";
                     content = LoadFromNetwork(url);
                     break;
 
-                case 13:
+                case 9:
                     LogWrapper.Info("[Page] 主页预设：Minecraft 更新摘要");
                     url = "https://raw.gitcode.com/ENC_Euphony/PCL-AI-Summary-HomePage/raw/master/Custom.xaml";
                     content = LoadFromNetwork(url);
                     break;
+                
+                case 10:
+                    LogWrapper.Info("[Page] 主页预设：今日新闻热点");
+                    url = "https://pcl.wyc-w.top/index.xaml";
+                    content = LoadFromNetwork(url);
+                    break;
+                
+                case 11:
+                    LogWrapper.Info("[Page] 主页预设：Minecraft 芝士站");
+                    url = "https://www.xxag.top/mkss";
+                    content = LoadFromNetwork(url);
+                    break;
+                
+                case 12:
+                    LogWrapper.Info("[Page] 主页预设：整合包推荐引擎");
+                    url = "https://qawsedrftgyhujiko.fun/pcl2/Custom.xaml";
+                    content = LoadFromNetwork(url);
+                    break;
 
+                case 13:
+                    LogWrapper.Info("[Page] 主页预设：Bangumi 番剧主页");
+                    url = "https://bangumi.p.kaphia.qzz.io";
+                    content = LoadFromNetwork(url);
+                    break;
+                
                 case 14:
                     LogWrapper.Info("[Page] 主页预设：PCL CE 公告栏");
                     url = "https://s3.pysio.online/pcl2-ce/apiv2/pages/announce.xaml";
                     content = LoadFromNetwork(url);
                     break;
+                
                 case 15:
                     LogWrapper.Info("[Page] 主页预设：Minecraft 信息流");
                     Dispatcher.Invoke(() =>
@@ -249,7 +283,7 @@ public partial class PageLaunchRight : IRefreshable
         string[]? lines = null;
 
         // 外部文件
-        var externalPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\PCL\\hints.txt";
+        var externalPath = Path.Combine(ModBase.exePath, "PCL", "hints.txt");
         if (File.Exists(externalPath))
         {
             try
@@ -261,7 +295,10 @@ public partial class PageLaunchRight : IRefreshable
             }
             catch
             {
-                ModBase.Log(Lang.Text("Launch.Homepage.Error.ExternalFile", externalPath), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    Lang.Text("Launch.Homepage.Error.ExternalFile", externalPath),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Launch.Homepage.Error.ExternalFile", externalPath));
             }
         }
 
@@ -370,7 +407,13 @@ public partial class PageLaunchRight : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Launch.Homepage.Error.Download", address), ModBase.modeDebug ? ModBase.LogLevel.Msgbox : ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Launch.Homepage.Error.Download", address),
+                ModBase.modeDebug
+                    ? ModBase.LogLevel.Msgbox
+                    : ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Launch.Homepage.Error.Download", address));
         }
     }
 
@@ -444,7 +487,8 @@ public partial class PageLaunchRight : IRefreshable
                 content =
                     $"<StackPanel xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:sys=\"clr-namespace:System;assembly=System.Runtime\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\">{content}</StackPanel>";
                 ModBase.Log($"[Page] 实例化：加载主页 UI 开始，最终内容长度：{content.Count()}");
-                PanCustom.Children.Add((UIElement)ModBase.GetObjectFromXML(content));
+                PanCustom.Children.Add((UIElement)ModBase.GetObjectFromXML(content, out var sanitizeResult));
+                _ShowSanitizeHints(sanitizeResult);
                 _ApplyHomepageLivePatchesFromFile();
             }
             catch (Exception ex)
@@ -463,7 +507,11 @@ public partial class PageLaunchRight : IRefreshable
                 }
                 else
                 {
-                    ModBase.Log(ex, Lang.Text("Launch.Homepage.LoadFailed.Title"), ModBase.LogLevel.Hint);
+                    ModBase.Log(
+                        ex,
+                        Lang.Text("Launch.Homepage.LoadFailed.Title"),
+                        ModBase.LogLevel.Hint,
+                        userSummary: Lang.Text("Launch.Homepage.LoadFailed.Title"));
                 }
 
                 return;
@@ -483,6 +531,15 @@ public partial class PageLaunchRight : IRefreshable
 
     private int loadedContentHash = -1;
     private readonly object loadContentLock = new();
+    private static void _ShowSanitizeHints(XamlEventSanitizer.SanitizeResult result)
+    {
+        foreach (var unsupported in result.UnsupportedTypesFound)
+            HintService.Hint(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported), HintType.Error);
+
+        foreach (var unknown in result.UnrecognizedTypes)
+            HintService.Hint(Lang.Text("Event.Sanitize.UnknownTypeHint", unknown), HintType.Error);
+    }
+
     private const string homepageLivePatchFileName = "CustomLive.json";
     private const string homepageLiveSupportFileName = "CustomLive.supported.json";
     // Keep the reflection patch surface explicit because patch files are written by external tools.

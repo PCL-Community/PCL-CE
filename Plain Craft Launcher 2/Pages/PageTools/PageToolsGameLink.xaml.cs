@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Input;
@@ -68,7 +68,9 @@ public partial class PageToolsGameLink
 
     private async void OnServerExceptionHandler(Exception ex)
     {
-        ModBase.RunInUi(() => HintService.Hint(ex.Message, HintType.Error));
+        ModBase.RunInUi(() => HintService.Hint(
+            Lang.Text("Tools.GameLink.Error.ServerMessage", ex.Message),
+            HintType.Error));
 
         try
         {
@@ -100,7 +102,7 @@ public partial class PageToolsGameLink
             _linkAnnounceUpdateCancelSource.Cancel();
         _linkAnnounceUpdateCancelSource = new CancellationTokenSource();
         await Dispatcher.BeginInvoke(new Action(async () =>
-            await _LinkAnnounceUpdate())); // 我实在不理解为啥 BeginInvoke 这个委托要 MustBeInherit
+            await _LinkAnnounceUpdateAsync())); // 我实在不理解为啥 BeginInvoke 这个委托要 MustBeInherit
 
         await LobbyService.InitializeAsync().ConfigureAwait(false);
     }
@@ -298,7 +300,7 @@ public partial class PageToolsGameLink
     private CancellationTokenSource _linkAnnounceUpdateCancelSource;
 
     // 公告轮播实现
-    private async Task _LinkAnnounceUpdate()
+    private async Task _LinkAnnounceUpdateAsync()
     {
         var currentIndex = 0;
         var globalCancelToken = _linkAnnounceUpdateCancelSource.Token;
@@ -685,7 +687,11 @@ public partial class PageToolsGameLink
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[Link] 获取网络测试结果失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "[Link] 获取网络测试结果失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Tools.GameLink.Error.NetworkTestFailed"));
             BtnNatTest.IsEnabled = true;
             LabNatType.Text = Lang.Text("Tools.GameLink.Nat.Failed");
         }
@@ -743,7 +749,7 @@ public partial class PageToolsGameLink
                 {
                     var res = await ping.PingAsync();
                     if (res is not null && res.Version.Protocol != 0)
-                        await CreateLobby(port);
+                        await CreateLobbyAsync(port);
                     else
                         HintService.Hint(Lang.Text("Tools.GameLink.Create.NotMcPort"), HintType.Error);
                 }
@@ -772,10 +778,10 @@ public partial class PageToolsGameLink
         }
 
         var port = (int)((MyComboBoxItem)ComboWorldList.SelectedItem).Tag;
-        await CreateLobby(port);
+        await CreateLobbyAsync(port);
     }
 
-    private async Task CreateLobby(int port)
+    private async Task CreateLobbyAsync(int port)
     {
         ModBase.Log("[Link] 创建大厅，端口：" + port);
 

@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using fNbt;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Hash;
@@ -871,6 +872,12 @@ public static class ModLocalComp
         private bool isLoaded;
 
         /// <summary>
+        ///     标记为已加载。用于内嵌（Jar-in-Jar）子项——其元数据已由 <see cref="ModJarInJar" /> 通过
+        ///     LookupMetadata 从已打开的嵌套流读入，虚拟路径不是真实文件，须避免属性 getter 再触发 Load() 清空元数据。
+        /// </summary>
+        internal void MarkLoaded() => isLoaded = true;
+
+        /// <summary>
         ///     Mod 文件是否可被正常读取。
         /// </summary>
         public bool IsFileAvailable
@@ -1089,6 +1096,7 @@ public static class ModLocalComp
                 jar = new ZipArchive(new FileStream(path, FileMode.Open));
                 // 信息获取
                 LookupMetadata(jar);
+                EmbeddedMods = ModJarInJar.Resolve(path, jar);
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -1111,9 +1119,14 @@ public static class ModLocalComp
         }
 
         /// <summary>
+        ///     内嵌模组列表，由 <see cref="ModJarInJar" /> 解析填充。
+        /// </summary>
+        public List<LocalCompFile> EmbeddedMods { get; internal set; } = new();
+
+        /// <summary>
         ///     从 Jar 文件中获取 Mod 信息。
         /// </summary>
-        private void LookupMetadata(ZipArchive jar)
+        internal void LookupMetadata(ZipArchive jar)
         {
             #region 尝试使用 mcmod.info
 
@@ -1345,7 +1358,8 @@ public static class ModLocalComp
             try
             {
                 // 获取 mods.toml 文件
-                var tomlEntry = jar.GetEntry("META-INF/mods.toml");
+                var tomlEntry = jar.GetEntry("META-INF/mods.toml")
+                                ?? jar.GetEntry("META-INF/neoforge.mods.toml");
                 string tomlText = null;
                 if (tomlEntry is not null)
                 {
@@ -1620,7 +1634,7 @@ public static class ModLocalComp
                             ModBase.WriteFile(Logo, entryStream);
                         }
 
-                        ModBase.Log("成功提取资源包图标：" + path, ModBase.LogLevel.Debug);
+                        ModBase.Log("成功提取资源包图标：" + path, ModBase.LogLevel.Developer);
                     }
                     catch (Exception logoEx)
                     {
@@ -1861,7 +1875,8 @@ public static class ModLocalComp
                 {
                     ModBase.RunInUiWait(() =>
                     {
-                        if (loader.input.frm is not null) loader.input.frm.Load.Text = "正在更新资源";
+                        if (loader.input.frm is not null)
+                            loader.input.frm.Load.Text = Lang.Text("Instance.Resource.Update.WaitingForUpdate");
                     });
                     while (PageInstanceCompResource.updatingVersions.Contains(loader.input.compPath))
                     {
@@ -1874,7 +1889,8 @@ public static class ModLocalComp
                 {
                     ModBase.RunInUiWait(() =>
                     {
-                        if (loader.input.frm is not null) loader.input.frm.Load.Text = "正在加载资源列表";
+                        if (loader.input.frm is not null)
+                            loader.input.frm.Load.Text = Lang.Text("Instance.Resource.List.Loading");
                     });
                 }
 
@@ -2171,24 +2187,173 @@ public static class ModLocalComp
             }
         }, "Mod List Detail Loader Modrinth");
 
-        // CurseForge 部分转换逻辑类似，注意其 ID 多为 Integer 类型
+        // 从 CurseForge 获取信息（工程 ID 与文件 ID 均为数字）
         ModBase.RunInNewThread(() =>
         {
             try
             {
-                // 步骤 1：获取 Hash 与对应的工程 ID
-                var curseForgeHashes = mods.Select(m => m.CurseForgeHash).ToList();
+                // 步骤 1：获取 Hash 与对应的工程信息
+                var curseForgeHashes = new List<uint>();
+                foreach (var entry in mods)
+                {
+                    curseForgeHashes.Add(entry.CurseForgeHash);
+                    if (loader.IsAbortedWithThread(currentTaskId)) return;
+                }
+
                 var curseForgeResponse = (JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
                     "https://api.curseforge.com/v1/fingerprints/432", "POST",
                     $"{{\"fingerprints\": [{string.Join(",", curseForgeHashes)}]}}", "application/json"));
                 var curseForgeRaw = (JsonArray)curseForgeResponse["data"]["exactMatches"];
                 ModBase.Log($"[Mod] 从 CurseForge 获取到 {curseForgeRaw.Count} 个本地 Mod 的对应信息");
 
-                // 步骤 2：构建映射 (此处省略具体循环，逻辑同 Modrinth，注意 ProjectId 转换)
-                // ...
+                // 步骤 2：尝试读取工程信息缓存，构建本地文件与工程 ID 的对应关系
+                if (!curseForgeRaw.Any()) return;
+                var curseForgeMapping = new Dictionary<string, List<LocalCompFile>>();
+                foreach (var project in curseForgeRaw)
+                {
+                    var projectId = project["id"].ToString();
+                    var hash = project["file"]["fileFingerprint"].ToObject<uint>();
+                    foreach (var Entry in mods)
+                    {
+                        if (Entry.CurseForgeHash != hash) continue;
+                        // 读取已加载的缓存，加快结果出现速度
+                        if (compProjectCache.ContainsKey(projectId) && Entry.Comp is null)
+                            Entry.Comp = compProjectCache[projectId];
+
+                        if (!curseForgeMapping.ContainsKey(projectId))
+                            curseForgeMapping[projectId] = new List<LocalCompFile>();
+                        curseForgeMapping[projectId].Add(Entry);
+
+                        // 记录对应的 CompFile
+                        var fileInfo = new CompFile((JsonObject)project["file"], CompType.Mod);
+                        if (Entry.compFile is null || Entry.compFile.ReleaseDate < fileInfo.ReleaseDate)
+                            Entry.compFile = fileInfo;
+                    }
+                }
+
+                if (loader.IsAbortedWithThread(currentTaskId)) return;
+                ModBase.Log($"[Mod] 需要从 CurseForge 获取 {curseForgeMapping.Count} 个本地 Mod 的工程信息");
+
+                // 步骤 3：获取工程信息，同时归纳需要检查更新的文件 ID
+                if (!curseForgeMapping.Any()) return;
+                var curseForgeProject = (JsonArray)((JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
+                    "https://api.curseforge.com/v1/mods", "POST",
+                    $"{{\"modIds\": [{string.Join(",", curseForgeMapping.Keys)}]}}", "application/json")))["data"];
+
+                var updateFileIds = new Dictionary<int, List<LocalCompFile>>(); // FileId -> 本地 Mod 文件列表
+                var fileIdToProjectSlug = new Dictionary<int, string>();
+                foreach (var projectJson in curseForgeProject)
+                {
+                    if (projectJson["isAvailable"] is not null && !projectJson["isAvailable"].ToObject<bool>())
+                        continue;
+
+                    // 设置 Entry 中的工程信息
+                    var project = new CompProject((JsonObject)projectJson);
+                    if (!curseForgeMapping.ContainsKey(project.Id)) continue;
+                    foreach (var Entry in curseForgeMapping[project.Id])
+                    {
+                        // 若已从 Modrinth 获取到工程信息，则保留它，仅再次触发修改事件以刷新 UI
+                        if (Entry.Comp is not null && !Entry.Comp.FromCurseForge)
+                        {
+                            var existing = Entry.Comp;
+                            Entry.Comp = existing;
+                            continue;
+                        }
+
+                        Entry.Comp = project;
+                    }
+
+                    // 仅在加载器唯一时查找可能有更新的文件
+                    if (modLoaders.Count != 1) continue;
+                    string newestVersion = null;
+                    var newestFileIds = new List<int>();
+                    foreach (var indexEntry in (JsonArray)projectJson["latestFilesIndexes"])
+                    {
+                        // 加载器唯一且匹配
+                        if (compType != CompType.DataPack &&
+                            (indexEntry["modLoader"] is null ||
+                             (int)modLoaders.Single() != indexEntry["modLoader"].ToObject<int>()))
+                            continue;
+
+                        var indexVersion = indexEntry["gameVersion"].ToString();
+                        if (indexVersion != mcInstance) continue; // MC 版本匹配
+                        // latestFilesIndexes 按时间从新到老排序，只保留最新的 MC 版本
+                        if (newestVersion is not null &&
+                            McVersionComparer.CompareVersion(newestVersion, indexVersion) > -1)
+                            continue;
+
+                        if (newestVersion != indexVersion)
+                        {
+                            newestVersion = indexVersion;
+                            newestFileIds.Clear();
+                        }
+
+                        newestFileIds.Add(indexEntry["fileId"].ToObject<int>());
+                    }
+
+                    foreach (var fileId in newestFileIds)
+                    {
+                        if (!updateFileIds.ContainsKey(fileId)) updateFileIds[fileId] = new List<LocalCompFile>();
+                        updateFileIds[fileId].AddRange(curseForgeMapping[project.Id]);
+                        fileIdToProjectSlug[fileId] = project.Slug;
+                    }
+                }
+
+                if (loader.IsAbortedWithThread(currentTaskId)) return;
+                ModBase.Log(
+                    $"[Mod] 已从 CurseForge 获取本地 Mod 信息，需要获取 {updateFileIds.Count} 个用于检查更新的文件信息");
 
                 // 步骤 4：获取更新文件信息
-                // 注意 C# 中 Dictionary 的键值对遍历：foreach (var pair in UpdateFiles) { var Entry = pair.Key; ... }
+                if (!updateFileIds.Any()) return;
+                var curseForgeFiles = (JsonArray)((JsonObject)ModBase.GetJson(ModDownload.DlModRequest(
+                    "https://api.curseforge.com/v1/mods/files", "POST",
+                    $"{{\"fileIds\": [{string.Join(",", updateFileIds.Keys)}]}}", "application/json")))["data"];
+
+                var updateFiles = new Dictionary<LocalCompFile, CompFile>();
+                foreach (var fileJson in curseForgeFiles)
+                {
+                    var updateFile = new CompFile((JsonObject)fileJson, CompType.Mod);
+                    if (!updateFile.Available) continue;
+                    if (!int.TryParse(updateFile.Id, out var fileId) || !updateFileIds.ContainsKey(fileId))
+                        continue;
+                    foreach (var Entry in updateFileIds[fileId])
+                    {
+                        if (updateFiles.ContainsKey(Entry) && updateFiles[Entry].ReleaseDate >= updateFile.ReleaseDate)
+                            continue;
+                        updateFiles[Entry] = updateFile;
+                    }
+                }
+
+                foreach (var pair in updateFiles)
+                {
+                    var Entry = pair.Key;
+                    var updateFile = pair.Value;
+                    if (Entry.compFile is null) continue;
+                    if (ModBase.modeDebug)
+                        ModBase.Log(
+                            $"[Mod] 本地文件 {Entry.compFile.FileName} 在 CurseForge 上的最新版为 {updateFile.FileName}");
+                    if (Entry.compFile.ReleaseDate >= updateFile.ReleaseDate ||
+                        Entry.compFile.Hash == updateFile.Hash) continue;
+
+                    var changelogUrl =
+                        $"https://www.curseforge.com/minecraft/mc-mods/{fileIdToProjectSlug[int.Parse(updateFile.Id)]}/files/{updateFile.Id}";
+
+                    // 设置更新日志与更新文件
+                    if (Entry.UpdateFile is not null && updateFile.Hash == Entry.UpdateFile.Hash)
+                    {
+                        // 合并下载源
+                        Entry.changelogUrls.Add(changelogUrl);
+                        Entry.UpdateFile.DownloadUrls.AddRange(updateFile.DownloadUrls);
+                    }
+                    else if (Entry.UpdateFile is null || updateFile.ReleaseDate > Entry.UpdateFile.ReleaseDate)
+                    {
+                        // 替换
+                        Entry.changelogUrls = new List<string> { changelogUrl };
+                        Entry.UpdateFile = updateFile;
+                    }
+                }
+
+                ModBase.Log("[Mod] 从 CurseForge 获取 Mod 更新信息结束");
             }
             catch (Exception ex)
             {

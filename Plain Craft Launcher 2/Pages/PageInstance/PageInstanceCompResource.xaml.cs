@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -378,7 +378,11 @@ public partial class PageInstanceCompResource : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "进入文件夹失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                "进入文件夹失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
         }
     }
 
@@ -393,7 +397,11 @@ public partial class PageInstanceCompResource : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "进入文件夹失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                "进入文件夹失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
         }
     }
 
@@ -561,7 +569,11 @@ public partial class PageInstanceCompResource : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"加载 {currentCompType} 列表 UI 失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                $"加载 {currentCompType} 列表 UI 失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
         }
     }
 
@@ -949,7 +961,11 @@ public partial class PageInstanceCompResource : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "打开 Mods 文件夹失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                "打开 Mods 文件夹失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
         }
     }
 
@@ -973,24 +989,29 @@ public partial class PageInstanceCompResource : IRefreshable
             case ModComp.CompType.Mod:
             {
                 fileList = SystemDialogs.SelectFiles(
-                    "Mod 文件(*.jar;*.litemod;*.disabled;*.old)|*.jar;*.litemod;*.disabled;*.old", "选择要安装的 Mod");
+                    Lang.Text("Instance.Resource.Install.FileDialog.Mod.Filter"),
+                    Lang.Text("Instance.Resource.Install.FileDialog.Mod.Title"));
                 break;
             }
             case ModComp.CompType.ResourcePack:
             {
-                fileList = SystemDialogs.SelectFiles("资源包文件(*.zip)|*.zip", "选择要安装的资源包");
+                fileList = SystemDialogs.SelectFiles(
+                    Lang.Text("Instance.Resource.Install.FileDialog.ResourcePack.Filter"),
+                    Lang.Text("Instance.Resource.Install.FileDialog.ResourcePack.Title"));
                 break;
             }
             case ModComp.CompType.Shader:
             {
-                fileList = SystemDialogs.SelectFiles("光影包文件(*.zip)|*.zip", "选择要安装的光影包");
+                fileList = SystemDialogs.SelectFiles(
+                    Lang.Text("Instance.Resource.Install.FileDialog.Shader.Filter"),
+                    Lang.Text("Instance.Resource.Install.FileDialog.Shader.Title"));
                 break;
             }
             case ModComp.CompType.Schematic:
             {
                 fileList = SystemDialogs.SelectFiles(
-                    "投影原理图文件(*.litematic;*.nbt;*.schematic;*.schem)|*.litematic;*.nbt;*.schematic;*.schem",
-                    "选择要安装的投影原理图");
+                    Lang.Text("Instance.Resource.Install.FileDialog.Schematic.Filter"),
+                    Lang.Text("Instance.Resource.Install.FileDialog.Schematic.Title"));
                 break;
             }
         }
@@ -1284,7 +1305,11 @@ public partial class PageInstanceCompResource : IRefreshable
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"复制{compTypeName}文件失败", ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                $"复制{compTypeName}文件失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
         }
     }
 
@@ -1337,7 +1362,11 @@ public partial class PageInstanceCompResource : IRefreshable
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "导出资源信息失败", ModBase.LogLevel.Msgbox);
+                ModBase.Log(
+                    ex,
+                    "导出资源信息失败",
+                    ModBase.LogLevel.Msgbox,
+                    userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
             }
         }
 
@@ -1348,7 +1377,10 @@ public partial class PageInstanceCompResource : IRefreshable
             {
                 var exportContent = new List<string>();
                 foreach (var ModEntity in ModLocalComp.compResourceListLoader.output)
+                {
                     exportContent.Add(ModEntity.FileName);
+                    _AppendEmbeddedForExport(exportContent, ModEntity.EmbeddedMods, 1);
+                }
                 ExportText(exportContent.Join("\r\n"), PageInstanceLeft.McInstance.Name + "已安装的资源信息.txt");
                 break;
             }
@@ -1356,13 +1388,38 @@ public partial class PageInstanceCompResource : IRefreshable
             case 2: // CSV
             {
                 var exportContent = new List<string>();
-                exportContent.Add("文件名,资源名称,资源版本,此版本更新时间,Mod ID,对应平台工程 ID,文件大小（字节）,文件路径");
+                exportContent.Add("文件名,资源名称,资源版本,此版本更新时间,Mod ID,对应平台工程 ID,文件大小（字节）,文件路径,内嵌模组");
                 foreach (var ModEntity in ModLocalComp.compResourceListLoader.output)
                     exportContent.Add(
-                        $"{ModEntity.FileName},{ModEntity.Comp?.TranslatedName},{ModEntity.Version},{ModEntity.compFile?.ReleaseDate},{ModEntity.ModId},{ModEntity.Comp?.Id},{GetModFileInfo(ModEntity.path).Length},{ModEntity.path}");
+                        $"{ModEntity.FileName},{ModEntity.Comp?.TranslatedName},{ModEntity.Version},{ModEntity.compFile?.ReleaseDate},{ModEntity.ModId},{ModEntity.Comp?.Id},{GetModFileInfo(ModEntity.path).Length},{ModEntity.path},{string.Join(";", _FlattenEmbeddedNames(ModEntity.EmbeddedMods))}");
                 ExportText(exportContent.Join("\r\n"), PageInstanceLeft.McInstance.Name + "已安装的资源信息.csv");
                 break;
             }
+        }
+    }
+
+    private static void _AppendEmbeddedForExport(List<string> lines, List<ModLocalComp.LocalCompFile> mods, int depth)
+    {
+        var indent = new string('\t', depth);
+        foreach (var mod in mods)
+        {
+            var line = indent + "└ " + (mod.Name ?? mod.ModId ?? mod.FileName);
+            if (!string.IsNullOrWhiteSpace(mod.Version))
+                line += $" ({mod.Version})";
+            lines.Add(line);
+            if (mod.EmbeddedMods is { Count: > 0 })
+                _AppendEmbeddedForExport(lines, mod.EmbeddedMods, depth + 1);
+        }
+    }
+
+    private static IEnumerable<string> _FlattenEmbeddedNames(List<ModLocalComp.LocalCompFile> mods)
+    {
+        foreach (var mod in mods)
+        {
+            yield return mod.Name ?? mod.ModId ?? mod.FileName;
+            if (mod.EmbeddedMods is { Count: > 0 })
+                foreach (var child in _FlattenEmbeddedNames(mod.EmbeddedMods))
+                    yield return child;
         }
     }
 
@@ -1695,7 +1752,11 @@ public partial class PageInstanceCompResource : IRefreshable
 
             catch (Exception ex)
             {
-                ModBase.Log(ex, "执行排序时出错", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "执行排序时出错",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
             }
         }
     }
@@ -1887,7 +1948,11 @@ public partial class PageInstanceCompResource : IRefreshable
             }
             catch (FileNotFoundException ex)
             {
-                ModBase.Log(ex, $"未找到需要重命名的 Mod（{modEntity.path ?? "null"}）", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    $"未找到需要重命名的 Mod（{modEntity.path ?? "null"}）",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
                 ReloadCompFileList(true);
                 return;
             }
@@ -1928,7 +1993,11 @@ public partial class PageInstanceCompResource : IRefreshable
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"更新 UI 列表项失败：{modEntity.FileName}", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    $"更新 UI 列表项失败：{modEntity.FileName}",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
             }
         }
 
@@ -2027,16 +2096,17 @@ public partial class PageInstanceCompResource : IRefreshable
                                   Entry.FileName.Replace(currentReplaceName, newestReplaceName);
                 var realAddress = ModBase.GetPathFromFullPath(Entry.path) +
                                   Entry.FileName.Replace(currentReplaceName, newestReplaceName);
-                fileList.Add(file.ToNetFile(tempAddress));
+                fileList.Add(file.ToNetFile(tempAddress, ModComp.DownloadReason.Update));
                 fileCopyList[tempAddress] = realAddress;
             }
 
             // 构造加载器
             var installLoaders = new List<ModLoader.LoaderBase>();
             var finishedFileNames = new List<string>();
-            installLoaders.Add(new LoaderDownload("下载新版资源文件", fileList)
+            installLoaders.Add(new LoaderDownload(Lang.Text("Instance.Resource.Update.Task.DownloadFiles"), fileList)
                 { ProgressWeight = modList.Count() * 1.5d }); // 每个 Mod 需要 1.5s
-            installLoaders.Add(new ModLoader.LoaderTask<int, int>("替换旧版资源文件", _ =>
+            installLoaders.Add(new ModLoader.LoaderTask<int, int>(
+                Lang.Text("Instance.Resource.Update.Task.ReplaceFiles"), _ =>
             {
                 try
                 {
@@ -2075,7 +2145,7 @@ public partial class PageInstanceCompResource : IRefreshable
             // 结束处理
             var loader =
                 new ModLoader.LoaderCombo<IEnumerable<ModLocalComp.LocalCompFile>>(
-                    "资源更新：" + PageInstanceLeft.McInstance.Name, installLoaders);
+                    Lang.Text("Instance.Resource.Update.Task.Title", PageInstanceLeft.McInstance.Name), installLoaders);
             var pathMods = PageInstanceLeft.McInstance.PathIndie +
                            (PageInstanceLeft.McInstance.Info.HasLabyMod
                                ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.McInstance.Info.VanillaName)
@@ -2220,7 +2290,11 @@ public partial class PageInstanceCompResource : IRefreshable
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, $"删除资源失败（{ModEntity.path}）", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        $"删除资源失败（{ModEntity.path}）",
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
                     isSuccessful = false;
                 }
 
@@ -2277,7 +2351,11 @@ public partial class PageInstanceCompResource : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "删除资源出现未知错误", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "删除资源出现未知错误",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
             ReloadCompFileList(true);
         }
 
@@ -2323,8 +2401,9 @@ public partial class PageInstanceCompResource : IRefreshable
             if (modEntry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable)
             {
                 ModMain.MyMsgBox(
-                    Lang.Text("Instance.Resource.Item.Info.FailedMessage") + "\r\n" + "\r\n" + Lang.Text("Instance.Resource.Item.Info.DetailedError") +
-                    modEntry.FileUnavailableReason.Message, Lang.Text("Instance.Resource.Item.Info.FailedTitle"));
+                    Lang.Text("Instance.Resource.Item.Info.FailedMessage.WithDetail",
+                        modEntry.FileUnavailableReason.ToString()),
+                    Lang.Text("Instance.Resource.Item.Info.FailedTitle"));
                 return;
             }
 
@@ -2519,7 +2598,11 @@ public partial class PageInstanceCompResource : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取资源详情失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "获取资源详情失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
         }
     }
 
@@ -2535,7 +2618,11 @@ public partial class PageInstanceCompResource : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "打开资源文件位置失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "打开资源文件位置失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
         }
     }
 
@@ -2602,13 +2689,21 @@ public partial class PageInstanceCompResource : IRefreshable
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "显示原理图详情失败", ModBase.LogLevel.Feedback);
+                        ModBase.Log(
+                            ex,
+                            "显示原理图详情失败",
+                            ModBase.LogLevel.Feedback,
+                            userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
                     }
                 });
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "加载原理图 NBT 数据失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    "加载原理图 NBT 数据失败",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
             }
         });
     }
@@ -2859,7 +2954,7 @@ public partial class PageInstanceCompResource : IRefreshable
         }
 
         // 进行搜索
-        return ModBase.Search(queryList, query, 6, 0.35d).Select(r => r.item).ToList();
+        return ModBase.Search(queryList, query, ModBase.MaxLocalSearchDepth, 0.35d).Select(r => r.item).ToList();
     }
 
     #endregion

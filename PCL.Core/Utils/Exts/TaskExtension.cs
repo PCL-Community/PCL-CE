@@ -15,7 +15,7 @@ public static class TaskExtensions
     /// <returns>第一个成功完成的 Task 的结果</returns>
     /// <exception cref="ArgumentException">任务集合为空</exception>
     /// <exception cref="AggregateException">所有任务均未成功完成</exception>
-    public static async Task<Task<T>> WhenAnySuccess<T>(this IEnumerable<Task<T>> tasks)
+    public static async Task<Task<T>> WhenAnySuccessAsync<T>(this IEnumerable<Task<T>> tasks)
     {
         ArgumentNullException.ThrowIfNull(tasks, nameof(tasks));
         var taskList = tasks.ToList();

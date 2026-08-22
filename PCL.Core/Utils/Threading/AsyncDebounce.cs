@@ -6,8 +6,8 @@ namespace PCL.Core.Utils.Threading;
 
 /// <summary>
 /// 可重置的异步延时器。在指定延时后执行异步任务并等待下一次重置后重复该逻辑，指定延时未到达时重置将会重新开始计时。
-/// <p>实例创建后并不会立即开始计时，而是等待第一次 <see cref="Reset"/>
-/// 调用。因此，若有特殊需求，请不要忘了创建实例后调用一次 <see cref="Reset"/>。</p>
+/// <p>实例创建后并不会立即开始计时，而是等待第一次 <see cref="ResetAsync"/>
+/// 调用。因此，若有特殊需求，请不要忘了创建实例后调用一次 <see cref="ResetAsync"/>。</p>
 /// </summary>
 public class AsyncDebounce(CancellationToken cancelToken = default) : IDisposable
 {
@@ -40,7 +40,7 @@ public class AsyncDebounce(CancellationToken cancelToken = default) : IDisposabl
     /// <summary>
     /// 重置延时。
     /// </summary>
-    public async Task Reset()
+    public async Task ResetAsync()
     {
         IsCurrentTaskCompleted = false;
 

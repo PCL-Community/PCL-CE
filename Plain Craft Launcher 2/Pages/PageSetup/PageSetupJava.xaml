@@ -10,7 +10,7 @@
             <StackPanel x:Name="PanMain" Margin="25,25,25,10">
                 <local:MyCard Margin="0,0,0,15">
                     <StackPanel Margin="8" Orientation="Horizontal">
-                        <local:MyIconTextButton x:Name="BtnAdd" Text="{DynamicResource Setup.Launch.Java.Add}" LogoScale="0.9" Click="BtnAdd_Click"
+                        <local:MyIconTextButton x:Name="BtnAdd" Text="{DynamicResource Setup.Java.Add}" LogoScale="0.9" Click="BtnAdd_Click"
                                                 SvgIcon="lucide/circle-plus" />
                     </StackPanel>
                 </local:MyCard>
@@ -19,7 +19,7 @@
                 </local:MyCard>
             </StackPanel>
             <local:MyCard x:Name="CardLoad" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <local:MyLoading Text="{DynamicResource Setup.Launch.Java.Loading}" x:Name="PanLoad" Margin="12" />
+                <local:MyLoading Text="{DynamicResource Setup.Java.Loading}" x:Name="PanLoad" Margin="12" />
             </local:MyCard>
         </Grid>
     </local:MyScrollViewer>

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -92,8 +92,8 @@ public static class ModFolder
                 catch (Exception ex)
                 {
                     ModMain.MyMsgBox(
-                        Lang.Text("Select.Folder.Invalid", path) + "\r\n" + "\r\n" +
-                        ex.Message, Lang.Text("Select.Folder.InvalidTitle"), isWarn: true);
+                        Lang.Text("Select.Folder.Invalid.WithDetail", path, ex.ToString()),
+                        Lang.Text("Select.Folder.InvalidTitle"), isWarn: true);
                     ModBase.Log(ex, $"无法访问 Minecraft 文件夹 {path}");
                 }
             }
@@ -183,7 +183,11 @@ public static class ModFolder
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Select.Folder.Error.Load"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Select.Folder.Error.Load"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Select.Folder.Error.Load"));
         }
     }
 
@@ -216,7 +220,11 @@ public static class ModFolder
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "创建 launcher_profiles.json 失败（" + folder + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "创建 launcher_profiles.json 失败（" + folder + "）",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Folder.Error.OperationFailed"));
         }
     }
 }

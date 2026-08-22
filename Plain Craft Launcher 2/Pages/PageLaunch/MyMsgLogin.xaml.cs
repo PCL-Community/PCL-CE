@@ -1,4 +1,4 @@
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
@@ -61,14 +61,14 @@ public partial class MyMsgLogin
         CustomEventService.SetEventData(Btn1, website);
         CustomEventService.SetEventData(Btn2, userCode);
         // 启动工作线程
-        workingThread = WorkThread();
+        workingThread = WorkThreadAsync();
     }
 
     private record ErrorBody(
         [property: JsonPropertyName("error")] string Error,
         [property: JsonPropertyName("error_description")] string Desc);
 
-    private async Task WorkThread()
+    private async Task WorkThreadAsync()
     {
         await Task.Delay(2000).ConfigureAwait(false);
         if (myConverter.IsExited)
@@ -154,7 +154,11 @@ public partial class MyMsgLogin
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Launch.Account.LoginDialog.Error.Init"), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Launch.Account.LoginDialog.Error.Init"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Launch.Account.LoginDialog.Error.Init"));
         }
 
         Loaded += Load;
@@ -187,7 +191,11 @@ public partial class MyMsgLogin
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Launch.Account.LoginDialog.Error.Load"), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Launch.Account.LoginDialog.Error.Load"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Launch.Account.LoginDialog.Error.Load"));
         }
     }
 

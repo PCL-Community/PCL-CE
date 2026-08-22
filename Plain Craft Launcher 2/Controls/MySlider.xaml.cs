@@ -1,8 +1,9 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
+using PCL.Core.App.Localization;
 namespace PCL;
 
 public partial class MySlider
@@ -116,7 +117,11 @@ public partial class MySlider
 
             catch (Exception ex)
             {
-                ModBase.Log(ex, "滑动条进度改变出错", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "滑动条进度改变出错",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Application.Control.Error.OperationFailed"));
             }
         }
     }

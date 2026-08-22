@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
@@ -36,7 +36,7 @@ public partial class PageInstanceServer : MyPageRight
         serverCardList.Clear();
         PanServers.Children.Clear();
 
-        await LoadServersFromFile();
+        await LoadServersFromFileAsync();
         RefreshTip();
 
         foreach (var server in serverList)
@@ -148,7 +148,7 @@ public partial class PageInstanceServer : MyPageRight
         serverCard.server.Name = e.Param1;
         serverCard.server.Address = e.Param2;
 
-        await serverCard.RefreshServerStatus(true);
+        await serverCard.RefreshServerStatusAsync(true);
 
         // Success message
         HintService.Hint(Lang.Text("Instance.Server.Updated"), HintType.Success);
@@ -163,7 +163,7 @@ public partial class PageInstanceServer : MyPageRight
         try
         {
             // 读取服务器信息
-            await LoadServersFromFile();
+            await LoadServersFromFileAsync();
 
             // 在UI线程中更新界面
             ModBase.RunInUi(() => UpdateServerUi());
@@ -173,8 +173,14 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Server.RefreshFailed"), ModBase.LogLevel.Feedback);
-            ModBase.RunInUi(() => HintService.Hint(Lang.Text("Instance.Server.RefreshFailed") + ": " + ex.Message, HintType.Error));
+            ModBase.Log(
+                ex,
+                Lang.Text("Instance.Server.RefreshFailed"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Server.RefreshFailed"));
+            ModBase.RunInUi(() => HintService.Hint(
+                Lang.Text("Instance.Server.RefreshFailed.WithDetail", ex.ToString()),
+                HintType.Error));
         }
     }
 
@@ -194,8 +200,14 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Server.RefreshFailed"), ModBase.LogLevel.Feedback);
-            HintService.Hint(Lang.Text("Instance.Server.RefreshFailed") + ": " + ex.Message, HintType.Error);
+            ModBase.Log(
+                ex,
+                Lang.Text("Instance.Server.RefreshFailed"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Server.RefreshFailed"));
+            HintService.Hint(
+                Lang.Text("Instance.Server.RefreshFailed.WithDetail", ex.ToString()),
+                HintType.Error);
         }
     }
 
@@ -221,7 +233,7 @@ public partial class PageInstanceServer : MyPageRight
             serverCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);
 
-            await serverCard.RefreshServerStatus(false);
+            await serverCard.RefreshServerStatusAsync(false);
 
             var serversDatPath = Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat");
 
@@ -265,7 +277,7 @@ public partial class PageInstanceServer : MyPageRight
     /// <summary>
     ///     从servers.dat文件读取服务器信息
     /// </summary>
-    private async Task LoadServersFromFile()
+    private async Task LoadServersFromFileAsync()
     {
         serverList.Clear();
 
@@ -387,7 +399,7 @@ public partial class PageInstanceServer : MyPageRight
                 {
                     try
                     {
-                        await currentServer.RefreshServerStatus(false, token);
+                        await currentServer.RefreshServerStatusAsync(false, token);
                     }
                     catch (Exception ex)
                     {
@@ -415,7 +427,7 @@ public partial class PageInstanceServer : MyPageRight
     /// <summary>
     ///     ping单个服务器
     /// </summary>
-    public static async Task<MinecraftServerInfo> PingServer(MinecraftServerInfo server, CancellationToken token)
+    public static async Task<MinecraftServerInfo> PingServerAsync(MinecraftServerInfo server, CancellationToken token)
     {
         try
         {
@@ -431,7 +443,7 @@ public partial class PageInstanceServer : MyPageRight
                     server.Status = ServerStatus.Online;
                     server.PlayerCount = result.Players.Online;
                     server.MaxPlayers = result.Players.Max;
-                    server.Description = result.Description;
+                    server.Description = result.Description ?? string.Empty;
                     server.Version = result.Version.Name;
                     server.Ping = (int)result.Latency;
                     server.Icon = result.Favicon;

@@ -20,7 +20,7 @@ public static class HardwareInfo
     public static IReadOnlyList<GPUInfo> GPUs { get; private set; } = [];
 
     /// <summary>
-    /// 已安装物理内存大小，单位 MB
+    /// 已安装物理内存大小，单位 MiB
     /// </summary>
     public static long SystemMemorySize = (long)KernelInterop.GetPhysicalMemoryBytes().Total / 1024 / 1024;
 

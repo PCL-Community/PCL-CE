@@ -181,7 +181,7 @@ public static class ModLink
 
     #region Minecraft 实例探测
 
-    public static async Task<List<Tuple<int, McPingResult, string>>> MCInstanceFinding()
+    public static async Task<List<Tuple<int, McPingResult, string>>> MCInstanceFindingAsync()
     {
         // Java 进程 PID 查询
         var pIDLookupResult = new List<string>();
@@ -352,7 +352,7 @@ public static class ModLink
 
                 // 4. Update UI hint
             loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Link.Mod.Task.RefreshUi"), _ =>
-                HintWrapper.Show(Lang.Text("Link.Mod.DownloadComplete"), HintTheme.Error)
+                HintWrapper.Show(Lang.Text("Link.Mod.DownloadComplete"), HintTheme.Success)
                 ) { show = false });
 
                 // Start loader combo

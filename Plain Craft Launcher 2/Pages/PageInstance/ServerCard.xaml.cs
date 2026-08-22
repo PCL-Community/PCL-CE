@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using PCL.Core.UI;
@@ -130,12 +130,12 @@ public partial class ServerCard
     /// <summary>
     ///     刷新服务器状态
     /// </summary>
-    public async Task RefreshServerStatus(bool withHint, CancellationToken token = default)
+    public async Task RefreshServerStatusAsync(bool withHint, CancellationToken token = default)
     {
         if (withHint) HintService.Hint(Lang.Text("Instance.Server.Card.RefreshingStatus", server.Name));
         server.Status = ServerStatus.Pinging;
         await Dispatcher.InvokeAsync(() => UpdateServerUi());
-        var serverInfo = await PageInstanceServer.PingServer(server, token);
+        var serverInfo = await PageInstanceServer.PingServerAsync(server, token);
         UpdateServerInfo(serverInfo);
     }
 
@@ -157,7 +157,11 @@ public partial class ServerCard
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Server.Card.LaunchFailed"), ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                Lang.Text("Instance.Server.Card.LaunchFailed"),
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Server.Card.LaunchFailed"));
             HintService.Hint(Lang.Text("Instance.Server.Card.LaunchFailedMsg", ex.Message), HintType.Error);
         }
     }
@@ -184,7 +188,7 @@ public partial class ServerCard
     /// </summary>
     private async void BtnRefresh_Click(object sender, RoutedEventArgs e)
     {
-        await Task.Run(async () => await RefreshServerStatus(true));
+        await Task.Run(async () => await RefreshServerStatusAsync(true));
     }
 
     /// <summary>

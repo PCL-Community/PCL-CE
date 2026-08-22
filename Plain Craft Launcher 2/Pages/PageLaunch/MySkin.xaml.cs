@@ -129,7 +129,11 @@ public partial class MySkin
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Launch.Skin.Save.Error"), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Launch.Skin.Save.Error"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Launch.Skin.Save.Error"));
         }
     }
 
@@ -159,7 +163,11 @@ public partial class MySkin
             }
             catch (Exception ex) // #2272
             {
-                ModBase.Log(ex, Lang.Text("Launch.Skin.Load.Error.Corrupted", Address), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Launch.Skin.Load.Error.Corrupted", Address),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Launch.Skin.Load.Error.Corrupted", Address));
                 File.Delete(Address);
                 return;
             }
@@ -233,7 +241,11 @@ public partial class MySkin
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Launch.Skin.Load.Error.Avatar", (Address ?? "null") + "," + loader.name), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Launch.Skin.Load.Error.Avatar", $"{(Address ?? "null")},{loader.name}"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Launch.Skin.Load.Error.Avatar", $"{(Address ?? "null")},{loader.name}"));
         }
     }
 
@@ -299,7 +311,11 @@ public partial class MySkin
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, Lang.Text("Launch.Skin.Refresh.Error"), ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        Lang.Text("Launch.Skin.Refresh.Error"),
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Launch.Skin.Refresh.Error"));
                 }
             });
     }
@@ -320,13 +336,16 @@ public partial class MySkin
                 ModBase.WriteIni(ModBase.pathTemp + @"Cache\Skin\IndexMs.ini", ModProfile.selectedProfile.Uuid,
                     skinAddress);
                 ModBase.Log($"[Skin] 已写入皮肤地址缓存 {ModProfile.selectedProfile.Uuid} -> {skinAddress}");
-                foreach (var SkinLoader in new[] { PageLaunchLeft.skinMs, PageLaunchLeft.skinLegacy })
-                    SkinLoader.WaitForExit(isForceRestart: true);
+                PageLaunchLeft.skinMs.WaitForExit(isForceRestart: true);
                 HintService.Hint(Lang.Text("Launch.Skin.ChangeSuccess"), HintType.Success);
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Launch.Skin.Change.Error.MsRefresh"), ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Launch.Skin.Change.Error.MsRefresh"),
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Launch.Skin.Change.Error.MsRefresh"));
             }
         });
     }
@@ -421,7 +440,11 @@ public partial class MySkin
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, Lang.Text("Launch.Skin.Cape.Error.List"), ModBase.LogLevel.Feedback);
+                        ModBase.Log(
+                            ex,
+                            Lang.Text("Launch.Skin.Cape.Error.List"),
+                            ModBase.LogLevel.Feedback,
+                            userSummary: Lang.Text("Launch.Skin.Cape.Error.List"));
                     }
                 });
                 if (selId is null)
@@ -447,7 +470,11 @@ public partial class MySkin
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Launch.Skin.Cape.ChangeFailed"), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Launch.Skin.Cape.ChangeFailed"),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Launch.Skin.Cape.ChangeFailed"));
             }
             finally
             {

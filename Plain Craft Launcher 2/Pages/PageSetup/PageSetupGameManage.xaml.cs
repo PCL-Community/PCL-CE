@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
@@ -61,6 +61,7 @@ public partial class PageSetupGameManage
         ComboDownloadTranslateV2.SelectedIndex = Config.Download.Comp.NameFormatV2;
         ComboDownloadMod.SelectedIndex = Config.Download.Comp.CompSourceSolution;
         ComboModLocalNameStyle.SelectedIndex = Config.Download.Comp.UiCompNameSolution;
+        ComboDownloadQuickBehavior.SelectedIndex = Config.Download.Comp.QuickDownloadBehavior;
         CheckDownloadIgnoreQuilt.Checked = Config.Download.Comp.IgnoreQuilt;
         CheckDownloadAutoInstallDependencies.Checked = Config.Download.Comp.AutoInstallDependencies;
         CheckDownloadClipboard.Checked = Config.Download.Comp.ReadClipboard;
@@ -85,7 +86,11 @@ public partial class PageSetupGameManage
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.GameManage.Error.InitFailed"), ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.GameManage.Error.InitFailed"),
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.GameManage.Error.InitFailed"));
         }
 
         Reload();
@@ -126,11 +131,11 @@ public partial class PageSetupGameManage
             switch (value)
             {
                 case <= 14:
-                    return Lang.Number((value + 1) * 0.1d, "N1") + " M/s";
+                    return Lang.Number((value + 1) * 0.1d, "N1") + " MiB/s";
                 case <= 31:
-                    return Lang.Number((value - 11) * 0.5d, "N1") + " M/s";
+                    return Lang.Number((value - 11) * 0.5d, "N1") + " MiB/s";
                 case <= 41:
-                    return Lang.Number(value - 21, "N0") + " M/s";
+                    return Lang.Number(value - 21, "N0") + " MiB/s";
                 default:
                     return Lang.Text("Setup.GameManage.Download.Unlimited");
             }

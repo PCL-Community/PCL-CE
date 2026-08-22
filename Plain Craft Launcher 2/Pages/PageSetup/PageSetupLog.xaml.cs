@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Windows;
@@ -59,15 +59,15 @@ public partial class PageSetupLog
                 if (r)
                     title = Lang.Date(dt, "G");
                 if (current.Any(log => log.Equals(fullPath)))
-                    title = Lang.Text("Setup.Misc.Log.CurrentSuffix", title);
+                    title = Lang.Text("Setup.Log.CurrentSuffix", title);
             }
             else if (title.StartsWith("LastPending"))
             {
                 title = title.Substring(11, title.Length - 15);
                 if (title.Length > 1)
-                    title = Lang.Text("Setup.Misc.Log.TempStored", title.Substring(1));
+                    title = Lang.Text("Setup.Log.TempStored", title.Substring(1));
                 else
-                    title = Lang.Text("Setup.Misc.Log.TempUnoutput");
+                    title = Lang.Text("Setup.Log.TempUnoutput");
             }
 
             var ele = new MyListItem
@@ -89,12 +89,12 @@ public partial class PageSetupLog
 
     private static void ExportLog(IEnumerable<string> sourceFiles)
     {
-        var filter = Lang.Text("Setup.Misc.Log.ExportFilter");
+        var filter = Lang.Text("Setup.Log.ExportFilter");
         var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
         var baseName = "PCL_CE_Logs_" + DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture);
         var tempDirName = baseName + ".tmp";
         var fileName = baseName + ".zip";
-        var selectedPath = SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.Log.ExportSaveTitle"), fileName, filter, desktopPath);
+        var selectedPath = SystemDialogs.SelectSaveFile(Lang.Text("Setup.Log.ExportSaveTitle"), fileName, filter, desktopPath);
         if (string.IsNullOrEmpty(selectedPath))
             return;
         try
@@ -114,11 +114,15 @@ public partial class PageSetupLog
                 }
             }
 
-            HintService.Hint(Lang.Text("Setup.Misc.Log.ExportSuccess"), HintType.Success);
+            HintService.Hint(Lang.Text("Setup.Log.ExportSuccess"), HintType.Success);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Misc.Log.ExportFailed"), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.Log.ExportFailed"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Setup.Log.ExportFailed"));
         }
         finally
         {
@@ -134,14 +138,14 @@ public partial class PageSetupLog
 
     private void ButtonClean_OnClick(object sender, MouseButtonEventArgs e)
     {
-        var r = ModMain.MyMsgBox(Lang.Text("Setup.Misc.Log.Clear.Confirm.Message"), Lang.Text("Setup.Misc.Log.Clear.Confirm.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true);
+        var r = ModMain.MyMsgBox(Lang.Text("Setup.Log.Clear.Confirm.Message"), Lang.Text("Setup.Log.Clear.Confirm.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true);
         if (r != 1)
             return;
         var currentSet = new HashSet<string>(CurrentLogs);
         foreach (var item in Directory.GetFiles(LogDirectory))
             if (!currentSet.Contains(item))
                 File.Delete(item);
-        HintService.Hint(Lang.Text("Setup.Misc.Log.Clear.Success"), HintType.Success);
+        HintService.Hint(Lang.Text("Setup.Log.Clear.Success"), HintType.Success);
         LoadList();
     }
 

@@ -1056,7 +1056,7 @@ public partial class MyListItem : IMyRadio
             return;
         // 触发自定义事件
         var dependencyObject = (DependencyObject)sender;
-        if (CustomEventService.GetEventType(dependencyObject) != CustomEvent.EventType.None)
+        if (CustomEventService.GetEventType(dependencyObject) != EventType.None)
         {
             ModMain.RaiseCustomEvent(this);
             e.Handled = true;

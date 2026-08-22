@@ -88,11 +88,12 @@ public static partial class Config
         {
             [ConfigItem<int>("ToolDownloadTranslate", 0)] public partial int NameFormatV1 { get; set; }
             [ConfigItem<int>("ToolDownloadTranslateV2", 1)] public partial int NameFormatV2 { get; set; }
-            [ConfigItem<bool>("ToolDownloadIgnoreQuilt", false)] public partial bool IgnoreQuilt { get; set; }
+            [ConfigItem<bool>("ToolDownloadIgnoreQuilt", true)] public partial bool IgnoreQuilt { get; set; }
             [ConfigItem<bool>("ToolDownloadAutoInstallDependencies", true)] public partial bool AutoInstallDependencies { get; set; }
             [ConfigItem<bool>("ToolDownloadClipboard", false)] public partial bool ReadClipboard { get; set; }
             [ConfigItem<int>("ToolDownloadMod", 1)] public partial int CompSourceSolution { get; set; }
             [ConfigItem<int>("ToolModLocalNameStyle", 0)] public partial int UiCompNameSolution { get; set; }
+            [ConfigItem<int>("ToolDownloadQuickBehavior", 0)] public partial int QuickDownloadBehavior { get; set; }
         }
     }
 
@@ -376,7 +377,7 @@ public static partial class Config
             /// <summary>
             /// 预设选项。
             /// </summary>
-            [ConfigItem<int>("UiCustomPreset", 14, ConfigSource.Local)] public partial int SelectedPreset { get; set; }
+            [ConfigItem<int>("UiCustomPreset", 0, ConfigSource.Local)] public partial int SelectedPreset { get; set; }
 
             /// <summary>
             /// 自定义 URL。
@@ -482,6 +483,11 @@ public static partial class Config
         [ConfigItem<int>("LaunchRamCustom", 15, ConfigSource.Local)] public partial int CustomMemorySize { get; set; }
 
         /// <summary>
+        /// 是否固定堆大小：启用后额外追加 -Xms 并使其等于 -Xmx，隐式禁用内存归还以降低延迟抖动、利于 ZGC。见 #3282。
+        /// </summary>
+        [ConfigItem<bool>("LaunchAdvanceLockMemory", false, ConfigSource.Local)] public partial bool LockMemory { get; set; }
+
+        /// <summary>
         /// 优先 IP 协议栈。
         /// </summary>
         [ConfigItem<JvmPreferredIpStack>("LaunchPreferredIpStack", JvmPreferredIpStack.Default)] public partial JvmPreferredIpStack PreferredIpStack { get; set; }
@@ -530,7 +536,12 @@ public static partial class Config
         /// 禁用 LWJGL Unsafe Agent。
         /// </summary>
         [ConfigItem<bool>("LaunchAdvanceDisableLwjglUnsafeAgent", false)] public partial bool DisableLwjglUnsafeAgent { get; set; }
-        
+
+        /// <summary>
+        /// 禁用自动崩溃分析。
+        /// </summary>
+        [ConfigItem<bool>("LaunchAdvanceDisableCrashAnalysis", false, ConfigSource.Local)] public partial bool DisableCrashAnalysis { get; set; }
+
         /// <summary>
         /// 渲染器。
         /// </summary>
@@ -550,11 +561,6 @@ public static partial class Config
         /// 选择的默认 Java 实例。
         /// </summary>
         [ConfigItem<string>("LaunchArgumentJavaSelect", "")] public partial string SelectedJava { get; set; }
-
-        /// <summary>
-        /// 版本隔离 V1。
-        /// </summary>
-        [ConfigItem<int>("LaunchArgumentIndie", 0, ConfigSource.Local)] public partial int IndieSolutionV1 { get; set; }
 
         /// <summary>
         /// 版本隔离 V2。

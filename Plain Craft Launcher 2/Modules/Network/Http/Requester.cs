@@ -135,24 +135,26 @@ public static class Requester
 
     public static async Task DownloadFileAsync(string url, string filePath)
     {
-        await FileDownloader.Download(url, filePath).ConfigureAwait(false);
+        await FileDownloader.DownloadAsync(url, filePath).ConfigureAwait(false);
     }
 
     public static async Task DownloadFileOnceAsync(string url, string filePath)
     {
-        await FileDownloader.Download(url, filePath).ConfigureAwait(false);
+        await FileDownloader.DownloadAsync(url, filePath).ConfigureAwait(false);
     }
 
     public static DownloadService CreateDownloadService(string url, bool useBrowserUserAgent = false)
     {
+        var chunkCount = Math.Min(Math.Max(1, ModNet.NetTaskThreadLimit), 4);
         return new DownloadService(new DownloadConfiguration
         {
-            ChunkCount = Math.Max(1, ModNet.NetTaskThreadLimit),
-            ParallelCount = Math.Max(1, ModNet.NetTaskThreadLimit),
-            ParallelDownload = ModNet.NetTaskThreadLimit > 1,
+            ChunkCount = chunkCount,
+            ParallelCount = chunkCount,
+            ParallelDownload = chunkCount > 1,
             MaximumBytesPerSecond = ModNet.NetTaskSpeedLimitHigh > 0 ? ModNet.NetTaskSpeedLimitHigh : 0,
             DownloadFileExtension = ModNet.netDownloadEnd,
             EnableAutoResumeDownload = false,
+            MaximumMemoryBufferBytes = 256L * 1024 * 1024,
             RequestConfiguration = DownloadRequestFactory.Create(url, useBrowserUserAgent)
         });
     }

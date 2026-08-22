@@ -1,10 +1,13 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 
@@ -70,9 +73,12 @@ public class FileConfigStorage : ConfigStorage
                 catch (Exception ex)
                 {
                     LogWrapper.Error(ex, "Config", "配置文件保存失败");
-                    var hint = $"保存配置文件时出现问题，若该问题能够稳定复现，请尽快提交反馈。" +
-                               $"\n\n错误信息:\n{ex.GetType().FullName}: {ex.Message}";
-                    MsgBoxWrapper.Show(hint, "配置文件保存失败", MsgBoxTheme.Error);
+                    var summary = Lang.Text("Config.Error.SaveFailed.Message", File.FilePath);
+                    var message = ExceptionDetails.Compose(summary, ex);
+                    MsgBoxWrapper.Show(
+                        message,
+                        Lang.Text("Config.Error.SaveFailed.Title"),
+                        MsgBoxTheme.Error);
                 }
             }
         });
@@ -97,7 +103,34 @@ public class FileConfigStorage : ConfigStorage
         {
             case StorageAction.Get:
                 if (!File.Exists(strKey)) return false;
-                value = File.Get<TValue>(strKey);
+                try
+                {
+                    value = File.Get<TValue>(strKey);
+                }
+                catch (Exception ex) when (ex is JsonException
+                                               or InvalidCastException
+                                               or FormatException
+                                               or OverflowException
+                                               or ArgumentException
+                                               or KeyNotFoundException
+                                               or InvalidDataException)
+                {
+                    LogWrapper.Warn(ex, "Config", $"配置项 {strKey} 读取失败（可能已损坏），重置为默认值");
+                    if (!_writeActionChannel.Writer.TryWrite((strKey, () => File.Remove(strKey))))
+                    {
+                        LogWrapper.Warn("Config", $"配置项 {strKey} 清理任务入队失败，改为同步删除");
+                        try
+                        {
+                            File.Remove(strKey);
+                            File.Sync();
+                        }
+                        catch (Exception cleanupEx)
+                        {
+                            LogWrapper.Error(cleanupEx, "Config", $"配置项 {strKey} 同步删除失败，可能需人工处理");
+                        }
+                    }
+                    return false;
+                }
                 return true;
             case StorageAction.Exists:
                 // 由于 Exists 的 value 类型一定是 bool，此处可 unsafe 直接赋值

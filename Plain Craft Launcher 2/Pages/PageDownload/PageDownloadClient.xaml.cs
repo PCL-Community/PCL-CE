@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -111,7 +111,11 @@ public partial class PageDownloadClient
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 MC 版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 MC 版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
     }
 }

@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
@@ -112,7 +112,7 @@ public partial class PageInstanceLeft : IRefreshable
             }
             case FormMain.PageSubType.VersionScreenshot:
             {
-                var ignore= PageInstanceScreenshot.Refresh();
+                var ignore= PageInstanceScreenshot.RefreshAsync();
                 break;
             }
             case FormMain.PageSubType.VersionWorld:
@@ -144,8 +144,6 @@ public partial class PageInstanceLeft : IRefreshable
                 ModDownload.dlLiteLoaderListLoader.Start(isForceRestart: true);
                 ModDownload.dlFabricListLoader.Start(isForceRestart: true);
                 ModDownload.dlFabricApiLoader.Start(isForceRestart: true);
-                ModDownload.dlQuiltListLoader.Start(isForceRestart: true);
-                ModDownload.dlQSLLoader.Start(isForceRestart: true);
                 ModDownload.dlOptiFabricLoader.Start(isForceRestart: true);
                 ModDownload.dlLabyModListLoader.Start(isForceRestart: true);
                 ItemInstall.Checked = true;
@@ -301,7 +299,11 @@ public partial class PageInstanceLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + (int)id + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "切换分页面失败（ID " + (int)id + "）",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Error.OperationFailed"));
         }
         finally
         {

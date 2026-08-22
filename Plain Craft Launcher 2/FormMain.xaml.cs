@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -86,20 +86,6 @@ public partial class FormMain
         else if (lastVersion > ModBase.versionCode)
             // 触发降级
             DowngradeSub(lastVersion);
-        // 版本隔离设置迁移
-        if (Config.Launch.IndieSolutionV2Config.IsDefault())
-        {
-            if (!Config.Launch.IndieSolutionV1Config.IsDefault())
-            {
-                ModBase.Log("[Start] 从老 PCL 迁移版本隔离");
-                Config.Launch.IndieSolutionV2 = Config.Launch.IndieSolutionV1;
-            }
-            else
-            {
-                ModBase.Log("[Start] 全新的 PCL，使用新的版本隔离默认值");
-                Config.Launch.IndieSolutionV2Config.Reset(Config.Launch.IndieSolutionV2Config.DefaultValue);
-            }
-        }
 
         _ = Config.Preference.Theme.ThemeSelected;
         // 注册拖拽事件（不能直接加 Handles，否则没用；#6340）
@@ -119,7 +105,11 @@ public partial class FormMain
         }
         catch (Exception ex) // 修复 #2019
         {
-            ModBase.Log(ex, "读取窗口默认大小失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "读取窗口默认大小失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
             Height = MinHeight + 100d;
             Width = MinWidth + 100d;
         }
@@ -293,14 +283,22 @@ public partial class FormMain
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "初始化加载池运行失败", ModBase.LogLevel.Feedback);
+                    ModBase.Log(
+                        ex,
+                        "初始化加载池运行失败",
+                        ModBase.LogLevel.Feedback,
+                        userSummary: Lang.Text("Main.Error.OperationFailed"));
                 }
 
                 HardwareInfo.GetHardwareInfo();
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "初始弹窗提示运行失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    "初始弹窗提示运行失败",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Main.Error.OperationFailed"));
             }
         }, "Start Loader", ThreadPriority.BelowNormal);
 
@@ -347,6 +345,13 @@ public partial class FormMain
         if (lowerVersionCode >= ModBase.versionCode)
             return;
         ShowUpdateLog();
+        
+        // 重置自定义主页配置
+        if (lastVersionCode < 521 && Config.Preference.Homepage.SelectedPreset >= 3)
+        {
+            Config.Preference.Homepage.SelectedPreset = 0;
+            ModMain.MyMsgBox(Lang.Text("Main.HomepageReset.Content"), Lang.Text("Main.HomepageReset.Title"));
+        }
     }
 
     private void DowngradeSub(int lastVersionCode)
@@ -850,7 +855,11 @@ public partial class FormMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切回窗口时出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "切回窗口时出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
 
@@ -893,7 +902,11 @@ public partial class FormMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "处理拖放时出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "处理拖放时出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
 
@@ -966,7 +979,11 @@ public partial class FormMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "接取拖拽事件失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "接取拖拽事件失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
 
@@ -1085,7 +1102,11 @@ public partial class FormMain
                         {
                             if (Directory.Exists(destFolder))
                                 ModBase.DeleteDirectory(destFolder, true);
-                            ModBase.Log(ex, Lang.Text("Main.FileDrag.SaveImportFailed"), ModBase.LogLevel.Hint);
+                            ModBase.Log(
+                                ex,
+                                Lang.Text("Main.FileDrag.SaveImportFailed"),
+                                ModBase.LogLevel.Hint,
+                                userSummary: Lang.Text("Main.FileDrag.SaveImportFailed"));
                             return;
                         }
                         finally
@@ -1191,7 +1212,11 @@ public partial class FormMain
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "自主错误报告分析失败", ModBase.LogLevel.Feedback);
+                    ModBase.Log(
+                        ex,
+                        "自主错误报告分析失败",
+                        ModBase.LogLevel.Feedback,
+                        userSummary: Lang.Text("Main.Error.OperationFailed"));
                 }
             } while (false);
 
@@ -1408,7 +1433,6 @@ public partial class FormMain
         DownloadNeoForge = 12,
         DownloadCleanroom = 13,
         DownloadFabric = 14,
-        DownloadQuilt = 15,
         DownloadLiteLoader = 16,
         DownloadLabyMod = 17,
         DownloadLegacyFabric = 18,
@@ -1657,9 +1681,14 @@ public partial class FormMain
                 {
                     if (ModMain.frmSetupLeft is null)
                         ModMain.frmSetupLeft = new PageSetupLeft();
-                    if (ModMain.frmSetupLeft.PanItem.Children[(int)subType] is MyListItem)
-                        ((MyListItem)ModMain.frmSetupLeft.PanItem.Children[(int)subType]).SetChecked(true, true,
-                            stack == pageCurrent);
+                    foreach (var item in ModMain.frmSetupLeft.PanItem.Children)
+                        if (item is MyListItem listItem &&
+                            ModBase.Val(listItem.Tag) == (double)subType)
+                        {
+                            listItem.SetChecked(true, true, stack == pageCurrent);
+                            break;
+                        }
+
                     break;
                 }
             }
@@ -1875,6 +1904,7 @@ public partial class FormMain
                         if (ModMain.frmInstanceSavesLeft is null)
                             ModMain.frmInstanceSavesLeft = new PageInstanceSavesLeft();
                         PageInstanceSavesLeft.currentSave = stack.additional.Value.SavePath;
+                        subType = ModMain.frmInstanceSavesLeft.pageID;
                         PageChangeAnim(ModMain.frmInstanceSavesLeft,
                             (FrameworkElement)ModMain.frmInstanceSavesLeft.PageGet(subType));
                         break;
@@ -1894,7 +1924,11 @@ public partial class FormMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换主要页面失败（ID " + (int)pageCurrent.page + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "切换主要页面失败（ID " + (int)pageCurrent.page + "）",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
         finally
         {
@@ -2147,7 +2181,11 @@ public partial class FormMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "强制关闭所有 Minecraft 失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "强制关闭所有 Minecraft 失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
 
@@ -2178,7 +2216,10 @@ public partial class FormMain
         if (realScroll is not null)
             realScroll.PerformVerticalOffsetDelta(-realScroll.VerticalOffset);
         else
-            ModBase.Log("[UI] 无法返回顶部，未找到合适的 RealScroll", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                "[UI] 无法返回顶部，未找到合适的 RealScroll",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Main.Error.ScrollToTopFailed"));
     }
 
     private void BtnExtraBack_Click(object sender, MouseButtonEventArgs e)

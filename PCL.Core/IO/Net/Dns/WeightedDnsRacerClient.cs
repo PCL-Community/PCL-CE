@@ -44,7 +44,7 @@ public sealed class WeightedDnsRacerClient : IDnsClient
             tasks[i] = task;
         }
 
-        var winnerTask = await tasks.WhenAnySuccess().ConfigureAwait(false);
+        var winnerTask = await tasks.WhenAnySuccessAsync().ConfigureAwait(false);
         if (winnerTask is null) throw new InvalidOperationException("All queries failed.");
 
         var winner = candidates[Array.IndexOf(tasks, winnerTask)].Client;

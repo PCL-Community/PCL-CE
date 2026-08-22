@@ -5,6 +5,7 @@ using CompLoaderType = PCL.ModComp.CompLoaderType;
 using CompProject = PCL.ModComp.CompProject;
 using LocalCompFile = PCL.ModLocalComp.LocalCompFile;
 using PCL.Core.Minecraft.ResourceProject;
+using PCL.Core.App.Localization;
 using PCL.Network;
 
 namespace PCL;
@@ -175,13 +176,13 @@ public static class ModCompDependency
             ?.File;
     }
 
-    public static List<DownloadFile> BuildDependencyDownloads(
+    public static List<(string Filename, DownloadFile File)> BuildDependencyDownloads(
         ModDependencyResolutionResult result,
         string targetModsFolder)
     {
         ArgumentNullException.ThrowIfNull(result);
 
-        var downloads = new List<DownloadFile>();
+        var downloads = new List<(string, DownloadFile)>();
         foreach (var install in result.ToInstall.AsEnumerable().Reverse())
         {
             if (!ModComp.compProjectCache.TryGetValue(install.ProjectId, out var depProject))
@@ -202,8 +203,9 @@ public static class ModCompDependency
                 continue;
             }
 
-            var targetPath = Path.Combine(targetModsFolder ?? string.Empty, ModComp.CompFileNameGet(depProject, depCompFile));
-            downloads.Add(depCompFile.ToNetFile(targetPath));
+            var depFileName = ModComp.CompFileNameGet(depProject, depCompFile);
+            var targetPath = Path.Combine(targetModsFolder ?? string.Empty, depFileName);
+            downloads.Add((depFileName, depCompFile.ToNetFile(targetPath, ModComp.DownloadReason.Dependency)));
         }
 
         return downloads;
@@ -211,38 +213,68 @@ public static class ModCompDependency
 
     /// <summary>
     ///     Shows confirmation dialog for required dependency installs.
-    ///     Returns true if user confirms, false if user cancels or there are unresolved required deps.
+    ///     Returns: CompDepsInstallTypes.WithDeps if user chooses to install with deps, 
+    ///              CompDepsInstallTypes.WithoutDeps if user chooses to install without deps, 
+    ///              CompDepsInstallTypes.Cancel if user cancels, 
+    ///              CompDepsInstallTypes.Unresolved if there are unresolved required deps.
     /// </summary>
-    public static bool ConfirmDependencyInstall(ModDependencyResolutionResult result)
+    public static ModComp.CompDepsInstallTypes ConfirmDependencyInstall(ModDependencyResolutionResult result)
     {
         ArgumentNullException.ThrowIfNull(result);
 
         if (result.Unresolved is { Count: > 0 })
         {
             ModBase.Log($"[CompDeps] 无法解析: {result.Unresolved.Count} 个必需前置");
-            var message = "以下必需前置无法解析：\n\n" +
-                          string.Join("\n", result.Unresolved
-                              .Select(dep => $"- {dep.Source} {dep.ProjectId}: {dep.Reason}"));
-            var selectedButton = ModMain.MyMsgBox(message, "无法安装必需前置", button1: "继续下载", button2: "取消", isWarn: true, forceWait: true);
-            return selectedButton == 1;
+            var dependencies = string.Join(
+                Environment.NewLine,
+                result.Unresolved.Select(dep => Lang.Text(
+                    "Download.Comp.Dependency.Unresolved.ListItem",
+                    dep.Source,
+                    dep.ProjectId,
+                    dep.Reason)));
+            var message = Lang.Text("Download.Comp.Dependency.Unresolved.Message", dependencies);
+            var selectedButton = ModMain.MyMsgBox(
+                message,
+                Lang.Text("Download.Comp.Dependency.Unresolved.Title"),
+                Lang.Text("Download.Comp.Dependency.Unresolved.ContinueWithoutDependencies"),
+                Lang.Text("Common.Action.Cancel"),
+                isWarn: true,
+                forceWait: true);
+
+            return selectedButton == 1
+                ? ModComp.CompDepsInstallTypes.Unresolved
+                : ModComp.CompDepsInstallTypes.Cancel;
         }
 
         if (result.ToInstall is { Count: > 0 })
         {
-            var message = "此 Mod 需要以下必需前置：\n\n" +
-                          string.Join("\n", result.ToInstall
-                              .Select(install =>
-                                  $"- {install.ProjectName} ({install.Source}) - {install.File.DisplayName} v{install.File.Version}"));
-            var dialogResult = ModMain.MyMsgBox(message, "安装 Mod 前置确认",
-                button1: "安装 Mod 与必需前置", button2: "取消安装", forceWait: true);
-            if (dialogResult != 1)
+            var dependencies = string.Join(
+                Environment.NewLine,
+                result.ToInstall.Select(install => Lang.Text(
+                    "Download.Comp.Dependency.Install.ListItem",
+                    install.ProjectName,
+                    install.Source,
+                    install.File.DisplayName,
+                    install.File.Version)));
+            var message = Lang.Text("Download.Comp.Dependency.Install.Message", dependencies);
+            var dialogResult = ModMain.MyMsgBox(
+                message,
+                Lang.Text("Download.Comp.Dependency.Install.Title"),
+                Lang.Text("Download.Comp.Dependency.Install.WithDependencies"),
+                Lang.Text("Download.Comp.Dependency.Install.WithoutDependencies"),
+                Lang.Text("Download.Comp.Dependency.Install.Cancel"),
+                forceWait: true);
+
+            return dialogResult switch
             {
-                ModBase.Log("[CompDeps] 用户取消，已中止安装");
-            }
-            return dialogResult == 1;
+                1 => ModComp.CompDepsInstallTypes.WithDeps,
+                2 => ModComp.CompDepsInstallTypes.WithoutDeps,
+                3 => ModComp.CompDepsInstallTypes.Cancel,
+                _ => ModComp.CompDepsInstallTypes.Cancel
+            };
         }
 
-        return true;
+        return ModComp.CompDepsInstallTypes.WithDeps;
     }
 
     /// <summary>
@@ -250,7 +282,12 @@ public static class ModCompDependency
     /// </summary>
     public static void ShowDependencyAbortMessage(string reason)
     {
-        ModMain.MyMsgBox(reason, "安装已中止", button1: "确定", isWarn: false, forceWait: true);
+        ModMain.MyMsgBox(
+            Lang.Text("Download.Comp.Dependency.Abort.Message", reason),
+            Lang.Text("Download.Comp.Dependency.Abort.Title"),
+            Lang.Text("Common.Action.Confirm"),
+            isWarn: false,
+            forceWait: true);
     }
 
     private static string GetSource(bool fromCurseForge)

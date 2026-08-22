@@ -184,6 +184,8 @@ public partial class MotdRenderer {
         MotdCanvas.Children.Clear();
         _obfuscatedTextBlocks.Clear();
 
+        motd ??= string.Empty;
+
         var colorMap = isDarkMode ? _ColorMapWithBlackBackground : _ColorMapWithWhiteBackground;
         var font = Config.Preference.MotdFont;
         var fontFamily = new FontFamily(string.IsNullOrWhiteSpace(font)

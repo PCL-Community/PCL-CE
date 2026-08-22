@@ -33,14 +33,15 @@ public static class MsgBoxWrapper
 
     public static int ShowWithCustomButtons(
         string message,
-        string caption,
+        string? caption,
         MsgBoxTheme theme,
         bool block,
         ICollection<MsgBoxButtonInfo> buttonCollection)
     {
         var result = 0;
-        if (buttonCollection.Count == 0) buttonCollection = [new MsgBoxButtonInfo(Lang.Text("Common.Action.Confirm"))];
-        OnShow?.Invoke(message, caption, buttonCollection, theme, block, ref result);
+        if (buttonCollection.Count == 0)
+            buttonCollection = [new MsgBoxButtonInfo(Lang.Text("Common.Action.Confirm"))];
+        OnShow?.Invoke(message, _ResolveCaption(caption, theme), buttonCollection, theme, block, ref result);
         return result;
     }
 
@@ -51,7 +52,7 @@ public static class MsgBoxWrapper
         bool block = true,
         params MsgBoxButtonInfo[] buttons)
     {
-        return ShowWithCustomButtons(message, caption ?? Lang.Text("Common.Dialog.Title"), theme, block, buttonCollection: buttons);
+        return ShowWithCustomButtons(message, caption, theme, block, buttonCollection: buttons);
     }
 
     public static int Show(
@@ -63,6 +64,18 @@ public static class MsgBoxWrapper
     {
         var index = 0;
         var list = buttons.Select(button => new MsgBoxButtonInfo(button, ++index)).ToList();
-        return ShowWithCustomButtons(message, caption ?? Lang.Text("Common.Dialog.Title"), theme, block, list);
+        return ShowWithCustomButtons(message, caption, theme, block, list);
+    }
+
+    private static string _ResolveCaption(string? caption, MsgBoxTheme theme)
+    {
+        if (!string.IsNullOrWhiteSpace(caption)) return caption;
+
+        return theme switch
+        {
+            MsgBoxTheme.Warning => Lang.Text("Common.Dialog.Warning"),
+            MsgBoxTheme.Error => Lang.Text("SystemDialog.Error.Title"),
+            _ => Lang.Text("Common.Dialog.Title")
+        };
     }
 }

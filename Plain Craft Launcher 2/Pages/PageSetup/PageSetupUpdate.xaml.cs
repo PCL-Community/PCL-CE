@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
@@ -52,7 +52,11 @@ public partial class PageSetupUpdate
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Update.Error.NetworkFailed"), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.Update.Error.NetworkFailed"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Setup.Update.Error.NetworkFailed"));
             return UpdateStatus.Error;
         }
     }
@@ -92,9 +96,16 @@ public partial class PageSetupUpdate
                 {
                     TextCurrentDesc.Text = Lang.Text("Setup.Update.CheckFailed");
                     if (checkUpdateEx is not null)
-                        ModBase.Log(checkUpdateEx, "[Update] 检查更新失败", ModBase.LogLevel.Msgbox);
+                        ModBase.Log(
+                            checkUpdateEx,
+                            "[Update] 检查更新失败",
+                            ModBase.LogLevel.Msgbox,
+                            userSummary: Lang.Text("Update.Check.Failed"));
                     else
-                        ModBase.Log("[Update] 检查更新失败", ModBase.LogLevel.Msgbox);
+                        ModBase.Log(
+                            "[Update] 检查更新失败",
+                            ModBase.LogLevel.Msgbox,
+                            userSummary: Lang.Text("Update.Check.Failed"));
                     return;
                 }
 
@@ -148,20 +159,6 @@ public partial class PageSetupUpdate
 
     private void BtnUpdate_Click(object sender, MouseButtonEventArgs e)
     {
-        // 检查 .NET 版本
-        if (!updateInfo.VersionName.StartsWithF("2.13.") && !ModBase
-                .ShellAndGetOutput("cmd", "/c dotnet --list-runtimes")
-                .ContainsF("Microsoft.WindowsDesktop.App 8.0.", true))
-        {
-            ModMain.MyMsgBox(
-                Lang.Text("Setup.Update.DotNetMissing.Message", updateInfo.VersionName,
-                    SystemInfo.IsArm64System ? "Arm64" : "x64"),
-                Lang.Text("Setup.Update.DotNetMissing.Title"),
-                Lang.Text("Setup.Update.DotNetMissing.DownloadRuntime"), Lang.Text("Common.Action.Cancel"),
-                button1Action: () => ModBase.OpenWebsite("https://get.dot.net/8"), forceWait: true);
-            return;
-        }
-
         if (UpdateManager.isUpdateWaitingRestart) UpdateManager.UpdateRestart(true);
         // 开始更新流程
         UpdateManager.UpdateStart(UpdateEnums.UpdateType.UpdateNow);

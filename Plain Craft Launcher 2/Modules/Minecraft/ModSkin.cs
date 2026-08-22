@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -49,7 +49,11 @@ public static class ModSkin
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Launch.Skin.File.Error"), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Launch.Skin.File.Error"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Launch.Skin.File.Error"));
             return new McSkinInfo { IsVaild = false };
         }
 
@@ -149,7 +153,7 @@ public static class ModSkin
         {
             if (!File.Exists(fileAddress))
             {
-                FileDownloader.Download(address, fileAddress + ModNet.netDownloadEnd).GetAwaiter().GetResult();
+                FileDownloader.DownloadAsync(address, fileAddress + ModNet.netDownloadEnd).GetAwaiter().GetResult();
                 File.Delete(fileAddress);
                 FileSystem.Rename(fileAddress + ModNet.netDownloadEnd, fileAddress);
                 ModBase.Log("[Minecraft] 皮肤下载成功：" + fileAddress);
