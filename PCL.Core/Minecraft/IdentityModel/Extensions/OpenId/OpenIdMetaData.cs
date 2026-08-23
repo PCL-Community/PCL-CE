@@ -8,7 +8,7 @@ namespace PCL.Core.Minecraft.IdentityModel.Extensions.OpenId;
 public record OpenIdMetadata
 {
     [JsonPropertyName("issuer")]
-    public required string Issuer { get; init; }
+    public string Issuer { get; init; } = string.Empty;
 
     [JsonPropertyName("authorization_endpoint")]
     public string? AuthorizationEndpoint { get; init; }
@@ -17,25 +17,25 @@ public record OpenIdMetadata
     public string? DeviceAuthorizationEndpoint { get; init; }
 
     [JsonPropertyName("token_endpoint")]
-    public required string TokenEndpoint { get; init; }
+    public string TokenEndpoint { get; init; } = string.Empty;
 
     [JsonPropertyName("userinfo_endpoint")]
-    public required string UserInfoEndpoint { get; init; }
+    public string UserInfoEndpoint { get; init; } = string.Empty;
 
     [JsonPropertyName("registration_endpoint")]
     public string? RegistrationEndpoint { get; init; }
 
     [JsonPropertyName("jwks_uri")]
-    public required string JwksUri { get; init; }
+    public string JwksUri { get; init; } = string.Empty;
 
     [JsonPropertyName("scopes_supported")]
-    public required IReadOnlyList<string> ScopesSupported { get; init; }
+    public IReadOnlyList<string> ScopesSupported { get; init; } = [];
 
     [JsonPropertyName("subject_types_supported")]
-    public required IReadOnlyList<string> SubjectTypesSupported { get; init; }
+    public IReadOnlyList<string> SubjectTypesSupported { get; init; } = [];
 
     [JsonPropertyName("id_token_signing_alg_values_supported")]
-    public required IReadOnlyList<string> IdTokenSigningAlgValuesSupported { get; init; }
+    public IReadOnlyList<string> IdTokenSigningAlgValuesSupported { get; init; } = [];
 
-    
+
 }

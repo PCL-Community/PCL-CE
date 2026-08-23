@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Minecraft.IdentityModel;
@@ -26,15 +27,17 @@ public sealed class SimpleOAuthClient(OAuthClientOptions options):IOAuthClient
     public string GetAuthorizeUrl(string[] scopes,string state,Dictionary<string,string>? extData = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(options.Meta.AuthorizeEndpoint);
-        var sb = new StringBuilder();
-        sb.Append(options.Meta.AuthorizeEndpoint);
-        sb.Append($"?response_type=code&scope={Uri.EscapeDataString(string.Join(" ", scopes))}");
-        sb.Append($"&redirect_uri={Uri.EscapeDataString(options.RedirectUri)}");
-        sb.Append($"&client_id={options.ClientId}&state={state}");
-        if (extData is null) return sb.ToString();
-        foreach (var kvp in extData)
-            sb.Append($"&{kvp.Key}={Uri.EscapeDataString(kvp.Value)}");
-        return sb.ToString();
+        var values = new Dictionary<string, string>(extData ?? [])
+        {
+            ["response_type"] = "code",
+            ["scope"] = string.Join(" ", scopes),
+            ["redirect_uri"] = options.RedirectUri,
+            ["client_id"] = options.ClientId,
+            ["state"] = state
+        };
+        var separator = options.Meta.AuthorizeEndpoint.Contains('?') ? "&" : "?";
+        return options.Meta.AuthorizeEndpoint + separator + string.Join("&", values.Select(item =>
+            $"{Uri.EscapeDataString(item.Key)}={Uri.EscapeDataString(item.Value)}"));
     }
 
     /// <summary>
@@ -48,10 +51,11 @@ public sealed class SimpleOAuthClient(OAuthClientOptions options):IOAuthClient
         string code,CancellationToken token,Dictionary<string,string>? extData = null
         )
     {
-        extData ??= new Dictionary<string, string>();
+        extData = new Dictionary<string, string>(extData ?? []);
         extData["client_id"] = options.ClientId;
         extData["grant_type"] = "authorization_code";
         extData["code"] = code;
+        extData.TryAdd("redirect_uri", options.RedirectUri);
         var client = options.GetClient.Invoke();
         using var content = new FormUrlEncodedContent(extData);
         using var response = await HttpRequest
@@ -76,7 +80,7 @@ public sealed class SimpleOAuthClient(OAuthClientOptions options):IOAuthClient
     {
         ArgumentException.ThrowIfNullOrEmpty(options.Meta.DeviceEndpoint);
         var client = options.GetClient.Invoke();
-        extData ??= new Dictionary<string, string>();
+        extData = new Dictionary<string, string>(extData ?? []);
         extData["scope"] = string.Join(" ", scopes);
         extData["client_id"] = options.ClientId;
         var content = new FormUrlEncodedContent(extData);
@@ -106,7 +110,7 @@ public sealed class SimpleOAuthClient(OAuthClientOptions options):IOAuthClient
     {
         if (data.IsError) throw new IdentityModelAuthenticationException(data.Error, data.ErrorDescription);
         var client = options.GetClient.Invoke();
-        extData ??= new Dictionary<string, string>();
+        extData = new Dictionary<string, string>(extData ?? []);
         extData["client_id"] = options.ClientId;
         extData["grant_type"] = "urn:ietf:params:oauth:grant-type:device_code";
         extData["device_code"] = data.DeviceCode!;
@@ -136,7 +140,7 @@ public sealed class SimpleOAuthClient(OAuthClientOptions options):IOAuthClient
     {
         var client = options.GetClient.Invoke();
         if (data.IsError) throw new IdentityModelAuthenticationException(data.Error, data.ErrorDescription);
-        extData ??= [];
+        extData = new Dictionary<string, string>(extData ?? []);
         extData["refresh_token"] = data.RefreshToken!;
         extData["grant_type"] = "refresh_token";
         extData["client_id"] = options.ClientId;

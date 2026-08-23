@@ -1,9 +1,13 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace PCL.Core.Minecraft.Profile.Models;
 
-public class ProfileJson<T>
+public sealed class ProfileJson<T>
 {
-    public int LastUsed { get; set; }
-    public ImmutableArray<T> Profiles { get; internal set; } = [];
+    [JsonPropertyName("lastUsed")]
+    public int LastUsed { get; set; } = -1;
+
+    [JsonPropertyName("profiles")]
+    public List<T> Profiles { get; set; } = [];
 }

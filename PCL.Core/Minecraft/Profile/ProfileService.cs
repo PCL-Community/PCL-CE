@@ -1,10 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.App.IoC;
 using PCL.Core.Minecraft.Profile.Models;
+using PCL.Core.Minecraft.Profile.Authentication;
+using PCL.Core.Utils;
+using PCL.Core.Utils.Secret;
 
 namespace PCL.Core.Minecraft.Profile;
 
@@ -12,72 +19,265 @@ namespace PCL.Core.Minecraft.Profile;
 [LifecycleService(LifecycleState.Loaded)]
 public partial class ProfileService
 {
-    private static ProfileManagement<McProfile> _newProfileProvider = new();
-    private static ProfileManagement<Models.OldProfile> _oldProfileProvider = new();
+    private static readonly ProfileManagement<McProfile> _profiles = new();
+    private static readonly object _saveLock = new();
+    private static bool _canPersist = true;
+
+    public static IReadOnlyList<McProfile> Profiles => _profiles.GetAll();
+    public static McProfile? Current => _profiles.Current;
+    public static int LastUsedProfile => _profiles.LastUsed;
+    public static bool IsLoaded => _profiles.IsLoaded;
+    public static bool IsCreatingProfile { get; set; }
 
     [LifecycleStart]
-    private static async Task _Start()
+    private static Task _Start()
     {
-        _newProfileProvider.LoadFromString(Config.System.Profiles);
+        Load();
+        return Task.CompletedTask;
     }
 
-    private static void _MigrateProfile()
+    [LifecycleStop]
+    private static void _Stop()
     {
-        
-        var profileLocation = Path.Combine(Paths.SharedData, "profiles.json");
-        var profileMigrateFIle = Path.Combine(Paths.SharedData, "pcl.ce.migrated");
-        if (!Path.Exists(profileMigrateFIle))
+        if (IsLoaded) Save();
+    }
+
+    public static void Load()
+    {
+        if (_profiles.IsLoaded) return;
+
+        var encryptedProvider = ConfigService.GetProvider(ConfigSource.SharedEncrypt);
+        var hasConfiguredProfiles = encryptedProvider.GetValue<string>("Profile", out var configured);
+        if (!hasConfiguredProfiles && ConfigService.GetProvider(ConfigSource.Shared).GetValue<string>("Profile", out var rawProfile))
         {
-            Context.Debug("已迁移档案信息，跳过检查");
+            if (_TryLoad(rawProfile))
+            {
+                _EnsureProfileIds();
+                Save();
+                return;
+            }
+            Context.Error("档案加密配置无法读取；为避免覆盖原始凭据，本次不会保存档案配置。");
+            _canPersist = false;
+            _profiles.LoadFromString("{\"lastUsed\":-1,\"profiles\":[]}");
             return;
         }
-        Context.Info("开始迁移旧版本档案信息");
+        if (hasConfiguredProfiles)
+        {
+            if (_TryLoad(configured))
+            {
+                _EnsureProfileIds();
+                return;
+            }
+            Context.Error("档案配置格式无效；为避免覆盖原始凭据，本次不会保存档案配置。");
+            _canPersist = false;
+            _profiles.LoadFromString("{\"lastUsed\":-1,\"profiles\":[]}");
+            return;
+        }
+
+        if (!_TryMigrateLegacy(out var migrated))
+        {
+            Context.Error("迁移旧档案失败；为避免覆盖原始凭据，本次不会保存档案配置。");
+            _canPersist = false;
+            _profiles.LoadFromString("{\"lastUsed\":-1,\"profiles\":[]}");
+            return;
+        }
+        _profiles.LoadFromString(migrated ?? "{\"lastUsed\":-1,\"profiles\":[]}");
+        Save();
+    }
+
+    public static void Save()
+    {
+        if (!IsLoaded || !_canPersist) return;
+        lock (_saveLock)
+            Config.System.ProfilesConfig.SetValue(_profiles.Serialize(), forceNewValue: true);
+    }
+
+    public static void Add(McProfile profile, bool select = true)
+    {
+        _EnsureLoaded();
+        if (string.IsNullOrWhiteSpace(profile.ProfileId)) profile.ProfileId = Guid.NewGuid().ToString("N");
+        _profiles.Add(profile, select);
+        Save();
+    }
+
+    public static void Update(McProfile origin, McProfile current)
+    {
+        _EnsureLoaded();
+        _profiles.Update(origin, current);
+        Save();
+    }
+
+    public static void Remove(McProfile profile)
+    {
+        _EnsureLoaded();
+        _profiles.Delete(profile);
+        Save();
+    }
+
+    public static void Select(McProfile? profile)
+    {
+        _EnsureLoaded();
+        _profiles.Select(profile);
+        Save();
+    }
+
+    public static void SelectAt(int index)
+    {
+        _EnsureLoaded();
+        _profiles.SelectAt(index);
+        Save();
+    }
+
+    public static void Clear()
+    {
+        _EnsureLoaded();
+        _profiles.Clear();
+        Save();
+    }
+
+    public static McProfile ApplyAuthenticationResult(AuthenticationResult result, McProfile? existing = null, bool select = true)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        var profile = existing?.Clone() ?? new McProfile { ProfileId = Guid.NewGuid().ToString("N") };
+        profile.ProfileType = result.ProfileType;
+        profile.UserName = result.UserName;
+        profile.Uuid = result.Uuid;
+        profile.AccessToken = result.AccessToken;
+        profile.RefreshToken = result.RefreshToken;
+        profile.ClientToken = result.ClientToken;
+        profile.TokenType = result.TokenType;
+        profile.ExpiresAt = result.ExpiresAt;
+        profile.RawJson = result.RawJson;
+        profile.Server = result.Server ?? profile.Server;
+        profile.ServerName = result.ServerName ?? profile.ServerName;
+        profile.LoginName = result.LoginName ?? profile.LoginName;
+        profile.Password = result.Password ?? profile.Password;
+        profile.Provider = result.Provider ?? profile.Provider;
+        profile.DiscoveryAddress = result.DiscoveryAddress ?? profile.DiscoveryAddress;
+        profile.IdToken = result.IdToken ?? profile.IdToken;
+        if (existing is null) Add(profile, select);
+        else
+        {
+            Update(existing, profile);
+            if (select) Select(profile);
+        }
+        return profile;
+    }
+
+    public static bool HasMicrosoftProfile => Profiles.Any(p => p.ProfileType == ProfileType.Microsoft);
+
+    private static void _EnsureLoaded()
+    {
+        if (!IsLoaded) Load();
+    }
+
+    private static bool _TryLoad(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return false;
         try
         {
-            _oldProfileProvider.LoadFromPath(profileLocation);
-            foreach (var profile in _oldProfileProvider.GetAll())
+            var node = JsonCompat.ParseNode(json);
+            if (node is not JsonObject root || root["profiles"] is not JsonArray)
+                return false;
+            _profiles.LoadFromString(json);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Context.Warn("读取新档案配置失败，将尝试迁移旧档案", ex);
+            return false;
+        }
+    }
+
+    private static void _EnsureProfileIds()
+    {
+        var changed = false;
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var profile in Profiles)
+        {
+            if (!string.IsNullOrWhiteSpace(profile.ProfileId) && ids.Add(profile.ProfileId)) continue;
+            do profile.ProfileId = Guid.NewGuid().ToString("N");
+            while (!ids.Add(profile.ProfileId));
+            changed = true;
+        }
+        if (changed) Save();
+    }
+
+    private static bool _TryMigrateLegacy(out string? migrated)
+    {
+        migrated = null;
+        var candidates = new[]
+        {
+            Path.Combine(Paths.OldSharedData, "profiles.json"),
+            Path.Combine(Paths.SharedData, "profiles.json")
+        };
+        var path = candidates.FirstOrDefault(File.Exists);
+        if (path is null) return true;
+
+        try
+        {
+            var root = JsonCompat.ParseNode(File.ReadAllText(path)) as JsonObject;
+            if (root?["profiles"] is not JsonArray oldProfiles) return false;
+            var result = new ProfileJson<McProfile>
             {
-                var newProfile = new McProfile
+                LastUsed = root["lastUsed"]?.GetValue<int>() ?? -1
+            };
+
+            foreach (var node in oldProfiles.OfType<JsonObject>())
+            {
+                var type = node["type"]?.ToString()?.ToLowerInvariant();
+                var profile = new McProfile
                 {
-                    UserName = profile.UserName,
-                    Uuid = profile.Uuid,
-                    SkinPath = "",
-                    ExpiredAt = default,
-                    AccessToken = profile.AccessToken,
-                    RefreshToken = profile.RefreshToken ?? string.Empty,
-                    TokenType = profile.TokenType,
-                    ProfileType = profile.Type switch
+                    ProfileId = Guid.NewGuid().ToString("N"),
+                    UserName = node["username"]?.ToString() ?? string.Empty,
+                    Uuid = node["uuid"]?.ToString() ?? string.Empty,
+                    Description = node["desc"]?.ToString() ?? string.Empty,
+                    SkinHeadId = node["skinHeadId"]?.ToString() ?? string.Empty,
+                    Server = node["server"]?.ToString(),
+                    ServerName = node["serverName"]?.ToString(),
+                    LoginName = _Decrypt(node["name"]?.ToString()),
+                    Password = _Decrypt(node["password"]?.ToString()),
+                    ClientToken = _Decrypt(node["clientToken"]?.ToString()),
+                    AccessToken = _Decrypt(node["accessToken"]?.ToString()),
+                    RefreshToken = _Decrypt(node["refreshToken"]?.ToString()),
+                    RawJson = _Decrypt(node["rawJson"]?.ToString()),
+                    TokenType = "Bearer",
+                    ProfileType = type switch
                     {
                         "microsoft" => ProfileType.Microsoft,
                         "authlib" => ProfileType.Authlib,
                         _ => ProfileType.Offline
                     }
                 };
-                _newProfileProvider.Add(newProfile);
+
+                if (node["expires"]?.GetValue<long>() is { } expires && expires > 0)
+                {
+                    try
+                    {
+                        profile.ExpiresAt = DateTimeOffset.FromUnixTimeMilliseconds(expires);
+                    }
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        profile.ExpiresAt = null;
+                    }
+                }
+                result.Profiles.Add(profile);
             }
-        }
-        catch (UnauthorizedAccessException)
-        {
-            Context.Error("读取旧版档案信息失败：权限不足");
+
+            migrated = JsonSerializer.Serialize(result, JsonCompat.SerializerOptions);
+            return true;
         }
         catch (Exception ex)
         {
-            Context.Error("迁移档案信息失败", ex);
+            Context.Error("迁移旧档案失败", ex);
+            return false;
         }
     }
-    
-    private static void _Import(){}
 
-    private static bool _isCheckedLicense;
-
-    public static bool HasValidLicense
+    private static string _Decrypt(string? value)
     {
-        get
-        {
-            if (!_isCheckedLicense)
-                field = _newProfileProvider.GetAll().Any(p => p.ProfileType == ProfileType.Microsoft);
-            return field;
-        }
-        private set;
+        if (string.IsNullOrEmpty(value)) return string.Empty;
+        try { return EncryptHelper.SecretDecrypt(value); }
+        catch { return value; }
     }
 }

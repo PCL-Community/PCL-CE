@@ -8,6 +8,7 @@ public record YggdrasilCredential
     [JsonPropertyName("password")] public required string Password { get; init; }
     [JsonPropertyName("agent")] public Agent Agent { get; init; } = new();
     [JsonPropertyName("requestUser")] public bool RequestUser { get; set; }
+    [JsonPropertyName("clientToken")] public string? ClientToken { get; set; }
 }
 
 public record YggdrasilAuthenticateResult
@@ -46,4 +47,6 @@ public record YggdrasilRefresh
 {
     [JsonPropertyName("accessToken")] public required string AccessToken { get; set; }
     [JsonPropertyName("selectedProfile")] public Profile? SelectedProfile { get; set; }
+    [JsonPropertyName("clientToken")] public string? ClientToken { get; set; }
+    [JsonPropertyName("requestUser")] public bool RequestUser { get; set; }
 }

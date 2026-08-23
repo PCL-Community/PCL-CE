@@ -11,7 +11,7 @@ public record MojangResponse
     public required IEnumerable<object> Roles { get; set; }
     [JsonPropertyName("access_token")]
     public required string AccessToken { get; set; }
-    [JsonPropertyName("expires_int")]
+    [JsonPropertyName("expires_in")]
     public required int ExpiresIn { get; set; }
     [JsonPropertyName("token_type")]
     public required string TokenType { get; set; }

@@ -3,20 +3,14 @@
 namespace PCL.Core.Minecraft.Profile.Models;
 
 /// <summary>
-/// 适用于外部使用的安全档案类
+/// 对外暴露的档案最小信息。敏感凭据只存在于内部的 <see cref="McProfile" /> 中。
 /// </summary>
-public record SafeProfile
+public class SafeProfile
 {
-    [JsonPropertyName("username")]
-    public required string UserName { get; set; }
-    [JsonPropertyName("accessToken")]
-    public required string AccessToken { get; set; }
-    [JsonPropertyName("uuid")]
-    public required string Uuid { get; set; }
-    [JsonPropertyName("tokenType")]
-    public string? TokenType { get; set; }
-    [JsonPropertyName("profileType")]
-    public ProfileType? ProfileType { get; set; }
-
-    private McProfile? _innerProfile;
+    [JsonPropertyName("profileId")] public string ProfileId { get; set; } = string.Empty;
+    [JsonPropertyName("username")] public string UserName { get; set; } = string.Empty;
+    [JsonPropertyName("accessToken")] public string AccessToken { get; set; } = string.Empty;
+    [JsonPropertyName("uuid")] public string Uuid { get; set; } = string.Empty;
+    [JsonPropertyName("tokenType")] public string TokenType { get; set; } = "Bearer";
+    [JsonPropertyName("profileType")] public ProfileType ProfileType { get; set; } = ProfileType.Offline;
 }

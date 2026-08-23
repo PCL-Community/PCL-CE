@@ -4,5 +4,6 @@ public enum ProfileType
 {
     Microsoft,
     Offline,
-    Authlib
+    Authlib,
+    YggdrasilConnect
 }

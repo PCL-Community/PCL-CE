@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using Microsoft.VisualBasic;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.Profile;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Network;
@@ -91,7 +92,7 @@ public static class ModSkin
         {
             "Mojang" => "https://sessionserver.mojang.com/session/minecraft/profile/",
             "Ms" => "https://sessionserver.mojang.com/session/minecraft/profile/",
-            "Auth" => ModProfile.selectedProfile.Server.Replace("/authserver", "") +
+            "Auth" => (ProfileService.Current?.Server ?? string.Empty).Replace("/authserver", "") +
                       "/sessionserver/session/minecraft/profile/",
             _ => throw new ArgumentException(Lang.Text("Minecraft.Skin.Error.InvalidSkinType", type ?? "null"))
         };

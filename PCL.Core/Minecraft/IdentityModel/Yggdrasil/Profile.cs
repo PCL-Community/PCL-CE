@@ -60,11 +60,11 @@ public record PlayerTextures
     /// <summary>
     /// 皮肤
     /// </summary>
-    [JsonPropertyName("skin")] public required PlayerTexture Skin { get; init; }
+    [JsonPropertyName("skin")] public PlayerTexture? Skin { get; init; }
     /// <summary>
     /// 披风
     /// </summary>
-    [JsonPropertyName("cape")] public required PlayerTexture Cape { get; init; }
+    [JsonPropertyName("cape")] public PlayerTexture? Cape { get; init; }
 }
 
 public record PlayerTexture
@@ -72,11 +72,11 @@ public record PlayerTexture
     /// <summary>
     /// 材质地址
     /// </summary>
-    [JsonPropertyName("Url")] public required string Url { get; init; }
+    [JsonPropertyName("url")] public required string Url { get; init; }
     /// <summary>
     /// 元数据
     /// </summary>
-    [JsonPropertyName("metadata")] public required PlayerTextureMetadata Metadata { get; init; }
+    [JsonPropertyName("metadata")] public PlayerTextureMetadata? Metadata { get; init; }
 }
 
 public record PlayerTextureMetadata
@@ -84,5 +84,5 @@ public record PlayerTextureMetadata
     /// <summary>
     /// 模型信息 （e.g. Steven -> default, Alex -> Slim）
     /// </summary>
-    [JsonPropertyName("model")] public required string Model { get; init; }
+    [JsonPropertyName("model")] public string? Model { get; init; }
 }

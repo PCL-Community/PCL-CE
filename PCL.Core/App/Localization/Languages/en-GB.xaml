@@ -1504,6 +1504,11 @@
     <sys:String x:Key="Launch.Account.Auth.Register">Register</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Server">Authentication server</sys:String>
     <sys:String x:Key="Launch.Account.Auth.ServerLabel">Authentication server: {0}</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.SelectServer">Select authentication server</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.OAuthLogin">Start OAuth login</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.OAuthUnsupported">OAuth is unavailable. Switched to password login.</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.UsePassword">Use password login</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.UseOAuth">Use OAuth login</sys:String>
 
     <!-- Launch.Account.LoginDialog -->
 

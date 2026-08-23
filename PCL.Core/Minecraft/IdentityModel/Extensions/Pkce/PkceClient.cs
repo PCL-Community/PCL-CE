@@ -2,6 +2,7 @@ using System;
 using PCL.Core.Utils.Exts;
 using System.Collections.Generic;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
@@ -16,7 +17,7 @@ namespace PCL.Core.Minecraft.IdentityModel.Extensions.Pkce;
 /// <param name="options"></param>
 public class PkceClient(OAuthClientOptions options):IOAuthClient
 {
-    private byte[] _ChallengeCode { get; set; } = new byte[32];
+    private string? _CodeVerifier { get; set; }
     private bool _isCallGetAuthorizeUrl;
     /// <summary>
     /// 设置验证方法，支持 PlainText 和 SHA256
@@ -32,11 +33,12 @@ public class PkceClient(OAuthClientOptions options):IOAuthClient
     /// <returns></returns>
     public string GetAuthorizeUrl(string[] scopes, string state, Dictionary<string, string>? extData)
     {
-        RandomNumberGenerator.Fill(_ChallengeCode);
+        var random = RandomNumberGenerator.GetBytes(32);
+        _CodeVerifier = random.FromBytesToB64UrlSafe();
         extData ??= [];
         extData["code_challenge"] = ChallengeMethod == PkceChallengeOptions.Sha256
-            ? SHA256Provider.Instance.ComputeHash(_ChallengeCode).ToHexString()
-            : _ChallengeCode.FromBytesToB64UrlSafe();
+            ? SHA256.HashData(Encoding.UTF8.GetBytes(_CodeVerifier)).FromBytesToB64UrlSafe()
+            : _CodeVerifier;
         extData["code_challenge_method"] = ChallengeMethod == PkceChallengeOptions.Sha256 ? "S256":"plain";
         _isCallGetAuthorizeUrl = true;
         return _client.GetAuthorizeUrl(scopes, state, extData);
@@ -52,10 +54,11 @@ public class PkceClient(OAuthClientOptions options):IOAuthClient
     public async Task<AuthorizeResult?> AuthorizeWithCodeAsync(string code, CancellationToken token, Dictionary<string, string>? extData = null)
     {
         if (!_isCallGetAuthorizeUrl) throw new InvalidOperationException("Challenge code is invalid");
-        var pkce = _ChallengeCode.FromBytesToB64UrlSafe();
+        var pkce = _CodeVerifier ?? throw new InvalidOperationException("Challenge code is invalid");
         extData ??= [];
         extData["code_verifier"] = pkce;
         _isCallGetAuthorizeUrl = false;
+        _CodeVerifier = null;
         return await _client.AuthorizeWithCodeAsync(code, token, extData);
     }
     /// <summary>
@@ -70,7 +73,7 @@ public class PkceClient(OAuthClientOptions options):IOAuthClient
         return await _client.GetCodePairAsync(scopes, token, extData);
     }
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="data"></param>
     /// <param name="token"></param>

@@ -1,6 +1,7 @@
 ﻿using System.Security.Authentication;
 using System.Windows;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.Profile;
 
 namespace PCL;
 
@@ -16,6 +17,7 @@ public partial class PageLoginMs
 
     private void BtnBack_Click(object sender, EventArgs e)
     {
+        ProfileService.IsCreatingProfile = false;
         ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
     }
 
@@ -28,8 +30,8 @@ public partial class PageLoginMs
         {
             try
             {
-                ModProfile.selectedProfile = null;
-                ModLaunch.mcLoginMsLoader.Start(ModProfile.GetLoginData(ModLaunch.McLoginType.Ms), true);
+                ProfileService.Select(null);
+                ModLaunch.mcLoginMsLoader.Start(ProfileUi.GetLoginData(ModLaunch.McLoginType.Ms), true);
                 while (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Loading)
                 {
                     ModBase.RunInUi(() => BtnLogin.Text = Lang.Number(ModLaunch.mcLoginMsLoader.Progress, "P0"));
@@ -79,6 +81,7 @@ public partial class PageLoginMs
             }
             finally
             {
+                ProfileService.IsCreatingProfile = false;
                 ModBase.RunInUi(() =>
                 {
                     BtnLogin.IsEnabled = true;

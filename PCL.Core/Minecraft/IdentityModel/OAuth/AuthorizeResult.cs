@@ -14,9 +14,9 @@ public record AuthorizeResult
     /// 描述此错误的文本
     /// </summary>
     [JsonPropertyName("error_description")] public string? ErrorDescription { get; init; }
-    
+
     // 不用 SecureString，因为这东西依赖 DPAPI，不是最佳实践
-    
+
     /// <summary>
     /// 访问令牌
     /// </summary>
@@ -37,4 +37,6 @@ public record AuthorizeResult
     /// 过期时间
     /// </summary>
     [JsonPropertyName("expires_in")] public int? ExpiresIn { get; init; }
+    [JsonPropertyName("scope")] public string? Scope { get; init; }
+    [JsonPropertyName("error_uri")] public string? ErrorUri { get; init; }
 }
