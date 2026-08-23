@@ -1507,8 +1507,8 @@
     <sys:String x:Key="Launch.Account.Auth.SelectServer">选择验证服务器</sys:String>
     <sys:String x:Key="Launch.Account.Auth.OAuthLogin">开始 OAuth 登录</sys:String>
     <sys:String x:Key="Launch.Account.Auth.OAuthUnsupported">OAuth 不可用，已切换到密码登录</sys:String>
-    <sys:String x:Key="Launch.Account.Auth.UsePassword">使用密码登录</sys:String>
-    <sys:String x:Key="Launch.Account.Auth.UseOAuth">使用 OAuth 登录</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.UsePassword">»  使用密码登录</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.UseOAuth">»  使用 OAuth 登录</sys:String>
 
     <!-- Launch.Account.LoginDialog -->
 

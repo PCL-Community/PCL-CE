@@ -45,16 +45,14 @@ public partial class PageLoginAuth
         BtnOAuth.Click += BtnLogin_Click;
         BtnUsePassword.Click += (_, _) => _SetLoginMode(false);
         BtnUseOAuth.Click += (_, _) => _SetLoginMode(true);
+        BtnWebsite.Click += BtnWebsite_Click;
+        BtnPasswordWebsite.Click += BtnWebsite_Click;
         BtnLink.Click += Btn_Click;
     }
 
     private void Reload()
     {
         _authServerUrl = draggedAuthServer ?? "";
-        TextServerName.Text = string.IsNullOrWhiteSpace(_authServerUrl)
-            ? ""
-            : Lang.Text("Launch.Account.Auth.ServerLabel", _authServerUrl);
-        TextServerName.Visibility = string.IsNullOrWhiteSpace(_authServerUrl) ? Visibility.Hidden : Visibility.Visible;
         var knownOAuthSupport = draggedAuthServerOAuthSupported;
         draggedAuthServer = null;
         draggedAuthServerOAuthSupported = null;
@@ -75,7 +73,6 @@ public partial class PageLoginAuth
     {
         ProfileService.IsCreatingProfile = false;
         _authServerUrl = "";
-        TextServerName.Text = "";
         TextName.Text = null;
         TextPass.Password = null;
         ModMain.frmLaunchLeft.RefreshPage(true);
@@ -101,6 +98,8 @@ public partial class PageLoginAuth
         BtnBackOAuth.IsEnabled = false;
         BtnUsePassword.IsEnabled = false;
         BtnUseOAuth.IsEnabled = false;
+        BtnWebsite.IsEnabled = false;
+        BtnPasswordWebsite.IsEnabled = false;
         var loginData = new ModLaunch.McLoginServer(ModLaunch.McLoginType.Auth)
         {
             BaseUrl = _authServerUrl.EndsWithF("/") ? $"{_authServerUrl}authserver" : $"{_authServerUrl}/authserver",
@@ -191,6 +190,8 @@ public partial class PageLoginAuth
         BtnBackOAuth.IsEnabled = true;
         BtnUsePassword.IsEnabled = true;
         BtnUseOAuth.IsEnabled = true;
+        BtnWebsite.IsEnabled = true;
+        BtnPasswordWebsite.IsEnabled = true;
         BtnLogin.Text = Lang.Text("Launch.Account.Auth.Login");
     }
 
@@ -204,11 +205,11 @@ public partial class PageLoginAuth
         _loginModeInitialized = true;
 
         var oldElements = wasOAuth
-            ? new FrameworkElement[] { PanOAuth, BtnUsePassword, BtnBackOAuth }
-            : new FrameworkElement[] { TextName, TextNameTitle, TextPass, TextPassTitle, BtnLink, BtnLogin, BtnUseOAuth, BtnBack };
+            ? new FrameworkElement[] { PanOAuth, BtnUsePassword, BtnWebsite, BtnBackOAuth }
+            : new FrameworkElement[] { TextName, TextNameTitle, TextPass, TextPassTitle, BtnLink, BtnLogin, PanPasswordLinks, BtnBack };
         var newElements = useOAuth
-            ? new FrameworkElement[] { PanOAuth, BtnUsePassword, BtnBackOAuth }
-            : new FrameworkElement[] { TextName, TextNameTitle, TextPass, TextPassTitle, BtnLink, BtnLogin, BtnUseOAuth, BtnBack };
+            ? new FrameworkElement[] { PanOAuth, BtnUsePassword, BtnWebsite, BtnBackOAuth }
+            : new FrameworkElement[] { TextName, TextNameTitle, TextPass, TextPassTitle, BtnLink, BtnLogin, PanPasswordLinks, BtnBack };
 
         var animations = new List<ModAnimation.AniData>();
         if (wasOAuth || !_loginModeInitialized)
@@ -239,7 +240,9 @@ public partial class PageLoginAuth
 
         foreach (var element in newElements)
         {
-            var targetOpacity = ReferenceEquals(element, BtnBackOAuth) ? 0.3d : 1d;
+            var targetOpacity = ReferenceEquals(element, BtnBackOAuth) || ReferenceEquals(element, PanPasswordLinks)
+                ? 0.3d
+                : 1d;
             animations.Add(ModAnimation.AaOpacity(element, targetOpacity, 130, 20,
                 new ModAnimation.AniEaseInFluent()));
         }
@@ -371,6 +374,27 @@ public partial class PageLoginAuth
         ModBase.OpenWebsite(_isRegisterMode
             ? Config.InstanceAuth.AuthRegisterAddress.ToString()
             : Config.InstanceAuth.AuthRegisterAddress.ToString().Replace("/auth/register", "/auth/forgot"));
+    }
+
+    private void BtnWebsite_Click(object sender, EventArgs e)
+    {
+        if (!Uri.TryCreate(_authServerUrl, UriKind.Absolute, out var authServerUri) ||
+            (authServerUri.Scheme != Uri.UriSchemeHttp && authServerUri.Scheme != Uri.UriSchemeHttps))
+            return;
+
+        var path = authServerUri.AbsolutePath.TrimEnd('/');
+        if (path.EndsWith("/api/yggdrasil", StringComparison.OrdinalIgnoreCase))
+            path = path[..^"/api/yggdrasil".Length];
+        else if (path.EndsWith("/authserver", StringComparison.OrdinalIgnoreCase))
+            path = path[..^"/authserver".Length];
+
+        var websiteUri = new UriBuilder(authServerUri)
+        {
+            Path = string.IsNullOrEmpty(path) ? "/" : path,
+            Query = "",
+            Fragment = ""
+        }.Uri;
+        ModBase.OpenWebsite(websiteUri.ToString());
     }
 
     // 切换注册按钮可见性
