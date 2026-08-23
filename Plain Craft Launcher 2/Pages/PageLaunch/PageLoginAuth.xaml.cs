@@ -318,6 +318,10 @@ public partial class PageLoginAuth
 
     internal static async Task<bool> IsOAuthSupportedAsync(string authServerUrl)
     {
+        if (Uri.TryCreate(authServerUrl, UriKind.Absolute, out var serverUri) &&
+            YggdrasilConnectProvider.TryGetBuiltInClientId(serverUri.Host, out _))
+            return true;
+
         try
         {
             var server = await ApiLocation.TryRequestAsync(authServerUrl).ConfigureAwait(false);
