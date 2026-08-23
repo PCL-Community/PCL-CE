@@ -6,7 +6,6 @@ using PCL.Core.UI.Controls;
 using PCL.Core.Utils;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
-using PCL.Core.Minecraft.Profile.Authentication;
 
 namespace PCL;
 
@@ -86,9 +85,9 @@ public partial class MyMsgLogin
         {
             try
             {
-                var resultJson = myConverter.DeviceCodePoll is not null
-                    ? await myConverter.DeviceCodePoll(data, token).ConfigureAwait(false)
-                    : await new MicrosoftProvider().PollDeviceCodeAsync(device, token).ConfigureAwait(false);
+                if (myConverter.DeviceCodePoll is null)
+                    throw new InvalidOperationException("设备授权没有配置轮询处理程序。");
+                var resultJson = await myConverter.DeviceCodePoll(data, token).ConfigureAwait(false);
                 token.ThrowIfCancellationRequested();
                 if (resultJson is { IsError: true })
                 {

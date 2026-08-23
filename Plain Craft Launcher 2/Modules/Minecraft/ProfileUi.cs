@@ -5,8 +5,12 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Windows;
 using PCL.Core.App.Localization;
+using PCL.Core.IO.Net;
+using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.Minecraft.Profile;
+using PCL.Core.Minecraft.Profile.Authentication;
 using PCL.Core.Minecraft.Profile.Models;
+using PCL.Core.Utils;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 
@@ -19,6 +23,31 @@ public static class ProfileUi
 {
     public static void ProfileLog(string content, ModBase.LogLevel level = ModBase.LogLevel.Normal)
         => ModBase.Log("[Profile] " + content, level);
+
+    public static Task<AuthorizeResult?> ShowDeviceCodeLoginAsync(DeviceCodeAuthenticationContext context,
+        CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        var completion = new TaskCompletionSource<AuthorizeResult?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var converter = new ModMain.MyMsgBoxConverter
+        {
+            Content = JsonSerializer.SerializeToNode(context.Data, JsonCompat.SerializerOptions)!.AsObject(),
+            ForceWait = true,
+            Type = ModMain.MyMsgBoxType.Login,
+            DeviceCodePoll = (_, pollToken) => context.PollAsync(pollToken),
+            LoginResultHandler = (oauth, _) =>
+            {
+                completion.TrySetResult(oauth);
+                return Task.CompletedTask;
+            },
+            CompletionHandler = result =>
+            {
+                if (result is Exception ex) completion.TrySetException(ex);
+            }
+        };
+        ModMain.WaitingMyMsgBox.Add(converter);
+        return completion.Task;
+    }
 
     public static object McLoginMojangUuid(string name, bool throwOnNotFound)
     {
@@ -266,32 +295,22 @@ public static class ProfileUi
         }
         return profile.ProfileType switch
         {
-            ProfileType.Microsoft => new ModLaunch.McLoginMs { OAuthRefreshToken = profile.RefreshToken, UserName = profile.UserName, AccessToken = profile.AccessToken, Uuid = profile.Uuid, ProfileJson = profile.RawJson, ExpiresAt = profile.ExpiresAt },
+            ProfileType.Microsoft => new ModLaunch.McLoginMs(),
             ProfileType.Authlib => new ModLaunch.McLoginServer(ModLaunch.McLoginType.Auth)
             {
                 BaseUrl = profile.Server,
-                Uuid = profile.Uuid,
                 UserName = profile.LoginName,
                 Password = profile.Password,
-                AccessToken = profile.AccessToken,
-                ClientToken = profile.ClientToken,
                 Description = profile.ServerName ?? "Authlib-Injector",
                 IsExist = true
             },
             ProfileType.YggdrasilConnect => new ModLaunch.McLoginServer(ModLaunch.McLoginType.Auth)
             {
                 BaseUrl = profile.Server,
-                Uuid = profile.Uuid,
-                UserName = profile.UserName,
-                AccessToken = profile.AccessToken,
-                ClientToken = profile.ClientToken,
                 Description = profile.ServerName ?? "Yggdrasil Connect",
                 IsExist = true,
                 ProviderType = ProfileType.YggdrasilConnect,
-                DiscoveryAddress = profile.DiscoveryAddress,
-                OAuthRefreshToken = profile.RefreshToken,
-                IdToken = profile.IdToken,
-                ExpiresAt = profile.ExpiresAt
+                DiscoveryAddress = profile.DiscoveryAddress
             },
             _ => new ModLaunch.McLoginLegacy { UserName = profile.UserName, Uuid = profile.Uuid }
         };

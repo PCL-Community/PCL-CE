@@ -72,7 +72,9 @@ public sealed class MicrosoftProvider : IAuthenticateProvider
         if (oauth is null && request.DeviceCodeHandler is not null)
         {
             var device = await GetDeviceCodeAsync(token).ConfigureAwait(false);
-            oauth = await request.DeviceCodeHandler(device, token).ConfigureAwait(false);
+            oauth = await request.DeviceCodeHandler(
+                new DeviceCodeAuthenticationContext(device, pollToken => PollDeviceCodeAsync(device, pollToken)), token)
+                .ConfigureAwait(false);
         }
         if (oauth is null)
             throw new IdentityModelConfigurationException("Microsoft login requires an OAuth result or device-code handler.");

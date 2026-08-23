@@ -4,10 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.IoC;
+using PCL.Core.Minecraft.IdentityModel;
 using PCL.Core.Minecraft.Profile.Models;
 using PCL.Core.Minecraft.Profile.Authentication;
 using PCL.Core.Utils;
@@ -135,6 +137,90 @@ public partial class ProfileService
         Save();
     }
 
+    public static async Task<McProfile> AuthenticateAsync(ProfileType profileType, AuthenticationRequest request,
+        McProfile? existing, bool select, CancellationToken token)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        _EnsureLoaded();
+
+        var canUseExisting = existing?.ProfileType == profileType;
+
+        if (canUseExisting && !request.ForceRefresh &&
+            (profileType is ProfileType.Microsoft or ProfileType.YggdrasilConnect) &&
+            !existing!.IsExpired && !string.IsNullOrWhiteSpace(existing.AccessToken))
+        {
+            if (select) Select(existing);
+            return existing;
+        }
+
+        var provider = await _CreateProviderAsync(profileType, request, existing, token).ConfigureAwait(false);
+        AuthenticationResult? result = null;
+
+        if (canUseExisting && profileType == ProfileType.Authlib && !request.ForceRefresh &&
+            !request.ForceReselectProfile)
+        {
+            try
+            {
+                if (await provider.ValidateAsync(existing!, token).ConfigureAwait(false))
+                {
+                    if (select) Select(existing!);
+                    return existing!;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Context.Warn("验证第三方档案失败，将尝试刷新", ex);
+            }
+        }
+
+        if (canUseExisting && (!request.ForceReselectProfile || profileType != ProfileType.Authlib))
+        {
+            try
+            {
+                result = await provider.RefreshAsync(existing!, token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (IdentityModelAuthenticationException ex)
+            {
+                Context.Warn("刷新档案失败，将尝试重新认证", ex);
+            }
+            catch (Exception ex)
+            {
+                if (request.RefreshFailureHandler is not null &&
+                    await request.RefreshFailureHandler(ex, token).ConfigureAwait(false))
+                {
+                    if (select) Select(existing!);
+                    return existing!;
+                }
+                if (profileType == ProfileType.Authlib &&
+                    !string.IsNullOrWhiteSpace(request.Username) && !string.IsNullOrWhiteSpace(request.Password))
+                {
+                    Context.Warn("刷新第三方档案失败，将尝试使用凭据重新认证", ex);
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+
+        if (result is null)
+        {
+            var loginRequest = request with { RefreshToken = null, IdToken = existing?.IdToken ?? request.IdToken };
+            result = await provider.AuthenticateAsync(loginRequest, token).ConfigureAwait(false);
+        }
+
+        var matched = canUseExisting ? existing : _FindMatchingProfile(result);
+        return ApplyAuthenticationResult(result, matched, select);
+    }
+
     public static McProfile ApplyAuthenticationResult(AuthenticationResult result, McProfile? existing = null, bool select = true)
     {
         ArgumentNullException.ThrowIfNull(result);
@@ -165,6 +251,38 @@ public partial class ProfileService
     }
 
     public static bool HasMicrosoftProfile => Profiles.Any(p => p.ProfileType == ProfileType.Microsoft);
+
+    private static async Task<IAuthenticateProvider> _CreateProviderAsync(ProfileType profileType,
+        AuthenticationRequest request, McProfile? existing, CancellationToken token)
+    {
+        switch (profileType)
+        {
+            case ProfileType.Microsoft:
+                return new MicrosoftProvider();
+            case ProfileType.Authlib:
+                return new AuthlibProvider(request.Server ?? existing?.Server ??
+                    throw new InvalidOperationException("Authlib profile has no server."));
+            case ProfileType.YggdrasilConnect:
+            {
+                var provider = new YggdrasilConnectProvider(
+                    request.DiscoveryAddress ?? existing?.DiscoveryAddress ??
+                    throw new InvalidOperationException("Yggdrasil Connect profile has no discovery address."),
+                    request.ClientId,
+                    request.Server ?? existing?.Server);
+                await provider.InitializeAsync(token).ConfigureAwait(false);
+                return provider;
+            }
+            default:
+                throw new InvalidOperationException($"Profile type '{profileType}' does not require remote authentication.");
+        }
+    }
+
+    private static McProfile? _FindMatchingProfile(AuthenticationResult result)
+        => Profiles.FirstOrDefault(profile =>
+            profile.ProfileType == result.ProfileType &&
+            string.Equals(profile.Uuid, result.Uuid, StringComparison.Ordinal) &&
+            (result.ProfileType == ProfileType.Microsoft ||
+             string.Equals(profile.Server, result.Server, StringComparison.OrdinalIgnoreCase)));
 
     private static void _EnsureLoaded()
     {

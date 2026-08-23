@@ -99,7 +99,9 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
         {
             var code = await GetCodePairAsync(token).ConfigureAwait(false)
                        ?? throw new IdentityModelAuthenticationException("device_authorization_failed", "The server returned no device code.");
-            oauth = await request.DeviceCodeHandler(code, token).ConfigureAwait(false);
+            oauth = await request.DeviceCodeHandler(
+                new DeviceCodeAuthenticationContext(code, pollToken => PollDeviceCodeAsync(code, pollToken)), token)
+                .ConfigureAwait(false);
         }
         if (oauth is null)
             throw new IdentityModelConfigurationException("Yggdrasil Connect login requires an OAuth result or device-code handler.");

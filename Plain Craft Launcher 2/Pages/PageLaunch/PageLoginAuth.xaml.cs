@@ -6,7 +6,7 @@ using PCL.Core.IO.Net.Http;
 using PCL.Core.Minecraft.Yggdrasil;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Authentication;
-using PCL.Core.Minecraft.IdentityModel.OAuth;
+using PCL.Core.Minecraft.Profile.Models;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Validate;
@@ -263,54 +263,43 @@ public partial class PageLoginAuth
         var clientId = _GetClientId(server, discoveryMetadata);
         if (string.IsNullOrWhiteSpace(clientId)) return false;
 
-        var provider = new YggdrasilConnectProvider(discovery, clientId,
-            yggdrasilServer: server);
         ModBase.Log($"[Profile] Yggdrasil Connect client id resolved for {new Uri(server).Host}", ModBase.LogLevel.Debug);
-        await provider.InitializeAsync(CancellationToken.None).ConfigureAwait(true);
-        var device = await provider.GetCodePairAsync(CancellationToken.None).ConfigureAwait(true)
-                     ?? throw new InvalidOperationException("Yggdrasil Connect 未返回设备授权码。");
-        if (device.IsError)
-            throw new InvalidOperationException(device.ErrorDescription ?? device.Error ?? "Yggdrasil Connect 设备授权失败。");
-
-        var converter = new ModMain.MyMsgBoxConverter
-        {
-            Content = JsonSerializer.SerializeToNode(device, JsonCompat.SerializerOptions)!.AsObject(),
-            ForceWait = true,
-            Type = ModMain.MyMsgBoxType.Login,
-            DeviceCodePoll = (content, token) =>
-            {
-                var code = content.ToObject<DeviceCodeData>() ?? throw new InvalidOperationException("设备授权数据无效。");
-                return provider.PollDeviceCodeAsync(code, token);
-            },
-            LoginResultHandler = async (oauth, token) =>
-            {
-                var result = await provider.AuthenticateAsync(new AuthenticationRequest
-                {
-                    OAuthResult = oauth,
-                    ProfileSelector = (candidates, _) => Task.FromResult(_SelectYggdrasilProfile(candidates))
-                }, token)
-                    .ConfigureAwait(false);
-                token.ThrowIfCancellationRequested();
-                var profile = ProfileService.ApplyAuthenticationResult(result);
-                ModBase.RunInUi(() =>
-                {
-                    ModMain.frmLaunchLeft.RefreshPage(true);
-                    HintService.Hint(Lang.Text("Launch.Account.Profile.Created"), HintType.Success);
-                });
-                ProfileUi.ProfileLog("Yggdrasil Connect 登录成功：" + profile.UserName);
-            },
-            CompletionHandler = result => ModBase.RunInUi(() =>
-            {
-                _FinishLoginAttempt();
-                if (result is ThreadInterruptedException)
-                    HintService.Hint(Lang.Text("Launch.Account.Auth.Cancelled"));
-                else if (result is Exception ex)
-                    ModBase.Log(ex, Lang.Text("Launch.Account.Auth.LoginFailed"), ModBase.LogLevel.Msgbox,
-                        userSummary: Lang.Text("Launch.Account.Auth.LoginFailed"));
-            })
-        };
-        ModMain.WaitingMyMsgBox.Add(converter);
+        _ = _CompleteYggdrasilConnectLoginAsync(server, discovery, clientId);
         return true;
+    }
+
+    private async Task _CompleteYggdrasilConnectLoginAsync(string server, string discovery, string clientId)
+    {
+        try
+        {
+            var profile = await ProfileService.AuthenticateAsync(ProfileType.YggdrasilConnect, new AuthenticationRequest
+            {
+                Server = server,
+                DiscoveryAddress = discovery,
+                ClientId = clientId,
+                DeviceCodeHandler = ProfileUi.ShowDeviceCodeLoginAsync,
+                ProfileSelector = (candidates, _) => Task.FromResult(_SelectYggdrasilProfile(candidates))
+            }, existing: null, select: true, token: CancellationToken.None).ConfigureAwait(false);
+            ModBase.RunInUi(() =>
+            {
+                ModMain.frmLaunchLeft.RefreshPage(true);
+                HintService.Hint(Lang.Text("Launch.Account.Profile.Created"), HintType.Success);
+            });
+            ProfileUi.ProfileLog("Yggdrasil Connect 登录成功：" + profile.UserName);
+        }
+        catch (ThreadInterruptedException)
+        {
+            HintService.Hint(Lang.Text("Launch.Account.Auth.Cancelled"));
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, Lang.Text("Launch.Account.Auth.LoginFailed"), ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Launch.Account.Auth.LoginFailed"));
+        }
+        finally
+        {
+            ModBase.RunInUi(_FinishLoginAttempt);
+        }
     }
 
     private static AuthenticationCandidate? _SelectYggdrasilProfile(IReadOnlyList<AuthenticationCandidate> candidates)

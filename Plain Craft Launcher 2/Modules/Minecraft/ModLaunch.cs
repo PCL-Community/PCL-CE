@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
@@ -17,9 +16,6 @@ using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
 using PCL.Network;
 using PCL.Core.IO.Net.Http;
-using PCL.Core.Minecraft.IdentityModel;
-using PCL.Core.Minecraft.IdentityModel.Yggdrasil;
-using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Authentication;
 using PCL.Core.Minecraft.Profile.Models;
@@ -513,12 +509,6 @@ public static class ModLaunch
         ///     登录用户名。
         /// </summary>
         public string UserName;
-        public string Uuid;
-        public string AccessToken;
-        public string ClientToken;
-        public string OAuthRefreshToken;
-        public string IdToken;
-        public DateTimeOffset? ExpiresAt;
         public string DiscoveryAddress;
         public ProfileType ProviderType = ProfileType.Authlib;
 
@@ -540,18 +530,6 @@ public static class ModLaunch
 
     public class McLoginMs : McLoginData
     {
-        public string AccessToken = "";
-
-        /// <summary>
-        ///     缓存的 OAuth RefreshToken。若没有则为空字符串。
-        /// </summary>
-        public string OAuthRefreshToken = "";
-
-        public string ProfileJson = "";
-        public string UserName = "";
-        public string Uuid = "";
-        public DateTimeOffset? ExpiresAt;
-
         public McLoginMs()
         {
             LoginType = McLoginType.Ms;
@@ -559,8 +537,7 @@ public static class ModLaunch
 
         public override int GetHashCode()
         {
-            return (int)Math.Round(ModBase.GetHash(OAuthRefreshToken + AccessToken + Uuid + UserName + ProfileJson) %
-                                   (decimal)int.MaxValue);
+            return (int)Math.Round(ModBase.GetHash(LoginType.ToString()) % (decimal)int.MaxValue);
         }
     }
 
@@ -694,124 +671,30 @@ public static class ModLaunch
 
     private static void McLoginMsStart(ModLoader.LoaderTask<McLoginMs, McLoginResult> data)
     {
-        var input = data.input;
-        var logUsername = input.UserName;
-        ProfileUi.ProfileLog($"验证方式：正版（{(string.IsNullOrEmpty(logUsername) ? "尚未登录" : logUsername)}）");
+        var existing = ProfileService.Current?.ProfileType == ProfileType.Microsoft ? ProfileService.Current : null;
+        ProfileUi.ProfileLog($"验证方式：正版（{(existing is null ? "尚未登录" : existing.UserName)}）");
         data.Progress = 0.05d;
-
-        // 已登录且不需要强制重启且登录未过期
-        if (!data.isForceRestarting && !string.IsNullOrEmpty(input.AccessToken) &&
-            input.ExpiresAt > DateTimeOffset.UtcNow.AddMinutes(1))
+        var stored = ProfileService.AuthenticateAsync(ProfileType.Microsoft, new AuthenticationRequest
         {
-            data.output = new McLoginResult
-            {
-                AccessToken = input.AccessToken,
-                Name = input.UserName,
-                Uuid = input.Uuid,
-                Type = "Microsoft",
-                ClientToken = input.Uuid,
-                ProfileJson = input.ProfileJson
-            };
-
-            ProfileUi.ProfileLog("正版验证完成");
-            return;
-        }
-
-        data.Progress = 0.1d;
-
-        // 尝试获取 OAuthToken
-        var oauthTokens = GetOAuthTokens(data, input, out var skipAuth);
-        if (skipAuth)
-        {
-            data.Progress = 0.99d;
-            var profile = ProfileService.Current ?? throw new InvalidOperationException("No Microsoft profile is selected.");
-            data.output = new McLoginResult
-            {
-                AccessToken = profile.AccessToken,
-                Name = profile.UserName,
-                Uuid = profile.Uuid,
-                Type = "Microsoft"
-            };
-            return;
-        }
-
-        var oauthAccessToken = oauthTokens[0];
-        var oauthRefreshToken = oauthTokens[1];
+            ForceRefresh = data.isForceRestarting,
+            DeviceCodeHandler = ProfileUi.ShowDeviceCodeLoginAsync,
+            RefreshFailureHandler = _ConfirmMicrosoftRefreshFailureAsync
+        }, existing, select: true, CancellationToken.None).GetAwaiter().GetResult();
         ThrowIfAborted(data);
-
-        data.Progress = 0.25d;
-
-        data.Progress = 0.4d;
-        ThrowIfAborted(data);
-        var provider = new MicrosoftProvider();
-        var authentication = provider.CompleteAsync(new AuthorizeResult
-        {
-            AccessToken = oauthAccessToken,
-            RefreshToken = oauthRefreshToken,
-            TokenType = "Bearer"
-        }, CancellationToken.None).GetAwaiter().GetResult();
-        ThrowIfAborted(data);
-        var accessToken = authentication.AccessToken;
-        var result = new[] { authentication.Uuid, authentication.UserName, authentication.RawJson };
-        oauthRefreshToken = authentication.RefreshToken;
-        data.Progress = 0.98d;
-
-        var existing = ProfileService.Profiles.FirstOrDefault(profile =>
-            profile.ProfileType == ProfileType.Microsoft &&
-            string.Equals(profile.UserName, result[1], StringComparison.Ordinal) &&
-            string.Equals(profile.Uuid, result[0], StringComparison.Ordinal));
-        if (existing is not null && ProfileService.IsCreatingProfile)
-            HintService.Hint(Lang.Text("Minecraft.Launch.Login.Microsoft.ProfileAlreadyAdded"));
-        var stored = ProfileService.ApplyAuthenticationResult(authentication, existing, select: true);
         ProfileService.IsCreatingProfile = false;
 
         data.output = new McLoginResult
         {
-            AccessToken = accessToken,
-            Name = result[1],
-            Uuid = result[0],
+            AccessToken = stored.AccessToken,
+            Name = stored.UserName,
+            Uuid = stored.Uuid,
             Type = "Microsoft",
             ClientToken = stored.ClientToken,
             ProfileJson = stored.RawJson
         };
 
+        data.Progress = 0.98d;
         ProfileUi.ProfileLog("正版验证完成");
-    }
-
-    /// <summary>
-    ///     获取 OAuth Tokens，处理刷新和重新登录逻辑
-    /// </summary>
-    private static string[] GetOAuthTokens(ModLoader.LoaderTask<McLoginMs, McLoginResult> data, McLoginMs input,
-        out bool skipAuth)
-    {
-        skipAuth = false;
-        string[] tokens;
-
-        while (true)
-        {
-            if (string.IsNullOrEmpty(input.OAuthRefreshToken))
-            {
-                tokens = MsLoginStep1New(data);
-            }
-            else
-            {
-                tokens = MsLoginStep1Refresh(input.OAuthRefreshToken);
-                if (tokens.Length > 0 && tokens[0] == "Relogin")
-                {
-                    // 刷新令牌已失效，清除后回退到设备代码流重新登录，避免无限循环
-                    input.OAuthRefreshToken = "";
-                    continue;
-                }
-            }
-
-            if (tokens.Length > 0 && tokens[0] == "Ignore")
-            {
-                skipAuth = true;
-                return tokens;
-            }
-
-            return tokens;
-        }
     }
 
     /// <summary>
@@ -823,88 +706,20 @@ public static class ModLaunch
             throw new ThreadInterruptedException();
     }
 
-    /// <summary>
-    ///     正版验证步骤 1：通过设备代码流获取账号信息
-    /// </summary>
-    /// <returns>OAuth 验证完成的返回结果</returns>
-    private static string[] MsLoginStep1New(ModLoader.LoaderTask<McLoginMs, McLoginResult> data)
+    private static Task<bool> _ConfirmMicrosoftRefreshFailureAsync(Exception exception, CancellationToken token)
     {
-        // 参考：https://learn.microsoft.com/zh-cn/entra/identity-platform/v2-oauth2-device-code
-
-        // 初始请求
-        Retry: ;
-
-        McLaunchLog("开始正版验证 Step 1/6（原始登录）");
-        var deviceCode = new MicrosoftProvider().GetDeviceCodeAsync(CancellationToken.None).GetAwaiter().GetResult();
-        var prepareJson = (JsonObject)JsonSerializer.SerializeToNode(deviceCode, JsonCompat.SerializerOptions);
-
-        McLaunchLog("网页登录地址：" + prepareJson["verification_uri"]);
-
-        // 弹窗
-        var converter = new ModMain.MyMsgBoxConverter
-            { Content = prepareJson, ForceWait = true, Type = ModMain.MyMsgBoxType.Login };
-        ModMain.WaitingMyMsgBox.Add(converter);
-        while (converter.Result is null)
-            Thread.Sleep(100);
-        if (converter.Result is ModBase.RestartException)
+        token.ThrowIfCancellationRequested();
+        ProfileUi.ProfileLog("获取正版 OAuth Token 失败：" + exception);
+        var reuseCachedProfile = false;
+        ModBase.RunInUiWait(() =>
         {
-            if (ModMain.MyMsgBox(
-                    Lang.Text("Minecraft.Launch.Login.PasswordRequired.Message", ModBase.vbLQ, ModBase.vbRQ),
-                    Lang.Text("Minecraft.Launch.Login.PasswordRequired.Title"), Lang.Text("Minecraft.Launch.Login.PasswordRequired.Relogin"), Lang.Text("Minecraft.Launch.Login.PasswordRequired.SetPassword"), Lang.Text("Common.Action.Cancel"),
-                    button2Action: () => ModBase.OpenWebsite("https://account.live.com/password/Change")) ==
-                1) goto Retry;
-
-            throw new Exception("$$");
-        }
-
-        if (converter.Result is Exception) throw (Exception)converter.Result;
-
-        return (string[])converter.Result;
-    }
-
-    /// <summary>
-    ///     正版验证步骤 1，刷新登录：从 OAuth Code 或 OAuth RefreshToken 获取 {OAuth accessToken, OAuth RefreshToken}
-    /// </summary>
-    /// <param name="code"></param>
-    /// <returns></returns>
-    private static string[] MsLoginStep1Refresh(string code)
-    {
-        McLaunchLog("开始正版验证 Step 1/6（刷新登录）");
-        if (string.IsNullOrEmpty(code))
-            throw new ArgumentException("传入的 Code 为空", nameof(code));
-        try
-        {
-            var result = new MicrosoftProvider().RefreshOAuthAsync(code, CancellationToken.None).GetAwaiter().GetResult();
-            return new[] { result.AccessToken ?? string.Empty, result.RefreshToken ?? code };
-        }
-        catch (ThreadInterruptedException ex)
-        {
-            ModBase.Log(ex, "加载线程已终止");
-        }
-        catch (Exception ex)
-        {
-            if (ex.Message.ContainsF("invalid_grant", true) || ex.Message.ContainsF("must sign in again", true) ||
-                ex.Message.ContainsF("must first sign in", true) || ex.Message.ContainsF("password expired", true) ||
-                (ex.Message.Contains("refresh_token") && ex.Message.Contains("is not valid"))) // #269
-                return new[] { "Relogin", "" };
-
-            ProfileUi.ProfileLog("正版验证 Step 1/6 获取 OAuth Token 失败：" + ex);
-            var isIgnore = false;
-            ModBase.RunInUiWait(() =>
-            {
-                if (!isLaunching)
-                    return;
-                if (ModMain.MyMsgBox(
-                        Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Message"),
-                        Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Title"), Lang.Text("Minecraft.Launch.Login.Continue"), Lang.Text("Common.Action.Cancel")) == 1)
-                    isIgnore = true;
-            });
-            if (isIgnore) return new[] { "Ignore", "" };
-            // 用户取消或登录线程已结束，静默中止启动，避免落入下方的 JSON 解析空引用
-            throw new Exception("$$");
-        }
-
-        throw new InvalidOperationException("Microsoft OAuth refresh did not return a result.");
+            if (!isLaunching) return;
+            reuseCachedProfile = ModMain.MyMsgBox(
+                Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Message"),
+                Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Title"), Lang.Text("Minecraft.Launch.Login.Continue"),
+                Lang.Text("Common.Action.Cancel")) == 1;
+        });
+        return Task.FromResult(reuseCachedProfile);
     }
 
 
@@ -915,131 +730,23 @@ public static class ModLaunch
     private static void McLoginServerStartNew(ModLoader.LoaderTask<McLoginServer, McLoginResult> data)
     {
         var input = data.input;
-        var current = ProfileService.Current;
-        if (input.ProviderType == ProfileType.YggdrasilConnect)
-        {
-            ProfileUi.ProfileLog("验证方式：" + input.Description);
-            if (!data.isForceRestarting && !string.IsNullOrWhiteSpace(input.AccessToken) &&
-                input.ExpiresAt > DateTimeOffset.UtcNow.AddMinutes(1))
-            {
-                data.output = new McLoginResult
-                {
-                    AccessToken = input.AccessToken,
-                    ClientToken = string.IsNullOrWhiteSpace(input.ClientToken) ? input.Uuid : input.ClientToken,
-                    Uuid = input.Uuid,
-                    Name = input.UserName,
-                    Type = "Auth"
-                };
-                data.Progress = 0.98d;
-                return;
-            }
-            if (string.IsNullOrWhiteSpace(input.DiscoveryAddress))
-                throw new InvalidOperationException("Yggdrasil Connect profile has no discovery address.");
-            var connect = new YggdrasilConnectProvider(input.DiscoveryAddress,
-                yggdrasilServer: input.BaseUrl);
-            connect.InitializeAsync(CancellationToken.None).GetAwaiter().GetResult();
-            var connectRequest = new AuthenticationRequest
-            {
-                RefreshToken = input.OAuthRefreshToken,
-                IdToken = input.IdToken,
-                ProfileSelector = (candidates, _) => Task.FromResult(_SelectAuthProfile(candidates))
-            };
-            AuthenticationResult connectAuthentication;
-            if (string.IsNullOrWhiteSpace(input.OAuthRefreshToken))
-            {
-                connectAuthentication = connect.AuthenticateAsync(connectRequest with
-                {
-                    DeviceCodeHandler = (device, token) => _ShowDeviceCodeLoginAsync(connect, device, token)
-                }, CancellationToken.None).GetAwaiter().GetResult();
-            }
-            else
-            {
-                try
-                {
-                    connectAuthentication = connect.AuthenticateAsync(connectRequest, CancellationToken.None)
-                    .GetAwaiter().GetResult();
-                }
-                catch (IdentityModelAuthenticationException ex)
-                {
-                    ProfileUi.ProfileLog("刷新 Yggdrasil Connect 档案失败，准备重新授权：" + ex);
-                    connectAuthentication = connect.AuthenticateAsync(connectRequest with
-                    {
-                        RefreshToken = null,
-                        DeviceCodeHandler = (device, token) => _ShowDeviceCodeLoginAsync(connect, device, token)
-                    }, CancellationToken.None).GetAwaiter().GetResult();
-                }
-            }
-            if (data.IsAborted) throw new ThreadInterruptedException();
-            var existingConnect = input.IsExist && current?.ProfileType == ProfileType.YggdrasilConnect &&
-                                  string.Equals(current.Server, input.BaseUrl, StringComparison.OrdinalIgnoreCase)
-                ? current
-                : null;
-            var storedConnect = ProfileService.ApplyAuthenticationResult(connectAuthentication, existingConnect);
-            data.output = new McLoginResult
-            {
-                AccessToken = storedConnect.AccessToken,
-                ClientToken = storedConnect.ClientToken,
-                Uuid = storedConnect.Uuid,
-                Name = storedConnect.UserName,
-                Type = "Auth"
-            };
-            data.Progress = 0.98d;
-            return;
-        }
-        var provider = new AuthlibProvider(input.BaseUrl);
         ProfileUi.ProfileLog("验证方式：" + input.Description);
         data.Progress = 0.1d;
-
-        AuthenticationResult? authentication = null;
-        if (!input.ForceReselectProfile && !ProfileService.IsCreatingProfile && current is not null)
+        var existing = input.IsExist && !ProfileService.IsCreatingProfile ? ProfileService.Current : null;
+        var stored = ProfileService.AuthenticateAsync(input.ProviderType, new AuthenticationRequest
         {
-            try
-            {
-                if (provider.ValidateAsync(current, CancellationToken.None).GetAwaiter().GetResult())
-                    authentication = new AuthenticationResult
-                    {
-                        ProfileType = ProfileType.Authlib,
-                        UserName = current.UserName,
-                        Uuid = current.Uuid,
-                        AccessToken = current.AccessToken,
-                        ClientToken = current.ClientToken,
-                        Server = current.Server,
-                        LoginName = current.LoginName,
-                        Password = current.Password,
-                        Provider = "authlib"
-                    };
-            }
-            catch (Exception ex) { ProfileUi.ProfileLog("验证第三方档案失败，准备刷新：" + ex); }
-
-            if (authentication is null && !string.IsNullOrWhiteSpace(current.AccessToken))
-            {
-                try
-                {
-                    authentication = provider.RefreshAsync(current, CancellationToken.None).GetAwaiter().GetResult();
-                }
-                catch (Exception ex) { ProfileUi.ProfileLog("刷新第三方档案失败，准备重新登录：" + ex); }
-            }
-        }
-
-        if (authentication is null)
-        {
-            authentication = provider.AuthenticateAsync(new AuthenticationRequest
-            {
-                Username = input.UserName,
-                Password = input.Password,
-                ForceReselectProfile = input.ForceReselectProfile,
-                ProfileSelector = (candidates, _) => Task.FromResult(_SelectAuthProfile(candidates))
-            }, CancellationToken.None).GetAwaiter().GetResult();
-        }
-
-        data.Progress = 0.85d;
+            Server = input.BaseUrl,
+            DiscoveryAddress = input.DiscoveryAddress,
+            Username = input.UserName,
+            Password = input.Password,
+            ForceRefresh = data.isForceRestarting,
+            ForceReselectProfile = input.ForceReselectProfile,
+            DeviceCodeHandler = input.ProviderType == ProfileType.YggdrasilConnect
+                ? ProfileUi.ShowDeviceCodeLoginAsync
+                : null,
+            ProfileSelector = (candidates, _) => Task.FromResult(_SelectAuthProfile(candidates))
+        }, existing, select: true, CancellationToken.None).GetAwaiter().GetResult();
         if (data.IsAborted) throw new ThreadInterruptedException();
-        var stored = input.IsExist && !ProfileService.IsCreatingProfile ? ProfileService.Current : null;
-        if (stored?.ProfileType == ProfileType.Authlib &&
-            string.Equals(stored.Server, input.BaseUrl, StringComparison.OrdinalIgnoreCase))
-            stored = ProfileService.ApplyAuthenticationResult(authentication, stored);
-        else
-            stored = ProfileService.ApplyAuthenticationResult(authentication);
 
         data.output = new McLoginResult
         {
@@ -1051,7 +758,7 @@ public static class ModLaunch
         };
         ProfileService.IsCreatingProfile = false;
         data.Progress = 0.98d;
-        ProfileUi.ProfileLog("登录成功（IdentityModel Authlib）");
+        ProfileUi.ProfileLog("第三方验证完成");
     }
 
     private static AuthenticationCandidate? _SelectAuthProfile(IReadOnlyList<AuthenticationCandidate> candidates)
@@ -1066,36 +773,6 @@ public static class ModLaunch
             if (index is >= 0 and < 100000) selected = candidates[index.Value];
         });
         return selected;
-    }
-
-    private static Task<AuthorizeResult?> _ShowDeviceCodeLoginAsync(YggdrasilConnectProvider provider,
-        DeviceCodeData device, CancellationToken token)
-    {
-        token.ThrowIfCancellationRequested();
-        var completion = new TaskCompletionSource<AuthorizeResult?>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var converter = new ModMain.MyMsgBoxConverter
-        {
-            Content = JsonSerializer.SerializeToNode(device, JsonCompat.SerializerOptions)!.AsObject(),
-            ForceWait = true,
-            Type = ModMain.MyMsgBoxType.Login,
-            DeviceCodePoll = (content, pollToken) =>
-            {
-                var current = content.ToObject<DeviceCodeData>() ??
-                              throw new InvalidOperationException("设备授权数据无效。");
-                return provider.PollDeviceCodeAsync(current, pollToken);
-            },
-            LoginResultHandler = (oauth, _) =>
-            {
-                completion.TrySetResult(oauth);
-                return Task.CompletedTask;
-            },
-            CompletionHandler = result =>
-            {
-                if (result is Exception ex) completion.TrySetException(ex);
-            }
-        };
-        ModMain.WaitingMyMsgBox.Add(converter);
-        return completion.Task;
     }
 
     #endregion
