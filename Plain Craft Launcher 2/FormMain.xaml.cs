@@ -939,7 +939,6 @@ public partial class FormMain
                         if (ModMain.MyMsgBox(Lang.Text("Main.FileDrag.CreateAuthlibProfile", authlibServer), Lang.Text("Main.FileDrag.CreateAuthlibProfileTitle"),
                                 Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 2)
                             return;
-                        ProfileService.Select(null);
                         ModBase.RunInUi(() =>
                         {
                             PageLoginAuth.draggedAuthServer = authlibServer;
