@@ -1502,11 +1502,9 @@
     <sys:String x:Key="Launch.Account.Auth.Password">密码</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Preset.LittleSkin">预设 - LittleSkin</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Register">注册账号</sys:String>
-    <sys:String x:Key="Launch.Account.Auth.Server">服务器</sys:String>
     <sys:String x:Key="Launch.Account.Auth.ServerLabel">验证服务器: {0}</sys:String>
     <sys:String x:Key="Launch.Account.Auth.SelectServer">选择验证服务器</sys:String>
     <sys:String x:Key="Launch.Account.Auth.OAuthLogin">开始 OAuth 登录</sys:String>
-    <sys:String x:Key="Launch.Account.Auth.OAuthUnsupported">OAuth 不可用，已切换到密码登录</sys:String>
     <sys:String x:Key="Launch.Account.Auth.UsePassword">»  使用密码登录</sys:String>
     <sys:String x:Key="Launch.Account.Auth.UseOAuth">»  使用 OAuth 登录</sys:String>
 
@@ -1560,7 +1558,6 @@
     <sys:String x:Key="Launch.Account.Profile.Create.SelectAuthType.Title">新建档案 - 选择验证类型</sys:String>
     <sys:String x:Key="Launch.Account.Profile.CreateAndSelectHint">新建并选择一个档案以启动游戏</sys:String>
     <sys:String x:Key="Launch.Account.Profile.RequireMicrosoftHint">需要先进行一次正版验证才能使用其他验证方式</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Created">档案新建成功！</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Delete">删除档案</sys:String>
     <sys:String x:Key="Launch.Account.Profile.DeleteConfirm.Message">你正在选择删除此档案，该操作无法撤销。&#xA;确定继续？</sys:String>
     <sys:String x:Key="Launch.Account.Profile.DeleteConfirm.Title">删除档案确认</sys:String>

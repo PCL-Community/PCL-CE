@@ -1502,11 +1502,9 @@
     <sys:String x:Key="Launch.Account.Auth.Password">Password</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Preset.LittleSkin">Preset - LittleSkin</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Register">Register</sys:String>
-    <sys:String x:Key="Launch.Account.Auth.Server">Authentication server</sys:String>
     <sys:String x:Key="Launch.Account.Auth.ServerLabel">Authentication server: {0}</sys:String>
     <sys:String x:Key="Launch.Account.Auth.SelectServer">Select authentication server</sys:String>
     <sys:String x:Key="Launch.Account.Auth.OAuthLogin">Start OAuth login</sys:String>
-    <sys:String x:Key="Launch.Account.Auth.OAuthUnsupported">OAuth is unavailable. Switched to password login.</sys:String>
     <sys:String x:Key="Launch.Account.Auth.UsePassword">»  Use password login</sys:String>
     <sys:String x:Key="Launch.Account.Auth.UseOAuth">»  Use OAuth login</sys:String>
 
@@ -1560,7 +1558,6 @@
     <sys:String x:Key="Launch.Account.Profile.Create.SelectAuthType.Title">New profile - Select login type</sys:String>
     <sys:String x:Key="Launch.Account.Profile.CreateAndSelectHint">Create and select a profile before launching the game</sys:String>
     <sys:String x:Key="Launch.Account.Profile.RequireMicrosoftHint">A Microsoft profile is required to create profiles using other login types</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.Created">Profile created!</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Delete">Delete profile</sys:String>
     <sys:String x:Key="Launch.Account.Profile.DeleteConfirm.Message">You are about to delete this profile. This action cannot be undone.&#xA;Are you sure you want to continue?</sys:String>
     <sys:String x:Key="Launch.Account.Profile.DeleteConfirm.Title">Confirm profile deletion</sys:String>

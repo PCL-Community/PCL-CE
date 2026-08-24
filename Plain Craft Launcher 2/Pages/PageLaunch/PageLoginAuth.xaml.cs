@@ -29,6 +29,7 @@ public partial class PageLoginAuth
 
     private bool _isRegisterMode = true;
     private bool _isOAuthMode;
+    private bool? _oauthSupported;
     private bool _hasRegisterLink;
     private bool _loginModeInitialized;
     private string _authServerUrl = "";
@@ -56,6 +57,8 @@ public partial class PageLoginAuth
         var knownOAuthSupport = draggedAuthServerOAuthSupported;
         draggedAuthServer = null;
         draggedAuthServerOAuthSupported = null;
+        _oauthSupported = knownOAuthSupport;
+        _UpdateOAuthEntryVisibility();
         _SetLoginMode(knownOAuthSupport == true);
         if (knownOAuthSupport is null && !string.IsNullOrWhiteSpace(_authServerUrl))
         {
@@ -63,8 +66,11 @@ public partial class PageLoginAuth
             Dispatcher.BeginInvoke(new Func<Task>(async () =>
             {
                 var supported = await IsOAuthSupportedAsync(server).ConfigureAwait(true);
-                if (string.Equals(_authServerUrl, server, StringComparison.OrdinalIgnoreCase))
-                    _SetLoginMode(supported);
+                if (!string.Equals(_authServerUrl, server, StringComparison.OrdinalIgnoreCase))
+                    return;
+                _oauthSupported = supported;
+                _UpdateOAuthEntryVisibility();
+                _SetLoginMode(supported);
             }));
         }
     }
@@ -114,13 +120,13 @@ public partial class PageLoginAuth
                 ProfileService.IsCreatingProfile = true;
                 if (_isOAuthMode)
                 {
-                    if (await _TryStartYggdrasilConnectAsync().ConfigureAwait(true))
+                    if (!await _TryStartYggdrasilConnectAsync().ConfigureAwait(true))
                     {
-                        keepControlsDisabled = true;
+                        HintService.Hint(Lang.Text("Launch.Account.Auth.LoginFailed"), HintType.Error);
                         return;
                     }
-                    _SetLoginMode(false);
-                    HintService.Hint(Lang.Text("Launch.Account.Auth.OAuthUnsupported"), HintType.Info);
+                    keepControlsDisabled = true;
+                    return;
                 }
                 if (string.IsNullOrWhiteSpace(TextName.Text) || string.IsNullOrWhiteSpace(TextPass.Password))
                 {
@@ -250,6 +256,13 @@ public partial class PageLoginAuth
         ModAnimation.AniStart(animations, "Profile Authentication Mode");
     }
 
+    private void _UpdateOAuthEntryVisibility()
+    {
+        var isOAuthAvailable = _oauthSupported != false;
+        BtnUseOAuth.Visibility = isOAuthAvailable ? Visibility.Visible : Visibility.Collapsed;
+        BtnPasswordWebsite.SetValue(Grid.ColumnSpanProperty, isOAuthAvailable ? 1 : 3);
+    }
+
     private async Task<bool> _TryStartYggdrasilConnectAsync()
     {
         var server = await ApiLocation.TryRequestAsync(_authServerUrl).ConfigureAwait(true);
@@ -286,7 +299,6 @@ public partial class PageLoginAuth
             ModBase.RunInUi(() =>
             {
                 ModMain.frmLaunchLeft.RefreshPage(true);
-                HintService.Hint(Lang.Text("Launch.Account.Profile.Created"), HintType.Success);
             });
             ProfileUi.ProfileLog("Yggdrasil Connect 登录成功：" + profile.UserName);
         }

@@ -27,8 +27,6 @@
             <TextBlock Grid.Row="0" FontSize="23" Foreground="{DynamicResource ColorBrush2}"
                        HorizontalAlignment="Left" Name="LabTitle" Margin="7,-1,70,9" />
             <Rectangle x:Name="ShapeLine" Grid.Row="1" Height="2" Fill="{Binding Foreground, ElementName=LabTitle}" />
-            <TextBlock Grid.Row="3" Text="{DynamicResource Launch.Account.Auth.Server}" Margin="7,0,7,7"
-                       Foreground="{DynamicResource ColorBrush1}" />
             <my:MyComboBox Grid.Row="4" x:Name="ComboServer" Height="28" IsEditable="True"
                            IsTextSearchEnabled="False" Margin="7,0,7,12" />
             <StackPanel Grid.Row="5" VerticalAlignment="Top" HorizontalAlignment="Right"
