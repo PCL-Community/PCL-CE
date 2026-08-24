@@ -106,12 +106,6 @@ public partial class PageLoginAuth
         BtnUseOAuth.IsEnabled = false;
         BtnWebsite.IsEnabled = false;
         BtnPasswordWebsite.IsEnabled = false;
-        var loginData = new ModLaunch.McLoginServer(ModLaunch.McLoginType.Auth)
-        {
-            BaseUrl = _authServerUrl.EndsWithF("/") ? $"{_authServerUrl}authserver" : $"{_authServerUrl}/authserver",
-            UserName = TextName.Text, Password = TextPass.Password, Description = "Authlib-Injector",
-            LoginType = ModLaunch.McLoginType.Auth
-        };
         Dispatcher.BeginInvoke(new Func<Task>(async () =>
         {
             var keepControlsDisabled = false;
@@ -133,6 +127,12 @@ public partial class PageLoginAuth
                     HintService.Hint(Lang.Text("Launch.Account.Auth.EmptyFields"), HintType.Error);
                     return;
                 }
+                var loginData = new ModLaunch.McLoginServer(ModLaunch.McLoginType.Auth)
+                {
+                    BaseUrl = await ApiLocation.TryRequestAsync(_authServerUrl).ConfigureAwait(true),
+                    UserName = TextName.Text, Password = TextPass.Password, Description = "Authlib-Injector",
+                    LoginType = ModLaunch.McLoginType.Auth
+                };
                 ModLaunch.mcLoginAuthLoader.Start(loginData, true);
                 while (ModLaunch.mcLoginAuthLoader.State == ModBase.LoadState.Loading)
                 {
