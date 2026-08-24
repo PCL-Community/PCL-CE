@@ -40,7 +40,7 @@ public record YggdrasilAuthenticateResult
     /// <summary>
     /// 用户信息
     /// </summary>
-    [JsonPropertyName("user")] public Profile? User { get; init; }
+    [JsonPropertyName("user")] public YggdrasilLegacyUser? User { get; init; }
 }
 
 public record YggdrasilRefresh

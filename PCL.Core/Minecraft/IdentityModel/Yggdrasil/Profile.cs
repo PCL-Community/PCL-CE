@@ -12,7 +12,19 @@ public record Profile
     /// <summary>
     /// 档案名称
     /// </summary>
-    [JsonPropertyName("name")] public string? Name { get; init; }
+    [JsonPropertyName("name")] public required string Name { get; init; }
+    /// <summary>
+    /// 属性信息
+    /// </summary>
+    [JsonPropertyName("properties")] public PlayerProperty[]? Properties { get; init; }
+}
+
+public record YggdrasilLegacyUser
+{
+    /// <summary>
+    /// UUID
+    /// </summary>
+    [JsonPropertyName("id")] public required string Id { get; init; }
     /// <summary>
     /// 属性信息
     /// </summary>

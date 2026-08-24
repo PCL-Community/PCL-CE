@@ -29,8 +29,7 @@ public sealed class YggdrasilLegacyClient(YggdrasilLegacyAuthenticateOptions opt
         {
             User = options.Username,
             Password = options.Password,
-            ClientToken = options.ClientToken,
-            RequestUser = true
+            ClientToken = options.ClientToken
         };
         var address = $"{options.YggdrasilApiLocation}/authserver/authenticate";
 
@@ -58,8 +57,7 @@ public sealed class YggdrasilLegacyClient(YggdrasilLegacyAuthenticateOptions opt
         var refreshData = new YggdrasilRefresh
         {
             AccessToken = options.AccessToken,
-            ClientToken = options.ClientToken,
-            RequestUser = true
+            ClientToken = options.ClientToken
         };
         if (seleectedProfile is not null) refreshData.SelectedProfile = seleectedProfile;
 
