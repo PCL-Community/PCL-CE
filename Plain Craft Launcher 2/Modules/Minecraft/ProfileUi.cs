@@ -79,17 +79,21 @@ public static class ProfileUi
         return uuid;
     }
 
+    public static bool CanCreateOtherProfile()
+    {
+#if DEBUG || DEBUGCI
+        return true;
+#else
+        return ProfileService.HasMicrosoftProfile || (Lang.IsFeaturesUnrestricted && ProfileService.Profiles.Count > 0) || NetworkHelper.IsNetworkAvailable() is false;
+#endif
+    }
+
     public static void CreateProfile()
     {
         int? selected = null;
         ModBase.RunInUiWait(() =>
         {
-            var includeOthers =
-#if DEBUG || DEBUGCI
-                true;
-#else
-                ProfileService.HasMicrosoftProfile || (Lang.IsFeaturesUnrestricted && ProfileService.Profiles.Count > 0) || NetworkHelper.IsNetworkAvailable() is false;
-#endif
+            var includeOthers = CanCreateOtherProfile();
             selected = ModMain.MyMsgBoxSelect(_GetAvailableProfileSelection(includeOthers),
                 Lang.Text("Launch.Account.Profile.Create.SelectAuthType.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"));
         });
