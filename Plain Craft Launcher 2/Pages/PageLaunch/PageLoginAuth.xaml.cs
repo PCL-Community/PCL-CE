@@ -390,19 +390,9 @@ public partial class PageLoginAuth
 
     private void BtnWebsite_Click(object sender, EventArgs e)
     {
-        if (!Uri.TryCreate(_authServerUrl, UriKind.Absolute, out var authServerUri) ||
-            (authServerUri.Scheme != Uri.UriSchemeHttp && authServerUri.Scheme != Uri.UriSchemeHttps))
-            return;
-
-        var path = authServerUri.AbsolutePath.TrimEnd('/');
-        if (path.EndsWith("/api/yggdrasil", StringComparison.OrdinalIgnoreCase))
-            path = path[..^"/api/yggdrasil".Length];
-        else if (path.EndsWith("/authserver", StringComparison.OrdinalIgnoreCase))
-            path = path[..^"/authserver".Length];
-
-        var websiteUri = new UriBuilder(authServerUri)
+        var websiteUri = new UriBuilder(new Uri(_authServerUrl))
         {
-            Path = string.IsNullOrEmpty(path) ? "/" : path,
+            Path = "/",
             Query = "",
             Fragment = ""
         }.Uri;

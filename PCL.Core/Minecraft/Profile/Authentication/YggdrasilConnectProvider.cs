@@ -26,12 +26,7 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
     private static readonly IReadOnlyDictionary<string, string> _BuiltInClientIds =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            ["littleskin.cn"] = "1014",
-            ["skin.mc.sjtu.cn"] = "6",
-            ["skin.mualliance.ltd"] = "27",
-            ["skin.jsumc.fun"] = "2",
-            ["skin.mc.taru.xj.cn"] = "6",
-            ["user.suesmc.ltd"] = "4"
+            ["littleskin.cn"] = "1014"
         };
 
     private static readonly string[] _Scopes =
