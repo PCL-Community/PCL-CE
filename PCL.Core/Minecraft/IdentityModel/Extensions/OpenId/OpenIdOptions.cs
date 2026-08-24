@@ -60,8 +60,6 @@ public record OpenIdOptions
     /// <param name="token"></param>
     public virtual async Task InitializeAsync(CancellationToken token)
     {
-        if (!Uri.TryCreate(OpenIdDiscoveryAddress, UriKind.Absolute, out var discoveryUri) || discoveryUri.Scheme != Uri.UriSchemeHttps)
-            throw new IdentityModelConfigurationException("OpenID discovery address must use HTTPS.");
         using var response = await HttpRequest
             .Create(OpenIdDiscoveryAddress)
             .WithHeaders(Headers ?? [])
@@ -71,10 +69,6 @@ public record OpenIdOptions
         Meta = await response
             .AsJsonAsync<OpenIdMetadata>(cancellationToken: token)
             .ConfigureAwait(false);
-        if (Meta is null || string.IsNullOrWhiteSpace(Meta.Issuer))
-            throw new IdentityModelConfigurationException("OpenID metadata has no issuer.");
-        if (!Uri.TryCreate(Meta.Issuer, UriKind.Absolute, out var issuerUri) || issuerUri.Scheme != Uri.UriSchemeHttps)
-            throw new IdentityModelConfigurationException("OpenID issuer must use HTTPS.");
     }
     /// <summary>
     /// 获取 Json Web Key
@@ -119,8 +113,7 @@ public record OpenIdOptions
                 AuthorizeEndpoint = Meta?.AuthorizationEndpoint??string.Empty,
                 DeviceEndpoint = Meta?.DeviceAuthorizationEndpoint??string.Empty,
                 TokenEndpoint = Meta!.TokenEndpoint,
-            },
-            Headers = Headers is null ? null : new Dictionary<string, string>(Headers)
+            }
         };
     }
 
