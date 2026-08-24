@@ -2711,10 +2711,10 @@
     <sys:String x:Key="Setup.Language.Banner.TitlePrefix">Let</sys:String>
     <sys:String x:Key="Setup.Language.Banner.TitleSuffix">Go Internationalized.</sys:String>
     <sys:String x:Key="Setup.Language.Banner.DescriptionLine1">With the support of the community, PCL CE is entering a new chapter in its journey toward internationalization.</sys:String>
-    <sys:String x:Key="Setup.Language.Banner.DescriptionLine2">You can help shape that journey by submitting pull requests to our GitHub repository and making PCL CE more accessible to users around the world.</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.DescriptionLine2">You can help shape that journey by contributing on our translation platform or submitting pull requests to our GitHub repository, making PCL CE more accessible to users around the world.</sys:String>
     <sys:String x:Key="Setup.Language.Banner.DescriptionLine3">Thank you to everyone who contributes translations, reviews, and improvements—your support makes PCL CE better for everyone.</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.TranslateWebsite">Visit translation platform</sys:String>
     <sys:String x:Key="Setup.Language.Banner.SubmitPullRequest">Submit pull request</sys:String>
-    <sys:String x:Key="Setup.Language.Banner.ViewDeveloperDocs">View developer docs</sys:String>
     <sys:String x:Key="Setup.Language.Reset.Success">Language page settings initialized!</sys:String>
     <sys:String x:Key="Setup.Language.Title">Language</sys:String>
     <sys:String x:Key="Setup.Language.UiLanguage">Display language</sys:String>

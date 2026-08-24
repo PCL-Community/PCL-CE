@@ -2711,10 +2711,10 @@
     <sys:String x:Key="Setup.Language.Banner.TitlePrefix">讓</sys:String>
     <sys:String x:Key="Setup.Language.Banner.TitleSuffix">走向國際化。</sys:String>
     <sys:String x:Key="Setup.Language.Banner.DescriptionLine1">在社群的共同助力下，PCL CE 正邁向國際化的新篇章。</sys:String>
-    <sys:String x:Key="Setup.Language.Banner.DescriptionLine2">歡迎向我們的 GitHub 倉庫提交 Pull Request，與我們一同完善多語言支援，為 PCL CE 更好地服務全球使用者的目標添磚加瓦。</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.DescriptionLine2">歡迎前往翻譯平台參與在地化貢獻，或向 GitHub 倉庫提交 Pull Request，與我們一同完善多語言支援，為 PCL CE 更好地服務全球使用者的目標添磚加瓦。</sys:String>
     <sys:String x:Key="Setup.Language.Banner.DescriptionLine3">感謝每一位參與翻譯、校對與改進的貢獻者，讓 PCL CE 因你們而更加完善。</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.TranslateWebsite">前往翻譯平台</sys:String>
     <sys:String x:Key="Setup.Language.Banner.SubmitPullRequest">提交 Pull Request</sys:String>
-    <sys:String x:Key="Setup.Language.Banner.ViewDeveloperDocs">查看開發文件</sys:String>
     <sys:String x:Key="Setup.Language.Reset.Success">已初始化語言頁設定！</sys:String>
     <sys:String x:Key="Setup.Language.Title">語言</sys:String>
     <sys:String x:Key="Setup.Language.UiLanguage">介面語言</sys:String>
