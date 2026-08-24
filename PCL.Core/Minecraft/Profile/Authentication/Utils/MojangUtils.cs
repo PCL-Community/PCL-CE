@@ -52,7 +52,7 @@ public static class MojangUtils
         using var response = await HttpRequest.Create(LicenseEndpoint)
             .WithAuthentication(profile.TokenType, profile.AccessToken)
             .SendAsync(cancellationToken: token).ConfigureAwait(false);
-        if (!response.IsSuccess) return false;
+        response.EnsureSuccessStatusCode();
         var result = await response.AsJsonAsync<JsonObject>(cancellationToken: token).ConfigureAwait(false);
         return result?["items"] is JsonArray items && items.Any(item =>
             item?["name"]?.ToString() is "product_minecraft" or "game_minecraft");

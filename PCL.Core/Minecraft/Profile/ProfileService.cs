@@ -147,7 +147,9 @@ public partial class ProfileService
 
         if (canUseExisting && !request.ForceRefresh &&
             (profileType is ProfileType.Microsoft or ProfileType.YggdrasilConnect) &&
-            !existing!.IsExpired && !string.IsNullOrWhiteSpace(existing.AccessToken))
+            existing!.ExpiresAt is { } expires &&
+            expires > DateTimeOffset.UtcNow.AddMinutes(1) &&
+            !string.IsNullOrWhiteSpace(existing.AccessToken))
         {
             if (select) Select(existing);
             return existing;
