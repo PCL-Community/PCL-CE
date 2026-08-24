@@ -86,6 +86,7 @@ public partial class PageLoginOffline
         };
         ProfileService.Add(newProfile);
         ProfileService.IsCreatingProfile = false;
+        HintService.Hint(Lang.Text("Launch.Account.Profile.Created"), HintType.Success);
         ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
     }
 }

@@ -1558,6 +1558,7 @@
     <sys:String x:Key="Launch.Account.Profile.Create.SelectAuthType.Title">建立檔案 - 選擇驗證型別</sys:String>
     <sys:String x:Key="Launch.Account.Profile.CreateAndSelectHint">建立並選擇一個檔案以啟動遊戲</sys:String>
     <sys:String x:Key="Launch.Account.Profile.RequireMicrosoftHint">需要先進行一次微軟驗證才能使用其他驗證方式</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.Created">檔案建立成功！</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Delete">刪除檔案</sys:String>
     <sys:String x:Key="Launch.Account.Profile.DeleteConfirm.Message">你正在選擇刪除此檔案，該操作無法復原。&#xA;確定繼續？</sys:String>
     <sys:String x:Key="Launch.Account.Profile.DeleteConfirm.Title">刪除檔案確認</sys:String>
