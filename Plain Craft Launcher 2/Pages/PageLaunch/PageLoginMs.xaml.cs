@@ -28,6 +28,8 @@ public partial class PageLoginMs
         BtnLogin.Text = Lang.Number(0d, "P0");
         ModBase.RunInNewThread(() =>
         {
+            var previousProfile = ProfileService.Current;
+            var loginSucceeded = false;
             try
             {
                 ProfileService.Select(null);
@@ -39,7 +41,10 @@ public partial class PageLoginMs
                 }
 
                 if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Finished)
+                {
+                    loginSucceeded = true;
                     ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
+                }
                 else if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Aborted)
                     throw new ThreadInterruptedException();
                 else if (ModLaunch.mcLoginMsLoader.Error is null)
@@ -49,10 +54,12 @@ public partial class PageLoginMs
             }
             catch (ThreadInterruptedException ex)
             {
+                if (!loginSucceeded && previousProfile is not null) ProfileService.Select(previousProfile);
                 HintService.Hint(Lang.Text("Launch.Account.LoginCancelled"));
             }
             catch (Exception ex)
             {
+                if (!loginSucceeded && previousProfile is not null) ProfileService.Select(previousProfile);
                 if (ex.Message == "$$")
                 {
                 }
