@@ -424,12 +424,29 @@ public partial class PageSetupLaunch
     }
 
     /// <summary>
+    ///     判断生效的自定义 JVM 参数（实例级优先，留空跟随全局）中是否已包含 -Xms。
+    ///     此时启动路径会跳过自动追加的初始堆，实际值以自定义参数为准。
+    /// </summary>
+    public static bool HasCustomXms(McInstance version)
+    {
+        var dataJvmCustom = version is null ? "" : Config.Instance.JvmArgs[version.PathInstance];
+        if (!string.IsNullOrWhiteSpace(dataJvmCustom) &&
+            dataJvmCustom.Contains("-Xms", StringComparison.OrdinalIgnoreCase))
+            return true;
+        return !string.IsNullOrWhiteSpace(Config.Launch.JvmArgs) &&
+            Config.Launch.JvmArgs.Contains("-Xms", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
     ///     获取全局设置的初始堆大小（-Xms）。单位为 GB；未启用自定义初始大小时返回 null。
     /// </summary>
     public static double? GetInitialRam(McInstance version, bool useVersionJavaSetup, bool? is32BitJava = default)
     {
         // 锁定内存时 -Xms 恒等于 -Xmx，由锁定内存逻辑处理
         if (Config.Launch.LockMemory)
+            return null;
+        // 自定义 JVM 参数含 -Xms 时由其决定实际初始堆，不再显示滑块值
+        if (HasCustomXms(version))
             return null;
         // 仅手动分配模式下生效
         if (Config.Launch.MemoryAllocationMode != 1)

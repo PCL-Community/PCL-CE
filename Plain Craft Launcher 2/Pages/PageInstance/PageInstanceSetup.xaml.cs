@@ -550,6 +550,9 @@ public partial class PageInstanceSetup
         // 锁定内存为全局配置，启用时 -Xms 恒等于 -Xmx，由锁定内存逻辑处理
         if (Config.Launch.LockMemory)
             return null;
+        // 自定义 JVM 参数含 -Xms 时由其决定实际初始堆，不再显示滑块值
+        if (PageSetupLaunch.HasCustomXms(version))
+            return null;
         var instancePath = version?.PathInstance;
         switch (Config.Instance.MemorySolution[instancePath])
         {
