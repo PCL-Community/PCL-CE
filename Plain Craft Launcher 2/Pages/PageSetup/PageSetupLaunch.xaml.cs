@@ -66,6 +66,7 @@ public partial class PageSetupLaunch
             // 游戏内存
             ((MyRadioBox)FindName("RadioRamType" + Config.Launch.MemoryAllocationMode)).Checked = true;
             SliderRamCustom.Value = Config.Launch.CustomMemorySize;
+            SliderRamInitialCustom.Value = Config.Launch.CustomInitialMemorySize;
             RamType(Config.Launch.MemoryAllocationMode);
 
             // 高级设置
@@ -211,6 +212,7 @@ public partial class PageSetupLaunch
         if (SliderRamCustom is null)
             return;
         SliderRamCustom.IsEnabled = type == 1;
+        SliderRamInitialCustom.IsEnabled = type == 1;
     }
 
     /// <summary>
@@ -239,7 +241,12 @@ public partial class PageSetupLaunch
         else
             SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((ramTotal - 16d) / 2d) + 33d);
         // 设置文本
-        LabRamGame.Text = $"{Lang.Number(ramGame, "N1")} GiB{(ramGame != ramGameActual ? $" ({Lang.Text("Setup.Launch.Memory.AvailableSuffix", Lang.Number(ramGameActual, "N1"))})" : "")}";
+        var ramInitial = GetInitialRam(ModInstanceList.McMcInstanceSelected, false);
+        var initialText = ramInitial.HasValue ? Lang.Text("Setup.Launch.Memory.InitialSuffix", Lang.Number(ramInitial.Value, "N1")) : "";
+        var availableText = ramGame != ramGameActual ? Lang.Text("Setup.Launch.Memory.AvailableSuffix", Lang.Number(ramGameActual, "N1")) : "";
+        var suffixText = !string.IsNullOrEmpty(initialText) && !string.IsNullOrEmpty(availableText) ? initialText + ", " : initialText;
+        suffixText += availableText;
+        LabRamGame.Text = $"{Lang.Number(ramGame, "N1")} GiB{(suffixText.Length > 0 ? $" ({suffixText})" : "")}";
         LabRamUsed.Text = $"{Lang.Number(ramUsed, "N1")} GiB";
         LabRamTotal.Text = $" / {Lang.Number(ramTotal, "N1")} GiB";
         LabRamWarn.Visibility =
@@ -399,6 +406,33 @@ public partial class PageSetupLaunch
     }
 
     /// <summary>
+    ///     将内存滑块刻度值转换为 GB。
+    /// </summary>
+    public static double GetRamFromTick(int value)
+    {
+        return value switch
+        {
+            <= 12 => value * 0.1d + 0.3d,
+            <= 25 => (value - 12) * 0.5d + 1.5d,
+            <= 33 => (value - 25) * 1 + 8,
+            _ => (value - 33) * 2 + 16
+        };
+    }
+
+    /// <summary>
+    ///     获取全局设置的初始堆大小（-Xms）。单位为 GB；未启用自定义初始大小时返回 null。
+    /// </summary>
+    public static double? GetInitialRam(McInstance version, bool useVersionJavaSetup, bool? is32BitJava = default)
+    {
+        if (Config.Launch.MemoryAllocationMode != 1)
+            return null;
+        var initialTick = Config.Launch.CustomInitialMemorySize;
+        if (initialTick <= 0)
+            return null;
+        return Math.Min(GetRamFromTick(initialTick), GetRam(version, useVersionJavaSetup, is32BitJava));
+    }
+
+    /// <summary>
     ///     获取当前设置的 RAM 值。单位为 GB。
     /// </summary>
     public static double GetRam(McInstance version, bool useVersionJavaSetup, bool? is32BitJava = default)
@@ -468,14 +502,7 @@ public partial class PageSetupLaunch
         else
         {
             // 手动配置
-            var value = Config.Launch.CustomMemorySize;
-            ramGive = value switch
-            {
-                <= 12 => value * 0.1d + 0.3d,
-                <= 25 => (value - 12) * 0.5d + 1.5d,
-                <= 33 => (value - 25) * 1 + 8,
-                _ => (value - 33) * 2 + 16
-            };
+            ramGive = GetRamFromTick(Config.Launch.CustomMemorySize);
         }
 
         // 若使用 32 位 Java，则限制为 1G
