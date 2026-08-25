@@ -140,7 +140,9 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
                 throw new IdentityModelAuthenticationException("profile_selection_required", "Yggdrasil Connect returned multiple player profiles.");
             var candidates = available.Select(p => new AuthenticationCandidate(p.Id, p.Name ?? p.Id)).ToArray();
             var selected = await request.ProfileSelector(candidates, token).ConfigureAwait(false);
-            profile = selected is null ? null : available.FirstOrDefault(p => p.Id == selected.Id);
+            if (selected is null)
+                throw new IdentityModelAuthenticationException("access_denied", "Yggdrasil Connect profile selection was cancelled.");
+            profile = available.FirstOrDefault(p => p.Id == selected.Id);
         }
         profile ??= available.FirstOrDefault();
         if (profile is null)

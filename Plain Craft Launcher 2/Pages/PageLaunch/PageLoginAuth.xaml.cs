@@ -320,15 +320,11 @@ public partial class PageLoginAuth
     private static AuthenticationCandidate? _SelectYggdrasilProfile(IReadOnlyList<AuthenticationCandidate> candidates)
     {
         if (candidates.Count == 0) return null;
-        var selected = candidates[0];
-        ModBase.RunInUiWait(() =>
-        {
-            if (candidates.Count == 1) return;
-            var controls = candidates.Select(candidate => (IMyRadio)new MyRadioBox { Text = candidate.Name }).ToList();
-            var index = ModMain.MyMsgBoxSelect(controls, Lang.Text("Launch.Account.Auth.ChangeProfile"));
-            if (index is >= 0 and < 100000) selected = candidates[index.Value];
-        });
-        return selected;
+        if (candidates.Count == 1) return candidates[0];
+        var controls = candidates.Select(candidate => (IMyRadio)new MyRadioBox { Text = candidate.Name }).ToList();
+        int? index = null;
+        ModBase.RunInUiWait(() => index = ModMain.MyMsgBoxSelect(controls, Lang.Text("Launch.Account.Auth.ChangeProfile")));
+        return index is >= 0 and < 100000 ? candidates[index.Value] : null;
     }
 
     internal static async Task<bool> IsOAuthSupportedAsync(string authServerUrl)
