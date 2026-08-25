@@ -1,4 +1,5 @@
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -272,6 +273,11 @@ public static class ProfileUi
                     ProfileService.Select(updated);
                     HintService.Hint(Lang.Text("Launch.Account.Profile.EditPlayerId.Success", updated.UserName), HintType.Success);
                     ModBase.RunInUi(() => { ModMain.frmLoginProfileSkin?.Reload(); ModMain.frmLaunchLeft.RefreshPage(true); });
+                }
+                catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.EditPlayerId.Cooldown"),
+                        Lang.Text("Launch.Account.Profile.EditPlayerId.Failed.Title"), Lang.Text("Common.Action.Confirm"));
                 }
                 catch (Exception ex)
                 {

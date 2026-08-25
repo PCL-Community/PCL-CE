@@ -74,11 +74,6 @@ public record YggdrasilOptions:OpenIdOptions
                 StringComparison.OrdinalIgnoreCase))
             throw new IdentityModelConfigurationException("Yggdrasil Connect discovery address must belong to the issuer.");
 
-        var issuerPath = issuerUri.AbsolutePath.TrimEnd('/');
-        var discoveryPrefix = (issuerPath.Length == 0 ? string.Empty : issuerPath) + "/.well-known/";
-        if (!discoveryUri.AbsolutePath.StartsWith(discoveryPrefix, StringComparison.Ordinal))
-            throw new IdentityModelConfigurationException("Yggdrasil Connect discovery address does not match the issuer.");
-
         _ValidateHttpsEndpoint(metadata.TokenEndpoint, "token");
         _ValidateHttpsEndpoint(metadata.DeviceAuthorizationEndpoint, "device authorization");
         _ValidateHttpsEndpoint(metadata.JwksUri, "JWKS");
