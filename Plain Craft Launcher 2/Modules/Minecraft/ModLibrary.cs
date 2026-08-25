@@ -144,13 +144,31 @@ public static class ModLibrary
     private static readonly string osVersion = Environment.OSVersion.Version.ToString();
 
     /// <summary>
+    ///     判断该支持库是否应改用官方 ARM64 Natives。
+    ///     LWJGL 自 3.3.0 起在 Maven Central 提供 natives-windows-arm64；更早版本回退使用 x64 Natives（经 Windows 转译运行）。
+    ///     注意 Natives 必须与实际运行游戏的 Java 架构一致，而非仅跟随操作系统架构。
+    /// </summary>
+    private static bool IsArm64NativeLibrary(JsonObject library, bool useArm64Native)
+    {
+        if (!useArm64Native)
+            return false;
+        var name = library["name"]?.ToString();
+        if (name is null || !name.StartsWithF("org.lwjgl:"))
+            return false;
+        var version = name.Split(":").ElementAtOrDefault(2);
+        return version is not null && McVersionComparer.CompareVersionGe(version, "3.3.0");
+    }
+
+    /// <summary>
     ///     递归获取 Minecraft 某一实例的完整支持库列表。
     /// </summary>
-    public static List<McLibToken> McLibListGet(McInstance mcInstance, bool includeInstanceJar)
+    public static List<McLibToken> McLibListGet(McInstance mcInstance, bool includeInstanceJar,
+        bool? useArm64Native = null)
     {
         // 获取当前支持库列表
         ModBase.Log("[Minecraft] 获取支持库列表：" + mcInstance.Name);
-        var result = McLibListGetWithJson(mcInstance.JsonObject, targetMcInstance: mcInstance);
+        var result = McLibListGetWithJson(mcInstance.JsonObject, targetMcInstance: mcInstance,
+            useArm64Native: useArm64Native);
 
         // 需要添加原版 Jar
         if (includeInstanceJar)
@@ -234,9 +252,12 @@ public static class ModLibrary
     ///     获取 Minecraft 某一实例忽视继承的支持库列表，即结果中没有继承项。
     /// </summary>
     public static List<McLibToken> McLibListGetWithJson(JsonObject jsonObject,
-        bool keepSameNameDifferentVersionResult = false, string customMcFolder = null, McInstance targetMcInstance = null)
+        bool keepSameNameDifferentVersionResult = false, string customMcFolder = null, McInstance targetMcInstance = null,
+        bool? useArm64Native = null)
     {
         customMcFolder = customMcFolder ?? ModFolder.mcFolderSelected;
+        // 未明确指定时默认跟随操作系统架构；启动流程中应传入所选 Java 的架构
+        var useArm64 = useArm64Native ?? SystemInfo.IsArm64System;
         var basicArray = new List<McLibToken>();
 
         // 添加基础 Json 项
@@ -316,7 +337,7 @@ public static class ModLibrary
                 }
             }
             else if (library["natives"]["windows"] is not null &&
-                     IsArm64NativeLibrary(library)) // ARM64 设备上的 LWJGL 3.3+：改用官方提供的 ARM64 Natives（#3486）
+                     IsArm64NativeLibrary(library, useArm64)) // LWJGL 3.3+：改用官方提供的 ARM64 Natives（#3486）
             {
                 var name = (string)library["name"];
                 var segments = name.Split(":");
@@ -450,8 +471,9 @@ public static class ModLibrary
             ModBase.Log(ex, "实例缺失主 Jar 文件所必须的信息", ModBase.LogLevel.Developer);
         }
 
-        // Library 文件
-        result.AddRange(McLibNetFilesFromTokens(McLibListGet(mcInstance, false)));
+        // Library 文件（Natives 架构跟随本次启动所选的 Java）
+        result.AddRange(McLibNetFilesFromTokens(McLibListGet(mcInstance, false,
+            SystemInfo.IsArm64System && ModLaunch.mcLaunchJavaSelected?.Installation.Architecture == MachineType.ARM64)));
 
         // Authlib-Injector 文件
         var authlibTargetFile = Path.Combine(ModBase.pathPure, "authlib-injector.jar");

@@ -2939,8 +2939,9 @@ public static class ModLaunch
                                 @"assets\virtual\legacy")); // 1.5.2 的 pre-1.6 资源索引应与 legacy 合并
         gameArguments.Add("${assets_index_name}", ModAssets.McAssetsGetIndexName(instance));
 
-        // 支持库参数
-        var libList = ModLibrary.McLibListGet(instance, true);
+        // 支持库参数（Natives 架构必须与所选 Java 一致，而非仅跟随操作系统架构，#3486）
+        var libList = ModLibrary.McLibListGet(instance, true,
+            SystemInfo.IsArm64System && mcLaunchJavaSelected?.Installation.Architecture == MachineType.ARM64);
         loader.output = libList;
         var cpStrings = new List<string>();
         string optiFineCp = null;

@@ -448,8 +448,14 @@ public static class ModJava
                 targetValue = match.Value;
             }
 
-            if (targetName is null)
+            // Mojang 会将该平台未提供的组件表示为空数组，此时同样回退到下一平台
+            if (targetValue is not JsonArray targetArray || targetArray.Count == 0)
+            {
+                targetName = null;
+                targetValue = null;
                 continue;
+            }
+
             if (platformName != platformNames[0])
                 ModLaunch.McLaunchLog(
                     $"Mojang 未提供 {loader.input} 的 {platformNames[0]} 构建，已回退到 {platformName} 版本");
