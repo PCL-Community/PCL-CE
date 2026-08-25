@@ -424,17 +424,16 @@ public partial class PageSetupLaunch
     }
 
     /// <summary>
-    ///     判断生效的自定义 JVM 参数（实例级优先，留空跟随全局）中是否已包含 -Xms。
+    ///     判断生效的自定义 JVM 参数中是否已包含 -Xms。
     ///     此时启动路径会跳过自动追加的初始堆，实际值以自定义参数为准。
     /// </summary>
     public static bool HasCustomXms(McInstance version)
     {
+        // 与启动路径一致：实例级参数非空时完全忽略全局参数，仅在为空时跟随全局
         var dataJvmCustom = version is null ? "" : Config.Instance.JvmArgs[version.PathInstance];
-        if (!string.IsNullOrWhiteSpace(dataJvmCustom) &&
-            dataJvmCustom.Contains("-Xms", StringComparison.OrdinalIgnoreCase))
-            return true;
-        return !string.IsNullOrWhiteSpace(Config.Launch.JvmArgs) &&
-            Config.Launch.JvmArgs.Contains("-Xms", StringComparison.OrdinalIgnoreCase);
+        var effectiveArgs = string.IsNullOrEmpty(dataJvmCustom) ? Config.Launch.JvmArgs : dataJvmCustom;
+        return !string.IsNullOrEmpty(effectiveArgs) &&
+            effectiveArgs.Contains("-Xms", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
