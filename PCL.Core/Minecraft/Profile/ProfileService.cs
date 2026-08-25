@@ -192,6 +192,13 @@ public partial class ProfileService
             catch (IdentityModelAuthenticationException ex)
             {
                 Context.Warn("刷新档案失败，将尝试重新认证", ex);
+                if (!string.Equals(ex.Error, "invalid_grant", StringComparison.OrdinalIgnoreCase) &&
+                    request.RefreshFailureHandler is not null &&
+                    await request.RefreshFailureHandler(ex, token).ConfigureAwait(false))
+                {
+                    if (select) Select(existing!);
+                    return existing!;
+                }
             }
             catch (Exception ex)
             {
