@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Nodes;
+using System.Threading;
 using System.Windows;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net;
@@ -21,6 +22,8 @@ namespace PCL;
 /// </summary>
 public static class ProfileUi
 {
+    private static int _isMsSkinChanging;
+
     public static void ProfileLog(string content, ModBase.LogLevel level = ModBase.LogLevel.Normal)
         => ModBase.Log("[Profile] " + content, level);
 
@@ -334,45 +337,77 @@ public static class ProfileUi
 
     public static void ChangeSkinMs()
     {
+        if (Interlocked.Exchange(ref _isMsSkinChanging, 1) != 0)
+        {
+            HintService.Hint(Lang.Text("Launch.Skin.Change.Busy"));
+            return;
+        }
+
         var profile = ProfileService.Current;
-        if (profile is null) return;
+        if (profile is null)
+        {
+            Interlocked.Exchange(ref _isMsSkinChanging, 0);
+            return;
+        }
         var profileId = profile.ProfileId;
         if (ModLaunch.mcLoginLoader.State == ModBase.LoadState.Failed)
         {
+            Interlocked.Exchange(ref _isMsSkinChanging, 0);
             HintService.Hint(Lang.Text("Launch.Skin.Change.LoginFailed"), HintType.Error);
             return;
         }
         var skinInfo = ModSkin.McSkinSelect();
-        if (!skinInfo.IsVaild) return;
+        if (!skinInfo.IsVaild)
+        {
+            Interlocked.Exchange(ref _isMsSkinChanging, 0);
+            return;
+        }
+        HintService.Hint(Lang.Text("Launch.Skin.Change.Starting"));
         ModBase.RunInNewThread(() =>
         {
             try
             {
-                if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Loading) ModLaunch.mcLoginMsLoader.WaitForExit();
-                if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished) ModLaunch.mcLoginMsLoader.WaitForExit(GetLoginData());
-                if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished) throw new Exception("Microsoft login failed");
-                var latestProfile = ProfileService.Profiles.FirstOrDefault(item => item.ProfileId == profileId)
-                                    ?? throw new InvalidOperationException("Microsoft profile no longer exists.");
-                var contents = new MultipartFormDataContent
+                var hasRetriedAuthentication = false;
+                while (true)
                 {
-                    { new StringContent(skinInfo.IsSlim ? "slim" : "classic"), "variant" },
-                    { new ByteArrayContent(ModBase.ReadFileBytes(skinInfo.LocalFile)), "file", ModBase.GetFileNameFromPath(skinInfo.LocalFile) }
-                };
-                var result = Requester.Fetch("https://api.minecraftservices.com/minecraft/profile/skins", new FetchParam
-                {
-                    Method = "POST", Content = contents,
-                    Headers = new Dictionary<string, string> { ["Authorization"] = "Bearer " + latestProfile.AccessToken }
-                });
-                if (result.Contains("request requires user authentication")) throw new Exception("$$");
-                var json = (JsonObject)ModBase.GetJson(result);
-                var active = json["skins"]?.AsArray().FirstOrDefault(s => s?["state"]?.ToString() == "ACTIVE")?.AsObject();
-                if (active?["url"] is not null) MySkin.ReloadCache(active["url"]!.ToString(), latestProfile.Uuid);
-                else throw new Exception(json["errorMessage"]?.ToString() ?? result);
+                    if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Loading) ModLaunch.mcLoginMsLoader.WaitForExit();
+                    if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished) ModLaunch.mcLoginMsLoader.WaitForExit(GetLoginData());
+                    if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished) throw new Exception("Microsoft login failed");
+                    var latestProfile = ProfileService.Profiles.FirstOrDefault(item => item.ProfileId == profileId)
+                                        ?? throw new InvalidOperationException("Microsoft profile no longer exists.");
+                    using var contents = new MultipartFormDataContent
+                    {
+                        { new StringContent(skinInfo.IsSlim ? "slim" : "classic"), "variant" },
+                        { new ByteArrayContent(ModBase.ReadFileBytes(skinInfo.LocalFile)), "file", ModBase.GetFileNameFromPath(skinInfo.LocalFile) }
+                    };
+                    var result = Requester.Fetch("https://api.minecraftservices.com/minecraft/profile/skins", new FetchParam
+                    {
+                        Method = "POST", Content = contents,
+                        Headers = new Dictionary<string, string> { ["Authorization"] = "Bearer " + latestProfile.AccessToken }
+                    });
+                    if (result.Contains("request requires user authentication"))
+                    {
+                        if (hasRetriedAuthentication) throw new Exception("Microsoft authentication remained invalid.");
+                        hasRetriedAuthentication = true;
+                        HintService.Hint(Lang.Text("Launch.Skin.Change.Reauthenticating"));
+                        ModLaunch.mcLoginMsLoader.Start(GetLoginData(), true);
+                        continue;
+                    }
+                    var json = (JsonObject)ModBase.GetJson(result);
+                    var active = json["skins"]?.AsArray().FirstOrDefault(s => s?["state"]?.ToString() == "ACTIVE")?.AsObject();
+                    if (active?["url"] is not null) MySkin.ReloadCache(active["url"]!.ToString(), latestProfile.Uuid);
+                    else throw new Exception(json["errorMessage"]?.ToString() ?? result);
+                    break;
+                }
             }
             catch (Exception ex)
             {
                 ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.ChangeSkin"), ModBase.LogLevel.Hint,
                     userSummary: Lang.Text("Launch.Account.Profile.Error.ChangeSkin"));
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _isMsSkinChanging, 0);
             }
         }, "Ms Skin Upload");
     }
