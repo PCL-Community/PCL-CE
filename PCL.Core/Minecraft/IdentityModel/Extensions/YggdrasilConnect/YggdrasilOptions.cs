@@ -74,6 +74,8 @@ public record YggdrasilOptions:OpenIdOptions
                 StringComparison.OrdinalIgnoreCase))
             throw new IdentityModelConfigurationException("Yggdrasil Connect discovery address must belong to the issuer.");
 
+        if (!string.IsNullOrWhiteSpace(metadata.AuthorizationEndpoint))
+            _ValidateHttpsEndpoint(metadata.AuthorizationEndpoint, "authorization");
         _ValidateHttpsEndpoint(metadata.TokenEndpoint, "token");
         _ValidateHttpsEndpoint(metadata.DeviceAuthorizationEndpoint, "device authorization");
         _ValidateHttpsEndpoint(metadata.JwksUri, "JWKS");

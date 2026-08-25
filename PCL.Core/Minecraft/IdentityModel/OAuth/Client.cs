@@ -64,9 +64,11 @@ public sealed class SimpleOAuthClient(OAuthClientOptions options):IOAuthClient
             .WithHeaders(options.Headers ?? [])
             .SendAsync(client, cancellationToken: token)
             .ConfigureAwait(false);
-        return await response
+        var result = await response
             .AsJsonAsync<AuthorizeResult>(cancellationToken: token)
             .ConfigureAwait(false);
+        result?.Validate();
+        return result;
     }
     /// <summary>
     /// 获取设备代码对
@@ -92,9 +94,11 @@ public sealed class SimpleOAuthClient(OAuthClientOptions options):IOAuthClient
             .SendAsync(client, cancellationToken: token)
             .ConfigureAwait(false);
 
-        return await response
+        var data = await response
             .AsJsonAsync<DeviceCodeData>(cancellationToken: token)
             .ConfigureAwait(false);
+        data?.Validate();
+        return data;
     }
     /// <summary>
     /// 验证用户授权状态 <br/>
@@ -123,10 +127,13 @@ public sealed class SimpleOAuthClient(OAuthClientOptions options):IOAuthClient
             .SendAsync(client, cancellationToken: token)
             .ConfigureAwait(false);
 
-        return await response
+        var result = await response
             .AsJsonAsync<AuthorizeResult>(cancellationToken: token)
             .ConfigureAwait(false);
+        result?.Validate();
+        return result;
     }
+
     /// <summary>
     /// 刷新登录
     /// </summary>
@@ -152,8 +159,10 @@ public sealed class SimpleOAuthClient(OAuthClientOptions options):IOAuthClient
             .SendAsync(client, cancellationToken: token)
             .ConfigureAwait(false);
 
-        return await response
+        var result = await response
             .AsJsonAsync<AuthorizeResult>(cancellationToken: token)
             .ConfigureAwait(false);
+        result?.Validate();
+        return result;
     }
 }

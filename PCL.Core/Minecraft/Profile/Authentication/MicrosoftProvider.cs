@@ -45,6 +45,7 @@ public sealed class MicrosoftProvider : IAuthenticateProvider
         var result = await response.AsJsonAsync<DeviceCodeData>(cancellationToken: token).ConfigureAwait(false)
                      ?? throw new InvalidOperationException("Microsoft device authorization response was empty.");
         if (result.IsError) throw new IdentityModelAuthenticationException(result.Error, result.ErrorDescription);
+        result.Validate();
         return result;
     }
 
@@ -60,7 +61,9 @@ public sealed class MicrosoftProvider : IAuthenticateProvider
             }))
             .SendAsync(NetworkService.GetClient(NetworkService.MicrosoftEntraId), cancellationToken: token)
             .ConfigureAwait(false);
-        return await response.AsJsonAsync<AuthorizeResult>(cancellationToken: token).ConfigureAwait(false);
+        var result = await response.AsJsonAsync<AuthorizeResult>(cancellationToken: token).ConfigureAwait(false);
+        result?.Validate();
+        return result;
     }
 
     public async Task<AuthenticationResult> AuthenticateAsync(AuthenticationRequest request, CancellationToken token)
@@ -111,6 +114,7 @@ public sealed class MicrosoftProvider : IAuthenticateProvider
         var result = await response.AsJsonAsync<AuthorizeResult>(cancellationToken: token).ConfigureAwait(false)
                      ?? throw new InvalidOperationException("Microsoft token response was empty.");
         if (result.IsError) throw new IdentityModelAuthenticationException(result.Error, result.ErrorDescription);
+        result.Validate();
         return result with { RefreshToken = result.RefreshToken ?? refreshToken };
     }
 

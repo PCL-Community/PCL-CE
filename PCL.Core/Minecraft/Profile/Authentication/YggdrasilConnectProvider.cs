@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Security;
@@ -22,11 +23,10 @@ namespace PCL.Core.Minecraft.Profile.Authentication;
 
 public sealed class YggdrasilConnectProvider : IAuthenticateProvider
 {
-    // TODO: 合并前记得删掉或换成 CE 自己的 Client ID !!!
     private static readonly IReadOnlyDictionary<string, string> _BuiltInClientIds =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            ["littleskin.cn"] = "1014"
+            ["littleskin.cn"] = "1514"
         };
 
     private static readonly string[] _Scopes =
@@ -115,24 +115,28 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
     {
         if (string.IsNullOrWhiteSpace(profile.AccessToken)) return false;
         EnsureInitialized();
-        return await new AuthlibProvider(_GetServerAddress()).ValidateAsync(profile, token).ConfigureAwait(false);
+        // 协议要求：使用访问令牌请求用户信息端点以验证其有效性
+        // （正常返回用户信息 = 有效；invalid_token 错误 = 无效）
+        using var response = await HttpRequest.Create(_options.Meta!.UserInfoEndpoint)
+            .WithBearerToken(profile.AccessToken)
+            .SendAsync(NetworkService.GetClient(NetworkService.Default), cancellationToken: token)
+            .ConfigureAwait(false);
+        return response.IsSuccess;
     }
 
     private async Task<AuthenticationResult> CompleteAsync(AuthorizeResult oauth, AuthenticationRequest request, CancellationToken token)
     {
         if (oauth.IsError) throw new IdentityModelAuthenticationException(oauth.Error, oauth.ErrorDescription);
-        if (string.IsNullOrWhiteSpace(oauth.AccessToken))
-            throw new IdentityModelAuthenticationException("invalid_token", "Yggdrasil Connect returned no access token.");
+        // 协议要求：申请了 openid / offline_access 权限范围后，id_token 与 refresh_token 为条件必须字段；
+        // access_token / token_type(Bearer) / expires_in 亦为令牌响应的必须字段
+        oauth.Validate(requireIdToken: true, requireRefreshToken: true);
 
-        var idToken = oauth.IdToken ?? request.IdToken;
-        var claims = string.IsNullOrWhiteSpace(idToken)
-            ? null
-            : await _ReadIdTokenAsync(idToken, token).ConfigureAwait(false);
+        var claims = await _ReadIdTokenAsync(oauth.IdToken ?? request.IdToken, token).ConfigureAwait(false);
         var profile = claims?.SelectedProfile;
         var available = claims?.AvailableProfiles ?? [];
         if (profile is null || available.Length == 0)
         {
-            var userInfo = await _GetUserInfoAsync(oauth.AccessToken, token).ConfigureAwait(false);
+            var userInfo = await _GetUserInfoAsync(oauth.AccessToken!, token).ConfigureAwait(false);
             profile ??= userInfo?.SelectedProfile;
             if (available.Length == 0) available = userInfo?.AvailableProfiles ?? [];
         }
@@ -158,13 +162,13 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
         return new AuthenticationResult
         {
             ProfileType = ProfileType.YggdrasilConnect,
-            UserName = profile.Name ?? string.Empty,
+            UserName = profile.Name,
             Uuid = profile.Id,
-            AccessToken = oauth.AccessToken,
-            RefreshToken = oauth.RefreshToken ?? request.RefreshToken ?? string.Empty,
+            AccessToken = oauth.AccessToken!,
+            RefreshToken = oauth.RefreshToken!,
             ClientToken = profile.Id,
-            TokenType = "Bearer",
-            ExpiresAt = oauth.ExpiresIn > 0 ? DateTimeOffset.UtcNow.AddSeconds(oauth.ExpiresIn.Value) : null,
+            TokenType = oauth.TokenType!,
+            ExpiresAt = DateTimeOffset.UtcNow.AddSeconds(oauth.ExpiresIn!.Value),
             Provider = "yggdrasil-connect",
             Server = _GetServerAddress(),
             ServerName = await _GetServerNameAsync(token).ConfigureAwait(false),
@@ -196,7 +200,15 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
             .SendAsync(NetworkService.GetClient(NetworkService.Default), cancellationToken: token)
             .ConfigureAwait(false);
         if (!response.IsSuccess) return null;
-        return await response.AsJsonAsync<YggdrasilConnectClaims>(cancellationToken: token).ConfigureAwait(false);
+        try
+        {
+            return await response.AsJsonAsync<YggdrasilConnectClaims>(cancellationToken: token).ConfigureAwait(false);
+        }
+        catch (InvalidDataException)
+        {
+            // 用户信息端点返回的声明不完整时按“未提供用户信息”处理，交由后续回退逻辑
+            return null;
+        }
     }
 
     private async Task<string?> _GetServerNameAsync(CancellationToken token)
@@ -241,10 +253,12 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
         return marker > 0 ? value[..marker].TrimEnd('/') : value.TrimEnd('/');
     }
 
+    // 协议要求：ID 令牌必须包含 iss / sub / aud / iat / exp 声明（iss/iat/exp 由签名验证流程校验）；
+    // 用户信息端点响应为 ID 令牌声明的超集，同样必须包含 sub / aud
     private sealed record YggdrasilConnectClaims
     {
-        [JsonPropertyName("sub")] public string? Subject { get; init; }
-        [JsonPropertyName("aud")] public string? Audience { get; init; }
+        [JsonPropertyName("sub")] public required string? Subject { get; init; }
+        [JsonPropertyName("aud")] public required string? Audience { get; init; }
         [JsonPropertyName("selectedProfile")] public YggdrasilProfile? SelectedProfile { get; init; }
         [JsonPropertyName("availableProfiles")] public YggdrasilProfile[]? AvailableProfiles { get; init; }
     }
