@@ -107,7 +107,8 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
         => AuthenticateAsync(new AuthenticationRequest
         {
             RefreshToken = profile.RefreshToken,
-            IdToken = profile.IdToken
+            IdToken = profile.IdToken,
+            ExistingProfile = profile
         }, token);
 
     public async Task<bool> ValidateAsync(McProfile profile, CancellationToken token)
@@ -123,9 +124,10 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
         if (string.IsNullOrWhiteSpace(oauth.AccessToken))
             throw new IdentityModelAuthenticationException("invalid_token", "Yggdrasil Connect returned no access token.");
 
-        var claims = string.IsNullOrWhiteSpace(oauth.IdToken)
+        var idToken = oauth.IdToken ?? request.IdToken;
+        var claims = string.IsNullOrWhiteSpace(idToken)
             ? null
-            : await _ReadIdTokenAsync(oauth.IdToken, token).ConfigureAwait(false);
+            : await _ReadIdTokenAsync(idToken, token).ConfigureAwait(false);
         var profile = claims?.SelectedProfile;
         var available = claims?.AvailableProfiles ?? [];
         if (profile is null || available.Length == 0)
@@ -133,6 +135,11 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
             var userInfo = await _GetUserInfoAsync(oauth.AccessToken, token).ConfigureAwait(false);
             profile ??= userInfo?.SelectedProfile;
             if (available.Length == 0) available = userInfo?.AvailableProfiles ?? [];
+        }
+        if (profile is null && available.Length == 0 && request.ExistingProfile is { } existing &&
+            !string.IsNullOrWhiteSpace(existing.Uuid) && !string.IsNullOrWhiteSpace(existing.UserName))
+        {
+            profile = new YggdrasilProfile { Id = existing.Uuid, Name = existing.UserName };
         }
         if ((request.ForceReselectProfile || profile is null) && available.Length > 1)
         {

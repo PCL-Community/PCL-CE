@@ -765,10 +765,14 @@ public static class ModLaunch
     {
         if (candidates.Count == 0) return null;
         if (candidates.Count == 1) return candidates[0];
-        var controls = candidates.Select(item => (IMyRadio)new MyRadioBox { Text = item.Name }).ToList();
-        int? index = null;
-        ModBase.RunInUiWait(() => index = ModMain.MyMsgBoxSelect(controls, Lang.Text("Minecraft.Launch.Login.Auth.SelectProfile")));
-        return index is >= 0 and < 100000 ? candidates[index.Value] : null;
+        AuthenticationCandidate? selected = null;
+        ModBase.RunInUiWait(() =>
+        {
+            var controls = candidates.Select(item => (IMyRadio)new MyRadioBox { Text = item.Name }).ToList();
+            var index = ModMain.MyMsgBoxSelect(controls, Lang.Text("Minecraft.Launch.Login.Auth.SelectProfile"));
+            if (index is >= 0 and < 100000) selected = candidates[index.Value];
+        });
+        return selected;
     }
 
     #endregion

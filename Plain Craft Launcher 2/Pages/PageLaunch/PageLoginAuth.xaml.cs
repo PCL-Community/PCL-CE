@@ -321,10 +321,14 @@ public partial class PageLoginAuth
     {
         if (candidates.Count == 0) return null;
         if (candidates.Count == 1) return candidates[0];
-        var controls = candidates.Select(candidate => (IMyRadio)new MyRadioBox { Text = candidate.Name }).ToList();
-        int? index = null;
-        ModBase.RunInUiWait(() => index = ModMain.MyMsgBoxSelect(controls, Lang.Text("Launch.Account.Auth.ChangeProfile")));
-        return index is >= 0 and < 100000 ? candidates[index.Value] : null;
+        AuthenticationCandidate? selected = null;
+        ModBase.RunInUiWait(() =>
+        {
+            var controls = candidates.Select(candidate => (IMyRadio)new MyRadioBox { Text = candidate.Name }).ToList();
+            var index = ModMain.MyMsgBoxSelect(controls, Lang.Text("Launch.Account.Auth.ChangeProfile"));
+            if (index is >= 0 and < 100000) selected = candidates[index.Value];
+        });
+        return selected;
     }
 
     internal static async Task<bool> IsOAuthSupportedAsync(string authServerUrl)

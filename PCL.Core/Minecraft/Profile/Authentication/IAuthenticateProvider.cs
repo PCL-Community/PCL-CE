@@ -13,6 +13,7 @@ public sealed record AuthenticationRequest
     public string? Password { get; init; }
     public string? RefreshToken { get; init; }
     public string? IdToken { get; init; }
+    public McProfile? ExistingProfile { get; init; }
     public AuthorizeResult? OAuthResult { get; init; }
     public string? Server { get; init; }
     public string? DiscoveryAddress { get; init; }
