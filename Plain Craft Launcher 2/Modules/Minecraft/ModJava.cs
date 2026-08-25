@@ -424,25 +424,40 @@ public static class ModJava
                 {
                     "https://bmclapi2.bangbang93.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json"
                 }), isJson: true);
-        // 查找要下载的目标 Java
+        // 查找要下载的目标 Java（Windows ARM64 设备优先使用 ARM64 构建，缺失时回退 x64，#3486）
         string? targetName = null;
         JsonNode? targetValue = null;
-        var components =
-            (JsonObject)((JsonObject)ModBase.GetJson(indexFileStr))[$"windows-x{(SystemInfo.Is32BitSystem ? "86" : "64")}"];
-        if (components.ContainsKey(loader.input)) // 精确匹配
+        var index = (JsonObject)ModBase.GetJson(indexFileStr);
+        var platformNames = SystemInfo.IsArm64System
+            ? new[] { "windows-arm64", "windows-x64" }
+            : new[] { $"windows-x{(SystemInfo.Is32BitSystem ? "86" : "64")}" };
+        foreach (var platformName in platformNames)
         {
-            targetName = loader.input;
-            targetValue = components[loader.input];
-        }
-        else // 模糊匹配
-        {
-            var match = components.FirstOrDefault(c =>
-                c.Value?.AsArray().FirstOrDefault()?["version"]?["name"]?.ToString().StartsWithF(loader.input) ?? false);
-            targetName = match.Key;
-            targetValue = match.Value;
+            if (index[platformName] is not JsonObject components)
+                continue;
+            if (components.ContainsKey(loader.input)) // 精确匹配
+            {
+                targetName = loader.input;
+                targetValue = components[loader.input];
+            }
+            else // 模糊匹配
+            {
+                var match = components.FirstOrDefault(c =>
+                    c.Value?.AsArray().FirstOrDefault()?["version"]?["name"]?.ToString().StartsWithF(loader.input) ?? false);
+                targetName = match.Key;
+                targetValue = match.Value;
+            }
+
             if (targetName is null)
-                throw new Exception($"未能找到所需的 Java {loader.input}");
+                continue;
+            if (platformName != platformNames[0])
+                ModLaunch.McLaunchLog(
+                    $"Mojang 未提供 {loader.input} 的 {platformNames[0]} 构建，已回退到 {platformName} 版本");
+            break;
         }
+
+        if (targetName is null)
+            throw new Exception($"未能找到所需的 Java {loader.input}");
 
         var targetComponent = targetValue?.AsArray().FirstOrDefault();
         if (targetComponent is null)

@@ -216,6 +216,21 @@ public static class ModLibrary
     }
 
     /// <summary>
+    ///     判断该支持库在 Windows ARM64 设备上是否应改用官方 ARM64 Natives。
+    ///     LWJGL 自 3.3.0 起在 Maven Central 提供 natives-windows-arm64；更早版本回退使用 x64 Natives（经 Windows 转译运行）。
+    /// </summary>
+    private static bool IsArm64NativeLibrary(JsonObject library)
+    {
+        if (!SystemInfo.IsArm64System)
+            return false;
+        var name = library["name"]?.ToString();
+        if (name is null || !name.StartsWithF("org.lwjgl:"))
+            return false;
+        var version = name.Split(":").ElementAtOrDefault(2);
+        return version is not null && McVersionComparer.CompareVersionGe(version, "3.3.0");
+    }
+
+    /// <summary>
     ///     获取 Minecraft 某一实例忽视继承的支持库列表，即结果中没有继承项。
     /// </summary>
     public static List<McLibToken> McLibListGetWithJson(JsonObject jsonObject,
@@ -299,6 +314,22 @@ public static class ModLibrary
                         IsNatives = false, Sha1 = null
                     });
                 }
+            }
+            else if (library["natives"]["windows"] is not null &&
+                     IsArm64NativeLibrary(library)) // ARM64 设备上的 LWJGL 3.3+：改用官方提供的 ARM64 Natives（#3486）
+            {
+                var name = (string)library["name"];
+                var segments = name.Split(":");
+                var mavenPath = segments[0].Replace(".", "/") + "/" + segments[1] + "/" + segments[2] + "/" +
+                                segments[1] + "-" + segments[2] + "-natives-windows-arm64.jar";
+                basicArray.Add(new McLibToken
+                {
+                    OriginalName = name,
+                    Url = "https://repo1.maven.org/maven2/" + mavenPath,
+                    LocalPath = McLibGet(name, customMcFolder: customMcFolder)
+                        .Replace(".jar", "-natives-windows-arm64.jar"),
+                    size = 0L, IsNatives = true, Sha1 = null, IsLocal = isLocal
+                });
             }
             else if (library["natives"]["windows"] is not null) // 有 Windows Natives
             {
