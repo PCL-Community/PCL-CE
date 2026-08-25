@@ -84,6 +84,47 @@ public static class ProfileUi
         return true;
     }
 
+    /// <summary>
+    ///     处理微软账号未购买 Minecraft 的错误，提供购买入口。
+    /// </summary>
+    /// <returns>该异常是否属于未购买错误并已被处理。</returns>
+    public static bool HandleMicrosoftNotOwnedError(IdentityModelAuthenticationException exception)
+    {
+        if (!string.Equals(exception.Error, "minecraft_not_owned", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        ModBase.RunInUiWait(() =>
+        {
+            if (ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.NotPurchased"),
+                    Lang.Text("Minecraft.Launch.Login.Failed"),
+                    Lang.Text("Minecraft.Launch.Login.Microsoft.PurchaseMinecraft"),
+                    Lang.Text("Common.Action.Cancel")) == 1)
+                ModBase.OpenWebsite(
+                    "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
+        });
+        return true;
+    }
+
+    /// <summary>
+    ///     处理微软账号尚未创建 Minecraft 玩家档案的错误，提供建档入口。
+    /// </summary>
+    /// <returns>该异常是否属于未创建档案错误并已被处理。</returns>
+    public static bool HandleMicrosoftCreateProfileError(IdentityModelAuthenticationException exception)
+    {
+        if (!string.Equals(exception.Error, "profile_not_created", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        ModBase.RunInUiWait(() =>
+        {
+            if (ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Message"),
+                    Lang.Text("Minecraft.Launch.Login.Failed"),
+                    Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Button"),
+                    Lang.Text("Common.Action.Cancel")) == 1)
+                ModBase.OpenWebsite("https://www.minecraft.net/zh-hans/msaprofile/mygames/editprofile");
+        });
+        return true;
+    }
+
     public static Task<AuthorizeResult?> ShowDeviceCodeLoginAsync(DeviceCodeAuthenticationContext context,
         CancellationToken token)
     {

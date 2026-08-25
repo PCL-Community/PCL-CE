@@ -685,7 +685,10 @@ public static class ModLaunch
                 RefreshFailureHandler = _ConfirmMicrosoftRefreshFailureAsync
             }, existing, select: true, CancellationToken.None).GetAwaiter().GetResult();
         }
-        catch (IdentityModelAuthenticationException ex) when (ProfileUi.HandleMicrosoftXstsError(ex))
+        catch (IdentityModelAuthenticationException ex) when (
+            ProfileUi.HandleMicrosoftXstsError(ex) ||
+            ProfileUi.HandleMicrosoftNotOwnedError(ex) ||
+            ProfileUi.HandleMicrosoftCreateProfileError(ex))
         {
             throw new Exception("$$", ex);
         }
