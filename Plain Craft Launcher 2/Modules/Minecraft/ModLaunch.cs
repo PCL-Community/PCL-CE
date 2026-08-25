@@ -16,6 +16,7 @@ using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
 using PCL.Network;
 using PCL.Core.IO.Net.Http;
+using PCL.Core.Minecraft.IdentityModel;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Authentication;
 using PCL.Core.Minecraft.Profile.Models;
@@ -674,12 +675,20 @@ public static class ModLaunch
         var existing = ProfileService.Current?.ProfileType == ProfileType.Microsoft ? ProfileService.Current : null;
         ProfileUi.ProfileLog($"验证方式：正版（{(existing is null ? "尚未登录" : existing.UserName)}）");
         data.Progress = 0.05d;
-        var stored = ProfileService.AuthenticateAsync(ProfileType.Microsoft, new AuthenticationRequest
+        McProfile stored;
+        try
         {
-            ForceRefresh = data.isForceRestarting,
-            DeviceCodeHandler = ProfileUi.ShowDeviceCodeLoginAsync,
-            RefreshFailureHandler = _ConfirmMicrosoftRefreshFailureAsync
-        }, existing, select: true, CancellationToken.None).GetAwaiter().GetResult();
+            stored = ProfileService.AuthenticateAsync(ProfileType.Microsoft, new AuthenticationRequest
+            {
+                ForceRefresh = data.isForceRestarting,
+                DeviceCodeHandler = ProfileUi.ShowDeviceCodeLoginAsync,
+                RefreshFailureHandler = _ConfirmMicrosoftRefreshFailureAsync
+            }, existing, select: true, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        catch (IdentityModelAuthenticationException ex) when (ProfileUi.HandleMicrosoftXstsError(ex))
+        {
+            throw new Exception("$$", ex);
+        }
         ThrowIfAborted(data);
         ProfileService.IsCreatingProfile = false;
 

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Windows;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net;
+using PCL.Core.Minecraft.IdentityModel;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Authentication;
@@ -26,6 +27,62 @@ public static class ProfileUi
 
     public static void ProfileLog(string content, ModBase.LogLevel level = ModBase.LogLevel.Normal)
         => ModBase.Log("[Profile] " + content, level);
+
+    /// <summary>
+    ///     处理微软登录中的 XSTS 账号类错误，向用户展示对应的操作指引。
+    /// </summary>
+    /// <returns>该异常是否属于已知的 XSTS 账号错误并已被处理。</returns>
+    public static bool HandleMicrosoftXstsError(IdentityModelAuthenticationException exception)
+    {
+        if (exception.Error is not { } error || !error.StartsWith("xsts_", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        var normalizedError = error.ToLowerInvariant();
+        if (normalizedError is not ("xsts_2148916227" or "xsts_2148916233" or "xsts_2148916235" or "xsts_2148916238"))
+            return false;
+
+        ModBase.RunInUiWait(() =>
+        {
+            switch (normalizedError)
+            {
+                case "xsts_2148916227":
+                    ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.Banned"),
+                        Lang.Text("Minecraft.Launch.Login.Failed"), Lang.Text("Minecraft.Launch.Login.IKnow"), isWarn: true);
+                    break;
+                case "xsts_2148916233":
+                    if (ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.XboxNotRegistered"),
+                            Lang.Text("Minecraft.Launch.Login.Hint"), Lang.Text("Minecraft.Launch.Login.Register"),
+                            Lang.Text("Common.Action.Cancel")) == 1)
+                        ModBase.OpenWebsite("https://signup.live.com/signup");
+                    break;
+                case "xsts_2148916235":
+                    ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.RegionBlocked"),
+                        Lang.Text("Minecraft.Launch.Login.Failed"), Lang.Text("Minecraft.Launch.Login.IKnow"));
+                    break;
+                case "xsts_2148916238":
+                    if (ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.Message"),
+                            Lang.Text("Minecraft.Launch.Login.Hint"),
+                            Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeOver13"),
+                            Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13"),
+                            Lang.Text("Common.Option.IDontKnow")) == 1)
+                    {
+                        ModBase.OpenWebsite("https://account.live.com/editprof.aspx");
+                        ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message"),
+                            Lang.Text("Minecraft.Launch.Login.Hint"));
+                    }
+                    else
+                    {
+                        ModBase.OpenWebsite(
+                            "https://support.microsoft.com/zh-cn/account-billing/如何更改-microsoft-帐户上的出生日期-837badbc-999e-54d2-2617-d19206b9540a");
+                        ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage"),
+                            Lang.Text("Minecraft.Launch.Login.Hint"));
+                    }
+
+                    break;
+            }
+        });
+        return true;
+    }
 
     public static Task<AuthorizeResult?> ShowDeviceCodeLoginAsync(DeviceCodeAuthenticationContext context,
         CancellationToken token)
