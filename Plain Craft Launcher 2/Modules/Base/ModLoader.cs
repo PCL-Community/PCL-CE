@@ -544,6 +544,8 @@ public static class ModLoader
 
         private CancellationTokenSource? cancelToken;
 
+        public CancellationToken AbortedToken => cancelToken?.Token ?? new CancellationToken(true);
+
         // 线程设定
         protected internal ThreadPriority threadPriority;
 

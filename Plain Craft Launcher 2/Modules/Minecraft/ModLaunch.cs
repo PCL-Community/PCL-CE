@@ -683,7 +683,7 @@ public static class ModLaunch
                 ForceRefresh = data.isForceRestarting,
                 DeviceCodeHandler = ProfileUi.ShowDeviceCodeLoginAsync,
                 RefreshFailureHandler = _ConfirmMicrosoftRefreshFailureAsync
-            }, existing, select: true, CancellationToken.None).GetAwaiter().GetResult();
+            }, existing, select: true, data.AbortedToken).GetAwaiter().GetResult();
         }
         catch (IdentityModelAuthenticationException ex) when (
             ProfileUi.HandleMicrosoftXstsError(ex) ||
@@ -757,7 +757,7 @@ public static class ModLaunch
                 ? ProfileUi.ShowDeviceCodeLoginAsync
                 : null,
             ProfileSelector = (candidates, _) => Task.FromResult(_SelectAuthProfile(candidates))
-        }, existing, select: true, CancellationToken.None).GetAwaiter().GetResult();
+        }, existing, select: true, data.AbortedToken).GetAwaiter().GetResult();
         if (data.IsAborted) throw new ThreadInterruptedException();
 
         data.output = new McLoginResult

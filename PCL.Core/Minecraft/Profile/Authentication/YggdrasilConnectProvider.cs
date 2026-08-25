@@ -87,9 +87,13 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
     {
         EnsureInitialized();
         var oauth = request.OAuthResult;
+        var isSilentRefresh = false;
         if (oauth is null && !string.IsNullOrWhiteSpace(request.RefreshToken))
+        {
+            isSilentRefresh = true;
             oauth = await _client!.AuthorizeWithSilentAsync(new AuthorizeResult { RefreshToken = request.RefreshToken }, token)
                 .ConfigureAwait(false);
+        }
         if (oauth is null && request.DeviceCodeHandler is not null)
         {
             var code = await GetCodePairAsync(token).ConfigureAwait(false)
@@ -100,7 +104,7 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
         }
         if (oauth is null)
             throw new IdentityModelConfigurationException("Yggdrasil Connect login requires an OAuth result or device-code handler.");
-        return await CompleteAsync(oauth, request, token).ConfigureAwait(false);
+        return await CompleteAsync(oauth, request, isSilentRefresh, token).ConfigureAwait(false);
     }
 
     public Task<AuthenticationResult> RefreshAsync(McProfile profile, CancellationToken token)
@@ -124,12 +128,11 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
         return response.IsSuccess;
     }
 
-    private async Task<AuthenticationResult> CompleteAsync(AuthorizeResult oauth, AuthenticationRequest request, CancellationToken token)
+    private async Task<AuthenticationResult> CompleteAsync(AuthorizeResult oauth, AuthenticationRequest request,
+        bool isSilentRefresh, CancellationToken token)
     {
         if (oauth.IsError) throw new IdentityModelAuthenticationException(oauth.Error, oauth.ErrorDescription);
-        // 协议要求：申请了 openid / offline_access 权限范围后，id_token 与 refresh_token 为条件必须字段；
-        // access_token / token_type(Bearer) / expires_in 亦为令牌响应的必须字段
-        oauth.Validate(requireIdToken: true, requireRefreshToken: true);
+        oauth.Validate(requireIdToken: true, requireRefreshToken: !isSilentRefresh);
 
         var claims = await _ReadIdTokenAsync(oauth.IdToken ?? request.IdToken, token).ConfigureAwait(false);
         var profile = claims?.SelectedProfile;
@@ -165,7 +168,7 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
             UserName = profile.Name,
             Uuid = profile.Id,
             AccessToken = oauth.AccessToken!,
-            RefreshToken = oauth.RefreshToken!,
+            RefreshToken = oauth.RefreshToken ?? request.RefreshToken!,
             ClientToken = profile.Id,
             TokenType = oauth.TokenType!,
             ExpiresAt = DateTimeOffset.UtcNow.AddSeconds(oauth.ExpiresIn!.Value),
