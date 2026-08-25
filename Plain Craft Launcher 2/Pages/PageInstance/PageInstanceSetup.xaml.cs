@@ -250,7 +250,8 @@ public partial class PageInstanceSetup
         if (SliderRamCustom is null)
             return;
         SliderRamCustom.IsEnabled = type == 1;
-        SliderRamInitialCustom.IsEnabled = type == 1;
+        // 锁定内存为全局配置，启用时 -Xms 恒等于 -Xmx，初始内存设置不生效
+        SliderRamInitialCustom.IsEnabled = type == 1 && !Config.Launch.LockMemory;
     }
 
     /// <summary>
@@ -546,6 +547,9 @@ public partial class PageInstanceSetup
     /// </summary>
     public static double? GetInitialRam(McInstance version, bool? is32BitJava = default)
     {
+        // 锁定内存为全局配置，启用时 -Xms 恒等于 -Xmx，由锁定内存逻辑处理
+        if (Config.Launch.LockMemory)
+            return null;
         var instancePath = version?.PathInstance;
         switch (Config.Instance.MemorySolution[instancePath])
         {

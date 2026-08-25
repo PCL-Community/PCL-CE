@@ -180,6 +180,9 @@ public partial class PageSetupLaunch
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
             SetByTag(sender.Tag?.ToString(), sender.Checked);
+        // 锁定内存状态变化时同步刷新初始内存滑块的可用状态
+        if (ReferenceEquals(sender, CheckAdvanceLockMemory))
+            RamType(Config.Launch.MemoryAllocationMode);
     }
 
     private static void SetByTag(string tag, object value)
@@ -212,7 +215,8 @@ public partial class PageSetupLaunch
         if (SliderRamCustom is null)
             return;
         SliderRamCustom.IsEnabled = type == 1;
-        SliderRamInitialCustom.IsEnabled = type == 1;
+        // 锁定内存时 -Xms 恒等于 -Xmx，初始内存设置不生效
+        SliderRamInitialCustom.IsEnabled = type == 1 && !Config.Launch.LockMemory;
     }
 
     /// <summary>
@@ -424,6 +428,10 @@ public partial class PageSetupLaunch
     /// </summary>
     public static double? GetInitialRam(McInstance version, bool useVersionJavaSetup, bool? is32BitJava = default)
     {
+        // 锁定内存时 -Xms 恒等于 -Xmx，由锁定内存逻辑处理
+        if (Config.Launch.LockMemory)
+            return null;
+        // 仅手动分配模式下生效
         if (Config.Launch.MemoryAllocationMode != 1)
             return null;
         var initialTick = Config.Launch.CustomInitialMemorySize;
