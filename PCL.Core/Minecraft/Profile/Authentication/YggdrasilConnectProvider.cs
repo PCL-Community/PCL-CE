@@ -54,7 +54,7 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
             OpenIdDiscoveryAddress = discoveryAddress,
             ClientId = resolvedClientId?.Trim() ?? string.Empty,
             OnlyDeviceAuthorize = true,
-            GetClient = () => NetworkService.GetClient(NetworkService.Default)
+            GetClient = () => NetworkService.GetClient()
         };
         _yggdrasilServer = yggdrasilServer;
     }
@@ -65,27 +65,27 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
         return _BuiltInClientIds.TryGetValue(normalizedHost, out clientId!);
     }
 
-    public async Task InitializeAsync(CancellationToken token)
+    public Task InitializeAsync(CancellationToken token)
     {
         _client = new YggdrasilClient(_options);
-        await _client.InitializeAsync(token).ConfigureAwait(false);
+        return _client.InitializeAsync(token);
     }
 
     public Task<DeviceCodeData?> GetCodePairAsync(CancellationToken token)
     {
-        EnsureInitialized();
+        _EnsureInitialized();
         return _client!.GetCodePairAsync(_Scopes, token);
     }
 
     public Task<AuthorizeResult?> PollDeviceCodeAsync(DeviceCodeData data, CancellationToken token)
     {
-        EnsureInitialized();
+        _EnsureInitialized();
         return _client!.AuthorizeWithDeviceAsync(data, token);
     }
 
     public async Task<AuthenticationResult> AuthenticateAsync(AuthenticationRequest request, CancellationToken token)
     {
-        EnsureInitialized();
+        _EnsureInitialized();
         var oauth = request.OAuthResult;
         var isSilentRefresh = false;
         if (oauth is null && !string.IsNullOrWhiteSpace(request.RefreshToken))
@@ -104,7 +104,7 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
         }
         if (oauth is null)
             throw new IdentityModelConfigurationException("Yggdrasil Connect login requires an OAuth result or device-code handler.");
-        return await CompleteAsync(oauth, request, isSilentRefresh, token).ConfigureAwait(false);
+        return await _CompleteAsync(oauth, request, isSilentRefresh, token).ConfigureAwait(false);
     }
 
     public Task<AuthenticationResult> RefreshAsync(McProfile profile, CancellationToken token)
@@ -118,25 +118,25 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
     public async Task<bool> ValidateAsync(McProfile profile, CancellationToken token)
     {
         if (string.IsNullOrWhiteSpace(profile.AccessToken)) return false;
-        EnsureInitialized();
+        _EnsureInitialized();
         // 协议要求：使用访问令牌请求用户信息端点以验证其有效性
         // （正常返回用户信息 = 有效；invalid_token 错误 = 无效）
         using var response = await HttpRequest.Create(_options.Meta!.UserInfoEndpoint)
             .WithBearerToken(profile.AccessToken)
-            .SendAsync(NetworkService.GetClient(NetworkService.Default), cancellationToken: token)
+            .SendAsync(NetworkService.GetClient(), cancellationToken: token)
             .ConfigureAwait(false);
         return response.IsSuccess;
     }
 
-    private async Task<AuthenticationResult> CompleteAsync(AuthorizeResult oauth, AuthenticationRequest request,
+    private async Task<AuthenticationResult> _CompleteAsync(AuthorizeResult oauth, AuthenticationRequest request,
         bool isSilentRefresh, CancellationToken token)
     {
         if (oauth.IsError) throw new IdentityModelAuthenticationException(oauth.Error, oauth.ErrorDescription);
         oauth.Validate(requireIdToken: true, requireRefreshToken: !isSilentRefresh);
 
         var claims = await _ReadIdTokenAsync(oauth.IdToken ?? request.IdToken, token).ConfigureAwait(false);
-        var profile = claims?.SelectedProfile;
-        var available = claims?.AvailableProfiles ?? [];
+        var profile = claims.SelectedProfile;
+        var available = claims.AvailableProfiles ?? [];
         if (profile is null || available.Length == 0)
         {
             var userInfo = await _GetUserInfoAsync(oauth.AccessToken!, token).ConfigureAwait(false);
@@ -152,7 +152,7 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
         {
             if (request.ProfileSelector is null)
                 throw new IdentityModelAuthenticationException("profile_selection_required", "Yggdrasil Connect returned multiple player profiles.");
-            var candidates = available.Select(p => new AuthenticationCandidate(p.Id, p.Name ?? p.Id)).ToArray();
+            var candidates = available.Select(p => new AuthenticationCandidate(p.Id, p.Name)).ToArray();
             var selected = await request.ProfileSelector(candidates, token).ConfigureAwait(false);
             if (selected is null)
                 throw new IdentityModelAuthenticationException("access_denied", "Yggdrasil Connect profile selection was cancelled.");
@@ -200,7 +200,7 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
         if (string.IsNullOrWhiteSpace(_options.Meta?.UserInfoEndpoint)) return null;
         using var response = await HttpRequest.Create(_options.Meta!.UserInfoEndpoint)
             .WithBearerToken(accessToken)
-            .SendAsync(NetworkService.GetClient(NetworkService.Default), cancellationToken: token)
+            .SendAsync(NetworkService.GetClient(), cancellationToken: token)
             .ConfigureAwait(false);
         if (!response.IsSuccess) return null;
         try
@@ -222,7 +222,7 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
             if (root.EndsWith("/authserver", StringComparison.OrdinalIgnoreCase))
                 root = root[..^"/authserver".Length];
             using var response = await HttpRequest.Create(root)
-                .SendAsync(NetworkService.GetClient(NetworkService.Default), cancellationToken: token)
+                .SendAsync(NetworkService.GetClient(), cancellationToken: token)
                 .ConfigureAwait(false);
             if (!response.IsSuccess) return null;
             var metadata = await response.AsJsonAsync<JsonObject>(cancellationToken: token).ConfigureAwait(false);
@@ -238,7 +238,7 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
         }
     }
 
-    private void EnsureInitialized()
+    private void _EnsureInitialized()
     {
         if (_client is null || _options.Meta is null)
             throw new IdentityModelConfigurationException("Please initialize Yggdrasil Connect before use.");

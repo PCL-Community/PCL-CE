@@ -174,9 +174,9 @@ public static class ProfileUi
         {
             ModBase.Log(ex, "从官网获取正版 UUID 失败（" + name + "）");
             if (!throwOnNotFound && ex is FileNotFoundException) uuid = GetOfflineUuid(name, isLegacy: true);
-            else throw new Exception("从官网获取正版 UUID 失败", ex);
+            else throw;
         }
-        if (uuid.Length != 32) throw new Exception("获取的正版 UUID 长度不足（" + uuid + "）");
+        if (uuid.Length != 32) throw new FormatException("获取的正版 UUID 长度不足（" + uuid + "）");
         ModBase.WriteIni(ModBase.pathTemp + @"Cache\Uuid\Mojang.ini", name, uuid);
         return uuid;
     }
@@ -476,7 +476,8 @@ public static class ProfileUi
                 {
                     if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Loading) ModLaunch.mcLoginMsLoader.WaitForExit();
                     if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished) ModLaunch.mcLoginMsLoader.WaitForExit(GetLoginData());
-                    if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished) throw new Exception("Microsoft login failed");
+                    if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished)
+                        throw new InvalidOperationException("Microsoft login failed");
                     var latestProfile = ProfileService.Profiles.FirstOrDefault(item => item.ProfileId == profileId)
                                         ?? throw new InvalidOperationException("Microsoft profile no longer exists.");
                     using var contents = new MultipartFormDataContent
@@ -491,7 +492,8 @@ public static class ProfileUi
                     });
                     if (result.Contains("request requires user authentication"))
                     {
-                        if (hasRetriedAuthentication) throw new Exception("Microsoft authentication remained invalid.");
+                        if (hasRetriedAuthentication)
+                            throw new IdentityModelAuthenticationException("invalid_token", "Microsoft authentication remained invalid.");
                         hasRetriedAuthentication = true;
                         HintService.Hint(Lang.Text("Launch.Skin.Change.Reauthenticating"));
                         ModLaunch.mcLoginMsLoader.Start(GetLoginData(), true);
@@ -500,7 +502,7 @@ public static class ProfileUi
                     var json = (JsonObject)ModBase.GetJson(result);
                     var active = json["skins"]?.AsArray().FirstOrDefault(s => s?["state"]?.ToString() == "ACTIVE")?.AsObject();
                     if (active?["url"] is not null) MySkin.ReloadCache(active["url"]!.ToString(), latestProfile.Uuid);
-                    else throw new Exception(json["errorMessage"]?.ToString() ?? result);
+                    else throw new InvalidDataException(json["errorMessage"]?.ToString() ?? result);
                     break;
                 }
             }

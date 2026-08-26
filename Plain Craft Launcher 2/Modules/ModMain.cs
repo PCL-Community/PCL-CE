@@ -581,7 +581,7 @@ public static class ModMain
         {
             ComponentDispatcher.PopModal();
         }
-        return converter.Result?.ToString();
+        return converter.Result?.ToString() ?? string.Empty;
     }
 
     /// <summary>

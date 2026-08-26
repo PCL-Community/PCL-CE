@@ -690,7 +690,7 @@ public static class ModLaunch
             ProfileUi.HandleMicrosoftNotOwnedError(ex) ||
             ProfileUi.HandleMicrosoftCreateProfileError(ex))
         {
-            throw new Exception("$$", ex);
+            throw new IdentityModelException("$$", ex);
         }
         ThrowIfAborted(data);
         ProfileService.IsCreatingProfile = false;

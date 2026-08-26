@@ -1,10 +1,12 @@
-﻿using System.Windows.Controls;
+﻿using System.IO;
+using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Controls;
 using PCL.Core.Utils;
 using PCL.Core.IO.Net.Http;
+using PCL.Core.Minecraft.IdentityModel;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
 
 namespace PCL;
@@ -77,7 +79,7 @@ public partial class MyMsgLogin
             return;
         ModBase.OpenWebsite(website);
         ModBase.ClipboardSet(userCode);
-        var device = data.ToObject<DeviceCodeData>() ?? throw new Exception("设备授权数据无效");
+        var device = data.ToObject<DeviceCodeData>() ?? throw new InvalidDataException("设备授权数据无效");
         var delayTime = TimeSpan.FromSeconds(device.Interval ?? 5);
         // 轮询
         var unknownFailureCount = 0;
@@ -109,12 +111,14 @@ public partial class MyMsgLogin
                             throw new UnauthorizedAccessException("用户拒绝了设备授权。");
                         default:
                             {
-                            throw new Exception(resultJson.ErrorDescription ?? resultJson.Error ?? "Unable to get body");
+                            throw new IdentityModelAuthenticationException(
+                                resultJson.Error ?? "invalid_response",
+                                resultJson.ErrorDescription ?? "Unable to get body");
                             }
                     }
                 }
                 // 获取结果
-                if (resultJson is null) throw new Exception("微软令牌返回为空");
+                if (resultJson is null) throw new InvalidDataException("微软令牌返回为空");
                 if (myConverter.LoginResultHandler is not null)
                 {
                     try
@@ -155,7 +159,7 @@ public partial class MyMsgLogin
                 }
                 else
                 {
-                    Finished(new Exception(Lang.Text("Launch.Account.LoginDialog.PollingFailed"), ex));
+                    Finished(new InvalidOperationException(Lang.Text("Launch.Account.LoginDialog.PollingFailed"), ex));
                     return;
                 }
             }

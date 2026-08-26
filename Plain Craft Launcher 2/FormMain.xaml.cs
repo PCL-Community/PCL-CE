@@ -519,8 +519,6 @@ public partial class FormMain
 
         // 关闭联机大厅
         // Await LobbyController.CloseAsync().ConfigureAwait(False)
-        // 存储上次使用的档案编号
-        ProfileService.Save();
         // 关闭
         ModBase.RunInUiWait(() =>
         {

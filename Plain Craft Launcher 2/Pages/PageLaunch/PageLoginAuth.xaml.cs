@@ -154,9 +154,8 @@ public partial class PageLoginAuth
                     default:
                     {
                         if (ModLaunch.mcLoginAuthLoader.Error is null)
-                            throw new Exception(Lang.Text("Launch.Account.Microsoft.Error.Unknown"));
-                        throw new Exception(ModLaunch.mcLoginAuthLoader.Error.Message,
-                            ModLaunch.mcLoginAuthLoader.Error);
+                            throw new InvalidOperationException(Lang.Text("Launch.Account.Microsoft.Error.Unknown"));
+                        throw ModLaunch.mcLoginAuthLoader.Error;
                     }
                 }
             }

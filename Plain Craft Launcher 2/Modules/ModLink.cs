@@ -30,7 +30,7 @@ public static class ModLink
         }
 
         if (ProfileService.Current is not null)
-            if (ProfileService.Current.UserName.Contains("|"))
+            if (ProfileService.Current.UserName.Contains('|'))
             {
                 HintService.Hint(Lang.Text("Link.Mod.InvalidPlayerId"));
                 return false;
