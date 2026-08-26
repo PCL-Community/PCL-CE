@@ -106,9 +106,14 @@ public partial class MyMsgLogin
                             await Task.Delay(delayTime, token).ConfigureAwait(false);
                             continue;
                         case "expired_token":
-                            throw new TimeoutException("设备授权已过期。");
+                            Finished(new IdentityModelAuthenticationException(
+                                resultJson.Error, resultJson.ErrorDescription ?? "设备授权已过期。"));
+                            return;
                         case "access_denied":
-                            throw new UnauthorizedAccessException("用户拒绝了设备授权。");
+                        case "authorization_declined":
+                            Finished(new IdentityModelAuthenticationException(
+                                resultJson.Error, resultJson.ErrorDescription ?? "用户拒绝了设备授权。"));
+                            return;
                         default:
                             {
                             throw new IdentityModelAuthenticationException(
