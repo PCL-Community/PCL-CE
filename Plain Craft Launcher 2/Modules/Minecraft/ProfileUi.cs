@@ -27,9 +27,6 @@ public static class ProfileUi
 {
     private static int _isMsSkinChanging;
 
-    public static void ProfileLog(string content)
-        => LogWrapper.Info("[Profile] " + content);
-
     /// <summary>
     ///     处理微软登录中的 XSTS 账号类错误，向用户展示对应的操作指引。
     /// </summary>

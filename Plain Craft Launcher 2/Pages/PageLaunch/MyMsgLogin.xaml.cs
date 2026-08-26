@@ -6,6 +6,7 @@ using PCL.Core.App.Localization;
 using PCL.Core.UI.Controls;
 using PCL.Core.Utils;
 using PCL.Core.IO.Net.Http;
+using PCL.Core.Logging;
 using PCL.Core.Minecraft.IdentityModel;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
 
@@ -137,7 +138,7 @@ public partial class MyMsgLogin
                         return;
                     }
                 }
-                ProfileUi.ProfileLog($"令牌过期时间：{resultJson.ExpiresIn} 秒");
+                LogWrapper.Info("Profile",$"令牌过期时间：{resultJson.ExpiresIn} 秒");
                 HintService.Hint(Lang.Text("Launch.Account.LoginDialog.Success"), HintType.Success);
                 Finished(new[] { resultJson.AccessToken ?? string.Empty, resultJson.RefreshToken ?? string.Empty });
                 return;

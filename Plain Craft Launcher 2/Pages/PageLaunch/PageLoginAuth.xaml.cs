@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
+using PCL.Core.Logging;
 using PCL.Core.Minecraft.Yggdrasil;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Authentication;
@@ -299,7 +300,7 @@ public partial class PageLoginAuth
             {
                 ModMain.frmLaunchLeft.RefreshPage(true);
             });
-            ProfileUi.ProfileLog("Yggdrasil Connect 登录成功：" + profile.UserName);
+            LogWrapper.Info("Profile","Yggdrasil Connect 登录成功：" + profile.UserName);
         }
         catch (ThreadInterruptedException)
         {

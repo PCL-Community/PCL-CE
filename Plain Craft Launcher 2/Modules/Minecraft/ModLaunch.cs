@@ -21,6 +21,7 @@ using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Authentication;
 using PCL.Core.Minecraft.Profile.Models;
 using System.Globalization;
+using PCL.Core.Logging;
 
 namespace PCL;
 
@@ -673,7 +674,7 @@ public static class ModLaunch
     private static void McLoginMsStart(ModLoader.LoaderTask<McLoginMs, McLoginResult> data)
     {
         var existing = ProfileService.Current?.ProfileType == ProfileType.Microsoft ? ProfileService.Current : null;
-        ProfileUi.ProfileLog($"验证方式：正版（{(existing is null ? "尚未登录" : existing.UserName)}）");
+        LogWrapper.Info("Profile",$"验证方式：正版（{(existing is null ? "尚未登录" : existing.UserName)}）");
         data.Progress = 0.05d;
         McProfile stored;
         try
@@ -706,7 +707,7 @@ public static class ModLaunch
         };
 
         data.Progress = 0.98d;
-        ProfileUi.ProfileLog("正版验证完成");
+        LogWrapper.Info("Profile","正版验证完成");
     }
 
     /// <summary>
@@ -721,7 +722,7 @@ public static class ModLaunch
     private static Task<bool> _ConfirmMicrosoftRefreshFailureAsync(Exception exception, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
-        ProfileUi.ProfileLog("获取正版 OAuth Token 失败：" + exception);
+        LogWrapper.Info("Profile","获取正版 OAuth Token 失败：" + exception);
         var reuseCachedProfile = false;
         ModBase.RunInUiWait(() =>
         {
@@ -742,7 +743,7 @@ public static class ModLaunch
     private static void McLoginServerStartNew(ModLoader.LoaderTask<McLoginServer, McLoginResult> data)
     {
         var input = data.input;
-        ProfileUi.ProfileLog("验证方式：" + input.Description);
+        LogWrapper.Info("Profile","验证方式：" + input.Description);
         data.Progress = 0.1d;
         var existing = input.IsExist && !ProfileService.IsCreatingProfile ? ProfileService.Current : null;
         var stored = ProfileService.AuthenticateAsync(input.ProviderType, new AuthenticationRequest
@@ -770,7 +771,7 @@ public static class ModLaunch
         };
         ProfileService.IsCreatingProfile = false;
         data.Progress = 0.98d;
-        ProfileUi.ProfileLog("第三方验证完成");
+        LogWrapper.Info("Profile","第三方验证完成");
     }
 
     private static AuthenticationCandidate? _SelectAuthProfile(IReadOnlyList<AuthenticationCandidate> candidates)
@@ -794,7 +795,7 @@ public static class ModLaunch
     private static void McLoginLegacyStart(ModLoader.LoaderTask<McLoginLegacy, McLoginResult> data)
     {
         var input = data.input;
-        ProfileUi.ProfileLog($"验证方式：离线（{input.UserName}, {input.Uuid}）");
+        LogWrapper.Info("Profile",$"验证方式：离线（{input.UserName}, {input.Uuid}）");
         data.Progress = 0.1d;
         {
             ref var withBlock = ref data.output;
