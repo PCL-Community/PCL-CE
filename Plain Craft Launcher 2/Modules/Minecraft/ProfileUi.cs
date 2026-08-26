@@ -8,6 +8,7 @@ using System.Threading;
 using System.Windows;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net;
+using PCL.Core.Logging;
 using PCL.Core.Minecraft.IdentityModel;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.Minecraft.Profile;
@@ -26,8 +27,8 @@ public static class ProfileUi
 {
     private static int _isMsSkinChanging;
 
-    public static void ProfileLog(string content, ModBase.LogLevel level = ModBase.LogLevel.Normal)
-        => ModBase.Log("[Profile] " + content, level);
+    public static void ProfileLog(string content)
+        => LogWrapper.Info("[Profile] " + content);
 
     /// <summary>
     ///     处理微软登录中的 XSTS 账号类错误，向用户展示对应的操作指引。
