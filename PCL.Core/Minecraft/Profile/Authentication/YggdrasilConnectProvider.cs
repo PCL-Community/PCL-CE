@@ -143,6 +143,12 @@ public sealed class YggdrasilConnectProvider : IAuthenticateProvider
             profile ??= userInfo?.SelectedProfile;
             if (available.Length == 0) available = userInfo?.AvailableProfiles ?? [];
         }
+        if (profile is null && !request.ForceReselectProfile &&
+            request.ExistingProfile is { Uuid: { } existingUuid } && !string.IsNullOrWhiteSpace(existingUuid))
+        {
+            profile = available.FirstOrDefault(p =>
+                string.Equals(p.Id, existingUuid, StringComparison.Ordinal));
+        }
         if (profile is null && available.Length == 0 && request.ExistingProfile is { } existing &&
             !string.IsNullOrWhiteSpace(existing.Uuid) && !string.IsNullOrWhiteSpace(existing.UserName))
         {
