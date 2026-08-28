@@ -1668,6 +1668,30 @@
     <sys:String x:Key="Launch.Skin.SaveDialog.Title">Select a location to save the skin file.</sys:String>
     <sys:String x:Key="Launch.Skin.SaveSuccess">Skin saved successfully!</sys:String>
 
+    <!-- Launch.OfflineSkin -->
+
+    <sys:String x:Key="Launch.OfflineSkin.Title">Skin Settings</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Type">Type</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Type.Default">Default</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Type.Steve">Steve</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Type.Alex">Alex</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Type.LocalFile">Local file</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Type.LittleSkin">LittleSkin</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Type.CslApi">CSL API</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Model">Model</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Model.Wide">Steve (wide arms)</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Model.Slim">Alex (slim arms)</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.SkinFile">Skin</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.SelectSkin">Select skin file...</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.CapeFile">Cape</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.SelectCape">Select cape file...</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.CslApiUrl">CSL API URL</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.LittleSkinHint">LittleSkin provides skin hosting for Minecraft players.</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.OpenLittleSkin">Open LittleSkin website</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Confirm">OK</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Cancel">Cancel</sys:String>
+    <sys:String x:Key="Launch.OfflineSkin.Saved">Skin saved</sys:String>
+
     <!-- Launch.Skin.Cape -->
 
     <sys:String x:Key="Launch.Skin.Cape.ChangeFailed">Failed to change the cape.</sys:String>

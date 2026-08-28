@@ -18,6 +18,7 @@ using PCL.Core.Utils.Secret;
 using PCL.Network;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Minecraft.IdentityModel.Yggdrasil;
+using PCL.Core.Minecraft.Skin;
 using System.Globalization;
 
 namespace PCL;
@@ -443,6 +444,23 @@ public static class ModLaunch
                     ? Lang.Text("Minecraft.Launch.Error.LaunchFailed")
                     : Lang.Text("Minecraft.Launch.Error.ExportScriptFailed"));
             throw;
+        }
+        finally
+        {
+            // 兜底清理：游戏进程未成功运行（未创建或已退出）时，服务器必须关闭。
+            // 若游戏仍在运行，则交给进程 Exited 事件在游戏退出时关闭（皮肤需存活到游戏退出）。
+            if (mcLaunchOfflineSkinServer is not null)
+            {
+                var processExited = mcLaunchProcess is null;
+                if (!processExited)
+                    try { processExited = mcLaunchProcess.HasExited; }
+                    catch { processExited = true; } // 进程对象无效时视为已退出，走清理
+                if (processExited)
+                {
+                    mcLaunchOfflineSkinServer.Dispose();
+                    mcLaunchOfflineSkinServer = null;
+                }
+            }
         }
     }
 
@@ -2175,6 +2193,11 @@ public static class ModLaunch
     private static string mcLaunchArgument;
 
     /// <summary>
+    ///     内嵌的离线皮肤服务器实例。首次注入时创建，启动流程结束（成功/失败/取消）后销毁。
+    /// </summary>
+    private static OfflineSkinServer mcLaunchOfflineSkinServer;
+
+    /// <summary>
     ///     释放 Java Wrapper 并返回完整文件路径。
     /// </summary>
     public static string ExtractJavaWrapper()
@@ -2498,6 +2521,12 @@ public static class ModLaunch
                 throw new Exception(Lang.Text("Minecraft.Launch.Error.CannotConnectAuthServer", server ?? null), ex);
             }
         }
+        // 离线（Legacy）账户的自定义皮肤：启动内嵌 Yggdrasil 皮肤服务器并注入 authlib-injector
+        else if (mcLoginLoader.output.Type == "Legacy" &&
+                 ModProfile.selectedProfile?.Skin is { } skinConfig && skinConfig.Type != SkinType.Default)
+        {
+            McLaunchOfflineSkinInject(dataList);
+        }
 
         if (Config.Instance.UseDebugLof4j2Config[instance.PathIndie])
         {
@@ -2629,6 +2658,12 @@ public static class ModLaunch
                 throw new Exception(Lang.Text("Minecraft.Launch.Error.CannotConnectAuthServer", server ?? null), ex);
             }
         }
+        // 离线（Legacy）账户的自定义皮肤：启动内嵌 Yggdrasil 皮肤服务器并注入 authlib-injector
+        else if (mcLoginLoader.output.Type == "Legacy" &&
+                 ModProfile.selectedProfile?.Skin is { } skinConfig && skinConfig.Type != SkinType.Default)
+        {
+            McLaunchOfflineSkinInject(dataList);
+        }
         
         // LWJGL Unsafe Agent
         if (McLaunchUsesLwjglUnsafeAgent(ModInstanceList.McMcInstanceSelected))
@@ -2722,6 +2757,67 @@ public static class ModLaunch
         result += " " + instance.JsonObject["mainClass"];
 
         return result;
+    }
+
+    /// <summary>
+    ///     离线（Legacy）账户的自定义皮肤：启动内嵌 Yggdrasil 皮肤服务器并注册玩家，再通过
+    ///     authlib-injector 将本地服务器注入 JVM 参数。任一步骤失败时不注入，仅记录日志，
+    ///     不中断启动流程。
+    /// </summary>
+    private static void McLaunchOfflineSkinInject(List<string> dataList)
+    {
+        // 导出启动脚本时本地服务器无法随脚本运行，跳过注入，避免生成指向失效端口的参数
+        if (currentLaunchOptions?.SaveBatch is not null)
+            return;
+
+        var profile = ModProfile.selectedProfile;
+        if (profile?.Skin is not { } skin)
+            return;
+
+        var injectorPath = Path.Combine(ModBase.pathPure, "authlib-injector.jar");
+        if (!File.Exists(injectorPath))
+        {
+            ModBase.Log("[Launch] 未找到 authlib-injector.jar，跳过离线皮肤注入");
+            return;
+        }
+
+        // 档案 UUID 为 32 位无横线格式，按 "N" 格式解析；非法 UUID 不注入（保持兼容）
+        if (!Guid.TryParseExact(profile.Uuid, "N", out var uuid))
+        {
+            ModBase.Log("[Launch] 离线皮肤注入失败：档案 UUID 无效，跳过注入");
+            return;
+        }
+
+        try
+        {
+            // 加载皮肤（同步等待，对齐 HMCL 的 skin.load().run()）；返回 null 表示无皮肤，仍注册角色
+            var loadedSkin = ModSkin.LoadSkinAsync(skin, profile.Username).GetAwaiter().GetResult();
+
+            // 启动内嵌皮肤服务器并注册玩家
+            mcLaunchOfflineSkinServer ??= new OfflineSkinServer();
+            mcLaunchOfflineSkinServer.AddCharacter(uuid, profile.Username, loadedSkin);
+            mcLaunchOfflineSkinServer.Start();
+            ModBase.Log($"[Launch] 已启动离线皮肤服务器：http://127.0.0.1:{mcLaunchOfflineSkinServer.Port}");
+
+            // 注入 authlib-injector javaagent（离线服务器已在线，无需 yggdrasil.prefetched）
+            // 用 127.0.0.1 而非 localhost：HttpListener 对具体 IP 前缀要求 Host 头严格匹配，
+            // localhost 可能解析为 ::1 导致 Host 头与监听前缀不一致而 404
+            dataList.Insert(0,
+                "-javaagent:\"" + injectorPath + "\"=" +
+                $"http://127.0.0.1:{mcLaunchOfflineSkinServer.Port}" +
+                " -Dauthlibinjector.side=client");
+        }
+        catch (Exception ex)
+        {
+            // 清理可能未完全启动的服务器，避免端口残留
+            if (mcLaunchOfflineSkinServer is not null)
+            {
+                mcLaunchOfflineSkinServer.Dispose();
+                mcLaunchOfflineSkinServer = null;
+            }
+
+            ModBase.Log(ex, "离线皮肤注入失败，将不注入离线皮肤服务器", ModBase.LogLevel.Developer);
+        }
     }
 
     // Game 部分（第二段）
@@ -3513,6 +3609,19 @@ public static class ModLaunch
 
         loader.output = gameProcess;
         mcLaunchProcess = gameProcess;
+        // 离线皮肤服务器需要存活到游戏退出（皮肤在进入世界/第三人称时才会拉取）。
+        // 挂在进程退出事件上，而不是启动流程 finally，否则游戏窗口一出现服务器就被销毁。
+        gameProcess.EnableRaisingEvents = true;
+        gameProcess.Exited += (_, _) =>
+        {
+            // 仅当退出的正是当前记录的游戏进程时才关闭服务器：
+            // 多开时先退出的游戏不能关掉仍在服务后一局游戏的服务器
+            if (ReferenceEquals(mcLaunchProcess, gameProcess) && mcLaunchOfflineSkinServer is not null)
+            {
+                mcLaunchOfflineSkinServer.Dispose();
+                mcLaunchOfflineSkinServer = null;
+            }
+        };
         // 进程优先级处理
         try
         {

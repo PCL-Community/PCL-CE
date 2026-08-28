@@ -39,7 +39,7 @@ public partial class PageLoginProfileSkin
         }
         else
         {
-            BtnEdit.Visibility = Visibility.Collapsed;
+            BtnEdit.Visibility = Visibility.Visible;
             ModBase.Log("[Profile] 使用离线皮肤加载器");
             Skin.loader = PageLaunchLeft.skinLegacy;
         }
@@ -128,7 +128,7 @@ public partial class PageLoginProfileSkin
             ModBase.OpenWebsite(ModProfile.selectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
-                HintService.Hint(Lang.Text("Launch.Account.ProfileSkin.SkinUnsupported"));
+            OpenOfflineSkinPage();
     }
 
     // 保存皮肤
@@ -152,8 +152,14 @@ public partial class PageLoginProfileSkin
             ModBase.OpenWebsite(ModProfile.selectedProfile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
-            HintService.Hint(Lang.Text("Launch.Account.ProfileSkin.CapeUnsupported"));
+            OpenOfflineSkinPage();
     }
 
     #endregion
+
+    // 打开离线皮肤设置页面
+    private void OpenOfflineSkinPage()
+    {
+        ModBase.RunInUi(() => ModMain.frmLaunchLeft.PageChangeToOfflineSkin());
+    }
 }

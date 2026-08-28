@@ -71,6 +71,7 @@ public static class ModMain
     public static PageLoginProfile? frmLoginProfile;
     public static PageLoginProfileSkin? frmLoginProfileSkin;
     public static PageLoginOffline? frmLoginOffline;
+    public static PageLoginOfflineSkin? frmLoginOfflineSkin;
     public static PageInstanceLeft? frmInstanceLeft;
     public static PageInstanceOverall? frmInstanceOverall;
     public static PageInstanceCompResource? frmInstanceMod;
