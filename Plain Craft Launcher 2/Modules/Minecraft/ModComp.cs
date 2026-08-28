@@ -3250,7 +3250,9 @@ public static class ModComp
         /// </summary>
         public MyVirtualizingElement<MyListItem> ToListItem(MyListItem.ClickEventHandler onClick,
             MyIconButton.ClickEventHandler? onSaveClick = null,
-            bool badDisplayName = false)
+            bool badDisplayName = false,
+            MyListItem.ClickEventHandler? onRightClick = null,
+            MyIconButton.ClickEventHandler? onDownloadClick = null)
         {
             return new MyVirtualizingElement<MyListItem>(() =>
                 {
@@ -3297,8 +3299,11 @@ public static class ModComp
                         }
                     };
                     newItem.Click += onClick;
+                    if (onRightClick is not null)
+                        newItem.RightClick += onRightClick;
 
-                    // 4. 建立另存为按钮
+                    // 4. 建立右侧按钮（另存为 / 下载）
+                    var buttons = new List<MyIconButton>();
                     if (onSaveClick is not null)
                     {
                         var btnSave = new MyIconButton { SvgIcon = "lucide/save", ToolTip = Lang.Text("Download.Version.SaveAs") };
@@ -3306,8 +3311,19 @@ public static class ModComp
                         ToolTipService.SetVerticalOffset(btnSave, 30);
                         ToolTipService.SetHorizontalOffset(btnSave, 2);
                         btnSave.Click += onSaveClick;
-                        newItem.Buttons = new[] { btnSave };
+                        buttons.Add(btnSave);
                     }
+                    if (onDownloadClick is not null)
+                    {
+                        var btnDownload = new MyIconButton { SvgIcon = "lucide/download", ToolTip = Lang.Text("Download.Version.Download") };
+                        ToolTipService.SetPlacement(btnDownload, PlacementMode.Center);
+                        ToolTipService.SetVerticalOffset(btnDownload, 30);
+                        ToolTipService.SetHorizontalOffset(btnDownload, 2);
+                        btnDownload.Click += onDownloadClick;
+                        buttons.Add(btnDownload);
+                    }
+                    if (buttons.Any())
+                        newItem.Buttons = buttons.ToArray();
 
                     return newItem;
                 })
@@ -3512,26 +3528,8 @@ public static class ModComp
                     return;
                 }
 
-                var behavior = Config.Download.Comp.QuickDownloadBehavior;
-                if (behavior == 0)
-                {
-                    // 总是询问：弹「方式选择」
-                    int? choice = ModBase.RunInUiWait(() =>
-                    {
-                        var options = new List<IMyRadio>
-                        {
-                            new MyRadioBox { Text = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.CurrentInstance") },
-                            new MyRadioBox { Text = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.AskInstance") },
-                            new MyRadioBox { Text = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.AskPath") }
-                        };
-                        return ModMain.MyMsgBoxSelect(options,
-                            Lang.Text("Download.Comp.QuickDownload.ChooseMethod.Title"),
-                            button1: Lang.Text("Common.Action.Continue"),
-                            button2: Lang.Text("Common.Action.Cancel"));
-                    });
-                    if (choice is null) return; // 用户取消
-                    behavior = choice.Value + 1; // 0→1 当前实例, 1→2 选实例, 2→3 选路径
-                }
+                var behavior = _ResolveQuickDownloadBehavior();
+                if (behavior is null) return; // 用户取消
 
                 switch (behavior)
                 {
@@ -3559,6 +3557,67 @@ public static class ModComp
                     userSummary: Lang.Text("Minecraft.Comp.Error.OperationFailed"));
             }
         }, "Comp QuickDownload");
+    }
+
+    /// <summary>
+    /// 快速下载指定版本（版本项右侧下载按钮入口）：行为与 <see cref="QuickDownload(CompProject)" /> 一致，
+    /// 但下载用户指定的具体版本，而非自动挑选的最新兼容版本。
+    /// </summary>
+    public static void QuickDownload(CompProject project, CompFile file)
+    {
+        ModBase.RunInNewThread(() =>
+        {
+            try
+            {
+                var files = new List<CompFile> { file };
+                var behavior = _ResolveQuickDownloadBehavior();
+                if (behavior is null) return; // 用户取消
+                switch (behavior)
+                {
+                    case 1: // 下载到当前选中实例
+                        _QuickDownloadToInstance(project, files, ModInstanceList.McMcInstanceSelected);
+                        break;
+                    case 2: // 询问并下载到选择的实例
+                    {
+                        var instance = _QuickDownloadPickInstance(project, files);
+                        if (instance is null) return;
+                        _QuickDownloadToInstance(project, files, instance);
+                        break;
+                    }
+                    case 3: // 询问并下载到一个路径
+                        _QuickDownloadToFolder(project, files);
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "[Comp] 快速下载（指定版本）失败", ModBase.LogLevel.Feedback);
+            }
+        }, "Comp QuickDownload (version)");
+    }
+
+    /// <summary>
+    /// 解析快速下载行为：配置为「总是询问」时弹「方式选择」让用户选；用户取消返回 null，否则返回 1/2/3。
+    /// </summary>
+    private static int? _ResolveQuickDownloadBehavior()
+    {
+        var behavior = Config.Download.Comp.QuickDownloadBehavior;
+        if (behavior != 0) return behavior;
+        int? choice = ModBase.RunInUiWait(() =>
+        {
+            var options = new List<IMyRadio>
+            {
+                new MyRadioBox { Text = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.CurrentInstance") },
+                new MyRadioBox { Text = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.AskInstance") },
+                new MyRadioBox { Text = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.AskPath") }
+            };
+            return ModMain.MyMsgBoxSelect(options,
+                Lang.Text("Download.Comp.QuickDownload.ChooseMethod.Title"),
+                button1: Lang.Text("Common.Action.Continue"),
+                button2: Lang.Text("Common.Action.Cancel"));
+        });
+        if (choice is null) return null;
+        return choice.Value + 1; // 0→1 当前实例, 1→2 选实例, 2→3 选路径
     }
 
     /// <summary>下载到指定实例的最新兼容版本。</summary>
@@ -3757,67 +3816,6 @@ public static class ModComp
     }
 
     #endregion
-
-    /// <summary>
-    /// 预载包含大量 CompFile 的卡片，添加必要的元素和前置列表。
-    /// 前置列表（必要 / 可选）会被放入可折叠栏：必要前置默认展开，可选前置默认收起。
-    /// </summary>
-    public static void CompFilesCardPreload(StackPanel stack, List<CompFile> files)
-    {
-        // 获取卡片对应的前置 ID
-        // 如果为整合包就不会有 Dependencies 信息，所以不用管
-        var deps = files.SelectMany(f => f.Dependencies).Distinct().ToList();
-        var optionalDeps = files.SelectMany(f => f.OptionalDependencies).Distinct().ToList();
-        if (!deps.Any() && !optionalDeps.Any())
-            return;
-
-        // 必要前置：默认展开
-        _AddDependencyBar(stack, deps,
-            Lang.Text("Download.Comp.Detail.FileList.RequiredDependencies"), collapsed: false);
-        // 可选前置：默认收起（库 Mod 可能有大量可选前置，参见 Issue #2873）
-        _AddDependencyBar(stack, optionalDeps,
-            Lang.Text("Download.Comp.Detail.FileList.OptionalDependencies"), collapsed: true);
-
-        // 添加结尾间隔（版本列表标题）
-        stack.Children.Add(new TextBlock
-        {
-            Text = Lang.Text("Download.Comp.Detail.FileList.VersionList"), FontSize = 14d,
-            HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(6d, 12d, 0d, 5d)
-        });
-    }
-
-    /// <summary>
-    /// 将一组前置依赖（按工程 ID）渲染为一个可折叠栏并加入 <paramref name="stack"/>。
-    /// 仅保留在 compProjectCache 中有信息的前置；若过滤后为空则不添加任何折叠栏。
-    /// </summary>
-    /// <param name="collapsed">是否默认收起。前置 item 全部加入即可，靠 MyVirtualizingElement 在可见时才实例化。</param>
-    private static void _AddDependencyBar(StackPanel stack, List<string> depIds, string title, bool collapsed)
-    {
-        if (depIds is null || !depIds.Any())
-            return;
-
-        depIds.Sort();
-        var projects = new List<CompProject>();
-        foreach (var dep in depIds)
-        {
-            if (compProjectCache.TryGetValue(dep, out var project))
-                projects.Add(project);
-            else
-                ModBase.Log($"[Comp] 未找到 ID {dep} 的前置信息", ModBase.LogLevel.Debug);
-        }
-        if (!projects.Any())
-            return;
-
-        var bar = new MyCollapseBar
-        {
-            Title = $"{title} ({projects.Count})",
-            IsCollapsed = collapsed
-        };
-        foreach (var project in projects)
-            bar.ContentPanel.Children.Add(project.ToCompItem(false, false));
-
-        stack.Children.Add(bar);
-    }
 
     #endregion
 }

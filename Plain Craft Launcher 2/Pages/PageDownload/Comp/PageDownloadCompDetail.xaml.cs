@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using FluentValidation;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
@@ -258,15 +259,29 @@ public partial class PageDownloadCompDetail
 
     public void Save_Click(object sender, EventArgs e)
     {
-        // 获取点击项关联的文件对象
-        var file = sender switch
+        SaveCompFile(ResolveFileFromSender(sender));
+    }
+
+    /// <summary>
+    ///     从点击事件 sender（MyListItem 或其内部按钮）解析出关联的 CompFile。
+    /// </summary>
+    private static ModComp.CompFile? ResolveFileFromSender(object sender)
+    {
+        return sender switch
         {
             FrameworkElement Element when Element.Tag is ModComp.CompFile CompFile => CompFile,
             FrameworkElement Element when Element.Parent is FrameworkElement Parent && Parent.Tag is ModComp.CompFile CompFile => CompFile,
             FrameworkElement Element when Element.Parent is FrameworkElement Parent && Parent.Parent is FrameworkElement GrandParent && GrandParent.Tag is ModComp.CompFile CompFile => CompFile,
             _ => null
         };
+    }
 
+    /// <summary>
+    ///     另存为：弹窗选择保存位置（模组可选自动安装必需前置），与历史行为完全一致。
+    /// </summary>
+    private void SaveCompFile(ModComp.CompFile file)
+    {
+        if (file is null) return;
         ModBase.RunInNewThread(() =>
         {
             try
@@ -574,6 +589,90 @@ public partial class PageDownloadCompDetail
                     userSummary: Lang.Text("Download.Comp.Error.OperationFailed"));
             }
         }, "Download CompDetail Save");
+    }
+
+    /// <summary>
+    ///     左键单击版本项：弹窗展示该版本的前置 / 可选前置，并提供“安装到当前实例” / “选择下载位置”。
+    ///     把前置信息按版本拆分展示，避免合并所有版本导致的误导（参见 Issue #3265）。
+    /// </summary>
+    public void ShowVersionPopup_Click(object sender, MouseButtonEventArgs e)
+    {
+        var file = ResolveFileFromSender(sender);
+        if (file is null) return;
+        var result = ModMain.ModDependencyMsgBox(file);
+        switch (result)
+        {
+            case ModComp.CompProject project:
+                // 点击了某个前置项，跳转到该前置的详情页
+                ModMain.frmMain.PageChange(new FormMain.PageStackData
+                {
+                    page = FormMain.PageType.CompDetail,
+                    additional = (project, new List<string>(), "", ModComp.CompLoaderType.Any,
+                        ModComp.CompType.Any, null)
+                });
+                break;
+            case 1:
+                InstallToInstance(file);
+                break;
+            case 2:
+                SaveCompFile(file);
+                break;
+        }
+    }
+
+    /// <summary>
+    ///     安装到当前实例：仅把模组本体下载到当前实例的 mods 文件夹，不安装前置。
+    /// </summary>
+    private void InstallToInstance(ModComp.CompFile file)
+    {
+        var instance = ModInstanceList.McMcInstanceSelected;
+        if (instance is null)
+        {
+            ModMain.MyMsgBox(Lang.Text("Download.Comp.Detail.VersionPopup.NoInstance"),
+                Lang.Text("Download.Comp.Detail.VersionPopup.Title"), button1: null, isWarn: true, forceWait: true);
+            return;
+        }
+        if (!instance.IsLoaded) instance.Load();
+        var modsFolder = instance.PathIndie + "mods\\";
+        ModBase.RunInNewThread(() =>
+        {
+            try
+            {
+                Directory.CreateDirectory(modsFolder);
+                var target = modsFolder + ModComp.CompFileNameGet(_project, file);
+                var loaderName = Lang.Text("Download.Comp.Detail.DownloadResource",
+                    Lang.Text("Download.Comp.Type.Mod"), ModBase.GetFileNameWithoutExtentionFromPath(target));
+                var loaders = new List<ModLoader.LoaderBase>
+                {
+                    new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadFile"),
+                        new List<DownloadFile> { file.ToNetFile(target) })
+                    {
+                        ProgressWeight = 6,
+                        block = true
+                    }
+                };
+                var loader = new ModLoader.LoaderCombo<int>(loaderName, loaders);
+                loader.OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly;
+                loader.Start(1);
+                ModLoader.LoaderTaskbarAdd(loader);
+                ModMain.frmMain.BtnExtraDownload.ShowRefresh();
+                ModMain.frmMain.BtnExtraDownload.Ribble();
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "安装到当前实例失败", ModBase.LogLevel.Feedback);
+            }
+        }, "Download CompDetail Install");
+    }
+
+    /// <summary>
+    ///     版本项右侧下载按钮：快速下载该指定版本（行为与搜索结果快速下载一致，受 QuickDownloadBehavior 设置控制）。
+    /// </summary>
+    public void Download_Click(object sender, EventArgs e)
+    {
+        var file = ResolveFileFromSender(sender);
+        if (file is null) return;
+        ModComp.QuickDownload(_project, file);
     }
 
     private void BtnIntroWeb_Click(object sender, EventArgs e)
@@ -1103,9 +1202,11 @@ public partial class PageDownloadCompDetail
 
                         default:
                         {
-                            ModComp.CompFilesCardPreload(stack, list);
                             foreach (var item in list)
-                                stack.Children.Add(item.ToListItem(ModMain.frmDownloadCompDetail.Save_Click,
+                                stack.Children.Add(item.ToListItem(
+                                    ModMain.frmDownloadCompDetail.ShowVersionPopup_Click,
+                                    onRightClick: ModMain.frmDownloadCompDetail.Save_Click,
+                                    onDownloadClick: ModMain.frmDownloadCompDetail.Download_Click,
                                     badDisplayName: badDisplayName));
                             break;
                         }

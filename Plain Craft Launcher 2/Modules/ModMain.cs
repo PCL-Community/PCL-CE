@@ -304,7 +304,8 @@ public static class ModMain
         Select,
         Input,
         Login,
-        Markdown
+        Markdown,
+        ModDependency
     }
 
     private static string GetDefaultDialogTitle() => Lang.Text("Common.Dialog.Title");
@@ -581,6 +582,34 @@ public static class ModMain
         return (int?)converter.Result;
     }
 
+    /// <summary>
+    ///     显示模组版本的「前置详情」弹窗。返回值：1 = 安装到当前实例；2 = 选择下载位置；
+    ///     若点击某个前置项，则返回该前置的 <see cref="ModComp.CompProject" />；关闭返回 null。
+    /// </summary>
+    /// <param name="file">要展示前置信息的模组版本文件。</param>
+    public static object? ModDependencyMsgBox(ModComp.CompFile file)
+    {
+        var converter = new MyMsgBoxConverter
+        {
+            Type = MyMsgBoxType.ModDependency, Content = file
+        };
+        WaitingMyMsgBox.Add(converter);
+        try
+        {
+            if (frmMain is not null)
+                frmMain.DragStop();
+            ComponentDispatcher.PushModal();
+            Dispatcher.PushFrame(converter.WaitFrame);
+        }
+        finally
+        {
+            ComponentDispatcher.PopModal();
+        }
+
+        ModBase.Log($"[Control] 前置详情弹框返回：{converter.Result ?? "null"}");
+        return converter.Result;
+    }
+
 
     public static void MyMsgBoxTick()
     {
@@ -622,6 +651,11 @@ public static class ModMain
                     case MyMsgBoxType.Markdown:
                     {
                         frmMain.PanMsg.Children.Add(new MyMsgMarkdown(WaitingMyMsgBox[0]));
+                        break;
+                    }
+                    case MyMsgBoxType.ModDependency:
+                    {
+                        frmMain.PanMsg.Children.Add(new ModDependencyMsgBox(WaitingMyMsgBox[0]));
                         break;
                     }
                 }
