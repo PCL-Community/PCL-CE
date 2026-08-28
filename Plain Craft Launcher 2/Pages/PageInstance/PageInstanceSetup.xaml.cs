@@ -282,10 +282,9 @@ public partial class PageInstanceSetup
             SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((ramTotal - 16d) / 2d) + 33d);
         // 设置文本
         var ramInitial = GetInitialRam(PageInstanceLeft.McInstance);
-        var initialText = ramInitial.HasValue ? Lang.Text("Setup.Launch.Memory.InitialSuffix", Lang.Number(ramInitial.Value, "N1")) : "";
-        var availableText = ramGame != ramGameActual ? Lang.Text("Setup.Launch.Memory.AvailableSuffix", Lang.Number(ramGameActual, "N1")) : "";
-        var suffixText = !string.IsNullOrEmpty(initialText) && !string.IsNullOrEmpty(availableText) ? initialText + ", " : initialText;
-        suffixText += availableText;
+        var suffixText = string.Join(", ",
+            (ramInitial.HasValue ? Lang.Text("Setup.Launch.Memory.InitialSuffix", Lang.Number(ramInitial.Value, "N1")) : null),
+            (ramGame != ramGameActual ? Lang.Text("Setup.Launch.Memory.AvailableSuffix", Lang.Number(ramGameActual, "N1")) : null));
         LabRamGame.Text = $"{Lang.Number(ramGame, "N1")} GiB{(suffixText.Length > 0 ? $" ({suffixText})" : "")}";
         LabRamUsed.Text = $"{Lang.Number(ramUsed, "N1")} GiB";
         LabRamTotal.Text = $" / {Lang.Number(ramTotal, "N1")} GiB";

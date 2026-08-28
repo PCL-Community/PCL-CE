@@ -2771,7 +2771,7 @@
     <sys:String x:Key="Setup.Launch.Memory.Max">最大内存（-Xmx）</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Max.ToolTip">游戏可使用的最大堆内存大小</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Initial">初始内存（-Xms）</sys:String>
-    <sys:String x:Key="Setup.Launch.Memory.Initial.ToolTip">游戏启动时预先分配的堆内存大小，可以低于最大堆（-Xmx）。设为 0 表示不主动设置，由 JVM 自行决定。仅在手动配置内存分配时生效，启用「锁定内存分配」时不生效。</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Initial.ToolTip">游戏启动时预先分配的堆内存大小，可以低于最大堆（-Xmx）。设为 0 表示不主动设置，由 JVM 自行决定。仅在手动配置内存分配时生效，启用"锁定内存分配"时不生效。</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.InitialSuffix">初始 {0} GiB</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Title">游戏内存</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.UsedTotal">已使用内存 / 已安装内存</sys:String>
