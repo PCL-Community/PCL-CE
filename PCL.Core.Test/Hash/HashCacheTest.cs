@@ -26,6 +26,7 @@ public class HashCacheTest
     [TestCleanup]
     public void Cleanup()
     {
+        Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
         if (Directory.Exists(_tempDir))
             Directory.Delete(_tempDir, true);
     }
@@ -348,5 +349,35 @@ public class HashCacheTest
 
         await Task.WhenAll(tasks).ConfigureAwait(false);
         Assert.AreEqual(2, exceptions.Count);
+    }
+
+    [TestMethod]
+    public async Task TestMissingTable_AutoHealAndFallback()
+    {
+        var file = await CreateRandomFile(_tempDir, 1024).ConfigureAwait(false);
+        var dbPath = Path.Combine(_tempDir, ".hash_cache.db");
+        var cache = new HashCache(dbPath);
+
+        // 首次计算并写入缓存
+        var hash1 = await cache.GetSHA1Async(file.FilePath).ConfigureAwait(false);
+        Assert.AreEqual(file.SHA1, hash1);
+
+        // 手动清空/删除表以模拟数据库在运行期间缺失 HashCache 表的情形
+        Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+        using (var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={dbPath};Pooling=False"))
+        {
+            conn.Open();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "DROP TABLE HashCache";
+            cmd.ExecuteNonQuery();
+        }
+
+        // 再次获取哈希，验证自愈机制是否生效且不抛异常
+        var hash2 = await cache.GetSHA1Async(file.FilePath).ConfigureAwait(false);
+        Assert.AreEqual(file.SHA1, hash2);
+
+        // 验证表已被自动重建并可正常查询
+        var hash3 = await cache.GetSHA1Async(file.FilePath).ConfigureAwait(false);
+        Assert.AreEqual(file.SHA1, hash3);
     }
 }

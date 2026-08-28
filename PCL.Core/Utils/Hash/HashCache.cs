@@ -10,37 +10,49 @@ namespace PCL.Core.Utils.Hash;
 public class HashCache
 {
     private readonly string _dbPath;
+    private readonly object _initLock = new();
 
     public HashCache(string dbPath)
     {
         _dbPath = dbPath ?? throw new ArgumentNullException(nameof(dbPath));
-        var dir = Path.GetDirectoryName(Path.GetFullPath(_dbPath));
-        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-            Directory.CreateDirectory(dir);
-        _Initialize();
+        _EnsureInitialized();
     }
 
-    private void _Initialize()
+    private void _EnsureInitialized()
     {
-        using var connection = _CreateConnection();
-        using var cmd = connection.CreateCommand();
-        cmd.CommandText = """
-            CREATE TABLE IF NOT EXISTS HashCache (
-                FilePath TEXT NOT NULL PRIMARY KEY,
-                FileSize INTEGER NOT NULL,
-                LastWriteTime TEXT NOT NULL,
-                MD5 TEXT NULL,
-                SHA1 TEXT NULL,
-                SHA256 TEXT NULL,
-                SHA512 TEXT NULL,
-                MurmurHash2 TEXT NULL
-            )
-            """;
-        cmd.ExecuteNonQuery();
+        lock (_initLock)
+        {
+            try
+            {
+                var dir = Path.GetDirectoryName(Path.GetFullPath(_dbPath));
+                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
 
-        using var setCmd = connection.CreateCommand();
-        setCmd.CommandText = "PRAGMA journal_mode=WAL";
-        setCmd.ExecuteNonQuery();
+                using var connection = _CreateConnection();
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = """
+                    CREATE TABLE IF NOT EXISTS HashCache (
+                        FilePath TEXT NOT NULL PRIMARY KEY,
+                        FileSize INTEGER NOT NULL,
+                        LastWriteTime TEXT NOT NULL,
+                        MD5 TEXT NULL,
+                        SHA1 TEXT NULL,
+                        SHA256 TEXT NULL,
+                        SHA512 TEXT NULL,
+                        MurmurHash2 TEXT NULL
+                    )
+                    """;
+                cmd.ExecuteNonQuery();
+
+                using var setCmd = connection.CreateCommand();
+                setCmd.CommandText = "PRAGMA journal_mode=WAL";
+                setCmd.ExecuteNonQuery();
+            }
+            catch
+            {
+                // 允许静默失败，后续操作会降级为实时计算
+            }
+        }
     }
 
     private SqliteConnection _CreateConnection()
@@ -109,7 +121,15 @@ public class HashCache
             var fileSize = fileInfo.Length;
             var lastWrite = fileInfo.LastWriteTimeUtc.ToString("O");
 
-            var cached = await _FindCacheEntryAsync(fullPath).ConfigureAwait(false);
+            CacheEntry? cached = null;
+            try
+            {
+                cached = await _FindCacheEntryAsync(fullPath).ConfigureAwait(false);
+            }
+            catch
+            {
+                // 缓存读取异常时降级继续计算
+            }
 
             if (cached != null)
             {
@@ -120,22 +140,59 @@ public class HashCache
                         return hash;
 
                     var computedHash = await _ComputeHashAsync(fullPath, provider).ConfigureAwait(false);
-                    await _InsertOrUpdateHashAsync(fullPath, fileSize, lastWrite, algoName, computedHash).ConfigureAwait(false);
+                    try
+                    {
+                        await _InsertOrUpdateHashAsync(fullPath, fileSize, lastWrite, algoName, computedHash).ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        // 写入缓存失败不影响哈希结果返回
+                    }
                     return computedHash;
                 }
                 else
                 {
-                    await _DeleteCacheEntryAsync(fullPath).ConfigureAwait(false);
+                    try
+                    {
+                        await _DeleteCacheEntryAsync(fullPath).ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        // 忽略缓存清理异常
+                    }
                 }
             }
 
             var computed = await _ComputeHashAsync(fullPath, provider).ConfigureAwait(false);
-            await _InsertOrUpdateHashAsync(fullPath, fileSize, lastWrite, algoName, computed).ConfigureAwait(false);
+            try
+            {
+                await _InsertOrUpdateHashAsync(fullPath, fileSize, lastWrite, algoName, computed).ConfigureAwait(false);
+            }
+            catch
+            {
+                // 写入缓存失败不影响哈希结果返回
+            }
             return computed;
         }
         catch (FileNotFoundException)
         {
-            await _DeleteCacheEntryAsync(fullPath).ConfigureAwait(false);
+            try
+            {
+                await _DeleteCacheEntryAsync(fullPath).ConfigureAwait(false);
+            }
+            catch
+            {
+                // 忽略异常
+            }
+            throw;
+        }
+        catch (Exception)
+        {
+            // 若发生其他非 FileNotFound 异常，确保降级返回实时计算的哈希
+            if (File.Exists(fullPath))
+            {
+                return await _ComputeHashAsync(fullPath, provider).ConfigureAwait(false);
+            }
             throw;
         }
     }
@@ -147,6 +204,19 @@ public class HashCache
     }
 
     private async Task<CacheEntry?> _FindCacheEntryAsync(string fullPath)
+    {
+        try
+        {
+            return await _FindCacheEntryInternalAsync(fullPath).ConfigureAwait(false);
+        }
+        catch (SqliteException ex) when (ex.SqliteErrorCode == 1) // no such table
+        {
+            _EnsureInitialized();
+            return await _FindCacheEntryInternalAsync(fullPath).ConfigureAwait(false);
+        }
+    }
+
+    private async Task<CacheEntry?> _FindCacheEntryInternalAsync(string fullPath)
     {
         using var conn = _CreateConnection();
         using var cmd = conn.CreateCommand();
@@ -183,6 +253,19 @@ public class HashCache
     private async Task _InsertOrUpdateHashAsync(string fullPath, long fileSize, string lastWrite, string algoName, string hash)
     {
         if (hash.IsNullOrWhiteSpace()) return;
+        try
+        {
+            await _InsertOrUpdateHashInternalAsync(fullPath, fileSize, lastWrite, algoName, hash).ConfigureAwait(false);
+        }
+        catch (SqliteException ex) when (ex.SqliteErrorCode == 1)
+        {
+            _EnsureInitialized();
+            await _InsertOrUpdateHashInternalAsync(fullPath, fileSize, lastWrite, algoName, hash).ConfigureAwait(false);
+        }
+    }
+
+    private async Task _InsertOrUpdateHashInternalAsync(string fullPath, long fileSize, string lastWrite, string algoName, string hash)
+    {
         using var conn = _CreateConnection();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """
@@ -209,6 +292,19 @@ public class HashCache
     }
 
     private async Task _DeleteCacheEntryAsync(string fullPath)
+    {
+        try
+        {
+            await _DeleteCacheEntryInternalAsync(fullPath).ConfigureAwait(false);
+        }
+        catch (SqliteException ex) when (ex.SqliteErrorCode == 1)
+        {
+            _EnsureInitialized();
+            await _DeleteCacheEntryInternalAsync(fullPath).ConfigureAwait(false);
+        }
+    }
+
+    private async Task _DeleteCacheEntryInternalAsync(string fullPath)
     {
         using var conn = _CreateConnection();
         using var cmd = conn.CreateCommand();
