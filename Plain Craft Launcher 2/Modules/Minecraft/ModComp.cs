@@ -908,6 +908,52 @@ public static class ModComp
         /// </summary>
         public readonly List<CompLoaderType> ModLoaders;
 
+        /// <summary>
+        ///     是否在 CurseForge 和 Modrinth 两端均有可用来源。
+        /// </summary>
+        public bool HasBothSources { get; set; }
+
+        /// <summary>
+        ///     关联的另一平台的同名工程。
+        /// </summary>
+        public CompProject OtherSourceProject { get; set; }
+
+        /// <summary>
+        ///     将另一个平台的同名工程信息合并到当前工程中。
+        /// </summary>
+        public void MergeWith(CompProject other)
+        {
+            if (other is null || ReferenceEquals(this, other))
+                return;
+
+            HasBothSources = true;
+            other.HasBothSources = true;
+            OtherSourceProject = other;
+            other.OtherSourceProject = this;
+
+            // 合并支持的 MC 版本 (Drops)
+            if (other.Drops is not null && other.Drops.Any())
+            {
+                var combinedDrops = Drops.Concat(other.Drops).Distinct().OrderByDescending(d => d).ToList();
+                Drops.Clear();
+                Drops.AddRange(combinedDrops);
+            }
+
+            // 合并支持的 Mod 加载器 (ModLoaders)
+            if (other.ModLoaders is not null && other.ModLoaders.Any())
+            {
+                var combinedLoaders = ModLoaders.Concat(other.ModLoaders).Distinct().OrderBy(l => l).ToList();
+                ModLoaders.Clear();
+                ModLoaders.AddRange(combinedLoaders);
+            }
+
+            // 同步 mcmod 数据库绑定
+            if (DatabaseEntry is null && other.DatabaseEntry is not null)
+                DatabaseEntry = other.DatabaseEntry;
+            else if (DatabaseEntry is not null && other.DatabaseEntry is null)
+                other.DatabaseEntry = DatabaseEntry;
+        }
+
         // 描述性信息
 
         /// <summary>
@@ -1667,7 +1713,9 @@ public static class ModComp
                         newItem.ColumnVersion3.Width = new GridLength(0);
                     }
 
-                    newItem.LabSource.Text = FromCurseForge ? "CurseForge" : "Modrinth";
+                    newItem.LabSource.Text = HasBothSources
+                        ? "CurseForge / Modrinth"
+                        : (FromCurseForge ? "CurseForge" : "Modrinth");
 
                     if (LastUpdate is not null)
                     {
@@ -1827,43 +1875,69 @@ public static class ModComp
         /// </summary>
         public bool IsLike(CompProject project)
         {
-            if ((Id ?? "") == (project.Id ?? ""))
+            if (project is null)
+                return false;
+
+            if (ReferenceEquals(this, project) || (Id ?? "") == (project.Id ?? ""))
                 return true; // 相同实例
 
-            // 提取字符串中的字母和数字
-            string GetRaw(string data)
-            {
-                var result = new StringBuilder();
-                foreach (var r in data.Where(c => char.IsLetterOrDigit(c)))
-                    result.Append(r);
-                return result.ToString().ToLower();
-            }
-
-            ;
-            // 来自不同的网站
+            // 来自同一个网站则无需做跨站相似匹配
             if (FromCurseForge == project.FromCurseForge)
                 return false;
-            // Mod 加载器一致
-            if (ModLoaders.Count != project.ModLoaders.Count || ModLoaders.Except(project.ModLoaders).Any())
+
+            // 工程类别必须相同（Mod、整合包、资源包、光影等）
+            if (Type != project.Type)
                 return false;
-            // 若不为光影，则要求 MC 版本一致
-            if (Type != CompType.Shader && (Drops.Count != project.Drops.Count || Drops.Except(project.Drops).Any()))
-                return false;
-            // 最近更新时间差距在一周以内
-            if (LastUpdate is not null && project.LastUpdate is not null &&
-                Math.Abs((LastUpdate - project.LastUpdate).Value.TotalDays) > 7d)
-                return false;
-            // MCMOD 翻译名 / 原名 / 描述文本 / Slug 的英文部分相同
-            if ((TranslatedName ?? "") == (project.TranslatedName ?? "") ||
-                (RawName ?? "") == (project.RawName ?? "") || (Description ?? "") == (project.Description ?? "") ||
-                (GetRaw(Slug) ?? "") == (GetRaw(project.Slug) ?? ""))
+
+            // 提取字符串中的字母和数字
+            static string GetRaw(string data)
             {
-                ModBase.Log($"[Comp] 将 {RawName} ({Slug}) 与 {project.RawName} ({project.Slug}) 认定为相似工程");
-                // 如果只有一个有 DatabaseEntry，设置给另外一个
-                if (DatabaseEntry is null && project.DatabaseEntry is not null)
-                    DatabaseEntry = project.DatabaseEntry;
-                if (DatabaseEntry is not null && project.DatabaseEntry is null)
-                    project.DatabaseEntry = DatabaseEntry;
+                if (string.IsNullOrEmpty(data)) return string.Empty;
+                var result = new StringBuilder();
+                foreach (var r in data.Where(char.IsLetterOrDigit))
+                    result.Append(char.ToLowerInvariant(r));
+                return result.ToString();
+            }
+
+            // 1. 若关联了同一个 MCMOD 词条（WikiId 相同），直接认定为相同工程
+            if (DatabaseEntry is not null && project.DatabaseEntry is not null &&
+                DatabaseEntry.WikiId > 0 && DatabaseEntry.WikiId == project.DatabaseEntry.WikiId)
+            {
+                ModBase.Log($"[Comp] 通过 MCMOD WikiId ({DatabaseEntry.WikiId}) 将 {RawName} 与 {project.RawName} 认定为相同工程", ModBase.LogLevel.Debug);
+                return true;
+            }
+
+            // 2. Slug 匹配（最可靠的跨平台唯一短名标识符，如 kubejs == kubejs, worldedit == worldedit）
+            var rawSlug1 = GetRaw(Slug);
+            var rawSlug2 = GetRaw(project.Slug);
+            if (!string.IsNullOrEmpty(rawSlug1) && rawSlug1 == rawSlug2)
+            {
+                ModBase.Log($"[Comp] 通过 Slug ({Slug}) 将 {RawName} 与 {project.RawName} 认定为相同工程", ModBase.LogLevel.Debug);
+                return true;
+            }
+
+            // 3. 原名 (RawName) 严格匹配（忽略大小写、空格与标点符号，如 KubeJS == KubeJS）
+            var rawName1 = GetRaw(RawName);
+            var rawName2 = GetRaw(project.RawName);
+            if (!string.IsNullOrEmpty(rawName1) && rawName1.Length >= 3 && rawName1 == rawName2)
+            {
+                ModBase.Log($"[Comp] 通过 RawName 将 {RawName} 与 {project.RawName} 认定为相同工程", ModBase.LogLevel.Debug);
+                return true;
+            }
+
+            // 4. MCMOD 翻译名严格匹配
+            if (!string.IsNullOrEmpty(TranslatedName) && !string.IsNullOrEmpty(project.TranslatedName) &&
+                TranslatedName.Length >= 2 && TranslatedName == project.TranslatedName)
+            {
+                ModBase.Log($"[Comp] 通过 TranslatedName ({TranslatedName}) 将 {RawName} 与 {project.RawName} 认定为相同工程", ModBase.LogLevel.Debug);
+                return true;
+            }
+
+            // 5. 描述文本完全一致（长度 > 20 避免通用短语误匹配）
+            if (!string.IsNullOrWhiteSpace(Description) && !string.IsNullOrWhiteSpace(project.Description) &&
+                Description.Length > 20 && Description == project.Description)
+            {
+                ModBase.Log($"[Comp] 通过 Description 将 {RawName} 与 {project.RawName} 认定为相同工程", ModBase.LogLevel.Debug);
                 return true;
             }
 
@@ -2640,10 +2714,41 @@ public static class ModComp
 
             #region 去重与分页判断
 
-            // 优先保留 Modrinth 顺序并去重
-            var processedResults = rawResults.OrderBy(x => x.FromCurseForge)
-                .Where(r => !realResults.Any(b => r.IsLike(b)) && !storage.results.Any(b => r.IsLike(b)))
-                .ToList();
+            // 多源合并与去重：同名 Mod 优先保留最新更新的源，并合并元数据
+            var processedResults = new List<CompProject>();
+
+            foreach (var raw in rawResults)
+            {
+                var matchInProcessed = processedResults.FirstOrDefault(p => raw.IsLike(p));
+                var matchInReal = realResults.FirstOrDefault(p => raw.IsLike(p));
+                var matchInStorage = storage.results.FirstOrDefault(p => raw.IsLike(p));
+                var existing = matchInProcessed ?? matchInReal ?? matchInStorage;
+
+                if (existing is not null)
+                {
+                    var rawDate = raw.LastUpdate ?? DateTime.MinValue;
+                    var existingDate = existing.LastUpdate ?? DateTime.MinValue;
+
+                    if (rawDate > existingDate && matchInProcessed is not null)
+                    {
+                        // raw 比较新，且 existing 是在当前批次中引入的：用 raw 替换 existing 并合并元数据
+                        raw.MergeWith(existing);
+                        var idx = processedResults.IndexOf(existing);
+                        processedResults[idx] = raw;
+                        LogWrapper.Info($"[Comp] 多源合并：{raw.RawName} (保留更新的 {(raw.FromCurseForge ? "CurseForge" : "Modrinth")} 源，更新于 {raw.LastUpdate:yyyy-MM-dd})");
+                    }
+                    else
+                    {
+                        // existing 比较新，合并元数据
+                        existing.MergeWith(raw);
+                        LogWrapper.Info($"[Comp] 多源合并：{existing.RawName} (保留更新的 {(existing.FromCurseForge ? "CurseForge" : "Modrinth")} 源，更新于 {existing.LastUpdate:yyyy-MM-dd})");
+                    }
+                }
+                else
+                {
+                    processedResults.Add(raw);
+                }
+            }
 
             realResults.AddRange(processedResults);
             LogWrapper.Info($"[Comp] 去重、筛选后累计新增结果 {processedResults.Count} 个（目前已有结果 {storage.results.Count} 个）");
