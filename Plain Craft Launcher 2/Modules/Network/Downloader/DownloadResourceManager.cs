@@ -8,14 +8,15 @@ internal static class DownloadResourceManager
 {
     private static readonly AsyncQuota ConnectionQuota = new();
     private static readonly AsyncQuota BufferQuota = new();
-    private static readonly ConcurrentDictionary<string, AsyncQuota> HostConnectionQuotas = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<string, HostQuotaEntry> HostConnectionQuotas = new(StringComparer.OrdinalIgnoreCase);
     private static readonly object BandwidthLock = new();
     private static readonly object SpeedLock = new();
     private static int _activeConnectionCount;
     private static long _speedBytes;
     private static long _speedSnapshotTick = Stopwatch.GetTimestamp();
     private static long _speed;
-    private static long _nextBandwidthTick;
+    private static readonly LinkedList<BandwidthReservation> BandwidthReservations = new();
+    private static bool _bandwidthPumpRunning;
 
     public static int ActiveConnectionCount => Volatile.Read(ref _activeConnectionCount);
 
@@ -51,20 +52,23 @@ internal static class DownloadResourceManager
         CancellationToken cancellationToken)
     {
         var host = Uri.TryCreate(url, UriKind.Absolute, out var uri) ? uri.Host : url;
-        var hostQuota = HostConnectionQuotas.GetOrAdd(host, static _ => new AsyncQuota());
-        var hostLease = await hostQuota.AcquireAsync(1, () => ModNet.NetTaskConnectionsPerHostLimit, cancellationToken)
-            .ConfigureAwait(false);
+        var hostEntry = AcquireHostQuotaEntry(host);
+        DownloadQuotaLease? hostLease = null;
         try
         {
+            hostLease = await hostEntry.Quota.AcquireAsync(1, () => ModNet.NetTaskConnectionsPerHostLimit,
+                cancellationToken)
+            .ConfigureAwait(false);
             var globalLease = await ConnectionQuota.AcquireAsync(1,
                 () => Math.Clamp(ModNet.NetTaskConnectionLimit, 1, ModNet.NetTaskConnectionLimitMax), cancellationToken)
                 .ConfigureAwait(false);
             Interlocked.Increment(ref _activeConnectionCount);
-            return new DownloadConnectionLease(globalLease, hostLease);
+            return new DownloadConnectionLease(globalLease, hostLease, hostEntry);
         }
         catch
         {
-            hostLease.Dispose();
+            hostLease?.Dispose();
+            ReleaseHostQuotaEntry(hostEntry);
             throw;
         }
     }
@@ -79,32 +83,108 @@ internal static class DownloadResourceManager
         Interlocked.Decrement(ref _activeConnectionCount);
     }
 
-    public static Task ThrottleAsync(int bytes, CancellationToken cancellationToken)
+    public static async Task ThrottleAsync(int bytes, CancellationToken cancellationToken)
     {
         var limit = ModNet.NetTaskSpeedLimitHigh;
         if (limit <= 0 || bytes <= 0)
-            return Task.CompletedTask;
+            return;
 
-        long delayTicks;
+        var reservation = new BandwidthReservation(Math.Max(1L,
+            (long)Math.Ceiling((double)bytes * Stopwatch.Frequency / limit)));
         lock (BandwidthLock)
         {
-            var now = Stopwatch.GetTimestamp();
-            var availableAt = Math.Max(now, _nextBandwidthTick);
-            var duration = Math.Max(1L, (long)Math.Ceiling((double)bytes * Stopwatch.Frequency / limit));
-            _nextBandwidthTick = availableAt + duration;
-            delayTicks = availableAt - now;
+            reservation.Node = BandwidthReservations.AddLast(reservation);
+            if (!_bandwidthPumpRunning)
+            {
+                _bandwidthPumpRunning = true;
+                _ = PumpBandwidthReservationsAsync();
+            }
         }
 
-        return delayTicks <= 0
-            ? Task.CompletedTask
-            : Task.Delay(TimeSpan.FromSeconds((double)delayTicks / Stopwatch.Frequency), cancellationToken);
+        try
+        {
+            await reservation.Completion.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            lock (BandwidthLock)
+            {
+                if (reservation.Node?.List is not null)
+                    BandwidthReservations.Remove(reservation.Node);
+            }
+
+            throw;
+        }
+    }
+
+    private static async Task PumpBandwidthReservationsAsync()
+    {
+        while (true)
+        {
+            BandwidthReservation? reservation;
+            lock (BandwidthLock)
+            {
+                if (BandwidthReservations.First is null)
+                {
+                    _bandwidthPumpRunning = false;
+                    return;
+                }
+
+                reservation = BandwidthReservations.First.Value;
+                BandwidthReservations.RemoveFirst();
+                reservation.Node = null;
+            }
+
+            reservation.Completion.TrySetResult();
+            await Task.Delay(TimeSpan.FromSeconds((double)reservation.DurationTicks / Stopwatch.Frequency))
+                .ConfigureAwait(false);
+        }
+    }
+
+    private static HostQuotaEntry AcquireHostQuotaEntry(string host)
+    {
+        while (true)
+        {
+            var entry = HostConnectionQuotas.GetOrAdd(host, static key => new HostQuotaEntry(key));
+            var referenceAdded = entry.TryAddReference();
+            if (referenceAdded)
+            {
+                if (HostConnectionQuotas.TryGetValue(host, out var current) && ReferenceEquals(entry, current))
+                    return entry;
+
+                ReleaseHostQuotaEntry(entry);
+                continue;
+            }
+
+            if (HostConnectionQuotas.TryGetValue(host, out var retiredEntry) && ReferenceEquals(entry, retiredEntry))
+                ((ICollection<KeyValuePair<string, HostQuotaEntry>>)HostConnectionQuotas)
+                    .Remove(new KeyValuePair<string, HostQuotaEntry>(host, entry));
+        }
+    }
+
+    internal static void ReleaseHostQuotaEntry(HostQuotaEntry entry)
+    {
+        if (!entry.ReleaseReference())
+            return;
+
+        ((ICollection<KeyValuePair<string, HostQuotaEntry>>)HostConnectionQuotas)
+            .Remove(new KeyValuePair<string, HostQuotaEntry>(entry.Host, entry));
+    }
+
+    private sealed class BandwidthReservation(long durationTicks)
+    {
+        public long DurationTicks { get; } = durationTicks;
+        public TaskCompletionSource Completion { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public LinkedListNode<BandwidthReservation>? Node { get; set; }
     }
 }
 
-internal sealed class DownloadConnectionLease(DownloadQuotaLease globalLease, DownloadQuotaLease hostLease) : IDisposable
+internal sealed class DownloadConnectionLease(DownloadQuotaLease globalLease, DownloadQuotaLease hostLease,
+    HostQuotaEntry hostEntry) : IDisposable
 {
     private DownloadQuotaLease? _globalLease = globalLease;
     private DownloadQuotaLease? _hostLease = hostLease;
+    private HostQuotaEntry? _hostEntry = hostEntry;
 
     public void Dispose()
     {
@@ -115,6 +195,9 @@ internal sealed class DownloadConnectionLease(DownloadQuotaLease globalLease, Do
         DownloadResourceManager.ReleaseConnection();
         globalLease.Dispose();
         Interlocked.Exchange(ref _hostLease, null)?.Dispose();
+        var hostEntry = Interlocked.Exchange(ref _hostEntry, null);
+        if (hostEntry is not null)
+            DownloadResourceManager.ReleaseHostQuotaEntry(hostEntry);
     }
 }
 
@@ -177,17 +260,49 @@ internal sealed class AsyncQuota
 
     public void Release(long amount)
     {
-        TaskCompletionSource? waiter = null;
+        TaskCompletionSource[] waiters;
         lock (_lock)
         {
             _used = Math.Max(0, _used - amount);
-            if (_waiters.Count > 0)
-            {
-                waiter = _waiters[0];
-                _waiters.RemoveAt(0);
-            }
+            waiters = _waiters.ToArray();
+            _waiters.Clear();
         }
 
-        waiter?.TrySetResult();
+        foreach (var waiter in waiters)
+            waiter.TrySetResult();
+    }
+}
+
+internal sealed class HostQuotaEntry(string host)
+{
+    private readonly object _lock = new();
+    private int _referenceCount;
+    private bool _retired;
+
+    public string Host { get; } = host;
+    public AsyncQuota Quota { get; } = new();
+
+    public bool TryAddReference()
+    {
+        lock (_lock)
+        {
+            if (_retired)
+                return false;
+
+            _referenceCount++;
+            return true;
+        }
+    }
+
+    public bool ReleaseReference()
+    {
+        lock (_lock)
+        {
+            if (--_referenceCount != 0)
+                return false;
+
+            _retired = true;
+            return true;
+        }
     }
 }

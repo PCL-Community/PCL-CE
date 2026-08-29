@@ -265,7 +265,8 @@ internal sealed class AdaptiveRangeDownloader
 
         private bool TryRecover(DownloadSegment segment, Exception exception)
         {
-            if (exception is not (SlowSegmentException or IOException or HttpRequestException or TaskCanceledException))
+            if (exception is not (SlowSegmentException or IOException or HttpRequestException or TaskCanceledException or
+                DownloadRequestTimeoutException))
                 return false;
             if (++segment.FailureCount > MaxSegmentRetries || segment.Remaining <= 0)
                 return false;

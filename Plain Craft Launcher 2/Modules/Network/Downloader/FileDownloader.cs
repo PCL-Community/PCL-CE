@@ -64,7 +64,7 @@ public static class FileDownloader
                 try
                 {
                     await DownloadSingleAsync(url, localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
-                        enableParallelChunks, trackedFile).ConfigureAwait(false);
+                        enableParallelChunks, trackedFile, retry == MaxDownloadRetries).ConfigureAwait(false);
                     return;
                 }
                 catch (OperationCanceledException)
@@ -92,7 +92,8 @@ public static class FileDownloader
     }
 
     private static async Task DownloadSingleAsync(string url, string localPath, bool useBrowserUserAgent,
-        string customUserAgent, CancellationToken cancellationToken, bool enableParallelChunks, DownloadFile? trackedFile)
+        string customUserAgent, CancellationToken cancellationToken, bool enableParallelChunks, DownloadFile? trackedFile,
+        bool isFinalRetryRound)
     {
         ModBase.Log($"[Download] 开始下载：{url} -> {localPath}");
         CleanupTempFiles(localPath);
@@ -116,12 +117,12 @@ public static class FileDownloader
         }
 
         await DownloadSequentiallyAsync(url, localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
-            trackedFile, sequentialRequestKind).ConfigureAwait(false);
+            trackedFile, sequentialRequestKind, isFinalRetryRound).ConfigureAwait(false);
     }
 
     private static async Task DownloadSequentiallyAsync(string url, string localPath, bool useBrowserUserAgent,
         string customUserAgent, CancellationToken cancellationToken, DownloadFile? trackedFile,
-        DownloadRequestKind requestKind)
+        DownloadRequestKind requestKind, bool isFinalRetryRound)
     {
         const int bufferSize = 64 * 1024;
         const int readTimeoutMilliseconds = 30_000;
@@ -132,10 +133,12 @@ public static class FileDownloader
         if (!response.IsSuccessStatusCode)
             throw new HttpRequestException($"下载请求失败：{(int)response.StatusCode} {response.ReasonPhrase}");
 
-        var totalSize = response.Content.Headers.ContentLength ?? -1;
-        // 某些源使用 chunked 传输没有 Content-Length，但清单校验信息仍可能带有文件大小
-        // 这个大小只用于慢速判断，完整性仍按响应头的 totalSize 校验
-        var slowCheckSize = totalSize > 0 ? totalSize : trackedFile?.Check?.actualSize ?? -1;
+        var responseContentLength = response.Content.Headers.ContentLength ?? -1;
+        var manifestExpectedSize = trackedFile?.Check?.actualSize ?? -1;
+        if (responseContentLength >= 0 && manifestExpectedSize >= 0 && responseContentLength != manifestExpectedSize)
+            throw new IOException($"下载大小与清单不一致：响应为 {responseContentLength}，清单为 {manifestExpectedSize}");
+
+        var totalSize = responseContentLength >= 0 ? responseContentLength : manifestExpectedSize;
         if (trackedFile is not null)
         {
             trackedFile.State = PCL.Network.NetState.Downloading;
@@ -156,7 +159,8 @@ public static class FileDownloader
         using var bufferLease = await DownloadResourceManager.ReserveBufferAsync(bufferSize, cancellationToken)
             .ConfigureAwait(false);
         var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
-        var slowCheckEnabled = slowCheckSize > SequentialSlowRestartMinimumSize && ModNet.NetTaskSpeedLimitHigh <= 0;
+        var slowCheckEnabled = !isFinalRetryRound && totalSize > SequentialSlowRestartMinimumSize &&
+                               ModNet.NetTaskSpeedLimitHigh <= 0;
         var slowCheckBytes = 0L;
         var slowCheckTick = Stopwatch.GetTimestamp();
         try
@@ -185,7 +189,7 @@ public static class FileDownloader
                 downloaded += read;
                 UpdateSequentialProgress(trackedFile, downloaded, totalSize, ref lastProgressBytes, ref lastProgressTick);
 
-                if (slowCheckEnabled && downloaded < slowCheckSize)
+                if (slowCheckEnabled && downloaded < totalSize)
                 {
                     var now = Stopwatch.GetTimestamp();
                     var elapsed = (double)(now - slowCheckTick) / Stopwatch.Frequency;
@@ -209,8 +213,10 @@ public static class FileDownloader
 
         connection.Dispose();
         await output.DisposeAsync().ConfigureAwait(false);
-        if (totalSize >= 0 && downloaded != totalSize)
-            throw new IOException($"下载不完整：已写入 {downloaded}，应为 {totalSize}");
+        if (responseContentLength >= 0 && downloaded != responseContentLength)
+            throw new IOException($"下载不完整：已写入 {downloaded}，应为响应声明的 {responseContentLength}");
+        if (manifestExpectedSize >= 0 && downloaded != manifestExpectedSize)
+            throw new IOException($"下载不完整：已写入 {downloaded}，应为清单声明的 {manifestExpectedSize}");
 
         if (trackedFile is not null && totalSize <= 0)
         {
@@ -267,7 +273,7 @@ public static class FileDownloader
         catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested &&
                                                     requestTimeout.IsCancellationRequested)
         {
-            throw new TimeoutException($"等待下载源响应超时（30 秒）：{url}", ex);
+            throw new DownloadRequestTimeoutException($"等待下载源响应超时（30 秒）：{url}", ex);
         }
     }
 
@@ -370,6 +376,9 @@ public static class FileDownloader
         return NetworkService.GetClient();
     }
 }
+
+internal sealed class DownloadRequestTimeoutException(string message, Exception innerException)
+    : TimeoutException(message, innerException);
 
 internal enum DownloadRequestKind
 {
