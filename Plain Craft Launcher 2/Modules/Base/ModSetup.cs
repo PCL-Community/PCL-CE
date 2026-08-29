@@ -572,7 +572,7 @@ public class ModSetup
                 break;
         }
 
-        _ = Config.Preference.TopBarLeftAlign;
+        UiLogoLeft(Config.Preference.TopBarLeftAlign);
         if (ModMain.frmSetupUI is not null)
             ModMain.frmSetupUI.CardLogo.TriggerForceResize();
     }

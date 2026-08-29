@@ -25,6 +25,7 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
         "启动器日志.txt",
         "PCL2 启动器日志.txt",
         "PCL 启动器日志.txt",
+        "PCL CE 启动器日志.txt",
         "log1.txt",
         "log-ce1.log"
     };
@@ -42,6 +43,12 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
         var analyzable = classifiedFiles
             .Where(item => item.Kind is not null)
             .ToList();
+
+        context.DirectOpenFile = analyzable
+            .OrderBy(item => _IsGeneratedLog(item.File))
+            .ThenByDescending(item => _GetLastWriteTime(item.File))
+            .Select(item => item.File)
+            .FirstOrDefault();
 
         var extraFiles = classifiedFiles
             .Where(item => item.Kind is null)
@@ -122,9 +129,6 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
                 continue;
             }
 
-            if (kind is not null && context.DirectOpenFile is null)
-                context.DirectOpenFile = file;
-
             result.Add(new ClassifiedCrashLog(file, kind));
             LogWrapper.Info("Crash", $"{name} 分类为 {kind?.ToString() ?? "Extra"}");
         }
@@ -189,6 +193,7 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
                      "log1.txt",
                      "log-ce1.log",
                      "游戏崩溃前的输出.txt",
+                     "PCL CE 启动器日志.txt",
                      "PCL2 启动器日志.txt",
                      "PCL 启动器日志.txt"
                  })
@@ -345,6 +350,9 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
             return new DateTime(1900, 1, 1);
         }
     }
+
+    private bool _IsGeneratedLog(CrashLogEntry file) =>
+        file.FullPath.StartsWith(context.TempFolder, StringComparison.OrdinalIgnoreCase);
 
     private static string _GetHeadTailLines(
         IReadOnlyList<string> raw,

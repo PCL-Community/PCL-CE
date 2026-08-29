@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text;
 using PCL.Core.IO;
+using PCL.Core.Logging;
 using PCL.Core.Utils.Codecs;
 
 namespace PCL;
@@ -9,7 +10,19 @@ internal static class CrashFileIo
 {
     public static byte[] ReadBytes(string filePath)
     {
-        return Files.ReadAllBytesOrEmptyAsync(filePath).GetAwaiter().GetResult();
+        try
+        {
+            // 使用 FileShare.ReadWrite 以读取正在被 Logger 写入的文件
+            using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using var ms = new MemoryStream();
+            fs.CopyTo(ms);
+            return ms.ToArray();
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ex, "Crash IO", "读取与游戏崩溃关联的日志文件时出错，");
+            return Files.ReadAllBytesOrEmptyAsync(filePath).GetAwaiter().GetResult();
+        }
     }
 
     public static string ReadText(string filePath, Encoding? encoding = null)

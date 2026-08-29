@@ -1377,7 +1377,10 @@ public partial class PageInstanceCompResource : IRefreshable
             {
                 var exportContent = new List<string>();
                 foreach (var ModEntity in ModLocalComp.compResourceListLoader.output)
+                {
                     exportContent.Add(ModEntity.FileName);
+                    _AppendEmbeddedForExport(exportContent, ModEntity.EmbeddedMods, 1);
+                }
                 ExportText(exportContent.Join("\r\n"), PageInstanceLeft.McInstance.Name + "已安装的资源信息.txt");
                 break;
             }
@@ -1385,13 +1388,38 @@ public partial class PageInstanceCompResource : IRefreshable
             case 2: // CSV
             {
                 var exportContent = new List<string>();
-                exportContent.Add("文件名,资源名称,资源版本,此版本更新时间,Mod ID,对应平台工程 ID,文件大小（字节）,文件路径");
+                exportContent.Add("文件名,资源名称,资源版本,此版本更新时间,Mod ID,对应平台工程 ID,文件大小（字节）,文件路径,内嵌模组");
                 foreach (var ModEntity in ModLocalComp.compResourceListLoader.output)
                     exportContent.Add(
-                        $"{ModEntity.FileName},{ModEntity.Comp?.TranslatedName},{ModEntity.Version},{ModEntity.compFile?.ReleaseDate},{ModEntity.ModId},{ModEntity.Comp?.Id},{GetModFileInfo(ModEntity.path).Length},{ModEntity.path}");
+                        $"{ModEntity.FileName},{ModEntity.Comp?.TranslatedName},{ModEntity.Version},{ModEntity.compFile?.ReleaseDate},{ModEntity.ModId},{ModEntity.Comp?.Id},{GetModFileInfo(ModEntity.path).Length},{ModEntity.path},{string.Join(";", _FlattenEmbeddedNames(ModEntity.EmbeddedMods))}");
                 ExportText(exportContent.Join("\r\n"), PageInstanceLeft.McInstance.Name + "已安装的资源信息.csv");
                 break;
             }
+        }
+    }
+
+    private static void _AppendEmbeddedForExport(List<string> lines, List<ModLocalComp.LocalCompFile> mods, int depth)
+    {
+        var indent = new string('\t', depth);
+        foreach (var mod in mods)
+        {
+            var line = indent + "└ " + (mod.Name ?? mod.ModId ?? mod.FileName);
+            if (!string.IsNullOrWhiteSpace(mod.Version))
+                line += $" ({mod.Version})";
+            lines.Add(line);
+            if (mod.EmbeddedMods is { Count: > 0 })
+                _AppendEmbeddedForExport(lines, mod.EmbeddedMods, depth + 1);
+        }
+    }
+
+    private static IEnumerable<string> _FlattenEmbeddedNames(List<ModLocalComp.LocalCompFile> mods)
+    {
+        foreach (var mod in mods)
+        {
+            yield return mod.Name ?? mod.ModId ?? mod.FileName;
+            if (mod.EmbeddedMods is { Count: > 0 })
+                foreach (var child in _FlattenEmbeddedNames(mod.EmbeddedMods))
+                    yield return child;
         }
     }
 
@@ -2069,7 +2097,7 @@ public partial class PageInstanceCompResource : IRefreshable
                                   Entry.FileName.Replace(currentReplaceName, newestReplaceName);
                 var realAddress = PathUtils.GetDirectoryPart(Entry.path) +
                                   Entry.FileName.Replace(currentReplaceName, newestReplaceName);
-                fileList.Add(file.ToNetFile(tempAddress));
+                fileList.Add(file.ToNetFile(tempAddress, ModComp.DownloadReason.Update));
                 fileCopyList[tempAddress] = realAddress;
             }
 

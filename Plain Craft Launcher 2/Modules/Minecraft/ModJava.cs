@@ -31,7 +31,7 @@ public static class ModJava
     ///     必须在工作线程调用，且必须包括 SyncLock JavaLock。
     /// </summary>
     public static JavaEntry JavaSelect(string cancelException, Version minVersion = null, Version maxVersion = null,
-        McInstance relatedInstance = null)
+        McInstance relatedInstance = null, bool enforceVersionRange = false)
     {
         LauncherLog.Log(
             $"[Java] 要求选择合适 Java，要求最低版本 {(minVersion is not null ? minVersion.ToString() : "未指定")}，要求选择的最高版本 {(maxVersion is not null ? maxVersion.ToString() : "未指定")}，关联实例 {(relatedInstance is not null ? relatedInstance.Name : "未指定")}");
@@ -139,17 +139,27 @@ public static class ModJava
 
             if (candidate is not null && candidate.IsEnabled)
             {
-                if (!IsVersionSuitable(candidate.Installation.Version))
-                    HintService.Hint(_GetJavaRangeWarning(
-                        "Minecraft.Launch.Java.Compatibility.GlobalSelectedOutOfRange",
-                        candidate.Installation.Version,
-                        minVersion,
-                        maxVersion));
-                LauncherLog.Log($"[Java] 返回全局指定的 Java: {candidate}");
-                return candidate;
+                var versionSuitable = IsVersionSuitable(candidate.Installation.Version);
+                if (enforceVersionRange && !versionSuitable)
+                {
+                    LauncherLog.Log($"[Java] 全局指定的 Java 版本不满足强制范围要求，忽略并继续自动搜索: {candidate}");
+                }
+                else
+                {
+                    if (!versionSuitable)
+                        HintService.Hint(_GetJavaRangeWarning(
+                            "Minecraft.Launch.Java.Compatibility.GlobalSelectedOutOfRange",
+                            candidate.Installation.Version,
+                            minVersion,
+                            maxVersion));
+                    LauncherLog.Log($"[Java] 返回全局指定的 Java: {candidate}");
+                    return candidate;
+                }
             }
-
-            LauncherLog.Log($"[Java] 警告：全局指定的 Java 路径无效或不可用: {globalJavaPath}");
+            else
+            {
+                LauncherLog.Log($"[Java] 警告：全局指定的 Java 路径无效或不可用: {globalJavaPath}");
+            }
         }
         else
         {

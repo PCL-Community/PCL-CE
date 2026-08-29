@@ -97,7 +97,6 @@
     <sys:String x:Key="Common.Installation.NeoForge">NeoForge</sys:String>
     <sys:String x:Key="Common.Installation.OptiFabric">OptiFabric</sys:String>
     <sys:String x:Key="Common.Installation.OptiFine">OptiFine</sys:String>
-    <sys:String x:Key="Common.Installation.QfapiQsl">QFAPI / QSL</sys:String>
     <sys:String x:Key="Common.Installation.Quilt">Quilt</sys:String>
 
     <!-- Config -->
@@ -202,17 +201,29 @@
 
     <sys:String x:Key="Crash.Report.Environment.Cpu">CPU：{0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.EnvironmentSection">- 环境信息 -</sys:String>
-    <sys:String x:Key="Crash.Report.Environment.Gpu">显卡 {0}：{1} ({2} MB, {3})</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.Gpu">显卡 {0}：{1} ({2} MiB, {3})</sys:String>
     <sys:String x:Key="Crash.Report.Environment.InstanceSection">- 实例信息 -</sys:String>
     <sys:String x:Key="Crash.Report.Environment.LauncherId">识别码：{0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.LauncherVersion">PCL CE 版本：{0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.Log4j2NoLookups">Log4j2 NoLookups：{0}</sys:String>
-    <sys:String x:Key="Crash.Report.Environment.MemoryAllocation">内存分配 (分配的内存 / 已安装物理内存)：{0} / {1} GB ({2} MB)</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.MemoryAllocation">内存分配 (分配的内存 / 已安装物理内存)：{0} / {1} GiB ({2} MiB)</sys:String>
     <sys:String x:Key="Crash.Report.Environment.MinecraftFolder">MC 文件夹：{0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.OperatingSystem">操作系统：{0}（64 位：{1}, ARM64: {2}）</sys:String>
     <sys:String x:Key="Crash.Report.Environment.ProfileName">档案名称：{0} (验证方式：{1})</sys:String>
     <sys:String x:Key="Crash.Report.Environment.ProfileSection">- 档案信息 -</sys:String>
     <sys:String x:Key="Crash.Report.Environment.SelectedJava">选定的 Java 虚拟机：{0}</sys:String>
+
+    <!-- Crash.Report.JarInJarMod -->
+
+    <sys:String x:Key="Crash.Report.JarInJarMod.ModListDirectory">目录：{0}</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateEntry">{0} [{1}] &lt;-&gt; 内嵌于 {2}（{3}）</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateHeuristic">（按模组 ID 匹配，可能包含误报）</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateDescription">以下模组可能与内嵌副本冲突并导致崩溃：</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateNone">无</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateSection">=== 潜在重复模组===</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.JarInJarNone">未发现 Jar-in-Jar 信息</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.JarInJarSection">=== Jar-in-Jar 信息（仅启用模组）===</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.ModListSection">=== 模组列表 ===</sys:String>
 
     <!-- Crash.Suggestion -->
 
@@ -626,9 +637,6 @@
     <!-- Download.Install.Compat -->
 
     <sys:String x:Key="Download.Install.Compat.CompatForgeSpecificOnly">仅兼容特定版本的 Forge</sys:String>
-    <sys:String x:Key="Download.Install.Compat.IncompatibleWithCleanroom">与 Cleanroom 不兼容</sys:String>
-    <sys:String x:Key="Download.Install.Compat.IncompatibleWithFabric">与 Fabric 不兼容</sys:String>
-    <sys:String x:Key="Download.Install.Compat.IncompatibleWithForge">与 Forge 不兼容</sys:String>
     <sys:String x:Key="Download.Install.Compat.IncompatibleWithLiteLoader">与 LiteLoader 不兼容</sys:String>
     <sys:String x:Key="Download.Install.Compat.IncompatibleWithLoader">与 {0} 不兼容</sys:String>
     <sys:String x:Key="Download.Install.Compat.IncompatibleWithOptiFine">与 OptiFine 不兼容</sys:String>
@@ -637,7 +645,6 @@
     <sys:String x:Key="Download.Install.Compat.RequiresLegacyFabric">需要安装 LegacyFabric</sys:String>
     <sys:String x:Key="Download.Install.Compat.RequiresOptiFine">需要安装 OptiFine</sys:String>
     <sys:String x:Key="Download.Install.Compat.RequiresOptiFineAndFabric">需要安装 OptiFine 与 Fabric</sys:String>
-    <sys:String x:Key="Download.Install.Compat.RequiresQuilt">需要安装 Quilt</sys:String>
 
     <!-- Download.Install.State -->
 
@@ -658,8 +665,6 @@
     <sys:String x:Key="Download.Install.Warning.ModOptiFine">OptiFine 与一部分模组的兼容性不佳，请谨慎安装。</sys:String>
     <sys:String x:Key="Download.Install.Warning.OptiFabric">必须安装 OptiFabric 才能正常使用 OptiFine！</sys:String>
     <sys:String x:Key="Download.Install.Warning.OptiFabricOld">安装结束后，请在模组下载中搜索 OptiFabric Origins 并下载，否则 OptiFine 会无法使用！</sys:String>
-    <sys:String x:Key="Download.Install.Warning.Qsl">如果不安装 QFAPI / QSL，大多数模组都会无法使用！如果 QFAPI / QSL 无可用版本，你可以选择安装 Fabric API。</sys:String>
-    <sys:String x:Key="Download.Install.Warning.QuiltFabricApi">你选择了在 Quilt 中安装 Fabric API，而当前存在适配的 QFAPI / QSL 可供安装。请优先考虑安装 QFAPI / QSL。</sys:String>
 
     <!-- Download.Left -->
 
@@ -680,7 +685,6 @@
     <sys:String x:Key="Download.Left.Modpack">整合包</sys:String>
     <sys:String x:Key="Download.Left.NeoForge">NeoForge</sys:String>
     <sys:String x:Key="Download.Left.Optifine">OptiFine</sys:String>
-    <sys:String x:Key="Download.Left.Quilt">Quilt</sys:String>
     <sys:String x:Key="Download.Left.ResourcePack">资源包</sys:String>
     <sys:String x:Key="Download.Left.Shader">光影包</sys:String>
     <sys:String x:Key="Download.Left.World">世界</sys:String>
@@ -695,7 +699,6 @@
     <sys:String x:Key="Download.Source.MojangOfficial">Mojang 官方源</sys:String>
     <sys:String x:Key="Download.Source.NeoForgeOfficial">NeoForge 官方源</sys:String>
     <sys:String x:Key="Download.Source.OptiFineOfficial">OptiFine 官方源</sys:String>
-    <sys:String x:Key="Download.Source.QuiltOfficial">Quilt 官方源</sys:String>
     <sys:String x:Key="Download.Source.Tag.Uvmc">UVMC 特供下载</sys:String>
 
     <!-- Download.Version -->
@@ -719,7 +722,6 @@
     <sys:String x:Key="Download.Version.Installer.Fabric.Filter">Fabric 安装器 (*.jar)|*.jar</sys:String>
     <sys:String x:Key="Download.Version.Installer.LabyMod.Filter">LabyMod 安装器 (*.jar)|*.jar</sys:String>
     <sys:String x:Key="Download.Version.Installer.LegacyFabric.Filter">LegacyFabric 安装器 (*.jar)|*.jar</sys:String>
-    <sys:String x:Key="Download.Version.Installer.Quilt.Filter">Quilt 安装器 (*.jar)|*.jar</sys:String>
     <sys:String x:Key="Download.Version.LabyMod.Intro.Description">LabyMod 是 Minecraft 下的优化客户端。&#xA;本页面提供 LabyMod 安装器下载，在下载后你需要手动打开安装器进行安装。</sys:String>
     <sys:String x:Key="Download.Version.LabyMod.Intro.Title">LabyMod 简介</sys:String>
     <sys:String x:Key="Download.Version.LabyMod.LoadingList">正在获取 LabyMod 列表</sys:String>
@@ -743,9 +745,6 @@
     <sys:String x:Key="Download.Version.Optifine.Intro.Title">OptiFine 简介</sys:String>
     <sys:String x:Key="Download.Version.Optifine.LoadingList">正在获取 OptiFine 列表</sys:String>
     <sys:String x:Key="Download.Version.Optifine.Snapshot">快照版本</sys:String>
-    <sys:String x:Key="Download.Version.Quilt.Intro.Description">Quilt Loader 是新版 Minecraft 下的轻量模块化模组加载器，你需要先安装它才能安装各种 Quilt 模组。&#xA;本页面提供 Quilt 安装器下载，在下载后你需要手动打开安装器进行安装。</sys:String>
-    <sys:String x:Key="Download.Version.Quilt.Intro.Title">Quilt 简介</sys:String>
-    <sys:String x:Key="Download.Version.Quilt.LoadingList">正在获取 Quilt 列表</sys:String>
     <sys:String x:Key="Download.Version.ReleaseDate">发布于 {0}</sys:String>
     <sys:String x:Key="Download.Version.SaveAs">另存为</sys:String>
     <sys:String x:Key="Download.Version.SaveInstaller">保存安装器</sys:String>
@@ -903,6 +902,8 @@
     <sys:String x:Key="Instance.Export.Option.Saves">单人游戏存档</sys:String>
     <sys:String x:Key="Instance.Export.Option.Saves.Desc">世界/地图</sys:String>
     <sys:String x:Key="Instance.Export.Option.Screenshots">截图</sys:String>
+    <sys:String x:Key="Instance.Export.Option.OtherFolders">其他文件夹</sys:String>
+    <sys:String x:Key="Instance.Export.Option.OtherFolders.Desc">未被上方选项覆盖的文件夹</sys:String>
     <sys:String x:Key="Instance.Export.Option.Servers">多人游戏服务器列表</sys:String>
     <sys:String x:Key="Instance.Export.Option.ShaderPacks">光影包</sys:String>
     <sys:String x:Key="Instance.Export.Option.Structures">导出的结构</sys:String>
@@ -964,6 +965,7 @@
     <sys:String x:Key="Instance.Overall.Reset.ConfirmMessage">你确定要重置实例 {0} 吗？&#xA;PCL CE 将会尝试重新从互联网获取此实例的资源文件信息，并重新执行自动安装。</sys:String>
     <sys:String x:Key="Instance.Overall.Reset.ConfirmTitle">实例重置确认</sys:String>
     <sys:String x:Key="Instance.Overall.Reset.NotSupported">该实例暂不支持重置！</sys:String>
+    <sys:String x:Key="Instance.Overall.Reset.QuiltUnsupported">无法重置：当前启动器已不再支持 Quilt 加载器。</sys:String>
     <sys:String x:Key="Instance.Overall.Script.ExportFailed">导出启动脚本失败</sys:String>
     <sys:String x:Key="Instance.Overall.Script.Exporting">正在导出启动脚本……</sys:String>
     <sys:String x:Key="Instance.Overall.Script.ExportingWarning">正在导出启动脚本……（注意，使用脚本启动可能会导致登录失效！）</sys:String>
@@ -1500,8 +1502,11 @@
     <sys:String x:Key="Launch.Account.Auth.Password">密码</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Preset.LittleSkin">预设 - LittleSkin</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Register">注册账号</sys:String>
-    <sys:String x:Key="Launch.Account.Auth.Server">服务器</sys:String>
     <sys:String x:Key="Launch.Account.Auth.ServerLabel">验证服务器: {0}</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.SelectServer">选择验证服务器</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.OAuthLogin">开始 OAuth 登录</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.UsePassword">»  使用密码登录</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.UseOAuth">»  使用 OAuth 登录</sys:String>
 
     <!-- Launch.Account.LoginDialog -->
 
@@ -1647,7 +1652,7 @@
     <sys:String x:Key="Launch.Skin.File.Error">皮肤文件存在错误</sys:String>
     <sys:String x:Key="Launch.Skin.FileDialog.Filter">皮肤文件(*.png;*.jpg;*.webp)|*.png;*.jpg;*.webp</sys:String>
     <sys:String x:Key="Launch.Skin.FileDialog.Title">选择皮肤文件</sys:String>
-    <sys:String x:Key="Launch.Skin.FileTooLarge">皮肤文件大小需小于 24 KB，而所选文件大小为 {0} KB</sys:String>
+    <sys:String x:Key="Launch.Skin.FileTooLarge">皮肤文件大小需小于 24 KiB，而所选文件大小为 {0} KiB</sys:String>
     <sys:String x:Key="Launch.Skin.InvalidSize">皮肤图片大小应为 64x32 像素或 64x64 像素！</sys:String>
     <sys:String x:Key="Launch.Skin.Load.Error.Avatar">载入头像失败：{0}</sys:String>
     <sys:String x:Key="Launch.Skin.Load.Error.Corrupted">皮肤文件已损坏：{0}</sys:String>
@@ -1876,6 +1881,8 @@
     <sys:String x:Key="Main.UpdateLog.Empty">欢迎使用呀~</sys:String>
     <sys:String x:Key="Main.UpdateLog.FullChangelog">完整更新日志</sys:String>
     <sys:String x:Key="Main.UpdateLog.Title">PCL CE 已更新至 {0} {1}</sys:String>
+    <sys:String x:Key="Main.HomepageReset.Title">主页预设已重置</sys:String>
+    <sys:String x:Key="Main.HomepageReset.Content">由于启动器更新，已重置主页预设。请重新前往 设置 - 个性化 选择预设</sys:String>
 
     <!-- Main.FileDrag -->
 
@@ -1988,6 +1995,7 @@
     <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Title">下载可选文件</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Message">整合包的文件路径超出了实例文件夹，请向整合包作者反馈此问题！&#xD;&#xA;错误的文件：{0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Title">文件路径校验失败</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.QuiltUnsupported">无法安装整合包：当前启动器已不再支持 Quilt 加载器。</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.RarUnsupported">PCL CE 无法处理 rar 格式的压缩包，请在解压后重新压缩为 zip 格式再试</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SelectEmptyFolder.Message">接下来请选择一个空文件夹，它会被安装到这个文件夹里。</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SelectTargetFolder.Title">选择安装目标（必须是一个空文件夹）</sys:String>
@@ -2032,7 +2040,6 @@
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeMissingAssets">分析缺失资源文件</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeMissingLibraries">分析缺失支持库文件</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeOptiFineLibraries">分析 OptiFine 支持库文件</sys:String>
-    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeQuiltLibraries">分析 Quilt 支持库文件</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeRequiredAssets.Side">分析所需资源文件（副加载器）</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeVanillaAndLabyModLibrariesSide">分析原版与 LabyMod 支持库文件（副加载器）</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeVanillaLibraries.Side">分析原版支持库文件（副加载器）</sys:String>
@@ -2062,7 +2069,6 @@
     <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFabric">下载 OptiFabric</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFineLibraries">下载 OptiFine 支持库文件</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFineMainFile">下载 OptiFine 主文件</sys:String>
-    <sys:String x:Key="Minecraft.Download.Stage.DownloadQfapiQsl">下载 QFAPI / QSL</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadServerFile">下载服务端文件</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaAndLabyModLibrariesSide">下载原版与 LabyMod 支持库文件（副加载器）</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaAssets">下载原版资源文件</sys:String>
@@ -2092,11 +2098,9 @@
     <sys:String x:Key="Minecraft.Download.Stage.ObtainLoaderDetails">获取 {0} 详细信息</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.ObtainOptiFineDownloadUrl">获取 OptiFine 下载地址</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.ObtainOptiFineUrl">获取 OptiFine 主文件下载地址</sys:String>
-    <sys:String x:Key="Minecraft.Download.Stage.ObtainQuiltMainFileUrl">获取 Quilt 主文件下载地址</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.ObtainVanillaJsonUrl">获取原版 Json 文件下载地址</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.OptiFineDownload">OptiFine {0} 下载</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.PrepareLoaderDownload">准备下载 {0}</sys:String>
-    <sys:String x:Key="Minecraft.Download.Stage.QuiltInstallerDownload">Quilt {0} 安装器下载</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.StartLiteLoaderDependencyDownload">启动 LiteLoader 依赖实例下载</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.UpdateAssetsIndex.Background">后台更新资源文件索引</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.VanillaJsonDownload">下载原版 Json 文件</sys:String>
@@ -2705,7 +2709,13 @@
     <sys:String x:Key="Setup.Language.FormatCulture">区域格式</sys:String>
     <sys:String x:Key="Setup.Language.FormatCulture.Auto">跟随系统区域格式</sys:String>
     <sys:String x:Key="Setup.Language.FormatCulture.FollowLanguage">同步界面语言</sys:String>
-    <sys:String x:Key="Setup.Language.Hint">目前仅部分新增界面支持多语言功能，其余界面将在后续迁移中逐步完成生效。&#xA;&#xA;为确保工作效率与便捷性，迁移过程中仅确保“English (US)”与“简体中文（中国大陆）”部分可用。其余语言将在未来迁移工作完成后，交由社区于翻译平台进行翻译贡献。</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.TitlePrefix">让</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.TitleSuffix">走向国际化。</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.DescriptionLine1">在社区的共同助力下，PCL CE 正迈向国际化的新篇章。</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.DescriptionLine2">欢迎前往翻译平台参与本地化贡献，或向 GitHub 仓库提交 Pull Request，与我们一同完善多语言支持，为 PCL CE 更好地服务全球用户的目标添砖加瓦。</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.DescriptionLine3">感谢每一位参与翻译、校对与改进的贡献者，让 PCL CE 因你们而更加完善。</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.TranslateWebsite">前往翻译平台</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.SubmitPullRequest">提交 Pull Request</sys:String>
     <sys:String x:Key="Setup.Language.Reset.Success">已初始化语言页设置！</sys:String>
     <sys:String x:Key="Setup.Language.Title">语言</sys:String>
     <sys:String x:Key="Setup.Language.UiLanguage">界面语言</sys:String>
@@ -2759,11 +2769,11 @@
 
     <sys:String x:Key="Setup.Launch.Memory.Auto">自动配置</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Auto.ToolTip">根据安装的模组量与电脑剩余内存，动态调整为游戏分配的内存</sys:String>
-    <sys:String x:Key="Setup.Launch.Memory.AvailableSuffix">可用 {0} GB</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.AvailableSuffix">可用 {0} GiB</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.GameAllocation">游戏分配</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Title">游戏内存</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.UsedTotal">已使用内存 / 已安装内存</sys:String>
-    <sys:String x:Key="Setup.Launch.Memory.Warning.Java32Bit">32 位 Java 只能分配最多 1 GB 的内存。强烈建议换用 64 位的 Java！</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Warning.Java32Bit">32 位 Java 只能分配最多 1 GiB 的内存。强烈建议换用 64 位的 Java！</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Warning.TooMuch">你给游戏分配的内存过多，这可能引发游戏崩溃。建议优先考虑「自动分配」选项！</sys:String>
 
     <!-- Setup.Launch.Options -->
@@ -2934,6 +2944,11 @@
     <sys:String x:Key="Setup.Misc.System.MaxLogLines">实时日志行数</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxLogLines.ToolTip">实时日志功能中最大显示行数，超过该值会自动删除旧的日志。</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxLogLines.Unlimited">无限制</sys:String>
+    <sys:String x:Key="Setup.Misc.System.StopUsingPclCe">停止使用 PCL CE</sys:String>
+    <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.ContinueAndRemove">继续并清理实例文件夹</sys:String>
+    <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Message.Final">你确定要继续操作吗？这是最后警告！&#xA;与 PCL CE 有关的一切数据将被永久消除！（真的很久！）</sys:String>
+    <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Message">即将删除此电脑上与 PCL CE 有关的全部配置、缓存、已保存的账户信息及其他相关数据，并撤销已接受的许可协议。完成后，软件将自动关闭。&#xA;&#xA;但请注意，以下内容无法自动删除或注销：&#xA;- 此电脑上其他 PCL CE 实例的本地数据&#xA;- Natayark 账户&#xA;&#xA;如需同时删除 Minecraft 实例中的 PCL CE 配置文件，请选择“继续并清理实例文件夹”，这不会影响你的游戏配置、模组、存档，以及其他数据。&#xA;&#xA;此操作无法撤销。您确定要继续吗？</sys:String>
+    <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Title">停止使用 PCL CE？</sys:String>
     <sys:String x:Key="Setup.Misc.System.Telemetry">启用遥测数据收集</sys:String>
     <sys:String x:Key="Setup.Misc.System.Telemetry.ToolTip">启用此功能后，启动器将会收集并上报错误与设备环境信息，这可以帮助开发者修复潜在的问题、更好的进行规划和开发。&#xA;若启用此功能，我们将会收集以下信息：启动器内出现的错误，启动器版本信息与识别码，使用的 Windows 系统版本与架构，已安装的物理内存大小，NAT 与 IPv6 支持情况，是否使用过原版 PCL、HMCL 或 BakaXL。&#xA;&#xA;这些数据均不与你关联，我们也绝不会向第三方出售数据。不启用此功能不会影响你使用其他功能，但可能会影响开发者修复潜在 Bug。&#xA;&#xA;此项更改将在重新启动启动器后生效。</sys:String>
     <sys:String x:Key="Setup.Misc.System.Title">系统</sys:String>
@@ -3092,6 +3107,10 @@
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McOfficialFeed">Minecraft 官方信息流</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McSkin">Minecraft 皮肤推荐（作者：wkea）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McUpdateSummary">Minecraft 更新摘要（作者：pynickle，部分由 AI 生成）</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.NewsToday">今日新闻热点（作者：EYicheng）</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.MinecraftKnowledge">Minecraft 芝士站（作者：awaEric233）</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.ModpackRecommendation">整合包推荐引擎（作者：CHMYGZ）</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.Bangumi">Bangumi 番剧主页（作者：wzyaeu）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.OpenBmclapi">OpenBMCLAPI 仪表盘 Lite（作者：Silverteal、Mxmilu666）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.OpenMcim">OpenMCIM 仪表盘（作者：SALTWOOD）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.PclAnnouncement">PCL CE 公告栏</sys:String>

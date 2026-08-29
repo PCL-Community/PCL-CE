@@ -432,9 +432,9 @@ public static class ModLoader
             throw State switch
             {
                 LoadState.Aborted => new ThreadInterruptedException("加载器执行已中断。"),
-                _ when Error is null => new Exception("未知错误！"),
-                _ => new Exception(Error.Message, Error)
-            }; // 保留调用堆栈，同时不影响信息输出与单元测试
+                _ when Error is null => new InvalidOperationException("未知错误！"),
+                _ => Error
+            };
         }
 
         /// <summary>
@@ -462,7 +462,7 @@ public static class ModLoader
             throw State switch
             {
                 LoadState.Aborted => new ThreadInterruptedException("加载器执行已中断。"),
-                _ when Error is null => new Exception("未知错误！"),
+                _ when Error is null => new InvalidOperationException("未知错误！"),
                 _ => Error
             };
         }
@@ -529,6 +529,8 @@ public static class ModLoader
         public OutputType output = default;
 
         private CancellationTokenSource? cancelToken;
+
+        public CancellationToken AbortedToken => cancelToken?.Token ?? new CancellationToken(true);
 
         // 线程设定
         protected internal ThreadPriority threadPriority;

@@ -343,17 +343,21 @@
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.Trivia}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.EchoCave}" Visibility="Collapsed" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McNews}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.SimpleHomepage}" />
+                            <!-- <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.SimpleHomepage}" /> -->
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.DailyModpack}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McSkin}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.OpenBmclapi}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclMarket}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclNews}" />
+                            <!-- <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclMarket}" /> -->
+                            <!-- <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclNews}" /> -->
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclManual}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.OpenMcim}" Visibility="Collapsed" />
+                            <!-- <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.OpenMcim}" Visibility="Collapsed" /> -->
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.Magazine}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.GitHub}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McUpdateSummary}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.NewsToday}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.MinecraftKnowledge}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.ModpackRecommendation}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.Bangumi}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.PclAnnouncement}"/>
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McOfficialFeed}"/>
                         </local:MyComboBox>

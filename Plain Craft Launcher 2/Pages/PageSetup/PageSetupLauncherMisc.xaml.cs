@@ -1,12 +1,15 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
+using PCL.Core.App.IoC;
 using PCL.Core.UI;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils.OS;
 
 namespace PCL;
 
@@ -219,6 +222,100 @@ public partial class PageSetupLauncherMisc
         ModMain.MyMsgBox(Lang.Text("Setup.Misc.System.ImportSettings.Success.Message"), button1: Lang.Text("Setup.Misc.System.ImportSettings.Success.Restart"), forceWait: true);
         Process.Start(new ProcessStartInfo(Basics.ExecutablePath));
         FormMain.EndProgramForce();
+    }
+
+    #endregion
+
+    #region 停止使用 PCL CE
+
+    private void BtnSystemStopUsingPclCe_Click(object sender, MouseButtonEventArgs e)
+    {
+        var result = ModMain.MyMsgBox(
+            Lang.Text("Setup.Misc.System.StopUsingPclCe.Message"),
+            Lang.Text("Setup.Misc.System.StopUsingPclCe.Title"),
+            Lang.Text("Common.Action.Continue"),
+            Lang.Text("Setup.Misc.System.StopUsingPclCe.ContinueAndRemove"),
+            Lang.Text("Common.Action.Cancel"),
+            isWarn: true);
+
+        if (result < 3)
+        {
+            if (ModMain.MyMsgBox(
+                    Lang.Text("Setup.Misc.System.StopUsingPclCe.Message.Final"),
+                    Lang.Text("Common.Dialog.Warning"),
+                    Lang.Text("Common.Action.Continue"),
+                    Lang.Text("Common.Action.Cancel"),
+                    isWarn: true) == 1)
+            {
+                StopUsingPClCeCore(result == 2);
+            }
+        }
+    }
+
+    private void StopUsingPClCeCore(bool removeMcResources)
+    {
+        // 删除 MC 文件夹内的 PCL CE 配置
+        if (removeMcResources && States.Game.Folders != "")
+        {
+            foreach (var path in States.Game.Folders.Split('|'))
+            {
+                var realPath = path.Split('>')[1];
+                Delete([Path.Combine(realPath, "PCL.ini")]);
+
+                var versionsPath = Path.Combine(realPath, "versions");
+                if (!Directory.Exists(versionsPath)) continue;
+                
+                Delete(
+                    Directory.EnumerateDirectories(versionsPath)
+                        .Select(p => Path.Combine(p, "PCL", "config.v1.yml"))
+                );
+            }
+        }
+        
+        // 由于 CE 文件夹正在使用，使用延迟调用 CMD 的方法删除
+        List<string> foldersToDelete =
+        [
+            Paths.Data,
+            Paths.OldSharedData,
+            Paths.SharedData,
+            Paths.SharedLocalData,
+            Paths.Temp
+        ];
+
+        var sb = new StringBuilder();
+        sb.Append("/c timeout /t 5 /nobreak >nul & ");
+        foreach (var folder in foldersToDelete)
+        {
+            sb.Append($"rmdir /s /q \"{folder}\" & ");
+        }
+        
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = "cmd.exe",
+            Arguments = sb.ToString(),
+            CreateNoWindow = true,
+            WindowStyle = ProcessWindowStyle.Hidden,
+            UseShellExecute = false
+        });
+
+        // 强制退出
+        KernelInterop.ExitProcess();
+            
+        void Delete(IEnumerable<string> paths)
+        {
+            foreach (var path in paths)
+            {
+                try
+                {
+                    if (!File.Exists(path)) continue;
+                    File.Delete(path);
+                }
+                catch (Exception)
+                {
+                    //
+                }
+            }
+        }
     }
 
     #endregion

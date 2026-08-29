@@ -144,8 +144,6 @@ public partial class PageInstanceLeft : IRefreshable
                 ModDownload.dlLiteLoaderListLoader.Start(isForceRestart: true);
                 ModDownload.dlFabricListLoader.Start(isForceRestart: true);
                 ModDownload.dlFabricApiLoader.Start(isForceRestart: true);
-                ModDownload.dlQuiltListLoader.Start(isForceRestart: true);
-                ModDownload.dlQSLLoader.Start(isForceRestart: true);
                 ModDownload.dlOptiFabricLoader.Start(isForceRestart: true);
                 ModDownload.dlLabyModListLoader.Start(isForceRestart: true);
                 ItemInstall.Checked = true;

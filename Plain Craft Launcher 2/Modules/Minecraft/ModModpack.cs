@@ -380,7 +380,7 @@ public static class ModModpack
         string forgeVersion = null;
         string neoForgeVersion = null;
         string fabricVersion = null;
-        string quiltVersion = null;
+        var modLoader = ModComp.CompLoaderType.Any;
         foreach (var Entry in (dynamic)json["minecraft"]["modLoaders"] ?? Array.Empty<JsonNode>())
         {
             string id = (Entry["id"] ?? "").ToString().ToLower();
@@ -391,12 +391,14 @@ public static class ModModpack
                     throw new Exception(Lang.Text("Minecraft.Download.Modpack.TooOldUnsupported"));
                 LauncherLog.Log("[ModPack] 整合包 Forge 版本：" + id);
                 forgeVersion = id.Replace("forge-", "");
+                modLoader = ModComp.CompLoaderType.Forge;
             }
             else if (id.StartsWithF("neoforge-"))
             {
                 // NeoForge 指定
                 LauncherLog.Log("[ModPack] 整合包 NeoForge 版本：" + id);
                 neoForgeVersion = id.Replace("neoforge-", "");
+                modLoader = ModComp.CompLoaderType.NeoForge;
             }
             else if (id.StartsWithF("fabric-"))
             {
@@ -405,6 +407,7 @@ public static class ModModpack
                 {
                     LauncherLog.Log("[ModPack] 整合包 Fabric 版本：" + id);
                     fabricVersion = id.Replace("fabric-", "");
+                    modLoader = ModComp.CompLoaderType.Fabric;
                     break;
                 }
                 catch (Exception ex)
@@ -414,17 +417,7 @@ public static class ModModpack
             }
             else if (id.StartsWithF("quilt-"))
             {
-                // Quilt 指定
-                try
-                {
-                    LauncherLog.Log("[ModPack] 整合包 Quilt 版本：" + id);
-                    quiltVersion = id.Replace("quilt-", "");
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    LauncherLog.Log(ex, "读取整合包 Quilt 版本失败：" + id);
-                }
+                throw new Exception(Lang.Text("Minecraft.Download.Modpack.QuiltUnsupported"));
             }
         }
 
@@ -555,7 +548,8 @@ public static class ModModpack
                         continue;
                     // 实际的添加
                     fileList.Add(id,
-                        file.ToNetFile($@"{ModFolder.mcFolderSelected}versions\{instanceName}\{targetFolder}\"));
+                        file.ToNetFile($@"{ModFolder.mcFolderSelected}versions\{instanceName}\{targetFolder}\",
+                            ModComp.DownloadReason.ModPack, json["minecraft"]!["version"]!.ToString(), modLoader));
                     task.Progress += 1d / (1 + modList.Count);
                 }
 
@@ -584,7 +578,6 @@ public static class ModModpack
             forgeVersion = forgeVersion,
             neoForgeVersion = neoForgeVersion,
             fabricVersion = fabricVersion,
-            quiltVersion = quiltVersion
         };
         var mergeLoaders = ModDownloadLib.McInstallLoader(request);
         // 构造总加载器
@@ -689,7 +682,7 @@ public static class ModModpack
         string forgeVersion = null;
         string neoForgeVersion = null;
         string fabricVersion = null;
-        string quiltVersion = null;
+        var modLoader = ModComp.CompLoaderType.Any;
         foreach (var Entry in json["dependencies"]?.AsObject() ?? new JsonObject())
             switch (Entry.Key.ToLower() ?? "")
             {
@@ -701,6 +694,7 @@ public static class ModModpack
                 case "forge": // eg. 14.23.5.2859 / 1.19-41.1.0
                 {
                     forgeVersion = Entry.Value?.ToObject<string>();
+                    modLoader = ModComp.CompLoaderType.Forge;
                     LauncherLog.Log("[ModPack] 整合包 Forge 版本：" + forgeVersion);
                     break;
                 }
@@ -708,20 +702,20 @@ public static class ModModpack
                 case "neo-forge": // eg. 20.6.98-beta
                 {
                     neoForgeVersion = Entry.Value?.ToObject<string>();
+                    modLoader = ModComp.CompLoaderType.NeoForge;
                     LauncherLog.Log("[ModPack] 整合包 NeoForge 版本：" + neoForgeVersion);
                     break;
                 }
                 case "fabric-loader": // eg. 0.14.14
                 {
                     fabricVersion = Entry.Value?.ToObject<string>();
+                    modLoader = ModComp.CompLoaderType.Fabric;
                     LauncherLog.Log("[ModPack] 整合包 Fabric 版本：" + fabricVersion);
                     break;
                 }
                 case "quilt-loader": // eg. 0.26.0
                 {
-                    quiltVersion = Entry.Value?.ToObject<string>();
-                    LauncherLog.Log("[ModPack] 整合包 Quilt 版本：" + quiltVersion);
-                    break;
+                    throw new Exception(Lang.Text("Minecraft.Download.Modpack.QuiltUnsupported"));
                 }
 
                 default:
@@ -804,7 +798,9 @@ public static class ModModpack
                 throw new OperationCanceledException();
             }
 
-            fileList.Add(new DownloadFile(urls, targetPath,
+            fileList.Add(new DownloadFile(
+                ModComp.CompFile.HandleModrinthDownloadUrls(urls, ModComp.DownloadReason.ModPack, minecraftVersion,
+                    modLoader), targetPath,
                 new FileCheckOptions(actualSize: ((JsonNode)File["fileSize"]).ToObject<long>(),
                     hash: File["hashes"]["sha1"].ToString()), true));
         }
@@ -823,7 +819,6 @@ public static class ModModpack
             forgeVersion = forgeVersion,
             neoForgeVersion = neoForgeVersion,
             fabricVersion = fabricVersion,
-            quiltVersion = quiltVersion
         };
         var mergeLoaders = ModDownloadLib.McInstallLoader(request);
         // 构造总加载器
@@ -983,6 +978,20 @@ public static class ModModpack
 
     #region MCBBS
 
+    private static string HandleLaunchArguments(JsonNode? argumentNode)
+    {
+        IEnumerable<string> arguments = argumentNode switch
+        {
+            JsonArray array => array.OfType<JsonValue>()
+                .Where(argument => argument.GetValueKind() == JsonValueKind.String)
+                .Select(argument => argument.GetValue<string>()),
+            JsonValue argument when argument.GetValueKind() == JsonValueKind.String =>
+                [argument.GetValue<string>()],
+            _ => []
+        };
+        return string.Join(" ", arguments.Where(argument => !string.IsNullOrWhiteSpace(argument)));
+    }
+
     private static LoaderCombo<string> InstallPackMCBBS(string fileAddress, ZipArchive archive,
         string archiveBaseFolder, string instanceName = null)
     {
@@ -1037,8 +1046,8 @@ public static class ModModpack
             if (json["launchInfo"] is not null)
             {
                 var launchInfo = (JsonObject)json["launchInfo"];
-                Config.Instance.JvmArgs[versionFolder] = string.Join(" ", launchInfo["javaArgument"]);
-                Config.Instance.GameArgs[versionFolder] = string.Join(" ", launchInfo["launchArgument"]);
+                Config.Instance.JvmArgs[versionFolder] = HandleLaunchArguments(launchInfo["javaArgument"]);
+                Config.Instance.GameArgs[versionFolder] = HandleLaunchArguments(launchInfo["launchArgument"]);
             }
 
             // 整合包版本
@@ -1062,6 +1071,9 @@ public static class ModModpack
             return null;
         }
 
+        if (addons.ContainsKey("quilt"))
+            throw new Exception(Lang.Text("Minecraft.Download.Modpack.QuiltUnsupported"));
+
         // 构造安装请求
         var request = new ModDownloadLib.McInstallRequest
         {
@@ -1072,7 +1084,6 @@ public static class ModModpack
             forgeVersion = addons.ContainsKey("forge") ? addons["forge"] : null,
             neoForgeVersion = addons.ContainsKey("neoforge") ? addons["neoforge"] : null,
             fabricVersion = addons.ContainsKey("fabric") ? addons["fabric"] : null,
-            quiltVersion = addons.ContainsKey("quilt") ? addons["quilt"] : null
         };
 
         var mergeLoaders = ModDownloadLib.McInstallLoader(request);
@@ -1283,7 +1294,6 @@ public static class ModModpack
         public bool isMcArgsEdited;
         public bool isMinecraftOverrided;
         public bool isNeoForgeOverrided;
-        public bool isQuiltOverrided;
         public JsonArray jvmArgs = new();
         public JsonArray libraries = new();
         public JsonObject overridedJson = new();
@@ -1367,7 +1377,7 @@ public static class ModModpack
                         }
                         else if ((string)patchJson["uid"] == "org.quiltmc.quilt-loader")
                         {
-                            packInfo.isQuiltOverrided = true;
+                            throw new Exception(Lang.Text("Minecraft.Download.Modpack.QuiltUnsupported"));
                         }
 
                         // JVM 参数
@@ -1690,8 +1700,7 @@ public static class ModModpack
                 }
                 case "org.quiltmc.quilt-loader":
                 {
-                    request.quiltVersion = (string)Component["version"];
-                    break;
+                    throw new Exception(Lang.Text("Minecraft.Download.Modpack.QuiltUnsupported"));
                 }
             }
 

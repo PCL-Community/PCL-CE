@@ -85,7 +85,8 @@ public partial class PageDownloadCompDetail
             var target =
                 $@"{ModFolder.mcFolderSelected}versions\{instanceName}\原始整合包.{(_project.FromCurseForge ? "zip" : "mrpack")}";
             var logoFileAddress = MyImage.GetTempPath(_compItem.Logo);
-            loaders.Add(new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadModpackFile"), new List<DownloadFile> { file.ToNetFile(target) })
+            loaders.Add(new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadModpackFile"),
+                    new List<DownloadFile> { file.ToNetFile(target, ModComp.DownloadReason.ModPack) })
                 { ProgressWeight = 10d, block = true });
             loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Download.Comp.Detail.PrepareModpackInstall"),
                 _ => ModModpack.ModpackInstall(target, instanceName,
@@ -226,7 +227,11 @@ public partial class PageDownloadCompDetail
             var targetPath = target.BeforeLast(@"\");
             var logoFileAddress = MyImage.GetTempPath(_compItem.Logo);
             loaders.Add(new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadWorldFile"),
-                new List<DownloadFile> { file.ToNetFile(target) }) { ProgressWeight = 10d, block = true });
+                    new List<DownloadFile>
+                    {
+                        file.ToNetFile(target, ModComp.DownloadReason.Standalone, file.RawGameVersions.FirstOrDefault())
+                    })
+                { ProgressWeight = 10d, block = true });
             loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Download.Comp.Detail.InstallWorld"),
                 _ => Files.ExtractFileAsync(target, targetPath).GetAwaiter().GetResult()) { ProgressWeight = 0.1d, block = true });
             loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Download.Comp.Detail.CleanCache"),
@@ -314,6 +319,8 @@ public partial class PageDownloadCompDetail
                         // 加载器判定
                         if (!allowedLoaders.Any()) return true; // 无要求
                         if (allowedLoaders.Contains(ModComp.CompLoaderType.Forge) && version.Info.HasForge) return true;
+                        if (allowedLoaders.Contains(ModComp.CompLoaderType.Forge) && version.Info.HasCleanroom) 
+                            return true;
                         if (allowedLoaders.Contains(ModComp.CompLoaderType.Fabric) &&
                             (version.Info.HasFabric || version.Info.HasLegacyFabric)) return true;
                         if (allowedLoaders.Contains(ModComp.CompLoaderType.NeoForge) && version.Info.HasNeoForge)
@@ -427,7 +434,7 @@ public partial class PageDownloadCompDetail
                             var targetLoaders = new List<ModComp.CompLoaderType>();
                             if (targetInstance is not null)
                             {
-                                if (targetInstance.Info.HasForge)
+                                if (targetInstance.Info.HasForge || targetInstance.Info.HasCleanroom)
                                     targetLoaders.Add(ModComp.CompLoaderType.Forge);
                                 if (targetInstance.Info.HasFabric || targetInstance.Info.HasLegacyFabric)
                                     targetLoaders.Add(ModComp.CompLoaderType.Fabric);
@@ -536,7 +543,12 @@ public partial class PageDownloadCompDetail
                     var loaders = new List<ModLoader.LoaderBase>
                     {
                         new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadFile"),
-                            new List<DownloadFile> { file.ToNetFile(target) })
+                            new List<DownloadFile>
+                            {
+                                file.Type == ModComp.CompType.Mod
+                                    ? file.ToNetFile(target)
+                                    : file.ToNetFile(target, ModComp.DownloadReason.Standalone, null)
+                            })
                         {
                             ProgressWeight = 6,
                             block = true
@@ -1157,7 +1169,12 @@ public partial class PageDownloadCompDetail
         if (foldOld && McInstanceInfo.VersionToDrop(name, true) < 120)
             return Lang.Text("Download.Comp.Detail.VersionGroup.Old");
         if (groupedByDrop)
-            return McInstanceInfo.DropToVersion(McInstanceInfo.VersionToDrop(name, true));
+        {
+            var drop = McInstanceInfo.VersionToDrop(name, true);
+            if (drop >= 0)
+                return McInstanceInfo.DropToVersion(drop);
+            return name;
+        }
 
         return name;
     }

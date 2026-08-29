@@ -1,6 +1,7 @@
 ﻿using System.Security.Authentication;
 using System.Windows;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.Profile;
 
 namespace PCL;
 
@@ -16,6 +17,7 @@ public partial class PageLoginMs
 
     private void BtnBack_Click(object sender, EventArgs e)
     {
+        ProfileService.IsCreatingProfile = false;
         UiThread.Post(() => ModMain.frmLaunchLeft.RefreshPage(true));
     }
 
@@ -26,10 +28,12 @@ public partial class PageLoginMs
         BtnLogin.Text = Lang.Number(0d, "P0");
         PCL.Core.App.Basics.RunInNewThread(() =>
         {
+            var previousProfile = ProfileService.Current;
+            var loginSucceeded = false;
             try
             {
-                ModProfile.selectedProfile = null;
-                ModLaunch.mcLoginMsLoader.Start(ModProfile.GetLoginData(ModLaunch.McLoginType.Ms), true);
+                ProfileService.Select(null);
+                ModLaunch.mcLoginMsLoader.Start(ProfileUi.GetLoginData(ModLaunch.McLoginType.Ms), true);
                 while (ModLaunch.mcLoginMsLoader.State == LoadState.Loading)
                 {
                     UiThread.Post(() => BtnLogin.Text = Lang.Number(ModLaunch.mcLoginMsLoader.Progress, "P0"));
@@ -37,20 +41,25 @@ public partial class PageLoginMs
                 }
 
                 if (ModLaunch.mcLoginMsLoader.State == LoadState.Finished)
+                {
+                    loginSucceeded = true;
                     UiThread.Post(() => ModMain.frmLaunchLeft.RefreshPage(true));
+                }
                 else if (ModLaunch.mcLoginMsLoader.State == LoadState.Aborted)
                     throw new ThreadInterruptedException();
                 else if (ModLaunch.mcLoginMsLoader.Error is null)
-                    throw new Exception(Lang.Text("Launch.Account.Microsoft.Error.Unknown"));
+                    throw new InvalidOperationException(Lang.Text("Launch.Account.Microsoft.Error.Unknown"));
                 else
-                    throw new Exception(ModLaunch.mcLoginMsLoader.Error.Message, ModLaunch.mcLoginMsLoader.Error);
+                    throw ModLaunch.mcLoginMsLoader.Error;
             }
             catch (ThreadInterruptedException ex)
             {
+                if (!loginSucceeded && previousProfile is not null) ProfileService.Select(previousProfile);
                 HintService.Hint(Lang.Text("Launch.Account.LoginCancelled"));
             }
             catch (Exception ex)
             {
+                if (!loginSucceeded && previousProfile is not null) ProfileService.Select(previousProfile);
                 if (ex.Message == "$$")
                 {
                 }
@@ -79,6 +88,7 @@ public partial class PageLoginMs
             }
             finally
             {
+                ProfileService.IsCreatingProfile = false;
                 UiThread.Post(() =>
                 {
                     BtnLogin.IsEnabled = true;

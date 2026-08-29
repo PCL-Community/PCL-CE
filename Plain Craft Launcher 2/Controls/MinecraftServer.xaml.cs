@@ -45,6 +45,7 @@ public partial class MinecraftServer : Grid
         LabServerDesc.Text = Lang.Text("Tools.ServerQuery.State.Querying");
         LabServerPlayer.Text = "-/-";
         LabServerPlayer.ToolTip = null;
+        LabServerLatency.Text = string.Empty;
         ImageLoaderHelper.SetFallbackImage(ImgServerLogo, fallbackImageUri);
 
         try
@@ -86,8 +87,8 @@ public partial class MinecraftServer : Grid
         MotdRenderer.RenderCanvas();
 
         // 更新玩家信息
-        var playerText = $"{ret.Players.Online}/{ret.Players.Max}{"\r\n"}§{latencyColor}{ret.Latency}ms";
-        ModStyle.MinecraftFormatter.SetColorfulTextLab(playerText, LabServerPlayer, false);
+        LabServerPlayer.Text = $"{ret.Players.Online}/{ret.Players.Max}";
+        ModStyle.MinecraftFormatter.SetColorfulTextLab($"§{latencyColor}{ret.Latency}ms", LabServerLatency, false);
 
         // 玩家列表提示
         if (ret.Players.Samples.Any())

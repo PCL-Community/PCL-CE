@@ -16,8 +16,9 @@ internal sealed class CrashReportExporter
 
     private const string LaunchScriptFileName = "启动脚本.bat";
     private const string RawOutputFileName = "游戏崩溃前的输出.txt";
-    private const string LauncherLogFileName = "PCL 启动器日志.txt";
+    private const string LauncherLogFileName = "PCL CE 启动器日志.txt";
     private const string EnvironmentFileName = "环境与启动信息.txt";
+    private const string ModInfoFileName = "模组列表.txt";
 
     public void Export(
         CrashAnalysisContext context,
@@ -45,6 +46,7 @@ internal sealed class CrashReportExporter
                 _CopyFileToReport(reportFolder, outputFile);
 
             _WriteEnvironmentInfo(reportFolder);
+            _WriteModInfo(reportFolder, context.Instance);
 
             ZipFile.CreateFromDirectory(reportFolder, targetZipPath);
         }
@@ -253,5 +255,151 @@ internal sealed class CrashReportExporter
         return File.Exists(filePath)
             ? CrashFileIo.ReadText(filePath)
             : "";
+    }
+
+    private static void _WriteModInfo(string reportFolder, McInstance? instance)
+    {
+        if (instance is null)
+            return;
+
+        try
+        {
+            var modsFolderName = ModLocalComp.GetPathNameByCompType(ModComp.CompType.Mod);
+            var modsFolder = instance.Info.HasLabyMod
+                ? Path.Combine(instance.PathIndie, "labymod-neo", "fabric", instance.Info.VanillaName, modsFolderName)
+                : Path.Combine(instance.PathIndie, modsFolderName);
+
+            if (!Directory.Exists(modsFolder))
+                return;
+
+            // 老 Forge（Drop < 130）的启用 Mod 位于 mods/<版本名> 子目录，需一并扫描
+            var scanFolders = new List<string> { modsFolder };
+            if (instance.Info.HasForge && instance.Info.Drop < 130)
+            {
+                var versionSubFolder = Path.Combine(modsFolder, instance.Info.VanillaName);
+                if (Directory.Exists(versionSubFolder))
+                    scanFolders.Add(versionSubFolder);
+            }
+
+            var activeMods = new List<ModLocalComp.LocalCompFile>();
+            foreach (var folder in scanFolders)
+                foreach (var file in Directory.GetFiles(folder))
+                {
+                    if (!ModLocalComp.LocalCompFile.IsModFile(file)
+                        || file.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase)
+                        || file.EndsWith(".old", StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    var mod = new ModLocalComp.LocalCompFile(file);
+                    mod.Load();
+                    if (mod.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine)
+                        activeMods.Add(mod);
+                }
+
+            activeMods = activeMods
+                .OrderBy(m => m.Name ?? m.FileName, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var sb = new StringBuilder();
+
+            var modsByModId = new Dictionary<string, List<ModLocalComp.LocalCompFile>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var mod in activeMods)
+            {
+                if (string.IsNullOrEmpty(mod.ModId))
+                    continue;
+                if (!modsByModId.TryGetValue(mod.ModId, out var list))
+                    modsByModId[mod.ModId] = list = new List<ModLocalComp.LocalCompFile>();
+                list.Add(mod);
+            }
+
+            var duplicates = new List<string>();
+            foreach (var host in activeMods)
+                foreach (var embedded in _FlattenEmbedded(host.EmbeddedMods))
+                {
+                    if (string.IsNullOrEmpty(embedded.ModId)
+                        || !modsByModId.TryGetValue(embedded.ModId, out var matches))
+                        continue;
+                    foreach (var other in matches)
+                    {
+                        if (ReferenceEquals(other, host))
+                            continue;
+                        duplicates.Add(Lang.Text("Crash.Report.JarInJarMod.DuplicateEntry", other.Name, other.FileName, host.Name, embedded.Name ?? embedded.ModId));
+                    }
+                }
+
+            sb.AppendLine(Lang.Text("Crash.Report.JarInJarMod.DuplicateSection"));
+            if (duplicates.Count == 0)
+                sb.AppendLine(Lang.Text("Crash.Report.JarInJarMod.DuplicateNone"));
+            else
+            {
+                sb.AppendLine(Lang.Text("Crash.Report.JarInJarMod.DuplicateDescription"));
+                sb.AppendLine(Lang.Text("Crash.Report.JarInJarMod.DuplicateHeuristic"));
+                foreach (var line in duplicates.Distinct())
+                    sb.AppendLine("\t|-> " + line);
+            }
+
+            sb.AppendLine().AppendLine("----------------------------").AppendLine();
+
+            sb.AppendLine(Lang.Text("Crash.Report.JarInJarMod.ModListSection"));
+            sb.AppendLine(Lang.Text("Crash.Report.JarInJarMod.ModListDirectory", modsFolder));
+            sb.AppendLine("|-> mods");
+            foreach (var mod in activeMods)
+            {
+                var line = "|  |-> " + (mod.Name ?? mod.FileName);
+                if (!string.IsNullOrWhiteSpace(mod.Version))
+                    line += $" ({mod.Version})";
+                if (mod.Name != mod.FileName)
+                    line += $" [{mod.FileName}]";
+                sb.AppendLine(line);
+            }
+
+            sb.AppendLine().AppendLine("----------------------------").AppendLine();
+
+            sb.AppendLine(Lang.Text("Crash.Report.JarInJarMod.JarInJarSection"));
+            var hasJij = false;
+            foreach (var mod in activeMods)
+            {
+                if (!mod.EmbeddedMods.Any())
+                    continue;
+                hasJij = true;
+                sb.AppendLine(mod.Name ?? mod.FileName);
+                _AppendEmbeddedMods(sb, mod.EmbeddedMods, 1);
+                sb.AppendLine();
+            }
+
+            if (!hasJij)
+                sb.AppendLine(Lang.Text("Crash.Report.JarInJarMod.JarInJarNone"));
+
+            CrashFileIo.WriteText(Path.Combine(reportFolder, ModInfoFileName), sb.ToString(), Encoding.UTF8);
+            LogWrapper.Info("Crash", "已导出模组列表及 Jar-in-Jar 信息");
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ex, "Crash", "导出模组信息失败");
+        }
+    }
+
+    private static IEnumerable<ModLocalComp.LocalCompFile> _FlattenEmbedded(List<ModLocalComp.LocalCompFile> mods)
+    {
+        foreach (var mod in mods)
+        {
+            yield return mod;
+            if (mod.EmbeddedMods.Any())
+                foreach (var child in _FlattenEmbedded(mod.EmbeddedMods))
+                    yield return child;
+        }
+    }
+
+    private static void _AppendEmbeddedMods(StringBuilder builder, List<ModLocalComp.LocalCompFile> mods, int depth)
+    {
+        var indent = new string('\t', depth);
+        foreach (var mod in mods)
+        {
+            var line = indent + "|-> " + (mod.Name ?? mod.ModId ?? "?");
+            if (!string.IsNullOrWhiteSpace(mod.Version))
+                line += $" ({mod.Version})";
+            builder.AppendLine(line);
+            if (mod.EmbeddedMods.Any())
+                _AppendEmbeddedMods(builder, mod.EmbeddedMods, depth + 1);
+        }
     }
 }

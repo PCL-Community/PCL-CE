@@ -318,6 +318,7 @@ public partial class PageToolsTest
         {
             if (!string.IsNullOrEmpty(TextDownloadName.Text) || string.IsNullOrEmpty(TextDownloadUrl.Text)) return;
             TextDownloadName.Text = PathUtils.GetFileNameFromUrlOrPath(WebUtility.UrlDecode(TextDownloadUrl.Text));
+            StartButtonRefresh();
         }
         catch
         {
@@ -391,7 +392,7 @@ public partial class PageToolsTest
                 }
                 else
                 {
-                    var result = (string)ModProfile.McLoginMojangUuid(id, true);
+                    var result = (string)ProfileUi.McLoginMojangUuid(id, true);
                     result = ModSkin.McSkinGetAddress(result, "Mojang");
                     result = ModSkin.McSkinDownload(result);
                     UiThread.Post(() =>

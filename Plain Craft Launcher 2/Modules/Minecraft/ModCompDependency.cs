@@ -205,7 +205,7 @@ public static class ModCompDependency
 
             var depFileName = ModComp.CompFileNameGet(depProject, depCompFile);
             var targetPath = Path.Combine(targetModsFolder ?? string.Empty, depFileName);
-            downloads.Add((depFileName, depCompFile.ToNetFile(targetPath)));
+            downloads.Add((depFileName, depCompFile.ToNetFile(targetPath, ModComp.DownloadReason.Dependency)));
         }
 
         return downloads;

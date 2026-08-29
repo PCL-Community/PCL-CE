@@ -204,6 +204,14 @@ public static class ModComp
         /// </summary>        
         Cancel = 3,
     }
+    
+    public enum DownloadReason
+    {
+        Standalone,
+        Dependency,
+        ModPack,
+        Update
+    }
 
     public static string GetCompTypeName(CompType type) => Lang.Text(type switch
     {
@@ -3205,12 +3213,37 @@ public static class ModComp
         public bool Available => FileName is not null && DownloadUrls is not null;
 
         /// <summary>
-        ///     获取下载信息。
+        /// 获取下载信息。
         /// </summary>
         /// <param name="localAddress">目标本地文件夹，或完整的文件路径。会自动判断类型。</param>
-        public DownloadFile ToNetFile(string localAddress)
+        /// <param name="reason">下载原因。</param>
+        /// <returns>下载信息。</returns>
+        public DownloadFile ToNetFile(string localAddress, DownloadReason reason = DownloadReason.Standalone)
         {
-            return new DownloadFile(DownloadUrls, localAddress + (localAddress.EndsWithF(@"\") ? CompFileNameSanitize(FileName) : ""),
+            return ToNetFile(localAddress, reason, RawGameVersions.FirstOrDefault(), ModLoaders.FirstOrDefault());
+        }
+        
+        /// <summary>
+        /// 获取下载信息。
+        /// </summary>
+        /// <param name="localAddress">目标本地文件夹，或完整的文件路径。会自动判断类型。</param>
+        /// <param name="reason">下载原因。</param>
+        /// <param name="version">实例版本。</param>
+        /// <param name="modLoader">实例的模组加载器。</param>
+        /// <returns>下载信息。</returns>
+        public DownloadFile ToNetFile(
+            string localAddress,
+            DownloadReason reason,
+            string? version,
+            CompLoaderType modLoader = CompLoaderType.Any)
+        {
+            if (DownloadUrls is null)
+            {
+                throw new InvalidCastException("DownloadUrls 为空");
+            }
+            
+            return new DownloadFile(HandleModrinthDownloadUrls(DownloadUrls, reason, version, modLoader),
+                localAddress + (localAddress.EndsWithF(@"\") ? CompFileNameSanitize(FileName) : ""),
                 new FileCheckOptions(hash: Hash), true);
         }
 
@@ -3221,6 +3254,49 @@ public static class ModComp
         {
             return url.Replace("-service.overwolf.wtf", ".forgecdn.net").Replace("://media.", "://edge.")
                 .Replace("://mediafilez.", "://edge.");
+        }
+
+        /// <summary>
+        /// 对 Modrinth 下载链接添加上报参数。
+        /// </summary>
+        /// <param name="urls">下载链接。</param>
+        /// <param name="reason">下载原因。</param>
+        /// <param name="version">实例版本。</param>
+        /// <param name="modLoader">实例的模组加载器。</param>
+        /// <returns>处理后的下载链接。</returns>
+        public static IEnumerable<string> HandleModrinthDownloadUrls(
+            IEnumerable<string> urls,
+            DownloadReason reason = DownloadReason.Standalone,
+            string? version = null,
+            CompLoaderType modLoader = CompLoaderType.Any)
+        {
+            foreach (var url in urls)
+            {
+                if (!url.Contains("modrinth", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    yield return url;
+                    continue;
+                }
+
+                var sb = new StringBuilder(url);
+            
+                sb.Append(url.Contains('?') ? "&mr_download_reason=" : "?mr_download_reason=");
+                sb.Append(reason.ToString().ToLowerInvariant());
+
+                if (version is not null)
+                {
+                    sb.Append("&mr_game_version=");
+                    sb.Append(version);
+                }
+
+                if (modLoader != CompLoaderType.Any)
+                {
+                    sb.Append("&mr_loader=");
+                    sb.Append(modLoader.ToString().ToLowerInvariant());
+                }
+
+                yield return sb.ToString();
+            }
         }
 
         /// <summary>
@@ -3669,7 +3745,12 @@ public static class ModComp
         var loaders = new List<ModLoader.LoaderBase>
         {
             new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadFile"),
-                new List<DownloadFile> { file.ToNetFile(target) })
+                new List<DownloadFile>
+                {
+                    file.Type == CompType.Mod
+                        ? file.ToNetFile(target)
+                        : file.ToNetFile(target, DownloadReason.Standalone, null)
+                })
             {
                 ProgressWeight = 6,
                 block = true
@@ -3739,6 +3820,8 @@ public static class ModComp
         // 加载器判定
         if (allowedLoaders.Count == 0) return true; // 无要求
         if (allowedLoaders.Contains(CompLoaderType.Forge) && version.Info.HasForge) return true;
+        if (allowedLoaders.Contains(CompLoaderType.Forge) && version.Info.HasCleanroom) 
+            return true;
         if (allowedLoaders.Contains(CompLoaderType.Fabric) &&
             (version.Info.HasFabric || version.Info.HasLegacyFabric)) return true;
         if (allowedLoaders.Contains(CompLoaderType.NeoForge) && version.Info.HasNeoForge) return true;

@@ -291,24 +291,45 @@ namespace PCL;
 
         /// <summary>
         ///     尝试将版本字符串转换为 Drop 序数。
-        ///     若无法转换则返回 0。
+        ///     若无法转换则返回 -1。
         /// </summary>
         public static int VersionToDrop(string? version, bool allowSnapshot = false)
         {
-            if (!allowSnapshot && version.Contains("-"))
-                return 0;
-            if (version is null)
-                return 0;
-            var segments = version.BeforeFirst("-").Split(".");
+            if (string.IsNullOrEmpty(version))
+                return -1;
+
+            var lower = version.ToLowerInvariant();
+
+            if (lower.StartsWith("1.rv")) return 90;           // 1.rv-pre1,约1.9
+            if (lower.StartsWith("3d shareware")) return 140;  // 3d shareware v1.34,约1.14
+
+            if (!allowSnapshot && lower.Contains('-'))
+                return -1;
+
+            var baseVer = lower.BeforeFirst("-");
+            var segments = baseVer.Split('.');
+
+            //XXwYY的快照
+            // 按年份估算
+            if (allowSnapshot && segments.Length == 1 && segments[0].Length >= 3
+                && segments[0][2] == 'w'
+                && char.IsDigit(segments[0][0]) && char.IsDigit(segments[0][1]))
+            {
+                var year = int.Parse(segments[0][..2]);
+                if (year <= 16) return Math.Max(year * 10 - 70, 20);
+                if (year == 17) return 120;
+                return Math.Min(130 + (year - 18) * 10, 210);
+            }
+
             if (segments.Length < 2)
-                return 0;
+                return -1;
             var major = (int)Math.Round(NumberUtils.ParseDoubleOrZero(segments[0]));
             var minor = (int)Math.Round(NumberUtils.ParseDoubleOrZero(segments[1]));
             if (major == 1) return minor * 10;
+            if (major >= 25) return major * 10 + minor;
+            if (major == 2) return 50; //2.0愚人节
 
-            if (major < 25) return 0;
-
-            return major * 10 + minor;
+            return -1;
         }
 
         /// <summary>

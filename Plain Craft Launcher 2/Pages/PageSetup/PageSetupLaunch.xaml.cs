@@ -66,6 +66,7 @@ public partial class PageSetupLaunch
             // 游戏内存
             ((MyRadioBox)FindName("RadioRamType" + Config.Launch.MemoryAllocationMode)).Checked = true;
             SliderRamCustom.Value = Config.Launch.CustomMemorySize;
+            RamType(Config.Launch.MemoryAllocationMode);
 
             // 高级设置
             ComboAdvanceRenderer.SelectedIndex = Config.Launch.Renderer;
@@ -238,9 +239,9 @@ public partial class PageSetupLaunch
         else
             SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((ramTotal - 16d) / 2d) + 33d);
         // 设置文本
-        LabRamGame.Text = $"{Lang.Number(ramGame, "N1")} GB{(ramGame != ramGameActual ? $" ({Lang.Text("Setup.Launch.Memory.AvailableSuffix", Lang.Number(ramGameActual, "N1"))})" : "")}";
-        LabRamUsed.Text = $"{Lang.Number(ramUsed, "N1")} GB";
-        LabRamTotal.Text = $" / {Lang.Number(ramTotal, "N1")} GB";
+        LabRamGame.Text = $"{Lang.Number(ramGame, "N1")} GiB{(ramGame != ramGameActual ? $" ({Lang.Text("Setup.Launch.Memory.AvailableSuffix", Lang.Number(ramGameActual, "N1"))})" : "")}";
+        LabRamUsed.Text = $"{Lang.Number(ramUsed, "N1")} GiB";
+        LabRamTotal.Text = $" / {Lang.Number(ramTotal, "N1")} GiB";
         LabRamWarn.Visibility =
             ramGame == 1d && !ModJava.IsGameSet64BitJava() && !SystemInfo.Is32BitSystem && ModJava.Javas.ExistAnyJava()
                 ? Visibility.Visible

@@ -97,7 +97,6 @@
     <sys:String x:Key="Common.Installation.NeoForge">NeoForge</sys:String>
     <sys:String x:Key="Common.Installation.OptiFabric">OptiFabric</sys:String>
     <sys:String x:Key="Common.Installation.OptiFine">OptiFine</sys:String>
-    <sys:String x:Key="Common.Installation.QfapiQsl">QFAPI / QSL</sys:String>
     <sys:String x:Key="Common.Installation.Quilt">Quilt</sys:String>
 
     <!-- Config -->
@@ -202,17 +201,29 @@
 
     <sys:String x:Key="Crash.Report.Environment.Cpu">CPU：{0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.EnvironmentSection">- Environment information -</sys:String>
-    <sys:String x:Key="Crash.Report.Environment.Gpu">GPU {0}: {1} ({2} MB, {3})</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.Gpu">GPU {0}: {1} ({2} MiB, {3})</sys:String>
     <sys:String x:Key="Crash.Report.Environment.InstanceSection">- Instance information -</sys:String>
     <sys:String x:Key="Crash.Report.Environment.LauncherId">Identification code: {0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.LauncherVersion">PCL CE version: {0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.Log4j2NoLookups">Log4j2 NoLookups：{0}</sys:String>
-    <sys:String x:Key="Crash.Report.Environment.MemoryAllocation">Memory allocation (allocated memory / installed physical memory): {0} / {1} GB ({2} MB)</sys:String>
+    <sys:String x:Key="Crash.Report.Environment.MemoryAllocation">Memory allocation (allocated memory / installed physical memory): {0} / {1} GiB ({2} MiB)</sys:String>
     <sys:String x:Key="Crash.Report.Environment.MinecraftFolder">Minecraft folder: {0}</sys:String>
     <sys:String x:Key="Crash.Report.Environment.OperatingSystem">Operating system: {0} (64-bit: {1}, ARM64: {2})</sys:String>
     <sys:String x:Key="Crash.Report.Environment.ProfileName">Profile name: {0} (login method: {1})</sys:String>
     <sys:String x:Key="Crash.Report.Environment.ProfileSection">- Profile information -</sys:String>
     <sys:String x:Key="Crash.Report.Environment.SelectedJava">Selected Java VM: {0}</sys:String>
+
+    <!-- Crash.Report.JarInJarMod -->
+
+    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateDescription">These mods may conflict with their bundled copies and cause crashes:</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateEntry">{0} [{1}] &lt;-&gt; bundled in {2} ({3})</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateHeuristic">(Matched by mod ID and may include false positives.)</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateNone">None</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateSection">=== Potentially duplicated mods (installed standalone and bundled via Jar-in-Jar) ===</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.JarInJarNone">No Jar-in-Jar information found</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.JarInJarSection">=== Jar-in-Jar information (enabled mods only) ===</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.ModListDirectory">Directory: {0}</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.ModListSection">=== Mod list ===</sys:String>
 
     <!-- Crash.Suggestion -->
 
@@ -626,9 +637,6 @@
     <!-- Download.Install.Compat -->
 
     <sys:String x:Key="Download.Install.Compat.CompatForgeSpecificOnly">Compatible only with certain Forge versions</sys:String>
-    <sys:String x:Key="Download.Install.Compat.IncompatibleWithCleanroom">Incompatible with Cleanroom</sys:String>
-    <sys:String x:Key="Download.Install.Compat.IncompatibleWithFabric">Incompatible with Fabric</sys:String>
-    <sys:String x:Key="Download.Install.Compat.IncompatibleWithForge">Incompatible with Forge</sys:String>
     <sys:String x:Key="Download.Install.Compat.IncompatibleWithLiteLoader">Incompatible with LiteLoader</sys:String>
     <sys:String x:Key="Download.Install.Compat.IncompatibleWithLoader">Incompatible with {0}</sys:String>
     <sys:String x:Key="Download.Install.Compat.IncompatibleWithOptiFine">Incompatible with OptiFine</sys:String>
@@ -637,7 +645,6 @@
     <sys:String x:Key="Download.Install.Compat.RequiresLegacyFabric">Requires Legacy Fabric</sys:String>
     <sys:String x:Key="Download.Install.Compat.RequiresOptiFine">Requires OptiFine</sys:String>
     <sys:String x:Key="Download.Install.Compat.RequiresOptiFineAndFabric">Requires OptiFine &amp; Fabric</sys:String>
-    <sys:String x:Key="Download.Install.Compat.RequiresQuilt">Requires Quilt</sys:String>
 
     <!-- Download.Install.State -->
 
@@ -658,8 +665,6 @@
     <sys:String x:Key="Download.Install.Warning.ModOptiFine">OptiFine has poor compatibility with some mods. Please install it cautiously.</sys:String>
     <sys:String x:Key="Download.Install.Warning.OptiFabric">OptiFine will be unable to run if OptiFabric is not installed!</sys:String>
     <sys:String x:Key="Download.Install.Warning.OptiFabricOld">Please install "OptiFabric Origins" mod after the installation, otherwise OptiFine will be unable to run!</sys:String>
-    <sys:String x:Key="Download.Install.Warning.Qsl">Most of the mods will be unable to run if QFAPI / QSL is not installed! If QFAPI / QSL has no available version, you can choose to install Fabric API instead.</sys:String>
-    <sys:String x:Key="Download.Install.Warning.QuiltFabricApi">You have selected Fabric API for Quilt, but a compatible QFAPI / QSL version is available. Please consider installing QFAPI / QSL first.</sys:String>
 
     <!-- Download.Left -->
 
@@ -680,7 +685,6 @@
     <sys:String x:Key="Download.Left.Modpack">Modpacks</sys:String>
     <sys:String x:Key="Download.Left.NeoForge">NeoForge</sys:String>
     <sys:String x:Key="Download.Left.Optifine">OptiFine</sys:String>
-    <sys:String x:Key="Download.Left.Quilt">Quilt</sys:String>
     <sys:String x:Key="Download.Left.ResourcePack">Resource packs</sys:String>
     <sys:String x:Key="Download.Left.Shader">Shaders</sys:String>
     <sys:String x:Key="Download.Left.World">Worlds</sys:String>
@@ -695,7 +699,6 @@
     <sys:String x:Key="Download.Source.MojangOfficial">Mojang official source</sys:String>
     <sys:String x:Key="Download.Source.NeoForgeOfficial">NeoForge official source</sys:String>
     <sys:String x:Key="Download.Source.OptiFineOfficial">OptiFine official source</sys:String>
-    <sys:String x:Key="Download.Source.QuiltOfficial">Quilt official source</sys:String>
     <sys:String x:Key="Download.Source.Tag.Uvmc">UVMC Exclusive</sys:String>
 
     <!-- Download.Version -->
@@ -719,7 +722,6 @@
     <sys:String x:Key="Download.Version.Installer.Fabric.Filter">Fabric installer (*.jar)|*.jar</sys:String>
     <sys:String x:Key="Download.Version.Installer.LabyMod.Filter">LabyMod installer (*.jar)|*.jar</sys:String>
     <sys:String x:Key="Download.Version.Installer.LegacyFabric.Filter">Legacy Fabric installer (*.jar)|*.jar</sys:String>
-    <sys:String x:Key="Download.Version.Installer.Quilt.Filter">Quilt installer (*.jar)|*.jar</sys:String>
     <sys:String x:Key="Download.Version.LabyMod.Intro.Description">LabyMod is an optimization client for Minecraft.&#xA;This page offers the LabyMod installer for download. After downloading, you need to complete the installation process manually through the installer.</sys:String>
     <sys:String x:Key="Download.Version.LabyMod.Intro.Title">Introduction of LabyMod</sys:String>
     <sys:String x:Key="Download.Version.LabyMod.LoadingList">Getting LabyMod list...</sys:String>
@@ -743,9 +745,6 @@
     <sys:String x:Key="Download.Version.Optifine.Intro.Title">Introduction of OptiFine</sys:String>
     <sys:String x:Key="Download.Version.Optifine.LoadingList">Getting OptiFine list...</sys:String>
     <sys:String x:Key="Download.Version.Optifine.Snapshot">Snapshot</sys:String>
-    <sys:String x:Key="Download.Version.Quilt.Intro.Description">Quilt Loader is a lightweight, modular mod loader for modern versions of Minecraft.&#xA;You must install it before using any Quilt mods. This page offers the Quilt installer for download. After downloading, you need to complete the installation process manually through the installer.</sys:String>
-    <sys:String x:Key="Download.Version.Quilt.Intro.Title">Introduction of Quilt</sys:String>
-    <sys:String x:Key="Download.Version.Quilt.LoadingList">Getting Quilt list...</sys:String>
     <sys:String x:Key="Download.Version.ReleaseDate">Released on {0}</sys:String>
     <sys:String x:Key="Download.Version.SaveAs">Save as</sys:String>
     <sys:String x:Key="Download.Version.SaveInstaller">Save installer</sys:String>
@@ -903,6 +902,8 @@
     <sys:String x:Key="Instance.Export.Option.Saves">Singleplayer saves</sys:String>
     <sys:String x:Key="Instance.Export.Option.Saves.Desc">Worlds / maps</sys:String>
     <sys:String x:Key="Instance.Export.Option.Screenshots">Screenshots</sys:String>
+    <sys:String x:Key="Instance.Export.Option.OtherFolders">Other folders</sys:String>
+    <sys:String x:Key="Instance.Export.Option.OtherFolders.Desc">Other folders not covered by the options above</sys:String>
     <sys:String x:Key="Instance.Export.Option.Servers">Multiplayer server list</sys:String>
     <sys:String x:Key="Instance.Export.Option.ShaderPacks">Shader packs</sys:String>
     <sys:String x:Key="Instance.Export.Option.Structures">Exported structures</sys:String>
@@ -964,6 +965,7 @@
     <sys:String x:Key="Instance.Overall.Reset.ConfirmMessage">Are you sure you want to reset instance {0}?&#xA;PCL CE will try to re-download this instance's resource file information from the internet and perform automatic installation.</sys:String>
     <sys:String x:Key="Instance.Overall.Reset.ConfirmTitle">Reset instance confirmation</sys:String>
     <sys:String x:Key="Instance.Overall.Reset.NotSupported">This instance does not support reset yet!</sys:String>
+    <sys:String x:Key="Instance.Overall.Reset.QuiltUnsupported">Cannot reset: Quilt is no longer supported by this launcher.</sys:String>
     <sys:String x:Key="Instance.Overall.Script.ExportFailed">Export launch script failed</sys:String>
     <sys:String x:Key="Instance.Overall.Script.Exporting">Exporting launch script...</sys:String>
     <sys:String x:Key="Instance.Overall.Script.ExportingWarning">Exporting launch script... (Note: using the script to launch may cause your login session to expire!)</sys:String>
@@ -1500,8 +1502,11 @@
     <sys:String x:Key="Launch.Account.Auth.Password">Password</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Preset.LittleSkin">Preset - LittleSkin</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Register">Register</sys:String>
-    <sys:String x:Key="Launch.Account.Auth.Server">Authentication server</sys:String>
     <sys:String x:Key="Launch.Account.Auth.ServerLabel">Authentication server: {0}</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.SelectServer">Select authentication server</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.OAuthLogin">Start OAuth login</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.UsePassword">»  Use password login</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.UseOAuth">»  Use OAuth login</sys:String>
 
     <!-- Launch.Account.LoginDialog -->
 
@@ -1647,7 +1652,7 @@
     <sys:String x:Key="Launch.Skin.File.Error">Skin file error</sys:String>
     <sys:String x:Key="Launch.Skin.FileDialog.Filter">Skin file (*.png;*.jpg;*.webp)|*.png;*.jpg;*.webp</sys:String>
     <sys:String x:Key="Launch.Skin.FileDialog.Title">Select skin file</sys:String>
-    <sys:String x:Key="Launch.Skin.FileTooLarge">The skin file must be smaller than 24 KB. The selected file is {0} KB.</sys:String>
+    <sys:String x:Key="Launch.Skin.FileTooLarge">The skin file must be smaller than 24 KiB. The selected file is {0} KiB.</sys:String>
     <sys:String x:Key="Launch.Skin.InvalidSize">The skin image should be 64x32 pixels or 64x64 pixels!</sys:String>
     <sys:String x:Key="Launch.Skin.Load.Error.Avatar">Failed to load avatar: {0}</sys:String>
     <sys:String x:Key="Launch.Skin.Load.Error.Corrupted">Skin file is corrupted: {0}</sys:String>
@@ -1876,6 +1881,8 @@
     <sys:String x:Key="Main.UpdateLog.Empty">Welcome!</sys:String>
     <sys:String x:Key="Main.UpdateLog.FullChangelog">Full changelog</sys:String>
     <sys:String x:Key="Main.UpdateLog.Title">PCL CE has been updated to {0} {1}</sys:String>
+    <sys:String x:Key="Main.HomepageReset.Title">Homepage preset setting has been reset</sys:String>
+    <sys:String x:Key="Main.HomepageReset.Content">The homepage preset setting has been reset due to the launcher update.&#xA;Please go to Settings - Personalization and select the preset again.</sys:String>
 
     <!-- Main.FileDrag -->
 
@@ -1988,6 +1995,7 @@
     <sys:String x:Key="Minecraft.Download.Modpack.OptionalFile.Title">Download optional file</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Message">A file path in the modpack exceeds the instance folder. Please report this issue to the modpack author!&#xA;Incorrect file: {0}</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.PathOutsideInstance.Title">File path validation failed</sys:String>
+    <sys:String x:Key="Minecraft.Download.Modpack.QuiltUnsupported">Cannot install this modpack: Quilt is no longer supported by this launcher.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.RarUnsupported">PCL CE cannot handle .rar archive files. Please extract and re-archive them in .zip format and try again!</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SelectEmptyFolder.Message">Next, select an empty folder. The modpack will be installed there.</sys:String>
     <sys:String x:Key="Minecraft.Download.Modpack.SelectTargetFolder.Title">Select installation target (must be an empty folder)</sys:String>
@@ -2032,7 +2040,6 @@
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeMissingAssets">Analyze missing assets</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeMissingLibraries">Analyze missing libraries</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeOptiFineLibraries">Analyze OptiFine libraries</sys:String>
-    <sys:String x:Key="Minecraft.Download.Stage.AnalyzeQuiltLibraries">Analyze Quilt libraries</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeRequiredAssets.Side">Analyze required assets (side loader)</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeVanillaAndLabyModLibrariesSide">Analyze Vanilla and LabyMod libraries (side loader)</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.AnalyzeVanillaLibraries.Side">Analyze Vanilla libraries (side loader)</sys:String>
@@ -2062,7 +2069,6 @@
     <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFabric">Download OptiFabric</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFineLibraries">Download OptiFine libraries</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadOptiFineMainFile">Download OptiFine main file</sys:String>
-    <sys:String x:Key="Minecraft.Download.Stage.DownloadQfapiQsl">Download QFAPI / QSL</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadServerFile">Download server file</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaAndLabyModLibrariesSide">Download Vanilla and LabyMod libraries (side loader)</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.DownloadVanillaAssets">Download Vanilla assets</sys:String>
@@ -2092,11 +2098,9 @@
     <sys:String x:Key="Minecraft.Download.Stage.ObtainLoaderDetails">Obtain {0} details</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.ObtainOptiFineDownloadUrl">Obtain OptiFine URI</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.ObtainOptiFineUrl">Obtain OptiFine URI</sys:String>
-    <sys:String x:Key="Minecraft.Download.Stage.ObtainQuiltMainFileUrl">Obtain Quilt main file URI</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.ObtainVanillaJsonUrl">Obtain Vanilla JSON URL</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.OptiFineDownload">OptiFine {0} download</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.PrepareLoaderDownload">Prepare to download {0}</sys:String>
-    <sys:String x:Key="Minecraft.Download.Stage.QuiltInstallerDownload">Quilt {0} installer download</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.StartLiteLoaderDependencyDownload">Start LiteLoader dependency download</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.UpdateAssetsIndex.Background">Update assets index (background)</sys:String>
     <sys:String x:Key="Minecraft.Download.Stage.VanillaJsonDownload">Download Vanilla JSON</sys:String>
@@ -2705,7 +2709,13 @@
     <sys:String x:Key="Setup.Language.FormatCulture">Regional format</sys:String>
     <sys:String x:Key="Setup.Language.FormatCulture.Auto">Follow system regional format</sys:String>
     <sys:String x:Key="Setup.Language.FormatCulture.FollowLanguage">Follow UI language</sys:String>
-    <sys:String x:Key="Setup.Language.Hint">Multi-language support is currently limited to certain new interfaces. Others will be updated in upcoming migrations.&#xA;&#xA;To ensure work efficiency and convenience, only "English (US)" and "简体中文（中国大陆）" are guaranteed to be partially available during the migration process. Other languages will be opened up to the community for translation contributions on the translation platform once the future migration work is fully completed.</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.TitlePrefix">Let</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.TitleSuffix">Go Internationalized.</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.DescriptionLine1">With the support of the community, PCL CE is entering a new chapter in its journey toward internationalization.</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.DescriptionLine2">You can help shape that journey by contributing on our translation platform or submitting pull requests to our GitHub repository, making PCL CE more accessible to users around the world.</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.DescriptionLine3">Thank you to everyone who contributes translations, reviews, and improvements—your support makes PCL CE better for everyone.</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.TranslateWebsite">Visit translation platform</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.SubmitPullRequest">Submit pull request</sys:String>
     <sys:String x:Key="Setup.Language.Reset.Success">Language page settings initialized!</sys:String>
     <sys:String x:Key="Setup.Language.Title">Language</sys:String>
     <sys:String x:Key="Setup.Language.UiLanguage">Display language</sys:String>
@@ -2759,11 +2769,11 @@
 
     <sys:String x:Key="Setup.Launch.Memory.Auto">Auto</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Auto.ToolTip">Dynamically adjust the memory allocated to the game based on the installed mods and available system memory.</sys:String>
-    <sys:String x:Key="Setup.Launch.Memory.AvailableSuffix">Available: {0} GB</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.AvailableSuffix">Available: {0} GiB</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.GameAllocation">Game allocation</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Title">Game memory</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.UsedTotal">Used / installed memory</sys:String>
-    <sys:String x:Key="Setup.Launch.Memory.Warning.Java32Bit">32-bit Java can only allocate up to 1 GB of memory. It is strongly recommended to use 64-bit Java!</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Warning.Java32Bit">32-bit Java can only allocate up to 1 GiB of memory. It is strongly recommended to use 64-bit Java!</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Warning.TooMuch">You have allocated too much memory to the game, which may cause crashes. It is recommended to use Auto first!</sys:String>
 
     <!-- Setup.Launch.Options -->
@@ -2934,6 +2944,11 @@
     <sys:String x:Key="Setup.Misc.System.MaxLogLines">Real-time log lines</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxLogLines.ToolTip">Maximum number of lines displayed in the real-time log feature. Old logs are automatically deleted when exceeded.</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxLogLines.Unlimited">Unlimited</sys:String>
+    <sys:String x:Key="Setup.Misc.System.StopUsingPclCe">Stop using PCL CE</sys:String>
+    <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.ContinueAndRemove">Continue and remove instance configs</sys:String>
+    <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Message">This will delete all PCL CE settings, cached data, saved account information, and other related data from this computer. Your acceptance of any license agreements will also be revoked. PCL CE will close automatically when the process is complete.&#xA;&#xA;The following cannot be removed automatically:&#xA;- Local data from other PCL CE installations on this computer&#xA;- Your Natayark account&#xA;&#xA;To also remove PCL CE configuration files from Minecraft instances, choose "Continue and remove instance configs". This will not affect Minecraft settings, mods, saves, or other game data.&#xA;&#xA;This action cannot be undone. Are you sure you want to continue?</sys:String>
+    <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Message.Final">This is the final warning! Are you sure you want to continue?&#xA;All PCL CE data on this computer will be lost forever! (A long time!)</sys:String>
+    <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Title">Stop using PCL CE?</sys:String>
     <sys:String x:Key="Setup.Misc.System.Telemetry">Enable telemetry data collection</sys:String>
     <sys:String x:Key="Setup.Misc.System.Telemetry.ToolTip">When enabled, the launcher will collect and report errors and device environment information. This helps developers fix potential issues and better plan and develop the launcher.&#xA;The following information will be collected: launcher errors, launcher version information and identifier, Windows system version and architecture, installed physical memory size, NAT and IPv6 support status, and whether original PCL, HMCL, or BakaXL have been used.&#xA;&#xA;This data is not associated with you, and we will never sell it to any third party. Not enabling this will not affect other features, but may affect developers' ability to fix potential bugs.&#xA;&#xA;This change will take effect after restarting the launcher.</sys:String>
     <sys:String x:Key="Setup.Misc.System.Title">System</sys:String>
@@ -3092,6 +3107,10 @@
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McOfficialFeed">Minecraft Official Feed</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McSkin">Minecraft Skin Recommendation (Author: wkea)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McUpdateSummary">Minecraft Update Summary (Author: pynickle, partially AI-generated)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.NewsToday">News Today (Author: EYicheng)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.MinecraftKnowledge">Minecraft Knowledge (Author: awaEric233)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.ModpackRecommendation">Modpack Recommendation Engine (Author: CHMYGZ)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.Bangumi">Bangumi Anime (Author: wzyaeu)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.OpenBmclapi">OpenBMCLAPI Dashboard Lite (Authors: Silverteal, Mxmilu666)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.OpenMcim">OpenMCIM Dashboard (Author: SALTWOOD)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.PclAnnouncement">PCL CE Announcements</sys:String>
