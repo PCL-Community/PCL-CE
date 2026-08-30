@@ -37,7 +37,8 @@ public class EncodingDetectorTest
     public void DetectsBomEncodingsCorrectlyEvenWhenFileIsLongerThanFourBytes()
     {
         // UTF-8 with BOM (>= 4 bytes)
-        byte[] utf8WithBom = [0xef, 0xbb, 0xbf, (byte)'H', (byte)'e', (byte)'l', (byte)'l', (byte)'o'];
+        byte[] utf8WithBom =
+            [0xef, 0xbb, 0xbf, (byte)'H', (byte)'e', (byte)'l', (byte)'l', (byte)'o'];
         Assert.AreEqual(Encoding.UTF8, EncodingDetector.DetectEncoding(utf8WithBom));
 
         // UTF-16 LE with BOM (>= 4 bytes)
@@ -54,7 +55,9 @@ public class EncodingDetectorTest
 
         // UTF-32 BE with BOM (>= 4 bytes)
         byte[] utf32BeWithBom = [0x00, 0x00, 0xfe, 0xff, 0x00, 0x00, 0x00, (byte)'H'];
-        Assert.AreEqual(Encoding.GetEncoding("utf-32BE"), EncodingDetector.DetectEncoding(utf32BeWithBom));
+        Assert.AreEqual(
+            Encoding.GetEncoding("utf-32BE"),
+            EncodingDetector.DetectEncoding(utf32BeWithBom));
     }
 
     [TestMethod]
@@ -80,5 +83,17 @@ public class EncodingDetectorTest
         var detected = EncodingDetector.DetectEncoding(stream, true);
         Assert.AreEqual(Encoding.UTF8, detected);
         Assert.AreEqual(5, stream.Position);
+    }
+
+    [TestMethod]
+    public void DecodeBytesFallsBackToGb18030WhenAsciiPrefixPrecedesChineseGb18030Bytes()
+    {
+        // 构造前 1500 字节为 ASCII，后续包含 GB18030 中文的字节序列（典型如大型 mcmod.info）
+        var prefix = new string(' ', 1500);
+        var fullText = prefix + "\"description\": \"这是一个旧版模组的中文描述内容\"";
+        var gbBytes = Encodings.GB18030.GetBytes(fullText);
+
+        var decoded = EncodingUtils.DecodeBytes(gbBytes);
+        Assert.AreEqual(fullText, decoded);
     }
 }

@@ -266,15 +266,23 @@ public static class Files
     /// <param name="encoding">文件编码，默认为 UTF-8</param>
     /// <param name="cancelToken">取消令牌</param>
     /// <returns>文件内容的字符串，失败时返回空字符串</returns>
-    public static async Task<string> ReadAllTextOrEmptyAsync(string filePath, Encoding? encoding = null,
+    public static async Task<string> ReadAllTextOrEmptyAsync(
+        string filePath,
+        Encoding? encoding = null,
         CancellationToken cancelToken = default)
     {
         try
         {
             var fullPath = GetFullPath(filePath);
             if (!File.Exists(fullPath)) throw new FileNotFoundException(fullPath);
-            if (encoding is null) return await File.ReadAllTextAsync(fullPath, cancelToken).ConfigureAwait(false);
-            return await File.ReadAllTextAsync(fullPath, encoding, cancelToken).ConfigureAwait(false);
+
+            return encoding is not null
+                ? await File
+                    .ReadAllTextAsync(fullPath, encoding, cancelToken)
+                    .ConfigureAwait(false)
+                : EncodingUtils.DecodeBytes(await File
+                    .ReadAllBytesAsync(fullPath, cancelToken)
+                    .ConfigureAwait(false));
         }
         catch (Exception ex)
         {
@@ -298,11 +306,10 @@ public static class Files
             ArgumentNullException.ThrowIfNull(stream);
             using var memoryStream = new MemoryStream();
             await stream.CopyToAsync(memoryStream, cancelToken).ConfigureAwait(false);
-            // 使用 MemoryStream 的内部 buffer 避免再分配一次完整的 byte 数组以节省内存
-            // 注：内部 buffer 长度可能大于实际数据长度
             var buffer = memoryStream.GetBuffer();
             var len = (int)memoryStream.Length;
-            return (encoding ?? EncodingDetector.DetectEncoding(buffer)).GetString(buffer, 0, len);
+            ReadOnlySpan<byte> span = buffer.AsSpan(0, len);
+            return encoding is not null ? encoding.GetString(span) : EncodingUtils.DecodeBytes(span);
         }
         catch (Exception ex)
         {
