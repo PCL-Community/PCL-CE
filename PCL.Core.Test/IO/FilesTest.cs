@@ -118,7 +118,7 @@ public class FilesTest
         await using (var tarOutput = new TarOutputStream(fs, Encoding.UTF8))
         {
             var content = "hello tar"u8.ToArray();
-            var entry = TarEntry.CreateTarEntry("folder/test.txt");
+            var entry = TarEntry.CreateTarEntry("folder/中文.txt");
             entry.Size = content.Length;
             tarOutput.PutNextEntry(entry);
             await tarOutput.WriteAsync(content, TestContext.CancellationToken);
@@ -130,10 +130,10 @@ public class FilesTest
             archivePath,
             outputPath,
             progress.Add,
-            Encoding.UTF8,
+            null,
             TestContext.CancellationToken);
 
-        var extractedFile = Path.Combine(outputPath, "folder", "test.txt");
+        var extractedFile = Path.Combine(outputPath, "folder", "中文.txt");
         Assert.IsTrue(File.Exists(extractedFile));
         Assert.AreEqual(
             "hello tar",

@@ -563,7 +563,9 @@ public static class Files
         if (isTarGZip)
         {
             // 处理 .tgz / .tar.gz 文件
-            await using TarInputStream tarStream = new(gzipStream, archiveEncoding ?? Encoding.GetEncoding("GB18030"));
+            await using TarInputStream tarStream = new(
+                gzipStream,
+                archiveEncoding ?? Encoding.UTF8);
 
             await _ExtractTarStreamAsync(
                     tarStream,
@@ -621,8 +623,13 @@ public static class Files
         Encoding? archiveEncoding,
         CancellationToken cancellationToken)
     {
-        await using FileStream compressedFile = new(compressFilePath, FileMode.Open, FileAccess.Read);
-        await using TarInputStream tarStream = new(compressedFile, archiveEncoding ?? Encoding.GetEncoding("GB18030"));
+        await using FileStream compressedFile = new(
+            compressFilePath,
+            FileMode.Open,
+            FileAccess.Read);
+        await using TarInputStream tarStream = new(
+            compressedFile,
+            archiveEncoding ?? Encoding.UTF8);
 
         await _ExtractTarStreamAsync(
                 tarStream,
