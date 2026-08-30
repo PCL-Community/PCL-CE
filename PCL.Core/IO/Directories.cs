@@ -336,7 +336,7 @@ public static class Directories
         catch (OperationCanceledException)
         {
             LogWrapper.Warn("文件夹遍历被取消");
-            return [];
+            throw;
         }
         catch (Exception ex)
         {

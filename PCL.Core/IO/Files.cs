@@ -171,7 +171,7 @@ public static class Files
         {
             var fullFromPath = GetFullPath(fromPath);
             var fullToPath = GetFullPath(toPath);
-            if (fullFromPath == fullToPath) return;
+            if (ArePathsEqual(fullFromPath, fullToPath)) return;
 
             var directoryName = Path.GetDirectoryName(fullToPath);
             if (directoryName is null) throw new InvalidOperationException("无法获取目标目录");

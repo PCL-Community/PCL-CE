@@ -21,7 +21,10 @@ public class FilesTest
     public void SetUp()
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-        _tempDir = Path.Combine(Path.GetTempPath(), "PCLCoreFilesTest", Guid.NewGuid().ToString("N"));
+        _tempDir = Path.Combine(
+            Path.GetTempPath(),
+            "PCLCoreFilesTest",
+            Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(_tempDir);
     }
 
@@ -51,11 +54,18 @@ public class FilesTest
         }
 
         var progress = new List<double>();
-        await Files.ExtractFileAsync(archivePath, outputPath, progress.Add, encoding, TestContext.CancellationToken);
+        await Files.ExtractFileAsync(
+            archivePath,
+            outputPath,
+            progress.Add,
+            encoding,
+            TestContext.CancellationToken);
 
         var extractedFile = Path.Combine(outputPath, "overrides", "中文.txt");
         Assert.IsTrue(File.Exists(extractedFile));
-        Assert.AreEqual("ok", await File.ReadAllTextAsync(extractedFile, TestContext.CancellationToken));
+        Assert.AreEqual(
+            "ok",
+            await File.ReadAllTextAsync(extractedFile, TestContext.CancellationToken));
         Assert.HasCount(1, progress);
         Assert.AreEqual(1d, progress[0], 0.0000001d);
     }
@@ -68,7 +78,9 @@ public class FilesTest
         foreach (var fileName in new[] { "PACK.ZIP", "foo.JAR", "pack.MRPACK" })
         {
             var archivePath = Path.Combine(_tempDir, fileName);
-            var outputPath = Path.Combine(_tempDir, Path.GetFileNameWithoutExtension(fileName) + "-out");
+            var outputPath = Path.Combine(
+                _tempDir,
+                Path.GetFileNameWithoutExtension(fileName) + "-out");
 
             await using (var archive = await ZipFile.OpenAsync(
                              archivePath,
@@ -90,7 +102,9 @@ public class FilesTest
 
             var extractedFile = Path.Combine(outputPath, "overrides", "uppercase-extension.txt");
             Assert.IsTrue(File.Exists(extractedFile), $"Failed to extract {fileName}");
-            Assert.AreEqual("ok", await File.ReadAllTextAsync(extractedFile, TestContext.CancellationToken));
+            Assert.AreEqual(
+                "ok",
+                await File.ReadAllTextAsync(extractedFile, TestContext.CancellationToken));
         }
     }
 
@@ -126,5 +140,19 @@ public class FilesTest
             await File.ReadAllTextAsync(extractedFile, TestContext.CancellationToken));
         Assert.HasCount(1, progress);
         Assert.AreEqual(1d, progress[0], 0.0000001d);
+    }
+
+    [TestMethod]
+    public async Task CopyFileAsyncDoesNotTruncateWhenPathsDifferOnlyInCasing()
+    {
+        var filePath = Path.Combine(_tempDir, "test.txt");
+        await File.WriteAllTextAsync(filePath, "important content", TestContext.CancellationToken);
+
+        var samePathDifferentCasing = Path.Combine(_tempDir, "TEST.TXT");
+        await Files.CopyFileAsync(filePath, samePathDifferentCasing, TestContext.CancellationToken);
+
+        Assert.AreEqual(
+            "important content",
+            await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
     }
 }
