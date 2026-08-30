@@ -1,14 +1,13 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace PCL.Core.IO;
 
 /// <summary>
 ///     路径和 URL 文件名处理工具。
 /// </summary>
-public static class PathUtils
+public static partial class PathUtils
 {
     private static readonly char[] _DirectorySeparators = ['\\', '/'];
 
@@ -102,14 +101,28 @@ public static class PathUtils
     /// <summary>
     ///     当路径过长时尝试转换为 Windows 8.3 短路径；失败或非 Windows 系统时返回原路径。
     /// </summary>
-    public static string ShortenPath(string path, int shortenThreshold = 247)
+    public static unsafe string ShortenPath(string path, int shortenThreshold = 247)
     {
         ArgumentNullException.ThrowIfNull(path);
         if (path.Length <= shortenThreshold || !OperatingSystem.IsWindows()) return path;
 
-        var buffer = new StringBuilder(260);
-        var length = GetShortPathName(path, buffer, buffer.Capacity);
-        return length > 0 ? buffer.ToString() : path;
+        Span<char> buffer = stackalloc char[260];
+        fixed (char* bufferPtr = buffer)
+        {
+            var length = _GetShortPathName(path, bufferPtr, buffer.Length);
+            if (length <= buffer.Length) return length > 0
+                ? buffer[..length].ToString()
+                : path;
+            
+            var largerBuffer = new char[length];
+            fixed (char* largerPtr = largerBuffer)
+            {
+                var newLength = _GetShortPathName(path, largerPtr, length);
+                return newLength > 0
+                    ? new string(largerBuffer, 0, newLength)
+                    : path;
+            }
+        }
     }
 
     private static bool _EndsWithDirectorySeparator(string path)
@@ -117,6 +130,13 @@ public static class PathUtils
         return path.EndsWith('\\') || path.EndsWith('/');
     }
 
-    [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern int GetShortPathName(string lpszLongPath, StringBuilder lpszShortPath, int cchBuffer);
+    [LibraryImport(
+        "kernel32.dll",
+        EntryPoint = "GetShortPathNameW",
+        StringMarshalling = StringMarshalling.Utf16,
+        SetLastError = true)]
+    private static unsafe partial int _GetShortPathName(
+        string lpszLongPath,
+        char* lpszShortPath,
+        int cchBuffer);
 }

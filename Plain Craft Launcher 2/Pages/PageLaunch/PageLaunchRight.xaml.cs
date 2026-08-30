@@ -92,162 +92,192 @@ public partial class PageLaunchRight : IRefreshable
 
     private void RefreshReal()
     {
-        var content = "";
-        string url = null;
+        var content = string.Empty;
+        string? url;
 
-        var uiCustomType = (int)Config.Preference.Homepage.Type;
+        var homepageType = Config.Preference.Homepage.Type;
 
-        if (uiCustomType == 1)
+        switch (homepageType)
         {
-            // 本地文件
-            LogWrapper.Info("[Page] 主页自定义数据来源：本地文件");
-            content = Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(Path.Combine(LauncherPaths.ExecutableDirectoryWithSlash, "PCL", "Custom.xaml"))).GetAwaiter().GetResult();
-        }
-        else if (uiCustomType == 2)
-        {
-            // 网络文件
-            url = (string)Config.Preference.Homepage.CustomUrl;
-            content = LoadFromNetwork(url);
-        }
-        else if (uiCustomType == 3)
-        {
-            // 预设主页
-            var preset = (int)Config.Preference.Homepage.SelectedPreset;
-            switch (preset)
+            case 1:
             {
-                case 0:
-                    LogWrapper.Info("[Page] 主页预设：你知道吗");
-                    var hintText = GetRandomHint();
-                    content = $@"
-    <local:MyCard Title=""{{DynamicResource Launch.Status.Trivia}}"" Margin=""0,0,0,15"">
-        <TextBlock Margin=""25,38,23,15"" FontSize=""13.5"" IsHitTestVisible=""False"" Text=""{hintText}"" TextWrapping=""Wrap"" Foreground=""{{DynamicResource ColorBrush1}}"" />
-        <local:MyIconButton Height=""22"" Width=""22"" Margin=""9"" VerticalAlignment=""Top"" HorizontalAlignment=""Right"" 
-            EventType=""刷新主页"" EventData=""/""
-            SvgIcon=""lucide/refresh-cw"" />
-    </local:MyCard>";
-                    break;
+                // 本地文件
+                LogWrapper.Info("[Page] 主页自定义数据来源：本地文件");
 
-                case 1:
-                    LogWrapper.Info("[Page] 主页预设：回声洞 已被移除");
-                    ModMain.MyMsgBox(Lang.Text("Launch.Homepage.Preset.EchoCave.Removed"));
-                    return;
+                var customPath = LauncherFileSystem.ResolvePath(
+                    Path.Combine(
+                        LauncherPaths.ExecutableDirectoryWithSlash,
+                        "PCL",
+                        "Custom.xaml"));
 
-                case 2:
-                    LogWrapper.Info("[Page] 主页预设：Minecraft 新闻");
-                    url = "https://news.bugjump.net";
-                    content = LoadFromNetwork(url);
-                    break;
+                var bytes = Files
+                    .ReadAllBytesOrEmptyAsync(customPath)
+                    .GetAwaiter()
+                    .GetResult();
 
-                // case 3:
-                //     LogWrapper.Info("[Page] 主页预设：简单主页");
-                //     url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/MFn233/Custom.xaml";
-                //     content = LoadFromNetwork(url);
-                //     break;
+                content = EncodingUtils.DecodeBytes(bytes);
+                break;
+            }
 
-                case 3:
-                    LogWrapper.Info("[Page] 主页预设：每日整合包推荐");
-                    url = "https://pclsub.sodamc.com/";
-                    content = LoadFromNetwork(url);
-                    break;
+            case 2:
+            {
+                // 网络文件
+                url = Config.Preference.Homepage.CustomUrl;
+                content = LoadFromNetwork(url);
+                break;
+            }
 
-                case 4:
-                    LogWrapper.Info("[Page] 主页预设：Minecraft 皮肤推荐");
-                    url = "https://forgepixel.com/pcl_sub_file";
-                    content = LoadFromNetwork(url);
-                    break;
+            case 3:
+            {
+                // 预设主页
+                var preset = Config.Preference.Homepage.SelectedPreset;
 
-                case 5:
-                    LogWrapper.Info("[Page] 主页预设：OpenBMCLAPI 仪表盘 Lite");
-                    url = "https://pcl-bmcl.milu.ink/";
-                    content = LoadFromNetwork(url);
-                    break;
-
-                // case 7:
-                //     LogWrapper.Info("[Page] 主页预设：主页市场");
-                //     url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom.xaml";
-                //     content = LoadFromNetwork(url);
-                //     break;
-
-                // case 8:
-                //     LogWrapper.Info("[Page] 主页预设：更新日志");
-                //     url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Joker2184/UpdateHomepage.xaml";
-                //     content = LoadFromNetwork(url);
-                //     break;
-
-                case 6:
-                    LogWrapper.Info("[Page] 主页预设：PCL 新功能说明书");
-                    url = "https://raw.gitcode.com/WForst-Breeze/WhatsNewPCL/raw/main/Custom.xaml";
-                    content = LoadFromNetwork(url);
-                    break;
-
-                // case 10:
-                //     LogWrapper.Info("[Page] 主页预设：OpenMCIM Dashboard");
-                //     url = "https://files.mcimirror.top/PCL";
-                //     content = LoadFromNetwork(url);
-                //     break;
-
-                case 7:
-                    LogWrapper.Info("[Page] 主页预设：杂志主页");
-                    url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Ext1nguisher/Custom.xaml";
-                    content = LoadFromNetwork(url);
-                    break;
-
-                case 8:
-                    LogWrapper.Info("[Page] 主页预设：PCL GitHub 仪表盘");
-                    url = "https://ddf.pcl-community.org/Custom.xaml";
-                    content = LoadFromNetwork(url);
-                    break;
-
-                case 9:
-                    LogWrapper.Info("[Page] 主页预设：Minecraft 更新摘要");
-                    url = "https://raw.gitcode.com/ENC_Euphony/PCL-AI-Summary-HomePage/raw/master/Custom.xaml";
-                    content = LoadFromNetwork(url);
-                    break;
-                
-                case 10:
-                    LogWrapper.Info("[Page] 主页预设：今日新闻热点");
-                    url = "https://pcl.wyc-w.top/index.xaml";
-                    content = LoadFromNetwork(url);
-                    break;
-                
-                case 11:
-                    LogWrapper.Info("[Page] 主页预设：Minecraft 芝士站");
-                    url = "https://www.xxag.top/mkss";
-                    content = LoadFromNetwork(url);
-                    break;
-                
-                case 12:
-                    LogWrapper.Info("[Page] 主页预设：整合包推荐引擎");
-                    url = "https://qawsedrftgyhujiko.fun/pcl2/Custom.xaml";
-                    content = LoadFromNetwork(url);
-                    break;
-
-                case 13:
-                    LogWrapper.Info("[Page] 主页预设：Bangumi 番剧主页");
-                    url = "https://bangumi.p.kaphia.qzz.io";
-                    content = LoadFromNetwork(url);
-                    break;
-                
-                case 14:
-                    LogWrapper.Info("[Page] 主页预设：PCL CE 公告栏");
-                    url = "https://s3.pysio.online/pcl2-ce/apiv2/pages/announce.xaml";
-                    content = LoadFromNetwork(url);
-                    break;
-                
-                case 15:
-                    LogWrapper.Info("[Page] 主页预设：Minecraft 信息流");
-                    Dispatcher.Invoke(() =>
+                switch (preset)
+                {
+                    case 0:
                     {
-                        if (ModMain.frmHomepageNews is null)
-                            ModMain.frmHomepageNews = new PageHomepageNewsView();
-                        PanCustom.Children.Clear();
-                        PanCustom.Children.Add(ModMain.frmHomepageNews);
-                    });
-                    return;
+                        LogWrapper.Info("[Page] 主页预设：你知道吗");
+                        var hintText = GetRandomHint();
+
+                        content = """
+                                  <local:MyCard
+                                      Title="{{DynamicResource Launch.Status.Trivia}}"
+                                      Margin="0,0,0,15">
+                                      <TextBlock
+                                          Margin="25,38,23,15"
+                                          FontSize="13.5"
+                                          IsHitTestVisible="False"
+                                          Text="{hintText}"
+                                          TextWrapping="Wrap"
+                                          Foreground="{{DynamicResource ColorBrush1}}" />
+
+                                      <local:MyIconButton
+                                          Height="22"
+                                          Width="22"
+                                          Margin="9"
+                                          VerticalAlignment="Top"
+                                          HorizontalAlignment="Right"
+                                          EventType="刷新主页"
+                                          EventData="/"
+                                          SvgIcon="lucide/refresh-cw" />
+                                  </local:MyCard>
+                                  """;
+
+                        break;
+                    }
+
+                    case 1:
+                        LogWrapper.Info("[Page] 主页预设：回声洞 已被移除");
+                        ModMain.MyMsgBox(
+                            Lang.Text("Launch.Homepage.Preset.EchoCave.Removed"));
+                        return;
+
+                    case 2:
+                        LoadPreset(
+                            "Minecraft 新闻",
+                            "https://news.bugjump.net");
+                        break;
+
+                    case 3:
+                        LoadPreset(
+                            "每日整合包推荐",
+                            "https://pclsub.sodamc.com/");
+                        break;
+
+                    case 4:
+                        LoadPreset(
+                            "Minecraft 皮肤推荐",
+                            "https://forgepixel.com/pcl_sub_file");
+                        break;
+
+                    case 5:
+                        LoadPreset(
+                            "OpenBMCLAPI 仪表盘 Lite",
+                            "https://pcl-bmcl.milu.ink/");
+                        break;
+
+                    case 6:
+                        LoadPreset(
+                            "PCL 新功能说明书",
+                            "https://raw.gitcode.com/WForst-Breeze/WhatsNewPCL/raw/main/Custom.xaml");
+                        break;
+
+                    case 7:
+                        LoadPreset(
+                            "杂志主页",
+                            "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Ext1nguisher/Custom.xaml");
+                        break;
+
+                    case 8:
+                        LoadPreset(
+                            "PCL GitHub 仪表盘",
+                            "https://ddf.pcl-community.org/Custom.xaml");
+                        break;
+
+                    case 9:
+                        LoadPreset(
+                            "Minecraft 更新摘要",
+                            "https://raw.gitcode.com/ENC_Euphony/PCL-AI-Summary-HomePage/raw/master/Custom.xaml");
+                        break;
+
+                    case 10:
+                        LoadPreset(
+                            "今日新闻热点",
+                            "https://pcl.wyc-w.top/index.xaml");
+                        break;
+
+                    case 11:
+                        LoadPreset(
+                            "Minecraft 芝士站",
+                            "https://www.xxag.top/mkss");
+                        break;
+
+                    case 12:
+                        LoadPreset(
+                            "整合包推荐引擎",
+                            "https://qawsedrftgyhujiko.fun/pcl2/Custom.xaml");
+                        break;
+
+                    case 13:
+                        LoadPreset(
+                            "Bangumi 番剧主页",
+                            "https://bangumi.p.kaphia.qzz.io");
+                        break;
+
+                    case 14:
+                        LoadPreset(
+                            "PCL CE 公告栏",
+                            "https://s3.pysio.online/pcl2-ce/apiv2/pages/announce.xaml");
+                        break;
+
+                    case 15:
+                        LogWrapper.Info("[Page] 主页预设：Minecraft 信息流");
+
+                        Dispatcher.Invoke(() =>
+                        {
+                            ModMain.frmHomepageNews ??= new PageHomepageNewsView();
+
+                            PanCustom.Children.Clear();
+                            PanCustom.Children.Add(ModMain.frmHomepageNews);
+                        });
+
+                        return;
+                }
+
+                break;
             }
         }
 
         UiThread.Post(() => LoadContent(content));
+        return;
+
+        void LoadPreset(string name, string presetUrl)
+        {
+            LogWrapper.Info($"[Page] 主页预设：{name}");
+
+            url = presetUrl;
+            content = LoadFromNetwork(url);
+        }
     }
 
     /// <summary>

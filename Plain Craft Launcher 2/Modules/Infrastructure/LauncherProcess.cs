@@ -237,12 +237,12 @@ public static class LauncherProcess
 
             HintService.Hint(
                 Lang.Text("Common.Hint.FilesPasted", copiedFiles, copiedFolders));
+            return copiedFiles + copiedFolders;
         }
         catch (Exception ex)
         {
             LauncherLog.Log(ex, "[System] 从剪切板粘贴文件失败", LauncherLogLevel.Hint);
+            return 0;
         }
-
-        return 0;
     }
 }
