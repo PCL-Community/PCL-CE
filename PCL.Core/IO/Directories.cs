@@ -61,6 +61,22 @@ public static class Directories
         if (!Directory.Exists(path))
             throw new DirectoryNotFoundException($"文件夹不存在：{path}");
 
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // 验证读取 / 枚举权限
+        try
+        {
+            _ = Directory.EnumerateFileSystemEntries(path).FirstOrDefault();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new UnauthorizedAccessException($"无法读取文件夹 {path}：{ex.Message}", ex);
+        }
+
         var probePath = Path.Combine(path, $".pcl-permission-{Guid.NewGuid():N}.tmp");
         try
         {
