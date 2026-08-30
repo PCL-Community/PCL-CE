@@ -1,12 +1,12 @@
-namespace PCL.Core.IO;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Logging;
+using PCL.Core.Logging;
+
+namespace PCL.Core.IO;
 
 public static class Directories
 {
@@ -55,7 +55,7 @@ public static class Directories
         if (string.IsNullOrWhiteSpace(path))
             throw new ArgumentNullException(nameof(path), "文件夹路径不能为空！");
 
-        if (IsSystemProtectedFolder(path))
+        if (_IsSystemProtectedFolder(path))
             throw new UnauthorizedAccessException($"无法访问受保护的系统文件夹：{path}");
 
         if (!Directory.Exists(path))
@@ -88,7 +88,9 @@ public static class Directories
         }
         catch (Exception ex)
         {
-            throw new UnauthorizedAccessException($"无法删除文件夹 {path} 中的权限检查临时文件：{ex.Message}", ex);
+            throw new UnauthorizedAccessException(
+                $"无法删除文件夹 {path} 中的权限检查临时文件：{ex.Message}",
+                ex);
         }
     }
 
@@ -105,29 +107,28 @@ public static class Directories
     }
 
     /// <summary>
-    /// 检查是否为受保护的系统文件夹。
+    ///     检查是否为受保护的系统文件夹。
     /// </summary>
-    private static bool IsSystemProtectedFolder(string path)
+    private static bool _IsSystemProtectedFolder(string path)
     {
         return path.EndsWith(":\\System Volume Information", StringComparison.OrdinalIgnoreCase) ||
                path.EndsWith(":\\$RECYCLE.BIN", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
-    /// 异步删除文件夹及其内容，返回删除的文件数。支持忽略错误。
+    ///     异步删除文件夹及其内容，返回删除的文件数。支持忽略错误。
     /// </summary>
     /// <param name="path">要删除的文件夹路径。</param>
     /// <param name="ignoreIssue">是否忽略删除过程中的错误。</param>
     /// <param name="cancellationToken">取消操作的令牌。</param>
     /// <returns>成功删除的文件数。</returns>
     /// <exception cref="OperationCanceledException">操作被取消。</exception>
-    public static async Task<int> DeleteDirectoryAsync(string? path, bool ignoreIssue = false,
+    public static async Task<int> DeleteDirectoryAsync(
+        string? path,
+        bool ignoreIssue = false,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
-        {
-            return 0;
-        }
+        if (string.IsNullOrEmpty(path) || !Directory.Exists(path)) return 0;
 
         var deletedCount = 0;
 
@@ -139,10 +140,9 @@ public static class Directories
                 cancellationToken.ThrowIfCancellationRequested();
 
                 for (var attempt = 0; attempt < 2; attempt++)
-                {
                     try
                     {
-                        await FileDeleteAsync(filePath, cancellationToken).ConfigureAwait(false);
+                        await _FileDeleteAsync(filePath, cancellationToken).ConfigureAwait(false);
                         deletedCount++;
                         break;
                     }
@@ -154,15 +154,10 @@ public static class Directories
                     catch (Exception ex)
                     {
                         if (ignoreIssue)
-                        {
                             LogWrapper.Error(ex, "删除单个文件可忽略地失败");
-                        }
                         else
-                        {
                             throw;
-                        }
                     }
-                }
             }
 
             // 递归删除子目录
@@ -170,12 +165,12 @@ public static class Directories
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 deletedCount +=
-                    await DeleteDirectoryAsync(subDir, ignoreIssue, cancellationToken).ConfigureAwait(false);
+                    await DeleteDirectoryAsync(subDir, ignoreIssue, cancellationToken)
+                        .ConfigureAwait(false);
             }
 
             // 删除空目录
             for (var attempt = 0; attempt < 2; attempt++)
-            {
                 try
                 {
                     Directory.Delete(path, true);
@@ -189,15 +184,10 @@ public static class Directories
                 catch (Exception ex)
                 {
                     if (ignoreIssue)
-                    {
                         LogWrapper.Error(ex, "删除单个文件夹可忽略地失败");
-                    }
                     else
-                    {
                         throw;
-                    }
                 }
-            }
         }
         catch (DirectoryNotFoundException ex)
         {
@@ -209,10 +199,7 @@ public static class Directories
             }
             catch (Exception deleteEx)
             {
-                if (!ignoreIssue)
-                {
-                    throw;
-                }
+                if (!ignoreIssue) throw;
 
                 LogWrapper.Error(deleteEx, $"删除符号链接文件夹失败（{path}）");
             }
@@ -222,7 +209,7 @@ public static class Directories
     }
 
     /// <summary>
-    /// 异步复制文件夹及其内容，失败时抛出异常。
+    ///     异步复制文件夹及其内容，失败时抛出异常。
     /// </summary>
     /// <param name="fromPath">源文件夹路径。</param>
     /// <param name="toPath">目标文件夹路径。</param>
@@ -243,14 +230,23 @@ public static class Directories
             throw new ArgumentNullException(nameof(toPath), "目标文件夹路径为空");
 
         // 规范化路径
-        fromPath = Path.GetFullPath(fromPath).TrimEnd(
-            Path.DirectorySeparatorChar,
-            Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
-        toPath = Path.GetFullPath(toPath).TrimEnd(
-            Path.DirectorySeparatorChar,
-            Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        fromPath = Path
+                       .GetFullPath(fromPath)
+                       .TrimEnd(
+                           Path.DirectorySeparatorChar,
+                           Path.AltDirectorySeparatorChar)
+                   + Path.DirectorySeparatorChar;
+        toPath = Path
+                     .GetFullPath(toPath)
+                     .TrimEnd(
+                         Path.DirectorySeparatorChar,
+                         Path.AltDirectorySeparatorChar)
+                 + Path.DirectorySeparatorChar;
 
-        var allFiles = (await EnumerateFilesAsync(fromPath, cancellationToken).ConfigureAwait(false)).ToList();
+        Directory.CreateDirectory(toPath);
+
+        var allFiles =
+            (await EnumerateFilesAsync(fromPath, cancellationToken).ConfigureAwait(false)).ToList();
         var totalFiles = allFiles.Count;
         if (totalFiles == 0)
         {
@@ -273,7 +269,7 @@ public static class Directories
             for (var attempt = 0; attempt < 2; attempt++)
                 try
                 {
-                    await FileCopyAsync(
+                    await _FileCopyAsync(
                         file.FullName,
                         destFilePath,
                         true,
@@ -283,36 +279,42 @@ public static class Directories
                 }
                 catch (Exception ex) when (attempt == 0)
                 {
-                    LogWrapper.Error(ex, $"复制文件失败，将在 0.3s 后重试（{file.FullName} 到 {destFilePath}）");
+                    LogWrapper.Error(
+                        ex,
+                        $"复制文件失败，将在 0.3s 后重试（{file.FullName} 到 {destFilePath}）");
                     await Task.Delay(300, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
-                    LogWrapper.Error(ex, $"复制文件失败（{file.FullName} 到 {destFilePath}）");
+                    LogWrapper.Error(
+                        ex,
+                        $"复制文件失败（{file.FullName} 到 {destFilePath}）");
                     throw;
                 }
         }
     }
 
     /// <summary>
-    /// 异步遍历文件夹中的所有文件。
+    ///     异步遍历文件夹中的所有文件。
     /// </summary>
     /// <param name="directory">要遍历的文件夹路径。</param>
     /// <param name="cancellationToken">取消操作的令牌。</param>
     /// <returns>文件信息的枚举器。</returns>
-    public static async Task<IEnumerable<FileInfo>> EnumerateFilesAsync(string? directory,
+    public static async Task<IEnumerable<FileInfo>> EnumerateFilesAsync(
+        string? directory,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(directory) || !Directory.Exists(directory))
-        {
             throw new DirectoryNotFoundException($"目录不存在：{directory}");
-        }
 
         try
         {
             // DirectoryInfo.EnumerateFiles 是同步的，使用 Task.Run 包装
             return await Task
-                .Run(() => new DirectoryInfo(directory).EnumerateFiles("*", SearchOption.AllDirectories).ToList(),
+                .Run(
+                    () => new DirectoryInfo(directory)
+                        .EnumerateFiles("*", SearchOption.AllDirectories)
+                        .ToList(),
                     cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
@@ -334,9 +336,9 @@ public static class Directories
         string? directory,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrEmpty(directory) || !Directory.Exists(directory)) return [];
-
-        return await EnumerateFilesAsync(directory, cancellationToken).ConfigureAwait(false);
+        return string.IsNullOrEmpty(directory) || !Directory.Exists(directory)
+            ? []
+            : await EnumerateFilesAsync(directory, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -347,9 +349,12 @@ public static class Directories
         string targetDir,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(sourceDir)) throw new ArgumentNullException(nameof(sourceDir));
-        if (string.IsNullOrWhiteSpace(targetDir)) throw new ArgumentNullException(nameof(targetDir));
-        if (!Directory.Exists(sourceDir)) throw new DirectoryNotFoundException($"源目录不存在：{sourceDir}");
+        if (string.IsNullOrWhiteSpace(sourceDir))
+            throw new ArgumentNullException(nameof(sourceDir));
+        if (string.IsNullOrWhiteSpace(targetDir))
+            throw new ArgumentNullException(nameof(targetDir));
+        if (!Directory.Exists(sourceDir))
+            throw new DirectoryNotFoundException($"源目录不存在：{sourceDir}");
 
         Directory.CreateDirectory(targetDir);
 
@@ -358,41 +363,79 @@ public static class Directories
             cancellationToken.ThrowIfCancellationRequested();
             var targetPath = Path.Combine(targetDir, Path.GetFileName(filePath));
             Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
-            await Task.Run(() => File.Move(filePath, targetPath, true), cancellationToken).ConfigureAwait(false);
+            await Task
+                .Run(
+                    () => File.Move(filePath, targetPath, true),
+                    cancellationToken)
+                .ConfigureAwait(false);
         }
 
         foreach (var childDir in Directory.EnumerateDirectories(sourceDir))
         {
             cancellationToken.ThrowIfCancellationRequested();
             var childTarget = Path.Combine(targetDir, Path.GetFileName(childDir));
-            await MoveDirectoryAsync(childDir, childTarget, cancellationToken).ConfigureAwait(false);
+            await MoveDirectoryAsync(childDir, childTarget, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 
     // 辅助方法：异步打开 FileStream
-    private static async Task<FileStream> FileStreamOpenAsync(string path, FileMode mode, FileAccess access,
-        FileShare share, CancellationToken cancellationToken)
+    private static async Task<FileStream> _FileStreamOpenAsync(
+        string path,
+        FileMode mode,
+        FileAccess access,
+        FileShare share,
+        CancellationToken cancellationToken)
     {
-        var fs = new FileStream(path, mode, access, share, bufferSize: 4096, useAsync: true);
+        var fs = new FileStream(
+            path,
+            mode,
+            access,
+            share,
+            4096,
+            true);
         await Task.Yield(); // 确保异步上下文
         cancellationToken.ThrowIfCancellationRequested();
         return fs;
     }
 
     // 辅助方法：异步删除文件
-    private static async Task FileDeleteAsync(string path, CancellationToken cancellationToken)
+    private static async Task _FileDeleteAsync(
+        string path,
+        CancellationToken cancellationToken)
     {
-        await Task.Run(() => File.Delete(path), cancellationToken).ConfigureAwait(false);
+        await Task
+            .Run(
+                () => File.Delete(path),
+                cancellationToken)
+            .ConfigureAwait(false);
     }
 
     // 辅助方法：异步复制文件
-    private static async Task FileCopyAsync(string sourceFileName, string destFileName, bool overwrite,
+    private static async Task _FileCopyAsync(
+        string sourceFileName,
+        string destFileName,
+        bool overwrite,
         CancellationToken cancellationToken)
     {
-        await using FileStream sourceStream = new(sourceFileName, FileMode.Open, FileAccess.Read, FileShare.Read, 4096,
-            useAsync: true);
-        await using FileStream destStream = new(destFileName, overwrite ? FileMode.Create : FileMode.CreateNew,
-            FileAccess.Write, FileShare.None, 4096, useAsync: true);
-        await sourceStream.CopyToAsync(destStream, cancellationToken).ConfigureAwait(false);
+        await using FileStream sourceStream = new(
+            sourceFileName,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read,
+            4096,
+            true);
+        await using FileStream destStream = new(
+            destFileName,
+            overwrite
+                ? FileMode.Create
+                : FileMode.CreateNew,
+            FileAccess.Write,
+            FileShare.None,
+            4096,
+            true);
+        await sourceStream
+            .CopyToAsync(destStream, cancellationToken)
+            .ConfigureAwait(false);
     }
 }
