@@ -123,7 +123,8 @@ public partial class MySkin
             }
             else
             {
-                Files.CopyFileAsync(LauncherFileSystem.ResolvePath(address), LauncherFileSystem.ResolvePath(fileAddress)).GetAwaiter().GetResult();
+                Files.CopyFileAsync(LauncherFileSystem.ResolvePath(address),
+                    LauncherFileSystem.ResolvePath(fileAddress)).GetAwaiter().GetResult();
             }
 
             HintService.Hint(Lang.Text("Launch.Skin.SaveSuccess"), HintType.Success);
@@ -215,7 +216,7 @@ public partial class MySkin
             // 用于显示档案列表头像的图片
             var skinHeadId = Address.Between(new[] { Address.Contains("Images/Skins/") ? "Skins/" : @"Skin\" }[0],
                 ".png");
-            var cachePath = LauncherPaths.TempWithSlash + $@"\Cache\Skin\Head\{skinHeadId}.png";
+            var cachePath = LauncherPaths.TempWithSlash + $@"Cache\Skin\Head\{skinHeadId}.png";
             if (ProfileService.Current is { } profile)
             {
                 var updated = profile.Clone();
@@ -223,6 +224,7 @@ public partial class MySkin
                 ProfileService.Update(profile, updated);
                 ProfileService.Select(updated);
             }
+
             var completeHead = new Bitmap(56, 56);
             using (var g = Graphics.FromImage(completeHead))
             {
@@ -303,9 +305,11 @@ public partial class MySkin
                     HintService.Hint(Lang.Text("Launch.Skin.Refreshing"));
                     LauncherLog.Log("[Skin] 正在清空皮肤缓存");
                     if (Directory.Exists(LauncherPaths.TempWithSlash + @"Cache\Skin"))
-                        Directories.DeleteDirectoryAsync(LauncherPaths.TempWithSlash + @"Cache\Skin").GetAwaiter().GetResult();
+                        Directories.DeleteDirectoryAsync(LauncherPaths.TempWithSlash + @"Cache\Skin").GetAwaiter()
+                            .GetResult();
                     if (Directory.Exists(LauncherPaths.TempWithSlash + @"Cache\Uuid"))
-                        Directories.DeleteDirectoryAsync(LauncherPaths.TempWithSlash + @"Cache\Uuid").GetAwaiter().GetResult();
+                        Directories.DeleteDirectoryAsync(LauncherPaths.TempWithSlash + @"Cache\Uuid").GetAwaiter()
+                            .GetResult();
                     LauncherIniStore.Shared.ClearCache(LauncherPaths.TempWithSlash + @"Cache\Skin\IndexMs.ini");
                     LauncherIniStore.Shared.ClearCache(LauncherPaths.TempWithSlash + @"Cache\Skin\IndexAuth.ini");
                     LauncherIniStore.Shared.ClearCache(LauncherPaths.TempWithSlash + @"Cache\Uuid\Mojang.ini");
@@ -339,7 +343,8 @@ public partial class MySkin
         {
             try
             {
-                LauncherIniStore.Shared.Write(LauncherPaths.TempWithSlash + @"Cache\Skin\IndexMs.ini", uuid, skinAddress);
+                LauncherIniStore.Shared.Write(LauncherPaths.TempWithSlash + @"Cache\Skin\IndexMs.ini", uuid,
+                    skinAddress);
                 LauncherLog.Log($"[Skin] 已写入皮肤地址缓存 {uuid} -> {skinAddress}");
                 PageLaunchLeft.skinMs.WaitForExit(isForceRestart: true);
                 HintService.Hint(Lang.Text("Launch.Skin.ChangeSuccess"), HintType.Success);
@@ -388,7 +393,8 @@ public partial class MySkin
 
                 var accessToken = ModLaunch.mcLoginMsLoader.output.AccessToken;
                 var uuid = ModLaunch.mcLoginMsLoader.output.Uuid;
-                var skinData = (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(ModLaunch.mcLoginMsLoader.output.ProfileJson);
+                var skinData =
+                    (JsonObject)PCL.Core.Utils.JsonCompat.ParseNode(ModLaunch.mcLoginMsLoader.output.ProfileJson);
                 foreach (var itemSkin in skinData["capes"].AsArray())
                 {
                     if (itemSkin["url"] is null)
@@ -461,7 +467,8 @@ public partial class MySkin
                         Method = selId is 0 ? "DELETE" : "PUT",
                         Content = selId is 0
                             ? ""
-                            : new JsonObject { ["capeId"] = skinData["capes"][(int)(selId - 1)]["id"]?.ToString() }.ToJsonString(),
+                            : new JsonObject { ["capeId"] = skinData["capes"][(int)(selId - 1)]["id"]?.ToString() }
+                                .ToJsonString(),
                         ContentType = "application/json",
                         Headers = new Dictionary<string, string> { { "Authorization", "Bearer " + accessToken } }
                     }

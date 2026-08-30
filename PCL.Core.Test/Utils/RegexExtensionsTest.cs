@@ -1,3 +1,4 @@
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.Test.Utils;
@@ -10,7 +11,7 @@ public class RegexExtensionsTest
     [TestMethod]
     public void FindsAndChecksMatches()
     {
-        CollectionAssert.AreEqual(Expected, "a12b34".RegexSearch(@"\d+"));
+        Assert.AreSequenceEqual(Expected, "a12b34".RegexSearch(@"\d+"));
         Assert.AreEqual("12", "a12b34".RegexSeek(@"\d+"));
         Assert.IsTrue("a12".RegexCheck(@"\d+"));
     }

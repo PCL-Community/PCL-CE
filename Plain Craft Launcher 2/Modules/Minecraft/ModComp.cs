@@ -204,7 +204,7 @@ public static class ModComp
         /// </summary>        
         Cancel = 3,
     }
-    
+
     public enum DownloadReason
     {
         Standalone,
@@ -279,8 +279,11 @@ public static class ModComp
                         // 尝试作为旧格式（HashSet）迁移
                         try
                         {
-                            var migrate = JsonSerializer.Deserialize<HashSet<string>>(rawData, JsonCompat.SerializerOptions);
-                            if (migrate is not null) rawList = new List<FavData> { GetNewFav(Lang.Text("Download.Comp.Detail.Favorites.DefaultName"), migrate) };
+                            var migrate =
+                                JsonSerializer.Deserialize<HashSet<string>>(rawData, JsonCompat.SerializerOptions);
+                            if (migrate is not null)
+                                rawList = new List<FavData>
+                                    { GetNewFav(Lang.Text("Download.Comp.Detail.Favorites.DefaultName"), migrate) };
                         }
                         catch (Exception ex2)
                         {
@@ -289,7 +292,9 @@ public static class ModComp
                     }
 
                     // 最终兜底：确保至少有一个收藏夹
-                    if (rawList is null || rawList.Count == 0) rawList = new List<FavData> { GetNewFav(Lang.Text("Download.Comp.Detail.Favorites.DefaultName"), null) };
+                    if (rawList is null || rawList.Count == 0)
+                        rawList = new List<FavData>
+                            { GetNewFav(Lang.Text("Download.Comp.Detail.Favorites.DefaultName"), null) };
                     _FavoritesList = rawList;
                     Save();
                 }
@@ -365,12 +370,16 @@ public static class ModComp
                         if (hasFavs)
                         {
                             i.Favs.Remove(project.Id);
-                            HintService.Hint(Lang.Text("Download.Comp.Detail.Favorites.Remove", project.TranslatedName, i.Name), HintType.Success);
+                            HintService.Hint(
+                                Lang.Text("Download.Comp.Detail.Favorites.Remove", project.TranslatedName, i.Name),
+                                HintType.Success);
                         }
                         else
                         {
                             i.Favs.Add(project.Id);
-                            HintService.Hint(Lang.Text("Download.Comp.Detail.Favorites.Add", project.TranslatedName, i.Name), HintType.Success);
+                            HintService.Hint(
+                                Lang.Text("Download.Comp.Detail.Favorites.Add", project.TranslatedName, i.Name),
+                                HintType.Success);
                         }
 
                         Save();
@@ -528,7 +537,8 @@ public static class ModComp
                 await Task.Run(() =>
                 {
                     var rawProjectsData =
-                        ModDownload.DlModRequest<JsonArray>($"https://api.modrinth.com/v2/projects?ids=[\"{ids.Join("\",\"")}\"]");
+                        ModDownload.DlModRequest<JsonArray>(
+                            $"https://api.modrinth.com/v2/projects?ids=[\"{ids.Join("\",\"")}\"]");
                     foreach (var rawData in (IEnumerable)rawProjectsData)
                         res.Add(new CompProject((JsonObject)rawData));
                 });
@@ -670,7 +680,8 @@ public static class ModComp
                             ModMain.frmMain.PageChange(new FormMain.PageStackData
                             {
                                 page = FormMain.PageType.CompDetail,
-                                additional = (compProjects.First(), new List<string>(), string.Empty, CompLoaderType.Any,
+                                additional = (compProjects.First(), new List<string>(), string.Empty,
+                                    CompLoaderType.Any,
                                     CompType.Any, null)
                             });
                         }
@@ -723,7 +734,8 @@ public static class ModComp
                         var tempPath = dbPath + ".tmp";
                         if (File.Exists(tempPath)) File.Delete(tempPath);
 
-                        using (var buildDbConnection = new SqliteConnection($"Data Source=\"{tempPath}\";Pooling=False"))
+                        using (var buildDbConnection =
+                               new SqliteConnection($"Data Source=\"{tempPath}\";Pooling=False"))
                         {
                             buildDbConnection.Open();
 
@@ -1245,7 +1257,7 @@ public static class ModComp
                 ["quilt"] = CompLoaderType.Quilt,
                 ["neoforge"] = CompLoaderType.NeoForge
             };
-        
+
         private static readonly Dictionary<int, string> curseForgeCategoryLangKeys =
             new()
             {
@@ -1464,7 +1476,7 @@ public static class ModComp
 
             try
             {
-                var jsonObject = (JsonObject)await 
+                var jsonObject = (JsonObject)await
                     Requester.FetchJsonAsync($"https://mod.mcimirror.top/translate/{from}/{Id}");
                 if (jsonObject.ContainsKey("translated"))
                 {
@@ -1476,7 +1488,9 @@ public static class ModComp
             {
                 if (ex.Message.Contains("404"))
                 {
-                    ModMain.MyMsgBox(Lang.Text("Download.Comp.Detail.DescriptionNoTranslation"), Lang.Text("Download.Comp.Detail.DescriptionTranslationFailed"), Lang.Text("Download.Comp.Detail.KnownButton"));
+                    ModMain.MyMsgBox(Lang.Text("Download.Comp.Detail.DescriptionNoTranslation"),
+                        Lang.Text("Download.Comp.Detail.DescriptionTranslationFailed"),
+                        Lang.Text("Download.Comp.Detail.KnownButton"));
                     return null;
                 }
 
@@ -1608,8 +1622,12 @@ public static class ModComp
 
             var (fullDesc, partDesc) = modLoadersForDesc.Count switch
             {
-                0 => ModLoaders.Count == 1 ? (Lang.Text("Download.Comp.Type.Only", ModLoaders.Single().ToString()), ModLoaders.Single().ToString()) : (Lang.Text("Download.Comp.Type.Unknown"), ""),
-                1 => (Lang.Text("Download.Comp.Type.Only", modLoadersForDesc.Single().ToString()), modLoadersForDesc.Single().ToString()),
+                0 => ModLoaders.Count == 1
+                    ? (Lang.Text("Download.Comp.Type.Only", ModLoaders.Single().ToString()),
+                        ModLoaders.Single().ToString())
+                    : (Lang.Text("Download.Comp.Type.Unknown"), ""),
+                1 => (Lang.Text("Download.Comp.Type.Only", modLoadersForDesc.Single().ToString()),
+                    modLoadersForDesc.Single().ToString()),
                 _ => GetMultiLoaderDesc()
             };
 
@@ -2203,7 +2221,12 @@ public static class ModComp
         { "shaders", "6552" }
     };
 
-    private enum ResourceSite { None, CurseForge, Modrinth }
+    private enum ResourceSite
+    {
+        None,
+        CurseForge,
+        Modrinth
+    }
 
     /// <summary>
     /// 用 Uri 解析单个 token 是否为受支持的 CurseForge/Modrinth 资源链接。
@@ -2226,7 +2249,8 @@ public static class ModComp
         // CurseForge: /minecraft/{category}/{slug}
         if (IsHostOf(uri.Host, "curseforge.com"))
         {
-            if (segments.Length < 3 || !segments[0].Equals("minecraft", StringComparison.OrdinalIgnoreCase)) return false;
+            if (segments.Length < 3 || !segments[0].Equals("minecraft", StringComparison.OrdinalIgnoreCase))
+                return false;
             site = ResourceSite.CurseForge;
             category = segments[1];
             slug = segments[2];
@@ -2256,7 +2280,8 @@ public static class ModComp
     {
         if (string.IsNullOrWhiteSpace(text)) return null;
         foreach (var token in text.Split([' ', '\t', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
-            if (TryParseResourceLink(token, out _, out _, out _)) return token;
+            if (TryParseResourceLink(token, out _, out _, out _))
+                return token;
         return null;
     }
 
@@ -2312,6 +2337,7 @@ public static class ModComp
             if (found is not null) return null; // ≥2 条链接，一条也不识别
             found = token;
         }
+
         return found; // 恰好 1 条返回该链接；0 条返回 null
     }
 
@@ -2379,7 +2405,7 @@ public static class ModComp
         // 拒绝不支持的版本
         if (request.modLoader == CompLoaderType.Quilt &&
             McVersionComparer.CompareVersion(request.gameVersion ?? "1.15", "1.14") == -1)
-                throw new Exception(Lang.Text("Minecraft.Error.QuiltUnsupported", request.gameVersion));
+            throw new Exception(Lang.Text("Minecraft.Error.QuiltUnsupported", request.gameVersion));
 
         #endregion
 
@@ -2596,7 +2622,7 @@ public static class ModComp
 
             LogWrapper.Debug("[Comp] 中文搜索基础关键词：" + request.searchText);
         }
-        
+
         // 最终处理关键字：分割、去重
         void processKeywords(ref string text)
         {
@@ -2667,7 +2693,8 @@ public static class ModComp
                         LogWrapper.Info("[Comp] 开始从 CurseForge 获取列表：" + curseForgeUrl);
                         var json = ModDownload.DlModRequest<JsonObject>(curseForgeUrl);
                         var projects = json["data"].AsArray().Select(j => new CompProject((JsonObject)j))
-                            .Where(p => !(request.type == CompType.ResourcePack && p.Tags.Contains(Lang.Text("Download.Comp.Type.DataPack"))))
+                            .Where(p => !(request.type == CompType.ResourcePack &&
+                                          p.Tags.Contains(Lang.Text("Download.Comp.Type.DataPack"))))
                             .ToList();
                         lock (resultsLock)
                         {
@@ -2757,7 +2784,7 @@ public static class ModComp
             storage.results.AddRange(realResults); // 遵从API返回顺序
             return;
         }
-        
+
         var scores = new Dictionary<CompProject, double>();
         Func<CompProject, double> getDownloadCountMult = p =>
         {
@@ -2844,6 +2871,7 @@ public static class ModComp
         //  未经处理的支持的游戏版本列表。
         // </summary>
         public readonly List<string> RawGameVersions = new();
+
         /// <summary>
         ///     支持的游戏版本列表。类型包括："26.1.5"，"26.1"，"26.1 预览版"，"1.18.5"，"1.18"，"1.18 预览版"，"21w15a"，"未知版本"。
         /// </summary>
@@ -2982,7 +3010,8 @@ public static class ModComp
                     DownloadCount = (int)data["downloadCount"];
                     FileName = (string)data["fileName"];
                     Hash =
-                        (string)((JsonArray)data["hashes"]).ToList().FirstOrDefault(s => s["algo"].ToObject<int>() == 1)?[
+                        (string)((JsonArray)data["hashes"]).ToList()
+                        .FirstOrDefault(s => s["algo"].ToObject<int>() == 1)?[
                             "value"];
                     if (Hash is null)
                         Hash = (string)((JsonArray)data["hashes"]).ToList()
@@ -3012,9 +3041,11 @@ public static class ModComp
                     }
 
                     // GameVersions
-                    RawGameVersions = data["gameVersions"].AsArray().Select(t => t.ToString().Trim().ToLower()).ToList();
+                    RawGameVersions = data["gameVersions"].AsArray().Select(t => t.ToString().Trim().ToLower())
+                        .ToList();
                     GameVersions = RawGameVersions.Where(v => McInstanceInfo.IsFormatFit(v))
-                        .Select(v => v.Replace("-snapshot", Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix"))).Distinct().ToList();
+                        .Select(v => v.Replace("-snapshot", Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix")))
+                        .Distinct().ToList();
                     if (GameVersions.Count > 1)
                     {
                         GameVersions = GameVersions.Sort(McVersionComparer.CompareVersionGe).ToList();
@@ -3153,9 +3184,15 @@ public static class ModComp
                     }
 
                     // GameVersions
-                    RawGameVersions = data["game_versions"].AsArray().Select(t => t.ToString().Trim().ToLower()).ToList();
+                    RawGameVersions = data["game_versions"].AsArray().Select(t => t.ToString().Trim().ToLower())
+                        .ToList();
                     GameVersions = RawGameVersions.Where(v => v.Contains(".")).Select(v =>
-                        v.Contains("-") ? v.BeforeFirst("-") + Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix") : v.StartsWithF("b1.") ? Lang.Text("Download.Comp.Detail.CompItem.AncientVersion") : v).Distinct().ToList();
+                        v.Contains("-")
+                            ?
+                            v.BeforeFirst("-") + Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix")
+                            : v.StartsWithF("b1.")
+                                ? Lang.Text("Download.Comp.Detail.CompItem.AncientVersion")
+                                : v).Distinct().ToList();
                     if (GameVersions.Count > 1)
                     {
                         GameVersions = GameVersions.Sort(McVersionComparer.CompareVersionGe).ToList();
@@ -3222,7 +3259,7 @@ public static class ModComp
         {
             return ToNetFile(localAddress, reason, RawGameVersions.FirstOrDefault(), ModLoaders.FirstOrDefault());
         }
-        
+
         /// <summary>
         /// 获取下载信息。
         /// </summary>
@@ -3241,7 +3278,7 @@ public static class ModComp
             {
                 throw new InvalidCastException("DownloadUrls 为空");
             }
-            
+
             return new DownloadFile(HandleModrinthDownloadUrls(DownloadUrls, reason, version, modLoader),
                 localAddress + (localAddress.EndsWithF(@"\") ? CompFileNameSanitize(FileName) : ""),
                 new FileCheckOptions(hash: Hash), true);
@@ -3279,7 +3316,7 @@ public static class ModComp
                 }
 
                 var sb = new StringBuilder(url);
-            
+
                 sb.Append(url.Contains('?') ? "&mr_download_reason=" : "?mr_download_reason=");
                 sb.Append(reason.ToString().ToLowerInvariant());
 
@@ -3323,7 +3360,8 @@ public static class ModComp
             if (Hash is not null)
                 json.Add("Hash", Hash);
             json.Add("RawDependencies", new JsonArray(RawDependencies.Select(s => (JsonNode)s).ToArray()));
-            json.Add("RawOptionalDependencies", new JsonArray(RawOptionalDependencies.Select(s => (JsonNode)s).ToArray()));
+            json.Add("RawOptionalDependencies",
+                new JsonArray(RawOptionalDependencies.Select(s => (JsonNode)s).ToArray()));
             json.Add("Dependencies", new JsonArray(Dependencies.Select(s => (JsonNode)s).ToArray()));
             json.Add("OptionalDependencies", new JsonArray(OptionalDependencies.Select(s => (JsonNode)s).ToArray()));
             return json;
@@ -3353,12 +3391,14 @@ public static class ModComp
                     var snapshotKeywords = new[] { "w", "snapshot", "rc", "pre", "experimental", "-" };
                     if (GameVersions.All(ver =>
                             !ver.Contains('.') || snapshotKeywords.Any(s => ver.ContainsF(s, true))))
-                        info.Add(Lang.Text("Download.Comp.Detail.FileList.GameVersion", string.Join("、", GameVersions)));
+                        info.Add(Lang.Text("Download.Comp.Detail.FileList.GameVersion",
+                            string.Join("、", GameVersions)));
 
                     if (DownloadCount > 0)
                         info.Add(Lang.Text("Common.Format.DownloadCount", Lang.CompactNumber(DownloadCount)));
 
-                    info.Add(Lang.Text("Download.Comp.Detail.FileList.Updated", Lang.TimeSpan(ReleaseDate - DateTime.Now)));
+                    info.Add(Lang.Text("Download.Comp.Detail.FileList.Updated",
+                        Lang.TimeSpan(ReleaseDate - DateTime.Now)));
 
                     if (Status != CompFileStatus.Release)
                         info.Add(StatusDescription);
@@ -3385,7 +3425,8 @@ public static class ModComp
                     // 4. 建立另存为按钮
                     if (onSaveClick is not null)
                     {
-                        var btnSave = new MyIconButton { SvgIcon = "lucide/save", ToolTip = Lang.Text("Download.Version.SaveAs") };
+                        var btnSave = new MyIconButton
+                            { SvgIcon = "lucide/save", ToolTip = Lang.Text("Download.Version.SaveAs") };
                         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
                         ToolTipService.SetVerticalOffset(btnSave, 30);
                         ToolTipService.SetHorizontalOffset(btnSave, 2);
@@ -3453,7 +3494,8 @@ public static class ModComp
             else
             {
                 resultJsonArray =
-                    ModDownload.DlModRequest<JsonArray>($"https://api.modrinth.com/v2/project/{projectId}/version?include_changelog=false");
+                    ModDownload.DlModRequest<JsonArray>(
+                        $"https://api.modrinth.com/v2/project/{projectId}/version?include_changelog=false");
             }
 
             compFilesCache[projectId] = resultJsonArray.Select(a => new CompFile((JsonObject)a, targetProject.Type))
@@ -3604,7 +3646,8 @@ public static class ModComp
                     {
                         var options = new List<IMyRadio>
                         {
-                            new MyRadioBox { Text = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.CurrentInstance") },
+                            new MyRadioBox
+                                { Text = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.CurrentInstance") },
                             new MyRadioBox { Text = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.AskInstance") },
                             new MyRadioBox { Text = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.AskPath") }
                         };
@@ -3653,6 +3696,7 @@ public static class ModComp
             HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.NoInstance"), HintType.Info);
             return;
         }
+
         if (!instance.IsLoaded) instance.Load();
         var compatible = files
             .Where(f => IsInstanceSuitableForFile(instance, f, _ResolveLoaders(f, project)))
@@ -3663,11 +3707,13 @@ public static class ModComp
             HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.NoCompatibleFile"), HintType.Info);
             return;
         }
+
         var folder = instance.PathIndie + _GetSubFolder(project.Type);
         Directory.CreateDirectory(folder);
         var target = Path.Combine(folder, CompFileNameGet(project, file));
         _StartQuickDownload(file, target);
-        HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.DownloadStarted", project.RawName), HintType.Success);
+        HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.DownloadStarted", project.RawName),
+            HintType.Success);
     }
 
     /// <summary>弹实例列表让用户选择，返回选中的实例（兼容者优先、当前选中实例居首）；取消或无兼容实例返回 null。</summary>
@@ -3680,6 +3726,7 @@ public static class ModComp
             ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, "versions\\", true);
         }
+
         var compatible = ModInstanceList.mcInstanceList.Values
             .SelectMany(l => l)
             .Where(v => v is not null && files.Any(f => IsInstanceSuitableForFile(v, f, _ResolveLoaders(f, project))))
@@ -3689,6 +3736,7 @@ public static class ModComp
             HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.NoCompatibleInstance"), HintType.Info);
             return null;
         }
+
         // 当前选中实例排首位（呼应 issue「第一行应为当前所选实例」）
         var current = ModInstanceList.McMcInstanceSelected;
         if (current is not null)
@@ -3725,7 +3773,8 @@ public static class ModComp
         if (string.IsNullOrWhiteSpace(saveFolder)) return; // 取消
         var target = Path.Combine(saveFolder, CompFileNameGet(project, file));
         _StartQuickDownload(file, target);
-        HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.DownloadStarted", project.RawName), HintType.Success);
+        HintService.Hint(Lang.Text("Download.Comp.QuickDownload.Hint.DownloadStarted", project.RawName),
+            HintType.Success);
     }
 
     /// <summary>构造并启动单文件下载任务（与详情页 Save_Click 末段一致）。</summary>
@@ -3761,7 +3810,10 @@ public static class ModComp
             var extractDir = Path.GetDirectoryName(target);
             loaders.Add(new ModLoader.LoaderTask<int, int>(
                 Lang.Text("Download.Comp.Detail.InstallWorld"),
-                _ => Files.ExtractFileAsync(target, extractDir).GetAwaiter().GetResult())
+                _ => Files.ExtractFileAsync(
+                    target,
+                    extractDir,
+                    archiveEncoding: Encoding.UTF8).GetAwaiter().GetResult())
             {
                 ProgressWeight = 0.1d,
                 block = true
@@ -3770,6 +3822,7 @@ public static class ModComp
                 Lang.Text("Download.Comp.Detail.CleanCache"),
                 _ => File.Delete(target)));
         }
+
         var loader = new ModLoader.LoaderCombo<int>(loaderName, loaders)
         {
             OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly
@@ -3806,7 +3859,8 @@ public static class ModComp
     }
 
     /// <summary>判断某实例是否兼容该文件（基于 Save_Click 的 isVersionSuitable，补全了 Quilt 判定）。</summary>
-    public static bool IsInstanceSuitableForFile(McInstance? version, CompFile file, List<CompLoaderType> allowedLoaders)
+    public static bool IsInstanceSuitableForFile(McInstance? version, CompFile file,
+        List<CompLoaderType> allowedLoaders)
     {
         if (version is null) return false;
         if (!version.IsLoaded) version.Load();
@@ -3820,7 +3874,7 @@ public static class ModComp
         // 加载器判定
         if (allowedLoaders.Count == 0) return true; // 无要求
         if (allowedLoaders.Contains(CompLoaderType.Forge) && version.Info.HasForge) return true;
-        if (allowedLoaders.Contains(CompLoaderType.Forge) && version.Info.HasCleanroom) 
+        if (allowedLoaders.Contains(CompLoaderType.Forge) && version.Info.HasCleanroom)
             return true;
         if (allowedLoaders.Contains(CompLoaderType.Fabric) &&
             (version.Info.HasFabric || version.Info.HasLegacyFabric)) return true;
@@ -3890,6 +3944,7 @@ public static class ModComp
             else
                 LauncherLog.Log($"[Comp] 未找到 ID {dep} 的前置信息", LauncherLogLevel.Debug);
         }
+
         if (!projects.Any())
             return;
 

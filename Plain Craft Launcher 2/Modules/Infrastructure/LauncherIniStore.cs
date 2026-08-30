@@ -21,7 +21,7 @@ public interface ILauncherKeyValueStore
 public sealed class LauncherIniStore : ILauncherKeyValueStore
 {
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, string>> _cache = new();
-    private readonly object _writeLock = new();
+    private readonly Lock _writeLock = new();
 
     private LauncherIniStore()
     {
@@ -62,7 +62,13 @@ public sealed class LauncherIniStore : ILauncherKeyValueStore
 
             lock (_writeLock)
             {
-                var content = GetContent(fileName) ?? new ConcurrentDictionary<string, string>();
+                var resolvedPath = LauncherPaths.ResolveLauncherIniPath(fileName);
+                var content = GetContent(fileName);
+                if (content is null)
+                {
+                    content = new ConcurrentDictionary<string, string>();
+                    _cache[resolvedPath] = content;
+                }
 
                 if (value is null)
                 {
@@ -92,7 +98,7 @@ public sealed class LauncherIniStore : ILauncherKeyValueStore
 
                 Files
                     .WriteFileAsync(
-                        LauncherPaths.ResolveLauncherIniPath(fileName),
+                        resolvedPath,
                         fileContent.ToString())
                     .GetAwaiter()
                     .GetResult();
@@ -130,7 +136,7 @@ public sealed class LauncherIniStore : ILauncherKeyValueStore
                          .ReadAllTextOrEmptyAsync(resolvedPath)
                          .GetAwaiter()
                          .GetResult()
-                         .Split("\r\n".ToArray(), StringSplitOptions.RemoveEmptyEntries))
+                         .Split([.. "\r\n"], StringSplitOptions.RemoveEmptyEntries))
             {
                 var index = line.IndexOfF(":");
 

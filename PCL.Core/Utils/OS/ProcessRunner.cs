@@ -48,10 +48,12 @@ public static class ProcessRunner
         {
             await process.WaitForExitAsync(timeoutCts?.Token ?? cancellationToken).ConfigureAwait(false);
         }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException)
         {
-            timedOut = true;
             _TryKill(process);
+            if (cancellationToken.IsCancellationRequested)
+                throw;
+            timedOut = true;
         }
 
         string output, error;

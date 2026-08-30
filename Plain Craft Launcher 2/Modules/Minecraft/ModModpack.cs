@@ -72,7 +72,11 @@ public static class ModModpack
             {
                 try
                 {
-                    archive = new ZipArchive(new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read));
+                    archive = new ZipArchive(
+                        new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read),
+                        ZipArchiveMode.Read,
+                        false,
+                        Encoding.GetEncoding("GB18030"));
                     if (archive.Entries.Any(e => e.IsEncrypted))
                         throw new Exception(Lang.Text("Minecraft.Download.Modpack.EncryptedArchiveUnsupported"));
                     // 从根目录判断整合包类型
@@ -96,7 +100,9 @@ public static class ModModpack
 
                     if (archive.GetEntry("manifest.json") is not null)
                     {
-                        var json = (JsonObject)JsonCompat.ParseNode(Files.ReadAllTextOrEmptyAsync(archive.GetEntry("manifest.json").Open(), Encoding.UTF8).GetAwaiter().GetResult());
+                        var json = (JsonObject)JsonCompat.ParseNode(Files
+                            .ReadAllTextOrEmptyAsync(archive.GetEntry("manifest.json").Open(), Encoding.UTF8)
+                            .GetAwaiter().GetResult());
                         if (json["addons"] is null)
                         {
                             packType = 0;
@@ -153,7 +159,8 @@ public static class ModModpack
 
                         if (fullNames[1] == "manifest.json")
                         {
-                            var json = (JsonObject)JsonCompat.ParseNode(Files.ReadAllTextOrEmptyAsync(Entry.Open(), Encoding.UTF8).GetAwaiter().GetResult());
+                            var json = (JsonObject)JsonCompat.ParseNode(Files
+                                .ReadAllTextOrEmptyAsync(Entry.Open(), Encoding.UTF8).GetAwaiter().GetResult());
                             if (json["addons"] is null)
                             {
                                 packType = 0;
@@ -315,7 +322,8 @@ public static class ModModpack
         if (Directory.Exists(overridesFolder))
         {
             LauncherLog.Log($"[ModPack] 处理整合包覆写文件夹：{overridesFolder} → {versionFolder}");
-            Directories.CopyDirectoryAsync(overridesFolder, versionFolder, delta => loader.Progress += delta * progressIncrement).GetAwaiter().GetResult();
+            Directories.CopyDirectoryAsync(overridesFolder, versionFolder,
+                delta => loader.Progress += delta * progressIncrement).GetAwaiter().GetResult();
         }
         else
         {
@@ -330,7 +338,8 @@ public static class ModModpack
         {
             LauncherIniStore.Shared.Write(overridesIni, "VersionArgumentIndie", 1.ToString()); // 开启版本隔离
             LauncherIniStore.Shared.Write(overridesIni, "VersionArgumentIndieV2", true.ToString());
-            Files.CopyFileAsync(LauncherFileSystem.ResolvePath(overridesIni), LauncherFileSystem.ResolvePath(versionIni)).GetAwaiter().GetResult(); // 覆写已有的 ini
+            Files.CopyFileAsync(LauncherFileSystem.ResolvePath(overridesIni),
+                LauncherFileSystem.ResolvePath(versionIni)).GetAwaiter().GetResult(); // 覆写已有的 ini
         }
         else
         {
@@ -352,7 +361,8 @@ public static class ModModpack
         try
         {
             json = (JsonObject)JsonCompat.ParseNode(
-                Files.ReadAllTextOrEmptyAsync(archive.GetEntry(archiveBaseFolder + "manifest.json").Open()).GetAwaiter().GetResult());
+                Files.ReadAllTextOrEmptyAsync(archive.GetEntry(archiveBaseFolder + "manifest.json").Open()).GetAwaiter()
+                    .GetResult());
         }
         catch (Exception ex)
         {
@@ -428,12 +438,13 @@ public static class ModModpack
         if (!string.IsNullOrEmpty(overrideHome))
             installLoaders.Add(new LoaderTask<string, int>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractModpack"),
                 task =>
-            {
-                ExtractModpackFiles(installTemp, fileAddress, task, 0.6d);
-                CopyOverrideDirectory(
-                    Path.Combine(installTemp, archiveBaseFolder, overrideHome == "." || overrideHome == "./" ? "" : overrideHome),
-                    $@"{ModFolder.mcFolderSelected}versions\{instanceName}", task, 0.4d);
-            })
+                {
+                    ExtractModpackFiles(installTemp, fileAddress, task, 0.6d);
+                    CopyOverrideDirectory(
+                        Path.Combine(installTemp, archiveBaseFolder,
+                            overrideHome == "." || overrideHome == "./" ? "" : overrideHome),
+                        $@"{ModFolder.mcFolderSelected}versions\{instanceName}", task, 0.4d);
+                })
             {
                 ProgressWeight = new FileInfo(fileAddress).Length / 1024d / 1024d / 6d,
                 block = false
@@ -460,101 +471,103 @@ public static class ModModpack
             // 获取 Mod 下载信息
             modDownloadLoaders.Add(new LoaderTask<int, JsonArray>(
                 Lang.Text("Minecraft.Download.Modpack.Stage.PrepareModsDownloadInfo"), task =>
-            {
-                var allowMirror = true;
-                JsonArray ret;
-                var tryCount = 0;
-                do
                 {
-                    tryCount += 1;
-                    ret = (JsonArray)((JsonObject)JsonCompat.ParseNode(ModDownload.DlModRequest(
-                        "https://api.curseforge.com/v1/mods/files",
-                        "POST", "{\"fileIds\": [" + modList.Join(",") + "]}", "application/json",
-                        allowMirror)))["data"];
-                    if (modList.Count <= ret.Count)
+                    var allowMirror = true;
+                    JsonArray ret;
+                    var tryCount = 0;
+                    do
                     {
-                        LauncherLog.Log("[Modpack] 已获取到的模组数量足够，开始进行下一步");
-                        break;
-                    }
+                        tryCount += 1;
+                        ret = (JsonArray)((JsonObject)JsonCompat.ParseNode(ModDownload.DlModRequest(
+                            "https://api.curseforge.com/v1/mods/files",
+                            "POST", "{\"fileIds\": [" + modList.Join(",") + "]}", "application/json",
+                            allowMirror)))["data"];
+                        if (modList.Count <= ret.Count)
+                        {
+                            LauncherLog.Log("[Modpack] 已获取到的模组数量足够，开始进行下一步");
+                            break;
+                        }
 
-                    allowMirror = false;
-                    LauncherLog.Log($"[Modpack] 获取模组数量不达标，设置镜像源允许状态为: {allowMirror}");
-                    if (tryCount > 3) throw new Exception(Lang.Text("Minecraft.Download.Modpack.SomeModsDeleted"));
-                } while (true);
+                        allowMirror = false;
+                        LauncherLog.Log($"[Modpack] 获取模组数量不达标，设置镜像源允许状态为: {allowMirror}");
+                        if (tryCount > 3) throw new Exception(Lang.Text("Minecraft.Download.Modpack.SomeModsDeleted"));
+                    } while (true);
 
-                task.output = ret;
-            })
+                    task.output = ret;
+                })
             {
                 ProgressWeight = modList.Count / 10d
             }); // 每 10 Mod 需要 1s
             // 构造 NetFile
             modDownloadLoaders.Add(new LoaderTask<JsonArray, List<DownloadFile>>(
                 Lang.Text("Minecraft.Download.Modpack.Stage.BuildModsDownloadInfo"), task =>
-            {
-                var fileList = new Dictionary<int, DownloadFile>();
-                foreach (var ModJson in task.input)
                 {
-                    var id = ModJson["id"].ToObject<int>();
-                    // 跳过重复的 Mod（疑似 CurseForge Bug）
-                    if (fileList.ContainsKey(id))
-                        continue;
-                    // 可选 Mod 提示
-                    if (modOptionalList.Contains(id))
-                        if (ModMain.MyMsgBox(
-                                Lang.Text("Minecraft.Download.Modpack.OptionalFile.Message", ModJson["displayName"]),
-                                Lang.Text("Minecraft.Download.Modpack.OptionalFile.Title"),
-                                Lang.Text("Minecraft.Download.Modpack.OptionalFile.Download"),
-                                Lang.Text("Minecraft.Download.Modpack.OptionalFile.Skip")
-                            ) == 2)
-                            continue;
-
-                    // 根据 modules 和文件名后缀判断资源类型
-                    string targetFolder;
-                    ModComp.CompType type;
-                    if (ModJson["modules"].AsArray().Any()) // modules 可能返回 null（#1006）
+                    var fileList = new Dictionary<int, DownloadFile>();
+                    foreach (var ModJson in task.input)
                     {
-                        var moduleNames = ((JsonArray)ModJson["modules"]).Select(l => l["name"].ToString()).ToList();
-                        if (moduleNames.Contains("META-INF") || moduleNames.Contains("mcmod.info") ||
-                            (ModJson?["FileName"]?.ToString()?.EndsWithF(".jar", true)).GetValueOrDefault())
+                        var id = ModJson["id"].ToObject<int>();
+                        // 跳过重复的 Mod（疑似 CurseForge Bug）
+                        if (fileList.ContainsKey(id))
+                            continue;
+                        // 可选 Mod 提示
+                        if (modOptionalList.Contains(id))
+                            if (ModMain.MyMsgBox(
+                                    Lang.Text("Minecraft.Download.Modpack.OptionalFile.Message",
+                                        ModJson["displayName"]),
+                                    Lang.Text("Minecraft.Download.Modpack.OptionalFile.Title"),
+                                    Lang.Text("Minecraft.Download.Modpack.OptionalFile.Download"),
+                                    Lang.Text("Minecraft.Download.Modpack.OptionalFile.Skip")
+                                ) == 2)
+                                continue;
+
+                        // 根据 modules 和文件名后缀判断资源类型
+                        string targetFolder;
+                        ModComp.CompType type;
+                        if (ModJson["modules"].AsArray().Any()) // modules 可能返回 null（#1006）
+                        {
+                            var moduleNames = ((JsonArray)ModJson["modules"]).Select(l => l["name"].ToString())
+                                .ToList();
+                            if (moduleNames.Contains("META-INF") || moduleNames.Contains("mcmod.info") ||
+                                (ModJson?["FileName"]?.ToString()?.EndsWithF(".jar", true)).GetValueOrDefault())
+                            {
+                                targetFolder = "mods";
+                                type = ModComp.CompType.Mod;
+                            }
+                            else if (moduleNames.Contains("pack.mcmeta"))
+                            {
+                                targetFolder = "resourcepacks";
+                                type = ModComp.CompType.ResourcePack;
+                            }
+                            else if (moduleNames.Contains("level.dat"))
+                            {
+                                targetFolder = "saves";
+                                type = ModComp.CompType.World;
+                            }
+                            else
+                            {
+                                targetFolder = "shaderpacks";
+                                type = ModComp.CompType.Shader;
+                            }
+                        }
+                        else
                         {
                             targetFolder = "mods";
                             type = ModComp.CompType.Mod;
                         }
-                        else if (moduleNames.Contains("pack.mcmeta"))
-                        {
-                            targetFolder = "resourcepacks";
-                            type = ModComp.CompType.ResourcePack;
-                        }
-                        else if (moduleNames.Contains("level.dat"))
-                        {
-                            targetFolder = "saves";
-                            type = ModComp.CompType.World;
-                        }
-                        else
-                        {
-                            targetFolder = "shaderpacks";
-                            type = ModComp.CompType.Shader;
-                        }
-                    }
-                    else
-                    {
-                        targetFolder = "mods";
-                        type = ModComp.CompType.Mod;
+
+                        // 建立 CompFile
+                        var file = new ModComp.CompFile((JsonObject)ModJson, type);
+                        if (!file.Available)
+                            continue;
+                        // 实际的添加
+                        fileList.Add(id,
+                            file.ToNetFile($@"{ModFolder.mcFolderSelected}versions\{instanceName}\{targetFolder}\",
+                                ModComp.DownloadReason.ModPack, json["minecraft"]!["version"]!.ToString(), modLoader));
+                        task.Progress += 1d / (1 + modList.Count);
                     }
 
-                    // 建立 CompFile
-                    var file = new ModComp.CompFile((JsonObject)ModJson, type);
-                    if (!file.Available)
-                        continue;
-                    // 实际的添加
-                    fileList.Add(id,
-                        file.ToNetFile($@"{ModFolder.mcFolderSelected}versions\{instanceName}\{targetFolder}\",
-                            ModComp.DownloadReason.ModPack, json["minecraft"]!["version"]!.ToString(), modLoader));
-                    task.Progress += 1d / (1 + modList.Count);
-                }
-
-                task.output = fileList.Values.ToList();
-            })
+                    task.output = fileList.Values.ToList();
+                })
             {
                 ProgressWeight = modList.Count / 200d,
                 show = false
@@ -566,7 +579,7 @@ public static class ModModpack
             installLoaders.Add(
                 new LoaderCombo<int>(Lang.Text("Minecraft.Download.Modpack.Stage.DownloadMods.MainLoader"),
                         modDownloadLoaders)
-                { show = false, ProgressWeight = modDownloadLoaders.Sum(l => l.ProgressWeight) });
+                    { show = false, ProgressWeight = modDownloadLoaders.Sum(l => l.ProgressWeight) });
         }
 
         // 构造加载器
@@ -600,14 +613,16 @@ public static class ModModpack
             }
 
             // 删除原始整合包文件
-            foreach (var Target in new[] { Path.Combine(versionFolder, "原始整合包.zip"), Path.Combine(versionFolder, "原始整合包.mrpack") })
+            foreach (var Target in new[]
+                         { Path.Combine(versionFolder, "原始整合包.zip"), Path.Combine(versionFolder, "原始整合包.mrpack") })
                 if (File.Exists(Target))
                 {
                     LauncherLog.Log("[ModPack] 删除原始整合包文件：" + Target);
                     File.Delete(Target);
                 }
 
-            if (File.Exists(fileAddress) && PathUtils.GetFileNameWithoutExtensionFromUrlOrPath(fileAddress) == "modpack")
+            if (File.Exists(fileAddress) &&
+                PathUtils.GetFileNameWithoutExtensionFromUrlOrPath(fileAddress) == "modpack")
             {
                 LauncherLog.Log("[ModPack] 删除安装整合包文件：" + fileAddress);
                 File.Delete(fileAddress);
@@ -668,7 +683,8 @@ public static class ModModpack
         try
         {
             json = (JsonObject)JsonCompat.ParseNode(
-                Files.ReadAllTextOrEmptyAsync(archive.GetEntry(archiveBaseFolder + "modrinth.index.json").Open()).GetAwaiter().GetResult());
+                Files.ReadAllTextOrEmptyAsync(archive.GetEntry(archiveBaseFolder + "modrinth.index.json").Open())
+                    .GetAwaiter().GetResult());
         }
         catch (Exception ex)
         {
@@ -745,13 +761,13 @@ public static class ModModpack
         var installLoaders = new List<LoaderBase>();
         installLoaders.Add(new LoaderTask<string, int>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractModpack"),
             task =>
-        {
-            ExtractModpackFiles(installTemp, fileAddress, task, 0.5d);
-            CopyOverrideDirectory(Path.Combine(installTemp, archiveBaseFolder, "overrides"),
-                Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName), task, 0.4d);
-            CopyOverrideDirectory(Path.Combine(installTemp, archiveBaseFolder, "client-overrides"),
-                Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName), task, 0.1d);
-        })
+            {
+                ExtractModpackFiles(installTemp, fileAddress, task, 0.5d);
+                CopyOverrideDirectory(Path.Combine(installTemp, archiveBaseFolder, "overrides"),
+                    Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName), task, 0.4d);
+                CopyOverrideDirectory(Path.Combine(installTemp, archiveBaseFolder, "client-overrides"),
+                    Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName), task, 0.1d);
+            })
         {
             ProgressWeight = new FileInfo(fileAddress).Length / 1024d / 1024d / 6d,
             block = false
@@ -808,7 +824,7 @@ public static class ModModpack
         if (fileList.Any())
             installLoaders.Add(
                 new LoaderDownload(Lang.Text("Minecraft.Download.Modpack.Stage.DownloadAdditions"), fileList)
-                { ProgressWeight = fileList.Count * 1.5d }); // 每个 Mod 需要 1.5s
+                    { ProgressWeight = fileList.Count * 1.5d }); // 每个 Mod 需要 1.5s
 
         // 构造加载器
         var request = new ModDownloadLib.McInstallRequest
@@ -841,14 +857,16 @@ public static class ModModpack
             }
 
             // 删除原始整合包文件
-            foreach (var Target in new[] { Path.Combine(versionFolder, "原始整合包.zip"), Path.Combine(versionFolder, "原始整合包.mrpack") })
+            foreach (var Target in new[]
+                         { Path.Combine(versionFolder, "原始整合包.zip"), Path.Combine(versionFolder, "原始整合包.mrpack") })
                 if (File.Exists(Target))
                 {
                     LauncherLog.Log("[ModPack] 删除原始整合包文件：" + Target);
                     File.Delete(Target);
                 }
 
-            if (File.Exists(fileAddress) && PathUtils.GetFileNameWithoutExtensionFromUrlOrPath(fileAddress) == "modpack")
+            if (File.Exists(fileAddress) &&
+                PathUtils.GetFileNameWithoutExtensionFromUrlOrPath(fileAddress) == "modpack")
             {
                 LauncherLog.Log("[ModPack] 删除安装整合包文件：" + fileAddress);
                 File.Delete(fileAddress);
@@ -908,7 +926,8 @@ public static class ModModpack
         try
         {
             json = (JsonObject)JsonCompat.ParseNode(
-                Files.ReadAllTextOrEmptyAsync(archive.GetEntry(archiveBaseFolder + "modpack.json").Open(), Encoding.UTF8).GetAwaiter().GetResult());
+                Files.ReadAllTextOrEmptyAsync(archive.GetEntry(archiveBaseFolder + "modpack.json").Open(),
+                    Encoding.UTF8).GetAwaiter().GetResult());
         }
         catch (Exception ex)
         {
@@ -930,11 +949,11 @@ public static class ModModpack
         var installLoaders = new List<LoaderBase>();
         installLoaders.Add(new LoaderTask<string, int>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractModpack"),
             task =>
-        {
-            ExtractModpackFiles(installTemp, fileAddress, task, 0.6d);
-            CopyOverrideDirectory(Path.Combine(installTemp, archiveBaseFolder, "minecraft"),
-                Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName), task, 0.4d);
-        })
+            {
+                ExtractModpackFiles(installTemp, fileAddress, task, 0.6d);
+                CopyOverrideDirectory(Path.Combine(installTemp, archiveBaseFolder, "minecraft"),
+                    Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName), task, 0.4d);
+            })
         {
             ProgressWeight = new FileInfo(fileAddress).Length / 1024d / 1024d / 6d,
             block = false
@@ -1004,7 +1023,8 @@ public static class ModModpack
                         archive.GetEntry(archiveBaseFolder + "manifest.json");
             using (var stream = entry.Open())
             {
-                json = (JsonObject)JsonCompat.ParseNode(Files.ReadAllTextOrEmptyAsync(stream, Encoding.UTF8).GetAwaiter().GetResult());
+                json = (JsonObject)JsonCompat.ParseNode(Files.ReadAllTextOrEmptyAsync(stream, Encoding.UTF8)
+                    .GetAwaiter().GetResult());
             }
         }
         catch (Exception ex)
@@ -1035,24 +1055,25 @@ public static class ModModpack
         // 解压整合包文件任务
         var unzipTask = new LoaderTask<string, int>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractModpack"),
             task =>
-        {
-            ExtractModpackFiles(installTemp, fileAddress, task, 0.6);
-            CopyOverrideDirectory(
-                Path.Combine(installTemp, archiveBaseFolder, "overrides"),
-                Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName),
-                task, 0.4);
-
-            // JVM 参数处理
-            if (json["launchInfo"] is not null)
             {
-                var launchInfo = (JsonObject)json["launchInfo"];
-                Config.Instance.JvmArgs[versionFolder] = HandleLaunchArguments(launchInfo["javaArgument"]);
-                Config.Instance.GameArgs[versionFolder] = HandleLaunchArguments(launchInfo["launchArgument"]);
-            }
+                ExtractModpackFiles(installTemp, fileAddress, task, 0.6);
+                CopyOverrideDirectory(
+                    Path.Combine(installTemp, archiveBaseFolder, "overrides"),
+                    Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName),
+                    task, 0.4);
 
-            // 整合包版本
-            if (json["version"] is not null) States.Instance.ModpackVersion[versionFolder] = json["version"].ToString();
-        });
+                // JVM 参数处理
+                if (json["launchInfo"] is not null)
+                {
+                    var launchInfo = (JsonObject)json["launchInfo"];
+                    Config.Instance.JvmArgs[versionFolder] = HandleLaunchArguments(launchInfo["javaArgument"]);
+                    Config.Instance.GameArgs[versionFolder] = HandleLaunchArguments(launchInfo["launchArgument"]);
+                }
+
+                // 整合包版本
+                if (json["version"] is not null)
+                    States.Instance.ModpackVersion[versionFolder] = json["version"].ToString();
+            });
 
         unzipTask.ProgressWeight = new FileInfo(fileAddress).Length / 1024.0 / 1024.0 / 6.0; // 每 6M 需要 1s
         unzipTask.block = false;
@@ -1063,7 +1084,11 @@ public static class ModModpack
             throw new Exception(Lang.Text("Minecraft.Download.Modpack.MissingGameVersion.McbbsAddons"));
 
         var addons = new Dictionary<string, string>();
-        foreach (var EntryNode in json["addons"].AsArray()) { var entry = EntryNode.AsObject(); addons.Add(entry["id"].ToString(), entry["version"].ToString()); }
+        foreach (var EntryNode in json["addons"].AsArray())
+        {
+            var entry = EntryNode.AsObject();
+            addons.Add(entry["id"].ToString(), entry["version"].ToString());
+        }
 
         if (!addons.ContainsKey("game"))
         {
@@ -1200,7 +1225,8 @@ public static class ModModpack
                 var instanceName = PathUtils.GetDirectoryNameLeaf(targetFolder);
                 Directory.CreateDirectory(Path.Combine(targetFolder, ".minecraft"));
                 PageSelectLeft.AddFolder(
-                    Path.Combine(targetFolder, ".minecraft", archiveBaseFolder.Replace("/", @"\").TrimStart('\\')), instanceName,
+                    Path.Combine(targetFolder, ".minecraft", archiveBaseFolder.Replace("/", @"\").TrimStart('\\')),
+                    instanceName,
                     false); // 格式例如：包裹文件夹\.minecraft\（最短为空字符串）
                 // 调用 modpack 文件进行安装
                 var modpackFile = Directory.GetFiles(targetFolder, "modpack.*", SearchOption.AllDirectories).First();
@@ -1265,7 +1291,8 @@ public static class ModModpack
             {
                 ExtractModpackFiles(targetFolder, fileAddress, task, 0.95d);
                 // 加入文件夹列表
-                PageSelectLeft.AddFolder(Path.Combine(targetFolder, archiveBaseFolder), PathUtils.GetDirectoryNameLeaf(targetFolder),
+                PageSelectLeft.AddFolder(Path.Combine(targetFolder, archiveBaseFolder),
+                    PathUtils.GetDirectoryNameLeaf(targetFolder),
                     false);
                 Thread.Sleep(400); // 避免文件争用
                 UiThread.Post(() => ModMain.frmMain.PageChange(FormMain.PageType.InstanceSelect));
@@ -1309,8 +1336,11 @@ public static class ModModpack
         try
         {
             packJson = (JsonObject)JsonCompat.ParseNode(
-                Files.ReadAllTextOrEmptyAsync(archive.GetEntry(archiveBaseFolder + "mmc-pack.json").Open(), Encoding.UTF8).GetAwaiter().GetResult());
-            packInstance = Files.ReadAllTextOrEmptyAsync(archive.GetEntry(archiveBaseFolder + "instance.cfg").Open(), Encoding.UTF8).GetAwaiter().GetResult();
+                Files.ReadAllTextOrEmptyAsync(archive.GetEntry(archiveBaseFolder + "mmc-pack.json").Open(),
+                    Encoding.UTF8).GetAwaiter().GetResult());
+            packInstance = Files
+                .ReadAllTextOrEmptyAsync(archive.GetEntry(archiveBaseFolder + "instance.cfg").Open(), Encoding.UTF8)
+                .GetAwaiter().GetResult();
 
             #region JSON Patches
 
@@ -1328,7 +1358,9 @@ public static class ModModpack
                     foreach (var entry in archive.Entries)
                         if (!entry.FullName.EndsWith("/") && entry.FullName.StartsWith(archiveBaseFolder + "patches/"))
                         {
-                            var patch = (JsonObject)JsonCompat.ParseNode(Files.ReadAllTextOrEmptyAsync(archive.GetEntry(entry.FullName).Open(), Encoding.UTF8).GetAwaiter().GetResult());
+                            var patch = (JsonObject)JsonCompat.ParseNode(Files
+                                .ReadAllTextOrEmptyAsync(archive.GetEntry(entry.FullName).Open(), Encoding.UTF8)
+                                .GetAwaiter().GetResult());
                             patches.Add(new KeyValuePair<JsonObject, int>(patch,
                                 (int)(patch["order"] is not null ? patch["order"] : 0)));
                         }
@@ -1337,7 +1369,7 @@ public static class ModModpack
                     var componentUids = components
                         .Select(c => c["uid"]?.ToString())
                         .ToHashSet();
-                    
+
                     patches = patches
                         .Where(p => componentUids.Contains(p.Key["uid"]?.ToString()))
                         .OrderBy(p => p.Value)
@@ -1558,102 +1590,109 @@ public static class ModModpack
         var installLoaders = new List<LoaderBase>();
         installLoaders.Add(new LoaderTask<string, int>(Lang.Text("Minecraft.Download.Modpack.Stage.ExtractModpack"),
             task =>
-        {
-            ExtractModpackFiles(installTemp, fileAddress, task, 0.55d);
-            CopyOverrideDirectory(Path.Combine(installTemp, archiveBaseFolder, "libraries"),
-                Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName, "libraries"), task, 0.2d);
-            CopyOverrideDirectory(Path.Combine(installTemp, archiveBaseFolder, ".minecraft"),
-                Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName), task, 0.2d);
-
-            #region instance.cfg
-
-            // 读取 MMC 设置文件（#2655）
-            try
             {
-                var mMCSetupFile = Path.Combine(installTemp, archiveBaseFolder, "instance.cfg");
-                // 将其中的等号替换为冒号，以符合 ini 文件格式
-                if (File.Exists(mMCSetupFile))
+                ExtractModpackFiles(installTemp, fileAddress, task, 0.55d);
+                CopyOverrideDirectory(Path.Combine(installTemp, archiveBaseFolder, "libraries"),
+                    Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName, "libraries"), task, 0.2d);
+                CopyOverrideDirectory(Path.Combine(installTemp, archiveBaseFolder, ".minecraft"),
+                    Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName), task, 0.2d);
+
+                #region instance.cfg
+
+                // 读取 MMC 设置文件（#2655）
+                try
                 {
-                    List<string> lines = [];
-                    foreach (var Line in Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(mMCSetupFile)).GetAwaiter().GetResult().Split(new[] { "\r", "\n" },
-                                 StringSplitOptions.RemoveEmptyEntries))
+                    var mMCSetupFile = Path.Combine(installTemp, archiveBaseFolder, "instance.cfg");
+                    // 将其中的等号替换为冒号，以符合 ini 文件格式
+                    if (File.Exists(mMCSetupFile))
                     {
-                        if (!Line.Contains("="))
-                            continue;
-                        lines.Add(Line.BeforeFirst("=") + ":" + Line.AfterFirst("="));
-                    }
-
-                    Files.WriteFileAsync(LauncherFileSystem.ResolvePath(mMCSetupFile), lines.Join("\r\n")).GetAwaiter().GetResult();
-                    // 读取文件
-                    if (Convert.ToBoolean(LauncherIniStore.Shared.Read(mMCSetupFile, "OverrideCommands",
-                            false.ToString())))
-                    {
-                        var preLaunchCommand = LauncherIniStore.Shared.Read(mMCSetupFile, "PreLaunchCommand");
-                        if (!string.IsNullOrEmpty(preLaunchCommand))
+                        List<string> lines = [];
+                        foreach (var Line in Files.ReadAllTextOrEmptyAsync(LauncherFileSystem.ResolvePath(mMCSetupFile))
+                                     .GetAwaiter().GetResult().Split(new[] { "\r", "\n" },
+                                         StringSplitOptions.RemoveEmptyEntries))
                         {
-                            preLaunchCommand = preLaunchCommand.Replace(@"\""", "\"")
-                                .Replace("$INST_JAVA", "{java}java.exe").Replace(@"$INST_MC_DIR\", "{minecraft}")
-                                .Replace("$INST_MC_DIR", "{minecraft}").Replace(@"$INST_DIR\", "{verpath}")
-                                .Replace("$INST_DIR", "{verpath}").Replace("$INST_ID", "{name}")
-                                .Replace("$INST_NAME", "{name}");
-                            Config.Instance.PreLaunchCommand[versionFolder] = preLaunchCommand;
-                            LauncherLog.Log("[ModPack] 迁移 MultiMC 实例独立设置：启动前执行命令：" + preLaunchCommand);
+                            if (!Line.Contains("="))
+                                continue;
+                            lines.Add(Line.BeforeFirst("=") + ":" + Line.AfterFirst("="));
                         }
-                    }
 
-                    if (Convert.ToBoolean(LauncherIniStore.Shared.Read(mMCSetupFile, "JoinServerOnLaunch",
-                            false.ToString())))
-                    {
-                        var serverAddress = LauncherIniStore.Shared.Read(mMCSetupFile, "JoinServerOnLaunchAddress")
-                            .Replace(@"\""", "\"");
-                        Config.Instance.ServerToEnter[versionFolder] = serverAddress;
-                        LauncherLog.Log("[ModPack] 迁移 MultiMC 实例独立设置：自动进入服务器：" + serverAddress);
-                    }
-
-                    if (Convert.ToBoolean(LauncherIniStore.Shared.Read(mMCSetupFile, "IgnoreJavaCompatibility",
-                            false.ToString())))
-                    {
-                        Config.Instance.IgnoreJavaCompatibility[versionFolder] = true;
-                        LauncherLog.Log("[ModPack] 迁移 MultiMC 实例独立设置：忽略 Java 兼容性警告");
-                    }
-
-                    var logo = Path.GetFileName(LauncherIniStore.Shared.Read(mMCSetupFile, "iconKey"));
-                    if (!string.IsNullOrEmpty(logo) && File.Exists($"{installTemp}{archiveBaseFolder}{logo}.png"))
-                    {
-                        States.Instance.IsLogoCustom[versionFolder] = true;
-                        States.Instance.LogoPath[versionFolder] = @"PCL\Logo.png";
-                        Files.CopyFileAsync(LauncherFileSystem.ResolvePath($"{installTemp}{archiveBaseFolder}{logo}.png"), LauncherFileSystem.ResolvePath($@"{ModFolder.mcFolderSelected}versions\{instanceName}\PCL\Logo.png")).GetAwaiter().GetResult();
-                        LauncherLog.Log($"[ModPack] 迁移 MultiMC 实例独立设置：实例图标（{logo}.png）");
-                    }
-
-                    // JVM 参数
-                    var jvmArgs = LauncherIniStore.Shared.Read(mMCSetupFile, "JvmArgs");
-                    if (!string.IsNullOrEmpty(jvmArgs))
-                    {
-                        if (Convert.ToBoolean(LauncherIniStore.Shared.Read(mMCSetupFile, "OverrideJavaArgs",
+                        Files.WriteFileAsync(LauncherFileSystem.ResolvePath(mMCSetupFile), lines.Join("\r\n"))
+                            .GetAwaiter().GetResult();
+                        // 读取文件
+                        if (Convert.ToBoolean(LauncherIniStore.Shared.Read(mMCSetupFile, "OverrideCommands",
                                 false.ToString())))
                         {
-                            Config.Instance.JvmArgs[versionFolder] = jvmArgs;
-                            LauncherLog.Log("[ModPack] 迁移 MultiMC 实例独立设置：JVM 参数（覆盖）：" + jvmArgs);
+                            var preLaunchCommand = LauncherIniStore.Shared.Read(mMCSetupFile, "PreLaunchCommand");
+                            if (!string.IsNullOrEmpty(preLaunchCommand))
+                            {
+                                preLaunchCommand = preLaunchCommand.Replace(@"\""", "\"")
+                                    .Replace("$INST_JAVA", "{java}java.exe").Replace(@"$INST_MC_DIR\", "{minecraft}")
+                                    .Replace("$INST_MC_DIR", "{minecraft}").Replace(@"$INST_DIR\", "{verpath}")
+                                    .Replace("$INST_DIR", "{verpath}").Replace("$INST_ID", "{name}")
+                                    .Replace("$INST_NAME", "{name}");
+                                Config.Instance.PreLaunchCommand[versionFolder] = preLaunchCommand;
+                                LauncherLog.Log("[ModPack] 迁移 MultiMC 实例独立设置：启动前执行命令：" + preLaunchCommand);
+                            }
                         }
-                        else
+
+                        if (Convert.ToBoolean(LauncherIniStore.Shared.Read(mMCSetupFile, "JoinServerOnLaunch",
+                                false.ToString())))
                         {
-                            jvmArgs = jvmArgs +
-                                                           " " +
-                                                               Config.Launch.JvmArgs;
-                            Config.Instance.JvmArgs[versionFolder] = jvmArgs;
-                            LauncherLog.Log("[ModPack] 迁移 MultiMC 实例独立设置：JVM 参数（追加）：" + jvmArgs);
+                            var serverAddress = LauncherIniStore.Shared.Read(mMCSetupFile, "JoinServerOnLaunchAddress")
+                                .Replace(@"\""", "\"");
+                            Config.Instance.ServerToEnter[versionFolder] = serverAddress;
+                            LauncherLog.Log("[ModPack] 迁移 MultiMC 实例独立设置：自动进入服务器：" + serverAddress);
+                        }
+
+                        if (Convert.ToBoolean(LauncherIniStore.Shared.Read(mMCSetupFile, "IgnoreJavaCompatibility",
+                                false.ToString())))
+                        {
+                            Config.Instance.IgnoreJavaCompatibility[versionFolder] = true;
+                            LauncherLog.Log("[ModPack] 迁移 MultiMC 实例独立设置：忽略 Java 兼容性警告");
+                        }
+
+                        var logo = Path.GetFileName(LauncherIniStore.Shared.Read(mMCSetupFile, "iconKey"));
+                        if (!string.IsNullOrEmpty(logo) && File.Exists($"{installTemp}{archiveBaseFolder}{logo}.png"))
+                        {
+                            States.Instance.IsLogoCustom[versionFolder] = true;
+                            States.Instance.LogoPath[versionFolder] = @"PCL\Logo.png";
+                            Files.CopyFileAsync(
+                                    LauncherFileSystem.ResolvePath($"{installTemp}{archiveBaseFolder}{logo}.png"),
+                                    LauncherFileSystem.ResolvePath(
+                                        $@"{ModFolder.mcFolderSelected}versions\{instanceName}\PCL\Logo.png"))
+                                .GetAwaiter()
+                                .GetResult();
+                            LauncherLog.Log($"[ModPack] 迁移 MultiMC 实例独立设置：实例图标（{logo}.png）");
+                        }
+
+                        // JVM 参数
+                        var jvmArgs = LauncherIniStore.Shared.Read(mMCSetupFile, "JvmArgs");
+                        if (!string.IsNullOrEmpty(jvmArgs))
+                        {
+                            if (Convert.ToBoolean(LauncherIniStore.Shared.Read(mMCSetupFile, "OverrideJavaArgs",
+                                    false.ToString())))
+                            {
+                                Config.Instance.JvmArgs[versionFolder] = jvmArgs;
+                                LauncherLog.Log("[ModPack] 迁移 MultiMC 实例独立设置：JVM 参数（覆盖）：" + jvmArgs);
+                            }
+                            else
+                            {
+                                jvmArgs = jvmArgs +
+                                          " " +
+                                          Config.Launch.JvmArgs;
+                                Config.Instance.JvmArgs[versionFolder] = jvmArgs;
+                                LauncherLog.Log("[ModPack] 迁移 MultiMC 实例独立设置：JVM 参数（追加）：" + jvmArgs);
+                            }
                         }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                LauncherLog.Log(ex, $"读取 MMC 配置文件失败（{installTemp}{archiveBaseFolder}instance.cfg）");
-            }
+                catch (Exception ex)
+                {
+                    LauncherLog.Log(ex, $"读取 MMC 配置文件失败（{installTemp}{archiveBaseFolder}instance.cfg）");
+                }
 
-            #endregion
-        })
+                #endregion
+            })
         {
             ProgressWeight = new FileInfo(fileAddress).Length / 1024d / 1024d / 6d,
             block = false

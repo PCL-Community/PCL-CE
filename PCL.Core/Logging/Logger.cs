@@ -21,15 +21,21 @@ public sealed class Logger : IAsyncDisposable
         _CreateNewFile();
         _processingTask = _ProcessLogQueueAsync();
     }
+
     // Data stream
     private StreamWriter? _currentStream;
     private FileStream? _currentFile;
+
     private readonly List<string> _files = [];
+
     // Statis
     private long _droppedCount;
+
     public long DroppedLogCount => Interlocked.Read(ref _droppedCount);
+
     // Processor
     private readonly Task _processingTask;
+
     private readonly Channel<string> _logChannel = Channel.CreateUnbounded<string>(new UnboundedChannelOptions()
     {
         SingleReader = true
@@ -42,7 +48,8 @@ public sealed class Logger : IAsyncDisposable
     private void _CreateNewFile()
     {
         var now = DateTime.Now;
-        var nameFormat = (Configuration.FileNameFormat ?? $"Launch-{now.ToString("yyyy-M-d", CultureInfo.InvariantCulture)}-{{0}}") + ".log";
+        var nameFormat = (Configuration.FileNameFormat ??
+                          $"Launch-{now.ToString("yyyy-M-d", CultureInfo.InvariantCulture)}-{{0}}") + ".log";
         var filename = nameFormat.Replace("{0}", now.ToString("HHmmssfff", CultureInfo.InvariantCulture));
         var filePath = Path.Combine(Configuration.StoreFolder, filename);
         _files.Add(filePath);
@@ -60,14 +67,20 @@ public sealed class Logger : IAsyncDisposable
                 {
                     await lastWriter.DisposeAsync().ConfigureAwait(false);
                 }
-                catch (Exception) { /* Don't care */ }
+                catch (Exception)
+                {
+                    /* Don't care */
+                }
 
             if (lastFile is not null)
                 try
                 {
                     await lastFile.DisposeAsync().ConfigureAwait(false);
                 }
-                catch (Exception) { /* Don't care */ }
+                catch (Exception)
+                {
+                    /* Don't care */
+                }
 
             if (!Configuration.AutoDeleteOldFile)
                 return;
@@ -90,9 +103,9 @@ public sealed class Logger : IAsyncDisposable
     public void Warn(string message) => Log($"[{_GetTimeFormatted()}] [WARN] {message}");
     public void Error(string message) => Log($"[{_GetTimeFormatted()}] [ERR!] {message}");
     public void Fatal(string message) => Log($"[{_GetTimeFormatted()}] [FTL!] {message}");
-    
+
     private static string _GetTimeFormatted() => $"{DateTime.Now:HH:mm:ss.fff}";
-    
+
     public void Log(string message)
     {
         if (_disposed) return;
@@ -137,6 +150,7 @@ public sealed class Logger : IAsyncDisposable
                     {
                         await DoRefreshAsync().ConfigureAwait(false);
                     }
+
                     await Task.Delay(80).ConfigureAwait(false);
                 }
             }
@@ -152,7 +166,8 @@ public sealed class Logger : IAsyncDisposable
         catch (Exception e)
         {
             // 出错了先干到标准输出流中吧 Orz
-            Console.WriteLine($"[{_GetTimeFormatted()}] [ERROR] An error occurred while processing log queue: {e.Message}");
+            Console.WriteLine(
+                $"[{_GetTimeFormatted()}] [ERROR] An error occurred while processing log queue: {e.Message}");
             throw;
         }
     }
@@ -165,18 +180,22 @@ public sealed class Logger : IAsyncDisposable
             {
                 _CreateNewFile();
             }
+
             await _currentStream!.WriteAsync(ctx).ConfigureAwait(false);
             await _currentStream.FlushAsync().ConfigureAwait(false);
         }
         catch (Exception e)
         {
             Console.WriteLine($"[{_GetTimeFormatted()}] [ERROR] An error occurred while writing log file: {e.Message}");
-            await File.AppendAllTextAsync(Path.Combine(Configuration.StoreFolder, "Error.log"), $"[{_GetTimeFormatted}] LogCycle Error: {e}\n");
+            await File.AppendAllTextAsync(
+                Path.Combine(Configuration.StoreFolder, "Error.log"),
+                $"[{_GetTimeFormatted()}] LogCycle Error: {e}\n");
             throw;
         }
     }
 
     private bool _disposed;
+
     public async ValueTask DisposeAsync()
     {
         if (_disposed) return;

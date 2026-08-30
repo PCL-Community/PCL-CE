@@ -12,36 +12,44 @@ public static class UiThread
 
     public static bool CheckAccess()
     {
-        return System.Windows.Application.Current?.Dispatcher?.CheckAccess() ??
-               Environment.CurrentManagedThreadId == InitialThreadId;
+        return System.Windows.Application.Current?.Dispatcher?.CheckAccess()
+               ?? Environment.CurrentManagedThreadId == InitialThreadId;
     }
 
     public static T Invoke<T>(Func<T> action)
     {
         return CheckAccess()
             ? action()
-            : System.Windows.Application.Current.Dispatcher.Invoke(action);
+            : System.Windows.Application.Current?.Dispatcher is null
+                ? default!
+                : System.Windows.Application.Current.Dispatcher.Invoke(action);
     }
 
     public static void Invoke(Action action)
     {
-        if (System.Windows.Application.Current is null)
-            return;
         if (CheckAccess())
+        {
             action();
-        else
-            System.Windows.Application.Current.Dispatcher.Invoke(action);
+            return;
+        }
+
+        if (System.Windows.Application.Current?.Dispatcher is null)
+            return;
+        System.Windows.Application.Current.Dispatcher.Invoke(action);
     }
 
     public static void Post(Action action, bool forceWaitUntilLoaded = false)
     {
-        if (System.Windows.Application.Current is null)
+        if (System.Windows.Application.Current?.Dispatcher is null)
             return;
-        if (CheckAccess())
+        if (CheckAccess() && !forceWaitUntilLoaded)
             action();
         else
-            System.Windows.Application.Current.Dispatcher.InvokeAsync(action,
-                forceWaitUntilLoaded ? DispatcherPriority.Loaded : DispatcherPriority.Normal);
+            System.Windows.Application.Current.Dispatcher.InvokeAsync(
+                action,
+                forceWaitUntilLoaded
+                    ? DispatcherPriority.Loaded
+                    : DispatcherPriority.Normal);
     }
 
     public static void RunInThread(Action action)

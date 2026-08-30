@@ -110,10 +110,11 @@ public static partial class PathUtils
         fixed (char* bufferPtr = buffer)
         {
             var length = _GetShortPathName(path, bufferPtr, buffer.Length);
-            if (length <= buffer.Length) return length > 0
-                ? buffer[..length].ToString()
-                : path;
-            
+            if (length <= buffer.Length)
+                return length > 0
+                    ? buffer[..length].ToString()
+                    : path;
+
             var largerBuffer = new char[length];
             fixed (char* largerPtr = largerBuffer)
             {

@@ -12,7 +12,7 @@ public static class EncodingDetector
     }
 
     /// <summary>
-    /// 检测流中的文本编码方式（支持 Seek 的流）
+    ///     检测流中的文本编码方式（支持 Seek 的流）
     /// </summary>
     /// <param name="stream">输入流，必须支持 Seek</param>
     /// <param name="readFromBegin">是否将流重置到起始点</param>
@@ -25,11 +25,15 @@ public static class EncodingDetector
             throw new ArgumentException("流必须支持 Seek 操作");
 
         var originalPosition = stream.Position;
-        if (readFromBegin) stream.Seek(0, SeekOrigin.Begin);
+        var startPosition = readFromBegin
+            ? 0
+            : originalPosition;
 
         try
         {
-            return _DetectByBom(stream, originalPosition) ?? _DetectWithoutBOM(stream, originalPosition) ?? Encoding.Default;
+            return _DetectByBom(stream, startPosition)
+                   ?? _DetectWithoutBOM(stream, startPosition)
+                   ?? Encoding.Default;
         }
         finally
         {
@@ -43,60 +47,51 @@ public static class EncodingDetector
     }
 
     /// <summary>
-    /// 根据 BOM 判断编码
+    ///     根据 BOM 判断编码
     /// </summary>
-    private static Encoding? _DetectByBom(Stream stream, long originalPosition)
+    private static Encoding? _DetectByBom(Stream stream, long startPosition)
     {
-        stream.Position = originalPosition;
-        // 获取最长样本长度
+        stream.Position = startPosition;
+
         var readableLength = stream.Length - stream.Position;
         var sampleLength = (int)Math.Min(readableLength, 4);
-        if (sampleLength <= 0) return null;
+
+        if (sampleLength <= 0)
+            return null;
+
         var buffer = new byte[sampleLength];
         var actualRead = stream.Read(buffer, 0, buffer.Length);
-        if (actualRead != sampleLength) throw new Exception("无法获取样本长度");
 
-        // 对样本进行分析
-        if (sampleLength >= 3 && buffer is [0xef, 0xbb, 0xbf])
-            return Encoding.UTF8; // UTF-8
+        if (actualRead != sampleLength)
+            throw new Exception("无法获取样本长度");
 
-        if (sampleLength >= 2)
+        ReadOnlySpan<byte> span = buffer.AsSpan(0, actualRead);
+
+        return span switch
         {
-            if (buffer is [0xfe, 0xff])
-                return Encoding.BigEndianUnicode; // UTF-16 BE
-            if (buffer is [0xff, 0xfe])
-            {
-                if (sampleLength >= 4 && buffer is [_, _, 0x00, 0x00])
-                    return Encoding.UTF32; // UTF-32 LE
-                return Encoding.Unicode;   // UTF-16 LE
-            }
-        }
-
-        if (sampleLength >= 4)
-        {
-            if (buffer is [0x00, 0x00, 0xfe, 0xff])
-                return Encoding.GetEncoding("utf-32BE"); // UTF-32 BE
-            if (buffer is [0xff, 0xfe, 0x00, 0x00])
-                return Encoding.UTF32; // UTF-32 LE
-        }
-
-        return null;
+            [0x00, 0x00, 0xFE, 0xFF, ..] => Encoding.GetEncoding("utf-32BE"), // UTF-32 BE
+            [0xFF, 0xFE, 0x00, 0x00, ..] => Encoding.UTF32, // UTF-32 LE
+            [0xEF, 0xBB, 0xBF, ..] => Encoding.UTF8, // UTF-8
+            [0xFE, 0xFF, ..] => Encoding.BigEndianUnicode, // UTF-16 BE
+            [0xFF, 0xFE, ..] => Encoding.Unicode, // UTF-16 LE
+            _ => null
+        };
     }
 
     /// <summary>
-    /// BOM 不存在时的备用检测策略
+    ///     BOM 不存在时的备用检测策略
     /// </summary>
-    private static Encoding? _DetectWithoutBOM(Stream stream, long originalPosition)
+    private static Encoding? _DetectWithoutBOM(Stream stream, long startPosition)
     {
         // 尝试验证是否为有效 UTF-8
-        if (_IsValidEncoding(stream, originalPosition, Encoding.UTF8))
+        if (_IsValidEncoding(stream, startPosition, Encoding.UTF8))
             return Encoding.UTF8;
 
-        // 尝试验证是否为有效 GB2312 / GBK / GB18030
+        // 尝试验证是否为有效 GB18030 / GBK / GB2312
         try
         {
-            var gb = Encoding.GetEncoding("gb2312");
-            if (_IsValidEncoding(stream, originalPosition, gb))
+            var gb = Encodings.GB18030;
+            if (_IsValidEncoding(stream, startPosition, gb))
                 return gb;
         }
         catch
@@ -110,26 +105,66 @@ public static class EncodingDetector
     /// <summary>
     ///     验证流内容在指定编码下是否合法
     /// </summary>
-    private static bool _IsValidEncoding(Stream stream, long originalPosition, Encoding encoding)
+    private static bool _IsValidEncoding(
+        Stream stream,
+        long startPosition,
+        Encoding encoding)
     {
         const int sampleSize = 1024;
-        stream.Position = originalPosition;
-        var readableLength = (int)Math.Min(stream.Length - originalPosition, sampleSize);
-        if (readableLength <= 0) return true;
+
+        stream.Position = startPosition;
+
+        var readableLength = (int)Math.Min(stream.Length - startPosition, sampleSize);
+        if (readableLength <= 0)
+            return true;
 
         var buffer = new byte[readableLength];
         var actualRead = stream.Read(buffer, 0, readableLength);
-        if (actualRead <= 0) return true;
+
+        if (actualRead <= 0)
+            return true;
 
         try
         {
-            var strictEncoding = Encoding.GetEncoding(encoding.CodePage,
+            var strictEncoding = Encoding.GetEncoding(
+                encoding.CodePage,
                 EncoderFallback.ExceptionFallback,
                 DecoderFallback.ExceptionFallback);
-            strictEncoding.GetCharCount(buffer, 0, actualRead);
+
+            var validLength = actualRead;
+
+            if (actualRead == sampleSize &&
+                encoding.CodePage == Encoding.UTF8.CodePage)
+            {
+                // 如果样本末尾截断了 UTF-8 多字节字符，则排除未完成的字节序列。
+                var i = actualRead - 1;
+
+                while (i >= 0 &&
+                       i >= actualRead - 4 &&
+                       (buffer[i] & 0xC0) == 0x80)
+                    i--;
+
+                if (i >= 0 &&
+                    i >= actualRead - 4 &&
+                    (buffer[i] & 0x80) != 0)
+                {
+                    var expectedBytes = buffer[i] switch
+                    {
+                        var b when (b & 0xE0) == 0xC0 => 2,
+                        var b when (b & 0xF0) == 0xE0 => 3,
+                        var b when (b & 0xF8) == 0xF0 => 4,
+                        _ => 1
+                    };
+
+                    if (actualRead - i < expectedBytes)
+                        validLength = i;
+                }
+            }
+
+            strictEncoding.GetCharCount(buffer, 0, validLength);
             return true;
         }
-        catch
+        catch (DecoderFallbackException)
         {
             return false;
         }

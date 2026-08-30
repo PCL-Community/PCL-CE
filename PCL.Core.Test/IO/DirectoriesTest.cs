@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.IO;
@@ -18,7 +17,10 @@ public class DirectoriesTest
     [TestInitialize]
     public void SetUp()
     {
-        _tempDir = Path.Combine(Path.GetTempPath(), "PCLCoreDirectoriesTest", Guid.NewGuid().ToString("N"));
+        _tempDir = Path.Combine(
+            Path.GetTempPath(),
+            "PCLCoreDirectoriesTest",
+            Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(_tempDir);
     }
 
@@ -33,7 +35,7 @@ public class DirectoriesTest
     public async Task CheckPermissionAsyncUsesRealProbeFile()
     {
         Assert.IsTrue(await Directories.CheckPermissionAsync(_tempDir, TestContext.CancellationToken));
-        Assert.AreEqual(0, Directory.EnumerateFiles(_tempDir, ".pcl-permission-*.tmp").Count());
+        Assert.IsEmpty(Directory.EnumerateFiles(_tempDir, ".pcl-permission-*.tmp"));
     }
 
     [TestMethod]
@@ -60,5 +62,24 @@ public class DirectoriesTest
         Assert.AreEqual(0.5d, progress[1], 0.0000001d);
         Assert.IsTrue(File.Exists(Path.Combine(target, "one.txt")));
         Assert.IsTrue(File.Exists(Path.Combine(target, "two.txt")));
+    }
+
+    [TestMethod]
+    public async Task CopyDirectoryAsyncReportsCompletionOnEmptyDirectory()
+    {
+        var source = Path.Combine(_tempDir, "empty_source");
+        var target = Path.Combine(_tempDir, "empty_target");
+        Directory.CreateDirectory(source);
+
+        var progress = new List<double>();
+        await Directories.CopyDirectoryAsync(
+            source,
+            target,
+            progress.Add,
+            TestContext.CancellationToken);
+
+        Assert.HasCount(1, progress);
+        Assert.AreEqual(1d, progress[0], 0.0000001d);
+        Assert.IsTrue(Directory.Exists(target));
     }
 }

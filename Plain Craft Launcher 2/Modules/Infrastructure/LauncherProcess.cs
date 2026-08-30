@@ -176,7 +176,7 @@ public static class LauncherProcess
 
         try
         {
-            var files = UiThread.Invoke(() => Clipboard.GetFileDropList());
+            var files = UiThread.Invoke(Clipboard.GetFileDropList);
 
             if (files.Count.Equals(0))
             {
@@ -192,7 +192,7 @@ public static class LauncherProcess
                 if (copyFile && File.Exists(i))
                     try
                     {
-                        var thisDest = dest + PathUtils.GetFileNameFromUrlOrPath(i);
+                        var thisDest = Path.Combine(dest, PathUtils.GetFileNameFromUrlOrPath(i));
 
                         if (File.Exists(thisDest))
                         {
@@ -213,7 +213,7 @@ public static class LauncherProcess
                 if (copyDir && Directory.Exists(i))
                     try
                     {
-                        var thisDest = dest + PathUtils.GetDirectoryNameLeaf(i);
+                        var thisDest = Path.Combine(dest, PathUtils.GetDirectoryNameLeaf(i));
 
                         if (Directory.Exists(thisDest))
                         {
@@ -231,7 +231,7 @@ public static class LauncherProcess
                     }
                     catch (Exception ex)
                     {
-                        LauncherLog.Log(ex, "[System] 复制文件时出错");
+                        LauncherLog.Log(ex, "[System] 复制文件夹时出错");
                     }
             }
 

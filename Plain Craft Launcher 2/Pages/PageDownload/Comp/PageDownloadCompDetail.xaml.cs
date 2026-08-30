@@ -72,11 +72,12 @@ public partial class PageDownloadCompDetail
             // 获取实例名
             var packName = _project.TranslatedName.Replace(".zip", "").Replace(".rar", "").Replace(".mrpack", "")
                 .Replace(@"\", "＼").Replace("/", "／").Replace("|", "｜").Replace(":", "：").Replace("<", "＜")
-                    .Replace(">", "＞").Replace("*", "＊").Replace("?", "？").Replace("\"", "").Replace("： ", "：");
+                .Replace(">", "＞").Replace("*", "＊").Replace("?", "？").Replace("\"", "").Replace("： ", "：");
             var validate = new FolderNameValidator(ModFolder.mcFolderSelected + "versions");
             if (!validate.Validate(packName).IsValid)
                 packName = "";
-            var instanceName = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Detail.InputInstanceName"), "", packName, [validate]);
+            var instanceName = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Detail.InputInstanceName"), "", packName,
+                [validate]);
             if (string.IsNullOrEmpty(instanceName))
                 return;
 
@@ -144,7 +145,8 @@ public partial class PageDownloadCompDetail
         {
             // 获取基本信息
             var file = (ModComp.CompFile)sender.Tag;
-            var loaderName = $"{(_project.FromCurseForge ? "CurseForge" : "Modrinth")} {Lang.Text("Download.Comp.Detail.WorldDownload")}：{_project.TranslatedName} ";
+            var loaderName =
+                $"{(_project.FromCurseForge ? "CurseForge" : "Modrinth")} {Lang.Text("Download.Comp.Detail.WorldDownload")}：{_project.TranslatedName} ";
 
             // 确认默认保存位置
             string defaultFolder = null;
@@ -178,7 +180,8 @@ public partial class PageDownloadCompDetail
                     ModInstanceList.McMcInstanceSelected?.PathIndie ?? LauncherPaths.ExecutableDirectoryWithSlash);
                 LauncherLog.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{defaultFolder}");
             }
-            else if (ModInstanceList.McMcInstanceSelected is not null && isVersionSuitable(ModInstanceList.McMcInstanceSelected))
+            else if (ModInstanceList.McMcInstanceSelected is not null &&
+                     isVersionSuitable(ModInstanceList.McMcInstanceSelected))
             {
                 defaultFolder = $"{ModInstanceList.McMcInstanceSelected.PathIndie}{subFolder}";
                 Directory.CreateDirectory(defaultFolder);
@@ -217,7 +220,8 @@ public partial class PageDownloadCompDetail
                 }
             }
 
-            var target = SystemDialogs.SelectSaveFile(Lang.Text("Download.Comp.Detail.SelectWorldInstallLocation"), file.FileName, Lang.Text("Download.Comp.Detail.WorldFile.Filter"),
+            var target = SystemDialogs.SelectSaveFile(Lang.Text("Download.Comp.Detail.SelectWorldInstallLocation"),
+                file.FileName, Lang.Text("Download.Comp.Detail.WorldFile.Filter"),
                 defaultFolder);
             if (string.IsNullOrEmpty(target))
                 return;
@@ -226,16 +230,39 @@ public partial class PageDownloadCompDetail
             var loaders = new List<ModLoader.LoaderBase>();
             var targetPath = target.BeforeLast(@"\");
             var logoFileAddress = MyImage.GetTempPath(_compItem.Logo);
-            loaders.Add(new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadWorldFile"),
-                    new List<DownloadFile>
-                    {
-                        file.ToNetFile(target, ModComp.DownloadReason.Standalone, file.RawGameVersions.FirstOrDefault())
-                    })
-                { ProgressWeight = 10d, block = true });
-            loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Download.Comp.Detail.InstallWorld"),
-                _ => Files.ExtractFileAsync(target, targetPath).GetAwaiter().GetResult()) { ProgressWeight = 0.1d, block = true });
-            loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Download.Comp.Detail.CleanCache"),
-                _ => System.IO.File.Delete(target)));
+
+            loaders.Add(new LoaderDownload(
+                Lang.Text("Download.Comp.Detail.DownloadWorldFile"),
+                [
+                    file.ToNetFile(
+                        target,
+                        ModComp.DownloadReason.Standalone,
+                        file.RawGameVersions.FirstOrDefault()
+                    )
+                ]
+            )
+            {
+                ProgressWeight = 10d,
+                block = true
+            });
+
+            loaders.Add(new ModLoader.LoaderTask<int, int>(
+                Lang.Text("Download.Comp.Detail.InstallWorld"),
+                _ => Files.ExtractFileAsync(
+                    target,
+                    targetPath,
+                    archiveEncoding: Encoding.UTF8
+                ).GetAwaiter().GetResult()
+            )
+            {
+                ProgressWeight = 0.1d,
+                block = true
+            });
+
+            loaders.Add(new ModLoader.LoaderTask<int, int>(
+                Lang.Text("Download.Comp.Detail.CleanCache"),
+                _ => File.Delete(target)
+            ));
 
             // 启动
             var loader = new ModLoader.LoaderCombo<int>(loaderName, loaders)
@@ -262,8 +289,11 @@ public partial class PageDownloadCompDetail
         var file = sender switch
         {
             FrameworkElement Element when Element.Tag is ModComp.CompFile CompFile => CompFile,
-            FrameworkElement Element when Element.Parent is FrameworkElement Parent && Parent.Tag is ModComp.CompFile CompFile => CompFile,
-            FrameworkElement Element when Element.Parent is FrameworkElement Parent && Parent.Parent is FrameworkElement GrandParent && GrandParent.Tag is ModComp.CompFile CompFile => CompFile,
+            FrameworkElement Element when Element.Parent is FrameworkElement Parent &&
+                                          Parent.Tag is ModComp.CompFile CompFile => CompFile,
+            FrameworkElement Element when Element.Parent is FrameworkElement Parent &&
+                                          Parent.Parent is FrameworkElement GrandParent &&
+                                          GrandParent.Tag is ModComp.CompFile CompFile => CompFile,
             _ => null
         };
 
@@ -319,7 +349,7 @@ public partial class PageDownloadCompDetail
                         // 加载器判定
                         if (!allowedLoaders.Any()) return true; // 无要求
                         if (allowedLoaders.Contains(ModComp.CompLoaderType.Forge) && version.Info.HasForge) return true;
-                        if (allowedLoaders.Contains(ModComp.CompLoaderType.Forge) && version.Info.HasCleanroom) 
+                        if (allowedLoaders.Contains(ModComp.CompLoaderType.Forge) && version.Info.HasCleanroom)
                             return true;
                         if (allowedLoaders.Contains(ModComp.CompLoaderType.Fabric) &&
                             (version.Info.HasFabric || version.Info.HasLegacyFabric)) return true;
@@ -334,7 +364,8 @@ public partial class PageDownloadCompDetail
                     if (cachedFolder.ContainsKey(file.Type) && !string.IsNullOrEmpty(cachedFolder[file.Type]))
                     {
                         defaultFolder = cachedFolder.GetOrDefault(file.Type,
-                            ModInstanceList.McMcInstanceSelected?.PathIndie ?? LauncherPaths.ExecutableDirectoryWithSlash);
+                            ModInstanceList.McMcInstanceSelected?.PathIndie ??
+                            LauncherPaths.ExecutableDirectoryWithSlash);
                         LauncherLog.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{defaultFolder}");
                     }
                     else if (ModInstanceList.McMcInstanceSelected is not null &&
@@ -458,13 +489,13 @@ public partial class PageDownloadCompDetail
                             var result = resolver.Resolve(request);
 
                             void DownloadDependencies()
-                            {    
+                            {
                                 if (!result.ToInstall.Any())
                                 {
                                     LauncherLog.Log("[CompDeps] 所有前置均无法解析，仅下载 Mod 本体");
                                     return;
                                 }
-                                
+
                                 LauncherLog.Log($"[CompDeps] 准备下载: {result.ToInstall.Count} 个前置");
                                 var depDownloads = ModCompDependency.BuildDependencyDownloads(result, targetDir);
                                 foreach (var (depFilename, downloadFile) in depDownloads)
@@ -488,7 +519,7 @@ public partial class PageDownloadCompDetail
                                     ModLoader.LoaderTaskbarAdd(depLoader);
                                 }
                             }
-                            
+
                             if (result.Unresolved.Any() || result.ToInstall.Any())
                             {
                                 var installChoice = ModCompDependency.ConfirmDependencyInstall(result);
