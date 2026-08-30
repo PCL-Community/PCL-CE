@@ -162,7 +162,10 @@ public static class Files
     /// <param name="toPath">目标文件路径（完整或相对）</param>
     /// <param name="cancelToken">取消令牌</param>
     /// <exception cref="IOException">复制失败时抛出</exception>
-    public static async Task CopyFileAsync(string fromPath, string toPath, CancellationToken cancelToken = default)
+    public static async Task CopyFileAsync(
+        string fromPath,
+        string toPath,
+        CancellationToken cancelToken = default)
     {
         try
         {
@@ -171,20 +174,27 @@ public static class Files
             if (fullFromPath == fullToPath) return;
 
             var directoryName = Path.GetDirectoryName(fullToPath);
-            if (directoryName is null)
-            {
-                throw new InvalidOperationException("无法获取目标目录");
-            }
+            if (directoryName is null) throw new InvalidOperationException("无法获取目标目录");
 
             Directory.CreateDirectory(directoryName);
 
             // 使用异步流复制
             const int bufferSize = 4096;
-            await using var sourceStream = new FileStream(fullFromPath, FileMode.Open, FileAccess.Read,
-                FileShare.ReadWrite, bufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
-            await using var destinationStream = new FileStream(fullToPath, FileMode.Create, FileAccess.Write,
-                FileShare.Read, bufferSize, FileOptions.Asynchronous);
-            await sourceStream.CopyToAsync(destinationStream, cancelToken);
+            await using var sourceStream = new FileStream(
+                fullFromPath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.ReadWrite,
+                bufferSize,
+                FileOptions.Asynchronous | FileOptions.SequentialScan);
+            await using var destinationStream = new FileStream(
+                fullToPath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.Read,
+                bufferSize,
+                FileOptions.Asynchronous);
+            await sourceStream.CopyToAsync(destinationStream, cancelToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -462,25 +472,55 @@ public static class Files
             return;
         }
 
+        var extension = Path.GetExtension(compressFilePath).ToLowerInvariant();
         try
         {
-            Directory.CreateDirectory(destDirectory); // 创建目标目录（同步操作，因为通常很快且无异步版本）
+            Directory.CreateDirectory(destDirectory);
 
-            if (compressFilePath.EndsWithF(".gz", true) || compressFilePath.EndsWithF(".tgz", true))
-                await _ExtractGZipAsync(compressFilePath, destDirectory, progressIncrementHandler, archiveEncoding,
-                    cancellationToken).ConfigureAwait(false);
-            else if (compressFilePath.EndsWithF(".bz2", true))
-                await _ExtractBZip2Async(compressFilePath, destDirectory, progressIncrementHandler, cancellationToken)
-                    .ConfigureAwait(false);
-            else if (compressFilePath.EndsWithF(".tar", true))
-                await _ExtractTarAsync(compressFilePath, destDirectory, progressIncrementHandler, archiveEncoding,
-                    cancellationToken).ConfigureAwait(false);
-            else if (compressFilePath.EndsWithF(".zip", true) || compressFilePath.EndsWithF(".jar", true) ||
-                     compressFilePath.EndsWithF(".mrpack", true))
-                await _ExtractZipAsync(compressFilePath, destDirectory, progressIncrementHandler, archiveEncoding,
-                    cancellationToken).ConfigureAwait(false);
-            else
-                throw new NotSupportedException("不支持的压缩文件格式");
+            switch (extension)
+            {
+                case ".gz" or ".tgz":
+                    await _ExtractGZipAsync(
+                        compressFilePath,
+                        destDirectory,
+                        progressIncrementHandler,
+                        archiveEncoding,
+                        cancellationToken
+                    ).ConfigureAwait(false);
+                    break;
+
+                case ".bz2":
+                    await _ExtractBZip2Async(
+                        compressFilePath,
+                        destDirectory,
+                        progressIncrementHandler,
+                        cancellationToken
+                    ).ConfigureAwait(false);
+                    break;
+
+                case ".tar":
+                    await _ExtractTarAsync(
+                        compressFilePath,
+                        destDirectory,
+                        progressIncrementHandler,
+                        archiveEncoding,
+                        cancellationToken
+                    ).ConfigureAwait(false);
+                    break;
+
+                case ".zip" or ".jar" or ".mrpack" or ".rar":
+                    await _ExtractZipAsync(
+                        compressFilePath,
+                        destDirectory,
+                        progressIncrementHandler,
+                        archiveEncoding,
+                        cancellationToken
+                    ).ConfigureAwait(false);
+                    break;
+
+                default:
+                    throw new NotSupportedException("不支持的压缩文件格式");
+            }
         }
         catch (Exception ex)
         {

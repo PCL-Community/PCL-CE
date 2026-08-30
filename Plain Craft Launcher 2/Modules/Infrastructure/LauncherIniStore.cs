@@ -96,12 +96,21 @@ public sealed class LauncherIniStore : ILauncherKeyValueStore
                     fileContent.Append("\r\n");
                 }
 
+                var directoryName = Path.GetDirectoryName(resolvedPath);
+                if (!string.IsNullOrEmpty(directoryName))
+                {
+                    Directory.CreateDirectory(directoryName);
+                }
+
+                var tempPath = $"{resolvedPath}.pcltmp.{Guid.NewGuid():N}";
                 Files
                     .WriteFileAsync(
-                        resolvedPath,
+                        tempPath,
                         fileContent.ToString())
                     .GetAwaiter()
                     .GetResult();
+
+                File.Move(tempPath, resolvedPath, true);
             }
         }
         catch (Exception ex)

@@ -2444,26 +2444,23 @@ public static class ModComp
                         new { p = $"%{likeEscaped}%" })
                     .ToList();
 
-                foreach (var searchItem in searchRes)
-                {
-                    if (searchItem.ChineseName.Contains("动态的树"))
-                        continue;
-
-                    var searchSource = searchItem.ChineseName
+                searchEntries.AddRange(
+                    from searchItem in searchRes
+                    where !searchItem.ChineseName.Contains("动态的树")
+                    let aliases = searchItem.ChineseName
                         .BeforeFirst(" (")
                         .Split(['/'], StringSplitOptions.RemoveEmptyEntries)
-                        .Select(alias => new KeyValuePair<string, double>(alias, 1d))
-                        .ToList();
-
-                    searchSource.Add(
-                        new KeyValuePair<string, double>(
-                            searchItem.ChineseName.AfterFirst(" (") +
-                            (searchItem.CurseForgeSlug ?? "") +
-                            (searchItem.ModrinthSlug ?? ""),
-                            0.5d));
-
-                    searchEntries.Add(new SearchEntry<CompDatabaseEntry>(searchItem, searchSource));
-                }
+                        .Select(alias => alias.Trim())
+                        .Where(alias => !string.IsNullOrEmpty(alias))
+                        .ToList()
+                    let searchSource = new List<SearchSource>
+                    {
+                        new(aliases),
+                        new(searchItem.ChineseName.AfterFirst(" (")
+                            + (searchItem.CurseForgeSlug ?? "")
+                            + (searchItem.ModrinthSlug ?? ""), 0.5d)
+                    }
+                    select new SearchEntry<CompDatabaseEntry>(searchItem, searchSource));
             }
 
             var searchResults = SimilaritySearch.Search(searchEntries, request.searchText, 40, 0.2);
@@ -2811,11 +2808,16 @@ public static class ModComp
                 scores.Add(res,
                     (Lang.IsChineseMainland && res.WikiId > 0 ? 0.2 : 0) +
                     Math.Log10(Math.Max(res.DownloadCount, 1) * getDownloadCountMult(res)) / 9);
-                var searchSource = (isChineseSearch ? res.TranslatedName : res.RawName)
-                    .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(alias => new KeyValuePair<string, double>(alias, 1d))
+                var aliases = (isChineseSearch ? res.TranslatedName : res.RawName)
+                    .Split(['/'], StringSplitOptions.RemoveEmptyEntries)
+                    .Select(alias => alias.Trim())
+                    .Where(alias => !string.IsNullOrEmpty(alias))
                     .ToList();
-                searchSource.Add(new KeyValuePair<string, double>(res.Description, 0.05d));
+                var searchSource = new List<SearchSource>
+                {
+                    new(aliases, 1d),
+                    new(res.Description, 0.05d)
+                };
                 searchEntries.Add(new SearchEntry<CompProject>(res, searchSource));
             }
 
@@ -3188,8 +3190,7 @@ public static class ModComp
                         .ToList();
                     GameVersions = RawGameVersions.Where(v => v.Contains(".")).Select(v =>
                         v.Contains("-")
-                            ?
-                            v.BeforeFirst("-") + Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix")
+                            ? v.BeforeFirst("-") + Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix")
                             : v.StartsWithF("b1.")
                                 ? Lang.Text("Download.Comp.Detail.CompItem.AncientVersion")
                                 : v).Distinct().ToList();
@@ -3224,22 +3225,12 @@ public static class ModComp
         {
             get
             {
-                switch (Status)
+                return Status switch
                 {
-                    case CompFileStatus.Release:
-                    {
-                        return Lang.Text("Download.Comp.Detail.FileList.ReleaseType.Release");
-                    }
-                    case CompFileStatus.Beta:
-                    {
-                        return Lang.Text("Download.Comp.Detail.FileList.ReleaseType.Beta");
-                    }
-
-                    default:
-                    {
-                        return Lang.Text("Download.Comp.Detail.FileList.ReleaseType.Alpha");
-                    }
-                }
+                    CompFileStatus.Release => Lang.Text("Download.Comp.Detail.FileList.ReleaseType.Release"),
+                    CompFileStatus.Beta => Lang.Text("Download.Comp.Detail.FileList.ReleaseType.Beta"),
+                    _ => Lang.Text("Download.Comp.Detail.FileList.ReleaseType.Alpha")
+                };
             }
         }
 

@@ -7,9 +7,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using PCL.Core.App;
 using PCL.Core.Logging;
-using PCL.Core.UI;
 using PCL.Network;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -139,29 +137,29 @@ public partial class PageLaunchRight : IRefreshable
                         LogWrapper.Info("[Page] 主页预设：你知道吗");
                         var hintText = GetRandomHint();
 
-                        content = """
-                                  <local:MyCard
-                                      Title="{{DynamicResource Launch.Status.Trivia}}"
-                                      Margin="0,0,0,15">
-                                      <TextBlock
-                                          Margin="25,38,23,15"
-                                          FontSize="13.5"
-                                          IsHitTestVisible="False"
-                                          Text="{hintText}"
-                                          TextWrapping="Wrap"
-                                          Foreground="{{DynamicResource ColorBrush1}}" />
+                        content = $$"""
+                                    <local:MyCard
+                                        Title="{DynamicResource Launch.Status.Trivia}"
+                                        Margin="0,0,0,15">
+                                        <TextBlock
+                                            Margin="25,38,23,15"
+                                            FontSize="13.5"
+                                            IsHitTestVisible="False"
+                                            Text="{{hintText}}"
+                                            TextWrapping="Wrap"
+                                            Foreground="{DynamicResource ColorBrush1}" />
 
-                                      <local:MyIconButton
-                                          Height="22"
-                                          Width="22"
-                                          Margin="9"
-                                          VerticalAlignment="Top"
-                                          HorizontalAlignment="Right"
-                                          EventType="刷新主页"
-                                          EventData="/"
-                                          SvgIcon="lucide/refresh-cw" />
-                                  </local:MyCard>
-                                  """;
+                                        <local:MyIconButton
+                                            Height="22"
+                                            Width="22"
+                                            Margin="9"
+                                            VerticalAlignment="Top"
+                                            HorizontalAlignment="Right"
+                                            EventType="刷新主页"
+                                            EventData="/"
+                                            SvgIcon="lucide/refresh-cw" />
+                                    </local:MyCard>
+                                    """;
 
                         break;
                     }
@@ -306,7 +304,7 @@ public partial class PageLaunchRight : IRefreshable
         return "";
     }
 
-    private readonly object refreshLock = new();
+    private readonly Lock refreshLock = new();
 
     public static string GetRandomHint(bool enableLengthLimit = false, bool raw = false)
     {
@@ -318,10 +316,12 @@ public partial class PageLaunchRight : IRefreshable
         {
             try
             {
-                lines = File.ReadAllLines(externalPath)
-                    .Where(l => !string.IsNullOrWhiteSpace(l))
-                    .Select(l => l.Trim())
-                    .ToArray();
+                lines =
+                [
+                    .. File.ReadAllLines(externalPath)
+                        .Where(l => !string.IsNullOrWhiteSpace(l))
+                        .Select(l => l.Trim())
+                ];
             }
             catch
             {
@@ -337,7 +337,7 @@ public partial class PageLaunchRight : IRefreshable
         {
             var langCode = LocalizationService.CurrentLanguage.Code;
             lines = _LoadEmbeddedHints(langCode)
-                ?? _LoadEmbeddedHints(LocalizationService.DefaultLanguageCode);
+                    ?? _LoadEmbeddedHints(LocalizationService.DefaultLanguageCode);
         }
 
         // 长度限制
@@ -349,22 +349,31 @@ public partial class PageLaunchRight : IRefreshable
 
         // 随机返回
         var hint = lines[Random.Shared.Next(lines.Length)];
-        return raw ? hint : hint.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
+        return raw
+            ? hint
+            : hint.Replace("&", "&amp;")
+                .Replace("<", "&lt;")
+                .Replace(">", "&gt;")
+                .Replace("\"", "&quot;");
     }
 
     private static string[]? _LoadEmbeddedHints(string langCode)
     {
         try
         {
-            var uri = new Uri($"pack://application:,,,/Plain Craft Launcher 2;component/Resources/hints/{langCode}.txt", UriKind.Absolute);
-            using var stream = Application.GetResourceStream(uri)?.Stream;
+            var uri = new Uri(
+                $"pack://application:,,,/Plain Craft Launcher 2;component/Resources/hints/{langCode}.txt",
+                UriKind.Absolute);
+            using var stream = System.Windows.Application.GetResourceStream(uri)?.Stream;
             if (stream is null) return null;
             using var reader = new StreamReader(stream);
-            return reader.ReadToEnd()
-                .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-                .Where(l => !string.IsNullOrWhiteSpace(l))
-                .Select(l => l.Trim())
-                .ToArray();
+            return
+            [
+                .. reader.ReadToEnd()
+                    .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
+                    .Where(l => !string.IsNullOrWhiteSpace(l))
+                    .Select(l => l.Trim())
+            ];
         }
         catch
         {
@@ -389,10 +398,10 @@ public partial class PageLaunchRight : IRefreshable
             else
             {
                 versionAddress = address.BeforeFirst("?");
-                if (!versionAddress.EndsWith("/"))
+                if (!versionAddress.EndsWith('/'))
                     versionAddress += "/";
                 versionAddress += "version";
-                if (address.Contains("?"))
+                if (address.Contains('?'))
                     versionAddress += "?" + address.AfterFirst("?");
             }
 
@@ -429,7 +438,9 @@ public partial class PageLaunchRight : IRefreshable
                 LauncherLog.Log($"[Page] 已联网下载主页，内容长度：{fileContent.Length}，来源：{address}");
                 States.UI.SavedHomepageUrl = address;
                 States.UI.SavedHomepageVersion = version;
-                Files.WriteFileAsync(LauncherFileSystem.ResolvePath(LauncherPaths.TempWithSlash + @"Cache\Custom.xaml"), fileContent).GetAwaiter().GetResult();
+                Files.WriteFileAsync(
+                    LauncherFileSystem.ResolvePath(LauncherPaths.TempWithSlash + @"Cache\Custom.xaml"),
+                    fileContent).GetAwaiter().GetResult();
             }
 
             // 要求刷新
@@ -499,6 +510,7 @@ public partial class PageLaunchRight : IRefreshable
                 _ApplyHomepageLivePatchesFromFile();
                 return;
             }
+
             loadedContentHash = hash;
             // 实际加载内容
             PanCustom.Children.Clear();
@@ -550,7 +562,11 @@ public partial class PageLaunchRight : IRefreshable
             var loadCostTime = (DateTime.Now - loadStartTime).Milliseconds;
             LauncherLog.Log($"[Page] 实例化：加载主页 UI 完成，耗时 {loadCostTime}ms");
             if (loadCostTime > 3000)
-                HintService.Hint(Lang.Text("Launch.Homepage.SlowWarning", Lang.Number(Math.Round(loadCostTime / 1000d, 1), "N1")));
+                HintService.Hint(
+                    Lang.Text("Launch.Homepage.SlowWarning",
+                    Lang.Number(
+                        Math.Round(loadCostTime / 1000d, 1),
+                        "N1")));
         }
 
         return;
@@ -560,36 +576,45 @@ public partial class PageLaunchRight : IRefreshable
     }
 
     private int loadedContentHash = -1;
-    private readonly object loadContentLock = new();
+    private readonly Lock loadContentLock = new();
+
     private static void _ShowSanitizeHints(XamlEventSanitizer.SanitizeResult result)
     {
         foreach (var unsupported in result.UnsupportedTypesFound)
-            HintService.Hint(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported), HintType.Error);
+            HintService.Hint(
+                Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported),
+                HintType.Error);
 
         foreach (var unknown in result.UnrecognizedTypes)
-            HintService.Hint(Lang.Text("Event.Sanitize.UnknownTypeHint", unknown), HintType.Error);
+            HintService.Hint(
+                Lang.Text("Event.Sanitize.UnknownTypeHint", unknown),
+                HintType.Error);
     }
 
-    private const string homepageLivePatchFileName = "CustomLive.json";
-    private const string homepageLiveSupportFileName = "CustomLive.supported.json";
+    private const string HomepageLivePatchFileName = "CustomLive.json";
+
+    private const string HomepageLiveSupportFileName = "CustomLive.supported.json";
+
     // Keep the reflection patch surface explicit because patch files are written by external tools.
-    private static readonly Dictionary<string, string> _homepageLiveAllowedProperties = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["text"] = "Text",
-        ["title"] = "Title",
-        ["info"] = "Info",
-        ["tooltip"] = "ToolTip",
-        ["visibility"] = "Visibility",
-        ["isEnabled"] = "IsEnabled",
-        ["opacity"] = "Opacity"
-    };
+    private static readonly Dictionary<string, string> HomepageLiveAllowedProperties =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["text"] = "Text",
+            ["title"] = "Title",
+            ["info"] = "Info",
+            ["tooltip"] = "ToolTip",
+            ["visibility"] = "Visibility",
+            ["isEnabled"] = "IsEnabled",
+            ["opacity"] = "Opacity"
+        };
+
     private FileSystemWatcher? _homepageLiveWatcher;
     private DispatcherTimer? _homepageLivePatchTimer;
 
     private void _EnsureHomepageLiveWatcher()
     {
         if (_homepageLiveWatcher != null) return;
-        if ((int)Config.Preference.Homepage.Type != 1) return;
+        if (Config.Preference.Homepage.Type != 1) return;
 
         try
         {
@@ -597,7 +622,7 @@ public partial class PageLaunchRight : IRefreshable
             Directory.CreateDirectory(directory);
             _WriteHomepageLiveSupportMarker(directory);
 
-            _homepageLiveWatcher = new FileSystemWatcher(directory, homepageLivePatchFileName)
+            _homepageLiveWatcher = new FileSystemWatcher(directory, HomepageLivePatchFileName)
             {
                 NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.FileName
             };
@@ -609,7 +634,10 @@ public partial class PageLaunchRight : IRefreshable
         }
         catch (Exception ex)
         {
-            LauncherLog.Log(ex, "[Page] Failed to start custom homepage live patch watcher", LauncherLogLevel.Developer);
+            LauncherLog.Log(
+                ex,
+                "[Page] Failed to start custom homepage live patch watcher",
+                LauncherLogLevel.Developer);
         }
     }
 
@@ -621,7 +649,10 @@ public partial class PageLaunchRight : IRefreshable
         }
         catch (Exception ex)
         {
-            LauncherLog.Log(ex, "[Page] Failed to dispose custom homepage live patch watcher", LauncherLogLevel.Developer);
+            LauncherLog.Log(
+                ex, 
+                "[Page] Failed to dispose custom homepage live patch watcher",
+                LauncherLogLevel.Developer);
         }
 
         _homepageLiveWatcher = null;
@@ -637,7 +668,10 @@ public partial class PageLaunchRight : IRefreshable
         }
         catch (Exception ex)
         {
-            LauncherLog.Log(ex, "[Page] Failed to dispose custom homepage live patch debounce timer", LauncherLogLevel.Developer);
+            LauncherLog.Log(
+                ex, 
+                "[Page] Failed to dispose custom homepage live patch debounce timer",
+                LauncherLogLevel.Developer);
         }
 
         _DeleteHomepageLiveSupportMarker();
@@ -667,23 +701,29 @@ public partial class PageLaunchRight : IRefreshable
     private void _ApplyHomepageLivePatchesFromFile()
     {
         if (PanCustom.Children.Count == 0) return;
-        if ((int)Config.Preference.Homepage.Type != 1) return;
+        if (Config.Preference.Homepage.Type != 1) return;
 
-        var file = Path.Combine(_GetHomepageLiveDirectory(), homepageLivePatchFileName);
+        var file = Path.Combine(_GetHomepageLiveDirectory(), HomepageLivePatchFileName);
         if (!File.Exists(file)) return;
 
         try
         {
             var token = JsonNode.Parse(_ReadHomepageLivePatchFile(file),
                 new JsonNodeOptions { PropertyNameCaseInsensitive = true },
-                new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip,
-                    AllowTrailingCommas = true });
+                new JsonDocumentOptions
+                {
+                    CommentHandling = JsonCommentHandling.Skip,
+                    AllowTrailingCommas = true
+                });
             foreach (var patch in _EnumerateHomepageLivePatches(token))
                 _ApplyHomepageLivePatch(patch);
         }
         catch (Exception ex)
         {
-            LauncherLog.Log(ex, "[Page] Failed to apply custom homepage live patches", LauncherLogLevel.Developer);
+            LauncherLog.Log(
+                ex, 
+                "[Page] Failed to apply custom homepage live patches",
+                LauncherLogLevel.Developer);
         }
     }
 
@@ -694,7 +734,8 @@ public partial class PageLaunchRight : IRefreshable
         {
             try
             {
-                using var stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using var stream = new FileStream(file, FileMode.Open, FileAccess.Read,
+                    FileShare.ReadWrite | FileShare.Delete);
                 using var reader = new StreamReader(stream);
                 return reader.ReadToEnd();
             }
@@ -705,7 +746,8 @@ public partial class PageLaunchRight : IRefreshable
             }
         }
 
-        throw lastException ?? new IOException("Unable to read custom homepage live patch file.");
+        throw lastException
+              ?? new IOException("Unable to read custom homepage live patch file.");
     }
 
     private static string _GetHomepageLiveDirectory()
@@ -721,14 +763,19 @@ public partial class PageLaunchRight : IRefreshable
             {
                 ["processId"] = Environment.ProcessId,
                 ["processPath"] = Environment.ProcessPath ?? "",
-                ["patchFile"] = homepageLivePatchFileName,
+                ["patchFile"] = HomepageLivePatchFileName,
                 ["startedAt"] = DateTime.Now.ToString("O", CultureInfo.InvariantCulture)
             };
-            File.WriteAllText(Path.Combine(directory, homepageLiveSupportFileName), marker.ToJsonString());
+            File.WriteAllText(
+                Path.Combine(directory, HomepageLiveSupportFileName),
+                marker.ToJsonString());
         }
         catch (Exception ex)
         {
-            LauncherLog.Log(ex, "[Page] Failed to write custom homepage live patch support marker", LauncherLogLevel.Developer);
+            LauncherLog.Log(
+                ex, 
+                "[Page] Failed to write custom homepage live patch support marker",
+                LauncherLogLevel.Developer);
         }
     }
 
@@ -736,54 +783,78 @@ public partial class PageLaunchRight : IRefreshable
     {
         try
         {
-            var file = Path.Combine(_GetHomepageLiveDirectory(), homepageLiveSupportFileName);
+            var file = Path.Combine(_GetHomepageLiveDirectory(), HomepageLiveSupportFileName);
             if (!File.Exists(file)) return;
 
             var marker = (JsonObject)JsonNode.Parse(_ReadHomepageLivePatchFile(file),
                 new JsonNodeOptions { PropertyNameCaseInsensitive = true },
-                new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip,
-                    AllowTrailingCommas = true })!;
+                new JsonDocumentOptions
+                {
+                    CommentHandling = JsonCommentHandling.Skip,
+                    AllowTrailingCommas = true
+                })!;
             if (marker["processId"]?.GetValue<int>() == Environment.ProcessId)
                 File.Delete(file);
         }
         catch (Exception ex)
         {
-            LauncherLog.Log(ex, "[Page] Failed to delete custom homepage live patch support marker", LauncherLogLevel.Developer);
+            LauncherLog.Log(
+                ex, 
+                "[Page] Failed to delete custom homepage live patch support marker",
+                LauncherLogLevel.Developer);
         }
     }
 
     private static IEnumerable<JsonObject> _EnumerateHomepageLivePatches(JsonNode token)
     {
-        if (token is JsonObject obj)
+        switch (token)
         {
-            if (obj["patches"] is JsonArray patches)
+            case JsonObject obj when obj["patches"] is JsonArray patches:
             {
                 foreach (var patch in patches.OfType<JsonObject>())
                     yield return patch;
+
                 yield break;
             }
 
-            if (_TryGetString(obj, "target", "tag", "name") != null)
-            {
+            case JsonObject obj when _TryGetString(obj, "target", "tag", "name") != null:
                 yield return obj;
                 yield break;
+
+            case JsonObject obj:
+            {
+                foreach (var property in obj)
+                {
+                    if (property.Value is not JsonObject patch)
+                        continue;
+
+                    patch = (JsonObject)JsonNode.Parse(
+                        patch.ToJsonString(),
+                        new JsonNodeOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        },
+                        new JsonDocumentOptions
+                        {
+                            CommentHandling = JsonCommentHandling.Skip,
+                            AllowTrailingCommas = true
+                        }
+                    )!;
+
+                    patch["target"] ??= property.Key;
+                    yield return patch;
+                }
+
+                break;
             }
 
-            foreach (var property in obj)
+            case JsonArray array:
             {
-                if (property.Value is not JsonObject patch) continue;
-                patch = (JsonObject)JsonNode.Parse(patch.ToJsonString(),
-                    new JsonNodeOptions { PropertyNameCaseInsensitive = true },
-                    new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip,
-                        AllowTrailingCommas = true })!;
-                patch["target"] ??= property.Key;
-                yield return patch;
+                foreach (var patch in array.OfType<JsonObject>())
+                    yield return patch;
+
+                break;
             }
-        }
-        else if (token is JsonArray array)
-        {
-            foreach (var patch in array.OfType<JsonObject>())
-                yield return patch;
         }
     }
 
@@ -818,56 +889,111 @@ public partial class PageLaunchRight : IRefreshable
             _ReplacePanelChildren(panel, childrenXaml);
     }
 
-    private static void _SetPropertyIfPresent(FrameworkElement element, JsonObject patch, string jsonName, string propertyName)
+    private static void _SetPropertyIfPresent(FrameworkElement element, JsonObject patch, string jsonName,
+        string propertyName)
     {
         if (patch.TryGetPropertyValue(jsonName, out var value))
             _TrySetElementProperty(element, propertyName, value?.ToString() ?? "");
     }
 
-    private static bool _TrySetElementProperty(FrameworkElement element, string propertyName, string value)
+    private static bool _TrySetElementProperty(
+        FrameworkElement element,
+        string propertyName,
+        string value)
     {
-        if (!_homepageLiveAllowedProperties.TryGetValue(propertyName, out var allowedPropertyName))
+        if (!HomepageLiveAllowedProperties.TryGetValue(
+                propertyName,
+                out var allowedPropertyName))
         {
-            LauncherLog.Log($"[Page] Skipped unsupported live patch property {propertyName}", LauncherLogLevel.Developer);
+            LauncherLog.Log(
+                $"[Page] Skipped unsupported live patch property {propertyName}",
+                LauncherLogLevel.Developer
+            );
             return false;
         }
 
         propertyName = allowedPropertyName;
-        var property = element.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
-        if (property == null || !property.CanWrite) return false;
+
+        var property = element.GetType().GetProperty(
+            propertyName,
+            BindingFlags.Instance | BindingFlags.Public
+        );
+
+        if (property == null || !property.CanWrite)
+            return false;
 
         try
         {
-            var propertyType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+            var propertyType =
+                Nullable.GetUnderlyingType(property.PropertyType) ??
+                property.PropertyType;
+
             var trimmedValue = value.Trim();
             object convertedValue;
-            if (propertyType == typeof(string))
+
+            if (propertyType == typeof(string) || propertyType == typeof(object))
+            {
                 convertedValue = value;
-            else if (propertyType == typeof(object))
-                convertedValue = value;
-            else if (propertyType == typeof(bool) && bool.TryParse(trimmedValue, out var boolValue))
+            }
+            else if (propertyType == typeof(bool) &&
+                     bool.TryParse(trimmedValue, out var boolValue))
+            {
                 convertedValue = boolValue;
-            else if (propertyType == typeof(int) && int.TryParse(trimmedValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var intValue))
+            }
+            else if (propertyType == typeof(int) &&
+                     int.TryParse(
+                         trimmedValue,
+                         NumberStyles.Integer,
+                         CultureInfo.InvariantCulture,
+                         out var intValue))
+            {
                 convertedValue = intValue;
-            else if (propertyType == typeof(double) && double.TryParse(trimmedValue, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var doubleValue))
+            }
+            else if (propertyType == typeof(double) &&
+                     double.TryParse(
+                         trimmedValue,
+                         NumberStyles.Float | NumberStyles.AllowThousands,
+                         CultureInfo.InvariantCulture,
+                         out var doubleValue))
+            {
                 convertedValue = doubleValue;
+            }
             else if (propertyType == typeof(Visibility))
             {
-                if (!Enum.TryParse(trimmedValue, true, out Visibility visibilityValue))
+                if (!Enum.TryParse(
+                        trimmedValue,
+                        true,
+                        out Visibility visibilityValue))
+                {
                     return false;
+                }
+
                 convertedValue = visibilityValue;
             }
-            else if (propertyType.IsEnum && Enum.TryParse(propertyType, trimmedValue, true, out var enumValue))
+            else if (propertyType.IsEnum &&
+                     Enum.TryParse(
+                         propertyType,
+                         trimmedValue,
+                         true,
+                         out var enumValue))
+            {
                 convertedValue = enumValue;
+            }
             else
+            {
                 return false;
+            }
 
             property.SetValue(element, convertedValue);
             return true;
         }
         catch (Exception ex)
         {
-            LauncherLog.Log(ex, $"[Page] Failed to set live patch property {propertyName}", LauncherLogLevel.Developer);
+            LauncherLog.Log(
+                ex,
+                $"[Page] Failed to set live patch property {propertyName}",
+                LauncherLogLevel.Developer
+            );
             return false;
         }
     }

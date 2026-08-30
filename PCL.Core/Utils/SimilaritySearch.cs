@@ -126,30 +126,36 @@ public static class SimilaritySearch
     /// <summary>
     ///     获取多段文本加权后的相似度。
     /// </summary>
-    private static double _SearchSimilarityWeighted(List<KeyValuePair<string, double>> source, string query)
+    private static double _SearchSimilarityWeighted(List<SearchSource> source, string query)
     {
         if (source.Count == 0) return 0.0;
 
-        var totalWeight = source.Sum(pair => pair.Value);
+        var totalWeight = source.Sum(pair => pair.Weight);
         if (totalWeight == 0) return 0.0;
 
-        var weightedSum = source.Sum(pair => _SearchSimilarity(pair.Key, query) * pair.Value);
-
-        return weightedSum / totalWeight;
+        var sum = (
+            from pair in source
+            where pair.Aliases.Count > 0
+            let maxSim = pair.Aliases.Max(a => _SearchSimilarity(a, query))
+            select maxSim * pair.Weight).Sum();
+        return sum / totalWeight;
     }
 
     /// <summary>
     ///     检查一个条目的所有搜索源是否完全匹配查询的所有部分。
     /// </summary>
-    private static bool _IsAbsoluteMatch(IEnumerable<KeyValuePair<string, double>> searchSources, string[] queryParts)
+    private static bool _IsAbsoluteMatch(
+        IEnumerable<SearchSource> searchSources,
+        string[] queryParts)
     {
-        // 预处理搜索源：转小写并移除空格，避免在循环中重复操作
         var processedSources = searchSources
-            .Select(s => s.Key.Replace(" ", "").ToLower())
+            .SelectMany(s => s.Aliases)
+            .Select(s => s.Replace(" ", "").ToLower())
             .ToList();
 
-        // 必须所有查询词都在至少一个源中找到
-        return queryParts.All(queryPart => processedSources.Any(source => source.Contains(queryPart)));
+        return queryParts.All(queryPart =>
+            processedSources.Any(source =>
+                source.Contains(queryPart)));
     }
 
     /// <summary>
@@ -203,20 +209,45 @@ public static class SimilaritySearch
 }
 
 /// <summary>
-///     用于搜索的项目。使用主构造函数 (C# 12+)。
+///     用于搜索的源文本及其权重。支持多个别名。
+/// </summary>
+public class SearchSource
+{
+    public List<string> Aliases { get; set; } = [];
+    public double Weight { get; set; } = 1.0;
+
+    public SearchSource()
+    {
+    }
+
+    public SearchSource(string text, double weight = 1.0)
+    {
+        Aliases = [text];
+        Weight = weight;
+    }
+
+    public SearchSource(IEnumerable<string> aliases, double weight = 1.0)
+    {
+        Aliases = [.. aliases];
+        Weight = weight;
+    }
+}
+
+/// <summary>
+///     用于搜索的项目。
 /// </summary>
 /// <typeparam name="T">该项目对应的源数据类型。</typeparam>
-public class SearchEntry<T>(T item, List<KeyValuePair<string, double>> searchSource)
+public class SearchEntry<T>
 {
     /// <summary>
     ///     该项目对应的源数据。
     /// </summary>
-    public T Item { get; set; } = item;
+    public T Item { get; set; }
 
     /// <summary>
     ///     该项目用于搜索的源文本及其权重。
     /// </summary>
-    public List<KeyValuePair<string, double>> SearchSource { get; set; } = searchSource;
+    public List<SearchSource> SearchSource { get; set; }
 
     /// <summary>
     ///     计算出的相似度。
@@ -228,4 +259,20 @@ public class SearchEntry<T>(T item, List<KeyValuePair<string, double>> searchSou
     ///     如果查询的所有部分都能在搜索源中找到，则为 true。
     /// </summary>
     public bool AbsoluteRight { get; set; }
+
+    public SearchEntry(T item, List<SearchSource> searchSource)
+    {
+        Item = item;
+        SearchSource = searchSource;
+    }
+
+    public SearchEntry(T item, List<KeyValuePair<string, double>> searchSource)
+    {
+        Item = item;
+        SearchSource =
+        [
+            .. searchSource.Select(p =>
+                new SearchSource(p.Key, p.Value))
+        ];
+    }
 }

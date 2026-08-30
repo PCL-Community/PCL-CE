@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using PCL.Core.Logging;
 
 namespace PCL.Core.Utils.Exts;
 
@@ -70,7 +71,16 @@ public static class RegexExtensions
             string pattern,
             RegexOptions options = RegexOptions.None)
         {
-            return value is not null && Regex.IsMatch(value, pattern, options);
+            if (value is null) return false;
+            try
+            {
+                return Regex.IsMatch(value, pattern, options);
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Warn(ex, "正则检查出错");
+                return false;
+            }
         }
     }
 }

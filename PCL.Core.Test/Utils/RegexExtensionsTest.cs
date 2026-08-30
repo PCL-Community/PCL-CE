@@ -22,4 +22,11 @@ public class RegexExtensionsTest
         var replaced = "a12b34".RegexReplaceEach(@"\d+", match => $"[{match.Value}]");
         Assert.AreEqual("a[12]b[34]", replaced);
     }
+
+    [TestMethod]
+    public void HandlesMalformedRegexGracefully()
+    {
+        Assert.IsFalse("test".RegexCheck("[a-z"));
+        Assert.IsFalse("test".RegexCheck("(?"));
+    }
 }

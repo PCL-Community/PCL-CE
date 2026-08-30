@@ -90,7 +90,7 @@ public static class LauncherPaths
         if (IsAscii(LegacyAppDataWithSlash)) return LegacyAppDataWithSlash;
         if (IsAscii(TempWithSlash)) return TempWithSlash;
 
-        return Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL");
+        return EnsureTrailingSlash(Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL"));
     }
 
     private static bool IsAscii(string input)
