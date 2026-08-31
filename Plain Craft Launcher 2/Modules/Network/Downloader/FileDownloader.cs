@@ -14,9 +14,6 @@ public static class FileDownloader
 {
     private const int RequestTimeoutMilliseconds = 30_000;
     private const int MaxDownloadRetries = 3;
-    private const int SequentialSlowCheckSeconds = 5;
-    private const long SequentialSlowRestartMinimumSize = 50L * 1024;
-    private const long SequentialSlowSpeedBytesPerSecond = 40L * 1024;
 
     public static async Task DownloadAsync(string url, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "", CancellationToken cancellationToken = default,
@@ -64,7 +61,7 @@ public static class FileDownloader
                 try
                 {
                     await DownloadSingleAsync(url, localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
-                        enableParallelChunks, trackedFile, retry == MaxDownloadRetries).ConfigureAwait(false);
+                        enableParallelChunks, trackedFile).ConfigureAwait(false);
                     return;
                 }
                 catch (OperationCanceledException)
@@ -92,13 +89,13 @@ public static class FileDownloader
     }
 
     private static async Task DownloadSingleAsync(string url, string localPath, bool useBrowserUserAgent,
-        string customUserAgent, CancellationToken cancellationToken, bool enableParallelChunks, DownloadFile? trackedFile,
-        bool isFinalRetryRound)
+        string customUserAgent, CancellationToken cancellationToken, bool enableParallelChunks, DownloadFile? trackedFile)
     {
         ModBase.Log($"[Download] 开始下载：{url} -> {localPath}");
         CleanupTempFiles(localPath);
 
-        var expectedSize = trackedFile?.Check?.actualSize ?? -1;
+        var checker = trackedFile?.Check;
+        var expectedSize = string.IsNullOrEmpty(checker?.hash) ? checker?.actualSize ?? -1 : -1;
         var sequentialRequestKind = (expectedSize >= 0 && expectedSize < AdaptiveRangeDownloader.SmallFileThreshold) ||
                                      (expectedSize < 0 && !enableParallelChunks)
             ? DownloadRequestKind.SmallOrBatch
@@ -108,6 +105,7 @@ public static class FileDownloader
                 useBrowserUserAgent, customUserAgent, cancellationToken, trackedFile,
                 expectedSize).ConfigureAwait(false))
         {
+            await ValidateTempFileAsync(localPath, checker, cancellationToken).ConfigureAwait(false);
             PromoteTempFile(localPath);
             if (!File.Exists(localPath))
                 throw new IOException($"分段下载未产生任何文件：{localPath}");
@@ -117,12 +115,12 @@ public static class FileDownloader
         }
 
         await DownloadSequentiallyAsync(url, localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
-            trackedFile, sequentialRequestKind, isFinalRetryRound).ConfigureAwait(false);
+            trackedFile, sequentialRequestKind).ConfigureAwait(false);
     }
 
     private static async Task DownloadSequentiallyAsync(string url, string localPath, bool useBrowserUserAgent,
         string customUserAgent, CancellationToken cancellationToken, DownloadFile? trackedFile,
-        DownloadRequestKind requestKind, bool isFinalRetryRound)
+        DownloadRequestKind requestKind)
     {
         const int bufferSize = 64 * 1024;
         const int readTimeoutMilliseconds = 30_000;
@@ -134,8 +132,10 @@ public static class FileDownloader
             throw new HttpRequestException($"下载请求失败：{(int)response.StatusCode} {response.ReasonPhrase}");
 
         var responseContentLength = response.Content.Headers.ContentLength ?? -1;
-        var manifestExpectedSize = trackedFile?.Check?.actualSize ?? -1;
-        if (responseContentLength >= 0 && manifestExpectedSize >= 0 && responseContentLength != manifestExpectedSize)
+        var checker = trackedFile?.Check;
+        var manifestExpectedSize = checker?.actualSize ?? -1;
+        if (string.IsNullOrEmpty(checker?.hash) && responseContentLength >= 0 && manifestExpectedSize >= 0 &&
+            responseContentLength != manifestExpectedSize)
             throw new IOException($"下载大小与清单不一致：响应为 {responseContentLength}，清单为 {manifestExpectedSize}");
 
         var totalSize = responseContentLength >= 0 ? responseContentLength : manifestExpectedSize;
@@ -159,10 +159,6 @@ public static class FileDownloader
         using var bufferLease = await DownloadResourceManager.ReserveBufferAsync(bufferSize, cancellationToken)
             .ConfigureAwait(false);
         var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
-        var slowCheckEnabled = !isFinalRetryRound && totalSize > SequentialSlowRestartMinimumSize &&
-                               ModNet.NetTaskSpeedLimitHigh <= 0;
-        var slowCheckBytes = 0L;
-        var slowCheckTick = Stopwatch.GetTimestamp();
         try
         {
             while (true)
@@ -188,22 +184,6 @@ public static class FileDownloader
                 DownloadResourceManager.RecordDownloadedBytes(read);
                 downloaded += read;
                 UpdateSequentialProgress(trackedFile, downloaded, totalSize, ref lastProgressBytes, ref lastProgressTick);
-
-                if (slowCheckEnabled && downloaded < totalSize)
-                {
-                    var now = Stopwatch.GetTimestamp();
-                    var elapsed = (double)(now - slowCheckTick) / Stopwatch.Frequency;
-                    if (elapsed >= SequentialSlowCheckSeconds)
-                    {
-                        var speed = (downloaded - slowCheckBytes) / Math.Max(0.001, elapsed);
-                        if (speed < SequentialSlowSpeedBytesPerSecond)
-                            throw new SlowSequentialDownloadException(
-                                $"顺序下载速度连续 {SequentialSlowCheckSeconds} 秒低于 {SequentialSlowSpeedBytesPerSecond / 1024} KiB/s");
-
-                        slowCheckBytes = downloaded;
-                        slowCheckTick = now;
-                    }
-                }
             }
         }
         finally
@@ -215,8 +195,8 @@ public static class FileDownloader
         await output.DisposeAsync().ConfigureAwait(false);
         if (responseContentLength >= 0 && downloaded != responseContentLength)
             throw new IOException($"下载不完整：已写入 {downloaded}，应为响应声明的 {responseContentLength}");
-        if (manifestExpectedSize >= 0 && downloaded != manifestExpectedSize)
-            throw new IOException($"下载不完整：已写入 {downloaded}，应为清单声明的 {manifestExpectedSize}");
+
+        await ValidateTempFileAsync(localPath, checker, cancellationToken).ConfigureAwait(false);
 
         if (trackedFile is not null && totalSize <= 0)
         {
@@ -230,6 +210,20 @@ public static class FileDownloader
             throw new IOException($"下载未产生任何文件：{localPath}");
         MarkDownloadCompleted(trackedFile);
         ModBase.Log($"[Download] 顺序下载成功：{localPath}");
+    }
+
+    private static async Task ValidateTempFileAsync(string localPath, ModBase.FileChecker? checker,
+        CancellationToken cancellationToken)
+    {
+        if (checker is null)
+            return;
+
+        var tempPath = localPath + ModNet.NetDownloadEnd;
+        var checkResult = string.IsNullOrEmpty(checker.hash)
+            ? checker.Check(tempPath)
+            : await Task.Run(() => checker.Check(tempPath), cancellationToken).ConfigureAwait(false);
+        if (checkResult is not null)
+            throw new IOException($"下载文件校验失败：{checkResult}");
     }
 
     private static void UpdateSequentialProgress(DownloadFile? trackedFile, long downloaded, long totalSize,
@@ -362,8 +356,6 @@ public static class FileDownloader
             }
         }
     }
-
-    private sealed class SlowSequentialDownloadException(string message) : IOException(message);
 
     internal static HttpClient GetHttpClient(string url)
     {
