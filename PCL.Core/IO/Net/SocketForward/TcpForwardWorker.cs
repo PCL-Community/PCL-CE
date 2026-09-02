@@ -166,15 +166,24 @@ public sealed class TcpForwardWorker : IDisposable
     private static async Task _ForwardDataAsync(Socket source, Socket destination, uint bufferSize, CancellationToken cancellationToken)
     {
         using var bufferOwner = MemoryPool<byte>.Shared.Rent((int)bufferSize);
+        var buffer = bufferOwner.Memory;
+        
         try
         {
-            var buffer = bufferOwner.Memory;
             while (!cancellationToken.IsCancellationRequested)
             {
                 var bytesRead = await source.ReceiveAsync(buffer, SocketFlags.None, cancellationToken).ConfigureAwait(false);
                 if (bytesRead == 0) break; // 连接已关闭
 
-                await destination.SendAsync(buffer[..bytesRead], SocketFlags.None, cancellationToken).ConfigureAwait(false);
+                var bytesSend = 0;
+                while (bytesRead > bytesSend)
+                {
+                    var currentSend= await destination.SendAsync(buffer[bytesSend..bytesRead], SocketFlags.None, cancellationToken).ConfigureAwait(false);
+                    if (currentSend == 0) break; // 对端关闭
+                    bytesSend += currentSend;
+                }
+
+                if (bytesRead != bytesSend) break; // 外层关闭
             }
         }
         catch {/* 忽略错误 */}

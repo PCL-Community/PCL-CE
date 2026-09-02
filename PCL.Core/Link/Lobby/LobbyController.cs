@@ -96,7 +96,7 @@ public sealed class LobbyController
             var tcpPortForForward = NetworkHelper.NewTcpPort();
             McForward = new TcpForwardBuilder()
                 .BindLocal((ushort)tcpPortForForward)
-                .SetRemote(IPAddress.Loopback, (ushort)tcpPortForForward)
+                .SetRemote(IPAddress.Loopback, (ushort)localPort)
                 .Build();
             McForward.Start();
             McBroadcast = new BroadcastLocal(Lang.Text("Link.Lobby.MotdFormat", desc), tcpPortForForward);
