@@ -56,6 +56,7 @@ public sealed class TcpForwardWorker : IDisposable
             _ = Task.WhenAll([_workerTask, .. _subWorkerTask.Values]).ContinueWith(x =>
             {
                 oldCts.Dispose();
+                if (x.IsFaulted) LogWrapper.Error(x.Exception, ModuleName, "后台关闭工作线程时遇到错误抛出");
             });
             LogWrapper.Info(ModuleName, "TCP 端口转发已停止，转发线程将在后台陆续关闭");
             _subWorkerTask.Clear();
@@ -91,8 +92,9 @@ public sealed class TcpForwardWorker : IDisposable
                     // 投递给转发线程
                     var taskGuid = Guid.NewGuid();
                     _subWorkerTask.TryAdd(taskGuid, _HandleConnectionAsync(clientSocket, _cts.Token)
-                        .ContinueWith(_ =>
+                        .ContinueWith(x =>
                         {
+                            if (x.IsFaulted) LogWrapper.Error(x.Exception, ModuleName, "连接处理线程出现错误");
                             try
                             {
                                 _subWorkerTask.TryRemove(taskGuid, out _);
@@ -178,7 +180,8 @@ public sealed class TcpForwardWorker : IDisposable
                 var bytesSend = 0;
                 while (bytesRead > bytesSend)
                 {
-                    var currentSend= await destination.SendAsync(buffer[bytesSend..bytesRead], SocketFlags.None, cancellationToken).ConfigureAwait(false);
+                    var currentSend= await destination.SendAsync(buffer[bytesSend..bytesRead], SocketFlags.None, cancellationToken)
+                        .ConfigureAwait(false);
                     if (currentSend == 0) break; // 对端关闭
                     bytesSend += currentSend;
                 }
