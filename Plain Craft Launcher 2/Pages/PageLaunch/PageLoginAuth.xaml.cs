@@ -258,7 +258,7 @@ public partial class PageLoginAuth
 
     private void _UpdateOAuthEntryVisibility()
     {
-        var isOAuthAvailable = _oauthSupported != false;
+        var isOAuthAvailable = _oauthSupported == true;
         BtnUseOAuth.Visibility = isOAuthAvailable ? Visibility.Visible : Visibility.Collapsed;
         BtnPasswordWebsite.SetValue(Grid.ColumnSpanProperty, isOAuthAvailable ? 1 : 3);
     }
