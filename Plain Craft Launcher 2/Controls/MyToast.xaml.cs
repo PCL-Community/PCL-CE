@@ -4,7 +4,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.UI.Theme;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -40,6 +42,14 @@ public partial class MyToast
     // 进度条状态
     private double _progressStartWidth;
     private double _progressTotalMs;
+    private bool _pausedByHover;
+    private double _hoverRemainingMs;
+
+    /// <summary>悬停暂停开始时刻（毫秒），配合 _hoverRemainingMs 判断暂停期间倒计时是否已走完。</summary>
+    private long _pauseStartedAtTick;
+
+    /// <summary>当前隐藏动画倒计时结束、实际开始滑出/淡出的起始 tick（0 表示无待滑出的隐藏）。</summary>
+    private long _hideStartsAtTick;
 
     public MyToast()
     {
@@ -49,6 +59,8 @@ public partial class MyToast
         PreviewMouseMove += Toast_PreviewMouseMove;
         PreviewMouseLeftButtonUp += Toast_PreviewMouseLeftButtonUp;
         LostMouseCapture += Toast_LostMouseCapture;
+        Root.MouseEnter += Root_MouseEnter;
+        Root.MouseLeave += Root_MouseLeave;
         Loaded += (_, _) =>
         {
             UpdateColors();
@@ -64,7 +76,9 @@ public partial class MyToast
             ModAnimation.AniStop($"Toast Dismiss {Uuid}");
             ModAnimation.AniStop($"Toast Emphasize {Uuid}");
             ModAnimation.AniStop($"Toast Drag Return {Uuid}");
+            ModAnimation.AniStop($"Toast StackSettle {Uuid}");
             ProgressBar.BeginAnimation(WidthProperty, null);
+            ResetHoverPause();
         };
     }
 
@@ -77,6 +91,13 @@ public partial class MyToast
         set => TitleText.Text = value;
     }
 
+    // 点击展开，展示完整内容
+    private void ShowDetail()
+    {
+        if (IsDismissing) return;
+        ModMain.MyMsgBox(Context, Lang.Text("Main.Toast.Detail.Title"), Lang.Text("Common.Action.Confirm"));
+    }
+
     public string Icon { get; set; } = "lucide/info";
 
     public HintType ToastType { get; set; } = HintType.Info;
@@ -85,14 +106,15 @@ public partial class MyToast
 
     public bool IsDismissing { get; private set; }
 
-    private double _targetHeight;
+    /// <summary>弹窗完全展开后的目标高度，用于纵向排布的定位计算。</summary>
+    internal double _targetHeight;
 
     public void Show()
     {
         if (Parent is not Panel)
             return;
         if (System.Windows.Application.Current.MainWindow is not null)
-            MaxWidth = System.Windows.Application.Current.MainWindow.ActualWidth * 0.9;
+            MaxWidth = Math.Min(System.Windows.Application.Current.MainWindow.ActualWidth * 0.9, 360d);
         Margin = new Thickness(0, 0, 16, 4);
         Opacity = 0;
 
@@ -103,12 +125,18 @@ public partial class MyToast
 
         RenderTransform = new TranslateTransform(60, 0);
 
+        // 图标“按入”微动效：0.8 → 1，略带过头回弹，呼应启动器按钮的按压语言
+        ToastIcon.RenderTransformOrigin = new Point(0.5, 0.5);
+        ToastIcon.RenderTransform = new ScaleTransform(0.8, 0.8);
+
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
         var enterAnimations = new List<ModAnimation.AniData>
         {
-            ModAnimation.AaTranslateX(this, -60, 400, ease: new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaTranslateX(this, -60, 380, ease: new ModAnimation.AniEaseOutCar()),
             ModAnimation.AaHeight(this, _targetHeight, 150, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaOpacity(this, 1, 100)
+            ModAnimation.AaOpacity(this, 1, 100),
+            ModAnimation.AaScaleTransform(ToastIcon, 0.2, 260, 120,
+                ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak))
         };
         ModAnimation.AniStart(enterAnimations, $"Toast Show {Uuid}");
 
@@ -121,16 +149,19 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Hide {Uuid}");
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
+        _hideStartsAtTick = 0; // 隐藏倒计时被取消，复位标志避免 IsHiding 误判
         ProgressBar.BeginAnimation(WidthProperty, null);
+        ResetHoverPause();
         if (RenderTransform is TranslateTransform tt) tt.X = 0;
         Opacity = 1;
         Height = _targetHeight;
+        ToastIcon.RenderTransform = new ScaleTransform(1, 1); // 若入场动效尚未结束，先复位图标缩放
         ModAnimation.AniStart(new List<ModAnimation.AniData>
         {
-            ModAnimation.AaTranslateX(this, -8, 70, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaTranslateX(this, 16, 70, after: true),
-            ModAnimation.AaTranslateX(this, -8, 60, after: true, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaCode(RestartHideAnimation, after: true),
+            ModAnimation.AaTranslateX(this, -14, 90, ease: new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaTranslateX(this, 18, 100, after: true, ease: new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaTranslateX(this, -4, 110, after: true, ease: new ModAnimation.AniEaseOutFluent()),
+            ModAnimation.AaCode(RestartHideAnimation, after: true)
         }, $"Toast Emphasize {Uuid}");
     }
 
@@ -143,15 +174,19 @@ public partial class MyToast
     private void StartHideAnimation(double delayMs)
     {
         var delay = (int)Math.Round(delayMs);
+        _hideStartsAtTick = TimeUtils.GetTimeTick() + delay;
         ModAnimation.AniStart(new List<ModAnimation.AniData>
         {
-            ModAnimation.AaTranslateX(this, 60, 200, delay, new ModAnimation.AniEaseInFluent()),
-            ModAnimation.AaOpacity(this, -1, 150, delay),
+            ModAnimation.AaTranslateX(this, 60, 150, delay, new ModAnimation.AniEaseInFluent()),
+            ModAnimation.AaOpacity(this, -1, 110, delay),
             ModAnimation.AaHeight(this, -_targetHeight, 100, ease: new ModAnimation.AniEaseOutFluent(), after: true),
             ModAnimation.AaCode(() =>
             {
                 if (Parent is Panel p)
+                {
                     p.Children.Remove(this);
+                    HintService.OnToastRemoved(this);
+                }
             }, after: true)
         }, $"Toast Hide {Uuid}");
     }
@@ -167,7 +202,10 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Hide {Uuid}");
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
+        ModAnimation.AniStop($"Toast StackSettle {Uuid}");
+        _hideStartsAtTick = 0; // 隐藏动画被取消（改为滑动关闭），复位标志避免 IsHiding 误判
         ProgressBar.BeginAnimation(WidthProperty, null);
+        ResetHoverPause();
         ModAnimation.AniStart(new List<ModAnimation.AniData>
         {
             ModAnimation.AaTranslateX(this, 60, 150, ease: new ModAnimation.AniEaseInFluent()),
@@ -175,7 +213,10 @@ public partial class MyToast
             ModAnimation.AaCode(() =>
             {
                 if (Parent is Panel p)
+                {
                     p.Children.Remove(this);
+                    HintService.OnToastRemoved(this);
+                }
             }, after: true)
         }, $"Toast Dismiss {Uuid}");
     }
@@ -202,25 +243,31 @@ public partial class MyToast
 
     private void UpdateColors()
     {
-        var baseHue = ToastType switch
-        {
-            HintType.Success => 145d,
-            HintType.Error => 355d,
-            HintType.Warning => 40d,
-            _ => 210d
-        };
+        var isInfo = ToastType == HintType.Info;
         var res = System.Windows.Application.Current.Resources;
-        var accent = new ModBase.MyColor().FromHSL2(baseHue, 75, 60);
+        // 信息类型整体用主题色，其余类型用饱和状态色
+        var accentBrush = isInfo
+            ? (Brush)res["ColorBrush2"]
+            : new SolidColorBrush(ToastType switch
+            {
+                HintType.Success => new ModBase.MyColor().FromHSL2(145d, 75d, 60d),
+                HintType.Error => new ModBase.MyColor().FromHSL2(355d, 75d, 60d),
+                HintType.Warning => new ModBase.MyColor().FromHSL2(40d, 75d, 60d),
+                _ => new ModBase.MyColor().FromHSL2(210d, 75d, 60d)
+            });
         var bg = ThemeService.IsDarkMode
             ? new SolidColorBrush(LabColor.FromLch(0.35))
             : (Brush)res["ColorBrushBackground"];
         var text = (SolidColorBrush)res["ColorBrushGray1"];
-        var accentBrush = new SolidColorBrush(accent);
+        var track = new SolidColorBrush(ThemeService.IsDarkMode
+            ? Color.FromArgb(70, 255, 255, 255) // 暗色卡片上略亮的内嵌暗槽
+            : Color.FromArgb(60, 0, 0, 0));      // 亮色卡片上略暗的内嵌暗槽
 
-        Root.Background = bg;
-        Root.BorderBrush = bg;
+        // 卡片背景移到 RootGrid：模糊 RootGrid 时背景一起模糊，并被 8px 圆角裁剪；阴影仍在 Root 上不受影响
+        RootGrid.Background = bg;
         TitleText.Foreground = text;
-        ProgressBar.Fill = accentBrush;
+        ProgressTrack.Fill = track;
+        ProgressBar.Fill = accentBrush; // Info 为主题色，其余类型为状态色
         BtnClose.Foreground = text;
         ToastIcon.Icon = Icon;
         ToastIcon.IconBrush = accentBrush;
@@ -284,6 +331,7 @@ public partial class MyToast
         if (_dragPending && !_isDragging)
         {
             _dragPending = false;
+            ShowDetail();
             return;
         }
 
@@ -325,6 +373,7 @@ public partial class MyToast
         ModAnimation.AniStop($"Toast Hide {Uuid}");
         ModAnimation.AniStop($"Toast Emphasize {Uuid}");
         ModAnimation.AniStop($"Toast Drag Return {Uuid}");
+        _hideStartsAtTick = 0; // 拖拽取消隐藏倒计时，复位标志避免 IsHiding 误判
 
         PauseProgress();
 
@@ -364,7 +413,11 @@ public partial class MyToast
         {
             ModAnimation.AaTranslateX(this, -currentX, ReturnAnimationMs, ease: new ModAnimation.AniEaseOutFluent()),
             ModAnimation.AaOpacity(this, 1d - currentOpacity, ReturnAnimationMs),
-            ModAnimation.AaCode(() => StartHideAnimation(GetProgressRemainingMs()), after: true)
+            ModAnimation.AaCode(() =>
+            {
+                HintService.RearrangeToasts(); // 复位后重排，让位/补位的旧弹窗回到正确位置
+                StartHideAnimation(GetProgressRemainingMs());
+            }, after: true)
         }, $"Toast Drag Return {Uuid}");
     }
 
@@ -425,6 +478,57 @@ public partial class MyToast
             return 0d;
         var currentWidth = ProgressBar.Width;
         return _progressTotalMs * (currentWidth / _progressStartWidth);
+    }
+
+    private void Root_MouseEnter(object sender, MouseEventArgs e)
+    {
+        if (_isDragging || _pausedByHover || IsDismissing)
+            return;
+        // 隐藏动画已进入滑出/淡出阶段：不悬停暂停，避免停掉半途的隐藏导致卡半透明、永不消失
+        if (_hideStartsAtTick > 0 && TimeUtils.GetTimeTick() >= _hideStartsAtTick)
+            return;
+        // 悬停暂停：停住隐藏倒计时并冻结进度条，移出后按剩余时间恢复
+        ModAnimation.AniStop($"Toast Hide {Uuid}");
+        var currentWidth = ProgressBar.Width;
+        ProgressBar.BeginAnimation(WidthProperty, null);
+        ProgressBar.Width = currentWidth;
+        _hoverRemainingMs = GetProgressRemainingMs();
+        _pauseStartedAtTick = TimeUtils.GetTimeTick();
+        _hideStartsAtTick = 0; // 悬停暂停即取消隐藏倒计时，结束判定改由 _pauseStartedAtTick + 剩余时长得出
+        _pausedByHover = true;
+        ProgressBar.Opacity = 0.4;
+    }
+
+    private void Root_MouseLeave(object sender, MouseEventArgs e)
+    {
+        if (_isDragging)
+            return; // 拖拽接管进度条，悬停恢复交由 ReturnFromDrag 处理
+        if (!_pausedByHover)
+            return;
+        _pausedByHover = false;
+        ProgressBar.Opacity = 1;
+        if (_hoverRemainingMs <= 0 || ProgressBar.Width <= 0)
+            return; // 已结束或未启动，无需恢复动画
+        // 异常路径：暂停期间倒计时已走完，不再恢复倒计时，直接滑出消失
+        if (_pauseStartedAtTick > 0 && TimeUtils.GetTimeTick() - _pauseStartedAtTick >= _hoverRemainingMs)
+        {
+            StartHideAnimation(0);
+            return;
+        }
+        StartHideAnimation(_hoverRemainingMs);
+        var currentWidth = ProgressBar.Width;
+        var anim = new DoubleAnimation(currentWidth, 0d, TimeSpan.FromMilliseconds(_hoverRemainingMs));
+        ProgressBar.BeginAnimation(WidthProperty, anim);
+    }
+
+    private void ResetHoverPause()
+    {
+        if (!_pausedByHover)
+            return;
+        _pausedByHover = false;
+        _hoverRemainingMs = 0;
+        _pauseStartedAtTick = 0;
+        ProgressBar.Opacity = 1;
     }
 
     #endregion

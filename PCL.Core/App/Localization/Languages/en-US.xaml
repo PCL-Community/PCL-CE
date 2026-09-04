@@ -66,6 +66,8 @@
     <sys:String x:Key="Common.Action.Cancel">Cancel</sys:String>
     <sys:String x:Key="Common.Action.Close">Close</sys:String>
     <sys:String x:Key="Common.Action.Confirm">OK</sys:String>
+    <sys:String x:Key="Main.Toast.Detail.Title">Toast details</sys:String>
+    <sys:String x:Key="Main.Toast.Detail.ToolTip">Click to view full content</sys:String>
     <sys:String x:Key="Common.Action.Continue">Continue</sys:String>
     <sys:String x:Key="Common.Action.Copy">Copy</sys:String>
     <sys:String x:Key="Common.Action.Decline">Decline</sys:String>

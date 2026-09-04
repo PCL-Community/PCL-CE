@@ -8,7 +8,7 @@
         CornerRadius="8" BorderThickness="0"
         UseLayoutRounding="True" SnapsToDevicePixels="True">
     <Border.Effect>
-        <DropShadowEffect BlurRadius="16" Opacity="0.2" ShadowDepth="4" Direction="270" Color="#000000" />
+        <DropShadowEffect BlurRadius="12" Opacity="0.16" ShadowDepth="2" Direction="270" Color="#000000" />
     </Border.Effect>
     <Grid x:Name="RootGrid" SizeChanged="RootGrid_SizeChanged">
         <Grid.RowDefinitions>
@@ -28,18 +28,23 @@
 
             <TextBlock x:Name="TitleText" Grid.Column="1" VerticalAlignment="Center"
                        FontSize="13" FontWeight="Bold"
+                       TextWrapping="Wrap" LineHeight="16" MaxHeight="32"
                        TextTrimming="CharacterEllipsis" />
 
-            <local:MyIconButton Grid.Column="2" x:Name="BtnClose" Width="20" Height="20"
+            <local:MyIconButton Grid.Column="2" x:Name="BtnClose" Width="26" Height="26"
                                 Margin="8,0,0,0" SvgIcon="lucide/x" Theme="Custom" />
         </Grid>
 
-        <Rectangle x:Name="ProgressBar" Height="3" Grid.Row="1"
-                   HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
-                   RenderTransformOrigin="0,0.5">
-            <Rectangle.RenderTransform>
-                <ScaleTransform ScaleX="1" ScaleY="1" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
+        <!-- 下沉轨道 + 时间线填充：一条彩色时间线骑在暗槽上 -->
+        <Grid Grid.Row="1">
+            <Rectangle x:Name="ProgressTrack" Height="3" VerticalAlignment="Bottom" />
+            <Rectangle x:Name="ProgressBar" Height="3" VerticalAlignment="Bottom"
+                       HorizontalAlignment="Stretch"
+                       RenderTransformOrigin="0,0.5">
+                <Rectangle.RenderTransform>
+                    <ScaleTransform ScaleX="1" ScaleY="1" />
+                </Rectangle.RenderTransform>
+            </Rectangle>
+        </Grid>
     </Grid>
 </Border>
