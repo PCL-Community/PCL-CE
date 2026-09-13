@@ -1,5 +1,6 @@
-using System.Diagnostics;
+using System.Buffers;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace PCL.Network;
 
@@ -9,8 +10,8 @@ internal static class DownloadResourceManager
     private static readonly AsyncQuota ConnectionQuota = new();
     private static readonly AsyncQuota BufferQuota = new();
     private static readonly ConcurrentDictionary<string, HostQuotaEntry> HostConnectionQuotas = new(StringComparer.OrdinalIgnoreCase);
-    private static readonly object BandwidthLock = new();
-    private static readonly object SpeedLock = new();
+    private static readonly Lock BandwidthLock = new();
+    private static readonly Lock SpeedLock = new();
     private static int _activeConnectionCount;
     private static long _speedBytes;
     private static long _speedSnapshotTick = Stopwatch.GetTimestamp();
@@ -73,9 +74,10 @@ internal static class DownloadResourceManager
         }
     }
 
-    public static ValueTask<DownloadQuotaLease> ReserveBufferAsync(int bytes, CancellationToken cancellationToken)
+    public static async ValueTask<DownloadBufferLease> RentBufferAsync(int minBytes, CancellationToken cancellationToken)
     {
-        return BufferQuota.AcquireAsync(bytes, () => ModNet.NetTaskBufferBudgetBytes, cancellationToken);
+        var lease = await BufferQuota.AcquireAsync(minBytes, () => ModNet.NetTaskBufferBudgetBytes, cancellationToken).ConfigureAwait(false);
+        return new DownloadBufferLease(lease, ArrayPool<byte>.Shared.Rent(minBytes));
     }
 
     internal static void ReleaseConnection()
@@ -201,6 +203,20 @@ internal sealed class DownloadConnectionLease(DownloadQuotaLease globalLease, Do
     }
 }
 
+internal sealed class DownloadBufferLease(DownloadQuotaLease lase, byte[] buffer) : IDisposable
+{
+    public byte[] Buffer { get; } = buffer;
+    public int Length => Buffer.Length;
+
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        ArrayPool<byte>.Shared.Return(Buffer);
+        lase.Dispose();
+    }
+}
+
 internal sealed class DownloadQuotaLease : IDisposable
 {
     private AsyncQuota? _quota;
@@ -220,8 +236,8 @@ internal sealed class DownloadQuotaLease : IDisposable
 
 internal sealed class AsyncQuota
 {
-    private readonly object _lock = new();
-    private readonly List<TaskCompletionSource> _waiters = new();
+    private readonly Lock _lock = new();
+    private readonly List<TaskCompletionSource> _waiters = [];
     private long _used;
 
     public async ValueTask<DownloadQuotaLease> AcquireAsync(long amount, Func<long> getCapacity,
@@ -275,7 +291,7 @@ internal sealed class AsyncQuota
 
 internal sealed class HostQuotaEntry(string host)
 {
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private int _referenceCount;
     private bool _retired;
 

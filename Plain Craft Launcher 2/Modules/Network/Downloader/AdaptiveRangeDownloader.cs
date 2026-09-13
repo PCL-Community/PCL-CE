@@ -1,3 +1,4 @@
+using Microsoft.Win32.SafeHandles;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -6,7 +7,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Channels;
-using Microsoft.Win32.SafeHandles;
 
 namespace PCL.Network;
 
@@ -305,44 +305,38 @@ internal sealed class AdaptiveRangeDownloader
 
                 await using var input = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
                 using var readTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                using var bufferLease = await DownloadResourceManager.ReserveBufferAsync(BufferSize, cancellationToken)
+                using var bufferLease = await DownloadResourceManager.RentBufferAsync(BufferSize, cancellationToken)
                     .ConfigureAwait(false);
-                var buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
-                try
+                var buffer = bufferLease.Buffer;
+
+                while (segment.Remaining > 0)
                 {
-                    while (segment.Remaining > 0)
+                    int read;
+                    readTimeout.CancelAfter(ReadTimeoutMilliseconds);
+                    try
                     {
-                        int read;
-                        readTimeout.CancelAfter(ReadTimeoutMilliseconds);
-                        try
-                        {
-                            read = await input.ReadAsync(buffer.AsMemory(0, BufferSize), readTimeout.Token)
-                                    .ConfigureAwait(false);
-                        }
-                        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested &&
-                                                               readTimeout.IsCancellationRequested)
-                        {
-                            throw new SlowSegmentException("分段在等待数据时超时");
-                        }
-
-                        if (read == 0)
-                            break;
-                        read = (int)Math.Min(read, segment.Remaining);
-
-                        await DownloadResourceManager.ThrottleAsync(read, cancellationToken).ConfigureAwait(false);
-                        await RandomAccess.WriteAsync(_fileHandle, buffer.AsMemory(0, read), segment.CurrentOffset,
-                            cancellationToken).ConfigureAwait(false);
-                        DownloadResourceManager.RecordDownloadedBytes(read);
-
-                        segment.Downloaded += read;
-                        attemptBytes += read;
-                        var downloaded = Interlocked.Add(ref _downloadedBytes, read);
-                        ReportRateAndProgress(segment, attemptBytes, startedAt, downloaded);
+                        read = await input.ReadAsync(buffer.AsMemory(0, BufferSize), readTimeout.Token)
+                                .ConfigureAwait(false);
                     }
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(buffer);
+                    catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested &&
+                                                           readTimeout.IsCancellationRequested)
+                    {
+                        throw new SlowSegmentException("分段在等待数据时超时");
+                    }
+
+                    if (read == 0)
+                        break;
+                    read = (int)Math.Min(read, segment.Remaining);
+
+                    await DownloadResourceManager.ThrottleAsync(read, cancellationToken).ConfigureAwait(false);
+                    await RandomAccess.WriteAsync(_fileHandle, buffer.AsMemory(0, read), segment.CurrentOffset,
+                        cancellationToken).ConfigureAwait(false);
+                    DownloadResourceManager.RecordDownloadedBytes(read);
+
+                    segment.Downloaded += read;
+                    attemptBytes += read;
+                    var downloaded = Interlocked.Add(ref _downloadedBytes, read);
+                    ReportRateAndProgress(segment, attemptBytes, startedAt, downloaded);
                 }
 
                 if (segment.Remaining > 0)

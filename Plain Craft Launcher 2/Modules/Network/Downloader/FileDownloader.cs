@@ -1,11 +1,10 @@
-using System.Buffers;
+using PCL.Core.App;
+using PCL.Core.IO.Net;
+using PCL.Core.Utils;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using PCL.Core.App;
-using PCL.Core.IO.Net;
-using PCL.Core.Utils;
 
 
 namespace PCL.Network;
@@ -156,40 +155,35 @@ public static class FileDownloader
         using var readTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         await using var output = new FileStream(localPath + ModNet.NetDownloadEnd, FileMode.Create, FileAccess.Write,
             FileShare.Read, bufferSize: bufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
-        using var bufferLease = await DownloadResourceManager.ReserveBufferAsync(bufferSize, cancellationToken)
+        using var bufferLease = await DownloadResourceManager.RentBufferAsync(bufferSize, cancellationToken)
             .ConfigureAwait(false);
-        var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
-        try
+        var buffer = bufferLease.Buffer;
+
+        while (true)
         {
-            while (true)
+            int read;
+            readTimeout.CancelAfter(readTimeoutMilliseconds);
+            try
             {
-                int read;
-                readTimeout.CancelAfter(readTimeoutMilliseconds);
-                try
-                {
-                    read = await input.ReadAsync(buffer.AsMemory(0, bufferSize), readTimeout.Token)
-                        .ConfigureAwait(false);
-                }
-                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested &&
-                                                       readTimeout.IsCancellationRequested)
-                {
-                    throw new TimeoutException($"下载超时（{url}）");
-                }
-
-                if (read == 0)
-                    break;
-
-                await DownloadResourceManager.ThrottleAsync(read, cancellationToken).ConfigureAwait(false);
-                await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
-                DownloadResourceManager.RecordDownloadedBytes(read);
-                downloaded += read;
-                UpdateSequentialProgress(trackedFile, downloaded, totalSize, ref lastProgressBytes, ref lastProgressTick);
+                read = await input.ReadAsync(buffer.AsMemory(0, bufferSize), readTimeout.Token)
+                    .ConfigureAwait(false);
             }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested &&
+                                                   readTimeout.IsCancellationRequested)
+            {
+                throw new TimeoutException($"下载超时（{url}）");
+            }
+
+            if (read == 0)
+                break;
+
+            await DownloadResourceManager.ThrottleAsync(read, cancellationToken).ConfigureAwait(false);
+            await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
+            DownloadResourceManager.RecordDownloadedBytes(read);
+            downloaded += read;
+            UpdateSequentialProgress(trackedFile, downloaded, totalSize, ref lastProgressBytes, ref lastProgressTick);
         }
-        finally
-        {
-            ArrayPool<byte>.Shared.Return(buffer);
-        }
+
 
         connection.Dispose();
         await output.DisposeAsync().ConfigureAwait(false);
@@ -364,7 +358,7 @@ public static class FileDownloader
         {
             return NetworkService.GetClient(NetworkService.CurseForgeApi);
         }
-        
+
         return NetworkService.GetClient();
     }
 }
