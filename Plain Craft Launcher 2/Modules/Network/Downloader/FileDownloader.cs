@@ -94,7 +94,7 @@ public static class FileDownloader
         CleanupTempFiles(localPath);
 
         var checker = trackedFile?.Check;
-        var expectedSize = string.IsNullOrEmpty(checker?.hash) ? checker?.actualSize ?? -1 : -1;
+        var expectedSize = checker?.actualSize ?? -1;
         var sequentialRequestKind = (expectedSize >= 0 && expectedSize < AdaptiveRangeDownloader.SmallFileThreshold) ||
                                      (expectedSize < 0 && !enableParallelChunks)
             ? DownloadRequestKind.SmallOrBatch
