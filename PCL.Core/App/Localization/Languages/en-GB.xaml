@@ -111,11 +111,17 @@
     <!-- Crash -->
 
     <sys:String x:Key="Crash.Analysis.Error.Failed">Crash analysis failed. See the details below.</sys:String>
+    <sys:String x:Key="Crash.Dialog.Button.Dock">Collapse</sys:String>
     <sys:String x:Key="Crash.Dialog.Button.ExportReport">Export crash report</sys:String>
     <sys:String x:Key="Crash.Dialog.Button.GoToModify">Modify settings</sys:String>
+    <sys:String x:Key="Crash.Dialog.Button.OpenInWindow">Open in a separate window</sys:String>
     <sys:String x:Key="Crash.Dialog.Button.OpenLog">View log</sys:String>
     <sys:String x:Key="Crash.Dialog.Title.Auto">Minecraft crashed</sys:String>
     <sys:String x:Key="Crash.Dialog.Title.Manual">Crash report analysis result</sys:String>
+    <sys:String x:Key="Crash.Dock.Discard.ToolTip">Discard this crash report</sys:String>
+    <sys:String x:Key="Crash.Dock.Entry">{0}-{1}</sys:String>
+    <sys:String x:Key="Crash.Dock.Entry.ToolTip">Click to view this crash report in a separate window, so you can keep it at hand while fixing the problem.</sys:String>
+    <sys:String x:Key="Crash.Dock.Hint">Crash report collapsed. You can reopen it from the entry at the bottom-right corner.</sys:String>
     <sys:String x:Key="Crash.Export.Failed.CopyDetails">Copy details</sys:String>
     <sys:String x:Key="Crash.Export.Failed.Message">The crash report could not be exported.&#xA;&#xA;Target path: {0}</sys:String>
     <sys:String x:Key="Crash.Export.Failed.MessageWithoutPath">The crash report could not be exported, and the target path is unavailable.</sys:String>
@@ -196,6 +202,8 @@
     <sys:String x:Key="Crash.Report.SaveDialog.DefaultFileName">Crash Report-{0}.zip</sys:String>
     <sys:String x:Key="Crash.Report.SaveDialog.Filter">Minecraft crash report (*.zip)|*.zip</sys:String>
     <sys:String x:Key="Crash.Report.SaveDialog.Title">Select save location</sys:String>
+    <sys:String x:Key="Crash.Report.Window.Copy">Copy report</sys:String>
+    <sys:String x:Key="Crash.Report.Window.Title">Crash report</sys:String>
 
     <!-- Crash.Report.Environment -->
 
@@ -2732,6 +2740,8 @@
     <!-- Setup.Launch.Advanced -->
 
     <sys:String x:Key="Setup.Launch.Advanced.DisableCrashAnalysis">Disable automatic crash analysis</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.CrashReportDock">Collapse crash reports and view them separately</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.CrashReportDock.ToolTip">When enabled, the crash report can be collapsed into an entry at the bottom-right corner and reopened in a separate window at any time, so you can keep it at hand while fixing mod conflicts.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableCrashAnalysis.ToolTip">When enabled, the crash analysis page will no longer automatically appear when the game crashes.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw">Disable Java Launch Wrapper</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.Arm64Notice">Do not wrap with Java Wrapper when launching the game.&#xA;Java Wrapper has been forcibly disabled because the system is ARM64 architecture.</sys:String>

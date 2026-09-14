@@ -302,6 +302,8 @@
                                           ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip}" />
                         <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.DisableCrashAnalysis}" x:Name="CheckAdvanceDisableCrashAnalysis" Tag="LaunchAdvanceDisableCrashAnalysis" Change="CheckBoxChange"
                                           ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.DisableCrashAnalysis.ToolTip}" />
+                        <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.CrashReportDock}" x:Name="CheckAdvanceCrashReportDock" Tag="LaunchAdvanceCrashReportDock" Change="CheckBoxChange"
+                                          ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.CrashReportDock.ToolTip}" />
                         <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.LockMemory}" x:Name="CheckAdvanceLockMemory" Tag="LaunchAdvanceLockMemory" Change="CheckBoxChange"
                                           ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.LockMemory.ToolTip}" />
                     </StackPanel>

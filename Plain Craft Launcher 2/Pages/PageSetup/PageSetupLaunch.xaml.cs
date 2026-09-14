@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -79,6 +79,8 @@ public partial class PageSetupLaunch
             CheckAdvanceNoJavaw.Checked = Config.Launch.NoJavaw;
             CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Launch.DisableLwjglUnsafeAgent;
             CheckAdvanceDisableCrashAnalysis.Checked = Config.Launch.DisableCrashAnalysis;
+            CheckAdvanceCrashReportDock.Checked = Config.Launch.CrashReportDock;
+            CheckAdvanceCrashReportDock.IsEnabled = !Config.Launch.DisableCrashAnalysis;
             CheckAdvanceLockMemory.Checked = Config.Launch.LockMemory;
             if (SystemInfo.IsArm64System)
             {
@@ -179,6 +181,8 @@ public partial class PageSetupLaunch
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
             SetByTag(sender.Tag?.ToString(), sender.Checked);
+        if (sender.Tag?.ToString() == "LaunchAdvanceDisableCrashAnalysis")
+            CheckAdvanceCrashReportDock.IsEnabled = sender.Checked != true;
     }
 
     private static void SetByTag(string tag, object value)

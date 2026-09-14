@@ -111,11 +111,17 @@
     <!-- Crash -->
 
     <sys:String x:Key="Crash.Analysis.Error.Failed">崩潰分析失敗。請檢視錯誤詳情。</sys:String>
+    <sys:String x:Key="Crash.Dialog.Button.Dock">收合</sys:String>
     <sys:String x:Key="Crash.Dialog.Button.ExportReport">匯出錯誤報告</sys:String>
     <sys:String x:Key="Crash.Dialog.Button.GoToModify">前往修改</sys:String>
+    <sys:String x:Key="Crash.Dialog.Button.OpenInWindow">在獨立視窗中開啟</sys:String>
     <sys:String x:Key="Crash.Dialog.Button.OpenLog">檢視日誌</sys:String>
     <sys:String x:Key="Crash.Dialog.Title.Auto">Minecraft 出現錯誤</sys:String>
     <sys:String x:Key="Crash.Dialog.Title.Manual">錯誤報告分析結果</sys:String>
+    <sys:String x:Key="Crash.Dock.Discard.ToolTip">丟棄這份錯誤報告</sys:String>
+    <sys:String x:Key="Crash.Dock.Entry">{0}-{1}</sys:String>
+    <sys:String x:Key="Crash.Dock.Entry.ToolTip">點擊可在獨立視窗中檢視這次遊戲崩潰的錯誤報告，便於一邊處理問題一邊對照。</sys:String>
+    <sys:String x:Key="Crash.Dock.Hint">錯誤報告已收合，可在右下角入口中重新開啟。</sys:String>
     <sys:String x:Key="Crash.Export.Failed.CopyDetails">複製詳細資訊</sys:String>
     <sys:String x:Key="Crash.Export.Failed.Message">無法匯出錯誤報告。&#xA;&#xA;目標路徑：{0}</sys:String>
     <sys:String x:Key="Crash.Export.Failed.MessageWithoutPath">無法匯出錯誤報告，且未能取得目標路徑。</sys:String>
@@ -196,6 +202,8 @@
     <sys:String x:Key="Crash.Report.SaveDialog.DefaultFileName">錯誤報告-{0}.zip</sys:String>
     <sys:String x:Key="Crash.Report.SaveDialog.Filter">Minecraft 錯誤報告(*.zip)|*.zip</sys:String>
     <sys:String x:Key="Crash.Report.SaveDialog.Title">選擇儲存位置</sys:String>
+    <sys:String x:Key="Crash.Report.Window.Copy">複製報告</sys:String>
+    <sys:String x:Key="Crash.Report.Window.Title">錯誤報告</sys:String>
 
     <!-- Crash.Report.Environment -->
 
@@ -2732,6 +2740,8 @@
     <!-- Setup.Launch.Advanced -->
 
     <sys:String x:Key="Setup.Launch.Advanced.DisableCrashAnalysis">停用自動崩潰分析</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.CrashReportDock">錯誤報告可收合並獨立檢視</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.CrashReportDock.ToolTip">啟用後，遊戲崩潰時的錯誤報告可以收合為右下角入口，並在獨立視窗中重新開啟，便於一邊處理模組衝突一邊查看錯誤原因。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableCrashAnalysis.ToolTip">啟用後，遊戲崩潰時將不再自動彈出崩潰分析頁面。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw">停用 Java Launch Wrapper</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.Arm64Notice">在啟動遊戲時不使用 Java Wrapper 進行包裝。&#xA;由於系統為 ARM64 架構，Java Wrapper 已被強制停用。</sys:String>

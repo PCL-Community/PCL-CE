@@ -9,7 +9,8 @@ internal sealed class CrashResultFormatter
 {
     public CrashDialogContent Format(
         CrashAnalysisContext context,
-        bool isHandAnalyze)
+        bool isHandAnalyze
+        )
     {
         var result = context.Result ?? new CrashAnalysisResult();
 
@@ -40,9 +41,7 @@ internal sealed class CrashResultFormatter
             CrashSuggestedAction.None);
     }
 
-    private static string _AppendFollowUps(
-        string text,
-        IReadOnlyCollection<CrashMessageSpec> specs)
+    private static string _AppendFollowUps(string text, IReadOnlyCollection<CrashMessageSpec> specs)
     {
         var followUps = new List<string>();
 
@@ -76,9 +75,7 @@ internal sealed class CrashResultFormatter
             Lang.Text(spec.SuggestionKey, spec.SuggestionArgs));
     }
 
-    private static CrashMessageSpec _CreateMessageSpec(
-        CrashFinding finding,
-        string combinedLogText)
+    private static CrashMessageSpec _CreateMessageSpec(CrashFinding finding, string combinedLogText)
     {
         var additional = finding.Details.ToList();
 
