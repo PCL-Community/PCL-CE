@@ -20,12 +20,14 @@ public partial class MyMsgText
             AppendUniqueNameSuffix(Btn1);
             AppendUniqueNameSuffix(Btn2);
             AppendUniqueNameSuffix(Btn3);
+            AppendUniqueNameSuffix(Btn4);
             myConverter = converter;
             LabTitle.Text = converter.Title;
             LabCaption.Text = converter.Text;
             ConfigurePrimaryButton(converter.Button1, converter.IsWarn);
             ConfigureSecondaryButton(Btn2, converter.Button2);
             ConfigureSecondaryButton(Btn3, converter.Button3);
+            ConfigureSecondaryButton(Btn4, converter.Button4);
             ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
         }
 
@@ -172,6 +174,22 @@ public partial class MyMsgText
         {
             myConverter.IsExited = true;
             myConverter.Result = 3;
+            Close();
+        }
+    }
+
+    public void Btn4_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (myConverter.IsExited)
+            return;
+        if (myConverter.Button4Action is not null)
+        {
+            myConverter.Button4Action();
+        }
+        else
+        {
+            myConverter.IsExited = true;
+            myConverter.Result = 4;
             Close();
         }
     }

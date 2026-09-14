@@ -253,6 +253,13 @@ public static class ModMain
         /// </summary>
         public Action Button3Action;
 
+        public string Button4 = "";
+
+        /// <summary>
+        ///     点击第四个按钮将执行该方法，不关闭弹窗。
+        /// </summary>
+        public Action Button4Action;
+
         /// <summary>
         ///     输入模式：文本框的文本。
         ///     选择模式：需要放进去的 List(Of MyListItem)。
@@ -340,18 +347,21 @@ public static class ModMain
     /// <param name="isWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
     public static int MyMsgBox(string caption, string? title = null, string? button1 = null, string? button2 = "",
         string? button3 = "", bool isWarn = false, bool highLight = true, bool forceWait = false,
-        Action button1Action = null, Action button2Action = null, Action button3Action = null)
+        Action button1Action = null, Action button2Action = null, Action button3Action = null,
+        string? button4 = "", Action button4Action = null)
     {
         title ??= GetDefaultDialogTitle();
         button1 ??= GetDefaultConfirmText();
         button2 ??= "";
         button3 ??= "";
+        button4 ??= "";
         // 将弹窗列入队列
         var converter = new MyMsgBoxConverter
         {
-            Type = MyMsgBoxType.Text, Button1 = button1, Button2 = button2, Button3 = button3, Text = caption,
+            Type = MyMsgBoxType.Text, Button1 = button1, Button2 = button2, Button3 = button3, Button4 = button4,
+            Text = caption,
             IsWarn = isWarn, Title = title, HighLight = highLight, ForceWait = true, Button1Action = button1Action,
-            Button2Action = button2Action, Button3Action = button3Action
+            Button2Action = button2Action, Button3Action = button3Action, Button4Action = button4Action
         };
         WaitingMyMsgBox.Add(converter);
         if (ModBase.RunInUi())
@@ -435,18 +445,21 @@ public static class ModMain
     /// <param name="isWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
     public static int MyMsgBoxMarkdown(string caption, string? title = null, string? button1 = null, string? button2 = "",
         string? button3 = "", bool isWarn = false, bool highLight = true, bool forceWait = false,
-        Action button1Action = null, Action button2Action = null, Action button3Action = null)
+        Action button1Action = null, Action button2Action = null, Action button3Action = null,
+        string? button4 = "", Action button4Action = null)
     {
         title ??= GetDefaultDialogTitle();
         button1 ??= GetDefaultConfirmText();
         button2 ??= "";
         button3 ??= "";
+        button4 ??= "";
         // 将弹窗列入队列
         var converter = new MyMsgBoxConverter
         {
-            Type = MyMsgBoxType.Markdown, Button1 = button1, Button2 = button2, Button3 = button3, Text = caption,
-            IsWarn = isWarn, Title = title, HighLight = highLight, ForceWait = true, Button1Action = button1Action,
-            Button2Action = button2Action, Button3Action = button3Action
+            Type = MyMsgBoxType.Markdown, Button1 = button1, Button2 = button2, Button3 = button3, Button4 = button4,
+            Text = caption, IsWarn = isWarn, Title = title, HighLight = highLight, ForceWait = true,
+            Button1Action = button1Action, Button2Action = button2Action, Button3Action = button3Action,
+            Button4Action = button4Action
         };
         WaitingMyMsgBox.Add(converter);
         if (ModBase.RunInUi())
@@ -698,11 +711,14 @@ public static class ModMain
         var btnAct2 = (Action)(buttons.Count < 2 ? (object)null : buttons.ElementAt(1).OnClick);
         var btnText3 = buttons.Count < 3 ? "" : buttons.ElementAt(2).Context;
         var btnAct3 = (Action)(buttons.Count < 3 ? (object)null : buttons.ElementAt(2).OnClick);
+        var btnText4 = buttons.Count < 4 ? "" : buttons.ElementAt(3).Context;
+        var btnAct4 = (Action)(buttons.Count < 4 ? (object)null : buttons.ElementAt(3).OnClick);
 
         var isWarn = theme == MsgBoxTheme.Warning || theme == MsgBoxTheme.Error;
 
         result = MyMsgBox(message, caption, btnText1, btnText2, btnText3, isWarn, forceWait: block,
-            button1Action: btnAct1, button2Action: btnAct2, button3Action: btnAct3);
+            button1Action: btnAct1, button2Action: btnAct2, button3Action: btnAct3,
+            button4: btnText4, button4Action: btnAct4);
     }
 
     #endregion

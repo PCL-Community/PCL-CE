@@ -1,0 +1,69 @@
+<Window x:Class="PCL.CrashReportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:PCL"
+        Style="{StaticResource MyWindow}"
+        Title="Plain Craft Launcher" Width="700" Height="580" MinWidth="540" MinHeight="340"
+        ShowInTaskbar="False" WindowStartupLocation="CenterOwner" ResizeMode="CanResize"
+        WindowStyle="SingleBorderWindow" AllowsTransparency="False" Background="{x:Null}"
+        Icon="/Plain Craft Launcher 2;component/Images/icon.ico"
+        KeyDown="Window_KeyDown">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" UseAeroCaptionButtons="False" ResizeBorderThickness="4"
+                      CornerRadius="12" GlassFrameThickness="0" />
+    </WindowChrome.WindowChrome>
+    <!-- 与主窗体保持一致：标题栏使用主色，内容区使用主题背景色与 MyCard 卡片 -->
+    <Grid Background="{DynamicResource ColorBrushBackground}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="1*" />
+        </Grid.RowDefinitions>
+        <local:AnimatedBackgroundGrid Grid.Row="0" Height="48"
+                                      BackgroundBrush="{DynamicResource ColorBrush3}"
+                                      MouseLeftButtonDown="PanTitle_MouseLeftButtonDown"
+                                      WindowChrome.IsHitTestVisibleInChrome="True">
+            <TextBlock x:Name="LabTitle" Margin="18,0,60,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                       FontSize="15" Foreground="White" TextTrimming="CharacterEllipsis" IsHitTestVisible="False" />
+            <local:MyIconButton x:Name="BtnTitleClose" HorizontalAlignment="Right" Height="28" Width="28"
+                                Margin="0,0,12,0" VerticalAlignment="Center" Theme="White"
+                                SvgIcon="lucide/x" Click="BtnTitleClose_Click" />
+        </local:AnimatedBackgroundGrid>
+        <local:MyCard Grid.Row="1" Margin="16" UseAnimation="False" HasMouseAnimation="False">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <local:MyScrollViewer Grid.Row="0" Margin="14,14,6,4" Padding="0,0,8,0" DeltaMult="0.7"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                    <TextBox x:Name="TextReport" BorderThickness="0" Background="Transparent"
+                             Foreground="{DynamicResource ColorBrush1}"
+                             SelectionBrush="{DynamicResource ColorBrush3}"
+                             FontFamily="{DynamicResource LaunchFontFamily}" FontSize="14"
+                             Padding="2" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True"
+                             VerticalAlignment="Top" />
+                </local:MyScrollViewer>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right"
+                            Margin="14,4,14,12">
+                    <local:MyIconTextButton x:Name="BtnCopy" Text="{DynamicResource Crash.Report.Window.Copy}"
+                                            SvgIcon="lucide/copy" LogoScale="0.95" Margin="5,0,0,0"
+                                            Click="BtnCopy_Click" />
+                    <local:MyIconTextButton x:Name="BtnOpenLog" Text="{DynamicResource Crash.Dialog.Button.OpenLog}"
+                                            SvgIcon="lucide/scroll-text" LogoScale="1" Margin="5,0,0,0"
+                                            Click="BtnOpenLog_Click" />
+                    <local:MyIconTextButton x:Name="BtnModify" Text="{DynamicResource Crash.Dialog.Button.GoToModify}"
+                                            SvgIcon="lucide/wrench" LogoScale="0.95" Margin="5,0,0,0"
+                                            Click="BtnModify_Click" />
+                    <local:MyIconTextButton x:Name="BtnExport"
+                                            Text="{DynamicResource Crash.Dialog.Button.ExportReport}"
+                                            SvgIcon="lucide/save" LogoScale="1" Margin="5,0,0,0"
+                                            Click="BtnExport_Click" />
+                    <local:MyIconTextButton x:Name="BtnClose" Text="{DynamicResource Common.Action.Close}"
+                                            SvgIcon="lucide/x" LogoScale="0.95" Margin="5,0,0,0"
+                                            Click="BtnClose_Click" />
+                </StackPanel>
+            </Grid>
+        </local:MyCard>
+    </Grid>
+</Window>

@@ -111,11 +111,17 @@
     <!-- Crash -->
 
     <sys:String x:Key="Crash.Analysis.Error.Failed">崩溃分析失败。请查看错误详情。</sys:String>
+    <sys:String x:Key="Crash.Dialog.Button.Dock">收起</sys:String>
     <sys:String x:Key="Crash.Dialog.Button.ExportReport">导出错误报告</sys:String>
     <sys:String x:Key="Crash.Dialog.Button.GoToModify">前往修改</sys:String>
+    <sys:String x:Key="Crash.Dialog.Button.OpenInWindow">在独立窗口中打开</sys:String>
     <sys:String x:Key="Crash.Dialog.Button.OpenLog">查看日志</sys:String>
     <sys:String x:Key="Crash.Dialog.Title.Auto">Minecraft 出现错误</sys:String>
     <sys:String x:Key="Crash.Dialog.Title.Manual">错误报告分析结果</sys:String>
+    <sys:String x:Key="Crash.Dock.Discard.ToolTip">丢弃这份错误报告</sys:String>
+    <sys:String x:Key="Crash.Dock.Entry">{0}-{1}</sys:String>
+    <sys:String x:Key="Crash.Dock.Entry.ToolTip">点击可在独立窗口中查看这次游戏崩溃的错误报告，便于一边处理问题一边对照。</sys:String>
+    <sys:String x:Key="Crash.Dock.Hint">错误报告已收起，可在右下角入口中重新打开。</sys:String>
     <sys:String x:Key="Crash.Export.Failed.CopyDetails">复制详细信息</sys:String>
     <sys:String x:Key="Crash.Export.Failed.Message">无法导出错误报告。&#xA;&#xA;目标路径：{0}</sys:String>
     <sys:String x:Key="Crash.Export.Failed.MessageWithoutPath">无法导出错误报告，且未能获取目标路径。</sys:String>
@@ -196,6 +202,8 @@
     <sys:String x:Key="Crash.Report.SaveDialog.DefaultFileName">错误报告-{0}.zip</sys:String>
     <sys:String x:Key="Crash.Report.SaveDialog.Filter">Minecraft 错误报告(*.zip)|*.zip</sys:String>
     <sys:String x:Key="Crash.Report.SaveDialog.Title">选择保存位置</sys:String>
+    <sys:String x:Key="Crash.Report.Window.Copy">复制报告</sys:String>
+    <sys:String x:Key="Crash.Report.Window.Title">错误报告</sys:String>
 
     <!-- Crash.Report.Environment -->
 
@@ -2732,6 +2740,8 @@
     <!-- Setup.Launch.Advanced -->
 
     <sys:String x:Key="Setup.Launch.Advanced.DisableCrashAnalysis">禁用自动崩溃分析</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.CrashReportDock">错误报告可收起并独立查看</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.CrashReportDock.ToolTip">启用后，游戏崩溃时的错误报告可以收起为右下角入口，并在独立窗口中重新打开，便于一边处理模组冲突一边查看错误原因。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableCrashAnalysis.ToolTip">启用后，游戏崩溃时将不再自动弹出崩溃分析页面。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw">禁用 Java Launch Wrapper</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.Arm64Notice">在启动游戏时不使用 Java Wrapper 进行包装。&#xA;由于系统为 ARM64 架构，Java Wrapper 已被强制禁用。</sys:String>

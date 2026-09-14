@@ -544,6 +544,11 @@ public static partial class Config
         [ConfigItem<bool>("LaunchAdvanceDisableCrashAnalysis", false, ConfigSource.Local)] public partial bool DisableCrashAnalysis { get; set; }
 
         /// <summary>
+        /// 允许将错误报告收起为角落入口，并在独立窗口中重新打开。
+        /// </summary>
+        [ConfigItem<bool>("LaunchAdvanceCrashReportDock", true, ConfigSource.Local)] public partial bool CrashReportDock { get; set; }
+
+        /// <summary>
         /// 渲染器。
         /// </summary>
         [ConfigItem<int>("LaunchAdvanceRenderer", 0 ,ConfigSource.Local)] public partial int Renderer { get; set; }

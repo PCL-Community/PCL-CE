@@ -1,189 +1,96 @@
-﻿using System.Globalization;
-using System.IO;
-using PCL.Core.App;
+﻿using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.Logging;
 using PCL.Core.UI;
 
 namespace PCL;
 
 internal sealed class CrashDialogPresenter(CrashAnalysisContext context)
 {
-    private readonly CrashReportExporter _exporter = new();
     private readonly CrashResultFormatter _formatter = new();
 
     public void Output(
         bool isHandAnalyze,
         List<string>? extraFiles)
     {
-        ModMain.frmMain.ShowWindowToTop();
+        ModMain.frmMain!.ShowWindowToTop();
+
+        // 弹窗显示在主界面上，先关掉可能还开着的独立窗口，避免它盖住弹窗
+        CrashReportSession.CloseWindow();
 
         var crashContent = _formatter.Format(context, isHandAnalyze);
-        var resultText = crashContent.Text;
-        var directFile = context.DirectOpenFile;
-        var openInstanceSettings =
-            context.Instance is not null &&
-            crashContent.SuggestedAction == CrashSuggestedAction.OpenInstanceSettings;
 
         var title = isHandAnalyze
             ? Lang.Text("Crash.Dialog.Title.Manual")
             : Lang.Text("Crash.Dialog.Title.Auto");
 
-        var secondButtonText = _GetSecondButtonText(
-            isHandAnalyze,
-            directFile,
-            openInstanceSettings);
+        var report = new CrashReportSnapshot(context, crashContent, title, isHandAnalyze, extraFiles);
 
-        var thirdButtonText = isHandAnalyze
-            ? ""
-            : Lang.Text("Crash.Dialog.Button.ExportReport");
-
-        var secondButtonAction = _GetSecondButtonAction(
-            isHandAnalyze,
-            directFile,
-            openInstanceSettings);
+        // 「收起」与「在独立窗口中打开」都需要在弹窗关闭后执行，
+        // 因此这里只收集按钮，具体动作在弹窗返回后统一分发。
+        var canDock = Config.Launch.CrashReportDock;
 
         var selectedButton = MsgBoxWrapper.ShowWithCustomButtons(
-            resultText,
+            crashContent.Text,
             title,
             MsgBoxTheme.Info,
             true,
-            new MsgBoxButtonInfo(Lang.Text("Common.Action.Confirm"), 1),
-            new MsgBoxButtonInfo(secondButtonText, 2, secondButtonAction),
-            new MsgBoxButtonInfo(thirdButtonText, 3));
+            new MsgBoxButtonInfo(
+                canDock ? Lang.Text("Crash.Dialog.Button.Dock") : Lang.Text("Common.Action.Confirm"),
+                1),
+            // 「打开日志」沿用既有行为：执行动作时不关闭弹窗，便于同时对照日志与报告
+            new MsgBoxButtonInfo(_GetSecondButtonText(report), 2,
+                report.ShowOpenDirectFile ? report.OpenDirectFile : null),
+            new MsgBoxButtonInfo(_GetThirdButtonText(report), 3),
+            new MsgBoxButtonInfo(canDock ? Lang.Text("Crash.Dialog.Button.OpenInWindow") : "", 4));
 
         switch (selectedButton)
         {
+            case 1:
+                if (canDock)
+                    Collapse(report);
+                break;
+
             case 2:
-                if (openInstanceSettings)
-                    _OpenModLoaderInstallPage();
-                else if (directFile is not null)
-                    _OpenDirectFile(directFile);
+                if (report.ShowOpenInstanceSettings)
+                    report.OpenInstanceSettings();
+                else if (report.ShowOpenDirectFile)
+                    report.OpenDirectFile();
                 break;
 
             case 3:
-                _ExportReport(extraFiles);
+                if (report.CanExportReport)
+                    report.ExportReport();
+                break;
+
+            case 4:
+                if (canDock)
+                {
+                    Collapse(report);
+                    CrashReportSession.OpenWindow();
+                }
+
                 break;
         }
     }
 
-    private static string _GetSecondButtonText(
-        bool isHandAnalyze,
-        CrashLogEntry? directFile,
-        bool openInstanceSettings)
+    /// <summary>
+    /// 收起错误报告：弹窗关闭后保留报告，并在右下角显示入口。
+    /// </summary>
+    private static void Collapse(CrashReportSnapshot report)
     {
-        if (isHandAnalyze || directFile is null)
-            return "";
-
-        return openInstanceSettings
-            ? Lang.Text("Crash.Dialog.Button.GoToModify")
-            : Lang.Text("Crash.Dialog.Button.OpenLog");
+        CrashReportSession.Collapse(report);
+        HintWrapper.Show(Lang.Text("Crash.Dock.Hint"), HintTheme.Info);
     }
 
-    private static Action? _GetSecondButtonAction(
-        bool isHandAnalyze,
-        CrashLogEntry? directFile,
-        bool openInstanceSettings)
+    private static string _GetSecondButtonText(CrashReportSnapshot report)
     {
-        if (isHandAnalyze ||
-            directFile is null ||
-            openInstanceSettings)
-            return null;
-
-        return () => _OpenDirectFile(directFile);
+        if (report.ShowOpenInstanceSettings)
+            return Lang.Text("Crash.Dialog.Button.GoToModify");
+        return report.ShowOpenDirectFile ? Lang.Text("Crash.Dialog.Button.OpenLog") : "";
     }
 
-    private void _OpenModLoaderInstallPage()
+    private static string _GetThirdButtonText(CrashReportSnapshot report)
     {
-        PageInstanceLeft.McInstance = context.Instance;
-
-        ModBase.RunInUi(() => ModMain.frmMain.PageChange(
-            FormMain.PageType.InstanceSetup,
-            FormMain.PageSubType.VersionInstall));
-    }
-
-    private static void _OpenDirectFile(CrashLogEntry directFile)
-    {
-        if (File.Exists(directFile.FullPath))
-        {
-            Basics.OpenPath(directFile.FullPath);
-            return;
-        }
-
-        var filePath = Path.Combine(Paths.Temp, "Crash.txt");
-
-        CrashFileIo.WriteText(filePath, string.Join("\r\n", directFile.Lines));
-        Basics.OpenPath(filePath);
-    }
-
-    private void _ExportReport(List<string>? extraFiles)
-    {
-        string? fileAddress = null;
-
-        try
-        {
-            fileAddress = _SelectReportSavePath();
-
-            if (string.IsNullOrEmpty(fileAddress))
-                return;
-
-            _exporter.Export(context, fileAddress, extraFiles);
-
-            HintWrapper.Show(
-                Lang.Text("Crash.Report.Export.Success"),
-                HintTheme.Success);
-
-            Basics.OpenPath(Path.GetDirectoryName(fileAddress) ?? fileAddress);
-        }
-        catch (Exception ex)
-        {
-            LogWrapper.Error(ex, "Crash", "导出错误报告失败");
-
-            var message = _CreateExportFailureMessage(fileAddress, ex);
-            MsgBoxWrapper.ShowWithCustomButtons(
-                message,
-                Lang.Text("Crash.Export.Failed.Title"),
-                MsgBoxTheme.Error,
-                false,
-                new MsgBoxButtonInfo(Lang.Text("Common.Action.Confirm"), 1),
-                new MsgBoxButtonInfo(
-                    Lang.Text("Crash.Export.Failed.CopyDetails"),
-                    2,
-                    () => ModBase.ClipboardSet(message, false)));
-        }
-    }
-
-    private static string _CreateExportFailureMessage(
-        string? targetZipPath,
-        Exception exception)
-    {
-        var summary = string.IsNullOrWhiteSpace(targetZipPath)
-            ? Lang.Text("Crash.Export.Failed.MessageWithoutPath")
-            : Lang.Text("Crash.Export.Failed.Message", targetZipPath);
-
-        return ExceptionDetails.Compose(summary, exception);
-    }
-
-    private static string? _SelectReportSavePath()
-    {
-        string? fileAddress = null;
-
-        ModBase.RunInUiWait(() => fileAddress = SystemDialogs.SelectSaveFile(
-            Lang.Text("Crash.Report.SaveDialog.Title"),
-            _GetDefaultReportFileName(),
-            Lang.Text("Crash.Report.SaveDialog.Filter")));
-
-        return fileAddress;
-    }
-
-    private static string _GetDefaultReportFileName()
-    {
-        var time = DateTime.Now
-            .ToString("G", CultureInfo.InvariantCulture)
-            .Replace("/", "-")
-            .Replace(":", ".")
-            .Replace(" ", "_");
-
-        return Lang.Text("Crash.Report.SaveDialog.DefaultFileName", time);
+        return report.CanExportReport ? Lang.Text("Crash.Dialog.Button.ExportReport") : "";
     }
 }
