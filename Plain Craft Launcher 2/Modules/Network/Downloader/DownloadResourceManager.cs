@@ -10,14 +10,11 @@ internal static class DownloadResourceManager
     private static readonly AsyncQuota ConnectionQuota = new();
     private static readonly AsyncQuota BufferQuota = new();
     private static readonly ConcurrentDictionary<string, HostQuotaEntry> HostConnectionQuotas = new(StringComparer.OrdinalIgnoreCase);
-    private static readonly Lock BandwidthLock = new();
     private static readonly Lock SpeedLock = new();
     private static int _activeConnectionCount;
     private static long _speedBytes;
     private static long _speedSnapshotTick = Stopwatch.GetTimestamp();
     private static long _speed;
-    private static readonly LinkedList<BandwidthReservation> BandwidthReservations = new();
-    private static bool _bandwidthPumpRunning;
 
     public static int ActiveConnectionCount => Volatile.Read(ref _activeConnectionCount);
 
@@ -85,63 +82,106 @@ internal static class DownloadResourceManager
         Interlocked.Decrement(ref _activeConnectionCount);
     }
 
-    public static async Task ThrottleAsync(int bytes, CancellationToken cancellationToken)
-    {
-        var limit = ModNet.NetTaskSpeedLimitHigh;
-        if (limit <= 0 || bytes <= 0)
-            return;
+    #region Throttle
 
-        var reservation = new BandwidthReservation(Math.Max(1L,
-            (long)Math.Ceiling((double)bytes * Stopwatch.Frequency / limit)));
-        lock (BandwidthLock)
+    // use token bucket
+
+    private const long ThrottleBurstBytes = 128L * 1024;
+    private const int MaxThrottleDelayMilliseconds = 2_000;
+
+    private static readonly Lock ThrottleScheduleLock = new();
+
+    private static double _throttleTokens;
+
+    // the last Stopwatch timestamp of refill tokens
+    // 0 means not be initialized
+    private static long _throttleLastRefillTikck;
+
+    public static async Task ThrottleAsync(int bytes, CancellationToken ct)
+    {
+        var limitHigh = ModNet.NetTaskSpeedLimitHigh;
+        if (limitHigh <= 0 || bytes <= 0)
         {
-            reservation.Node = BandwidthReservations.AddLast(reservation);
-            if (!_bandwidthPumpRunning)
-            {
-                _bandwidthPumpRunning = true;
-                _ = PumpBandwidthReservationsAsync();
-            }
+            return;
         }
+
+        long waitTicks;
+        lock (ThrottleScheduleLock)
+        {
+            var now = Stopwatch.GetTimestamp();
+
+            // will be initialize at first calling
+            if (_throttleLastRefillTikck == 0)
+            {
+                _throttleLastRefillTikck = now;
+                _throttleTokens = ThrottleBurstBytes;
+            }
+            else
+            {
+                var elaspedTicks = now - _throttleLastRefillTikck;
+                if (elaspedTicks > 0)
+                {
+                    var refill = elaspedTicks * (double)limitHigh / Stopwatch.Frequency;
+                    _throttleTokens = Math.Min(ThrottleBurstBytes, _throttleTokens + refill);
+                    _throttleLastRefillTikck = now;
+                }
+            }
+
+            // use tokens
+            // alow be negative
+            _throttleTokens -= bytes;
+
+            if (_throttleTokens >= 0)
+            {
+                return;
+            }
+
+            waitTicks = (long)Math.Ceiling(-_throttleTokens * Stopwatch.Frequency / limitHigh);
+        }
+
+        if (waitTicks <= 0)
+        {
+            return;
+        }
+
+        var deadlineTick = Stopwatch.GetTimestamp() + waitTicks;
+        var maxChunkTicks = MaxThrottleDelayMilliseconds > 0
+            ? (long)Math.Ceiling(MaxThrottleDelayMilliseconds * (double)Stopwatch.Frequency / 1000.0)
+            : long.MaxValue;
 
         try
         {
-            await reservation.Completion.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
-        }
-        catch
-        {
-            lock (BandwidthLock)
+            while (true)
             {
-                if (reservation.Node?.List is not null)
-                    BandwidthReservations.Remove(reservation.Node);
+                var remainingTicks = deadlineTick - Stopwatch.GetTimestamp();
+                if (remainingTicks <= 0)
+                {
+                    break;
+                }
+
+                var chunkTicks = Math.Min(remainingTicks, maxChunkTicks);
+                var chunkMs = (long)Math.Ceiling(chunkTicks * 1000d / Stopwatch.Frequency);
+
+                if (chunkMs <= 0)
+                {
+                    chunkMs = 1;
+                }
+
+                await Task.Delay(TimeSpan.FromMilliseconds(chunkMs), ct).ConfigureAwait(false);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            lock (ThrottleScheduleLock)
+            {
+                _throttleTokens = Math.Min(ThrottleBurstBytes, _throttleTokens + bytes);
             }
 
             throw;
         }
     }
 
-    private static async Task PumpBandwidthReservationsAsync()
-    {
-        while (true)
-        {
-            BandwidthReservation? reservation;
-            lock (BandwidthLock)
-            {
-                if (BandwidthReservations.First is null)
-                {
-                    _bandwidthPumpRunning = false;
-                    return;
-                }
-
-                reservation = BandwidthReservations.First.Value;
-                BandwidthReservations.RemoveFirst();
-                reservation.Node = null;
-            }
-
-            reservation.Completion.TrySetResult();
-            await Task.Delay(TimeSpan.FromSeconds((double)reservation.DurationTicks / Stopwatch.Frequency))
-                .ConfigureAwait(false);
-        }
-    }
+    #endregion
 
     private static HostQuotaEntry AcquireHostQuotaEntry(string host)
     {
@@ -171,13 +211,6 @@ internal static class DownloadResourceManager
 
         ((ICollection<KeyValuePair<string, HostQuotaEntry>>)HostConnectionQuotas)
             .Remove(new KeyValuePair<string, HostQuotaEntry>(entry.Host, entry));
-    }
-
-    private sealed class BandwidthReservation(long durationTicks)
-    {
-        public long DurationTicks { get; } = durationTicks;
-        public TaskCompletionSource Completion { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public LinkedListNode<BandwidthReservation>? Node { get; set; }
     }
 }
 
