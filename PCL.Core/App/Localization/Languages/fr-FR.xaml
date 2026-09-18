@@ -254,4 +254,20 @@ Ce que vous pouvez essayer
     <sys:String x:Key="Crash.Suggestion.ShadersModWithOptiFine">Supprimez Shaders Mod. OptiFine prend déjà en charge les shaders.</sys:String>
     <sys:String x:Key="Crash.Suggestion.SpecificBlock.Multiple">Créez un nouveau monde pour vérifier si le jeu fonctionne normalement. Si c'est le cas, les blocs du monde d'origine peuvent être en cause.</sys:String>
     <sys:String x:Key="Crash.Suggestion.SpecificBlock.Single">Créez un nouveau monde pour vérifier si le jeu fonctionne normalement. Si c'est le cas, supprimez ce bloc avec un éditeur de carte ou désactivez le mod qui le fournit.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.SpecificEntity.Multiple">Créez un nouveau monde et faites apparaître des entités pour vérifier si le jeu fonctionne normalement. Si c'est le cas, les entités du monde d'origine peuvent être en cause.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.SpecificEntity.Single">Créez un nouveau monde et faites apparaître cette entité pour vérifier si le jeu fonctionne normalement. Si c'est le cas, supprimez l'entité avec un éditeur de carte ou désactivez le mod qui la fournit.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.StackKeyword">Vérifiez les mods ou bibliothèques correspondant à ces mots-clés. Vous pouvez également exporter le rapport de crash pour plus de détails.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.TooManyModsIdLimit">Réduisez le nombre de mods installés, ou installez un mod correctif qui étend la limite d'ID pour les anciennes versions de Minecraft.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.UsingJdk">Dans les paramètres de lancement, passez à un JRE standard ou à une autre version de Java adaptée à cette instance.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.UsingOpenJ9">Dans les paramètres de lancement, passez à HotSpot Java, puis réessayez.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.ViewReport">Consultez le rapport de crash pour plus de détails sur la façon dont l'erreur s'est produite.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.X86JavaMemoryLimit.OnX64Os">Installez et sélectionnez Java 64 bits dans les paramètres de lancement, puis réessayez.</sys:String>
+    <sys:String x:Key="Crash.Suggestion.X86JavaMemoryLimit.OnX86Os">Utilisez un système d'exploitation 64 bits et Java 64 bits, puis réessayez.</sys:String>
+    <sys:String x:Key="Download.Error.OperationFailed">L'opération de la page de téléchargement a échoué. Consultez les détails ci-dessous.</sys:String>
+    <sys:String x:Key="Download.Comp.Error.OperationFailed">L'opération de téléchargement de ressources a échoué. Consultez les détails ci-dessous.</sys:String>
+    <sys:String x:Key="Download.Comp.Link.ResolveFailed">Impossible de reconnaître ou de récupérer le lien de la ressource</sys:String>
+    <sys:String x:Key="Download.Comp.Search.Hint">Rechercher des ressources</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Downloads">Téléchargements</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Follows">Abonnements</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Latest">Plus récents</sys:String>
 </ResourceDictionary>
