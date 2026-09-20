@@ -1,12 +1,12 @@
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Media;
 using PCL.Core.App.Localization;
 using PCL.Core.Link.McPing;
 using PCL.Core.Link.McPing.Model;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 
 namespace PCL;
 
@@ -91,7 +91,7 @@ public partial class MinecraftServer : Grid
         ModStyle.MinecraftFormatter.SetColorfulTextLab($"§{latencyColor}{ret.Latency}ms", LabServerLatency, false);
 
         // 玩家列表提示
-        if (ret.Players.Samples.Any())
+        if (ret.Players.Samples is not null && ret.Players.Samples.Any())
         {
             LabServerPlayer.ToolTip = string.Join("\r\n", ret.Players.Samples.Select(x => x.Name));
             ToolTipService.SetPlacement(LabServerPlayer, PlacementMode.Mouse);
