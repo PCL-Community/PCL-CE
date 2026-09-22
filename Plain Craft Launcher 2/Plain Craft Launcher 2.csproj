@@ -35,6 +35,7 @@
             VSTHRD002;VSTHRD003;VSTHRD110;VSTHRD200
         </NoWarn>
         <DefaultItemExcludes>$(DefaultItemExcludes);$(ProjectDir)**\*.vb</DefaultItemExcludes>
+        <CETCompat>false</CETCompat>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
         <OutputPath>bin\Debug\</OutputPath>
