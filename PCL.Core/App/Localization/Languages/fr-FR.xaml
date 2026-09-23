@@ -270,4 +270,14 @@ Ce que vous pouvez essayer
     <sys:String x:Key="Download.Comp.Sort.Downloads">Téléchargements</sys:String>
     <sys:String x:Key="Download.Comp.Sort.Follows">Abonnements</sys:String>
     <sys:String x:Key="Download.Comp.Sort.Latest">Plus récents</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Relevance">Pertinence</sys:String>
+    <sys:String x:Key="Download.Comp.Sort.Updated">Récemment mis à jour</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Adventure">Aventure</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Animated">Animé</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Automation">Automatisation</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Biomes">Biomes</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Cartoon">Cartoon</sys:String>
+    <sys:String x:Key="Download.Comp.Category.ColoredLighting">Éclairage coloré</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Combat">Combat</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Creative">Créatif</sys:String>
 </ResourceDictionary>
