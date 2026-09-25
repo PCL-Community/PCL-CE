@@ -280,4 +280,11 @@ Ce que vous pouvez essayer
     <sys:String x:Key="Download.Comp.Category.ColoredLighting">Éclairage coloré</sys:String>
     <sys:String x:Key="Download.Comp.Category.Combat">Combat</sys:String>
     <sys:String x:Key="Download.Comp.Category.Creative">Créatif</sys:String>
+    <sys:String x:Key="Download.Comp.Category.DataPack.Fantasy">Fantastique</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Decoration">Décoration</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Dimensions">Dimensions</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Display">Affichage</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Energy">Énergie</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Entities">Entités</sys:String>
+    <sys:String x:Key="Download.Comp.Category.Equipment">Équipement</sys:String>
 </ResourceDictionary>
