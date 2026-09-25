@@ -270,7 +270,7 @@ internal sealed class DownloadQuotaLease : IDisposable
 internal sealed class AsyncQuota
 {
     private readonly Lock _lock = new();
-    private readonly List<TaskCompletionSource> _waiters = [];
+    private readonly LinkedList<QuotaWaiter> _waiters = new();
     private long _used;
 
     public async ValueTask<DownloadQuotaLease> AcquireAsync(long amount, Func<long> getCapacity,
@@ -278,47 +278,89 @@ internal sealed class AsyncQuota
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(amount);
 
-        while (true)
+        QuotaWaiter waiter;
+        lock (_lock)
         {
-            TaskCompletionSource? waiter = null;
+            var capacity = Math.Max(amount, getCapacity());
+            if (_waiters.Count == 0 && _used + amount <= capacity)
+            {
+                _used += amount;
+                return new DownloadQuotaLease(this, amount);
+            }
+
+            waiter = new QuotaWaiter(amount, getCapacity);
+            waiter.Node = _waiters.AddLast(waiter);
+        }
+
+        try
+        {
+            await waiter.Tcs.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+            return new DownloadQuotaLease(this, amount);
+        }
+        catch
+        {
             lock (_lock)
             {
-                var capacity = Math.Max(amount, getCapacity());
-                if (_used + amount <= capacity)
+                if (waiter.Node?.List is not null)
                 {
-                    _used += amount;
-                    return new DownloadQuotaLease(this, amount);
+                    _waiters.Remove(waiter.Node);
                 }
-
-                waiter = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-                _waiters.Add(waiter);
+                else if (waiter.Assigned)
+                {
+                    _used = Math.Max(0, _used - amount);
+                    PromoteWaitersLocked();
+                }
             }
-
-            try
-            {
-                await waiter.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch
-            {
-                lock (_lock)
-                    _waiters.Remove(waiter);
-                throw;
-            }
+            throw;
         }
     }
 
     public void Release(long amount)
     {
-        TaskCompletionSource[] waiters;
+        List<QuotaWaiter> waitersToWake = [];
         lock (_lock)
         {
             _used = Math.Max(0, _used - amount);
-            waiters = _waiters.ToArray();
-            _waiters.Clear();
+            PromoteWaitersLocked(waitersToWake);
         }
 
-        foreach (var waiter in waiters)
-            waiter.TrySetResult();
+        foreach (var waiter in waitersToWake)
+            waiter.Tcs.TrySetResult();
+    }
+
+    private void PromoteWaitersLocked(List<QuotaWaiter>? waitersToWake = null)
+    {
+        var current = _waiters.First;
+        while (current is not null)
+        {
+            var waiter = current.Value;
+            var capacity = Math.Max(waiter.Amount, waiter.GetCapacity());
+            if (_used + waiter.Amount <= capacity)
+            {
+                _used += waiter.Amount;
+                waiter.Assigned = true;
+                var next = current.Next;
+                _waiters.Remove(current);
+                if (waitersToWake is not null)
+                    waitersToWake.Add(waiter);
+                else
+                    waiter.Tcs.TrySetResult();
+                current = next;
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    private sealed class QuotaWaiter(long amount, Func<long> getCapacity)
+    {
+        public long Amount { get; } = amount;
+        public Func<long> GetCapacity { get; } = getCapacity;
+        public TaskCompletionSource Tcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public LinkedListNode<QuotaWaiter>? Node { get; set; }
+        public bool Assigned { get; set; }
     }
 }
 

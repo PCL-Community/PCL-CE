@@ -323,6 +323,10 @@ internal sealed class AdaptiveRangeDownloader
                     {
                         throw new SlowSegmentException("分段在等待数据时超时");
                     }
+                    finally
+                    {
+                        readTimeout.CancelAfter(Timeout.InfiniteTimeSpan);
+                    }
 
                     if (read == 0)
                         break;

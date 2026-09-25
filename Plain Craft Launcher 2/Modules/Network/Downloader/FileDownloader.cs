@@ -173,6 +173,10 @@ public static class FileDownloader
             {
                 throw new TimeoutException($"下载超时（{url}）");
             }
+            finally
+            {
+                readTimeout.CancelAfter(Timeout.InfiniteTimeSpan);
+            }
 
             if (read == 0)
                 break;
