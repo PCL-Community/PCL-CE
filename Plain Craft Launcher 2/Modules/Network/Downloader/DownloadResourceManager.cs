@@ -153,6 +153,33 @@ internal static class DownloadResourceManager
         {
             while (true)
             {
+                var currentLimit = ModNet.NetTaskSpeedLimitHigh;
+                if (currentLimit <= 0)
+                {
+                    break;
+                }
+
+                if (currentLimit != limitHigh)
+                {
+                    lock (ThrottleScheduleLock)
+                    {
+                        limitHigh = ModNet.NetTaskSpeedLimitHigh;
+                        if (limitHigh <= 0)
+                            break;
+
+                        if (_throttleTokens < 0)
+                        {
+                            var now = Stopwatch.GetTimestamp();
+                            var newWaitTicks = (long)Math.Ceiling(-_throttleTokens * Stopwatch.Frequency / limitHigh);
+                            deadlineTick = now + newWaitTicks;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+
                 var remainingTicks = deadlineTick - Stopwatch.GetTimestamp();
                 if (remainingTicks <= 0)
                 {
