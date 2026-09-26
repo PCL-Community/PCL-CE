@@ -220,12 +220,11 @@
                                   Text="{DynamicResource Instance.Setup.Server.LoginLockHint}" IsWarn="True"
                                   Margin="0,0,0,13" Visibility="Collapsed" />
                     <local:MyHint x:Name="LabServerAuthServerSecurityVerify"
-                                  Text="{DynamicResource Instance.Setup.Server.SslWarning}"
-                                  IsWarn="False" Visibility="Collapsed" />
+                                  Text="{DynamicResource Instance.Setup.Server.SslWarning}" IsWarn="False"
+                                  Margin="0,0,0,13" Visibility="Collapsed" />
                     <local:MyHint x:Name="LabServerAuthServerSecurity"
                                   Text="{DynamicResource Instance.Setup.Server.HttpWarning}"
-                                  Visibility="Collapsed" />
-                    <TextBlock Name="LabServerAuthServerSecurityCL" Text="&#xA;" Visibility="Collapsed" />
+                                  Margin="0,0,0,13" Visibility="Collapsed" />
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
