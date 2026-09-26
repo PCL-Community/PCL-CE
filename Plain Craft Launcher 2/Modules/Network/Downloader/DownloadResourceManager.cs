@@ -82,6 +82,11 @@ internal static class DownloadResourceManager
         Interlocked.Decrement(ref _activeConnectionCount);
     }
 
+    public static void OnConnectionLimitChanged()
+    {
+        ConnectionQuota.NotifyCapacityChanged();
+    }
+
     #region Throttle
 
     // use token bucket
@@ -348,6 +353,18 @@ internal sealed class AsyncQuota
         lock (_lock)
         {
             _used = Math.Max(0, _used - amount);
+            PromoteWaitersLocked(waitersToWake);
+        }
+
+        foreach (var waiter in waitersToWake)
+            waiter.Tcs.TrySetResult();
+    }
+
+    public void NotifyCapacityChanged()
+    {
+        List<QuotaWaiter> waitersToWake = [];
+        lock (_lock)
+        {
             PromoteWaitersLocked(waitersToWake);
         }
 

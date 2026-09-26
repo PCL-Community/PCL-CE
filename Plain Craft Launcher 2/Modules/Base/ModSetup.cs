@@ -199,6 +199,7 @@ public class ModSetup
     public static void ToolDownloadThread(int value)
     {
         ModNet.NetTaskConnectionLimit = Math.Clamp(value + 1, 1, ModNet.NetTaskConnectionLimitMax);
+        DownloadResourceManager.OnConnectionLimitChanged();
     }
 
     public static void ToolDownloadFileConnection(int value)
