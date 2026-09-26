@@ -667,7 +667,6 @@ public partial class PageInstanceSetup
         if (type != 2 && type != 3)
         {
             LabServerAuthServerSecurity.Visibility = Visibility.Collapsed;
-            LabServerAuthServerSecurityCL.Visibility = Visibility.Collapsed;
             LabServerAuthServerSecurityVerify.Visibility = Visibility.Collapsed;
         }
         // 如果开头为 http:// 给予警告
@@ -675,19 +674,16 @@ public partial class PageInstanceSetup
         {
             LabServerAuthServerSecurity.Visibility = Visibility.Collapsed;
             LabServerAuthServerSecurityVerify.Visibility = Visibility.Visible;
-            LabServerAuthServerSecurityCL.Visibility = Visibility.Visible;
         }
         else if (TextServerAuthServer.Text.StartsWithF("http://"))
         {
             LabServerAuthServerSecurity.Visibility = Visibility.Visible;
-            LabServerAuthServerSecurityCL.Visibility = Visibility.Visible;
             LabServerAuthServerSecurityVerify.Visibility = Visibility.Collapsed;
         }
         else
         {
             LabServerAuthServerSecurity.Visibility = Visibility.Collapsed;
             LabServerAuthServerSecurityVerify.Visibility = Visibility.Collapsed;
-            LabServerAuthServerSecurityCL.Visibility = Visibility.Collapsed;
         }
     }
 
