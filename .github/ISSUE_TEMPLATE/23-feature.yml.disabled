@@ -1,5 +1,5 @@
-name: "[新版] 新功能提案 / [New Version] Feature Proposal"
-description: "对新版本 PCL CE 已有功能的大幅度修改，或添加一个新内容或选项。/ Propose a major change to an existing feature in the new PCL CE version, or suggest a new feature or option."
+name: "新功能提案 / Feature Proposal"
+description: "对已有功能的大幅度修改，或添加一个新内容或选项。/ Propose a major change to an existing feature, or suggest a new feature or option."
 title: "[C#]: "
 type: "新功能"
 body:
