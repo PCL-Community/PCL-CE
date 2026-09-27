@@ -16,7 +16,6 @@ namespace PCL.Core.Utils.Secret;
 
 public static class EncryptHelper
 {
-    private const string ModelName = "EncryptHelper";
 
     private static readonly byte[] _Key = "PCL CE Encryption Key"u8.ToArray();
     public static (IEncryptionProvider Provider, uint Version) DefaultProvider => _DefaultProvider.Value;
