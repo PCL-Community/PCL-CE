@@ -1685,6 +1685,7 @@
 
     <!-- Launch.Skin.Cape.Name -->
 
+    <sys:String x:Key="Launch.Skin.Cape.Name.Aurora">Aurora</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Builder">Builder</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.CherryBlossom">Cherry Blossom</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Cobalt">Cobalt</sys:String>
@@ -1694,6 +1695,7 @@
     <sys:String x:Key="Launch.Skin.Cape.Name.FifteenthAnniversary">15th Anniversary</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Followers">Follower's</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Founders">Founders</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Hero">Hero</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Home">Home</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.MapMaker">Realms MapMaker</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Mcc">MCC 15th Year</sys:String>
@@ -1712,6 +1714,7 @@
     <sys:String x:Key="Launch.Skin.Cape.Name.PurpleHeart">Purple Heart</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Translator">Translator</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.TranslatorChinese">Chinese Translator</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Twisted">Twisted</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Vanilla">Vanilla</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Yearn">Yearn</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.ZombieHorse">Zombie Horse</sys:String>
