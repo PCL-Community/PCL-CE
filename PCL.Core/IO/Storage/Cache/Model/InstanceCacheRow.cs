@@ -17,7 +17,7 @@ public record InstanceCacheRow
     public string? ReleaseTime { get; init; }
     public string? VanillaName { get; init; }
     public string? VanillaVersion { get; init; }
-    public int DropNumber { get; init; }
+    public int LineNumber { get; init; }
     public bool Reliable { get; init; }
 
     ///<summary>

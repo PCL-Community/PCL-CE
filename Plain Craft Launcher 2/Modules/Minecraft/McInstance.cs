@@ -156,179 +156,122 @@ public class McInstance
 
                 try
                 {
-                    // 获取发布时间并判断是否为老版本
+                    // 获取发布时间
                     try
                     {
                         if (JsonObject["releaseTime"] is null)
                             releaseTime = new DateTime(1970, 1, 1, 15, 0, 0); // 未知版本也可能显示为 1970 年
                         else
                             releaseTime = JsonObject["releaseTime"].ToObject<DateTime>();
-                        if (releaseTime.Year > 2000 && releaseTime.Year < 2013)
-                        {
-                            field.VanillaName = "Old";
-                            goto VersionSearchFinish;
-                        }
                     }
                     catch
                     {
                         releaseTime = new DateTime(1970, 1, 1, 15, 0, 0);
                     }
 
-                    // 实验性快照
-                    if ((string)(JsonObject["type"] ?? "") == "pending")
+                    bool TryAccept(string? candidate)
                     {
-                        field.VanillaName = "pending";
-                        goto VersionSearchFinish;
+                        if (!VanillaVersionIndex.TryResolve(candidate, out var canonical))
+                            return false;
+                        field.VanillaName = canonical;
+                        field.Reliable = true;
+                        return true;
                     }
 
                     // 从 PCL 下载的版本信息中获取版本号
-                    if (JsonObject["clientVersion"] is not null)
-                    {
-                        field.VanillaName = (string)JsonObject["clientVersion"];
+                    if (JsonObject["clientVersion"] is not null &&
+                        TryAccept((string)JsonObject["clientVersion"]))
                         goto VersionSearchFinish;
-                    }
 
                     // 从 HMCL 下载的版本信息中获取版本号
-                    if (JsonObject["patches"] is not null)
-                        foreach (var patchNode in JsonObject["patches"].AsArray()) { var patch = patchNode.AsObject();
-                            if ((patch["id"] ?? "").ToString() == "game" && patch["version"] is not null)
-                            {
-                                field.VanillaName = patch["version"].ToString();
+                    if (JsonObject["patches"] is JsonArray patches)
+                        foreach (var patchNode in patches)
+                        {
+                            var patch = patchNode?.AsObject();
+                            if (patch is null) continue;
+                            if ((patch["id"] ?? "").ToString() == "game" &&
+                                patch["version"] is not null &&
+                                TryAccept((string)patch["version"]))
                                 goto VersionSearchFinish;
-                            } }
+                        }
 
                     // 从 Forge / NeoForge / LabyMod Arguments 中获取版本号
-                    if (JsonObject["arguments"] is not null)
+                    if (JsonObject["arguments"] is JsonObject arguments)
                     {
-                        if (JsonObject["arguments"]["game"] is not null)
+                        if (arguments["game"] is JsonArray gameArguments)
                         {
                             var mark = false;
-                            foreach (var Argument in JsonObject["arguments"]["game"].AsArray())
+                            foreach (var Argument in gameArguments)
                             {
                                 if (mark)
                                 {
-                                    field.VanillaName = Argument.ToString();
-                                    goto VersionSearchFinish;
+                                    if (TryAccept(Argument?.ToString()))
+                                        goto VersionSearchFinish;
+                                    break;
                                 }
 
-                                if (Argument.ToString() == "--fml.mcVersion")
+                                if (Argument?.ToString() == "--fml.mcVersion")
                                     mark = true;
                             }
                         }
 
-                        if (JsonObject["arguments"]["jvm"] is not null)
-                            foreach (var Argument in JsonObject["arguments"]["jvm"].AsArray())
+                        if (arguments["jvm"] is JsonArray jvmArguments)
+                            foreach (var Argument in jvmArguments)
                             {
-                                var regexArgument = Argument.ToString().RegexSeek(RegexPatterns.LabyModVersion);
-                                if (regexArgument is not null)
-                                {
-                                    field.VanillaName = regexArgument;
+                                var regexArgument = Argument?.ToString().RegexSeek(RegexPatterns.LabyModVersion);
+                                if (TryAccept(regexArgument))
                                     goto VersionSearchFinish;
-                                }
                             }
                     }
 
                     // 从继承实例中获取版本号
-                    if (!string.IsNullOrEmpty(InheritInstanceName))
-                    {
-                        field.VanillaName = (JsonObject["jar"] ?? "").ToString(); // LiteLoader 优先使用 Jar
-                        if (string.IsNullOrEmpty(field.VanillaName))
-                            field.VanillaName = InheritInstanceName;
+                    if (!string.IsNullOrEmpty(InheritInstanceName) &&
+                        (TryAccept((JsonObject["jar"] ?? "").ToString()) || TryAccept(InheritInstanceName)))
                         goto VersionSearchFinish;
-                    }
 
                     // 从下载地址中获取版本号
-                    var regex = (JsonObject["downloads"] ?? "").ToString()
-                        .RegexSeek(RegexPatterns.MinecraftDownloadUrlVersion);
-                    if (regex is not null)
-                    {
-                        field.VanillaName = regex;
+                    if (TryAccept((JsonObject["downloads"] ?? "").ToString()
+                            .RegexSeek(RegexPatterns.MinecraftDownloadUrlVersion)))
                         goto VersionSearchFinish;
-                    }
 
-                    // 从 Forge 版本中获取版本号
-                    var librariesString = JsonObject["libraries"].ToString();
-                    regex = librariesString.RegexSeek(RegexPatterns.ForgeLibVersion);
-                    if (regex is not null)
+                    // 从库坐标中获取版本号
+                    if (JsonObject["libraries"] is JsonNode librariesNode)
                     {
-                        field.VanillaName = regex;
-                        goto VersionSearchFinish;
-                    }
-
-                    // 从 OptiFine 版本中获取版本号
-                    regex = librariesString.RegexSeek(RegexPatterns.OptiFineLibVersion);
-                    if (regex is not null)
-                    {
-                        field.VanillaName = regex;
-                        goto VersionSearchFinish;
-                    }
-
-                    // 从 Fabric / Quilt / Legacy Fabric 版本中获取版本号
-                    regex = librariesString.RegexSeek(RegexPatterns.FabricLikeLibVersion);
-                    if (regex is not null)
-                    {
-                        field.VanillaName = regex;
-                        goto VersionSearchFinish;
+                        var librariesString = librariesNode.ToString();
+                        if (TryAccept(librariesString.RegexSeek(RegexPatterns.ForgeLibVersion)) ||
+                            TryAccept(librariesString.RegexSeek(RegexPatterns.OptiFineLibVersion)) ||
+                            TryAccept(librariesString.RegexSeek(RegexPatterns.FabricLikeLibVersion)))
+                            goto VersionSearchFinish;
                     }
 
                     // 从 jar 项中获取版本号
-                    if (JsonObject["jar"] is not null)
-                    {
-                        field.VanillaName = JsonObject["jar"].ToString();
+                    if (JsonObject["jar"] is not null && TryAccept(JsonObject["jar"]!.ToString()))
                         goto VersionSearchFinish;
-                    }
 
                     // 从 jar 文件的 version.json 中获取版本号
-                    if (JsonVersion?["name"] is not null)
+                    if (JsonVersion?["name"] is JsonNode jsonVerNameNode)
                     {
-                        var jsonVerName = JsonVersion["name"].ToString();
-                        if (jsonVerName.Length < 32) // 因为 wiki 说这玩意儿可能是个 hash，虽然我没发现
+                        var jsonVerName = jsonVerNameNode.ToString();
+                        if (jsonVerName.Length < 32 && TryAccept(jsonVerName)) // 因为 wiki 说这玩意儿可能是个 hash，虽然我没发现
                         {
-                            field.VanillaName = jsonVerName;
-                            ModBase.Log("[Minecraft] 从版本 jar 中的 version.json 获取到版本号：" + jsonVerName);
+                            ModBase.Log("[Minecraft] 从版本 jar 中的 version.json 获取到版本号：" + field.VanillaName);
                             goto VersionSearchFinish;
                         }
                     }
 
-                    // 从 JSON 的 ID 中获取
-                    regex = ((string)JsonObject["id"]).RegexSeek(RegexPatterns.MinecraftJsonVersion,
-                        RegexOptions.IgnoreCase);
-                    if (regex is not null)
-                    {
-                        field.VanillaName = regex;
+                    // json id 整串精确命中
+                    if (JsonObject["id"] is not null && TryAccept((string)JsonObject["id"]))
                         goto VersionSearchFinish;
-                    }
 
-                    // 非准确的版本判断警告
-                    ModBase.Log("[Minecraft] 无法完全确认 MC 版本号的版本：" + Name);
-                    field.Reliable = false;
-                    // 从文件夹名中获取
-                    regex = Name.RegexSeek(RegexPatterns.MinecraftJsonVersion, RegexOptions.IgnoreCase);
-                    if (regex is not null)
-                    {
-                        field.VanillaName = regex;
-                        goto VersionSearchFinish;
-                    }
-
-                    // 从 JSON 出现的版本号中获取
-                    var jsonRaw = (JsonObject)JsonObject.DeepClone();
-                    jsonRaw.Remove("libraries");
-                    var jsonRawText = jsonRaw.ToString();
-                    regex = jsonRawText.RegexSeek(RegexPatterns.MinecraftJsonVersion, RegexOptions.IgnoreCase);
-                    if (regex is not null)
-                    {
-                        field.VanillaName = regex;
-                        goto VersionSearchFinish;
-                    }
-
-                    // 无法获取
                     field.VanillaName = "Unknown";
+                    field.Reliable = false;
                     Desc = Lang.Text("Select.Instance.Description.UnknownMcVersion");
                 }
                 catch (Exception ex)
                 {
                     ModBase.Log(ex, "识别 Minecraft 版本时出错");
                     field.VanillaName = "Unknown";
+                    field.Reliable = false;
                     Desc = Lang.Text("Minecraft.Error.Unrecognizable", ex.Message);
                 }
 
@@ -336,30 +279,9 @@ public class McInstance
 
                 VersionSearchFinish: ;
 
-                if (field.VanillaName.StartsWithF("20.") || field.VanillaName.StartsWithF("21."))
-                {
-                    field.VanillaName = "1." + field.VanillaName;
-                }
-                
-                field.VanillaName = field.VanillaName.Replace("_unobfuscated", "").Replace(" Unobfuscated", "");
-                // 获取版本号
-                if (field.VanillaName.StartsWithF("1."))
-                {
-                    var segments = field.VanillaName.Split(" _-.".ToCharArray());
-                    field.vanilla = new Version((int)Math.Round(ModBase.Val(segments.Count() >= 2 ? segments[1] : "0")),
-                        0, (int)Math.Round(ModBase.Val(segments.Count() >= 3 ? segments[2] : "0")));
-                }
-                else if (field.VanillaName.RegexCheck(@"^[2-9][0-9]\."))
-                {
-                    var segments = field.VanillaName.Split(" _-.".ToCharArray());
-                    field.vanilla = new Version((int)Math.Round(ModBase.Val(segments[0])),
-                        (int)Math.Round(ModBase.Val(segments.Count() >= 2 ? segments[1] : "0")),
-                        (int)Math.Round(ModBase.Val(segments.Count() >= 3 ? segments[2] : "0")));
-                }
-                else
-                {
-                    field.vanilla = new Version(9999, 0, 0);
-                }
+                field.vanilla = VanillaVersionIndex.TryGetLine(field.VanillaName, out _)
+                    ? new Version(0, 0, 0)
+                    : new Version(9999, 0, 0);
 
                 return field;
             }
@@ -699,27 +621,22 @@ public class McInstance
 
                 #region 确定实例分类
 
-                switch (Info.VanillaName ?? "") // 在获取 Version.Original 对象时会完成它的加载
+                var vanillaCategory = _ClassifyVanilla();
+                if ((Info.VanillaName ?? "") == "Unknown" || vanillaCategory == McVersionCategory.Unknown)
                 {
-                    case "Unknown":
-                    {
-                        state = McInstanceState.Error;
-                        break;
-                    }
-                    case "Old":
-                    {
-                        state = McInstanceState.Old; // 根据 API 进行筛选
-                        break;
-                    }
+                    state = McInstanceState.Error;
+                }
+                else
+                {
+                    if (vanillaCategory == McVersionCategory.AprilFools ||
+                        (JsonObject["type"] ?? "").ToString() == "fool")
+                        state = McInstanceState.Fool;
+                    else if (vanillaCategory == McVersionCategory.BeforeRelease)
+                        state = McInstanceState.Old;
+                    else if (vanillaCategory == McVersionCategory.Snapshot)
+                        state = McInstanceState.Snapshot;
 
-                    default:
-                    {
-                        var realJson = JsonObject is not null ? JsonObject.ToString() : JsonText;
-                        // 愚人节与快照版本
-                        if ((JsonObject["type"] ?? "").ToString() == "fool" ||
-                            !string.IsNullOrEmpty(McVersionClassifier.GetMcFoolName(Info.VanillaName)))
-                            state = McInstanceState.Fool;
-                        else if (IsSnapshot()) state = McInstanceState.Snapshot;
+                    var realJson = JsonObject is not null ? JsonObject.ToString() : JsonText;
                         // OptiFine
                         if (realJson.Contains("optifine"))
                         {
@@ -794,8 +711,6 @@ public class McInstance
                                             Lang.Text("Minecraft.Version.Unknown");
                         }
 
-                        break;
-                    }
                 }
 
                 #endregion
@@ -939,12 +854,18 @@ public class McInstance
             return this;
         }
 
-        private bool IsSnapshot()
+        private McVersionCategory _ClassifyVanilla()
         {
-            return new[] { "w", "snapshot", "rc", "pre", "experimental", "-" }.Any(s =>
-                       Info.VanillaName.ContainsF(s, true)) || Name.ContainsF("combat", true) ||
-                   (JsonObject["type"] ?? "").ToString() == "snapshot" ||
-                   (JsonObject["type"] ?? "").ToString() == "pending";
+            var index = VanillaVersionIndex.Capture();
+            int? line = null;
+            if (index is not null && index.MatchLine(Info.VanillaName, out var found))
+                line = found;
+            return McVersionClassifier.Classify(
+                Info.VanillaName,
+                line,
+                index?.AnchorLine,
+                releaseTime == DateTime.MinValue ? null : releaseTime,
+                JsonObject?["type"]?.ToString());
         }
 
         /// <summary>
@@ -1009,7 +930,7 @@ public class McInstance
                         info = Lang.Text("Select.Instance.Description.ExperimentalSnapshot", this.Info.VanillaName);
                     else if (this.Info.VanillaName == "pending")
                         info = Lang.Text("Select.Instance.Description.ExperimentalSnapshot.Pending");
-                    else if (IsSnapshot())
+                    else if (_ClassifyVanilla() == McVersionCategory.Snapshot)
                         info = this.Info.Reliable ? Lang.Text("Select.Instance.Description.Snapshot", this.Info.VanillaName.Replace("-snapshot", "")) : Lang.Text("Select.Instance.Description.Snapshot.Unknown");
                     else
                         info = this.Info.Reliable ? Lang.Text("Select.Instance.Description.Release", this.Info.VanillaName) : Lang.Text("Select.Instance.Description.Release.Unknown");

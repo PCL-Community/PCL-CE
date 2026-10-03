@@ -763,6 +763,7 @@
     <sys:String x:Key="Download.Version.Type.Recommended">Recommended</sys:String>
     <sys:String x:Key="Download.Version.Type.Release">Release</sys:String>
     <sys:String x:Key="Download.Version.Type.Snapshot">Snapshot</sys:String>
+    <sys:String x:Key="Download.Version.Type.Unknown">Unknown</sys:String>
     <sys:String x:Key="Download.Version.Type.Stable">Stable</sys:String>
 
     <!-- Event -->

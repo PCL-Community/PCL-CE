@@ -377,7 +377,6 @@ public partial class PageInstanceInstall
     private string? _vanillaName;
     private JsonObject? _vanillaData;
     private string? _vanillaIcon;
-    private int VanillaDrop => McInstanceInfo.VersionToDrop(_vanillaName, true);
 
     // OptiFine
     private ModDownload.DlOptiFineListEntry? selectedOptiFine;
@@ -611,8 +610,7 @@ public partial class PageInstanceInstall
         }
 
         // Fabric
-        if (VanillaDrop < 130
-            || (VanillaDrop == 130 && !McVersionComparer.CompareVersionGe(_vanillaName, "18w43b")))
+        if (!VanillaVersionIndex.IsAtOrAfter(_vanillaName, "18w43b"))
         {
             CardFabric.Visibility = Visibility.Collapsed;
         }
@@ -671,7 +669,7 @@ public partial class PageInstanceInstall
         }
 
         // LegacyFabric
-        if (VanillaDrop < 30 || VanillaDrop > 130)
+        if (!VanillaVersionIndex.IsLegacyFabricRange(_vanillaName))
         {
             CardLegacyFabric.Visibility = Visibility.Collapsed;
         }
@@ -803,7 +801,7 @@ public partial class PageInstanceInstall
         if ((selectedFabric is not null || selectedLegacyFabric is not null) && selectedOptiFine is not null &&
             selectedOptiFabric is null)
         {
-            if (VanillaDrop >= 140 && VanillaDrop <= 150)
+            if (VanillaVersionIndex.Is14To15(_vanillaName))
             {
                 HintOptiFabric.Visibility = Visibility.Collapsed;
                 HintLegacyOptiFabric.Visibility = Visibility.Collapsed;
@@ -829,7 +827,7 @@ public partial class PageInstanceInstall
             HintLegacyOptiFabric.Visibility = Visibility.Collapsed;
         }
 
-        if (VanillaDrop >= 160 && selectedOptiFine is not null &&
+        if (VanillaVersionIndex.IsAtOrAfter(_vanillaName, "1.16") && selectedOptiFine is not null &&
             (selectedForge is not null || selectedFabric is not null))
             HintModOptiFine.Visibility = Visibility.Visible;
         else
@@ -1111,6 +1109,7 @@ public partial class PageInstanceInstall
         "预览版" => Lang.Text("Download.Version.Type.Development"),
         "远古版" => Lang.Text("Download.Version.Type.BeforeRelease"),
         "愚人节版" => Lang.Text("Download.Version.Type.AprilFools"),
+        "未知" => Lang.Text("Download.Version.Type.Unknown"),
         _ => key
     };
 
@@ -1121,137 +1120,42 @@ public partial class PageInstanceInstall
         {
             try
             {
-                var dict = new Dictionary<string, List<JsonObject>>
+                var names = new Dictionary<McVersionCategory, string>
                 {
-                    { "正式版", new List<JsonObject>() }, { "预览版", new List<JsonObject>() }, { "远古版", new List<JsonObject>() },
-                    { "愚人节版", new List<JsonObject>() }
+                    [McVersionCategory.Release] = "正式版",
+                    [McVersionCategory.Snapshot] = "预览版",
+                    [McVersionCategory.BeforeRelease] = "远古版",
+                    [McVersionCategory.AprilFools] = "愚人节版",
+                    [McVersionCategory.Unknown] = "未知"
                 };
+                var dict = names.Values.ToDictionary(name => name, _ => new List<JsonObject>());
                 var versions = (JsonArray)ModDownload.dlClientListLoader.output.Value["versions"];
                 foreach (JsonObject Version in versions)
                 {
-                    // 确定分类
-                    var type = Version["type"].ToString();
-                    var versionId = Version["id"].ToString().ToLower();
-                    switch (type ?? "")
-                    {
-                        case "release":
-                        {
-                            type = "正式版";
-                            break;
-                        }
-                        case "snapshot":
-                        case "pending":
-                        {
-                            type = "预览版";
-                            // Mojang 误分类
-                            if (versionId.StartsWith("1.") && !versionId.Contains("combat") &&
-                                !versionId.Contains("rc") && !versionId.Contains("experimental") &&
-                                !versionId.Equals("1.2") && !versionId.Contains("pre"))
-                            {
-                                type = "正式版";
-                                Version["type"] = "release";
-                            }
-
-                            // 愚人节版本
-                            switch (Version["id"].ToString().ToLower() ?? "")
-                            {
-                                case "2point0_blue":
-                                case "2point0_red":
-                                case "2point0_purple":
-                                case "2.0_blue":
-                                case "2.0_red":
-                                case "2.0_purple":
-                                case "2.0":
-                                {
-                                    type = "愚人节版";
-                                    Version["id"] = Version["id"].ToString().Replace("point", ".");
-                                    Version["type"] = "special";
-                                    Version.Add("lore", McVersionClassifier.GetMcFoolName((string)Version["id"]));
-                                    break;
-                                }
-                                case "20w14infinite":
-                                case "20w14∞":
-                                {
-                                    type = "愚人节版";
-                                    Version["id"] = "20w14∞";
-                                    Version["type"] = "special";
-                                    Version.Add("lore", McVersionClassifier.GetMcFoolName((string)Version["id"]));
-                                    break;
-                                }
-                                case "3d shareware v1.34":
-                                case "1.rv-pre1":
-                                case "15w14a":
-                                case var @case when @case == "2.0":
-                                case "22w13oneblockatatime":
-                                case "23w13a_or_b":
-                                case "24w14potato":
-                                case "25w14craftmine":
-                                case "26w14a":
-                                {
-                                    type = "愚人节版";
-                                    Version["type"] = "special";
-                                    Version.Add("lore",
-                                        McVersionClassifier.GetMcFoolName((string)Version["id"])); // 4/1 自动视作愚人节版
-                                    break;
-                                }
-
-                                default:
-                                {
-                                    var releaseDate = McVersionClassifier.GetReleaseTime(Version).ToUniversalTime().AddHours(2d);
-                                    if (releaseDate.Month == 4 && releaseDate.Day == 1)
-                                    {
-                                        type = "愚人节版";
-                                        Version["type"] = "special";
-                                    }
-
-                                    break;
-                                }
-                            }
-
-                            break;
-                        }
-                        case "special":
-                        {
-                            // 已被处理的愚人节版
-                            type = "愚人节版";
-                            break;
-                        }
-
-                        default:
-                        {
-                            type = "远古版";
-                            break;
-                        }
-                    }
-
-                    // 加入辞典
-                    dict[type].Add(Version);
+                    var category = McVersionClassifier.ClassifyVersion(Version);
+                    dict[names[category]].Add(Version);
                 }
 
-                // 排序
                 foreach (var Pair in dict.ToList())
-                    dict[Pair.Key] = Pair.Value.OrderByDescending(McVersionClassifier.GetReleaseTime).ToList();
-                // 清空当前
+                    dict[Pair.Key] = Pair.Value.OrderByDescending(McVersionClassifier.ListedLine).ToList();
                 PanMinecraft.Children.Clear();
-                // 添加最新版本
-                var cardInfo = new MyCard { Title = Lang.Text("Download.Version.Latest.Title"), Margin = new Thickness(0d, 15d, 0d, 15d) };
                 var topestVersions = new List<JsonObject>();
-                var release = (JsonObject)dict["正式版"][0].DeepClone();
-                release["lore"] = Lang.Text("Download.Version.Latest.Release", Lang.Date(release["releaseTime"].ToObject<DateTime>(), "g"));
-                topestVersions.Add(release);
-                if (dict["正式版"][0]["releaseTime"].ToObject<DateTime>() < dict["预览版"][0]["releaseTime"].ToObject<DateTime>())
+                var latestRelease = dict["正式版"].FirstOrDefault();
+                var latestSnapshot = dict["预览版"].FirstOrDefault();
+                if (latestRelease is not null)
                 {
-                    var snapshot = (JsonObject)dict["预览版"][0].DeepClone();
-                    snapshot["lore"] = Lang.Text("Download.Version.Latest.Development", Lang.Date(snapshot["releaseTime"].ToObject<DateTime>(), "g"));
+                    var release = (JsonObject)latestRelease.DeepClone();
+                    release["lore"] = Lang.Text("Download.Version.Latest.Release", Lang.Date(McVersionClassifier.GetReleaseTime(release), "g"));
+                    topestVersions.Add(release);
+                }
+
+                if (latestSnapshot is not null &&
+                    (latestRelease is null || McVersionClassifier.ListedLine(latestSnapshot) > McVersionClassifier.ListedLine(latestRelease)))
+                {
+                    var snapshot = (JsonObject)latestSnapshot.DeepClone();
+                    snapshot["lore"] = Lang.Text("Download.Version.Latest.Development", Lang.Date(McVersionClassifier.GetReleaseTime(snapshot), "g"));
                     topestVersions.Add(snapshot);
                 }
-
-                var panInfo = new StackPanel
-                {
-                    Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
-                    VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
-                    Tag = topestVersions
-                };
 
                 void StackInstall(StackPanel stack)
                 {
@@ -1260,10 +1164,19 @@ public partial class PageInstanceInstall
                             (sender, e) => MinecraftSelected((MyListItem)sender, e), false));
                 }
 
-                ;
-                MyCard.StackInstall(ref panInfo, StackInstall);
-                cardInfo.Children.Add(panInfo);
-                PanMinecraft.Children.Insert(0, cardInfo);
+                if (topestVersions.Count > 0)
+                {
+                    var cardInfo = new MyCard { Title = Lang.Text("Download.Version.Latest.Title"), Margin = new Thickness(0d, 15d, 0d, 15d) };
+                    var panInfo = new StackPanel
+                    {
+                        Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
+                        VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0d, 0d),
+                        Tag = topestVersions
+                    };
+                    MyCard.StackInstall(ref panInfo, StackInstall);
+                    cardInfo.Children.Add(panInfo);
+                    PanMinecraft.Children.Insert(0, cardInfo);
+                }
                 // 添加其他版本
                 foreach (var Pair in dict)
                 {
@@ -2322,7 +2235,7 @@ public partial class PageInstanceInstall
     /// </summary>
     private string LoadOptiFabricGetError()
     {
-        if (VanillaDrop >= 140 && VanillaDrop <= 150)
+        if (VanillaVersionIndex.Is14To15(_vanillaName))
             return Lang.Text("Download.Install.Compat.OptiFabricOriginsRequired");
         // 检查 Loader
         if (GetLoaderError(LoadOptiFabric) is not null)
@@ -2394,7 +2307,7 @@ public partial class PageInstanceInstall
             }
 
             // 自动选择 OptiFabric
-            if (autoSelectedOptiFabric || (VanillaDrop >= 140 && VanillaDrop <= 150))
+            if (autoSelectedOptiFabric || VanillaVersionIndex.Is14To15(_vanillaName))
                 return; // 1.14~15 不自动选择
             autoSelectedOptiFabric = true;
             ModBase.Log($"[Download] 已自动选择 OptiFabric：{((MyListItem)PanOptiFabric.Children[0]).Title}");

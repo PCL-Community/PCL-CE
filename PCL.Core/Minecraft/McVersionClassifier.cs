@@ -1,5 +1,6 @@
 using System;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils;
 
@@ -10,11 +11,16 @@ public enum McVersionCategory
     Release,
     Snapshot,
     BeforeRelease,
-    AprilFools
+    AprilFools,
+    Unknown
 }
 
 public static class McVersionClassifier
 {
+    private static readonly Regex _WeekSnapshot = new(
+        @"[0-9]{2}w[0-9]{2}[a-z]",
+        RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
     public static string GetCategoryDisplayName(McVersionCategory cat)
     {
         return cat switch
@@ -23,28 +29,77 @@ public static class McVersionClassifier
             McVersionCategory.Snapshot => Lang.Text("Download.Version.Type.Development"),
             McVersionCategory.BeforeRelease => Lang.Text("Download.Version.Type.BeforeRelease"),
             McVersionCategory.AprilFools => Lang.Text("Download.Version.Type.AprilFools"),
-            _ => throw new ArgumentOutOfRangeException(nameof(cat))
+            McVersionCategory.Unknown => Lang.Text("Download.Version.Type.Unknown"),
+            _ => Lang.Text("Download.Version.Type.Unknown")
         };
+    }
+
+    public static McVersionCategory Classify(string? id, int? line, int? anchorLine, DateTime? releaseTime,
+        string? versionType = null)
+    {
+        if (string.IsNullOrEmpty(id)) return McVersionCategory.Unknown;
+        if (_IsAprilFoolsSnapshot(releaseTime, versionType) || id.StartsWith("2point0_", StringComparison.Ordinal))
+            return McVersionCategory.AprilFools;
+
+        var lower = id.ToLowerInvariant();
+        if (line is int current && anchorLine is int anchor && current < anchor)
+            return McVersionCategory.BeforeRelease;
+        if (lower.Contains("snapshot") || lower.Contains("rc") || lower.Contains("pre") || lower.Contains("combat") || _WeekSnapshot.IsMatch(lower) || lower.Contains("13w12~"))
+            return McVersionCategory.Snapshot;
+        if (lower.Contains('.')) return McVersionCategory.Release;
+        return McVersionCategory.Unknown;
+    }
+
+    private static bool _IsAprilFoolsSnapshot(DateTime? releaseTime, string? versionType)
+    {
+        if (!string.Equals(versionType, "snapshot", StringComparison.OrdinalIgnoreCase))
+            return false;
+        if (releaseTime is not { } time || time == DateTime.MinValue)
+            return false;
+        var shifted = time.ToUniversalTime().AddHours(2d);
+        return shifted is { Month: 4, Day: 1 };
+    }
+
+    public static McVersionCategory CategoryOf(JsonObject version)
+    {
+        var type = _GetString(version, "type");
+        if (string.Equals(type, "special", StringComparison.OrdinalIgnoreCase))
+            return McVersionCategory.AprilFools;
+        var id = _GetString(version, "id");
+        var index = VanillaVersionIndex.Capture();
+        int? line = null;
+        if (index is not null && index.MatchLine(id, out var found))
+            line = found;
+        var releaseTime = GetReleaseTime(version);
+        return Classify(id, line, index?.AnchorLine, releaseTime == DateTime.MinValue ? null : releaseTime, type);
     }
 
     public static McVersionCategory ClassifyVersion(JsonObject version)
     {
-        var type = _GetString(version, "type");
-        var idLower = _GetString(version, "id").ToLowerInvariant();
-
-        return type switch
-        {
-            "release" => McVersionCategory.Release,
-            "special" => _RefreshAprilFools(version, idLower),
-            "snapshot" or "pending" => _ClassifySnapshotOrPending(version, idLower),
-            _ => McVersionCategory.BeforeRelease
-        };
+        var category = CategoryOf(version);
+        if (category == McVersionCategory.AprilFools)
+            _MarkAsAprilFools(version);
+        return category;
     }
 
-    private static McVersionCategory _RefreshAprilFools(JsonObject version, string idLower)
+    public static int ListedLine(JsonObject version)
     {
-        _TryMarkAprilFoolsVersion(version, idLower);
-        return McVersionCategory.AprilFools;
+        var index = VanillaVersionIndex.Capture();
+        if (index is null) return int.MinValue;
+        return index.MatchLine(_GetString(version, "id"), out var line) ? line : int.MinValue;
+    }
+
+    /// <summary>
+    /// 只对已经分成 Release 的 id 做一次分段。1.21.5 → 1.21，26.1.2 → 26.1。
+    /// </summary>
+    public static string? ReleaseFamily(string id)
+    {
+        var parts = id.Split('.');
+        if (parts.Length < 2) return null;
+        if (parts[0] == "1") return "1." + parts[1];
+        if (parts[0].Length == 2 && char.IsDigit(parts[0][0]) && char.IsDigit(parts[0][1]))
+            return parts[0] + "." + parts[1];
+        return null;
     }
 
     public static DateTime GetReleaseTime(JsonObject version)
@@ -52,74 +107,12 @@ public static class McVersionClassifier
         return _GetDateTime(version, "releaseTime");
     }
 
-    private static McVersionCategory _ClassifySnapshotOrPending(JsonObject version, string idLower)
-    {
-        var category = McVersionCategory.Snapshot;
-
-        if (
-            idLower.StartsWith("1.") &&
-            !idLower.Contains("combat") &&
-            !idLower.Contains("rc") &&
-            !idLower.Contains("experimental") &&
-            idLower != "1.2" &&
-            !idLower.Contains("pre")
-        )
-        {
-            category = McVersionCategory.Release;
-            version["type"] = "release";
-        }
-
-        return _TryMarkAprilFoolsVersion(version, idLower)
-            ? McVersionCategory.AprilFools
-            : category;
-    }
-
-    private static bool _TryMarkAprilFoolsVersion(JsonObject version, string idLower)
-    {
-        switch (idLower)
-        {
-            case "2point0_blue":
-            case "2point0_red":
-            case "2point0_purple":
-            case "2.0_blue":
-            case "2.0_red":
-            case "2.0_purple":
-            case "2.0":
-                version["id"] = _GetString(version, "id").Replace("point", ".");
-                _MarkAsAprilFools(version, true);
-                return true;
-
-            case "20w14infinite":
-            case "20w14∞":
-                version["id"] = "20w14∞";
-                _MarkAsAprilFools(version, true);
-                return true;
-
-            case "3d shareware v1.34":
-            case "1.rv-pre1":
-            case "15w14a":
-            case "22w13oneblockatatime":
-            case "23w13a_or_b":
-            case "24w14potato":
-            case "25w14craftmine":
-            case "26w14a":
-                _MarkAsAprilFools(version, true);
-                return true;
-
-            default:
-                var releaseDate = GetReleaseTime(version).ToUniversalTime().AddHours(2d);
-                if (releaseDate is not { Month: 4, Day: 1 }) return false;
-                _MarkAsAprilFools(version, false);
-                return true;
-        }
-    }
-
-    private static void _MarkAsAprilFools(JsonObject version, bool addLore)
+    private static void _MarkAsAprilFools(JsonObject version)
     {
         version["type"] = "special";
-
-        if (addLore)
-            version["lore"] = GetMcFoolName(_GetString(version, "id"));
+        var lore = GetMcFoolName(_GetString(version, "id"));
+        if (lore.Length > 0)
+            version["lore"] = lore;
     }
 
     public static string GetMcFoolName(string name)

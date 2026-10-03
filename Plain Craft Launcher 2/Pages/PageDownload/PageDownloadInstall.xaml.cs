@@ -332,7 +332,6 @@ public partial class PageDownloadInstall
     private string? _vanillaName;
     private JsonObject? _vanillaData;
     private string? _vanillaIcon;
-    private int VanillaDrop => McInstanceInfo.VersionToDrop(_vanillaName, true);
 
     // OptiFine
     private ModDownload.DlOptiFineListEntry? selectedOptiFine;
@@ -544,8 +543,7 @@ public partial class PageDownloadInstall
         }
 
         // Fabric
-        if (VanillaDrop < 130 
-            || (VanillaDrop == 130 && !McVersionComparer.CompareVersionGe(_vanillaName, "18w43b")))
+        if (!VanillaVersionIndex.IsAtOrAfter(_vanillaName, "18w43b"))
         {
             CardFabric.Visibility = Visibility.Collapsed;
         }
@@ -604,7 +602,7 @@ public partial class PageDownloadInstall
         }
 
         // LegacyFabric
-        if (VanillaDrop < 30 || VanillaDrop > 130)
+        if (!VanillaVersionIndex.IsLegacyFabricRange(_vanillaName))
         {
             CardLegacyFabric.Visibility = Visibility.Collapsed;
         }
@@ -736,7 +734,7 @@ public partial class PageDownloadInstall
         if ((selectedFabric is not null || selectedLegacyFabric is not null) && selectedOptiFine is not null &&
             selectedOptiFabric is null)
         {
-            if (VanillaDrop >= 140 && VanillaDrop <= 150)
+            if (VanillaVersionIndex.Is14To15(_vanillaName))
             {
                 HintOptiFabric.Visibility = Visibility.Collapsed;
                 HintLegacyOptiFabric.Visibility = Visibility.Collapsed;
@@ -762,7 +760,7 @@ public partial class PageDownloadInstall
             HintLegacyOptiFabric.Visibility = Visibility.Collapsed;
         }
 
-        if (VanillaDrop >= 160 && selectedOptiFine is not null &&
+        if (VanillaVersionIndex.IsAtOrAfter(_vanillaName, "1.16") && selectedOptiFine is not null &&
             (selectedForge is not null || selectedFabric is not null))
             HintModOptiFine.Visibility = Visibility.Visible;
         else
@@ -940,7 +938,8 @@ public partial class PageDownloadInstall
             McVersionCategory.Release,
             McVersionCategory.Snapshot,
             McVersionCategory.BeforeRelease,
-            McVersionCategory.AprilFools
+            McVersionCategory.AprilFools,
+            McVersionCategory.Unknown
         };
 
         var dict = categoryOrder.ToDictionary(
@@ -956,7 +955,7 @@ public partial class PageDownloadInstall
 
         foreach (var category in categoryOrder)
             dict[category] = dict[category]
-                .OrderByDescending(McVersionClassifier.GetReleaseTime)
+                .OrderByDescending(McVersionClassifier.ListedLine)
                 .ToList();
 
         PanMinecraft.Children.Clear();
@@ -990,8 +989,8 @@ public partial class PageDownloadInstall
         }
 
         if (latestSnapshot is not null &&
-            (latestRelease is null || McVersionClassifier.GetReleaseTime(latestRelease) <
-                McVersionClassifier.GetReleaseTime(latestSnapshot)))
+            (latestRelease is null || McVersionClassifier.ListedLine(latestSnapshot) >
+                McVersionClassifier.ListedLine(latestRelease)))
         {
             var snapshot = (JsonObject)latestSnapshot.DeepClone();
             snapshot["lore"] = Lang.Text(
@@ -2043,7 +2042,7 @@ public partial class PageDownloadInstall
     /// </summary>
     private string LoadOptiFabricGetError()
     {
-        if (VanillaDrop >= 140 && VanillaDrop <= 150)
+        if (VanillaVersionIndex.Is14To15(_vanillaName))
             return Lang.Text("Download.Install.Compat.OptiFabricOriginsRequired");
         // 检查 Loader
         if (GetLoaderError(LoadOptiFabric) is not null)
@@ -2115,7 +2114,7 @@ public partial class PageDownloadInstall
             }
 
             // 自动选择 OptiFabric
-            if (autoSelectedOptiFabric || (VanillaDrop >= 140 && VanillaDrop <= 150))
+            if (autoSelectedOptiFabric || VanillaVersionIndex.Is14To15(_vanillaName))
                 return; // 1.14~15 不自动选择
             autoSelectedOptiFabric = true;
             ModBase.Log($"[Download] 已自动选择 OptiFabric：{((MyListItem)PanOptiFabric.Children[0]).Title}");

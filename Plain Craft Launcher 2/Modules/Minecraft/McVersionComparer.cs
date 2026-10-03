@@ -19,8 +19,7 @@ public static class McVersionComparer
 
     /// <summary>
     ///     比较两个版本名，若 Left 较新则返回 1，相同则返回 0，Right 较新则返回 -1；等同 Left - Right。
-    ///     无法比较两个预发布版的大小。
-    ///     支持的格式：未知版本, 26.1-snapshot-1，1.13.2, 1.7.10-pre4, 1.8_pre, 1.14 Pre-Release 2, 1.14.4 C6
+    ///     原版 id 按版本索引行号比较。两边都不在索引里时，才用 token 比较加载器和库版本。
     /// </summary>
     public static int CompareVersion(string left, string right)
     {
@@ -34,6 +33,15 @@ public static class McVersionComparer
                 return -1;
         }
 
+        var leftFound = VanillaVersionIndex.TryGetLine(left, out var leftLine);
+        var rightFound = VanillaVersionIndex.TryGetLine(right, out var rightLine);
+        if (leftFound || rightFound)
+            return VanillaVersionIndex.CompareLines(leftFound ? leftLine : null, rightFound ? rightLine : null);
+        return _CompareTokens(left, right);
+    }
+
+    private static int _CompareTokens(string left, string right)
+    {
         left = left.ToLowerInvariant();
         right = right.ToLowerInvariant();
         var lefts = left.Replace("快照", "snapshot").Replace("预览版", "pre").RegexSearch("[a-z]+|[0-9]+");
@@ -96,8 +104,6 @@ public static class McVersionComparer
 
             i += 1;
         }
-
-        return 0;
     }
 
     /// <summary>

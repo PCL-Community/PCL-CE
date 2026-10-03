@@ -432,7 +432,7 @@ public static class ProfileUi
         if (profile.ProfileType != ProfileType.Offline) return string.Empty;
         if (string.IsNullOrWhiteSpace(profile.UserName)) return Lang.Text("Launch.Account.Profile.Validation.EmptyUsername");
         if (profile.UserName.Contains('"')) return Lang.Text("Launch.Account.Profile.Validation.QuoteInUsername");
-        if (ModInstanceList.McMcInstanceSelected is not null && ModInstanceList.McMcInstanceSelected.Info.Drop >= 203 && profile.UserName.Trim().Length > 16)
+        if (ModInstanceList.McMcInstanceSelected is not null && VanillaVersionIndex.IsAtOrAfter(ModInstanceList.McMcInstanceSelected.Info.VanillaName, "1.20.3") && profile.UserName.Trim().Length > 16)
             return Lang.Text("Launch.Account.Profile.Validation.UsernameTooLong");
         return string.Empty;
     }

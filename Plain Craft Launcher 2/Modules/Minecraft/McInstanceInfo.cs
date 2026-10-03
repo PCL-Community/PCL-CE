@@ -117,9 +117,7 @@ namespace PCL;
         public bool Reliable = true;
 
         /// <summary>
-        ///     可比较的三段式原版版本号。
-        ///     对老版本格式，例如 1.20.3，会被转换为 20.0.3。
-        ///     若没有版本号，例如旧快照，则为 9999.0.0。
+        ///     缓存占位。已知原版写 0.0.0，未知写 9999.0.0。
         /// </summary>
         public Version vanilla;
 
@@ -132,16 +130,9 @@ namespace PCL;
         public string VanillaName;
 
         /// <summary>
-        ///     原版版本号是否有效。
+        ///     原版 id 是否在版本索引中。
         /// </summary>
-        public bool Valid => vanilla.Major < 1000;
-
-        /// <summary>
-        ///     可供比较的原版 Drop 序数。
-        ///     例如 26.3.2 为 263，1.21.5 为 210。
-        ///     若没有版本号，例如旧快照，则直接指定为 209。
-        /// </summary>
-        public int Drop => Valid ? vanilla.Major * 10 + vanilla.Minor : 209;
+        public bool Valid => VanillaVersionIndex.TryGetLine(VanillaName, out _);
 
         /// <summary>
         ///     可供比较的 OptiFine 版本序数。
@@ -269,72 +260,13 @@ namespace PCL;
             return VanillaName + toStringRet;
         }
 
-        // Helpers
-
         /// <summary>
-        ///     版本字符串是否符合 Minecraft 原版格式，例如 1.x、26.x。
+        ///     索引中的正式版，或 id 含小数点的快照/预发布。
         /// </summary>
         public static bool IsFormatFit(string version)
         {
             if (version is null)
                 return false;
-            if (version.RegexCheck(@"^1\.\d"))
-                return true;
-            if (ModBase.Val(version.RegexSeek(@"^[2-9]\d\.\d+")) > 25d)
-                return true;
-            return false;
-        }
-
-        /// <summary>
-        ///     尝试将版本字符串转换为 Drop 序数。
-        ///     若无法转换则返回 -1。
-        /// </summary>
-        public static int VersionToDrop(string? version, bool allowSnapshot = false)
-        {
-            if (string.IsNullOrEmpty(version))
-                return -1;
-
-            var lower = version.ToLowerInvariant();
-
-            if (lower.StartsWith("1.rv")) return 90;           // 1.rv-pre1,约1.9
-            if (lower.StartsWith("3d shareware")) return 140;  // 3d shareware v1.34,约1.14
-
-            if (!allowSnapshot && lower.Contains('-'))
-                return -1;
-
-            var baseVer = lower.BeforeFirst("-");
-            var segments = baseVer.Split('.');
-
-            //XXwYY的快照
-            // 按年份估算
-            if (allowSnapshot && segments.Length == 1 && segments[0].Length >= 3
-                && segments[0][2] == 'w'
-                && char.IsDigit(segments[0][0]) && char.IsDigit(segments[0][1]))
-            {
-                var year = int.Parse(segments[0][..2]);
-                if (year <= 16) return Math.Max(year * 10 - 70, 20);
-                if (year == 17) return 120;
-                return Math.Min(130 + (year - 18) * 10, 210);
-            }
-
-            if (segments.Length < 2)
-                return -1;
-            var major = (int)Math.Round(ModBase.Val(segments[0]));
-            var minor = (int)Math.Round(ModBase.Val(segments[1]));
-            if (major == 1) return minor * 10;
-            if (major >= 25) return major * 10 + minor;
-            if (major == 2) return 50; //2.0愚人节
-
-            return -1;
-        }
-
-        /// <summary>
-        ///     将 Drop 序数转换为版本字符串。
-        /// </summary>
-        public static string DropToVersion(int drop)
-        {
-            if (drop >= 250) return $"{drop / 10}.{drop % 10}";
-
-            return $"1.{drop / 10}";
+            return VanillaVersionIndex.Capture()?.IsFormatFit(version) == true;
         }
     }

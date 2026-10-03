@@ -272,9 +272,9 @@ internal sealed class CrashReportExporter
             if (!Directory.Exists(modsFolder))
                 return;
 
-            // 老 Forge（Drop < 130）的启用 Mod 位于 mods/<版本名> 子目录，需一并扫描
+            // 1.13 之前的 Forge 启用 Mod 位于 mods/<版本名> 子目录，需一并扫描
             var scanFolders = new List<string> { modsFolder };
-            if (instance.Info.HasForge && instance.Info.Drop < 130)
+            if (instance.Info.HasForge && VanillaVersionIndex.IsBefore(instance.Info.VanillaName, "1.13"))
             {
                 var versionSubFolder = Path.Combine(modsFolder, instance.Info.VanillaName);
                 if (Directory.Exists(versionSubFolder))

@@ -1943,7 +1943,7 @@ public static class ModLocalComp
                                 if ((File.DirectoryName.ToLower() ?? "") != (rawName.TrimEnd('\\') ?? ""))
                                     if (!(PageInstanceLeft.McInstance is not null &&
                                           PageInstanceLeft.McInstance.Info.HasForge &&
-                                          PageInstanceLeft.McInstance.Info.Drop < 130 && (File.Directory.Name ?? "") ==
+                                          VanillaVersionIndex.IsBefore(PageInstanceLeft.McInstance.Info.VanillaName, "1.13") && (File.Directory.Name ?? "") ==
                                           (PageInstanceLeft.McInstance.Info.VanillaName ?? "")))
                                         continue;
 
