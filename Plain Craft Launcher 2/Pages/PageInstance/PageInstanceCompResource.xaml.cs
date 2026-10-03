@@ -124,6 +124,12 @@ public partial class PageInstanceCompResource : IRefreshable
             BtnHintDownload.Visibility = Visibility.Collapsed;
         }
 
+        if (currentCompType == ModComp.CompType.Mod)
+            BtnManageJarInJar.Click += (_, _) =>
+                ModMain.frmInstanceLeft?.PageChange(FormMain.PageSubType.VersionModJarInJar);
+        else
+            BtnManageJarInJar.Visibility = Visibility.Collapsed;
+
         Unloaded += Page_Unloaded;
         Loaded += (_, _) => PageOther_Loaded();
         LoaderInit();
@@ -1906,10 +1912,145 @@ public partial class PageInstanceCompResource : IRefreshable
 
     private void EDMods(IEnumerable<ModLocalComp.LocalCompFile> modList, bool isEnable)
     {
+        var list = modList.ToList();
+        if (!isEnable)
+        {
+            if (!_ConfirmCascadeReady()) return;
+            var affected = _JijFindAffected(list);
+            if (affected.Count > 0)
+            {
+                var choice = _AskJijCascade(affected, false);
+                if (choice is null) return;
+                if (choice == 1) list = list.Concat(affected).ToList();
+            }
+        }
+
+        EDModsCore(list, isEnable);
+    }
+
+    private void DeleteMods(IEnumerable<ModLocalComp.LocalCompFile> modList)
+    {
+        // 在弹出任何模态框之前捕获 Shift（永久删除意图），否则选完档位时 Shift 多半已松开
+        var isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+        if (!_ConfirmCascadeReady()) return;
+        var list = modList.ToList();
+        var affected = _JijFindAffected(list);
+        if (affected.Count > 0)
+        {
+            var choice = _AskJijCascade(affected, true);
+            if (choice is null) return;
+            switch (choice)
+            {
+                case 1:
+                    if (!EDModsCore(affected, false)) return;
+                    break;
+                case 2:
+                    // 先禁用依赖者；若后续删除部分失败，也不会留下启用但缺少前置的 Mod。
+                    if (!EDModsCore(affected, false)) return;
+                    list = list.Concat(affected).ToList();
+                    break;
+            }
+        }
+
+        DeleteModsCore(list, isShiftPressed);
+    }
+
+    // 后台内嵌（Jar-in-Jar）解析未完成时，级联反查可能遗漏内嵌依赖，禁用/删除前提示确认
+    private bool _ConfirmCascadeReady()
+    {
+        if (currentCompType != ModComp.CompType.Mod || ModLocalComp.CompJijResolved) return true;
+        if (ModMain.MyMsgBox(
+            Lang.Text("Instance.Resource.Mod.JarInJar.ParsePending.Message"),
+            Lang.Text("Instance.Resource.Mod.JarInJar.ParsePending.Title"),
+            Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"), isWarn: true) != 1)
+            return false;
+
+        // “继续”表示先同步补齐整份列表，再重新构建级联索引；不能在残缺 output 上直接计算 affected。
+        var output = ModLocalComp.compResourceListLoader.output;
+        if (output is null) return false;
+        var completed = true;
+        try
+        {
+            ModJarInJarCache.UseInstance(PageInstanceLeft.McInstance?.PathInstance);
+            ModLocalComp.JijScanContext = new ModJarInJar.ScanContext();
+            foreach (var mod in output.Where(m => !m.IsFolder && m.JijPending))
+                completed &= mod.ResolveJijNow();
+            if (completed)
+            {
+                ModJarInJarCache.Prune(output.Where(m => !m.IsFolder).Select(m => m.path));
+                ModJarInJarCache.Flush();
+            }
+        }
+        finally
+        {
+            ModLocalComp.JijScanContext = null;
+            ModJarInJarCache.UseInstance(null);
+        }
+
+        ModLocalComp.CompJijResolved = completed;
+        ModMain.frmInstanceModJarInJar?.OnJijResolved();
+        if (!completed)
+            HintService.Hint(Lang.Text("Instance.Resource.Ed.ToggleFailed"), HintType.Error);
+        return completed;
+    }
+
+    private List<ModLocalComp.LocalCompFile> _JijFindAffected(List<ModLocalComp.LocalCompFile> targets)
+    {
+        if (currentCompType != ModComp.CompType.Mod) return new List<ModLocalComp.LocalCompFile>();
+        var output = ModLocalComp.compResourceListLoader.output;
+        if (output is null) return new List<ModLocalComp.LocalCompFile>();
+        var index = new ModJarInJarIndex(output, PageInstanceLeft.McInstance?.Info?.VanillaName);
+        return index.FindAffected(targets);
+    }
+
+    // 级联选择弹窗；返回 0=仅此项 / 1=连带禁用 /（删除时）2=连带删除；null=取消
+    private int? _AskJijCascade(List<ModLocalComp.LocalCompFile> affected, bool isDelete)
+    {
+        var sels = new List<IMyRadio>
+        {
+            new MyRadioBox { Text = Lang.Text("Instance.Resource.Mod.JarInJar.Cascade.OnlySelf") },
+            new MyRadioBox { Text = Lang.Text("Instance.Resource.Mod.JarInJar.Cascade.WithDisable") }
+        };
+        if (isDelete)
+            sels.Add(new MyRadioBox { Text = Lang.Text("Instance.Resource.Mod.JarInJar.Cascade.WithDelete") });
+
+        return ModMain.MyMsgBoxSelect(sels,
+            Lang.Text(isDelete
+                ? "Instance.Resource.Mod.JarInJar.Cascade.DeleteTitle"
+                : "Instance.Resource.Mod.JarInJar.Cascade.DisableTitle", affected.Count),
+            Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), true);
+    }
+
+    private bool EDModsCore(IEnumerable<ModLocalComp.LocalCompFile> modList, bool isEnable)
+    {
         var isSuccessful = true;
         foreach (var ModE in modList)
         {
             var modEntity = ModE; // 仅用于去除迭代变量无法修改的限制
+            // 用户可能在 Phase 2 尚未完成时选择继续操作。重命名前先同步补齐该项，
+            // 否则后台仍持有旧路径实体，而新实体会复制空树并永久丢失本次会话的 JIJ 状态。
+            if (currentCompType == ModComp.CompType.Mod && modEntity.JijPending)
+            {
+                var resolved = false;
+                try
+                {
+                    ModJarInJarCache.UseInstance(PageInstanceLeft.McInstance?.PathInstance);
+                    ModLocalComp.JijScanContext = new ModJarInJar.ScanContext();
+                    resolved = modEntity.ResolveJijNow();
+                    if (resolved) ModJarInJarCache.Flush();
+                }
+                finally
+                {
+                    ModLocalComp.JijScanContext = null;
+                    ModJarInJarCache.UseInstance(null);
+                }
+                if (!resolved)
+                {
+                    HintService.Hint(Lang.Text("Instance.Resource.Ed.ToggleFailed"), HintType.Error);
+                    isSuccessful = false;
+                    continue;
+                }
+            }
             string newPath = null;
             if (modEntity.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine && !isEnable)
                 // 禁用
@@ -1932,6 +2073,7 @@ public partial class PageInstanceCompResource : IRefreshable
                             ModMain.MyMsgBox(
                                 Lang.Text("Instance.Resource.Ed.FileConflict.Message", newPath, modEntity.path),
                                 Lang.Text("Instance.Resource.Ed.FileConflict"));
+                            isSuccessful = false;
                             continue;
                         }
                     }
@@ -1954,17 +2096,19 @@ public partial class PageInstanceCompResource : IRefreshable
                     ModBase.LogLevel.Feedback,
                     userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
                 ReloadCompFileList(true);
-                return;
+                return false;
             }
             catch (Exception ex)
             {
                 ModBase.Log(ex, $"重命名 Mod 失败（{modEntity.path ?? "null"}）");
                 isSuccessful = false;
+                continue;
             }
 
             // 更改 Loader 中的列表
             var newModEntity = new ModLocalComp.LocalCompFile(newPath);
             newModEntity.FromJson(modEntity.ToJson());
+            newModEntity.CopyLoadedStateFrom(modEntity); // 仅改名未改内容，复用已解析元数据，免得 UI 线程重新解压
             if (ModLocalComp.compResourceListLoader.output.Contains(modEntity))
             {
                 var indexOfLoader = ModLocalComp.compResourceListLoader.output.IndexOf(modEntity);
@@ -2013,6 +2157,7 @@ public partial class PageInstanceCompResource : IRefreshable
         }
 
         LoaderRun(ModLoader.LoaderFolderRunType.UpdateOnly);
+        return isSuccessful;
     }
 
     // 更新
@@ -2235,12 +2380,11 @@ public partial class PageInstanceCompResource : IRefreshable
         ChangeAllSelected(false);
     }
 
-    private void DeleteMods(IEnumerable<ModLocalComp.LocalCompFile> modList)
+    private void DeleteModsCore(IEnumerable<ModLocalComp.LocalCompFile> modList, bool isShiftPressed)
     {
         try
         {
             var isSuccessful = true;
-            var isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
             // 确认需要删除的文件
             // 文件夹只需要删除自身
             modList = modList.SelectMany(target =>
@@ -2296,6 +2440,7 @@ public partial class PageInstanceCompResource : IRefreshable
                         ModBase.LogLevel.Msgbox,
                         userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
                     isSuccessful = false;
+                    continue;
                 }
 
                 // 取消选中
