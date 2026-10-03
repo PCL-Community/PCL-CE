@@ -57,6 +57,10 @@ public class FileConfigStorage : ConfigStorage
             catch (OperationCanceledException) { /* ignoring*/ }
             finally
             {
+                // 停止前先排空通道中尚未被 ReadAsync 读取的写入：
+                // 取消令牌会让 ReadAsync 直接抛出，通道里剩余的操作若不取出，会在缓存被驱逐时随实例一起丢弃
+                while (reader.TryRead(out var pendingItem))
+                    writeActionMap[pendingItem.Item1] = pendingItem.Item2;
                 // 结束时执行一次同步
                 Sync();
             }

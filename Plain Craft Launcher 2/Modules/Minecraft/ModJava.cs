@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Text.Json;
 using PCL.Core.App;
 using PCL.Core.IO;
@@ -32,7 +32,8 @@ public static class ModJava
     ///     必须在工作线程调用，且必须包括 SyncLock JavaLock。
     /// </summary>
     public static JavaEntry JavaSelect(string cancelException, Version minVersion = null, Version maxVersion = null,
-        McInstance relatedInstance = null, bool enforceVersionRange = false)
+        McInstance relatedInstance = null, bool enforceVersionRange = false,
+        IReadOnlySet<int> compatibleMajors = null)
     {
         ModBase.Log(
             $"[Java] 要求选择合适 Java，要求最低版本 {(minVersion is not null ? minVersion.ToString() : "未指定")}，要求选择的最高版本 {(maxVersion is not null ? maxVersion.ToString() : "未指定")}，关联实例 {(relatedInstance is not null ? relatedInstance.Name : "未指定")}");
@@ -41,6 +42,24 @@ public static class ModJava
         bool IsVersionSuitable(Version ver)
         {
             return (minVersion is null || ver >= minVersion) && (maxVersion is null || ver <= maxVersion);
+        }
+
+        // compatibleJavaMajors 集合成员资格：按规范化后的主版本判断（兼容 Java 8 的 1.8.x 形式）
+        bool IsAllowedMajor(JavaEntry entry)
+        {
+            return compatibleMajors is null ||
+                   compatibleMajors.Contains(JavaManager.NormalizeVersion(entry.Installation.Version).Major);
+        }
+
+        // 自动搜索结果按兼容主版本集合过滤，接受集合未声明的主版本（例如 [8, 17] 的 9 - 16）
+        JavaEntry[] FilterByCompatibleMajors(JavaEntry[] entries)
+        {
+            return compatibleMajors is null
+                ? entries
+                : entries
+                    .Where(entry => compatibleMajors.Contains(
+                        JavaManager.NormalizeVersion(entry.Installation.Version).Major))
+                    .ToArray();
         }
 
         // ===== 优先级 1：实例专属 Java 偏好 =====
@@ -63,7 +82,7 @@ public static class ModJava
 
                             if (candidate is not null && candidate.IsEnabled)
                             {
-                                if (!IsVersionSuitable(candidate.Installation.Version))
+                                if (!IsVersionSuitable(candidate.Installation.Version) || !IsAllowedMajor(candidate))
                                     HintService.Hint(_GetJavaRangeWarning(
                                         "Minecraft.Launch.Java.Compatibility.InstanceSelectedOutOfRange",
                                         candidate.Installation.Version,
@@ -89,7 +108,7 @@ public static class ModJava
                                 var candidate = Javas.Get(absPath);
                                 if (candidate is not null && candidate.IsEnabled)
                                 {
-                                    if (!IsVersionSuitable(candidate.Installation.Version))
+                                    if (!IsVersionSuitable(candidate.Installation.Version) || !IsAllowedMajor(candidate))
                                         HintService.Hint(_GetJavaRangeWarning(
                                                 "Minecraft.Launch.Java.Compatibility.RelativePathSelectedOutOfRange",
                                                 candidate.Installation.Version,
@@ -140,7 +159,7 @@ public static class ModJava
 
             if (candidate is not null && candidate.IsEnabled)
             {
-                var versionSuitable = IsVersionSuitable(candidate.Installation.Version);
+                var versionSuitable = IsVersionSuitable(candidate.Installation.Version) && IsAllowedMajor(candidate);
                 if (enforceVersionRange && !versionSuitable)
                 {
                     ModBase.Log($"[Java] 全局指定的 Java 版本不满足强制范围要求，忽略并继续自动搜索: {candidate}");
@@ -174,14 +193,16 @@ public static class ModJava
         var reqMin = minVersion ?? new Version(1, 0, 0);
         var reqMax = maxVersion ?? new Version(999, 999, 999);
 
-        var candidates = Javas.SelectSuitableJavaAsync(reqMin, reqMax).GetAwaiter().GetResult();
+        var candidates = FilterByCompatibleMajors(
+            Javas.SelectSuitableJavaAsync(reqMin, reqMax).GetAwaiter().GetResult());
         var ret = candidates.FirstOrDefault();
 
         if (ret is null && candidates.Length == 0)
         {
             ModBase.Log("[Java] 未找到符合版本要求的 Java，触发全盘重新扫描");
             Javas.ScanJavaAsync().GetAwaiter().GetResult();
-            candidates = Javas.SelectSuitableJavaAsync(reqMin, reqMax).GetAwaiter().GetResult();
+            candidates = FilterByCompatibleMajors(
+                Javas.SelectSuitableJavaAsync(reqMin, reqMax).GetAwaiter().GetResult());
             ret = candidates.FirstOrDefault();
         }
 

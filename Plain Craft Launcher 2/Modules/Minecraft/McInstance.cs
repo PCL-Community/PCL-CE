@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
@@ -804,6 +804,22 @@ public class McInstance
 
                 // 确定实例图标
                 Logo = States.Instance.LogoPath[PathInstance];
+                // 实例目录中实际存在的自带图标文件（整合包安装或用户设置时复制的 PCL\Logo.png）是最高优先级的依据：
+                // 即使配置中的 Logo / LogoCustom 丢失或被默认图标覆盖，也能恢复自定义图标并修正配置
+                var hasCustomLogoFile = File.Exists(Path.Combine(PathInstance, "PCL", "Logo.png"));
+                if (hasCustomLogoFile)
+                {
+                    Logo = @"PCL\Logo.png";
+                    if (!States.Instance.IsLogoCustom[PathInstance])
+                        States.Instance.IsLogoCustom[PathInstance] = true;
+                }
+                else if (States.Instance.IsLogoCustom[PathInstance])
+                {
+                    // 自定义图标文件已不存在，清理失效的自定义标记并回退到默认图标
+                    States.Instance.IsLogoCustom[PathInstance] = false;
+                    Logo = null;
+                }
+
                 if (string.IsNullOrEmpty(Logo) || !States.Instance.IsLogoCustom[PathInstance])
                     switch (state)
                     {
