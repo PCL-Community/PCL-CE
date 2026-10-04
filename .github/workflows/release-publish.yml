@@ -8,18 +8,17 @@ on:
   workflow_dispatch:
     inputs:
       configuration:
-        description: 'Configuration to build (e.g., Release)'
+        description: 'Build configuration (Beta is published as prerelease)'
         required: true
-        type: string
+        default: Beta
+        type: choice
+        options:
+          - Release
+          - Beta
       version:
         description: 'Version to release (e.g., 2.14.2)'
         required: true
         type: string
-      prerelease:
-        description: 'Is this a prerelease?'
-        required: false
-        type: boolean
-        default: true
 
 jobs:
   build:
@@ -64,7 +63,7 @@ jobs:
           tag_name: v${{ inputs.version }}
           name: Release ${{ inputs.version }}
           body_path: CHANGELOG.md
-          prerelease: ${{ inputs.prerelease }}
+          prerelease: ${{ inputs.configuration == 'Beta' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
