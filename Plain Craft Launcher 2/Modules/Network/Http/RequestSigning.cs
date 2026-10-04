@@ -21,8 +21,13 @@ public static class RequestSigning
     {
         client.Version = HttpVersion.Version20;
         client.VersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
-        if (url.Contains("api.curseforge.com"))
+        if (Uri.TryCreate(url, UriKind.Absolute, out var parsedUri) 
+            && (parsedUri.Host == "api.curseforge.com"
+            || parsedUri.Host == "edge.forgecdn.net"
+            || parsedUri.Host == "mediafilez.forgecdn.net"))
+        {
             client.Headers.Add("x-api-key", Secrets.CurseForgeAPIKey);
+        }
         var userAgent = !string.IsNullOrEmpty(customUserAgent)
             ? customUserAgent
             : useBrowserUserAgent

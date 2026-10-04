@@ -1,6 +1,8 @@
 using System.Windows;
 using PCL.Core.Utils.Validate;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.Profile;
+using PCL.Core.Minecraft.Profile.Models;
 
 namespace PCL;
 
@@ -19,6 +21,7 @@ public partial class PageLoginOffline
 
     private void BtnBack_Click(object sender, EventArgs e)
     {
+        ProfileService.IsCreatingProfile = false;
         ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
     }
 
@@ -55,7 +58,7 @@ public partial class PageLoginOffline
             var uuidValidateResult = new RegexValidator("^[a-fA-F0-9]{32}$").Validate(uuidInput);
             if (RadioUuidCustom.Checked && !uuidValidateResult.IsValid)
             {
-                ModMain.Hint(Lang.Text("Launch.Account.Offline.InvalidUuid", uuidValidateResult), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Launch.Account.Offline.InvalidUuid", uuidValidateResult), HintType.Error);
                 return;
             }
 
@@ -63,26 +66,27 @@ public partial class PageLoginOffline
         }
         else if (RadioUuidLegacy.Checked)
         {
-            userUuid = ModProfile.GetOfflineUuid(username, isLegacy: true);
+            userUuid = ProfileUi.GetOfflineUuid(username, isLegacy: true);
         }
         else
         {
-            userUuid = ModProfile.GetOfflineUuid(username);
+            userUuid = ProfileUi.GetOfflineUuid(username);
         }
 
         // 创建档案
-        var newProfile = new ModProfile.McProfile
+        var newProfile = new McProfile
         {
-            Type = ModLaunch.McLoginType.Legacy,
+            ProfileType = ProfileType.Offline,
             Uuid = userUuid,
-            Username = username,
-            Desc = ""
+            UserName = username,
+            Description = "",
+            AccessToken = userUuid,
+            ClientToken = userUuid,
+            ProfileId = Guid.NewGuid().ToString("N")
         };
-        ModProfile.profileList.Add(newProfile);
-        ModProfile.SaveProfile();
-        ModProfile.selectedProfile = newProfile;
-        ModProfile.isCreatingProfile = false;
-        ModMain.Hint(Lang.Text("Launch.Account.Profile.Created"), ModMain.HintType.Finish);
+        ProfileService.Add(newProfile);
+        ProfileService.IsCreatingProfile = false;
+        HintService.Hint(Lang.Text("Launch.Account.Profile.Created"), HintType.Success);
         ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
     }
 }

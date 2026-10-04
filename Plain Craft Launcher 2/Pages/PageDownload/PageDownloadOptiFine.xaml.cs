@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -76,7 +76,7 @@ public partial class PageDownloadOptiFine
                 newCard.InstallMethod = stack =>
                 {
                     stack.Tag = ((List<ModDownload.DlOptiFineListEntry>)stack.Tag).Sort((a, b) =>
-                        ModMinecraft.CompareVersion(a.DisplayName, b.DisplayName) == 1);
+                        McVersionComparer.CompareVersion(a.DisplayName, b.DisplayName) == 1);
                     foreach (var item in (IEnumerable)stack.Tag)
                         stack.Children.Add(ModDownloadLib.OptiFineDownloadListItem(
                             (ModDownload.DlOptiFineListEntry)item, ModDownloadLib.OptiFineSave_Click, true));
@@ -86,7 +86,11 @@ public partial class PageDownloadOptiFine
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 OptiFine 版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 OptiFine 版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
     }
 

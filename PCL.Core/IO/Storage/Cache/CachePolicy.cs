@@ -31,7 +31,7 @@ public record CachePolicy
     public CachePriority Priority { get; init; } = CachePriority.Normal;
     /// <summary>
     /// Gets the storage mode for the cached item.<br/>
-    /// Auto &lt;= 256KB: Inline, &gt; 256KB: FileMapped
+    /// Auto &lt;= 256KiB: Inline, &gt; 256KiB: FileMapped
     /// </summary>
     public CacheStorageMode StorageMode { get; init; } = CacheStorageMode.Auto;
     /// <summary>

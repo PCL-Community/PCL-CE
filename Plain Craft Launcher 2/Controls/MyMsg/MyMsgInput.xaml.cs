@@ -1,9 +1,10 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using PCL.Core.UI.Controls;
 
+using PCL.Core.App.Localization;
 namespace PCL;
 
 public partial class MyMsgInput
@@ -32,7 +33,11 @@ public partial class MyMsgInput
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "输入弹窗初始化失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "输入弹窗初始化失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Application.Control.MessageBox.Error.OperationFailed"));
         }
 
         Loaded += Load;
@@ -92,7 +97,11 @@ public partial class MyMsgInput
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "输入弹窗加载失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "输入弹窗加载失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Application.Control.MessageBox.Error.OperationFailed"));
         }
     }
 
@@ -155,7 +164,11 @@ public partial class MyMsgInput
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "拖拽移动失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "拖拽移动失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Application.Control.MessageBox.Error.OperationFailed"));
         }
     }
 }

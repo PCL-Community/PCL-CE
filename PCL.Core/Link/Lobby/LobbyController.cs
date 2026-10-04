@@ -1,4 +1,5 @@
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Link.EasyTier;
 using PCL.Core.Link.Scaffolding;
 using PCL.Core.Link.Scaffolding.Client.Models;
@@ -13,6 +14,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 using PCL.Core.IO.Net;
 using static PCL.Core.Link.Lobby.LobbyInfoProvider;
@@ -20,6 +22,7 @@ using static PCL.Core.Link.Natayark.NatayarkProfileManager;
 using LobbyType = PCL.Core.Link.Scaffolding.Client.Models.LobbyType;
 using PCL.Core.Link.McPing;
 using PCL.Core.IO.Net.Http;
+using PCL.Core.IO.Net.SocketForward;
 
 namespace PCL.Core.Link.Lobby;
 
@@ -49,7 +52,7 @@ public sealed class LobbyController
     /// <param name="username">Join user name.</param>
     /// <param name="code">Lobby share code.</param>
     /// <returns>Created <see cref="ScaffoldingClientEntity"/>.</returns>
-    public async Task<ScaffoldingClientEntity?> LaunchClientAsync(string username, string code)
+    public async Task<ScaffoldingClientEntity?> LaunchClientAsync(string username, string code, CancellationToken ct = default)
     {
         if (!await _SendTelemetryAsync(false).ConfigureAwait(false))
         {
@@ -59,7 +62,7 @@ public sealed class LobbyController
         try
         {
             var scfEntity = await ScaffoldingFactory
-                .CreateClientAsync(username, code, LobbyType.Scaffolding).ConfigureAwait(false);
+                .CreateClientAsync(username, code, LobbyType.Scaffolding, ct).ConfigureAwait(false);
 
             ScfClientEntity = scfEntity;
 
@@ -83,14 +86,20 @@ public sealed class LobbyController
                 }
             }
 
-            var localPort = await scfEntity.EasyTier.AddPortForwardAsync(scfEntity.HostInfo.Ip, port)
+            var localPort = await scfEntity.EasyTier
+                .AddPortForwardAsync(scfEntity.HostInfo.Ip, port)
                 .ConfigureAwait(false);
-            var desc = hostname.IsNullOrWhiteSpace() ? " - " + hostname : string.Empty;
+            var desc = hostname.IsNullOrWhiteSpace()
+                ? string.Empty
+                : Lang.Text("Link.Lobby.MotdDesc", hostname);
 
             var tcpPortForForward = NetworkHelper.NewTcpPort();
-            McForward = new TcpForward(IPAddress.Loopback, tcpPortForForward, IPAddress.Loopback, localPort);
-            McBroadcast = new BroadcastLocal($"§ePCL CE 大厅{desc}", tcpPortForForward);
+            McForward = new TcpForwardBuilder()
+                .BindLocal((ushort)tcpPortForForward)
+                .SetRemote(IPAddress.Loopback, (ushort)localPort)
+                .Build();
             McForward.Start();
+            McBroadcast = new BroadcastLocal(Lang.Text("Link.Lobby.MotdFormat", desc), tcpPortForForward);
             McBroadcast.Start();
 
             return scfEntity;
@@ -113,6 +122,10 @@ public sealed class LobbyController
             {
                 LogWrapper.Error(e, "在加入大厅时出现意外的无效参数");
             }
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception e)
         {
@@ -142,6 +155,7 @@ public sealed class LobbyController
         {
             var scfEntity = ScaffoldingFactory.CreateServer(port, username);
             ScfServerEntity = scfEntity;
+            IsHost = true;
 
             LogWrapper.Info("LobbyController", "Successfully to launch Scaffolding Server.");
 
@@ -177,16 +191,22 @@ public sealed class LobbyController
     {
         McForward?.Stop();
         McBroadcast?.Stop();
-        if (ScfClientEntity is not null)
+        try
         {
-            await ScfClientEntity.EasyTier.StopAsync().ConfigureAwait(false);
-            await ScfClientEntity.Client.DisposeAsync().ConfigureAwait(false);
-            ScfClientEntity = null;
+            if (ScfClientEntity is not null)
+            {
+                await ScfClientEntity.EasyTier.StopAsync().ConfigureAwait(false);
+                await ScfClientEntity.Client.DisposeAsync().ConfigureAwait(false);
+            }
+            else if (ScfServerEntity is not null)
+            {
+                await ScfServerEntity.EasyTier.StopAsync().ConfigureAwait(false);
+                await ScfServerEntity.Server.DisposeAsync().ConfigureAwait(false);
+            }
         }
-        else if (ScfServerEntity is not null)
+        finally
         {
-            await ScfServerEntity.EasyTier.StopAsync().ConfigureAwait(false);
-            await ScfServerEntity.Server.DisposeAsync().ConfigureAwait(false);
+            ScfClientEntity = null;
             ScfServerEntity = null;
         }
         return 0;

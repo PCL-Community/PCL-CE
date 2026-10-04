@@ -99,9 +99,15 @@
                             <RowDefinition Height="8" />
                             <RowDefinition Height="30" />
                         </Grid.RowDefinitions>
-                        <TextBlock x:Name="TextUdpNatType" Text="UDP NAT 类型: 尚未检测" Grid.Row="0" />
-                        <TextBlock x:Name="TextTcpNatType" Text="TCP NAT 类型: 尚未检测" Grid.Row="1" />
-                        <TextBlock x:Name="TextIpv6Status" Text="IPv6: 尚未检测" Grid.Row="2" />
+                        <TextBlock x:Name="TextUdpNatType"
+                                   Text="{DynamicResource Setup.GameLink.NetworkTest.UdpNatType.NotTested}"
+                                   Grid.Row="0" />
+                        <TextBlock x:Name="TextTcpNatType"
+                                   Text="{DynamicResource Setup.GameLink.NetworkTest.TcpNatType.NotTested}"
+                                   Grid.Row="1" />
+                        <TextBlock x:Name="TextIpv6Status"
+                                   Text="{DynamicResource Setup.GameLink.NetworkTest.Ipv6Status.NotTested}"
+                                   Grid.Row="2" />
                         <local:MyButton x:Name="BtnNetTest" Text="{DynamicResource Setup.GameLink.NetworkTest.Start}" Grid.Row="4" ColorType="Highlight"
                                         Click="BtnNetTest_Click"
                                         VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />

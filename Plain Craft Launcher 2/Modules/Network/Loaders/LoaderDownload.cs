@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using PCL.Core.Utils;
 
 namespace PCL.Network.Loaders;
 
@@ -77,7 +76,7 @@ public class LoaderDownload : ModLoader.LoaderBase
                 }
                 catch (Exception ex)
                 {
-                    file.Errors.Add(ex);
+                    file.AddError(ex);
                     file.State = PCL.Network.NetState.Interrupted;
                     exceptions.Enqueue(ex);
                     _cancellationTokenSource?.Cancel();
@@ -105,50 +104,44 @@ public class LoaderDownload : ModLoader.LoaderBase
 
     private int GetMaxParallelFiles()
     {
-        return Math.Max(1, Math.Min(files.Count, Math.Clamp(ModNet.NetTaskThreadLimit, 1, 64)));
+        return Math.Max(1, Math.Min(files.Count,
+            Math.Clamp(ModNet.NetTaskConnectionLimit, 1, ModNet.NetTaskConnectionLimitMax)));
     }
 
     private async Task ProcessFileAsync(PCL.Network.DownloadFile file, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (!file.Loaders.Contains(this))
-            file.Loaders.Add(this);
+        file.RegisterLoader(this);
 
-        Directory.CreateDirectory(Path.GetDirectoryName(file.LocalPath) ?? throw new IOException("下载路径无效"));
-        if (file.Check?.canUseExistsFile == true && file.Check.Check(file.LocalPath) is null)
-        {
-            file.IsCopy = true;
-            file.State = PCL.Network.NetState.Finished;
-            try { file.TotalSize = new FileInfo(file.LocalPath).Length; }
-            catch (IOException) { file.TotalSize = -1; }
-            file.DownloadedBytes = file.TotalSize;
-            file.Speed = 0;
-            file.ActiveThreads = 0;
-            OnFileFinish(file);
+        if (State >= ModBase.LoadState.Finished)
             return;
+        Directory.CreateDirectory(Path.GetDirectoryName(file.LocalPath) ?? throw new IOException("下载路径无效"));
+        var checker = file.Check;
+        if (checker?.canUseExistsFile == true && File.Exists(file.LocalPath))
+        {
+            var checkResult = string.IsNullOrEmpty(checker.hash)
+                ? checker.Check(file.LocalPath)
+                : await Task.Run(() => checker.Check(file.LocalPath), cancellationToken).ConfigureAwait(false);
+            if (checkResult is null)
+            {
+                file.IsCopy = true;
+                file.State = PCL.Network.NetState.Finished;
+                try { file.TotalSize = new FileInfo(file.LocalPath).Length; }
+                catch (IOException) { file.TotalSize = -1; }
+                file.DownloadedBytes = file.TotalSize;
+                file.Speed = 0;
+                file.ActiveThreads = 0;
+                OnFileFinish(file);
+                return;
+            }
         }
 
         file.State = PCL.Network.NetState.Connecting;
-        var enableParallelChunks = files.Count <= 1;
-        for (var retry = 0; retry < 4; retry++)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            try
-            {
-                await FileDownloader.Download(file.Urls, file.LocalPath, file.UseBrowserUserAgent, file.CustomUserAgent,
-                    cancellationToken, enableParallelChunks, file).ConfigureAwait(false);
-                break;
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex) when (retry < 3)
-            {
-                ModBase.Log(ex, $"[Download] 重试 {retry + 1}/3：{file.LocalPath}", ModBase.LogLevel.Debug);
-                Thread.Sleep(RandomUtils.NextInt(300, 500 + retry * 300));
-            }
-        }
+        // 批量任务中未知大小的文件直接下载，避免小文件逐个产生一次 Range 探测。
+        var expectedSize = file.Check?.actualSize ?? -1;
+        var enableParallelChunks = files.Count <= 1 || expectedSize >= AdaptiveRangeDownloader.SmallFileThreshold;
+        await FileDownloader.DownloadAsync(file.Urls, file.LocalPath, file.UseBrowserUserAgent, file.CustomUserAgent,
+            cancellationToken, enableParallelChunks, file).ConfigureAwait(false);
         try { file.TotalSize = new FileInfo(file.LocalPath).Length; }
         catch (IOException) { file.TotalSize = -1; }
         file.IsUnknownSize = file.TotalSize < 0;
@@ -186,7 +179,10 @@ public class LoaderDownload : ModLoader.LoaderBase
 
     public void OnFileFail(PCL.Network.DownloadFile file)
     {
-        OnFail(file.Errors.Any() ? file.Errors : new List<Exception> { new Exception($"文件下载失败：{file.LocalPath}") });
+        var errors = file.Errors;
+        OnFail(errors.Count > 0
+            ? errors.ToList()
+            : new List<Exception> { new Exception($"文件下载失败：{file.LocalPath}") });
     }
 
     public void OnFail(List<Exception> exList)
@@ -205,7 +201,7 @@ public class LoaderDownload : ModLoader.LoaderBase
             file.State = PCL.Network.NetState.Interrupted;
             file.Speed = 0;
             file.ActiveThreads = 0;
-            file.Errors.AddRange(exList);
+            file.AddErrors(exList);
         }
 
         ModNet.NetManager.Finish(this);

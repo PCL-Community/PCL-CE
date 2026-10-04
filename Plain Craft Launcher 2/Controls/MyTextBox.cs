@@ -1,10 +1,11 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using FluentValidation;
 
+using PCL.Core.App.Localization;
 namespace PCL;
 
 public class MyTextBox : TextBox
@@ -34,7 +35,6 @@ public class MyTextBox : TextBox
 
     // 额外控件初始化
 
-    private Collection<IValidator<string>> _ValidateRules = new();
     public List<RoutedEventHandler> changedEventList = new();
 
     // 提示文本
@@ -114,13 +114,13 @@ public class MyTextBox : TextBox
     /// </summary>
     public Collection<IValidator<string>> ValidateRules
     {
-        get => _ValidateRules;
+        get => field;
         set
         {
-            _ValidateRules = value;
+            field = value;
             Validate();
         }
-    }
+    } = new();
 
     public string HintText
     {
@@ -270,7 +270,11 @@ public class MyTextBox : TextBox
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "进行输入验证时出错", ModBase.LogLevel.Critical);
+            ModBase.Log(
+                ex,
+                "进行输入验证时出错",
+                ModBase.LogLevel.Critical,
+                userSummary: Lang.Text("Application.Control.Error.OperationFailed"));
         }
     }
 

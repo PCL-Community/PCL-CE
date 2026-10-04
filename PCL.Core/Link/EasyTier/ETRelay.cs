@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace PCL.Core.Link.EasyTier;
 // ReSharper disable InconsistentNaming

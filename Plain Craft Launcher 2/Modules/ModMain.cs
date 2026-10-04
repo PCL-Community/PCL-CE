@@ -14,6 +14,7 @@ using Microsoft.Win32;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
@@ -35,7 +36,6 @@ public static class ModMain
     public static PageSpeedRight? frmSpeedRight;
     public static PageToolsLeft? frmToolsLeft;
     public static PageToolsGameLink? frmToolsGameLink;
-    public static PageToolsHelp? frmToolsHelp;
     public static PageToolsTest? frmToolsTest;
     public static PageDownloadLeft? frmDownloadLeft;
     public static PageDownloadInstall? frmDownloadInstall;
@@ -46,7 +46,6 @@ public static class ModMain
     public static PageDownloadNeoForge? frmDownloadNeoForge;
     public static PageDownloadCleanroom? frmDownloadCleanroom;
     public static PageDownloadFabric? frmDownloadFabric;
-    public static PageDownloadQuilt? frmDownloadQuilt;
     public static PageDownloadLabyMod? frmDownloadLabyMod;
     public static PageDownloadLegacyFabric? frmDownloadLegacyFabric;
     public static PageDownloadMod? frmDownloadMod;
@@ -62,7 +61,6 @@ public static class ModMain
     public static PageSetupGameManage? frmSetupGameManage;
     public static PageSetupUpdate? frmSetupUpdate;
     public static PageSetupJava? frmSetupJava;
-    public static PageHomePageMarket? frmHomePageMarket;
     public static PageSetupAbout? frmSetupAbout;
     public static PageSetupLog? frmSetupLog;
     public static PageSetupFeedback? frmSetupFeedback;
@@ -78,6 +76,7 @@ public static class ModMain
     public static PageInstanceOverall? frmInstanceOverall;
     public static PageInstanceCompResource? frmInstanceMod;
     public static PageInstanceModDisabled? frmInstanceModDisabled;
+    public static PageInstanceCompJarInJar? frmInstanceModJarInJar;
     public static PageInstanceScreenshot? frmInstanceScreenshot;
     public static PageInstanceSaves? frmInstanceSaves;
     public static PageInstanceCompResource? frmInstanceShader;
@@ -93,21 +92,9 @@ public static class ModMain
     public static PageDownloadCompDetail? frmDownloadCompDetail;
     public static PageHomepageNewsView? frmHomepageNews;
 
-    public static ModLoader.LoaderTask<int, List<HelpEntry>> helpLoader = new("Help Page", HelpLoad, null,
-        ThreadPriority.BelowNormal);
-
     public static MySlider? dragControl = null;
     private static int timer4Count;
     private static int timer150Count;
-
-    /// <summary>
-    ///     等待弹出的提示列表。以 {String, HintType, Log As Boolean} 形式存储为数组。
-    /// </summary>
-    private static ModBase.SafeList<HintMessage> HintWaiting
-    {
-        get => field ??= new ModBase.SafeList<HintMessage>();
-        set;
-    }
 
     /// <summary>
     ///     等待显示的弹窗。
@@ -120,7 +107,7 @@ public static class ModMain
         {
             #region 每 50ms 执行一次的代码
 
-            HintTick();
+            HintService.Tick();
             MyMsgBoxTick();
             frmMain!.DragTick();
             ModLoader.LoaderTaskbarProgressRefresh();
@@ -130,7 +117,11 @@ public static class ModMain
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "短程主时钟执行异常", ModBase.LogLevel.Critical);
+            ModBase.Log(
+                ex,
+                "短程主时钟执行异常",
+                ModBase.LogLevel.Critical,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
 
         timer4Count += 1;
@@ -175,7 +166,11 @@ public static class ModMain
 
             catch (Exception ex)
             {
-                ModBase.Log(ex, "长程主时钟执行异常", ModBase.LogLevel.Critical);
+                ModBase.Log(
+                    ex,
+                    "长程主时钟执行异常",
+                    ModBase.LogLevel.Critical,
+                    userSummary: Lang.Text("Main.Error.OperationFailed"));
             }
         }
     }
@@ -194,7 +189,11 @@ public static class ModMain
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "程序主时钟出错", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    "程序主时钟出错",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Main.Error.OperationFailed"));
             }
         }, "Timer Main");
         if (!isAprilEnabled)
@@ -217,256 +216,14 @@ public static class ModMain
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "愚人节主时钟出错", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    "愚人节主时钟出错",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Main.Error.OperationFailed"));
             }
         }, "Timer Main Fool");
     }
-
-    #region 弹出提示
-
-    /// <summary>
-    ///     提示信息的种类。
-    /// </summary>
-    public enum HintType
-    {
-        /// <summary>
-        ///     信息，通常是蓝色的“i”。
-        /// </summary>
-        /// <remarks></remarks>
-        Info,
-
-        /// <summary>
-        ///     已完成，通常是绿色的“√”。
-        /// </summary>
-        /// <remarks></remarks>
-        Finish,
-
-        /// <summary>
-        ///     错误，通常是红色的“×”。
-        /// </summary>
-        /// <remarks></remarks>
-        Critical
-    }
-
-    private struct HintMessage
-    {
-        public string Text;
-        public HintType Type;
-        public bool Log;
-    }
-
-
-    /// <summary>
-    ///     在窗口左下角弹出提示文本。
-    /// </summary>
-    public static void Hint(string? text, HintType type = HintType.Info, bool log = true)
-    {
-        HintWaiting.Add(new HintMessage { Text = text ?? "", Type = type, Log = log });
-    }
-
-    public static void HintWrapper_OnShow(string message, HintTheme messageTheme)
-    {
-        var hintType = messageTheme switch
-        {
-            HintTheme.Error => HintType.Critical,
-            HintTheme.Info => HintType.Info,
-            _ => HintType.Finish
-        };
-        Hint(message, hintType);
-    }
-
-    private static void HintTick()
-    {
-        try
-        {
-            // Tag 存储了：{ 是否可以重用, Uuid }
-            if (!HintWaiting.Any())
-                return;
-            while (HintWaiting.Any())
-            {
-                // '清除空提示
-                // If IsNothing(HintWaiting(0)) OrElse IsNothing(HintWaiting(0)(0)) Then
-                // HintWaiting.RemoveAt(0)
-                // Continue Do
-                // End If
-                var currentHint = HintWaiting[0];
-                // 去回车
-                currentHint.Text = currentHint.Text.Replace("\r\n", " ").Replace("\r", " ")
-                    .Replace("\n", " ");
-                // 超量提示直接忽略
-                if (frmMain!.PanHint.Children.Count >= 20)
-                    goto EndHint;
-                // 检查是否有重复提示
-                Border? doubleStack = null;
-                foreach (Border stack in frmMain.PanHint.Children)
-                    if (stack.Tag is object[] tagArray && (bool)tagArray[0] &&
-                                              (((TextBlock)stack.Child).Text ?? "") == (currentHint.Text ?? ""))
-                        doubleStack = stack;
-                // 获取渐变颜色
-                ModBase.MyColor targetColor0, targetColor1;
-                var percent = 0.3d;
-                switch (currentHint.Type)
-                {
-                    case HintType.Info:
-                    {
-                        targetColor0 = new ModBase.MyColor(215d, 37d, 155d, 252d);
-                        targetColor1 = new ModBase.MyColor(215d, 10d, 142d, 252d);
-                        break;
-                    }
-                    case HintType.Finish:
-                    {
-                        targetColor0 = new ModBase.MyColor(215d, 33d, 177d, 33d);
-                        targetColor1 = new ModBase.MyColor(215d, 29d, 160d, 29d); // HintType.Critical
-                        break;
-                    }
-
-                    default:
-                    {
-                        targetColor0 = new ModBase.MyColor(215d, 255d, 53d, 11d);
-                        targetColor1 = new ModBase.MyColor(215d, 255d, 43d, 0d);
-                        break;
-                    }
-                }
-
-                if (doubleStack is not null)
-                {
-                    var doubleStackTag = (object[])doubleStack.Tag;
-                    // 有重复提示，且该提示的进入动画已播放
-                    if (!ModAnimation.AniIsRun($"Hint Show {doubleStackTag[1]}"))
-                    {
-                        ModAnimation.AniStop($"Hint Hide {doubleStackTag[1]}");
-                        var delay = (800d + ModBase.MathClamp(currentHint.Text!.Length, 5d, 23d) * 180d) *
-                                    ModAnimation.aniSpeed;
-                        ModAnimation.AniStart(new[]
-                            {
-                                ModAnimation.AaX(doubleStack, -12 - doubleStack.Margin.Left, 50,
-                                    ease: new ModAnimation.AniEaseOutFluent()),
-                                ModAnimation.AaX(doubleStack, -8, 50, 50, new ModAnimation.AniEaseInFluent()),
-                                ModAnimation.AaX(doubleStack, 8d, 50, 100, new ModAnimation.AniEaseOutFluent()),
-                                ModAnimation.AaX(doubleStack, -8, 50, 150, new ModAnimation.AniEaseInFluent()),
-                                ModAnimation.AaDouble(i =>
-                                {
-                                    percent += (double)i;
-                                    var gradient = (LinearGradientBrush)doubleStack.Background;
-                                    gradient.GradientStops[0].Color = targetColor0 * percent +
-                                                                      new ModBase.MyColor(255d, 255d, 255d) *
-                                                                      (1d - percent);
-                                    gradient.GradientStops[1].Color = targetColor1 * percent +
-                                                                      new ModBase.MyColor(255d, 255d, 255d) *
-                                                                      (1d - percent);
-                                }, 0.7d, 250),
-                                ModAnimation.AaX(doubleStack, -50, 200, (int)Math.Round(delay),
-                                    new ModAnimation.AniEaseInFluent()),
-                                ModAnimation.AaOpacity(doubleStack, -1, 150, (int)Math.Round(delay)),
-                                ModAnimation.AaCode(() => doubleStackTag[0] = false,
-                                    (int)Math.Round(delay)),
-                                ModAnimation.AaHeight(doubleStack, -26, 100, ease: new ModAnimation.AniEaseOutFluent(),
-                                    after: true),
-                                ModAnimation.AaCode(() => frmMain.PanHint.Children.Remove(doubleStack), after: true)
-                            },
-                            $"Hint Hide {doubleStackTag[1]}");
-                    }
-                }
-                else
-                {
-                    // 准备控件
-                    var newHintTag = new object[] { true, ModBase.GetUuid() };
-                    var newHintControl = new Border
-                    {
-                        Tag = newHintTag, Margin = new Thickness(-70, 0d, 20d, 0d),
-                        Opacity = 0d,
-                        Height = 0d, HorizontalAlignment = HorizontalAlignment.Left,
-                        CornerRadius = new CornerRadius(0d, 6d, 6d, 0d),
-                        Background = new LinearGradientBrush(
-                            new GradientStopCollection(new List<GradientStop>
-                            {
-                                new(targetColor0 * percent + new ModBase.MyColor(255d, 255d, 255d) * (1d - percent),
-                                    0d),
-                                new(targetColor1 * percent + new ModBase.MyColor(255d, 255d, 255d) * (1d - percent), 1d)
-                            }), 90d),
-                        Child = new TextBlock
-                        {
-                            TextTrimming = TextTrimming.CharacterEllipsis, FontSize = 13d, Text = currentHint.Text,
-                            Foreground = new ModBase.MyColor(255d, 255d, 255d), Margin = new Thickness(33d, 5d, 8d, 5d)
-                        }
-                    };
-                    // AddHandler NewHintControl.MouseLeftButtonDown, AddressOf HideAllHint
-                    frmMain.PanHint.Children.Add(newHintControl);
-                    // 控件动画
-                    var animations = new List<ModAnimation.AniData>();
-                    if (frmMain.PanHint.Children.Count > 1)
-                        // 已有提示
-                        animations.Add(ModAnimation.AaHeight(newHintControl, 26d, 150,
-                            ease: new ModAnimation.AniEaseOutFluent()));
-                    else
-                        // 是唯一提示
-                        newHintControl.Height = 26d;
-                    // 开始动画
-                    animations.AddRange([
-                        ModAnimation.AaX(newHintControl, 30d,
-                            ease: new ModAnimation.AniEaseOutElastic(ModAnimation.AniEasePower.Weak)),
-                        ModAnimation.AaX(newHintControl, 20d, 200, ease: new ModAnimation.AniEaseOutFluent()),
-                        ModAnimation.AaOpacity(newHintControl, 1d, 100),
-                        ModAnimation.AaDouble(i =>
-                        {
-                            percent += (double)i;
-                            var gradient = (LinearGradientBrush)newHintControl.Background;
-                            gradient.GradientStops[0].Color = targetColor0 * percent +
-                                                              new ModBase.MyColor(255d, 255d, 255d) * (1d - percent);
-                            gradient.GradientStops[1].Color = targetColor1 * percent +
-                                                              new ModBase.MyColor(255d, 255d, 255d) * (1d - percent);
-                        }, 0.7d, 250, 100)
-                    ]);
-                    ModAnimation.AniStart(animations, $"Hint Show {newHintTag[1]}");
-                    // 结束动画
-                    var delay = (800d + ModBase.MathClamp(currentHint.Text!.Length, 5d, 23d) * 180d) *
-                                ModAnimation.aniSpeed;
-                    ModAnimation.AniStart(
-                        new[]
-                        {
-                            ModAnimation.AaX(newHintControl, -50, 200, (int)Math.Round(delay),
-                                new ModAnimation.AniEaseInFluent()),
-                            ModAnimation.AaOpacity(newHintControl, -1, 150, (int)Math.Round(delay)),
-                            ModAnimation.AaCode(() => newHintTag[0] = false, (int)Math.Round(delay)),
-                            ModAnimation.AaHeight(newHintControl, -26, 100, ease: new ModAnimation.AniEaseOutFluent(),
-                                after: true),
-                            ModAnimation.AaCode(() => frmMain.PanHint.Children.Remove(newHintControl), after: true)
-                        }, $"Hint Hide {newHintTag[1]}");
-                }
-
-                // 结束处理
-                EndHint: ;
-
-                if (currentHint.Log)
-                    ModBase.Log("[UI] 弹出提示：" + currentHint.Text);
-                HintWaiting.RemoveAt(0);
-            }
-        }
-        catch (Exception ex)
-        {
-            ModBase.Log(ex, "显示弹出提示失败", ModBase.LogLevel.Normal);
-        }
-    }
-
-    private static void HideAllHint()
-    {
-        foreach (Border control in frmMain!.PanHint.Children)
-        {
-            var controlTag = (object[])control.Tag;
-            control.IsHitTestVisible = false;
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaX(control, -50, 200, ease: new ModAnimation.AniEaseInFluent()),
-                    ModAnimation.AaOpacity(control, -1, 150, ease: new ModAnimation.AniEaseInFluent()),
-                    ModAnimation.AaCode(() => controlTag[0] = false),
-                    ModAnimation.AaHeight(control, -26, 100, ease: new ModAnimation.AniEaseOutFluent(), after: true),
-                    ModAnimation.AaCode(() => frmMain.PanHint.Children.Remove(control), after: true)
-                }, $"Hint Hide {controlTag[1]}");
-        }
-    }
-
-    #endregion
 
     #region 弹窗
 
@@ -476,7 +233,6 @@ public static class ModMain
     public class MyMsgBoxConverter
     {
         // 设置轮询 Url
-        public object AuthUrl = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
         public string Button1 = "";
 
         /// <summary>
@@ -505,7 +261,21 @@ public static class ModMain
         /// </summary>
         public object Content;
 
+        /// <summary>
+        /// Optional provider-specific device-code polling callback used by OAuth providers other than Microsoft.
+        /// </summary>
+        public Func<JsonObject, CancellationToken, Task<AuthorizeResult?>> DeviceCodePoll;
+
+        public Func<AuthorizeResult, CancellationToken, Task>? LoginResultHandler;
+
+        public Action<object>? CompletionHandler;
+
         public bool ForceWait;
+
+        /// <summary>
+        ///     选择模式：是否允许勾选多个选项
+        /// </summary>
+        public bool MultiSelect;
 
         /// <summary>
         ///     有多个按钮时，是否给第一个按钮加高亮。
@@ -541,6 +311,9 @@ public static class ModMain
         public Collection<IValidator<string>> ValidateRules;
 
         public DispatcherFrame WaitFrame = new(true);
+
+        public string AuthServerDefault = "";
+        public IReadOnlyDictionary<string, string>? AuthServerPresets;
     }
 
     public enum MyMsgBoxType
@@ -548,6 +321,7 @@ public static class ModMain
         Text,
         Select,
         Input,
+        AuthServer,
         Login,
         Markdown
     }
@@ -789,6 +563,33 @@ public static class ModMain
         return converter.Result?.ToString();
     }
 
+    public static string MyMsgBoxAuthServer(string defaultServer, IReadOnlyDictionary<string, string> presets,
+        string? title = null)
+    {
+        var converter = new MyMsgBoxConverter
+        {
+            Type = MyMsgBoxType.AuthServer,
+            Title = title ?? Lang.Text("Launch.Account.Auth.SelectServer"),
+            Button1 = GetDefaultConfirmText(),
+            Button2 = GetDefaultCancelText(),
+            AuthServerDefault = defaultServer,
+            AuthServerPresets = presets,
+            ForceWait = true
+        };
+        WaitingMyMsgBox.Add(converter);
+        try
+        {
+            frmMain?.DragStop();
+            ComponentDispatcher.PushModal();
+            Dispatcher.PushFrame(converter.WaitFrame);
+        }
+        finally
+        {
+            ComponentDispatcher.PopModal();
+        }
+        return converter.Result?.ToString() ?? string.Empty;
+    }
+
     /// <summary>
     ///     显示选择框并返回选择的第几项（从 0 开始）。若点击第二个按钮，则返回 Nothing。
     /// </summary>
@@ -826,6 +627,44 @@ public static class ModMain
         return (int?)converter.Result;
     }
 
+    /// <summary>
+    ///     显示多选选择框并返回勾选的所有项索引（从 0 开始）。若点击第二个按钮，则返回 Nothing。
+    /// </summary>
+    /// <param name="selections">需要展示的可勾选列表项。</param>
+    /// <param name="title">弹窗的标题。</param>
+    /// <param name="button1">显示的第一个按钮，默认为 “确定”。</param>
+    /// <param name="button2">显示的第二个按钮，默认为空。</param>
+    /// <param name="isWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
+    public static List<int>? MyMsgBoxMultiSelect(List<MyListItem> selections, string? title = null,
+        string? button1 = null, string? button2 = "", bool isWarn = false)
+    {
+        title ??= GetDefaultDialogTitle();
+        button1 ??= GetDefaultConfirmText();
+        button2 ??= "";
+        // 将弹窗列入队列
+        var converter = new MyMsgBoxConverter
+        {
+            Type = MyMsgBoxType.Select, MultiSelect = true, Button1 = button1, Button2 = button2, Content = selections,
+            IsWarn = isWarn, Title = title
+        };
+        WaitingMyMsgBox.Add(converter);
+        // 虽然我也不知道这是啥但是能用就成了 :)
+        try
+        {
+            if (frmMain is not null)
+                frmMain.DragStop();
+            ComponentDispatcher.PushModal();
+            Dispatcher.PushFrame(converter.WaitFrame);
+        }
+        finally
+        {
+            ComponentDispatcher.PopModal();
+        }
+
+        ModBase.Log($"[Control] 多选弹框返回：{converter.Result ?? "null"}");
+        return (List<int>?)converter.Result;
+    }
+
 
     public static void MyMsgBoxTick()
     {
@@ -852,6 +691,11 @@ public static class ModMain
                     case MyMsgBoxType.Select:
                     {
                         frmMain.PanMsg.Children.Add(new MyMsgSelect(WaitingMyMsgBox[0]));
+                        break;
+                    }
+                    case MyMsgBoxType.AuthServer:
+                    {
+                        frmMain.PanMsg.Children.Add(new MyMsgAuthServer(WaitingMyMsgBox[0]));
                         break;
                     }
                     case MyMsgBoxType.Text:
@@ -881,7 +725,11 @@ public static class ModMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "处理等待中的弹窗失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "处理等待中的弹窗失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
 
@@ -899,333 +747,6 @@ public static class ModMain
 
         result = MyMsgBox(message, caption, btnText1, btnText2, btnText3, isWarn, forceWait: block,
             button1Action: btnAct1, button2Action: btnAct2, button3Action: btnAct3);
-    }
-
-    #endregion
-
-    #region 页面声明
-
-    // 在最后进行页面声明，避免颜色尚未加载完毕
-
-    // 窗体声明
-
-
-    // 页面声明（出于单元测试考虑，初始化页面已转入 FormMain 中）
-
-
-    // 工具页面声明
-
-
-    // 下载页面声明
-
-
-    // 设置页面声明
-
-
-    // 登录页面声明
-
-
-    // 实例设置页面声明
-
-
-    // 实例存档页面
-
-
-    // 资源信息分页声明
-    
-    #endregion
-
-    #region 帮助
-
-    public class HelpEntry
-    {
-        /// <summary>
-        ///     显示描述。
-        /// </summary>
-        public string Desc;
-
-        public string EventData;
-        public string EventType;
-
-        // 动作
-
-        /// <summary>
-        ///     是否为 “执行事件”。
-        /// </summary>
-        public bool IsEvent;
-
-        // 显示（可选）
-
-        /// <summary>
-        ///     帮助项的自定义图标。可能为 Nothing。
-        /// </summary>
-        public string Logo;
-
-        /// <summary>
-        ///     原始信息路径。用于刷新。
-        /// </summary>
-        public string RawPath;
-
-        /// <summary>
-        ///     检索关键字。
-        /// </summary>
-        public string Search;
-
-        /// <summary>
-        ///     是否在公开版的 PCL 中显示（这会影响主页与搜索）。默认为 True。
-        /// </summary>
-        public bool ShowInPublic = true;
-
-        /// <summary>
-        ///     是否显示在搜索结果。默认为 True。
-        /// </summary>
-        public bool ShowInSearch = true;
-
-        /// <summary>
-        ///     是否在快照版的 PCL 中显示（这会影响主页与搜索）。默认为 True。
-        /// </summary>
-        public bool ShowInSnapshot = true;
-
-        // 基础
-
-        /// <summary>
-        ///     显示标题。
-        /// </summary>
-        public string Title;
-
-        /// <summary>
-        ///     用于分类的标签列表。
-        /// </summary>
-        public List<string> Types;
-
-        /// <summary>
-        ///     若非执行事件，其对应的 .xaml 本地文件内容。
-        /// </summary>
-        public string XamlContent;
-
-        // 转换
-
-        /// <summary>
-        ///     从文件初始化 HelpEntry 对象，失败会抛出异常。
-        /// </summary>
-        public HelpEntry(string filePath)
-        {
-            RawPath = filePath;
-            var jsonData = (JsonObject)ModBase.GetJson(ModMain.ArgumentReplace(ModBase.ReadFile(filePath)));
-            if (jsonData is null)
-                throw new FileNotFoundException("未找到帮助文件：" + filePath, filePath);
-            // 加载常规信息
-            if (jsonData["Title"] is not null)
-                Title = (string)jsonData["Title"];
-            else
-                throw new ArgumentException("未找到 Title 项");
-            Desc = (string)(jsonData["Description"] ?? "");
-            Search = (string)(jsonData["Keywords"] ?? "");
-            Logo = (string)jsonData["Logo"]; // 为保持 Nothing，不要加 If
-            ShowInSearch = (bool)(jsonData["ShowInSearch"] ?? ShowInSearch);
-            ShowInPublic = (bool)(jsonData["ShowInPublic"] ?? ShowInPublic);
-            ShowInSnapshot = (bool)(jsonData["ShowInSnapshot"] ?? ShowInSnapshot);
-            Types = new List<string>();
-            foreach (var nameOfType in (IEnumerable)(jsonData["Types"] ?? ModBase.GetJson("[]")))
-                Types.Add(nameOfType.ToString());
-            // 加载事件信息
-            if ((bool)(jsonData["IsEvent"] ?? false))
-            {
-                EventType = Enum.Parse(typeof(CustomEvent.EventType), jsonData["EventType"].ToString()).ToString();
-                EventData = (jsonData["EventData"] ?? "").ToString();
-                IsEvent = true;
-            }
-            else
-            {
-                var xamlAddress = filePath.ToLower().Replace(".json", ".xaml");
-                if (File.Exists(xamlAddress))
-                {
-                    XamlContent = ModBase.ReadFile(xamlAddress);
-                    IsEvent = false;
-                }
-                else
-                {
-                    throw new FileNotFoundException("未找到帮助条目 .json 对应的 .xaml 文件（" + xamlAddress + "）");
-                }
-            }
-        }
-
-        /// <summary>
-        ///     获取该 HelpEntry 对应的 MyListItem。
-        /// </summary>
-        public MyListItem ToListItem()
-        {
-            return SetToListItem(new MyListItem());
-        }
-
-        /// <summary>
-        ///     将属性设置入一个现有的 ListItem。
-        /// </summary>
-        public MyListItem SetToListItem(MyListItem item)
-        {
-            string logoPath;
-            if (IsEvent)
-            {
-                if (EventType == "弹出窗口")
-                    logoPath = ModBase.pathImage + "Blocks/GrassPath.png";
-                else
-                    logoPath = ModBase.pathImage + "Blocks/CommandBlock.png";
-            }
-            else
-            {
-                logoPath = ModBase.pathImage + "Blocks/Grass.png";
-            }
-
-            // 设置属性
-            item.SnapsToDevicePixels = true;
-            item.Title = Title;
-            item.Info = Desc;
-            item.Logo = this.Logo ?? logoPath;
-            item.Height = 42d;
-            item.Type = MyListItem.CheckType.Clickable;
-            item.Tag = this;
-            CustomEventService.SetEventType(item, CustomEvent.EventType.None); //清空自定义事件属性，它们会被下面的点击事件处理
-            CustomEventService.SetEventData(item, null);
-            // 项目的点击事件
-            item.Click += (sender, e) => PageToolsHelp.OnItemClick((HelpEntry)((MyListItem)sender).Tag);
-            return item;
-        }
-    }
-
-
-    private static readonly object helpLoadLock = new();
-
-    /// <summary>
-    ///     初始化帮助列表对象。
-    /// </summary>
-    private static void HelpLoad(ModLoader.LoaderTask<int, List<HelpEntry>> loader)
-    {
-        lock (helpLoadLock) // 避免重复解压文件导致出错
-        {
-            try
-            {
-                // 解压内置文件
-                HelpExtract();
-
-                // 遍历文件
-                var fileList = new List<string>();
-                try
-                {
-                    var ignoreList = new List<string>();
-                    // 读取自定义文件
-                    if (Directory.Exists(ModBase.exePath + @"PCL\Help\"))
-                        foreach (var file in ModBase.EnumerateFiles(ModBase.exePath + @"PCL\Help\"))
-                            switch (file.Extension.ToLower() ?? "")
-                            {
-                                case ".helpignore":
-                                {
-                                    // 加载忽略列表
-                                    ModBase.Log("[Help] 发现 .helpignore 文件：" + file.FullName);
-                                    foreach (var line in ModBase.ReadFile(file.FullName)
-                                                 .Split("\r\n".ToCharArray()))
-                                    {
-                                        var realString = line.BeforeFirst("#").Trim();
-                                        if (string.IsNullOrWhiteSpace(realString))
-                                            continue;
-                                        ignoreList.Add(realString);
-                                        if (ModBase.modeDebug)
-                                            ModBase.Log("[Help]  > " + realString);
-                                    }
-
-                                    break;
-                                }
-                                case ".json":
-                                {
-                                    fileList.Add(file.FullName);
-                                    break;
-                                }
-                            }
-
-                    ModBase.Log("[Help] 已扫描 PCL 文件夹下的帮助文件，目前总计 " + fileList.Count + " 条");
-                    // 读取自带文件
-                    foreach (var file in ModBase.EnumerateFiles(ModBase.pathHelpFolder))
-                    {
-                        // 跳过非 Json 文件与以 . 开头的文件夹
-                        if (file.Extension.ToLower() != ".json" || file.Directory.FullName
-                                .Replace(ModBase.pathHelpFolder.TrimEnd('\\'), "").Contains(@"\."))
-                            continue;
-                        // 检查忽略列表
-                        var realPath = file.FullName.Replace(ModBase.pathHelpFolder.TrimEnd('\\'), "");
-                        foreach (var ignore in ignoreList)
-                            if (realPath.RegexCheck(ignore))
-                            {
-                                if (ModBase.modeDebug)
-                                    ModBase.Log("[Help] 已忽略 " + realPath + "：" + ignore);
-                                goto NextFile;
-                            }
-
-                        fileList.Add(file.FullName);
-                        NextFile: ;
-                    }
-
-                    ModBase.Log("[Help] 已扫描缓存文件夹下的帮助文件，目前总计 " + fileList.Count + " 条");
-                }
-                catch (Exception ex)
-                {
-                    ModBase.Log(ex, "检查帮助文件夹失败", ModBase.LogLevel.Msgbox);
-                }
-
-                if (loader.IsAborted)
-                    return;
-
-                // 将文件实例化
-                var dict = new List<HelpEntry>();
-                foreach (var filePath in fileList)
-                    try
-                    {
-                        var entry = new HelpEntry(filePath);
-                        dict.Add(entry);
-                        if (ModBase.modeDebug)
-                            ModBase.Log("[Help] 已加载的帮助条目：" + entry.Title + " ← " + filePath);
-                    }
-                    catch (Exception ex)
-                    {
-                        ModBase.Log(ex, "初始化帮助条目失败（" + filePath + "）", ModBase.LogLevel.Msgbox);
-                    }
-
-                // 回设
-                if (!dict.Any())
-                    throw new Exception("未找到可用的帮助；若不需要帮助页面，可以在 设置 → 个性化 → 功能隐藏 中将其隐藏");
-                if (loader.IsAborted)
-                    return;
-                loader.output = dict;
-            }
-
-            catch (Exception ex)
-            {
-                ModBase.Log(ex, "帮助列表初始化失败");
-                throw;
-            }
-        }
-    }
-
-    /// <summary>
-    ///     解压内置帮助文件。
-    /// </summary>
-    public static void HelpExtract()
-    {
-        ModBase.DeleteDirectory(ModBase.pathTemp + @"CE\Help");
-        Directory.CreateDirectory(ModBase.pathTemp + @"CE\Help");
-        ModBase.WriteFile(ModBase.pathTemp + @"CE\Cache\Help.zip", ModBase.GetResourceStream("Resources/Help.zip"));
-        ModBase.ExtractFile(ModBase.pathTemp + @"CE\Cache\Help.zip", ModBase.pathTemp + @"CE\Help", Encoding.UTF8);
-        ModBase.Log("[Help] 已解压内置帮助文件，目前状态：" + File.Exists(ModBase.pathTemp + @"CE\Help\启动器\备份设置.xaml"),
-            ModBase.LogLevel.Debug);
-    }
-
-    /// <summary>
-    ///     对帮助文件约定的替换标记进行处理，如果遇到需要转义的字符会进行转义。
-    /// </summary>
-    public static string HelpArgumentReplace(string xaml)
-    {
-        var result = xaml.Replace("{path}", ModBase.EscapeXML(ModBase.exePath));
-        result = result.RegexReplaceEach(@"\{hint\}", _ => ModBase.EscapeXML(PageToolsTest.GetRandomHint()));
-        result = result.RegexReplaceEach(@"\{cave\}", _ => ModBase.EscapeXML(PageToolsTest.GetRandomCave()));
-        return result;
     }
 
     #endregion
@@ -1353,22 +874,22 @@ public static class ModMain
                 {
                     case 0:
                     {
-                        Hint("放弃吧！只需要点一下右下角的小白旗……");
+                        HintService.Hint("放弃吧！只需要点一下右下角的小白旗……");
                         break;
                     }
                     case 1:
                     {
-                        Hint("看到右下角的那面小白旗了吗？");
+                        HintService.Hint("看到右下角的那面小白旗了吗？");
                         break;
                     }
                     case 2:
                     {
-                        Hint("这里建议点一下右下角的小白旗投降呢.jpg");
+                        HintService.Hint("这里建议点一下右下角的小白旗投降呢.jpg");
                         break;
                     }
                     case 3:
                     {
-                        Hint("右下角的小白旗永远等着你……");
+                        HintService.Hint("右下角的小白旗永远等着你……");
                         break;
                     }
                 }
@@ -1377,7 +898,11 @@ public static class ModMain
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "愚人节移动出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "愚人节移动出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
 
@@ -1397,7 +922,11 @@ public static class ModMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "设置窗口置顶失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "设置窗口置顶失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
 
@@ -1485,23 +1014,23 @@ public static class ModMain
     
     // Minecraft
     text = text.Replace("{java}", replacer(ModLaunch.mcLaunchJavaSelected?.Installation.JavaFolder));
-    text = text.Replace("{minecraft}", replacer(ModMinecraft.mcFolderSelected));
+    text = text.Replace("{minecraft}", replacer(ModFolder.mcFolderSelected));
     
-    if (ModMinecraft.McInstanceSelected is not null)
+    if (ModInstanceList.McMcInstanceSelected is not null)
     {
-        text = text.Replace("{version_path}", replacer(ModMinecraft.McInstanceSelected.PathInstance));
-        text = text.Replace("{verpath}", replacer(ModMinecraft.McInstanceSelected.PathInstance));
-        text = text.Replace("{version_indie}", replacer(ModMinecraft.McInstanceSelected.PathIndie));
-        text = text.Replace("{verindie}", replacer(ModMinecraft.McInstanceSelected.PathIndie));
-        text = text.Replace("{name}", replacer(ModMinecraft.McInstanceSelected.Name));
+        text = text.Replace("{version_path}", replacer(ModInstanceList.McMcInstanceSelected.PathInstance));
+        text = text.Replace("{verpath}", replacer(ModInstanceList.McMcInstanceSelected.PathInstance));
+        text = text.Replace("{version_indie}", replacer(ModInstanceList.McMcInstanceSelected.PathIndie));
+        text = text.Replace("{verindie}", replacer(ModInstanceList.McMcInstanceSelected.PathIndie));
+        text = text.Replace("{name}", replacer(ModInstanceList.McMcInstanceSelected.Name));
         
-        if (new[] { "unknown", "old", "pending" }.Contains(ModMinecraft.McInstanceSelected.Info.VanillaName))
+        if (new[] { "unknown", "old", "pending" }.Contains(ModInstanceList.McMcInstanceSelected.Info.VanillaName))
         {
-            text = text.Replace("{version}", replacer(ModMinecraft.McInstanceSelected.Name));
+            text = text.Replace("{version}", replacer(ModInstanceList.McMcInstanceSelected.Name));
         }
         else
         {
-            text = text.Replace("{version}", replacer(ModMinecraft.McInstanceSelected.Info.VanillaName));
+            text = text.Replace("{version}", replacer(ModInstanceList.McMcInstanceSelected.Info.VanillaName));
         }
     }
     else
@@ -1546,7 +1075,7 @@ public static class ModMain
     text = ModBase.RegexReplaceEach(text, @"\{setup:([a-zA-Z0-9]+)\}", m =>
     {
         if (ConfigService.TryGetConfigItemNoType(m.Groups[1].Value, out var item) && item.Source != ConfigSource.SharedEncrypt)
-            return replacer(item.GetValueNoType(ModMinecraft.McInstanceSelected?.PathInstance)?.ToString() ?? "");
+            return replacer(item.GetValueNoType(ModInstanceList.McMcInstanceSelected?.PathInstance)?.ToString() ?? "");
         return replacer("");
     });
     text = ModBase.RegexReplaceEach(text, @"\{varible:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));
@@ -1635,7 +1164,7 @@ public static class ModMain
         // 收集事件列表
         var events = CustomEventService.GetEvents(control).ToList();
         var eventType = CustomEventService.GetEventType(control);
-        if (eventType != CustomEvent.EventType.None)
+        if (eventType != EventType.None)
             events.Add(new CustomEvent(eventType, CustomEventService.GetEventData(control)));
 
         if (!events.Any()) return;

@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.App.Tasks;
+namespace PCL.Core.App.Tasks;
 
 /// <summary>
 /// 任务进度改变事件

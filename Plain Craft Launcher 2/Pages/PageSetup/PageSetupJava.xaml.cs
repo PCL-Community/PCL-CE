@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -34,7 +34,11 @@ public partial class PageSetupJava
 
     private void Load_GetJavaList(ModLoader.LoaderTask<bool, List<JavaEntry>> loader)
     {
-        if (loader.input) JavaService.JavaManager.ScanJavaAsync().GetAwaiter().GetResult();
+        if (loader.input || loader.isForceRestarting)
+        {
+            JavaService.JavaManager.ScanJavaAsync(force: true).GetAwaiter().GetResult();
+            JavaService.JavaManager.CheckAllAvailability();
+        }
         loader.output = ModJava.Javas.GetSortedJavaList();
     }
 
@@ -44,8 +48,8 @@ public partial class PageSetupJava
         var itemAuto = new MyListItem
         {
             Type = MyListItem.CheckType.RadioBox,
-            Title = Lang.Text("Setup.Launch.Java.AutoSelect.Title"),
-            Info = Lang.Text("Setup.Launch.Java.AutoSelect.Info")
+            Title = Lang.Text("Setup.Java.AutoSelect.Title"),
+            Info = Lang.Text("Setup.Java.AutoSelect.Info")
         };
         itemAuto.Check += (sender, e) => Config.Launch.SelectedJava = "";
         PanContent.Children.Add(itemAuto);
@@ -82,7 +86,7 @@ public partial class PageSetupJava
         {
             if (!j.Installation.IsStillAvailable)
             {
-                ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
+                HintService.Hint(Lang.Text("Setup.Java.Unavailable"));
                 return;
             }
 
@@ -90,43 +94,43 @@ public partial class PageSetupJava
                 Config.Launch.SelectedJava = j.Installation.JavaExePath;
             else
             {
-                ModMain.Hint(Lang.Text("Setup.Launch.Java.EnableBeforeSelect"));
+                HintService.Hint(Lang.Text("Setup.Java.EnableBeforeSelect"));
                 e.handled = true;
             }
         };
         var btnOpenFolder = new MyIconButton();
-        btnOpenFolder.Logo = Icon.IconButtonOpen;
+        btnOpenFolder.SvgIcon = "lucide/folder-open";
         btnOpenFolder.ToolTip = Lang.Text("Common.Action.Open");
         btnOpenFolder.Click += (sender, e) =>
         {
             if (!j.Installation.IsStillAvailable)
             {
-                ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
+                HintService.Hint(Lang.Text("Setup.Java.Unavailable"));
                 return;
             }
 
             ModBase.OpenExplorer(j.Installation.JavaFolder);
         };
         var btnInfo = new MyIconButton();
-        btnInfo.Logo = Icon.IconButtonInfo;
-        btnInfo.ToolTip = Lang.Text("Setup.Launch.Java.Detail.ToolTip");
+        btnInfo.SvgIcon = "lucide/info";
+        btnInfo.ToolTip = Lang.Text("Setup.Java.Detail.ToolTip");
         btnInfo.Click += (sender, e) =>
         {
             if (!j.Installation.IsStillAvailable)
             {
-                ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
+                HintService.Hint(Lang.Text("Setup.Java.Unavailable"));
                 return;
             }
 
             ModMain.MyMsgBox(
-                Lang.Text("Setup.Launch.Java.Info.Format",
+                Lang.Text("Setup.Java.Info.Format",
                     versionTypeDesc,
                     j.Installation.Version.ToString(),
                     j.Installation.Architecture.ToString(),
                     displayBits,
                     displayBrand,
                     j.Installation.JavaFolder),
-                Lang.Text("Setup.Launch.Java.Info.Title"));
+                Lang.Text("Setup.Java.Info.Title"));
         };
         var btnEnableSwitch = new MyIconButton();
         
@@ -136,7 +140,7 @@ public partial class PageSetupJava
         {
             if (!j.Installation.IsStillAvailable)
             {
-                ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
+                HintService.Hint(Lang.Text("Setup.Java.Unavailable"));
                 return;
             }
 
@@ -144,15 +148,15 @@ public partial class PageSetupJava
             {
                 item.LabTitle.TextDecorations = null;
                 item.LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrush1");
-                btnEnableSwitch.Logo = Icon.IconButtonDisable;
-                btnEnableSwitch.ToolTip = Lang.Text("Setup.Launch.Java.Disable");
+                btnEnableSwitch.SvgIcon = "lucide/circle-minus";
+                btnEnableSwitch.ToolTip = Lang.Text("Setup.Java.Disable");
             }
             else
             {
                 item.LabTitle.TextDecorations = TextDecorations.Strikethrough;
                 item.LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrushGray4");
-                btnEnableSwitch.Logo = Icon.IconButtonEnable;
-                btnEnableSwitch.ToolTip = Lang.Text("Setup.Launch.Java.Enable");
+                btnEnableSwitch.SvgIcon = "lucide/circle-check";
+                btnEnableSwitch.ToolTip = Lang.Text("Setup.Java.Enable");
             }
         }
         
@@ -163,13 +167,13 @@ public partial class PageSetupJava
                 var target = ModJava.Javas.AddOrGet(j.Installation.JavaExePath);
                 if (target is null)
                 {
-                    ModMain.Hint(Lang.Text("Setup.Launch.Java.Unavailable"));
+                    HintService.Hint(Lang.Text("Setup.Java.Unavailable"));
                     return;
                 }
 
                 if (target.IsEnabled && Config.Launch.SelectedJava == target.Installation.JavaExePath)
                 {
-                    ModMain.Hint(Lang.Text("Setup.Launch.Java.DeselectBeforeDisable"));
+                    HintService.Hint(Lang.Text("Setup.Java.DeselectBeforeDisable"));
                     return;
                 }
 
@@ -179,7 +183,11 @@ public partial class PageSetupJava
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Setup.Launch.Java.EnableFailed"), ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Setup.Java.EnableFailed"),
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Setup.Java.EnableFailed"));
             }
         };
         UpdateEnableStyle(j.IsEnabled);
@@ -189,11 +197,11 @@ public partial class PageSetupJava
 
     private void BtnAdd_Click(object sender, ModBase.RouteEventArgs e)
     {
-        var ret = SystemDialogs.SelectFile(Lang.Text("Setup.Launch.Java.SelectFile.Filter"), Lang.Text("Setup.Launch.Java.SelectFile.Title"));
+        var ret = SystemDialogs.SelectFile(Lang.Text("Setup.Java.SelectFile.Filter"), Lang.Text("Setup.Java.SelectFile.Title"));
         if (string.IsNullOrEmpty(ret) || !File.Exists(ret))
             return;
         if (ModJava.Javas.Exist(ret))
-            ModMain.Hint(Lang.Text("Setup.Launch.Java.AlreadyExists"));
+            HintService.Hint(Lang.Text("Setup.Java.AlreadyExists"));
         else
             Dispatcher.BeginInvoke(new Action(async () =>
             {
@@ -204,12 +212,12 @@ public partial class PageSetupJava
                 });
                 if (ModJava.Javas.Exist(ret))
                 {
-                    ModMain.Hint(Lang.Text("Setup.Launch.Java.Added"), ModMain.HintType.Finish);
+                    HintService.Hint(Lang.Text("Setup.Java.Added"), HintType.Success);
                     loader.Start(true, true);
                 }
                 else
                 {
-                    ModMain.Hint(Lang.Text("Setup.Launch.Java.AddFailed"), ModMain.HintType.Critical);
+                    HintService.Hint(Lang.Text("Setup.Java.AddFailed"), HintType.Error);
                 }
             }));
     }

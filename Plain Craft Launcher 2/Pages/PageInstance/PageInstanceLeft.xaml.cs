@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
@@ -10,7 +10,7 @@ public partial class PageInstanceLeft : IRefreshable
     /// <summary>
     ///     当前显示设置的 MC 实例。
     /// </summary>
-    public static ModMinecraft.Instance instance = null;
+    public static McInstance McInstance = null;
 
     public PageInstanceLeft()
     {
@@ -27,7 +27,7 @@ public partial class PageInstanceLeft : IRefreshable
     {
         var hide = Config.Preference.Hide;
 
-        if (instance is not null && instance.Modable)
+        if (McInstance is not null && McInstance.Modable)
         {
             ItemMod.Visibility = !PageSetupUI.HiddenForceShow && hide.InstanceMod
                 ? Visibility.Collapsed
@@ -112,7 +112,7 @@ public partial class PageInstanceLeft : IRefreshable
             }
             case FormMain.PageSubType.VersionScreenshot:
             {
-                var ignore= PageInstanceScreenshot.Refresh();
+                var ignore= PageInstanceScreenshot.RefreshAsync();
                 break;
             }
             case FormMain.PageSubType.VersionWorld:
@@ -144,8 +144,6 @@ public partial class PageInstanceLeft : IRefreshable
                 ModDownload.dlLiteLoaderListLoader.Start(isForceRestart: true);
                 ModDownload.dlFabricListLoader.Start(isForceRestart: true);
                 ModDownload.dlFabricApiLoader.Start(isForceRestart: true);
-                ModDownload.dlQuiltListLoader.Start(isForceRestart: true);
-                ModDownload.dlQSLLoader.Start(isForceRestart: true);
                 ModDownload.dlOptiFabricLoader.Start(isForceRestart: true);
                 ModDownload.dlLabyModListLoader.Start(isForceRestart: true);
                 ItemInstall.Checked = true;
@@ -224,6 +222,12 @@ public partial class PageInstanceLeft : IRefreshable
                     ModMain.frmInstanceModDisabled = new PageInstanceModDisabled();
                 return ModMain.frmInstanceModDisabled;
             }
+            case FormMain.PageSubType.VersionModJarInJar:
+            {
+                if (ModMain.frmInstanceModJarInJar is null)
+                    ModMain.frmInstanceModJarInJar = new PageInstanceCompJarInJar();
+                return ModMain.frmInstanceModJarInJar;
+            }
             case FormMain.PageSubType.VersionSetup:
             {
                 if (ModMain.frmInstanceSetup is null)
@@ -301,7 +305,11 @@ public partial class PageInstanceLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换分页面失败（ID " + (int)id + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "切换分页面失败（ID " + (int)id + "）",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Error.OperationFailed"));
         }
         finally
         {

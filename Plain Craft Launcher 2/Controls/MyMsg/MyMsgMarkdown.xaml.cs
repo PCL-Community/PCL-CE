@@ -1,9 +1,10 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using PCL.Core.UI.Controls;
 
+using PCL.Core.App.Localization;
 namespace PCL;
 
 public partial class MyMsgMarkdown
@@ -16,6 +17,7 @@ public partial class MyMsgMarkdown
         try
         {
             InitializeComponent();
+            CommandBindings.Add(new CommandBinding(Markdig.Wpf.Commands.Hyperlink, _OpenHyperlink));
             AppendUniqueNameSuffix(Btn1);
             AppendUniqueNameSuffix(Btn2);
             AppendUniqueNameSuffix(Btn3);
@@ -31,7 +33,11 @@ public partial class MyMsgMarkdown
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "普通弹窗初始化失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "普通弹窗初始化失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Application.Control.MessageBox.Error.OperationFailed"));
         }
 
         Loaded += Load;
@@ -40,6 +46,20 @@ public partial class MyMsgMarkdown
     private void AppendUniqueNameSuffix(FrameworkElement element)
     {
         element.Name += ModBase.GetUuid();
+    }
+
+    private static void _OpenHyperlink(object sender, ExecutedRoutedEventArgs e)
+    {
+        var url = e.Parameter?.ToString();
+        if (string.IsNullOrWhiteSpace(url))
+            return;
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)
+            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        {
+            ModBase.Log("[Control] 已忽略非 http(s) 的 Markdown 链接：" + url, ModBase.LogLevel.Developer);
+            return;
+        }
+        ModBase.OpenWebsite(url);
     }
 
     private void ConfigurePrimaryButton(string text, bool isWarn)
@@ -90,7 +110,11 @@ public partial class MyMsgMarkdown
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "普通弹窗加载失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "普通弹窗加载失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Application.Control.MessageBox.Error.OperationFailed"));
         }
     }
 
@@ -178,7 +202,11 @@ public partial class MyMsgMarkdown
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "拖拽移动失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "拖拽移动失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Application.Control.MessageBox.Error.OperationFailed"));
         }
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.Data.Sqlite;
 using PCL.Core.IO.Storage.Cache.Model;
 using System;
+using System.Globalization;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -471,6 +472,16 @@ public class SqliteCacheStorage(string dbPath) : IDisposable
         cmd.Parameters.AddWithValue("@priority", e.Priority);
     }
 
+    // 数据库中的时间以 ISO-8601 往返格式（"O"，UTC 带 Z）写入；读取必须用 RoundtripKind 解析，
+    // 否则 DateTime.Parse 会把 UTC 转成本地时间并丢失 Kind，使其与 DateTime.UtcNow 的比较偏移一个
+    // 时区（例如 UTC+8 用户的缓存过期判断会差 8 小时，导致缓存过久失效/供应陈旧数据）。
+    // 用 TryParse 以容忍损坏/遗留数据：单行时间戳解析失败时回退到 MinValue（对过期判断即视为已过期、
+    // 对时间排序即视为最旧，均为 fail-safe），避免一行坏数据抛异常中断整个读取路径。
+    private static DateTime _ParseDateTime(string value) =>
+        DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var result)
+            ? result
+            : DateTime.MinValue;
+
     private static CacheEntry _ReadEntry(SqliteDataReader r) =>
         new()
         {
@@ -483,9 +494,9 @@ public class SqliteCacheStorage(string dbPath) : IDisposable
             FilePath = r.IsDBNull(6) ? null : r.GetString(6),
             ContentHash = r.IsDBNull(7) ? null : r.GetString(7),
             ContentVersion = r.GetInt32(8),
-            CachedAt = DateTime.Parse(r.GetString(9)),
-            LastAccessAt = DateTime.Parse(r.GetString(10)),
-            ExpiresAt = r.IsDBNull(11) ? null : DateTime.Parse(r.GetString(11)),
+            CachedAt = _ParseDateTime(r.GetString(9)),
+            LastAccessAt = _ParseDateTime(r.GetString(10)),
+            ExpiresAt = r.IsDBNull(11) ? null : _ParseDateTime(r.GetString(11)),
             HitCount = r.GetInt64(12),
             Tags = r.GetString(13),
             GroupName = r.GetString(14),
@@ -538,8 +549,8 @@ public class SqliteCacheStorage(string dbPath) : IDisposable
             JavaVersion = r.IsDBNull(16) ? null : r.GetInt32(16),
             SourceJsonHash = r.GetString(17),
             FormatVersion = r.GetInt32(18),
-            CachedAt = DateTime.Parse(r.GetString(19)),
-            LastLoadedAt = r.IsDBNull(20) ? null : DateTime.Parse(r.GetString(20)),
+            CachedAt = _ParseDateTime(r.GetString(19)),
+            LastLoadedAt = r.IsDBNull(20) ? null : _ParseDateTime(r.GetString(20)),
         };
     }
 
@@ -573,7 +584,7 @@ public class SqliteCacheStorage(string dbPath) : IDisposable
             RelativePath = r.GetString(3),
             FileHash = r.IsDBNull(4) ? null : r.GetString(4),
             FileSize = r.GetInt64(5),
-            LastModified = DateTime.Parse(r.GetString(6)),
+            LastModified = _ParseDateTime(r.GetString(6)),
             Enabled = r.GetInt32(7) != 0,
             ModName = r.IsDBNull(8) ? null : r.GetString(8),
             ModVersion = r.IsDBNull(9) ? null : r.GetString(9),
@@ -582,7 +593,7 @@ public class SqliteCacheStorage(string dbPath) : IDisposable
             ModLoader = r.IsDBNull(12) ? null : r.GetString(12),
             ModDependencies = r.IsDBNull(13) ? null : r.GetString(13),
             CacheVersion = r.GetInt32(14),
-            ScannedAt = DateTime.Parse(r.GetString(15)),
+            ScannedAt = _ParseDateTime(r.GetString(15)),
             ScanHash = r.IsDBNull(16) ? null : r.GetString(16),
         };
     }

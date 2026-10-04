@@ -1,4 +1,4 @@
-﻿<local:MyPageRight
+<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -29,11 +29,6 @@
                         <local:MyHint Text="{DynamicResource Download.Install.Warning.FabricApi}"
                                        Margin="0,1,0,7"
                                        x:Name="HintFabricAPI" IsWarn="True" />
-                        <local:MyHint
-                            Text="{DynamicResource Download.Install.Warning.Qsl}"
-                            Margin="0,1,0,7" x:Name="HintQSL" IsWarn="True" />
-                        <local:MyHint Text="{DynamicResource Download.Install.Warning.QuiltFabricApi}"
-                                      Margin="0,1,0,7" x:Name="HintQuiltFabricAPI" IsWarn="False" />
                         <local:MyHint Text="{DynamicResource Download.Install.Warning.OptiFabric}"
                                       Margin="0,1,0,7"
                                       x:Name="HintOptiFabric" IsWarn="True" />
@@ -75,7 +70,7 @@
                                            Foreground="{StaticResource ColorBrushGray4}" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.Forge}" Height="40" Margin="0,15,0,0"
+                        <local:MyCard Title="{DynamicResource Common.Installation.Forge}" Height="40" Margin="0,12,0,0"
                                       x:Name="CardForge" IsSwapped="True"
                                       CanSwap="True" SwapLogoRight="True" PreviewSwap="CardForge_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanForge" />
@@ -104,7 +99,7 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="{DynamicResource Common.Installation.Cleanroom}" Height="40"
-                                      Margin="0,15,0,0" x:Name="CardCleanroom"
+                                      Margin="0,12,0,0" x:Name="CardCleanroom"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardCleanroom_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanCleanroom" />
@@ -133,7 +128,7 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="{DynamicResource Common.Installation.NeoForge}" Height="40"
-                                      Margin="0,15,0,0" x:Name="CardNeoForge"
+                                      Margin="0,12,0,0" x:Name="CardNeoForge"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardNeoForge_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanNeoForge" />
@@ -161,7 +156,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.Fabric}" Height="40" Margin="0,15,0,0"
+                        <local:MyCard Title="{DynamicResource Common.Installation.Fabric}" Height="40" Margin="0,12,0,0"
                                       x:Name="CardFabric" IsSwapped="True"
                                       CanSwap="True" SwapLogoRight="True" PreviewSwap="CardFabric_PreviewSwap">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanFabric" />
@@ -219,7 +214,7 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="{DynamicResource Common.Installation.FabricApi}" Height="40"
-                                      Margin="0,15,0,0" x:Name="CardFabricApi"
+                                      Margin="0,12,0,0" x:Name="CardFabricApi"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardFabricApi_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanFabricApi" />
@@ -276,64 +271,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.Quilt}" Height="40" Margin="0,15,0,0"
-                                      x:Name="CardQuilt" IsSwapped="True"
-                                      CanSwap="True" SwapLogoRight="True" PreviewSwap="CardQuilt_PreviewSwap">
-                            <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanQuilt" />
-                            <Grid x:Name="PanQuiltInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
-                                  Tag="True">
-                                <Grid.RenderTransform>
-                                    <TranslateTransform />
-                                </Grid.RenderTransform>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="1*" />
-                                </Grid.ColumnDefinitions>
-                                <Image x:Name="ImgQuilt" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
-                                       RenderOptions.BitmapScalingMode="Linear"
-                                       Source="pack://application:,,,/images/Blocks/Quilt.png" />
-                                <TextBlock x:Name="LabQuilt" VerticalAlignment="Center"
-                                           TextTrimming="CharacterEllipsis" Grid.Column="1" />
-                            </Grid>
-                            <Grid x:Name="BtnQuiltClear" Height="30" Width="30" HorizontalAlignment="Right"
-                                  VerticalAlignment="Top" Margin="0,5,32,0" MouseLeftButtonUp="Quilt_Clear"
-                                  Background="{StaticResource ColorBrushSemiTransparent}">
-                                <Path x:Name="BtnQuiltClearInner" Height="10" Width="10" Stretch="Uniform"
-                                      Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
-                                      VerticalAlignment="Center"
-                                      Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
-                            </Grid>
-                        </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.QfapiQsl}" Height="40"
-                                      Margin="0,15,0,0" x:Name="CardQSL"
-                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True"
-                                      PreviewSwap="CardQSL_PreviewSwap">
-                            <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanQSL" />
-                            <Grid x:Name="PanQSLInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
-                                  Tag="True">
-                                <Grid.RenderTransform>
-                                    <TranslateTransform />
-                                </Grid.RenderTransform>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="1*" />
-                                </Grid.ColumnDefinitions>
-                                <Image x:Name="ImgQSL" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
-                                       RenderOptions.BitmapScalingMode="Linear"
-                                       Source="pack://application:,,,/images/Blocks/Quilt.png" />
-                                <TextBlock x:Name="LabQSL" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
-                                           Grid.Column="1" />
-                            </Grid>
-                            <Grid x:Name="BtnQSLClear" Height="30" Width="30" HorizontalAlignment="Right"
-                                  VerticalAlignment="Top" Margin="0,5,32,0" MouseLeftButtonUp="QSL_Clear"
-                                  Background="{StaticResource ColorBrushSemiTransparent}">
-                                <Path x:Name="BtnQSLClearInner" Height="10" Width="10" Stretch="Uniform"
-                                      Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
-                                      VerticalAlignment="Center"
-                                      Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
-                            </Grid>
-                        </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.LabyMod}" Height="40" Margin="0,15,0,0"
+                        <local:MyCard Title="{DynamicResource Common.Installation.LabyMod}" Height="40" Margin="0,12,0,0"
                                       x:Name="CardLabyMod"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardLabyMod_PreviewSwap">
@@ -364,8 +302,9 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="{DynamicResource Common.Installation.OptiFine}" Height="40"
-                                      Margin="0,15,0,0" x:Name="CardOptiFine"
-                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True">
+                                      Margin="0,12,0,0" x:Name="CardOptiFine"
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True"
+                                      PreviewSwap="CardOptiFine_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top">
                                 <StackPanel Name="PanOptiFine" />
                             </StackPanel>
@@ -395,7 +334,7 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="{DynamicResource Common.Installation.OptiFabric}" Height="40"
-                                      Margin="0,15,0,0" x:Name="CardOptiFabric"
+                                      Margin="0,12,0,0" x:Name="CardOptiFabric"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardOptiFabric_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanOptiFabric" />
@@ -424,7 +363,7 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="{DynamicResource Common.Installation.LiteLoader}" Height="40"
-                                      Margin="0,15,0,0" x:Name="CardLiteLoader"
+                                      Margin="0,12,0,0" x:Name="CardLiteLoader"
                                       PreviewSwap="CardLiteLoader_PreviewSwap"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanLiteLoader" />
@@ -461,7 +400,7 @@
                                      Click="BtnSelectStart_Click"
                                      HorizontalAlignment="Center" VerticalAlignment="Bottom" IsEnabled="False"
                                      LogoScale="0.95"
-                                     Logo="M955 610h-59c-15 0-29 13-29 29v196c0 15-13 29-29 29h-649c-15 0-29-13-29-29v-196c0-15-13-29-29-29h-59c-15 0-29 13-29 29V905c0 43 35 78 78 78h787c43 0 78-35 78-78V640c0-15-13-29-29-29zM492 740c11 11 29 11 41 0l265-265c11-11 11-29 0-41l-41-41c-11-11-29-11-41 0l-110 110c-11 11-33 3-33-13V68C571 53 555 39 541 39h-59c-15 0-29 13-29 29v417c0 17-21 25-33 13l-110-110c-11-11-29-11-41 0L226 433c-11 11-11 29 0 41L492 740z" />
+                                     SvgIcon="lucide/download" />
         </Grid>
         <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40,0" SnapsToDevicePixels="True"
                       x:Name="PanLoad" UseAnimation="False">
@@ -476,8 +415,6 @@
             <local:MyLoading Visibility="Collapsed" x:Name="LoadLegacyFabric" HasAnimation="False" />
             <local:MyLoading Visibility="Collapsed" x:Name="LoadFabricApi" HasAnimation="False" />
             <local:MyLoading Visibility="Collapsed" x:Name="LoadLegacyFabricApi" HasAnimation="False" />
-            <local:MyLoading Visibility="Collapsed" x:Name="LoadQuilt" HasAnimation="False" />
-            <local:MyLoading Visibility="Collapsed" x:Name="LoadQSL" HasAnimation="False" />
             <local:MyLoading Visibility="Collapsed" x:Name="LoadLabyMod" HasAnimation="False" />
             <local:MyLoading Visibility="Collapsed" x:Name="LoadOptiFabric" HasAnimation="False" />
         </local:MyCard>

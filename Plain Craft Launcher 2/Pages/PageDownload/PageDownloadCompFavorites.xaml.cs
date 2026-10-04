@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
@@ -30,7 +30,7 @@ public partial class PageDownloadCompFavorites
             // 实在不想把布局写动态代码里，但是奈何龙猫的石山没办法在 XAML 里定义 Logo 属性为已有常量值
             // 还有一个很扯淡的点，同样自定义的 MyButton 能在 XAML 直接设置 Click 事件
             // 到 MyIconButton 就不行了，死活跑不了，也不知道是不是漏了什么依赖属性没写
-            Btn_ManageTargetFav.Logo = Icon.IconButtonSetup;
+            Btn_ManageTargetFav.SvgIcon = "lucide/settings";
             Btn_ManageTargetFav.Click += Manage_Click;
         }
         // Handles
@@ -42,7 +42,9 @@ public partial class PageDownloadCompFavorites
         ComboTargetFav.SelectionChanged += ComboTargetFav_Selected;
         HintGetFail.MouseLeftButtonDown += HintGetFail_MouseLeftButtonDown;
         PanSearchBox.TextChanged += SearchRun;
+        WeakLanguageChanged.Add(this, OnLanguageChanged); 
     }
+    private static void OnLanguageChanged(PageDownloadCompFavorites page) => ModBase.RunInUi(page._RefreshCategoryTitles);
 
     private ModComp.CompFavorites.FavData CurrentFavTarget
     {
@@ -154,55 +156,7 @@ public partial class PageDownloadCompFavorites
             },
             CompType = type
         };
-        switch (type)
-        {
-            case -1:
-            {
-                newItem.Title = Lang.Text("Download.Comp.Favorites.SearchResults.Title");
-                break;
-            }
-            case (int)ModComp.CompType.Mod:
-            {
-                newItem.Title = "Mod ({0})";
-                break;
-            }
-            case (int)ModComp.CompType.ModPack:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.Modpack")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.ResourcePack:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.ResourcePack")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.Shader:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.Shader")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.DataPack:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.DataPack")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.Plugin:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.Plugin")} ({{0}})";
-                break;
-            }
-            case (int)ModComp.CompType.World:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Type.World")} ({{0}})";
-                break;
-            }
-
-            default:
-            {
-                newItem.Title = $"{Lang.Text("Download.Comp.Favorites.UnknownType")} ({{0}})";
-                break;
-            }
-        }
+        newItem.Title = _GetCategoryTitleFormat(type);
 
         newItem.Card.Title = string.Format(newItem.Title, 0);
         newItem.Card.Children.Add(newItem.ContentList);
@@ -225,6 +179,26 @@ public partial class PageDownloadCompFavorites
                 continue;
             PanContentList.Children.Add(item.Card);
         }
+    }
+
+    private static string _GetCategoryTitleFormat(int type) => type switch
+    {
+        -1 => Lang.Text("Download.Comp.Favorites.SearchResults.Title"),
+        (int)ModComp.CompType.Mod => Lang.Text("Download.Comp.Favorites.Category.Mod"),
+        (int)ModComp.CompType.ModPack => $"{Lang.Text("Download.Comp.Type.Modpack")} ({{0}})",
+        (int)ModComp.CompType.ResourcePack => $"{Lang.Text("Download.Comp.Type.ResourcePack")} ({{0}})",
+        (int)ModComp.CompType.Shader => $"{Lang.Text("Download.Comp.Type.Shader")} ({{0}})",
+        (int)ModComp.CompType.DataPack => $"{Lang.Text("Download.Comp.Type.DataPack")} ({{0}})",
+        (int)ModComp.CompType.Plugin => $"{Lang.Text("Download.Comp.Type.Plugin")} ({{0}})",
+        (int)ModComp.CompType.World => $"{Lang.Text("Download.Comp.Type.World")} ({{0}})",
+        _ => $"{Lang.Text("Download.Comp.Favorites.UnknownType")} ({{0}})"
+    };
+
+    private void _RefreshCategoryTitles()
+    {
+        foreach (var item in itemList)
+            item.Title = _GetCategoryTitleFormat(item.CompType);
+        RefreshCardTitle();
     }
 
     private void RefreshCardTitle()
@@ -282,7 +256,11 @@ public partial class PageDownloadCompFavorites
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化收藏夹列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化收藏夹列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
         }
     }
 
@@ -299,7 +277,7 @@ public partial class PageDownloadCompFavorites
         // ----添加按钮----
         // 修改备注按钮
         var btn_EditNote = new MyIconButton();
-        btn_EditNote.Logo = Icon.IconButtonEdit;
+        btn_EditNote.SvgIcon = "lucide/pencil";
         btn_EditNote.ToolTip = Lang.Text("Download.Comp.Favorites.EditNote");
         ToolTipService.SetPlacement(btn_EditNote, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btn_EditNote, 30d);
@@ -317,9 +295,11 @@ public partial class PageDownloadCompFavorites
             }
         };
         // 删除按钮
-        var btn_Delete = new MyIconButton();
-        btn_Delete.Logo = Icon.IconButtonLikeFill;
-        btn_Delete.ToolTip = Lang.Text("Download.Comp.Favorites.Action.Unfavorite");
+        var btn_Delete = new MyIconButton
+        {
+            SvgIcon = "lucide/heart-filled",
+            ToolTip = Lang.Text("Download.Comp.Favorites.Action.Unfavorite")
+        };
         ToolTipService.SetPlacement(btn_Delete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btn_Delete, 30d);
         ToolTipService.SetHorizontalOffset(btn_Delete, 2d);
@@ -330,7 +310,7 @@ public partial class PageDownloadCompFavorites
             RefreshCardTitle();
             RefreshBar();
         };
-        compItem.Buttons = new[] { btn_EditNote, btn_Delete };
+        compItem.Buttons = [btn_EditNote, btn_Delete];
         // ---操作逻辑---
         // 右键查看详细信息界面
         if (compItem.Tag is ModComp.CompProject)
@@ -339,7 +319,7 @@ public partial class PageDownloadCompFavorites
                 {
                     page = FormMain.PageType.CompDetail,
                     additional = ((ModComp.CompProject)compItem.Tag, new List<string>(), string.Empty, ModComp.CompLoaderType.Any,
-                        ((ModComp.CompProject)compItem.Tag).Type, null, null, null)
+                        ((ModComp.CompProject)compItem.Tag).Type, null)
                 });
         // ---其它事件---
         compItem.Changed += ItemCheckStatusChanged;
@@ -490,7 +470,11 @@ public partial class PageDownloadCompFavorites
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[CompFavourites] 分享收藏时发生错误", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "[CompFavourites] 分享收藏时发生错误",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
         }
     }
 
@@ -528,7 +512,7 @@ public partial class PageDownloadCompFavorites
             // 检查是否有共同支持的 ModLoader
             if (hasMod && supportedModLoader.Count == 0)
             {
-                ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.SelectLoader"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.SelectLoader"), HintType.Error);
                 return;
             }
 
@@ -546,7 +530,7 @@ public partial class PageDownloadCompFavorites
                     desiredModLoader = supportedModLoader[(int)selectedModLoaderStr];
                 }
 
-            ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.LoadingVersions"));
+            HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.LoadingVersions"));
             // 输入 Ids，输出合适版本
             var getInfoAndDownloadLoader = new List<ModLoader.LoaderBase>();
             getInfoAndDownloadLoader.Add(new ModLoader.LoaderTask<List<string>, List<DownloadFile>>(
@@ -576,7 +560,11 @@ public partial class PageDownloadCompFavorites
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, $"获取 {Item} 的下载信息失败", ModBase.LogLevel.Hint);
+                            ModBase.Log(
+                                ex,
+                                $"获取 {Item} 的下载信息失败",
+                                ModBase.LogLevel.Hint,
+                                userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
                         }
                         finally
                         {
@@ -602,7 +590,7 @@ public partial class PageDownloadCompFavorites
                     // Log(SuitVersion.Join(","))
                     if (suitVersion.Count == 0)
                     {
-                        ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.NoResource"), ModMain.HintType.Critical);
+                        HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.NoResource"), HintType.Error);
                         ts.Abort();
                         return;
                     }
@@ -619,7 +607,7 @@ public partial class PageDownloadCompFavorites
                     if (selectedVersion is null) ts.Abort();
                 });
                 string selectedVersionStr = suitVersion[(int)selectedVersion];
-                ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.SelectSaveLocation", selectedVersionStr));
+                HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.SelectSaveLocation", selectedVersionStr));
                 var saveFolder = SystemDialogs.SelectFolder();
                 if (string.IsNullOrWhiteSpace(saveFolder))
                 {
@@ -673,7 +661,11 @@ public partial class PageDownloadCompFavorites
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "批量下载收藏时发生错误", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "批量下载收藏时发生错误",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
         }
     }
 
@@ -720,7 +712,7 @@ public partial class PageDownloadCompFavorites
         var newItem = new MyMenuItem
         {
             Header = Lang.Text("Download.Comp.Favorites.Menu.Share"),
-            Icon = Icon.IconButtonShare
+            SvgIcon = "lucide/share-2"
         };
         newItem.Click += (_, _) =>
         {
@@ -736,14 +728,18 @@ public partial class PageDownloadCompFavorites
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "[Favourites] 分享收藏时发生错误", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "[Favourites] 分享收藏时发生错误",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
             }
         };
         body.Items.Add(newItem);
         newItem = new MyMenuItem
         {
             Header = Lang.Text("Download.Comp.Favorites.Menu.Import"),
-            Icon = Icon.IconButtonAdd
+            SvgIcon = "lucide/circle-plus"
         };
         newItem.Click += (_, _) =>
         {
@@ -754,7 +750,7 @@ public partial class PageDownloadCompFavorites
                 var newFavs = ModComp.CompFavorites.GetIdsByShareCode(clipData);
                 if (newFavs.Count == 0)
                 {
-                    ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.NothingShared"));
+                    HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.NothingShared"));
                     return;
                 }
 
@@ -782,14 +778,18 @@ public partial class PageDownloadCompFavorites
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "解析分享数据失败", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "解析分享数据失败",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
             }
         };
         body.Items.Add(newItem);
         newItem = new MyMenuItem
         {
             Header = Lang.Text("Download.Comp.Favorites.Menu.New"),
-            Icon = Icon.IconButtonCreate
+            SvgIcon = "lucide/folder-plus"
         };
         newItem.Click += (_, _) =>
         {
@@ -805,7 +805,7 @@ public partial class PageDownloadCompFavorites
         newItem = new MyMenuItem
         {
             Header = Lang.Text("Download.Comp.Favorites.Menu.Rename"),
-            Icon = Icon.IconButtonEdit
+            SvgIcon = "lucide/pencil"
         };
         newItem.Click += (_, _) =>
         {
@@ -820,13 +820,13 @@ public partial class PageDownloadCompFavorites
         newItem = new MyMenuItem
         {
             Header = Lang.Text("Download.Comp.Favorites.Menu.Delete"),
-            Icon = Icon.IconButtonDelete
+            SvgIcon = "lucide/trash-2"
         };
         newItem.Click += (_, _) =>
         {
             if (ModComp.CompFavorites.FavoritesList.Count == 1)
             {
-                ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.LastCollection"));
+                HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.LastCollection"));
                 return;
             }
 
@@ -836,7 +836,7 @@ public partial class PageDownloadCompFavorites
             {
                 ModComp.CompFavorites.FavoritesList.Remove(CurrentFavTarget);
                 ModComp.CompFavorites.Save();
-                ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.Deleted"), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.Deleted"), HintType.Success);
                 RefreshFavTargets();
                 ComboTargetFav.SelectedIndex = 0;
             }
@@ -867,7 +867,7 @@ public partial class PageDownloadCompFavorites
                 foreach (var Id in failIds)
                     CurrentFavTarget.Favs.Remove(Id);
                 ModComp.CompFavorites.Save();
-                ModMain.Hint(Lang.Text("Download.Comp.Favorites.Hint.Removed"), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.Removed"), HintType.Success);
             });
     }
 
@@ -904,7 +904,7 @@ public partial class PageDownloadCompFavorites
             }
 
             // 进行搜索
-            searchResult = ModBase.Search(queryList, PanSearchBox.Text, 6, 0.35d).Select(r => r.item).ToList();
+            searchResult = ModBase.Search(queryList, PanSearchBox.Text, ModBase.MaxLocalSearchDepth, 0.35d).Select(r => r.item).ToList();
         }
 
         RefreshContent();

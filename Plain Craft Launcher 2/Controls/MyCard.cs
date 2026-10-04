@@ -22,7 +22,6 @@ public class MyCard : AnimatedBackgroundGrid
 
     // 控件
     private readonly Grid mainGrid;
-    private Path _MainSwap;
     private TextBlock _MainTextBlock;
     private bool isLoad;
 
@@ -74,9 +73,9 @@ public class MyCard : AnimatedBackgroundGrid
         get
         {
             Init();
-            return _MainSwap;
+            return field;
         }
-        set => _MainSwap = value;
+        set => field = value;
     }
 
     // 属性
@@ -346,12 +345,12 @@ public class MyCard : AnimatedBackgroundGrid
     /// </summary>
     public bool IsSwapped
     {
-        get => _IsSwapped;
+        get => field;
         set
         {
-            if (_IsSwapped == value)
+            if (field == value)
                 return;
-            _IsSwapped = value;
+            field = value;
             if (SwapControl is null)
                 return;
 
@@ -376,13 +375,11 @@ public class MyCard : AnimatedBackgroundGrid
             // 折叠时箭头指向右侧或向上（根据SwapLogoRight设置），展开时指向下方
             ModAnimation.AniStart(
                 ModAnimation.AaRotateTransform(MainSwap,
-                    (_IsSwapped ? SwapLogoRight ? 270 : 0 : 180) - ((RotateTransform)MainSwap.RenderTransform).Angle,
+                    (field ? SwapLogoRight ? 270 : 0 : 180) - ((RotateTransform)MainSwap.RenderTransform).Angle,
                     250, ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
                 "MyCard Swap " + uuid, true);
         }
     }
-
-    private bool _IsSwapped;
 
     /// <summary>
     ///     是否已被折叠。(已过时，请使用 IsSwapped)

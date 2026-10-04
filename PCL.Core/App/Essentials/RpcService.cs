@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -47,7 +47,7 @@ public sealed partial class RpcService
     }
 
     [LifecycleStop]
-    private async Task _Stop()
+    private async Task _StopAsync()
     {
         if (_pipe is not null) await _pipe.DisposeAsync();
     }

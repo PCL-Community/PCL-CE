@@ -11,6 +11,7 @@ using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.UI.Controls;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
 
@@ -18,44 +19,41 @@ namespace PCL;
 
 public partial class Application
 {
-    public static readonly List<Border> showingTooltips = new();
-
     public Application()
     {
         // 注册生命周期事件
-        Lifecycle.When(LifecycleState.Loaded, Application_Startup);
-        SessionEnding += Application_SessionEnding;
+        Lifecycle.When(LifecycleState.Loaded, _ApplicationStartup);
+        Lifecycle.When(LifecycleState.WindowCreated, _ShowEnvironmentWarning);
+        SessionEnding += _ApplicationSessionEnding;
     }
 
     // 开始
-    private void Application_Startup() // (sender As Object, e As StartupEventArgs) Handles Me.Startup
+    private static void _ApplicationStartup()
     {
         try
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             // 创建自定义跟踪监听器，用于检测是否存在 Binding 失败
             PresentationTraceSources.DataBindingSource.Listeners.Add(new BindingErrorTraceListener());
             PresentationTraceSources.DataBindingSource.Switch.Level = SourceLevels.Error;
             Thread.CurrentThread.Priority = ThreadPriority.Highest;
             StartupValidation.EnsureWpfFont();
+
             // 检查参数调用
             var args = Basics.CommandLineArguments;
             if (args.Length > 0)
-            {
                 if (args[0] == "--gpu")
-                {
                     // 调整显卡设置
                     try
                     {
                         ModMain.SetGPUPreference(args[1].Trim('"'));
                         Environment.Exit((int)ModBase.ProcessReturnValues.TaskDone);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         Environment.Exit((int)ModBase.ProcessReturnValues.Fail);
                     }
-                }
-            }
 
             // 初始化文件结构
             Directory.CreateDirectory(ModBase.exePath + @"PCL\Pictures");
@@ -63,19 +61,12 @@ public partial class Application
             Directory.CreateDirectory(Path.Combine(ModBase.pathTemp, "Cache"));
             Directory.CreateDirectory(Path.Combine(ModBase.pathTemp, "Download"));
             Directory.CreateDirectory(ModBase.pathAppdata);
+
             // 设置 ToolTipService 默认值
             ToolTipService.InitialShowDelayProperty.OverrideMetadata(typeof(DependencyObject),
-                new FrameworkPropertyMetadata(300));
-            ToolTipService.BetweenShowDelayProperty.OverrideMetadata(typeof(DependencyObject),
-                new FrameworkPropertyMetadata(400));
-            ToolTipService.ShowDurationProperty.OverrideMetadata(typeof(DependencyObject),
-                new FrameworkPropertyMetadata(9999999));
-            ToolTipService.PlacementProperty.OverrideMetadata(typeof(DependencyObject),
-                new FrameworkPropertyMetadata(PlacementMode.Bottom));
-            ToolTipService.HorizontalOffsetProperty.OverrideMetadata(typeof(DependencyObject),
-                new FrameworkPropertyMetadata(8.0d));
-            ToolTipService.VerticalOffsetProperty.OverrideMetadata(typeof(DependencyObject),
-                new FrameworkPropertyMetadata(4.0d));
+                new FrameworkPropertyMetadata(100));
+            Tooltip.Enable();
+
             // 设置初始窗口
             if (Config.Preference.ShowStartupLogo)
             {
@@ -83,24 +74,6 @@ public partial class Application
                 ModMain.frmStart.Show(false, true);
             }
 
-            // 检测异常环境
-            var problemList = new List<string>();
-            var currentOSVersion = NtInterop.GetCurrentOsVersion();
-            if (currentOSVersion.Build < 17763)
-                problemList.Add(Lang.Text("Application.EnvironmentWarning.WindowsVersion"));
-            if (SystemInfo.Is32BitSystem)
-                problemList.Add(Lang.Text("Application.EnvironmentWarning.System32Bit"));
-            if (ModBase.exePath.Contains(Path.GetTempPath()) || ModBase.exePath.Contains(@"AppData\Local\Temp\"))
-                problemList.Add(Lang.Text("Application.EnvironmentWarning.TempFolder"));
-            if (ModBase.exePath.ContainsF("wechat_files", true) || ModBase.exePath.ContainsF("WeChat Files", true) ||
-                ModBase.exePath.ContainsF("Tencent Files", true))
-                problemList.Add(Lang.Text("Application.EnvironmentWarning.SocialSoftwareFolder"));
-            if (problemList.Count != 0)
-                ModMain.MyMsgBox(
-                    Lang.Text("Application.EnvironmentWarning.Message", problemList.Join("\r\n")),
-                    Lang.Text("Application.EnvironmentWarning.Title"),
-                    Lang.Text("Application.EnvironmentWarning.IKnow"),
-                    isWarn: true);
             // 设置初始化
             _ = Config.Debug.Enabled;
             _ = Config.Debug.AnimationSpeed;
@@ -115,6 +88,7 @@ public partial class Application
                 updateBranchCfg.SetValue(ModBase.versionBaseName.Contains("beta")
                     ? Core.App.UpdateChannel.Beta
                     : Core.App.UpdateChannel.Release);
+
             // 删除旧日志
             for (var i = 1; i <= 5; i++)
             {
@@ -131,20 +105,51 @@ public partial class Application
         catch (Exception ex)
         {
             var filePath = Basics.ExecutablePath;
-            MessageBox.Show(ex + "\r\n" + Lang.Text("Application.InitializationError.Path",
-                    string.IsNullOrEmpty(filePath) ? Lang.Text("Application.InitializationError.PathUnavailable") : filePath),
-                Lang.Text("Application.InitializationError.Title"), MessageBoxButton.OK, MessageBoxImage.Error);
+            var summary = Lang.Text("Application.InitializationError.Path",
+                string.IsNullOrEmpty(filePath)
+                    ? Lang.Text("Application.InitializationError.PathUnavailable")
+                    : filePath);
+            MessageBox.Show(
+                ExceptionDetails.Compose(summary, ex),
+                Lang.Text("SystemDialog.Startup.InitializationTitle"),
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
             FormMain.EndProgramForce(ModBase.ProcessReturnValues.Exception);
         }
     }
 
+    // 检测异常环境
+    private static void _ShowEnvironmentWarning()
+    {
+        var problemList = new List<string>();
+        var currentOsVersion = NtInterop.GetCurrentOsVersion();
+        if (currentOsVersion.Build < 17763)
+            problemList.Add(Lang.Text("Application.EnvironmentWarning.WindowsVersion"));
+        if (SystemInfo.Is32BitSystem)
+            problemList.Add(Lang.Text("Application.EnvironmentWarning.System32Bit"));
+        if (ModBase.exePath.Contains(Path.GetTempPath()) || ModBase.exePath.Contains(@"AppData\Local\Temp\"))
+            problemList.Add(Lang.Text("Application.EnvironmentWarning.TempFolder"));
+        if (ModBase.exePath.ContainsF("wechat_files", true) || ModBase.exePath.ContainsF("WeChat Files", true) ||
+            ModBase.exePath.ContainsF("Tencent Files", true))
+            problemList.Add(Lang.Text("Application.EnvironmentWarning.SocialSoftwareFolder"));
+        if (problemList.Count == 0) return;
+
+        ModMain.MyMsgBox(
+            Lang.Text("Application.EnvironmentWarning.Message", problemList.Join("\r\n")),
+            Lang.Text("Application.EnvironmentWarning.Title"),
+            Lang.Text("Application.EnvironmentWarning.IKnow"),
+            isWarn: true);
+    }
+
     // 结束
-    private void Application_SessionEnding(object sender, SessionEndingCancelEventArgs e)
+    private static void _ApplicationSessionEnding(object sender, SessionEndingCancelEventArgs e)
     {
         ModMain.frmMain.EndProgram(false);
     }
 
-// Error handling for unhandled exceptions
+    /**
+     * Error handling for unhandled exceptions
+     */
     private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         try
@@ -161,13 +166,14 @@ public partial class Application
                 detail.Contains("MS.Internal.AppModel.ITaskbarList.HrInit") ||
                 detail.Contains("未能加载文件或程序集"))
             {
-                ModBase.OpenWebsite("https://get.dot.net/8");
-                LogWrapper.Error(e.Exception,
-                    "Your .NET Desktop Runtime is outdated or corrupted. Please reinstall .NET 8!");
+                ModBase.OpenWebsite("https://get.dot.net/10");
+                LogWrapper.Error(
+                    e.Exception,
+                    Lang.Text("SystemDialog.Startup.DotNetRuntimeOutdated.Message"));
             }
             else
             {
-                LogWrapper.Error(e.Exception, "An unexpected error occurred");
+                LogWrapper.Error(e.Exception, Lang.Text("SystemDialog.Error.Unexpected.Message"));
             }
         }
         catch
@@ -178,22 +184,12 @@ public partial class Application
 
     // Win32 API declaration for DLL directory configuration
     [DllImport("kernel32", EntryPoint = "SetDllDirectoryA", CharSet = CharSet.Ansi)]
-    private static extern bool SetDllDirectory(string lpPathName);
+    private static extern bool _SetDllDirectory(string lpPathName);
     // 切换窗口
 
     // 控件模板事件
-    private void MyIconButton_Click(object sender, EventArgs e)
+    private void _MyIconButtonClick(object sender, EventArgs e)
     {
-    }
-
-    private void TooltipLoaded(object sender, EventArgs e)
-    {
-        showingTooltips.Add((Border)sender);
-    }
-
-    private void TooltipUnloaded(object sender, RoutedEventArgs e)
-    {
-        showingTooltips.Remove((Border)sender);
     }
 
     // 自定义监听器类

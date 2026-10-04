@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.Logging;
+namespace PCL.Core.Logging;
 
 public record LoggerConfiguration(
     string StoreFolder,

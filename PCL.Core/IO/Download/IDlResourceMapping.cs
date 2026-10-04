@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.IO.Download;
+namespace PCL.Core.IO.Download;
 
 /// <summary>
 /// 资源 ID 映射。

@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -35,7 +35,7 @@ public partial class PageDownloadForge
             // 清空当前
             PanMain.Children.Clear();
             // 转化为 UI
-            foreach (var Version in ModDownload.dlForgeListLoader.output.Value.Sort(ModMinecraft.CompareVersionGe))
+            foreach (var Version in ModDownload.dlForgeListLoader.output.Value.Sort(McVersionComparer.CompareVersionGe))
             {
                 // 增加卡片
                 var newCard = new MyCard
@@ -67,7 +67,11 @@ public partial class PageDownloadForge
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "可视化 Forge 版本列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "可视化 Forge 版本列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
     }
 

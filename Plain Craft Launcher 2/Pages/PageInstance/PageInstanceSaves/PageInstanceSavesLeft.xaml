@@ -1,4 +1,4 @@
-﻿<local:MyPageLeft x:Class="PCL.PageInstanceSavesLeft"
+<local:MyPageLeft x:Class="PCL.PageInstanceSavesLeft"
                   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -10,22 +10,22 @@
         <local:MyListItem x:Name="ItemInfo" IsScaleAnimationEnabled="False" Checked="True" Type="RadioBox" Tag="0"
                            MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="{DynamicResource Instance.Saves.Left.Info}"
                           LogoScale="1"
-                          Logo="M512 917.333333c223.861333 0 405.333333-181.472 405.333333-405.333333S735.861333 106.666667 512 106.666667 106.666667 288.138667 106.666667 512s181.472 405.333333 405.333333 405.333333z m0 106.666667C229.226667 1024 0 794.773333 0 512S229.226667 0 512 0s512 229.226667 512 512-229.226667 512-512 512z m-32-597.333333h64a21.333333 21.333333 0 0 1 21.333333 21.333333v320a21.333333 21.333333 0 0 1-21.333333 21.333333h-64a21.333333 21.333333 0 0 1-21.333333-21.333333V448a21.333333 21.333333 0 0 1 21.333333-21.333333z m0-192h64a21.333333 21.333333 0 0 1 21.333333 21.333333v64a21.333333 21.333333 0 0 1-21.333333 21.333333h-64a21.333333 21.333333 0 0 1-21.333333-21.333333v-64a21.333333 21.333333 0 0 1 21.333333-21.333333z" />
+                          SvgIcon="lucide/info" />
         <local:MyListItem x:Name="ItemDatapack" Title="{DynamicResource Instance.Saves.Left.Datapack}" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="1"
                           MinPaddingRight="35" Height="36" VerticalAlignment="Top" LogoScale="0.91"
-                          Logo="M445 545c18 0 33 14 33 33v149a182 182 0 1 1-182-182z m282 0a182 182 0 1 1-182 182v-149c0-18 14-33 33-33zM412 611H296a116 116 0 1 0 116 116V611z m315 0H611v116a116 116 0 1 0 116-116zM296 113a182 182 0 0 1 182 182v149a33 33 0 0 1-33 33H296a182 182 0 0 1 0-365z m431 0a182 182 0 0 1 0 365h-149a33 33 0 0 1-33-33V296A182 182 0 0 1 727 113zM296 180a116 116 0 0 0 0 232H412V296c0-62-48-112-109-115z m431 0a116 116 0 0 0-116 116V412h116c62 0 112-48 115-109l0-6a116 116 0 0 0-116-116z">
+                          SvgIcon="lucide/file-archive">
             <local:MyListItem.Buttons>
                 <x:Array Type="{x:Type local:MyIconButton}">
                     <local:MyIconButton Tag="2" ToolTip="{DynamicResource Common.Action.Refresh}" ToolTipService.Placement="Right"
                                         ToolTipService.InitialShowDelay="200" ToolTipService.VerticalOffset="-1"
                                         Click="RefreshButton_Click" LogoScale="0.85"
-                                        Logo="M875.52 148.48C783.36 56.32 655.36 0 512 0 291.84 0 107.52 138.24 30.72 332.8l122.88 46.08C204.8 230.4 348.16 128 512 128c107.52 0 199.68 40.96 271.36 112.64L640 384h384V0L875.52 148.48zM512 896c-107.52 0-199.68-40.96-271.36-112.64L384 640H0v384l148.48-148.48C240.64 967.68 368.64 1024 512 1024c220.16 0 404.48-138.24 481.28-332.8L870.4 645.12C819.2 793.6 675.84 896 512 896z" />
+                                        SvgIcon="lucide/refresh-cw" />
                 </x:Array>
             </local:MyListItem.Buttons>
         </local:MyListItem>
         <TextBlock Text="{DynamicResource Instance.Saves.Left.QuickActions}" Margin="13,6,5,4" Opacity="0.6" FontSize="12" />
         <local:MyListItem x:Name="BtnOpenFolder" Title="{DynamicResource Common.Action.OpenFolder}" IsScaleAnimationEnabled="False" Type="RadioBox"
                           MinPaddingRight="35" Height="36" VerticalAlignment="Top" LogoScale="0.8"
-                          Logo="M928 444H820V330.4c0-17.7-14.3-32-32-32H473L355.7 186.2c-1.5-1.4-3.5-2.2-5.5-2.2H96c-17.7 0-32 14.3-32 32v592c0 17.7 14.3 32 32 32h698c13 0 24.8-7.9 29.7-20l134-332c1.5-3.8 2.3-7.9 2.3-12 0-17.7-14.3-32-32-32zM136 256h188.5l119.6 114.4H748V444H238c-13 0-24.8 7.9-29.7 20L136 643.2V256z m635.3 512H159l103.3-256h612.4L771.3 768z" />
+                          SvgIcon="lucide/folder-open" />
     </StackPanel>
 </local:MyPageLeft>

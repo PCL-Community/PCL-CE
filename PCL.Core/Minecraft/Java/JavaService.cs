@@ -1,4 +1,3 @@
-using PCL.Core.App;
 using PCL.Core.Minecraft.Java.Parser;
 using PCL.Core.Minecraft.Java.Scanner;
 using System.Threading.Tasks;

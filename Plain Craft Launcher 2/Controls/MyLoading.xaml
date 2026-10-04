@@ -1,4 +1,4 @@
-﻿<Grid
+<Grid
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" x:Name="PanBack" mc:Ignorable="d"
@@ -43,6 +43,7 @@
         <Rectangle Width="25" Height="2" Fill="{Binding Foreground, ElementName=PanBack}" VerticalAlignment="Bottom"
                    HorizontalAlignment="Left" />
     </Grid>
-    <TextBlock x:Name="LabText" Text="Loading" HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Top"
+    <TextBlock x:Name="LabText" Text="{DynamicResource Application.Control.Loading.Default}"
+               HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Top"
                Foreground="{Binding Foreground, ElementName=PanBack}" FontSize="16" Margin="0,10,0,0" Grid.Row="2" />
 </Grid>

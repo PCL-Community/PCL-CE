@@ -65,11 +65,11 @@ public sealed class WpfAnimatable(DependencyObject owner, DependencyProperty? pr
     {
         value = ValueProcessorManager.Filter(value);
         ArgumentNullException.ThrowIfNull(Property);
-        SetValueCore(value);
+        _SetValueCore(value);
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void SetValueCore<T>(T value)
+    private void _SetValueCore<T>(T value)
     {
         ArgumentNullException.ThrowIfNull(Property);
         

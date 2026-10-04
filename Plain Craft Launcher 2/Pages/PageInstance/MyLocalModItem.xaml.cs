@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -12,8 +12,11 @@ namespace PCL;
 
 public partial class MyLocalCompItem
 {
+    private string? _displayVersion;
+
     private string GetUpdateCompareDescription()
     {
+        _displayVersion = null;
         var currentName = Entry.compFile.FileName.Replace(".jar", "");
         var newestName = Entry.UpdateFile.FileName.Replace(".jar", "");
         // 简化名称对比
@@ -33,7 +36,7 @@ public partial class MyLocalCompItem
         {
             currentName = currentSegs.Join("-");
             newestName = newestSegs.Join("-");
-            Entry._Version = currentName; // 使用网络信息作为显示的版本号
+            _displayVersion = currentName;
         }
 
         return
@@ -53,6 +56,7 @@ public partial class MyLocalCompItem
             else
             {
                 BtnUpdate.Visibility = Visibility.Collapsed;
+                _displayVersion = null;
             }
 
             // 标题与描述
@@ -84,6 +88,7 @@ public partial class MyLocalCompItem
                 }
 
             string newDescription;
+            var displayVersion = _displayVersion ?? Entry.Version;
             var compTemp = Entry.Comp;
             if (Entry.IsFolder)
             {
@@ -109,8 +114,8 @@ public partial class MyLocalCompItem
                 }
 
                 newDescription = newDescription.Replace("  |  ", " / ");
-                if (Entry.Version is not null)
-                    newDescription += $" ({Entry.Version})";
+                if (displayVersion is not null)
+                    newDescription += $" ({displayVersion})";
             }
             else
             {
@@ -119,13 +124,13 @@ public partial class MyLocalCompItem
                 if (Entry.Comp is null)
                 {
                     Title = Entry.Name;
-                    SubTitle = Entry.Version is null ? "" : "  |  " + Entry.Version;
+                    SubTitle = displayVersion is null ? "" : "  |  " + displayVersion;
                 }
                 else
                 {
                     var titles = await Task.Run(() => compTemp.GetControlTitle(false));
                     Title = titles.Key;
-                    SubTitle = titles.Value + (Entry.Version is null ? "" : "  |  " + Entry.Version);
+                    SubTitle = titles.Value + (displayVersion is null ? "" : "  |  " + displayVersion);
                 }
 
                 // 描述
@@ -292,7 +297,10 @@ public partial class MyLocalCompItem
             }
         }
 
-        ModBase.Log(Lang.Text("Instance.Resource.Item.OpenChangelogFailed"), ModBase.LogLevel.Hint);
+        ModBase.Log(
+            Lang.Text("Instance.Resource.Item.OpenChangelogFailed"),
+            ModBase.LogLevel.Hint,
+            userSummary: Lang.Text("Instance.Resource.Item.OpenChangelogFailed"));
     }
 
     // 触发更新
@@ -430,11 +438,9 @@ public partial class MyLocalCompItem
     }
 
     // 标题
-    private string _Title;
-
     public string Title
     {
-        get => _Title;
+        get => field;
         set
         {
             var rawValue = value;
@@ -461,7 +467,7 @@ public partial class MyLocalCompItem
             if ((LabTitle.Text ?? "") == (value ?? ""))
                 return;
             LabTitle.Text = value;
-            _Title = rawValue;
+            field = rawValue;
         }
     }
 
@@ -594,16 +600,15 @@ public partial class MyLocalCompItem
     // 滑动选中
     public class SwipeSelect
     {
-        private bool _Swiping;
         public int Start { get; set; }
         public int End { get; set; }
 
         public bool Swiping
         {
-            get => _Swiping;
+            get => field;
             set
             {
-                _Swiping = value;
+                field = value;
                 if (TargetFrm is not null)
                     try
                     {
@@ -672,27 +677,25 @@ public partial class MyLocalCompItem
 
     public delegate void ChangedEventHandler(object sender, ModBase.RouteEventArgs e);
 
-    private bool _Checked;
-
     public bool Checked
     {
-        get => _Checked;
+        get => field;
         set
         {
             try
             {
                 // 触发属性值修改
-                var rawValue = _Checked;
-                if (value == _Checked)
+                var rawValue = field;
+                if (value == field)
                     return;
-                _Checked = value;
+                field = value;
                 var ChangedEventArgs = new ModBase.RouteEventArgs();
                 if (IsInitialized)
                 {
                     Changed?.Invoke(this, ChangedEventArgs);
                     if (ChangedEventArgs.handled)
                     {
-                        _Checked = rawValue;
+                        field = rawValue;
                         return;
                     }
                 }
@@ -780,13 +783,11 @@ public partial class MyLocalCompItem
     private Image imgState;
 
     // 指向背景
-    private Border _RectBack;
-
     public Border RectBack
     {
         get
         {
-            if (_RectBack is null)
+            if (field is null)
             {
                 var rect = new Border
                 {
@@ -804,27 +805,25 @@ public partial class MyLocalCompItem
                 SetColumnSpan(rect, 999);
                 SetRowSpan(rect, 999);
                 Children.Insert(0, rect);
-                _RectBack = rect;
+                field = rect;
                 // <!--<corelocal:BlurBorder x:Name = "RectBack" CornerRadius="3" RenderTransformOrigin="0.5,0.5" SnapsToDevicePixels="True" 
                 // IsHitTestVisible = "False" Opacity="0" BorderThickness="1" 
                 // Grid.ColumnSpan = "4" Background="{DynamicResource ColorBrush7}" BorderBrush="{DynamicResource ColorBrush6}"/>-->
             }
 
-            return _RectBack;
+            return field;
         }
     }
 
     // 按钮
     public Action<MyLocalCompItem, EventArgs> buttonHandler;
     public FrameworkElement buttonStack;
-    private IEnumerable<MyIconButton> _Buttons;
-
     public IEnumerable<MyIconButton> Buttons
     {
-        get => _Buttons;
+        get => field;
         set
         {
-            _Buttons = value;
+            field = value;
             // 移除原 Stack
             if (buttonStack is not null)
             {
@@ -862,15 +861,13 @@ public partial class MyLocalCompItem
     }
 
     // 勾选条
-    private Border _RectCheck;
-
     public Border RectCheck
     {
         get
         {
-            if (_RectCheck is null)
+            if (field is null)
             {
-                _RectCheck = new Border
+                field = new Border
                 {
                     Width = 5d,
                     Height = Checked ? double.NaN : 0d,
@@ -881,12 +878,12 @@ public partial class MyLocalCompItem
                     SnapsToDevicePixels = false,
                     Margin = Checked ? new Thickness(-3, 6d, 0d, 6d) : new Thickness(-3, 0d, 0d, 0d)
                 };
-                _RectCheck.SetResourceReference(Border.BackgroundProperty, "ColorBrush3");
-                SetRowSpan(_RectCheck, 10);
-                Children.Add(_RectCheck);
+                field.SetResourceReference(Border.BackgroundProperty, "ColorBrush3");
+                SetRowSpan(field, 10);
+                Children.Add(field);
             }
 
-            return _RectCheck;
+            return field;
         }
     }
 

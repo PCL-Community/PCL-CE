@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -7,8 +7,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using System.Windows.Media.Effects;
 using PCL.Core.App;
+using PCL.Core.Minecraft.Profile;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
@@ -86,20 +86,6 @@ public partial class FormMain
         else if (lastVersion > ModBase.versionCode)
             // 触发降级
             DowngradeSub(lastVersion);
-        // 版本隔离设置迁移
-        if (Config.Launch.IndieSolutionV2Config.IsDefault())
-        {
-            if (!Config.Launch.IndieSolutionV1Config.IsDefault())
-            {
-                ModBase.Log("[Start] 从老 PCL 迁移版本隔离");
-                Config.Launch.IndieSolutionV2 = Config.Launch.IndieSolutionV1;
-            }
-            else
-            {
-                ModBase.Log("[Start] 全新的 PCL，使用新的版本隔离默认值");
-                Config.Launch.IndieSolutionV2Config.Reset(Config.Launch.IndieSolutionV2Config.DefaultValue);
-            }
-        }
 
         _ = Config.Preference.Theme.ThemeSelected;
         // 注册拖拽事件（不能直接加 Handles，否则没用；#6340）
@@ -108,7 +94,7 @@ public partial class FormMain
         // 注册 MsgBox 事件
         MsgBoxWrapper.OnShow += ModMain.MsgBoxWrapper_OnShow;
         // 注册 Hint 事件
-        HintWrapper.OnShow += ModMain.HintWrapper_OnShow;
+        HintWrapper.OnShow += HintService.HintWrapper_OnShow;
         // 加载 UI
         InitializeComponent();
         Opacity = 0d;
@@ -119,7 +105,11 @@ public partial class FormMain
         }
         catch (Exception ex) // 修复 #2019
         {
-            ModBase.Log(ex, "读取窗口默认大小失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "读取窗口默认大小失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
             Height = MinHeight + 100d;
             Width = MinWidth + 100d;
         }
@@ -149,9 +139,9 @@ public partial class FormMain
         ModMain.frmLaunchRight.PageState = MyPageRight.PageStates.ContentStay;
         // 调试模式提醒
         if (ModBase.modeDebug)
-            ModMain.Hint(Lang.Text("Main.DebugMode.Hint"));
+            HintService.Hint(Lang.Text("Main.DebugMode.Hint"));
         // 尽早执行的加载池
-        ModMinecraft.mcFolderListLoader
+        ModFolder.mcFolderListLoader
             .Start(0); // 为了让下载已存在文件检测可以正常运行，必须跑一次；为了让启动按钮尽快可用，需要尽早执行；为了与 PageLaunchLeft 联动，需要为 0 而不是 GetUuid
 
         ModBase.Log("[Start] 第二阶段加载用时：" + (TimeUtils.GetTimeTick() - ModBase.applicationStartTick) + " ms");
@@ -293,14 +283,22 @@ public partial class FormMain
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "初始化加载池运行失败", ModBase.LogLevel.Feedback);
+                    ModBase.Log(
+                        ex,
+                        "初始化加载池运行失败",
+                        ModBase.LogLevel.Feedback,
+                        userSummary: Lang.Text("Main.Error.OperationFailed"));
                 }
 
                 HardwareInfo.GetHardwareInfo();
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "初始弹窗提示运行失败", ModBase.LogLevel.Feedback);
+                ModBase.Log(
+                    ex,
+                    "初始弹窗提示运行失败",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Main.Error.OperationFailed"));
             }
         }, "Start Loader", ThreadPriority.BelowNormal);
 
@@ -335,41 +333,9 @@ public partial class FormMain
             ModBase.Log($"[Start] 最高版本号从 {lowerVersionCode} 升高到 {ModBase.versionCode}");
         }
 #endif
-
-        // 被移除的窗口设置选项
+        // 被移除的窗口设置选项 (Commit 3161488 2026/1/23)
         if ((int)Config.Launch.GameWindowMode == 5)
             Config.Launch.GameWindowMode = GameWindowSizeMode.Default;
-
-        // 移动自定义皮肤
-        if (lastVersionCode <= 161 && File.Exists(ModBase.exePath + @"PCL\CustomSkin.png") &&
-            !File.Exists(ModBase.pathAppdata + "CustomSkin.png"))
-        {
-            ModBase.CopyFile(ModBase.exePath + @"PCL\CustomSkin.png", ModBase.pathAppdata + "CustomSkin.png");
-            ModBase.Log("[Start] 已移动离线自定义皮肤 (162)");
-        }
-
-        if (lastVersionCode <= 263 && File.Exists(Path.Combine(ModBase.pathTemp, "CustomSkin.png")) &&
-            !File.Exists(Path.Combine(ModBase.pathAppdata, "CustomSkin.png")))
-        {
-            ModBase.CopyFile(Path.Combine(ModBase.pathTemp, "CustomSkin.png"), Path.Combine(ModBase.pathAppdata, "CustomSkin.png"));
-            ModBase.Log("[Start] 已移动离线自定义皮肤 (264)");
-        }
-
-        // 解除帮助页面的隐藏
-        if (lastVersionCode <= 205)
-        {
-            Config.Preference.Hide.SetupAbout = false;
-            ModBase.Log("[Start] 已解除帮助页面的隐藏");
-        }
-
-        // 迁移旧版用户档案
-        if (lastVersionCode <= 368) ModBase.RunInNewThread(() => ModProfile.MigrateOldProfile());
-        // Mod 命名设置迁移
-        if (!Config.Download.Comp.NameFormatV1Config.IsDefault() && Config.Download.Comp.NameFormatV2Config.IsDefault())
-        {
-            Config.Download.Comp.NameFormatV2 += 1;
-            ModBase.Log("[Start] 已从老版本迁移 Mod 命名设置");
-        }
 
         // 更新后展示社区版提示
         UpdateManager.ShowCEAnnounce();
@@ -379,6 +345,13 @@ public partial class FormMain
         if (lowerVersionCode >= ModBase.versionCode)
             return;
         ShowUpdateLog();
+        
+        // 重置自定义主页配置
+        if (lastVersionCode < 521 && Config.Preference.Homepage.SelectedPreset >= 3)
+        {
+            Config.Preference.Homepage.SelectedPreset = 0;
+            ModMain.MyMsgBox(Lang.Text("Main.HomepageReset.Content"), Lang.Text("Main.HomepageReset.Title"));
+        }
     }
 
     private void DowngradeSub(int lastVersionCode)
@@ -545,8 +518,6 @@ public partial class FormMain
 
         // 关闭联机大厅
         // Await LobbyController.CloseAsync().ConfigureAwait(False)
-        // 存储上次使用的档案编号
-        ModProfile.SaveProfile();
         // 关闭
         ModBase.RunInUiWait(() =>
         {
@@ -693,8 +664,7 @@ public partial class FormMain
     {
         WindowState = WindowState.Minimized;
     }
-    
-    //“帮助”
+
     private void BtnTitleHelp_Click(object sender, EventArgs e)
     {
         ModBase.OpenWebsite("https://www.bilibili.com/video/BV1uT4y1P7CX");
@@ -776,7 +746,7 @@ public partial class FormMain
         if (e.Key == Key.F11 && pageCurrent == PageType.InstanceSelect)
         {
             ModMain.frmSelectRight.showHidden = !ModMain.frmSelectRight.showHidden;
-            ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
+            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
             return;
         }
@@ -786,9 +756,9 @@ public partial class FormMain
         {
             PageSetupUI.HiddenForceShow = !PageSetupUI.HiddenForceShow;
             if (PageSetupUI.HiddenForceShow)
-                ModMain.Hint(Lang.Text("Main.HiddenFeature.Disabled"), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("Main.HiddenFeature.Disabled"), HintType.Success);
             else
-                ModMain.Hint(Lang.Text("Main.HiddenFeature.Enabled"), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("Main.HiddenFeature.Enabled"), HintType.Success);
             PageSetupUI.HiddenRefresh();
             return;
         }
@@ -807,7 +777,7 @@ public partial class FormMain
         if (e.Key == Key.Enter && pageCurrent == PageType.Launch)
         {
             if (ModMain.isAprilEnabled && !ModMain.isAprilGiveup)
-                ModMain.Hint(Lang.Text("Main.April.Nope"));
+                HintService.Hint(Lang.Text("Main.April.Nope"));
             else
                 ModMain.frmLaunchLeft.LaunchButtonClick();
         }
@@ -871,7 +841,7 @@ public partial class FormMain
             else if (pageCurrent == PageType.InstanceSelect)
             {
                 // 实例选择自动刷新
-                ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
+                ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
                     ModLoader.LoaderFolderRunType.RunOnUpdated, 1, @"versions\");
             }
             else if (ModMain.frmMain.pageRight is PageInstanceSavesDatapack &&
@@ -883,7 +853,11 @@ public partial class FormMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切回窗口时出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "切回窗口时出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
 
@@ -926,7 +900,11 @@ public partial class FormMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "处理拖放时出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "处理拖放时出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
 
@@ -951,14 +929,13 @@ public partial class FormMain
                         ModBase.Log("[System] Authlib 拖拽：" + authlibServer);
                         if (!new HttpValidator().Validate(authlibServer).IsValid)
                         {
-                            ModMain.Hint(Lang.Text("Main.FileDrag.AuthlibInvalid", authlibServer), ModMain.HintType.Critical);
+                            HintService.Hint(Lang.Text("Main.FileDrag.AuthlibInvalid", authlibServer), HintType.Error);
                             return;
                         }
 
                         if (ModMain.MyMsgBox(Lang.Text("Main.FileDrag.CreateAuthlibProfile", authlibServer), Lang.Text("Main.FileDrag.CreateAuthlibProfileTitle"),
                                 Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 2)
                             return;
-                        ModProfile.selectedProfile = null;
                         ModBase.RunInUi(() =>
                         {
                             PageLoginAuth.draggedAuthServer = authlibServer;
@@ -988,7 +965,7 @@ public partial class FormMain
                 var filePathRaw = e.Data.GetData(DataFormats.FileDrop);
                 if (filePathRaw is null) // #2690
                 {
-                    ModMain.Hint(Lang.Text("Main.FileDrag.ExtractFirst"), ModMain.HintType.Critical);
+                    HintService.Hint(Lang.Text("Main.FileDrag.ExtractFirst"), HintType.Error);
                     return;
                 }
 
@@ -999,7 +976,11 @@ public partial class FormMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "接取拖拽事件失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "接取拖拽事件失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
 
@@ -1013,13 +994,13 @@ public partial class FormMain
             // 基础检查
             if (Directory.Exists(filePathList.First()) && !File.Exists(filePathList.First()))
             {
-                ModMain.Hint(Lang.Text("Main.FileDrag.FileOnly"), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Main.FileDrag.FileOnly"), HintType.Error);
                 return;
             }
 
             if (!File.Exists(filePathList.First()))
             {
-                ModMain.Hint(Lang.Text("Main.FileDrag.FileNotFound", filePathList.First()), ModMain.HintType.Critical);
+                HintService.Hint(Lang.Text("Main.FileDrag.FileNotFound", filePathList.First()), HintType.Error);
                 return;
             }
 
@@ -1038,7 +1019,7 @@ public partial class FormMain
                 // 允许同类型的 Mod 文件或投影文件批量拖拽
                 else
                 {
-                    ModMain.Hint(Lang.Text("Main.FileDrag.SameTypeOnly"), ModMain.HintType.Critical);
+                    HintService.Hint(Lang.Text("Main.FileDrag.SameTypeOnly"), HintType.Error);
                     return;
                 }
             }
@@ -1057,7 +1038,7 @@ public partial class FormMain
                 {
                     Config.Preference.Homepage.Type = 1;
                     ModMain.frmLaunchRight.ForceRefresh();
-                    ModMain.Hint(Lang.Text("Main.FileDrag.HomepageLoaded"), ModMain.HintType.Finish);
+                    HintService.Hint(Lang.Text("Main.FileDrag.HomepageLoaded"), HintType.Success);
                 });
                 return;
             }
@@ -1085,12 +1066,12 @@ public partial class FormMain
                 {
                     case PageSubType.VersionWorld:
                     {
-                        var destFolder = PageInstanceLeft.instance.PathIndie + @"saves\" +
+                        var destFolder = PageInstanceLeft.McInstance.PathIndie + @"saves\" +
                                          ModBase.GetFileNameWithoutExtentionFromPath(filePath);
                         var destLevelDat = Path.Combine(destFolder, "level.dat");
                         if (Directory.Exists(destFolder))
                         {
-                            ModMain.Hint(Lang.Text("Main.FileDrag.SameFolderExists", destFolder), ModMain.HintType.Critical);
+                            HintService.Hint(Lang.Text("Main.FileDrag.SameFolderExists", destFolder), HintType.Error);
                             return;
                         }
 
@@ -1101,7 +1082,7 @@ public partial class FormMain
                             var saveRoot = SaveImportHelper.GetSaveRootDirectory(extractFolder);
                             if (saveRoot is null)
                             {
-                                ModMain.Hint(Lang.Text("Main.FileDrag.SaveNotFound"), ModMain.HintType.Critical);
+                                HintService.Hint(Lang.Text("Main.FileDrag.SaveNotFound"), HintType.Error);
                                 return;
                             }
 
@@ -1110,7 +1091,7 @@ public partial class FormMain
                             {
                                 if (Directory.Exists(destFolder))
                                     ModBase.DeleteDirectory(destFolder, true);
-                                ModMain.Hint(Lang.Text("Main.FileDrag.SaveInvalid"), ModMain.HintType.Critical);
+                                HintService.Hint(Lang.Text("Main.FileDrag.SaveInvalid"), HintType.Error);
                                 return;
                             }
                         }
@@ -1118,7 +1099,11 @@ public partial class FormMain
                         {
                             if (Directory.Exists(destFolder))
                                 ModBase.DeleteDirectory(destFolder, true);
-                            ModBase.Log(ex, Lang.Text("Main.FileDrag.SaveImportFailed"), ModBase.LogLevel.Hint);
+                            ModBase.Log(
+                                ex,
+                                Lang.Text("Main.FileDrag.SaveImportFailed"),
+                                ModBase.LogLevel.Hint,
+                                userSummary: Lang.Text("Main.FileDrag.SaveImportFailed"));
                             return;
                         }
                         finally
@@ -1127,40 +1112,40 @@ public partial class FormMain
                                 ModBase.DeleteDirectory(extractFolder, true);
                         }
 
-                        ModMain.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameWithoutExtentionFromPath(filePath)),
-                            ModMain.HintType.Finish);
+                        HintService.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameWithoutExtentionFromPath(filePath)),
+                            HintType.Success);
                         if (ModMain.frmInstanceSaves is not null)
                             ModBase.RunInUi(() => ModMain.frmInstanceSaves.Reload());
                         return;
                     }
                     case PageSubType.VersionResourcePack:
                     {
-                        var destFile = PageInstanceLeft.instance.PathIndie + @"resourcepacks\" +
+                        var destFile = PageInstanceLeft.McInstance.PathIndie + @"resourcepacks\" +
                                        ModBase.GetFileNameFromPath(filePath);
                         if (File.Exists(destFile))
                         {
-                            ModMain.Hint(Lang.Text("Main.FileDrag.SameFileExists", destFile), ModMain.HintType.Critical);
+                            HintService.Hint(Lang.Text("Main.FileDrag.SameFileExists", destFile), HintType.Error);
                             return;
                         }
 
                         ModBase.CopyFile(filePath, destFile);
-                        ModMain.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameFromPath(filePath)), ModMain.HintType.Finish);
+                        HintService.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameFromPath(filePath)), HintType.Success);
                         if (ModMain.frmInstanceResourcePack is not null)
                             ModBase.RunInUi(() => ModMain.frmInstanceResourcePack.ReloadCompFileList());
                         return;
                     }
                     case PageSubType.VersionShader:
                     {
-                        var destFile = PageInstanceLeft.instance.PathIndie + @"shaderpacks\" +
+                        var destFile = PageInstanceLeft.McInstance.PathIndie + @"shaderpacks\" +
                                        ModBase.GetFileNameFromPath(filePath);
                         if (File.Exists(destFile))
                         {
-                            ModMain.Hint(Lang.Text("Main.FileDrag.SameFileExists", destFile), ModMain.HintType.Critical);
+                            HintService.Hint(Lang.Text("Main.FileDrag.SameFileExists", destFile), HintType.Error);
                             return;
                         }
 
                         ModBase.CopyFile(filePath, destFile);
-                        ModMain.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameFromPath(filePath)), ModMain.HintType.Finish);
+                        HintService.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameFromPath(filePath)), HintType.Success);
                         if (ModMain.frmInstanceShader is not null)
                             ModBase.RunInUi(() => ModMain.frmInstanceShader.ReloadCompFileList());
                         return;
@@ -1172,17 +1157,17 @@ public partial class FormMain
                 new[] { "litematic", "nbt", "schematic", "schem" }.Contains(extension) &&
                 PageCurrentSub == PageSubType.VersionSchematic)
             {
-                var destFile = PageInstanceLeft.instance.PathIndie + @"schematics\" +
+                var destFile = PageInstanceLeft.McInstance.PathIndie + @"schematics\" +
                                ModBase.GetFileNameFromPath(filePath);
                 if (File.Exists(destFile))
                 {
-                    ModMain.Hint(Lang.Text("Main.FileDrag.SameFileExists", destFile), ModMain.HintType.Critical);
+                    HintService.Hint(Lang.Text("Main.FileDrag.SameFileExists", destFile), HintType.Error);
                     return;
                 }
 
-                Directory.CreateDirectory(PageInstanceLeft.instance.PathIndie + @"schematics\");
+                Directory.CreateDirectory(PageInstanceLeft.McInstance.PathIndie + @"schematics\");
                 ModBase.CopyFile(filePath, destFile);
-                ModMain.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameFromPath(filePath)), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameFromPath(filePath)), HintType.Success);
                 if (ModMain.frmInstanceSchematic is not null)
                     ModBase.RunInUi(() => ModMain.frmInstanceSchematic.ReloadCompFileList());
                 return;
@@ -1208,24 +1193,6 @@ public partial class FormMain
                 }
             }
 
-            if (new[] { "zip", "rar" }.Any(t => (t ?? "") == (extension ?? "")))
-            {
-                ModBase.Log("[System] 文件为压缩包，尝试作为存档分析");
-                try
-                {
-                    ModWorld.ReadWorld(filePath);
-                    return;
-                }
-                catch (ModBase.CancelledException ex)
-                {
-                    return; // 是存档，但是损坏了
-                }
-                catch (Exception ex)
-                {
-                    // 不是存档（或遇到了其他问题），继续往后尝试
-                }
-            }
-
             // 错误报告分析
             do
             {
@@ -1242,12 +1209,16 @@ public partial class FormMain
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "自主错误报告分析失败", ModBase.LogLevel.Feedback);
+                    ModBase.Log(
+                        ex,
+                        "自主错误报告分析失败",
+                        ModBase.LogLevel.Feedback,
+                        userSummary: Lang.Text("Main.Error.OperationFailed"));
                 }
             } while (false);
 
             // 未知操作
-            ModMain.Hint(Lang.Text("Main.FileDrag.UnknownOperation"));
+            HintService.Hint(Lang.Text("Main.FileDrag.UnknownOperation"));
         }, "文件拖拽");
     }
 
@@ -1296,16 +1267,14 @@ public partial class FormMain
     }
 
     // 窗口隐藏与置顶
-    private bool _Hidden;
-
     public bool Hidden
     {
-        get => _Hidden;
+        get => field;
         set
         {
-            if (_Hidden == value)
+            if (field == value)
                 return;
-            _Hidden = value;
+            field = value;
             if (value)
             {
                 // 隐藏
@@ -1444,11 +1413,6 @@ public partial class FormMain
         ///     存档详细管理，这是一个副页面。
         /// </summary>
         VersionSaves = 12,
-
-        /// <summary>
-        ///     主页市场，这是一个副页面。
-        /// </summary>
-        HomePageMarket = 13
     }
 
     /// <summary>
@@ -1471,7 +1435,6 @@ public partial class FormMain
         DownloadNeoForge = 12,
         DownloadCleanroom = 13,
         DownloadFabric = 14,
-        DownloadQuilt = 15,
         DownloadLiteLoader = 16,
         DownloadLabyMod = 17,
         DownloadLegacyFabric = 18,
@@ -1490,7 +1453,6 @@ public partial class FormMain
         SetupLauncherLanguage = 11,
 
         ToolsGameLink = 1,
-        ToolsLauncherHelp = 2,
         ToolsTest = 3,
 
         VersionOverall = 0,
@@ -1505,6 +1467,7 @@ public partial class FormMain
         VersionSchematic = 9,
         VersionInstall = 10,
         VersionServer = 11,
+        VersionModJarInJar = 12,
         VersionSavesInfo = 0,
         VersionSavesDatapack = 1
     }
@@ -1530,7 +1493,7 @@ public partial class FormMain
             }
             case PageType.InstanceSetup:
             {
-                return Lang.Text("Main.Title.InstanceSetup", PageInstanceLeft.instance is null ? Lang.Text("Common.State.Unknown") : PageInstanceLeft.instance.Name);
+                return Lang.Text("Main.Title.InstanceSetup", PageInstanceLeft.McInstance is null ? Lang.Text("Common.State.Unknown") : PageInstanceLeft.McInstance.Name);
             }
             case PageType.CompDetail:
             {
@@ -1538,15 +1501,11 @@ public partial class FormMain
             }
             case PageType.HelpDetail:
             {
-                return stack.additional.Value.HelpEntry.Title;
+                return stack.helpPage?.Title ?? "";
             }
             case PageType.VersionSaves:
             {
                 return Lang.Text("Main.Title.SaveManagement", ModBase.GetFolderNameFromPath(stack.additional.Value.SavePath));
-            }
-            case PageType.HomePageMarket:
-            {
-                return Lang.Text("Main.Title.HomePageMarket");
             }
 
             default:
@@ -1631,7 +1590,6 @@ public partial class FormMain
         /// <summary>
         /// <list type="bullet">
         ///   <item><description>CompDetail: (CompProject, ExpandedTitles, TargetVersion, TargetLoader, ResourceType)</description></item>
-        ///   <item><description>HelpDetail: (HelpEntry, HelpPage)</description></item>
         ///   <item><description>VersionSaves: SavePath</description></item>
         /// </list>
         /// </summary>
@@ -1641,10 +1599,13 @@ public partial class FormMain
             string TargetVersion,
             ModComp.CompLoaderType TargetLoader,
             ModComp.CompType ResourceType,
-            ModMain.HelpEntry HelpEntry,
-            FrameworkElement HelpPage,
             string SavePath
         )? additional;
+
+        /// <summary>
+        ///     帮助详情页实例。仅在 <see cref="PageType.HelpDetail"/> 中使用。
+        /// </summary>
+        public PageHelpDetail? helpPage;
 
         public PageType page;
 
@@ -1657,6 +1618,8 @@ public partial class FormMain
                 var pageOther = (PageStackData)other;
                 if (page != pageOther.page)
                     return false;
+                if (helpPage is not null || pageOther.helpPage is not null)
+                    return ReferenceEquals(helpPage, pageOther.helpPage);
                 if (additional is null) return pageOther.additional is null;
 
                 return pageOther.additional is not null && additional.Equals(pageOther.additional);
@@ -1732,9 +1695,14 @@ public partial class FormMain
                 {
                     if (ModMain.frmSetupLeft is null)
                         ModMain.frmSetupLeft = new PageSetupLeft();
-                    if (ModMain.frmSetupLeft.PanItem.Children[(int)subType] is MyListItem)
-                        ((MyListItem)ModMain.frmSetupLeft.PanItem.Children[(int)subType]).SetChecked(true, true,
-                            stack == pageCurrent);
+                    foreach (var item in ModMain.frmSetupLeft.PanItem.Children)
+                        if (item is MyListItem listItem &&
+                            ModBase.Val(listItem.Tag) == (double)subType)
+                        {
+                            listItem.SetChecked(true, true, stack == pageCurrent);
+                            break;
+                        }
+
                     break;
                 }
             }
@@ -1947,7 +1915,9 @@ public partial class FormMain
                     }
                 case PageType.HelpDetail: // 帮助详情
                     {
-                        PageChangeAnim(new MyPageLeft(), stack.additional.Value.HelpPage);
+                        if (stack.helpPage is null)
+                            throw new InvalidOperationException("帮助详情页面未初始化");
+                        PageChangeAnim(new MyPageLeft(), stack.helpPage);
                         break;
                     }
                 case PageType.VersionSaves: // 存档管理
@@ -1955,14 +1925,9 @@ public partial class FormMain
                         if (ModMain.frmInstanceSavesLeft is null)
                             ModMain.frmInstanceSavesLeft = new PageInstanceSavesLeft();
                         PageInstanceSavesLeft.currentSave = stack.additional.Value.SavePath;
+                        subType = ModMain.frmInstanceSavesLeft.pageID;
                         PageChangeAnim(ModMain.frmInstanceSavesLeft,
                             (FrameworkElement)ModMain.frmInstanceSavesLeft.PageGet(subType));
-                        break;
-                    }
-                case PageType.HomePageMarket: // 主页市场
-                    {
-                        ModMain.frmHomePageMarket = ModMain.frmHomePageMarket ?? new PageHomePageMarket();
-                        PageChangeAnim(new MyPageLeft(), ModMain.frmHomePageMarket);
                         break;
                     }
             }
@@ -1980,7 +1945,11 @@ public partial class FormMain
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "切换主要页面失败（ID " + (int)pageCurrent.page + "）", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "切换主要页面失败（ID " + (int)pageCurrent.page + "）",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
         finally
         {
@@ -2202,7 +2171,7 @@ public partial class FormMain
     {
         if (ModMain.isAprilEnabled && !ModMain.isAprilGiveup)
         {
-            ModMain.Hint("=D", ModMain.HintType.Finish);
+            HintService.Hint("=D", HintType.Success);
             ModMain.isAprilGiveup = true;
             ModMain.frmLaunchLeft.AprilScaleTrans.ScaleX = 1d;
             ModMain.frmLaunchLeft.AprilScaleTrans.ScaleY = 1d;
@@ -2229,11 +2198,15 @@ public partial class FormMain
                 ModLaunch.mcLaunchLoaderReal.Abort();
             foreach (var Watcher in ModWatcher.mcWatcherList)
                 Watcher.Kill();
-            ModMain.Hint(Lang.Text("Main.ShutdownMinecraft.Success"), ModMain.HintType.Finish);
+            HintService.Hint(Lang.Text("Main.ShutdownMinecraft.Success"), HintType.Success);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "强制关闭所有 Minecraft 失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "强制关闭所有 Minecraft 失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
         }
     }
 
@@ -2264,7 +2237,10 @@ public partial class FormMain
         if (realScroll is not null)
             realScroll.PerformVerticalOffsetDelta(-realScroll.VerticalOffset);
         else
-            ModBase.Log("[UI] 无法返回顶部，未找到合适的 RealScroll", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                "[UI] 无法返回顶部，未找到合适的 RealScroll",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Main.Error.ScrollToTopFailed"));
     }
 
     private void BtnExtraBack_Click(object sender, MouseButtonEventArgs e)

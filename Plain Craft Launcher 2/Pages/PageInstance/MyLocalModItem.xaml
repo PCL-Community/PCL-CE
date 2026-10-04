@@ -76,7 +76,7 @@
             Width="21"
             Height="21"
             Margin="-2,-1.6,0,0"
-            Logo="M640 768H384l-32-32V509H213L190 454l298-298h45l298 298L810 509h-138v226z m-224-64h192V477l32-32h93L512 223 290 445H384l32 32zM352 831h320v64h-320z"
+            SvgIcon="lucide/upload"
             Opacity="0.4"
             Theme="Black"
             ToolTipService.InitialShowDelay="100"

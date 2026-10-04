@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
@@ -9,6 +9,7 @@ using PCL.Core.UI.Theme;
 using PCL.Core.Utils.Exts;
 using PCL.Network;
 
+using PCL.Core.App.Localization;
 namespace PCL;
 
 public class ModSetup
@@ -30,6 +31,8 @@ public class ModSetup
         // === Tool ===
         Config.Download.ThreadLimitConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
             e => ToolDownloadThread((int)e.Value!)));
+        Config.Download.FileConnectionLimitConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            e => ToolDownloadFileConnection((int)e.Value!)));
         Config.Download.SpeedLimitConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
             e => ToolDownloadSpeed((int)e.Value!)));
 
@@ -112,6 +115,7 @@ public class ModSetup
 
         // Tool
         ToolDownloadThread(Config.Download.ThreadLimit);
+        ToolDownloadFileConnection(Config.Download.FileConnectionLimit);
         ToolDownloadSpeed(Config.Download.SpeedLimit);
 
         // UI - Launcher
@@ -171,13 +175,13 @@ public class ModSetup
     public static void LaunchInstanceSelect(string value)
     {
         ModBase.Log("[Setup] 当前选择的 Minecraft 版本：" + value);
-        ModBase.WriteIni(ModMinecraft.mcFolderSelected + "PCL.ini", "Version", value);
+        ModBase.WriteIni(ModFolder.mcFolderSelected + "PCL.ini", "Version", value);
     }
 
     public static void LaunchFolderSelect(string value)
     {
         ModBase.Log("[Setup] 当前选择的 Minecraft 文件夹：" + value.Replace("$", ModBase.exePath));
-        ModMinecraft.mcFolderSelected = value.Replace("$", ModBase.exePath);
+        ModFolder.mcFolderSelected = value.Replace("$", ModBase.exePath);
     }
 
     // 游戏内存
@@ -194,7 +198,14 @@ public class ModSetup
 
     public static void ToolDownloadThread(int value)
     {
-        ModNet.NetTaskThreadLimit = value + 1;
+        ModNet.NetTaskConnectionLimit = Math.Clamp(value + 1, 1, ModNet.NetTaskConnectionLimitMax);
+        DownloadResourceManager.OnConnectionLimitChanged();
+    }
+
+    public static void ToolDownloadFileConnection(int value)
+    {
+        ModNet.NetTaskSingleFileConnectionLimit = Math.Clamp(value + 1, 1,
+            ModNet.NetTaskSingleFileConnectionLimitMax);
     }
 
     public static void ToolDownloadSpeed(int value)
@@ -373,7 +384,11 @@ public class ModSetup
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "字体加载失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "字体加载失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
     }
 
@@ -402,8 +417,8 @@ public class ModSetup
                 ModMain.frmSetupUI.HintCustomWarn.Visibility =
                     States.Hint.UntrustedHomepage ? Visibility.Collapsed : Visibility.Visible;
                 ModMain.frmSetupUI.HintCustom.Text =
-                    "从 PCL 文件夹下的 Custom.xaml 读取主页内容。\r\n你可以手动编辑该文件，向主页添加文本、图片、常用网站、快捷启动等功能。";
-                CustomEventService.SetEventType(ModMain.frmSetupUI.HintCustom, CustomEvent.EventType.None);
+                    Lang.Text("Setup.Ui.Homepage.LocalFile.Hint");
+                CustomEventService.SetEventType(ModMain.frmSetupUI.HintCustom, EventType.None);
                 break;
             }
             case 2: // 联网
@@ -415,10 +430,10 @@ public class ModSetup
                 ModMain.frmSetupUI.HintCustomWarn.Visibility =
                     States.Hint.UntrustedHomepage ? Visibility.Collapsed : Visibility.Visible;
                 ModMain.frmSetupUI.HintCustom.Text =
-                    "从指定网址联网获取主页内容。服主也可以用于动态更新服务器公告。\r\n如果你制作了稳定运行的联网主页，可以点击这条提示投稿，若合格即可加入预设！";
-                CustomEventService.SetEventType(ModMain.frmSetupUI.HintCustom, CustomEvent.EventType.打开网页);
+                    Lang.Text("Setup.Ui.Homepage.NetUpdate.Hint");
+                CustomEventService.SetEventType(ModMain.frmSetupUI.HintCustom, EventType.OpenUrl);
                 CustomEventService.SetEventData(ModMain.frmSetupUI.HintCustom,
-                    "https://github.com/Meloong-Git/PCL/discussions/2528");
+                    "https://github.com/PCL-Community/PCL-CE/discussions");
                 break;
             }
             case 3: // 预设
@@ -473,7 +488,6 @@ public class ModSetup
                 ModMain.frmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.LabTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.frmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.CELogo.Visibility = Visibility.Collapsed;
                 if (ModMain.frmSetupUI is not null)
                 {
@@ -491,7 +505,6 @@ public class ModSetup
                 ModMain.frmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.LabTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.frmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.CELogo.Visibility = Visibility.Visible;
                 if (ModMain.frmSetupUI is not null)
                 {
@@ -509,7 +522,6 @@ public class ModSetup
                 ModMain.frmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.LabTitleLogo.Visibility = Visibility.Visible;
                 ModMain.frmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
-                ModMain.frmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.CELogo.Visibility = Visibility.Visible;
                 if (ModMain.frmSetupUI is not null)
                 {
@@ -528,7 +540,6 @@ public class ModSetup
                 ModMain.frmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.LabTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.ImageTitleLogo.Visibility = Visibility.Visible;
-                ModMain.frmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.CELogo.Visibility = Visibility.Visible;
                 if (ModMain.frmSetupUI is not null)
                 {
@@ -544,7 +555,11 @@ public class ModSetup
                 catch (Exception ex)
                 {
                     ModMain.frmMain.ImageTitleLogo.Source = null;
-                    ModBase.Log(ex, "显示标题栏图片失败", ModBase.LogLevel.Msgbox);
+                    ModBase.Log(
+                        ex,
+                        "显示标题栏图片失败",
+                        ModBase.LogLevel.Msgbox,
+                        userSummary: Lang.Text("Setup.Error.OperationFailed"));
                 }
 
                 break;
@@ -555,7 +570,6 @@ public class ModSetup
                 ModMain.frmMain.LabTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.frmMain.BtnTitleHelp.Visibility = Visibility.Visible;
-                ModMain.frmMain.ImageHMCLTitleLogo.Visibility = Visibility.Visible;
                 if (ModMain.frmSetupUI is not null) 
                 {
                     ModMain.frmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
@@ -566,7 +580,7 @@ public class ModSetup
                 break;
         }
 
-        _ = Config.Preference.TopBarLeftAlign;
+        UiLogoLeft(Config.Preference.TopBarLeftAlign);
         if (ModMain.frmSetupUI is not null)
             ModMain.frmSetupUI.CardLogo.TriggerForceResize();
     }
@@ -660,11 +674,11 @@ public class ModSetup
         if (ModMain.frmInstanceSetup is null)
             return;
         // 为第三方登录清空缓存以更新描述
-        ModBase.WriteIni(ModMinecraft.mcFolderSelected + "PCL.ini", "InstanceCache", "");
-        if (PageInstanceLeft.instance is null)
+        ModBase.WriteIni(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", "");
+        if (PageInstanceLeft.McInstance is null)
             return;
-        PageInstanceLeft.instance = new ModMinecraft.Instance(PageInstanceLeft.instance.Name).Load();
-        ModLoader.LoaderFolderRun(ModMinecraft.mcInstanceListLoader, ModMinecraft.mcFolderSelected,
+        PageInstanceLeft.McInstance = new McInstance(PageInstanceLeft.McInstance.Name).Load();
+        ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
             ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }
 

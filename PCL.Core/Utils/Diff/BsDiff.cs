@@ -1,4 +1,4 @@
-﻿/*
+/*
 部分内容参考了 https://github.com/LogosBible/bsdiff.net 的实现
 
 Copyright 2010-2024 Logos Bible Software

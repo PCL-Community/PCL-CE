@@ -6,7 +6,7 @@ namespace PCL.Core.IO;
 
 public class ByteStream(Stream stream)
 {
-    private static readonly string[] _Units = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+    private static readonly string[] _Units = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"];
     public long Length => stream.Length;
 
     public string GetReadableLength()

@@ -1,5 +1,4 @@
 using System;
-using System.Net;
 using System.Net.Http;
 
 namespace PCL.Core.IO.Net.Http;

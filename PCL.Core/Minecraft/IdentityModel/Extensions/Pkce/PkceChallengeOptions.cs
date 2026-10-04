@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.Minecraft.IdentityModel.Extensions.Pkce;
+namespace PCL.Core.Minecraft.IdentityModel.Extensions.Pkce;
 
 public enum PkceChallengeOptions
 {

@@ -1,4 +1,4 @@
-using Microsoft.VisualBasic.CompilerServices;
+﻿using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.Utils;
 using System.Collections;
@@ -7,6 +7,7 @@ using System.Windows.Shell;
 using PCL.Network;
 using PCL.Network.Loaders;
 
+using PCL.Core.App.Localization;
 namespace PCL;
 
 public static class ModLoader
@@ -80,7 +81,11 @@ public static class ModLoader
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新任务栏进度显示失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "刷新任务栏进度显示失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Application.Loader.Error.OperationFailed"));
         }
     }
 
@@ -99,7 +104,11 @@ public static class ModLoader
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取任务栏进度出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "获取任务栏进度出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Application.Loader.Error.OperationFailed"));
             return 0.5d;
         }
     }
@@ -188,9 +197,7 @@ public static class ModLoader
         /// </summary>
         public readonly object lockState = new();
 
-        private MyLoading.MyLoadingState _LoadingState = MyLoading.MyLoadingState.Stop;
-        private double _Progress = -1;
-        private ModBase.LoadState _State = ModBase.LoadState.Waiting;
+
 
         /// <summary>
         ///     使用 LoaderCombo 加载时，该任务是否会阻碍后续任务的进行。
@@ -247,7 +254,11 @@ public static class ModLoader
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "获取父加载器失败（" + name + "）", ModBase.LogLevel.Feedback);
+                    ModBase.Log(
+                        ex,
+                        "获取父加载器失败（" + name + "）",
+                        ModBase.LogLevel.Feedback,
+                        userSummary: Lang.Text("Application.Loader.Error.OperationFailed"));
                     return null;
                 }
 
@@ -269,15 +280,15 @@ public static class ModLoader
         /// </summary>
         public ModBase.LoadState State
         {
-            get => _State;
+            get => field;
             set
             {
-                if (_State == value)
+                if (field == value)
                     return;
-                var oldState = _State;
+                var oldState = field;
                 if (value == ModBase.LoadState.Finished && Config.Debug.AddRandomDelay)
                     Thread.Sleep(RandomUtils.NextInt(100, 2000));
-                _State = value;
+                field = value;
                 ModBase.Log("[Loader] 加载器 " + name + " 状态改变：" + ModBase.GetStringFromEnum(value));
                 // 实现 ILoadingTrigger 接口与 OnStateChanged 回调
                 ModBase.RunInUi(() =>
@@ -307,7 +318,7 @@ public static class ModLoader
                 if (hasOnStateChangedThread)
                     ModBase.RunInThread(() => OnStateChangedThread?.Invoke(this, value, oldState));
             }
-        }
+        } = ModBase.LoadState.Waiting;
 
         /// <summary>
         ///     若加载器出错，可提供给外部参考的异常。
@@ -330,7 +341,7 @@ public static class ModLoader
                     }
                     case ModBase.LoadState.Loading:
                     {
-                        return _Progress == -1 ? 0.02d : _Progress;
+                        return field == -1 ? 0.02d : field;
                     }
 
                     default:
@@ -341,13 +352,13 @@ public static class ModLoader
             }
             set
             {
-                if (_Progress == value)
+                if (field == value)
                     return;
-                var oldValue = _Progress;
-                _Progress = value;
+                var oldValue = field;
+                field = value;
                 ProgressChanged?.Invoke(value, oldValue);
             }
-        }
+        } = -1;
 
         /// <summary>
         ///     计算总进度时的权重。它应该为预计时间（秒）。
@@ -358,16 +369,16 @@ public static class ModLoader
 
         public MyLoading.MyLoadingState LoadingState
         {
-            get => _LoadingState;
+            get => field;
             set
             {
-                if (_LoadingState == value)
+                if (field == value)
                     return;
-                var oldState = _LoadingState;
-                _LoadingState = value;
+                var oldState = field;
+                field = value;
                 LoadingStateChanged?.Invoke(value, oldState);
             }
-        }
+        } = MyLoading.MyLoadingState.Stop;
 
         public event ILoadingTrigger.LoadingStateChangedEventHandler? LoadingStateChanged;
         public event ILoadingTrigger.ProgressChangedEventHandler? ProgressChanged;
@@ -426,12 +437,12 @@ public static class ModLoader
             }
             else if (Error is null)
             {
-                throw new Exception("未知错误！");
+                throw new InvalidOperationException("未知错误！");
             }
             else
             {
-                throw new Exception(Error.Message, Error);
-            } // 保留调用堆栈，同时不影响信息输出与单元测试
+                throw Error;
+            }
         }
 
         /// <summary>
@@ -462,7 +473,7 @@ public static class ModLoader
             }
             else if (Error is null)
             {
-                throw new Exception("未知错误！");
+                throw new InvalidOperationException("未知错误！");
             }
             else
             {
@@ -533,6 +544,8 @@ public static class ModLoader
 
         private CancellationTokenSource? cancelToken;
 
+        public CancellationToken AbortedToken => cancelToken?.Token ?? new CancellationToken(true);
+
         // 线程设定
         protected internal ThreadPriority threadPriority;
 
@@ -570,7 +583,11 @@ public static class ModLoader
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "加载输入获取失败（" + name + "）", ModBase.LogLevel.Hint);
+                ModBase.Log(
+                    ex,
+                    "加载输入获取失败（" + name + "）",
+                    ModBase.LogLevel.Hint,
+                    userSummary: Lang.Text("Application.Loader.Error.OperationFailed"));
                 Error = ex;
                 lock (lockState)
                 {
@@ -771,16 +788,17 @@ public static class ModLoader
         {
             lock (lockState)
             {
-                if (State == ModBase.LoadState.Loading || State == ModBase.LoadState.Waiting)
-                    State = ModBase.LoadState.Aborted;
-                else
+                if (State != ModBase.LoadState.Loading && State != ModBase.LoadState.Waiting)
                     return;
             }
 
-            ModBase.RunInThread(() =>
+            foreach (var Loader in loaders) Loader.Abort();
+
+            lock (lockState)
             {
-                foreach (var Loader in loaders) Loader.Abort();
-            });
+                if (State == ModBase.LoadState.Loading || State == ModBase.LoadState.Waiting)
+                    State = ModBase.LoadState.Aborted;
+            }
         }
 
         /// <summary>

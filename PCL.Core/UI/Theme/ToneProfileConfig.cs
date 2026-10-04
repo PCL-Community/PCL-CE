@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.UI.Theme;
+namespace PCL.Core.UI.Theme;
 
 public record ToneProfileConfig
 {

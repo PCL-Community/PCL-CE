@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Wacton.Unicolour;
 
 namespace PCL.Core.UI.Theme;

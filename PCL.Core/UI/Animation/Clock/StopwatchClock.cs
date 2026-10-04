@@ -1,8 +1,6 @@
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PCL.Core.UI.Animation.Core;
 using PCL.Core.Utils;
 
 namespace PCL.Core.UI.Animation.Clock;

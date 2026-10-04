@@ -1,4 +1,4 @@
-﻿using PCL.Core.ViewModel.Homepage;
+using PCL.Core.ViewModel.Homepage;
 
 namespace PCL;
 

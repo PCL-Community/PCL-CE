@@ -17,39 +17,33 @@ public sealed class NetManager
                 return Files.Values.Count(file => file.State != NetState.Finished);
         }
     }
-    private long _downloadDone;
     public object LockDone { get; } = new();
     public long DownloadDone
     {
         get
         {
             lock (LockDone)
-                return _downloadDone;
+                return field;
         }
         set
         {
             lock (LockDone)
-                _downloadDone = value;
+                field = value;
         }
     }
 
     public long Speed
     {
-        get
-        {
-            lock (LockFiles)
-                return Files.Values.Sum(file => file.Speed);
-        }
+        get => DownloadResourceManager.DownloadSpeed;
     }
 
-    public int ThreadCount
+    public int ConnectionCount
     {
-        get
-        {
-            lock (LockFiles)
-                return Files.Values.Sum(file => file.ActiveThreads);
-        }
+        get => DownloadResourceManager.ActiveConnectionCount;
     }
+
+    [Obsolete("请使用 ConnectionCount。")]
+    public int ThreadCount => ConnectionCount;
 
     public void Start(PCL.Network.Loaders.LoaderDownload task)
     {

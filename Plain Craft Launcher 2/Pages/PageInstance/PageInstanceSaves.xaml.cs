@@ -1,4 +1,4 @@
-using System.Collections.Specialized;
+﻿using System.Collections.Specialized;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -51,14 +51,14 @@ public partial class PageInstanceSaves : IRefreshable
         if (ModMain.frmInstanceSaves is not null)
             ModMain.frmInstanceSaves.Reload();
         ModMain.frmInstanceLeft.ItemWorld.Checked = true;
-        ModMain.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), log: false);
+        HintService.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), log: false);
     }
 
     private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
     {
         // 重复加载部分
         PanBack.ScrollToHome();
-        worldPath = PageInstanceLeft.instance.PathIndie + @"saves\";
+        worldPath = PageInstanceLeft.McInstance.PathIndie + @"saves\";
         if (!Directory.Exists(worldPath))
             Directory.CreateDirectory(worldPath);
         Reload();
@@ -191,7 +191,7 @@ public partial class PageInstanceSaves : IRefreshable
                     if (File.Exists(saveLogo))
                     {
                         var target =
-                            $@"{PageInstanceLeft.instance.PathInstance}PCL\ImgCache\{ModBase.GetStringMD5(saveLogo)}.png";
+                            $@"{PageInstanceLeft.McInstance.PathInstance}PCL\ImgCache\{ModBase.GetStringMD5(saveLogo)}.png";
                         ModBase.CopyFile(saveLogo, target);
                         saveLogo = target;
                     }
@@ -209,17 +209,17 @@ public partial class PageInstanceSaves : IRefreshable
                         Type = MyListItem.CheckType.Clickable
                     };
                     worldItem.Click += (_, _) => ModMain.frmMain.PageChange(new FormMain.PageStackData
-                        { page = FormMain.PageType.VersionSaves, additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, null, null, tmpCurFolder) });
+                        { page = FormMain.PageType.VersionSaves, additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, tmpCurFolder) });
 
                     var btnOpen = new MyIconButton
                     {
-                        Logo = Icon.IconButtonOpen,
+                        SvgIcon = "lucide/folder-open",
                         ToolTip = Lang.Text("Common.Action.Open")
                     };
                     btnOpen.Click += (_, _) => ModBase.OpenExplorer(tmpCurFolder);
                     var btnDelete = new MyIconButton
                     {
-                        Logo = Icon.IconButtonDelete,
+                        SvgIcon = "lucide/trash-2",
                         ToolTip = Lang.Text("Common.Action.Delete")
                     };
                     btnDelete.Click += (_, _) =>
@@ -232,19 +232,23 @@ public partial class PageInstanceSaves : IRefreshable
                             {
                                 FileSystem.DeleteDirectory(tmpCurFolder, UIOption.OnlyErrorDialogs,
                                     RecycleOption.SendToRecycleBin);
-                                ModMain.Hint(Lang.Text("Instance.Saves.DeletedToRecycleBin"));
+                                HintService.Hint(Lang.Text("Instance.Saves.DeletedToRecycleBin"));
                                 ModBase.RunInUiWait(() => RemoveItem(worldItem));
                             }
                             catch (Exception ex)
                             {
-                                ModBase.Log(ex, Lang.Text("Instance.Saves.DeleteFailed"), ModBase.LogLevel.Hint);
+                                ModBase.Log(
+                                    ex,
+                                    Lang.Text("Instance.Saves.DeleteFailed"),
+                                    ModBase.LogLevel.Hint,
+                                    userSummary: Lang.Text("Instance.Saves.DeleteFailed"));
                                 ModBase.RunInUiWait(() => Reload());
                             }
                         });
                     };
                     var btnCopy = new MyIconButton
                     {
-                        Logo = Icon.IconButtonCopy,
+                        SvgIcon = "lucide/copy",
                         ToolTip = Lang.Text("Common.Action.Copy")
                     };
                     btnCopy.Click += (_, _) =>
@@ -254,30 +258,34 @@ public partial class PageInstanceSaves : IRefreshable
                             if (Directory.Exists(tmpCurFolder))
                             {
                                 Clipboard.SetFileDropList(new StringCollection { tmpCurFolder });
-                                ModMain.Hint(Lang.Text("Instance.Saves.CopiedToClipboard"));
-                                ModMain.Hint(Lang.Text("Instance.Saves.CopyPasteWarning"));
+                                HintService.Hint(Lang.Text("Instance.Saves.CopiedToClipboard"));
+                                HintService.Hint(Lang.Text("Instance.Saves.CopyPasteWarning"));
                             }
                             else
                             {
-                                ModMain.Hint(Lang.Text("Instance.Saves.FolderNotFound"));
+                                HintService.Hint(Lang.Text("Instance.Saves.FolderNotFound"));
                             }
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, Lang.Text("Instance.Saves.CopyFailed"), ModBase.LogLevel.Hint);
+                            ModBase.Log(
+                                ex,
+                                Lang.Text("Instance.Saves.CopyFailed"),
+                                ModBase.LogLevel.Hint,
+                                userSummary: Lang.Text("Instance.Saves.CopyFailed"));
                         }
                     };
                     var btnInfo = new MyIconButton
                     {
-                        Logo = Icon.IconButtonInfo,
+                        SvgIcon = "lucide/info",
                         ToolTip = Lang.Text("Instance.Saves.Details")
                     };
                     btnInfo.Click += (_, _) => ModMain.frmMain.PageChange(new FormMain.PageStackData
-                        { page = FormMain.PageType.VersionSaves, additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, null, null, tmpCurFolder) });
+                        { page = FormMain.PageType.VersionSaves, additional = (null, null, null, ModComp.CompLoaderType.Any, ModComp.CompType.Any, tmpCurFolder) });
 
                     var btnLaunch = new MyIconButton
                     {
-                        Logo = Icon.IconPlayGame,
+                        SvgIcon = "lucide/play",
                         ToolTip = Lang.Text("Instance.Saves.QuickPlay")
                     };
                     btnLaunch.Click += (_, _) =>
@@ -286,7 +294,7 @@ public partial class PageInstanceSaves : IRefreshable
                         var launchOptions = new ModLaunch.McLaunchOptions
                         {
                             WorldName = worldName,
-                            instance = PageInstanceLeft.instance
+                            instance = PageInstanceLeft.McInstance
                         };
                         ModLaunch.McLaunchStart(launchOptions);
                         ModMain.frmMain.PageChange(new FormMain.PageStackData { page = FormMain.PageType.Launch });
@@ -304,7 +312,11 @@ public partial class PageInstanceSaves : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Saves.RefreshUiFailed"), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Instance.Saves.RefreshUiFailed"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Instance.Saves.RefreshUiFailed"));
         }
     }
 
@@ -312,12 +324,16 @@ public partial class PageInstanceSaves : IRefreshable
     {
         try
         {
-            var cur = new ModLaunch.LaunchArgument(PageInstanceLeft.instance);
+            var cur = new ModLaunch.LaunchArgument(PageInstanceLeft.McInstance);
             quickPlayFeature = cur.HasArguments("--quickPlaySingleplayer");
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "检查存档快捷启动失败", ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                "检查存档快捷启动失败",
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
         }
     }
 
@@ -349,7 +365,11 @@ public partial class PageInstanceSaves : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Saves.LoadListFailed"), ModBase.LogLevel.Hint);
+            ModBase.Log(
+                ex,
+                Lang.Text("Instance.Saves.LoadListFailed"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Instance.Saves.LoadListFailed"));
         }
     }
 
@@ -380,7 +400,7 @@ public partial class PageInstanceSaves : IRefreshable
                     {
                         if (Directory.Exists(worldPath + GetFolderNameFromPath(i)))
                         {
-                            ModMain.Hint(Lang.Text("Instance.Saves.DuplicateFolder", GetFolderNameFromPath(i)));
+                            HintService.Hint(Lang.Text("Instance.Saves.DuplicateFolder", GetFolderNameFromPath(i)));
                         }
                         else
                         {
@@ -390,24 +410,34 @@ public partial class PageInstanceSaves : IRefreshable
                     }
                     else
                     {
-                        ModMain.Hint(Lang.Text("Instance.Saves.SourceNotFolder"));
+                        HintService.Hint(Lang.Text("Instance.Saves.SourceNotFolder"));
                     }
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, Lang.Text("Instance.Saves.PasteFolderFailed"), ModBase.LogLevel.Hint);
+                    ModBase.Log(
+                        ex,
+                        Lang.Text("Instance.Saves.PasteFolderFailed"),
+                        ModBase.LogLevel.Hint,
+                        userSummary: Lang.Text("Instance.Saves.PasteFolderFailed"));
                 }
 
             if (copied > 0)
-                ModMain.Hint(Lang.Text("Instance.Saves.PastedCount", copied.ToString()), ModMain.HintType.Finish);
+                HintService.Hint(Lang.Text("Instance.Saves.PastedCount", copied.ToString()), HintType.Success);
             ModBase.RunInUi(() => Reload());
         }));
-        var loader = new ModLoader.LoaderCombo<int>($"{PageInstanceLeft.instance.Name} - {Lang.Text("Instance.Saves.CopySave")}", loaders)
+        var loader = new ModLoader.LoaderCombo<int>($"{PageInstanceLeft.McInstance.Name} - {Lang.Text("Instance.Saves.CopySave")}", loaders)
             { OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly };
         loader.Start(1);
         ModLoader.LoaderTaskbarAdd(loader);
         ModMain.frmMain.BtnExtraDownload.ShowRefresh();
         ModMain.frmMain.BtnExtraDownload.Ribble();
+    }
+
+    private void BtnDownloadNew_Click(object sender, MouseButtonEventArgs e)
+    {
+        ModMain.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadWorld);
+        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
     }
 
     #region 搜索和排序
@@ -498,7 +528,7 @@ public partial class PageInstanceSaves : IRefreshable
                     queryList.Add(new ModBase.SearchEntry<string> { item = saveFolder, searchSource = searchSource });
                 }
 
-                _searchResult = ModBase.Search(queryList, SearchBox.Text, 6, 0.35d).Select(r => r.item).ToList();
+                _searchResult = ModBase.Search(queryList, SearchBox.Text, ModBase.MaxLocalSearchDepth, 0.35d).Select(r => r.item).ToList();
             }
             else
             {

@@ -75,6 +75,9 @@
                         <local:MyButton Grid.Column="1" Grid.Row="0" x:Name="BtnSystemSettingImp" MinWidth="140"
                                         Text="{DynamicResource Setup.Misc.System.ImportSettings}" Padding="13,0" Margin="0,0,20,0"
                                         Click="BtnSystemSettingImp_Click" />
+                        <local:MyButton Grid.Column="2" Grid.Row="0" x:Name="BtnSystemStopUsingPclCe" MinWidth="140"
+                                        Text="{DynamicResource Setup.Misc.System.StopUsingPclCe}" Padding="13,0" Margin="0,0,20,0"
+                                        ColorType="Red" Click="BtnSystemStopUsingPclCe_Click" />
                     </Grid>
                 </Grid>
             </local:MyCard>

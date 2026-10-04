@@ -26,8 +26,6 @@ public class MyPageRight : AdornerDecorator
     private static readonly DependencyProperty PanScrollProperty =
     DependencyProperty.Register("PanScroll", typeof(MyScrollViewer), typeof(MyPageRight));
 
-    private PageStates _PageState = PageStates.Empty;
-
     private bool _panScrollNullWarned;
 
     public int pageUuid = ModBase.GetUuid();
@@ -51,16 +49,16 @@ public class MyPageRight : AdornerDecorator
 
     public PageStates PageState
     {
-        get => _PageState;
+        get => field;
         set
         {
-            if (_PageState == value)
+            if (field == value)
                 return;
-            _PageState = value;
+            field = value;
             if (ModBase.modeDebug)
                 ModBase.Log("[UI] 页面状态切换为 " + ModBase.GetStringFromEnum(value));
         }
-    }
+    } = PageStates.Empty;
 
     #region 加载器
 

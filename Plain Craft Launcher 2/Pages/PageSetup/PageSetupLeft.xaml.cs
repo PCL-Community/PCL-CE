@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
@@ -179,7 +179,7 @@ public partial class PageSetupLeft
         {
             case (double)FormMain.PageSubType.SetupFeedback:
             {
-                if (ModMain.frmSetupFeedback is not null) ModMain.frmSetupFeedback.loader.Start(isForceRestart: true);
+                if (ModMain.frmSetupFeedback is not null) ModMain.frmSetupFeedback.Loader.Start(isForceRestart: true);
                 ItemFeedback.Checked = true;
                 break;
             }
@@ -191,7 +191,7 @@ public partial class PageSetupLeft
             }
         }
 
-        ModMain.Hint(Lang.Text("Setup.Left.Refreshing"), log: false);
+        HintService.Hint(Lang.Text("Setup.Left.Refreshing"), log: false);
     }
 
     #region 页面切换
@@ -345,7 +345,11 @@ public partial class PageSetupLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"切换分页面失败（ID {(int)id}）", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                $"切换分页面失败（ID {(int)id}）",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
         finally
         {

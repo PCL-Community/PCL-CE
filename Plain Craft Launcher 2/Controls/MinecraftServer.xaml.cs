@@ -1,11 +1,12 @@
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Media;
+using PCL.Core.App.Localization;
 using PCL.Core.Link.McPing;
 using PCL.Core.Link.McPing.Model;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 
 namespace PCL;
 
@@ -41,9 +42,10 @@ public partial class MinecraftServer : Grid
         address = address.Replace("：", ":");
         // 预先重置UI状态
         LabServerDesc.Foreground = Brushes.White;
-        LabServerDesc.Text = "查询中...";
+        LabServerDesc.Text = Lang.Text("Tools.ServerQuery.State.Querying");
         LabServerPlayer.Text = "-/-";
         LabServerPlayer.ToolTip = null;
+        LabServerLatency.Text = string.Empty;
         ImageLoaderHelper.SetFallbackImage(ImgServerLogo, fallbackImageUri);
 
         try
@@ -56,7 +58,7 @@ public partial class MinecraftServer : Grid
             {
                 var ret = await query.PingAsync();
 
-                if (ret is null) throw new Exception("未返回服务器信息");
+                if (ret is null) throw new Exception(Lang.Text("Tools.ServerQuery.State.NoInfo"));
 
                 // 处理服务器图标
                 await ImageLoaderHelper.SetServerLogoAsync(ret.Favicon, ImgServerLogo);
@@ -68,7 +70,7 @@ public partial class MinecraftServer : Grid
         catch (Exception ex)
         {
             ModBase.Log(ex, "[MinecraftServer] 信息查询失败");
-            LabServerDesc.Text = $"无法连接: {ex.Message}";
+            LabServerDesc.Text = Lang.Text("Tools.ServerQuery.Error.UnableToConnect", ex.Message);
             LabServerDesc.Foreground = Brushes.Red;
             ImageLoaderHelper.SetFallbackImage(ImgServerLogo, fallbackImageUri);
         }
@@ -80,16 +82,16 @@ public partial class MinecraftServer : Grid
         var latencyColor = ret.Latency < 150 ? "a" : ret.Latency < 400 ? "6" : "c";
 
         // 更新描述
-        LabServerDesc.Text = "Minecraft 服务器";
+        LabServerDesc.Text = Lang.Text("Tools.ServerQuery.Title.MinecraftServer");
         MotdRenderer.RenderMotd(ret.Description, false, 2, 14);
         MotdRenderer.RenderCanvas();
 
         // 更新玩家信息
-        var playerText = $"{ret.Players.Online}/{ret.Players.Max}{"\r\n"}§{latencyColor}{ret.Latency}ms";
-        ModStyle.MinecraftFormatter.SetColorfulTextLab(playerText, LabServerPlayer, false);
+        LabServerPlayer.Text = $"{ret.Players.Online}/{ret.Players.Max}";
+        ModStyle.MinecraftFormatter.SetColorfulTextLab($"§{latencyColor}{ret.Latency}ms", LabServerLatency, false);
 
         // 玩家列表提示
-        if (ret.Players.Samples.Any())
+        if (ret.Players.Samples is not null && ret.Players.Samples.Any())
         {
             LabServerPlayer.ToolTip = string.Join("\r\n", ret.Players.Samples.Select(x => x.Name));
             ToolTipService.SetPlacement(LabServerPlayer, PlacementMode.Mouse);

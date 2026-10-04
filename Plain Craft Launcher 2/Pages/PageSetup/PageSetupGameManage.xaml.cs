@@ -1,7 +1,9 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -28,6 +30,20 @@ public partial class PageSetupGameManage
         ModAnimation.AniControlEnabled += 1;
         Reload();
         SliderLoad();
+
+        if (!Lang.IsChineseMainland)
+        {
+            TextFilenameFormat.Visibility = Visibility.Collapsed;
+            ComboDownloadTranslateV2.Visibility = Visibility.Collapsed;
+            TextModManageStyle.Visibility = Visibility.Collapsed;
+            ComboModLocalNameStyle.Visibility = Visibility.Collapsed;
+            
+            RowFilenameFormat.Height = new GridLength(0);
+            RowFilenameFormatGap.Height = new GridLength(0);
+            RowModManageStyle.Height = new GridLength(0);
+            RowModManageStyleGap.Height = new GridLength(0);
+        }
+
         ModAnimation.AniControlEnabled -= 1;
     }
 
@@ -35,7 +51,9 @@ public partial class PageSetupGameManage
     {
         // 下载
         SliderDownloadThread.Value = Config.Download.ThreadLimit;
+        SliderDownloadFileConnection.Value = Config.Download.FileConnectionLimit;
         SliderDownloadSpeed.Value = Config.Download.SpeedLimit;
+        ComboDownloadHttpMode.SelectedIndex = (int)Config.Download.HttpMode;
         ComboDownloadSource.SelectedIndex = Config.Download.FileSource;
         ComboDownloadVersion.SelectedIndex = Config.Download.VersionListSource;
         CheckDownloadAutoSelectVersion.Checked = Config.Download.AutoSelectInstance;
@@ -45,6 +63,7 @@ public partial class PageSetupGameManage
         ComboDownloadTranslateV2.SelectedIndex = Config.Download.Comp.NameFormatV2;
         ComboDownloadMod.SelectedIndex = Config.Download.Comp.CompSourceSolution;
         ComboModLocalNameStyle.SelectedIndex = Config.Download.Comp.UiCompNameSolution;
+        ComboDownloadQuickBehavior.SelectedIndex = Config.Download.Comp.QuickDownloadBehavior;
         CheckDownloadIgnoreQuilt.Checked = Config.Download.Comp.IgnoreQuilt;
         CheckDownloadAutoInstallDependencies.Checked = Config.Download.Comp.AutoInstallDependencies;
         CheckDownloadClipboard.Checked = Config.Download.Comp.ReadClipboard;
@@ -65,11 +84,15 @@ public partial class PageSetupGameManage
             Config.Download.Reset();
             Config.Tool.Reset();
             ModBase.Log("[Setup] 已初始化其他页设置");
-            ModMain.Hint(Lang.Text("Setup.GameManage.Initialized"), ModMain.HintType.Finish, false);
+            HintService.Hint(Lang.Text("Setup.GameManage.Initialized"), HintType.Success, false);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.GameManage.Error.InitFailed"), ModBase.LogLevel.Msgbox);
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.GameManage.Error.InitFailed"),
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.GameManage.Error.InitFailed"));
         }
 
         Reload();
@@ -80,59 +103,42 @@ public partial class PageSetupGameManage
     {
         var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetGameManageByTag(sender.Tag?.ToString(), sender.Checked);
+            SetByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetGameManageByTag(sender.Tag?.ToString(), sender.Value);
+            SetByTag(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            SetGameManageByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+            SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
-    private static void SetGameManageByTag(string tag, object value)
-    {
-        switch (tag)
-        {
-            case "ToolDownloadThread": Config.Download.ThreadLimit = (int)value; break;
-            case "ToolDownloadSpeed": Config.Download.SpeedLimit = (int)value; break;
-            case "ToolDownloadSource": Config.Download.FileSource = (int)value; break;
-            case "ToolDownloadVersion": Config.Download.VersionListSource = (int)value; break;
-            case "ToolDownloadAutoSelectVersion": Config.Download.AutoSelectInstance = (bool)value; break;
-            case "ToolFixAuthlib": Config.Download.FixAuthLib = (bool)value; break;
-            case "ToolDownloadTranslateV2": Config.Download.Comp.NameFormatV2 = (int)value; break;
-            case "ToolDownloadMod": Config.Download.Comp.CompSourceSolution = (int)value; break;
-            case "ToolModLocalNameStyle": Config.Download.Comp.UiCompNameSolution = (int)value; break;
-            case "ToolDownloadIgnoreQuilt": Config.Download.Comp.IgnoreQuilt = (bool)value; break;
-            case "ToolDownloadClipboard": Config.Download.Comp.ReadClipboard = (bool)value; break;
-            case "ToolUpdateRelease": Config.Tool.ReleaseNotification = (bool)value; break;
-            case "ToolUpdateSnapshot": Config.Tool.SnapshotNotification = (bool)value; break;
-            case "ToolHelpChinese": Config.Tool.AutoChangeLanguage = (bool)value; break;
-        }
-    }
+    private static void SetByTag(string tag, object value)
+        => ConfigService.TrySetValue(tag, value);
 
     // 滑动条
     private void SliderLoad()
     {
         SliderDownloadThread.getHintText = new Func<object, object>(v => (int)v + 1);
+        SliderDownloadFileConnection.getHintText = new Func<object, object>(v => (int)v + 1);
         SliderDownloadSpeed.getHintText = new Func<object, object>(v =>
         {
             int value = (int)v;
             switch (value)
             {
                 case <= 14:
-                    return Lang.Number((value + 1) * 0.1d, "N1") + " M/s";
+                    return Lang.Number((value + 1) * 0.1d, "N1") + " MiB/s";
                 case <= 31:
-                    return Lang.Number((value - 11) * 0.5d, "N1") + " M/s";
+                    return Lang.Number((value - 11) * 0.5d, "N1") + " MiB/s";
                 case <= 41:
-                    return Lang.Number(value - 21, "N0") + " M/s";
+                    return Lang.Number(value - 21, "N0") + " MiB/s";
                 default:
                     return Lang.Text("Setup.GameManage.Download.Unlimited");
             }
@@ -141,7 +147,7 @@ public partial class PageSetupGameManage
 
     private void SliderDownloadThread_PreviewChange(object sender, ModBase.RouteEventArgs e)
     {
-        if (SliderDownloadThread.Value < 100)
+        if (SliderDownloadThread.Value < 64)
             return;
         if (!States.Hint.LargeDownloadThread)
         {

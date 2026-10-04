@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using PCL.Core.Utils;
 
 namespace PCL.Core.App.Configuration.Storage;

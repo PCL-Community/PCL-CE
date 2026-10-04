@@ -1,4 +1,4 @@
-﻿using PCL.Core.Logging;
+using PCL.Core.Logging;
 using PCL.Core.Utils;
 using System;
 using System.Collections.Generic;

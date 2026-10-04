@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Markup;
@@ -28,9 +28,14 @@ public partial class PageComp
             PanProjects.Children.Clear();
             var index = Math.Min(page * pageSize, storage.results.Count - 1);
             foreach (var result in storage.results.GetRange(index, Math.Min(storage.results.Count - index, pageSize)))
+            {
+                var showQuickDownload = result.Type != ModComp.CompType.ModPack &&
+                                        result.Type != ModComp.CompType.DataPack;
                 PanProjects.Children.Add(result.ToCompItem(loader.input.gameVersion is null,
                     loader.input.modLoader == ModComp.CompLoaderType.Any &&
-                    (PageType == ModComp.CompType.Mod || PageType == ModComp.CompType.ModPack)));
+                    (PageType == ModComp.CompType.Mod || PageType == ModComp.CompType.ModPack),
+                    showQuickDownload));
+            }
             // 页码
             CardPages.Visibility =
                 storage.results.Count > 40 || storage.curseForgeOffset < storage.curseForgeTotal ||
@@ -64,7 +69,11 @@ public partial class PageComp
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"可视化{TypeNameSpaced}列表出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                $"可视化{TypeNameSpaced}列表出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Download.Comp.Error.OperationFailed"));
         }
     }
 
@@ -182,21 +191,19 @@ public partial class PageComp
     /// </summary>
     public ModComp.CompType PageType
     {
-        get => _Type;
+        get => field;
         set
         {
-            if (_Type == value)
+            if (field == value)
                 return;
-            _Type = value;
+            field = value;
             BtnSearchInstallModPack.Visibility =
                 value == ModComp.CompType.ModPack ? Visibility.Visible : Visibility.Collapsed;
             loader.name = Lang.Text("Download.Comp.List.Source.ResourceFetch", TypeName);
             PanSearchBox.HintText = ModComp.GetCompSearchName(value);
             Load.Text = ModComp.GetCompLoadingName(value);
         }
-    }
-
-    private ModComp.CompType _Type = (ModComp.CompType)(-1);
+    } = (ModComp.CompType)(-1);
 
     #endregion
 
@@ -205,7 +212,7 @@ public partial class PageComp
     /// <summary>
     ///     在切换到页面时，应自动将筛选项设置为与该目标 MC 版本和加载器相同。
     /// </summary>
-    public static ModMinecraft.Instance targetVersion;
+    public static McInstance targetVersion;
 
     // 在点击 MyCompItem 时会获取 Loader 的输入，以使资源详情页面可以应用相同的筛选项
     public ModLoader.LoaderTask<ModComp.CompProjectRequest, int> loader;
@@ -271,7 +278,7 @@ public partial class PageComp
         // 将最高 Drop 加入筛选
         if (ModDownload.AllDrops is not null && ModDownload.AllDrops.Count != 0 && ModDownload.AllDrops.First() > 250)
         {
-            var highestVersion = ModMinecraft.McInstanceInfo.DropToVersion(ModDownload.AllDrops.First());
+            var highestVersion = McInstanceInfo.DropToVersion(ModDownload.AllDrops.First());
             if ((((MyComboBoxItem)TextSearchVersion.Items[1]).Content.ToString() ?? "") !=
                 (highestVersion ?? "")) // 0 是全部
                 TextSearchVersion.Items.Insert(1, new MyComboBoxItem { Content = highestVersion });

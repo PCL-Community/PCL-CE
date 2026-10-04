@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -8,7 +8,6 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using PCL.Core.App;
-using PCL.Core.IO;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
 

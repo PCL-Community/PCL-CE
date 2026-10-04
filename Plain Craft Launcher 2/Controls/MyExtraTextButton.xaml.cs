@@ -19,14 +19,8 @@ public partial class MyExtraTextButton
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyExtraTextButton), new PropertyMetadata((sender, e) =>
         {
-            if (sender is not null) ((MyExtraTextButton)sender).LabText.Text = (string)e.NewValue;
+            ((MyExtraTextButton)sender)?.LabText.Text = (string)e.NewValue;
         }));
-
-    private string _Logo = "";
-    private double _LogoScale = 1d;
-
-    // 动画
-    private bool _Show;
 
     // 鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
     private bool isLeftMouseHeld;
@@ -37,6 +31,7 @@ public partial class MyExtraTextButton
     public MyExtraTextButton()
     {
         InitializeComponent();
+        RefreshIconHostVisibility();
 
         Loaded += (_, _) => RefreshColor();
         IsEnabledChanged += (_, _) => RefreshColor();
@@ -49,26 +44,82 @@ public partial class MyExtraTextButton
 
     public string Logo
     {
-        get => _Logo;
+        get;
         set
         {
-            if ((value ?? "") == (_Logo ?? ""))
+            if ((value ?? "") == (field ?? ""))
                 return;
-            _Logo = value;
-            Path.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
+            field = value ?? string.Empty;
+            Path.Data = string.IsNullOrWhiteSpace(value)
+                ? null
+                : (Geometry)new GeometryConverter().ConvertFromString(value);
+            SvgIconControlHelper.ApplyVisibility(Path, ShapeSvgIcon, IsUsingSvgIcon);
+            RefreshIconHostVisibility();
+        }
+    } = string.Empty;
+
+    public string SvgIcon
+    {
+        get;
+        set
+        {
+            value ??= string.Empty;
+            if (value == field)
+                return;
+            field = value;
+            if (Path is null || ShapeSvgIcon is null)
+                return;
+            SvgIconControlHelper.ApplyIcon(Path, ShapeSvgIcon, field);
+            ApplyLogoScale();
+            RefreshIconHostVisibility();
+        }
+    } = string.Empty;
+
+    private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(SvgIcon);
+
+    private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
+
+    private bool HasAnyIcon => IsUsingSvgIcon || !string.IsNullOrWhiteSpace(Logo);
+
+    private void ApplyLogoScale()
+    {
+        IconHost?.RenderTransform = new ScaleTransform
+        {
+            ScaleX = EffectiveLogoScale,
+            ScaleY = EffectiveLogoScale
+        };
+    }
+
+    private void RefreshIconHostVisibility()
+    {
+        if (IconHost is null || LabText is null)
+            return;
+
+        if (HasAnyIcon)
+        {
+            IconHost.Visibility = Visibility.Visible;
+            IconHost.Width = 16;
+            IconHost.Margin = new Thickness(2, 12, 0, 12);
+            LabText.Margin = new Thickness(12, 0, 0, 0.8);
+        }
+        else
+        {
+            IconHost.Visibility = Visibility.Collapsed;
+            IconHost.Width = 0;
+            IconHost.Margin = new Thickness(0, 12, 0, 12);
+            LabText.Margin = new Thickness(0, 0, 0, 0.8);
         }
     }
 
     public double LogoScale
     {
-        get => _LogoScale;
+        get;
         set
         {
-            _LogoScale = value;
-            if (Path is not null)
-                Path.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
+            field = value;
+            ApplyLogoScale();
         }
-    }
+    } = 1d;
 
     // 显示文本
     public InlineCollection Inlines => LabText.Inlines;
@@ -85,12 +136,12 @@ public partial class MyExtraTextButton
 
     public bool Show
     {
-        get => _Show;
+        get;
         set
         {
-            if (_Show == value)
+            if (field == value)
                 return;
-            _Show = value;
+            field = value;
             ModBase.RunInUi(() =>
             {
                 if (value)

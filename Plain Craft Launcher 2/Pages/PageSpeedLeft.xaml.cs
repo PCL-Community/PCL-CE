@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using PCL.Network;
@@ -39,7 +39,7 @@ public partial class PageSpeedLeft
         timer.Tick += (_, _) => Watcher();
         timer.Start();
 
-        // 非调试模式隐藏线程数
+        // 非调试模式隐藏连接数
         if (!ModBase.modeDebug)
         {
             RowDefinitions[12].Height = new GridLength(0d);
@@ -63,7 +63,7 @@ public partial class PageSpeedLeft
                 LabProgress.Text = Lang.Number(1d, "P0");
                 LabSpeed.Text = ModBase.GetString(0) + "/s";
                 LabFile.Text = Lang.Number(0, "N0");
-                LabThread.Text = Lang.Number(0, "N0") + " / " + Lang.Number(ModNet.NetTaskThreadLimit, "N0");
+                LabThread.Text = Lang.Number(0, "N0") + " / " + Lang.Number(ModNet.NetTaskConnectionLimit, "N0");
             }
             else
             {
@@ -78,8 +78,8 @@ public partial class PageSpeedLeft
                 LabProgress.Text = rawPercent > 0.999999d ? Lang.Number(1d, "P0") : predictText;
                 LabSpeed.Text = ModBase.GetString(ModNet.NetManager.Speed) + "/s";
                 LabFile.Text = ModNet.NetManager.FileRemain < 0 ? "0*" : Lang.Number(ModNet.NetManager.FileRemain, "N0");
-                LabThread.Text = Lang.Number(ModNet.NetManager.ThreadCount, "N0") + " / " +
-                                 Lang.Number(ModNet.NetTaskThreadLimit, "N0");
+                LabThread.Text = Lang.Number(ModNet.NetManager.ConnectionCount, "N0") + " / " +
+                                 Lang.Number(ModNet.NetTaskConnectionLimit, "N0");
             }
         }
 
@@ -87,7 +87,11 @@ public partial class PageSpeedLeft
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "任务管理左栏监视出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "任务管理左栏监视出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Speed.Error.OperationFailed"));
         }
 
         if (ModMain.frmSpeedRight is null || ModMain.frmSpeedRight.PanMain is null)
@@ -99,7 +103,11 @@ public partial class PageSpeedLeft
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "任务管理右栏监视出错", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "任务管理右栏监视出错",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Speed.Error.OperationFailed"));
         }
     }
 
@@ -139,12 +147,12 @@ public partial class PageSpeedLeft
                             card.Children.Add((UIElement)ModBase.GetObjectFromXML(
                                 "<Path xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" Stretch=\"Uniform\" Tag=\"Failed\" Data=\"F1 M2.5,0 L0,2.5 7.5,10 0,17.5 2.5,20 10,12.5 17.5,20 20,17.5 12.5,10 20,2.5 17.5,0 10,7.5 2.5,0Z\" Height=\"15\" Width=\"15\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"0\" Fill=\"{DynamicResource ColorBrush3}\" Margin=\"0,1,0,0\" VerticalAlignment=\"Top\"/>"));
                             var tb = (TextBlock)ModBase.GetObjectFromXML(
-                                "<TextBlock xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" TextWrapping=\"Wrap\" HorizontalAlignment=\"Left\" ToolTip=\"单击复制错误详情\" Grid.Column=\"1\" Grid.Row=\"0\" Margin=\"0,0,0,5\" />");
+                                "<TextBlock xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" TextWrapping=\"Wrap\" HorizontalAlignment=\"Left\" ToolTip=\"" + Lang.Text("Speed.Error.ClickToCopy") + "\" Grid.Column=\"1\" Grid.Row=\"0\" Margin=\"0,0,0,5\" />");
                             tb.Text = loader.Error.ToString();
                             tb.MouseLeftButtonDown += (sender, _) =>
                             {
                                 ModBase.ClipboardSet(((TextBlock)sender).Text, false);
-                                ModMain.Hint("已复制错误详情！", ModMain.HintType.Finish);
+                                HintService.Hint(Lang.Text("Speed.Error.Copied"), HintType.Success);
                             };
                             card.Children.Add(tb);
                             break;
@@ -234,7 +242,11 @@ public partial class PageSpeedLeft
                                 }
                                 catch (Exception ex)
                                 {
-                                    ModBase.Log(ex, $"刷新任务管理卡片 {loader.name} 失败", ModBase.LogLevel.Feedback);
+                                    ModBase.Log(
+                                        ex,
+                                        $"刷新任务管理卡片 {loader.name} 失败",
+                                        ModBase.LogLevel.Feedback,
+                                        userSummary: Lang.Text("Speed.Error.OperationFailed"));
                                 }
                             } while (false);
 
@@ -246,7 +258,11 @@ public partial class PageSpeedLeft
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, $"更新任务管理显示失败（{loader.State}）", ModBase.LogLevel.Feedback);
+                    ModBase.Log(
+                        ex,
+                        $"更新任务管理显示失败（{loader.State}）",
+                        ModBase.LogLevel.Feedback,
+                        userSummary: Lang.Text("Speed.Error.OperationFailed"));
                 }
             }
             else if (!(loader.State == ModBase.LoadState.Aborted || loader.State == ModBase.LoadState.Finished))
@@ -323,7 +339,7 @@ public partial class PageSpeedLeft
                     var cancel = new MyIconButton
                     {
                         Name = "BtnCancel",
-                        Logo = "F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z", Height = 20d,
+                        SvgIcon = "lucide/x", Height = 25d, Width = 25d,
                         Margin = new Thickness(0d, 10d, 10d, 0d), LogoScale = 1.1d,
                         HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top
                     };
@@ -354,13 +370,21 @@ public partial class PageSpeedLeft
 
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "添加任务管理卡片失败", ModBase.LogLevel.Feedback);
+                    ModBase.Log(
+                        ex,
+                        "添加任务管理卡片失败",
+                        ModBase.LogLevel.Feedback,
+                        userSummary: Lang.Text("Speed.Error.OperationFailed"));
                 }
             }
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新任务管理显示失败", ModBase.LogLevel.Feedback);
+            ModBase.Log(
+                ex,
+                "刷新任务管理显示失败",
+                ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Speed.Error.OperationFailed"));
         }
     }
 

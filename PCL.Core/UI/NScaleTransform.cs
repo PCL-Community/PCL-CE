@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Numerics;
 using System.Windows.Media;
 using PCL.Core.UI.Animation.Core;
