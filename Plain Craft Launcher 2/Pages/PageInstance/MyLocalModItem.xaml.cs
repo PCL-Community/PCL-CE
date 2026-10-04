@@ -12,8 +12,11 @@ namespace PCL;
 
 public partial class MyLocalCompItem
 {
+    private string? _displayVersion;
+
     private string GetUpdateCompareDescription()
     {
+        _displayVersion = null;
         var currentName = Entry.compFile.FileName.Replace(".jar", "");
         var newestName = Entry.UpdateFile.FileName.Replace(".jar", "");
         // 简化名称对比
@@ -33,7 +36,7 @@ public partial class MyLocalCompItem
         {
             currentName = currentSegs.Join("-");
             newestName = newestSegs.Join("-");
-            Entry._Version = currentName; // 使用网络信息作为显示的版本号
+            _displayVersion = currentName;
         }
 
         return
@@ -53,6 +56,7 @@ public partial class MyLocalCompItem
             else
             {
                 BtnUpdate.Visibility = Visibility.Collapsed;
+                _displayVersion = null;
             }
 
             // 标题与描述
@@ -84,6 +88,7 @@ public partial class MyLocalCompItem
                 }
 
             string newDescription;
+            var displayVersion = _displayVersion ?? Entry.Version;
             var compTemp = Entry.Comp;
             if (Entry.IsFolder)
             {
@@ -109,8 +114,8 @@ public partial class MyLocalCompItem
                 }
 
                 newDescription = newDescription.Replace("  |  ", " / ");
-                if (Entry.Version is not null)
-                    newDescription += $" ({Entry.Version})";
+                if (displayVersion is not null)
+                    newDescription += $" ({displayVersion})";
             }
             else
             {
@@ -119,13 +124,13 @@ public partial class MyLocalCompItem
                 if (Entry.Comp is null)
                 {
                     Title = Entry.Name;
-                    SubTitle = Entry.Version is null ? "" : "  |  " + Entry.Version;
+                    SubTitle = displayVersion is null ? "" : "  |  " + displayVersion;
                 }
                 else
                 {
                     var titles = await Task.Run(() => compTemp.GetControlTitle(false));
                     Title = titles.Key;
-                    SubTitle = titles.Value + (Entry.Version is null ? "" : "  |  " + Entry.Version);
+                    SubTitle = titles.Value + (displayVersion is null ? "" : "  |  " + displayVersion);
                 }
 
                 // 描述
