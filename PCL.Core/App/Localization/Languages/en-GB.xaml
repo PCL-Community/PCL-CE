@@ -1142,6 +1142,13 @@
     <sys:String x:Key="Instance.Resource.Item.UpdateConfirm.Message">Update {0}?</sys:String>
     <sys:String x:Key="Instance.Resource.Item.UpdateConfirm.Title">Confirm update</sys:String>
     <sys:String x:Key="Instance.Resource.Item.UpdateToolTip">Click to update, right-click to view changelog.</sys:String>
+    <sys:String x:Key="Instance.Resource.Undo.Action">Undo</sys:String>
+    <sys:String x:Key="Instance.Resource.Undo.SelectedCount">Undo ({0})</sys:String>
+    <sys:String x:Key="Instance.Resource.Undo.SelectionToolTip">Undo selected updates with an old-version backup; leave other resources unchanged.</sys:String>
+    <sys:String x:Key="Instance.Resource.Undo.BatchResult">Undo completed: {0} restored, {1} skipped, {2} failed.</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.UndoToolTip">Undo: permanently delete the new version and restore the resource before updating.</sys:String>
+    <sys:String x:Key="Instance.Resource.Undo.Success">Undid the update of {0}.</sys:String>
+    <sys:String x:Key="Instance.Resource.Undo.Failed">Failed to undo the resource update: {0}</sys:String>
     <sys:String x:Key="Instance.Resource.Item.ViewChangelog">View changelog</sys:String>
 
     <!-- Instance.Resource.Item.Info -->
@@ -1199,7 +1206,7 @@
     <sys:String x:Key="Instance.Resource.Update.Task.Title">Update resources: {0}</sys:String>
     <sys:String x:Key="Instance.Resource.Update.WaitingForUpdate">Updating resources</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Warning.Confirm">I understand the risks, continue updating</sys:String>
-    <sys:String x:Key="Instance.Resource.Update.Warning.Message">Newer versions of mods may be incompatible with old saves or other mods, which could cause game crashes or even permanently corrupt your saves!&#xA;If you are playing a modpack, do NOT update mods on your own!&#xA;&#xA;Before updating, please back up your saves and check the mod's changelog.&#xA;If problems arise after updating, you can retrieve the previous mod version from the recycle bin.</sys:String>
+    <sys:String x:Key="Instance.Resource.Update.Warning.Message">Newer versions of mods may be incompatible with old saves or other mods, which could cause game crashes or even permanently corrupt your saves!&#xA;If you are playing a modpack, do NOT update mods on your own!&#xA;&#xA;Before updating, please back up your saves and check the mod's changelog.&#xA;If problems arise after updating, you can undo the update using the button beside the resource. Previous versions are kept in the recycle folder in the game directory.</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Warning.Title">Mod update warning</sys:String>
 
     <!-- Instance.Saves -->
@@ -1275,7 +1282,7 @@
     <sys:String x:Key="Instance.Saves.Datapack.Update.Task.Title">Update data packs: {0}</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Update.UnsafeFilesSkipped">Skipped {0} data pack updates with unsafe file names.</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Confirm">I understand the risks, continue updating</sys:String>
-    <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Message">Newer versions of data packs may be incompatible with old saves or other data packs, which could cause game crashes or save corruption!&#xA;&#xA;Before updating, please back up your save.&#xA;If problems arise after updating, you can retrieve the previous data pack version from the recycle bin.</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Message">Newer versions of data packs may be incompatible with old saves or other data packs, which could cause game crashes or save corruption!&#xA;&#xA;Before updating, please back up your save.&#xA;If problems arise after updating, you can undo the update using the button beside the resource. Previous versions are kept in the recycle folder in the game directory.</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Title">Data pack update warning</sys:String>
 
     <!-- Instance.Saves.Info -->

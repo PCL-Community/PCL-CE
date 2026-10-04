@@ -1186,6 +1186,13 @@
     <sys:String x:Key="Instance.Resource.Item.UpdateConfirm.Message">是否要更新 {0}？</sys:String>
     <sys:String x:Key="Instance.Resource.Item.UpdateConfirm.Title">更新确认</sys:String>
     <sys:String x:Key="Instance.Resource.Item.UpdateToolTip">点击以更新，右键查看更新日志。</sys:String>
+    <sys:String x:Key="Instance.Resource.Undo.Action">撤回</sys:String>
+    <sys:String x:Key="Instance.Resource.Undo.SelectedCount">撤回 ({0})</sys:String>
+    <sys:String x:Key="Instance.Resource.Undo.SelectionToolTip">撤回所选资源中有旧版备份的更新；其他资源保持原样。</sys:String>
+    <sys:String x:Key="Instance.Resource.Undo.BatchResult">撤回完成：成功 {0} 个，跳过 {1} 个，失败 {2} 个。</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.UndoToolTip">撤回：彻底删除新版并还原更新前的资源。</sys:String>
+    <sys:String x:Key="Instance.Resource.Undo.Success">已撤回 {0} 的更新。</sys:String>
+    <sys:String x:Key="Instance.Resource.Undo.Failed">撤回资源更新失败：{0}</sys:String>
     <sys:String x:Key="Instance.Resource.Item.ViewChangelog">查看更新日志</sys:String>
 
     <!-- Instance.Resource.Item.Info -->
@@ -1243,7 +1250,7 @@
     <sys:String x:Key="Instance.Resource.Update.Task.Title">资源更新：{0}</sys:String>
     <sys:String x:Key="Instance.Resource.Update.WaitingForUpdate">正在更新资源</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Warning.Confirm">我已了解风险，继续更新</sys:String>
-    <sys:String x:Key="Instance.Resource.Update.Warning.Message">新版本模组可能不兼容旧存档或者其他模组，这可能导致游戏崩溃，甚至永久损坏存档！&#xA;如果你在游玩整合包，请千万不要自行更新模组！&#xA;&#xA;在更新前，请先备份存档，并检查模组的更新日志。&#xA;如果更新后出现问题，你也可以在回收站找回更新前的模组。</sys:String>
+    <sys:String x:Key="Instance.Resource.Update.Warning.Message">新版本模组可能不兼容旧存档或者其他模组，这可能导致游戏崩溃，甚至永久损坏存档！&#xA;如果你在游玩整合包，请千万不要自行更新模组！&#xA;&#xA;在更新前，请先备份存档，并检查模组的更新日志。&#xA;如果更新后出现问题，你也可以点击资源旁的“撤回”还原旧版，旧版保存在游戏目录的 recycle 文件夹中。</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Warning.Title">模组更新警告</sys:String>
 
     <!-- Instance.Saves -->
@@ -1319,7 +1326,7 @@
     <sys:String x:Key="Instance.Saves.Datapack.Update.Task.Title">数据包更新：{0}</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Update.UnsafeFilesSkipped">已跳过 {0} 个文件名不安全的数据包更新。</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Confirm">我已了解风险，继续更新</sys:String>
-    <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Message">新版本数据包可能不兼容旧存档或者其他数据包，这可能导致游戏崩溃或存档损坏！&#xA;&#xA;在更新前，请先备份存档。&#xA;如果更新后出现问题，你也可以在回收站找回更新前的数据包。</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Message">新版本数据包可能不兼容旧存档或者其他数据包，这可能导致游戏崩溃或存档损坏！&#xA;&#xA;在更新前，请先备份存档。&#xA;如果更新后出现问题，你也可以点击资源旁的“撤回”还原旧版，旧版保存在游戏目录的 recycle 文件夹中。</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Update.Warning.Title">数据包更新警告</sys:String>
 
     <!-- Instance.Saves.Info -->

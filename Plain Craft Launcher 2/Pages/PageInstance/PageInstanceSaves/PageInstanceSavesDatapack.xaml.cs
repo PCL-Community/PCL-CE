@@ -13,6 +13,7 @@ using PCL.Network;
 using PCL.Network.Loaders;
 using FileSystem = Microsoft.VisualBasic.FileSystem;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft;
 
 namespace PCL;
 
@@ -85,6 +86,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         BtnSelectDisable.Click += BtnSelectDisable_Click;
         BtnSelectUpdate.Click += BtnSelectUpdate_Click;
         BtnSelectDelete.Click += BtnSelectDelete_Click;
+        BtnSelectUndo.Click += _BtnSelectUndoClick;
         BtnSelectCancel.Click += BtnSelectCancel_Click;
         BtnSelectFavorites.Click += BtnSelectFavorites_Click;
         BtnSelectShare.Click += BtnSelectShare_Click;
@@ -327,6 +329,10 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         {
             sender.Buttons = new[] { btnCont, btnOpen, btnDelete };
         }
+
+        var btnUndo = ResourceUpdateUndo.CreateButton(sender, PageInstanceLeft.McInstance.PathIndie,
+            () => ReloadDatapackFileList(true));
+        if (btnUndo is not null) sender.Buttons = sender.Buttons.Append(btnUndo).ToArray();
     }
 
     /// <summary>
@@ -386,8 +392,14 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     /// </summary>
     public void RefreshBars()
     {
+        var revision = ++_refreshBarsRevision;
         Dispatcher.BeginInvoke(new Func<Task>(async () =>
         {
+            if (revision != _refreshBarsRevision) return;
+            var selectedKeys = selectedDatapacks.ToHashSet();
+            var selectedEntries = datapackItems.Values.Select(item => item.Entry)
+                .Where(entry => selectedKeys.Contains(entry.RawPath)).ToArray();
+            var recycleBin = new ResourceUpdateRecycleBin(PageInstanceLeft.McInstance.PathIndie);
             // -----------------
             // 顶部栏
             // -----------------
@@ -410,6 +422,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                     if (item.State == ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable) unavalialeCount += 1;
                 }
             });
+            if (revision != _refreshBarsRevision) return;
             // 显示
             BtnFilterAll.Text = IsSearching ? Lang.Text("Instance.Resource.Filter.SearchResult") : Lang.Text("Instance.Resource.Filter.AllWithCount", anyCount);
             BtnFilterCanUpdate.Text = Lang.Text("Instance.Resource.Filter.UpdatableWithCount", updateCount);
@@ -434,7 +447,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             // -----------------
 
             // 计数
-            var newCount = selectedDatapacks.Count;
+            var newCount = selectedKeys.Count;
             var selected = newCount > 0;
             if (selected)
                 LabSelect.Text = Lang.Text("Instance.Resource.SelectedCount", newCount);
@@ -442,6 +455,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             // 按钮可用性
             if (selected)
             {
+                var undoCount = 0;
                 var hasUpdate = false;
                 var hasEnabled = false;
                 var hasDisabled = false;
@@ -451,19 +465,21 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 // 检查是否所有选中的数据包都有有效的项目信息
                 await Task.Run(() =>
                 {
-                    foreach (var DatapackEntity in ModLocalComp.compResourceListLoader.output)
-                        if (selectedDatapacks.Contains(DatapackEntity.RawPath))
-                        {
-                            if (DatapackEntity.CanUpdate) hasUpdate = true;
-                            if (DatapackEntity.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine)
-                                hasEnabled = true;
-                            else if (DatapackEntity.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled)
-                                hasDisabled = true;
-                            if (DatapackEntity.Comp is null || string.IsNullOrEmpty(DatapackEntity.Comp.Id))
-                                canFavoriteAndShare = false;
-                        }
+                    foreach (var DatapackEntity in selectedEntries)
+                    {
+                        if (!DatapackEntity.IsFolder && recycleBin.CanUndo(DatapackEntity.path)) undoCount++;
+                        if (DatapackEntity.CanUpdate) hasUpdate = true;
+                        if (DatapackEntity.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine)
+                            hasEnabled = true;
+                        else if (DatapackEntity.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled)
+                            hasDisabled = true;
+                        if (DatapackEntity.Comp is null || string.IsNullOrEmpty(DatapackEntity.Comp.Id))
+                            canFavoriteAndShare = false;
+                    }
                 });
 
+                if (revision != _refreshBarsRevision) return;
+                ResourceUpdateUndo.RefreshSelectionButton(BtnSelectUndo, undoCount, _undoingSelection);
                 BtnSelectDisable.IsEnabled = hasEnabled;
                 BtnSelectEnable.IsEnabled = hasDisabled;
                 BtnSelectUpdate.IsEnabled = hasUpdate;
@@ -471,10 +487,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 BtnSelectShare.IsEnabled = canFavoriteAndShare;
             }
 
+            if (!selected) ResourceUpdateUndo.RefreshSelectionButton(BtnSelectUndo, 0, _undoingSelection);
+            _UpdateSelectionMargin(selected);
             // 更新显示状态
             if (ModAnimation.AniControlEnabled == 0)
             {
-                PanListBack.Margin = new Thickness(0d, 0d, 0d, selected ? 95 : 15);
                 if (selected)
                 {
                     // 仅在数量增加时播放出现/跳跃动画
@@ -534,6 +551,53 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 }
             }
         }));
+    }
+
+    private int _refreshBarsRevision;
+    private bool _undoingSelection;
+
+    private void _UpdateSelectionMargin(bool selected)
+    {
+        // 窄窗口换行后，列表底部为整张操作卡片预留空间。
+        PanListBack.Margin = new Thickness(0, 0, 0, selected ? Math.Max(95, CardSelect.ActualHeight + 50) : 15);
+    }
+
+    private void _CardSelectSizeChanged(object sender, SizeChangedEventArgs e) =>
+        _UpdateSelectionMargin(selectedDatapacks.Count > 0);
+
+    private async void _BtnSelectUndoClick(object sender, ModBase.RouteEventArgs e)
+    {
+        if (_undoingSelection) return;
+        var gameDirectory = PageInstanceLeft.McInstance.PathIndie;
+        var saveDirectory = PageInstanceSavesLeft.currentSave;
+        var paths = datapackItems.Values.Select(item => item.Entry)
+            .Where(entry => !entry.IsFolder && selectedDatapacks.Contains(entry.RawPath))
+            .Select(entry => entry.path).ToArray();
+        if (paths.Length == 0) return;
+        _undoingSelection = true;
+        CardSelect.IsEnabled = false;
+        PanAllBack.IsEnabled = false;
+        try
+        {
+            await ResourceUpdateUndo.UndoSelectedAsync(gameDirectory, paths);
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "批量撤回资源更新失败", ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Instance.Resource.Undo.Failed", ex.Message));
+        }
+        finally
+        {
+            _undoingSelection = false;
+            CardSelect.IsEnabled = true;
+            PanAllBack.IsEnabled = true;
+            if (IsLoaded && gameDirectory == PageInstanceLeft.McInstance.PathIndie && saveDirectory == PageInstanceSavesLeft.currentSave)
+            {
+                selectedDatapacks.Clear();
+                ReloadDatapackFileList(true);
+                RefreshBars();
+            }
+        }
     }
 
     private int bottomBarShownCount;
@@ -1235,7 +1299,9 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             var fileList = new List<DownloadFile>();
             var fileCopyList = new Dictionary<string, string>();
             var updateEntryList = new List<ModLocalComp.LocalCompFile>();
-            var tempRoot = Path.Combine(ModBase.pathTemp, "DownloadedComp");
+            var replacements = new List<(string Original, string Downloaded, string Updated)>();
+            var recycleBin = new ResourceUpdateRecycleBin(PageInstanceLeft.McInstance.PathIndie);
+            var tempRoot = Path.Combine(ModBase.pathTemp, "DownloadedComp", Guid.NewGuid().ToString("N"));
             var datapackRoot = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
             var skippedUnsafeFileCount = 0;
             foreach (var Entry in datapackList)
@@ -1253,10 +1319,16 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 }
 
                 // 添加到下载列表
+                if (Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled)
+                    realAddress += Entry.path.EndsWith(".old", StringComparison.OrdinalIgnoreCase) ? ".old" : ".disabled";
+                if (replacements.Any(replacement => string.Equals(replacement.Updated, realAddress,
+                        StringComparison.OrdinalIgnoreCase)))
+                    throw new IOException("多个数据包更新后的文件名相同：" + safeFileName);
                 fileList.Add(file.ToNetFile(tempAddress, ModComp.DownloadReason.Update,
                     file.RawGameVersions.FirstOrDefault()));
                 fileCopyList[tempAddress] = realAddress;
                 updateEntryList.Add(Entry);
+                replacements.Add((Entry.path, tempAddress, realAddress));
             }
 
             if (skippedUnsafeFileCount > 0)
@@ -1278,32 +1350,10 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 {
                     try
                     {
-                        foreach (var Entry in updateEntryList)
-                            if (File.Exists(Entry.path))
-                                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.path, UIOption.AllDialogs,
-                                    RecycleOption.SendToRecycleBin);
-                            else
-                                ModBase.Log($"[DatapackUpdate] 未找到更新前的数据包文件，跳过对它的删除：{Entry.path}",
-                                    ModBase.LogLevel.Debug);
-
-                        foreach (var Entry in fileCopyList)
+                        foreach (var replacement in replacements)
                         {
-                            if (File.Exists(Entry.Value))
-                            {
-                                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.Value, UIOption.AllDialogs,
-                                    RecycleOption.SendToRecycleBin);
-                                ModBase.Log($"[Datapack] 更新后的数据包文件已存在，将会把它放入回收站：{Entry.Value}", ModBase.LogLevel.Debug);
-                            }
-
-                            if (Directory.Exists(ModBase.GetPathFromFullPath(Entry.Value)))
-                            {
-                                File.Move(Entry.Key, Entry.Value);
-                                finishedFileNames.Add(ModBase.GetFileNameFromPath(Entry.Value));
-                            }
-                            else
-                            {
-                                ModBase.Log($"[Datapack] 更新后的目标文件夹已被删除：{Entry.Value}", ModBase.LogLevel.Debug);
-                            }
+                            recycleBin.Replace(replacement.Original, replacement.Updated, replacement.Downloaded);
+                            finishedFileNames.Add(ModBase.GetFileNameFromPath(replacement.Updated));
                         }
                     }
                     catch (OperationCanceledException ex)

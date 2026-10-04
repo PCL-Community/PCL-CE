@@ -104,14 +104,14 @@
             <local:MyLoading Text="{DynamicResource Instance.Resource.Loading}" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
                              VerticalAlignment="Center" />
         </local:MyCard>
-        <local:MyCard x:Name="CardSelect" Visibility="Collapsed" Opacity="0"
+        <local:MyCard x:Name="CardSelect" Visibility="Collapsed" Opacity="0" SizeChanged="_CardSelectSizeChanged"
                       HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="25,25,25,0" UseAnimation="False">
             <local:MyCard.RenderTransform>
                 <TranslateTransform x:Name="TransSelect" Y="-10" />
             </local:MyCard.RenderTransform>
             <TextBlock x:Name="LabSelect" Text="" HorizontalAlignment="Center" VerticalAlignment="Top"
                        Margin="9" Foreground="{DynamicResource ColorBrush2}" />
-            <StackPanel Orientation="Horizontal" Margin="5,28,5,5">
+            <WrapPanel x:Name="PanSelectActions" Orientation="Horizontal" Margin="5,28,5,5">
                 <local:MyIconTextButton x:Name="BtnSelectUpdate" Text="{DynamicResource Instance.Resource.Update}"
                                         LogoScale="1"
                                         SvgIcon="lucide/upload" />
@@ -130,10 +130,13 @@
                 <local:MyIconTextButton x:Name="BtnSelectDelete" Text="{DynamicResource Common.Action.Delete}"
                                         LogoScale="0.96"
                                         SvgIcon="lucide/trash-2" />
+                <local:MyIconTextButton x:Name="BtnSelectUndo" Visibility="Collapsed"
+                                        Text="{DynamicResource Instance.Resource.Undo.Action}"
+                                        LogoScale="1" SvgIcon="lucide/rotate-ccw" />
                 <local:MyIconTextButton x:Name="BtnSelectCancel" Text="{DynamicResource Instance.Resource.CancelSelection}"
                                         LogoScale="0.8"
                                         SvgIcon="lucide/x" />
-            </StackPanel>
+            </WrapPanel>
         </local:MyCard>
     </Grid>
 </local:MyPageRight>
