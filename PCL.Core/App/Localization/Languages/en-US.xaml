@@ -221,6 +221,15 @@
     <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateNone">None</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateSection">=== Potentially duplicated mods (installed standalone and bundled via Jar-in-Jar) ===</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.JarInJarNone">No Jar-in-Jar information found</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.WarningSection">=== Dependency warnings (missing / version mismatch) ===</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.WarningNone">No dependency issues found.</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.WarningMissing">missing prerequisite(s) [{0}]</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.WarningMismatch">version-incompatible prerequisite(s) [{0}]</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.WarningDisabled">disabled prerequisite(s) [{0}]</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.ConflictSection">=== Conflicts (incompatible / discouraged) ===</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.ConflictNone">No conflicts found.</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.ConflictIncompatible">Incompatible</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.ConflictDiscouraged">Discouraged</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.JarInJarSection">=== Jar-in-Jar information (enabled mods only) ===</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.ModListDirectory">Directory: {0}</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.ModListSection">=== Mod list ===</sys:String>
@@ -598,7 +607,7 @@
 
     <sys:String x:Key="Download.Comp.QuickDownload.Btn.ToolTip">Download the latest version</sys:String>
     <sys:String x:Key="Download.Comp.QuickDownload.ChooseInstance.Title">Select a target Minecraft instance</sys:String>
-    <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.AskInstance">Select an instance…</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.AskInstance">Select instances…</sys:String>
     <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.AskPath">Select a folder…</sys:String>
     <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.CurrentInstance">Download to the current instance</sys:String>
     <sys:String x:Key="Download.Comp.QuickDownload.ChooseMethod.Title">Select a download destination</sys:String>
@@ -1076,6 +1085,41 @@
     <sys:String x:Key="Instance.Resource.Mod.Disabled.Message">You need to install a mod loader such as Forge, Fabric, etc. to use mods. Please go to the download page to install one.&#xA;If you have already installed a mod loader, you may have selected the wrong instance. Please switch to the correct instance.</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.Disabled.SelectInstance">Select an instance</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.Disabled.Title">This instance cannot install mods</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Entry">Mod Relations</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Entry.ToolTip">View mod dependencies, missing prerequisites and bundled (Jar-in-Jar) structure</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Message">An overview of dependencies and bundled structure between mods. Disabling or deleting a mod will warn about affected dependencies.</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.ParsePending.Title">Mods still loading</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.ParsePending.Message">Embedded mod relationships are still being analyzed in the background. Dependency cascade detection may be incomplete right now and could miss mods that should be handled together. Continue anyway?</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Empty.Title">No mod relations to analyze</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Empty.Message">None of this instance's mods declare dependencies or bundle other mods, or the mod list has not finished loading.</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Warnings">Warnings</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Conflicts">Conflicts</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Tooltip">Incompatible: cannot load together; installing both will crash the game or prevent startup — remove one.&#10;Discouraged: can load together, but the author flagged compatibility issues that may cause bugs or broken features.</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Incompatible">Incompatible</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Discouraged">Discouraged</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Pair">{0} and {1}</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Relations">Mod relations</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Bundled">Bundled mods</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.Missing">{0} is missing prerequisite(s): {1}</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.VersionMismatch">{0} has version-incompatible prerequisite(s): {1}</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.VersionMismatch.Detail">{0} {1} (detected: {2})</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.Disabled">{0} has disabled prerequisite(s): {1}</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Installed">Installed</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Disabled">Disabled</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Bundled">Bundled</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.VersionMismatch">Version mismatch</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Missing">Missing</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Optional">[optional]</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Current">✓ used by this instance</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Incompatible">⚠ incompatible with this version</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Versions">{0} versions</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.From">[bundled · from {0}]</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Search.Hint">Search mods: name / ModId / dependency</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.OnlySelf">Only this mod</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.WithDisable">Also disable mods that depend on it</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.WithDelete">Also delete mods that depend on it</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.DisableTitle">Disabling this mod affects {0} mod(s) that depend on it. Choose how to proceed:</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.DeleteTitle">Deleting this mod affects {0} mod(s) that depend on it. Choose how to proceed:</sys:String>
     <sys:String x:Key="Instance.Resource.Schematic.DownloadMod">Download Litematica</sys:String>
     <sys:String x:Key="Instance.Resource.Schematic.Unavailable.Message">You may need to install the Litematica mod first. If you have already installed one, please launch the game once.&#xA;Alternatively, you may have selected the wrong instance. Please use the instance selection button to switch instances.</sys:String>
     <sys:String x:Key="Instance.Resource.Schematic.Unavailable.Title">Schematics unavailable for this instance</sys:String>
@@ -1502,8 +1546,11 @@
     <sys:String x:Key="Launch.Account.Auth.Password">Password</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Preset.LittleSkin">Preset - LittleSkin</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Register">Register</sys:String>
-    <sys:String x:Key="Launch.Account.Auth.Server">Authentication server</sys:String>
     <sys:String x:Key="Launch.Account.Auth.ServerLabel">Authentication server: {0}</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.SelectServer">Select authentication server</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.OAuthLogin">Start OAuth login</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.UsePassword">»  Use password login</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.UseOAuth">»  Use OAuth login</sys:String>
 
     <!-- Launch.Account.LoginDialog -->
 
@@ -1682,6 +1729,7 @@
 
     <!-- Launch.Skin.Cape.Name -->
 
+    <sys:String x:Key="Launch.Skin.Cape.Name.Aurora">Aurora</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Builder">Builder</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.CherryBlossom">Cherry Blossom</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Cobalt">Cobalt</sys:String>
@@ -1691,6 +1739,7 @@
     <sys:String x:Key="Launch.Skin.Cape.Name.FifteenthAnniversary">15th Anniversary</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Followers">Follower's</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Founders">Founders</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Hero">Hero</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Home">Home</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.MapMaker">Realms MapMaker</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Mcc">MCC 15th Year</sys:String>
@@ -1709,6 +1758,7 @@
     <sys:String x:Key="Launch.Skin.Cape.Name.PurpleHeart">Purple Heart</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Translator">Translator</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.TranslatorChinese">Chinese Translator</sys:String>
+    <sys:String x:Key="Launch.Skin.Cape.Name.Twisted">Twisted</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Vanilla">Vanilla</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.Yearn">Yearn</sys:String>
     <sys:String x:Key="Launch.Skin.Cape.Name.ZombieHorse">Zombie Horse</sys:String>
@@ -2672,10 +2722,19 @@
     <sys:String x:Key="Setup.GameManage.Download.SpeedLimit.ToolTip">Set a download speed cap to prevent other programs that depend on the internet from freezing during downloads.</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.TargetFolder">Target folder</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.TargetFolder.Hint">Go to Launch → Selection → Folder list to change the download target folder.&#xA;Right-click a folder or game instance to open the corresponding folder.</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.Threads">Max threads</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.Threads">Max concurrent connections</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Threads.TooManyWarning.Confirm">I see</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.Threads.TooManyWarning.Message">Setting too many download threads may cause serious lag during downloads.&#xA;64 threads are generally enough for most download needs. Unless you know what you are doing, it is not recommended to set a higher value!</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.Threads.ToolTip">More threads can speed up rate-limited downloads, but too many may cause serious lag during downloads.&#xA;In general, 64 threads are enough for most download needs.</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.Threads.TooManyWarning.Message">A high connection limit can lead to severe lag or even stricter throttling strategies from the server.&#xA;64 connections are usually sufficient. Do not set it higher unless you know what you are doing!</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.Threads.ToolTip">Limits the total network connections used by all download tasks. 64 connections are usually sufficient.</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.FileConnections">Max connections per file</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.FileConnections.ToolTip">The most connections a large file may use at once. A higher value can help sources that cap each connection, but may also trigger source throttling.</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol">File download protocol</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Auto">Automatic (recommended)</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Auto.ToolTip">Prefer HTTP/2 for small files and batch downloads, and use HTTP/1.1 for large segmented downloads to balance concurrency and compatibility.</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http11">HTTP/1.1</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http11.ToolTip">Force HTTP/1.1 for all file downloads. This can help environments where independent connections improve large-file throughput.</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http2">Prefer HTTP/2</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http2.ToolTip">Prefer HTTP/2 for all file downloads, falling back to HTTP/1.1 when the source or proxy does not support it.</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Unlimited">Unlimited</sys:String>
 
     <!-- Setup.Java -->
@@ -2709,10 +2768,10 @@
     <sys:String x:Key="Setup.Language.Banner.TitlePrefix">Let</sys:String>
     <sys:String x:Key="Setup.Language.Banner.TitleSuffix">Go Internationalized.</sys:String>
     <sys:String x:Key="Setup.Language.Banner.DescriptionLine1">With the support of the community, PCL CE is entering a new chapter in its journey toward internationalization.</sys:String>
-    <sys:String x:Key="Setup.Language.Banner.DescriptionLine2">You can help shape that journey by submitting pull requests to our GitHub repository and making PCL CE more accessible to users around the world.</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.DescriptionLine2">You can help shape that journey by contributing on our translation platform or submitting pull requests to our GitHub repository, making PCL CE more accessible to users around the world.</sys:String>
     <sys:String x:Key="Setup.Language.Banner.DescriptionLine3">Thank you to everyone who contributes translations, reviews, and improvements—your support makes PCL CE better for everyone.</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.TranslateWebsite">Visit translation platform</sys:String>
     <sys:String x:Key="Setup.Language.Banner.SubmitPullRequest">Submit pull request</sys:String>
-    <sys:String x:Key="Setup.Language.Banner.ViewDeveloperDocs">View developer docs</sys:String>
     <sys:String x:Key="Setup.Language.Reset.Success">Language page settings initialized!</sys:String>
     <sys:String x:Key="Setup.Language.Title">Language</sys:String>
     <sys:String x:Key="Setup.Language.UiLanguage">Display language</sys:String>
@@ -2768,6 +2827,13 @@
     <sys:String x:Key="Setup.Launch.Memory.Auto.ToolTip">Dynamically adjust the memory allocated to the game based on the installed mods and available system memory.</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.AvailableSuffix">Available: {0} GiB</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.GameAllocation">Game allocation</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Max">Maximum memory (-Xmx)</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Max.ToolTip">The maximum heap memory the game can use</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Initial">Initial memory (-Xms)</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Initial.ToolTip">The heap memory pre-allocated when the game starts, which can be lower than the maximum heap (-Xmx). Set to 0 to let the JVM decide. Only takes effect when memory allocation is set to Custom, and has no effect when Lock memory allocation is enabled.</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.SuffixBoth">initial {0} GiB, available {1} GiB</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.SuffixInitial">initial {0} GiB</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.SuffixAvailable">available {0} GiB</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Title">Game memory</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.UsedTotal">Used / installed memory</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Warning.Java32Bit">32-bit Java can only allocate up to 1 GiB of memory. It is strongly recommended to use 64-bit Java!</sys:String>
@@ -3226,7 +3292,7 @@
     <sys:String x:Key="Speed.Error.Copied">Error details copied!</sys:String>
     <sys:String x:Key="Speed.Error.OperationFailed">A task manager operation failed. See the details below.</sys:String>
     <sys:String x:Key="Speed.Progress.RemainingFiles">Remaining files</sys:String>
-    <sys:String x:Key="Speed.Progress.RemainingThreads">Remaining threads</sys:String>
+    <sys:String x:Key="Speed.Progress.RemainingThreads">Active connections</sys:String>
     <sys:String x:Key="Speed.Progress.Speed">Download speed</sys:String>
     <sys:String x:Key="Speed.Progress.Total">Total progress</sys:String>
 

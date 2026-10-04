@@ -7,8 +7,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using System.Windows.Media.Effects;
 using PCL.Core.App;
+using PCL.Core.Minecraft.Profile;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
@@ -518,8 +518,6 @@ public partial class FormMain
 
         // 关闭联机大厅
         // Await LobbyController.CloseAsync().ConfigureAwait(False)
-        // 存储上次使用的档案编号
-        ModProfile.SaveProfile();
         // 关闭
         ModBase.RunInUiWait(() =>
         {
@@ -938,7 +936,6 @@ public partial class FormMain
                         if (ModMain.MyMsgBox(Lang.Text("Main.FileDrag.CreateAuthlibProfile", authlibServer), Lang.Text("Main.FileDrag.CreateAuthlibProfileTitle"),
                                 Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 2)
                             return;
-                        ModProfile.selectedProfile = null;
                         ModBase.RunInUi(() =>
                         {
                             PageLoginAuth.draggedAuthServer = authlibServer;
@@ -1403,6 +1400,11 @@ public partial class FormMain
         CompDetail = 8,
 
         /// <summary>
+        ///     帮助详情。这是一个副页面。
+        /// </summary>
+        HelpDetail = 9,
+
+        /// <summary>
         ///     游戏实时日志。这是一个副页面。
         /// </summary>
         GameLog = 10,
@@ -1465,6 +1467,7 @@ public partial class FormMain
         VersionSchematic = 9,
         VersionInstall = 10,
         VersionServer = 11,
+        VersionModJarInJar = 12,
         VersionSavesInfo = 0,
         VersionSavesDatapack = 1
     }
@@ -1495,6 +1498,10 @@ public partial class FormMain
             case PageType.CompDetail:
             {
                 return Lang.Text("Main.Title.ResourceDownload", stack.additional.Value.CompProject.TranslatedName);
+            }
+            case PageType.HelpDetail:
+            {
+                return stack.helpPage?.Title ?? "";
             }
             case PageType.VersionSaves:
             {
@@ -1595,6 +1602,11 @@ public partial class FormMain
             string SavePath
         )? additional;
 
+        /// <summary>
+        ///     帮助详情页实例。仅在 <see cref="PageType.HelpDetail"/> 中使用。
+        /// </summary>
+        public PageHelpDetail? helpPage;
+
         public PageType page;
 
         public override bool Equals(object other)
@@ -1606,6 +1618,8 @@ public partial class FormMain
                 var pageOther = (PageStackData)other;
                 if (page != pageOther.page)
                     return false;
+                if (helpPage is not null || pageOther.helpPage is not null)
+                    return ReferenceEquals(helpPage, pageOther.helpPage);
                 if (additional is null) return pageOther.additional is null;
 
                 return pageOther.additional is not null && additional.Equals(pageOther.additional);
@@ -1897,6 +1911,13 @@ public partial class FormMain
                         if (ModMain.frmDownloadCompDetail is null)
                             ModMain.frmDownloadCompDetail = new PageDownloadCompDetail();
                         PageChangeAnim(new MyPageLeft(), ModMain.frmDownloadCompDetail);
+                        break;
+                    }
+                case PageType.HelpDetail: // 帮助详情
+                    {
+                        if (stack.helpPage is null)
+                            throw new InvalidOperationException("帮助详情页面未初始化");
+                        PageChangeAnim(new MyPageLeft(), stack.helpPage);
                         break;
                     }
                 case PageType.VersionSaves: // 存档管理
