@@ -1,4 +1,4 @@
-name: Release Beta (Actual)
+name: Release publish
 
 permissions:
   contents: write
@@ -68,6 +68,10 @@ jobs:
 
   rename_and_release:
     needs: [build, changelog]
+    permissions:
+      actions: read
+      contents: write
+      id-token: write
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -87,13 +91,22 @@ jobs:
         run: |
           mv "./artifact/Plain Craft Launcher 2.exe" "PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe"
 
-      - name: Upload binary to Release
+      - name: Sign the binary
+        uses: sigstore/gh-action-sigstore-python@790bc6befb9d733738f18d8f895854b453640ec9 # v3.5.0
+        with:
+          inputs: PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe
+          verify: true
+          verify-cert-identity: https://github.com/PCL-Community/PCL-CE/.github/workflows/release-publish.yml@refs/heads/dev
+          verify-oidc-issuer: https://token.actions.githubusercontent.com
+
+      - name: Upload binary and signature to Release
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           draft: true
           tag_name: v${{ inputs.version }}
           files: |
             PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe
+            PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe.sigstore.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
