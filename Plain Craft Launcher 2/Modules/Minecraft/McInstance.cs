@@ -169,18 +169,26 @@ public class McInstance
                         releaseTime = new DateTime(1970, 1, 1, 15, 0, 0);
                     }
 
-                    bool TryAccept(string? candidate)
+                    string? unresolved = null;
+                    bool TryAccept(string? candidate, bool keepIfMissing = false)
                     {
-                        if (!VanillaVersionIndex.TryResolve(candidate, out var canonical))
+                        if (string.IsNullOrWhiteSpace(candidate))
                             return false;
-                        field.VanillaName = canonical;
-                        field.Reliable = true;
-                        return true;
+                        if (VanillaVersionIndex.TryResolve(candidate, out var canonical))
+                        {
+                            field.VanillaName = canonical;
+                            field.Reliable = true;
+                            return true;
+                        }
+
+                        if (keepIfMissing)
+                            unresolved ??= candidate.Trim();
+                        return false;
                     }
 
                     // 从 PCL 下载的版本信息中获取版本号
                     if (JsonObject["clientVersion"] is not null &&
-                        TryAccept((string)JsonObject["clientVersion"]))
+                        TryAccept((string)JsonObject["clientVersion"], true))
                         goto VersionSearchFinish;
 
                     // 从 HMCL 下载的版本信息中获取版本号
@@ -191,7 +199,7 @@ public class McInstance
                             if (patch is null) continue;
                             if ((patch["id"] ?? "").ToString() == "game" &&
                                 patch["version"] is not null &&
-                                TryAccept((string)patch["version"]))
+                                TryAccept((string)patch["version"], true))
                                 goto VersionSearchFinish;
                         }
 
@@ -205,7 +213,7 @@ public class McInstance
                             {
                                 if (mark)
                                 {
-                                    if (TryAccept(Argument?.ToString()))
+                                    if (TryAccept(Argument?.ToString(), true))
                                         goto VersionSearchFinish;
                                     break;
                                 }
@@ -245,27 +253,36 @@ public class McInstance
                     }
 
                     // 从 jar 项中获取版本号
-                    if (JsonObject["jar"] is not null && TryAccept(JsonObject["jar"]!.ToString()))
+                    if (JsonObject["jar"] is not null && TryAccept(JsonObject["jar"]!.ToString(), true))
                         goto VersionSearchFinish;
 
                     // 从 jar 文件的 version.json 中获取版本号
                     if (JsonVersion?["name"] is JsonNode jsonVerNameNode)
                     {
                         var jsonVerName = jsonVerNameNode.ToString();
-                        if (jsonVerName.Length < 32 && TryAccept(jsonVerName)) // 因为 wiki 说这玩意儿可能是个 hash，虽然我没发现
+                        if (jsonVerName.Length < 32 && TryAccept(jsonVerName, true)) // 因为 wiki 说这玩意儿可能是个 hash，虽然我没发现
                         {
                             ModBase.Log("[Minecraft] 从版本 jar 中的 version.json 获取到版本号：" + field.VanillaName);
                             goto VersionSearchFinish;
                         }
                     }
 
-                    // json id 整串精确命中
-                    if (JsonObject["id"] is not null && TryAccept((string)JsonObject["id"]))
+                    // json id。名单没有时也留下。
+                    if (JsonObject["id"] is not null && TryAccept((string)JsonObject["id"], true))
                         goto VersionSearchFinish;
 
-                    field.VanillaName = "Unknown";
-                    field.Reliable = false;
-                    Desc = Lang.Text("Select.Instance.Description.UnknownMcVersion");
+                    if (unresolved is not null)
+                    {
+                        field.VanillaName = unresolved;
+                        field.Reliable = false;
+                        ModBase.Log("[Minecraft] 版本不在列表中，按更新版本使用：" + unresolved);
+                    }
+                    else
+                    {
+                        field.VanillaName = "Unknown";
+                        field.Reliable = false;
+                        Desc = Lang.Text("Select.Instance.Description.UnknownMcVersion");
+                    }
                 }
                 catch (Exception ex)
                 {

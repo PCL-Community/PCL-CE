@@ -825,7 +825,7 @@ public static class ModLaunch
         var vanillaName = selected.Info.VanillaName;
         var inList = VanillaVersionIndex.TryGetLine(vanillaName, out _);
 
-        // MC 大版本检测。在索引中走行号,不在索引中用发布日期。
+        // 在索引中走行号。不在索引里的 id 视为比已知版本更新。
         if (inList)
         {
             if (VanillaVersionIndex.IsAtOrAfter(vanillaName, "24w14a"))
@@ -864,38 +864,11 @@ public static class ModLaunch
                 maxVer = new Version(1, 8, 999, 999);
             }
         }
-        else if (selected.releaseTime >= new DateTime(2024, 4, 2))
+        else
         {
             if (ModBase.modeDebug)
-                ModBase.Log("[Launch] [Debug] MC 1.20.5+ (24w14a+) 要求至少 Java 21");
-            minVer = new Version(21, 0, 0, 0);
-        }
-        else if (selected.releaseTime >= new DateTime(2021, 11, 16))
-        {
-            if (ModBase.modeDebug)
-                ModBase.Log("[Launch] [Debug] MC 1.18 pre2+ 要求至少 Java 17");
-            minVer = new Version(17, 0, 0, 0);
-        }
-        else if (selected.releaseTime >= new DateTime(2021, 5, 11))
-        {
-            if (ModBase.modeDebug)
-                ModBase.Log("[Launch] [Debug] MC 1.17+ (21w19a+) 要求至少 Java 16");
-            minVer = new Version(16, 0, 0, 0);
-        }
-        else if (selected.releaseTime.Year >= 2017) // Minecraft 1.12 与 1.11 的分界线正好是 2017 年，太棒了
-        {
-            // 1.12+：至少 Java 8
-            if (ModBase.modeDebug)
-                ModBase.Log("[Launch] [Debug] MC 1.12+ 要求至少 Java 8");
-            minVer = new Version(1, 8, 0, 0);
-        }
-        else if (selected.releaseTime <= new DateTime(2013, 5, 1) &&
-                 selected.releaseTime.Year >= 2001) // 避免某些版本写个 1960 年
-        {
-            // 1.5.2-：最高 Java 8
-            if (ModBase.modeDebug)
-                ModBase.Log("[Launch] [Debug] MC 1.5.2- 要求最高 Java 12");
-            maxVer = new Version(1, 8, 999, 999);
+                ModBase.Log("[Launch] [Debug] 版本不在列表中，视为更新版本，要求至少 Java 25");
+            minVer = new Version(25, 0, 0, 0);
         }
 
         // 原版 26+：获取 Mojang 要求的 Java 版本
@@ -906,7 +879,9 @@ public static class ModLaunch
         if (recommendedCode >= 22)
         {
             McLaunchLog("Mojang 要求至少使用 Java " + recommendedCode);
-            minVer = new Version(recommendedCode, 0, 0, 0);
+            var required = new Version(recommendedCode, 0, 0, 0);
+            if (required > minVer)
+                minVer = required;
             recommendedComponent =
                 ModInstanceList.McMcInstanceSelected.JsonObject?["javaVersion"]?["component"]?.ToString() ??
                 ModInstanceList.McMcInstanceSelected.JsonVersion?["java_component"]?.ToString();
@@ -948,7 +923,7 @@ public static class ModLaunch
                 minVer = new Version(1, 7, 0, 0) > minVer ? new Version(1, 7, 0, 0) : minVer;
                 maxVer = new Version(1, 7, 999, 999) < maxVer ? new Version(1, 7, 999, 999) : maxVer;
             }
-            else if ((inList && VanillaVersionIndex.IsBefore(vanillaName, "1.13")) || !inList) // 非标准版本
+            else if (inList && VanillaVersionIndex.IsBefore(vanillaName, "1.13"))
             {
                 // <=1.12：Java 8
                 maxVer = new Version(1, 8, 999, 999);
