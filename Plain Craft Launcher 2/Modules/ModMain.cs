@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -14,6 +14,7 @@ using Microsoft.Win32;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
@@ -75,6 +76,7 @@ public static class ModMain
     public static PageInstanceOverall? frmInstanceOverall;
     public static PageInstanceCompResource? frmInstanceMod;
     public static PageInstanceModDisabled? frmInstanceModDisabled;
+    public static PageInstanceCompJarInJar? frmInstanceModJarInJar;
     public static PageInstanceScreenshot? frmInstanceScreenshot;
     public static PageInstanceSaves? frmInstanceSaves;
     public static PageInstanceCompResource? frmInstanceShader;
@@ -231,7 +233,6 @@ public static class ModMain
     public class MyMsgBoxConverter
     {
         // 设置轮询 Url
-        public object AuthUrl = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
         public string Button1 = "";
 
         /// <summary>
@@ -260,7 +261,21 @@ public static class ModMain
         /// </summary>
         public object Content;
 
+        /// <summary>
+        /// Optional provider-specific device-code polling callback used by OAuth providers other than Microsoft.
+        /// </summary>
+        public Func<JsonObject, CancellationToken, Task<AuthorizeResult?>> DeviceCodePoll;
+
+        public Func<AuthorizeResult, CancellationToken, Task>? LoginResultHandler;
+
+        public Action<object>? CompletionHandler;
+
         public bool ForceWait;
+
+        /// <summary>
+        ///     选择模式：是否允许勾选多个选项
+        /// </summary>
+        public bool MultiSelect;
 
         /// <summary>
         ///     有多个按钮时，是否给第一个按钮加高亮。
@@ -296,6 +311,9 @@ public static class ModMain
         public Collection<IValidator<string>> ValidateRules;
 
         public DispatcherFrame WaitFrame = new(true);
+
+        public string AuthServerDefault = "";
+        public IReadOnlyDictionary<string, string>? AuthServerPresets;
     }
 
     public enum MyMsgBoxType
@@ -303,6 +321,7 @@ public static class ModMain
         Text,
         Select,
         Input,
+        AuthServer,
         Login,
         Markdown
     }
@@ -544,6 +563,33 @@ public static class ModMain
         return converter.Result?.ToString();
     }
 
+    public static string MyMsgBoxAuthServer(string defaultServer, IReadOnlyDictionary<string, string> presets,
+        string? title = null)
+    {
+        var converter = new MyMsgBoxConverter
+        {
+            Type = MyMsgBoxType.AuthServer,
+            Title = title ?? Lang.Text("Launch.Account.Auth.SelectServer"),
+            Button1 = GetDefaultConfirmText(),
+            Button2 = GetDefaultCancelText(),
+            AuthServerDefault = defaultServer,
+            AuthServerPresets = presets,
+            ForceWait = true
+        };
+        WaitingMyMsgBox.Add(converter);
+        try
+        {
+            frmMain?.DragStop();
+            ComponentDispatcher.PushModal();
+            Dispatcher.PushFrame(converter.WaitFrame);
+        }
+        finally
+        {
+            ComponentDispatcher.PopModal();
+        }
+        return converter.Result?.ToString() ?? string.Empty;
+    }
+
     /// <summary>
     ///     显示选择框并返回选择的第几项（从 0 开始）。若点击第二个按钮，则返回 Nothing。
     /// </summary>
@@ -581,6 +627,44 @@ public static class ModMain
         return (int?)converter.Result;
     }
 
+    /// <summary>
+    ///     显示多选选择框并返回勾选的所有项索引（从 0 开始）。若点击第二个按钮，则返回 Nothing。
+    /// </summary>
+    /// <param name="selections">需要展示的可勾选列表项。</param>
+    /// <param name="title">弹窗的标题。</param>
+    /// <param name="button1">显示的第一个按钮，默认为 “确定”。</param>
+    /// <param name="button2">显示的第二个按钮，默认为空。</param>
+    /// <param name="isWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
+    public static List<int>? MyMsgBoxMultiSelect(List<MyListItem> selections, string? title = null,
+        string? button1 = null, string? button2 = "", bool isWarn = false)
+    {
+        title ??= GetDefaultDialogTitle();
+        button1 ??= GetDefaultConfirmText();
+        button2 ??= "";
+        // 将弹窗列入队列
+        var converter = new MyMsgBoxConverter
+        {
+            Type = MyMsgBoxType.Select, MultiSelect = true, Button1 = button1, Button2 = button2, Content = selections,
+            IsWarn = isWarn, Title = title
+        };
+        WaitingMyMsgBox.Add(converter);
+        // 虽然我也不知道这是啥但是能用就成了 :)
+        try
+        {
+            if (frmMain is not null)
+                frmMain.DragStop();
+            ComponentDispatcher.PushModal();
+            Dispatcher.PushFrame(converter.WaitFrame);
+        }
+        finally
+        {
+            ComponentDispatcher.PopModal();
+        }
+
+        ModBase.Log($"[Control] 多选弹框返回：{converter.Result ?? "null"}");
+        return (List<int>?)converter.Result;
+    }
+
 
     public static void MyMsgBoxTick()
     {
@@ -607,6 +691,11 @@ public static class ModMain
                     case MyMsgBoxType.Select:
                     {
                         frmMain.PanMsg.Children.Add(new MyMsgSelect(WaitingMyMsgBox[0]));
+                        break;
+                    }
+                    case MyMsgBoxType.AuthServer:
+                    {
+                        frmMain.PanMsg.Children.Add(new MyMsgAuthServer(WaitingMyMsgBox[0]));
                         break;
                     }
                     case MyMsgBoxType.Text:

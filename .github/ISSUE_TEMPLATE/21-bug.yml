@@ -1,19 +1,8 @@
-name: "[新版] 综合 Bug 反馈 / [New] General Bug Report"
-description: "遇见了与新版 PCL CE 启动器功能相关的 Bug / Report a bug related to launcher features in the new PCL CE version"
+name: "综合 Bug 反馈 / General Bug Report"
+description: "遇见了与启动器功能相关的 Bug / Report a bug related to launcher features"
 title: "[C#]: "
 type: "Bug"
 body:
-  - type: markdown
-    id: "desc"
-    attributes:
-      value: |
-        ## 感谢参与 PCL CE 新版本测试！
-        请注意您目前正在提交和新版本有关的综合 Bug 反馈。
-        如果您使用的不是新版本 (2.15.x)，请到 [旧版综合 Bug 反馈区](https://github.com/PCL-Community/PCL-CE/issues/new?template=1-bug.yml) 提交反馈。
-        
-        ## Thank you for testing the new PCL CE version!
-        Please note that you are submitting a general bug report for the new version.
-        If you are not using the new version (2.15.x), please use the [legacy general bug report template](https://github.com/PCL-Community/PCL-CE/issues/new?template=1-bug.yml).
   - type: checkboxes
     id: "yml-1"
     attributes:
