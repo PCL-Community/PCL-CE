@@ -51,6 +51,9 @@ jobs:
         with:
           tool: git-cliff
 
+      - name: Create local release tag
+        run: git tag -f "v${{ inputs.version }}"
+
       - name: Generate changelog
         run: git-cliff --latest -o CHANGELOG.md
 
