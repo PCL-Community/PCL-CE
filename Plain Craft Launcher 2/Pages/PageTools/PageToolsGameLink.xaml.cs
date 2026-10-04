@@ -99,7 +99,7 @@ public partial class PageToolsGameLink
         if (_linkAnnounceUpdateCancelSource is not null)
             _linkAnnounceUpdateCancelSource.Cancel();
         _linkAnnounceUpdateCancelSource = new CancellationTokenSource();
-        Interlocked.Increment(ref _announcementRequestId);
+        BeginAnnouncementRequest();
         _linkAnnounces.Clear();
 
         // 加载公告
@@ -302,6 +302,7 @@ public partial class PageToolsGameLink
     private readonly ObservableCollection<LinkAnnounceInfo> _linkAnnounces = new();
 
     private CancellationTokenSource _linkAnnounceUpdateCancelSource;
+    private readonly object _announcementRequestLock = new();
     private int _announcementRequestId;
     private AnnouncementLoadState _announcementLoadState;
 
@@ -424,8 +425,11 @@ public partial class PageToolsGameLink
                             jObj = (JsonObject)ModBase.GetJson(received);
 
                             // 更新缓存
-                            States.Link.AnnounceCache = received;
-                            States.Link.AnnounceCacheVer = cacheVer;
+                            if (!TryApplyCurrentAnnouncementRequest(requestId, () =>
+                                {
+                                    States.Link.AnnounceCache = received;
+                                    States.Link.AnnounceCacheVer = cacheVer;
+                                })) return;
                         }
 
                         break; // 成功获取，跳出轮询
@@ -433,8 +437,11 @@ public partial class PageToolsGameLink
                     catch (Exception ex)
                     {
                         LogWrapper.Error(ex, $"[Link] Failed to get announcement from server {serverNumber}");
-                        States.Link.AnnounceCacheConfig.Reset();
-                        States.Link.AnnounceCacheVerConfig.Reset();
+                        if (!TryApplyCurrentAnnouncementRequest(requestId, () =>
+                            {
+                                States.Link.AnnounceCacheConfig.Reset();
+                                States.Link.AnnounceCacheVerConfig.Reset();
+                            })) return;
                         serverNumber++;
                     }
 
@@ -568,8 +575,27 @@ public partial class PageToolsGameLink
         });
     }
 
-    private bool IsCurrentAnnouncementRequest(int requestId) =>
-        requestId == Volatile.Read(ref _announcementRequestId);
+    private void BeginAnnouncementRequest()
+    {
+        lock (_announcementRequestLock)
+            _announcementRequestId++;
+    }
+
+    private bool IsCurrentAnnouncementRequest(int requestId)
+    {
+        lock (_announcementRequestLock)
+            return requestId == _announcementRequestId;
+    }
+
+    private bool TryApplyCurrentAnnouncementRequest(int requestId, Action action)
+    {
+        lock (_announcementRequestLock)
+        {
+            if (requestId != _announcementRequestId) return false;
+            action();
+            return true;
+        }
+    }
 
     #endregion
 
