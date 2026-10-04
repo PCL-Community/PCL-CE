@@ -469,6 +469,7 @@ public partial class PageToolsGameLink
                 #region 解析公告列表 (Notices)
 
                 var notices = (JsonArray)jObj["notices"];
+                var announcements = new List<LinkAnnounceInfo>();
                 foreach (JsonObject notice in notices)
                 {
                     if (!IsCurrentAnnouncementRequest(requestId)) return;
@@ -490,7 +491,7 @@ public partial class PageToolsGameLink
                     foreach (var announce in content.Split('\n'))
                     {
                         if (string.IsNullOrWhiteSpace(announce)) continue;
-                        _linkAnnounces.Add(new LinkAnnounceInfo(type, announce));
+                        announcements.Add(new LinkAnnounceInfo(type, announce));
                     }
                 }
 
@@ -542,6 +543,9 @@ public partial class PageToolsGameLink
                 ModBase.RunInUi(() =>
                 {
                     if (!IsCurrentAnnouncementRequest(requestId)) return;
+                    _linkAnnounces.Clear();
+                    foreach (var announcement in announcements)
+                        _linkAnnounces.Add(announcement);
                     _announcementLoadState = AnnouncementLoadState.Loaded;
                     if (_linkAnnounces.Count == 0)
                         HintAnnounce.Visibility = Visibility.Collapsed;
