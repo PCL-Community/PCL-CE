@@ -43,18 +43,20 @@ jobs:
     continue-on-error: true
     steps:
       - name: Checkout all
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Install git-cliff
-        uses: taiki-e/install-action@git-cliff
+        uses: taiki-e/install-action@e407f7bafb71fd004bc5c2da3032e5470cbb6ef0 # v2.87.24
+        with:
+          tool: git-cliff
 
       - name: Generate changelog
         run: git-cliff --latest -o CHANGELOG.md
 
       - name: Create or update release
-        uses: softprops/action-gh-release@v3.0.0
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           draft: true
           tag_name: v${{ inputs.version }}
@@ -76,7 +78,7 @@ jobs:
             architecture: ARM64
     steps:
       - name: Download Build Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}
           path: ./artifact
@@ -85,26 +87,24 @@ jobs:
         run: |
           mv "./artifact/Plain Craft Launcher 2.exe" "PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe"
 
-      - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6
-        with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.GPG_PASSPHRASE }}
-
-      - name: Sign the binary
-        run: |
-          gpg --detach-sign --armor "PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe"
-
-      - name: Upload binary and signature to Release
-        uses: softprops/action-gh-release@v3.0.0
+      - name: Upload binary to Release
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           draft: true
           tag_name: v${{ inputs.version }}
           files: |
             PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe
-            PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe.asc
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish_draft:
+    needs: [rename_and_release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish Draft
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        with:
+          tag_name: v${{ inputs.version }}
 
       - name: Trigger MirrorChyanUploading
         run: |
@@ -112,21 +112,14 @@ jobs:
           if [ "${{ inputs.configuration }}" = "Beta" ]; then
             MRC_CHANNEL="beta"
           fi
-          
-          gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan_uploading.yml -f channel=$MRC_CHANNEL -f arch=${{ matrix.architecture == 'x64' && 'x64' || 'arm64' }}
+
+          for arch in x64 arm64; do
+            gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan_uploading.yml -f channel=$MRC_CHANNEL -f arch=$arch
+          done
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  publish_draft:
-    needs: [rename_and_release]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Publish Draft
-        uses: softprops/action-gh-release@v3.0.0
-        with:
-          tag_name: v${{ inputs.version }}
-
-      - name: Trigger MirrorChyanUploading
+      - name: Trigger MirrorChyanReleaseNote
         run: |
           gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan_release_note.yml
         env:
