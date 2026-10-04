@@ -96,11 +96,15 @@ public partial class PageToolsGameLink
         HintAnnounce.Text = Lang.Text("Tools.GameLink.Loading.ConnectingServer");
         HintAnnounce.Theme = MyHint.Themes.Blue;
 
-        // 加载公告
-        lobbyAnnouncementLoader.Start();
         if (_linkAnnounceUpdateCancelSource is not null)
             _linkAnnounceUpdateCancelSource.Cancel();
         _linkAnnounceUpdateCancelSource = new CancellationTokenSource();
+        BeginAnnouncementRequest();
+        _linkAnnounces.Clear();
+
+        // 加载公告
+        _announcementLoadState = AnnouncementLoadState.Loading;
+        lobbyAnnouncementLoader.Start(isForceRestart: true);
         await Dispatcher.BeginInvoke(new Action(async () =>
             await _LinkAnnounceUpdateAsync())); // 我实在不理解为啥 BeginInvoke 这个委托要 MustBeInherit
 
@@ -298,6 +302,16 @@ public partial class PageToolsGameLink
     private readonly ObservableCollection<LinkAnnounceInfo> _linkAnnounces = new();
 
     private CancellationTokenSource _linkAnnounceUpdateCancelSource;
+    private readonly object _announcementRequestLock = new();
+    private int _announcementRequestId;
+    private AnnouncementLoadState _announcementLoadState;
+
+    private enum AnnouncementLoadState
+    {
+        Loading,
+        Loaded,
+        Failed
+    }
 
     // 公告轮播实现
     private async Task _LinkAnnounceUpdateAsync()
@@ -316,8 +330,13 @@ public partial class PageToolsGameLink
             waiterCts = CancellationTokenSource.CreateLinkedTokenSource(globalCancelToken);
             var waiterCancelToken = waiterCts.Token;
 
-            if (_linkAnnounces.Count > 0)
+            if (_announcementLoadState == AnnouncementLoadState.Failed)
             {
+                // 错误提示由请求失败处理设置，轮播不应覆盖它。
+            }
+            else if (_linkAnnounces.Count > 0)
+            {
+                HintAnnounce.Visibility = Visibility.Visible;
                 var info = _linkAnnounces[currentIndex];
                 string prefix;
                 if (info.Type == LinkAnnounceType.Important)
@@ -339,7 +358,7 @@ public partial class PageToolsGameLink
                 HintAnnounce.Text = Lang.Text("Tools.GameLink.Announcement.Format", prefix,
                     info.Content.Replace("\n", "\r\n"));
             }
-            else
+            else if (_announcementLoadState == AnnouncementLoadState.Loaded)
             {
                 HintAnnounce.Visibility = Visibility.Collapsed;
             }
@@ -364,6 +383,7 @@ public partial class PageToolsGameLink
     // 获取公告信息
     private void GetAnnouncement()
     {
+        var requestId = Volatile.Read(ref _announcementRequestId);
         ModBase.RunInNewThread(() =>
         {
             try
@@ -405,8 +425,11 @@ public partial class PageToolsGameLink
                             jObj = (JsonObject)ModBase.GetJson(received);
 
                             // 更新缓存
-                            States.Link.AnnounceCache = received;
-                            States.Link.AnnounceCacheVer = cacheVer;
+                            if (!TryApplyCurrentAnnouncementRequest(requestId, () =>
+                                {
+                                    States.Link.AnnounceCache = received;
+                                    States.Link.AnnounceCacheVer = cacheVer;
+                                })) return;
                         }
 
                         break; // 成功获取，跳出轮询
@@ -414,14 +437,18 @@ public partial class PageToolsGameLink
                     catch (Exception ex)
                     {
                         LogWrapper.Error(ex, $"[Link] Failed to get announcement from server {serverNumber}");
-                        States.Link.AnnounceCacheConfig.Reset();
-                        States.Link.AnnounceCacheVerConfig.Reset();
+                        if (!TryApplyCurrentAnnouncementRequest(requestId, () =>
+                            {
+                                States.Link.AnnounceCacheConfig.Reset();
+                                States.Link.AnnounceCacheVerConfig.Reset();
+                            })) return;
                         serverNumber++;
                     }
 
                 #endregion
 
                 if (jObj is null) throw new Exception("Failed to fetch lobby data");
+                if (!IsCurrentAnnouncementRequest(requestId)) return;
 
                 #region 解析基础状态与版本限制
 
@@ -434,6 +461,9 @@ public partial class PageToolsGameLink
                 {
                     ModBase.RunInUi(() =>
                     {
+                        if (!IsCurrentAnnouncementRequest(requestId)) return;
+                        _announcementLoadState = AnnouncementLoadState.Failed;
+                        HintAnnounce.Visibility = Visibility.Visible;
                         HintAnnounce.Theme = MyHint.Themes.Red;
                         HintAnnounce.Text = Lang.Text("Tools.GameLink.Error.UpdateRequired");
                         LobbyInfoProvider.IsLobbyAvailable = false;
@@ -446,8 +476,10 @@ public partial class PageToolsGameLink
                 #region 解析公告列表 (Notices)
 
                 var notices = (JsonArray)jObj["notices"];
+                var announcements = new List<LinkAnnounceInfo>();
                 foreach (JsonObject notice in notices)
                 {
+                    if (!IsCurrentAnnouncementRequest(requestId)) return;
                     var content = notice["content"]?.ToString();
                     if (string.IsNullOrWhiteSpace(content)) continue;
 
@@ -466,7 +498,7 @@ public partial class PageToolsGameLink
                     foreach (var announce in content.Split('\n'))
                     {
                         if (string.IsNullOrWhiteSpace(announce)) continue;
-                        _linkAnnounces.Add(new LinkAnnounceInfo(type, announce));
+                        announcements.Add(new LinkAnnounceInfo(type, announce));
                     }
                 }
 
@@ -514,18 +546,55 @@ public partial class PageToolsGameLink
                 }
 
                 #endregion
+
+                ModBase.RunInUi(() =>
+                {
+                    if (!IsCurrentAnnouncementRequest(requestId)) return;
+                    _linkAnnounces.Clear();
+                    foreach (var announcement in announcements)
+                        _linkAnnounces.Add(announcement);
+                    _announcementLoadState = AnnouncementLoadState.Loaded;
+                    if (_linkAnnounces.Count == 0)
+                        HintAnnounce.Visibility = Visibility.Collapsed;
+                });
             }
             catch (Exception ex)
             {
+                if (!IsCurrentAnnouncementRequest(requestId)) return;
                 LobbyInfoProvider.IsLobbyAvailable = false;
                 ModBase.RunInUi(() =>
                 {
+                    if (!IsCurrentAnnouncementRequest(requestId)) return;
+                    _announcementLoadState = AnnouncementLoadState.Failed;
+                    HintAnnounce.Visibility = Visibility.Visible;
                     HintAnnounce.Theme = MyHint.Themes.Red;
                     HintAnnounce.Text = Lang.Text("Tools.GameLink.Error.ConnectFailed");
                 });
                 LogWrapper.Error(ex, "[Link] Failed to get lobby announcement");
             }
         });
+    }
+
+    private void BeginAnnouncementRequest()
+    {
+        lock (_announcementRequestLock)
+            _announcementRequestId++;
+    }
+
+    private bool IsCurrentAnnouncementRequest(int requestId)
+    {
+        lock (_announcementRequestLock)
+            return requestId == _announcementRequestId;
+    }
+
+    private bool TryApplyCurrentAnnouncementRequest(int requestId, Action action)
+    {
+        lock (_announcementRequestLock)
+        {
+            if (requestId != _announcementRequestId) return false;
+            action();
+            return true;
+        }
     }
 
     #endregion
