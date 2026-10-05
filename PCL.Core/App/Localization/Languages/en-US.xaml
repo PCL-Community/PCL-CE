@@ -3483,14 +3483,19 @@
     <sys:String x:Key="Tools.Test.Achievement.FetchFailed">Failed to get achievement image. Please check for special characters.</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.FileFilter">PNG image (*.png)|*.png</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.InvalidId">Please enter a valid item ID!</sys:String>
-    <sys:String x:Key="Tools.Test.Achievement.ItemId">Item name (ID)</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.ItemId">Item ID (auto icon)</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.IconNotFound">Could not fetch an icon for "{0}": the item ID may not exist, or the network is unavailable</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Line1">Line 1</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Line2">Line 2 (optional)</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Name">Achievement name</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Preview">Preview achievement</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Save">Save image</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Saved">Custom achievement image saved!</sys:String>
-    <sys:String x:Key="Tools.Test.Achievement.Title">Custom achievement image generator (English only)</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Title">Custom achievement image generator</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Font">Font</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Loading">Fetching item icon…</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.FontBrowse">Browse…</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.FontFilter">Font files (*.ttf;*.otf)|*.ttf;*.otf</sys:String>
 
     <!-- Tools.Test.Avatar -->
 

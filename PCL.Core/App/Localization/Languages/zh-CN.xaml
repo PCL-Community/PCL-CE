@@ -3483,14 +3483,19 @@
     <sys:String x:Key="Tools.Test.Achievement.FetchFailed">获取成就图片失败，请检查文字是否包含特殊字符</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.FileFilter">PNG 图片 (*.png)|*.png</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.InvalidId">请输入正确的物品 ID！</sys:String>
-    <sys:String x:Key="Tools.Test.Achievement.ItemId">物品名（ID）</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.ItemId">物品 ID（自动匹配图标）</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.IconNotFound">未能获取物品「{0}」的图标：该物品 ID 可能不存在，或当前网络不可用</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Line1">第一行</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Line2">第二行（可选）</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Name">成就名</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Preview">预览成就图像</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Save">保存图片</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Saved">自定义成就图片已保存！</sys:String>
-    <sys:String x:Key="Tools.Test.Achievement.Title">自定义成就图片生成器 (仅支持英文)</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Title">自定义成就图片生成器</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Font">字体</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Loading">正在获取物品图标…</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.FontBrowse">浏览…</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.FontFilter">字体文件 (*.ttf;*.otf)|*.ttf;*.otf</sys:String>
 
     <!-- Tools.Test.Avatar -->
 
