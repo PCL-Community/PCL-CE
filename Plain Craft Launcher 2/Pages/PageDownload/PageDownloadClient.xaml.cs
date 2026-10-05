@@ -36,7 +36,8 @@ public partial class PageDownloadClient
                 McVersionCategory.Release,
                 McVersionCategory.Snapshot,
                 McVersionCategory.BeforeRelease,
-                McVersionCategory.AprilFools
+                McVersionCategory.AprilFools,
+                McVersionCategory.Unknown
             };
 
             var dict = categoryOrder.ToDictionary(
@@ -53,29 +54,29 @@ public partial class PageDownloadClient
 
             foreach (var category in categoryOrder)
                 dict[category] = dict[category]
-                    .OrderByDescending(McVersionClassifier.GetReleaseTime)
+                    .OrderByDescending(McVersionClassifier.ListedLine)
                     .ToList();
 
             PanMain.Children.Clear();
 
-            var cardInfo = new MyCard { Title = Lang.Text("Download.Version.Latest.Title"), Margin = new Thickness(0d, 0d, 0d, 15d) };
+            var latestRelease = dict[McVersionCategory.Release].FirstOrDefault();
+            var latestSnapshot = dict[McVersionCategory.Snapshot].FirstOrDefault();
             var topestVersions = new List<JsonObject>();
-            var release = (JsonObject)dict[McVersionCategory.Release][0].DeepClone();
-            release["lore"] = Lang.Text("Download.Version.Latest.Release", Lang.Date(McVersionClassifier.GetReleaseTime(release), "g"));
-            topestVersions.Add(release);
-            if (McVersionClassifier.GetReleaseTime(dict[McVersionCategory.Release][0]) < McVersionClassifier.GetReleaseTime(dict[McVersionCategory.Snapshot][0]))
+            if (latestRelease is not null)
             {
-                var snapshot = (JsonObject)dict[McVersionCategory.Snapshot][0].DeepClone();
+                var release = (JsonObject)latestRelease.DeepClone();
+                release["lore"] = Lang.Text("Download.Version.Latest.Release", Lang.Date(McVersionClassifier.GetReleaseTime(release), "g"));
+                topestVersions.Add(release);
+            }
+
+            if (latestSnapshot is not null &&
+                (latestRelease is null || McVersionClassifier.ListedLine(latestSnapshot) > McVersionClassifier.ListedLine(latestRelease)))
+            {
+                var snapshot = (JsonObject)latestSnapshot.DeepClone();
                 snapshot["lore"] = Lang.Text("Download.Version.Latest.Development",
                                    Lang.Date(McVersionClassifier.GetReleaseTime(snapshot), "g"));
                 topestVersions.Add(snapshot);
             }
-
-            var panInfo = new StackPanel
-            {
-                Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d), VerticalAlignment = VerticalAlignment.Top,
-                RenderTransform = new TranslateTransform(0d, 0d), Tag = topestVersions
-            };
 
             void PutMethod(StackPanel stack)
             {
@@ -84,10 +85,18 @@ public partial class PageDownloadClient
                         ModDownloadLib.McDownloadMenuSave, true));
             }
 
-            ;
-            MyCard.StackInstall(ref panInfo, PutMethod);
-            cardInfo.Children.Add(panInfo);
-            PanMain.Children.Add(cardInfo);
+            if (topestVersions.Count > 0)
+            {
+                var cardInfo = new MyCard { Title = Lang.Text("Download.Version.Latest.Title"), Margin = new Thickness(0d, 0d, 0d, 15d) };
+                var panInfo = new StackPanel
+                {
+                    Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d), VerticalAlignment = VerticalAlignment.Top,
+                    RenderTransform = new TranslateTransform(0d, 0d), Tag = topestVersions
+                };
+                MyCard.StackInstall(ref panInfo, PutMethod);
+                cardInfo.Children.Add(panInfo);
+                PanMain.Children.Add(cardInfo);
+            }
 
             foreach (var Pair in dict)
             {

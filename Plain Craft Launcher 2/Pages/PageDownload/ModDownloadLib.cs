@@ -327,12 +327,11 @@ public static class ModDownloadLib
     public static MyListItem McDownloadListItem(JsonObject entry, MyListItem.ClickEventHandler onClick, bool isSaveOnly)
     {
         // 确定图标
-        string logo = entry["type"].ToString() switch
+        var logo = McVersionClassifier.CategoryOf(entry) switch
         {
-            "release" => ModBase.pathImage + "Blocks/Grass.png",
-            "snapshot" => ModBase.pathImage + "Blocks/CommandBlock.png",
-            "pending" => ModBase.pathImage + "Blocks/CommandBlock.png",
-            "special" => ModBase.pathImage + "Blocks/GoldBlock.png",
+            McVersionCategory.Release => ModBase.pathImage + "Blocks/Grass.png",
+            McVersionCategory.Snapshot => ModBase.pathImage + "Blocks/CommandBlock.png",
+            McVersionCategory.AprilFools => ModBase.pathImage + "Blocks/GoldBlock.png",
             _ => ModBase.pathImage + "Blocks/CobbleStone.png"
         };
 

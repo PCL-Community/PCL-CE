@@ -212,9 +212,6 @@ public static partial class RegexPatterns
     [GeneratedRegex(@"(?<=-Dnet.labymod.running-version=)1.[0-9+.]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex _LabyModVersion();
 
-    public static readonly Regex MinecraftJsonVersion = _MinecraftJsonVersion();
-    [GeneratedRegex(@"(([1-9][0-9]w[0-9]{2}[a-g])|((1|[2-9][0-9])\.[0-9]+(\.[0-9]+)?(-(pre|rc|snapshot-?)[1-9]*| Pre-Release( [1-9])?)?))(_unobfuscated)?", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex _MinecraftJsonVersion();
 
     public static readonly Regex MinecraftDownloadUrlVersion = _MinecraftDownloadUrlVersion();
     [GeneratedRegex(@"(?<=launcher.mojang.com/mc/game/)[^/]*", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]

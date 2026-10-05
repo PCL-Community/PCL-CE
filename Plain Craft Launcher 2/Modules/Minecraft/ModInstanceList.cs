@@ -411,7 +411,7 @@ public static class ModInstanceList
             // 确认最新实例，若为快照则加入常用列表
             var latestInstance = instanceList
                 .Where(v => v.state == McInstanceState.Original || v.state == McInstanceState.Snapshot)
-                .MaxOrDefault(v => v.releaseTime);
+                .MaxOrDefault(v => VanillaVersionIndex.TryGetLine(v.Info.VanillaName, out var line) ? line : int.MinValue);
             if (latestInstance is not null && latestInstance.state == McInstanceState.Snapshot)
             {
                 instanceUseful.Add(latestInstance);
@@ -421,16 +421,20 @@ public static class ModInstanceList
             // 将剩余的快照全部拖进不常用列表
             McInstanceFilter(ref instanceList, new[] { McInstanceState.Snapshot }, ref instanceRubbish);
 
-            // 获取每个 Drop 下最新的原版与 OptiFine
+            // 获取每个家族下最新的原版与 OptiFine
             var newerInstance = new Dictionary<string, PCL.McInstance>();
-            var existDrops = new List<int>();
+            var existFamilies = new List<string>();
+            var index = VanillaVersionIndex.Capture();
             foreach (var instance in instanceList)
             {
-                if (!instance.Info.Valid)
+                if (!instance.Info.Valid || index is null)
                     continue;
-                if (!existDrops.Contains(instance.Info.Drop))
-                    existDrops.Add(instance.Info.Drop);
-                var key = instance.Info.Drop + "-" + (int)instance.state;
+                var family = index.FamilyOf(instance.Info.VanillaName, true);
+                if (family is null)
+                    continue;
+                if (!existFamilies.Contains(family))
+                    existFamilies.Add(family);
+                var key = family + "-" + (int)instance.state;
                 if (!newerInstance.ContainsKey(key))
                 {
                     newerInstance.Add(key, instance);
@@ -442,21 +446,25 @@ public static class ModInstanceList
                     if (instance.Info.OptiFineCode > newerInstance[key].Info.OptiFineCode)
                         newerInstance[key] = instance; // OptiFine 根据版本号判断
                 }
-                else if (instance.releaseTime > newerInstance[key].releaseTime)
+                else if (VanillaVersionIndex.TryGetLine(instance.Info.VanillaName, out var line) &&
+                         VanillaVersionIndex.TryGetLine(newerInstance[key].Info.VanillaName, out var currentLine) &&
+                         line > currentLine)
                 {
-                    newerInstance[key] = instance; // 原版根据发布时间判断
+                    newerInstance[key] = instance;
                 }
             }
 
-            // 将每个 Drop 下的最常规版本加入
-            foreach (var drop in existDrops)
-                if (newerInstance.ContainsKey(drop + "-" + (int)McInstanceState.OptiFine) &&
-                    newerInstance.ContainsKey(drop + "-" + (int)McInstanceState.Original))
+            // 将每个家族下的最常规版本加入
+            foreach (var family in existFamilies)
+                if (newerInstance.ContainsKey(family + "-" + (int)McInstanceState.OptiFine) &&
+                    newerInstance.ContainsKey(family + "-" + (int)McInstanceState.Original))
                 {
                     // 同时存在 OptiFine 与原版
-                    var vanillaInstance = newerInstance[drop + "-" + (int)McInstanceState.Original];
-                    var optiFineInstance = newerInstance[drop + "-" + (int)McInstanceState.OptiFine];
-                    if (vanillaInstance.Info.Drop > optiFineInstance.Info.Drop)
+                    var vanillaInstance = newerInstance[family + "-" + (int)McInstanceState.Original];
+                    var optiFineInstance = newerInstance[family + "-" + (int)McInstanceState.OptiFine];
+                    if (VanillaVersionIndex.TryGetLine(vanillaInstance.Info.VanillaName, out var vanillaLine) &&
+                        VanillaVersionIndex.TryGetLine(optiFineInstance.Info.VanillaName, out var optiFineLine) &&
+                        vanillaLine > optiFineLine)
                     {
                         // 仅在原版比 OptiFine 更新时才加入原版
                         instanceUseful.Add(vanillaInstance);
@@ -466,17 +474,17 @@ public static class ModInstanceList
                     instanceUseful.Add(optiFineInstance);
                     instanceList.Remove(optiFineInstance);
                 }
-                else if (newerInstance.ContainsKey(drop + "-" + (int)McInstanceState.OptiFine))
+                else if (newerInstance.ContainsKey(family + "-" + (int)McInstanceState.OptiFine))
                 {
                     // 没有原版，直接加入 OptiFine
-                    instanceUseful.Add(newerInstance[drop + "-" + (int)McInstanceState.OptiFine]);
-                    instanceList.Remove(newerInstance[drop + "-" + (int)McInstanceState.OptiFine]);
+                    instanceUseful.Add(newerInstance[family + "-" + (int)McInstanceState.OptiFine]);
+                    instanceList.Remove(newerInstance[family + "-" + (int)McInstanceState.OptiFine]);
                 }
-                else if (newerInstance.ContainsKey(drop + "-" + (int)McInstanceState.Original))
+                else if (newerInstance.ContainsKey(family + "-" + (int)McInstanceState.Original))
                 {
                     // 没有 OptiFine，直接加入原版
-                    instanceUseful.Add(newerInstance[drop + "-" + (int)McInstanceState.Original]);
-                    instanceList.Remove(newerInstance[drop + "-" + (int)McInstanceState.Original]);
+                    instanceUseful.Add(newerInstance[family + "-" + (int)McInstanceState.Original]);
+                    instanceList.Remove(newerInstance[family + "-" + (int)McInstanceState.Original]);
                 }
 
             // 将剩余的东西添加进去
@@ -548,10 +556,11 @@ public static class ModInstanceList
             ;
             results[cardType] = SortUtils.Sort(results[cardType], (left, right) =>
             {
-                // 发布时间
-                if ((left.releaseTime.Year >= 2000 || right.releaseTime.Year >= 2000) &&
-                    left.releaseTime != right.releaseTime)
-                    return left.releaseTime > right.releaseTime;
+                // 原版行号。不在列表里的排在后面
+                var leftLine = VanillaVersionIndex.TryGetLine(left.Info.VanillaName, out var leftVersionLine) ? leftVersionLine : int.MinValue;
+                var rightLine = VanillaVersionIndex.TryGetLine(right.Info.VanillaName, out var rightVersionLine) ? rightVersionLine : int.MinValue;
+                if (leftLine != rightLine)
+                    return leftLine > rightLine;
                 // 附加组件种类
                 if (left.Info.HasFabric != right.Info.HasFabric)
                     return left.Info.HasFabric;

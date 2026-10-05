@@ -644,8 +644,7 @@ public partial class PageInstanceOverall
         try
         {
             var currentVersion = PageInstanceLeft.McInstance.Info;
-            if (!(currentVersion.Drop == 99) &&
-                McVersionComparer.CompareVersion(currentVersion.VanillaName, "1.5.2") == -1 && currentVersion.HasForge)
+            if (McVersionComparer.CompareVersion(currentVersion.VanillaName, "1.5.2") == -1 && currentVersion.HasForge)
             {
                 HintService.Hint(Lang.Text("Instance.Overall.Reset.NotSupported"));
                 return;
