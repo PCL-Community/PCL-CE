@@ -138,40 +138,101 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition />
                         </Grid.RowDefinitions>
+                        <!-- 物品 ID：按 ID 自动匹配游戏内图标；也可点「浏览」直接指定一张图片 -->
                         <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                   Text="{DynamicResource Tools.Test.Achievement.ItemId}" Margin="0,0,25,0" />
-                        <local:MyTextBox Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="2"
-                                         x:Name="AchievementBlockTextBox" MaxLength="50" Margin="0,10">
-                            <local:MyTextBox.ValidateRules>
-                                <val:RegexValidator Pattern="^[a-z0-9_]+$"
-                                                    ErrorKey="Tools.Test.Achievement.InvalidId" />
-                            </local:MyTextBox.ValidateRules>
-                        </local:MyTextBox>
+                                   Text="{DynamicResource Tools.Test.Achievement.ItemId}" Margin="0,0,25,0"
+                                   ToolTip="{DynamicResource Tools.Test.Achievement.ItemIdTip}" />
+                        <Grid Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="2" Margin="0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <local:MyTextBox x:Name="AchievementBlockTextBox" MaxLength="50"
+                                             ToolTip="{DynamicResource Tools.Test.Achievement.ItemIdTip}"
+                                             TextChanged="AchievementInput_TextChanged">
+                                <local:MyTextBox.ValidateRules>
+                                    <val:RegexValidator Pattern="^[a-z0-9_]+$"
+                                                        ErrorKey="Tools.Test.Achievement.InvalidId" />
+                                </local:MyTextBox.ValidateRules>
+                            </local:MyTextBox>
+                            <local:MyButton Grid.Column="1" x:Name="BtnAchievementIcon" Margin="8,0,0,0"
+                                            ToolTip="{DynamicResource Tools.Test.Achievement.IconTip}"
+                                            Text="{DynamicResource Tools.Test.Achievement.IconBrowse}"
+                                            Click="BtnAchievementIcon_Click" />
+                        </Grid>
 
                         <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                   Text="{DynamicResource Tools.Test.Achievement.Name}" Margin="0,0,25,0" />
-                        <local:MyTextBox Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2"
-                                         x:Name="AchievementTitleTextBox" MaxLength="50">
-                            <local:MyTextBox.ValidateRules>
-                                <val:NullOrEmptyValidator />
-                            </local:MyTextBox.ValidateRules>
-                        </local:MyTextBox>
+                                   Text="{DynamicResource Tools.Test.Achievement.Name}" Margin="0,0,25,0"
+                                   ToolTip="{DynamicResource Tools.Test.Achievement.NameTip}" />
+                        <Grid Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" Margin="0,10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <local:MyTextBox Grid.Row="0" x:Name="AchievementTitleTextBox" MaxLength="55"
+                                             ToolTip="{DynamicResource Tools.Test.Achievement.NameTip}"
+                                             TextChanged="AchievementInput_TextChanged">
+                                <local:MyTextBox.ValidateRules>
+                                    <val:NullOrEmptyValidator />
+                                </local:MyTextBox.ValidateRules>
+                            </local:MyTextBox>
+                            <!-- 字数警告：超过建议长度为蓝字，达到长度上限为红字 -->
+                            <TextBlock Grid.Row="1" x:Name="HintAchievementTitle" Margin="4,2,0,0"
+                                       FontSize="11" TextWrapping="Wrap" Visibility="Collapsed" />
+                        </Grid>
 
                         <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                   Text="{DynamicResource Tools.Test.Achievement.Line1}" Margin="0,0,25,0" />
-                        <local:MyTextBox Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2"
-                                         x:Name="AchievementString1TextBox" MaxLength="50" Margin="0,10">
-                            <local:MyTextBox.ValidateRules>
-                                <val:NullOrEmptyValidator />
-                            </local:MyTextBox.ValidateRules>
-                        </local:MyTextBox>
+                                   Text="{DynamicResource Tools.Test.Achievement.Line1}" Margin="0,0,25,0"
+                                   ToolTip="{DynamicResource Tools.Test.Achievement.Line1Tip}" />
+                        <Grid Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2" Margin="0,10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <local:MyTextBox Grid.Row="0" x:Name="AchievementString1TextBox" MaxLength="55"
+                                             ToolTip="{DynamicResource Tools.Test.Achievement.Line1Tip}"
+                                             TextChanged="AchievementInput_TextChanged">
+                                <local:MyTextBox.ValidateRules>
+                                    <val:NullOrEmptyValidator />
+                                </local:MyTextBox.ValidateRules>
+                            </local:MyTextBox>
+                            <TextBlock Grid.Row="1" x:Name="HintAchievementString1" Margin="4,2,0,0"
+                                       FontSize="11" TextWrapping="Wrap" Visibility="Collapsed" />
+                        </Grid>
 
                         <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                   Text="{DynamicResource Tools.Test.Achievement.Line2}" Margin="0,0,25,0" />
-                        <local:MyTextBox Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2"
-                                         x:Name="AchievementString2TextBox" MaxLength="50" />
+                                   Text="{DynamicResource Tools.Test.Achievement.Line2}" Margin="0,0,25,0"
+                                   ToolTip="{DynamicResource Tools.Test.Achievement.Line2Tip}" />
+                        <Grid Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2" Margin="0,10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <local:MyTextBox Grid.Row="0" x:Name="AchievementString2TextBox" MaxLength="55"
+                                             ToolTip="{DynamicResource Tools.Test.Achievement.Line2Tip}"
+                                             TextChanged="AchievementInput_TextChanged" />
+                            <TextBlock Grid.Row="1" x:Name="HintAchievementString2" Margin="4,2,0,0"
+                                       FontSize="11" TextWrapping="Wrap" Visibility="Collapsed" />
+                        </Grid>
+
+                        <!-- 字体：默认使用内置像素字体，也可改用本机已安装的任意字体 -->
+                        <TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left"
+                                   Text="{DynamicResource Tools.Test.Achievement.Font}" Margin="0,0,25,0"
+                                   ToolTip="{DynamicResource Tools.Test.Achievement.FontTip}" />
+                        <local:MyComboBox Grid.Column="1" Grid.Row="4" Grid.ColumnSpan="2" MinHeight="30"
+                                          Margin="0,12,0,10"
+                                          ToolTip="{DynamicResource Tools.Test.Achievement.FontTip}"
+                                          x:Name="ComboAchievementFont">
+                            <!-- 每一项用自己的字体渲染，方便在下拉列表里预览字体效果 -->
+                            <local:MyComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Content}" FontFamily="{Binding FontFamily}" />
+                                </DataTemplate>
+                            </local:MyComboBox.ItemTemplate>
+                        </local:MyComboBox>
                     </Grid>
                     <Grid Margin="0,15,0,10">
                         <Grid.RowDefinitions>
@@ -189,7 +250,13 @@
                                         Text="{DynamicResource Tools.Test.Achievement.Save}"
                                         Margin="0,0,15,0" HorizontalAlignment="Left" Click="BtnAchievementSave_Click" />
                     </Grid>
-                    <Image x:Name="AchievementImage" Width="320" Height="64" Stretch="Uniform" Visibility="Collapsed" />
+                    <!-- 生成过程中的加载指示（获取图标可能要走网络，给个反馈） -->
+                    <local:MyLoading x:Name="LoadAchievement" Margin="0,5,0,10" HorizontalAlignment="Center"
+                                     Text="{DynamicResource Tools.Test.Achievement.Loading}"
+                                     Visibility="Collapsed" />
+                    <!-- 只固定宽度：高度随渲染结果自适应（描述换行时卡片会变高） -->
+                    <Image x:Name="AchievementImage" Width="320" Stretch="Uniform"
+                           HorizontalAlignment="Left" Visibility="Collapsed" />
                 </StackPanel>
             </local:MyCard>
             <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Tools.Test.Avatar.Title}" CanSwap="True"

@@ -3427,14 +3427,31 @@
     <sys:String x:Key="Tools.Test.Achievement.FetchFailed">取得進度圖片失敗，請檢查文字是否包含特殊字元</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.FileFilter">PNG 圖片 (*.png)|*.png</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.InvalidId">請輸入正確的物品 ID！</sys:String>
-    <sys:String x:Key="Tools.Test.Achievement.ItemId">物品名（ID）</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.ItemId">物品 ID（自動匹配圖示）</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.ItemIdTip">填入物品 ID（例如 stone、diamond_sword、oak_log），會自動取得對應的遊戲內圖示；也可以按右側「瀏覽」直接指定一張本機圖片。</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.NameTip">進度的標題，顯示為黃色大字</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Line1Tip">描述文字第一行，顯示為白色</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Line2Tip">描述文字第二行，可留空；文字過長會自動換行，圖片也會跟著變高</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.FontTip">進度圖片使用的字型。預設為內建像素字型，也可改用系統中已安裝的任意字型</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.IconTip">指定一張本機圖片作為圖示，優先於依物品 ID 自動取得</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.IconNotFound">未能取得物品「{0}」的圖示：該物品 ID 可能不存在，或目前網路無法使用</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.TooLong">文字較長，超過 {0} 字後顯示效果可能不佳</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.TooLongLimit">已達到 {0} 字上限，無法繼續輸入</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Line1">第一行</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Line2">第二行（可選）</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Name">進度名</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Preview">預覽進度影像</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Save">儲存圖片</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Saved">自訂進度圖片已儲存！</sys:String>
-    <sys:String x:Key="Tools.Test.Achievement.Title">自訂進度圖片生成器 (僅支援英文)</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Title">自訂進度圖片生成器</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Font">字型</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.FontDefault">（內建像素字型）</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Icon">圖示</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.IconBrowse">瀏覽…</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.IconFilter">圖片檔 (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Loading">正在取得物品圖示…</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.FontBrowse">瀏覽…</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.FontFilter">字型檔 (*.ttf;*.otf)|*.ttf;*.otf</sys:String>
 
     <!-- Tools.Test.Avatar -->
 
