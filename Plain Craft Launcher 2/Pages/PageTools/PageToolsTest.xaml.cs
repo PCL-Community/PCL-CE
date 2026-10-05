@@ -256,7 +256,7 @@ public partial class PageToolsTest
                             }
 
                         foreach (var dirInfo2 in dirInfo.EnumerateDirectories())
-                            if ((dirInfo2.Name ?? "") == (dirInfo2.Name + "-natives" ?? "") ||
+                            if (dirInfo2.Name.EndsWith("-natives", StringComparison.OrdinalIgnoreCase) ||
                                 dirInfo2.Name == "natives-windows-x86_64")
                                 num += ModBase.DeleteDirectory(dirInfo2.FullName, true);
                     }
@@ -732,7 +732,8 @@ public partial class PageToolsTest
 
     private void CmbHeadSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (currentSkinBitmap is not null && skinPath is not null) LoadAndGenerateHead(skinPath);
+        // skinPath 的初始值是空字符串而不是 null，用 "is not null" 判断等于没判断
+        if (currentSkinBitmap is not null && !string.IsNullOrEmpty(skinPath)) LoadAndGenerateHead(skinPath);
     }
 
     private BitmapImage BitmapToBitmapImage(Bitmap bitmap)
