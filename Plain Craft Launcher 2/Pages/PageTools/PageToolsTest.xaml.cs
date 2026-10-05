@@ -598,12 +598,18 @@ public partial class PageToolsTest
         try
         {
             await Task.Yield(); // 先把加载指示绘制出来
+            // 先快照全部输入：等待图标期间用户仍可编辑文本框，
+            // 若渲染时再读取，会出现「旧图标配新文字」的不一致结果
             var itemId = AchievementBlockTextBox.Text.Trim();
+            var rawTitle = AchievementTitleTextBox.Text;
+            var rawLine1 = AchievementString1TextBox.Text;
+            var rawLine2 = AchievementString2TextBox.Text;
+
             var (icon, notFound) = await _LoadAchievementIconAsync(itemId);
             if (notFound && !string.IsNullOrEmpty(itemId))
                 HintService.Hint(Lang.Text("Tools.Test.Achievement.IconNotFound", itemId), HintType.Info);
 
-            AchievementImage.Source = _RenderAchievementImage(icon);
+            AchievementImage.Source = _RenderAchievementImage(icon, itemId, rawTitle, rawLine1, rawLine2);
             AchievementImage.Visibility = Visibility.Visible;
         }
         catch (Exception ex)
@@ -629,14 +635,20 @@ public partial class PageToolsTest
         try
         {
             await Task.Yield(); // 先把加载指示绘制出来
+            // 与预览一致：先快照，避免等待期间用户改动导致图文不一致
             var itemId = AchievementBlockTextBox.Text.Trim();
+            var rawTitle = AchievementTitleTextBox.Text;
+            var rawLine1 = AchievementString1TextBox.Text;
+            var rawLine2 = AchievementString2TextBox.Text;
+
             var (icon, notFound) = await _LoadAchievementIconAsync(itemId);
 
             if (notFound && !string.IsNullOrEmpty(itemId))
                 HintService.Hint(Lang.Text("Tools.Test.Achievement.IconNotFound", itemId), HintType.Info);
 
             var encoder = new PngBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(_RenderAchievementImage(icon)));
+            encoder.Frames.Add(BitmapFrame.Create(
+                _RenderAchievementImage(icon, itemId, rawTitle, rawLine1, rawLine2)));
 
             using var buffer = new MemoryStream();
             encoder.Save(buffer);
@@ -703,7 +715,8 @@ public partial class PageToolsTest
         }
     }
 
-    private BitmapSource _RenderAchievementImage(BitmapSource? icon)
+    private BitmapSource _RenderAchievementImage(BitmapSource? icon, string itemId, string rawTitle,
+        string rawLine1, string rawLine2)
     {
         const double contentWidth = 320;
         const double minContentHeight = 64;
@@ -724,9 +737,9 @@ public partial class PageToolsTest
         var descColor = Media.Color.FromArgb(255, 255, 255, 255);
 
         // 每个字段单独截断，避免较长的上一行把下一行整个挤掉
-        var title = _TruncateText(_StripMinecraftCodes(AchievementTitleTextBox.Text));
-        var line1 = _TruncateText(_StripMinecraftCodes(AchievementString1TextBox.Text));
-        var line2 = _TruncateText(_StripMinecraftCodes(AchievementString2TextBox.Text));
+        var title = _TruncateText(_StripMinecraftCodes(rawTitle));
+        var line1 = _TruncateText(_StripMinecraftCodes(rawLine1));
+        var line2 = _TruncateText(_StripMinecraftCodes(rawLine2));
         var description = string.IsNullOrEmpty(line2) ? line1 : line1 + "\n" + line2;
 
         var typeface = new Media.Typeface(ResolveAchievementFont(), FontStyles.Normal, FontWeights.Normal,
@@ -738,7 +751,7 @@ public partial class PageToolsTest
 
         Media.FormattedText MakeText(string text, Media.Color color) => new(
             _WrapTextByWidth(text, typeface, fontSize, maxTextWidth, superSample),
-            CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, typeface, fontSize,
+            CultureInfo.CurrentUICulture, _GetFlowDirection(text), typeface, fontSize,
             new Media.SolidColorBrush(color), superSample)
         {
             MaxTextWidth = maxTextWidth,
@@ -779,7 +792,6 @@ public partial class PageToolsTest
             dc.DrawRoundedRectangle(new Media.SolidColorBrush(backgroundColor), null,
                 new Rect(borderWidth, borderWidth, contentWidth, contentHeight), cornerRadius, cornerRadius);
 
-            var itemId = AchievementBlockTextBox.Text.Trim();
             var iconRect = new Rect(padding + borderWidth, (totalHeight - iconSize) / 2, iconSize, iconSize);
             if (icon != null)
                 dc.DrawImage(icon, iconRect);
@@ -815,37 +827,61 @@ public partial class PageToolsTest
     /// <param name="maxWidth">单行允许的最大宽度。</param>
     /// <param name="pixelsPerDip">每个 DIP 对应的像素数，与栅格化倍率保持一致。</param>
     /// <returns>在超宽处插入换行符后的文本。</returns>
+    /// <remarks>
+    ///     必须按 Unicode 标量值（Rune）遍历而非 char —— 按 char 会从中间拆开代理项对，
+    ///     导致 emoji 等补充平面字符落在换行边界时显示为乱码。
+    /// </remarks>
     private static string _WrapTextByWidth(string text, Media.Typeface typeface, double fontSize, double maxWidth,
         int pixelsPerDip)
     {
         if (string.IsNullOrEmpty(text)) return text;
 
         var result = new System.Text.StringBuilder(text.Length + 8);
-        var line = new System.Text.StringBuilder(text.Length);
+        var current = "";
 
-        foreach (var ch in text)
+        foreach (var rune in text.EnumerateRunes())
         {
-            if (ch == '\n')
+            if (rune.Value == '\n')
             {
-                result.Append(line).Append('\n');
-                line.Clear();
+                result.Append(current).Append('\n');
+                current = "";
                 continue;
             }
 
-            line.Append(ch);
-
-            // 当前行超宽且不止一个字符时，把最后一个字符挪到下一行
-            if (line.Length > 1 && _MeasureTextWidth(line.ToString(), typeface, fontSize, pixelsPerDip) > maxWidth)
+            var candidate = current + rune;
+            if (current.Length > 0
+                && _MeasureTextWidth(candidate, typeface, fontSize, pixelsPerDip) > maxWidth)
             {
-                line.Length -= 1;
-                result.Append(line).Append('\n');
-                line.Clear();
-                line.Append(ch);
+                result.Append(current).Append('\n');
+                current = rune.ToString();
+            }
+            else
+            {
+                current = candidate;
             }
         }
 
-        result.Append(line);
+        result.Append(current);
         return result.ToString();
+    }
+
+    /// <summary>
+    ///     按文本内容判断书写方向。
+    /// </summary>
+    /// <param name="text">待判断的文本。</param>
+    /// <returns>含 RTL 字符时返回 RightToLeft，否则 LeftToRight。</returns>
+    /// <remarks>
+    ///     不能固定用 LeftToRight —— 阿拉伯文、希伯来文等从右向左书写的语言会显示反掉。
+    ///     这里按内容检测（而非界面语言），因为同一界面下用户可能输入任意语言的文本。
+    ///     U+0590–U+08FF 覆盖希伯来文、阿拉伯文、叙利亚文等 RTL 区段。
+    /// </remarks>
+    private static FlowDirection _GetFlowDirection(string text)
+    {
+        foreach (var rune in text.EnumerateRunes())
+            if (rune.Value is >= 0x0590 and <= 0x08FF)
+                return FlowDirection.RightToLeft;
+
+        return FlowDirection.LeftToRight;
     }
 
     /// <summary>
