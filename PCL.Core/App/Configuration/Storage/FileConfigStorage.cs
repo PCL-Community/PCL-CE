@@ -25,7 +25,7 @@ public class FileConfigStorage : ConfigStorage
 
     private readonly Channel<(string, Action)> _writeActionChannel;
     private readonly CancellationTokenSource _writeActionCts;
-    private readonly ManualResetEventSlim _writeStopEvent = new(true);
+    private readonly ManualResetEventSlim _writeStopEvent = new(false);
 
     public FileConfigStorage(IKeyValueFileProvider file)
     {
@@ -34,7 +34,6 @@ public class FileConfigStorage : ConfigStorage
         _writeActionCts = new CancellationTokenSource();
         Task.Run(async () =>
         {
-            _writeStopEvent.Reset();
             const long syncInterval = 10000; // ms
             var lastSyncTick = 0L;
             var cancelToken = _writeActionCts.Token;
@@ -63,9 +62,8 @@ public class FileConfigStorage : ConfigStorage
                     writeActionMap[pendingItem.Item1] = pendingItem.Item2;
                 // 结束时执行一次同步
                 Sync();
+                _writeStopEvent.Set();
             }
-            _writeStopEvent.Set();
-            return;
             void Sync()
             {
                 try

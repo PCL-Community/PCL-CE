@@ -813,7 +813,8 @@ public class McInstance
                     if (!States.Instance.IsLogoCustom[PathInstance])
                         States.Instance.IsLogoCustom[PathInstance] = true;
                 }
-                else if (States.Instance.IsLogoCustom[PathInstance])
+                else if (States.Instance.IsLogoCustom[PathInstance] &&
+                         Logo?.EndsWith(@"PCL\Logo.png", StringComparison.OrdinalIgnoreCase) == true)
                 {
                     // 自定义图标文件已不存在，清理失效的自定义标记并回退到默认图标
                     States.Instance.IsLogoCustom[PathInstance] = false;
