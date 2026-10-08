@@ -1,4 +1,4 @@
-<!-- Formatted by xaml-lang-formatter at 2026-10-04T13:50:17. -->
+<!-- Formatted by xaml-lang-formatter at 2026-10-08T17:38:03. -->
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -381,6 +381,38 @@
     <sys:String x:Key="Download.Comp.Dependency.Install.WithoutDependencies">Télécharger uniquement le mod (non recommandé)</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Continue">Continuer le téléchargement</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Message">Échec de la résolution des dépendances du mod. Seul le mod principal sera téléchargé.</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Title">Échec de la résolution des dépendances</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Unresolved.ContinueWithoutDependencies">Continuer le téléchargement</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Unresolved.ListItem">- {0} {1}: {2}</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Unresolved.Message">Les dépendances requises suivantes n'ont pas pu être résolues:&#xA;&#xA;{0}</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Unresolved.Title">Impossible d'installer les dépendances requises</sys:String>
+
+    <!-- Download.Comp.Detail -->
+
+    <sys:String x:Key="Download.Comp.Detail.CleanCache">Nettoyer le cache</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Clipboard.Detected.Message">Un lien de ressource a été détecté dans le presse-papiers. Ouvrir la page de détails?</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Clipboard.Detected.Title">Lien de ressource détecté</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Clipboard.Fetching">Récupération des informations sur la ressource…</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Clipboard.InvalidContent">Contenu de ressource invalide.</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CopyLink">Copier le lien</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.CopyName">Copier le nom</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DescriptionNoTranslation">Aucune traduction de la description n'est disponible pour cette ressource</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DescriptionTranslating">Récupération de la traduction de la description pour {0}…</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DescriptionTranslationFailed">Échec de la récupération de la traduction de la description</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DescriptionTranslationResult">Original: {0}&#xA;Traduction: {1}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DownloadFile">Télécharger le fichier</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DownloadModpackFile">Télécharger le fichier du modpack</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.DownloadWorldFile">Télécharger le fichier du monde</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorite">Favori</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.Add">Ajout de {0} à {1}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.BulkAdd">{0} ressources ajoutées à {1}!</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.DefaultName">Par défaut</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.FavoriteContextMenu">Ajouter à {0}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.Favorites.Remove">Retrait de {0} de {1}</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.FindingApplicableInstance">Recherche d'une instance applicable…</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.InputInstanceName">Saisissez le nom de l'instance</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.InstallWorld">Installer le monde</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.InstanceFilter">Instance:</sys:String>
 
     <!-- Launch -->
 
