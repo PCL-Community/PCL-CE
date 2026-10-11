@@ -1078,7 +1078,24 @@ public static class ModLaunch
                 return; // 中断加载会导致 JavaSelect 异常地返回空值，误判找不到 Java
             McLaunchLog("无合适的 Java，需要确认是否自动下载");
             string javaCode;
-            if (minVer >= new Version(1, 9))
+            var compatibleDownloadMajor = compatibleJavaMajorsSet?
+                .Where(major =>
+                {
+                    var majorMinVer = major <= 8
+                        ? new Version(1, major, 0, 0)
+                        : new Version(major, 0, 0, 0);
+                    var majorMaxVer = major <= 8
+                        ? new Version(1, major, 999, 999)
+                        : new Version(major, 999, 999, 999);
+                    return majorMaxVer >= minVer && majorMinVer <= maxVer;
+                })
+                .OrderBy(major => major)
+                .FirstOrDefault();
+            if (compatibleDownloadMajor > 0)
+            {
+                javaCode = compatibleDownloadMajor.Value.ToString();
+            }
+            else if (minVer >= new Version(1, 9))
             {
                 javaCode = minVer.Major.ToString();
             }
