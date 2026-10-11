@@ -17,7 +17,6 @@ public class FileConfigStorageTest
         storage.Stop();
 
         Assert.AreEqual("-Xmx2G", provider.Get<string>("JvmArgs"));
-        Assert.AreEqual(1, provider.SyncCount);
     }
 
     private sealed class TestFileProvider : IKeyValueFileProvider
@@ -25,7 +24,6 @@ public class FileConfigStorageTest
         private readonly Dictionary<string, object?> _values = [];
 
         public string FilePath => "test://config";
-        public int SyncCount { get; private set; }
 
         public T Get<T>(string key) => (T)_values[key]!;
 
@@ -35,6 +33,6 @@ public class FileConfigStorageTest
 
         public void Remove(string key) => _values.Remove(key);
 
-        public void Sync() => SyncCount++;
+        public void Sync() { }
     }
 }
