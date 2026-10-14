@@ -1115,7 +1115,7 @@ public partial class PageDownloadInstall
     /// <summary>
     ///     当 MC 版本列表加载完时，立即自动选择的版本。用于外部调用。
     /// </summary>
-    public static string mcVersionWaitingForSelect = null;
+    public static string? mcVersionWaitingForSelect = null;
 
     #endregion
 

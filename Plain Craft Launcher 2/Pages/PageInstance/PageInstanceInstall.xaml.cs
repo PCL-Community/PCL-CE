@@ -22,7 +22,7 @@ public partial class PageInstanceInstall
     }
 
     private bool isLoad;
-    private string lastVersionName;
+    private string? lastVersionName;
     private InstallAction _installAction;
 
     public PageInstanceInstall()
@@ -1012,8 +1012,8 @@ public partial class PageInstanceInstall
 
     #region 当前信息获取
 
-    private ModComp.CompFile _currentFabricApi; // 加载完成后直接调用以提高性能
-    private string _currentFabricApiPath;
+    private ModComp.CompFile? _currentFabricApi; // 加载完成后直接调用以提高性能
+    private string? _currentFabricApiPath;
 
     private object GetCurrentFabricApi() // 进入页面和联网加载时调用
     {
@@ -1034,8 +1034,8 @@ public partial class PageInstanceInstall
         return result;
     }
 
-    private ModComp.CompFile _currentLegacyFabricApi; // 加载完成后直接调用以提高性能
-    private string _currentLegacyFabricApiPath;
+    private ModComp.CompFile? _currentLegacyFabricApi; // 加载完成后直接调用以提高性能
+    private string? _currentLegacyFabricApiPath;
 
     private object GetCurrentLegacyFabricApi() // 进入页面和联网加载时调用
     {
@@ -1056,8 +1056,8 @@ public partial class PageInstanceInstall
         return result;
     }
 
-    private ModComp.CompFile _currentOptiFabric;
-    private string _currentOptiFabricPath;
+    private ModComp.CompFile? _currentOptiFabric;
+    private string? _currentOptiFabricPath;
 
     private object GetCurrentOptiFabric()
     {
@@ -1146,7 +1146,7 @@ public partial class PageInstanceInstall
         EnterSelectPage();
     }
 
-    private string currentInfo;
+    private string? currentInfo;
 
     #endregion
 
@@ -1360,7 +1360,7 @@ public partial class PageInstanceInstall
     /// <summary>
     ///     当 MC 版本列表加载完时，立即自动选择的版本。用于外部调用。
     /// </summary>
-    public static string mcVersionWaitingForSelect = null;
+    public static string? mcVersionWaitingForSelect = null;
 
     #endregion
 
