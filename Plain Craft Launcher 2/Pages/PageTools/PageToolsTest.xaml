@@ -138,12 +138,14 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Text="{DynamicResource Tools.Test.Achievement.ItemId}" Margin="0,0,25,0" />
-                        <local:MyTextBox Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="2"
-                                         x:Name="AchievementBlockTextBox" MaxLength="50" Margin="0,10">
+                        <local:MyTextBox Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="2" Margin="0,10"
+                                         x:Name="AchievementBlockTextBox"
+                                         TextChanged="_AchievementInput_TextChanged">
                             <local:MyTextBox.ValidateRules>
                                 <val:RegexValidator Pattern="^[a-z0-9_]+$"
                                                     ErrorKey="Tools.Test.Achievement.InvalidId" />
@@ -152,8 +154,9 @@
 
                         <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Text="{DynamicResource Tools.Test.Achievement.Name}" Margin="0,0,25,0" />
-                        <local:MyTextBox Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2"
-                                         x:Name="AchievementTitleTextBox" MaxLength="50">
+                        <local:MyTextBox Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" Margin="0,10"
+                                         x:Name="AchievementTitleTextBox"
+                                         TextChanged="_AchievementInput_TextChanged">
                             <local:MyTextBox.ValidateRules>
                                 <val:NullOrEmptyValidator />
                             </local:MyTextBox.ValidateRules>
@@ -161,8 +164,9 @@
 
                         <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Text="{DynamicResource Tools.Test.Achievement.Line1}" Margin="0,0,25,0" />
-                        <local:MyTextBox Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2"
-                                         x:Name="AchievementString1TextBox" MaxLength="50" Margin="0,10">
+                        <local:MyTextBox Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2" Margin="0,10"
+                                         x:Name="AchievementString1TextBox"
+                                         TextChanged="_AchievementInput_TextChanged">
                             <local:MyTextBox.ValidateRules>
                                 <val:NullOrEmptyValidator />
                             </local:MyTextBox.ValidateRules>
@@ -171,7 +175,20 @@
                         <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Text="{DynamicResource Tools.Test.Achievement.Line2}" Margin="0,0,25,0" />
                         <local:MyTextBox Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2"
-                                         x:Name="AchievementString2TextBox" MaxLength="50" />
+                                         x:Name="AchievementString2TextBox" Margin="0,10"
+                                         TextChanged="_AchievementInput_TextChanged" />
+
+                        <TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left"
+                                   Text="{DynamicResource Tools.Test.Achievement.Font}" Margin="0,0,25,0" />
+                        <local:MyComboBox Grid.Column="1" Grid.Row="4" Grid.ColumnSpan="2" MinHeight="30"
+                                          Margin="0,12,0,10"
+                                          x:Name="ComboAchievementFont">
+                            <local:MyComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Content}" FontFamily="{Binding FontFamily}" />
+                                </DataTemplate>
+                            </local:MyComboBox.ItemTemplate>
+                        </local:MyComboBox>
                     </Grid>
                     <Grid Margin="0,15,0,10">
                         <Grid.RowDefinitions>
@@ -189,7 +206,11 @@
                                         Text="{DynamicResource Tools.Test.Achievement.Save}"
                                         Margin="0,0,15,0" HorizontalAlignment="Left" Click="BtnAchievementSave_Click" />
                     </Grid>
-                    <Image x:Name="AchievementImage" Width="320" Height="64" Stretch="Uniform" Visibility="Collapsed" />
+                    <local:MyLoading x:Name="LoadAchievement" Margin="0,5,0,10" HorizontalAlignment="Center"
+                                     Text="{DynamicResource Tools.Test.Achievement.Loading}"
+                                     Visibility="Collapsed" />
+                    <Image x:Name="AchievementImage" Width="320" Stretch="Uniform"
+                           HorizontalAlignment="Left" Visibility="Collapsed" />
                 </StackPanel>
             </local:MyCard>
             <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Tools.Test.Avatar.Title}" CanSwap="True"
