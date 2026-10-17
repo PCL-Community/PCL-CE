@@ -275,10 +275,10 @@ public partial class PageComp
         isLoaderInited = true;
         ((MyPageRight)Parent).PageLoaderInit(Load, PanLoad, PanContent, PanAlways, loader, _ => Load_OnFinish(),
             LoaderInput);
-        // 将最高 Drop 加入筛选
-        if (ModDownload.AllDrops is not null && ModDownload.AllDrops.Count != 0 && ModDownload.AllDrops.First() > 250)
+        // 将最高家族加入筛选
+        if (ModDownload.AllFamilies is { Count: > 0 } families && !families[0].StartsWith("1.", StringComparison.Ordinal))
         {
-            var highestVersion = McInstanceInfo.DropToVersion(ModDownload.AllDrops.First());
+            var highestVersion = families[0];
             if ((((MyComboBoxItem)TextSearchVersion.Items[1]).Content.ToString() ?? "") !=
                 (highestVersion ?? "")) // 0 是全部
                 TextSearchVersion.Items.Insert(1, new MyComboBoxItem { Content = highestVersion });

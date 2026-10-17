@@ -221,39 +221,17 @@ public static class ModDownload
     #region DlClientList | Minecraft 客户端 版本列表
 
     /// <summary>
-    ///     所有正式版的 Minecraft Drop 序数。
-    ///     若从未完成过获取，返回 Nothing；否则必定存在元素，且从高到低排列。
+    ///     正式版家族 id，最新在前。索引未发布或没有家族时返回 null。
     /// </summary>
-    public static List<int> AllDrops
+    public static List<string>? AllFamilies
     {
         get
         {
-            lock (_allDropsLock)
-            {
-                if (field is null)
-                {
-                    var rawData = States.Game.Drops;
-                    if (string.IsNullOrEmpty(rawData))
-                        field = new List<int>();
-                    else
-                        field = rawData.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                            .Select(d => (int)Math.Round(ModBase.Val(d))).ToList();
-                }
-
-                return field.Count != 0 ? field : null;
-            }
-        }
-        set
-        {
-            lock (_allDropsLock)
-            {
-                field = value;
-                States.Game.Drops = value.Join(",");
-            }
+            var families = VanillaVersionIndex.Capture()?.Families;
+            if (families is null || families.Count == 0) return null;
+            return new List<string>(families);
         }
     }
-
-    private static readonly object _allDropsLock = new();
 
     // 主加载器
     public struct DlClientListResult
@@ -316,11 +294,14 @@ public static class ModDownload
             }
         }
 
-        // 提取所有 Drop 序数
-        var drops = new List<int>();
-        foreach (JsonObject version in loader.output.Value["versions"].AsArray())
-            drops.Add(McInstanceInfo.VersionToDrop((string)version["id"]));
-        AllDrops = drops.Distinct().OrderByDescending(d => d).ToList();
+        try
+        {
+            VanillaVersionList.RefreshAsync().GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "[Minecraft] 刷新原版版本索引失败");
+        }
     }
 
     // 各个下载源的分加载器

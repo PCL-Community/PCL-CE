@@ -515,7 +515,7 @@ public class SqliteCacheStorage(string dbPath) : IDisposable
         cmd.Parameters.AddWithValue("@rt", (object?)r.ReleaseTime ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@vn", (object?)r.VanillaName ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@vv", (object?)r.VanillaVersion ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@dn", r.DropNumber);
+        cmd.Parameters.AddWithValue("@dn", r.LineNumber);
         cmd.Parameters.AddWithValue("@re", r.Reliable ? 1 : 0);
         cmd.Parameters.AddWithValue("@lj", r.LoaderJson);
         cmd.Parameters.AddWithValue("@mc", (object?)r.MainClass ?? DBNull.Value);
@@ -540,7 +540,7 @@ public class SqliteCacheStorage(string dbPath) : IDisposable
             ReleaseTime = r.IsDBNull(7) ? null : r.GetString(7),
             VanillaName = r.IsDBNull(8) ? null : r.GetString(8),
             VanillaVersion = r.IsDBNull(9) ? null : r.GetString(9),
-            DropNumber = r.GetInt32(10),
+            LineNumber = r.GetInt32(10),
             Reliable = r.GetInt32(11) != 0,
             LoaderJson = r.GetString(12),
             MainClass = r.IsDBNull(13) ? null : r.GetString(13),

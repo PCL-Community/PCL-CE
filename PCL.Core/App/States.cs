@@ -140,11 +140,6 @@ public static partial class States
         [ConfigItem<int>("CacheJavaListVersion", 0)] public partial int JavaListVersion { get; set; }
 
         /// <summary>
-        /// MC 版本 Drops。
-        /// </summary>
-        [ConfigItem<string>("CacheDrops", "")] public partial string Drops { get; set; }
-        
-        /// <summary>
         /// 当前实例。
         /// </summary>
         [ConfigItem<string>("LaunchInstanceSelect", "", ConfigSource.Local)] public partial string SelectedInstance { get; set; }

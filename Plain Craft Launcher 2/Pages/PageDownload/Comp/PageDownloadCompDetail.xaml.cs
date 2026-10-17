@@ -1166,13 +1166,13 @@ public partial class PageDownloadCompDetail
             return Lang.Text("Download.Comp.Detail.VersionGroup.Other");
         if (name.Contains('w'))
             return Lang.Text("Download.Comp.Detail.VersionGroup.Snapshot");
-        if (foldOld && McInstanceInfo.VersionToDrop(name, true) < 120)
+        if (foldOld && VanillaVersionIndex.IsBefore(name, "1.13"))
             return Lang.Text("Download.Comp.Detail.VersionGroup.Old");
         if (groupedByDrop)
         {
-            var drop = McInstanceInfo.VersionToDrop(name, true);
-            if (drop >= 0)
-                return McInstanceInfo.DropToVersion(drop);
+            var family = VanillaVersionIndex.Capture()?.FamilyOf(name, true);
+            if (!string.IsNullOrEmpty(family))
+                return family;
             return name;
         }
 
