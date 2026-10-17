@@ -16,6 +16,7 @@ using FileSystem = Microsoft.VisualBasic.FileSystem;
 using SearchOption = System.IO.SearchOption;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils;
+using PCL.Core.Minecraft;
 
 namespace PCL;
 
@@ -59,6 +60,7 @@ public partial class PageInstanceCompResource : IRefreshable
         BtnSelectDisable.Click += BtnSelectED_Click;
         BtnSelectUpdate.Click += BtnSelectUpdate_Click;
         BtnSelectDelete.Click += BtnSelectDelete_Click;
+        BtnSelectUndo.Click += _BtnSelectUndoClick;
         BtnSelectCancel.Click += BtnSelectCancel_Click;
         BtnSelectFavorites.Click += BtnSelectFavorites_Click;
         BtnSelectShare.Click += BtnSelectShare_Click;
@@ -161,6 +163,7 @@ public partial class PageInstanceCompResource : IRefreshable
         BtnSelectDisable.Click += BtnSelectED_Click;
         BtnSelectUpdate.Click += BtnSelectUpdate_Click;
         BtnSelectDelete.Click += BtnSelectDelete_Click;
+        BtnSelectUndo.Click += _BtnSelectUndoClick;
         BtnSelectCancel.Click += BtnSelectCancel_Click;
         BtnSelectFavorites.Click += BtnSelectFavorites_Click;
         BtnSelectShare.Click += BtnSelectShare_Click;
@@ -687,6 +690,10 @@ public partial class PageInstanceCompResource : IRefreshable
             btnED.Click += (ss, ee) => ED_Click((MyIconButton)ss, ee);
             sender.Buttons = new[] { btnCont, btnOpen, btnED, btnDelete };
         }
+
+        var btnUndo = ResourceUpdateUndo.CreateButton(sender, PageInstanceLeft.McInstance.PathIndie,
+            () => ReloadCompFileList(true));
+        if (btnUndo is not null) sender.Buttons = sender.Buttons.Append(btnUndo).ToArray();
     }
 
     /// <summary>
@@ -745,8 +752,14 @@ public partial class PageInstanceCompResource : IRefreshable
     /// </summary>
     public void RefreshBars()
     {
+        var revision = ++_refreshBarsRevision;
         Dispatcher.BeginInvoke(new Func<Task>(async () =>
         {
+            if (revision != _refreshBarsRevision) return;
+            var selectedKeys = selectedMods.ToHashSet();
+            var selectedEntries = modItems.Values.Select(item => item.Entry)
+                .Where(entry => selectedKeys.Contains(entry.RawPath)).ToArray();
+            var recycleBin = new ResourceUpdateRecycleBin(PageInstanceLeft.McInstance.PathIndie);
             // -----------------
             // 顶部栏
             // -----------------
@@ -769,6 +782,7 @@ public partial class PageInstanceCompResource : IRefreshable
                     if (item.State == ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable) unavalialeCount += 1;
                 }
             });
+            if (revision != _refreshBarsRevision) return;
             // 显示
             BtnFilterAll.Text = IsSearching ? Lang.Text("Instance.Resource.Filter.SearchResult") : Lang.Text("Instance.Resource.Filter.AllWithCount", anyCount);
             BtnFilterCanUpdate.Text = Lang.Text("Instance.Resource.Filter.UpdatableWithCount", updateCount);
@@ -794,6 +808,7 @@ public partial class PageInstanceCompResource : IRefreshable
 
                 return m.Comp.Id;
             }).Where(g => g.Count() > 1 && g.First().Comp is not null).SelectMany(g => g).ToList());
+            if (revision != _refreshBarsRevision) return;
             BtnFilterDuplicate.Text = Lang.Text("Instance.Resource.Filter.DuplicateWithCount", duplicateItems.Count);
             BtnFilterDuplicate.Visibility = Filter == FilterType.Duplicate || duplicateItems.Any()
                 ? Visibility.Visible
@@ -810,13 +825,14 @@ public partial class PageInstanceCompResource : IRefreshable
             // -----------------
 
             // 计数
-            var newCount = selectedMods.Count;
+            var newCount = selectedKeys.Count;
             var selected = newCount > 0;
             if (selected)
                 LabSelect.Text = Lang.Text("Instance.Resource.SelectedCount", newCount); // 取消所有选择时不更新数字
             // 按钮可用性
             if (selected)
             {
+                var undoCount = 0;
                 var hasUpdate = false;
                 var hasEnabled = false;
                 var hasDisabled = false;
@@ -826,19 +842,21 @@ public partial class PageInstanceCompResource : IRefreshable
                 // 检查是否所有选中的资源都有有效的项目信息（即已完成联网更新）
                 await Task.Run(() =>
                 {
-                    foreach (var ModEntity in ModLocalComp.compResourceListLoader.output)
-                        if (selectedMods.Contains(ModEntity.RawPath))
-                        {
-                            if (ModEntity.CanUpdate) hasUpdate = true;
-                            if (ModEntity.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine)
-                                hasEnabled = true;
-                            else if (ModEntity.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled)
-                                hasDisabled = true;
-                            if (ModEntity.Comp is null || string.IsNullOrEmpty(ModEntity.Comp.Id))
-                                canFavoriteAndShare = false;
-                        }
+                    foreach (var ModEntity in selectedEntries)
+                    {
+                        if (!ModEntity.IsFolder && recycleBin.CanUndo(ModEntity.path)) undoCount++;
+                        if (ModEntity.CanUpdate) hasUpdate = true;
+                        if (ModEntity.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine)
+                            hasEnabled = true;
+                        else if (ModEntity.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled)
+                            hasDisabled = true;
+                        if (ModEntity.Comp is null || string.IsNullOrEmpty(ModEntity.Comp.Id))
+                            canFavoriteAndShare = false;
+                    }
                 });
 
+                if (revision != _refreshBarsRevision) return;
+                ResourceUpdateUndo.RefreshSelectionButton(BtnSelectUndo, undoCount, _undoingSelection);
                 BtnSelectDisable.IsEnabled = hasEnabled;
                 BtnSelectEnable.IsEnabled = hasDisabled;
                 BtnSelectUpdate.IsEnabled = hasUpdate;
@@ -862,10 +880,11 @@ public partial class PageInstanceCompResource : IRefreshable
                 }
             }
 
+            if (!selected) ResourceUpdateUndo.RefreshSelectionButton(BtnSelectUndo, 0, _undoingSelection);
+            _UpdateSelectionMargin(selected);
             // 更新显示状态
             if (ModAnimation.AniControlEnabled == 0)
             {
-                PanListBack.Margin = new Thickness(0d, 0d, 0d, selected ? 95 : 15);
                 if (selected)
                 {
                     // 仅在数量增加时播放出现/跳跃动画
@@ -925,6 +944,52 @@ public partial class PageInstanceCompResource : IRefreshable
                 }
             }
         }));
+    }
+
+    private int _refreshBarsRevision;
+    private bool _undoingSelection;
+
+    private void _UpdateSelectionMargin(bool selected)
+    {
+        // 窄窗口换行后，列表底部为整张操作卡片预留空间。
+        PanListBack.Margin = new Thickness(0, 0, 0, selected ? Math.Max(95, CardSelect.ActualHeight + 50) : 15);
+    }
+
+    private void _CardSelectSizeChanged(object sender, SizeChangedEventArgs e) =>
+        _UpdateSelectionMargin(selectedMods.Count > 0);
+
+    private async void _BtnSelectUndoClick(object sender, ModBase.RouteEventArgs e)
+    {
+        if (_undoingSelection) return;
+        var gameDirectory = PageInstanceLeft.McInstance.PathIndie;
+        var paths = modItems.Values.Select(item => item.Entry)
+            .Where(entry => !entry.IsFolder && selectedMods.Contains(entry.RawPath))
+            .Select(entry => entry.path).ToArray();
+        if (paths.Length == 0) return;
+        _undoingSelection = true;
+        CardSelect.IsEnabled = false;
+        PanAllBack.IsEnabled = false;
+        try
+        {
+            await ResourceUpdateUndo.UndoSelectedAsync(gameDirectory, paths);
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "批量撤回资源更新失败", ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Instance.Resource.Undo.Failed", ex.Message));
+        }
+        finally
+        {
+            _undoingSelection = false;
+            CardSelect.IsEnabled = true;
+            PanAllBack.IsEnabled = true;
+            if (IsLoaded && gameDirectory == PageInstanceLeft.McInstance.PathIndie)
+            {
+                selectedMods.Clear();
+                ReloadCompFileList(true);
+                RefreshBars();
+            }
+        }
     }
 
     private int bottomBarShownCount;
@@ -2195,6 +2260,9 @@ public partial class PageInstanceCompResource : IRefreshable
             modList = modList.ToList(); // 防止刷新影响迭代器
             var fileList = new List<DownloadFile>();
             var fileCopyList = new Dictionary<string, string>();
+            var replacements = new List<(string Original, string Downloaded, string Updated)>();
+            var recycleBin = new ResourceUpdateRecycleBin(PageInstanceLeft.McInstance.PathIndie);
+            var tempRoot = Path.Combine(ModBase.pathTemp, "DownloadedComp", Guid.NewGuid().ToString("N"));
             foreach (var Entry in modList)
             {
                 var file = Entry.UpdateFile;
@@ -2237,54 +2305,37 @@ public partial class PageInstanceCompResource : IRefreshable
                 }
 
                 // 添加到下载列表
-                var tempAddress = ModBase.pathTemp + @"DownloadedComp\" +
-                                  Entry.FileName.Replace(currentReplaceName, newestReplaceName);
-                var realAddress = ModBase.GetPathFromFullPath(Entry.path) +
-                                  Entry.FileName.Replace(currentReplaceName, newestReplaceName);
+                var newFileName = Entry.FileName.Replace(currentReplaceName, newestReplaceName);
+                if (string.IsNullOrWhiteSpace(newFileName) || Path.GetFileName(newFileName) != newFileName ||
+                    newFileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+                    throw new IOException("更新后的资源文件名无效：" + newFileName);
+                var realAddress = Path.Combine(Path.GetDirectoryName(Entry.path)!, newFileName);
+                if (replacements.Any(replacement => string.Equals(replacement.Updated, realAddress,
+                        StringComparison.OrdinalIgnoreCase)))
+                    throw new IOException("多个资源更新后的文件名相同：" + newFileName);
+                var tempAddress = Path.Combine(tempRoot, replacements.Count.ToString(), newFileName);
                 fileList.Add(file.ToNetFile(tempAddress, ModComp.DownloadReason.Update));
                 fileCopyList[tempAddress] = realAddress;
+                replacements.Add((Entry.path, tempAddress, realAddress));
             }
+
+            if (replacements.Count == 0) return;
 
             // 构造加载器
             var installLoaders = new List<ModLoader.LoaderBase>();
             var finishedFileNames = new List<string>();
+            var failedFileNames = new List<string>();
             installLoaders.Add(new LoaderDownload(Lang.Text("Instance.Resource.Update.Task.DownloadFiles"), fileList)
                 { ProgressWeight = modList.Count() * 1.5d }); // 每个 Mod 需要 1.5s
             installLoaders.Add(new ModLoader.LoaderTask<int, int>(
                 Lang.Text("Instance.Resource.Update.Task.ReplaceFiles"), _ =>
             {
-                try
+                var result = recycleBin.ReplaceMany(replacements);
+                finishedFileNames.AddRange(result.UpdatedPaths.Select(ModBase.GetFileNameFromPath));
+                foreach (var failure in result.Failures)
                 {
-                    foreach (var Entry in modList)
-                        if (File.Exists(Entry.path))
-                            Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.path, UIOption.AllDialogs,
-                                RecycleOption.SendToRecycleBin);
-                        else
-                            ModBase.Log($"[CompUpdate] 未找到更新前的资源文件，跳过对它的删除：{Entry.path}", ModBase.LogLevel.Debug);
-
-                    foreach (var Entry in fileCopyList)
-                    {
-                        if (File.Exists(Entry.Value))
-                        {
-                            Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.Value, UIOption.AllDialogs,
-                                RecycleOption.SendToRecycleBin);
-                            ModBase.Log($"[Mod] 更新后的资源文件已存在，将会把它放入回收站：{Entry.Value}", ModBase.LogLevel.Debug);
-                        }
-
-                        if (Directory.Exists(ModBase.GetPathFromFullPath(Entry.Value)))
-                        {
-                            File.Move(Entry.Key, Entry.Value);
-                            finishedFileNames.Add(ModBase.GetFileNameFromPath(Entry.Value));
-                        }
-                        else
-                        {
-                            ModBase.Log($"[Mod] 更新后的目标文件夹已被删除：{Entry.Value}", ModBase.LogLevel.Debug);
-                        }
-                    }
-                }
-                catch (OperationCanceledException ex)
-                {
-                    ModBase.Log(ex, "替换旧版资源文件时被主动取消");
+                    failedFileNames.Add(ModBase.GetFileNameFromPath(failure.Key));
+                    ModBase.Log(failure.Value, "资源更新替换失败：" + failure.Key);
                 }
             }));
             // 结束处理
@@ -2302,26 +2353,13 @@ public partial class PageInstanceCompResource : IRefreshable
                 {
                     case ModBase.LoadState.Finished:
                     {
-                        switch (finishedFileNames.Count)
-                        {
-                            case 0: // 一般是由于 Mod 文件被占用，然后玩家主动取消
-                            {
-                                ModBase.Log("[CompUpdate] 没有资源被成功更新");
-                                break;
-                            }
-                            case 1:
-                            {
-                                HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessSingle", finishedFileNames.Single()), HintType.Success);
-                                break;
-                            }
-
-                            default:
-                            {
-                                HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessMultiple", finishedFileNames.Count), HintType.Success);
-                                break;
-                            }
-                        }
-
+                        if (failedFileNames.Count > 0)
+                            HintService.Hint(Lang.Text("Instance.Resource.Update.BatchResult", finishedFileNames.Count,
+                                failedFileNames.Count, string.Join(", ", failedFileNames)), HintType.Error);
+                        else if (finishedFileNames.Count == 1)
+                            HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessSingle", finishedFileNames.Single()), HintType.Success);
+                        else if (finishedFileNames.Count > 1)
+                            HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessMultiple", finishedFileNames.Count), HintType.Success);
                         break;
                     }
                     case ModBase.LoadState.Failed:
@@ -2351,6 +2389,7 @@ public partial class PageInstanceCompResource : IRefreshable
                         foreach (var TempFile in fileCopyList.Keys)
                             if (File.Exists(TempFile))
                                 File.Delete(TempFile);
+                        if (Directory.Exists(tempRoot)) Directory.Delete(tempRoot, true);
                     }
                     catch (Exception ex)
                     {

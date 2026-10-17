@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using fNbt;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Hash;
@@ -2401,7 +2402,10 @@ public static class ModLocalComp
             });
 
             // 等待 Mod 更新完成
-            if (PageInstanceCompResource.updatingVersions.Contains(loader.input.compPath))
+            var updatingPaths = loader.input.compType == CompType.DataPack
+                ? PageInstanceSavesDatapack.updatingVersions
+                : PageInstanceCompResource.updatingVersions;
+            if (updatingPaths.Contains(loader.input.compPath))
             {
                 ModBase.Log("[Mod] 等待资源更新完成后才能继续加载资源列表：" + loader.input.compPath);
                 try
@@ -2411,7 +2415,7 @@ public static class ModLocalComp
                         if (loader.input.frm is not null)
                             loader.input.frm.Load.Text = Lang.Text("Instance.Resource.Update.WaitingForUpdate");
                     });
-                    while (PageInstanceCompResource.updatingVersions.Contains(loader.input.compPath))
+                    while (updatingPaths.Contains(loader.input.compPath))
                     {
                         if (loader.IsAborted)
                             return;
@@ -2427,7 +2431,17 @@ public static class ModLocalComp
                     });
                 }
 
-                loader.input.frm.LoaderRun(LoaderFolderRunType.UpdateOnly);
+                LoaderFolderRun(loader, loader.input.compPath, LoaderFolderRunType.UpdateOnly);
+            }
+
+            // 在后台枚举前恢复中断的更新，避免将缺失或暂存状态显示为资源列表。
+            try
+            {
+                new ResourceUpdateRecycleBin(loader.input.gameVersion.PathIndie).RecoverPendingOperations();
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "恢复中断的资源更新失败，已保留文件和恢复日志", ModBase.LogLevel.Hint);
             }
 
             // 获取 Mod 文件夹下的可用文件列表

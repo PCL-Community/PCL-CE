@@ -3655,6 +3655,19 @@ public static class ModDownloadLib
         {
             case ModBase.LoadState.Finished:
             {
+                // 也覆盖原版直接下载和直接导入实例的安装入口。
+                if (combo.input is string installedFolder && File.Exists(Path.Combine(installedFolder,
+                        Path.GetFileName(Path.TrimEndingDirectorySeparator(installedFolder)) + ".json")))
+                {
+                    try
+                    {
+                        new ResourceUpdateRecycleBin(new McInstance(installedFolder).PathIndie).InitializeFolders();
+                    }
+                    catch (Exception ex)
+                    {
+                        ModBase.Log(ex, "创建实例资源回收站失败");
+                    }
+                }
                 if (Config.Download.AutoSelectInstance)
                 {
                     var versionName = loader.name;
@@ -4078,6 +4091,8 @@ public static class ModDownloadLib
             var resourcepacksFolder = Path.Combine(new McInstance(instanceFolder).PathIndie, "resourcepacks");
             Directory.CreateDirectory(resourcepacksFolder);
             ModBase.Log("[Download] 自动创建资源包文件夹：" + resourcepacksFolder);
+            // 回收站与实际资源目录使用相同的版本隔离路径。
+            new ResourceUpdateRecycleBin(new McInstance(instanceFolder).PathIndie).InitializeFolders();
         })
         {
             ProgressWeight = 2d,
