@@ -3636,4 +3636,6 @@
     <sys:String x:Key="Watcher.WindowLoaded">Minecraft window loaded: {0} ({1})</sys:String>
     <sys:String x:Key="Watcher.WindowMaximized">Minecraft window maximized: {0}</sys:String>
 
+    <sys:String x:Key="Region.Feature.Restricted">Minecraft downloads, repairs, and modpack installation are unavailable in your country or region.</sys:String>
+    <sys:String x:Key="Region.Feature.Unknown">Could not determine region info. Minecraft downloads, repairs, and modpack installation are temporarily unavailable.</sys:String>
 </ResourceDictionary>

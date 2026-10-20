@@ -68,6 +68,7 @@ public static class ModDownloadLib
     public static ModLoader.LoaderCombo<string> McDownloadClient(NetPreDownloadBehaviour behaviour, string id,
         string jsonUrl = null)
     {
+        if (!RestrictedFeaturePolicy.Check("minecraft-client-download")) return null;
         try
         {
             var versionFolder = Path.Combine(ModFolder.mcFolderSelected, "versions", id);
@@ -134,6 +135,7 @@ public static class ModDownloadLib
     /// <param name="jsonUrl">Json 文件的 Mojang 官方地址。</param>
     public static void McDownloadClientCore(string id, string jsonUrl, NetPreDownloadBehaviour behaviour)
     {
+        if (!RestrictedFeaturePolicy.Check("minecraft-client-save")) return;
         try
         {
             var versionFolder = SystemDialogs.SelectFolder();
@@ -3735,6 +3737,7 @@ public static class ModDownloadLib
     /// </summary>
     public static bool McInstall(McInstallRequest request, string type = mcInstallDefaultType)
     {
+        if (!RestrictedFeaturePolicy.Check("minecraft-install")) return false;
         try
         {
             var subLoaders = McInstallLoader(request, ignoreDump: type != mcInstallDefaultType);
@@ -3791,6 +3794,7 @@ public static class ModDownloadLib
     public static List<ModLoader.LoaderBase> McInstallLoader(McInstallRequest request, bool dontFixLibraries = false,
         bool ignoreDump = false)
     {
+        RestrictedFeaturePolicy.ThrowIfRestricted("minecraft-install");
         // 获取缓存目录（安装 Mod 加载器的文件夹不能包含空格）
         var tempMcFolder = ModMain.RequestTaskTempFolder(request.optiFineEntry is not null ||
                                                          request.forgeEntry is not null ||
