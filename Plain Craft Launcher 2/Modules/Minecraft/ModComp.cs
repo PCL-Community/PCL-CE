@@ -3448,7 +3448,8 @@ public static class ModComp
                 .Replace("*", "＊").Replace("?", "？").Replace("\"", "").Replace("： ", "：");
             // 格式 3 会把中文名追加在文件名之后，需先将扩展名剥离再放回末尾，
             // 否则会把 .jar 等扩展名夹到文件名中间（详见 Issue #3611）
-            var extension = Path.GetExtension(file.FileName);
+            // FileName 可能为 null（如翻译项目缺少原始文件名），此时按无扩展名处理，避免 NRE
+            var extension = Path.GetExtension(file.FileName) ?? "";
             var nameWithoutExtension = extension.Length > 0
                 ? file.FileName[..^extension.Length]
                 : file.FileName;
