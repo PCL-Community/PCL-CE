@@ -1151,7 +1151,7 @@ public static class ModMain
 
         // 使用备用路径
         resultFolder =
-            Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL", "TaskTemp", $"{ModBase.GetUuid()}-{RandomUtils.NextInt(0, 1000000)}");
+            Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL", "TaskTemp", $"{ModBase.GetUuid()}-{RandomUtils.NextInt(0, 1000000)}") + @"\";
         Directory.CreateDirectory(resultFolder);
         ModBase.CheckPermission(resultFolder);
         return resultFolder;
