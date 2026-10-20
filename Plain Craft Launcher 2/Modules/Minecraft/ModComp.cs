@@ -3446,12 +3446,18 @@ public static class ModComp
             var chineseName = proj.TranslatedName.BeforeFirst(" (").BeforeFirst(" - ").Replace(@"\", "＼")
                 .Replace("/", "／").Replace("|", "｜").Replace(":", "：").Replace("<", "＜").Replace(">", "＞")
                 .Replace("*", "＊").Replace("?", "？").Replace("\"", "").Replace("： ", "：");
+            // 格式 3 会把中文名追加在文件名之后，需先将扩展名剥离再放回末尾，
+            // 否则会把 .jar 等扩展名夹到文件名中间（详见 Issue #3611）
+            var extension = Path.GetExtension(file.FileName);
+            var nameWithoutExtension = extension.Length > 0
+                ? file.FileName[..^extension.Length]
+                : file.FileName;
             fileName = Config.Download.Comp.NameFormatV2 switch
             {
                 0 => $"【{chineseName}】{file.FileName}",
                 1 => $"[{chineseName}] {file.FileName}",
                 2 => $"{chineseName}-{file.FileName}",
-                3 => $"{file.FileName}-{chineseName}",
+                3 => $"{nameWithoutExtension}-{chineseName}{extension}",
                 _ => file.FileName
             };
         }
