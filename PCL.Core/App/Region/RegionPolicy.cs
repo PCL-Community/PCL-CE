@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.Win32;
 
 namespace PCL.Core.App.Region;
 
@@ -21,7 +22,9 @@ public sealed record RegionSignals(
     string? UserLocaleName,
     bool UserLocaleAvailable,
     string? TimeZoneId,
-    bool TimeZoneAvailable);
+    bool TimeZoneAvailable,
+    int? DeviceRegionGeoId = null,
+    bool DeviceRegionAvailable = false);
 
 public sealed record RegionAssessment(RegionClassification Classification, string Reason)
 {
@@ -30,6 +33,13 @@ public sealed record RegionAssessment(RegionClassification Classification, strin
 
 public static partial class RegionPolicy
 {
+    private const int MainlandChinaGeoId = 45;
+    private const string DeviceRegionRegistryPath =
+        @"SOFTWARE\Microsoft\Windows\CurrentVersion\Control Panel\DeviceRegion";
+    private const string DeviceRegionValueName = "DeviceRegion";
+    private static readonly RegistryView[] DeviceRegionRegistryViews =
+        [RegistryView.Registry64, RegistryView.Registry32];
+
     private static readonly HashSet<string> ChinaTimeZones = new(StringComparer.OrdinalIgnoreCase)
     {
         "China Standard Time",
@@ -43,6 +53,10 @@ public static partial class RegionPolicy
 
         if (signals.GeoNameAvailable && IsChinaGeoName(signals.GeoName))
             return new(RegionClassification.Mainland, "geo-cn");
+
+        // 设备安装（OOBE）时选择的区域，独立于之后可修改的用户区域设置
+        if (signals.DeviceRegionAvailable && IsChinaDeviceRegion(signals.DeviceRegionGeoId))
+            return new(RegionClassification.Mainland, "device-region-cn");
 
         var chinaTimeZone = signals.TimeZoneAvailable &&
                             signals.TimeZoneId is not null &&
@@ -76,6 +90,7 @@ public static partial class RegionPolicy
         var geoName = TryReadGeoName(out var geoAvailable);
         var languages = TryReadPreferredUiLanguages(out var languagesAvailable);
         var locale = TryReadUserLocale(out var localeAvailable);
+        var deviceRegion = TryReadDeviceRegion(out var deviceRegionAvailable);
         string? timeZone = null;
         var timeZoneAvailable = false;
         try
@@ -88,11 +103,15 @@ public static partial class RegionPolicy
         }
 
         return new RegionSignals(geoName, geoAvailable, languages, languagesAvailable,
-            locale, localeAvailable, timeZone, timeZoneAvailable);
+            locale, localeAvailable, timeZone, timeZoneAvailable,
+            deviceRegion, deviceRegionAvailable);
     }
 
     private static bool IsChinaGeoName(string? name) =>
         string.Equals(name, "CN", StringComparison.OrdinalIgnoreCase) || name == "156";
+
+    // Windows GeoID 与 ISO 3166 数字码不同，45 才是中国大陆
+    private static bool IsChinaDeviceRegion(int? geoId) => geoId == MainlandChinaGeoId;
 
     private static bool IsValidCountryCode(string? name)
     {
@@ -230,6 +249,29 @@ public static partial class RegionPolicy
         {
             return null;
         }
+    }
+
+    private static int? TryReadDeviceRegion(out bool available)
+    {
+        available = false;
+        foreach (var view in DeviceRegionRegistryViews)
+        {
+            try
+            {
+                using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, view);
+                using var key = baseKey.OpenSubKey(DeviceRegionRegistryPath);
+                if (key?.GetValue(DeviceRegionValueName) is not { } rawValue) continue;
+                var geoId = Convert.ToInt32(rawValue, CultureInfo.InvariantCulture);
+                available = true;
+                return geoId;
+            }
+            catch
+            {
+                // 注册表视图不可访问或值格式异常时，继续尝试下一个视图
+            }
+        }
+
+        return null;
     }
 
     [LibraryImport("kernel32.dll", EntryPoint = "GetUserDefaultGeoName")]
