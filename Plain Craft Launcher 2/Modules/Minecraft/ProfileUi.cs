@@ -179,12 +179,17 @@ public static class ProfileUi
         return uuid;
     }
 
+    /// <summary>
+    ///     判断新建档案时是否可以选择微软验证以外的验证方式。<br/>
+    ///     未受限制的区域（如中国大陆）不应再额外要求“已存在档案”，否则全新用户新建档案时只会看到“正版验证”一项，
+    ///     与添加账户页始终展示三种验证方式的行为不一致。
+    /// </summary>
     public static bool CanCreateOtherProfile()
     {
 #if DEBUG || DEBUGCI
         return true;
 #else
-        return ProfileService.HasMicrosoftProfile || (Lang.IsFeaturesUnrestricted && ProfileService.Profiles.Count > 0) || NetworkHelper.IsNetworkAvailable() is false;
+        return ProfileService.HasMicrosoftProfile || Lang.IsFeaturesUnrestricted || NetworkHelper.IsNetworkAvailable() is false;
 #endif
     }
 
