@@ -22,8 +22,6 @@
                    RelativeSetup="HintProfileSelect" />
     <local:MyHint x:Name="HintCreate" Margin="0,10,0,0" Theme="Blue" Text="{DynamicResource Launch.Account.Profile.CreateAndSelectHint}" Grid.Row="0"
                    Visibility="Collapsed" />
-    <local:MyHint x:Name="HintMicrosoft" Margin="0,10,0,0" Theme="Yellow" Text="{DynamicResource Launch.Account.Profile.RequireMicrosoftHint}" Grid.Row="1"
-                   Visibility="Collapsed" />
 
     <local:MyScrollViewer Grid.Row="3" MaxHeight="300" Margin="10,0,10,0">
         <!-- 世界需要 MVVM -->
