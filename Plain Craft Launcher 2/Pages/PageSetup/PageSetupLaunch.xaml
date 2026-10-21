@@ -180,6 +180,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <local:MyRadioBox Text="{DynamicResource Setup.Launch.Memory.Auto}" Width="110" Checked="True" x:Name="RadioRamType0"
                                           Tag="LaunchRamType/0" Margin="0,0,20,9" Check="RadioBoxChange"
@@ -196,6 +197,11 @@
                         <local:MySlider Grid.Row="3" Grid.Column="1" IsEnabled="False" x:Name="SliderRamInitialCustom"
                                         Tag="LaunchRamCustomInitial" MaxValue="49" Value="0" Change="SliderChange"
                                         ToolTip="{DynamicResource Setup.Launch.Memory.Initial.ToolTip}" />
+                        <local:MyCheckBox Grid.Row="4" Grid.ColumnSpan="2" Height="22" Margin="0,9,0,0"
+                                          x:Name="CheckArgumentRam" Tag="LaunchArgumentRam"
+                                          Text="{DynamicResource Setup.Launch.Memory.OptimizeBeforeLaunch}"
+                                          ToolTip="{DynamicResource Setup.Launch.Memory.OptimizeBeforeLaunch.ToolTip}"
+                                          Change="CheckBoxChange" PreviewChange="CheckArgumentRam_PreviewChange" />
                     </Grid>
                     <Grid x:Name="PanRamDisplay" Margin="0,11,2,0" SnapsToDevicePixels="True">
                         <Grid.ColumnDefinitions>

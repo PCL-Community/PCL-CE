@@ -35,6 +35,7 @@ public partial class PageInstanceSetup
         RadioRamType1.Check += RadioBoxChange;
         SliderRamCustom.Change += SliderChange;
         SliderRamInitialCustom.Change += SliderChange;
+        ComboRamOptimize.SelectionChanged += ComboRamOptimize_SelectionChanged;
 
         ComboServerLoginRequire.SelectionChanged += ComboServerLogin_Changed;
         TextServerAuthServer.TextChanged += TextBoxChange;
@@ -110,6 +111,7 @@ public partial class PageInstanceSetup
             SliderRamCustom.Value = Config.Instance.CustomMemorySize[PageInstanceLeft.McInstance.PathInstance];
             SliderRamInitialCustom.Value = Config.Instance.CustomInitialMemorySize[PageInstanceLeft.McInstance.PathInstance];
             RamType(ramType);
+            ComboRamOptimize.SelectedIndex = Config.Instance.MemoryOptimizeSolution[PageInstanceLeft.McInstance.PathInstance];
 
             // 服务器
             TextServerEnter.Text = Config.Instance.ServerToEnter[PageInstanceLeft.McInstance.PathInstance];
@@ -227,6 +229,11 @@ public partial class PageInstanceSetup
             return;
 
         SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+    }
+
+    private void ComboRamOptimize_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        ComboChange((MyComboBox)sender, e);
     }
 
     private void CheckBoxChange(object sender, bool user)

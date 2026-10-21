@@ -54,6 +54,7 @@ public partial class Application
                     {
                         Environment.Exit((int)ModBase.ProcessReturnValues.Fail);
                     }
+                // 注意：--memory 静默内存优化在 Program.Main 中处理，以避免被单例锁拦截
 
             // 初始化文件结构
             Directory.CreateDirectory(ModBase.exePath + @"PCL\Pictures");

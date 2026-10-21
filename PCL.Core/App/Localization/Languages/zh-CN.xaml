@@ -2335,6 +2335,7 @@
     <sys:String x:Key="Minecraft.Launch.Stage.GetArguments">获取启动参数</sys:String>
     <sys:String x:Key="Minecraft.Launch.Stage.GetJava">获取 Java</sys:String>
     <sys:String x:Key="Minecraft.Launch.Stage.Login">登录</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.MemoryOptimize">内存优化</sys:String>
     <sys:String x:Key="Minecraft.Launch.Stage.PreLaunch">预启动处理</sys:String>
     <sys:String x:Key="Minecraft.Launch.Stage.Root">Minecraft 启动</sys:String>
     <sys:String x:Key="Minecraft.Launch.Stage.StartProcess">启动进程</sys:String>
@@ -2829,6 +2830,13 @@
     <sys:String x:Key="Setup.Launch.Memory.GameAllocation">游戏分配</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Max">最大内存（-Xmx）</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Max.ToolTip">游戏可使用的最大堆内存大小</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.OptimizeBeforeLaunch">启动游戏前进行内存优化</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.OptimizeBeforeLaunch.ToolTip">内存优化能将当前物理内存占用降低约 1/3，不仅限于 MC！&#xA;如果使用机械硬盘，这还可能会导致一小段时间的严重卡顿。&#xA;使用 --memory 参数启动 PCL CE 可以静默执行内存优化。</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.OptimizeBeforeLaunch.Warning">内存优化会显著延长启动耗时，建议仅在内存不足时开启。&#xA;如果你在使用机械硬盘，这还可能导致一小段时间的严重卡顿。</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.OptimizeBeforeLaunch.WarningAdmin">每次进行内存优化，PCL CE 都需要申请管理员权限。&#xA;若想自动授予权限，可以右键 PCL CE，打开 属性 → 兼容性 → 以管理员身份运行此程序。</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.OptimizeBeforeLaunch.WarningTitle">提醒</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.OptimizeBeforeLaunch.Enable">开启</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.OptimizeBeforeLaunch.Disable">关闭</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Initial">初始内存（-Xms）</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Initial.ToolTip">游戏启动时预先分配的堆内存大小，可以低于最大堆（-Xmx）。设为 0 表示不主动设置，由 JVM 自行决定。仅在手动配置内存分配时生效，启用“锁定内存分配”时不生效。</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.SuffixBoth">初始 {0} GiB，可用 {1} GiB</sys:String>
@@ -3475,6 +3483,16 @@
     <sys:String x:Key="Tools.Test.Error.OperationFailed">测试工具操作失败。请查看错误详情。</sys:String>
     <sys:String x:Key="Tools.Test.LaunchCount.Message">PCL CE 已经为你启动了 {0} 次游戏了。</sys:String>
     <sys:String x:Key="Tools.Test.LaunchCount.Title">查看启动计数</sys:String>
+
+    <!-- Tools.Test.Memory -->
+
+    <sys:String x:Key="Tools.Test.Memory.AlreadyOptimal">内存优化完成，已经优化到了最佳状态，目前剩余内存 {0}！</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.Completed">内存优化完成，可用内存增加了 {0}，目前剩余内存 {1}！</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.Optimizing">正在进行内存优化……</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.Running">内存优化尚未结束，请稍等！</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.Title">内存优化</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.ToolTip">尝试释放系统缓存内存。&#xA;也可用 --memory 参数启动 PCL CE 来静默执行。</sys:String>
+
     <sys:String x:Key="Tools.Test.ServerQuery.Title">瞅眼服务器</sys:String>
     <sys:String x:Key="Tools.Test.Title">百宝箱</sys:String>
 

@@ -365,6 +365,22 @@ public static class ModLaunch
                 new ModLoader.LoaderTask<int, int>(Lang.Text("Minecraft.Launch.Stage.End"), _ => McLaunchEnd()) { ProgressWeight = 1d }
             }; // .ProgressWeight = 15, .Block = False
 
+            // 启动前内存优化（对应原版 PCL 的启动前自动内存优化）
+            var ramOptimizeSolution = Config.Instance.MemoryOptimizeSolution[ModInstanceList.McMcInstanceSelected.PathInstance];
+            var enableMemoryOptimize = ramOptimizeSolution switch
+            {
+                1 => true, // 开启
+                2 => false, // 关闭
+                _ => Config.Launch.MemoryOptimizeBeforeLaunch // 跟随全局设置
+            };
+            if (enableMemoryOptimize)
+            {
+                // 解除补全文件的阻塞，使内存优化与其并行执行
+                ((ModLoader.LoaderCombo<string>)loaders[2]).block = false;
+                loaders.Insert(3, new ModLoader.LoaderTask<int, int>(
+                    Lang.Text("Minecraft.Launch.Stage.MemoryOptimize"), McLaunchMemoryOptimize) { ProgressWeight = 30d });
+            }
+
             var launchLoader = new ModLoader.LoaderCombo<object>(Lang.Text("Minecraft.Launch.Stage.Root"), loaders) { show = false };
             if (mcLoginLoader.State == ModBase.LoadState.Finished)
                 mcLoginLoader.State = ModBase.LoadState.Waiting; // 要求重启登录主加载器，它会自行决定是否启动副加载器
@@ -452,6 +468,28 @@ public static class ModLaunch
                     ? Lang.Text("Minecraft.Launch.Error.LaunchFailed")
                     : Lang.Text("Minecraft.Launch.Error.ExportScriptFailed"));
             throw;
+        }
+    }
+
+    /// <summary>
+    /// 启动前内存优化：在后台线程执行内存优化，并按加载器进度平滑推进。
+    /// </summary>
+    private static void McLaunchMemoryOptimize(ModLoader.LoaderTask<int, int> loader)
+    {
+        McLaunchLog("内存优化开始");
+        var finished = false;
+        ModBase.RunInNewThread(() =>
+        {
+            PageToolsTest.MemoryOptimize(false);
+            finished = true;
+        }, "Launch Memory Optimize");
+        while (!finished && loader.State != ModBase.LoadState.Aborted)
+        {
+            if (loader.Progress < 0.7)
+                loader.Progress += 0.007; // 10s
+            else
+                loader.Progress += (0.95 - loader.Progress) * 0.02; // 最快 += 0.005
+            Thread.Sleep(100);
         }
     }
 

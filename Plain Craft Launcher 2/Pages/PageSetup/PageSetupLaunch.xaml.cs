@@ -67,6 +67,7 @@ public partial class PageSetupLaunch
             ((MyRadioBox)FindName("RadioRamType" + Config.Launch.MemoryAllocationMode)).Checked = true;
             SliderRamCustom.Value = Config.Launch.CustomMemorySize;
             SliderRamInitialCustom.Value = Config.Launch.CustomInitialMemorySize;
+            CheckArgumentRam.Checked = Config.Launch.MemoryOptimizeBeforeLaunch;
             RamType(Config.Launch.MemoryAllocationMode);
 
             // 高级设置
@@ -183,6 +184,21 @@ public partial class PageSetupLaunch
         // 锁定内存状态变化时同步刷新初始内存滑块的可用状态
         if (ReferenceEquals(sender, CheckAdvanceLockMemory))
             RamType(Config.Launch.MemoryAllocationMode);
+    }
+
+    // 勾选“启动前内存优化”前的提醒（对应原版 PCL 行为）
+    private void CheckArgumentRam_PreviewChange(object sender, ModBase.RouteEventArgs e)
+    {
+        var message = Lang.Text("Setup.Launch.Memory.OptimizeBeforeLaunch.Warning");
+        // 非管理员运行时需要额外申请管理员权限，对应原版 PCL 的提醒
+        if (!ProcessInterop.IsAdmin())
+            message += "\r\n\r\n" + Lang.Text("Setup.Launch.Memory.OptimizeBeforeLaunch.WarningAdmin");
+        if (ModMain.MyMsgBox(
+                message,
+                Lang.Text("Setup.Launch.Memory.OptimizeBeforeLaunch.WarningTitle"),
+                Lang.Text("Common.Action.Confirm"),
+                Lang.Text("Common.Action.Cancel")) == 2)
+            e.handled = true;
     }
 
     private static void SetByTag(string tag, object value)

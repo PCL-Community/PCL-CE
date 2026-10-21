@@ -426,6 +426,43 @@ public partial class PageToolsTest
         Jrrp();
     }
 
+    // 内存优化
+    private void BtnMemory_Click(object sender, MouseButtonEventArgs e)
+    {
+        MemoryOptimize(true);
+    }
+
+    /// <summary>
+    /// 执行内存优化，尝试释放系统缓存内存（对应原版 PCL 百宝箱中的“内存优化”）。
+    /// </summary>
+    /// <param name="showHint">是否向用户展示优化进度与结果提示</param>
+    public static void MemoryOptimize(bool showHint)
+    {
+        if (MemoryOptimizer.IsOptimizing)
+        {
+            if (showHint) HintService.Hint(Lang.Text("Tools.Test.Memory.Running"));
+            return;
+        }
+        ModBase.RunInNewThread(() =>
+        {
+            try
+            {
+                if (showHint) HintService.Hint(Lang.Text("Tools.Test.Memory.Optimizing"));
+                var value = MemoryOptimizer.Optimize();
+                var leftMemory = ModBase.GetString((long)KernelInterop.GetAvailablePhysicalMemoryBytes());
+                if (value > 0)
+                    HintService.Hint(Lang.Text("Tools.Test.Memory.Completed",
+                        ModBase.GetString((long)Math.Round(value * 0.8)), leftMemory), HintType.Success);
+                else
+                    HintService.Hint(Lang.Text("Tools.Test.Memory.AlreadyOptimal", leftMemory));
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "内存优化失败", ModBase.LogLevel.Hint);
+            }
+        }, "Memory Optimize");
+    }
+
     public static int GenerateDailySeed()
     {
         var datePart = DateTime.Today.ToString("yyyyMMdd", CultureInfo.InvariantCulture);

@@ -497,6 +497,11 @@ public static partial class Config
         [ConfigItem<bool>("LaunchAdvanceLockMemory", false, ConfigSource.Local)] public partial bool LockMemory { get; set; }
 
         /// <summary>
+        /// 启动游戏前进行内存优化，尝试释放系统缓存内存以降低物理内存占用。对应原版 PCL 百宝箱中的“内存优化”。
+        /// </summary>
+        [ConfigItem<bool>("LaunchArgumentRam", false, ConfigSource.Local)] public partial bool MemoryOptimizeBeforeLaunch { get; set; }
+
+        /// <summary>
         /// 优先 IP 协议栈。
         /// </summary>
         [ConfigItem<JvmPreferredIpStack>("LaunchPreferredIpStack", JvmPreferredIpStack.Default)] public partial JvmPreferredIpStack PreferredIpStack { get; set; }
@@ -631,6 +636,7 @@ public static partial class Config
         [ConfigItem<int>("VersionRamType", 2)] public partial ArgConfig<int> MemorySolution { get; }
         [ConfigItem<int>("VersionRamCustom", 15)] public partial ArgConfig<int> CustomMemorySize { get; }
         [ConfigItem<int>("VersionRamCustomInitial", 0)] public partial ArgConfig<int> CustomInitialMemorySize { get; }
+        [ConfigItem<int>("VersionRamOptimize", 0)] public partial ArgConfig<int> MemoryOptimizeSolution { get; }
         [ConfigItem<string>("VersionArgumentTitle", "")] public partial ArgConfig<string> Title { get; }
         [ConfigItem<bool>("VersionArgumentTitleEmpty", false)] public partial ArgConfig<bool> UseGlobalTitle { get; }
         [ConfigItem<string>("VersionArgumentInfo", "")] public partial ArgConfig<string> TypeInfo { get; }

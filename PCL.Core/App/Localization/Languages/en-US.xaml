@@ -2335,6 +2335,7 @@
     <sys:String x:Key="Minecraft.Launch.Stage.GetArguments">Get launch arguments</sys:String>
     <sys:String x:Key="Minecraft.Launch.Stage.GetJava">Get Java</sys:String>
     <sys:String x:Key="Minecraft.Launch.Stage.Login">Login</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Stage.MemoryOptimize">Memory optimization</sys:String>
     <sys:String x:Key="Minecraft.Launch.Stage.PreLaunch">Pre-launch processing</sys:String>
     <sys:String x:Key="Minecraft.Launch.Stage.Root">Minecraft launch</sys:String>
     <sys:String x:Key="Minecraft.Launch.Stage.StartProcess">Start process</sys:String>
@@ -2829,6 +2830,13 @@
     <sys:String x:Key="Setup.Launch.Memory.GameAllocation">Game allocation</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Max">Maximum memory (-Xmx)</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Max.ToolTip">The maximum heap memory the game can use</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.OptimizeBeforeLaunch">Optimize memory before launching the game</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.OptimizeBeforeLaunch.ToolTip">Memory optimization can reduce current physical memory usage by about 1/3, not limited to MC!&#xA;If you are using a mechanical hard drive, this may also cause severe lag for a short period.&#xA;Launch PCL CE with the --memory argument to run it silently.</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.OptimizeBeforeLaunch.Warning">Memory optimization significantly increases launch time. It is recommended to enable it only when memory is insufficient.&#xA;If you are using a mechanical hard drive, this may also cause severe lag for a short period.</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.OptimizeBeforeLaunch.WarningAdmin">Each memory optimization requires PCL CE to request administrator privileges.&#xA;To grant them automatically, right-click PCL CE and open Properties → Compatibility → Run this program as an administrator.</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.OptimizeBeforeLaunch.WarningTitle">Reminder</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.OptimizeBeforeLaunch.Enable">Enable</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.OptimizeBeforeLaunch.Disable">Disable</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Initial">Initial memory (-Xms)</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Initial.ToolTip">The heap memory pre-allocated when the game starts, which can be lower than the maximum heap (-Xmx). Set to 0 to let the JVM decide. Only takes effect when memory allocation is set to Custom, and has no effect when Lock memory allocation is enabled.</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.SuffixBoth">initial {0} GiB, available {1} GiB</sys:String>
@@ -3475,6 +3483,16 @@
     <sys:String x:Key="Tools.Test.Error.OperationFailed">A test utility operation failed. See the details below.</sys:String>
     <sys:String x:Key="Tools.Test.LaunchCount.Message">PCL CE has launched games for you {0} times.</sys:String>
     <sys:String x:Key="Tools.Test.LaunchCount.Title">View launch count</sys:String>
+
+    <!-- Tools.Test.Memory -->
+
+    <sys:String x:Key="Tools.Test.Memory.AlreadyOptimal">Memory optimization completed. Already in an optimal state, with {0} currently remaining!</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.Completed">Memory optimization completed. Available memory increased by {0}, with {1} currently remaining!</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.Optimizing">Optimizing memory...</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.Running">Memory optimization is still in progress, please wait!</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.Title">Memory optimization</sys:String>
+    <sys:String x:Key="Tools.Test.Memory.ToolTip">Try to release system cached memory.&#xA;Launch PCL CE with the --memory argument to run it silently.</sys:String>
+
     <sys:String x:Key="Tools.Test.ServerQuery.Title">Check server</sys:String>
     <sys:String x:Key="Tools.Test.Title">Utilities</sys:String>
 

@@ -1048,3 +1048,5 @@ Hatsune Miku's birthday is August 31st every year.
 Hatsune Miku's Japanese voice provider is Saki Fujita.
 
 Hatsune Miku's representative color is #39C5BB.
+
+Launch PCL CE with the --memory argument to silently perform memory optimization!
