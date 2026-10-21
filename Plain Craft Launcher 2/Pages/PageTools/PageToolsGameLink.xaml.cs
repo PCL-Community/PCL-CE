@@ -436,7 +436,8 @@ public partial class PageToolsGameLink
                     }
                     catch (Exception ex)
                     {
-                        LogWrapper.Error(ex, $"[Link] Failed to get announcement from server {serverNumber}");
+                        // 公告属于非关键信息，单个服务器获取失败会自动尝试下一个，不向用户弹出错误提示
+                        LogWrapper.Warn(ex, $"[Link] Failed to get announcement from server {serverNumber}");
                         if (!TryApplyCurrentAnnouncementRequest(requestId, () =>
                             {
                                 States.Link.AnnounceCacheConfig.Reset();
@@ -570,7 +571,8 @@ public partial class PageToolsGameLink
                     HintAnnounce.Theme = MyHint.Themes.Red;
                     HintAnnounce.Text = Lang.Text("Tools.GameLink.Error.ConnectFailed");
                 });
-                LogWrapper.Error(ex, "[Link] Failed to get lobby announcement");
+                // 界面已通过 HintAnnounce 展示失败原因，这里只记录警告，避免重复弹出错误提示
+                LogWrapper.Warn(ex, "[Link] Failed to get lobby announcement");
             }
         });
     }

@@ -21,11 +21,22 @@ public class HostConnectionHandler
 
     private readonly DnsQuery _dnsQuery = DnsQuery.Instance;
     private static readonly TimeSpan _CacheDuration = TimeSpan.FromMinutes(10); // 10 分钟缓存(RFC 建议值)
-    private const int WaitTasks = 2;
+    private static readonly TimeSpan _FailureDuration = TimeSpan.FromMinutes(2); // 连接失败地址的降权时长
+
+    /// <summary>
+    ///     单次连接最多尝试的候选地址数。
+    ///     仅在少数地址上并发尝试时，一旦它们都不可用（例如被污染的 DNS 结果、无法访问的 IPv6），
+    ///     整次连接就会失败，表现为“下载出错但重试后又能成功”。因此这里保留更多候选地址作为兜底。
+    /// </summary>
+    private const int MaxConnectAttempts = 6;
 
     // 缓存结构: (host, port) -> (IPAddress -> LastSuccessUtc)
     private readonly ConcurrentDictionary<(string host, int port), ConcurrentDictionary<IPAddress, DateTime>>
         _connectionCache = new();
+
+    // 失败结构: (host, port) -> (IPAddress -> LastFailureUtc)，用于把连不通的地址排到末尾
+    private readonly ConcurrentDictionary<(string host, int port), ConcurrentDictionary<IPAddress, DateTime>>
+        _failureCache = new();
 
     public async ValueTask<Stream> GetConnectionAsync(SocketsHttpConnectionContext context, CancellationToken cancellationToken)
     {
@@ -45,11 +56,11 @@ public class HostConnectionHandler
             throw new HttpRequestException($"DNS resolution failed for {host}");
         }
 
-        // 对待连接地址进行排序 (缓存成功+IPv6优先)
+        // 对待连接地址进行排序 (缓存成功优先 + 失败地址降权 + IPv6 优先)
         var sortedAddresses = _SortAddresses(host, port, addresses, now);
 
         // Happy Eyeballs 连接逻辑，优先 IPv6 稍后
-        var connectionTasks = new List<Task<NetworkStream>>(WaitTasks);
+        var connectionTasks = new List<Task<NetworkStream>>(MaxConnectAttempts);
         var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var connectCancellationToken = cancellationSource.Token;
 
@@ -60,7 +71,7 @@ public class HostConnectionHandler
                 var address = sortedAddresses[i];
                 var delayMs = i * (address.AddressFamily.Equals(AddressFamily.InterNetwork) ? 150 : 80); // 偏向使用 v6
 
-                connectionTasks.Add(_DelayedConnectAsync(address, port, delayMs, connectCancellationToken));
+                connectionTasks.Add(_DelayedConnectAsync(host, port, address, delayMs, connectCancellationToken));
             }
 
             // 等待首个成功连接
@@ -93,7 +104,9 @@ public class HostConnectionHandler
             cancellationSource.Cancel();
             _ = _CleanupUnusedConnectionsAsync(connectionTasks, null).ConfigureAwait(false);
 
-            LogWrapper.Error(ex, ModuleName, $"All connection attempts failed for {host}");
+            // 连接失败属于可重试的临时性网络问题，调用方（HTTP 重试 / 下载换源）通常能自行恢复，
+            // 因此只记录警告，避免每次瞬时失败都向用户弹出错误提示
+            LogWrapper.Warn(ex, ModuleName, $"All connection attempts failed for {host}");
             throw new HttpRequestException($"Connection failed for {host}", ex);
         }
         finally
@@ -106,9 +119,11 @@ public class HostConnectionHandler
     {
         var cacheKey = (host, port);
         var addressCache = _connectionCache.GetValueOrDefault(cacheKey);
+        var failureCache = _failureCache.GetValueOrDefault(cacheKey);
 
         var cachedAddresses = new List<IPAddress>();
         var uncachedAddresses = new List<IPAddress>();
+        var failedAddresses = new List<IPAddress>();
 
         foreach (var ip in addresses)
         {
@@ -117,11 +132,16 @@ public class HostConnectionHandler
                 now - successTime <= _CacheDuration)
             {
                 cachedAddresses.Add(ip);
+                continue;
             }
+
+            // 最近连不通的地址放到最后，仅在其余地址不足时才使用
+            if (failureCache is not null &&
+                failureCache.TryGetValue(ip, out var failureTime) &&
+                now - failureTime <= _FailureDuration)
+                failedAddresses.Add(ip);
             else
-            {
                 uncachedAddresses.Add(ip);
-            }
         }
 
         // 缓存地址: 按成功时间倒序 (最近成功的优先)
@@ -152,7 +172,8 @@ public class HostConnectionHandler
 
         return cachedAddresses
             .Concat(sortedUncached)
-            .Take(WaitTasks)
+            .Concat(failedAddresses)
+            .Take(MaxConnectAttempts)
             .ToArray();
     }
 
@@ -175,7 +196,26 @@ public class HostConnectionHandler
         addressCache[ip] = now;
     }
 
-    private static async Task<NetworkStream> _DelayedConnectAsync(IPAddress ip, int port, int delay, CancellationToken cancellationToken)
+    private void _UpdateFailureCache(string host, int port, IPAddress ip, DateTime now)
+    {
+        var cacheKey = (host, port);
+        var failureCache = _failureCache.GetOrAdd(cacheKey, static _ =>
+            new ConcurrentDictionary<IPAddress, DateTime>());
+
+        // 移除过期条目 (懒清理)
+        foreach (var entry in failureCache)
+        {
+            if (now - entry.Value > _FailureDuration)
+            {
+                failureCache.TryRemove(entry.Key, out _);
+            }
+        }
+
+        failureCache[ip] = now;
+    }
+
+    private async Task<NetworkStream> _DelayedConnectAsync(string host, int port, IPAddress ip, int delay,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -185,7 +225,23 @@ public class HostConnectionHandler
         {
             throw;
         }
-        return await _ConnectToAddressAsync(ip, port, cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            var stream = await _ConnectToAddressAsync(ip, port, cancellationToken).ConfigureAwait(false);
+            _UpdateConnectionCache(host, port, ip, DateTime.UtcNow);
+            return stream;
+        }
+        catch (OperationCanceledException)
+        {
+            // 已找到可用连接，其余连接被主动取消，不计入失败
+            throw;
+        }
+        catch
+        {
+            _UpdateFailureCache(host, port, ip, DateTime.UtcNow);
+            throw;
+        }
     }
 
     private static async Task<NetworkStream> _ConnectToAddressAsync(IPAddress ip, int port, CancellationToken cancellationToken)
@@ -204,6 +260,12 @@ public class HostConnectionHandler
         {
             socket.Dispose();
             throw new HttpRequestException($"Connection to {ip}:{port} failed", ex);
+        }
+        catch
+        {
+            // 连接被取消时同样需要释放套接字（候选地址更多后取消会更频繁）
+            socket.Dispose();
+            throw;
         }
     }
 
