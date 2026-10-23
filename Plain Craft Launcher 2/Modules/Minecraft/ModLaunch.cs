@@ -2702,9 +2702,9 @@ public static class ModLaunch
             if (ModMain.frmLogRight is null)
                 ModBase.RunInUiWait(() =>
                 {
-                    ModAnimation.AniControlEnabled += 1;
+                    ModAnimation.AniBeginControl();
                     ModMain.frmLogRight = new PageLogRight();
-                    ModAnimation.AniControlEnabled -= 1;
+                    ModAnimation.AniEndControl();
                 });
             ModMain.frmLogLeft.Add(watcher);
             McLaunchLog("已显示游戏实时日志");

@@ -100,7 +100,7 @@ public partial class Application
             // 计时
             ModBase.Log("[Start] 第一阶段加载用时：" + (TimeUtils.GetTimeTick() - ModBase.applicationStartTick) + " ms");
             ModBase.applicationStartTick = TimeUtils.GetTimeTick();
-            ModAnimation.AniControlEnabled += 1;
+            ModAnimation.AniBeginControl();
         }
         catch (Exception ex)
         {

@@ -318,7 +318,7 @@ public partial class MyRadioButton
     {
         try
         {
-            if (IsLoaded && ModAnimation.AniControlEnabled == 0 &&
+            if (IsLoaded && !ModAnimation.AniExitsAnyControl() &&
                 !false.Equals(e)) // 防止默认属性变更触发动画，若强制不执行动画，则 e 为 False
             {
                 switch (ColorType)

@@ -211,7 +211,7 @@ public class MyTextBox : TextBox
 
     private void ChangeValidateResult(bool isSuccessful, bool isLoaded)
     {
-        if (isLoaded && ModAnimation.AniControlEnabled == 0 && labWrong is not null)
+        if (isLoaded && !ModAnimation.AniExitsAnyControl() && labWrong is not null)
         {
             if (isSuccessful || !isTextChanged)
             {
@@ -351,7 +351,7 @@ public class MyTextBox : TextBox
             if (!HasBackground)
                 backColorName = "ColorBrushTransparent";
             // 触发颜色动画
-            if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
+            if (IsLoaded && !ModAnimation.AniExitsAnyControl()) // 防止默认属性变更触发动画
             {
                 // 有动画
                 ModAnimation.AniStart(
@@ -381,7 +381,7 @@ public class MyTextBox : TextBox
         var newColor = IsEnabled ? ThemeManager.colorGray1 : ThemeManager.colorGray4;
         if (((SolidColorBrush)Foreground).Color.R == newColor.r)
             return;
-        if (IsLoaded && ModAnimation.AniControlEnabled == 0 && !string.IsNullOrEmpty(Text))
+        if (IsLoaded && !ModAnimation.AniExitsAnyControl() && !string.IsNullOrEmpty(Text))
         {
             // 有动画
             ModAnimation.AniStart(

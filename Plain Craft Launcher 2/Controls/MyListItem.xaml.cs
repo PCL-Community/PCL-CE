@@ -61,7 +61,7 @@ public partial class MyListItem : IMyRadio
             return;
         stateLast = stateNew;
         // 触发颜色动画
-        if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
+        if (IsLoaded && !ModAnimation.AniExitsAnyControl()) // 防止默认属性变更触发动画
         {
             // 有动画
             var ani = new List<ModAnimation.AniData>();
@@ -874,7 +874,7 @@ public partial class MyListItem : IMyRadio
 
             var customHeight = 20d; // 修改左侧神秘动画条的高度
 
-            if (IsLoaded && ModAnimation.AniControlEnabled == 0 && anime) // 防止默认属性变更触发动画
+            if (IsLoaded && !ModAnimation.AniExitsAnyControl() && anime) // 防止默认属性变更触发动画
             {
                 var anim = new List<ModAnimation.AniData>();
                 if (Checked)
