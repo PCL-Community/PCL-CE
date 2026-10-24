@@ -210,6 +210,8 @@ public partial class FormMain
             ModAnimation.AaCode(() =>
             {
                 RenderTransform = null;
+                // 增量动画累加存在浮点误差，残留的微小旋转/位移会导致文字无法对齐像素而发虚
+                PanRoot.RenderTransform = null;
                 isWindowLoadFinished = true;
                 ModBase.Log(
                     $"[System] DPI：{ModBase.dpi}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{Basics.ExecutablePath}");
