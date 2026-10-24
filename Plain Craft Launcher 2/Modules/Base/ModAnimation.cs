@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.Utils;
 using PCL.Network;
 
@@ -16,6 +17,11 @@ public static partial class ModAnimation
     private static int aniCount;
     private static int aniFPSCounter;
     private static long aniFPSTimer;
+
+    /// <summary>
+    ///     当前动画帧率上限缓存，由配置变更事件更新。
+    /// </summary>
+    private static volatile int aniFpsLimit;
 
     /// <summary>
     ///     当前的动画 FPS。
@@ -32,8 +38,9 @@ public static partial class ModAnimation
         aniFPSTimer = aniLastTick;
         aniRunning = true; // 标记动画执行开始
 
-        var minFrameGap = 1000d / (Config.System.AnimationFpsLimit + 1) / 2;
-
+        aniFpsLimit = Config.System.AnimationFpsLimit;
+        Config.System.AnimationFpsLimitConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
+            _ => aniFpsLimit = Config.System.AnimationFpsLimit));
 
         ModBase.RunInNewThread(() =>
         {
@@ -42,6 +49,9 @@ public static partial class ModAnimation
                 ModBase.Log("[Animation] 动画线程开始");
                 while (true)
                 {
+                    // 除以 2 是对 Sleep 粒度与 UI 派发延迟的补偿，去掉会使实际帧率减半，请勿修正
+                    var minFrameGap = 1000d / (aniFpsLimit + 1) / 2;
+
                     // 两帧之间的间隔时间
                     var deltaTime =
                         (long)Math.Round(ModBase.MathClamp(TimeUtils.GetTimeTick() - aniLastTick, 0, 100000));

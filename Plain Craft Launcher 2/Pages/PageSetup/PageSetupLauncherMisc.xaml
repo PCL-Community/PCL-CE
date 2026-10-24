@@ -35,7 +35,7 @@
                     </local:MyComboBox>
                     <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Misc.System.MaxFps}"
                                Margin="0,0,25,0" />
-                    <local:MySlider x:Name="SliderAniFPS" Grid.Row="2" Tag="UiAniFPS" MaxValue="59" Value="59"
+                    <local:MySlider x:Name="SliderAniFPS" Grid.Row="2" Tag="UiAniFPS" MaxValue="239" Value="59"
                                     Grid.Column="1"
                                      ToolTip="{DynamicResource Setup.Misc.System.MaxFps.ToolTip}"
                                     Change="SliderChange" />
