@@ -58,6 +58,7 @@
     <sys:String x:Key="Common.Status.Cancelled">Canceled!</sys:String>
     <sys:String x:Key="Common.Status.Failure">Failure:</sys:String>
     <sys:String x:Key="Common.Status.Success">Success!</sys:String>
+    <sys:String x:Key="Common.Status.TaskSuccess">{0} completed successfully!</sys:String>
 
     <!-- Common.Action -->
 

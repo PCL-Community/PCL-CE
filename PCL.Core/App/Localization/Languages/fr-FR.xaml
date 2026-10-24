@@ -42,6 +42,7 @@ Si ces problèmes ne sont pas résolus, certaines fonctions risquent de ne pas f
     <sys:String x:Key="Common.Status.Cancelled">Annulé !</sys:String>
     <sys:String x:Key="Common.Status.Failure">Échec :</sys:String>
     <sys:String x:Key="Common.Status.Success">Succès !</sys:String>
+    <sys:String x:Key="Common.Status.TaskSuccess">L’opération « {0} » s’est terminée avec succès !</sys:String>
     <sys:String x:Key="Common.Action.Agree">Accepter</sys:String>
     <sys:String x:Key="Common.Action.Back">Retour</sys:String>
     <sys:String x:Key="Common.Action.Cancel">Annuler</sys:String>
