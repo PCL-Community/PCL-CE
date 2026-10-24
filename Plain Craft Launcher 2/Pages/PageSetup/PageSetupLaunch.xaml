@@ -181,7 +181,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <local:MyRadioBox Text="{DynamicResource Setup.Launch.Memory.Auto}" Width="110" Checked="True" x:Name="RadioRamType0"
+                        <local:MyRadioBox Text="{DynamicResource Setup.Launch.Memory.Auto}" Width="110" HorizontalAlignment="Left" Checked="True" x:Name="RadioRamType0"
                                           Tag="LaunchRamType/0" Margin="0,0,20,9" Check="RadioBoxChange"
                                           ToolTip="{DynamicResource Setup.Launch.Memory.Auto.ToolTip}" ToolTipService.Placement="Left"
                                           ToolTipService.HorizontalOffset="-10" ToolTipService.VerticalOffset="-10" />
