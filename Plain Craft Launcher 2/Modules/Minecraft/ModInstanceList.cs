@@ -318,6 +318,15 @@ public static class ModInstanceList
 
         foreach (var folder in new DirectoryInfo(path + "versions").GetDirectories())
         {
+            var instanceFolder = folder.FullName + @"\";
+            // 需在空文件夹判断之前：安装初期的文件夹可能只有子目录
+            if (ModModpack.IsInstanceInstalling(instanceFolder))
+            {
+                ModBase.Log("[Minecraft] 跳过正在安装中的整合包实例：" + instanceFolder);
+                ModBase.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", "");
+                continue;
+            }
+
             if (!folder.Exists || !folder.EnumerateFiles().Any())
             {
                 ModBase.Log("[Minecraft] 跳过空文件夹：" + folder.FullName);
@@ -331,7 +340,6 @@ public static class ModInstanceList
                 continue;
             }
 
-            var instanceFolder = folder.FullName + @"\";
             if (File.Exists(instanceFolder + ".pclignore"))
             {
                 if (_isFirstMcInstanceListLoad)

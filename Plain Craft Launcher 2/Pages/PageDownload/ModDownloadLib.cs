@@ -3706,6 +3706,7 @@ public static class ModDownloadLib
             McInstallFailedClearFolder(loader);
         }
 
+        ModModpack.UnmarkInstanceInstalling((string)combo.input);
         ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
             ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }

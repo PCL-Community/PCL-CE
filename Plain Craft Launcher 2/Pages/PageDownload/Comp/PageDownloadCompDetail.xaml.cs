@@ -85,14 +85,22 @@ public partial class PageDownloadCompDetail
             var loaders = new List<ModLoader.LoaderBase>();
             var target =
                 $@"{ModFolder.mcFolderSelected}versions\{instanceName}\原始整合包.{(_project.FromCurseForge ? "zip" : "mrpack")}";
+            // 捕获安装文件夹路径，解除标记时不能以当下的 mcFolderSelected 重拼
+            var instanceFolder = $@"{ModFolder.mcFolderSelected}versions\{instanceName}\";
             var logoFileAddress = MyImage.GetTempPath(_compItem.Logo);
             loaders.Add(new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadModpackFile"),
                     new List<DownloadFile> { file.ToNetFile(target, ModComp.DownloadReason.ModPack) })
                 { ProgressWeight = 10d, block = true });
             loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Download.Comp.Detail.PrepareModpackInstall"),
-                _ => ModModpack.ModpackInstall(target, instanceName,
-                    System.IO.File.Exists(logoFileAddress) ? logoFileAddress : null, file.ProjectId,
-                    true)) { ProgressWeight = 0.1d });
+                _ =>
+            {
+                ModModpack.ModpackInstall(target, instanceName,
+                    System.IO.File.Exists(logoFileAddress) ? logoFileAddress : null, file.ProjectId, true);
+                // 内层安装使用当下的游戏目录，切换过目录时释放旧目录的标记
+                if (instanceFolder != $@"{ModFolder.mcFolderSelected}versions\{instanceName}\")
+                    ModModpack.UnmarkInstanceInstalling(instanceFolder);
+            })
+            { ProgressWeight = 0.1d });
 
             // 启动
             var loader = new ModLoader.LoaderCombo<string>(loaderName, loaders)
@@ -119,9 +127,21 @@ public partial class PageDownloadCompDetail
                         }
                     }
 
-                    ModDownloadLib.McInstallFailedClearFolder(myLoader);
+                    if (myLoader.State is ModBase.LoadState.Failed or ModBase.LoadState.Aborted)
+                    {
+                        // 清理完成后再解除标记，防止期间的扫描误判
+                        ModDownloadLib.McInstallFailedClearFolder(myLoader);
+                        ModModpack.UnmarkInstanceInstalling(instanceFolder);
+                        ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+                            ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
+                    }
+                    else
+                    {
+                        ModDownloadLib.McInstallFailedClearFolder(myLoader);
+                    }
                 }
             };
+            ModModpack.MarkInstanceInstalling(instanceFolder);
             loader.Start(Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName));
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
