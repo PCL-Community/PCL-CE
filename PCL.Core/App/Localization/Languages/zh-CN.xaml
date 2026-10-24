@@ -1438,7 +1438,7 @@
     <sys:String x:Key="Instance.Setup.Advanced.Classpath.ToolTip">文本框中的内容将被作为 Classpath 添加到该实例的启动参数中的 Classpath 头部。&#xA;需要使用绝对路径。若有多个，请以半角 (英文) 分号分隔。</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.DisableFileVerification">关闭文件校验</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.DisableFileVerification.ToolTip">完全不更改 Assets；不校验 Libraries、第三方登录库与实例主 Jar 文件是否被修改。&#xA;如果你没有修改相关文件，请勿勾选此项。</sys:String>
-    <sys:String x:Key="Instance.Setup.Advanced.DisableModUpdate">禁止更新 Mod</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableModUpdate">禁止更新模组</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.GameArgs.ToolTip">文本框中的内容将会被直接拼合在启动参数的末尾。&#xA;例如，输入 --demo 则会以试玩模式启动游戏。&#xA;支持 Minecraft 实例 JSON 中的字符串替换标记，例如 ${library_directory}。&#xA;&#xA;若留空，则跟随全局设置的值。</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.IgnoreJavaCompatibility">忽略 Java 兼容性警告</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.IgnoreJavaCompatibility.ToolTip">如果手动选择了与当前实例不兼容的 Java，则自动跳过兼容性警告弹窗，强制使用手动选择的 Java。</sys:String>
