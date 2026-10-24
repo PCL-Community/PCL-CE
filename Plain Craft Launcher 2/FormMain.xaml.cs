@@ -7,8 +7,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using System.Windows.Media.Effects;
 using PCL.Core.App;
+using PCL.Core.Minecraft.Profile;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
@@ -201,8 +201,8 @@ public partial class FormMain
         hwndSource.AddHook(WndProc);
         ModAnimation.AniStart(new[]
         {
-            ModAnimation.AaCode(() => ModAnimation.AniControlEnabled -= 1, 50),
-            ModAnimation.AaOpacity(this, Config.Preference.Theme.WindowOpacity / 1000d + 0.4d, 250, 100),
+            ModAnimation.AaCode(() => ModAnimation.AniEndControl(), 50),
+            ModAnimation.AaOpacity(this, Config.Preference.Theme.WindowOpacity / 1000d + 0.4d - Opacity, 250, 100),
             ModAnimation.AaDouble(i => TransformPos.Y += (double)i, -TransformPos.Y, 600,
                 100, new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
             ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
@@ -518,8 +518,6 @@ public partial class FormMain
 
         // 关闭联机大厅
         // Await LobbyController.CloseAsync().ConfigureAwait(False)
-        // 存储上次使用的档案编号
-        ModProfile.SaveProfile();
         // 关闭
         ModBase.RunInUiWait(() =>
         {
@@ -579,7 +577,7 @@ public partial class FormMain
         // 关闭联机大厅
         // Await LobbyController.CloseAsync().ConfigureAwait(False)
         ModBase.isProgramEnded = true;
-        ModAnimation.AniControlEnabled += 1;
+        ModAnimation.AniBeginControl();
         if (UpdateManager.isUpdateWaitingRestart && !isUpdating)
             UpdateManager.UpdateRestart(false, false);
         if (returnCode == ModBase.ProcessReturnValues.Exception)
@@ -938,7 +936,6 @@ public partial class FormMain
                         if (ModMain.MyMsgBox(Lang.Text("Main.FileDrag.CreateAuthlibProfile", authlibServer), Lang.Text("Main.FileDrag.CreateAuthlibProfileTitle"),
                                 Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 2)
                             return;
-                        ModProfile.selectedProfile = null;
                         ModBase.RunInUi(() =>
                         {
                             PageLoginAuth.draggedAuthServer = authlibServer;
@@ -1403,6 +1400,11 @@ public partial class FormMain
         CompDetail = 8,
 
         /// <summary>
+        ///     帮助详情。这是一个副页面。
+        /// </summary>
+        HelpDetail = 9,
+
+        /// <summary>
         ///     游戏实时日志。这是一个副页面。
         /// </summary>
         GameLog = 10,
@@ -1465,6 +1467,7 @@ public partial class FormMain
         VersionSchematic = 9,
         VersionInstall = 10,
         VersionServer = 11,
+        VersionModJarInJar = 12,
         VersionSavesInfo = 0,
         VersionSavesDatapack = 1
     }
@@ -1495,6 +1498,10 @@ public partial class FormMain
             case PageType.CompDetail:
             {
                 return Lang.Text("Main.Title.ResourceDownload", stack.additional.Value.CompProject.TranslatedName);
+            }
+            case PageType.HelpDetail:
+            {
+                return stack.helpPage?.Title ?? "";
             }
             case PageType.VersionSaves:
             {
@@ -1595,6 +1602,11 @@ public partial class FormMain
             string SavePath
         )? additional;
 
+        /// <summary>
+        ///     帮助详情页实例。仅在 <see cref="PageType.HelpDetail"/> 中使用。
+        /// </summary>
+        public PageHelpDetail? helpPage;
+
         public PageType page;
 
         public override bool Equals(object other)
@@ -1606,6 +1618,8 @@ public partial class FormMain
                 var pageOther = (PageStackData)other;
                 if (page != pageOther.page)
                     return false;
+                if (helpPage is not null || pageOther.helpPage is not null)
+                    return ReferenceEquals(helpPage, pageOther.helpPage);
                 if (additional is null) return pageOther.additional is null;
 
                 return pageOther.additional is not null && additional.Equals(pageOther.additional);
@@ -1769,7 +1783,7 @@ public partial class FormMain
     {
         if (pageCurrent == stack && (PageCurrentSub == subType || (int)subType == -1))
             return;
-        ModAnimation.AniControlEnabled += 1;
+        ModAnimation.AniBeginControl();
         try
         {
             #region 子页面处理
@@ -1899,6 +1913,13 @@ public partial class FormMain
                         PageChangeAnim(new MyPageLeft(), ModMain.frmDownloadCompDetail);
                         break;
                     }
+                case PageType.HelpDetail: // 帮助详情
+                    {
+                        if (stack.helpPage is null)
+                            throw new InvalidOperationException("帮助详情页面未初始化");
+                        PageChangeAnim(new MyPageLeft(), stack.helpPage);
+                        break;
+                    }
                 case PageType.VersionSaves: // 存档管理
                     {
                         if (ModMain.frmInstanceSavesLeft is null)
@@ -1932,7 +1953,7 @@ public partial class FormMain
         }
         finally
         {
-            ModAnimation.AniControlEnabled -= 1;
+            ModAnimation.AniEndControl();
         }
     }
 
@@ -1940,7 +1961,7 @@ public partial class FormMain
     {
         ModAnimation.AniStop("FrmMain LeftChange");
         ModAnimation.AniStop("PageLeft PageChange"); // 停止左边栏变更导致的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
-        ModAnimation.AniControlEnabled += 1;
+        ModAnimation.AniBeginControl();
         // 清除新页面关联性
         if (targetLeft.Parent is not null)
             targetLeft.SetValue(ContentPresenter.ContentProperty, null);
@@ -1951,18 +1972,18 @@ public partial class FormMain
         // 触发页面通用动画
         ((MyPageLeft)PanMainLeft.Child).TriggerHideAnimation();
         ((MyPageRight)PanMainRight.Child).PageOnExit();
-        ModAnimation.AniControlEnabled -= 1;
+        ModAnimation.AniEndControl();
         // 执行动画
         ModAnimation.AniStart(new[]
         {
             ModAnimation.AaCode(() =>
             {
-                ModAnimation.AniControlEnabled += 1;
+                ModAnimation.AniBeginControl();
                 // 把新页面添加进容器
                 PanMainLeft.Child = pageLeft;
                 pageLeft.Opacity = 0d;
                 PanMainLeft.Background = null;
-                ModAnimation.AniControlEnabled -= 1;
+                ModAnimation.AniEndControl();
                 ModBase.RunInUi(() => PanMainLeft_Resize(PanMainLeft.ActualWidth), true);
             }, 110),
             ModAnimation.AaCode(() =>
@@ -1976,13 +1997,13 @@ public partial class FormMain
         {
             ModAnimation.AaCode(() =>
             {
-                ModAnimation.AniControlEnabled += 1;
+                ModAnimation.AniBeginControl();
                 ((MyPageRight)PanMainRight.Child).PageOnForceExit();
                 // 把新页面添加进容器
                 PanMainRight.Child = pageRight;
                 pageRight.Opacity = 0d;
                 PanMainRight.Background = null;
-                ModAnimation.AniControlEnabled -= 1;
+                ModAnimation.AniEndControl();
                 ModBase.RunInUi(() => BtnExtraBack.ShowRefresh(), true);
             }, 110),
             ModAnimation.AaCode(() =>
@@ -2032,7 +2053,7 @@ public partial class FormMain
     private void PanMainLeft_Resize(double newWidth)
     {
         var delta = newWidth - RectLeftBackground.Width;
-        if (Math.Abs(delta) > 0.1d && ModAnimation.AniControlEnabled == 0)
+        if (Math.Abs(delta) > 0.1d && !ModAnimation.AniExitsAnyControl())
         {
             if (PanMain.Opacity < 0.1d)
                 PanMainLeft.IsHitTestVisible = false; // 避免左边栏指向背景未能完美覆盖左边栏

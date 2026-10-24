@@ -338,7 +338,7 @@ public partial class PageDownloadCompFavorites
         if (selected)
             LabSelect.Text = Lang.Text("Download.Comp.Favorites.Hint.SelectedCount", newCount); // 取消所有选择时不更新数字
         // 更新显示状态
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
         {
             PanContentList.Margin = new Thickness(0d, 0d, 0d, selected ? 80 : 0);
             if (selected)

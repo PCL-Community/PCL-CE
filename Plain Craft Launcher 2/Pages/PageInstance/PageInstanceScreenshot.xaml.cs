@@ -69,10 +69,10 @@ public partial class PageInstanceScreenshot : IRefreshable
     /// </summary>
     public async Task ReloadAsync()
     {
-        ModAnimation.AniControlEnabled += 1;
+        ModAnimation.AniBeginControl();
         PanBack.ScrollToHome();
         await LoadFileListAsync();
-        ModAnimation.AniControlEnabled -= 1;
+        ModAnimation.AniEndControl();
     }
 
     private void RefreshTip()

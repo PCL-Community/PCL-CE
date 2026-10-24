@@ -177,18 +177,25 @@
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
-                            <RowDefinition Height="9" />
                             <RowDefinition Height="Auto" />
-                            <RowDefinition Height="9" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <local:MyRadioBox Text="{DynamicResource Setup.Launch.Memory.Auto}" Width="110" Checked="True" x:Name="RadioRamType0"
-                                          Tag="LaunchRamType/0" Margin="0,0,20,0" Check="RadioBoxChange"
-                                          ToolTip="{DynamicResource Setup.Launch.Memory.Auto.ToolTip}" ToolTipService.Placement="Right"
-                                          ToolTipService.HorizontalOffset="-10" ToolTipService.VerticalOffset="-3" />
-                        <local:MyRadioBox Grid.Row="2" Text="{DynamicResource Common.Option.Customize}" x:Name="RadioRamType1" Tag="LaunchRamType/1"
-                                          Margin="0,0,20,0" Check="RadioBoxChange" />
+                                          Tag="LaunchRamType/0" Margin="0,0,20,9" Check="RadioBoxChange"
+                                          ToolTip="{DynamicResource Setup.Launch.Memory.Auto.ToolTip}" ToolTipService.Placement="Left"
+                                          ToolTipService.HorizontalOffset="-10" ToolTipService.VerticalOffset="-10" />
+                        <local:MyRadioBox Grid.Row="1" Text="{DynamicResource Common.Option.Customize}" x:Name="RadioRamType1" Tag="LaunchRamType/1"
+                                          Margin="0,0,20,9" Check="RadioBoxChange" />
+                        <TextBlock Grid.Row="2" Text="{DynamicResource Setup.Launch.Memory.Max}" VerticalAlignment="Center" Margin="0,0,20,9"
+                                   ToolTip="{DynamicResource Setup.Launch.Memory.Max.ToolTip}" />
                         <local:MySlider Grid.Row="2" Grid.Column="1" IsEnabled="False" x:Name="SliderRamCustom"
-                                        Tag="LaunchRamCustom" MaxValue="49" Value="13" Change="SliderChange" />
+                                        Tag="LaunchRamCustom" MaxValue="49" Value="13" Change="SliderChange" Margin="0,0,12,9" />
+                        <TextBlock Grid.Row="3" Text="{DynamicResource Setup.Launch.Memory.Initial}" VerticalAlignment="Center" Margin="0,0,20,0"
+                                   ToolTip="{DynamicResource Setup.Launch.Memory.Initial.ToolTip}" />
+                        <local:MySlider Grid.Row="3" Grid.Column="1" IsEnabled="False" x:Name="SliderRamInitialCustom"
+                                        Tag="LaunchRamCustomInitial" MaxValue="49" Value="0" Change="SliderChange"
+                                        ToolTip="{DynamicResource Setup.Launch.Memory.Initial.ToolTip}" />
                     </Grid>
                     <Grid x:Name="PanRamDisplay" Margin="0,11,2,0" SnapsToDevicePixels="True">
                         <Grid.ColumnDefinitions>
@@ -263,7 +270,7 @@
                         <TextBlock Text="{DynamicResource Setup.Launch.Advanced.JvmHead}" VerticalAlignment="Center" />
                         <local:MyIconButton Height="23" Margin="0,1,0,0" x:Name="BtnAdvanceJvmReset"
                                             VerticalAlignment="Center" Click="BtnAdvanceJvmReset_Click"
-                                            ToolTip="{DynamicResource Setup.Launch.Advanced.JvmHead.Restore}" ToolTipService.Placement="Right"
+                                            ToolTip="{DynamicResource Setup.Launch.Advanced.JvmHead.Restore}" ToolTipService.Placement="Left"
                                             ToolTipService.InitialShowDelay="200" ToolTipService.VerticalOffset="-1"
                                             SvgIcon="lucide/rotate-ccw"
                                             LogoScale="0.9" />
@@ -291,19 +298,19 @@
                                       Text="{DynamicResource Setup.Launch.Advanced.PreLaunchCommand.Wait}" Margin="0,8,0,7" />
                     <StackPanel Margin="0,12,0,4" Grid.Row="8" Grid.ColumnSpan="2" HorizontalAlignment="Left">
                         <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.DisableJlw}" x:Name="CheckAdvanceDisableJLW" Tag="LaunchAdvanceDisableJLW"  Change="CheckBoxChange"
-                                          ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.DisableJlw.ToolTip}" />
+                                          ToolTip="{DynamicResource Setup.Launch.Advanced.DisableJlw.ToolTip}" />
                         <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.DisableLF}" x:Name="CheckAdvanceDisableLF" Tag="LaunchAdvanceDisableLF"  Change="CheckBoxChange"
-                                          ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.DisableLF.ToolTip}" />
+                                          ToolTip="{DynamicResource Setup.Launch.Advanced.DisableLF.ToolTip}" />
                         <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.GpuPreference}" x:Name="CheckAdvanceGraphicCard" Tag="LaunchAdvanceGraphicCard"  Change="CheckBoxChange"
-                                          ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.GpuPreference.ToolTip}" />
+                                          ToolTip="{DynamicResource Setup.Launch.Advanced.GpuPreference.ToolTip}" />
                         <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.UseJavaExe}" x:Name="CheckAdvanceNoJavaw" Tag="LaunchAdvanceNoJavaw"  Change="CheckBoxChange"
-                            ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.UseJavaExe.ToolTip}" />
+                                          ToolTip="{DynamicResource Setup.Launch.Advanced.UseJavaExe.ToolTip}" />
                         <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.DisableLwjglUnsafeAgent}" x:Name="CheckAdvanceDisableLwjglUnsafeAgent" Tag="LaunchAdvanceDisableLwjglUnsafeAgent"  Change="CheckBoxChange"
-                                          ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip}" />
+                                          ToolTip="{DynamicResource Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip}" />
                         <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.DisableCrashAnalysis}" x:Name="CheckAdvanceDisableCrashAnalysis" Tag="LaunchAdvanceDisableCrashAnalysis" Change="CheckBoxChange"
-                                          ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.DisableCrashAnalysis.ToolTip}" />
+                                          ToolTip="{DynamicResource Setup.Launch.Advanced.DisableCrashAnalysis.ToolTip}" />
                         <local:MyCheckBox Height="28" Text="{DynamicResource Setup.Launch.Advanced.LockMemory}" x:Name="CheckAdvanceLockMemory" Tag="LaunchAdvanceLockMemory" Change="CheckBoxChange"
-                                          ToolTipService.Placement="Right" ToolTip="{DynamicResource Setup.Launch.Advanced.LockMemory.ToolTip}" />
+                                          ToolTip="{DynamicResource Setup.Launch.Advanced.LockMemory.ToolTip}" />
                     </StackPanel>
                     <local:MyHint Text="{DynamicResource Setup.Launch.Advanced.MoreInInstanceSetup}" Margin="0,5,0,10" Theme="Blue" Grid.Row="9"
                                   Grid.ColumnSpan="2"

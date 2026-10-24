@@ -54,7 +54,7 @@ public class MyScrollBar : ScrollBar
             }
 
             // 触发颜色动画
-            if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
+            if (IsLoaded && !ModAnimation.AniExitsAnyControl()) // 防止默认属性变更触发动画
             {
                 // 有动画
                 ModAnimation.AniStart(

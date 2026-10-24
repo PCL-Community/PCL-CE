@@ -30,9 +30,9 @@ public partial class PageSetupUI
         // 重复加载部分
         PanBack.ScrollToHome();
 
-        ModAnimation.AniControlEnabled += 1;
+        ModAnimation.AniBeginControl();
         Reload(); // #4826，在每次进入页面时都刷新一下
-        ModAnimation.AniControlEnabled -= 1;
+        ModAnimation.AniEndControl();
 
         // 非重复加载部分
         if (isLoaded)
@@ -198,28 +198,28 @@ public partial class PageSetupUI
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void TextBoxChange(object senderRaw, RoutedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Text);
     }
 
@@ -227,7 +227,7 @@ public partial class PageSetupUI
     {
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
-        if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
+        if (!ModAnimation.AniExitsAnyControl() && gotCfg.Length >= 2)
             SetByTag(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
@@ -238,12 +238,12 @@ public partial class PageSetupUI
 
     private void ComboFontChange(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniControlEnabled == 0) Config.Preference.Font = ComboUiFont.SelectedFontTag;
+        if (!ModAnimation.AniExitsAnyControl()) Config.Preference.Font = ComboUiFont.SelectedFontTag;
     }
 
     private void ComboMotdFontChange(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniControlEnabled == 0) Config.Preference.MotdFont = ComboUiMotdFont.SelectedFontTag;
+        if (!ModAnimation.AniExitsAnyControl()) Config.Preference.MotdFont = ComboUiMotdFont.SelectedFontTag;
     }
 
     // 背景图片
@@ -459,7 +459,7 @@ public partial class PageSetupUI
 
     private void RadioLogoType3_Check(object sender, ModBase.RouteEventArgs e)
     {
-        if (!(ModAnimation.AniControlEnabled == 0 && e.raiseByMouse))
+        if (!(!ModAnimation.AniExitsAnyControl() && e.raiseByMouse))
             return;
         Refresh: ;
 
@@ -632,7 +632,7 @@ public partial class PageSetupUI
     private void CheckMusicStart_Change(object sender, bool user)
     {
         CheckBoxChange(sender, user);
-        if (ModAnimation.AniControlEnabled != 0)
+        if (ModAnimation.AniExitsAnyControl())
             return;
         if (CheckMusicStart.Checked == true)
             CheckMusicStop.Checked = false;
@@ -640,7 +640,7 @@ public partial class PageSetupUI
 
     private void CheckMusicStop_Change()
     {
-        if (ModAnimation.AniControlEnabled != 0)
+        if (ModAnimation.AniExitsAnyControl())
             return;
         if (CheckMusicStop.Checked == true)
             CheckMusicStart.Checked = false;
@@ -949,7 +949,7 @@ public partial class PageSetupUI
     // 警告提示
     private void HiddenHint(object sender, bool user)
     {
-        if (ModAnimation.AniControlEnabled == 0 && sender is MyCheckBox checkBox && checkBox.Checked == true)
+        if (!ModAnimation.AniExitsAnyControl() && sender is MyCheckBox checkBox && checkBox.Checked == true)
             HintService.Hint(Lang.Text("Setup.Ui.FeatureHide.TemporaryHint"));
     }
 

@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -68,6 +68,7 @@ public static class ModDownloadLib
     public static ModLoader.LoaderCombo<string> McDownloadClient(NetPreDownloadBehaviour behaviour, string id,
         string jsonUrl = null)
     {
+        if (!RestrictedFeaturePolicy.Check("minecraft-client-download")) return null;
         try
         {
             var versionFolder = Path.Combine(ModFolder.mcFolderSelected, "versions", id);
@@ -134,6 +135,7 @@ public static class ModDownloadLib
     /// <param name="jsonUrl">Json 文件的 Mojang 官方地址。</param>
     public static void McDownloadClientCore(string id, string jsonUrl, NetPreDownloadBehaviour behaviour)
     {
+        if (!RestrictedFeaturePolicy.Check("minecraft-client-save")) return;
         try
         {
             var versionFolder = SystemDialogs.SelectFolder();
@@ -531,6 +533,7 @@ public static class ModDownloadLib
 
     public static void McDownloadMenuSave(object sender, RoutedEventArgs e)
     {
+        if (!RestrictedFeaturePolicy.Check("minecraft-client-save")) return;
         var element = (FrameworkElement)sender;
         MyListItem version;
         if (element is MyListItem s1) version = s1;
@@ -3735,6 +3738,7 @@ public static class ModDownloadLib
     /// </summary>
     public static bool McInstall(McInstallRequest request, string type = mcInstallDefaultType)
     {
+        if (!RestrictedFeaturePolicy.Check("minecraft-install")) return false;
         try
         {
             var subLoaders = McInstallLoader(request, ignoreDump: type != mcInstallDefaultType);
@@ -3791,6 +3795,7 @@ public static class ModDownloadLib
     public static List<ModLoader.LoaderBase> McInstallLoader(McInstallRequest request, bool dontFixLibraries = false,
         bool ignoreDump = false)
     {
+        RestrictedFeaturePolicy.ThrowIfRestricted("minecraft-install");
         // 获取缓存目录（安装 Mod 加载器的文件夹不能包含空格）
         var tempMcFolder = ModMain.RequestTaskTempFolder(request.optiFineEntry is not null ||
                                                          request.forgeEntry is not null ||
@@ -4083,8 +4088,8 @@ public static class ModDownloadLib
             ProgressWeight = 2d,
             block = true
         });
-        // 补全文件
-        if (!dontFixLibraries && (request.optiFineEntry is not null ||
+        // 补全文件：MMC 整合包的 JSON Patches 可能引入原版与加载器均不包含的支持库（例如 LWJGL3），也需要补全
+        if (!dontFixLibraries && (request.mmcPackInfo is not null || request.optiFineEntry is not null ||
                                   (request.forgeVersion is not null &&
                                    Convert.ToDouble(request.forgeVersion.BeforeFirst(".")) >= 20d) ||
                                   request.neoForgeVersion is not null || request.fabricVersion is not null ||
@@ -4397,7 +4402,11 @@ public static class ModDownloadLib
             if (mMCPackInfo.isMinecraftOverrided)
             {
                 ModBase.Log("[Download] 当前实例的 MC 核心已被修改，使用对应的 MMC 整合包参数");
-                outputJson = mMCPackInfo.overridedJson;
+                // 以原版 JSON 为基础，按 JSON-Patches 的语义将补丁提供的字段整体覆盖，
+                // 同时保留 assets、releaseTime、downloads、clientVersion 等补丁未提供的字段
+                outputJson = minecraftJson is not null ? (JsonObject)minecraftJson.DeepClone() : new JsonObject();
+                foreach (var patchProperty in mMCPackInfo.overridedJson)
+                    outputJson[patchProperty.Key] = patchProperty.Value?.DeepClone();
             }
             else
             {
@@ -4547,6 +4556,18 @@ public static class ModDownloadLib
             });
         }
 
+        // 整合包通过 JSON Patches 引入 LWJGL3（例如 GTNH 的 lwjgl3ify）时，
+        // 移除与之冲突的 LWJGL2 支持库，参考 MultiMC 中 org.lwjgl3 组件与 org.lwjgl 组件的 conflicts 关系
+        if (outputJson["libraries"] is JsonArray finalLibs && finalLibs.Any(IsLwjgl3Library))
+        {
+            for (var i = finalLibs.Count - 1; i >= 0; i--)
+                if (IsLwjgl2Library(finalLibs[i]))
+                {
+                    ModBase.Log("[Download] 已移除与 LWJGL3 冲突的 LWJGL2 支持库：" + finalLibs[i]?["name"]);
+                    finalLibs.RemoveAt(i);
+                }
+        }
+
         // 修改
         if (realArguments is not null && !string.IsNullOrEmpty(realArguments.Replace(" ", "")))
             outputJson["minecraftArguments"] = realArguments;
@@ -4572,6 +4593,29 @@ public static class ModDownloadLib
         ModBase.Log("[Download] 实例合并 " + outputName + " 完成");
 
         #endregion
+    }
+
+    /// <summary>
+    ///     判断支持库是否为 LWJGL 3.x（Maven 坐标形如 org.lwjgl:lwjgl:3.x.y）。
+    /// </summary>
+    private static bool IsLwjgl3Library(JsonNode library)
+    {
+        if (library is not JsonObject lib) return false;
+        var segments = (lib["name"]?.ToString() ?? "").Split(':');
+        return segments.Length >= 3 && segments[0] == "org.lwjgl" &&
+               segments[2].StartsWith("3.", StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    ///     判断支持库是否为与 LWJGL 3 冲突的 LWJGL 2.x。
+    /// </summary>
+    private static bool IsLwjgl2Library(JsonNode library)
+    {
+        if (library is not JsonObject lib) return false;
+        var segments = (lib["name"]?.ToString() ?? "").Split(':');
+        return segments.Length >= 3 &&
+               (segments[0] == "org.lwjgl.lwjgl" ||
+                (segments[0] == "org.lwjgl" && segments[2].StartsWith("2.", StringComparison.Ordinal)));
     }
 
     #endregion

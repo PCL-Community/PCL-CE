@@ -19,7 +19,7 @@
                         <StackPanel.RenderTransform>
                             <TranslateTransform X="40" />
                         </StackPanel.RenderTransform>
-                        <local:MyCard Margin="0,15,0,15" UseAnimation="False" Height="62">
+                        <local:MyCard Margin="0,15,0,3" UseAnimation="False" Height="62">
                             <local:MyIconButton HorizontalAlignment="Left" Theme="Black" Opacity="0.6" x:Name="BtnBack"
                                                 Margin="13,0,0,0" Height="26" Width="26"
                                                 LogoScale="0.87"
@@ -70,7 +70,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.Cleanroom}" Height="40" Margin="0,15,0,0" x:Name="CardCleanroom"
+                        <local:MyCard Title="{DynamicResource Common.Installation.Cleanroom}" Height="40" Margin="0,12,0,0" x:Name="CardCleanroom"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanCleanroom" />
                             <Grid x:Name="PanCleanroomInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -232,7 +232,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.LabyMod}" Height="40" Margin="0,15,0,0" x:Name="CardLabyMod"
+                        <local:MyCard Title="{DynamicResource Common.Installation.LabyMod}" Height="40" Margin="0,12,0,0" x:Name="CardLabyMod"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanLabyMod" />
                             <Grid x:Name="PanLabyModInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"

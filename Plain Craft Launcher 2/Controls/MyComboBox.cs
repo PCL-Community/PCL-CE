@@ -163,7 +163,7 @@ public class MyComboBox : ComboBox
         }
 
         // 触发颜色动画
-        if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
+        if (IsLoaded && !ModAnimation.AniExitsAnyControl()) // 防止默认属性变更触发动画
         {
             // 有动画
             ModAnimation.AniStart(
@@ -233,7 +233,7 @@ public class MyComboBox : ComboBox
     
     private void MyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (IsLoaded && ModAnimation.AniControlEnabled == 0) ModMain.RaiseCustomEvent(this);
+        if (IsLoaded && !ModAnimation.AniExitsAnyControl()) ModMain.RaiseCustomEvent(this);
     }
     
     protected override bool IsItemItsOwnContainerOverride(object item)

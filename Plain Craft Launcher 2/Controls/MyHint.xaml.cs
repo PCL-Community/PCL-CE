@@ -26,7 +26,7 @@ public partial class MyHint
             (d, e) =>
             {
                 var f = (MyHint)d;
-                f.Theme = e.NewValue is not null ? Themes.Red : Themes.Blue;
+                f.Theme = e.NewValue is true ? Themes.Red : Themes.Blue;
             }));
 
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),

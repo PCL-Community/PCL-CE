@@ -106,9 +106,9 @@ public partial class MyIconButton
         set
         {
             field = value;
-            ModAnimation.AniControlEnabled += 1;
+            ModAnimation.AniBeginControl();
             RefreshAnim();
-            ModAnimation.AniControlEnabled -= 1;
+            ModAnimation.AniEndControl();
         }
     } = new(Color.FromRgb(128, 128, 128));
 

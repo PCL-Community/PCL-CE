@@ -34,6 +34,7 @@ public partial class PageInstanceSetup
         RadioRamType0.Check += RadioBoxChange;
         RadioRamType1.Check += RadioBoxChange;
         SliderRamCustom.Change += SliderChange;
+        SliderRamInitialCustom.Change += SliderChange;
 
         ComboServerLoginRequire.SelectionChanged += ComboServerLogin_Changed;
         TextServerAuthServer.TextChanged += TextBoxChange;
@@ -73,9 +74,9 @@ public partial class PageInstanceSetup
         RefreshRam(false);
 
         // 由于各个实例不同，每次都需要重新加载
-        ModAnimation.AniControlEnabled += 1;
+        ModAnimation.AniBeginControl();
         Reload();
-        ModAnimation.AniControlEnabled -= 1;
+        ModAnimation.AniEndControl();
 
         // 非重复加载部分
         if (isLoaded)
@@ -107,16 +108,17 @@ public partial class PageInstanceSetup
             var ramType = Config.Instance.MemorySolution[PageInstanceLeft.McInstance.PathInstance];
             ((MyRadioBox)FindName("RadioRamType" + ramType)).Checked = true;
             SliderRamCustom.Value = Config.Instance.CustomMemorySize[PageInstanceLeft.McInstance.PathInstance];
+            SliderRamInitialCustom.Value = Config.Instance.CustomInitialMemorySize[PageInstanceLeft.McInstance.PathInstance];
             RamType(ramType);
 
             // 服务器
             TextServerEnter.Text = Config.Instance.ServerToEnter[PageInstanceLeft.McInstance.PathInstance];
             ComboServerLoginRequire.SelectedIndex = Config.InstanceAuth.LoginRequirementSolution[PageInstanceLeft.McInstance.PathInstance];
             comboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
-            ServerLogin(ComboServerLoginRequire.SelectedIndex);
             TextServerAuthServer.Text = Config.InstanceAuth.AuthServerAddress[PageInstanceLeft.McInstance.PathInstance];
             TextServerAuthName.Text = Config.InstanceAuth.AuthServerDisplayName[PageInstanceLeft.McInstance.PathInstance];
             TextServerAuthRegister.Text = Config.InstanceAuth.AuthRegisterAddress[PageInstanceLeft.McInstance.PathInstance];
+            ServerLogin(ComboServerLoginRequire.SelectedIndex);
 
             // 高级设置
             ComboAdvanceRenderer.SelectedIndex = Config.Instance.Renderer[PageInstanceLeft.McInstance.PathInstance];
@@ -191,7 +193,7 @@ public partial class PageInstanceSetup
 
     private void RadioBoxChange(object o, ModBase.RouteEventArgs routeEventArgs)
     {
-        if (ModAnimation.AniControlEnabled != 0)
+        if (ModAnimation.AniExitsAnyControl())
             return;
         if (o is not MyRadioBox { Tag: string tag }) return;
 
@@ -203,7 +205,7 @@ public partial class PageInstanceSetup
 
     private void TextBoxChange(object o, TextChangedEventArgs textChangedEventArgs)
     {
-        if (ModAnimation.AniControlEnabled != 0)
+        if (ModAnimation.AniExitsAnyControl())
             return;
         if (o is not MyTextBox textBox) return;
 
@@ -212,7 +214,7 @@ public partial class PageInstanceSetup
 
     private void SliderChange(object o, bool user)
     {
-        if (ModAnimation.AniControlEnabled != 0)
+        if (ModAnimation.AniExitsAnyControl())
             return;
         if (o is not MySlider slider) return;
 
@@ -221,7 +223,7 @@ public partial class PageInstanceSetup
 
     private void ComboChange(MyComboBox sender, object e)
     {
-        if (ModAnimation.AniControlEnabled != 0)
+        if (ModAnimation.AniExitsAnyControl())
             return;
 
         SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
@@ -229,7 +231,7 @@ public partial class PageInstanceSetup
 
     private void CheckBoxChange(object sender, bool user)
     {
-        if (ModAnimation.AniControlEnabled != 0)
+        if (ModAnimation.AniExitsAnyControl())
             return;
         if (sender is not MyCheckBox checkBox) return;
 
@@ -248,6 +250,8 @@ public partial class PageInstanceSetup
         if (SliderRamCustom is null)
             return;
         SliderRamCustom.IsEnabled = type == 1;
+        // 锁定内存为全局配置，启用时 -Xms 恒等于 -Xmx，初始内存设置不生效
+        SliderRamInitialCustom.IsEnabled = type == 1 && !Config.Launch.LockMemory;
     }
 
     /// <summary>
@@ -277,7 +281,17 @@ public partial class PageInstanceSetup
         else
             SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((ramTotal - 16d) / 2d) + 33d);
         // 设置文本
-        LabRamGame.Text = $"{Lang.Number(ramGame, "N1")} GiB{(ramGame != ramGameActual ? $" ({Lang.Text("Setup.Launch.Memory.AvailableSuffix", Lang.Number(ramGameActual, "N1"))})" : "")}";
+        var ramInitial = GetInitialRam(PageInstanceLeft.McInstance);
+        string suffixText;
+        if (ramInitial.HasValue && ramGame != ramGameActual)
+            suffixText = Lang.Text("Setup.Launch.Memory.SuffixBoth", Lang.Number(ramInitial.Value, "N1"), Lang.Number(ramGameActual, "N1"));
+        else if (ramInitial.HasValue)
+            suffixText = Lang.Text("Setup.Launch.Memory.SuffixInitial", Lang.Number(ramInitial.Value, "N1"));
+        else if (ramGame != ramGameActual)
+            suffixText = Lang.Text("Setup.Launch.Memory.SuffixAvailable", Lang.Number(ramGameActual, "N1"));
+        else
+            suffixText = "";
+        LabRamGame.Text = $"{Lang.Number(ramGame, "N1")} GiB{(suffixText.Length > 0 ? $" ({suffixText})" : "")}";
         LabRamUsed.Text = $"{Lang.Number(ramUsed, "N1")} GiB";
         LabRamTotal.Text = $" / {Lang.Number(ramTotal, "N1")} GiB";
         LabRamWarn.Visibility =
@@ -392,7 +406,7 @@ public partial class PageInstanceSetup
             right = 1;
         if (right == 0)
         {
-            if (ModAnimation.AniControlEnabled == 0 &&
+            if (!ModAnimation.AniExitsAnyControl() &&
                 (ramTextRight != right || ModAnimation.AniIsRun("VersionSetup Ram TextRight")))
             {
                 // 需要动画
@@ -412,7 +426,7 @@ public partial class PageInstanceSetup
                 LabRamGameTitle.Margin = new Thickness(totalWidth - labGameTitleWidth, 0d, 0d, 5d);
             }
         }
-        else if (ModAnimation.AniControlEnabled == 0 &&
+        else if (!ModAnimation.AniExitsAnyControl() &&
                  (ramTextRight != right || ModAnimation.AniIsRun("VersionSetup Ram TextRight")))
         {
             // 需要动画
@@ -524,20 +538,39 @@ public partial class PageInstanceSetup
         {
             // 手动配置
             var value = Config.Instance.CustomMemorySize[instancePath];
-            if (value <= 12)
-                ramGive = value * 0.1d + 0.3d;
-            else if (value <= 25)
-                ramGive = (value - 12) * 0.5d + 1.5d;
-            else if (value <= 33)
-                ramGive = (value - 25) * 1 + 8;
-            else
-                ramGive = (value - 33) * 2 + 16;
+            ramGive = PageSetupLaunch.GetRamFromTick(value);
         }
 
         // 若使用 32 位 Java，则限制为 1G
         if (is32BitJava ?? !ModJava.IsGameSet64BitJava(PageInstanceLeft.McInstance))
             ramGive = Math.Min(1d, ramGive);
         return ramGive;
+    }
+
+    /// <summary>
+    ///     获取当前设置的初始堆大小（-Xms）。单位为 GB；未启用自定义初始大小时返回 null。
+    /// </summary>
+    public static double? GetInitialRam(McInstance version, bool? is32BitJava = default)
+    {
+        // 锁定内存为全局配置，启用时 -Xms 恒等于 -Xmx，由锁定内存逻辑处理
+        if (Config.Launch.LockMemory)
+            return null;
+        // 自定义 JVM 参数含 -Xms 时由其决定实际初始堆，不再显示滑块值
+        if (PageSetupLaunch.HasCustomXms(version))
+            return null;
+        var instancePath = version?.PathInstance;
+        switch (Config.Instance.MemorySolution[instancePath])
+        {
+            case 2:
+                return PageSetupLaunch.GetInitialRam(version, true, is32BitJava);
+            case 1:
+                var initialTick = Config.Instance.CustomInitialMemorySize[instancePath];
+                if (initialTick <= 0)
+                    return null;
+                return Math.Min(PageSetupLaunch.GetRamFromTick(initialTick), GetRam(version, is32BitJava));
+            default:
+                return null;
+        }
     }
 
     #endregion
@@ -549,7 +582,7 @@ public partial class PageInstanceSetup
 
     private void ComboServerLogin_Changed(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniControlEnabled != 0)
+        if (ModAnimation.AniExitsAnyControl())
             return;
         ServerLogin(ComboServerLoginRequire.SelectedIndex);
         if (TextServerAuthServer.IsValidated)
@@ -603,7 +636,9 @@ public partial class PageInstanceSetup
         LabServerAuthServer.Visibility = type == 2 || type == 3 ? Visibility.Visible : Visibility.Collapsed;
         TextServerAuthServer.Visibility = type == 2 || type == 3 ? Visibility.Visible : Visibility.Collapsed;
         BtnServerAuthLittle.Visibility = type == 2 || type == 3 ? Visibility.Visible : Visibility.Collapsed;
-        BtnServerNewProfile.Visibility = type == 2 || type == 3 ? Visibility.Visible : Visibility.Collapsed;
+        BtnServerNewProfile.Visibility = (type == 2 || type == 3) && ProfileUi.CanCreateOtherProfile()
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         if (type == 0 || type == 1)
             BtnServerAuthLock.Visibility = Visibility.Collapsed;
         else
@@ -632,7 +667,6 @@ public partial class PageInstanceSetup
         if (type != 2 && type != 3)
         {
             LabServerAuthServerSecurity.Visibility = Visibility.Collapsed;
-            LabServerAuthServerSecurityCL.Visibility = Visibility.Collapsed;
             LabServerAuthServerSecurityVerify.Visibility = Visibility.Collapsed;
         }
         // 如果开头为 http:// 给予警告
@@ -640,19 +674,16 @@ public partial class PageInstanceSetup
         {
             LabServerAuthServerSecurity.Visibility = Visibility.Collapsed;
             LabServerAuthServerSecurityVerify.Visibility = Visibility.Visible;
-            LabServerAuthServerSecurityCL.Visibility = Visibility.Visible;
         }
         else if (TextServerAuthServer.Text.StartsWithF("http://"))
         {
             LabServerAuthServerSecurity.Visibility = Visibility.Visible;
-            LabServerAuthServerSecurityCL.Visibility = Visibility.Visible;
             LabServerAuthServerSecurityVerify.Visibility = Visibility.Collapsed;
         }
         else
         {
             LabServerAuthServerSecurity.Visibility = Visibility.Collapsed;
             LabServerAuthServerSecurityVerify.Visibility = Visibility.Collapsed;
-            LabServerAuthServerSecurityCL.Visibility = Visibility.Collapsed;
         }
     }
 
@@ -684,6 +715,9 @@ public partial class PageInstanceSetup
     // 跳转新建档案
     private void BtnServerNewProfile_Click(object sender, MouseButtonEventArgs e)
     {
+        if (!ProfileUi.CanCreateOtherProfile())
+            return;
+
         ModMain.frmMain.PageChange(new FormMain.PageStackData { page = FormMain.PageType.Launch });
         PageLoginAuth.draggedAuthServer = TextServerAuthServer.Text;
         ModBase.RunInNewThread(() =>
@@ -882,7 +916,7 @@ public partial class PageInstanceSetup
     // 下拉框选择更改处理（保存新格式配置）
     private void JavaSelectionUpdate(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniControlEnabled != 0)
+        if (ModAnimation.AniExitsAnyControl())
             return;
         if (ComboArgumentJava.SelectedItem is null)
             return;
@@ -953,7 +987,7 @@ public partial class PageInstanceSetup
 
     private void ComboArgumentIndieV2_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniControlEnabled != 0)
+        if (ModAnimation.AniExitsAnyControl())
             return;
         if (isReverting)
             return;
@@ -997,7 +1031,7 @@ public partial class PageInstanceSetup
 
     private void ComboAdvanceRenderer_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniControlEnabled != 0)
+        if (ModAnimation.AniExitsAnyControl())
             return;
 
         var args = e; // 转换事件参数
@@ -1024,7 +1058,7 @@ public partial class PageInstanceSetup
 
     private void CheckUseDebugLog4j2Config_CheckChanged(object sender, bool e)
     {
-        if (ModAnimation.AniControlEnabled != 0)
+        if (ModAnimation.AniExitsAnyControl())
             return;
         var checkBox = sender as MyCheckBox;
         if (checkBox is null) return;

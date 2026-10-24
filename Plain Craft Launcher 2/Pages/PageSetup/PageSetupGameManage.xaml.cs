@@ -27,7 +27,7 @@ public partial class PageSetupGameManage
             return;
         isLoaded = true;
 
-        ModAnimation.AniControlEnabled += 1;
+        ModAnimation.AniBeginControl();
         Reload();
         SliderLoad();
 
@@ -44,14 +44,16 @@ public partial class PageSetupGameManage
             RowModManageStyleGap.Height = new GridLength(0);
         }
 
-        ModAnimation.AniControlEnabled -= 1;
+        ModAnimation.AniEndControl();
     }
 
     public void Reload()
     {
         // 下载
         SliderDownloadThread.Value = Config.Download.ThreadLimit;
+        SliderDownloadFileConnection.Value = Config.Download.FileConnectionLimit;
         SliderDownloadSpeed.Value = Config.Download.SpeedLimit;
+        ComboDownloadHttpMode.SelectedIndex = (int)Config.Download.HttpMode;
         ComboDownloadSource.SelectedIndex = Config.Download.FileSource;
         ComboDownloadVersion.SelectedIndex = Config.Download.VersionListSource;
         CheckDownloadAutoSelectVersion.Checked = Config.Download.AutoSelectInstance;
@@ -100,21 +102,21 @@ public partial class PageSetupGameManage
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
@@ -125,6 +127,7 @@ public partial class PageSetupGameManage
     private void SliderLoad()
     {
         SliderDownloadThread.getHintText = new Func<object, object>(v => (int)v + 1);
+        SliderDownloadFileConnection.getHintText = new Func<object, object>(v => (int)v + 1);
         SliderDownloadSpeed.getHintText = new Func<object, object>(v =>
         {
             int value = (int)v;
@@ -144,7 +147,7 @@ public partial class PageSetupGameManage
 
     private void SliderDownloadThread_PreviewChange(object sender, ModBase.RouteEventArgs e)
     {
-        if (SliderDownloadThread.Value < 100)
+        if (SliderDownloadThread.Value < 64)
             return;
         if (!States.Hint.LargeDownloadThread)
         {

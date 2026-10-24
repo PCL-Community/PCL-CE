@@ -35,9 +35,9 @@ public partial class PageSetupLaunch
             return;
         isLoad = true;
 
-        ModAnimation.AniControlEnabled += 1;
+        ModAnimation.AniBeginControl();
         Reload();
-        ModAnimation.AniControlEnabled -= 1;
+        ModAnimation.AniEndControl();
 
         // 内存自动刷新
         var timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 0, 1) };
@@ -66,6 +66,7 @@ public partial class PageSetupLaunch
             // 游戏内存
             ((MyRadioBox)FindName("RadioRamType" + Config.Launch.MemoryAllocationMode)).Checked = true;
             SliderRamCustom.Value = Config.Launch.CustomMemorySize;
+            SliderRamInitialCustom.Value = Config.Launch.CustomInitialMemorySize;
             RamType(Config.Launch.MemoryAllocationMode);
 
             // 高级设置
@@ -137,35 +138,35 @@ public partial class PageSetupLaunch
     {
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
-        if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
+        if (!ModAnimation.AniExitsAnyControl() && gotCfg.Length >= 2)
             SetByTag(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
     private void TextBoxChange(object senderRaw, RoutedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Text);
     }
 
     private void TextArgumentTitle_OnTextChanged(object senderRaw, TextChangedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Text);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
         {
             var senderTag = sender.Tag?.ToString();
             SetByTag(senderTag,
@@ -177,8 +178,11 @@ public partial class PageSetupLaunch
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Checked);
+        // 锁定内存状态变化时同步刷新初始内存滑块的可用状态
+        if (ReferenceEquals(sender, CheckAdvanceLockMemory))
+            RamType(Config.Launch.MemoryAllocationMode);
     }
 
     private static void SetByTag(string tag, object value)
@@ -211,6 +215,8 @@ public partial class PageSetupLaunch
         if (SliderRamCustom is null)
             return;
         SliderRamCustom.IsEnabled = type == 1;
+        // 锁定内存时 -Xms 恒等于 -Xmx，初始内存设置不生效
+        SliderRamInitialCustom.IsEnabled = type == 1 && !Config.Launch.LockMemory;
     }
 
     /// <summary>
@@ -239,7 +245,17 @@ public partial class PageSetupLaunch
         else
             SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((ramTotal - 16d) / 2d) + 33d);
         // 设置文本
-        LabRamGame.Text = $"{Lang.Number(ramGame, "N1")} GiB{(ramGame != ramGameActual ? $" ({Lang.Text("Setup.Launch.Memory.AvailableSuffix", Lang.Number(ramGameActual, "N1"))})" : "")}";
+        var ramInitial = GetInitialRam(ModInstanceList.McMcInstanceSelected, false);
+        string suffixText;
+        if (ramInitial.HasValue && ramGame != ramGameActual)
+            suffixText = Lang.Text("Setup.Launch.Memory.SuffixBoth", Lang.Number(ramInitial.Value, "N1"), Lang.Number(ramGameActual, "N1"));
+        else if (ramInitial.HasValue)
+            suffixText = Lang.Text("Setup.Launch.Memory.SuffixInitial", Lang.Number(ramInitial.Value, "N1"));
+        else if (ramGame != ramGameActual)
+            suffixText = Lang.Text("Setup.Launch.Memory.SuffixAvailable", Lang.Number(ramGameActual, "N1"));
+        else
+            suffixText = "";
+        LabRamGame.Text = $"{Lang.Number(ramGame, "N1")} GiB{(suffixText.Length > 0 ? $" ({suffixText})" : "")}";
         LabRamUsed.Text = $"{Lang.Number(ramUsed, "N1")} GiB";
         LabRamTotal.Text = $" / {Lang.Number(ramTotal, "N1")} GiB";
         LabRamWarn.Visibility =
@@ -353,7 +369,7 @@ public partial class PageSetupLaunch
             right = 1;
         if (right == 0)
         {
-            if (ModAnimation.AniControlEnabled == 0 &&
+            if (!ModAnimation.AniExitsAnyControl() &&
                 (ramTextRight != right || ModAnimation.AniIsRun("SetupLaunch Ram TextRight")))
             {
                 // 需要动画
@@ -374,7 +390,7 @@ public partial class PageSetupLaunch
                 LabRamGameTitle.Margin = new Thickness(totalWidth - labGameTitleWidth, 0d, 0d, 5d);
             }
         }
-        else if (ModAnimation.AniControlEnabled == 0 &&
+        else if (!ModAnimation.AniExitsAnyControl() &&
                  (ramTextRight != right || ModAnimation.AniIsRun("SetupLaunch Ram TextRight")))
         {
             // 需要动画
@@ -396,6 +412,53 @@ public partial class PageSetupLaunch
         }
 
         ramTextRight = right;
+    }
+
+    /// <summary>
+    ///     将内存滑块刻度值转换为 GB。
+    /// </summary>
+    public static double GetRamFromTick(int value)
+    {
+        return value switch
+        {
+            <= 12 => value * 0.1d + 0.3d,
+            <= 25 => (value - 12) * 0.5d + 1.5d,
+            <= 33 => (value - 25) * 1 + 8,
+            _ => (value - 33) * 2 + 16
+        };
+    }
+
+    /// <summary>
+    ///     判断生效的自定义 JVM 参数中是否已包含 -Xms。
+    ///     此时启动路径会跳过自动追加的初始堆，实际值以自定义参数为准。
+    /// </summary>
+    public static bool HasCustomXms(McInstance version)
+    {
+        // 与启动路径一致：实例级参数非空时完全忽略全局参数，仅在为空时跟随全局
+        var dataJvmCustom = version is null ? "" : Config.Instance.JvmArgs[version.PathInstance];
+        var effectiveArgs = string.IsNullOrEmpty(dataJvmCustom) ? Config.Launch.JvmArgs : dataJvmCustom;
+        return !string.IsNullOrEmpty(effectiveArgs) &&
+            effectiveArgs.Contains("-Xms", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    ///     获取全局设置的初始堆大小（-Xms）。单位为 GB；未启用自定义初始大小时返回 null。
+    /// </summary>
+    public static double? GetInitialRam(McInstance version, bool useVersionJavaSetup, bool? is32BitJava = default)
+    {
+        // 锁定内存时 -Xms 恒等于 -Xmx，由锁定内存逻辑处理
+        if (Config.Launch.LockMemory)
+            return null;
+        // 自定义 JVM 参数含 -Xms 时由其决定实际初始堆，不再显示滑块值
+        if (HasCustomXms(version))
+            return null;
+        // 仅手动分配模式下生效
+        if (Config.Launch.MemoryAllocationMode != 1)
+            return null;
+        var initialTick = Config.Launch.CustomInitialMemorySize;
+        if (initialTick <= 0)
+            return null;
+        return Math.Min(GetRamFromTick(initialTick), GetRam(version, useVersionJavaSetup, is32BitJava));
     }
 
     /// <summary>
@@ -468,14 +531,7 @@ public partial class PageSetupLaunch
         else
         {
             // 手动配置
-            var value = Config.Launch.CustomMemorySize;
-            ramGive = value switch
-            {
-                <= 12 => value * 0.1d + 0.3d,
-                <= 25 => (value - 12) * 0.5d + 1.5d,
-                <= 33 => (value - 25) * 1 + 8,
-                _ => (value - 33) * 2 + 16
-            };
+            ramGive = GetRamFromTick(Config.Launch.CustomMemorySize);
         }
 
         // 若使用 32 位 Java，则限制为 1G
@@ -512,7 +568,7 @@ public partial class PageSetupLaunch
     private void ComboArgumentVisibie_SelectionChanged(object sender, SelectionChangedEventArgs sizeChangedEventArgs)
     {
         ComboChange(sender, sizeChangedEventArgs);
-        if (ModAnimation.AniControlEnabled != 0)
+        if (ModAnimation.AniExitsAnyControl())
             return;
         if (ComboArgumentVisibie.SelectedIndex == 0)
             if (ModMain.MyMsgBox(
@@ -526,7 +582,7 @@ public partial class PageSetupLaunch
     // 实例隔离提示
     private void ComboArgumentIndie_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniControlEnabled != 0)
+        if (ModAnimation.AniExitsAnyControl())
             return;
         ModMain.MyMsgBox(Lang.Text("Setup.Launch.Options.InstanceIsolation.DefaultPolicyHint"));
     }
@@ -558,7 +614,7 @@ public partial class PageSetupLaunch
 
     private void ComboAdvanceRenderer_SelectionChanged(MyComboBox sender, object e)
     {
-        if (ModAnimation.AniControlEnabled != 0)
+        if (ModAnimation.AniExitsAnyControl())
             return;
         if (!States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0)
         {

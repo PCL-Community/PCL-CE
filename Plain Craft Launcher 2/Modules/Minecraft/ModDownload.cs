@@ -64,8 +64,10 @@ public static class ModDownload
         var indexUrl = (string)(indexInfo["url"] ?? "");
         if (string.IsNullOrEmpty(indexUrl)) return null;
 
+        // 避免下载器先发一次 Range 探测请求，再回退到顺序下载
+        var indexSize = indexInfo["size"] is null ? -1L : (long)indexInfo["size"];
         return new DownloadFile(DlSourceLauncherOrMetaGet(indexUrl), indexAddress,
-            new ModBase.FileChecker(canUseExistsFile: false));
+            new ModBase.FileChecker(actualSize: indexSize, canUseExistsFile: false));
     }
 
     /// <summary>
@@ -194,6 +196,37 @@ public static class ModDownload
         #endregion
 
         return loaders;
+    }
+
+    /// <summary>
+    ///     只读取本地文件，判断实例是否可以在不下载 Minecraft 文件的情况下启动。
+    /// </summary>
+    public static bool McClientFilesAvailableLocally(McInstance instance)
+    {
+        try
+        {
+            if (!instance.IsLoaded) instance.Load();
+            if (!File.Exists(Path.Combine(instance.PathInstance, instance.Name + ".json"))) return false;
+            var libraries = ModLibrary.McLibListGet(instance, true);
+            foreach (var library in libraries)
+            {
+                if (library.IsLocal) continue;
+                var checker = new ModBase.FileChecker(
+                    minSize: 1,
+                    actualSize: library.size > 0 ? library.size : -1,
+                    hash: library.Sha1);
+                if (checker.Check(library.LocalPath) is not null) return false;
+            }
+
+            var assets = ModAssets.McAssetsListGet(instance);
+            return assets.All(asset => File.Exists(asset.localPath) && new FileInfo(asset.localPath).Length > 0 &&
+                                       (asset.size <= 0 || new FileInfo(asset.localPath).Length == asset.size));
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "本地检查 Minecraft 文件失败");
+            return false;
+        }
     }
 
     public enum AssetsIndexExistsBehaviour

@@ -41,7 +41,6 @@ public static class McVersionComparer
         var i = 0;
         while (true)
         {
-            // 两边均缺失，感觉是一个东西
             if (lefts.Count - 1 < i && rights.Count - 1 < i)
             {
                 if (string.CompareOrdinal(left, right) > 0)
