@@ -763,6 +763,7 @@
     <sys:String x:Key="Download.Version.Type.Recommended">推薦版</sys:String>
     <sys:String x:Key="Download.Version.Type.Release">正式版</sys:String>
     <sys:String x:Key="Download.Version.Type.Snapshot">快照</sys:String>
+    <sys:String x:Key="Download.Version.Type.Unknown">未知</sys:String>
     <sys:String x:Key="Download.Version.Type.Stable">穩定版</sys:String>
 
     <!-- Event -->

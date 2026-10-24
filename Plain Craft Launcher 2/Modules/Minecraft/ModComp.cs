@@ -881,10 +881,10 @@ public static class ModComp
         public readonly int DownloadCount;
 
         /// <summary>
-        ///     支持的 Drop 编号，从高到低排序，不为 Nothing。
-        ///     例如：261（26.1.x）、180（1.18.x）。
+        ///     支持的正式版家族 id，最新在前，不为 Nothing。
+        ///     例如：26.1、1.18。
         /// </summary>
-        public readonly List<int> Drops;
+        public readonly List<string> Families;
 
         // 源信息
 
@@ -990,7 +990,7 @@ public static class ModComp
             ModLoaders = result.ModLoaders;
             Tags = result.Tags;
             LogoUrl = result.LogoUrl;
-            Drops = result.Drops;
+            Families = result.Families;
 
             // 保存缓存
             compProjectCache[Id] = this;
@@ -1011,7 +1011,38 @@ public static class ModComp
             public List<CompLoaderType> ModLoaders = [];
             public List<string> Tags = [];
             public string LogoUrl;
-            public List<int> Drops = [];
+            public List<string> Families = [];
+        }
+
+        private static List<string> _ReadCachedFamilies(JsonObject data, JsonNode? dropsNode)
+        {
+            var index = VanillaVersionIndex.Capture();
+            if (dropsNode is JsonArray drops && index is not null && _TryReadFamilyIds(drops, index, out var families))
+                return families;
+            if (index is null) return [];
+            var raw = data["game_versions"] ?? data["versions"] ?? data["gameVersions"];
+            if (raw is not JsonArray versions) return [];
+            var names = new List<string>();
+            foreach (var item in versions)
+            {
+                if (item is JsonValue value && value.TryGetValue<string>(out var text) && text.Length > 0)
+                    names.Add(text);
+            }
+
+            return names.Count == 0 ? [] : index.FamiliesFrom(names, false);
+        }
+
+        private static bool _TryReadFamilyIds(JsonArray drops, VanillaVersionIndex index, out List<string> families)
+        {
+            families = new List<string>(drops.Count);
+            foreach (var node in drops)
+            {
+                if (node is not JsonValue value || !value.TryGetValue<string>(out var family) || !index.ContainsFamily(family))
+                    return false;
+                families.Add(family);
+            }
+
+            return true;
         }
 
         private static CompProjectBuildResult _BuildFromCompJson(JsonObject data)
@@ -1042,8 +1073,8 @@ public static class ModComp
             if (data.TryGetPropertyValue("LogoUrl", out var url))
                 result.LogoUrl = (string)url;
 
-            if (data.TryGetPropertyValue("Drops", out var drops))
-                result.Drops = ((JsonArray)drops).Select(t => t.ToObject<int>()).ToList();
+            if (data.TryGetPropertyValue("Families", out var families) || data.TryGetPropertyValue("Drops", out families))
+                result.Families = _ReadCachedFamilies(data, families);
 
             return result;
         }
@@ -1105,13 +1136,7 @@ public static class ModComp
                 .Distinct()
                 .ToList();
 
-            result.Drops = files
-                .SelectMany(f => f.Value)
-                .Select(v => McInstanceInfo.VersionToDrop(v))
-                .Where(v => v > 0)
-                .Distinct()
-                .OrderByDescending(v => v)
-                .ToList();
+            result.Families = VanillaVersionIndex.Capture()?.FamiliesFrom(files.SelectMany(f => f.Value), false) ?? [];
 
             result.ModLoaders = result.ModLoaders
                 .Distinct()
@@ -1167,12 +1192,9 @@ public static class ModComp
 
             // GameVersions
             // 搜索结果的键为 versions，获取特定工程的键为 game_versions
-            result.Drops = ((data["game_versions"] ?? data["versions"]) as JsonArray ?? [])
-                .Select(v => McInstanceInfo.VersionToDrop((string)v))
-                .Where(v => v > 0)
-                .Distinct()
-                .OrderByDescending(v => v)
-                .ToList();
+            result.Families = VanillaVersionIndex.Capture()?.FamiliesFrom(
+                ((data["game_versions"] ?? data["versions"]) as JsonArray ?? []).Select(v => (string)v!),
+                false) ?? [];
 
             // Tags & ModLoaders
             foreach (var category in (data["loaders"] as JsonArray)?.Select(t => t.ToString()) ?? [])
@@ -1524,8 +1546,8 @@ public static class ModComp
             json["Tags"] = new JsonArray(Tags.Select(s => (JsonNode)s).ToArray());
             if (LogoUrl is not null)
                 json["LogoUrl"] = LogoUrl;
-            if (Drops.Any())
-                json["Drops"] = new JsonArray(Drops.Select(i => (JsonNode)i).ToArray());
+            if (Families.Any())
+                json["Families"] = new JsonArray(Families.Select(family => (JsonNode)JsonValue.Create(family)!).ToArray());
             json["CacheTime"] = DateTime.Now; // 用于检查缓存时间
             return json;
         }
@@ -1539,7 +1561,7 @@ public static class ModComp
         {
             // --- 1. 获取版本描述 (核心算法优化) ---
             string gameVersionDescription;
-            if (Drops is null || !Drops.Any())
+            if (Families is null || !Families.Any())
             {
                 gameVersionDescription = Lang.Text("Download.Comp.Detail.CompItem.SnapshotOnly");
             }
@@ -1548,36 +1570,37 @@ public static class ModComp
                 var segments = new List<string>();
                 var isOld = false;
 
-                for (var i = 0; i < Drops.Count; i++)
+                var index = VanillaVersionIndex.Capture();
+                for (var i = 0; i < Families.Count; i++)
                 {
-                    int startDrop = Drops[i], endDrop = Drops[i];
+                    var startFamily = Families[i];
+                    var endFamily = Families[i];
 
-                    if (startDrop < 100)
+                    if (index?.IsFamilyOlderThan110(startFamily) == true)
                     {
                         if (segments.Any() && !isOld) break;
                         isOld = true;
                     }
 
                     // 查找连续的版本段
-                    for (var ii = i + 1; ii < Drops.Count; ii++)
+                    for (var ii = i + 1; ii < Families.Count; ii++)
                     {
-                        if (ModDownload.AllDrops is null || ModDownload.AllDrops.IndexOf(Drops[ii]) !=
-                            ModDownload.AllDrops.IndexOf(endDrop) + 1) break;
-                        endDrop = Drops[ii];
+                        if (ModDownload.AllFamilies is null || ModDownload.AllFamilies.IndexOf(Families[ii]) !=
+                            ModDownload.AllFamilies.IndexOf(endFamily) + 1) break;
+                        endFamily = Families[ii];
                         i = ii;
                     }
 
-                    // 将段转为文本的逻辑
-                    var startName = McInstanceInfo.DropToVersion(startDrop);
-                    var endName = McInstanceInfo.DropToVersion(endDrop);
+                    var startName = startFamily;
+                    var endName = endFamily;
 
-                    if (startDrop == endDrop)
+                    if (startFamily == endFamily)
                     {
                         segments.Add(startName);
                     }
-                    else if (ModDownload.AllDrops?.Any() == true && startDrop >= ModDownload.AllDrops.First())
+                    else if (ModDownload.AllFamilies is { Count: > 0 } allFamilies && allFamilies[0] == startFamily)
                     {
-                        if (endDrop < 100)
+                        if (index?.IsFamilyOlderThan110(endFamily) == true)
                         {
                             segments.Clear();
                             segments.Add(Lang.Text("Download.Comp.Detail.CompItem.AllVersions"));
@@ -1586,13 +1609,13 @@ public static class ModComp
 
                         segments.Add(endName + "+");
                     }
-                    else if (endDrop < 100)
+                    else if (index?.IsFamilyOlderThan110(endFamily) == true)
                     {
                         segments.Add(startName + "-");
                         break;
                     }
-                    else if (ModDownload.AllDrops is null ||
-                             ModDownload.AllDrops.IndexOf(endDrop) - ModDownload.AllDrops.IndexOf(startDrop) == 1)
+                    else if (ModDownload.AllFamilies is null ||
+                             ModDownload.AllFamilies.IndexOf(endFamily) - ModDownload.AllFamilies.IndexOf(startFamily) == 1)
                     {
                         segments.Add($"{startName}, {endName}");
                     }
@@ -1619,11 +1642,15 @@ public static class ModComp
             // 局部函数处理复杂的“任意”判断逻辑
             (string, string) GetMultiLoaderDesc()
             {
-                var newestDrop = Drops?.FirstOrDefault() ?? 9999;
+                var newestFamily = Families.Count > 0 ? Families[0] : null;
+                var before114 = newestFamily is not null &&
+                                VanillaVersionIndex.Capture()?.IsFamilyEntirelyBefore(newestFamily, "1.14") == true;
+                var before120 = newestFamily is not null &&
+                                VanillaVersionIndex.Capture()?.IsFamilyEntirelyBefore(newestFamily, "1.20") == true;
                 var isAny = ModLoaders.Contains(CompLoaderType.Forge) &&
-                            (newestDrop < 140 || ModLoaders.Contains(CompLoaderType.Fabric)) &&
-                            (newestDrop < 200 || ModLoaders.Contains(CompLoaderType.NeoForge)) &&
-                            (newestDrop < 140 || ModLoaders.Contains(CompLoaderType.Quilt) ||
+                            (before114 || ModLoaders.Contains(CompLoaderType.Fabric)) &&
+                            (before120 || ModLoaders.Contains(CompLoaderType.NeoForge)) &&
+                            (before114 || ModLoaders.Contains(CompLoaderType.Quilt) ||
                              Config.Download.Comp.IgnoreQuilt);
 
                 var joined = string.Join(" / ", modLoadersForDesc);
@@ -1847,7 +1874,7 @@ public static class ModComp
             if (ModLoaders.Count != project.ModLoaders.Count || ModLoaders.Except(project.ModLoaders).Any())
                 return false;
             // 若不为光影，则要求 MC 版本一致
-            if (Type != CompType.Shader && (Drops.Count != project.Drops.Count || Drops.Except(project.Drops).Any()))
+            if (Type != CompType.Shader && (Families.Count != project.Families.Count || Families.Except(project.Families).Any()))
                 return false;
             // 最近更新时间差距在一周以内
             if (LastUpdate is not null && project.LastUpdate is not null &&
@@ -2563,7 +2590,7 @@ public static class ModComp
 
             // 1.14 以下 Forge 筛选处理
             var isOldForgeRequest = request.modLoader == CompLoaderType.Forge &&
-                                    McInstanceInfo.VersionToDrop(request.gameVersion, true) < 140;
+                                    VanillaVersionIndex.IsBefore(request.gameVersion, "1.14");
             if (isOldForgeRequest) request.modLoader = CompLoaderType.Any;
             var curseForgeUrl = request.GetCurseForgeAddress();
             var modrinthUrl = request.GetModrinthAddress();

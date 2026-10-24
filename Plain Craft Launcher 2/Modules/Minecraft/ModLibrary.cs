@@ -163,7 +163,7 @@ public static class ModLibrary
                 // 根据 Inherit 获取最深层实例
                 var originalInstance = mcInstance;
                 // 1.17+ 的 Forge 不寻找 Inherit
-                if (!((mcInstance.Info.HasForge || mcInstance.Info.HasNeoForge) && mcInstance.Info.Drop >= 170))
+                if (!((mcInstance.Info.HasForge || mcInstance.Info.HasNeoForge) && VanillaVersionIndex.IsAtOrAfter(mcInstance.Info.VanillaName, "1.17")))
                     while (!string.IsNullOrEmpty(originalInstance.InheritInstanceName))
                     {
                         if ((originalInstance.InheritInstanceName ?? "") == (originalInstance.Name ?? ""))
