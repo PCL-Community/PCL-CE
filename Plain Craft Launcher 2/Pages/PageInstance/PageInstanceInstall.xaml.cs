@@ -98,7 +98,6 @@ public partial class PageInstanceInstall
 
     private void BtnSelectStart_Click(object sender, MouseButtonEventArgs mouseButtonEventArgs)
     {
-        if (!RestrictedFeaturePolicy.Check("minecraft-loader-install")) return;
         // Quilt 实例无法通过安装管线重装/修改（已移除 Quilt 安装支持）
         if (PageInstanceLeft.McInstance.Info.HasQuilt)
         {

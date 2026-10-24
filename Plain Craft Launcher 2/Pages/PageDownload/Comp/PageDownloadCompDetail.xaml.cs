@@ -62,7 +62,6 @@ public partial class PageDownloadCompDetail
     // 整合包安装
     public void Install_Click(MyListItem sender, EventArgs e)
     {
-        if (!RestrictedFeaturePolicy.Check("online-modpack-install")) return;
         try
         {
             // 获取基本信息

@@ -575,7 +575,6 @@ public partial class PageInstanceOverall
     // 补全文件
     private void BtnManageCheck_Click(object sender, MouseButtonEventArgs e)
     {
-        if (!RestrictedFeaturePolicy.Check("minecraft-repair")) return;
         try
         {
             // 忽略文件检查提示
@@ -642,7 +641,6 @@ public partial class PageInstanceOverall
     // 重置
     private void BtnManageRestore_Click(object sender, MouseButtonEventArgs e)
     {
-        if (!RestrictedFeaturePolicy.Check("minecraft-reset")) return;
         try
         {
             var currentVersion = PageInstanceLeft.McInstance.Info;
