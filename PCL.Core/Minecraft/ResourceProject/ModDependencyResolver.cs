@@ -81,7 +81,7 @@ public sealed record class IgnoredDependency
 public sealed class ModDependencyResolver
 {
     private const int MaxDepth = 32;
-    private static readonly StringComparer Comparer = StringComparer.OrdinalIgnoreCase;
+    private static readonly StringComparer _Comparer = StringComparer.OrdinalIgnoreCase;
 
     public ModDependencyResolutionResult Resolve(ModDependencyRequest request)
     {
@@ -91,13 +91,13 @@ public sealed class ModDependencyResolver
         var context = new ResolutionContext(request);
         foreach (var dependency in request.RequiredDependencies)
         {
-            ResolveDependency(context, dependency, 0);
+            _ResolveDependency(context, dependency, 0);
         }
 
         return context.Result;
     }
 
-    private static void ResolveDependency(ResolutionContext context, ModDependencyReference dependency, int depth)
+    private static void _ResolveDependency(ResolutionContext context, ModDependencyReference dependency, int depth)
     {
         if (string.IsNullOrWhiteSpace(dependency.ProjectId) || string.IsNullOrWhiteSpace(dependency.Source))
         {
@@ -135,7 +135,7 @@ public sealed class ModDependencyResolver
             return;
         }
 
-        var selectedFile = SelectBestFile(project.Files, context.TargetMinecraftVersion, context.TargetLoaders);
+        var selectedFile = _SelectBestFile(project.Files, context.TargetMinecraftVersion, context.TargetLoaders);
         if (selectedFile is null)
         {
             context.AddUnresolved(project.ProjectId, project.Source, "No compatible file was found.");
@@ -146,27 +146,27 @@ public sealed class ModDependencyResolver
 
         foreach (var nestedDependency in selectedFile.RequiredDependencies)
         {
-            ResolveDependency(context, nestedDependency, depth + 1);
+            _ResolveDependency(context, nestedDependency, depth + 1);
         }
     }
 
-    private static ModDependencyFile? SelectBestFile(
+    private static ModDependencyFile? _SelectBestFile(
         IEnumerable<ModDependencyFile> files,
         string targetMinecraftVersion,
         HashSet<string> targetLoaders)
     {
         return files
-            .Where(file => IsCompatibleFile(file, targetMinecraftVersion, targetLoaders))
-            .OrderByDescending(file => HasExactGameVersionMatch(file, targetMinecraftVersion))
-            .ThenByDescending(file => HasLoaderMatch(file, targetLoaders))
-            .ThenBy(file => NormalizeReleaseType(file.ReleaseType))
+            .Where(file => _IsCompatibleFile(file, targetMinecraftVersion, targetLoaders))
+            .OrderByDescending(file => _HasExactGameVersionMatch(file, targetMinecraftVersion))
+            .ThenByDescending(file => _HasLoaderMatch(file, targetLoaders))
+            .ThenBy(file => _NormalizeReleaseType(file.ReleaseType))
             .ThenByDescending(file => file.ReleaseDate)
             .FirstOrDefault();
     }
 
-    private static bool IsCompatibleFile(ModDependencyFile file, string targetMinecraftVersion, HashSet<string> targetLoaders)
+    private static bool _IsCompatibleFile(ModDependencyFile file, string targetMinecraftVersion, HashSet<string> targetLoaders)
     {
-        if (!HasExactGameVersionMatch(file, targetMinecraftVersion))
+        if (!_HasExactGameVersionMatch(file, targetMinecraftVersion))
         {
             return false;
         }
@@ -184,12 +184,12 @@ public sealed class ModDependencyResolver
         return file.Loaders.Any(loader => targetLoaders.Contains(loader));
     }
 
-    private static bool HasExactGameVersionMatch(ModDependencyFile file, string targetMinecraftVersion)
+    private static bool _HasExactGameVersionMatch(ModDependencyFile file, string targetMinecraftVersion)
     {
-        return file.GameVersions.Any(version => Comparer.Equals(version, targetMinecraftVersion));
+        return file.GameVersions.Any(version => _Comparer.Equals(version, targetMinecraftVersion));
     }
 
-    private static bool HasLoaderMatch(ModDependencyFile file, HashSet<string> targetLoaders)
+    private static bool _HasLoaderMatch(ModDependencyFile file, HashSet<string> targetLoaders)
     {
         if (targetLoaders.Count == 0)
         {
@@ -199,7 +199,7 @@ public sealed class ModDependencyResolver
         return file.Loaders.Any(loader => targetLoaders.Contains(loader));
     }
 
-    private static int NormalizeReleaseType(int releaseType)
+    private static int _NormalizeReleaseType(int releaseType)
     {
         return releaseType switch
         {
@@ -212,20 +212,20 @@ public sealed class ModDependencyResolver
 
     private sealed class ResolutionContext
     {
-        private readonly HashSet<string> _installDedupe = new(Comparer);
-        private readonly HashSet<string> _unresolvedDedupe = new(Comparer);
-        private readonly HashSet<string> _satisfiedDedupe = new(Comparer);
+        private readonly HashSet<string> _installDedupe = new(_Comparer);
+        private readonly HashSet<string> _unresolvedDedupe = new(_Comparer);
+        private readonly HashSet<string> _satisfiedDedupe = new(_Comparer);
 
         public ResolutionContext(ModDependencyRequest request)
         {
             Request = request;
             Result = new ModDependencyResolutionResult();
-            Visited = new HashSet<string>(Comparer);
+            Visited = new HashSet<string>(_Comparer);
             TargetMinecraftVersion = request.TargetMinecraftVersion ?? string.Empty;
             TargetLoaders = new HashSet<string>(
                 request.TargetLoaders.Where(static loader => !string.IsNullOrWhiteSpace(loader)),
-                Comparer);
-            LoaderSetKey = string.Join(",", TargetLoaders.OrderBy(static loader => loader, Comparer));
+                _Comparer);
+            _LoaderSetKey = string.Join(",", TargetLoaders.OrderBy(static loader => loader, _Comparer));
         }
 
         public ModDependencyRequest Request { get; }
@@ -233,25 +233,25 @@ public sealed class ModDependencyResolver
         public HashSet<string> Visited { get; }
         public string TargetMinecraftVersion { get; }
         public HashSet<string> TargetLoaders { get; }
-        private string LoaderSetKey { get; }
+        private string _LoaderSetKey { get; }
 
         public string GetVisitedKey(string projectId, string source)
         {
-            return $"{source}:{projectId}:{TargetMinecraftVersion}:{LoaderSetKey}";
+            return $"{source}:{projectId}:{TargetMinecraftVersion}:{_LoaderSetKey}";
         }
 
         public bool IsInstalledCompatible(string projectId, string source)
         {
             return Request.InstalledMods.Any(installed =>
-                Comparer.Equals(installed.SourceProjectId, projectId)
-                && Comparer.Equals(installed.Source, source)
-                && installed.GameVersions.Any(version => Comparer.Equals(version, TargetMinecraftVersion))
-                && LoadersCompatible(installed.Loaders));
+                _Comparer.Equals(installed.SourceProjectId, projectId)
+                && _Comparer.Equals(installed.Source, source)
+                && installed.GameVersions.Any(version => _Comparer.Equals(version, TargetMinecraftVersion))
+                && _LoadersCompatible(installed.Loaders));
         }
 
         public void AddInstall(ModDependencyProject project, ModDependencyFile file)
         {
-            var dedupeKey = GetProjectKey(project.ProjectId, project.Source);
+            var dedupeKey = _GetProjectKey(project.ProjectId, project.Source);
             if (!_installDedupe.Add(dedupeKey))
             {
                 return;
@@ -268,7 +268,7 @@ public sealed class ModDependencyResolver
 
         public void AddUnresolved(string projectId, string source, string reason)
         {
-            var dedupeKey = GetProjectKey(projectId, source);
+            var dedupeKey = _GetProjectKey(projectId, source);
             if (!_unresolvedDedupe.Add(dedupeKey))
             {
                 return;
@@ -284,7 +284,7 @@ public sealed class ModDependencyResolver
 
         public void AddSatisfied(string projectId, string source, string reason)
         {
-            var dedupeKey = GetProjectKey(projectId, source);
+            var dedupeKey = _GetProjectKey(projectId, source);
             if (!_satisfiedDedupe.Add(dedupeKey))
             {
                 return;
@@ -298,7 +298,7 @@ public sealed class ModDependencyResolver
             });
         }
 
-        private bool LoadersCompatible(List<string> installedLoaders)
+        private bool _LoadersCompatible(List<string> installedLoaders)
         {
             if (TargetLoaders.Count == 0 || installedLoaders.Count == 0)
             {
@@ -308,7 +308,7 @@ public sealed class ModDependencyResolver
             return installedLoaders.Any(loader => TargetLoaders.Contains(loader));
         }
 
-        private static string GetProjectKey(string projectId, string source)
+        private static string _GetProjectKey(string projectId, string source)
         {
             return $"{source}:{projectId}";
         }
