@@ -2851,6 +2851,16 @@ public static class ModBase
         {
             location = ShortenPath(location.Replace("/", @"\").Trim(' ', '"'));
             Log("[System] 正在打开资源管理器：" + location);
+            if (!location.EndsWithF(@"\") && !File.Exists(location) && !Directory.Exists(location))
+            {
+                var parent = GetPathFromFullPath(location);
+                if (Directory.Exists(parent))
+                {
+                    Log("[System] 目标不存在，回退到所在文件夹：" + parent, LogLevel.Developer);
+                    ShellOnly(parent);
+                    return;
+                }
+            }
             if (location.EndsWithF(@"\"))
                 ShellOnly(location);
             else
