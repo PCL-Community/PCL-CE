@@ -52,6 +52,7 @@ public partial class PageInstanceSetup
         TextAdvanceClasspathHead.TextChanged += TextBoxChange;
         TextAdvanceRun.TextChanged += TextAdvanceRun_TextChanged;
         CheckAdvanceRunWait.Change += CheckBoxChange;
+        CheckAdvanceDisableModUpdate.Change += CheckBoxChange;
         CheckAdvanceJava.Change += CheckBoxChange;
         CheckAdvanceAssetsV2.Change += CheckBoxChange;
         CheckAdvanceUseProxyV2.Change += CheckBoxChange;
@@ -128,6 +129,7 @@ public partial class PageInstanceSetup
             TextAdvanceRun.Text = Config.Instance.PreLaunchCommand[PageInstanceLeft.McInstance.PathInstance];
             CheckAdvanceRunWait.Checked = Config.Instance.PreLaunchCommandWait[PageInstanceLeft.McInstance.PathInstance];
             CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Instance.DisableLwjglUnsafeAgent[PageInstanceLeft.McInstance.PathInstance];
+            CheckAdvanceDisableModUpdate.Checked = Config.Instance.DisableModUpdate[PageInstanceLeft.McInstance.PathInstance];
             if (Config.Instance.AssetVerifySolutionV1[PageInstanceLeft.McInstance.PathInstance] == 2)
             {
                 ModBase.Log("[Setup] 已迁移老版本的关闭文件校验设置");

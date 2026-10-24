@@ -627,6 +627,7 @@ public static partial class Config
         [ConfigItem<bool>("VersionAdvanceDisableLwjglUnsafeAgent", false)] public partial ArgConfig<bool> DisableLwjglUnsafeAgent { get; }
         [ConfigItem<bool>("VersionAdvanceUseProxyV2", false)] public partial ArgConfig<bool> UseProxy { get; }
         [ConfigItem<bool>("VersionAdvanceDisableLF", false)] public partial ArgConfig<bool> DisableLF { get; }
+        [ConfigItem<bool>("VersionAdvanceDisableModUpdate", false)] public partial ArgConfig<bool> DisableModUpdate { get; }
         [ConfigItem<bool>("VersionUseDebugLog4j2Config", false)] public partial ArgConfig<bool> UseDebugLof4j2Config { get; }
         [ConfigItem<int>("VersionRamType", 2)] public partial ArgConfig<int> MemorySolution { get; }
         [ConfigItem<int>("VersionRamCustom", 15)] public partial ArgConfig<int> CustomMemorySize { get; }

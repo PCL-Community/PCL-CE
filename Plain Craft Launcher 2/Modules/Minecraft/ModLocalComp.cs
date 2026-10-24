@@ -2236,7 +2236,13 @@ public static class ModLocalComp
         /// <summary>
         ///     该文件是否可以更新。
         /// </summary>
-        public bool CanUpdate => !Config.Preference.Hide.FunctionModUpdate && changelogUrls.Any();
+        public bool CanUpdate => !Config.Preference.Hide.FunctionModUpdate && !IsUpdateDisabled && changelogUrls.Any();
+
+        /// <summary>
+        ///     当前实例是否禁止更新资源。
+        /// </summary>
+        private static bool IsUpdateDisabled =>
+            PageInstanceLeft.McInstance is { } instance && Config.Instance.DisableModUpdate[instance.PathInstance];
 
         /// <summary>
         ///     获取用于 CurseForge 信息获取的 Hash 值（MurmurHash2）。

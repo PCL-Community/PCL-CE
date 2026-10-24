@@ -386,6 +386,11 @@
                                           Visibility="Collapsed"
                                           Text="{DynamicResource Setup.Launch.Advanced.PreLaunchCommand.Wait}" />
                         <local:MyCheckBox Height="28"
+                                          Text="{DynamicResource Instance.Setup.Advanced.DisableModUpdate}"
+                                          x:Name="CheckAdvanceDisableModUpdate"
+                                          Tag="VersionAdvanceDisableModUpdate"
+                                          ToolTip="{DynamicResource Setup.Ui.FeatureHide.Item.ModUpdate.ToolTip}" />
+                        <local:MyCheckBox Height="28"
                                           Text="{DynamicResource Instance.Setup.Advanced.IgnoreJavaCompatibility}"
                                           x:Name="CheckAdvanceJava"
                                           Tag="VersionAdvanceJava"
