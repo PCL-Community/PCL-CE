@@ -3002,8 +3002,6 @@
     <sys:String x:Key="Setup.Misc.System.ImportSettings.SelectTitle">选择配置文件</sys:String>
     <sys:String x:Key="Setup.Misc.System.ImportSettings.Success.Message">配置导入成功！请重启 PCL CE 以应用配置……</sys:String>
     <sys:String x:Key="Setup.Misc.System.ImportSettings.Success.Restart">重启</sys:String>
-    <sys:String x:Key="Setup.Misc.System.MaxFps">最高动画帧率</sys:String>
-    <sys:String x:Key="Setup.Misc.System.MaxFps.ToolTip">如果你禁用了硬件加速，那么建议你调低最高动画帧率以防止过多的资源占用</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxLogLines">实时日志行数</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxLogLines.ToolTip">实时日志功能中最大显示行数，超过该值会自动删除旧的日志。</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxLogLines.Unlimited">无限制</sys:String>

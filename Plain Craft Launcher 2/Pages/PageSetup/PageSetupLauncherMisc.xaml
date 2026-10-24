@@ -18,8 +18,6 @@
                         <RowDefinition Height="9" />
                         <RowDefinition Height="28" />
                         <RowDefinition Height="5" />
-                        <RowDefinition Height="28" />
-                        <RowDefinition Height="5" />
                         <RowDefinition Height="20" />
                         <RowDefinition Height="8" />
                         <RowDefinition Height="Auto" />
@@ -33,19 +31,13 @@
                         <local:MyComboBoxItem Content="{DynamicResource Setup.Misc.System.Announcement.ImportantOnly}" />
                         <local:MyComboBoxItem Content="{DynamicResource Setup.Misc.System.Announcement.Disabled}" />
                     </local:MyComboBox>
-                    <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Misc.System.MaxFps}"
+                    <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Misc.System.MaxLogLines}"
                                Margin="0,0,25,0" />
-                    <local:MySlider x:Name="SliderAniFPS" Grid.Row="2" Tag="UiAniFPS" MaxValue="59" Value="59"
-                                    Grid.Column="1"
-                                     ToolTip="{DynamicResource Setup.Misc.System.MaxFps.ToolTip}"
-                                    Change="SliderChange" />
-                    <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Misc.System.MaxLogLines}"
-                               Margin="0,0,25,0" />
-                    <local:MySlider x:Name="SliderMaxLog" Grid.Row="4" Tag="SystemMaxLog" MaxValue="29" Value="13"
+                    <local:MySlider x:Name="SliderMaxLog" Grid.Row="2" Tag="SystemMaxLog" MaxValue="29" Value="13"
                                     Grid.Column="1"
                                      ToolTip="{DynamicResource Setup.Misc.System.MaxLogLines.ToolTip}"
                                     Change="SliderChange" />
-                    <Grid Grid.Row="6" Grid.ColumnSpan="5">
+                    <Grid Grid.Row="4" Grid.ColumnSpan="5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="CheckBox" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="CheckBox" />
@@ -59,7 +51,7 @@
                         <local:MyCheckBox Grid.Row="0" Grid.Column="1" Text="{DynamicResource Setup.Misc.System.Telemetry}" x:Name="CheckSystemTelemetry" Tag="SystemTelemetry" Change="CheckBoxChange"
                           ToolTip="{DynamicResource Setup.Misc.System.Telemetry.ToolTip}"/>
                     </Grid>
-                    <Grid Grid.Row="8" Grid.ColumnSpan="5">
+                    <Grid Grid.Row="6" Grid.ColumnSpan="5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
