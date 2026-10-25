@@ -50,7 +50,18 @@ namespace PCL.Core.UI
 
         internal static void DrawVisual(DrawingContext drawingContext, Visual visual, Point relatedXY)
         {
-            var visualBrush = new VisualBrush(visual);
+            // 不拉伸, 按原尺寸居中绘制.
+            // VisualBrush 默认 Stretch=Fill, 会把合成器算出的内容包围盒拉伸到目标矩形;
+            // 而带 Effect(如 DropShadowEffect) 的元素在合成器里的包围盒含有效果外扩的边距,
+            // 托管侧 GetContentBounds 却不含, 二者尺寸不一致时内容就会被压扁
+            // (右下角圆形的附加按钮在弹窗遮罩里变成竖向椭圆, 见 PCL-CE#3717).
+            // 外扩是对称的, 所以用 1:1 + 居中对齐即可落回原位; 无 Effect 的元素二者一致, 行为不变.
+            var visualBrush = new VisualBrush(visual)
+            {
+                Stretch = Stretch.None,
+                AlignmentX = AlignmentX.Center,
+                AlignmentY = AlignmentY.Center
+            };
             var visualOffset = (Vector)_OffsetOfVisual.GetValue(visual)!;
 
             _MethodGetContentBounds.Invoke(visualBrush, out var contentBounds);
