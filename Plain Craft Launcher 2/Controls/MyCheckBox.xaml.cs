@@ -292,7 +292,7 @@ public partial class MyCheckBox
 
     private void Checkbox_IsEnabledChanged()
     {
-        if (IsLoaded && ModAnimation.AniControlEnabled == 0) // 防止默认属性变更触发动画
+        if (IsLoaded && !ModAnimation.AniExitsAnyControl()) // 防止默认属性变更触发动画
         {
             // 有动画
             if (IsEnabled)

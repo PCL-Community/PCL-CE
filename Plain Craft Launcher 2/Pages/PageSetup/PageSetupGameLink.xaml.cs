@@ -34,9 +34,9 @@ public partial class PageSetupGameLink
             return;
         isLoaded = true;
 
-        ModAnimation.AniControlEnabled += 1;
+        ModAnimation.AniBeginControl();
         Reload();
-        ModAnimation.AniControlEnabled -= 1;
+        ModAnimation.AniEndControl();
     }
 
     public void Reload()
@@ -100,20 +100,20 @@ public partial class PageSetupGameLink
     private void TextBoxChange(object senderRaw, TextChangedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Text);
     }
 
     private static void ComboBoxChange(MyComboBox sender, object e)
     {
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
@@ -122,7 +122,7 @@ public partial class PageSetupGameLink
 
     private void LinkProtocolPerferenceChange(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             try
             {
                 var selection = (LinkProtocolPreference)((MyComboBox)sender).SelectedIndex;

@@ -201,8 +201,8 @@ public partial class FormMain
         hwndSource.AddHook(WndProc);
         ModAnimation.AniStart(new[]
         {
-            ModAnimation.AaCode(() => ModAnimation.AniControlEnabled -= 1, 50),
-            ModAnimation.AaOpacity(this, Config.Preference.Theme.WindowOpacity / 1000d + 0.4d, 250, 100),
+            ModAnimation.AaCode(() => ModAnimation.AniEndControl(), 50),
+            ModAnimation.AaOpacity(this, Config.Preference.Theme.WindowOpacity / 1000d + 0.4d - Opacity, 250, 100),
             ModAnimation.AaDouble(i => TransformPos.Y += (double)i, -TransformPos.Y, 600,
                 100, new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
             ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
@@ -425,10 +425,10 @@ public partial class FormMain
         var h = windowBounds.Height;
 
         // 判定是否命中偏移后的热区
-        var inLeft = relX >= offsetPxX && relX <= offsetPxX + hitWidthPxX;
-        var inRight = relX <= w - offsetPxX && relX >= w - offsetPxX - hitWidthPxX;
-        var inTop = relY >= offsetPxY && relY <= offsetPxY + hitWidthPxY;
-        var inBottom = relY <= h - offsetPxY && relY >= h - offsetPxY - hitWidthPxY;
+        var inLeft = relX >= offsetPxX && relX <= offsetPxX + hitWidthPxX             && (relY >= offsetPxY && relY <= h - offsetPxY);
+        var inRight = relX <= w - offsetPxX && relX >= w - offsetPxX - hitWidthPxX    && (relY >= offsetPxY && relY <= h - offsetPxY);
+        var inTop = relY >= offsetPxY && relY <= offsetPxY + hitWidthPxY              && (relX >= offsetPxX && relX <= w - offsetPxX);
+        var inBottom = relY <= h - offsetPxY && relY >= h - offsetPxY - hitWidthPxY   && (relX >= offsetPxX && relX <= w - offsetPxX);
 
         handled = true; // 接管该区域的消息
 
@@ -577,7 +577,7 @@ public partial class FormMain
         // 关闭联机大厅
         // Await LobbyController.CloseAsync().ConfigureAwait(False)
         ModBase.isProgramEnded = true;
-        ModAnimation.AniControlEnabled += 1;
+        ModAnimation.AniBeginControl();
         if (UpdateManager.isUpdateWaitingRestart && !isUpdating)
             UpdateManager.UpdateRestart(false, false);
         if (returnCode == ModBase.ProcessReturnValues.Exception)
@@ -1783,7 +1783,7 @@ public partial class FormMain
     {
         if (pageCurrent == stack && (PageCurrentSub == subType || (int)subType == -1))
             return;
-        ModAnimation.AniControlEnabled += 1;
+        ModAnimation.AniBeginControl();
         try
         {
             #region 子页面处理
@@ -1953,7 +1953,7 @@ public partial class FormMain
         }
         finally
         {
-            ModAnimation.AniControlEnabled -= 1;
+            ModAnimation.AniEndControl();
         }
     }
 
@@ -1961,7 +1961,7 @@ public partial class FormMain
     {
         ModAnimation.AniStop("FrmMain LeftChange");
         ModAnimation.AniStop("PageLeft PageChange"); // 停止左边栏变更导致的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
-        ModAnimation.AniControlEnabled += 1;
+        ModAnimation.AniBeginControl();
         // 清除新页面关联性
         if (targetLeft.Parent is not null)
             targetLeft.SetValue(ContentPresenter.ContentProperty, null);
@@ -1972,18 +1972,18 @@ public partial class FormMain
         // 触发页面通用动画
         ((MyPageLeft)PanMainLeft.Child).TriggerHideAnimation();
         ((MyPageRight)PanMainRight.Child).PageOnExit();
-        ModAnimation.AniControlEnabled -= 1;
+        ModAnimation.AniEndControl();
         // 执行动画
         ModAnimation.AniStart(new[]
         {
             ModAnimation.AaCode(() =>
             {
-                ModAnimation.AniControlEnabled += 1;
+                ModAnimation.AniBeginControl();
                 // 把新页面添加进容器
                 PanMainLeft.Child = pageLeft;
                 pageLeft.Opacity = 0d;
                 PanMainLeft.Background = null;
-                ModAnimation.AniControlEnabled -= 1;
+                ModAnimation.AniEndControl();
                 ModBase.RunInUi(() => PanMainLeft_Resize(PanMainLeft.ActualWidth), true);
             }, 110),
             ModAnimation.AaCode(() =>
@@ -1997,13 +1997,13 @@ public partial class FormMain
         {
             ModAnimation.AaCode(() =>
             {
-                ModAnimation.AniControlEnabled += 1;
+                ModAnimation.AniBeginControl();
                 ((MyPageRight)PanMainRight.Child).PageOnForceExit();
                 // 把新页面添加进容器
                 PanMainRight.Child = pageRight;
                 pageRight.Opacity = 0d;
                 PanMainRight.Background = null;
-                ModAnimation.AniControlEnabled -= 1;
+                ModAnimation.AniEndControl();
                 ModBase.RunInUi(() => BtnExtraBack.ShowRefresh(), true);
             }, 110),
             ModAnimation.AaCode(() =>
@@ -2053,7 +2053,7 @@ public partial class FormMain
     private void PanMainLeft_Resize(double newWidth)
     {
         var delta = newWidth - RectLeftBackground.Width;
-        if (Math.Abs(delta) > 0.1d && ModAnimation.AniControlEnabled == 0)
+        if (Math.Abs(delta) > 0.1d && !ModAnimation.AniExitsAnyControl())
         {
             if (PanMain.Opacity < 0.1d)
                 PanMainLeft.IsHitTestVisible = false; // 避免左边栏指向背景未能完美覆盖左边栏

@@ -196,9 +196,10 @@ public partial class MyButton
 
     private void Button_MouseLeave()
     {
-        ModAnimation.AniStart(
-            ModAnimation.AaColor(PanFore, BackgroundProperty, "ColorBrushHalfWhite", animationColorOut),
-            "MyButton Background " + Uuid);
+        if (!IsMouseOver)
+            ModAnimation.AniStart(
+                ModAnimation.AaColor(PanFore, BackgroundProperty, "ColorBrushHalfWhite", animationColorOut),
+                "MyButton Background " + Uuid);
         if (!isMouseDown)
             return;
         isMouseDown = false;

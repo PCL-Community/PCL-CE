@@ -465,16 +465,36 @@ public static partial class ModAnimation
     /// <summary>
     ///     控件动画执行是否开启。先 +1，再 -1。
     /// </summary>
-    public static int AniControlEnabled
+    private static int _AniControlEnabled = 0;
+    public static void AniBeginControl()
     {
-        get => field;
-        set
-        {
-            lock (aniControlEnabledLock)
-            {
-                field = value;
-            }
-        }
+        Interlocked.Add(ref _AniControlEnabled, 1);
+    }
+    public static void AniEndControl()
+    {
+        Interlocked.Add(ref _AniControlEnabled, -1);
+    }
+    public static bool AniExitsAnyControl()
+    {
+        return _AniControlEnabled != 0;
+    }
+    /// <summary>
+    /// Reset to target value and return rest value
+    /// </summary>
+    /// <param name="resetValue"></param>
+    /// <returns></returns>
+    public static int AniResetControl(int resetValue)
+    {
+        return Interlocked.Exchange(ref _AniControlEnabled, resetValue);
+    }
+    /// <summary>
+    /// Restore the value reset before
+    /// </summary>
+    /// <param name="restoreValue"></param>
+    /// <returns></returns>
+    public static int AniRestoreControl(int restoreValue)
+    {
+        return Interlocked.Add(ref _AniControlEnabled, restoreValue);
     }
 
     #endregion

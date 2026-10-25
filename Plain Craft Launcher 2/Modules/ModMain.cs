@@ -767,7 +767,7 @@ public static class ModMain
             if (frmLaunchLeft is null || frmLaunchLeft.AprilPosTrans is null || frmMain.lastMouseArg is null)
                 return;
             if (isAprilGiveup || frmMain.pageCurrent != FormMain.PageType.Launch ||
-                ModAnimation.AniControlEnabled != 0 || !frmLaunchLeft.BtnLaunch.IsLoaded)
+                ModAnimation.AniExitsAnyControl() || !frmLaunchLeft.BtnLaunch.IsLoaded)
                 return;
 
             // 计算是否空闲

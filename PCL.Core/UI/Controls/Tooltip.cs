@@ -220,9 +220,10 @@ public static class Tooltip
     {
         if (!_running || s is not FrameworkElement fe || !ReferenceEquals(fe, _target)) return;
 
-        if (_PointInside(fe, Mouse.GetPosition(fe)))
+        if (fe.IsMouseOver)
         {
-            e.Handled = true;
+            if (Mouse.LeftButton == MouseButtonState.Pressed)
+                e.Handled = true;
             return;
         }
 

@@ -20,14 +20,14 @@ public partial class PageSetupUpdate
 
     private void Init()
     {
-        ModAnimation.AniControlEnabled += 1;
+        ModAnimation.AniBeginControl();
         TextMirrorCDK.Password = Config.Update.MirrorChyanKey;
 
         ComboSystemUpdateChannel.SelectedIndex = (int)Config.Update.UpdateChannel;
         ComboSystemUpdateMode.SelectedIndex = (int)Config.Update.UpdateMode;
 
         TextCurrentVersion.Text = "PCL CE " + VersionNameFormat(ModBase.versionBaseName);
-        ModAnimation.AniControlEnabled -= 1;
+        ModAnimation.AniEndControl();
         CheckUpdate();
     }
 
@@ -174,13 +174,13 @@ public partial class PageSetupUpdate
 
     private void ComboSystemUpdateMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             Config.Update.UpdateMode = (LauncherAutoUpdateBehavior)ComboSystemUpdateMode.SelectedIndex;
     }
 
     private void ComboSystemUpdateBranch_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniControlEnabled != 0)
+        if (ModAnimation.AniExitsAnyControl())
             return;
 
         var isCancelled = false;
@@ -234,9 +234,9 @@ public partial class PageSetupUpdate
 
         if (isCancelled)
         {
-            ModAnimation.AniControlEnabled += 1;
+            ModAnimation.AniBeginControl();
             ComboSystemUpdateChannel.SelectedItem = e.RemovedItems[0];
-            ModAnimation.AniControlEnabled -= 1;
+            ModAnimation.AniEndControl();
         }
         else
         {

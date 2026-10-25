@@ -35,9 +35,9 @@ public partial class PageSetupLaunch
             return;
         isLoad = true;
 
-        ModAnimation.AniControlEnabled += 1;
+        ModAnimation.AniBeginControl();
         Reload();
-        ModAnimation.AniControlEnabled -= 1;
+        ModAnimation.AniEndControl();
 
         // 内存自动刷新
         var timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 0, 1) };
@@ -138,35 +138,35 @@ public partial class PageSetupLaunch
     {
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
-        if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
+        if (!ModAnimation.AniExitsAnyControl() && gotCfg.Length >= 2)
             SetByTag(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
     private void TextBoxChange(object senderRaw, RoutedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Text);
     }
 
     private void TextArgumentTitle_OnTextChanged(object senderRaw, TextChangedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Text);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
         {
             var senderTag = sender.Tag?.ToString();
             SetByTag(senderTag,
@@ -178,7 +178,7 @@ public partial class PageSetupLaunch
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!ModAnimation.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Checked);
         // 锁定内存状态变化时同步刷新初始内存滑块的可用状态
         if (ReferenceEquals(sender, CheckAdvanceLockMemory))
@@ -369,7 +369,7 @@ public partial class PageSetupLaunch
             right = 1;
         if (right == 0)
         {
-            if (ModAnimation.AniControlEnabled == 0 &&
+            if (!ModAnimation.AniExitsAnyControl() &&
                 (ramTextRight != right || ModAnimation.AniIsRun("SetupLaunch Ram TextRight")))
             {
                 // 需要动画
@@ -390,7 +390,7 @@ public partial class PageSetupLaunch
                 LabRamGameTitle.Margin = new Thickness(totalWidth - labGameTitleWidth, 0d, 0d, 5d);
             }
         }
-        else if (ModAnimation.AniControlEnabled == 0 &&
+        else if (!ModAnimation.AniExitsAnyControl() &&
                  (ramTextRight != right || ModAnimation.AniIsRun("SetupLaunch Ram TextRight")))
         {
             // 需要动画
@@ -568,7 +568,7 @@ public partial class PageSetupLaunch
     private void ComboArgumentVisibie_SelectionChanged(object sender, SelectionChangedEventArgs sizeChangedEventArgs)
     {
         ComboChange(sender, sizeChangedEventArgs);
-        if (ModAnimation.AniControlEnabled != 0)
+        if (ModAnimation.AniExitsAnyControl())
             return;
         if (ComboArgumentVisibie.SelectedIndex == 0)
             if (ModMain.MyMsgBox(
@@ -582,7 +582,7 @@ public partial class PageSetupLaunch
     // 实例隔离提示
     private void ComboArgumentIndie_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniControlEnabled != 0)
+        if (ModAnimation.AniExitsAnyControl())
             return;
         ModMain.MyMsgBox(Lang.Text("Setup.Launch.Options.InstanceIsolation.DefaultPolicyHint"));
     }
@@ -614,7 +614,7 @@ public partial class PageSetupLaunch
 
     private void ComboAdvanceRenderer_SelectionChanged(MyComboBox sender, object e)
     {
-        if (ModAnimation.AniControlEnabled != 0)
+        if (ModAnimation.AniExitsAnyControl())
             return;
         if (!States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0)
         {

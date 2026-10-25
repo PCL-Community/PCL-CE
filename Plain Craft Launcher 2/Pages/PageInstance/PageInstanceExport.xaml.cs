@@ -72,10 +72,10 @@ public partial class PageInstanceExport : IRefreshable
 
     private void PageInstanceExport_Loaded()
     {
-        ModAnimation.AniControlEnabled += 1;
+        ModAnimation.AniBeginControl();
         if ((currentVersion ?? "") != (PageInstanceLeft.McInstance.PathInstance ?? ""))
             RefreshAll(); // 切换到了另一个实例，重置页面
-        ModAnimation.AniControlEnabled -= 1;
+        ModAnimation.AniEndControl();
     }
 
     public void RefreshAll()
