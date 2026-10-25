@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Input;
@@ -51,6 +51,7 @@ public partial class PageToolsGameLink
         LobbyService.OnServerShutDown += OnServerShuttedDownHandler;
         LobbyService.OnServerStarted += OnServerStartedHandler;
         LobbyService.OnServerException += OnServerExceptionHandler;
+        LobbyService.StateChanged += OnLobbyStateChanged;
 
         if (lobbyAnnouncementLoader is null)
         {
@@ -181,7 +182,20 @@ public partial class PageToolsGameLink
             LabFinishQuality.Text = Lang.Text("Tools.GameLink.Finish.Connected");
             LabFinishPing.Text = Lang.Text("Tools.GameLink.Finish.PingMs", latency);
             LabConnectType.Text = Lang.Text("Tools.GameLink.Finish.Unavailable");
+            RefreshVirtualIpButtonVisibility();
         });
+    }
+
+    private void OnLobbyStateChanged(LobbyState oldState, LobbyState newState)
+    {
+        ModBase.RunInUi(RefreshVirtualIpButtonVisibility);
+    }
+
+    private void RefreshVirtualIpButtonVisibility()
+    {
+        var ready = LobbyService.CurrentState == LobbyState.Connected
+                    && LobbyInfoProvider.McForward?.LocalEndPoint?.Port is > 0;
+        BtnFinishCopyIp.Visibility = ready ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void OnUserStopGame()
@@ -226,6 +240,7 @@ public partial class PageToolsGameLink
             }
 
             LabFinishQuality.Text = Lang.Text("Tools.GameLink.Finish.Connected");
+            RefreshVirtualIpButtonVisibility();
             CardPlayerList.Title = Lang.Text("Tools.GameLink.Member.ListCount", LobbyService.Players.Count);
         });
     }
@@ -907,7 +922,7 @@ public partial class PageToolsGameLink
             LabConnectUserName.Text = username;
             LabConnectUserType.Text = Lang.Text("Tools.GameLink.Finish.Guest");
             LabFinishId.Text = id;
-            BtnFinishCopyIp.Visibility = Visibility.Visible;
+            BtnFinishCopyIp.Visibility = Visibility.Collapsed;
             CurrentSubpage = Subpages.PanFinish;
         });
 
@@ -1040,7 +1055,11 @@ public partial class PageToolsGameLink
     private void BtnFinishCopyIp_Click(object sender, ModBase.RouteEventArgs routeEventArgs)
     {
         var port = LobbyInfoProvider.McForward?.LocalEndPoint?.Port;
-        if (port == null) return;
+        if (port is not > 0 || LobbyService.CurrentState != LobbyState.Connected)
+        {
+            HintService.Hint(Lang.Text("Tools.GameLink.CopyIp.NotReady"), HintType.Error);
+            return;
+        }
         var ip = $"127.0.0.1:{port}";
         ModMain.MyMsgBox(Lang.Text("Tools.GameLink.CopyIp.Message", ip),
             Lang.Text("Tools.GameLink.CopyIp.Title"),
@@ -1081,6 +1100,7 @@ public partial class PageToolsGameLink
             CurrentSubpage == Subpages.PanSelect ? Visibility.Visible : Visibility.Collapsed;
         ModMain.frmToolsGameLink.PanFinish.Visibility =
             CurrentSubpage == Subpages.PanFinish ? Visibility.Visible : Visibility.Collapsed;
+        RefreshVirtualIpButtonVisibility();
     }
 
     #endregion

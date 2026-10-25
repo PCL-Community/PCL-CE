@@ -26,6 +26,11 @@ public sealed class TcpForwardWorker : IDisposable
 
     public IPEndPoint? LocalEndPoint { get; private set; }
 
+    private readonly TaskCompletionSource<IPEndPoint> _boundTcs =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    public Task<IPEndPoint> BoundAddress => _boundTcs.Task;
+
     public int ActiveConnectionCount => _cfg.MaxConnection - _connectionSemaphore.CurrentCount;
     private readonly Lock _operationLock = new();
 
@@ -39,8 +44,9 @@ public sealed class TcpForwardWorker : IDisposable
             _workerTask = _WorkerFunc();
             _workerTask.ContinueWith(x =>
             {
-                if (x.IsFaulted)
-                    LogWrapper.Error(x.Exception, ModuleName, "工作线程出现错误");
+                if (!x.IsFaulted) return;
+                LogWrapper.Error(x.Exception, ModuleName, "工作线程出现错误");
+                _boundTcs.TrySetException(x.Exception!.GetBaseException());
             });
         }
     }
@@ -51,6 +57,8 @@ public sealed class TcpForwardWorker : IDisposable
         {
             if (_workerTask is not { IsCompleted: false }) return;
             _cts.Cancel();
+            LocalEndPoint = null;
+            _boundTcs.TrySetCanceled();
             var oldCts = _cts;
             // ReSharper disable once MethodSupportsCancellation
             _ = Task.WhenAll([_workerTask, .. _subWorkerTask.Values]).ContinueWith(x =>
@@ -77,7 +85,9 @@ public sealed class TcpForwardWorker : IDisposable
 
         // 暴露给外部用
         if (listener.LocalEndPoint is not IPEndPoint endPoint) throw new InvalidCastException("出现了意外的转换操作");
+        if (_cts.IsCancellationRequested) return;
         LocalEndPoint = endPoint;
+        _boundTcs.TrySetResult(endPoint);
         
         LogWrapper.Info(ModuleName, $"TCP 端口转发已启动，监听 {endPoint}，目标 tcp://{_cfg.RemoteHost}:{_cfg.RemotePort}");
         

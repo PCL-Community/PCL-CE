@@ -3282,6 +3282,7 @@
     <sys:String x:Key="Tools.GameLink.CopyIp.Back">Back</sys:String>
     <sys:String x:Key="Tools.GameLink.CopyIp.Message">Lobby host's game address: {0}&#xA;Note: IP connection is only recommended when the lobby broadcast does not appear in the Minecraft multiplayer list. IP connection may require a licenced account.</sys:String>
     <sys:String x:Key="Tools.GameLink.CopyIp.Title">Copy IP</sys:String>
+    <sys:String x:Key="Tools.GameLink.CopyIp.NotReady">The lobby is not ready yet. The virtual IP is unavailable, please try again later.</sys:String>
     <sys:String x:Key="Tools.GameLink.Create.Action">Create</sys:String>
     <sys:String x:Key="Tools.GameLink.Create.Description">1. After entering a world, select 'Open to LAN' in the game menu&#xA;2. Select this game instance below and click 'Create'&#xA;3. After the lobby is created, copy the lobby ID and send it to your friend</sys:String>
     <sys:String x:Key="Tools.GameLink.Create.EnterPort">Enter port</sys:String>

@@ -101,6 +101,7 @@ public sealed class LobbyController
             McForward.Start();
             McBroadcast = new BroadcastLocal(Lang.Text("Link.Lobby.MotdFormat", desc), tcpPortForForward);
             McBroadcast.Start();
+            _ = await McForward.BoundAddress.WaitAsync(ct).ConfigureAwait(false);
 
             return scfEntity;
         }
@@ -125,6 +126,10 @@ public sealed class LobbyController
         }
         catch (OperationCanceledException)
         {
+            McForward?.Stop();
+            McForward = null;
+            McBroadcast?.Stop();
+            McBroadcast = null;
             throw;
         }
         catch (Exception e)
@@ -191,6 +196,10 @@ public sealed class LobbyController
     {
         McForward?.Stop();
         McBroadcast?.Stop();
+
+        McForward = null;
+        McBroadcast = null;
+        
         try
         {
             if (ScfClientEntity is not null)

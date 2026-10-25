@@ -3282,6 +3282,7 @@
     <sys:String x:Key="Tools.GameLink.CopyIp.Back">返回</sys:String>
     <sys:String x:Key="Tools.GameLink.CopyIp.Message">大廳建立者的遊戲位址：{0}&#xA;注意：僅建議在 Minecraft 多人遊戲清單未顯示大廳廣播時使用 IP 連線！透過 IP 連線可能需要使用微軟帳戶。</sys:String>
     <sys:String x:Key="Tools.GameLink.CopyIp.Title">複製 IP</sys:String>
+    <sys:String x:Key="Tools.GameLink.CopyIp.NotReady">大廳尚未準備就緒，暫時無法取得虛擬 IP，請稍後再試</sys:String>
     <sys:String x:Key="Tools.GameLink.Create.Action">建立</sys:String>
     <sys:String x:Key="Tools.GameLink.Create.Description">1、進入世界後，在遊戲選單中選擇【對區域網開放】&#xA;2、在下方選擇此遊戲實例，點擊【建立】&#xA;3、成功建立大廳後，複製大廳編號並傳送給你的朋友</sys:String>
     <sys:String x:Key="Tools.GameLink.Create.EnterPort">請輸入埠</sys:String>

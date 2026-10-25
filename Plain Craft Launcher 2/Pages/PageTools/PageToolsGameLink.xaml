@@ -333,7 +333,8 @@
                             <local:MyIconTextButton Margin="-2,1" HorizontalAlignment="Left" x:Name="BtnFinishCopyIp"
                                                     Text="{DynamicResource Tools.GameLink.Finish.CopyVirtualIp}"
                                                     Click="BtnFinishCopyIp_Click"
-                                                    SvgIcon="lucide/copy" />
+                                                    SvgIcon="lucide/copy"
+                                                    Visibility="Collapsed" />
                             <local:MyIconTextButton Margin="-2,1" HorizontalAlignment="Left" x:Name="BtnFinishCopy"
                                                     Text="{DynamicResource Tools.GameLink.Finish.CopyLobbyId}"
                                                     Click="BtnFinishCopy_Click"

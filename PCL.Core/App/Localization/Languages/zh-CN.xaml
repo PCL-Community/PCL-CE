@@ -3339,6 +3339,7 @@
     <sys:String x:Key="Tools.GameLink.CopyIp.Back">返回</sys:String>
     <sys:String x:Key="Tools.GameLink.CopyIp.Message">大厅创建者的游戏地址：{0}&#xA;注意：仅推荐在 MC 多人游戏列表不显示大厅广播时使用 IP 连接！通过 IP 连接将可能要求使用正版档案。</sys:String>
     <sys:String x:Key="Tools.GameLink.CopyIp.Title">复制 IP</sys:String>
+    <sys:String x:Key="Tools.GameLink.CopyIp.NotReady">大厅尚未就绪，暂时无法获取虚拟 IP，请稍后再试</sys:String>
     <sys:String x:Key="Tools.GameLink.Create.Action">创建</sys:String>
     <sys:String x:Key="Tools.GameLink.Create.Description">1、进入世界后，在游戏菜单中选择【对局域网开放】&#xA;2、在下方选择此游戏实例，单击【创建】&#xA;3、成功创建大厅后，复制大厅编号并发送给你的朋友</sys:String>
     <sys:String x:Key="Tools.GameLink.Create.EnterPort">请输入端口</sys:String>
