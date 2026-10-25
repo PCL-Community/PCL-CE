@@ -85,9 +85,12 @@ public sealed class TcpForwardWorker : IDisposable
 
         // 暴露给外部用
         if (listener.LocalEndPoint is not IPEndPoint endPoint) throw new InvalidCastException("出现了意外的转换操作");
-        if (_cts.IsCancellationRequested) return;
-        LocalEndPoint = endPoint;
-        _boundTcs.TrySetResult(endPoint);
+        lock (_operationLock)
+        {
+            if (_cts.IsCancellationRequested) return;
+            LocalEndPoint = endPoint;
+            _boundTcs.TrySetResult(endPoint);
+        }
         
         LogWrapper.Info(ModuleName, $"TCP 端口转发已启动，监听 {endPoint}，目标 tcp://{_cfg.RemoteHost}:{_cfg.RemotePort}");
         
