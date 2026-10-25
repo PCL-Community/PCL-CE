@@ -390,7 +390,7 @@ public partial class PageDownloadCompDetail
                                   (file.Type == ModComp.CompType.Mod
                                       ? file.FileName?.EndsWith(".litemod") == true ? "*.litemod" : "*.jar"
                                       : file.FileName?.EndsWith(".mrpack") == true
-                                        || (string.IsNullOrWhiteSpace(file.FileName) && file.Type == ModComp.CompType.ModPack)
+                                        || (string.IsNullOrWhiteSpace(file.FileName) && file.Type == ModComp.CompType.ModPack && !file.FromCurseForge)
                                           ? "*.mrpack"
                                           : "*.zip"),
                         defaultFolder);

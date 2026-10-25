@@ -3441,7 +3441,7 @@ public static class ModComp
         var defaultExtension = file.Type switch
         {
             CompType.Mod => ".jar",
-            CompType.ModPack => ".mrpack",
+            CompType.ModPack => file.FromCurseForge ? ".zip" : ".mrpack",
             _ => ".zip"
         };
         if ((proj.TranslatedName ?? "") == (proj.RawName ?? ""))
