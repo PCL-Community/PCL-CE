@@ -188,7 +188,12 @@ public partial class PageToolsGameLink
 
     private void OnLobbyStateChanged(LobbyState oldState, LobbyState newState)
     {
-        ModBase.RunInUi(RefreshVirtualIpButtonVisibility);
+        ModBase.RunInUi(() =>
+        {
+            if (newState == LobbyState.Connected)
+                LabFinishQuality.Text = Lang.Text("Tools.GameLink.Finish.Connected");
+            RefreshVirtualIpButtonVisibility();
+        });
     }
 
     private void RefreshVirtualIpButtonVisibility()
