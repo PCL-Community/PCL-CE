@@ -882,10 +882,10 @@ public partial class FormMain
             // 确定拖放效果
             e.Effects = DragDropEffects.None;
             // IDM 等拖拽源可能同时提供文件和文本，优先处理文件，与 Drop 保持一致。
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            if (e.Data.GetDataPresent(DataFormats.FileDrop) &&
+                e.Data.GetData(DataFormats.FileDrop) is string[] { Length: > 0 })
             {
-                if (e.Data.GetData(DataFormats.FileDrop) is string[] { Length: > 0 })
-                    e.Effects = DragDropEffects.Link;
+                e.Effects = DragDropEffects.Link;
             }
             else if (e.Data.GetDataPresent(DataFormats.Text))
             {
@@ -913,15 +913,10 @@ public partial class FormMain
     {
         try
         {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            if (e.Data.GetDataPresent(DataFormats.FileDrop) &&
+                e.Data.GetData(DataFormats.FileDrop) is string[] { Length: > 0 } files)
             {
-                // 获取文件并检查；与 HandleDrag 使用相同的格式优先级。
-                if (e.Data.GetData(DataFormats.FileDrop) is not string[] { Length: > 0 } files) // #2690
-                {
-                    HintService.Hint(Lang.Text("Main.FileDrag.ExtractFirst"), HintType.Error);
-                    return;
-                }
-
+                // 仅在文件负载可用时优先处理文件，否则尝试文本。
                 e.Handled = true;
                 e.Effects = DragDropEffects.Link;
                 FileDrag(files);
@@ -973,6 +968,10 @@ public partial class FormMain
                 {
                     ModBase.Log(ex, "无法接取文本拖拽事件", ModBase.LogLevel.Developer);
                 }
+            }
+            else if (e.Data.GetDataPresent(DataFormats.FileDrop)) // #2690
+            {
+                HintService.Hint(Lang.Text("Main.FileDrag.ExtractFirst"), HintType.Error);
             }
         }
         catch (Exception ex)
