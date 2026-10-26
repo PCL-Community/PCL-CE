@@ -48,9 +48,6 @@ namespace PCL.Core.UI
             _OnRenderMethod.Invoke(target, drawingContext);
         }
 
-        /// <summary>
-        /// 绘制时在内容包围盒四周多留的边距, 用来容纳 Effect(如 DropShadowEffect)在包围盒之外的外扩部分.
-        /// </summary>
         private const double EffectPadding = 32;
 
         internal static void DrawVisual(DrawingContext drawingContext, Visual visual, Point relatedXY)
@@ -65,12 +62,6 @@ namespace PCL.Core.UI
                 return;
             }
 
-            // 用绝对坐标的 Viewbox 把内容 1:1 映射到目标矩形.
-            // 默认的 RelativeToBoundingBox 依赖合成器算出的内容包围盒, 而带 Effect 的元素在合成器里的包围盒
-            // 含有效果外扩的边距(且不一定对称), 托管侧 GetContentBounds 却不含, 二者不一致时内容就会被
-            // 拉伸或偏移(右下角圆形的附加按钮在弹窗遮罩里变成竖向椭圆, 见 PCL-CE#3717).
-            // 显式指定 Viewbox 后映射只取决于这里给的矩形, 与合成器的包围盒无关; 四周再留出 EffectPadding
-            // 让阴影也能画进来. 无 Effect 的元素二者本就一致, 行为不变.
             var bounds = contentBounds;
             bounds.Inflate(EffectPadding, EffectPadding);
             visualBrush.ViewboxUnits = BrushMappingMode.Absolute;
