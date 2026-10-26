@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
+using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
 using PCL.Core.UI;
 using PCL.Core.App.Localization;
@@ -50,6 +51,12 @@ public partial class PageSetupLauncherMisc
         SliderAniFPS.Value = Config.System.AnimationFpsLimit;
         SliderMaxLog.Value = Config.System.MaxGameLog;
         CheckSystemTelemetry.Checked = Config.System.Telemetry;
+        if (TelemetryService.IsBuildUntrusted)
+        {
+            CheckSystemTelemetry.IsEnabled = false;
+            CheckSystemTelemetry.ToolTip = Lang.Text("Setup.Misc.System.Telemetry.Unavailable");
+            ToolTipService.SetShowOnDisabled(CheckSystemTelemetry, true);
+        }
 
         // 网络
         TextSystemHttpProxy.Text = Config.Network.HttpProxy.CustomAddress;
