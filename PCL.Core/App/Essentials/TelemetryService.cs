@@ -159,7 +159,6 @@ public sealed partial class TelemetryService
         if (!await BuildProvenance.IsTrustedAsync().ConfigureAwait(false))
         {
             IsBuildUntrusted = true;
-            Config.System.Telemetry = false;
             Context.Warn($"当前版本 {Basics.VersionName} 的文件哈希与官方发布资产不匹配，遥测上报已禁用");
             return;
         }

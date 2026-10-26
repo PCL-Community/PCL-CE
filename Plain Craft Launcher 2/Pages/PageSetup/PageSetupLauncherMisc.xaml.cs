@@ -53,6 +53,7 @@ public partial class PageSetupLauncherMisc
         CheckSystemTelemetry.Checked = Config.System.Telemetry;
         if (TelemetryService.IsBuildUntrusted)
         {
+            CheckSystemTelemetry.Checked = false;
             CheckSystemTelemetry.IsEnabled = false;
             CheckSystemTelemetry.ToolTip = Lang.Text("Setup.Misc.System.Telemetry.Unavailable");
             ToolTipService.SetShowOnDisabled(CheckSystemTelemetry, true);
@@ -115,6 +116,7 @@ public partial class PageSetupLauncherMisc
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
+        if (!user) return;
         if (!ModAnimation.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Checked);
     }
