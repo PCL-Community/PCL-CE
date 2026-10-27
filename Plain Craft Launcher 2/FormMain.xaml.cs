@@ -910,6 +910,7 @@ public partial class FormMain
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
+                var filePathRaw = e.Data.GetData(DataFormats.FileDrop);
                 // 获取文件并检查
                 if (filePathRaw is null) // #2690
                 {
@@ -917,7 +918,6 @@ public partial class FormMain
                 }
                 else
                 {
-                    var filePathRaw = e.Data.GetData(DataFormats.FileDrop);
                     e.Handled = true;
                     e.Effects = DragDropEffects.Link;
                     FileDrag((IEnumerable<string>)filePathRaw);
