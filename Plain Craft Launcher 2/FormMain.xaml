@@ -25,7 +25,7 @@
             CornerRadius="12"
             GlassFrameThickness="0" />
     </WindowChrome.WindowChrome>
-    <Grid SnapsToDevicePixels="True" UseLayoutRounding="True">
+    <Grid x:Name="PanRoot" SnapsToDevicePixels="True" UseLayoutRounding="True">
         <Grid.RenderTransform>
             <TransformGroup>
                 <RotateTransform x:Name="TransformRotate" Angle="-4" />
@@ -104,7 +104,7 @@
             <Border.Clip>
                 <RectangleGeometry x:Name="RectForm" RadiusX="6" RadiusY="6" />
             </Border.Clip>
-            <Grid x:Name="PanForm" SnapsToDevicePixels="False" UseLayoutRounding="False">
+            <Grid x:Name="PanForm" SnapsToDevicePixels="False" UseLayoutRounding="True">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition />
@@ -210,13 +210,13 @@
                     <Border Grid.Column="1" Grid.IsSharedSizeScope="True" UseLayoutRounding="True"
                             SnapsToDevicePixels="True">
                         <Border x:Name="PanMainRight" RenderOptions.BitmapScalingMode="NearestNeighbor"
-                                UseLayoutRounding="False" SnapsToDevicePixels="False" />
+                                UseLayoutRounding="True" SnapsToDevicePixels="False" />
                     </Border>
                     <Border Grid.Column="0" Grid.IsSharedSizeScope="True" UseLayoutRounding="True"
                             SnapsToDevicePixels="True">
                         <Border x:Name="PanMainLeft" RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 SizeChanged="PanMainLeft_SizeChanged"
-                                UseLayoutRounding="False" SnapsToDevicePixels="False" />
+                                UseLayoutRounding="True" SnapsToDevicePixels="False" />
                     </Border>
                 </Grid>
                 <StackPanel x:Name="PanHint" UseLayoutRounding="True"

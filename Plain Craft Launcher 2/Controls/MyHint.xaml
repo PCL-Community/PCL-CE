@@ -5,7 +5,7 @@
         FocusVisualStyle="{x:Null}"
         UseLayoutRounding="True" SnapsToDevicePixels="True" HorizontalAlignment="Stretch" BorderThickness="3,0,0,0"
         BorderBrush="#99FF4444" CornerRadius="2">
-    <Grid UseLayoutRounding="False" SnapsToDevicePixels="False">
+    <Grid UseLayoutRounding="True" SnapsToDevicePixels="False">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*" />
             <ColumnDefinition Width="Auto" />
