@@ -19,7 +19,6 @@ using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
-using System.Xml.Serialization;
 
 namespace PCL;
 
@@ -931,7 +930,7 @@ public partial class FormMain
                         // 文件拖拽（例如从浏览器下载窗口拖入）
                         var filePath = uri.LocalPath;
                         FileDrag(new List<string> { filePath });
-                        return;
+                        return; // prevent repeated handling (some apps provides both file and text data)
                     }
                     else if (uri.Scheme == "authlib-injector" && uri.AbsoluteUri.StartsWith("yggdrasil-server:"))
                     {
@@ -1999,7 +1998,7 @@ public partial class FormMain
             }, 110),
             ModAnimation.AaCode(() =>
             {
-                // 延迟触发页面通用动画，以使得在 Loaded 事件中加载的加载的控件得以处理
+                // 延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
                 pageRight.Opacity = 1d;
                 pageRight.PageOnEnter();
             }, 30, true)
