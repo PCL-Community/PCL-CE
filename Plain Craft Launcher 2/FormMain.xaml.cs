@@ -941,7 +941,7 @@ public partial class FormMain
                     {
                         // Authlib 拖拽
                         var authlibServer = 
-                            WebUtility.UrlDecode(uri.AbsoluteUri["yggdrasil-server:".Length..]);
+                            WebUtility.UrlDecode(uri.AbsoluteUri["authlib-injector:yggdrasil-server:".Length..]);
                         ModBase.Log("[System] Authlib 拖拽：" + authlibServer);
                         if (!new HttpValidator().Validate(authlibServer).IsValid)
                         {
