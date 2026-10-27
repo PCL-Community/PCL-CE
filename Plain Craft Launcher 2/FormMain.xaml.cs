@@ -873,7 +873,7 @@ public partial class FormMain
                 try
                 {
                     Uri uri = new((string)e.Data.GetData(DataFormats.Text));
-                    if (uri.IsFile || uri.AbsoluteUri.StartsWith("authlib-injector:yggdrasil-server:"))
+                    if (uri.IsFile || uri.Scheme == "authlib-injector")
                         e.Effects = DragDropEffects.Copy;
                 }
                 catch (UriFormatException)
@@ -933,7 +933,7 @@ public partial class FormMain
                         FileDrag(new List<string> { filePath });
                         return;
                     }
-                    else if (uri.Scheme == "authlib-injector" && uri.AbsolutePath.StartsWith("yggdrasil-server:"))
+                    else if (uri.Scheme == "authlib-injector" && uri.AbsoluteUri.StartsWith("yggdrasil-server:"))
                     {
                         // Authlib 拖拽
                         var authlibServer = 
