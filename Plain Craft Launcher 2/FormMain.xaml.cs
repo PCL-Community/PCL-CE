@@ -873,8 +873,11 @@ public partial class FormMain
                 {
                     Uri uri = new((string)e.Data.GetData(DataFormats.Text));
                     if (uri.IsFile || uri.Scheme == "authlib-injector")
+                    {
                         e.Effects = DragDropEffects.Copy;
-                    return;
+                        e.Handled = true;
+                        return;
+                    }
                 }
                 catch (UriFormatException)
                 {
@@ -886,8 +889,8 @@ public partial class FormMain
                 var files = (string[])e.Data.GetData(DataFormats.FileDrop);
                 if (files is not null && files.Length > 0)
                     e.Effects = DragDropEffects.Link;
+                e.Handled = true;
             }
-            e.Handled = true;
 
             ModBase.Log("[System] 设置拖放类型：" + ModBase.GetStringFromEnum(e.Effects));
         }
@@ -908,17 +911,17 @@ public partial class FormMain
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 // 获取文件并检查
-                var filePathRaw = e.Data.GetData(DataFormats.FileDrop);
                 if (filePathRaw is null) // #2690
                 {
                     HintService.Hint(Lang.Text("Main.FileDrag.ExtractFirst"), HintType.Error);
-                    return;
                 }
-
-                e.Handled = true;
-                e.Effects = DragDropEffects.Link;
-                FileDrag((IEnumerable<string>)filePathRaw);
-                return;
+                else
+                {
+                    var filePathRaw = e.Data.GetData(DataFormats.FileDrop);
+                    e.Handled = true;
+                    e.Effects = DragDropEffects.Link;
+                    FileDrag((IEnumerable<string>)filePathRaw);
+                }
             }
             if (e.Data.GetDataPresent(DataFormats.Text))
             {
@@ -933,7 +936,7 @@ public partial class FormMain
                         FileDrag(new List<string> { filePath });
                         return; // prevent repeated handling (some apps provides both file and text data)
                     }
-                    else if (uri.Scheme == "authlib-injector" && uri.AbsoluteUri.StartsWith("yggdrasil-server:"))
+                    else if (uri.AbsoluteUri.StartsWith("authlib-injector:yggdrasil-server:"))
                     {
                         // Authlib 拖拽
                         var authlibServer = 
