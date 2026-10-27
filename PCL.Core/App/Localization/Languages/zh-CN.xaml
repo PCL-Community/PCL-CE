@@ -1890,6 +1890,10 @@
 
     <!-- Main -->
 
+    <sys:String x:Key="Main.April.Hint1">放弃吧！只需要点一下右下角的小白旗……</sys:String>
+    <sys:String x:Key="Main.April.Hint2">看到右下角的那面小白旗了吗？</sys:String>
+    <sys:String x:Key="Main.April.Hint3">这里建议点一下右下角的小白旗投降呢.jpg</sys:String>
+    <sys:String x:Key="Main.April.Hint4">右下角的小白旗永远等着你……</sys:String>
     <sys:String x:Key="Main.April.Nope">木大！</sys:String>
     <sys:String x:Key="Main.DebugMode.Hint">[调试模式] PCL CE 正以调试模式运行，这可能会导致性能下降，若无必要请不要开启！</sys:String>
     <sys:String x:Key="Main.Error.OperationFailed">启动器界面操作失败。请查看错误详情。</sys:String>

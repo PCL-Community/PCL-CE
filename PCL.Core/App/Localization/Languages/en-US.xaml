@@ -1890,6 +1890,10 @@
 
     <!-- Main -->
 
+    <sys:String x:Key="Main.April.Hint1">Give up! All it takes is a single click on the little white flag in the bottom right…</sys:String>
+    <sys:String x:Key="Main.April.Hint2">See that little white flag in the bottom right?</sys:String>
+    <sys:String x:Key="Main.April.Hint3">Might I suggest clicking the little white flag in the bottom right to surrender.jpg</sys:String>
+    <sys:String x:Key="Main.April.Hint4">The little white flag in the bottom right will always be waiting for you…</sys:String>
     <sys:String x:Key="Main.April.Nope">Muda!</sys:String>
     <sys:String x:Key="Main.DebugMode.Hint">[Debug mode] PCL CE is running in debug mode, which may cause performance degradation. Please do NOT enable it unless necessary!</sys:String>
     <sys:String x:Key="Main.Error.OperationFailed">A launcher interface operation failed. See the details below.</sys:String>
