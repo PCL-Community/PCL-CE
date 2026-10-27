@@ -872,7 +872,7 @@ public partial class FormMain
                 try
                 {
                     Uri uri = new((string)e.Data.GetData(DataFormats.Text));
-                    if (uri.IsFile || uri.Scheme == "authlib-injector")
+                    if (uri.IsFile || uri.Scheme == "authlib-injector" || !uri.IsUnc)
                     {
                         e.Effects = DragDropEffects.Copy;
                         e.Handled = true;
@@ -921,6 +921,7 @@ public partial class FormMain
                     e.Handled = true;
                     e.Effects = DragDropEffects.Link;
                     FileDrag((IEnumerable<string>)filePathRaw);
+                    return;
                 }
             }
             if (e.Data.GetDataPresent(DataFormats.Text))
@@ -929,12 +930,12 @@ public partial class FormMain
                 try
                 {
                     Uri uri = new((string)e.Data.GetData(DataFormats.Text));
-                    if (uri.IsFile)
+                    if (uri.IsFile && !uri.IsUnc)
                     {
                         // 文件拖拽（例如从浏览器下载窗口拖入）
                         var filePath = uri.LocalPath;
                         FileDrag(new List<string> { filePath });
-                        return; // prevent repeated handling (some apps provides both file and text data)
+                        return; // prevent repeated handling (some apps provide both file and text data)
                     }
                     else if (uri.AbsoluteUri.StartsWith("authlib-injector:yggdrasil-server:"))
                     {
