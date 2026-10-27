@@ -70,6 +70,10 @@ public partial class PageInstanceCompJarInJar
         PanLoad.Visibility = Visibility.Collapsed;
 
         PanWarnList.Children.Clear();
+        // 用户关闭了内嵌模组解析时，下方关系与内嵌结构必然不完整，需明确说明原因
+        if (!ModJarInJar.ParseEnabled)
+            PanWarnList.Children.Add(
+                _Text(Lang.Text("Instance.Resource.Mod.JarInJar.ParseDisabled"), _BrushWarn));
         foreach (var host in allMods)
         {
             if (host.State != CompFile.LocalFileStatus.Fine) continue;

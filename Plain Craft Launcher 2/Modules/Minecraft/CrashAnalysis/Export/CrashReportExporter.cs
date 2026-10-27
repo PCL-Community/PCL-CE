@@ -266,6 +266,7 @@ internal sealed class CrashReportExporter
         {
             ModJarInJarCache.UseInstance(instance.PathInstance);
             ModLocalComp.JijScanContext = new ModJarInJar.ScanContext();
+            ModJarInJar.ForceParse = true;
             var modsFolderName = ModLocalComp.GetPathNameByCompType(ModComp.CompType.Mod);
             var modsFolder = instance.Info.HasLabyMod
                 ? Path.Combine(instance.PathIndie, "labymod-neo", "fabric", instance.Info.VanillaName, modsFolderName)
@@ -385,6 +386,7 @@ internal sealed class CrashReportExporter
         finally
         {
             ModLocalComp.JijScanContext = null;
+            ModJarInJar.ForceParse = false;
             // 复位本线程的"当前实例"：含 mods 目录不存在的 early return 与异常路径，
             // 否则本线程后续懒加载别实例的 Mod 会被路由进本实例缓存
             ModJarInJarCache.UseInstance(null);

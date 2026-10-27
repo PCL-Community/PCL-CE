@@ -1174,6 +1174,7 @@ public static class ModLocalComp
             _EmbeddedMods = new List<LocalCompFile>();
             _jijExpectedLastModified = null;
             _jijExpectedSize = null;
+            _jijPending = false;
             JijLoader = null;
             JijTargetMcVersion = null;
             JijIdentifier = null;
@@ -1359,11 +1360,15 @@ public static class ModLocalComp
                 DetectedLoader = ModJarInJar.DetectLoader(jar, PreferredLoader);
                 // 信息获取
                 LookupMetadata(jar, DetectedLoader);
-                // 列表批量加载（Phase 1）期间：缓存未命中的内嵌解析延后，返回 null 则标记待后台补解析
-                var jijTree = ModJarInJar.ResolveCached(path, jar, out var jijComplete, DeferJijOnMiss,
-                    jijLastModified, jijSize, JijScanContext, PreferredLoader);
-                if (jijTree is not null) _EmbeddedMods = jijTree;
-                _jijPending = jijTree is null || !jijComplete;
+                // 列表批量加载（Phase 1）期间：缓存未命中的内嵌解析延后，返回 null 则标记待后台补解析。
+                // 设置中关闭内嵌解析时整体跳过：不解压嵌套 JAR，也不读缓存（JijPending 保持 false）。
+                if (ModJarInJar.ParseEnabled)
+                {
+                    var jijTree = ModJarInJar.ResolveCached(path, jar, out var jijComplete, DeferJijOnMiss,
+                        jijLastModified, jijSize, JijScanContext, PreferredLoader);
+                    if (jijTree is not null) _EmbeddedMods = jijTree;
+                    _jijPending = jijTree is null || !jijComplete;
+                }
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -1414,6 +1419,12 @@ public static class ModLocalComp
             lock (_loadLock)
             {
                 if (!_jijPending) return true;
+                // 设置中关闭内嵌解析（或解析途中被关闭）时不再补解析，直接视为无需等待
+                if (!ModJarInJar.ParseEnabled)
+                {
+                    _jijPending = false;
+                    return true;
+                }
                 ZipArchive jar = null;
                 try
                 {
@@ -2536,7 +2547,8 @@ public static class ModLocalComp
             // 加载 Mod 列表 - 优化：对于原理图文件，延迟加载NBT数据
             var modUpdateList = new List<LocalCompFile>();
             // 仅 Mod 类型启用 Jar-in-Jar 缓存；资源包/光影/投影共用同一 loader，不能用其路径污染/剪裁 mod 缓存
-            var jijEnabled = loader.input.compType == CompType.Mod;
+            // 设置中关闭内嵌解析时整体停用，避免首屏解压嵌套 JAR 与后台补解析
+            var jijEnabled = loader.input.compType == CompType.Mod && ModJarInJar.ParseEnabled;
             var jijInstancePath = jijEnabled ? loader.input.gameVersion.PathInstance : null;
             var preferredLoader = jijEnabled ? GetPreferredLoader(loader.input.gameVersion) : null;
             var jijGeneration = 0;
@@ -2603,6 +2615,13 @@ public static class ModLocalComp
                         _ResolveJijPendingBackground(pending, allModPaths, jijInstancePath, loaderTaskId,
                             jijGeneration);
                 }
+            }
+            else if (loader.input.compType == CompType.Mod)
+            {
+                // 内嵌解析已关闭：没有任何待解析项；递增代号使可能在途的旧后台补解析失效，
+                // 并清除上一轮可能残留的“仍在解析”状态，避免禁用/删除时误弹提示
+                Interlocked.Increment(ref _jijGeneration);
+                CompJijResolved = true;
             }
 
             loader.Progress = 0.99d;

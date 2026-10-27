@@ -1090,6 +1090,7 @@
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Message">An overview of dependencies and bundled structure between mods. Disabling or deleting a mod will warn about affected dependencies.</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.ParsePending.Title">Mods still loading</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.ParsePending.Message">Embedded mod relationships are still being analyzed in the background. Dependency cascade detection may be incomplete right now and could miss mods that should be handled together. Continue anyway?</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.ParseDisabled">Embedded mod parsing is disabled, so Jar-in-Jar dependencies and bundled mods are not included below. Enable "Parse embedded mods" in Settings → Game Management to restore them.</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Empty.Title">No mod relations to analyze</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Empty.Message">None of this instance's mods declare dependencies or bundle other mods, or the mod list has not finished loading.</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Warnings">Warnings</sys:String>
@@ -2707,6 +2708,8 @@
     <sys:String x:Key="Setup.GameManage.Community.ModManageStyle.TitleFilename">Title shows file name, details show translated name</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.ModManageStyle.TitleTranslation">Title shows translated name, details show file name</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.ModManageStyle.ToolTip">Display style of mod items on the Mod management page</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.ParseEmbeddedMods">Parse embedded mods</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.ParseEmbeddedMods.ToolTip">Parse Jar-in-Jar mod relationships for the management page and for cascade dependency detection when disabling or deleting mods. Disabling this greatly speeds up mod list loading, but the management page will no longer show embedded mods, and embedded dependencies will not be handled together with their hosts.</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.QuickDownload">Quick download behavior</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.QuickDownload.AlwaysAsk">Always ask</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.QuickDownload.AskInstance">Ask which instance to use</sys:String>

@@ -153,6 +153,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <local:MyCheckBox Margin="0,2,0,4" Text="{DynamicResource Setup.GameManage.Community.HideQuilt}" ToolTip="{DynamicResource Setup.GameManage.Community.HideQuilt.ToolTip}"
                                           Grid.Row="0" Height="22" Grid.Column="0" Change="CheckBoxChange"
@@ -160,6 +161,9 @@
                         <local:MyCheckBox Margin="0,2,0,4" Text="{DynamicResource Setup.GameManage.Community.AutoInstallDependencies}" ToolTip="{DynamicResource Setup.GameManage.Community.AutoInstallDependencies.ToolTip}"
                                           Grid.Row="1" Height="22" Grid.Column="0" Change="CheckBoxChange"
                                           x:Name="CheckDownloadAutoInstallDependencies" Tag="ToolDownloadAutoInstallDependencies" />
+                        <local:MyCheckBox Margin="0,2,0,4" Text="{DynamicResource Setup.GameManage.Community.ParseEmbeddedMods}" ToolTip="{DynamicResource Setup.GameManage.Community.ParseEmbeddedMods.ToolTip}"
+                                          Grid.Row="2" Height="22" Grid.Column="0" Change="CheckBoxChange"
+                                          x:Name="CheckParseEmbeddedMods" Tag="ToolModParseEmbeddedMods" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>

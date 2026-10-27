@@ -4,12 +4,16 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text.Json.Nodes;
+using PCL.Core.App;
 
 namespace PCL;
 
 /// <summary>Jar-in-Jar（内嵌模组）解析。</summary>
 public static class ModJarInJar
 {
+    [ThreadStatic] internal static bool ForceParse;
+
+    internal static bool ParseEnabled => ForceParse || Config.Download.Comp.ParseEmbeddedMods;
     internal const int MaxDepth = 5;
     internal const int MaxNodes = 512;
     private const long MaxEntryBytes = 256L * 1024 * 1024;

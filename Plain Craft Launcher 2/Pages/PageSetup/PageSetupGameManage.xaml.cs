@@ -66,6 +66,7 @@ public partial class PageSetupGameManage
         ComboDownloadQuickBehavior.SelectedIndex = Config.Download.Comp.QuickDownloadBehavior;
         CheckDownloadIgnoreQuilt.Checked = Config.Download.Comp.IgnoreQuilt;
         CheckDownloadAutoInstallDependencies.Checked = Config.Download.Comp.AutoInstallDependencies;
+        CheckParseEmbeddedMods.Checked = Config.Download.Comp.ParseEmbeddedMods;
         CheckDownloadClipboard.Checked = Config.Download.Comp.ReadClipboard;
 
         // Minecraft 更新提示
@@ -102,8 +103,12 @@ public partial class PageSetupGameManage
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
-        if (!ModAnimation.AniExitsAnyControl())
-            SetByTag(sender.Tag?.ToString(), sender.Checked);
+        if (ModAnimation.AniExitsAnyControl())
+            return;
+        SetByTag(sender.Tag?.ToString(), sender.Checked);
+        // 内嵌模组解析开关直接影响已加载的模组列表，立即重建，避免旧列表继续沿用切换前的解析结果
+        if (ReferenceEquals(sender, CheckParseEmbeddedMods))
+            ModMain.frmInstanceMod?.LoaderRun(ModLoader.LoaderFolderRunType.ForceRun);
     }
 
     private void SliderChange(object senderRaw, bool user)
