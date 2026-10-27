@@ -19,6 +19,7 @@ using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
+using System.Xml.Serialization;
 
 namespace PCL;
 
@@ -89,8 +90,7 @@ public partial class FormMain
 
         _ = Config.Preference.Theme.ThemeSelected;
         // 注册拖拽事件（不能直接加 Handles，否则没用；#6340）
-        AddHandler(DragDrop.DragEnterEvent, new DragEventHandler(HandleDrag), true);
-        AddHandler(DragDrop.DragOverEvent, new DragEventHandler(HandleDrag), true);
+        AddHandler(DragDrop.DragEnterEvent, new DragEventHandler(HandleDragEnter), true);
         // 注册 MsgBox 事件
         MsgBoxWrapper.OnShow += ModMain.MsgBoxWrapper_OnShow;
         // 注册 Hint 事件
@@ -861,41 +861,34 @@ public partial class FormMain
         }
     }
 
-    private IDataObject _HandleDrag_PrevData;
-    private DragDropEffects _HandleDrag_PrevEffects;
 
     // 文件拖放
-    private void HandleDrag(object sender, DragEventArgs e)
+    private void HandleDragEnter(object sender, DragEventArgs e)
     {
         try
         {
-            if (e.Handled && e.Effects != DragDropEffects.None)
-                return;
-            // 缓存
-            e.Handled = true;
-            if (ReferenceEquals(e.Data, _HandleDrag_PrevData))
-            {
-                e.Effects = _HandleDrag_PrevEffects;
-                return;
-            }
-
-            // 确定拖放效果
             e.Effects = DragDropEffects.None;
             if (e.Data.GetDataPresent(DataFormats.Text))
             {
-                var str = (string)e.Data.GetData(DataFormats.Text);
-                if (str.StartsWithF("authlib-injector:yggdrasil-server:") ||
-                    str.StartsWithF("file:///"))
-                    e.Effects = DragDropEffects.Copy;
+                try
+                {
+                    Uri uri = new((string)e.Data.GetData(DataFormats.Text));
+                    if (uri.IsFile || uri.AbsoluteUri.StartsWith("authlib-injector:yggdrasil-server:"))
+                        e.Effects = DragDropEffects.Copy;
+                }
+                catch (UriFormatException)
+                {
+                    ModBase.Log("[System] 跳过" + e.Data.GetData(DataFormats.Text) + "，无效的URI");
+                }
             }
             else if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 var files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                if (files is not null && files.Length > 0) e.Effects = DragDropEffects.Link;
+                if (files is not null && files.Length > 0)
+                    e.Effects = DragDropEffects.Link;
             }
+            e.Handled = true;
 
-            _HandleDrag_PrevData = e.Data;
-            _HandleDrag_PrevEffects = e.Effects;
             ModBase.Log("[System] 设置拖放类型：" + ModBase.GetStringFromEnum(e.Effects));
         }
         catch (Exception ex)
@@ -932,26 +925,19 @@ public partial class FormMain
                 // 获取文本
                 try
                 {
-                    const string yggdrasilPrefix = "yggdrasil-server:";
-
                     Uri uri = new((string)e.Data.GetData(DataFormats.Text));
-
                     if (uri.IsFile)
                     {
                         // 文件拖拽（例如从浏览器下载窗口拖入）
                         var filePath = uri.LocalPath;
-                        e.Handled = true;
-                        e.Effects = DragDropEffects.Copy;
                         FileDrag(new List<string> { filePath });
                         return;
                     }
-                    else if (uri.Scheme == "authlib-injector" && uri.AbsolutePath.StartsWith(yggdrasilPrefix))
+                    else if (uri.Scheme == "authlib-injector" && uri.AbsolutePath.StartsWith("yggdrasil-server:"))
                     {
                         // Authlib 拖拽
-                        e.Handled = true;
-                        e.Effects = DragDropEffects.Copy;
                         var authlibServer = 
-                            WebUtility.UrlDecode(uri.AbsoluteUri[yggdrasilPrefix.Length..]);
+                            WebUtility.UrlDecode(uri.AbsoluteUri["yggdrasil-server:".Length..]);
                         ModBase.Log("[System] Authlib 拖拽：" + authlibServer);
                         if (!new HttpValidator().Validate(authlibServer).IsValid)
                         {
