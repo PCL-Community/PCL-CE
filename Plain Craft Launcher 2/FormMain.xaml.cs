@@ -874,13 +874,14 @@ public partial class FormMain
                     Uri uri = new((string)e.Data.GetData(DataFormats.Text));
                     if (uri.IsFile || uri.Scheme == "authlib-injector")
                         e.Effects = DragDropEffects.Copy;
+                    return;
                 }
                 catch (UriFormatException)
                 {
                     ModBase.Log("[System] 跳过" + e.Data.GetData(DataFormats.Text) + "，无效的URI");
                 }
             }
-            else if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 var files = (string[])e.Data.GetData(DataFormats.FileDrop);
                 if (files is not null && files.Length > 0)
