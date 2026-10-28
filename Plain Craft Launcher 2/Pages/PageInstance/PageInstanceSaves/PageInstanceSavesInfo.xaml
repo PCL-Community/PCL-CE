@@ -7,10 +7,17 @@
     PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel Margin="25,10,25,10" x:Name="PanMain">
-            <local:MyHint x:Name="Hintversion1_9" Theme="Yellow" Visibility="Collapsed" Margin="0,5,0,0" />
-            <local:MyHint x:Name="Hintversion1_8" Theme="Yellow" Visibility="Collapsed" Margin="0,5,0,0" />
-            <local:MyHint x:Name="Hintversion1_3" Theme="Yellow" Visibility="Collapsed" Margin="0,5,0,0" />
-            <local:MyCard Margin="0,15,0,0" Title="{DynamicResource Instance.Saves.Info.Details.Title}" x:Name="PanContent">
+            <local:MyHint x:Name="Hintversion1_9" Theme="Yellow" Margin="0,5,0,0"
+                          Text="{Binding VersionHint19Text}"
+                          Visibility="{Binding ShowVersionHint19, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <local:MyHint x:Name="Hintversion1_8" Theme="Yellow" Margin="0,5,0,0"
+                          Text="{Binding VersionHint18Text}"
+                          Visibility="{Binding ShowVersionHint18, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <local:MyHint x:Name="Hintversion1_3" Theme="Yellow" Margin="0,5,0,0"
+                          Text="{Binding VersionHint13Text}"
+                          Visibility="{Binding ShowVersionHint13, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <local:MyCard Margin="0,15,0,0" Title="{DynamicResource Instance.Saves.Info.Details.Title}" x:Name="PanContent"
+                          Visibility="{Binding ShowContent, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Grid Margin="15,35,15,15" x:Name="PanList">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition SharedSizeGroup="TextBlock" Width="Auto" />
@@ -19,7 +26,8 @@
                     </Grid.ColumnDefinitions>
                 </Grid>
             </local:MyCard>
-            <local:MyCard Margin="0,15,0,0" Title="{DynamicResource Instance.Saves.Info.Settings.Title}" x:Name="PanSettings" Visibility="Collapsed">
+            <local:MyCard Margin="0,15,0,0" Title="{DynamicResource Instance.Saves.Info.Settings.Title}" x:Name="PanSettings"
+                          Visibility="{Binding ShowSettings, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Grid Margin="15,35,15,15" x:Name="PanSettingsList">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition SharedSizeGroup="TextBlock" Width="Auto" />
