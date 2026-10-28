@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using PCL.Core.App.IoC;
 
 namespace PCL.Core.UI.Threading;
 
@@ -22,6 +23,27 @@ public static class UiDispatcher
         }
 
         dispatcher.BeginInvoke(action, DispatcherPriority.Normal);
+    }
+
+    /// <summary>在 UI 线程同步执行指定操作，UI 不可用时直接返回。</summary>
+    public static void Invoke(Action action)
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher is null || Lifecycle.HasShutdownStarted) return;
+
+        if (dispatcher.CheckAccess())
+            action();
+        else
+            dispatcher.Invoke(action);
+    }
+
+    /// <summary>在 UI 线程同步执行指定操作并返回结果，UI 不可用时返回默认值。</summary>
+    public static T? Invoke<T>(Func<T> func)
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher is null || Lifecycle.HasShutdownStarted) return default;
+
+        return dispatcher.CheckAccess() ? func() : dispatcher.Invoke(func);
     }
 
     public static Task InvokeAsync(Action action)

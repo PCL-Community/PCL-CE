@@ -27,6 +27,7 @@ using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.Hash;
 using PCL.Core.Utils.OS;
+using PCL.Core.UI.Threading;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
@@ -2629,6 +2630,7 @@ public static class ModBase
                 Log(ex, name + "：线程执行失败", LogLevel.Feedback);
             }
         }) { Name = name ?? "Runtime New Invoke " + GetUuid() + "#", Priority = priority };
+        th.IsBackground = true;
         th.Start();
         return th;
     }
@@ -2642,7 +2644,7 @@ public static class ModBase
     {
         if (RunInUi()) return action();
 
-        return System.Windows.Application.Current.Dispatcher.Invoke(action);
+        return UiDispatcher.Invoke(action)!;
     }
 
     /// <summary>
@@ -2652,12 +2654,10 @@ public static class ModBase
     /// </summary>
     public static void RunInUiWait(Action action)
     {
-        if (System.Windows.Application.Current is null)
-            return;
         if (RunInUi())
             action();
         else
-            System.Windows.Application.Current.Dispatcher.Invoke(action);
+            UiDispatcher.Invoke(action);
     }
 
     /// <summary>
