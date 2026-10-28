@@ -164,12 +164,26 @@ public partial class PageSetupUpdate
         UpdateManager.UpdateStart(UpdateEnums.UpdateType.UpdateNow);
     }
 
-    private void BtnChangelogDetail_Click(object sender, EventArgs e)
+    private async void BtnChangelogDetail_Click(object sender, EventArgs e)
     {
-        if (updateInfo is null)
-            ModMain.MyMsgBox(Lang.Text("Setup.Update.Changelog.Unavailable"), Lang.Text("Setup.Update.Changelog.Title"));
-        else
-            ModMain.MyMsgBoxMarkdown(updateInfo.Changelog, Lang.Text("Setup.Update.Changelog.Title"));
+        var ctl = sender as Control;
+        if (ctl is not null) ctl.IsEnabled = false;
+        try
+        {
+            if (updateInfo is null)
+                await ModMain.MyMsgBoxAsync(Lang.Text("Setup.Update.Changelog.Unavailable"), Lang.Text("Setup.Update.Changelog.Title"));
+            else
+                ModMain.MyMsgBoxMarkdown(updateInfo.Changelog, Lang.Text("Setup.Update.Changelog.Title"));
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "查看更新日志失败", ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Error.OperationFailed"));
+        }
+        finally
+        {
+            if (ctl is not null) ctl.IsEnabled = true;
+        }
     }
 
     private void ComboSystemUpdateMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -178,69 +192,83 @@ public partial class PageSetupUpdate
             Config.Update.UpdateMode = (LauncherAutoUpdateBehavior)ComboSystemUpdateMode.SelectedIndex;
     }
 
-    private void ComboSystemUpdateBranch_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async void ComboSystemUpdateBranch_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniExitsAnyControl())
-            return;
-
-        var isCancelled = false;
-        switch (ComboSystemUpdateChannel.SelectedIndex)
+        var ctl = sender as Control;
+        if (ctl is not null) ctl.IsEnabled = false;
+        try
         {
-            case 0:
+            if (ModAnimation.AniExitsAnyControl())
+                return;
+
+            var isCancelled = false;
+            switch (ComboSystemUpdateChannel.SelectedIndex)
             {
-                break;
-            }
-            case 1:
-            {
-                if (ModMain.MyMsgBox(Lang.Text("Setup.Update.Channel.Beta.Warning.Message"),
-                        Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
-                        Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
-                        Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
-                    isCancelled = true;
-                else
-                    CheckUpdate();
-                break;
-            }
-            case 2:
-            {
-                if (ModMain.MyMsgBox(Lang.Text("Setup.Update.Channel.Dev.Warning.Message"),
-                        Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
-                        Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
-                        Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
+                case 0:
                 {
-                    isCancelled = true;
                     break;
                 }
+                case 1:
+                {
+                    if (await ModMain.MyMsgBoxAsync(Lang.Text("Setup.Update.Channel.Beta.Warning.Message"),
+                            Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
+                            Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
+                            Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
+                        isCancelled = true;
+                    else
+                        CheckUpdate();
+                    break;
+                }
+                case 2:
+                {
+                    if (await ModMain.MyMsgBoxAsync(Lang.Text("Setup.Update.Channel.Dev.Warning.Message"),
+                            Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
+                            Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
+                            Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
+                    {
+                        isCancelled = true;
+                        break;
+                    }
 
-                var confirmText = Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.ExpectedInput");
-                var ret = ModMain.MyMsgBoxInput(
-                    Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Title"),
-                    Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Message", confirmText),
-                    button1: Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Submit"),
-                    button2: Lang.Text("Common.Action.Cancel"), isWarn: true);
-    
-                if (ret == confirmText)
-                {
-                    CheckUpdate();
+                    var confirmText = Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.ExpectedInput");
+                    var ret = await ModMain.MyMsgBoxInputAsync(
+                        Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Title"),
+                        Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Message", confirmText),
+                        button1: Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Submit"),
+                        button2: Lang.Text("Common.Action.Cancel"), isWarn: true);
+
+                    if (ret == confirmText)
+                    {
+                        CheckUpdate();
+                    }
+                    else
+                    {
+                        HintService.Hint(Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.WrongInput"));
+                        isCancelled = true;
+                    }
+                    break;
                 }
-                else
-                {
-                    HintService.Hint(Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.WrongInput"));
-                    isCancelled = true;
-                }
-                break;
+            }
+
+            if (isCancelled)
+            {
+                ModAnimation.AniBeginControl();
+                ComboSystemUpdateChannel.SelectedItem = e.RemovedItems[0];
+                ModAnimation.AniEndControl();
+            }
+            else
+            {
+                Config.Update.UpdateChannel = (Core.App.UpdateChannel)ComboSystemUpdateChannel.SelectedIndex;
             }
         }
-
-        if (isCancelled)
+        catch (Exception ex)
         {
-            ModAnimation.AniBeginControl();
-            ComboSystemUpdateChannel.SelectedItem = e.RemovedItems[0];
-            ModAnimation.AniEndControl();
+            ModBase.Log(ex, "切换更新通道失败", ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
-        else
+        finally
         {
-            Config.Update.UpdateChannel = (Core.App.UpdateChannel)ComboSystemUpdateChannel.SelectedIndex;
+            if (ctl is not null) ctl.IsEnabled = true;
         }
     }
 

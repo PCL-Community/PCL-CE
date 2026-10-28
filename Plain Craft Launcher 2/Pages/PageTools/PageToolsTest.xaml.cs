@@ -170,17 +170,25 @@ public partial class PageToolsTest
         }
     }
 
-    public static void Jrrp()
+    public static async void Jrrp()
     {
-        var random = new Random(GenerateDailySeed());
-        var luckValue = random.Next(0, 101);
-        var rating = GetRating(luckValue);
-        var title = Lang.Text("Tools.Test.Luck.MsgboxTitle", Lang.Date(DateTime.Now, "d"));
+        try
+        {
+            var random = new Random(GenerateDailySeed());
+            var luckValue = random.Next(0, 101);
+            var rating = GetRating(luckValue);
+            var title = Lang.Text("Tools.Test.Luck.MsgboxTitle", Lang.Date(DateTime.Now, "d"));
 
-        if (luckValue >= 60)
-            ModMain.MyMsgBox(Lang.Text("Tools.Test.Luck.MessageGood", luckValue, rating), title);
-        else
-            ModMain.MyMsgBox(Lang.Text("Tools.Test.Luck.MessageBad", luckValue, rating), title, isWarn: luckValue <= 30);
+            if (luckValue >= 60)
+                await ModMain.MyMsgBoxAsync(Lang.Text("Tools.Test.Luck.MessageGood", luckValue, rating), title);
+            else
+                await ModMain.MyMsgBoxAsync(Lang.Text("Tools.Test.Luck.MessageBad", luckValue, rating), title, isWarn: luckValue <= 30);
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "显示今日人品弹窗失败", ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Tools.Test.Error.OperationFailed"));
+        }
     }
 
     public static void RubbishClear()
@@ -463,29 +471,57 @@ public partial class PageToolsTest
         return Lang.Text(key);
     }
 
-    private void BtnCreateShortcut_Click(object sender, MouseButtonEventArgs e)
+    private async void BtnCreateShortcut_Click(object sender, MouseButtonEventArgs e)
     {
-        var shortcutName = Lang.Text("Tools.Test.Shortcut.FileName", ".lnk");
-        var desktopName = Lang.Text("Tools.Test.Shortcut.Desktop");
-        var startName = Lang.Text("Tools.Test.Shortcut.StartMenu");
-        var desktop = Paths.GetSpecialPath(Environment.SpecialFolder.Desktop, shortcutName);
-        var start = Paths.GetSpecialPath(Environment.SpecialFolder.StartMenu, @"Programs\" + shortcutName);
-        var choice =
-            ModMain.MyMsgBox(
-                Lang.Text("Tools.Test.Shortcut.ConfirmMessage", desktopName, desktop, startName, start),
-                Lang.Text("Tools.Test.Shortcut.SelectLocation"), Lang.Text("Common.Action.Cancel"), desktopName, startName);
-        if (choice == 1)
-            return;
-        var shortcutPath = choice == 2 ? desktop : start;
-        var locationName = choice == 2 ? desktopName : startName;
-        Files.CreateShortcut(shortcutPath, Basics.ExecutablePath);
-        HintService.Hint(Lang.Text("Tools.Test.Shortcut.Created", locationName), HintType.Success);
+        var ctl = sender as Control;
+        if (ctl is not null) ctl.IsEnabled = false;
+        try
+        {
+            var shortcutName = Lang.Text("Tools.Test.Shortcut.FileName", ".lnk");
+            var desktopName = Lang.Text("Tools.Test.Shortcut.Desktop");
+            var startName = Lang.Text("Tools.Test.Shortcut.StartMenu");
+            var desktop = Paths.GetSpecialPath(Environment.SpecialFolder.Desktop, shortcutName);
+            var start = Paths.GetSpecialPath(Environment.SpecialFolder.StartMenu, @"Programs\" + shortcutName);
+            var choice =
+                await ModMain.MyMsgBoxAsync(
+                    Lang.Text("Tools.Test.Shortcut.ConfirmMessage", desktopName, desktop, startName, start),
+                    Lang.Text("Tools.Test.Shortcut.SelectLocation"), Lang.Text("Common.Action.Cancel"), desktopName, startName);
+            if (choice == 1)
+                return;
+            var shortcutPath = choice == 2 ? desktop : start;
+            var locationName = choice == 2 ? desktopName : startName;
+            Files.CreateShortcut(shortcutPath, Basics.ExecutablePath);
+            HintService.Hint(Lang.Text("Tools.Test.Shortcut.Created", locationName), HintType.Success);
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "创建快捷方式失败", ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Tools.Test.Error.OperationFailed"));
+        }
+        finally
+        {
+            if (ctl is not null) ctl.IsEnabled = true;
+        }
     }
 
     // 启动计数显示
-    private void BtnLaunchCount_Click(object sender, MouseButtonEventArgs e)
+    private async void BtnLaunchCount_Click(object sender, MouseButtonEventArgs e)
     {
-        ModMain.MyMsgBox(Lang.Text("Tools.Test.LaunchCount.Message", States.System.LaunchCount), Lang.Text("Tools.Test.LaunchCount.Title"));
+        var ctl = sender as Control;
+        if (ctl is not null) ctl.IsEnabled = false;
+        try
+        {
+            await ModMain.MyMsgBoxAsync(Lang.Text("Tools.Test.LaunchCount.Message", States.System.LaunchCount), Lang.Text("Tools.Test.LaunchCount.Title"));
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "显示启动次数弹窗失败", ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Tools.Test.Error.OperationFailed"));
+        }
+        finally
+        {
+            if (ctl is not null) ctl.IsEnabled = true;
+        }
     }
 
     private async void BtnAchievementPreview_Click(object sender, MouseButtonEventArgs e)
