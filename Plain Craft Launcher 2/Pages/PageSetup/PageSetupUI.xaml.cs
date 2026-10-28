@@ -12,15 +12,18 @@ namespace PCL;
 
 public partial class PageSetupUI
 {
-    public string[] ThemeColors => Basics.IsAprilFool 
-        ? [Lang.Text("Setup.Ui.Theme.Color.SkyBlue"), Lang.Text("Setup.Ui.Theme.Color.CatBlue"), Lang.Text("Setup.Ui.Theme.Color.CrashBlue"), Lang.Text("Setup.Ui.Theme.Color.Hmcl")]
-        : [Lang.Text("Setup.Ui.Theme.Color.SkyBlue"), Lang.Text("Setup.Ui.Theme.Color.CatBlue"), Lang.Text("Setup.Ui.Theme.Color.CrashBlue")];
-    
+    private readonly PageSetupUIViewModel _vm = new();
+
+    public PageSetupUIViewModel ViewModel => _vm;
+
+    public string[] ThemeColors => _vm.ThemeColors;
+
     public new bool isLoaded;
 
     public PageSetupUI()
     {
         InitializeComponent();
+        DataContext = _vm;
         Loaded += PageSetupUI_Loaded;
         Loaded += (_, _) => HiddenRefresh();
     }
@@ -41,7 +44,7 @@ public partial class PageSetupUI
 
         SliderLoad();
 
-        PanLauncherHide.Visibility = Visibility.Visible;
+        _vm.ShowLauncherHint();
     }
 
     public void Reload()
@@ -261,37 +264,32 @@ public partial class PageSetupUI
     {
         if (PanBackgroundOpacity is null)
             return;
-        if (show)
-        {
-            PanBackgroundOpacity.Visibility = Visibility.Visible;
-            PanBackgroundBlur.Visibility = Visibility.Visible;
-            PanBackgroundSuit.Visibility = Visibility.Visible;
-            BtnBackgroundClear.Visibility = Visibility.Visible;
-            CheckAutoPauseVideo.Visibility = Visibility.Visible;
-            CardBackground.Title = Lang.Text("Setup.Ui.Background.TitleWithCount", count);
-        }
-        else
-        {
-            PanBackgroundOpacity.Visibility = Visibility.Collapsed;
-            PanBackgroundBlur.Visibility = Visibility.Collapsed;
-            PanBackgroundSuit.Visibility = Visibility.Collapsed;
-            BtnBackgroundClear.Visibility = Visibility.Collapsed;
-            CheckAutoPauseVideo.Visibility = Visibility.Collapsed;
-            CardBackground.Title = Lang.Text("Setup.Ui.Background.TitleDefault");
-        }
-
+        _vm.ApplyBackgroundState(show, count);
         CardBackground.TriggerForceResize();
     }
 
-    private void BtnBackgroundClear_Click(object sender, MouseButtonEventArgs e)
+    private async void BtnBackgroundClear_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModMain.MyMsgBox(Lang.Text("Setup.Ui.Background.Clear.Confirm.Message"),
-                Lang.Text("Common.Dialog.Warning"), button2: Lang.Text("Common.Action.Cancel"),
-                isWarn: true) == 1)
+        var control = sender as FrameworkElement;
+        if (control is not null)
+            control.IsEnabled = false;
+        try
         {
+            if (!await _vm.ConfirmBackgroundClearAsync())
+                return;
             ModBase.DeleteDirectory(ModBase.exePath + @"PCL\Pictures");
             BackgroundRefresh(false, true);
             HintService.Hint(Lang.Text("Setup.Ui.Background.Clear.Success"), HintType.Success);
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "清空背景内容失败", ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
+        }
+        finally
+        {
+            if (control is not null)
+                control.IsEnabled = true;
         }
     }
 
@@ -566,29 +564,20 @@ public partial class PageSetupUI
     {
         if (PanBackgroundOpacity is null)
             return;
-        if (ModMusic.musicAllList.Any())
-        {
-            PanMusicVolume.Visibility = Visibility.Visible;
-            PanMusicDetail.Visibility = Visibility.Visible;
-            BtnMusicClear.Visibility = Visibility.Visible;
-            CardMusic.Title = Lang.Text("Setup.Ui.Music.TitleWithCount", ModBase.EnumerateFiles(ModBase.exePath + @"PCL\Musics\").Count());
-        }
-        else
-        {
-            PanMusicVolume.Visibility = Visibility.Collapsed;
-            PanMusicDetail.Visibility = Visibility.Collapsed;
-            BtnMusicClear.Visibility = Visibility.Collapsed;
-            CardMusic.Title = Lang.Text("Setup.Ui.Music.Title");
-        }
-
+        var hasMusic = ModMusic.musicAllList.Any();
+        _vm.ApplyMusicState(hasMusic, hasMusic ? ModBase.EnumerateFiles(ModBase.exePath + @"PCL\Musics\").Count() : 0);
         CardMusic.TriggerForceResize();
     }
 
-    private void BtnMusicClear_Click(object sender, MouseButtonEventArgs e)
+    private async void BtnMusicClear_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModMain.MyMsgBox(Lang.Text("Setup.Ui.Music.Clear.Confirm.Message"),
-                Lang.Text("Common.Dialog.Warning"), button2: Lang.Text("Common.Action.Cancel"),
-                isWarn: true) == 1)
+        var control = sender as FrameworkElement;
+        if (control is not null)
+            control.IsEnabled = false;
+        try
+        {
+            if (!await _vm.ConfirmMusicClearAsync())
+                return;
             ModBase.RunInThread(() =>
             {
                 HintService.Hint(Lang.Text("Setup.Ui.Music.Deleting"));
@@ -627,6 +616,17 @@ public partial class PageSetupUI
                         userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 }
             });
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "清空背景音乐失败", ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
+        }
+        finally
+        {
+            if (control is not null)
+                control.IsEnabled = true;
+        }
     }
 
     private void CheckMusicStart_Change(object sender, bool user)
@@ -676,15 +676,12 @@ public partial class PageSetupUI
     // 滑动条
     private void SliderLoad()
     {
-        SliderMusicVolume.getHintText = new Func<object, object>(v =>
-            Lang.Number(Math.Ceiling(Convert.ToDouble(v) * 0.1d) / 100d, "P0"));
-        SliderLauncherOpacity.getHintText = new Func<object, object>(v =>
-            Lang.Number(Math.Round(40 + Convert.ToDouble(v) * 0.1d) / 100d, "P0"));
-        SliderBackgroundOpacity.getHintText = new Func<object, object>(v =>
-            Lang.Number(Math.Round(Convert.ToDouble(v) * 0.1d) / 100d, "P0"));
-        SliderBackgroundBlur.getHintText = new Func<object, object>(v => Lang.Text("Setup.Ui.Slider.Pixel", Lang.Number(Convert.ToDouble(v), "N0")));
-        SliderBlurValue.getHintText = new Func<object, object>(v => Lang.Text("Setup.Ui.Slider.Pixel", Lang.Number(Convert.ToDouble(v), "N0")));
-        SliderBlurSamplingRate.getHintText = new Func<object, object>(v => Lang.Number(Convert.ToDouble(v) / 100d, "P0"));
+        SliderMusicVolume.getHintText = new Func<object, object>(PageSetupUIViewModel.FormatMusicVolumeHint);
+        SliderLauncherOpacity.getHintText = new Func<object, object>(PageSetupUIViewModel.FormatLauncherOpacityHint);
+        SliderBackgroundOpacity.getHintText = new Func<object, object>(PageSetupUIViewModel.FormatBackgroundOpacityHint);
+        SliderBackgroundBlur.getHintText = new Func<object, object>(PageSetupUIViewModel.FormatPixelHint);
+        SliderBlurValue.getHintText = new Func<object, object>(PageSetupUIViewModel.FormatPixelHint);
+        SliderBlurSamplingRate.getHintText = new Func<object, object>(PageSetupUIViewModel.FormatSamplingRateHint);
     }
 
     private void CheckMusicStart_OnChange(object sender, bool user)
@@ -747,12 +744,7 @@ public partial class PageSetupUI
 
             // 功能隐藏设置卡片
             if (ModMain.frmSetupUI is not null)
-            {
-                ModMain.frmSetupUI.CardSwitch.Visibility = !HiddenForceShow && conf.FunctionHidden
-                    ? Visibility.Collapsed
-                    : Visibility.Visible;
-                ModMain.frmSetupUI.CardSwitch.Title = HiddenForceShow ? Lang.Text("Setup.Ui.FeatureHide.TitleTemporarilyDisabled") : Lang.Text("Setup.Ui.FeatureHide.Title");
-            }
+                ModMain.frmSetupUI.ViewModel.ApplyFeatureHideState(HiddenForceShow, conf.FunctionHidden);
 
             // 设置子页面 (FrmSetupLeft)
             if (ModMain.frmSetupLeft is not null)

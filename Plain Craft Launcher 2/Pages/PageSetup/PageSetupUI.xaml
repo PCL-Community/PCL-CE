@@ -6,7 +6,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageSetupUI"
-    DataContext="{Binding RelativeSource={RelativeSource Self}}"
     PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel x:Name="PanMain" Margin="25,10">
@@ -33,7 +32,7 @@
                                             Change="SliderChange" />
                         </Grid>
                         <Border Background="{DynamicResource ColorBrushToolTip}" Margin="0,5,0,12" CornerRadius="4"
-                                Name="PanLauncherHide" Visibility="Collapsed">
+                                Name="PanLauncherHide" Visibility="{Binding LauncherHideVisibility}">
                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">
                                 <TextBlock Text="{DynamicResource Setup.Ui.Basic.BlueHint}" FontSize="13" Margin="0,0,0,0"
                                            TextWrapping="Wrap" />
@@ -134,9 +133,9 @@
                                         Tooltip="{DynamicResource Setup.Ui.Font.Motd.ToolTip}" SelectionChanged="ComboMotdFontChange" />
                 </Grid>
             </local:MyCard>
-            <local:MyCard x:Name="CardBackground" Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.Background.TitleDefault}">
+            <local:MyCard x:Name="CardBackground" Margin="0,0,0,15" Title="{Binding BackgroundTitle}">
                 <StackPanel Margin="25,40,25,20">
-                    <Grid x:Name="PanBackgroundSuit" Height="28" Margin="0,0,0,10" Visibility="Collapsed">
+                    <Grid x:Name="PanBackgroundSuit" Height="28" Margin="0,0,0,10" Visibility="{Binding BackgroundSuitVisibility}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                             <ColumnDefinition />
@@ -156,7 +155,7 @@
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.BottomRight}" />
                         </local:MyComboBox>
                     </Grid>
-                    <Grid x:Name="PanBackgroundOpacity" Height="22" Margin="0,0,0,7" Visibility="Collapsed">
+                    <Grid x:Name="PanBackgroundOpacity" Height="22" Margin="0,0,0,7" Visibility="{Binding BackgroundOpacityVisibility}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                             <ColumnDefinition />
@@ -165,7 +164,7 @@
                         <local:MySlider x:Name="SliderBackgroundOpacity" Tag="UiBackgroundOpacity" MaxValue="1000"
                                         ValueByKey="10" Grid.Column="1" Change="SliderChange" />
                     </Grid>
-                    <Grid x:Name="PanBackgroundBlur" Height="22" Margin="0,0,0,10" Visibility="Collapsed">
+                    <Grid x:Name="PanBackgroundBlur" Height="22" Margin="0,0,0,10" Visibility="{Binding BackgroundBlurVisibility}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                             <ColumnDefinition />
@@ -177,7 +176,8 @@
                     </Grid>
                     <local:MyCheckBox Text="{DynamicResource Setup.Ui.Background.PauseVideo}" Margin="-1,0,0,8" Height="22"
                                       x:Name="CheckAutoPauseVideo" Tag="UiAutoPauseVideo" Change="CheckBoxChange"
-                                      ToolTip="{DynamicResource Setup.Ui.Background.PauseVideo.ToolTip}" IsEnabled="True" />
+                                      ToolTip="{DynamicResource Setup.Ui.Background.PauseVideo.ToolTip}" IsEnabled="True"
+                                      Visibility="{Binding AutoPauseVideoVisibility}" />
                     <local:MyCheckBox Text="{DynamicResource Setup.Ui.Background.ColorOverlay}" Margin="-1,0,0,8" Height="22" x:Name="CheckBackgroundColorful"
                                       Tag="UiBackgroundColorful" Change="CheckBoxChange" />
                     <Grid Height="35" Margin="0,2,0,0">
@@ -193,15 +193,15 @@
                                         Margin="0,0,20,0" Click="BtnBackgroundRefresh_Click"
                                         ToolTip="{DynamicResource Setup.Ui.Background.Refresh.ToolTip}"
                                         Grid.Column="1" />
-                        <local:MyButton x:Name="BtnBackgroundClear" MinWidth="140" Text="{DynamicResource Setup.Ui.Background.Clear}" Visibility="Collapsed"
+                        <local:MyButton x:Name="BtnBackgroundClear" MinWidth="140" Text="{DynamicResource Setup.Ui.Background.Clear}" Visibility="{Binding BackgroundClearVisibility}"
                                         Padding="13,0" Margin="0,0,20,0" ColorType="Red"
                                         Click="BtnBackgroundClear_Click" Grid.Column="2" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard x:Name="CardMusic" Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.Music.Title}">
+            <local:MyCard x:Name="CardMusic" Margin="0,0,0,15" Title="{Binding MusicTitle}">
                 <StackPanel Margin="25,42,25,20">
-                    <Grid x:Name="PanMusicVolume" Visibility="Collapsed" Height="22" Margin="0,0,0,10">
+                    <Grid x:Name="PanMusicVolume" Visibility="{Binding MusicVolumeVisibility}" Height="22" Margin="0,0,0,10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                             <ColumnDefinition />
@@ -210,7 +210,7 @@
                         <local:MySlider x:Name="SliderMusicVolume" Tag="UiMusicVolume" MaxValue="1000" ValueByKey="10"
                                         Grid.Column="1" Change="SliderChange" />
                     </Grid>
-                    <StackPanel x:Name="PanMusicDetail" Visibility="Collapsed" Margin="-1,0,0,3">
+                    <StackPanel x:Name="PanMusicDetail" Visibility="{Binding MusicDetailVisibility}" Margin="-1,0,0,3">
                         <local:MyCheckBox Text="{DynamicResource Setup.Ui.Music.Shuffle}" Margin="0,0,0,5" Height="22" x:Name="CheckMusicRandom"
                                           Tag="UiMusicRandom" Change="CheckBoxChange" />
                         <local:MyCheckBox Text="{DynamicResource Setup.Ui.Music.AutoStart}" Margin="0,0,0,5" Height="22" x:Name="CheckMusicAuto"
@@ -235,7 +235,7 @@
                         <local:MyButton x:Name="BtnMusicRefresh" Text="{DynamicResource Setup.Ui.Music.Refresh}" MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" Click="BtnMusicRefresh_Click"
                                         ToolTip="{DynamicResource Setup.Ui.Music.Refresh.ToolTip}" Grid.Column="1" />
-                        <local:MyButton x:Name="BtnMusicClear" Text="{DynamicResource Setup.Ui.Music.Clear}" MinWidth="140" Visibility="Collapsed"
+                        <local:MyButton x:Name="BtnMusicClear" Text="{DynamicResource Setup.Ui.Music.Clear}" MinWidth="140" Visibility="{Binding MusicClearVisibility}"
                                         Padding="13,0" Margin="0,0,20,0" ColorType="Red" Click="BtnMusicClear_Click"
                                         Grid.Column="2" />
                     </Grid>
@@ -364,7 +364,8 @@
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard x:Name="CardSwitch" Margin="0,0,0,15" Title="{DynamicResource Setup.Ui.FeatureHide.Title}">
+            <local:MyCard x:Name="CardSwitch" Margin="0,0,0,15" Title="{Binding FeatureHideTitle}"
+                          Visibility="{Binding FeatureHideVisibility}">
                 <StackPanel Margin="25,38,15,15">
                     <TextBlock Margin="0,1,0,1" Text="{DynamicResource Setup.Ui.FeatureHide.Description}" TextWrapping="Wrap" />
                     <Grid>

@@ -14,7 +14,11 @@ namespace PCL;
 
 public partial class MySkin
 {
+    private readonly MySkinViewModel _vm = new();
+
     public delegate void ClickEventHandler(object sender, MouseButtonEventArgs e);
+
+    public MySkinViewModel ViewModel => _vm;
 
     // 皮肤储存
     private bool isChanging;
@@ -26,6 +30,7 @@ public partial class MySkin
     public MySkin()
     {
         InitializeComponent();
+        DataContext = _vm;
         MouseEnter += PanSkin_MouseEnter;
         MouseLeave += PanSkin_MouseLeave;
         MouseLeftButtonDown += PanSkin_MouseLeftButtonDown;
@@ -39,14 +44,8 @@ public partial class MySkin
 
     public string Address
     {
-        get => field;
-        set
-        {
-            field = value;
-            ToolTip = string.IsNullOrEmpty(field)
-                ? Lang.Text("Common.State.Loading")
-                : Lang.Text("Launch.Skin.Change.ToolTip");
-        }
+        get => _vm.Address;
+        set => _vm.Address = value;
     }
 
     // 披风
@@ -427,7 +426,7 @@ public partial class MySkin
                         };
                         selectionControl.AddRange(from Cape in skinData["capes"].AsArray()
                             let CapeAlias = Cape["alias"].ToString()
-                            let CapeName = _GetCapeDisplayName(CapeAlias)
+                            let CapeName = MySkinViewModel.GetCapeDisplayName(CapeAlias)
                             let state = Cape["state"]
                             let active = state is not null && state.ToString().ToUpper().Equals("ACTIVE")
                             select new MyListItem
@@ -488,16 +487,4 @@ public partial class MySkin
         }, "Cape Change");
     }
 
-    private static string _GetCapeDisplayName(string capeAlias)
-    {
-        var safeName = capeAlias
-            .Replace("-", "")
-            .Replace(" ", "")
-            .Replace("'", "");
-        var key = $"Launch.Skin.Cape.Name.{safeName}";
-        var name = Lang.Text(key);
-        if (name == $"!{key}!" || name == key)
-            return capeAlias;
-        return name;
-    }
 }
