@@ -23,8 +23,10 @@ using System.Globalization;
 
 namespace PCL;
 
-public partial class PageToolsTest
+public partial class PageToolsTest : IPageView
 {
+    private readonly PageToolsTestViewModel _vm = new();
+    private bool _refreshed;
     private Bitmap currentSkinBitmap;
     private Bitmap generatedHeadBitmap;
 
@@ -34,17 +36,35 @@ public partial class PageToolsTest
     public PageToolsTest()
     {
         InitializeComponent();
+        DataContext = _vm;
         BtnSelectSkin.Click += BtnSelectSkin_Click;
         CmbHeadSize.SelectionChanged += CmbHeadSize_SelectionChanged;
-        Loaded += (_, _) => MeLoaded();
-        #if DEBUG
-        BtnCrash.Visibility = Visibility.Visible;
-        #endif
+        Loaded += (_, _) => RefreshOnNavigate();
+        Unloaded += (_, _) => _refreshed = false;
+    }
+
+    public PageToolsTestViewModel ViewModel => _vm;
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+        MeLoaded();
     }
 
     private void MeLoaded()
     {
-        BtnDownloadStart.IsEnabled = false;
+        _vm.DownloadStartEnabled = false;
 
         TextDownloadFolder.Text = States.Tool.DownloadFolder;
         TextDownloadFolder.Validate();
@@ -60,19 +80,15 @@ public partial class PageToolsTest
 
     private void StartButtonRefresh()
     {
-        BtnDownloadStart.IsEnabled = string.IsNullOrEmpty(TextDownloadFolder.ValidateResult) &&
-                                     string.IsNullOrEmpty(TextDownloadUrl.ValidateResult) &&
-                                     string.IsNullOrEmpty(TextDownloadName.ValidateResult);
+        _vm.RefreshDownloadButtons(
+            string.IsNullOrEmpty(TextDownloadFolder.ValidateResult),
+            string.IsNullOrEmpty(TextDownloadUrl.ValidateResult),
+            string.IsNullOrEmpty(TextDownloadName.ValidateResult));
 
-        BtnDownloadOpen.IsEnabled = string.IsNullOrEmpty(TextDownloadFolder.ValidateResult);
-
-        BtnAchievementPreview.IsEnabled = string.IsNullOrEmpty(AchievementBlockTextBox.ValidateResult) &&
-                                          string.IsNullOrEmpty(AchievementTitleTextBox.ValidateResult) &&
-                                          string.IsNullOrEmpty(AchievementString1TextBox.ValidateResult);
-
-        BtnAchievementSave.IsEnabled = string.IsNullOrEmpty(AchievementBlockTextBox.ValidateResult) &&
-                                       string.IsNullOrEmpty(AchievementTitleTextBox.ValidateResult) &&
-                                       string.IsNullOrEmpty(AchievementString1TextBox.ValidateResult);
+        _vm.RefreshAchievementButtons(
+            string.IsNullOrEmpty(AchievementBlockTextBox.ValidateResult),
+            string.IsNullOrEmpty(AchievementTitleTextBox.ValidateResult),
+            string.IsNullOrEmpty(AchievementString1TextBox.ValidateResult));
     }
 
     private void SaveCacheDownloadFolder(object sender, RoutedEventArgs e)
@@ -550,7 +566,7 @@ public partial class PageToolsTest
                     Dispatcher.Invoke(() =>
                     {
                         AchievementImage.Source = bitmapImage;
-                        AchievementImage.Visibility = Visibility.Visible;
+                        _vm.AchievementImageVisible = true;
                     });
                 }
             else if (response.StatusCode == HttpStatusCode.NotFound)
@@ -673,7 +689,7 @@ public partial class PageToolsTest
             if (currentSkinBitmap.Width != currentSkinBitmap.Height)
             {
                 HintService.Hint(Lang.Text("Tools.Test.Avatar.InvalidSize"), HintType.Error);
-                SkinPreviewBorder.Visibility = Visibility.Collapsed;
+                _vm.SkinPreviewVisible = false;
                 return;
             }
 
@@ -682,7 +698,7 @@ public partial class PageToolsTest
             ImgFace.Source = BitmapToBitmapImage(generatedHeadBitmap);
             ImgHair.Source = null;
 
-            SkinPreviewBorder.Visibility = Visibility.Visible;
+            _vm.SkinPreviewVisible = true;
             HintService.Hint(Lang.Text("Tools.Test.Avatar.Generated"), HintType.Success);
         }
 
@@ -690,7 +706,7 @@ public partial class PageToolsTest
         {
             ModBase.Log(ex, "生成头像失败");
             HintService.Hint(Lang.Text("Tools.Test.Avatar.GenerateFailed", ex.Message), HintType.Error);
-            SkinPreviewBorder.Visibility = Visibility.Collapsed;
+            _vm.SkinPreviewVisible = false;
         }
     }
 

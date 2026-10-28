@@ -17,7 +17,8 @@
                     <local:MyButton MinWidth="100" Text="{DynamicResource Tools.Test.Crash.Title}"
                                     ToolTip="{DynamicResource Tools.Test.Crash.ManualCrash}" ColorType="Red"
                                     Margin="0,0,15,15" Click="BtnCrash_Click"
-                                    Visibility="Collapsed" x:Name="BtnCrash" />
+                                    Visibility="{Binding CrashButtonVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    x:Name="BtnCrash" />
                     <local:MyButton MinWidth="120" Text="{DynamicResource Tools.Test.Shortcut.Title}"
                                     ToolTip="{DynamicResource Tools.Test.Shortcut.ToolTip}" Margin="0,0,15,15"
                                     Click="BtnCreateShortcut_Click" />
@@ -88,10 +89,13 @@
                         <local:MyButton x:Name="BtnDownloadStart" Grid.Column="0" Width="140"
                                         Text="{DynamicResource Tools.Test.CustomDownload.Start}"
                                         ColorType="Highlight" Margin="0,0,15,0" HorizontalAlignment="Right"
+                                        IsEnabled="{Binding DownloadStartEnabled}"
                                         Click="BtnDownloadStart_Click" />
                         <local:MyButton x:Name="BtnDownloadOpen" Grid.Column="1" Width="140"
                                         Text="{DynamicResource Common.Action.OpenFolder}"
-                                        Margin="0,0,15,0" HorizontalAlignment="Left" Click="BtnDownloadOpen_Click" />
+                                        Margin="0,0,15,0" HorizontalAlignment="Left"
+                                        IsEnabled="{Binding DownloadOpenEnabled}"
+                                        Click="BtnDownloadOpen_Click" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>
@@ -184,12 +188,16 @@
                         <local:MyButton x:Name="BtnAchievementPreview" Grid.Column="0" Width="140"
                                         Text="{DynamicResource Tools.Test.Achievement.Preview}"
                                         ColorType="Highlight" Margin="0,0,15,0" HorizontalAlignment="Right"
+                                        IsEnabled="{Binding AchievementButtonsEnabled}"
                                         Click="BtnAchievementPreview_Click" />
                         <local:MyButton x:Name="BtnAchievementSave" Grid.Column="1" Width="140"
                                         Text="{DynamicResource Tools.Test.Achievement.Save}"
-                                        Margin="0,0,15,0" HorizontalAlignment="Left" Click="BtnAchievementSave_Click" />
+                                        Margin="0,0,15,0" HorizontalAlignment="Left"
+                                        IsEnabled="{Binding AchievementButtonsEnabled}"
+                                        Click="BtnAchievementSave_Click" />
                     </Grid>
-                    <Image x:Name="AchievementImage" Width="320" Height="64" Stretch="Uniform" Visibility="Collapsed" />
+                    <Image x:Name="AchievementImage" Width="320" Height="64" Stretch="Uniform"
+                           Visibility="{Binding AchievementImageVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 </StackPanel>
             </local:MyCard>
             <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Tools.Test.Avatar.Title}" CanSwap="True"
@@ -222,7 +230,7 @@
                                         Height="35" Click="BtnSaveHead_Click" />
                     </Grid>
                     <Border x:Name="SkinPreviewBorder" Margin="0,15,0,0" HorizontalAlignment="Center" Padding="10"
-                            Visibility="Collapsed">
+                            Visibility="{Binding SkinPreviewVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <Grid x:Name="SkinPreviewContainer" Width="80" Height="80">
                             <Image x:Name="ImgFace" Stretch="Uniform" RenderOptions.BitmapScalingMode="NearestNeighbor" />
                             <Image x:Name="ImgHair" Stretch="Uniform" RenderOptions.BitmapScalingMode="NearestNeighbor" />
