@@ -14,7 +14,7 @@ namespace PCL;
 
 public partial class PageSelectLeft : IRefreshable
 {
-    private bool isFirstLoad = true;
+    private readonly PageSelectLeftViewModel _vm = new();
     private List<ModFolder.McFolder> mcFolderListLast;
 
     public PageSelectLeft()
@@ -22,6 +22,7 @@ public partial class PageSelectLeft : IRefreshable
         Initialized += PageSelectLeft_Initialized;
         Loaded += PageSelectLeft_Loaded;
         InitializeComponent();
+        DataContext = _vm;
     }
 
     void IRefreshable.Refresh()
@@ -39,9 +40,9 @@ public partial class PageSelectLeft : IRefreshable
 
     private void PageSelectLeft_Loaded(object sender, RoutedEventArgs e)
     {
-        if (isFirstLoad)
+        if (_vm.IsFirstLoad)
             McFolderListUI(); // 若已经执行完成，触发首次加载
-        isFirstLoad = false;
+        _vm.IsFirstLoad = false;
     }
 
     private void McFolderListUI()
@@ -112,10 +113,8 @@ public partial class PageSelectLeft : IRefreshable
                         AddMenuItem("Refresh", Lang.Text("Common.Action.Refresh"), iconRefresh, null,
                             ModMain.frmSelectLeft.Refresh_Click);
                         AddMenuItem("Delete",
-                            ModFolder.mcFolderList.Count == 1 &&
-                            folder.Location == Path.Combine(ModBase.exePath, ".minecraft") + @"\"
-                                ? Lang.Text("Select.Folder.Clear")
-                                : Lang.Text("Common.Action.Delete"), iconDelete, new Thickness(0, 0, 0, 2),
+                            PageSelectLeftViewModel.GetDeleteMenuText(folder, ModFolder.mcFolderList.Count),
+                            iconDelete, new Thickness(0, 0, 0, 2),
                             ModMain.frmSelectLeft.Delete_Click);
                         break;
 
@@ -160,10 +159,11 @@ public partial class PageSelectLeft : IRefreshable
                 var moveDownItem = contMenu.Items.OfType<MyMenuItem>().FirstOrDefault(x => x.Name == "MoveDown");
 
                 // 如果是第一个项目，隐藏上移按钮
-                if (i == 0) moveUpItem.Visibility = Visibility.Collapsed;
+                if (PageSelectLeftViewModel.IsFirstItem(i)) moveUpItem.Visibility = Visibility.Collapsed;
 
                 // 如果是最后一个项目，隐藏下移按钮
-                if (i == ModFolder.mcFolderList.Count - 1) moveDownItem.Visibility = Visibility.Collapsed;
+                if (PageSelectLeftViewModel.IsLastItem(i, ModFolder.mcFolderList.Count))
+                    moveDownItem.Visibility = Visibility.Collapsed;
 
                 // 构建列表项
                 var newItem = new MyListItem
@@ -339,7 +339,7 @@ public partial class PageSelectLeft : IRefreshable
     }
 
     // 添加文件夹
-    private void Add_Click()
+    private async void Add_Click()
     {
         var newFolder = "";
         // 检查是否有下载任务
@@ -368,7 +368,7 @@ public partial class PageSelectLeft : IRefreshable
                 : splitedNames.Last();
             if (defaultName.Length > 40)
                 defaultName = defaultName[..39];
-            var newName = ModMain.MyMsgBoxInput(Lang.Text("Select.Folder.InputDisplayName.Title"),
+            var newName = await ModMain.MyMsgBoxInputAsync(Lang.Text("Select.Folder.InputDisplayName.Title"),
                 Lang.Text("Select.Folder.InputDisplayName.Message"), defaultName,
                 [new NullOrWhiteSpaceValidator(), new StringLengthValidator(), new BlacklistValidator([">", "|"])]);
             if (string.IsNullOrWhiteSpace(newName))
@@ -502,14 +502,14 @@ public partial class PageSelectLeft : IRefreshable
     }
 
     // 右键菜单
-    public void Remove_Click(object sender, RoutedEventArgs e)
+    public async void Remove_Click(object sender, RoutedEventArgs e)
     {
         try
         {
             var folder =
                 (ModFolder.McFolder)((MyListItem)((Popup)((ContextMenu)((MyMenuItem)sender).Parent).Parent)
                     .PlacementTarget).Tag;
-            switch (ModMain.MyMsgBox(
+            switch (await ModMain.MyMsgBoxAsync(
                         Lang.Text("Select.Folder.Cleanup.Message"),
                         Lang.Text("Select.Folder.Cleanup.Title"), Lang.Text("Common.Action.Delete"),
                         Lang.Text("Select.Folder.Cleanup.Keep"), Lang.Text("Common.Action.Cancel")))
@@ -573,7 +573,7 @@ public partial class PageSelectLeft : IRefreshable
         }
     }
 
-    public void Delete_Click(object sender, RoutedEventArgs e)
+    public async void Delete_Click(object sender, RoutedEventArgs e)
     {
         var menuItem = (MyMenuItem)sender;
         var contextMenu = (ContextMenu)menuItem.Parent;
@@ -581,10 +581,7 @@ public partial class PageSelectLeft : IRefreshable
         var listItem = (MyListItem)popup.PlacementTarget;
         var folder = (ModFolder.McFolder)listItem.Tag;
 
-        var isClearing =
-            folder.type is ModFolder.McFolder.Types.Original or ModFolder.McFolder.Types.RenamedOriginal
-            && folder.Location == ModBase.exePath + @".minecraft\"
-            && ModFolder.mcFolderList.Count == 1;
+        var isClearing = PageSelectLeftViewModel.IsClearingDefaultFolder(folder, ModFolder.mcFolderList.Count);
 
         var deleteText = Lang.Text(isClearing ? "Select.Folder.Clear" : "Common.Action.Delete");
         var firstWarning =
@@ -599,15 +596,23 @@ public partial class PageSelectLeft : IRefreshable
         var success = Lang.Text(isClearing ? "Select.Folder.Clear.Success" : "Select.Folder.Delete.Success",
             folder.Name);
 
-        if (ModMain.MyMsgBox(firstWarning, Lang.Text("Select.Folder.Delete.WarningTitle"),
-                Lang.Text("Common.Action.Cancel"), Lang.Text("Common.Action.Confirm"),
-                Lang.Text("Common.Action.Cancel")) != 2)
-            return;
+        try
+        {
+            if (await ModMain.MyMsgBoxAsync(firstWarning, Lang.Text("Select.Folder.Delete.WarningTitle"),
+                    Lang.Text("Common.Action.Cancel"), Lang.Text("Common.Action.Confirm"),
+                    Lang.Text("Common.Action.Cancel")) != 2)
+                return;
 
-        if (ModMain.MyMsgBox(finalWarning, Lang.Text("Select.Folder.Delete.WarningTitle"),
-                confirmTitle, Lang.Text("Common.Action.Cancel"),
-                isWarn: true) != 1)
+            if (await ModMain.MyMsgBoxAsync(finalWarning, Lang.Text("Select.Folder.Delete.WarningTitle"),
+                    confirmTitle, Lang.Text("Common.Action.Cancel"),
+                    isWarn: true) != 1)
+                return;
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, Lang.Text("Select.Folder.Error.Operate", deleteText, folder.Name));
             return;
+        }
 
         var folders = States.Game.Folders.Split('|', StringSplitOptions.RemoveEmptyEntries).ToList();
         var index = folders.FindIndex(f => f.EndsWith(folder.Location));
@@ -666,7 +671,7 @@ public partial class PageSelectLeft : IRefreshable
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }
 
-    public void Rename_Click(object sender, RoutedEventArgs e)
+    public async void Rename_Click(object sender, RoutedEventArgs e)
     {
         var folder =
             (ModFolder.McFolder)((MyListItem)((Popup)((ContextMenu)((MyMenuItem)sender).Parent).Parent)
@@ -675,7 +680,7 @@ public partial class PageSelectLeft : IRefreshable
         try
         {
             // 获取输入
-            var newName = ModMain.MyMsgBoxInput(Lang.Text("Select.Folder.Rename.Title"), "", folder.Name,
+            var newName = await ModMain.MyMsgBoxInputAsync(Lang.Text("Select.Folder.Rename.Title"), "", folder.Name,
             [
                 new NullOrWhiteSpaceValidator(), new StringLengthValidator(1, 30),
                 new BlacklistValidator([">", "|"])
