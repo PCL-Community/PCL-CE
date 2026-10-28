@@ -690,27 +690,55 @@ public partial class PageInstanceSetup
     }
 
     // LittleSkin
-    private void BtnServerAuthLittle_Click(object sender, MouseButtonEventArgs e)
+    private async void BtnServerAuthLittle_Click(object sender, MouseButtonEventArgs e)
     {
-        if (!string.IsNullOrEmpty(TextServerAuthServer.Text) &&
-        TextServerAuthServer.Text != "https://littleskin.cn/api/yggdrasil" && ModMain.MyMsgBox(
-        Lang.Text("Instance.Setup.Server.LittleSkin.Override.Message"),
-        Lang.Text("Instance.Setup.Server.LittleSkin.Override.Title"), Lang.Text("Instance.Setup.Server.LittleSkin.Override.Continue"), Lang.Text("Common.Action.Cancel")) == 2)
-            return;
-        TextServerAuthServer.Text = "https://littleskin.cn/api/yggdrasil";
-        TextServerAuthRegister.Text = "https://littleskin.cn/auth/register";
-        TextServerAuthName.Text = Lang.Text("Instance.Setup.Server.LittleSkin.Name");
+        var ctl = sender as Control;
+        if (ctl is not null) ctl.IsEnabled = false;
+        try
+        {
+            if (!string.IsNullOrEmpty(TextServerAuthServer.Text) &&
+                TextServerAuthServer.Text != "https://littleskin.cn/api/yggdrasil" && await ModMain.MyMsgBoxAsync(
+                    Lang.Text("Instance.Setup.Server.LittleSkin.Override.Message"),
+                    Lang.Text("Instance.Setup.Server.LittleSkin.Override.Title"), Lang.Text("Instance.Setup.Server.LittleSkin.Override.Continue"), Lang.Text("Common.Action.Cancel")) == 2)
+                return;
+            TextServerAuthServer.Text = "https://littleskin.cn/api/yggdrasil";
+            TextServerAuthRegister.Text = "https://littleskin.cn/auth/register";
+            TextServerAuthName.Text = Lang.Text("Instance.Setup.Server.LittleSkin.Name");
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "应用 LittleSkin 登录设置失败", ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Setup.Error.OperationFailed"));
+        }
+        finally
+        {
+            if (ctl is not null) ctl.IsEnabled = true;
+        }
     }
 
     // 锁定设置
-    private void BtnServerAuthLock_Click(object sender, MouseButtonEventArgs e)
+    private async void BtnServerAuthLock_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModMain.MyMsgBox(
-                Lang.Text("Instance.Setup.Server.LockLoginMethod.Message"),
-                Lang.Text("Instance.Setup.Server.LockLoginMethod.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
+        var ctl = sender as Control;
+        if (ctl is not null) ctl.IsEnabled = false;
+        try
         {
-            Config.InstanceAuth.AuthLocked[PageInstanceLeft.McInstance.PathInstance] = true;
-            Reload();
+            if (await ModMain.MyMsgBoxAsync(
+                    Lang.Text("Instance.Setup.Server.LockLoginMethod.Message"),
+                    Lang.Text("Instance.Setup.Server.LockLoginMethod.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
+            {
+                Config.InstanceAuth.AuthLocked[PageInstanceLeft.McInstance.PathInstance] = true;
+                Reload();
+            }
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "锁定登录方式失败", ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Setup.Error.OperationFailed"));
+        }
+        finally
+        {
+            if (ctl is not null) ctl.IsEnabled = true;
         }
     }
 
@@ -987,24 +1015,38 @@ public partial class PageInstanceSetup
     // 版本隔离警告
     private bool isReverting;
 
-    private void ComboArgumentIndieV2_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async void ComboArgumentIndieV2_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniExitsAnyControl())
-            return;
-        if (isReverting)
-            return;
-        if (ModMain.MyMsgBox(
-                Lang.Text("Instance.Setup.Options.InstanceIsolation.Message"),
-                Lang.Text("Common.Dialog.Warning"), Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
+        var ctl = sender as Control;
+        if (ctl is not null) ctl.IsEnabled = false;
+        try
         {
-            isReverting = true;
-            ComboArgumentIndieV2.SelectedItem = e.RemovedItems[0];
-            isReverting = false;
+            if (ModAnimation.AniExitsAnyControl())
+                return;
+            if (isReverting)
+                return;
+            if (await ModMain.MyMsgBoxAsync(
+                    Lang.Text("Instance.Setup.Options.InstanceIsolation.Message"),
+                    Lang.Text("Common.Dialog.Warning"), Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
+            {
+                isReverting = true;
+                ComboArgumentIndieV2.SelectedItem = e.RemovedItems[0];
+                isReverting = false;
+            }
+            else
+            {
+                bool newValue = ComboArgumentIndieV2.SelectedIndex == 0;
+                Config.Instance.IndieV2[PageInstanceLeft.McInstance.PathInstance] = newValue;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            bool newValue = ComboArgumentIndieV2.SelectedIndex == 0;
-            Config.Instance.IndieV2[PageInstanceLeft.McInstance.PathInstance] = newValue;
+            ModBase.Log(ex, "修改版本隔离设置失败", ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Setup.Error.OperationFailed"));
+        }
+        finally
+        {
+            if (ctl is not null) ctl.IsEnabled = true;
         }
     }
 
@@ -1031,57 +1073,85 @@ public partial class PageInstanceSetup
         TextBoxChange(sender,e);
     }
 
-    private void ComboAdvanceRenderer_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async void ComboAdvanceRenderer_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniExitsAnyControl())
-            return;
-
-        var args = e; // 转换事件参数
-
-        if (!States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0)
+        var ctl = sender as Control;
+        if (ctl is not null) ctl.IsEnabled = false;
+        try
         {
-            if (ModMain.MyMsgBox(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Message"),
-                    Lang.Text("Common.Dialog.Warning"),
-                    Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
+            if (ModAnimation.AniExitsAnyControl())
+                return;
+
+            var args = e; // 转换事件参数
+
+            if (!States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0)
             {
-                ComboAdvanceRenderer.SelectedItem = args.RemovedItems[0];
+                if (await ModMain.MyMsgBoxAsync(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Message"),
+                        Lang.Text("Common.Dialog.Warning"),
+                        Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
+                {
+                    ComboAdvanceRenderer.SelectedItem = args.RemovedItems[0];
+                }
+                else
+                {
+                    ComboChange(ComboAdvanceRenderer, e);
+                    States.Hint.Renderer = true;
+                }
             }
             else
             {
                 ComboChange(ComboAdvanceRenderer, e);
-                States.Hint.Renderer = true;
             }
         }
-        else
+        catch (Exception ex)
         {
-            ComboChange(ComboAdvanceRenderer, e);
+            ModBase.Log(ex, "修改渲染器设置失败", ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Setup.Error.OperationFailed"));
+        }
+        finally
+        {
+            if (ctl is not null) ctl.IsEnabled = true;
         }
     }
 
-    private void CheckUseDebugLog4j2Config_CheckChanged(object sender, bool e)
+    private async void CheckUseDebugLog4j2Config_CheckChanged(object sender, bool e)
     {
-        if (ModAnimation.AniExitsAnyControl())
-            return;
-        var checkBox = sender as MyCheckBox;
-        if (checkBox is null) return;
-    
-        if (checkBox.Checked.GetValueOrDefault() && !States.Hint.DebugLog4j2Config)
+        var ctl = sender as Control;
+        if (ctl is not null) ctl.IsEnabled = false;
+        try
         {
-            if (ModMain.MyMsgBox(
-                    Lang.Text("Instance.Setup.Advanced.UseDebugLog4j.Message"),
-                    Lang.Text("Common.Dialog.Warning"), Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
+            if (ModAnimation.AniExitsAnyControl())
+                return;
+            var checkBox = sender as MyCheckBox;
+            if (checkBox is null) return;
+
+            if (checkBox.Checked.GetValueOrDefault() && !States.Hint.DebugLog4j2Config)
             {
-                checkBox.Checked = false;
+                if (await ModMain.MyMsgBoxAsync(
+                        Lang.Text("Instance.Setup.Advanced.UseDebugLog4j.Message"),
+                        Lang.Text("Common.Dialog.Warning"), Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
+                {
+                    checkBox.Checked = false;
+                }
+                else
+                {
+                    CheckBoxChange(sender, e);
+                    States.Hint.DebugLog4j2Config = true;
+                }
             }
             else
             {
                 CheckBoxChange(sender, e);
-                States.Hint.DebugLog4j2Config = true;
             }
         }
-        else
+        catch (Exception ex)
         {
-            CheckBoxChange(sender, e);
+            ModBase.Log(ex, "修改 Debug Log4j2 设置失败", ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Setup.Error.OperationFailed"));
+        }
+        finally
+        {
+            if (ctl is not null) ctl.IsEnabled = true;
         }
     }
 
