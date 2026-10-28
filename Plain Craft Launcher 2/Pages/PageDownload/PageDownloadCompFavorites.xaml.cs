@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
@@ -282,16 +282,32 @@ public partial class PageDownloadCompFavorites
         ToolTipService.SetPlacement(btn_EditNote, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btn_EditNote, 30d);
         ToolTipService.SetHorizontalOffset(btn_EditNote, 2d);
-        btn_EditNote.Click += (sender, e) =>
+        btn_EditNote.Click += async (sender, e) =>
         {
-            CurrentFavTarget.Notes.TryGetValue(compId, out notes);
-            var desiredNote = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.EditNote"), defaultInput: notes);
-            // 只有在用户确认时才更新备注，避免取消时清空原有备注
-            if (desiredNote is not null)
+            var ctl = sender as Control;
+            if (ctl is not null) ctl.IsEnabled = false;
+            try
             {
-                CurrentFavTarget.Notes[compId] = desiredNote;
-                noteItem.Text = string.IsNullOrWhiteSpace(desiredNote) ? "" : $" ({desiredNote})";
-                ModComp.CompFavorites.Save();
+                CurrentFavTarget.Notes.TryGetValue(compId, out notes);
+                var desiredNote = await ModMain.MyMsgBoxInputAsync(Lang.Text("Download.Comp.Favorites.EditNote"), defaultInput: notes);
+                if (desiredNote is not null)
+                {
+                    CurrentFavTarget.Notes[compId] = desiredNote;
+                    noteItem.Text = string.IsNullOrWhiteSpace(desiredNote) ? "" : $" ({desiredNote})";
+                    ModComp.CompFavorites.Save();
+                }
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(
+                    ex,
+                    "[Favourites] 修改备注时发生错误",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
+            }
+            finally
+            {
+                if (ctl is not null) ctl.IsEnabled = true;
             }
         };
         // 删除按钮
@@ -478,11 +494,13 @@ public partial class PageDownloadCompFavorites
         }
     }
 
-    private void Btn_FavoritesDownload_Clicked(object sender, ModBase.RouteEventArgs e)
+    private async void Btn_FavoritesDownload_Clicked(object sender, ModBase.RouteEventArgs e)
     {
+        var ctl = sender as Control;
+        if (ctl is not null) ctl.IsEnabled = false;
         try
         {
-            if (1 != ModMain.MyMsgBox(
+            if (1 != await ModMain.MyMsgBoxAsync(
                     Lang.Text("Download.Comp.Favorites.Dialog.BulkDownload.Content"),
                     Lang.Text("Download.Comp.Favorites.Dialog.BulkDownload.Title"),
                     Lang.Text("Common.Action.Continue"),
@@ -524,7 +542,7 @@ public partial class PageDownloadCompFavorites
                     var mSelection = new List<IMyRadio>();
                     foreach (var i in supportedModLoader)
                         mSelection.Add(new MyRadioBox { Text = i.ToString() });
-                    var selectedModLoaderStr = ModMain.MyMsgBoxSelect(mSelection, Lang.Text("Download.Comp.Favorites.Dialog.SelectLoader.Title"), button2: Lang.Text("Common.Action.Cancel"));
+                    var selectedModLoaderStr = await ModMain.MyMsgBoxSelectAsync(mSelection, Lang.Text("Download.Comp.Favorites.Dialog.SelectLoader.Title"), button2: Lang.Text("Common.Action.Cancel"));
                     if (selectedModLoaderStr is null)
                         return;
                     desiredModLoader = supportedModLoader[(int)selectedModLoaderStr];
@@ -667,6 +685,10 @@ public partial class PageDownloadCompFavorites
                 ModBase.LogLevel.Hint,
                 userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
         }
+        finally
+        {
+            if (ctl is not null) ctl.IsEnabled = true;
+        }
     }
 
     private void Items_SetSelectAll(bool targetStatus)
@@ -741,11 +763,13 @@ public partial class PageDownloadCompFavorites
             Header = Lang.Text("Download.Comp.Favorites.Menu.Import"),
             SvgIcon = "lucide/circle-plus"
         };
-        newItem.Click += (_, _) =>
+        newItem.Click += async (sender, _) =>
         {
+            var ctl = sender as Control;
+            if (ctl is not null) ctl.IsEnabled = false;
             try
             {
-                var clipData = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.Dialog.Import.Input"), hintText: Lang.Text("Download.Comp.Favorites.Dialog.Import.Hint"));
+                var clipData = await ModMain.MyMsgBoxInputAsync(Lang.Text("Download.Comp.Favorites.Dialog.Import.Input"), hintText: Lang.Text("Download.Comp.Favorites.Dialog.Import.Hint"));
                 if (string.IsNullOrWhiteSpace(clipData)) return;
                 var newFavs = ModComp.CompFavorites.GetIdsByShareCode(clipData);
                 if (newFavs.Count == 0)
@@ -754,12 +778,12 @@ public partial class PageDownloadCompFavorites
                     return;
                 }
 
-                var userWant = ModMain.MyMsgBox(Lang.Text("Download.Comp.Favorites.Dialog.Import.Type"), button1: Lang.Text("Download.Comp.Favorites.Dialog.Import.NewFolder"), button2: Lang.Text("Download.Comp.Favorites.Dialog.Import.CurrentFolder"));
+                var userWant = await ModMain.MyMsgBoxAsync(Lang.Text("Download.Comp.Favorites.Dialog.Import.Type"), button1: Lang.Text("Download.Comp.Favorites.Dialog.Import.NewFolder"), button2: Lang.Text("Download.Comp.Favorites.Dialog.Import.CurrentFolder"));
                 switch (userWant)
                 {
                     case 1:
                     {
-                        var newFavName = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.Dialog.Import.New"), Lang.Text("Download.Comp.Favorites.Dialog.NewPrompt"));
+                        var newFavName = await ModMain.MyMsgBoxInputAsync(Lang.Text("Download.Comp.Favorites.Dialog.Import.New"), Lang.Text("Download.Comp.Favorites.Dialog.NewPrompt"));
                         if (string.IsNullOrWhiteSpace(newFavName)) return;
                         ModComp.CompFavorites.FavoritesList.Add(ModComp.CompFavorites.GetNewFav(newFavName, newFavs));
                         ModComp.CompFavorites.Save();
@@ -784,6 +808,10 @@ public partial class PageDownloadCompFavorites
                     ModBase.LogLevel.Hint,
                     userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
             }
+            finally
+            {
+                if (ctl is not null) ctl.IsEnabled = true;
+            }
         };
         body.Items.Add(newItem);
         newItem = new MyMenuItem
@@ -791,15 +819,32 @@ public partial class PageDownloadCompFavorites
             Header = Lang.Text("Download.Comp.Favorites.Menu.New"),
             SvgIcon = "lucide/folder-plus"
         };
-        newItem.Click += (_, _) =>
+        newItem.Click += async (sender, _) =>
         {
-            var newFavName = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.Menu.New"), Lang.Text("Download.Comp.Favorites.Dialog.NewPrompt"));
-            if (string.IsNullOrWhiteSpace(newFavName))
-                return;
-            ModComp.CompFavorites.FavoritesList.Add(ModComp.CompFavorites.GetNewFav(newFavName, null));
-            ModComp.CompFavorites.Save();
-            RefreshFavTargets();
-            ComboTargetFav.SelectedIndex = ComboTargetFav.Items.Count - 1;
+            var ctl = sender as Control;
+            if (ctl is not null) ctl.IsEnabled = false;
+            try
+            {
+                var newFavName = await ModMain.MyMsgBoxInputAsync(Lang.Text("Download.Comp.Favorites.Menu.New"), Lang.Text("Download.Comp.Favorites.Dialog.NewPrompt"));
+                if (string.IsNullOrWhiteSpace(newFavName))
+                    return;
+                ModComp.CompFavorites.FavoritesList.Add(ModComp.CompFavorites.GetNewFav(newFavName, null));
+                ModComp.CompFavorites.Save();
+                RefreshFavTargets();
+                ComboTargetFav.SelectedIndex = ComboTargetFav.Items.Count - 1;
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(
+                    ex,
+                    "新建收藏夹时发生错误",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
+            }
+            finally
+            {
+                if (ctl is not null) ctl.IsEnabled = true;
+            }
         };
         body.Items.Add(newItem);
         newItem = new MyMenuItem
@@ -807,14 +852,31 @@ public partial class PageDownloadCompFavorites
             Header = Lang.Text("Download.Comp.Favorites.Menu.Rename"),
             SvgIcon = "lucide/pencil"
         };
-        newItem.Click += (_, _) =>
+        newItem.Click += async (sender, _) =>
         {
-            var newName = ModMain.MyMsgBoxInput(Lang.Text("Download.Comp.Favorites.Dialog.Rename.Title"), defaultInput: CurrentFavTarget.Name);
-            if (string.IsNullOrWhiteSpace(newName) || (CurrentFavTarget.Name ?? "") == (newName ?? ""))
-                return;
-            CurrentFavTarget.Name = newName;
-            ModComp.CompFavorites.Save();
-            RefreshFavTargets();
+            var ctl = sender as Control;
+            if (ctl is not null) ctl.IsEnabled = false;
+            try
+            {
+                var newName = await ModMain.MyMsgBoxInputAsync(Lang.Text("Download.Comp.Favorites.Dialog.Rename.Title"), defaultInput: CurrentFavTarget.Name);
+                if (string.IsNullOrWhiteSpace(newName) || (CurrentFavTarget.Name ?? "") == (newName ?? ""))
+                    return;
+                CurrentFavTarget.Name = newName;
+                ModComp.CompFavorites.Save();
+                RefreshFavTargets();
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(
+                    ex,
+                    "重命名收藏夹时发生错误",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
+            }
+            finally
+            {
+                if (ctl is not null) ctl.IsEnabled = true;
+            }
         };
         body.Items.Add(newItem);
         newItem = new MyMenuItem
@@ -822,23 +884,40 @@ public partial class PageDownloadCompFavorites
             Header = Lang.Text("Download.Comp.Favorites.Menu.Delete"),
             SvgIcon = "lucide/trash-2"
         };
-        newItem.Click += (_, _) =>
+        newItem.Click += async (sender, _) =>
         {
-            if (ModComp.CompFavorites.FavoritesList.Count == 1)
+            var ctl = sender as Control;
+            if (ctl is not null) ctl.IsEnabled = false;
+            try
             {
-                HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.LastCollection"));
-                return;
-            }
+                if (ModComp.CompFavorites.FavoritesList.Count == 1)
+                {
+                    HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.LastCollection"));
+                    return;
+                }
 
-            var content = Lang.Text("Download.Comp.Favorites.Dialog.Delete.Confirm", CurrentFavTarget.Name, CurrentFavTarget.Favs.Count, CurrentFavTarget.Id);
-            var res = ModMain.MyMsgBox(content, Lang.Text("Download.Comp.Favorites.Dialog.Delete.Title"), isWarn: true, button1: Lang.Text("Common.Option.No"), button2: Lang.Text("Common.Option.Yes"), button3: Lang.Text("Common.Option.No"));
-            if (res == 2)
+                var content = Lang.Text("Download.Comp.Favorites.Dialog.Delete.Confirm", CurrentFavTarget.Name, CurrentFavTarget.Favs.Count, CurrentFavTarget.Id);
+                var res = await ModMain.MyMsgBoxAsync(content, Lang.Text("Download.Comp.Favorites.Dialog.Delete.Title"), isWarn: true, button1: Lang.Text("Common.Option.No"), button2: Lang.Text("Common.Option.Yes"), button3: Lang.Text("Common.Option.No"));
+                if (res == 2)
+                {
+                    ModComp.CompFavorites.FavoritesList.Remove(CurrentFavTarget);
+                    ModComp.CompFavorites.Save();
+                    HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.Deleted"), HintType.Success);
+                    RefreshFavTargets();
+                    ComboTargetFav.SelectedIndex = 0;
+                }
+            }
+            catch (Exception ex)
             {
-                ModComp.CompFavorites.FavoritesList.Remove(CurrentFavTarget);
-                ModComp.CompFavorites.Save();
-                HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.Deleted"), HintType.Success);
-                RefreshFavTargets();
-                ComboTargetFav.SelectedIndex = 0;
+                ModBase.Log(
+                    ex,
+                    "删除收藏夹时发生错误",
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Download.Comp.Favorites.Error.OperationFailed"));
+            }
+            finally
+            {
+                if (ctl is not null) ctl.IsEnabled = true;
             }
         };
         body.Items.Add(newItem);
