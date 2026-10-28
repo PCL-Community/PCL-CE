@@ -12,7 +12,7 @@
             </local:MyCard>
             <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Instance.Overall.Info.Title}">
                 <StackPanel x:Name="PanInfo" Margin="15,40,25,5">
-                    <local:MyLoading x:Name="LabInfoLoading" Text="{DynamicResource Instance.Overall.Info.Loading}" Margin="0,0,0,10" />
+                    <local:MyLoading x:Name="LabInfoLoading" Text="{Binding InfoLoadingText}" Margin="0,0,0,10" />
                 </StackPanel>
             </local:MyCard>
             <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Instance.Overall.Personalization.Title}" x:Name="PanDisplay">
@@ -79,7 +79,7 @@
                         <local:MyButton x:Name="BtnDisplayDesc" Text="{DynamicResource Instance.Overall.EditDescription}"
                                         MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" Grid.Column="1" />
-                        <local:MyButton x:Name="BtnDisplayStar" Text="{DynamicResource Instance.Overall.Favorite}"
+                        <local:MyButton x:Name="BtnDisplayStar" Text="{Binding StarText}"
                                         MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" Grid.Column="2" />
                     </Grid>
@@ -98,7 +98,8 @@
                         <local:MyButton x:Name="BtnFolderSaves" Text="{DynamicResource Instance.Overall.Shortcuts.SavesFolder}" MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" Grid.Column="1" />
                         <local:MyButton x:Name="BtnFolderMods" Text="{DynamicResource Instance.Overall.Shortcuts.ModsFolder}" MinWidth="140" Padding="13,0"
-                                        Margin="0,0,20,0" Grid.Column="2" />
+                                        Margin="0,0,20,0" Grid.Column="2"
+                                        Visibility="{Binding ModsFolderVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>

@@ -16,14 +16,19 @@ using PCL.Core.Utils;
 
 namespace PCL;
 
-public partial class PageInstanceSetup
+public partial class PageInstanceSetup : IPageView
 {
+    private readonly PageInstanceSetupViewModel _vm = new();
+
     private new bool isLoaded;
+    private bool _refreshed;
 
     public PageInstanceSetup()
     {     
         Loaded += PageSetupSystem_Loaded;
         InitializeComponent();
+        DataContext = _vm;
+        Unloaded += (_, _) => _refreshed = false;
 
         ComboArgumentIndieV2.SelectionChanged += ComboArgumentIndieV2_SelectionChanged;
         TextArgumentTitle.TextChanged += TextArgumentTitle_TextChanged;
@@ -68,8 +73,28 @@ public partial class PageInstanceSetup
         CheckArgumentTitleEmpty.Change += CheckArgumentTitleEmpty_Change;
     }
 
+    public PageInstanceSetupViewModel ViewModel => _vm;
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
     private void PageSetupSystem_Loaded(object sender, RoutedEventArgs e)
     {
+        RefreshOnNavigate();
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+
         // 重复加载部分
         PanBack.ScrollToHome();
         RefreshRam(false);
@@ -101,8 +126,8 @@ public partial class PageInstanceSetup
             TextArgumentInfo.Text = Config.Instance.TypeInfo[PageInstanceLeft.McInstance.PathInstance];
             var _unused = PageInstanceLeft.McInstance.PathIndie; // 触发自动判定
             ComboArgumentIndieV2.SelectedIndex = Config.Instance.IndieV2[PageInstanceLeft.McInstance.PathInstance] ? 0 : 1;
-            CheckArgumentTitleEmpty.Visibility = TextArgumentTitle.Text.Length > 0 ? Visibility.Collapsed : Visibility.Visible;
-            TextArgumentTitle.HintText = CheckArgumentTitleEmpty.Checked == true ? Lang.Text("Common.Option.Default") : Lang.Text("Instance.Setup.FollowGlobal");
+            _vm.RefreshTitleEmptyHint(TextArgumentTitle.Text);
+            _vm.RefreshTitleHint(CheckArgumentTitleEmpty.Checked == true);
             RefreshJavaComboBox();
 
             // 游戏内存
@@ -143,7 +168,7 @@ public partial class PageInstanceSetup
             if (SystemInfo.IsArm64System)
             {
                 CheckAdvanceDisableJLW.Checked = true;
-                CheckAdvanceDisableJLW.IsEnabled = false;
+                _vm.DisableJlwEnabled = false;
                 CheckAdvanceDisableJLW.ToolTip = Lang.Text("Setup.Launch.Advanced.DisableJlw.Arm64ToolTip");
             }
             else
@@ -169,13 +194,7 @@ public partial class PageInstanceSetup
     {
         try
         {
-            if (!Config.InstanceAuth.AuthLocked[PageInstanceLeft.McInstance.PathInstance])
-                Config.InstanceAuth.Reset(PageInstanceLeft.McInstance.PathInstance);
-
-            Config.Instance.Reset(PageInstanceLeft.McInstance.PathInstance);
-
-            ModBase.Log("[Setup] 已初始化实例独立设置");
-            HintService.Hint(Lang.Text("Instance.Setup.Initialize.Success"), HintType.Success, false);
+            _vm.ResetSettings();
         }
         catch (Exception ex)
         {
@@ -251,9 +270,7 @@ public partial class PageInstanceSetup
     {
         if (SliderRamCustom is null)
             return;
-        SliderRamCustom.IsEnabled = type == 1;
-        // 锁定内存为全局配置，启用时 -Xms 恒等于 -Xmx，初始内存设置不生效
-        SliderRamInitialCustom.IsEnabled = type == 1 && !Config.Launch.LockMemory;
+        _vm.RamType(type);
     }
 
     /// <summary>
@@ -265,43 +282,15 @@ public partial class PageInstanceSetup
             ModMain.frmMain.pageCurrent != FormMain.PageType.InstanceSetup ||
             ModMain.frmInstanceLeft.pageID != FormMain.PageSubType.VersionSetup)
             return;
-        // 获取内存情况
-        var ramGame = Math.Round(GetRam(PageInstanceLeft.McInstance), 5);
-        var phyRam = KernelInterop.GetPhysicalMemoryBytes();
-        var ramTotal = Math.Round((double)(phyRam.Total / 1024 / 1024 / 1024), 1);
-        var ramAvailable = Math.Round((double)(phyRam.Available / 1024 / 1024 / 1024), 1);
-        var ramGameActual = Math.Round(Math.Min(ramGame, ramAvailable), 5);
-        var ramUsed = Math.Round(ramTotal - ramAvailable, 5);
-        var ramEmpty = Math.Round(ModBase.MathClamp(ramTotal - ramUsed - ramGame, 0d, 1000d), 1);
-        // 设置最大可用内存
-        if (ramTotal <= 1.5d)
-            SliderRamCustom.MaxValue = (int)Math.Round(Math.Max(Math.Floor((ramTotal - 0.3d) / 0.1d), 1d));
-        else if (ramTotal <= 8d)
-            SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((ramTotal - 1.5d) / 0.5d) + 12d);
-        else if (ramTotal <= 16d)
-            SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((ramTotal - 8d) / 1d) + 25d);
-        else
-            SliderRamCustom.MaxValue = (int)Math.Round(Math.Floor((ramTotal - 16d) / 2d) + 33d);
-        // 设置文本
-        var ramInitial = GetInitialRam(PageInstanceLeft.McInstance);
-        string suffixText;
-        if (ramInitial.HasValue && ramGame != ramGameActual)
-            suffixText = Lang.Text("Setup.Launch.Memory.SuffixBoth", Lang.Number(ramInitial.Value, "N1"), Lang.Number(ramGameActual, "N1"));
-        else if (ramInitial.HasValue)
-            suffixText = Lang.Text("Setup.Launch.Memory.SuffixInitial", Lang.Number(ramInitial.Value, "N1"));
-        else if (ramGame != ramGameActual)
-            suffixText = Lang.Text("Setup.Launch.Memory.SuffixAvailable", Lang.Number(ramGameActual, "N1"));
-        else
-            suffixText = "";
-        LabRamGame.Text = $"{Lang.Number(ramGame, "N1")} GiB{(suffixText.Length > 0 ? $" ({suffixText})" : "")}";
-        LabRamUsed.Text = $"{Lang.Number(ramUsed, "N1")} GiB";
-        LabRamTotal.Text = $" / {Lang.Number(ramTotal, "N1")} GiB";
-        LabRamWarn.Visibility =
-            ramGame == 1d && !ModJava.IsGameSet64BitJava(PageInstanceLeft.McInstance) && !SystemInfo.Is32BitSystem &&
-            ModJava.Javas.ExistAnyJava()
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-        HintRamTooHigh.Visibility = ramGame / ramTotal > 0.75d ? Visibility.Visible : Visibility.Collapsed;
+        _vm.RefreshRam(PageInstanceLeft.McInstance);
+        if (Math.Abs(SliderRamCustom.MaxValue - _vm.RamMaxValue) > 0.001d)
+        {
+            SliderRamCustom.MaxValue = _vm.RamMaxValue;
+            _vm.RefreshRam(PageInstanceLeft.McInstance);
+        }
+        var ramUsed = _vm.RamUsed;
+        var ramGameActual = _vm.RamGameActual;
+        var ramEmpty = _vm.RamEmpty;
         if (showAnim)
         {
             // 宽度动画
@@ -456,97 +445,7 @@ public partial class PageInstanceSetup
     /// </summary>
     public static double GetRam(McInstance version, bool? is32BitJava = default)
     {
-        var instancePath = version?.PathInstance;
-        // 跟随全局设置
-        if (Config.Instance.MemorySolution[instancePath] == 2)
-            return PageSetupLaunch.GetRam(version, true, is32BitJava);
-
-        // ------------------------------------------
-        // 修改下方代码时需要一并修改 PageSetupLaunch
-        // ------------------------------------------
-
-        // 使用当前实例的设置
-        var ramGive = default(double);
-        if (Config.Instance.MemorySolution[instancePath] == 0)
-        {
-            // 自动配置
-            var ramAvailable =
-                Math.Round((double)(KernelInterop.GetAvailablePhysicalMemoryBytes() / 1024 / 1024 / 1024 * 10)) / 10;
-            // 确定需求的内存值
-            double ramMininum; // 无论如何也需要保证的最低限度内存
-            double ramTarget1; // 估计能勉强带动了的内存
-            double ramTarget2; // 估计没啥问题了的内存
-            double ramTarget3; // 安装过多附加组件需要的内存
-            if (version is not null && !version.IsLoaded)
-                version.Load();
-            if (version is not null && version.Modable)
-            {
-                // 可安装 Mod 的实例
-                var modDir = new DirectoryInfo(version.PathIndie + @"mods\");
-                var modCount = modDir.Exists ? modDir.GetFiles().Length : 0;
-                ramMininum = 0.5d + modCount / 150d;
-                ramTarget1 = 1.5d + modCount / 90d;
-                ramTarget2 = 2.7d + modCount / 50d;
-                ramTarget3 = 4.5d + modCount / 25d;
-            }
-            else if (version is not null && version.Info.HasOptiFine)
-            {
-                // OptiFine 实例
-                ramMininum = 0.5d;
-                ramTarget1 = 1.5d;
-                ramTarget2 = 3d;
-                ramTarget3 = 5d;
-            }
-            else
-            {
-                // 普通实例
-                ramMininum = 0.5d;
-                ramTarget1 = 1.5d;
-                ramTarget2 = 2.5d;
-                ramTarget3 = 4d;
-            }
-
-            double ramDelta;
-            // 预分配内存，阶段一，0 ~ T1，100%
-            ramDelta = ramTarget1;
-            ramGive += Math.Min(ramAvailable, ramDelta);
-            ramAvailable -= ramDelta;
-            if (ramAvailable >= 0.1d)
-            {
-                // 预分配内存，阶段二，T1 ~ T2，70%
-                ramDelta = ramTarget2 - ramTarget1;
-                ramGive += Math.Min(ramAvailable * 0.7d, ramDelta);
-                ramAvailable -= ramDelta / 0.7d;
-                if (ramAvailable >= 0.1d)
-                {
-                    // 预分配内存，阶段三，T2 ~ T3，40%
-                    ramDelta = ramTarget3 - ramTarget2;
-                    ramGive += Math.Min(ramAvailable * 0.4d, ramDelta);
-                    ramAvailable -= ramDelta / 0.4d;
-                    if (ramAvailable >= 0.1d)
-                    {
-                        // 预分配内存，阶段四，T3 ~ T3 * 2，15%
-                        ramDelta = ramTarget3;
-                        ramGive += Math.Min(ramAvailable * 0.15d, ramDelta);
-                        ramAvailable -= ramDelta / 0.15d;
-                    }
-                }
-            }
-
-            // 不低于最低值
-            ramGive = Math.Round(Math.Max(ramGive, ramMininum), 1);
-        }
-        else
-        {
-            // 手动配置
-            var value = Config.Instance.CustomMemorySize[instancePath];
-            ramGive = PageSetupLaunch.GetRamFromTick(value);
-        }
-
-        // 若使用 32 位 Java，则限制为 1G
-        if (is32BitJava ?? !ModJava.IsGameSet64BitJava(PageInstanceLeft.McInstance))
-            ramGive = Math.Min(1d, ramGive);
-        return ramGive;
+        return PageInstanceSetupViewModel.GetRam(version, is32BitJava);
     }
 
     /// <summary>
@@ -554,25 +453,7 @@ public partial class PageInstanceSetup
     /// </summary>
     public static double? GetInitialRam(McInstance version, bool? is32BitJava = default)
     {
-        // 锁定内存为全局配置，启用时 -Xms 恒等于 -Xmx，由锁定内存逻辑处理
-        if (Config.Launch.LockMemory)
-            return null;
-        // 自定义 JVM 参数含 -Xms 时由其决定实际初始堆，不再显示滑块值
-        if (PageSetupLaunch.HasCustomXms(version))
-            return null;
-        var instancePath = version?.PathInstance;
-        switch (Config.Instance.MemorySolution[instancePath])
-        {
-            case 2:
-                return PageSetupLaunch.GetInitialRam(version, true, is32BitJava);
-            case 1:
-                var initialTick = Config.Instance.CustomInitialMemorySize[instancePath];
-                if (initialTick <= 0)
-                    return null;
-                return Math.Min(PageSetupLaunch.GetRamFromTick(initialTick), GetRam(version, is32BitJava));
-            default:
-                return null;
-        }
+        return PageInstanceSetupViewModel.GetInitialRam(version, is32BitJava);
     }
 
     #endregion
@@ -631,69 +512,13 @@ public partial class PageInstanceSetup
 
     public void ServerLogin(int type)
     {
-        LabServerAuthName.Visibility = type == 2 || type == 3 ? Visibility.Visible : Visibility.Collapsed;
-        TextServerAuthName.Visibility = type == 2 || type == 3 ? Visibility.Visible : Visibility.Collapsed;
-        LabServerAuthRegister.Visibility = type == 2 || type == 3 ? Visibility.Visible : Visibility.Collapsed;
-        TextServerAuthRegister.Visibility = type == 2 || type == 3 ? Visibility.Visible : Visibility.Collapsed;
-        LabServerAuthServer.Visibility = type == 2 || type == 3 ? Visibility.Visible : Visibility.Collapsed;
-        TextServerAuthServer.Visibility = type == 2 || type == 3 ? Visibility.Visible : Visibility.Collapsed;
-        BtnServerAuthLittle.Visibility = type == 2 || type == 3 ? Visibility.Visible : Visibility.Collapsed;
-        BtnServerNewProfile.Visibility = (type == 2 || type == 3) && ProfileUi.CanCreateOtherProfile()
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-        if (type == 0 || type == 1)
-            BtnServerAuthLock.Visibility = Visibility.Collapsed;
-        else
-            BtnServerAuthLock.Visibility = Visibility.Visible;
-        if (Config.InstanceAuth.AuthLocked[PageInstanceLeft.McInstance.PathInstance])
-        {
-            HintServerLoginLock.Visibility = Visibility.Visible;
-            ComboServerLoginRequire.IsEnabled = false;
-            TextServerAuthServer.IsEnabled = false;
-            TextServerAuthName.IsEnabled = false;
-            TextServerAuthRegister.IsEnabled = false;
-            BtnServerAuthLittle.IsEnabled = false;
-        }
-        else
-        {
-            HintServerLoginLock.Visibility = Visibility.Collapsed;
-            ComboServerLoginRequire.IsEnabled = true;
-            TextServerAuthServer.IsEnabled = true;
-            TextServerAuthName.IsEnabled = true;
-            TextServerAuthRegister.IsEnabled = true;
-            BtnServerAuthLittle.IsEnabled = true;
-        }
-
+        _vm.RefreshServerLogin(type, TextServerAuthServer.Text);
         CardServer.TriggerForceResize();
-        // 避免正版验证和离线验证出现此提示
-        if (type != 2 && type != 3)
-        {
-            LabServerAuthServerSecurity.Visibility = Visibility.Collapsed;
-            LabServerAuthServerSecurityVerify.Visibility = Visibility.Collapsed;
-        }
-        // 如果开头为 http:// 给予警告
-        else if (TextServerAuthServer.Text.StartsWithF("https://"))
-        {
-            LabServerAuthServerSecurity.Visibility = Visibility.Collapsed;
-            LabServerAuthServerSecurityVerify.Visibility = Visibility.Visible;
-        }
-        else if (TextServerAuthServer.Text.StartsWithF("http://"))
-        {
-            LabServerAuthServerSecurity.Visibility = Visibility.Visible;
-            LabServerAuthServerSecurityVerify.Visibility = Visibility.Collapsed;
-        }
-        else
-        {
-            LabServerAuthServerSecurity.Visibility = Visibility.Collapsed;
-            LabServerAuthServerSecurityVerify.Visibility = Visibility.Collapsed;
-        }
     }
 
     // LittleSkin
     private async void BtnServerAuthLittle_Click(object sender, MouseButtonEventArgs e)
     {
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
         try
         {
             if (!string.IsNullOrEmpty(TextServerAuthServer.Text) &&
@@ -709,10 +534,6 @@ public partial class PageInstanceSetup
         {
             ModBase.Log(ex, "应用 LittleSkin 登录设置失败", ModBase.LogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Setup.Error.OperationFailed"));
-        }
-        finally
-        {
-            if (ctl is not null) ctl.IsEnabled = true;
         }
     }
 
@@ -1053,13 +874,13 @@ public partial class PageInstanceSetup
     // 游戏窗口
     private void CheckArgumentTitleEmpty_Change(object sender, bool e)
     {
-        TextArgumentTitle.HintText = CheckArgumentTitleEmpty.Checked == true ? Lang.Text("Common.Option.Default") : Lang.Text("Instance.Setup.FollowGlobal");
+        _vm.RefreshTitleHint(CheckArgumentTitleEmpty.Checked == true);
         CheckBoxChange(sender,e);
     }
 
     private void TextArgumentTitle_TextChanged(object sender, TextChangedEventArgs e)
     {
-        CheckArgumentTitleEmpty.Visibility = TextArgumentTitle.Text.Length > 0 ? Visibility.Collapsed : Visibility.Visible;
+        _vm.RefreshTitleEmptyHint(TextArgumentTitle.Text);
         TextBoxChange(sender,e);
     }
 
@@ -1069,7 +890,7 @@ public partial class PageInstanceSetup
 
     private void TextAdvanceRun_TextChanged(object sender, TextChangedEventArgs e)
     {
-        CheckAdvanceRunWait.Visibility = string.IsNullOrEmpty(TextAdvanceRun.Text) ? Visibility.Collapsed : Visibility.Visible;
+        _vm.RefreshRunWait(TextAdvanceRun.Text);
         TextBoxChange(sender,e);
     }
 

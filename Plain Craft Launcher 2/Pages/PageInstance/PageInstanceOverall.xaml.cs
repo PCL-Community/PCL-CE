@@ -17,11 +17,14 @@ using PCL.Core.App.Localization;
 
 namespace PCL;
 
-public partial class PageInstanceOverall
+public partial class PageInstanceOverall : IPageView
 {
+    private readonly PageInstanceOverallViewModel _vm = new();
+
     private ModLoader.LoaderCombo<int> instanceInfoLoader;
 
     private bool isLoad;
+    private bool _refreshed;
 
     public MyListItem itemVersion;
     private MyCompItem modpackCompItem;
@@ -29,8 +32,9 @@ public partial class PageInstanceOverall
     public PageInstanceOverall()
     {
         InitializeComponent();
+        DataContext = _vm;
         Loaded += PageSetupLaunch_Loaded;
-        LabInfoLoading.Text = Lang.Text("Instance.Overall.Info.Loading");
+        Unloaded += (_, _) => _refreshed = false;
         // Handles
         ComboDisplayType.SelectionChanged += ComboDisplayType_SelectionChanged;
         BtnDisplayDesc.Click += BtnDisplayDesc_Click;
@@ -48,8 +52,28 @@ public partial class PageInstanceOverall
         BtnManagePatch.Click += BtnManagePatch_Click;
     }
 
+    public PageInstanceOverallViewModel ViewModel => _vm;
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
     private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
     {
+        RefreshOnNavigate();
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+
         // 重复加载部分
         PanBack.ScrollToHome();
 
@@ -74,8 +98,7 @@ public partial class PageInstanceOverall
         var instance = PageInstanceLeft.McInstance;
         // 刷新设置项目
         ComboDisplayType.SelectedIndex = States.Instance.CardType[instance.PathInstance];
-        BtnDisplayStar.Text = instance.IsStar ? Lang.Text("Instance.Overall.Unfavorite") : Lang.Text("Instance.Overall.Favorite");
-        BtnFolderMods.Visibility = instance.Modable ? Visibility.Visible : Visibility.Collapsed;
+        _vm.RefreshDisplay(instance);
         // 刷新实例显示
         PanDisplayItem.Children.Clear();
         itemVersion = PageSelectRight.McVersionListItem(instance);
@@ -129,82 +152,9 @@ public partial class PageInstanceOverall
         });
         loaders.Add(new ModLoader.LoaderTask<int, int>(Lang.Text("Instance.Overall.Info.LoadInstanceInfoTask"), _ => ModBase.RunInUi(() =>
         {
-            var instance = PageInstanceLeft.McInstance;
-            var instanceInfo = instance.Info;
-            List<MyListItem> items = [];
-            var launchCount = States.Instance.LaunchCount[instance.PathInstance];
-            if (launchCount == 0)
-                items.Add(new MyListItem
-                {
-                    Title = Lang.Text("Instance.Overall.Info.LaunchCount.Title"), Info = Lang.Text("Instance.Overall.Info.LaunchCount.Never"), Logo = "pack://application:,,,/images/Blocks/RedstoneLampOff.png"
-                });
-            else
-                items.Add(new MyListItem
-                {
-                    Title = Lang.Text("Instance.Overall.Info.LaunchCount.Title"),
-                    Info = Lang.Text("Instance.Overall.Info.LaunchCount.Count", States.Instance.LaunchCount[instance.PathInstance]),
-                    Logo = "pack://application:,,,/images/Blocks/RedstoneLampOn.png"
-                });
-            if (!string.IsNullOrWhiteSpace(States.Instance.ModpackVersion[instance.PathInstance]))
-                items.Add(new MyListItem
-                {
-                    Title = Lang.Text("Instance.Overall.Info.ModpackVersion"), Info = States.Instance.ModpackVersion[instance.PathInstance],
-                    Logo = "pack://application:,,,/images/Blocks/CommandBlock.png"
-                });
-            items.Add(new MyListItem
-            {
-                Title = "Minecraft", Info = instanceInfo.VanillaName,
-                Logo = "pack://application:,,,/images/Blocks/Grass.png"
-            });
-            if (instanceInfo.HasForge)
-                items.Add(new MyListItem
-                {
-                    Title = "Forge", Info = instanceInfo.Forge, Logo = "pack://application:,,,/images/Blocks/Anvil.png"
-                });
-            if (instanceInfo.HasNeoForge)
-                items.Add(new MyListItem
-                {
-                    Title = "NeoForge", Info = instanceInfo.NeoForge,
-                    Logo = "pack://application:,,,/images/Blocks/NeoForge.png"
-                });
-            if (instanceInfo.HasCleanroom)
-                items.Add(new MyListItem
-                {
-                    Title = "Cleanroom", Info = instanceInfo.Cleanroom,
-                    Logo = "pack://application:,,,/images/Blocks/Cleanroom.png"
-                });
-            if (instanceInfo.HasFabric)
-                items.Add(new MyListItem
-                {
-                    Title = "Fabric", Info = instanceInfo.Fabric,
-                    Logo = "pack://application:,,,/images/Blocks/Fabric.png"
-                });
-            if (instanceInfo.HasQuilt)
-                items.Add(new MyListItem
-                {
-                    Title = "Quilt", Info = instanceInfo.Quilt, Logo = "pack://application:,,,/images/Blocks/Quilt.png"
-                });
-            if (instanceInfo.HasOptiFine)
-                items.Add(new MyListItem
-                {
-                    Title = "OptiFine", Info = instanceInfo.OptiFine,
-                    Logo = "pack://application:,,,/images/Blocks/GrassPath.png"
-                });
-            if (instanceInfo.HasLiteLoader)
-                items.Add(new MyListItem
-                    { Title = "LiteLoader", Info = Lang.Text("Instance.Overall.Info.Installed"), Logo = "pack://application:,,,/images/Blocks/Egg.png" });
-            if (instanceInfo.HasLegacyFabric)
-                items.Add(new MyListItem
-                {
-                    Title = "Legacy Fabric", Info = instanceInfo.LegacyFabric,
-                    Logo = "pack://application:,,,/images/Blocks/Fabric.png"
-                });
-            if (instanceInfo.HasLabyMod)
-                items.Add(new MyListItem
-                {
-                    Title = "LabyMod", Info = instanceInfo.LabyMod,
-                    Logo = "pack://application:,,,/images/Blocks/LabyMod.png"
-                });
+            var items = PageInstanceOverallViewModel.BuildInfoRows(PageInstanceLeft.McInstance)
+                .Select(row => new MyListItem { Title = row.Title, Info = row.Info, Logo = row.Logo })
+                .ToList();
             var wrapPanel = new WrapPanel { Margin = new Thickness(0, -5, -20, 7) };
             foreach (var item in items)
             {
@@ -541,7 +491,7 @@ public partial class PageInstanceOverall
 
     public static void OpenVersionFolder(McInstance version)
     {
-        ModBase.OpenExplorer(version.PathInstance);
+        PageInstanceOverallViewModel.OpenVersionFolder(version);
     }
 
     // 存档文件夹

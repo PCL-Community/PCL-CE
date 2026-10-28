@@ -51,13 +51,15 @@
                         <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Text="{DynamicResource Setup.Launch.Options.WindowTitle.Label}"
                                    Margin="0,0,25,0" />
-                        <local:MyComboBox x:Name="TextArgumentTitle" Grid.Row="2" Grid.ColumnSpan="2"
+                        <local:MyComboBox x:Name="TextArgumentTitle"
+                                          HintText="{Binding TitleHintText}" Grid.Row="2" Grid.ColumnSpan="2"
                                           Tag="VersionArgumentTitle" Grid.Column="1" IsEditable="True"
                                           IsTextSearchEnabled="False"
                                           ToolTip="{DynamicResource Instance.Setup.Options.WindowTitle.ToolTip}">
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.WindowTitle.SampleFormat}" />
                         </local:MyComboBox>
-                        <local:MyCheckBox x:Name="CheckArgumentTitleEmpty" Margin="0,0,0,9" Grid.Row="4"
+                        <local:MyCheckBox x:Name="CheckArgumentTitleEmpty"
+                                          Visibility="{Binding TitleEmptyHintVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,9" Grid.Row="4"
                                           Grid.ColumnSpan="3"
                                           Text="{DynamicResource Instance.Setup.Options.WindowTitle.Default}"
                                           Tag="VersionArgumentTitleEmpty"
@@ -93,9 +95,10 @@
             </local:MyCard>
             <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Setup.Launch.Memory.Title}">
                 <StackPanel Margin="25,40,25,15">
-                    <local:MyHint x:Name="LabRamWarn" Text="{DynamicResource Setup.Launch.Memory.Warning.Java32Bit}"
+                    <local:MyHint x:Name="LabRamWarn"
+                                  Visibility="{Binding RamWarnVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Text="{DynamicResource Setup.Launch.Memory.Warning.Java32Bit}"
                                   Theme="Yellow" Margin="0,0,0,12" />
-                    <local:MyHint x:Name="HintRamTooHigh" Visibility="Collapsed" Height="30" Theme="Yellow"
+                    <local:MyHint x:Name="HintRamTooHigh" Visibility="{Binding RamTooHighVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Theme="Yellow"
                                   Text="{DynamicResource Setup.Launch.Memory.Warning.TooMuch}" Margin="0,0,0,12"
                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
                     <Grid Margin="0,0,0,3">
@@ -150,7 +153,7 @@
 
                         <local:MySlider
                             Grid.Row="3" Grid.Column="1"
-                            IsEnabled="False"
+                            IsEnabled="{Binding RamCustomEnabled}"
                             x:Name="SliderRamCustom"
                             Tag="VersionRamCustom"
                             MaxValue="49"
@@ -166,7 +169,7 @@
 
                         <local:MySlider
                             Grid.Row="4" Grid.Column="1"
-                            IsEnabled="False"
+                            IsEnabled="{Binding RamInitialCustomEnabled}"
                             x:Name="SliderRamInitialCustom"
                             Tag="VersionRamCustomInitial"
                             MaxValue="49"
@@ -205,12 +208,12 @@
                                    TextTrimming="None" Margin="2,0,0,5" FontSize="11" HorizontalAlignment="Left" />
                         <StackPanel Grid.Row="2" Orientation="Horizontal" Grid.ColumnSpan="3" Margin="2,3,0,0"
                                     HorizontalAlignment="Left">
-                            <TextBlock x:Name="LabRamUsed" Text="4.7 GiB" FontSize="16"
+                            <TextBlock x:Name="LabRamUsed" Text="{Binding RamUsedText}" FontSize="16"
                                        Foreground="{DynamicResource ColorBrushMemory}" TextTrimming="None" />
-                            <TextBlock x:Name="LabRamTotal" Text=" / 7.9 GiB" FontSize="16"
+                            <TextBlock x:Name="LabRamTotal" Text="{Binding RamTotalText}" FontSize="16"
                                        Foreground="{DynamicResource ColorBrushMemory}" TextTrimming="None" />
                         </StackPanel>
-                        <TextBlock Grid.Row="2" x:Name="LabRamGame" Text="2.5 GiB" Grid.ColumnSpan="3"
+                        <TextBlock Grid.Row="2" x:Name="LabRamGame" Text="{Binding RamGameText}" Grid.ColumnSpan="3"
                                    TextTrimming="None" Margin="2,3,0,0" FontSize="16"
                                    Foreground="{DynamicResource ColorBrushMemory}" HorizontalAlignment="Left" />
                     </Grid>
@@ -220,13 +223,13 @@
                 <StackPanel Margin="25,42,25,18">
                     <local:MyHint x:Name="HintServerLoginLock"
                                   Text="{DynamicResource Instance.Setup.Server.LoginLockHint}" IsWarn="True"
-                                  Margin="0,0,0,13" Visibility="Collapsed" />
+                                  Margin="0,0,0,13" Visibility="{Binding ServerLoginLockVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     <local:MyHint x:Name="LabServerAuthServerSecurityVerify"
                                   Text="{DynamicResource Instance.Setup.Server.SslWarning}" IsWarn="False"
-                                  Margin="0,0,0,13" Visibility="Collapsed" />
+                                  Margin="0,0,0,13" Visibility="{Binding ServerSslWarningVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     <local:MyHint x:Name="LabServerAuthServerSecurity"
                                   Text="{DynamicResource Instance.Setup.Server.HttpWarning}"
-                                  Margin="0,0,0,13" Visibility="Collapsed" />
+                                  Margin="0,0,0,13" Visibility="{Binding ServerHttpWarningVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
@@ -244,7 +247,8 @@
                         <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Text="{DynamicResource Instance.Setup.Server.RestrictLogin}"
                                    Margin="0,0,25,0" />
-                        <local:MyComboBox x:Name="ComboServerLoginRequire" Grid.Row="0" Grid.ColumnSpan="2"
+                        <local:MyComboBox x:Name="ComboServerLoginRequire"
+                                          IsEnabled="{Binding ServerAuthEditable}" Grid.Row="0" Grid.ColumnSpan="2"
                                           Tag="VersionServerLoginRequire" Grid.Column="1">
                             <local:MyComboBoxItem
                                 Content="{DynamicResource Instance.Setup.Server.LoginMethod.Unlimited}"
@@ -258,10 +262,11 @@
                         </local:MyComboBox>
                         <TextBlock Name="LabServerAuthServer" Grid.Row="1" VerticalAlignment="Center"
                                    HorizontalAlignment="Left" Text="{DynamicResource Instance.Setup.Server.AuthServer}"
-                                   Margin="0,8,25,0" Visibility="Collapsed" />
-                        <local:MyTextBox x:Name="TextServerAuthServer" Grid.Row="1" Grid.ColumnSpan="2"
+                                   Margin="0,8,25,0" Visibility="{Binding ServerAuthVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <local:MyTextBox x:Name="TextServerAuthServer"
+                                         IsEnabled="{Binding ServerAuthEditable}" Grid.Row="1" Grid.ColumnSpan="2"
                                          ShowValidateResult="False" Tag="VersionServerAuthServer" Grid.Column="1"
-                                         Margin="0,8,0,0" Visibility="Collapsed"
+                                         Margin="0,8,0,0" Visibility="{Binding ServerAuthVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                                          HintText="{DynamicResource Instance.Setup.Server.AuthServer.Hint}">
                             <local:MyTextBox.ValidateRules>
                                 <val:HttpValidator />
@@ -269,10 +274,11 @@
                         </local:MyTextBox>
                         <TextBlock Name="LabServerAuthRegister" Grid.Row="2" VerticalAlignment="Center"
                                    HorizontalAlignment="Left" Text="{DynamicResource Instance.Setup.Server.Register}"
-                                   Margin="0,8,25,0" Visibility="Collapsed" />
-                        <local:MyTextBox x:Name="TextServerAuthRegister" Grid.Row="2" Grid.ColumnSpan="2"
+                                   Margin="0,8,25,0" Visibility="{Binding ServerAuthVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <local:MyTextBox x:Name="TextServerAuthRegister"
+                                         IsEnabled="{Binding ServerAuthEditable}" Grid.Row="2" Grid.ColumnSpan="2"
                                          ShowValidateResult="False" Tag="VersionServerAuthRegister" Grid.Column="1"
-                                         Margin="0,8,0,0" Visibility="Collapsed"
+                                         Margin="0,8,0,0" Visibility="{Binding ServerAuthVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                                          HintText="{DynamicResource Instance.Setup.Server.Register.Hint}">
                             <local:MyTextBox.ValidateRules>
                                 <val:HttpValidator AllowsNullOrEmpty="True" />
@@ -280,10 +286,11 @@
                         </local:MyTextBox>
                         <TextBlock Name="LabServerAuthName" Grid.Row="3" VerticalAlignment="Center"
                                    HorizontalAlignment="Left" Text="{DynamicResource Instance.Setup.Server.Name}"
-                                   Margin="0,8,25,0" Visibility="Collapsed" />
-                        <local:MyTextBox x:Name="TextServerAuthName" Grid.Row="3" Grid.ColumnSpan="2"
+                                   Margin="0,8,25,0" Visibility="{Binding ServerAuthVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <local:MyTextBox x:Name="TextServerAuthName"
+                                         IsEnabled="{Binding ServerAuthEditable}" Grid.Row="3" Grid.ColumnSpan="2"
                                          ShowValidateResult="False" Tag="VersionServerAuthName" Grid.Column="1"
-                                         Margin="0,8,0,0" Visibility="Collapsed"
+                                         Margin="0,8,0,0" Visibility="{Binding ServerAuthVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                                          HintText="{DynamicResource Instance.Setup.Server.Name.Hint}" />
                         <TextBlock VerticalAlignment="Center" Grid.Row="5" HorizontalAlignment="Left"
                                    Text="{DynamicResource Instance.Setup.Server.AutoJoin}"
@@ -304,13 +311,17 @@
                             </local:MyTextBox.ValidateRules>
                         </local:MyTextBox>
                     </Grid>
-                    <local:MyButton x:Name="BtnServerAuthLittle" Height="35" MinWidth="150" Margin="0,12,0,0"
+                    <local:MyButton x:Name="BtnServerAuthLittle"
+                                    IsEnabled="{Binding ServerAuthEditable}"
+                                    Visibility="{Binding ServerAuthVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Height="35" MinWidth="150" Margin="0,12,0,0"
                                     Text="{DynamicResource Instance.Setup.Server.SetLittleSkin}"
                                     HorizontalAlignment="Left" ColorType="Highlight" />
-                    <local:MyButton x:Name="BtnServerAuthLock" Height="35" MinWidth="150" Margin="180,-35,0,0"
+                    <local:MyButton x:Name="BtnServerAuthLock"
+                                    Visibility="{Binding ServerAuthLockVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Height="35" MinWidth="150" Margin="180,-35,0,0"
                                     Text="{DynamicResource Instance.Setup.Server.LockLoginMethod}"
                                     HorizontalAlignment="Left" IsEnabled="False" />
-                    <local:MyButton x:Name="BtnServerNewProfile" Height="35" MinWidth="150" Margin="360,-35,0,0"
+                    <local:MyButton x:Name="BtnServerNewProfile"
+                                    Visibility="{Binding ServerNewProfileVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Height="35" MinWidth="150" Margin="360,-35,0,0"
                                     Text="{DynamicResource Instance.Setup.Server.CreateProfile}"
                                     HorizontalAlignment="Left" />
                 </StackPanel>
@@ -383,7 +394,7 @@
 
                     <StackPanel Margin="0,8,0,4" Grid.Row="9" Grid.ColumnSpan="2" HorizontalAlignment="Left">
                         <local:MyCheckBox Height="28" x:Name="CheckAdvanceRunWait" Tag="VersionAdvanceRunWait"
-                                          Visibility="Collapsed"
+                                          Visibility="{Binding CheckAdvanceRunWaitVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                                           Text="{DynamicResource Setup.Launch.Advanced.PreLaunchCommand.Wait}" />
                         <local:MyCheckBox Height="28"
                                           Text="{DynamicResource Instance.Setup.Advanced.DisableModUpdate}"
@@ -407,6 +418,7 @@
                         <local:MyCheckBox Height="28"
                                           Text="{DynamicResource Setup.Launch.Advanced.DisableJlw}"
                                           x:Name="CheckAdvanceDisableJLW"
+                                          IsEnabled="{Binding DisableJlwEnabled}"
                                           Tag="VersionAdvanceDisableJLW"
                                           ToolTip="{DynamicResource Setup.Launch.Advanced.DisableJlw.ToolTip}" />
                         <local:MyCheckBox Height="28"
