@@ -30,6 +30,7 @@
                        Text="{DynamicResource Instance.Resource.Mod.Disabled.Message}"
                        TextWrapping="Wrap" />
             <local:MyButton Grid.Row="3" Grid.Column="1" Height="35" HorizontalAlignment="Center" x:Name="BtnDownload"
+                            Visibility="{Binding BtnDownloadVisibility}"
                             MinWidth="140" Text="{DynamicResource Instance.Resource.Mod.Disabled.GoDownload}"
                             Margin="10,10,10,0" Padding="13,0" ColorType="Highlight" />
             <local:MyButton Grid.Row="3" Grid.Column="2" Height="35" HorizontalAlignment="Center" x:Name="BtnVersion"

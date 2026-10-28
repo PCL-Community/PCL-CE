@@ -12,6 +12,7 @@ namespace PCL;
 
 public partial class PageInstanceCompJarInJar
 {
+    private readonly PageInstanceCompJarInJarViewModel _vm = new();
     private ModJarInJarIndex _index = null!;
     private string? _instanceMc;
     private string _search = "";
@@ -19,6 +20,7 @@ public partial class PageInstanceCompJarInJar
     public PageInstanceCompJarInJar()
     {
         InitializeComponent();
+        DataContext = _vm;
         BtnBack.Click += (_, _) => GoBack();
         BtnEmptyBack.Click += (_, _) => GoBack();
         BtnRefresh.Click += (_, _) => RefreshList();
@@ -29,6 +31,8 @@ public partial class PageInstanceCompJarInJar
         };
         Loaded += (_, _) => RefreshList();
     }
+
+    public PageInstanceCompJarInJarViewModel ViewModel => _vm;
 
     private bool _Match(CompFile m)
     {
@@ -67,7 +71,7 @@ public partial class PageInstanceCompJarInJar
             .ToList();
         _instanceMc = PageInstanceLeft.McInstance?.Info?.VanillaName;
         _index = new ModJarInJarIndex(allMods, _instanceMc);
-        PanLoad.Visibility = Visibility.Collapsed;
+        _vm.HideLoading();
 
         PanWarnList.Children.Clear();
         foreach (var host in allMods)
@@ -80,7 +84,6 @@ public partial class PageInstanceCompJarInJar
         }
 
         var hasWarning = PanWarnList.Children.Count > 0;
-        CardWarnings.Visibility = hasWarning ? Visibility.Visible : Visibility.Collapsed;
 
         PanConflictList.Children.Clear();
         var conflictCount = 0;
@@ -90,8 +93,6 @@ public partial class PageInstanceCompJarInJar
             PanConflictList.Children.Add(_MakeConflictRow(a, b, hard));
             conflictCount++;
         }
-
-        CardConflicts.Visibility = conflictCount > 0 ? Visibility.Visible : Visibility.Collapsed;
 
         PanRelationList.Children.Clear();
         var relationCount = 0;
@@ -116,21 +117,16 @@ public partial class PageInstanceCompJarInJar
             }
         }
 
-        SectionRelations.Visibility = relationCount > 0 ? Visibility.Visible : Visibility.Collapsed;
-
         PanBundledList.Children.Clear();
         var bundledMods = allMods
             .Where(m => m.EmbeddedMods is { Count: > 0 } && (_Match(m) || _AnyEmbeddedMatch(m.EmbeddedMods)))
             .ToList();
         foreach (var mod in bundledMods)
             PanBundledList.Children.Add(_MakeCard(mod, _BuildBundledContent));
-        SectionBundled.Visibility = bundledMods.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
         // 搜索无结果时不显示"没有模组"空态（避免误导为实例本身没有），仅留空白
-        PanEmpty.Visibility =
-            hasWarning || conflictCount > 0 || relationCount > 0 || bundledMods.Count > 0 || _search.Length > 0
-                ? Visibility.Collapsed
-                : Visibility.Visible;
+        _vm.ApplySectionVisibility(hasWarning, conflictCount, relationCount, bundledMods.Count,
+            _search.Length > 0);
     }
 
     private MyCard _MakeCard(CompFile mod, Action<StackPanel, CompFile> build, string? title = null)

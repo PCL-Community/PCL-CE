@@ -14,7 +14,7 @@
             <local:MyCard Margin="0,0,0,25" x:Name="CardIntro">
                 <StackPanel Margin="22,20,2,20" x:Name="PanIntro">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                        <local:MyIconTextButton x:Name="BtnIntroWeb" Text="CurseForge"
+                        <local:MyIconTextButton x:Name="BtnIntroWeb" Text="{Binding IntroWebText}"
                                                 BorderBrush="{DynamicResource ColorBrush6}" BorderThickness="1"
                                                 SvgIcon="lucide/globe"
                                                 Margin="0,0,3,0" HorizontalAlignment="Left" />
@@ -22,7 +22,8 @@
                                                 Text="{DynamicResource Download.Comp.Detail.McMod}"
                                                 BorderBrush="{DynamicResource ColorBrush6}" BorderThickness="1"
                                                 SvgIcon="lucide/globe"
-                                                Margin="0,0,3,0" HorizontalAlignment="Left" />
+                                                Margin="0,0,3,0" HorizontalAlignment="Left"
+                                                Visibility="{Binding IntroWikiVisibility}" />
                         <local:MyIconTextButton x:Name="BtnIntroCopy"
                                                 Text="{DynamicResource Download.Comp.Detail.CopyName}"
                                                 BorderBrush="{DynamicResource ColorBrush6}" BorderThickness="1"
@@ -37,7 +38,8 @@
                                                 Text="{DynamicResource Download.Comp.Detail.TranslateDescription}"
                                                 BorderBrush="{DynamicResource ColorBrush6}" BorderThickness="1"
                                                 SvgIcon="lucide/earth"
-                                                Margin="0,0,3,0" HorizontalAlignment="Left" />
+                                                Margin="0,0,3,0" HorizontalAlignment="Left"
+                                                Visibility="{Binding TranslateVisibility}" />
                         <local:MyIconTextButton x:Name="BtnFavorites"
                                                 Text="{DynamicResource Download.Comp.Detail.Favorite}"
                                                 BorderBrush="{DynamicResource ColorBrush6}" BorderThickness="1"
@@ -47,7 +49,8 @@
                 </StackPanel>
             </local:MyCard>
             <StackPanel Grid.Row="1" Grid.RowSpan="2" Name="PanMain" Grid.IsSharedSizeScope="True">
-                <local:MyCard Margin="0,0,0,15" x:Name="CardFilter">
+                <local:MyCard Margin="0,0,0,15" x:Name="CardFilter"
+                              Visibility="{Binding FilterVisibility}">
                     <StackPanel>
                         <StackPanel x:Name="PanInstanceFilter" Margin="10,10,0,5" Orientation="Horizontal"
                                     VerticalAlignment="Top" HorizontalAlignment="Left" />
