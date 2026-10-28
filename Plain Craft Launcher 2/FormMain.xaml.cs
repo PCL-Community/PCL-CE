@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -1964,28 +1964,40 @@ public partial class FormMain
         ModAnimation.AniStop("FrmMain LeftChange");
         ModAnimation.AniStop("PageLeft PageChange"); // 停止左边栏变更导致的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
         ModAnimation.AniBeginControl();
-        // 清除新页面关联性
-        if (targetLeft.Parent is not null)
-            targetLeft.SetValue(ContentPresenter.ContentProperty, null);
-        if (targetRight is not null && targetRight.Parent is not null)
-            targetRight.SetValue(ContentPresenter.ContentProperty, null);
-        pageLeft = (MyPageLeft)targetLeft;
-        pageRight = (MyPageRight)targetRight;
-        // 触发页面通用动画
-        ((MyPageLeft)PanMainLeft.Child).TriggerHideAnimation();
-        ((MyPageRight)PanMainRight.Child).PageOnExit();
-        ModAnimation.AniEndControl();
+        try
+        {
+            // 清除新页面关联性
+            if (targetLeft.Parent is not null)
+                targetLeft.SetValue(ContentPresenter.ContentProperty, null);
+            if (targetRight is not null && targetRight.Parent is not null)
+                targetRight.SetValue(ContentPresenter.ContentProperty, null);
+            pageLeft = (MyPageLeft)targetLeft;
+            pageRight = (MyPageRight)targetRight;
+            // 触发页面通用动画
+            ((MyPageLeft)PanMainLeft.Child).TriggerHideAnimation();
+            ((MyPageRight)PanMainRight.Child).PageOnExit();
+        }
+        finally
+        {
+            ModAnimation.AniEndControl();
+        }
         // 执行动画
         ModAnimation.AniStart(new[]
         {
             ModAnimation.AaCode(() =>
             {
                 ModAnimation.AniBeginControl();
-                // 把新页面添加进容器
-                PanMainLeft.Child = pageLeft;
-                pageLeft.Opacity = 0d;
-                PanMainLeft.Background = null;
-                ModAnimation.AniEndControl();
+                try
+                {
+                    // 把新页面添加进容器
+                    PanMainLeft.Child = pageLeft;
+                    pageLeft.Opacity = 0d;
+                    PanMainLeft.Background = null;
+                }
+                finally
+                {
+                    ModAnimation.AniEndControl();
+                }
                 ModBase.RunInUi(() => PanMainLeft_Resize(PanMainLeft.ActualWidth), true);
             }, 110),
             ModAnimation.AaCode(() =>
@@ -2000,12 +2012,18 @@ public partial class FormMain
             ModAnimation.AaCode(() =>
             {
                 ModAnimation.AniBeginControl();
-                ((MyPageRight)PanMainRight.Child).PageOnForceExit();
-                // 把新页面添加进容器
-                PanMainRight.Child = pageRight;
-                pageRight.Opacity = 0d;
-                PanMainRight.Background = null;
-                ModAnimation.AniEndControl();
+                try
+                {
+                    ((MyPageRight)PanMainRight.Child).PageOnForceExit();
+                    // 把新页面添加进容器
+                    PanMainRight.Child = pageRight;
+                    pageRight.Opacity = 0d;
+                    PanMainRight.Background = null;
+                }
+                finally
+                {
+                    ModAnimation.AniEndControl();
+                }
                 ModBase.RunInUi(() => BtnExtraBack.ShowRefresh(), true);
             }, 110),
             ModAnimation.AaCode(() =>
