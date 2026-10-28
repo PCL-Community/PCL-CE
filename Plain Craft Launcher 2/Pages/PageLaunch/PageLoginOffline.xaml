@@ -24,6 +24,7 @@
     <TextBlock Text="{DynamicResource Launch.Account.Offline.PlayerId}" Grid.Row="0" HorizontalAlignment="Center"
                VerticalAlignment="Center" />
     <local:MyTextBox Grid.Row="0" Grid.Column="1" Height="28" x:Name="TextName"
+                     Text="{Binding UserName, UpdateSourceTrigger=PropertyChanged}"
                      ToolTip="{DynamicResource Launch.Account.Offline.PlayerId.ToolTip}" />
     <TextBlock Grid.Row="2" Grid.Column="1" Text="{DynamicResource Launch.Account.Offline.UuidStandard}"
                TextAlignment="Center" Margin="-45,0,0,0" FontWeight="Bold" />
@@ -47,8 +48,10 @@
                           ToolTip="{DynamicResource Launch.Account.Offline.Uuid.Custom.ToolTip}" />
     </Grid>
     <TextBlock Text="UUID" Grid.Row="6" x:Name="TextUuidTitle" HorizontalAlignment="Center" VerticalAlignment="Center"
-               Visibility="Collapsed" />
-    <local:MyTextBox Grid.Row="6" Grid.Column="1" Height="28" Visibility="Collapsed" x:Name="TextUuid"
+               Visibility="{Binding ShowCustomUuid, Converter={StaticResource BooleanToVisibilityConverter}}" />
+    <local:MyTextBox Grid.Row="6" Grid.Column="1" Height="28" x:Name="TextUuid"
+                     Text="{Binding Uuid, UpdateSourceTrigger=PropertyChanged}"
+                     Visibility="{Binding ShowCustomUuid, Converter={StaticResource BooleanToVisibilityConverter}}"
                      ToolTip="{DynamicResource Launch.Account.Offline.Uuid.Custom.Input.ToolTip}" />
     <local:MyButton x:Name="BtnBack" Grid.Row="9" Grid.Column="1" Width="50" Margin="-100,-40,0,40" ColorType="Normal"
                     Text="{DynamicResource Launch.Account.Offline.Back}" HorizontalAlignment="Center" />
