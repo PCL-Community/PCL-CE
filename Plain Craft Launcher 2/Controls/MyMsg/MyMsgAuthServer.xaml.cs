@@ -85,6 +85,7 @@ public partial class MyMsgAuthServer
     private void _Close()
     {
         _converter.WaitFrame.Continue = false;
+        _converter.CompletionObject.TrySetResult(_converter.Result);
         ComponentDispatcher.PopModal();
         ModAnimation.AniStart(new[]
         {

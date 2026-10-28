@@ -37,6 +37,7 @@ public partial class MyMsgLogin
         myConverter.IsExited = true;
         _cancellation.Cancel();
         myConverter.Result = result;
+        myConverter.CompletionObject.TrySetResult(myConverter.Result);
         myConverter.CompletionHandler?.Invoke(result);
         ModBase.RunInUi(Close);
         Thread.Sleep(200);

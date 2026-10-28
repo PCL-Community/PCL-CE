@@ -142,6 +142,7 @@ public partial class MyMsgSelect
     {
         // 结束线程阻塞
         myConverter.WaitFrame.Continue = false;
+        myConverter.CompletionObject.TrySetResult(myConverter.Result);
         ComponentDispatcher.PopModal();
         // 动画
         ModAnimation.AniStart(new[]
