@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Security.Authentication;
 using System.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -29,7 +29,7 @@ public partial class PageLoginMsViewModel : ViewModelBase
     public void Back()
     {
         ProfileService.IsCreatingProfile = false;
-        ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
+        ModBase.RunInUi(() => ModMain.frmLaunchLeft?.RefreshPage(true));
     }
 
     [RelayCommand]
@@ -55,7 +55,7 @@ public partial class PageLoginMsViewModel : ViewModelBase
                 if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Finished)
                 {
                     loginSucceeded = true;
-                    ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
+                    ModBase.RunInUi(() => ModMain.frmLaunchLeft?.RefreshPage(true));
                 }
                 else if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Aborted)
                 {

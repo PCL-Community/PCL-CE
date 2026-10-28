@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -34,7 +34,7 @@ public partial class PageLoginOfflineViewModel : ViewModelBase
     public void Back()
     {
         ProfileService.IsCreatingProfile = false;
-        ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
+        ModBase.RunInUi(() => ModMain.frmLaunchLeft?.RefreshPage(true));
     }
 
     [RelayCommand]
@@ -91,7 +91,7 @@ public partial class PageLoginOfflineViewModel : ViewModelBase
             ProfileService.Add(newProfile);
             ProfileService.IsCreatingProfile = false;
             HintService.Hint(Lang.Text("Launch.Account.Profile.Created"), HintType.Success);
-            ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
+            ModBase.RunInUi(() => ModMain.frmLaunchLeft?.RefreshPage(true));
         }
         catch (Exception ex)
         {

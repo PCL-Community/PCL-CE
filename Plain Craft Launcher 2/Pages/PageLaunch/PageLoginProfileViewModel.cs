@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -71,7 +71,7 @@ public partial class PageLoginProfileViewModel : ViewModelBase
     public async Task EditServerNameAsync(PageLoginProfile.ProfileItem item)
     {
         var name = await ModMain.MyMsgBoxInputAsync(Lang.Text("Launch.Account.Profile.EditServerName.Title"),
-            Lang.Text("Launch.Account.Profile.EditServerName.Message"), item.Profile.ServerName);
+            Lang.Text("Launch.Account.Profile.EditServerName.Message"), item.Profile.ServerName ?? "");
         if (name is not null) ProfileUi.EditAuthServerName(item.Profile, name);
     }
 
