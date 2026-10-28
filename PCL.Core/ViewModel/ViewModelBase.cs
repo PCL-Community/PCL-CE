@@ -27,7 +27,7 @@ public abstract partial class ViewModelBase : ObservableObject
 
         try
         {
-            await body(external).ConfigureAwait(false);
+            await body(external);
             State = AsyncState.Ready;
         }
         catch (OperationCanceledException)
@@ -49,7 +49,7 @@ public abstract partial class ViewModelBase : ObservableObject
 
         try
         {
-            var result = await body(external).ConfigureAwait(false);
+            var result = await body(external);
             State = AsyncState.Ready;
             return result;
         }
