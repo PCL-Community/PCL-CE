@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -9,9 +9,11 @@ using PCL.Core.App.Localization;
 
 namespace PCL;
 
-public partial class PageSetupJava
+public partial class PageSetupJava : IPageView
 {
-    private bool isLoad = false;
+    private readonly PageSetupJavaViewModel _vm = new();
+    private bool _refreshed;
+    private bool _scanning;
 
     public ModLoader.LoaderTask<bool, List<JavaEntry>> loader;
 
@@ -20,10 +22,26 @@ public partial class PageSetupJava
         InitializeComponent();
         loader = new ModLoader.LoaderTask<bool, List<JavaEntry>>("JavaPageLoader", Load_GetJavaList);
         Loaded += PageSetupLaunch_Loaded;
+        Unloaded += PageSetupLaunch_Unloaded;
     }
 
-    private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
+    public PageSetupJavaViewModel ViewModel => _vm;
+
+    public void OnNavigatedTo(object? parameter) => Refresh();
+
+    public void OnNavigatedFrom()
     {
+    }
+
+    private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e) => Refresh();
+
+    private void PageSetupLaunch_Unloaded(object sender, RoutedEventArgs e) => _refreshed = false;
+
+    private void Refresh()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
         PageLoaderInit(PanLoad, CardLoad, PanMain, null, loader, _ => OnLoadFinished(), Load_Input);
     }
 
@@ -32,14 +50,28 @@ public partial class PageSetupJava
         return false;
     }
 
-    private void Load_GetJavaList(ModLoader.LoaderTask<bool, List<JavaEntry>> loader)
+    private void Load_GetJavaList(ModLoader.LoaderTask<bool, List<JavaEntry>> task)
     {
-        if (loader.input || loader.isForceRestarting)
+        if ((task.input || task.isForceRestarting) && !_scanning)
         {
-            JavaService.JavaManager.ScanJavaAsync(force: true).GetAwaiter().GetResult();
-            JavaService.JavaManager.CheckAllAvailability();
+            _scanning = true;
+            _ = ScanThenRefreshAsync();
         }
-        loader.output = ModJava.Javas.GetSortedJavaList();
+
+        task.output = ModJava.Javas.GetSortedJavaList();
+    }
+
+    private async Task ScanThenRefreshAsync()
+    {
+        try
+        {
+            await _vm.ScanJavaAsync();
+            ModBase.RunInUi(OnLoadFinished);
+        }
+        finally
+        {
+            _scanning = false;
+        }
     }
 
     private void OnLoadFinished()
@@ -65,75 +97,63 @@ public partial class PageSetupJava
         if (string.IsNullOrEmpty(currentSetJava))
             itemAuto.SetChecked(true, false, false);
     }
-    
+
     private MyListItem ItemBuild(JavaEntry j)
     {
         var item = new MyListItem();
-        var versionTypeDesc = j.Installation.IsJre ? "JRE" : "JDK";
-        var versionNameDesc = j.Installation.MajorVersion.ToString();
-        item.Title = $"{versionTypeDesc} {versionNameDesc}";
-
-        item.Info = j.Installation.JavaFolder;
-        var displayTags = new List<string>();
-        var displayBits = j.Installation.Is64Bit ? "64 Bit" : "32 Bit";
-        displayTags.Add(displayBits);
-        var displayBrand = j.Installation.Brand.ToString();
-        displayTags.Add(displayBrand);
-        item.Tags = displayTags;
+        item.Title = PageSetupJavaViewModel.BuildTitle(j);
+        item.Info = PageSetupJavaViewModel.BuildInfo(j);
+        item.Tags = PageSetupJavaViewModel.BuildTags(j);
 
         item.Type = MyListItem.CheckType.RadioBox;
         item.Check += (sender, e) =>
         {
-            if (!j.Installation.IsStillAvailable)
-            {
-                HintService.Hint(Lang.Text("Setup.Java.Unavailable"));
-                return;
-            }
-
-            if (j.IsEnabled)
-                Config.Launch.SelectedJava = j.Installation.JavaExePath;
-            else
-            {
-                HintService.Hint(Lang.Text("Setup.Java.EnableBeforeSelect"));
+            if (!_vm.TrySelectJava(j))
                 e.handled = true;
-            }
         };
         var btnOpenFolder = new MyIconButton();
         btnOpenFolder.SvgIcon = "lucide/folder-open";
         btnOpenFolder.ToolTip = Lang.Text("Common.Action.Open");
         btnOpenFolder.Click += (sender, e) =>
         {
-            if (!j.Installation.IsStillAvailable)
-            {
-                HintService.Hint(Lang.Text("Setup.Java.Unavailable"));
+            if (!PageSetupJavaViewModel.EnsureAvailable(j))
                 return;
-            }
 
             ModBase.OpenExplorer(j.Installation.JavaFolder);
         };
         var btnInfo = new MyIconButton();
         btnInfo.SvgIcon = "lucide/info";
         btnInfo.ToolTip = Lang.Text("Setup.Java.Detail.ToolTip");
-        btnInfo.Click += (sender, e) =>
+        btnInfo.Click += async (sender, e) =>
         {
-            if (!j.Installation.IsStillAvailable)
+            var control = sender as Control;
+            if (control is not null)
+                control.IsEnabled = false;
+            try
             {
-                HintService.Hint(Lang.Text("Setup.Java.Unavailable"));
-                return;
-            }
+                if (!PageSetupJavaViewModel.EnsureAvailable(j))
+                    return;
 
-            ModMain.MyMsgBox(
-                Lang.Text("Setup.Java.Info.Format",
-                    versionTypeDesc,
-                    j.Installation.Version.ToString(),
-                    j.Installation.Architecture.ToString(),
-                    displayBits,
-                    displayBrand,
-                    j.Installation.JavaFolder),
-                Lang.Text("Setup.Java.Info.Title"));
+                await ModMain.MyMsgBoxAsync(
+                    PageSetupJavaViewModel.BuildInfoMessage(j),
+                    Lang.Text("Setup.Java.Info.Title"));
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(
+                    ex,
+                    Lang.Text("Setup.Error.OperationFailed"),
+                    ModBase.LogLevel.Feedback,
+                    userSummary: Lang.Text("Setup.Error.OperationFailed"));
+            }
+            finally
+            {
+                if (control is not null)
+                    control.IsEnabled = true;
+            }
         };
         var btnEnableSwitch = new MyIconButton();
-        
+
         item.Buttons = [btnOpenFolder, btnInfo, btnEnableSwitch];
 
         void UpdateEnableStyle(bool isCurEnable)
@@ -159,66 +179,57 @@ public partial class PageSetupJava
                 btnEnableSwitch.ToolTip = Lang.Text("Setup.Java.Enable");
             }
         }
-        
+
         btnEnableSwitch.Click += (_, _) =>
         {
-            try
-            {
-                var target = ModJava.Javas.AddOrGet(j.Installation.JavaExePath);
-                if (target is null)
-                {
-                    HintService.Hint(Lang.Text("Setup.Java.Unavailable"));
-                    return;
-                }
-
-                if (target.IsEnabled && Config.Launch.SelectedJava == target.Installation.JavaExePath)
-                {
-                    HintService.Hint(Lang.Text("Setup.Java.DeselectBeforeDisable"));
-                    return;
-                }
-
-                target.IsEnabled = !target.IsEnabled;
-                UpdateEnableStyle(target.IsEnabled);
-                ModJava.Javas.SaveConfig();
-            }
-            catch (Exception ex)
-            {
-                ModBase.Log(
-                    ex,
-                    Lang.Text("Setup.Java.EnableFailed"),
-                    ModBase.LogLevel.Hint,
-                    userSummary: Lang.Text("Setup.Java.EnableFailed"));
-            }
+            var enabled = _vm.ToggleJavaEnabled(j);
+            if (enabled is not null)
+                UpdateEnableStyle(enabled.Value);
         };
         UpdateEnableStyle(j.IsEnabled);
 
         return item;
     }
 
-    private void BtnAdd_Click(object sender, ModBase.RouteEventArgs e)
+    private async void BtnAdd_Click(object sender, ModBase.RouteEventArgs e)
     {
-        var ret = SystemDialogs.SelectFile(Lang.Text("Setup.Java.SelectFile.Filter"), Lang.Text("Setup.Java.SelectFile.Title"));
-        if (string.IsNullOrEmpty(ret) || !File.Exists(ret))
-            return;
-        if (ModJava.Javas.Exist(ret))
-            HintService.Hint(Lang.Text("Setup.Java.AlreadyExists"));
-        else
-            Dispatcher.BeginInvoke(new Action(async () =>
+        var control = sender as Control;
+        if (control is not null)
+            control.IsEnabled = false;
+        try
+        {
+            var ret = SystemDialogs.SelectFile(Lang.Text("Setup.Java.SelectFile.Filter"),
+                Lang.Text("Setup.Java.SelectFile.Title"));
+            if (string.IsNullOrEmpty(ret) || !File.Exists(ret))
+                return;
+            if (ModJava.Javas.Exist(ret))
             {
-                await Task.Run(() =>
-                {
-                    ModJava.Javas.AddOrGet(ret);
-                    ModJava.Javas.SaveConfig();
-                });
-                if (ModJava.Javas.Exist(ret))
-                {
-                    HintService.Hint(Lang.Text("Setup.Java.Added"), HintType.Success);
-                    loader.Start(true, true);
-                }
-                else
-                {
-                    HintService.Hint(Lang.Text("Setup.Java.AddFailed"), HintType.Error);
-                }
-            }));
+                HintService.Hint(Lang.Text("Setup.Java.AlreadyExists"));
+                return;
+            }
+
+            if (await _vm.AddJavaAsync(ret))
+            {
+                HintService.Hint(Lang.Text("Setup.Java.Added"), HintType.Success);
+                loader.Start(true, true);
+            }
+            else
+            {
+                HintService.Hint(Lang.Text("Setup.Java.AddFailed"), HintType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(
+                ex,
+                Lang.Text("Setup.Java.AddFailed"),
+                ModBase.LogLevel.Hint,
+                userSummary: Lang.Text("Setup.Java.AddFailed"));
+        }
+        finally
+        {
+            if (control is not null)
+                control.IsEnabled = true;
+        }
     }
 }
