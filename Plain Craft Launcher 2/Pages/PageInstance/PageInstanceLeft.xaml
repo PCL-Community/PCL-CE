@@ -32,6 +32,7 @@
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Install}"
                               LogoScale="0.87"
+                              Visibility="{Binding ItemInstallVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                               SvgIcon="lucide/wrench">
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
@@ -47,6 +48,7 @@
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Export}"
+                              Visibility="{Binding ItemExportVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                               SvgIcon="lucide/package">
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
@@ -59,11 +61,13 @@
                 </local:MyListItem.Buttons>
             </local:MyListItem>
             <TextBlock x:Name="TextResource" Text="{DynamicResource Instance.Left.Resources}" Margin="13,6,5,4"
+                       Visibility="{Binding TextResourceVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                        Opacity="0.6" FontSize="12" />
             <local:MyListItem x:Name="ItemWorld" LogoScale="0.95" IsScaleAnimationEnabled="False" Type="RadioBox"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Saves}" Tag="3"
+                              Visibility="{Binding ItemWorldVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                               SvgIcon="lucide/globe">
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
@@ -79,6 +83,7 @@
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Screenshots}" Tag="4"
+                              Visibility="{Binding ItemScreenshotVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                               SvgIcon="lucide/image">
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
@@ -94,6 +99,7 @@
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Mod}"
+                              Visibility="{Binding ItemModVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                               SvgIcon="lucide/puzzle">
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
@@ -109,12 +115,14 @@
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Mod}"
+                              Visibility="{Binding ItemModDisabledVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                               SvgIcon="lucide/puzzle" />
             <local:MyListItem x:Name="ItemResourcePack" LogoScale="0.85" IsScaleAnimationEnabled="False"
                               Check="PageCheck"
                               Type="RadioBox" MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.ResourcePacks}"
                               Tag="7"
+                              Visibility="{Binding ItemResourcePackVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                               SvgIcon="lucide/layers">
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
@@ -130,6 +138,7 @@
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Shaders}" Tag="8"
+                              Visibility="{Binding ItemShaderVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                               SvgIcon="lucide/sparkles">
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
@@ -145,6 +154,7 @@
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Schematics}" Tag="9"
+                              Visibility="{Binding ItemSchematicVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                               SvgIcon="lucide/file-box">
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
@@ -160,6 +170,7 @@
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Servers}" Tag="11"
+                              Visibility="{Binding ItemServerVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                               SvgIcon="lucide/server">
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
