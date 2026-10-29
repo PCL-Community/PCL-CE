@@ -15,13 +15,13 @@ namespace PCL;
 public partial class MyMsgLogin
 {
     private readonly JsonObject data;
-    private string userCode; // 需要用户在网页上输入的设备代码
-    private string website; // 验证网页的网址
     private readonly CancellationTokenSource _cancellation = new();
+    private readonly MyMsgLoginViewModel _vm = new();
 
     public MyMsgLogin()
     {
         InitializeComponent();
+        DataContext = _vm;
         // Handles
         Loaded += Load;
         Btn1.Click += Btn1_Click;
@@ -46,22 +46,12 @@ public partial class MyMsgLogin
 
     private void Init()
     {
-        userCode = (string)data["user_code"];
-        if (data["verification_uri_complete"] is not null)
-        {
-            website = (string)data["verification_uri_complete"];
-            LabCaption.Text = Lang.Text("Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill", userCode, website);
-        }
-        else
-        {
-            website = (string)data["verification_uri"];
-            LabCaption.Text = Lang.Text("Launch.Account.LoginDialog.MicrosoftInstructions", userCode, website);
-        }
+        _vm.Load(data);
 
         // 设置 UI
         LabTitle.Text = Lang.Text("Launch.Account.LoginDialog.MinecraftLogin");
-        CustomEventService.SetEventData(Btn1, website);
-        CustomEventService.SetEventData(Btn2, userCode);
+        CustomEventService.SetEventData(Btn1, _vm.Website);
+        CustomEventService.SetEventData(Btn2, _vm.UserCode);
         // 启动工作线程
         _ = WorkThreadAsync();
     }
@@ -79,8 +69,8 @@ public partial class MyMsgLogin
         }
         if (myConverter.IsExited)
             return;
-        ModBase.OpenWebsite(website);
-        ModBase.ClipboardSet(userCode);
+        ModBase.OpenWebsite(_vm.Website);
+        ModBase.ClipboardSet(_vm.UserCode);
         var device = data.ToObject<DeviceCodeData>() ?? throw new InvalidDataException("设备授权数据无效");
         var delayTime = TimeSpan.FromSeconds(device.Interval ?? 5);
         // 轮询
@@ -184,6 +174,7 @@ public partial class MyMsgLogin
         try
         {
             InitializeComponent();
+            DataContext = _vm;
             Btn1.Name += ModBase.GetUuid();
             Btn2.Name += ModBase.GetUuid();
             Btn3.Name += ModBase.GetUuid();
@@ -227,7 +218,7 @@ public partial class MyMsgLogin
                         new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
                 }, "MyMsgBox " + uuid);
             // 记录日志
-            ModBase.Log($"[Control] 正版验证弹窗：{LabTitle.Text}\r\n{LabCaption.Text}");
+            ModBase.Log($"[Control] 正版验证弹窗：{LabTitle.Text}\r\n{_vm.CaptionText}");
         }
         catch (Exception ex)
         {

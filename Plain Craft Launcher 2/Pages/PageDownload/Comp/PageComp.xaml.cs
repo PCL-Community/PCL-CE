@@ -18,6 +18,10 @@ public partial class PageComp
 
     public ModComp.CompProjectStorage storage = new();
 
+    private readonly PageCompViewModel _vm = new();
+
+    public PageCompViewModel ViewModel => _vm;
+
     // 结果 UI 化
     private void Load_OnFinish()
     {
@@ -37,32 +41,9 @@ public partial class PageComp
                     showQuickDownload));
             }
             // 页码
-            CardPages.Visibility =
-                storage.results.Count > 40 || storage.curseForgeOffset < storage.curseForgeTotal ||
-                storage.modrinthOffset < storage.modrinthTotal
-                    ? Visibility.Visible
-                    : Visibility.Collapsed;
-            LabPage.Text = Lang.Number(page + 1, "N0");
-            BtnPageFirst.IsEnabled = page > 1;
-            BtnPageFirst.Opacity = page > 1 ? 1d : 0.2d;
-            BtnPageLeft.IsEnabled = page > 0;
-            BtnPageLeft.Opacity = page > 0 ? 1d : 0.2d;
-            var isRightEnabled = storage.results.Count > pageSize * (page + 1) ||
-                                 storage.curseForgeOffset < storage.curseForgeTotal ||
-                                 storage.modrinthOffset <
-                                 storage.modrinthTotal; // 由于 WPF 的未知 bug，读取到的 IsEnabled 可能是错误的值（#3319）
-            BtnPageRight.IsEnabled = isRightEnabled;
-            BtnPageRight.Opacity = isRightEnabled ? 1d : 0.2d;
+            _vm.ApplyPagerState(page, storage);
             // 错误信息
-            if (storage.errorMessage is null)
-            {
-                HintError.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                HintError.Visibility = Visibility.Visible;
-                HintError.Text = storage.errorMessage;
-            }
+            _vm.ApplyErrorState(storage);
 
             // 强制返回顶部
             ScrollToTop();
@@ -159,7 +140,8 @@ public partial class PageComp
     public ItemCollection SearchTags => ComboSearchTag.Items;
 
     public static readonly DependencyProperty SupportCurseForgeProperty =
-        DependencyProperty.Register("SupportCurseForge", typeof(bool), typeof(PageComp), new PropertyMetadata(true));
+        DependencyProperty.Register("SupportCurseForge", typeof(bool), typeof(PageComp),
+            new PropertyMetadata(true, OnSupportCurseForgeChanged));
 
     public bool SupportCurseForge
     {
@@ -168,13 +150,20 @@ public partial class PageComp
     }
 
     public static readonly DependencyProperty SupportModrinthProperty =
-        DependencyProperty.Register("SupportModrinth", typeof(bool), typeof(PageComp), new PropertyMetadata(true));
+        DependencyProperty.Register("SupportModrinth", typeof(bool), typeof(PageComp),
+            new PropertyMetadata(true, OnSupportModrinthChanged));
 
     public bool SupportModrinth
     {
         get => (bool)GetValue(SupportModrinthProperty);
         set => SetValue(SupportModrinthProperty, value);
     }
+
+    private static void OnSupportCurseForgeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        => ((PageComp)d)._vm.SupportCurseForge = (bool)e.NewValue;
+
+    private static void OnSupportModrinthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        => ((PageComp)d)._vm.SupportModrinth = (bool)e.NewValue;
 
     /// <summary>
     ///     英文前后不含空格的可读资源类型名，例如 "Mod"、"整合包"。
@@ -197,8 +186,7 @@ public partial class PageComp
             if (field == value)
                 return;
             field = value;
-            BtnSearchInstallModPack.Visibility =
-                value == ModComp.CompType.ModPack ? Visibility.Visible : Visibility.Collapsed;
+            _vm.IsInstallModPackVisible = value == ModComp.CompType.ModPack;
             loader.name = Lang.Text("Download.Comp.List.Source.ResourceFetch", TypeName);
             PanSearchBox.HintText = ModComp.GetCompSearchName(value);
             Load.Text = ModComp.GetCompLoadingName(value);
@@ -226,6 +214,7 @@ public partial class PageComp
         Loaded += PageCompControls_Inited;
         IsVisibleChanged += PageComp_IsVisibleChanged;
         InitializeComponent();
+        DataContext = _vm;
         Load.StateChanged += Load_State;
         BtnPageFirst.Click += BtnPageFirst_Click;
         BtnPageLeft.Click += BtnPageLeft_Click;
