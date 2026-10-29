@@ -14,17 +14,30 @@ using PCL.Core.Utils.OS;
 
 namespace PCL;
 
-public partial class PageSetupLauncherMisc
+public partial class PageSetupLauncherMisc : IPageView
 {
+    private readonly PageSetupLauncherMiscViewModel _vm = new();
     private bool isFirstLoad = true;
 
     private new bool isLoaded;
 
+    private bool _refreshed;
+
     public PageSetupLauncherMisc()
     {
         InitializeComponent();
+        DataContext = _vm;
         Loaded += PageSetupLink_Loaded;
-        Loaded += (_, _) => Reload();
+        Loaded += (_, _) => Refresh();
+        Unloaded += PageSetupLauncherMisc_Unloaded;
+    }
+
+    public PageSetupLauncherMiscViewModel ViewModel => _vm;
+
+    public void OnNavigatedTo(object? parameter) => Refresh();
+
+    public void OnNavigatedFrom()
+    {
     }
 
     private void PageSetupLink_Loaded(object sender, RoutedEventArgs e)
@@ -39,14 +52,24 @@ public partial class PageSetupLauncherMisc
 
         ModAnimation.AniBeginControl();
         SliderLoad();
-        Reload();
+        Refresh();
         ModAnimation.AniEndControl();
+    }
+
+    private void PageSetupLauncherMisc_Unloaded(object sender, RoutedEventArgs e) => _refreshed = false;
+
+    private void Refresh()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+        Reload();
     }
 
     public void Reload()
     {
         // 系统设置
-        ComboSystemActivity.SelectedIndex = States.System.AnnounceSolution;
+        _vm.Reload();
         CheckSystemDisableHardwareAcceleration.Checked = Config.System.DisableHardwareAcceleration;
         SliderAniFPS.Value = Config.System.AnimationFpsLimit;
         SliderMaxLog.Value = Config.System.MaxGameLog;
@@ -54,15 +77,11 @@ public partial class PageSetupLauncherMisc
         if (TelemetryService.IsBuildUntrusted)
         {
             CheckSystemTelemetry.Checked = false;
-            CheckSystemTelemetry.IsEnabled = false;
             CheckSystemTelemetry.ToolTip = Lang.Text("Setup.Misc.System.Telemetry.Unavailable");
             ToolTipService.SetShowOnDisabled(CheckSystemTelemetry, true);
         }
 
         // 网络
-        TextSystemHttpProxy.Text = Config.Network.HttpProxy.CustomAddress;
-        TextSystemHttpProxyCustomUsername.Text = Config.Network.HttpProxy.CustomUsername;
-        TextSystemHttpProxyCustomPassword.Text = Config.Network.HttpProxy.CustomPassword;
         ((MyRadioBox)FindName($"RadioHttpProxyType{Config.Network.HttpProxy.Type}")).SetChecked(true, false);
         CheckNetDohEnable.Checked = Config.Network.EnableDoH;
 

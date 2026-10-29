@@ -26,7 +26,7 @@
                     </Grid.RowDefinitions>
                     <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Misc.System.Announcement}" Margin="0,0,25,0"
                                Grid.Row="0" />
-                    <local:MyComboBox x:Name="ComboSystemActivity" Tag="SystemSystemActivity" Grid.Column="1"
+                    <local:MyComboBox x:Name="ComboSystemActivity" Tag="SystemSystemActivity" Grid.Column="1" SelectedIndex="{Binding ActivityIndex, Mode=OneWay}"
                                       Grid.Row="0"
                                       SelectionChanged="ComboSystemActivity_OnSelectionChanged">
                         <local:MyComboBoxItem Content="{DynamicResource Setup.Misc.System.Announcement.All}" ToolTip="{DynamicResource Setup.Misc.System.Announcement.All.ToolTip}" />
@@ -56,7 +56,7 @@
                             <RowDefinition Height="20" />
                         </Grid.RowDefinitions>
                         <local:MyCheckBox Grid.Row="0" Grid.Column="0" Text="{DynamicResource Setup.Misc.System.DisableHardwareAcceleration}" x:Name="CheckSystemDisableHardwareAcceleration" Tag="SystemDisableHardwareAcceleration" Change="CheckSystemDisableHardwareAcceleration_OnChange"/>
-                        <local:MyCheckBox Grid.Row="0" Grid.Column="1" Text="{DynamicResource Setup.Misc.System.Telemetry}" x:Name="CheckSystemTelemetry" Tag="SystemTelemetry" Change="CheckBoxChange"
+                        <local:MyCheckBox Grid.Row="0" Grid.Column="1" Text="{DynamicResource Setup.Misc.System.Telemetry}" x:Name="CheckSystemTelemetry" Tag="SystemTelemetry" Change="CheckBoxChange" IsEnabled="{Binding TelemetryEnabled, Mode=OneWay}"
                           ToolTip="{DynamicResource Setup.Misc.System.Telemetry.ToolTip}"/>
                     </Grid>
                     <Grid Grid.Row="8" Grid.ColumnSpan="5">
@@ -136,15 +136,15 @@
                         </Grid.ColumnDefinitions>
                         <local:MyHint Text="{DynamicResource Setup.Misc.Network.Proxy.UntrustedWarning}" Grid.Row="0" Grid.ColumnSpan="5" Theme="Yellow" />
                         <local:MyTextBox x:Name="TextSystemHttpProxy" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5"
-                                         Tag="SystemHttpProxy" HintText="比如 http://127.0.0.1:1080/"
+                                         Tag="SystemHttpProxy" HintText="比如 http://127.0.0.1:1080/" Text="{Binding HttpProxyText, Mode=OneWay}"
                                          ToolTip="{DynamicResource Setup.Misc.Network.Proxy.InvalidWarning}" />
                         <TextBlock Grid.Column="0" Grid.Row="4" Text="{DynamicResource Setup.Misc.Network.Proxy.Username}" VerticalAlignment="Center"
                                    HorizontalAlignment="Left" Margin="0,0,5,0" />
-                        <local:MyTextBox Grid.Column="1" Grid.Row="4" HintText="{DynamicResource Setup.Misc.Network.Proxy.Optional}" Tag="SystemHttpProxyCustomUsername"
+                        <local:MyTextBox Grid.Column="1" Grid.Row="4" HintText="{DynamicResource Setup.Misc.Network.Proxy.Optional}" Tag="SystemHttpProxyCustomUsername" Text="{Binding HttpProxyUsername, Mode=OneWay}"
                                          x:Name="TextSystemHttpProxyCustomUsername" Margin="0,0,5,0" />
                         <TextBlock Grid.Column="2" Grid.Row="4" Text="{DynamicResource Setup.Misc.Network.Proxy.Password}" VerticalAlignment="Center"
                                    HorizontalAlignment="Left" Margin="0,0,5,0" />
-                        <local:MyTextBox Grid.Column="3" Grid.Row="4" HintText="{DynamicResource Setup.Misc.Network.Proxy.Optional}" Tag="SystemHttpProxyCustomPassword"
+                        <local:MyTextBox Grid.Column="3" Grid.Row="4" HintText="{DynamicResource Setup.Misc.Network.Proxy.Optional}" Tag="SystemHttpProxyCustomPassword" Text="{Binding HttpProxyPassword, Mode=OneWay}"
                                          x:Name="TextSystemHttpProxyCustomPassword" Margin="0,0,5,0" />
                         <local:MyButton Text="{DynamicResource Setup.Misc.Network.Proxy.Apply}" TextPadding="3" Grid.Row="4" Grid.Column="4"
                                         x:Name="BtnApplyHttpProxy" Click="ApplyHttpProxyBtn_OnClicked" />

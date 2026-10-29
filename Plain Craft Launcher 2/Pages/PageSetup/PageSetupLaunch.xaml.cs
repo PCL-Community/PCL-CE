@@ -10,14 +10,26 @@ using PCL.Core.App.Localization;
 
 namespace PCL;
 
-public partial class PageSetupLaunch
+public partial class PageSetupLaunch : IPageView
 {
+    private readonly PageSetupLaunchViewModel _vm = new();
+    private bool _refreshed;
     private bool isLoad;
 
     public PageSetupLaunch()
     {
         Loaded += PageSetupLaunch_Loaded;
+        Unloaded += PageSetupLaunch_Unloaded;
         InitializeComponent();
+        DataContext = _vm;
+    }
+
+    public PageSetupLaunchViewModel ViewModel => _vm;
+
+    public void OnNavigatedTo(object? parameter) => Refresh();
+
+    public void OnNavigatedFrom()
+    {
     }
 
     private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
@@ -25,19 +37,14 @@ public partial class PageSetupLaunch
         // 重复加载部分
         PanBack.ScrollToHome();
         RefreshRam(false);
-        if (ModInstanceList.McMcInstanceSelected is null)
-            BtnSwitch.Visibility = Visibility.Collapsed;
-        else
-            BtnSwitch.Visibility = Visibility.Visible;
+        _vm.ShowSwitchButton = ModInstanceList.McMcInstanceSelected is not null;
+
+        Refresh();
 
         // 非重复加载部分
         if (isLoad)
             return;
         isLoad = true;
-
-        ModAnimation.AniBeginControl();
-        Reload();
-        ModAnimation.AniEndControl();
 
         // 内存自动刷新
         var timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 0, 1) };
@@ -46,21 +53,25 @@ public partial class PageSetupLaunch
         RectRamGame.SizeChanged += (s, e) => RefreshRamText();
     }
 
+    private void PageSetupLaunch_Unloaded(object sender, RoutedEventArgs e) => _refreshed = false;
+
+    private void Refresh()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+        ModAnimation.AniBeginControl();
+        Reload();
+        ModAnimation.AniEndControl();
+    }
+
     public void Reload()
     {
         try
         {
             // 启动参数
             TextArgumentTitle.Text = Config.Launch.Title;
-            TextArgumentInfo.Text = Config.Launch.TypeInfo;
-            ComboArgumentIndieV2.SelectedIndex = Config.Launch.IndieSolutionV2;
-            ComboArgumentVisibie.SelectedIndex = (int)Config.Launch.LauncherVisibility;
-            ComboArgumentPriority.SelectedValue = ((int)Config.Launch.ProcessPriority).ToString();
-            ComboArgumentWindowType.SelectedIndex = (int)Config.Launch.GameWindowMode;
-            TextArgumentWindowWidth.Text = Config.Launch.GameWindowWidth.ToString();
-            TextArgumentWindowHeight.Text = Config.Launch.GameWindowHeight.ToString();
-            ComboMsAuthType.SelectedIndex = Config.Launch.LoginMsAuthType;
-            ComboPreferredIpStack.SelectedIndex = (int)Config.Launch.PreferredIpStack;
+            _vm.Reload();
             WindowTypeUIRefresh();
 
             // 游戏内存
@@ -70,10 +81,6 @@ public partial class PageSetupLaunch
             RamType(Config.Launch.MemoryAllocationMode);
 
             // 高级设置
-            ComboAdvanceRenderer.SelectedIndex = Config.Launch.Renderer;
-            TextAdvanceJvm.Text = Config.Launch.JvmArgs;
-            TextAdvanceGame.Text = Config.Launch.GameArgs;
-            TextAdvanceRun.Text = Config.Launch.PreLaunchCommand;
             CheckAdvanceRunWait.Checked = Config.Launch.PreLaunchCommandWait;
             CheckAdvanceDisableLF.Checked = Config.Launch.DisableLF;
             CheckAdvanceGraphicCard.Checked = Config.Launch.SetGpuPreference;
@@ -84,7 +91,6 @@ public partial class PageSetupLaunch
             if (SystemInfo.IsArm64System)
             {
                 CheckAdvanceDisableJLW.Checked = true;
-                CheckAdvanceDisableJLW.IsEnabled = false;
                 CheckAdvanceDisableJLW.ToolTip = Lang.Text("Setup.Launch.Advanced.DisableJlw.Arm64Notice");
             }
             else
@@ -548,20 +554,7 @@ public partial class PageSetupLaunch
     {
         if (ComboArgumentWindowType is null)
             return;
-        if (ComboArgumentWindowType.SelectedIndex == 3 && LabArgumentWindowMiddle is not null &&
-            LabArgumentWindowMiddle.Visibility == Visibility.Collapsed)
-        {
-            LabArgumentWindowMiddle.Visibility = Visibility.Visible;
-            TextArgumentWindowHeight.Visibility = Visibility.Visible;
-            TextArgumentWindowWidth.Visibility = Visibility.Visible;
-        }
-        else if (ComboArgumentWindowType.SelectedIndex != 3 && LabArgumentWindowMiddle is not null &&
-                 LabArgumentWindowMiddle.Visibility == Visibility.Visible)
-        {
-            LabArgumentWindowMiddle.Visibility = Visibility.Collapsed;
-            TextArgumentWindowHeight.Visibility = Visibility.Collapsed;
-            TextArgumentWindowWidth.Visibility = Visibility.Collapsed;
-        }
+        _vm.ShowWindowSize = ComboArgumentWindowType.SelectedIndex == 3;
     }
 
     // 可见性选择直接关闭的警告

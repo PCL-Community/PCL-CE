@@ -8,14 +8,37 @@ using PCL.Core.Utils.OS;
 
 namespace PCL;
 
-public partial class PageSetupUpdate
+public partial class PageSetupUpdate : IPageView
 {
+    private readonly PageSetupUpdateViewModel _vm = new();
+    private bool _refreshed;
+
     public VersionDataModel updateInfo;
 
     public PageSetupUpdate()
     {
         InitializeComponent();
-        Loaded += (_, _) => Init();
+        DataContext = _vm;
+        Loaded += (_, _) => Refresh();
+        Unloaded += PageSetupUpdate_Unloaded;
+    }
+
+    public PageSetupUpdateViewModel ViewModel => _vm;
+
+    public void OnNavigatedTo(object? parameter) => Refresh();
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void PageSetupUpdate_Unloaded(object sender, RoutedEventArgs e) => _refreshed = false;
+
+    private void Refresh()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+        Init();
     }
 
     private void Init()
@@ -26,7 +49,7 @@ public partial class PageSetupUpdate
         ComboSystemUpdateChannel.SelectedIndex = (int)Config.Update.UpdateChannel;
         ComboSystemUpdateMode.SelectedIndex = (int)Config.Update.UpdateMode;
 
-        TextCurrentVersion.Text = "PCL CE " + VersionNameFormat(ModBase.versionBaseName);
+        _vm.Reload();
         ModAnimation.AniEndControl();
         CheckUpdate();
     }
@@ -64,10 +87,10 @@ public partial class PageSetupUpdate
     public async void CheckUpdate()
     {
         ModBase.Log("[Update] 开始检查更新");
-        CardUpdate.Visibility = Visibility.Collapsed;
-        CardCheck.Visibility = Visibility.Visible;
-        TextCurrentDesc.Text = Lang.Text("Setup.Update.Checking");
-        BtnCheckAgain.IsEnabled = false;
+        _vm.ShowUpdateCard = false;
+        _vm.ShowCheckCard = true;
+        _vm.CurrentDescText = Lang.Text("Setup.Update.Checking");
+        _vm.CheckAgainEnabled = false;
         switch (await IsLatestAsync())
         {
             case UpdateStatus.Available:
@@ -79,7 +102,7 @@ public partial class PageSetupUpdate
                         UpdateManager.IsCurrentVersionBeta
                             ? UpdateChannel.beta
                             : UpdateChannel.stable, SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
-                    TextUpdateName.Text = "PCL CE " + VersionNameFormat(updateInfo.VersionName);
+                    _vm.UpdateNameText = "PCL CE " + VersionNameFormat(updateInfo.VersionName);
                     var summary = updateInfo.Changelog.Between("<summary>", "</summary>");
                     if (!updateInfo.Changelog.Contains("<summary>") || string.IsNullOrWhiteSpace(summary.Trim()))
                         TextChangelog.Text = Lang.Text("Setup.Update.Changelog.Empty");
@@ -91,10 +114,10 @@ public partial class PageSetupUpdate
                     checkUpdateEx = ex;
                 }
 
-                BtnCheckAgain.IsEnabled = true;
+                _vm.CheckAgainEnabled = true;
                 if (updateInfo is null)
                 {
-                    TextCurrentDesc.Text = Lang.Text("Setup.Update.CheckFailed");
+                    _vm.CurrentDescText = Lang.Text("Setup.Update.CheckFailed");
                     if (checkUpdateEx is not null)
                         ModBase.Log(
                             checkUpdateEx,
@@ -125,24 +148,24 @@ public partial class PageSetupUpdate
                     BtnUpdate.IsEnabled = true;
                 }
 
-                CardUpdate.Visibility = Visibility.Visible;
-                CardCheck.Visibility = Visibility.Collapsed;
+                _vm.ShowUpdateCard = true;
+                _vm.ShowCheckCard = false;
                 break;
             }
             case UpdateStatus.Latest:
             {
-                CardUpdate.Visibility = Visibility.Collapsed;
-                CardCheck.Visibility = Visibility.Visible;
-                BtnCheckAgain.IsEnabled = true;
-                TextCurrentDesc.Text = Lang.Text("Setup.Update.Latest");
+                _vm.ShowUpdateCard = false;
+                _vm.ShowCheckCard = true;
+                _vm.CheckAgainEnabled = true;
+                _vm.CurrentDescText = Lang.Text("Setup.Update.Latest");
                 break;
             }
             case UpdateStatus.Error:
             {
-                CardUpdate.Visibility = Visibility.Collapsed;
-                CardCheck.Visibility = Visibility.Visible;
-                BtnCheckAgain.IsEnabled = true;
-                TextCurrentDesc.Text = Lang.Text("Setup.Update.CheckFailed");
+                _vm.ShowUpdateCard = false;
+                _vm.ShowCheckCard = true;
+                _vm.CheckAgainEnabled = true;
+                _vm.CurrentDescText = Lang.Text("Setup.Update.CheckFailed");
                 break;
             }
         }
@@ -287,15 +310,7 @@ public partial class PageSetupUpdate
         ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/v" + ModBase.versionBaseName);
     }
 
-    public string VersionNameFormat(string str)
-    {
-        str = str.Replace("v", "");
-        if (!str.Contains("-"))
-            return str;
-        var add = str.AfterLast("-");
-        str = str.BeforeLast("-");
-        return $"{str} {add.Replace(".", " ").Replace("beta", "Beta").Replace("rc", "RC")}";
-    }
+    public string VersionNameFormat(string str) => PageSetupUpdateViewModel.VersionNameFormat(str);
 
     private void BtnCheckAgain_OnClick(object sender, MouseButtonEventArgs e)
     {
