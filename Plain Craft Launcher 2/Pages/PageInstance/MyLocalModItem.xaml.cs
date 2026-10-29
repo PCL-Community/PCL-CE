@@ -823,15 +823,19 @@ public partial class MyLocalCompItem
         get => field;
         set
         {
-            field = value;
+            // 先快照，允许调用方通过原按钮集合的延迟查询添加或移除按钮。
+            var buttons = value.ToArray();
+            field = buttons;
             // 移除原 Stack
             if (buttonStack is not null)
             {
+                // 移除容器不会解除其子元素的逻辑父级；复用按钮前必须先断开。
+                if (buttonStack is Panel oldPanel) oldPanel.Children.Clear();
                 Children.Remove(buttonStack);
                 buttonStack = null;
             }
 
-            if (!value.Any())
+            if (buttons.Length == 0)
                 return;
             // 添加新 Stack
             buttonStack = new StackPanel
@@ -847,7 +851,7 @@ public partial class MyLocalCompItem
             SetColumnSpan(buttonStack, 10);
             SetRowSpan(buttonStack, 10);
             // 构造按钮
-            foreach (var Btn in value)
+            foreach (var Btn in buttons)
             {
                 if (Btn.Height.Equals(double.NaN))
                     Btn.Height = 25d;
