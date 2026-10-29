@@ -84,11 +84,14 @@ public partial class PageSetupLeft : IPageView
         var ctl = sender as Control;
         if (ctl is not null)
             ctl.IsEnabled = false;
+        var aniHeld = false;
         try
         {
             var id = (FormMain.PageSubType)ModBase.Val(((MyIconButton)sender).Tag);
             if (!await _vm.ConfirmResetAsync(id))
                 return;
+            ModAnimation.AniBeginControl();
+            aniHeld = true;
             switch (id)
             {
                 case FormMain.PageSubType.SetupLaunch:
@@ -148,6 +151,8 @@ public partial class PageSetupLeft : IPageView
         }
         finally
         {
+            if (aniHeld)
+                ModAnimation.AniEndControl();
             if (ctl is not null)
                 ctl.IsEnabled = true;
         }
@@ -200,7 +205,7 @@ public partial class PageSetupLeft : IPageView
     #region 页面切换
 
     /// <summary>
-    ///     当前页面的编号。从左往右从 0 开始计算。
+    /// 当前页面的编号。从左往右从 0 开始计算。
     /// </summary>
     public FormMain.PageSubType pageID
     {
@@ -217,7 +222,7 @@ public partial class PageSetupLeft : IPageView
     }
 
     /// <summary>
-    ///     勾选事件改变页面。
+    /// 勾选事件改变页面。
     /// </summary>
     private void PageCheck(object senderRaw, ModBase.RouteEventArgs e)
     {
@@ -229,7 +234,7 @@ public partial class PageSetupLeft : IPageView
     }
 
     /// <summary>
-    ///     获取当前导航指定的右页面。
+    /// 获取当前导航指定的右页面。
     /// </summary>
     public object PageGet(FormMain.PageSubType? id = null)
     {
@@ -311,7 +316,7 @@ public partial class PageSetupLeft : IPageView
     }
 
     /// <summary>
-    ///     切换现有页面。
+    /// 切换现有页面。
     /// </summary>
     public void PageChange(FormMain.PageSubType id)
     {

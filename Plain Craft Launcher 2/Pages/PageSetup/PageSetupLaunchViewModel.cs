@@ -12,19 +12,19 @@ public partial class PageSetupLaunchViewModel : ViewModelBase
 
     [ObservableProperty] private string _gameArgsText = Config.Launch.GameArgs;
 
-    [ObservableProperty] private int _indieSolutionIndex = -1;
+    [ObservableProperty] private int _indieSolutionIndex = Math.Max(0, Config.Launch.IndieSolutionV2);
 
     [ObservableProperty] private string _jvmArgsText = Config.Launch.JvmArgs;
 
-    [ObservableProperty] private int _msAuthTypeIndex = -1;
+    [ObservableProperty] private int _msAuthTypeIndex = Math.Max(0, Config.Launch.LoginMsAuthType);
 
-    [ObservableProperty] private int _preferredIpStackIndex = -1;
+    [ObservableProperty] private int _preferredIpStackIndex = Math.Max(0, (int)Config.Launch.PreferredIpStack);
 
     [ObservableProperty] private string _preLaunchText = Config.Launch.PreLaunchCommand;
 
     [ObservableProperty] private string _priorityValue = ((int)Config.Launch.ProcessPriority).ToString();
 
-    [ObservableProperty] private int _rendererIndex = -1;
+    [ObservableProperty] private int _rendererIndex = Math.Max(0, Config.Launch.Renderer);
 
     [ObservableProperty] private bool _showSwitchButton = true;
 
@@ -32,30 +32,42 @@ public partial class PageSetupLaunchViewModel : ViewModelBase
 
     [ObservableProperty] private string _typeInfoText = Config.Launch.TypeInfo;
 
-    [ObservableProperty] private int _visibilityIndex = -1;
+    [ObservableProperty] private int _visibilityIndex = Math.Max(0, (int)Config.Launch.LauncherVisibility);
 
     [ObservableProperty] private string _windowHeightText = Config.Launch.GameWindowHeight.ToString();
 
-    [ObservableProperty] private int _windowTypeIndex = -1;
+    [ObservableProperty] private int _windowTypeIndex = Math.Max(0, (int)Config.Launch.GameWindowMode);
 
     [ObservableProperty] private string _windowWidthText = Config.Launch.GameWindowWidth.ToString();
 
     public void Reload()
     {
         TypeInfoText = Config.Launch.TypeInfo;
-        IndieSolutionIndex = Config.Launch.IndieSolutionV2;
-        VisibilityIndex = (int)Config.Launch.LauncherVisibility;
+        IndieSolutionIndex = Math.Max(0, Config.Launch.IndieSolutionV2);
+        VisibilityIndex = Math.Max(0, (int)Config.Launch.LauncherVisibility);
         PriorityValue = ((int)Config.Launch.ProcessPriority).ToString();
-        WindowTypeIndex = (int)Config.Launch.GameWindowMode;
+        WindowTypeIndex = Math.Max(0, (int)Config.Launch.GameWindowMode);
         WindowWidthText = Config.Launch.GameWindowWidth.ToString();
         WindowHeightText = Config.Launch.GameWindowHeight.ToString();
-        MsAuthTypeIndex = Config.Launch.LoginMsAuthType;
-        PreferredIpStackIndex = (int)Config.Launch.PreferredIpStack;
-        RendererIndex = Config.Launch.Renderer;
+        MsAuthTypeIndex = Math.Max(0, Config.Launch.LoginMsAuthType);
+        PreferredIpStackIndex = Math.Max(0, (int)Config.Launch.PreferredIpStack);
+        RendererIndex = Math.Max(0, Config.Launch.Renderer);
         JvmArgsText = Config.Launch.JvmArgs;
         GameArgsText = Config.Launch.GameArgs;
         PreLaunchText = Config.Launch.PreLaunchCommand;
         DisableJlwEnabled = !SystemInfo.IsArm64System;
         ShowWindowSize = (int)Config.Launch.GameWindowMode == 3;
+        NotifyIndexChanged();
+    }
+
+    // 强制重发索引属性变更，确保下拉在重新进入页面时按配置重新选中
+    private void NotifyIndexChanged()
+    {
+        OnPropertyChanged(nameof(IndieSolutionIndex));
+        OnPropertyChanged(nameof(VisibilityIndex));
+        OnPropertyChanged(nameof(WindowTypeIndex));
+        OnPropertyChanged(nameof(MsAuthTypeIndex));
+        OnPropertyChanged(nameof(PreferredIpStackIndex));
+        OnPropertyChanged(nameof(RendererIndex));
     }
 }

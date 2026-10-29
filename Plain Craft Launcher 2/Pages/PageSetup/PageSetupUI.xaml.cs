@@ -208,8 +208,9 @@ public partial class PageSetupUI
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        if (!ModAnimation.AniExitsAnyControl())
-            SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+        if (ModAnimation.AniExitsAnyControl() || sender.SelectedIndex < 0)
+            return;
+        SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
@@ -294,7 +295,7 @@ public partial class PageSetupUI
     }
 
     /// <summary>
-    ///     刷新背景图片及设置页 UI。
+    /// 刷新背景图片及设置页 UI。
     /// </summary>
     /// <param name="isHint">是否显示刷新提示。</param>
     /// <param name="refresh">是否刷新图片显示。</param>
@@ -663,6 +664,8 @@ public partial class PageSetupUI
     private void ThemeColor_Change(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
+        if (ModAnimation.AniExitsAnyControl() || sender.SelectedIndex < 0)
+            return;
         SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
         ThemeManager.ThemeRefresh();
     }
@@ -699,7 +702,7 @@ public partial class PageSetupUI
     #region 功能隐藏
 
     /// <summary>
-    ///     是否强制显示被禁用的功能。
+    /// 是否强制显示被禁用的功能。
     /// </summary>
     public static bool HiddenForceShow
     {
@@ -712,7 +715,7 @@ public partial class PageSetupUI
     }
 
     /// <summary>
-    ///     更新功能隐藏带来的显示变化。
+    /// 更新功能隐藏带来的显示变化。
     /// </summary>
     public static void HiddenRefresh()
     {

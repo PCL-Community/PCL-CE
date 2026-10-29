@@ -67,6 +67,7 @@ public partial class PageSetupLaunch : IPageView
 
     public void Reload()
     {
+        ModAnimation.AniBeginControl();
         try
         {
             // 启动参数
@@ -115,6 +116,10 @@ public partial class PageSetupLaunch : IPageView
                 Lang.Text("Setup.Launch.Error.LoadFailed"),
                 ModBase.LogLevel.Feedback,
                 userSummary: Lang.Text("Setup.Launch.Error.LoadFailed"));
+        }
+        finally
+        {
+            ModAnimation.AniEndControl();
         }
     }
 
@@ -172,12 +177,31 @@ public partial class PageSetupLaunch : IPageView
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        if (!ModAnimation.AniExitsAnyControl())
+        if (ModAnimation.AniExitsAnyControl())
+            return;
+        var senderTag = sender.Tag?.ToString();
+        if (string.IsNullOrEmpty(senderTag))
+            return;
+        // SelectedIndex < 0 表示下拉尚未完成初始化，此时不得写回配置
+        switch (senderTag)
         {
-            var senderTag = sender.Tag?.ToString();
-            SetByTag(senderTag,
-                senderTag == "LaunchArgumentPriority" ? Convert.ToInt32(sender.SelectedValue) : sender.SelectedIndex);
-            if (senderTag == "LaunchArgumentWindowType") WindowTypeUIRefresh();
+            case "LoginMsAuthType":
+                if (sender.SelectedIndex < 0)
+                    return;
+                SetByTag(senderTag, Math.Clamp(sender.SelectedIndex, 0, 1));
+                return;
+            case "LaunchArgumentPriority":
+                if (sender.SelectedValue is null)
+                    return;
+                SetByTag(senderTag, Convert.ToInt32(sender.SelectedValue));
+                return;
+            default:
+                if (sender.SelectedIndex < 0)
+                    return;
+                SetByTag(senderTag, sender.SelectedIndex);
+                if (senderTag == "LaunchArgumentWindowType")
+                    WindowTypeUIRefresh();
+                return;
         }
     }
 
@@ -226,7 +250,7 @@ public partial class PageSetupLaunch : IPageView
     }
 
     /// <summary>
-    ///     刷新 UI 上的 RAM 显示。
+    /// 刷新 UI 上的 RAM 显示。
     /// </summary>
     public void RefreshRam(bool showAnim)
     {
@@ -301,7 +325,7 @@ public partial class PageSetupLaunch : IPageView
     private int ramTextRight = 1;
 
     /// <summary>
-    ///     刷新 UI 上的文本位置。
+    /// 刷新 UI 上的文本位置。
     /// </summary>
     private void RefreshRamText()
     {
@@ -421,7 +445,7 @@ public partial class PageSetupLaunch : IPageView
     }
 
     /// <summary>
-    ///     将内存滑块刻度值转换为 GB。
+    /// 将内存滑块刻度值转换为 GB。
     /// </summary>
     public static double GetRamFromTick(int value)
     {
@@ -435,8 +459,8 @@ public partial class PageSetupLaunch : IPageView
     }
 
     /// <summary>
-    ///     判断生效的自定义 JVM 参数中是否已包含 -Xms。
-    ///     此时启动路径会跳过自动追加的初始堆，实际值以自定义参数为准。
+    /// 判断生效的自定义 JVM 参数中是否已包含 -Xms。
+    /// 此时启动路径会跳过自动追加的初始堆，实际值以自定义参数为准。
     /// </summary>
     public static bool HasCustomXms(McInstance version)
     {
@@ -448,7 +472,7 @@ public partial class PageSetupLaunch : IPageView
     }
 
     /// <summary>
-    ///     获取全局设置的初始堆大小（-Xms）。单位为 GB；未启用自定义初始大小时返回 null。
+    /// 获取全局设置的初始堆大小（-Xms）。单位为 GB；未启用自定义初始大小时返回 null。
     /// </summary>
     public static double? GetInitialRam(McInstance version, bool useVersionJavaSetup, bool? is32BitJava = default)
     {
@@ -468,7 +492,7 @@ public partial class PageSetupLaunch : IPageView
     }
 
     /// <summary>
-    ///     获取当前设置的 RAM 值。单位为 GB。
+    /// 获取当前设置的 RAM 值。单位为 GB。
     /// </summary>
     public static double GetRam(McInstance version, bool useVersionJavaSetup, bool? is32BitJava = default)
     {

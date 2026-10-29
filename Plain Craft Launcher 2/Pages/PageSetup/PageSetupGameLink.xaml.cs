@@ -54,8 +54,9 @@ public partial class PageSetupGameLink : IPageView
 
     private void ComboBoxChange(MyComboBox sender, object e)
     {
-        if (!ModAnimation.AniExitsAnyControl())
-            _vm.SetConfigByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+        if (ModAnimation.AniExitsAnyControl() || sender.SelectedIndex < 0)
+            return;
+        _vm.SetConfigByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
@@ -67,8 +68,10 @@ public partial class PageSetupGameLink : IPageView
 
     private void LinkProtocolPerferenceChange(object sender, SelectionChangedEventArgs e)
     {
-        if (!ModAnimation.AniExitsAnyControl())
-            _vm.SetProtocolPreference(((MyComboBox)sender).SelectedIndex);
+        var index = ((MyComboBox)sender).SelectedIndex;
+        if (ModAnimation.AniExitsAnyControl() || index < 0)
+            return;
+        _vm.SetProtocolPreference(index);
     }
 
     private async void BtnNetTest_Click(object sender, MouseButtonEventArgs e)

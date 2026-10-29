@@ -244,7 +244,7 @@ public partial class PageInstanceSetup : IPageView
 
     private void ComboChange(MyComboBox sender, object e)
     {
-        if (ModAnimation.AniExitsAnyControl())
+        if (ModAnimation.AniExitsAnyControl() || sender.SelectedIndex < 0)
             return;
 
         SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
@@ -274,7 +274,7 @@ public partial class PageInstanceSetup : IPageView
     }
 
     /// <summary>
-    ///     刷新 UI 上的 RAM 显示。
+    /// 刷新 UI 上的 RAM 显示。
     /// </summary>
     public void RefreshRam(bool showAnim)
     {
@@ -323,7 +323,7 @@ public partial class PageInstanceSetup : IPageView
     private int ramTextRight = 1;
 
     /// <summary>
-    ///     刷新 UI 上的文本位置。
+    /// 刷新 UI 上的文本位置。
     /// </summary>
     private void RefreshRamText()
     {
@@ -441,7 +441,7 @@ public partial class PageInstanceSetup : IPageView
     }
 
     /// <summary>
-    ///     获取当前设置的 RAM 值。单位为 GB。
+    /// 获取当前设置的 RAM 值。单位为 GB。
     /// </summary>
     public static double GetRam(McInstance version, bool? is32BitJava = default)
     {
@@ -449,7 +449,7 @@ public partial class PageInstanceSetup : IPageView
     }
 
     /// <summary>
-    ///     获取当前设置的初始堆大小（-Xms）。单位为 GB；未启用自定义初始大小时返回 null。
+    /// 获取当前设置的初始堆大小（-Xms）。单位为 GB；未启用自定义初始大小时返回 null。
     /// </summary>
     public static double? GetInitialRam(McInstance version, bool? is32BitJava = default)
     {
@@ -465,7 +465,7 @@ public partial class PageInstanceSetup : IPageView
 
     private void ComboServerLogin_Changed(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniExitsAnyControl())
+        if (ModAnimation.AniExitsAnyControl() || ComboServerLoginRequire.SelectedIndex < 0)
             return;
         ServerLogin(ComboServerLoginRequire.SelectedIndex);
         if (TextServerAuthServer.IsValidated)
