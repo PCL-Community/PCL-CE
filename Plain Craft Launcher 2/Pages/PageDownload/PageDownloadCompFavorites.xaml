@@ -15,7 +15,8 @@
                                 <ColumnDefinition Width="1*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <local:MySearchBox x:Name="PanSearchBox" Grid.Column="0" HintText="{DynamicResource Download.Comp.Favorites.Search.Hint}" />
+                            <local:MySearchBox x:Name="PanSearchBox" Grid.Column="0" HintText="{DynamicResource Download.Comp.Favorites.Search.Hint}"
+                                               Visibility="{Binding ShowSearchBox, Converter={StaticResource BooleanToVisibilityConverter}}" />
                             <local:MyCard Margin="15,0,0,0" Height="40" CanSwap="False" Grid.Column="1">
                                 <StackPanel Orientation="Horizontal">
                                     <local:MyComboBox Margin="8,0,-1,0" VerticalAlignment="Center" Height="27"
@@ -29,8 +30,9 @@
                         </Grid>
                         <local:MyHint Text="{DynamicResource Download.Comp.Favorites.GetInfoFailed}" Theme="Yellow"
                                       Margin="0,0,0,15" x:Name="HintGetFail"
-                                      Visibility="Collapsed" />
-                        <StackPanel x:Name="PanContentList" />
+                                      Visibility="{Binding ShowHintGetFail, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <StackPanel x:Name="PanContentList"
+                                    Visibility="{Binding ShowContentList, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         <!--<local:MyCard x:Name="CardProjectsMod" Title="Mod" IsSwapped="True" CanSwap="True" Margin="0,0,0,15">
                             <StackPanel x:Name="PanProjectsMod" Margin="12,38,12,12" />
                         </local:MyCard>
@@ -40,7 +42,8 @@
                     </StackPanel>
                 </StackPanel>
                 <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40"
-                              x:Name="CardNoContent">
+                              x:Name="CardNoContent"
+                              Visibility="{Binding ShowNoContent, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <Grid Margin="20,17">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -73,8 +76,7 @@
             <local:MyCard.RenderTransform>
                 <TranslateTransform x:Name="TransSelect" Y="-10" />
             </local:MyCard.RenderTransform>
-            <TextBlock x:Name="LabSelect" Text="{DynamicResource Download.Comp.Favorites.Selection.Placeholder}"
-                       HorizontalAlignment="Center" VerticalAlignment="Top"
+            <TextBlock x:Name="LabSelect" Text="{Binding SelectedText}" HorizontalAlignment="Center" VerticalAlignment="Top"
                        Margin="9" Foreground="{DynamicResource ColorBrush2}" />
             <StackPanel Orientation="Horizontal" Margin="5,28,5,5">
                 <local:MyIconTextButton x:Name="Btn_FavoritesCancel"

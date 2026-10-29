@@ -16,6 +16,10 @@ public partial class PageDownloadCompFavorites
     private readonly List<MyListItem> compItemList = new();
     private List<MyListItem> selectedItemList = new();
 
+    private readonly PageDownloadCompFavoritesViewModel _vm = new();
+
+    public PageDownloadCompFavoritesViewModel ViewModel => _vm;
+
     public PageDownloadCompFavorites()
     {
         loader = new ModLoader.LoaderTask<List<string>, List<ModComp.CompProject>>("CompProject Favorites",
@@ -24,6 +28,7 @@ public partial class PageDownloadCompFavorites
         Loaded += PageDownloadCompFavorites_Loaded;
         KeyDown += Page_KeyDown;
         InitializeComponent();
+        DataContext = _vm;
         {
 
             // 这是选择收藏夹旁边那个图标按钮
@@ -156,7 +161,7 @@ public partial class PageDownloadCompFavorites
             },
             CompType = type
         };
-        newItem.Title = _GetCategoryTitleFormat(type);
+        newItem.Title = PageDownloadCompFavoritesViewModel.GetCategoryTitleFormat(type);
 
         newItem.Card.Title = string.Format(newItem.Title, 0);
         newItem.Card.Children.Add(newItem.ContentList);
@@ -181,23 +186,10 @@ public partial class PageDownloadCompFavorites
         }
     }
 
-    private static string _GetCategoryTitleFormat(int type) => type switch
-    {
-        -1 => Lang.Text("Download.Comp.Favorites.SearchResults.Title"),
-        (int)ModComp.CompType.Mod => Lang.Text("Download.Comp.Favorites.Category.Mod"),
-        (int)ModComp.CompType.ModPack => $"{Lang.Text("Download.Comp.Type.Modpack")} ({{0}})",
-        (int)ModComp.CompType.ResourcePack => $"{Lang.Text("Download.Comp.Type.ResourcePack")} ({{0}})",
-        (int)ModComp.CompType.Shader => $"{Lang.Text("Download.Comp.Type.Shader")} ({{0}})",
-        (int)ModComp.CompType.DataPack => $"{Lang.Text("Download.Comp.Type.DataPack")} ({{0}})",
-        (int)ModComp.CompType.Plugin => $"{Lang.Text("Download.Comp.Type.Plugin")} ({{0}})",
-        (int)ModComp.CompType.World => $"{Lang.Text("Download.Comp.Type.World")} ({{0}})",
-        _ => $"{Lang.Text("Download.Comp.Favorites.UnknownType")} ({{0}})"
-    };
-
     private void _RefreshCategoryTitles()
     {
         foreach (var item in itemList)
-            item.Title = _GetCategoryTitleFormat(item.CompType);
+            item.Title = PageDownloadCompFavoritesViewModel.GetCategoryTitleFormat(item.CompType);
         RefreshCardTitle();
     }
 
@@ -227,7 +219,7 @@ public partial class PageDownloadCompFavorites
             allowSearch = true;
             compItemList.Clear();
             var someGetFail = loader.input.Count != loader.output.Count;
-            HintGetFail.Visibility = someGetFail ? Visibility.Visible : Visibility.Collapsed;
+            _vm.ShowHintGetFail = someGetFail;
             foreach (var item in loader.output)
             {
                 var compItem = item.ToListItem();
@@ -239,16 +231,16 @@ public partial class PageDownloadCompFavorites
             {
                 if (!IsSearching)
                 {
-                    PanSearchBox.Visibility = Visibility.Visible;
-                    PanContentList.Visibility = Visibility.Visible;
-                    CardNoContent.Visibility = Visibility.Collapsed;
+                    _vm.ShowSearchBox = true;
+                    _vm.ShowContentList = true;
+                    _vm.ShowNoContent = false;
                 }
             }
             else // 没有收藏
             {
-                PanSearchBox.Visibility = Visibility.Collapsed;
-                PanContentList.Visibility = Visibility.Collapsed;
-                CardNoContent.Visibility = Visibility.Visible;
+                _vm.ShowSearchBox = false;
+                _vm.ShowContentList = false;
+                _vm.ShowNoContent = true;
             }
 
             RefreshContent();
@@ -352,7 +344,7 @@ public partial class PageDownloadCompFavorites
         var newCount = selectedItemList.Count;
         var selected = newCount > 0;
         if (selected)
-            LabSelect.Text = Lang.Text("Download.Comp.Favorites.Hint.SelectedCount", newCount); // 取消所有选择时不更新数字
+            _vm.SelectedText = Lang.Text("Download.Comp.Favorites.Hint.SelectedCount", newCount); // 取消所有选择时不更新数字
         // 更新显示状态
         if (!ModAnimation.AniExitsAnyControl())
         {
