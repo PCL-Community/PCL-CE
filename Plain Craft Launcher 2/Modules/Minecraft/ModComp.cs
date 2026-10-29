@@ -3437,27 +3437,42 @@ public static class ModComp
     public static string CompFileNameGet(CompProject proj, CompFile file)
     {
         string fileName;
+        var hasSourceName = !string.IsNullOrWhiteSpace(file.FileName);
+        var defaultExtension = file.Type switch
+        {
+            CompType.Mod => ".jar",
+            CompType.ModPack => file.FromCurseForge ? ".zip" : ".mrpack",
+            _ => ".zip"
+        };
         if ((proj.TranslatedName ?? "") == (proj.RawName ?? ""))
         {
-            fileName = file.FileName;
+            var fallbackBase = !string.IsNullOrWhiteSpace(proj.RawName) ? proj.RawName : "download";
+            fileName = hasSourceName ? file.FileName : $"{fallbackBase}{defaultExtension}";
         }
         else
         {
             var chineseName = proj.TranslatedName.BeforeFirst(" (").BeforeFirst(" - ").Replace(@"\", "＼")
                 .Replace("/", "／").Replace("|", "｜").Replace(":", "：").Replace("<", "＜").Replace(">", "＞")
                 .Replace("*", "＊").Replace("?", "？").Replace("\"", "").Replace("： ", "：");
+            var extension = hasSourceName ? Path.GetExtension(file.FileName) : "";
+            var nameWithoutExtension = hasSourceName && !string.IsNullOrEmpty(extension)
+                ? file.FileName[..^extension.Length]
+                : file.FileName;
+            var sourcePart = hasSourceName ? file.FileName : defaultExtension;
             fileName = Config.Download.Comp.NameFormatV2 switch
             {
-                0 => $"【{chineseName}】{file.FileName}",
-                1 => $"[{chineseName}] {file.FileName}",
-                2 => $"{chineseName}-{file.FileName}",
-                3 => $"{file.FileName}-{chineseName}",
-                _ => file.FileName
+                0 => $"【{chineseName}】{sourcePart}",
+                1 => $"[{chineseName}] {sourcePart}",
+                2 => $"{chineseName}-{sourcePart}",
+                3 => !string.IsNullOrWhiteSpace(nameWithoutExtension)
+                    ? $"{nameWithoutExtension}-{chineseName}{extension}"
+                    : $"{chineseName}{defaultExtension}",
+                _ => hasSourceName ? file.FileName : $"{chineseName}{defaultExtension}"
             };
         }
 
         if (file.Type == CompType.Mod)
-            fileName = fileName.Replace("~", "-"); // ~ 会导致 Mixin 加载失败
+            fileName = fileName?.Replace("~", "-");
         return CompFileNameSanitize(fileName);
     }
 

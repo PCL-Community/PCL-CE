@@ -123,6 +123,7 @@
                             Grid.Row="1" Grid.Column="0"
                             Text="{DynamicResource Setup.Launch.Memory.Auto}"
                             Width="110"
+                            HorizontalAlignment="Left"
                             x:Name="RadioRamType0"
                             Tag="VersionRamType/0"
                             Margin="0,0,20,9"
@@ -135,6 +136,7 @@
                             Grid.Row="2" Grid.Column="0"
                             Text="{DynamicResource Common.Option.Customize}"
                             Width="110"
+                            HorizontalAlignment="Left"
                             x:Name="RadioRamType1"
                             Tag="VersionRamType/1"
                             Margin="0,0,20,9" />
@@ -383,6 +385,11 @@
                         <local:MyCheckBox Height="28" x:Name="CheckAdvanceRunWait" Tag="VersionAdvanceRunWait"
                                           Visibility="Collapsed"
                                           Text="{DynamicResource Setup.Launch.Advanced.PreLaunchCommand.Wait}" />
+                        <local:MyCheckBox Height="28"
+                                          Text="{DynamicResource Instance.Setup.Advanced.DisableModUpdate}"
+                                          x:Name="CheckAdvanceDisableModUpdate"
+                                          Tag="VersionAdvanceDisableModUpdate"
+                                          ToolTip="{DynamicResource Setup.Ui.FeatureHide.Item.ModUpdate.ToolTip}" />
                         <local:MyCheckBox Height="28"
                                           Text="{DynamicResource Instance.Setup.Advanced.IgnoreJavaCompatibility}"
                                           x:Name="CheckAdvanceJava"
