@@ -239,11 +239,11 @@ public static class ProfileUi
         if (profile.ProfileType == ProfileType.Microsoft)
         {
             string? username = null;
-            ModBase.RunInUiWait(() => username = ModMain.MyMsgBoxInput(
+            username = await ModMain.MyMsgBoxInputAsync(
                 Lang.Text("Launch.Account.Profile.EditPlayerId.Title"),
                 Lang.Text("Launch.Account.Profile.EditPlayerId.MicrosoftWarning"), profile.UserName,
                 [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
-                Lang.Text("Launch.Account.Profile.EditPlayerId.Hint"), Lang.Text("Common.Action.Confirm")));
+                Lang.Text("Launch.Account.Profile.EditPlayerId.Hint"), Lang.Text("Common.Action.Confirm"));
             if (string.IsNullOrWhiteSpace(username)) return;
             if (await ModMain.MyMsgBoxAsync(Lang.Text("Launch.Account.Profile.EditPlayerId.Confirm.Message"),
                     Lang.Text("Launch.Account.Profile.EditPlayerId.Confirm.Title"), Lang.Text("Common.Action.Continue"),
@@ -295,9 +295,9 @@ public static class ProfileUi
         }
 
         string? newName = null;
-        ModBase.RunInUiWait(() => newName = ModMain.MyMsgBoxInput(Lang.Text("Launch.Account.Profile.EditPlayerId.Title"),
+        newName = await ModMain.MyMsgBoxInputAsync(Lang.Text("Launch.Account.Profile.EditPlayerId.Title"),
             defaultInput: profile.UserName, validateRules: [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
-            hintText: Lang.Text("Launch.Account.Profile.EditPlayerId.Hint"), button1: Lang.Text("Common.Action.Confirm"), button2: Lang.Text("Common.Action.Cancel")));
+            hintText: Lang.Text("Launch.Account.Profile.EditPlayerId.Hint"), button1: Lang.Text("Common.Action.Confirm"), button2: Lang.Text("Common.Action.Cancel"));
         if (!string.IsNullOrWhiteSpace(newName)) EditOfflineUuid(profile, GetOfflineUuid(newName));
     }
 
@@ -312,11 +312,11 @@ public static class ProfileUi
         if (newUuid is null)
         {
             int? type = null;
-            ModBase.RunInUiWait(() => type = ModMain.MyMsgBoxSelect([
+            type = await ModMain.MyMsgBoxSelectAsync([
                 new MyRadioBox { Text = Lang.Text("Launch.Account.Profile.Uuid.Standard") },
                 new MyRadioBox { Text = Lang.Text("Launch.Account.Profile.Uuid.Legacy") },
                 new MyRadioBox { Text = Lang.Text("Common.Option.Customize") }],
-                Lang.Text("Launch.Account.Profile.Uuid.SelectType.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel")));
+                Lang.Text("Launch.Account.Profile.Uuid.SelectType.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"));
             if (type is null) return;
             newUuid = type switch
             {
