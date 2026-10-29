@@ -33,7 +33,8 @@
                                DeltaMult="0.7">
                 <TextBox VerticalAlignment="Top" TextWrapping="Wrap" AcceptsReturn="False" Name="LabCaption"
                          FontSize="15"
-                         Foreground="{DynamicResource ColorBrush1}" FontWeight="Normal" Padding="1"
+                         Foreground="{DynamicResource ColorBrush1}" FontFamily="{DynamicResource LaunchFontFamily}"
+                         FontWeight="Normal" Padding="1"
                          IsReadOnly="True" Background="Transparent" BorderThickness="0" AllowDrop="False"
                          VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled" />
             </my:MyScrollViewer>
