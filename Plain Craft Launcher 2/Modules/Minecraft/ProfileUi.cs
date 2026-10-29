@@ -230,7 +230,9 @@ public static class ProfileUi
         ]
         : [new MyListItem { Title = Lang.Text("Launch.Account.Type.Microsoft"), Type = MyListItem.CheckType.RadioBox, SvgIcon = "lucide/shield-check" }];
 
-    public static void EditProfileId()
+    public static void EditProfileId() => _ = EditProfileIdAsync();
+
+    private static async Task EditProfileIdAsync()
     {
         var profile = ProfileService.Current;
         if (profile is null) return;
@@ -243,7 +245,7 @@ public static class ProfileUi
                 [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
                 Lang.Text("Launch.Account.Profile.EditPlayerId.Hint"), Lang.Text("Common.Action.Confirm")));
             if (string.IsNullOrWhiteSpace(username)) return;
-            if (ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.EditPlayerId.Confirm.Message"),
+            if (await ModMain.MyMsgBoxAsync(Lang.Text("Launch.Account.Profile.EditPlayerId.Confirm.Message"),
                     Lang.Text("Launch.Account.Profile.EditPlayerId.Confirm.Title"), Lang.Text("Common.Action.Continue"),
                     Lang.Text("Common.Action.Cancel"), isWarn: true) == 2) return;
             ModBase.RunInNewThread(() =>
@@ -299,7 +301,10 @@ public static class ProfileUi
         if (!string.IsNullOrWhiteSpace(newName)) EditOfflineUuid(profile, GetOfflineUuid(newName));
     }
 
-    public static void EditOfflineUuid(McProfile profile, string? uuid = null)
+    public static void EditOfflineUuid(McProfile profile, string? uuid = null) =>
+        _ = EditOfflineUuidAsync(profile, uuid);
+
+    private static async Task EditOfflineUuidAsync(McProfile profile, string? uuid = null)
     {
         var current = ProfileService.Profiles.FirstOrDefault(p => p.ProfileId == profile.ProfileId);
         if (current is null) return;
@@ -317,7 +322,7 @@ public static class ProfileUi
             {
                 0 => GetOfflineUuid(current.UserName),
                 1 => GetOfflineUuid(current.UserName, isLegacy: true),
-                _ => ModMain.MyMsgBoxInput(Lang.Text("Launch.Account.Profile.Uuid.ChangeTitle", current.UserName), defaultInput: current.Uuid,
+                _ => await ModMain.MyMsgBoxInputAsync(Lang.Text("Launch.Account.Profile.Uuid.ChangeTitle", current.UserName), defaultInput: current.Uuid,
                     hintText: Lang.Text("Launch.Account.Profile.Uuid.Hint"), validateRules: [new StringLengthValidator(32, 32), new RegexValidator("([A-z]|[0-9]){32}", Lang.Text("Launch.Account.Profile.Uuid.InvalidChars"))],
                     button1: Lang.Text("Common.Action.Continue"), button2: Lang.Text("Common.Action.Cancel"))
             };
