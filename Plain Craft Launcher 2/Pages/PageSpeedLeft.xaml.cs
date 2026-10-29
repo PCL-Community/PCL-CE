@@ -11,7 +11,7 @@ public partial class PageSpeedLeft
     private const int watcherInterval = 300;
 
     // 定时器任务
-    private readonly Dictionary<string, MyCard> rightCards = new();
+    private readonly Dictionary<int, MyCard> rightCards = new();
 
     // 初始化
     private bool isLoad;
@@ -119,10 +119,10 @@ public partial class PageSpeedLeft
         {
             // 获取实际加载器列表
             var loaderList = ((ModLoader.LoaderCombo)loader).GetLoaderList();
-            if (rightCards.ContainsKey(loader.name))
+            if (rightCards.ContainsKey(loader.Uuid))
             {
                 // 已有此卡片
-                Grid card = rightCards[loader.name];
+                Grid card = rightCards[loader.Uuid];
                 var newValue = loader.Progress + (double)loader.State;
                 if (ModBase.Val(card.Tag) == newValue)
                     return;
@@ -164,6 +164,7 @@ public partial class PageSpeedLeft
                         {
                             #region 完成，销毁卡片并返回
 
+                            rightCards.Remove(loader.Uuid);
                             ModAnimation.AniDispose((MyCard)card.Parent, true, _ => TryReturnToHome());
                             break;
                         }
@@ -333,7 +334,7 @@ public partial class PageSpeedLeft
                     }
 
                     ModMain.frmSpeedRight.PanMain.Children.Insert(0, card);
-                    rightCards.Add(loader.name, card);
+                    rightCards.Add(loader.Uuid, card);
                     ModBase.Log($"[Watcher] 新建任务管理卡片：{loader.name}");
                     // 添加取消按钮
                     var cancel = new MyIconButton
@@ -353,7 +354,7 @@ public partial class PageSpeedLeft
                                 ModMain.frmMain.pageCurrent == FormMain.PageType.TaskManager)
                                 ModMain.frmMain.PageBack();
                         });
-                        rightCards.Remove(loader.name);
+                        rightCards.Remove(loader.Uuid);
                         ModLoader.loaderTaskbar.Remove(loader);
                         ModBase.Log($"[Taskbar] 关闭任务管理卡片：{loader.name}，且移出任务列表");
                         ModBase.RunInThread(() => loader.Abort());
@@ -390,13 +391,13 @@ public partial class PageSpeedLeft
 
     public void TaskRemove(ModLoader.LoaderBase loader)
     {
-        if (rightCards.ContainsKey(loader.name))
+        if (rightCards.ContainsKey(loader.Uuid))
             ModBase.RunInUiWait(() =>
             {
                 // 移除已有的卡片
-                Grid card = rightCards[loader.name];
+                Grid card = rightCards[loader.Uuid];
                 ModMain.frmSpeedRight.PanMain.Children.Remove(card);
-                rightCards.Remove(loader.name);
+                rightCards.Remove(loader.Uuid);
                 ModBase.Log($"[Watcher] 移除任务管理卡片：{loader.name}");
             });
     }
