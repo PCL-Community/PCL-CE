@@ -15,6 +15,7 @@ using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
+using PCL.Core.Minecraft.ResourceProject;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
@@ -323,7 +324,9 @@ public static class ModMain
         Input,
         AuthServer,
         Login,
-        Markdown
+        Markdown,
+        ModDependency,
+        DependencyInstall
     }
 
     private static string GetDefaultDialogTitle() => Lang.Text("Common.Dialog.Title");
@@ -665,6 +668,54 @@ public static class ModMain
         return (List<int>?)converter.Result;
     }
 
+    /// <summary>显示模组版本的「前置详情」弹窗：1 = 安装到当前实例，2 = 选择下载位置，点击前置项返回该工程。</summary>
+    public static object? ModDependencyMsgBox(ModComp.CompFile file)
+    {
+        var converter = new MyMsgBoxConverter
+        {
+            Type = MyMsgBoxType.ModDependency, Content = file
+        };
+        WaitingMyMsgBox.Add(converter);
+        try
+        {
+            if (frmMain is not null)
+                frmMain.DragStop();
+            ComponentDispatcher.PushModal();
+            Dispatcher.PushFrame(converter.WaitFrame);
+        }
+        finally
+        {
+            ComponentDispatcher.PopModal();
+        }
+
+        ModBase.Log($"[Control] 前置详情弹框返回：{converter.Result ?? "null"}");
+        return converter.Result;
+    }
+
+    /// <summary>显示前置安装确认弹窗：1 = 安装必需前置，2 = 仅下载模组本体，关闭返回 null。</summary>
+    public static int? DependencyInstallMsgBox(ModDependencyResolutionResult result)
+    {
+        var converter = new MyMsgBoxConverter
+        {
+            Type = MyMsgBoxType.DependencyInstall, Content = result
+        };
+        WaitingMyMsgBox.Add(converter);
+        try
+        {
+            if (frmMain is not null)
+                frmMain.DragStop();
+            ComponentDispatcher.PushModal();
+            Dispatcher.PushFrame(converter.WaitFrame);
+        }
+        finally
+        {
+            ComponentDispatcher.PopModal();
+        }
+
+        ModBase.Log($"[Control] 前置安装弹框返回：{converter.Result ?? "null"}");
+        return (int?)converter.Result;
+    }
+
 
     public static void MyMsgBoxTick()
     {
@@ -711,6 +762,16 @@ public static class ModMain
                     case MyMsgBoxType.Markdown:
                     {
                         frmMain.PanMsg.Children.Add(new MyMsgMarkdown(WaitingMyMsgBox[0]));
+                        break;
+                    }
+                    case MyMsgBoxType.ModDependency:
+                    {
+                        frmMain.PanMsg.Children.Add(new ModDependencyMsgBox(WaitingMyMsgBox[0]));
+                        break;
+                    }
+                    case MyMsgBoxType.DependencyInstall:
+                    {
+                        frmMain.PanMsg.Children.Add(new ModDependencyInstallMsgBox(WaitingMyMsgBox[0]));
                         break;
                     }
                 }

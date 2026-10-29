@@ -64,6 +64,7 @@ public partial class PageSetupGameManage
         ComboDownloadMod.SelectedIndex = Config.Download.Comp.CompSourceSolution;
         ComboModLocalNameStyle.SelectedIndex = Config.Download.Comp.UiCompNameSolution;
         ComboDownloadQuickBehavior.SelectedIndex = Config.Download.Comp.QuickDownloadBehavior;
+        ComboDownloadQuickDependencies.SelectedIndex = Config.Download.Comp.QuickDownloadDependencies;
         CheckDownloadIgnoreQuilt.Checked = Config.Download.Comp.IgnoreQuilt;
         CheckDownloadAutoInstallDependencies.Checked = Config.Download.Comp.AutoInstallDependencies;
         CheckDownloadClipboard.Checked = Config.Download.Comp.ReadClipboard;

@@ -6,9 +6,20 @@ using CompProject = PCL.ModComp.CompProject;
 using LocalCompFile = PCL.ModLocalComp.LocalCompFile;
 using PCL.Core.Minecraft.ResourceProject;
 using PCL.Core.App.Localization;
+using PCL.Core.Logging;
 using PCL.Network;
+using PCL.Network.Loaders;
 
 namespace PCL;
+
+/// <summary>前置安装的处理结果：取消 / 无需处理 / 跳过 / 已开始下载。</summary>
+public enum CompDependencyInstallResult
+{
+    Cancel,
+    Nothing,
+    Skip,
+    Install
+}
 
 public static class ModCompDependency
 {
@@ -212,6 +223,150 @@ public static class ModCompDependency
     }
 
     /// <summary>
+    ///     解析必需前置并下载到目标文件夹；<paramref name="installDependencies" /> 为 null 时询问用户，
+    ///     为 false 时跳过，为 true 时直接安装。可在工作线程调用。
+    /// </summary>
+    public static CompDependencyInstallResult InstallRequiredDependencies(
+        CompFile file,
+        CompProject project,
+        McInstance? targetInstance,
+        string targetModsFolder,
+        bool? installDependencies)
+    {
+        if (file.Type != ModComp.CompType.Mod || !file.Dependencies.Any())
+        {
+            return CompDependencyInstallResult.Nothing;
+        }
+
+        if (installDependencies == false)
+        {
+            ModBase.Log("[CompDeps] 已关闭前置安装，跳过前置处理");
+            return CompDependencyInstallResult.Skip;
+        }
+
+        try
+        {
+            if (targetInstance is not null && !targetInstance.IsLoaded)
+            {
+                targetInstance.Load();
+            }
+
+            var mcVersion = targetInstance?.Info?.VanillaName
+                            ?? file.GameVersions.FirstOrDefault(static version => version.Contains('.'))
+                            ?? string.Empty;
+            var targetLoaders = new List<CompLoaderType>();
+            if (targetInstance is not null)
+            {
+                if (targetInstance.Info.HasForge || targetInstance.Info.HasCleanroom)
+                {
+                    targetLoaders.Add(CompLoaderType.Forge);
+                }
+
+                if (targetInstance.Info.HasFabric || targetInstance.Info.HasLegacyFabric)
+                {
+                    targetLoaders.Add(CompLoaderType.Fabric);
+                }
+
+                if (targetInstance.Info.HasQuilt)
+                {
+                    targetLoaders.Add(CompLoaderType.Quilt);
+                }
+
+                if (targetInstance.Info.HasNeoForge)
+                {
+                    targetLoaders.Add(CompLoaderType.NeoForge);
+                }
+
+                if (targetInstance.Info.HasLiteLoader)
+                {
+                    targetLoaders.Add(CompLoaderType.LiteLoader);
+                }
+            }
+
+            if (targetLoaders.Count == 0)
+            {
+                targetLoaders = (file.ModLoaders.Any() ? file.ModLoaders : project.ModLoaders).ToList();
+            }
+
+            ModBase.Log($"[CompDeps] 开始解析必需前置: {file.Dependencies.Count} 个依赖");
+            var request = BuildRequest(file, project, mcVersion, targetLoaders, targetModsFolder);
+            var resolver = new ModDependencyResolver();
+            var result = resolver.Resolve(request);
+
+            if (!result.Unresolved.Any() && !result.ToInstall.Any())
+            {
+                ModBase.Log("[CompDeps] 已满足: 所有必需前置已安装");
+                return CompDependencyInstallResult.Nothing;
+            }
+
+            if (installDependencies is null)
+            {
+                var installChoice = ModBase.RunInUiWait(() => ConfirmDependencyInstall(result));
+                switch (installChoice)
+                {
+                    case ModComp.CompDepsInstallTypes.Cancel:
+                        ModBase.Log("[CompDeps] 用户取消下载");
+                        return CompDependencyInstallResult.Cancel;
+
+                    case ModComp.CompDepsInstallTypes.WithoutDeps:
+                        ModBase.Log("[CompDeps] 用户选择仅下载 Mod 本体，跳过前置下载");
+                        return CompDependencyInstallResult.Skip;
+                }
+            }
+
+            if (!result.ToInstall.Any())
+            {
+                ModBase.Log("[CompDeps] 所有前置均无法解析，仅下载 Mod 本体");
+                return CompDependencyInstallResult.Nothing;
+            }
+
+            DownloadDependencies(result, targetModsFolder);
+            return CompDependencyInstallResult.Install;
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "[CompDeps] 依赖解析失败，跳过前置安装");
+            var message = ExceptionDetails.Compose(
+                Lang.Text("Download.Comp.Dependency.ResolveFailed.Message"),
+                ex);
+            ModBase.RunInUiWait(() => ModMain.MyMsgBox(
+                message,
+                Lang.Text("Download.Comp.Dependency.ResolveFailed.Title"),
+                Lang.Text("Download.Comp.Dependency.ResolveFailed.Continue"),
+                isWarn: true,
+                forceWait: true));
+            return CompDependencyInstallResult.Nothing;
+        }
+    }
+
+    /// <summary>启动前置文件的下载任务。</summary>
+    private static void DownloadDependencies(ModDependencyResolutionResult result, string targetModsFolder)
+    {
+        ModBase.Log($"[CompDeps] 准备下载: {result.ToInstall.Count} 个前置");
+        var depDownloads = BuildDependencyDownloads(result, targetModsFolder);
+        foreach (var (depFilename, downloadFile) in depDownloads)
+        {
+            var depLoaderName = Lang.Text("Download.Comp.Detail.DownloadResource",
+                Lang.Text("Download.Comp.Type.Mod"),
+                ModBase.GetFileNameWithoutExtentionFromPath(depFilename));
+            var depLoaders = new List<ModLoader.LoaderBase>
+            {
+                new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadFile"),
+                    new List<DownloadFile> { downloadFile })
+                {
+                    ProgressWeight = 6,
+                    block = true
+                }
+            };
+
+            var depLoader = new ModLoader.LoaderCombo<int>(depLoaderName, depLoaders);
+            depLoader.OnStateChanged = ModDownloadLib.LoaderStateChangedHintOnly;
+            depLoader.Start(1);
+            ModLoader.LoaderTaskbarAdd(depLoader);
+        }
+    }
+
+    /// <summary>
     ///     Shows confirmation dialog for required dependency installs.
     ///     Returns: CompDepsInstallTypes.WithDeps if user chooses to install with deps, 
     ///              CompDepsInstallTypes.WithoutDeps if user chooses to install without deps, 
@@ -248,28 +403,12 @@ public static class ModCompDependency
 
         if (result.ToInstall is { Count: > 0 })
         {
-            var dependencies = string.Join(
-                Environment.NewLine,
-                result.ToInstall.Select(install => Lang.Text(
-                    "Download.Comp.Dependency.Install.ListItem",
-                    install.ProjectName,
-                    install.Source,
-                    install.File.DisplayName,
-                    install.File.Version)));
-            var message = Lang.Text("Download.Comp.Dependency.Install.Message", dependencies);
-            var dialogResult = ModMain.MyMsgBox(
-                message,
-                Lang.Text("Download.Comp.Dependency.Install.Title"),
-                Lang.Text("Download.Comp.Dependency.Install.WithDependencies"),
-                Lang.Text("Download.Comp.Dependency.Install.WithoutDependencies"),
-                Lang.Text("Download.Comp.Dependency.Install.Cancel"),
-                forceWait: true);
+            var dialogResult = ModMain.DependencyInstallMsgBox(result);
 
             return dialogResult switch
             {
                 1 => ModComp.CompDepsInstallTypes.WithDeps,
                 2 => ModComp.CompDepsInstallTypes.WithoutDeps,
-                3 => ModComp.CompDepsInstallTypes.Cancel,
                 _ => ModComp.CompDepsInstallTypes.Cancel
             };
         }

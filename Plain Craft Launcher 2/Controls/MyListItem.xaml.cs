@@ -27,6 +27,7 @@ public partial class MyListItem : IMyRadio
     public event IMyRadio.ChangedEventHandler? Changed;
 
     public event ClickEventHandler? Click;
+    public event ClickEventHandler? RightClick;
     public event LogoClickEventHandler? LogoClick;
 
     public void RefreshColor(object sender, EventArgs e)
@@ -474,6 +475,8 @@ public partial class MyListItem : IMyRadio
         PreviewMouseLeftButtonDown += Button_MouseDown;
         MouseLeave += Button_MouseLeave;
         PreviewMouseLeftButtonUp += Button_MouseLeave;
+        // 右键事件（用于触发 RightClick，例如模组版本项右键直接另存为）
+        PreviewMouseRightButtonUp += (_, e) => RightClick?.Invoke(this, e);
         MouseEnter += RefreshColor;
         MouseLeave += RefreshColor;
         MouseLeftButtonDown += RefreshColor;

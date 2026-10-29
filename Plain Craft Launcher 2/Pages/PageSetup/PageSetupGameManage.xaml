@@ -106,6 +106,8 @@
                             <RowDefinition Height="7" x:Name="RowModManageStyleGap" />
                             <RowDefinition Height="28" x:Name="RowQuickDownload" />
                             <RowDefinition Height="7" x:Name="RowQuickDownloadGap" />
+                            <RowDefinition Height="28" x:Name="RowQuickDependencies" />
+                            <RowDefinition Height="7" x:Name="RowQuickDependenciesGap" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.Source}"
@@ -144,6 +146,15 @@
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.QuickDownload.CurrentInstance}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.QuickDownload.AskInstance}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.QuickDownload.AskPath}" />
+                        </local:MyComboBox>
+                        <TextBlock Grid.Row="8" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.QuickDownload.Dependencies}"
+                                   Margin="0,0,25,0" />
+                        <local:MyComboBox Grid.Row="8" x:Name="ComboDownloadQuickDependencies" Grid.ColumnSpan="2"
+                                          Tag="ToolDownloadQuickDependencies" Grid.Column="1" SelectionChanged="ComboChange"
+                                          ToolTip="{DynamicResource Setup.GameManage.Community.QuickDownload.Dependencies.ToolTip}">
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.QuickDownload.Dependencies.Ask}" IsSelected="True" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.QuickDownload.Dependencies.Never}" />
+                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.QuickDownload.Dependencies.Always}" />
                         </local:MyComboBox>
                     </Grid>
                     <Grid>

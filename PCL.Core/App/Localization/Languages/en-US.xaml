@@ -434,11 +434,10 @@
     <sys:String x:Key="Download.Comp.Dependency.Abort.Message">Installation was canceled.&#xA;&#xA;Reason:&#xA;{0}</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.Abort.Title">Installation canceled</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.Install.Cancel">Cancel installation</sys:String>
-    <sys:String x:Key="Download.Comp.Dependency.Install.ListItem">- {0} ({1}) - {2} v{3}</sys:String>
-    <sys:String x:Key="Download.Comp.Dependency.Install.Message">This mod requires the following dependencies:&#xA;&#xA;{0}</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Install.Caption">This mod requires the following {0} dependencies:</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.Install.Title">Install mod dependencies</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.Install.WithDependencies">Install mod and dependencies</sys:String>
-    <sys:String x:Key="Download.Comp.Dependency.Install.WithoutDependencies">Download mod only (not recommended)</sys:String>
+    <sys:String x:Key="Download.Comp.Dependency.Install.WithoutDependencies">Download mod only</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Continue">Continue download</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Message">Failed to resolve the mod dependencies. Only the main mod will be downloaded.</sys:String>
     <sys:String x:Key="Download.Comp.Dependency.ResolveFailed.Title">Failed to resolve dependencies</sys:String>
@@ -520,6 +519,20 @@
     <sys:String x:Key="Download.Comp.Detail.FileList.RequiredDependencies">Required dependencies</sys:String>
     <sys:String x:Key="Download.Comp.Detail.FileList.Updated">Updated {0}</sys:String>
     <sys:String x:Key="Download.Comp.Detail.FileList.VersionList">Version list</sys:String>
+
+    <!-- Download.Comp.Detail.VersionPopup -->
+
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.ButtonInstall">Install to current instance</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.ButtonSaveAs">Choose download location</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.NoDeps">This version has no dependencies</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.NoInstance">Please select a Minecraft instance first</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.Status.Checking">Checking…</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.Status.Installed">Installed</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.Status.NotInstalled">Not installed</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.Status.Optional">Optional</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.Status.Unknown">Unknown</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.Status.WillInstall">Will install</sys:String>
+    <sys:String x:Key="Download.Comp.Detail.VersionPopup.Title">Version details</sys:String>
 
     <!-- Download.Comp.Favorites -->
 
@@ -650,6 +663,7 @@
     <sys:String x:Key="Download.Comp.QuickDownload.Hint.NoCompatibleInstance">No compatible Minecraft instances found</sys:String>
     <sys:String x:Key="Download.Comp.QuickDownload.Hint.NoFile">No downloadable files found</sys:String>
     <sys:String x:Key="Download.Comp.QuickDownload.Hint.NoInstance">No Minecraft instance selected!</sys:String>
+    <sys:String x:Key="Download.Comp.QuickDownload.Hint.ResolvingDependencies">Resolving required dependencies, please wait…</sys:String>
     <sys:String x:Key="Download.Comp.QuickDownload.Hint.SelectFolder">Select a folder to save the file</sys:String>
 
     <!-- Download.Comp.Type -->
@@ -747,6 +761,7 @@
     <sys:String x:Key="Download.Version.Cleanroom.Intro.Description">Cleanroom is a Forge-based mod loader for 1.12.2, theoretically compatible with 99% of Forge mods.</sys:String>
     <sys:String x:Key="Download.Version.Cleanroom.Intro.Title">Introduction of Cleanroom</sys:String>
     <sys:String x:Key="Download.Version.Cleanroom.LoadingList">Getting Cleanroom list...</sys:String>
+    <sys:String x:Key="Download.Version.Download">Download</sys:String>
     <sys:String x:Key="Download.Version.DownloadServer">Download server</sys:String>
     <sys:String x:Key="Download.Version.Fabric.Intro.Description">Fabric Loader is a lightweight mod loader for modern versions of Minecraft.&#xA;You must install it before using any Fabric mods. This page offers the Fabric installer for download. After downloading, you need to complete the installation process manually through the installer.</sys:String>
     <sys:String x:Key="Download.Version.Fabric.Intro.Title">Introduction of Fabric</sys:String>
@@ -2757,6 +2772,11 @@
     <sys:String x:Key="Setup.GameManage.Community.QuickDownload.AskInstance">Ask which instance to use</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.QuickDownload.AskPath">Ask where to save</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.QuickDownload.CurrentInstance">Download to the current instance</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.Dependencies">Quick download dependencies</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.Dependencies.Always">Install by default</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.Dependencies.Ask">Ask every time</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.Dependencies.Never">Do not install by default</sys:String>
+    <sys:String x:Key="Setup.GameManage.Community.QuickDownload.Dependencies.ToolTip">How required dependencies are handled when quick downloading a mod.</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.QuickDownload.ToolTip">Choose what happens when you click the quick download button on a resource card</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.Source">Download source</sys:String>
     <sys:String x:Key="Setup.GameManage.Community.Source.PreferOfficialWithFallback">Use mirrors only when the official source is slow</sys:String>

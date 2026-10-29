@@ -98,6 +98,9 @@ public static partial class Config
             [ConfigItem<int>("ToolDownloadMod", 1)] public partial int CompSourceSolution { get; set; }
             [ConfigItem<int>("ToolModLocalNameStyle", 0)] public partial int UiCompNameSolution { get; set; }
             [ConfigItem<int>("ToolDownloadQuickBehavior", 0)] public partial int QuickDownloadBehavior { get; set; }
+
+            /// <summary>快速下载模组时对必需前置的处理方式：0 = 每次询问，1 = 默认不安装，2 = 默认安装。</summary>
+            [ConfigItem<int>("ToolDownloadQuickDependencies", 0)] public partial int QuickDownloadDependencies { get; set; }
         }
     }
 
