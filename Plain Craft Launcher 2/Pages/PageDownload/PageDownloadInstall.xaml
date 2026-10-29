@@ -31,19 +31,19 @@
                                              VerticalAlignment="Center" x:Name="TextSelectName" MaxLength="70"
                                              HasBackground="False" />
                         </local:MyCard>
-                        <local:MyHint Text="{DynamicResource Download.Install.Warning.FabricApi}" Margin="0,10,0,0" x:Name="HintFabricAPI"
+                        <local:MyHint Text="{DynamicResource Download.Install.Warning.FabricApi}" Margin="0,10,0,0" x:Name="HintFabricAPI" Visibility="{Binding ShowHintFabricAPI, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       Theme="Red" />
                         <local:MyHint Text="{DynamicResource Download.Install.Warning.LegacyFabricApi}" Margin="0,10,0,0"
-                                      x:Name="HintLegacyFabricAPI" Theme="Red" />
-                        <local:MyHint Text="{DynamicResource Download.Install.Warning.OptiFabric}" Margin="0,10,0,0" x:Name="HintOptiFabric"
+                                      x:Name="HintLegacyFabricAPI" Visibility="{Binding ShowHintLegacyFabricAPI, Converter={StaticResource BooleanToVisibilityConverter}}" Theme="Red" />
+                        <local:MyHint Text="{DynamicResource Download.Install.Warning.OptiFabric}" Margin="0,10,0,0" x:Name="HintOptiFabric" Visibility="{Binding ShowHintOptiFabric, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       Theme="Red" />
                         <local:MyHint Text="{DynamicResource Download.Install.Warning.OptiFabricOld}"
-                                      Margin="0,10,0,0" x:Name="HintOptiFabricOld" Theme="Yellow" />
+                                      Margin="0,10,0,0" x:Name="HintOptiFabricOld" Visibility="{Binding ShowHintOptiFabricOld, Converter={StaticResource BooleanToVisibilityConverter}}" Theme="Yellow" />
                         <local:MyHint Text="{DynamicResource Download.Install.Warning.LegacyOptiFabric}"
-                                      Margin="0,10,0,0" x:Name="HintLegacyOptiFabric" Theme="Yellow" />
-                        <local:MyHint Text="{DynamicResource Download.Install.Warning.ModOptiFine}" Margin="0,10,0,0" x:Name="HintModOptiFine"
+                                      Margin="0,10,0,0" x:Name="HintLegacyOptiFabric" Visibility="{Binding ShowHintLegacyOptiFabric, Converter={StaticResource BooleanToVisibilityConverter}}" Theme="Yellow" />
+                        <local:MyHint Text="{DynamicResource Download.Install.Warning.ModOptiFine}" Margin="0,10,0,0" x:Name="HintModOptiFine" Visibility="{Binding ShowHintModOptiFine, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       Theme="Yellow" />
-                        <local:MyCard Title="{DynamicResource Common.Installation.Forge}" Height="40" Margin="0,12,0,0" x:Name="CardForge" IsSwapped="True"
+                        <local:MyCard Title="{DynamicResource Common.Installation.Forge}" Height="40" Margin="0,12,0,0" x:Name="CardForge" Visibility="{Binding ShowForgeCard, Converter={StaticResource BooleanToVisibilityConverter}}" IsSwapped="True"
                                       CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanForge" />
                             <Grid x:Name="PanForgeInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -55,13 +55,13 @@
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
-                                <Image x:Name="ImgForge" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
+                                <Image x:Name="ImgForge" Visibility="{Binding ShowForgeImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
                                        RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/Anvil.png" />
-                                <TextBlock x:Name="LabForge" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabForge" Text="{Binding ForgeText}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
-                            <Grid x:Name="BtnForgeClear" Height="30" Width="30" HorizontalAlignment="Right"
+                            <Grid x:Name="BtnForgeClear" Visibility="{Binding ShowForgeClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
                                   VerticalAlignment="Top" Margin="0,5,32,0"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnForgeClearInner" Height="10" Width="10" Stretch="Uniform"
@@ -70,7 +70,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.Cleanroom}" Height="40" Margin="0,12,0,0" x:Name="CardCleanroom"
+                        <local:MyCard Title="{DynamicResource Common.Installation.Cleanroom}" Height="40" Margin="0,12,0,0" x:Name="CardCleanroom" Visibility="{Binding ShowCleanroomCard, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanCleanroom" />
                             <Grid x:Name="PanCleanroomInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -82,13 +82,13 @@
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
-                                <Image x:Name="ImgCleanroom" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
+                                <Image x:Name="ImgCleanroom" Visibility="{Binding ShowCleanroomImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
                                        RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/Cleanroom.png" />
-                                <TextBlock x:Name="LabCleanroom" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabCleanroom" Text="{Binding CleanroomText}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
-                            <Grid x:Name="BtnCleanroomClear" Height="30" Width="30" HorizontalAlignment="Right"
+                            <Grid x:Name="BtnCleanroomClear" Visibility="{Binding ShowCleanroomClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
                                   VerticalAlignment="Top" Margin="0,5,32,0"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnCleanroomClearInner" Height="10" Width="10" Stretch="Uniform"
@@ -97,7 +97,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.NeoForge}" Height="40" Margin="0,12,0,0" x:Name="CardNeoForge"
+                        <local:MyCard Title="{DynamicResource Common.Installation.NeoForge}" Height="40" Margin="0,12,0,0" x:Name="CardNeoForge" Visibility="{Binding ShowNeoForgeCard, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanNeoForge" />
                             <Grid x:Name="PanNeoForgeInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -109,13 +109,13 @@
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
-                                <Image x:Name="ImgNeoForge" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
+                                <Image x:Name="ImgNeoForge" Visibility="{Binding ShowNeoForgeImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
                                        RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/NeoForge.png" />
-                                <TextBlock x:Name="LabNeoForge" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabNeoForge" Text="{Binding NeoForgeText}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
-                            <Grid x:Name="BtnNeoForgeClear" Height="30" Width="30" HorizontalAlignment="Right"
+                            <Grid x:Name="BtnNeoForgeClear" Visibility="{Binding ShowNeoForgeClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
                                   VerticalAlignment="Top" Margin="0,5,32,0"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnNeoForgeClearInner" Height="10" Width="10" Stretch="Uniform"
@@ -124,7 +124,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.Fabric}" Height="40" Margin="0,12,0,0" x:Name="CardFabric" IsSwapped="True"
+                        <local:MyCard Title="{DynamicResource Common.Installation.Fabric}" Height="40" Margin="0,12,0,0" x:Name="CardFabric" Visibility="{Binding ShowFabricCard, Converter={StaticResource BooleanToVisibilityConverter}}" IsSwapped="True"
                                       CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanFabric" />
                             <Grid x:Name="PanFabricInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -136,13 +136,13 @@
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
-                                <Image x:Name="ImgFabric" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
+                                <Image x:Name="ImgFabric" Visibility="{Binding ShowFabricImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
                                        RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/Fabric.png" />
-                                <TextBlock x:Name="LabFabric" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabFabric" Text="{Binding FabricText}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
-                            <Grid x:Name="BtnFabricClear" Height="30" Width="30" HorizontalAlignment="Right"
+                            <Grid x:Name="BtnFabricClear" Visibility="{Binding ShowFabricClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
                                   VerticalAlignment="Top" Margin="0,5,32,0"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnFabricClearInner" Height="10" Width="10" Stretch="Uniform"
@@ -151,7 +151,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.LegacyFabric}" Height="40" Margin="0,12,0,0" x:Name="CardLegacyFabric"
+                        <local:MyCard Title="{DynamicResource Common.Installation.LegacyFabric}" Height="40" Margin="0,12,0,0" x:Name="CardLegacyFabric" Visibility="{Binding ShowLegacyFabricCard, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanLegacyFabric" />
                             <Grid x:Name="PanLegacyFabricInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -163,13 +163,13 @@
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
-                                <Image x:Name="ImgLegacyFabric" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
+                                <Image x:Name="ImgLegacyFabric" Visibility="{Binding ShowLegacyFabricImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
                                        RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/Fabric.png" />
-                                <TextBlock x:Name="LabLegacyFabric" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabLegacyFabric" Text="{Binding LegacyFabricText}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
-                            <Grid x:Name="BtnLegacyFabricClear" Height="30" Width="30" HorizontalAlignment="Right"
+                            <Grid x:Name="BtnLegacyFabricClear" Visibility="{Binding ShowLegacyFabricClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
                                   VerticalAlignment="Top" Margin="0,5,32,0"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnLegacyFabricClearInner" Height="10" Width="10" Stretch="Uniform"
@@ -178,7 +178,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.FabricApi}" Height="40" Margin="0,12,0,0" x:Name="CardFabricApi"
+                        <local:MyCard Title="{DynamicResource Common.Installation.FabricApi}" Height="40" Margin="0,12,0,0" x:Name="CardFabricApi" Visibility="{Binding ShowFabricApiCard, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanFabricApi" />
                             <Grid x:Name="PanFabricApiInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -190,13 +190,13 @@
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
-                                <Image x:Name="ImgFabricApi" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
+                                <Image x:Name="ImgFabricApi" Visibility="{Binding ShowFabricApiImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
                                        RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/Fabric.png" />
-                                <TextBlock x:Name="LabFabricApi" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabFabricApi" Text="{Binding FabricApiText}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
-                            <Grid x:Name="BtnFabricApiClear" Height="30" Width="30" HorizontalAlignment="Right"
+                            <Grid x:Name="BtnFabricApiClear" Visibility="{Binding ShowFabricApiClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
                                   VerticalAlignment="Top" Margin="0,5,32,0"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnFabricApiClearInner" Height="10" Width="10" Stretch="Uniform"
@@ -206,7 +206,7 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="{DynamicResource Common.Installation.LegacyFabricApi}" Height="40" Margin="0,12,0,0"
-                                      x:Name="CardLegacyFabricApi" IsSwapped="True" CanSwap="True" SwapLogoRight="True">
+                                      x:Name="CardLegacyFabricApi" Visibility="{Binding ShowLegacyFabricApiCard, Converter={StaticResource BooleanToVisibilityConverter}}" IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanLegacyFabricApi" />
                             <Grid x:Name="PanLegacyFabricApiInfo" Height="18" Margin="132,11,15,0"
                                   VerticalAlignment="Top" Tag="True">
@@ -217,13 +217,13 @@
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
-                                <Image x:Name="ImgLegacyFabricApi" Margin="0,0,7,0" SnapsToDevicePixels="True"
+                                <Image x:Name="ImgLegacyFabricApi" Visibility="{Binding ShowLegacyFabricApiImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True"
                                        Height="18" RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/Fabric.png" />
-                                <TextBlock x:Name="LabLegacyFabricApi" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabLegacyFabricApi" Text="{Binding LegacyFabricApiText}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
-                            <Grid x:Name="BtnLegacyFabricApiClear" Height="30" Width="30" HorizontalAlignment="Right"
+                            <Grid x:Name="BtnLegacyFabricApiClear" Visibility="{Binding ShowLegacyFabricApiClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
                                   VerticalAlignment="Top" Margin="0,5,32,0"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnLegacyFabricApiClearInner" Height="10" Width="10" Stretch="Uniform"
@@ -232,7 +232,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.LabyMod}" Height="40" Margin="0,12,0,0" x:Name="CardLabyMod"
+                        <local:MyCard Title="{DynamicResource Common.Installation.LabyMod}" Height="40" Margin="0,12,0,0" x:Name="CardLabyMod" Visibility="{Binding ShowLabyModCard, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanLabyMod" />
                             <Grid x:Name="PanLabyModInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -244,13 +244,13 @@
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
-                                <Image x:Name="ImgLabyMod" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
+                                <Image x:Name="ImgLabyMod" Visibility="{Binding ShowLabyModImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
                                        RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/LabyMod.png" />
-                                <TextBlock x:Name="LabLabyMod" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabLabyMod" Text="{Binding LabyModText}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
-                            <Grid x:Name="BtnLabyModClear" Height="30" Width="30" HorizontalAlignment="Right"
+                            <Grid x:Name="BtnLabyModClear" Visibility="{Binding ShowLabyModClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
                                   VerticalAlignment="Top" Margin="0,5,32,0"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnLabyModClearInner" Height="10" Width="10" Stretch="Uniform"
@@ -259,7 +259,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.OptiFine}" Height="40" Margin="0,12,0,0" x:Name="CardOptiFine"
+                        <local:MyCard Title="{DynamicResource Common.Installation.OptiFine}" Height="40" Margin="0,12,0,0" x:Name="CardOptiFine" Visibility="{Binding ShowOptiFineCard, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top">
                                 <StackPanel Name="PanOptiFine" />
@@ -273,13 +273,13 @@
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
-                                <Image x:Name="ImgOptiFine" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
+                                <Image x:Name="ImgOptiFine" Visibility="{Binding ShowOptiFineImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
                                        RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/GrassPath.png" />
-                                <TextBlock x:Name="LabOptiFine" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabOptiFine" Text="{Binding OptiFineText}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
-                            <Grid x:Name="BtnOptiFineClear" Height="30" Width="30" HorizontalAlignment="Right"
+                            <Grid x:Name="BtnOptiFineClear" Visibility="{Binding ShowOptiFineClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
                                   VerticalAlignment="Top" Margin="0,5,32,0"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnOptiFineClearInner" Height="10" Width="10" Stretch="Uniform"
@@ -288,7 +288,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.OptiFabric}" Height="40" Margin="0,12,0,0" x:Name="CardOptiFabric"
+                        <local:MyCard Title="{DynamicResource Common.Installation.OptiFabric}" Height="40" Margin="0,12,0,0" x:Name="CardOptiFabric" Visibility="{Binding ShowOptiFabricCard, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanOptiFabric" />
                             <Grid x:Name="PanOptiFabricInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -300,13 +300,13 @@
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
-                                <Image x:Name="ImgOptiFabric" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
+                                <Image x:Name="ImgOptiFabric" Visibility="{Binding ShowOptiFabricImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
                                        RenderOptions.BitmapScalingMode="HighQuality"
                                        Source="pack://application:,,,/images/Blocks/OptiFabric.png" />
-                                <TextBlock x:Name="LabOptiFabric" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabOptiFabric" Text="{Binding OptiFabricText}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
-                            <Grid x:Name="BtnOptiFabricClear" Height="30" Width="30" HorizontalAlignment="Right"
+                            <Grid x:Name="BtnOptiFabricClear" Visibility="{Binding ShowOptiFabricClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
                                   VerticalAlignment="Top" Margin="0,5,32,0"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnOptiFabricClearInner" Height="10" Width="10" Stretch="Uniform"
@@ -315,7 +315,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.LiteLoader}" Height="40" Margin="0,12,0,0" x:Name="CardLiteLoader"
+                        <local:MyCard Title="{DynamicResource Common.Installation.LiteLoader}" Height="40" Margin="0,12,0,0" x:Name="CardLiteLoader" Visibility="{Binding ShowLiteLoaderCard, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanLiteLoader" />
                             <Grid x:Name="PanLiteLoaderInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
@@ -327,13 +327,13 @@
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
-                                <Image x:Name="ImgLiteLoader" Margin="-1,0,6,0" SnapsToDevicePixels="True" Height="20"
+                                <Image x:Name="ImgLiteLoader" Visibility="{Binding ShowLiteLoaderImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="-1,0,6,0" SnapsToDevicePixels="True" Height="20"
                                        RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/Egg.png" />
-                                <TextBlock x:Name="LabLiteLoader" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabLiteLoader" Text="{Binding LiteLoaderText}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
-                            <Grid x:Name="BtnLiteLoaderClear" Height="30" Width="30" HorizontalAlignment="Right"
+                            <Grid x:Name="BtnLiteLoaderClear" Visibility="{Binding ShowLiteLoaderClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
                                   VerticalAlignment="Top" Margin="0,5,32,0"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnLiteLoaderClearInner" Height="10" Width="10" Stretch="Uniform"
@@ -345,7 +345,7 @@
                     </StackPanel>
                 </Grid>
             </local:MyScrollViewer>
-            <local:MyExtraTextButton x:Name="BtnStart" Text="{DynamicResource Download.Install.StartDownload}"
+            <local:MyExtraTextButton x:Name="BtnStart" IsEnabled="{Binding CanStartInstall}" Text="{DynamicResource Download.Install.StartDownload}"
                                      HorizontalAlignment="Center" VerticalAlignment="Bottom"
                                      LogoScale="0.95"
                                      SvgIcon="lucide/download" />
