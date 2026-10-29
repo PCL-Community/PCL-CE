@@ -256,27 +256,31 @@ public partial class PageSetupLauncherMisc : IPageView
 
     #region 停止使用 PCL CE
 
-    private void BtnSystemStopUsingPclCe_Click(object sender, MouseButtonEventArgs e)
+    private async void BtnSystemStopUsingPclCe_Click(object sender, MouseButtonEventArgs e)
     {
-        var result = ModMain.MyMsgBox(
-            Lang.Text("Setup.Misc.System.StopUsingPclCe.Message"),
-            Lang.Text("Setup.Misc.System.StopUsingPclCe.Title"),
-            Lang.Text("Common.Action.Continue"),
-            Lang.Text("Setup.Misc.System.StopUsingPclCe.ContinueAndRemove"),
-            Lang.Text("Common.Action.Cancel"),
-            isWarn: true);
-
-        if (result < 3)
+        try
         {
-            if (ModMain.MyMsgBox(
+            var result = await ModMain.MyMsgBoxAsync(
+                Lang.Text("Setup.Misc.System.StopUsingPclCe.Message"),
+                Lang.Text("Setup.Misc.System.StopUsingPclCe.Title"),
+                Lang.Text("Common.Action.Continue"),
+                Lang.Text("Setup.Misc.System.StopUsingPclCe.ContinueAndRemove"),
+                Lang.Text("Common.Action.Cancel"),
+                isWarn: true);
+
+            if (result >= 3) return;
+            if (await ModMain.MyMsgBoxAsync(
                     Lang.Text("Setup.Misc.System.StopUsingPclCe.Message.Final"),
                     Lang.Text("Common.Dialog.Warning"),
                     Lang.Text("Common.Action.Continue"),
                     Lang.Text("Common.Action.Cancel"),
                     isWarn: true) == 1)
-            {
                 StopUsingPClCeCore(result == 2);
-            }
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "停止使用 PCL CE 失败", ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
     }
 

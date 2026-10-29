@@ -659,10 +659,19 @@ public partial class PageToolsGameLink : IPageView
         return newItem;
     }
 
-    private void PlayerInfoClick(object sender, MouseButtonEventArgs e)
+    private async void PlayerInfoClick(object sender, MouseButtonEventArgs e)
     {
-        var info = (PlayerProfile)((MyListItem)sender).Tag;
-        ModMain.MyMsgBox(Lang.Text("Tools.GameLink.Player.InfoMessage", info.Name, info.Vendor), Lang.Text("Tools.GameLink.Player.InfoTitle", info.Name));
+        try
+        {
+            var info = (PlayerProfile)((MyListItem)sender).Tag;
+            await ModMain.MyMsgBoxAsync(Lang.Text("Tools.GameLink.Player.InfoMessage", info.Name, info.Vendor),
+                Lang.Text("Tools.GameLink.Player.InfoTitle", info.Name));
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "显示玩家信息失败", ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Tools.GameLink.Player.InfoTitle", ""));
+        }
     }
 
     #endregion

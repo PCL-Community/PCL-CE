@@ -52,7 +52,7 @@ public partial class PageLoginProfileViewModel : ViewModelBase
     [RelayCommand]
     public async Task CreateProfileAsync()
     {
-        await Task.Run(ProfileUi.CreateProfile);
+        await ProfileUi.CreateProfileAsync();
         await ReloadAsync();
     }
 

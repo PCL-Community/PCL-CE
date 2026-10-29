@@ -596,6 +596,32 @@ public static class ModMain
         return converter.Result?.ToString() ?? string.Empty;
     }
 
+    public static async Task<string> MyMsgBoxAuthServerAsync(string defaultServer,
+        IReadOnlyDictionary<string, string> presets, string? title = null)
+    {
+        var converter = new MyMsgBoxConverter
+        {
+            Type = MyMsgBoxType.AuthServer,
+            Title = title ?? Lang.Text("Launch.Account.Auth.SelectServer"),
+            Button1 = GetDefaultConfirmText(),
+            Button2 = GetDefaultCancelText(),
+            AuthServerDefault = defaultServer,
+            AuthServerPresets = presets,
+            ForceWait = true
+        };
+        WaitingMyMsgBox.Add(converter);
+        if (ModBase.RunInUi())
+            MyMsgBoxTick();
+        if (frmMain is null)
+        {
+            WaitingMyMsgBox.Remove(converter);
+            ModBase.Log("[Control] 主窗体加载完成前出现意料外的异步验证服务器弹窗", ModBase.LogLevel.Debug);
+            return string.Empty;
+        }
+
+        return await converter.CompletionObject.Task as string ?? string.Empty;
+    }
+
     /// <summary>
     ///     显示选择框并返回选择的第几项（从 0 开始）。若点击第二个按钮，则返回 Nothing。
     /// </summary>

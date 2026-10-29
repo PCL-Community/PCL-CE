@@ -188,15 +188,11 @@ public static class ProfileUi
 #endif
     }
 
-    public static void CreateProfile()
+    public static async Task CreateProfileAsync()
     {
-        int? selected = null;
-        ModBase.RunInUiWait(() =>
-        {
-            var includeOthers = CanCreateOtherProfile();
-            selected = ModMain.MyMsgBoxSelect(_GetAvailableProfileSelection(includeOthers),
-                Lang.Text("Launch.Account.Profile.Create.SelectAuthType.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"));
-        });
+        var includeOthers = ModBase.RunInUiWait(CanCreateOtherProfile);
+        var selected = await ModMain.MyMsgBoxSelectAsync(_GetAvailableProfileSelection(includeOthers),
+            Lang.Text("Launch.Account.Profile.Create.SelectAuthType.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"));
         if (selected is null) return;
         ProfileService.IsCreatingProfile = true;
         var type = selected.Value switch
@@ -207,16 +203,15 @@ public static class ProfileUi
         };
         if (type == ModLaunch.McLoginType.Auth)
         {
-            string? server = null;
-            ModBase.RunInUiWait(() => server = ModMain.MyMsgBoxAuthServer(
-                PageLoginAuth.DefaultAuthServer, PageLoginAuth.PredefinedAuthServers));
+            var server = await ModMain.MyMsgBoxAuthServerAsync(
+                PageLoginAuth.DefaultAuthServer, PageLoginAuth.PredefinedAuthServers);
             if (string.IsNullOrWhiteSpace(server))
             {
                 ProfileService.IsCreatingProfile = false;
                 return;
             }
             PageLoginAuth.draggedAuthServerOAuthSupported =
-                PageLoginAuth.IsOAuthSupportedAsync(server).GetAwaiter().GetResult();
+                await PageLoginAuth.IsOAuthSupportedAsync(server);
             PageLoginAuth.draggedAuthServer = server;
         }
         ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true, type));
