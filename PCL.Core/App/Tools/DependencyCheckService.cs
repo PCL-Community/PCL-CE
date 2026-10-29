@@ -20,10 +20,16 @@ public sealed partial class DependencyCheckService
         Context.Info(Lang.Text("Tools.Test.Dependency.Checking"));
 
         if (RuntimeInformation.OSArchitecture.Equals(Architecture.Arm64))
-            await _CheckAndAskAsync("Microsoft.D3DMappingLayers", "OpenGL 兼容包", "9nqpsl29bfff")
+            await _CheckAndAskAsync(
+                    "Microsoft.D3DMappingLayers",
+                    Lang.Text("Tools.Test.Dependency.Package.D3DMappingLayers"),
+                    "9nqpsl29bfff")
                 .ConfigureAwait(false);
 
-        await _CheckAndAskAsync("Microsoft.WebpImageExtension", "WebP 组件包", "9pg2dk419drg")
+        await _CheckAndAskAsync(
+                "Microsoft.WebpImageExtension",
+                Lang.Text("Tools.Test.Dependency.Package.WebpImageExtension"),
+                "9pg2dk419drg")
             .ConfigureAwait(false);
     }
 

@@ -141,9 +141,12 @@ public partial class PageInstanceLeft : IRefreshable
                 ModDownload.dlOptiFineListLoader.Start(isForceRestart: true);
                 ModDownload.dlForgeListLoader.Start(isForceRestart: true);
                 ModDownload.dlNeoForgeListLoader.Start(isForceRestart: true);
+                ModDownload.dlCleanroomListLoader.Start(isForceRestart: true);
                 ModDownload.dlLiteLoaderListLoader.Start(isForceRestart: true);
                 ModDownload.dlFabricListLoader.Start(isForceRestart: true);
                 ModDownload.dlFabricApiLoader.Start(isForceRestart: true);
+                ModDownload.dlLegacyFabricListLoader.Start(isForceRestart: true);
+                ModDownload.dlLegacyFabricApiLoader.Start(isForceRestart: true);
                 ModDownload.dlOptiFabricLoader.Start(isForceRestart: true);
                 ModDownload.dlLabyModListLoader.Start(isForceRestart: true);
                 ItemInstall.Checked = true;

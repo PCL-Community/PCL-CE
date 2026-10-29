@@ -888,8 +888,10 @@ public static class ModDownloadLib
         var versionFolder = Path.Combine(mcFolder, "versions", id);
         var isNewVersion = downloadInfo.Inherit.Contains("w") || McVersionComparer.CompareVersionGe(downloadInfo.Inherit, "1.14");
         var target = isNewVersion
-            ? $"{ModMain.RequestTaskTempFolder()}OptiFine.jar"
-            : $@"{mcFolder}libraries\optifine\OptiFine\{downloadInfo.NameFile.Replace("OptiFine_", "").Replace(".jar", "").Replace("preview_", "")}\{downloadInfo.NameFile.Replace("OptiFine_", "OptiFine-").Replace("preview_", "")}";
+            ? Path.Combine(ModMain.RequestTaskTempFolder(), "OptiFine.jar")
+            : Path.Combine(mcFolder, "libraries", "optifine", "OptiFine",
+                downloadInfo.NameFile.Replace("OptiFine_", "").Replace(".jar", "").Replace("preview_", ""),
+                downloadInfo.NameFile.Replace("OptiFine_", "OptiFine-").Replace("preview_", ""));
         var loaders = new List<ModLoader.LoaderBase>();
         var javaVersion = McVersionComparer.CompareVersionGe(downloadInfo.Inherit, "26.1.2")
             ? new Version(21, 0, 0, 0)
@@ -981,11 +983,11 @@ public static class ModDownloadLib
                 var clientName = ModBase.GetFolderNameFromPath(clientFolder);
                 Directory.CreateDirectory(Path.Combine(mcFolder, "versions", downloadInfo.Inherit));
                 if (!File.Exists(Path.Combine(mcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".json")))
-                    ModBase.CopyFile($"{clientFolder}{clientName}.json",
-                        $@"{mcFolder}versions\{downloadInfo.Inherit}\{downloadInfo.Inherit}.json");
+                    ModBase.CopyFile(Path.Combine(clientFolder, clientName + ".json"),
+                        Path.Combine(mcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".json"));
                 if (!File.Exists(Path.Combine(mcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".jar")))
-                    ModBase.CopyFile($"{clientFolder}{clientName}.jar",
-                        $@"{mcFolder}versions\{downloadInfo.Inherit}\{downloadInfo.Inherit}.jar");
+                    ModBase.CopyFile(Path.Combine(clientFolder, clientName + ".jar"),
+                        Path.Combine(mcFolder, "versions", downloadInfo.Inherit, downloadInfo.Inherit + ".jar"));
             }
         })
         {
@@ -1984,8 +1986,8 @@ public static class ModDownloadLib
 
         string loaderName = ModBase.GetStringFromEnum(forgeType);
         var isCustomFolder = (mcFolder ?? "") != (ModFolder.mcFolderSelected ?? "");
-        var installerAddress = ModMain.RequestTaskTempFolder() + "forge_installer.jar";
-        var versionFolder = $@"{mcFolder}versions\{targetVersion}\";
+        var installerAddress = Path.Combine(ModMain.RequestTaskTempFolder(), "forge_installer.jar");
+        var versionFolder = Path.Combine(mcFolder, "versions", targetVersion) + @"\";
         var displayName = $"{loaderName} {inherit} - {loaderVersion}";
         var loaders = new List<ModLoader.LoaderBase>();
         var libVersionFolder = $@"{ModFolder.mcFolderSelected}versions\{targetVersion}\"; // 作为 Lib 文件目标的实例文件夹
@@ -2234,7 +2236,7 @@ public static class ModDownloadLib
                         // 记录当前文件夹列表（在新建目标文件夹之前）
                         ModBase.Log("[Download] 开始进行 Forgelike 安装：" + installerAddress);
                         // 解压并获取信息
-                        var oldList = new DirectoryInfo(mcFolder + "versions/")
+                        var oldList = new DirectoryInfo(Path.Combine(mcFolder, "versions"))
                             .EnumerateDirectories().Select(i => i.FullName).ToList();
 
 
@@ -2273,7 +2275,7 @@ public static class ModDownloadLib
                             // 拷贝新增的实例 Json
                         }
 
-                        var deltaList = new DirectoryInfo(mcFolder + "versions/").EnumerateDirectories()
+                        var deltaList = new DirectoryInfo(Path.Combine(mcFolder, "versions")).EnumerateDirectories()
                             .SkipWhile(i => oldList.Contains(i.FullName)).ToList();
 
                         if (deltaList.Count > 1)
@@ -3714,16 +3716,16 @@ public static class ModDownloadLib
     {
         try
         {
+            if (((ModLoader.LoaderBase)loader).State != ModBase.LoadState.Failed &&
+                ((ModLoader.LoaderBase)loader).State != ModBase.LoadState.Aborted)
+                return;
+
             Thread.Sleep(1000); // 防止存在尚未完全释放的文件，导致清理失败（例如整合包安装）
-            if (((ModLoader.LoaderBase)loader).State == ModBase.LoadState.Failed ||
-                ((ModLoader.LoaderBase)loader).State == ModBase.LoadState.Aborted)
-            {
-                // 删除实例文件夹
-                ModBase.Log($"[Download] 由于下载失败或取消，清理实例文件夹：{((ModLoader.LoaderCombo)loader).input}", ModBase.LogLevel.Developer);
-                var instancePath = (string)((ModLoader.LoaderCombo)loader).input;
-                    ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(instancePath);
-                    ModBase.DeleteDirectory(instancePath);
-            }
+            // 删除实例文件夹
+            ModBase.Log($"[Download] 由于下载失败或取消，清理实例文件夹：{((ModLoader.LoaderCombo)loader).input}", ModBase.LogLevel.Developer);
+            var instancePath = (string)((ModLoader.LoaderCombo)loader).input;
+            ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(instancePath);
+            ModBase.DeleteDirectory(instancePath);
         }
         catch (Exception ex)
         {

@@ -1,5 +1,6 @@
 using FluentValidation;
 using FluentValidation.Results;
+using PCL.Core.App.Localization;
 using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.Utils.Validate;
@@ -23,7 +24,7 @@ public class HttpValidator(bool allowNullOrEmpty) : AbstractValidator<string>
                 }
 
                 return x.IsMatch(RegexPatterns.HttpUri);
-            }).WithMessage("输入的网址无效！");
+            }).WithMessage(_ => Lang.Text("Common.Validate.InvalidUrl"));
     }
 
     protected override bool PreValidate(ValidationContext<string> context, ValidationResult result)

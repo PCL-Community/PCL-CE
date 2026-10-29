@@ -3381,7 +3381,7 @@ public static class ModBase
 
             case LogLevel.Debug:
                 if (modeDebug)
-                    HintService.Hint("[调试模式] " + text, HintType.Info, false);
+                    HintService.Hint("[Debug] " + text, HintType.Info, false);
                 break;
 
             case LogLevel.Hint:
@@ -3445,7 +3445,7 @@ public static class ModBase
 
             case LogLevel.Debug:
                 if (modeDebug)
-                    HintService.Hint("[调试模式] " + desc + "：" + ex, HintType.Info, false);
+                    HintService.Hint("[Debug] " + desc + "：" + ex, HintType.Info, false);
                 break;
 
             case LogLevel.Hint:

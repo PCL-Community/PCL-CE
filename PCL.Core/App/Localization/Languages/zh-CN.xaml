@@ -1,4 +1,4 @@
-<!-- Formatted by xaml-lang-formatter at 2026-06-28T17:16:52. -->
+<!-- Formatted by xaml-lang-formatter at 2026-10-28T23:23:04. -->
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -98,6 +98,39 @@
     <sys:String x:Key="Common.Installation.OptiFabric">OptiFabric</sys:String>
     <sys:String x:Key="Common.Installation.OptiFine">OptiFine</sys:String>
     <sys:String x:Key="Common.Installation.Quilt">Quilt</sys:String>
+
+    <!-- Common.Validate -->
+
+    <sys:String x:Key="Common.Validate.Blacklisted">输入内容不能包含 {0}！</sys:String>
+    <sys:String x:Key="Common.Validate.Empty">输入内容不能为空！</sys:String>
+    <sys:String x:Key="Common.Validate.FolderName.Duplicate">不可与现有文件夹重名！</sys:String>
+    <sys:String x:Key="Common.Validate.FolderName.EndsWithDot">文件夹名不能以小数点结尾！</sys:String>
+    <sys:String x:Key="Common.Validate.FolderName.EndsWithSpace">文件夹名不能以空格结尾！</sys:String>
+    <sys:String x:Key="Common.Validate.FolderName.InvalidChar">文件夹名不可包含 {0} 字符！</sys:String>
+    <sys:String x:Key="Common.Validate.FolderName.ReservedWord">文件夹名不可为 {0}！</sys:String>
+    <sys:String x:Key="Common.Validate.FolderName.SpecialFormat">文件夹名不能包含这一特殊格式！</sys:String>
+    <sys:String x:Key="Common.Validate.FolderName.StartsWithSpace">文件夹名不能以空格开头！</sys:String>
+    <sys:String x:Key="Common.Validate.FolderPath.Malformed">文件夹路径存在错误！</sys:String>
+    <sys:String x:Key="Common.Validate.Int.Invalid">请输入一个整数！</sys:String>
+    <sys:String x:Key="Common.Validate.Int.Max">不可超过 {0}！</sys:String>
+    <sys:String x:Key="Common.Validate.Int.Min">不可低于 {0}！</sys:String>
+    <sys:String x:Key="Common.Validate.Int.Unreasonable">请输入一个大小合理的数字！</sys:String>
+    <sys:String x:Key="Common.Validate.InvalidUrl">输入的网址无效！</sys:String>
+    <sys:String x:Key="Common.Validate.Length.Exact">长度必须为 {0} 个字符！</sys:String>
+    <sys:String x:Key="Common.Validate.Length.Max">长度最长为 {0} 个字符！</sys:String>
+    <sys:String x:Key="Common.Validate.Length.Min">长度至少为 {0} 个字符！</sys:String>
+    <sys:String x:Key="Common.Validate.RegexFailed">正则检查失败！</sys:String>
+
+    <!-- Common.Validate.FileName -->
+
+    <sys:String x:Key="Common.Validate.FileName.Duplicate">不可与现有文件重名！</sys:String>
+    <sys:String x:Key="Common.Validate.FileName.EndsWithDot">文件名不能以小数点结尾！</sys:String>
+    <sys:String x:Key="Common.Validate.FileName.EndsWithSpace">文件名不能以空格结尾！</sys:String>
+    <sys:String x:Key="Common.Validate.FileName.InvalidChar">文件名不可包含 {0} 字符！</sys:String>
+    <sys:String x:Key="Common.Validate.FileName.ParentFolderMissing">父文件夹不存在：{0}</sys:String>
+    <sys:String x:Key="Common.Validate.FileName.ReservedWord">文件名不可为 {0}！</sys:String>
+    <sys:String x:Key="Common.Validate.FileName.SpecialFormat">文件名不能包含这一特殊格式！</sys:String>
+    <sys:String x:Key="Common.Validate.FileName.StartsWithSpace">文件名不能以空格开头！</sys:String>
 
     <!-- Config -->
 
@@ -215,24 +248,24 @@
 
     <!-- Crash.Report.JarInJarMod -->
 
-    <sys:String x:Key="Crash.Report.JarInJarMod.ModListDirectory">目录：{0}</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.ConflictDiscouraged">不建议共存</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.ConflictIncompatible">不兼容</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.ConflictNone">未发现冲突。</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.ConflictSection">=== 冲突关系（不兼容 / 不建议共存）===</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateDescription">以下模组可能与内嵌副本冲突并导致崩溃：</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateEntry">{0} [{1}] &lt;-&gt; 内嵌于 {2}（{3}）</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateHeuristic">（按模组 ID 匹配，可能包含误报）</sys:String>
-    <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateDescription">以下模组可能与内嵌副本冲突并导致崩溃：</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateNone">无</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.DuplicateSection">=== 潜在重复模组===</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.JarInJarNone">未发现 Jar-in-Jar 信息</sys:String>
-    <sys:String x:Key="Crash.Report.JarInJarMod.WarningSection">=== 依赖警告（缺失前置 / 版本不符）===</sys:String>
-    <sys:String x:Key="Crash.Report.JarInJarMod.WarningNone">未发现依赖问题。</sys:String>
-    <sys:String x:Key="Crash.Report.JarInJarMod.WarningMissing">缺少前置 [{0}]</sys:String>
-    <sys:String x:Key="Crash.Report.JarInJarMod.WarningMismatch">前置版本不符 [{0}]</sys:String>
-    <sys:String x:Key="Crash.Report.JarInJarMod.WarningDisabled">前置被禁用 [{0}]</sys:String>
-    <sys:String x:Key="Crash.Report.JarInJarMod.ConflictSection">=== 冲突关系（不兼容 / 不建议共存）===</sys:String>
-    <sys:String x:Key="Crash.Report.JarInJarMod.ConflictNone">未发现冲突。</sys:String>
-    <sys:String x:Key="Crash.Report.JarInJarMod.ConflictIncompatible">不兼容</sys:String>
-    <sys:String x:Key="Crash.Report.JarInJarMod.ConflictDiscouraged">不建议共存</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.JarInJarSection">=== Jar-in-Jar 信息（仅启用模组）===</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.ModListDirectory">目录：{0}</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.ModListSection">=== 模组列表 ===</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.WarningDisabled">前置被禁用 [{0}]</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.WarningMismatch">前置版本不符 [{0}]</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.WarningMissing">缺少前置 [{0}]</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.WarningNone">未发现依赖问题。</sys:String>
+    <sys:String x:Key="Crash.Report.JarInJarMod.WarningSection">=== 依赖警告（缺失前置 / 版本不符）===</sys:String>
 
     <!-- Crash.Suggestion -->
 
@@ -642,6 +675,12 @@
     <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Message">你尚未开启实例隔离，多个 MC 实例会共用同一个模组文件夹。&#xD;因此，游戏可能会因为读取到与当前实例不符的模组而崩溃。&#xD;推荐先在 设置 → 启动选项 → 默认实例隔离 中开启实例隔离！</sys:String>
     <sys:String x:Key="Download.Install.InstanceIsolation.Warning.Title">实例隔离提示</sys:String>
     <sys:String x:Key="Download.Install.StartDownload">开始下载</sys:String>
+    <sys:String x:Key="Download.Install.Warning.FabricApi">如果不安装 Fabric API，大多数模组都会无法使用！</sys:String>
+    <sys:String x:Key="Download.Install.Warning.LegacyFabricApi">如果不安装 Legacy Fabric API，大多数模组都会无法使用！</sys:String>
+    <sys:String x:Key="Download.Install.Warning.LegacyOptiFabric">安装结束后，请在模组下载中搜索 LegacyOptiFabric 并下载，否则 OptiFine 会无法使用！</sys:String>
+    <sys:String x:Key="Download.Install.Warning.ModOptiFine">OptiFine 与一部分模组的兼容性不佳，请谨慎安装。</sys:String>
+    <sys:String x:Key="Download.Install.Warning.OptiFabric">必须安装 OptiFabric 才能正常使用 OptiFine！</sys:String>
+    <sys:String x:Key="Download.Install.Warning.OptiFabricOld">安装结束后，请在模组下载中搜索 OptiFabric Origins 并下载，否则 OptiFine 会无法使用！</sys:String>
 
     <!-- Download.Install.Compat -->
 
@@ -665,15 +704,6 @@
     <sys:String x:Key="Download.Install.State.NoAvailableVersion">没有可用版本</sys:String>
     <sys:String x:Key="Download.Install.State.NoVersion">无可用版本</sys:String>
     <sys:String x:Key="Download.Install.State.UnknownUnloaded">未知错误，状态为 Unloaded</sys:String>
-
-    <!-- Download.Install.Warning -->
-
-    <sys:String x:Key="Download.Install.Warning.FabricApi">如果不安装 Fabric API，大多数模组都会无法使用！</sys:String>
-    <sys:String x:Key="Download.Install.Warning.LegacyFabricApi">如果不安装 Legacy Fabric API，大多数模组都会无法使用！</sys:String>
-    <sys:String x:Key="Download.Install.Warning.LegacyOptiFabric">安装结束后，请在模组下载中搜索 LegacyOptiFabric 并下载，否则 OptiFine 会无法使用！</sys:String>
-    <sys:String x:Key="Download.Install.Warning.ModOptiFine">OptiFine 与一部分模组的兼容性不佳，请谨慎安装。</sys:String>
-    <sys:String x:Key="Download.Install.Warning.OptiFabric">必须安装 OptiFabric 才能正常使用 OptiFine！</sys:String>
-    <sys:String x:Key="Download.Install.Warning.OptiFabricOld">安装结束后，请在模组下载中搜索 OptiFabric Origins 并下载，否则 OptiFine 会无法使用！</sys:String>
 
     <!-- Download.Left -->
 
@@ -902,6 +932,8 @@
     <sys:String x:Key="Instance.Export.Option.Mod.Desc">模组</sys:String>
     <sys:String x:Key="Instance.Export.Option.ModSettings">模组设置</sys:String>
     <sys:String x:Key="Instance.Export.Option.OptiFine">OptiFine 设置</sys:String>
+    <sys:String x:Key="Instance.Export.Option.OtherFolders">其他文件夹</sys:String>
+    <sys:String x:Key="Instance.Export.Option.OtherFolders.Desc">未被上方选项覆盖的文件夹</sys:String>
     <sys:String x:Key="Instance.Export.Option.Patchouli">帕秋莉手册个人信息</sys:String>
     <sys:String x:Key="Instance.Export.Option.Patchouli.Desc">教程书的已读记录、书签、阅读历史记录等</sys:String>
     <sys:String x:Key="Instance.Export.Option.Replay">录像回放</sys:String>
@@ -911,8 +943,6 @@
     <sys:String x:Key="Instance.Export.Option.Saves">单人游戏存档</sys:String>
     <sys:String x:Key="Instance.Export.Option.Saves.Desc">世界/地图</sys:String>
     <sys:String x:Key="Instance.Export.Option.Screenshots">截图</sys:String>
-    <sys:String x:Key="Instance.Export.Option.OtherFolders">其他文件夹</sys:String>
-    <sys:String x:Key="Instance.Export.Option.OtherFolders.Desc">未被上方选项覆盖的文件夹</sys:String>
     <sys:String x:Key="Instance.Export.Option.Servers">多人游戏服务器列表</sys:String>
     <sys:String x:Key="Instance.Export.Option.ShaderPacks">光影包</sys:String>
     <sys:String x:Key="Instance.Export.Option.Structures">导出的结构</sys:String>
@@ -1081,45 +1111,6 @@
     <sys:String x:Key="Instance.Resource.InstallFromFiles">从文件安装</sys:String>
     <sys:String x:Key="Instance.Resource.List.Loading">正在加载资源列表</sys:String>
     <sys:String x:Key="Instance.Resource.Loading">正在加载资源列表</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.Disabled.GoDownload">转到下载页面</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.Disabled.Message">你需要先安装 Forge、Fabric 等模组加载器才能使用模组，请在下载页面安装这些实例。&#xA;如果你已经安装过了模组加载器，那么你很可能选择了错误的实例，请点击实例选择按钮切换实例。</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.Disabled.SelectInstance">实例选择</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.Disabled.Title">该实例不可使用模组</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Entry">模组关系</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Entry.ToolTip">查看模组的依赖关系、缺失前置与内嵌（Jar-in-Jar）结构</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Message">这里概览模组间的依赖关系与内嵌结构。禁用或删除模组时会提示受影响的依赖项。</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.ParsePending.Title">模组仍在解析</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.ParsePending.Message">内嵌模组关系仍在后台解析，此时禁用或删除的连带依赖检测可能不完整，可能遗漏应一并处理的模组。是否仍要继续？</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Empty.Title">没有可分析的模组关系</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Empty.Message">当前实例的模组均无依赖声明或内嵌模组，或模组列表尚未加载完成。</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Warnings">警告</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Conflicts">冲突关系</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Tooltip">「不兼容」：两者无法同时加载，一起安装会导致游戏崩溃或无法启动，需卸载其一。&#10;「不建议共存」：可以一起加载，但作者标注了兼容性问题，可能出现异常或功能失效。</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Incompatible">不兼容</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Discouraged">不建议共存</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Pair">{0} 与 {1}</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Relations">模组关系</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Bundled">内嵌模组</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.Missing">{0} 缺少前置：{1}</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.VersionMismatch">{0} 前置版本不符：{1}</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.VersionMismatch.Detail">{0} {1}（检测到：{2}）</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.Disabled">{0} 的前置被禁用：{1}</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Installed">已安装</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Disabled">已禁用</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Bundled">内嵌提供</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.VersionMismatch">版本不符</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Missing">缺失</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Optional">[可选]</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Current">✓ 当前实例使用</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Incompatible">⚠ 不适配当前版本</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Versions">{0} 个版本</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.From">[内置 · 来自 {0}]</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Search.Hint">搜索模组：名称 / ModId / 依赖</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.OnlySelf">仅操作此模组</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.WithDisable">连带禁用依赖它的模组</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.WithDelete">连带删除依赖它的模组</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.DisableTitle">禁用此模组会影响 {0} 个依赖它的模组，请选择处理方式</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.DeleteTitle">删除此模组会影响 {0} 个依赖它的模组，请选择处理方式</sys:String>
     <sys:String x:Key="Instance.Resource.Schematic.DownloadMod">下载投影模组</sys:String>
     <sys:String x:Key="Instance.Resource.Schematic.Unavailable.Message">你可能需要先安装投影模组，如果已经安装过了投影模组请先启动一次游戏。&#xA;也可能是你选择错了实例，请点击实例选择按钮切换实例。</sys:String>
     <sys:String x:Key="Instance.Resource.Schematic.Unavailable.Title">该实例不可用投影原理图</sys:String>
@@ -1230,6 +1221,51 @@
     <sys:String x:Key="Instance.Resource.Item.Schematic.TotalBlocks">总方块数：</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Schematic.TotalVolume">总体积：</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Schematic.Version">原理图版本：</sys:String>
+
+    <!-- Instance.Resource.Mod -->
+
+    <sys:String x:Key="Instance.Resource.Mod.Disabled.GoDownload">转到下载页面</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.Disabled.Message">你需要先安装 Forge、Fabric 等模组加载器才能使用模组，请在下载页面安装这些实例。&#xA;如果你已经安装过了模组加载器，那么你很可能选择了错误的实例，请点击实例选择按钮切换实例。</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.Disabled.SelectInstance">实例选择</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.Disabled.Title">该实例不可使用模组</sys:String>
+
+    <!-- Instance.Resource.Mod.JarInJar -->
+
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Current">✓ 当前实例使用</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.From">[内置 · 来自 {0}]</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Incompatible">⚠ 不适配当前版本</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Versions">{0} 个版本</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.DeleteTitle">删除此模组会影响 {0} 个依赖它的模组，请选择处理方式</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.DisableTitle">禁用此模组会影响 {0} 个依赖它的模组，请选择处理方式</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.OnlySelf">仅操作此模组</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.WithDelete">连带删除依赖它的模组</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.WithDisable">连带禁用依赖它的模组</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Discouraged">不建议共存</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Incompatible">不兼容</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Pair">{0} 与 {1}</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Tooltip">「不兼容」：两者无法同时加载，一起安装会导致游戏崩溃或无法启动，需卸载其一。&#xA;「不建议共存」：可以一起加载，但作者标注了兼容性问题，可能出现异常或功能失效。</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Bundled">内嵌提供</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Disabled">已禁用</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Installed">已安装</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Missing">缺失</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Optional">[可选]</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.VersionMismatch">版本不符</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Empty.Message">当前实例的模组均无依赖声明或内嵌模组，或模组列表尚未加载完成。</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Empty.Title">没有可分析的模组关系</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Entry">模组关系</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Entry.ToolTip">查看模组的依赖关系、缺失前置与内嵌（Jar-in-Jar）结构</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Message">这里概览模组间的依赖关系与内嵌结构。禁用或删除模组时会提示受影响的依赖项。</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.ParsePending.Message">内嵌模组关系仍在后台解析，此时禁用或删除的连带依赖检测可能不完整，可能遗漏应一并处理的模组。是否仍要继续？</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.ParsePending.Title">模组仍在解析</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Search.Hint">搜索模组：名称 / ModId / 依赖</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Bundled">内嵌模组</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Conflicts">冲突关系</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Relations">模组关系</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Warnings">警告</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.Disabled">{0} 的前置被禁用：{1}</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.Missing">{0} 缺少前置：{1}</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.VersionMismatch">{0} 前置版本不符：{1}</sys:String>
+    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.VersionMismatch.Detail">{0} {1}（检测到：{2}）</sys:String>
 
     <!-- Instance.Resource.Update -->
 
@@ -1438,6 +1474,7 @@
     <sys:String x:Key="Instance.Setup.Advanced.Classpath.ToolTip">文本框中的内容将被作为 Classpath 添加到该实例的启动参数中的 Classpath 头部。&#xA;需要使用绝对路径。若有多个，请以半角 (英文) 分号分隔。</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.DisableFileVerification">关闭文件校验</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.DisableFileVerification.ToolTip">完全不更改 Assets；不校验 Libraries、第三方登录库与实例主 Jar 文件是否被修改。&#xA;如果你没有修改相关文件，请勿勾选此项。</sys:String>
+    <sys:String x:Key="Instance.Setup.Advanced.DisableModUpdate">禁止更新模组</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.GameArgs.ToolTip">文本框中的内容将会被直接拼合在启动参数的末尾。&#xA;例如，输入 --demo 则会以试玩模式启动游戏。&#xA;支持 Minecraft 实例 JSON 中的字符串替换标记，例如 ${library_directory}。&#xA;&#xA;若留空，则跟随全局设置的值。</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.IgnoreJavaCompatibility">忽略 Java 兼容性警告</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.IgnoreJavaCompatibility.ToolTip">如果手动选择了与当前实例不兼容的 Java，则自动跳过兼容性警告弹窗，强制使用手动选择的 Java。</sys:String>
@@ -1543,14 +1580,18 @@
     <sys:String x:Key="Launch.Account.Auth.LoginFailed">第三方登录尝试失败</sys:String>
     <sys:String x:Key="Launch.Account.Auth.LoginFailed.WithDetail">第三方登录尝试失败。&#xA;&#xA;原始错误信息：&#xA;{0}</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Logout">退出登录</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.OAuth.CallbackHandleFailed">处理回调出错</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.OAuth.CallbackParseFailed">回调参数解析出错</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.OAuth.CallbackReadFailed">读取回调内容出错</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.OAuth.ProfileFetchFailed">获取用户信息失败，请尝试重新登录</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.OAuthLogin">开始 OAuth 登录</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Password">密码</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Preset.LittleSkin">预设 - LittleSkin</sys:String>
     <sys:String x:Key="Launch.Account.Auth.Register">注册账号</sys:String>
-    <sys:String x:Key="Launch.Account.Auth.ServerLabel">验证服务器: {0}</sys:String>
     <sys:String x:Key="Launch.Account.Auth.SelectServer">选择验证服务器</sys:String>
-    <sys:String x:Key="Launch.Account.Auth.OAuthLogin">开始 OAuth 登录</sys:String>
-    <sys:String x:Key="Launch.Account.Auth.UsePassword">»  使用密码登录</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.ServerLabel">验证服务器: {0}</sys:String>
     <sys:String x:Key="Launch.Account.Auth.UseOAuth">»  使用 OAuth 登录</sys:String>
+    <sys:String x:Key="Launch.Account.Auth.UsePassword">»  使用密码登录</sys:String>
 
     <!-- Launch.Account.LoginDialog -->
 
@@ -1601,7 +1642,6 @@
     <sys:String x:Key="Launch.Account.Profile.Create">新建档案</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Create.SelectAuthType.Title">新建档案 - 选择验证类型</sys:String>
     <sys:String x:Key="Launch.Account.Profile.CreateAndSelectHint">新建并选择一个档案以启动游戏</sys:String>
-    <sys:String x:Key="Launch.Account.Profile.RequireMicrosoftHint">需要先进行一次正版验证才能使用其他验证方式</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Created">档案新建成功！</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Delete">删除档案</sys:String>
     <sys:String x:Key="Launch.Account.Profile.DeleteConfirm.Message">你正在选择删除此档案，该操作无法撤销。&#xA;确定继续？</sys:String>
@@ -1615,6 +1655,7 @@
     <sys:String x:Key="Launch.Account.Profile.Error.Read">读取档案列表失败</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Error.Write">写入档案列表失败</sys:String>
     <sys:String x:Key="Launch.Account.Profile.ImportExport">导入 / 导出</sys:String>
+    <sys:String x:Key="Launch.Account.Profile.RequireMicrosoftHint">需要先进行一次正版验证才能使用其他验证方式</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Saved">档案信息已保存！</sys:String>
     <sys:String x:Key="Launch.Account.Profile.SelectHint">选择一个档案以启动游戏</sys:String>
     <sys:String x:Key="Launch.Account.Profile.Uuid.ChangeTitle">更改档案 {0} 的 UUID</sys:String>
@@ -1889,6 +1930,10 @@
 
     <!-- Main -->
 
+    <sys:String x:Key="Main.April.Hint1">放弃吧！只需要点一下右下角的小白旗……</sys:String>
+    <sys:String x:Key="Main.April.Hint2">看到右下角的那面小白旗了吗？</sys:String>
+    <sys:String x:Key="Main.April.Hint3">这里建议点一下右下角的小白旗投降呢.jpg</sys:String>
+    <sys:String x:Key="Main.April.Hint4">右下角的小白旗永远等着你……</sys:String>
     <sys:String x:Key="Main.April.Nope">木大！</sys:String>
     <sys:String x:Key="Main.DebugMode.Hint">[调试模式] PCL CE 正以调试模式运行，这可能会导致性能下降，若无必要请不要开启！</sys:String>
     <sys:String x:Key="Main.Error.OperationFailed">启动器界面操作失败。请查看错误详情。</sys:String>
@@ -1906,6 +1951,8 @@
     <sys:String x:Key="Main.Extra.UpdateRestart.ToolTipWithVersion">重启 PCL CE 以应用软件更新 ({0} → {1})</sys:String>
     <sys:String x:Key="Main.HiddenFeature.Disabled">功能隐藏设置已暂时关闭！</sys:String>
     <sys:String x:Key="Main.HiddenFeature.Enabled">功能隐藏设置已重新开启！</sys:String>
+    <sys:String x:Key="Main.HomepageReset.Content">由于启动器更新，已重置主页预设。请重新前往 设置 - 个性化 选择预设</sys:String>
+    <sys:String x:Key="Main.HomepageReset.Title">主页预设已重置</sys:String>
     <sys:String x:Key="Main.ShutdownMinecraft.Success">已关闭运行中的 Minecraft！</sys:String>
     <sys:String x:Key="Main.SpecialVersion.CiHint">当前运行的 PCL CE 为 CI 自动构建版本。&#xA;该版本包含最新的漏洞修复、优化和新特性，但性能和稳定性较差，不适合日常使用和制作整合包。&#xA;&#xA;除非社区开发者要求或您自己想要这么做，否则请下载最新稳定版使用。</sys:String>
     <sys:String x:Key="Main.SpecialVersion.DebugHint">当前运行的 PCL CE 为 Debug 版本。&#xA;该版本仅适合开发者调试运行，可能会有严重的性能下降以及各种奇怪的网络问题。&#xA;&#xA;非开发者用户使用该版本造成的一切问题均不被社区支持，相关 issue 可能会被直接关闭。&#xA;除非您是开发者，否则请立即删除该版本，并下载最新稳定版使用。</sys:String>
@@ -1928,8 +1975,6 @@
     <sys:String x:Key="Main.UpdateLog.Empty">欢迎使用呀~</sys:String>
     <sys:String x:Key="Main.UpdateLog.FullChangelog">完整更新日志</sys:String>
     <sys:String x:Key="Main.UpdateLog.Title">PCL CE 已更新至 {0} {1}</sys:String>
-    <sys:String x:Key="Main.HomepageReset.Title">主页预设已重置</sys:String>
-    <sys:String x:Key="Main.HomepageReset.Content">由于启动器更新，已重置主页预设。请重新前往 设置 - 个性化 选择预设</sys:String>
 
     <!-- Main.FileDrag -->
 
@@ -2363,6 +2408,11 @@
     <sys:String x:Key="Music.Error.PropertyChangeUnsupported">无法播放 {0}：PCL CE 不支持播放过程中变更音频属性的文件。</sys:String>
     <sys:String x:Key="Music.Error.UnsupportedFormat">无法播放 {0}：PCL CE 可能不支持此格式，请转换为 .wav、.mp3 或 .flac。</sys:String>
 
+    <!-- Region -->
+
+    <sys:String x:Key="Region.Feature.Restricted">Minecraft 下载、补全与整合包安装功能在你所在的国家或地区不可用。</sys:String>
+    <sys:String x:Key="Region.Feature.Unknown">无法获取区域信息，暂时无法使用 Minecraft 下载、补全与整合包安装功能。</sys:String>
+
     <!-- Select -->
 
     <sys:String x:Key="Select.Error.OperationFailed">实例选择操作失败。请查看错误详情。</sys:String>
@@ -2715,8 +2765,17 @@
     <!-- Setup.GameManage.Download -->
 
     <sys:String x:Key="Setup.GameManage.Download.AutoSelectInstance">安装新实例后自动选定该实例</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.FileConnections">单文件最大连接数</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.FileConnections.ToolTip">大文件最多同时使用的连接数。提高该值可能加快被单连接限速的下载，但也有可能更容易被下载源限速。</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.FixAuthlib">升级部分版本的 Authlib</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.FixAuthlib.ToolTip">部分 MC 版本（如 1.16.5）存在 Bug，可能导致使用离线验证时多人游戏被禁用。&#xA;PCL CE 可尝试升级这些版本的 Authlib 支持库以解决问题。&#xA;此设置仅对新安装的实例有效。</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol">文件下载协议</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Auto">自动选择（推荐）</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Auto.ToolTip">小文件和批量下载优先使用 HTTP/2；大文件分段下载使用 HTTP/1.1，以兼顾并发和兼容性。</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http11">HTTP/1.1</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http11.ToolTip">所有文件下载强制使用 HTTP/1.1。适合需要多条独立连接提升大文件速度的网络环境。</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http2">优先使用 HTTP/2</sys:String>
+    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http2.ToolTip">所有文件下载优先使用 HTTP/2；如果下载源或代理不支持，会自动回退到 HTTP/1.1。</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.InstallBehavior">安装行为</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.SpeedLimit">速度限制</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.SpeedLimit.ToolTip">设置下载的速度上限，以避免在下载时导致其他需要联网的程序卡死</sys:String>
@@ -2726,15 +2785,6 @@
     <sys:String x:Key="Setup.GameManage.Download.Threads.TooManyWarning.Confirm">我知道了</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Threads.TooManyWarning.Message">过高的并发连接数可能导致下载时出现非常严重的卡顿，甚至导致服务器使用更严格的限速策略。&#xA;64 个连接通常已经可以满足需求。除非你知道自己在做什么，否则不建议设置更高的并发连接数！</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Threads.ToolTip">限制所有下载任务合计使用的网络连接数。64 个连接通常已经足够。</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.FileConnections">单文件最大连接数</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.FileConnections.ToolTip">大文件最多同时使用的连接数。提高该值可能加快被单连接限速的下载，但也有可能更容易被下载源限速。</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol">文件下载协议</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Auto">自动选择（推荐）</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Auto.ToolTip">小文件和批量下载优先使用 HTTP/2；大文件分段下载使用 HTTP/1.1，以兼顾并发和兼容性。</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http11">HTTP/1.1</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http11.ToolTip">所有文件下载强制使用 HTTP/1.1。适合需要多条独立连接提升大文件速度的网络环境。</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http2">优先使用 HTTP/2</sys:String>
-    <sys:String x:Key="Setup.GameManage.Download.HttpProtocol.Http2.ToolTip">所有文件下载优先使用 HTTP/2；如果下载源或代理不支持，会自动回退到 HTTP/1.1。</sys:String>
     <sys:String x:Key="Setup.GameManage.Download.Unlimited">无限制</sys:String>
 
     <!-- Setup.Java -->
@@ -2760,18 +2810,18 @@
 
     <!-- Setup.Language -->
 
+    <sys:String x:Key="Setup.Language.Banner.DescriptionLine1">在社区的共同助力下，PCL CE 正迈向国际化的新篇章。</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.DescriptionLine2">欢迎前往翻译平台参与本地化贡献，或向 GitHub 仓库提交 Pull Request，与我们一同完善多语言支持，为 PCL CE 更好地服务全球用户的目标添砖加瓦。</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.DescriptionLine3">感谢每一位参与翻译、校对与改进的贡献者，让 PCL CE 因你们而更加完善。</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.SubmitPullRequest">提交 Pull Request</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.TitlePrefix">让</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.TitleSuffix">走向国际化。</sys:String>
+    <sys:String x:Key="Setup.Language.Banner.TranslateWebsite">前往翻译平台</sys:String>
     <sys:String x:Key="Setup.Language.CardTitle">语言</sys:String>
     <sys:String x:Key="Setup.Language.Changed">语言设置已更新</sys:String>
     <sys:String x:Key="Setup.Language.FormatCulture">区域格式</sys:String>
     <sys:String x:Key="Setup.Language.FormatCulture.Auto">跟随系统区域格式</sys:String>
     <sys:String x:Key="Setup.Language.FormatCulture.FollowLanguage">同步界面语言</sys:String>
-    <sys:String x:Key="Setup.Language.Banner.TitlePrefix">让</sys:String>
-    <sys:String x:Key="Setup.Language.Banner.TitleSuffix">走向国际化。</sys:String>
-    <sys:String x:Key="Setup.Language.Banner.DescriptionLine1">在社区的共同助力下，PCL CE 正迈向国际化的新篇章。</sys:String>
-    <sys:String x:Key="Setup.Language.Banner.DescriptionLine2">欢迎前往翻译平台参与本地化贡献，或向 GitHub 仓库提交 Pull Request，与我们一同完善多语言支持，为 PCL CE 更好地服务全球用户的目标添砖加瓦。</sys:String>
-    <sys:String x:Key="Setup.Language.Banner.DescriptionLine3">感谢每一位参与翻译、校对与改进的贡献者，让 PCL CE 因你们而更加完善。</sys:String>
-    <sys:String x:Key="Setup.Language.Banner.TranslateWebsite">前往翻译平台</sys:String>
-    <sys:String x:Key="Setup.Language.Banner.SubmitPullRequest">提交 Pull Request</sys:String>
     <sys:String x:Key="Setup.Language.Reset.Success">已初始化语言页设置！</sys:String>
     <sys:String x:Key="Setup.Language.Title">语言</sys:String>
     <sys:String x:Key="Setup.Language.UiLanguage">界面语言</sys:String>
@@ -2795,8 +2845,6 @@
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.ToolTip">PCL CE 会使用 Java Launch Wrapper 来修复老版本 Java 在中文路径下无法启动的问题。&#xA;如果这被反作弊拦截，或遇到其他问题，也可以将其关闭。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLF">禁用 LegacyFix</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLF.ToolTip">PCL CE 会在启动 1.5.x 及以下版本时使用 LegacyFix 来改善老版本游戏体验和修复兼容性问题。</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.LockMemory">锁定内存分配（-Xms = -Xmx）</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.LockMemory.ToolTip">启用后，启动器会额外追加 -Xms 参数并令其等于最大堆 -Xmx，从而固定堆大小。这会隐式禁用堆内存归还（Uncommit），减少操作系统取消映射/重新分配内存页带来的延迟抖动，也有利于 ZGC 的回收预测。代价是游戏全程会占用接近最大分配的内存。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLwjglUnsafeAgent">禁用 LWJGL Unsafe Agent</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip">Minecraft 26.1 使用了 LWJGL 3.4.1，LWJGL 3.4.1 使用了 FFM API 以在 JDK 25+ 上访问原生内存。由于 JDK 优化能力限制，某些情况下这会产生严重的性能问题。&#xA;PCL CE 会使用 LWJGL Unsafe Agent 修复这个问题，以解决可能存在的性能问题。&#xA;一般情况下没有禁用该选项的必要，但如果你遇到了额外问题，也可以尝试暂时禁用该选项以排查错误。&#xA;&#xA;该功能仅会在 LWJGL 版本为 3.4.1 时生效。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.GameTail">游戏参数尾部</sys:String>
@@ -2806,6 +2854,8 @@
     <sys:String x:Key="Setup.Launch.Advanced.JvmHead">JVM 参数头部</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.JvmHead.Restore">还原</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.JvmHead.ToolTip">启动 Minecraft 时使用的额外 JVM 参数，除非有确定把握，否则请不要修改。&#xA;支持 Minecraft 实例 JSON 中的字符串替换标记，例如 ${library_directory}。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.LockMemory">锁定内存分配（-Xms = -Xmx）</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.LockMemory.ToolTip">启用后，启动器会额外追加 -Xms 参数并令其等于最大堆 -Xmx，从而固定堆大小。这会隐式禁用堆内存归还（Uncommit），减少操作系统取消映射/重新分配内存页带来的延迟抖动，也有利于 ZGC 的回收预测。代价是游戏全程会占用接近最大分配的内存。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.MoreInInstanceSetup">你还可以在实例独立设置中找到更多高级启动选项。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.PreLaunchCommand">启动前执行命令</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.PreLaunchCommand.ToolTip">在 MC 启动前执行特定命令或程序，语法与 Windows 的命令提示符一致。&#xA;&#xA;可以使用以下替换标记实现相对路径（路径均以 \ 结尾）：&#xA; · {path}：PCL CE 的 exe 文件所在的文件夹&#xA; · {minecraft}：.minecraft 文件夹&#xA; · {verpath}：实例文件夹（.minecraft\versions\实例名\）&#xA; · {verindie}：开启实例隔离时等同实例文件夹，未开启时等同 .minecraft 文件夹&#xA; · {java}：游戏运行时的 Java 文件夹&#xA;&#xA;除此之外，也支持以下替换标记：&#xA; · {user}：玩家名字&#xA; · {login}：玩家的登录方式&#xA; · {uuid}：玩家的 UUID&#xA; · {name}：游戏实例名&#xA; · {date}、{time}：当前的系统时间&#xA; · {version}：游戏对应的原版版本号&#xA;&#xA;例如：&#xA; · "{verpath}test.exe" ：运行实例文件夹下的 test.exe 程序&#xA; · "{java}java.exe" -jar "{verpath}test.jar" ：用 Java 运行实例文件夹下的 test.jar&#xA; · notepad "{verindie}options.txt" ：使用记事本打开该实例的设置文件&#xA;&#xA;涉及路径的操作最好都打上双引号，以避免路径中的空格导致运行失败。&#xA;执行命令时，命令行所在的目录是当前的 .minecraft 文件夹。</sys:String>
@@ -2827,13 +2877,13 @@
     <sys:String x:Key="Setup.Launch.Memory.Auto.ToolTip">根据安装的模组量与电脑剩余内存，动态调整为游戏分配的内存</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.AvailableSuffix">可用 {0} GiB</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.GameAllocation">游戏分配</sys:String>
-    <sys:String x:Key="Setup.Launch.Memory.Max">最大内存（-Xmx）</sys:String>
-    <sys:String x:Key="Setup.Launch.Memory.Max.ToolTip">游戏可使用的最大堆内存大小</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Initial">初始内存（-Xms）</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Initial.ToolTip">游戏启动时预先分配的堆内存大小，可以低于最大堆（-Xmx）。设为 0 表示不主动设置，由 JVM 自行决定。仅在手动配置内存分配时生效，启用“锁定内存分配”时不生效。</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Max">最大内存（-Xmx）</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.Max.ToolTip">游戏可使用的最大堆内存大小</sys:String>
+    <sys:String x:Key="Setup.Launch.Memory.SuffixAvailable">可用 {0} GiB</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.SuffixBoth">初始 {0} GiB，可用 {1} GiB</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.SuffixInitial">初始 {0} GiB</sys:String>
-    <sys:String x:Key="Setup.Launch.Memory.SuffixAvailable">可用 {0} GiB</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Title">游戏内存</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.UsedTotal">已使用内存 / 已安装内存</sys:String>
     <sys:String x:Key="Setup.Launch.Memory.Warning.Java32Bit">32 位 Java 只能分配最多 1 GiB 的内存。强烈建议换用 64 位的 Java！</sys:String>
@@ -3007,11 +3057,12 @@
     <sys:String x:Key="Setup.Misc.System.MaxLogLines.Unlimited">无限制</sys:String>
     <sys:String x:Key="Setup.Misc.System.StopUsingPclCe">停止使用 PCL CE</sys:String>
     <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.ContinueAndRemove">继续并清理实例文件夹</sys:String>
-    <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Message.Final">你确定要继续操作吗？这是最后警告！&#xA;与 PCL CE 有关的一切数据将被永久消除！（真的很久！）</sys:String>
     <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Message">即将删除此电脑上与 PCL CE 有关的全部配置、缓存、已保存的账户信息及其他相关数据，并撤销已接受的许可协议。完成后，软件将自动关闭。&#xA;&#xA;但请注意，以下内容无法自动删除或注销：&#xA;- 此电脑上其他 PCL CE 实例的本地数据&#xA;- Natayark 账户&#xA;&#xA;如需同时删除 Minecraft 实例中的 PCL CE 配置文件，请选择“继续并清理实例文件夹”，这不会影响你的游戏配置、模组、存档，以及其他数据。&#xA;&#xA;此操作无法撤销。您确定要继续吗？</sys:String>
+    <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Message.Final">你确定要继续操作吗？这是最后警告！&#xA;与 PCL CE 有关的一切数据将被永久消除！（真的很久！）</sys:String>
     <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Title">停止使用 PCL CE？</sys:String>
     <sys:String x:Key="Setup.Misc.System.Telemetry">启用遥测数据收集</sys:String>
     <sys:String x:Key="Setup.Misc.System.Telemetry.ToolTip">启用此功能后，启动器将会收集并上报错误与设备环境信息，这可以帮助开发者修复潜在的问题、更好的进行规划和开发。&#xA;若启用此功能，我们将会收集以下信息：启动器内出现的错误，启动器版本信息与识别码，使用的 Windows 系统版本与架构，已安装的物理内存大小，NAT 与 IPv6 支持情况，是否使用过原版 PCL、HMCL 或 BakaXL。&#xA;&#xA;这些数据均不与你关联，我们也绝不会向第三方出售数据。不启用此功能不会影响你使用其他功能，但可能会影响开发者修复潜在 Bug。&#xA;&#xA;此项更改将在重新启动启动器后生效。</sys:String>
+    <sys:String x:Key="Setup.Misc.System.Telemetry.Unavailable">此版本受到修改或非官方构建，Sentry 回报不可用</sys:String>
     <sys:String x:Key="Setup.Misc.System.Title">系统</sys:String>
 
     <!-- Setup.Ui -->
@@ -3160,6 +3211,7 @@
     <!-- Setup.Ui.Homepage.Preset -->
 
     <sys:String x:Key="Setup.Ui.Homepage.Preset">预设</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.Bangumi">Bangumi 番剧主页（作者：wzyaeu）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.DailyModpack">每日整合包推荐（作者：wkea）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.EchoCave">回声洞 (已移除)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.GitHub">PCL GitHub 仪表盘（作者：Deep-Dark-Forest）</sys:String>
@@ -3168,10 +3220,9 @@
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McOfficialFeed">Minecraft 官方信息流</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McSkin">Minecraft 皮肤推荐（作者：wkea）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McUpdateSummary">Minecraft 更新摘要（作者：pynickle，部分由 AI 生成）</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.NewsToday">今日新闻热点（作者：EYicheng）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.MinecraftKnowledge">Minecraft 芝士站（作者：awaEric233）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.ModpackRecommendation">整合包推荐引擎（作者：CHMYGZ）</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.Bangumi">Bangumi 番剧主页（作者：wzyaeu）</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.NewsToday">今日新闻热点（作者：EYicheng）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.OpenBmclapi">OpenBMCLAPI 仪表盘 Lite（作者：Silverteal、Mxmilu666）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.OpenMcim">OpenMCIM 仪表盘（作者：SALTWOOD）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.PclAnnouncement">PCL CE 公告栏</sys:String>
@@ -3469,6 +3520,8 @@
     <sys:String x:Key="Tools.Test.Dependency.Checking">开始环境检查……</sys:String>
     <sys:String x:Key="Tools.Test.Dependency.Later">稍后</sys:String>
     <sys:String x:Key="Tools.Test.Dependency.MissingMessage">当前系统环境缺失软件运行所需依赖"{0}"&#xA;&#xA;点击确定打开微软应用商店安装</sys:String>
+    <sys:String x:Key="Tools.Test.Dependency.Package.D3DMappingLayers">OpenGL 兼容包</sys:String>
+    <sys:String x:Key="Tools.Test.Dependency.Package.WebpImageExtension">WebP 组件包</sys:String>
     <sys:String x:Key="Tools.Test.Dependency.Title">依赖检查</sys:String>
     <sys:String x:Key="Tools.Test.Error.OperationFailed">测试工具操作失败。请查看错误详情。</sys:String>
     <sys:String x:Key="Tools.Test.LaunchCount.Message">PCL CE 已经为你启动了 {0} 次游戏了。</sys:String>
@@ -3634,6 +3687,4 @@
     <sys:String x:Key="Watcher.WindowLoaded">Minecraft 窗口已加载：{0}（{1}）</sys:String>
     <sys:String x:Key="Watcher.WindowMaximized">已最大化 Minecraft 窗口：{0}</sys:String>
 
-    <sys:String x:Key="Region.Feature.Restricted">Minecraft 下载、补全与整合包安装功能在你所在的国家或地区不可用。</sys:String>
-    <sys:String x:Key="Region.Feature.Unknown">无法获取区域信息，暂时无法使用 Minecraft 下载、补全与整合包安装功能。</sys:String>
 </ResourceDictionary>

@@ -23,6 +23,8 @@ namespace PCL.Core.App.Essentials;
 [LifecycleService(LifecycleState.Running)]
 public sealed partial class TelemetryService
 {
+    public static bool IsBuildUntrusted { get; private set; }
+
     private static void _InitSentry()
     {
         Context.Info("开始初始化 Sentry SDK");
@@ -154,6 +156,13 @@ public sealed partial class TelemetryService
     private static async Task _StartAsync()
     {
         if (!Config.System.Telemetry) return;
+        if (!await BuildProvenance.IsTrustedAsync().ConfigureAwait(false))
+        {
+            IsBuildUntrusted = true;
+            Context.Warn($"当前版本 {Basics.VersionName} 的文件哈希与官方发布资产不匹配，遥测上报已禁用");
+            return;
+        }
+
         _InitSentry();
         
         var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
