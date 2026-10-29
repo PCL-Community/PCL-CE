@@ -8,13 +8,18 @@ namespace PCL;
 
 public partial class PageSetupLauncherLanguage
 {
+    private readonly PageSetupLauncherLanguageViewModel _vm = new();
+
     private bool _isLoaded;
 
     public PageSetupLauncherLanguage()
     {
         InitializeComponent();
+        DataContext = _vm;
         Loaded += PageSetupLauncherLanguage_Loaded;
     }
+
+    public PageSetupLauncherLanguageViewModel ViewModel => _vm;
 
     private void PageSetupLauncherLanguage_Loaded(object sender, RoutedEventArgs e)
     {
@@ -38,6 +43,7 @@ public partial class PageSetupLauncherLanguage
         {
             ReloadLanguageCombo();
             ReloadFormatCultureCombo();
+            _vm.Reload();
         }
         finally
         {
@@ -80,15 +86,6 @@ public partial class PageSetupLauncherLanguage
                 GetLanguageDisplay(language),
                 language.Code,
                 language));
-
-        var configValue = NormalizeConfigValue(Config.Preference.Localization.Language);
-        var selectedLanguageTag = LocalizationService.Auto;
-        if (LocalizationService.IsLanguageSupported(configValue))
-            selectedLanguageTag =
-                string.Equals(configValue, LocalizationService.Auto, StringComparison.OrdinalIgnoreCase)
-                    ? LocalizationService.Auto
-                    : LocalizationService.ResolveLanguage(configValue).Code;
-        SelectComboItem(ComboUiLanguage, selectedLanguageTag);
     }
 
     private void ReloadFormatCultureCombo()
@@ -105,23 +102,22 @@ public partial class PageSetupLauncherLanguage
             Tag = LocalizationService.FormatCultureFollowLanguage
         });
 
-        foreach (var culture in GetBuiltInFormatCultures())
+        foreach (var culture in PageSetupLauncherLanguageViewModel.GetBuiltInFormatCultures())
             ComboUiFormatCulture.Items.Add(new MyComboBoxItem
             {
                 Content = GetCultureDisplay(culture),
                 Tag = culture.Name
             });
 
-        var configValue = NormalizeConfigValue(Config.Preference.Localization.FormatCulture);
-        if (!IsFormatCultureItemExisting(configValue) && TryGetCulture(configValue, out var customCulture))
+        var configValue = PageSetupLauncherLanguageViewModel.NormalizeConfigValue(
+            Config.Preference.Localization.FormatCulture);
+        if (!IsFormatCultureItemExisting(configValue) &&
+            PageSetupLauncherLanguageViewModel.TryGetCulture(configValue, out var customCulture))
             ComboUiFormatCulture.Items.Add(new MyComboBoxItem
             {
                 Content = GetCultureDisplay(customCulture),
                 Tag = customCulture.Name
             });
-
-        SelectComboItem(ComboUiFormatCulture,
-            IsFormatCultureItemExisting(configValue) ? configValue : LocalizationService.Auto);
     }
 
     private void ComboUiLanguage_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -156,16 +152,6 @@ public partial class PageSetupLauncherLanguage
         Reload();
     }
 
-    private static IEnumerable<CultureInfo> GetBuiltInFormatCultures()
-    {
-        var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var language in LocalizationService.SupportedLanguages)
-        {
-            var culture = CultureInfo.GetCultureInfo(language.CultureName);
-            if (used.Add(culture.Name)) yield return culture;
-        }
-    }
-
     private static MyComboBoxItem CreateLanguageComboItem(string content, string tag, LocalizationLanguage language)
     {
         return new MyComboBoxItem
@@ -184,37 +170,6 @@ public partial class PageSetupLauncherLanguage
     private static string GetCultureDisplay(CultureInfo culture)
     {
         return $"{culture.NativeName}";
-    }
-
-    private static string NormalizeConfigValue(string? value)
-    {
-        return string.IsNullOrWhiteSpace(value) ? LocalizationService.Auto : value;
-    }
-
-    private static bool TryGetCulture(string value, out CultureInfo culture)
-    {
-        try
-        {
-            culture = CultureInfo.GetCultureInfo(value);
-            return true;
-        }
-        catch (CultureNotFoundException)
-        {
-            culture = CultureInfo.InvariantCulture;
-            return false;
-        }
-    }
-
-    private static void SelectComboItem(MyComboBox comboBox, string tag)
-    {
-        foreach (var item in comboBox.Items.OfType<MyComboBoxItem>())
-        {
-            if (!string.Equals(item.Tag?.ToString(), tag, StringComparison.OrdinalIgnoreCase)) continue;
-            comboBox.SelectedItem = item;
-            return;
-        }
-
-        comboBox.SelectedIndex = comboBox.Items.Count > 0 ? 0 : -1;
     }
 
     private bool IsFormatCultureItemExisting(string tag)

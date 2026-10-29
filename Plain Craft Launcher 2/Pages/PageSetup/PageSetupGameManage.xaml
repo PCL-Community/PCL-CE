@@ -29,7 +29,8 @@
                         </Grid.RowDefinitions>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Source.File}" Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboDownloadSource" Grid.ColumnSpan="2" Tag="ToolDownloadSource"
-                                          Grid.Column="1" SelectionChanged="ComboChange">
+                                          Grid.Column="1" SelectedIndex="{Binding FileSourceIndex, Mode=OneWay}"
+                                          SelectionChanged="ComboChange">
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Source.UseMirror}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Source.PreferOfficialThenMirror}" IsSelected="True" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Source.UseOfficial}" />
@@ -37,7 +38,9 @@
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Source.Version}" Margin="0,0,25,0"
                                    Grid.Row="2" />
                         <local:MyComboBox x:Name="ComboDownloadVersion" Grid.ColumnSpan="2" Tag="ToolDownloadVersion"
-                                          Grid.Column="1" Grid.Row="2" SelectionChanged="ComboChange">
+                                          Grid.Column="1" Grid.Row="2"
+                                          SelectedIndex="{Binding VersionListIndex, Mode=OneWay}"
+                                          SelectionChanged="ComboChange">
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Source.Version.Mirror}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Source.PreferOfficialThenMirror}" IsSelected="True" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Source.UseOfficial}" />
@@ -45,7 +48,9 @@
                         <TextBlock VerticalAlignment="Center" Grid.Row="4" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Download.HttpProtocol}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboDownloadHttpMode" Grid.Row="4" Grid.Column="1"
-                                          Tag="ToolDownloadHttpMode" SelectionChanged="ComboChange">
+                                          Tag="ToolDownloadHttpMode"
+                                          SelectedIndex="{Binding HttpModeIndex, Mode=OneWay}"
+                                          SelectionChanged="ComboChange">
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Download.HttpProtocol.Auto}"
                                                   ToolTip="{DynamicResource Setup.GameManage.Download.HttpProtocol.Auto.ToolTip}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Download.HttpProtocol.Http11}"
@@ -111,7 +116,9 @@
                         <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.Source}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboDownloadMod" Grid.Row="0" Grid.ColumnSpan="2"
-                                          Tag="ToolDownloadMod" Grid.Column="1" SelectionChanged="ComboChange">
+                                          Tag="ToolDownloadMod" Grid.Column="1"
+                                          SelectedIndex="{Binding CompSourceIndex, Mode=OneWay}"
+                                          SelectionChanged="ComboChange">
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Source.UseMirror}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.Source.PreferOfficialWithFallback}" IsSelected="True" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Source.UseOfficial}" />
@@ -119,7 +126,9 @@
                         <TextBlock Grid.Row="2" x:Name="TextFilenameFormat" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.FilenameFormat}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox Grid.Row="2" x:Name="ComboDownloadTranslateV2" Grid.ColumnSpan="2"
-                                          Tag="ToolDownloadTranslateV2" Grid.Column="1" SelectionChanged="ComboChange"
+                                          Tag="ToolDownloadTranslateV2" Grid.Column="1"
+                                          SelectedIndex="{Binding TranslateFormatIndex, Mode=OneWay}"
+                                          SelectionChanged="ComboChange"
                                           ToolTip="{DynamicResource Setup.GameManage.Community.FilenameFormat.ToolTip}">
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.FilenameFormat.Style0}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.FilenameFormat.Style1}" IsSelected="True" />
@@ -130,7 +139,9 @@
                         <TextBlock Grid.Row="4" x:Name="TextModManageStyle" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.ModManageStyle}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox Grid.Row="4" x:Name="ComboModLocalNameStyle" Grid.ColumnSpan="2"
-                                          Tag="ToolModLocalNameStyle" Grid.Column="1" SelectionChanged="ComboChange"
+                                          Tag="ToolModLocalNameStyle" Grid.Column="1"
+                                          SelectedIndex="{Binding LocalNameStyleIndex, Mode=OneWay}"
+                                          SelectionChanged="ComboChange"
                                           ToolTip="{DynamicResource Setup.GameManage.Community.ModManageStyle.ToolTip}">
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.ModManageStyle.TitleTranslation}" IsSelected="True" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.ModManageStyle.TitleFilename}" />
@@ -138,7 +149,9 @@
                         <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameManage.Community.QuickDownload}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox Grid.Row="6" x:Name="ComboDownloadQuickBehavior" Grid.ColumnSpan="2"
-                                          Tag="ToolDownloadQuickBehavior" Grid.Column="1" SelectionChanged="ComboChange"
+                                          Tag="ToolDownloadQuickBehavior" Grid.Column="1"
+                                          SelectedIndex="{Binding QuickBehaviorIndex, Mode=OneWay}"
+                                          SelectionChanged="ComboChange"
                                           ToolTip="{DynamicResource Setup.GameManage.Community.QuickDownload.ToolTip}">
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.QuickDownload.AlwaysAsk}" IsSelected="True" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameManage.Community.QuickDownload.CurrentInstance}" />
