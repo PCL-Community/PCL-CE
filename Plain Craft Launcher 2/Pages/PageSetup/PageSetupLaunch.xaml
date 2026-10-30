@@ -165,9 +165,9 @@
             </local:MyCard>
             <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Setup.Launch.Memory.Title}">
                 <StackPanel Margin="25,40,25,15">
-                    <local:MyHint x:Name="LabRamWarn" Visibility="Visible"
+                    <local:MyHint x:Name="LabRamWarn" Visibility="{Binding RamWarnVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"
                                   Text="{DynamicResource Setup.Launch.Memory.Warning.Java32Bit}" Theme="Yellow" Margin="0,0,0,12" />
-                    <local:MyHint x:Name="HintRamTooHigh" Visibility="Collapsed" Height="30" Theme="Yellow"
+                    <local:MyHint x:Name="HintRamTooHigh" Visibility="{Binding RamTooHighVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Theme="Yellow"
                                   Text="{DynamicResource Setup.Launch.Memory.Warning.TooMuch}" Margin="0,0,0,12"
                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
                     <Grid Margin="0,0,0,3">
@@ -189,11 +189,11 @@
                                           Margin="0,0,20,9" Check="RadioBoxChange" />
                         <TextBlock Grid.Row="2" Text="{DynamicResource Setup.Launch.Memory.Max}" VerticalAlignment="Center" Margin="0,0,20,9"
                                    ToolTip="{DynamicResource Setup.Launch.Memory.Max.ToolTip}" />
-                        <local:MySlider Grid.Row="2" Grid.Column="1" IsEnabled="False" x:Name="SliderRamCustom"
+                        <local:MySlider Grid.Row="2" Grid.Column="1" IsEnabled="{Binding RamCustomEnabled, Mode=OneWay}" x:Name="SliderRamCustom"
                                         Tag="LaunchRamCustom" MaxValue="49" Value="13" Change="SliderChange" Margin="0,0,12,9" />
                         <TextBlock Grid.Row="3" Text="{DynamicResource Setup.Launch.Memory.Initial}" VerticalAlignment="Center" Margin="0,0,20,0"
                                    ToolTip="{DynamicResource Setup.Launch.Memory.Initial.ToolTip}" />
-                        <local:MySlider Grid.Row="3" Grid.Column="1" IsEnabled="False" x:Name="SliderRamInitialCustom"
+                        <local:MySlider Grid.Row="3" Grid.Column="1" IsEnabled="{Binding RamInitialCustomEnabled, Mode=OneWay}" x:Name="SliderRamInitialCustom"
                                         Tag="LaunchRamCustomInitial" MaxValue="49" Value="0" Change="SliderChange"
                                         ToolTip="{DynamicResource Setup.Launch.Memory.Initial.ToolTip}" />
                     </Grid>
@@ -226,12 +226,12 @@
                                    TextTrimming="None" Margin="2,0,0,5" FontSize="11" HorizontalAlignment="Left" />
                         <StackPanel Grid.Row="2" Orientation="Horizontal" Grid.ColumnSpan="3" Margin="2,3,0,0"
                                     HorizontalAlignment="Left">
-                            <TextBlock x:Name="LabRamUsed" Text="4.7 GiB" FontSize="16"
+                            <TextBlock x:Name="LabRamUsed" Text="{Binding RamUsedText, Mode=OneWay}" FontSize="16"
                                        Foreground="{DynamicResource ColorBrushMemory}" TextTrimming="None" />
-                            <TextBlock x:Name="LabRamTotal" Text=" / 7.9 GiB" FontSize="16"
+                            <TextBlock x:Name="LabRamTotal" Text="{Binding RamTotalText, Mode=OneWay}" FontSize="16"
                                        Foreground="{DynamicResource ColorBrushMemory}" TextTrimming="None" />
                         </StackPanel>
-                        <TextBlock Grid.Row="2" x:Name="LabRamGame" Text="2.5 GiB" Grid.ColumnSpan="3"
+                        <TextBlock Grid.Row="2" x:Name="LabRamGame" Text="{Binding RamGameText, Mode=OneWay}" Grid.ColumnSpan="3"
                                    TextTrimming="None" Margin="2,3,0,0" FontSize="16"
                                    Foreground="{DynamicResource ColorBrushMemory}" HorizontalAlignment="Left" />
                     </Grid>
@@ -269,7 +269,7 @@
                                 HorizontalAlignment="Left" Margin="0,0,25,0">
                         <TextBlock Text="{DynamicResource Setup.Launch.Advanced.JvmHead}" VerticalAlignment="Center" />
                         <local:MyIconButton Height="23" Margin="0,1,0,0" x:Name="BtnAdvanceJvmReset"
-                                            VerticalAlignment="Center" Click="BtnAdvanceJvmReset_Click"
+                                            VerticalAlignment="Center" Visibility="{Binding JvmResetVisibility, Mode=OneWay}" Click="BtnAdvanceJvmReset_Click"
                                             ToolTip="{DynamicResource Setup.Launch.Advanced.JvmHead.Restore}" ToolTipService.Placement="Left"
                                             ToolTipService.InitialShowDelay="200" ToolTipService.VerticalOffset="-1"
                                             SvgIcon="lucide/rotate-ccw"
@@ -293,7 +293,7 @@
                                      TextChanged="TextAdvanceRun_TextChanged"
                                      ToolTip="{DynamicResource Setup.Launch.Advanced.PreLaunchCommand.ToolTip}" />
                     <local:MyCheckBox Grid.Row="7" Grid.Column="1" x:Name="CheckAdvanceRunWait"
-                                      Tag="LaunchAdvanceRunWait" Visibility="Collapsed"
+                                      Tag="LaunchAdvanceRunWait" Visibility="{Binding CheckAdvanceRunWaitVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       Change="CheckBoxChange"
                                       Text="{DynamicResource Setup.Launch.Advanced.PreLaunchCommand.Wait}" Margin="0,8,0,7" />
                     <StackPanel Margin="0,12,0,4" Grid.Row="8" Grid.ColumnSpan="2" HorizontalAlignment="Left">
