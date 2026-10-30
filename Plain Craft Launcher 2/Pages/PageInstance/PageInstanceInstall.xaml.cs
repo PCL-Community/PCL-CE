@@ -37,7 +37,7 @@ public partial class PageInstanceInstall : IPageView
         Unloaded += (a, b) => _refreshed = false;
         InitializeComponent();
         DataContext = _vm;
-        LoadMinecraft.Text = Lang.Text("Download.Version.LoadingList");
+        _vm.LoadingText = Lang.Text("Download.Version.LoadingList");
     }
 
     private void LoaderInit()
@@ -481,7 +481,7 @@ public partial class PageInstanceInstall : IPageView
         // Minecraft
         ImgMinecraft.Source = new MyBitmap(_vanillaIcon);
         _vm.MinecraftText = _vanillaName;
-        LabMinecraft.Foreground = ThemeManager.colorGray1;
+        _vm.MinecraftForeground = ThemeManager.colorGray1;
         // OptiFine
         if (!McVersionComparer.CompareVersionGe(_vanillaName, "1.7.2"))
         {
@@ -500,14 +500,14 @@ public partial class PageInstanceInstall : IPageView
                 _vm.ShowOptiFineClear = false;
                 _vm.ShowOptiFineImage = false;
                 _vm.OptiFineText = optiFineError ?? Lang.Text("Download.Install.State.CanAdd");
-                LabOptiFine.Foreground = ThemeManager.colorGray4;
+                _vm.OptiFineForeground = ThemeManager.colorGray4;
             }
             else
             {
                 _vm.ShowOptiFineClear = true;
                 _vm.ShowOptiFineImage = true;
                 _vm.OptiFineText = selectedOptiFine.DisplayName.Replace(_vanillaName + " ", "");
-                LabOptiFine.Foreground = ThemeManager.colorGray1;
+                _vm.OptiFineForeground = ThemeManager.colorGray1;
             }
         }
 
@@ -531,14 +531,14 @@ public partial class PageInstanceInstall : IPageView
                 _vm.ShowLiteLoaderClear = false;
                 _vm.ShowLiteLoaderImage = false;
                 _vm.LiteLoaderText = liteLoaderError ?? Lang.Text("Download.Install.State.CanAdd");
-                LabLiteLoader.Foreground = ThemeManager.colorGray4;
+                _vm.LiteLoaderForeground = ThemeManager.colorGray4;
             }
             else
             {
                 _vm.ShowLiteLoaderClear = true;
                 _vm.ShowLiteLoaderImage = true;
                 _vm.LiteLoaderText = selectedLiteLoader.Inherit;
-                LabLiteLoader.Foreground = ThemeManager.colorGray1;
+                _vm.LiteLoaderForeground = ThemeManager.colorGray1;
             }
         }
 
@@ -561,14 +561,14 @@ public partial class PageInstanceInstall : IPageView
                 _vm.ShowForgeClear = false;
                 _vm.ShowForgeImage = false;
                 _vm.ForgeText = forgeError ?? Lang.Text("Download.Install.State.CanAdd");
-                LabForge.Foreground = ThemeManager.colorGray4;
+                _vm.ForgeForeground = ThemeManager.colorGray4;
             }
             else
             {
                 _vm.ShowForgeClear = true;
                 _vm.ShowForgeImage = true;
                 _vm.ForgeText = selectedForge.VersionName;
-                LabForge.Foreground = ThemeManager.colorGray1;
+                _vm.ForgeForeground = ThemeManager.colorGray1;
             }
         }
 
@@ -586,14 +586,14 @@ public partial class PageInstanceInstall : IPageView
                 _vm.ShowCleanroomClear = false;
                 _vm.ShowCleanroomImage = false;
                 _vm.CleanroomText = cleanroomError ?? Lang.Text("Download.Install.State.CanAdd");
-                LabCleanroom.Foreground = ThemeManager.colorGray4;
+                _vm.CleanroomForeground = ThemeManager.colorGray4;
             }
             else
             {
                 _vm.ShowCleanroomClear = true;
                 _vm.ShowCleanroomImage = true;
                 _vm.CleanroomText = selectedCleanroom.VersionName;
-                LabCleanroom.Foreground = ThemeManager.colorGray1;
+                _vm.CleanroomForeground = ThemeManager.colorGray1;
             }
         }
         else
@@ -619,14 +619,14 @@ public partial class PageInstanceInstall : IPageView
                 _vm.ShowNeoForgeClear = false;
                 _vm.ShowNeoForgeImage = false;
                 _vm.NeoForgeText = neoForgeError ?? Lang.Text("Download.Install.State.CanAdd");
-                LabNeoForge.Foreground = ThemeManager.colorGray4;
+                _vm.NeoForgeForeground = ThemeManager.colorGray4;
             }
             else
             {
                 _vm.ShowNeoForgeClear = true;
                 _vm.ShowNeoForgeImage = true;
                 _vm.NeoForgeText = selectedNeoForge.VersionName;
-                LabNeoForge.Foreground = ThemeManager.colorGray1;
+                _vm.NeoForgeForeground = ThemeManager.colorGray1;
             }
         }
 
@@ -649,14 +649,14 @@ public partial class PageInstanceInstall : IPageView
                 _vm.ShowFabricClear = false;
                 _vm.ShowFabricImage = false;
                 _vm.FabricText = fabricError ?? Lang.Text("Download.Install.State.CanAdd");
-                LabFabric.Foreground = ThemeManager.colorGray4;
+                _vm.FabricForeground = ThemeManager.colorGray4;
             }
             else
             {
                 _vm.ShowFabricClear = true;
                 _vm.ShowFabricImage = true;
                 _vm.FabricText = selectedFabric.Replace("+build", "");
-                LabFabric.Foreground = ThemeManager.colorGray1;
+                _vm.FabricForeground = ThemeManager.colorGray1;
             }
         }
 
@@ -678,7 +678,7 @@ public partial class PageInstanceInstall : IPageView
                 _vm.ShowFabricApiClear = false;
                 _vm.ShowFabricApiImage = false;
                 _vm.FabricApiText = fabricApiError ?? Lang.Text("Download.Install.State.CanAdd");
-                LabFabricApi.Foreground = ThemeManager.colorGray4;
+                _vm.FabricApiForeground = ThemeManager.colorGray4;
             }
             else
             {
@@ -686,7 +686,7 @@ public partial class PageInstanceInstall : IPageView
                 _vm.ShowFabricApiImage = true;
                 _vm.FabricApiText = selectedFabricApi.DisplayName.Split("]")[1].Replace("Fabric API ", "")
                     .Replace(" build ", ".").Split("+").First().Trim();
-                LabFabricApi.Foreground = ThemeManager.colorGray1;
+                _vm.FabricApiForeground = ThemeManager.colorGray1;
             }
         }
 
@@ -709,14 +709,14 @@ public partial class PageInstanceInstall : IPageView
                 _vm.ShowLegacyFabricClear = false;
                 _vm.ShowLegacyFabricImage = false;
                 _vm.LegacyFabricText = legacyFabricError ?? Lang.Text("Download.Install.State.CanAdd");
-                LabLegacyFabric.Foreground = ThemeManager.colorGray4;
+                _vm.LegacyFabricForeground = ThemeManager.colorGray4;
             }
             else
             {
                 _vm.ShowLegacyFabricClear = true;
                 _vm.ShowLegacyFabricImage = true;
                 _vm.LegacyFabricText = selectedLegacyFabric.Replace("+build", "");
-                LabLegacyFabric.Foreground = ThemeManager.colorGray1;
+                _vm.LegacyFabricForeground = ThemeManager.colorGray1;
             }
         }
 
@@ -739,14 +739,14 @@ public partial class PageInstanceInstall : IPageView
                 _vm.ShowLegacyFabricApiClear = false;
                 _vm.ShowLegacyFabricApiImage = false;
                 _vm.LegacyFabricApiText = legacyFabricApiError ?? Lang.Text("Download.Install.State.CanAdd");
-                LabLegacyFabricApi.Foreground = ThemeManager.colorGray4;
+                _vm.LegacyFabricApiForeground = ThemeManager.colorGray4;
             }
             else
             {
                 _vm.ShowLegacyFabricApiClear = true;
                 _vm.ShowLegacyFabricApiImage = true;
                 _vm.LegacyFabricApiText = selectedLegacyFabricApi.DisplayName.Replace("Legacy Fabric API ", "");
-                LabLegacyFabricApi.Foreground = ThemeManager.colorGray1;
+                _vm.LegacyFabricApiForeground = ThemeManager.colorGray1;
             }
         }
 
@@ -769,14 +769,14 @@ public partial class PageInstanceInstall : IPageView
                 _vm.ShowLabyModClear = false;
                 _vm.ShowLabyModImage = false;
                 _vm.LabyModText = labyModError ?? Lang.Text("Download.Install.State.CanAdd");
-                LabLabyMod.Foreground = ThemeManager.colorGray4;
+                _vm.LabyModForeground = ThemeManager.colorGray4;
             }
             else
             {
                 _vm.ShowLabyModClear = true;
                 _vm.ShowLabyModImage = true;
                 _vm.LabyModText = selectedLabyModVersion;
-                LabLabyMod.Foreground = ThemeManager.colorGray1;
+                _vm.LabyModForeground = ThemeManager.colorGray1;
             }
         }
 
@@ -798,7 +798,7 @@ public partial class PageInstanceInstall : IPageView
                 _vm.ShowOptiFabricClear = false;
                 _vm.ShowOptiFabricImage = false;
                 _vm.OptiFabricText = optiFabricError ?? Lang.Text("Download.Install.State.CanAdd");
-                LabOptiFabric.Foreground = ThemeManager.colorGray4;
+                _vm.OptiFabricForeground = ThemeManager.colorGray4;
             }
             else
             {
@@ -806,7 +806,7 @@ public partial class PageInstanceInstall : IPageView
                 _vm.ShowOptiFabricImage = true;
                 _vm.OptiFabricText = selectedOptiFabric.DisplayName.ToLower().Replace("optifabric-", "")
                     .Replace(".jar", "").Trim().TrimStart('v');
-                LabOptiFabric.Foreground = ThemeManager.colorGray1;
+                _vm.OptiFabricForeground = ThemeManager.colorGray1;
             }
         }
 

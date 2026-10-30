@@ -1,3 +1,4 @@
+using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App.Localization;
 using PCL.Core.ViewModel;
@@ -30,6 +31,8 @@ public partial class PageInstanceInstallViewModel : ViewModelBase
     [ObservableProperty] private bool _canStartInstall;
 
     [ObservableProperty] private string? _minecraftText = "";
+
+    [ObservableProperty] private string _loadingText = "";
 
     [ObservableProperty] private bool _showOptiFineCard = true;
 
@@ -130,6 +133,30 @@ public partial class PageInstanceInstallViewModel : ViewModelBase
     [ObservableProperty] private bool _showHintOptiFabricOld = true;
 
     [ObservableProperty] private bool _showHintModOptiFine = true;
+
+    [ObservableProperty] private Brush _minecraftForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _optiFineForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _liteLoaderForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _forgeForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _cleanroomForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _neoForgeForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _fabricForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _fabricApiForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _legacyFabricForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _legacyFabricApiForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _labyModForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _optiFabricForeground = ThemeManager.colorGray1;
 
     public static string GetVersionTypeTitle(string key) => key switch
     {
