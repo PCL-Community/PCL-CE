@@ -261,31 +261,46 @@ public partial class MyListItem : IMyRadio
     {
         set
         {
-            var list = new List<string>();
-            if (value is string str) list = str.Split("|").ToList();
-            if (value is List<string>) list = (List<string>)value;
-            PanTags.Children.Clear();
-            PanTags.Visibility = list.Any() ? Visibility.Visible : Visibility.Collapsed;
-            foreach (var TagText in list)
+            var oldValue = GetValue(TagsProperty);
+            SetValue(TagsProperty, value);
+            if (Equals(oldValue, value))
+                SetTags(value);
+        }
+    }
+
+    public static readonly DependencyProperty TagsProperty =
+        DependencyProperty.Register(nameof(Tags), typeof(object), typeof(MyListItem),
+            new PropertyMetadata(null, OnTagsChanged));
+
+    private static void OnTagsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
+        ((MyListItem)d).SetTags(e.NewValue);
+
+    private void SetTags(object value)
+    {
+        var list = new List<string>();
+        if (value is string str) list = str.Split("|").ToList();
+        if (value is List<string>) list = (List<string>)value;
+        PanTags.Children.Clear();
+        PanTags.Visibility = list.Any() ? Visibility.Visible : Visibility.Collapsed;
+        foreach (var TagText in list)
+        {
+            var newTag = new Border
             {
-                var newTag = new Border
-                {
-                    Background = new SolidColorBrush(Color.FromArgb(17, 0, 0, 0)),
-                    Padding = new Thickness(3d, 1d, 3d, 1d),
-                    CornerRadius = new CornerRadius(3d),
-                    Margin = new Thickness(0d, 0d, 3d, 0d),
-                    SnapsToDevicePixels = true,
-                    UseLayoutRounding = false
-                };
-                var tagTextBlock = new TextBlock
-                {
-                    Text = TagText,
-                    Foreground = new SolidColorBrush(Color.FromRgb(134, 134, 134)),
-                    FontSize = 11d
-                };
-                newTag.Child = tagTextBlock;
-                PanTags.Children.Add(newTag);
-            }
+                Background = new SolidColorBrush(Color.FromArgb(17, 0, 0, 0)),
+                Padding = new Thickness(3d, 1d, 3d, 1d),
+                CornerRadius = new CornerRadius(3d),
+                Margin = new Thickness(0d, 0d, 3d, 0d),
+                SnapsToDevicePixels = true,
+                UseLayoutRounding = false
+            };
+            var tagTextBlock = new TextBlock
+            {
+                Text = TagText,
+                Foreground = new SolidColorBrush(Color.FromRgb(134, 134, 134)),
+                FontSize = 11d
+            };
+            newTag.Child = tagTextBlock;
+            PanTags.Children.Add(newTag);
         }
     }
 
@@ -334,21 +349,50 @@ public partial class MyListItem : IMyRadio
     /// </summary>
     public bool IsScaleAnimationEnabled
     {
-        get => field;
+        get => (bool)GetValue(IsScaleAnimationEnabledProperty);
         set
         {
-            field = value;
-            if (_rectBack is not null)
-                RectBack.CornerRadius = new CornerRadius(value ? 6 : 0);
+            var oldValue = IsScaleAnimationEnabled;
+            SetValue(IsScaleAnimationEnabledProperty, value);
+            if (Equals(oldValue, value))
+                ApplyScaleAnimationEnabled(value);
         }
-    } = true;
+    }
+
+    public static readonly DependencyProperty IsScaleAnimationEnabledProperty =
+        DependencyProperty.Register(nameof(IsScaleAnimationEnabled), typeof(bool), typeof(MyListItem),
+            new PropertyMetadata(true, OnIsScaleAnimationEnabledChanged));
+
+    private static void OnIsScaleAnimationEnabledChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
+        ((MyListItem)d).ApplyScaleAnimationEnabled((bool)e.NewValue);
+
+    private void ApplyScaleAnimationEnabled(bool value)
+    {
+        if (_rectBack is not null)
+            RectBack.CornerRadius = new CornerRadius(value ? 6 : 0);
+    }
 
     // 边距
     public int PaddingLeft
     {
-        get => (int)Math.Round(ColumnPaddingLeft.Width.Value);
-        set => ColumnPaddingLeft.Width = new GridLength(value);
+        get => (int)GetValue(PaddingLeftProperty);
+        set
+        {
+            var oldValue = PaddingLeft;
+            SetValue(PaddingLeftProperty, value);
+            if (Equals(oldValue, value))
+                ApplyPaddingLeft(value);
+        }
     }
+
+    public static readonly DependencyProperty PaddingLeftProperty =
+        DependencyProperty.Register(nameof(PaddingLeft), typeof(int), typeof(MyListItem),
+            new PropertyMetadata(0, OnPaddingLeftChanged));
+
+    private static void OnPaddingLeftChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
+        ((MyListItem)d).ApplyPaddingLeft((int)e.NewValue);
+
+    private void ApplyPaddingLeft(int value) => ColumnPaddingLeft.Width = new GridLength(value);
 
     /// <summary>
     ///     右边距的最小值。
@@ -360,73 +404,87 @@ public partial class MyListItem : IMyRadio
 
     public IEnumerable<MyIconButton> Buttons
     {
-        get => field;
+        get => (IEnumerable<MyIconButton>)GetValue(ButtonsProperty);
         set
         {
-            field = value;
-            // 没有特殊按钮，移除原 Stack
-            if (buttonStack is not null)
+            var oldValue = Buttons;
+            SetValue(ButtonsProperty, value);
+            if (Equals(oldValue, value))
+                SetButtons(value);
+        }
+    }
+
+    public static readonly DependencyProperty ButtonsProperty =
+        DependencyProperty.Register(nameof(Buttons), typeof(IEnumerable<MyIconButton>), typeof(MyListItem),
+            new PropertyMetadata(null, OnButtonsChanged));
+
+    private static void OnButtonsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
+        ((MyListItem)d).SetButtons((IEnumerable<MyIconButton>)e.NewValue);
+
+    private void SetButtons(IEnumerable<MyIconButton> value)
+    {
+        // 没有特殊按钮，移除原 Stack
+        if (buttonStack is not null)
+        {
+            Children.Remove(buttonStack);
+            buttonStack = null;
+        }
+
+        // 添加新 Stack
+        switch (value.Count())
+        {
+            case 0:
             {
-                Children.Remove(buttonStack);
-                buttonStack = null;
+                break;
+            }
+            // 没有按钮，不添加新的
+            case 1:
+            {
+                // 只有一个按钮
+                foreach (var Btn in value)
+                {
+                    if (Btn.Height.Equals(double.NaN))
+                        Btn.Height = 25d;
+                    if (Btn.Width.Equals(double.NaN))
+                        Btn.Width = 25d;
+                    Btn.Opacity = 0d;
+                    Btn.Margin = new Thickness(0d, 0d, 5d, 0d);
+                    Btn.SnapsToDevicePixels = false;
+                    Btn.HorizontalAlignment = HorizontalAlignment.Right;
+                    Btn.VerticalAlignment = VerticalAlignment.Center;
+                    Btn.UseLayoutRounding = false;
+                    SetColumnSpan(Btn, 10);
+                    SetRowSpan(Btn, 10);
+                    Children.Add(Btn);
+                    buttonStack = Btn;
+                }
+
+                break;
             }
 
-            // 添加新 Stack
-            switch (value.Count())
+            default:
             {
-                case 0:
+                // 有复数按钮，使用 StackPanel
+                buttonStack = new StackPanel
                 {
-                    break;
-                }
-                // 没有按钮，不添加新的
-                case 1:
+                    Opacity = 0d, Margin = new Thickness(0d, 0d, 5d, 0d), SnapsToDevicePixels = false,
+                    Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right,
+                    VerticalAlignment = VerticalAlignment.Center, UseLayoutRounding = false
+                };
+                SetColumnSpan(buttonStack, 10);
+                SetRowSpan(buttonStack, 10);
+                // 构造按钮
+                foreach (var Btn in value)
                 {
-                    // 只有一个按钮
-                    foreach (var Btn in value)
-                    {
-                        if (Btn.Height.Equals(double.NaN))
-                            Btn.Height = 25d;
-                        if (Btn.Width.Equals(double.NaN))
-                            Btn.Width = 25d;
-                        Btn.Opacity = 0d;
-                        Btn.Margin = new Thickness(0d, 0d, 5d, 0d);
-                        Btn.SnapsToDevicePixels = false;
-                        Btn.HorizontalAlignment = HorizontalAlignment.Right;
-                        Btn.VerticalAlignment = VerticalAlignment.Center;
-                        Btn.UseLayoutRounding = false;
-                        SetColumnSpan(Btn, 10);
-                        SetRowSpan(Btn, 10);
-                        Children.Add(Btn);
-                        buttonStack = Btn;
-                    }
-
-                    break;
+                    if (Btn.Height.Equals(double.NaN))
+                        Btn.Height = 25d;
+                    if (Btn.Width.Equals(double.NaN))
+                        Btn.Width = 25d;
+                    ((StackPanel)buttonStack).Children.Add(Btn);
                 }
 
-                default:
-                {
-                    // 有复数按钮，使用 StackPanel
-                    buttonStack = new StackPanel
-                    {
-                        Opacity = 0d, Margin = new Thickness(0d, 0d, 5d, 0d), SnapsToDevicePixels = false,
-                        Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right,
-                        VerticalAlignment = VerticalAlignment.Center, UseLayoutRounding = false
-                    };
-                    SetColumnSpan(buttonStack, 10);
-                    SetRowSpan(buttonStack, 10);
-                    // 构造按钮
-                    foreach (var Btn in value)
-                    {
-                        if (Btn.Height.Equals(double.NaN))
-                            Btn.Height = 25d;
-                        if (Btn.Width.Equals(double.NaN))
-                            Btn.Width = 25d;
-                        ((StackPanel)buttonStack).Children.Add(Btn);
-                    }
-
-                    Children.Add(buttonStack);
-                    break;
-                }
+                Children.Add(buttonStack);
+                break;
             }
         }
     }
@@ -656,17 +714,31 @@ public partial class MyListItem : IMyRadio
 
     public double LogoScale
     {
-        get => field;
+        get => (double)GetValue(LogoScaleProperty);
         set
         {
-            field = value;
-            if (pathLogo is not null)
-            {
-                var scale = IsUsingSvgIcon ? 1D : LogoScale;
-                pathLogo.RenderTransform = new ScaleTransform { ScaleX = scale, ScaleY = scale };
-            }
+            var oldValue = LogoScale;
+            SetValue(LogoScaleProperty, value);
+            if (Equals(oldValue, value))
+                ApplyLogoScale();
         }
-    } = 1d;
+    }
+
+    public static readonly DependencyProperty LogoScaleProperty =
+        DependencyProperty.Register(nameof(LogoScale), typeof(double), typeof(MyListItem),
+            new PropertyMetadata(1d, OnLogoScaleChanged));
+
+    private static void OnLogoScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
+        ((MyListItem)d).ApplyLogoScale();
+
+    private void ApplyLogoScale()
+    {
+        if (pathLogo is not null)
+        {
+            var scale = IsUsingSvgIcon ? 1D : LogoScale;
+            pathLogo.RenderTransform = new ScaleTransform { ScaleX = scale, ScaleY = scale };
+        }
+    }
 
     // 图标的点击
     /// <summary>
@@ -685,51 +757,60 @@ public partial class MyListItem : IMyRadio
         CheckBox
     }
 
-    private CheckType _type = CheckType.None;
-
     public CheckType Type
     {
-        get => _type;
+        get => (CheckType)GetValue(TypeProperty);
         set
         {
-            if (_type == value)
+            if (Type == value)
                 return;
-            _type = value;
-            // 切换左栏大小
-            ColumnCheck.Width =
-                new GridLength(_type == CheckType.None || _type == CheckType.Clickable
-                    ? Height < 40d ? 4 : 2
-                    : 6);
-            // 切换竖条控件
-            if (_type == CheckType.None || _type == CheckType.Clickable)
-            {
-                // 移除竖条控件
-                if (rectCheck is not null)
-                {
-                    Children.Remove(rectCheck);
-                    rectCheck = null;
-                }
+            SetValue(TypeProperty, value);
+        }
+    }
 
-                SetChecked(false, false, false);
-            }
-            // 添加竖条控件
-            else if (rectCheck is null)
+    public static readonly DependencyProperty TypeProperty =
+        DependencyProperty.Register(nameof(Type), typeof(CheckType), typeof(MyListItem),
+            new PropertyMetadata(CheckType.None, OnTypeChanged));
+
+    private static void OnTypeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
+        ((MyListItem)d).ApplyType((CheckType)e.NewValue);
+
+    private void ApplyType(CheckType value)
+    {
+        // 切换左栏大小
+        ColumnCheck.Width =
+            new GridLength(value == CheckType.None || value == CheckType.Clickable
+                ? Height < 40d ? 4 : 2
+                : 6);
+        // 切换竖条控件
+        if (value == CheckType.None || value == CheckType.Clickable)
+        {
+            // 移除竖条控件
+            if (rectCheck is not null)
             {
-                rectCheck = new Border
-                {
-                    Width = 5d,
-                    Height = Checked ? double.NaN : 0d,
-                    CornerRadius = new CornerRadius(2d, 2d, 2d, 2d),
-                    VerticalAlignment = Checked ? VerticalAlignment.Stretch : VerticalAlignment.Center,
-                    HorizontalAlignment = HorizontalAlignment.Left,
-                    UseLayoutRounding = false,
-                    SnapsToDevicePixels = false,
-                    Margin = Checked ? new Thickness(-1, 6d, 0d, 6d) : new Thickness(-1, 0d, 0d, 0d)
-                };
-                rectCheck.SetResourceReference(Border.BackgroundProperty, "ColorBrush3");
-                SetRowSpan(rectCheck, 4);
-                Children.Add(rectCheck);
+                Children.Remove(rectCheck);
+                rectCheck = null;
             }
+
+            SetChecked(false, false, false);
+        }
+        // 添加竖条控件
+        else if (rectCheck is null)
+        {
+            rectCheck = new Border
+            {
+                Width = 5d,
+                Height = Checked ? double.NaN : 0d,
+                CornerRadius = new CornerRadius(2d, 2d, 2d, 2d),
+                VerticalAlignment = Checked ? VerticalAlignment.Stretch : VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                UseLayoutRounding = false,
+                SnapsToDevicePixels = false,
+                Margin = Checked ? new Thickness(-1, 6d, 0d, 6d) : new Thickness(-1, 0d, 0d, 0d)
+            };
+            rectCheck.SetResourceReference(Border.BackgroundProperty, "ColorBrush3");
+            SetRowSpan(rectCheck, 4);
+            Children.Add(rectCheck);
         }
     }
 
@@ -738,7 +819,7 @@ public partial class MyListItem : IMyRadio
     {
         var logo = Logo;
         var hasLogo = IsUsingSvgIcon || !string.IsNullOrEmpty(logo);
-        ColumnCheck.Width = new GridLength(_type is CheckType.None or CheckType.Clickable
+        ColumnCheck.Width = new GridLength(Type is CheckType.None or CheckType.Clickable
             ? Height < 40d
                 ? 4
                 : 2
@@ -1098,14 +1179,28 @@ public partial class MyListItem : IMyRadio
     /// </summary>
     public CornerRadius LogoCornerRadius
     {
-        get => field;
+        get => (CornerRadius)GetValue(LogoCornerRadiusProperty);
         set
         {
-            field = value;
-            if (pathLogo is Canvas) _canvasClipHandlerAdded = false;
-            ApplyLogoCornerRadius();
+            var oldValue = LogoCornerRadius;
+            SetValue(LogoCornerRadiusProperty, value);
+            if (Equals(oldValue, value))
+                RefreshLogoCornerRadius();
         }
-    } = new CornerRadius(-1);
+    }
+
+    public static readonly DependencyProperty LogoCornerRadiusProperty =
+        DependencyProperty.Register(nameof(LogoCornerRadius), typeof(CornerRadius), typeof(MyListItem),
+            new PropertyMetadata(new CornerRadius(-1), OnLogoCornerRadiusChanged));
+
+    private static void OnLogoCornerRadiusChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
+        ((MyListItem)d).RefreshLogoCornerRadius();
+
+    private void RefreshLogoCornerRadius()
+    {
+        if (pathLogo is Canvas) _canvasClipHandlerAdded = false;
+        ApplyLogoCornerRadius();
+    }
     
     private bool IsLogoCornerRadiusEnabled() => 
         LogoCornerRadius is { TopLeft: >= 0, TopRight: >= 0, BottomLeft: >= 0, BottomRight: >= 0 };

@@ -16,7 +16,7 @@ public class MyCard : AnimatedBackgroundGrid
     private const double DropShadowHoverOpacity = 0.4d;
 
     public static readonly DependencyProperty TitleProperty =
-        DependencyProperty.Register("Title", typeof(string), typeof(MyCard), new PropertyMetadata(""));
+        DependencyProperty.Register("Title", typeof(string), typeof(MyCard), new PropertyMetadata("", OnTitleChanged));
 
     private readonly BlurBorder _mainBorder;
 
@@ -82,14 +82,29 @@ public class MyCard : AnimatedBackgroundGrid
     // 属性
     public InlineCollection Inlines => MainTextBlock.Inlines;
 
+    public static readonly DependencyProperty CornerRadiusProperty =
+        DependencyProperty.Register(nameof(CornerRadius), typeof(CornerRadius), typeof(MyCard),
+            new PropertyMetadata(new CornerRadius(5d), OnCornerRadiusChanged));
+
     public CornerRadius CornerRadius
     {
-        get => MainChrome.CornerRadius;
+        get => (CornerRadius)GetValue(CornerRadiusProperty);
         set
         {
-            MainChrome.CornerRadius = value;
-            _mainBorder.CornerRadius = value;
+            var oldValue = CornerRadius;
+            SetValue(CornerRadiusProperty, value);
+            if (Equals(oldValue, value))
+                ApplyCornerRadius(value);
         }
+    }
+
+    private static void OnCornerRadiusChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
+        ((MyCard)d).ApplyCornerRadius((CornerRadius)e.NewValue);
+
+    private void ApplyCornerRadius(CornerRadius value)
+    {
+        MainChrome.CornerRadius = value;
+        _mainBorder.CornerRadius = value;
     }
 
     public string Title
@@ -97,10 +112,20 @@ public class MyCard : AnimatedBackgroundGrid
         get => (string)GetValue(TitleProperty);
         set
         {
+            var oldValue = Title;
             SetValue(TitleProperty, value);
-            if (_mainTextBlock is not null)
-                MainTextBlock.Text = value;
+            if (Equals(oldValue, value))
+                ApplyTitle(value);
         }
+    }
+
+    private static void OnTitleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
+        ((MyCard)d).ApplyTitle((string)e.NewValue);
+
+    private void ApplyTitle(string value)
+    {
+        if (_mainTextBlock is not null)
+            MainTextBlock.Text = value;
     }
 
     protected override SolidColorBrush AnimatableBrush
@@ -350,41 +375,52 @@ public class MyCard : AnimatedBackgroundGrid
     /// </summary>
     public bool IsSwapped
     {
-        get => field;
+        get => (bool)GetValue(IsSwappedProperty);
         set
         {
-            if (field == value)
+            if (IsSwapped == value)
                 return;
-            field = value;
-            if (SwapControl is null)
-                return;
-
-            // 当卡片展开时，如果SwapControl是StackPanel类型，则执行安装方法
-            // 这通常用于动态添加内容到折叠卡片中
-            if (!IsSwapped && SwapControl is StackPanel)
-            {
-                var argstack = (StackPanel)SwapControl;
-                StackInstall(ref argstack, InstallMethod);
-                SwapControl = argstack;
-            }
-
-            // 若尚未加载，会在 Loaded 事件中触发无动画的折叠，不需要在这里进行
-            if (!IsLoaded)
-                return;
-
-            // 更新控件的可见性和高度
-            SwapControl.Visibility = Visibility.Visible;
-            TriggerForceResize();
-
-            // 根据折叠状态旋转箭头图标
-            // 折叠时箭头指向右侧或向上（根据SwapLogoRight设置），展开时指向下方
-            Animations.AniStart(
-                Animations.AaRotateTransform(MainSwap,
-                    (field ? SwapLogoRight ? 270 : 0 : 180) - ((RotateTransform)MainSwap.RenderTransform).Angle,
-                    250,
-                    ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.ExtraStrong)),
-                "MyCard Swap " + uuid, true);
+            SetValue(IsSwappedProperty, value);
         }
+    }
+
+    public static readonly DependencyProperty IsSwappedProperty =
+        DependencyProperty.Register(nameof(IsSwapped), typeof(bool), typeof(MyCard),
+            new PropertyMetadata(false, OnIsSwappedChanged));
+
+    private static void OnIsSwappedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
+        ((MyCard)d).ApplyIsSwapped((bool)e.NewValue);
+
+    private void ApplyIsSwapped(bool value)
+    {
+        if (SwapControl is null)
+            return;
+
+        // 当卡片展开时，如果SwapControl是StackPanel类型，则执行安装方法
+        // 这通常用于动态添加内容到折叠卡片中
+        if (!IsSwapped && SwapControl is StackPanel)
+        {
+            var argstack = (StackPanel)SwapControl;
+            StackInstall(ref argstack, InstallMethod);
+            SwapControl = argstack;
+        }
+
+        // 若尚未加载，会在 Loaded 事件中触发无动画的折叠，不需要在这里进行
+        if (!IsLoaded)
+            return;
+
+        // 更新控件的可见性和高度
+        SwapControl.Visibility = Visibility.Visible;
+        TriggerForceResize();
+
+        // 根据折叠状态旋转箭头图标
+        // 折叠时箭头指向右侧或向上（根据SwapLogoRight设置），展开时指向下方
+        Animations.AniStart(
+            Animations.AaRotateTransform(MainSwap,
+                (value ? SwapLogoRight ? 270 : 0 : 180) - ((RotateTransform)MainSwap.RenderTransform).Angle,
+                250,
+                ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.ExtraStrong)),
+            "MyCard Swap " + uuid, true);
     }
 
     /// <summary>

@@ -61,113 +61,161 @@ public partial class MyExtraButton
         PanClick.MouseLeave += (_, _) => Button_MouseLeave();
     }
 
+    public static readonly DependencyProperty ProgressProperty = DependencyProperty.Register(nameof(Progress),
+        typeof(double), typeof(MyExtraButton), new PropertyMetadata(0d, OnProgressChanged));
+
     public double Progress
     {
-        get;
+        get => (double)GetValue(ProgressProperty);
         set
         {
-            if (field == value)
+            if (Progress == value)
                 return;
-            field = value;
-            if (value < 0.0001d)
-            {
-                PanProgress.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                PanProgress.Visibility = Visibility.Visible;
-                RectProgress.Rect = new Rect(0d, 40d * (1d - value), 40d, 40d * value);
-            }
+            SetValue(ProgressProperty, value);
         }
     }
 
+    private static void OnProgressChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var control = (MyExtraButton)d;
+        var value = (double)e.NewValue;
+        if (value < 0.0001d)
+        {
+            control.PanProgress.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            control.PanProgress.Visibility = Visibility.Visible;
+            control.RectProgress.Rect = new Rect(0d, 40d * (1d - value), 40d, 40d * value);
+        }
+    }
+
+    public static readonly DependencyProperty LogoProperty = DependencyProperty.Register(nameof(Logo),
+        typeof(string), typeof(MyExtraButton), new PropertyMetadata("", OnLogoChanged));
+
     public string Logo
     {
-        get;
+        get => (string)GetValue(LogoProperty);
         set
         {
-            if ((value ?? "") == (field ?? ""))
+            if ((value ?? "") == (Logo ?? ""))
                 return;
-            field = value;
-            Path.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
-            SvgIconControlHelper.ApplyVisibility(Path, ShapeSvgIcon, IsUsingSvgIcon);
+            SetValue(LogoProperty, value);
         }
-    } = "";
+    }
+
+    private static void OnLogoChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var control = (MyExtraButton)d;
+        var value = e.NewValue as string;
+        if ((value ?? "") == ((string)e.OldValue ?? ""))
+            return;
+        control.Path.Data = (Geometry)new GeometryConverter().ConvertFromString(value);
+        SvgIconControlHelper.ApplyVisibility(control.Path, control.ShapeSvgIcon, control.IsUsingSvgIcon);
+    }
+
+    public static readonly DependencyProperty SvgIconProperty = DependencyProperty.Register(nameof(SvgIcon),
+        typeof(string), typeof(MyExtraButton), new PropertyMetadata(string.Empty, OnSvgIconChanged));
 
     public string SvgIcon
     {
-        get;
+        get => (string)GetValue(SvgIconProperty);
         set
         {
             value ??= string.Empty;
-            if (value == field)
+            if (value == SvgIcon)
                 return;
-            field = value;
-            if (Path is null || ShapeSvgIcon is null)
-                return;
-            SvgIconControlHelper.ApplyIcon(Path, ShapeSvgIcon, field);
-            ApplyLogoScale();
+            SetValue(SvgIconProperty, value);
         }
-    } = string.Empty;
+    }
+
+    private static void OnSvgIconChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var control = (MyExtraButton)d;
+        var value = (string)e.NewValue ?? string.Empty;
+        if (value == ((string)e.OldValue ?? string.Empty))
+            return;
+        if (control.Path is null || control.ShapeSvgIcon is null)
+            return;
+        SvgIconControlHelper.ApplyIcon(control.Path, control.ShapeSvgIcon, value);
+        control.ApplyLogoScale();
+    }
 
     private bool IsUsingSvgIcon => SvgIconControlHelper.HasSvgIcon(SvgIcon);
 
     private double EffectiveLogoScale => IsUsingSvgIcon ? 1D : LogoScale;
 
+    public static readonly DependencyProperty LogoScaleProperty = DependencyProperty.Register(nameof(LogoScale),
+        typeof(double), typeof(MyExtraButton), new PropertyMetadata(1d, OnLogoScaleChanged));
+
     public double LogoScale
     {
-        get;
+        get => (double)GetValue(LogoScaleProperty);
         set
         {
-            field = value;
-            ApplyLogoScale();
+            var oldValue = LogoScale;
+            SetValue(LogoScaleProperty, value);
+            if (Equals(oldValue, value))
+                ApplyLogoScale();
         }
-    } = 1d;
+    }
+
+    private static void OnLogoScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
+        ((MyExtraButton)d).ApplyLogoScale();
+
+    public static readonly DependencyProperty ShowProperty = DependencyProperty.Register(nameof(Show),
+        typeof(bool), typeof(MyExtraButton), new PropertyMetadata(false, OnShowChanged));
 
     public bool Show
     {
-        get;
+        get => (bool)GetValue(ShowProperty);
         set
         {
-            if (field == value)
+            if (Show == value)
                 return;
-            field = value;
-            Common.RunInUi(() =>
-            {
-                if (value)
-                {
-                    // 有了
-                    Visibility = Visibility.Visible;
-                    Animations.AniStart(
-                        new[]
-                        {
-                            Animations.AaScaleTransform(this,
-                                0.3d - ((ScaleTransform)RenderTransform).ScaleX, 500,
-                                60, new Animations.AniEaseOutFluent(Animations.AniEasePower.Weak)),
-                            Animations.AaScaleTransform(this, 0.7d, 500, 60,
-                                new Animations.AniEaseOutBack(Animations.AniEasePower.Weak)),
-                            Animations.AaHeight(this, 50d - Height, 200,
-                                ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.Weak))
-                        }, "MyExtraButton MainScale " + Uuid);
-                }
-                else
-                {
-                    // 没了
-                    Animations.AniStart(
-                        new[]
-                        {
-                            Animations.AaScaleTransform(this,
-                                -((ScaleTransform)RenderTransform).ScaleX, 100,
-                                ease: new Animations.AniEaseInFluent(Animations.AniEasePower.Weak)),
-                            Animations.AaHeight(this, -Height, 400, 100,
-                                new Animations.AniEaseOutFluent()),
-                            Animations.AaCode(() => Visibility = Visibility.Collapsed, after: true)
-                        }, "MyExtraButton MainScale " + Uuid);
-                }
-
-                IsHitTestVisible = value; // 防止缩放动画中依然可以点进去
-            });
+            SetValue(ShowProperty, value);
         }
+    }
+
+    private static void OnShowChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var control = (MyExtraButton)d;
+        var value = (bool)e.NewValue;
+        Common.RunInUi(() =>
+        {
+            if (value)
+            {
+                // 有了
+                control.Visibility = Visibility.Visible;
+                Animations.AniStart(
+                    new[]
+                    {
+                        Animations.AaScaleTransform(control,
+                            0.3d - ((ScaleTransform)control.RenderTransform).ScaleX, 500,
+                            60, new Animations.AniEaseOutFluent(Animations.AniEasePower.Weak)),
+                        Animations.AaScaleTransform(control, 0.7d, 500, 60,
+                            new Animations.AniEaseOutBack(Animations.AniEasePower.Weak)),
+                        Animations.AaHeight(control, 50d - control.Height, 200,
+                            ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.Weak))
+                    }, "MyExtraButton MainScale " + control.Uuid);
+            }
+            else
+            {
+                // 没了
+                Animations.AniStart(
+                    new[]
+                    {
+                        Animations.AaScaleTransform(control,
+                            -((ScaleTransform)control.RenderTransform).ScaleX, 100,
+                            ease: new Animations.AniEaseInFluent(Animations.AniEasePower.Weak)),
+                        Animations.AaHeight(control, -control.Height, 400, 100,
+                            new Animations.AniEaseOutFluent()),
+                        Animations.AaCode(() => control.Visibility = Visibility.Collapsed, after: true)
+                    }, "MyExtraButton MainScale " + control.Uuid);
+            }
+
+            control.IsHitTestVisible = value; // 防止缩放动画中依然可以点进去
+        });
     }
 
     public bool CanRightClick { get; set; }
