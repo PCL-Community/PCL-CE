@@ -106,9 +106,9 @@ public partial class PageSetupUpdate : IPageView
                     _vm.UpdateNameText = "PCL CE " + VersionNameFormat(updateInfo.VersionName);
                     var summary = updateInfo.Changelog.Between("<summary>", "</summary>");
                     if (!updateInfo.Changelog.Contains("<summary>") || string.IsNullOrWhiteSpace(summary.Trim()))
-                        TextChangelog.Text = Lang.Text("Setup.Update.Changelog.Empty");
+                        _vm.ChangelogText = Lang.Text("Setup.Update.Changelog.Empty");
                     else
-                        TextChangelog.Text = summary;
+                        _vm.ChangelogText = summary;
                 }
                 catch (Exception ex)
                 {
@@ -190,8 +190,7 @@ public partial class PageSetupUpdate : IPageView
 
     private async void BtnChangelogDetail_Click(object sender, EventArgs e)
     {
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
+        _vm.ChangelogDetailEnabled = false;
         try
         {
             if (updateInfo is null)
@@ -206,7 +205,7 @@ public partial class PageSetupUpdate : IPageView
         }
         finally
         {
-            if (ctl is not null) ctl.IsEnabled = true;
+            _vm.ChangelogDetailEnabled = true;
         }
     }
 
@@ -218,8 +217,7 @@ public partial class PageSetupUpdate : IPageView
 
     private async void ComboSystemUpdateBranch_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
+        _vm.ChannelEnabled = false;
         try
         {
             if (Animations.AniExitsAnyControl())
@@ -292,7 +290,7 @@ public partial class PageSetupUpdate : IPageView
         }
         finally
         {
-            if (ctl is not null) ctl.IsEnabled = true;
+            _vm.ChannelEnabled = true;
         }
     }
 

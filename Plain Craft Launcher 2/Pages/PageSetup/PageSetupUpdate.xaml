@@ -27,6 +27,7 @@
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboSystemUpdateChannel" Tag="SystemUpdateChannel" Grid.Column="1"
                                           Grid.ColumnSpan="3" Grid.Row="0"
+                                          IsEnabled="{Binding ChannelEnabled, Mode=OneWay}"
                                           SelectionChanged="ComboSystemUpdateBranch_SelectionChanged">
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Update.Channel.Release}"
                                                   ToolTip="{DynamicResource Setup.Update.Channel.Release.ToolTip}" />
@@ -88,9 +89,10 @@
                                         VerticalAlignment="Center" Width="85" Height="30"
                                         Click="BtnUpdate_Click" />
                         <TextBlock x:Name="TextChangelog"
-                                    Text="{DynamicResource Setup.Update.Changelog.Placeholder}"
+                                    Text="{Binding ChangelogText, Mode=OneWay}"
                                    Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="4" TextWrapping="Wrap" />
                         <local:MyTextButton x:Name="BtnChangelogDetail" Text="{DynamicResource Setup.Update.Changelog.MoreInfo}" FontWeight="Thin"
+                                            IsEnabled="{Binding ChangelogDetailEnabled, Mode=OneWay}"
                                             Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="4" HorizontalAlignment="Left"
                                             VerticalAlignment="Center" Click="BtnChangelogDetail_Click" />
                     </Grid>
