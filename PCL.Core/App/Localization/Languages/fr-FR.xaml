@@ -57,6 +57,7 @@
     <sys:String x:Key="Common.Status.Cancelled">Annulé !</sys:String>
     <sys:String x:Key="Common.Status.Failure">Échec :</sys:String>
     <sys:String x:Key="Common.Status.Success">Succès !</sys:String>
+    <sys:String x:Key="Common.Status.TaskSuccess">L’opération « {0} » s’est terminée avec succès !</sys:String>
 
     <!-- Common.Action -->
 
