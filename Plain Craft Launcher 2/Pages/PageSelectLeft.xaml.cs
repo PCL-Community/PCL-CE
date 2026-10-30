@@ -229,7 +229,7 @@ public partial class PageSelectLeft : IRefreshable
                     SvgIcon = "lucide/folder-plus"
                 };
                 ToolTipService.SetPlacement(itemCreate, PlacementMode.Right);
-                itemCreate.Click += (_, _) => Launcher.frmSelectLeft.Create_Click();
+                itemCreate.Command = _vm.CreateFolderCommand;
                 Launcher.frmSelectLeft.PanList.Children.Add(itemCreate);
             }
 
@@ -244,7 +244,7 @@ public partial class PageSelectLeft : IRefreshable
                 SvgIcon = "lucide/folder-input"
             };
             ToolTipService.SetPlacement(itemAdd, PlacementMode.Right);
-            itemAdd.Click += (_, _) => Launcher.frmSelectLeft.Add_Click();
+            itemAdd.Command = _vm.AddFolderCommand;
             Launcher.frmSelectLeft.PanList.Children.Add(itemAdd);
 
             // 导入整合包
@@ -258,7 +258,7 @@ public partial class PageSelectLeft : IRefreshable
                 SvgIcon = "lucide/package-plus"
             };
             ToolTipService.SetPlacement(itemInstall, PlacementMode.Right);
-            itemInstall.Click += (_, _) => Modpack.ModpackInstall();
+            itemInstall.Command = _vm.InstallModpackCommand;
             Launcher.frmSelectLeft.PanList.Children.Add(itemInstall);
 
             // 边距
@@ -336,54 +336,6 @@ public partial class PageSelectLeft : IRefreshable
         GameFolders.mcFolderList[index].Type = GameFolders.McFolder.Types.Original;
         GameFolders.mcFolderList[index].Name = Lang.Text("Select.Folder.OfficialLauncherFolder");
         UpdateFolderOrder();
-    }
-
-    // 添加文件夹
-    private async void Add_Click()
-    {
-        var newFolder = "";
-        // 检查是否有下载任务
-        if (NetFacade.HasDownloadingTask())
-        {
-            HintService.Hint(Lang.Text("Select.Folder.CannotAddWhileDownloading"), HintType.Error);
-            return;
-        }
-
-        try
-        {
-            // 获取输入
-            newFolder = SystemDialogs.SelectFolder();
-            if (string.IsNullOrEmpty(newFolder))
-                return;
-            if (newFolder.Contains('!') || newFolder.Contains(';'))
-            {
-                HintService.Hint(Lang.Text("Select.Folder.InvalidPathChars"), HintType.Error);
-                return;
-            }
-
-            // 要求输入显示名称
-            var splitedNames = newFolder.TrimEnd('\\').Split(@"\");
-            var defaultName = splitedNames.Last() == ".minecraft"
-                ? splitedNames.Length >= 3 ? splitedNames[^2] : ""
-                : splitedNames.Last();
-            if (defaultName.Length > 40)
-                defaultName = defaultName[..39];
-            var newName = await Launcher.MyMsgBoxInputAsync(Lang.Text("Select.Folder.InputDisplayName.Title"),
-                Lang.Text("Select.Folder.InputDisplayName.Message"), defaultName,
-                [new NullOrWhiteSpaceValidator(), new StringLengthValidator(), new BlacklistValidator([">", "|"])]);
-            if (string.IsNullOrWhiteSpace(newName))
-                return;
-            // 添加文件夹
-            AddFolder(newFolder, newName, true);
-        }
-        catch (Exception ex)
-        {
-            Common.Log(
-                ex,
-                Lang.Text("Select.Folder.Error.Add", newFolder),
-                Common.LogLevel.Feedback,
-                userSummary: Lang.Text("Select.Folder.Error.Add", newFolder));
-        }
     }
 
     /// <summary>
@@ -482,23 +434,7 @@ public partial class PageSelectLeft : IRefreshable
     // 创建文件夹
     public void Create_Click()
     {
-        // 检查是否有下载任务
-        if (NetFacade.HasDownloadingTask())
-        {
-            HintService.Hint(Lang.Text("Select.Folder.CannotCreateWhileDownloading"), HintType.Error);
-            return;
-        }
-
-        if (!Directory.Exists(Common.ExePath + @".minecraft\"))
-        {
-            Directory.CreateDirectory(Common.ExePath + @".minecraft\");
-            Directory.CreateDirectory(Common.ExePath + @".minecraft\versions\");
-            States.Game.SelectedFolder = @"$.minecraft\";
-            GameFolders.McFolderLauncherProfilesJsonCreate(Common.ExePath + @".minecraft\");
-            HintService.Hint(Lang.Text("Select.Folder.CreateSuccess"), HintType.Success);
-        }
-
-        GameFolders.McFolderListLoader.Start(isForceRestart: true);
+        _vm.CreateFolderCommand.Execute(null);
     }
 
     // 右键菜单

@@ -116,13 +116,6 @@ public partial class PageSelectRight
             autoRun: false);
     }
 
-    private void Load_Click(object sender, MouseButtonEventArgs e)
-    {
-        if (InstanceList.mcInstanceListLoader.State == Common.LoadState.Failed)
-            Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
-                Loading.LoaderFolderRunType.ForceRun, 1, @"versions\");
-    }
-
     #region 结果 UI 化
 
     private void McInstanceListUI(Loading.LoaderTask<string, int> loader)
@@ -513,11 +506,6 @@ public partial class PageSelectRight
             // 错误实例
             PageInstanceOverall.OpenVersionFolder(instance);
         }
-    }
-
-    private void BtnDownload_Click(object sender, MouseButtonEventArgs e)
-    {
-        Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall);
     }
 
     // 修改此代码时，同时修改 PageInstanceOverall 中的代码

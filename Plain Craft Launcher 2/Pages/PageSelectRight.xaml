@@ -29,7 +29,7 @@
                                Text="{Binding EmptyContent}"
                                TextWrapping="Wrap" />
                     <local:MyButton Height="35" HorizontalAlignment="Center" x:Name="BtnEmptyDownload" MinWidth="140"
-                                    Click="BtnDownload_Click"
+                                    Command="{Binding DownloadCommand}"
                                     Text="{DynamicResource Select.Instance.Empty.Download}" Margin="0,10,0,0"
                                     Visibility="{Binding EmptyDownloadVisibility}" Padding="13,0" ColorType="Highlight" />
                 </StackPanel>
@@ -49,7 +49,7 @@
         <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True"
                       x:Name="PanLoad" Margin="40">
         <local:MyLoading Text="{DynamicResource Select.Instance.Loading}" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
-                         Click="Load_Click"
+                         Command="{Binding RetryLoadCommand}"
                          VerticalAlignment="Center" IsHitTestVisible="False" AutoRun="False" />
         </local:MyCard>
     </Grid>

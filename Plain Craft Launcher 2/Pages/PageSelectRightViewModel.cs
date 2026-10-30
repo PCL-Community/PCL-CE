@@ -1,5 +1,6 @@
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.ViewModel;
@@ -41,5 +42,19 @@ public partial class PageSelectRightViewModel : ViewModelBase
         EmptyDownloadVisibility = (Config.Preference.Hide.PageDownload && !PageSetupUI.HiddenForceShow) || showHidden
             ? Visibility.Collapsed
             : Visibility.Visible;
+    }
+
+    [RelayCommand]
+    private void Download()
+    {
+        Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall);
+    }
+
+    [RelayCommand]
+    private void RetryLoad()
+    {
+        if (InstanceList.mcInstanceListLoader.State == Common.LoadState.Failed)
+            Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
+                Loading.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }
 }
