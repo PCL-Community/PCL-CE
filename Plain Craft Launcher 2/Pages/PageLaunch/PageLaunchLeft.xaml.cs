@@ -54,11 +54,8 @@ public partial class PageLaunchLeft
         Loaded += PageLaunchLeft_Loaded;
         WeakLanguageChanged.Add(this, OnLanguageChanged);
         // Handles
-        BtnInstance.Click += BtnInstance_Click;
         BtnLaunch.Click += BtnLaunch_Click;
         BtnLaunch.Loaded += (_, _) => RefreshButtonsUI();
-        BtnCancel.Click += BtnCancel_Click;
-        BtnMore.Click += BtnMore_Click;
         PanLaunchingInfo.SizeChanged += PanLaunchingInfo_SizeChangedW;
         PanLaunchingInfo.SizeChanged += PanLaunchingInfo_SizeChangedH;
         DataContext = _vm;
@@ -206,14 +203,6 @@ public partial class PageLaunchLeft
         Animations.AniEndControl();
     }
 
-    // 实例选择按钮
-    private void BtnInstance_Click(object sender, MouseButtonEventArgs e)
-    {
-        if (GameLaunch.mcLaunchLoader.State == Common.LoadState.Loading)
-            return;
-        Launcher.frmMain.PageChange(FormMain.PageType.InstanceSelect);
-    }
-
     // 启动按钮
     public void LaunchButtonClick()
     {
@@ -295,7 +284,7 @@ public partial class PageLaunchLeft
                 _launchButtonAction = LaunchButtonAction.Loading;
                 Common.Log("[Minecraft] 启动按钮：正在加载 Minecraft 实例");
                 _vm.LaunchButtonText = Lang.Text("Launch.Home.Button.Loading");
-                BtnLaunch.IsEnabled = false;
+                _vm.IsLaunchButtonEnabled = false;
                 _vm.VersionNameText = Lang.Text("Launch.Home.Instance.Loading");
                 _vm.IsInstanceButtonEnabled = false;
                 _vm.MoreButtonVisibility = Visibility.Collapsed;
@@ -306,7 +295,7 @@ public partial class PageLaunchLeft
                 _launchButtonAction = LaunchButtonAction.Disabled;
                 Common.Log("[Minecraft] 启动按钮：无 Minecraft 实例，下载已禁用");
                 _vm.LaunchButtonText = Lang.Text("Launch.Home.Button.Launch");
-                BtnLaunch.IsEnabled = false;
+                _vm.IsLaunchButtonEnabled = false;
                 _vm.VersionNameText = Lang.Text("Launch.Home.Instance.NotFound");
                 _vm.IsInstanceButtonEnabled = true;
                 _vm.MoreButtonVisibility = Visibility.Collapsed;
@@ -317,7 +306,7 @@ public partial class PageLaunchLeft
                 _launchButtonAction = LaunchButtonAction.Download;
                 Common.Log("[Minecraft] 启动按钮：无 Minecraft 实例，要求下载");
                 _vm.LaunchButtonText = Lang.Text("Launch.Home.Button.Download");
-                BtnLaunch.IsEnabled = true;
+                _vm.IsLaunchButtonEnabled = true;
                 _vm.VersionNameText = Lang.Text("Launch.Home.Instance.NotFound");
                 _vm.IsInstanceButtonEnabled = true;
                 _vm.MoreButtonVisibility = Visibility.Collapsed;
@@ -330,9 +319,9 @@ public partial class PageLaunchLeft
                 _vm.LaunchButtonText = Lang.Text("Launch.Home.Button.Launch");
                 _vm.IsInstanceButtonEnabled = true;
                 if (ProfileService.Current is not null)
-                    BtnLaunch.IsEnabled = true;
+                    _vm.IsLaunchButtonEnabled = true;
                 else
-                    BtnLaunch.IsEnabled = false;
+                    _vm.IsLaunchButtonEnabled = false;
                 _vm.VersionNameText = InstanceList.McMcInstanceSelected.Name;
                 break;
             }
@@ -347,48 +336,6 @@ public partial class PageLaunchLeft
                 ? Visibility.Collapsed
                 : Visibility.Visible;
         if (currentState == 3) _vm.MoreButtonVisibility = _vm.InstanceButtonVisibility;
-    }
-
-    // 取消按钮
-    private void BtnCancel_Click(object sender, MouseButtonEventArgs e)
-    {
-        if (GameLaunch.mcLaunchLoaderReal is not null)
-        {
-            GameLaunch.mcLaunchLoaderReal.Abort();
-            GameLaunch.McLaunchLog("已取消启动");
-            try
-            {
-                if (GameLaunch.mcLaunchWatcher is not null)
-                    GameLaunch.mcLaunchWatcher.Kill();
-                else if (GameLaunch.mcLaunchProcess is not null)
-                    if (!GameLaunch.mcLaunchProcess.HasExited)
-                        GameLaunch.mcLaunchProcess.Kill();
-            }
-            catch (Exception ex)
-            {
-                Common.Log(
-                    ex,
-                    Lang.Text("Minecraft.Launch.Error.CancelProcess"),
-                    Common.LogLevel.Hint,
-                    userSummary: Lang.Text("Minecraft.Launch.Error.CancelProcess"));
-            }
-        }
-    }
-
-    // 实例设置按钮
-    private void BtnMore_Click(object sender, MouseButtonEventArgs e)
-    {
-        if (GameLaunch.mcLaunchLoader.State == Common.LoadState.Loading)
-            return;
-        InstanceList.McMcInstanceSelected.Load();
-        PageInstanceLeft.McInstance = InstanceList.McMcInstanceSelected;
-        if (File.Exists(InstanceList.McMcInstanceSelected.PathInstance + ".pclignore"))
-        {
-            HintService.Hint(Lang.Text("Launch.Home.Instance.InstallingCannotSetup"), HintType.Error);
-            return;
-        }
-
-        Launcher.frmMain.PageChange(FormMain.PageType.InstanceSetup);
     }
 
     /// <summary>
@@ -812,13 +759,13 @@ public partial class PageLaunchLeft
         else if (ProfileService.Current is not null)
         {
             type = PageType.ProfileSkin;
-            BtnLaunch.IsEnabled = true;
+            _vm.IsLaunchButtonEnabled = true;
         }
         else
         {
             type = PageType.Profile;
             if (_launchButtonAction != LaunchButtonAction.Download)
-                BtnLaunch.IsEnabled = false;
+                _vm.IsLaunchButtonEnabled = false;
         }
 
         // 刷新页面
