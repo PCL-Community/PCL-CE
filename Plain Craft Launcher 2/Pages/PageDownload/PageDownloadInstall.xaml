@@ -29,6 +29,7 @@
                                            RenderOptions.BitmapScalingMode="HighQuality" />
                             <local:MyTextBox Margin="93,0,16,0" Padding="-1,0" MinHeight="30" FontSize="15"
                                              VerticalAlignment="Center" x:Name="TextSelectName" MaxLength="70"
+                                             Text="{Binding InstanceName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                              HasBackground="False" />
                         </local:MyCard>
                         <local:MyHint Text="{DynamicResource Download.Install.Warning.FabricApi}" Margin="0,10,0,0" x:Name="HintFabricAPI" Visibility="{Binding ShowHintFabricAPI, Converter={StaticResource BooleanToVisibilityConverter}}"
@@ -58,7 +59,7 @@
                                 <Image x:Name="ImgForge" Visibility="{Binding ShowForgeImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
                                        RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/Anvil.png" />
-                                <TextBlock x:Name="LabForge" Text="{Binding ForgeText}" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabForge" Text="{Binding ForgeText}" Foreground="{Binding ForgeForeground}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnForgeClear" Visibility="{Binding ShowForgeClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
@@ -85,7 +86,7 @@
                                 <Image x:Name="ImgCleanroom" Visibility="{Binding ShowCleanroomImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
                                        RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/Cleanroom.png" />
-                                <TextBlock x:Name="LabCleanroom" Text="{Binding CleanroomText}" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabCleanroom" Text="{Binding CleanroomText}" Foreground="{Binding CleanroomForeground}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnCleanroomClear" Visibility="{Binding ShowCleanroomClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
@@ -112,7 +113,7 @@
                                 <Image x:Name="ImgNeoForge" Visibility="{Binding ShowNeoForgeImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
                                        RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/NeoForge.png" />
-                                <TextBlock x:Name="LabNeoForge" Text="{Binding NeoForgeText}" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabNeoForge" Text="{Binding NeoForgeText}" Foreground="{Binding NeoForgeForeground}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnNeoForgeClear" Visibility="{Binding ShowNeoForgeClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
@@ -139,7 +140,7 @@
                                 <Image x:Name="ImgFabric" Visibility="{Binding ShowFabricImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
                                        RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/Fabric.png" />
-                                <TextBlock x:Name="LabFabric" Text="{Binding FabricText}" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabFabric" Text="{Binding FabricText}" Foreground="{Binding FabricForeground}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnFabricClear" Visibility="{Binding ShowFabricClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
@@ -166,7 +167,7 @@
                                 <Image x:Name="ImgLegacyFabric" Visibility="{Binding ShowLegacyFabricImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
                                        RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/Fabric.png" />
-                                <TextBlock x:Name="LabLegacyFabric" Text="{Binding LegacyFabricText}" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabLegacyFabric" Text="{Binding LegacyFabricText}" Foreground="{Binding LegacyFabricForeground}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnLegacyFabricClear" Visibility="{Binding ShowLegacyFabricClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
@@ -193,7 +194,7 @@
                                 <Image x:Name="ImgFabricApi" Visibility="{Binding ShowFabricApiImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
                                        RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/Fabric.png" />
-                                <TextBlock x:Name="LabFabricApi" Text="{Binding FabricApiText}" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabFabricApi" Text="{Binding FabricApiText}" Foreground="{Binding FabricApiForeground}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnFabricApiClear" Visibility="{Binding ShowFabricApiClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
@@ -220,7 +221,7 @@
                                 <Image x:Name="ImgLegacyFabricApi" Visibility="{Binding ShowLegacyFabricApiImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True"
                                        Height="18" RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/Fabric.png" />
-                                <TextBlock x:Name="LabLegacyFabricApi" Text="{Binding LegacyFabricApiText}" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabLegacyFabricApi" Text="{Binding LegacyFabricApiText}" Foreground="{Binding LegacyFabricApiForeground}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnLegacyFabricApiClear" Visibility="{Binding ShowLegacyFabricApiClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
@@ -247,7 +248,7 @@
                                 <Image x:Name="ImgLabyMod" Visibility="{Binding ShowLabyModImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
                                        RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/LabyMod.png" />
-                                <TextBlock x:Name="LabLabyMod" Text="{Binding LabyModText}" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabLabyMod" Text="{Binding LabyModText}" Foreground="{Binding LabyModForeground}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnLabyModClear" Visibility="{Binding ShowLabyModClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
@@ -276,7 +277,7 @@
                                 <Image x:Name="ImgOptiFine" Visibility="{Binding ShowOptiFineImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
                                        RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/GrassPath.png" />
-                                <TextBlock x:Name="LabOptiFine" Text="{Binding OptiFineText}" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabOptiFine" Text="{Binding OptiFineText}" Foreground="{Binding OptiFineForeground}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnOptiFineClear" Visibility="{Binding ShowOptiFineClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
@@ -303,7 +304,7 @@
                                 <Image x:Name="ImgOptiFabric" Visibility="{Binding ShowOptiFabricImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,7,0" SnapsToDevicePixels="True" Height="18"
                                        RenderOptions.BitmapScalingMode="HighQuality"
                                        Source="pack://application:,,,/images/Blocks/OptiFabric.png" />
-                                <TextBlock x:Name="LabOptiFabric" Text="{Binding OptiFabricText}" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabOptiFabric" Text="{Binding OptiFabricText}" Foreground="{Binding OptiFabricForeground}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnOptiFabricClear" Visibility="{Binding ShowOptiFabricClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
@@ -330,7 +331,7 @@
                                 <Image x:Name="ImgLiteLoader" Visibility="{Binding ShowLiteLoaderImage, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="-1,0,6,0" SnapsToDevicePixels="True" Height="20"
                                        RenderOptions.BitmapScalingMode="Linear"
                                        Source="pack://application:,,,/images/Blocks/Egg.png" />
-                                <TextBlock x:Name="LabLiteLoader" Text="{Binding LiteLoaderText}" VerticalAlignment="Center"
+                                <TextBlock x:Name="LabLiteLoader" Text="{Binding LiteLoaderText}" Foreground="{Binding LiteLoaderForeground}" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnLiteLoaderClear" Visibility="{Binding ShowLiteLoaderClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
@@ -352,7 +353,7 @@
         </Grid>
         <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40,0" SnapsToDevicePixels="True"
                       x:Name="PanLoad" UseAnimation="False">
-            <local:MyLoading Margin="20,20,20,17" x:Name="LoadMinecraft" HorizontalAlignment="Center"
+            <local:MyLoading Margin="20,20,20,17" x:Name="LoadMinecraft" Text="{Binding LoadingText}" HorizontalAlignment="Center"
                              VerticalAlignment="Center" />
             <local:MyLoading Visibility="Collapsed" x:Name="LoadOptiFine" HasAnimation="False" />
             <local:MyLoading Visibility="Collapsed" x:Name="LoadForge" HasAnimation="False" />
