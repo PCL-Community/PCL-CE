@@ -221,7 +221,7 @@ public partial class PageSetupUpdate : IPageView
         if (ctl is not null) ctl.IsEnabled = false;
         try
         {
-            if (Animations.AniExitsAnyControl() || sender is not MyComboBox { IsDropDownOpen: true })
+            if (Animations.AniExitsAnyControl() || sender is not MyComboBox combo || (!combo.IsDropDownOpen && !Keyboard.IsKeyDown(Key.Enter)))
                 return;
 
             var isCancelled = false;
