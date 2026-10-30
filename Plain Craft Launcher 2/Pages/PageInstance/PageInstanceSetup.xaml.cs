@@ -742,9 +742,12 @@ public partial class PageInstanceSetup : IPageView
                 return;
             if (isReverting)
                 return;
-            if (await Launcher.MyMsgBoxAsync(
-                    Lang.Text("Instance.Setup.Options.InstanceIsolation.Message"),
-                    Lang.Text("Common.Dialog.Warning"), Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
+            if (await _vm.Dialog.ShowAsync(
+                    title: Lang.Text("Common.Dialog.Warning"),
+                    content: Lang.Text("Instance.Setup.Options.InstanceIsolation.Message"),
+                    button1: Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"),
+                    button2: Lang.Text("Common.Action.Cancel"),
+                    isWarn: true) == 2)
             {
                 isReverting = true;
                 ComboArgumentIndieV2.SelectedItem = e.RemovedItems[0];
@@ -802,9 +805,12 @@ public partial class PageInstanceSetup : IPageView
 
             if (!States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0)
             {
-                if (await Launcher.MyMsgBoxAsync(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Message"),
-                        Lang.Text("Common.Dialog.Warning"),
-                        Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
+                if (await _vm.Dialog.ShowAsync(
+                        title: Lang.Text("Common.Dialog.Warning"),
+                        content: Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Message"),
+                        button1: Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"),
+                        button2: Lang.Text("Common.Action.Cancel"),
+                        isWarn: true) == 2)
                 {
                     ComboAdvanceRenderer.SelectedItem = args.RemovedItems[0];
                 }
@@ -842,9 +848,12 @@ public partial class PageInstanceSetup : IPageView
 
             if (checkBox.Checked.GetValueOrDefault() && !States.Hint.DebugLog4j2Config)
             {
-                if (await Launcher.MyMsgBoxAsync(
-                        Lang.Text("Instance.Setup.Advanced.UseDebugLog4j.Message"),
-                        Lang.Text("Common.Dialog.Warning"), Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
+                if (await _vm.Dialog.ShowAsync(
+                        title: Lang.Text("Common.Dialog.Warning"),
+                        content: Lang.Text("Instance.Setup.Advanced.UseDebugLog4j.Message"),
+                        button1: Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"),
+                        button2: Lang.Text("Common.Action.Cancel"),
+                        isWarn: true) == 2)
                 {
                     checkBox.Checked = false;
                 }
