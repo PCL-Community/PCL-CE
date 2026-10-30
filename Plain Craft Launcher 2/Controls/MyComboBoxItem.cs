@@ -28,13 +28,23 @@ public class MyComboBoxItem : ComboBoxItem
         MouseLeftButtonUp += MyComboBoxItem_MouseLeftButtonUp;
     }
 
+    protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+    {
+        base.OnPropertyChanged(e);
+        if (e.Property == IsHighlightedProperty)
+            RefreshColor();
+    }
+
     private void RefreshColor()
     {
+        var current = ItemsControl.ItemsControlFromItemContainer(this) is ComboBox { IsDropDownOpen: true }
+            ? IsHighlighted
+            : IsSelected;
         // 判断当前颜色
         string newBackColorName;
         double newFontOpacity;
         int time;
-        if (IsSelected)
+        if (current)
         {
             newBackColorName = "ColorBrush6";
             newFontOpacity = 1d;
