@@ -12,6 +12,10 @@ namespace PCL;
 
 public partial class MyLocalCompItem
 {
+    private readonly MyLocalModItemViewModel _vm = new();
+
+    public MyLocalModItemViewModel ViewModel => _vm;
+
     private string? _displayVersion;
 
     private string GetUpdateCompareDescription()
@@ -50,12 +54,12 @@ public partial class MyLocalCompItem
             // 更新
             if (Entry.CanUpdate)
             {
-                BtnUpdate.Visibility = Visibility.Visible;
-                BtnUpdate.ToolTip = $"{GetUpdateCompareDescription()}\r\n{Lang.Text("Instance.Resource.Item.UpdateToolTip")}";
+                _vm.UpdateVisibility = Visibility.Visible;
+                _vm.UpdateToolTip = $"{GetUpdateCompareDescription()}\r\n{Lang.Text("Instance.Resource.Item.UpdateToolTip")}";
             }
             else
             {
-                BtnUpdate.Visibility = Visibility.Collapsed;
+                _vm.UpdateVisibility = Visibility.Collapsed;
                 _displayVersion = null;
             }
 
@@ -476,9 +480,9 @@ public partial class MyLocalCompItem
                 }
             }
 
-            if ((LabTitle.Text ?? "") == (value ?? ""))
+            if ((_vm.TitleText ?? "") == (value ?? ""))
                 return;
-            LabTitle.Text = value;
+            _vm.TitleText = value;
             field = rawValue;
         }
     }
@@ -486,25 +490,25 @@ public partial class MyLocalCompItem
     // 副标题
     public string SubTitle
     {
-        get => LabSubtitle?.Text ?? "";
+        get => _vm.SubTitleText;
         set
         {
-            if ((LabSubtitle.Text ?? "") == (value ?? ""))
+            if ((_vm.SubTitleText ?? "") == (value ?? ""))
                 return;
-            LabSubtitle.Text = value;
-            LabSubtitle.Visibility = string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
+            _vm.SubTitleText = value;
+            _vm.SubTitleVisibility = string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
         }
     }
 
     // 描述
     public string Description
     {
-        get => LabInfo.Text;
+        get => _vm.DescriptionText;
         set
         {
-            if ((LabInfo.Text ?? "") == (value ?? ""))
+            if ((_vm.DescriptionText ?? "") == (value ?? ""))
                 return;
-            LabInfo.Text = value;
+            _vm.DescriptionText = value;
         }
     }
 
