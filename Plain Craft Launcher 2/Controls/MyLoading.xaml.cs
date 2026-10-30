@@ -336,11 +336,30 @@ public partial class MyLoading
 
     #endregion
 
+    public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command),
+        typeof(ICommand), typeof(MyLoading), new PropertyMetadata(null));
+
+    public ICommand? Command
+    {
+        get => (ICommand?)GetValue(CommandProperty);
+        set => SetValue(CommandProperty, value);
+    }
+
+    public static readonly DependencyProperty CommandParameterProperty = DependencyProperty.Register(
+        nameof(CommandParameter), typeof(object), typeof(MyLoading), new PropertyMetadata(null));
+
+    public object? CommandParameter
+    {
+        get => GetValue(CommandParameterProperty);
+        set => SetValue(CommandParameterProperty, value);
+    }
+
     #region 点击事件
 
     private void Button_MouseUp(object sender, MouseButtonEventArgs e)
     {
         Click?.Invoke(sender, e);
+        ExecuteCommand();
     }
 
     private bool _isMouseDown;
@@ -354,6 +373,24 @@ public partial class MyLoading
     private void Button_MouseLeave(object sender, object e)
     {
         _isMouseDown = false;
+    }
+
+    private bool _isCommandRunning;
+
+    private void ExecuteCommand()
+    {
+        var command = Command;
+        if (_isCommandRunning || command is null || !command.CanExecute(CommandParameter))
+            return;
+        _isCommandRunning = true;
+        try
+        {
+            command.Execute(CommandParameter);
+        }
+        finally
+        {
+            _isCommandRunning = false;
+        }
     }
 
     #endregion

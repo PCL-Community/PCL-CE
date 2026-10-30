@@ -987,6 +987,24 @@ public partial class MyListItem : IMyRadio
     public static readonly DependencyProperty ForegroundProperty = DependencyProperty.Register("Foreground",
         typeof(Brush), typeof(MyListItem), new PropertyMetadata(ThemeManager.AppResources["ColorBrush1"]));
 
+    public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command),
+        typeof(ICommand), typeof(MyListItem), new PropertyMetadata(null));
+
+    public ICommand? Command
+    {
+        get => (ICommand?)GetValue(CommandProperty);
+        set => SetValue(CommandProperty, value);
+    }
+
+    public static readonly DependencyProperty CommandParameterProperty = DependencyProperty.Register(
+        nameof(CommandParameter), typeof(object), typeof(MyListItem), new PropertyMetadata(null));
+
+    public object? CommandParameter
+    {
+        get => GetValue(CommandParameterProperty);
+        set => SetValue(CommandParameterProperty, value);
+    }
+
     // 菜单与按钮绑定
     public Action<MyListItem, EventArgs> ContentHandler { get; set; }
     
@@ -1058,6 +1076,7 @@ public partial class MyListItem : IMyRadio
         if (!_isMouseDown)
             return;
         Click?.Invoke(sender, e);
+        ExecuteCommand();
         if (e.Handled)
             return;
         // 触发自定义事件
@@ -1112,6 +1131,24 @@ public partial class MyListItem : IMyRadio
         _isMouseDown = false;
         if (buttonStack is not null)
             buttonStack.IsHitTestVisible = true;
+    }
+
+    private bool _isCommandRunning;
+
+    private void ExecuteCommand()
+    {
+        var command = Command;
+        if (_isCommandRunning || command is null || !command.CanExecute(CommandParameter))
+            return;
+        _isCommandRunning = true;
+        try
+        {
+            command.Execute(CommandParameter);
+        }
+        finally
+        {
+            _isCommandRunning = false;
+        }
     }
 
     #endregion

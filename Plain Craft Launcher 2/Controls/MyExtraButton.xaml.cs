@@ -26,6 +26,33 @@ public partial class MyExtraButton
     // 自定义属性
     public int Uuid = Common.GetUuid();
 
+    public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command),
+        typeof(ICommand), typeof(MyExtraButton), new PropertyMetadata(null));
+
+    public ICommand? Command
+    {
+        get => (ICommand?)GetValue(CommandProperty);
+        set => SetValue(CommandProperty, value);
+    }
+
+    public static readonly DependencyProperty CommandParameterProperty = DependencyProperty.Register(
+        nameof(CommandParameter), typeof(object), typeof(MyExtraButton), new PropertyMetadata(null));
+
+    public object? CommandParameter
+    {
+        get => GetValue(CommandParameterProperty);
+        set => SetValue(CommandParameterProperty, value);
+    }
+
+    public static readonly DependencyProperty RightClickCommandProperty = DependencyProperty.Register(
+        nameof(RightClickCommand), typeof(ICommand), typeof(MyExtraButton), new PropertyMetadata(null));
+
+    public ICommand? RightClickCommand
+    {
+        get => (ICommand?)GetValue(RightClickCommandProperty);
+        set => SetValue(RightClickCommandProperty, value);
+    }
+
     public MyExtraButton()
     {
         Loaded += (_, _) => RefreshColor();
@@ -194,6 +221,7 @@ public partial class MyExtraButton
             Click?.Invoke(sender, e);
             e.Handled = true;
             Button_LeftMouseUp();
+            ExecuteCommand();
         }
     }
 
@@ -206,6 +234,7 @@ public partial class MyExtraButton
             RightClick?.Invoke(sender, e);
             e.Handled = true;
             Button_RightMouseUp();
+            ExecuteRightClickCommand();
         }
     }
 
@@ -329,5 +358,41 @@ public partial class MyExtraButton
     private void PanClick_MouseEvent(object sender, MouseEventArgs e)
     {
         RefreshColor();
+    }
+
+    private bool _isCommandRunning;
+
+    private void ExecuteCommand()
+    {
+        var command = Command;
+        if (_isCommandRunning || command is null || !command.CanExecute(CommandParameter))
+            return;
+        _isCommandRunning = true;
+        try
+        {
+            command.Execute(CommandParameter);
+        }
+        finally
+        {
+            _isCommandRunning = false;
+        }
+    }
+
+    private bool _isRightClickCommandRunning;
+
+    private void ExecuteRightClickCommand()
+    {
+        var command = RightClickCommand;
+        if (_isRightClickCommandRunning || command is null || !command.CanExecute(CommandParameter))
+            return;
+        _isRightClickCommandRunning = true;
+        try
+        {
+            command.Execute(CommandParameter);
+        }
+        finally
+        {
+            _isRightClickCommandRunning = false;
+        }
     }
 }
