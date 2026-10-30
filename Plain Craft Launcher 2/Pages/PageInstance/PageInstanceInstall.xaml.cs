@@ -242,8 +242,8 @@ public partial class PageInstanceInstall : IPageView
         autoSelectedFabricApi = false;
         autoSelectedOptiFabric = false;
         PanSelect.Visibility = Visibility.Visible;
-        PanSelect.IsHitTestVisible = true;
-        PanMinecraft.IsHitTestVisible = false;
+        _vm.PanSelectHitTestVisible = true;
+        _vm.PanMinecraftHitTestVisible = false;
         PanBack.IsHitTestVisible = false;
         PanBack.ScrollToHome();
 
@@ -356,8 +356,8 @@ public partial class PageInstanceInstall : IPageView
 
         ClearSelected(); // 清除已选择项
         PanMinecraft.Visibility = Visibility.Visible;
-        PanSelect.IsHitTestVisible = false;
-        PanMinecraft.IsHitTestVisible = true;
+        _vm.PanSelectHitTestVisible = false;
+        _vm.PanMinecraftHitTestVisible = true;
         PanBack.IsHitTestVisible = false;
         PanBack.ScrollToHome();
 

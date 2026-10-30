@@ -34,6 +34,10 @@ public partial class PageInstanceInstallViewModel : ViewModelBase
 
     [ObservableProperty] private string _loadingText = "";
 
+    [ObservableProperty] private bool _panSelectHitTestVisible;
+
+    [ObservableProperty] private bool _panMinecraftHitTestVisible = true;
+
     [ObservableProperty] private bool _showOptiFineCard = true;
 
     [ObservableProperty] private bool _showOptiFineClear = true;
