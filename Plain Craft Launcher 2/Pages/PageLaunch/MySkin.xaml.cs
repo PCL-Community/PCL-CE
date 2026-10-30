@@ -51,8 +51,8 @@ public partial class MySkin
     // 披风
     public bool HasCape
     {
-        get => BtnSkinCape.Visibility == Visibility.Collapsed;
-        set => BtnSkinCape.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
+        get => _vm.CapeVisibility == Visibility.Collapsed;
+        set => _vm.CapeVisibility = value ? Visibility.Visible : Visibility.Collapsed;
     }
 
     // 事件
@@ -141,7 +141,7 @@ public partial class MySkin
 
     private void BtnSkinSave_Checked(object sender, RoutedEventArgs e)
     {
-        ((MyMenuItem)sender).IsEnabled = string.IsNullOrEmpty(Address);
+        _vm.CanSave = string.IsNullOrEmpty(Address);
     }
 
     /// <summary>

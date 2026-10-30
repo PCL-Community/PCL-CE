@@ -103,7 +103,7 @@
                 <StackPanel x:Name="PanSelect" Grid.Row="1" HorizontalAlignment="Stretch" Orientation="Vertical"
                             Visibility="{Binding PanSelectVisibility}">
                     <StackPanel Margin="10,4" HorizontalAlignment="Right" Orientation="Horizontal">
-                        <local:MyCard Margin="12,0" x:Name="BtnNatTest">
+                        <local:MyCard Margin="12,0" x:Name="BtnNatTest" IsEnabled="{Binding NatTestEnabled}">
                             <StackPanel Orientation="Horizontal"
                                         Background="{StaticResource ColorBrushSemiTransparent}"
                                         MouseLeftButtonUp="BtnNetTest_Click"
@@ -121,7 +121,7 @@
                             </StackPanel>
                         </local:MyCard>
 
-                        <local:MyCard x:Name="BtnNatayarkUserName">
+                        <local:MyCard x:Name="BtnNatayarkUserName" IsEnabled="{Binding NatayarkUserEnabled}">
                             <StackPanel Orientation="Horizontal"
                                         Background="{StaticResource ColorBrushSemiTransparent}"
                                         ToolTip="{DynamicResource Tools.GameLink.Natayark.Account}"
@@ -153,12 +153,13 @@
                                                 Width="50" Margin="10,0,0,0" Click="BtnJoin_Click" />
                                 <local:MyButton x:Name="BtnPaste" DockPanel.Dock="Right"
                                                 Text="{DynamicResource Tools.GameLink.Join.Paste}" ColorType="Normal"
-                                                Width="50" Margin="10,0,0,0" Click="PasteLobbyId" />
+                                                Width="50" Margin="10,0,0,0" Command="{Binding PasteLobbyIdCommand}" />
                                 <local:MyButton x:Name="BtnClearLobbyId" DockPanel.Dock="Right"
                                                 Text="{DynamicResource Tools.GameLink.Join.Clear}"
-                                                Click="ClearLobbyId"
+                                                Command="{Binding ClearLobbyIdCommand}"
                                                 ColorType="Normal" Width="50" Margin="10,0,0,0" />
                                 <local:MyTextBox x:Name="TextJoinLobbyId"
+                                                 Text="{Binding JoinLobbyId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                  HintText="{DynamicResource Tools.GameLink.Join.IdHint}"
                                                  MaxLines="1" AcceptsReturn="False" KeyDown="TextJoinLobbyId_KeyDown" />
                             </DockPanel>
@@ -174,6 +175,7 @@
                                 <local:MyButton x:Name="BtnCreate" DockPanel.Dock="Right"
                                                 Text="{DynamicResource Tools.GameLink.Create.Action}"
                                                 ColorType="Highlight" Width="50" Margin="10,0,0,0"
+                                                IsEnabled="{Binding CreateEnabled}"
                                                 Click="BtnCreate_Click" />
                                 <local:MyButton x:Name="BtnRefresh" DockPanel.Dock="Right"
                                                 Text="{DynamicResource Common.Action.Refresh}" ColorType="Normal"
@@ -181,8 +183,10 @@
                                 <local:MyButton x:Name="BtnInputPort" DockPanel.Dock="Right"
                                                 Text="{DynamicResource Tools.GameLink.Create.ManualInput}"
                                                 ColorType="Normal" Width="80" Margin="10,0,0,0"
+                                                IsEnabled="{Binding InputPortEnabled}"
                                                 Click="BtnInputPort_Click" />
-                                <local:MyComboBox x:Name="ComboWorldList" DropDownWidthSync="False" />
+                                <local:MyComboBox x:Name="ComboWorldList" IsEnabled="{Binding WorldListEnabled}"
+                                                  DropDownWidthSync="False" />
                             </DockPanel>
                         </StackPanel>
                     </local:MyCard>
@@ -204,7 +208,8 @@
                                                 local:CustomEventService.EventData="https://www.pclc.cc/privacy/personal-info-brief.html" />
                             <TextBlock Text=" | " />
                             <local:MyTextButton Text="{DynamicResource Tools.GameLink.Link.Disable}"
-                                                x:Name="BtnEulaStop" Click="BtnEulaStop_Click" />
+                                                x:Name="BtnEulaStop" IsEnabled="{Binding EulaStopEnabled}"
+                                                Click="BtnEulaStop_Click" />
                         </StackPanel>
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="15,6"
                                     Orientation="Horizontal">
@@ -279,7 +284,7 @@
                                            Margin="0,0,12,0" />
                             </StackPanel>
                             <StackPanel x:Name="BtnConnectType" Margin="5" Orientation="Horizontal"
-                                        Background="{StaticResource ColorBrushSemiTransparent}" Visibility="Collapsed"
+                                        Background="{StaticResource ColorBrushSemiTransparent}" Visibility="{Binding ConnectTypeVisibility}"
                                         ToolTip="{DynamicResource Tools.GameLink.Finish.ConnectionType}"
                                         ToolTipService.Placement="MousePoint"
                                         ToolTipService.InitialShowDelay="100" ToolTipService.VerticalOffset="-35">
@@ -344,6 +349,7 @@
                                                     SvgIcon="lucide/copy" />
                             <local:MyIconTextButton Margin="-2,1" HorizontalAlignment="Left" x:Name="BtnFinishExit"
                                                     Text="{Binding FinishExitText}"
+                                                    IsEnabled="{Binding FinishExitEnabled}"
                                                     Click="BtnFinishExit_Click"
                                                     SvgIcon="lucide/power" />
                         </StackPanel>

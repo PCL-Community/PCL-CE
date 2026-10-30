@@ -144,8 +144,7 @@ public partial class PageToolsGameLink : IPageView
 
     private async void BtnEulaStop_Click(object sender, EventArgs eventArgs)
     {
-        var control = sender as Control;
-        if (control is not null) control.IsEnabled = false;
+        _vm.EulaStopEnabled = false;
         try
         {
             if (await Launcher.MyMsgBoxAsync(Lang.Text("Tools.GameLink.Eula.RevokeConfirm"),
@@ -167,7 +166,7 @@ public partial class PageToolsGameLink : IPageView
         }
         finally
         {
-            if (control is not null) control.IsEnabled = true;
+            _vm.EulaStopEnabled = true;
         }
     }
 
@@ -321,8 +320,8 @@ public partial class PageToolsGameLink : IPageView
             #region 更新 UI 状态
 
             var hasItems = ComboWorldList.Items.Count > 0;
-            ComboWorldList.IsEnabled = hasItems;
-            BtnCreate.IsEnabled = hasItems;
+            _vm.WorldListEnabled = hasItems;
+            _vm.CreateEnabled = hasItems;
 
             if (hasItems && ComboWorldList.SelectedIndex == -1) ComboWorldList.SelectedIndex = 0;
 
@@ -769,10 +768,10 @@ public partial class PageToolsGameLink : IPageView
                 {
                     _vm.NatayarkUserNameText = Lang.Text("Tools.GameLink.Natayark.BrowserContinue");
                     _vm.NatayarkUserNameOpacity = 0.6d;
-                    BtnNatayarkUserName.IsEnabled = false;
+                    _vm.NatayarkUserEnabled = false;
                     WebServer.StartNaidAuthorize(() =>
                     {
-                        Common.RunInUi(() => BtnNatayarkUserName.IsEnabled = true);
+                        Common.RunInUi(() => _vm.NatayarkUserEnabled = true);
                         HintService.Hint(Lang.Text("Tools.GameLink.Natayark.LoginComplete"), HintType.Success);
                         ReloadNaidData();
                     });
@@ -801,7 +800,7 @@ public partial class PageToolsGameLink : IPageView
     {
         try
         {
-            BtnNatTest.IsEnabled = false;
+            _vm.NatTestEnabled = false;
             _vm.NatTypeText = Lang.Text("Tools.GameLink.Nat.Testing");
             var status = await CliNetTest.GetNetStatusAsync();
             Common.RunInUi(() => _vm.NatTypeText = Lang.Text("Tools.GameLink.Nat.Result",
@@ -815,37 +814,13 @@ public partial class PageToolsGameLink : IPageView
                 "[Link] 获取网络测试结果失败",
                 Common.LogLevel.Hint,
                 userSummary: Lang.Text("Tools.GameLink.Error.NetworkTestFailed"));
-            BtnNatTest.IsEnabled = true;
+            _vm.NatTestEnabled = true;
             _vm.NatTypeText = Lang.Text("Tools.GameLink.Nat.Failed");
         }
         finally
         {
-            BtnNatTest.IsEnabled = true;
+            _vm.NatTestEnabled = true;
         }
-    }
-
-    private void PasteLobbyId(object sender, MouseButtonEventArgs e)
-    {
-        string lobbyId;
-        try
-        {
-            lobbyId = Clipboard.GetText(TextDataFormat.Text);
-        }
-        catch (Exception ex)
-        {
-            Common.Log(ex, "从剪贴板识别大厅编号出错");
-            return;
-        }
-
-        if (!string.IsNullOrEmpty(lobbyId))
-            TextJoinLobbyId.Text = lobbyId;
-        else
-            HintService.Hint(Lang.Text("Tools.GameLink.Join.InvalidText"));
-    }
-
-    private void ClearLobbyId(object sender, MouseButtonEventArgs e)
-    {
-        TextJoinLobbyId.Text = string.Empty;
     }
 
     #endregion
@@ -862,7 +837,7 @@ public partial class PageToolsGameLink : IPageView
     {
         try
         {
-            BtnInputPort.IsEnabled = false;
+            _vm.InputPortEnabled = false;
             if (!GameLink.LobbyPrecheck()) return;
             var input = await Launcher.MyMsgBoxInputAsync(Lang.Text("Tools.GameLink.Create.EnterPort"),
                 validateRules: [new IntValidator(65535,1024)]);
@@ -883,7 +858,7 @@ public partial class PageToolsGameLink : IPageView
         }
         finally
         {
-            BtnInputPort.IsEnabled = true;
+            _vm.InputPortEnabled = true;
         }
     }
 
@@ -896,11 +871,11 @@ public partial class PageToolsGameLink : IPageView
             return;
         }
 
-        BtnCreate.IsEnabled = false;
+        _vm.CreateEnabled = false;
 
         if (!GameLink.LobbyPrecheck())
         {
-            BtnCreate.IsEnabled = true;
+            _vm.CreateEnabled = true;
             return;
         }
 
@@ -919,7 +894,7 @@ public partial class PageToolsGameLink : IPageView
         {
             _vm.FinishPingVisibility = Visibility.Collapsed;
             _vm.FinishPingText = "-ms";
-            BtnConnectType.Visibility = Visibility.Collapsed;
+            _vm.ConnectTypeVisibility = Visibility.Collapsed;
             _vm.ConnectTypeText = Lang.Text("Tools.GameLink.Finish.Connecting");
             CardPlayerList.Title = Lang.Text("Tools.GameLink.Member.ListLoading");
             StackPlayerList.Children.Clear();
@@ -927,7 +902,7 @@ public partial class PageToolsGameLink : IPageView
             _vm.ConnectUserTypeText = Lang.Text("Tools.GameLink.Finish.Host");
             _vm.FinishIdText = LobbyService.CurrentLobbyCode;
             _vm.FinishCopyIpVisibility = Visibility.Collapsed;
-            BtnCreate.IsEnabled = true;
+            _vm.CreateEnabled = true;
             _vm.FinishExitText = Lang.Text("Tools.GameLink.Finish.CloseLobby");
             CurrentSubpage = Subpages.PanFinish;
         });
@@ -951,14 +926,14 @@ public partial class PageToolsGameLink : IPageView
 
         Common.Log("Start to join lobby.");
 
-        var id = TextJoinLobbyId.Text;
+        var id = _vm.JoinLobbyId;
         var username = LobbyInfoProvider.GetUsername();
 
         Common.RunInUi(() =>
         {
             _vm.FinishPingVisibility = Visibility.Visible;
             _vm.FinishPingText = "-ms";
-            BtnConnectType.Visibility = Visibility.Visible;
+            _vm.ConnectTypeVisibility = Visibility.Visible;
             _vm.ConnectTypeText = Lang.Text("Tools.GameLink.Finish.Connecting");
             CardPlayerList.Title = Lang.Text("Tools.GameLink.Member.ListLoading");
             StackPlayerList.Children.Clear();
@@ -1072,8 +1047,7 @@ public partial class PageToolsGameLink : IPageView
     // 退出
     private async void BtnFinishExit_Click(object sender, Common.RouteEventArgs routeEventArgs)
     {
-        var control = sender as Control;
-        if (control is not null) control.IsEnabled = false;
+        _vm.FinishExitEnabled = false;
         try
         {
             if (await Launcher.MyMsgBoxAsync(
@@ -1097,7 +1071,7 @@ public partial class PageToolsGameLink : IPageView
         }
         finally
         {
-            if (control is not null) control.IsEnabled = true;
+            _vm.FinishExitEnabled = true;
         }
     }
 
