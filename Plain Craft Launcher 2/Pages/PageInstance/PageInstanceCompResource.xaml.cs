@@ -20,7 +20,7 @@ using SortMethod = PCL.PageInstanceCompResourceViewModel.SortMethod;
 
 namespace PCL;
 
-public partial class PageInstanceCompResource : IRefreshable
+public partial class PageInstanceCompResource : IRefreshable, IPageView
 {
     #region 模组信息缓存
 
@@ -90,6 +90,7 @@ public partial class PageInstanceCompResource : IRefreshable
     // 页面关闭时清理缓存
     private void Page_Unloaded(object sender, RoutedEventArgs e)
     {
+        _refreshed = false;
         modFileInfoCache.Clear();
     }
 
@@ -218,9 +219,17 @@ public partial class PageInstanceCompResource : IRefreshable
     }
 
     private bool isLoad;
+    private bool _refreshed;
 
-    public void PageOther_Loaded()
+    public void OnNavigatedTo(object? parameter) => RefreshOnNavigate();
+
+    public void OnNavigatedFrom() { }
+
+    private void RefreshOnNavigate()
     {
+        if (_refreshed) return;
+        _refreshed = true;
+
         CurrentFolderPath = string.Empty;
 
         if (Launcher.frmMain.pageLast.page != FormMain.PageType.CompDetail)
@@ -230,6 +239,11 @@ public partial class PageInstanceCompResource : IRefreshable
         ReloadCompFileList();
         ChangeAllSelected(false);
         Animations.AniEndControl();
+    }
+
+    public void PageOther_Loaded()
+    {
+        RefreshOnNavigate();
 
         // 非重复加载部分
         if (isLoad)

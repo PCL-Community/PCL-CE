@@ -13,7 +13,7 @@ using PCL.Core.Utils;
 
 namespace PCL;
 
-public partial class PageInstanceInstall
+public partial class PageInstanceInstall : IPageView
 {
     private enum InstallAction
     {
@@ -22,6 +22,7 @@ public partial class PageInstanceInstall
     }
 
     private bool isLoad;
+    private bool _refreshed;
     private string? lastVersionName;
     private InstallAction _installAction;
 
@@ -33,6 +34,7 @@ public partial class PageInstanceInstall
     {
         Initialized += (a, b) => LoaderInit();
         Loaded += (a, b) => Init();
+        Unloaded += (a, b) => _refreshed = false;
         InitializeComponent();
         DataContext = _vm;
         LoadMinecraft.Text = Lang.Text("Download.Version.LoadingList");
@@ -57,8 +59,15 @@ public partial class PageInstanceInstall
         PageExit += () => isInSelectPage = false;
     }
 
-    private void Init()
+    public void OnNavigatedTo(object? parameter) => RefreshOnNavigate();
+
+    public void OnNavigatedFrom() { }
+
+    private void RefreshOnNavigate()
     {
+        if (_refreshed) return;
+        _refreshed = true;
+
         PanBack.ScrollToHome();
 
         GetCurrentInfo();
@@ -76,6 +85,11 @@ public partial class PageInstanceInstall
         GameDownload.DlFabricApiLoader.Start(isForceRestart: needRefresh);
         GameDownload.DlLegacyFabricApiLoader.Start(isForceRestart: needRefresh);
         GameDownload.DlOptiFabricLoader.Start(isForceRestart: needRefresh);
+    }
+
+    private void Init()
+    {
+        RefreshOnNavigate();
 
         // 非重复加载部分
         if (isLoad)

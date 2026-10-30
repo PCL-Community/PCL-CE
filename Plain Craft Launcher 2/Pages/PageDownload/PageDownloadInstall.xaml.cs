@@ -12,9 +12,10 @@ using PCL.Core.App.Localization;
 
 namespace PCL;
 
-public partial class PageDownloadInstall
+public partial class PageDownloadInstall : IPageView
 {
     private bool isLoad;
+    private bool _refreshed;
 
     private readonly PageDownloadInstallViewModel _vm = new();
 
@@ -24,6 +25,7 @@ public partial class PageDownloadInstall
     {
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
+        Unloaded += (_, _) => _refreshed = false;
         InitializeComponent();
         DataContext = _vm;
         PanScroll = PanBack;
@@ -95,8 +97,15 @@ public partial class PageDownloadInstall
             _ => LoadMinecraft_OnFinish());
     }
 
-    private void Init()
+    public void OnNavigatedTo(object? parameter) => RefreshOnNavigate();
+
+    public void OnNavigatedFrom() { }
+
+    private void RefreshOnNavigate()
     {
+        if (_refreshed) return;
+        _refreshed = true;
+
         PanBack.ScrollToHome();
         GameDownload.DlOptiFineListLoader.Start();
         GameDownload.DlLiteLoaderListLoader.Start();
@@ -110,6 +119,11 @@ public partial class PageDownloadInstall
         TextSelectName.ValidateRules = [new FolderNameValidator(GameFolders.mcFolderSelected + "versions")];
         TextSelectName.Validate();
         ReloadSelected();
+    }
+
+    private void Init()
+    {
+        RefreshOnNavigate();
 
         // 非重复加载部分
         if (isLoad)

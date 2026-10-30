@@ -19,7 +19,7 @@ using Control = System.Windows.Forms.Control;
 
 namespace PCL;
 
-public partial class PageDownloadCompDetail
+public partial class PageDownloadCompDetail : IPageView
 {
     private readonly PageDownloadCompDetailViewModel _vm = new();
 
@@ -27,6 +27,18 @@ public partial class PageDownloadCompDetail
     public static Dictionary<Comp.CompType, string> cachedFolder = new(); // 仅在本次缓存的下载文件夹
     private MyCompItem _compItem;
     private bool _isFirstInit = true;
+    private bool _refreshed;
+
+    public void OnNavigatedTo(object? parameter) => RefreshOnNavigate();
+
+    public void OnNavigatedFrom() { }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed) return;
+        _refreshed = true;
+        Init();
+    }
 
     private void Init()
     {
@@ -677,7 +689,8 @@ public partial class PageDownloadCompDetail
         });
         Initialized += PageDownloadCompDetail_Inited;
         Loaded += (_, _) => LoadTargetFromAdditional();
-        PageEnter += Init;
+        Unloaded += (_, _) => _refreshed = false;
+        PageEnter += RefreshOnNavigate;
         InitializeComponent();
         DataContext = _vm;
         Load.StateChanged += Load_State;
