@@ -1,4 +1,5 @@
 ﻿﻿using System.Collections;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -39,6 +40,30 @@ public partial class MyRadioButton
             if (sender is MyRadioButton rb && rb.LabText is not null) rb.LabText.Text = (string)e.NewValue;
         }));
 
+    private static readonly Dictionary<object, List<WeakReference<MyRadioButton>>> GroupRegistry =
+        new(GroupKeyComparer.Instance);
+
+    private static readonly object GroupRegistryLock = new();
+
+    private sealed class GroupKeyComparer : IEqualityComparer<object>
+    {
+        public static readonly GroupKeyComparer Instance = new();
+
+        public new bool Equals(object? x, object? y)
+        {
+            return x is string groupNameX && y is string groupNameY
+                ? string.Equals(groupNameX, groupNameY, StringComparison.Ordinal)
+                : ReferenceEquals(x, y);
+        }
+
+        public int GetHashCode(object obj)
+        {
+            return obj is string groupName
+                ? StringComparer.Ordinal.GetHashCode(groupName)
+                : RuntimeHelpers.GetHashCode(obj);
+        }
+    }
+
     private bool _hasLegacyLogo;
     private bool isMouseDown;
     private bool _isSettingChecked;
@@ -74,6 +99,8 @@ public partial class MyRadioButton
         MouseEnter += RefreshColor;
         MouseLeave += RefreshColor;
         Loaded += RefreshColor;
+        Loaded += (_, _) => RegisterGroup(GroupName);
+        Unloaded += (_, _) => UnregisterGroup(GroupName);
     }
 
     private void OnColorModeChanged(bool isDarkMode, ColorTheme theme)
@@ -183,6 +210,16 @@ public partial class MyRadioButton
                 if (obj._isUserInteraction) obj.ExecuteCheckCommand();
             }));
 
+    public static readonly DependencyProperty GroupNameProperty = DependencyProperty.Register(
+        nameof(GroupName), typeof(string), typeof(MyRadioButton), new PropertyMetadata(null,
+            (d, e) =>
+            {
+                var radioButton = (MyRadioButton)d;
+                if (!radioButton.IsLoaded) return;
+                radioButton.UnregisterGroup((string?)e.OldValue);
+                radioButton.RegisterGroup((string?)e.NewValue);
+            }));
+
     public static readonly DependencyProperty CheckCommandProperty = DependencyProperty.Register(nameof(CheckCommand),
         typeof(ICommand), typeof(MyRadioButton), new PropertyMetadata(null));
 
@@ -193,6 +230,12 @@ public partial class MyRadioButton
     {
         get => (bool)GetValue(CheckedProperty);
         set => SetChecked(value, false, true);
+    }
+
+    public string? GroupName
+    {
+        get => (string?)GetValue(GroupNameProperty);
+        set => SetValue(GroupNameProperty, value);
     }
 
     public ICommand? CheckCommand
@@ -290,11 +333,21 @@ public partial class MyRadioButton
 
     private void EnsureSingleChecked()
     {
+        if (!string.IsNullOrEmpty(GroupName))
+        {
+            if (!Checked) return;
+            foreach (var radioButton in GetGroupMembers(GroupName))
+                if (!ReferenceEquals(radioButton, this))
+                    radioButton.SetChecked(false, false, false);
+            return;
+        }
+
         if (Parent is null) return;
+        if (Parent is not Panel parentPanel) return;
         var radioboxList = new List<MyRadioButton>();
         var checkedCount = 0;
         // 收集控件列表与选中个数
-        foreach (var Control in ((Panel)Parent).Children)
+        foreach (var Control in parentPanel.Children)
             if (Control is MyRadioButton radioButton)
             {
                 radioboxList.Add(radioButton);
@@ -338,6 +391,59 @@ public partial class MyRadioButton
                 break;
             }
         }
+    }
+
+    private void RegisterGroup(string? groupName)
+    {
+        if (string.IsNullOrEmpty(groupName)) return;
+        lock (GroupRegistryLock)
+        {
+            if (!GroupRegistry.TryGetValue(groupName, out var members))
+            {
+                members = new List<WeakReference<MyRadioButton>>();
+                GroupRegistry[groupName] = members;
+            }
+
+            members.RemoveAll(reference =>
+                !reference.TryGetTarget(out var target) || ReferenceEquals(target, this));
+            members.Add(new WeakReference<MyRadioButton>(this));
+        }
+
+        if (Checked) EnsureSingleChecked();
+    }
+
+    private void UnregisterGroup(string? groupName)
+    {
+        if (string.IsNullOrEmpty(groupName)) return;
+        lock (GroupRegistryLock)
+        {
+            if (!GroupRegistry.TryGetValue(groupName, out var members)) return;
+            members.RemoveAll(reference =>
+                !reference.TryGetTarget(out var target) || ReferenceEquals(target, this));
+            if (members.Count == 0)
+                GroupRegistry.Remove(groupName);
+        }
+    }
+
+    private static List<MyRadioButton> GetGroupMembers(string groupName)
+    {
+        var radioButtons = new List<MyRadioButton>();
+        lock (GroupRegistryLock)
+        {
+            if (!GroupRegistry.TryGetValue(groupName, out var members)) return radioButtons;
+            members.RemoveAll(reference => !reference.TryGetTarget(out _));
+            if (members.Count == 0)
+            {
+                GroupRegistry.Remove(groupName);
+                return radioButtons;
+            }
+
+            foreach (var reference in members)
+                if (reference.TryGetTarget(out var target))
+                    radioButtons.Add(target);
+        }
+
+        return radioButtons;
     }
 
     private void ExecuteCheckCommand()
